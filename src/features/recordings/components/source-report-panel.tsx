@@ -43,14 +43,19 @@ import {
     SOURCE_REPORT_DESCRIPTION_CLASS_NAME,
     SOURCE_REPORT_EMPTY_ACTION_ROW_CLASS_NAME,
     SOURCE_REPORT_EMPTY_DESCRIPTION_CLASS_NAME,
+    SOURCE_REPORT_EMPTY_ERROR_ICON_CLASS_NAME,
     SOURCE_REPORT_EMPTY_HEADER_CLASS_NAME,
+    SOURCE_REPORT_EMPTY_ICON_CLASS_NAME,
+    SOURCE_REPORT_EMPTY_SURFACE_CLASS_NAME,
     SOURCE_REPORT_EMPTY_TITLE_CLASS_NAME,
     SOURCE_REPORT_META_CLASS_NAME,
     SOURCE_REPORT_META_LABEL_CLASS_NAME,
     SOURCE_REPORT_META_MONO_VALUE_CLASS_NAME,
     SOURCE_REPORT_META_ROW_CLASS_NAME,
     SOURCE_REPORT_META_VALUE_CLASS_NAME,
+    SOURCE_REPORT_METRIC_CARD_CLASS_NAME,
     SOURCE_REPORT_METRIC_CARDS_CLASS_NAME,
+    SOURCE_REPORT_PANE_CLASS_NAME,
     SOURCE_REPORT_SECTION_CLASS_NAME,
     SOURCE_REPORT_SECTION_HEADER_CLASS_NAME,
     SOURCE_REPORT_SECTION_SEPARATOR_CLASS_NAME,
@@ -62,9 +67,9 @@ import {
     SOURCE_REPORT_SEGMENT_TIME_CLASS_NAME,
     SOURCE_REPORT_SEGMENTS_CLASS_NAME,
     SOURCE_REPORT_SKELETON_CLASS_NAME,
-    SOURCE_REPORT_STYLE_VARIABLES,
     SOURCE_REPORT_STATE_CLASS_NAME,
     SOURCE_REPORT_STATE_STACK_CLASS_NAME,
+    SOURCE_REPORT_STYLE_VARIABLES,
     SOURCE_REPORT_SUMMARY_BODY_CLASS_NAME,
     SOURCE_REPORT_SUMMARY_TEXT_CLASS_NAME,
 } from "@/features/source-report/styles";
@@ -537,14 +542,11 @@ const SOURCE_REPORT_GHOST_ACTION_BUTTON_CLASS_NAME =
     "h-[26px] gap-[7px] rounded-[7px] border border-transparent bg-transparent px-[10px] text-[12px] font-semibold leading-[normal] text-[var(--fg-secondary)] shadow-none has-[>svg]:px-[10px] hover:bg-[var(--bg-recessed)] hover:text-[var(--fg-primary)] dark:hover:bg-[var(--bg-recessed)]";
 const SOURCE_REPORT_COPY_BUTTON_VARIANT =
     "ghost" satisfies ButtonProps["variant"];
-const SOURCE_REPORT_COPY_BUTTON_SIZE =
-    "sm" satisfies ButtonProps["size"];
+const SOURCE_REPORT_COPY_BUTTON_SIZE = "sm" satisfies ButtonProps["size"];
 const SOURCE_REPORT_COPY_BUTTON_CLASS_NAME =
     "h-[26px] gap-[6px] rounded-[7px] px-[10px] text-[12px] font-semibold leading-normal text-[var(--fg-secondary)] has-[>svg]:px-[10px] hover:bg-[var(--bg-recessed)] hover:text-[var(--fg-primary)] [&_svg:not([class*='size-'])]:size-[14px] data-[copy-state=ok]:border-[var(--button-copy-success-border)] data-[copy-state=ok]:bg-[var(--button-copy-success-bg)] data-[copy-state=ok]:text-[var(--signal-success)] data-[copy-state=ok]:hover:bg-[var(--button-copy-success-bg)] data-[copy-state=ok]:hover:text-[var(--signal-success)] data-[copy-state=err]:border-[var(--button-copy-danger-border)] data-[copy-state=err]:text-[var(--signal-danger)] data-[copy-state=err]:hover:bg-transparent data-[copy-state=err]:hover:text-[var(--signal-danger)]";
 const SOURCE_REPORT_ERROR_ALERT_CLASS_NAME =
     "flex w-full flex-col items-center gap-2 rounded-lg px-4 py-8 text-center text-sm [&>svg]:text-current";
-const SOURCE_REPORT_ERROR_ICON_CLASS_NAME =
-    "mb-0 size-10 rounded-full border border-border bg-background text-muted-foreground [&_svg:not([class*='size-'])]:size-5";
 
 function SourceReportStatusDot() {
     return <span data-sot-part="source-report-status-dot" aria-hidden="true" />;
@@ -710,9 +712,6 @@ function SourceReportMetricCards({ children }: { children: ReactNode }) {
         </div>
     );
 }
-
-const SOURCE_REPORT_METRIC_CARD_CLASS_NAME =
-    "gap-[6px] overflow-visible rounded-[10px] border-[var(--source-report-metric-border)] bg-[var(--source-report-metric-bg)] px-[12px] py-[10px] shadow-none backdrop-blur-none";
 
 function SourceReportMetricCard({
     children,
@@ -1403,12 +1402,18 @@ export function SourceReportPanel({
                 <SourceReportState sotState="error" state="error" error={error}>
                     <Alert
                         variant="statusError"
-                        className={SOURCE_REPORT_ERROR_ALERT_CLASS_NAME}
+                        className={cn(
+                            SOURCE_REPORT_ERROR_ALERT_CLASS_NAME,
+                            SOURCE_REPORT_EMPTY_SURFACE_CLASS_NAME,
+                        )}
                         data-sot-source-report-empty
                         data-sot-tone="err"
                     >
                         <EmptyMedia
-                            className={SOURCE_REPORT_ERROR_ICON_CLASS_NAME}
+                            className={cn(
+                                SOURCE_REPORT_EMPTY_ICON_CLASS_NAME,
+                                SOURCE_REPORT_EMPTY_ERROR_ICON_CLASS_NAME,
+                            )}
                             data-sot-source-report-empty-icon
                             aria-hidden="true"
                         >
@@ -1690,7 +1695,9 @@ export function SourceReportPanel({
                             }
                         >
                             <div
-                                className={SOURCE_REPORT_SUMMARY_BODY_CLASS_NAME}
+                                className={
+                                    SOURCE_REPORT_SUMMARY_BODY_CLASS_NAME
+                                }
                                 data-sot-source-report-summary-body
                             >
                                 {sourceSummaryText
@@ -1789,7 +1796,7 @@ export function SourceReportPanel({
             {!data && !error && !isLoading && (
                 <SourceReportState sotState="empty" state="empty">
                     <Empty
-                        className="px-4 py-8"
+                        className={SOURCE_REPORT_EMPTY_SURFACE_CLASS_NAME}
                         data-sot-source-report-empty
                         data-sot-tone="neutral"
                     >
@@ -1799,6 +1806,7 @@ export function SourceReportPanel({
                         >
                             <EmptyMedia
                                 variant="icon"
+                                className={SOURCE_REPORT_EMPTY_ICON_CLASS_NAME}
                                 data-sot-source-report-empty-icon
                             >
                                 <SourceReportEmptyGlyph />
@@ -1829,7 +1837,8 @@ export function SourceReportPanel({
             <Card
                 hasNoPadding
                 className={cn(
-                    "min-h-0 gap-3.5 overflow-hidden px-5 pt-4 pb-6",
+                    SOURCE_REPORT_PANE_CLASS_NAME,
+                    "min-h-0 overflow-hidden px-5 pt-4 pb-6",
                     className,
                 )}
                 data-sot-source-report-pane
@@ -1848,7 +1857,8 @@ export function SourceReportPanel({
         <Card
             hasNoPadding
             className={cn(
-                "min-h-0 gap-3.5 overflow-hidden px-5 pt-4 pb-6",
+                SOURCE_REPORT_PANE_CLASS_NAME,
+                "min-h-0 overflow-hidden px-5 pt-4 pb-6",
                 className,
             )}
             data-sot-source-report-pane

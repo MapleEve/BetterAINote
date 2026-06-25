@@ -31,7 +31,7 @@ const RECORDING_SOURCE_REPORT_SKELETON_LOCAL_COMPOSITION_TOKENS = [
     '"mt-1.5 inline-block h-[13px] w-[92%] align-middle rounded-[4px]"',
     '"mt-[7px] inline-block h-[13px] w-[88%] align-middle rounded-[4px]"',
     '"ml-[5px] inline-block h-[12px] w-[54px] align-middle rounded-[4px]"',
-    'time: cn(',
+    "time: cn(",
     '"inline-block h-[12px] w-[96px] align-middle rounded-[4px]"',
 ] as const;
 
@@ -51,6 +51,10 @@ const SOURCE_REPORT_STYLE_OWNER_SNIPPETS = [
     "export const SOURCE_REPORT_SKELETON_CLASS_NAME =",
     "![background-color:transparent]",
     "dark:[background-image:linear-gradient(90deg,rgb(255_255_255_/_0.05)_0%,rgb(255_255_255_/_0.12)_50%,rgb(255_255_255_/_0.05)_100%)]",
+    "export const SOURCE_REPORT_PANE_CLASS_NAME =",
+    "export const SOURCE_REPORT_METRIC_CARD_CLASS_NAME =",
+    "export const SOURCE_REPORT_EMPTY_SURFACE_CLASS_NAME =",
+    "export const SOURCE_REPORT_EMPTY_ICON_CLASS_NAME =",
     "satisfies SourceReportStyleVariables",
 ] as const;
 
@@ -702,7 +706,9 @@ describe("recording detail copy and title action UI regressions", () => {
         const emptyPrimitive = readSource("components/ui/empty.tsx");
         const skeletonPrimitive = readSource("components/ui/skeleton.tsx");
         const globals = readSource("app/globals.css");
-        const sourceReportStyles = readSource("features/source-report/styles.ts");
+        const sourceReportStyles = readSource(
+            "features/source-report/styles.ts",
+        );
         const sourceReportButtonControls = [
             'data-sot-control="copy-source-transcript"',
             'data-sot-control="copy-source-report"',
@@ -740,12 +746,19 @@ describe("recording detail copy and title action UI regressions", () => {
             expect(sourceReportStyles).toContain(snippet);
         }
         expect(globals).not.toMatch(/--source-report-[a-z-]+/);
-        expect(globals).toContain("[data-sot-source-report-state] {");
+        expect(
+            collectExactCssRuleBlocks(
+                globals,
+                "[data-sot-source-report-state]",
+            ),
+        ).toEqual([]);
+        expect(sourceReportStyles).toContain("SOURCE_REPORT_STATE_CLASS_NAME");
         expect(sourceReport).toContain("@/features/source-report/styles");
         expect(sourceReport).toContain("SOURCE_REPORT_SKELETON_CLASS_NAME");
         expect(sourceReport).toContain("SOURCE_REPORT_STYLE_VARIABLES");
         expect(
-            sourceReport.match(/style=\{SOURCE_REPORT_STYLE_VARIABLES\}/g) ?? [],
+            sourceReport.match(/style=\{SOURCE_REPORT_STYLE_VARIABLES\}/g) ??
+                [],
         ).toHaveLength(3);
         expect(sourceReport).toContain(
             'data-sot-panel="recording-source-report-state"',
@@ -801,8 +814,8 @@ describe("recording detail copy and title action UI regressions", () => {
             RECORDING_SOURCE_REPORT_LOADED_METRIC_CARDS,
         );
         expect(cardPrimitive).not.toContain("sourceReportMetric:");
-        expect(sourceReport).toContain(
-            "const SOURCE_REPORT_METRIC_CARD_CLASS_NAME =",
+        expect(sourceReportStyles).toContain(
+            "export const SOURCE_REPORT_METRIC_CARD_CLASS_NAME =",
         );
         const sourceReportMetricCard = extractOpeningElement(
             sourceReport,
@@ -826,7 +839,7 @@ describe("recording detail copy and title action UI regressions", () => {
         );
         const sourceReportMetricCardClassName =
             expectExactStringConstInitializer(
-                sourceReport,
+                sourceReportStyles,
                 "SOURCE_REPORT_METRIC_CARD_CLASS_NAME",
                 EXPECTED_SOURCE_REPORT_METRIC_CARD_CLASS_NAME,
             );
@@ -844,41 +857,41 @@ describe("recording detail copy and title action UI regressions", () => {
             "data-sot-source-report-empty-icon",
             "EmptyMedia",
         );
-        const sourceReportUsesErrorIconOwnerConstant = sourceReport.includes(
-            "SOURCE_REPORT_ERROR_ICON_CLASS_NAME",
-        );
-        const sourceReportErrorIconOwnerClassTarget =
-            sourceReportUsesErrorIconOwnerConstant
-                ? sourceReport
-                : sourceReportErrorIcon;
         for (const sourceReportErrorIconOwnerClassSnippet of [
-            "mb-0",
-            "size-10",
-            "rounded-full",
-            "border border-border",
-            "bg-background",
-            "text-muted-foreground",
-            "[&_svg:not([class*='size-'])]:size-5",
+            "SOURCE_REPORT_EMPTY_ICON_CLASS_NAME",
+            "SOURCE_REPORT_EMPTY_ERROR_ICON_CLASS_NAME",
         ] as const) {
-            expect(sourceReportErrorIconOwnerClassTarget).toContain(
+            expect(sourceReportErrorIcon).toContain(
                 sourceReportErrorIconOwnerClassSnippet,
             );
         }
-        if (sourceReportUsesErrorIconOwnerConstant) {
-            expect(sourceReport).toContain(
-                "SOURCE_REPORT_ERROR_ICON_CLASS_NAME",
+        for (const sourceReportEmptyIconStyleSnippet of [
+            "mb-1",
+            "inline-grid",
+            "size-10",
+            "place-items-center",
+            "border-[var(--line-hairline)]",
+            "text-[var(--fg-tertiary)]",
+            "[&_svg:not([class*='size-'])]:size-4",
+            "border-[color-mix(in_srgb,var(--signal-danger)_28%,transparent)]",
+            "bg-[color-mix(in_srgb,var(--signal-danger)_14%,transparent)]",
+            "text-[var(--signal-danger)]",
+        ] as const) {
+            expect(sourceReportStyles).toContain(
+                sourceReportEmptyIconStyleSnippet,
             );
-            expect(sourceReportErrorIcon).toContain(
-                "className={SOURCE_REPORT_ERROR_ICON_CLASS_NAME}",
-            );
-        } else {
-            expect(sourceReportErrorIcon).toContain("className=");
         }
+        expect(sourceReport).not.toContain(
+            "SOURCE_REPORT_ERROR_ICON_CLASS_NAME",
+        );
         expect(sourceReport).not.toContain('variant="sourceReportErrorIcon"');
         expect(sourceReportErrorState).toContain("<EmptyMedia");
         expect(sourceReportErrorState).toContain('variant="statusError"');
         expect(sourceReportErrorState).toContain(
-            "className={SOURCE_REPORT_ERROR_ALERT_CLASS_NAME}",
+            "SOURCE_REPORT_ERROR_ALERT_CLASS_NAME",
+        );
+        expect(sourceReportErrorState).toContain(
+            "SOURCE_REPORT_EMPTY_SURFACE_CLASS_NAME",
         );
         expect(sourceReport).toContain("SOURCE_REPORT_ERROR_ALERT_CLASS_NAME");
         expect(sourceReport).not.toContain('variant="sourceReportError"');
@@ -909,7 +922,9 @@ describe("recording detail copy and title action UI regressions", () => {
         expect(sourceReport).toContain("SOURCE_REPORT_STATUS_BADGE_STYLE");
         expect(sourceReport).not.toContain(variantAttr("sourceReportStatus"));
         for (const primitiveSource of sourceReportPrimitiveSources) {
-            expect(primitiveSource).not.toMatch(/\bsourceReport[A-Za-z0-9_]*\b/);
+            expect(primitiveSource).not.toMatch(
+                /\bsourceReport[A-Za-z0-9_]*\b/,
+            );
         }
         expect(emptyPrimitive).not.toContain("sourceReportErrorIcon");
         expect(emptyPrimitive).not.toContain(
@@ -918,9 +933,7 @@ describe("recording detail copy and title action UI regressions", () => {
         expect(sourceReport).toContain(
             '"ghost" satisfies ButtonProps["variant"]',
         );
-        expect(sourceReport).toContain(
-            '"sm" satisfies ButtonProps["size"]',
-        );
+        expect(sourceReport).toContain('"sm" satisfies ButtonProps["size"]');
         for (const token of SOURCE_REPORT_SKELETON_SHARED_TOKENS) {
             expect(skeletonPrimitive).not.toContain(token);
         }
@@ -1013,7 +1026,15 @@ describe("recording detail copy and title action UI regressions", () => {
         expect(sourceReport).toContain("data-sot-source-report-segment-time");
         expect(sourceReport).toContain('data-sot-format="mono"');
         expect(sourceReport).toContain("data-sot-source-report-meta-value");
-        expect(globals).toContain('[data-sot-part="source-report-copy-label"]');
+        expect(sourceReportStyles).toContain(
+            "SOURCE_REPORT_COPY_LABEL_CLASS_NAME",
+        );
+        expect(
+            collectCssRuleBlocks(
+                globals,
+                '[data-sot-part="source-report-copy-label"]',
+            ),
+        ).toEqual([]);
         expect(sourceReport).toContain(
             "[&_[data-sot-part=source-report-status-dot]]:inline-block",
         );
@@ -1038,11 +1059,11 @@ describe("recording detail copy and title action UI regressions", () => {
                 ),
             ).toEqual([]);
         }
-        expect(globals).toContain(
-            '[data-sot-source-report-segment-time][data-sot-format="mono"]',
+        expect(sourceReportStyles).toContain(
+            "SOURCE_REPORT_SEGMENT_TIME_CLASS_NAME",
         );
-        expect(globals).toContain(
-            '[data-sot-source-report-meta-value][data-sot-format="mono"]',
+        expect(sourceReportStyles).toContain(
+            "SOURCE_REPORT_META_MONO_VALUE_CLASS_NAME",
         );
         expect(sourceReport).toContain("data-sot-source-report-state");
         expect(sourceReport).toContain("data-sot-source-report-empty");
@@ -1096,7 +1117,9 @@ describe("recording detail copy and title action UI regressions", () => {
                 expect(controlSource).not.toMatch(
                     /variant="sourceReport(?:Ghost)?Action"/,
                 );
-                expect(controlSource).not.toContain('size="sourceReportAction"');
+                expect(controlSource).not.toContain(
+                    'size="sourceReportAction"',
+                );
             }
             expect(controlSource).toContain("data-sot-control=");
             expect(controlSource).not.toContain("copy-btn");
@@ -1236,7 +1259,9 @@ describe("recording detail copy and title action UI regressions", () => {
         expect(detailBackControl).toContain("<ArrowLeft");
         expect(detailBackControl).toContain('data-icon="inline-start"');
         expect(detailBackControl).toContain('{t("recording.backToDashboard")}');
-        expect(detailBackControl).not.toContain('variant="recordingDetailBack"');
+        expect(detailBackControl).not.toContain(
+            'variant="recordingDetailBack"',
+        );
         expect(detailWorkstation).toContain("[&_span]:truncate");
         expect(detailWorkstation).toContain("[&_svg]:stroke-[1.7]");
         expect(detailWorkstation).toContain("[&_svg]:opacity-[0.85]");
@@ -2117,7 +2142,9 @@ describe("recording detail copy and title action UI regressions", () => {
         expect(errorPrimaryAction).toContain('size="default"');
         expect(errorGhostAction).toContain('size="default"');
         for (const source of [notFound, error]) {
-            expect(source).not.toContain('variant="recordingRoutePrimaryAction"');
+            expect(source).not.toContain(
+                'variant="recordingRoutePrimaryAction"',
+            );
             expect(source).not.toContain('variant="recordingRouteGhostAction"');
             expect(source).not.toContain('size="recordingRouteAction"');
         }
@@ -2531,7 +2558,9 @@ describe("recording detail copy and title action UI regressions", () => {
         }
 
         for (const primitiveSource of [cardPrimitive, badgePrimitive]) {
-            expect(primitiveSource).not.toMatch(/\brecordingTag[A-Za-z0-9_]*\b/);
+            expect(primitiveSource).not.toMatch(
+                /\brecordingTag[A-Za-z0-9_]*\b/,
+            );
         }
         expect(tagManager).toContain(
             "appearance: RecordingTagManagerBadgeAppearance",

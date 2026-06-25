@@ -1997,151 +1997,7 @@ body[data-drawer="open"] [data-sot-panel="dashboard-drawer-scrim"] {
     border-radius: 999px;
 }
 
-/* ---------- Source Report tab content ---------- */
-[data-sot-source-report-pane] {
-    display: flex;
-    flex-direction: column;
-    gap: 14px;
-}
-[data-sot-source-report-state] {
-    display: flex;
-    flex-direction: column;
-    gap: 0;
-}
-[data-sot-source-report-state-stack] {
-    display: flex;
-    flex-direction: column;
-    gap: 14px;
-}
-[data-sot-list="source-report-cards"] {
-    display: grid;
-    grid-template-columns: repeat(4, 1fr);
-    gap: 8px;
-}
-[data-sot-list="source-report-cards"] > [data-sot-card] + [data-sot-card] {
-    margin-top: 0;
-}
-[data-sot-part="source-report-card-label"] {
-    font: 600 10.5px var(--font-sans);
-    text-transform: uppercase;
-    letter-spacing: 0.06em;
-    color: var(--fg-tertiary);
-}
-[data-sot-part="source-report-card-value"] {
-    font: 600 13px var(--font-sans);
-    color: var(--fg-primary);
-}
-[data-sot-part="source-report-card-value"][data-sot-value="source"] {
-    display: flex;
-    align-items: center;
-    gap: 6px;
-}
-[data-sot-part="source-report-card-value"][data-sot-value="source"] img {
-    width: 14px;
-    height: 14px;
-    border-radius: 3px;
-    object-fit: contain;
-    flex: none;
-}
-[data-sot-part="source-report-card-source-fallback"] {
-    font: 700 11px var(--font-sans);
-    color: var(--fg-tertiary);
-}
-[data-sot-part="source-report-card-value"][data-sot-value="number"] {
-    font: 600 16px var(--font-mono);
-    color: var(--fg-primary);
-}
-
-[data-sot-source-report-section] {
-    display: flex;
-    flex-direction: column;
-    gap: 8px;
-    padding-top: 8px;
-    border-top: 1px solid var(--line-hairline);
-}
-[data-sot-source-report-section-separator] {
-    display: none;
-}
-[data-theme="dark"] [data-sot-source-report-section] {
-    border-top-color: var(--glass-border-soft);
-}
-[data-sot-source-report-section-header] {
-    display: flex;
-    align-items: baseline;
-    gap: 10px;
-}
-[data-sot-source-report-section-title] {
-    margin: 0;
-    font: 600 12.5px var(--font-sans);
-    color: var(--fg-primary);
-    display: inline-flex;
-    align-items: center;
-    gap: 6px;
-}
-[data-sot-source-report-description],
-[data-sot-source-report-section-description] {
-    font: 500 11.5px var(--font-sans);
-    color: var(--fg-tertiary);
-}
-[data-sot-source-report-summary-body] {
-    display: flex;
-    flex-direction: column;
-    gap: 6px;
-}
-[data-sot-source-report-summary-body] [data-sot-source-report-segment-text] {
-    white-space: pre-wrap;
-}
-
-[data-sot-source-report-segments] {
-    display: flex;
-    flex-direction: column;
-    gap: 2px;
-    padding: 0;
-    margin: 0;
-    list-style: none;
-}
-[data-sot-source-report-segment] {
-    display: grid;
-    grid-template-columns: 96px 56px 1fr;
-    gap: 10px;
-    align-items: start;
-    padding: 8px 10px;
-    border-radius: 6px;
-    background: transparent;
-}
-[data-sot-source-report-segment]:hover {
-    background: var(--bg-recessed);
-}
-[data-theme="dark"] [data-sot-source-report-segment]:hover {
-    background: rgb(255 255 255 / 0.03);
-}
-[data-sot-source-report-segment-time],
-[data-sot-source-report-segment-time][data-sot-format="mono"] {
-    font: 500 11.5px var(--font-mono);
-    color: var(--fg-tertiary);
-}
-[data-sot-source-report-segment-speaker] {
-    font: 600 12px var(--font-sans);
-    color: var(--fg-secondary);
-}
-[data-sot-source-report-segment-text] {
-    margin: 0;
-    font: 500 12.5px / 1.55 var(--font-sans);
-    color: var(--fg-primary);
-    text-wrap: pretty;
-}
-[data-sot-source-report-segment][data-sot-state="skeleton"] {
-    display: block;
-    padding: 8px 10px;
-}
-
-[data-sot-source-report-meta] {
-    display: grid;
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-    gap: 6px 14px;
-    margin: 1em 0;
-}
-[data-sot-source-report-meta-row],
+/* ---------- Source matrix rows ---------- */
 [data-sot-control="matrix-row"] {
     display: grid;
     grid-template-columns: 80px 1fr;
@@ -2151,106 +2007,19 @@ body[data-drawer="open"] [data-sot-panel="dashboard-drawer-scrim"] {
     padding: 6px 0;
     border-bottom: 1px dashed var(--line-hairline);
 }
-[data-theme="dark"] [data-sot-source-report-meta-row],
 [data-theme="dark"] [data-sot-control="matrix-row"] {
     border-bottom-color: var(--glass-border-soft);
 }
-[data-sot-source-report-meta-row] dt,
 [data-sot-control="matrix-row"] [data-sot-part="matrix-label"] {
     margin: 0;
     font: 600 11px var(--font-sans);
     color: var(--fg-tertiary);
 }
-[data-sot-source-report-meta-row] dd,
 [data-sot-control="matrix-row"] [data-sot-part="matrix-value"] {
     margin: 0;
     font: 500 12px var(--font-sans);
     color: var(--fg-primary);
     word-break: break-word;
-}
-[data-sot-source-report-meta-row]
-    dd
-    [data-sot-source-report-meta-value][data-sot-format="mono"] {
-    font-family: var(--font-mono);
-}
-
-[data-sot-source-report-actions] {
-    display: flex;
-    align-items: center;
-    flex-wrap: wrap;
-    gap: 8px;
-    margin-top: 4px;
-}
-
-[data-sot-source-report-empty-actions] {
-    display: flex;
-    align-items: center;
-    flex-wrap: wrap;
-    gap: 6px;
-    margin-top: 8px;
-}
-[data-sot-source-report-empty] {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 4px;
-    padding: 28px 18px;
-    text-align: center;
-    background: var(--bg-recessed);
-    border: 1px dashed var(--line-hairline);
-    border-radius: 10px;
-    box-shadow: none;
-    backdrop-filter: none;
-    -webkit-backdrop-filter: none;
-}
-[data-sot-source-report-empty-header] {
-    gap: 4px;
-}
-[data-sot-source-report-empty][data-sot-tone="err"] {
-    background: color-mix(in srgb, var(--signal-danger) 6%, transparent);
-    border-color: color-mix(in srgb, var(--signal-danger) 26%, transparent);
-}
-[data-sot-source-report-empty-icon] {
-    display: inline-grid;
-    width: 40px;
-    height: 40px;
-    place-items: center;
-    border-radius: 50%;
-    margin-bottom: 4px;
-    background: var(--bg-recessed);
-    border: 1px solid var(--line-hairline);
-    color: var(--fg-tertiary);
-}
-[data-sot-source-report-empty][data-sot-tone="err"]
-    [data-sot-source-report-empty-icon] {
-    background: color-mix(in srgb, var(--signal-danger) 14%, transparent);
-    border-color: color-mix(in srgb, var(--signal-danger) 28%, transparent);
-    color: var(--signal-danger);
-}
-[data-sot-source-report-empty-icon] svg {
-    width: 16px;
-    height: 16px;
-    stroke: currentColor;
-    fill: none;
-    stroke-width: 1.8;
-    stroke-linecap: round;
-    stroke-linejoin: round;
-}
-[data-sot-source-report-empty-title] {
-    display: block;
-    margin: 0;
-    min-height: 0;
-    overflow: visible;
-    font: 600 13px / 1.35 var(--font-sans);
-    letter-spacing: 0;
-    color: var(--fg-primary);
-}
-[data-sot-source-report-empty-description] {
-    display: block;
-    max-width: 360px;
-    font: 500 12px / 1.5 var(--font-sans);
-    letter-spacing: 0;
-    color: var(--fg-tertiary);
 }
 
 /* ---------- Speakers pane: row + bar + edit + merge popover ---------- */
@@ -2706,16 +2475,6 @@ body[data-drawer="open"] [data-sot-panel="dashboard-drawer-scrim"] {
     box-shadow: none;
 }
 
-/* Default 2-up grid in source-report on narrow detail pane */
-@media (max-width: 1200px) {
-    [data-sot-list="source-report-cards"] {
-        grid-template-columns: repeat(2, 1fr);
-    }
-    [data-sot-source-report-meta] {
-        grid-template-columns: 1fr;
-    }
-}
-
 /* ============================================================
    Static state hooks for runtime-driven values — replaces the
    prior imperative style mutation.
@@ -2981,13 +2740,11 @@ select::-ms-expand {
 }
 
 /* ---- Copy actions (transcript / source transcript / source report) ---- */
-[data-sot-part="source-report-copy-label"],
 [data-sot-part="dashboard-copy-label"] {
     display: inline-flex;
     min-width: 0;
     align-items: center;
 }
-[data-sot-part="source-report-copy-icon"],
 [data-sot-part="dashboard-copy-icon"] {
     stroke: currentColor;
     transition:

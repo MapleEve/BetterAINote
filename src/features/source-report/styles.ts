@@ -36,14 +36,18 @@ export const SOURCE_REPORT_STYLE_VARIABLES = {
 export const SOURCE_REPORT_SKELETON_CLASS_NAME =
     "![background-color:transparent] [background-image:var(--source-report-skeleton-bg)] dark:[background-image:linear-gradient(90deg,rgb(255_255_255_/_0.05)_0%,rgb(255_255_255_/_0.12)_50%,rgb(255_255_255_/_0.05)_100%)] [background-size:220%_100%]";
 
+export const SOURCE_REPORT_PANE_CLASS_NAME = "flex flex-col gap-3.5";
+
 export const SOURCE_REPORT_STATE_CLASS_NAME =
     "flex flex-col gap-0 [&[hidden]]:hidden";
 
-export const SOURCE_REPORT_STATE_STACK_CLASS_NAME =
-    "flex flex-col gap-3.5";
+export const SOURCE_REPORT_STATE_STACK_CLASS_NAME = "flex flex-col gap-3.5";
 
 export const SOURCE_REPORT_METRIC_CARDS_CLASS_NAME =
     "grid grid-cols-4 gap-2 max-[1200px]:grid-cols-2";
+
+export const SOURCE_REPORT_METRIC_CARD_CLASS_NAME =
+    "gap-[6px] overflow-visible rounded-[10px] border-[var(--source-report-metric-border)] bg-[var(--source-report-metric-bg)] px-[12px] py-[10px] shadow-none backdrop-blur-none";
 
 export const SOURCE_REPORT_CARD_LABEL_CLASS_NAME =
     "text-[10.5px] font-semibold uppercase tracking-[0.06em] text-[var(--fg-tertiary)]";
@@ -77,14 +81,13 @@ export const SOURCE_REPORT_SECTION_TITLE_CLASS_NAME =
 export const SOURCE_REPORT_DESCRIPTION_CLASS_NAME =
     "text-[11.5px] font-medium text-[var(--fg-tertiary)]";
 
-export const SOURCE_REPORT_SUMMARY_BODY_CLASS_NAME =
-    "flex flex-col gap-1.5";
+export const SOURCE_REPORT_SUMMARY_BODY_CLASS_NAME = "flex flex-col gap-1.5";
 
 export const SOURCE_REPORT_SEGMENTS_CLASS_NAME =
     "m-0 flex list-none flex-col gap-0.5 p-0";
 
 export const SOURCE_REPORT_SEGMENT_CLASS_NAME =
-    "grid grid-cols-[96px_56px_1fr] items-start gap-2.5 rounded-[6px] bg-transparent px-2.5 py-2 hover:bg-[var(--bg-recessed)]";
+    "grid grid-cols-[96px_56px_1fr] items-start gap-2.5 rounded-[6px] bg-transparent px-2.5 py-2 hover:bg-[var(--bg-recessed)] dark:hover:bg-[rgb(255_255_255_/_0.03)]";
 
 export const SOURCE_REPORT_SEGMENT_SKELETON_CONTAINER_CLASS_NAME =
     "block px-2.5 py-2";
@@ -121,7 +124,16 @@ export const SOURCE_REPORT_ACTION_ROW_CLASS_NAME =
 export const SOURCE_REPORT_EMPTY_ACTION_ROW_CLASS_NAME =
     "mt-2 flex flex-wrap items-center gap-1.5";
 
+export const SOURCE_REPORT_EMPTY_SURFACE_CLASS_NAME =
+    "flex flex-col items-center gap-1 rounded-[10px] border border-dashed border-[var(--line-hairline)] bg-[var(--bg-recessed)] px-[18px] py-7 text-center shadow-none backdrop-blur-none dark:border-[var(--glass-border-soft)] data-[sot-tone=err]:border-[color-mix(in_srgb,var(--signal-danger)_26%,transparent)] data-[sot-tone=err]:bg-[color-mix(in_srgb,var(--signal-danger)_6%,transparent)]";
+
 export const SOURCE_REPORT_EMPTY_HEADER_CLASS_NAME = "gap-1";
+
+export const SOURCE_REPORT_EMPTY_ICON_CLASS_NAME =
+    "mb-1 inline-grid size-10 place-items-center rounded-full border border-[var(--line-hairline)] bg-[var(--bg-recessed)] text-[var(--fg-tertiary)] [&_svg]:fill-none [&_svg]:stroke-current [&_svg]:stroke-[1.8] [&_svg]:[stroke-linecap:round] [&_svg]:[stroke-linejoin:round] [&_svg:not([class*='size-'])]:size-4";
+
+export const SOURCE_REPORT_EMPTY_ERROR_ICON_CLASS_NAME =
+    "border-[color-mix(in_srgb,var(--signal-danger)_28%,transparent)] bg-[color-mix(in_srgb,var(--signal-danger)_14%,transparent)] text-[var(--signal-danger)]";
 
 export const SOURCE_REPORT_EMPTY_TITLE_CLASS_NAME =
     "m-0 block min-h-0 overflow-visible text-[13px]/[1.35] font-semibold tracking-normal text-[var(--fg-primary)]";
