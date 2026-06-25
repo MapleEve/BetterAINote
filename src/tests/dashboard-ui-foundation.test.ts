@@ -1907,22 +1907,30 @@ describe("dashboard SOT foundation", () => {
         expect(badge).not.toContain("[&_[data-sot-part=status-dot]]");
         expect(badge).not.toContain("[&_[data-sot-part=status-label]]");
         for (const playerStatusToken of [
+            "[--sot-player-status-ok-bg:color-mix(in_srgb,var(--signal-success)_14%,transparent)]",
+            "[--sot-player-status-ok-border:color-mix(in_srgb,var(--signal-success)_30%,transparent)]",
+            "[--sot-player-status-info-bg:color-mix(in_srgb,var(--signal-info)_14%,transparent)]",
+            "[--sot-player-status-info-border:color-mix(in_srgb,var(--signal-info)_30%,transparent)]",
+            "[--sot-player-status-warn-bg:color-mix(in_srgb,var(--signal-warning)_18%,transparent)]",
+            "[--sot-player-status-warn-border:color-mix(in_srgb,var(--signal-warning)_32%,transparent)]",
+            "[--sot-player-status-err-bg:color-mix(in_srgb,var(--signal-danger)_14%,transparent)]",
+            "[--sot-player-status-err-border:color-mix(in_srgb,var(--signal-danger)_30%,transparent)]",
             "h-[20px]",
             "min-w-[65.171875px]",
             "justify-normal",
             "gap-[5px]",
             "tracking-[0.005em]",
-            "data-[sot-tone=ok]:border-[var(--source-provider-status-success-border)]",
-            "data-[sot-tone=ok]:bg-[var(--source-provider-status-success-bg)]",
+            "data-[sot-tone=ok]:border-[var(--sot-player-status-ok-border)]",
+            "data-[sot-tone=ok]:bg-[var(--sot-player-status-ok-bg)]",
             "data-[sot-tone=ok]:text-[var(--signal-success)]",
-            "data-[sot-tone=warn]:border-[var(--source-provider-status-warning-border)]",
-            "data-[sot-tone=warn]:bg-[var(--source-provider-status-warning-bg)]",
+            "data-[sot-tone=warn]:border-[var(--sot-player-status-warn-border)]",
+            "data-[sot-tone=warn]:bg-[var(--sot-player-status-warn-bg)]",
             "data-[sot-tone=warn]:text-[var(--signal-warning-strong)]",
-            "data-[sot-tone=err]:border-[var(--source-provider-status-danger-border)]",
-            "data-[sot-tone=err]:bg-[var(--source-provider-status-danger-bg)]",
+            "data-[sot-tone=err]:border-[var(--sot-player-status-err-border)]",
+            "data-[sot-tone=err]:bg-[var(--sot-player-status-err-bg)]",
             "data-[sot-tone=err]:text-[var(--signal-danger)]",
-            "data-[sot-tone=info]:border-[var(--source-provider-status-info-border)]",
-            "data-[sot-tone=info]:bg-[var(--source-provider-status-info-bg)]",
+            "data-[sot-tone=info]:border-[var(--sot-player-status-info-border)]",
+            "data-[sot-tone=info]:bg-[var(--sot-player-status-info-bg)]",
             "data-[sot-tone=info]:text-[var(--signal-info)]",
             "data-[sot-tone=neu]:border-[var(--line-hairline)]",
             "data-[sot-tone=neu]:bg-[var(--bg-recessed)]",
@@ -1935,6 +1943,7 @@ describe("dashboard SOT foundation", () => {
         ]) {
             expect(sotPlayerPrimitives).toContain(playerStatusToken);
         }
+        expect(sotPlayerPrimitives).not.toContain("--source-provider-status");
         expect(badge).not.toContain("playerTagChip:");
         expect(badge).not.toContain("playerTagOverflow:");
         expect(player).toContain("<SotPlayerStatusBadge");
@@ -2459,9 +2468,11 @@ describe("dashboard SOT foundation", () => {
             expect(globals).not.toContain(selector);
         }
         expect(workstation).toContain('data-sot-list="dashboard-sources"');
+        expect(workstation).toContain("sourceProviderThemeClassName");
         expect(workstation).toContain(
-            'className="group/dashboard-workstation"',
+            'className={cn(\n                "group/dashboard-workstation"',
         );
+        expect(workstation).toContain("dashboardSourceErrorClassName");
         expect(workstation).toContain(
             'data-sot-control="dashboard-source-clear"',
         );

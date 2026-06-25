@@ -21,6 +21,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { SettingsListSkeleton } from "@/features/settings/components/settings-skeletons";
 import { formatDateTime } from "@/lib/format-date";
+import { cn } from "@/lib/utils";
 
 interface SpeakerProfile {
     id: string;
@@ -59,9 +60,25 @@ const speakerAvatarFallbackClassName =
     "bg-accent text-[11px] font-bold text-primary";
 
 const speakerStateBadgeClassName =
-    "h-5 gap-1 rounded-full border px-2 py-0 text-[10.5px] font-semibold data-[sot-tone=success]:border-[var(--source-provider-status-success-border)] data-[sot-tone=success]:bg-[var(--source-provider-status-success-bg)] data-[sot-tone=success]:text-[var(--signal-success)] data-[sot-tone=warning]:border-[var(--source-provider-status-warning-border)] data-[sot-tone=warning]:bg-[var(--source-provider-status-warning-bg)] data-[sot-tone=warning]:text-[var(--signal-warning-strong)] data-[sot-tone=danger]:border-[var(--source-provider-status-danger-border)] data-[sot-tone=danger]:bg-[var(--source-provider-status-danger-bg)] data-[sot-tone=danger]:text-[var(--signal-danger)] data-[sot-tone=neutral]:border-[var(--line-hairline)] data-[sot-tone=neutral]:bg-[var(--bg-recessed)] data-[sot-tone=neutral]:text-[var(--fg-secondary)]";
+    "h-5 gap-1 rounded-full border px-2 py-0 text-[10.5px] font-semibold data-[sot-tone=success]:border-[color-mix(in_srgb,var(--signal-success)_30%,transparent)] data-[sot-tone=success]:bg-[color-mix(in_srgb,var(--signal-success)_14%,transparent)] data-[sot-tone=success]:text-[var(--signal-success)] data-[sot-tone=warning]:border-[color-mix(in_srgb,var(--signal-warning)_32%,transparent)] data-[sot-tone=warning]:bg-[color-mix(in_srgb,var(--signal-warning)_18%,transparent)] data-[sot-tone=warning]:text-[var(--signal-warning-strong)] data-[sot-tone=danger]:border-[color-mix(in_srgb,var(--signal-danger)_30%,transparent)] data-[sot-tone=danger]:bg-[color-mix(in_srgb,var(--signal-danger)_14%,transparent)] data-[sot-tone=danger]:text-[var(--signal-danger)] data-[sot-tone=neutral]:border-[var(--line-hairline)] data-[sot-tone=neutral]:bg-[var(--bg-recessed)] data-[sot-tone=neutral]:text-[var(--fg-secondary)]";
 
 const speakerSettingsRowClassName = "border-b border-border py-3";
+
+const speakerSettingsBannerIconSlotClassName =
+    "[&_[data-sot-banner-icon]]:inline-flex [&_[data-sot-banner-icon]]:size-6 [&_[data-sot-banner-icon]]:flex-none [&_[data-sot-banner-icon]]:items-center [&_[data-sot-banner-icon]]:justify-center [&_[data-sot-banner-icon]]:rounded-md [&_[data-sot-banner-icon]]:border [&_[data-sot-banner-icon]]:border-[var(--settings-banner-icon-border)] [&_[data-sot-banner-icon]]:bg-[var(--settings-banner-icon-bg)] [&_[data-sot-banner-icon]]:text-[var(--settings-banner-icon-color)] [&_[data-sot-banner-icon]_svg]:size-3.5";
+
+const speakerSettingsBannerBaseClassName =
+    "mb-4 w-full rounded-lg border px-3.5 py-3 text-sm text-[var(--fg-primary)]";
+
+const speakerSettingsBannerLayoutClassName =
+    "grid grid-cols-[auto_1fr] items-start gap-3 [&_[data-sot-banner-body]]:min-w-0";
+
+const speakerSettingsBannerActionLayoutClassName =
+    "grid grid-cols-[auto_1fr_auto] items-start gap-3 [&_[data-sot-banner-body]]:min-w-0 [&_[data-slot=button]]:self-start";
+
+const speakerSettingsBannerInfoClassName = `${speakerSettingsBannerIconSlotClassName} [--settings-banner-icon-bg:var(--bg-elevated)] [--settings-banner-icon-border:var(--line-hairline)] [--settings-banner-icon-color:var(--signal-info)] border-[var(--line-hairline)] bg-card`;
+
+const speakerSettingsBannerErrorClassName = `${speakerSettingsBannerIconSlotClassName} [--settings-banner-icon-bg:var(--alert-destructive-soft-strong-bg)] [--settings-banner-icon-border:var(--alert-destructive-soft-border)] [--settings-banner-icon-color:var(--signal-danger)] border-[var(--alert-destructive-soft-border)] bg-[var(--alert-destructive-soft-bg)]`;
 
 function StatePill({
     children,
@@ -99,11 +116,15 @@ function PanelNotice({
 
     return (
         <Alert
-            variant={
-                tone === "danger" ? "settingsBannerError" : "settingsBanner"
-            }
-            density="settingsBanner"
-            layout={action ? "settingsBannerAction" : "settingsBanner"}
+            className={cn(
+                speakerSettingsBannerBaseClassName,
+                action
+                    ? speakerSettingsBannerActionLayoutClassName
+                    : speakerSettingsBannerLayoutClassName,
+                tone === "danger"
+                    ? speakerSettingsBannerErrorClassName
+                    : speakerSettingsBannerInfoClassName,
+            )}
             data-sot-banner="speaker-profiles-notice"
             data-sot-panel={panel}
             data-sot-state={state}

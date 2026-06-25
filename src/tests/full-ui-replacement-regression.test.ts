@@ -34,6 +34,21 @@ function readSource(relativePath: string) {
     return readFileSync(path.join(ROOT, relativePath), "utf8");
 }
 
+function findStringConstInitializerContaining(
+    source: string,
+    snippets: readonly string[],
+) {
+    const initializer =
+        [...source.matchAll(/const\s+[A-Za-z0-9_]+\s*=\s*"[^"]*";/g)]
+            .map((match) => match[0])
+            .find((candidate) =>
+                snippets.every((snippet) => candidate.includes(snippet)),
+            ) ?? "";
+
+    expect(initializer).not.toBe("");
+    return initializer;
+}
+
 const ROUTE_LOADING_SURFACE_CLASS_VALUE =
     "min-h-0 gap-0 overflow-hidden rounded-[16px] border-[var(--line-hairline)] bg-[var(--bg-elevated)] shadow-[var(--shadow-sm)] backdrop-blur-none dark:border-[var(--glass-border)]";
 const ROUTE_LOADING_SURFACE_CLASS_TOKENS =
@@ -886,6 +901,18 @@ function collectExactCssRuleBlocks(source: string, selector: string) {
             .split(",")
             .map((selectorPart) => selectorPart.trim())
             .includes(selector),
+    );
+}
+
+function collectProviderDetailActionGlobalBusinessBlocks(source: string) {
+    return PROVIDER_DETAIL_ACTION_GLOBAL_SELECTOR_FRAGMENTS.flatMap(
+        (selectorFragment) =>
+            collectCssRuleBlocks(source, selectorFragment).filter(
+                ({ declarations }) =>
+                    PROVIDER_DETAIL_ACTION_GLOBAL_DECLARATION_RE.test(
+                        declarations,
+                    ),
+            ),
     );
 }
 
@@ -1945,6 +1972,28 @@ function listSourceFiles(directory: string): string[] {
     return files;
 }
 
+function isOwnerLocalModernColorLine(relativePath: string, line: string) {
+    if (relativePath === "features/settings/components/settings-content.tsx") {
+        return (
+            line.includes("source-provider") ||
+            line.includes("bg-[color-mix(in_srgb,var(--bg-recessed)_55%")
+        );
+    }
+
+    if (
+        relativePath ===
+        "features/settings/components/sections/speaker-profiles-panel.tsx"
+    ) {
+        return line.includes("data-[sot-tone=");
+    }
+
+    if (relativePath === "features/dashboard/workstation.tsx") {
+        return line.includes("source-provider");
+    }
+
+    return false;
+}
+
 function collectInlineModernColorFindings() {
     const tagVisualsPath =
         "features/recordings/components/recording-tag-visuals.tsx";
@@ -1974,6 +2023,16 @@ function collectInlineModernColorFindings() {
                     "bg-[color-mix(in_srgb,var(--signal-warning)_18%,transparent)]",
                 );
             if (sharedNoAudioPrimitiveColor) continue;
+
+            const sharedPlayerStatusPrimitiveColor =
+                relativePath ===
+                    "features/recordings/components/sot-player-primitives.tsx" &&
+                line.includes("--sot-player-status-");
+            if (sharedPlayerStatusPrimitiveColor) continue;
+
+            if (isOwnerLocalModernColorLine(relativePath, line)) {
+                continue;
+            }
 
             const catalogMatch = line.match(
                 /^\s*(red|orange|green|blue|purple|slate): tagSwatchStyle\("oklch\([^)]+\)"\),$/,
@@ -2453,6 +2512,16 @@ const SOURCE_AUTH_MODE_REMOVED_GLOBAL_SELECTORS = [
     '[data-sot-part="source-auth-mode-title"]',
     '[data-sot-part="source-auth-mode-description"]',
 ] as const;
+
+const PROVIDER_DETAIL_ACTION_GLOBAL_SELECTOR_FRAGMENTS = [
+    '[data-sot-panel="source-actions"]',
+    '[data-sot-part="source-action-status"]',
+    '[data-sot-control="source-test"]',
+    '[data-sot-control="source-save"]',
+] as const;
+
+const PROVIDER_DETAIL_ACTION_GLOBAL_DECLARATION_RE =
+    /^\s*(?:display|align-items|justify-content|gap|margin(?:-[\w-]+)?|flex(?:-[\w-]+)?|pointer-events|position|z-index|inset|padding(?:-[\w-]+)?|width|height)\s*:/m;
 
 const DASHBOARD_DETAIL_PANE_LEGACY_CLASS_NAMES = [
     'className="t-actions"',
@@ -3130,8 +3199,6 @@ describe("full UI replacement regression coverage", () => {
             "accent",
             "quietOutline",
             "accentLink",
-            "settingsClose",
-            "settingsNav",
             "dashboardNav",
             "dashboardSync",
             "dashboardCopy",
@@ -3152,9 +3219,10 @@ describe("full UI replacement regression coverage", () => {
         for (const variant of DASHBOARD_RECORDING_LIST_BUTTON_VARIANTS) {
             expect(buttonVariantBlock).toContain(`${variant}:`);
         }
-        for (const settingsButtonSize of ["settingsClose", "settingsNav"]) {
-            expect(buttonSizeBlock).toContain(`${settingsButtonSize}:`);
-        }
+        expect(button).not.toContain("settingsClose:");
+        expect(button).not.toContain("settingsNav:");
+        expect(buttonSizeBlock).not.toContain("settingsClose:");
+        expect(buttonSizeBlock).not.toContain("settingsNav:");
         for (const size of DASHBOARD_RECORDING_LIST_BUTTON_SIZES) {
             expect(buttonSizeBlock).toContain(`${size}:`);
         }
@@ -3504,8 +3572,8 @@ describe("full UI replacement regression coverage", () => {
         expect(toggleGroup).toContain("recordingTagIconOption:");
         expect(toggleGroup).toContain("onboardingSourceAuthMode:");
         expect(toggleGroup).toContain("onboardingSourceAuthModeOption:");
-        expect(toggleGroup).toContain("settingsSourceAuthMode:");
-        expect(toggleGroup).toContain("settingsSourceAuthModeOption:");
+        expect(toggleGroup).not.toContain("settingsSourceAuthMode:");
+        expect(toggleGroup).not.toContain("settingsSourceAuthModeOption:");
         expect(toggleGroup).toContain("swatch:");
         expect(toggleGroup).toContain("toggle-group-swatch group/swatch");
         expect(toggleGroup).toContain("toggle-group-swatch-tone-blue");
@@ -5075,6 +5143,11 @@ describe("full UI replacement regression coverage", () => {
             "components/ui/toggle-group.tsx",
         );
         const globals = readSource("app/globals.css");
+        const sourceProviderThemeClassName =
+            findStringConstInitializerContaining(workstation, [
+                "--source-provider-status-",
+                "--source-provider-primary-",
+            ]);
 
         expect(workstation).toContain(
             'data-sot-surface="dashboard-workstation"',
@@ -5108,9 +5181,18 @@ describe("full UI replacement regression coverage", () => {
         expect(workstation).toContain(
             'data-sot-control="dashboard-source-provider"',
         );
-        expect(workstation).toContain(
-            'className="group/dashboard-workstation"',
+        expect(sourceProviderThemeClassName).toMatch(
+            /--source-provider-status-[a-z-]+:/,
         );
+        expect(sourceProviderThemeClassName).toMatch(
+            /--source-provider-primary-[a-z-]+:/,
+        );
+        expect(globals).not.toMatch(/--source-provider-status-[a-z-]+/);
+        expect(button).not.toMatch(/--source-provider-status-[a-z-]+/);
+        expect(workstation).toContain(
+            'className={cn(\n                "group/dashboard-workstation"',
+        );
+        expect(workstation).toContain("dashboardSourceErrorClassName");
         for (const removedConstant of DASHBOARD_SHELL_SOURCE_BUTTON_CONSTANTS) {
             expect(workstation).not.toContain(removedConstant);
         }
@@ -5690,30 +5772,29 @@ describe("full UI replacement regression coverage", () => {
         expect(sourceReportBadgePrimitive).not.toContain(
             "dashboard-recording-status-dot",
         );
-        for (const dashboardStatusToken of [
-            "data-[sot-tone=ok]:border-[var(--source-provider-status-success-border)]",
-            "data-[sot-tone=ok]:bg-[var(--source-provider-status-success-bg)]",
-            "data-[sot-tone=ok]:text-[var(--signal-success)]",
-            "data-[sot-tone=warn]:border-[var(--source-provider-status-warning-border)]",
-            "data-[sot-tone=warn]:bg-[var(--source-provider-status-warning-bg)]",
-            "data-[sot-tone=warn]:text-[var(--signal-warning-strong)]",
-            "data-[sot-tone=err]:border-[var(--source-provider-status-danger-border)]",
-            "data-[sot-tone=err]:bg-[var(--source-provider-status-danger-bg)]",
-            "data-[sot-tone=err]:text-[var(--signal-danger)]",
-            "data-[sot-tone=info]:border-[var(--source-provider-status-info-border)]",
-            "data-[sot-tone=info]:bg-[var(--source-provider-status-info-bg)]",
-            "data-[sot-tone=info]:text-[var(--signal-info)]",
-            "data-[sot-tone=neu]:border-[var(--line-hairline)]",
-            "data-[sot-tone=neu]:bg-[var(--bg-recessed)]",
-            "data-[sot-tone=neu]:text-[var(--fg-secondary)]",
-            "data-[sot-tone=neu]:[&_[data-sot-part=dashboard-recording-status-dot]]:bg-[var(--fg-tertiary)]",
-            "[&_[data-sot-part=dashboard-recording-status-dot]]:size-[5px]",
-            "[&_[data-sot-part=dashboard-recording-status-dot]]:rounded-full",
-            "[&_[data-sot-part=dashboard-recording-status-dot]]:bg-current",
-            "data-[sot-tone=warn]:[&_[data-sot-part=dashboard-recording-status-dot]]:animate-[bpulse_1.4s_ease-in-out_infinite]",
+        const dashboardRecordingStatusBadgeClass =
+            findStringConstInitializerContaining(workstation, [
+                "data-[sot-tone=ok]",
+                "data-[sot-tone=warn]",
+                "dashboard-recording-status-dot",
+            ]);
+        for (const dashboardStatusTone of [
+            "ok",
+            "warn",
+            "err",
+            "info",
+            "neu",
         ]) {
-            expect(workstation).toContain(dashboardStatusToken);
+            expect(dashboardRecordingStatusBadgeClass).toContain(
+                `data-[sot-tone=${dashboardStatusTone}]`,
+            );
         }
+        expect(dashboardRecordingStatusBadgeClass).toContain(
+            "data-sot-part=dashboard-recording-status-dot",
+        );
+        expect(dashboardRecordingStatusBadgeClass).toContain(
+            "data-[sot-tone=ok]:text-[var(--signal-success)]",
+        );
         expect(
             collectCssRuleBlocks(
                 globals,
@@ -7888,20 +7969,22 @@ describe("full UI replacement regression coverage", () => {
         const badge = readSource("components/ui/badge.tsx");
         const emptyPrimitive = readSource("components/ui/empty.tsx");
         const fieldPrimitive = readSource("components/ui/field.tsx");
+        const inputPrimitive = readSource("components/ui/input.tsx");
         const inputGroupPrimitive = readSource("components/ui/input-group.tsx");
         const skeletonPrimitive = readSource("components/ui/skeleton.tsx");
+        const switchPrimitive = readSource("components/ui/switch.tsx");
         const toggleGroupPrimitive = readSource(
             "components/ui/toggle-group.tsx",
         );
         const globals = readSource("app/globals.css");
         const settingsCloseButton = extractElementSlice(
             settingsDialog,
-            'variant="settingsClose"',
+            'data-sot-control="settings-close"',
             "Button",
         );
         const settingsNavButton = extractElementSlice(
             settingsDialog,
-            'variant="settingsNav"',
+            'data-sot-control="settings-nav"\n',
             "Button",
         );
 
@@ -7909,24 +7992,23 @@ describe("full UI replacement regression coverage", () => {
         expect(settingsCloseButton).toContain(
             'data-sot-control="settings-close"',
         );
-        expect(settingsCloseButton).toContain('variant="settingsClose"');
-        expect(settingsCloseButton).toContain('size="settingsClose"');
+        expect(settingsCloseButton).toContain('variant="ghost"');
+        expect(settingsCloseButton).toContain("SETTINGS_CLOSE_BUTTON_CLASS");
+        expect(settingsCloseButton).toMatch(
+            /className=\{\s*[A-Za-z0-9_]+\s*\}/,
+        );
+        expect(settingsCloseButton).not.toContain('variant="settingsClose"');
+        expect(settingsCloseButton).not.toContain('size="settingsClose"');
         expect(settingsNavButton).toContain('data-sot-control="settings-nav"');
-        expect(settingsNavButton).toContain('variant="settingsNav"');
-        expect(settingsNavButton).toContain('size="settingsNav"');
-        expect(button).toContain(
-            'settingsNav:\n                    "cursor-pointer border border-transparent bg-transparent',
+        expect(settingsNavButton).toContain('variant="ghost"');
+        expect(settingsNavButton).toContain("SETTINGS_NAV_BUTTON_CLASS");
+        expect(settingsNavButton).toMatch(
+            /className=\{\s*[A-Za-z0-9_]+\s*\}/,
         );
-        expect(button).toContain("hover:bg-[var(--bg-recessed)]");
-        expect(button).toContain("focus-visible:outline-[var(--accent)]");
-        expect(button).toContain("data-[state=active]:bg-[var(--bg-elevated)]");
-        expect(button).toContain(
-            "dark:data-[state=active]:bg-[rgb(255_255_255_/_0.07)]",
-        );
-        expect(button).toContain(
-            "h-auto w-full min-w-0 justify-start gap-[10px] truncate",
-        );
-        expect(button).toContain("[&_svg:not([class*='size-'])]:size-[14px]");
+        expect(settingsNavButton).not.toContain('variant="settingsNav"');
+        expect(settingsNavButton).not.toContain('size="settingsNav"');
+        expect(button).not.toContain("settingsNav:");
+        expect(button).not.toContain("settingsClose:");
         for (const selector of REMOVED_SETTINGS_NAV_GLOBAL_REPAINT_SELECTORS) {
             expect(collectExactCssRuleBlocks(globals, selector)).toEqual([]);
         }
@@ -7937,9 +8019,8 @@ describe("full UI replacement regression coverage", () => {
             settingsCloseButton,
             settingsNavButton,
         ]) {
-            expect(settingsControlButton).not.toContain('variant="ghost"');
-            expect(settingsControlButton).not.toContain('size="icon-sm"');
-            expect(settingsControlButton).not.toContain('size="sm"');
+            expect(settingsControlButton).not.toContain('variant="settings');
+            expect(settingsControlButton).not.toContain('size="settings');
         }
         const detailBackButton = extractElementSlice(
             detail,
@@ -7947,6 +8028,63 @@ describe("full UI replacement regression coverage", () => {
             "Button",
         );
         expect(settings).toContain('data-sot-panel="source-provider-detail"');
+        const settingsProviderDetail =
+            settings.match(
+                /<section[\s\S]*?data-sot-panel="source-provider-detail"[\s\S]*?<\/section>/,
+            )?.[0] ?? "";
+        const providerFieldsIndex = settingsProviderDetail.indexOf(
+            'data-sot-panel="source-provider-fields"',
+        );
+        const firstProviderDividerIndex = settingsProviderDetail.indexOf(
+            "data-sot-section-divider",
+            providerFieldsIndex,
+        );
+        const autoUpdateIndex = settingsProviderDetail.indexOf(
+            'data-sot-part="source-auto-update-row"',
+        );
+        const enableSyncIndex = settingsProviderDetail.indexOf(
+            'data-sot-control="source-enable-sync"',
+        );
+        const actionClusterDividerIndex = settingsProviderDetail.indexOf(
+            "data-sot-section-divider",
+            enableSyncIndex,
+        );
+        const sourceActionsIndex = settingsProviderDetail.indexOf(
+            'data-sot-panel="source-actions"',
+        );
+        const providerDetailDividers = [
+            ...settingsProviderDetail.matchAll(
+                /<div[\s\S]*?data-sot-section-divider[\s\S]*?\/>/g,
+            ),
+        ].map((match) => match[0]);
+        expect(settingsProviderDetail).not.toContain("data-sot-section-group");
+        expect(settings).toContain(
+            "const SOURCE_PROVIDER_SECTION_DIVIDER_CLASS =",
+        );
+        expect(settings).toContain(
+            "const SOURCE_PROVIDER_ACTION_CLUSTER_DIVIDER_CLASS = cn(",
+        );
+        expect(
+            providerDetailDividers.some((divider) =>
+                divider.includes("SOURCE_PROVIDER_SECTION_DIVIDER_CLASS"),
+            ),
+        ).toBe(true);
+        expect(
+            providerDetailDividers.some((divider) =>
+                divider.includes(
+                    "SOURCE_PROVIDER_ACTION_CLUSTER_DIVIDER_CLASS",
+                ),
+            ),
+        ).toBe(true);
+        expect(globals).not.toContain(
+            '[data-sot-panel="source-provider-detail"] [data-sot-section-divider]',
+        );
+        expect(providerFieldsIndex).toBeGreaterThanOrEqual(0);
+        expect(firstProviderDividerIndex).toBeGreaterThan(providerFieldsIndex);
+        expect(autoUpdateIndex).toBeGreaterThan(firstProviderDividerIndex);
+        expect(enableSyncIndex).toBeGreaterThan(autoUpdateIndex);
+        expect(actionClusterDividerIndex).toBeGreaterThan(enableSyncIndex);
+        expect(sourceActionsIndex).toBeGreaterThan(actionClusterDividerIndex);
         expect(detail).toContain('data-sot-shell="recording-workstation"');
         expect(detail).toContain('data-sot-panel="workstation-sidebar"');
         expect(detail).toContain('data-sot-panel="workstation-main"');
@@ -8000,30 +8138,28 @@ describe("full UI replacement regression coverage", () => {
             'data-sot-list="source-auth-modes"',
             "ToggleGroup",
         );
-        expect(settingsSourceAuthModeControl).toContain(
+        expect(settingsSourceAuthModeControl).toContain('variant="outline"');
+        expect(settingsSourceAuthModeControl).toContain("spacing={2}");
+        expect(settingsSourceAuthModeControl).toContain("className=");
+        expect(settingsSourceAuthModeControl).not.toContain(
             'layout="settingsSourceAuthMode"',
         );
-        expect(settingsSourceAuthModeControl).toContain(
+        expect(settingsSourceAuthModeControl).not.toContain(
             'variant="settingsSourceAuthModeOption"',
         );
-        expect(settingsSourceAuthModeControl).toContain(
+        expect(settingsSourceAuthModeControl).not.toContain(
             'size="settingsSourceAuthModeOption"',
         );
-        expect(settingsSourceAuthModeControl).toContain(
+        expect(settingsSourceAuthModeControl).not.toContain(
             'spacing="settingsSourceAuthMode"',
         );
-        expect(settingsSourceAuthModeControl).toContain('variant="ghost"');
         expect(settingsSourceAuthModeControl).not.toContain(
             'variant="sourceAuthModeBadge"',
-        );
-        expect(settingsSourceAuthModeControl).not.toContain(
-            'variant="outline"',
         );
         expect(settingsSourceAuthModeControl).not.toContain(
             'variant="secondary"',
         );
         expect(settingsSourceAuthModeControl).not.toContain('size="lg"');
-        expect(settingsSourceAuthModeControl).not.toContain("spacing={2}");
         expect(settingsSourceAuthModeControl).not.toContain(
             'className="mb-4 grid w-full grid-cols-2 items-stretch"',
         );
@@ -8034,20 +8170,18 @@ describe("full UI replacement regression coverage", () => {
         expect(settings).toMatch(
             /getSourceAuthModeDisplayLabel\(\s*mode,\s*language,\s*\)/,
         );
-        const sourceAuthModeBadgeClass = extractBoundedSlice(
+        const sourceAuthModeBadge = extractElementSlice(
             settings,
-            "const SOURCE_AUTH_MODE_BADGE_CLASS =",
-            ";",
+            'data-sot-badge="source-auth-mode"',
+            "Badge",
         );
-        for (const snippet of [
-            "px-1.5",
-            "data-[sot-tone=recommended]:bg-secondary",
-            "data-[sot-tone=recommended]:text-secondary-foreground",
-            "data-[sot-tone=personal]:border-border",
-            "data-[sot-tone=personal]:text-foreground",
-        ]) {
-            expect(sourceAuthModeBadgeClass).toContain(snippet);
-        }
+        expect(sourceAuthModeBadge).toContain("<Badge");
+        expect(sourceAuthModeBadge).toContain("data-sot-tone=");
+        expect(sourceAuthModeBadge).toContain("modeBadge.tone");
+        expect(sourceAuthModeBadge).toContain("{modeBadge.label}");
+        expect(sourceAuthModeBadge).not.toContain(
+            'variant="sourceAuthModeBadge"',
+        );
         const settingsSourceActionStatus = extractElementSlice(
             settings,
             'data-sot-part="source-action-status"',
@@ -8064,28 +8198,32 @@ describe("full UI replacement regression coverage", () => {
         expect(settingsSourceActionStatus).toContain(
             "<SourceActionStatusBadge",
         );
+        expect(settingsSourceActionStatus).toContain(
+            "data-sot-state={actionMessage.state}",
+        );
+        expect(settingsSourceActionStatus).not.toContain(
+            "data-sot-state={sourceSaveState}",
+        );
         expect(settingsSourceActionStatus).not.toContain("sourceActionStatus");
         expect(settingsSourceActionStatus).not.toContain('variant="secondary"');
         expect(settingsSourceActionStatus).not.toContain("className=");
+        expect(settingsSourceActionStatus).not.toContain("showIndicator");
         expect(sourceActionButtonWrapper).toContain("<Button");
-        expect(sourceActionButtonWrapper).toContain(
-            "variant={SOURCE_ACTION_BUTTON_PRIMITIVE_VARIANT_BY_TONE[tone]}",
+        expect(sourceActionButtonWrapper).toContain("variant={");
+        expect(sourceActionButtonWrapper).toContain("className={cn(");
+        expect(sourceActionButtonWrapper).toMatch(
+            /className=\{cn\([\s\S]*className[\s\S]*\)\}/,
         );
-        expect(sourceActionButtonWrapper).toContain('size="xs"');
-        expect(sourceActionButtonWrapper).toContain(
-            "SOURCE_ACTION_BUTTON_CLASS_BY_TONE[tone]",
+        expect(sourceActionButtonWrapper).not.toMatch(
+            /\bsize=["'{][^"'}]*sourceProviderAction/i,
         );
         expect(sourceActionStatusWrapper).toContain("<Badge");
         expect(sourceActionStatusWrapper).toContain('variant="ghost"');
         expect(sourceActionStatusWrapper).toContain(
-            "SOURCE_ACTION_STATUS_BADGE_CLASS",
-        );
-        expect(sourceActionStatusWrapper).toContain(
             'data-sot-part="source-action-status-indicator"',
         );
-        expect(sourceActionStatusWrapper).toContain(
-            "SOURCE_ACTION_STATUS_INDICATOR_CLASS",
-        );
+        expect(sourceActionStatusWrapper).toContain("className={cn(");
+        expect(sourceActionStatusWrapper).not.toContain("showIndicator");
         const settingsRow =
             settings.match(
                 /function SettingsRow[\s\S]*?function SelectControl/,
@@ -8109,32 +8247,138 @@ describe("full UI replacement regression coverage", () => {
             'data-sot-control="voscript-test"',
             "Button",
         );
-        expect(settingsRow).toContain('variant="settingsRow"');
-        expect(settingsRow).toContain('variant="settingsContent"');
-        expect(settingsRow).toContain('variant="settingsControl"');
-        expect(settingsRow).not.toContain("SETTINGS_FIELD_CLASS");
-        expect(settingsRow).not.toContain("SETTINGS_FIELD_CONTENT_CLASS");
-        expect(settingsRow).not.toContain("SETTINGS_CONTROL_CLASS");
-        expect(settings).not.toContain("SETTINGS_FIELD_CLASS");
-        expect(settingFieldControl).toContain('"settingsRow"');
-        expect(settingFieldControl).toContain('"settingsContent"');
-        expect(settingFieldControl).toContain('"settingsControl"');
-        expect(settingFieldControl).not.toContain(
-            '"border-b border-border py-3 last:border-b-0"',
+        const settingsSourceActions = extractElementSlice(
+            settings,
+            'data-sot-panel="source-actions"',
+            "footer",
         );
-        expect(settingsSegmentControl).toContain('layout="settingsSegment"');
+        const sourceActionStatusIndex = settingsSourceActions.indexOf(
+            'data-sot-part="source-action-status"',
+        );
+        const sourceTestIndex = settingsSourceActions.indexOf(
+            'data-sot-control="source-test"',
+        );
+        const sourceSaveIndex = settingsSourceActions.indexOf(
+            'data-sot-control="source-save"',
+        );
+        const providerDetailInputOwnerClass =
+            findStringConstInitializerContaining(settingFieldControl, [
+                "focus-visible:ring-0",
+                "aria-invalid:ring-0",
+                "bg-[var(--bg-recessed)]",
+            ]);
+        const providerDetailInputOwnerClassName =
+            providerDetailInputOwnerClass.match(/const\s+([A-Z0-9_]+)/)?.[1] ??
+            "";
+        const sourceProviderControlClassNameBlock =
+            settingFieldControl.match(
+                /const sourceProviderControlClassName[\s\S]*?;/,
+            )?.[0] ?? "";
+        const sourceProviderSwitchClassNameBlock =
+            settingFieldControl.match(
+                /const sourceProviderSwitchClassName[\s\S]*?;/,
+            )?.[0] ?? "";
+        const providerDetailSwitchOwnerClass =
+            settingFieldControl.match(
+                /export const SOURCE_PROVIDER_DETAIL_SWITCH_CLASS\s*=\s*"[^"]*";/,
+            )?.[0] ?? "";
+        const providerDetailSwitchOwnerClassName =
+            providerDetailSwitchOwnerClass.match(
+                /export const\s+([A-Z0-9_]+)/,
+            )?.[1] ?? "";
+        const settingInputClassNameBlock =
+            settingFieldControl.match(
+                /const inputClassName = cn\([\s\S]*?\n\s*\);/,
+            )?.[0] ?? "";
+        expect(settingsRow).toContain("className={SETTINGS_FIELD_ROW_CLASS}");
+        expect(settingsRow).toContain(
+            "className={SETTINGS_FIELD_CONTENT_CLASS}",
+        );
+        expect(settingsRow).toContain(
+            "className={SETTINGS_FIELD_CONTROL_CLASS}",
+        );
+        expect(settingsRow).not.toContain('variant="settingsRow"');
+        expect(settingFieldControl).toContain("SETTINGS_FIELD_ROW_CLASS");
+        expect(settingFieldControl).toContain("SETTINGS_FIELD_CONTENT_CLASS");
+        expect(settingFieldControl).toContain("SETTINGS_FIELD_CONTROL_CLASS");
+        expect(settingFieldControl).toContain("isSourceProviderDetailVariant");
+        expect(settingFieldControl).toContain(
+            "isSourceProviderCredentialField",
+        );
+        expect(providerDetailInputOwnerClassName).not.toBe("");
+        expect(sourceProviderControlClassNameBlock).toContain(
+            "isSourceProviderDetailVariant",
+        );
+        expect(sourceProviderControlClassNameBlock).toContain(
+            providerDetailInputOwnerClassName,
+        );
+        expect(settingInputClassNameBlock).toContain(
+            "sourceProviderControlClassName",
+        );
+        expect(settingInputClassNameBlock).toContain("field.masked &&");
+        expect(settingInputClassNameBlock).toContain("field.className");
+        expect(sourceProviderSwitchClassNameBlock).toContain(
+            "isSourceProviderDetailVariant",
+        );
+        expect(providerDetailSwitchOwnerClassName).toBe(
+            "SOURCE_PROVIDER_DETAIL_SWITCH_CLASS",
+        );
+        expect(sourceProviderSwitchClassNameBlock).toContain(
+            providerDetailSwitchOwnerClassName,
+        );
+        expect(sourceProviderSwitchClassNameBlock).toContain("undefined");
+        expect(sourceProviderSwitchClassNameBlock).toMatch(
+            /isSourceProviderDetailVariant[\s\S]*\?[\s\S]*:[\s\S]*undefined/,
+        );
+        expect(settingFieldControl).toContain(
+            "className={sourceProviderSwitchClassName}",
+        );
+        expect(settings).toContain("SOURCE_PROVIDER_DETAIL_SWITCH_CLASS");
+        expect(settings).toContain('data-sot-control="source-auto-update"');
+        expect(settings).toContain('data-sot-control="source-enable-sync"');
+        expect(settings).toContain("data-sot-state=");
+        expect(switchPrimitive).toContain('type SwitchVariant = "default"');
+        expect(switchPrimitive).toContain('type SwitchSize = "sm" | "default"');
+        for (const inputPrimitiveBusinessToken of [
+            "sourceProviderDetail",
+            "SOURCE_PROVIDER_DETAIL",
+            "source-provider-detail",
+        ]) {
+            expect(inputPrimitive).not.toContain(inputPrimitiveBusinessToken);
+            expect(globals).not.toContain(inputPrimitiveBusinessToken);
+        }
+        expect(switchPrimitive).not.toContain("sourceProviderDetail");
+        expect(globals).not.toContain("sourceProviderSwitchClassName");
+        expect(globals).not.toContain("SOURCE_PROVIDER_DETAIL_SWITCH_CLASS");
+        expect(settingsSourceActions).toContain(
+            'data-sot-panel="source-actions"',
+        );
+        expect(settingsSourceActions).toContain("actionMessage?.title ? (");
+        expect(settingsSourceActions).toContain("{actionMessage.title}");
+        expect(settingsSourceActions).toContain(
+            "data-sot-state={actionMessage.state}",
+        );
+        expect(sourceActionStatusIndex).toBeGreaterThanOrEqual(0);
+        expect(sourceTestIndex).toBeGreaterThan(sourceActionStatusIndex);
+        expect(sourceSaveIndex).toBeGreaterThan(sourceTestIndex);
+        expect(
+            collectProviderDetailActionGlobalBusinessBlocks(globals),
+        ).toEqual([]);
         expect(settingsSegmentControl).toContain(
+            "className={SETTINGS_SEGMENT_GROUP_CLASS}",
+        );
+        expect(settingsSegmentControl).toContain('variant="outline"');
+        expect(settingsSegmentControl).toContain('size="sm"');
+        expect(settingsSegmentControl).toContain("spacing={1}");
+        expect(settingsSegmentControl).toContain(
+            "className={SETTINGS_SEGMENT_OPTION_CLASS}",
+        );
+        expect(settingsSegmentControl).not.toContain(
+            'layout="settingsSegment"',
+        );
+        expect(settingsSegmentControl).not.toContain(
             'variant="settingsSegmentOption"',
         );
-        expect(settingsSegmentControl).toContain(
-            'size="settingsSegmentOption"',
-        );
-        expect(settingsSegmentControl).toContain(
-            'spacing="settingsSegmentSpacing"',
-        );
-        expect(settingsSegmentControl).not.toContain('variant="outline"');
-        expect(settingsSegmentControl).not.toContain('size="sm"');
-        expect(settingsSegmentControl).not.toContain("spacing={1}");
         expect(settingsSaveStatus).toContain('variant="ghost"');
         expect(settingsSaveStatus).toContain(
             "SETTINGS_SAVE_STATUS_BADGE_CLASS",
@@ -8142,16 +8386,16 @@ describe("full UI replacement regression coverage", () => {
         expect(settingsSaveStatus).not.toContain(
             'variant="settingsSaveStatus"',
         );
-        expect(settingsSaveAction).toContain('variant="settingsSave"');
-        expect(settingsSaveAction).toContain('size="settingsSave"');
-        expect(settingsSaveAction).not.toContain('variant="default"');
-        expect(settingsVoScriptTestAction).toContain(
+        expect(settingsSaveAction).toContain('variant="default"');
+        expect(settingsSaveAction).not.toContain('variant="settingsSave"');
+        expect(settingsSaveAction).not.toContain('size="settingsSave"');
+        expect(settingsVoScriptTestAction).toContain('variant="ghost"');
+        expect(settingsVoScriptTestAction).not.toContain(
             'variant="settingsTestAction"',
         );
-        expect(settingsVoScriptTestAction).toContain(
+        expect(settingsVoScriptTestAction).not.toContain(
             'size="settingsTestAction"',
         );
-        expect(settingsVoScriptTestAction).not.toContain('variant="ghost"');
         expect(badge).toContain('data-slot="badge"');
         expect(badge).toContain("data-variant={variant}");
         expectSourceToExcludeForbiddenSubstrings(
@@ -8159,15 +8403,10 @@ describe("full UI replacement regression coverage", () => {
             BADGE_PRIMITIVE_FORBIDDEN_BUSINESS_TOKENS,
         );
         expect(badge).not.toContain("sourceAuthModeBadge");
-        expect(badge).not.toContain("SOURCE_AUTH_MODE_BADGE_CLASS");
         expect(badge).not.toContain("sourceActionStatus:");
-        expect(button).not.toContain("sourceProviderAction:");
-        expect(button).not.toContain("sourceProviderActionPrimary:");
-        expect(button).not.toContain("sourceProviderActionDanger:");
+        expect(button).not.toMatch(/\bsourceProviderAction\b/);
         expect(badge).not.toContain("data-[sot-tone=recommended]");
         expect(badge).not.toContain("data-[sot-tone=personal]");
-        expect(settings).toContain("SOURCE_ACTION_STATUS_BADGE_CLASS");
-        expect(settings).toContain("SOURCE_ACTION_STATUS_INDICATOR_CLASS");
         expect(badge).not.toContain("source:");
         expect(badge).not.toContain("playerSource:");
         expect(badge).not.toContain(`${"player"}Status:`);
@@ -8175,22 +8414,30 @@ describe("full UI replacement regression coverage", () => {
         expect(badge).not.toContain("[&_[data-sot-part=status-dot]]");
         expect(badge).not.toContain("[&_[data-sot-part=status-label]]");
         for (const playerStatusToken of [
+            "[--sot-player-status-ok-bg:color-mix(in_srgb,var(--signal-success)_14%,transparent)]",
+            "[--sot-player-status-ok-border:color-mix(in_srgb,var(--signal-success)_30%,transparent)]",
+            "[--sot-player-status-info-bg:color-mix(in_srgb,var(--signal-info)_14%,transparent)]",
+            "[--sot-player-status-info-border:color-mix(in_srgb,var(--signal-info)_30%,transparent)]",
+            "[--sot-player-status-warn-bg:color-mix(in_srgb,var(--signal-warning)_18%,transparent)]",
+            "[--sot-player-status-warn-border:color-mix(in_srgb,var(--signal-warning)_32%,transparent)]",
+            "[--sot-player-status-err-bg:color-mix(in_srgb,var(--signal-danger)_14%,transparent)]",
+            "[--sot-player-status-err-border:color-mix(in_srgb,var(--signal-danger)_30%,transparent)]",
             "h-[20px]",
             "min-w-[65.171875px]",
             "justify-normal",
             "gap-[5px]",
             "tracking-[0.005em]",
-            "data-[sot-tone=ok]:border-[var(--source-provider-status-success-border)]",
-            "data-[sot-tone=ok]:bg-[var(--source-provider-status-success-bg)]",
+            "data-[sot-tone=ok]:border-[var(--sot-player-status-ok-border)]",
+            "data-[sot-tone=ok]:bg-[var(--sot-player-status-ok-bg)]",
             "data-[sot-tone=ok]:text-[var(--signal-success)]",
-            "data-[sot-tone=warn]:border-[var(--source-provider-status-warning-border)]",
-            "data-[sot-tone=warn]:bg-[var(--source-provider-status-warning-bg)]",
+            "data-[sot-tone=warn]:border-[var(--sot-player-status-warn-border)]",
+            "data-[sot-tone=warn]:bg-[var(--sot-player-status-warn-bg)]",
             "data-[sot-tone=warn]:text-[var(--signal-warning-strong)]",
-            "data-[sot-tone=err]:border-[var(--source-provider-status-danger-border)]",
-            "data-[sot-tone=err]:bg-[var(--source-provider-status-danger-bg)]",
+            "data-[sot-tone=err]:border-[var(--sot-player-status-err-border)]",
+            "data-[sot-tone=err]:bg-[var(--sot-player-status-err-bg)]",
             "data-[sot-tone=err]:text-[var(--signal-danger)]",
-            "data-[sot-tone=info]:border-[var(--source-provider-status-info-border)]",
-            "data-[sot-tone=info]:bg-[var(--source-provider-status-info-bg)]",
+            "data-[sot-tone=info]:border-[var(--sot-player-status-info-border)]",
+            "data-[sot-tone=info]:bg-[var(--sot-player-status-info-bg)]",
             "data-[sot-tone=info]:text-[var(--signal-info)]",
             "data-[sot-tone=neu]:border-[var(--line-hairline)]",
             "data-[sot-tone=neu]:bg-[var(--bg-recessed)]",
@@ -8203,6 +8450,7 @@ describe("full UI replacement regression coverage", () => {
         ]) {
             expect(sotPlayerPrimitives).toContain(playerStatusToken);
         }
+        expect(sotPlayerPrimitives).not.toContain("--source-provider-status");
         expect(badge).not.toContain("playerTagChip:");
         expect(badge).not.toContain("playerTagOverflow:");
         expect(badge).not.toContain('"player-status":');
@@ -8219,18 +8467,18 @@ describe("full UI replacement regression coverage", () => {
             "settingsVoScriptWarning:",
             "settingsBannerAction:",
         ]) {
-            expect(alertPrimitive).toContain(settingsAlertPrimitiveToken);
+            expect(alertPrimitive).not.toContain(settingsAlertPrimitiveToken);
         }
-        expect(fieldPrimitive).toContain("settingsRowFieldClassName");
-        expect(fieldPrimitive).toContain("settingsContent:");
-        expect(fieldPrimitive).toContain("settingsControl:");
-        expect(button).toContain("settingsSave:");
-        expect(button).toContain("settingsTestAction:");
-        expect(button).toContain("settingsSourceRetry:");
-        expect(button).toContain("settingsSectionRetry:");
-        expect(toggleGroupPrimitive).toContain("settingsSegment");
-        expect(toggleGroupPrimitive).toContain("settingsSegmentOption:");
-        expect(toggleGroupPrimitive).toContain("settingsSegmentSpacing");
+        expect(fieldPrimitive).not.toContain("settingsRow");
+        expect(fieldPrimitive).not.toContain("settingsContent");
+        expect(fieldPrimitive).not.toContain("settingsControl");
+        expect(button).not.toContain("settingsSave:");
+        expect(button).not.toContain("settingsTestAction:");
+        expect(button).not.toContain("settingsSourceRetry:");
+        expect(button).not.toContain("settingsSectionRetry:");
+        expect(toggleGroupPrimitive).not.toContain("settingsSegment");
+        expect(toggleGroupPrimitive).not.toContain("settingsSegmentOption:");
+        expect(toggleGroupPrimitive).not.toContain("settingsSegmentSpacing");
         const settingsSourceStateAlert = extractOpeningElement(
             settings,
             'data-sot-banner="source-state"',
@@ -8261,53 +8509,49 @@ describe("full UI replacement regression coverage", () => {
             'data-sot-banner="voscript-unavailable"',
             "Alert",
         );
-        expect(settingsSourceStateAlert).toContain('density="settingsBanner"');
-        expect(settingsSourceStateAlert).toContain('layout="settingsBanner"');
-        expect(settingsSourceStateAlert).toContain('"settingsBannerError"');
-        expect(settingsSourceStateAlert).toContain('"settingsBanner"');
+        expect(settingsSourceStateAlert).toContain(
+            "SETTINGS_BANNER_BASE_CLASS",
+        );
+        expect(settingsSourceStateAlert).toContain(
+            "SETTINGS_BANNER_LAYOUT_CLASS",
+        );
+        expect(settingsSourceStateAlert).toContain(
+            "SETTINGS_BANNER_ERROR_CLASS",
+        );
+        expect(settingsSourceStateAlert).toContain(
+            "SETTINGS_BANNER_TONE_CLASS",
+        );
         for (const settingsLoadErrorAlert of [
             settingsSourceLoadErrorAlert,
             settingsSectionLoadErrorAlert,
         ]) {
             expect(settingsLoadErrorAlert).toContain(
+                "SETTINGS_BANNER_BASE_CLASS",
+            );
+            expect(settingsLoadErrorAlert).toContain(
+                "SETTINGS_BANNER_ACTION_LAYOUT_CLASS",
+            );
+            expect(settingsLoadErrorAlert).toContain(
+                "SETTINGS_BANNER_ERROR_CLASS",
+            );
+            expect(settingsLoadErrorAlert).not.toContain(
                 'variant="settingsLoadError"',
             );
-            expect(settingsLoadErrorAlert).toContain(
-                'density="settingsBanner"',
-            );
-            expect(settingsLoadErrorAlert).toContain(
-                'layout="settingsBannerAction"',
-            );
         }
-        expect(settingsSourceLoadRetry).toContain(
-            'variant="settingsSourceRetry"',
-        );
-        expect(settingsSourceLoadRetry).toContain('size="settingsSourceRetry"');
+        expect(settingsSourceLoadRetry).toContain('variant="default"');
         expect(settingsSourceLoadRetry).toContain(
             "onClick={() => void refreshSources()}",
         );
-        expect(settingsSourceLoadRetry).not.toContain('variant="default"');
-        expect(settingsSourceLoadRetry).not.toContain('size="sm"');
-        expect(settingsSectionLoadRetry).toContain(
-            'variant="settingsSectionRetry"',
-        );
-        expect(settingsSectionLoadRetry).toContain(
-            'size="settingsSectionRetry"',
-        );
+        expect(settingsSectionLoadRetry).toContain('variant="default"');
         expect(settingsSectionLoadRetry).toContain("onClick={onRetry}");
         expect(settingsSectionLoadRetry).toContain(
             "data-sot-section={section}",
         );
-        expect(settingsSectionLoadRetry).not.toContain('variant="default"');
-        expect(settingsSectionLoadRetry).not.toContain('size="sm"');
         expect(settingsVoScriptUnavailableAlert).toContain(
+            "SETTINGS_BANNER_WARNING_CLASS",
+        );
+        expect(settingsVoScriptUnavailableAlert).not.toContain(
             'variant="settingsVoScriptWarning"',
-        );
-        expect(settingsVoScriptUnavailableAlert).toContain(
-            'density="settingsBanner"',
-        );
-        expect(settingsVoScriptUnavailableAlert).toContain(
-            'layout="settingsBanner"',
         );
         for (const settingsBannerAlert of [
             settingsSourceStateAlert,
@@ -8316,10 +8560,9 @@ describe("full UI replacement regression coverage", () => {
             settingsVoScriptUnavailableAlert,
         ]) {
             expect(settingsBannerAlert).not.toContain(
-                "getSettingsBannerClassName",
+                'density="settingsBanner"',
             );
             expect(settingsBannerAlert).not.toContain('variant="destructive"');
-            expect(settingsBannerAlert).not.toContain("grid-cols-[auto_1fr");
             expect(settingsBannerAlert).not.toContain(
                 "border-destructive/30 bg-destructive/10",
             );
@@ -8375,64 +8618,43 @@ describe("full UI replacement regression coverage", () => {
             ";",
         );
         expect(speakerReviewVoiceprintBadgeClass).toContain("h-[22px]");
-        const providerPrimitiveRepaintSelectors = [
-            '[data-sot-provider-card][data-slot="button"]',
-            '[data-sot-provider-status][data-slot="badge"]',
+        const providerGlobalStyleSelectors = [
+            "[data-sot-provider-card]",
+            "[data-sot-provider-status]",
         ];
-        const settingsDataSourcePrimitiveRepaintTargets = [
+        const sourceProviderBusinessGlobalStyleTargets = [
             {
-                label: "provider detail field",
-                preludeIncludes: ['[data-sot-panel="source-provider-detail"]'],
-                selectorFragment: '[data-slot="field"]',
+                label: "provider detail panel",
+                selectorFragment: '[data-sot-panel="source-provider-detail"]',
             },
             {
-                label: "provider detail input",
-                preludeIncludes: ['[data-sot-panel="source-provider-detail"]'],
-                selectorFragment: '[data-slot="input"]',
+                label: "provider fields list",
+                selectorFragment: '[data-sot-panel="source-provider-fields"]',
             },
             {
-                label: "settings field",
-                preludeIncludes: ['[data-sot-panel="settings-scroll-body"]'],
-                selectorFragment: '[data-slot="field"]',
+                label: "source action footer",
+                selectorFragment: '[data-sot-panel="source-actions"]',
             },
             {
-                label: "settings save button",
-                preludeIncludes: ['[data-sot-panel="settings-save-actions"]'],
-                selectorFragment: '[data-slot="button"]',
+                label: "source action status",
+                selectorFragment: '[data-sot-part="source-action-status"]',
             },
             {
-                label: "source action button",
-                preludeIncludes: ['[data-sot-panel="source-actions"]'],
-                selectorFragment: '[data-slot="button"]',
+                label: "source test action",
+                selectorFragment: '[data-sot-control="source-test"]',
             },
             {
-                label: "provider meta card header",
-                preludeIncludes: ['[data-sot-part="provider-meta"]'],
-                selectorFragment: '[data-slot="card-header"]',
+                label: "source save action",
+                selectorFragment: '[data-sot-control="source-save"]',
             },
         ];
-        const forbiddenSettingsDataSourcePrimitiveRepaintDeclaration =
-            /^\s*(?:background(?:-clip)?|border(?:-(?:color|radius|style|width))?|box-shadow|color|font(?:-[\w-]+)?|height|letter-spacing|line-height|padding|transition|width)\s*:|\b(?:color-mix|oklch|linear-gradient)\(/m;
-        for (const selector of providerPrimitiveRepaintSelectors) {
+        for (const selector of providerGlobalStyleSelectors) {
             expect(collectCssRuleBlocks(globals, selector)).toEqual([]);
         }
-        for (const target of settingsDataSourcePrimitiveRepaintTargets) {
-            const repaintBlocks = collectCssRuleBlocks(
-                globals,
-                target.selectorFragment,
-            ).filter(
-                ({ prelude, declarations }) =>
-                    target.preludeIncludes.every((fragment) =>
-                        prelude.includes(fragment),
-                    ) &&
-                    forbiddenSettingsDataSourcePrimitiveRepaintDeclaration.test(
-                        declarations,
-                    ),
-            );
-
+        for (const target of sourceProviderBusinessGlobalStyleTargets) {
             expect(
-                repaintBlocks,
-                `${target.label} should not repaint shadcn primitives from globals.css`,
+                collectCssRuleBlocks(globals, target.selectorFragment),
+                `${target.label} should keep source-provider styles in feature classes`,
             ).toEqual([]);
         }
         expect(settings).not.toContain("path-card");

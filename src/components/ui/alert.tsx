@@ -11,10 +11,6 @@ type AlertVariant =
     | "recordingTagDeleteConfirm"
     | "recordingTagError"
     | "sourceReportError"
-    | "settingsBanner"
-    | "settingsBannerError"
-    | "settingsLoadError"
-    | "settingsVoScriptWarning"
     | "speakerReviewError";
 type AlertDensity =
     | "default"
@@ -23,34 +19,21 @@ type AlertDensity =
     | "recordingTagDeleteConfirm"
     | "recordingTagError"
     | "sourceReportError"
-    | "settingsBanner"
     | "speakerReviewError";
 type AlertLayout =
     | "default"
     | "inline"
     | "recordingTagInline"
     | "sourceReportError"
-    | "settingsBanner"
-    | "settingsBannerAction"
     | "speakerReviewError";
-type AlertTitleDensity =
-    | "default"
-    | "settingsBanner"
-    | "speakerReviewError";
+type AlertTitleDensity = "default" | "speakerReviewError";
 type AlertDescriptionDensity =
     | "default"
     | "compact"
     | "comfortable"
     | "recordingTagDeleteConfirm"
     | "recordingTagError"
-    | "settingsBanner"
     | "speakerReviewError";
-
-const settingsBannerIconSlotClassName =
-    "[&_[data-sot-banner-icon]]:inline-flex [&_[data-sot-banner-icon]]:size-6 [&_[data-sot-banner-icon]]:flex-none [&_[data-sot-banner-icon]]:items-center [&_[data-sot-banner-icon]]:justify-center [&_[data-sot-banner-icon]]:rounded-md [&_[data-sot-banner-icon]]:border [&_[data-sot-banner-icon]]:border-[var(--settings-banner-icon-border)] [&_[data-sot-banner-icon]]:bg-[var(--settings-banner-icon-bg)] [&_[data-sot-banner-icon]]:text-[var(--settings-banner-icon-color)] [&_[data-sot-banner-icon]_svg]:size-3.5";
-
-const settingsBannerBaseVariantClassName =
-    "[--settings-banner-icon-bg:var(--bg-elevated)] [--settings-banner-icon-border:var(--line-hairline)] [--settings-banner-icon-color:var(--fg-tertiary)] bg-card text-[var(--fg-primary)] [border-color:var(--line-hairline)] *:data-[slot=alert-description]:text-[var(--fg-tertiary)]";
 
 const alertVariantClassNames: Record<AlertVariant, string> = {
     default: "bg-card text-card-foreground",
@@ -68,10 +51,6 @@ const alertVariantClassNames: Record<AlertVariant, string> = {
         "border-[var(--alert-destructive-soft-border)] bg-[var(--alert-destructive-soft-bg)] text-[var(--signal-danger)] *:data-[slot=alert-description]:text-[var(--signal-danger)] [&>svg]:text-current",
     sourceReportError:
         "border-[var(--alert-destructive-soft-border)] bg-[var(--alert-destructive-soft-bg)] text-[var(--signal-danger)] *:data-[slot=alert-description]:text-[var(--signal-danger)] [&>svg]:text-current",
-    settingsBanner: `${settingsBannerBaseVariantClassName} data-[sot-tone=ok]:[--settings-banner-icon-color:var(--signal-success)] data-[sot-tone=warn]:[--settings-banner-icon-color:var(--signal-warning)] data-[sot-tone=err]:[--settings-banner-icon-color:var(--signal-danger)] data-[sot-tone=syncing]:[--settings-banner-icon-color:var(--signal-info)] data-[sot-tone=neu]:[--settings-banner-icon-color:var(--fg-tertiary)] data-[sot-state=err]:[--settings-banner-icon-color:var(--signal-danger)] ${settingsBannerIconSlotClassName}`,
-    settingsBannerError: `[--settings-banner-icon-bg:var(--alert-destructive-soft-strong-bg)] [--settings-banner-icon-border:var(--alert-destructive-soft-border)] [--settings-banner-icon-color:var(--signal-danger)] border-[var(--alert-destructive-soft-border)] bg-[var(--alert-destructive-soft-bg)] text-[var(--fg-primary)] *:data-[slot=alert-description]:text-[var(--fg-primary)] ${settingsBannerIconSlotClassName}`,
-    settingsLoadError: `[--settings-banner-icon-bg:var(--alert-destructive-soft-strong-bg)] [--settings-banner-icon-border:var(--alert-destructive-soft-border)] [--settings-banner-icon-color:var(--signal-danger)] border-[var(--alert-destructive-soft-border)] bg-[var(--alert-destructive-soft-bg)] text-[var(--fg-primary)] *:data-[slot=alert-description]:text-[var(--fg-primary)] ${settingsBannerIconSlotClassName}`,
-    settingsVoScriptWarning: `${settingsBannerBaseVariantClassName} [--settings-banner-icon-color:var(--signal-warning)] data-[sot-state=test-error]:[--settings-banner-icon-color:var(--signal-danger)] ${settingsBannerIconSlotClassName}`,
     speakerReviewError:
         "border-[var(--alert-destructive-soft-border)] bg-[var(--alert-destructive-soft-bg)] text-[var(--signal-danger)] *:data-[slot=alert-description]:text-[var(--signal-danger)] [&>svg]:text-current",
 };
@@ -88,7 +67,6 @@ const alertDensityClassNames: Record<AlertDensity, string> = {
     recordingTagError:
         "rounded-[var(--radius-sm)] px-[10px] py-[8px] text-[12px] leading-[1.4] font-medium has-[>svg]:grid-cols-[14px_1fr] has-[>svg]:gap-x-[8px] [&>svg]:size-[14px] [&>svg]:[stroke-linecap:butt] [&>svg]:[stroke-linejoin:miter]",
     sourceReportError: "rounded-lg px-4 py-8 text-sm",
-    settingsBanner: "mb-4 rounded-lg px-3.5 py-3 text-sm",
     speakerReviewError:
         "rounded-[var(--radius-md)] px-[12px] py-[10px] text-[13px] leading-normal",
 };
@@ -97,21 +75,15 @@ const alertLayoutClassNames: Record<AlertLayout, string> = {
     default:
         "grid w-full grid-cols-[0_1fr] items-start gap-y-0.5 [&>svg]:text-current",
     inline: "flex w-full items-center gap-[8px] [&>svg]:text-current",
-    recordingTagInline: "flex w-full items-center gap-[8px] [&>svg]:text-current",
+    recordingTagInline:
+        "flex w-full items-center gap-[8px] [&>svg]:text-current",
     sourceReportError:
         "flex w-full flex-col items-center gap-2 text-center [&>svg]:text-current",
-    settingsBanner:
-        "grid w-full grid-cols-[auto_1fr] items-start gap-3 [&_[data-sot-banner-body]]:min-w-0",
-    settingsBannerAction:
-        "grid w-full grid-cols-[auto_1fr_auto] items-start gap-3 [&_[data-sot-banner-body]]:min-w-0 [&_[data-slot=button]]:self-start",
-    speakerReviewError:
-        "grid w-full gap-2 [&_[data-slot=button]]:w-fit",
+    speakerReviewError: "grid w-full gap-2 [&_[data-slot=button]]:w-fit",
 };
 
 const alertTitleDensityClassNames: Record<AlertTitleDensity, string> = {
-    default:
-        "col-start-2 line-clamp-1 min-h-4 font-medium tracking-tight",
-    settingsBanner: "font-medium leading-none",
+    default: "col-start-2 line-clamp-1 min-h-4 font-medium tracking-tight",
     speakerReviewError: "min-h-0 font-medium leading-normal tracking-normal",
 };
 
@@ -129,7 +101,6 @@ const alertDescriptionDensityClassNames: Record<
         "block text-[13px] leading-normal text-current [&_strong]:font-bold",
     recordingTagError:
         "flex items-center gap-2 text-[12px] leading-[1.4] font-medium text-current [&_p]:leading-[1.4]",
-    settingsBanner: "mt-1 block text-sm text-muted-foreground",
     speakerReviewError:
         "flex items-center gap-2 text-[12px] leading-normal text-current [&_p]:leading-normal",
 };
@@ -190,7 +161,10 @@ function AlertDescription({
         <div
             data-slot="alert-description"
             data-density={density}
-            className={cn(alertDescriptionDensityClassNames[density], className)}
+            className={cn(
+                alertDescriptionDensityClassNames[density],
+                className,
+            )}
             {...props}
         />
     );

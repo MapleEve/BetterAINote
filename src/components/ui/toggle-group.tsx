@@ -10,15 +10,11 @@ type ToggleGroupLayout =
     | "default"
     | "iconGrid"
     | "onboardingSourceAuthMode"
-    | "settingsSegment"
-    | "settingsSourceAuthMode"
     | "recordingTagColorPicker"
     | "recordingTagIconPicker"
     | "speakerReviewMode";
 type ToggleGroupSemanticSpacing =
     | "onboardingSourceAuthMode"
-    | "settingsSegmentSpacing"
-    | "settingsSourceAuthMode"
     | "recordingTagColorPicker"
     | "recordingTagQuickColorPicker"
     | "recordingTagIconPicker"
@@ -27,8 +23,6 @@ type ToggleGroupSpacing = number | ToggleGroupSemanticSpacing;
 
 const toggleGroupSpacingValues: Record<ToggleGroupSemanticSpacing, number> = {
     onboardingSourceAuthMode: 2,
-    settingsSegmentSpacing: 1,
-    settingsSourceAuthMode: 2,
     recordingTagColorPicker: 2,
     recordingTagQuickColorPicker: 1,
     recordingTagIconPicker: 2,
@@ -48,11 +42,7 @@ const toggleGroupItemVariants = cva(
             variant: {
                 default: "",
                 outline: "border border-input bg-background shadow-xs",
-                settingsSegmentOption:
-                    "border border-input bg-background shadow-xs data-[sot-state=selected]:border-primary/30 data-[sot-state=selected]:bg-primary/10 data-[sot-state=selected]:text-primary",
                 onboardingSourceAuthModeOption:
-                    "h-auto flex-col items-start justify-start whitespace-normal border border-input bg-background px-3.5 py-3 text-left shadow-xs",
-                settingsSourceAuthModeOption:
                     "h-auto flex-col items-start justify-start whitespace-normal border border-input bg-background px-3.5 py-3 text-left shadow-xs",
                 recordingTagColorPicker: "",
                 recordingTagIconPicker: "",
@@ -60,8 +50,7 @@ const toggleGroupItemVariants = cva(
                     "border border-input bg-background shadow-xs",
                 sotSegmented: "border border-input bg-background shadow-xs",
                 speakerReviewMode: "",
-                swatch:
-                    "toggle-group-swatch group/swatch [display:grid] place-items-center rounded-[50%] border-2 border-transparent p-0 text-[13.3333px] font-normal leading-[0] shadow-none",
+                swatch: "toggle-group-swatch group/swatch [display:grid] place-items-center rounded-[50%] border-2 border-transparent p-0 text-[13.3333px] font-normal leading-[0] shadow-none",
             },
             tone: {
                 default: "",
@@ -75,9 +64,7 @@ const toggleGroupItemVariants = cva(
             size: {
                 default: "h-9 px-3",
                 sm: "h-8 px-2",
-                settingsSegmentOption: "h-8 px-2",
                 onboardingSourceAuthModeOption: "",
-                settingsSourceAuthModeOption: "",
                 recordingTagColorPicker: "h-8 px-2",
                 recordingTagIconPicker: "h-8 px-2",
                 recordingTagIconOption: "size-7 min-w-0 shrink-0 p-0",
@@ -146,9 +133,6 @@ function ToggleGroup({
                 layout === "iconGrid" && "grid grid-cols-6",
                 layout === "onboardingSourceAuthMode" &&
                     "grid w-full grid-cols-2 items-stretch",
-                layout === "settingsSegment" && "flex-wrap",
-                layout === "settingsSourceAuthMode" &&
-                    "mb-4 grid w-full grid-cols-2 items-stretch",
                 layout === "recordingTagColorPicker" && "flex-wrap",
                 layout === "recordingTagIconPicker" && "grid grid-cols-6",
                 layout === "speakerReviewMode" && "flex-nowrap",

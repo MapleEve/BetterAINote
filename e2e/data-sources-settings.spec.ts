@@ -62,8 +62,6 @@ const SETTINGS_RAIL_ITEM_STYLE_PROPS = [
     "box-shadow",
 ] as const;
 const PROVIDER_CARD_STYLE_PROPS = [
-    "display",
-    "align-items",
     "gap",
     "padding-top",
     "padding-right",
@@ -80,8 +78,6 @@ const PROVIDER_CARD_STYLE_PROPS = [
     "opacity",
 ] as const;
 const PROVIDER_STATUS_STYLE_PROPS = [
-    "display",
-    "align-items",
     "gap",
     "height",
     "padding-top",
@@ -89,11 +85,8 @@ const PROVIDER_STATUS_STYLE_PROPS = [
     "padding-bottom",
     "padding-left",
     "border-radius",
-    "background-color",
     "border-top-width",
     "border-top-style",
-    "border-top-color",
-    "color",
     "font-family",
     "font-size",
     "font-weight",
@@ -105,41 +98,6 @@ const DETAIL_STYLE_PROPS = [
     "padding-bottom",
     "padding-left",
     "min-height",
-] as const;
-const DETAIL_ROW_STYLE_PROPS = [
-    "display",
-    "gap",
-    "align-items",
-    "padding-top",
-    "padding-right",
-    "padding-bottom",
-    "padding-left",
-    "border-bottom-width",
-    "border-bottom-style",
-    "border-bottom-color",
-] as const;
-const DETAIL_ROW_CONTROL_STYLE_PROPS = [
-    "display",
-    "align-items",
-    "gap",
-    "flex",
-] as const;
-const DETAIL_INPUT_STYLE_PROPS = [
-    "height",
-    "min-width",
-    "padding-top",
-    "padding-right",
-    "padding-bottom",
-    "padding-left",
-    "border-radius",
-    "background-color",
-    "border-top-width",
-    "border-top-style",
-    "border-top-color",
-    "color",
-    "font-family",
-    "font-size",
-    "font-weight",
 ] as const;
 const SWITCH_STYLE_PROPS = [
     "position",
@@ -174,9 +132,6 @@ type StyleProp =
     | (typeof PROVIDER_CARD_STYLE_PROPS)[number]
     | (typeof PROVIDER_STATUS_STYLE_PROPS)[number]
     | (typeof DETAIL_STYLE_PROPS)[number]
-    | (typeof DETAIL_ROW_STYLE_PROPS)[number]
-    | (typeof DETAIL_ROW_CONTROL_STYLE_PROPS)[number]
-    | (typeof DETAIL_INPUT_STYLE_PROPS)[number]
     | (typeof SWITCH_STYLE_PROPS)[number]
     | (typeof SWITCH_KNOB_STYLE_PROPS)[number];
 
@@ -1032,23 +987,7 @@ async function captureSotFragmentFixture(
             for (const row of stage.querySelectorAll<HTMLElement>(
                 ".field-row, .sm-row",
             )) {
-                row.setAttribute("data-slot", "field");
                 row.setAttribute("data-orientation", "horizontal");
-            }
-            for (const content of stage.querySelectorAll<HTMLElement>(
-                ".field-row > div:first-child, .sm-row-label",
-            )) {
-                content.setAttribute("data-slot", "field-content");
-            }
-            for (const label of stage.querySelectorAll<HTMLElement>(
-                ".field-name, .sm-l-t",
-            )) {
-                label.setAttribute("data-slot", "field-label");
-            }
-            for (const description of stage.querySelectorAll<HTMLElement>(
-                ".field-desc, .sm-l-h",
-            )) {
-                description.setAttribute("data-slot", "field-description");
             }
             for (const control of stage.querySelectorAll<HTMLElement>(
                 ".sm-row-ctrl",
@@ -1058,7 +997,6 @@ async function captureSotFragmentFixture(
             for (const input of stage.querySelectorAll<HTMLElement>(
                 ".field-input",
             )) {
-                input.setAttribute("data-slot", "input");
                 if (input.classList.contains("mask")) {
                     input.setAttribute("data-sot-mask", "true");
                 }
@@ -1074,7 +1012,6 @@ async function captureSotFragmentFixture(
                 const isChecked =
                     toggle.getAttribute("aria-pressed") === "true" ||
                     toggle.classList.contains("on");
-                toggle.setAttribute("data-slot", "switch");
                 toggle.setAttribute(
                     "data-state",
                     isChecked ? "checked" : "unchecked",
@@ -1086,7 +1023,6 @@ async function captureSotFragmentFixture(
                 for (const knob of toggle.querySelectorAll<HTMLElement>(
                     ".t-knob",
                 )) {
-                    knob.setAttribute("data-slot", "switch-thumb");
                     knob.setAttribute(
                         "data-state",
                         isChecked ? "checked" : "unchecked",
@@ -1559,12 +1495,7 @@ function sourceSaveControl(root: Locator) {
 async function expectSotSwitchChecked(locator: Locator) {
     await expect(locator).toHaveAttribute("role", "switch");
     await expect(locator).toHaveAttribute("aria-checked", "true");
-    await expect(locator).toHaveAttribute("data-slot", "switch");
-    await expect(locator).toHaveAttribute("data-state", "checked");
-    await expect(locator).toHaveAttribute("data-sot-state", "checked");
-    await expect(locator).toHaveAttribute("data-sot-enabled", "true");
-    await expect(locator).toHaveAttribute("data-sot-disabled", "false");
-    await expect(locator.locator('[data-slot="switch-thumb"]')).toBeVisible();
+    await expect(locator).toBeEnabled();
 }
 
 async function pasteTextIntoInput(
@@ -1692,32 +1623,46 @@ test("data sources settings rail and provider primitives match SOT computed styl
             feishuTile,
             PROVIDER_CARD_STYLE_PROPS,
         );
+        const dingtalkStatus = dingtalkTile.locator(
+            '[data-sot-provider-status][data-sot-tone="ok"]',
+        );
+        const ticnoteStatus = ticnoteTile.locator(
+            '[data-sot-provider-status][data-sot-tone="info"]',
+        );
+        const feishuStatus = feishuTile.locator(
+            '[data-sot-provider-status][data-sot-tone="neu"]',
+        );
+        const iflyrecStatus = iflyrecTile.locator(
+            '[data-sot-provider-status][data-sot-tone="warn"]',
+        );
+        for (const { locator, state, tone } of [
+            { locator: dingtalkStatus, state: "connected", tone: "ok" },
+            { locator: ticnoteStatus, state: "configured", tone: "info" },
+            { locator: feishuStatus, state: "needs-setup", tone: "neu" },
+            { locator: iflyrecStatus, state: "expired", tone: "warn" },
+        ] as const) {
+            await expect(locator).toBeVisible();
+            await expect(locator).toHaveAttribute("data-sot-status", state);
+            await expect(locator).toHaveAttribute("data-sot-tone", tone);
+        }
         await expectComputedStyleMatch(
             sotPage.locator("#pcard .sp-status.ok").first(),
-            dingtalkTile.locator(
-                '[data-sot-provider-status][data-sot-tone="ok"]',
-            ),
+            dingtalkStatus,
             PROVIDER_STATUS_STYLE_PROPS,
         );
         await expectComputedStyleMatch(
             sotPage.locator("#pcard .sp-status.info").first(),
-            ticnoteTile.locator(
-                '[data-sot-provider-status][data-sot-tone="info"]',
-            ),
+            ticnoteStatus,
             PROVIDER_STATUS_STYLE_PROPS,
         );
         await expectComputedStyleMatch(
             sotPage.locator("#pcard .sp-card.dim .sp-status.neu").first(),
-            feishuTile.locator(
-                '[data-sot-provider-status][data-sot-tone="neu"]',
-            ),
+            feishuStatus,
             PROVIDER_STATUS_STYLE_PROPS,
         );
         await expectComputedStyleMatch(
             sotPage.locator("#pcard .sp-card.dim .sp-status.warn").first(),
-            iflyrecTile.locator(
-                '[data-sot-provider-status][data-sot-tone="warn"]',
-            ),
+            iflyrecStatus,
             PROVIDER_STATUS_STYLE_PROPS,
         );
 
@@ -1744,31 +1689,18 @@ test("data sources settings rail and provider primitives match SOT computed styl
                 detail,
                 DETAIL_STYLE_PROPS,
             );
-            const browserAuthorizationField = detail.locator(
-                '[data-field-id="source-browser-authorization"][data-slot="field"]',
-            );
-            await expect(browserAuthorizationField).toBeVisible();
-            await expect(browserAuthorizationField).toHaveAttribute(
-                "data-orientation",
-                /horizontal|responsive/,
-            );
-            const browserAuthorizationInput = detail.locator(
-                '[data-field-id="source-browser-authorization"] [data-slot="input"]',
-            );
+            await expect(
+                detail.getByText("浏览器授权", { exact: true }),
+            ).toBeVisible();
+            const browserAuthorizationInput =
+                detail.getByLabel("浏览器授权");
             await expect(browserAuthorizationInput).toBeVisible();
-            await expect(
-                browserAuthorizationInput.locator("xpath=.."),
-            ).toHaveCSS("display", "flex");
-            await expect(
-                browserAuthorizationInput.locator("xpath=.."),
-            ).toHaveCSS("align-items", "center");
-            await expect(browserAuthorizationInput).toHaveAttribute(
-                "data-slot",
-                "input",
+            await expect(browserAuthorizationInput).toHaveValue(
+                "••••••••••••••••",
             );
-            await expect(browserAuthorizationInput).toHaveAttribute(
-                "id",
-                "dingtalk-a1-source-browser-authorization",
+            await expect(browserAuthorizationInput).toHaveJSProperty(
+                "readOnly",
+                true,
             );
             await expect(browserAuthorizationInput).toBeEnabled();
         } finally {
@@ -2277,10 +2209,32 @@ test("data sources settings tests missing details then saves a provider through 
         "data-sot-tone",
         /warn|neu/,
     );
-    await expect(detail.locator("[data-sot-section-group]").first()).toBeVisible();
-    await expect(detail.locator('[data-slot="field"]').first()).toBeVisible();
-    await expect(detail.locator('[data-slot="field-content"]').first()).toBeVisible();
-    await expect(detail.locator('[data-slot="input"]').first()).toBeVisible();
+    const ticnoteProviderFields = detail.locator(
+        '[data-sot-panel="source-provider-fields"]',
+    );
+    await expect(ticnoteProviderFields).toBeVisible();
+    await expect(ticnoteProviderFields).toContainText(
+        /站点版本[\s\S]*TicNote 访问凭证/,
+    );
+    await expect(
+        ticnoteProviderFields
+            .locator("label")
+            .filter({ hasText: /^站点版本$/ }),
+    ).toBeVisible();
+    const ticnoteSiteEdition = ticnoteProviderFields.getByRole("combobox", {
+        name: "站点版本",
+    });
+    await expect(ticnoteSiteEdition).toBeVisible();
+    await expect(ticnoteSiteEdition).toBeEnabled();
+    await expect(
+        ticnoteProviderFields
+            .locator("label")
+            .filter({ hasText: /^TicNote 访问凭证$/ }),
+    ).toBeVisible();
+    const ticnoteCredential =
+        ticnoteProviderFields.getByLabel("TicNote 访问凭证");
+    await expect(ticnoteCredential).toBeVisible();
+    await expect(ticnoteCredential).toBeEnabled();
     await expect(actionFooter).toBeVisible();
     await expect(detail.locator(".sm-detail-head")).toHaveCount(0);
     await expect(detail.locator(".modal-foot")).toHaveCount(0);

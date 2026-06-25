@@ -11,14 +11,11 @@ const inputVariants = cva(
                     "rounded-md border-input bg-transparent text-foreground focus-visible:border-ring focus-visible:ring-[3px] focus-visible:ring-ring/50 aria-invalid:border-destructive aria-invalid:ring-destructive/20 dark:bg-input/30 dark:aria-invalid:ring-destructive/40",
                 detailHeaderTitle:
                     "rounded-md border-input bg-transparent text-foreground focus-visible:border-ring focus-visible:ring-[3px] focus-visible:ring-ring/50 aria-invalid:border-destructive aria-invalid:ring-destructive/20 dark:bg-input/30 dark:aria-invalid:ring-destructive/40",
-                accent:
-                    "rounded-[9px] border-primary bg-[var(--bg-elevated)] text-foreground shadow-[0_0_0_3px_color-mix(in_oklab,var(--accent)_18%,transparent)] focus-visible:border-primary focus-visible:ring-0 aria-invalid:border-destructive aria-invalid:shadow-[0_0_0_3px_color-mix(in_oklab,var(--signal-danger)_16%,transparent)] aria-invalid:ring-0 dark:bg-[var(--bg-elevated)]",
+                accent: "rounded-[9px] border-primary bg-[var(--bg-elevated)] text-foreground shadow-[0_0_0_3px_color-mix(in_oklab,var(--accent)_18%,transparent)] focus-visible:border-primary focus-visible:ring-0 aria-invalid:border-destructive aria-invalid:shadow-[0_0_0_3px_color-mix(in_oklab,var(--signal-danger)_16%,transparent)] aria-invalid:ring-0 dark:bg-[var(--bg-elevated)]",
                 onboardingSourceField:
                     "rounded-md border-input bg-transparent text-foreground focus-visible:border-ring focus-visible:ring-[3px] focus-visible:ring-ring/50 aria-invalid:border-destructive aria-invalid:ring-destructive/20 dark:bg-input/30 dark:aria-invalid:ring-destructive/40",
                 onboardingSourceUrl:
                     "rounded-md border-input bg-transparent text-foreground focus-visible:border-ring focus-visible:ring-[3px] focus-visible:ring-ring/50 aria-invalid:border-destructive aria-invalid:ring-destructive/20 dark:bg-input/30 dark:aria-invalid:ring-destructive/40",
-                sourceProviderDetail:
-                    "rounded-[7px] border-[var(--line-hairline)] bg-[var(--bg-recessed)] font-mono font-medium text-[var(--fg-primary)] shadow-none focus-visible:border-[var(--line-hairline)] focus-visible:ring-0 aria-invalid:border-destructive aria-invalid:ring-0 dark:bg-[var(--bg-recessed)]",
             },
             controlSize: {
                 default: "h-9 px-3 py-1 text-base md:text-sm",
@@ -28,8 +25,6 @@ const inputVariants = cva(
                     "h-8 min-w-0 flex-1 px-3 py-1 text-base md:text-sm",
                 onboardingSourceField: "h-9 px-3 py-1 text-base md:text-sm",
                 onboardingSourceUrl: "h-9 px-3 py-1 text-base md:text-sm",
-                sourceProviderDetail:
-                    "h-[30px] w-[240px] min-w-[240px] max-w-[240px] px-[10px] py-0 text-[12px] leading-[normal] md:text-[12px]",
             },
         },
         defaultVariants: {
