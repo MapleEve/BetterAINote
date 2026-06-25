@@ -886,7 +886,7 @@ describe("recording detail copy and title action UI regressions", () => {
             '"ghost" satisfies ButtonProps["variant"]',
         );
         expect(sourceReport).toContain(
-            '"control-xs" satisfies ButtonProps["size"]',
+            '"sm" satisfies ButtonProps["size"]',
         );
         for (const token of SOURCE_REPORT_SKELETON_SHARED_TOKENS) {
             expect(skeletonPrimitive).not.toContain(token);
@@ -1430,7 +1430,7 @@ describe("recording detail copy and title action UI regressions", () => {
         expect(detailHeader).not.toContain('size="detailHeaderIconAction"');
         expect(detailHeader).not.toContain('variant="detailHeaderAction"');
         expect(detailHeader).not.toContain('size="detailHeaderAction"');
-        expect(detailHeader).toContain('controlSize="detailHeaderTitle"');
+        expect(detailHeader).not.toContain('controlSize="detailHeaderTitle"');
         expect(detailHeader).not.toContain(
             '"relative flex flex-row items-center gap-2.5 px-1 pt-1 pb-0"',
         );
@@ -2510,6 +2510,14 @@ describe("recording detail copy and title action UI regressions", () => {
 
         expect(tagVisuals).toContain("const recordingTagChipClassName");
         expect(tagVisuals).toContain("className={recordingTagChipClassName}");
+        expect(tagVisuals).toContain("recordingTagChipVariablesClassName");
+        for (const recordingTagChipToken of [
+            "--sot-player-tag-chip-bg",
+            "--sot-player-tag-chip-border",
+            "--sot-player-tag-chip-fg",
+        ]) {
+            expect(tagVisuals).toContain(recordingTagChipToken);
+        }
         expect(tagVisuals).not.toContain(variantAttr("recordingTagChip"));
     });
 });

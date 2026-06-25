@@ -471,7 +471,7 @@ const SOURCE_REPORT_GHOST_ACTION_BUTTON_CLASS_NAME =
 const SOURCE_REPORT_COPY_BUTTON_VARIANT =
     "ghost" satisfies ButtonProps["variant"];
 const SOURCE_REPORT_COPY_BUTTON_SIZE =
-    "control-xs" satisfies ButtonProps["size"];
+    "sm" satisfies ButtonProps["size"];
 const SOURCE_REPORT_COPY_BUTTON_CLASS_NAME =
     "h-[26px] gap-[6px] rounded-[7px] px-[10px] text-[12px] font-semibold leading-normal text-[var(--fg-secondary)] has-[>svg]:px-[10px] hover:bg-[var(--bg-recessed)] hover:text-[var(--fg-primary)] [&_svg:not([class*='size-'])]:size-[14px] data-[copy-state=ok]:border-[var(--button-copy-success-border)] data-[copy-state=ok]:bg-[var(--button-copy-success-bg)] data-[copy-state=ok]:text-[var(--signal-success)] data-[copy-state=ok]:hover:bg-[var(--button-copy-success-bg)] data-[copy-state=ok]:hover:text-[var(--signal-success)] data-[copy-state=err]:border-[var(--button-copy-danger-border)] data-[copy-state=err]:text-[var(--signal-danger)] data-[copy-state=err]:hover:bg-transparent data-[copy-state=err]:hover:text-[var(--signal-danger)]";
 const SOURCE_REPORT_ERROR_ALERT_CLASS_NAME =

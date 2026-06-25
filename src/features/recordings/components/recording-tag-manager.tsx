@@ -107,6 +107,23 @@ const recordingTagManagerSwatchToneClassNames: Record<
     slate: "!bg-[var(--tag-slate)] hover:!bg-[var(--tag-slate)] data-[state=on]:!bg-[var(--tag-slate)]",
 };
 
+const recordingTagManagerButtonClassNames = {
+    neutralAction:
+        "h-[var(--button-compact-height)] justify-normal [justify-content:normal] gap-[7px] rounded-[7px] border border-transparent bg-transparent px-[10px] text-[12px] font-semibold leading-[normal] text-[var(--fg-secondary)] shadow-none hover:bg-[var(--bg-recessed)] hover:text-[var(--fg-primary)] has-[>svg]:px-[10px] [&_svg:not([class*='size-'])]:size-[11px]",
+    primaryAction:
+        "h-[var(--button-compact-height)] justify-normal [justify-content:normal] gap-[7px] rounded-[7px] border border-[var(--button-primary-border)] bg-[image:var(--button-primary-bg)] px-[10px] text-[12px] font-semibold leading-[normal] text-[var(--button-primary-fg)] shadow-[var(--button-primary-shadow)] hover:bg-[image:var(--button-primary-hover-bg)] has-[>svg]:px-[10px] [&_svg:not([class*='size-'])]:size-[11px]",
+    destructiveAction:
+        "h-[var(--button-compact-height)] justify-normal [justify-content:normal] gap-[7px] rounded-[7px] border border-[var(--button-destructive-border)] bg-[image:var(--button-destructive-bg)] px-[10px] text-[12px] font-semibold leading-[normal] text-[var(--button-destructive-fg)] shadow-[var(--button-destructive-shadow)] hover:bg-[image:var(--button-destructive-hover-bg)] focus-visible:ring-destructive/20 has-[>svg]:px-[10px] dark:focus-visible:ring-destructive/40 [&_svg:not([class*='size-'])]:size-[11px]",
+    inlineCreate:
+        "border border-[var(--accent)] bg-[var(--accent)] text-[var(--accent)] shadow-none hover:bg-[var(--accent-hover)] hover:text-[var(--accent)] disabled:opacity-100",
+    tagToggle:
+        "relative inline-flex h-[var(--button-pill-height)] justify-normal gap-[5px] rounded-[999px] border border-[var(--line-hairline)] bg-[var(--bg-recessed)] px-[10px] py-0 font-sans text-[11.5px] font-semibold leading-[normal] text-[var(--fg-secondary)] shadow-none hover:bg-[var(--bg-elevated)] hover:text-[var(--fg-primary)] disabled:opacity-100 has-[>svg]:px-[10px] [&_svg]:stroke-2 [&_svg:not([class*='size-'])]:size-[11px]",
+    chipRemove:
+        "size-[var(--icon-chip-size)] rounded-full border border-transparent bg-transparent p-0 text-[var(--fg-tertiary)] shadow-none hover:bg-[var(--bg-recessed)] hover:text-[var(--fg-primary)] has-[>svg]:p-0 [&_svg]:invisible [&_svg]:stroke-2 [&_svg:not([class*='size-'])]:size-[11px]",
+    panelClose:
+        "size-[var(--icon-compact-size)] rounded-[6px] border border-transparent bg-transparent p-0 text-[var(--fg-tertiary)] shadow-none hover:bg-[var(--bg-recessed)] hover:text-[var(--fg-primary)] has-[>svg]:p-0 [&_svg]:stroke-2 [&_svg:not([class*='size-'])]:size-[11px]",
+} as const;
+
 const recordingTagManagerCardClassNames = {
     panel: "tagm-panel max-h-[460px] w-[320px] max-w-[calc(100vw-2rem)] gap-0 overflow-hidden rounded-[12px] border-[var(--card-popover-border)] bg-[var(--card-popover-bg)] shadow-[var(--card-popover-shadow)] backdrop-blur-none max-md:max-w-none",
     header: "tagm-head flex flex-row items-center justify-between gap-[normal] border-b-[1px] border-[var(--card-popover-divider)] px-[12px] pt-[10px] pb-[10px] [&>[data-slot=card-action]]:self-center",
@@ -542,9 +559,12 @@ export function RecordingTagManager({
                 </span>
                 <Button
                     type="button"
-                    variant="ghostNeutral"
-                    size="control-sm"
-                    className="shrink-0"
+                    variant="ghost"
+                    size="sm"
+                    className={cn(
+                        recordingTagManagerButtonClassNames.neutralAction,
+                        "shrink-0",
+                    )}
                     data-sot-control="recording-tag-error-retry"
                     onClick={onRetry}
                 >
@@ -572,10 +592,11 @@ export function RecordingTagManager({
         <Button
             key={tag.id}
             type="button"
-            variant="pill"
-            size="pill-sm"
+            variant="ghost"
+            size="sm"
             className={cn(
                 "tagm-opt",
+                recordingTagManagerButtonClassNames.tagToggle,
                 recordingTagManagerSotColorClassName[tag.color],
                 "relative whitespace-nowrap",
                 saving && "pointer-events-none",
@@ -676,10 +697,11 @@ export function RecordingTagManager({
                         <Button
                             type="button"
                             aria-label="添加"
-                            variant="accentIcon"
+                            variant="default"
                             size="icon"
                             className={cn(
                                 "tagm-add-btn",
+                                recordingTagManagerButtonClassNames.inlineCreate,
                                 RECORDING_TAG_INLINE_CREATE_BUTTON_CLASS_NAME,
                                 "shrink-0",
                             )}
@@ -938,9 +960,12 @@ export function RecordingTagManager({
                 <span className="flex-1" data-sot-part="footer-spacer" />
                 <Button
                     type="button"
-                    variant="ghostNeutral"
-                    size="control-sm"
-                    className="shrink-0"
+                    variant="ghost"
+                    size="sm"
+                    className={cn(
+                        recordingTagManagerButtonClassNames.neutralAction,
+                        "shrink-0",
+                    )}
                     data-sot-control="recording-tag-delete-cancel"
                     disabled={Boolean(deletingTagId)}
                     onClick={() => {
@@ -952,9 +977,12 @@ export function RecordingTagManager({
                 </Button>
                 <Button
                     type="button"
-                    variant="actionDestructive"
-                    size="control-sm"
-                    className="shrink-0"
+                    variant="destructive"
+                    size="sm"
+                    className={cn(
+                        recordingTagManagerButtonClassNames.destructiveAction,
+                        "shrink-0",
+                    )}
                     data-sot-control="recording-tag-delete-confirm"
                     data-sot-state={
                         deletingTagId === deleteTarget.id ? "saving" : "idle"
@@ -1000,9 +1028,12 @@ export function RecordingTagManager({
                 <span className="flex-1" data-sot-part="footer-spacer" />
                 <Button
                     type="button"
-                    variant="ghostNeutral"
-                    size="control-sm"
-                    className="shrink-0"
+                    variant="ghost"
+                    size="sm"
+                    className={cn(
+                        recordingTagManagerButtonClassNames.neutralAction,
+                        "shrink-0",
+                    )}
                     data-sot-control="recording-tag-create-cancel"
                     disabled={isCreating}
                     onClick={() => {
@@ -1014,9 +1045,12 @@ export function RecordingTagManager({
                 </Button>
                 <Button
                     type="button"
-                    variant="actionPrimary"
-                    size="control-sm"
-                    className="shrink-0"
+                    variant="default"
+                    size="sm"
+                    className={cn(
+                        recordingTagManagerButtonClassNames.primaryAction,
+                        "shrink-0",
+                    )}
                     data-sot-control="recording-tag-create"
                     data-sot-state={isCreating ? "saving" : "idle"}
                     aria-busy={isCreating ? "true" : undefined}
@@ -1105,9 +1139,13 @@ export function RecordingTagManager({
                                             {tag.name}
                                             <Button
                                                 type="button"
-                                                variant="chipRemove"
-                                                size="icon-chip"
-                                                className="x shrink-0"
+                                                variant="ghost"
+                                                size="icon"
+                                                className={cn(
+                                                    "x",
+                                                    recordingTagManagerButtonClassNames.chipRemove,
+                                                    "shrink-0",
+                                                )}
                                                 aria-label="移除"
                                                 data-sot-control="recording-tag-delete-open"
                                                 data-sot-state={
@@ -1221,9 +1259,13 @@ export function RecordingTagManager({
                 {showCloseButton ? (
                     <CardAction data-sot-part="head-action">
                         <Button
-                            variant="ghostIconCompact"
-                            size="icon-2xs"
-                            className="tagm-close shrink-0"
+                            variant="ghost"
+                            size="icon-xs"
+                            className={cn(
+                                "tagm-close",
+                                recordingTagManagerButtonClassNames.panelClose,
+                                "shrink-0",
+                            )}
                             type="button"
                             aria-label="关闭"
                             data-sot-control="recording-tag-manager-close"

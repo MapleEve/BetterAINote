@@ -100,8 +100,11 @@ const recordingTagManagerIconPaths: Partial<
     clock: <circle cx="12" cy="12" r="10" />,
 };
 
+const recordingTagChipVariablesClassName =
+    "[--sot-player-tag-chip-bg:color-mix(in_srgb,var(--tag-c)_12%,var(--bg-elevated))] [--sot-player-tag-chip-border:color-mix(in_srgb,var(--tag-c)_32%,transparent)] [--sot-player-tag-chip-fg:color-mix(in_srgb,var(--tag-c)_72%,var(--fg-primary))] dark:[--sot-player-tag-chip-bg:color-mix(in_srgb,var(--tag-c)_18%,transparent)] dark:[--sot-player-tag-chip-border:color-mix(in_srgb,var(--tag-c)_36%,transparent)] dark:[--sot-player-tag-chip-fg:color-mix(in_srgb,var(--tag-c)_30%,var(--fg-primary))]";
+
 const recordingTagChipClassName =
-    "h-[22px] w-fit justify-normal gap-[5px] rounded-[6px] border-[var(--sot-player-tag-chip-border)] bg-[var(--sot-player-tag-chip-bg)] py-0 pl-[7px] pr-[9px] [--tag-c:var(--graphite-500)] [font:600_11.5px_var(--font-sans)] text-[var(--sot-player-tag-chip-fg)] shadow-[var(--shadow-xs)] transition-none data-[sot-tag-color=blue]:[--tag-c:var(--tag-blue)] data-[sot-tag-color=green]:[--tag-c:var(--tag-green)] data-[sot-tag-color=orange]:[--tag-c:var(--tag-amber)] data-[sot-tag-color=purple]:[--tag-c:var(--tag-violet)] data-[sot-tag-color=red]:[--tag-c:var(--tag-rose)] data-[sot-tag-color=slate]:[--tag-c:var(--tag-slate)] [&>svg]:size-[11px] [&>svg]:fill-none [&>svg]:stroke-2 [&>svg]:stroke-current [&>svg]:[stroke-linecap:round] [&>svg]:[stroke-linejoin:round]";
+    `${recordingTagChipVariablesClassName} h-[22px] w-fit justify-normal gap-[5px] rounded-[6px] border-[var(--sot-player-tag-chip-border)] bg-[var(--sot-player-tag-chip-bg)] py-0 pl-[7px] pr-[9px] [--tag-c:var(--graphite-500)] [font:600_11.5px_var(--font-sans)] text-[var(--sot-player-tag-chip-fg)] shadow-[var(--shadow-xs)] transition-none data-[sot-tag-color=blue]:[--tag-c:var(--tag-blue)] data-[sot-tag-color=green]:[--tag-c:var(--tag-green)] data-[sot-tag-color=orange]:[--tag-c:var(--tag-amber)] data-[sot-tag-color=purple]:[--tag-c:var(--tag-violet)] data-[sot-tag-color=red]:[--tag-c:var(--tag-rose)] data-[sot-tag-color=slate]:[--tag-c:var(--tag-slate)] [&>svg]:size-[11px] [&>svg]:fill-none [&>svg]:stroke-2 [&>svg]:stroke-current [&>svg]:[stroke-linecap:round] [&>svg]:[stroke-linejoin:round]`;
 
 export function RecordingTagIconGlyph({
     icon,

@@ -2030,7 +2030,7 @@ describe("dashboard SOT foundation", () => {
             "--sot-player-tag-chip-blue-border",
             "--sot-player-tag-chip-blue-fg",
         ]) {
-            expect(globals).toContain(sotPlayerTagChipToken);
+            expect(globals).not.toContain(sotPlayerTagChipToken);
         }
         for (const sotPlayerTagChipToken of [
             "--sot-player-tag-chip-bg",
@@ -3224,7 +3224,7 @@ describe("dashboard SOT foundation", () => {
             "dashboardRecordingRowStyles.actions",
         );
         expect(workstation).toMatch(
-            /<Button\s+variant="ghostNeutral"\s+size="default"[\s\S]*className=\{\s*dashboardRecordingRowStyles\.row\s*\}[\s\S]*data-sot-control="dashboard-recording-row"/,
+            /<Button\s+variant="ghost"\s+size="default"[\s\S]*className=\{\s*dashboardRecordingRowStyles\.row\s*\}[\s\S]*data-sot-control="dashboard-recording-row"/,
         );
         for (const rowPrimitiveLeak of [
             "dashboardRecordingRow",
@@ -3488,7 +3488,7 @@ describe("dashboard SOT foundation", () => {
                 "Button",
             );
             expect(buttonOpening).toContain('variant="ghost"');
-            expect(buttonOpening).toContain('size="control-xs"');
+            expect(buttonOpening).toContain('size="sm"');
             expectClassNameConstReference(
                 buttonOpening,
                 "SOT_SOURCE_REPORT_COPY_BUTTON_CLASS_NAME",
@@ -3498,7 +3498,7 @@ describe("dashboard SOT foundation", () => {
             );
             expect(buttonOpening).not.toContain('variant="secondary"');
             expect(buttonOpening).not.toContain('variant="destructive"');
-            expect(buttonOpening).not.toContain('size="sm"');
+            expect(buttonOpening).not.toContain('size="control-xs"');
         }
         for (const control of DASHBOARD_TRANSCRIPT_GENERIC_COMPACT_ACTION_CONTROLS) {
             const buttonOpening = extractOpeningElement(

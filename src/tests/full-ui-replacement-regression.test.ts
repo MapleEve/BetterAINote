@@ -2121,6 +2121,13 @@ function collectInlineModernColorFindings() {
                 line.includes("--sot-player-tag-chip-fg:color-mix");
             if (sharedPlayerTagChipPrimitiveColor) continue;
 
+            const sharedRecordingTagChipVisualColor =
+                relativePath ===
+                    "features/recordings/components/recording-tag-visuals.tsx" &&
+                line.includes("--sot-player-tag-chip-bg:color-mix") &&
+                line.includes("--sot-player-tag-chip-fg:color-mix");
+            if (sharedRecordingTagChipVisualColor) continue;
+
             const sharedPlayerPrimaryButtonColor =
                 relativePath ===
                     "features/recordings/components/sot-player-primitives.tsx" &&
@@ -3277,15 +3284,34 @@ describe("full UI replacement regression coverage", () => {
         for (const variant of [
             "default",
             "destructive",
-            "actionPrimary",
-            "actionDestructive",
             "outline",
             "secondary",
             "ghost",
-            "quietOutline",
             "link",
         ]) {
             expect(button).toContain(`${variant}:`);
+        }
+        for (const businessVariant of [
+            "actionPrimary:",
+            "actionDestructive:",
+            "quietOutline:",
+            "ghostNeutral:",
+            "accentIcon:",
+            "ghostIcon:",
+            "ghostIconCompact:",
+            "chipRemove:",
+            "pill:",
+        ]) {
+            expect(buttonVariantBlock).not.toContain(businessVariant);
+        }
+        for (const businessSize of [
+            '"control-sm":',
+            '"control-xs":',
+            '"pill-sm":',
+            '"icon-2xs":',
+            '"icon-chip":',
+        ]) {
+            expect(buttonSizeBlock).not.toContain(businessSize);
         }
         for (const variant of DASHBOARD_RECORDING_LIST_BUTTON_VARIANTS) {
             expect(buttonVariantBlock).not.toContain(`${variant}:`);
@@ -3319,11 +3345,9 @@ describe("full UI replacement regression coverage", () => {
             "shadow-[var(--button-destructive-shadow)]",
             "hover:bg-[image:var(--button-destructive-hover-bg)]",
         ]) {
-            expect(button).toContain(actionButtonClass);
+            expect(button).not.toContain(actionButtonClass);
+            expect(tagManager).toContain(actionButtonClass);
         }
-        expect(button).toContain("actionPrimary:");
-        expect(button).toContain("actionDestructive:");
-        expect(button).toContain("accentIcon:");
         for (const recordingTagButtonToken of [
             "recordingTagErrorRetry",
             "recordingTagToggle",
@@ -3337,8 +3361,9 @@ describe("full UI replacement regression coverage", () => {
         ]) {
             expect(button).not.toContain(recordingTagButtonToken);
         }
-        expect(button).toContain("text-[var(--accent)]");
-        expect(button).toContain('"control-xs":');
+        expect(button).not.toContain("text-[var(--accent)]");
+        expect(tagManager).toContain("recordingTagManagerButtonClassNames");
+        expect(tagManager).toContain("text-[var(--accent)]");
         for (const removedAuthOnboardingButtonToken of [
             "accent:",
             "accentLink:",
@@ -3427,8 +3452,10 @@ describe("full UI replacement regression coverage", () => {
         expect(button).not.toContain("size-[30px] rounded-[50%]");
         expect(button).not.toContain("size-[44px] rounded-[50%]");
         expect(button).not.toContain("min-w-[50px] justify-center");
-        expect(button).toContain("chipRemove:");
-        expect(button).toContain("[&_svg]:invisible");
+        expect(button).not.toContain("chipRemove:");
+        expect(button).not.toContain("[&_svg]:invisible");
+        expect(tagManager).toContain("recordingTagManagerButtonClassNames.chipRemove");
+        expect(tagManager).toContain("[&_svg]:invisible");
         expect(button).not.toContain("accentSelf");
         expect(button).not.toContain('"icon-chip-hidden-glyph":');
         for (const size of [
@@ -6222,7 +6249,7 @@ describe("full UI replacement regression coverage", () => {
             "DASHBOARD_RECORDING_ROW_BUTTON_CLASS",
         );
         expect(workstation).toMatch(
-            /<Button\s+variant="ghostNeutral"\s+size="default"[\s\S]*className=\{\s*dashboardRecordingRowStyles\.row\s*\}[\s\S]*data-sot-control="dashboard-recording-row"/,
+            /<Button\s+variant="ghost"\s+size="default"[\s\S]*className=\{\s*dashboardRecordingRowStyles\.row\s*\}[\s\S]*data-sot-control="dashboard-recording-row"/,
         );
         for (const rowPrimitiveLeak of [
             "dashboardRecordingRow",
@@ -6416,7 +6443,7 @@ describe("full UI replacement regression coverage", () => {
                 "Button",
             );
             expect(buttonOpening).toContain('variant="ghost"');
-            expect(buttonOpening).toContain('size="control-xs"');
+            expect(buttonOpening).toContain('size="sm"');
             expectClassNameConstReference(
                 buttonOpening,
                 "SOT_SOURCE_REPORT_COPY_BUTTON_CLASS_NAME",
@@ -6426,7 +6453,7 @@ describe("full UI replacement regression coverage", () => {
             );
             expect(buttonOpening).not.toContain('variant="secondary"');
             expect(buttonOpening).not.toContain('variant="destructive"');
-            expect(buttonOpening).not.toContain('size="sm"');
+            expect(buttonOpening).not.toContain('size="control-xs"');
         }
         for (const control of DASHBOARD_TRANSCRIPT_GENERIC_COMPACT_ACTION_CONTROLS) {
             const buttonOpening = extractOpeningElement(
@@ -10467,13 +10494,36 @@ describe("full UI replacement regression coverage", () => {
         expect(tagManager).not.toContain(
             "RECORDING_TAG_CHIP_REMOVE_BUTTON_VARIANT",
         );
-        expect(tagManager).toContain('variant="ghostNeutral"');
-        expect(tagManager).toContain('variant="pill"');
-        expect(tagManager).toContain('variant="accentIcon"');
-        expect(tagManager).toContain('variant="actionPrimary"');
-        expect(tagManager).toContain('variant="actionDestructive"');
-        expect(tagManager).toContain('variant="chipRemove"');
-        expect(tagManager).toContain('variant="ghostIconCompact"');
+        for (const retiredButtonProp of [
+            'variant="ghostNeutral"',
+            'variant="pill"',
+            'variant="accentIcon"',
+            'variant="actionPrimary"',
+            'variant="actionDestructive"',
+            'variant="chipRemove"',
+            'variant="ghostIconCompact"',
+            'size="control-sm"',
+            'size="pill-sm"',
+            'size="icon-chip"',
+            'size="icon-2xs"',
+        ]) {
+            expect(tagManager).not.toContain(retiredButtonProp);
+        }
+        expect(tagManager).toContain("recordingTagManagerButtonClassNames");
+        for (const ownerClassName of [
+            "recordingTagManagerButtonClassNames.neutralAction",
+            "recordingTagManagerButtonClassNames.primaryAction",
+            "recordingTagManagerButtonClassNames.destructiveAction",
+            "recordingTagManagerButtonClassNames.inlineCreate",
+            "recordingTagManagerButtonClassNames.tagToggle",
+            "recordingTagManagerButtonClassNames.chipRemove",
+            "recordingTagManagerButtonClassNames.panelClose",
+        ]) {
+            expect(tagManager).toContain(ownerClassName);
+        }
+        expect(tagManager).toContain('variant="ghost"');
+        expect(tagManager).toContain('variant="default"');
+        expect(tagManager).toContain('variant="destructive"');
         expect(tagManager).toContain('variant="pickerFrame"');
         expect(tagManager).toContain('variant="picker"');
         expect(tagManager).toContain('className="tagm-sec"');
@@ -10487,15 +10537,9 @@ describe("full UI replacement regression coverage", () => {
         expect(tagManager).toContain('layout="inline"');
         expect(tagManager).toContain('size="colorPicker"');
         expect(tagManager).toContain('size="iconPicker"');
-        for (const recordingTagButtonSize of [
-            'size="control-sm"',
-            'size="pill-sm"',
-            'size="icon"',
-            'size="icon-chip"',
-            'size="icon-2xs"',
-        ]) {
-            expect(tagManager).toContain(recordingTagButtonSize);
-        }
+        expect(tagManager).toContain('size="sm"');
+        expect(tagManager).toContain('size="icon"');
+        expect(tagManager).toContain('size="icon-xs"');
         expect(tagManager).not.toContain('size="swatch"');
         expect(tagManager).toContain("RECORDING_TAG_SWATCH_ITEM_CLASS_NAME");
         expect(tagManager).toContain("recordingTagManagerSwatchToneClassNames");
@@ -10574,10 +10618,13 @@ describe("full UI replacement regression coverage", () => {
             "Button",
         );
         expect(tagManagerInlineCreateButton).toContain(
-            'variant="accentIcon"',
+            'variant="default"',
         );
         expect(tagManagerInlineCreateButton).toContain(
             'size="icon"',
+        );
+        expect(tagManagerInlineCreateButton).toContain(
+            "recordingTagManagerButtonClassNames.inlineCreate",
         );
         expect(tagManagerInlineCreateButton).toContain(
             "RECORDING_TAG_INLINE_CREATE_BUTTON_CLASS_NAME",
@@ -10586,8 +10633,8 @@ describe("full UI replacement regression coverage", () => {
             'data-sot-control="recording-tag-create"',
         );
         expect(tagManagerInlineCreateButton).toContain("disabled={!canCreate}");
-        expect(tagManager).toContain('variant="actionPrimary"');
-        expect(tagManager).toContain('size="control-sm"');
+        expect(tagManager).toContain("recordingTagManagerButtonClassNames.primaryAction");
+        expect(tagManager).toContain('size="sm"');
         expect(tagManager).toContain('data-sot-control="recording-tag-create"');
         expect(tagManager).toContain('"min-w-0 max-w-full"');
         expect(tagManager).toContain('className="gap-3.5"');
@@ -10929,7 +10976,7 @@ describe("full UI replacement regression coverage", () => {
             '"ghost" satisfies ButtonProps["variant"]',
         );
         expect(sourceReport).toContain(
-            '"control-xs" satisfies ButtonProps["size"]',
+            '"sm" satisfies ButtonProps["size"]',
         );
         expect(sourceReport).toContain("SOURCE_REPORT_COPY_BUTTON_CLASS_NAME");
         for (const token of SOURCE_REPORT_SKELETON_SHARED_TOKENS) {
@@ -11091,7 +11138,7 @@ describe("full UI replacement regression coverage", () => {
             "--sot-player-tag-chip-blue-border",
             "--sot-player-tag-chip-blue-fg",
         ]) {
-            expect(globals).toContain(sotPlayerTagChipToken);
+            expect(globals).not.toContain(sotPlayerTagChipToken);
         }
         for (const sotPlayerTagChipToken of [
             "--sot-player-tag-chip-bg",
@@ -11167,6 +11214,16 @@ describe("full UI replacement regression coverage", () => {
         expect(sharedRecordingTagChip).toContain(
             "className={recordingTagChipClassName}",
         );
+        expect(recordingTagVisuals).toContain(
+            "recordingTagChipVariablesClassName",
+        );
+        for (const recordingTagChipToken of [
+            "--sot-player-tag-chip-bg",
+            "--sot-player-tag-chip-border",
+            "--sot-player-tag-chip-fg",
+        ]) {
+            expect(recordingTagVisuals).toContain(recordingTagChipToken);
+        }
         expect(sharedRecordingTagChip).toContain(
             "data-sot-tag-color={tag.color}",
         );

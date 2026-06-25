@@ -598,7 +598,7 @@ describe("dashboard recording player regressions", () => {
             "--sot-player-tag-chip-blue-border",
             "--sot-player-tag-chip-blue-fg",
         ]) {
-            expect(globals).toContain(sotPlayerTagChipToken);
+            expect(globals).not.toContain(sotPlayerTagChipToken);
         }
         for (const sotPlayerTagChipToken of [
             "--sot-player-tag-chip-bg",

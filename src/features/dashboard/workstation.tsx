@@ -4958,7 +4958,7 @@ export function Workstation({
                                             </div>
                                             <Button
                                                 variant="ghost"
-                                                size="control-xs"
+                                                size="sm"
                                                 className={
                                                     dashboardSearchActivityClassNames.dashboardActivitySync
                                                 }
@@ -5120,7 +5120,7 @@ export function Workstation({
                                                                 {item.action ? (
                                                                     <Button
                                                                         variant="ghost"
-                                                                        size="control-xs"
+                                                                        size="sm"
                                                                         className={
                                                                             dashboardSearchActivityClassNames.dashboardActivityAction
                                                                         }
@@ -5161,7 +5161,7 @@ export function Workstation({
                                                                 ) : null}
                                                                 <Button
                                                                     variant="ghost"
-                                                                    size="icon-2xs"
+                                                                    size="icon-xs"
                                                                     className={
                                                                         dashboardSearchActivityClassNames.dashboardActivityDismiss
                                                                     }
@@ -5807,7 +5807,7 @@ export function Workstation({
                                                                         .tags[0];
                                                                 return (
                                                                     <Button
-                                                                        variant="ghostNeutral"
+                                                                        variant="ghost"
                                                                         size="default"
                                                                         className={
                                                                             dashboardRecordingRowStyles.row
@@ -6853,7 +6853,7 @@ export function Workstation({
                                     </Button>
                                     <Button
                                         variant="ghost"
-                                        size="control-xs"
+                                        size="sm"
                                         className={SOT_SOURCE_REPORT_COPY_BUTTON_CLASS_NAME}
                                         type="button"
                                         data-copy="source-transcript"
@@ -6917,7 +6917,7 @@ export function Workstation({
                                     </Button>
                                     <Button
                                         variant="ghost"
-                                        size="control-xs"
+                                        size="sm"
                                         className={SOT_SOURCE_REPORT_COPY_BUTTON_CLASS_NAME}
                                         type="button"
                                         data-copy="source-report"
