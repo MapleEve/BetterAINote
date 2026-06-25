@@ -76,11 +76,13 @@ const ConfirmDialogContext = createContext<{
     confirm: (options: ConfirmDialogOptions) => Promise<boolean>;
 } | null>(null);
 
+const CONFIRM_DIALOG_PANEL_CLASS = "z-[calc(var(--z-modal)+2)]";
+
 const CONFIRM_DIALOG_OVERLAY_CLASS =
-    "bg-[var(--modal-scrim-bg)] backdrop-blur-[6px] backdrop-saturate-[120%] transition-opacity duration-[220ms] ease-[var(--ease-out)]";
+    "m-0 h-auto max-h-none w-auto max-w-none border-0 bg-[var(--modal-scrim-bg)] p-0 backdrop-blur-[6px] backdrop-saturate-[120%] transition-opacity duration-[220ms] ease-[var(--ease-out)] data-[state=closed]:pointer-events-none data-[state=closed]:opacity-0 data-[state=open]:pointer-events-auto data-[state=open]:opacity-100";
 
 const CONFIRM_DIALOG_CONTENT_CLASS =
-    "m-[12px_auto] block w-full max-w-[460px] gap-0 overflow-hidden rounded-lg border border-[var(--line-hairline)] bg-[var(--bg-elevated)] p-0 font-sans text-[var(--fg-primary)] shadow-[var(--shadow-md)] sm:max-w-[460px]";
+    "m-[12px_auto] block w-full max-w-[460px] gap-0 overflow-hidden rounded-lg border border-[var(--line-hairline)] bg-[var(--bg-elevated)] p-0 font-sans text-[var(--fg-primary)] shadow-[var(--shadow-md)] data-[state=closed]:opacity-0 sm:max-w-[460px]";
 
 const CONFIRM_DIALOG_HEADER_CLASS = "block flex-row gap-0 px-5 pt-4 pb-1";
 
@@ -88,7 +90,7 @@ const CONFIRM_DIALOG_TITLE_CLASS =
     "font-display text-[16px] leading-[1.35] tracking-[-0.012em] text-[var(--fg-primary)]";
 
 const CONFIRM_DIALOG_BODY_CLASS =
-    "px-5 pt-2 pb-1 font-sans text-[13px] leading-[1.55] font-medium text-[var(--fg-secondary)]";
+    "block px-5 pt-2 pb-1 font-sans text-[13px] leading-[1.55] font-medium text-[var(--fg-secondary)]";
 
 const CONFIRM_DIALOG_DESCRIPTION_CLASS = "mb-2";
 
@@ -101,10 +103,10 @@ const CONFIRM_DIALOG_DETAIL_ITEM_CLASS =
     "flex items-center gap-1.5 font-sans text-[12.5px] leading-[1.55] font-medium text-[var(--fg-secondary)]";
 
 const CONFIRM_DIALOG_WARNING_CLASS =
-    "rounded-md border border-[var(--confirm-dialog-warning-border)] bg-[var(--confirm-dialog-warning-bg)] px-3 py-2 text-[var(--signal-danger)]";
+    "rounded-md border border-[var(--alert-destructive-soft-border)] bg-[var(--alert-destructive-soft-bg)] px-3 py-2 text-[var(--signal-danger)]";
 
 const CONFIRM_DIALOG_FOOTER_CLASS =
-    "border-t border-[var(--line-hairline)] bg-[var(--bg-recessed)] px-4 pt-3 pb-4";
+    "flex justify-end border-t border-[var(--line-hairline)] bg-[var(--bg-recessed)] px-4 pt-3 pb-4";
 
 const CONFIRM_DIALOG_ACTION_BUTTON_CLASS =
     "h-[26px] min-w-[auto] gap-[7px] rounded-[7px]";
@@ -162,6 +164,7 @@ export function ConfirmDialogProvider({
     const confirmButtonVariant = state?.confirmVariant ?? "destructive";
     const contentSlotProps = slotProps?.content;
     const overlaySlotProps = slotProps?.overlay;
+    const portalWrapperSlotProps = slotProps?.portalWrapper;
     const headerSlotProps = slotProps?.header;
     const titleSlotProps = slotProps?.title;
     const bodySlotProps = slotProps?.body;
@@ -213,7 +216,13 @@ export function ConfirmDialogProvider({
                             overlaySlotProps?.className,
                         ),
                     }}
-                    portalWrapperProps={slotProps?.portalWrapper}
+                    portalWrapperProps={{
+                        ...portalWrapperSlotProps,
+                        className: cn(
+                            CONFIRM_DIALOG_PANEL_CLASS,
+                            portalWrapperSlotProps?.className,
+                        ),
+                    }}
                     className={cn(
                         CONFIRM_DIALOG_CONTENT_CLASS,
                         contentSlotProps?.className,

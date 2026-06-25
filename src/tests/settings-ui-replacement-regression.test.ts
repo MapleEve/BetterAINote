@@ -329,17 +329,21 @@ const LEGACY_MODAL_SHELL_CSS_SELECTOR_RE =
 
 const MODAL_SHELL_DATA_SOT_CSS_SELECTORS = [
     '[data-sot-overlay="settings-shell"]',
+    '[data-sot-overlay="settings-shell"][data-state="open"]',
+    '[data-sot-surface="settings-shell"]',
+    '[data-sot-surface="settings-shell"][data-state="closed"]',
+] as const;
+
+const MIGRATED_CONFIRM_DIALOG_GLOBAL_SELECTORS = [
     '[data-sot-overlay="confirm-dialog"]',
     '[data-sot-panel="confirm-dialog"]',
-    '[data-sot-overlay="settings-shell"][data-state="open"]',
-    '[data-sot-overlay="confirm-dialog"][data-state="closed"]',
-    '[data-sot-surface="settings-shell"],',
     '[data-sot-content="confirm-dialog"]',
-    '[data-sot-surface="settings-shell"][data-state="closed"]',
-    '[data-sot-content="confirm-dialog"][data-state="closed"]',
     '[data-sot-part="confirm-head"]',
     '[data-sot-part="confirm-body"]',
+    '[data-sot-part="confirm-extra"]',
     '[data-sot-part="confirm-foot"]',
+    '[data-sot-item="confirm-dialog-detail"]',
+    '[data-sot-part="confirm-warning"]',
 ] as const;
 
 const REMOVED_MODAL_SHELL_DEAD_DATA_SOT_CSS_SELECTORS = [
@@ -600,11 +604,11 @@ describe("settings SOT interaction regressions", () => {
         for (const selector of REMOVED_MODAL_SHELL_DEAD_DATA_SOT_CSS_SELECTORS) {
             expect(productCss).not.toContain(selector);
         }
-        expect(
-            readCssBlock(productCss, '[data-sot-panel="confirm-dialog"]'),
-        ).toContain("z-index: calc(var(--z-modal) + 2);");
         for (const selector of DIALOG_SLOT_GLOBAL_SELECTORS) {
             expect(globals).not.toContain(selector);
+        }
+        for (const selector of MIGRATED_CONFIRM_DIALOG_GLOBAL_SELECTORS) {
+            expect(collectCssRuleBlocks(productCss, selector)).toEqual([]);
         }
         const confirmFooterButtonRules = collectCssRuleBlocks(
             productCss,
@@ -621,6 +625,17 @@ describe("settings SOT interaction regressions", () => {
             );
         }
         expect(confirmDialog).toContain("ConfirmDialogSlotProps");
+        expect(confirmDialog).toContain(
+            'const CONFIRM_DIALOG_PANEL_CLASS = "z-[calc(var(--z-modal)+2)]";',
+        );
+        expect(confirmDialog).toContain(
+            "data-[state=closed]:pointer-events-none data-[state=closed]:opacity-0 data-[state=open]:pointer-events-auto data-[state=open]:opacity-100",
+        );
+        expect(confirmDialog).toContain(
+            "rounded-md border border-[var(--alert-destructive-soft-border)] bg-[var(--alert-destructive-soft-bg)] px-3 py-2 text-[var(--signal-danger)]",
+        );
+        expect(globals).not.toContain("--confirm-dialog-warning-bg:");
+        expect(globals).not.toContain("--confirm-dialog-warning-border:");
         expect(confirmDialog).not.toContain('data-sot-part="confirm-foot"');
         expect(layout).toContain('"data-sot-part": "confirm-foot"');
         expect(confirmDialog).toMatch(

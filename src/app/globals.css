@@ -238,18 +238,6 @@
         var(--graphite-950) 36%,
         transparent
     );
-    --confirm-dialog-warning-bg: rgb(210 65 53 / 0.1);
-    --confirm-dialog-warning-bg: color-mix(
-        in srgb,
-        var(--signal-danger) 10%,
-        transparent
-    );
-    --confirm-dialog-warning-border: rgb(210 65 53 / 0.3);
-    --confirm-dialog-warning-border: color-mix(
-        in srgb,
-        var(--signal-danger) 30%,
-        transparent
-    );
     --bg-recessed: var(--graphite-150);
     --bg-overlay: rgb(250 251 252 / 0.72);
     --bg-overlay: oklch(0.99 0.003 250 / 0.72);
@@ -1348,8 +1336,7 @@ button:not([data-slot]) {
 }
 
 /* ======== Dialog overlay + shadcn modal slots ======== */
-[data-sot-overlay="settings-shell"],
-[data-sot-overlay="confirm-dialog"] {
+[data-sot-overlay="settings-shell"] {
     position: fixed;
     inset: 0;
     width: auto;
@@ -1360,26 +1347,18 @@ button:not([data-slot]) {
     border: 0;
     z-index: var(--z-modal);
 }
-[data-sot-overlay="settings-shell"][data-state="open"],
-[data-sot-overlay="confirm-dialog"][data-state="open"] {
+[data-sot-overlay="settings-shell"][data-state="open"] {
     opacity: 1;
     pointer-events: auto;
 }
-[data-sot-overlay="settings-shell"][data-state="closed"],
-[data-sot-overlay="confirm-dialog"][data-state="closed"] {
+[data-sot-overlay="settings-shell"][data-state="closed"] {
     opacity: 0;
     pointer-events: none;
 }
-[data-sot-panel="confirm-dialog"] {
-    /* Keep the global ConfirmDialog portal above an already-open settings shell. */
-    z-index: calc(var(--z-modal) + 2);
-}
-[data-sot-surface="settings-shell"],
-[data-sot-content="confirm-dialog"] {
+[data-sot-surface="settings-shell"] {
     z-index: calc(var(--z-modal) + 1);
 }
-[data-sot-surface="settings-shell"][data-state="closed"],
-[data-sot-content="confirm-dialog"][data-state="closed"] {
+[data-sot-surface="settings-shell"][data-state="closed"] {
     opacity: 0;
 }
 @keyframes bpulse {
@@ -2608,28 +2587,6 @@ select::-ms-expand {
     to {
         transform: rotate(360deg);
     }
-}
-
-/* ---- ConfirmDialog ---- */
-[data-sot-content="confirm-dialog"] {
-    overflow: hidden;
-    display: block;
-}
-[data-sot-part="confirm-head"] {
-    display: block;
-    flex-direction: row;
-    text-align: left;
-}
-[data-sot-part="confirm-body"] {
-    display: block;
-}
-[data-sot-part="confirm-extra"] {
-    display: flex;
-    flex-direction: column;
-}
-[data-sot-part="confirm-foot"] {
-    display: flex;
-    justify-content: flex-end;
 }
 
 /* ---- Detail empty (centered) ---- */

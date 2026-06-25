@@ -1276,17 +1276,9 @@ const UNAPPROVED_PRODUCT_CSS_CLASS_SELECTOR_RE =
 
 const MODAL_SHELL_DATA_SOT_CSS_SELECTORS = [
     '[data-sot-overlay="settings-shell"]',
-    '[data-sot-overlay="confirm-dialog"]',
-    '[data-sot-panel="confirm-dialog"]',
     '[data-sot-overlay="settings-shell"][data-state="open"]',
-    '[data-sot-overlay="confirm-dialog"][data-state="closed"]',
-    '[data-sot-surface="settings-shell"],',
-    '[data-sot-content="confirm-dialog"]',
+    '[data-sot-surface="settings-shell"]',
     '[data-sot-surface="settings-shell"][data-state="closed"]',
-    '[data-sot-content="confirm-dialog"][data-state="closed"]',
-    '[data-sot-part="confirm-head"]',
-    '[data-sot-part="confirm-body"]',
-    '[data-sot-part="confirm-foot"]',
 ] as const;
 
 const REMOVED_DEAD_SOT_GLOBAL_SELECTORS = [
@@ -1323,11 +1315,14 @@ const DIALOG_SLOT_GLOBAL_SELECTORS = [
 const DELETE_CONFIRM_MODAL_EXTRAS_LEGACY_PRODUCT_CSS_SELECTOR_RE =
     /(^|[,\s>{])\.(?:del-modal-icon|del-modal-name)(?![\w-])/m;
 
-const CONFIRM_DIALOG_RETAINED_FUNCTIONAL_GLOBAL_SELECTORS = [
+const MIGRATED_CONFIRM_DIALOG_GLOBAL_SELECTORS = [
+    '[data-sot-overlay="confirm-dialog"]',
+    '[data-sot-panel="confirm-dialog"]',
+    '[data-sot-content="confirm-dialog"]',
+    '[data-sot-part="confirm-head"]',
+    '[data-sot-part="confirm-body"]',
     '[data-sot-part="confirm-extra"]',
-] as const;
-
-const REMOVED_CONFIRM_DIALOG_DETAIL_GLOBAL_SELECTORS = [
+    '[data-sot-part="confirm-foot"]',
     '[data-sot-item="confirm-dialog-detail"]',
     '[data-sot-part="confirm-warning"]',
 ] as const;
@@ -3321,11 +3316,11 @@ describe("full UI replacement regression coverage", () => {
             "--button-destructive-fg:",
             "--button-destructive-shadow:",
             "--modal-scrim-bg:",
-            "--confirm-dialog-warning-bg:",
-            "--confirm-dialog-warning-border:",
         ]) {
             expect(globals).toContain(token);
         }
+        expect(globals).not.toContain("--confirm-dialog-warning-bg:");
+        expect(globals).not.toContain("--confirm-dialog-warning-border:");
         expect(globals).toContain(
             "color-mix(in srgb, var(--accent) 92%, white 18%)",
         );
@@ -3434,19 +3429,13 @@ describe("full UI replacement regression coverage", () => {
         for (const selector of REMOVED_DEAD_SOT_GLOBAL_SELECTORS) {
             expect(globals).not.toContain(selector);
         }
-        expect(
-            extractCssBlock(productCss, '[data-sot-panel="confirm-dialog"]'),
-        ).toContain("z-index: calc(var(--z-modal) + 2);");
         for (const selector of DIALOG_SLOT_GLOBAL_SELECTORS) {
             expect(globals).not.toContain(selector);
         }
         expect(productCss).not.toMatch(
             DELETE_CONFIRM_MODAL_EXTRAS_LEGACY_PRODUCT_CSS_SELECTOR_RE,
         );
-        for (const selector of CONFIRM_DIALOG_RETAINED_FUNCTIONAL_GLOBAL_SELECTORS) {
-            expect(productCss).toContain(selector);
-        }
-        for (const selector of REMOVED_CONFIRM_DIALOG_DETAIL_GLOBAL_SELECTORS) {
+        for (const selector of MIGRATED_CONFIRM_DIALOG_GLOBAL_SELECTORS) {
             expect(collectCssRuleBlocks(productCss, selector)).toEqual([]);
         }
         const confirmFooterButtonRules = collectCssRuleBlocks(
@@ -3465,9 +3454,31 @@ describe("full UI replacement regression coverage", () => {
                 CONFIRM_DIALOG_BUTTON_PRIMITIVE_REPAINT_DECLARATION_RE,
             );
         }
-        expect(
-            extractCssBlock(productCss, '[data-sot-part="confirm-extra"]'),
-        ).toContain("display: flex;");
+        expectExactStringConstInitializer(
+            confirmDialog,
+            "CONFIRM_DIALOG_PANEL_CLASS",
+            "z-[calc(var(--z-modal)+2)]",
+        );
+        expectExactStringConstInitializer(
+            confirmDialog,
+            "CONFIRM_DIALOG_OVERLAY_CLASS",
+            "m-0 h-auto max-h-none w-auto max-w-none border-0 bg-[var(--modal-scrim-bg)] p-0 backdrop-blur-[6px] backdrop-saturate-[120%] transition-opacity duration-[220ms] ease-[var(--ease-out)] data-[state=closed]:pointer-events-none data-[state=closed]:opacity-0 data-[state=open]:pointer-events-auto data-[state=open]:opacity-100",
+        );
+        expectExactStringConstInitializer(
+            confirmDialog,
+            "CONFIRM_DIALOG_CONTENT_CLASS",
+            "m-[12px_auto] block w-full max-w-[460px] gap-0 overflow-hidden rounded-lg border border-[var(--line-hairline)] bg-[var(--bg-elevated)] p-0 font-sans text-[var(--fg-primary)] shadow-[var(--shadow-md)] data-[state=closed]:opacity-0 sm:max-w-[460px]",
+        );
+        expectExactStringConstInitializer(
+            confirmDialog,
+            "CONFIRM_DIALOG_BODY_CLASS",
+            "block px-5 pt-2 pb-1 font-sans text-[13px] leading-[1.55] font-medium text-[var(--fg-secondary)]",
+        );
+        expectExactStringConstInitializer(
+            confirmDialog,
+            "CONFIRM_DIALOG_EXTRA_CLASS",
+            "flex flex-col gap-3",
+        );
         expectExactStringConstInitializer(
             confirmDialog,
             "CONFIRM_DIALOG_DETAILS_LIST_CLASS",
@@ -3481,8 +3492,15 @@ describe("full UI replacement regression coverage", () => {
         expectExactStringConstInitializer(
             confirmDialog,
             "CONFIRM_DIALOG_WARNING_CLASS",
-            "rounded-md border border-[var(--confirm-dialog-warning-border)] bg-[var(--confirm-dialog-warning-bg)] px-3 py-2 text-[var(--signal-danger)]",
+            "rounded-md border border-[var(--alert-destructive-soft-border)] bg-[var(--alert-destructive-soft-bg)] px-3 py-2 text-[var(--signal-danger)]",
         );
+        expectExactStringConstInitializer(
+            confirmDialog,
+            "CONFIRM_DIALOG_FOOTER_CLASS",
+            "flex justify-end border-t border-[var(--line-hairline)] bg-[var(--bg-recessed)] px-4 pt-3 pb-4",
+        );
+        expect(confirmDialog).not.toContain("color-mix(");
+        expect(confirmDialog).not.toContain("oklch(");
 
         expect(card.trim()).not.toBe("export {};");
         for (const primitive of [
