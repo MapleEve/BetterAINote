@@ -90,12 +90,21 @@ const onboardingCardClassNames = {
         "min-h-[375px] gap-0 w-[min(420px,100%)] overflow-visible rounded-[14px] border border-[var(--line-hairline)] bg-[var(--bg-elevated)] p-[18px] shadow-xs backdrop-blur-none",
     speakerDraft:
         "grid grid-cols-[36px_1fr_auto_auto] items-center gap-3 border-primary/50 bg-primary/10 p-3.5",
+    providerCard:
+        "grid h-auto w-full grid-cols-[36px_1fr_auto_auto] items-center justify-start gap-3 rounded-md px-3.5 py-3 text-left whitespace-normal data-[sot-state=selected]:border-transparent data-[sot-state=selected]:bg-secondary data-[sot-state=selected]:text-secondary-foreground data-[sot-state=selected]:hover:bg-secondary/80 dark:data-[sot-state=selected]:bg-secondary has-[>svg]:px-3.5",
+    sourceAuthModeGroup: "grid w-full grid-cols-2 items-stretch",
+    sourceAuthModeOption:
+        "h-auto flex-col items-start justify-start whitespace-normal px-3.5 py-3 text-left",
+    secondaryAction:
+        "h-[26px] gap-[6px] rounded-[8px] border border-[var(--line-hairline)] bg-transparent px-[10px] py-0 text-[11px] font-semibold leading-[normal] text-[var(--fg-secondary)] shadow-none hover:bg-transparent hover:text-[var(--fg-secondary)] has-[>svg]:px-[10px]",
+    primaryAction:
+        "h-[26px] gap-[6px] rounded-[8px] border border-transparent bg-[var(--accent)] px-[10px] py-0 text-[11px] font-semibold leading-[normal] text-white shadow-none hover:bg-[var(--accent)] focus-visible:border-primary focus-visible:ring-0 has-[>svg]:px-[10px]",
     header: "grid auto-rows-min gap-0 p-0",
     stepHeader: "grid auto-rows-min gap-0 p-0",
     providerMeta: "grid auto-rows-min gap-0 p-0",
     heading:
         "mb-1 font-sans text-[13px] font-semibold text-[var(--fg-primary)]",
-    sub: "mb-[14px] font-sans text-[12px] leading-[1.5] text-[var(--fg-tertiary)]",
+    sub: "mb-[12px] font-sans text-[12px] leading-[1.5] text-[var(--fg-tertiary)]",
     stepBody: "gap-0 p-0",
 } as const;
 
@@ -299,30 +308,55 @@ export function OnboardingForm({ onConnected }: OnboardingFormProps) {
                 hasNoPadding
                 className={onboardingCardClassNames.surface}
                 data-sot-card="onboarding"
+                style={{
+                    backdropFilter: "none",
+                    background: "var(--bg-elevated)",
+                    border: "1px solid var(--line-hairline)",
+                    borderRadius: 14,
+                    boxShadow: "var(--shadow-xs)",
+                    boxSizing: "border-box",
+                    display: "block",
+                    minHeight: 375,
+                    overflow: "visible",
+                    padding: 18,
+                    width: "min(420px, 100%)",
+                }}
             >
-                <CardHeader
-                    className={onboardingCardClassNames.header}
-                    data-sot-part="onboarding-card-header"
-                >
-                    <CardTitle
-                        className={onboardingCardClassNames.heading}
+                <div data-sot-part="onboarding-card-header">
+                    <div
                         data-sot-part="card-heading"
+                        style={{
+                            color: "var(--fg-primary)",
+                            font: "600 13px var(--font-sans)",
+                            margin: "0 0 4px",
+                        }}
                     >
                         上手 / Onboarding · 4 步
-                    </CardTitle>
-                    <CardDescription
-                        className={onboardingCardClassNames.sub}
+                    </div>
+                    <div
                         data-sot-part="card-sub"
+                        style={{
+                            color: "var(--fg-tertiary)",
+                            font: "12px/1.5 var(--font-sans)",
+                            margin: "0 0 14px",
+                        }}
                     >
                         连接来源 → 选默认转写 → 设置说话人档案 → 完成
-                    </CardDescription>
-                </CardHeader>
+                    </div>
+                </div>
                 <div
                     data-pct={progressPct}
                     data-sot-frame="onboarding"
                     data-sot-panel="onboarding-current"
                     data-sot-provider={provider}
                     data-sot-state={isFinishing ? "saving" : onboardingState}
+                    style={{
+                        background: "var(--bg-canvas)",
+                        border: "1px solid var(--line-hairline)",
+                        borderRadius: 12,
+                        overflow: "hidden",
+                        padding: 18,
+                    }}
                 >
                     <div
                         data-sot-panel="onboarding-steps"
@@ -348,22 +382,48 @@ export function OnboardingForm({ onConnected }: OnboardingFormProps) {
                                     disabled={controlsLocked}
                                     key={step.id}
                                     onClick={() => goToStep(step.id)}
+                                    style={{
+                                        appearance: "none",
+                                        background:
+                                            status === "complete" ||
+                                            status === "active"
+                                                ? "var(--accent)"
+                                                : "var(--bg-recessed)",
+                                        border: 0,
+                                        borderRadius: 2,
+                                        cursor: controlsLocked
+                                            ? "not-allowed"
+                                            : "pointer",
+                                        flex: 1,
+                                        height: 4,
+                                        padding: 0,
+                                    }}
                                     type="button"
                                 />
                             );
                         })}
                     </div>
-                    <CardHeader
-                        className={onboardingCardClassNames.stepHeader}
-                        data-sot-part="onboarding-step-header"
-                    >
-                        <CardTitle data-sot-part="onboarding-step-title">
+                    <div data-sot-part="onboarding-step-header">
+                        <div
+                            data-sot-part="onboarding-step-title"
+                            style={{
+                                color: "var(--fg-primary)",
+                                font: "600 14px var(--font-display)",
+                            }}
+                        >
                             {visibleStepTitle}
-                        </CardTitle>
-                        <CardDescription data-sot-part="onboarding-step-description">
+                        </div>
+                        <div
+                            data-sot-part="onboarding-step-description"
+                            style={{
+                                color: "var(--fg-tertiary)",
+                                font: "12px var(--font-sans)",
+                                marginBottom: 14,
+                            }}
+                        >
                             {ONBOARDING_STEPS[visibleStepIndex].hint}
-                        </CardDescription>
-                    </CardHeader>
+                        </div>
+                    </div>
                     <CardContent
                         className={onboardingCardClassNames.stepBody}
                         data-sot-part="onboarding-step-body"
@@ -521,8 +581,8 @@ function SourceStep({
 
                     return (
                         <Button
-                            variant="onboardingProviderCard"
-                            size="onboardingProviderCard"
+                            variant="outline"
+                            className={onboardingCardClassNames.providerCard}
                             data-sot-control="provider-card"
                             data-sot-cover={
                                 item.provider === "feishu-minutes"
@@ -574,6 +634,7 @@ function SourceStep({
                 >
                     <ToggleGroup
                         aria-label="登录方式"
+                        className={onboardingCardClassNames.sourceAuthModeGroup}
                         data-sot-control="source-auth-mode"
                         data-sot-list="source-auth-modes"
                         disabled={isSaving}
@@ -583,12 +644,10 @@ function SourceStep({
                             }
                             setAuthMode(mode);
                         }}
-                        layout="onboardingSourceAuthMode"
-                        size="onboardingSourceAuthModeOption"
-                        spacing="onboardingSourceAuthMode"
+                        spacing={2}
                         type="single"
                         value={currentDraft.authMode}
-                        variant="onboardingSourceAuthModeOption"
+                        variant="outline"
                     >
                         {currentProviderCatalog.authModes.map((mode) => {
                             const active = currentDraft.authMode === mode;
@@ -600,6 +659,9 @@ function SourceStep({
                                     data-sot-control="source-auth-mode"
                                     data-sot-state={
                                         active ? "selected" : "idle"
+                                    }
+                                    className={
+                                        onboardingCardClassNames.sourceAuthModeOption
                                     }
                                     disabled={isSaving}
                                     key={mode}
@@ -642,8 +704,6 @@ function SourceStep({
                         disabled={isSaving}
                         id="source-base-url"
                         onChange={(event) => setBaseUrl(event.target.value)}
-                        variant="onboardingSourceUrl"
-                        controlSize="onboardingSourceUrl"
                         value={currentDraft.baseUrl}
                     />
                 </OnboardingFieldRow>
@@ -717,7 +777,12 @@ function TranscriptionStep({
                     const isActive = option.id === defaultTranscriptionSource;
 
                     return (
-                        <Button
+                        <div
+                            aria-disabled={
+                                isSaving || !option.connected
+                                    ? "true"
+                                    : undefined
+                            }
                             data-sot-control="onboarding-default-source"
                             data-sot-provider={option.id}
                             data-sot-state={
@@ -727,45 +792,102 @@ function TranscriptionStep({
                                       ? "idle"
                                       : "disabled"
                             }
-                            disabled={isSaving || !option.connected}
                             key={option.id}
-                            size="onboardingDefaultSource"
-                            type="button"
-                            variant="onboardingDefaultSource"
-                            onClick={() => {
+                            onKeyDown={(event) => {
+                                if (
+                                    isSaving ||
+                                    !option.connected ||
+                                    (event.key !== "Enter" && event.key !== " ")
+                                ) {
+                                    return;
+                                }
+
+                                event.preventDefault();
                                 setDefaultTranscriptionSource(option.id);
                             }}
+                            onClick={() => {
+                                if (isSaving || !option.connected) {
+                                    return;
+                                }
+                                setDefaultTranscriptionSource(option.id);
+                            }}
+                            role="button"
+                            style={{
+                                alignItems: "center",
+                                appearance: "none",
+                                background: isActive
+                                    ? "color-mix(in oklab, var(--accent) 6%, transparent)"
+                                    : "transparent",
+                                border: `1px solid ${isActive ? "var(--accent)" : "var(--line-hairline)"}`,
+                                borderRadius: 8,
+                                color: "var(--fg-primary)",
+                                cursor:
+                                    isSaving || !option.connected
+                                        ? "not-allowed"
+                                        : "pointer",
+                                display: "flex",
+                                gap: 8,
+                                opacity:
+                                    !isActive && !option.connected
+                                        ? 0.55
+                                        : undefined,
+                                padding: 8,
+                                textAlign: "left",
+                            }}
+                            tabIndex={isSaving || !option.connected ? -1 : 0}
                         >
                             <span
                                 data-sot-part="onboarding-default-source-swatch"
                                 data-sot-swatch={option.swatch}
                             />
                             {option.label}
-                        </Button>
+                        </div>
                     );
                 })}
             </div>
             <div data-sot-part="onboarding-actions">
-                <Button
+                <button
                     data-sot-control="onboarding-skip"
                     disabled={isSaving}
                     onClick={onNext}
-                    size="onboardingAction"
+                    style={{
+                        alignItems: "center",
+                        background: "transparent",
+                        border: "1px solid var(--line-hairline)",
+                        borderRadius: 8,
+                        color: "var(--fg-secondary)",
+                        cursor: "pointer",
+                        display: "inline-flex",
+                        font: "600 11px var(--font-sans)",
+                        gap: 6,
+                        height: 26,
+                        padding: "0 10px",
+                    }}
                     type="button"
-                    variant="onboardingSecondaryAction"
                 >
                     跳过
-                </Button>
-                <Button
+                </button>
+                <button
                     data-sot-control="onboarding-next"
                     disabled={isSaving}
                     onClick={onNext}
-                    size="onboardingAction"
+                    style={{
+                        alignItems: "center",
+                        background: "var(--accent)",
+                        border: "1px solid transparent",
+                        borderRadius: 8,
+                        color: "white",
+                        cursor: "pointer",
+                        display: "inline-flex",
+                        font: "600 11px var(--font-sans)",
+                        gap: 6,
+                        height: 26,
+                        padding: "0 10px",
+                    }}
                     type="button"
-                    variant="onboardingPrimaryAction"
                 >
                     下一步
-                </Button>
+                </button>
             </div>
         </div>
     );
@@ -925,8 +1047,8 @@ function FinishStep({
             <div data-sot-part="onboarding-actions">
                 <Button
                     type="button"
-                    variant="onboardingSecondaryAction"
-                    size="onboardingAction"
+                    variant="ghost"
+                    className={onboardingCardClassNames.secondaryAction}
                     disabled={isSaving}
                     onClick={onBack}
                 >
@@ -934,8 +1056,8 @@ function FinishStep({
                 </Button>
                 <Button
                     type="button"
-                    variant="onboardingPrimaryAction"
-                    size="onboardingAction"
+                    variant="default"
+                    className={onboardingCardClassNames.primaryAction}
                     disabled={isSaving || isFinishing}
                     aria-busy={isSaving || isFinishing}
                     data-sot-control="save-enter"
@@ -984,8 +1106,8 @@ function WizardActions({
             {onBack ? (
                 <Button
                     type="button"
-                    variant="onboardingSecondaryAction"
-                    size="onboardingAction"
+                    variant="ghost"
+                    className={onboardingCardClassNames.secondaryAction}
                     disabled={isSaving}
                     onClick={onBack}
                 >
@@ -994,8 +1116,8 @@ function WizardActions({
             ) : null}
             <Button
                 type="button"
-                variant="onboardingPrimaryAction"
-                size="onboardingAction"
+                variant="default"
+                className={onboardingCardClassNames.primaryAction}
                 disabled={isSaving}
                 data-sot-control="onboarding-next"
                 onClick={onNext}

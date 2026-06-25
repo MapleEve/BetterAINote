@@ -39,11 +39,12 @@ const authLoginClassNames = {
     field: "flex flex-col gap-0 [&>*]:w-full",
     actionField: "flex flex-col gap-0 [&>*]:w-full [&>.sr-only]:w-auto",
     emailInput:
-        "h-[36px] rounded-[9px] border-primary bg-[var(--bg-elevated)] focus-visible:border-primary aria-invalid:border-destructive",
+        "h-[36px] rounded-[9px] border-primary bg-[var(--bg-elevated)] px-[12px] py-0 text-[13px] font-medium leading-[normal] text-foreground shadow-[0_0_0_3px_color-mix(in_oklab,var(--accent)_18%,transparent)] focus-visible:border-primary focus-visible:ring-0 aria-invalid:border-destructive aria-invalid:shadow-[0_0_0_3px_color-mix(in_oklab,var(--signal-danger)_16%,transparent)] aria-invalid:ring-0 dark:bg-[var(--bg-elevated)] md:text-[13px]",
     submitButton:
-        "h-[38px] w-full bg-[var(--accent)] text-white focus-visible:border-primary",
+        "h-[38px] w-full rounded-[8px] border border-transparent bg-[var(--accent)] px-[12px] py-0 text-[12px] font-semibold leading-[normal] text-white shadow-none hover:bg-[var(--accent)] focus-visible:border-primary focus-visible:ring-0 has-[>svg]:px-[12px]",
     footer: "mt-[14px] text-[12px] text-[var(--fg-disabled)]",
-    inlineLink: "h-auto min-h-0 rounded-none p-0 text-[var(--accent)] underline",
+    inlineLink:
+        "h-auto min-h-0 rounded-none p-0 align-baseline text-[12px] font-normal leading-[normal] text-[var(--accent)] underline underline-offset-auto hover:text-[var(--accent)] hover:underline",
 } as const;
 
 export function LoginForm({
@@ -204,8 +205,6 @@ export function LoginForm({
                                     disabled={!isMounted || isLoading}
                                     autoComplete="email"
                                     aria-invalid={invalid}
-                                    variant="accent"
-                                    controlSize="compact"
                                     className={authLoginClassNames.emailInput}
                                     data-sot-control="auth-email"
                                     data-sot-state={
@@ -242,8 +241,7 @@ export function LoginForm({
                                     type="submit"
                                     disabled={!isMounted || isLoading}
                                     aria-busy={isLoading}
-                                    size="form-submit"
-                                    variant="accent"
+                                    variant="default"
                                     className={authLoginClassNames.submitButton}
                                     data-sot-control="send-login-link"
                                 >
@@ -256,10 +254,9 @@ export function LoginForm({
                                     或{" "}
                                     <Button
                                         type="button"
-                                        size="inline-link"
                                         disabled={!isMounted || isLocalLoading}
                                         aria-busy={isLocalLoading}
-                                        variant="accentLink"
+                                        variant="link"
                                         className={authLoginClassNames.inlineLink}
                                         data-sot-control="local-only"
                                         data-sot-state={

@@ -19,6 +19,13 @@ import { cn } from "@/lib/utils";
 const SENSITIVE_FIELD_PATTERN =
     /sensitive|secret|token|cookie|password|credential|authorization/i;
 
+const ONBOARDING_SOURCE_FIELD_GROUP_CLASS_NAME = "gap-0";
+const ONBOARDING_SOURCE_FIELD_CLASS_NAME =
+    "flex flex-col gap-3 border-b border-border py-3 last:border-b-0 @md/field-group:flex-row @md/field-group:items-center @md/field-group:gap-4 [&>*]:w-full @md/field-group:[&>*]:w-auto [&>.sr-only]:w-auto @md/field-group:[&>[data-slot=field-label]]:flex-auto";
+const ONBOARDING_SOURCE_FIELD_CONTENT_CLASS_NAME = "min-w-0 gap-1";
+const ONBOARDING_SOURCE_FIELD_CONTROL_CLASS_NAME =
+    "flex min-w-0 flex-none items-center gap-2 @md/field-group:justify-end";
+
 function isSensitiveTextField(field: DataSourceFormField) {
     return (
         field.target === "secret" ||
@@ -89,10 +96,18 @@ export function DataSourceFieldControl({
             data-disabled={disabled ? "true" : undefined}
             data-field-id={field.id}
             orientation={isOnboardingVariant ? "responsive" : "horizontal"}
-            variant={isOnboardingVariant ? "onboardingSourceField" : "default"}
+            className={
+                isOnboardingVariant
+                    ? ONBOARDING_SOURCE_FIELD_CLASS_NAME
+                    : undefined
+            }
         >
             <FieldContent
-                variant={isOnboardingVariant ? "onboardingSourceField" : "default"}
+                className={
+                    isOnboardingVariant
+                        ? ONBOARDING_SOURCE_FIELD_CONTENT_CLASS_NAME
+                        : undefined
+                }
             >
                 <FieldLabel htmlFor={fieldId}>{field.label}</FieldLabel>
                 {field.description ? (
@@ -100,7 +115,11 @@ export function DataSourceFieldControl({
                 ) : null}
             </FieldContent>
             <FieldControl
-                variant={isOnboardingVariant ? "onboardingSourceField" : "default"}
+                className={
+                    isOnboardingVariant
+                        ? ONBOARDING_SOURCE_FIELD_CONTROL_CLASS_NAME
+                        : undefined
+                }
             >
                 {field.kind === "switch" ? (
                     <Switch
@@ -139,16 +158,6 @@ export function DataSourceFieldControl({
                 ) : (
                     <Input
                         id={fieldId}
-                        variant={
-                            isOnboardingVariant
-                                ? "onboardingSourceField"
-                                : "default"
-                        }
-                        controlSize={
-                            isOnboardingVariant
-                                ? "onboardingSourceField"
-                                : "default"
-                        }
                         type={renderedField.sensitive ? "password" : "text"}
                         value={String(field.value)}
                         onChange={handleTextValueChange}
@@ -183,7 +192,11 @@ export function DataSourceFieldControl({
     );
 
     if (isOnboardingVariant) {
-        return <FieldGroup variant="onboardingSourceField">{control}</FieldGroup>;
+        return (
+            <FieldGroup className={ONBOARDING_SOURCE_FIELD_GROUP_CLASS_NAME}>
+                {control}
+            </FieldGroup>
+        );
     }
 
     return control;

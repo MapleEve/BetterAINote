@@ -1493,7 +1493,7 @@ test("row 119 auth/onboarding visual matrix evidence", async ({
                 parityType: "existing-evidence-reference",
                 notes: [
                     "Prior addendum maps §09 and electron reference source chain.",
-                    "Current compact §09 login and onboarding default-source fixtures now assert exact-zero pixels.",
+                    "Current compact §09 onboarding default-source fixture asserts exact-zero pixels; login remains bounded residual by its dedicated helper.",
                 ],
             },
         ],

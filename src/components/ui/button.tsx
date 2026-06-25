@@ -22,11 +22,8 @@ const buttonVariants = cva(
                 secondary:
                     "bg-secondary text-secondary-foreground hover:bg-secondary/80",
                 ghost: "hover:bg-accent hover:text-accent-foreground dark:hover:bg-accent/50",
-                accent: "border border-transparent bg-[var(--accent)] text-white shadow-none hover:bg-[var(--accent)] focus-visible:border-primary focus-visible:ring-0",
                 quietOutline:
                     "border border-[var(--line-hairline)] bg-transparent text-[var(--fg-secondary)] shadow-none hover:bg-transparent hover:text-[var(--fg-secondary)]",
-                accentLink:
-                    "text-[var(--accent)] underline underline-offset-auto hover:text-[var(--accent)] hover:underline",
                 ghostNeutral:
                     "border border-transparent bg-transparent justify-normal [justify-content:normal] text-[var(--fg-secondary)] shadow-none hover:bg-[var(--bg-recessed)] hover:text-[var(--fg-primary)]",
                 accentIcon:
@@ -37,14 +34,6 @@ const buttonVariants = cva(
                     "border border-transparent bg-transparent p-0 text-[var(--fg-tertiary)] shadow-none hover:bg-[var(--bg-recessed)] hover:text-[var(--fg-primary)] [&_svg]:size-[11px] [&_svg]:stroke-2",
                 chipRemove:
                     "border border-transparent bg-transparent p-0 text-[var(--fg-tertiary)] shadow-none hover:bg-[var(--bg-recessed)] hover:text-[var(--fg-primary)] [&_svg]:invisible [&_svg]:size-[11px] [&_svg]:stroke-2",
-                onboardingProviderCard:
-                    "border border-input bg-background text-left shadow-xs hover:bg-accent hover:text-accent-foreground data-[sot-state=selected]:border-transparent data-[sot-state=selected]:bg-secondary data-[sot-state=selected]:text-secondary-foreground data-[sot-state=selected]:hover:bg-secondary/80 dark:bg-input/30 dark:hover:bg-input/50 dark:data-[sot-state=selected]:bg-secondary",
-                onboardingDefaultSource:
-                    "cursor-pointer appearance-none border border-[var(--line-hairline)] bg-transparent text-left text-[var(--fg-primary)] shadow-none hover:bg-transparent hover:text-[var(--fg-primary)] data-[sot-state=selected]:border-[var(--accent)] data-[sot-state=selected]:bg-[var(--accent-soft)] data-[sot-state=selected]:hover:bg-[var(--accent-soft)] data-[sot-state=disabled]:cursor-not-allowed data-[sot-state=disabled]:opacity-[0.55] disabled:cursor-not-allowed disabled:opacity-[0.55]",
-                onboardingSecondaryAction:
-                    "border border-[var(--line-hairline)] bg-transparent text-[var(--fg-secondary)] shadow-none hover:bg-transparent hover:text-[var(--fg-secondary)]",
-                onboardingPrimaryAction:
-                    "border border-transparent bg-[var(--accent)] text-white shadow-none hover:bg-[var(--accent)] focus-visible:border-primary focus-visible:ring-0",
                 dashboardNav:
                     "relative border border-transparent bg-transparent text-left text-[var(--fg-secondary)] shadow-none hover:bg-accent hover:text-[var(--fg-primary)] focus-visible:text-[var(--fg-primary)] disabled:cursor-not-allowed disabled:opacity-50 data-[sot-state=selected]:border-[var(--line-hairline)] data-[sot-state=selected]:bg-[var(--bg-elevated)] data-[sot-state=selected]:text-[var(--fg-primary)] data-[sot-state=selected]:shadow-xs dark:data-[sot-state=selected]:border-[var(--glass-border)] dark:data-[sot-state=selected]:bg-[rgb(255_255_255_/_0.07)] dark:data-[sot-state=selected]:shadow-none",
                 dashboardSync:
@@ -93,19 +82,9 @@ const buttonVariants = cva(
                     "h-[var(--button-compact-height)] justify-normal [justify-content:normal] gap-[7px] rounded-[7px] px-[10px] text-[12px] leading-[normal] font-semibold has-[>svg]:px-[10px] [&_svg:not([class*='size-'])]:size-[11px]",
                 "control-xs":
                     "h-[26px] gap-[6px] rounded-[8px] px-[10px] text-[11px] font-semibold leading-[normal] has-[>svg]:px-[10px]",
-                "form-submit":
-                    "h-[38px] rounded-[8px] px-[12px] py-0 text-[12px] font-semibold leading-[normal] has-[>svg]:px-[12px]",
-                "inline-link":
-                    "h-auto min-h-0 rounded-none p-0 align-baseline text-[12px] font-normal leading-[normal]",
                 sm: "h-8 gap-1.5 rounded-md px-3 has-[>svg]:px-2.5",
                 "pill-sm":
                     "h-[var(--button-pill-height)] justify-normal gap-[5px] px-[10px] py-0 font-sans text-[11.5px] font-semibold leading-[normal] has-[>svg]:px-[10px]",
-                onboardingProviderCard:
-                    "grid h-auto w-full grid-cols-[36px_1fr_auto_auto] items-center justify-start gap-3 rounded-md px-3.5 py-3 whitespace-normal has-[>svg]:px-3.5",
-                onboardingDefaultSource:
-                    "h-auto w-full justify-start gap-2 rounded-[8px] p-2 font-normal leading-[23.25px] whitespace-normal has-[>svg]:px-2",
-                onboardingAction:
-                    "h-[26px] gap-[6px] rounded-[8px] px-[10px] text-[11px] font-semibold leading-[normal] has-[>svg]:px-[10px]",
                 dashboardNav:
                     "h-auto w-full justify-start gap-2.5 rounded-[9px] px-2.5 py-[7px] text-[13px] font-medium has-[>svg]:px-2.5",
                 dashboardSync: "size-[32px]",

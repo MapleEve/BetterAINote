@@ -5,14 +5,11 @@ import { Separator } from "@/components/ui/separator";
 import { cn } from "@/lib/utils";
 
 type FieldOrientation = "vertical" | "horizontal" | "responsive";
-type FieldVariant = "default" | "onboardingSourceField";
-type FieldGroupVariant = "default" | "onboardingSourceField";
-type FieldContentVariant = "default" | "onboardingSourceField";
-type FieldControlVariant = "default" | "onboardingSourceField";
-type FieldSetVariant =
-    | "default"
-    | "pickerFrame"
-    | "section";
+type FieldVariant = "default";
+type FieldGroupVariant = "default";
+type FieldContentVariant = "default";
+type FieldControlVariant = "default";
+type FieldSetVariant = "default" | "pickerFrame" | "section";
 type FieldSetSize = "default" | "colorPicker" | "iconPicker";
 type FieldLegendVariant =
     | "legend"
@@ -40,23 +37,16 @@ const fieldLegendVariantClassNames: Record<FieldLegendVariant, string> = {
         "mb-4 flex items-center gap-1.5 font-mono text-[10.5px] leading-none font-semibold uppercase tracking-[0.08em] text-muted-foreground",
 };
 
-const onboardingSourceFieldClassName =
-    "flex flex-col gap-3 border-b border-border py-3 last:border-b-0 @md/field-group:flex-row @md/field-group:items-center @md/field-group:gap-4 [&>*]:w-full @md/field-group:[&>*]:w-auto [&>.sr-only]:w-auto @md/field-group:[&>[data-slot=field-label]]:flex-auto";
-
 const fieldGroupVariantClassNames: Record<FieldGroupVariant, string> = {
     default: "",
-    onboardingSourceField: "gap-0",
 };
 
 const fieldContentVariantClassNames: Record<FieldContentVariant, string> = {
     default: "gap-1.5 leading-snug",
-    onboardingSourceField: "min-w-0 gap-1",
 };
 
 const fieldControlVariantClassNames: Record<FieldControlVariant, string> = {
     default: "flex flex-none items-center gap-2",
-    onboardingSourceField:
-        "flex min-w-0 flex-none items-center gap-2 @md/field-group:justify-end",
 };
 
 function FieldSet({
@@ -122,26 +112,20 @@ function FieldGroup({
 
 function fieldClassName({
     orientation,
-    variant,
     className,
 }: {
     orientation: FieldOrientation;
-    variant: FieldVariant;
     className?: string;
 }) {
     return cn(
         "group/field w-full data-[invalid=true]:text-destructive",
-        variant === "onboardingSourceField"
-            ? onboardingSourceFieldClassName
-            : [
-                  "flex gap-3",
-                  orientation === "vertical" &&
-                      "flex-col [&>*]:w-full [&>.sr-only]:w-auto",
-                  orientation === "horizontal" &&
-                      "flex-row items-center [&>[data-slot=field-label]]:flex-auto has-[>[data-slot=field-content]]:items-start",
-                  orientation === "responsive" &&
-                      "flex-col @md/field-group:flex-row @md/field-group:items-center [&>*]:w-full @md/field-group:[&>*]:w-auto [&>.sr-only]:w-auto @md/field-group:[&>[data-slot=field-label]]:flex-auto",
-              ],
+        "flex gap-3",
+        orientation === "vertical" &&
+            "flex-col [&>*]:w-full [&>.sr-only]:w-auto",
+        orientation === "horizontal" &&
+            "flex-row items-center [&>[data-slot=field-label]]:flex-auto has-[>[data-slot=field-content]]:items-start",
+        orientation === "responsive" &&
+            "flex-col @md/field-group:flex-row @md/field-group:items-center [&>*]:w-full @md/field-group:[&>*]:w-auto [&>.sr-only]:w-auto @md/field-group:[&>[data-slot=field-label]]:flex-auto",
         className,
     );
 }
@@ -160,7 +144,7 @@ function Field({
             data-slot="field"
             data-orientation={orientation}
             data-variant={variant}
-            className={fieldClassName({ orientation, variant, className })}
+            className={fieldClassName({ orientation, className })}
             {...props}
         />
     );

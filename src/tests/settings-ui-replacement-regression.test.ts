@@ -1670,7 +1670,7 @@ describe("settings SOT interaction regressions", () => {
             'variant="settings"',
         );
         expect(fieldPrimitive).toContain(
-            'type FieldVariant = "default" | "onboardingSourceField";',
+            'type FieldVariant = "default";',
         );
         expectPrimitiveToExcludeBusinessTokens(
             fieldPrimitive,

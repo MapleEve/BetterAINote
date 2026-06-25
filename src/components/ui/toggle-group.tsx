@@ -6,22 +6,8 @@ import * as React from "react";
 
 import { cn } from "@/lib/utils";
 
-type ToggleGroupLayout =
-    | "default"
-    | "iconGrid"
-    | "onboardingSourceAuthMode";
-type ToggleGroupSemanticSpacing = "onboardingSourceAuthMode";
-type ToggleGroupSpacing = number | ToggleGroupSemanticSpacing;
-
-const toggleGroupSpacingValues: Record<ToggleGroupSemanticSpacing, number> = {
-    onboardingSourceAuthMode: 2,
-};
-
-function resolveToggleGroupSpacing(spacing: ToggleGroupSpacing) {
-    return typeof spacing === "number"
-        ? spacing
-        : toggleGroupSpacingValues[spacing];
-}
+type ToggleGroupLayout = "default" | "iconGrid";
+type ToggleGroupSpacing = number;
 
 const toggleGroupItemVariants = cva(
     "inline-flex shrink-0 items-center justify-center gap-2 rounded-md text-sm font-medium whitespace-nowrap outline-none transition-colors hover:bg-muted hover:text-foreground focus-visible:ring-[3px] focus-visible:ring-ring/40 disabled:pointer-events-none disabled:opacity-50 data-[state=on]:bg-accent data-[state=on]:text-accent-foreground [&>svg]:pointer-events-none [&>svg]:size-4",
@@ -30,8 +16,6 @@ const toggleGroupItemVariants = cva(
             variant: {
                 default: "",
                 outline: "border border-input bg-background shadow-xs",
-                onboardingSourceAuthModeOption:
-                    "h-auto flex-col items-start justify-start whitespace-normal border border-input bg-background px-3.5 py-3 text-left shadow-xs",
                 sotSegmented: "border border-input bg-background shadow-xs",
                 swatch: "toggle-group-swatch group/swatch !grid place-items-center rounded-[50%] border-2 border-transparent p-0 text-[13.3333px] font-normal leading-[0] shadow-none",
             },
@@ -47,7 +31,6 @@ const toggleGroupItemVariants = cva(
             size: {
                 default: "h-9 px-3",
                 sm: "h-8 px-2",
-                onboardingSourceAuthModeOption: "",
                 sotSegmentedSm: "h-8 px-2",
                 swatch: "size-[18px] min-w-0 p-0",
                 iconPicker: "size-7 min-w-0 shrink-0 p-0",
@@ -92,7 +75,7 @@ function ToggleGroup({
     style,
     ...props
 }: ToggleGroupProps) {
-    const spacingValue = resolveToggleGroupSpacing(spacing);
+    const spacingValue = spacing;
     const contextValue = React.useMemo(
         () => ({ variant, size, tone, spacing, spacingValue }),
         [variant, size, tone, spacing, spacingValue],
@@ -110,8 +93,6 @@ function ToggleGroup({
             className={cn(
                 "group/toggle-group flex w-fit items-center rounded-md",
                 layout === "iconGrid" && "grid grid-cols-6",
-                layout === "onboardingSourceAuthMode" &&
-                    "grid w-full grid-cols-2 items-stretch",
                 className,
             )}
             {...props}
