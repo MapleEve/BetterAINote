@@ -69,6 +69,18 @@ async function seedTitleGenerationReadyState(page: Page) {
     expect(settings.titleGenerationApiKeySet).toBe(true);
 }
 
+async function seedRow117TranscriptionReadyState(page: Page) {
+    const seedResponse = await putJsonWithRetry(
+        page,
+        "/api/settings/transcription",
+        {
+            autoTranscribe: true,
+            defaultTranscriptionLanguage: null,
+        },
+    );
+    expect(seedResponse.ok()).toBe(true);
+}
+
 async function putRow117AppearanceReadyState(page: Page) {
     const seedResponse = await putJsonWithRetry(
         page,
@@ -274,11 +286,11 @@ const sectionAcceptanceTargets: Record<
             },
             {
                 name: "auto transcription switch",
-                selector: "#transcription-auto-transcribe",
+                selector: '[data-sot-control="transcription-auto-transcribe"]',
             },
             {
                 name: "transcription language select",
-                selector: "#transcription-language",
+                selector: '[data-sot-control="transcription-language"]',
             },
         ],
     },
@@ -291,11 +303,11 @@ const sectionAcceptanceTargets: Record<
             },
             {
                 name: "auto title switch",
-                selector: "#title-generation-enabled",
+                selector: '[data-sot-control="title-generation-enabled"]',
             },
             {
                 name: "title model input",
-                selector: "#title-generation-model",
+                selector: '[data-sot-control="title-generation-model"]',
             },
             {
                 name: "section save action",
@@ -312,7 +324,7 @@ const sectionAcceptanceTargets: Record<
             },
             {
                 name: "voscript base url input",
-                selector: "#voscript-base-url",
+                selector: '[data-sot-control="voscript-base-url"]',
             },
             {
                 name: "voscript test action",
@@ -364,8 +376,8 @@ const sectionAcceptanceTargets: Record<
                 selector: '[data-sot-control="density"]',
             },
             {
-                name: "items per page input",
-                selector: "#display-items-per-page",
+                name: "time style segmented control",
+                selector: '[data-sot-control="time-style"]',
             },
         ],
     },
@@ -621,6 +633,13 @@ type Row117VoScriptReadyStateEvidence = {
     keyActionText: string | null;
     keyStatusText: string | null;
     unavailableBannerVisible: boolean;
+};
+
+type Row117TranscriptionReadyStateEvidence = {
+    autoTranscribeState: string | null;
+    autoTranscribeChecked: string | null;
+    languageState: string | null;
+    languageText: string;
 };
 
 const row117PixelFrames = [
@@ -1442,10 +1461,14 @@ async function expectTitleGenerationReadyStoredKeyEvidence(page: Page) {
         { exact: true },
     );
     const storedStatus = section.locator("[data-sot-key-status]");
-    const apiKeyInput = section.locator("#title-generation-api-key");
+    const apiKeyInput = section.locator(
+        '[data-sot-control="title-generation-api-key"]',
+    );
 
     await expect(storedDescription).toBeVisible();
     await expect(storedStatus).toContainText("已存储");
+    await expect(storedStatus).toHaveAttribute("data-sot-state", "stored");
+    await expect(apiKeyInput).toHaveAttribute("data-sot-state", "stored");
     await expect(apiKeyInput).toHaveAttribute(
         "placeholder",
         /已存储。输入新 key 可替换。/,
@@ -1513,6 +1536,32 @@ async function expectRow117AppearanceReadyState(page: Page) {
             ),
         },
     } satisfies Row117AppearanceReadyStateEvidence;
+}
+
+async function expectRow117TranscriptionReadyState(page: Page) {
+    const section = settingsSectionSurface(page, "transcription");
+    const autoTranscribe = section.locator(
+        '[data-sot-control="transcription-auto-transcribe"]',
+    );
+    const language = section.locator(
+        '[data-sot-control="transcription-language"]',
+    );
+
+    await expect(autoTranscribe).toHaveAttribute("data-sot-state", "checked");
+    await expect(autoTranscribe).toHaveAttribute("aria-checked", "true");
+    await expect(language).toHaveAttribute("data-sot-state", "ready");
+    await expect(language).toContainText("自动检测");
+
+    return {
+        autoTranscribeChecked: await autoTranscribe.getAttribute(
+            "aria-checked",
+        ),
+        autoTranscribeState: await autoTranscribe.getAttribute(
+            "data-sot-state",
+        ),
+        languageState: await language.getAttribute("data-sot-state"),
+        languageText: (await language.textContent())?.trim() ?? "",
+    } satisfies Row117TranscriptionReadyStateEvidence;
 }
 
 async function seedRow117ReadyStateRoutes(page: Page) {
@@ -1643,25 +1692,32 @@ async function expectRow117SotDataSourcesReadyState(page: Page) {
 
 async function expectRow117VoScriptReadyState(page: Page) {
     const section = settingsSectionSurface(page, "voscript");
-    const baseUrl = section.locator("#voscript-base-url");
+    const baseUrl = section.locator('[data-sot-control="voscript-base-url"]');
     const keyStatus = section.locator("[data-sot-key-status]");
     const unavailableBanner = section.locator(
         '[data-sot-panel="voscript-unavailable-banner"]',
     );
-    const keyActionControl = section.locator("#voscript-api-key-mode");
+    const keyActionControl = section.locator(
+        '[data-sot-control="voscript-api-key-mode"]',
+    );
     const keyActionRow = keyActionControl.locator(
         'xpath=ancestor::*[@data-slot="field"][1]',
     );
+    const apiKey = section.locator('[data-sot-control="voscript-api-key"]');
 
     await expect(baseUrl).toHaveValue(
         row117VoScriptReadyState.privateTranscriptionBaseUrl,
     );
+    await expect(baseUrl).toHaveAttribute("data-sot-state", "ready");
     await expect(section).toHaveAttribute("data-sot-availability", "ready");
     await expect(keyStatus).toContainText("已存储");
+    await expect(keyStatus).toHaveAttribute("data-sot-state", "stored");
+    await expect(apiKey).toHaveAttribute("data-sot-state", "stored");
     const unavailableBannerVisible = await unavailableBanner.isVisible();
     expect(unavailableBannerVisible).toBe(false);
     await expect(keyActionRow).toBeVisible();
     await expect(keyActionControl).toBeVisible();
+    await expect(keyActionControl).toHaveAttribute("data-sot-state", "ready");
 
     return {
         baseUrl: await baseUrl.inputValue(),
@@ -2401,11 +2457,13 @@ test("settings shell six canonical sections meet SOT acceptance evidence", async
         '[data-sot-control="settings-section-load-retry"][data-sot-section="title-generation"]',
     );
     await expect(retry).toBeVisible();
-    await expect(errorSection.locator("#title-generation-model")).toHaveCount(0);
+    await expect(
+        errorSection.locator('[data-sot-control="title-generation-model"]'),
+    ).toHaveCount(0);
     const errorPanelWasVisible = await errorPanel.isVisible();
     const retryWasVisible = await retry.isVisible();
     const normalControlCountInError = await errorSection
-        .locator("#title-generation-model")
+        .locator('[data-sot-control="title-generation-model"]')
         .count();
 
     const retryResponse = page.waitForResponse(
@@ -2460,6 +2518,7 @@ test("settings shell row 117 captures responsive visual matrix", async ({
     await resetDisplayToChinese(page);
     await clearSettingsPersistence(page);
     await seedTitleGenerationReadyState(page);
+    await seedRow117TranscriptionReadyState(page);
     await seedRow117ReadyStateRoutes(page);
 
     const frames: Row117FrameEvidence[] = [];
@@ -2858,6 +2917,10 @@ test("settings shell row 117 captures responsive visual matrix", async ({
                     captureDesktopReadyDetails && section === "title-generation"
                         ? await expectTitleGenerationReadyStoredKeyEvidence(page)
                         : null;
+                const transcriptionReadyStateEvidence =
+                    captureDesktopReadyDetails && section === "transcription"
+                        ? await expectRow117TranscriptionReadyState(page)
+                        : null;
                 const appearanceReadyStateEvidence =
                     captureDesktopReadyDetails && section === "appearance"
                         ? await expectRow117AppearanceReadyState(page)
@@ -2922,6 +2985,11 @@ test("settings shell row 117 captures responsive visual matrix", async ({
                                   "appearance ready state matches SOT runtime seed before capture",
                               ]
                             : []),
+                        ...(transcriptionReadyStateEvidence
+                            ? [
+                                  "transcription ready state exposes row117 SOT controls before capture",
+                              ]
+                            : []),
                         ...(dataSourcesReadyStateEvidence
                             ? [
                                   "data-sources ready state uses row117 SOT provider seed before capture",
@@ -2958,6 +3026,7 @@ test("settings shell row 117 captures responsive visual matrix", async ({
                     parityType: sotResult.capture ? "pixel" : "blocked",
                     productMetrics:
                         titleGenerationStoredKeyEvidence ||
+                        transcriptionReadyStateEvidence ||
                         appearanceReadyStateEvidence ||
                         dataSourcesReadyStateEvidence ||
                         voScriptReadyStateEvidence
@@ -2967,6 +3036,12 @@ test("settings shell row 117 captures responsive visual matrix", async ({
                                       ? {
                                             titleGenerationStoredKey:
                                                 titleGenerationStoredKeyEvidence,
+                                        }
+                                      : {}),
+                                  ...(transcriptionReadyStateEvidence
+                                      ? {
+                                            transcriptionReadyState:
+                                                transcriptionReadyStateEvidence,
                                         }
                                       : {}),
                                   ...(appearanceReadyStateEvidence

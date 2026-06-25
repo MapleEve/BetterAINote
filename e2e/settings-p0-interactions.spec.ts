@@ -141,6 +141,10 @@ function sectionSaveButton(section: Locator, saveId?: string) {
     return section.locator('[data-sot-control="settings-save"]');
 }
 
+function sectionSotControl(section: Locator, control: string) {
+    return section.locator(`[data-sot-control="${control}"]`);
+}
+
 function speakerProfilesPanel(page: Page) {
     return page.locator('[data-sot-panel="speaker-profiles"]');
 }
@@ -204,20 +208,30 @@ test("title generation settings save model provider fields through the SOT secti
             exact: true,
         }),
     ).toBeVisible();
-    await expectSotSwitchState(
-        section.locator("#title-generation-enabled"),
-        true,
+    const enabledSwitch = sectionSotControl(
+        section,
+        "title-generation-enabled",
     );
+    const baseUrlInput = sectionSotControl(
+        section,
+        "title-generation-base-url",
+    );
+    const modelInput = sectionSotControl(section, "title-generation-model");
+    const apiKeyInput = sectionSotControl(
+        section,
+        "title-generation-api-key",
+    );
+    await expectSotSwitchState(enabledSwitch, true);
+    await expect(baseUrlInput).toHaveAttribute("data-sot-state", "ready");
+    await expect(modelInput).toHaveAttribute("data-sot-state", "ready");
+    await expect(apiKeyInput).toHaveAttribute("data-sot-state", "ready");
     await expect(saveButton).toHaveAttribute("data-sot-state", "idle");
 
-    await section.locator("#title-generation-enabled").click();
-    await expectSotSwitchState(
-        section.locator("#title-generation-enabled"),
-        false,
-    );
-    await section.locator("#title-generation-base-url").fill("https://example.com/v1");
-    await section.locator("#title-generation-model").fill("e2e-title-model");
-    await section.locator("#title-generation-api-key").fill("e2e-title-value");
+    await enabledSwitch.click();
+    await expectSotSwitchState(enabledSwitch, false);
+    await baseUrlInput.fill("https://example.com/v1");
+    await modelInput.fill("e2e-title-model");
+    await apiKeyInput.fill("e2e-title-value");
 
     const saveResponse = page.waitForResponse(
         (response) =>
@@ -243,20 +257,23 @@ test("title generation settings save model provider fields through the SOT secti
     });
     await expect(section).toHaveAttribute("data-sot-state", "ready");
     await expect(saveButton).toHaveAttribute("data-sot-state", "saved");
-    await expect(section.locator("#title-generation-api-key")).toHaveValue("");
+    await expect(apiKeyInput).toHaveValue("");
+    await expect(apiKeyInput).toHaveAttribute("data-sot-state", "stored");
 
     await page.reload({ waitUntil: "domcontentloaded" });
     await expect(settingsSection(page, "title-generation")).toHaveAttribute(
         "data-sot-state",
         "ready",
     );
-    await expect(page.locator("#title-generation-model")).toHaveValue(
-        "e2e-title-model",
-    );
-    await expect(page.locator("#title-generation-api-key")).toHaveAttribute(
-        "placeholder",
-        /输入新 key 可替换/,
-    );
+    await expect(
+        page.locator('[data-sot-control="title-generation-model"]'),
+    ).toHaveValue("e2e-title-model");
+    await expect(
+        page.locator('[data-sot-control="title-generation-api-key"]'),
+    ).toHaveAttribute("data-sot-state", "stored");
+    await expect(
+        page.locator('[data-sot-control="title-generation-api-key"]'),
+    ).toHaveAttribute("placeholder", /输入新 key 可替换/);
 });
 
 test("title generation settings load failure exposes retry-only SOT state", async ({
@@ -320,8 +337,12 @@ test("title generation settings load failure exposes retry-only SOT state", asyn
     await expect(loadError).toBeVisible();
     await expect(section.getByText("加载失败")).toBeVisible();
     await expect(section.getByText("Title generation unavailable")).toBeVisible();
-    await expect(section.locator("#title-generation-enabled")).toHaveCount(0);
-    await expect(section.locator("#title-generation-model")).toHaveCount(0);
+    await expect(
+        section.locator('[data-sot-control="title-generation-enabled"]'),
+    ).toHaveCount(0);
+    await expect(
+        section.locator('[data-sot-control="title-generation-model"]'),
+    ).toHaveCount(0);
     await expect(sectionSaveButton(section)).toHaveCount(0);
     const retry = section.locator(
         '[data-sot-control="settings-section-load-retry"][data-sot-section="title-generation"]',
@@ -339,10 +360,12 @@ test("title generation settings load failure exposes retry-only SOT state", asyn
 
     await expectSectionReady(page, "title-generation");
     await expectSotSwitchState(
-        section.locator("#title-generation-enabled"),
+        section.locator('[data-sot-control="title-generation-enabled"]'),
         true,
     );
-    await expect(section.locator("#title-generation-model")).toBeVisible();
+    await expect(
+        section.locator('[data-sot-control="title-generation-model"]'),
+    ).toBeVisible();
 });
 
 test("transcription settings save auto-transcribe and language changes through SOT controls", async ({
@@ -380,8 +403,9 @@ test("transcription settings save auto-transcribe and language changes through S
     await expect(sectionSaveButton(section)).toHaveCount(0);
     await expect(section.locator("[data-save-actions]")).toHaveCount(0);
     await expect(section.locator("[data-save-action]")).toHaveCount(0);
-    const autoTranscribeSwitch = section.locator(
-        "#transcription-auto-transcribe",
+    const autoTranscribeSwitch = sectionSotControl(
+        section,
+        "transcription-auto-transcribe",
     );
     await expectSotSwitchState(autoTranscribeSwitch, true);
 
@@ -405,7 +429,8 @@ test("transcription settings save auto-transcribe and language changes through S
     await expect(section).toHaveAttribute("data-sot-state", "ready");
     await expectSotSwitchState(autoTranscribeSwitch, false);
 
-    const languageSelect = section.locator("#transcription-language");
+    const languageSelect = sectionSotControl(section, "transcription-language");
+    await expect(languageSelect).toHaveAttribute("data-sot-state", "ready");
     await expectShadcnSelectTrigger(languageSelect, {
         label: "默认转录语言",
         text: "自动检测",
@@ -431,13 +456,16 @@ test("transcription settings save auto-transcribe and language changes through S
 
     await page.reload({ waitUntil: "domcontentloaded" });
     const reloadedAutoTranscribeSwitch = page.locator(
-        "#transcription-auto-transcribe",
+        '[data-sot-control="transcription-auto-transcribe"]',
     );
     await expectSotSwitchState(reloadedAutoTranscribeSwitch, false);
-    await expectShadcnSelectTrigger(page.locator("#transcription-language"), {
-        label: "默认转录语言",
-        text: "中文",
-    });
+    await expectShadcnSelectTrigger(
+        page.locator('[data-sot-control="transcription-language"]'),
+        {
+            label: "默认转录语言",
+            text: "中文",
+        },
+    );
 });
 
 test("VoScript speaker profiles restore SOT states and backend actions", async ({
@@ -1002,16 +1030,55 @@ test("VoScript settings save current SOT controls without testing connection", a
         }),
     ).toBeVisible();
 
-    await section.locator("#voscript-base-url").fill("https://voscript.example.com");
-    await section.locator("#voscript-api-key").fill("e2e-vs-value");
-    await section.locator("#voscript-min-speakers").fill("3");
-    await section.locator("#voscript-max-speakers").fill("4");
-    await section.locator("#voscript-no-repeat-ngram").fill("4");
-    await section.locator("#voscript-snr-threshold").fill("12.5");
-    await section.locator("#voscript-max-inflight-jobs").fill("2");
+    const baseUrlInput = sectionSotControl(section, "voscript-base-url");
+    const apiKeyInput = sectionSotControl(section, "voscript-api-key");
+    const minSpeakersInput = sectionSotControl(
+        section,
+        "voscript-min-speakers",
+    );
+    const maxSpeakersInput = sectionSotControl(
+        section,
+        "voscript-max-speakers",
+    );
+    const noRepeatNgramInput = sectionSotControl(
+        section,
+        "voscript-no-repeat-ngram",
+    );
+    const snrThresholdInput = sectionSotControl(
+        section,
+        "voscript-snr-threshold",
+    );
+    const maxInflightJobsInput = sectionSotControl(
+        section,
+        "voscript-max-inflight-jobs",
+    );
+    const denoiseModelSelect = sectionSotControl(
+        section,
+        "voscript-denoise-model",
+    );
+    for (const readyControl of [
+        baseUrlInput,
+        apiKeyInput,
+        minSpeakersInput,
+        maxSpeakersInput,
+        noRepeatNgramInput,
+        snrThresholdInput,
+        maxInflightJobsInput,
+        denoiseModelSelect,
+    ]) {
+        await expect(readyControl).toHaveAttribute("data-sot-state", "ready");
+    }
+
+    await baseUrlInput.fill("https://voscript.example.com");
+    await apiKeyInput.fill("e2e-vs-value");
+    await minSpeakersInput.fill("3");
+    await maxSpeakersInput.fill("4");
+    await noRepeatNgramInput.fill("4");
+    await snrThresholdInput.fill("12.5");
+    await maxInflightJobsInput.fill("2");
     await chooseShadcnSelectOption(
         page,
-        section.locator("#voscript-denoise-model"),
+        denoiseModelSelect,
         "DeepFilterNet",
     );
 
@@ -1038,11 +1105,23 @@ test("VoScript settings save current SOT controls without testing connection", a
         privateTranscriptionSnrThreshold: 12.5,
     });
     await expect(saveButton).toHaveAttribute("data-sot-state", "saved");
-    await expect(section.locator("#voscript-api-key")).toHaveValue("");
+    await expect(apiKeyInput).toHaveValue("");
+    await expect(apiKeyInput).toHaveAttribute("data-sot-state", "stored");
 
     await page.reload({ waitUntil: "domcontentloaded" });
-    await expect(page.locator("#voscript-api-key")).toHaveValue("");
-    await expect(page.locator("#voscript-min-speakers")).toHaveValue("3");
-    await expect(page.locator("#voscript-max-speakers")).toHaveValue("4");
-    await expect(page.locator("#voscript-no-repeat-ngram")).toHaveValue("4");
+    await expect(page.locator('[data-sot-control="voscript-api-key"]')).toHaveValue(
+        "",
+    );
+    await expect(
+        page.locator('[data-sot-control="voscript-api-key"]'),
+    ).toHaveAttribute("data-sot-state", "stored");
+    await expect(
+        page.locator('[data-sot-control="voscript-min-speakers"]'),
+    ).toHaveValue("3");
+    await expect(
+        page.locator('[data-sot-control="voscript-max-speakers"]'),
+    ).toHaveValue("4");
+    await expect(
+        page.locator('[data-sot-control="voscript-no-repeat-ngram"]'),
+    ).toHaveValue("4");
 });

@@ -2142,6 +2142,44 @@ describe("settings SOT interaction regressions", () => {
         expect(saveActions).toContain('variant="default"');
         expect(saveActions).not.toContain('variant="settingsSave"');
         expect(saveActions).not.toContain('size="settingsSave"');
+        for (const directControl of [
+            "title-generation-enabled",
+            "title-generation-base-url",
+            "title-generation-model",
+            "title-generation-api-key",
+            "transcription-auto-transcribe",
+            "voscript-min-speakers",
+            "voscript-max-speakers",
+            "voscript-base-url",
+            "voscript-api-key",
+            "voscript-snr-threshold",
+            "voscript-no-repeat-ngram",
+            "voscript-max-inflight-jobs",
+        ]) {
+            expect(content).toContain(`data-sot-control="${directControl}"`);
+        }
+        for (const selectControl of [
+            "transcription-language",
+            "voscript-api-key-mode",
+            "voscript-denoise-model",
+        ]) {
+            expect(content).toContain(`control="${selectControl}"`);
+        }
+        expect(titleGenerationPanel).toMatch(
+            /draft\.autoGenerateTitle\s*\?\s*"checked"\s*:\s*"unchecked"/,
+        );
+        expect(transcriptionPanel).toMatch(
+            /draft\.autoTranscribe\s*\?\s*"checked"\s*:\s*"unchecked"/,
+        );
+        expect(titleGenerationPanel).toContain(
+            "draft.titleGenerationApiKeySet",
+        );
+        expect(voscriptPanel).toContain("draft.privateTranscriptionApiKeySet");
+        expect(content).toContain('data-sot-state="stored"');
+        expect(content).toContain('data-sot-state="invalid"');
+        expect(content).toContain("noRepeatNgramInvalid");
+        expect(content).toContain("minSpeakersInvalid");
+        expect(content).toContain("maxSpeakersInvalid");
         expect(content).toContain('control="density"');
         expect(content).toContain('saveId="voscript-connection"');
         expect(content).toContain('data-sot-action="test"');

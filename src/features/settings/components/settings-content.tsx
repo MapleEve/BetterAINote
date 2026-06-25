@@ -2841,6 +2841,10 @@ function TitleGenerationSettingsPanel({
                 >
                     <Switch
                         id="title-generation-enabled"
+                        data-sot-control="title-generation-enabled"
+                        data-sot-state={
+                            draft.autoGenerateTitle ? "checked" : "unchecked"
+                        }
                         checked={draft.autoGenerateTitle}
                         disabled={busy}
                         onCheckedChange={(checked) =>
@@ -2862,6 +2866,8 @@ function TitleGenerationSettingsPanel({
                     <Input
                         className={SETTINGS_INPUT_CLASS}
                         id="title-generation-base-url"
+                        data-sot-control="title-generation-base-url"
+                        data-sot-state={busy ? "disabled" : "ready"}
                         value={draft.titleGenerationBaseUrl ?? ""}
                         disabled={busy}
                         placeholder="https://api.openai.com/v1"
@@ -2884,6 +2890,8 @@ function TitleGenerationSettingsPanel({
                     <Input
                         className={SETTINGS_INPUT_CLASS}
                         id="title-generation-model"
+                        data-sot-control="title-generation-model"
+                        data-sot-state={busy ? "disabled" : "ready"}
                         value={draft.titleGenerationModel ?? ""}
                         disabled={busy}
                         placeholder="gpt-4.1-mini"
@@ -2910,13 +2918,21 @@ function TitleGenerationSettingsPanel({
                     }
                 >
                     {draft.titleGenerationApiKeySet ? (
-                        <span data-sot-key-status>
+                        <span data-sot-key-status data-sot-state="stored">
                             {isZh ? "已存储" : "Stored"}
                         </span>
                     ) : null}
                     <Input
                         className={SETTINGS_INPUT_CLASS}
                         id="title-generation-api-key"
+                        data-sot-control="title-generation-api-key"
+                        data-sot-state={
+                            busy
+                                ? "disabled"
+                                : draft.titleGenerationApiKeySet
+                                  ? "stored"
+                                  : "ready"
+                        }
                         type="password"
                         value={apiKeyDraft}
                         disabled={busy}
@@ -2982,6 +2998,14 @@ function VoScriptSpeakerRows({
                 <Input
                     className={SETTINGS_NUMBER_INPUT_CLASS}
                     id="voscript-min-speakers"
+                    data-sot-control="voscript-min-speakers"
+                    data-sot-state={
+                        minSpeakersInvalid
+                            ? "invalid"
+                            : busy
+                              ? "disabled"
+                              : "ready"
+                    }
                     type="number"
                     min={0}
                     aria-invalid={minSpeakersInvalid}
@@ -3012,6 +3036,14 @@ function VoScriptSpeakerRows({
                 <Input
                     className={SETTINGS_NUMBER_INPUT_CLASS}
                     id="voscript-max-speakers"
+                    data-sot-control="voscript-max-speakers"
+                    data-sot-state={
+                        maxSpeakersInvalid
+                            ? "invalid"
+                            : busy
+                              ? "disabled"
+                              : "ready"
+                    }
                     type="number"
                     min={0}
                     aria-invalid={maxSpeakersInvalid}
@@ -3319,6 +3351,8 @@ function VoScriptSettingsPanel({
                     <Input
                         className={SETTINGS_INPUT_CLASS}
                         id="voscript-base-url"
+                        data-sot-control="voscript-base-url"
+                        data-sot-state={busy ? "disabled" : "ready"}
                         value={draft.privateTranscriptionBaseUrl ?? ""}
                         disabled={busy}
                         placeholder="https://voscript.example.com"
@@ -3343,13 +3377,21 @@ function VoScriptSettingsPanel({
                     }
                 >
                     {draft.privateTranscriptionApiKeySet ? (
-                        <span data-sot-key-status>
+                        <span data-sot-key-status data-sot-state="stored">
                             {isZh ? "已存储" : "Stored"}
                         </span>
                     ) : null}
                     <Input
                         className={SETTINGS_INPUT_CLASS}
                         id="voscript-api-key"
+                        data-sot-control="voscript-api-key"
+                        data-sot-state={
+                            busy || apiKeyMode === VOSCRIPT_API_KEY_CLEAR
+                                ? "disabled"
+                                : draft.privateTranscriptionApiKeySet
+                                  ? "stored"
+                                  : "ready"
+                        }
                         type="password"
                         value={apiKeyDraft}
                         disabled={busy || apiKeyMode === VOSCRIPT_API_KEY_CLEAR}
@@ -3374,6 +3416,7 @@ function VoScriptSettingsPanel({
                     >
                         <SelectControl
                             id="voscript-api-key-mode"
+                            control="voscript-api-key-mode"
                             label={isZh ? "密钥操作" : "Key action"}
                             value={apiKeyMode}
                             disabled={busy}
@@ -3467,6 +3510,7 @@ function VoScriptSettingsPanel({
                 >
                     <SelectControl
                         id="voscript-denoise-model"
+                        control="voscript-denoise-model"
                         label={isZh ? "降噪模型" : "Denoise model"}
                         options={denoiseOptions}
                         value={draft.privateTranscriptionDenoiseModel}
@@ -3491,6 +3535,8 @@ function VoScriptSettingsPanel({
                     <Input
                         className={SETTINGS_NUMBER_INPUT_CLASS}
                         id="voscript-snr-threshold"
+                        data-sot-control="voscript-snr-threshold"
+                        data-sot-state={busy ? "disabled" : "ready"}
                         type="number"
                         value={draft.privateTranscriptionSnrThreshold ?? ""}
                         disabled={busy}
@@ -3522,6 +3568,14 @@ function VoScriptSettingsPanel({
                     <Input
                         className={SETTINGS_NUMBER_INPUT_CLASS}
                         id="voscript-no-repeat-ngram"
+                        data-sot-control="voscript-no-repeat-ngram"
+                        data-sot-state={
+                            noRepeatNgramInvalid
+                                ? "invalid"
+                                : busy
+                                  ? "disabled"
+                                  : "ready"
+                        }
                         type="number"
                         min={0}
                         aria-invalid={noRepeatNgramInvalid}
@@ -3551,6 +3605,8 @@ function VoScriptSettingsPanel({
                     <Input
                         className={SETTINGS_NUMBER_INPUT_CLASS}
                         id="voscript-max-inflight-jobs"
+                        data-sot-control="voscript-max-inflight-jobs"
+                        data-sot-state={busy ? "disabled" : "ready"}
                         type="number"
                         min={0}
                         value={draft.privateTranscriptionMaxInflightJobs}
@@ -3644,6 +3700,10 @@ function TranscriptionSettingsPanel({
                 >
                     <Switch
                         id="transcription-auto-transcribe"
+                        data-sot-control="transcription-auto-transcribe"
+                        data-sot-state={
+                            draft.autoTranscribe ? "checked" : "unchecked"
+                        }
                         checked={draft.autoTranscribe}
                         disabled={busy}
                         onCheckedChange={(checked) => {
@@ -3671,6 +3731,7 @@ function TranscriptionSettingsPanel({
                 >
                     <SelectControl
                         id="transcription-language"
+                        control="transcription-language"
                         label={
                             isZh
                                 ? "默认转录语言"
