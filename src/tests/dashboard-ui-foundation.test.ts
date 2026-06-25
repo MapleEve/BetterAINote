@@ -49,7 +49,7 @@ const EXPECTED_DASHBOARD_DETAIL_HEADER_TITLE_INPUT_CLASS_NAME =
 const EXPECTED_DASHBOARD_DETAIL_HEADER_BADGE_CLASS_NAME = "ml-1 shrink-0";
 const EXPECTED_DASHBOARD_TRANSCRIPT_LANGUAGE_BADGE_CLASS_NAME = "gap-1.5";
 const EXPECTED_DASHBOARD_SOURCE_REPORT_STATUS_CLASS_NAME =
-    "h-[22px] min-w-[65px] justify-normal gap-[5px] overflow-visible rounded-full border px-[8px] py-0 text-[11px] font-semibold shadow-none data-[sot-tone=err]:border-[var(--source-report-status-err-border)] data-[sot-tone=err]:bg-[var(--source-report-status-err-bg)] data-[sot-tone=err]:text-[var(--signal-danger)] data-[sot-tone=neu]:border-[var(--line-hairline)] data-[sot-tone=neu]:bg-[var(--bg-recessed)] data-[sot-tone=neu]:text-[var(--fg-secondary)] data-[sot-tone=ok]:border-[var(--source-report-status-ok-border)] data-[sot-tone=ok]:bg-[var(--source-report-status-ok-bg)] data-[sot-tone=ok]:text-[var(--source-report-status-ok-fg)] data-[sot-tone=warn]:border-[var(--source-report-status-warn-border)] data-[sot-tone=warn]:bg-[var(--source-report-status-warn-bg)] data-[sot-tone=warn]:text-[var(--source-report-status-warn-fg)] [&_[data-sot-part=dashboard-source-report-status-dot]]:mr-0 [&_[data-sot-part=dashboard-source-report-status-dot]]:inline-block [&_[data-sot-part=dashboard-source-report-status-dot]]:size-[5px] [&_[data-sot-part=dashboard-source-report-status-dot]]:rounded-full [&_[data-sot-part=dashboard-source-report-status-dot]]:bg-current [&_[data-sot-part=source-report-status-dot]]:mr-0 [&_[data-sot-part=source-report-status-dot]]:inline-block [&_[data-sot-part=source-report-status-dot]]:size-[5px] [&_[data-sot-part=source-report-status-dot]]:rounded-full [&_[data-sot-part=source-report-status-dot]]:bg-current";
+    "h-[22px] min-w-[65px] justify-normal gap-[9px] overflow-visible rounded-full border px-[8px] py-0 text-[11px] font-semibold leading-[normal] shadow-none data-[sot-tone=err]:border-[var(--source-report-status-err-border)] data-[sot-tone=err]:bg-[var(--source-report-status-err-bg)] data-[sot-tone=err]:text-[var(--signal-danger)] data-[sot-tone=neu]:border-[var(--line-hairline)] data-[sot-tone=neu]:bg-[var(--bg-recessed)] data-[sot-tone=neu]:text-[var(--fg-secondary)] data-[sot-tone=ok]:border-[var(--source-report-status-ok-border)] data-[sot-tone=ok]:bg-[var(--source-report-status-ok-bg)] data-[sot-tone=ok]:text-[var(--source-report-status-ok-fg)] data-[sot-tone=warn]:border-[var(--source-report-status-warn-border)] data-[sot-tone=warn]:bg-[var(--source-report-status-warn-bg)] data-[sot-tone=warn]:text-[var(--source-report-status-warn-fg)] [&_[data-sot-part=dashboard-source-report-status-dot]]:mr-0 [&_[data-sot-part=dashboard-source-report-status-dot]]:inline-block [&_[data-sot-part=dashboard-source-report-status-dot]]:size-[5px] [&_[data-sot-part=dashboard-source-report-status-dot]]:rounded-full [&_[data-sot-part=dashboard-source-report-status-dot]]:bg-current [&_[data-sot-part=source-report-status-dot]]:mr-0 [&_[data-sot-part=source-report-status-dot]]:inline-block [&_[data-sot-part=source-report-status-dot]]:size-[5px] [&_[data-sot-part=source-report-status-dot]]:rounded-full [&_[data-sot-part=source-report-status-dot]]:bg-current";
 const EXPECTED_DASHBOARD_RECORDING_PLAYER_CARD_CLASS_NAME =
     "block min-h-[114px] gap-0 overflow-visible rounded-[16px] border-[var(--glass-border-soft)] bg-[rgb(255_255_255_/_0.025)] px-[18px] py-[16px] shadow-none backdrop-blur-none";
 const DASHBOARD_RECORDING_PLAYER_WORKSTATION_CLASS_INITIALIZERS = [
@@ -969,6 +969,20 @@ const EXPECTED_SOURCE_REPORT_METRIC_CARD_CLASS_NAME =
     "gap-[6px] overflow-visible rounded-[10px] border-[var(--source-report-metric-border)] bg-[var(--source-report-metric-bg)] px-[12px] py-[10px] shadow-none backdrop-blur-none";
 const SOURCE_REPORT_METRIC_CARD_CLASS_TOKENS =
     EXPECTED_SOURCE_REPORT_METRIC_CARD_CLASS_NAME.split(" ");
+const SOURCE_REPORT_STYLE_OWNER_SNIPPETS = [
+    "type SourceReportStyleVariables = CSSProperties & {",
+    "export const SOURCE_REPORT_STYLE_VARIABLES = {",
+    '"--source-report-metric-bg": "var(--card-popover-footer-bg)"',
+    '"--source-report-metric-border": "var(--card-elevated-border)"',
+    '"--source-report-status-ok-fg": "oklch(0.62 0.13 158)"',
+    '"--source-report-status-warn-fg": "oklch(0.55 0.16 70)"',
+    '"--source-report-skeleton-bg":',
+    "linear-gradient(90deg, color-mix(in srgb, var(--fg-primary) 5%, transparent)",
+    "export const SOURCE_REPORT_SKELETON_CLASS_NAME =",
+    "![background-color:transparent]",
+    "dark:[background-image:linear-gradient(90deg,rgb(255_255_255_/_0.05)_0%,rgb(255_255_255_/_0.12)_50%,rgb(255_255_255_/_0.05)_100%)]",
+    "satisfies SourceReportStyleVariables",
+] as const;
 
 const DASHBOARD_SOURCE_REPORT_LOADING_METRIC_CARDS = [
     {
@@ -1020,11 +1034,17 @@ const DASHBOARD_SOURCE_REPORT_LOADED_METRIC_CARDS = [
 const DASHBOARD_SOURCE_REPORT_SKELETON_LOCAL_COMPOSITION_TOKENS = [
     "const sotSourceReportCardSkeletonClassNames",
     "const sotSourceReportSegmentSkeletonClassNames",
-    'count: "inline-block h-[18px] w-12 align-middle rounded-[6px]"',
-    'source: "inline-block h-[18px] w-[120px] align-middle rounded-[6px]"',
-    '"line-long":',
+    "SOURCE_REPORT_SKELETON_CLASS_NAME",
+    "count: cn(",
+    '"inline-block h-[18px] w-[48px] align-middle rounded-[6px]"',
+    '"inline-block h-[18px] w-[80px] align-middle rounded-[6px]"',
+    '"inline-block h-[18px] w-[120px] align-middle rounded-[6px]"',
+    '"line-long": cn(',
     '"mt-1.5 inline-block h-[13px] w-[92%] align-middle rounded-[4px]"',
-    'time: "inline-block h-[12px] w-[96px] align-middle rounded-[4px]"',
+    '"mt-[7px] inline-block h-[13px] w-[88%] align-middle rounded-[4px]"',
+    '"ml-[5px] inline-block h-[12px] w-[54px] align-middle rounded-[4px]"',
+    "time: cn(",
+    '"inline-block h-[12px] w-[96px] align-middle rounded-[4px]"',
 ] as const;
 
 const DASHBOARD_SOURCE_REPORT_LOADED_SOT_HOOKS = [
@@ -3595,11 +3615,11 @@ describe("dashboard SOT foundation", () => {
             'data-sot-control="repull-source"',
             "Button",
         );
-        expect(sourceReportOpenAction).toContain('variant="outline"');
+        expect(sourceReportOpenAction).toContain('variant="ghost"');
         expect(sourceReportOpenAction).toContain('size="xs"');
         expectClassNameConstReference(
             sourceReportOpenAction,
-            "SOT_SOURCE_REPORT_ACTION_BUTTON_CLASS_NAME",
+            "SOT_SOURCE_REPORT_GHOST_ACTION_BUTTON_CLASS_NAME",
         );
         expect(sourceReportRepullAction).toContain('variant="ghost"');
         expect(sourceReportRepullAction).toContain('size="xs"');
@@ -3654,6 +3674,31 @@ describe("dashboard SOT foundation", () => {
         ]);
         expect(workstation).toContain(
             "const SOT_SOURCE_REPORT_METRIC_CARD_CLASS_NAME =",
+        );
+        const sourceReportStyles = readSource("features/source-report/styles.ts");
+        for (const snippet of SOURCE_REPORT_STYLE_OWNER_SNIPPETS) {
+            expect(sourceReportStyles).toContain(snippet);
+        }
+        expect(globals).not.toMatch(/--source-report-[a-z-]+/);
+        expect(globals).toContain("[data-sot-source-report-state] {");
+        expect(workstation).toContain("@/features/source-report/styles");
+        expect(workstation).toContain("SOURCE_REPORT_SKELETON_CLASS_NAME");
+        expect(workstation).toContain("SOURCE_REPORT_STYLE_VARIABLES");
+        const sourceReportPane = extractOpeningElement(
+            workstation,
+            'data-sot-panel="dashboard-source-report"',
+            "div",
+        );
+        expect(sourceReportPane).toContain(
+            "style={SOURCE_REPORT_STYLE_VARIABLES}",
+        );
+        const sourceReportState = extractOpeningElement(
+            workstation,
+            'data-sot-panel="dashboard-source-report-state"',
+            "div",
+        );
+        expect(sourceReportState).toContain(
+            "style={SOURCE_REPORT_STYLE_VARIABLES}",
         );
         const sourceReportMetricCard = extractOpeningElement(
             workstation,

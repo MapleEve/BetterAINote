@@ -330,49 +330,6 @@
         var(--signal-danger) 36%,
         transparent
     );
-    --source-report-metric-bg: var(--bg-recessed);
-    --source-report-metric-border: var(--line-hairline);
-    --source-report-status-ok-fg: rgb(36 151 104);
-    --source-report-status-ok-fg: oklch(0.62 0.13 158);
-    --source-report-status-ok-bg: rgb(36 151 104 / 0.14);
-    --source-report-status-ok-bg: color-mix(
-        in srgb,
-        var(--source-report-status-ok-fg) 14%,
-        transparent
-    );
-    --source-report-status-ok-border: rgb(36 151 104 / 0.3);
-    --source-report-status-ok-border: color-mix(
-        in srgb,
-        var(--source-report-status-ok-fg) 30%,
-        transparent
-    );
-    --source-report-status-warn-bg: rgb(184 130 27 / 0.18);
-    --source-report-status-warn-bg: color-mix(
-        in srgb,
-        var(--signal-warning) 18%,
-        transparent
-    );
-    --source-report-status-warn-border: rgb(184 130 27 / 0.32);
-    --source-report-status-warn-border: color-mix(
-        in srgb,
-        var(--signal-warning) 32%,
-        transparent
-    );
-    --source-report-status-warn-fg: rgb(158 94 19);
-    --source-report-status-warn-fg: oklch(0.55 0.16 70);
-    --source-report-status-err-bg: rgb(210 65 53 / 0.14);
-    --source-report-status-err-bg: color-mix(
-        in srgb,
-        var(--signal-danger) 14%,
-        transparent
-    );
-    --source-report-status-err-border: rgb(210 65 53 / 0.3);
-    --source-report-status-err-border: color-mix(
-        in srgb,
-        var(--signal-danger) 30%,
-        transparent
-    );
-
     /* -----------------------------------------------------------
        LIQUID GLASS surfaces (Apple-style, layered)
        ----------------------------------------------------------- */
@@ -587,8 +544,6 @@
     --accent-soft: color-mix(in srgb, var(--accent) 16%, transparent);
     --accent-on: rgb(11 16 22);
     --accent-on: oklch(0.11 0.004 250);
-    --source-report-metric-bg: rgb(255 255 255 / 0.03);
-    --source-report-metric-border: var(--glass-border-soft);
     --signal-warning-strong: rgb(226 177 60);
     --signal-warning-strong: oklch(0.78 0.14 80);
     --signal-warning-deep: rgb(232 186 70);

@@ -22,16 +22,37 @@ const SOURCE_REPORT_SKELETON_SHARED_TOKENS = [
 const RECORDING_SOURCE_REPORT_SKELETON_LOCAL_COMPOSITION_TOKENS = [
     "const sourceReportCardSkeletonClassNames",
     "const sourceReportSegmentSkeletonClassNames",
-    'count: "inline-block h-[18px] w-12 align-middle rounded-[6px]"',
-    'source: "inline-block h-[18px] w-[120px] align-middle rounded-[6px]"',
-    '"line-long": "mt-1.5 inline-block h-[13px] w-[92%] align-middle rounded-[4px]"',
-    'time: "inline-block h-[12px] w-[96px] align-middle rounded-[4px]"',
+    "SOURCE_REPORT_SKELETON_CLASS_NAME",
+    "count: cn(",
+    '"inline-block h-[18px] w-[48px] align-middle rounded-[6px]"',
+    '"inline-block h-[18px] w-[80px] align-middle rounded-[6px]"',
+    '"inline-block h-[18px] w-[120px] align-middle rounded-[6px]"',
+    '"line-long": cn(',
+    '"mt-1.5 inline-block h-[13px] w-[92%] align-middle rounded-[4px]"',
+    '"mt-[7px] inline-block h-[13px] w-[88%] align-middle rounded-[4px]"',
+    '"ml-[5px] inline-block h-[12px] w-[54px] align-middle rounded-[4px]"',
+    'time: cn(',
+    '"inline-block h-[12px] w-[96px] align-middle rounded-[4px]"',
 ] as const;
 
 const EXPECTED_SOURCE_REPORT_METRIC_CARD_CLASS_NAME =
     "gap-[6px] overflow-visible rounded-[10px] border-[var(--source-report-metric-border)] bg-[var(--source-report-metric-bg)] px-[12px] py-[10px] shadow-none backdrop-blur-none";
 const SOURCE_REPORT_METRIC_CARD_CLASS_TOKENS =
     EXPECTED_SOURCE_REPORT_METRIC_CARD_CLASS_NAME.split(" ");
+const SOURCE_REPORT_STYLE_OWNER_SNIPPETS = [
+    "type SourceReportStyleVariables = CSSProperties & {",
+    "export const SOURCE_REPORT_STYLE_VARIABLES = {",
+    '"--source-report-metric-bg": "var(--card-popover-footer-bg)"',
+    '"--source-report-metric-border": "var(--card-elevated-border)"',
+    '"--source-report-status-ok-fg": "oklch(0.62 0.13 158)"',
+    '"--source-report-status-warn-fg": "oklch(0.55 0.16 70)"',
+    '"--source-report-skeleton-bg":',
+    "linear-gradient(90deg, color-mix(in srgb, var(--fg-primary) 5%, transparent)",
+    "export const SOURCE_REPORT_SKELETON_CLASS_NAME =",
+    "![background-color:transparent]",
+    "dark:[background-image:linear-gradient(90deg,rgb(255_255_255_/_0.05)_0%,rgb(255_255_255_/_0.12)_50%,rgb(255_255_255_/_0.05)_100%)]",
+    "satisfies SourceReportStyleVariables",
+] as const;
 
 const RECORDING_SOURCE_REPORT_LOADING_METRIC_CARDS = [
     {
@@ -681,6 +702,7 @@ describe("recording detail copy and title action UI regressions", () => {
         const emptyPrimitive = readSource("components/ui/empty.tsx");
         const skeletonPrimitive = readSource("components/ui/skeleton.tsx");
         const globals = readSource("app/globals.css");
+        const sourceReportStyles = readSource("features/source-report/styles.ts");
         const sourceReportButtonControls = [
             'data-sot-control="copy-source-transcript"',
             'data-sot-control="copy-source-report"',
@@ -714,6 +736,17 @@ describe("recording detail copy and title action UI regressions", () => {
         expect(sourceReport).toContain(
             'data-sot-panel="recording-source-report"',
         );
+        for (const snippet of SOURCE_REPORT_STYLE_OWNER_SNIPPETS) {
+            expect(sourceReportStyles).toContain(snippet);
+        }
+        expect(globals).not.toMatch(/--source-report-[a-z-]+/);
+        expect(globals).toContain("[data-sot-source-report-state] {");
+        expect(sourceReport).toContain("@/features/source-report/styles");
+        expect(sourceReport).toContain("SOURCE_REPORT_SKELETON_CLASS_NAME");
+        expect(sourceReport).toContain("SOURCE_REPORT_STYLE_VARIABLES");
+        expect(
+            sourceReport.match(/style=\{SOURCE_REPORT_STYLE_VARIABLES\}/g) ?? [],
+        ).toHaveLength(3);
         expect(sourceReport).toContain(
             'data-sot-panel="recording-source-report-state"',
         );
@@ -1085,7 +1118,7 @@ describe("recording detail copy and title action UI regressions", () => {
         expect(sourceReport).not.toContain('className="copy-btn"');
         expect(sourceReport).toContain('data-icon="inline-start"');
         expect(sourceReport).not.toMatch(
-            /\bCSSProperties\b|SOURCE_REPORT_LOADING_SKELETON_STYLES|style=\{|sk _is|_is-/,
+            /\bCSSProperties\b|SOURCE_REPORT_LOADING_SKELETON_STYLES|style=\{(?!SOURCE_REPORT_STYLE_VARIABLES\})|sk _is|_is-/,
         );
         expect(sourceReport).not.toContain("JSON.stringify(data.detail");
     });

@@ -1451,7 +1451,7 @@ const BADGE_PRIMITIVE_FORBIDDEN_BUSINESS_TOKENS = [
 const EXPECTED_DASHBOARD_TRANSCRIPT_LANGUAGE_BADGE_CLASS_NAME = "gap-1.5";
 
 const EXPECTED_DASHBOARD_SOURCE_REPORT_STATUS_CLASS_NAME =
-    "h-[22px] min-w-[65px] justify-normal gap-[5px] overflow-visible rounded-full border px-[8px] py-0 text-[11px] font-semibold shadow-none data-[sot-tone=err]:border-[var(--source-report-status-err-border)] data-[sot-tone=err]:bg-[var(--source-report-status-err-bg)] data-[sot-tone=err]:text-[var(--signal-danger)] data-[sot-tone=neu]:border-[var(--line-hairline)] data-[sot-tone=neu]:bg-[var(--bg-recessed)] data-[sot-tone=neu]:text-[var(--fg-secondary)] data-[sot-tone=ok]:border-[var(--source-report-status-ok-border)] data-[sot-tone=ok]:bg-[var(--source-report-status-ok-bg)] data-[sot-tone=ok]:text-[var(--source-report-status-ok-fg)] data-[sot-tone=warn]:border-[var(--source-report-status-warn-border)] data-[sot-tone=warn]:bg-[var(--source-report-status-warn-bg)] data-[sot-tone=warn]:text-[var(--source-report-status-warn-fg)] [&_[data-sot-part=dashboard-source-report-status-dot]]:mr-0 [&_[data-sot-part=dashboard-source-report-status-dot]]:inline-block [&_[data-sot-part=dashboard-source-report-status-dot]]:size-[5px] [&_[data-sot-part=dashboard-source-report-status-dot]]:rounded-full [&_[data-sot-part=dashboard-source-report-status-dot]]:bg-current [&_[data-sot-part=source-report-status-dot]]:mr-0 [&_[data-sot-part=source-report-status-dot]]:inline-block [&_[data-sot-part=source-report-status-dot]]:size-[5px] [&_[data-sot-part=source-report-status-dot]]:rounded-full [&_[data-sot-part=source-report-status-dot]]:bg-current";
+    "h-[22px] min-w-[65px] justify-normal gap-[9px] overflow-visible rounded-full border px-[8px] py-0 text-[11px] font-semibold leading-[normal] shadow-none data-[sot-tone=err]:border-[var(--source-report-status-err-border)] data-[sot-tone=err]:bg-[var(--source-report-status-err-bg)] data-[sot-tone=err]:text-[var(--signal-danger)] data-[sot-tone=neu]:border-[var(--line-hairline)] data-[sot-tone=neu]:bg-[var(--bg-recessed)] data-[sot-tone=neu]:text-[var(--fg-secondary)] data-[sot-tone=ok]:border-[var(--source-report-status-ok-border)] data-[sot-tone=ok]:bg-[var(--source-report-status-ok-bg)] data-[sot-tone=ok]:text-[var(--source-report-status-ok-fg)] data-[sot-tone=warn]:border-[var(--source-report-status-warn-border)] data-[sot-tone=warn]:bg-[var(--source-report-status-warn-bg)] data-[sot-tone=warn]:text-[var(--source-report-status-warn-fg)] [&_[data-sot-part=dashboard-source-report-status-dot]]:mr-0 [&_[data-sot-part=dashboard-source-report-status-dot]]:inline-block [&_[data-sot-part=dashboard-source-report-status-dot]]:size-[5px] [&_[data-sot-part=dashboard-source-report-status-dot]]:rounded-full [&_[data-sot-part=dashboard-source-report-status-dot]]:bg-current [&_[data-sot-part=source-report-status-dot]]:mr-0 [&_[data-sot-part=source-report-status-dot]]:inline-block [&_[data-sot-part=source-report-status-dot]]:size-[5px] [&_[data-sot-part=source-report-status-dot]]:rounded-full [&_[data-sot-part=source-report-status-dot]]:bg-current";
 
 const CARD_PRIMITIVE_FORBIDDEN_BUSINESS_TOKENS = [
     "onboarding",
@@ -2075,6 +2075,10 @@ function isOwnerLocalModernColorLine(relativePath: string, line: string) {
         return line.includes("source-provider");
     }
 
+    if (relativePath === "features/source-report/styles.ts") {
+        return true;
+    }
+
     return false;
 }
 
@@ -2307,6 +2311,20 @@ const EXPECTED_SOURCE_REPORT_METRIC_CARD_CLASS_NAME =
     "gap-[6px] overflow-visible rounded-[10px] border-[var(--source-report-metric-border)] bg-[var(--source-report-metric-bg)] px-[12px] py-[10px] shadow-none backdrop-blur-none";
 const SOURCE_REPORT_METRIC_CARD_CLASS_TOKENS =
     EXPECTED_SOURCE_REPORT_METRIC_CARD_CLASS_NAME.split(" ");
+const SOURCE_REPORT_STYLE_OWNER_SNIPPETS = [
+    "type SourceReportStyleVariables = CSSProperties & {",
+    "export const SOURCE_REPORT_STYLE_VARIABLES = {",
+    '"--source-report-metric-bg": "var(--card-popover-footer-bg)"',
+    '"--source-report-metric-border": "var(--card-elevated-border)"',
+    '"--source-report-status-ok-fg": "oklch(0.62 0.13 158)"',
+    '"--source-report-status-warn-fg": "oklch(0.55 0.16 70)"',
+    '"--source-report-skeleton-bg":',
+    "linear-gradient(90deg, color-mix(in srgb, var(--fg-primary) 5%, transparent)",
+    "export const SOURCE_REPORT_SKELETON_CLASS_NAME =",
+    "![background-color:transparent]",
+    "dark:[background-image:linear-gradient(90deg,rgb(255_255_255_/_0.05)_0%,rgb(255_255_255_/_0.12)_50%,rgb(255_255_255_/_0.05)_100%)]",
+    "satisfies SourceReportStyleVariables",
+] as const;
 
 const DASHBOARD_SOURCE_REPORT_LOADING_METRIC_CARDS = [
     {
@@ -2402,21 +2420,33 @@ const RECORDING_SOURCE_REPORT_LOADED_METRIC_CARDS = [
 const DASHBOARD_SOURCE_REPORT_SKELETON_LOCAL_COMPOSITION_TOKENS = [
     "const sotSourceReportCardSkeletonClassNames",
     "const sotSourceReportSegmentSkeletonClassNames",
-    'count: "inline-block h-[18px] w-12 align-middle rounded-[6px]"',
-    'source: "inline-block h-[18px] w-[120px] align-middle rounded-[6px]"',
-    '"line-long":',
+    "SOURCE_REPORT_SKELETON_CLASS_NAME",
+    "count: cn(",
+    '"inline-block h-[18px] w-[48px] align-middle rounded-[6px]"',
+    '"inline-block h-[18px] w-[80px] align-middle rounded-[6px]"',
+    '"inline-block h-[18px] w-[120px] align-middle rounded-[6px]"',
+    '"line-long": cn(',
     '"mt-1.5 inline-block h-[13px] w-[92%] align-middle rounded-[4px]"',
-    'time: "inline-block h-[12px] w-[96px] align-middle rounded-[4px]"',
+    '"mt-[7px] inline-block h-[13px] w-[88%] align-middle rounded-[4px]"',
+    '"ml-[5px] inline-block h-[12px] w-[54px] align-middle rounded-[4px]"',
+    "time: cn(",
+    '"inline-block h-[12px] w-[96px] align-middle rounded-[4px]"',
 ] as const;
 
 const RECORDING_SOURCE_REPORT_SKELETON_LOCAL_COMPOSITION_TOKENS = [
     "const sourceReportCardSkeletonClassNames",
     "const sourceReportSegmentSkeletonClassNames",
-    'count: "inline-block h-[18px] w-12 align-middle rounded-[6px]"',
-    'source: "inline-block h-[18px] w-[120px] align-middle rounded-[6px]"',
-    '"line-long":',
+    "SOURCE_REPORT_SKELETON_CLASS_NAME",
+    "count: cn(",
+    '"inline-block h-[18px] w-[48px] align-middle rounded-[6px]"',
+    '"inline-block h-[18px] w-[80px] align-middle rounded-[6px]"',
+    '"inline-block h-[18px] w-[120px] align-middle rounded-[6px]"',
+    '"line-long": cn(',
     '"mt-1.5 inline-block h-[13px] w-[92%] align-middle rounded-[4px]"',
-    'time: "inline-block h-[12px] w-[96px] align-middle rounded-[4px]"',
+    '"mt-[7px] inline-block h-[13px] w-[88%] align-middle rounded-[4px]"',
+    '"ml-[5px] inline-block h-[12px] w-[54px] align-middle rounded-[4px]"',
+    "time: cn(",
+    '"inline-block h-[12px] w-[96px] align-middle rounded-[4px]"',
 ] as const;
 
 const SOURCE_REPORT_EMPTY_LEGACY_CSS_SELECTOR_RE =
@@ -7381,7 +7411,11 @@ describe("full UI replacement regression coverage", () => {
             "className={SOURCE_REPORT_METRIC_CARD_CLASS}",
         );
         expect(sourceReportPanel).toContain("data-sot-source-report-actions");
-        expect(sourceReportPanel).toContain("SOURCE_REPORT_ACTIONS_CLASS_NAME");
+        expect(sourceReportPanel).not.toContain(
+            "SOURCE_REPORT_ACTIONS_CLASS_NAME",
+        );
+        expect(sourceReportPanel).not.toContain("mb-[3px]");
+        expect(sourceReportPanel).not.toContain("mb-[4px]");
         expect(sourceReportPanel).not.toContain(
             'className="justify-start whitespace-normal"',
         );
@@ -7452,9 +7486,11 @@ describe("full UI replacement regression coverage", () => {
             "const sourceActionControls = data ? (",
             ") : null;",
         );
-        expect(sourceReportActions).toContain(
+        expect(sourceReportActions).not.toContain(
             "className={sourceReportActionsClassName}",
         );
+        expect(sourceReportActions).not.toContain("mb-[3px]");
+        expect(sourceReportActions).not.toContain("mb-[4px]");
         expect(sourceReportActions).toContain("data-sot-source-report-actions");
         for (const sourceReportButtonToken of [
             "sourceReportAction",
@@ -7469,12 +7505,11 @@ describe("full UI replacement regression coverage", () => {
         expect(sourceReportPanel).toContain(
             "SOURCE_REPORT_ACTION_BUTTON_CLASS_NAME",
         );
-        expect(sourceReportPanel).toContain("SOURCE_REPORT_ACTIONS_CLASS_NAME");
-        expect(sourceReportPanel).toContain(
-            "SOURCE_REPORT_ACTIONS_BOTH_MISSING_CLASS_NAME",
+        expect(sourceReportPanel).not.toContain(
+            "SOURCE_REPORT_ACTIONS_CLASS_NAME",
         );
-        expect(sourceReportPanel).toContain(
-            'sourceReportSubState === "both-missing"',
+        expect(sourceReportPanel).not.toContain(
+            "SOURCE_REPORT_ACTIONS_BOTH_MISSING_CLASS_NAME",
         );
         expect(sourceReportPanel).toContain(
             "SOURCE_REPORT_GHOST_ACTION_BUTTON_CLASS_NAME",
@@ -7482,10 +7517,10 @@ describe("full UI replacement regression coverage", () => {
         expect(sourceReportPanel).toContain(
             "SOURCE_REPORT_COPY_BUTTON_CLASS_NAME",
         );
-        expect(sourceReportActions).toContain('variant="outline"');
+        expect(sourceReportActions).not.toContain('variant="outline"');
         expect(sourceReportActions).toContain('variant="ghost"');
         expect(sourceReportActions).toContain('size="xs"');
-        expect(sourceReportActions).toContain(
+        expect(sourceReportActions).not.toContain(
             "SOURCE_REPORT_ACTION_BUTTON_CLASS_NAME",
         );
         expect(sourceReportActions).toContain(
@@ -7571,6 +7606,31 @@ describe("full UI replacement regression coverage", () => {
             "SOT_DASHBOARD_SOURCE_REPORT_STATUS_CLASS_NAME",
             EXPECTED_DASHBOARD_SOURCE_REPORT_STATUS_CLASS_NAME,
         );
+        const sourceReportStyles = readSource("features/source-report/styles.ts");
+        for (const snippet of SOURCE_REPORT_STYLE_OWNER_SNIPPETS) {
+            expect(sourceReportStyles).toContain(snippet);
+        }
+        expect(globals).not.toMatch(/--source-report-[a-z-]+/);
+        expect(globals).toContain("[data-sot-source-report-state] {");
+        expect(workstation).toContain("@/features/source-report/styles");
+        expect(workstation).toContain("SOURCE_REPORT_SKELETON_CLASS_NAME");
+        expect(workstation).toContain("SOURCE_REPORT_STYLE_VARIABLES");
+        const dashboardSourceReportPane = extractOpeningElement(
+            workstation,
+            'data-sot-panel="dashboard-source-report"',
+            "div",
+        );
+        expect(dashboardSourceReportPane).toContain(
+            "style={SOURCE_REPORT_STYLE_VARIABLES}",
+        );
+        const dashboardSourceReportState = extractOpeningElement(
+            workstation,
+            'data-sot-panel="dashboard-source-report-state"',
+            "div",
+        );
+        expect(dashboardSourceReportState).toContain(
+            "style={SOURCE_REPORT_STYLE_VARIABLES}",
+        );
         expectSourceToExcludeForbiddenSubstrings(
             sourceReportBadgePrimitive,
             BADGE_PRIMITIVE_FORBIDDEN_BUSINESS_TOKENS,
@@ -7604,11 +7664,11 @@ describe("full UI replacement regression coverage", () => {
             'data-sot-control="repull-source"',
             "Button",
         );
-        expect(dashboardSourceReportOpenAction).toContain('variant="outline"');
+        expect(dashboardSourceReportOpenAction).toContain('variant="ghost"');
         expect(dashboardSourceReportOpenAction).toContain('size="xs"');
         expectClassNameConstReference(
             dashboardSourceReportOpenAction,
-            "SOT_SOURCE_REPORT_ACTION_BUTTON_CLASS_NAME",
+            "SOT_SOURCE_REPORT_GHOST_ACTION_BUTTON_CLASS_NAME",
         );
         expect(dashboardSourceReportRepullAction).toContain('variant="ghost"');
         expect(dashboardSourceReportRepullAction).toContain('size="xs"');
@@ -10811,6 +10871,18 @@ describe("full UI replacement regression coverage", () => {
         );
 
         expect(sourceReport).toContain("SAFE_SOURCE_DETAIL_KEYS");
+        const sourceReportStyles = readSource("features/source-report/styles.ts");
+        for (const snippet of SOURCE_REPORT_STYLE_OWNER_SNIPPETS) {
+            expect(sourceReportStyles).toContain(snippet);
+        }
+        expect(globals).not.toMatch(/--source-report-[a-z-]+/);
+        expect(globals).toContain("[data-sot-source-report-state] {");
+        expect(sourceReport).toContain("@/features/source-report/styles");
+        expect(sourceReport).toContain("SOURCE_REPORT_SKELETON_CLASS_NAME");
+        expect(sourceReport).toContain("SOURCE_REPORT_STYLE_VARIABLES");
+        expect(
+            sourceReport.match(/style=\{SOURCE_REPORT_STYLE_VARIABLES\}/g) ?? [],
+        ).toHaveLength(3);
         expect(sourceReport).toContain(
             'data-sot-panel="recording-source-report"',
         );
@@ -10989,7 +11061,7 @@ describe("full UI replacement regression coverage", () => {
         expect(sourceReport).toContain('data-sot-badge="source-report-status"');
         expect(sourceReport).toContain("SOURCE_REPORT_STATUS_BADGE_STYLE");
         expect(sourceReport).toContain("function SourceReportStatusBadge");
-        expect(sourceReport).toContain('variant="outline"');
+        expect(sourceReport).toContain('variant="ghost"');
         expectSourceToExcludeForbiddenSubstrings(
             badge,
             BADGE_PRIMITIVE_FORBIDDEN_BUSINESS_TOKENS,
@@ -11121,7 +11193,7 @@ describe("full UI replacement regression coverage", () => {
             );
         }
         expect(sourceReport).not.toMatch(
-            /\bCSSProperties\b|SOURCE_REPORT_LOADING_SKELETON_STYLES|style=\{|sk _is|_is-/,
+            /\bCSSProperties\b|SOURCE_REPORT_LOADING_SKELETON_STYLES|style=\{(?!SOURCE_REPORT_STYLE_VARIABLES\})|sk _is|_is-/,
         );
         expect(sourceReport).not.toMatch(SOURCE_REPORT_LEGACY_SURFACE_RE);
         const sotPlayerTagChip = extractBoundedSlice(

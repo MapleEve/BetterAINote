@@ -31,6 +31,10 @@ import {
 import { Separator } from "@/components/ui/separator";
 import { Skeleton } from "@/components/ui/skeleton";
 import {
+    SOURCE_REPORT_SKELETON_CLASS_NAME,
+    SOURCE_REPORT_STYLE_VARIABLES,
+} from "@/features/source-report/styles";
+import {
     getSourceProviderLabel,
     getSourceRecordDescription,
     getSourceTabLabel,
@@ -387,19 +391,46 @@ type SourceReportSegmentSkeletonSize =
     | "time";
 
 const sourceReportCardSkeletonClassNames = {
-    count: "inline-block h-[18px] w-12 align-middle rounded-[6px]",
-    source: "inline-block h-[18px] w-[120px] align-middle rounded-[6px]",
-    status: "inline-block h-[18px] w-20 align-middle rounded-[6px]",
+    count: cn(
+        SOURCE_REPORT_SKELETON_CLASS_NAME,
+        "inline-block h-[18px] w-[48px] align-middle rounded-[6px]",
+    ),
+    source: cn(
+        SOURCE_REPORT_SKELETON_CLASS_NAME,
+        "inline-block h-[18px] w-[120px] align-middle rounded-[6px]",
+    ),
+    status: cn(
+        SOURCE_REPORT_SKELETON_CLASS_NAME,
+        "inline-block h-[18px] w-[80px] align-middle rounded-[6px]",
+    ),
 } as const satisfies Record<SourceReportCardSkeletonSize, string>;
 
 // biome-ignore format: regression tests assert these local contract tokens as single-line source text.
 const sourceReportSegmentSkeletonClassNames = {
-    "line-long": "mt-1.5 inline-block h-[13px] w-[92%] align-middle rounded-[4px]",
-    "line-medium": "mt-1.5 inline-block h-[13px] w-[76%] align-middle rounded-[4px]",
-    "line-short": "mt-1.5 inline-block h-[13px] w-3/5 align-middle rounded-[4px]",
-    "line-wide": "mt-1.5 inline-block h-[13px] w-[88%] align-middle rounded-[4px]",
-    speaker: "inline-block h-[12px] w-[54px] align-middle rounded-[4px]",
-    time: "inline-block h-[12px] w-[96px] align-middle rounded-[4px]",
+    "line-long": cn(
+        SOURCE_REPORT_SKELETON_CLASS_NAME,
+        "mt-1.5 inline-block h-[13px] w-[92%] align-middle rounded-[4px]",
+    ),
+    "line-medium": cn(
+        SOURCE_REPORT_SKELETON_CLASS_NAME,
+        "mt-1.5 inline-block h-[13px] w-[76%] align-middle rounded-[4px]",
+    ),
+    "line-short": cn(
+        SOURCE_REPORT_SKELETON_CLASS_NAME,
+        "mt-1.5 inline-block h-[13px] w-3/5 align-middle rounded-[4px]",
+    ),
+    "line-wide": cn(
+        SOURCE_REPORT_SKELETON_CLASS_NAME,
+        "mt-[7px] inline-block h-[13px] w-[88%] align-middle rounded-[4px]",
+    ),
+    speaker: cn(
+        SOURCE_REPORT_SKELETON_CLASS_NAME,
+        "ml-[5px] inline-block h-[12px] w-[54px] align-middle rounded-[4px]",
+    ),
+    time: cn(
+        SOURCE_REPORT_SKELETON_CLASS_NAME,
+        "inline-block h-[12px] w-[96px] align-middle rounded-[4px]",
+    ),
 } as const satisfies Record<SourceReportSegmentSkeletonSize, string>;
 
 function sourceReportReadinessTone(label: string): SourceReportTone {
@@ -465,9 +496,10 @@ function SotCopyIcon({ state }: { state?: "err" | "ok" }) {
 }
 
 const SOURCE_REPORT_ACTION_BUTTON_CLASS_NAME = "text-[var(--fg-primary)]";
-const SOURCE_REPORT_PRIMARY_ACTION_BUTTON_CLASS_NAME = "shadow-xs";
+const SOURCE_REPORT_PRIMARY_ACTION_BUTTON_CLASS_NAME =
+    "h-[26px] gap-[7px] rounded-[7px] border border-[var(--source-report-primary-border)] [background:var(--source-report-primary-bg)] px-[10px] text-[12px] font-semibold leading-[normal] text-white shadow-[var(--source-report-primary-shadow)] has-[>svg]:px-[10px] hover:[background:var(--source-report-primary-hover-bg)] hover:text-white";
 const SOURCE_REPORT_GHOST_ACTION_BUTTON_CLASS_NAME =
-    "border border-transparent bg-transparent text-[var(--fg-secondary)] shadow-none hover:bg-accent hover:text-accent-foreground dark:hover:bg-accent/50";
+    "h-[26px] gap-[7px] rounded-[7px] border border-transparent bg-transparent px-[10px] text-[12px] font-semibold leading-[normal] text-[var(--fg-secondary)] shadow-none has-[>svg]:px-[10px] hover:bg-[var(--bg-recessed)] hover:text-[var(--fg-primary)] dark:hover:bg-[var(--bg-recessed)]";
 const SOURCE_REPORT_COPY_BUTTON_VARIANT =
     "ghost" satisfies ButtonProps["variant"];
 const SOURCE_REPORT_COPY_BUTTON_SIZE =
@@ -478,8 +510,6 @@ const SOURCE_REPORT_ERROR_ALERT_CLASS_NAME =
     "flex w-full flex-col items-center gap-2 rounded-lg px-4 py-8 text-center text-sm [&>svg]:text-current";
 const SOURCE_REPORT_ERROR_ICON_CLASS_NAME =
     "mb-0 size-10 rounded-full border border-border bg-background text-muted-foreground [&_svg:not([class*='size-'])]:size-5";
-const SOURCE_REPORT_ACTIONS_CLASS_NAME = "mb-[3px]";
-const SOURCE_REPORT_ACTIONS_BOTH_MISSING_CLASS_NAME = "mb-[4px]";
 
 function SourceReportStatusDot() {
     return <span data-sot-part="source-report-status-dot" aria-hidden="true" />;
@@ -525,7 +555,7 @@ function SourceReportEmptyGlyph() {
 }
 
 const SOURCE_REPORT_STATUS_BADGE_STYLE =
-    "h-[22px] min-w-[65px] justify-normal gap-[5px] overflow-visible rounded-full border px-[8px] py-0 text-[11px] font-semibold shadow-none data-[sot-tone=err]:border-[var(--source-report-status-err-border)] data-[sot-tone=err]:bg-[var(--source-report-status-err-bg)] data-[sot-tone=err]:text-[var(--signal-danger)] data-[sot-tone=neu]:border-[var(--line-hairline)] data-[sot-tone=neu]:bg-[var(--bg-recessed)] data-[sot-tone=neu]:text-[var(--fg-secondary)] data-[sot-tone=ok]:border-[var(--source-report-status-ok-border)] data-[sot-tone=ok]:bg-[var(--source-report-status-ok-bg)] data-[sot-tone=ok]:text-[var(--source-report-status-ok-fg)] data-[sot-tone=warn]:border-[var(--source-report-status-warn-border)] data-[sot-tone=warn]:bg-[var(--source-report-status-warn-bg)] data-[sot-tone=warn]:text-[var(--source-report-status-warn-fg)] [&_[data-sot-part=dashboard-source-report-status-dot]]:mr-0 [&_[data-sot-part=dashboard-source-report-status-dot]]:inline-block [&_[data-sot-part=dashboard-source-report-status-dot]]:size-[5px] [&_[data-sot-part=dashboard-source-report-status-dot]]:rounded-full [&_[data-sot-part=dashboard-source-report-status-dot]]:bg-current [&_[data-sot-part=source-report-status-dot]]:mr-0 [&_[data-sot-part=source-report-status-dot]]:inline-block [&_[data-sot-part=source-report-status-dot]]:size-[5px] [&_[data-sot-part=source-report-status-dot]]:rounded-full [&_[data-sot-part=source-report-status-dot]]:bg-current";
+    "h-[22px] min-w-[65px] justify-normal gap-[9px] overflow-visible rounded-full border px-[8px] py-0 text-[11px] font-semibold leading-[normal] shadow-none data-[sot-tone=err]:border-[var(--source-report-status-err-border)] data-[sot-tone=err]:bg-[var(--source-report-status-err-bg)] data-[sot-tone=err]:text-[var(--signal-danger)] data-[sot-tone=neu]:border-[var(--line-hairline)] data-[sot-tone=neu]:bg-[var(--bg-recessed)] data-[sot-tone=neu]:text-[var(--fg-secondary)] data-[sot-tone=ok]:border-[var(--source-report-status-ok-border)] data-[sot-tone=ok]:bg-[var(--source-report-status-ok-bg)] data-[sot-tone=ok]:text-[var(--source-report-status-ok-fg)] data-[sot-tone=warn]:border-[var(--source-report-status-warn-border)] data-[sot-tone=warn]:bg-[var(--source-report-status-warn-bg)] data-[sot-tone=warn]:text-[var(--source-report-status-warn-fg)] [&_[data-sot-part=dashboard-source-report-status-dot]]:mr-0 [&_[data-sot-part=dashboard-source-report-status-dot]]:inline-block [&_[data-sot-part=dashboard-source-report-status-dot]]:size-[5px] [&_[data-sot-part=dashboard-source-report-status-dot]]:rounded-full [&_[data-sot-part=dashboard-source-report-status-dot]]:bg-current [&_[data-sot-part=source-report-status-dot]]:mr-0 [&_[data-sot-part=source-report-status-dot]]:inline-block [&_[data-sot-part=source-report-status-dot]]:size-[5px] [&_[data-sot-part=source-report-status-dot]]:rounded-full [&_[data-sot-part=source-report-status-dot]]:bg-current";
 
 function SourceReportStatusBadge({
     children,
@@ -536,7 +566,7 @@ function SourceReportStatusBadge({
 }) {
     return (
         <Badge
-            variant="outline"
+            variant="ghost"
             className={SOURCE_REPORT_STATUS_BADGE_STYLE}
             data-sot-badge="source-report-status"
             data-sot-tone={tone}
@@ -584,6 +614,7 @@ function SourceReportState({
             data-state={state}
             data-sub-state={subState}
             data-sot-error={error}
+            style={SOURCE_REPORT_STYLE_VARIABLES}
         >
             {children}
         </div>
@@ -1084,20 +1115,12 @@ export function SourceReportPanel({
         }
     }, [loadReport, repullAvailable, repullDisabled, t]);
 
-    const sourceReportActionsClassName =
-        sourceReportSubState === "both-missing"
-            ? SOURCE_REPORT_ACTIONS_BOTH_MISSING_CLASS_NAME
-            : SOURCE_REPORT_ACTIONS_CLASS_NAME;
-
     const sourceActionControls = data ? (
-        <div
-            className={sourceReportActionsClassName}
-            data-sot-source-report-actions
-        >
+        <div data-sot-source-report-actions>
             <Button
-                variant="outline"
+                variant="ghost"
                 size="xs"
-                className={SOURCE_REPORT_ACTION_BUTTON_CLASS_NAME}
+                className={SOURCE_REPORT_GHOST_ACTION_BUTTON_CLASS_NAME}
                 type="button"
                 disabled={!openSourceUrl}
                 title={
@@ -1654,6 +1677,7 @@ export function SourceReportPanel({
                 data-sot-panel="recording-source-report"
                 data-sot-state={sourceReportState}
                 data-sot-variant="embedded"
+                style={SOURCE_REPORT_STYLE_VARIABLES}
             >
                 {header}
                 {content}
@@ -1672,6 +1696,7 @@ export function SourceReportPanel({
             data-sot-panel="recording-source-report"
             data-sot-state={sourceReportState}
             data-sot-variant="card"
+            style={SOURCE_REPORT_STYLE_VARIABLES}
         >
             {header}
             {content}
