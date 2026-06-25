@@ -94,6 +94,154 @@ const CONFIRM_DIALOG_PIXEL_FRAMES = [
     },
 ] as const satisfies readonly SotPixelFrame[];
 
+const MORE_MENU_FIXTURE_CSS = String.raw`
+__MORE_MENU_SCOPE__ .more-menu-pixel-stage .more-menu {
+    position: fixed;
+    z-index: var(--z-context-menu);
+    pointer-events: none;
+    overflow: hidden;
+    font-family: var(--font-sans);
+    padding: 6px;
+    border-radius: var(--radius-md);
+    background: var(--bg-elevated);
+    border: 1px solid var(--line-hairline);
+    box-shadow: var(--shadow-md);
+    width: 296px;
+    max-width: calc(100vw - 24px);
+}
+[data-theme="dark"] __MORE_MENU_SCOPE__ .more-menu-pixel-stage .more-menu {
+    background: color-mix(in srgb, var(--bg-elevated) 96%, transparent);
+    border-color: var(--glass-border);
+    box-shadow: 0 12px 32px rgb(0 0 0 / 0.42);
+}
+__MORE_MENU_SCOPE__ .more-menu-pixel-stage .more-menu[data-open="true"] {
+    pointer-events: auto;
+}
+__MORE_MENU_SCOPE__ .more-menu-pixel-stage.cl-pop-host > .more-menu {
+    position: static !important;
+    display: block !important;
+    visibility: visible !important;
+    opacity: 1 !important;
+    pointer-events: auto !important;
+    transform: none !important;
+    inset: auto !important;
+}
+__MORE_MENU_SCOPE__ .more-menu-pixel-stage .more-menu-item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    width: 100%;
+    min-height: 32px;
+    padding: 6px 10px;
+    border-radius: var(--radius-sm);
+    text-align: left;
+    font: 500 13px / 1 var(--font-sans);
+    color: var(--fg-primary);
+    background: transparent;
+    border: 0;
+    cursor: pointer;
+    transition:
+        background var(--duration-fast) var(--ease-out),
+        color var(--duration-fast) var(--ease-out);
+}
+__MORE_MENU_SCOPE__ .more-menu-pixel-stage .more-menu-item:hover,
+__MORE_MENU_SCOPE__ .more-menu-pixel-stage .more-menu-item:focus-visible {
+    background: var(--bg-recessed);
+    color: var(--fg-primary);
+    outline: none;
+}
+__MORE_MENU_SCOPE__ .more-menu-pixel-stage .more-menu-item:focus-visible {
+    box-shadow: inset 0 0 0 2px color-mix(in srgb, var(--accent) 50%, transparent);
+}
+__MORE_MENU_SCOPE__ .more-menu-pixel-stage .more-menu-item:active {
+    background: color-mix(in srgb, var(--fg-tertiary) 14%, transparent);
+}
+__MORE_MENU_SCOPE__ .more-menu-pixel-stage .more-menu-item svg {
+    width: 16px;
+    height: 16px;
+    flex: none;
+    stroke: currentColor;
+    stroke-width: 1.8;
+    fill: none;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+    color: var(--fg-tertiary);
+}
+__MORE_MENU_SCOPE__ .more-menu-pixel-stage .more-menu-item:hover svg {
+    color: var(--fg-secondary);
+}
+__MORE_MENU_SCOPE__ .more-menu-pixel-stage .more-menu svg {
+    width: 16px;
+    height: 16px;
+    flex: none;
+    fill: none;
+    stroke: currentColor;
+    stroke-width: 1.8;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+}
+__MORE_MENU_SCOPE__ .more-menu-pixel-stage .more-menu-item[disabled],
+__MORE_MENU_SCOPE__ .more-menu-pixel-stage .more-menu-item[aria-disabled="true"] {
+    color: var(--fg-disabled);
+    cursor: not-allowed;
+    pointer-events: none;
+    background: transparent;
+}
+__MORE_MENU_SCOPE__ .more-menu-pixel-stage .more-menu-item[disabled] svg {
+    color: var(--fg-disabled);
+}
+__MORE_MENU_SCOPE__ .more-menu-pixel-stage .more-menu-item.is-danger {
+    color: var(--signal-danger);
+}
+__MORE_MENU_SCOPE__ .more-menu-pixel-stage .more-menu-item.is-danger svg {
+    color: var(--signal-danger);
+}
+__MORE_MENU_SCOPE__ .more-menu-pixel-stage .more-menu-item[disabled],
+__MORE_MENU_SCOPE__ .more-menu-pixel-stage .more-menu-item.is-danger:hover,
+__MORE_MENU_SCOPE__ .more-menu-pixel-stage .more-menu-item.is-danger:focus-visible {
+    background: color-mix(in srgb, var(--signal-danger) 12%, transparent);
+    color: var(--signal-danger);
+}
+__MORE_MENU_SCOPE__ .more-menu-pixel-stage .more-menu-item.is-success {
+    color: var(--signal-success);
+}
+__MORE_MENU_SCOPE__ .more-menu-pixel-stage .more-menu-item.is-success svg {
+    color: var(--signal-success);
+}
+__MORE_MENU_SCOPE__ .more-menu-pixel-stage .more-menu-item-shortcut,
+__MORE_MENU_SCOPE__ .more-menu-pixel-stage .more-menu-item .more-menu-hint {
+    margin-left: auto;
+    font: 500 11px / 1 var(--font-mono);
+    color: var(--fg-tertiary);
+    letter-spacing: 0.02em;
+}
+__MORE_MENU_SCOPE__ .more-menu-pixel-stage .more-menu-item[disabled] .more-menu-hint {
+    color: var(--fg-disabled);
+}
+__MORE_MENU_SCOPE__ .more-menu-pixel-stage .more-menu-sep {
+    height: 1px;
+    background: var(--line-hairline);
+    margin: 4px 2px;
+}
+[data-theme="dark"] __MORE_MENU_SCOPE__ .more-menu-pixel-stage .more-menu-sep {
+    background: var(--glass-border-soft);
+}
+__MORE_MENU_SCOPE__ .more-menu-pixel-stage .more-menu-label {
+    font: 600 10.5px / 1 var(--font-mono);
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--fg-tertiary);
+    padding: 8px 10px 4px;
+}
+`;
+
+function moreMenuFixtureCss(fixtureId: string) {
+    return MORE_MENU_FIXTURE_CSS.replaceAll(
+        "__MORE_MENU_SCOPE__",
+        `#${fixtureId}`,
+    );
+}
+
 type MoreMenuPixelDiff = {
     bounds: {
         maxX: number;
@@ -1194,6 +1342,7 @@ async function captureMoreMenuFixture(
     const fixtureId = `sot-more-menu-${Date.now()}-${Math.random()
         .toString(16)
         .slice(2)}`;
+    const fixtureCss = moreMenuFixtureCss(fixtureId);
 
     if (frame) {
         await page.setViewportSize(frame.viewport);
@@ -1201,13 +1350,26 @@ async function captureMoreMenuFixture(
     }
 
     await page.evaluate(
-        ({ fixtureFrame, fixtureId: id, html: fixtureHtml }) => {
+        ({
+            fixtureCss: css,
+            fixtureFrame,
+            fixtureId: id,
+            html: fixtureHtml,
+        }) => {
+            document
+                .querySelector(`style[data-more-menu-fixture="${id}"]`)
+                ?.remove();
             document.getElementById(id)?.remove();
             document.documentElement.dataset.theme = "dark";
             document.body.dataset.theme = "dark";
             document.querySelectorAll("nextjs-portal").forEach((element) => {
                 element.remove();
             });
+
+            const fixtureStyle = document.createElement("style");
+            fixtureStyle.dataset.moreMenuFixture = id;
+            fixtureStyle.textContent = css;
+            document.head.appendChild(fixtureStyle);
 
             const host = document.createElement("div");
             host.id = id;
@@ -1287,7 +1449,7 @@ async function captureMoreMenuFixture(
             host.appendChild(stage);
             document.body.appendChild(host);
         },
-        { fixtureFrame: frame ?? null, fixtureId, html },
+        { fixtureCss, fixtureFrame: frame ?? null, fixtureId, html },
     );
 
     const stage = page.locator(`#${fixtureId} > .more-menu-pixel-stage`).first();
@@ -1333,6 +1495,7 @@ async function captureMoreMenuFixture(
         scale: "css",
     });
     await page.evaluate((id) => {
+        document.querySelector(`style[data-more-menu-fixture="${id}"]`)?.remove();
         document.getElementById(id)?.remove();
     }, fixtureId);
 
@@ -1633,6 +1796,16 @@ async function captureConfirmDialogFixture(
             const style = document.createElement("style");
             style.setAttribute("data-confirm-dialog-fixture", id);
             style.textContent = `
+                ${scope} .confirm-dialog-pixel-stage.cl-stage.cl-stage-canvas {
+                    display: block;
+                    padding: 0;
+                    border: 1px dashed rgba(0, 0, 0, 0.1);
+                    border-radius: 10px;
+                    background: var(--canvas, #f6f4ef);
+                    min-height: auto;
+                    position: relative;
+                    overflow: hidden;
+                }
                 ${scope} .confirm-dialog {
                     font-family: var(--font-sans);
                     width: 100%;

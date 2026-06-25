@@ -234,6 +234,21 @@ const REMOVED_DASHBOARD_PLAYER_GLOBAL_SELECTOR_FRAGMENTS = [
     '[data-sot-part="dashboard-recording-player-meta"]',
 ] as const;
 
+const COMPONENT_LIBRARY_SHOWCASE_GLOBAL_PATTERNS = [
+    /\.cl-/,
+    /cl-pop-host/,
+    /\bstack-strip\b/,
+    /\bstack-banner\.cl-show\b/,
+    /\bcl-stage-[\w-]+\b/,
+    /@keyframes\s+cl-shimmer\b/,
+] as const;
+
+function expectNoComponentLibraryShowcaseGlobals(globals: string) {
+    for (const pattern of COMPONENT_LIBRARY_SHOWCASE_GLOBAL_PATTERNS) {
+        expect(globals).not.toMatch(pattern);
+    }
+}
+
 function escapeRegExp(value: string) {
     return value.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
 }
@@ -1076,11 +1091,7 @@ function collectSourceFiles(directory: string): string[] {
 }
 
 function readProductCss(source: string) {
-    const componentLibraryIndex = source.indexOf(
-        "BetterAINote · Component Library",
-    );
-    expect(componentLibraryIndex).toBeGreaterThan(0);
-    return source.slice(0, componentLibraryIndex);
+    return source;
 }
 
 function stripCssComments(source: string) {
@@ -3142,7 +3153,6 @@ const AI_RENAME_PREVIEW_FUNCTIONAL_CSS_SELECTORS = [
     '[data-sot-panel="ai-rename-preview"]',
     '[data-sot-panel="ai-rename-preview"][data-open="true"]',
     '[data-sot-panel="ai-rename-preview"] [data-sot-part="state"][hidden]',
-    '.cl-pop-host > [data-sot-panel="ai-rename-preview"]',
 ] as const;
 
 const AI_RENAME_PREVIEW_VISUAL_REPAINT_CSS_SELECTORS = [
@@ -4331,6 +4341,12 @@ describe("full UI replacement regression coverage", () => {
         expect(findings.fallbackOnlyModernColorDeclarations).toEqual([]);
         expect(findings.unexpectedSupportedPathDeclarations).toEqual([]);
         expect(findings.unsafeVarFallbackArguments).toEqual([]);
+    });
+
+    it("keeps component-library showcase chrome out of runtime globals", () => {
+        const globals = readSource("app/globals.css");
+
+        expectNoComponentLibraryShowcaseGlobals(globals);
     });
 
     it("keeps recording tag manager legacy selectors out of product CSS", () => {
@@ -11290,7 +11306,7 @@ describe("full UI replacement regression coverage", () => {
         const tagManagerGlobalPanelBlocks = collectCssRuleBlocks(
             globals,
             '[data-sot-panel="recording-tag-manager"]',
-        ).filter(({ prelude }) => !prelude.includes(".cl-pop-host"));
+        );
         const tagManagerCardClassNames = extractBoundedSlice(
             tagManager,
             "const recordingTagManagerCardClassNames = {",
@@ -11348,9 +11364,6 @@ describe("full UI replacement regression coverage", () => {
         }
         expect(tagManagerContentClassNames).toContain("tagm-body");
         expect(tagManagerContentClassNames).toContain("overflow-auto");
-        expect(globals).toContain(
-            '.cl-pop-host > [data-sot-panel="recording-tag-manager"],',
-        );
 
         expect(sourceReport).toContain("SAFE_SOURCE_DETAIL_KEYS");
         const sourceReportStyles = readSource(

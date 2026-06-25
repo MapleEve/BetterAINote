@@ -9,6 +9,21 @@ function readSource(relativePath: string) {
     return readFileSync(path.join(ROOT, relativePath), "utf8");
 }
 
+const COMPONENT_LIBRARY_SHOWCASE_GLOBAL_PATTERNS = [
+    /\.cl-/,
+    /cl-pop-host/,
+    /\bstack-strip\b/,
+    /\bstack-banner\.cl-show\b/,
+    /\bcl-stage-[\w-]+\b/,
+    /@keyframes\s+cl-shimmer\b/,
+] as const;
+
+function expectNoComponentLibraryShowcaseGlobals(globals: string) {
+    for (const pattern of COMPONENT_LIBRARY_SHOWCASE_GLOBAL_PATTERNS) {
+        expect(globals).not.toMatch(pattern);
+    }
+}
+
 function expectOnlyAllowedGlobalSlotSelectors(globals: string) {
     const slotSelectors = globals
         .split("\n")
@@ -339,11 +354,7 @@ const DIALOG_SLOT_GLOBAL_SELECTORS = [
 ] as const;
 
 function readProductCss(source: string) {
-    const componentLibraryIndex = source.indexOf(
-        "BetterAINote · Component Library",
-    );
-    expect(componentLibraryIndex).toBeGreaterThan(0);
-    return source.slice(0, componentLibraryIndex);
+    return source;
 }
 
 function expectNoLegacySettingsFieldPatterns(
@@ -628,8 +639,7 @@ describe("settings SOT interaction regressions", () => {
             'confirmVariant?: "default" | "destructive"',
         );
         expect(confirmDialog).toContain("variant={confirmButtonVariant}");
-        expect(globals).toContain(".cl-stage-canvas > .scrim");
-        expect(globals).toContain(".cl-stage-scrim > .scrim");
+        expectNoComponentLibraryShowcaseGlobals(globals);
     });
 
     it("keeps settings selects on the shared Radix shadcn wrapper", () => {
