@@ -4734,7 +4734,7 @@ describe("full UI replacement regression coverage", () => {
         }
     });
 
-    it("keeps dashboard sidebar collapse on the runtime root without the body bridge", () => {
+    it("keeps dashboard global state on the runtime root without body bridges", () => {
         const workstation = readSource("features/dashboard/workstation.tsx");
         const globals = readSource("app/globals.css");
         const productCss = readProductCss(globals);
@@ -4749,26 +4749,45 @@ describe("full UI replacement regression coverage", () => {
                     .sort(),
             ),
         ];
-        const bodySidebarBridgeBlocks = collectCssRuleBlocks(
+        const sidebarBridgeBlocks = collectCssRuleBlocks(
             productCss,
-            'body[data-sidebar="collapsed"]',
+            '[data-sidebar="collapsed"]',
         ).filter(({ prelude }) =>
             /dashboard-(?:workstation|sidebar|brand|sync)|sidebar-collapse/.test(
                 prelude,
             ),
         );
+        const bodyDrawerBridgeBlocks = collectCssRuleBlocks(
+            productCss,
+            'body[data-drawer="open"]',
+        );
+        const bodySourceFilterBridgeBlocks = collectCssRuleBlocks(
+            productCss,
+            "body[data-source-filter]",
+        );
 
         expect(workstation).toContain(
-            'data-sidebar-collapsed={collapsed ? "true" : "false"}',
+            'data-sidebar-collapsed={\n                dashboardSidebarCollapsed ? "true" : "false"\n            }',
         );
-        expect(bodyDatasetKeys).toEqual([
-            "drawer",
-            "sourceFilter",
-            "sourceStatus",
-            "timeStyle",
-        ]);
+        expect(workstation).toContain(
+            'data-drawer-state={drawerOpen ? "open" : "closed"}',
+        );
+        expect(workstation).toContain(
+            'data-source-filter-active={source === "all" ? "false" : "true"}',
+        );
+        expect(workstation).toContain(
+            'data-source-filter-provider={source === "all" ? undefined : source}',
+        );
+        expect(workstation).toContain(
+            "data-source-filter-state={sourceFilterStackState}",
+        );
+        expect(workstation).toContain(
+            "data-source-status={selectedSourceRow?.status ?? undefined}",
+        );
+        expect(workstation).toContain('data-time-style="rel"');
+        expect(bodyDatasetKeys).toEqual([]);
         expect(workstation).not.toMatch(
-            /document\.body\.dataset\.(?:sidebar|collapsed)\b/,
+            /document\.body\.dataset\.(?:drawer|sourceFilter|sourceStatus|timeStyle|sidebar|collapsed)\b/,
         );
         expect(productCss).not.toContain(
             '[data-sot-shell="dashboard-workstation"][data-sidebar-collapsed="true"]',
@@ -4776,8 +4795,16 @@ describe("full UI replacement regression coverage", () => {
         expect(productCss).not.toContain(
             '[data-sot-shell="dashboard-workstation"][data-sidebar-collapsed="true"]\n    [data-sot-panel="dashboard-sidebar"]',
         );
-        expect(productCss).toContain(
-            '[data-sidebar="collapsed"]\n    [data-sot-panel="dashboard-sidebar"]\n    [data-sot-part="dashboard-nav-section-label"]',
+        expect(productCss).not.toContain('[data-sidebar="collapsed"]');
+        expect(productCss).not.toContain("body[data-source-filter]");
+        expect(productCss).not.toContain('body[data-drawer="open"]');
+        expect(productCss).not.toContain("Migrated from index.html");
+        expect(sidebarBridgeBlocks).toEqual([]);
+        expect(bodyDrawerBridgeBlocks).toEqual([]);
+        expect(bodySourceFilterBridgeBlocks).toEqual([]);
+        expect(productCss).toContain('[data-sot-panel="workstation-sidebar"]');
+        expect(productCss).not.toContain(
+            '[data-sot-panel="dashboard-sidebar"],\n    [data-sot-panel="workstation-sidebar"] {\n        display: none;',
         );
         const sidebarCollapseClassNames = extractBoundedSlice(
             workstation,
@@ -4789,9 +4816,50 @@ describe("full UI replacement regression coverage", () => {
             "group-data-[sidebar-collapsed=true]/dashboard-workstation:hidden",
             "group-data-[sidebar-collapsed=true]/dashboard-workstation:justify-center",
             "group-data-[sidebar-collapsed=true]/dashboard-workstation:gap-0",
+            "max-[860px]:hidden",
+            "max-[860px]:group-data-[drawer-state=open]/dashboard-workstation:flex",
+            "max-[860px]:group-data-[drawer-state=open]/dashboard-workstation:max-w-[min(320px,calc(100vw-32px))]",
         ]) {
             expect(sidebarCollapseClassNames).toContain(ownerClassSnippet);
         }
+        const drawerTriggerClassNames = extractObjectStringProperty(
+            extractBoundedSlice(
+                workstation,
+                "const dashboardButtonClassNames = {",
+                "} as const;",
+            ),
+            "drawerTrigger",
+        );
+        const sidebarCollapseButtonClassNames = extractObjectStringProperty(
+            extractBoundedSlice(
+                workstation,
+                "const dashboardButtonClassNames = {",
+                "} as const;",
+            ),
+            "sidebarCollapse",
+        );
+        const drawerScrim = extractOpeningElement(
+            workstation,
+            'data-sot-panel="dashboard-drawer-scrim"',
+            "div",
+        );
+        const drawerActiveDot = extractOpeningElement(
+            workstation,
+            'data-sot-part="dashboard-drawer-active-dot"',
+            "span",
+        );
+        expect(drawerTriggerClassNames).toContain("relative hidden");
+        expect(drawerTriggerClassNames).toContain("max-[860px]:inline-flex");
+        expect(drawerTriggerClassNames).toContain(
+            "group-data-[source-filter-active=true]/dashboard-workstation:[&_[data-sot-part=dashboard-drawer-active-dot]]:inline-block",
+        );
+        expect(sidebarCollapseButtonClassNames).toContain(
+            "max-[860px]:hidden",
+        );
+        expect(drawerScrim).toContain(
+            "className=\"pointer-events-none fixed inset-0 z-[var(--z-drawer-scrim)] hidden max-[860px]:block max-[860px]:group-data-[drawer-state=open]/dashboard-workstation:pointer-events-auto\"",
+        );
+        expect(drawerActiveDot).toContain("absolute top-1.5 right-1.5 hidden");
         expect(workstation).toContain("dashboardSidebarCollapseClassNames.sidebar");
         expect(workstation).toContain("dashboardSidebarCollapseClassNames.hidden");
         expect(workstation).toContain("dashboardSidebarCollapseClassNames.brand");
@@ -4800,7 +4868,6 @@ describe("full UI replacement regression coverage", () => {
         expect(productCss).not.toContain(
             'Desktop sidebar-collapsed — bridge body[data-sidebar="collapsed"]',
         );
-        expect(bodySidebarBridgeBlocks).toEqual([]);
     });
 
     it("keeps library search product CSS feature-owned and out of globals", () => {
@@ -5979,6 +6046,25 @@ describe("full UI replacement regression coverage", () => {
             'data-sot-surface="dashboard-workstation"',
         );
         expect(workstation).toContain('data-sot-shell="dashboard-workstation"');
+        expect(workstation).toContain(
+            'data-drawer-state={drawerOpen ? "open" : "closed"}',
+        );
+        expect(workstation).toContain(
+            'data-sidebar-collapsed={\n                dashboardSidebarCollapsed ? "true" : "false"\n            }',
+        );
+        expect(workstation).toContain(
+            'data-source-filter-active={source === "all" ? "false" : "true"}',
+        );
+        expect(workstation).toContain(
+            'data-source-filter-provider={source === "all" ? undefined : source}',
+        );
+        expect(workstation).toContain(
+            "data-source-filter-state={sourceFilterStackState}",
+        );
+        expect(workstation).toContain(
+            "data-source-status={selectedSourceRow?.status ?? undefined}",
+        );
+        expect(workstation).toContain('data-time-style="rel"');
         expect(workstation).toContain('data-sot-panel="dashboard-sidebar"');
         expect(workstation).toContain('data-sot-list="dashboard-nav"');
         expect(workstation).toContain('data-sot-panel="dashboard-main"');
@@ -6250,8 +6336,25 @@ describe("full UI replacement regression coverage", () => {
         expect(sourceProviderRows).not.toMatch(legacySourceRowClassNamePattern);
         expect(sourceProviderRows).not.toMatch(legacySourceAttributePattern);
         expect(workstation).toContain("const sourceFilterStackState =");
-        expect(workstation).toContain("document.body.dataset.sourceFilter");
-        expect(workstation).toContain("document.body.dataset.sourceStatus");
+        expect(workstation).not.toMatch(
+            /document\.body\.dataset\.(?:drawer|sourceFilter|sourceStatus|timeStyle|sidebar|collapsed)\b/,
+        );
+        expect(workstation).toContain(
+            'data-drawer-state={drawerOpen ? "open" : "closed"}',
+        );
+        expect(workstation).toContain(
+            'data-source-filter-active={source === "all" ? "false" : "true"}',
+        );
+        expect(workstation).toContain(
+            'data-source-filter-provider={source === "all" ? undefined : source}',
+        );
+        expect(workstation).toContain(
+            "data-source-filter-state={sourceFilterStackState}",
+        );
+        expect(workstation).toContain(
+            "data-source-status={selectedSourceRow?.status ?? undefined}",
+        );
+        expect(workstation).toContain('data-time-style="rel"');
         expect(workstation).toMatch(
             /<output\s+aria-live="polite"[\s\S]*data-sot-panel="dashboard-source-filter-stack"[\s\S]*data-state=\{sourceFilterStackState\}/,
         );
@@ -6785,8 +6888,8 @@ describe("full UI replacement regression coverage", () => {
             "text-[11.5px]",
             "tracking-[0.02em]",
             "tracking-[0.015em]",
-            "[body[data-time-style=abs]_&]:inline",
-            "[body[data-time-style=abs]_&]:hidden",
+            "group-data-[time-style=abs]/dashboard-workstation:inline",
+            "group-data-[time-style=abs]/dashboard-workstation:hidden",
             "grayscale",
             "contrast-[0.85]",
             "dark:brightness-[1.4]",

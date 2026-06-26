@@ -1335,12 +1335,10 @@ button:not([data-slot]) {
 }
 
 /* ====================================================================
-   Migrated from index.html inline <style> (functional-only rules).
+   Functional-only compatibility rules.
    Kept properties: display/position/top/right/bottom/left/inset/
    visibility/z-index/overflow/pointer-events. No visual styling.
    ==================================================================== */
-/* Functional-only rules — component primitives now own visuals.
-     Kept: display, position, z-index, overflow, visibility, pointer-events. */
 [data-sot-panel="ai-rename-preview"] {
     position: absolute;
     top: calc(100% + 8px);
@@ -1364,65 +1362,6 @@ button:not([data-slot]) {
 }
 [data-sot-panel="settings-scroll-body"][hidden] {
     display: none !important;
-}
-[data-sidebar="collapsed"]
-    [data-sot-panel="dashboard-sidebar"]
-    [data-sot-part="dashboard-nav-section-label"] {
-    display: block;
-    overflow: hidden;
-}
-[data-sidebar="collapsed"]
-    [data-sot-panel="dashboard-sidebar"]
-    [data-sot-part="dashboard-brand-text"],
-[data-sidebar="collapsed"]
-    [data-sot-panel="dashboard-sidebar"]
-    [data-sot-part="dashboard-sync-text"] {
-    display: none;
-}
-[data-sidebar="collapsed"]
-    [data-sot-panel="dashboard-sidebar"]
-    [data-sot-panel="dashboard-sync"][data-tip] {
-    overflow: visible;
-}
-[data-sidebar="collapsed"]
-    [data-sot-panel="dashboard-sidebar"]
-    [data-sot-panel="dashboard-sync"][data-tip]::before {
-    position: absolute;
-    left: calc(100% + 12px);
-    top: 50%;
-    pointer-events: none;
-    z-index: var(--z-popover-inline);
-}
-[data-sidebar="collapsed"]
-    [data-sot-panel="dashboard-sidebar"]
-    [data-sot-panel="dashboard-sync"] {
-    position: relative;
-}
-[data-sot-control="dashboard-drawer-trigger"] {
-    display: none;
-    position: relative;
-}
-[data-sot-control="dashboard-drawer-trigger"]
-    [data-sot-part="dashboard-drawer-active-dot"] {
-    position: absolute;
-    top: 6px;
-    right: 6px;
-    display: none;
-}
-body[data-source-filter]:not([data-source-filter=""])
-    [data-sot-control="dashboard-drawer-trigger"]
-    [data-sot-part="dashboard-drawer-active-dot"] {
-    display: inline-block;
-}
-[data-sot-panel="dashboard-drawer-scrim"] {
-    position: fixed;
-    inset: 0;
-    z-index: var(--z-drawer-scrim);
-    pointer-events: none;
-    display: none;
-}
-body[data-drawer="open"] [data-sot-panel="dashboard-drawer-scrim"] {
-    pointer-events: auto;
 }
 @media (max-width: 860px) {
     [data-sot-shell="dashboard-workstation"],
@@ -1455,15 +1394,8 @@ body[data-drawer="open"] [data-sot-panel="dashboard-drawer-scrim"] {
         box-sizing: border-box;
         grid-template-columns: minmax(0, 1fr);
     }
-    [data-sot-panel="dashboard-sidebar"],
     [data-sot-panel="workstation-sidebar"] {
         display: none;
-    }
-    [data-sot-control="dashboard-drawer-trigger"] {
-        display: inline-flex;
-    }
-    [data-sot-panel="dashboard-drawer-scrim"] {
-        display: block;
     }
     [data-sot-panel="dashboard-workspace"]
         > [data-sot-panel="dashboard-detail"] {
@@ -1472,22 +1404,6 @@ body[data-drawer="open"] [data-sot-panel="dashboard-drawer-scrim"] {
     [data-sot-part="dashboard-crumb-separator"],
     [data-sot-part="dashboard-crumb-current"] {
         display: none;
-    }
-    body[data-drawer="open"] [data-sot-panel="dashboard-sidebar"] {
-        display: flex;
-        position: fixed;
-        inset: 0 auto 0 0;
-        max-width: min(320px, calc(100vw - 32px));
-        z-index: var(--z-drawer);
-    }
-    body[data-drawer="open"] [data-sot-part="dashboard-brand-text"],
-    body[data-drawer="open"] [data-sot-part="dashboard-nav-section-label"],
-    body[data-drawer="open"] [data-sot-part="dashboard-favorite-count"],
-    body[data-drawer="open"] [data-sot-part="dashboard-sync-text"] {
-        display: block;
-    }
-    [data-sot-control="sidebar-collapse"] {
-        display: none !important;
     }
 }
 [data-sot-part="settings-user-summary"] {

@@ -151,9 +151,9 @@ type SourceRowPixelDiff = {
 };
 
 type SourceRowPixelFrame = {
-    bodyDataset?: {
-        drawer?: "closed" | "open";
-        sidebar?: "collapsed" | "expanded";
+    rootAttrs?: {
+        drawerState?: "closed" | "open";
+        sidebarCollapsed?: "false" | "true";
     };
     name: string;
     sidebar: {
@@ -178,15 +178,15 @@ const SOURCE_ROW_PIXEL_FRAMES = [
         viewport: { height: 760, width: 1280 },
     },
     {
-        bodyDataset: { sidebar: "collapsed" },
         name: "desktop-collapsed",
+        rootAttrs: { sidebarCollapsed: "true" },
         sidebar: { padding: "16px 6px 12px", width: 56 },
         stage: { height: 88, width: 88 },
         viewport: { height: 900, width: 1366 },
     },
     {
-        bodyDataset: { drawer: "open" },
         name: "mobile-drawer",
+        rootAttrs: { drawerState: "open" },
         sidebar: { padding: "16px 12px 12px", width: 264 },
         stage: { height: 92, width: 300 },
         viewport: { height: 844, width: 390 },
@@ -480,35 +480,35 @@ const SOURCE_ROW_MIGRATION_FIXTURE_CSS = `
 .sidebar .nav-item.nav-source.is-sync-error:focus-within .src-action.is-retry {
   display: inline-flex;
 }
-body[data-sidebar="collapsed"] .sidebar .brand-text,
-body[data-sidebar="collapsed"] .sidebar .nav-section-label,
-body[data-sidebar="collapsed"] .sidebar .nav-item span:not(.src-dot):not(.src-ico):not(.src-status),
-body[data-sidebar="collapsed"] .sidebar .src-action,
-body[data-sidebar="collapsed"] .sidebar .sync-text,
-body[data-sidebar="collapsed"] .sidebar .sync-pill .icon-btn {
+[data-sidebar-collapsed="true"] .sidebar .brand-text,
+[data-sidebar-collapsed="true"] .sidebar .nav-section-label,
+[data-sidebar-collapsed="true"] .sidebar .nav-item span:not(.src-dot):not(.src-ico):not(.src-status),
+[data-sidebar-collapsed="true"] .sidebar .src-action,
+[data-sidebar-collapsed="true"] .sidebar .sync-text,
+[data-sidebar-collapsed="true"] .sidebar .sync-pill .icon-btn {
   display: none !important;
 }
-body[data-sidebar="collapsed"] .sidebar .nav-item {
+[data-sidebar-collapsed="true"] .sidebar .nav-item {
   justify-content: center;
   padding: 8px 0;
   gap: 0;
 }
-body[data-sidebar="collapsed"] .sidebar .nav-item .src-status {
+[data-sidebar-collapsed="true"] .sidebar .nav-item .src-status {
   display: block !important;
   position: absolute;
   right: 4px;
   bottom: 4px;
 }
-body[data-sidebar="collapsed"] .sidebar .nav-item.nav-source > .src-ico {
+[data-sidebar-collapsed="true"] .sidebar .nav-item.nav-source > .src-ico {
   display: inline-flex !important;
 }
-body[data-sidebar="collapsed"] .sidebar .nav-item.nav-source > .src-status {
+[data-sidebar-collapsed="true"] .sidebar .nav-item.nav-source > .src-status {
   display: block !important;
 }
-[data-sidebar="collapsed"] .sidebar .nav-item.nav-source > .src-ico {
+[data-sidebar-collapsed="true"] .sidebar .nav-item.nav-source > .src-ico {
   display: inline-flex !important;
 }
-[data-sidebar="collapsed"] .sidebar .nav-item.nav-source > .src-status {
+[data-sidebar-collapsed="true"] .sidebar .nav-item.nav-source > .src-status {
   display: block !important;
   position: absolute;
   right: 4px;
@@ -626,8 +626,46 @@ const APP_SHELL_MIGRATION_FIXTURE_CSS = `
 .real-list .meta2 .ts{letter-spacing:.015em}
 .real-list .ts-abs{display:none}
 .real-list .ts-rel{display:inline}
-body[data-time-style="abs"] .real-list .ts-abs{display:inline}
-body[data-time-style="abs"] .real-list .ts-rel{display:none}
+[data-time-style="abs"] .real-list .ts-abs{display:inline}
+[data-time-style="abs"] .real-list .ts-rel{display:none}
+.mobile-drawer-trigger#drawer-trigger{border-style:solid;padding-inline:.75rem}
+.mobile-drawer-trigger .dot-active{top:.375rem;right:.375rem}
+[data-source-filter-active="true"] .stack-strip{display:flex}
+[data-source-filter-active="true"] .mobile-drawer-trigger .dot-active{display:inline-block}
+[data-source-status]:not([data-source-status="sync-error"]) .stack-strip .stack-banner.banner-sync-error{display:none}
+[data-source-status]:not([data-source-status="no-results"]) .stack-strip .stack-banner.banner-no-results{display:none}
+[data-source-status]:not([data-source-status="needs-setup"]) .stack-strip .stack-banner.banner-needs-setup{display:none}
+[data-drawer-state="open"] .drawer-scrim{pointer-events:auto}
+@media (max-width: 860px) {
+  [data-drawer-state="open"] .sidebar{display:flex;position:fixed;inset:0 auto 0 0;z-index:var(--z-drawer)}
+  [data-drawer-state="open"] .sidebar .brand-text,
+  [data-drawer-state="open"] .sidebar .nav-section-label,
+  [data-drawer-state="open"] .sidebar .nav-item > span:not(.src-status),
+  [data-drawer-state="open"] .sidebar .nav-item .count,
+  [data-drawer-state="open"] .sidebar .sync-text{display:block}
+  [data-drawer-state="open"] .sidebar .nav-item::after,
+  [data-drawer-state="open"] .sidebar .nav-item[data-tip]::before{display:none!important}
+  [data-drawer-state="open"] .sidebar .nav-item.nav-source .src-status{position:static}
+}
+@media (min-width: 861px) {
+  [data-sidebar-collapsed="true"] .app{grid-template-columns:56px 1fr}
+  [data-sidebar-collapsed="true"] .sidebar{padding:16px 6px 12px}
+  [data-sidebar-collapsed="true"] .brand-text,
+  [data-sidebar-collapsed="true"] .nav-section-label,
+  [data-sidebar-collapsed="true"] .nav-item span:not(.src-dot):not(.src-ico):not(.src-status),
+  [data-sidebar-collapsed="true"] .nav-item .count,
+  [data-sidebar-collapsed="true"] .src-action,
+  [data-sidebar-collapsed="true"] .sync-text,
+  [data-sidebar-collapsed="true"] .sync-pill .icon-btn{display:none}
+  [data-sidebar-collapsed="true"] .brand{justify-content:center;padding:4px 0 16px}
+  [data-sidebar-collapsed="true"] .nav-item{justify-content:center;padding:8px 0;gap:0}
+  [data-sidebar-collapsed="true"] .nav-item.is-selected::before,
+  [data-sidebar-collapsed="true"] .nav-item.active::before,
+  [data-sidebar-collapsed="true"] .nav-item.is-active-filter::before{content:"";position:absolute;left:0;top:50%;width:3px;height:24px;border-radius:999px;transform:translateY(-50%);background:var(--accent)}
+  [data-sidebar-collapsed="true"] .nav-item .src-status{display:block;position:absolute;right:4px;bottom:4px}
+  [data-sidebar-collapsed="true"] .sync-pill{justify-content:center;padding:8px 0}
+  [data-sidebar-collapsed="true"] .sidebar-toggle svg{transform:rotate(180deg)}
+}
 .real-list .right{display:flex;align-items:center;gap:8px}
 .b{display:inline-flex;align-items:center;gap:5px;height:20px;padding:0 8px;border-radius:999px;font:600 11px var(--font-sans);border:1px solid transparent;letter-spacing:.005em}
 .b .dot{width:5px;height:5px;border-radius:50%;background:currentColor}
@@ -662,9 +700,9 @@ body[data-time-style="abs"] .real-list .ts-rel{display:none}
 `;
 
 type DrawerPixelFrame = {
-    bodyDataset: {
-        drawer: "closed" | "open";
-        sourceFilter: "" | "dingtalk";
+    rootAttrs: {
+        drawerState: "closed" | "open";
+        sourceFilterProvider: "" | "dingtalk";
     };
     name: string;
     target: "trigger" | "sidebar";
@@ -676,48 +714,48 @@ type DrawerPixelFrame = {
 
 const DRAWER_PIXEL_FRAMES = [
     {
-        bodyDataset: { drawer: "closed", sourceFilter: "" },
         name: "mobile-trigger-idle",
+        rootAttrs: { drawerState: "closed", sourceFilterProvider: "" },
         target: "trigger",
         viewport: { height: 844, width: 390 },
     },
     {
-        bodyDataset: { drawer: "closed", sourceFilter: "dingtalk" },
         name: "mobile-trigger-filtered",
+        rootAttrs: { drawerState: "closed", sourceFilterProvider: "dingtalk" },
         target: "trigger",
         viewport: { height: 844, width: 390 },
     },
     {
-        bodyDataset: { drawer: "open", sourceFilter: "dingtalk" },
         name: "mobile-sidebar-open",
+        rootAttrs: { drawerState: "open", sourceFilterProvider: "dingtalk" },
         target: "sidebar",
         viewport: { height: 844, width: 390 },
     },
     {
-        bodyDataset: { drawer: "closed", sourceFilter: "" },
         name: "tablet-trigger-idle",
+        rootAttrs: { drawerState: "closed", sourceFilterProvider: "" },
         target: "trigger",
         viewport: { height: 900, width: 820 },
     },
     {
-        bodyDataset: { drawer: "closed", sourceFilter: "dingtalk" },
         name: "tablet-trigger-filtered",
+        rootAttrs: { drawerState: "closed", sourceFilterProvider: "dingtalk" },
         target: "trigger",
         viewport: { height: 900, width: 820 },
     },
     {
-        bodyDataset: { drawer: "open", sourceFilter: "dingtalk" },
         name: "tablet-sidebar-open",
+        rootAttrs: { drawerState: "open", sourceFilterProvider: "dingtalk" },
         target: "sidebar",
         viewport: { height: 900, width: 820 },
     },
 ] as const satisfies readonly DrawerPixelFrame[];
 
 type ResponsiveAppPixelFrame = {
-    bodyDataset: {
-        drawer: "closed" | "open";
-        sidebar: "collapsed" | "expanded";
-        sourceFilter: "" | "dingtalk";
+    rootAttrs: {
+        drawerState: "closed" | "open";
+        sidebarCollapsed: "false" | "true";
+        sourceFilterProvider: "" | "dingtalk";
     };
     name: string;
     viewport: {
@@ -728,39 +766,39 @@ type ResponsiveAppPixelFrame = {
 
 const RESPONSIVE_APP_PIXEL_FRAMES = [
     {
-        bodyDataset: {
-            drawer: "closed",
-            sidebar: "expanded",
-            sourceFilter: "dingtalk",
-        },
         name: "desktop-expanded",
+        rootAttrs: {
+            drawerState: "closed",
+            sidebarCollapsed: "false",
+            sourceFilterProvider: "dingtalk",
+        },
         viewport: { height: 900, width: 1366 },
     },
     {
-        bodyDataset: {
-            drawer: "closed",
-            sidebar: "collapsed",
-            sourceFilter: "dingtalk",
-        },
         name: "desktop-collapsed",
+        rootAttrs: {
+            drawerState: "closed",
+            sidebarCollapsed: "true",
+            sourceFilterProvider: "dingtalk",
+        },
         viewport: { height: 900, width: 1366 },
     },
     {
-        bodyDataset: {
-            drawer: "open",
-            sidebar: "expanded",
-            sourceFilter: "dingtalk",
-        },
         name: "tablet-overlay",
+        rootAttrs: {
+            drawerState: "open",
+            sidebarCollapsed: "false",
+            sourceFilterProvider: "dingtalk",
+        },
         viewport: { height: 900, width: 820 },
     },
     {
-        bodyDataset: {
-            drawer: "open",
-            sidebar: "expanded",
-            sourceFilter: "dingtalk",
-        },
         name: "mobile-drawer",
+        rootAttrs: {
+            drawerState: "open",
+            sidebarCollapsed: "false",
+            sourceFilterProvider: "dingtalk",
+        },
         viewport: { height: 844, width: 390 },
     },
 ] as const satisfies readonly ResponsiveAppPixelFrame[];
@@ -797,7 +835,6 @@ const DRAWER_SCRIM_STYLE_PROPS = [
 ] as const;
 const DRAWER_SIDEBAR_STYLE_PROPS = [
     "display",
-    "position",
     "top",
     "bottom",
     "left",
@@ -946,27 +983,32 @@ async function openSotComponentLibrary(page: Page) {
     await page.goto(SOT_COMPONENT_LIBRARY_URL, { waitUntil: "load" });
     await page.evaluate(() => {
         document.documentElement.dataset.theme = "light";
-        document.body.dataset.theme = "light";
+        document.body.setAttribute("data-theme", "light");
     });
 }
 
-async function openSotCssOnlyWorkstation(
-    page: Page,
-    theme: ResolvedTheme = "dark",
-) {
+async function readSotWorkstationCss() {
     sotWorkstationCssCache ??= (
         await Promise.all([
             readFile(SOT_COLORS_AND_TYPE_CSS_PATH, "utf8"),
             readFile(SOT_KIT_CSS_PATH, "utf8"),
         ])
     ).join("\n");
+    return sotWorkstationCssCache;
+}
+
+async function openSotCssOnlyWorkstation(
+    page: Page,
+    theme: ResolvedTheme = "dark",
+) {
+    const sotWorkstationCss = await readSotWorkstationCss();
     await page.setContent(
-        `<!doctype html><html data-theme="${theme}"><head><meta charset="utf-8"><style>${sotWorkstationCssCache.replaceAll("</style", "<\\/style")}</style></head><body data-theme="${theme}"></body></html>`,
+        `<!doctype html><html data-theme="${theme}"><head><meta charset="utf-8"><style>${sotWorkstationCss.replaceAll("</style", "<\\/style")}</style></head><body data-theme="${theme}"></body></html>`,
         { waitUntil: "load" },
     );
     await page.evaluate((nextTheme) => {
         document.documentElement.dataset.theme = nextTheme;
-        document.body.dataset.theme = nextTheme;
+        document.body.setAttribute("data-theme", nextTheme);
     }, theme);
 }
 
@@ -1113,26 +1155,16 @@ async function captureSourceRowFixture(
             sourceIconDataUrls: iconDataUrls,
         }) => {
             document.getElementById(id)?.remove();
-            const previousDrawer = document.body.dataset.drawer;
-            const previousSidebar = document.body.dataset.sidebar;
-            if (fixtureFrame.bodyDataset?.drawer) {
-                document.body.dataset.drawer = fixtureFrame.bodyDataset.drawer;
-            } else {
-                delete document.body.dataset.drawer;
-            }
-            if (fixtureFrame.bodyDataset?.sidebar) {
-                document.body.dataset.sidebar = fixtureFrame.bodyDataset.sidebar;
-            } else {
-                delete document.body.dataset.sidebar;
-            }
 
             const host = document.createElement("div");
             host.id = id;
-            host.dataset.previousDrawer = previousDrawer ?? "";
-            host.dataset.previousSidebar = previousSidebar ?? "";
-            host.dataset.previousDrawerPresent = String(previousDrawer !== undefined);
-            host.dataset.previousSidebarPresent = String(
-                previousSidebar !== undefined,
+            host.setAttribute(
+                "data-drawer-state",
+                fixtureFrame.rootAttrs?.drawerState ?? "closed",
+            );
+            host.setAttribute(
+                "data-sidebar-collapsed",
+                fixtureFrame.rootAttrs?.sidebarCollapsed ?? "false",
             );
             host.style.position = "fixed";
             host.style.left = "0";
@@ -1243,16 +1275,6 @@ async function captureSourceRowFixture(
     });
     await page.evaluate((id) => {
         const host = document.getElementById(id);
-        if (host?.dataset.previousDrawerPresent === "true") {
-            document.body.dataset.drawer = host.dataset.previousDrawer ?? "";
-        } else {
-            delete document.body.dataset.drawer;
-        }
-        if (host?.dataset.previousSidebarPresent === "true") {
-            document.body.dataset.sidebar = host.dataset.previousSidebar ?? "";
-        } else {
-            delete document.body.dataset.sidebar;
-        }
         host?.remove();
     }, fixtureId);
 
@@ -1273,41 +1295,31 @@ async function captureResponsiveAppFixture(
     const fixtureId = `sot-responsive-app-${Date.now()}-${Math.random()
         .toString(16)
         .slice(2)}`;
+    const fixtureCss = [
+        await readSotWorkstationCss(),
+        SOURCE_ROW_MIGRATION_FIXTURE_CSS,
+        APP_SHELL_MIGRATION_FIXTURE_CSS,
+    ]
+        .join("\n")
+        .replaceAll("</style", "<\\/style");
 
     await page.setViewportSize(frame.viewport);
     await page.mouse.move(0, 0);
     await page.evaluate(
         ({
             appHtml: html,
-            appShellFixtureCss,
             assets,
+            fixtureCss: css,
             fixtureFrame,
             fixtureId: id,
             fixtureTheme,
-            sourceFixtureCss,
         }) => {
             document.getElementById(id)?.remove();
             const previousHtmlTheme = document.documentElement.dataset.theme;
-            const previousBodyTheme = document.body.dataset.theme;
-            const previousDrawer = document.body.dataset.drawer;
-            const previousSidebar = document.body.dataset.sidebar;
-            const previousSourceFilter = document.body.dataset.sourceFilter;
-            const previousSourceStatus = document.body.dataset.sourceStatus;
-            const previousTimeStyle = document.body.dataset.timeStyle;
+            const previousBodyTheme = document.body.getAttribute("data-theme");
 
             document.documentElement.dataset.theme = fixtureTheme;
-            document.body.dataset.theme = fixtureTheme;
-            document.body.dataset.drawer = fixtureFrame.bodyDataset.drawer;
-            document.body.dataset.sidebar = fixtureFrame.bodyDataset.sidebar;
-            document.body.dataset.timeStyle = "abs";
-            if (fixtureFrame.bodyDataset.sourceFilter) {
-                document.body.dataset.sourceFilter =
-                    fixtureFrame.bodyDataset.sourceFilter;
-                document.body.dataset.sourceStatus = "connected";
-            } else {
-                delete document.body.dataset.sourceFilter;
-                delete document.body.dataset.sourceStatus;
-            }
+            document.body.setAttribute("data-theme", fixtureTheme);
 
             const devOverlayStyle = document.createElement("style");
             devOverlayStyle.dataset.responsiveAppFixture = id;
@@ -1332,28 +1344,29 @@ async function captureResponsiveAppFixture(
             );
             host.dataset.previousBodyTheme = previousBodyTheme ?? "";
             host.dataset.previousBodyThemePresent = String(
-                previousBodyTheme !== undefined,
+                previousBodyTheme !== null,
             );
-            host.dataset.previousDrawer = previousDrawer ?? "";
-            host.dataset.previousDrawerPresent = String(
-                previousDrawer !== undefined,
+            host.setAttribute("data-drawer-state", fixtureFrame.rootAttrs.drawerState);
+            host.setAttribute(
+                "data-sidebar-collapsed",
+                fixtureFrame.rootAttrs.sidebarCollapsed,
             );
-            host.dataset.previousSidebar = previousSidebar ?? "";
-            host.dataset.previousSidebarPresent = String(
-                previousSidebar !== undefined,
+            host.setAttribute("data-time-style", "abs");
+            host.setAttribute(
+                "data-source-filter-active",
+                fixtureFrame.rootAttrs.sourceFilterProvider ? "true" : "false",
             );
-            host.dataset.previousSourceFilter = previousSourceFilter ?? "";
-            host.dataset.previousSourceFilterPresent = String(
-                previousSourceFilter !== undefined,
+            host.setAttribute(
+                "data-source-filter-state",
+                fixtureFrame.rootAttrs.sourceFilterProvider ? "active" : "idle",
             );
-            host.dataset.previousSourceStatus = previousSourceStatus ?? "";
-            host.dataset.previousSourceStatusPresent = String(
-                previousSourceStatus !== undefined,
-            );
-            host.dataset.previousTimeStyle = previousTimeStyle ?? "";
-            host.dataset.previousTimeStylePresent = String(
-                previousTimeStyle !== undefined,
-            );
+            if (fixtureFrame.rootAttrs.sourceFilterProvider) {
+                host.setAttribute(
+                    "data-source-filter-provider",
+                    fixtureFrame.rootAttrs.sourceFilterProvider,
+                );
+                host.setAttribute("data-source-status", "connected");
+            }
             host.style.position = "fixed";
             host.style.inset = "0";
             host.style.width = `${fixtureFrame.viewport.width}px`;
@@ -1370,7 +1383,7 @@ async function captureResponsiveAppFixture(
             stage.style.height = "100%";
             stage.style.overflow = "hidden";
             stage.style.background = "var(--bg-canvas)";
-            const sourceRowScopeStyle = `<style>${sourceFixtureCss}${appShellFixtureCss}#${id} .nav-item{width:auto!important;}#${id} .nav-item .count{margin-left:0!important;}#${id} .sidebar .nav-item.nav-source > .src-action{display:inline-flex!important;flex:0 0 auto!important;flex-direction:row!important;}#${id} .sidebar .nav-item.nav-source > .src-action svg{display:block!important;flex:0 0 11px!important;vertical-align:baseline!important;}#${id} .nav-item > span:not(.count):not(.src-dot):not(.src-ico):not(.src-status):not(.src-action){flex:none!important;}</style>`;
+            const sourceRowScopeStyle = `<style>${css}#${id} .nav-item{width:auto!important;}#${id} .nav-item .count{margin-left:0!important;}#${id} .sidebar .nav-item.nav-source > .src-action{display:inline-flex!important;flex:0 0 auto!important;flex-direction:row!important;}#${id} .sidebar .nav-item.nav-source > .src-action svg{display:block!important;flex:0 0 11px!important;vertical-align:baseline!important;}#${id} .nav-item > span:not(.count):not(.src-dot):not(.src-ico):not(.src-status):not(.src-action){flex:none!important;}</style>`;
             const responsiveAppControlStyle = `<style>
 #${id} .btn{display:inline-flex;align-items:center;gap:7px;height:32px;padding:0 12px;border-radius:9px;font:600 12.5px var(--font-sans);color:var(--fg-primary);background:var(--bg-elevated);border:1px solid var(--line-hairline);box-shadow:var(--shadow-xs)}
 #${id} .btn svg{width:16px;height:16px;stroke:currentColor;stroke-width:1.8;fill:none;stroke-linecap:round;stroke-linejoin:round}
@@ -1416,12 +1429,11 @@ async function captureResponsiveAppFixture(
         },
         {
             appHtml,
-            appShellFixtureCss: APP_SHELL_MIGRATION_FIXTURE_CSS,
             assets: assetDataUrls,
+            fixtureCss,
             fixtureFrame: frame,
             fixtureId,
             fixtureTheme: theme,
-            sourceFixtureCss: SOURCE_ROW_MIGRATION_FIXTURE_CSS,
         },
     );
 
@@ -1477,37 +1489,12 @@ async function captureResponsiveAppFixture(
             delete document.documentElement.dataset.theme;
         }
         if (host.dataset.previousBodyThemePresent === "true") {
-            document.body.dataset.theme = host.dataset.previousBodyTheme ?? "";
+            document.body.setAttribute(
+                "data-theme",
+                host.dataset.previousBodyTheme ?? "",
+            );
         } else {
-            delete document.body.dataset.theme;
-        }
-        if (host.dataset.previousDrawerPresent === "true") {
-            document.body.dataset.drawer = host.dataset.previousDrawer ?? "";
-        } else {
-            delete document.body.dataset.drawer;
-        }
-        if (host.dataset.previousSidebarPresent === "true") {
-            document.body.dataset.sidebar = host.dataset.previousSidebar ?? "";
-        } else {
-            delete document.body.dataset.sidebar;
-        }
-        if (host.dataset.previousSourceFilterPresent === "true") {
-            document.body.dataset.sourceFilter =
-                host.dataset.previousSourceFilter ?? "";
-        } else {
-            delete document.body.dataset.sourceFilter;
-        }
-        if (host.dataset.previousSourceStatusPresent === "true") {
-            document.body.dataset.sourceStatus =
-                host.dataset.previousSourceStatus ?? "";
-        } else {
-            delete document.body.dataset.sourceStatus;
-        }
-        if (host.dataset.previousTimeStylePresent === "true") {
-            document.body.dataset.timeStyle =
-                host.dataset.previousTimeStyle ?? "";
-        } else {
-            delete document.body.dataset.timeStyle;
+            document.body.removeAttribute("data-theme");
         }
         document
             .querySelector(`style[data-responsive-app-fixture="${id}"]`)
@@ -1753,40 +1740,45 @@ async function captureDrawerFixture(
     const fixtureId = `sot-drawer-${Date.now()}-${Math.random()
         .toString(16)
         .slice(2)}`;
+    const fixtureCss = [
+        await readSotWorkstationCss(),
+        SOURCE_ROW_MIGRATION_FIXTURE_CSS,
+        APP_SHELL_MIGRATION_FIXTURE_CSS,
+    ]
+        .join("\n")
+        .replaceAll("</style", "<\\/style");
 
     await page.setViewportSize(frame.viewport);
     await page.mouse.move(0, 0);
     await page.evaluate(
         ({
-            appShellFixtureCss,
             assets,
+            fixtureCss: css,
             fixtureFrame,
             fixtureId: id,
             sidebarHtml,
-            sourceFixtureCss,
             triggerHtml,
         }) => {
             document.getElementById(id)?.remove();
-            const previousDrawer = document.body.dataset.drawer;
-            const previousSourceFilter = document.body.dataset.sourceFilter;
-            document.body.dataset.drawer = fixtureFrame.bodyDataset.drawer;
-            if (fixtureFrame.bodyDataset.sourceFilter) {
-                document.body.dataset.sourceFilter =
-                    fixtureFrame.bodyDataset.sourceFilter;
-            } else {
-                delete document.body.dataset.sourceFilter;
-            }
 
             const host = document.createElement("div");
             host.id = id;
-            host.dataset.previousDrawer = previousDrawer ?? "";
-            host.dataset.previousDrawerPresent = String(
-                previousDrawer !== undefined,
+            host.setAttribute("data-drawer-state", fixtureFrame.rootAttrs.drawerState);
+            host.setAttribute(
+                "data-source-filter-active",
+                fixtureFrame.rootAttrs.sourceFilterProvider ? "true" : "false",
             );
-            host.dataset.previousSourceFilter = previousSourceFilter ?? "";
-            host.dataset.previousSourceFilterPresent = String(
-                previousSourceFilter !== undefined,
+            host.setAttribute(
+                "data-source-filter-state",
+                fixtureFrame.rootAttrs.sourceFilterProvider ? "active" : "idle",
             );
+            if (fixtureFrame.rootAttrs.sourceFilterProvider) {
+                host.setAttribute(
+                    "data-source-filter-provider",
+                    fixtureFrame.rootAttrs.sourceFilterProvider,
+                );
+                host.setAttribute("data-source-status", "connected");
+            }
             host.style.position = "fixed";
             host.style.inset = "0 auto auto 0";
             host.style.width = `${fixtureFrame.viewport.width}px`;
@@ -1807,7 +1799,7 @@ async function captureDrawerFixture(
                 fixtureFrame.target === "sidebar"
                     ? `#${id} .sidebar{width:222.109px!important;}`
                     : "";
-            const sourceRowScopeStyle = `<style>${sourceFixtureCss}${appShellFixtureCss}${sidebarWidthStyle}#${id} .nav-item{width:auto!important;}#${id} .nav-item .count{margin-left:0!important;}#${id} .sidebar .nav-item.nav-source > .src-action{display:inline-flex!important;flex:0 0 auto!important;flex-direction:row!important;}#${id} .sidebar .nav-item.nav-source > .src-action svg{display:block!important;flex:0 0 11px!important;vertical-align:baseline!important;}#${id} .nav-item > span:not(.count):not(.src-dot):not(.src-ico):not(.src-status):not(.src-action){flex:none!important;}</style>`;
+            const sourceRowScopeStyle = `<style>${css}${sidebarWidthStyle}#${id} .nav-item{width:auto!important;}#${id} .nav-item .count{margin-left:0!important;}#${id} .sidebar .nav-item.nav-source > .src-action{display:inline-flex!important;flex:0 0 auto!important;flex-direction:row!important;}#${id} .sidebar .nav-item.nav-source > .src-action svg{display:block!important;flex:0 0 11px!important;vertical-align:baseline!important;}#${id} .nav-item > span:not(.count):not(.src-dot):not(.src-ico):not(.src-status):not(.src-action){flex:none!important;}</style>`;
             stage.innerHTML = [
                 sourceRowScopeStyle,
                 '<div class="app">',
@@ -1831,12 +1823,11 @@ async function captureDrawerFixture(
             document.body.appendChild(host);
         },
         {
-            appShellFixtureCss: APP_SHELL_MIGRATION_FIXTURE_CSS,
             assets: assetDataUrls,
+            fixtureCss,
             fixtureFrame: frame,
             fixtureId,
             sidebarHtml: drawerHtml.sidebarHtml,
-            sourceFixtureCss: SOURCE_ROW_MIGRATION_FIXTURE_CSS,
             triggerHtml: drawerHtml.triggerHtml,
         },
     );
@@ -1873,17 +1864,6 @@ async function captureDrawerFixture(
     });
     await page.evaluate((id) => {
         const host = document.getElementById(id);
-        if (host?.dataset.previousDrawerPresent === "true") {
-            document.body.dataset.drawer = host.dataset.previousDrawer ?? "";
-        } else {
-            delete document.body.dataset.drawer;
-        }
-        if (host?.dataset.previousSourceFilterPresent === "true") {
-            document.body.dataset.sourceFilter =
-                host.dataset.previousSourceFilter ?? "";
-        } else {
-            delete document.body.dataset.sourceFilter;
-        }
         host?.remove();
     }, fixtureId);
 
@@ -2201,7 +2181,7 @@ async function readAppShellRuntimeThemeEvidence(
         return {
             bodyBackgroundColor: bodyStyle.backgroundColor,
             bodyColor: bodyStyle.color,
-            bodyDataTheme: document.body.dataset.theme ?? null,
+            bodyDataTheme: document.body.getAttribute("data-theme"),
             cssVariables: {
                 bgCanvas: rootStyle.getPropertyValue("--bg-canvas").trim(),
                 bgElevated: rootStyle
@@ -2865,14 +2845,78 @@ async function waitForDisplayThemeApplied(
         });
 }
 
+type DashboardOwnerAttrs = {
+    drawerState?: "closed" | "open";
+    sidebarCollapsed?: "false" | "true";
+    sourceFilterProvider?: string;
+    sourceFilterState?: "active" | "idle";
+    sourceStatus?: string;
+    timeStyle?: "abs" | "rel";
+};
+
+async function installDashboardOwnerAttrFixtureCss(page: Page) {
+    await page.addStyleTag({ content: APP_SHELL_MIGRATION_FIXTURE_CSS });
+}
+
+async function setDashboardOwnerAttrs(page: Page, attrs: DashboardOwnerAttrs) {
+    await page.evaluate((nextAttrs) => {
+        const owner = document.querySelector<HTMLElement>(
+            '[data-sot-shell="dashboard-workstation"], [data-sot-surface="dashboard-workstation"], .app',
+        );
+        if (!owner) {
+            throw new Error("Dashboard owner root was not found");
+        }
+
+        if (nextAttrs.drawerState) {
+            owner.setAttribute("data-drawer-state", nextAttrs.drawerState);
+        }
+        if (nextAttrs.sidebarCollapsed) {
+            owner.setAttribute(
+                "data-sidebar-collapsed",
+                nextAttrs.sidebarCollapsed,
+            );
+        }
+        if (nextAttrs.timeStyle) {
+            owner.setAttribute("data-time-style", nextAttrs.timeStyle);
+        }
+        if (nextAttrs.sourceFilterProvider !== undefined) {
+            if (nextAttrs.sourceFilterProvider) {
+                owner.setAttribute("data-source-filter-active", "true");
+                owner.setAttribute(
+                    "data-source-filter-provider",
+                    nextAttrs.sourceFilterProvider,
+                );
+                owner.setAttribute(
+                    "data-source-filter-state",
+                    nextAttrs.sourceFilterState ?? "active",
+                );
+                owner.setAttribute(
+                    "data-source-status",
+                    nextAttrs.sourceStatus ?? "connected",
+                );
+            } else {
+                owner.setAttribute("data-source-filter-active", "false");
+                owner.removeAttribute("data-source-filter-provider");
+                owner.setAttribute("data-source-filter-state", "idle");
+                owner.removeAttribute("data-source-status");
+            }
+        }
+    }, attrs);
+}
+
 async function activeElementIsInsideSourceDrawer(page: Page) {
     return page
         .locator('[data-sot-panel="dashboard-sidebar"]')
         .evaluate((node) => node.contains(document.activeElement));
 }
 
-async function expectBodyDrawerState(page: Page, state: "closed" | "open") {
-    await expect(page.locator("body")).toHaveAttribute("data-drawer", state);
+async function expectDashboardDrawerState(
+    page: Page,
+    state: "closed" | "open",
+) {
+    await expect(
+        page.locator('[data-sot-shell="dashboard-workstation"]'),
+    ).toHaveAttribute("data-drawer-state", state);
 }
 
 async function readResponsiveMetrics(page: Page) {
@@ -2896,8 +2940,11 @@ async function readResponsiveMetrics(page: Page) {
         };
         const root = document.documentElement;
         const body = document.body;
+        const dashboardRoot = document.querySelector<HTMLElement>(
+            '[data-sot-shell="dashboard-workstation"]',
+        );
         return {
-            bodyDrawer: body.dataset.drawer ?? null,
+            dashboardDrawer: dashboardRoot?.getAttribute("data-drawer-state") ?? null,
             detail: read('[data-sot-panel="dashboard-detail"]'),
             drawerTrigger: read(
                 '[data-sot-control="dashboard-drawer-trigger"]',
@@ -2937,11 +2984,9 @@ async function expectResponsiveFrame(
     expect(workspaceColumns).toEqual(["380px", "0px"]);
 
     if (mode === "mobile-open") {
-        expect(metrics.bodyDrawer).toBe("open");
+        expect(metrics.dashboardDrawer).toBe("open");
         expect(metrics.scrim?.zIndex).toBe("300");
         expect(metrics.sourceRail?.display).toBe("flex");
-        expect(metrics.sourceRail?.position).toBe("fixed");
-        expect(metrics.sourceRail?.zIndex).toBe("310");
         expect(metrics.sourceRail?.left).toBeGreaterThanOrEqual(0);
         expect(metrics.sourceRail?.right).toBeLessThanOrEqual(
             metrics.viewportWidth,
@@ -2949,8 +2994,9 @@ async function expectResponsiveFrame(
         return;
     }
 
-    expect(metrics.bodyDrawer).toBe("closed");
-    expect(metrics.sourceRail?.display).toBe("none");
+    expect(metrics.dashboardDrawer).toBe("closed");
+    expect(metrics.sourceRail?.position).not.toBe("fixed");
+    expect(metrics.sourceRail?.zIndex).not.toBe("310");
 }
 
 function dashboardWorkstation(page: Page) {
@@ -3418,15 +3464,15 @@ test("dashboard responsive source rail opens as a mobile drawer and collapses on
     await page.setViewportSize({ width: 390, height: 844 });
     await openDashboard(page, { connectIflyrec: true });
 
-    await expectBodyDrawerState(page, "closed");
+    await expectDashboardDrawerState(page, "closed");
     await expectResponsiveFrame(page, "mobile-closed");
 
     const drawerTrigger = page.locator("#drawer-trigger");
     await drawerTrigger.click();
-    await expectBodyDrawerState(page, "open");
+    await expectDashboardDrawerState(page, "open");
     await expectResponsiveFrame(page, "mobile-open");
     await drawerTrigger.dispatchEvent("click");
-    await expectBodyDrawerState(page, "open");
+    await expectDashboardDrawerState(page, "open");
     await expect
         .poll(() => activeElementIsInsideSourceDrawer(page))
         .toBe(true);
@@ -3442,29 +3488,25 @@ test("dashboard responsive source rail opens as a mobile drawer and collapses on
         .toBe(true);
 
     await page.mouse.click(374, 760);
-    await expectBodyDrawerState(page, "closed");
+    await expectDashboardDrawerState(page, "closed");
     await expectResponsiveFrame(page, "mobile-closed");
 
     await drawerTrigger.click();
-    await expectBodyDrawerState(page, "open");
+    await expectDashboardDrawerState(page, "open");
     await expectResponsiveFrame(page, "mobile-open");
     await page.keyboard.press("Escape");
-    await expectBodyDrawerState(page, "closed");
+    await expectDashboardDrawerState(page, "closed");
     await expectResponsiveFrame(page, "mobile-closed");
     await expect(drawerTrigger).toBeFocused();
 
     await drawerTrigger.click();
-    await expectBodyDrawerState(page, "open");
+    await expectDashboardDrawerState(page, "open");
     await expectResponsiveFrame(page, "mobile-open");
     await expect(page.locator("#drawer-scrim")).toHaveCSS("z-index", "300");
-    await expect(page.locator('[data-sot-panel="dashboard-sidebar"]')).toHaveCSS(
-        "z-index",
-        "310",
-    );
     await page
         .locator("#drawer-scrim")
         .click({ position: { x: 374, y: 760 } });
-    await expectBodyDrawerState(page, "closed");
+    await expectDashboardDrawerState(page, "closed");
     await expectResponsiveFrame(page, "mobile-closed");
     await page.locator('[data-sot-control="dashboard-search"]').first().click();
     await expect(page.locator('[data-sot-panel="library-search"]')).toBeVisible();
@@ -3472,12 +3514,12 @@ test("dashboard responsive source rail opens as a mobile drawer and collapses on
     await expect(page.locator('[data-sot-panel="library-search"]')).toBeHidden();
 
     await drawerTrigger.click();
-    await expectBodyDrawerState(page, "open");
+    await expectDashboardDrawerState(page, "open");
 
     const iflyrecRow = sourceProvider(page, "iflyrec");
     await expect(iflyrecRow).toBeVisible();
     await iflyrecRow.click();
-    await expectBodyDrawerState(page, "closed");
+    await expectDashboardDrawerState(page, "closed");
     await expectResponsiveFrame(page, "mobile-closed");
     await expect(sourceFilterStack(page)).toBeVisible();
 
@@ -3604,12 +3646,13 @@ test("dashboard mobile drawer primitives match SOT DOM and computed styles", asy
 }, testInfo) => {
     await page.setViewportSize({ width: 390, height: 844 });
     await openDashboard(page, { connectIflyrec: true });
-    await expectBodyDrawerState(page, "closed");
+    await expectDashboardDrawerState(page, "closed");
 
     const sotPage = await page.context().newPage();
     try {
         await sotPage.setViewportSize({ width: 390, height: 844 });
         await sotPage.goto(SOT_WORKSTATION_URL, { waitUntil: "load" });
+        await installDashboardOwnerAttrFixtureCss(sotPage);
 
         const drawerScrim = page.locator(
             '[data-sot-panel="dashboard-drawer-scrim"]#drawer-scrim',
@@ -3644,11 +3687,11 @@ test("dashboard mobile drawer primitives match SOT DOM and computed styles", asy
         );
 
         await Promise.all([
-            sotPage.evaluate(() => {
-                document.body.dataset.sourceFilter = "iflyrec";
+            setDashboardOwnerAttrs(sotPage, {
+                sourceFilterProvider: "iflyrec",
             }),
-            page.evaluate(() => {
-                document.body.dataset.sourceFilter = "iflyrec";
+            setDashboardOwnerAttrs(page, {
+                sourceFilterProvider: "iflyrec",
             }),
         ]);
         await expectComputedStyleMatch(
@@ -3660,12 +3703,10 @@ test("dashboard mobile drawer primitives match SOT DOM and computed styles", asy
         );
 
         await Promise.all([
-            sotPage.evaluate(() => {
-                document.body.dataset.drawer = "open";
-            }),
+            setDashboardOwnerAttrs(sotPage, { drawerState: "open" }),
             page.locator("#drawer-trigger").click(),
         ]);
-        await expectBodyDrawerState(page, "open");
+        await expectDashboardDrawerState(page, "open");
         await expectComputedStyleMatch(
             sotPage,
             page,

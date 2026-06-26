@@ -347,7 +347,7 @@ const DASHBOARD_WORKSTATION_SHELL_CLASS_NAME =
 
 const dashboardSidebarCollapseClassNames = {
     sidebar:
-        "group-data-[sidebar-collapsed=true]/dashboard-workstation:px-[6px] group-data-[sidebar-collapsed=true]/dashboard-workstation:pt-4 group-data-[sidebar-collapsed=true]/dashboard-workstation:pb-3",
+        "group-data-[sidebar-collapsed=true]/dashboard-workstation:px-[6px] group-data-[sidebar-collapsed=true]/dashboard-workstation:pt-4 group-data-[sidebar-collapsed=true]/dashboard-workstation:pb-3 max-[860px]:hidden max-[860px]:group-data-[drawer-state=open]/dashboard-workstation:fixed max-[860px]:group-data-[drawer-state=open]/dashboard-workstation:top-0 max-[860px]:group-data-[drawer-state=open]/dashboard-workstation:bottom-0 max-[860px]:group-data-[drawer-state=open]/dashboard-workstation:left-0 max-[860px]:group-data-[drawer-state=open]/dashboard-workstation:z-[var(--z-drawer)] max-[860px]:group-data-[drawer-state=open]/dashboard-workstation:flex max-[860px]:group-data-[drawer-state=open]/dashboard-workstation:max-w-[min(320px,calc(100vw-32px))]",
     hidden: "group-data-[sidebar-collapsed=true]/dashboard-workstation:hidden",
     brand: "group-data-[sidebar-collapsed=true]/dashboard-workstation:justify-center group-data-[sidebar-collapsed=true]/dashboard-workstation:px-0 group-data-[sidebar-collapsed=true]/dashboard-workstation:pt-1 group-data-[sidebar-collapsed=true]/dashboard-workstation:pb-4",
     favorite:
@@ -612,9 +612,9 @@ const dashboardButtonClassNames = {
     speakersMerge:
         "h-[26px] gap-[7px] rounded-[7px] border border-transparent bg-transparent px-[10px] text-[12px] font-semibold text-[var(--fg-secondary)] shadow-none hover:bg-accent hover:text-accent-foreground dark:hover:bg-accent/50 has-[>svg]:px-[10px]",
     drawerTrigger:
-        "h-auto w-auto rounded-md bg-transparent px-[6px] py-px text-[var(--fg-primary)] shadow-none hover:bg-[var(--bg-recessed)] hover:text-[var(--fg-primary)]",
+        "relative hidden h-auto w-auto rounded-md bg-transparent px-[6px] py-px text-[var(--fg-primary)] shadow-none hover:bg-[var(--bg-recessed)] hover:text-[var(--fg-primary)] max-[860px]:inline-flex group-data-[source-filter-active=true]/dashboard-workstation:[&_[data-sot-part=dashboard-drawer-active-dot]]:inline-block",
     sidebarCollapse:
-        "size-[22px] rounded-full border border-[var(--line-hairline)] bg-[var(--bg-elevated)] text-muted-foreground shadow-sm hover:bg-accent hover:text-foreground dark:hover:bg-accent/50",
+        "size-[22px] rounded-full border border-[var(--line-hairline)] bg-[var(--bg-elevated)] text-muted-foreground shadow-sm hover:bg-accent hover:text-foreground dark:hover:bg-accent/50 max-[860px]:hidden",
     settingsAvatar:
         "size-[30px] rounded-full border-0 bg-gradient-to-b from-[var(--steel-500)] to-[var(--steel-700)] text-xs font-semibold text-white shadow-xs hover:scale-[1.04] hover:bg-gradient-to-b hover:from-[var(--steel-500)] hover:to-[var(--steel-700)] hover:text-white",
     listStatePrimary:
@@ -704,8 +704,10 @@ const dashboardRecordingRowStyles = {
     secondary:
         "flex items-center gap-2 font-mono text-[11px] font-medium text-muted-foreground",
     timestamp: "tracking-[0.015em]",
-    timestampAbsolute: "hidden [body[data-time-style=abs]_&]:inline",
-    timestampRelative: "inline [body[data-time-style=abs]_&]:hidden",
+    timestampAbsolute:
+        "hidden group-data-[time-style=abs]/dashboard-workstation:inline",
+    timestampRelative:
+        "inline group-data-[time-style=abs]/dashboard-workstation:hidden",
     actions: "flex items-center gap-2",
 } as const;
 
@@ -3691,22 +3693,6 @@ export function Workstation({
         }, 0);
     }, [activeSearchIndex, flatSearchResults.length, searchOpen]);
 
-    useEffect(() => {
-        document.body.dataset.drawer = drawerOpen ? "open" : "closed";
-        document.body.dataset.sourceFilter = source === "all" ? "" : source;
-        document.body.dataset.sourceStatus =
-            source === "all"
-                ? ""
-                : (sourceRows.find((row) => row.key === source)?.status ?? "");
-        document.body.dataset.timeStyle = "rel";
-        return () => {
-            delete document.body.dataset.drawer;
-            delete document.body.dataset.sourceFilter;
-            delete document.body.dataset.sourceStatus;
-            delete document.body.dataset.timeStyle;
-        };
-    }, [drawerOpen, source, sourceRows]);
-
     function openSettings(section: CanonicalSettingsSection) {
         setSearchOpen(false);
         setActivityOpen(false);
@@ -4109,6 +4095,7 @@ export function Workstation({
           ? "editing"
           : "normal";
     const dashboardDetailHeaderMode = editingTitle ? "editing" : "normal";
+    const dashboardSidebarCollapsed = collapsed && !drawerOpen;
 
     return (
         <div
@@ -4125,9 +4112,17 @@ export function Workstation({
             data-playback-settings-loaded={
                 playbackSettingsLoaded ? "true" : "false"
             }
-            data-sidebar-collapsed={collapsed ? "true" : "false"}
+            data-drawer-state={drawerOpen ? "open" : "closed"}
+            data-sidebar-collapsed={
+                dashboardSidebarCollapsed ? "true" : "false"
+            }
             data-sot-surface="dashboard-workstation"
             data-sot-state={hydrated ? "ready" : "loading"}
+            data-source-filter-active={source === "all" ? "false" : "true"}
+            data-source-filter-provider={source === "all" ? undefined : source}
+            data-source-filter-state={sourceFilterStackState}
+            data-source-status={selectedSourceRow?.status ?? undefined}
+            data-time-style="rel"
         >
             <aside
                 className={dashboardSidebarCollapseClassNames.sidebar}
@@ -4530,6 +4525,7 @@ export function Workstation({
             </aside>
 
             <div
+                className="pointer-events-none fixed inset-0 z-[var(--z-drawer-scrim)] hidden max-[860px]:block max-[860px]:group-data-[drawer-state=open]/dashboard-workstation:pointer-events-auto"
                 data-sot-panel="dashboard-drawer-scrim"
                 id="drawer-scrim"
                 aria-hidden="true"
@@ -4557,6 +4553,7 @@ export function Workstation({
                             data-icon="inline-start"
                         />
                         <span
+                            className="absolute top-1.5 right-1.5 hidden size-1.5 rounded-full bg-[var(--accent)]"
                             data-sot-part="dashboard-drawer-active-dot"
                             aria-hidden="true"
                         />

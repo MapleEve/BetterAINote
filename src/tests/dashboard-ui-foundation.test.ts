@@ -2629,6 +2629,25 @@ describe("dashboard SOT foundation", () => {
             'data-sot-state={hydrated ? "ready" : "loading"}',
         );
         expect(workstation).toContain('data-sot-shell="dashboard-workstation"');
+        expect(workstation).toContain(
+            'data-drawer-state={drawerOpen ? "open" : "closed"}',
+        );
+        expect(workstation).toContain(
+            'data-sidebar-collapsed={\n                dashboardSidebarCollapsed ? "true" : "false"\n            }',
+        );
+        expect(workstation).toContain(
+            'data-source-filter-active={source === "all" ? "false" : "true"}',
+        );
+        expect(workstation).toContain(
+            'data-source-filter-provider={source === "all" ? undefined : source}',
+        );
+        expect(workstation).toContain(
+            "data-source-filter-state={sourceFilterStackState}",
+        );
+        expect(workstation).toContain(
+            "data-source-status={selectedSourceRow?.status ?? undefined}",
+        );
+        expect(workstation).toContain('data-time-style="rel"');
         expect(workstation).toContain('data-sot-panel="dashboard-sidebar"');
         expect(workstation).toContain('data-sot-list="dashboard-nav"');
         expect(workstation).toContain('data-sot-panel="dashboard-main"');
@@ -3022,8 +3041,62 @@ describe("dashboard SOT foundation", () => {
         expect(workstation).toContain("sourceNeedsSettings(");
         expect(workstation).toContain('openSettings("data-sources")');
         expect(workstation).toContain("const sourceFilterStackState =");
-        expect(workstation).toContain("document.body.dataset.sourceFilter");
-        expect(workstation).toContain("document.body.dataset.sourceStatus");
+        expect(workstation).not.toMatch(
+            /document\.body\.dataset\.(?:drawer|sourceFilter|sourceStatus|timeStyle|sidebar|collapsed)\b/,
+        );
+        expect(workstation).toContain(
+            'data-drawer-state={drawerOpen ? "open" : "closed"}',
+        );
+        expect(workstation).toContain(
+            'data-source-filter-active={source === "all" ? "false" : "true"}',
+        );
+        expect(workstation).toContain(
+            'data-source-filter-provider={source === "all" ? undefined : source}',
+        );
+        expect(workstation).toContain(
+            "data-source-filter-state={sourceFilterStackState}",
+        );
+        expect(workstation).toContain(
+            "data-source-status={selectedSourceRow?.status ?? undefined}",
+        );
+        expect(workstation).toContain('data-time-style="rel"');
+        const drawerTriggerClassNames = extractObjectStringProperty(
+            extractBoundedSlice(
+                workstation,
+                "const dashboardButtonClassNames = {",
+                "} as const;",
+            ),
+            "drawerTrigger",
+        );
+        const sidebarClassNames = extractObjectStringProperty(
+            extractBoundedSlice(
+                workstation,
+                "const dashboardSidebarCollapseClassNames = {",
+                "} as const;",
+            ),
+            "sidebar",
+        );
+        const drawerScrim = extractOpeningElement(
+            workstation,
+            'data-sot-panel="dashboard-drawer-scrim"',
+            "div",
+        );
+        const drawerActiveDot = extractOpeningElement(
+            workstation,
+            'data-sot-part="dashboard-drawer-active-dot"',
+            "span",
+        );
+        expect(drawerTriggerClassNames).toContain(
+            "group-data-[source-filter-active=true]/dashboard-workstation:[&_[data-sot-part=dashboard-drawer-active-dot]]:inline-block",
+        );
+        expect(sidebarClassNames).toContain("max-[860px]:hidden");
+        expect(sidebarClassNames).toContain(
+            "max-[860px]:group-data-[drawer-state=open]/dashboard-workstation:flex",
+        );
+        expect(drawerScrim).toContain(
+            "max-[860px]:group-data-[drawer-state=open]/dashboard-workstation:pointer-events-auto",
+        );
+        expect(drawerActiveDot).toContain("absolute top-1.5 right-1.5 hidden");
         expect(workstation).toContain(
             'data-sot-panel="dashboard-source-filter-stack"',
         );
@@ -3608,8 +3681,8 @@ describe("dashboard SOT foundation", () => {
             "text-[11.5px]",
             "tracking-[0.02em]",
             "tracking-[0.015em]",
-            "[body[data-time-style=abs]_&]:inline",
-            "[body[data-time-style=abs]_&]:hidden",
+            "group-data-[time-style=abs]/dashboard-workstation:inline",
+            "group-data-[time-style=abs]/dashboard-workstation:hidden",
             "grayscale",
             "contrast-[0.85]",
             "dark:brightness-[1.4]",
