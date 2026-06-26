@@ -60,40 +60,66 @@ function AiRenameErrorIcon(props: SVGProps<SVGSVGElement>) {
 
 const aiRenamePreviewClassNames = {
     card: {
-        root: "w-[min(360px,calc(100vw-32px))] gap-0",
+        root:
+            "pointer-events-none absolute top-[calc(100%+8px)] right-0 z-[var(--z-popover-inline)] w-[min(360px,calc(100vw-32px))] gap-0 rounded-[var(--radius-lg)] border-[var(--line-hairline)] bg-[var(--bg-elevated)] font-sans shadow-[var(--shadow-md)] backdrop-blur-none transition-none data-[sot-state=review]:top-[calc(100%+9px)] data-[open=true]:pointer-events-auto dark:border-[var(--glass-border)] dark:bg-[rgb(23_25_27)] dark:shadow-[0_18px_44px_rgb(0_0_0_/_0.40)] [&_[data-sot-part=state][hidden]]:!hidden",
         header:
-            "grid-cols-[1fr_auto] items-start gap-x-2 gap-y-1 border-b border-border px-4 py-3 [&_[data-slot=card-head-copy]]:min-w-0",
-        title: "break-words text-xs font-semibold leading-none text-foreground",
+            "h-[55px] grid-cols-[1fr_auto] items-start gap-x-2.5 gap-y-0.5 border-b border-border px-[14px] pt-3 pb-2 dark:border-[var(--glass-border-soft)] [&_[data-slot=card-head-copy]]:min-w-0",
+        title:
+            "break-words font-sans text-[11px] font-semibold leading-normal tracking-[0.02em] text-[var(--fg-secondary)]",
         content:
-            "flex min-h-20 flex-col px-4 py-4 [&_[data-slot=card-state]]:flex [&_[data-slot=card-state]]:flex-col [&_[data-slot=card-state]]:gap-2 [&_[data-slot=card-state-label]]:text-[10.5px] [&_[data-slot=card-state-label]]:font-semibold [&_[data-slot=card-state-label]]:uppercase [&_[data-slot=card-state-label]]:tracking-[0.08em] [&_[data-slot=card-state-label]]:text-muted-foreground [&_[data-slot=card-message]]:m-0 [&_[data-slot=card-message]]:break-words [&_[data-slot=card-message]]:text-sm [&_[data-slot=card-message]]:leading-6 [&_[data-slot=card-message]]:text-muted-foreground [&_[data-slot=card-hint]]:m-0 [&_[data-slot=card-hint]]:break-words [&_[data-slot=card-hint]]:text-sm [&_[data-slot=card-hint]]:leading-6 [&_[data-slot=card-hint]]:text-muted-foreground [&_[data-slot=card-review-row]]:my-1.5 [&_[data-slot=card-review-row]]:flex [&_[data-slot=card-review-row]]:flex-col [&_[data-slot=card-review-row]]:gap-1.5 [&_[data-slot=card-review-line]]:flex [&_[data-slot=card-review-line]]:min-w-0 [&_[data-slot=card-review-line]]:items-baseline [&_[data-slot=card-review-line]]:gap-2 [&_[data-slot=card-review-line]]:rounded-lg [&_[data-slot=card-review-line]]:border [&_[data-slot=card-review-line]]:border-border [&_[data-slot=card-review-line]]:bg-muted/50 [&_[data-slot=card-review-line]]:px-2.5 [&_[data-slot=card-review-line]]:py-2 [&_[data-slot=card-review-value]]:min-w-0 [&_[data-slot=card-review-value]]:break-words [&_[data-slot=card-review-value]]:text-sm [&_[data-slot=card-review-value]]:font-semibold [&_[data-slot=card-review-value]]:leading-relaxed [&_[data-review-tone=old]]:line-through [&_[data-review-tone=old]]:text-muted-foreground [&_[data-review-tone=new]]:text-foreground [&_[data-slot=card-preview-title]]:min-w-0 [&_[data-slot=card-preview-title]]:rounded-lg [&_[data-slot=card-preview-title]]:border [&_[data-slot=card-preview-title]]:border-border [&_[data-slot=card-preview-title]]:bg-muted/50 [&_[data-slot=card-preview-title]]:px-2.5 [&_[data-slot=card-preview-title]]:py-2 [&_[data-slot=card-preview-title]]:text-sm [&_[data-slot=card-preview-title]]:font-semibold [&_[data-slot=card-preview-title]]:leading-relaxed [&_[data-slot=card-preview-title]]:text-foreground",
-        footer: "gap-1.5 px-4 py-3",
+            "flex flex-col p-[14px]",
+        loadingContent: "h-[78px]",
+        errorContent: "h-[88px]",
+        unavailableContent: "h-[130px]",
+        footer:
+            "h-[48px] gap-1.5 bg-[var(--bg-recessed)] px-[14px] py-0 dark:bg-[rgb(30_32_34)]",
         description:
-            "break-words text-xs font-medium leading-snug text-muted-foreground",
+            "break-words font-sans text-[11px] font-medium leading-normal text-[var(--fg-tertiary)]",
         action: "shrink-0",
+    },
+    state: {
+        root: "flex flex-col items-stretch gap-2",
+        label:
+            "font-mono text-[10.5px] font-semibold leading-none text-[var(--fg-tertiary)] uppercase tracking-[0.08em]",
+        message:
+            "m-0 break-words font-sans text-[12.5px] font-medium leading-[1.5] text-[var(--fg-secondary)]",
+        hint:
+            "m-0 max-w-full break-words font-sans text-[11.5px] font-medium leading-[1.5] text-[var(--fg-tertiary)] [text-wrap:pretty]",
+        reviewHint:
+            "m-0 max-w-full whitespace-nowrap font-sans text-[10px] font-medium leading-[1.5] text-[var(--fg-tertiary)]",
+        previewTitle:
+            "min-w-0 rounded-lg border border-border bg-[var(--bg-recessed)] px-2.5 py-2 font-display text-[15px] font-semibold leading-[1.4] text-[var(--fg-primary)]",
+        reviewRow: "my-1.5 flex flex-col gap-1.5",
+        reviewLine:
+            "flex min-w-0 items-baseline gap-2 rounded-lg border border-border bg-[var(--bg-recessed)] px-2.5 py-2",
+        reviewValue:
+            "min-w-0 break-words font-sans text-[13px] font-semibold leading-[1.4]",
+        reviewOld: "text-[var(--fg-secondary)] line-through",
+        reviewNew: "text-[var(--fg-primary)]",
     },
     button: {
         close:
             "size-6 rounded-md border border-transparent bg-transparent p-0 text-[var(--fg-secondary)] shadow-none hover:bg-accent hover:text-accent-foreground dark:hover:bg-accent/50 [&_svg:not([class*='size-'])]:size-3",
         action:
-            "h-6 shrink-0 gap-1 rounded-md border border-transparent bg-transparent px-2 text-xs text-[var(--fg-secondary)] shadow-none hover:bg-accent hover:text-accent-foreground has-[>svg]:px-1.5 dark:hover:bg-accent/50 [&_svg:not([class*='size-'])]:size-3",
+            "h-[26px] shrink-0 gap-[7px] rounded-[7px] border border-transparent bg-transparent px-[10px] font-sans text-[12px] font-semibold leading-normal text-[var(--fg-secondary)] shadow-none hover:bg-[var(--bg-recessed)] hover:text-[var(--fg-primary)] disabled:opacity-[0.55] has-[>svg]:px-[10px] [&_svg:not([class*='size-'])]:size-[11px]",
         primaryAction:
-            "h-6 shrink-0 gap-1 rounded-md bg-primary px-2 text-xs text-primary-foreground shadow-xs hover:bg-primary/90 has-[>svg]:px-1.5 [&_svg:not([class*='size-'])]:size-3",
+            "h-[26px] shrink-0 gap-[7px] rounded-[7px] border border-[var(--line-hairline)] bg-[var(--glass-tint-base)] px-[10px] font-sans text-[12px] font-semibold leading-normal text-[var(--fg-primary)] shadow-[var(--shadow-xs)] backdrop-blur-[14px] backdrop-saturate-[140%] hover:bg-[var(--glass-tint-base)] hover:text-[var(--fg-primary)] disabled:opacity-[0.55] has-[>svg]:px-[10px] [&_svg:not([class*='size-'])]:size-[11px]",
     },
     badge: {
         oldTag:
-            "min-w-[56px] justify-start border-border text-foreground uppercase tracking-[0.04em] [a&]:hover:bg-accent [a&]:hover:text-accent-foreground",
+            "h-auto min-w-[56px] justify-start rounded-none border-transparent bg-transparent px-0 py-0 font-sans text-[10.5px] font-semibold text-[var(--fg-tertiary)] uppercase tracking-[0.04em] shadow-none [a&]:hover:bg-transparent [a&]:hover:text-[var(--fg-tertiary)]",
         newTag:
-            "min-w-[56px] justify-start bg-secondary text-secondary-foreground uppercase tracking-[0.04em] [a&]:hover:bg-secondary/90",
+            "h-auto min-w-[56px] justify-start rounded-none border-transparent bg-transparent px-0 py-0 font-sans text-[10.5px] font-semibold text-[var(--accent)] uppercase tracking-[0.04em] shadow-none [a&]:hover:bg-transparent [a&]:hover:text-[var(--accent)]",
     },
     alert: {
         root:
-            "flex w-full items-start gap-3 rounded-lg px-4 py-3 text-sm [&_[data-slot=alert-icon]]:flex [&_[data-slot=alert-icon]]:size-8 [&_[data-slot=alert-icon]]:shrink-0 [&_[data-slot=alert-icon]]:items-center [&_[data-slot=alert-icon]]:justify-center [&_[data-slot=alert-icon]]:rounded-full [&_[data-slot=alert-icon]_svg]:size-[14px]",
+            "flex w-full items-start gap-3 px-1 py-2 font-sans text-sm [&_[data-slot=alert-icon]]:flex [&_[data-slot=alert-icon]]:size-7 [&_[data-slot=alert-icon]]:shrink-0 [&_[data-slot=alert-icon]]:items-center [&_[data-slot=alert-icon]]:justify-center [&_[data-slot=alert-icon]]:rounded-full [&_[data-slot=alert-icon]_svg]:size-[14px]",
         error:
-            "border-[var(--alert-destructive-soft-border)] bg-[var(--alert-destructive-soft-bg)] text-[var(--fg-primary)] *:data-[slot=alert-description]:text-[var(--fg-primary)] [&_[data-slot=alert-icon]]:bg-destructive/10 [&_[data-slot=alert-icon]]:text-destructive",
+            "flex-col items-center border-0 bg-transparent text-center text-[var(--fg-primary)] shadow-none *:data-[slot=alert-description]:text-[var(--fg-primary)] [&_[data-slot=alert-icon]]:bg-destructive/10 [&_[data-slot=alert-icon]]:text-destructive",
         unavailable:
-            "bg-card text-card-foreground *:data-[slot=alert-description]:text-[var(--fg-primary)] [&_[data-slot=alert-icon]]:bg-muted [&_[data-slot=alert-icon]]:text-muted-foreground",
+            "flex-col items-center border-0 bg-transparent text-center text-[var(--fg-primary)] shadow-none *:data-[slot=alert-description]:text-[var(--fg-primary)] [&_[data-slot=alert-icon]]:bg-[rgb(188_137_22_/_0.14)] [&_[data-slot=alert-icon]]:text-[var(--signal-warning)]",
         description:
-            "grid min-w-0 gap-1 text-left [&_[data-slot=alert-message]]:m-0 [&_[data-slot=alert-message]]:break-words [&_[data-slot=alert-message]]:text-sm [&_[data-slot=alert-message]]:font-medium [&_[data-slot=alert-message]]:leading-6 [&_[data-slot=alert-message]]:text-foreground [&_[data-slot=alert-hint]]:m-0 [&_[data-slot=alert-hint]]:break-words [&_[data-slot=alert-hint]]:text-sm [&_[data-slot=alert-hint]]:leading-6 [&_[data-slot=alert-hint]]:text-muted-foreground",
+            "grid min-w-0 gap-1 text-center [&_[data-slot=alert-message]]:m-0 [&_[data-slot=alert-message]]:break-words [&_[data-slot=alert-message]]:font-sans [&_[data-slot=alert-message]]:text-[12.5px] [&_[data-slot=alert-message]]:font-medium [&_[data-slot=alert-message]]:leading-[1.5] [&_[data-slot=alert-message]]:text-[var(--fg-primary)] [&_[data-slot=alert-hint]]:m-0 [&_[data-slot=alert-hint]]:break-words [&_[data-slot=alert-hint]]:font-sans [&_[data-slot=alert-hint]]:text-[11.5px] [&_[data-slot=alert-hint]]:font-medium [&_[data-slot=alert-hint]]:leading-[1.5] [&_[data-slot=alert-hint]]:text-[var(--fg-tertiary)]",
     },
 } as const;
 
@@ -181,21 +207,33 @@ export function AiRenamePreviewCard({
             </CardHeader>
 
             <CardContent
-                className={aiRenamePreviewClassNames.card.content}
+                className={cn(
+                    aiRenamePreviewClassNames.card.content,
+                    state === "loading" &&
+                        aiRenamePreviewClassNames.card.loadingContent,
+                    state === "error" &&
+                        aiRenamePreviewClassNames.card.errorContent,
+                    state === "unavailable" &&
+                        aiRenamePreviewClassNames.card.unavailableContent,
+                )}
                 data-sot-part="body"
+                data-sot-state={state}
             >
                 {state === "loading" ? (
                     <div
+                        className={aiRenamePreviewClassNames.state.root}
                         data-slot="card-state"
                         data-sot-part="state"
                         data-sot-state="loading"
                     >
                         <Spinner
                             placement="centeredBlock"
+                            className="border-[rgb(92_168_198_/_0.36)] border-r-[rgb(92_168_198_/_0.36)] border-t-[var(--accent)]"
                             data-sot-part="loading-spinner"
                             aria-hidden="true"
                         />
                         <p
+                            className={aiRenamePreviewClassNames.state.message}
                             data-slot="card-message"
                             data-sot-part="message"
                         >
@@ -228,6 +266,9 @@ export function AiRenamePreviewCard({
                             data-sot-part="state-description"
                         >
                             <p
+                                className={
+                                    aiRenamePreviewClassNames.state.message
+                                }
                                 data-slot="alert-message"
                                 data-sot-part="message"
                             >
@@ -235,6 +276,9 @@ export function AiRenamePreviewCard({
                             </p>
                             {hint ? (
                                 <p
+                                    className={
+                                        aiRenamePreviewClassNames.state.hint
+                                    }
                                     data-slot="alert-hint"
                                     data-sot-part="hint"
                                 >
@@ -245,11 +289,13 @@ export function AiRenamePreviewCard({
                     </Alert>
                 ) : (
                     <div
+                        className={aiRenamePreviewClassNames.state.root}
                         data-slot="card-state"
                         data-sot-part="state"
                         data-sot-state={state}
                     >
                         <div
+                            className={aiRenamePreviewClassNames.state.label}
                             data-slot="card-state-label"
                             data-sot-part="label"
                         >
@@ -257,10 +303,17 @@ export function AiRenamePreviewCard({
                         </div>
                         {state === "review" ? (
                             <div
+                                className={
+                                    aiRenamePreviewClassNames.state.reviewRow
+                                }
                                 data-slot="card-review-row"
                                 data-sot-part="review-row"
                             >
                                 <div
+                                    className={
+                                        aiRenamePreviewClassNames.state
+                                            .reviewLine
+                                    }
                                     data-slot="card-review-line"
                                     data-sot-part="review-line"
                                 >
@@ -276,6 +329,12 @@ export function AiRenamePreviewCard({
                                         原标题
                                     </Badge>
                                     <span
+                                        className={cn(
+                                            aiRenamePreviewClassNames.state
+                                                .reviewValue,
+                                            aiRenamePreviewClassNames.state
+                                                .reviewOld,
+                                        )}
                                         data-slot="card-review-value"
                                         data-review-tone="old"
                                         data-sot-part="review-old"
@@ -285,6 +344,10 @@ export function AiRenamePreviewCard({
                                     </span>
                                 </div>
                                 <div
+                                    className={
+                                        aiRenamePreviewClassNames.state
+                                            .reviewLine
+                                    }
                                     data-slot="card-review-line"
                                     data-sot-part="review-line"
                                 >
@@ -300,6 +363,12 @@ export function AiRenamePreviewCard({
                                         新标题
                                     </Badge>
                                     <span
+                                        className={cn(
+                                            aiRenamePreviewClassNames.state
+                                                .reviewValue,
+                                            aiRenamePreviewClassNames.state
+                                                .reviewNew,
+                                        )}
                                         data-slot="card-review-value"
                                         data-review-tone="new"
                                         data-sot-part="review-new"
@@ -311,6 +380,9 @@ export function AiRenamePreviewCard({
                             </div>
                         ) : filename ? (
                             <div
+                                className={
+                                    aiRenamePreviewClassNames.state.previewTitle
+                                }
                                 data-slot="card-preview-title"
                                 data-sot-part="title"
                             >
@@ -319,8 +391,22 @@ export function AiRenamePreviewCard({
                         ) : null}
                         {message ? (
                             <p
+                                className={
+                                    state === "review"
+                                        ? aiRenamePreviewClassNames.state
+                                              .reviewHint
+                                        : aiRenamePreviewClassNames.state.hint
+                                }
                                 data-slot="card-hint"
                                 data-sot-part="hint"
+                                style={
+                                    state === "review"
+                                        ? {
+                                              font: "500 10px/1.5 var(--font-sans)",
+                                              whiteSpace: "nowrap",
+                                          }
+                                        : undefined
+                                }
                             >
                                 {message}
                             </p>
@@ -331,7 +417,7 @@ export function AiRenamePreviewCard({
 
             {showRegenerate || showCancel || showApply ? (
                 <>
-                    <Separator className="mx-4" />
+                    <Separator className="bg-[var(--line-hairline)] dark:bg-[var(--glass-border-soft)]" />
                     <CardFooter
                         className={aiRenamePreviewClassNames.card.footer}
                         data-sot-part="actions"

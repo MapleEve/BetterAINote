@@ -1339,19 +1339,6 @@ button:not([data-slot]) {
    Kept properties: display/position/top/right/bottom/left/inset/
    visibility/z-index/overflow/pointer-events. No visual styling.
    ==================================================================== */
-[data-sot-panel="ai-rename-preview"] {
-    position: absolute;
-    top: calc(100% + 8px);
-    right: 0;
-    z-index: var(--z-popover-inline);
-    pointer-events: none;
-}
-[data-sot-panel="ai-rename-preview"][data-open="true"] {
-    pointer-events: auto;
-}
-[data-sot-panel="ai-rename-preview"] [data-sot-part="state"][hidden] {
-    display: none !important;
-}
 [data-sot-panel="dashboard-sidebar"]
     [data-sot-panel="dashboard-sync"]
     [data-sot-control="dashboard-sync"][disabled] {

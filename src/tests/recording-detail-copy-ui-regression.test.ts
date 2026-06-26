@@ -185,50 +185,65 @@ const AI_RENAME_PREVIEW_BUSINESS_TOKENS = [
 const AI_RENAME_PREVIEW_FEATURE_OWNER_CLASS_SNIPPETS = [
     {
         label: "panel",
-        snippets: ["w-[min(360px,calc(100vw-32px))]", "gap-0"],
+        snippets: [
+            "pointer-events-none",
+            "absolute",
+            "top-[calc(100%+8px)]",
+            "right-0",
+            "z-[var(--z-popover-inline)]",
+            "w-[min(360px,calc(100vw-32px))]",
+            "gap-0",
+            "data-[open=true]:pointer-events-auto",
+            "[&_[data-sot-part=state][hidden]]:!hidden",
+        ],
     },
     {
         label: "header",
         snippets: [
+            "h-[55px]",
             "grid-cols-[1fr_auto]",
             "border-b border-border",
+            "px-[14px] pt-3 pb-2",
             "[&_[data-slot=card-head-copy]]:min-w-0",
         ],
     },
     {
         label: "body",
         snippets: [
-            "min-h-20",
-            "px-4 py-4",
-            "[&_[data-slot=card-preview-title]]:text-foreground",
+            "p-[14px]",
+            "loadingContent: \"h-[78px]\"",
+            "font-display text-[15px] font-semibold leading-[1.4]",
         ],
     },
     {
         label: "state",
         snippets: [
-            "[&_[data-slot=card-state-label]]:uppercase",
-            "[&_[data-slot=card-message]]:break-words",
-            "[&_[data-slot=card-hint]]:text-muted-foreground",
+            "font-mono text-[10.5px] font-semibold leading-none",
+            "m-0 break-words font-sans text-[12.5px] font-medium leading-[1.5]",
+            "m-0 max-w-full break-words font-sans text-[11.5px] font-medium leading-[1.5]",
         ],
     },
     {
         label: "review",
         snippets: [
-            "[&_[data-slot=card-review-row]]:flex",
-            "[&_[data-slot=card-review-line]]:rounded-lg",
-            "[&_[data-review-tone=old]]:line-through",
-            "[&_[data-review-tone=new]]:text-foreground",
+            "my-1.5 flex flex-col gap-1.5",
+            "rounded-lg border border-border bg-[var(--bg-recessed)]",
+            "text-[var(--fg-secondary)] line-through",
+            "text-[var(--fg-primary)]",
         ],
     },
     {
         label: "actions",
-        snippets: ["gap-1.5 px-4 py-3"],
+        snippets: [
+            "h-[48px] gap-1.5 bg-[var(--bg-recessed)] px-[14px] py-0",
+            "bg-[var(--glass-tint-base)]",
+        ],
     },
     {
         label: "alert",
         snippets: [
-            "border-[var(--alert-destructive-soft-border)]",
-            "[&_[data-slot=alert-icon]]:size-8",
+            "border-0 bg-transparent text-center",
+            "[&_[data-slot=alert-icon]]:size-7",
             "[&_[data-slot=alert-message]]:break-words",
         ],
     },
@@ -241,9 +256,9 @@ const AI_RENAME_PREVIEW_FEATURE_OWNER_CLASS_SNIPPETS = [
         snippets: [
             "size-6 rounded-md",
             "p-0",
-            "h-6 shrink-0 gap-1",
-            "bg-primary",
-            "text-primary-foreground",
+            "h-[26px] shrink-0 gap-[7px]",
+            "bg-[var(--glass-tint-base)]",
+            "text-[var(--fg-primary)]",
         ],
     },
 ] as const;
@@ -2560,6 +2575,7 @@ describe("recording detail copy and title action UI regressions", () => {
         expect(dashboardWorkstation).toContain("/rename/auto");
         expect(collectAiRenamePrimitiveBusinessTokens()).toEqual([]);
         expect(aiRenamePreview).toContain('data-sot-panel="ai-rename-preview"');
+        expect(aiRenamePreview).toContain('data-open="true"');
         expect(aiRenamePreview).toContain("data-sot-state={state}");
         expect(aiRenamePreview).toContain('role="dialog"');
         expect(aiRenamePreview).toContain("aria-label={title}");
