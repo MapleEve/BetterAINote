@@ -1564,25 +1564,7 @@ button:not([data-slot]) {
 [data-sot-part="dashboard-recording-list-mode-label"] {
     display: inline-flex;
 }
-[data-sot-panel="recording-list-tag-filter"] {
-    position: relative;
-}
-[data-sot-part="recording-list-tag-filter-label"] {
-    overflow: hidden;
-}
-[data-sot-list="recording-list-tag-filter-list"] {
-    position: absolute;
-    left: 0;
-    right: 0;
-    top: calc(100% + 6px);
-    z-index: var(--z-popover-inline);
-    overflow-y: auto;
-}
-[data-sot-part="recording-list-tag-filter-option-label"] {
-    overflow: hidden;
-}
-[data-sot-panel="dashboard-recording-time-filter"][hidden],
-[data-sot-panel="recording-list-tag-filter"][hidden] {
+[data-sot-panel="dashboard-recording-time-filter"][hidden] {
     display: none !important;
 }
 /* ============================================================
@@ -1635,7 +1617,7 @@ button:not([data-slot]) {
     color: var(--fg-tertiary);
     margin-left: auto;
 }
-/* ---------- list-mode-bar + tag-filter dropdown ---------- */
+/* ---------- list-mode-bar ---------- */
 [data-sot-panel="dashboard-recording-list-mode"] {
     align-items: center;
     gap: 10px;
@@ -1653,40 +1635,6 @@ button:not([data-slot]) {
 }
 [data-sot-part="dashboard-recording-list-mode-segmented"] {
     margin-left: auto;
-}
-
-[data-sot-panel="recording-list-tag-filter"] {
-    margin-top: 10px;
-}
-[data-sot-part="recording-list-tag-filter-label"] {
-    flex: 1;
-    text-overflow: ellipsis;
-    white-space: nowrap;
-}
-[data-sot-part="recording-list-tag-filter-count"] {
-    font: 500 11px var(--font-mono);
-    color: var(--fg-tertiary);
-}
-[data-sot-list="recording-list-tag-filter-list"] {
-    background: var(--bg-elevated);
-    border: 1px solid var(--line-hairline);
-    border-radius: 8px;
-    box-shadow: var(--shadow-lg);
-    padding: 4px;
-    max-height: 260px;
-}
-[data-theme="dark"] [data-sot-list="recording-list-tag-filter-list"] {
-    background: color-mix(in srgb, var(--graphite-900) 92%, transparent);
-    border-color: var(--glass-border);
-}
-[data-sot-part="recording-list-tag-filter-option-label"] {
-    flex: 1;
-    text-overflow: ellipsis;
-    white-space: nowrap;
-}
-[data-sot-part="recording-list-tag-filter-option-count"] {
-    font: 500 11px var(--font-mono);
-    color: var(--fg-tertiary);
 }
 
 /* retx refresh-marker shown briefly when transcript refreshes */
@@ -2339,3 +2287,10 @@ select::-ms-expand {
         --accent-on: rgb(13 16 21);
     }
 }
+
+/* ============================================================
+   BetterAINote · Component Library
+   ------------------------------------------------------------
+   Marker retained for tests that slice product globals before
+   removed showcase-only component-library CSS.
+   ============================================================ */

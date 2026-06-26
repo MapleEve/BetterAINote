@@ -269,6 +269,10 @@ function escapeRegExp(value: string) {
     return value.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
 }
 
+function staticJsxClassName(className: string) {
+    return `className="${className}"`;
+}
+
 const SEARCH_ACTIVITY_PRIMITIVE_FILES = [
     "components/ui/button.tsx",
     "components/ui/badge.tsx",
@@ -1864,15 +1868,41 @@ const AUTH_LOGIN_COPY_STRINGS = [
 ] as const;
 
 const DASHBOARD_RECORDING_TAG_FILTER_FEATURE_OWNER_CLASS_SNIPPETS = [
+    "root:",
+    "relative mt-2.5",
     "trigger:",
     "w-full justify-start",
     "text-[var(--fg-primary)]",
+    "label:",
+    "min-w-0 flex-1 truncate",
+    "count:",
+    "font-mono text-[11px] font-medium text-[var(--fg-tertiary)]",
+    "caret:",
+    "shrink-0 text-[var(--fg-tertiary)]",
+    "list:",
+    "top-[calc(100%+6px)]",
+    "z-[var(--z-popover-inline)]",
+    "border-[var(--card-popover-border)]",
+    "bg-[var(--card-popover-bg)]",
+    "[box-shadow:var(--shadow-lg)]",
     "option:",
     "border border-transparent",
     "bg-transparent",
     "text-[var(--fg-secondary)]",
     "data-[sot-state=selected]:bg-secondary",
     "data-[sot-state=selected]:text-secondary-foreground",
+    "optionLabel:",
+    "optionCount:",
+] as const;
+
+const DASHBOARD_RECORDING_TAG_FILTER_MIGRATED_GLOBAL_SELECTORS = [
+    '[data-sot-panel="recording-list-tag-filter"]',
+    '[data-sot-part="recording-list-tag-filter-label"]',
+    '[data-sot-part="recording-list-tag-filter-count"]',
+    '[data-sot-list="recording-list-tag-filter-list"]',
+    '[data-theme="dark"] [data-sot-list="recording-list-tag-filter-list"]',
+    '[data-sot-part="recording-list-tag-filter-option-label"]',
+    '[data-sot-part="recording-list-tag-filter-option-count"]',
 ] as const;
 
 const DASHBOARD_SOURCE_FILTER_FEATURE_OWNER_CLASS_SNIPPETS = [
@@ -7153,13 +7183,41 @@ describe("full UI replacement regression coverage", () => {
             expect(tagFilterStyles).toContain(snippet);
         }
         expect(workstation).toMatch(
-            /<div[\s\S]*role="listbox"[\s\S]*data-tag-filter-list=""[\s\S]*data-sot-list="recording-list-tag-filter-list"/,
+            /<div\s+className=\{\s*dashboardRecordingTagFilterStyles\.root\s*\}[\s\S]*data-list-filter-row="tags"[\s\S]*data-sot-panel="recording-list-tag-filter"[\s\S]*hidden=\{listMode !== "tags"\}[\s\S]*ref=\{tagFilterRef\}/,
+        );
+        expect(workstation).toMatch(
+            /<div\s+className=\{\s*dashboardRecordingTagFilterStyles\.list\s*\}[\s\S]*role="listbox"[\s\S]*data-tag-filter-list=""[\s\S]*data-sot-list="recording-list-tag-filter-list"/,
         );
         expect(workstation).toMatch(
             /<Button\s+variant="outline"\s+size="sm"\s+className=\{\s*dashboardRecordingTagFilterStyles\.trigger\s*\}[\s\S]*type="button"[\s\S]*aria-haspopup="listbox"[\s\S]*aria-expanded=\{\s*tagFilterOpen\s*\}[\s\S]*data-tag-filter-trigger=""[\s\S]*data-sot-control="recording-list-tag-filter-trigger"[\s\S]*onClick=\{\(\) =>\s*setTagFilterOpen\(\(open\) => !open\)\s*\}/,
         );
+        for (const [slot, hook] of [
+            ["label", 'data-sot-part="recording-list-tag-filter-label"'],
+            ["count", 'data-sot-part="recording-list-tag-filter-count"'],
+            ["caret", 'data-sot-part="recording-list-tag-filter-caret"'],
+            [
+                "optionLabel",
+                'data-sot-part="recording-list-tag-filter-option-label"',
+            ],
+            [
+                "optionCount",
+                'data-sot-part="recording-list-tag-filter-option-count"',
+            ],
+        ] as const) {
+            expect(workstation).toMatch(
+                new RegExp(
+                    `className=\\{\\s*dashboardRecordingTagFilterStyles\\.${slot}\\s*\\}[\\s\\S]*${hook}`,
+                ),
+            );
+        }
         expect(workstation).toMatch(
             /<Button\s+variant="ghost"\s+size="sm"\s+className=\{\s*dashboardRecordingTagFilterStyles\.option\s*\}[\s\S]*type="button"[\s\S]*role="option"[\s\S]*data-tag-value=\{\s*option\.value\s*\}[\s\S]*aria-selected=\{\s*active\s*\}[\s\S]*data-sot-control="recording-list-tag-filter"[\s\S]*data-sot-state=\{\s*active\s*\?\s*"selected"\s*:\s*"idle"\s*\}[\s\S]*onClick=\{\(\) => \{[\s\S]*setSelectedTagFilter\(\s*option\.value,?\s*\);[\s\S]*setTagFilterOpen\(false\);[\s\S]*\}\}/,
+        );
+        for (const migratedSelector of DASHBOARD_RECORDING_TAG_FILTER_MIGRATED_GLOBAL_SELECTORS) {
+            expect(collectCssRuleBlocks(globals, migratedSelector)).toEqual([]);
+        }
+        expect(globals).not.toContain(
+            '[data-sot-panel="recording-list-tag-filter"][hidden]',
         );
         expect(workstation).not.toMatch(
             /variant=\{\s*active\s*\?\s*"secondary"\s*:\s*"ghost"\s*\}/,
@@ -7190,7 +7248,7 @@ describe("full UI replacement regression coverage", () => {
             );
         }
         expect(workstation).toContain("aria-current={");
-        expect(workstation).not.toContain('className="filter-row"');
+        expect(workstation).not.toContain(staticJsxClassName("filter-row"));
         expect(workstation).not.toContain('"chip-f"');
         expect(workstation).not.toContain('"chip-f active"');
         expect(workstation).not.toContain('className="chip-c"');

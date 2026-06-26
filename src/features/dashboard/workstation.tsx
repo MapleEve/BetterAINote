@@ -506,8 +506,16 @@ const dashboardRecordingTimeFilterStyles = {
 } as const;
 
 const dashboardRecordingTagFilterStyles = {
+    root: "relative mt-2.5",
     trigger: "w-full justify-start text-[var(--fg-primary)]",
+    label: "min-w-0 flex-1 truncate",
+    count: "font-mono text-[11px] font-medium text-[var(--fg-tertiary)]",
+    caret: "shrink-0 text-[var(--fg-tertiary)]",
+    list: "absolute left-0 right-0 top-[calc(100%+6px)] z-[var(--z-popover-inline)] max-h-[260px] overflow-y-auto rounded-[8px] border border-[var(--card-popover-border)] bg-[var(--card-popover-bg)] p-1 [box-shadow:var(--shadow-lg)]",
     option: "w-full justify-start border border-transparent bg-transparent text-[var(--fg-secondary)] shadow-none data-[sot-state=selected]:bg-secondary data-[sot-state=selected]:text-secondary-foreground data-[sot-state=selected]:hover:bg-secondary/80",
+    optionLabel: "min-w-0 flex-1 truncate",
+    optionCount:
+        "font-mono text-[11px] font-medium text-[var(--fg-tertiary)]",
 } as const;
 
 const dashboardSearchActivityClassNames = {
@@ -5929,6 +5937,9 @@ export function Workstation({
                                     })}
                                 </ToggleGroup>
                                 <div
+                                    className={
+                                        dashboardRecordingTagFilterStyles.root
+                                    }
                                     data-list-filter-row="tags"
                                     data-sot-panel="recording-list-tag-filter"
                                     hidden={listMode !== "tags"}
@@ -5953,24 +5964,36 @@ export function Workstation({
                                         }
                                     >
                                         <span
+                                            className={
+                                                dashboardRecordingTagFilterStyles.label
+                                            }
                                             data-tag-filter-label=""
                                             data-sot-part="recording-list-tag-filter-label"
                                         >
                                             {selectedTagOption.label}
                                         </span>
                                         <span
+                                            className={
+                                                dashboardRecordingTagFilterStyles.count
+                                            }
                                             data-tag-filter-count=""
                                             data-sot-part="recording-list-tag-filter-count"
                                         >
                                             {selectedTagOption.count}
                                         </span>
                                         <ChevronDown
+                                            className={
+                                                dashboardRecordingTagFilterStyles.caret
+                                            }
                                             data-icon="inline-end"
                                             data-sot-part="recording-list-tag-filter-caret"
                                             aria-hidden="true"
                                         />
                                     </Button>
                                     <div
+                                        className={
+                                            dashboardRecordingTagFilterStyles.list
+                                        }
                                         role="listbox"
                                         data-tag-filter-list=""
                                         data-sot-list="recording-list-tag-filter-list"
@@ -6010,10 +6033,20 @@ export function Workstation({
                                                         setTagFilterOpen(false);
                                                     }}
                                                 >
-                                                    <span data-sot-part="recording-list-tag-filter-option-label">
+                                                    <span
+                                                        className={
+                                                            dashboardRecordingTagFilterStyles.optionLabel
+                                                        }
+                                                        data-sot-part="recording-list-tag-filter-option-label"
+                                                    >
                                                         {option.label}
                                                     </span>
-                                                    <span data-sot-part="recording-list-tag-filter-option-count">
+                                                    <span
+                                                        className={
+                                                            dashboardRecordingTagFilterStyles.optionCount
+                                                        }
+                                                        data-sot-part="recording-list-tag-filter-option-count"
+                                                    >
                                                         {option.count}
                                                     </span>
                                                 </Button>
