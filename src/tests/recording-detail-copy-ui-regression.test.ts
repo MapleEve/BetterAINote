@@ -128,6 +128,18 @@ const RECORDING_ROUTE_FALLBACK_REMOVED_GLOBAL_SELECTORS = [
     '[data-sot-part="recording-route-empty-title"]',
     '[data-sot-part="recording-route-empty-description"]',
 ] as const;
+const ROUTE_CHROME_REMOVED_GLOBAL_SELECTORS = [
+    '[data-sot-panel="route-sidebar"]',
+    '[data-sot-part="route-brand"]',
+    '[data-sot-part="route-brand"] img',
+    '[data-sot-part="route-brand-name"]',
+    '[data-sot-part="route-brand-subtitle"]',
+    '[data-sot-panel="route-main"]',
+    '[data-sot-panel="route-topbar"]',
+    '[data-sot-part="route-crumbs"]',
+    '[data-sot-part="route-crumb-current"]',
+    '[data-sot-panel="route-workspace"]',
+] as const;
 
 const AI_RENAME_PREVIEW_SHARED_PRIMITIVE_FILES = [
     "components/ui/alert.tsx",
@@ -2084,6 +2096,9 @@ describe("recording detail copy and title action UI regressions", () => {
         const cardPrimitive = readSource("components/ui/card.tsx");
         const skeletonPrimitive = readSource("components/ui/skeleton.tsx");
         const globals = readSource("app/globals.css");
+        const routeChromeModule = readSource(
+            "app/(app)/route-chrome.module.css",
+        );
         const routeLoadingSurfaceClassName = extractBoundedSlice(
             loading,
             "const routeLoadingSurfaceClassName =",
@@ -2121,6 +2136,16 @@ describe("recording detail copy and title action UI regressions", () => {
             expect(source).toContain('data-sot-panel="route-topbar"');
             expect(source).toContain('data-sot-part="route-crumbs"');
             expect(source).toContain('data-sot-part="route-crumb-current"');
+            expect(source).toContain(
+                'import routeChromeStyles from "../../route-chrome.module.css";',
+            );
+            expect(source).toContain("className={routeChromeStyles.sidebar}");
+            expect(source).toContain("className={routeChromeStyles.main}");
+            expect(source).toContain("className={routeChromeStyles.topbar}");
+            expect(source).toContain("className={routeChromeStyles.crumbs}");
+            expect(source).toContain(
+                "className={routeChromeStyles.crumbCurrent}",
+            );
             expect(source).not.toContain('className="app"');
             expect(source).not.toContain(
                 'className="sidebar glass glass-strong"',
@@ -2138,6 +2163,12 @@ describe("recording detail copy and title action UI regressions", () => {
             expect(source).toContain('href="/dashboard"');
             expect(source).toContain("返回工作台");
             expect(source).toContain('data-sot-panel="route-workspace"');
+            expect(source).toContain("className={routeChromeStyles.brand}");
+            expect(source).toContain("className={routeChromeStyles.brandName}");
+            expect(source).toContain(
+                "className={routeChromeStyles.brandSubtitle}",
+            );
+            expect(source).toContain("className={routeChromeStyles.workspace}");
             expect(source).toContain(
                 'data-sot-panel="recording-route-empty-detail"',
             );
@@ -2299,6 +2330,13 @@ describe("recording detail copy and title action UI regressions", () => {
         for (const selector of RECORDING_ROUTE_FALLBACK_REMOVED_GLOBAL_SELECTORS) {
             expect(collectCssRuleBlocks(globals, selector)).toEqual([]);
         }
+        for (const selector of ROUTE_CHROME_REMOVED_GLOBAL_SELECTORS) {
+            expect(collectCssRuleBlocks(globals, selector)).toEqual([]);
+        }
+        expect(routeChromeModule).toContain(".sidebar");
+        expect(routeChromeModule).toContain(".brand");
+        expect(routeChromeModule).toContain(".main");
+        expect(routeChromeModule).toContain(".workspace");
         expect(globals).toContain("[data-detail-empty]");
         expect(globals).toContain(
             '[data-sot-panel="dashboard-detail"][data-empty="true"] [data-detail-empty]',

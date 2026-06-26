@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
+import routeChromeStyles from "../../route-chrome.module.css";
 
 const recordingRouteFallbackClassNames = {
     shell: "grid h-screen min-h-[720px] grid-cols-[264px_1fr] transition-[grid-template-columns] duration-[320ms] ease-[var(--ease-out)]",
@@ -22,26 +23,55 @@ export default function RecordingError({ reset }: { reset: () => void }) {
             data-sot-shell="recording-route-error"
             className={recordingRouteFallbackClassNames.shell}
         >
-            <aside data-sot-panel="route-sidebar">
-                <div data-sot-part="route-brand">
+            <aside
+                data-sot-panel="route-sidebar"
+                className={routeChromeStyles.sidebar}
+            >
+                <div
+                    data-sot-part="route-brand"
+                    className={routeChromeStyles.brand}
+                >
                     <img src="/assets/logo-mark-steel.svg" alt="" />
                     <div>
-                        <div data-sot-part="route-brand-name">BetterAINote</div>
-                        <div data-sot-part="route-brand-subtitle">
+                        <div
+                            data-sot-part="route-brand-name"
+                            className={routeChromeStyles.brandName}
+                        >
+                            BetterAINote
+                        </div>
+                        <div
+                            data-sot-part="route-brand-subtitle"
+                            className={routeChromeStyles.brandSubtitle}
+                        >
                             私人工作空间
                         </div>
                     </div>
                 </div>
             </aside>
-            <section data-sot-panel="route-main">
-                <header data-sot-panel="route-topbar">
-                    <div data-sot-part="route-crumbs">
-                        <span data-sot-part="route-crumb-current">
+            <section
+                data-sot-panel="route-main"
+                className={routeChromeStyles.main}
+            >
+                <header
+                    data-sot-panel="route-topbar"
+                    className={routeChromeStyles.topbar}
+                >
+                    <div
+                        data-sot-part="route-crumbs"
+                        className={routeChromeStyles.crumbs}
+                    >
+                        <span
+                            data-sot-part="route-crumb-current"
+                            className={routeChromeStyles.crumbCurrent}
+                        >
                             录音详情加载失败
                         </span>
                     </div>
                 </header>
-                <div data-sot-panel="route-workspace">
+                <div
+                    data-sot-panel="route-workspace"
+                    className={routeChromeStyles.workspace}
+                >
                     <section
                         data-sot-panel="recording-route-empty-detail"
                         data-empty="true"

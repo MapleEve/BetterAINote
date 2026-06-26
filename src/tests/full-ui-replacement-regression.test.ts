@@ -1588,7 +1588,6 @@ const DASHBOARD_DETAIL_HEADER_LEGACY_PRODUCT_CSS_SELECTOR_RE =
 
 const TOPBAR_DATA_SOT_PRODUCT_CSS_SELECTORS = [
     '[data-sot-panel="dashboard-topbar"]',
-    '[data-sot-panel="route-topbar"]',
     '[data-sot-panel="workstation-topbar"]',
 ] as const;
 
@@ -3062,6 +3061,18 @@ const RECORDING_ROUTE_FALLBACK_REMOVED_GLOBAL_SELECTORS = [
     '[data-sot-part="recording-route-empty-title"]',
     '[data-sot-part="recording-route-empty-description"]',
 ] as const;
+const ROUTE_CHROME_REMOVED_GLOBAL_SELECTORS = [
+    '[data-sot-panel="route-sidebar"]',
+    '[data-sot-part="route-brand"]',
+    '[data-sot-part="route-brand"] img',
+    '[data-sot-part="route-brand-name"]',
+    '[data-sot-part="route-brand-subtitle"]',
+    '[data-sot-panel="route-main"]',
+    '[data-sot-panel="route-topbar"]',
+    '[data-sot-part="route-crumbs"]',
+    '[data-sot-part="route-crumb-current"]',
+    '[data-sot-panel="route-workspace"]',
+] as const;
 
 const DASHBOARD_TRANSCRIPT_DETAIL_PRIMITIVE_SELECTORS = [
     '[data-sot-panel="dashboard-transcript-shell"][data-slot="card"]',
@@ -4349,6 +4360,9 @@ describe("full UI replacement regression coverage", () => {
         const cardPrimitive = readSource("components/ui/card.tsx");
         const skeletonPrimitive = readSource("components/ui/skeleton.tsx");
         const globals = readSource("app/globals.css");
+        const routeChromeModule = readSource(
+            "app/(app)/route-chrome.module.css",
+        );
         const recordingListLoadingSizeTokens = [
             "recordingListLoadingDayLabel",
             "recordingListLoadingTitle",
@@ -4545,6 +4559,36 @@ describe("full UI replacement regression coverage", () => {
         expect(cardPrimitive).not.toContain("routeLoadingSurface");
         for (const sizeToken of routeLoadingSizeTokens) {
             expect(skeletonPrimitive).not.toContain(sizeToken);
+        }
+        expect(dashboardLoading).toContain(
+            'import routeChromeStyles from "../route-chrome.module.css";',
+        );
+        for (const routeSource of [dashboardLoading, recordingLoading]) {
+            expect(routeSource).toContain(
+                "className={routeChromeStyles.sidebar}",
+            );
+            expect(routeSource).toContain(
+                "className={routeChromeStyles.main}",
+            );
+            expect(routeSource).toContain(
+                "className={routeChromeStyles.topbar}",
+            );
+            expect(routeSource).toContain(
+                "className={routeChromeStyles.crumbs}",
+            );
+            expect(routeSource).toContain(
+                "className={routeChromeStyles.crumbCurrent}",
+            );
+        }
+        expect(recordingLoading).not.toContain(
+            'data-sot-panel="route-workspace"',
+        );
+        expect(routeChromeModule).toContain(".sidebar");
+        expect(routeChromeModule).toContain(".brand");
+        expect(routeChromeModule).toContain(".topbar");
+        expect(routeChromeModule).toContain(".workspace");
+        for (const selector of ROUTE_CHROME_REMOVED_GLOBAL_SELECTORS) {
+            expect(collectCssRuleBlocks(globals, selector)).toEqual([]);
         }
         for (const selector of RECORDING_LOADING_REMOVED_GLOBAL_SELECTORS) {
             expect(collectCssRuleBlocks(globals, selector)).toEqual([]);

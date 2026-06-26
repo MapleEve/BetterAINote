@@ -1422,6 +1422,29 @@ const DASHBOARD_LOADING_REMOVED_GLOBAL_SELECTORS = [
     '[data-sot-panel="dashboard-loading-list"]',
     '[data-sot-panel="dashboard-loading-detail"]',
 ] as const;
+const ROUTE_CHROME_REMOVED_GLOBAL_SELECTORS = [
+    '[data-sot-panel="route-sidebar"]',
+    '[data-sot-part="route-brand"]',
+    '[data-sot-part="route-brand"] img',
+    '[data-sot-part="route-brand-name"]',
+    '[data-sot-part="route-brand-subtitle"]',
+    '[data-sot-panel="route-main"]',
+    '[data-sot-panel="route-topbar"]',
+    '[data-sot-part="route-crumbs"]',
+    '[data-sot-part="route-crumb-current"]',
+    '[data-sot-panel="route-workspace"]',
+] as const;
+const ROUTE_CHROME_MODULE_CLASSES = [
+    ".sidebar",
+    ".brand",
+    ".brandName",
+    ".brandSubtitle",
+    ".main",
+    ".topbar",
+    ".crumbs",
+    ".crumbCurrent",
+    ".workspace",
+] as const;
 
 describe("dashboard SOT foundation", () => {
     it("keeps dashboard route loading skeleton on the shadcn primitive contract", () => {
@@ -1429,6 +1452,9 @@ describe("dashboard SOT foundation", () => {
         const cardPrimitive = readSource("components/ui/card.tsx");
         const skeletonPrimitive = readSource("components/ui/skeleton.tsx");
         const globals = readSource("app/globals.css");
+        const routeChromeModule = readSource(
+            "app/(app)/route-chrome.module.css",
+        );
         const routeLoadingSurfaceClassName = extractBoundedSlice(
             loading,
             "const routeLoadingSurfaceClassName =",
@@ -1562,10 +1588,30 @@ describe("dashboard SOT foundation", () => {
         expect(loading).toContain('data-sot-panel="dashboard-loading-detail"');
         expect(loading).toContain('data-sot-panel="recording-list-loading"');
         expect(loading).toContain('data-sot-panel="recording-detail-loading"');
-        expect(globals).toContain('[data-sot-panel="route-sidebar"]');
-        expect(globals).toContain('[data-sot-panel="route-main"]');
-        expect(globals).toContain('[data-sot-panel="route-topbar"]');
-        expect(globals).toContain('[data-sot-panel="route-workspace"]');
+        expect(loading).toContain(
+            'import routeChromeStyles from "../route-chrome.module.css";',
+        );
+        expect(loading).toContain("className={routeChromeStyles.sidebar}");
+        expect(loading).toContain("className={routeChromeStyles.brand}");
+        expect(loading).toContain("className={routeChromeStyles.brandName}");
+        expect(loading).toContain(
+            "className={routeChromeStyles.brandSubtitle}",
+        );
+        expect(loading).toContain("className={routeChromeStyles.main}");
+        expect(loading).toContain("className={routeChromeStyles.topbar}");
+        expect(loading).toContain("className={routeChromeStyles.crumbs}");
+        expect(loading).toContain("className={routeChromeStyles.crumbCurrent}");
+        expect(loading).toContain("className={routeChromeStyles.workspace}");
+        for (const routeChromeClass of ROUTE_CHROME_MODULE_CLASSES) {
+            expect(routeChromeModule).toContain(routeChromeClass);
+        }
+        expect(routeChromeModule).toContain("grid-template-columns: 380px 1fr;");
+        expect(routeChromeModule).toContain("backdrop-filter: blur(20px)");
+        for (const routeChromeSelector of ROUTE_CHROME_REMOVED_GLOBAL_SELECTORS) {
+            expect(collectCssRuleBlocks(globals, routeChromeSelector)).toEqual(
+                [],
+            );
+        }
         for (const dashboardLoadingSelector of DASHBOARD_LOADING_REMOVED_GLOBAL_SELECTORS) {
             expect(collectCssRuleBlocks(globals, dashboardLoadingSelector)).toEqual(
                 [],

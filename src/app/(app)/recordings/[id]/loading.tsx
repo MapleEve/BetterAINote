@@ -1,6 +1,7 @@
 import { Card } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import { cn } from "@/lib/utils";
+import routeChromeStyles from "../../route-chrome.module.css";
 
 const routeLoadingSurfaceClassName =
     "min-h-0 gap-0 overflow-hidden rounded-[16px] border-[var(--line-hairline)] bg-[var(--bg-elevated)] shadow-[var(--shadow-sm)] backdrop-blur-none dark:border-[var(--glass-border)]";
@@ -21,11 +22,26 @@ export default function RecordingLoading() {
             aria-busy="true"
             className={recordingRouteFallbackShellClassName}
         >
-            <aside data-sot-panel="route-sidebar" />
-            <main data-sot-panel="route-main">
-                <header data-sot-panel="route-topbar">
-                    <div data-sot-part="route-crumbs">
-                        <span data-sot-part="route-crumb-current">
+            <aside
+                data-sot-panel="route-sidebar"
+                className={routeChromeStyles.sidebar}
+            />
+            <main
+                data-sot-panel="route-main"
+                className={routeChromeStyles.main}
+            >
+                <header
+                    data-sot-panel="route-topbar"
+                    className={routeChromeStyles.topbar}
+                >
+                    <div
+                        data-sot-part="route-crumbs"
+                        className={routeChromeStyles.crumbs}
+                    >
+                        <span
+                            data-sot-part="route-crumb-current"
+                            className={routeChromeStyles.crumbCurrent}
+                        >
                             录音加载中
                         </span>
                     </div>
