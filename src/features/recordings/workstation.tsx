@@ -1425,6 +1425,7 @@ export function RecordingWorkstation({
                             </section>
 
                             <section
+                                className="flex min-h-0 flex-col gap-4"
                                 data-sot-part="recording-source-record-shell"
                                 aria-label={t("recording.sourceRecord")}
                             >
@@ -1445,7 +1446,10 @@ export function RecordingWorkstation({
                                         >
                                             {t("recording.sourceRecord")}
                                         </CardTitle>
-                                        <div data-sot-part="recording-source-record-actions">
+                                        <div
+                                            className="ml-auto flex max-w-full grow-0 shrink basis-auto flex-wrap items-center gap-2"
+                                            data-sot-part="recording-source-record-actions"
+                                        >
                                             <Button
                                                 type="button"
                                                 variant="outline"
@@ -1527,7 +1531,10 @@ export function RecordingWorkstation({
                                                 </FieldDescription>
                                             </FieldContent>
                                         </Field>
-                                        <div data-sot-part="recording-source-record-tabs">
+                                        <div
+                                            className="flex min-w-0"
+                                            data-sot-part="recording-source-record-tabs"
+                                        >
                                             <SegmentedTabs
                                                 variant="segmented"
                                                 size="segmentedSm"
@@ -1567,7 +1574,10 @@ export function RecordingWorkstation({
                                                 }
                                             />
                                         </div>
-                                        <FieldDescription data-sot-part="recording-source-record-hint">
+                                        <FieldDescription
+                                            className="m-0"
+                                            data-sot-part="recording-source-record-hint"
+                                        >
                                             {showLocalTranscriptTab
                                                 ? t(
                                                       "recording.transcriptTabsHint",
@@ -1579,7 +1589,10 @@ export function RecordingWorkstation({
                                         </FieldDescription>
                                     </CardContent>
                                 </Card>
-                                <div data-sot-part="recording-source-record-pane">
+                                <div
+                                    className="min-h-0"
+                                    data-sot-part="recording-source-record-pane"
+                                >
                                     {activeTranscriptTab === "source" ? (
                                         <SourceReportPanel
                                             hasAudio={recording.hasAudio}

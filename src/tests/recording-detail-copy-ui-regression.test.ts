@@ -536,6 +536,14 @@ const RECORDING_DETAIL_NAV_AND_ROW_REMOVED_GLOBAL_SELECTORS = [
     '[data-sot-part="recording-detail-list-row-duration"]',
 ] as const;
 
+const RECORDING_SOURCE_RECORD_LAYOUT_REMOVED_GLOBAL_SELECTORS = [
+    '[data-sot-part="recording-source-record-shell"]',
+    '[data-sot-part="recording-source-record-actions"]',
+    '[data-sot-part="recording-source-record-tabs"]',
+    '[data-sot-part="recording-source-record-hint"]',
+    '[data-sot-part="recording-source-record-pane"]',
+] as const;
+
 describe("recording detail copy and title action UI regressions", () => {
     it("redacts failed transcription job errors before they reach recording detail UI", () => {
         expect(
@@ -1451,6 +1459,9 @@ describe("recording detail copy and title action UI regressions", () => {
         for (const selector of RECORDING_DETAIL_NAV_AND_ROW_REMOVED_GLOBAL_SELECTORS) {
             expect(collectExactCssRuleBlocks(globals, selector)).toEqual([]);
         }
+        for (const selector of RECORDING_SOURCE_RECORD_LAYOUT_REMOVED_GLOBAL_SELECTORS) {
+            expect(collectExactCssRuleBlocks(globals, selector)).toEqual([]);
+        }
         expect(headerPanelIndex).toBeGreaterThanOrEqual(0);
         expect(headerStart).toBeGreaterThanOrEqual(0);
         expect(headerEnd).toBeGreaterThan(headerStart);
@@ -1595,6 +1606,31 @@ describe("recording detail copy and title action UI regressions", () => {
             sourceRecordStart,
             sourceRecordEnd + "</Card>".length,
         );
+        const sourceRecordShellOpening = extractOpeningElement(
+            detailWorkstation,
+            'data-sot-part="recording-source-record-shell"',
+            "section",
+        );
+        const sourceRecordActionsOpening = extractOpeningElement(
+            sourceRecordPanel,
+            'data-sot-part="recording-source-record-actions"',
+            "div",
+        );
+        const sourceRecordTabsOpening = extractOpeningElement(
+            sourceRecordPanel,
+            'data-sot-part="recording-source-record-tabs"',
+            "div",
+        );
+        const sourceRecordHintOpening = extractOpeningElement(
+            sourceRecordPanel,
+            'data-sot-part="recording-source-record-hint"',
+            "FieldDescription",
+        );
+        const sourceRecordPaneOpening = extractOpeningElement(
+            detailWorkstation,
+            'data-sot-part="recording-source-record-pane"',
+            "div",
+        );
 
         expect(metadataPanelIndex).toBeGreaterThanOrEqual(0);
         expect(metadataStart).toBeGreaterThanOrEqual(0);
@@ -1625,6 +1661,15 @@ describe("recording detail copy and title action UI regressions", () => {
         expect(sourceRecordPanel).toContain(
             'data-sot-panel="recording-source-record"',
         );
+        expect(sourceRecordShellOpening).toContain(
+            'className="flex min-h-0 flex-col gap-4"',
+        );
+        expect(sourceRecordActionsOpening).toContain(
+            'className="ml-auto flex max-w-full grow-0 shrink basis-auto flex-wrap items-center gap-2"',
+        );
+        expect(sourceRecordTabsOpening).toContain('className="flex min-w-0"');
+        expect(sourceRecordHintOpening).toContain('className="m-0"');
+        expect(sourceRecordPaneOpening).toContain('className="min-h-0"');
         for (const part of [
             "recording-source-record-header",
             "recording-source-record-title",
@@ -2447,7 +2492,7 @@ describe("recording detail copy and title action UI regressions", () => {
         const sourceRecordSegmentedTabs = extractBoundedSlice(
             detailWorkstation,
             'data-sot-part="recording-source-record-tabs"',
-            '<FieldDescription data-sot-part="recording-source-record-hint">',
+            'data-sot-part="recording-source-record-hint"',
         );
         expect(sourceRecordSegmentedTabs).toContain('variant="segmented"');
         expect(sourceRecordSegmentedTabs).toContain('size="segmentedSm"');

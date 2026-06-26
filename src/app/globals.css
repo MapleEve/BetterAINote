@@ -1060,31 +1060,6 @@ button:not([data-slot]) {
     min-height: 0;
     min-width: 0;
 }
-[data-sot-part="recording-source-record-shell"] {
-    display: flex;
-    flex-direction: column;
-    gap: 16px;
-    min-height: 0;
-}
-[data-sot-part="recording-source-record-actions"] {
-    margin-left: auto;
-    display: flex;
-    flex: 0 1 auto;
-    max-width: 100%;
-    flex-wrap: wrap;
-    align-items: center;
-    gap: 8px;
-}
-[data-sot-part="recording-source-record-tabs"] {
-    display: flex;
-    min-width: 0;
-}
-[data-sot-part="recording-source-record-hint"] {
-    margin: 0;
-}
-[data-sot-part="recording-source-record-pane"] {
-    min-height: 0;
-}
 [data-sot-part="recording-transcription-heading"] {
     display: flex;
     align-items: center;

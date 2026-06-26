@@ -3183,6 +3183,14 @@ const RECORDING_DETAIL_NAV_AND_ROW_REMOVED_GLOBAL_SELECTORS = [
     '[data-sot-part="recording-detail-list-row-duration"]',
 ] as const;
 
+const RECORDING_SOURCE_RECORD_LAYOUT_REMOVED_GLOBAL_SELECTORS = [
+    '[data-sot-part="recording-source-record-shell"]',
+    '[data-sot-part="recording-source-record-actions"]',
+    '[data-sot-part="recording-source-record-tabs"]',
+    '[data-sot-part="recording-source-record-hint"]',
+    '[data-sot-part="recording-source-record-pane"]',
+] as const;
+
 const AI_RENAME_PREVIEW_FUNCTIONAL_CSS_SELECTORS = [
     '[data-sot-panel="ai-rename-preview"]',
     '[data-sot-panel="ai-rename-preview"][data-open="true"]',
@@ -10699,6 +10707,31 @@ describe("full UI replacement regression coverage", () => {
             sourceRecordStart,
             sourceRecordEnd + "</Card>".length,
         );
+        const sourceRecordShellOpening = extractOpeningElement(
+            detail,
+            'data-sot-part="recording-source-record-shell"',
+            "section",
+        );
+        const sourceRecordActionsOpening = extractOpeningElement(
+            sourceRecordPanel,
+            'data-sot-part="recording-source-record-actions"',
+            "div",
+        );
+        const sourceRecordTabsOpening = extractOpeningElement(
+            sourceRecordPanel,
+            'data-sot-part="recording-source-record-tabs"',
+            "div",
+        );
+        const sourceRecordHintOpening = extractOpeningElement(
+            sourceRecordPanel,
+            'data-sot-part="recording-source-record-hint"',
+            "FieldDescription",
+        );
+        const sourceRecordPaneOpening = extractOpeningElement(
+            detail,
+            'data-sot-part="recording-source-record-pane"',
+            "div",
+        );
 
         expect(detail).toContain(
             'import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";',
@@ -10732,6 +10765,15 @@ describe("full UI replacement regression coverage", () => {
         expect(sourceRecordPanel).toContain(
             'data-sot-panel="recording-source-record"',
         );
+        expect(sourceRecordShellOpening).toContain(
+            'className="flex min-h-0 flex-col gap-4"',
+        );
+        expect(sourceRecordActionsOpening).toContain(
+            'className="ml-auto flex max-w-full grow-0 shrink basis-auto flex-wrap items-center gap-2"',
+        );
+        expect(sourceRecordTabsOpening).toContain('className="flex min-w-0"');
+        expect(sourceRecordHintOpening).toContain('className="m-0"');
+        expect(sourceRecordPaneOpening).toContain('className="min-h-0"');
         for (const part of [
             "recording-source-record-header",
             "recording-source-record-title",
@@ -10850,14 +10892,10 @@ describe("full UI replacement regression coverage", () => {
 
             expect(repaintBlocks).toEqual([]);
         }
-        for (const selector of [
-            '[data-sot-part="recording-source-record-actions"]',
-            '[data-sot-part="recording-source-record-tabs"]',
-            '[data-sot-part="recording-source-record-hint"]',
-        ]) {
-            expect(globals).toContain(selector);
-        }
         for (const selector of RECORDING_DETAIL_NAV_AND_ROW_REMOVED_GLOBAL_SELECTORS) {
+            expect(collectExactCssRuleBlocks(globals, selector)).toEqual([]);
+        }
+        for (const selector of RECORDING_SOURCE_RECORD_LAYOUT_REMOVED_GLOBAL_SELECTORS) {
             expect(collectExactCssRuleBlocks(globals, selector)).toEqual([]);
         }
         expect(detail).toContain("data-rename-mode=");
