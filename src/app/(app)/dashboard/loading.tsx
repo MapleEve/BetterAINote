@@ -4,6 +4,13 @@ import { cn } from "@/lib/utils";
 
 const routeLoadingSurfaceClassName =
     "min-h-0 gap-0 overflow-hidden rounded-[16px] border-[var(--line-hairline)] bg-[var(--bg-elevated)] shadow-[var(--shadow-sm)] backdrop-blur-none dark:border-[var(--glass-border)]";
+const dashboardRouteLoadingShellClassName =
+    "grid h-screen min-h-[720px] grid-cols-[264px_1fr] transition-[grid-template-columns] duration-[320ms] ease-[var(--ease-out)]";
+const dashboardRouteLoadingListClassName = routeLoadingSurfaceClassName;
+const dashboardRouteLoadingDetailClassName = cn(
+    routeLoadingSurfaceClassName,
+    "flex min-h-0 min-w-0 flex-col gap-4",
+);
 
 const recordingListLoadingSkeletonClassNames = {
     recordingListLoadingDayLabel: "h-[11px] w-[100px]",
@@ -24,7 +31,11 @@ const recordingDetailLoadingSkeletonClassNames = {
 
 export default function DashboardLoading() {
     return (
-        <div data-sot-shell="dashboard-loading" aria-busy="true">
+        <div
+            data-sot-shell="dashboard-loading"
+            aria-busy="true"
+            className={dashboardRouteLoadingShellClassName}
+        >
             <aside data-sot-panel="route-sidebar">
                 <div data-sot-part="route-brand">
                     <img src="/assets/logo-mark-steel.svg" alt="" />
@@ -47,7 +58,7 @@ export default function DashboardLoading() {
                         data-sot-panel="dashboard-loading-list"
                         variant="default"
                         hasNoPadding
-                        className={routeLoadingSurfaceClassName}
+                        className={dashboardRouteLoadingListClassName}
                     >
                         <div
                             data-sot-panel="recording-list-loading"
@@ -175,10 +186,7 @@ export default function DashboardLoading() {
                         data-sot-panel="dashboard-loading-detail"
                         variant="default"
                         hasNoPadding
-                        className={cn(
-                            routeLoadingSurfaceClassName,
-                            "flex min-h-0 flex-col gap-4",
-                        )}
+                        className={dashboardRouteLoadingDetailClassName}
                     >
                         <div
                             data-sot-panel="recording-detail-loading"

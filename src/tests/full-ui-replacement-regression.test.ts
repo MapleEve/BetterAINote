@@ -79,6 +79,10 @@ const ROUTE_LOADING_SURFACE_CLASS_VALUE =
     "min-h-0 gap-0 overflow-hidden rounded-[16px] border-[var(--line-hairline)] bg-[var(--bg-elevated)] shadow-[var(--shadow-sm)] backdrop-blur-none dark:border-[var(--glass-border)]";
 const ROUTE_LOADING_SURFACE_CLASS_TOKENS =
     ROUTE_LOADING_SURFACE_CLASS_VALUE.split(" ");
+const DASHBOARD_ROUTE_LOADING_SHELL_CLASS_VALUE =
+    "grid h-screen min-h-[720px] grid-cols-[264px_1fr] transition-[grid-template-columns] duration-[320ms] ease-[var(--ease-out)]";
+const DASHBOARD_ROUTE_LOADING_DETAIL_CLASS_VALUE =
+    "flex min-h-0 min-w-0 flex-col gap-4";
 const RECORDING_ROUTE_FALLBACK_SHELL_CLASS_VALUE =
     "grid h-screen min-h-[720px] grid-cols-[264px_1fr] transition-[grid-template-columns] duration-[320ms] ease-[var(--ease-out)]";
 const RECORDING_ROUTE_EMPTY_DETAIL_CLASS_VALUE =
@@ -3043,6 +3047,11 @@ const RECORDING_LOADING_REMOVED_GLOBAL_SELECTORS = [
     '[data-sot-panel="recording-list-loading"]',
     '[data-sot-panel="recording-detail-loading"]',
 ] as const;
+const DASHBOARD_LOADING_REMOVED_GLOBAL_SELECTORS = [
+    '[data-sot-shell="dashboard-loading"]',
+    '[data-sot-panel="dashboard-loading-list"]',
+    '[data-sot-panel="dashboard-loading-detail"]',
+] as const;
 const RECORDING_ROUTE_FALLBACK_REMOVED_GLOBAL_SELECTORS = [
     '[data-sot-shell="recording-route-loading"]',
     '[data-sot-shell="recording-route-empty"]',
@@ -4364,6 +4373,21 @@ describe("full UI replacement regression coverage", () => {
             "const routeLoadingSurfaceClassName =",
             ";",
         );
+        const dashboardRouteLoadingShellClassName = extractBoundedSlice(
+            dashboardLoading,
+            "const dashboardRouteLoadingShellClassName =",
+            ";",
+        );
+        const dashboardRouteLoadingListClassName = extractBoundedSlice(
+            dashboardLoading,
+            "const dashboardRouteLoadingListClassName =",
+            ";",
+        );
+        const dashboardRouteLoadingDetailClassName = extractBoundedSlice(
+            dashboardLoading,
+            "const dashboardRouteLoadingDetailClassName =",
+            ";",
+        );
         const recordingRouteLoadingSurfaceClassName = extractBoundedSlice(
             recordingLoading,
             "const routeLoadingSurfaceClassName =",
@@ -4373,6 +4397,11 @@ describe("full UI replacement regression coverage", () => {
             recordingLoading,
             "const recordingRouteFallbackShellClassName =",
             ";",
+        );
+        const dashboardLoadingShellOpening = extractOpeningElement(
+            dashboardLoading,
+            'data-sot-shell="dashboard-loading"',
+            "div",
         );
         const dashboardLoadingListCard = extractCardSlice(
             dashboardLoading,
@@ -4413,6 +4442,21 @@ describe("full UI replacement regression coverage", () => {
                 expect(routeLoadingSurfaceClassName).toContain(token);
             }
         }
+        expect(dashboardRouteLoadingShellClassName).toContain(
+            `"${DASHBOARD_ROUTE_LOADING_SHELL_CLASS_VALUE}"`,
+        );
+        expect(dashboardRouteLoadingListClassName).toContain(
+            "routeLoadingSurfaceClassName",
+        );
+        expect(dashboardRouteLoadingDetailClassName).toContain(
+            "routeLoadingSurfaceClassName",
+        );
+        expect(dashboardRouteLoadingDetailClassName).toContain(
+            `"${DASHBOARD_ROUTE_LOADING_DETAIL_CLASS_VALUE}"`,
+        );
+        expect(dashboardLoadingShellOpening).toContain(
+            "className={dashboardRouteLoadingShellClassName}",
+        );
         expect(recordingRouteFallbackShellClassName).toContain(
             `"${RECORDING_ROUTE_FALLBACK_SHELL_CLASS_VALUE}"`,
         );
@@ -4429,20 +4473,20 @@ describe("full UI replacement regression coverage", () => {
             expect(card, label).not.toContain('variant="routeLoadingSurface"');
         }
         expect(dashboardLoadingListCardOpening).toContain(
-            "className={routeLoadingSurfaceClassName}",
+            "className={dashboardRouteLoadingListClassName}",
         );
-        for (const detailCardOpening of [
-            dashboardLoadingDetailCardOpening,
-            recordingRouteLoadingDetailCardOpening,
-        ]) {
-            expect(detailCardOpening).toContain("className={cn(");
-            expect(detailCardOpening).toContain(
-                "routeLoadingSurfaceClassName,",
-            );
-            expect(detailCardOpening).toContain(
-                '"flex min-h-0 flex-col gap-4"',
-            );
-        }
+        expect(dashboardLoadingDetailCardOpening).toContain(
+            "className={dashboardRouteLoadingDetailClassName}",
+        );
+        expect(recordingRouteLoadingDetailCardOpening).toContain(
+            "className={cn(",
+        );
+        expect(recordingRouteLoadingDetailCardOpening).toContain(
+            "routeLoadingSurfaceClassName,",
+        );
+        expect(recordingRouteLoadingDetailCardOpening).toContain(
+            '"flex min-h-0 flex-col gap-4"',
+        );
 
         for (const loading of [dashboardLoading, recordingLoading]) {
             expect(loading).toContain(
@@ -4503,6 +4547,9 @@ describe("full UI replacement regression coverage", () => {
             expect(skeletonPrimitive).not.toContain(sizeToken);
         }
         for (const selector of RECORDING_LOADING_REMOVED_GLOBAL_SELECTORS) {
+            expect(collectCssRuleBlocks(globals, selector)).toEqual([]);
+        }
+        for (const selector of DASHBOARD_LOADING_REMOVED_GLOBAL_SELECTORS) {
             expect(collectCssRuleBlocks(globals, selector)).toEqual([]);
         }
         for (const selector of RECORDING_ROUTE_FALLBACK_REMOVED_GLOBAL_SELECTORS) {

@@ -740,15 +740,6 @@ button:not([data-slot]) {
     font-family: inherit;
 }
 
-/* ======== Route fallback grid ======== */
-[data-sot-shell="dashboard-loading"] {
-    display: grid;
-    grid-template-columns: 264px 1fr;
-    height: 100vh;
-    min-height: 720px;
-    transition: grid-template-columns 320ms var(--ease-out);
-}
-
 /* ======== Glass surfaces ========
    Light mode: nearly-solid white veil so chrome reads on a tinted canvas.
    Dark mode: translucent + saturated so backdrop-blur actually shows. */
@@ -1029,21 +1020,6 @@ button:not([data-slot]) {
     padding: 16px 20px 20px;
 }
 
-[data-sot-panel="dashboard-loading-list"],
-[data-sot-panel="dashboard-loading-detail"] {
-    border-radius: 16px;
-    border: 1px solid var(--line-hairline);
-    background: var(--bg-elevated);
-    display: flex;
-    flex-direction: column;
-    min-height: 0;
-    box-shadow: var(--shadow-sm);
-    overflow: hidden;
-}
-[data-theme="dark"] [data-sot-panel="dashboard-loading-list"],
-[data-theme="dark"] [data-sot-panel="dashboard-loading-detail"] {
-    border-color: var(--glass-border);
-}
 /* List panel */
 [data-sot-part="dashboard-recording-list-header"] {
     padding: 12px 12px 10px;
@@ -1095,7 +1071,6 @@ button:not([data-slot]) {
 }
 /* ======== Detail panel ======== */
 [data-sot-panel="dashboard-detail"],
-[data-sot-panel="dashboard-loading-detail"],
 [data-sot-panel="recording-workstation-detail"],
 [data-sot-panel="recording-workstation-detail-body"] {
     display: flex;

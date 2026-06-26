@@ -1413,6 +1413,15 @@ const ROUTE_LOADING_SURFACE_CLASS_VALUE =
     "min-h-0 gap-0 overflow-hidden rounded-[16px] border-[var(--line-hairline)] bg-[var(--bg-elevated)] shadow-[var(--shadow-sm)] backdrop-blur-none dark:border-[var(--glass-border)]";
 const ROUTE_LOADING_SURFACE_CLASS_TOKENS =
     ROUTE_LOADING_SURFACE_CLASS_VALUE.split(" ");
+const DASHBOARD_ROUTE_LOADING_SHELL_CLASS_VALUE =
+    "grid h-screen min-h-[720px] grid-cols-[264px_1fr] transition-[grid-template-columns] duration-[320ms] ease-[var(--ease-out)]";
+const DASHBOARD_ROUTE_LOADING_DETAIL_CLASS_VALUE =
+    "flex min-h-0 min-w-0 flex-col gap-4";
+const DASHBOARD_LOADING_REMOVED_GLOBAL_SELECTORS = [
+    '[data-sot-shell="dashboard-loading"]',
+    '[data-sot-panel="dashboard-loading-list"]',
+    '[data-sot-panel="dashboard-loading-detail"]',
+] as const;
 
 describe("dashboard SOT foundation", () => {
     it("keeps dashboard route loading skeleton on the shadcn primitive contract", () => {
@@ -1424,6 +1433,26 @@ describe("dashboard SOT foundation", () => {
             loading,
             "const routeLoadingSurfaceClassName =",
             ";",
+        );
+        const dashboardRouteLoadingShellClassName = extractBoundedSlice(
+            loading,
+            "const dashboardRouteLoadingShellClassName =",
+            ";",
+        );
+        const dashboardRouteLoadingListClassName = extractBoundedSlice(
+            loading,
+            "const dashboardRouteLoadingListClassName =",
+            ";",
+        );
+        const dashboardRouteLoadingDetailClassName = extractBoundedSlice(
+            loading,
+            "const dashboardRouteLoadingDetailClassName =",
+            ";",
+        );
+        const dashboardLoadingShellOpening = extractOpeningElement(
+            loading,
+            'data-sot-shell="dashboard-loading"',
+            "div",
         );
         const dashboardLoadingListCard = extractElementSlice(
             loading,
@@ -1460,6 +1489,21 @@ describe("dashboard SOT foundation", () => {
         for (const token of ROUTE_LOADING_SURFACE_CLASS_TOKENS) {
             expect(routeLoadingSurfaceClassName).toContain(token);
         }
+        expect(dashboardRouteLoadingShellClassName).toContain(
+            `"${DASHBOARD_ROUTE_LOADING_SHELL_CLASS_VALUE}"`,
+        );
+        expect(dashboardRouteLoadingListClassName).toContain(
+            "routeLoadingSurfaceClassName",
+        );
+        expect(dashboardRouteLoadingDetailClassName).toContain(
+            "routeLoadingSurfaceClassName",
+        );
+        expect(dashboardRouteLoadingDetailClassName).toContain(
+            `"${DASHBOARD_ROUTE_LOADING_DETAIL_CLASS_VALUE}"`,
+        );
+        expect(dashboardLoadingShellOpening).toContain(
+            "className={dashboardRouteLoadingShellClassName}",
+        );
         for (const [label, card] of [
             ["dashboard-loading-list", dashboardLoadingListCard],
             ["dashboard-loading-detail", dashboardLoadingDetailCard],
@@ -1469,14 +1513,10 @@ describe("dashboard SOT foundation", () => {
             expect(card, label).not.toContain('variant="routeLoadingSurface"');
         }
         expect(dashboardLoadingListCardOpening).toContain(
-            "className={routeLoadingSurfaceClassName}",
-        );
-        expect(dashboardLoadingDetailCardOpening).toContain("className={cn(");
-        expect(dashboardLoadingDetailCardOpening).toContain(
-            "routeLoadingSurfaceClassName,",
+            "className={dashboardRouteLoadingListClassName}",
         );
         expect(dashboardLoadingDetailCardOpening).toContain(
-            '"flex min-h-0 flex-col gap-4"',
+            "className={dashboardRouteLoadingDetailClassName}",
         );
         expect(loading).not.toContain('variant="routeLoadingSurface"');
         expect(cardPrimitive).not.toContain("routeLoadingSurface");
@@ -1522,11 +1562,15 @@ describe("dashboard SOT foundation", () => {
         expect(loading).toContain('data-sot-panel="dashboard-loading-detail"');
         expect(loading).toContain('data-sot-panel="recording-list-loading"');
         expect(loading).toContain('data-sot-panel="recording-detail-loading"');
-        expect(globals).toContain('[data-sot-shell="dashboard-loading"]');
         expect(globals).toContain('[data-sot-panel="route-sidebar"]');
         expect(globals).toContain('[data-sot-panel="route-main"]');
         expect(globals).toContain('[data-sot-panel="route-topbar"]');
         expect(globals).toContain('[data-sot-panel="route-workspace"]');
+        for (const dashboardLoadingSelector of DASHBOARD_LOADING_REMOVED_GLOBAL_SELECTORS) {
+            expect(collectCssRuleBlocks(globals, dashboardLoadingSelector)).toEqual(
+                [],
+            );
+        }
         for (const removedLoadingSelector of [
             '[data-sot-panel="recording-route-loading-detail"]',
             '[data-sot-panel="recording-list-loading"]',
