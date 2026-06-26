@@ -741,10 +741,7 @@ button:not([data-slot]) {
 }
 
 /* ======== Route fallback grid ======== */
-[data-sot-shell="dashboard-loading"],
-[data-sot-shell="recording-route-loading"],
-[data-sot-shell="recording-route-empty"],
-[data-sot-shell="recording-route-error"] {
+[data-sot-shell="dashboard-loading"] {
     display: grid;
     grid-template-columns: 264px 1fr;
     height: 100vh;
@@ -1033,8 +1030,7 @@ button:not([data-slot]) {
 }
 
 [data-sot-panel="dashboard-loading-list"],
-[data-sot-panel="dashboard-loading-detail"],
-[data-sot-panel="recording-route-empty-detail"] {
+[data-sot-panel="dashboard-loading-detail"] {
     border-radius: 16px;
     border: 1px solid var(--line-hairline);
     background: var(--bg-elevated);
@@ -1045,8 +1041,7 @@ button:not([data-slot]) {
     overflow: hidden;
 }
 [data-theme="dark"] [data-sot-panel="dashboard-loading-list"],
-[data-theme="dark"] [data-sot-panel="dashboard-loading-detail"],
-[data-theme="dark"] [data-sot-panel="recording-route-empty-detail"] {
+[data-theme="dark"] [data-sot-panel="dashboard-loading-detail"] {
     border-color: var(--glass-border);
 }
 /* List panel */
@@ -1101,7 +1096,6 @@ button:not([data-slot]) {
 /* ======== Detail panel ======== */
 [data-sot-panel="dashboard-detail"],
 [data-sot-panel="dashboard-loading-detail"],
-[data-sot-panel="recording-route-empty-detail"],
 [data-sot-panel="recording-workstation-detail"],
 [data-sot-panel="recording-workstation-detail-body"] {
     display: flex;
@@ -1725,25 +1719,15 @@ body[data-drawer="open"] [data-sot-panel="dashboard-drawer-scrim"] {
     text-overflow: ellipsis;
     white-space: nowrap;
 }
-[data-detail-empty],
-[data-sot-panel="recording-route-empty"] {
+[data-detail-empty] {
     display: none;
 }
 [data-sot-panel="dashboard-detail"][data-empty="true"]
-    [data-sot-panel="dashboard-detail-header"],
-[data-sot-panel="recording-route-empty-detail"][data-empty="true"]
-    [data-sot-panel="dashboard-detail-header"],
-[data-sot-panel="recording-route-empty-detail"][data-empty="true"]
-    [data-sot-panel="recording-workstation-real-detail"] {
+    [data-sot-panel="dashboard-detail-header"] {
     display: none;
 }
-[data-sot-panel="dashboard-detail"][data-empty="true"] [data-detail-empty],
-[data-sot-panel="recording-route-empty-detail"][data-empty="true"]
-    [data-detail-empty] {
+[data-sot-panel="dashboard-detail"][data-empty="true"] [data-detail-empty] {
     display: flex;
-}
-[data-sot-part="recording-route-empty-icon"] {
-    display: inline-grid;
 }
 [data-sot-panel="dashboard-recording-list-mode"] {
     display: flex;
@@ -2083,55 +2067,6 @@ body[data-drawer="open"] [data-sot-panel="dashboard-drawer-scrim"] {
     border: 1px solid var(--line-hairline);
 }
 
-/* ---------- Detail empty ---------- */
-[data-sot-panel="recording-route-empty"] {
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    flex: 1;
-    min-height: 280px;
-    padding: 36px 24px;
-    text-align: center;
-    gap: 8px;
-    background: var(--bg-elevated);
-    border: 1px solid var(--line-hairline);
-    border-radius: 16px;
-    box-shadow: var(--shadow-sm);
-}
-[data-theme="dark"] [data-sot-panel="recording-route-empty"] {
-    background: rgb(255 255 255 / 0.025);
-    border-color: var(--glass-border-soft);
-    box-shadow: none;
-}
-[data-sot-part="recording-route-empty-icon"] {
-    width: 48px;
-    height: 48px;
-    border-radius: 50%;
-    background: var(--bg-recessed);
-    border: 1px solid var(--line-hairline);
-    color: var(--fg-tertiary);
-    place-items: center;
-    margin-bottom: 4px;
-}
-[data-sot-part="recording-route-empty-icon"] svg {
-    width: 22px;
-    height: 22px;
-    stroke: currentColor;
-    fill: none;
-    stroke-width: 1.6;
-    stroke-linecap: round;
-    stroke-linejoin: round;
-}
-[data-sot-part="recording-route-empty-title"] {
-    font: 600 14px var(--font-sans);
-    color: var(--fg-primary);
-}
-[data-sot-part="recording-route-empty-description"] {
-    font: 500 12.5px / 1.55 var(--font-sans);
-    color: var(--fg-tertiary);
-    max-width: 320px;
-}
-
 /* ---------- list-state-block (empty / no-match / paginated) ---------- */
 [data-sot-part="recording-list-state"],
 [data-sot-panel="recording-list-pagination"] {
@@ -2404,16 +2339,6 @@ select::-ms-expand {
     to {
         transform: rotate(360deg);
     }
-}
-
-/* ---- Detail empty (centered) ---- */
-[data-sot-panel="recording-route-empty"] {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    padding: 36px 24px;
-    gap: 8px;
 }
 
 /* ============================================================

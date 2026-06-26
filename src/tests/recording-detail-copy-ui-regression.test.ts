@@ -106,6 +106,28 @@ const ROUTE_LOADING_SURFACE_CLASS_VALUE =
     "min-h-0 gap-0 overflow-hidden rounded-[16px] border-[var(--line-hairline)] bg-[var(--bg-elevated)] shadow-[var(--shadow-sm)] backdrop-blur-none dark:border-[var(--glass-border)]";
 const ROUTE_LOADING_SURFACE_CLASS_TOKENS =
     ROUTE_LOADING_SURFACE_CLASS_VALUE.split(" ");
+const RECORDING_ROUTE_FALLBACK_SHELL_CLASS_VALUE =
+    "grid h-screen min-h-[720px] grid-cols-[264px_1fr] transition-[grid-template-columns] duration-[320ms] ease-[var(--ease-out)]";
+const RECORDING_ROUTE_EMPTY_DETAIL_CLASS_VALUE =
+    "flex min-h-0 min-w-0 flex-col gap-4 overflow-hidden rounded-[16px] border border-[var(--line-hairline)] bg-[var(--bg-elevated)] shadow-[var(--shadow-sm)] dark:border-[var(--glass-border)]";
+const RECORDING_ROUTE_EMPTY_PANEL_CLASS_VALUE =
+    "flex min-h-[280px] flex-1 flex-col items-center justify-center gap-2 rounded-[16px] border border-[var(--line-hairline)] bg-[var(--bg-elevated)] px-6 py-9 text-center shadow-[var(--shadow-sm)] dark:border-[var(--glass-border-soft)] dark:bg-[rgb(255_255_255_/_0.025)] dark:shadow-none";
+const RECORDING_ROUTE_EMPTY_ICON_CLASS_VALUE =
+    "mb-1 inline-grid size-12 place-items-center rounded-full border border-[var(--line-hairline)] bg-[var(--bg-recessed)] text-[var(--fg-tertiary)] [&_svg]:size-[22px] [&_svg]:fill-none [&_svg]:stroke-current [&_svg]:stroke-[1.6] [&_svg]:[stroke-linecap:round] [&_svg]:[stroke-linejoin:round]";
+const RECORDING_ROUTE_EMPTY_TITLE_CLASS_VALUE =
+    "[font:600_14px_var(--font-sans)] text-[var(--fg-primary)]";
+const RECORDING_ROUTE_EMPTY_DESCRIPTION_CLASS_VALUE =
+    "max-w-[320px] [font:500_12.5px/1.55_var(--font-sans)] text-[var(--fg-tertiary)]";
+const RECORDING_ROUTE_FALLBACK_REMOVED_GLOBAL_SELECTORS = [
+    '[data-sot-shell="recording-route-loading"]',
+    '[data-sot-shell="recording-route-empty"]',
+    '[data-sot-shell="recording-route-error"]',
+    '[data-sot-panel="recording-route-empty-detail"]',
+    '[data-sot-panel="recording-route-empty"]',
+    '[data-sot-part="recording-route-empty-icon"]',
+    '[data-sot-part="recording-route-empty-title"]',
+    '[data-sot-part="recording-route-empty-description"]',
+] as const;
 
 const AI_RENAME_PREVIEW_SHARED_PRIMITIVE_FILES = [
     "components/ui/alert.tsx",
@@ -2067,6 +2089,21 @@ describe("recording detail copy and title action UI regressions", () => {
             "const routeLoadingSurfaceClassName =",
             ";",
         );
+        const recordingRouteFallbackShellClassName = extractBoundedSlice(
+            loading,
+            "const recordingRouteFallbackShellClassName =",
+            ";",
+        );
+        const notFoundRouteFallbackClassNames = extractBoundedSlice(
+            notFound,
+            "const recordingRouteFallbackClassNames =",
+            "} as const;",
+        );
+        const errorRouteFallbackClassNames = extractBoundedSlice(
+            error,
+            "const recordingRouteFallbackClassNames =",
+            "} as const;",
+        );
         const recordingRouteLoadingDetailCard = extractCardSlice(
             loading,
             'data-sot-panel="recording-route-loading-detail"',
@@ -2111,6 +2148,28 @@ describe("recording detail copy and title action UI regressions", () => {
             expect(source).toContain(
                 'import { Button } from "@/components/ui/button";',
             );
+            expect(source).toContain(
+                "const recordingRouteFallbackClassNames =",
+            );
+            expect(source).toContain(
+                "className={recordingRouteFallbackClassNames.shell}",
+            );
+            expect(source).toContain(
+                "className={recordingRouteFallbackClassNames.emptyDetail}",
+            );
+            expect(source).toContain(
+                "recordingRouteFallbackClassNames.emptyPanel",
+            );
+            expect(source).toContain(
+                "recordingRouteFallbackClassNames.emptyIcon",
+            );
+            expect(source).toContain(
+                "recordingRouteFallbackClassNames.emptyTitle",
+            );
+            expect(source).toContain(
+                "recordingRouteFallbackClassNames.emptyDescription",
+            );
+            expect(source).not.toContain('data-detail-empty=""');
             expect(source).not.toContain('className="btn primary"');
             expect(source).not.toContain('className="btn ghost"');
             expect(source).not.toContain('className="detail-empty"');
@@ -2164,6 +2223,12 @@ describe("recording detail copy and title action UI regressions", () => {
         for (const token of ROUTE_LOADING_SURFACE_CLASS_TOKENS) {
             expect(routeLoadingSurfaceClassName).toContain(token);
         }
+        expect(recordingRouteFallbackShellClassName).toContain(
+            `"${RECORDING_ROUTE_FALLBACK_SHELL_CLASS_VALUE}"`,
+        );
+        expect(loading).toContain(
+            "className={recordingRouteFallbackShellClassName}",
+        );
         expect(recordingRouteLoadingDetailCard).toContain('variant="default"');
         expect(recordingRouteLoadingDetailCard).toContain("hasNoPadding");
         expect(recordingRouteLoadingDetailCard).not.toContain(
@@ -2208,11 +2273,35 @@ describe("recording detail copy and title action UI regressions", () => {
         expect(loading).toContain('data-sot-panel="recording-detail-loading"');
         expect(notFound).toContain('data-sot-shell="recording-route-empty"');
         expect(error).toContain('data-sot-shell="recording-route-error"');
-        expect(globals).toContain('[data-sot-shell="recording-route-loading"]');
-        expect(globals).toContain('[data-sot-shell="recording-route-empty"]');
-        expect(globals).toContain('[data-sot-shell="recording-route-error"]');
+        for (const routeFallbackClassNames of [
+            notFoundRouteFallbackClassNames,
+            errorRouteFallbackClassNames,
+        ]) {
+            expect(routeFallbackClassNames).toContain(
+                `shell: "${RECORDING_ROUTE_FALLBACK_SHELL_CLASS_VALUE}"`,
+            );
+            expect(routeFallbackClassNames).toContain(
+                `emptyDetail:\n        "${RECORDING_ROUTE_EMPTY_DETAIL_CLASS_VALUE}"`,
+            );
+            expect(routeFallbackClassNames).toContain(
+                `emptyPanel:\n        "${RECORDING_ROUTE_EMPTY_PANEL_CLASS_VALUE}"`,
+            );
+            expect(routeFallbackClassNames).toContain(
+                `emptyIcon:\n        "${RECORDING_ROUTE_EMPTY_ICON_CLASS_VALUE}"`,
+            );
+            expect(routeFallbackClassNames).toContain(
+                `emptyTitle: "${RECORDING_ROUTE_EMPTY_TITLE_CLASS_VALUE}"`,
+            );
+            expect(routeFallbackClassNames).toContain(
+                `emptyDescription:\n        "${RECORDING_ROUTE_EMPTY_DESCRIPTION_CLASS_VALUE}"`,
+            );
+        }
+        for (const selector of RECORDING_ROUTE_FALLBACK_REMOVED_GLOBAL_SELECTORS) {
+            expect(collectCssRuleBlocks(globals, selector)).toEqual([]);
+        }
+        expect(globals).toContain("[data-detail-empty]");
         expect(globals).toContain(
-            '[data-sot-panel="recording-route-empty-detail"]',
+            '[data-sot-panel="dashboard-detail"][data-empty="true"] [data-detail-empty]',
         );
         for (const removedLoadingSelector of [
             '[data-sot-panel="recording-route-loading-detail"]',

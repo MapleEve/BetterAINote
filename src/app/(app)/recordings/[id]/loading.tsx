@@ -4,6 +4,8 @@ import { cn } from "@/lib/utils";
 
 const routeLoadingSurfaceClassName =
     "min-h-0 gap-0 overflow-hidden rounded-[16px] border-[var(--line-hairline)] bg-[var(--bg-elevated)] shadow-[var(--shadow-sm)] backdrop-blur-none dark:border-[var(--glass-border)]";
+const recordingRouteFallbackShellClassName =
+    "grid h-screen min-h-[720px] grid-cols-[264px_1fr] transition-[grid-template-columns] duration-[320ms] ease-[var(--ease-out)]";
 
 const recordingDetailLoadingSkeletonClassNames = {
     recordingDetailLoadingAvatar: "size-8 rounded-full",
@@ -14,7 +16,11 @@ const recordingDetailLoadingSkeletonClassNames = {
 
 export default function RecordingLoading() {
     return (
-        <div data-sot-shell="recording-route-loading" aria-busy="true">
+        <div
+            data-sot-shell="recording-route-loading"
+            aria-busy="true"
+            className={recordingRouteFallbackShellClassName}
+        >
             <aside data-sot-panel="route-sidebar" />
             <main data-sot-panel="route-main">
                 <header data-sot-panel="route-topbar">

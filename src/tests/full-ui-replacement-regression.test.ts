@@ -79,6 +79,18 @@ const ROUTE_LOADING_SURFACE_CLASS_VALUE =
     "min-h-0 gap-0 overflow-hidden rounded-[16px] border-[var(--line-hairline)] bg-[var(--bg-elevated)] shadow-[var(--shadow-sm)] backdrop-blur-none dark:border-[var(--glass-border)]";
 const ROUTE_LOADING_SURFACE_CLASS_TOKENS =
     ROUTE_LOADING_SURFACE_CLASS_VALUE.split(" ");
+const RECORDING_ROUTE_FALLBACK_SHELL_CLASS_VALUE =
+    "grid h-screen min-h-[720px] grid-cols-[264px_1fr] transition-[grid-template-columns] duration-[320ms] ease-[var(--ease-out)]";
+const RECORDING_ROUTE_EMPTY_DETAIL_CLASS_VALUE =
+    "flex min-h-0 min-w-0 flex-col gap-4 overflow-hidden rounded-[16px] border border-[var(--line-hairline)] bg-[var(--bg-elevated)] shadow-[var(--shadow-sm)] dark:border-[var(--glass-border)]";
+const RECORDING_ROUTE_EMPTY_PANEL_CLASS_VALUE =
+    "flex min-h-[280px] flex-1 flex-col items-center justify-center gap-2 rounded-[16px] border border-[var(--line-hairline)] bg-[var(--bg-elevated)] px-6 py-9 text-center shadow-[var(--shadow-sm)] dark:border-[var(--glass-border-soft)] dark:bg-[rgb(255_255_255_/_0.025)] dark:shadow-none";
+const RECORDING_ROUTE_EMPTY_ICON_CLASS_VALUE =
+    "mb-1 inline-grid size-12 place-items-center rounded-full border border-[var(--line-hairline)] bg-[var(--bg-recessed)] text-[var(--fg-tertiary)] [&_svg]:size-[22px] [&_svg]:fill-none [&_svg]:stroke-current [&_svg]:stroke-[1.6] [&_svg]:[stroke-linecap:round] [&_svg]:[stroke-linejoin:round]";
+const RECORDING_ROUTE_EMPTY_TITLE_CLASS_VALUE =
+    "[font:600_14px_var(--font-sans)] text-[var(--fg-primary)]";
+const RECORDING_ROUTE_EMPTY_DESCRIPTION_CLASS_VALUE =
+    "max-w-[320px] [font:500_12.5px/1.55_var(--font-sans)] text-[var(--fg-tertiary)]";
 const EXPECTED_DASHBOARD_RECORDING_PLAYER_CARD_CLASS_NAME =
     "block min-h-[114px] gap-0 overflow-visible rounded-[16px] border-[var(--glass-border-soft)] bg-[rgb(255_255_255_/_0.025)] px-[18px] py-[16px] shadow-none backdrop-blur-none";
 const DASHBOARD_RECORDING_PLAYER_WORKSTATION_CLASS_INITIALIZERS = [
@@ -2175,12 +2187,7 @@ const DETAIL_EMPTY_LEGACY_PRODUCT_CSS_SELECTOR_RE =
 
 const DETAIL_EMPTY_DATA_SOT_CSS_SELECTORS = [
     "[data-detail-empty]",
-    '[data-sot-panel="recording-route-empty"]',
     '[data-sot-panel="dashboard-detail"][data-empty="true"] [data-detail-empty]',
-    '[data-sot-panel="recording-route-empty-detail"][data-empty="true"]\n    [data-detail-empty]',
-    '[data-sot-part="recording-route-empty-icon"]',
-    '[data-sot-part="recording-route-empty-title"]',
-    '[data-sot-part="recording-route-empty-description"]',
 ];
 
 const DASHBOARD_EMPTY_PRIMITIVE_CSS_SELECTORS = [
@@ -3035,6 +3042,16 @@ const RECORDING_LOADING_REMOVED_GLOBAL_SELECTORS = [
     '[data-sot-panel="recording-route-loading-detail"]',
     '[data-sot-panel="recording-list-loading"]',
     '[data-sot-panel="recording-detail-loading"]',
+] as const;
+const RECORDING_ROUTE_FALLBACK_REMOVED_GLOBAL_SELECTORS = [
+    '[data-sot-shell="recording-route-loading"]',
+    '[data-sot-shell="recording-route-empty"]',
+    '[data-sot-shell="recording-route-error"]',
+    '[data-sot-panel="recording-route-empty-detail"]',
+    '[data-sot-panel="recording-route-empty"]',
+    '[data-sot-part="recording-route-empty-icon"]',
+    '[data-sot-part="recording-route-empty-title"]',
+    '[data-sot-part="recording-route-empty-description"]',
 ] as const;
 
 const DASHBOARD_TRANSCRIPT_DETAIL_PRIMITIVE_SELECTORS = [
@@ -4233,6 +4250,16 @@ describe("full UI replacement regression coverage", () => {
     it("keeps standalone recording route fallback actions on route Button variants", () => {
         const notFound = readSource("app/(app)/recordings/[id]/not-found.tsx");
         const error = readSource("app/(app)/recordings/[id]/error.tsx");
+        const notFoundRouteFallbackClassNames = extractBoundedSlice(
+            notFound,
+            "const recordingRouteFallbackClassNames =",
+            "} as const;",
+        );
+        const errorRouteFallbackClassNames = extractBoundedSlice(
+            error,
+            "const recordingRouteFallbackClassNames =",
+            "} as const;",
+        );
 
         const notFoundPrimaryAction = extractBoundedSlice(
             notFound,
@@ -4260,6 +4287,48 @@ describe("full UI replacement regression coverage", () => {
             );
             expect(source).not.toContain('variant="recordingRouteGhostAction"');
             expect(source).not.toContain('size="recordingRouteAction"');
+            expect(source).toContain(
+                "className={recordingRouteFallbackClassNames.shell}",
+            );
+            expect(source).toContain(
+                "className={recordingRouteFallbackClassNames.emptyDetail}",
+            );
+            expect(source).toContain(
+                "recordingRouteFallbackClassNames.emptyPanel",
+            );
+            expect(source).toContain(
+                "recordingRouteFallbackClassNames.emptyIcon",
+            );
+            expect(source).toContain(
+                "recordingRouteFallbackClassNames.emptyTitle",
+            );
+            expect(source).toContain(
+                "recordingRouteFallbackClassNames.emptyDescription",
+            );
+            expect(source).not.toContain('data-detail-empty=""');
+        }
+        for (const routeFallbackClassNames of [
+            notFoundRouteFallbackClassNames,
+            errorRouteFallbackClassNames,
+        ]) {
+            expect(routeFallbackClassNames).toContain(
+                `shell: "${RECORDING_ROUTE_FALLBACK_SHELL_CLASS_VALUE}"`,
+            );
+            expect(routeFallbackClassNames).toContain(
+                `emptyDetail:\n        "${RECORDING_ROUTE_EMPTY_DETAIL_CLASS_VALUE}"`,
+            );
+            expect(routeFallbackClassNames).toContain(
+                `emptyPanel:\n        "${RECORDING_ROUTE_EMPTY_PANEL_CLASS_VALUE}"`,
+            );
+            expect(routeFallbackClassNames).toContain(
+                `emptyIcon:\n        "${RECORDING_ROUTE_EMPTY_ICON_CLASS_VALUE}"`,
+            );
+            expect(routeFallbackClassNames).toContain(
+                `emptyTitle: "${RECORDING_ROUTE_EMPTY_TITLE_CLASS_VALUE}"`,
+            );
+            expect(routeFallbackClassNames).toContain(
+                `emptyDescription:\n        "${RECORDING_ROUTE_EMPTY_DESCRIPTION_CLASS_VALUE}"`,
+            );
         }
     });
 
@@ -4298,6 +4367,11 @@ describe("full UI replacement regression coverage", () => {
         const recordingRouteLoadingSurfaceClassName = extractBoundedSlice(
             recordingLoading,
             "const routeLoadingSurfaceClassName =",
+            ";",
+        );
+        const recordingRouteFallbackShellClassName = extractBoundedSlice(
+            recordingLoading,
+            "const recordingRouteFallbackShellClassName =",
             ";",
         );
         const dashboardLoadingListCard = extractCardSlice(
@@ -4339,6 +4413,12 @@ describe("full UI replacement regression coverage", () => {
                 expect(routeLoadingSurfaceClassName).toContain(token);
             }
         }
+        expect(recordingRouteFallbackShellClassName).toContain(
+            `"${RECORDING_ROUTE_FALLBACK_SHELL_CLASS_VALUE}"`,
+        );
+        expect(recordingLoading).toContain(
+            "className={recordingRouteFallbackShellClassName}",
+        );
         for (const [label, card] of [
             ["dashboard-loading-list", dashboardLoadingListCard],
             ["dashboard-loading-detail", dashboardLoadingDetailCard],
@@ -4423,6 +4503,9 @@ describe("full UI replacement regression coverage", () => {
             expect(skeletonPrimitive).not.toContain(sizeToken);
         }
         for (const selector of RECORDING_LOADING_REMOVED_GLOBAL_SELECTORS) {
+            expect(collectCssRuleBlocks(globals, selector)).toEqual([]);
+        }
+        for (const selector of RECORDING_ROUTE_FALLBACK_REMOVED_GLOBAL_SELECTORS) {
             expect(collectCssRuleBlocks(globals, selector)).toEqual([]);
         }
     });
