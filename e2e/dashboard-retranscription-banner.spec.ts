@@ -5350,7 +5350,7 @@ test("dashboard source copy strip mirrors source report loading and failure", as
         await expect(sourceReportCopyButton(page)).toBeDisabled();
 
         failAutoLoadReports = false;
-        await sourceReportRefreshButton(page).click();
+        await page.getByRole("button", { name: "刷新", exact: true }).click();
         await expect(dashboardSourceReport(page, "loaded")).toContainText(
             "来源状态恢复后的转录",
         );
