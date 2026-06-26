@@ -1701,7 +1701,7 @@ const EXPECTED_DASHBOARD_TRANSCRIPT_LANGUAGE_BADGE_CLASS_NAME = "gap-1.5";
 const EXPECTED_DASHBOARD_TRANSCRIPT_ACTIONS_CLASS_NAME =
     "ml-auto inline-flex max-w-full flex-[0_1_auto] flex-wrap items-center gap-2";
 
-const EXPECTED_DASHBOARD_SOURCE_REPORT_STATUS_CLASS_NAME =
+const EXPECTED_SOURCE_REPORT_STATUS_BADGE_CLASS_NAME =
     "h-[22px] min-w-[65px] justify-normal gap-[9px] overflow-visible rounded-full border px-[8px] py-0 text-[11px] font-semibold leading-[normal] shadow-none data-[sot-tone=err]:border-[var(--source-report-status-err-border)] data-[sot-tone=err]:bg-[var(--source-report-status-err-bg)] data-[sot-tone=err]:text-[var(--signal-danger)] data-[sot-tone=neu]:border-[var(--line-hairline)] data-[sot-tone=neu]:bg-[var(--bg-recessed)] data-[sot-tone=neu]:text-[var(--fg-secondary)] data-[sot-tone=ok]:border-[var(--source-report-status-ok-border)] data-[sot-tone=ok]:bg-[var(--source-report-status-ok-bg)] data-[sot-tone=ok]:text-[var(--source-report-status-ok-fg)] data-[sot-tone=warn]:border-[var(--source-report-status-warn-border)] data-[sot-tone=warn]:bg-[var(--source-report-status-warn-bg)] data-[sot-tone=warn]:text-[var(--source-report-status-warn-fg)] [&_[data-sot-part=dashboard-source-report-status-dot]]:mr-0 [&_[data-sot-part=dashboard-source-report-status-dot]]:inline-block [&_[data-sot-part=dashboard-source-report-status-dot]]:size-[5px] [&_[data-sot-part=dashboard-source-report-status-dot]]:rounded-full [&_[data-sot-part=dashboard-source-report-status-dot]]:bg-current [&_[data-sot-part=source-report-status-dot]]:mr-0 [&_[data-sot-part=source-report-status-dot]]:inline-block [&_[data-sot-part=source-report-status-dot]]:size-[5px] [&_[data-sot-part=source-report-status-dot]]:rounded-full [&_[data-sot-part=source-report-status-dot]]:bg-current";
 
 const CARD_PRIMITIVE_FORBIDDEN_BUSINESS_TOKENS = [
@@ -2626,12 +2626,26 @@ const SOURCE_REPORT_STYLE_OWNER_SNIPPETS = [
     '"--source-report-skeleton-bg":',
     "linear-gradient(90deg, color-mix(in srgb, var(--fg-primary) 5%, transparent)",
     "export const SOURCE_REPORT_SKELETON_CLASS_NAME =",
+    "export type SourceReportTone =",
+    "export type SourceReportCardSkeletonSize =",
+    "export type SourceReportSegmentSkeletonSize =",
+    "export const SOURCE_REPORT_CARD_SKELETON_CLASS_NAMES =",
+    "export const SOURCE_REPORT_SEGMENT_SKELETON_CLASS_NAMES =",
     "![background-color:transparent]",
     "dark:[background-image:linear-gradient(90deg,rgb(255_255_255_/_0.05)_0%,rgb(255_255_255_/_0.12)_50%,rgb(255_255_255_/_0.05)_100%)]",
     "export const SOURCE_REPORT_PANE_CLASS_NAME =",
     "export const SOURCE_REPORT_METRIC_CARD_CLASS_NAME =",
     "export const SOURCE_REPORT_EMPTY_SURFACE_CLASS_NAME =",
     "export const SOURCE_REPORT_EMPTY_ICON_CLASS_NAME =",
+    "export const SOURCE_REPORT_ACTION_BUTTON_CLASS_NAME =",
+    "export const SOURCE_REPORT_PRIMARY_ACTION_BUTTON_CLASS_NAME =",
+    "export const SOURCE_REPORT_GHOST_ACTION_BUTTON_CLASS_NAME =",
+    "export const SOURCE_REPORT_COPY_BUTTON_VARIANT =",
+    "export const SOURCE_REPORT_COPY_BUTTON_SIZE =",
+    "export const SOURCE_REPORT_COPY_BUTTON_CLASS_NAME =",
+    "[&[hidden]]:hidden",
+    "export const SOURCE_REPORT_ERROR_ALERT_CLASS_NAME =",
+    "export const SOURCE_REPORT_STATUS_BADGE_CLASS_NAME =",
     "satisfies SourceReportStyleVariables",
 ] as const;
 
@@ -2726,36 +2740,17 @@ const RECORDING_SOURCE_REPORT_LOADED_METRIC_CARDS = [
     },
 ] as const;
 
-const DASHBOARD_SOURCE_REPORT_SKELETON_LOCAL_COMPOSITION_TOKENS = [
-    "const sotSourceReportCardSkeletonClassNames",
-    "const sotSourceReportSegmentSkeletonClassNames",
+const SOURCE_REPORT_SKELETON_OWNER_TOKENS = [
     "SOURCE_REPORT_SKELETON_CLASS_NAME",
-    "count: cn(",
-    '"inline-block h-[18px] w-[48px] align-middle rounded-[6px]"',
-    '"inline-block h-[18px] w-[80px] align-middle rounded-[6px]"',
-    '"inline-block h-[18px] w-[120px] align-middle rounded-[6px]"',
-    '"line-long": cn(',
-    '"mt-1.5 inline-block h-[13px] w-[92%] align-middle rounded-[4px]"',
-    '"mt-[7px] inline-block h-[13px] w-[88%] align-middle rounded-[4px]"',
-    '"ml-[5px] inline-block h-[12px] w-[54px] align-middle rounded-[4px]"',
-    "time: cn(",
-    '"inline-block h-[12px] w-[96px] align-middle rounded-[4px]"',
-] as const;
-
-const RECORDING_SOURCE_REPORT_SKELETON_LOCAL_COMPOSITION_TOKENS = [
-    "const sourceReportCardSkeletonClassNames",
-    "const sourceReportSegmentSkeletonClassNames",
-    "SOURCE_REPORT_SKELETON_CLASS_NAME",
-    "count: cn(",
-    '"inline-block h-[18px] w-[48px] align-middle rounded-[6px]"',
-    '"inline-block h-[18px] w-[80px] align-middle rounded-[6px]"',
-    '"inline-block h-[18px] w-[120px] align-middle rounded-[6px]"',
-    '"line-long": cn(',
-    '"mt-1.5 inline-block h-[13px] w-[92%] align-middle rounded-[4px]"',
-    '"mt-[7px] inline-block h-[13px] w-[88%] align-middle rounded-[4px]"',
-    '"ml-[5px] inline-block h-[12px] w-[54px] align-middle rounded-[4px]"',
-    "time: cn(",
-    '"inline-block h-[12px] w-[96px] align-middle rounded-[4px]"',
+    "SOURCE_REPORT_CARD_SKELETON_CLASS_NAMES",
+    "SOURCE_REPORT_SEGMENT_SKELETON_CLASS_NAMES",
+    "count: `${SOURCE_REPORT_SKELETON_CLASS_NAME} inline-block h-[18px] w-[48px] align-middle rounded-[6px]`",
+    "status: `${SOURCE_REPORT_SKELETON_CLASS_NAME} inline-block h-[18px] w-[80px] align-middle rounded-[6px]`",
+    "source: `${SOURCE_REPORT_SKELETON_CLASS_NAME} inline-block h-[18px] w-[120px] align-middle rounded-[6px]`",
+    '"line-long": `${SOURCE_REPORT_SKELETON_CLASS_NAME} mt-1.5 inline-block h-[13px] w-[92%] align-middle rounded-[4px]`',
+    '"line-wide": `${SOURCE_REPORT_SKELETON_CLASS_NAME} mt-[7px] inline-block h-[13px] w-[88%] align-middle rounded-[4px]`',
+    "speaker: `${SOURCE_REPORT_SKELETON_CLASS_NAME} ml-[5px] inline-block h-[12px] w-[54px] align-middle rounded-[4px]`",
+    "time: `${SOURCE_REPORT_SKELETON_CLASS_NAME} inline-block h-[12px] w-[96px] align-middle rounded-[4px]`",
 ] as const;
 
 const SOURCE_REPORT_EMPTY_LEGACY_CSS_SELECTOR_RE =
@@ -7236,8 +7231,11 @@ describe("full UI replacement regression coverage", () => {
         expect(dashboardButtonClassNames).toMatch(
             /copy:\s*"[^"]*\[&\[hidden\]\]:hidden[^"]*"/,
         );
-        expect(workstation).toMatch(
-            /const SOT_SOURCE_REPORT_COPY_BUTTON_CLASS_NAME\s*=\s*"[^"]*\[&\[hidden\]\]:hidden[^"]*";/,
+        expect(sourceReportStyles).toMatch(
+            /export const SOURCE_REPORT_COPY_BUTTON_CLASS_NAME\s*=\s*"[^"]*\[&\[hidden\]\]:hidden[^"]*";/,
+        );
+        expect(workstation).not.toContain(
+            "const SOT_SOURCE_REPORT_COPY_BUTTON_CLASS_NAME",
         );
         for (const control of DASHBOARD_TRANSCRIPT_GENERIC_COPY_CONTROLS) {
             const buttonOpening = extractOpeningElement(
@@ -7262,7 +7260,7 @@ describe("full UI replacement regression coverage", () => {
             expect(buttonOpening).toContain('size="sm"');
             expectClassNameConstReference(
                 buttonOpening,
-                "SOT_SOURCE_REPORT_COPY_BUTTON_CLASS_NAME",
+                "SOURCE_REPORT_COPY_BUTTON_CLASS_NAME",
             );
             expect(buttonOpening).not.toContain(
                 'variant="sourceReportCopyAction"',
@@ -7294,7 +7292,7 @@ describe("full UI replacement regression coverage", () => {
             expect(buttonOpening).toContain('size="xs"');
             expectClassNameConstReference(
                 buttonOpening,
-                "SOT_SOURCE_REPORT_ACTION_BUTTON_CLASS_NAME",
+                "SOURCE_REPORT_ACTION_BUTTON_CLASS_NAME",
             );
             expect(buttonOpening).not.toContain('variant="sourceReportAction"');
             expect(buttonOpening).not.toContain('variant="ghost"');
@@ -8002,9 +8000,15 @@ describe("full UI replacement regression coverage", () => {
         for (const token of SOURCE_REPORT_SKELETON_SHARED_TOKENS) {
             expect(sourceReportSkeletonPrimitive).not.toContain(token);
         }
-        for (const token of DASHBOARD_SOURCE_REPORT_SKELETON_LOCAL_COMPOSITION_TOKENS) {
-            expect(workstation).toContain(token);
+        for (const token of SOURCE_REPORT_SKELETON_OWNER_TOKENS) {
+            expect(sourceReportStyles).toContain(token);
         }
+        expect(workstation).not.toContain(
+            "const sotSourceReportCardSkeletonClassNames",
+        );
+        expect(workstation).not.toContain(
+            "const sotSourceReportSegmentSkeletonClassNames",
+        );
         const dashboardSourceReportCardSkeleton = extractOpeningElement(
             workstation,
             'data-sot-part="source-report-card-skeleton"',
@@ -8015,7 +8019,7 @@ describe("full UI replacement regression coverage", () => {
         );
         expect(dashboardSourceReportCardSkeleton).toContain('size="default"');
         expect(dashboardSourceReportCardSkeleton).toContain(
-            "className={sotSourceReportCardSkeletonClassNames[size]}",
+            "className={SOURCE_REPORT_CARD_SKELETON_CLASS_NAMES[size]}",
         );
         const dashboardSourceReportSegmentSkeleton = extractOpeningElement(
             workstation,
@@ -8029,7 +8033,7 @@ describe("full UI replacement regression coverage", () => {
             'size="default"',
         );
         expect(dashboardSourceReportSegmentSkeleton).toContain(
-            "className={sotSourceReportSegmentSkeletonClassNames[size]}",
+            "className={SOURCE_REPORT_SEGMENT_SKELETON_CLASS_NAMES[size]}",
         );
         expect(workstation).not.toContain('variant="sourceReportCard"');
         expect(workstation).not.toContain('variant="sourceReportSegment"');
@@ -8409,9 +8413,12 @@ describe("full UI replacement regression coverage", () => {
             expect(dashboardSourceReportLoaded).toContain(hook);
         }
         expectExactStringConstInitializer(
-            workstation,
+            sourceReportStyles,
+            "SOURCE_REPORT_STATUS_BADGE_CLASS_NAME",
+            EXPECTED_SOURCE_REPORT_STATUS_BADGE_CLASS_NAME,
+        );
+        expect(workstation).not.toContain(
             "SOT_DASHBOARD_SOURCE_REPORT_STATUS_CLASS_NAME",
-            EXPECTED_DASHBOARD_SOURCE_REPORT_STATUS_CLASS_NAME,
         );
         for (const snippet of SOURCE_REPORT_STYLE_OWNER_SNIPPETS) {
             expect(sourceReportStyles).toContain(snippet);
@@ -8425,7 +8432,11 @@ describe("full UI replacement regression coverage", () => {
         ).toEqual([]);
         expect(sourceReportStyles).toContain("SOURCE_REPORT_STATE_CLASS_NAME");
         expect(workstation).toContain("@/features/source-report/styles");
-        expect(workstation).toContain("SOURCE_REPORT_SKELETON_CLASS_NAME");
+        expect(sourceReportStyles).toContain("SOURCE_REPORT_SKELETON_CLASS_NAME");
+        expect(workstation).toContain("SOURCE_REPORT_CARD_SKELETON_CLASS_NAMES");
+        expect(workstation).toContain(
+            "SOURCE_REPORT_SEGMENT_SKELETON_CLASS_NAMES",
+        );
         expect(workstation).toContain("SOURCE_REPORT_STYLE_VARIABLES");
         const dashboardSourceReportPane = extractOpeningElement(
             workstation,
@@ -8455,14 +8466,14 @@ describe("full UI replacement regression coverage", () => {
         expect(dashboardSourceReportStatusBadge).toContain('variant="ghost"');
         expectClassNameConstReference(
             dashboardSourceReportStatusBadge,
-            "SOT_DASHBOARD_SOURCE_REPORT_STATUS_CLASS_NAME",
+            "SOURCE_REPORT_STATUS_BADGE_CLASS_NAME",
         );
         expect(dashboardSourceReportLoaded).not.toContain(
             'variant="sourceReportStatus"',
         );
         expect(workstation).not.toContain('variant="sourceReportStatus"');
         expect(workstation).toMatch(/data-sot-tone=\{\s*tone\s*\}/);
-        expect(workstation).not.toContain("SOURCE_REPORT_STATUS_BADGE_CLASS");
+        expect(workstation).not.toMatch(/\bSOURCE_REPORT_STATUS_BADGE_CLASS\s*=/);
         expect(workstation).not.toContain(
             "SOURCE_REPORT_STATUS_BADGE_TONE_CLASS",
         );
@@ -8480,13 +8491,13 @@ describe("full UI replacement regression coverage", () => {
         expect(dashboardSourceReportOpenAction).toContain('size="xs"');
         expectClassNameConstReference(
             dashboardSourceReportOpenAction,
-            "SOT_SOURCE_REPORT_GHOST_ACTION_BUTTON_CLASS_NAME",
+            "SOURCE_REPORT_GHOST_ACTION_BUTTON_CLASS_NAME",
         );
         expect(dashboardSourceReportRepullAction).toContain('variant="ghost"');
         expect(dashboardSourceReportRepullAction).toContain('size="xs"');
         expectClassNameConstReference(
             dashboardSourceReportRepullAction,
-            "SOT_SOURCE_REPORT_GHOST_ACTION_BUTTON_CLASS_NAME",
+            "SOURCE_REPORT_GHOST_ACTION_BUTTON_CLASS_NAME",
         );
         for (const action of [
             dashboardSourceReportOpenAction,
@@ -11741,7 +11752,11 @@ describe("full UI replacement regression coverage", () => {
         ).toEqual([]);
         expect(sourceReportStyles).toContain("SOURCE_REPORT_STATE_CLASS_NAME");
         expect(sourceReport).toContain("@/features/source-report/styles");
-        expect(sourceReport).toContain("SOURCE_REPORT_SKELETON_CLASS_NAME");
+        expect(sourceReportStyles).toContain("SOURCE_REPORT_SKELETON_CLASS_NAME");
+        expect(sourceReport).toContain("SOURCE_REPORT_CARD_SKELETON_CLASS_NAMES");
+        expect(sourceReport).toContain(
+            "SOURCE_REPORT_SEGMENT_SKELETON_CLASS_NAMES",
+        );
         expect(sourceReport).toContain("SOURCE_REPORT_STYLE_VARIABLES");
         expect(
             sourceReport.match(/style=\{SOURCE_REPORT_STYLE_VARIABLES\}/g) ??
@@ -11755,7 +11770,7 @@ describe("full UI replacement regression coverage", () => {
         );
         expect(sourceReport).toContain("data-sot-state={sourceReportState}");
         expect(sourceReport).toContain(
-            'import { Button, type ButtonProps } from "@/components/ui/button";',
+            'import { Button } from "@/components/ui/button";',
         );
         expect(sourceReport).toContain(
             'import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";',
@@ -11923,7 +11938,7 @@ describe("full UI replacement regression coverage", () => {
             'className="flex size-10 items-center justify-center rounded-full border border-border bg-background text-muted-foreground"',
         );
         expect(sourceReport).toContain('data-sot-badge="source-report-status"');
-        expect(sourceReport).toContain("SOURCE_REPORT_STATUS_BADGE_STYLE");
+        expect(sourceReport).toContain("SOURCE_REPORT_STATUS_BADGE_CLASS_NAME");
         expect(sourceReport).toContain("function SourceReportStatusBadge");
         expect(sourceReport).toContain('variant="ghost"');
         expectSourceToExcludeForbiddenSubstrings(
@@ -11937,17 +11952,23 @@ describe("full UI replacement regression coverage", () => {
         expect(emptyPrimitive).not.toContain(
             "SOURCE_REPORT_ERROR_ICON_CLASS_NAME",
         );
-        expect(sourceReport).toContain(
+        expect(sourceReportStyles).toContain(
             '"ghost" satisfies ButtonProps["variant"]',
         );
-        expect(sourceReport).toContain('"sm" satisfies ButtonProps["size"]');
+        expect(sourceReportStyles).toContain('"sm" satisfies ButtonProps["size"]');
         expect(sourceReport).toContain("SOURCE_REPORT_COPY_BUTTON_CLASS_NAME");
         for (const token of SOURCE_REPORT_SKELETON_SHARED_TOKENS) {
             expect(skeletonPrimitive).not.toContain(token);
         }
-        for (const token of RECORDING_SOURCE_REPORT_SKELETON_LOCAL_COMPOSITION_TOKENS) {
-            expect(sourceReport).toContain(token);
+        for (const token of SOURCE_REPORT_SKELETON_OWNER_TOKENS) {
+            expect(sourceReportStyles).toContain(token);
         }
+        expect(sourceReport).not.toContain(
+            "const sourceReportCardSkeletonClassNames",
+        );
+        expect(sourceReport).not.toContain(
+            "const sourceReportSegmentSkeletonClassNames",
+        );
         const sourceReportCardSkeleton = extractOpeningElement(
             sourceReport,
             'data-sot-part="source-report-card-skeleton"',
@@ -11956,7 +11977,7 @@ describe("full UI replacement regression coverage", () => {
         expect(sourceReportCardSkeleton).toContain('variant="default"');
         expect(sourceReportCardSkeleton).toContain('size="default"');
         expect(sourceReportCardSkeleton).toContain(
-            "className={sourceReportCardSkeletonClassNames[size]}",
+            "className={SOURCE_REPORT_CARD_SKELETON_CLASS_NAMES[size]}",
         );
         const sourceReportSegmentSkeleton = extractOpeningElement(
             sourceReport,
@@ -11966,12 +11987,13 @@ describe("full UI replacement regression coverage", () => {
         expect(sourceReportSegmentSkeleton).toContain('variant="default"');
         expect(sourceReportSegmentSkeleton).toContain('size="default"');
         expect(sourceReportSegmentSkeleton).toContain(
-            "className={sourceReportSegmentSkeletonClassNames[size]}",
+            "className={SOURCE_REPORT_SEGMENT_SKELETON_CLASS_NAMES[size]}",
         );
         expect(sourceReport).not.toContain('variant="sourceReportCard"');
         expect(sourceReport).not.toContain('variant="sourceReportSegment"');
         expect(sourceReport).not.toContain("sourceReportCardSkeletonSize");
         expect(sourceReport).not.toContain("sourceReportSegmentSkeletonSize");
+        expect(sourceReport).not.toContain("SOURCE_REPORT_STATUS_BADGE_STYLE");
         expect(sourceReport).toContain("data-sot-source-report-header-actions");
         for (const control of [
             'data-sot-control="copy-source-transcript"',
@@ -12014,7 +12036,7 @@ describe("full UI replacement regression coverage", () => {
                 '[data-sot-part="source-report-copy-label"]',
             ),
         ).toEqual([]);
-        expect(sourceReport).toContain(
+        expect(sourceReportStyles).toContain(
             "[&_[data-sot-part=source-report-status-dot]]:bg-current",
         );
         for (const selector of SOURCE_REPORT_METRIC_GLOBAL_REPAINT_SELECTOR_FRAGMENTS) {
@@ -12054,7 +12076,6 @@ describe("full UI replacement regression coverage", () => {
         expect(sourceReport).not.toContain("sourceReportSyncPillClass");
         expect(sourceReport).not.toMatch(/\bSOURCE_REPORT_METRIC_CARD_CLASS\b/);
         for (const legacySourceReportPrimitiveClass of [
-            "SOURCE_REPORT_STATUS_BADGE_CLASS",
             "SOURCE_REPORT_STATUS_BADGE_TONE_CLASS",
             "sourceReportStatusBadgeVariant",
         ]) {
@@ -12062,6 +12083,7 @@ describe("full UI replacement regression coverage", () => {
                 legacySourceReportPrimitiveClass,
             );
         }
+        expect(sourceReport).not.toMatch(/\bSOURCE_REPORT_STATUS_BADGE_CLASS\s*=/);
         expect(sourceReport).not.toMatch(
             /\bCSSProperties\b|SOURCE_REPORT_LOADING_SKELETON_STYLES|style=\{(?!SOURCE_REPORT_STYLE_VARIABLES\})|sk _is|_is-/,
         );

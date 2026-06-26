@@ -1,8 +1,21 @@
 import type { CSSProperties } from "react";
+import type { ButtonProps } from "@/components/ui/button";
 
 type SourceReportStyleVariables = CSSProperties & {
     [key in `--source-report-${string}`]?: string;
 };
+
+export type SourceReportTone = "err" | "neu" | "ok" | "warn";
+
+export type SourceReportCardSkeletonSize = "count" | "source" | "status";
+
+export type SourceReportSegmentSkeletonSize =
+    | "line-long"
+    | "line-medium"
+    | "line-short"
+    | "line-wide"
+    | "speaker"
+    | "time";
 
 export const SOURCE_REPORT_STYLE_VARIABLES = {
     "--source-report-metric-bg": "var(--card-popover-footer-bg)",
@@ -35,6 +48,22 @@ export const SOURCE_REPORT_STYLE_VARIABLES = {
 
 export const SOURCE_REPORT_SKELETON_CLASS_NAME =
     "![background-color:transparent] [background-image:var(--source-report-skeleton-bg)] dark:[background-image:linear-gradient(90deg,rgb(255_255_255_/_0.05)_0%,rgb(255_255_255_/_0.12)_50%,rgb(255_255_255_/_0.05)_100%)] [background-size:220%_100%]";
+
+export const SOURCE_REPORT_CARD_SKELETON_CLASS_NAMES = {
+    count: `${SOURCE_REPORT_SKELETON_CLASS_NAME} inline-block h-[18px] w-[48px] align-middle rounded-[6px]`,
+    source: `${SOURCE_REPORT_SKELETON_CLASS_NAME} inline-block h-[18px] w-[120px] align-middle rounded-[6px]`,
+    status: `${SOURCE_REPORT_SKELETON_CLASS_NAME} inline-block h-[18px] w-[80px] align-middle rounded-[6px]`,
+} as const satisfies Record<SourceReportCardSkeletonSize, string>;
+
+// biome-ignore format: regression tests assert these feature-owner tokens as single-line source text.
+export const SOURCE_REPORT_SEGMENT_SKELETON_CLASS_NAMES = {
+    "line-long": `${SOURCE_REPORT_SKELETON_CLASS_NAME} mt-1.5 inline-block h-[13px] w-[92%] align-middle rounded-[4px]`,
+    "line-medium": `${SOURCE_REPORT_SKELETON_CLASS_NAME} mt-1.5 inline-block h-[13px] w-[76%] align-middle rounded-[4px]`,
+    "line-short": `${SOURCE_REPORT_SKELETON_CLASS_NAME} mt-1.5 inline-block h-[13px] w-3/5 align-middle rounded-[4px]`,
+    "line-wide": `${SOURCE_REPORT_SKELETON_CLASS_NAME} mt-[7px] inline-block h-[13px] w-[88%] align-middle rounded-[4px]`,
+    speaker: `${SOURCE_REPORT_SKELETON_CLASS_NAME} ml-[5px] inline-block h-[12px] w-[54px] align-middle rounded-[4px]`,
+    time: `${SOURCE_REPORT_SKELETON_CLASS_NAME} inline-block h-[12px] w-[96px] align-middle rounded-[4px]`,
+} as const satisfies Record<SourceReportSegmentSkeletonSize, string>;
 
 export const SOURCE_REPORT_PANE_CLASS_NAME = "flex flex-col gap-3.5";
 
@@ -121,8 +150,28 @@ export const SOURCE_REPORT_META_MONO_VALUE_CLASS_NAME = "font-mono";
 export const SOURCE_REPORT_ACTION_ROW_CLASS_NAME =
     "mt-1 flex flex-wrap items-center gap-2";
 
+export const SOURCE_REPORT_ACTION_BUTTON_CLASS_NAME =
+    "text-[var(--fg-primary)]";
+
+export const SOURCE_REPORT_PRIMARY_ACTION_BUTTON_CLASS_NAME =
+    "h-[26px] gap-[7px] rounded-[7px] border border-[var(--source-report-primary-border)] [background:var(--source-report-primary-bg)] px-[10px] text-[12px] font-semibold leading-[normal] text-white shadow-[var(--source-report-primary-shadow)] has-[>svg]:px-[10px] hover:[background:var(--source-report-primary-hover-bg)] hover:text-white";
+
+export const SOURCE_REPORT_GHOST_ACTION_BUTTON_CLASS_NAME =
+    "h-[26px] gap-[7px] rounded-[7px] border border-transparent bg-transparent px-[10px] text-[12px] font-semibold leading-[normal] text-[var(--fg-secondary)] shadow-none has-[>svg]:px-[10px] hover:bg-[var(--bg-recessed)] hover:text-[var(--fg-primary)] dark:hover:bg-[var(--bg-recessed)]";
+
+export const SOURCE_REPORT_COPY_BUTTON_VARIANT =
+    "ghost" satisfies ButtonProps["variant"];
+
+export const SOURCE_REPORT_COPY_BUTTON_SIZE = "sm" satisfies ButtonProps["size"];
+
+export const SOURCE_REPORT_COPY_BUTTON_CLASS_NAME =
+    "h-[26px] gap-[6px] rounded-[7px] px-[10px] text-[12px] font-semibold leading-normal text-[var(--fg-secondary)] has-[>svg]:px-[10px] hover:bg-[var(--bg-recessed)] hover:text-[var(--fg-primary)] [&[hidden]]:hidden [&_svg:not([class*='size-'])]:size-[14px] data-[copy-state=ok]:border-[var(--button-copy-success-border)] data-[copy-state=ok]:bg-[var(--button-copy-success-bg)] data-[copy-state=ok]:text-[var(--signal-success)] data-[copy-state=ok]:hover:bg-[var(--button-copy-success-bg)] data-[copy-state=ok]:hover:text-[var(--signal-success)] data-[copy-state=err]:border-[var(--button-copy-danger-border)] data-[copy-state=err]:text-[var(--signal-danger)] data-[copy-state=err]:hover:bg-transparent data-[copy-state=err]:hover:text-[var(--signal-danger)]";
+
 export const SOURCE_REPORT_EMPTY_ACTION_ROW_CLASS_NAME =
     "mt-2 flex flex-wrap items-center gap-1.5";
+
+export const SOURCE_REPORT_ERROR_ALERT_CLASS_NAME =
+    "flex w-full flex-col items-center gap-2 rounded-lg px-4 py-8 text-center text-sm [&>svg]:text-current";
 
 export const SOURCE_REPORT_EMPTY_SURFACE_CLASS_NAME =
     "flex flex-col items-center gap-1 rounded-[10px] border border-dashed border-[var(--line-hairline)] bg-[var(--bg-recessed)] px-[18px] py-7 text-center shadow-none backdrop-blur-none dark:border-[var(--glass-border-soft)] data-[sot-tone=err]:border-[color-mix(in_srgb,var(--signal-danger)_26%,transparent)] data-[sot-tone=err]:bg-[color-mix(in_srgb,var(--signal-danger)_6%,transparent)]";
@@ -146,3 +195,6 @@ export const SOURCE_REPORT_COPY_LABEL_CLASS_NAME =
 
 export const SOURCE_REPORT_COPY_ICON_CLASS_NAME =
     "stroke-current transition-[opacity,transform] duration-200 ease-out";
+
+export const SOURCE_REPORT_STATUS_BADGE_CLASS_NAME =
+    "h-[22px] min-w-[65px] justify-normal gap-[9px] overflow-visible rounded-full border px-[8px] py-0 text-[11px] font-semibold leading-[normal] shadow-none data-[sot-tone=err]:border-[var(--source-report-status-err-border)] data-[sot-tone=err]:bg-[var(--source-report-status-err-bg)] data-[sot-tone=err]:text-[var(--signal-danger)] data-[sot-tone=neu]:border-[var(--line-hairline)] data-[sot-tone=neu]:bg-[var(--bg-recessed)] data-[sot-tone=neu]:text-[var(--fg-secondary)] data-[sot-tone=ok]:border-[var(--source-report-status-ok-border)] data-[sot-tone=ok]:bg-[var(--source-report-status-ok-bg)] data-[sot-tone=ok]:text-[var(--source-report-status-ok-fg)] data-[sot-tone=warn]:border-[var(--source-report-status-warn-border)] data-[sot-tone=warn]:bg-[var(--source-report-status-warn-bg)] data-[sot-tone=warn]:text-[var(--source-report-status-warn-fg)] [&_[data-sot-part=dashboard-source-report-status-dot]]:mr-0 [&_[data-sot-part=dashboard-source-report-status-dot]]:inline-block [&_[data-sot-part=dashboard-source-report-status-dot]]:size-[5px] [&_[data-sot-part=dashboard-source-report-status-dot]]:rounded-full [&_[data-sot-part=dashboard-source-report-status-dot]]:bg-current [&_[data-sot-part=source-report-status-dot]]:mr-0 [&_[data-sot-part=source-report-status-dot]]:inline-block [&_[data-sot-part=source-report-status-dot]]:size-[5px] [&_[data-sot-part=source-report-status-dot]]:rounded-full [&_[data-sot-part=source-report-status-dot]]:bg-current";

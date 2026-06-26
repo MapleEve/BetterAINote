@@ -93,12 +93,15 @@ import { useDisplaySettingsStore } from "@/features/settings/display-settings-st
 import { usePlaybackSettingsStore } from "@/features/settings/playback-settings-store";
 import {
     SOURCE_REPORT_ACTION_ROW_CLASS_NAME,
+    SOURCE_REPORT_ACTION_BUTTON_CLASS_NAME,
     SOURCE_REPORT_CARD_LABEL_CLASS_NAME,
     SOURCE_REPORT_CARD_NUMBER_VALUE_CLASS_NAME,
+    SOURCE_REPORT_CARD_SKELETON_CLASS_NAMES,
     SOURCE_REPORT_CARD_SOURCE_FALLBACK_CLASS_NAME,
     SOURCE_REPORT_CARD_SOURCE_ICON_CLASS_NAME,
     SOURCE_REPORT_CARD_SOURCE_VALUE_CLASS_NAME,
     SOURCE_REPORT_CARD_VALUE_CLASS_NAME,
+    SOURCE_REPORT_COPY_BUTTON_CLASS_NAME,
     SOURCE_REPORT_COPY_ICON_CLASS_NAME,
     SOURCE_REPORT_COPY_LABEL_CLASS_NAME,
     SOURCE_REPORT_DESCRIPTION_CLASS_NAME,
@@ -108,6 +111,8 @@ import {
     SOURCE_REPORT_EMPTY_ICON_CLASS_NAME,
     SOURCE_REPORT_EMPTY_SURFACE_CLASS_NAME,
     SOURCE_REPORT_EMPTY_TITLE_CLASS_NAME,
+    SOURCE_REPORT_ERROR_ALERT_CLASS_NAME,
+    SOURCE_REPORT_GHOST_ACTION_BUTTON_CLASS_NAME,
     SOURCE_REPORT_META_CLASS_NAME,
     SOURCE_REPORT_META_LABEL_CLASS_NAME,
     SOURCE_REPORT_META_MONO_VALUE_CLASS_NAME,
@@ -121,16 +126,21 @@ import {
     SOURCE_REPORT_SECTION_SEPARATOR_CLASS_NAME,
     SOURCE_REPORT_SECTION_TITLE_CLASS_NAME,
     SOURCE_REPORT_SEGMENT_CLASS_NAME,
+    SOURCE_REPORT_SEGMENT_SKELETON_CLASS_NAMES,
     SOURCE_REPORT_SEGMENT_SKELETON_CONTAINER_CLASS_NAME,
     SOURCE_REPORT_SEGMENT_SPEAKER_CLASS_NAME,
     SOURCE_REPORT_SEGMENT_TEXT_CLASS_NAME,
     SOURCE_REPORT_SEGMENT_TIME_CLASS_NAME,
     SOURCE_REPORT_SEGMENTS_CLASS_NAME,
-    SOURCE_REPORT_SKELETON_CLASS_NAME,
+    SOURCE_REPORT_PRIMARY_ACTION_BUTTON_CLASS_NAME,
     SOURCE_REPORT_STATE_CLASS_NAME,
+    SOURCE_REPORT_STATUS_BADGE_CLASS_NAME,
     SOURCE_REPORT_STYLE_VARIABLES,
     SOURCE_REPORT_SUMMARY_BODY_CLASS_NAME,
     SOURCE_REPORT_SUMMARY_TEXT_CLASS_NAME,
+    type SourceReportCardSkeletonSize,
+    type SourceReportSegmentSkeletonSize,
+    type SourceReportTone,
 } from "@/features/source-report/styles";
 import { useAutoSync } from "@/hooks/use-auto-sync";
 import { useRecordingPlayback } from "@/hooks/use-recording-playback";
@@ -1000,8 +1010,6 @@ function sourceReportReadinessLabel(
     return readiness === true || hasReadableContent ? "已就绪" : "未生成";
 }
 
-type SourceReportTone = "err" | "neu" | "ok" | "warn";
-
 function sourceReportReadinessTone(label: string): SourceReportTone {
     if (label === "已就绪") return "ok";
     if (label === "失败") return "err";
@@ -1022,9 +1030,6 @@ function sourceReportSyncTone(label: string): SourceReportTone {
     return "neu";
 }
 
-const SOT_DASHBOARD_SOURCE_REPORT_STATUS_CLASS_NAME =
-    "h-[22px] min-w-[65px] justify-normal gap-[9px] overflow-visible rounded-full border px-[8px] py-0 text-[11px] font-semibold leading-[normal] shadow-none data-[sot-tone=err]:border-[var(--source-report-status-err-border)] data-[sot-tone=err]:bg-[var(--source-report-status-err-bg)] data-[sot-tone=err]:text-[var(--signal-danger)] data-[sot-tone=neu]:border-[var(--line-hairline)] data-[sot-tone=neu]:bg-[var(--bg-recessed)] data-[sot-tone=neu]:text-[var(--fg-secondary)] data-[sot-tone=ok]:border-[var(--source-report-status-ok-border)] data-[sot-tone=ok]:bg-[var(--source-report-status-ok-bg)] data-[sot-tone=ok]:text-[var(--source-report-status-ok-fg)] data-[sot-tone=warn]:border-[var(--source-report-status-warn-border)] data-[sot-tone=warn]:bg-[var(--source-report-status-warn-bg)] data-[sot-tone=warn]:text-[var(--source-report-status-warn-fg)] [&_[data-sot-part=dashboard-source-report-status-dot]]:mr-0 [&_[data-sot-part=dashboard-source-report-status-dot]]:inline-block [&_[data-sot-part=dashboard-source-report-status-dot]]:size-[5px] [&_[data-sot-part=dashboard-source-report-status-dot]]:rounded-full [&_[data-sot-part=dashboard-source-report-status-dot]]:bg-current [&_[data-sot-part=source-report-status-dot]]:mr-0 [&_[data-sot-part=source-report-status-dot]]:inline-block [&_[data-sot-part=source-report-status-dot]]:size-[5px] [&_[data-sot-part=source-report-status-dot]]:rounded-full [&_[data-sot-part=source-report-status-dot]]:bg-current";
-
 function SotSourceReportStatusBadge({
     children,
     tone,
@@ -1035,7 +1040,7 @@ function SotSourceReportStatusBadge({
     return (
         <Badge
             variant="ghost"
-            className={SOT_DASHBOARD_SOURCE_REPORT_STATUS_CLASS_NAME}
+            className={SOURCE_REPORT_STATUS_BADGE_CLASS_NAME}
             data-sot-badge="source-report-status"
             data-sot-tone={tone}
         >
@@ -1054,16 +1059,6 @@ function SotSourceReportMetricCards({ children }: { children: ReactNode }) {
         </div>
     );
 }
-
-const SOT_SOURCE_REPORT_ACTION_BUTTON_CLASS_NAME = "text-[var(--fg-primary)]";
-const SOT_SOURCE_REPORT_PRIMARY_ACTION_BUTTON_CLASS_NAME =
-    "h-[26px] gap-[7px] rounded-[7px] border border-[var(--source-report-primary-border)] [background:var(--source-report-primary-bg)] px-[10px] text-[12px] font-semibold leading-[normal] text-white shadow-[var(--source-report-primary-shadow)] has-[>svg]:px-[10px] hover:[background:var(--source-report-primary-hover-bg)] hover:text-white";
-const SOT_SOURCE_REPORT_GHOST_ACTION_BUTTON_CLASS_NAME =
-    "h-[26px] gap-[7px] rounded-[7px] border border-transparent bg-transparent px-[10px] text-[12px] font-semibold leading-[normal] text-[var(--fg-secondary)] shadow-none has-[>svg]:px-[10px] hover:bg-[var(--bg-recessed)] hover:text-[var(--fg-primary)] dark:hover:bg-[var(--bg-recessed)]";
-const SOT_SOURCE_REPORT_COPY_BUTTON_CLASS_NAME =
-    "h-[26px] gap-[6px] rounded-[7px] px-[10px] text-[12px] font-semibold leading-normal text-[var(--fg-secondary)] has-[>svg]:px-[10px] hover:bg-[var(--bg-recessed)] hover:text-[var(--fg-primary)] [&[hidden]]:hidden [&_svg:not([class*='size-'])]:size-[14px] data-[copy-state=ok]:border-[var(--button-copy-success-border)] data-[copy-state=ok]:bg-[var(--button-copy-success-bg)] data-[copy-state=ok]:text-[var(--signal-success)] data-[copy-state=ok]:hover:bg-[var(--button-copy-success-bg)] data-[copy-state=ok]:hover:text-[var(--signal-success)] data-[copy-state=err]:border-[var(--button-copy-danger-border)] data-[copy-state=err]:text-[var(--signal-danger)] data-[copy-state=err]:hover:bg-transparent data-[copy-state=err]:hover:text-[var(--signal-danger)]";
-const SOT_SOURCE_REPORT_ERROR_ALERT_CLASS_NAME =
-    "flex w-full flex-col items-center gap-2 rounded-lg px-4 py-8 text-center text-sm [&>svg]:text-current";
 
 const SOT_DASHBOARD_DETAIL_HEADER_CLASS_NAME =
     "relative flex flex-row items-center gap-2.5 px-1 pt-1 pb-0 data-[sot-state=saving]:py-0";
@@ -1087,57 +1082,6 @@ const SOT_DASHBOARD_RECORDING_PLAYER_META_CLASS_NAME =
 
 const SOT_DASHBOARD_RECORDING_PLAYER_DATE_CLASS_NAME =
     "font-mono text-[11.5px] font-medium tracking-[0.02em] text-[var(--fg-tertiary)]";
-
-type SotSourceReportCardSkeletonSize = "count" | "source" | "status";
-type SotSourceReportSegmentSkeletonSize =
-    | "line-long"
-    | "line-medium"
-    | "line-short"
-    | "line-wide"
-    | "speaker"
-    | "time";
-
-const sotSourceReportCardSkeletonClassNames = {
-    count: cn(
-        SOURCE_REPORT_SKELETON_CLASS_NAME,
-        "inline-block h-[18px] w-[48px] align-middle rounded-[6px]",
-    ),
-    source: cn(
-        SOURCE_REPORT_SKELETON_CLASS_NAME,
-        "inline-block h-[18px] w-[120px] align-middle rounded-[6px]",
-    ),
-    status: cn(
-        SOURCE_REPORT_SKELETON_CLASS_NAME,
-        "inline-block h-[18px] w-[80px] align-middle rounded-[6px]",
-    ),
-} as const satisfies Record<SotSourceReportCardSkeletonSize, string>;
-
-const sotSourceReportSegmentSkeletonClassNames = {
-    "line-long": cn(
-        SOURCE_REPORT_SKELETON_CLASS_NAME,
-        "mt-1.5 inline-block h-[13px] w-[92%] align-middle rounded-[4px]",
-    ),
-    "line-medium": cn(
-        SOURCE_REPORT_SKELETON_CLASS_NAME,
-        "mt-1.5 inline-block h-[13px] w-[76%] align-middle rounded-[4px]",
-    ),
-    "line-short": cn(
-        SOURCE_REPORT_SKELETON_CLASS_NAME,
-        "mt-1.5 inline-block h-[13px] w-3/5 align-middle rounded-[4px]",
-    ),
-    "line-wide": cn(
-        SOURCE_REPORT_SKELETON_CLASS_NAME,
-        "mt-[7px] inline-block h-[13px] w-[88%] align-middle rounded-[4px]",
-    ),
-    speaker: cn(
-        SOURCE_REPORT_SKELETON_CLASS_NAME,
-        "ml-[5px] inline-block h-[12px] w-[54px] align-middle rounded-[4px]",
-    ),
-    time: cn(
-        SOURCE_REPORT_SKELETON_CLASS_NAME,
-        "inline-block h-[12px] w-[96px] align-middle rounded-[4px]",
-    ),
-} as const satisfies Record<SotSourceReportSegmentSkeletonSize, string>;
 
 function SotSourceReportMetricCard({
     children,
@@ -1187,13 +1131,13 @@ function SotSourceReportMetricCard({
 function SotSourceReportCardSkeleton({
     size,
 }: {
-    size: SotSourceReportCardSkeletonSize;
+    size: SourceReportCardSkeletonSize;
 }) {
     return (
         <Skeleton
             variant="default"
             size="default"
-            className={sotSourceReportCardSkeletonClassNames[size]}
+            className={SOURCE_REPORT_CARD_SKELETON_CLASS_NAMES[size]}
             aria-hidden="true"
             data-sot-part="source-report-card-skeleton"
             data-sot-size={size}
@@ -1204,13 +1148,13 @@ function SotSourceReportCardSkeleton({
 function SotSourceReportSegmentSkeleton({
     size,
 }: {
-    size: SotSourceReportSegmentSkeletonSize;
+    size: SourceReportSegmentSkeletonSize;
 }) {
     return (
         <Skeleton
             variant="default"
             size="default"
-            className={sotSourceReportSegmentSkeletonClassNames[size]}
+            className={SOURCE_REPORT_SEGMENT_SKELETON_CLASS_NAMES[size]}
             aria-hidden="true"
             data-sot-part="source-report-segment-skeleton"
             data-sot-size={size}
@@ -7243,7 +7187,7 @@ export function Workstation({
                                         variant="ghost"
                                         size="sm"
                                         className={
-                                            SOT_SOURCE_REPORT_COPY_BUTTON_CLASS_NAME
+                                            SOURCE_REPORT_COPY_BUTTON_CLASS_NAME
                                         }
                                         type="button"
                                         data-copy="source-transcript"
@@ -7314,7 +7258,7 @@ export function Workstation({
                                         variant="ghost"
                                         size="sm"
                                         className={
-                                            SOT_SOURCE_REPORT_COPY_BUTTON_CLASS_NAME
+                                            SOURCE_REPORT_COPY_BUTTON_CLASS_NAME
                                         }
                                         type="button"
                                         data-copy="source-report"
@@ -7383,7 +7327,7 @@ export function Workstation({
                                             variant="outline"
                                             size="xs"
                                             className={
-                                                SOT_SOURCE_REPORT_ACTION_BUTTON_CLASS_NAME
+                                                SOURCE_REPORT_ACTION_BUTTON_CLASS_NAME
                                             }
                                             type="button"
                                             data-sot-control="refresh-source-report"
@@ -7757,7 +7701,7 @@ export function Workstation({
                                             <Alert
                                                 variant="statusError"
                                                 className={cn(
-                                                    SOT_SOURCE_REPORT_ERROR_ALERT_CLASS_NAME,
+                                                    SOURCE_REPORT_ERROR_ALERT_CLASS_NAME,
                                                     SOURCE_REPORT_EMPTY_SURFACE_CLASS_NAME,
                                                 )}
                                                 data-sot-source-report-empty
@@ -7802,7 +7746,7 @@ export function Workstation({
                                                         variant="default"
                                                         size="xs"
                                                         className={
-                                                            SOT_SOURCE_REPORT_PRIMARY_ACTION_BUTTON_CLASS_NAME
+                                                            SOURCE_REPORT_PRIMARY_ACTION_BUTTON_CLASS_NAME
                                                         }
                                                         type="button"
                                                         data-sot-control="refresh-source-report"
@@ -7817,7 +7761,7 @@ export function Workstation({
                                                         variant="ghost"
                                                         size="xs"
                                                         className={
-                                                            SOT_SOURCE_REPORT_GHOST_ACTION_BUTTON_CLASS_NAME
+                                                            SOURCE_REPORT_GHOST_ACTION_BUTTON_CLASS_NAME
                                                         }
                                                         type="button"
                                                         data-sot-control="source-report-activity-log"
@@ -7848,7 +7792,7 @@ export function Workstation({
                                                 <Badge
                                                     variant="ghost"
                                                     className={
-                                                        SOT_DASHBOARD_SOURCE_REPORT_STATUS_CLASS_NAME
+                                                        SOURCE_REPORT_STATUS_BADGE_CLASS_NAME
                                                     }
                                                     data-sot-badge="source-report-status"
                                                     data-sot-tone="warn"
@@ -8153,7 +8097,7 @@ export function Workstation({
                                                         variant="ghost"
                                                         size="xs"
                                                         className={
-                                                            SOT_SOURCE_REPORT_GHOST_ACTION_BUTTON_CLASS_NAME
+                                                            SOURCE_REPORT_GHOST_ACTION_BUTTON_CLASS_NAME
                                                         }
                                                         type="button"
                                                         disabled={
@@ -8184,7 +8128,7 @@ export function Workstation({
                                                         variant="ghost"
                                                         size="xs"
                                                         className={
-                                                            SOT_SOURCE_REPORT_GHOST_ACTION_BUTTON_CLASS_NAME
+                                                            SOURCE_REPORT_GHOST_ACTION_BUTTON_CLASS_NAME
                                                         }
                                                         type="button"
                                                         disabled={
