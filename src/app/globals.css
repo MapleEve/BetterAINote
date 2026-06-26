@@ -2091,31 +2091,6 @@ button:not([data-slot]) {
     }
 }
 
-/* Speaker · no-match + create + unlink-confirm */
-[data-sot-confirm="speaker-unlink"] {
-    display: flex;
-    flex-direction: row;
-    align-items: center;
-    gap: 10px;
-    padding: 10px 12px;
-    border-radius: var(--radius-md);
-    background: color-mix(in srgb, var(--signal-danger) 8%, var(--bg-elevated));
-    border: 1px solid color-mix(in srgb, var(--signal-danger) 22%, transparent);
-    color: var(--fg-primary);
-    font-size: var(--text-body-sm);
-    box-shadow: none;
-    overflow: visible;
-}
-[data-sot-confirm="speaker-unlink"] [data-sot-confirm-message] {
-    flex: 1;
-    min-width: 0;
-}
-[data-sot-confirm="speaker-unlink"] [data-sot-confirm-subject] {
-    font-style: normal;
-    font-weight: var(--weight-semibold);
-    color: var(--fg-primary);
-}
-
 /* ============================================================
    P1.1 — Chrome normalization & DS visual layer
    ------------------------------------------------------------
