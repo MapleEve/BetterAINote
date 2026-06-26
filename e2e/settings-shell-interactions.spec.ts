@@ -2647,6 +2647,9 @@ test("settings shell row 117 captures responsive visual matrix", async ({
             desktop.viewport,
         );
         let sotCapture = await captureShellFrame(sotShell, sotPath);
+        expect(productCapture.metrics.boxShadow).toBe(
+            sotCapture.metrics.boxShadow,
+        );
         let diff = await comparePngPixels(
             page,
             sotCapture.screenshot,
@@ -2657,6 +2660,7 @@ test("settings shell row 117 captures responsive visual matrix", async ({
                 "desktop shell visible and viewport-bound",
                 "same-page hash switch activates appearance",
                 "desktop rail active state follows selected section",
+                "computed shell box-shadow matches the handoff SOT token",
             ],
             blockerReason: diff.blockerReason,
             diff,

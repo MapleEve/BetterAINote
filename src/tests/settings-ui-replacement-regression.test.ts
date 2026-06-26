@@ -961,6 +961,23 @@ describe("settings SOT interaction regressions", () => {
         );
     });
 
+    it("keeps the SOT settings shell shadow token above the DialogContent base shadow", () => {
+        const dialog = readSource(
+            "features/settings/components/settings-dialog.tsx",
+        );
+        const dialogPrimitive = readSource("components/ui/dialog.tsx");
+        const shellSurfaceClass = findStringConstInitializerContaining(dialog, [
+            "const SETTINGS_SHELL_SURFACE_CLASS =",
+            "![box-shadow:var(--shadow-xl)]",
+        ]);
+
+        expect(dialogPrimitive).toContain("shadow-lg");
+        expect(shellSurfaceClass).not.toMatch(
+            /(?:^|\s)shadow-\[var\(--shadow-xl\)\](?=\s|";)/,
+        );
+        expect(dialog).toContain("className={SETTINGS_SHELL_SURFACE_CLASS}");
+    });
+
     it("keeps the data-source three-pane shell from stacking on mobile", () => {
         const globals = readSource("app/globals.css");
         const content = readSource(
