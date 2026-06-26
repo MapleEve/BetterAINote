@@ -99,6 +99,8 @@ import {
     SOURCE_REPORT_CARD_SOURCE_ICON_CLASS_NAME,
     SOURCE_REPORT_CARD_SOURCE_VALUE_CLASS_NAME,
     SOURCE_REPORT_CARD_VALUE_CLASS_NAME,
+    SOURCE_REPORT_COPY_ICON_CLASS_NAME,
+    SOURCE_REPORT_COPY_LABEL_CLASS_NAME,
     SOURCE_REPORT_DESCRIPTION_CLASS_NAME,
     SOURCE_REPORT_EMPTY_ACTION_ROW_CLASS_NAME,
     SOURCE_REPORT_EMPTY_DESCRIPTION_CLASS_NAME,
@@ -594,7 +596,7 @@ const dashboardSearchActivityClassNames = {
 const dashboardButtonClassNames = {
     nav: "relative h-auto w-full justify-start gap-2.5 rounded-[9px] border border-transparent bg-transparent px-2.5 py-[7px] text-left text-[13px] font-medium text-[var(--fg-secondary)] shadow-none hover:bg-accent hover:text-[var(--fg-primary)] focus-visible:text-[var(--fg-primary)] disabled:cursor-not-allowed disabled:opacity-50 data-[sot-state=selected]:border-[var(--line-hairline)] data-[sot-state=selected]:bg-[var(--bg-elevated)] data-[sot-state=selected]:text-[var(--fg-primary)] data-[sot-state=selected]:shadow-xs dark:data-[sot-state=selected]:border-[var(--glass-border)] dark:data-[sot-state=selected]:bg-[rgb(255_255_255_/_0.07)] dark:data-[sot-state=selected]:shadow-none has-[>svg]:px-2.5",
     sync: "size-[32px] bg-transparent text-muted-foreground shadow-none hover:bg-accent hover:text-foreground dark:hover:bg-accent/50",
-    copy: "h-[26px] gap-[6px] rounded-[7px] border border-transparent bg-transparent px-[10px] text-[12px] font-semibold leading-normal text-[var(--fg-secondary)] shadow-none hover:bg-[var(--bg-recessed)] hover:text-[var(--fg-primary)] data-[copy-state=ok]:border-[var(--button-copy-success-border)] data-[copy-state=ok]:bg-[var(--button-copy-success-bg)] data-[copy-state=ok]:text-[var(--signal-success)] data-[copy-state=ok]:hover:bg-[var(--button-copy-success-bg)] data-[copy-state=ok]:hover:text-[var(--signal-success)] data-[copy-state=err]:border-[var(--button-copy-danger-border)] data-[copy-state=err]:text-[var(--signal-danger)] data-[copy-state=err]:hover:bg-transparent data-[copy-state=err]:hover:text-[var(--signal-danger)] has-[>svg]:px-[10px] [&_svg:not([class*='size-'])]:size-[14px]",
+    copy: "h-[26px] gap-[6px] rounded-[7px] border border-transparent bg-transparent px-[10px] text-[12px] font-semibold leading-normal text-[var(--fg-secondary)] shadow-none hover:bg-[var(--bg-recessed)] hover:text-[var(--fg-primary)] data-[copy-state=ok]:border-[var(--button-copy-success-border)] data-[copy-state=ok]:bg-[var(--button-copy-success-bg)] data-[copy-state=ok]:text-[var(--signal-success)] data-[copy-state=ok]:hover:bg-[var(--button-copy-success-bg)] data-[copy-state=ok]:hover:text-[var(--signal-success)] data-[copy-state=err]:border-[var(--button-copy-danger-border)] data-[copy-state=err]:text-[var(--signal-danger)] data-[copy-state=err]:hover:bg-transparent data-[copy-state=err]:hover:text-[var(--signal-danger)] has-[>svg]:px-[10px] [&[hidden]]:hidden [&_svg:not([class*='size-'])]:size-[14px]",
     compactAction:
         "h-[26px] gap-[7px] rounded-[7px] border border-transparent bg-transparent px-[10px] text-[12px] font-semibold text-[var(--fg-secondary)] shadow-none hover:bg-accent hover:text-accent-foreground dark:hover:bg-accent/50 has-[>svg]:px-[10px]",
     speakersMerge:
@@ -1059,7 +1061,7 @@ const SOT_SOURCE_REPORT_PRIMARY_ACTION_BUTTON_CLASS_NAME =
 const SOT_SOURCE_REPORT_GHOST_ACTION_BUTTON_CLASS_NAME =
     "h-[26px] gap-[7px] rounded-[7px] border border-transparent bg-transparent px-[10px] text-[12px] font-semibold leading-[normal] text-[var(--fg-secondary)] shadow-none has-[>svg]:px-[10px] hover:bg-[var(--bg-recessed)] hover:text-[var(--fg-primary)] dark:hover:bg-[var(--bg-recessed)]";
 const SOT_SOURCE_REPORT_COPY_BUTTON_CLASS_NAME =
-    "h-[26px] gap-[6px] rounded-[7px] px-[10px] text-[12px] font-semibold leading-normal text-[var(--fg-secondary)] has-[>svg]:px-[10px] hover:bg-[var(--bg-recessed)] hover:text-[var(--fg-primary)] [&_svg:not([class*='size-'])]:size-[14px] data-[copy-state=ok]:border-[var(--button-copy-success-border)] data-[copy-state=ok]:bg-[var(--button-copy-success-bg)] data-[copy-state=ok]:text-[var(--signal-success)] data-[copy-state=ok]:hover:bg-[var(--button-copy-success-bg)] data-[copy-state=ok]:hover:text-[var(--signal-success)] data-[copy-state=err]:border-[var(--button-copy-danger-border)] data-[copy-state=err]:text-[var(--signal-danger)] data-[copy-state=err]:hover:bg-transparent data-[copy-state=err]:hover:text-[var(--signal-danger)]";
+    "h-[26px] gap-[6px] rounded-[7px] px-[10px] text-[12px] font-semibold leading-normal text-[var(--fg-secondary)] has-[>svg]:px-[10px] hover:bg-[var(--bg-recessed)] hover:text-[var(--fg-primary)] [&[hidden]]:hidden [&_svg:not([class*='size-'])]:size-[14px] data-[copy-state=ok]:border-[var(--button-copy-success-border)] data-[copy-state=ok]:bg-[var(--button-copy-success-bg)] data-[copy-state=ok]:text-[var(--signal-success)] data-[copy-state=ok]:hover:bg-[var(--button-copy-success-bg)] data-[copy-state=ok]:hover:text-[var(--signal-success)] data-[copy-state=err]:border-[var(--button-copy-danger-border)] data-[copy-state=err]:text-[var(--signal-danger)] data-[copy-state=err]:hover:bg-transparent data-[copy-state=err]:hover:text-[var(--signal-danger)]";
 const SOT_SOURCE_REPORT_ERROR_ALERT_CLASS_NAME =
     "flex w-full flex-col items-center gap-2 rounded-lg px-4 py-8 text-center text-sm [&>svg]:text-current";
 
@@ -1074,6 +1076,8 @@ const SOT_DASHBOARD_DETAIL_HEADER_TITLE_INPUT_CLASS_NAME =
 const SOT_DASHBOARD_DETAIL_HEADER_BADGE_CLASS_NAME = "ml-1 shrink-0";
 
 const SOT_DASHBOARD_TRANSCRIPT_LANGUAGE_BADGE_CLASS_NAME = "gap-1.5";
+const SOT_DASHBOARD_TRANSCRIPT_ACTIONS_CLASS_NAME =
+    "ml-auto inline-flex max-w-full flex-[0_1_auto] flex-wrap items-center gap-2";
 
 const SOT_DASHBOARD_RECORDING_PLAYER_CARD_CLASS_NAME =
     "block min-h-[114px] gap-0 overflow-visible rounded-[16px] border-[var(--glass-border-soft)] bg-[rgb(255_255_255_/_0.025)] px-[18px] py-[16px] shadow-none backdrop-blur-none";
@@ -1661,6 +1665,7 @@ function SotCopyIcon({ state }: { state?: "err" | "ok" }) {
 
     return (
         <Icon
+            className={SOURCE_REPORT_COPY_ICON_CLASS_NAME}
             data-icon="inline-start"
             data-sot-part="dashboard-copy-icon"
             aria-hidden="true"
@@ -7144,7 +7149,12 @@ export function Workstation({
                                         setActivityOpen(false);
                                     }}
                                 />
-                                <div data-sot-part="dashboard-transcript-actions">
+                                <div
+                                    className={
+                                        SOT_DASHBOARD_TRANSCRIPT_ACTIONS_CLASS_NAME
+                                    }
+                                    data-sot-part="dashboard-transcript-actions"
+                                >
                                     {detailTab === "transcript" &&
                                     selectedTranscription?.language ? (
                                         <Badge
@@ -7211,7 +7221,12 @@ export function Workstation({
                                                     : undefined
                                             }
                                         />
-                                        <span data-sot-part="dashboard-copy-label">
+                                        <span
+                                            className={
+                                                SOURCE_REPORT_COPY_LABEL_CLASS_NAME
+                                            }
+                                            data-sot-part="dashboard-copy-label"
+                                        >
                                             {copyFeedback?.action ===
                                             "local-transcript"
                                                 ? copyFeedback.state === "ok"
@@ -7277,7 +7292,12 @@ export function Workstation({
                                                     : undefined
                                             }
                                         />
-                                        <span data-sot-part="dashboard-copy-label">
+                                        <span
+                                            className={
+                                                SOURCE_REPORT_COPY_LABEL_CLASS_NAME
+                                            }
+                                            data-sot-part="dashboard-copy-label"
+                                        >
                                             {copyFeedback?.action ===
                                             "source-transcript"
                                                 ? copyFeedback.state === "ok"
@@ -7340,7 +7360,12 @@ export function Workstation({
                                                     : undefined
                                             }
                                         />
-                                        <span data-sot-part="dashboard-copy-label">
+                                        <span
+                                            className={
+                                                SOURCE_REPORT_COPY_LABEL_CLASS_NAME
+                                            }
+                                            data-sot-part="dashboard-copy-label"
+                                        >
                                             {copyFeedback?.action ===
                                             "source-report"
                                                 ? copyFeedback.state === "ok"

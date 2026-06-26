@@ -1698,6 +1698,8 @@ const BADGE_PRIMITIVE_FORBIDDEN_BUSINESS_TOKENS = [
 ] as const;
 
 const EXPECTED_DASHBOARD_TRANSCRIPT_LANGUAGE_BADGE_CLASS_NAME = "gap-1.5";
+const EXPECTED_DASHBOARD_TRANSCRIPT_ACTIONS_CLASS_NAME =
+    "ml-auto inline-flex max-w-full flex-[0_1_auto] flex-wrap items-center gap-2";
 
 const EXPECTED_DASHBOARD_SOURCE_REPORT_STATUS_CLASS_NAME =
     "h-[22px] min-w-[65px] justify-normal gap-[9px] overflow-visible rounded-full border px-[8px] py-0 text-[11px] font-semibold leading-[normal] shadow-none data-[sot-tone=err]:border-[var(--source-report-status-err-border)] data-[sot-tone=err]:bg-[var(--source-report-status-err-bg)] data-[sot-tone=err]:text-[var(--signal-danger)] data-[sot-tone=neu]:border-[var(--line-hairline)] data-[sot-tone=neu]:bg-[var(--bg-recessed)] data-[sot-tone=neu]:text-[var(--fg-secondary)] data-[sot-tone=ok]:border-[var(--source-report-status-ok-border)] data-[sot-tone=ok]:bg-[var(--source-report-status-ok-bg)] data-[sot-tone=ok]:text-[var(--source-report-status-ok-fg)] data-[sot-tone=warn]:border-[var(--source-report-status-warn-border)] data-[sot-tone=warn]:bg-[var(--source-report-status-warn-bg)] data-[sot-tone=warn]:text-[var(--source-report-status-warn-fg)] [&_[data-sot-part=dashboard-source-report-status-dot]]:mr-0 [&_[data-sot-part=dashboard-source-report-status-dot]]:inline-block [&_[data-sot-part=dashboard-source-report-status-dot]]:size-[5px] [&_[data-sot-part=dashboard-source-report-status-dot]]:rounded-full [&_[data-sot-part=dashboard-source-report-status-dot]]:bg-current [&_[data-sot-part=source-report-status-dot]]:mr-0 [&_[data-sot-part=source-report-status-dot]]:inline-block [&_[data-sot-part=source-report-status-dot]]:size-[5px] [&_[data-sot-part=source-report-status-dot]]:rounded-full [&_[data-sot-part=source-report-status-dot]]:bg-current";
@@ -2154,7 +2156,7 @@ const DASHBOARD_TIME_FILTER_PRIMITIVE_REPAINT_CSS_SELECTORS = [
 const COPY_ICON_LEGACY_PRODUCT_CSS_SELECTOR_RE =
     /\.(?:copy-ico|copy-ico-default|copy-ico-ok)(?![\w-])/;
 
-const COPY_ICON_DATA_SOT_CSS_SELECTORS = [
+const COPY_ICON_REMOVED_GLOBAL_SELECTORS = [
     '[data-sot-part="dashboard-copy-icon"]',
     '[data-sot-control="copy-local-transcript"][hidden]',
     '[data-sot-control="copy-source-transcript"][hidden]',
@@ -2172,7 +2174,7 @@ const COPY_BUTTON_GLOBAL_APPEARANCE_PROPERTIES = [
 const DASHBOARD_TRANSCRIPT_ACTIONS_LEGACY_PRODUCT_CSS_SELECTOR_RE =
     /\.lang-pill(?![\w-])/;
 
-const DASHBOARD_TRANSCRIPT_ACTIONS_DATA_SOT_CSS_SELECTORS = [
+const DASHBOARD_TRANSCRIPT_ACTIONS_REMOVED_GLOBAL_SELECTORS = [
     '[data-sot-part="dashboard-transcript-actions"]',
     '[data-sot-part="dashboard-copy-label"]',
     '[data-sot-part="dashboard-copy-icon"]',
@@ -5080,8 +5082,8 @@ describe("full UI replacement regression coverage", () => {
             );
 
         expect(legacySelectorLines).toEqual([]);
-        for (const selector of COPY_ICON_DATA_SOT_CSS_SELECTORS) {
-            expect(globals).toContain(selector);
+        for (const selector of COPY_ICON_REMOVED_GLOBAL_SELECTORS) {
+            expect(collectCssRuleBlocks(globals, selector)).toEqual([]);
         }
 
         const globalCopyButtonAppearanceRules = collectCssRuleBlocks(
@@ -5109,8 +5111,8 @@ describe("full UI replacement regression coverage", () => {
             );
 
         expect(legacySelectorLines).toEqual([]);
-        for (const selector of DASHBOARD_TRANSCRIPT_ACTIONS_DATA_SOT_CSS_SELECTORS) {
-            expect(globals).toContain(selector);
+        for (const selector of DASHBOARD_TRANSCRIPT_ACTIONS_REMOVED_GLOBAL_SELECTORS) {
+            expect(collectCssRuleBlocks(globals, selector)).toEqual([]);
         }
         for (const hook of DASHBOARD_TRANSCRIPT_ACTIONS_DATA_SOT_HOOKS) {
             expect(workstation).toContain(hook);
@@ -7179,6 +7181,55 @@ describe("full UI replacement regression coverage", () => {
         expectSourceToExcludeForbiddenSubstrings(
             sourceReportBadgePrimitive,
             BADGE_PRIMITIVE_FORBIDDEN_BUSINESS_TOKENS,
+        );
+        expectExactStringConstInitializer(
+            workstation,
+            "SOT_DASHBOARD_TRANSCRIPT_ACTIONS_CLASS_NAME",
+            EXPECTED_DASHBOARD_TRANSCRIPT_ACTIONS_CLASS_NAME,
+        );
+        const dashboardTranscriptActions = extractOpeningElement(
+            workstation,
+            'data-sot-part="dashboard-transcript-actions"',
+            "div",
+        );
+        expectClassNameConstReference(
+            dashboardTranscriptActions,
+            "SOT_DASHBOARD_TRANSCRIPT_ACTIONS_CLASS_NAME",
+        );
+        const dashboardCopyIcon = extractOpeningElement(
+            workstation,
+            'data-sot-part="dashboard-copy-icon"',
+            "Icon",
+        );
+        expectClassNameConstReference(
+            dashboardCopyIcon,
+            "SOURCE_REPORT_COPY_ICON_CLASS_NAME",
+        );
+        const dashboardCopyLabel = extractOpeningElement(
+            workstation,
+            'data-sot-part="dashboard-copy-label"',
+            "span",
+        );
+        expectClassNameConstReference(
+            dashboardCopyLabel,
+            "SOURCE_REPORT_COPY_LABEL_CLASS_NAME",
+        );
+        expect(sourceReportStyles).toContain(
+            "SOURCE_REPORT_COPY_LABEL_CLASS_NAME",
+        );
+        expect(sourceReportStyles).toContain(
+            "SOURCE_REPORT_COPY_ICON_CLASS_NAME",
+        );
+        const dashboardButtonClassNames = extractBoundedSlice(
+            workstation,
+            "const dashboardButtonClassNames = {",
+            "} as const;",
+        );
+        expect(dashboardButtonClassNames).toMatch(
+            /copy:\s*"[^"]*\[&\[hidden\]\]:hidden[^"]*"/,
+        );
+        expect(workstation).toMatch(
+            /const SOT_SOURCE_REPORT_COPY_BUTTON_CLASS_NAME\s*=\s*"[^"]*\[&\[hidden\]\]:hidden[^"]*";/,
         );
         for (const control of DASHBOARD_TRANSCRIPT_GENERIC_COPY_CONTROLS) {
             const buttonOpening = extractOpeningElement(

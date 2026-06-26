@@ -48,6 +48,8 @@ const EXPECTED_DASHBOARD_DETAIL_HEADER_TITLE_INPUT_CLASS_NAME =
     "h-8 min-w-0 flex-1 px-3 py-1 text-base md:text-sm";
 const EXPECTED_DASHBOARD_DETAIL_HEADER_BADGE_CLASS_NAME = "ml-1 shrink-0";
 const EXPECTED_DASHBOARD_TRANSCRIPT_LANGUAGE_BADGE_CLASS_NAME = "gap-1.5";
+const EXPECTED_DASHBOARD_TRANSCRIPT_ACTIONS_CLASS_NAME =
+    "ml-auto inline-flex max-w-full flex-[0_1_auto] flex-wrap items-center gap-2";
 const EXPECTED_DASHBOARD_SOURCE_REPORT_STATUS_CLASS_NAME =
     "h-[22px] min-w-[65px] justify-normal gap-[9px] overflow-visible rounded-full border px-[8px] py-0 text-[11px] font-semibold leading-[normal] shadow-none data-[sot-tone=err]:border-[var(--source-report-status-err-border)] data-[sot-tone=err]:bg-[var(--source-report-status-err-bg)] data-[sot-tone=err]:text-[var(--signal-danger)] data-[sot-tone=neu]:border-[var(--line-hairline)] data-[sot-tone=neu]:bg-[var(--bg-recessed)] data-[sot-tone=neu]:text-[var(--fg-secondary)] data-[sot-tone=ok]:border-[var(--source-report-status-ok-border)] data-[sot-tone=ok]:bg-[var(--source-report-status-ok-bg)] data-[sot-tone=ok]:text-[var(--source-report-status-ok-fg)] data-[sot-tone=warn]:border-[var(--source-report-status-warn-border)] data-[sot-tone=warn]:bg-[var(--source-report-status-warn-bg)] data-[sot-tone=warn]:text-[var(--source-report-status-warn-fg)] [&_[data-sot-part=dashboard-source-report-status-dot]]:mr-0 [&_[data-sot-part=dashboard-source-report-status-dot]]:inline-block [&_[data-sot-part=dashboard-source-report-status-dot]]:size-[5px] [&_[data-sot-part=dashboard-source-report-status-dot]]:rounded-full [&_[data-sot-part=dashboard-source-report-status-dot]]:bg-current [&_[data-sot-part=source-report-status-dot]]:mr-0 [&_[data-sot-part=source-report-status-dot]]:inline-block [&_[data-sot-part=source-report-status-dot]]:size-[5px] [&_[data-sot-part=source-report-status-dot]]:rounded-full [&_[data-sot-part=source-report-status-dot]]:bg-current";
 const EXPECTED_DASHBOARD_RECORDING_PLAYER_CARD_CLASS_NAME =
@@ -760,6 +762,15 @@ const DASHBOARD_TRANSCRIPT_GENERIC_COMPACT_ACTION_CONTROLS = [
     "retry-retranscription",
     "dismiss-retranscription-failed",
     "dismiss-retranscription-complete",
+] as const;
+
+const DASHBOARD_COPY_ACTION_REMOVED_GLOBAL_SELECTORS = [
+    '[data-sot-part="dashboard-copy-label"]',
+    '[data-sot-part="dashboard-copy-icon"]',
+    '[data-sot-part="dashboard-transcript-actions"]',
+    '[data-sot-control="copy-local-transcript"][hidden]',
+    '[data-sot-control="copy-source-transcript"][hidden]',
+    '[data-sot-control="copy-source-report"][hidden]',
 ] as const;
 
 const OLD_UI_RE =
@@ -3766,6 +3777,52 @@ describe("dashboard SOT foundation", () => {
         expect(badgePrimitive).not.toContain(
             DASHBOARD_OWNER_LOCAL_FORBIDDEN_VARIANT_PROPS[6],
         );
+        expectExactStringConstInitializer(
+            workstation,
+            "SOT_DASHBOARD_TRANSCRIPT_ACTIONS_CLASS_NAME",
+            EXPECTED_DASHBOARD_TRANSCRIPT_ACTIONS_CLASS_NAME,
+        );
+        const dashboardTranscriptActions = extractOpeningElement(
+            workstation,
+            'data-sot-part="dashboard-transcript-actions"',
+            "div",
+        );
+        expectClassNameConstReference(
+            dashboardTranscriptActions,
+            "SOT_DASHBOARD_TRANSCRIPT_ACTIONS_CLASS_NAME",
+        );
+        const dashboardCopyIcon = extractOpeningElement(
+            workstation,
+            'data-sot-part="dashboard-copy-icon"',
+            "Icon",
+        );
+        expectClassNameConstReference(
+            dashboardCopyIcon,
+            "SOURCE_REPORT_COPY_ICON_CLASS_NAME",
+        );
+        const dashboardCopyLabel = extractOpeningElement(
+            workstation,
+            'data-sot-part="dashboard-copy-label"',
+            "span",
+        );
+        expectClassNameConstReference(
+            dashboardCopyLabel,
+            "SOURCE_REPORT_COPY_LABEL_CLASS_NAME",
+        );
+        const dashboardButtonClassNames = extractBoundedSlice(
+            workstation,
+            "const dashboardButtonClassNames = {",
+            "} as const;",
+        );
+        expect(dashboardButtonClassNames).toMatch(
+            /copy:\s*"[^"]*\[&\[hidden\]\]:hidden[^"]*"/,
+        );
+        expect(workstation).toMatch(
+            /const SOT_SOURCE_REPORT_COPY_BUTTON_CLASS_NAME\s*=\s*"[^"]*\[&\[hidden\]\]:hidden[^"]*";/,
+        );
+        for (const selector of DASHBOARD_COPY_ACTION_REMOVED_GLOBAL_SELECTORS) {
+            expect(collectCssRuleBlocks(globals, selector)).toEqual([]);
+        }
         for (const legacyClassName of DASHBOARD_DETAIL_PANE_LEGACY_CLASS_NAMES) {
             expect(workstation).not.toContain(legacyClassName);
         }

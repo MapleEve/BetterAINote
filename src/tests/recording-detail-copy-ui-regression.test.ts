@@ -5,6 +5,18 @@ import { serializeRecordingDetailTranscriptionJob } from "@/server/modules/recor
 
 const ROOT = path.join(process.cwd(), "src");
 
+const EXPECTED_DASHBOARD_TRANSCRIPT_ACTIONS_CLASS_NAME =
+    "ml-auto inline-flex max-w-full flex-[0_1_auto] flex-wrap items-center gap-2";
+
+const DASHBOARD_COPY_ACTION_REMOVED_GLOBAL_SELECTORS = [
+    '[data-sot-part="dashboard-copy-label"]',
+    '[data-sot-part="dashboard-copy-icon"]',
+    '[data-sot-part="dashboard-transcript-actions"]',
+    '[data-sot-control="copy-local-transcript"][hidden]',
+    '[data-sot-control="copy-source-transcript"][hidden]',
+    '[data-sot-control="copy-source-report"][hidden]',
+] as const;
+
 const SOURCE_REPORT_SKELETON_SHARED_TOKENS = [
     "sourceReportCard:",
     "sourceReportSegment:",
@@ -1790,6 +1802,10 @@ describe("recording detail copy and title action UI regressions", () => {
         const button = readSource("components/ui/button.tsx");
         const card = readSource("components/ui/card.tsx");
         const input = readSource("components/ui/input.tsx");
+        const globals = readSource("app/globals.css");
+        const sourceReportStyles = readSource(
+            "features/source-report/styles.ts",
+        );
         const dashboardTranscriptShell = extractCardSlice(
             dashboardTranscript,
             'data-sot-panel="dashboard-transcript-shell"',
@@ -1992,6 +2008,55 @@ describe("recording detail copy and title action UI regressions", () => {
         expect(dashboardTranscript).toContain(
             'data-sot-part="dashboard-copy-icon"',
         );
+        expectExactStringConstInitializer(
+            dashboardTranscript,
+            "SOT_DASHBOARD_TRANSCRIPT_ACTIONS_CLASS_NAME",
+            EXPECTED_DASHBOARD_TRANSCRIPT_ACTIONS_CLASS_NAME,
+        );
+        const dashboardTranscriptActions = extractOpeningElement(
+            dashboardTranscript,
+            'data-sot-part="dashboard-transcript-actions"',
+            "div",
+        );
+        expect(dashboardTranscriptActions).toMatch(
+            /className=\{\s*SOT_DASHBOARD_TRANSCRIPT_ACTIONS_CLASS_NAME\s*\}/,
+        );
+        const dashboardCopyIcon = extractOpeningElement(
+            dashboardTranscript,
+            'data-sot-part="dashboard-copy-icon"',
+            "Icon",
+        );
+        expect(dashboardCopyIcon).toMatch(
+            /className=\{\s*SOURCE_REPORT_COPY_ICON_CLASS_NAME\s*\}/,
+        );
+        const dashboardCopyLabel = extractOpeningElement(
+            dashboardTranscript,
+            'data-sot-part="dashboard-copy-label"',
+            "span",
+        );
+        expect(dashboardCopyLabel).toMatch(
+            /className=\{\s*SOURCE_REPORT_COPY_LABEL_CLASS_NAME\s*\}/,
+        );
+        expect(sourceReportStyles).toContain(
+            "SOURCE_REPORT_COPY_LABEL_CLASS_NAME",
+        );
+        expect(sourceReportStyles).toContain(
+            "SOURCE_REPORT_COPY_ICON_CLASS_NAME",
+        );
+        const dashboardButtonClassNames = extractBoundedSlice(
+            dashboardTranscript,
+            "const dashboardButtonClassNames = {",
+            "} as const;",
+        );
+        expect(dashboardButtonClassNames).toMatch(
+            /copy:\s*"[^"]*\[&\[hidden\]\]:hidden[^"]*"/,
+        );
+        expect(dashboardTranscript).toMatch(
+            /const SOT_SOURCE_REPORT_COPY_BUTTON_CLASS_NAME\s*=\s*"[^"]*\[&\[hidden\]\]:hidden[^"]*";/,
+        );
+        for (const selector of DASHBOARD_COPY_ACTION_REMOVED_GLOBAL_SELECTORS) {
+            expect(collectCssRuleBlocks(globals, selector)).toEqual([]);
+        }
         expect(dashboardTranscript).not.toContain('className="copy-ico"');
         expect(dashboardTranscript).not.toContain("copy-ico-default");
         expect(dashboardTranscript).not.toContain("copy-ico-ok");
