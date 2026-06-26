@@ -97,7 +97,8 @@ async function putRow117AppearanceReadyState(page: Page) {
 
 async function seedRow117AppearanceReadyState(page: Page) {
     await putRow117AppearanceReadyState(page);
-    await page.reload({ waitUntil: "domcontentloaded" });
+    await page.goto("about:blank");
+    await page.goto("/settings#appearance", { waitUntil: "domcontentloaded" });
     await expectActiveSettingsSectionReady(page, "appearance");
     await expectRow117AppearanceReadyState(page);
 }
@@ -684,7 +685,7 @@ async function readShellMetrics(locator: Locator) {
             '.sr-item.active, [data-sot-control="settings-nav"][data-sot-state="selected"]',
         );
         const activeSection = element.querySelector(
-            '[data-sot-surface="settings-section"]:not([hidden]), [data-sot-surface="settings-data-sources"]:not([hidden])',
+            '[data-sot-surface="settings-section"]:not([hidden]), [data-sot-surface="settings-data-sources"]:not([hidden]), .settings-main[data-section]:not([hidden])',
         );
         const save =
             element.querySelector(
@@ -1012,8 +1013,17 @@ async function readDataSourcesStructuralEvidence(locator: Locator) {
             }
 
             const detail = root.querySelector<HTMLElement>(
-                '[data-sot-panel="source-provider-detail"]',
+                '[data-sot-panel="source-provider-detail"], #ds-detail, .sm-detail',
             );
+
+            const fixtureLabels = Array.from(
+                detail?.querySelectorAll<HTMLElement>(".field-name, .sm-l-t") ??
+                    [],
+            ).map((element) => normalizeFieldLabel(textOf(element)));
+
+            if (fixtureLabels.length > 0) {
+                return fixtureLabels;
+            }
 
             return Array.from(
                 detail?.querySelectorAll<HTMLElement>("input, button, select") ??
@@ -1035,60 +1045,104 @@ async function readDataSourcesStructuralEvidence(locator: Locator) {
             const structuralActions = Array.from(
                 root
                     .querySelector<HTMLElement>(
-                        '[data-sot-panel="source-provider-detail"]',
+                        '[data-sot-panel="source-provider-detail"], #ds-detail, .sm-detail',
                     )
                     ?.querySelectorAll<HTMLElement>("button") ?? [],
             );
 
-            return dedupe([...stableActions, ...structuralActions]
-                .filter(isVisible)
-                .map(textOf)
-                .filter((label) =>
-                    label ? expectedActionLabelOrder.includes(label) : false,
-                ));
+            return dedupe(
+                [...stableActions, ...structuralActions]
+                    .filter(isVisible)
+                    .map(textOf)
+                    .filter((label) =>
+                        label
+                            ? expectedActionLabelOrder.includes(label)
+                            : false,
+                    ),
+            );
         }
 
-        const providerCards = Array.from(
+        const stableProviderCards = Array.from(
             root.querySelectorAll<HTMLElement>(
                 '[data-sot-control="source-provider"]',
             ),
-        ).map((providerCard) => {
-            const statusElement =
-                providerCard.querySelector<HTMLElement>(
-                    "[data-sot-provider-status]",
-                );
-            const labelElement =
-                providerCard.querySelector<HTMLElement>(
-                    "[data-sot-provider-name]",
-                );
-            const provider = providerCard.getAttribute("data-sot-provider");
+        );
+        const providerCards =
+            stableProviderCards.length > 0
+                ? stableProviderCards.map((providerCard) => {
+                      const statusElement =
+                          providerCard.querySelector<HTMLElement>(
+                              "[data-sot-provider-status]",
+                          );
+                      const labelElement =
+                          providerCard.querySelector<HTMLElement>(
+                              "[data-sot-provider-name]",
+                          );
+                      const provider =
+                          providerCard.getAttribute("data-sot-provider");
 
-            return {
-                label: textOf(labelElement),
-                normalizedProvider: normalizeProvider(provider),
-                provider,
-                status:
-                    providerCard.getAttribute("data-sot-status") ??
-                    statusElement?.getAttribute("data-sot-status") ??
-                    null,
-                statusLabel: textOf(statusElement),
-            };
-        });
+                      return {
+                          label: textOf(labelElement),
+                          normalizedProvider: normalizeProvider(provider),
+                          provider,
+                          status:
+                              providerCard.getAttribute("data-sot-status") ??
+                              statusElement?.getAttribute(
+                                  "data-sot-status",
+                              ) ??
+                              null,
+                          statusLabel: textOf(statusElement),
+                      };
+                  })
+                : Array.from(
+                      root.querySelectorAll<HTMLElement>(".sp-card"),
+                  ).map((providerCard) => {
+                      const statusElement =
+                          providerCard.querySelector<HTMLElement>(".sp-status");
+                      const labelElement =
+                          providerCard.querySelector<HTMLElement>(".sp-name");
+                      const provider =
+                          providerCard.getAttribute("data-provider");
+                      const statusLabel = textOf(statusElement);
+                      const statusByLabel: Record<string, string> = {
+                          "已连接": "connected",
+                          "同步中": "syncing",
+                          "同步失败": "error",
+                          "待设置": "needs-setup",
+                          "需要重新登录": "expired",
+                          "同步已暂停": "disabled",
+                          "已连接 · 暂无录音": "connected-empty",
+                      };
+
+                      return {
+                          label: textOf(labelElement),
+                          normalizedProvider: normalizeProvider(provider),
+                          provider,
+                          status: statusLabel
+                              ? (statusByLabel[statusLabel] ?? null)
+                              : null,
+                          statusLabel,
+                      };
+                  });
         const activeProvider =
             root
                 .querySelector<HTMLElement>(
                     '[data-sot-control="source-provider"][data-sot-state="selected"]',
                 )
                 ?.getAttribute("data-sot-provider") ??
+            root
+                .querySelector<HTMLElement>(".sp-card.active")
+                ?.getAttribute("data-provider") ??
             null;
         const detail = root.querySelector<HTMLElement>(
-            '[data-sot-panel="source-provider-detail"]',
+            '[data-sot-panel="source-provider-detail"], #ds-detail, .sm-detail',
         );
         const detailStatusElement =
-            detail?.querySelector<HTMLElement>("[data-sot-status]") ?? null;
+            detail?.querySelector<HTMLElement>("[data-sot-status], .sd-pill") ??
+            null;
         const detailHead =
             detail?.querySelector<HTMLElement>(
-                '[data-sot-part="source-provider-header"]',
+                '[data-sot-part="source-provider-header"], .sd-head',
             ) ?? null;
         const detailProvider =
             detail?.getAttribute("data-sot-provider") ??
@@ -1101,12 +1155,13 @@ async function readDataSourcesStructuralEvidence(locator: Locator) {
                 status:
                     detail?.getAttribute("data-sot-status") ??
                     detailHead?.getAttribute("data-sot-state") ??
+                    detailHead?.getAttribute("data-ds-state") ??
                     detailStatusElement?.getAttribute("data-sot-status") ??
                     null,
                 statusLabel: textOf(detailStatusElement),
                 title: textOf(
                     detail?.querySelector(
-                        '[data-sot-part="source-provider-title"]',
+                        '[data-sot-part="source-provider-title"], .sd-title',
                     ) ?? null,
                 ),
             },
