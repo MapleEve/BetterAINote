@@ -73,22 +73,22 @@ export const SOURCE_REPORT_STATE_CLASS_NAME =
 export const SOURCE_REPORT_STATE_STACK_CLASS_NAME = "flex flex-col gap-3.5";
 
 export const SOURCE_REPORT_METRIC_CARDS_CLASS_NAME =
-    "grid grid-cols-4 gap-2 max-[1200px]:grid-cols-2";
+    "grid grid-cols-4 gap-[8px] max-[1200px]:grid-cols-2";
 
 export const SOURCE_REPORT_METRIC_CARD_CLASS_NAME =
     "gap-[6px] overflow-visible rounded-[10px] border-[var(--source-report-metric-border)] bg-[var(--source-report-metric-bg)] px-[12px] py-[10px] shadow-none backdrop-blur-none";
 
 export const SOURCE_REPORT_CARD_LABEL_CLASS_NAME =
-    "text-[10.5px] font-semibold uppercase tracking-[0.06em] text-[var(--fg-tertiary)]";
+    "text-[10.5px] font-semibold leading-[normal] uppercase tracking-[0.06em] text-[var(--fg-tertiary)]";
 
 export const SOURCE_REPORT_CARD_VALUE_CLASS_NAME =
-    "text-[13px] font-semibold text-[var(--fg-primary)]";
+    "text-[13px] font-semibold leading-[normal] text-[var(--fg-primary)]";
 
 export const SOURCE_REPORT_CARD_SOURCE_VALUE_CLASS_NAME =
     "flex items-center gap-1.5";
 
 export const SOURCE_REPORT_CARD_NUMBER_VALUE_CLASS_NAME =
-    "font-mono text-[16px] font-semibold text-[var(--fg-primary)]";
+    "font-mono text-[16px] font-semibold leading-[normal] text-[var(--fg-primary)]";
 
 export const SOURCE_REPORT_CARD_SOURCE_ICON_CLASS_NAME =
     "size-[14px] flex-none rounded-[3px] object-contain";
@@ -97,18 +97,27 @@ export const SOURCE_REPORT_CARD_SOURCE_FALLBACK_CLASS_NAME =
     "text-[11px] font-bold text-[var(--fg-tertiary)]";
 
 export const SOURCE_REPORT_SECTION_CLASS_NAME =
-    "flex flex-col gap-2 border-t border-[var(--line-hairline)] pt-2 dark:border-[var(--glass-border-soft)]";
+    "flex flex-col gap-[8px] border-t border-[var(--line-hairline)] pt-[8px] dark:border-[var(--glass-border-soft)]";
 
 export const SOURCE_REPORT_SECTION_SEPARATOR_CLASS_NAME = "hidden";
 
 export const SOURCE_REPORT_SECTION_HEADER_CLASS_NAME =
-    "flex items-baseline gap-2.5";
+    "flex items-baseline gap-[10px]";
 
 export const SOURCE_REPORT_SECTION_TITLE_CLASS_NAME =
-    "m-0 inline-flex items-center gap-1.5 text-[12.5px] font-semibold text-[var(--fg-primary)]";
+    "m-0 ![font-size:12.5px] ![letter-spacing:0] ![line-height:normal] font-semibold text-[var(--fg-primary)]";
 
 export const SOURCE_REPORT_DESCRIPTION_CLASS_NAME =
-    "text-[11.5px] font-medium text-[var(--fg-tertiary)]";
+    "text-[11.5px] font-medium leading-[normal] text-[var(--fg-tertiary)]";
+
+export const SOURCE_REPORT_MISSING_NOTICE_CLASS_NAME =
+    "block rounded-[10px] border border-[color-mix(in_srgb,var(--signal-warning)_28%,transparent)] bg-[color-mix(in_srgb,var(--signal-warning)_8%,var(--bg-elevated))] px-[12px] py-[10px] text-[12.5px]/[1.55] font-medium text-[var(--fg-secondary)]";
+
+export const SOURCE_REPORT_TRANSCRIPT_MISSING_NOTICE_CLASS_NAME =
+    `${SOURCE_REPORT_MISSING_NOTICE_CLASS_NAME} mt-[8px]`;
+
+export const SOURCE_REPORT_SUMMARY_MISSING_NOTICE_CLASS_NAME =
+    `${SOURCE_REPORT_MISSING_NOTICE_CLASS_NAME} mb-[8px]`;
 
 export const SOURCE_REPORT_SUMMARY_BODY_CLASS_NAME = "flex flex-col gap-1.5";
 
@@ -134,21 +143,21 @@ export const SOURCE_REPORT_SUMMARY_TEXT_CLASS_NAME =
     "m-0 whitespace-pre-wrap text-[12.5px]/[1.55] font-medium text-[var(--fg-primary)] [text-wrap:pretty]";
 
 export const SOURCE_REPORT_META_CLASS_NAME =
-    "my-4 grid grid-cols-2 gap-x-3.5 gap-y-1.5 max-[1200px]:grid-cols-1";
+    "my-[15px] grid grid-cols-2 gap-x-[14px] gap-y-[6px] max-[1200px]:grid-cols-1";
 
 export const SOURCE_REPORT_META_ROW_CLASS_NAME =
-    "grid min-h-[30px] grid-cols-[80px_1fr] items-baseline gap-2 border-b border-dashed border-[var(--line-hairline)] py-1.5 dark:border-[var(--glass-border-soft)]";
+    "grid min-h-[30px] grid-cols-[80px_1fr] items-baseline gap-[8px] border-b border-dashed border-[var(--line-hairline)] py-[6px] dark:border-[var(--glass-border-soft)]";
 
 export const SOURCE_REPORT_META_LABEL_CLASS_NAME =
-    "m-0 text-[11px] font-semibold text-[var(--fg-tertiary)]";
+    "m-0 text-[11px] font-semibold leading-[normal] text-[var(--fg-tertiary)]";
 
 export const SOURCE_REPORT_META_VALUE_CLASS_NAME =
-    "m-0 break-words text-[12px] font-medium text-[var(--fg-primary)]";
+    "m-0 break-words text-[12px] font-medium leading-[normal] text-[var(--fg-primary)]";
 
 export const SOURCE_REPORT_META_MONO_VALUE_CLASS_NAME = "font-mono";
 
 export const SOURCE_REPORT_ACTION_ROW_CLASS_NAME =
-    "mt-1 flex flex-wrap items-center gap-2";
+    "mt-[4px] flex flex-wrap items-center gap-[8px]";
 
 export const SOURCE_REPORT_ACTION_BUTTON_CLASS_NAME =
     "text-[var(--fg-primary)]";

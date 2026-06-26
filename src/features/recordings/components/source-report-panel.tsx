@@ -62,6 +62,7 @@ import {
     SOURCE_REPORT_META_VALUE_CLASS_NAME,
     SOURCE_REPORT_METRIC_CARD_CLASS_NAME,
     SOURCE_REPORT_METRIC_CARDS_CLASS_NAME,
+    SOURCE_REPORT_MISSING_NOTICE_CLASS_NAME,
     SOURCE_REPORT_PANE_CLASS_NAME,
     SOURCE_REPORT_SECTION_CLASS_NAME,
     SOURCE_REPORT_SECTION_HEADER_CLASS_NAME,
@@ -79,8 +80,10 @@ import {
     SOURCE_REPORT_STATE_STACK_CLASS_NAME,
     SOURCE_REPORT_STATUS_BADGE_CLASS_NAME,
     SOURCE_REPORT_STYLE_VARIABLES,
+    SOURCE_REPORT_SUMMARY_MISSING_NOTICE_CLASS_NAME,
     SOURCE_REPORT_SUMMARY_BODY_CLASS_NAME,
     SOURCE_REPORT_SUMMARY_TEXT_CLASS_NAME,
+    SOURCE_REPORT_TRANSCRIPT_MISSING_NOTICE_CLASS_NAME,
     type SourceReportCardSkeletonSize,
     type SourceReportSegmentSkeletonSize,
     type SourceReportTone,
@@ -604,11 +607,15 @@ function SourceReportState({
 function SourceReportSection({
     children,
     description,
+    noticeAfter,
+    noticeBefore,
     section,
     title,
 }: {
     children: ReactNode;
     description: ReactNode;
+    noticeAfter?: ReactNode;
+    noticeBefore?: ReactNode;
     section: "metadata" | "summary" | "transcript";
     title: string;
 }) {
@@ -622,6 +629,7 @@ function SourceReportSection({
                 className={SOURCE_REPORT_SECTION_SEPARATOR_CLASS_NAME}
                 data-sot-source-report-section-separator
             />
+            {noticeBefore}
             <header
                 className={SOURCE_REPORT_SECTION_HEADER_CLASS_NAME}
                 data-sot-source-report-section-header
@@ -639,8 +647,29 @@ function SourceReportSection({
                     {description}
                 </span>
             </header>
+            {noticeAfter}
             {children}
         </section>
+    );
+}
+
+function SourceReportMissingNotice({
+    children,
+    className,
+    state,
+}: {
+    children: ReactNode;
+    className?: string;
+    state: "summary-missing" | "transcript-missing";
+}) {
+    return (
+        <div
+            className={className ?? SOURCE_REPORT_MISSING_NOTICE_CLASS_NAME}
+            data-sot-source-report-missing-notice
+            data-sot-missing={state}
+        >
+            {children}
+        </div>
     );
 }
 
@@ -1566,6 +1595,18 @@ export function SourceReportPanel({
                     <SourceReportSection
                         section="transcript"
                         title="来源转写"
+                        noticeAfter={
+                            transcriptAvailable ? null : (
+                                <SourceReportMissingNotice
+                                    className={
+                                        SOURCE_REPORT_TRANSCRIPT_MISSING_NOTICE_CLASS_NAME
+                                    }
+                                    state="transcript-missing"
+                                >
+                                    来源未提供逐字稿。可以稍后再来，或运行私有转写。
+                                </SourceReportMissingNotice>
+                            )
+                        }
                         description={
                             <>
                                 来自{sourceProviderSentenceName} ·{" "}
@@ -1577,6 +1618,7 @@ export function SourceReportPanel({
                         <ol
                             className={SOURCE_REPORT_SEGMENTS_CLASS_NAME}
                             data-sot-source-report-segments
+                            hidden={!transcriptAvailable}
                         >
                             {sourceReportDisplaySegments.map(
                                 (segment, index) => {
@@ -1662,6 +1704,18 @@ export function SourceReportPanel({
                     <SourceReportSection
                         section="metadata"
                         title="来源信息"
+                        noticeBefore={
+                            reportAvailable ? null : (
+                                <SourceReportMissingNotice
+                                    className={
+                                        SOURCE_REPORT_SUMMARY_MISSING_NOTICE_CLASS_NAME
+                                    }
+                                    state="summary-missing"
+                                >
+                                    来源未提供官方摘要。
+                                </SourceReportMissingNotice>
+                            )
+                        }
                         description={
                             <>由{sourceProviderLabel}返回的公开元数据</>
                         }

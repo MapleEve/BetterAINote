@@ -2665,6 +2665,9 @@ const SOURCE_REPORT_STYLE_OWNER_SNIPPETS = [
     "dark:[background-image:linear-gradient(90deg,rgb(255_255_255_/_0.05)_0%,rgb(255_255_255_/_0.12)_50%,rgb(255_255_255_/_0.05)_100%)]",
     "export const SOURCE_REPORT_PANE_CLASS_NAME =",
     "export const SOURCE_REPORT_METRIC_CARD_CLASS_NAME =",
+    "export const SOURCE_REPORT_MISSING_NOTICE_CLASS_NAME =",
+    "export const SOURCE_REPORT_TRANSCRIPT_MISSING_NOTICE_CLASS_NAME =",
+    "export const SOURCE_REPORT_SUMMARY_MISSING_NOTICE_CLASS_NAME =",
     "export const SOURCE_REPORT_EMPTY_SURFACE_CLASS_NAME =",
     "export const SOURCE_REPORT_EMPTY_ICON_CLASS_NAME =",
     "export const SOURCE_REPORT_ACTION_BUTTON_CLASS_NAME =",
@@ -2855,8 +2858,7 @@ const SOURCE_REPORT_SECTION_DATA_SOT_CSS_SELECTORS = [
     "[data-sot-source-report-meta]",
     "[data-sot-source-report-meta-row]",
     "[data-sot-source-report-actions]",
-    '[data-sot-source-report-state][data-state="loaded"][data-sub-state="transcript-missing"]',
-    '[data-sot-source-report-section][data-sot-section="metadata"]::before',
+    "[data-sot-source-report-missing-notice]",
 ];
 
 const SOURCE_REPORT_CARD_PRIMITIVE_SELECTORS = [
@@ -8398,16 +8400,7 @@ describe("full UI replacement regression coverage", () => {
 
         expect(sourceReportSectionLegacySelectorLines).toEqual([]);
         for (const selector of SOURCE_REPORT_SECTION_DATA_SOT_CSS_SELECTORS) {
-            if (
-                selector.includes('[data-state="loaded"]') ||
-                selector.endsWith("::before")
-            ) {
-                expect(globals).toContain(selector);
-            } else {
-                expect(collectExactCssRuleBlocks(globals, selector)).toEqual(
-                    [],
-                );
-            }
+            expect(collectExactCssRuleBlocks(globals, selector)).toEqual([]);
         }
         for (const selector of SOURCE_REPORT_CARD_PRIMITIVE_SELECTORS) {
             const repaintBlocks = collectCssRuleBlocks(
@@ -8598,6 +8591,14 @@ describe("full UI replacement regression coverage", () => {
         ).toEqual([]);
         expect(sourceReportStyles).toContain("SOURCE_REPORT_STATE_CLASS_NAME");
         expect(workstation).toContain("@/features/source-report/styles");
+        expect(workstation).toContain("SotSourceReportMissingNotice");
+        expect(workstation).toContain("data-sot-source-report-missing-notice");
+        expect(workstation).toContain(
+            "SOURCE_REPORT_TRANSCRIPT_MISSING_NOTICE_CLASS_NAME",
+        );
+        expect(workstation).toContain(
+            "SOURCE_REPORT_SUMMARY_MISSING_NOTICE_CLASS_NAME",
+        );
         expect(sourceReportStyles).toContain("SOURCE_REPORT_SKELETON_CLASS_NAME");
         expect(workstation).toContain("SOURCE_REPORT_CARD_SKELETON_CLASS_NAMES");
         expect(workstation).toContain(
@@ -11959,6 +11960,14 @@ describe("full UI replacement regression coverage", () => {
         ).toEqual([]);
         expect(sourceReportStyles).toContain("SOURCE_REPORT_STATE_CLASS_NAME");
         expect(sourceReport).toContain("@/features/source-report/styles");
+        expect(sourceReport).toContain("SourceReportMissingNotice");
+        expect(sourceReport).toContain("data-sot-source-report-missing-notice");
+        expect(sourceReport).toContain(
+            "SOURCE_REPORT_TRANSCRIPT_MISSING_NOTICE_CLASS_NAME",
+        );
+        expect(sourceReport).toContain(
+            "SOURCE_REPORT_SUMMARY_MISSING_NOTICE_CLASS_NAME",
+        );
         expect(sourceReportStyles).toContain("SOURCE_REPORT_SKELETON_CLASS_NAME");
         expect(sourceReport).toContain("SOURCE_REPORT_CARD_SKELETON_CLASS_NAMES");
         expect(sourceReport).toContain(

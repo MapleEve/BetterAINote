@@ -745,20 +745,6 @@ function stabilizeSkeletonAnimation(html: string) {
     return `<style>.sk,[data-slot="skeleton"]{animation:none!important;background:linear-gradient(90deg,rgb(255 255 255 / .05) 0%,rgb(255 255 255 / .12) 50%,rgb(255 255 255 / .05) 100%)!important;background-position:0 50%!important;background-size:220% 100%!important}</style>${html}`;
 }
 
-async function readPseudoContent(
-    locator: Locator,
-    selector: string,
-    pseudoElement: "::before" | "::after",
-) {
-    return locator
-        .locator(selector)
-        .first()
-        .evaluate(
-            (element, pseudo) => getComputedStyle(element, pseudo).content,
-            pseudoElement,
-        );
-}
-
 async function applySotSourceReportLoadedSubStateFixture(
     locator: Locator,
     options: {
@@ -4556,13 +4542,11 @@ test("dashboard source report summary-missing loaded sub-state matches SOT pixel
             productLoaded.locator("[data-sot-source-report-empty]"),
         ).toHaveCount(0);
         await expect(sourceReportCopyButton(page)).toBeEnabled();
-        expect(
-            await readPseudoContent(
-                productLoaded,
-                '[data-sot-source-report-section][data-sot-section="metadata"]',
-                "::before",
+        await expect(
+            productLoaded.locator(
+                '[data-sot-source-report-missing-notice][data-sot-missing="summary-missing"]',
             ),
-        ).toBe('"来源未提供官方摘要。"');
+        ).toHaveText("来源未提供官方摘要。");
 
         await expectRetxPixelsMatch(
             page,
@@ -4685,15 +4669,11 @@ test("dashboard source report transcript and both-missing sub-states use SOT loa
         );
         await expect(sourceTranscriptCopyButton(page)).toBeDisabled();
         await expect(sourceReportCopyButton(page)).toBeEnabled();
-        expect(
-            await readPseudoContent(
-                transcriptMissing,
-                '[data-sot-source-report-section][data-sot-section="transcript"]',
-                "::after",
+        await expect(
+            transcriptMissing.locator(
+                '[data-sot-source-report-missing-notice][data-sot-missing="transcript-missing"]',
             ),
-        ).toBe(
-            '"来源未提供逐字稿。可以稍后再来，或运行私有转写。"',
-        );
+        ).toHaveText("来源未提供逐字稿。可以稍后再来，或运行私有转写。");
         await expectRetxPixelsMatch(
             page,
             testInfo,
@@ -4798,22 +4778,16 @@ test("dashboard source report transcript and both-missing sub-states use SOT loa
             "data-sot-state",
             "unavailable",
         );
-        expect(
-            await readPseudoContent(
-                bothMissing,
-                '[data-sot-source-report-section][data-sot-section="transcript"]',
-                "::after",
+        await expect(
+            bothMissing.locator(
+                '[data-sot-source-report-missing-notice][data-sot-missing="transcript-missing"]',
             ),
-        ).toBe(
-            '"来源未提供逐字稿。可以稍后再来，或运行私有转写。"',
-        );
-        expect(
-            await readPseudoContent(
-                bothMissing,
-                '[data-sot-source-report-section][data-sot-section="metadata"]',
-                "::before",
+        ).toHaveText("来源未提供逐字稿。可以稍后再来，或运行私有转写。");
+        await expect(
+            bothMissing.locator(
+                '[data-sot-source-report-missing-notice][data-sot-missing="summary-missing"]',
             ),
-        ).toBe('"来源未提供官方摘要。"');
+        ).toHaveText("来源未提供官方摘要。");
         await expectRetxPixelsMatch(
             page,
             testInfo,

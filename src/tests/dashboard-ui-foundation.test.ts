@@ -1203,6 +1203,9 @@ const SOURCE_REPORT_STYLE_OWNER_SNIPPETS = [
     "export type SourceReportSegmentSkeletonSize =",
     "export const SOURCE_REPORT_CARD_SKELETON_CLASS_NAMES =",
     "export const SOURCE_REPORT_SEGMENT_SKELETON_CLASS_NAMES =",
+    "export const SOURCE_REPORT_MISSING_NOTICE_CLASS_NAME =",
+    "export const SOURCE_REPORT_TRANSCRIPT_MISSING_NOTICE_CLASS_NAME =",
+    "export const SOURCE_REPORT_SUMMARY_MISSING_NOTICE_CLASS_NAME =",
     "export const SOURCE_REPORT_ACTION_BUTTON_CLASS_NAME =",
     "export const SOURCE_REPORT_PRIMARY_ACTION_BUTTON_CLASS_NAME =",
     "export const SOURCE_REPORT_GHOST_ACTION_BUTTON_CLASS_NAME =",
@@ -4194,9 +4197,17 @@ describe("dashboard SOT foundation", () => {
             '[data-sot-source-report-state][data-state="loaded"][data-sub-state="summary-missing"]',
             '[data-sot-source-report-state][data-state="loaded"][data-sub-state="both-missing"]',
         ]) {
-            expect(globals).toContain(sourceReportStateSelector);
+            expect(globals).not.toContain(sourceReportStateSelector);
         }
         expect(workstation).toContain("@/features/source-report/styles");
+        expect(workstation).toContain("SotSourceReportMissingNotice");
+        expect(workstation).toContain("data-sot-source-report-missing-notice");
+        expect(workstation).toContain(
+            "SOURCE_REPORT_TRANSCRIPT_MISSING_NOTICE_CLASS_NAME",
+        );
+        expect(workstation).toContain(
+            "SOURCE_REPORT_SUMMARY_MISSING_NOTICE_CLASS_NAME",
+        );
         expect(sourceReportStyles).toContain("SOURCE_REPORT_SKELETON_CLASS_NAME");
         expect(workstation).toContain("SOURCE_REPORT_CARD_SKELETON_CLASS_NAMES");
         expect(workstation).toContain(

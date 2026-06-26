@@ -120,6 +120,7 @@ import {
     SOURCE_REPORT_META_VALUE_CLASS_NAME,
     SOURCE_REPORT_METRIC_CARD_CLASS_NAME,
     SOURCE_REPORT_METRIC_CARDS_CLASS_NAME,
+    SOURCE_REPORT_MISSING_NOTICE_CLASS_NAME,
     SOURCE_REPORT_PANE_CLASS_NAME,
     SOURCE_REPORT_SECTION_CLASS_NAME,
     SOURCE_REPORT_SECTION_HEADER_CLASS_NAME,
@@ -136,8 +137,10 @@ import {
     SOURCE_REPORT_STATE_CLASS_NAME,
     SOURCE_REPORT_STATUS_BADGE_CLASS_NAME,
     SOURCE_REPORT_STYLE_VARIABLES,
+    SOURCE_REPORT_SUMMARY_MISSING_NOTICE_CLASS_NAME,
     SOURCE_REPORT_SUMMARY_BODY_CLASS_NAME,
     SOURCE_REPORT_SUMMARY_TEXT_CLASS_NAME,
+    SOURCE_REPORT_TRANSCRIPT_MISSING_NOTICE_CLASS_NAME,
     type SourceReportCardSkeletonSize,
     type SourceReportSegmentSkeletonSize,
     type SourceReportTone,
@@ -1202,11 +1205,15 @@ function SotSourceReportState({
 function SotSourceReportSection({
     children,
     description,
+    noticeAfter,
+    noticeBefore,
     section,
     title,
 }: {
     children: ReactNode;
     description: ReactNode;
+    noticeAfter?: ReactNode;
+    noticeBefore?: ReactNode;
     section: "metadata" | "summary" | "transcript";
     title: string;
 }) {
@@ -1220,6 +1227,7 @@ function SotSourceReportSection({
                 className={SOURCE_REPORT_SECTION_SEPARATOR_CLASS_NAME}
                 data-sot-source-report-section-separator
             />
+            {noticeBefore}
             <header
                 className={SOURCE_REPORT_SECTION_HEADER_CLASS_NAME}
                 data-sot-source-report-section-header
@@ -1237,8 +1245,29 @@ function SotSourceReportSection({
                     {description}
                 </span>
             </header>
+            {noticeAfter}
             {children}
         </section>
+    );
+}
+
+function SotSourceReportMissingNotice({
+    children,
+    className,
+    state,
+}: {
+    children: ReactNode;
+    className?: string;
+    state: "summary-missing" | "transcript-missing";
+}) {
+    return (
+        <div
+            className={className ?? SOURCE_REPORT_MISSING_NOTICE_CLASS_NAME}
+            data-sot-source-report-missing-notice
+            data-sot-missing={state}
+        >
+            {children}
+        </div>
     );
 }
 
@@ -7912,6 +7941,18 @@ export function Workstation({
                                             <SotSourceReportSection
                                                 section="transcript"
                                                 title="来源转写"
+                                                noticeAfter={
+                                                    sourceTranscriptAvailable ? null : (
+                                                        <SotSourceReportMissingNotice
+                                                            className={
+                                                                SOURCE_REPORT_TRANSCRIPT_MISSING_NOTICE_CLASS_NAME
+                                                            }
+                                                            state="transcript-missing"
+                                                        >
+                                                            来源未提供逐字稿。可以稍后再来，或运行私有转写。
+                                                        </SotSourceReportMissingNotice>
+                                                    )
+                                                }
                                                 description={
                                                     <>
                                                         来自
@@ -7937,6 +7978,9 @@ export function Workstation({
                                                         SOURCE_REPORT_SEGMENTS_CLASS_NAME
                                                     }
                                                     data-sot-source-report-segments
+                                                    hidden={
+                                                        !sourceTranscriptAvailable
+                                                    }
                                                 >
                                                     {sourceReportDisplaySegments.map(
                                                         (segment, index) => (
@@ -8048,6 +8092,18 @@ export function Workstation({
                                             <SotSourceReportSection
                                                 section="metadata"
                                                 title="来源信息"
+                                                noticeBefore={
+                                                    sourceSummaryAvailable ? null : (
+                                                        <SotSourceReportMissingNotice
+                                                            className={
+                                                                SOURCE_REPORT_SUMMARY_MISSING_NOTICE_CLASS_NAME
+                                                            }
+                                                            state="summary-missing"
+                                                        >
+                                                            来源未提供官方摘要。
+                                                        </SotSourceReportMissingNotice>
+                                                    )
+                                                }
                                                 description={
                                                     <>
                                                         由
