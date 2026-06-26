@@ -636,6 +636,15 @@ describe("recording detail copy and title action UI regressions", () => {
             "const RECORDING_TRANSCRIPTION_META_BADGE_CLASS_NAME",
         );
         expect(detailTranscript).toContain(
+            "const recordingTranscriptionClassNames = {",
+        );
+        expect(detailTranscript).toContain(
+            'outputSection:\n        "flex flex-col gap-2 border-t border-[var(--line-hairline)] pt-2 dark:border-[var(--glass-border-soft)]"',
+        );
+        expect(detailTranscript).toContain(
+            'outputText:\n        "m-0 font-sans text-[14.5px] leading-[1.65] text-[var(--fg-primary)] [text-wrap:pretty] max-[860px]:[overflow-wrap:anywhere]"',
+        );
+        expect(detailTranscript).toContain(
             "function RecordingTranscriptionMetaBadge",
         );
         for (const metaHook of [
@@ -681,10 +690,26 @@ describe("recording detail copy and title action UI regressions", () => {
             Math.max(0, jobErrorBannerIndex - 240),
             jobErrorBannerIndex + 360,
         );
+        const outputSection = extractOpeningElement(
+            detailTranscript,
+            'data-sot-section="recording-transcription-output"',
+            "section",
+        );
+        const outputText = extractOpeningElement(
+            detailTranscript,
+            'data-sot-part="recording-transcription-text"',
+            "p",
+        );
         const metaList = extractBoundedSlice(
             detailTranscript,
             'data-sot-list="recording-transcription-meta"',
             "</div>",
+        );
+        expect(outputSection).toContain(
+            "recordingTranscriptionClassNames.outputSection",
+        );
+        expect(outputText).toContain(
+            "recordingTranscriptionClassNames.outputText",
         );
         expect(copyControl).toContain('variant="outline"');
         expect(copyControl).toContain('size="sm"');
@@ -735,6 +760,9 @@ describe("recording detail copy and title action UI regressions", () => {
             '[data-sot-part="recording-transcription-body"] [data-sot-banner-title]',
             '[data-sot-list="recording-transcription-meta"] > span',
             '[data-sot-part="recording-transcription-meta-icon"]',
+            '[data-sot-section="recording-transcription-output"]',
+            '[data-theme="dark"] [data-sot-section="recording-transcription-output"]',
+            '[data-sot-part="recording-transcription-text"]',
         ]) {
             expect(globals).not.toContain(removedSelector);
         }

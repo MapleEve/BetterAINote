@@ -10388,6 +10388,38 @@ describe("full UI replacement regression coverage", () => {
             'data-sot-section="recording-transcription-output"',
         );
         expect(transcriptionSection).toContain(
+            "const recordingTranscriptionClassNames = {",
+        );
+        const recordingTranscriptionClassNamesBlock = extractBoundedSlice(
+            transcriptionSection,
+            "const recordingTranscriptionClassNames = {",
+            "} as const;",
+        );
+        expect(recordingTranscriptionClassNamesBlock).toContain(
+            'outputSection:\n        "flex flex-col gap-2 border-t border-[var(--line-hairline)] pt-2 dark:border-[var(--glass-border-soft)]"',
+        );
+        expect(recordingTranscriptionClassNamesBlock).toContain(
+            'outputText:\n        "m-0 font-sans text-[14.5px] leading-[1.65] text-[var(--fg-primary)] [text-wrap:pretty] max-[860px]:[overflow-wrap:anywhere]"',
+        );
+        const transcriptionOutputOpening = extractOpeningElement(
+            transcriptionSection,
+            'data-sot-section="recording-transcription-output"',
+            "section",
+        );
+        const transcriptionTextOpening = extractOpeningElement(
+            transcriptionSection,
+            'data-sot-part="recording-transcription-text"',
+            "p",
+        );
+        expectClassNameConstReference(
+            transcriptionOutputOpening,
+            "recordingTranscriptionClassNames.outputSection",
+        );
+        expectClassNameConstReference(
+            transcriptionTextOpening,
+            "recordingTranscriptionClassNames.outputText",
+        );
+        expect(transcriptionSection).toContain(
             'data-sot-section="recording-transcription-speaker-review"',
         );
         expect(transcriptionSection).toContain(
@@ -10537,6 +10569,14 @@ describe("full UI replacement regression coverage", () => {
             expect(repaintBlocks).toEqual([]);
         }
         for (const selector of RECORDING_TRANSCRIPTION_EMPTY_REPAINT_SELECTORS) {
+            expect(collectExactCssRuleBlocks(globals, selector)).toEqual([]);
+        }
+        for (const selector of [
+            '[data-sot-section="recording-transcription-output"]',
+            '[data-theme="dark"] [data-sot-section="recording-transcription-output"]',
+            '[data-sot-part="recording-transcription-text"]',
+        ]) {
+            expect(globals).not.toContain(selector);
             expect(collectExactCssRuleBlocks(globals, selector)).toEqual([]);
         }
         for (const selector of [

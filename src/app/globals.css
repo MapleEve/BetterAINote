@@ -1083,7 +1083,6 @@ button:not([data-slot]) {
     min-height: 0;
     overflow-y: auto;
 }
-[data-sot-section="recording-transcription-output"],
 [data-sot-section="recording-transcription-speaker-review"] {
     display: flex;
     flex-direction: column;
@@ -1091,7 +1090,6 @@ button:not([data-slot]) {
     padding-top: 8px;
     border-top: 1px solid var(--line-hairline);
 }
-[data-theme="dark"] [data-sot-section="recording-transcription-output"],
 [data-theme="dark"]
     [data-sot-section="recording-transcription-speaker-review"] {
     border-top-color: var(--glass-border-soft);
@@ -1127,12 +1125,6 @@ button:not([data-slot]) {
 [data-theme="dark"] [data-sot-part="recording-transcription-turn"] {
     border-bottom-color: var(--glass-border);
 }
-[data-sot-part="recording-transcription-text"] {
-    margin: 0;
-    color: var(--fg-primary);
-    font: 14.5px / 1.65 var(--font-sans);
-    text-wrap: pretty;
-}
 [data-sot-list="recording-transcription-meta"] {
     display: flex;
     align-items: center;
@@ -1147,8 +1139,7 @@ button:not([data-slot]) {
     [data-sot-part="recording-transcription-actions"] {
         justify-content: flex-start;
     }
-    [data-sot-part="recording-transcription-section-description"],
-    [data-sot-part="recording-transcription-text"] {
+    [data-sot-part="recording-transcription-section-description"] {
         overflow-wrap: anywhere;
     }
 }

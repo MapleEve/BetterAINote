@@ -65,6 +65,12 @@ interface TranscriptionSectionProps {
 
 const RECORDING_TRANSCRIPTION_META_BADGE_CLASS_NAME =
     "h-[22px] justify-normal gap-[5px] rounded-full border px-[8px] py-0 text-[11px] font-semibold leading-normal data-[sot-tone=attribute]:border-border data-[sot-tone=attribute]:bg-background data-[sot-tone=attribute]:text-[var(--fg-primary)] data-[sot-tone=measure]:border-transparent data-[sot-tone=measure]:bg-secondary data-[sot-tone=measure]:text-secondary-foreground [&>svg]:size-3";
+const recordingTranscriptionClassNames = {
+    outputSection:
+        "flex flex-col gap-2 border-t border-[var(--line-hairline)] pt-2 dark:border-[var(--glass-border-soft)]",
+    outputText:
+        "m-0 font-sans text-[14.5px] leading-[1.65] text-[var(--fg-primary)] [text-wrap:pretty] max-[860px]:[overflow-wrap:anywhere]",
+} as const;
 const recordingTranscriptionButtonClassNames = {
     action: "h-8 gap-1.5 rounded-md px-3 text-[var(--fg-primary)] shadow-xs has-[>svg]:px-2.5",
     primary:
@@ -425,7 +431,12 @@ export function TranscriptionSection({
 
                 {transcription ? (
                     <>
-                        <section data-sot-section="recording-transcription-output">
+                        <section
+                            className={
+                                recordingTranscriptionClassNames.outputSection
+                            }
+                            data-sot-section="recording-transcription-output"
+                        >
                             <header data-sot-part="recording-transcription-section-head">
                                 <div>
                                     <h3 data-sot-part="recording-transcription-section-title">
@@ -487,7 +498,12 @@ export function TranscriptionSection({
                                 </div>
                             </header>
                             <div data-sot-part="recording-transcription-turn">
-                                <p data-sot-part="recording-transcription-text">
+                                <p
+                                    className={
+                                        recordingTranscriptionClassNames.outputText
+                                    }
+                                    data-sot-part="recording-transcription-text"
+                                >
                                     {displayText}
                                 </p>
                             </div>
