@@ -73,6 +73,7 @@ export interface SettingFieldDefinition {
     options?: SettingFieldOption[];
     inputType?: "text" | "password" | "number";
     sensitive?: boolean;
+    sensitiveTextareaPasswordFallback?: boolean;
     readOnly?: boolean;
     masked?: boolean;
 }
@@ -215,15 +216,15 @@ export function SettingFieldControl({
                         onPaste={
                             field.sensitive
                                 ? (event) => {
-                                      const rawText =
+                                      const clipboardText =
                                           event.clipboardData.getData("text");
 
-                                      if (!rawText) {
+                                      if (!clipboardText) {
                                           return;
                                       }
 
                                       event.preventDefault();
-                                      onValueChange(field, rawText);
+                                      onValueChange(field, clipboardText);
                                   }
                                 : undefined
                         }
@@ -233,6 +234,11 @@ export function SettingFieldControl({
                         spellCheck={field.spellCheck}
                         className={inputClassName}
                         data-sot-mask={field.masked ? "true" : undefined}
+                        data-sot-privacy-boundary={
+                            field.sensitiveTextareaPasswordFallback
+                                ? "sensitive-textarea-password-input"
+                                : undefined
+                        }
                     />
                 )}
             </FieldControl>

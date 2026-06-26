@@ -17,7 +17,7 @@ import type { DataSourceFormField } from "@/lib/data-sources/presentation";
 import { cn } from "@/lib/utils";
 
 const SENSITIVE_FIELD_PATTERN =
-    /sensitive|secret|token|cookie|password|credential|authorization/i;
+    /sensitive|secret|token|cookie|header|payload|password|credential|authorization/i;
 
 const ONBOARDING_SOURCE_FIELD_GROUP_CLASS_NAME = "gap-0";
 const ONBOARDING_SOURCE_FIELD_CLASS_NAME =
@@ -26,13 +26,17 @@ const ONBOARDING_SOURCE_FIELD_CONTENT_CLASS_NAME = "min-w-0 gap-1";
 const ONBOARDING_SOURCE_FIELD_CONTROL_CLASS_NAME =
     "flex min-w-0 flex-none items-center gap-2 @md/field-group:justify-end";
 
-function isSensitiveTextField(field: DataSourceFormField) {
+function isSensitiveProviderField(field: DataSourceFormField) {
     return (
         field.target === "secret" ||
         SENSITIVE_FIELD_PATTERN.test(field.key) ||
         SENSITIVE_FIELD_PATTERN.test(field.id) ||
         SENSITIVE_FIELD_PATTERN.test(field.label)
     );
+}
+
+function shouldRenderTextareaAsPasswordInput(field: DataSourceFormField) {
+    return field.kind === "textarea" && isSensitiveProviderField(field);
 }
 
 interface DataSourceFieldControlProps {
@@ -57,11 +61,14 @@ export function DataSourceFieldControl({
         field.readOnly &&
         typeof field.value === "string" &&
         field.value.includes("•");
-    const sensitiveTextField = !field.readOnly && isSensitiveTextField(field);
+    const sensitiveTextField = !field.readOnly && isSensitiveProviderField(field);
+    const sensitiveTextareaPasswordFallback =
+        !field.readOnly && shouldRenderTextareaAsPasswordInput(field);
     const renderedField = {
         ...field,
         masked: readOnlyMaskedDisplay,
         sensitive: sensitiveTextField,
+        sensitiveTextareaPasswordFallback,
     };
     const controlInputClassName = cn(
         renderedField.masked && "tracking-[0.15em]",
@@ -165,15 +172,15 @@ export function DataSourceFieldControl({
                         onPaste={
                             renderedField.sensitive
                                 ? (event) => {
-                                      const rawText =
+                                      const clipboardText =
                                           event.clipboardData.getData("text");
 
-                                      if (!rawText) {
+                                      if (!clipboardText) {
                                           return;
                                       }
 
                                       event.preventDefault();
-                                      onValueChange(field, rawText);
+                                      onValueChange(field, clipboardText);
                                   }
                                 : undefined
                         }
@@ -184,6 +191,11 @@ export function DataSourceFieldControl({
                         className={controlInputClassName}
                         data-sot-mask={
                             renderedField.masked ? "true" : undefined
+                        }
+                        data-sot-privacy-boundary={
+                            renderedField.sensitiveTextareaPasswordFallback
+                                ? "sensitive-textarea-password-input"
+                                : undefined
                         }
                     />
                 )}

@@ -267,16 +267,16 @@ describe("React surface SSR coverage", () => {
                 null,
                 React.createElement(DataSourceFieldControl, {
                     field: {
-                        id: "authorization",
-                        key: "Authorization",
-                        label: "Authorization",
-                        description: "Paste Authorization",
-                        placeholder: "Bearer ...",
+                        id: "login-material",
+                        key: "loginMaterial",
+                        label: "登录信息",
+                        description: "粘贴当前账号的登录信息。",
+                        placeholder: "粘贴登录信息",
                         value: "",
                         target: "secret",
                         kind: "textarea",
                     },
-                    fieldId: "field-authorization",
+                    fieldId: "field-login-material",
                     onValueChange: vi.fn(),
                 }),
                 React.createElement(RecordingTagIconGlyph, {
@@ -294,7 +294,7 @@ describe("React surface SSR coverage", () => {
         );
         const classTokens = extractClassTokens(html);
 
-        expect(html).toContain("Authorization");
+        expect(html).toContain("登录信息");
         expect(html).toContain("source-report");
         expect(html).toContain(
             'data-sot-panel="recording-transcription-skeleton"',
@@ -329,5 +329,58 @@ describe("React surface SSR coverage", () => {
         ]) {
             expect(classTokens).not.toContain(legacyClass);
         }
+    });
+
+    it("keeps non-sensitive textareas visible while payload-like textarea fields use password inputs", () => {
+        const html = render(
+            React.createElement(
+                "section",
+                null,
+                React.createElement(DataSourceFieldControl, {
+                    field: {
+                        id: "source-notes",
+                        key: "notes",
+                        label: "连接备注",
+                        description: "用于记录这条连接的备注。",
+                        value: "可选备注",
+                        target: "config",
+                        kind: "textarea",
+                        rows: 3,
+                    },
+                    fieldId: "field-notes",
+                    onValueChange: vi.fn(),
+                    variant: "settings",
+                }),
+                React.createElement(DataSourceFieldControl, {
+                    field: {
+                        id: "source-login-material",
+                        key: "connectionPayload",
+                        label: "连接信息",
+                        description: "粘贴当前登录状态对应的连接信息。",
+                        placeholder: "粘贴连接信息",
+                        value: "",
+                        target: "config",
+                        kind: "textarea",
+                        rows: 3,
+                    },
+                    fieldId: "field-login-material",
+                    onValueChange: vi.fn(),
+                    variant: "settings",
+                }),
+            ),
+        );
+
+        expect(html).toMatch(/<textarea(?=[^>]*id="field-notes")/);
+        expect(html).toContain('data-slot="textarea"');
+        expect(html).toContain("可选备注");
+        expect(html).toMatch(
+            /<input(?=[^>]*id="field-login-material")(?=[^>]*type="password")/,
+        );
+        expect(html).toContain(
+            'data-sot-privacy-boundary="sensitive-textarea-password-input"',
+        );
+        expect(html).not.toMatch(
+            /<textarea(?=[^>]*id="field-login-material")/,
+        );
     });
 });

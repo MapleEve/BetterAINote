@@ -200,15 +200,30 @@ describe("frontend data-source routing regression", () => {
             "utf8",
         );
 
-        expect(fieldControl).toContain("isSensitiveTextField");
+        expect(fieldControl).toContain("isSensitiveProviderField");
+        expect(fieldControl).toContain("shouldRenderTextareaAsPasswordInput");
         expect(fieldControl).toContain('field.target === "secret"');
+        expect(fieldControl).toContain("header");
+        expect(fieldControl).toContain("payload");
         expect(fieldControl).toContain("password");
         expect(fieldControl).toContain("sensitive: sensitiveTextField");
+        expect(fieldControl).toContain(
+            "sensitiveTextareaPasswordFallback",
+        );
+        expect(fieldControl).toContain(
+            "sensitive-textarea-password-input",
+        );
         expect(fieldControl).toContain("masked: readOnlyMaskedDisplay");
         expect(fieldControl).toContain("data-sot-mask={");
         expect(fieldControl).not.toContain('"mask"');
         expect(settingFieldControl).toContain("masked?: boolean");
+        expect(settingFieldControl).toContain(
+            "sensitiveTextareaPasswordFallback?: boolean",
+        );
         expect(settingFieldControl).toContain("data-sot-mask={field.masked");
+        expect(settingFieldControl).toContain(
+            "data-sot-privacy-boundary={",
+        );
         expect(settingFieldControl).toContain("onPaste");
         expect(settingFieldControl).toContain("clipboardData.getData");
         expect(settingFieldControl).toContain('"text"');

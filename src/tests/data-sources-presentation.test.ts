@@ -239,7 +239,8 @@ describe("data-sources presentation helpers", () => {
         const drafts = createDefaultSourceDrafts();
         drafts.ticnote.config.region = "intl";
         drafts.ticnote.baseUrl = "https://voice-api.ticnote.cn";
-        drafts.ticnote.secrets.bearerToken = "Bearer \n tic-token-123 ";
+        const ticnoteCredential = "sentinel-ticnote-credential";
+        drafts.ticnote.secrets.bearerToken = `  ${ticnoteCredential}  `;
 
         expect(providerUsesCustomServerSelector("ticnote")).toBe(true);
         expect(
@@ -330,7 +331,7 @@ describe("data-sources presentation helpers", () => {
                 syncTitleToSource: true,
             }),
             secrets: {
-                bearerToken: "tic-token-123",
+                bearerToken: ticnoteCredential,
             },
         });
         expect(getDataSourceHelpDocUrl("ticnote")).toContain(
@@ -409,10 +410,15 @@ describe("data-sources presentation helpers", () => {
 
     it("builds Feishu Minutes access-token and web sign-in payloads from the selected sign-in method", () => {
         const drafts = createDefaultSourceDrafts();
-        drafts["feishu-minutes"].secrets.userAccessToken = "  u-123  ";
+        const openApiCredential = "sentinel-feishu-open-api";
+        const webSignInCredential = "sentinel-feishu-web-sign-in";
+        const supplementalCredential = "sentinel-feishu-supplemental";
+        drafts["feishu-minutes"].secrets.userAccessToken =
+            `  ${openApiCredential}  `;
         drafts["feishu-minutes"].secrets.webCookie =
-            "  minutes_csrf_token=csrf-value; session=redacted  ";
-        drafts["feishu-minutes"].secrets.webToken = "  web-token-redacted  ";
+            `  ${webSignInCredential}  `;
+        drafts["feishu-minutes"].secrets.webToken =
+            `  ${supplementalCredential}  `;
         const secretDrafts = {
             "feishu-minutes": drafts["feishu-minutes"].secrets,
         };
@@ -440,7 +446,7 @@ describe("data-sources presentation helpers", () => {
                 appId: "cli_xxx",
             },
             secrets: {
-                userAccessToken: "u-123",
+                userAccessToken: openApiCredential,
             },
         });
 
@@ -467,8 +473,8 @@ describe("data-sources presentation helpers", () => {
                 spaceName: "cn",
             },
             secrets: {
-                webCookie: "minutes_csrf_token=csrf-value; session=redacted",
-                webToken: "web-token-redacted",
+                webCookie: webSignInCredential,
+                webToken: supplementalCredential,
             },
         });
     });
@@ -544,7 +550,7 @@ describe("data-sources presentation helpers", () => {
                 },
                 {
                     "dingtalk-a1": {
-                        deviceCredential: "dt-token",
+                        deviceCredential: "sentinel-device-sign-in",
                     },
                 },
                 "zh-CN",
@@ -696,7 +702,7 @@ describe("data-sources presentation helpers", () => {
             },
             {
                 "dingtalk-a1": {
-                    deviceCredential: "fresh-device-token",
+                    deviceCredential: "sentinel-device-sign-in",
                 },
             },
             "zh-CN",
@@ -709,7 +715,7 @@ describe("data-sources presentation helpers", () => {
             key: "deviceCredential",
             kind: "textarea",
             target: "secret",
-            value: "fresh-device-token",
+            value: "sentinel-device-sign-in",
         });
         expect(editableDeviceField).not.toHaveProperty("readOnly");
     });
@@ -902,7 +908,7 @@ describe("data-sources presentation helpers", () => {
         );
     });
 
-    it("keeps settings field copy free of browser-capture and request-header wording", () => {
+    it("keeps settings field copy free of browser-capture and credential internals", () => {
         const drafts = createDefaultSourceDrafts();
         const allFields = DATA_SOURCE_PROVIDERS.flatMap((provider) =>
             DATA_SOURCE_CATALOG[provider].authModes.flatMap((authMode) =>
@@ -940,7 +946,7 @@ describe("data-sources presentation helpers", () => {
         ].join("\n");
 
         expect(visibleCopy).not.toMatch(
-            /Cookie|Authorization|Bearer|web-reverse|X-Session-Id|X-Biz-Id|X-Feishu|dt-meeting|user_access_token|space_name|localStorage|request header|请求头|请求 URL/i,
+            /payload|cookie|header|token|Cookie|Authorization|Bearer|web-reverse|X-Session-Id|X-Biz-Id|X-Feishu|dt-meeting|user_access_token|space_name|localStorage|request header|请求头|请求 URL/i,
         );
     });
 
