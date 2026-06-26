@@ -1371,64 +1371,8 @@ button:not([data-slot]) {
 }
 
 /* ===========================================================
-   Settings dialog (matches index.html structure)
+   Settings dialog functional hooks
    =========================================================== */
-[data-sot-surface="settings-shell"] {
-    width: 920px;
-    max-width: calc(100vw - 40px);
-    /* Fixed shell height — independent of section content. Without this,
-     the modal collapsed to whichever section was tallest and visually
-     jumped between sections. svh keeps the value stable on mobile
-     browsers that hide their chrome on scroll. */
-    height: min(94svh, 980px);
-    max-height: calc(100svh - 1rem);
-    display: flex;
-    flex-direction: column;
-    gap: 0;
-    overflow: hidden;
-    box-sizing: border-box;
-}
-[data-sot-surface="settings-shell"][data-state="closed"] {
-    transform: translateY(8px) scale(0.985);
-    opacity: 0;
-}
-
-[data-sot-panel="settings-header"] {
-    display: flex;
-    align-items: center;
-    /* Header stays pinned regardless of section content height. */
-    flex: none;
-}
-[data-sot-part="settings-user-summary"] {
-    display: flex;
-    align-items: center;
-    gap: 12px;
-    flex: 1;
-    min-width: 0;
-}
-[data-sot-part="settings-user-summary"] > div {
-    min-width: 0;
-}
-
-[data-sot-panel="settings-body"] {
-    display: grid;
-    grid-template-columns: 200px 1fr;
-    flex: 1;
-    min-height: 0;
-}
-[data-sot-panel="settings-rail"] {
-    display: flex;
-    flex-direction: column;
-    gap: 2px;
-    /* Rail is fixed inside the shell — only the settings scroll body
-     scrolls. If the rail itself grows past the body, scroll it
-     locally so it never expands the modal. */
-    overflow-y: auto;
-    overscroll-behavior: contain;
-    min-height: 0;
-}
-
-[data-sot-panel="settings-scroll-body"],
 [data-sot-panel="settings-card-skeleton"],
 [data-sot-panel="settings-section-skeleton"],
 [data-sot-panel="settings-list-skeleton"] {
@@ -1448,31 +1392,6 @@ button:not([data-slot]) {
 [data-sot-panel="settings-section-skeleton"],
 [data-sot-panel="settings-list-skeleton"] {
     padding: 22px 26px;
-}
-@media (max-width: 720px) {
-    [data-sot-panel="settings-header"] {
-        align-items: flex-start;
-        flex-wrap: wrap;
-        gap: 12px;
-    }
-    [data-sot-part="settings-user-summary"] {
-        flex: 1 1 calc(100% - 42px);
-        min-width: 0;
-    }
-    [data-sot-part="settings-user-name"],
-    [data-sot-part="settings-user-subtitle"] {
-        overflow: hidden;
-        text-overflow: ellipsis;
-        white-space: nowrap;
-    }
-}
-
-[data-sot-panel="settings-scroll-body"][data-sot-layout="three-pane"] {
-    display: grid;
-    grid-template-columns: 280px 1fr;
-    padding: 0;
-    overflow: hidden;
-    min-height: 0;
 }
 [data-sot-title] {
     font: 600 18px var(--font-display);

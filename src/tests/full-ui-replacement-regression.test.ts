@@ -3401,6 +3401,12 @@ describe("full UI replacement regression coverage", () => {
             expect(globals).toContain(token);
         }
         const productCss = readProductCss(globals);
+        const settingsDialog = readSource(
+            "features/settings/components/settings-dialog.tsx",
+        );
+        const settingsContent = readSource(
+            "features/settings/components/settings-content.tsx",
+        );
         expect(productCss).not.toMatch(LEGACY_MONO_PRODUCT_CSS_SELECTOR_RE);
         expect(productCss).not.toMatch(
             LEGACY_DESIGN_TWEAKS_PRODUCT_CSS_SELECTOR_RE,
@@ -3425,6 +3431,79 @@ describe("full UI replacement regression coverage", () => {
         );
         for (const selector of MODAL_SHELL_DATA_SOT_CSS_SELECTORS) {
             expect(productCss).toContain(selector);
+        }
+        findStringConstInitializerContaining(settingsDialog, [
+            "const SETTINGS_SHELL_SURFACE_CLASS =",
+            "h-[min(94svh,980px)]",
+            "w-[920px]",
+            "max-w-[calc(100vw-40px)]",
+            "flex-col",
+            "overflow-hidden",
+            "data-[state=closed]:translate-y-[8px]",
+            "data-[state=closed]:scale-[0.985]",
+            "data-[state=closed]:opacity-0",
+        ]);
+        findStringConstInitializerContaining(settingsDialog, [
+            "const SETTINGS_HEADER_CLASS =",
+            "flex-none",
+            "items-center",
+            "max-[720px]:flex-wrap",
+            "max-[720px]:items-start",
+        ]);
+        findStringConstInitializerContaining(settingsDialog, [
+            "const SETTINGS_BODY_CLASS =",
+            "grid",
+            "min-h-0",
+            "flex-1",
+            "grid-cols-[200px_1fr]",
+        ]);
+        findStringConstInitializerContaining(settingsDialog, [
+            "const SETTINGS_RAIL_CLASS =",
+            "flex",
+            "min-h-0",
+            "flex-col",
+            "overflow-y-auto",
+            "[overscroll-behavior:contain]",
+        ]);
+        findStringConstInitializerContaining(settingsContent, [
+            "const SETTINGS_SCROLL_BODY_CLASS =",
+            "min-h-0",
+            "overflow-y-auto",
+            "px-[26px]",
+            "py-[22px]",
+            "[overscroll-behavior:contain]",
+        ]);
+        findStringConstInitializerContaining(settingsContent, [
+            "const SETTINGS_THREE_PANE_SCROLL_BODY_CLASS =",
+            "grid",
+            "min-h-0",
+            "grid-cols-[280px_1fr]",
+            "overflow-hidden",
+            "p-0",
+        ]);
+        expect(
+            collectExactCssRuleBlocks(
+                productCss,
+                '[data-sot-surface="settings-shell"]',
+            ),
+        ).toHaveLength(1);
+        expect(
+            collectExactCssRuleBlocks(
+                productCss,
+                '[data-sot-surface="settings-shell"][data-state="closed"]',
+            )[0]?.declarations,
+        ).not.toContain("transform:");
+        for (const selector of [
+            '[data-sot-panel="settings-header"]',
+            '[data-sot-panel="settings-body"]',
+            '[data-sot-panel="settings-rail"]',
+            '[data-sot-panel="settings-scroll-body"]',
+            '[data-sot-panel="settings-scroll-body"][data-sot-layout="three-pane"]',
+            '[data-sot-part="settings-user-summary"] > div',
+            '[data-sot-part="settings-user-name"]',
+            '[data-sot-part="settings-user-subtitle"]',
+        ]) {
+            expect(collectExactCssRuleBlocks(productCss, selector)).toEqual([]);
         }
         for (const selector of REMOVED_DEAD_SOT_GLOBAL_SELECTORS) {
             expect(globals).not.toContain(selector);

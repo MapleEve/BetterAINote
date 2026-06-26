@@ -312,11 +312,14 @@ const SPEAKER_PROFILE_PRIMITIVE_BUSINESS_TOKENS = [
     "speakerAvatarFallbackClassName",
 ] as const;
 
-const SETTINGS_MAIN_DATA_SOT_CSS_SELECTORS = [
-    '[data-sot-panel="settings-scroll-body"],',
-    '[data-sot-panel="settings-scroll-body"][data-sot-layout="three-pane"]',
+const RETAINED_SETTINGS_MAIN_FUNCTIONAL_DATA_SOT_CSS_SELECTORS = [
     '[data-sot-panel="settings-scroll-body"][hidden]',
     '[data-sot-panel="settings-scroll-body"][data-sot-availability="unavailable"]',
+] as const;
+
+const REMOVED_SETTINGS_MAIN_VISUAL_DATA_SOT_CSS_SELECTORS = [
+    '[data-sot-panel="settings-scroll-body"]',
+    '[data-sot-panel="settings-scroll-body"][data-sot-layout="three-pane"]',
 ] as const;
 
 const REMOVED_SETTINGS_SAVE_ACTION_GLOBAL_SELECTORS = [
@@ -696,15 +699,37 @@ describe("settings SOT interaction regressions", () => {
 
     it("keeps settings main product CSS on data-sot selectors only", () => {
         const globals = readSource("app/globals.css");
+        const content = readSource(
+            "features/settings/components/settings-content.tsx",
+        );
 
         for (const [pattern, label] of LEGACY_SETTINGS_SHELL_CSS_SELECTORS) {
             expect(globals, `globals should not use ${label}`).not.toMatch(
                 pattern,
             );
         }
-        for (const selector of SETTINGS_MAIN_DATA_SOT_CSS_SELECTORS) {
+        for (const selector of RETAINED_SETTINGS_MAIN_FUNCTIONAL_DATA_SOT_CSS_SELECTORS) {
             expect(globals).toContain(selector);
         }
+        for (const selector of REMOVED_SETTINGS_MAIN_VISUAL_DATA_SOT_CSS_SELECTORS) {
+            expect(collectExactCssRuleBlocks(globals, selector)).toEqual([]);
+        }
+        findStringConstInitializerContaining(content, [
+            "const SETTINGS_SCROLL_BODY_CLASS =",
+            "min-h-0",
+            "overflow-y-auto",
+            "px-[26px]",
+            "py-[22px]",
+            "[overscroll-behavior:contain]",
+        ]);
+        findStringConstInitializerContaining(content, [
+            "const SETTINGS_THREE_PANE_SCROLL_BODY_CLASS =",
+            "grid",
+            "min-h-0",
+            "grid-cols-[280px_1fr]",
+            "overflow-hidden",
+            "p-0",
+        ]);
         for (const selector of REMOVED_SETTINGS_SAVE_ACTION_GLOBAL_SELECTORS) {
             expect(globals).not.toContain(selector);
         }
@@ -819,33 +844,17 @@ describe("settings SOT interaction regressions", () => {
             "features/settings/components/settings-dialog.tsx",
         );
         const globals = readSource("app/globals.css");
-        const baseBodyCss = readCssBlock(
+        const shellSurfaceBlocks = collectExactCssRuleBlocks(
             globals,
-            '[data-sot-panel="settings-body"] {\n    display: grid;',
+            '[data-sot-surface="settings-shell"]',
         );
-        const baseRailCss = readCssBlock(
+        const shellClosedBlocks = collectExactCssRuleBlocks(
             globals,
-            '[data-sot-panel="settings-rail"]',
+            '[data-sot-surface="settings-shell"][data-state="closed"]',
         );
-        const mobileSettingsCss = readCssBlock(
-            globals,
-            "@media (max-width: 720px)",
-        );
-        const baseUserCss = readCssBlock(
+        const userSummaryBlocks = collectExactCssRuleBlocks(
             globals,
             '[data-sot-part="settings-user-summary"]',
-        );
-        const baseUserTextCss = readCssBlock(
-            globals,
-            '[data-sot-part="settings-user-summary"] > div',
-        );
-        const mobileHeaderCss = readCssBlock(
-            mobileSettingsCss,
-            '[data-sot-panel="settings-header"]',
-        );
-        const mobileTextCss = readCssBlock(
-            mobileSettingsCss,
-            '[data-sot-part="settings-user-name"],\n    [data-sot-part="settings-user-subtitle"]',
         );
 
         expect(dialog).not.toContain(
@@ -859,46 +868,127 @@ describe("settings SOT interaction regressions", () => {
         expect(dialog).toContain("<Monitor");
         expect(dialog).toContain("{settingsUserSubtitle}");
 
-        expect(baseBodyCss).toContain("grid-template-columns: 200px 1fr;");
-        expect(baseRailCss).toContain("display: flex;");
-        expect(mobileHeaderCss).toContain("flex-wrap: wrap;");
-        expect(mobileHeaderCss).toContain("align-items: flex-start;");
-        expect(baseUserCss).toContain("min-width: 0;");
-        expect(baseUserTextCss).toContain("min-width: 0;");
-        expect(mobileTextCss).toContain("overflow: hidden;");
-        expect(mobileTextCss).toContain("text-overflow: ellipsis;");
-        expect(mobileTextCss).toContain("white-space: nowrap;");
+        findStringConstInitializerContaining(dialog, [
+            "const SETTINGS_SHELL_SURFACE_CLASS =",
+            "box-border",
+            "flex",
+            "h-[min(94svh,980px)]",
+            "max-h-[calc(100svh-1rem)]",
+            "w-[920px]",
+            "max-w-[calc(100vw-40px)]",
+            "flex-col",
+            "gap-0",
+            "overflow-hidden",
+            "data-[state=closed]:translate-y-[8px]",
+            "data-[state=closed]:scale-[0.985]",
+            "data-[state=closed]:opacity-0",
+        ]);
+        findStringConstInitializerContaining(dialog, [
+            "const SETTINGS_HEADER_CLASS =",
+            "flex",
+            "flex-none",
+            "items-center",
+            "max-[720px]:flex-wrap",
+            "max-[720px]:items-start",
+            "max-[720px]:gap-3",
+        ]);
+        findStringConstInitializerContaining(dialog, [
+            "const SETTINGS_USER_SUMMARY_CLASS =",
+            "flex",
+            "min-w-0",
+            "flex-1",
+            "items-center",
+            "gap-3",
+            "max-[720px]:basis-[calc(100%-42px)]",
+        ]);
+        findStringConstInitializerContaining(dialog, [
+            "const SETTINGS_USER_SUMMARY_TEXT_CLASS =",
+            "min-w-0",
+        ]);
+        findStringConstInitializerContaining(dialog, [
+            "const SETTINGS_USER_NAME_CLASS =",
+            "m-0",
+            "font-sans",
+            "text-sm",
+            "max-[720px]:truncate",
+        ]);
+        findStringConstInitializerContaining(dialog, [
+            "const SETTINGS_USER_SUBTITLE_CLASS =",
+            "font-mono",
+            "text-xs",
+            "max-[720px]:truncate",
+        ]);
+        findStringConstInitializerContaining(dialog, [
+            "const SETTINGS_BODY_CLASS =",
+            "grid",
+            "min-h-0",
+            "flex-1",
+            "grid-cols-[200px_1fr]",
+        ]);
+        findStringConstInitializerContaining(dialog, [
+            "const SETTINGS_RAIL_CLASS =",
+            "flex",
+            "min-h-0",
+            "flex-col",
+            "gap-0.5",
+            "overflow-y-auto",
+            "[overscroll-behavior:contain]",
+        ]);
 
-        expect(mobileSettingsCss).not.toContain(".settings-section-select");
-        expect(mobileSettingsCss).not.toMatch(
-            /\[data-sot-panel="settings-body"\]\s*{[\s\S]*?grid-template-columns:\s*1fr;[\s\S]*?}/,
+        expect(shellSurfaceBlocks).toHaveLength(1);
+        expect(shellSurfaceBlocks[0]?.declarations).toContain(
+            "z-index: calc(var(--z-modal) + 1);",
         );
-        expect(mobileSettingsCss).not.toMatch(
-            /\[data-sot-panel="settings-rail"\]\s*{[\s\S]*?display:\s*none;[\s\S]*?}/,
+        expect(shellSurfaceBlocks[0]?.declarations).not.toMatch(
+            /(?:width|max-width|height|max-height|display|flex-direction|gap|overflow|box-sizing)\s*:/,
+        );
+        expect(shellClosedBlocks).toHaveLength(1);
+        expect(shellClosedBlocks[0]?.declarations).toContain("opacity: 0;");
+        expect(shellClosedBlocks[0]?.declarations).not.toContain("transform:");
+        for (const selector of [
+            '[data-sot-panel="settings-header"]',
+            '[data-sot-panel="settings-body"]',
+            '[data-sot-panel="settings-rail"]',
+            '[data-sot-part="settings-user-summary"] > div',
+            '[data-sot-part="settings-user-name"]',
+            '[data-sot-part="settings-user-subtitle"]',
+        ]) {
+            expect(collectExactCssRuleBlocks(globals, selector)).toEqual([]);
+        }
+        expect(userSummaryBlocks).toHaveLength(1);
+        expect(userSummaryBlocks[0]?.declarations.trim()).toBe(
+            "display: flex;",
         );
     });
 
     it("keeps the data-source three-pane shell from stacking on mobile", () => {
         const globals = readSource("app/globals.css");
-        const mobileBlocks = readCssBlocks(
-            globals,
-            "@media (max-width: 720px)",
+        const content = readSource(
+            "features/settings/components/settings-content.tsx",
         );
 
-        for (const mobileBlock of mobileBlocks) {
-            expect(mobileBlock).not.toMatch(
-                /\.settings-main\.three-pane\s*{[^}]*grid-template-columns:\s*minmax\(0,\s*1fr\)/,
-            );
-            expect(mobileBlock).not.toMatch(
-                /\.settings-main\.three-pane\s*{[^}]*grid-template-rows:\s*auto\s+minmax\(0,\s*1fr\)/,
-            );
-            expect(mobileBlock).not.toMatch(
-                /\[data-sot-panel="settings-scroll-body"\]\[data-sot-layout="three-pane"\]\s*{[^}]*grid-template-columns:\s*minmax\(0,\s*1fr\)/,
-            );
-            expect(mobileBlock).not.toMatch(
-                /\[data-sot-panel="settings-scroll-body"\]\[data-sot-layout="three-pane"\]\s*{[^}]*grid-template-rows:\s*auto\s+minmax\(0,\s*1fr\)/,
-            );
-        }
+        findStringConstInitializerContaining(content, [
+            "const SETTINGS_THREE_PANE_SCROLL_BODY_CLASS =",
+            "grid",
+            "min-h-0",
+            "grid-cols-[280px_1fr]",
+            "overflow-hidden",
+            "p-0",
+        ]);
+        expect(content).not.toContain("max-[720px]:grid-cols");
+        expect(content).not.toContain("max-[720px]:grid-rows");
+        expect(globals).not.toMatch(
+            /\.settings-main\.three-pane\s*{[^}]*grid-template-columns:\s*minmax\(0,\s*1fr\)/,
+        );
+        expect(globals).not.toMatch(
+            /\.settings-main\.three-pane\s*{[^}]*grid-template-rows:\s*auto\s+minmax\(0,\s*1fr\)/,
+        );
+        expect(
+            collectExactCssRuleBlocks(
+                globals,
+                '[data-sot-panel="settings-scroll-body"][data-sot-layout="three-pane"]',
+            ),
+        ).toEqual([]);
     });
 
     it("keeps data-source settings wired to provider rows, detail states, save, and no-persist test", () => {
