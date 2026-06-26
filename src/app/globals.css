@@ -1469,16 +1469,9 @@ button:not([data-slot]) {
 [data-sot-part="dashboard-retranscription-icon"] {
     display: inline-flex;
 }
-[data-sot-part="dashboard-retranscription-spinner"],
 [data-sot-part="dashboard-retranscription-icon-warn"],
 [data-sot-part="dashboard-retranscription-icon-ok"] {
     display: none;
-}
-[data-sot-panel="dashboard-retranscription"][data-retx-state="queued"]
-    [data-sot-part="dashboard-retranscription-spinner"],
-[data-sot-panel="dashboard-retranscription"][data-retx-state="running"]
-    [data-sot-part="dashboard-retranscription-spinner"] {
-    display: inline-block;
 }
 [data-sot-panel="dashboard-retranscription"][data-retx-state="failed"]
     [data-sot-part="dashboard-retranscription-icon-warn"] {
@@ -1798,14 +1791,6 @@ button:not([data-slot]) {
     stroke: currentColor;
     fill: none;
     stroke-width: 2;
-}
-[data-sot-part="dashboard-retranscription-spinner"] {
-    width: 12px;
-    height: 12px;
-    border-radius: 50%;
-    border: 1.6px solid var(--signal-info);
-    border-top-color: transparent;
-    animation: spin 700ms linear infinite;
 }
 [data-sot-part="dashboard-retranscription-body"] {
     flex-direction: column;

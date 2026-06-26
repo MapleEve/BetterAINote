@@ -2863,6 +2863,20 @@ describe("dashboard SOT foundation", () => {
             'data-sot-panel="dashboard-retranscription"',
         );
         expect(workstation).toContain("data-retx-state={dashboardRetxState}");
+        expect(workstation).toContain(
+            'import { Spinner } from "@/components/ui/spinner";',
+        );
+        expect(workstation).toContain("<Spinner");
+        expect(workstation).toContain('size="xs"');
+        expect(workstation).not.toContain(
+            '<span data-sot-part="dashboard-retranscription-spinner" />',
+        );
+        expect(
+            collectCssRuleBlocks(
+                globals,
+                '[data-sot-part="dashboard-retranscription-spinner"]',
+            ),
+        ).toEqual([]);
         for (const hook of DASHBOARD_RETRANSCRIPTION_SOT_HOOKS) {
             expect(workstation).toContain(hook);
         }

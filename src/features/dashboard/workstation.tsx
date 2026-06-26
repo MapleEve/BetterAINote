@@ -75,6 +75,7 @@ import {
 } from "@/components/ui/segmented-tabs";
 import { Separator } from "@/components/ui/separator";
 import { Skeleton } from "@/components/ui/skeleton";
+import { Spinner } from "@/components/ui/spinner";
 import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
 import { DashboardRecordingPlayerControls } from "@/features/dashboard/components/dashboard-recording-player-controls";
 import { SystemBanner } from "@/features/dashboard/components/system-banner";
@@ -7465,7 +7466,10 @@ export function Workstation({
                                     >
                                         {dashboardRetxState === "queued" ||
                                         dashboardRetxState === "running" ? (
-                                            <span data-sot-part="dashboard-retranscription-spinner" />
+                                            <Spinner
+                                                size="xs"
+                                                data-sot-part="dashboard-retranscription-spinner"
+                                            />
                                         ) : dashboardRetxState === "failed" ? (
                                             <RetxWarnIcon />
                                         ) : dashboardRetxState ===

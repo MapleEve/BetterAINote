@@ -3066,7 +3066,6 @@ const DASHBOARD_TRANSCRIPT_SOURCE_REPORT_RETX_ACTIVITY_SOT_CSS_SELECTORS = [
     '[data-sot-part="dashboard-transcript-speaker-time"]',
     '[data-sot-panel="dashboard-retranscription"]',
     '[data-sot-part="dashboard-retranscription-icon"]',
-    '[data-sot-part="dashboard-retranscription-spinner"]',
     '[data-sot-part="dashboard-retranscription-refresh-marker"]',
 ];
 
@@ -4710,6 +4709,12 @@ describe("full UI replacement regression coverage", () => {
         for (const selector of DASHBOARD_TRANSCRIPT_SOURCE_REPORT_RETX_ACTIVITY_SOT_CSS_SELECTORS) {
             expect(globals).toContain(selector);
         }
+        expect(
+            collectCssRuleBlocks(
+                globals,
+                '[data-sot-part="dashboard-retranscription-spinner"]',
+            ),
+        ).toEqual([]);
         expect(
             collectExactCssRuleBlocks(globals, "[data-sot-source-report-pane]"),
         ).toEqual([]);
@@ -8928,6 +8933,14 @@ describe("full UI replacement regression coverage", () => {
             'data-sot-panel="dashboard-retranscription"',
         );
         expect(workstation).toContain("data-retx-state={dashboardRetxState}");
+        expect(workstation).toContain(
+            'import { Spinner } from "@/components/ui/spinner";',
+        );
+        expect(workstation).toContain("<Spinner");
+        expect(workstation).toContain('size="xs"');
+        expect(workstation).not.toContain(
+            '<span data-sot-part="dashboard-retranscription-spinner" />',
+        );
         for (const hook of DASHBOARD_RETRANSCRIPTION_SOT_HOOKS) {
             expect(workstation).toContain(hook);
         }
