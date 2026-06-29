@@ -1846,7 +1846,7 @@ button:not([data-slot]) {
     text-align: center;
 }
 
-/* ---------- Settings panel: field groups, banners, save state, voscript, shortcuts ---------- */
+/* ---------- Settings panel: field groups, banners, save state, voscript ---------- */
 [data-sot-section-group] {
     margin-bottom: 22px;
     position: relative;
@@ -1858,47 +1858,6 @@ button:not([data-slot]) {
 }
 [data-theme="dark"] [data-sot-section-divider] {
     border-top-color: var(--glass-border-soft);
-}
-
-[data-sot-shortcuts] {
-    grid-template-columns: 1fr auto;
-    gap: 8px 14px;
-}
-[data-sot-shortcuts] > div {
-    align-items: center;
-    gap: 8px;
-    padding: 6px 0;
-    border-bottom: 1px dashed var(--line-hairline);
-    font: 500 12.5px var(--font-sans);
-    color: var(--fg-primary);
-}
-[data-theme="dark"] [data-sot-shortcuts] > div {
-    border-bottom-color: var(--glass-border-soft);
-}
-[data-sot-shortcuts] kbd {
-    font: 600 11px var(--font-mono);
-    color: var(--fg-secondary);
-    padding: 2px 6px;
-    border-radius: 4px;
-    background: var(--bg-recessed);
-    border: 1px solid var(--line-hairline);
-}
-
-[data-sot-key-status] {
-    align-items: center;
-    gap: 4px;
-    font: 500 11.5px var(--font-sans);
-    color: var(--fg-tertiary);
-}
-[data-sot-key-status][data-state="valid"]::before {
-    content: "✓";
-    color: var(--signal-success);
-    font-weight: 700;
-}
-[data-sot-key-status][data-state="invalid"]::before {
-    content: "!";
-    color: var(--signal-danger);
-    font-weight: 700;
 }
 
 [data-detail-empty][hidden] {

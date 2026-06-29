@@ -226,6 +226,18 @@ const SETTINGS_BANNER_TITLE_CLASS =
 const SETTINGS_BANNER_DESCRIPTION_CLASS =
     "col-start-auto mt-1 block gap-0 text-sm text-muted-foreground [&_p]:leading-normal";
 
+const SETTINGS_SHORTCUTS_GRID_CLASS =
+    "grid grid-cols-[1fr_auto] gap-x-3.5 gap-y-2";
+
+const SETTINGS_SHORTCUT_ROW_CLASS =
+    "flex items-center gap-2 border-b border-dashed border-[var(--line-hairline)] py-1.5 font-sans text-[12.5px] font-medium leading-normal text-[var(--fg-primary)]";
+
+const SETTINGS_SHORTCUT_KEY_CLASS =
+    "rounded-[4px] border border-solid border-[var(--line-hairline)] bg-[var(--bg-recessed)] px-1.5 py-0.5 font-mono text-[11px] font-semibold leading-normal text-[var(--fg-secondary)]";
+
+const SETTINGS_KEY_STATUS_CLASS =
+    "inline-flex items-center gap-1 font-sans text-[11.5px] font-medium leading-normal text-[var(--fg-tertiary)] data-[sot-state=stored]:before:font-bold data-[sot-state=stored]:before:text-[var(--signal-success)] data-[sot-state=stored]:before:content-['✓']";
+
 const SETTINGS_SOURCE_AUTH_MODE_GROUP_CLASS =
     "mb-4 !grid w-full grid-cols-2 items-stretch";
 
@@ -2948,7 +2960,11 @@ function TitleGenerationSettingsPanel({
                     }
                 >
                     {draft.titleGenerationApiKeySet ? (
-                        <span data-sot-key-status data-sot-state="stored">
+                        <span
+                            className={SETTINGS_KEY_STATUS_CLASS}
+                            data-sot-key-status
+                            data-sot-state="stored"
+                        >
                             {isZh ? "已存储" : "Stored"}
                         </span>
                     ) : null}
@@ -3524,7 +3540,11 @@ function VoScriptSettingsPanel({
                     }
                 >
                     {draft.privateTranscriptionApiKeySet ? (
-                        <span data-sot-key-status data-sot-state="stored">
+                        <span
+                            className={SETTINGS_KEY_STATUS_CLASS}
+                            data-sot-key-status
+                            data-sot-state="stored"
+                        >
                             {isZh ? "已存储" : "Stored"}
                         </span>
                     ) : null}
@@ -4088,25 +4108,28 @@ function PlaybackSettingsRows({
                         : "Supported while the player is focused"
                 }
             >
-                <div data-sot-shortcuts>
-                    <div>
-                        <kbd>Space</kbd>
+                <div
+                    className={SETTINGS_SHORTCUTS_GRID_CLASS}
+                    data-sot-shortcuts
+                >
+                    <div className={SETTINGS_SHORTCUT_ROW_CLASS}>
+                        <kbd className={SETTINGS_SHORTCUT_KEY_CLASS}>Space</kbd>
                         <span>{isZh ? "播放 / 暂停" : "Play / pause"}</span>
                     </div>
-                    <div>
-                        <kbd>←</kbd>
+                    <div className={SETTINGS_SHORTCUT_ROW_CLASS}>
+                        <kbd className={SETTINGS_SHORTCUT_KEY_CLASS}>←</kbd>
                         <span>{isZh ? "后退 5 秒" : "Back 5 seconds"}</span>
                     </div>
-                    <div>
-                        <kbd>→</kbd>
+                    <div className={SETTINGS_SHORTCUT_ROW_CLASS}>
+                        <kbd className={SETTINGS_SHORTCUT_KEY_CLASS}>→</kbd>
                         <span>{isZh ? "前进 5 秒" : "Forward 5 seconds"}</span>
                     </div>
-                    <div>
-                        <kbd>↑</kbd>
+                    <div className={SETTINGS_SHORTCUT_ROW_CLASS}>
+                        <kbd className={SETTINGS_SHORTCUT_KEY_CLASS}>↑</kbd>
                         <span>{isZh ? "提高音量" : "Volume up"}</span>
                     </div>
-                    <div>
-                        <kbd>↓</kbd>
+                    <div className={SETTINGS_SHORTCUT_ROW_CLASS}>
+                        <kbd className={SETTINGS_SHORTCUT_KEY_CLASS}>↓</kbd>
                         <span>{isZh ? "降低音量" : "Volume down"}</span>
                     </div>
                 </div>

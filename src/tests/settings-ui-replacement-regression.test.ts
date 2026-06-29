@@ -333,6 +333,13 @@ const REMOVED_SETTINGS_SAVE_ACTION_GLOBAL_SELECTORS = [
     '[data-sot-panel="settings-save-actions"] [data-sot-part="settings-save-status"]',
 ] as const;
 
+const REMOVED_SETTINGS_SHORTCUTS_KEY_STATUS_VISUAL_SELECTORS = [
+    "[data-sot-shortcuts]",
+    "[data-sot-shortcuts] > div",
+    "[data-sot-shortcuts] kbd",
+    "[data-sot-key-status]",
+] as const;
+
 const LEGACY_MODAL_SHELL_CSS_SELECTOR_RE =
     /(^|[,\s>{])\.(?:scrim|modal|modal-head|modal-icon|modal-title|modal-desc|modal-body|modal-foot)(?![\w-])/m;
 
@@ -1712,6 +1719,19 @@ describe("settings SOT interaction regressions", () => {
         const saveActionsClass =
             content.match(/const SETTINGS_SAVE_ACTIONS_CLASS[\s\S]*?;/)?.[0] ??
             "";
+        const shortcutsGridClass =
+            content.match(
+                /const SETTINGS_SHORTCUTS_GRID_CLASS[\s\S]*?;/,
+            )?.[0] ?? "";
+        const shortcutRowClass =
+            content.match(/const SETTINGS_SHORTCUT_ROW_CLASS[\s\S]*?;/)?.[0] ??
+            "";
+        const shortcutKeyClass =
+            content.match(/const SETTINGS_SHORTCUT_KEY_CLASS[\s\S]*?;/)?.[0] ??
+            "";
+        const keyStatusClass =
+            content.match(/const SETTINGS_KEY_STATUS_CLASS[\s\S]*?;/)?.[0] ??
+            "";
         const providerDetailInputOwnerClass =
             findStringConstInitializerContaining(settingFieldControl, [
                 "focus-visible:ring-0",
@@ -1871,6 +1891,43 @@ describe("settings SOT interaction regressions", () => {
         );
         expect(saveActionsClass).toContain(
             "data-[sot-state=saving]:[&_[data-sot-control=settings-save]]:pointer-events-none",
+        );
+        expect(shortcutsGridClass).toContain("SETTINGS_SHORTCUTS_GRID_CLASS");
+        expect(shortcutsGridClass).toContain("grid grid-cols-[1fr_auto]");
+        expect(shortcutRowClass).toContain("SETTINGS_SHORTCUT_ROW_CLASS");
+        expect(shortcutRowClass).toContain("border-[var(--line-hairline)]");
+        expect(shortcutRowClass).toContain("text-[var(--fg-primary)]");
+        expect(shortcutKeyClass).toContain("SETTINGS_SHORTCUT_KEY_CLASS");
+        expect(shortcutKeyClass).toContain("bg-[var(--bg-recessed)]");
+        expect(shortcutKeyClass).toContain("text-[var(--fg-secondary)]");
+        expect(keyStatusClass).toContain("SETTINGS_KEY_STATUS_CLASS");
+        expect(keyStatusClass).toContain("inline-flex items-center gap-1");
+        expect(keyStatusClass).toContain("data-[sot-state=stored]");
+        expect(keyStatusClass).toContain("text-[var(--fg-tertiary)]");
+        expect(keyStatusClass).toContain("text-[var(--signal-success)]");
+        expect(content).toContain(
+            "className={SETTINGS_SHORTCUTS_GRID_CLASS}",
+        );
+        expect(content).toContain("className={SETTINGS_SHORTCUT_ROW_CLASS}");
+        expect(content).toContain("className={SETTINGS_SHORTCUT_KEY_CLASS}");
+        expect(content).toContain("className={SETTINGS_KEY_STATUS_CLASS}");
+        expect(content).toContain('data-sot-key-status');
+        expect(content).not.toContain('data-state="valid"');
+        expect(content).not.toContain('data-state="invalid"');
+        for (const selector of REMOVED_SETTINGS_SHORTCUTS_KEY_STATUS_VISUAL_SELECTORS) {
+            expect(collectExactCssRuleBlocks(globals, selector)).toEqual([]);
+        }
+        expect(globals).not.toContain(
+            '[data-sot-key-status][data-state="valid"]',
+        );
+        expect(globals).not.toContain(
+            '[data-sot-key-status][data-state="invalid"]',
+        );
+        expect(globals).toContain(
+            '[data-sot-panel="settings-scroll-body"] [data-sot-key-status]',
+        );
+        expect(globals).toContain(
+            '[data-sot-panel="settings-scroll-body"] [data-sot-shortcuts]',
         );
         expect(toggleGroupPrimitive).not.toContain("settingsSegment");
         expect(toggleGroupPrimitive).not.toContain("settingsSegmentOption:");
