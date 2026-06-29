@@ -391,6 +391,40 @@ const dashboardTranscriptSkeletonClassNames = {
     time: "h-[11px] w-20 flex-none",
 } as const satisfies Record<DashboardTranscriptSkeletonSize, string>;
 
+const dashboardTranscriptClassNames = {
+    turn: "border-b border-dashed border-[var(--line-hairline)] py-[10px] pb-4 last:border-b-0 dark:border-[var(--glass-border)]",
+    speakerRow: "mb-1.5 flex items-center gap-2.5",
+    avatar:
+        "inline-grid size-7 flex-none place-items-center rounded-full bg-[var(--accent-soft)] text-center [font:600_12px/1_var(--font-sans)] tracking-normal text-[var(--steel-700)] data-[sot-tone=info]:bg-[var(--accent-soft)] data-[sot-tone=info]:text-[var(--signal-info)] data-[sot-tone=steel]:bg-[var(--accent-soft)] data-[sot-tone=steel]:text-[var(--steel-700)] data-[sot-tone=success]:bg-[var(--button-copy-success-bg)] data-[sot-tone=success]:text-[var(--signal-success)]",
+    speakerName: "[font:600_12.5px_var(--font-sans)] text-[var(--fg-primary)]",
+    speakerTime: "ml-1 font-mono text-[11px] font-medium text-[var(--fg-tertiary)]",
+    paragraph:
+        "m-0 font-sans text-[14.5px] leading-[1.65] text-[var(--fg-primary)] [text-wrap:pretty]",
+    empty: "block min-w-0 flex-none rounded-none border-0 bg-transparent px-[18px] py-[26px] text-center shadow-none",
+    emptyHeader: "block max-w-none",
+    emptyIcon:
+        "mx-auto mb-2 inline-grid size-11 place-items-center rounded-full border border-[var(--line-hairline)] bg-[var(--bg-recessed)] text-[var(--fg-tertiary)] [&_svg]:size-[22px] [&_svg]:fill-none [&_svg]:stroke-current [&_svg]:stroke-[1.6] [&_svg]:[stroke-linecap:round] [&_svg]:[stroke-linejoin:round]",
+    emptyMessage:
+        "mb-1 mt-0 font-sans text-[13px] font-semibold leading-[1.35] text-[var(--fg-primary)]",
+    emptySub:
+        "m-0 font-sans text-xs font-medium leading-[1.55] text-[var(--fg-tertiary)]",
+} as const;
+
+const dashboardSpeakerPaneClassNames = {
+    head: "flex items-center gap-2.5 px-4 pt-3 pb-2",
+    headTitle: "flex-1 font-sans text-[12.5px] font-semibold text-[var(--fg-secondary)]",
+    rows: "m-0 flex list-none flex-col gap-0.5 px-2 pb-3.5",
+    row: "grid grid-cols-[28px_1fr_120px_auto] items-center gap-2.5 rounded-lg px-2.5 py-2 hover:bg-[var(--bg-recessed)] dark:hover:bg-[rgb(255_255_255_/_0.03)]",
+    rowMeta: "flex min-w-0 flex-col gap-0.5",
+    name: "truncate font-sans text-[13px] font-semibold text-[var(--fg-primary)]",
+    sub: "font-mono text-[11.5px] font-medium text-[var(--fg-tertiary)]",
+    avatar:
+        "inline-grid size-7 flex-none place-items-center rounded-full bg-[var(--accent-soft)] text-center [font:600_12px/1_var(--font-sans)] tracking-normal text-[var(--steel-700)]",
+    bar: "block h-1 w-full overflow-hidden rounded-full bg-[var(--bg-recessed)]",
+    barFill:
+        "block h-full rounded-full bg-gradient-to-r from-[var(--steel-500)] to-[var(--accent)] [width:var(--dashboard-speaker-share,0%)]",
+} as const;
+
 const TRANSCRIPT_LOADING_SKELETON_ROWS = [
     {
         firstLine: "line-96",
@@ -7627,11 +7661,17 @@ export function Workstation({
                                         TRANSCRIPT_LOADING_SKELETON_ROWS.map(
                                             (item) => (
                                                 <div
+                                                    className={
+                                                        dashboardTranscriptClassNames.turn
+                                                    }
                                                     data-sot-item="dashboard-transcript-turn"
                                                     data-sot-state="loading"
                                                     key={`transcript-skeleton:${item.key}`}
                                                 >
                                                     <div
+                                                        className={
+                                                            dashboardTranscriptClassNames.speakerRow
+                                                        }
                                                         data-sot-part="dashboard-transcript-speaker-row"
                                                         data-sot-state="loading"
                                                     >
@@ -7675,15 +7715,24 @@ export function Workstation({
 
                                             return (
                                                 <div
+                                                    className={
+                                                        dashboardTranscriptClassNames.turn
+                                                    }
                                                     data-sot-item="dashboard-transcript-turn"
                                                     data-sot-state="ready"
                                                     key={`${selectedRecording?.id}:${index}`}
                                                 >
                                                     <div
+                                                        className={
+                                                            dashboardTranscriptClassNames.speakerRow
+                                                        }
                                                         data-sot-part="dashboard-transcript-speaker-row"
                                                         data-sot-state="ready"
                                                     >
                                                         <span
+                                                            className={
+                                                                dashboardTranscriptClassNames.avatar
+                                                            }
                                                             data-sot-part="dashboard-transcript-avatar"
                                                             data-sot-tone={
                                                                 TRANSCRIPT_AVATAR_TONES[
@@ -7694,37 +7743,70 @@ export function Workstation({
                                                         >
                                                             {avatarLabel}
                                                         </span>
-                                                        <span data-sot-part="dashboard-transcript-speaker-name">
+                                                        <span
+                                                            className={
+                                                                dashboardTranscriptClassNames.speakerName
+                                                            }
+                                                            data-sot-part="dashboard-transcript-speaker-name"
+                                                        >
                                                             {speakerName}
                                                         </span>
                                                         <span
+                                                            className={
+                                                                dashboardTranscriptClassNames.speakerTime
+                                                            }
                                                             data-sot-format="mono"
                                                             data-sot-part="dashboard-transcript-speaker-time"
                                                         >
                                                             {timeLabel ?? "--"}
                                                         </span>
                                                     </div>
-                                                    <p>{turn.text}</p>
+                                                    <p
+                                                        className={
+                                                            dashboardTranscriptClassNames.paragraph
+                                                        }
+                                                    >
+                                                        {turn.text}
+                                                    </p>
                                                 </div>
                                             );
                                         })
                                     ) : (
                                         <Empty
                                             data-sot-panel="dashboard-transcript-empty"
-                                            className="p-6 md:p-6"
+                                            className={
+                                                dashboardTranscriptClassNames.empty
+                                            }
                                         >
-                                            <EmptyHeader>
+                                            <EmptyHeader
+                                                className={
+                                                    dashboardTranscriptClassNames.emptyHeader
+                                                }
+                                            >
                                                 <EmptyMedia
                                                     aria-hidden="true"
+                                                    className={
+                                                        dashboardTranscriptClassNames.emptyIcon
+                                                    }
                                                     data-sot-part="dashboard-transcript-empty-icon"
                                                     variant="icon"
                                                 >
                                                     <SotTranscriptEmptyIcon />
                                                 </EmptyMedia>
-                                                <EmptyTitle data-sot-part="dashboard-transcript-empty-message">
+                                                <EmptyTitle
+                                                    className={
+                                                        dashboardTranscriptClassNames.emptyMessage
+                                                    }
+                                                    data-sot-part="dashboard-transcript-empty-message"
+                                                >
                                                     还没有逐字稿
                                                 </EmptyTitle>
-                                                <EmptyDescription data-sot-part="dashboard-transcript-empty-sub">
+                                                <EmptyDescription
+                                                    className={
+                                                        dashboardTranscriptClassNames.emptySub
+                                                    }
+                                                    data-sot-part="dashboard-transcript-empty-sub"
+                                                >
                                                     来源已就绪，转写任务还在排队中。
                                                 </EmptyDescription>
                                             </EmptyHeader>
@@ -8358,8 +8440,18 @@ export function Workstation({
                                     data-tab-pane="speakers"
                                     hidden={detailTab !== "speakers"}
                                 >
-                                    <div data-sot-part="dashboard-speakers-head">
-                                        <div data-sot-part="dashboard-speakers-head-title">
+                                    <div
+                                        className={
+                                            dashboardSpeakerPaneClassNames.head
+                                        }
+                                        data-sot-part="dashboard-speakers-head"
+                                    >
+                                        <div
+                                            className={
+                                                dashboardSpeakerPaneClassNames.headTitle
+                                            }
+                                            data-sot-part="dashboard-speakers-head-title"
+                                        >
                                             {turns.length || 0} 段说话人
                                         </div>
                                         <Button
@@ -8374,7 +8466,12 @@ export function Workstation({
                                             合并相似…
                                         </Button>
                                     </div>
-                                    <ul data-sot-list="dashboard-speaker-rows">
+                                    <ul
+                                        className={
+                                            dashboardSpeakerPaneClassNames.rows
+                                        }
+                                        data-sot-list="dashboard-speaker-rows"
+                                    >
                                         {(turns.length
                                             ? turns
                                             : [
@@ -8391,23 +8488,49 @@ export function Workstation({
 
                                             return (
                                                 <li
+                                                    className={
+                                                        dashboardSpeakerPaneClassNames.row
+                                                    }
                                                     data-sot-item="dashboard-speaker-row"
                                                     key={`${selectedRecording?.id}:speaker:${index}`}
                                                 >
-                                                    <span data-sot-part="dashboard-speaker-avatar">
+                                                    <span
+                                                        className={
+                                                            dashboardSpeakerPaneClassNames.avatar
+                                                        }
+                                                        data-sot-part="dashboard-speaker-avatar"
+                                                    >
                                                         {index + 1}
                                                     </span>
-                                                    <div data-sot-part="dashboard-speaker-row-meta">
-                                                        <div data-sot-part="dashboard-speaker-name">
+                                                    <div
+                                                        className={
+                                                            dashboardSpeakerPaneClassNames.rowMeta
+                                                        }
+                                                        data-sot-part="dashboard-speaker-row-meta"
+                                                    >
+                                                        <div
+                                                            className={
+                                                                dashboardSpeakerPaneClassNames.name
+                                                            }
+                                                            data-sot-part="dashboard-speaker-name"
+                                                        >
                                                             {turn.speakerName ||
                                                                 `说话人 ${index + 1}`}
                                                         </div>
-                                                        <div data-sot-part="dashboard-speaker-sub">
+                                                        <div
+                                                            className={
+                                                                dashboardSpeakerPaneClassNames.sub
+                                                            }
+                                                            data-sot-part="dashboard-speaker-sub"
+                                                        >
                                                             {turn.text.length}{" "}
                                                             字
                                                         </div>
                                                     </div>
                                                     <span
+                                                        className={
+                                                            dashboardSpeakerPaneClassNames.bar
+                                                        }
                                                         data-sot-part="dashboard-speaker-bar"
                                                         style={
                                                             {
@@ -8415,7 +8538,12 @@ export function Workstation({
                                                             } as CSSProperties
                                                         }
                                                     >
-                                                        <span data-sot-part="dashboard-speaker-bar-fill" />
+                                                        <span
+                                                            className={
+                                                                dashboardSpeakerPaneClassNames.barFill
+                                                            }
+                                                            data-sot-part="dashboard-speaker-bar-fill"
+                                                        />
                                                     </span>
                                                 </li>
                                             );

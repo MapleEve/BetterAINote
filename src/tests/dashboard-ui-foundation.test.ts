@@ -1170,6 +1170,34 @@ const DASHBOARD_TRANSCRIPT_SKELETON_LOCAL_COMPOSITION_TOKENS = [
     '"speaker-120": "h-[13px] w-[120px] flex-none"',
 ] as const;
 
+const DASHBOARD_TRANSCRIPT_OWNER_CLASS_TOKENS = [
+    'turn: "border-b border-dashed border-[var(--line-hairline)]',
+    'speakerRow: "mb-1.5 flex items-center gap-2.5"',
+    'avatar:',
+    "data-[sot-tone=info]:bg-[var(--accent-soft)]",
+    "data-[sot-tone=success]:bg-[var(--button-copy-success-bg)]",
+    'speakerName: "[font:600_12.5px_var(--font-sans)] text-[var(--fg-primary)]"',
+    'speakerTime: "ml-1 font-mono text-[11px] font-medium text-[var(--fg-tertiary)]"',
+    'paragraph:',
+    "[text-wrap:pretty]",
+    'emptyHeader: "block max-w-none"',
+    "emptyIcon:",
+    "[&_svg]:size-[22px]",
+] as const;
+
+const DASHBOARD_SPEAKER_PANE_OWNER_CLASS_TOKENS = [
+    'head: "flex items-center gap-2.5 px-4 pt-3 pb-2"',
+    'headTitle: "flex-1 font-sans text-[12.5px] font-semibold text-[var(--fg-secondary)]"',
+    'rows: "m-0 flex list-none flex-col gap-0.5 px-2 pb-3.5"',
+    "grid-cols-[28px_1fr_120px_auto]",
+    "dark:hover:bg-[rgb(255_255_255_/_0.03)]",
+    'rowMeta: "flex min-w-0 flex-col gap-0.5"',
+    'name: "truncate font-sans text-[13px] font-semibold text-[var(--fg-primary)]"',
+    'sub: "font-mono text-[11.5px] font-medium text-[var(--fg-tertiary)]"',
+    'bar: "block h-1 w-full overflow-hidden rounded-full bg-[var(--bg-recessed)]"',
+    "[width:var(--dashboard-speaker-share,0%)]",
+] as const;
+
 const SOURCE_REPORT_SKELETON_SHARED_TOKENS = [
     "sourceReportCard:",
     "sourceReportSegment:",
@@ -4046,6 +4074,227 @@ describe("dashboard SOT foundation", () => {
         for (const hook of DASHBOARD_TRANSCRIPT_TURN_EMPTY_SOT_HOOKS) {
             expect(workstation).toContain(hook);
         }
+        const dashboardTranscriptClassNames = extractBoundedSlice(
+            workstation,
+            "const dashboardTranscriptClassNames = {",
+            "} as const;",
+        );
+        const dashboardSpeakerPaneClassNames = extractBoundedSlice(
+            workstation,
+            "const dashboardSpeakerPaneClassNames = {",
+            "} as const;",
+        );
+        const dashboardTranscriptLoadingTurn = extractOpeningElement(
+            workstation,
+            "key={`transcript-skeleton:",
+            "div",
+        );
+        const dashboardTranscriptLoadingSpeakerRow = extractOpeningElement(
+            workstation,
+            'data-sot-part="dashboard-transcript-speaker-row"',
+            "div",
+        );
+        const dashboardTranscriptReadyTurn = extractOpeningElement(
+            workstation,
+            'data-sot-state="ready"',
+            "div",
+        );
+        const dashboardTranscriptReadySlice = extractBoundedSlice(
+            workstation,
+            "turns.map((turn, index) => {",
+            ") : (",
+        );
+        const dashboardTranscriptAvatar = extractOpeningElement(
+            workstation,
+            'data-sot-part="dashboard-transcript-avatar"',
+            "span",
+        );
+        const dashboardTranscriptSpeakerName = extractOpeningElement(
+            workstation,
+            'data-sot-part="dashboard-transcript-speaker-name"',
+            "span",
+        );
+        const dashboardTranscriptSpeakerTime = extractOpeningElement(
+            workstation,
+            'data-sot-part="dashboard-transcript-speaker-time"',
+            "span",
+        );
+        const dashboardTranscriptEmpty = extractElementSlice(
+            workstation,
+            'data-sot-panel="dashboard-transcript-empty"',
+            "Empty",
+        );
+        const dashboardTranscriptEmptyOpening = extractOpeningElement(
+            workstation,
+            'data-sot-panel="dashboard-transcript-empty"',
+            "Empty",
+        );
+        const dashboardTranscriptEmptyIcon = extractOpeningElement(
+            workstation,
+            'data-sot-part="dashboard-transcript-empty-icon"',
+            "EmptyMedia",
+        );
+        const dashboardTranscriptEmptyTitle = extractOpeningElement(
+            workstation,
+            'data-sot-part="dashboard-transcript-empty-message"',
+            "EmptyTitle",
+        );
+        const dashboardTranscriptEmptyDescription = extractOpeningElement(
+            workstation,
+            'data-sot-part="dashboard-transcript-empty-sub"',
+            "EmptyDescription",
+        );
+        const dashboardSpeakersHead = extractOpeningElement(
+            workstation,
+            'data-sot-part="dashboard-speakers-head"',
+            "div",
+        );
+        const dashboardSpeakersHeadTitle = extractOpeningElement(
+            workstation,
+            'data-sot-part="dashboard-speakers-head-title"',
+            "div",
+        );
+        const dashboardSpeakerRows = extractOpeningElement(
+            workstation,
+            'data-sot-list="dashboard-speaker-rows"',
+            "ul",
+        );
+        const dashboardSpeakerRow = extractOpeningElement(
+            workstation,
+            'data-sot-item="dashboard-speaker-row"',
+            "li",
+        );
+        const dashboardSpeakerAvatar = extractOpeningElement(
+            workstation,
+            'data-sot-part="dashboard-speaker-avatar"',
+            "span",
+        );
+        const dashboardSpeakerRowMeta = extractOpeningElement(
+            workstation,
+            'data-sot-part="dashboard-speaker-row-meta"',
+            "div",
+        );
+        const dashboardSpeakerName = extractOpeningElement(
+            workstation,
+            'data-sot-part="dashboard-speaker-name"',
+            "div",
+        );
+        const dashboardSpeakerSub = extractOpeningElement(
+            workstation,
+            'data-sot-part="dashboard-speaker-sub"',
+            "div",
+        );
+        const dashboardSpeakerBar = extractOpeningElement(
+            workstation,
+            'data-sot-part="dashboard-speaker-bar"',
+            "span",
+        );
+        const dashboardSpeakerBarFill = extractOpeningElement(
+            workstation,
+            'data-sot-part="dashboard-speaker-bar-fill"',
+            "span",
+        );
+
+        for (const token of DASHBOARD_TRANSCRIPT_OWNER_CLASS_TOKENS) {
+            expect(dashboardTranscriptClassNames).toContain(token);
+        }
+        for (const token of DASHBOARD_SPEAKER_PANE_OWNER_CLASS_TOKENS) {
+            expect(dashboardSpeakerPaneClassNames).toContain(token);
+        }
+        expectClassNameConstReference(
+            dashboardTranscriptLoadingTurn,
+            "dashboardTranscriptClassNames.turn",
+        );
+        expectClassNameConstReference(
+            dashboardTranscriptLoadingSpeakerRow,
+            "dashboardTranscriptClassNames.speakerRow",
+        );
+        expectClassNameConstReference(
+            dashboardTranscriptReadyTurn,
+            "dashboardTranscriptClassNames.turn",
+        );
+        expectClassNameConstReference(
+            dashboardTranscriptAvatar,
+            "dashboardTranscriptClassNames.avatar",
+        );
+        expect(dashboardTranscriptAvatar).toContain("data-sot-tone=");
+        expectClassNameConstReference(
+            dashboardTranscriptSpeakerName,
+            "dashboardTranscriptClassNames.speakerName",
+        );
+        expectClassNameConstReference(
+            dashboardTranscriptSpeakerTime,
+            "dashboardTranscriptClassNames.speakerTime",
+        );
+        expect(dashboardTranscriptSpeakerTime).toContain(
+            'data-sot-format="mono"',
+        );
+        expect(dashboardTranscriptReadySlice).toContain(
+            "dashboardTranscriptClassNames.paragraph",
+        );
+        expectClassNameConstReference(
+            dashboardTranscriptEmptyOpening,
+            "dashboardTranscriptClassNames.empty",
+        );
+        expect(dashboardTranscriptEmpty).toContain("<EmptyHeader");
+        expect(dashboardTranscriptEmpty).toContain(
+            "dashboardTranscriptClassNames.emptyHeader",
+        );
+        expectClassNameConstReference(
+            dashboardTranscriptEmptyIcon,
+            "dashboardTranscriptClassNames.emptyIcon",
+        );
+        expectClassNameConstReference(
+            dashboardTranscriptEmptyTitle,
+            "dashboardTranscriptClassNames.emptyMessage",
+        );
+        expectClassNameConstReference(
+            dashboardTranscriptEmptyDescription,
+            "dashboardTranscriptClassNames.emptySub",
+        );
+        expectClassNameConstReference(
+            dashboardSpeakersHead,
+            "dashboardSpeakerPaneClassNames.head",
+        );
+        expectClassNameConstReference(
+            dashboardSpeakersHeadTitle,
+            "dashboardSpeakerPaneClassNames.headTitle",
+        );
+        expectClassNameConstReference(
+            dashboardSpeakerRows,
+            "dashboardSpeakerPaneClassNames.rows",
+        );
+        expectClassNameConstReference(
+            dashboardSpeakerRow,
+            "dashboardSpeakerPaneClassNames.row",
+        );
+        expectClassNameConstReference(
+            dashboardSpeakerAvatar,
+            "dashboardSpeakerPaneClassNames.avatar",
+        );
+        expectClassNameConstReference(
+            dashboardSpeakerRowMeta,
+            "dashboardSpeakerPaneClassNames.rowMeta",
+        );
+        expectClassNameConstReference(
+            dashboardSpeakerName,
+            "dashboardSpeakerPaneClassNames.name",
+        );
+        expectClassNameConstReference(
+            dashboardSpeakerSub,
+            "dashboardSpeakerPaneClassNames.sub",
+        );
+        expectClassNameConstReference(
+            dashboardSpeakerBar,
+            "dashboardSpeakerPaneClassNames.bar",
+        );
+        expectClassNameConstReference(
+            dashboardSpeakerBarFill,
+            "dashboardSpeakerPaneClassNames.barFill",
+        );
+        expect(dashboardSpeakerBar).toContain(
+            '"--dashboard-speaker-share": `${speakerBarPct}%`',
+        );
         const transcriptLanguageBadge = extractOpeningElement(
             workstation,
             'data-sot-part="dashboard-transcript-language"',

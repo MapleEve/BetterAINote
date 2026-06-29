@@ -2342,7 +2342,7 @@ const DASHBOARD_EMPTY_PRIMITIVE_CSS_SELECTORS = [
     '[data-sot-part="dashboard-activity-empty-body"]',
 ];
 
-const DASHBOARD_TRANSCRIPT_EMPTY_DATA_SOT_CSS_SELECTORS = [
+const DASHBOARD_TRANSCRIPT_EMPTY_REMOVED_GLOBAL_SELECTORS = [
     '[data-sot-panel="dashboard-transcript-empty"]',
     '[data-sot-panel="dashboard-transcript-empty"] > :first-child',
     '[data-sot-part="dashboard-transcript-empty-icon"]',
@@ -3234,14 +3234,36 @@ const DASHBOARD_TRANSCRIPT_SOURCE_REPORT_RETX_ACTIVITY_LEGACY_CSS_SELECTOR_RE =
 
 const DASHBOARD_TRANSCRIPT_SOURCE_REPORT_RETX_ACTIVITY_SOT_CSS_SELECTORS = [
     '[data-sot-part="dashboard-transcript-body"]',
-    '[data-sot-item="dashboard-transcript-turn"]',
-    '[data-sot-part="dashboard-transcript-speaker-row"]',
-    '[data-sot-part="dashboard-transcript-speaker-name"]',
-    '[data-sot-part="dashboard-transcript-speaker-time"]',
     '[data-sot-panel="dashboard-retranscription"]',
     '[data-sot-part="dashboard-retranscription-icon"]',
     '[data-sot-part="dashboard-retranscription-refresh-marker"]',
 ];
+
+const DASHBOARD_TRANSCRIPT_SPEAKER_REMOVED_GLOBAL_SELECTORS = [
+    '[data-sot-item="dashboard-transcript-turn"]',
+    '[data-theme="dark"] [data-sot-item="dashboard-transcript-turn"]',
+    '[data-sot-item="dashboard-transcript-turn"]:last-child',
+    '[data-sot-part="dashboard-transcript-speaker-row"]',
+    '[data-sot-part="dashboard-transcript-avatar"]',
+    '[data-sot-part="dashboard-transcript-avatar"][data-sot-tone="steel"]',
+    '[data-sot-part="dashboard-transcript-avatar"][data-sot-tone="info"]',
+    '[data-sot-part="dashboard-transcript-avatar"][data-sot-tone="success"]',
+    '[data-sot-part="dashboard-transcript-speaker-name"]',
+    '[data-sot-part="dashboard-transcript-speaker-time"][data-sot-format="mono"]',
+    '[data-sot-item="dashboard-transcript-turn"] p',
+    '[data-sot-part="dashboard-speakers-head"]',
+    '[data-sot-part="dashboard-speakers-head-title"]',
+    '[data-sot-list="dashboard-speaker-rows"]',
+    '[data-sot-item="dashboard-speaker-row"]',
+    '[data-sot-item="dashboard-speaker-row"]:hover',
+    '[data-theme="dark"] [data-sot-item="dashboard-speaker-row"]:hover',
+    '[data-sot-part="dashboard-speaker-avatar"]',
+    '[data-sot-part="dashboard-speaker-row-meta"]',
+    '[data-sot-part="dashboard-speaker-name"]',
+    '[data-sot-part="dashboard-speaker-sub"]',
+    '[data-sot-part="dashboard-speaker-bar"]',
+    '[data-sot-part="dashboard-speaker-bar-fill"]',
+] as const;
 
 const RECORDING_LOADING_REMOVED_GLOBAL_SELECTORS = [
     '[data-sot-panel="recording-route-loading-detail"]',
@@ -3676,7 +3698,7 @@ describe("full UI replacement regression coverage", () => {
         expect(stripCssComments(productCss)).not.toMatch(
             UNAPPROVED_PRODUCT_CSS_CLASS_SELECTOR_RE,
         );
-        expect(productCss).toContain(
+        expect(productCss).not.toContain(
             '[data-sot-part="dashboard-transcript-speaker-time"][data-sot-format="mono"]',
         );
         expect(globals).not.toContain("[data-sot-shell] *:focus");
@@ -4883,6 +4905,12 @@ describe("full UI replacement regression coverage", () => {
         for (const selector of DASHBOARD_TRANSCRIPT_SOURCE_REPORT_RETX_ACTIVITY_SOT_CSS_SELECTORS) {
             expect(globals).toContain(selector);
         }
+        for (const selector of DASHBOARD_TRANSCRIPT_SPEAKER_REMOVED_GLOBAL_SELECTORS) {
+            expect(collectCssRuleBlocks(globals, selector)).toEqual([]);
+        }
+        for (const selector of DASHBOARD_TRANSCRIPT_EMPTY_REMOVED_GLOBAL_SELECTORS) {
+            expect(collectCssRuleBlocks(globals, selector)).toEqual([]);
+        }
         expect(
             collectCssRuleBlocks(
                 globals,
@@ -5510,18 +5538,31 @@ describe("full UI replacement regression coverage", () => {
         expect(transcriptEmpty).toContain(
             'data-sot-panel="dashboard-transcript-empty"',
         );
-        expect(transcriptEmpty).toContain("<EmptyHeader>");
+        expect(transcriptEmpty).toContain("dashboardTranscriptClassNames.empty");
+        expect(transcriptEmpty).toContain("<EmptyHeader");
+        expect(transcriptEmpty).toContain(
+            "dashboardTranscriptClassNames.emptyHeader",
+        );
         expect(transcriptEmpty).toContain("<EmptyMedia");
         expect(transcriptEmpty).toContain('variant="icon"');
         expect(transcriptEmpty).toContain(
             'data-sot-part="dashboard-transcript-empty-icon"',
         );
+        expect(transcriptEmpty).toContain(
+            "dashboardTranscriptClassNames.emptyIcon",
+        );
         expect(transcriptEmpty).toContain("<SotTranscriptEmptyIcon />");
         expect(transcriptEmpty).toContain(
-            '<EmptyTitle data-sot-part="dashboard-transcript-empty-message">',
+            'data-sot-part="dashboard-transcript-empty-message"',
         );
         expect(transcriptEmpty).toContain(
-            '<EmptyDescription data-sot-part="dashboard-transcript-empty-sub">',
+            "dashboardTranscriptClassNames.emptyMessage",
+        );
+        expect(transcriptEmpty).toContain(
+            'data-sot-part="dashboard-transcript-empty-sub"',
+        );
+        expect(transcriptEmpty).toContain(
+            "dashboardTranscriptClassNames.emptySub",
         );
         expect(transcriptEmpty).not.toContain("<div");
         expect(transcriptEmpty).not.toContain("<p");
@@ -5529,8 +5570,8 @@ describe("full UI replacement regression coverage", () => {
         for (const selector of DASHBOARD_EMPTY_PRIMITIVE_CSS_SELECTORS) {
             expect(collectExactCssRuleBlocks(globals, selector)).toEqual([]);
         }
-        for (const selector of DASHBOARD_TRANSCRIPT_EMPTY_DATA_SOT_CSS_SELECTORS) {
-            expect(globals).toContain(selector);
+        for (const selector of DASHBOARD_TRANSCRIPT_EMPTY_REMOVED_GLOBAL_SELECTORS) {
+            expect(collectCssRuleBlocks(globals, selector)).toEqual([]);
         }
         expect(globals).toContain("[data-detail-empty]");
         expect(globals).toContain("[data-detail-empty][hidden]");
