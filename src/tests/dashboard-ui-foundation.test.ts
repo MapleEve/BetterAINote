@@ -3647,6 +3647,14 @@ describe("dashboard SOT foundation", () => {
         expect(recordingTimeFilter).toContain(
             "dashboardRecordingTimeFilterStyles.root",
         );
+        const recordingTimeFilterStyles = extractBoundedSlice(
+            workstation,
+            "const dashboardRecordingTimeFilterStyles = {",
+            "} as const;",
+        );
+        expect(recordingTimeFilterStyles).toContain(
+            'root: "mt-2.5 flex-wrap [&[hidden]]:hidden"',
+        );
         expect(recordingTimeFilter).toContain(
             'hidden={listMode !== "timeline"}',
         );
@@ -3701,7 +3709,7 @@ describe("dashboard SOT foundation", () => {
         expect(globals).not.toContain(
             "--dashboard-recording-time-filter-count-selected-bg",
         );
-        expect(globals).toContain(
+        expect(globals).not.toContain(
             '[data-sot-panel="dashboard-recording-time-filter"][hidden]',
         );
         expect(workstation).toContain("data-tag-filter-trigger");
@@ -4217,6 +4225,37 @@ describe("dashboard SOT foundation", () => {
         );
         expect(detailSegmentedTabs).toContain('data-sot-size="sm"');
         expect(workstation).toContain('hidden={detailTab !== "transcript"}');
+        expect(workstation).toContain(
+            'const dashboardTabPaneHiddenClassName = "[&[hidden]]:hidden";',
+        );
+        const transcriptPane = extractOpeningElement(
+            workstation,
+            'data-sot-panel="dashboard-transcript-pane"',
+            "div",
+        );
+        expect(transcriptPane).toContain(
+            "className={dashboardTabPaneHiddenClassName}",
+        );
+        const sourceReportHiddenPane = extractOpeningElement(
+            workstation,
+            'data-sot-panel="dashboard-source-report"',
+            "div",
+        );
+        expect(sourceReportHiddenPane).toContain("className={cn(");
+        expect(sourceReportHiddenPane).toContain(
+            "SOURCE_REPORT_PANE_CLASS_NAME",
+        );
+        expect(sourceReportHiddenPane).toContain(
+            "dashboardTabPaneHiddenClassName",
+        );
+        const speakersPane = extractOpeningElement(
+            workstation,
+            'data-sot-panel="dashboard-speakers-pane"',
+            "div",
+        );
+        expect(speakersPane).toContain(
+            "className={dashboardTabPaneHiddenClassName}",
+        );
         expect(workstation).toContain(
             "SOT_DASHBOARD_TRANSCRIPT_SHELL_CARD_CLASS_NAME",
         );

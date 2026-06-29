@@ -536,8 +536,10 @@ const TIMELINE_FILTERS: {
     { value: "earlier", labelKey: "recordingList.timeline.earlier" },
 ];
 
+const dashboardTabPaneHiddenClassName = "[&[hidden]]:hidden";
+
 const dashboardRecordingTimeFilterStyles = {
-    root: "mt-2.5 flex-wrap",
+    root: "mt-2.5 flex-wrap [&[hidden]]:hidden",
     item: "data-[state=on]:border-primary/30 data-[state=on]:bg-primary/10 data-[state=on]:text-primary data-[sot-state=selected]:border-primary/30 data-[sot-state=selected]:bg-primary/10 data-[sot-state=selected]:text-primary",
     count: "rounded-[4px] bg-muted px-1 font-mono text-[10px] font-medium text-muted-foreground/70",
     countSelected: "bg-primary/10 text-primary",
@@ -7772,6 +7774,7 @@ export function Workstation({
                                     刚刷新 · 1 秒前
                                 </p>
                                 <div
+                                    className={dashboardTabPaneHiddenClassName}
                                     data-sot-panel="dashboard-transcript-pane"
                                     data-sot-tab-pane="transcript"
                                     data-tab-pane="transcript"
@@ -7934,7 +7937,10 @@ export function Workstation({
                                     )}
                                 </div>
                                 <div
-                                    className={SOURCE_REPORT_PANE_CLASS_NAME}
+                                    className={cn(
+                                        SOURCE_REPORT_PANE_CLASS_NAME,
+                                        dashboardTabPaneHiddenClassName,
+                                    )}
                                     data-sot-source-report-pane
                                     data-sot-panel="dashboard-source-report"
                                     data-sot-tab-pane="source-report"
@@ -8555,6 +8561,7 @@ export function Workstation({
                                     )}
                                 </div>
                                 <div
+                                    className={dashboardTabPaneHiddenClassName}
                                     data-sot-panel="dashboard-speakers-pane"
                                     data-sot-tab-pane="speakers"
                                     data-tab-pane="speakers"

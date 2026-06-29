@@ -2298,16 +2298,16 @@ const SOT_SCROLLBAR_MIGRATED_GLOBAL_SELECTORS = [
 const TAB_PANE_HIDDEN_LEGACY_PRODUCT_CSS_SELECTOR_RE =
     /(^|\n|,)\s*\.t-pane\[hidden\]/;
 
-const TAB_PANE_HIDDEN_DATA_SOT_CSS_SELECTORS = [
+const TAB_PANE_HIDDEN_MIGRATED_GLOBAL_SELECTORS = [
     "[data-sot-tab-pane][hidden]",
 ] as const;
 
 const DASHBOARD_TIME_FILTER_LEGACY_PRODUCT_CSS_SELECTOR_RE =
     /\.(?:filter-row|chip|chip-f|chip-c)(?![\w-])/;
 
-const DASHBOARD_TIME_FILTER_DATA_SOT_CSS_SELECTORS = [
+const DASHBOARD_TIME_FILTER_MIGRATED_GLOBAL_SELECTORS = [
     '[data-sot-panel="dashboard-recording-time-filter"][hidden]',
-];
+] as const;
 
 const DASHBOARD_TIME_FILTER_RETIRED_GLOBAL_SELECTORS = [
     "--dashboard-recording-time-filter-count-bg",
@@ -5460,8 +5460,9 @@ describe("full UI replacement regression coverage", () => {
         expect(settingsDialog).toContain("[overscroll-behavior:contain]");
     });
 
-    it("keeps tab pane hidden product CSS on data-sot selectors", () => {
+    it("keeps tab pane hidden handling owned by dashboard panes", () => {
         const globals = readSource("app/globals.css");
+        const workstation = readSource("features/dashboard/workstation.tsx");
         const legacySelectorLines = globals
             .split("\n")
             .map((text, index) => ({ line: index + 1, text }))
@@ -5470,12 +5471,39 @@ describe("full UI replacement regression coverage", () => {
             );
 
         expect(legacySelectorLines).toEqual([]);
-        for (const selector of TAB_PANE_HIDDEN_DATA_SOT_CSS_SELECTORS) {
-            expect(globals).toContain(selector);
+        for (const selector of TAB_PANE_HIDDEN_MIGRATED_GLOBAL_SELECTORS) {
+            expect(globals).not.toContain(selector);
         }
+        expect(workstation).toContain(
+            'const dashboardTabPaneHiddenClassName = "[&[hidden]]:hidden";',
+        );
+        const transcriptPane = extractOpeningElement(
+            workstation,
+            'data-sot-panel="dashboard-transcript-pane"',
+            "div",
+        );
+        expect(transcriptPane).toContain(
+            "className={dashboardTabPaneHiddenClassName}",
+        );
+        const sourceReportPane = extractOpeningElement(
+            workstation,
+            'data-sot-panel="dashboard-source-report"',
+            "div",
+        );
+        expect(sourceReportPane).toContain("className={cn(");
+        expect(sourceReportPane).toContain("SOURCE_REPORT_PANE_CLASS_NAME");
+        expect(sourceReportPane).toContain("dashboardTabPaneHiddenClassName");
+        const speakersPane = extractOpeningElement(
+            workstation,
+            'data-sot-panel="dashboard-speakers-pane"',
+            "div",
+        );
+        expect(speakersPane).toContain(
+            "className={dashboardTabPaneHiddenClassName}",
+        );
     });
 
-    it("keeps dashboard time filter presentation out of product globals", () => {
+    it("keeps dashboard time filter presentation and hidden state owner-local", () => {
         const globals = readSource("app/globals.css");
         const workstation = readSource("features/dashboard/workstation.tsx");
         const legacySelectorLines = globals
@@ -5486,8 +5514,8 @@ describe("full UI replacement regression coverage", () => {
             );
 
         expect(legacySelectorLines).toEqual([]);
-        for (const selector of DASHBOARD_TIME_FILTER_DATA_SOT_CSS_SELECTORS) {
-            expect(globals).toContain(selector);
+        for (const selector of DASHBOARD_TIME_FILTER_MIGRATED_GLOBAL_SELECTORS) {
+            expect(globals).not.toContain(selector);
         }
         for (const selector of DASHBOARD_TIME_FILTER_RETIRED_GLOBAL_SELECTORS) {
             expect(globals).not.toContain(selector);
@@ -5497,6 +5525,14 @@ describe("full UI replacement regression coverage", () => {
         }
         expect(workstation).toContain(
             "const dashboardRecordingTimeFilterStyles = {",
+        );
+        const recordingTimeFilterStyles = extractBoundedSlice(
+            workstation,
+            "const dashboardRecordingTimeFilterStyles = {",
+            "} as const;",
+        );
+        expect(recordingTimeFilterStyles).toContain(
+            'root: "mt-2.5 flex-wrap [&[hidden]]:hidden"',
         );
         expect(workstation).toContain(
             "function dashboardRecordingTimeFilterCountClassName(active: boolean)",
@@ -7406,7 +7442,7 @@ describe("full UI replacement regression coverage", () => {
         expect(globals).not.toContain(
             "--dashboard-recording-time-filter-count-selected-bg",
         );
-        expect(globals).toContain(
+        expect(globals).not.toContain(
             '[data-sot-panel="dashboard-recording-time-filter"][hidden]',
         );
         expect(workstation).toContain(
