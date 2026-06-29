@@ -114,6 +114,10 @@ const recordingWorkstationBrandClassNames = {
     name: "[font:600_15px_var(--font-sans)] tracking-[-0.012em] text-[var(--fg-primary)]",
     subtitle: "mt-px [font:500_11px_var(--font-sans)] text-[var(--fg-tertiary)]",
 } as const;
+const recordingWorkstationNavClassNames = {
+    list: "flex flex-1 flex-col gap-0.5 overflow-y-auto pb-3",
+    label: "px-2.5 pb-1.5 pt-3.5 font-sans text-[10px] font-semibold uppercase tracking-[0.08em] text-[var(--fg-tertiary)]",
+} as const;
 const recordingWorkstationButtonClassNames = {
     detailBack:
         "relative h-auto w-full justify-start gap-2.5 rounded-[9px] border border-transparent bg-transparent px-2.5 py-[7px] text-left text-[13px] font-medium text-[var(--fg-secondary)] shadow-none hover:bg-accent hover:text-[var(--fg-primary)] focus-visible:text-[var(--fg-primary)] disabled:cursor-not-allowed disabled:opacity-50 data-[sot-state=selected]:border-[var(--line-hairline)] data-[sot-state=selected]:bg-[var(--bg-elevated)] data-[sot-state=selected]:text-[var(--fg-primary)] data-[sot-state=selected]:shadow-xs dark:data-[sot-state=selected]:border-[var(--glass-border)] dark:data-[sot-state=selected]:bg-[rgb(255_255_255_/_0.07)] dark:data-[sot-state=selected]:shadow-none has-[>svg]:px-2.5 [&_span]:min-w-0 [&_span]:flex-1 [&_span]:truncate [&_svg]:flex-none [&_svg]:fill-none [&_svg]:stroke-current [&_svg]:stroke-[1.7] [&_svg]:opacity-[0.85] [&_svg]:[stroke-linecap:round] [&_svg]:[stroke-linejoin:round]",
@@ -887,12 +891,12 @@ export function RecordingWorkstation({
                     </div>
                 </div>
                 <nav
-                    className="flex flex-1 flex-col gap-0.5 overflow-y-auto pb-3"
+                    className={recordingWorkstationNavClassNames.list}
                     data-sot-list="recording-detail-nav"
                     aria-label="录音详情导航"
                 >
                     <div
-                        className="px-2.5 pb-1.5 pt-3.5 font-sans text-[10px] font-semibold uppercase tracking-[0.08em] text-[var(--fg-tertiary)]"
+                        className={recordingWorkstationNavClassNames.label}
                         data-sot-part="recording-detail-nav-label"
                     >
                         录音

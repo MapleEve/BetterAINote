@@ -549,11 +549,14 @@ const RECORDING_DETAIL_CARD_PRIMITIVE_SELECTORS = [
 const RECORDING_DETAIL_PRIMITIVE_REPAINT_DECLARATION_RE =
     /^\s*(?:background(?:-clip)?|border(?:-(?:color|radius|style|width))?|box-shadow|color|font(?:-[\w-]+)?|height|line-height|padding|transition|width)\s*:|\b(?:color-mix|linear-gradient|oklch)\(/m;
 
-const RECORDING_DETAIL_NAV_AND_ROW_REMOVED_GLOBAL_SELECTORS = [
+const RECORDING_DETAIL_NAV_BACK_REMOVED_GLOBAL_SELECTORS = [
     '[data-sot-list="recording-detail-nav"]',
     '[data-sot-part="recording-detail-nav-label"]',
     '[data-sot-control="recording-detail-back"] svg',
     '[data-sot-control="recording-detail-back"] > span',
+] as const;
+
+const RECORDING_DETAIL_ROW_REMOVED_GLOBAL_SELECTORS = [
     '[data-sot-list="recording-detail-list-rows"]',
     '[data-sot-item="recording-detail-list-row"]',
     '[data-sot-item="recording-detail-list-row"]:hover',
@@ -562,6 +565,18 @@ const RECORDING_DETAIL_NAV_AND_ROW_REMOVED_GLOBAL_SELECTORS = [
     '[data-sot-part="recording-detail-list-row-title"]',
     '[data-sot-part="recording-detail-list-row-meta"]',
     '[data-sot-part="recording-detail-list-row-duration"]',
+] as const;
+
+const RECORDING_WORKSTATION_NAV_OWNER_CLASS_INITIALIZERS = [
+    {
+        property: "list",
+        expected: "flex flex-1 flex-col gap-0.5 overflow-y-auto pb-3",
+    },
+    {
+        property: "label",
+        expected:
+            "px-2.5 pb-1.5 pt-3.5 font-sans text-[10px] font-semibold uppercase tracking-[0.08em] text-[var(--fg-tertiary)]",
+    },
 ] as const;
 
 const RECORDING_SOURCE_RECORD_LAYOUT_REMOVED_GLOBAL_SELECTORS = [
@@ -1537,6 +1552,22 @@ describe("recording detail copy and title action UI regressions", () => {
         expect(detailWorkstation).toContain(
             'data-sot-part="workstation-brand-subtitle"',
         );
+        const recordingWorkstationNavClassNames = extractBoundedSlice(
+            detailWorkstation,
+            "const recordingWorkstationNavClassNames = {",
+            "} as const;",
+        );
+        for (const {
+            expected,
+            property,
+        } of RECORDING_WORKSTATION_NAV_OWNER_CLASS_INITIALIZERS) {
+            expect(recordingWorkstationNavClassNames).toContain(
+                `${property}: "${expected}"`,
+            );
+            expect(detailWorkstation).toContain(
+                `className={recordingWorkstationNavClassNames.${property}}`,
+            );
+        }
         expect(detailWorkstation).toContain(
             'data-sot-list="recording-detail-nav"',
         );
@@ -1569,10 +1600,10 @@ describe("recording detail copy and title action UI regressions", () => {
         expect(detailWorkstation).toContain("[&_span]:truncate");
         expect(detailWorkstation).toContain("[&_svg]:stroke-[1.7]");
         expect(detailWorkstation).toContain("[&_svg]:opacity-[0.85]");
-        expect(detailWorkstation).toContain(
+        expect(detailWorkstation).not.toContain(
             'className="flex flex-1 flex-col gap-0.5 overflow-y-auto pb-3"',
         );
-        expect(detailWorkstation).toContain(
+        expect(detailWorkstation).not.toContain(
             'className="px-2.5 pb-1.5 pt-3.5 font-sans text-[10px] font-semibold uppercase tracking-[0.08em] text-[var(--fg-tertiary)]"',
         );
         expect(detailWorkstation).toContain('data-sot-state="selected"');
@@ -1716,7 +1747,10 @@ describe("recording detail copy and title action UI regressions", () => {
 
             expect(repaintBlocks).toEqual([]);
         }
-        for (const selector of RECORDING_DETAIL_NAV_AND_ROW_REMOVED_GLOBAL_SELECTORS) {
+        for (const selector of RECORDING_DETAIL_NAV_BACK_REMOVED_GLOBAL_SELECTORS) {
+            expect(collectExactCssRuleBlocks(globals, selector)).toEqual([]);
+        }
+        for (const selector of RECORDING_DETAIL_ROW_REMOVED_GLOBAL_SELECTORS) {
             expect(collectExactCssRuleBlocks(globals, selector)).toEqual([]);
         }
         for (const selector of RECORDING_SOURCE_RECORD_LAYOUT_REMOVED_GLOBAL_SELECTORS) {
