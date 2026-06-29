@@ -8,6 +8,106 @@ const SPEAKER_REVIEW_MERGE_POPOVER_PLACEMENT =
     "absolute right-0 top-[calc(100%+0.5rem)] z-[var(--z-popover-inline)] w-[320px] min-w-[280px]";
 const SPEAKER_REVIEW_PRIMITIVE_BUSINESS_RE =
     /\bspeakerReview[A-Za-z0-9_]*\b/;
+const SPEAKER_REVIEW_RESIDUAL_GLOBAL_SELECTORS = [
+    '[data-sot-list="speaker-review-meta"] > span',
+    '[data-sot-part="speaker-review-section-description"]',
+    '[data-sot-part="speaker-review-segment-title"]',
+    '[data-sot-part="speaker-review-segment-text"]',
+    '[data-sot-part="speaker-review-row-name"]',
+    '[data-sot-part="speaker-review-section-title"]',
+    '[data-sot-part="speaker-review-row-sub"]',
+    '[data-sot-part="speaker-review-row-sub"][data-sot-tone="danger"]',
+] as const;
+const SPEAKER_REVIEW_RESIDUAL_OWNER_CLASS_TOKENS = [
+    {
+        constName: "SPEAKER_REVIEW_META_ITEM_CLASS_NAME",
+        tokens: [
+            "min-w-0",
+            "truncate",
+            "font-sans",
+            "text-[11.5px]",
+            "font-medium",
+            "leading-normal",
+            "text-[var(--fg-tertiary)]",
+        ],
+    },
+    {
+        constName: "SPEAKER_REVIEW_SECTION_DESCRIPTION_CLASS_NAME",
+        tokens: [
+            "m-0",
+            "font-sans",
+            "![font-size:11.5px]",
+            "font-medium",
+            "![line-height:normal]",
+            "![color:var(--fg-tertiary)]",
+            "max-[860px]:whitespace-normal",
+            "max-[860px]:[overflow-wrap:anywhere]",
+        ],
+    },
+    {
+        constName: "SPEAKER_REVIEW_SEGMENT_TITLE_CLASS_NAME",
+        tokens: [
+            "m-0",
+            "font-sans",
+            "![font-size:12px]",
+            "font-semibold",
+            "![line-height:normal]",
+            "![color:var(--fg-secondary)]",
+        ],
+    },
+    {
+        constName: "SPEAKER_REVIEW_SEGMENT_TEXT_CLASS_NAME",
+        tokens: [
+            "m-0",
+            "font-sans",
+            "![font-size:12.5px]",
+            "font-medium",
+            "![line-height:1.55]",
+            "![color:var(--fg-primary)]",
+            "[text-wrap:pretty]",
+            "max-[860px]:whitespace-normal",
+            "max-[860px]:[overflow-wrap:anywhere]",
+        ],
+    },
+    {
+        constName: "SPEAKER_REVIEW_ROW_NAME_CLASS_NAME",
+        tokens: [
+            "m-0",
+            "font-sans",
+            "![font-size:13px]",
+            "font-semibold",
+            "![line-height:1.35]",
+            "![color:var(--fg-primary)]",
+        ],
+    },
+    {
+        constName: "SPEAKER_REVIEW_SECTION_TITLE_CLASS_NAME",
+        tokens: [
+            "m-0",
+            "font-sans",
+            "![font-size:13px]",
+            "font-semibold",
+            "![line-height:1.35]",
+            "![color:var(--fg-primary)]",
+        ],
+    },
+    {
+        constName: "SPEAKER_REVIEW_ROW_SUB_CLASS_NAME",
+        tokens: [
+            "m-0",
+            "font-mono",
+            "![font-size:11.5px]",
+            "font-medium",
+            "![line-height:1.4]",
+            "tracking-[0.02em]",
+            "![color:var(--fg-tertiary)]",
+            "data-[sot-tone=danger]:text-[var(--signal-danger)]",
+            "data-[sot-tone=danger]:![color:var(--signal-danger)]",
+            "max-[860px]:whitespace-normal",
+            "max-[860px]:[overflow-wrap:anywhere]",
+        ],
+    },
+] as const;
 
 describe("dashboard speaker label editor regressions", () => {
     const source = readFileSync(
@@ -132,6 +232,14 @@ describe("dashboard speaker label editor regressions", () => {
         expect(end).toBeGreaterThan(start);
 
         return value.slice(0, start) + value.slice(end);
+    }
+
+    function extractSpeakerReviewConst(constName: string) {
+        const start = source.indexOf(`const ${constName} =`);
+        expect(start).toBeGreaterThanOrEqual(0);
+        const end = source.indexOf(";", start);
+        expect(end).toBeGreaterThan(start);
+        return source.slice(start, end + 1);
     }
 
     function collectSpeakerReviewButtonOpenings() {
@@ -393,6 +501,7 @@ describe("dashboard speaker label editor regressions", () => {
             '[data-sot-control="speaker-review-suggestion"]',
             '[data-sot-part="speaker-review-empty"]',
             '[data-sot-part="speaker-review-voiceprint-pill"]',
+            ...SPEAKER_REVIEW_RESIDUAL_GLOBAL_SELECTORS,
         ]) {
             expect(globalsSource).not.toContain(selector);
         }
@@ -427,6 +536,13 @@ describe("dashboard speaker label editor regressions", () => {
             "const SPEAKER_REVIEW_ERROR_ALERT_CLASS_NAME =",
             "const SPEAKER_REVIEW_INLINE_EMPTY_CLASS_NAME =",
             "const SPEAKER_REVIEW_MAPPING_CLEAR_BUTTON_CLASS_NAME =",
+            "const SPEAKER_REVIEW_META_ITEM_CLASS_NAME =",
+            "const SPEAKER_REVIEW_SECTION_DESCRIPTION_CLASS_NAME =",
+            "const SPEAKER_REVIEW_SEGMENT_TITLE_CLASS_NAME =",
+            "const SPEAKER_REVIEW_SEGMENT_TEXT_CLASS_NAME =",
+            "const SPEAKER_REVIEW_ROW_NAME_CLASS_NAME =",
+            "const SPEAKER_REVIEW_SECTION_TITLE_CLASS_NAME =",
+            "const SPEAKER_REVIEW_ROW_SUB_CLASS_NAME =",
             "function SpeakerReviewCard(",
             "function SpeakerReviewCardHeader(",
             "function SpeakerReviewCardTitle(",
@@ -439,6 +555,12 @@ describe("dashboard speaker label editor regressions", () => {
             "data-[sot-tone=selected]",
         ]) {
             expect(source).toContain(token);
+        }
+        for (const { constName, tokens } of SPEAKER_REVIEW_RESIDUAL_OWNER_CLASS_TOKENS) {
+            const ownerClass = extractSpeakerReviewConst(constName);
+            for (const token of tokens) {
+                expect(ownerClass).toContain(token);
+            }
         }
         for (const legacyVariant of [
             "speakerReviewAction",
@@ -650,6 +772,43 @@ describe("dashboard speaker label editor regressions", () => {
         expect(source).toContain('? "selected"');
         expect(source).toContain('? "ready"');
         expect(source).toContain(': "missing"');
+
+        const metaItemClassRefs =
+            source.match(/SPEAKER_REVIEW_META_ITEM_CLASS_NAME/g) ?? [];
+        expect(metaItemClassRefs.length).toBeGreaterThanOrEqual(9);
+        for (const { marker, ownerClassName } of [
+            {
+                marker: 'data-sot-part="speaker-review-segment-text"',
+                ownerClassName: "SPEAKER_REVIEW_SEGMENT_TEXT_CLASS_NAME",
+            },
+            {
+                marker: 'data-sot-part="speaker-review-row-name"',
+                ownerClassName: "SPEAKER_REVIEW_ROW_NAME_CLASS_NAME",
+            },
+            {
+                marker: 'data-sot-part="speaker-review-row-sub"',
+                ownerClassName: "SPEAKER_REVIEW_ROW_SUB_CLASS_NAME",
+            },
+            {
+                marker: 'data-sot-part="speaker-review-section-title"',
+                ownerClassName: "SPEAKER_REVIEW_SECTION_TITLE_CLASS_NAME",
+            },
+            {
+                marker: 'data-sot-part="speaker-review-section-description"',
+                ownerClassName: "SPEAKER_REVIEW_SECTION_DESCRIPTION_CLASS_NAME",
+            },
+            {
+                marker: 'data-sot-part="speaker-review-segment-title"',
+                ownerClassName: "SPEAKER_REVIEW_SEGMENT_TITLE_CLASS_NAME",
+            },
+        ]) {
+            const markerIndex = source.indexOf(marker);
+            expect(markerIndex).toBeGreaterThanOrEqual(0);
+            const openingStart = source.lastIndexOf("<", markerIndex);
+            expect(openingStart).toBeGreaterThanOrEqual(0);
+            const elementSlice = source.slice(openingStart, markerIndex);
+            expect(elementSlice).toContain(ownerClassName);
+        }
     });
 
     it("keeps inline rename and mapping controls wired through shadcn fields", () => {

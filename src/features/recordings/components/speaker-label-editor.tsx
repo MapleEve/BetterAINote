@@ -148,6 +148,20 @@ const SPEAKER_REVIEW_ERROR_DESCRIPTION_CLASS_NAME =
 const SPEAKER_REVIEW_INLINE_EMPTY_CLASS_NAME = "px-6 py-4 md:p-4";
 const SPEAKER_REVIEW_MAPPING_CLEAR_BUTTON_CLASS_NAME =
     "text-[var(--fg-secondary)] hover:bg-[var(--bg-recessed)] hover:text-[var(--fg-primary)] [&>svg:not([class*='size-'])]:size-3";
+const SPEAKER_REVIEW_META_ITEM_CLASS_NAME =
+    "min-w-0 truncate font-sans text-[11.5px] font-medium leading-normal text-[var(--fg-tertiary)]";
+const SPEAKER_REVIEW_SECTION_DESCRIPTION_CLASS_NAME =
+    "m-0 font-sans ![font-size:11.5px] font-medium ![line-height:normal] ![color:var(--fg-tertiary)] max-[860px]:whitespace-normal max-[860px]:[overflow-wrap:anywhere]";
+const SPEAKER_REVIEW_SEGMENT_TITLE_CLASS_NAME =
+    "m-0 font-sans ![font-size:12px] font-semibold ![line-height:normal] ![color:var(--fg-secondary)]";
+const SPEAKER_REVIEW_SEGMENT_TEXT_CLASS_NAME =
+    "m-0 font-sans ![font-size:12.5px] font-medium ![line-height:1.55] ![color:var(--fg-primary)] [text-wrap:pretty] max-[860px]:whitespace-normal max-[860px]:[overflow-wrap:anywhere]";
+const SPEAKER_REVIEW_ROW_NAME_CLASS_NAME =
+    "m-0 font-sans ![font-size:13px] font-semibold ![line-height:1.35] ![color:var(--fg-primary)]";
+const SPEAKER_REVIEW_SECTION_TITLE_CLASS_NAME =
+    "m-0 font-sans ![font-size:13px] font-semibold ![line-height:1.35] ![color:var(--fg-primary)]";
+const SPEAKER_REVIEW_ROW_SUB_CLASS_NAME =
+    "m-0 font-mono ![font-size:11.5px] font-medium ![line-height:1.4] tracking-[0.02em] ![color:var(--fg-tertiary)] data-[sot-tone=danger]:text-[var(--signal-danger)] data-[sot-tone=danger]:![color:var(--signal-danger)] max-[860px]:whitespace-normal max-[860px]:[overflow-wrap:anywhere]";
 
 type ClassNameProp = {
     className?: string;
@@ -1107,13 +1121,21 @@ export function SpeakerLabelEditor({
                     >
                         <div data-sot-list="speaker-review-meta">
                             {activeReview.detectedLanguage ? (
-                                <span>
+                                <span
+                                    className={
+                                        SPEAKER_REVIEW_META_ITEM_CLASS_NAME
+                                    }
+                                >
                                     {t("speakerReview.languageLabel")}:{" "}
                                     {activeReview.detectedLanguage}
                                 </span>
                             ) : null}
                             {activeReview.transcriptionType ? (
-                                <span>
+                                <span
+                                    className={
+                                        SPEAKER_REVIEW_META_ITEM_CLASS_NAME
+                                    }
+                                >
                                     {t("speakerReview.sourceLabel")}:{" "}
                                     {formatTranscriptionType(
                                         activeReview.transcriptionType,
@@ -1122,13 +1144,21 @@ export function SpeakerLabelEditor({
                                 </span>
                             ) : null}
                             {activeReview.provider ? (
-                                <span>
+                                <span
+                                    className={
+                                        SPEAKER_REVIEW_META_ITEM_CLASS_NAME
+                                    }
+                                >
                                     {t("speakerReview.providerLabel")}:{" "}
                                     {formatProviderName(activeReview.provider)}
                                 </span>
                             ) : null}
                             {activeReview.model ? (
-                                <span>
+                                <span
+                                    className={
+                                        SPEAKER_REVIEW_META_ITEM_CLASS_NAME
+                                    }
+                                >
                                     {t("speakerReview.modelLabel")}:{" "}
                                     {activeReview.model}
                                 </span>
@@ -1137,7 +1167,11 @@ export function SpeakerLabelEditor({
                                 activeReview.createdAt,
                                 language,
                             ) ? (
-                                <span>
+                                <span
+                                    className={
+                                        SPEAKER_REVIEW_META_ITEM_CLASS_NAME
+                                    }
+                                >
                                     {t("speakerReview.capturedAt", {
                                         time:
                                             formatReviewTimestamp(
@@ -1147,24 +1181,35 @@ export function SpeakerLabelEditor({
                                     })}
                                 </span>
                             ) : null}
-                            <span>
+                            <span
+                                className={SPEAKER_REVIEW_META_ITEM_CLASS_NAME}
+                            >
                                 {t("speakerReview.wordCount", {
                                     count: activeReview.wordCount,
                                 })}
                             </span>
-                            <span>
+                            <span
+                                className={SPEAKER_REVIEW_META_ITEM_CLASS_NAME}
+                            >
                                 {t("speakerReview.characterCount", {
                                     count: activeReview.characterCount,
                                 })}
                             </span>
-                            <span>
+                            <span
+                                className={SPEAKER_REVIEW_META_ITEM_CLASS_NAME}
+                            >
                                 {t("speakerReview.mappedNamesCount", {
                                     count: activeReview.mappedSpeakerCount,
                                 })}
                             </span>
                         </div>
                         <div data-sot-part="speaker-review-transcript-section">
-                            <p data-sot-part="speaker-review-segment-text">
+                            <p
+                                className={
+                                    SPEAKER_REVIEW_SEGMENT_TEXT_CLASS_NAME
+                                }
+                                data-sot-part="speaker-review-segment-text"
+                            >
                                 {activeReview.text}
                             </p>
                         </div>
@@ -1429,11 +1474,19 @@ export function SpeakerLabelEditor({
                                             data-sot-part="speaker-review-row-meta"
                                         >
                                             <div>
-                                                <p data-sot-part="speaker-review-row-name">
+                                                <p
+                                                    className={
+                                                        SPEAKER_REVIEW_ROW_NAME_CLASS_NAME
+                                                    }
+                                                    data-sot-part="speaker-review-row-name"
+                                                >
                                                     {speaker.rawLabel}
                                                 </p>
                                                 {saveError ? (
                                                     <div
+                                                        className={
+                                                            SPEAKER_REVIEW_ROW_SUB_CLASS_NAME
+                                                        }
                                                         data-sot-part="speaker-review-row-sub"
                                                         data-sot-tone="danger"
                                                     >
@@ -1442,7 +1495,12 @@ export function SpeakerLabelEditor({
                                                         )}
                                                     </div>
                                                 ) : (
-                                                    <div data-sot-part="speaker-review-row-sub">
+                                                    <div
+                                                        className={
+                                                            SPEAKER_REVIEW_ROW_SUB_CLASS_NAME
+                                                        }
+                                                        data-sot-part="speaker-review-row-sub"
+                                                    >
                                                         <span>
                                                             {hasLiveNoMatch
                                                                 ? t(
@@ -1553,12 +1611,22 @@ export function SpeakerLabelEditor({
                                                 className="flex items-baseline gap-2.5"
                                                 data-sot-part="speaker-review-section-head"
                                             >
-                                                <p data-sot-part="speaker-review-section-title">
+                                                <p
+                                                    className={
+                                                        SPEAKER_REVIEW_SECTION_TITLE_CLASS_NAME
+                                                    }
+                                                    data-sot-part="speaker-review-section-title"
+                                                >
                                                     {t(
                                                         "speakerReview.samplesTitle",
                                                     )}
                                                 </p>
-                                                <p data-sot-part="speaker-review-section-description">
+                                                <p
+                                                    className={
+                                                        SPEAKER_REVIEW_SECTION_DESCRIPTION_CLASS_NAME
+                                                    }
+                                                    data-sot-part="speaker-review-section-description"
+                                                >
                                                     {t(
                                                         "speakerReview.samplesDescription",
                                                     )}
@@ -1580,7 +1648,12 @@ export function SpeakerLabelEditor({
                                                                     className="flex min-w-0 flex-col gap-0.5"
                                                                     data-sot-part="speaker-review-segment-meta"
                                                                 >
-                                                                    <p data-sot-part="speaker-review-segment-title">
+                                                                    <p
+                                                                        className={
+                                                                            SPEAKER_REVIEW_SEGMENT_TITLE_CLASS_NAME
+                                                                        }
+                                                                        data-sot-part="speaker-review-segment-title"
+                                                                    >
                                                                         {t(
                                                                             "speakerReview.sample",
                                                                             {
@@ -1620,10 +1693,15 @@ export function SpeakerLabelEditor({
                                                                               )
                                                                             : t(
                                                                                   "speakerReview.playSample",
-                                                                              )}
+                                                                        )}
                                                                     </Button>
                                                                 </div>
-                                                                <p data-sot-part="speaker-review-segment-text">
+                                                                <p
+                                                                    className={
+                                                                        SPEAKER_REVIEW_SEGMENT_TEXT_CLASS_NAME
+                                                                    }
+                                                                    data-sot-part="speaker-review-segment-text"
+                                                                >
                                                                     {segment.text?.trim() ||
                                                                         t(
                                                                             "speakerReview.noSampleSnippet",
@@ -1906,7 +1984,12 @@ export function SpeakerLabelEditor({
                                                                 "speakerReview.unlink",
                                                             )}
                                                         </Button>
-                                                        <p data-sot-part="speaker-review-row-sub">
+                                                        <p
+                                                            className={
+                                                                SPEAKER_REVIEW_ROW_SUB_CLASS_NAME
+                                                            }
+                                                            data-sot-part="speaker-review-row-sub"
+                                                        >
                                                             {t(
                                                                 "speakerReview.currentAssignment",
                                                                 {

@@ -5,6 +5,106 @@ import { describe, expect, it } from "vitest";
 const ROOT = path.join(process.cwd(), "src");
 const SPEAKER_REVIEW_MERGE_POPOVER_PLACEMENT =
     "absolute right-0 top-[calc(100%+0.5rem)] z-[var(--z-popover-inline)] w-[320px] min-w-[280px]";
+const SPEAKER_REVIEW_RESIDUAL_GLOBAL_SELECTORS = [
+    '[data-sot-list="speaker-review-meta"] > span',
+    '[data-sot-part="speaker-review-section-description"]',
+    '[data-sot-part="speaker-review-segment-title"]',
+    '[data-sot-part="speaker-review-segment-text"]',
+    '[data-sot-part="speaker-review-row-name"]',
+    '[data-sot-part="speaker-review-section-title"]',
+    '[data-sot-part="speaker-review-row-sub"]',
+    '[data-sot-part="speaker-review-row-sub"][data-sot-tone="danger"]',
+] as const;
+const SPEAKER_REVIEW_RESIDUAL_OWNER_CLASS_TOKENS = [
+    {
+        constName: "SPEAKER_REVIEW_META_ITEM_CLASS_NAME",
+        tokens: [
+            "min-w-0",
+            "truncate",
+            "font-sans",
+            "text-[11.5px]",
+            "font-medium",
+            "leading-normal",
+            "text-[var(--fg-tertiary)]",
+        ],
+    },
+    {
+        constName: "SPEAKER_REVIEW_SECTION_DESCRIPTION_CLASS_NAME",
+        tokens: [
+            "m-0",
+            "font-sans",
+            "![font-size:11.5px]",
+            "font-medium",
+            "![line-height:normal]",
+            "![color:var(--fg-tertiary)]",
+            "max-[860px]:whitespace-normal",
+            "max-[860px]:[overflow-wrap:anywhere]",
+        ],
+    },
+    {
+        constName: "SPEAKER_REVIEW_SEGMENT_TITLE_CLASS_NAME",
+        tokens: [
+            "m-0",
+            "font-sans",
+            "![font-size:12px]",
+            "font-semibold",
+            "![line-height:normal]",
+            "![color:var(--fg-secondary)]",
+        ],
+    },
+    {
+        constName: "SPEAKER_REVIEW_SEGMENT_TEXT_CLASS_NAME",
+        tokens: [
+            "m-0",
+            "font-sans",
+            "![font-size:12.5px]",
+            "font-medium",
+            "![line-height:1.55]",
+            "![color:var(--fg-primary)]",
+            "[text-wrap:pretty]",
+            "max-[860px]:whitespace-normal",
+            "max-[860px]:[overflow-wrap:anywhere]",
+        ],
+    },
+    {
+        constName: "SPEAKER_REVIEW_ROW_NAME_CLASS_NAME",
+        tokens: [
+            "m-0",
+            "font-sans",
+            "![font-size:13px]",
+            "font-semibold",
+            "![line-height:1.35]",
+            "![color:var(--fg-primary)]",
+        ],
+    },
+    {
+        constName: "SPEAKER_REVIEW_SECTION_TITLE_CLASS_NAME",
+        tokens: [
+            "m-0",
+            "font-sans",
+            "![font-size:13px]",
+            "font-semibold",
+            "![line-height:1.35]",
+            "![color:var(--fg-primary)]",
+        ],
+    },
+    {
+        constName: "SPEAKER_REVIEW_ROW_SUB_CLASS_NAME",
+        tokens: [
+            "m-0",
+            "font-mono",
+            "![font-size:11.5px]",
+            "font-medium",
+            "![line-height:1.4]",
+            "tracking-[0.02em]",
+            "![color:var(--fg-tertiary)]",
+            "data-[sot-tone=danger]:text-[var(--signal-danger)]",
+            "data-[sot-tone=danger]:![color:var(--signal-danger)]",
+            "max-[860px]:whitespace-normal",
+            "max-[860px]:[overflow-wrap:anywhere]",
+        ],
+    },
+] as const;
 const ONBOARDING_DEFAULT_SOURCE_ROOT_REPAINT_SELECTORS = [
     '[data-sot-control="onboarding-default-source"]',
     '[data-sot-control="onboarding-default-source"][data-sot-state="selected"]',
@@ -10033,6 +10133,13 @@ describe("full UI replacement regression coverage", () => {
             "SPEAKER_REVIEW_ERROR_DESCRIPTION_CLASS_NAME",
             "SPEAKER_REVIEW_INLINE_EMPTY_CLASS_NAME",
             "SPEAKER_REVIEW_MAPPING_CLEAR_BUTTON_CLASS_NAME",
+            "SPEAKER_REVIEW_META_ITEM_CLASS_NAME",
+            "SPEAKER_REVIEW_SECTION_DESCRIPTION_CLASS_NAME",
+            "SPEAKER_REVIEW_SEGMENT_TITLE_CLASS_NAME",
+            "SPEAKER_REVIEW_SEGMENT_TEXT_CLASS_NAME",
+            "SPEAKER_REVIEW_ROW_NAME_CLASS_NAME",
+            "SPEAKER_REVIEW_SECTION_TITLE_CLASS_NAME",
+            "SPEAKER_REVIEW_ROW_SUB_CLASS_NAME",
             "SpeakerReviewCard",
             "SpeakerReviewCardHeader",
             "SpeakerReviewCardTitle",
@@ -10061,6 +10168,19 @@ describe("full UI replacement regression coverage", () => {
             ";",
         );
         expect(speakerReviewVoiceprintBadgeClass).toContain("h-[22px]");
+        for (const selector of SPEAKER_REVIEW_RESIDUAL_GLOBAL_SELECTORS) {
+            expect(globals).not.toContain(selector);
+        }
+        for (const { constName, tokens } of SPEAKER_REVIEW_RESIDUAL_OWNER_CLASS_TOKENS) {
+            const ownerClass = extractBoundedSlice(
+                speakerReview,
+                `const ${constName} =`,
+                ";",
+            );
+            for (const token of tokens) {
+                expect(ownerClass).toContain(token);
+            }
+        }
         const providerGlobalStyleSelectors = [
             "[data-sot-provider-card]",
             "[data-sot-provider-status]",
