@@ -97,7 +97,7 @@ const CONFIRM_DIALOG_PIXEL_FRAMES = [
 const MORE_MENU_FIXTURE_CSS = String.raw`
 __MORE_MENU_SCOPE__ .more-menu-pixel-stage .more-menu {
     position: fixed;
-    z-index: var(--z-context-menu);
+    z-index: 240;
     pointer-events: none;
     overflow: hidden;
     font-family: var(--font-sans);

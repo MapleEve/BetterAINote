@@ -2637,7 +2637,7 @@ ${scope} .airp-actions .btn svg{width:11px;height:11px}
 
 function tagManagerViewportFrameCss(scope: string) {
     return `
-${scope} .tagm-panel,${scope} [data-sot-panel="recording-tag-manager"]{position:fixed;top:96px;right:28px;width:320px;max-width:calc(100vw - 32px);z-index:var(--z-context-menu)}
+${scope} .tagm-panel,${scope} [data-sot-panel="recording-tag-manager"]{position:fixed;top:96px;right:28px;width:320px;max-width:calc(100vw - 32px);z-index:240}
 @media (max-width:768px){${scope} .tagm-panel,${scope} [data-sot-panel="recording-tag-manager"]{top:76px;right:12px;left:12px;width:auto;max-width:none}}
 `;
 }

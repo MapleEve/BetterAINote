@@ -12595,9 +12595,10 @@ describe("full UI replacement regression coverage", () => {
         );
 
         expect(tagManagerGlobalPanelBlocks).toEqual([]);
+        expect(globals).not.toContain(["--z", "context-menu"].join("-"));
         for (const ownerPanelSnippet of [
             "tagm-panel fixed top-[96px] right-[28px]",
-            "z-[var(--z-context-menu)]",
+            "z-[240]",
             "max-h-[460px] w-[320px] max-w-[calc(100vw-2rem)]",
             "pointer-events-auto",
             "max-md:top-[76px] max-md:right-[12px] max-md:left-[12px]",
