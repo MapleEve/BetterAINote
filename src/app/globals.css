@@ -852,15 +852,6 @@ button:not([data-slot]) {
 }
 
 /* List panel */
-[data-sot-part="dashboard-recording-list-header"] {
-    padding: 12px 12px 10px;
-    border-bottom: 1px solid var(--line-hairline);
-    background: transparent;
-}
-[data-theme="dark"] [data-sot-part="dashboard-recording-list-header"] {
-    background: transparent;
-    border-bottom-color: var(--glass-border-soft);
-}
 /* ======== Detail panel ======== */
 [data-sot-panel="dashboard-detail"],
 [data-sot-panel="recording-workstation-detail"],

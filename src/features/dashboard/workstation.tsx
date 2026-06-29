@@ -580,6 +580,9 @@ const dashboardRecordingTagFilterStyles = {
         "font-mono text-[11px] font-medium text-[var(--fg-tertiary)]",
 } as const;
 
+const DASHBOARD_RECORDING_LIST_HEADER_CLASS_NAME =
+    "border-b border-border px-3 pt-3 pb-2.5";
+
 const dashboardRecordingListTitlebarStyles = {
     root: "flex items-center gap-2.5",
     title: "m-0 font-sans text-[13px] font-semibold text-[var(--fg-primary)]",
@@ -5780,7 +5783,12 @@ export function Workstation({
                             className="flex min-h-0 flex-col p-0"
                             data-sot-part="dashboard-recording-list-content"
                         >
-                            <div data-sot-part="dashboard-recording-list-header">
+                            <div
+                                className={
+                                    DASHBOARD_RECORDING_LIST_HEADER_CLASS_NAME
+                                }
+                                data-sot-part="dashboard-recording-list-header"
+                            >
                                 <div
                                     className={
                                         dashboardRecordingListTitlebarStyles.root

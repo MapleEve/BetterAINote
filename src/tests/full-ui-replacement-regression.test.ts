@@ -1649,13 +1649,17 @@ const DASHBOARD_RECORDING_LIST_REPLACEMENT_HOOKS = [
 const DASHBOARD_RECORDING_LIST_LEGACY_PRODUCT_CSS_SELECTOR_RE =
     /\.(?:day-label|rec-row|rec-thumb|rec-body|rec-title|rec-meta|tag|sidebar-footer|card|card-h|card-sub|frame|list-state-block|lsb-ico|lsb-t|lsb-h|lsb-page-divider|lsb-page-nav|lsb-page-num)(?![\w-])/;
 
+const EXPECTED_DASHBOARD_RECORDING_LIST_HEADER_CLASS_NAME =
+    "border-b border-border px-3 pt-3 pb-2.5";
+
 const DASHBOARD_RECORDING_LIST_DATA_SOT_CSS_SELECTORS = [
     '[data-sot-surface="dashboard-recording-list"]',
-    '[data-sot-part="dashboard-recording-list-header"]',
     '[data-sot-part="dashboard-sidebar-footer"]',
 ] as const;
 
 const DASHBOARD_RECORDING_LIST_RESIDUAL_MIGRATED_GLOBAL_SELECTORS = [
+    '[data-sot-part="dashboard-recording-list-header"]',
+    '[data-theme="dark"] [data-sot-part="dashboard-recording-list-header"]',
     '[data-sot-part="dashboard-recording-list-titlebar"]',
     '[data-sot-part="dashboard-recording-list-title"]',
     '[data-sot-part="dashboard-recording-list-count"]',
@@ -1686,6 +1690,7 @@ const DASHBOARD_RECORDING_LIST_RESIDUAL_MIGRATED_GLOBAL_SELECTORS = [
 ] as const;
 
 const DASHBOARD_RECORDING_LIST_RESIDUAL_OWNER_CLASS_REFS = [
+    "DASHBOARD_RECORDING_LIST_HEADER_CLASS_NAME",
     "dashboardRecordingListTitlebarStyles.root",
     "dashboardRecordingListTitlebarStyles.title",
     "dashboardRecordingListTitlebarStyles.count",
@@ -1705,6 +1710,14 @@ const DASHBOARD_RECORDING_LIST_RESIDUAL_OWNER_CLASS_REFS = [
     "dashboardRecordingListPaginationStyles.nav",
     "dashboardRecordingListPaginationStyles.number",
 ] as const;
+
+const DASHBOARD_RECORDING_LIST_HEADER_RETAINED_GLOBAL_SELECTORS = [
+    '[data-sot-panel="dashboard-workspace"]',
+    '[data-sot-panel="workstation-workspace"]',
+] as const;
+
+const DASHBOARD_RECORDING_LIST_HEADER_FORBIDDEN_CLASS_PATTERN =
+    /\b(?:rgb|rgba|hsl|hsla|oklch|color-mix)\(|#[0-9A-Fa-f]{3,8}\b|\bdark:|(?:^|\s)(?:bg|border|text|shadow|ring|fill|stroke|from|via|to)-(?:white|black|slate|gray|zinc|neutral|stone|red|orange|amber|yellow|lime|green|emerald|teal|cyan|sky|blue|indigo|violet|purple|fuchsia|pink|rose)(?:[/-]\d+)?\b/;
 
 const DASHBOARD_RECORDING_LIST_PRIMITIVE_REPAINT_CSS_SELECTORS = [
     '[data-sot-surface="dashboard-recording-list"][data-slot="card"]',
@@ -5331,12 +5344,32 @@ describe("full UI replacement regression coverage", () => {
         for (const selector of DASHBOARD_RECORDING_LIST_DATA_SOT_CSS_SELECTORS) {
             expect(globals).toContain(selector);
         }
+        for (const selector of DASHBOARD_RECORDING_LIST_HEADER_RETAINED_GLOBAL_SELECTORS) {
+            expect(globals).toContain(selector);
+        }
         for (const selector of DASHBOARD_RECORDING_LIST_RESIDUAL_MIGRATED_GLOBAL_SELECTORS) {
             expect(collectCssRuleBlocks(globals, selector)).toEqual([]);
         }
         for (const ownerClassRef of DASHBOARD_RECORDING_LIST_RESIDUAL_OWNER_CLASS_REFS) {
             expect(workstation).toContain(ownerClassRef);
         }
+        const recordingListHeader = extractOpeningElement(
+            workstation,
+            'data-sot-part="dashboard-recording-list-header"',
+            "div",
+        );
+        const recordingListHeaderClass = expectExactStringConstInitializer(
+            workstation,
+            "DASHBOARD_RECORDING_LIST_HEADER_CLASS_NAME",
+            EXPECTED_DASHBOARD_RECORDING_LIST_HEADER_CLASS_NAME,
+        );
+        expectClassNameConstReference(
+            recordingListHeader,
+            "DASHBOARD_RECORDING_LIST_HEADER_CLASS_NAME",
+        );
+        expect(recordingListHeaderClass).not.toMatch(
+            DASHBOARD_RECORDING_LIST_HEADER_FORBIDDEN_CLASS_PATTERN,
+        );
         for (const ownerClassToken of [
             "flex items-center gap-2.5",
             "m-0 font-sans text-[13px] font-semibold text-[var(--fg-primary)]",

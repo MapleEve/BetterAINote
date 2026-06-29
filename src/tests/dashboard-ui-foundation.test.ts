@@ -52,6 +52,8 @@ const EXPECTED_DASHBOARD_TRANSCRIPT_ACTIONS_CLASS_NAME =
     "ml-auto inline-flex max-w-full flex-[0_1_auto] flex-wrap items-center gap-2";
 const EXPECTED_DASHBOARD_TRANSCRIPT_SHELL_CARD_CLASS_NAME =
     "flex min-h-0 flex-1 flex-col gap-0 rounded-[16px] border border-[var(--line-hairline)] bg-[var(--bg-elevated)] shadow-[var(--shadow-sm)] backdrop-blur-none dark:border-[var(--glass-border-soft)] dark:bg-[rgb(255_255_255_/_0.025)] dark:shadow-none";
+const EXPECTED_DASHBOARD_RECORDING_LIST_HEADER_CLASS_NAME =
+    "border-b border-border px-3 pt-3 pb-2.5";
 const EXPECTED_SOURCE_REPORT_STATUS_BADGE_CLASS_NAME =
     "h-[22px] min-w-[65px] justify-normal gap-[9px] overflow-visible rounded-full border px-[8px] py-0 text-[11px] font-semibold leading-[normal] shadow-none data-[sot-tone=err]:border-[var(--source-report-status-err-border)] data-[sot-tone=err]:bg-[var(--source-report-status-err-bg)] data-[sot-tone=err]:text-[var(--signal-danger)] data-[sot-tone=neu]:border-[var(--line-hairline)] data-[sot-tone=neu]:bg-[var(--bg-recessed)] data-[sot-tone=neu]:text-[var(--fg-secondary)] data-[sot-tone=ok]:border-[var(--source-report-status-ok-border)] data-[sot-tone=ok]:bg-[var(--source-report-status-ok-bg)] data-[sot-tone=ok]:text-[var(--source-report-status-ok-fg)] data-[sot-tone=warn]:border-[var(--source-report-status-warn-border)] data-[sot-tone=warn]:bg-[var(--source-report-status-warn-bg)] data-[sot-tone=warn]:text-[var(--source-report-status-warn-fg)] [&_[data-sot-part=dashboard-source-report-status-dot]]:mr-0 [&_[data-sot-part=dashboard-source-report-status-dot]]:inline-block [&_[data-sot-part=dashboard-source-report-status-dot]]:size-[5px] [&_[data-sot-part=dashboard-source-report-status-dot]]:rounded-full [&_[data-sot-part=dashboard-source-report-status-dot]]:bg-current [&_[data-sot-part=source-report-status-dot]]:mr-0 [&_[data-sot-part=source-report-status-dot]]:inline-block [&_[data-sot-part=source-report-status-dot]]:size-[5px] [&_[data-sot-part=source-report-status-dot]]:rounded-full [&_[data-sot-part=source-report-status-dot]]:bg-current";
 const EXPECTED_DASHBOARD_RECORDING_PLAYER_CARD_CLASS_NAME =
@@ -1540,6 +1542,8 @@ const DASHBOARD_RECORDING_LIST_BATCH_SOT_HOOKS = [
 ];
 
 const DASHBOARD_RECORDING_LIST_RESIDUAL_MIGRATED_GLOBAL_SELECTORS = [
+    '[data-sot-part="dashboard-recording-list-header"]',
+    '[data-theme="dark"] [data-sot-part="dashboard-recording-list-header"]',
     '[data-sot-part="dashboard-recording-list-titlebar"]',
     '[data-sot-part="dashboard-recording-list-title"]',
     '[data-sot-part="dashboard-recording-list-count"]',
@@ -1570,6 +1574,7 @@ const DASHBOARD_RECORDING_LIST_RESIDUAL_MIGRATED_GLOBAL_SELECTORS = [
 ] as const;
 
 const DASHBOARD_RECORDING_LIST_RESIDUAL_OWNER_CLASS_REFS = [
+    "DASHBOARD_RECORDING_LIST_HEADER_CLASS_NAME",
     "dashboardRecordingListTitlebarStyles.root",
     "dashboardRecordingListTitlebarStyles.title",
     "dashboardRecordingListTitlebarStyles.count",
@@ -1589,6 +1594,15 @@ const DASHBOARD_RECORDING_LIST_RESIDUAL_OWNER_CLASS_REFS = [
     "dashboardRecordingListPaginationStyles.nav",
     "dashboardRecordingListPaginationStyles.number",
 ] as const;
+
+const DASHBOARD_RECORDING_LIST_HEADER_RETAINED_GLOBAL_SELECTORS = [
+    '[data-sot-panel="dashboard-workspace"]',
+    '[data-sot-panel="workstation-workspace"]',
+    '[data-sot-part="dashboard-sidebar-footer"]',
+] as const;
+
+const DASHBOARD_RECORDING_LIST_HEADER_FORBIDDEN_CLASS_PATTERN =
+    /\b(?:rgb|rgba|hsl|hsla|oklch|color-mix)\(|#[0-9A-Fa-f]{3,8}\b|\bdark:|(?:^|\s)(?:bg|border|text|shadow|ring|fill|stroke|from|via|to)-(?:white|black|slate|gray|zinc|neutral|stone|red|orange|amber|yellow|lime|green|emerald|teal|cyan|sky|blue|indigo|violet|purple|fuchsia|pink|rose)(?:[/-]\d+)?\b/;
 
 const DASHBOARD_RECORDING_LIST_PRIMITIVE_REPAINT_CSS_SELECTORS = [
     '[data-sot-surface="dashboard-recording-list"][data-slot="card"]',
@@ -3394,6 +3408,26 @@ describe("dashboard SOT foundation", () => {
         expect(recordingListCard).toContain(
             'data-sot-part="dashboard-recording-list-content"',
         );
+        const recordingListHeader = extractOpeningElement(
+            workstation,
+            'data-sot-part="dashboard-recording-list-header"',
+            "div",
+        );
+        const recordingListHeaderClass = expectExactStringConstInitializer(
+            workstation,
+            "DASHBOARD_RECORDING_LIST_HEADER_CLASS_NAME",
+            EXPECTED_DASHBOARD_RECORDING_LIST_HEADER_CLASS_NAME,
+        );
+        expectClassNameConstReference(
+            recordingListHeader,
+            "DASHBOARD_RECORDING_LIST_HEADER_CLASS_NAME",
+        );
+        expect(recordingListHeaderClass).not.toMatch(
+            DASHBOARD_RECORDING_LIST_HEADER_FORBIDDEN_CLASS_PATTERN,
+        );
+        for (const selector of DASHBOARD_RECORDING_LIST_HEADER_RETAINED_GLOBAL_SELECTORS) {
+            expect(globals).toContain(selector);
+        }
         expect(globals).not.toMatch(
             DASHBOARD_RECORDING_LIST_PRIMITIVE_REPAINT_CSS_RE,
         );
