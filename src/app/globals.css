@@ -75,6 +75,66 @@
     --signal-danger: oklch(0.585 0.18 25);
     --signal-info: rgb(65 134 164);
     --signal-info: oklch(0.62 0.09 224);
+    --dashboard-retx-info-bg: rgb(239 244 247);
+    --dashboard-retx-info-bg: color-mix(
+        in srgb,
+        var(--signal-info) 8%,
+        transparent
+    );
+    --dashboard-retx-info-border: rgb(65 134 164 / 0.26);
+    --dashboard-retx-info-border: color-mix(
+        in srgb,
+        var(--signal-info) 26%,
+        transparent
+    );
+    --dashboard-retx-info-icon-border: rgb(65 134 164 / 0.3);
+    --dashboard-retx-info-icon-border: color-mix(
+        in srgb,
+        var(--signal-info) 30%,
+        transparent
+    );
+    --dashboard-retx-danger-bg: rgb(247 236 236);
+    --dashboard-retx-danger-bg: color-mix(
+        in srgb,
+        var(--signal-danger) 6%,
+        transparent
+    );
+    --dashboard-retx-danger-border: rgb(210 65 53 / 0.24);
+    --dashboard-retx-danger-border: color-mix(
+        in srgb,
+        var(--signal-danger) 24%,
+        transparent
+    );
+    --dashboard-retx-danger-icon-border: rgb(210 65 53 / 0.3);
+    --dashboard-retx-danger-icon-border: color-mix(
+        in srgb,
+        var(--signal-danger) 30%,
+        transparent
+    );
+    --dashboard-retx-success-bg: rgb(238 246 242);
+    --dashboard-retx-success-bg: color-mix(
+        in srgb,
+        var(--signal-success) 8%,
+        transparent
+    );
+    --dashboard-retx-success-border: rgb(36 151 104 / 0.28);
+    --dashboard-retx-success-border: color-mix(
+        in srgb,
+        var(--signal-success) 28%,
+        transparent
+    );
+    --dashboard-retx-success-icon-border: rgb(36 151 104 / 0.3);
+    --dashboard-retx-success-icon-border: color-mix(
+        in srgb,
+        var(--signal-success) 30%,
+        transparent
+    );
+    --dashboard-retx-success-marker-bg: rgb(36 151 104 / 0.12);
+    --dashboard-retx-success-marker-bg: color-mix(
+        in srgb,
+        var(--signal-success) 12%,
+        transparent
+    );
     --system-banner-neutral-icon-bg: rgb(132 145 153 / 0.12);
     --system-banner-neutral-icon-bg: color-mix(
         in srgb,
@@ -1621,17 +1681,6 @@ button:not([data-slot]) {
     margin-left: auto;
 }
 
-/* retx refresh-marker shown briefly when transcript refreshes */
-[data-sot-part="dashboard-retranscription-refresh-marker"] {
-    align-items: center;
-    gap: 4px;
-    font: 500 10.5px var(--font-mono);
-    color: var(--signal-success);
-    background: color-mix(in srgb, var(--signal-success) 12%, transparent);
-    padding: 1px 6px;
-    border-radius: 999px;
-}
-
 /* ---------- Source matrix rows ---------- */
 [data-sot-control="matrix-row"] {
     display: grid;
@@ -1719,105 +1768,6 @@ button:not([data-slot]) {
     width: var(--dashboard-speaker-share, 0%);
     border-radius: 999px;
     background: linear-gradient(90deg, var(--steel-500), var(--accent));
-}
-
-/* ---------- Retranscribe banner ---------- */
-[data-sot-panel="dashboard-retranscription"] {
-    align-items: center;
-    gap: 10px;
-    padding: 10px 14px;
-    border-bottom: 1px solid var(--line-hairline);
-    background: var(--bg-recessed);
-}
-[data-theme="dark"] [data-sot-panel="dashboard-retranscription"] {
-    background: rgb(255 255 255 / 0.03);
-    border-bottom-color: var(--glass-border-soft);
-}
-[data-sot-panel="dashboard-retranscription"][data-retx-state="queued"],
-[data-sot-panel="dashboard-retranscription"][data-retx-state="running"] {
-    background: color-mix(in srgb, var(--signal-info) 8%, transparent);
-    border-bottom-color: color-mix(
-        in srgb,
-        var(--signal-info) 26%,
-        transparent
-    );
-}
-[data-sot-panel="dashboard-retranscription"][data-retx-state="failed"] {
-    background: color-mix(in srgb, var(--signal-danger) 6%, transparent);
-    border-bottom-color: color-mix(
-        in srgb,
-        var(--signal-danger) 24%,
-        transparent
-    );
-}
-[data-sot-panel="dashboard-retranscription"][data-retx-state="completed"] {
-    background: color-mix(in srgb, var(--signal-success) 8%, transparent);
-    border-bottom-color: color-mix(
-        in srgb,
-        var(--signal-success) 28%,
-        transparent
-    );
-}
-[data-sot-part="dashboard-retranscription-icon"] {
-    width: 28px;
-    height: 28px;
-    border-radius: 50%;
-    align-items: center;
-    justify-content: center;
-    background: var(--bg-elevated);
-    border: 1px solid var(--line-hairline);
-    flex: none;
-}
-[data-sot-panel="dashboard-retranscription"][data-retx-state="queued"]
-    [data-sot-part="dashboard-retranscription-icon"],
-[data-sot-panel="dashboard-retranscription"][data-retx-state="running"]
-    [data-sot-part="dashboard-retranscription-icon"] {
-    color: var(--signal-info);
-    border-color: color-mix(in srgb, var(--signal-info) 30%, transparent);
-}
-[data-sot-panel="dashboard-retranscription"][data-retx-state="failed"]
-    [data-sot-part="dashboard-retranscription-icon"] {
-    color: var(--signal-danger);
-    border-color: color-mix(in srgb, var(--signal-danger) 30%, transparent);
-}
-[data-sot-panel="dashboard-retranscription"][data-retx-state="completed"]
-    [data-sot-part="dashboard-retranscription-icon"] {
-    color: var(--signal-success);
-    border-color: color-mix(in srgb, var(--signal-success) 30%, transparent);
-}
-[data-sot-part="dashboard-retranscription-icon"] svg {
-    width: 13px;
-    height: 13px;
-    stroke: currentColor;
-    fill: none;
-    stroke-width: 2;
-}
-[data-sot-part="dashboard-retranscription-body"] {
-    flex-direction: column;
-    gap: 2px;
-    flex: 1;
-    min-width: 0;
-}
-[data-sot-part="dashboard-retranscription-title"] {
-    font: 600 12.5px var(--font-sans);
-    color: var(--fg-primary);
-}
-[data-sot-part="dashboard-retranscription-sub"] {
-    font: 500 11.5px var(--font-sans);
-    color: var(--fg-secondary);
-}
-[data-sot-part="dashboard-retranscription-actions"] {
-    align-items: center;
-    gap: 6px;
-    flex: none;
-}
-[data-sot-part="dashboard-retranscription-disabled-hint"] {
-    font: 500 11px var(--font-sans);
-    color: var(--fg-tertiary);
-    padding: 2px 6px;
-    border-radius: 4px;
-    background: var(--bg-recessed);
-    border: 1px solid var(--line-hairline);
 }
 
 /* ---------- list-state-block (empty / no-match / paginated) ---------- */

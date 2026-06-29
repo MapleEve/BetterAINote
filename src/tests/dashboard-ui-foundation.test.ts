@@ -1348,6 +1348,59 @@ const DASHBOARD_RETRANSCRIPTION_LEGACY_CLASS_NAMES = [
     "retx-ico-ok",
 ];
 
+const DASHBOARD_RETRANSCRIPTION_OWNER_CLASS_SNIPPETS = [
+    "disabledHint:",
+    "banner:",
+    "icon:",
+    "body:",
+    "title:",
+    "sub:",
+    "actions:",
+    "refreshMarker:",
+    "group/retx flex items-center gap-[10px]",
+    "data-[retx-state=queued]:bg-[var(--dashboard-retx-info-bg)]",
+    "data-[retx-state=failed]:bg-[var(--dashboard-retx-danger-bg)]",
+    "data-[retx-state=completed]:bg-[var(--dashboard-retx-success-bg)]",
+    "group-data-[retx-state=running]/retx:text-[var(--signal-info)]",
+    "group-data-[retx-state=running]/retx:border-[var(--dashboard-retx-info-icon-border)]",
+    "group-data-[retx-state=failed]/retx:text-[var(--signal-danger)]",
+    "group-data-[retx-state=failed]/retx:border-[var(--dashboard-retx-danger-icon-border)]",
+    "group-data-[retx-state=completed]/retx:text-[var(--signal-success)]",
+    "group-data-[retx-state=completed]/retx:border-[var(--dashboard-retx-success-icon-border)]",
+    "[font:600_12.5px_var(--font-sans)] text-[var(--fg-primary)]",
+    "[font:500_11.5px_var(--font-sans)] text-[var(--fg-secondary)]",
+    "bg-[var(--dashboard-retx-success-marker-bg)]",
+] as const;
+
+const DASHBOARD_RETRANSCRIPTION_OWNER_CLASS_USAGES = [
+    "dashboardRetranscriptionClassNames.disabledHint",
+    "dashboardRetranscriptionClassNames.banner",
+    "dashboardRetranscriptionClassNames.icon",
+    "dashboardRetranscriptionClassNames.body",
+    "dashboardRetranscriptionClassNames.title",
+    "dashboardRetranscriptionClassNames.sub",
+    "dashboardRetranscriptionClassNames.actions",
+    "dashboardRetranscriptionClassNames.refreshMarker",
+] as const;
+
+const DASHBOARD_RETRANSCRIPTION_REPAINT_CSS_SELECTORS = [
+    '[data-sot-panel="dashboard-retranscription"]',
+    '[data-sot-part="dashboard-retranscription-icon"]',
+    '[data-sot-part="dashboard-retranscription-icon"] svg',
+    '[data-sot-part="dashboard-retranscription-body"]',
+    '[data-sot-part="dashboard-retranscription-title"]',
+    '[data-sot-part="dashboard-retranscription-sub"]',
+    '[data-sot-part="dashboard-retranscription-actions"]',
+    '[data-sot-part="dashboard-retranscription-disabled-hint"]',
+    '[data-sot-part="dashboard-retranscription-refresh-marker"]',
+] as const;
+
+const DASHBOARD_RETRANSCRIPTION_GLOBAL_REPAINT_DECLARATION_RE =
+    /^\s*(?:align-items|justify-content|gap|padding(?:-[\w-]+)?|border(?:-(?:bottom|color|radius|style|width))?|background(?:-clip)?|box-shadow|color|font(?:-[\w-]+)?|width|height|border-radius|flex(?:-(?:basis|direction|grow|shrink|wrap))?|min-width)\s*:|\b(?:color-mix|linear-gradient|oklch)\(/m;
+
+const DASHBOARD_RETRANSCRIPTION_OWNER_DIRECT_COLOR_RE =
+    /#[\da-f]{3,8}\b|\b(?:color-mix|oklch|rgba?)\(/i;
+
 const DASHBOARD_RECORDING_LIST_BATCH_LEGACY_CLASS_NAMES = [
     "tag-filter",
     "tag-filter-trigger",
@@ -2877,6 +2930,39 @@ describe("dashboard SOT foundation", () => {
                 '[data-sot-part="dashboard-retranscription-spinner"]',
             ),
         ).toEqual([]);
+        const dashboardRetranscriptionClassNames = extractBoundedSlice(
+            workstation,
+            "const dashboardRetranscriptionClassNames = {",
+            "} as const;",
+        );
+        for (const snippet of DASHBOARD_RETRANSCRIPTION_OWNER_CLASS_SNIPPETS) {
+            expect(dashboardRetranscriptionClassNames).toContain(snippet);
+        }
+        expect(dashboardRetranscriptionClassNames).not.toMatch(
+            DASHBOARD_RETRANSCRIPTION_OWNER_DIRECT_COLOR_RE,
+        );
+        for (const usage of DASHBOARD_RETRANSCRIPTION_OWNER_CLASS_USAGES) {
+            expect(workstation).toContain(usage);
+        }
+        const retxGlobalRepaintBlocks =
+            DASHBOARD_RETRANSCRIPTION_REPAINT_CSS_SELECTORS.flatMap(
+                (selector) =>
+                    collectCssRuleBlocks(globals, selector).filter(
+                        ({ declarations }) =>
+                            DASHBOARD_RETRANSCRIPTION_GLOBAL_REPAINT_DECLARATION_RE.test(
+                                declarations,
+                            ),
+                    ),
+            );
+        expect(retxGlobalRepaintBlocks).toEqual([]);
+        for (const retainedStructuralSelector of [
+            '[data-sot-panel="dashboard-retranscription"][hidden]',
+            '[data-sot-panel="dashboard-retranscription"][data-retx-state="idle"]',
+            '[data-retx-retry]',
+            '[data-retx-dismiss]',
+        ]) {
+            expect(globals).toContain(retainedStructuralSelector);
+        }
         for (const hook of DASHBOARD_RETRANSCRIPTION_SOT_HOOKS) {
             expect(workstation).toContain(hook);
         }

@@ -641,6 +641,21 @@ const dashboardButtonClassNames = {
         "h-8 gap-[7px] rounded-[9px] border border-[var(--line-hairline)] bg-[var(--glass-tint-base)] px-3 font-sans text-[12.5px] font-semibold leading-normal text-[var(--fg-primary)] shadow-[var(--shadow-xs)] hover:bg-[var(--glass-tint-base)] hover:text-[var(--fg-primary)] has-[>svg]:px-3 [&_svg]:fill-none [&_svg]:stroke-current [&_svg]:stroke-[1.8] [&_svg]:[stroke-linecap:round] [&_svg]:[stroke-linejoin:round] [&_svg:not([class*='size-'])]:size-4",
 } as const;
 
+const dashboardRetranscriptionClassNames = {
+    disabledHint:
+        "inline-flex items-center rounded-[4px] border border-[var(--line-hairline)] bg-[var(--bg-recessed)] px-[6px] py-[2px] [font:500_11px_var(--font-sans)] text-[var(--fg-tertiary)] [&[hidden]]:hidden",
+    banner:
+        "group/retx flex items-center gap-[10px] border-b border-[var(--line-hairline)] bg-[var(--bg-recessed)] px-[14px] py-[10px] data-[retx-state=completed]:border-[var(--dashboard-retx-success-border)] data-[retx-state=completed]:bg-[var(--dashboard-retx-success-bg)] data-[retx-state=failed]:border-[var(--dashboard-retx-danger-border)] data-[retx-state=failed]:bg-[var(--dashboard-retx-danger-bg)] data-[retx-state=idle]:hidden data-[retx-state=queued]:border-[var(--dashboard-retx-info-border)] data-[retx-state=queued]:bg-[var(--dashboard-retx-info-bg)] data-[retx-state=running]:border-[var(--dashboard-retx-info-border)] data-[retx-state=running]:bg-[var(--dashboard-retx-info-bg)] dark:border-[var(--glass-border-soft)] dark:bg-[var(--glass-tint-subtle)] [&[hidden]]:hidden",
+    icon:
+        "inline-flex size-[28px] flex-none items-center justify-center rounded-full border border-[var(--line-hairline)] bg-[var(--bg-elevated)] group-data-[retx-state=completed]/retx:border-[var(--dashboard-retx-success-icon-border)] group-data-[retx-state=completed]/retx:text-[var(--signal-success)] group-data-[retx-state=failed]/retx:border-[var(--dashboard-retx-danger-icon-border)] group-data-[retx-state=failed]/retx:text-[var(--signal-danger)] group-data-[retx-state=queued]/retx:border-[var(--dashboard-retx-info-icon-border)] group-data-[retx-state=queued]/retx:text-[var(--signal-info)] group-data-[retx-state=running]/retx:border-[var(--dashboard-retx-info-icon-border)] group-data-[retx-state=running]/retx:text-[var(--signal-info)] [&_svg]:size-[13px] [&_svg]:fill-none [&_svg]:stroke-2 [&_svg]:stroke-current [&_svg]:[stroke-linecap:round] [&_svg]:[stroke-linejoin:round]",
+    body: "flex min-w-0 flex-1 flex-col gap-[2px]",
+    title: "[font:600_12.5px_var(--font-sans)] text-[var(--fg-primary)]",
+    sub: "[font:500_11.5px_var(--font-sans)] text-[var(--fg-secondary)]",
+    actions: "flex flex-none items-center gap-[6px]",
+    refreshMarker:
+        "inline-flex items-center gap-[4px] rounded-full bg-[var(--dashboard-retx-success-marker-bg)] px-[6px] py-px [font:500_10.5px_var(--font-mono)] text-[var(--signal-success)] [&[hidden]]:hidden",
+} as const;
+
 const sourceProviderThemeClassName =
     "[--source-provider-status-success-bg:color-mix(in_srgb,var(--signal-success)_14%,transparent)] [--source-provider-status-success-border:color-mix(in_srgb,var(--signal-success)_30%,transparent)] [--source-provider-status-info-bg:color-mix(in_srgb,var(--signal-info)_14%,transparent)] [--source-provider-status-info-border:color-mix(in_srgb,var(--signal-info)_30%,transparent)] [--source-provider-status-warning-bg:color-mix(in_srgb,var(--signal-warning)_18%,transparent)] [--source-provider-status-warning-border:color-mix(in_srgb,var(--signal-warning)_32%,transparent)] [--source-provider-status-danger-bg:color-mix(in_srgb,var(--signal-danger)_14%,transparent)] [--source-provider-status-danger-border:color-mix(in_srgb,var(--signal-danger)_30%,transparent)] [--source-provider-primary-border:color-mix(in_srgb,var(--accent)_60%,black_8%)]";
 
@@ -7409,6 +7424,9 @@ export function Workstation({
                                     ) : null}
                                     <span
                                         data-sot-part="dashboard-retranscription-disabled-hint"
+                                        className={
+                                            dashboardRetranscriptionClassNames.disabledHint
+                                        }
                                         hidden={
                                             detailTab !== "transcript" ||
                                             dashboardRetxState !== "unavailable"
@@ -7453,6 +7471,9 @@ export function Workstation({
                             >
                                 <div
                                     data-sot-panel="dashboard-retranscription"
+                                    className={
+                                        dashboardRetranscriptionClassNames.banner
+                                    }
                                     data-sot-state={dashboardRetxState}
                                     data-retx-state={dashboardRetxState}
                                     hidden={
@@ -7462,6 +7483,9 @@ export function Workstation({
                                 >
                                     <span
                                         data-sot-part="dashboard-retranscription-icon"
+                                        className={
+                                            dashboardRetranscriptionClassNames.icon
+                                        }
                                         aria-hidden="true"
                                     >
                                         {dashboardRetxState === "queued" ||
@@ -7482,16 +7506,36 @@ export function Workstation({
                                             <RefreshCw />
                                         )}
                                     </span>
-                                    <div data-sot-part="dashboard-retranscription-body">
-                                        <div data-sot-part="dashboard-retranscription-title">
+                                    <div
+                                        data-sot-part="dashboard-retranscription-body"
+                                        className={
+                                            dashboardRetranscriptionClassNames.body
+                                        }
+                                    >
+                                        <div
+                                            data-sot-part="dashboard-retranscription-title"
+                                            className={
+                                                dashboardRetranscriptionClassNames.title
+                                            }
+                                        >
                                             {dashboardRetxTitle}
                                         </div>
-                                        <div data-sot-part="dashboard-retranscription-sub">
+                                        <div
+                                            data-sot-part="dashboard-retranscription-sub"
+                                            className={
+                                                dashboardRetranscriptionClassNames.sub
+                                            }
+                                        >
                                             {dashboardRetxSub}
                                         </div>
                                     </div>
                                     {dashboardRetxState === "failed" ? (
-                                        <div data-sot-part="dashboard-retranscription-actions">
+                                        <div
+                                            data-sot-part="dashboard-retranscription-actions"
+                                            className={
+                                                dashboardRetranscriptionClassNames.actions
+                                            }
+                                        >
                                             <Button
                                                 variant="ghost"
                                                 size="sm"
@@ -7526,7 +7570,12 @@ export function Workstation({
                                         </div>
                                     ) : dashboardRetxState === "completed" &&
                                       selectedRecording ? (
-                                        <div data-sot-part="dashboard-retranscription-actions">
+                                        <div
+                                            data-sot-part="dashboard-retranscription-actions"
+                                            className={
+                                                dashboardRetranscriptionClassNames.actions
+                                            }
+                                        >
                                             <Button
                                                 variant="ghost"
                                                 size="sm"
@@ -7555,6 +7604,9 @@ export function Workstation({
                                 </div>
                                 <p
                                     data-sot-part="dashboard-retranscription-refresh-marker"
+                                    className={
+                                        dashboardRetranscriptionClassNames.refreshMarker
+                                    }
                                     hidden={dashboardRetxState !== "completed"}
                                 >
                                     刚刷新 · 1 秒前
