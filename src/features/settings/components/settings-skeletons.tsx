@@ -3,10 +3,16 @@
 import type { Ref } from "react";
 import { Field, FieldContent } from "@/components/ui/field";
 import { Skeleton } from "@/components/ui/skeleton";
+import { cn } from "@/lib/utils";
 
 const makeSkeletonKeys = (prefix: string, count: number) =>
     Array.from({ length: count }, (_, index) => `${prefix}-${index + 1}`);
 
+const SETTINGS_SKELETON_PANEL_CLASS =
+    "min-h-0 overflow-y-auto [overscroll-behavior:contain] px-[26px] py-[22px]";
+const SETTINGS_CARD_SKELETON_CLASS = SETTINGS_SKELETON_PANEL_CLASS;
+const SETTINGS_SECTION_SKELETON_CLASS = SETTINGS_SKELETON_PANEL_CLASS;
+const SETTINGS_LIST_SKELETON_CLASS = SETTINGS_SKELETON_PANEL_CLASS;
 const SKELETON_ROW_CONTROL_CLASS =
     "flex min-w-0 flex-wrap items-center justify-end gap-2";
 const SKELETON_SYNC_DOT_CLASS =
@@ -23,7 +29,7 @@ export function SettingsCardSkeleton({
 }: SettingsCardSkeletonProps) {
     return (
         <div
-            className={className}
+            className={cn(SETTINGS_CARD_SKELETON_CLASS, className)}
             data-sot-panel="settings-card-skeleton"
             data-sot-state="loading"
         >
@@ -80,7 +86,7 @@ export function SettingsSectionSkeleton({
         <div
             ref={scrollRef}
             aria-busy="true"
-            className={className}
+            className={cn(SETTINGS_SECTION_SKELETON_CLASS, className)}
             data-sot-panel="settings-section-skeleton"
             data-sot-section={section}
             data-sot-state="loading"
@@ -109,7 +115,11 @@ interface SettingsListSkeletonProps {
 
 export function SettingsListSkeleton({ rows = 3 }: SettingsListSkeletonProps) {
     return (
-        <div data-sot-panel="settings-list-skeleton" data-sot-state="loading">
+        <div
+            className={SETTINGS_LIST_SKELETON_CLASS}
+            data-sot-panel="settings-list-skeleton"
+            data-sot-state="loading"
+        >
             {makeSkeletonKeys("settings-row", rows).map((rowKey) => (
                 <Field key={rowKey} orientation="horizontal">
                     <FieldContent>

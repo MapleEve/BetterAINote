@@ -333,6 +333,12 @@ const REMOVED_SETTINGS_SAVE_ACTION_GLOBAL_SELECTORS = [
     '[data-sot-panel="settings-save-actions"] [data-sot-part="settings-save-status"]',
 ] as const;
 
+const REMOVED_SETTINGS_SKELETON_GLOBAL_SELECTORS = [
+    '[data-sot-panel="settings-card-skeleton"]',
+    '[data-sot-panel="settings-section-skeleton"]',
+    '[data-sot-panel="settings-list-skeleton"]',
+] as const;
+
 const REMOVED_SETTINGS_SHORTCUTS_KEY_STATUS_VISUAL_SELECTORS = [
     "[data-sot-shortcuts]",
     "[data-sot-shortcuts] > div",
@@ -3156,6 +3162,22 @@ describe("settings SOT interaction regressions", () => {
             'data-sot-panel="settings-section-skeleton"',
         );
         expect(skeletons).toContain('data-sot-panel="settings-list-skeleton"');
+        expect(skeletons).toContain("SETTINGS_SKELETON_PANEL_CLASS");
+        expect(skeletons).toContain(
+            '"min-h-0 overflow-y-auto [overscroll-behavior:contain] px-[26px] py-[22px]"',
+        );
+        expect(skeletons).toContain("SETTINGS_CARD_SKELETON_CLASS");
+        expect(skeletons).toContain("SETTINGS_SECTION_SKELETON_CLASS");
+        expect(skeletons).toContain("SETTINGS_LIST_SKELETON_CLASS");
+        expect(skeletons).toContain(
+            "cn(SETTINGS_CARD_SKELETON_CLASS, className)",
+        );
+        expect(skeletons).toContain(
+            "cn(SETTINGS_SECTION_SKELETON_CLASS, className)",
+        );
+        expect(skeletons).toContain(
+            "className={SETTINGS_LIST_SKELETON_CLASS}",
+        );
         expect(skeletons).toContain('data-sot-part="settings-skeleton-row"');
         expect(skeletons).toContain('data-sot-panel="settings-empty-hint"');
         expect(skeletons).toContain('data-sot-part="settings-empty-title"');
@@ -3174,12 +3196,17 @@ describe("settings SOT interaction regressions", () => {
         expect(globals).not.toContain(
             '[data-sot-part="settings-skeleton-sync-dot"]',
         );
+        for (const selector of REMOVED_SETTINGS_SKELETON_GLOBAL_SELECTORS) {
+            expect(globals).not.toContain(selector);
+            expect(collectExactCssRuleBlocks(globals, selector)).toEqual([]);
+        }
         expect(skeletons).toContain(
             'import { Field, FieldContent } from "@/components/ui/field";',
         );
         expect(skeletons).toContain(
             'import { Skeleton } from "@/components/ui/skeleton";',
         );
+        expect(skeletons).toContain('import { cn } from "@/lib/utils";');
         expect(skeletons).toContain("<Field");
         expect(skeletons).toContain('orientation="horizontal"');
         expect(skeletons).toContain("<FieldContent>");

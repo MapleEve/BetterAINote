@@ -1261,26 +1261,6 @@ button:not([data-slot]) {
 /* ===========================================================
    Settings dialog functional hooks
    =========================================================== */
-[data-sot-panel="settings-card-skeleton"],
-[data-sot-panel="settings-section-skeleton"],
-[data-sot-panel="settings-list-skeleton"] {
-    overflow-y: auto;
-    /* Lock wheel/touch scrolling to this body — the workspace blurred
-     behind the modal must NOT receive leftover scroll deltas when the
-     user reaches the top/bottom of a long section. */
-    overscroll-behavior: contain;
-    /* min-height:0 keeps the body in the grid track without pushing the
-     rail/header height. */
-    min-height: 0;
-    /* Section content is read from top — every section-switch should
-     reset to top, never inherit the previous section's offset.
-     The JS handler resets scrollTop on activation. */
-}
-[data-sot-panel="settings-card-skeleton"],
-[data-sot-panel="settings-section-skeleton"],
-[data-sot-panel="settings-list-skeleton"] {
-    padding: 22px 26px;
-}
 [data-sot-title] {
     font: 600 18px var(--font-display);
     letter-spacing: -0.012em;
