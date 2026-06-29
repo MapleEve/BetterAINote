@@ -1651,10 +1651,11 @@ const DASHBOARD_RECORDING_LIST_LEGACY_PRODUCT_CSS_SELECTOR_RE =
 
 const EXPECTED_DASHBOARD_RECORDING_LIST_HEADER_CLASS_NAME =
     "border-b border-border px-3 pt-3 pb-2.5";
+const EXPECTED_DASHBOARD_SIDEBAR_FOOTER_CLASS_NAME =
+    "border-t border-border pt-2.5";
 
 const DASHBOARD_RECORDING_LIST_DATA_SOT_CSS_SELECTORS = [
     '[data-sot-surface="dashboard-recording-list"]',
-    '[data-sot-part="dashboard-sidebar-footer"]',
 ] as const;
 
 const DASHBOARD_RECORDING_LIST_RESIDUAL_MIGRATED_GLOBAL_SELECTORS = [
@@ -1690,6 +1691,7 @@ const DASHBOARD_RECORDING_LIST_RESIDUAL_MIGRATED_GLOBAL_SELECTORS = [
 ] as const;
 
 const DASHBOARD_RECORDING_LIST_RESIDUAL_OWNER_CLASS_REFS = [
+    "DASHBOARD_SIDEBAR_FOOTER_CLASS_NAME",
     "DASHBOARD_RECORDING_LIST_HEADER_CLASS_NAME",
     "dashboardRecordingListTitlebarStyles.root",
     "dashboardRecordingListTitlebarStyles.title",
@@ -1714,6 +1716,10 @@ const DASHBOARD_RECORDING_LIST_RESIDUAL_OWNER_CLASS_REFS = [
 const DASHBOARD_RECORDING_LIST_HEADER_RETAINED_GLOBAL_SELECTORS = [
     '[data-sot-panel="dashboard-workspace"]',
     '[data-sot-panel="workstation-workspace"]',
+] as const;
+
+const DASHBOARD_SIDEBAR_FOOTER_MIGRATED_GLOBAL_SELECTORS = [
+    '[data-sot-part="dashboard-sidebar-footer"]',
 ] as const;
 
 const DASHBOARD_RECORDING_LIST_HEADER_FORBIDDEN_CLASS_PATTERN =
@@ -5327,7 +5333,7 @@ describe("full UI replacement regression coverage", () => {
         expect(workstation).toContain("data-list-state-block");
     });
 
-    it("keeps dashboard sidebar footer globals while list residuals stay owner-local", () => {
+    it("keeps dashboard sidebar footer and list residuals owner-local", () => {
         const globals = readSource("app/globals.css");
         const workstation = readSource("features/dashboard/workstation.tsx");
         const featureOwnerClassSource = collectFeatureOwnerClassSource(workstation);
@@ -5346,6 +5352,10 @@ describe("full UI replacement regression coverage", () => {
         }
         for (const selector of DASHBOARD_RECORDING_LIST_HEADER_RETAINED_GLOBAL_SELECTORS) {
             expect(globals).toContain(selector);
+        }
+        for (const selector of DASHBOARD_SIDEBAR_FOOTER_MIGRATED_GLOBAL_SELECTORS) {
+            expect(globals).not.toContain(selector);
+            expect(collectCssRuleBlocks(globals, selector)).toEqual([]);
         }
         for (const selector of DASHBOARD_RECORDING_LIST_RESIDUAL_MIGRATED_GLOBAL_SELECTORS) {
             expect(collectCssRuleBlocks(globals, selector)).toEqual([]);
@@ -5368,6 +5378,23 @@ describe("full UI replacement regression coverage", () => {
             "DASHBOARD_RECORDING_LIST_HEADER_CLASS_NAME",
         );
         expect(recordingListHeaderClass).not.toMatch(
+            DASHBOARD_RECORDING_LIST_HEADER_FORBIDDEN_CLASS_PATTERN,
+        );
+        const dashboardSidebarFooter = extractOpeningElement(
+            workstation,
+            'data-sot-part="dashboard-sidebar-footer"',
+            "div",
+        );
+        const dashboardSidebarFooterClass = expectExactStringConstInitializer(
+            workstation,
+            "DASHBOARD_SIDEBAR_FOOTER_CLASS_NAME",
+            EXPECTED_DASHBOARD_SIDEBAR_FOOTER_CLASS_NAME,
+        );
+        expectClassNameConstReference(
+            dashboardSidebarFooter,
+            "DASHBOARD_SIDEBAR_FOOTER_CLASS_NAME",
+        );
+        expect(dashboardSidebarFooterClass).not.toMatch(
             DASHBOARD_RECORDING_LIST_HEADER_FORBIDDEN_CLASS_PATTERN,
         );
         for (const ownerClassToken of [
@@ -7594,7 +7621,9 @@ describe("full UI replacement regression coverage", () => {
         expect(dashboardRecordingListGroup).toContain(
             "dashboardRecordingRowStyles.group",
         );
-        expect(workstation).not.toContain("border-t border-border");
+        expect(dashboardRecordingRowStyleHelper).not.toContain(
+            "border-t border-border",
+        );
         expect(dashboardRecordingListGroup).not.toContain("border-t");
         expect(dashboardRecordingListGroup).not.toContain("border-border");
         expect(workstation).toContain("groupIndex > 0 ? (");

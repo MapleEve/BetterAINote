@@ -560,6 +560,8 @@ const TIMELINE_FILTERS: {
 
 const dashboardTabPaneHiddenClassName = "[&[hidden]]:hidden";
 
+const DASHBOARD_SIDEBAR_FOOTER_CLASS_NAME = "border-t border-border pt-2.5";
+
 const dashboardRecordingTimeFilterStyles = {
     root: "mt-2.5 flex-wrap [&[hidden]]:hidden",
     item: "data-[state=on]:border-primary/30 data-[state=on]:bg-primary/10 data-[state=on]:text-primary data-[sot-state=selected]:border-primary/30 data-[sot-state=selected]:bg-primary/10 data-[sot-state=selected]:text-primary",
@@ -4669,7 +4671,10 @@ export function Workstation({
                     </div>
                 </nav>
 
-                <div data-sot-part="dashboard-sidebar-footer">
+                <div
+                    className={DASHBOARD_SIDEBAR_FOOTER_CLASS_NAME}
+                    data-sot-part="dashboard-sidebar-footer"
+                >
                     <div
                         className={dashboardSyncClassNames.panel}
                         data-sot-panel="dashboard-sync"

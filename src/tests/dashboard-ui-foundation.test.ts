@@ -54,6 +54,8 @@ const EXPECTED_DASHBOARD_TRANSCRIPT_SHELL_CARD_CLASS_NAME =
     "flex min-h-0 flex-1 flex-col gap-0 rounded-[16px] border border-[var(--line-hairline)] bg-[var(--bg-elevated)] shadow-[var(--shadow-sm)] backdrop-blur-none dark:border-[var(--glass-border-soft)] dark:bg-[rgb(255_255_255_/_0.025)] dark:shadow-none";
 const EXPECTED_DASHBOARD_RECORDING_LIST_HEADER_CLASS_NAME =
     "border-b border-border px-3 pt-3 pb-2.5";
+const EXPECTED_DASHBOARD_SIDEBAR_FOOTER_CLASS_NAME =
+    "border-t border-border pt-2.5";
 const EXPECTED_SOURCE_REPORT_STATUS_BADGE_CLASS_NAME =
     "h-[22px] min-w-[65px] justify-normal gap-[9px] overflow-visible rounded-full border px-[8px] py-0 text-[11px] font-semibold leading-[normal] shadow-none data-[sot-tone=err]:border-[var(--source-report-status-err-border)] data-[sot-tone=err]:bg-[var(--source-report-status-err-bg)] data-[sot-tone=err]:text-[var(--signal-danger)] data-[sot-tone=neu]:border-[var(--line-hairline)] data-[sot-tone=neu]:bg-[var(--bg-recessed)] data-[sot-tone=neu]:text-[var(--fg-secondary)] data-[sot-tone=ok]:border-[var(--source-report-status-ok-border)] data-[sot-tone=ok]:bg-[var(--source-report-status-ok-bg)] data-[sot-tone=ok]:text-[var(--source-report-status-ok-fg)] data-[sot-tone=warn]:border-[var(--source-report-status-warn-border)] data-[sot-tone=warn]:bg-[var(--source-report-status-warn-bg)] data-[sot-tone=warn]:text-[var(--source-report-status-warn-fg)] [&_[data-sot-part=dashboard-source-report-status-dot]]:mr-0 [&_[data-sot-part=dashboard-source-report-status-dot]]:inline-block [&_[data-sot-part=dashboard-source-report-status-dot]]:size-[5px] [&_[data-sot-part=dashboard-source-report-status-dot]]:rounded-full [&_[data-sot-part=dashboard-source-report-status-dot]]:bg-current [&_[data-sot-part=source-report-status-dot]]:mr-0 [&_[data-sot-part=source-report-status-dot]]:inline-block [&_[data-sot-part=source-report-status-dot]]:size-[5px] [&_[data-sot-part=source-report-status-dot]]:rounded-full [&_[data-sot-part=source-report-status-dot]]:bg-current";
 const EXPECTED_DASHBOARD_RECORDING_PLAYER_CARD_CLASS_NAME =
@@ -1574,6 +1576,7 @@ const DASHBOARD_RECORDING_LIST_RESIDUAL_MIGRATED_GLOBAL_SELECTORS = [
 ] as const;
 
 const DASHBOARD_RECORDING_LIST_RESIDUAL_OWNER_CLASS_REFS = [
+    "DASHBOARD_SIDEBAR_FOOTER_CLASS_NAME",
     "DASHBOARD_RECORDING_LIST_HEADER_CLASS_NAME",
     "dashboardRecordingListTitlebarStyles.root",
     "dashboardRecordingListTitlebarStyles.title",
@@ -1598,6 +1601,9 @@ const DASHBOARD_RECORDING_LIST_RESIDUAL_OWNER_CLASS_REFS = [
 const DASHBOARD_RECORDING_LIST_HEADER_RETAINED_GLOBAL_SELECTORS = [
     '[data-sot-panel="dashboard-workspace"]',
     '[data-sot-panel="workstation-workspace"]',
+] as const;
+
+const DASHBOARD_SIDEBAR_FOOTER_MIGRATED_GLOBAL_SELECTORS = [
     '[data-sot-part="dashboard-sidebar-footer"]',
 ] as const;
 
@@ -3428,6 +3434,27 @@ describe("dashboard SOT foundation", () => {
         for (const selector of DASHBOARD_RECORDING_LIST_HEADER_RETAINED_GLOBAL_SELECTORS) {
             expect(globals).toContain(selector);
         }
+        for (const selector of DASHBOARD_SIDEBAR_FOOTER_MIGRATED_GLOBAL_SELECTORS) {
+            expect(globals).not.toContain(selector);
+            expect(collectCssRuleBlocks(globals, selector)).toEqual([]);
+        }
+        const dashboardSidebarFooter = extractOpeningElement(
+            workstation,
+            'data-sot-part="dashboard-sidebar-footer"',
+            "div",
+        );
+        const dashboardSidebarFooterClass = expectExactStringConstInitializer(
+            workstation,
+            "DASHBOARD_SIDEBAR_FOOTER_CLASS_NAME",
+            EXPECTED_DASHBOARD_SIDEBAR_FOOTER_CLASS_NAME,
+        );
+        expectClassNameConstReference(
+            dashboardSidebarFooter,
+            "DASHBOARD_SIDEBAR_FOOTER_CLASS_NAME",
+        );
+        expect(dashboardSidebarFooterClass).not.toMatch(
+            DASHBOARD_RECORDING_LIST_HEADER_FORBIDDEN_CLASS_PATTERN,
+        );
         expect(globals).not.toMatch(
             DASHBOARD_RECORDING_LIST_PRIMITIVE_REPAINT_CSS_RE,
         );
@@ -4188,7 +4215,9 @@ describe("dashboard SOT foundation", () => {
         expect(dashboardRecordingListGroup).toContain(
             "dashboardRecordingRowStyles.group",
         );
-        expect(workstation).not.toContain("border-t border-border");
+        expect(dashboardRecordingRowStyleHelper).not.toContain(
+            "border-t border-border",
+        );
         expect(dashboardRecordingListGroup).not.toContain("border-t");
         expect(dashboardRecordingListGroup).not.toContain("border-border");
         expect(workstation).toContain("groupIndex > 0 ? (");

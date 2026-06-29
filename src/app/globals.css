@@ -762,10 +762,6 @@ button:not([data-slot]) {
     border-radius: 0;
     position: relative;
 }
-[data-sot-part="dashboard-sidebar-footer"] {
-    padding-top: 10px;
-    border-top: 1px solid var(--line-hairline);
-}
 /* ======== Main column ======== */
 [data-sot-panel="dashboard-main"] {
     display: flex;
