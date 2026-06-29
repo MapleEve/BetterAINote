@@ -170,6 +170,18 @@ const REMOVED_DASHBOARD_NAV_FAVORITE_GLOBAL_SELECTORS = [
     '[data-sot-control="dashboard-favorite"][data-sot-state="selected"]\n    [data-sot-part="dashboard-favorite-count"]',
     '[data-theme="dark"]\n    [data-sot-control="dashboard-favorite"][data-sot-state="selected"]\n    [data-sot-part="dashboard-favorite-count"]',
 ] as const;
+const REMOVED_DASHBOARD_SYNC_GLOBAL_SELECTORS = [
+    '[data-sot-panel="dashboard-sync"]',
+    '[data-sot-panel="dashboard-sync"] [data-sot-part="dashboard-sync-indicator"]',
+    '[data-sot-part="dashboard-sync-text"]',
+    '[data-sot-part="dashboard-sync-title"]',
+    '[data-sot-part="dashboard-sync-subtitle"]',
+    '[data-sot-panel="dashboard-sync"][data-sot-state="queued"]',
+    '[data-sot-panel="dashboard-sync"][data-sot-state="running"]',
+    '[data-sot-panel="dashboard-sync"][data-sot-state="error"]',
+] as const;
+const DASHBOARD_SYNC_VISUAL_GLOBAL_DECLARATION_RE =
+    /\b(?:display|align-items|gap|padding|border-radius|background|border|width|height|box-shadow|animation|font|color|margin-top|flex|min-width)\s*:/;
 
 function readSource(relativePath: string) {
     return readFileSync(path.join(ROOT, relativePath), "utf8");
@@ -5133,19 +5145,41 @@ describe("dashboard SOT foundation", () => {
     });
 
     it("keeps PR20 manual sync refresh and SOT sync states on real controls", () => {
+        const globals = readSource("app/globals.css");
         const workstation = readSource("features/dashboard/workstation.tsx");
 
+        for (const selector of REMOVED_DASHBOARD_SYNC_GLOBAL_SELECTORS) {
+            expect(
+                collectCssRuleBlocks(globals, selector).filter((block) =>
+                    DASHBOARD_SYNC_VISUAL_GLOBAL_DECLARATION_RE.test(
+                        block.declarations,
+                    ),
+                ),
+            ).toEqual([]);
+        }
         expect(workstation).toContain("useBrowserRouteController");
         expect(workstation).toContain("async function runManualSync()");
+        expect(workstation).toContain("if (syncButtonBusy) return;");
         expect(workstation).toContain("await manualSync()");
         expect(workstation).toContain(
             "await Promise.all([refreshStatus(), loadDataSources()])",
         );
         expect(workstation).toContain("refreshBrowserRoute(router)");
+        expect(workstation).toContain("const dashboardSyncClassNames = {");
         expect(workstation).toContain('data-sot-panel="dashboard-sync"');
         expect(workstation).toContain(
             'data-sot-part="dashboard-sync-indicator"',
         );
+        expect(workstation).toContain("dashboardSyncClassNames.panel");
+        expect(workstation).toContain("dashboardSyncClassNames.indicator");
+        expect(workstation).toContain("dashboardSyncClassNames.text");
+        expect(workstation).toContain("dashboardSyncClassNames.title");
+        expect(workstation).toContain("dashboardSyncClassNames.subtitle");
+        expect(workstation).toContain("var(--signal-success)");
+        expect(workstation).toContain("var(--signal-danger)");
+        expect(workstation).toContain("var(--signal-info)");
+        expect(workstation).toContain("var(--fg-tertiary)");
+        expect(workstation).toContain("bpulse_1.4s_ease-in-out_infinite");
         expect(workstation).toContain('data-sot-control="dashboard-sync"');
         expect(workstation).toContain('variant="ghost"');
         expect(workstation).toContain('size="icon-sm"');
@@ -5153,6 +5187,10 @@ describe("dashboard SOT foundation", () => {
         expect(workstation).toContain("data-sync-state={syncButtonState}");
         expect(workstation).toContain("aria-busy={syncButtonBusy}");
         expect(workstation).toContain("disabled={syncButtonBusy}");
+        expect(workstation).toContain("onClick={() => void runManualSync()}");
+        expect(workstation).not.toContain(
+            "dashboardSidebarCollapseClassNames.syncPanel",
+        );
         expect(workstation).not.toContain('className="sync-dot"');
         expect(workstation).toContain(
             'data-sot-control="dashboard-activity-sync"',

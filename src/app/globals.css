@@ -789,37 +789,6 @@ button:not([data-slot]) {
     padding-top: 10px;
     border-top: 1px solid var(--line-hairline);
 }
-[data-sot-panel="dashboard-sync"] {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    padding: 8px 10px;
-    border-radius: 12px;
-    background: var(--glass-tint-subtle);
-    border: 1px solid var(--glass-border);
-}
-[data-sot-panel="dashboard-sync"] [data-sot-part="dashboard-sync-indicator"] {
-    width: 8px;
-    height: 8px;
-    border-radius: 50%;
-    background: var(--signal-success);
-    box-shadow: 0 0 0 3px
-        color-mix(in srgb, var(--signal-success) 22%, transparent);
-}
-[data-sot-part="dashboard-sync-text"] {
-    flex: 1;
-    min-width: 0;
-}
-[data-sot-part="dashboard-sync-title"] {
-    font: 600 12px var(--font-sans);
-    color: var(--fg-primary);
-}
-[data-sot-part="dashboard-sync-subtitle"] {
-    font: 500 11px var(--font-mono);
-    color: var(--fg-tertiary);
-    margin-top: 1px;
-}
-
 /* ======== Main column ======== */
 [data-sot-panel="dashboard-main"],
 [data-sot-panel="workstation-main"] {
@@ -1030,23 +999,6 @@ button:not([data-slot]) {
 }
 
 /* The retry pill replaces the count on hover only — already wired by functional rules. Hidden by default. */
-
-/* Footer sync pill — extra states (syncing/error/done) */
-[data-sot-panel="dashboard-sync"][data-sot-state="queued"]
-    [data-sot-part="dashboard-sync-indicator"],
-[data-sot-panel="dashboard-sync"][data-sot-state="running"]
-    [data-sot-part="dashboard-sync-indicator"] {
-    background: var(--signal-info);
-    box-shadow: 0 0 0 3px
-        color-mix(in srgb, var(--signal-info) 22%, transparent);
-    animation: bpulse 1.4s ease-in-out infinite;
-}
-[data-sot-panel="dashboard-sync"][data-sot-state="error"]
-    [data-sot-part="dashboard-sync-indicator"] {
-    background: var(--signal-danger);
-    box-shadow: 0 0 0 3px
-        color-mix(in srgb, var(--signal-danger) 22%, transparent);
-}
 
 /* ---------- Settings panel: field groups, banners, save state, voscript ---------- */
 [data-detail-empty][hidden] {

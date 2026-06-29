@@ -356,8 +356,15 @@ const dashboardSidebarCollapseClassNames = {
     brand: "group-data-[sidebar-collapsed=true]/dashboard-workstation:justify-center group-data-[sidebar-collapsed=true]/dashboard-workstation:px-0 group-data-[sidebar-collapsed=true]/dashboard-workstation:pt-1 group-data-[sidebar-collapsed=true]/dashboard-workstation:pb-4",
     favorite:
         "group-data-[sidebar-collapsed=true]/dashboard-workstation:justify-center group-data-[sidebar-collapsed=true]/dashboard-workstation:gap-0 group-data-[sidebar-collapsed=true]/dashboard-workstation:px-0 group-data-[sidebar-collapsed=true]/dashboard-workstation:py-2",
-    syncPanel:
-        "group-data-[sidebar-collapsed=true]/dashboard-workstation:justify-center group-data-[sidebar-collapsed=true]/dashboard-workstation:p-2",
+} as const;
+
+const dashboardSyncClassNames = {
+    panel: "group/dashboard-sync flex items-center gap-[10px] rounded-xl border border-[var(--glass-border)] bg-[var(--glass-tint-subtle)] px-[10px] py-2 group-data-[sidebar-collapsed=true]/dashboard-workstation:justify-center group-data-[sidebar-collapsed=true]/dashboard-workstation:p-2",
+    indicator:
+        "size-2 rounded-full bg-[var(--signal-success)] shadow-[0_0_0_3px_color-mix(in_srgb,var(--signal-success)_22%,transparent)] group-data-[sot-state=error]/dashboard-sync:bg-[var(--signal-danger)] group-data-[sot-state=error]/dashboard-sync:shadow-[0_0_0_3px_color-mix(in_srgb,var(--signal-danger)_22%,transparent)] group-data-[sot-state=queued]/dashboard-sync:animate-[bpulse_1.4s_ease-in-out_infinite] group-data-[sot-state=queued]/dashboard-sync:bg-[var(--signal-info)] group-data-[sot-state=queued]/dashboard-sync:shadow-[0_0_0_3px_color-mix(in_srgb,var(--signal-info)_22%,transparent)] group-data-[sot-state=running]/dashboard-sync:animate-[bpulse_1.4s_ease-in-out_infinite] group-data-[sot-state=running]/dashboard-sync:bg-[var(--signal-info)] group-data-[sot-state=running]/dashboard-sync:shadow-[0_0_0_3px_color-mix(in_srgb,var(--signal-info)_22%,transparent)]",
+    text: "min-w-0 flex-1",
+    title: "font-sans text-xs font-semibold text-[var(--fg-primary)]",
+    subtitle: "mt-px font-mono text-[11px] font-medium text-[var(--fg-tertiary)]",
 } as const;
 
 const dashboardBrandClassNames = {
@@ -4661,23 +4668,33 @@ export function Workstation({
 
                 <div data-sot-part="dashboard-sidebar-footer">
                     <div
-                        className={dashboardSidebarCollapseClassNames.syncPanel}
+                        className={dashboardSyncClassNames.panel}
                         data-sot-panel="dashboard-sync"
                         data-sot-state={syncButtonState}
                         data-sync-state={syncButtonState}
                     >
-                        <span data-sot-part="dashboard-sync-indicator" />
+                        <span
+                            className={dashboardSyncClassNames.indicator}
+                            data-sot-part="dashboard-sync-indicator"
+                        />
                         <div
-                            className={
-                                dashboardSidebarCollapseClassNames.hidden
-                            }
+                            className={cn(
+                                dashboardSyncClassNames.text,
+                                dashboardSidebarCollapseClassNames.hidden,
+                            )}
                             data-sot-part="dashboard-sync-text"
                         >
-                            <div data-sot-part="dashboard-sync-title">
+                            <div
+                                className={dashboardSyncClassNames.title}
+                                data-sot-part="dashboard-sync-title"
+                            >
                                 {syncStateLabel(syncButtonState, t)} ·
                                 BetterAINote
                             </div>
-                            <div data-sot-part="dashboard-sync-subtitle">
+                            <div
+                                className={dashboardSyncClassNames.subtitle}
+                                data-sot-part="dashboard-sync-subtitle"
+                            >
                                 {syncSummary}
                             </div>
                         </div>

@@ -138,6 +138,18 @@ const REMOVED_DASHBOARD_NAV_FAVORITE_GLOBAL_SELECTORS = [
     '[data-sot-control="dashboard-favorite"][data-sot-state="selected"]\n    [data-sot-part="dashboard-favorite-count"]',
     '[data-theme="dark"]\n    [data-sot-control="dashboard-favorite"][data-sot-state="selected"]\n    [data-sot-part="dashboard-favorite-count"]',
 ] as const;
+const REMOVED_DASHBOARD_SYNC_GLOBAL_SELECTORS = [
+    '[data-sot-panel="dashboard-sync"]',
+    '[data-sot-panel="dashboard-sync"] [data-sot-part="dashboard-sync-indicator"]',
+    '[data-sot-part="dashboard-sync-text"]',
+    '[data-sot-part="dashboard-sync-title"]',
+    '[data-sot-part="dashboard-sync-subtitle"]',
+    '[data-sot-panel="dashboard-sync"][data-sot-state="queued"]',
+    '[data-sot-panel="dashboard-sync"][data-sot-state="running"]',
+    '[data-sot-panel="dashboard-sync"][data-sot-state="error"]',
+] as const;
+const DASHBOARD_SYNC_VISUAL_GLOBAL_DECLARATION_RE =
+    /\b(?:display|align-items|gap|padding|border-radius|background|border|width|height|box-shadow|animation|font|color|margin-top|flex|min-width)\s*:/;
 const DASHBOARD_BRAND_OWNER_CLASS_INITIALIZERS = [
     {
         property: "wrapper",
@@ -5349,7 +5361,7 @@ describe("full UI replacement regression coverage", () => {
         expect(workstation).toContain("dashboardSidebarCollapseClassNames.hidden");
         expect(workstation).toContain("dashboardSidebarCollapseClassNames.brand");
         expect(workstation).toContain("dashboardSidebarCollapseClassNames.favorite");
-        expect(workstation).toContain("dashboardSidebarCollapseClassNames.syncPanel");
+        expect(workstation).toContain("dashboardSyncClassNames.panel");
         expect(productCss).not.toContain(
             'Desktop sidebar-collapsed — bridge body[data-sidebar="collapsed"]',
         );
@@ -6743,6 +6755,34 @@ describe("full UI replacement regression coverage", () => {
             workstation,
             'data-sot-control="dashboard-sync"',
             "Button",
+        );
+        for (const selector of REMOVED_DASHBOARD_SYNC_GLOBAL_SELECTORS) {
+            expect(
+                collectCssRuleBlocks(globals, selector).filter((block) =>
+                    DASHBOARD_SYNC_VISUAL_GLOBAL_DECLARATION_RE.test(
+                        block.declarations,
+                    ),
+                ),
+            ).toEqual([]);
+        }
+        expect(workstation).toContain("const dashboardSyncClassNames = {");
+        expect(workstation).toContain("if (syncButtonBusy) return;");
+        expect(workstation).toContain("data-sync-state={syncButtonState}");
+        expect(workstation).toContain("aria-busy={syncButtonBusy}");
+        expect(workstation).toContain("disabled={syncButtonBusy}");
+        expect(workstation).toContain("onClick={() => void runManualSync()}");
+        expect(workstation).toContain("dashboardSyncClassNames.panel");
+        expect(workstation).toContain("dashboardSyncClassNames.indicator");
+        expect(workstation).toContain("dashboardSyncClassNames.text");
+        expect(workstation).toContain("dashboardSyncClassNames.title");
+        expect(workstation).toContain("dashboardSyncClassNames.subtitle");
+        expect(workstation).toContain("var(--signal-success)");
+        expect(workstation).toContain("var(--signal-danger)");
+        expect(workstation).toContain("var(--signal-info)");
+        expect(workstation).toContain("var(--fg-tertiary)");
+        expect(workstation).toContain("bpulse_1.4s_ease-in-out_infinite");
+        expect(workstation).not.toContain(
+            "dashboardSidebarCollapseClassNames.syncPanel",
         );
         expect(dashboardSyncButton).toContain('variant="ghost"');
         expect(dashboardSyncButton).toContain('size="icon-sm"');
