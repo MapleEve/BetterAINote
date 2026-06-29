@@ -9349,6 +9349,8 @@ describe("full UI replacement regression coverage", () => {
         expect(settingsNavButton).not.toContain('size="settingsNav"');
         expect(button).not.toContain("settingsNav:");
         expect(button).not.toContain("settingsClose:");
+        expect(avatarPrimitive).not.toMatch(/-space-[xy]-/);
+        expect(avatarPrimitive).toContain("[&>*+*]:-ml-2");
         for (const selector of REMOVED_SETTINGS_NAV_GLOBAL_REPAINT_SELECTORS) {
             expect(collectExactCssRuleBlocks(globals, selector)).toEqual([]);
         }
