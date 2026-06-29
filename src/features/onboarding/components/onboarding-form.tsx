@@ -98,6 +98,12 @@ const onboardingCardClassNames = {
         "grid h-auto w-full grid-cols-[36px_1fr_auto_auto] items-center justify-start gap-3 rounded-md px-3.5 py-3 text-left whitespace-normal data-[sot-state=selected]:border-transparent data-[sot-state=selected]:bg-secondary data-[sot-state=selected]:text-secondary-foreground data-[sot-state=selected]:hover:bg-secondary/80 dark:data-[sot-state=selected]:bg-secondary has-[>svg]:px-3.5",
     providerList: "mb-[18px] flex flex-col gap-[8px]",
     summaryList: "mb-[18px] flex flex-col gap-[8px]",
+    matrixRow:
+        "grid min-h-[30px] grid-cols-[80px_1fr] items-baseline gap-[8px] border-b border-dashed border-[var(--line-hairline)] py-[6px] dark:border-[var(--glass-border-soft)]",
+    matrixLabel:
+        "m-0 [font:600_11px_var(--font-sans)] [color:var(--fg-tertiary)]",
+    matrixValue:
+        "m-0 [font:500_12px_var(--font-sans)] [color:var(--fg-primary)] [word-break:break-word]",
     sourceAuthModeGroup: "grid w-full grid-cols-2 items-stretch",
     sourceAuthModeOption:
         "h-auto flex-col items-start justify-start whitespace-normal px-3.5 py-3 text-left",
@@ -1073,9 +1079,23 @@ function MatrixRow({
     value: string;
 }) {
     return (
-        <div data-sot-control="matrix-row" data-sot-state={state}>
-            <span data-sot-part="matrix-label">{label}</span>
-            <strong data-sot-part="matrix-value">{value}</strong>
+        <div
+            className={onboardingCardClassNames.matrixRow}
+            data-sot-control="matrix-row"
+            data-sot-state={state}
+        >
+            <span
+                className={onboardingCardClassNames.matrixLabel}
+                data-sot-part="matrix-label"
+            >
+                {label}
+            </span>
+            <strong
+                className={onboardingCardClassNames.matrixValue}
+                data-sot-part="matrix-value"
+            >
+                {value}
+            </strong>
         </div>
     );
 }

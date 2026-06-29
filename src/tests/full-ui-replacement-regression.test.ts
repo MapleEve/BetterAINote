@@ -111,6 +111,12 @@ const ONBOARDING_DEFAULT_SOURCE_ROOT_REPAINT_SELECTORS = [
     '[data-sot-control="onboarding-default-source"][data-sot-state="disabled"]',
 ] as const;
 
+const REMOVED_ONBOARDING_MATRIX_GLOBAL_SELECTORS = [
+    '[data-sot-control="matrix-row"]',
+    '[data-sot-part="matrix-label"]',
+    '[data-sot-part="matrix-value"]',
+] as const;
+
 const REMOVED_AUTH_ONBOARDING_CARD_GLOBAL_SELECTORS = [
     "[data-sot-frame]",
     '[data-sot-frame="auth"]',
@@ -5903,6 +5909,9 @@ describe("full UI replacement regression coverage", () => {
         expect(onboarding).toContain("providerCard:");
         expect(onboarding).toContain("providerList:");
         expect(onboarding).toContain("summaryList:");
+        expect(onboarding).toContain("matrixRow:");
+        expect(onboarding).toContain("matrixLabel:");
+        expect(onboarding).toContain("matrixValue:");
         expect(onboarding).toContain("providerIcon:");
         expect(onboarding).toContain("providerName:");
         expect(onboarding).toContain("providerHint:");
@@ -6174,6 +6183,9 @@ describe("full UI replacement regression coverage", () => {
         expect(onboarding).toContain('role="button"');
         expect(onboarding).toContain("onKeyDown={(event) =>");
         for (const selector of REMOVED_AUTH_ONBOARDING_CARD_GLOBAL_SELECTORS) {
+            expect(globals).not.toContain(selector);
+        }
+        for (const selector of REMOVED_ONBOARDING_MATRIX_GLOBAL_SELECTORS) {
             expect(globals).not.toContain(selector);
         }
         expect(globals).not.toContain(

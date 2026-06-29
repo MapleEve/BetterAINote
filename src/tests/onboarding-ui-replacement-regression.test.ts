@@ -40,6 +40,21 @@ const EXPECTED_ONBOARDING_CARD_CLASS_INITIALIZERS = [
         expected: "mb-[18px] flex flex-col gap-[8px]",
     },
     {
+        property: "matrixRow",
+        expected:
+            "grid min-h-[30px] grid-cols-[80px_1fr] items-baseline gap-[8px] border-b border-dashed border-[var(--line-hairline)] py-[6px] dark:border-[var(--glass-border-soft)]",
+    },
+    {
+        property: "matrixLabel",
+        expected:
+            "m-0 [font:600_11px_var(--font-sans)] [color:var(--fg-tertiary)]",
+    },
+    {
+        property: "matrixValue",
+        expected:
+            "m-0 [font:500_12px_var(--font-sans)] [color:var(--fg-primary)] [word-break:break-word]",
+    },
+    {
         property: "sourceAuthModeGroup",
         expected: "grid w-full grid-cols-2 items-stretch",
     },
@@ -256,6 +271,12 @@ const ONBOARDING_DEFAULT_SOURCE_ROOT_REPAINT_SELECTORS = [
     '[data-sot-control="onboarding-default-source"]',
     '[data-sot-control="onboarding-default-source"][data-sot-state="selected"]',
     '[data-sot-control="onboarding-default-source"][data-sot-state="disabled"]',
+] as const;
+
+const REMOVED_ONBOARDING_MATRIX_GLOBAL_SELECTORS = [
+    '[data-sot-control="matrix-row"]',
+    '[data-sot-part="matrix-label"]',
+    '[data-sot-part="matrix-value"]',
 ] as const;
 
 const REMOVED_AUTH_ONBOARDING_CARD_GLOBAL_SELECTORS = [
@@ -598,6 +619,9 @@ describe("onboarding UI replacement regression", () => {
         for (const selector of REMOVED_AUTH_ONBOARDING_CARD_GLOBAL_SELECTORS) {
             expect(globals).not.toContain(selector);
         }
+        for (const selector of REMOVED_ONBOARDING_MATRIX_GLOBAL_SELECTORS) {
+            expect(globals).not.toContain(selector);
+        }
         for (const selector of ONBOARDING_DEFAULT_SOURCE_ROOT_REPAINT_SELECTORS) {
             expect(collectExactCssRuleBlocks(globals, selector)).toEqual([]);
         }
@@ -692,8 +716,17 @@ describe("onboarding UI replacement regression", () => {
 
         expect(readOnlyMatrixRow).toContain("data-sot-state={state}");
         expect(readOnlyMatrixRow).toContain('data-sot-control="matrix-row"');
+        expect(readOnlyMatrixRow).toContain(
+            "className={onboardingCardClassNames.matrixRow}",
+        );
         expect(readOnlyMatrixRow).toContain('data-sot-part="matrix-label"');
+        expect(readOnlyMatrixRow).toContain(
+            "className={onboardingCardClassNames.matrixLabel}",
+        );
         expect(readOnlyMatrixRow).toContain('data-sot-part="matrix-value"');
+        expect(readOnlyMatrixRow).toContain(
+            "className={onboardingCardClassNames.matrixValue}",
+        );
         expect(readOnlyMatrixRow).toContain("{label}");
         expect(readOnlyMatrixRow).toContain("{value}");
         expect(readOnlyMatrixRow).not.toContain('className="sr-meta-row"');

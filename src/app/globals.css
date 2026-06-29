@@ -1342,9 +1342,6 @@ button:not([data-slot]) {
 [data-sot-part="dashboard-speaker-bar-fill"] {
     display: block;
 }
-[data-sot-control="matrix-row"] {
-    display: grid;
-}
 [data-sot-panel="recording-tag-manager"] {
     pointer-events: none;
 }
@@ -1511,31 +1508,6 @@ button:not([data-slot]) {
 }
 [data-sot-part="dashboard-recording-list-mode-segmented"] {
     margin-left: auto;
-}
-
-/* ---------- Source matrix rows ---------- */
-[data-sot-control="matrix-row"] {
-    display: grid;
-    grid-template-columns: 80px 1fr;
-    align-items: baseline;
-    gap: 8px;
-    min-height: 30px;
-    padding: 6px 0;
-    border-bottom: 1px dashed var(--line-hairline);
-}
-[data-theme="dark"] [data-sot-control="matrix-row"] {
-    border-bottom-color: var(--glass-border-soft);
-}
-[data-sot-control="matrix-row"] [data-sot-part="matrix-label"] {
-    margin: 0;
-    font: 600 11px var(--font-sans);
-    color: var(--fg-tertiary);
-}
-[data-sot-control="matrix-row"] [data-sot-part="matrix-value"] {
-    margin: 0;
-    font: 500 12px var(--font-sans);
-    color: var(--fg-primary);
-    word-break: break-word;
 }
 
 /* ---------- Speakers pane: row + bar + edit + merge popover ---------- */
