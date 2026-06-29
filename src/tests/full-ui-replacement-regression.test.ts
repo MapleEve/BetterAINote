@@ -5337,7 +5337,33 @@ describe("full UI replacement regression coverage", () => {
         expect(sidebarBridgeBlocks).toEqual([]);
         expect(bodyDrawerBridgeBlocks).toEqual([]);
         expect(bodySourceFilterBridgeBlocks).toEqual([]);
-        expect(productCss).toContain('[data-sot-panel="workstation-sidebar"]');
+        expect(productCss).toContain(
+            '[data-sot-panel="dashboard-sidebar"] {\n    position: relative;',
+        );
+        expect(productCss).toContain(
+            '[data-sot-panel="dashboard-sidebar"] {\n    background: var(--glass-tint-strong);',
+        );
+        expect(productCss).toContain(
+            '[data-theme="dark"] [data-sot-panel="dashboard-sidebar"],\n.dark [data-sot-panel="dashboard-sidebar"]',
+        );
+        expect(productCss).not.toContain(
+            '[data-sot-panel="dashboard-sidebar"],\n[data-sot-panel="workstation-sidebar"]',
+        );
+        expect(productCss).not.toContain(
+            '[data-sot-panel="workstation-sidebar"] {\n    background:',
+        );
+        expect(productCss).not.toContain(
+            '[data-theme="dark"] [data-sot-panel="workstation-sidebar"]',
+        );
+        expect(productCss).not.toContain(
+            '.dark [data-sot-panel="workstation-sidebar"]',
+        );
+        expect(
+            productCss.match(/\[data-sot-panel="workstation-sidebar"\]/g),
+        ).toHaveLength(1);
+        expect(productCss).toContain(
+            '[data-sot-panel="workstation-sidebar"] {\n        display: none;\n    }',
+        );
         expect(productCss).not.toContain(
             '[data-sot-panel="dashboard-sidebar"],\n    [data-sot-panel="workstation-sidebar"] {\n        display: none;',
         );
@@ -10225,6 +10251,40 @@ describe("full UI replacement regression coverage", () => {
         expect(sourceActionsIndex).toBeGreaterThan(actionClusterDividerIndex);
         expect(detail).toContain('data-sot-shell="recording-workstation"');
         expect(detail).toContain('data-sot-panel="workstation-sidebar"');
+        const workstationSidebarAside = extractElementSlice(
+            detail,
+            'data-sot-panel="workstation-sidebar"',
+            "aside",
+        );
+        const recordingWorkstationSidebarClassName = extractBoundedSlice(
+            detail,
+            "const RECORDING_WORKSTATION_SIDEBAR_CLASS_NAME =",
+            ";",
+        );
+        for (const classToken of [
+            "relative",
+            "flex",
+            "flex-col",
+            "rounded-none",
+            "border",
+            "border-border",
+            "bg-card",
+            "px-3",
+            "pt-4",
+            "pb-3",
+            "shadow-sm",
+            "supports-[backdrop-filter]:bg-card/90",
+            "supports-[backdrop-filter]:backdrop-blur-[22px]",
+            "supports-[backdrop-filter]:backdrop-saturate-[140%]",
+        ]) {
+            expect(recordingWorkstationSidebarClassName).toContain(classToken);
+        }
+        expect(recordingWorkstationSidebarClassName).not.toMatch(
+            /\b(?:rgb|rgba|hsl|hsla|oklch|color-mix)\(|#[0-9A-Fa-f]{3,8}\b|\bdark:|(?:^|\s)(?:bg|border|text|shadow|ring|fill|stroke|from|via|to)-(?:white|black|transparent|slate|gray|zinc|neutral|stone|red|orange|amber|yellow|lime|green|emerald|teal|cyan|sky|blue|indigo|violet|purple|fuchsia|pink|rose)(?:[/-]\d+)?\b/,
+        );
+        expect(workstationSidebarAside).toContain(
+            "className={RECORDING_WORKSTATION_SIDEBAR_CLASS_NAME}",
+        );
         expect(detail).toContain('data-sot-panel="workstation-main"');
         expect(detail).toContain('data-sot-panel="workstation-topbar"');
         expect(detail).toContain('data-sot-panel="workstation-workspace"');

@@ -662,8 +662,7 @@ kbd {
 /* ===========================================================
    GLASS PRIMITIVES
    =========================================================== */
-[data-sot-panel="dashboard-sidebar"],
-[data-sot-panel="workstation-sidebar"] {
+[data-sot-panel="dashboard-sidebar"] {
     position: relative;
     background:
         linear-gradient(
@@ -679,8 +678,7 @@ kbd {
         saturate(var(--glass-saturate));
     box-shadow: var(--glass-shadow-cast), var(--shadow-inset);
 }
-[data-sot-panel="dashboard-sidebar"],
-[data-sot-panel="workstation-sidebar"] {
+[data-sot-panel="dashboard-sidebar"] {
     background: var(--glass-tint-strong);
 }
 /* SOT web kit: exact visual source */
@@ -738,28 +736,10 @@ button:not([data-slot]) {
 /* ======== Glass surfaces ========
    Light mode: nearly-solid white veil so chrome reads on a tinted canvas.
    Dark mode: translucent + saturated so backdrop-blur actually shows. */
-[data-sot-panel="workstation-sidebar"] {
-    background:
-        linear-gradient(180deg, var(--glass-highlight-top), transparent 55%),
-        color-mix(in srgb, white 78%, transparent);
-    border: 1px solid color-mix(in srgb, var(--graphite-300) 60%, transparent);
-    backdrop-filter: blur(22px) saturate(140%);
-    -webkit-backdrop-filter: blur(22px) saturate(140%);
-    box-shadow:
-        var(--shadow-sm),
-        inset 0 1px 0 rgb(255 255 255 / 0.65);
-}
-[data-sot-panel="workstation-sidebar"] {
-    background:
-        linear-gradient(180deg, var(--glass-highlight-top), transparent 55%),
-        color-mix(in srgb, white 86%, transparent);
-}
 /* Liquid glass — actually translucent. No gradient. Single hairline.
    The canvas behind shows through; backdrop-filter does the work. */
 [data-theme="dark"] [data-sot-panel="dashboard-sidebar"],
-[data-theme="dark"] [data-sot-panel="workstation-sidebar"],
-.dark [data-sot-panel="dashboard-sidebar"],
-.dark [data-sot-panel="workstation-sidebar"] {
+.dark [data-sot-panel="dashboard-sidebar"] {
     background: var(--glass-tint-base);
     border-color: var(--glass-border-soft);
     backdrop-filter: blur(28px) saturate(160%);
@@ -767,17 +747,14 @@ button:not([data-slot]) {
     box-shadow: 0 0 0 0.5px rgb(255 255 255 / 0.04);
 }
 [data-theme="dark"] [data-sot-panel="dashboard-sidebar"],
-[data-theme="dark"] [data-sot-panel="workstation-sidebar"],
-.dark [data-sot-panel="dashboard-sidebar"],
-.dark [data-sot-panel="workstation-sidebar"] {
+.dark [data-sot-panel="dashboard-sidebar"] {
     background: var(--glass-tint-strong);
     backdrop-filter: blur(36px) saturate(180%);
     -webkit-backdrop-filter: blur(36px) saturate(180%);
 }
 
 /* ======== Sidebar ======== */
-[data-sot-panel="dashboard-sidebar"],
-[data-sot-panel="workstation-sidebar"] {
+[data-sot-panel="dashboard-sidebar"] {
     display: flex;
     flex-direction: column;
     padding: 16px 12px 12px;
