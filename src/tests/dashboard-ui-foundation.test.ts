@@ -1672,8 +1672,84 @@ const ROUTE_CHROME_MODULE_CLASSES = [
     ".crumbCurrent",
     ".workspace",
 ] as const;
+const REMOVED_DASHBOARD_BRAND_GLOBAL_SELECTORS = [
+    '[data-sot-part="dashboard-brand"]',
+    '[data-sot-part="dashboard-brand"] img',
+    '[data-sot-part="dashboard-brand-name"]',
+    '[data-sot-part="dashboard-brand-subtitle"]',
+] as const;
+const WORKSTATION_BRAND_GLOBAL_SELECTORS = [
+    '[data-sot-part="workstation-brand"]',
+    '[data-sot-part="workstation-brand"] img',
+    '[data-sot-part="workstation-brand-name"]',
+    '[data-sot-part="workstation-brand-subtitle"]',
+] as const;
+const DASHBOARD_BRAND_OWNER_CLASS_INITIALIZERS = [
+    {
+        property: "wrapper",
+        expected: "flex items-center gap-[10px] px-2 pt-1 pb-4",
+    },
+    {
+        property: "image",
+        expected: "size-9 rounded-[9px]",
+    },
+    {
+        property: "name",
+        expected:
+            "[font:600_15px_var(--font-sans)] tracking-[-0.012em] text-[var(--fg-primary)]",
+    },
+    {
+        property: "subtitle",
+        expected:
+            "mt-px [font:500_11px_var(--font-sans)] text-[var(--fg-tertiary)]",
+    },
+] as const;
 
 describe("dashboard SOT foundation", () => {
+    it("keeps dashboard brand visuals owner-local while workstation brand globals remain", () => {
+        const globals = readSource("app/globals.css");
+        const workstation = readSource("features/dashboard/workstation.tsx");
+        const dashboardBrandClassNames = extractBoundedSlice(
+            workstation,
+            "const dashboardBrandClassNames = {",
+            "} as const;",
+        );
+
+        for (const selector of REMOVED_DASHBOARD_BRAND_GLOBAL_SELECTORS) {
+            expect(globals).not.toContain(selector);
+            expect(collectCssRuleBlocks(globals, selector)).toEqual([]);
+        }
+        for (const selector of WORKSTATION_BRAND_GLOBAL_SELECTORS) {
+            expect(globals).toContain(selector);
+            expect(collectCssRuleBlocks(globals, selector).length).toBeGreaterThan(
+                0,
+            );
+        }
+        for (const {
+            expected,
+            property,
+        } of DASHBOARD_BRAND_OWNER_CLASS_INITIALIZERS) {
+            expect(extractObjectStringProperty(dashboardBrandClassNames, property)).toBe(
+                `${property}: "${expected}"`,
+            );
+            if (property !== "wrapper") {
+                expect(workstation).toContain(
+                    `className={dashboardBrandClassNames.${property}}`,
+                );
+            }
+        }
+        expect(workstation).toContain(
+            "className={cn(\n                        dashboardBrandClassNames.wrapper,\n                        dashboardSidebarCollapseClassNames.brand,",
+        );
+        for (const dataSotPart of [
+            'data-sot-part="dashboard-brand"',
+            'data-sot-part="dashboard-brand-name"',
+            'data-sot-part="dashboard-brand-subtitle"',
+        ]) {
+            expect(workstation).toContain(dataSotPart);
+        }
+    });
+
     it("keeps dashboard route loading skeleton on the shadcn primitive contract", () => {
         const loading = readSource("app/(app)/dashboard/loading.tsx");
         const cardPrimitive = readSource("components/ui/card.tsx");

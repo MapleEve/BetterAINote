@@ -360,6 +360,13 @@ const dashboardSidebarCollapseClassNames = {
         "group-data-[sidebar-collapsed=true]/dashboard-workstation:justify-center group-data-[sidebar-collapsed=true]/dashboard-workstation:p-2",
 } as const;
 
+const dashboardBrandClassNames = {
+    wrapper: "flex items-center gap-[10px] px-2 pt-1 pb-4",
+    image: "size-9 rounded-[9px]",
+    name: "[font:600_15px_var(--font-sans)] tracking-[-0.012em] text-[var(--fg-primary)]",
+    subtitle: "mt-px [font:500_11px_var(--font-sans)] text-[var(--fg-tertiary)]",
+} as const;
+
 type DashboardTranscriptSkeletonSize =
     | "avatar"
     | "line-60"
@@ -4264,18 +4271,31 @@ export function Workstation({
                 ref={sourceDrawerRef}
             >
                 <div
-                    className={dashboardSidebarCollapseClassNames.brand}
+                    className={cn(
+                        dashboardBrandClassNames.wrapper,
+                        dashboardSidebarCollapseClassNames.brand,
+                    )}
                     data-sot-part="dashboard-brand"
                 >
-                    <img src="/assets/logo-mark-steel.svg" alt="" />
+                    <img
+                        className={dashboardBrandClassNames.image}
+                        src="/assets/logo-mark-steel.svg"
+                        alt=""
+                    />
                     <div
                         className={dashboardSidebarCollapseClassNames.hidden}
                         data-sot-part="dashboard-brand-text"
                     >
-                        <div data-sot-part="dashboard-brand-name">
+                        <div
+                            className={dashboardBrandClassNames.name}
+                            data-sot-part="dashboard-brand-name"
+                        >
                             BetterAINote
                         </div>
-                        <div data-sot-part="dashboard-brand-subtitle">
+                        <div
+                            className={dashboardBrandClassNames.subtitle}
+                            data-sot-part="dashboard-brand-subtitle"
+                        >
                             私人工作空间
                         </div>
                     </div>
