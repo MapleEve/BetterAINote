@@ -56,6 +56,7 @@ const EXPECTED_DASHBOARD_RECORDING_LIST_HEADER_CLASS_NAME =
     "border-b border-border px-3 pt-3 pb-2.5";
 const EXPECTED_DASHBOARD_SIDEBAR_FOOTER_CLASS_NAME =
     "border-t border-border pt-2.5";
+const EXPECTED_DASHBOARD_MAIN_CLASS_NAME = "flex h-screen min-w-0 flex-col";
 const EXPECTED_SOURCE_REPORT_STATUS_BADGE_CLASS_NAME =
     "h-[22px] min-w-[65px] justify-normal gap-[9px] overflow-visible rounded-full border px-[8px] py-0 text-[11px] font-semibold leading-[normal] shadow-none data-[sot-tone=err]:border-[var(--source-report-status-err-border)] data-[sot-tone=err]:bg-[var(--source-report-status-err-bg)] data-[sot-tone=err]:text-[var(--signal-danger)] data-[sot-tone=neu]:border-[var(--line-hairline)] data-[sot-tone=neu]:bg-[var(--bg-recessed)] data-[sot-tone=neu]:text-[var(--fg-secondary)] data-[sot-tone=ok]:border-[var(--source-report-status-ok-border)] data-[sot-tone=ok]:bg-[var(--source-report-status-ok-bg)] data-[sot-tone=ok]:text-[var(--source-report-status-ok-fg)] data-[sot-tone=warn]:border-[var(--source-report-status-warn-border)] data-[sot-tone=warn]:bg-[var(--source-report-status-warn-bg)] data-[sot-tone=warn]:text-[var(--source-report-status-warn-fg)] [&_[data-sot-part=dashboard-source-report-status-dot]]:mr-0 [&_[data-sot-part=dashboard-source-report-status-dot]]:inline-block [&_[data-sot-part=dashboard-source-report-status-dot]]:size-[5px] [&_[data-sot-part=dashboard-source-report-status-dot]]:rounded-full [&_[data-sot-part=dashboard-source-report-status-dot]]:bg-current [&_[data-sot-part=source-report-status-dot]]:mr-0 [&_[data-sot-part=source-report-status-dot]]:inline-block [&_[data-sot-part=source-report-status-dot]]:size-[5px] [&_[data-sot-part=source-report-status-dot]]:rounded-full [&_[data-sot-part=source-report-status-dot]]:bg-current";
 const EXPECTED_DASHBOARD_RECORDING_PLAYER_CARD_CLASS_NAME =
@@ -186,6 +187,8 @@ const REMOVED_DASHBOARD_SYNC_GLOBAL_SELECTORS = [
 ] as const;
 const DASHBOARD_SYNC_VISUAL_GLOBAL_DECLARATION_RE =
     /\b(?:display|align-items|gap|padding|border-radius|background|border|width|height|box-shadow|animation|font|color|margin-top|flex|min-width)\s*:/;
+const OWNER_MAIN_FORBIDDEN_RAW_COLOR_RE =
+    /\b(?:rgb|rgba|hsl|hsla|oklch|color-mix)\(|#[0-9A-Fa-f]{3,8}\b|\bdark:|(?:^|\s)(?:bg|border|text|shadow|ring|fill|stroke|from|via|to)-(?:white|black|transparent|slate|gray|zinc|neutral|stone|red|orange|amber|yellow|lime|green|emerald|teal|cyan|sky|blue|indigo|violet|purple|fuchsia|pink|rose)(?:[/-]\d+)?\b/;
 
 function readSource(relativePath: string) {
     return readFileSync(path.join(ROOT, relativePath), "utf8");
@@ -3014,6 +3017,46 @@ describe("dashboard SOT foundation", () => {
             "className={dashboardNavClassNames.root}",
         );
         expect(workstation).toContain('data-sot-panel="dashboard-main"');
+        const dashboardMain = extractOpeningElement(
+            workstation,
+            'data-sot-panel="dashboard-main"',
+            "main",
+        );
+        const dashboardMainClassName = expectExactStringConstInitializer(
+            workstation,
+            "DASHBOARD_MAIN_CLASS_NAME",
+            EXPECTED_DASHBOARD_MAIN_CLASS_NAME,
+        );
+        expect(dashboardMain).toContain("className={DASHBOARD_MAIN_CLASS_NAME}");
+        expect(dashboardMainClassName).not.toMatch(
+            OWNER_MAIN_FORBIDDEN_RAW_COLOR_RE,
+        );
+        const dashboardMainGlobalBlocks = collectCssRuleBlocks(
+            globals,
+            '[data-sot-panel="dashboard-main"]',
+        );
+        expect(dashboardMainGlobalBlocks).toHaveLength(1);
+        expect(dashboardMainGlobalBlocks[0]?.declarations).toContain(
+            "min-width: 0;",
+        );
+        expect(dashboardMainGlobalBlocks[0]?.declarations).toContain(
+            "max-width: 100%;",
+        );
+        expect(dashboardMainGlobalBlocks[0]?.declarations).toContain(
+            "box-sizing: border-box;",
+        );
+        expect(dashboardMainGlobalBlocks[0]?.declarations).not.toContain(
+            "height: 100vh;",
+        );
+        expect(globals).not.toContain(
+            '[data-sot-panel="dashboard-main"] {\n    display: flex;\n    flex-direction: column;\n    min-width: 0;\n    height: 100vh;\n}',
+        );
+        expect(globals).toContain(
+            '@media (max-width: 860px) {\n    [data-sot-shell="dashboard-workstation"],',
+        );
+        expect(globals).toContain(
+            '    [data-sot-panel="dashboard-main"],\n    [data-sot-panel="dashboard-topbar"],',
+        );
         expect(workstation).toContain('data-sot-panel="dashboard-topbar"');
         expect(workstation).toContain('data-sot-panel="dashboard-workspace"');
         expect(workstation).toContain('data-sot-panel="dashboard-detail"');

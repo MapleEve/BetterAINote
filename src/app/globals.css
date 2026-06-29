@@ -762,14 +762,6 @@ button:not([data-slot]) {
     border-radius: 0;
     position: relative;
 }
-/* ======== Main column ======== */
-[data-sot-panel="dashboard-main"] {
-    display: flex;
-    flex-direction: column;
-    min-width: 0;
-    height: 100vh;
-}
-
 /* ======== Overlay layer system ========================================
    Single source of truth for stacking. Dropdowns from the topbar always
    sit above the workspace list/detail/player; the settings scrim sits

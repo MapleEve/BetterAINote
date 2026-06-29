@@ -34,6 +34,12 @@ const RECORDING_WORKSTATION_MAIN_REQUIRED_CLASS_TOKENS = [
     "max-[860px]:max-w-full",
     "max-[860px]:box-border",
 ] as const;
+const DASHBOARD_MAIN_REQUIRED_CLASS_TOKENS = [
+    "flex",
+    "h-screen",
+    "min-w-0",
+    "flex-col",
+] as const;
 const RECORDING_WORKSTATION_TOPBAR_REQUIRED_CLASS_TOKENS = [
     "relative",
     "z-[var(--z-topbar)]",
@@ -57,6 +63,8 @@ const RECORDING_WORKSTATION_TOPBAR_REQUIRED_CLASS_TOKENS = [
     "max-[860px]:box-border",
 ] as const;
 const RECORDING_WORKSTATION_SIDEBAR_FORBIDDEN_CLASS_PATTERN =
+    /\b(?:rgb|rgba|hsl|hsla|oklch|color-mix)\(|#[0-9A-Fa-f]{3,8}\b|\bdark:|(?:^|\s)(?:bg|border|text|shadow|ring|fill|stroke|from|via|to)-(?:white|black|transparent|slate|gray|zinc|neutral|stone|red|orange|amber|yellow|lime|green|emerald|teal|cyan|sky|blue|indigo|violet|purple|fuchsia|pink|rose)(?:[/-]\d+)?\b/;
+const DASHBOARD_MAIN_FORBIDDEN_CLASS_PATTERN =
     /\b(?:rgb|rgba|hsl|hsla|oklch|color-mix)\(|#[0-9A-Fa-f]{3,8}\b|\bdark:|(?:^|\s)(?:bg|border|text|shadow|ring|fill|stroke|from|via|to)-(?:white|black|transparent|slate|gray|zinc|neutral|stone|red|orange|amber|yellow|lime|green|emerald|teal|cyan|sky|blue|indigo|violet|purple|fuchsia|pink|rose)(?:[/-]\d+)?\b/;
 const WORKSTATION_TOPBAR_CRUMB_REMOVED_GLOBAL_SELECTORS = [
     '[data-sot-panel="workstation-topbar"]',
@@ -1797,8 +1805,48 @@ describe("recording detail copy and title action UI regressions", () => {
         expect(
             collectCssRuleBlocks(globals, '[data-sot-panel="workstation-main"]'),
         ).toEqual([]);
-        expect(globals).toContain(
+        const dashboardWorkstation = readSource(
+            "features/dashboard/workstation.tsx",
+        );
+        const dashboardMain = extractElementSlice(
+            dashboardWorkstation,
+            'data-sot-panel="dashboard-main"',
+            "main",
+        );
+        const dashboardMainClassName = extractBoundedSlice(
+            dashboardWorkstation,
+            "const DASHBOARD_MAIN_CLASS_NAME =",
+            ";",
+        );
+        for (const classToken of DASHBOARD_MAIN_REQUIRED_CLASS_TOKENS) {
+            expect(dashboardMainClassName).toContain(classToken);
+        }
+        expect(dashboardMainClassName).not.toMatch(
+            DASHBOARD_MAIN_FORBIDDEN_CLASS_PATTERN,
+        );
+        expect(dashboardMain).toContain("className={DASHBOARD_MAIN_CLASS_NAME}");
+        const dashboardMainGlobalBlocks = collectCssRuleBlocks(
+            globals,
+            '[data-sot-panel="dashboard-main"]',
+        );
+        expect(dashboardMainGlobalBlocks).toHaveLength(1);
+        expect(dashboardMainGlobalBlocks[0]?.declarations).toContain(
+            "min-width: 0;",
+        );
+        expect(dashboardMainGlobalBlocks[0]?.declarations).toContain(
+            "max-width: 100%;",
+        );
+        expect(dashboardMainGlobalBlocks[0]?.declarations).toContain(
+            "box-sizing: border-box;",
+        );
+        expect(dashboardMainGlobalBlocks[0]?.declarations).not.toContain(
+            "height: 100vh;",
+        );
+        expect(globals).not.toContain(
             '[data-sot-panel="dashboard-main"] {\n    display: flex;\n    flex-direction: column;\n    min-width: 0;\n    height: 100vh;\n}',
+        );
+        expect(globals).toContain(
+            '@media (max-width: 860px) {\n    [data-sot-shell="dashboard-workstation"],',
         );
         expect(globals).toContain(
             '    [data-sot-panel="dashboard-main"],\n    [data-sot-panel="dashboard-topbar"],',

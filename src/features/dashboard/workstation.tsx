@@ -349,6 +349,8 @@ const SOURCE_DRAWER_FOCUSABLE_SELECTOR =
 const DASHBOARD_WORKSTATION_SHELL_CLASS_NAME =
     "grid h-screen min-h-[720px] grid-cols-[264px_1fr] transition-[grid-template-columns] duration-[320ms] ease-[var(--ease-out)] data-[sidebar-collapsed=true]:grid-cols-[56px_1fr] max-[860px]:h-auto max-[860px]:min-h-[100svh] max-[860px]:grid-cols-[minmax(0,1fr)] max-[860px]:overflow-x-clip";
 
+const DASHBOARD_MAIN_CLASS_NAME = "flex h-screen min-w-0 flex-col";
+
 const dashboardSidebarCollapseClassNames = {
     sidebar:
         "group-data-[sidebar-collapsed=true]/dashboard-workstation:px-[6px] group-data-[sidebar-collapsed=true]/dashboard-workstation:pt-4 group-data-[sidebar-collapsed=true]/dashboard-workstation:pb-3 max-[860px]:hidden max-[860px]:group-data-[drawer-state=open]/dashboard-workstation:fixed max-[860px]:group-data-[drawer-state=open]/dashboard-workstation:top-0 max-[860px]:group-data-[drawer-state=open]/dashboard-workstation:bottom-0 max-[860px]:group-data-[drawer-state=open]/dashboard-workstation:left-0 max-[860px]:group-data-[drawer-state=open]/dashboard-workstation:z-[var(--z-drawer)] max-[860px]:group-data-[drawer-state=open]/dashboard-workstation:flex max-[860px]:group-data-[drawer-state=open]/dashboard-workstation:max-w-[min(320px,calc(100vw-32px))]",
@@ -4734,7 +4736,10 @@ export function Workstation({
                 aria-hidden="true"
             />
 
-            <main data-sot-panel="dashboard-main">
+            <main
+                className={DASHBOARD_MAIN_CLASS_NAME}
+                data-sot-panel="dashboard-main"
+            >
                 <header data-sot-panel="dashboard-topbar">
                     <Button
                         variant="ghost"
