@@ -199,9 +199,6 @@
     --card-popover-shadow:
         0 1px 2px rgb(15 23 42 / 0.04), 0 12px 32px -8px rgb(15 23 42 / 0.18), 0
         24px 64px -12px rgb(15 23 42 / 0.22);
-    --badge-pill-height: 22px;
-    --badge-check-bg: rgb(80 161 191 / 0.7);
-    --badge-check-bg: color-mix(in srgb, var(--accent) 70%, transparent);
     --button-pill-height: 24px;
     --button-compact-height: 26px;
     --icon-compact-size: 22px;

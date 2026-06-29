@@ -2985,6 +2985,7 @@ describe("recording detail copy and title action UI regressions", () => {
     });
 
     it("keeps recording tag manager card and badge business classes owner-local", () => {
+        const globals = readSource("app/globals.css");
         const tagManager = readSource(
             "features/recordings/components/recording-tag-manager.tsx",
         );
@@ -3036,6 +3037,14 @@ describe("recording detail copy and title action UI regressions", () => {
         expect(tagManager).toContain(
             "recordingTagManagerBadgeClassNames[appearance]",
         );
+        expect(tagManager).toContain("h-[22px] justify-normal gap-[5px]");
+        expect(tagManager).toContain(
+            "bg-[color-mix(in_srgb,var(--accent)_70%,transparent)]",
+        );
+        expect(tagManager).not.toContain("--badge-pill-height");
+        expect(tagManager).not.toContain("--badge-check-bg");
+        expect(globals).not.toContain("--badge-pill-height");
+        expect(globals).not.toContain("--badge-check-bg");
         expect(tagManager).not.toContain(variantAttr("recordingTagChip"));
 
         expect(tagVisuals).toContain("const recordingTagChipClassName");

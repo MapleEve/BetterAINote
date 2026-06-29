@@ -2551,6 +2551,15 @@ function isOwnerLocalModernColorLine(relativePath: string, line: string) {
         );
     }
 
+    if (
+        relativePath ===
+        "features/recordings/components/recording-tag-manager.tsx"
+    ) {
+        return line.includes(
+            "bg-[color-mix(in_srgb,var(--accent)_70%,transparent)]",
+        );
+    }
+
     if (relativePath === "features/source-report/styles.ts") {
         return true;
     }
@@ -12325,6 +12334,21 @@ describe("full UI replacement regression coverage", () => {
         expect(tagManager).not.toContain('size="swatch"');
         expect(tagManager).toContain("RECORDING_TAG_SWATCH_ITEM_CLASS_NAME");
         expect(tagManager).toContain("recordingTagManagerSwatchToneClassNames");
+        const tagManagerBadgeClassNames = extractBoundedSlice(
+            tagManager,
+            "const recordingTagManagerBadgeClassNames = {",
+            "} as const;",
+        );
+        expect(tagManagerBadgeClassNames).toContain(
+            "h-[22px] justify-normal gap-[5px]",
+        );
+        expect(tagManagerBadgeClassNames).toContain(
+            "bg-[color-mix(in_srgb,var(--accent)_70%,transparent)]",
+        );
+        expect(tagManager).not.toContain("--badge-pill-height");
+        expect(tagManager).not.toContain("--badge-check-bg");
+        expect(globals).not.toContain("--badge-pill-height");
+        expect(globals).not.toContain("--badge-check-bg");
         expect(tagManager).toContain("!size-[18px]");
         expect(tagManager).toContain("!p-0");
         expect(tagManager).toContain("hover:!text-[var(--fg-primary)]");
