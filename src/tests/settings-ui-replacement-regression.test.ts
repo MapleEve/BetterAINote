@@ -693,6 +693,35 @@ describe("settings SOT interaction regressions", () => {
         expect(sharedSelect).toContain('data-slot="select-trigger"');
         expect(sharedSelect).toContain('data-slot="select-content"');
         expect(sharedSelect).toContain('data-slot="select-item"');
+        expect(sharedSelect).toContain(
+            'const EMPTY_OPTION_VALUE = "__select_empty_option_value__";',
+        );
+        expect(sharedSelect).toContain(
+            'return value === "" ? EMPTY_OPTION_VALUE : value;',
+        );
+        expect(sharedSelect).toContain(
+            'return value === EMPTY_OPTION_VALUE ? "" : value;',
+        );
+        expect(sharedSelect).toContain(
+            "const externalValue = fromRadixValue(nextValue);",
+        );
+        expect(sharedSelect).toContain("onValueChange?.(externalValue);");
+        const productDisplayName = ["Better", "AINote"].join("");
+        const productPackageName = ["better", "ainote"].join("");
+        const previousEmptyValueSentinel = [
+            "__",
+            productPackageName,
+            "_empty_select_value__",
+        ].join("");
+        expect(sharedSelect).not.toMatch(
+            new RegExp(
+                [
+                    productDisplayName,
+                    productPackageName,
+                    previousEmptyValueSentinel,
+                ].join("|"),
+            ),
+        );
         expect(sharedSelect).not.toContain("<select");
         expect(sharedSelect).not.toContain("<option");
     });

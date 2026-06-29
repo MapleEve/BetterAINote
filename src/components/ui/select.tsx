@@ -6,7 +6,7 @@ import * as React from "react";
 
 import { cn } from "@/lib/utils";
 
-const EMPTY_OPTION_VALUE = "__betterainote_empty_select_value__";
+const EMPTY_OPTION_VALUE = "__select_empty_option_value__";
 
 type SelectDataAttributes = {
     [key: `data-${string}`]: string | number | boolean | undefined;
