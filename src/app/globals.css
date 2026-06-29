@@ -922,7 +922,6 @@ button:not([data-slot]) {
    above the dropdowns. Tokens are exposed as CSS custom properties so
    any future popover can opt in without rediscovering the order. */
 :root {
-    --z-workspace: 1; /* sidebar, list, detail, player, transcript */
     --z-popover-inline: 60; /* in-row anchored popovers (AI rename, vol, tag-filter) */
     --z-topbar: 200; /* the topbar bar itself */
     --z-dropdown: 220; /* topbar dropdowns (search, notifications) */
