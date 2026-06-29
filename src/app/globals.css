@@ -1122,12 +1122,6 @@ button:not([data-slot]) {
 [data-sot-tab-pane][hidden] {
     display: none;
 }
-[data-sot-panel="recording-tag-manager"] {
-    pointer-events: none;
-}
-[data-sot-panel="recording-tag-manager"][data-open="true"] {
-    pointer-events: auto;
-}
 [data-sot-panel="dashboard-retranscription"] {
     display: flex;
 }

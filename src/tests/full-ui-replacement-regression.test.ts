@@ -12468,44 +12468,15 @@ describe("full UI replacement regression coverage", () => {
             tagManagerCardClassNames,
             "panel",
         );
-        const allowedTagManagerFunctionalProperties = new Set([
-            "left",
-            "max-width",
-            "pointer-events",
-            "position",
-            "right",
-            "top",
-            "width",
-            "z-index",
-        ]);
 
-        expect(
-            tagManagerGlobalPanelBlocks
-                .map(({ prelude }) => prelude.trim())
-                .sort(),
-        ).toEqual([
-            '[data-sot-panel="recording-tag-manager"]',
-            '[data-sot-panel="recording-tag-manager"][data-open="true"]',
-        ]);
-        for (const block of tagManagerGlobalPanelBlocks) {
-            const declarationProperties = block.declarations
-                .split("\n")
-                .map((line) => line.match(/^\s*([\w-]+)\s*:/)?.[1])
-                .filter((property): property is string => Boolean(property));
-
-            for (const property of declarationProperties) {
-                expect(
-                    allowedTagManagerFunctionalProperties.has(property),
-                    `${block.prelude.trim()} should only keep functional placement/open declarations`,
-                ).toBe(true);
-            }
-        }
+        expect(tagManagerGlobalPanelBlocks).toEqual([]);
         for (const ownerPanelSnippet of [
             "tagm-panel fixed top-[96px] right-[28px]",
             "z-[var(--z-context-menu)]",
             "max-h-[460px] w-[320px] max-w-[calc(100vw-2rem)]",
             "pointer-events-auto",
             "max-md:top-[76px] max-md:right-[12px] max-md:left-[12px]",
+            "max-md:w-auto max-md:max-w-none",
         ]) {
             expect(tagManagerPanelClass).toContain(ownerPanelSnippet);
         }
