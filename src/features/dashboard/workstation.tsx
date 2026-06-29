@@ -656,6 +656,9 @@ const dashboardRetranscriptionClassNames = {
         "inline-flex items-center gap-[4px] rounded-full bg-[var(--dashboard-retx-success-marker-bg)] px-[6px] py-px [font:500_10.5px_var(--font-mono)] text-[var(--signal-success)] [&[hidden]]:hidden",
 } as const;
 
+const dashboardRetranscriptionThemeClassName =
+    "[--dashboard-retx-info-bg:color-mix(in_srgb,var(--signal-info)_8%,transparent)] [--dashboard-retx-info-border:color-mix(in_srgb,var(--signal-info)_26%,transparent)] [--dashboard-retx-info-icon-border:color-mix(in_srgb,var(--signal-info)_30%,transparent)] [--dashboard-retx-danger-bg:color-mix(in_srgb,var(--signal-danger)_6%,transparent)] [--dashboard-retx-danger-border:color-mix(in_srgb,var(--signal-danger)_24%,transparent)] [--dashboard-retx-danger-icon-border:color-mix(in_srgb,var(--signal-danger)_30%,transparent)] [--dashboard-retx-success-bg:color-mix(in_srgb,var(--signal-success)_8%,transparent)] [--dashboard-retx-success-border:color-mix(in_srgb,var(--signal-success)_28%,transparent)] [--dashboard-retx-success-icon-border:color-mix(in_srgb,var(--signal-success)_30%,transparent)] [--dashboard-retx-success-marker-bg:color-mix(in_srgb,var(--signal-success)_12%,transparent)]";
+
 const sourceProviderThemeClassName =
     "[--source-provider-status-success-bg:color-mix(in_srgb,var(--signal-success)_14%,transparent)] [--source-provider-status-success-border:color-mix(in_srgb,var(--signal-success)_30%,transparent)] [--source-provider-status-info-bg:color-mix(in_srgb,var(--signal-info)_14%,transparent)] [--source-provider-status-info-border:color-mix(in_srgb,var(--signal-info)_30%,transparent)] [--source-provider-status-warning-bg:color-mix(in_srgb,var(--signal-warning)_18%,transparent)] [--source-provider-status-warning-border:color-mix(in_srgb,var(--signal-warning)_32%,transparent)] [--source-provider-status-danger-bg:color-mix(in_srgb,var(--signal-danger)_14%,transparent)] [--source-provider-status-danger-border:color-mix(in_srgb,var(--signal-danger)_30%,transparent)] [--source-provider-primary-border:color-mix(in_srgb,var(--accent)_60%,black_8%)]";
 
@@ -7466,7 +7469,10 @@ export function Workstation({
                                 </div>
                             </CardHeader>
                             <CardContent
-                                className="min-h-0 flex-1 overflow-y-auto px-5 pt-4 pb-5"
+                                className={cn(
+                                    "min-h-0 flex-1 overflow-y-auto px-5 pt-4 pb-5",
+                                    dashboardRetranscriptionThemeClassName,
+                                )}
                                 data-sot-part="dashboard-transcript-body"
                             >
                                 <div

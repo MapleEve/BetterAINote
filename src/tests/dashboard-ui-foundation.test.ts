@@ -1372,6 +1372,22 @@ const DASHBOARD_RETRANSCRIPTION_OWNER_CLASS_SNIPPETS = [
     "bg-[var(--dashboard-retx-success-marker-bg)]",
 ] as const;
 
+const DASHBOARD_RETRANSCRIPTION_THEME_CLASS_SNIPPETS = [
+    "--dashboard-retx-info-bg:color-mix(in_srgb,var(--signal-info)_8%,transparent)",
+    "--dashboard-retx-info-border:color-mix(in_srgb,var(--signal-info)_26%,transparent)",
+    "--dashboard-retx-info-icon-border:color-mix(in_srgb,var(--signal-info)_30%,transparent)",
+    "--dashboard-retx-danger-bg:color-mix(in_srgb,var(--signal-danger)_6%,transparent)",
+    "--dashboard-retx-danger-border:color-mix(in_srgb,var(--signal-danger)_24%,transparent)",
+    "--dashboard-retx-danger-icon-border:color-mix(in_srgb,var(--signal-danger)_30%,transparent)",
+    "--dashboard-retx-success-bg:color-mix(in_srgb,var(--signal-success)_8%,transparent)",
+    "--dashboard-retx-success-border:color-mix(in_srgb,var(--signal-success)_28%,transparent)",
+    "--dashboard-retx-success-icon-border:color-mix(in_srgb,var(--signal-success)_30%,transparent)",
+    "--dashboard-retx-success-marker-bg:color-mix(in_srgb,var(--signal-success)_12%,transparent)",
+] as const;
+
+const DASHBOARD_RETRANSCRIPTION_GLOBAL_TOKEN_DEFINITION_RE =
+    /--dashboard-retx-[\w-]+:/;
+
 const DASHBOARD_RETRANSCRIPTION_OWNER_CLASS_USAGES = [
     "dashboardRetranscriptionClassNames.disabledHint",
     "dashboardRetranscriptionClassNames.banner",
@@ -2935,9 +2951,20 @@ describe("dashboard SOT foundation", () => {
             "const dashboardRetranscriptionClassNames = {",
             "} as const;",
         );
+        const dashboardRetranscriptionThemeClassName = extractBoundedSlice(
+            workstation,
+            "const dashboardRetranscriptionThemeClassName =",
+            ";",
+        );
         for (const snippet of DASHBOARD_RETRANSCRIPTION_OWNER_CLASS_SNIPPETS) {
             expect(dashboardRetranscriptionClassNames).toContain(snippet);
         }
+        for (const snippet of DASHBOARD_RETRANSCRIPTION_THEME_CLASS_SNIPPETS) {
+            expect(dashboardRetranscriptionThemeClassName).toContain(snippet);
+        }
+        expect(globals).not.toMatch(
+            DASHBOARD_RETRANSCRIPTION_GLOBAL_TOKEN_DEFINITION_RE,
+        );
         expect(dashboardRetranscriptionClassNames).not.toMatch(
             DASHBOARD_RETRANSCRIPTION_OWNER_DIRECT_COLOR_RE,
         );
@@ -3981,8 +4008,17 @@ describe("dashboard SOT foundation", () => {
         expect(workstation).toContain(
             'className="flex flex-row flex-wrap items-center gap-x-3 gap-y-1.5 border-b px-3.5 py-3"',
         );
+        const dashboardTranscriptBody = extractOpeningElement(
+            workstation,
+            'data-sot-part="dashboard-transcript-body"',
+            "CardContent",
+        );
+        expectCnClassNameReferences(dashboardTranscriptBody, [
+            '"min-h-0 flex-1 overflow-y-auto px-5 pt-4 pb-5"',
+            "dashboardRetranscriptionThemeClassName",
+        ]);
         expect(workstation).toContain(
-            'className="min-h-0 flex-1 overflow-y-auto px-5 pt-4 pb-5"',
+            "const dashboardRetranscriptionThemeClassName =",
         );
         for (const hook of DASHBOARD_DETAIL_PANE_SOT_HOOKS) {
             expect(workstation).toContain(hook);

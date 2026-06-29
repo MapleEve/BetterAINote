@@ -2496,6 +2496,7 @@ function isOwnerLocalModernColorLine(relativePath: string, line: string) {
     if (relativePath === "features/dashboard/workstation.tsx") {
         return (
             line.includes("source-provider") ||
+            line.includes("--dashboard-retx-") ||
             line.includes("sbn-sweep") ||
             line.includes("var(--accent)_22%") ||
             line.includes("var(--accent)_36%") ||
@@ -3176,6 +3177,22 @@ const DASHBOARD_RETRANSCRIPTION_OWNER_CLASS_SNIPPETS = [
     "[font:500_11.5px_var(--font-sans)] text-[var(--fg-secondary)]",
     "bg-[var(--dashboard-retx-success-marker-bg)]",
 ] as const;
+
+const DASHBOARD_RETRANSCRIPTION_THEME_CLASS_SNIPPETS = [
+    "--dashboard-retx-info-bg:color-mix(in_srgb,var(--signal-info)_8%,transparent)",
+    "--dashboard-retx-info-border:color-mix(in_srgb,var(--signal-info)_26%,transparent)",
+    "--dashboard-retx-info-icon-border:color-mix(in_srgb,var(--signal-info)_30%,transparent)",
+    "--dashboard-retx-danger-bg:color-mix(in_srgb,var(--signal-danger)_6%,transparent)",
+    "--dashboard-retx-danger-border:color-mix(in_srgb,var(--signal-danger)_24%,transparent)",
+    "--dashboard-retx-danger-icon-border:color-mix(in_srgb,var(--signal-danger)_30%,transparent)",
+    "--dashboard-retx-success-bg:color-mix(in_srgb,var(--signal-success)_8%,transparent)",
+    "--dashboard-retx-success-border:color-mix(in_srgb,var(--signal-success)_28%,transparent)",
+    "--dashboard-retx-success-icon-border:color-mix(in_srgb,var(--signal-success)_30%,transparent)",
+    "--dashboard-retx-success-marker-bg:color-mix(in_srgb,var(--signal-success)_12%,transparent)",
+] as const;
+
+const DASHBOARD_RETRANSCRIPTION_GLOBAL_TOKEN_DEFINITION_RE =
+    /--dashboard-retx-[\w-]+:/;
 
 const DASHBOARD_RETRANSCRIPTION_OWNER_CLASS_USAGES = [
     "dashboardRetranscriptionClassNames.disabledHint",
@@ -9097,9 +9114,20 @@ describe("full UI replacement regression coverage", () => {
             "const dashboardRetranscriptionClassNames = {",
             "} as const;",
         );
+        const dashboardRetranscriptionThemeClassName = extractBoundedSlice(
+            workstation,
+            "const dashboardRetranscriptionThemeClassName =",
+            ";",
+        );
         for (const snippet of DASHBOARD_RETRANSCRIPTION_OWNER_CLASS_SNIPPETS) {
             expect(dashboardRetranscriptionClassNames).toContain(snippet);
         }
+        for (const snippet of DASHBOARD_RETRANSCRIPTION_THEME_CLASS_SNIPPETS) {
+            expect(dashboardRetranscriptionThemeClassName).toContain(snippet);
+        }
+        expect(globals).not.toMatch(
+            DASHBOARD_RETRANSCRIPTION_GLOBAL_TOKEN_DEFINITION_RE,
+        );
         expect(dashboardRetranscriptionClassNames).not.toMatch(
             DASHBOARD_RETRANSCRIPTION_OWNER_DIRECT_COLOR_RE,
         );
@@ -9146,8 +9174,17 @@ describe("full UI replacement regression coverage", () => {
             'className="flex flex-row flex-wrap items-center gap-x-3 gap-y-1.5 border-b px-3.5 py-3"',
         );
         expect(dashboardTranscriptShell).toContain("<CardContent");
+        const dashboardTranscriptBody = extractOpeningElement(
+            dashboardTranscriptShell,
+            'data-sot-part="dashboard-transcript-body"',
+            "CardContent",
+        );
+        expectCnClassNameReferences(dashboardTranscriptBody, [
+            '"min-h-0 flex-1 overflow-y-auto px-5 pt-4 pb-5"',
+            "dashboardRetranscriptionThemeClassName",
+        ]);
         expect(dashboardTranscriptShell).toContain(
-            'className="min-h-0 flex-1 overflow-y-auto px-5 pt-4 pb-5"',
+            "dashboardRetranscriptionThemeClassName",
         );
         expect(dashboardTranscriptShell).toContain(
             'data-sot-part="dashboard-transcript-header"',
