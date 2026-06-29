@@ -31,6 +31,10 @@ const ROW_119_EVIDENCE_DIR = path.resolve(
     process.cwd(),
     ROW_119_EVIDENCE_DIR_REL,
 );
+const ROW_119_WEB_KIT_README_REL =
+    "tmp/betterainote-design-evidence/handoff-20260531/betterainote-design-system/project/ui_kits/web/README.md";
+const ROW_119_WEB_KIT_INDEX_REL =
+    "tmp/betterainote-design-evidence/handoff-20260531/betterainote-design-system/project/ui_kits/web/index.html";
 const ELECTRON_ONBOARDING_REFERENCE_REL =
     "tmp/betterainote-design-evidence/run-20260605-sot-1to1/auth-onboarding-20260611/electron-onboarding-artboard.png";
 
@@ -699,6 +703,11 @@ async function captureAuthLoginPixelEvidence(
         sotCapture.dataUrl,
         productCapture.dataUrl,
     );
+    const isExactZero =
+        diff.dimensionsMatch &&
+        diff.differingPixels === 0 &&
+        diff.maxChannelDelta === 0 &&
+        diff.alphaDiffPixels === 0;
 
     return {
         id: "login-09-current-fixture-pixel",
@@ -710,6 +719,18 @@ async function captureAuthLoginPixelEvidence(
             targetSelector: '[data-sot-surface="auth-login"]',
         },
         pixelDiff: diff,
+        residual: {
+            status: isExactZero
+                ? "compact-section-09-exact-zero"
+                : "compact-section-09-bounded-residual",
+            analysis: {
+                alphaDiffPixels: diff.alphaDiffPixels,
+                bounds: diff.bounds,
+                interpretation:
+                    "This residual status describes only the compact §09 login fixture. It is not row 119 completion evidence and must not be merged with stale exact-zero claims.",
+                samples: diff.samples,
+            },
+        },
         sotScreenshot: await writeEvidencePng(
             "login-09-sot-card.png",
             sotCapture.screenshot,
@@ -719,8 +740,9 @@ async function captureAuthLoginPixelEvidence(
             productCapture.screenshot,
         ),
         notes: [
-            "This retests the compact §09 card fixture only.",
-            "It is not a broader login/onboarding row PASS.",
+            "Current Web SOT for login is only the compact §09 system-reference fixture.",
+            "`ui_kits/web/index.html` is not used for auth/onboarding because the web kit omits login and onboarding.",
+            "Exact-zero or residual status here is fixture-local evidence only; it is not a row 119 PASS or completion claim.",
         ],
     };
 }
@@ -753,6 +775,11 @@ async function captureOnboardingDefaultSourcePixelEvidence(
         sotCapture.dataUrl,
         productCapture.dataUrl,
     );
+    const isExactZero =
+        diff.dimensionsMatch &&
+        diff.differingPixels === 0 &&
+        diff.maxChannelDelta === 0 &&
+        diff.alphaDiffPixels === 0;
 
     return {
         id: "onboarding-default-source-09-current-fixture-pixel",
@@ -767,18 +794,14 @@ async function captureOnboardingDefaultSourcePixelEvidence(
         residual: {
             expectedKnownResidual:
                 "none; the SOT card is captured at the same fixture x-coordinate as the product card",
-            status:
-                diff.dimensionsMatch &&
-                diff.differingPixels === 0 &&
-                diff.maxChannelDelta === 0 &&
-                diff.alphaDiffPixels === 0
-                    ? "exact-zero"
-                    : "outside-exact-zero",
+            status: isExactZero
+                ? "compact-section-09-exact-zero"
+                : "compact-section-09-residual",
             analysis: {
                 alphaDiffPixels: diff.alphaDiffPixels,
                 bounds: diff.bounds,
                 interpretation:
-                    "The compact SOT card is rendered in the same fixture coordinate slot as the product card so rounded-corner anti-aliasing is compared without column-position drift.",
+                    "The compact §09 SOT card is rendered in the same fixture coordinate slot as the product card. This status is fixture-local evidence only and is not row 119 completion evidence.",
                 samples: diff.samples,
             },
         },
@@ -791,9 +814,9 @@ async function captureOnboardingDefaultSourcePixelEvidence(
             productCapture.screenshot,
         ),
         notes: [
-            "This is a compact §09 default-source fixture comparison.",
-            "Do not restate this evidence as exact-zero while the residual remains.",
-            "The remaining residual is recorded with coordinates and RGBA samples so it is not mistaken for an unresolved layout or state delta.",
+            "Current Web SOT for onboarding default source is only the compact §09 system-reference fixture.",
+            "`ui_kits/web/index.html` is not used for auth/onboarding because the web kit omits login and onboarding.",
+            "Exact-zero or residual status here is fixture-local evidence only; it is not a row 119 PASS or completion claim.",
         ],
     };
 }
@@ -906,11 +929,12 @@ function renderRow119EvidenceMarkdown({
         "",
         "Status: PARTIAL evidence addendum. This file documents responsive and visual-state evidence only; it does not claim row 119 completion.",
         "",
-        "## SOT Ambiguity",
+        "## Canonical Source Boundary",
         "",
-        "- Web kit omission: `ui_kits/web/index.html` is not treated as login/onboarding SOT because the web kit README explicitly omitted settings, login, and onboarding from supplied fragments.",
-        "- §09 system reference: `preview/19-system-reference.html` is the compact web/system auth/onboarding reference for the current pixel fixture checks.",
-        "- Electron artboard: the electron onboarding artboard remains reference-only unless a product decision promotes it to a Web pixel target.",
+        "- Current Web SOT: only `preview/19-system-reference.html` §09 is used for login/default-source auth/onboarding fixture checks.",
+        "- Non-source: `ui_kits/web/index.html` is the workstation web kit, not auth/onboarding; the web kit README says settings, login, and onboarding were intentionally omitted.",
+        "- Reference only: the electron onboarding artboard is not a Web product pixel target unless a future product/SOT decision promotes it.",
+        "- Completion boundary: exact-zero or residual labels in this evidence describe only the current compact §09 fixtures and do not complete row 119.",
         "",
         "## Frames",
         "",
@@ -1207,7 +1231,7 @@ test("row 119 auth/onboarding visual matrix evidence", async ({
                 "legacy .sidebar/.panel surfaces are absent",
             ],
             sotRelationship:
-                "Runtime responsive frame; §09 compact card is the pixel fixture target, not a full responsive artboard.",
+                "Runtime responsive frame; §09 compact card is the only current Web SOT pixel fixture target, not a full responsive artboard.",
         });
 
         frames.push(
@@ -1288,7 +1312,7 @@ test("row 119 auth/onboarding visual matrix evidence", async ({
                 "default-source row has a selected state",
             ],
             sotRelationship:
-                "Runtime responsive frame paired with the compact §09 default-source pixel fixture below.",
+                "Runtime responsive frame paired with the compact §09 default-source pixel fixture below; §09 is the only current Web SOT source for this auth/onboarding state.",
         });
 
         frames.push(
@@ -1363,7 +1387,7 @@ test("row 119 auth/onboarding visual matrix evidence", async ({
                 "legacy .sidebar/.panel surfaces are absent",
             ],
             blocker:
-                "No exact visual target exists for this product runtime state in §09 or the web kit.",
+                "No exact visual target exists for this product runtime state in §09; ui_kits/web/index.html is not an auth/onboarding source.",
         });
 
         await page.setViewportSize({ width: 1280, height: 900 });
@@ -1394,7 +1418,7 @@ test("row 119 auth/onboarding visual matrix evidence", async ({
                 "matrix row reflects the pending speaker profile",
             ],
             blocker:
-                "No exact visual target exists for this product runtime state in §09 or the web kit.",
+                "No exact visual target exists for this product runtime state in §09; ui_kits/web/index.html is not an auth/onboarding source.",
         });
 
         await goToOnboardingState(page, "finish");
@@ -1422,7 +1446,7 @@ test("row 119 auth/onboarding visual matrix evidence", async ({
                 "speaker summary includes the local test display name",
             ],
             blocker:
-                "No exact visual target exists for this product runtime state in §09 or the web kit.",
+                "No exact visual target exists for this product runtime state in §09; ui_kits/web/index.html is not an auth/onboarding source.",
         });
     } finally {
         await sotPage.close();
@@ -1461,24 +1485,40 @@ test("row 119 auth/onboarding visual matrix evidence", async ({
             "Evidence-only row 119 addendum for responsive frames, other onboarding visual states, and electron artboard relationship. No product source changes.",
         sotAmbiguity: {
             webKitOmission:
-                "ui_kits/web/README.md lines 34-37 says settings, login, and onboarding were intentionally omitted from supplied web codebase fragments; ui_kits/web/index.html is not login/onboarding SOT.",
+                "ui_kits/web/README.md lines 36-37 says settings, login, and onboarding were intentionally omitted from supplied web codebase fragments; ui_kits/web/index.html is not login/onboarding SOT.",
             systemReference:
                 "preview/19-system-reference.html §09 lines 499-537 is the compact auth/onboarding system reference used for current fixture pixel checks.",
             electronArtboard:
                 "ui_kits/electron aux/onboarding is reference-only for row 119 unless a product decision promotes it to a Web product pixel target.",
+        },
+        canonicalBoundary: {
+            currentWebSot:
+                "Only preview/19-system-reference.html §09 is canonical for current Web auth/onboarding fixture evidence.",
+            nonCanonicalWebKit:
+                "ui_kits/web/index.html does not contain auth/onboarding and must not be used to satisfy row 119 auth/onboarding.",
+            electronReferenceOnly:
+                "Electron onboarding is reference-only and not a Web product pixel target without a future product/SOT decision.",
+            completionBoundary:
+                "Exact-zero or residual labels are compact-fixture measurements only and must not be reused as row 119 completion claims.",
         },
         sourceReferences: [
             {
                 id: "system-reference-section-09",
                 path: SOT_SYSTEM_REFERENCE_REL,
                 lines: "499-537",
-                parityUse: "compact pixel fixture target",
+                parityUse: "only current Web auth/onboarding SOT pixel fixture target",
             },
             {
                 id: "web-kit-readme-omission",
-                path: "tmp/betterainote-design-evidence/handoff-20260531/betterainote-design-system/project/ui_kits/web/README.md",
-                lines: "34-37",
-                parityUse: "SOT ambiguity and non-claim boundary",
+                path: ROW_119_WEB_KIT_README_REL,
+                lines: "36-37",
+                parityUse: "documents that web kit omits settings, login, and onboarding",
+            },
+            {
+                id: "web-kit-index-non-source",
+                path: ROW_119_WEB_KIT_INDEX_REL,
+                lines: "n/a",
+                parityUse: "non-source for auth/onboarding; not used as row 119 canonical evidence",
             },
             {
                 id: "electron-onboarding-artboard",
@@ -1492,8 +1532,9 @@ test("row 119 auth/onboarding visual matrix evidence", async ({
                 path: "tmp/betterainote-design-evidence/run-20260605-sot-1to1/auth-onboarding-20260611/auth-onboarding-evidence.json",
                 parityType: "existing-evidence-reference",
                 notes: [
-                    "Prior addendum maps §09 and electron reference source chain.",
-                    "Current compact §09 onboarding default-source fixture asserts exact-zero pixels; login remains bounded residual by its dedicated helper.",
+                    "Prior addendum maps §09 and electron reference source chain only.",
+                    "Do not reuse stale exact-zero or residual wording from existing tmp evidence as row 119 completion.",
+                    "The current run records compact §09 pixelDiff and residual status on each pixel frame.",
                 ],
             },
         ],
@@ -1504,6 +1545,7 @@ test("row 119 auth/onboarding visual matrix evidence", async ({
             "Does not treat ui_kits/web/index.html as login/onboarding SOT.",
             "Does not treat the electron artboard as a Web product pixel target.",
             "Does not claim other onboarding states have exact pixel targets beyond the compact §09 fixtures.",
+            "Does not treat exact-zero or residual labels as row 119 completion.",
         ],
         remainingGaps: [
             "Electron onboarding product comparison still needs a product/SOT decision before it is safe.",
