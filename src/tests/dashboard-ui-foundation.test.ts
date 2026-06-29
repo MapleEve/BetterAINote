@@ -1386,9 +1386,15 @@ const DASHBOARD_RETRANSCRIPTION_OWNER_CLASS_SNIPPETS = [
     "actions:",
     "refreshMarker:",
     "group/retx flex items-center gap-[10px]",
+    "data-[retx-state=idle]:hidden",
     "data-[retx-state=queued]:bg-[var(--dashboard-retx-info-bg)]",
     "data-[retx-state=failed]:bg-[var(--dashboard-retx-danger-bg)]",
     "data-[retx-state=completed]:bg-[var(--dashboard-retx-success-bg)]",
+    "[&[hidden]]:hidden",
+    "inline-flex size-[28px] flex-none",
+    'body: "flex min-w-0 flex-1 flex-col gap-[2px]"',
+    'actions: "flex flex-none items-center gap-[6px]"',
+    "inline-flex items-center gap-[4px]",
     "group-data-[retx-state=running]/retx:text-[var(--signal-info)]",
     "group-data-[retx-state=running]/retx:border-[var(--dashboard-retx-info-icon-border)]",
     "group-data-[retx-state=failed]/retx:text-[var(--signal-danger)]",
@@ -1437,6 +1443,22 @@ const DASHBOARD_RETRANSCRIPTION_REPAINT_CSS_SELECTORS = [
     '[data-sot-part="dashboard-retranscription-actions"]',
     '[data-sot-part="dashboard-retranscription-disabled-hint"]',
     '[data-sot-part="dashboard-retranscription-refresh-marker"]',
+] as const;
+
+const DASHBOARD_RETRANSCRIPTION_REMOVED_GLOBAL_DISPLAY_SELECTORS = [
+    '[data-sot-panel="dashboard-retranscription"]',
+    '[data-sot-panel="dashboard-retranscription"][hidden]',
+    '[data-sot-panel="dashboard-retranscription"][data-retx-state="idle"]',
+    '[data-sot-part="dashboard-retranscription-icon"]',
+    '[data-sot-part="dashboard-retranscription-icon-warn"]',
+    '[data-sot-part="dashboard-retranscription-icon-ok"]',
+    '[data-sot-part="dashboard-retranscription-body"]',
+    '[data-sot-part="dashboard-retranscription-actions"]',
+    '[data-sot-part="dashboard-retranscription-refresh-marker"]',
+    '[data-sot-part="dashboard-retranscription-refresh-marker"][hidden]',
+    '[data-sot-part="dashboard-retranscription-disabled-hint"][hidden]',
+    "[data-retx-retry]",
+    "[data-retx-dismiss]",
 ] as const;
 
 const DASHBOARD_RETRANSCRIPTION_GLOBAL_REPAINT_DECLARATION_RE =
@@ -3035,6 +3057,67 @@ describe("dashboard SOT foundation", () => {
         for (const snippet of DASHBOARD_RETRANSCRIPTION_THEME_CLASS_SNIPPETS) {
             expect(dashboardRetranscriptionThemeClassName).toContain(snippet);
         }
+        const dashboardRetranscriptionDisabledHint = extractOpeningElement(
+            workstation,
+            'data-sot-part="dashboard-retranscription-disabled-hint"',
+            "span",
+        );
+        expectClassNameConstReference(
+            dashboardRetranscriptionDisabledHint,
+            "dashboardRetranscriptionClassNames.disabledHint",
+        );
+        expect(dashboardRetranscriptionDisabledHint).toMatch(
+            /hidden=\{\s*detailTab !== "transcript"\s*\|\|\s*dashboardRetxState !== "unavailable"\s*\}/,
+        );
+        const dashboardRetranscriptionBanner = extractOpeningElement(
+            workstation,
+            'data-sot-panel="dashboard-retranscription"',
+            "div",
+        );
+        expectClassNameConstReference(
+            dashboardRetranscriptionBanner,
+            "dashboardRetranscriptionClassNames.banner",
+        );
+        expect(dashboardRetranscriptionBanner).toContain(
+            "data-retx-state={dashboardRetxState}",
+        );
+        expect(dashboardRetranscriptionBanner).toMatch(
+            /hidden=\{\s*dashboardRetxState === "idle"\s*\|\|\s*dashboardRetxState === "unavailable"\s*\}/,
+        );
+        expectClassNameConstReference(
+            extractOpeningElement(
+                workstation,
+                'data-sot-part="dashboard-retranscription-icon"',
+                "span",
+            ),
+            "dashboardRetranscriptionClassNames.icon",
+        );
+        expectClassNameConstReference(
+            extractOpeningElement(
+                workstation,
+                'data-sot-part="dashboard-retranscription-body"',
+                "div",
+            ),
+            "dashboardRetranscriptionClassNames.body",
+        );
+        const dashboardRetranscriptionRefreshMarker = extractOpeningElement(
+            workstation,
+            'data-sot-part="dashboard-retranscription-refresh-marker"',
+            "p",
+        );
+        expectClassNameConstReference(
+            dashboardRetranscriptionRefreshMarker,
+            "dashboardRetranscriptionClassNames.refreshMarker",
+        );
+        expect(dashboardRetranscriptionRefreshMarker).toContain(
+            'hidden={dashboardRetxState !== "completed"}',
+        );
+        expect(workstation).toContain('dashboardRetxState === "failed" ? (');
+        expect(workstation).toContain(
+            'dashboardRetxState === "completed" &&',
+        );
+        expect(workstation).toContain('data-retx-retry=""');
+        expect(workstation).toContain('data-retx-dismiss=""');
         expect(globals).not.toMatch(
             DASHBOARD_RETRANSCRIPTION_GLOBAL_TOKEN_DEFINITION_RE,
         );
@@ -3055,13 +3138,10 @@ describe("dashboard SOT foundation", () => {
                     ),
             );
         expect(retxGlobalRepaintBlocks).toEqual([]);
-        for (const retainedStructuralSelector of [
-            '[data-sot-panel="dashboard-retranscription"][hidden]',
-            '[data-sot-panel="dashboard-retranscription"][data-retx-state="idle"]',
-            '[data-retx-retry]',
-            '[data-retx-dismiss]',
-        ]) {
-            expect(globals).toContain(retainedStructuralSelector);
+        for (const removedGlobalDisplaySelector of DASHBOARD_RETRANSCRIPTION_REMOVED_GLOBAL_DISPLAY_SELECTORS) {
+            expect(
+                collectCssRuleBlocks(globals, removedGlobalDisplaySelector),
+            ).toEqual([]);
         }
         for (const hook of DASHBOARD_RETRANSCRIPTION_SOT_HOOKS) {
             expect(workstation).toContain(hook);

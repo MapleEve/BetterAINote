@@ -1098,59 +1098,6 @@ button:not([data-slot]) {
 [data-sot-tab-pane][hidden] {
     display: none;
 }
-[data-sot-panel="dashboard-retranscription"] {
-    display: flex;
-}
-[data-sot-panel="dashboard-retranscription"][hidden],
-[data-sot-panel="dashboard-retranscription"][data-retx-state="idle"] {
-    display: none !important;
-}
-[data-sot-part="dashboard-retranscription-icon"] {
-    display: inline-flex;
-}
-[data-sot-part="dashboard-retranscription-icon-warn"],
-[data-sot-part="dashboard-retranscription-icon-ok"] {
-    display: none;
-}
-[data-sot-panel="dashboard-retranscription"][data-retx-state="failed"]
-    [data-sot-part="dashboard-retranscription-icon-warn"] {
-    display: inline-block;
-}
-[data-sot-panel="dashboard-retranscription"][data-retx-state="completed"]
-    [data-sot-part="dashboard-retranscription-icon-ok"] {
-    display: inline-block;
-}
-[data-sot-part="dashboard-retranscription-body"] {
-    display: flex;
-}
-[data-sot-part="dashboard-retranscription-actions"] {
-    display: flex;
-}
-[data-sot-part="dashboard-retranscription-refresh-marker"] {
-    display: inline-flex;
-}
-[data-sot-part="dashboard-retranscription-refresh-marker"][hidden] {
-    display: none !important;
-}
-[data-sot-part="dashboard-retranscription-disabled-hint"][hidden] {
-    display: none !important;
-}
-[data-sot-panel="dashboard-retranscription"]:not([data-retx-state="failed"])
-    [data-retx-retry] {
-    display: none !important;
-}
-[data-sot-panel="dashboard-retranscription"][data-retx-state="queued"]
-    [data-retx-retry],
-[data-sot-panel="dashboard-retranscription"][data-retx-state="running"]
-    [data-retx-retry],
-[data-sot-panel="dashboard-retranscription"][data-retx-state="queued"]
-    [data-retx-dismiss],
-[data-sot-panel="dashboard-retranscription"][data-retx-state="running"]
-    [data-retx-dismiss],
-[data-sot-panel="dashboard-retranscription"][data-retx-state="idle"]
-    [data-retx-dismiss] {
-    display: none !important;
-}
 [data-sot-panel="dashboard-detail-header"] {
     position: relative;
     display: flex;
