@@ -14,6 +14,46 @@ const RECORDING_WORKSTATION_MAIN_REQUIRED_CLASS_TOKENS = [
     "max-[860px]:max-w-full",
     "max-[860px]:box-border",
 ] as const;
+const RECORDING_WORKSTATION_TOPBAR_REQUIRED_CLASS_TOKENS = [
+    "relative",
+    "z-[var(--z-topbar)]",
+    "flex",
+    "h-14",
+    "flex-none",
+    "flex-row",
+    "items-center",
+    "gap-3.5",
+    "border-b",
+    "border-border",
+    "bg-background/80",
+    "px-5",
+    "py-3",
+    "shadow-none",
+    "backdrop-blur-[20px]",
+    "backdrop-saturate-[140%]",
+    "supports-[backdrop-filter]:bg-background/60",
+    "max-[860px]:min-w-0",
+    "max-[860px]:max-w-full",
+    "max-[860px]:box-border",
+] as const;
+const RECORDING_WORKSTATION_TOPBAR_FORBIDDEN_CLASS_PATTERN =
+    /\b(?:rgb|rgba|hsl|hsla|oklch|color-mix)\(|#[0-9A-Fa-f]{3,8}\b|\bdark:|(?:^|\s)(?:bg|border|text|shadow|ring|fill|stroke|from|via|to)-(?:white|black|transparent|slate|gray|zinc|neutral|stone|red|orange|amber|yellow|lime|green|emerald|teal|cyan|sky|blue|indigo|violet|purple|fuchsia|pink|rose)(?:[/-]\d+)?\b/;
+const WORKSTATION_TOPBAR_CRUMB_REMOVED_GLOBAL_SELECTORS = [
+    '[data-sot-panel="workstation-topbar"]',
+    '[data-theme="dark"] [data-sot-panel="workstation-topbar"]',
+    '[data-sot-part="workstation-crumbs"]',
+    '[data-sot-part="workstation-crumb"]',
+    '[data-sot-part="workstation-crumb-separator"]',
+    '[data-sot-part="workstation-crumb-current"]',
+] as const;
+const DASHBOARD_TOPBAR_CRUMB_RETAINED_GLOBAL_SELECTORS = [
+    '[data-sot-panel="dashboard-topbar"]',
+    '[data-theme="dark"] [data-sot-panel="dashboard-topbar"]',
+    '[data-sot-part="dashboard-crumbs"]',
+    '[data-sot-part="dashboard-crumb"]',
+    '[data-sot-part="dashboard-crumb-separator"]',
+    '[data-sot-part="dashboard-crumb-current"]',
+] as const;
 const SPEAKER_REVIEW_RESIDUAL_GLOBAL_SELECTORS = [
     '[data-sot-list="speaker-review-meta"] > span',
     '[data-sot-part="speaker-review-section-description"]',
@@ -1819,7 +1859,6 @@ const DASHBOARD_DETAIL_HEADER_LEGACY_PRODUCT_CSS_SELECTOR_RE =
 
 const TOPBAR_DATA_SOT_PRODUCT_CSS_SELECTORS = [
     '[data-sot-panel="dashboard-topbar"]',
-    '[data-sot-panel="workstation-topbar"]',
 ] as const;
 
 const DASHBOARD_SOURCE_PROVIDER_MIGRATED_GLOBAL_SELECTORS = [
@@ -3568,6 +3607,30 @@ const RECORDING_WORKSTATION_NAV_OWNER_CLASS_INITIALIZERS = [
             "px-2.5 pb-1.5 pt-3.5 font-sans text-[10px] font-semibold uppercase tracking-[0.08em] text-[var(--fg-tertiary)]",
     },
 ] as const;
+const RECORDING_WORKSTATION_TOPBAR_OWNER_CLASS_INITIALIZERS = [
+    {
+        property: "topbar",
+        expected:
+            "relative z-[var(--z-topbar)] flex h-14 flex-none flex-row items-center gap-3.5 border-b border-border bg-background/80 px-5 py-3 shadow-none backdrop-blur-[20px] backdrop-saturate-[140%] supports-[backdrop-filter]:bg-background/60 max-[860px]:min-w-0 max-[860px]:max-w-full max-[860px]:box-border",
+    },
+    {
+        property: "crumbs",
+        expected:
+            "flex items-center gap-2 font-sans text-[13px] font-medium text-[var(--fg-tertiary)]",
+    },
+    {
+        property: "crumb",
+        expected: "text-[var(--fg-tertiary)]",
+    },
+    {
+        property: "separator",
+        expected: "text-[var(--fg-tertiary)] opacity-60",
+    },
+    {
+        property: "current",
+        expected: "font-semibold text-[var(--fg-primary)]",
+    },
+] as const;
 
 const RECORDING_SOURCE_RECORD_LAYOUT_REMOVED_GLOBAL_SELECTORS = [
     '[data-sot-part="recording-source-record-shell"]',
@@ -3739,6 +3802,11 @@ describe("full UI replacement regression coverage", () => {
             "const recordingWorkstationNavClassNames = {",
             "} as const;",
         );
+        const recordingWorkstationTopbarClassNames = extractBoundedSlice(
+            detailWorkstation,
+            "const recordingWorkstationTopbarClassNames = {",
+            "} as const;",
+        );
 
         for (const selector of REMOVED_DASHBOARD_BRAND_GLOBAL_SELECTORS) {
             expect(globals).not.toContain(selector);
@@ -3810,6 +3878,26 @@ describe("full UI replacement regression coverage", () => {
                 `className={recordingWorkstationNavClassNames.${property}}`,
             );
         }
+        for (const {
+            expected,
+            property,
+        } of RECORDING_WORKSTATION_TOPBAR_OWNER_CLASS_INITIALIZERS) {
+            expect(recordingWorkstationTopbarClassNames).toContain(
+                `${property}:`,
+            );
+            expect(recordingWorkstationTopbarClassNames).toContain(
+                `"${expected}"`,
+            );
+            expect(detailWorkstation).toContain(
+                `className={recordingWorkstationTopbarClassNames.${property}}`,
+            );
+        }
+        for (const classToken of RECORDING_WORKSTATION_TOPBAR_REQUIRED_CLASS_TOKENS) {
+            expect(recordingWorkstationTopbarClassNames).toContain(classToken);
+        }
+        expect(recordingWorkstationTopbarClassNames).not.toMatch(
+            RECORDING_WORKSTATION_TOPBAR_FORBIDDEN_CLASS_PATTERN,
+        );
     });
 
     it("keeps global SOT tokens, foundation primitives, and OKLCH fallbacks", () => {
@@ -10323,15 +10411,17 @@ describe("full UI replacement regression coverage", () => {
         );
         expect(detail).toContain('data-sot-panel="workstation-topbar"');
         expect(detail).toContain('data-sot-panel="workstation-workspace"');
-        expect(globals).toContain('[data-sot-panel="workstation-topbar"]');
-        expect(globals).toContain('[data-sot-part="workstation-crumbs"]');
-        expect(globals).toContain('[data-sot-part="workstation-crumb"]');
-        expect(globals).toContain(
-            '[data-sot-part="workstation-crumb-separator"]',
-        );
-        expect(globals).toContain(
-            '[data-sot-part="workstation-crumb-current"]',
-        );
+        expect(globals).toContain("--z-topbar: 200;");
+        for (const selector of DASHBOARD_TOPBAR_CRUMB_RETAINED_GLOBAL_SELECTORS) {
+            expect(globals).toContain(selector);
+            expect(
+                collectCssRuleBlocks(globals, selector).length,
+            ).toBeGreaterThan(0);
+        }
+        for (const selector of WORKSTATION_TOPBAR_CRUMB_REMOVED_GLOBAL_SELECTORS) {
+            expect(globals).not.toContain(selector);
+            expect(collectCssRuleBlocks(globals, selector)).toEqual([]);
+        }
         expect(globals).toContain('[data-sot-panel="workstation-workspace"]');
         expect(globals).toContain(
             '[data-sot-panel="workstation-sidebar"] {\n        display: none;\n    }',

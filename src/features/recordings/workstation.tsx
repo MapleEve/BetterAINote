@@ -112,6 +112,15 @@ const RECORDING_WORKSTATION_MAIN_CLASS_NAME =
     "flex h-screen min-w-0 flex-col max-[860px]:min-w-0 max-[860px]:max-w-full max-[860px]:box-border";
 const RECORDING_WORKSTATION_SIDEBAR_CLASS_NAME =
     "relative flex flex-col rounded-none border border-border bg-card px-3 pt-4 pb-3 shadow-sm supports-[backdrop-filter]:bg-card/90 supports-[backdrop-filter]:backdrop-blur-[22px] supports-[backdrop-filter]:backdrop-saturate-[140%]";
+const recordingWorkstationTopbarClassNames = {
+    topbar:
+        "relative z-[var(--z-topbar)] flex h-14 flex-none flex-row items-center gap-3.5 border-b border-border bg-background/80 px-5 py-3 shadow-none backdrop-blur-[20px] backdrop-saturate-[140%] supports-[backdrop-filter]:bg-background/60 max-[860px]:min-w-0 max-[860px]:max-w-full max-[860px]:box-border",
+    crumbs:
+        "flex items-center gap-2 font-sans text-[13px] font-medium text-[var(--fg-tertiary)]",
+    crumb: "text-[var(--fg-tertiary)]",
+    separator: "text-[var(--fg-tertiary)] opacity-60",
+    current: "font-semibold text-[var(--fg-primary)]",
+} as const;
 const recordingWorkstationBrandClassNames = {
     wrapper: "flex items-center gap-[10px] px-2 pt-1 pb-4",
     image: "size-9 rounded-[9px]",
@@ -926,13 +935,30 @@ export function RecordingWorkstation({
                 className={RECORDING_WORKSTATION_MAIN_CLASS_NAME}
                 data-sot-panel="workstation-main"
             >
-                <header data-sot-panel="workstation-topbar">
-                    <div data-sot-part="workstation-crumbs">
-                        <span data-sot-part="workstation-crumb">录音</span>
-                        <span data-sot-part="workstation-crumb-separator">
+                <header
+                    className={recordingWorkstationTopbarClassNames.topbar}
+                    data-sot-panel="workstation-topbar"
+                >
+                    <div
+                        className={recordingWorkstationTopbarClassNames.crumbs}
+                        data-sot-part="workstation-crumbs"
+                    >
+                        <span
+                            className={recordingWorkstationTopbarClassNames.crumb}
+                            data-sot-part="workstation-crumb"
+                        >
+                            录音
+                        </span>
+                        <span
+                            className={recordingWorkstationTopbarClassNames.separator}
+                            data-sot-part="workstation-crumb-separator"
+                        >
                             /
                         </span>
-                        <span data-sot-part="workstation-crumb-current">
+                        <span
+                            className={recordingWorkstationTopbarClassNames.current}
+                            data-sot-part="workstation-crumb-current"
+                        >
                             {filename}
                         </span>
                     </div>

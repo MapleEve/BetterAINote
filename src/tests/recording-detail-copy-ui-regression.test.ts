@@ -34,8 +34,46 @@ const RECORDING_WORKSTATION_MAIN_REQUIRED_CLASS_TOKENS = [
     "max-[860px]:max-w-full",
     "max-[860px]:box-border",
 ] as const;
+const RECORDING_WORKSTATION_TOPBAR_REQUIRED_CLASS_TOKENS = [
+    "relative",
+    "z-[var(--z-topbar)]",
+    "flex",
+    "h-14",
+    "flex-none",
+    "flex-row",
+    "items-center",
+    "gap-3.5",
+    "border-b",
+    "border-border",
+    "bg-background/80",
+    "px-5",
+    "py-3",
+    "shadow-none",
+    "backdrop-blur-[20px]",
+    "backdrop-saturate-[140%]",
+    "supports-[backdrop-filter]:bg-background/60",
+    "max-[860px]:min-w-0",
+    "max-[860px]:max-w-full",
+    "max-[860px]:box-border",
+] as const;
 const RECORDING_WORKSTATION_SIDEBAR_FORBIDDEN_CLASS_PATTERN =
     /\b(?:rgb|rgba|hsl|hsla|oklch|color-mix)\(|#[0-9A-Fa-f]{3,8}\b|\bdark:|(?:^|\s)(?:bg|border|text|shadow|ring|fill|stroke|from|via|to)-(?:white|black|transparent|slate|gray|zinc|neutral|stone|red|orange|amber|yellow|lime|green|emerald|teal|cyan|sky|blue|indigo|violet|purple|fuchsia|pink|rose)(?:[/-]\d+)?\b/;
+const WORKSTATION_TOPBAR_CRUMB_REMOVED_GLOBAL_SELECTORS = [
+    '[data-sot-panel="workstation-topbar"]',
+    '[data-theme="dark"] [data-sot-panel="workstation-topbar"]',
+    '[data-sot-part="workstation-crumbs"]',
+    '[data-sot-part="workstation-crumb"]',
+    '[data-sot-part="workstation-crumb-separator"]',
+    '[data-sot-part="workstation-crumb-current"]',
+] as const;
+const DASHBOARD_TOPBAR_CRUMB_RETAINED_GLOBAL_SELECTORS = [
+    '[data-sot-panel="dashboard-topbar"]',
+    '[data-theme="dark"] [data-sot-panel="dashboard-topbar"]',
+    '[data-sot-part="dashboard-crumbs"]',
+    '[data-sot-part="dashboard-crumb"]',
+    '[data-sot-part="dashboard-crumb-separator"]',
+    '[data-sot-part="dashboard-crumb-current"]',
+] as const;
 
 const DASHBOARD_COPY_ACTION_REMOVED_GLOBAL_SELECTORS = [
     '[data-sot-part="dashboard-copy-label"]',
@@ -603,6 +641,30 @@ const RECORDING_WORKSTATION_NAV_OWNER_CLASS_INITIALIZERS = [
         property: "label",
         expected:
             "px-2.5 pb-1.5 pt-3.5 font-sans text-[10px] font-semibold uppercase tracking-[0.08em] text-[var(--fg-tertiary)]",
+    },
+] as const;
+const RECORDING_WORKSTATION_TOPBAR_OWNER_CLASS_INITIALIZERS = [
+    {
+        property: "topbar",
+        expected:
+            "relative z-[var(--z-topbar)] flex h-14 flex-none flex-row items-center gap-3.5 border-b border-border bg-background/80 px-5 py-3 shadow-none backdrop-blur-[20px] backdrop-saturate-[140%] supports-[backdrop-filter]:bg-background/60 max-[860px]:min-w-0 max-[860px]:max-w-full max-[860px]:box-border",
+    },
+    {
+        property: "crumbs",
+        expected:
+            "flex items-center gap-2 font-sans text-[13px] font-medium text-[var(--fg-tertiary)]",
+    },
+    {
+        property: "crumb",
+        expected: "text-[var(--fg-tertiary)]",
+    },
+    {
+        property: "separator",
+        expected: "text-[var(--fg-tertiary)] opacity-60",
+    },
+    {
+        property: "current",
+        expected: "font-semibold text-[var(--fg-primary)]",
     },
 ] as const;
 
@@ -1571,6 +1633,39 @@ describe("recording detail copy and title action UI regressions", () => {
         expect(detailWorkstation).toContain(
             'data-sot-panel="workstation-topbar"',
         );
+        const workstationTopbar = extractElementSlice(
+            detailWorkstation,
+            'data-sot-panel="workstation-topbar"',
+            "header",
+        );
+        const recordingWorkstationTopbarClassNames = extractBoundedSlice(
+            detailWorkstation,
+            "const recordingWorkstationTopbarClassNames = {",
+            "} as const;",
+        );
+        for (const {
+            expected,
+            property,
+        } of RECORDING_WORKSTATION_TOPBAR_OWNER_CLASS_INITIALIZERS) {
+            expect(recordingWorkstationTopbarClassNames).toContain(
+                `${property}:`,
+            );
+            expect(recordingWorkstationTopbarClassNames).toContain(
+                `"${expected}"`,
+            );
+            expect(detailWorkstation).toContain(
+                `className={recordingWorkstationTopbarClassNames.${property}}`,
+            );
+        }
+        for (const classToken of RECORDING_WORKSTATION_TOPBAR_REQUIRED_CLASS_TOKENS) {
+            expect(recordingWorkstationTopbarClassNames).toContain(classToken);
+        }
+        expect(recordingWorkstationTopbarClassNames).not.toMatch(
+            RECORDING_WORKSTATION_SIDEBAR_FORBIDDEN_CLASS_PATTERN,
+        );
+        expect(workstationTopbar).toContain(
+            "className={recordingWorkstationTopbarClassNames.topbar}",
+        );
         expect(detailWorkstation).toContain(
             'data-sot-panel="workstation-workspace"',
         );
@@ -1708,15 +1803,17 @@ describe("recording detail copy and title action UI regressions", () => {
         expect(globals).toContain(
             '    [data-sot-panel="dashboard-main"],\n    [data-sot-panel="dashboard-topbar"],',
         );
-        expect(globals).toContain('[data-sot-panel="workstation-topbar"]');
-        expect(globals).toContain('[data-sot-part="workstation-crumbs"]');
-        expect(globals).toContain('[data-sot-part="workstation-crumb"]');
-        expect(globals).toContain(
-            '[data-sot-part="workstation-crumb-separator"]',
-        );
-        expect(globals).toContain(
-            '[data-sot-part="workstation-crumb-current"]',
-        );
+        expect(globals).toContain("--z-topbar: 200;");
+        for (const selector of DASHBOARD_TOPBAR_CRUMB_RETAINED_GLOBAL_SELECTORS) {
+            expect(globals).toContain(selector);
+            expect(
+                collectCssRuleBlocks(globals, selector).length,
+            ).toBeGreaterThan(0);
+        }
+        for (const selector of WORKSTATION_TOPBAR_CRUMB_REMOVED_GLOBAL_SELECTORS) {
+            expect(globals).not.toContain(selector);
+            expect(collectCssRuleBlocks(globals, selector)).toEqual([]);
+        }
         expect(globals).toContain('[data-sot-panel="workstation-workspace"]');
         expect(globals).toContain(
             '[data-sot-panel="recording-workstation-detail"]',
@@ -2918,16 +3015,24 @@ describe("recording detail copy and title action UI regressions", () => {
         expect(detailWorkstation).toContain("showSpeakerReview={false}");
         expect(detailWorkstation).toContain("<SpeakerLabelEditor");
         expect(detailWorkstation).toContain("/rename/auto");
-        const detailWorkstationWithoutSidebarClassName =
-            detailWorkstation.replace(
+        const detailWorkstationWithoutOwnerChromeClassNames = detailWorkstation
+            .replace(
                 extractBoundedSlice(
                     detailWorkstation,
                     "const RECORDING_WORKSTATION_SIDEBAR_CLASS_NAME =",
                     ";",
                 ),
                 "",
+            )
+            .replace(
+                extractBoundedSlice(
+                    detailWorkstation,
+                    "const recordingWorkstationTopbarClassNames = {",
+                    "} as const;",
+                ),
+                "",
             );
-        expect(detailWorkstationWithoutSidebarClassName).not.toMatch(
+        expect(detailWorkstationWithoutOwnerChromeClassNames).not.toMatch(
             /\bbg-(background|card|muted)\b/,
         );
         expect(detailWorkstation).not.toMatch(OLD_UI_CONTRACT_RE);
