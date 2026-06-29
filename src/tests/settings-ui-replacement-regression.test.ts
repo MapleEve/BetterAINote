@@ -322,6 +322,12 @@ const REMOVED_SETTINGS_MAIN_VISUAL_DATA_SOT_CSS_SELECTORS = [
     '[data-sot-panel="settings-scroll-body"][data-sot-layout="three-pane"]',
 ] as const;
 
+const REMOVED_SETTINGS_TITLE_DIVIDER_VISUAL_DATA_SOT_CSS_SELECTORS = [
+    "[data-sot-title]",
+    "[data-sot-section-divider]",
+    '[data-theme="dark"] [data-sot-section-divider]',
+] as const;
+
 const REMOVED_SETTINGS_SAVE_ACTION_GLOBAL_SELECTORS = [
     '[data-sot-panel="settings-scroll-body"]\n    [data-sot-panel="settings-save-actions"]',
     '[data-sot-panel="settings-scroll-body"] [data-sot-part="settings-save-status"]',
@@ -2311,6 +2317,10 @@ describe("settings SOT interaction regressions", () => {
         const saveActions = content.match(
             /function SaveActions[\s\S]*?function useResettingSaveState/,
         )?.[0];
+        const sectionTitleClass =
+            content.match(
+                /const SETTINGS_SECTION_TITLE_CLASS\s*=\s*"[^"]*";/,
+            )?.[0] ?? "";
         const settingsRow =
             content.match(
                 /function SettingsRow[\s\S]*?function SelectControl/,
@@ -2341,7 +2351,26 @@ describe("settings SOT interaction regressions", () => {
             "data-sot-availability={voscriptAvailability}",
         );
         expect(content).not.toContain('className="settings-main"');
-        expect(content).toContain("<h3 data-sot-title>{title}</h3>");
+        expect(sectionTitleClass).toContain("SETTINGS_SECTION_TITLE_CLASS");
+        for (const ownerClassToken of [
+            "[margin:0_0_18px]",
+            "font-display",
+            "text-[18px]",
+            "font-semibold",
+            "leading-[normal]",
+            "tracking-[-0.012em]",
+            "text-[var(--fg-primary)]",
+        ]) {
+            expect(sectionTitleClass).toContain(ownerClassToken);
+        }
+        expect(content).toContain("className={SETTINGS_SECTION_TITLE_CLASS}");
+        expect(content).toMatch(
+            /<h3\s+className=\{SETTINGS_SECTION_TITLE_CLASS\}\s+data-sot-title>\s*\{title\}\s*<\/h3>/,
+        );
+        expect(content).not.toContain("<h3 data-sot-title>{title}</h3>");
+        for (const selector of REMOVED_SETTINGS_TITLE_DIVIDER_VISUAL_DATA_SOT_CSS_SELECTORS) {
+            expect(collectExactCssRuleBlocks(globals, selector)).toEqual([]);
+        }
         expect(content).toContain("data-sot-section-head");
         expect(content).toContain('from "@/components/ui/field";');
         expect(content).toContain("function SettingsRow");

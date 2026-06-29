@@ -1066,25 +1066,6 @@ button:not([data-slot]) {
     }
 }
 
-/* ===========================================================
-   Settings dialog functional hooks
-   =========================================================== */
-[data-sot-title] {
-    font: 600 18px var(--font-display);
-    letter-spacing: -0.012em;
-    margin: 0 0 18px;
-    color: var(--fg-primary);
-}
-
-[data-sot-section-divider] {
-    height: 1px;
-    background: var(--line-hairline);
-    margin: 12px 0;
-}
-[data-theme="dark"] [data-sot-section-divider] {
-    background: var(--glass-border-soft);
-}
-
 /* ====================================================================
    Functional-only compatibility rules.
    Kept properties: display/position/top/right/bottom/left/inset/
@@ -1442,14 +1423,6 @@ button:not([data-slot]) {
 [data-sot-section-group] {
     margin-bottom: 22px;
     position: relative;
-}
-[data-sot-section-divider] {
-    border: 0;
-    border-top: 1px solid var(--line-hairline);
-    margin: 22px 0;
-}
-[data-theme="dark"] [data-sot-section-divider] {
-    border-top-color: var(--glass-border-soft);
 }
 
 [data-detail-empty][hidden] {

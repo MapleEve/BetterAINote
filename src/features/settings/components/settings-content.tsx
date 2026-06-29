@@ -318,6 +318,9 @@ const SETTINGS_SAVE_STATUS_BADGE_CLASS =
 const SETTINGS_SCROLL_BODY_CLASS =
     "min-h-0 overflow-y-auto px-[26px] py-[22px] [overscroll-behavior:contain]";
 
+const SETTINGS_SECTION_TITLE_CLASS =
+    "[margin:0_0_18px] font-display text-[18px] font-semibold leading-[normal] tracking-[-0.012em] text-[var(--fg-primary)]";
+
 const SETTINGS_THREE_PANE_SCROLL_BODY_CLASS =
     "grid min-h-0 grid-cols-[280px_1fr] overflow-hidden p-0";
 
@@ -2288,7 +2291,9 @@ function SectionShell({
             data-sot-availability={voscriptAvailability}
             className={SETTINGS_SCROLL_BODY_CLASS}
         >
-            <h3 data-sot-title>{title}</h3>
+            <h3 className={SETTINGS_SECTION_TITLE_CLASS} data-sot-title>
+                {title}
+            </h3>
             {subtitle ? (
                 <FieldDescription className="max-w-2xl">
                     {subtitle}

@@ -9612,8 +9612,37 @@ describe("full UI replacement regression coverage", () => {
             'data-sot-control="settings-nav"\n',
             "Button",
         );
+        const settingsSectionTitleClass =
+            settings.match(
+                /const SETTINGS_SECTION_TITLE_CLASS\s*=\s*"[^"]*";/,
+            )?.[0] ?? "";
 
         expect(settings).toContain('data-sot-surface="settings-data-sources"');
+        expect(settingsSectionTitleClass).toContain(
+            "SETTINGS_SECTION_TITLE_CLASS",
+        );
+        for (const ownerClassToken of [
+            "[margin:0_0_18px]",
+            "font-display",
+            "text-[18px]",
+            "font-semibold",
+            "leading-[normal]",
+            "tracking-[-0.012em]",
+            "text-[var(--fg-primary)]",
+        ]) {
+            expect(settingsSectionTitleClass).toContain(ownerClassToken);
+        }
+        expect(settings).toMatch(
+            /<h3\s+className=\{SETTINGS_SECTION_TITLE_CLASS\}\s+data-sot-title>\s*\{title\}\s*<\/h3>/,
+        );
+        expect(settings).not.toContain("<h3 data-sot-title>{title}</h3>");
+        for (const selector of [
+            "[data-sot-title]",
+            "[data-sot-section-divider]",
+            '[data-theme="dark"] [data-sot-section-divider]',
+        ]) {
+            expect(collectExactCssRuleBlocks(globals, selector)).toEqual([]);
+        }
         expect(settingsCloseButton).toContain(
             'data-sot-control="settings-close"',
         );
