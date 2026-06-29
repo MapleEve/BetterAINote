@@ -43,13 +43,15 @@ const CARD_PRIMITIVE_FORBIDDEN_BUSINESS_TOKENS = [
 const EXPECTED_DASHBOARD_DETAIL_HEADER_CLASS_NAME =
     "relative flex flex-row items-center gap-2.5 px-1 pt-1 pb-0 data-[sot-state=saving]:py-0";
 const EXPECTED_DASHBOARD_DETAIL_HEADER_TITLE_CLASS_NAME =
-    "min-w-0 flex-1 truncate";
+    "m-0 min-w-0 flex-1 truncate font-display text-[22px] font-semibold leading-normal tracking-[-0.014em] text-[var(--fg-primary)]";
 const EXPECTED_DASHBOARD_DETAIL_HEADER_TITLE_INPUT_CLASS_NAME =
     "h-8 min-w-0 flex-1 px-3 py-1 text-base md:text-sm";
 const EXPECTED_DASHBOARD_DETAIL_HEADER_BADGE_CLASS_NAME = "ml-1 shrink-0";
 const EXPECTED_DASHBOARD_TRANSCRIPT_LANGUAGE_BADGE_CLASS_NAME = "gap-1.5";
 const EXPECTED_DASHBOARD_TRANSCRIPT_ACTIONS_CLASS_NAME =
     "ml-auto inline-flex max-w-full flex-[0_1_auto] flex-wrap items-center gap-2";
+const EXPECTED_DASHBOARD_TRANSCRIPT_SHELL_CARD_CLASS_NAME =
+    "flex min-h-0 flex-1 flex-col gap-0 rounded-[16px] border border-[var(--line-hairline)] bg-[var(--bg-elevated)] shadow-[var(--shadow-sm)] backdrop-blur-none dark:border-[var(--glass-border-soft)] dark:bg-[rgb(255_255_255_/_0.025)] dark:shadow-none";
 const EXPECTED_SOURCE_REPORT_STATUS_BADGE_CLASS_NAME =
     "h-[22px] min-w-[65px] justify-normal gap-[9px] overflow-visible rounded-full border px-[8px] py-0 text-[11px] font-semibold leading-[normal] shadow-none data-[sot-tone=err]:border-[var(--source-report-status-err-border)] data-[sot-tone=err]:bg-[var(--source-report-status-err-bg)] data-[sot-tone=err]:text-[var(--signal-danger)] data-[sot-tone=neu]:border-[var(--line-hairline)] data-[sot-tone=neu]:bg-[var(--bg-recessed)] data-[sot-tone=neu]:text-[var(--fg-secondary)] data-[sot-tone=ok]:border-[var(--source-report-status-ok-border)] data-[sot-tone=ok]:bg-[var(--source-report-status-ok-bg)] data-[sot-tone=ok]:text-[var(--source-report-status-ok-fg)] data-[sot-tone=warn]:border-[var(--source-report-status-warn-border)] data-[sot-tone=warn]:bg-[var(--source-report-status-warn-bg)] data-[sot-tone=warn]:text-[var(--source-report-status-warn-fg)] [&_[data-sot-part=dashboard-source-report-status-dot]]:mr-0 [&_[data-sot-part=dashboard-source-report-status-dot]]:inline-block [&_[data-sot-part=dashboard-source-report-status-dot]]:size-[5px] [&_[data-sot-part=dashboard-source-report-status-dot]]:rounded-full [&_[data-sot-part=dashboard-source-report-status-dot]]:bg-current [&_[data-sot-part=source-report-status-dot]]:mr-0 [&_[data-sot-part=source-report-status-dot]]:inline-block [&_[data-sot-part=source-report-status-dot]]:size-[5px] [&_[data-sot-part=source-report-status-dot]]:rounded-full [&_[data-sot-part=source-report-status-dot]]:bg-current";
 const EXPECTED_DASHBOARD_RECORDING_PLAYER_CARD_CLASS_NAME =
@@ -2004,6 +2006,20 @@ describe("dashboard SOT foundation", () => {
         ]) {
             expect(globals).not.toContain(selector);
         }
+        expect(
+            collectCssRuleBlocks(
+                globals,
+                '[data-sot-panel="dashboard-detail-header"]',
+            ).filter(
+                ({ prelude }) =>
+                    !prelude.includes(
+                        '[data-sot-panel="dashboard-detail"][data-empty="true"]',
+                    ),
+            ),
+        ).toEqual([]);
+        expect(globals).not.toContain(
+            '[data-sot-part="detail-header-title"]',
+        );
 
         for (const primitive of [
             "Breadcrumb",
@@ -4184,7 +4200,7 @@ describe("dashboard SOT foundation", () => {
         expect(detailSegmentedTabs).toContain('data-sot-size="sm"');
         expect(workstation).toContain('hidden={detailTab !== "transcript"}');
         expect(workstation).toContain(
-            'className="min-h-0 flex-1 gap-0 rounded-2xl"',
+            "SOT_DASHBOARD_TRANSCRIPT_SHELL_CARD_CLASS_NAME",
         );
         expect(workstation).toContain(
             'className="flex flex-row flex-wrap items-center gap-x-3 gap-y-1.5 border-b px-3.5 py-3"',
@@ -4471,6 +4487,20 @@ describe("dashboard SOT foundation", () => {
             "SOT_DASHBOARD_TRANSCRIPT_ACTIONS_CLASS_NAME",
             EXPECTED_DASHBOARD_TRANSCRIPT_ACTIONS_CLASS_NAME,
         );
+        expectExactStringConstInitializer(
+            workstation,
+            "SOT_DASHBOARD_TRANSCRIPT_SHELL_CARD_CLASS_NAME",
+            EXPECTED_DASHBOARD_TRANSCRIPT_SHELL_CARD_CLASS_NAME,
+        );
+        const dashboardTranscriptShell = extractOpeningElement(
+            workstation,
+            'data-sot-panel="dashboard-transcript-shell"',
+            "Card",
+        );
+        expectClassNameConstReference(
+            dashboardTranscriptShell,
+            "SOT_DASHBOARD_TRANSCRIPT_SHELL_CARD_CLASS_NAME",
+        );
         const dashboardTranscriptActions = extractOpeningElement(
             workstation,
             'data-sot-part="dashboard-transcript-actions"',
@@ -4533,6 +4563,12 @@ describe("dashboard SOT foundation", () => {
 
             expect(repaintBlocks).toEqual([]);
         }
+        expect(
+            collectCssRuleBlocks(
+                globals,
+                '[data-sot-panel="dashboard-transcript-shell"]',
+            ),
+        ).toEqual([]);
         for (const control of DASHBOARD_TRANSCRIPT_GENERIC_COPY_CONTROLS) {
             const buttonOpening = extractOpeningElement(
                 workstation,

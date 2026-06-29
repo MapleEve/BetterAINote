@@ -1097,26 +1097,6 @@ button:not([data-slot]) {
 [data-sot-tab-pane][hidden] {
     display: none;
 }
-[data-sot-panel="dashboard-detail-header"] {
-    position: relative;
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    padding: 4px 4px 0;
-}
-[data-sot-panel="dashboard-detail-header"]
-    [data-sot-part="detail-header-title"] {
-    flex: 1;
-    min-width: 0;
-    margin: 0;
-    overflow: hidden;
-    color: var(--fg-primary);
-    font: 600 22px var(--font-display);
-    letter-spacing: -0.014em;
-    line-height: normal;
-    text-overflow: ellipsis;
-    white-space: nowrap;
-}
 [data-detail-empty] {
     display: none;
 }
@@ -1184,23 +1164,6 @@ button:not([data-slot]) {
 /* ---------- Settings panel: field groups, banners, save state, voscript ---------- */
 [data-detail-empty][hidden] {
     display: none !important;
-}
-
-[data-sot-panel="dashboard-transcript-shell"] {
-    flex: 1;
-    min-height: 0;
-    display: flex;
-    flex-direction: column;
-    border-radius: 16px;
-    background: var(--bg-elevated);
-    border: 1px solid color-mix(in srgb, var(--graphite-300) 70%, transparent);
-    box-shadow: var(--shadow-sm);
-    backdrop-filter: none;
-}
-[data-theme="dark"] [data-sot-panel="dashboard-transcript-shell"] {
-    background: rgb(255 255 255 / 0.025);
-    border-color: var(--glass-border-soft);
-    box-shadow: none;
 }
 
 /* ============================================================

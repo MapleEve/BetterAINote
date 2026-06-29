@@ -7,6 +7,8 @@ const ROOT = path.join(process.cwd(), "src");
 
 const EXPECTED_DASHBOARD_TRANSCRIPT_ACTIONS_CLASS_NAME =
     "ml-auto inline-flex max-w-full flex-[0_1_auto] flex-wrap items-center gap-2";
+const EXPECTED_DASHBOARD_TRANSCRIPT_SHELL_CARD_CLASS_NAME =
+    "flex min-h-0 flex-1 flex-col gap-0 rounded-[16px] border border-[var(--line-hairline)] bg-[var(--bg-elevated)] shadow-[var(--shadow-sm)] backdrop-blur-none dark:border-[var(--glass-border-soft)] dark:bg-[rgb(255_255_255_/_0.025)] dark:shadow-none";
 
 const DASHBOARD_COPY_ACTION_REMOVED_GLOBAL_SELECTORS = [
     '[data-sot-part="dashboard-copy-label"]',
@@ -2233,6 +2235,17 @@ describe("recording detail copy and title action UI regressions", () => {
         );
         expect(dashboardTranscriptShell).toContain("<Card");
         expect(dashboardTranscriptShell).toContain("hasNoPadding");
+        expect(dashboardTranscript).toContain(
+            "const SOT_DASHBOARD_TRANSCRIPT_SHELL_CARD_CLASS_NAME",
+        );
+        expectExactStringConstInitializer(
+            dashboardTranscript,
+            "SOT_DASHBOARD_TRANSCRIPT_SHELL_CARD_CLASS_NAME",
+            EXPECTED_DASHBOARD_TRANSCRIPT_SHELL_CARD_CLASS_NAME,
+        );
+        expect(dashboardTranscriptShell).toContain(
+            "SOT_DASHBOARD_TRANSCRIPT_SHELL_CARD_CLASS_NAME",
+        );
         expect(dashboardTranscriptShell).toContain(
             'data-sot-panel="dashboard-transcript-shell"',
         );

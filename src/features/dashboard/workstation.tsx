@@ -1161,7 +1161,8 @@ function SotSourceReportMetricCards({ children }: { children: ReactNode }) {
 const SOT_DASHBOARD_DETAIL_HEADER_CLASS_NAME =
     "relative flex flex-row items-center gap-2.5 px-1 pt-1 pb-0 data-[sot-state=saving]:py-0";
 
-const SOT_DASHBOARD_DETAIL_HEADER_TITLE_CLASS_NAME = "min-w-0 flex-1 truncate";
+const SOT_DASHBOARD_DETAIL_HEADER_TITLE_CLASS_NAME =
+    "m-0 min-w-0 flex-1 truncate font-display text-[22px] font-semibold leading-normal tracking-[-0.014em] text-[var(--fg-primary)]";
 
 const SOT_DASHBOARD_DETAIL_HEADER_TITLE_INPUT_CLASS_NAME =
     "h-8 min-w-0 flex-1 px-3 py-1 text-base md:text-sm";
@@ -1171,6 +1172,9 @@ const SOT_DASHBOARD_DETAIL_HEADER_BADGE_CLASS_NAME = "ml-1 shrink-0";
 const SOT_DASHBOARD_TRANSCRIPT_LANGUAGE_BADGE_CLASS_NAME = "gap-1.5";
 const SOT_DASHBOARD_TRANSCRIPT_ACTIONS_CLASS_NAME =
     "ml-auto inline-flex max-w-full flex-[0_1_auto] flex-wrap items-center gap-2";
+
+const SOT_DASHBOARD_TRANSCRIPT_SHELL_CARD_CLASS_NAME =
+    "flex min-h-0 flex-1 flex-col gap-0 rounded-[16px] border border-[var(--line-hairline)] bg-[var(--bg-elevated)] shadow-[var(--shadow-sm)] backdrop-blur-none dark:border-[var(--glass-border-soft)] dark:bg-[rgb(255_255_255_/_0.025)] dark:shadow-none";
 
 const SOT_DASHBOARD_RECORDING_PLAYER_CARD_CLASS_NAME =
     "block min-h-[114px] gap-0 overflow-visible rounded-[16px] border-[var(--glass-border-soft)] bg-[rgb(255_255_255_/_0.025)] px-[18px] py-[16px] shadow-none backdrop-blur-none";
@@ -7265,7 +7269,7 @@ export function Workstation({
 
                         <Card
                             hasNoPadding
-                            className="min-h-0 flex-1 gap-0 rounded-2xl"
+                            className={SOT_DASHBOARD_TRANSCRIPT_SHELL_CARD_CLASS_NAME}
                             data-sot-panel="dashboard-transcript-shell"
                         >
                             <CardHeader
