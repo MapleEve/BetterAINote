@@ -777,17 +777,6 @@ button:not([data-slot]) {
     --z-toast: 700; /* toasts above everything */
 }
 
-/* List panel */
-/* ======== Detail panel ======== */
-[data-sot-panel="dashboard-detail"],
-[data-sot-panel="recording-workstation-detail"],
-[data-sot-panel="recording-workstation-detail-body"] {
-    display: flex;
-    flex-direction: column;
-    gap: 16px;
-    min-height: 0;
-    min-width: 0;
-}
 /* ======== Dialog overlay + shadcn modal slots ======== */
 @keyframes bpulse {
     0%,

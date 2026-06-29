@@ -13,6 +13,8 @@ const EXPECTED_DASHBOARD_WORKSPACE_CLASS_NAME =
     "grid flex-1 min-h-0 grid-cols-[380px_1fr] gap-4 px-5 pt-4 pb-5 max-[860px]:min-w-0 max-[860px]:max-w-full max-[860px]:box-border max-[860px]:grid-cols-[380px_0px] max-[860px]:[&>[data-sot-panel=dashboard-detail]]:hidden";
 const EXPECTED_RECORDING_WORKSTATION_WORKSPACE_CLASS_NAME =
     "grid flex-1 min-h-0 grid-cols-[380px_1fr] gap-4 px-5 pt-4 pb-5 max-[860px]:min-w-0 max-[860px]:max-w-full max-[860px]:box-border max-[860px]:grid-cols-[minmax(0,1fr)]";
+const EXPECTED_DETAIL_PANEL_CLASS_NAME =
+    "flex min-h-0 min-w-0 flex-col gap-4";
 const RECORDING_WORKSTATION_SIDEBAR_REQUIRED_CLASS_TOKENS = [
     "relative",
     "flex",
@@ -1748,12 +1750,38 @@ describe("recording detail copy and title action UI regressions", () => {
         expect(recordingWorkstationWorkspaceClassName).not.toMatch(
             OWNER_WORKSPACE_FORBIDDEN_CLASS_PATTERN,
         );
-        expect(detailWorkstation).toContain(
+        const recordingDetailPanel = extractOpeningElement(
+            detailWorkstation,
             'data-sot-panel="recording-workstation-detail"',
+            "section",
         );
-        expect(detailWorkstation).toContain(
+        const recordingDetailBodyPanel = extractOpeningElement(
+            detailWorkstation,
             'data-sot-panel="recording-workstation-detail-body"',
+            "section",
         );
+        for (const { openingElement, constName } of [
+            {
+                openingElement: recordingDetailPanel,
+                constName: "RECORDING_WORKSTATION_DETAIL_PANEL_CLASS_NAME",
+            },
+            {
+                openingElement: recordingDetailBodyPanel,
+                constName: "RECORDING_WORKSTATION_DETAIL_BODY_CLASS_NAME",
+            },
+        ]) {
+            const ownerClassName = expectExactStringConstInitializer(
+                detailWorkstation,
+                constName,
+                EXPECTED_DETAIL_PANEL_CLASS_NAME,
+            );
+            expect(openingElement).toMatch(
+                new RegExp(`className=\\{\\s*${constName}\\s*\\}`),
+            );
+            expect(ownerClassName).not.toMatch(
+                OWNER_WORKSPACE_FORBIDDEN_CLASS_PATTERN,
+            );
+        }
         expect(detailWorkstation).toContain(
             "const recordingWorkstationBrandClassNames = {",
         );
@@ -1981,11 +2009,8 @@ describe("recording detail copy and title action UI regressions", () => {
         expect(dashboardWorkstation).toContain(
             "className={DASHBOARD_WORKSPACE_CLASS_NAME}",
         );
-        expect(globals).toContain(
-            '[data-sot-panel="recording-workstation-detail"]',
-        );
-        expect(globals).toContain(
-            '[data-sot-panel="recording-workstation-detail-body"]',
+        expect(globals).not.toContain(
+            '[data-sot-panel="dashboard-detail"],\n[data-sot-panel="recording-workstation-detail"],\n[data-sot-panel="recording-workstation-detail-body"]',
         );
         expect(globals).toContain(
             '[data-sot-panel="workstation-sidebar"] {\n        display: none;\n    }',

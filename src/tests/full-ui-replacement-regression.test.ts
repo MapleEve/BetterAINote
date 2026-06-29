@@ -24,6 +24,8 @@ const EXPECTED_DASHBOARD_WORKSPACE_CLASS_NAME =
     "grid flex-1 min-h-0 grid-cols-[380px_1fr] gap-4 px-5 pt-4 pb-5 max-[860px]:min-w-0 max-[860px]:max-w-full max-[860px]:box-border max-[860px]:grid-cols-[380px_0px] max-[860px]:[&>[data-sot-panel=dashboard-detail]]:hidden";
 const EXPECTED_RECORDING_WORKSTATION_WORKSPACE_CLASS_NAME =
     "grid flex-1 min-h-0 grid-cols-[380px_1fr] gap-4 px-5 pt-4 pb-5 max-[860px]:min-w-0 max-[860px]:max-w-full max-[860px]:box-border max-[860px]:grid-cols-[minmax(0,1fr)]";
+const EXPECTED_DETAIL_PANEL_CLASS_NAME =
+    "flex min-h-0 min-w-0 flex-col gap-4";
 const OWNER_WORKSPACE_FORBIDDEN_CLASS_PATTERN =
     /\bspace-[xy]-|\b(?:rgb|rgba|hsl|hsla|oklch|color-mix)\(|#[0-9A-Fa-f]{3,8}\b|\bdark:|(?:^|\s)(?:bg|border|text|shadow|ring|fill|stroke|from|via|to)-(?:white|black|transparent|slate|gray|zinc|neutral|stone|red|orange|amber|yellow|lime|green|emerald|teal|cyan|sky|blue|indigo|violet|purple|fuchsia|pink|rose)(?:[/-]\d+)?\b/;
 const DASHBOARD_TOPBAR_REQUIRED_CLASS_TOKENS = [
@@ -6996,7 +6998,24 @@ describe("full UI replacement regression coverage", () => {
         expect(dashboardWorkspaceClassName).not.toMatch(
             OWNER_WORKSPACE_FORBIDDEN_CLASS_PATTERN,
         );
-        expect(workstation).toContain('data-sot-panel="dashboard-detail"');
+        const dashboardDetailPanel = extractOpeningElement(
+            workstation,
+            'data-sot-panel="dashboard-detail"',
+            "section",
+        );
+        const dashboardDetailPanelClassName =
+            expectExactStringConstInitializer(
+                workstation,
+                "DASHBOARD_DETAIL_PANEL_CLASS_NAME",
+                EXPECTED_DETAIL_PANEL_CLASS_NAME,
+            );
+        expectClassNameConstReference(
+            dashboardDetailPanel,
+            "DASHBOARD_DETAIL_PANEL_CLASS_NAME",
+        );
+        expect(dashboardDetailPanelClassName).not.toMatch(
+            OWNER_WORKSPACE_FORBIDDEN_CLASS_PATTERN,
+        );
         expect(workstation).toContain(
             'data-sot-control="dashboard-drawer-trigger"',
         );
@@ -10653,9 +10672,39 @@ describe("full UI replacement regression coverage", () => {
         expect(globals).toContain(
             '[data-sot-panel="workstation-sidebar"] {\n        display: none;\n    }',
         );
-        expect(globals).toContain(
+        expect(globals).not.toContain(
             '[data-sot-panel="dashboard-detail"],\n[data-sot-panel="recording-workstation-detail"],\n[data-sot-panel="recording-workstation-detail-body"]',
         );
+        const recordingDetailPanel = extractOpeningElement(
+            detail,
+            'data-sot-panel="recording-workstation-detail"',
+            "section",
+        );
+        const recordingDetailBodyPanel = extractOpeningElement(
+            detail,
+            'data-sot-panel="recording-workstation-detail-body"',
+            "section",
+        );
+        for (const { openingElement, constName } of [
+            {
+                openingElement: recordingDetailPanel,
+                constName: "RECORDING_WORKSTATION_DETAIL_PANEL_CLASS_NAME",
+            },
+            {
+                openingElement: recordingDetailBodyPanel,
+                constName: "RECORDING_WORKSTATION_DETAIL_BODY_CLASS_NAME",
+            },
+        ]) {
+            const ownerClassName = expectExactStringConstInitializer(
+                detail,
+                constName,
+                EXPECTED_DETAIL_PANEL_CLASS_NAME,
+            );
+            expectClassNameConstReference(openingElement, constName);
+            expect(ownerClassName).not.toMatch(
+                OWNER_WORKSPACE_FORBIDDEN_CLASS_PATTERN,
+            );
+        }
         expect(globals).toContain(
             '[data-sot-control="dashboard-sync"][disabled] {\n    pointer-events: none;',
         );

@@ -59,6 +59,8 @@ const EXPECTED_DASHBOARD_SIDEBAR_FOOTER_CLASS_NAME =
 const EXPECTED_DASHBOARD_MAIN_CLASS_NAME = "flex h-screen min-w-0 flex-col";
 const EXPECTED_DASHBOARD_WORKSPACE_CLASS_NAME =
     "grid flex-1 min-h-0 grid-cols-[380px_1fr] gap-4 px-5 pt-4 pb-5 max-[860px]:min-w-0 max-[860px]:max-w-full max-[860px]:box-border max-[860px]:grid-cols-[380px_0px] max-[860px]:[&>[data-sot-panel=dashboard-detail]]:hidden";
+const EXPECTED_DETAIL_PANEL_CLASS_NAME =
+    "flex min-h-0 min-w-0 flex-col gap-4";
 const DASHBOARD_TOPBAR_REQUIRED_CLASS_TOKENS = [
     "relative",
     "z-[var(--z-topbar)]",
@@ -3186,7 +3188,24 @@ describe("dashboard SOT foundation", () => {
             '[data-sot-panel="dashboard-detail"][data-empty="true"] [data-detail-empty] {\n    display: flex;',
         );
         expect(workstation).toContain('data-sot-panel="dashboard-workspace"');
-        expect(workstation).toContain('data-sot-panel="dashboard-detail"');
+        const dashboardDetailPanel = extractOpeningElement(
+            workstation,
+            'data-sot-panel="dashboard-detail"',
+            "section",
+        );
+        const dashboardDetailPanelClassName =
+            expectExactStringConstInitializer(
+                workstation,
+                "DASHBOARD_DETAIL_PANEL_CLASS_NAME",
+                EXPECTED_DETAIL_PANEL_CLASS_NAME,
+            );
+        expectClassNameConstReference(
+            dashboardDetailPanel,
+            "DASHBOARD_DETAIL_PANEL_CLASS_NAME",
+        );
+        expect(dashboardDetailPanelClassName).not.toMatch(
+            OWNER_WORKSPACE_FORBIDDEN_CLASS_RE,
+        );
         expect(workstation).toContain(
             'data-sot-control="dashboard-drawer-trigger"',
         );
@@ -3605,8 +3624,11 @@ describe("dashboard SOT foundation", () => {
             expect(globals).not.toContain(selector);
             expect(collectCssRuleBlocks(globals, selector)).toEqual([]);
         }
-        expect(globals).toContain(
+        expect(globals).not.toContain(
             '[data-sot-panel="dashboard-detail"],\n[data-sot-panel="recording-workstation-detail"],\n[data-sot-panel="recording-workstation-detail-body"]',
+        );
+        expect(workstation).toContain(
+            "const DASHBOARD_DETAIL_PANEL_CLASS_NAME =",
         );
         for (const selector of DASHBOARD_SIDEBAR_FOOTER_MIGRATED_GLOBAL_SELECTORS) {
             expect(globals).not.toContain(selector);

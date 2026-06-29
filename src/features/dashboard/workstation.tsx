@@ -352,6 +352,8 @@ const DASHBOARD_WORKSTATION_SHELL_CLASS_NAME =
 const DASHBOARD_MAIN_CLASS_NAME = "flex h-screen min-w-0 flex-col";
 const DASHBOARD_WORKSPACE_CLASS_NAME =
     "grid flex-1 min-h-0 grid-cols-[380px_1fr] gap-4 px-5 pt-4 pb-5 max-[860px]:min-w-0 max-[860px]:max-w-full max-[860px]:box-border max-[860px]:grid-cols-[380px_0px] max-[860px]:[&>[data-sot-panel=dashboard-detail]]:hidden";
+const DASHBOARD_DETAIL_PANEL_CLASS_NAME =
+    "flex min-h-0 min-w-0 flex-col gap-4";
 
 const dashboardTopbarClassNames = {
     topbar:
@@ -6875,6 +6877,7 @@ export function Workstation({
                     </Card>
 
                     <section
+                        className={DASHBOARD_DETAIL_PANEL_CLASS_NAME}
                         data-sot-panel="dashboard-detail"
                         data-empty={selectedRecording ? "false" : "true"}
                     >
