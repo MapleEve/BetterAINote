@@ -556,6 +556,38 @@ const dashboardRecordingTagFilterStyles = {
         "font-mono text-[11px] font-medium text-[var(--fg-tertiary)]",
 } as const;
 
+const dashboardScrollbarClassName =
+    "[scrollbar-width:thin] [scrollbar-color:color-mix(in_srgb,var(--fg-tertiary)_40%,transparent)_transparent] [&::-webkit-scrollbar]:size-[10px] [&::-webkit-scrollbar-track]:bg-transparent [&::-webkit-scrollbar-thumb]:rounded-full [&::-webkit-scrollbar-thumb]:border-2 [&::-webkit-scrollbar-thumb]:border-transparent [&::-webkit-scrollbar-thumb]:bg-[color-mix(in_srgb,var(--fg-tertiary)_35%,transparent)] [&::-webkit-scrollbar-thumb]:bg-clip-padding [&::-webkit-scrollbar-thumb:hover]:bg-[color-mix(in_srgb,var(--fg-tertiary)_55%,transparent)] [&::-webkit-scrollbar-thumb:hover]:bg-clip-padding";
+
+const dashboardRecordingListScrollClassName = cn(
+    "flex-1 overflow-y-auto p-1",
+    dashboardScrollbarClassName,
+);
+
+const dashboardRecordingListModeStyles = {
+    root: "mt-2 flex items-center gap-2.5",
+    label: "inline-flex items-center gap-1.5 font-sans text-[12px] font-semibold text-[var(--fg-secondary)]",
+    count: "font-mono text-[11px] font-medium text-[var(--fg-tertiary)]",
+    segmented: "ml-auto",
+} as const;
+
+const dashboardRecordingListStateStyles = {
+    root: "m-2 flex flex-col items-center gap-1.5 rounded-[10px] border border-dashed border-[var(--line-hairline)] bg-[var(--bg-recessed)] px-[18px] py-[26px] text-center",
+    icon: "mb-0.5 inline-flex size-[34px] items-center justify-center rounded-full border border-[var(--line-hairline)] bg-[var(--bg-elevated)] text-[var(--fg-tertiary)] [&_svg]:size-[15px] [&_svg]:fill-none [&_svg]:stroke-current [&_svg]:stroke-[1.8] [&_svg]:[stroke-linecap:round] [&_svg]:[stroke-linejoin:round]",
+    title: "font-sans text-[13px] font-semibold text-[var(--fg-primary)]",
+    description:
+        "max-w-[300px] font-sans text-[12px] font-medium leading-[1.5] text-[var(--fg-tertiary)]",
+} as const;
+
+const dashboardRecordingListPaginationStyles = {
+    root: "m-2 flex flex-col items-stretch gap-1.5 border-0 bg-transparent p-[14px] text-center",
+    divider: "relative mt-1.5 mb-[14px] h-px bg-[var(--line-hairline)]",
+    status: "absolute left-1/2 -top-2 -translate-x-1/2 -translate-y-1/2 bg-[var(--bg-elevated)] px-2.5 font-mono text-[10.5px] font-medium text-[var(--fg-tertiary)]",
+    nav: "mt-1 flex items-center justify-center gap-2.5",
+    number:
+        "min-w-14 text-center font-mono text-[11.5px] font-medium text-[var(--fg-tertiary)]",
+} as const;
+
 const dashboardSearchActivityClassNames = {
     dashboardTopbarActions: "ml-auto flex items-center gap-2",
     librarySearchAnchor:
@@ -5919,8 +5951,18 @@ export function Workstation({
                                         </span>
                                     </output>
                                 ) : null}
-                                <div data-sot-panel="dashboard-recording-list-mode">
-                                    <div data-sot-part="dashboard-recording-list-mode-label">
+                                <div
+                                    className={
+                                        dashboardRecordingListModeStyles.root
+                                    }
+                                    data-sot-panel="dashboard-recording-list-mode"
+                                >
+                                    <div
+                                        className={
+                                            dashboardRecordingListModeStyles.label
+                                        }
+                                        data-sot-part="dashboard-recording-list-mode-label"
+                                    >
                                         <span data-sot-part="dashboard-recording-list-mode-title">
                                             {listMode === "timeline"
                                                 ? t(
@@ -5928,7 +5970,12 @@ export function Workstation({
                                                   )
                                                 : t("recordingList.tagsTitle")}
                                         </span>
-                                        <span data-sot-part="dashboard-recording-list-mode-count">
+                                        <span
+                                            className={
+                                                dashboardRecordingListModeStyles.count
+                                            }
+                                            data-sot-part="dashboard-recording-list-mode-count"
+                                        >
                                             {t("recordingList.visibleCount", {
                                                 count: listEntries.length,
                                             })}
@@ -5941,6 +5988,9 @@ export function Workstation({
                                         data-sot-control="segmented-tabs"
                                         data-sot-part="dashboard-recording-list-mode-segmented"
                                         data-sot-size="sm"
+                                        className={
+                                            dashboardRecordingListModeStyles.segmented
+                                        }
                                         getItemProps={getSotSegmentedTabProps}
                                         items={[
                                             {
@@ -6137,7 +6187,10 @@ export function Workstation({
                                     </div>
                                 </div>
                             </div>
-                            <div data-sot-list="dashboard-recording-list-scroll">
+                            <div
+                                className={dashboardRecordingListScrollClassName}
+                                data-sot-list="dashboard-recording-list-scroll"
+                            >
                                 {listState === "loading" ? (
                                     <SotRecordingListSkeleton />
                                 ) : listState === "ready" ? (
@@ -6421,14 +6474,27 @@ export function Workstation({
                                     </div>
                                 ) : (
                                     <div
+                                        className={
+                                            dashboardRecordingListStateStyles.root
+                                        }
                                         data-list-state-block={listState}
                                         data-sot-part="recording-list-state"
                                         data-sot-state={listState}
                                     >
-                                        <span data-sot-part="recording-list-state-icon">
+                                        <span
+                                            className={
+                                                dashboardRecordingListStateStyles.icon
+                                            }
+                                            data-sot-part="recording-list-state-icon"
+                                        >
                                             <FileText />
                                         </span>
-                                        <div data-sot-part="recording-list-state-title">
+                                        <div
+                                            className={
+                                                dashboardRecordingListStateStyles.title
+                                            }
+                                            data-sot-part="recording-list-state-title"
+                                        >
                                             {listState === "empty"
                                                 ? t("recordingList.emptyTitle")
                                                 : listState === "timeline-empty"
@@ -6443,7 +6509,12 @@ export function Workstation({
                                                           "recordingList.noMatchTitle",
                                                       )}
                                         </div>
-                                        <div data-sot-part="recording-list-state-description">
+                                        <div
+                                            className={
+                                                dashboardRecordingListStateStyles.description
+                                            }
+                                            data-sot-part="recording-list-state-description"
+                                        >
                                             {listState === "empty"
                                                 ? t(
                                                       "recordingList.emptyDescription",
@@ -6541,14 +6612,27 @@ export function Workstation({
                                 )}
                                 {listState === "ready" && listTotalPages > 1 ? (
                                     <div
+                                        className={
+                                            dashboardRecordingListPaginationStyles.root
+                                        }
                                         data-list-state-block={
                                             listPaginationState
                                         }
                                         data-sot-panel="recording-list-pagination"
                                         data-sot-state={listPaginationState}
                                     >
-                                        <div data-sot-part="recording-list-page-divider">
-                                            <span data-sot-part="recording-list-page-status">
+                                        <div
+                                            className={
+                                                dashboardRecordingListPaginationStyles.divider
+                                            }
+                                            data-sot-part="recording-list-page-divider"
+                                        >
+                                            <span
+                                                className={
+                                                    dashboardRecordingListPaginationStyles.status
+                                                }
+                                                data-sot-part="recording-list-page-status"
+                                            >
                                                 {t(listPageStatusKey, {
                                                     current: currentListPage,
                                                     loaded: listLoadedCount,
@@ -6556,7 +6640,12 @@ export function Workstation({
                                                 })}
                                             </span>
                                         </div>
-                                        <div data-sot-part="recording-list-page-nav">
+                                        <div
+                                            className={
+                                                dashboardRecordingListPaginationStyles.nav
+                                            }
+                                            data-sot-part="recording-list-page-nav"
+                                        >
                                             <Button
                                                 variant="ghost"
                                                 size="sm"
@@ -6580,7 +6669,12 @@ export function Workstation({
                                             >
                                                 {t("recordingList.previous")}
                                             </Button>
-                                            <span data-sot-part="recording-list-page-number">
+                                            <span
+                                                className={
+                                                    dashboardRecordingListPaginationStyles.number
+                                                }
+                                                data-sot-part="recording-list-page-number"
+                                            >
                                                 {currentListPage} /{" "}
                                                 {listTotalPages}
                                             </span>
@@ -7505,6 +7599,7 @@ export function Workstation({
                             <CardContent
                                 className={cn(
                                     "min-h-0 flex-1 overflow-y-auto px-5 pt-4 pb-5",
+                                    dashboardScrollbarClassName,
                                     dashboardRetranscriptionThemeClassName,
                                 )}
                                 data-sot-part="dashboard-transcript-body"

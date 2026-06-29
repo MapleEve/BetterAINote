@@ -1011,40 +1011,6 @@ button:not([data-slot]) {
     background: transparent;
     border-bottom-color: var(--glass-border-soft);
 }
-[data-sot-list="dashboard-recording-list-scroll"] {
-    flex: 1;
-    overflow-y: auto;
-    padding: 4px;
-}
-
-/* Scrollbars — themed to match surface */
-[data-sot-list="dashboard-recording-list-scroll"],
-[data-sot-part="dashboard-transcript-body"] {
-    scrollbar-width: thin;
-    scrollbar-color: color-mix(in srgb, var(--fg-tertiary) 40%, transparent)
-        transparent;
-}
-[data-sot-list="dashboard-recording-list-scroll"]::-webkit-scrollbar,
-[data-sot-part="dashboard-transcript-body"]::-webkit-scrollbar {
-    width: 10px;
-    height: 10px;
-}
-[data-sot-list="dashboard-recording-list-scroll"]::-webkit-scrollbar-track,
-[data-sot-part="dashboard-transcript-body"]::-webkit-scrollbar-track {
-    background: transparent;
-}
-[data-sot-list="dashboard-recording-list-scroll"]::-webkit-scrollbar-thumb,
-[data-sot-part="dashboard-transcript-body"]::-webkit-scrollbar-thumb {
-    background: color-mix(in srgb, var(--fg-tertiary) 35%, transparent);
-    border-radius: 999px;
-    border: 2px solid transparent;
-    background-clip: padding-box;
-}
-[data-sot-list="dashboard-recording-list-scroll"]::-webkit-scrollbar-thumb:hover,
-[data-sot-part="dashboard-transcript-body"]::-webkit-scrollbar-thumb:hover {
-    background: color-mix(in srgb, var(--fg-tertiary) 55%, transparent);
-    background-clip: padding-box;
-}
 /* ======== Detail panel ======== */
 [data-sot-panel="dashboard-detail"],
 [data-sot-panel="recording-workstation-detail"],
@@ -1143,25 +1109,6 @@ button:not([data-slot]) {
 [data-sot-panel="settings-scroll-body"][data-sot-availability="unavailable"]
     [data-sot-panel="voscript-unavailable-banner"] {
     display: grid !important;
-}
-[data-sot-part="recording-list-state"],
-[data-sot-panel="recording-list-pagination"] {
-    display: flex;
-}
-[data-sot-part="recording-list-state-icon"] {
-    display: inline-flex;
-}
-[data-sot-panel="recording-list-pagination"] {
-    display: flex;
-}
-[data-sot-part="recording-list-page-divider"] {
-    position: relative;
-}
-[data-sot-part="recording-list-page-divider"]
-    [data-sot-part="recording-list-page-status"] {
-    position: absolute;
-    top: -8px;
-    left: 50%;
 }
 [data-sot-panel="settings-scroll-body"] [data-sot-key-status] {
     display: inline-flex;
@@ -1264,12 +1211,6 @@ button:not([data-slot]) {
 [data-sot-panel="dashboard-detail"][data-empty="true"] [data-detail-empty] {
     display: flex;
 }
-[data-sot-panel="dashboard-recording-list-mode"] {
-    display: flex;
-}
-[data-sot-part="dashboard-recording-list-mode-label"] {
-    display: inline-flex;
-}
 [data-sot-panel="dashboard-recording-time-filter"][hidden] {
     display: none !important;
 }
@@ -1322,101 +1263,6 @@ button:not([data-slot]) {
     font: 500 11.5px var(--font-mono);
     color: var(--fg-tertiary);
     margin-left: auto;
-}
-/* ---------- list-mode-bar ---------- */
-[data-sot-panel="dashboard-recording-list-mode"] {
-    align-items: center;
-    gap: 10px;
-    margin-top: 8px;
-}
-[data-sot-part="dashboard-recording-list-mode-label"] {
-    align-items: center;
-    gap: 6px;
-    font: 600 12px var(--font-sans);
-    color: var(--fg-secondary);
-}
-[data-sot-part="dashboard-recording-list-mode-count"] {
-    font: 500 11px var(--font-mono);
-    color: var(--fg-tertiary);
-}
-[data-sot-part="dashboard-recording-list-mode-segmented"] {
-    margin-left: auto;
-}
-
-/* ---------- list-state-block (empty / no-match / paginated) ---------- */
-[data-sot-part="recording-list-state"],
-[data-sot-panel="recording-list-pagination"] {
-    flex-direction: column;
-    align-items: center;
-    gap: 6px;
-    padding: 26px 18px;
-    text-align: center;
-    margin: 8px;
-    background: var(--bg-recessed);
-    border: 1px dashed var(--line-hairline);
-    border-radius: 10px;
-}
-[data-sot-part="recording-list-state-icon"] {
-    width: 34px;
-    height: 34px;
-    border-radius: 50%;
-    background: var(--bg-elevated);
-    border: 1px solid var(--line-hairline);
-    color: var(--fg-tertiary);
-    align-items: center;
-    justify-content: center;
-    margin-bottom: 2px;
-}
-[data-sot-part="recording-list-state-icon"] svg {
-    width: 15px;
-    height: 15px;
-    stroke: currentColor;
-    fill: none;
-    stroke-width: 1.8;
-    stroke-linecap: round;
-    stroke-linejoin: round;
-}
-[data-sot-part="recording-list-state-title"] {
-    font: 600 13px var(--font-sans);
-    color: var(--fg-primary);
-}
-[data-sot-part="recording-list-state-description"] {
-    font: 500 12px / 1.5 var(--font-sans);
-    color: var(--fg-tertiary);
-    max-width: 300px;
-}
-[data-sot-panel="recording-list-pagination"] {
-    background: transparent;
-    border: 0;
-    padding: 14px;
-    align-items: stretch;
-}
-[data-sot-part="recording-list-page-divider"] {
-    height: 1px;
-    background: var(--line-hairline);
-    margin: 6px 0 14px;
-}
-[data-sot-part="recording-list-page-divider"]
-    [data-sot-part="recording-list-page-status"] {
-    background: var(--bg-elevated);
-    padding: 0 10px;
-    transform: translate(-50%, -50%);
-    font: 500 10.5px var(--font-mono);
-    color: var(--fg-tertiary);
-}
-/* Pagination prev/next row (paginated-first / paginated / paginated-last). */
-[data-sot-part="recording-list-page-nav"] {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 10px;
-    margin-top: 4px;
-}
-[data-sot-part="recording-list-page-number"] {
-    font: 500 11.5px var(--font-mono);
-    color: var(--fg-tertiary);
-    min-width: 56px;
-    text-align: center;
 }
 
 /* ---------- Settings panel: field groups, banners, save state, voscript ---------- */

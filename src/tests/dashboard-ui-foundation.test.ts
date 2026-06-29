@@ -1493,6 +1493,51 @@ const DASHBOARD_RECORDING_LIST_BATCH_SOT_HOOKS = [
     'data-sot-part="recording-list-page-number"',
 ];
 
+const DASHBOARD_RECORDING_LIST_RESIDUAL_MIGRATED_GLOBAL_SELECTORS = [
+    '[data-sot-list="dashboard-recording-list-scroll"]',
+    '[data-sot-list="dashboard-recording-list-scroll"]::-webkit-scrollbar',
+    '[data-sot-list="dashboard-recording-list-scroll"]::-webkit-scrollbar-track',
+    '[data-sot-list="dashboard-recording-list-scroll"]::-webkit-scrollbar-thumb',
+    '[data-sot-list="dashboard-recording-list-scroll"]::-webkit-scrollbar-thumb:hover',
+    '[data-sot-part="dashboard-transcript-body"]',
+    '[data-sot-part="dashboard-transcript-body"]::-webkit-scrollbar',
+    '[data-sot-part="dashboard-transcript-body"]::-webkit-scrollbar-track',
+    '[data-sot-part="dashboard-transcript-body"]::-webkit-scrollbar-thumb',
+    '[data-sot-part="dashboard-transcript-body"]::-webkit-scrollbar-thumb:hover',
+    '[data-sot-panel="dashboard-recording-list-mode"]',
+    '[data-sot-part="dashboard-recording-list-mode-label"]',
+    '[data-sot-part="dashboard-recording-list-mode-count"]',
+    '[data-sot-part="dashboard-recording-list-mode-segmented"]',
+    '[data-sot-part="recording-list-state"]',
+    '[data-sot-panel="recording-list-pagination"]',
+    '[data-sot-part="recording-list-state-icon"]',
+    '[data-sot-part="recording-list-state-icon"] svg',
+    '[data-sot-part="recording-list-state-title"]',
+    '[data-sot-part="recording-list-state-description"]',
+    '[data-sot-part="recording-list-page-divider"]',
+    '[data-sot-part="recording-list-page-status"]',
+    '[data-sot-part="recording-list-page-nav"]',
+    '[data-sot-part="recording-list-page-number"]',
+] as const;
+
+const DASHBOARD_RECORDING_LIST_RESIDUAL_OWNER_CLASS_REFS = [
+    "dashboardScrollbarClassName",
+    "dashboardRecordingListScrollClassName",
+    "dashboardRecordingListModeStyles.root",
+    "dashboardRecordingListModeStyles.label",
+    "dashboardRecordingListModeStyles.count",
+    "dashboardRecordingListModeStyles.segmented",
+    "dashboardRecordingListStateStyles.root",
+    "dashboardRecordingListStateStyles.icon",
+    "dashboardRecordingListStateStyles.title",
+    "dashboardRecordingListStateStyles.description",
+    "dashboardRecordingListPaginationStyles.root",
+    "dashboardRecordingListPaginationStyles.divider",
+    "dashboardRecordingListPaginationStyles.status",
+    "dashboardRecordingListPaginationStyles.nav",
+    "dashboardRecordingListPaginationStyles.number",
+] as const;
+
 const DASHBOARD_RECORDING_LIST_PRIMITIVE_REPAINT_CSS_SELECTORS = [
     '[data-sot-surface="dashboard-recording-list"][data-slot="card"]',
     '[data-sot-part="dashboard-recording-list-content"][data-slot="card-content"]',
@@ -3615,6 +3660,34 @@ describe("dashboard SOT foundation", () => {
                 staticJsxClassName(legacyClassName),
             );
         }
+        const dashboardRecordingListResidualClassSource = extractBoundedSlice(
+            workstation,
+            "const dashboardScrollbarClassName =",
+            "const dashboardSearchActivityClassNames = {",
+        );
+        for (const migratedSelector of DASHBOARD_RECORDING_LIST_RESIDUAL_MIGRATED_GLOBAL_SELECTORS) {
+            expect(collectCssRuleBlocks(globals, migratedSelector)).toEqual([]);
+        }
+        for (const ownerClassRef of DASHBOARD_RECORDING_LIST_RESIDUAL_OWNER_CLASS_REFS) {
+            expect(workstation).toContain(ownerClassRef);
+        }
+        for (const ownerClassToken of [
+            "[scrollbar-width:thin]",
+            "[&::-webkit-scrollbar-thumb:hover]:bg-[color-mix(in_srgb,var(--fg-tertiary)_55%,transparent)]",
+            "flex-1 overflow-y-auto p-1",
+            "m-2 flex flex-col items-center gap-1.5",
+            "relative mt-1.5 mb-[14px] h-px",
+        ]) {
+            expect(dashboardRecordingListResidualClassSource).toContain(
+                ownerClassToken,
+            );
+        }
+        expect(workstation).toMatch(
+            /className=\{\s*dashboardRecordingListScrollClassName\s*\}[\s\S]*data-sot-list="dashboard-recording-list-scroll"/,
+        );
+        expect(workstation).toMatch(
+            /dashboardScrollbarClassName[\s\S]*data-sot-part="dashboard-transcript-body"/,
+        );
         expect(workstation).toContain("tagFilterValue(tag.id)");
         expect(workstation).toContain('"untagged"');
         expect(workstation).toContain("displayTag?: RecordingTag");

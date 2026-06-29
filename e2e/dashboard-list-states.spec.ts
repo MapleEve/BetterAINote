@@ -484,6 +484,102 @@ const LIST_SKELETON_MIGRATION_FIXTURE_CSS = `
     }
 `;
 const LIST_STATE_BLOCK_MIGRATION_FIXTURE_CSS = `
+    .list-state-block-pixel-stage,
+    .list-state-block-pixel-stage * {
+        box-sizing: border-box !important;
+        -webkit-font-smoothing: antialiased !important;
+        -moz-osx-font-smoothing: grayscale !important;
+        text-rendering: optimizeLegibility !important;
+        font-feature-settings: "ss01", "cv11", "rlig", "calt" !important;
+    }
+    .list-state-block-pixel-stage .list-state-block {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 6px;
+        padding: 26px 18px;
+        text-align: center;
+        margin: 8px;
+        background: var(--bg-recessed);
+        border: 1px dashed var(--line-hairline);
+        border-radius: 10px;
+    }
+    .list-state-block-pixel-stage .list-state-block .lsb-ico,
+    .list-state-block-pixel-stage [data-sot-part="recording-list-state-icon"] {
+        display: inline-flex;
+        width: 34px;
+        height: 34px;
+        border-radius: 50%;
+        background: var(--bg-elevated);
+        border: 1px solid var(--line-hairline);
+        color: var(--fg-tertiary);
+        align-items: center;
+        justify-content: center;
+        margin-bottom: 2px;
+    }
+    .list-state-block-pixel-stage .list-state-block .lsb-ico svg,
+    .list-state-block-pixel-stage [data-sot-part="recording-list-state-icon"] svg {
+        width: 15px;
+        height: 15px;
+        stroke: currentColor;
+        fill: none;
+        stroke-width: 1.8;
+        stroke-linecap: round;
+        stroke-linejoin: round;
+    }
+    .list-state-block-pixel-stage .list-state-block .lsb-t,
+    .list-state-block-pixel-stage [data-sot-part="recording-list-state-title"] {
+        font: 600 13px var(--font-sans);
+        color: var(--fg-primary);
+    }
+    .list-state-block-pixel-stage .list-state-block .lsb-h,
+    .list-state-block-pixel-stage [data-sot-part="recording-list-state-description"] {
+        font: 500 12px / 1.5 var(--font-sans);
+        color: var(--fg-tertiary);
+        max-width: 300px;
+    }
+    .list-state-block-pixel-stage .list-state-block.list-state-pagination {
+        display: flex;
+        background: transparent;
+        border: 0;
+        padding: 14px;
+        align-items: stretch;
+    }
+    .list-state-block-pixel-stage .list-state-block.list-state-pagination .lsb-page-divider,
+    .list-state-block-pixel-stage [data-sot-part="recording-list-page-divider"] {
+        position: relative !important;
+        height: 1px;
+        background: var(--line-hairline);
+        margin: 6px 0 14px;
+    }
+    .list-state-block-pixel-stage .list-state-block.list-state-pagination .lsb-page-divider span,
+    .list-state-block-pixel-stage [data-sot-part="recording-list-page-status"] {
+        position: absolute !important;
+        top: -8px !important;
+        left: 50% !important;
+        background: var(--bg-elevated);
+        padding: 0 10px;
+        translate: none !important;
+        transform: translate(-50%, -50%) !important;
+        width: max-content;
+        font: 500 10.5px var(--font-mono);
+        color: var(--fg-tertiary);
+    }
+    .list-state-block-pixel-stage .list-state-block.list-state-pagination .lsb-page-nav,
+    .list-state-block-pixel-stage [data-sot-part="recording-list-page-nav"] {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 10px;
+        margin-top: 4px;
+    }
+    .list-state-block-pixel-stage .list-state-block.list-state-pagination .lsb-page-num,
+    .list-state-block-pixel-stage [data-sot-part="recording-list-page-number"] {
+        font: 500 11.5px var(--font-mono);
+        color: var(--fg-tertiary);
+        min-width: 56px;
+        text-align: center;
+    }
     .list-state-block .btn {
         display: inline-flex;
         align-items: center;
@@ -507,6 +603,18 @@ const LIST_STATE_BLOCK_MIGRATION_FIXTURE_CSS = `
         box-shadow: none;
         color: var(--fg-secondary);
     }
+    .list-state-block .btn.primary {
+        background: linear-gradient(
+            180deg,
+            color-mix(in srgb, var(--accent) 92%, white 18%),
+            var(--accent)
+        );
+        border-color: color-mix(in srgb, var(--accent) 60%, black 8%);
+        color: white;
+        box-shadow:
+            0 2px 6px color-mix(in srgb, var(--accent) 24%, transparent),
+            inset 0 1px 0 rgb(255 255 255 / 0.22);
+    }
     .list-state-block .btn.btn-sm {
         height: 26px;
         padding: 0 10px;
@@ -520,6 +628,31 @@ const LIST_STATE_BLOCK_MIGRATION_FIXTURE_CSS = `
         pointer-events: none;
     }
 `;
+const DASHBOARD_LIST_STATE_OWNER_CLASS_CONTRACT = {
+    listStateAction:
+        "h-8 gap-1.5 rounded-md bg-transparent px-3 text-[var(--fg-secondary)] shadow-none hover:bg-accent hover:text-accent-foreground dark:hover:bg-accent/50 has-[>svg]:px-2.5",
+    listStateDescription:
+        "max-w-[300px] font-sans text-[12px] font-medium leading-[1.5] text-[var(--fg-tertiary)]",
+    listStateIcon:
+        "mb-0.5 inline-flex size-[34px] items-center justify-center rounded-full border border-[var(--line-hairline)] bg-[var(--bg-elevated)] text-[var(--fg-tertiary)] [&_svg]:size-[15px] [&_svg]:fill-none [&_svg]:stroke-current [&_svg]:stroke-[1.8] [&_svg]:[stroke-linecap:round] [&_svg]:[stroke-linejoin:round]",
+    listStatePrimary:
+        "h-8 gap-1.5 rounded-md bg-primary px-3 text-primary-foreground shadow-xs hover:bg-primary/90 has-[>svg]:px-2.5",
+    listStateRoot:
+        "m-2 flex flex-col items-center gap-1.5 rounded-[10px] border border-dashed border-[var(--line-hairline)] bg-[var(--bg-recessed)] px-[18px] py-[26px] text-center",
+    listStateTitle:
+        "font-sans text-[13px] font-semibold text-[var(--fg-primary)]",
+    paginationButton:
+        "h-8 gap-1.5 rounded-md bg-transparent px-3 text-[var(--fg-secondary)] shadow-none hover:bg-accent hover:text-accent-foreground dark:hover:bg-accent/50 has-[>svg]:px-2.5",
+    paginationDivider:
+        "relative mt-1.5 mb-[14px] h-px bg-[var(--line-hairline)]",
+    paginationNav: "mt-1 flex items-center justify-center gap-2.5",
+    paginationNumber:
+        "min-w-14 text-center font-mono text-[11.5px] font-medium text-[var(--fg-tertiary)]",
+    paginationRoot:
+        "m-2 flex flex-col items-stretch gap-1.5 border-0 bg-transparent p-[14px] text-center",
+    paginationStatus:
+        "absolute left-1/2 -top-2 -translate-x-1/2 -translate-y-1/2 bg-[var(--bg-elevated)] px-2.5 font-mono text-[10.5px] font-medium text-[var(--fg-tertiary)]",
+} as const;
 const SOT_PIXEL_DEV_OVERLAY_STYLE_ATTR = "data-sot-pixel-dev-overlay-fixture";
 const LIST_ROW_SOT_STATES = [
     "active-updated",
@@ -2390,9 +2523,21 @@ async function captureListStateBlockFixture(page: Page, blockHtml: string) {
         .slice(2)}`;
 
     await page.evaluate(
-        ({ blockHtml: html, fixtureCss, fixtureId: id }) => {
+        ({ blockHtml: html, fixtureCss, fixtureId: id, ownerClasses }) => {
             document.getElementById(id)?.remove();
             document.documentElement.dataset.theme = "dark";
+
+            const addClasses = (element: Element | null, className: string) => {
+                if (!element) return;
+                element.classList.add(
+                    ...className.split(/\s+/).filter(Boolean),
+                );
+            };
+            const addClassesToAll = (selector: string, className: string) => {
+                stage.querySelectorAll(selector).forEach((element) => {
+                    addClasses(element, className);
+                });
+            };
 
             const host = document.createElement("div");
             host.id = id;
@@ -2435,11 +2580,13 @@ async function captureListStateBlockFixture(page: Page, blockHtml: string) {
                         "recording-list-pagination",
                     );
                     stateBlock.classList.add("list-state-pagination");
+                    addClasses(stateBlock, ownerClasses.paginationRoot);
                 } else {
                     stateBlock.setAttribute(
                         "data-sot-part",
                         "recording-list-state",
                     );
+                    addClasses(stateBlock, ownerClasses.listStateRoot);
                 }
 
                 stateBlock
@@ -2448,18 +2595,30 @@ async function captureListStateBlockFixture(page: Page, blockHtml: string) {
                         "data-sot-part",
                         "recording-list-state-icon",
                     );
+                addClassesToAll(
+                    '[data-sot-part="recording-list-state-icon"]',
+                    ownerClasses.listStateIcon,
+                );
                 stateBlock
                     .querySelector<HTMLElement>(".lsb-t")
                     ?.setAttribute(
                         "data-sot-part",
                         "recording-list-state-title",
                     );
+                addClassesToAll(
+                    '[data-sot-part="recording-list-state-title"]',
+                    ownerClasses.listStateTitle,
+                );
                 stateBlock
                     .querySelector<HTMLElement>(".lsb-h")
                     ?.setAttribute(
                         "data-sot-part",
                         "recording-list-state-description",
                     );
+                addClassesToAll(
+                    '[data-sot-part="recording-list-state-description"]',
+                    ownerClasses.listStateDescription,
+                );
                 const pageDivider =
                     stateBlock.querySelector<HTMLElement>(
                         ".lsb-page-divider",
@@ -2468,24 +2627,51 @@ async function captureListStateBlockFixture(page: Page, blockHtml: string) {
                     "data-sot-part",
                     "recording-list-page-divider",
                 );
+                addClassesToAll(
+                    '[data-sot-part="recording-list-page-divider"]',
+                    ownerClasses.paginationDivider,
+                );
                 pageDivider
                     ?.querySelector<HTMLElement>("span")
                     ?.setAttribute(
                         "data-sot-part",
                         "recording-list-page-status",
                     );
+                addClassesToAll(
+                    '[data-sot-part="recording-list-page-status"]',
+                    ownerClasses.paginationStatus,
+                );
                 stateBlock
                     .querySelector<HTMLElement>(".lsb-page-nav")
                     ?.setAttribute(
                         "data-sot-part",
                         "recording-list-page-nav",
                     );
+                addClassesToAll(
+                    '[data-sot-part="recording-list-page-nav"]',
+                    ownerClasses.paginationNav,
+                );
                 stateBlock
                     .querySelector<HTMLElement>(".lsb-page-num")
                     ?.setAttribute(
                         "data-sot-part",
                         "recording-list-page-number",
                     );
+                addClassesToAll(
+                    '[data-sot-part="recording-list-page-number"]',
+                    ownerClasses.paginationNumber,
+                );
+
+                const stateButtons = stateBlock.querySelectorAll("button");
+                for (const button of stateButtons) {
+                    if (isPagination) {
+                        addClasses(button, ownerClasses.paginationButton);
+                    } else if (button.classList.contains("primary")) {
+                        addClasses(button, ownerClasses.listStatePrimary);
+                    } else {
+                        addClasses(button, ownerClasses.listStateAction);
+                    }
+                }
             }
             for (const button of stage.querySelectorAll<HTMLElement>(
                 '[data-slot="button"][data-variant="ghost"][data-size="sm"]',
@@ -2504,6 +2690,7 @@ async function captureListStateBlockFixture(page: Page, blockHtml: string) {
             blockHtml,
             fixtureCss: LIST_STATE_BLOCK_MIGRATION_FIXTURE_CSS,
             fixtureId,
+            ownerClasses: DASHBOARD_LIST_STATE_OWNER_CLASS_CONTRACT,
         },
     );
 

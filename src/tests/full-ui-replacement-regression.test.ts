@@ -1532,8 +1532,24 @@ const DASHBOARD_RECORDING_LIST_DATA_SOT_CSS_SELECTORS = [
     '[data-sot-part="dashboard-recording-list-titlebar"]',
     '[data-sot-part="dashboard-recording-list-title"]',
     '[data-sot-part="dashboard-recording-list-count"]',
-    '[data-sot-list="dashboard-recording-list-scroll"]',
     '[data-sot-part="dashboard-sidebar-footer"]',
+] as const;
+
+const DASHBOARD_RECORDING_LIST_RESIDUAL_MIGRATED_GLOBAL_SELECTORS = [
+    '[data-sot-list="dashboard-recording-list-scroll"]',
+    '[data-sot-list="dashboard-recording-list-scroll"]::-webkit-scrollbar',
+    '[data-sot-list="dashboard-recording-list-scroll"]::-webkit-scrollbar-track',
+    '[data-sot-list="dashboard-recording-list-scroll"]::-webkit-scrollbar-thumb',
+    '[data-sot-list="dashboard-recording-list-scroll"]::-webkit-scrollbar-thumb:hover',
+    '[data-sot-part="dashboard-transcript-body"]',
+    '[data-sot-part="dashboard-transcript-body"]::-webkit-scrollbar',
+    '[data-sot-part="dashboard-transcript-body"]::-webkit-scrollbar-track',
+    '[data-sot-part="dashboard-transcript-body"]::-webkit-scrollbar-thumb',
+    '[data-sot-part="dashboard-transcript-body"]::-webkit-scrollbar-thumb:hover',
+    '[data-sot-panel="dashboard-recording-list-mode"]',
+    '[data-sot-part="dashboard-recording-list-mode-label"]',
+    '[data-sot-part="dashboard-recording-list-mode-count"]',
+    '[data-sot-part="dashboard-recording-list-mode-segmented"]',
     '[data-sot-part="recording-list-state"]',
     '[data-sot-panel="recording-list-pagination"]',
     '[data-sot-part="recording-list-state-icon"]',
@@ -1544,7 +1560,25 @@ const DASHBOARD_RECORDING_LIST_DATA_SOT_CSS_SELECTORS = [
     '[data-sot-part="recording-list-page-status"]',
     '[data-sot-part="recording-list-page-nav"]',
     '[data-sot-part="recording-list-page-number"]',
-];
+] as const;
+
+const DASHBOARD_RECORDING_LIST_RESIDUAL_OWNER_CLASS_REFS = [
+    "dashboardScrollbarClassName",
+    "dashboardRecordingListScrollClassName",
+    "dashboardRecordingListModeStyles.root",
+    "dashboardRecordingListModeStyles.label",
+    "dashboardRecordingListModeStyles.count",
+    "dashboardRecordingListModeStyles.segmented",
+    "dashboardRecordingListStateStyles.root",
+    "dashboardRecordingListStateStyles.icon",
+    "dashboardRecordingListStateStyles.title",
+    "dashboardRecordingListStateStyles.description",
+    "dashboardRecordingListPaginationStyles.root",
+    "dashboardRecordingListPaginationStyles.divider",
+    "dashboardRecordingListPaginationStyles.status",
+    "dashboardRecordingListPaginationStyles.nav",
+    "dashboardRecordingListPaginationStyles.number",
+] as const;
 
 const DASHBOARD_RECORDING_LIST_PRIMITIVE_REPAINT_CSS_SELECTORS = [
     '[data-sot-surface="dashboard-recording-list"][data-slot="card"]',
@@ -2248,7 +2282,7 @@ const MORE_ACTIONS_MENU_COMPOSITION_TOKENS = [
 const SOT_SCROLLBAR_LEGACY_PRODUCT_CSS_SELECTOR_RE =
     /\.(?:tx-body|shortcuts-list)(?![\w-])/;
 
-const SOT_SCROLLBAR_DATA_SOT_CSS_SELECTORS = [
+const SOT_SCROLLBAR_MIGRATED_GLOBAL_SELECTORS = [
     '[data-sot-list="dashboard-recording-list-scroll"]',
     '[data-sot-part="dashboard-transcript-body"]',
     '[data-sot-list="dashboard-recording-list-scroll"]::-webkit-scrollbar',
@@ -2509,6 +2543,8 @@ function isOwnerLocalModernColorLine(relativePath: string, line: string) {
             line.includes("var(--accent)_36%") ||
             line.includes("--tag-c:var(--tag-violet)") ||
             line.includes("data-sot-part=dashboard-activity") ||
+            line.includes("scrollbar-color") ||
+            line.includes("::-webkit-scrollbar") ||
             line.includes("focus-visible:outline-[color-mix")
         );
     }
@@ -3234,7 +3270,6 @@ const DASHBOARD_TRANSCRIPT_SOURCE_REPORT_RETX_ACTIVITY_LEGACY_CSS_SELECTOR_RE =
     /(^|[^\w-])\.(?:activity-pixel-stage|notif-panel|notif-empty|turn|transcript|transcript-head|transcript-body|speaker|speaker-name|sr-pane|list-empty|empty-state|empty-ico|empty-msg|empty-sub|retx-banner|retx-banner-ico|retx-spinner|retx-disabled-hint|retx-refresh-marker|retx-banner-body|retx-banner-title|retx-banner-sub|retx-banner-actions|retx-ico-warn|retx-ico-ok|t-actions)(?![\w-])/;
 
 const DASHBOARD_TRANSCRIPT_SOURCE_REPORT_RETX_ACTIVITY_SOT_CSS_SELECTORS = [
-    '[data-sot-part="dashboard-transcript-body"]',
     '[data-sot-panel="dashboard-retranscription"]',
     '[data-sot-part="dashboard-retranscription-icon"]',
     '[data-sot-part="dashboard-retranscription-refresh-marker"]',
@@ -4965,8 +5000,10 @@ describe("full UI replacement regression coverage", () => {
         expect(workstation).toContain("data-list-state-block");
     });
 
-    it("keeps dashboard sidebar footer and recording-list states on data-sot product CSS selectors", () => {
+    it("keeps dashboard sidebar footer globals while list residuals stay owner-local", () => {
         const globals = readSource("app/globals.css");
+        const workstation = readSource("features/dashboard/workstation.tsx");
+        const featureOwnerClassSource = collectFeatureOwnerClassSource(workstation);
         const legacySelectorLines = globals
             .split("\n")
             .map((text, index) => ({ line: index + 1, text }))
@@ -4979,6 +5016,21 @@ describe("full UI replacement regression coverage", () => {
         expect(legacySelectorLines).toEqual([]);
         for (const selector of DASHBOARD_RECORDING_LIST_DATA_SOT_CSS_SELECTORS) {
             expect(globals).toContain(selector);
+        }
+        for (const selector of DASHBOARD_RECORDING_LIST_RESIDUAL_MIGRATED_GLOBAL_SELECTORS) {
+            expect(collectCssRuleBlocks(globals, selector)).toEqual([]);
+        }
+        for (const ownerClassRef of DASHBOARD_RECORDING_LIST_RESIDUAL_OWNER_CLASS_REFS) {
+            expect(workstation).toContain(ownerClassRef);
+        }
+        for (const ownerClassToken of [
+            "[scrollbar-width:thin]",
+            "[&::-webkit-scrollbar-thumb:hover]:bg-[color-mix(in_srgb,var(--fg-tertiary)_55%,transparent)]",
+            "flex-1 overflow-y-auto p-1",
+            "m-2 flex flex-col items-center gap-1.5",
+            "relative mt-1.5 mb-[14px] h-px",
+        ]) {
+            expect(featureOwnerClassSource).toContain(ownerClassToken);
         }
         for (const migratedSelector of DASHBOARD_RECORDING_ROW_MIGRATED_GLOBAL_SELECTORS) {
             expect(collectCssRuleBlocks(globals, migratedSelector)).toEqual([]);
@@ -5331,8 +5383,9 @@ describe("full UI replacement regression coverage", () => {
         }
     });
 
-    it("keeps shared scrollbars product CSS on data-sot selectors", () => {
+    it("keeps shared scrollbars owner-local on dashboard scroll surfaces", () => {
         const globals = readSource("app/globals.css");
+        const workstation = readSource("features/dashboard/workstation.tsx");
         const settingsDialog = readSource(
             "features/settings/components/settings-dialog.tsx",
         );
@@ -5344,9 +5397,19 @@ describe("full UI replacement regression coverage", () => {
             );
 
         expect(legacySelectorLines).toEqual([]);
-        for (const selector of SOT_SCROLLBAR_DATA_SOT_CSS_SELECTORS) {
-            expect(globals).toContain(selector);
+        for (const selector of SOT_SCROLLBAR_MIGRATED_GLOBAL_SELECTORS) {
+            expect(collectCssRuleBlocks(globals, selector)).toEqual([]);
         }
+        expect(workstation).toContain("const dashboardScrollbarClassName =");
+        expect(workstation).toContain("[scrollbar-width:thin]");
+        expect(workstation).toContain("dashboardRecordingListScrollClassName");
+        expect(workstation).toContain(
+            'data-sot-list="dashboard-recording-list-scroll"',
+        );
+        expect(workstation).toContain(
+            'data-sot-part="dashboard-transcript-body"',
+        );
+        expect(workstation).toContain("dashboardScrollbarClassName,");
         expect(globals).not.toContain(
             '[data-sot-panel="settings-body"]::-webkit-scrollbar',
         );
@@ -9243,6 +9306,7 @@ describe("full UI replacement regression coverage", () => {
         );
         expectCnClassNameReferences(dashboardTranscriptBody, [
             '"min-h-0 flex-1 overflow-y-auto px-5 pt-4 pb-5"',
+            "dashboardScrollbarClassName",
             "dashboardRetranscriptionThemeClassName",
         ]);
         expect(dashboardTranscriptShell).toContain(
