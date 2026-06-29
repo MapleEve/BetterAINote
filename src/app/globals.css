@@ -1091,33 +1091,9 @@ button:not([data-slot]) {
         display: none;
     }
 }
-[data-sot-part="settings-user-summary"] {
-    display: flex;
-}
-[data-sot-part="settings-user-avatar"] {
-    display: grid;
-}
-[data-sot-panel="settings-rail"] [data-sot-list="settings-nav-group"] {
-    display: flex;
-}
-[data-sot-panel="settings-scroll-body"] [data-sot-banner] {
-    display: grid;
-}
-[data-sot-panel="settings-scroll-body"] [data-sot-banner-icon] {
-    display: inline-flex;
-}
 [data-sot-panel="settings-scroll-body"][data-sot-availability="unavailable"]
     [data-sot-panel="voscript-unavailable-banner"] {
     display: grid !important;
-}
-[data-sot-panel="settings-scroll-body"] [data-sot-key-status] {
-    display: inline-flex;
-}
-[data-sot-panel="settings-scroll-body"] [data-sot-shortcuts] {
-    display: grid;
-}
-[data-sot-panel="settings-scroll-body"] [data-sot-shortcuts] > div {
-    display: flex;
 }
 [data-sot-tab-pane][hidden] {
     display: none;

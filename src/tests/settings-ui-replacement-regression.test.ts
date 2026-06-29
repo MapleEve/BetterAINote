@@ -314,12 +314,23 @@ const SPEAKER_PROFILE_PRIMITIVE_BUSINESS_TOKENS = [
 
 const RETAINED_SETTINGS_MAIN_FUNCTIONAL_DATA_SOT_CSS_SELECTORS = [
     '[data-sot-panel="settings-scroll-body"][hidden]',
-    '[data-sot-panel="settings-scroll-body"][data-sot-availability="unavailable"]',
+    '[data-sot-panel="settings-scroll-body"][data-sot-availability="unavailable"]\n    [data-sot-panel="voscript-unavailable-banner"]',
 ] as const;
 
 const REMOVED_SETTINGS_MAIN_VISUAL_DATA_SOT_CSS_SELECTORS = [
     '[data-sot-panel="settings-scroll-body"]',
     '[data-sot-panel="settings-scroll-body"][data-sot-layout="three-pane"]',
+] as const;
+
+const REMOVED_SETTINGS_DUPLICATE_DISPLAY_GLOBAL_SELECTORS = [
+    '[data-sot-part="settings-user-summary"]',
+    '[data-sot-part="settings-user-avatar"]',
+    '[data-sot-panel="settings-rail"] [data-sot-list="settings-nav-group"]',
+    '[data-sot-panel="settings-scroll-body"] [data-sot-banner]',
+    '[data-sot-panel="settings-scroll-body"] [data-sot-banner-icon]',
+    '[data-sot-panel="settings-scroll-body"] [data-sot-key-status]',
+    '[data-sot-panel="settings-scroll-body"] [data-sot-shortcuts]',
+    '[data-sot-panel="settings-scroll-body"] [data-sot-shortcuts] > div',
 ] as const;
 
 const REMOVED_SETTINGS_TITLE_DIVIDER_VISUAL_DATA_SOT_CSS_SELECTORS = [
@@ -784,6 +795,9 @@ describe("settings SOT interaction regressions", () => {
         for (const selector of REMOVED_SETTINGS_MAIN_VISUAL_DATA_SOT_CSS_SELECTORS) {
             expect(collectExactCssRuleBlocks(globals, selector)).toEqual([]);
         }
+        for (const selector of REMOVED_SETTINGS_DUPLICATE_DISPLAY_GLOBAL_SELECTORS) {
+            expect(collectExactCssRuleBlocks(globals, selector)).toEqual([]);
+        }
         findStringConstInitializerContaining(content, [
             "const SETTINGS_SCROLL_BODY_CLASS =",
             "min-h-0",
@@ -914,10 +928,6 @@ describe("settings SOT interaction regressions", () => {
             "features/settings/components/settings-dialog.tsx",
         );
         const globals = readSource("app/globals.css");
-        const userSummaryBlocks = collectExactCssRuleBlocks(
-            globals,
-            '[data-sot-part="settings-user-summary"]',
-        );
 
         expect(dialog).not.toContain(
             'wrapperClassName="settings-section-select"',
@@ -965,6 +975,12 @@ describe("settings SOT interaction regressions", () => {
             "max-[720px]:basis-[calc(100%-42px)]",
         ]);
         findStringConstInitializerContaining(dialog, [
+            "const SETTINGS_USER_AVATAR_CLASS =",
+            "grid",
+            "size-9",
+            "place-items-center",
+        ]);
+        findStringConstInitializerContaining(dialog, [
             "const SETTINGS_USER_SUMMARY_TEXT_CLASS =",
             "min-w-0",
         ]);
@@ -997,6 +1013,12 @@ describe("settings SOT interaction regressions", () => {
             "overflow-y-auto",
             "[overscroll-behavior:contain]",
         ]);
+        findStringConstInitializerContaining(dialog, [
+            "const SETTINGS_NAV_GROUP_CLASS =",
+            "flex",
+            "flex-col",
+            "gap-0.5",
+        ]);
 
         for (const selector of [
             '[data-sot-panel="settings-header"]',
@@ -1008,10 +1030,6 @@ describe("settings SOT interaction regressions", () => {
         ]) {
             expect(collectExactCssRuleBlocks(globals, selector)).toEqual([]);
         }
-        expect(userSummaryBlocks).toHaveLength(1);
-        expect(userSummaryBlocks[0]?.declarations.trim()).toBe(
-            "display: flex;",
-        );
     });
 
     it("keeps the SOT settings shell shadow token above the DialogContent base shadow", () => {
@@ -1517,6 +1535,10 @@ describe("settings SOT interaction regressions", () => {
             content.match(
                 /<Alert\s[^>]*data-sot-banner="source-state"[^>]*>/,
             )?.[0] ?? "";
+        const bannerIconSlotClass =
+            content.match(
+                /const SETTINGS_BANNER_ICON_SLOT_CLASS[\s\S]*?;/,
+            )?.[0] ?? "";
         const providerTileButton =
             providerTile.match(
                 /<Button[\s\S]*?data-sot-control="source-provider"[\s\S]*?>/,
@@ -1582,6 +1604,13 @@ describe("settings SOT interaction regressions", () => {
         expect(providerStateBanner).toContain("SETTINGS_BANNER_LAYOUT_CLASS");
         expect(providerStateBanner).toContain("SETTINGS_BANNER_ERROR_CLASS");
         expect(providerStateBanner).toContain("SETTINGS_BANNER_TONE_CLASS");
+        expect(bannerIconSlotClass).toContain("SETTINGS_BANNER_ICON_SLOT_CLASS");
+        expect(bannerIconSlotClass).toContain(
+            "[&_[data-sot-banner-icon]]:inline-flex",
+        );
+        expect(bannerIconSlotClass).toContain(
+            "[&_[data-sot-banner-icon]]:size-6",
+        );
         expect(providerStateBanner).not.toContain('density="settingsBanner"');
         expect(providerStateBanner).not.toContain('variant="destructive"');
         expect(providerStateBanner).not.toContain(
@@ -1939,12 +1968,6 @@ describe("settings SOT interaction regressions", () => {
         );
         expect(globals).not.toContain(
             '[data-sot-key-status][data-state="invalid"]',
-        );
-        expect(globals).toContain(
-            '[data-sot-panel="settings-scroll-body"] [data-sot-key-status]',
-        );
-        expect(globals).toContain(
-            '[data-sot-panel="settings-scroll-body"] [data-sot-shortcuts]',
         );
         expect(toggleGroupPrimitive).not.toContain("settingsSegment");
         expect(toggleGroupPrimitive).not.toContain("settingsSegmentOption:");
