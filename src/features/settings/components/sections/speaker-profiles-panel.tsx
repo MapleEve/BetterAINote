@@ -80,7 +80,9 @@ const speakerSettingsBannerInfoClassName = `${speakerSettingsBannerIconSlotClass
 
 const speakerSettingsBannerErrorClassName = `${speakerSettingsBannerIconSlotClassName} [--settings-banner-icon-bg:var(--alert-destructive-soft-strong-bg)] [--settings-banner-icon-border:var(--alert-destructive-soft-border)] [--settings-banner-icon-color:var(--signal-danger)] border-[var(--alert-destructive-soft-border)] bg-[var(--alert-destructive-soft-bg)]`;
 
-const speakerProfilesPanelClassName = "flex flex-col gap-2 !mb-3.5";
+const speakerProfilesPanelClassName = "relative flex flex-col gap-2 !mb-3.5";
+
+const speakerSectionGroupClassName = "relative mb-[22px]";
 
 const speakerRowsListClassName = "m-0 flex list-none flex-col gap-1.5 p-0";
 
@@ -532,6 +534,7 @@ export function SpeakerProfilesPanel() {
             data-sot-voiceprints-state={voiceprintsState}
         >
             <div
+                className={speakerSectionGroupClassName}
                 data-sot-panel="speaker-profiles-local"
                 data-sot-section-group
                 data-sot-state={profilesState}
@@ -800,6 +803,7 @@ export function SpeakerProfilesPanel() {
             </div>
 
             <div
+                className={speakerSectionGroupClassName}
                 data-sot-panel="speaker-voiceprints"
                 data-sot-section-group
                 data-sot-state={voiceprintsState}

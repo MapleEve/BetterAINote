@@ -795,6 +795,9 @@ describe("settings SOT interaction regressions", () => {
         for (const selector of REMOVED_SETTINGS_MAIN_VISUAL_DATA_SOT_CSS_SELECTORS) {
             expect(collectExactCssRuleBlocks(globals, selector)).toEqual([]);
         }
+        expect(collectExactCssRuleBlocks(globals, "[data-sot-section-group]")).toEqual(
+            [],
+        );
         for (const selector of REMOVED_SETTINGS_DUPLICATE_DISPLAY_GLOBAL_SELECTORS) {
             expect(collectExactCssRuleBlocks(globals, selector)).toEqual([]);
         }
@@ -813,6 +816,11 @@ describe("settings SOT interaction regressions", () => {
             "grid-cols-[280px_1fr]",
             "overflow-hidden",
             "p-0",
+        ]);
+        findStringConstInitializerContaining(content, [
+            "const SETTINGS_SECTION_GROUP_CLASS =",
+            "relative",
+            "mb-[22px]",
         ]);
         for (const selector of REMOVED_SETTINGS_SAVE_ACTION_GLOBAL_SELECTORS) {
             expect(globals).not.toContain(selector);
@@ -1302,6 +1310,9 @@ describe("settings SOT interaction regressions", () => {
         expect(content).toContain("data-sot-status={status.state}");
         expect(content).toContain("DataSourceFieldControl");
         expect(settingsGroup).toContain("data-sot-section-group");
+        expect(settingsGroup).toContain(
+            "className={SETTINGS_SECTION_GROUP_CLASS}",
+        );
         expect(content).toContain('from "@/components/ui/field";');
         expect(content).toContain("<Field");
         expect(content).toContain("<FieldContent");
@@ -3046,7 +3057,9 @@ describe("settings SOT interaction regressions", () => {
         }
         expectFeatureOwnedSnippets("speaker profile row visuals", [
             "speakerProfilesPanelClassName",
-            "flex flex-col gap-2 !mb-3.5",
+            "relative flex flex-col gap-2 !mb-3.5",
+            "speakerSectionGroupClassName",
+            "relative mb-[22px]",
             "speakerRowsListClassName",
             "m-0 flex list-none flex-col gap-1.5 p-0",
             "speakerRowItemClassName",
@@ -3061,6 +3074,9 @@ describe("settings SOT interaction regressions", () => {
             "font-mono text-[11.5px] font-medium leading-[1.4] tracking-normal text-[var(--fg-tertiary)]",
         ]);
         expect(speakers).toContain("className={speakerProfilesPanelClassName}");
+        expect(
+            speakers.match(/className=\{speakerSectionGroupClassName\}/g) ?? [],
+        ).toHaveLength(2);
         expect(speakers).toContain("className={speakerRowsListClassName}");
         expect(speakers).toContain("className={speakerRowItemClassName}");
         expect(speakers).toContain("className={speakerRowMetaClassName}");
@@ -3089,7 +3105,13 @@ describe("settings SOT interaction regressions", () => {
         expect(speakers).toContain(
             "data-sot-voiceprints-state={voiceprintsState}",
         );
+        expect(speakers).toMatch(
+            /<div\s+className=\{speakerSectionGroupClassName\}\s+data-sot-panel="speaker-profiles-local"\s+data-sot-section-group\s+data-sot-state=\{profilesState\}/,
+        );
         expect(speakers).toContain('data-sot-panel="speaker-voiceprints"');
+        expect(speakers).toMatch(
+            /<div\s+className=\{speakerSectionGroupClassName\}\s+data-sot-panel="speaker-voiceprints"\s+data-sot-section-group\s+data-sot-state=\{voiceprintsState\}/,
+        );
         expect(speakers).toContain("data-sot-speaker-profile-row");
         expect(speakers).toContain("data-sot-voiceprint-row");
         expect(speakers).toContain('data-sot-list="speaker-profile-rows"');
@@ -3128,6 +3150,7 @@ describe("settings SOT interaction regressions", () => {
         );
         for (const migratedSelector of [
             '[data-sot-panel="speaker-profiles"]',
+            "[data-sot-section-group]",
             '[data-sot-list="speaker-profile-rows"]',
             '[data-sot-list="speaker-voiceprint-rows"]',
             '[data-sot-item="speaker-profile-row"]',

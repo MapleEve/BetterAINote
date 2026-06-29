@@ -3837,12 +3837,18 @@ describe("full UI replacement regression coverage", () => {
             "overflow-hidden",
             "p-0",
         ]);
+        findStringConstInitializerContaining(settingsContent, [
+            "const SETTINGS_SECTION_GROUP_CLASS =",
+            "relative",
+            "mb-[22px]",
+        ]);
         for (const selector of [
             '[data-sot-panel="settings-header"]',
             '[data-sot-panel="settings-body"]',
             '[data-sot-panel="settings-rail"]',
             '[data-sot-panel="settings-scroll-body"]',
             '[data-sot-panel="settings-scroll-body"][data-sot-layout="three-pane"]',
+            "[data-sot-section-group]",
             '[data-sot-part="settings-user-summary"] > div',
             '[data-sot-part="settings-user-name"]',
             '[data-sot-part="settings-user-subtitle"]',
@@ -13136,6 +13142,21 @@ describe("full UI replacement regression coverage", () => {
             speakerProfiles.match(
                 /<Field(?!Content|Description|Label|Title)\b[^>]*>/g,
             ) ?? [];
+        const speakerProfilesPanelOpening = extractOpeningElement(
+            speakerProfiles,
+            'data-sot-panel="speaker-profiles"',
+            "div",
+        );
+        const speakerProfilesLocalOpening = extractOpeningElement(
+            speakerProfiles,
+            'data-sot-panel="speaker-profiles-local"',
+            "div",
+        );
+        const speakerVoiceprintsOpening = extractOpeningElement(
+            speakerProfiles,
+            'data-sot-panel="speaker-voiceprints"',
+            "div",
+        );
         const speakerStateBadgeOpenings = speakerStateBadges.filter(
             (stateBadge) =>
                 stateBadge.includes('data-sot-badge="speaker-state"'),
@@ -13203,6 +13224,28 @@ describe("full UI replacement regression coverage", () => {
         expectSpeakerFeatureOwnedSnippets("speaker settings rows", [
             "border-b border-border py-3",
         ]);
+        expectSpeakerFeatureOwnedSnippets("speaker section groups", [
+            "speakerProfilesPanelClassName",
+            "relative flex flex-col gap-2 !mb-3.5",
+            "speakerSectionGroupClassName",
+            "relative mb-[22px]",
+        ]);
+        expect(speakerProfilesPanelOpening).toContain(
+            "className={speakerProfilesPanelClassName}",
+        );
+        expect(speakerProfilesPanelOpening).toContain("data-sot-section-group");
+        expect(speakerProfilesLocalOpening).toContain(
+            "className={speakerSectionGroupClassName}",
+        );
+        expect(speakerProfilesLocalOpening).toContain("data-sot-section-group");
+        expect(speakerVoiceprintsOpening).toContain(
+            "className={speakerSectionGroupClassName}",
+        );
+        expect(speakerVoiceprintsOpening).toContain("data-sot-section-group");
+        expect(
+            speakerProfiles.match(/className=\{speakerSectionGroupClassName\}/g) ??
+                [],
+        ).toHaveLength(2);
         expect(speakerRowFields.length).toBeGreaterThanOrEqual(3);
         for (const field of speakerRowFields) {
             expect(field).toContain("className=");
@@ -13249,6 +13292,9 @@ describe("full UI replacement regression coverage", () => {
         );
         expect(globals).not.toContain(
             '[data-sot-part="speaker-voiceprint-avatar"] [data-slot="avatar-fallback"]',
+        );
+        expect(collectExactCssRuleBlocks(globals, "[data-sot-section-group]")).toEqual(
+            [],
         );
         for (const source of [player, tagManager, sourceReport]) {
             expect(source).not.toContain('className="btn ghost btn-sm"');

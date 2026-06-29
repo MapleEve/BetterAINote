@@ -1183,11 +1183,6 @@ button:not([data-slot]) {
 }
 
 /* ---------- Settings panel: field groups, banners, save state, voscript ---------- */
-[data-sot-section-group] {
-    margin-bottom: 22px;
-    position: relative;
-}
-
 [data-detail-empty][hidden] {
     display: none !important;
 }
