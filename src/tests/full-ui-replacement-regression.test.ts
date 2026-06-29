@@ -122,13 +122,33 @@ const REMOVED_DASHBOARD_BRAND_GLOBAL_SELECTORS = [
     '[data-sot-part="dashboard-brand-name"]',
     '[data-sot-part="dashboard-brand-subtitle"]',
 ] as const;
-const WORKSTATION_BRAND_GLOBAL_SELECTORS = [
+const REMOVED_WORKSTATION_BRAND_GLOBAL_SELECTORS = [
     '[data-sot-part="workstation-brand"]',
     '[data-sot-part="workstation-brand"] img',
     '[data-sot-part="workstation-brand-name"]',
     '[data-sot-part="workstation-brand-subtitle"]',
 ] as const;
 const DASHBOARD_BRAND_OWNER_CLASS_INITIALIZERS = [
+    {
+        property: "wrapper",
+        expected: "flex items-center gap-[10px] px-2 pt-1 pb-4",
+    },
+    {
+        property: "image",
+        expected: "size-9 rounded-[9px]",
+    },
+    {
+        property: "name",
+        expected:
+            "[font:600_15px_var(--font-sans)] tracking-[-0.012em] text-[var(--fg-primary)]",
+    },
+    {
+        property: "subtitle",
+        expected:
+            "mt-px [font:500_11px_var(--font-sans)] text-[var(--fg-tertiary)]",
+    },
+] as const;
+const RECORDING_WORKSTATION_BRAND_OWNER_CLASS_INITIALIZERS = [
     {
         property: "wrapper",
         expected: "flex items-center gap-[10px] px-2 pt-1 pb-4",
@@ -3654,12 +3674,18 @@ const AI_RENAME_PREVIEW_FEATURE_OWNER_CLASS_SNIPPETS = [
 ] as const;
 
 describe("full UI replacement regression coverage", () => {
-    it("keeps dashboard brand globals migrated to workstation-owned classes", () => {
+    it("keeps dashboard and recording workstation brand globals migrated to owner-local classes", () => {
         const globals = readSource("app/globals.css");
         const workstation = readSource("features/dashboard/workstation.tsx");
+        const detailWorkstation = readSource("features/recordings/workstation.tsx");
         const dashboardBrandClassNames = extractBoundedSlice(
             workstation,
             "const dashboardBrandClassNames = {",
+            "} as const;",
+        );
+        const recordingWorkstationBrandClassNames = extractBoundedSlice(
+            detailWorkstation,
+            "const recordingWorkstationBrandClassNames = {",
             "} as const;",
         );
 
@@ -3667,11 +3693,9 @@ describe("full UI replacement regression coverage", () => {
             expect(globals).not.toContain(selector);
             expect(collectCssRuleBlocks(globals, selector)).toEqual([]);
         }
-        for (const selector of WORKSTATION_BRAND_GLOBAL_SELECTORS) {
-            expect(globals).toContain(selector);
-            expect(collectCssRuleBlocks(globals, selector).length).toBeGreaterThan(
-                0,
-            );
+        for (const selector of REMOVED_WORKSTATION_BRAND_GLOBAL_SELECTORS) {
+            expect(globals).not.toContain(selector);
+            expect(collectCssRuleBlocks(globals, selector)).toEqual([]);
         }
         for (const {
             expected,
@@ -3693,6 +3717,29 @@ describe("full UI replacement regression coverage", () => {
         expect(workstation).toContain('data-sot-part="dashboard-brand-name"');
         expect(workstation).toContain(
             'data-sot-part="dashboard-brand-subtitle"',
+        );
+        for (const {
+            expected,
+            property,
+        } of RECORDING_WORKSTATION_BRAND_OWNER_CLASS_INITIALIZERS) {
+            expect(
+                extractObjectStringProperty(
+                    recordingWorkstationBrandClassNames,
+                    property,
+                ),
+            ).toBe(`${property}: "${expected}"`);
+            expect(detailWorkstation).toContain(
+                `className={recordingWorkstationBrandClassNames.${property}}`,
+            );
+        }
+        expect(detailWorkstation).toContain(
+            'data-sot-part="workstation-brand"',
+        );
+        expect(detailWorkstation).toContain(
+            'data-sot-part="workstation-brand-name"',
+        );
+        expect(detailWorkstation).toContain(
+            'data-sot-part="workstation-brand-subtitle"',
         );
     });
 

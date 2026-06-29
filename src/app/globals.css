@@ -785,28 +785,6 @@ button:not([data-slot]) {
     border-radius: 0;
     position: relative;
 }
-[data-sot-part="workstation-brand"] {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    padding: 4px 8px 16px;
-}
-[data-sot-part="workstation-brand"] img {
-    width: 36px;
-    height: 36px;
-    border-radius: 9px;
-}
-[data-sot-part="workstation-brand-name"] {
-    font: 600 15px var(--font-sans);
-    letter-spacing: -0.012em;
-    color: var(--fg-primary);
-}
-[data-sot-part="workstation-brand-subtitle"] {
-    font: 500 11px var(--font-sans);
-    color: var(--fg-tertiary);
-    margin-top: 1px;
-}
-
 [data-sot-list="dashboard-nav"] {
     display: flex;
     flex-direction: column;

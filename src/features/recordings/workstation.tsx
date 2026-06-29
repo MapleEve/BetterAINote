@@ -108,6 +108,12 @@ const RECORDING_DETAIL_HEADER_LOCAL_BADGE_CLASS_NAME = "ml-1 shrink-0";
 const RECORDING_DETAIL_HEADER_STATUS_BADGE_CLASS_NAME = "ml-1 shrink-0";
 const RECORDING_WORKSTATION_SHELL_CLASS_NAME =
     "grid h-screen min-h-[720px] grid-cols-[264px_1fr] transition-[grid-template-columns] duration-[320ms] ease-[var(--ease-out)] max-[860px]:h-auto max-[860px]:min-h-[100svh] max-[860px]:grid-cols-[minmax(0,1fr)] max-[860px]:overflow-x-clip";
+const recordingWorkstationBrandClassNames = {
+    wrapper: "flex items-center gap-[10px] px-2 pt-1 pb-4",
+    image: "size-9 rounded-[9px]",
+    name: "[font:600_15px_var(--font-sans)] tracking-[-0.012em] text-[var(--fg-primary)]",
+    subtitle: "mt-px [font:500_11px_var(--font-sans)] text-[var(--fg-tertiary)]",
+} as const;
 const recordingWorkstationButtonClassNames = {
     detailBack:
         "relative h-auto w-full justify-start gap-2.5 rounded-[9px] border border-transparent bg-transparent px-2.5 py-[7px] text-left text-[13px] font-medium text-[var(--fg-secondary)] shadow-none hover:bg-accent hover:text-[var(--fg-primary)] focus-visible:text-[var(--fg-primary)] disabled:cursor-not-allowed disabled:opacity-50 data-[sot-state=selected]:border-[var(--line-hairline)] data-[sot-state=selected]:bg-[var(--bg-elevated)] data-[sot-state=selected]:text-[var(--fg-primary)] data-[sot-state=selected]:shadow-xs dark:data-[sot-state=selected]:border-[var(--glass-border)] dark:data-[sot-state=selected]:bg-[rgb(255_255_255_/_0.07)] dark:data-[sot-state=selected]:shadow-none has-[>svg]:px-2.5 [&_span]:min-w-0 [&_span]:flex-1 [&_span]:truncate [&_svg]:flex-none [&_svg]:fill-none [&_svg]:stroke-current [&_svg]:stroke-[1.7] [&_svg]:opacity-[0.85] [&_svg]:[stroke-linecap:round] [&_svg]:[stroke-linejoin:round]",
@@ -856,13 +862,26 @@ export function RecordingWorkstation({
                 data-sot-panel="workstation-sidebar"
                 data-sot-surface="recording-source-rail"
             >
-                <div data-sot-part="workstation-brand">
-                    <img src="/assets/logo-mark-steel.svg" alt="" />
+                <div
+                    className={recordingWorkstationBrandClassNames.wrapper}
+                    data-sot-part="workstation-brand"
+                >
+                    <img
+                        className={recordingWorkstationBrandClassNames.image}
+                        src="/assets/logo-mark-steel.svg"
+                        alt=""
+                    />
                     <div data-sot-part="workstation-brand-text">
-                        <div data-sot-part="workstation-brand-name">
+                        <div
+                            className={recordingWorkstationBrandClassNames.name}
+                            data-sot-part="workstation-brand-name"
+                        >
                             BetterAINote
                         </div>
-                        <div data-sot-part="workstation-brand-subtitle">
+                        <div
+                            className={recordingWorkstationBrandClassNames.subtitle}
+                            data-sot-part="workstation-brand-subtitle"
+                        >
                             私人工作空间
                         </div>
                     </div>

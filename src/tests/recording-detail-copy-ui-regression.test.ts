@@ -1504,6 +1504,40 @@ describe("recording detail copy and title action UI regressions", () => {
             'data-sot-panel="recording-workstation-detail-body"',
         );
         expect(detailWorkstation).toContain(
+            "const recordingWorkstationBrandClassNames = {",
+        );
+        expect(detailWorkstation).toContain(
+            'wrapper: "flex items-center gap-[10px] px-2 pt-1 pb-4"',
+        );
+        expect(detailWorkstation).toContain('image: "size-9 rounded-[9px]"');
+        expect(detailWorkstation).toContain(
+            'name: "[font:600_15px_var(--font-sans)] tracking-[-0.012em] text-[var(--fg-primary)]"',
+        );
+        expect(detailWorkstation).toContain(
+            'subtitle: "mt-px [font:500_11px_var(--font-sans)] text-[var(--fg-tertiary)]"',
+        );
+        expect(detailWorkstation).toContain(
+            "className={recordingWorkstationBrandClassNames.wrapper}",
+        );
+        expect(detailWorkstation).toContain(
+            "className={recordingWorkstationBrandClassNames.image}",
+        );
+        expect(detailWorkstation).toContain(
+            "className={recordingWorkstationBrandClassNames.name}",
+        );
+        expect(detailWorkstation).toContain(
+            "recordingWorkstationBrandClassNames.subtitle",
+        );
+        expect(detailWorkstation).toContain(
+            'data-sot-part="workstation-brand"',
+        );
+        expect(detailWorkstation).toContain(
+            'data-sot-part="workstation-brand-name"',
+        );
+        expect(detailWorkstation).toContain(
+            'data-sot-part="workstation-brand-subtitle"',
+        );
+        expect(detailWorkstation).toContain(
             'data-sot-list="recording-detail-nav"',
         );
         expect(detailWorkstation).toContain(
@@ -1549,6 +1583,16 @@ describe("recording detail copy and title action UI regressions", () => {
         expect(globals).toContain('[data-sot-panel="workstation-workspace"]');
         expect(globals).toContain(
             '[data-sot-panel="recording-workstation-detail"]',
+        );
+        expect(globals).not.toContain('[data-sot-part="workstation-brand"]');
+        expect(globals).not.toContain(
+            '[data-sot-part="workstation-brand"] img',
+        );
+        expect(globals).not.toContain(
+            '[data-sot-part="workstation-brand-name"]',
+        );
+        expect(globals).not.toContain(
+            '[data-sot-part="workstation-brand-subtitle"]',
         );
         expect(globals).not.toContain(
             '[data-sot-control="recording-detail-back"][data-slot="button"]',
