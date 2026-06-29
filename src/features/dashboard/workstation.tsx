@@ -367,6 +367,14 @@ const dashboardBrandClassNames = {
     subtitle: "mt-px [font:500_11px_var(--font-sans)] text-[var(--fg-tertiary)]",
 } as const;
 
+const dashboardNavClassNames = {
+    root: "flex flex-1 flex-col gap-0.5 overflow-y-auto pb-3",
+    sectionLabel:
+        "px-2.5 pt-3.5 pb-1.5 font-sans text-[10px] font-semibold uppercase tracking-[0.08em] text-[var(--fg-tertiary)]",
+    favoriteCount:
+        "min-w-[22px] rounded-[5px] border border-transparent bg-[var(--bg-recessed)] px-1.5 py-px text-center font-mono text-[11px] font-medium leading-[1.45] text-[var(--fg-tertiary)] dark:border-[var(--glass-border-soft)] dark:bg-[var(--glass-tint-subtle)] data-[sot-state=selected]:border-[var(--line-hairline)] data-[sot-state=selected]:bg-[var(--bg-elevated)] data-[sot-state=selected]:text-[var(--fg-primary)] dark:data-[sot-state=selected]:border-[var(--glass-border)] dark:data-[sot-state=selected]:bg-[var(--glass-tint-base)]",
+} as const;
+
 type DashboardTranscriptSkeletonSize =
     | "avatar"
     | "line-60"
@@ -697,7 +705,7 @@ const dashboardSearchActivityClassNames = {
 } as const;
 
 const dashboardButtonClassNames = {
-    nav: "relative h-auto w-full justify-start gap-2.5 rounded-[9px] border border-transparent bg-transparent px-2.5 py-[7px] text-left text-[13px] font-medium text-[var(--fg-secondary)] shadow-none hover:bg-accent hover:text-[var(--fg-primary)] focus-visible:text-[var(--fg-primary)] disabled:cursor-not-allowed disabled:opacity-50 data-[sot-state=selected]:border-[var(--line-hairline)] data-[sot-state=selected]:bg-[var(--bg-elevated)] data-[sot-state=selected]:text-[var(--fg-primary)] data-[sot-state=selected]:shadow-xs dark:data-[sot-state=selected]:border-[var(--glass-border)] dark:data-[sot-state=selected]:bg-[rgb(255_255_255_/_0.07)] dark:data-[sot-state=selected]:shadow-none has-[>svg]:px-2.5",
+    nav: "relative h-auto w-full justify-start gap-2.5 rounded-[9px] border border-transparent bg-transparent px-2.5 py-[7px] text-left text-[13px] font-medium text-[var(--fg-secondary)] shadow-none hover:bg-accent hover:text-[var(--fg-primary)] focus-visible:text-[var(--fg-primary)] disabled:cursor-not-allowed disabled:opacity-50 data-[sot-state=selected]:border-[var(--line-hairline)] data-[sot-state=selected]:bg-[var(--bg-elevated)] data-[sot-state=selected]:text-[var(--fg-primary)] data-[sot-state=selected]:shadow-xs dark:data-[sot-state=selected]:border-[var(--glass-border)] dark:data-[sot-state=selected]:bg-[rgb(255_255_255_/_0.07)] dark:data-[sot-state=selected]:shadow-none has-[>svg]:px-2.5 [&_svg]:size-4 [&_svg]:flex-none [&_svg]:fill-none [&_svg]:stroke-current [&_svg]:stroke-[1.7] [&_svg]:opacity-[0.85] [&_svg]:[stroke-linecap:round] [&_svg]:[stroke-linejoin:round] data-[sot-state=selected]:[&_svg]:opacity-100",
     sync: "size-[32px] bg-transparent text-muted-foreground shadow-none hover:bg-accent hover:text-foreground dark:hover:bg-accent/50",
     copy: "h-[26px] gap-[6px] rounded-[7px] border border-transparent bg-transparent px-[10px] text-[12px] font-semibold leading-normal text-[var(--fg-secondary)] shadow-none hover:bg-[var(--bg-recessed)] hover:text-[var(--fg-primary)] data-[copy-state=ok]:border-[var(--button-copy-success-border)] data-[copy-state=ok]:bg-[var(--button-copy-success-bg)] data-[copy-state=ok]:text-[var(--signal-success)] data-[copy-state=ok]:hover:bg-[var(--button-copy-success-bg)] data-[copy-state=ok]:hover:text-[var(--signal-success)] data-[copy-state=err]:border-[var(--button-copy-danger-border)] data-[copy-state=err]:text-[var(--signal-danger)] data-[copy-state=err]:hover:bg-transparent data-[copy-state=err]:hover:text-[var(--signal-danger)] has-[>svg]:px-[10px] [&[hidden]]:hidden [&_svg:not([class*='size-'])]:size-[14px]",
     compactAction:
@@ -4301,9 +4309,16 @@ export function Workstation({
                     </div>
                 </div>
 
-                <nav data-sot-list="dashboard-nav" aria-label="录音筛选">
+                <nav
+                    className={dashboardNavClassNames.root}
+                    data-sot-list="dashboard-nav"
+                    aria-label="录音筛选"
+                >
                     <div
-                        className={dashboardSidebarCollapseClassNames.hidden}
+                        className={cn(
+                            dashboardNavClassNames.sectionLabel,
+                            dashboardSidebarCollapseClassNames.hidden,
+                        )}
                         data-sot-part="dashboard-nav-section-label"
                     >
                         收藏
@@ -4369,10 +4384,16 @@ export function Workstation({
                                     {getFavoriteLabel(item.value, t)}
                                 </span>
                                 <span
-                                    className={
-                                        dashboardSidebarCollapseClassNames.hidden
-                                    }
+                                    className={cn(
+                                        dashboardNavClassNames.favoriteCount,
+                                        dashboardSidebarCollapseClassNames.hidden,
+                                    )}
                                     data-sot-part="dashboard-favorite-count"
+                                    data-sot-state={
+                                        favorite === item.value
+                                            ? "selected"
+                                            : "idle"
+                                    }
                                 >
                                     {count}
                                 </span>
@@ -4381,7 +4402,10 @@ export function Workstation({
                     })}
 
                     <div
-                        className={dashboardSidebarCollapseClassNames.hidden}
+                        className={cn(
+                            dashboardNavClassNames.sectionLabel,
+                            dashboardSidebarCollapseClassNames.hidden,
+                        )}
                         data-sot-part="dashboard-nav-section-label"
                     >
                         {t("sourceProviderRows.heading")}

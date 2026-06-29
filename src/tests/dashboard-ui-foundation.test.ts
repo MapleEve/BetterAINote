@@ -160,6 +160,16 @@ const REMOVED_DASHBOARD_PLAYER_GLOBAL_SELECTOR_FRAGMENTS = [
     '[data-sot-surface="dashboard-recording-player"][data-no-audio="true"]',
     '[data-sot-part="dashboard-recording-player-meta"]',
 ] as const;
+const REMOVED_DASHBOARD_NAV_FAVORITE_GLOBAL_SELECTORS = [
+    '[data-sot-list="dashboard-nav"]',
+    '[data-sot-part="dashboard-nav-section-label"]',
+    '[data-sot-control="dashboard-favorite"] svg',
+    '[data-sot-part="dashboard-favorite-count"]',
+    '[data-theme="dark"] [data-sot-part="dashboard-favorite-count"]',
+    '[data-sot-control="dashboard-favorite"][data-sot-state="selected"] svg',
+    '[data-sot-control="dashboard-favorite"][data-sot-state="selected"]\n    [data-sot-part="dashboard-favorite-count"]',
+    '[data-theme="dark"]\n    [data-sot-control="dashboard-favorite"][data-sot-state="selected"]\n    [data-sot-part="dashboard-favorite-count"]',
+] as const;
 
 function readSource(relativePath: string) {
     return readFileSync(path.join(ROOT, relativePath), "utf8");
@@ -1678,7 +1688,7 @@ const REMOVED_DASHBOARD_BRAND_GLOBAL_SELECTORS = [
     '[data-sot-part="dashboard-brand-name"]',
     '[data-sot-part="dashboard-brand-subtitle"]',
 ] as const;
-const WORKSTATION_BRAND_GLOBAL_SELECTORS = [
+const REMOVED_WORKSTATION_BRAND_GLOBAL_SELECTORS = [
     '[data-sot-part="workstation-brand"]',
     '[data-sot-part="workstation-brand"] img',
     '[data-sot-part="workstation-brand-name"]',
@@ -1706,7 +1716,7 @@ const DASHBOARD_BRAND_OWNER_CLASS_INITIALIZERS = [
 ] as const;
 
 describe("dashboard SOT foundation", () => {
-    it("keeps dashboard brand visuals owner-local while workstation brand globals remain", () => {
+    it("keeps dashboard brand visuals owner-local while workstation brand globals stay removed", () => {
         const globals = readSource("app/globals.css");
         const workstation = readSource("features/dashboard/workstation.tsx");
         const dashboardBrandClassNames = extractBoundedSlice(
@@ -1719,11 +1729,9 @@ describe("dashboard SOT foundation", () => {
             expect(globals).not.toContain(selector);
             expect(collectCssRuleBlocks(globals, selector)).toEqual([]);
         }
-        for (const selector of WORKSTATION_BRAND_GLOBAL_SELECTORS) {
-            expect(globals).toContain(selector);
-            expect(collectCssRuleBlocks(globals, selector).length).toBeGreaterThan(
-                0,
-            );
+        for (const selector of REMOVED_WORKSTATION_BRAND_GLOBAL_SELECTORS) {
+            expect(globals).not.toContain(selector);
+            expect(collectCssRuleBlocks(globals, selector)).toEqual([]);
         }
         for (const {
             expected,
@@ -2945,6 +2953,34 @@ describe("dashboard SOT foundation", () => {
         expect(workstation).toContain('data-time-style="rel"');
         expect(workstation).toContain('data-sot-panel="dashboard-sidebar"');
         expect(workstation).toContain('data-sot-list="dashboard-nav"');
+        for (const selector of REMOVED_DASHBOARD_NAV_FAVORITE_GLOBAL_SELECTORS) {
+            expect(globals).not.toContain(selector);
+        }
+        const dashboardNavClassNames = extractBoundedSlice(
+            workstation,
+            "const dashboardNavClassNames = {",
+            "} as const;",
+        );
+        expect(extractObjectStringProperty(dashboardNavClassNames, "root")).toBe(
+            'root: "flex flex-1 flex-col gap-0.5 overflow-y-auto pb-3"',
+        );
+        expect(
+            extractObjectStringProperty(dashboardNavClassNames, "sectionLabel"),
+        ).toContain("tracking-[0.08em]");
+        expect(
+            extractObjectStringProperty(dashboardNavClassNames, "favoriteCount"),
+        ).toContain("data-[sot-state=selected]:bg-[var(--bg-elevated)]");
+        expect(
+            extractObjectStringProperty(dashboardNavClassNames, "favoriteCount"),
+        ).toContain("dark:data-[sot-state=selected]:bg-[var(--glass-tint-base)]");
+        const dashboardNav = extractOpeningElement(
+            workstation,
+            'data-sot-list="dashboard-nav"',
+            "nav",
+        );
+        expect(dashboardNav).toContain(
+            "className={dashboardNavClassNames.root}",
+        );
         expect(workstation).toContain('data-sot-panel="dashboard-main"');
         expect(workstation).toContain('data-sot-panel="dashboard-topbar"');
         expect(workstation).toContain('data-sot-panel="dashboard-workspace"');
@@ -3068,6 +3104,38 @@ describe("dashboard SOT foundation", () => {
                 "dashboardButtonClassNames.nav",
                 "dashboardSidebarCollapseClassNames.favorite",
             ],
+        );
+        const dashboardButtonClassNames = extractBoundedSlice(
+            workstation,
+            "const dashboardButtonClassNames = {",
+            "} as const;",
+        );
+        const dashboardNavButtonClassName = extractObjectStringProperty(
+            dashboardButtonClassNames,
+            "nav",
+        );
+        expect(dashboardNavButtonClassName).toContain("[&_svg]:size-4");
+        expect(dashboardNavButtonClassName).toContain(
+            "data-[sot-state=selected]:[&_svg]:opacity-100",
+        );
+        const dashboardFavoriteCount = extractOpeningElement(
+            workstation,
+            'data-sot-part="dashboard-favorite-count"',
+            "span",
+        );
+        expect(dashboardFavoriteCount).toContain(
+            "dashboardNavClassNames.favoriteCount",
+        );
+        expect(dashboardFavoriteCount).toContain(
+            'data-sot-state={\n                                        favorite === item.value',
+        );
+        const dashboardNavSectionLabel = extractOpeningElement(
+            workstation,
+            'data-sot-part="dashboard-nav-section-label"',
+            "div",
+        );
+        expect(dashboardNavSectionLabel).toContain(
+            "dashboardNavClassNames.sectionLabel",
         );
         expect(dashboardFavoriteButton).toContain(
             '<Icon data-icon="inline-start" />',

@@ -128,6 +128,16 @@ const REMOVED_WORKSTATION_BRAND_GLOBAL_SELECTORS = [
     '[data-sot-part="workstation-brand-name"]',
     '[data-sot-part="workstation-brand-subtitle"]',
 ] as const;
+const REMOVED_DASHBOARD_NAV_FAVORITE_GLOBAL_SELECTORS = [
+    '[data-sot-list="dashboard-nav"]',
+    '[data-sot-part="dashboard-nav-section-label"]',
+    '[data-sot-control="dashboard-favorite"] svg',
+    '[data-sot-part="dashboard-favorite-count"]',
+    '[data-theme="dark"] [data-sot-part="dashboard-favorite-count"]',
+    '[data-sot-control="dashboard-favorite"][data-sot-state="selected"] svg',
+    '[data-sot-control="dashboard-favorite"][data-sot-state="selected"]\n    [data-sot-part="dashboard-favorite-count"]',
+    '[data-theme="dark"]\n    [data-sot-control="dashboard-favorite"][data-sot-state="selected"]\n    [data-sot-part="dashboard-favorite-count"]',
+] as const;
 const DASHBOARD_BRAND_OWNER_CLASS_INITIALIZERS = [
     {
         property: "wrapper",
@@ -6598,6 +6608,34 @@ describe("full UI replacement regression coverage", () => {
         expect(workstation).toContain('data-time-style="rel"');
         expect(workstation).toContain('data-sot-panel="dashboard-sidebar"');
         expect(workstation).toContain('data-sot-list="dashboard-nav"');
+        for (const selector of REMOVED_DASHBOARD_NAV_FAVORITE_GLOBAL_SELECTORS) {
+            expect(globals).not.toContain(selector);
+        }
+        const dashboardNavClassNames = extractBoundedSlice(
+            workstation,
+            "const dashboardNavClassNames = {",
+            "} as const;",
+        );
+        expect(extractObjectStringProperty(dashboardNavClassNames, "root")).toBe(
+            'root: "flex flex-1 flex-col gap-0.5 overflow-y-auto pb-3"',
+        );
+        expect(
+            extractObjectStringProperty(dashboardNavClassNames, "sectionLabel"),
+        ).toContain("tracking-[0.08em]");
+        expect(
+            extractObjectStringProperty(dashboardNavClassNames, "favoriteCount"),
+        ).toContain("data-[sot-state=selected]:bg-[var(--bg-elevated)]");
+        expect(
+            extractObjectStringProperty(dashboardNavClassNames, "favoriteCount"),
+        ).toContain("dark:data-[sot-state=selected]:bg-[var(--glass-tint-base)]");
+        const dashboardNav = extractOpeningElement(
+            workstation,
+            'data-sot-list="dashboard-nav"',
+            "nav",
+        );
+        expect(dashboardNav).toContain(
+            "className={dashboardNavClassNames.root}",
+        );
         expect(workstation).toContain('data-sot-panel="dashboard-main"');
         expect(workstation).toContain('data-sot-panel="dashboard-topbar"');
         expect(workstation).toContain('data-sot-panel="dashboard-workspace"');
@@ -6661,6 +6699,37 @@ describe("full UI replacement regression coverage", () => {
         );
         expect(dashboardFavoriteNavButton).toContain(
             "dashboardSidebarCollapseClassNames.favorite",
+        );
+        const dashboardNavButtonClassNames = extractObjectStringProperty(
+            extractBoundedSlice(
+                workstation,
+                "const dashboardButtonClassNames = {",
+                "} as const;",
+            ),
+            "nav",
+        );
+        expect(dashboardNavButtonClassNames).toContain("[&_svg]:size-4");
+        expect(dashboardNavButtonClassNames).toContain(
+            "data-[sot-state=selected]:[&_svg]:opacity-100",
+        );
+        const dashboardFavoriteCount = extractOpeningElement(
+            workstation,
+            'data-sot-part="dashboard-favorite-count"',
+            "span",
+        );
+        expect(dashboardFavoriteCount).toContain(
+            "dashboardNavClassNames.favoriteCount",
+        );
+        expect(dashboardFavoriteCount).toContain(
+            'data-sot-state={\n                                        favorite === item.value',
+        );
+        const dashboardNavSectionLabel = extractOpeningElement(
+            workstation,
+            'data-sot-part="dashboard-nav-section-label"',
+            "div",
+        );
+        expect(dashboardNavSectionLabel).toContain(
+            "dashboardNavClassNames.sectionLabel",
         );
         const dashboardSourceClearButton = extractOpeningElement(
             workstation,
