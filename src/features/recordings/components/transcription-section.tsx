@@ -66,8 +66,25 @@ interface TranscriptionSectionProps {
 const RECORDING_TRANSCRIPTION_META_BADGE_CLASS_NAME =
     "h-[22px] justify-normal gap-[5px] rounded-full border px-[8px] py-0 text-[11px] font-semibold leading-normal data-[sot-tone=attribute]:border-border data-[sot-tone=attribute]:bg-background data-[sot-tone=attribute]:text-[var(--fg-primary)] data-[sot-tone=measure]:border-transparent data-[sot-tone=measure]:bg-secondary data-[sot-tone=measure]:text-secondary-foreground [&>svg]:size-3";
 const recordingTranscriptionClassNames = {
+    card: "min-h-0 flex-1 gap-0",
+    header: "flex flex-row items-center gap-3 border-b px-3.5 py-3",
+    heading: "flex min-w-0 items-center gap-3",
+    icon: "size-4 flex-none text-[var(--fg-secondary)]",
+    headerCopy: "flex min-w-0 flex-col gap-[3px]",
+    body: "min-h-0 flex-1 overflow-y-auto px-5 pt-4 pb-6 [scrollbar-color:var(--fg-tertiary)_transparent] [scrollbar-width:thin] [&::-webkit-scrollbar]:size-[10px] [&::-webkit-scrollbar-thumb]:rounded-full [&::-webkit-scrollbar-thumb]:border-2 [&::-webkit-scrollbar-thumb]:border-transparent [&::-webkit-scrollbar-thumb]:bg-[var(--fg-tertiary)] [&::-webkit-scrollbar-thumb]:bg-clip-padding [&::-webkit-scrollbar-thumb:hover]:bg-[var(--fg-secondary)] [&::-webkit-scrollbar-track]:bg-transparent",
     outputSection:
         "flex flex-col gap-2 border-t border-[var(--line-hairline)] pt-2 dark:border-[var(--glass-border-soft)]",
+    speakerReviewSection:
+        "flex flex-col gap-2 border-t border-[var(--line-hairline)] pt-2 dark:border-[var(--glass-border-soft)]",
+    sectionHead: "flex items-start justify-between gap-3 max-[860px]:flex-col",
+    sectionTitle:
+        "m-0 font-sans text-[12.5px] font-semibold text-[var(--fg-primary)]",
+    sectionDescription:
+        "mt-0.5 mb-0 font-sans text-[11.5px] font-medium leading-[1.45] text-[var(--fg-tertiary)] max-[860px]:[overflow-wrap:anywhere]",
+    actions:
+        "inline-flex min-w-0 flex-wrap items-center justify-end gap-2 max-[860px]:justify-start",
+    turn: "border-b border-dashed border-[var(--line-hairline)] pt-[10px] pb-4 dark:border-[var(--glass-border)]",
+    metaList: "mb-1.5 flex flex-wrap items-center gap-2.5",
     outputText:
         "m-0 font-sans text-[14.5px] leading-[1.65] text-[var(--fg-primary)] [text-wrap:pretty] max-[860px]:[overflow-wrap:anywhere]",
 } as const;
@@ -328,19 +345,26 @@ export function TranscriptionSection({
             hasNoPadding
             role="region"
             aria-labelledby="recording-transcription-title"
-            className="min-h-0 flex-1 gap-0"
+            className={recordingTranscriptionClassNames.card}
             data-sot-panel="recording-transcription"
         >
             <CardHeader
-                className="flex flex-row items-center gap-3 border-b px-3.5 py-3"
+                className={recordingTranscriptionClassNames.header}
                 data-sot-part="recording-transcription-header"
             >
-                <div data-sot-part="recording-transcription-heading">
+                <div
+                    className={recordingTranscriptionClassNames.heading}
+                    data-sot-part="recording-transcription-heading"
+                >
                     <FileText
+                        className={recordingTranscriptionClassNames.icon}
                         aria-hidden="true"
                         data-sot-part="recording-transcription-icon"
                     />
-                    <div data-sot-part="recording-transcription-header-copy">
+                    <div
+                        className={recordingTranscriptionClassNames.headerCopy}
+                        data-sot-part="recording-transcription-header-copy"
+                    >
                         <CardTitle
                             className="min-w-0"
                             data-sot-part="recording-transcription-title"
@@ -373,7 +397,7 @@ export function TranscriptionSection({
                 </div>
             </CardHeader>
             <CardContent
-                className="min-h-0 flex-1 overflow-y-auto px-5 pt-4 pb-6"
+                className={recordingTranscriptionClassNames.body}
                 data-sot-part="recording-transcription-body"
             >
                 {isTranscribing ? (
@@ -437,16 +461,36 @@ export function TranscriptionSection({
                             }
                             data-sot-section="recording-transcription-output"
                         >
-                            <header data-sot-part="recording-transcription-section-head">
+                            <header
+                                className={
+                                    recordingTranscriptionClassNames.sectionHead
+                                }
+                                data-sot-part="recording-transcription-section-head"
+                            >
                                 <div>
-                                    <h3 data-sot-part="recording-transcription-section-title">
+                                    <h3
+                                        className={
+                                            recordingTranscriptionClassNames.sectionTitle
+                                        }
+                                        data-sot-part="recording-transcription-section-title"
+                                    >
                                         {t("transcription.outputTitle")}
                                     </h3>
-                                    <p data-sot-part="recording-transcription-section-description">
+                                    <p
+                                        className={
+                                            recordingTranscriptionClassNames.sectionDescription
+                                        }
+                                        data-sot-part="recording-transcription-section-description"
+                                    >
                                         {t("transcription.outputDescription")}
                                     </p>
                                 </div>
-                                <div data-sot-part="recording-transcription-actions">
+                                <div
+                                    className={
+                                        recordingTranscriptionClassNames.actions
+                                    }
+                                    data-sot-part="recording-transcription-actions"
+                                >
                                     <Button
                                         onClick={handleCopyTranscript}
                                         size="sm"
@@ -497,7 +541,10 @@ export function TranscriptionSection({
                                     </Button>
                                 </div>
                             </header>
-                            <div data-sot-part="recording-transcription-turn">
+                            <div
+                                className={recordingTranscriptionClassNames.turn}
+                                data-sot-part="recording-transcription-turn"
+                            >
                                 <p
                                     className={
                                         recordingTranscriptionClassNames.outputText
@@ -507,7 +554,12 @@ export function TranscriptionSection({
                                     {displayText}
                                 </p>
                             </div>
-                            <div data-sot-list="recording-transcription-meta">
+                            <div
+                                className={
+                                    recordingTranscriptionClassNames.metaList
+                                }
+                                data-sot-list="recording-transcription-meta"
+                            >
                                 {language ? (
                                     <RecordingTranscriptionMetaBadge
                                         data-sot-meta="language"
@@ -548,13 +600,33 @@ export function TranscriptionSection({
                             </div>
                         </section>
                         {showSpeakerReview ? (
-                            <section data-sot-section="recording-transcription-speaker-review">
-                                <header data-sot-part="recording-transcription-section-head">
+                            <section
+                                className={
+                                    recordingTranscriptionClassNames.speakerReviewSection
+                                }
+                                data-sot-section="recording-transcription-speaker-review"
+                            >
+                                <header
+                                    className={
+                                        recordingTranscriptionClassNames.sectionHead
+                                    }
+                                    data-sot-part="recording-transcription-section-head"
+                                >
                                     <div>
-                                        <h3 data-sot-part="recording-transcription-section-title">
+                                        <h3
+                                            className={
+                                                recordingTranscriptionClassNames.sectionTitle
+                                            }
+                                            data-sot-part="recording-transcription-section-title"
+                                        >
                                             {t("speakerReview.title")}
                                         </h3>
-                                        <p data-sot-part="recording-transcription-section-description">
+                                        <p
+                                            className={
+                                                recordingTranscriptionClassNames.sectionDescription
+                                            }
+                                            data-sot-part="recording-transcription-section-description"
+                                        >
                                             {t("speakerReview.description")}
                                         </p>
                                     </div>

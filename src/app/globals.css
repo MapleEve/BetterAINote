@@ -1079,34 +1079,29 @@ button:not([data-slot]) {
 
 /* Scrollbars — themed to match surface */
 [data-sot-list="dashboard-recording-list-scroll"],
-[data-sot-part="dashboard-transcript-body"],
-[data-sot-part="recording-transcription-body"] {
+[data-sot-part="dashboard-transcript-body"] {
     scrollbar-width: thin;
     scrollbar-color: color-mix(in srgb, var(--fg-tertiary) 40%, transparent)
         transparent;
 }
 [data-sot-list="dashboard-recording-list-scroll"]::-webkit-scrollbar,
-[data-sot-part="dashboard-transcript-body"]::-webkit-scrollbar,
-[data-sot-part="recording-transcription-body"]::-webkit-scrollbar {
+[data-sot-part="dashboard-transcript-body"]::-webkit-scrollbar {
     width: 10px;
     height: 10px;
 }
 [data-sot-list="dashboard-recording-list-scroll"]::-webkit-scrollbar-track,
-[data-sot-part="dashboard-transcript-body"]::-webkit-scrollbar-track,
-[data-sot-part="recording-transcription-body"]::-webkit-scrollbar-track {
+[data-sot-part="dashboard-transcript-body"]::-webkit-scrollbar-track {
     background: transparent;
 }
 [data-sot-list="dashboard-recording-list-scroll"]::-webkit-scrollbar-thumb,
-[data-sot-part="dashboard-transcript-body"]::-webkit-scrollbar-thumb,
-[data-sot-part="recording-transcription-body"]::-webkit-scrollbar-thumb {
+[data-sot-part="dashboard-transcript-body"]::-webkit-scrollbar-thumb {
     background: color-mix(in srgb, var(--fg-tertiary) 35%, transparent);
     border-radius: 999px;
     border: 2px solid transparent;
     background-clip: padding-box;
 }
 [data-sot-list="dashboard-recording-list-scroll"]::-webkit-scrollbar-thumb:hover,
-[data-sot-part="dashboard-transcript-body"]::-webkit-scrollbar-thumb:hover,
-[data-sot-part="recording-transcription-body"]::-webkit-scrollbar-thumb:hover {
+[data-sot-part="dashboard-transcript-body"]::-webkit-scrollbar-thumb:hover {
     background: color-mix(in srgb, var(--fg-tertiary) 55%, transparent);
     background-clip: padding-box;
 }
@@ -1119,89 +1114,6 @@ button:not([data-slot]) {
     gap: 16px;
     min-height: 0;
     min-width: 0;
-}
-[data-sot-part="recording-transcription-heading"] {
-    display: flex;
-    align-items: center;
-    gap: 12px;
-    min-width: 0;
-}
-[data-sot-part="recording-transcription-icon"] {
-    width: 16px;
-    height: 16px;
-    color: var(--fg-secondary);
-    flex: none;
-}
-[data-sot-part="recording-transcription-header-copy"] {
-    display: flex;
-    min-width: 0;
-    flex-direction: column;
-    gap: 3px;
-}
-[data-sot-part="recording-transcription-body"] {
-    flex: 1;
-    min-height: 0;
-    overflow-y: auto;
-}
-[data-sot-section="recording-transcription-speaker-review"] {
-    display: flex;
-    flex-direction: column;
-    gap: 8px;
-    padding-top: 8px;
-    border-top: 1px solid var(--line-hairline);
-}
-[data-theme="dark"]
-    [data-sot-section="recording-transcription-speaker-review"] {
-    border-top-color: var(--glass-border-soft);
-}
-[data-sot-part="recording-transcription-section-head"] {
-    display: flex;
-    align-items: flex-start;
-    justify-content: space-between;
-    gap: 12px;
-}
-[data-sot-part="recording-transcription-section-title"] {
-    margin: 0;
-    color: var(--fg-primary);
-    font: 600 12.5px var(--font-sans);
-}
-[data-sot-part="recording-transcription-section-description"] {
-    margin: 2px 0 0;
-    color: var(--fg-tertiary);
-    font: 500 11.5px / 1.45 var(--font-sans);
-}
-[data-sot-part="recording-transcription-actions"] {
-    display: inline-flex;
-    align-items: center;
-    justify-content: flex-end;
-    flex-wrap: wrap;
-    gap: 8px;
-    min-width: 0;
-}
-[data-sot-part="recording-transcription-turn"] {
-    padding: 10px 0 16px;
-    border-bottom: 1px dashed var(--line-hairline);
-}
-[data-theme="dark"] [data-sot-part="recording-transcription-turn"] {
-    border-bottom-color: var(--glass-border);
-}
-[data-sot-list="recording-transcription-meta"] {
-    display: flex;
-    align-items: center;
-    flex-wrap: wrap;
-    gap: 10px;
-    margin-bottom: 6px;
-}
-@media (max-width: 860px) {
-    [data-sot-part="recording-transcription-section-head"] {
-        flex-direction: column;
-    }
-    [data-sot-part="recording-transcription-actions"] {
-        justify-content: flex-start;
-    }
-    [data-sot-part="recording-transcription-section-description"] {
-        overflow-wrap: anywhere;
-    }
 }
 [data-sot-item="dashboard-transcript-turn"] {
     padding: 10px 0 16px;

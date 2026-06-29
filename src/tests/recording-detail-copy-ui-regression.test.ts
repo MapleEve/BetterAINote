@@ -638,6 +638,40 @@ describe("recording detail copy and title action UI regressions", () => {
         expect(detailTranscript).toContain(
             "const recordingTranscriptionClassNames = {",
         );
+        const recordingTranscriptionClassNamesBlock = extractBoundedSlice(
+            detailTranscript,
+            "const recordingTranscriptionClassNames = {",
+            "} as const;",
+        );
+        for (const ownerClassSnippet of [
+            'card: "min-h-0 flex-1 gap-0"',
+            'header: "flex flex-row items-center gap-3 border-b px-3.5 py-3"',
+            'heading: "flex min-w-0 items-center gap-3"',
+            'icon: "size-4 flex-none text-[var(--fg-secondary)]"',
+            'headerCopy: "flex min-w-0 flex-col gap-[3px]"',
+            'body: "min-h-0 flex-1 overflow-y-auto px-5 pt-4 pb-6',
+            "[scrollbar-width:thin]",
+            "[&::-webkit-scrollbar]:size-[10px]",
+            "[&::-webkit-scrollbar-thumb]:bg-[var(--fg-tertiary)]",
+            "[&::-webkit-scrollbar-thumb:hover]:bg-[var(--fg-secondary)]",
+            'speakerReviewSection:\n        "flex flex-col gap-2 border-t border-[var(--line-hairline)] pt-2 dark:border-[var(--glass-border-soft)]"',
+            'sectionHead: "flex items-start justify-between gap-3 max-[860px]:flex-col"',
+            'sectionTitle:\n        "m-0 font-sans text-[12.5px] font-semibold text-[var(--fg-primary)]"',
+            'sectionDescription:\n        "mt-0.5 mb-0 font-sans text-[11.5px] font-medium leading-[1.45] text-[var(--fg-tertiary)] max-[860px]:[overflow-wrap:anywhere]"',
+            'actions:\n        "inline-flex min-w-0 flex-wrap items-center justify-end gap-2 max-[860px]:justify-start"',
+            'turn: "border-b border-dashed border-[var(--line-hairline)] pt-[10px] pb-4 dark:border-[var(--glass-border)]"',
+            'metaList: "mb-1.5 flex flex-wrap items-center gap-2.5"',
+        ]) {
+            expect(recordingTranscriptionClassNamesBlock).toContain(
+                ownerClassSnippet,
+            );
+        }
+        expect(recordingTranscriptionClassNamesBlock).not.toMatch(
+            /\b(?:rgb|rgba|color-mix|oklch)\(/,
+        );
+        expect(recordingTranscriptionClassNamesBlock).not.toMatch(
+            /#[0-9a-fA-F]{3,8}\b/,
+        );
         expect(detailTranscript).toContain(
             'outputSection:\n        "flex flex-col gap-2 border-t border-[var(--line-hairline)] pt-2 dark:border-[var(--glass-border-soft)]"',
         );
@@ -695,6 +729,66 @@ describe("recording detail copy and title action UI regressions", () => {
             'data-sot-section="recording-transcription-output"',
             "section",
         );
+        const transcriptionCard = extractOpeningElement(
+            detailTranscript,
+            'data-sot-panel="recording-transcription"',
+            "Card",
+        );
+        const transcriptionHeader = extractOpeningElement(
+            detailTranscript,
+            'data-sot-part="recording-transcription-header"',
+            "CardHeader",
+        );
+        const transcriptionHeading = extractOpeningElement(
+            detailTranscript,
+            'data-sot-part="recording-transcription-heading"',
+            "div",
+        );
+        const transcriptionIcon = extractOpeningElement(
+            detailTranscript,
+            'data-sot-part="recording-transcription-icon"',
+            "FileText",
+        );
+        const transcriptionHeaderCopy = extractOpeningElement(
+            detailTranscript,
+            'data-sot-part="recording-transcription-header-copy"',
+            "div",
+        );
+        const transcriptionBody = extractOpeningElement(
+            detailTranscript,
+            'data-sot-part="recording-transcription-body"',
+            "CardContent",
+        );
+        const sectionHead = extractOpeningElement(
+            detailTranscript,
+            'data-sot-part="recording-transcription-section-head"',
+            "header",
+        );
+        const sectionTitle = extractOpeningElement(
+            detailTranscript,
+            'data-sot-part="recording-transcription-section-title"',
+            "h3",
+        );
+        const sectionDescription = extractOpeningElement(
+            detailTranscript,
+            'data-sot-part="recording-transcription-section-description"',
+            "p",
+        );
+        const sectionActions = extractOpeningElement(
+            detailTranscript,
+            'data-sot-part="recording-transcription-actions"',
+            "div",
+        );
+        const transcriptionTurn = extractOpeningElement(
+            detailTranscript,
+            'data-sot-part="recording-transcription-turn"',
+            "div",
+        );
+        const speakerReviewSection = extractOpeningElement(
+            detailTranscript,
+            'data-sot-section="recording-transcription-speaker-review"',
+            "section",
+        );
         const outputText = extractOpeningElement(
             detailTranscript,
             'data-sot-part="recording-transcription-text"',
@@ -705,8 +799,52 @@ describe("recording detail copy and title action UI regressions", () => {
             'data-sot-list="recording-transcription-meta"',
             "</div>",
         );
+        const transcriptionMetaList = extractOpeningElement(
+            detailTranscript,
+            'data-sot-list="recording-transcription-meta"',
+            "div",
+        );
         expect(outputSection).toContain(
             "recordingTranscriptionClassNames.outputSection",
+        );
+        expect(transcriptionCard).toContain(
+            "recordingTranscriptionClassNames.card",
+        );
+        expect(transcriptionHeader).toContain(
+            "recordingTranscriptionClassNames.header",
+        );
+        expect(transcriptionHeading).toContain(
+            "recordingTranscriptionClassNames.heading",
+        );
+        expect(transcriptionIcon).toContain(
+            "recordingTranscriptionClassNames.icon",
+        );
+        expect(transcriptionHeaderCopy).toContain(
+            "recordingTranscriptionClassNames.headerCopy",
+        );
+        expect(transcriptionBody).toContain(
+            "recordingTranscriptionClassNames.body",
+        );
+        expect(sectionHead).toContain(
+            "recordingTranscriptionClassNames.sectionHead",
+        );
+        expect(sectionTitle).toContain(
+            "recordingTranscriptionClassNames.sectionTitle",
+        );
+        expect(sectionDescription).toContain(
+            "recordingTranscriptionClassNames.sectionDescription",
+        );
+        expect(sectionActions).toContain(
+            "recordingTranscriptionClassNames.actions",
+        );
+        expect(transcriptionTurn).toContain(
+            "recordingTranscriptionClassNames.turn",
+        );
+        expect(transcriptionMetaList).toContain(
+            "recordingTranscriptionClassNames.metaList",
+        );
+        expect(speakerReviewSection).toContain(
+            "recordingTranscriptionClassNames.speakerReviewSection",
         );
         expect(outputText).toContain(
             "recordingTranscriptionClassNames.outputText",
@@ -754,10 +892,21 @@ describe("recording detail copy and title action UI regressions", () => {
         for (const removedSelector of [
             '[data-sot-panel="recording-transcription"][data-slot="card"]',
             '[data-sot-part="recording-transcription-header"] {',
+            '[data-sot-part="recording-transcription-heading"]',
+            '[data-sot-part="recording-transcription-icon"]',
+            '[data-sot-part="recording-transcription-header-copy"]',
             '[data-sot-part="recording-transcription-title"] h2',
             '[data-sot-part="recording-transcription-description"],',
             '[data-sot-part="recording-transcription-unavailable"] {',
+            '[data-sot-part="recording-transcription-body"]',
+            '[data-sot-section="recording-transcription-speaker-review"]',
+            '[data-sot-part="recording-transcription-section-head"]',
+            '[data-sot-part="recording-transcription-section-title"]',
+            '[data-sot-part="recording-transcription-section-description"]',
+            '[data-sot-part="recording-transcription-actions"]',
+            '[data-sot-part="recording-transcription-turn"]',
             '[data-sot-part="recording-transcription-body"] [data-sot-banner-title]',
+            '[data-sot-list="recording-transcription-meta"]',
             '[data-sot-list="recording-transcription-meta"] > span',
             '[data-sot-part="recording-transcription-meta-icon"]',
             '[data-sot-section="recording-transcription-output"]',
