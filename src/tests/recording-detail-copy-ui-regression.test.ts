@@ -9,6 +9,10 @@ const EXPECTED_DASHBOARD_TRANSCRIPT_ACTIONS_CLASS_NAME =
     "ml-auto inline-flex max-w-full flex-[0_1_auto] flex-wrap items-center gap-2";
 const EXPECTED_DASHBOARD_TRANSCRIPT_SHELL_CARD_CLASS_NAME =
     "flex min-h-0 flex-1 flex-col gap-0 rounded-[16px] border border-[var(--line-hairline)] bg-[var(--bg-elevated)] shadow-[var(--shadow-sm)] backdrop-blur-none dark:border-[var(--glass-border-soft)] dark:bg-[rgb(255_255_255_/_0.025)] dark:shadow-none";
+const EXPECTED_DASHBOARD_WORKSPACE_CLASS_NAME =
+    "grid flex-1 min-h-0 grid-cols-[380px_1fr] gap-4 px-5 pt-4 pb-5 max-[860px]:min-w-0 max-[860px]:max-w-full max-[860px]:box-border max-[860px]:grid-cols-[380px_0px] max-[860px]:[&>[data-sot-panel=dashboard-detail]]:hidden";
+const EXPECTED_RECORDING_WORKSTATION_WORKSPACE_CLASS_NAME =
+    "grid flex-1 min-h-0 grid-cols-[380px_1fr] gap-4 px-5 pt-4 pb-5 max-[860px]:min-w-0 max-[860px]:max-w-full max-[860px]:box-border max-[860px]:grid-cols-[minmax(0,1fr)]";
 const RECORDING_WORKSTATION_SIDEBAR_REQUIRED_CLASS_TOKENS = [
     "relative",
     "flex",
@@ -90,6 +94,8 @@ const DASHBOARD_MAIN_FORBIDDEN_CLASS_PATTERN =
     /\b(?:rgb|rgba|hsl|hsla|oklch|color-mix)\(|#[0-9A-Fa-f]{3,8}\b|\bdark:|(?:^|\s)(?:bg|border|text|shadow|ring|fill|stroke|from|via|to)-(?:white|black|transparent|slate|gray|zinc|neutral|stone|red|orange|amber|yellow|lime|green|emerald|teal|cyan|sky|blue|indigo|violet|purple|fuchsia|pink|rose)(?:[/-]\d+)?\b/;
 const DASHBOARD_TOPBAR_FORBIDDEN_CLASS_PATTERN =
     DASHBOARD_MAIN_FORBIDDEN_CLASS_PATTERN;
+const OWNER_WORKSPACE_FORBIDDEN_CLASS_PATTERN =
+    /\bspace-[xy]-|\b(?:rgb|rgba|hsl|hsla|oklch|color-mix)\(|#[0-9A-Fa-f]{3,8}\b|\bdark:|(?:^|\s)(?:bg|border|text|shadow|ring|fill|stroke|from|via|to)-(?:white|black|transparent|slate|gray|zinc|neutral|stone|red|orange|amber|yellow|lime|green|emerald|teal|cyan|sky|blue|indigo|violet|purple|fuchsia|pink|rose)(?:[/-]\d+)?\b/;
 const WORKSTATION_TOPBAR_CRUMB_REMOVED_GLOBAL_SELECTORS = [
     '[data-sot-panel="workstation-topbar"]',
     '[data-theme="dark"] [data-sot-panel="workstation-topbar"]',
@@ -1725,6 +1731,23 @@ describe("recording detail copy and title action UI regressions", () => {
         expect(detailWorkstation).toContain(
             'data-sot-panel="workstation-workspace"',
         );
+        const workstationWorkspace = extractOpeningElement(
+            detailWorkstation,
+            'data-sot-panel="workstation-workspace"',
+            "div",
+        );
+        const recordingWorkstationWorkspaceClassName =
+            expectExactStringConstInitializer(
+                detailWorkstation,
+                "RECORDING_WORKSTATION_WORKSPACE_CLASS_NAME",
+                EXPECTED_RECORDING_WORKSTATION_WORKSPACE_CLASS_NAME,
+            );
+        expect(workstationWorkspace).toContain(
+            "className={RECORDING_WORKSTATION_WORKSPACE_CLASS_NAME}",
+        );
+        expect(recordingWorkstationWorkspaceClassName).not.toMatch(
+            OWNER_WORKSPACE_FORBIDDEN_CLASS_PATTERN,
+        );
         expect(detailWorkstation).toContain(
             'data-sot-panel="recording-workstation-detail"',
         );
@@ -1937,9 +1960,38 @@ describe("recording detail copy and title action UI regressions", () => {
             expect(globals).not.toContain(selector);
             expect(collectCssRuleBlocks(globals, selector)).toEqual([]);
         }
-        expect(globals).toContain('[data-sot-panel="workstation-workspace"]');
+        for (const selector of [
+            '[data-sot-panel="dashboard-workspace"]',
+            '[data-sot-panel="workstation-workspace"]',
+        ]) {
+            expect(globals).not.toContain(selector);
+            expect(collectCssRuleBlocks(globals, selector)).toEqual([]);
+        }
+        expect(globals).not.toContain(
+            '[data-sot-panel="dashboard-workspace"]\n        > [data-sot-panel="dashboard-detail"]',
+        );
+        const dashboardWorkspaceClassName = expectExactStringConstInitializer(
+            dashboardWorkstation,
+            "DASHBOARD_WORKSPACE_CLASS_NAME",
+            EXPECTED_DASHBOARD_WORKSPACE_CLASS_NAME,
+        );
+        expect(dashboardWorkspaceClassName).not.toMatch(
+            OWNER_WORKSPACE_FORBIDDEN_CLASS_PATTERN,
+        );
+        expect(dashboardWorkstation).toContain(
+            "className={DASHBOARD_WORKSPACE_CLASS_NAME}",
+        );
         expect(globals).toContain(
             '[data-sot-panel="recording-workstation-detail"]',
+        );
+        expect(globals).toContain(
+            '[data-sot-panel="recording-workstation-detail-body"]',
+        );
+        expect(globals).toContain(
+            '[data-sot-panel="workstation-sidebar"] {\n        display: none;\n    }',
+        );
+        expect(globals).toContain(
+            '[data-sot-control="dashboard-sync"][disabled] {\n    pointer-events: none;',
         );
         expect(globals).not.toContain('[data-sot-part="workstation-brand"]');
         expect(globals).not.toContain(

@@ -20,6 +20,12 @@ const DASHBOARD_MAIN_REQUIRED_CLASS_TOKENS = [
     "min-w-0",
     "flex-col",
 ] as const;
+const EXPECTED_DASHBOARD_WORKSPACE_CLASS_NAME =
+    "grid flex-1 min-h-0 grid-cols-[380px_1fr] gap-4 px-5 pt-4 pb-5 max-[860px]:min-w-0 max-[860px]:max-w-full max-[860px]:box-border max-[860px]:grid-cols-[380px_0px] max-[860px]:[&>[data-sot-panel=dashboard-detail]]:hidden";
+const EXPECTED_RECORDING_WORKSTATION_WORKSPACE_CLASS_NAME =
+    "grid flex-1 min-h-0 grid-cols-[380px_1fr] gap-4 px-5 pt-4 pb-5 max-[860px]:min-w-0 max-[860px]:max-w-full max-[860px]:box-border max-[860px]:grid-cols-[minmax(0,1fr)]";
+const OWNER_WORKSPACE_FORBIDDEN_CLASS_PATTERN =
+    /\bspace-[xy]-|\b(?:rgb|rgba|hsl|hsla|oklch|color-mix)\(|#[0-9A-Fa-f]{3,8}\b|\bdark:|(?:^|\s)(?:bg|border|text|shadow|ring|fill|stroke|from|via|to)-(?:white|black|transparent|slate|gray|zinc|neutral|stone|red|orange|amber|yellow|lime|green|emerald|teal|cyan|sky|blue|indigo|violet|purple|fuchsia|pink|rose)(?:[/-]\d+)?\b/;
 const DASHBOARD_TOPBAR_REQUIRED_CLASS_TOKENS = [
     "relative",
     "z-[var(--z-topbar)]",
@@ -1745,7 +1751,7 @@ const DASHBOARD_RECORDING_LIST_RESIDUAL_OWNER_CLASS_REFS = [
     "dashboardRecordingListPaginationStyles.number",
 ] as const;
 
-const DASHBOARD_RECORDING_LIST_HEADER_RETAINED_GLOBAL_SELECTORS = [
+const DASHBOARD_WORKSPACE_MIGRATED_GLOBAL_SELECTORS = [
     '[data-sot-panel="dashboard-workspace"]',
     '[data-sot-panel="workstation-workspace"]',
 ] as const;
@@ -5402,8 +5408,9 @@ describe("full UI replacement regression coverage", () => {
         for (const selector of DASHBOARD_RECORDING_LIST_DATA_SOT_CSS_SELECTORS) {
             expect(globals).toContain(selector);
         }
-        for (const selector of DASHBOARD_RECORDING_LIST_HEADER_RETAINED_GLOBAL_SELECTORS) {
-            expect(globals).toContain(selector);
+        for (const selector of DASHBOARD_WORKSPACE_MIGRATED_GLOBAL_SELECTORS) {
+            expect(globals).not.toContain(selector);
+            expect(collectCssRuleBlocks(globals, selector)).toEqual([]);
         }
         for (const selector of DASHBOARD_SIDEBAR_FOOTER_MIGRATED_GLOBAL_SELECTORS) {
             expect(globals).not.toContain(selector);
@@ -6973,6 +6980,22 @@ describe("full UI replacement regression coverage", () => {
             "className={dashboardTopbarClassNames.topbar}",
         );
         expect(workstation).toContain('data-sot-panel="dashboard-workspace"');
+        const dashboardWorkspace = extractOpeningElement(
+            workstation,
+            'data-sot-panel="dashboard-workspace"',
+            "div",
+        );
+        const dashboardWorkspaceClassName = expectExactStringConstInitializer(
+            workstation,
+            "DASHBOARD_WORKSPACE_CLASS_NAME",
+            EXPECTED_DASHBOARD_WORKSPACE_CLASS_NAME,
+        );
+        expect(dashboardWorkspace).toContain(
+            "className={DASHBOARD_WORKSPACE_CLASS_NAME}",
+        );
+        expect(dashboardWorkspaceClassName).not.toMatch(
+            OWNER_WORKSPACE_FORBIDDEN_CLASS_PATTERN,
+        );
         expect(workstation).toContain('data-sot-panel="dashboard-detail"');
         expect(workstation).toContain(
             'data-sot-control="dashboard-drawer-trigger"',
@@ -10603,9 +10626,38 @@ describe("full UI replacement regression coverage", () => {
             expect(globals).not.toContain(selector);
             expect(collectCssRuleBlocks(globals, selector)).toEqual([]);
         }
-        expect(globals).toContain('[data-sot-panel="workstation-workspace"]');
+        const workstationWorkspace = extractOpeningElement(
+            detail,
+            'data-sot-panel="workstation-workspace"',
+            "div",
+        );
+        const recordingWorkstationWorkspaceClassName =
+            expectExactStringConstInitializer(
+                detail,
+                "RECORDING_WORKSTATION_WORKSPACE_CLASS_NAME",
+                EXPECTED_RECORDING_WORKSTATION_WORKSPACE_CLASS_NAME,
+            );
+        expect(workstationWorkspace).toContain(
+            "className={RECORDING_WORKSTATION_WORKSPACE_CLASS_NAME}",
+        );
+        expect(recordingWorkstationWorkspaceClassName).not.toMatch(
+            OWNER_WORKSPACE_FORBIDDEN_CLASS_PATTERN,
+        );
+        for (const selector of DASHBOARD_WORKSPACE_MIGRATED_GLOBAL_SELECTORS) {
+            expect(globals).not.toContain(selector);
+            expect(collectCssRuleBlocks(globals, selector)).toEqual([]);
+        }
+        expect(globals).not.toContain(
+            '[data-sot-panel="dashboard-workspace"]\n        > [data-sot-panel="dashboard-detail"]',
+        );
         expect(globals).toContain(
             '[data-sot-panel="workstation-sidebar"] {\n        display: none;\n    }',
+        );
+        expect(globals).toContain(
+            '[data-sot-panel="dashboard-detail"],\n[data-sot-panel="recording-workstation-detail"],\n[data-sot-panel="recording-workstation-detail-body"]',
+        );
+        expect(globals).toContain(
+            '[data-sot-control="dashboard-sync"][disabled] {\n    pointer-events: none;',
         );
         expect(detail).toContain(
             'data-sot-panel="recording-workstation-detail"',

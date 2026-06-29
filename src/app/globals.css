@@ -777,17 +777,6 @@ button:not([data-slot]) {
     --z-toast: 700; /* toasts above everything */
 }
 
-/* ======== Workspace split ======== */
-[data-sot-panel="dashboard-workspace"],
-[data-sot-panel="workstation-workspace"] {
-    flex: 1;
-    min-height: 0;
-    display: grid;
-    grid-template-columns: 380px 1fr;
-    gap: 16px;
-    padding: 16px 20px 20px;
-}
-
 /* List panel */
 /* ======== Detail panel ======== */
 [data-sot-panel="dashboard-detail"],
@@ -839,23 +828,7 @@ button:not([data-slot]) {
         max-width: 100%;
         box-sizing: border-box;
     }
-    [data-sot-panel="dashboard-workspace"] {
-        min-width: 0;
-        max-width: 100%;
-        box-sizing: border-box;
-        grid-template-columns: 380px 0px;
-    }
-    [data-sot-panel="workstation-workspace"] {
-        min-width: 0;
-        max-width: 100%;
-        box-sizing: border-box;
-        grid-template-columns: minmax(0, 1fr);
-    }
     [data-sot-panel="workstation-sidebar"] {
-        display: none;
-    }
-    [data-sot-panel="dashboard-workspace"]
-        > [data-sot-panel="dashboard-detail"] {
         display: none;
     }
 }

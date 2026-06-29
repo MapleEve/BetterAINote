@@ -110,6 +110,8 @@ const RECORDING_WORKSTATION_SHELL_CLASS_NAME =
     "grid h-screen min-h-[720px] grid-cols-[264px_1fr] transition-[grid-template-columns] duration-[320ms] ease-[var(--ease-out)] max-[860px]:h-auto max-[860px]:min-h-[100svh] max-[860px]:grid-cols-[minmax(0,1fr)] max-[860px]:overflow-x-clip";
 const RECORDING_WORKSTATION_MAIN_CLASS_NAME =
     "flex h-screen min-w-0 flex-col max-[860px]:min-w-0 max-[860px]:max-w-full max-[860px]:box-border";
+const RECORDING_WORKSTATION_WORKSPACE_CLASS_NAME =
+    "grid flex-1 min-h-0 grid-cols-[380px_1fr] gap-4 px-5 pt-4 pb-5 max-[860px]:min-w-0 max-[860px]:max-w-full max-[860px]:box-border max-[860px]:grid-cols-[minmax(0,1fr)]";
 const RECORDING_WORKSTATION_SIDEBAR_CLASS_NAME =
     "relative flex flex-col rounded-none border border-border bg-card px-3 pt-4 pb-3 shadow-sm supports-[backdrop-filter]:bg-card/90 supports-[backdrop-filter]:backdrop-blur-[22px] supports-[backdrop-filter]:backdrop-saturate-[140%]";
 const recordingWorkstationTopbarClassNames = {
@@ -963,7 +965,10 @@ export function RecordingWorkstation({
                         </span>
                     </div>
                 </header>
-                <div data-sot-panel="workstation-workspace">
+                <div
+                    className={RECORDING_WORKSTATION_WORKSPACE_CLASS_NAME}
+                    data-sot-panel="workstation-workspace"
+                >
                     <Card
                         hasNoPadding
                         className="min-h-0 gap-0"

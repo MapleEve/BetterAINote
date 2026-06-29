@@ -350,6 +350,8 @@ const DASHBOARD_WORKSTATION_SHELL_CLASS_NAME =
     "grid h-screen min-h-[720px] grid-cols-[264px_1fr] transition-[grid-template-columns] duration-[320ms] ease-[var(--ease-out)] data-[sidebar-collapsed=true]:grid-cols-[56px_1fr] max-[860px]:h-auto max-[860px]:min-h-[100svh] max-[860px]:grid-cols-[minmax(0,1fr)] max-[860px]:overflow-x-clip";
 
 const DASHBOARD_MAIN_CLASS_NAME = "flex h-screen min-w-0 flex-col";
+const DASHBOARD_WORKSPACE_CLASS_NAME =
+    "grid flex-1 min-h-0 grid-cols-[380px_1fr] gap-4 px-5 pt-4 pb-5 max-[860px]:min-w-0 max-[860px]:max-w-full max-[860px]:box-border max-[860px]:grid-cols-[380px_0px] max-[860px]:[&>[data-sot-panel=dashboard-detail]]:hidden";
 
 const dashboardTopbarClassNames = {
     topbar:
@@ -5804,7 +5806,10 @@ export function Workstation({
 
                 <SystemBanner />
 
-                <div data-sot-panel="dashboard-workspace">
+                <div
+                    className={DASHBOARD_WORKSPACE_CLASS_NAME}
+                    data-sot-panel="dashboard-workspace"
+                >
                     <Card
                         hasNoPadding
                         className="min-h-0 gap-0 rounded-2xl"
