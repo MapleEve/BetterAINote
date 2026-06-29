@@ -1056,31 +1056,6 @@ button:not([data-slot]) {
     min-width: 0;
 }
 /* ======== Dialog overlay + shadcn modal slots ======== */
-[data-sot-overlay="settings-shell"] {
-    position: fixed;
-    inset: 0;
-    width: auto;
-    max-width: none;
-    max-height: none;
-    margin: 0;
-    padding: 0;
-    border: 0;
-    z-index: var(--z-modal);
-}
-[data-sot-overlay="settings-shell"][data-state="open"] {
-    opacity: 1;
-    pointer-events: auto;
-}
-[data-sot-overlay="settings-shell"][data-state="closed"] {
-    opacity: 0;
-    pointer-events: none;
-}
-[data-sot-surface="settings-shell"] {
-    z-index: calc(var(--z-modal) + 1);
-}
-[data-sot-surface="settings-shell"][data-state="closed"] {
-    opacity: 0;
-}
 @keyframes bpulse {
     0%,
     100% {

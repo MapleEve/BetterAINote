@@ -349,9 +349,10 @@ const REMOVED_SETTINGS_SHORTCUTS_KEY_STATUS_VISUAL_SELECTORS = [
 const LEGACY_MODAL_SHELL_CSS_SELECTOR_RE =
     /(^|[,\s>{])\.(?:scrim|modal|modal-head|modal-icon|modal-title|modal-desc|modal-body|modal-foot)(?![\w-])/m;
 
-const MODAL_SHELL_DATA_SOT_CSS_SELECTORS = [
+const REMOVED_SETTINGS_SHELL_GLOBAL_SELECTORS = [
     '[data-sot-overlay="settings-shell"]',
     '[data-sot-overlay="settings-shell"][data-state="open"]',
+    '[data-sot-overlay="settings-shell"][data-state="closed"]',
     '[data-sot-surface="settings-shell"]',
     '[data-sot-surface="settings-shell"][data-state="closed"]',
 ] as const;
@@ -597,15 +598,36 @@ describe("settings SOT interaction regressions", () => {
         expect(globals).toContain("--z-modal");
         expect(globals).toContain("--ease-sine");
         expect(globals).toContain("--z-modal");
-        expect(globals).toContain("z-index: var(--z-modal)");
+        expect(baseDialog).toContain("z-[var(--z-modal)]");
         expect(globals).not.toContain(".ui-select-content");
         expect(globals).not.toContain("z-index: 650");
         expect(globals).not.toContain(
             '.scrim[data-open="false"] > [data-sot-surface="settings-shell"]',
         );
-        expect(globals).toContain(
-            '[data-sot-surface="settings-shell"][data-state="closed"]',
+        const settingsOverlayClass = findStringConstInitializerContaining(
+            dialog,
+            [
+                "const SETTINGS_OVERLAY_CLASS =",
+                "m-0",
+                "w-auto",
+                "max-w-none",
+                "max-h-none",
+                "border-0",
+                "bg-[var(--modal-scrim-bg)]",
+                "p-0",
+                "backdrop-blur-[6px]",
+                "data-[state=closed]:pointer-events-none",
+                "data-[state=closed]:opacity-0",
+                "data-[state=open]:pointer-events-auto",
+                "data-[state=open]:opacity-100",
+            ],
         );
+        expect(settingsOverlayClass).not.toContain("data-sot-state");
+        findStringConstInitializerContaining(dialog, [
+            "const SETTINGS_SHELL_SURFACE_CLASS =",
+            "z-[calc(var(--z-modal)+1)]",
+            "data-[state=closed]:opacity-0",
+        ]);
         for (const [pattern, label] of LEGACY_SETTINGS_SHELL_CSS_SELECTORS) {
             expect(globals, `globals should not use ${label}`).not.toMatch(
                 pattern,
@@ -620,8 +642,8 @@ describe("settings SOT interaction regressions", () => {
         const productCss = readProductCss(globals);
 
         expect(productCss).not.toMatch(LEGACY_MODAL_SHELL_CSS_SELECTOR_RE);
-        for (const selector of MODAL_SHELL_DATA_SOT_CSS_SELECTORS) {
-            expect(productCss).toContain(selector);
+        for (const selector of REMOVED_SETTINGS_SHELL_GLOBAL_SELECTORS) {
+            expect(collectExactCssRuleBlocks(productCss, selector)).toEqual([]);
         }
         for (const selector of REMOVED_MODAL_SHELL_DEAD_DATA_SOT_CSS_SELECTORS) {
             expect(productCss).not.toContain(selector);
@@ -886,14 +908,6 @@ describe("settings SOT interaction regressions", () => {
             "features/settings/components/settings-dialog.tsx",
         );
         const globals = readSource("app/globals.css");
-        const shellSurfaceBlocks = collectExactCssRuleBlocks(
-            globals,
-            '[data-sot-surface="settings-shell"]',
-        );
-        const shellClosedBlocks = collectExactCssRuleBlocks(
-            globals,
-            '[data-sot-surface="settings-shell"][data-state="closed"]',
-        );
         const userSummaryBlocks = collectExactCssRuleBlocks(
             globals,
             '[data-sot-part="settings-user-summary"]',
@@ -912,6 +926,7 @@ describe("settings SOT interaction regressions", () => {
 
         findStringConstInitializerContaining(dialog, [
             "const SETTINGS_SHELL_SURFACE_CLASS =",
+            "z-[calc(var(--z-modal)+1)]",
             "box-border",
             "flex",
             "h-[min(94svh,980px)]",
@@ -977,16 +992,6 @@ describe("settings SOT interaction regressions", () => {
             "[overscroll-behavior:contain]",
         ]);
 
-        expect(shellSurfaceBlocks).toHaveLength(1);
-        expect(shellSurfaceBlocks[0]?.declarations).toContain(
-            "z-index: calc(var(--z-modal) + 1);",
-        );
-        expect(shellSurfaceBlocks[0]?.declarations).not.toMatch(
-            /(?:width|max-width|height|max-height|display|flex-direction|gap|overflow|box-sizing)\s*:/,
-        );
-        expect(shellClosedBlocks).toHaveLength(1);
-        expect(shellClosedBlocks[0]?.declarations).toContain("opacity: 0;");
-        expect(shellClosedBlocks[0]?.declarations).not.toContain("transform:");
         for (const selector of [
             '[data-sot-panel="settings-header"]',
             '[data-sot-panel="settings-body"]',

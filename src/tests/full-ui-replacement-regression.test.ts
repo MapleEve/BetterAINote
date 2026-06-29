@@ -1400,9 +1400,10 @@ const LEGACY_DESIGN_TWEAKS_PRODUCT_CSS_SELECTOR_RE =
 const UNAPPROVED_PRODUCT_CSS_CLASS_SELECTOR_RE =
     /(^|[,\s>{(:])\.(?!dark(?:[\s,:[>{]|$))[A-Za-z][\w-]*(?![\w-])/m;
 
-const MODAL_SHELL_DATA_SOT_CSS_SELECTORS = [
+const REMOVED_SETTINGS_SHELL_GLOBAL_SELECTORS = [
     '[data-sot-overlay="settings-shell"]',
     '[data-sot-overlay="settings-shell"][data-state="open"]',
+    '[data-sot-overlay="settings-shell"][data-state="closed"]',
     '[data-sot-surface="settings-shell"]',
     '[data-sot-surface="settings-shell"][data-state="closed"]',
 ] as const;
@@ -3713,11 +3714,31 @@ describe("full UI replacement regression coverage", () => {
         expect(productCss).not.toMatch(
             LEGACY_MODAL_SHELL_PRODUCT_CSS_SELECTOR_RE,
         );
-        for (const selector of MODAL_SHELL_DATA_SOT_CSS_SELECTORS) {
-            expect(productCss).toContain(selector);
+        for (const selector of REMOVED_SETTINGS_SHELL_GLOBAL_SELECTORS) {
+            expect(collectExactCssRuleBlocks(productCss, selector)).toEqual([]);
         }
+        const settingsOverlayClass = findStringConstInitializerContaining(
+            settingsDialog,
+            [
+                "const SETTINGS_OVERLAY_CLASS =",
+                "m-0",
+                "w-auto",
+                "max-w-none",
+                "max-h-none",
+                "border-0",
+                "bg-[var(--modal-scrim-bg)]",
+                "p-0",
+                "backdrop-blur-[6px]",
+                "data-[state=closed]:pointer-events-none",
+                "data-[state=closed]:opacity-0",
+                "data-[state=open]:pointer-events-auto",
+                "data-[state=open]:opacity-100",
+            ],
+        );
+        expect(settingsOverlayClass).not.toContain("data-sot-state");
         findStringConstInitializerContaining(settingsDialog, [
             "const SETTINGS_SHELL_SURFACE_CLASS =",
+            "z-[calc(var(--z-modal)+1)]",
             "h-[min(94svh,980px)]",
             "w-[920px]",
             "max-w-[calc(100vw-40px)]",
@@ -3765,18 +3786,6 @@ describe("full UI replacement regression coverage", () => {
             "overflow-hidden",
             "p-0",
         ]);
-        expect(
-            collectExactCssRuleBlocks(
-                productCss,
-                '[data-sot-surface="settings-shell"]',
-            ),
-        ).toHaveLength(1);
-        expect(
-            collectExactCssRuleBlocks(
-                productCss,
-                '[data-sot-surface="settings-shell"][data-state="closed"]',
-            )[0]?.declarations,
-        ).not.toContain("transform:");
         for (const selector of [
             '[data-sot-panel="settings-header"]',
             '[data-sot-panel="settings-body"]',

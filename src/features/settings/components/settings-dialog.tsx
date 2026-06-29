@@ -126,10 +126,10 @@ const orderedSettingsNav = settingsNavGroups.flatMap((group) => group.items);
 const SETTINGS_CLOSE_BUTTON_CLASS = "shrink-0 size-[32px]";
 
 const SETTINGS_OVERLAY_CLASS =
-    "bg-[var(--modal-scrim-bg)] backdrop-blur-[6px] backdrop-saturate-[120%] transition-opacity duration-[220ms] ease-[var(--ease-out)]";
+    "m-0 w-auto max-w-none max-h-none border-0 bg-[var(--modal-scrim-bg)] p-0 backdrop-blur-[6px] backdrop-saturate-[120%] transition-opacity duration-[220ms] ease-[var(--ease-out)] data-[state=closed]:pointer-events-none data-[state=closed]:opacity-0 data-[state=open]:pointer-events-auto data-[state=open]:opacity-100";
 
 const SETTINGS_SHELL_SURFACE_CLASS =
-    "box-border flex h-[min(94svh,980px)] max-h-[calc(100svh-1rem)] w-[920px] !max-w-[calc(100vw-40px)] sm:!max-w-[calc(100vw-40px)] flex-col gap-0 overflow-hidden rounded-[16px] border border-[var(--line-hairline)] bg-[var(--bg-elevated)] p-0 font-sans text-[var(--fg-primary)] ![box-shadow:var(--shadow-xl)] transition-[transform,opacity] duration-[280ms] ease-[var(--ease-out)] data-[state=closed]:translate-y-[8px] data-[state=closed]:scale-[0.985] data-[state=closed]:opacity-0";
+    "z-[calc(var(--z-modal)+1)] box-border flex h-[min(94svh,980px)] max-h-[calc(100svh-1rem)] w-[920px] !max-w-[calc(100vw-40px)] sm:!max-w-[calc(100vw-40px)] flex-col gap-0 overflow-hidden rounded-[16px] border border-[var(--line-hairline)] bg-[var(--bg-elevated)] p-0 font-sans text-[var(--fg-primary)] ![box-shadow:var(--shadow-xl)] transition-[transform,opacity] duration-[280ms] ease-[var(--ease-out)] data-[state=closed]:translate-y-[8px] data-[state=closed]:scale-[0.985] data-[state=closed]:opacity-0";
 
 const SETTINGS_HEADER_CLASS =
     "flex flex-none items-center border-b border-[var(--line-hairline)] px-5 py-[18px] max-[720px]:flex-wrap max-[720px]:items-start max-[720px]:gap-3";
