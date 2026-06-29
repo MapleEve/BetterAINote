@@ -20,6 +20,28 @@ const DASHBOARD_MAIN_REQUIRED_CLASS_TOKENS = [
     "min-w-0",
     "flex-col",
 ] as const;
+const DASHBOARD_TOPBAR_REQUIRED_CLASS_TOKENS = [
+    "relative",
+    "z-[var(--z-topbar)]",
+    "flex",
+    "h-14",
+    "flex-none",
+    "flex-row",
+    "items-center",
+    "gap-3.5",
+    "border-b",
+    "border-border",
+    "bg-background/80",
+    "px-5",
+    "py-3",
+    "shadow-none",
+    "backdrop-blur-[20px]",
+    "backdrop-saturate-[140%]",
+    "supports-[backdrop-filter]:bg-background/60",
+    "max-[860px]:min-w-0",
+    "max-[860px]:max-w-full",
+    "max-[860px]:box-border",
+] as const;
 const RECORDING_WORKSTATION_TOPBAR_REQUIRED_CLASS_TOKENS = [
     "relative",
     "z-[var(--z-topbar)]",
@@ -46,6 +68,8 @@ const RECORDING_WORKSTATION_TOPBAR_FORBIDDEN_CLASS_PATTERN =
     /\b(?:rgb|rgba|hsl|hsla|oklch|color-mix)\(|#[0-9A-Fa-f]{3,8}\b|\bdark:|(?:^|\s)(?:bg|border|text|shadow|ring|fill|stroke|from|via|to)-(?:white|black|transparent|slate|gray|zinc|neutral|stone|red|orange|amber|yellow|lime|green|emerald|teal|cyan|sky|blue|indigo|violet|purple|fuchsia|pink|rose)(?:[/-]\d+)?\b/;
 const DASHBOARD_MAIN_FORBIDDEN_CLASS_PATTERN =
     /\b(?:rgb|rgba|hsl|hsla|oklch|color-mix)\(|#[0-9A-Fa-f]{3,8}\b|\bdark:|(?:^|\s)(?:bg|border|text|shadow|ring|fill|stroke|from|via|to)-(?:white|black|transparent|slate|gray|zinc|neutral|stone|red|orange|amber|yellow|lime|green|emerald|teal|cyan|sky|blue|indigo|violet|purple|fuchsia|pink|rose)(?:[/-]\d+)?\b/;
+const DASHBOARD_TOPBAR_FORBIDDEN_CLASS_PATTERN =
+    DASHBOARD_MAIN_FORBIDDEN_CLASS_PATTERN;
 const WORKSTATION_TOPBAR_CRUMB_REMOVED_GLOBAL_SELECTORS = [
     '[data-sot-panel="workstation-topbar"]',
     '[data-theme="dark"] [data-sot-panel="workstation-topbar"]',
@@ -54,7 +78,7 @@ const WORKSTATION_TOPBAR_CRUMB_REMOVED_GLOBAL_SELECTORS = [
     '[data-sot-part="workstation-crumb-separator"]',
     '[data-sot-part="workstation-crumb-current"]',
 ] as const;
-const DASHBOARD_TOPBAR_CRUMB_RETAINED_GLOBAL_SELECTORS = [
+const DASHBOARD_TOPBAR_CRUMB_REMOVED_GLOBAL_SELECTORS = [
     '[data-sot-panel="dashboard-topbar"]',
     '[data-theme="dark"] [data-sot-panel="dashboard-topbar"]',
     '[data-sot-part="dashboard-crumbs"]',
@@ -1884,10 +1908,6 @@ const TOPBAR_LEGACY_PRODUCT_CSS_SELECTOR_RE = /(^|[,\s>])\.topbar(?![\w-])/m;
 const DASHBOARD_DETAIL_HEADER_LEGACY_PRODUCT_CSS_SELECTOR_RE =
     /\.(?:detail|rec-head|rec-h2|rec-h2-status|rec-h2-local|rec-h2-input|rh-edit|rh-norm|real-detail|ai-rename-anchor)(?![\w-])/;
 
-const TOPBAR_DATA_SOT_PRODUCT_CSS_SELECTORS = [
-    '[data-sot-panel="dashboard-topbar"]',
-] as const;
-
 const DASHBOARD_SOURCE_PROVIDER_MIGRATED_GLOBAL_SELECTORS = [
     '[data-sot-control="dashboard-source-provider"]',
     '[data-sot-part="source-provider-mark"]',
@@ -3656,6 +3676,30 @@ const RECORDING_WORKSTATION_TOPBAR_OWNER_CLASS_INITIALIZERS = [
     {
         property: "current",
         expected: "font-semibold text-[var(--fg-primary)]",
+    },
+] as const;
+const DASHBOARD_TOPBAR_OWNER_CLASS_INITIALIZERS = [
+    {
+        property: "topbar",
+        expected:
+            "relative z-[var(--z-topbar)] flex h-14 flex-none flex-row items-center gap-3.5 border-b border-border bg-background/80 px-5 py-3 shadow-none backdrop-blur-[20px] backdrop-saturate-[140%] supports-[backdrop-filter]:bg-background/60 max-[860px]:min-w-0 max-[860px]:max-w-full max-[860px]:box-border",
+    },
+    {
+        property: "crumbs",
+        expected:
+            "flex items-center gap-2 font-sans text-[13px] font-medium text-[var(--fg-tertiary)]",
+    },
+    {
+        property: "crumb",
+        expected: "text-[var(--fg-tertiary)]",
+    },
+    {
+        property: "separator",
+        expected: "text-[var(--fg-tertiary)] opacity-60 max-[860px]:hidden",
+    },
+    {
+        property: "current",
+        expected: "font-semibold text-[var(--fg-primary)] max-[860px]:hidden",
     },
 ] as const;
 
@@ -5616,7 +5660,7 @@ describe("full UI replacement regression coverage", () => {
         }
     });
 
-    it("keeps dashboard topbar globals while source-provider atoms are primitive-owned", () => {
+    it("keeps dashboard topbar owner-local while source-provider atoms are primitive-owned", () => {
         const globals = readSource("app/globals.css");
         const productCss = readProductCss(globals);
         const legacySelectorLines = globals
@@ -5630,8 +5674,9 @@ describe("full UI replacement regression coverage", () => {
 
         expect(legacySelectorLines).toEqual([]);
         expect(productCss).not.toMatch(TOPBAR_LEGACY_PRODUCT_CSS_SELECTOR_RE);
-        for (const selector of TOPBAR_DATA_SOT_PRODUCT_CSS_SELECTORS) {
-            expect(productCss).toContain(selector);
+        for (const selector of DASHBOARD_TOPBAR_CRUMB_REMOVED_GLOBAL_SELECTORS) {
+            expect(productCss).not.toContain(selector);
+            expect(collectCssRuleBlocks(globals, selector)).toEqual([]);
         }
         for (const selector of DASHBOARD_SOURCE_PROVIDER_MIGRATED_GLOBAL_SELECTORS) {
             expect(collectCssRuleBlocks(globals, selector)).toEqual([]);
@@ -6898,6 +6943,35 @@ describe("full UI replacement regression coverage", () => {
             "className={DASHBOARD_MAIN_CLASS_NAME}",
         );
         expect(workstation).toContain('data-sot-panel="dashboard-topbar"');
+        const dashboardTopbar = extractOpeningElement(
+            workstation,
+            'data-sot-panel="dashboard-topbar"',
+            "header",
+        );
+        const dashboardTopbarClassNames = extractBoundedSlice(
+            workstation,
+            "const dashboardTopbarClassNames = {",
+            "} as const;",
+        );
+        for (const {
+            expected,
+            property,
+        } of DASHBOARD_TOPBAR_OWNER_CLASS_INITIALIZERS) {
+            expect(dashboardTopbarClassNames).toContain(`${property}:`);
+            expect(dashboardTopbarClassNames).toContain(`"${expected}"`);
+            expect(workstation).toContain(
+                `className={dashboardTopbarClassNames.${property}}`,
+            );
+        }
+        for (const classToken of DASHBOARD_TOPBAR_REQUIRED_CLASS_TOKENS) {
+            expect(dashboardTopbarClassNames).toContain(classToken);
+        }
+        expect(dashboardTopbarClassNames).not.toMatch(
+            DASHBOARD_TOPBAR_FORBIDDEN_CLASS_PATTERN,
+        );
+        expect(dashboardTopbar).toContain(
+            "className={dashboardTopbarClassNames.topbar}",
+        );
         expect(workstation).toContain('data-sot-panel="dashboard-workspace"');
         expect(workstation).toContain('data-sot-panel="dashboard-detail"');
         expect(workstation).toContain(
@@ -10516,16 +10590,14 @@ describe("full UI replacement regression coverage", () => {
             '@media (max-width: 860px) {\n    [data-sot-shell="dashboard-workstation"],',
         );
         expect(globals).toContain(
-            '    [data-sot-panel="dashboard-main"],\n    [data-sot-panel="dashboard-topbar"],',
+            '    [data-sot-panel="dashboard-main"],\n    [data-sot-surface="dashboard-recording-list"],',
         );
         expect(detail).toContain('data-sot-panel="workstation-topbar"');
         expect(detail).toContain('data-sot-panel="workstation-workspace"');
         expect(globals).toContain("--z-topbar: 200;");
-        for (const selector of DASHBOARD_TOPBAR_CRUMB_RETAINED_GLOBAL_SELECTORS) {
-            expect(globals).toContain(selector);
-            expect(
-                collectCssRuleBlocks(globals, selector).length,
-            ).toBeGreaterThan(0);
+        for (const selector of DASHBOARD_TOPBAR_CRUMB_REMOVED_GLOBAL_SELECTORS) {
+            expect(globals).not.toContain(selector);
+            expect(collectCssRuleBlocks(globals, selector)).toEqual([]);
         }
         for (const selector of WORKSTATION_TOPBAR_CRUMB_REMOVED_GLOBAL_SELECTORS) {
             expect(globals).not.toContain(selector);

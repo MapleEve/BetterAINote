@@ -351,6 +351,16 @@ const DASHBOARD_WORKSTATION_SHELL_CLASS_NAME =
 
 const DASHBOARD_MAIN_CLASS_NAME = "flex h-screen min-w-0 flex-col";
 
+const dashboardTopbarClassNames = {
+    topbar:
+        "relative z-[var(--z-topbar)] flex h-14 flex-none flex-row items-center gap-3.5 border-b border-border bg-background/80 px-5 py-3 shadow-none backdrop-blur-[20px] backdrop-saturate-[140%] supports-[backdrop-filter]:bg-background/60 max-[860px]:min-w-0 max-[860px]:max-w-full max-[860px]:box-border",
+    crumbs:
+        "flex items-center gap-2 font-sans text-[13px] font-medium text-[var(--fg-tertiary)]",
+    crumb: "text-[var(--fg-tertiary)]",
+    separator: "text-[var(--fg-tertiary)] opacity-60 max-[860px]:hidden",
+    current: "font-semibold text-[var(--fg-primary)] max-[860px]:hidden",
+} as const;
+
 const dashboardSidebarCollapseClassNames = {
     sidebar:
         "group-data-[sidebar-collapsed=true]/dashboard-workstation:px-[6px] group-data-[sidebar-collapsed=true]/dashboard-workstation:pt-4 group-data-[sidebar-collapsed=true]/dashboard-workstation:pb-3 max-[860px]:hidden max-[860px]:group-data-[drawer-state=open]/dashboard-workstation:fixed max-[860px]:group-data-[drawer-state=open]/dashboard-workstation:top-0 max-[860px]:group-data-[drawer-state=open]/dashboard-workstation:bottom-0 max-[860px]:group-data-[drawer-state=open]/dashboard-workstation:left-0 max-[860px]:group-data-[drawer-state=open]/dashboard-workstation:z-[var(--z-drawer)] max-[860px]:group-data-[drawer-state=open]/dashboard-workstation:flex max-[860px]:group-data-[drawer-state=open]/dashboard-workstation:max-w-[min(320px,calc(100vw-32px))]",
@@ -4740,7 +4750,10 @@ export function Workstation({
                 className={DASHBOARD_MAIN_CLASS_NAME}
                 data-sot-panel="dashboard-main"
             >
-                <header data-sot-panel="dashboard-topbar">
+                <header
+                    className={dashboardTopbarClassNames.topbar}
+                    data-sot-panel="dashboard-topbar"
+                >
                     <Button
                         variant="ghost"
                         size="default"
@@ -4784,16 +4797,30 @@ export function Workstation({
                             data-icon="inline-start"
                         />
                     </Button>
-                    <div data-sot-part="dashboard-crumbs">
-                        <span data-sot-part="dashboard-crumb">
+                    <div
+                        className={dashboardTopbarClassNames.crumbs}
+                        data-sot-part="dashboard-crumbs"
+                    >
+                        <span
+                            className={dashboardTopbarClassNames.crumb}
+                            data-sot-part="dashboard-crumb"
+                        >
                             {favorite === "all"
                                 ? "全部录音"
                                 : favorite === "transcribed"
                                   ? "转写记录"
                                   : "标签"}
                         </span>
-                        <span data-sot-part="dashboard-crumb-separator">/</span>
-                        <span data-sot-part="dashboard-crumb-current">
+                        <span
+                            className={dashboardTopbarClassNames.separator}
+                            data-sot-part="dashboard-crumb-separator"
+                        >
+                            /
+                        </span>
+                        <span
+                            className={dashboardTopbarClassNames.current}
+                            data-sot-part="dashboard-crumb-current"
+                        >
                             {selectedRecording?.filename ?? "未选择录音"}
                         </span>
                     </div>

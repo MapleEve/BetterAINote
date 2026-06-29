@@ -57,6 +57,52 @@ const EXPECTED_DASHBOARD_RECORDING_LIST_HEADER_CLASS_NAME =
 const EXPECTED_DASHBOARD_SIDEBAR_FOOTER_CLASS_NAME =
     "border-t border-border pt-2.5";
 const EXPECTED_DASHBOARD_MAIN_CLASS_NAME = "flex h-screen min-w-0 flex-col";
+const DASHBOARD_TOPBAR_REQUIRED_CLASS_TOKENS = [
+    "relative",
+    "z-[var(--z-topbar)]",
+    "flex",
+    "h-14",
+    "flex-none",
+    "flex-row",
+    "items-center",
+    "gap-3.5",
+    "border-b",
+    "border-border",
+    "bg-background/80",
+    "px-5",
+    "py-3",
+    "shadow-none",
+    "backdrop-blur-[20px]",
+    "backdrop-saturate-[140%]",
+    "supports-[backdrop-filter]:bg-background/60",
+    "max-[860px]:min-w-0",
+    "max-[860px]:max-w-full",
+    "max-[860px]:box-border",
+] as const;
+const DASHBOARD_TOPBAR_OWNER_CLASS_INITIALIZERS = [
+    {
+        property: "topbar",
+        expected:
+            "relative z-[var(--z-topbar)] flex h-14 flex-none flex-row items-center gap-3.5 border-b border-border bg-background/80 px-5 py-3 shadow-none backdrop-blur-[20px] backdrop-saturate-[140%] supports-[backdrop-filter]:bg-background/60 max-[860px]:min-w-0 max-[860px]:max-w-full max-[860px]:box-border",
+    },
+    {
+        property: "crumbs",
+        expected:
+            "flex items-center gap-2 font-sans text-[13px] font-medium text-[var(--fg-tertiary)]",
+    },
+    {
+        property: "crumb",
+        expected: "text-[var(--fg-tertiary)]",
+    },
+    {
+        property: "separator",
+        expected: "text-[var(--fg-tertiary)] opacity-60 max-[860px]:hidden",
+    },
+    {
+        property: "current",
+        expected: "font-semibold text-[var(--fg-primary)] max-[860px]:hidden",
+    },
+] as const;
 const EXPECTED_SOURCE_REPORT_STATUS_BADGE_CLASS_NAME =
     "h-[22px] min-w-[65px] justify-normal gap-[9px] overflow-visible rounded-full border px-[8px] py-0 text-[11px] font-semibold leading-[normal] shadow-none data-[sot-tone=err]:border-[var(--source-report-status-err-border)] data-[sot-tone=err]:bg-[var(--source-report-status-err-bg)] data-[sot-tone=err]:text-[var(--signal-danger)] data-[sot-tone=neu]:border-[var(--line-hairline)] data-[sot-tone=neu]:bg-[var(--bg-recessed)] data-[sot-tone=neu]:text-[var(--fg-secondary)] data-[sot-tone=ok]:border-[var(--source-report-status-ok-border)] data-[sot-tone=ok]:bg-[var(--source-report-status-ok-bg)] data-[sot-tone=ok]:text-[var(--source-report-status-ok-fg)] data-[sot-tone=warn]:border-[var(--source-report-status-warn-border)] data-[sot-tone=warn]:bg-[var(--source-report-status-warn-bg)] data-[sot-tone=warn]:text-[var(--source-report-status-warn-fg)] [&_[data-sot-part=dashboard-source-report-status-dot]]:mr-0 [&_[data-sot-part=dashboard-source-report-status-dot]]:inline-block [&_[data-sot-part=dashboard-source-report-status-dot]]:size-[5px] [&_[data-sot-part=dashboard-source-report-status-dot]]:rounded-full [&_[data-sot-part=dashboard-source-report-status-dot]]:bg-current [&_[data-sot-part=source-report-status-dot]]:mr-0 [&_[data-sot-part=source-report-status-dot]]:inline-block [&_[data-sot-part=source-report-status-dot]]:size-[5px] [&_[data-sot-part=source-report-status-dot]]:rounded-full [&_[data-sot-part=source-report-status-dot]]:bg-current";
 const EXPECTED_DASHBOARD_RECORDING_PLAYER_CARD_CLASS_NAME =
@@ -184,6 +230,14 @@ const REMOVED_DASHBOARD_SYNC_GLOBAL_SELECTORS = [
     '[data-sot-panel="dashboard-sync"][data-sot-state="queued"]',
     '[data-sot-panel="dashboard-sync"][data-sot-state="running"]',
     '[data-sot-panel="dashboard-sync"][data-sot-state="error"]',
+] as const;
+const DASHBOARD_TOPBAR_CRUMB_REMOVED_GLOBAL_SELECTORS = [
+    '[data-sot-panel="dashboard-topbar"]',
+    '[data-theme="dark"] [data-sot-panel="dashboard-topbar"]',
+    '[data-sot-part="dashboard-crumbs"]',
+    '[data-sot-part="dashboard-crumb"]',
+    '[data-sot-part="dashboard-crumb-separator"]',
+    '[data-sot-part="dashboard-crumb-current"]',
 ] as const;
 const DASHBOARD_SYNC_VISUAL_GLOBAL_DECLARATION_RE =
     /\b(?:display|align-items|gap|padding|border-radius|background|border|width|height|box-shadow|animation|font|color|margin-top|flex|min-width)\s*:/;
@@ -3055,9 +3109,53 @@ describe("dashboard SOT foundation", () => {
             '@media (max-width: 860px) {\n    [data-sot-shell="dashboard-workstation"],',
         );
         expect(globals).toContain(
-            '    [data-sot-panel="dashboard-main"],\n    [data-sot-panel="dashboard-topbar"],',
+            '    [data-sot-panel="dashboard-main"],\n    [data-sot-surface="dashboard-recording-list"],',
         );
         expect(workstation).toContain('data-sot-panel="dashboard-topbar"');
+        const dashboardTopbar = extractOpeningElement(
+            workstation,
+            'data-sot-panel="dashboard-topbar"',
+            "header",
+        );
+        const dashboardTopbarClassNames = extractBoundedSlice(
+            workstation,
+            "const dashboardTopbarClassNames = {",
+            "} as const;",
+        );
+        for (const {
+            expected,
+            property,
+        } of DASHBOARD_TOPBAR_OWNER_CLASS_INITIALIZERS) {
+            expect(dashboardTopbarClassNames).toContain(`${property}:`);
+            expect(dashboardTopbarClassNames).toContain(`"${expected}"`);
+            expect(workstation).toContain(
+                `className={dashboardTopbarClassNames.${property}}`,
+            );
+        }
+        for (const classToken of DASHBOARD_TOPBAR_REQUIRED_CLASS_TOKENS) {
+            expect(dashboardTopbarClassNames).toContain(classToken);
+        }
+        expect(dashboardTopbarClassNames).not.toMatch(
+            OWNER_MAIN_FORBIDDEN_RAW_COLOR_RE,
+        );
+        expect(dashboardTopbar).toContain(
+            "className={dashboardTopbarClassNames.topbar}",
+        );
+        expect(globals).toContain("--z-topbar: 200;");
+        for (const selector of DASHBOARD_TOPBAR_CRUMB_REMOVED_GLOBAL_SELECTORS) {
+            expect(globals).not.toContain(selector);
+            expect(collectCssRuleBlocks(globals, selector)).toEqual([]);
+        }
+        expect(globals).toContain('[data-sot-panel="dashboard-workspace"]');
+        expect(globals).toContain(
+            '[data-sot-panel="dashboard-sidebar"] {\n    background: var(--glass-tint-strong);',
+        );
+        expect(globals).toContain(
+            '[data-sot-panel="settings-scroll-body"][hidden] {\n    display: none !important;\n}',
+        );
+        expect(globals).toContain(
+            '[data-sot-panel="dashboard-detail"][data-empty="true"] [data-detail-empty] {\n    display: flex;',
+        );
         expect(workstation).toContain('data-sot-panel="dashboard-workspace"');
         expect(workstation).toContain('data-sot-panel="dashboard-detail"');
         expect(workstation).toContain(
