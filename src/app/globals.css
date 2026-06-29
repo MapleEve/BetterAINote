@@ -767,8 +767,7 @@ button:not([data-slot]) {
     border-top: 1px solid var(--line-hairline);
 }
 /* ======== Main column ======== */
-[data-sot-panel="dashboard-main"],
-[data-sot-panel="workstation-main"] {
+[data-sot-panel="dashboard-main"] {
     display: flex;
     flex-direction: column;
     min-width: 0;
@@ -911,7 +910,6 @@ button:not([data-slot]) {
         overflow-x: clip;
     }
     [data-sot-panel="dashboard-main"],
-    [data-sot-panel="workstation-main"],
     [data-sot-panel="dashboard-topbar"],
     [data-sot-panel="workstation-topbar"],
     [data-sot-surface="dashboard-recording-list"],

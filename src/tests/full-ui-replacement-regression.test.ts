@@ -5,6 +5,15 @@ import { describe, expect, it } from "vitest";
 const ROOT = path.join(process.cwd(), "src");
 const SPEAKER_REVIEW_MERGE_POPOVER_PLACEMENT =
     "absolute right-0 top-[calc(100%+0.5rem)] z-[var(--z-popover-inline)] w-[320px] min-w-[280px]";
+const RECORDING_WORKSTATION_MAIN_REQUIRED_CLASS_TOKENS = [
+    "flex",
+    "h-screen",
+    "min-w-0",
+    "flex-col",
+    "max-[860px]:min-w-0",
+    "max-[860px]:max-w-full",
+    "max-[860px]:box-border",
+] as const;
 const SPEAKER_REVIEW_RESIDUAL_GLOBAL_SELECTORS = [
     '[data-sot-list="speaker-review-meta"] > span',
     '[data-sot-part="speaker-review-section-description"]',
@@ -10286,8 +10295,47 @@ describe("full UI replacement regression coverage", () => {
             "className={RECORDING_WORKSTATION_SIDEBAR_CLASS_NAME}",
         );
         expect(detail).toContain('data-sot-panel="workstation-main"');
+        const workstationMain = extractElementSlice(
+            detail,
+            'data-sot-panel="workstation-main"',
+            "main",
+        );
+        const recordingWorkstationMainClassName = extractBoundedSlice(
+            detail,
+            "const RECORDING_WORKSTATION_MAIN_CLASS_NAME =",
+            ";",
+        );
+        for (const classToken of RECORDING_WORKSTATION_MAIN_REQUIRED_CLASS_TOKENS) {
+            expect(recordingWorkstationMainClassName).toContain(classToken);
+        }
+        expect(workstationMain).toContain(
+            "className={RECORDING_WORKSTATION_MAIN_CLASS_NAME}",
+        );
+        expect(globals).not.toContain('[data-sot-panel="workstation-main"]');
+        expect(
+            collectCssRuleBlocks(globals, '[data-sot-panel="workstation-main"]'),
+        ).toEqual([]);
+        expect(globals).toContain(
+            '[data-sot-panel="dashboard-main"] {\n    display: flex;\n    flex-direction: column;\n    min-width: 0;\n    height: 100vh;\n}',
+        );
+        expect(globals).toContain(
+            '    [data-sot-panel="dashboard-main"],\n    [data-sot-panel="dashboard-topbar"],',
+        );
         expect(detail).toContain('data-sot-panel="workstation-topbar"');
         expect(detail).toContain('data-sot-panel="workstation-workspace"');
+        expect(globals).toContain('[data-sot-panel="workstation-topbar"]');
+        expect(globals).toContain('[data-sot-part="workstation-crumbs"]');
+        expect(globals).toContain('[data-sot-part="workstation-crumb"]');
+        expect(globals).toContain(
+            '[data-sot-part="workstation-crumb-separator"]',
+        );
+        expect(globals).toContain(
+            '[data-sot-part="workstation-crumb-current"]',
+        );
+        expect(globals).toContain('[data-sot-panel="workstation-workspace"]');
+        expect(globals).toContain(
+            '[data-sot-panel="workstation-sidebar"] {\n        display: none;\n    }',
+        );
         expect(detail).toContain(
             'data-sot-panel="recording-workstation-detail"',
         );

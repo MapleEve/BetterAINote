@@ -108,6 +108,8 @@ const RECORDING_DETAIL_HEADER_LOCAL_BADGE_CLASS_NAME = "ml-1 shrink-0";
 const RECORDING_DETAIL_HEADER_STATUS_BADGE_CLASS_NAME = "ml-1 shrink-0";
 const RECORDING_WORKSTATION_SHELL_CLASS_NAME =
     "grid h-screen min-h-[720px] grid-cols-[264px_1fr] transition-[grid-template-columns] duration-[320ms] ease-[var(--ease-out)] max-[860px]:h-auto max-[860px]:min-h-[100svh] max-[860px]:grid-cols-[minmax(0,1fr)] max-[860px]:overflow-x-clip";
+const RECORDING_WORKSTATION_MAIN_CLASS_NAME =
+    "flex h-screen min-w-0 flex-col max-[860px]:min-w-0 max-[860px]:max-w-full max-[860px]:box-border";
 const RECORDING_WORKSTATION_SIDEBAR_CLASS_NAME =
     "relative flex flex-col rounded-none border border-border bg-card px-3 pt-4 pb-3 shadow-sm supports-[backdrop-filter]:bg-card/90 supports-[backdrop-filter]:backdrop-blur-[22px] supports-[backdrop-filter]:backdrop-saturate-[140%]";
 const recordingWorkstationBrandClassNames = {
@@ -920,7 +922,10 @@ export function RecordingWorkstation({
                     </Button>
                 </nav>
             </aside>
-            <main data-sot-panel="workstation-main">
+            <main
+                className={RECORDING_WORKSTATION_MAIN_CLASS_NAME}
+                data-sot-panel="workstation-main"
+            >
                 <header data-sot-panel="workstation-topbar">
                     <div data-sot-part="workstation-crumbs">
                         <span data-sot-part="workstation-crumb">录音</span>
