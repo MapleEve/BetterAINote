@@ -1518,6 +1518,9 @@ const DASHBOARD_RECORDING_LIST_BATCH_SOT_HOOKS = [
 ];
 
 const DASHBOARD_RECORDING_LIST_RESIDUAL_MIGRATED_GLOBAL_SELECTORS = [
+    '[data-sot-part="dashboard-recording-list-titlebar"]',
+    '[data-sot-part="dashboard-recording-list-title"]',
+    '[data-sot-part="dashboard-recording-list-count"]',
     '[data-sot-list="dashboard-recording-list-scroll"]',
     '[data-sot-list="dashboard-recording-list-scroll"]::-webkit-scrollbar',
     '[data-sot-list="dashboard-recording-list-scroll"]::-webkit-scrollbar-track',
@@ -1545,6 +1548,9 @@ const DASHBOARD_RECORDING_LIST_RESIDUAL_MIGRATED_GLOBAL_SELECTORS = [
 ] as const;
 
 const DASHBOARD_RECORDING_LIST_RESIDUAL_OWNER_CLASS_REFS = [
+    "dashboardRecordingListTitlebarStyles.root",
+    "dashboardRecordingListTitlebarStyles.title",
+    "dashboardRecordingListTitlebarStyles.count",
     "dashboardScrollbarClassName",
     "dashboardRecordingListScrollClassName",
     "dashboardRecordingListModeStyles.root",
@@ -3758,7 +3764,7 @@ describe("dashboard SOT foundation", () => {
         }
         const dashboardRecordingListResidualClassSource = extractBoundedSlice(
             workstation,
-            "const dashboardScrollbarClassName =",
+            "const dashboardRecordingListTitlebarStyles = {",
             "const dashboardSearchActivityClassNames = {",
         );
         for (const migratedSelector of DASHBOARD_RECORDING_LIST_RESIDUAL_MIGRATED_GLOBAL_SELECTORS) {
@@ -3768,6 +3774,9 @@ describe("dashboard SOT foundation", () => {
             expect(workstation).toContain(ownerClassRef);
         }
         for (const ownerClassToken of [
+            "flex items-center gap-2.5",
+            "m-0 font-sans text-[13px] font-semibold text-[var(--fg-primary)]",
+            "ml-auto font-mono text-[11.5px] font-medium text-[var(--fg-tertiary)]",
             "[scrollbar-width:thin]",
             "[&::-webkit-scrollbar-thumb:hover]:bg-[color-mix(in_srgb,var(--fg-tertiary)_55%,transparent)]",
             "flex-1 overflow-y-auto p-1",
@@ -3780,6 +3789,15 @@ describe("dashboard SOT foundation", () => {
         }
         expect(workstation).toMatch(
             /className=\{\s*dashboardRecordingListScrollClassName\s*\}[\s\S]*data-sot-list="dashboard-recording-list-scroll"/,
+        );
+        expect(workstation).toMatch(
+            /className=\{\s*dashboardRecordingListTitlebarStyles\.root\s*\}[\s\S]*data-sot-part="dashboard-recording-list-titlebar"/,
+        );
+        expect(workstation).toMatch(
+            /className=\{\s*dashboardRecordingListTitlebarStyles\.title\s*\}[\s\S]*data-sot-part="dashboard-recording-list-title"/,
+        );
+        expect(workstation).toMatch(
+            /className=\{\s*dashboardRecordingListTitlebarStyles\.count\s*\}[\s\S]*data-sot-part="dashboard-recording-list-count"/,
         );
         expect(workstation).toMatch(
             /dashboardScrollbarClassName[\s\S]*data-sot-part="dashboard-transcript-body"/,

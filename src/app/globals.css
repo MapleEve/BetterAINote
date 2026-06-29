@@ -1037,9 +1037,6 @@ button:not([data-slot]) {
     [data-sot-control="dashboard-sync"][disabled] {
     pointer-events: none;
 }
-[data-sot-part="dashboard-recording-list-titlebar"] {
-    display: flex;
-}
 [data-sot-panel="settings-scroll-body"][hidden] {
     display: none !important;
 }
@@ -1139,22 +1136,6 @@ button:not([data-slot]) {
     background: var(--signal-danger);
     box-shadow: 0 0 0 3px
         color-mix(in srgb, var(--signal-danger) 22%, transparent);
-}
-
-/* ---------- Stack-strip + List-header titlebar + xref ---------- */
-[data-sot-part="dashboard-recording-list-titlebar"] {
-    align-items: center;
-    gap: 10px;
-}
-[data-sot-part="dashboard-recording-list-title"] {
-    font: 600 13px var(--font-sans);
-    color: var(--fg-primary);
-    margin: 0;
-}
-[data-sot-part="dashboard-recording-list-count"] {
-    font: 500 11.5px var(--font-mono);
-    color: var(--fg-tertiary);
-    margin-left: auto;
 }
 
 /* ---------- Settings panel: field groups, banners, save state, voscript ---------- */

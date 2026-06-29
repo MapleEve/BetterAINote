@@ -1529,13 +1529,13 @@ const DASHBOARD_RECORDING_LIST_LEGACY_PRODUCT_CSS_SELECTOR_RE =
 const DASHBOARD_RECORDING_LIST_DATA_SOT_CSS_SELECTORS = [
     '[data-sot-surface="dashboard-recording-list"]',
     '[data-sot-part="dashboard-recording-list-header"]',
-    '[data-sot-part="dashboard-recording-list-titlebar"]',
-    '[data-sot-part="dashboard-recording-list-title"]',
-    '[data-sot-part="dashboard-recording-list-count"]',
     '[data-sot-part="dashboard-sidebar-footer"]',
 ] as const;
 
 const DASHBOARD_RECORDING_LIST_RESIDUAL_MIGRATED_GLOBAL_SELECTORS = [
+    '[data-sot-part="dashboard-recording-list-titlebar"]',
+    '[data-sot-part="dashboard-recording-list-title"]',
+    '[data-sot-part="dashboard-recording-list-count"]',
     '[data-sot-list="dashboard-recording-list-scroll"]',
     '[data-sot-list="dashboard-recording-list-scroll"]::-webkit-scrollbar',
     '[data-sot-list="dashboard-recording-list-scroll"]::-webkit-scrollbar-track',
@@ -1563,6 +1563,9 @@ const DASHBOARD_RECORDING_LIST_RESIDUAL_MIGRATED_GLOBAL_SELECTORS = [
 ] as const;
 
 const DASHBOARD_RECORDING_LIST_RESIDUAL_OWNER_CLASS_REFS = [
+    "dashboardRecordingListTitlebarStyles.root",
+    "dashboardRecordingListTitlebarStyles.title",
+    "dashboardRecordingListTitlebarStyles.count",
     "dashboardScrollbarClassName",
     "dashboardRecordingListScrollClassName",
     "dashboardRecordingListModeStyles.root",
@@ -5057,6 +5060,9 @@ describe("full UI replacement regression coverage", () => {
             expect(workstation).toContain(ownerClassRef);
         }
         for (const ownerClassToken of [
+            "flex items-center gap-2.5",
+            "m-0 font-sans text-[13px] font-semibold text-[var(--fg-primary)]",
+            "ml-auto font-mono text-[11.5px] font-medium text-[var(--fg-tertiary)]",
             "[scrollbar-width:thin]",
             "[&::-webkit-scrollbar-thumb:hover]:bg-[color-mix(in_srgb,var(--fg-tertiary)_55%,transparent)]",
             "flex-1 overflow-y-auto p-1",

@@ -556,6 +556,12 @@ const dashboardRecordingTagFilterStyles = {
         "font-mono text-[11px] font-medium text-[var(--fg-tertiary)]",
 } as const;
 
+const dashboardRecordingListTitlebarStyles = {
+    root: "flex items-center gap-2.5",
+    title: "m-0 font-sans text-[13px] font-semibold text-[var(--fg-primary)]",
+    count: "ml-auto font-mono text-[11.5px] font-medium text-[var(--fg-tertiary)]",
+} as const;
+
 const dashboardScrollbarClassName =
     "[scrollbar-width:thin] [scrollbar-color:color-mix(in_srgb,var(--fg-tertiary)_40%,transparent)_transparent] [&::-webkit-scrollbar]:size-[10px] [&::-webkit-scrollbar-track]:bg-transparent [&::-webkit-scrollbar-thumb]:rounded-full [&::-webkit-scrollbar-thumb]:border-2 [&::-webkit-scrollbar-thumb]:border-transparent [&::-webkit-scrollbar-thumb]:bg-[color-mix(in_srgb,var(--fg-tertiary)_35%,transparent)] [&::-webkit-scrollbar-thumb]:bg-clip-padding [&::-webkit-scrollbar-thumb:hover]:bg-[color-mix(in_srgb,var(--fg-tertiary)_55%,transparent)] [&::-webkit-scrollbar-thumb:hover]:bg-clip-padding";
 
@@ -5712,11 +5718,26 @@ export function Workstation({
                             data-sot-part="dashboard-recording-list-content"
                         >
                             <div data-sot-part="dashboard-recording-list-header">
-                                <div data-sot-part="dashboard-recording-list-titlebar">
-                                    <h2 data-sot-part="dashboard-recording-list-title">
+                                <div
+                                    className={
+                                        dashboardRecordingListTitlebarStyles.root
+                                    }
+                                    data-sot-part="dashboard-recording-list-titlebar"
+                                >
+                                    <h2
+                                        className={
+                                            dashboardRecordingListTitlebarStyles.title
+                                        }
+                                        data-sot-part="dashboard-recording-list-title"
+                                    >
                                         {getFavoriteLabel(favorite, t)}
                                     </h2>
-                                    <span data-sot-part="dashboard-recording-list-count">
+                                    <span
+                                        className={
+                                            dashboardRecordingListTitlebarStyles.count
+                                        }
+                                        data-sot-part="dashboard-recording-list-count"
+                                    >
                                         {t("recordingList.totalCount", {
                                             count: listEntries.length,
                                         })}
