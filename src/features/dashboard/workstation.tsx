@@ -349,9 +349,12 @@ const SOURCE_DRAWER_FOCUSABLE_SELECTOR =
 const DASHBOARD_WORKSTATION_SHELL_CLASS_NAME =
     "grid h-screen min-h-[720px] grid-cols-[264px_1fr] transition-[grid-template-columns] duration-[320ms] ease-[var(--ease-out)] data-[sidebar-collapsed=true]:grid-cols-[56px_1fr] max-[860px]:h-auto max-[860px]:min-h-[100svh] max-[860px]:grid-cols-[minmax(0,1fr)] max-[860px]:overflow-x-clip";
 
-const DASHBOARD_MAIN_CLASS_NAME = "flex h-screen min-w-0 flex-col";
+const DASHBOARD_MAIN_CLASS_NAME =
+    "flex h-screen min-w-0 flex-col max-[860px]:min-w-0 max-[860px]:max-w-full max-[860px]:box-border";
 const DASHBOARD_WORKSPACE_CLASS_NAME =
     "grid flex-1 min-h-0 grid-cols-[380px_1fr] gap-4 px-5 pt-4 pb-5 max-[860px]:min-w-0 max-[860px]:max-w-full max-[860px]:box-border max-[860px]:grid-cols-[380px_0px] max-[860px]:[&>[data-sot-panel=dashboard-detail]]:hidden";
+const DASHBOARD_RECORDING_LIST_CARD_CLASS_NAME =
+    "min-h-0 gap-0 rounded-2xl max-[860px]:min-w-0 max-[860px]:max-w-full max-[860px]:box-border";
 const DASHBOARD_DETAIL_PANEL_CLASS_NAME =
     "flex min-h-0 min-w-0 flex-col gap-4";
 
@@ -5814,7 +5817,7 @@ export function Workstation({
                 >
                     <Card
                         hasNoPadding
-                        className="min-h-0 gap-0 rounded-2xl"
+                        className={DASHBOARD_RECORDING_LIST_CARD_CLASS_NAME}
                         data-current-page={String(currentListPage)}
                         data-list-state={listState}
                         data-sot-list-mode={listMode}

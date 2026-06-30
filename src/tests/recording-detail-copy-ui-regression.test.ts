@@ -15,6 +15,10 @@ const EXPECTED_RECORDING_WORKSTATION_WORKSPACE_CLASS_NAME =
     "grid flex-1 min-h-0 grid-cols-[380px_1fr] gap-4 px-5 pt-4 pb-5 max-[860px]:min-w-0 max-[860px]:max-w-full max-[860px]:box-border max-[860px]:grid-cols-[minmax(0,1fr)]";
 const EXPECTED_DETAIL_PANEL_CLASS_NAME =
     "flex min-h-0 min-w-0 flex-col gap-4";
+const EXPECTED_RECORDING_WORKSTATION_DETAIL_PANEL_CLASS_NAME =
+    "flex min-h-0 min-w-0 flex-col gap-4 max-[860px]:max-w-full max-[860px]:box-border";
+const EXPECTED_RECORDING_DETAIL_LIST_CARD_CLASS_NAME =
+    "min-h-0 gap-0 max-[860px]:min-w-0 max-[860px]:max-w-full max-[860px]:box-border";
 const RECORDING_WORKSTATION_SIDEBAR_REQUIRED_CLASS_TOKENS = [
     "relative",
     "flex",
@@ -30,6 +34,7 @@ const RECORDING_WORKSTATION_SIDEBAR_REQUIRED_CLASS_TOKENS = [
     "supports-[backdrop-filter]:bg-card/90",
     "supports-[backdrop-filter]:backdrop-blur-[22px]",
     "supports-[backdrop-filter]:backdrop-saturate-[140%]",
+    "max-[860px]:hidden",
 ] as const;
 const DASHBOARD_SIDEBAR_REQUIRED_CLASS_TOKENS = [
     "relative",
@@ -70,6 +75,9 @@ const DASHBOARD_MAIN_REQUIRED_CLASS_TOKENS = [
     "h-screen",
     "min-w-0",
     "flex-col",
+    "max-[860px]:min-w-0",
+    "max-[860px]:max-w-full",
+    "max-[860px]:box-border",
 ] as const;
 const DASHBOARD_TOPBAR_REQUIRED_CLASS_TOKENS = [
     "relative",
@@ -138,6 +146,15 @@ const DASHBOARD_TOPBAR_CRUMB_REMOVED_GLOBAL_SELECTORS = [
     '[data-sot-part="dashboard-crumb"]',
     '[data-sot-part="dashboard-crumb-separator"]',
     '[data-sot-part="dashboard-crumb-current"]',
+] as const;
+const MOBILE_OWNER_LAYOUT_MIGRATED_GLOBAL_SELECTORS = [
+    '[data-sot-shell="dashboard-workstation"]',
+    '[data-sot-shell="recording-workstation"]',
+    '[data-sot-panel="dashboard-main"]',
+    '[data-sot-surface="dashboard-recording-list"]',
+    '[data-sot-panel="recording-detail-list"]',
+    '[data-sot-panel="recording-workstation-detail"]',
+    '[data-sot-panel="workstation-sidebar"]',
 ] as const;
 
 const DASHBOARD_COPY_ACTION_REMOVED_GLOBAL_SELECTORS = [
@@ -1843,12 +1860,14 @@ describe("recording detail copy and title action UI regressions", () => {
             'data-sot-panel="recording-workstation-detail-body"',
             "section",
         );
-        for (const { openingElement, constName } of [
+        for (const { expected, openingElement, constName } of [
             {
+                expected: EXPECTED_RECORDING_WORKSTATION_DETAIL_PANEL_CLASS_NAME,
                 openingElement: recordingDetailPanel,
                 constName: "RECORDING_WORKSTATION_DETAIL_PANEL_CLASS_NAME",
             },
             {
+                expected: EXPECTED_DETAIL_PANEL_CLASS_NAME,
                 openingElement: recordingDetailBodyPanel,
                 constName: "RECORDING_WORKSTATION_DETAIL_BODY_CLASS_NAME",
             },
@@ -1856,7 +1875,7 @@ describe("recording detail copy and title action UI regressions", () => {
             const ownerClassName = expectExactStringConstInitializer(
                 detailWorkstation,
                 constName,
-                EXPECTED_DETAIL_PANEL_CLASS_NAME,
+                expected,
             );
             expect(openingElement).toMatch(
                 new RegExp(`className=\\{\\s*${constName}\\s*\\}`),
@@ -1954,7 +1973,10 @@ describe("recording detail copy and title action UI regressions", () => {
             'className="px-2.5 pb-1.5 pt-3.5 font-sans text-[10px] font-semibold uppercase tracking-[0.08em] text-[var(--fg-tertiary)]"',
         );
         expect(detailWorkstation).toContain('data-sot-state="selected"');
-        expect(globals).toContain('[data-sot-shell="recording-workstation"]');
+        for (const selector of MOBILE_OWNER_LAYOUT_MIGRATED_GLOBAL_SELECTORS) {
+            expect(globals).not.toContain(selector);
+            expect(collectCssRuleBlocks(globals, selector)).toEqual([]);
+        }
         for (const selector of DASHBOARD_SIDEBAR_VISUAL_GLOBAL_SELECTORS) {
             expect(collectExactCssRuleBlocks(globals, selector)).toEqual([]);
         }
@@ -1985,15 +2007,6 @@ describe("recording detail copy and title action UI regressions", () => {
             '[data-theme="dark"] [data-sot-panel="workstation-sidebar"]',
         );
         expect(globals).not.toContain('.dark [data-sot-panel="workstation-sidebar"]');
-        expect(
-            globals.match(/\[data-sot-panel="workstation-sidebar"\]/g),
-        ).toHaveLength(1);
-        expect(globals).toContain(
-            '@media (max-width: 860px) {\n    [data-sot-shell="dashboard-workstation"],',
-        );
-        expect(globals).toContain(
-            '[data-sot-panel="workstation-sidebar"] {\n        display: none;\n    }',
-        );
         expect(globals).not.toContain('[data-sot-panel="workstation-main"]');
         expect(
             collectCssRuleBlocks(globals, '[data-sot-panel="workstation-main"]'),
@@ -2065,27 +2078,9 @@ describe("recording detail copy and title action UI regressions", () => {
             globals,
             '[data-sot-panel="dashboard-main"]',
         );
-        expect(dashboardMainGlobalBlocks).toHaveLength(1);
-        expect(dashboardMainGlobalBlocks[0]?.declarations).toContain(
-            "min-width: 0;",
-        );
-        expect(dashboardMainGlobalBlocks[0]?.declarations).toContain(
-            "max-width: 100%;",
-        );
-        expect(dashboardMainGlobalBlocks[0]?.declarations).toContain(
-            "box-sizing: border-box;",
-        );
-        expect(dashboardMainGlobalBlocks[0]?.declarations).not.toContain(
-            "height: 100vh;",
-        );
+        expect(dashboardMainGlobalBlocks).toEqual([]);
         expect(globals).not.toContain(
             '[data-sot-panel="dashboard-main"] {\n    display: flex;\n    flex-direction: column;\n    min-width: 0;\n    height: 100vh;\n}',
-        );
-        expect(globals).toContain(
-            '@media (max-width: 860px) {\n    [data-sot-shell="dashboard-workstation"],',
-        );
-        expect(globals).toContain(
-            '    [data-sot-panel="dashboard-main"],\n    [data-sot-surface="dashboard-recording-list"],',
         );
         expect(globals).toContain("--z-topbar: 200;");
         for (const selector of DASHBOARD_TOPBAR_CRUMB_REMOVED_GLOBAL_SELECTORS) {
@@ -2119,9 +2114,6 @@ describe("recording detail copy and title action UI regressions", () => {
         );
         expect(globals).not.toContain(
             '[data-sot-panel="dashboard-detail"],\n[data-sot-panel="recording-workstation-detail"],\n[data-sot-panel="recording-workstation-detail-body"]',
-        );
-        expect(globals).toContain(
-            '[data-sot-panel="workstation-sidebar"] {\n        display: none;\n    }',
         );
         expect(globals).toContain(
             '[data-sot-control="dashboard-sync"][disabled] {\n    pointer-events: none;',
@@ -2183,6 +2175,18 @@ describe("recording detail copy and title action UI regressions", () => {
         expect(listPanel).toContain("<CardTitle");
         expect(listPanel).toContain("<CardContent");
         expect(listPanel).toContain('data-sot-panel="recording-detail-list"');
+        const recordingDetailListCardClassName =
+            expectExactStringConstInitializer(
+                detailWorkstation,
+                "RECORDING_DETAIL_LIST_CARD_CLASS_NAME",
+                EXPECTED_RECORDING_DETAIL_LIST_CARD_CLASS_NAME,
+            );
+        expect(listPanel).toContain(
+            "className={RECORDING_DETAIL_LIST_CARD_CLASS_NAME}",
+        );
+        expect(recordingDetailListCardClassName).not.toMatch(
+            OWNER_WORKSPACE_FORBIDDEN_CLASS_PATTERN,
+        );
         expect(listPanel).toContain(
             'data-sot-part="recording-detail-list-header"',
         );

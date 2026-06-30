@@ -760,26 +760,6 @@ button:not([data-slot]) {
 [data-sot-panel="settings-scroll-body"][hidden] {
     display: none !important;
 }
-@media (max-width: 860px) {
-    [data-sot-shell="dashboard-workstation"],
-    [data-sot-shell="recording-workstation"] {
-        grid-template-columns: minmax(0, 1fr);
-        height: auto;
-        min-height: 100svh;
-        overflow-x: clip;
-    }
-    [data-sot-panel="dashboard-main"],
-    [data-sot-surface="dashboard-recording-list"],
-    [data-sot-panel="recording-detail-list"],
-    [data-sot-panel="recording-workstation-detail"] {
-        min-width: 0;
-        max-width: 100%;
-        box-sizing: border-box;
-    }
-    [data-sot-panel="workstation-sidebar"] {
-        display: none;
-    }
-}
 [data-sot-panel="settings-scroll-body"][data-sot-availability="unavailable"]
     [data-sot-panel="voscript-unavailable-banner"] {
     display: grid !important;

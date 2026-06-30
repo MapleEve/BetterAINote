@@ -113,11 +113,13 @@ const RECORDING_WORKSTATION_MAIN_CLASS_NAME =
 const RECORDING_WORKSTATION_WORKSPACE_CLASS_NAME =
     "grid flex-1 min-h-0 grid-cols-[380px_1fr] gap-4 px-5 pt-4 pb-5 max-[860px]:min-w-0 max-[860px]:max-w-full max-[860px]:box-border max-[860px]:grid-cols-[minmax(0,1fr)]";
 const RECORDING_WORKSTATION_DETAIL_PANEL_CLASS_NAME =
-    "flex min-h-0 min-w-0 flex-col gap-4";
+    "flex min-h-0 min-w-0 flex-col gap-4 max-[860px]:max-w-full max-[860px]:box-border";
 const RECORDING_WORKSTATION_DETAIL_BODY_CLASS_NAME =
     "flex min-h-0 min-w-0 flex-col gap-4";
 const RECORDING_WORKSTATION_SIDEBAR_CLASS_NAME =
-    "relative flex flex-col rounded-none border border-border bg-card px-3 pt-4 pb-3 shadow-sm supports-[backdrop-filter]:bg-card/90 supports-[backdrop-filter]:backdrop-blur-[22px] supports-[backdrop-filter]:backdrop-saturate-[140%]";
+    "relative flex flex-col rounded-none border border-border bg-card px-3 pt-4 pb-3 shadow-sm supports-[backdrop-filter]:bg-card/90 supports-[backdrop-filter]:backdrop-blur-[22px] supports-[backdrop-filter]:backdrop-saturate-[140%] max-[860px]:hidden";
+const RECORDING_DETAIL_LIST_CARD_CLASS_NAME =
+    "min-h-0 gap-0 max-[860px]:min-w-0 max-[860px]:max-w-full max-[860px]:box-border";
 const RECORDING_SOURCE_RECORD_SHELL_CLASS_NAME =
     "flex min-h-0 flex-col gap-4";
 const RECORDING_SOURCE_RECORD_CARD_CLASS_NAME = "min-h-0 gap-0";
@@ -989,7 +991,7 @@ export function RecordingWorkstation({
                 >
                     <Card
                         hasNoPadding
-                        className="min-h-0 gap-0"
+                        className={RECORDING_DETAIL_LIST_CARD_CLASS_NAME}
                         data-sot-panel="recording-detail-list"
                         aria-label="当前录音"
                         role="region"
