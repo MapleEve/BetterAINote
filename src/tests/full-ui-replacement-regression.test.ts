@@ -2105,7 +2105,8 @@ const AUTH_LOGIN_FEATURE_OWNER_CLASS_SNIPPETS = [
         snippets: [
             "min-h-[100svh]",
             "place-items-center",
-            "bg-[var(--bg-canvas)]",
+            "bg-background",
+            "text-foreground",
             "px-[32px]",
             "pb-[80px]",
             "pt-[28px]",
@@ -2117,8 +2118,9 @@ const AUTH_LOGIN_FEATURE_OWNER_CLASS_SNIPPETS = [
             "w-[min(420px,100%)]",
             "min-h-[389px]",
             "rounded-[14px]",
-            "border-[var(--line-hairline)]",
-            "bg-[var(--bg-elevated)]",
+            "border-border",
+            "bg-card",
+            "text-card-foreground",
             "p-[18px]",
         ],
     },
@@ -2133,7 +2135,7 @@ const AUTH_LOGIN_FEATURE_OWNER_CLASS_SNIPPETS = [
             "font-sans",
             "text-[13px]",
             "font-semibold",
-            "text-[var(--fg-primary)]",
+            "text-foreground",
         ],
     },
     {
@@ -2143,43 +2145,41 @@ const AUTH_LOGIN_FEATURE_OWNER_CLASS_SNIPPETS = [
             "font-sans",
             "text-[12px]",
             "leading-[1.5]",
-            "text-[var(--fg-tertiary)]",
+            "text-muted-foreground",
         ],
     },
     {
         label: "frame",
         snippets: [
-            "[border-radius:12px]",
-            "[border:1px_solid_var(--line-hairline)]",
-            "[background:var(--bg-canvas)]",
-            "[padding:28px]",
-            "[text-align:center]",
+            "overflow-hidden",
+            "rounded-xl",
+            "border-border",
+            "bg-background",
+            "p-7",
+            "text-center",
         ],
     },
     {
         label: "logo mark",
-        snippets: [
-            "[width:36px]",
-            "[height:36px]",
-            "[margin:0_0_14px]",
-            "[vertical-align:baseline]",
-        ],
+        snippets: ["inline", "size-9", "mb-[14px]", "align-baseline"],
     },
     {
         label: "frame title",
         snippets: [
-            "[font:600_18px_var(--font-display)]",
-            "[line-height:normal]",
-            "[margin-bottom:4px]",
-            "[color:var(--fg-primary)]",
+            "mb-1",
+            "font-display",
+            "text-lg",
+            "font-semibold",
+            "text-foreground",
         ],
     },
     {
         label: "frame description",
         snippets: [
-            "[font:12px_var(--font-sans)]",
-            "[color:var(--fg-tertiary)]",
-            "[margin-bottom:18px]",
+            "font-sans",
+            "text-[12px]",
+            "text-muted-foreground",
+            "mb-[18px]",
         ],
     },
     {
@@ -2188,7 +2188,7 @@ const AUTH_LOGIN_FEATURE_OWNER_CLASS_SNIPPETS = [
     },
     {
         label: "footer",
-        snippets: ["!mt-[14px]", "!text-[12px]", "!text-[var(--fg-disabled)]"],
+        snippets: ["!mt-[14px]", "!text-[12px]", "!text-muted-foreground/70"],
     },
     {
         label: "field",
@@ -2199,19 +2199,25 @@ const AUTH_LOGIN_FEATURE_OWNER_CLASS_SNIPPETS = [
         snippets: [
             "h-[36px]",
             "rounded-[9px]",
-            "border-primary",
-            "bg-[var(--bg-elevated)]",
-            "focus-visible:border-primary",
+            "border-input",
+            "bg-background",
+            "text-foreground",
+            "focus-visible:border-ring",
+            "focus-visible:ring-ring/50",
             "aria-invalid:border-destructive",
+            "aria-invalid:ring-destructive/20",
         ],
     },
     {
         label: "form message",
         snippets: [
-            "[max-width:280px]",
-            "[text-align:left]",
-            "data-[sot-state=error]:[color:var(--signal-danger)]",
-            "data-[sot-state=success]:[color:var(--signal-success)]",
+            "mx-auto",
+            "max-w-[280px]",
+            "text-left",
+            "text-[12px]",
+            "text-muted-foreground",
+            "data-[sot-state=error]:text-destructive",
+            "data-[sot-state=success]:text-primary",
         ],
     },
     {
@@ -2221,7 +2227,8 @@ const AUTH_LOGIN_FEATURE_OWNER_CLASS_SNIPPETS = [
             "w-full",
             "rounded-[8px]",
             "font-semibold",
-            "focus-visible:border-primary",
+            "shadow-none",
+            "focus-visible:ring-0",
         ],
     },
     {
@@ -2231,7 +2238,7 @@ const AUTH_LOGIN_FEATURE_OWNER_CLASS_SNIPPETS = [
             "min-h-0",
             "rounded-none",
             "p-0",
-            "text-[var(--accent)]",
+            "text-primary",
             "underline",
         ],
     },
@@ -12027,25 +12034,29 @@ describe("full UI replacement regression coverage", () => {
             'card: "min-h-0 flex-1 gap-0"',
             'header: "flex flex-row items-center gap-3 border-b px-3.5 py-3"',
             'heading: "flex min-w-0 items-center gap-3"',
-            'icon: "size-4 flex-none text-[var(--fg-secondary)]"',
+            'icon: "size-4 flex-none text-muted-foreground"',
             'headerCopy: "flex min-w-0 flex-col gap-[3px]"',
             'body: "min-h-0 flex-1 overflow-y-auto px-5 pt-4 pb-6',
             "[scrollbar-width:thin]",
             "[&::-webkit-scrollbar]:size-[10px]",
-            "[&::-webkit-scrollbar-thumb]:bg-[var(--fg-tertiary)]",
-            "[&::-webkit-scrollbar-thumb:hover]:bg-[var(--fg-secondary)]",
-            'speakerReviewSection:\n        "flex flex-col gap-2 border-t border-[var(--line-hairline)] pt-2 dark:border-[var(--glass-border-soft)]"',
+            "[&::-webkit-scrollbar-thumb]:bg-muted-foreground/35",
+            "[&::-webkit-scrollbar-thumb:hover]:bg-muted-foreground/55",
+            'speakerReviewSection: "flex flex-col gap-2 border-t border-border pt-2"',
             'sectionHead: "flex items-start justify-between gap-3 max-[860px]:flex-col"',
-            'sectionTitle:\n        "m-0 font-sans text-[12.5px] font-semibold text-[var(--fg-primary)]"',
-            'sectionDescription:\n        "mt-0.5 mb-0 font-sans text-[11.5px] font-medium leading-[1.45] text-[var(--fg-tertiary)] max-[860px]:[overflow-wrap:anywhere]"',
+            'sectionTitle: "m-0 font-sans text-[12.5px] font-semibold text-foreground"',
+            'sectionDescription:\n        "mt-0.5 mb-0 font-sans text-[11.5px] font-medium leading-[1.45] text-muted-foreground max-[860px]:[overflow-wrap:anywhere]"',
             'actions:\n        "inline-flex min-w-0 flex-wrap items-center justify-end gap-2 max-[860px]:justify-start"',
-            'turn: "border-b border-dashed border-[var(--line-hairline)] pt-[10px] pb-4 dark:border-[var(--glass-border)]"',
+            'turn: "border-b border-dashed border-border pt-[10px] pb-4"',
             'metaList: "mb-1.5 flex flex-wrap items-center gap-2.5"',
         ]) {
             expect(recordingTranscriptionClassNamesBlock).toContain(
                 ownerClassSnippet,
             );
         }
+        expect(transcriptionSection).not.toContain("dark:");
+        expect(transcriptionSection).not.toMatch(
+            /(?:text|border|bg)-\[var\(--(?:fg|line|glass)-/,
+        );
         expect(recordingTranscriptionClassNamesBlock).not.toMatch(
             /\b(?:rgb|rgba|color-mix|oklch)\(/,
         );
@@ -12053,10 +12064,10 @@ describe("full UI replacement regression coverage", () => {
             /#[0-9a-fA-F]{3,8}\b/,
         );
         expect(recordingTranscriptionClassNamesBlock).toContain(
-            'outputSection:\n        "flex flex-col gap-2 border-t border-[var(--line-hairline)] pt-2 dark:border-[var(--glass-border-soft)]"',
+            'outputSection: "flex flex-col gap-2 border-t border-border pt-2"',
         );
         expect(recordingTranscriptionClassNamesBlock).toContain(
-            'outputText:\n        "m-0 font-sans text-[14.5px] leading-[1.65] text-[var(--fg-primary)] [text-wrap:pretty] max-[860px]:[overflow-wrap:anywhere]"',
+            'outputText:\n        "m-0 font-sans text-[14.5px] leading-[1.65] text-foreground [text-wrap:pretty] max-[860px]:[overflow-wrap:anywhere]"',
         );
         const transcriptionOutputOpening = extractOpeningElement(
             transcriptionSection,

@@ -25,36 +25,32 @@ import {
 } from "@/lib/platform/browser-router";
 
 const authLoginClassNames = {
-    layout:
-        "grid min-h-[100svh] place-items-center bg-[var(--bg-canvas)] px-[32px] pb-[80px] pt-[28px] text-[var(--fg-primary)]",
+    layout: "grid min-h-[100svh] place-items-center bg-background px-[32px] pb-[80px] pt-[28px] text-foreground",
     surface:
-        "gap-0 w-[min(420px,100%)] min-h-[389px] overflow-visible rounded-[14px] border border-[var(--line-hairline)] bg-[var(--bg-elevated)] p-[18px] shadow-xs backdrop-blur-none",
+        "gap-0 w-[min(420px,100%)] min-h-[389px] overflow-visible rounded-[14px] border border-border bg-card p-[18px] text-card-foreground shadow-xs backdrop-blur-none",
     header: "grid auto-rows-min gap-0 p-0",
     headerTitle:
-        "mb-1 font-sans text-[13px] font-semibold leading-[normal] text-[var(--fg-primary)]",
+        "mb-1 font-sans text-[13px] font-semibold leading-[normal] text-foreground",
     headerDescription:
-        "mb-[14px] font-sans text-[12px] leading-[1.5] text-[var(--fg-tertiary)]",
-    frame:
-        "[overflow:hidden] [border-radius:12px] [border:1px_solid_var(--line-hairline)] [background:var(--bg-canvas)] [padding:28px] [text-align:center]",
-    logoMark:
-        "[display:inline] [width:36px] [height:36px] [margin:0_0_14px] [vertical-align:baseline]",
+        "mb-[14px] font-sans text-[12px] leading-[1.5] text-muted-foreground",
+    frame: "overflow-hidden rounded-xl border border-border bg-background p-7 text-center",
+    logoMark: "mb-[14px] inline size-9 align-baseline",
     frameTitle:
-        "[font:600_18px_var(--font-display)] [line-height:normal] [margin-bottom:4px] [color:var(--fg-primary)]",
+        "mb-1 font-display text-lg font-semibold leading-none text-foreground",
     frameDescription:
-        "[font:12px_var(--font-sans)] [line-height:normal] [color:var(--fg-tertiary)] [margin-bottom:18px]",
+        "mb-[18px] font-sans text-[12px] leading-normal text-muted-foreground",
     fieldGroup: "mx-auto max-w-[280px] gap-[10px]",
     field: "flex flex-col gap-0 [&>*]:w-full",
     actionField: "flex flex-col gap-0 [&>*]:w-full [&>.sr-only]:w-auto",
     emailInput:
-        "h-[36px] rounded-[9px] border-primary bg-[var(--bg-elevated)] px-[12px] py-0 text-[13px] font-medium leading-[normal] text-foreground shadow-[0_0_0_3px_color-mix(in_oklab,var(--accent)_18%,transparent)] focus-visible:border-primary focus-visible:ring-0 aria-invalid:border-destructive aria-invalid:shadow-[0_0_0_3px_color-mix(in_oklab,var(--signal-danger)_16%,transparent)] aria-invalid:ring-0 dark:bg-[var(--bg-elevated)] md:text-[13px]",
+        "h-[36px] rounded-[9px] border-input bg-background px-[12px] py-0 text-[13px] font-medium leading-[normal] text-foreground shadow-xs focus-visible:border-ring focus-visible:ring-ring/50 aria-invalid:border-destructive aria-invalid:ring-destructive/20 md:text-[13px]",
     submitButton:
-        "h-[38px] w-full rounded-[8px] border border-transparent bg-[var(--accent)] px-[12px] py-0 text-[12px] font-semibold leading-[normal] text-white shadow-none hover:bg-[var(--accent)] focus-visible:border-primary focus-visible:ring-0 has-[>svg]:px-[12px]",
+        "h-[38px] w-full rounded-[8px] px-[12px] py-0 text-[12px] font-semibold leading-[normal] shadow-none focus-visible:ring-0 has-[>svg]:px-[12px]",
     formMessage:
-        "[max-width:280px] [margin:-2px_auto_10px] [text-align:left] [font:12px_var(--font-sans)] [color:var(--fg-tertiary)] data-[sot-state=error]:[color:var(--signal-danger)] data-[sot-state=success]:[color:var(--signal-success)]",
-    footer:
-        "!mt-[14px] !text-[12px] !leading-[normal] !text-[var(--fg-disabled)]",
+        "mx-auto mb-[10px] mt-[-2px] max-w-[280px] text-left text-[12px] font-normal leading-normal text-muted-foreground data-[sot-state=error]:text-destructive data-[sot-state=success]:text-primary",
+    footer: "!mt-[14px] !text-[12px] !leading-[normal] !text-muted-foreground/70",
     inlineLink:
-        "h-auto min-h-0 rounded-none p-0 align-baseline text-[12px] font-normal leading-[normal] text-[var(--accent)] underline underline-offset-auto hover:text-[var(--accent)] hover:underline",
+        "h-auto min-h-0 rounded-none p-0 align-baseline text-[12px] font-normal leading-[normal] text-primary underline underline-offset-auto hover:text-primary hover:underline",
 } as const;
 
 export function LoginForm({
@@ -275,7 +271,9 @@ export function LoginForm({
                                         disabled={!isMounted || isLocalLoading}
                                         aria-busy={isLocalLoading}
                                         variant="link"
-                                        className={authLoginClassNames.inlineLink}
+                                        className={
+                                            authLoginClassNames.inlineLink
+                                        }
                                         data-sot-control="local-only"
                                         data-sot-state={
                                             isLocalLoading ? "loading" : "ready"

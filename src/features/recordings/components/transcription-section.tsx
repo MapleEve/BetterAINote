@@ -64,34 +64,30 @@ interface TranscriptionSectionProps {
 }
 
 const RECORDING_TRANSCRIPTION_META_BADGE_CLASS_NAME =
-    "h-[22px] justify-normal gap-[5px] rounded-full border px-[8px] py-0 text-[11px] font-semibold leading-normal data-[sot-tone=attribute]:border-border data-[sot-tone=attribute]:bg-background data-[sot-tone=attribute]:text-[var(--fg-primary)] data-[sot-tone=measure]:border-transparent data-[sot-tone=measure]:bg-secondary data-[sot-tone=measure]:text-secondary-foreground [&>svg]:size-3";
+    "h-[22px] justify-normal gap-[5px] rounded-full border px-[8px] py-0 text-[11px] font-semibold leading-normal data-[sot-tone=attribute]:border-border data-[sot-tone=attribute]:bg-background data-[sot-tone=attribute]:text-foreground data-[sot-tone=measure]:border-transparent data-[sot-tone=measure]:bg-secondary data-[sot-tone=measure]:text-secondary-foreground [&>svg]:size-3";
 const recordingTranscriptionClassNames = {
     card: "min-h-0 flex-1 gap-0",
     header: "flex flex-row items-center gap-3 border-b px-3.5 py-3",
     heading: "flex min-w-0 items-center gap-3",
-    icon: "size-4 flex-none text-[var(--fg-secondary)]",
+    icon: "size-4 flex-none text-muted-foreground",
     headerCopy: "flex min-w-0 flex-col gap-[3px]",
-    body: "min-h-0 flex-1 overflow-y-auto px-5 pt-4 pb-6 [scrollbar-color:var(--fg-tertiary)_transparent] [scrollbar-width:thin] [&::-webkit-scrollbar]:size-[10px] [&::-webkit-scrollbar-thumb]:rounded-full [&::-webkit-scrollbar-thumb]:border-2 [&::-webkit-scrollbar-thumb]:border-transparent [&::-webkit-scrollbar-thumb]:bg-[var(--fg-tertiary)] [&::-webkit-scrollbar-thumb]:bg-clip-padding [&::-webkit-scrollbar-thumb:hover]:bg-[var(--fg-secondary)] [&::-webkit-scrollbar-track]:bg-transparent",
-    outputSection:
-        "flex flex-col gap-2 border-t border-[var(--line-hairline)] pt-2 dark:border-[var(--glass-border-soft)]",
-    speakerReviewSection:
-        "flex flex-col gap-2 border-t border-[var(--line-hairline)] pt-2 dark:border-[var(--glass-border-soft)]",
+    body: "min-h-0 flex-1 overflow-y-auto px-5 pt-4 pb-6 [scrollbar-color:var(--color-muted-foreground)_transparent] [scrollbar-width:thin] [&::-webkit-scrollbar]:size-[10px] [&::-webkit-scrollbar-thumb]:rounded-full [&::-webkit-scrollbar-thumb]:border-2 [&::-webkit-scrollbar-thumb]:border-transparent [&::-webkit-scrollbar-thumb]:bg-muted-foreground/35 [&::-webkit-scrollbar-thumb]:bg-clip-padding [&::-webkit-scrollbar-thumb:hover]:bg-muted-foreground/55 [&::-webkit-scrollbar-thumb:hover]:bg-clip-padding [&::-webkit-scrollbar-track]:bg-transparent",
+    outputSection: "flex flex-col gap-2 border-t border-border pt-2",
+    speakerReviewSection: "flex flex-col gap-2 border-t border-border pt-2",
     sectionHead: "flex items-start justify-between gap-3 max-[860px]:flex-col",
-    sectionTitle:
-        "m-0 font-sans text-[12.5px] font-semibold text-[var(--fg-primary)]",
+    sectionTitle: "m-0 font-sans text-[12.5px] font-semibold text-foreground",
     sectionDescription:
-        "mt-0.5 mb-0 font-sans text-[11.5px] font-medium leading-[1.45] text-[var(--fg-tertiary)] max-[860px]:[overflow-wrap:anywhere]",
+        "mt-0.5 mb-0 font-sans text-[11.5px] font-medium leading-[1.45] text-muted-foreground max-[860px]:[overflow-wrap:anywhere]",
     actions:
         "inline-flex min-w-0 flex-wrap items-center justify-end gap-2 max-[860px]:justify-start",
-    turn: "border-b border-dashed border-[var(--line-hairline)] pt-[10px] pb-4 dark:border-[var(--glass-border)]",
+    turn: "border-b border-dashed border-border pt-[10px] pb-4",
     metaList: "mb-1.5 flex flex-wrap items-center gap-2.5",
     outputText:
-        "m-0 font-sans text-[14.5px] leading-[1.65] text-[var(--fg-primary)] [text-wrap:pretty] max-[860px]:[overflow-wrap:anywhere]",
+        "m-0 font-sans text-[14.5px] leading-[1.65] text-foreground [text-wrap:pretty] max-[860px]:[overflow-wrap:anywhere]",
 } as const;
 const recordingTranscriptionButtonClassNames = {
-    action: "h-8 gap-1.5 rounded-md px-3 text-[var(--fg-primary)] shadow-xs has-[>svg]:px-2.5",
-    primary:
-        "h-8 gap-1.5 rounded-md px-3 shadow-xs has-[>svg]:px-2.5",
+    action: "h-8 gap-1.5 rounded-md px-3 text-foreground shadow-xs has-[>svg]:px-2.5",
+    primary: "h-8 gap-1.5 rounded-md px-3 shadow-xs has-[>svg]:px-2.5",
     danger: "h-8 gap-1.5 rounded-md px-3 shadow-xs has-[>svg]:px-2.5",
 } as const;
 
@@ -542,7 +538,9 @@ export function TranscriptionSection({
                                 </div>
                             </header>
                             <div
-                                className={recordingTranscriptionClassNames.turn}
+                                className={
+                                    recordingTranscriptionClassNames.turn
+                                }
                                 data-sot-part="recording-transcription-turn"
                             >
                                 <p

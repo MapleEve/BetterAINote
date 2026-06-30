@@ -1030,25 +1030,29 @@ describe("recording detail copy and title action UI regressions", () => {
             'card: "min-h-0 flex-1 gap-0"',
             'header: "flex flex-row items-center gap-3 border-b px-3.5 py-3"',
             'heading: "flex min-w-0 items-center gap-3"',
-            'icon: "size-4 flex-none text-[var(--fg-secondary)]"',
+            'icon: "size-4 flex-none text-muted-foreground"',
             'headerCopy: "flex min-w-0 flex-col gap-[3px]"',
             'body: "min-h-0 flex-1 overflow-y-auto px-5 pt-4 pb-6',
             "[scrollbar-width:thin]",
             "[&::-webkit-scrollbar]:size-[10px]",
-            "[&::-webkit-scrollbar-thumb]:bg-[var(--fg-tertiary)]",
-            "[&::-webkit-scrollbar-thumb:hover]:bg-[var(--fg-secondary)]",
-            'speakerReviewSection:\n        "flex flex-col gap-2 border-t border-[var(--line-hairline)] pt-2 dark:border-[var(--glass-border-soft)]"',
+            "[&::-webkit-scrollbar-thumb]:bg-muted-foreground/35",
+            "[&::-webkit-scrollbar-thumb:hover]:bg-muted-foreground/55",
+            'speakerReviewSection: "flex flex-col gap-2 border-t border-border pt-2"',
             'sectionHead: "flex items-start justify-between gap-3 max-[860px]:flex-col"',
-            'sectionTitle:\n        "m-0 font-sans text-[12.5px] font-semibold text-[var(--fg-primary)]"',
-            'sectionDescription:\n        "mt-0.5 mb-0 font-sans text-[11.5px] font-medium leading-[1.45] text-[var(--fg-tertiary)] max-[860px]:[overflow-wrap:anywhere]"',
+            'sectionTitle: "m-0 font-sans text-[12.5px] font-semibold text-foreground"',
+            'sectionDescription:\n        "mt-0.5 mb-0 font-sans text-[11.5px] font-medium leading-[1.45] text-muted-foreground max-[860px]:[overflow-wrap:anywhere]"',
             'actions:\n        "inline-flex min-w-0 flex-wrap items-center justify-end gap-2 max-[860px]:justify-start"',
-            'turn: "border-b border-dashed border-[var(--line-hairline)] pt-[10px] pb-4 dark:border-[var(--glass-border)]"',
+            'turn: "border-b border-dashed border-border pt-[10px] pb-4"',
             'metaList: "mb-1.5 flex flex-wrap items-center gap-2.5"',
         ]) {
             expect(recordingTranscriptionClassNamesBlock).toContain(
                 ownerClassSnippet,
             );
         }
+        expect(detailTranscript).not.toContain("dark:");
+        expect(detailTranscript).not.toMatch(
+            /(?:text|border|bg)-\[var\(--(?:fg|line|glass)-/,
+        );
         expect(recordingTranscriptionClassNamesBlock).not.toMatch(
             /\b(?:rgb|rgba|color-mix|oklch)\(/,
         );
@@ -1056,10 +1060,10 @@ describe("recording detail copy and title action UI regressions", () => {
             /#[0-9a-fA-F]{3,8}\b/,
         );
         expect(detailTranscript).toContain(
-            'outputSection:\n        "flex flex-col gap-2 border-t border-[var(--line-hairline)] pt-2 dark:border-[var(--glass-border-soft)]"',
+            'outputSection: "flex flex-col gap-2 border-t border-border pt-2"',
         );
         expect(detailTranscript).toContain(
-            'outputText:\n        "m-0 font-sans text-[14.5px] leading-[1.65] text-[var(--fg-primary)] [text-wrap:pretty] max-[860px]:[overflow-wrap:anywhere]"',
+            'outputText:\n        "m-0 font-sans text-[14.5px] leading-[1.65] text-foreground [text-wrap:pretty] max-[860px]:[overflow-wrap:anywhere]"',
         );
         expect(detailTranscript).toContain(
             "function RecordingTranscriptionMetaBadge",
