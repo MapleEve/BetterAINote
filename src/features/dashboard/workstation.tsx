@@ -357,6 +357,17 @@ const DASHBOARD_RECORDING_LIST_CARD_CLASS_NAME =
     "min-h-0 gap-0 rounded-2xl max-[860px]:min-w-0 max-[860px]:max-w-full max-[860px]:box-border";
 const DASHBOARD_DETAIL_PANEL_CLASS_NAME =
     "flex min-h-0 min-w-0 flex-col gap-4";
+const DASHBOARD_RECORDING_LIST_CONTENT_CLASS_NAME =
+    "flex min-h-0 flex-col p-0";
+const DASHBOARD_DETAIL_EMPTY_STATE_CLASS_NAME = "min-h-[280px] p-9 md:p-9";
+
+const dashboardDrawerClassNames = {
+    scrim: "pointer-events-none fixed inset-0 z-[var(--z-drawer-scrim)] hidden max-[860px]:block max-[860px]:group-data-[drawer-state=open]/dashboard-workstation:pointer-events-auto",
+    menuIcon:
+        "pointer-events-none absolute top-1/2 left-1/2 size-4 -translate-x-1/2 -translate-y-1/2",
+    activeDot:
+        "absolute top-1.5 right-1.5 hidden size-1.5 rounded-full bg-[var(--accent)]",
+} as const;
 
 const dashboardTopbarClassNames = {
     topbar:
@@ -562,10 +573,10 @@ const SEARCH_RESULT_TYPES: SearchResultType[] = [
     "tag",
 ];
 
-const FAVORITES: { value: Favorite; label: string; icon: typeof Mic }[] = [
-    { value: "all", label: "全部录音", icon: Mic },
-    { value: "transcribed", label: "转写记录", icon: FileText },
-    { value: "tags", label: "标签", icon: Tags },
+const FAVORITES: { value: Favorite; icon: typeof Mic }[] = [
+    { value: "all", icon: Mic },
+    { value: "transcribed", icon: FileText },
+    { value: "tags", icon: Tags },
 ];
 const TIMELINE_FILTERS: {
     value: TimelineFilter;
@@ -691,7 +702,7 @@ const dashboardSearchActivityClassNames = {
     librarySearchTag:
         "[--tag-c:var(--tag-violet)] h-[22px] w-fit justify-normal gap-[5px] overflow-visible rounded-[6px] border border-[color-mix(in_srgb,var(--tag-c)_32%,transparent)] bg-[color-mix(in_srgb,var(--tag-c)_12%,var(--bg-elevated))] py-0 pr-[9px] pl-[7px] [font:600_11.5px_var(--font-sans)] text-[color-mix(in_srgb,var(--tag-c)_72%,var(--fg-primary))] whitespace-normal shadow-xs [box-shadow:var(--shadow-xs)] [a&]:hover:bg-[color-mix(in_srgb,var(--tag-c)_12%,var(--bg-elevated))] [&>svg]:size-[11px] [&>svg]:fill-none [&>svg]:stroke-2 [&>svg]:stroke-current [&>svg]:[stroke-linecap:round] [&>svg]:[stroke-linejoin:round]",
     dashboardActivityTrigger:
-        "relative size-[32px] rounded-md border border-transparent bg-transparent p-0 text-muted-foreground shadow-none hover:bg-accent hover:text-accent-foreground data-[sot-state=open]:border-border data-[sot-state=open]:bg-accent data-[sot-state=open]:text-accent-foreground data-[unread=0]:[&_[data-sot-part=dashboard-activity-badge]]:hidden dark:hover:bg-accent/50 [&_[data-sot-part=dashboard-activity-badge]]:pointer-events-none [&_[data-sot-part=dashboard-activity-badge]]:absolute [&_[data-sot-part=dashboard-activity-badge]]:right-0.5 [&_[data-sot-part=dashboard-activity-badge]]:top-0.5 [&_[data-sot-part=dashboard-activity-badge]]:inline-flex [&_[data-sot-part=dashboard-activity-badge]]:h-4 [&_[data-sot-part=dashboard-activity-badge]]:min-w-4 [&_[data-sot-part=dashboard-activity-badge]]:items-center [&_[data-sot-part=dashboard-activity-badge]]:justify-center [&_[data-sot-part=dashboard-activity-badge]]:rounded-full [&_[data-sot-part=dashboard-activity-badge]]:bg-[var(--signal-danger)] [&_[data-sot-part=dashboard-activity-badge]]:px-1 [&_[data-sot-part=dashboard-activity-badge]]:font-sans [&_[data-sot-part=dashboard-activity-badge]]:text-[9.5px] [&_[data-sot-part=dashboard-activity-badge]]:font-bold [&_[data-sot-part=dashboard-activity-badge]]:text-white [&_[data-sot-part=dashboard-activity-badge]]:shadow-[0_0_0_1.5px_var(--bg-elevated)] [&_svg:not([class*='size-'])]:size-4",
+        "relative size-[32px] rounded-md border border-transparent bg-transparent p-0 text-muted-foreground shadow-none hover:bg-accent hover:text-accent-foreground data-[sot-state=open]:border-border data-[sot-state=open]:bg-accent data-[sot-state=open]:text-accent-foreground data-[unread=0]:[&_[data-sot-part=dashboard-activity-badge]]:hidden dark:hover:bg-accent/50 [&_[data-sot-part=dashboard-activity-badge]]:pointer-events-none [&_[data-sot-part=dashboard-activity-badge]]:absolute [&_[data-sot-part=dashboard-activity-badge]]:right-0.5 [&_[data-sot-part=dashboard-activity-badge]]:top-0.5 [&_[data-sot-part=dashboard-activity-badge]]:inline-flex [&_[data-sot-part=dashboard-activity-badge]]:h-4 [&_[data-sot-part=dashboard-activity-badge]]:min-w-4 [&_[data-sot-part=dashboard-activity-badge]]:items-center [&_[data-sot-part=dashboard-activity-badge]]:justify-center [&_[data-sot-part=dashboard-activity-badge]]:rounded-full [&_[data-sot-part=dashboard-activity-badge]]:bg-[var(--signal-danger)] [&_[data-sot-part=dashboard-activity-badge]]:px-1 [&_[data-sot-part=dashboard-activity-badge]]:font-sans [&_[data-sot-part=dashboard-activity-badge]]:text-[9.5px] [&_[data-sot-part=dashboard-activity-badge]]:font-bold [&_[data-sot-part=dashboard-activity-badge]]:text-destructive-foreground [&_[data-sot-part=dashboard-activity-badge]]:shadow-[0_0_0_1.5px_var(--bg-elevated)] [&_svg:not([class*='size-'])]:size-4",
     dashboardActivityPanel:
         "pointer-events-none absolute right-0 top-[calc(100%+8px)] z-[var(--z-dropdown)] flex max-h-[520px] w-[380px] max-w-[calc(100vw-32px)] flex-col gap-0 overflow-hidden rounded-[12px] border-[var(--card-popover-border)] bg-[var(--card-popover-bg)] opacity-0 [box-shadow:var(--card-popover-shadow)] backdrop-blur-none transition-[opacity,transform] duration-[180ms] ease-[var(--ease-out)] [transform:translateY(-4px)_scale(0.99)] data-[open=true]:pointer-events-auto data-[open=true]:opacity-100 data-[open=true]:[transform:translateY(0)_scale(1)] min-[641px]:max-[860px]:fixed min-[641px]:max-[860px]:left-3 min-[641px]:max-[860px]:right-auto min-[641px]:max-[860px]:top-[72px] min-[641px]:max-[860px]:box-border min-[641px]:max-[860px]:max-h-[calc(100dvh-96px)] min-[641px]:max-[860px]:w-[min(380px,calc(100vw-24px))] min-[641px]:max-[860px]:max-w-[calc(100vw-24px)] max-[640px]:fixed max-[640px]:left-3 max-[640px]:right-3 max-[640px]:top-[72px] max-[640px]:box-border max-[640px]:max-h-[calc(100dvh-96px)] max-[640px]:w-[calc(100vw-24px)] max-[640px]:min-w-0 max-[640px]:max-w-none",
     dashboardActivityHeader: "flex items-center gap-2.5 px-3.5 py-3",
@@ -748,7 +759,7 @@ const dashboardButtonClassNames = {
     sidebarCollapse:
         "size-[22px] rounded-full border border-[var(--line-hairline)] bg-[var(--bg-elevated)] text-muted-foreground shadow-sm hover:bg-accent hover:text-foreground dark:hover:bg-accent/50 max-[860px]:hidden",
     settingsAvatar:
-        "size-[30px] rounded-full border-0 bg-gradient-to-b from-[var(--steel-500)] to-[var(--steel-700)] text-xs font-semibold text-white shadow-xs hover:scale-[1.04] hover:bg-gradient-to-b hover:from-[var(--steel-500)] hover:to-[var(--steel-700)] hover:text-white",
+        "size-[30px] rounded-full border-0 bg-gradient-to-b from-[var(--steel-500)] to-[var(--steel-700)] text-xs font-semibold text-[var(--fg-on-accent)] shadow-xs hover:scale-[1.04] hover:bg-gradient-to-b hover:from-[var(--steel-500)] hover:to-[var(--steel-700)] hover:text-[var(--fg-on-accent)]",
     listStatePrimary:
         "h-8 gap-1.5 rounded-md bg-primary px-3 text-primary-foreground shadow-xs hover:bg-primary/90 has-[>svg]:px-2.5",
     listStateAction:
@@ -1222,10 +1233,17 @@ const SOT_DASHBOARD_DETAIL_HEADER_TITLE_INPUT_CLASS_NAME =
     "h-8 min-w-0 flex-1 px-3 py-1 text-base md:text-sm";
 
 const SOT_DASHBOARD_DETAIL_HEADER_BADGE_CLASS_NAME = "ml-1 shrink-0";
+const SOT_DASHBOARD_DETAIL_HEADER_ACTION_ANCHOR_CLASS_NAME =
+    "relative inline-flex items-center gap-1.5";
 
 const SOT_DASHBOARD_TRANSCRIPT_LANGUAGE_BADGE_CLASS_NAME = "gap-1.5";
+const SOT_DASHBOARD_TRANSCRIPT_HEADER_CLASS_NAME =
+    "flex flex-row flex-wrap items-center gap-x-3 gap-y-1.5 border-b px-3.5 py-3";
+const SOT_DASHBOARD_TRANSCRIPT_SEGMENTED_TABS_CLASS_NAME = "shrink-0";
 const SOT_DASHBOARD_TRANSCRIPT_ACTIONS_CLASS_NAME =
     "ml-auto inline-flex max-w-full flex-[0_1_auto] flex-wrap items-center gap-2";
+const SOT_DASHBOARD_TRANSCRIPT_BODY_BASE_CLASS_NAME =
+    "min-h-0 flex-1 overflow-y-auto px-5 pt-4 pb-5";
 
 const SOT_DASHBOARD_TRANSCRIPT_SHELL_CARD_CLASS_NAME =
     "flex min-h-0 flex-1 flex-col gap-0 rounded-[16px] border border-[var(--line-hairline)] bg-[var(--bg-elevated)] shadow-[var(--shadow-sm)] backdrop-blur-none dark:border-[var(--glass-border-soft)] dark:bg-[rgb(255_255_255_/_0.025)] dark:shadow-none";
@@ -1836,7 +1854,7 @@ function SotDetailEmptyIcon() {
 function DashboardDetailEmptyState() {
     return (
         <Empty
-            className="min-h-[280px] p-9 md:p-9"
+            className={DASHBOARD_DETAIL_EMPTY_STATE_CLASS_NAME}
             data-detail-empty=""
             data-sot-panel="dashboard-detail-empty"
         >
@@ -4747,7 +4765,7 @@ export function Workstation({
             </aside>
 
             <div
-                className="pointer-events-none fixed inset-0 z-[var(--z-drawer-scrim)] hidden max-[860px]:block max-[860px]:group-data-[drawer-state=open]/dashboard-workstation:pointer-events-auto"
+                className={dashboardDrawerClassNames.scrim}
                 data-sot-panel="dashboard-drawer-scrim"
                 id="drawer-scrim"
                 aria-hidden="true"
@@ -4777,11 +4795,11 @@ export function Workstation({
                         }}
                     >
                         <Menu
-                            className="pointer-events-none absolute top-1/2 left-1/2 size-4 -translate-x-1/2 -translate-y-1/2"
+                            className={dashboardDrawerClassNames.menuIcon}
                             data-icon="inline-start"
                         />
                         <span
-                            className="absolute top-1.5 right-1.5 hidden size-1.5 rounded-full bg-[var(--accent)]"
+                            className={dashboardDrawerClassNames.activeDot}
                             data-sot-part="dashboard-drawer-active-dot"
                             aria-hidden="true"
                         />
@@ -5827,7 +5845,7 @@ export function Workstation({
                         data-visible-count={String(pagedListEntries.length)}
                     >
                         <CardContent
-                            className="flex min-h-0 flex-col p-0"
+                            className={DASHBOARD_RECORDING_LIST_CONTENT_CLASS_NAME}
                             data-sot-part="dashboard-recording-list-content"
                         >
                             <div
@@ -6407,12 +6425,8 @@ export function Workstation({
                                                                     recording.id ===
                                                                     selectedRecording?.id;
                                                                 const sourceMeta =
-                                                                    SOURCE_ORDER.find(
-                                                                        (
-                                                                            item,
-                                                                        ) =>
-                                                                            item.key ===
-                                                                            recording.sourceProvider,
+                                                                    sourceDefinition(
+                                                                        recording.sourceProvider,
                                                                     );
                                                                 const job =
                                                                     liveJobs.get(
@@ -6505,7 +6519,10 @@ export function Workstation({
                                                                                         }
                                                                                         data-sot-variant="image"
                                                                                         title={
-                                                                                            sourceMeta.label
+                                                                                            providerLabel(
+                                                                                                recording.sourceProvider,
+                                                                                                language,
+                                                                                            )
                                                                                         }
                                                                                     >
                                                                                         <img
@@ -6988,7 +7005,9 @@ export function Workstation({
                             ) : null}
                             {dashboardDetailHeaderState === "normal" ? (
                                 <div
-                                    className="relative inline-flex items-center gap-1.5"
+                                    className={
+                                        SOT_DASHBOARD_DETAIL_HEADER_ACTION_ANCHOR_CLASS_NAME
+                                    }
                                     data-rh-ai-anchor
                                     data-sot-part="detail-header-action-anchor"
                                     data-sot-mode="normal"
@@ -7112,7 +7131,9 @@ export function Workstation({
                             ) : null}
                             {dashboardDetailHeaderState === "normal" ? (
                                 <div
-                                    className="relative inline-flex items-center gap-1.5"
+                                    className={
+                                        SOT_DASHBOARD_DETAIL_HEADER_ACTION_ANCHOR_CLASS_NAME
+                                    }
                                     data-sot-part="detail-header-action-anchor"
                                     data-sot-mode="normal"
                                 >
@@ -7413,14 +7434,16 @@ export function Workstation({
                             data-sot-panel="dashboard-transcript-shell"
                         >
                             <CardHeader
-                                className="flex flex-row flex-wrap items-center gap-x-3 gap-y-1.5 border-b px-3.5 py-3"
+                                className={SOT_DASHBOARD_TRANSCRIPT_HEADER_CLASS_NAME}
                                 data-sot-part="dashboard-transcript-header"
                             >
                                 <SegmentedTabs
                                     aria-label="详情标签"
                                     variant="segmented"
                                     size="segmentedSm"
-                                    className="shrink-0"
+                                    className={
+                                        SOT_DASHBOARD_TRANSCRIPT_SEGMENTED_TABS_CLASS_NAME
+                                    }
                                     data-sot-control="segmented-tabs"
                                     data-sot-size="sm"
                                     getItemProps={getSotSegmentedTabProps}
@@ -7742,7 +7765,7 @@ export function Workstation({
                             </CardHeader>
                             <CardContent
                                 className={cn(
-                                    "min-h-0 flex-1 overflow-y-auto px-5 pt-4 pb-5",
+                                    SOT_DASHBOARD_TRANSCRIPT_BODY_BASE_CLASS_NAME,
                                     dashboardScrollbarClassName,
                                     dashboardRetranscriptionThemeClassName,
                                 )}

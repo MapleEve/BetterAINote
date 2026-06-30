@@ -120,6 +120,28 @@ const RECORDING_WORKSTATION_SIDEBAR_CLASS_NAME =
     "relative flex flex-col rounded-none border border-border bg-card px-3 pt-4 pb-3 shadow-sm supports-[backdrop-filter]:bg-card/90 supports-[backdrop-filter]:backdrop-blur-[22px] supports-[backdrop-filter]:backdrop-saturate-[140%] max-[860px]:hidden";
 const RECORDING_DETAIL_LIST_CARD_CLASS_NAME =
     "min-h-0 gap-0 max-[860px]:min-w-0 max-[860px]:max-w-full max-[860px]:box-border";
+const RECORDING_DETAIL_LIST_HEADER_CLASS_NAME = "gap-0 border-b px-3 py-3";
+const RECORDING_DETAIL_LIST_TITLE_CLASS_NAME = "text-sm";
+const RECORDING_DETAIL_LIST_CONTENT_CLASS_NAME =
+    "flex min-h-0 flex-col px-0";
+const RECORDING_DETAIL_LIST_ROWS_CLASS_NAME = "flex flex-col gap-0.5 p-1";
+const RECORDING_DETAIL_LIST_ROW_CLASS_NAME =
+    "grid w-full cursor-pointer grid-cols-[1fr_auto] items-center gap-[14px] rounded-[10px] border border-transparent bg-transparent px-3 py-[11px] text-left font-sans text-[13.3333px] font-normal transition-colors duration-[var(--duration-fast)] ease-[var(--ease-out)] hover:bg-[var(--bg-recessed)] data-[sot-state=selected]:border-primary/40 data-[sot-state=selected]:bg-[var(--accent-soft)]";
+const RECORDING_DETAIL_LIST_ROW_BODY_CLASS_NAME =
+    "flex min-w-0 flex-col gap-[5px]";
+const RECORDING_DETAIL_LIST_ROW_TITLE_CLASS_NAME =
+    "truncate font-sans text-[13.5px] font-semibold tracking-normal text-[var(--fg-primary)]";
+const RECORDING_DETAIL_LIST_ROW_META_CLASS_NAME =
+    "flex flex-wrap items-center gap-2";
+const RECORDING_DETAIL_LIST_ROW_DURATION_CLASS_NAME =
+    "font-mono text-[11.5px] font-medium tracking-[0.02em] text-[var(--fg-secondary)]";
+const RECORDING_DETAIL_METADATA_CARD_CLASS_NAME = "min-h-0 gap-0";
+const RECORDING_DETAIL_METADATA_HEADER_CLASS_NAME =
+    "flex items-center gap-3 border-b px-4 py-3";
+const RECORDING_DETAIL_METADATA_TITLE_CLASS_NAME =
+    "min-w-0 flex-1 truncate text-xl";
+const RECORDING_DETAIL_METADATA_BODY_CLASS_NAME =
+    "flex min-h-0 flex-1 flex-col gap-3.5 overflow-y-auto px-5 pt-4 pb-6";
 const RECORDING_SOURCE_RECORD_SHELL_CLASS_NAME =
     "flex min-h-0 flex-col gap-4";
 const RECORDING_SOURCE_RECORD_CARD_CLASS_NAME = "min-h-0 gap-0";
@@ -134,6 +156,7 @@ const RECORDING_SOURCE_RECORD_BODY_CLASS_NAME =
 const RECORDING_SOURCE_RECORD_TABS_CLASS_NAME = "flex min-w-0";
 const RECORDING_SOURCE_RECORD_HINT_CLASS_NAME = "m-0";
 const RECORDING_SOURCE_RECORD_PANE_CLASS_NAME = "min-h-0";
+const RECORDING_SOURCE_RECORD_EMPTY_CLASS_NAME = "min-h-[280px] flex-1";
 const recordingWorkstationTopbarClassNames = {
     topbar:
         "relative z-[var(--z-topbar)] flex h-14 flex-none flex-row items-center gap-3.5 border-b border-border bg-background/80 px-5 py-3 shadow-none backdrop-blur-[20px] backdrop-saturate-[140%] supports-[backdrop-filter]:bg-background/60 max-[860px]:min-w-0 max-[860px]:max-w-full max-[860px]:box-border",
@@ -155,9 +178,9 @@ const recordingWorkstationNavClassNames = {
 } as const;
 const recordingWorkstationButtonClassNames = {
     detailBack:
-        "relative h-auto w-full justify-start gap-2.5 rounded-[9px] border border-transparent bg-transparent px-2.5 py-[7px] text-left text-[13px] font-medium text-[var(--fg-secondary)] shadow-none hover:bg-accent hover:text-[var(--fg-primary)] focus-visible:text-[var(--fg-primary)] disabled:cursor-not-allowed disabled:opacity-50 data-[sot-state=selected]:border-[var(--line-hairline)] data-[sot-state=selected]:bg-[var(--bg-elevated)] data-[sot-state=selected]:text-[var(--fg-primary)] data-[sot-state=selected]:shadow-xs dark:data-[sot-state=selected]:border-[var(--glass-border)] dark:data-[sot-state=selected]:bg-[rgb(255_255_255_/_0.07)] dark:data-[sot-state=selected]:shadow-none has-[>svg]:px-2.5 [&_span]:min-w-0 [&_span]:flex-1 [&_span]:truncate [&_svg]:flex-none [&_svg]:fill-none [&_svg]:stroke-current [&_svg]:stroke-[1.7] [&_svg]:opacity-[0.85] [&_svg]:[stroke-linecap:round] [&_svg]:[stroke-linejoin:round]",
+        "relative h-auto w-full justify-start gap-2.5 rounded-[9px] border border-transparent bg-transparent px-2.5 py-[7px] text-left text-[13px] font-medium text-[var(--fg-secondary)] shadow-none hover:bg-accent hover:text-[var(--fg-primary)] focus-visible:text-[var(--fg-primary)] disabled:cursor-not-allowed disabled:opacity-50 data-[sot-state=selected]:border-[var(--line-hairline)] data-[sot-state=selected]:bg-[var(--bg-elevated)] data-[sot-state=selected]:text-[var(--fg-primary)] data-[sot-state=selected]:shadow-xs has-[>svg]:px-2.5 [&_span]:min-w-0 [&_span]:flex-1 [&_span]:truncate [&_svg]:flex-none [&_svg]:fill-none [&_svg]:stroke-current [&_svg]:stroke-[1.7] [&_svg]:opacity-[0.85] [&_svg]:[stroke-linecap:round] [&_svg]:[stroke-linejoin:round]",
     headerIconButton:
-        "size-[32px] border border-transparent bg-transparent p-0 text-[var(--fg-secondary)] shadow-none hover:bg-accent hover:text-accent-foreground dark:hover:bg-accent/50 [&_svg]:fill-none [&_svg]:stroke-current [&_svg]:stroke-[1.8] [&_svg]:[stroke-linecap:round] [&_svg]:[stroke-linejoin:round]",
+        "size-[32px] border border-transparent bg-transparent p-0 text-[var(--fg-secondary)] shadow-none hover:bg-accent hover:text-accent-foreground [&_svg]:fill-none [&_svg]:stroke-current [&_svg]:stroke-[1.8] [&_svg]:[stroke-linecap:round] [&_svg]:[stroke-linejoin:round]",
     headerActionButton:
         "h-8 gap-[7px] rounded-[9px] border border-[var(--line-hairline)] bg-[var(--glass-tint-base)] px-3 font-sans text-[12.5px] font-semibold leading-normal text-[var(--fg-primary)] shadow-[var(--shadow-xs)] hover:bg-[var(--glass-tint-base)] hover:text-[var(--fg-primary)] has-[>svg]:px-3 [&_svg]:fill-none [&_svg]:stroke-current [&_svg]:stroke-[1.8] [&_svg]:[stroke-linecap:round] [&_svg]:[stroke-linejoin:round] [&_svg:not([class*='size-'])]:size-4",
 } as const;
@@ -997,45 +1020,45 @@ export function RecordingWorkstation({
                         role="region"
                     >
                         <CardHeader
-                            className="gap-0 border-b px-3 py-3"
+                            className={RECORDING_DETAIL_LIST_HEADER_CLASS_NAME}
                             data-sot-part="recording-detail-list-header"
                         >
                             <CardTitle
-                                className="text-sm"
+                                className={RECORDING_DETAIL_LIST_TITLE_CLASS_NAME}
                                 data-sot-part="recording-detail-list-title"
                             >
                                 当前录音
                             </CardTitle>
                         </CardHeader>
                         <CardContent
-                            className="flex min-h-0 flex-col px-0"
+                            className={RECORDING_DETAIL_LIST_CONTENT_CLASS_NAME}
                             data-sot-part="recording-detail-list-content"
                         >
                             <div
-                                className="flex flex-col gap-0.5 p-1"
+                                className={RECORDING_DETAIL_LIST_ROWS_CLASS_NAME}
                                 data-sot-list="recording-detail-list-rows"
                             >
                                 <div
-                                    className="grid w-full cursor-pointer grid-cols-[1fr_auto] items-center gap-[14px] rounded-[10px] border border-transparent bg-transparent px-3 py-[11px] text-left font-sans text-[13.3333px] font-normal transition-colors duration-[var(--duration-fast)] ease-[var(--ease-out)] hover:bg-[var(--bg-recessed)] data-[sot-state=selected]:border-primary/40 data-[sot-state=selected]:bg-[var(--accent-soft)]"
+                                    className={RECORDING_DETAIL_LIST_ROW_CLASS_NAME}
                                     data-sot-item="recording-detail-list-row"
                                     data-sot-state="selected"
                                 >
                                     <div
-                                        className="flex min-w-0 flex-col gap-[5px]"
+                                        className={RECORDING_DETAIL_LIST_ROW_BODY_CLASS_NAME}
                                         data-sot-part="recording-detail-list-row-body"
                                     >
                                         <div
-                                            className="truncate font-sans text-[13.5px] font-semibold tracking-normal text-[var(--fg-primary)]"
+                                            className={RECORDING_DETAIL_LIST_ROW_TITLE_CLASS_NAME}
                                             data-sot-part="recording-detail-list-row-title"
                                         >
                                             {filename}
                                         </div>
                                         <div
-                                            className="flex flex-wrap items-center gap-2"
+                                            className={RECORDING_DETAIL_LIST_ROW_META_CLASS_NAME}
                                             data-sot-part="recording-detail-list-row-meta"
                                         >
                                             <span
-                                                className="font-mono text-[11.5px] font-medium tracking-[0.02em] text-[var(--fg-secondary)]"
+                                                className={RECORDING_DETAIL_LIST_ROW_DURATION_CLASS_NAME}
                                                 data-sot-part="recording-detail-list-row-duration"
                                             >
                                                 {durationLabel}
@@ -1440,15 +1463,15 @@ export function RecordingWorkstation({
 
                                 <Card
                                     hasNoPadding
-                                    className="min-h-0 gap-0"
+                                    className={RECORDING_DETAIL_METADATA_CARD_CLASS_NAME}
                                     data-sot-panel="recording-detail-metadata"
                                 >
                                     <CardHeader
-                                        className="flex items-center gap-3 border-b px-4 py-3"
+                                        className={RECORDING_DETAIL_METADATA_HEADER_CLASS_NAME}
                                         data-sot-part="recording-detail-metadata-header"
                                     >
                                         <CardTitle
-                                            className="min-w-0 flex-1 truncate text-xl"
+                                            className={RECORDING_DETAIL_METADATA_TITLE_CLASS_NAME}
                                             data-sot-part="recording-detail-metadata-title"
                                             role="heading"
                                             aria-level={2}
@@ -1457,7 +1480,7 @@ export function RecordingWorkstation({
                                         </CardTitle>
                                     </CardHeader>
                                     <CardContent
-                                        className="flex min-h-0 flex-1 flex-col gap-3.5 overflow-y-auto px-5 pt-4 pb-6"
+                                        className={RECORDING_DETAIL_METADATA_BODY_CLASS_NAME}
                                         data-sot-part="recording-detail-metadata-body"
                                     >
                                         <Field>
@@ -1753,7 +1776,7 @@ export function RecordingWorkstation({
                                         </div>
                                     ) : (
                                         <Empty
-                                            className="min-h-[280px] flex-1"
+                                            className={RECORDING_SOURCE_RECORD_EMPTY_CLASS_NAME}
                                             data-sot-panel="recording-source-record-empty"
                                         >
                                             <EmptyHeader>

@@ -5,6 +5,13 @@ import { serializeRecordingDetailTranscriptionJob } from "@/server/modules/recor
 
 const ROOT = path.join(process.cwd(), "src");
 
+const EXPECTED_DASHBOARD_DETAIL_HEADER_ACTION_ANCHOR_CLASS_NAME =
+    "relative inline-flex items-center gap-1.5";
+const EXPECTED_DASHBOARD_TRANSCRIPT_HEADER_CLASS_NAME =
+    "flex flex-row flex-wrap items-center gap-x-3 gap-y-1.5 border-b px-3.5 py-3";
+const EXPECTED_DASHBOARD_TRANSCRIPT_SEGMENTED_TABS_CLASS_NAME = "shrink-0";
+const EXPECTED_DASHBOARD_TRANSCRIPT_BODY_BASE_CLASS_NAME =
+    "min-h-0 flex-1 overflow-y-auto px-5 pt-4 pb-5";
 const EXPECTED_DASHBOARD_TRANSCRIPT_ACTIONS_CLASS_NAME =
     "ml-auto inline-flex max-w-full flex-[0_1_auto] flex-wrap items-center gap-2";
 const EXPECTED_DASHBOARD_TRANSCRIPT_SHELL_CARD_CLASS_NAME =
@@ -486,6 +493,17 @@ function expectExactStringConstInitializer(
     return match?.[1] ?? "";
 }
 
+function expectClassNameConstReference(
+    openingElement: string,
+    constName: string,
+) {
+    const escapedConstName = constName.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+    expect(openingElement).toMatch(
+        new RegExp(`className=\\{\\s*${escapedConstName}\\s*\\}`),
+    );
+    expect(openingElement).not.toContain('className="');
+}
+
 function expectSourceReportMetricCallsites(
     source: string,
     cardComponentName: string,
@@ -781,6 +799,92 @@ const RECORDING_SOURCE_RECORD_LAYOUT_REMOVED_GLOBAL_SELECTORS = [
     '[data-sot-part="recording-source-record-hint"]',
     '[data-sot-part="recording-source-record-pane"]',
 ] as const;
+const RECORDING_DETAIL_LIST_OWNER_CLASS_INITIALIZERS = [
+    {
+        constName: "RECORDING_DETAIL_LIST_HEADER_CLASS_NAME",
+        expected: "gap-0 border-b px-3 py-3",
+        marker: 'data-sot-part="recording-detail-list-header"',
+        tagName: "CardHeader",
+    },
+    {
+        constName: "RECORDING_DETAIL_LIST_TITLE_CLASS_NAME",
+        expected: "text-sm",
+        marker: 'data-sot-part="recording-detail-list-title"',
+        tagName: "CardTitle",
+    },
+    {
+        constName: "RECORDING_DETAIL_LIST_CONTENT_CLASS_NAME",
+        expected: "flex min-h-0 flex-col px-0",
+        marker: 'data-sot-part="recording-detail-list-content"',
+        tagName: "CardContent",
+    },
+    {
+        constName: "RECORDING_DETAIL_LIST_ROWS_CLASS_NAME",
+        expected: "flex flex-col gap-0.5 p-1",
+        marker: 'data-sot-list="recording-detail-list-rows"',
+        tagName: "div",
+    },
+    {
+        constName: "RECORDING_DETAIL_LIST_ROW_CLASS_NAME",
+        expected:
+            "grid w-full cursor-pointer grid-cols-[1fr_auto] items-center gap-[14px] rounded-[10px] border border-transparent bg-transparent px-3 py-[11px] text-left font-sans text-[13.3333px] font-normal transition-colors duration-[var(--duration-fast)] ease-[var(--ease-out)] hover:bg-[var(--bg-recessed)] data-[sot-state=selected]:border-primary/40 data-[sot-state=selected]:bg-[var(--accent-soft)]",
+        marker: 'data-sot-item="recording-detail-list-row"',
+        tagName: "div",
+    },
+    {
+        constName: "RECORDING_DETAIL_LIST_ROW_BODY_CLASS_NAME",
+        expected: "flex min-w-0 flex-col gap-[5px]",
+        marker: 'data-sot-part="recording-detail-list-row-body"',
+        tagName: "div",
+    },
+    {
+        constName: "RECORDING_DETAIL_LIST_ROW_TITLE_CLASS_NAME",
+        expected:
+            "truncate font-sans text-[13.5px] font-semibold tracking-normal text-[var(--fg-primary)]",
+        marker: 'data-sot-part="recording-detail-list-row-title"',
+        tagName: "div",
+    },
+    {
+        constName: "RECORDING_DETAIL_LIST_ROW_META_CLASS_NAME",
+        expected: "flex flex-wrap items-center gap-2",
+        marker: 'data-sot-part="recording-detail-list-row-meta"',
+        tagName: "div",
+    },
+    {
+        constName: "RECORDING_DETAIL_LIST_ROW_DURATION_CLASS_NAME",
+        expected:
+            "font-mono text-[11.5px] font-medium tracking-[0.02em] text-[var(--fg-secondary)]",
+        marker: 'data-sot-part="recording-detail-list-row-duration"',
+        tagName: "span",
+    },
+] as const;
+const RECORDING_DETAIL_METADATA_OWNER_CLASS_INITIALIZERS = [
+    {
+        constName: "RECORDING_DETAIL_METADATA_CARD_CLASS_NAME",
+        expected: "min-h-0 gap-0",
+        marker: 'data-sot-panel="recording-detail-metadata"',
+        tagName: "Card",
+    },
+    {
+        constName: "RECORDING_DETAIL_METADATA_HEADER_CLASS_NAME",
+        expected: "flex items-center gap-3 border-b px-4 py-3",
+        marker: 'data-sot-part="recording-detail-metadata-header"',
+        tagName: "CardHeader",
+    },
+    {
+        constName: "RECORDING_DETAIL_METADATA_TITLE_CLASS_NAME",
+        expected: "min-w-0 flex-1 truncate text-xl",
+        marker: 'data-sot-part="recording-detail-metadata-title"',
+        tagName: "CardTitle",
+    },
+    {
+        constName: "RECORDING_DETAIL_METADATA_BODY_CLASS_NAME",
+        expected:
+            "flex min-h-0 flex-1 flex-col gap-3.5 overflow-y-auto px-5 pt-4 pb-6",
+        marker: 'data-sot-part="recording-detail-metadata-body"',
+        tagName: "CardContent",
+    },
+] as const;
 const RECORDING_SOURCE_RECORD_OWNER_CLASS_INITIALIZERS = [
     {
         constName: "RECORDING_SOURCE_RECORD_SHELL_CLASS_NAME",
@@ -837,6 +941,12 @@ const RECORDING_SOURCE_RECORD_OWNER_CLASS_INITIALIZERS = [
         expected: "min-h-0",
         marker: 'data-sot-part="recording-source-record-pane"',
         tagName: "div",
+    },
+    {
+        constName: "RECORDING_SOURCE_RECORD_EMPTY_CLASS_NAME",
+        expected: "min-h-[280px] flex-1",
+        marker: 'data-sot-panel="recording-source-record-empty"',
+        tagName: "Empty",
     },
 ] as const;
 
@@ -2215,25 +2325,35 @@ describe("recording detail copy and title action UI regressions", () => {
         expect(listPanel).toContain(
             'data-sot-part="recording-detail-list-row-duration"',
         );
-        expect(listPanel).toContain('className="flex flex-col gap-0.5 p-1"');
-        expect(listPanel).toContain(
-            "grid w-full cursor-pointer grid-cols-[1fr_auto]",
-        );
-        expect(listPanel).toContain(
-            "data-[sot-state=selected]:border-primary/40",
-        );
-        expect(listPanel).toContain(
-            'className="flex min-w-0 flex-col gap-[5px]"',
-        );
-        expect(listPanel).toContain(
-            'className="truncate font-sans text-[13.5px] font-semibold tracking-normal text-[var(--fg-primary)]"',
-        );
-        expect(listPanel).toContain(
-            'className="flex flex-wrap items-center gap-2"',
-        );
-        expect(listPanel).toContain(
-            'className="font-mono text-[11.5px] font-medium tracking-[0.02em] text-[var(--fg-secondary)]"',
-        );
+        for (const {
+            constName,
+            expected,
+            marker,
+            tagName,
+        } of RECORDING_DETAIL_LIST_OWNER_CLASS_INITIALIZERS) {
+            const ownerClassName = expectExactStringConstInitializer(
+                detailWorkstation,
+                constName,
+                expected,
+            );
+            const openingElement = extractOpeningElement(
+                detailWorkstation,
+                marker,
+                tagName,
+            );
+
+            expect(openingElement).toContain(marker);
+            expectClassNameConstReference(openingElement, constName);
+            if (constName === "RECORDING_DETAIL_LIST_ROW_CLASS_NAME") {
+                expect(ownerClassName).not.toMatch(
+                    /\b(?:rgb|rgba|hsl|hsla|oklch|color-mix)\(|#[0-9A-Fa-f]{3,8}\b|\bdark:/,
+                );
+            } else {
+                expect(ownerClassName).not.toMatch(
+                    OWNER_WORKSPACE_FORBIDDEN_CLASS_PATTERN,
+                );
+            }
+        }
         expect(listPanel).toContain("<SotPlayerSourceTag");
         expect(listPanel).toContain("<SotPlayerStatusBadge");
         for (const legacyClass of [
@@ -2350,6 +2470,16 @@ describe("recording detail copy and title action UI regressions", () => {
         expect(detailHeader).toContain(
             "recordingWorkstationButtonClassNames.headerActionButton",
         );
+        expect(detailWorkstation).not.toContain(
+            "dark:data-[sot-state=selected]:border",
+        );
+        expect(detailWorkstation).not.toContain(
+            "dark:data-[sot-state=selected]:bg-[rgb(",
+        );
+        expect(detailWorkstation).not.toContain(
+            "dark:data-[sot-state=selected]:shadow-none",
+        );
+        expect(detailWorkstation).not.toContain("dark:hover:bg-accent/50");
         expect(detailHeader).not.toContain('variant="detailHeaderIconAction"');
         expect(detailHeader).not.toContain('size="detailHeaderIconAction"');
         expect(detailHeader).not.toContain('variant="detailHeaderAction"');
@@ -2435,6 +2565,29 @@ describe("recording detail copy and title action UI regressions", () => {
         expect(metadataPanel).toContain(
             'data-sot-part="recording-detail-metadata-body"',
         );
+        for (const {
+            constName,
+            expected,
+            marker,
+            tagName,
+        } of RECORDING_DETAIL_METADATA_OWNER_CLASS_INITIALIZERS) {
+            const ownerClassName = expectExactStringConstInitializer(
+                detailWorkstation,
+                constName,
+                expected,
+            );
+            const openingElement = extractOpeningElement(
+                detailWorkstation,
+                marker,
+                tagName,
+            );
+
+            expect(openingElement).toContain(marker);
+            expectClassNameConstReference(openingElement, constName);
+            expect(ownerClassName).not.toMatch(
+                OWNER_WORKSPACE_FORBIDDEN_CLASS_PATTERN,
+            );
+        }
         expect(sourceRecordPanelIndex).toBeGreaterThanOrEqual(0);
         expect(sourceRecordStart).toBeGreaterThanOrEqual(0);
         expect(sourceRecordEnd).toBeGreaterThan(sourceRecordStart);
@@ -2463,10 +2616,7 @@ describe("recording detail copy and title action UI regressions", () => {
             );
 
             expect(openingElement).toContain(marker);
-            expect(openingElement).toMatch(
-                new RegExp(`className=\\{\\s*${constName}\\s*\\}`),
-            );
-            expect(openingElement).not.toMatch(/className="[^"]+"/);
+            expectClassNameConstReference(openingElement, constName);
             expect(ownerClassName).not.toMatch(
                 OWNER_WORKSPACE_FORBIDDEN_CLASS_PATTERN,
             );
@@ -2685,6 +2835,7 @@ describe("recording detail copy and title action UI regressions", () => {
             /className=(?:"[^"]*\b(?:rec-head|rec-h2|rec-h2-local|rec-h2-input|rec-h2-status|rh-norm|rh-edit|ai-rename-anchor|more-anchor)\b[^"]*"|\{[^}]*\b(?:rec-head|rec-h2|rec-h2-local|rec-h2-input|rec-h2-status|rh-norm|rh-edit|ai-rename-anchor|more-anchor)\b[^}]*\})/;
 
         expect(headerPanelIndex).toBeGreaterThanOrEqual(0);
+        expect(dashboardTranscript).not.toContain("text-white");
         expect(headerStart).toBeGreaterThanOrEqual(0);
         expect(headerEnd).toBeGreaterThan(headerStart);
         expect(dashboardTranscript).toContain(
@@ -2738,6 +2889,15 @@ describe("recording detail copy and title action UI regressions", () => {
         expect(dashboardTranscript).toContain(
             "const SOT_DASHBOARD_DETAIL_HEADER_BADGE_CLASS_NAME",
         );
+        expect(dashboardTranscript).toContain(
+            "const SOT_DASHBOARD_DETAIL_HEADER_ACTION_ANCHOR_CLASS_NAME",
+        );
+        const dashboardDetailHeaderActionAnchorClassName =
+            expectExactStringConstInitializer(
+                dashboardTranscript,
+                "SOT_DASHBOARD_DETAIL_HEADER_ACTION_ANCHOR_CLASS_NAME",
+                EXPECTED_DASHBOARD_DETAIL_HEADER_ACTION_ANCHOR_CLASS_NAME,
+            );
         expect(dashboardDetailHeader).toContain(
             "className={SOT_DASHBOARD_DETAIL_HEADER_CLASS_NAME}",
         );
@@ -2797,8 +2957,13 @@ describe("recording detail copy and title action UI regressions", () => {
         expect(dashboardDetailHeader).not.toContain(
             'className="ml-1 shrink-0"',
         );
-        expect(dashboardDetailHeader).toContain(
-            'className="relative inline-flex items-center gap-1.5"',
+        expect(
+            dashboardDetailHeader.match(
+                /className=\{\s*SOT_DASHBOARD_DETAIL_HEADER_ACTION_ANCHOR_CLASS_NAME\s*\}/g,
+            ) ?? [],
+        ).toHaveLength(2);
+        expect(dashboardDetailHeaderActionAnchorClassName).not.toMatch(
+            OWNER_WORKSPACE_FORBIDDEN_CLASS_PATTERN,
         );
         expect(dashboardDetailHeader).toContain(
             'dashboardDetailHeaderState === "normal"',
@@ -2836,6 +3001,65 @@ describe("recording detail copy and title action UI regressions", () => {
         );
         expect(dashboardTranscriptShell).toContain("<CardHeader");
         expect(dashboardTranscriptShell).toContain("<CardContent");
+        const dashboardTranscriptHeader = extractOpeningElement(
+            dashboardTranscriptShell,
+            'data-sot-part="dashboard-transcript-header"',
+            "CardHeader",
+        );
+        const dashboardTranscriptSegmentedTabs = extractOpeningElement(
+            dashboardTranscriptShell,
+            'data-sot-control="segmented-tabs"',
+            "SegmentedTabs",
+        );
+        const dashboardTranscriptBody = extractOpeningElement(
+            dashboardTranscriptShell,
+            'data-sot-part="dashboard-transcript-body"',
+            "CardContent",
+        );
+        const dashboardTranscriptHeaderClassName =
+            expectExactStringConstInitializer(
+                dashboardTranscript,
+                "SOT_DASHBOARD_TRANSCRIPT_HEADER_CLASS_NAME",
+                EXPECTED_DASHBOARD_TRANSCRIPT_HEADER_CLASS_NAME,
+            );
+        const dashboardTranscriptSegmentedTabsClassName =
+            expectExactStringConstInitializer(
+                dashboardTranscript,
+                "SOT_DASHBOARD_TRANSCRIPT_SEGMENTED_TABS_CLASS_NAME",
+                EXPECTED_DASHBOARD_TRANSCRIPT_SEGMENTED_TABS_CLASS_NAME,
+            );
+        const dashboardTranscriptBodyBaseClassName =
+            expectExactStringConstInitializer(
+                dashboardTranscript,
+                "SOT_DASHBOARD_TRANSCRIPT_BODY_BASE_CLASS_NAME",
+                EXPECTED_DASHBOARD_TRANSCRIPT_BODY_BASE_CLASS_NAME,
+            );
+        expectClassNameConstReference(
+            dashboardTranscriptHeader,
+            "SOT_DASHBOARD_TRANSCRIPT_HEADER_CLASS_NAME",
+        );
+        expectClassNameConstReference(
+            dashboardTranscriptSegmentedTabs,
+            "SOT_DASHBOARD_TRANSCRIPT_SEGMENTED_TABS_CLASS_NAME",
+        );
+        expect(dashboardTranscriptBody).toMatch(/className=\{\s*cn\(/);
+        expect(dashboardTranscriptBody).toContain(
+            "SOT_DASHBOARD_TRANSCRIPT_BODY_BASE_CLASS_NAME",
+        );
+        expect(dashboardTranscriptBody).toContain("dashboardScrollbarClassName");
+        expect(dashboardTranscriptBody).toContain(
+            "dashboardRetranscriptionThemeClassName",
+        );
+        expect(dashboardTranscriptBody).not.toContain('className="');
+        for (const className of [
+            dashboardTranscriptHeaderClassName,
+            dashboardTranscriptSegmentedTabsClassName,
+            dashboardTranscriptBodyBaseClassName,
+        ]) {
+            expect(className).not.toMatch(
+                OWNER_WORKSPACE_FORBIDDEN_CLASS_PATTERN,
+            );
+        }
         expect(dashboardTranscriptShell).toContain(
             'data-sot-part="dashboard-transcript-header"',
         );

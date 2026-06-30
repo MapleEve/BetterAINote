@@ -38,6 +38,31 @@ function extractDashboardSearchActivityClassNames(source: string) {
     return source.slice(start, end + "} as const;".length);
 }
 
+function extractConstString(source: string, constName: string) {
+    const marker = `const ${constName} =`;
+    const markerIndex = source.indexOf(marker);
+    expect(markerIndex).toBeGreaterThanOrEqual(0);
+    const valueStart = source.indexOf('"', markerIndex);
+    expect(valueStart).toBeGreaterThan(markerIndex);
+
+    for (let index = valueStart + 1; index < source.length; index += 1) {
+        if (source[index] === '"' && source[index - 1] !== "\\") {
+            return source.slice(markerIndex, index + 1);
+        }
+    }
+
+    throw new Error(`Unclosed string const: ${constName}`);
+}
+
+function extractConstObject(source: string, constName: string) {
+    const marker = `const ${constName} = {`;
+    const start = source.indexOf(marker);
+    expect(start).toBeGreaterThanOrEqual(0);
+    const end = source.indexOf("} as const;", start);
+    expect(end).toBeGreaterThan(start);
+    return source.slice(start, end + "} as const;".length);
+}
+
 function extractObjectStringProperty(source: string, propertyName: string) {
     const marker = `${propertyName}:`;
     const markerIndex = source.indexOf(marker);
@@ -489,6 +514,32 @@ const DASHBOARD_SEARCH_ACTIVITY_FEATURE_OWNER_SOURCE_SNIPPETS = [
     "dashboardSearchActivityClassNames.librarySearchInput",
 ] as const;
 
+const DASHBOARD_STATIC_OWNER_STRING_CONSTANTS = [
+    "DASHBOARD_RECORDING_LIST_CONTENT_CLASS_NAME",
+    "DASHBOARD_DETAIL_EMPTY_STATE_CLASS_NAME",
+    "SOT_DASHBOARD_DETAIL_HEADER_ACTION_ANCHOR_CLASS_NAME",
+    "SOT_DASHBOARD_TRANSCRIPT_HEADER_CLASS_NAME",
+    "SOT_DASHBOARD_TRANSCRIPT_SEGMENTED_TABS_CLASS_NAME",
+    "SOT_DASHBOARD_TRANSCRIPT_BODY_BASE_CLASS_NAME",
+] as const;
+
+const DASHBOARD_STATIC_OWNER_OBJECT_CONSTANTS = [
+    "dashboardDrawerClassNames",
+] as const;
+
+const DASHBOARD_STATIC_OWNER_DEFERRED_TOKEN_AREAS = [
+    "dashboardSearchActivityClassNames",
+    "dashboardRetranscriptionThemeClassName",
+    "sourceProviderThemeClassName",
+    "dashboardSourceClassNames",
+    "sourceFilterStackClassNames",
+    "dashboardRecordingRowStyles",
+    "dashboardScrollbarClassName",
+    "dashboardSyncClassNames",
+    "SOT_DASHBOARD_RECORDING_STATUS_BADGE_CLASS",
+    "dashboardRetranscriptionClassNames",
+] as const;
+
 describe("dashboard SOT search and activity interactions", () => {
     it("keeps search inline in the SOT topbar with feature-owned hooks and all query states", () => {
         const workstation = readSource("features/dashboard/workstation.tsx");
@@ -865,6 +916,108 @@ describe("dashboard SOT search and activity interactions", () => {
 
         for (const snippet of DASHBOARD_SEARCH_ACTIVITY_FEATURE_OWNER_SOURCE_SNIPPETS) {
             expect(workstation).toContain(snippet);
+        }
+    });
+
+    it("keeps dashboard static-owner surface classes named and token-safe for phase 1", () => {
+        const workstation = readSource("features/dashboard/workstation.tsx");
+
+        expect(workstation).not.toContain("text-white");
+        expect(workstation).toContain(
+            "className={DASHBOARD_DETAIL_EMPTY_STATE_CLASS_NAME}",
+        );
+        expect(workstation).toContain(
+            "className={dashboardDrawerClassNames.scrim}",
+        );
+        expect(workstation).toContain(
+            "className={dashboardDrawerClassNames.menuIcon}",
+        );
+        expect(workstation).toContain(
+            "className={dashboardDrawerClassNames.activeDot}",
+        );
+        expect(workstation).toContain(
+            "className={DASHBOARD_RECORDING_LIST_CARD_CLASS_NAME}",
+        );
+        expect(workstation).toContain(
+            "className={DASHBOARD_RECORDING_LIST_CONTENT_CLASS_NAME}",
+        );
+        expect(workstation).toContain(
+            "SOT_DASHBOARD_DETAIL_HEADER_ACTION_ANCHOR_CLASS_NAME",
+        );
+        expect(workstation).toContain(
+            "className={SOT_DASHBOARD_TRANSCRIPT_HEADER_CLASS_NAME}",
+        );
+        expect(workstation).toContain(
+            "SOT_DASHBOARD_TRANSCRIPT_SEGMENTED_TABS_CLASS_NAME",
+        );
+        expect(workstation).toContain(
+            "SOT_DASHBOARD_TRANSCRIPT_BODY_BASE_CLASS_NAME",
+        );
+        for (const inlineClass of [
+            'className="min-h-[280px] p-9 md:p-9"',
+            'className="pointer-events-none fixed inset-0 z-[var(--z-drawer-scrim)]',
+            'className="pointer-events-none absolute top-1/2 left-1/2 size-4',
+            'className="absolute top-1.5 right-1.5 hidden size-1.5',
+            'className="flex min-h-0 flex-col p-0"',
+            'className="relative inline-flex items-center gap-1.5"',
+            'className="flex flex-row flex-wrap items-center gap-x-3 gap-y-1.5 border-b',
+            'className="shrink-0"',
+        ]) {
+            expect(workstation).not.toContain(inlineClass);
+        }
+
+        for (const constName of DASHBOARD_STATIC_OWNER_STRING_CONSTANTS) {
+            expect(extractConstString(workstation, constName)).not.toMatch(
+                /dark:|rgb\(|color-mix\(/,
+            );
+        }
+        for (const constName of DASHBOARD_STATIC_OWNER_OBJECT_CONSTANTS) {
+            expect(extractConstObject(workstation, constName)).not.toMatch(
+                /dark:|rgb\(|color-mix\(/,
+            );
+        }
+    });
+
+    it("keeps favorite labels and provider display wired through owner helpers", () => {
+        const workstation = readSource("features/dashboard/workstation.tsx");
+        const favoritesDefinition = extractBoundedSlice(
+            workstation,
+            "const FAVORITES",
+            "const TIMELINE_FILTERS",
+        );
+        const favoritesNavSlice = extractBoundedSlice(
+            workstation,
+            "{FAVORITES.map((item) => {",
+            "{sourceRows.map((item) => {",
+        );
+        const sourceRowsSlice = extractBoundedSlice(
+            workstation,
+            "const sourceRows = useMemo",
+            "const selectedSourceRow = useMemo",
+        );
+        const recordingRowsSlice = extractBoundedSlice(
+            workstation,
+            "group.entries.map(",
+            "<SotDashboardRecordingStatusBadge",
+        );
+
+        expect(favoritesDefinition).not.toContain("label:");
+        expect(favoritesNavSlice).toContain("{getFavoriteLabel(item.value, t)}");
+        expect(favoritesNavSlice).not.toContain("item.label");
+        expect(workstation).toContain("function providerLabel(");
+        expect(workstation).toContain("getSourceProviderLabel(provider, language)");
+        expect(sourceRowsSlice).toContain("label: providerLabel(item.key, language)");
+        expect(recordingRowsSlice).toContain("sourceDefinition(");
+        expect(recordingRowsSlice).toContain("title={providerLabel(");
+        expect(recordingRowsSlice).not.toContain("SOURCE_ORDER.find(");
+        expect(recordingRowsSlice).not.toContain("sourceMeta.label");
+    });
+
+    it("classifies remaining manual dashboard token areas as deferred owner work", () => {
+        const workstation = readSource("features/dashboard/workstation.tsx");
+
+        for (const ownerName of DASHBOARD_STATIC_OWNER_DEFERRED_TOKEN_AREAS) {
+            expect(workstation).toContain(ownerName);
         }
     });
 
