@@ -118,6 +118,20 @@ const RECORDING_WORKSTATION_DETAIL_BODY_CLASS_NAME =
     "flex min-h-0 min-w-0 flex-col gap-4";
 const RECORDING_WORKSTATION_SIDEBAR_CLASS_NAME =
     "relative flex flex-col rounded-none border border-border bg-card px-3 pt-4 pb-3 shadow-sm supports-[backdrop-filter]:bg-card/90 supports-[backdrop-filter]:backdrop-blur-[22px] supports-[backdrop-filter]:backdrop-saturate-[140%]";
+const RECORDING_SOURCE_RECORD_SHELL_CLASS_NAME =
+    "flex min-h-0 flex-col gap-4";
+const RECORDING_SOURCE_RECORD_CARD_CLASS_NAME = "min-h-0 gap-0";
+const RECORDING_SOURCE_RECORD_HEADER_CLASS_NAME =
+    "flex items-center gap-3 border-b px-4 py-3";
+const RECORDING_SOURCE_RECORD_TITLE_CLASS_NAME =
+    "min-w-0 flex-1 truncate text-xl";
+const RECORDING_SOURCE_RECORD_ACTIONS_CLASS_NAME =
+    "ml-auto flex max-w-full grow-0 shrink basis-auto flex-wrap items-center gap-2";
+const RECORDING_SOURCE_RECORD_BODY_CLASS_NAME =
+    "flex min-h-0 flex-1 flex-col gap-3.5 overflow-y-auto px-5 pt-4 pb-6";
+const RECORDING_SOURCE_RECORD_TABS_CLASS_NAME = "flex min-w-0";
+const RECORDING_SOURCE_RECORD_HINT_CLASS_NAME = "m-0";
+const RECORDING_SOURCE_RECORD_PANE_CLASS_NAME = "min-h-0";
 const recordingWorkstationTopbarClassNames = {
     topbar:
         "relative z-[var(--z-topbar)] flex h-14 flex-none flex-row items-center gap-3.5 border-b border-border bg-background/80 px-5 py-3 shadow-none backdrop-blur-[20px] backdrop-saturate-[140%] supports-[backdrop-filter]:bg-background/60 max-[860px]:min-w-0 max-[860px]:max-w-full max-[860px]:box-border",
@@ -1499,21 +1513,29 @@ export function RecordingWorkstation({
                             </section>
 
                             <section
-                                className="flex min-h-0 flex-col gap-4"
+                                className={
+                                    RECORDING_SOURCE_RECORD_SHELL_CLASS_NAME
+                                }
                                 data-sot-part="recording-source-record-shell"
                                 aria-label={t("recording.sourceRecord")}
                             >
                                 <Card
                                     hasNoPadding
-                                    className="min-h-0 gap-0"
+                                    className={
+                                        RECORDING_SOURCE_RECORD_CARD_CLASS_NAME
+                                    }
                                     data-sot-panel="recording-source-record"
                                 >
                                     <CardHeader
-                                        className="flex items-center gap-3 border-b px-4 py-3"
+                                        className={
+                                            RECORDING_SOURCE_RECORD_HEADER_CLASS_NAME
+                                        }
                                         data-sot-part="recording-source-record-header"
                                     >
                                         <CardTitle
-                                            className="min-w-0 flex-1 truncate text-xl"
+                                            className={
+                                                RECORDING_SOURCE_RECORD_TITLE_CLASS_NAME
+                                            }
                                             data-sot-part="recording-source-record-title"
                                             role="heading"
                                             aria-level={2}
@@ -1521,7 +1543,9 @@ export function RecordingWorkstation({
                                             {t("recording.sourceRecord")}
                                         </CardTitle>
                                         <div
-                                            className="ml-auto flex max-w-full grow-0 shrink basis-auto flex-wrap items-center gap-2"
+                                            className={
+                                                RECORDING_SOURCE_RECORD_ACTIONS_CLASS_NAME
+                                            }
                                             data-sot-part="recording-source-record-actions"
                                         >
                                             <Button
@@ -1574,7 +1598,9 @@ export function RecordingWorkstation({
                                         </div>
                                     </CardHeader>
                                     <CardContent
-                                        className="flex min-h-0 flex-1 flex-col gap-3.5 overflow-y-auto px-5 pt-4 pb-6"
+                                        className={
+                                            RECORDING_SOURCE_RECORD_BODY_CLASS_NAME
+                                        }
                                         data-sot-part="recording-source-record-body"
                                     >
                                         <Field>
@@ -1606,7 +1632,9 @@ export function RecordingWorkstation({
                                             </FieldContent>
                                         </Field>
                                         <div
-                                            className="flex min-w-0"
+                                            className={
+                                                RECORDING_SOURCE_RECORD_TABS_CLASS_NAME
+                                            }
                                             data-sot-part="recording-source-record-tabs"
                                         >
                                             <SegmentedTabs
@@ -1649,7 +1677,9 @@ export function RecordingWorkstation({
                                             />
                                         </div>
                                         <FieldDescription
-                                            className="m-0"
+                                            className={
+                                                RECORDING_SOURCE_RECORD_HINT_CLASS_NAME
+                                            }
                                             data-sot-part="recording-source-record-hint"
                                         >
                                             {showLocalTranscriptTab
@@ -1664,7 +1694,9 @@ export function RecordingWorkstation({
                                     </CardContent>
                                 </Card>
                                 <div
-                                    className="min-h-0"
+                                    className={
+                                        RECORDING_SOURCE_RECORD_PANE_CLASS_NAME
+                                    }
                                     data-sot-part="recording-source-record-pane"
                                 >
                                     {activeTranscriptTab === "source" ? (

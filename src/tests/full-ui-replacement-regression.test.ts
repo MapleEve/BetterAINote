@@ -3718,6 +3718,64 @@ const RECORDING_SOURCE_RECORD_LAYOUT_REMOVED_GLOBAL_SELECTORS = [
     '[data-sot-part="recording-source-record-hint"]',
     '[data-sot-part="recording-source-record-pane"]',
 ] as const;
+const RECORDING_SOURCE_RECORD_OWNER_CLASS_INITIALIZERS = [
+    {
+        constName: "RECORDING_SOURCE_RECORD_SHELL_CLASS_NAME",
+        expected: "flex min-h-0 flex-col gap-4",
+        marker: 'data-sot-part="recording-source-record-shell"',
+        tagName: "section",
+    },
+    {
+        constName: "RECORDING_SOURCE_RECORD_CARD_CLASS_NAME",
+        expected: "min-h-0 gap-0",
+        marker: 'data-sot-panel="recording-source-record"',
+        tagName: "Card",
+    },
+    {
+        constName: "RECORDING_SOURCE_RECORD_HEADER_CLASS_NAME",
+        expected: "flex items-center gap-3 border-b px-4 py-3",
+        marker: 'data-sot-part="recording-source-record-header"',
+        tagName: "CardHeader",
+    },
+    {
+        constName: "RECORDING_SOURCE_RECORD_TITLE_CLASS_NAME",
+        expected: "min-w-0 flex-1 truncate text-xl",
+        marker: 'data-sot-part="recording-source-record-title"',
+        tagName: "CardTitle",
+    },
+    {
+        constName: "RECORDING_SOURCE_RECORD_ACTIONS_CLASS_NAME",
+        expected:
+            "ml-auto flex max-w-full grow-0 shrink basis-auto flex-wrap items-center gap-2",
+        marker: 'data-sot-part="recording-source-record-actions"',
+        tagName: "div",
+    },
+    {
+        constName: "RECORDING_SOURCE_RECORD_BODY_CLASS_NAME",
+        expected:
+            "flex min-h-0 flex-1 flex-col gap-3.5 overflow-y-auto px-5 pt-4 pb-6",
+        marker: 'data-sot-part="recording-source-record-body"',
+        tagName: "CardContent",
+    },
+    {
+        constName: "RECORDING_SOURCE_RECORD_TABS_CLASS_NAME",
+        expected: "flex min-w-0",
+        marker: 'data-sot-part="recording-source-record-tabs"',
+        tagName: "div",
+    },
+    {
+        constName: "RECORDING_SOURCE_RECORD_HINT_CLASS_NAME",
+        expected: "m-0",
+        marker: 'data-sot-part="recording-source-record-hint"',
+        tagName: "FieldDescription",
+    },
+    {
+        constName: "RECORDING_SOURCE_RECORD_PANE_CLASS_NAME",
+        expected: "min-h-0",
+        marker: 'data-sot-part="recording-source-record-pane"',
+        tagName: "div",
+    },
+] as const;
 
 const AI_RENAME_PREVIEW_FUNCTIONAL_CSS_SELECTORS = [
     '[data-sot-panel="ai-rename-preview"]',
@@ -12394,31 +12452,6 @@ describe("full UI replacement regression coverage", () => {
             sourceRecordStart,
             sourceRecordEnd + "</Card>".length,
         );
-        const sourceRecordShellOpening = extractOpeningElement(
-            detail,
-            'data-sot-part="recording-source-record-shell"',
-            "section",
-        );
-        const sourceRecordActionsOpening = extractOpeningElement(
-            sourceRecordPanel,
-            'data-sot-part="recording-source-record-actions"',
-            "div",
-        );
-        const sourceRecordTabsOpening = extractOpeningElement(
-            sourceRecordPanel,
-            'data-sot-part="recording-source-record-tabs"',
-            "div",
-        );
-        const sourceRecordHintOpening = extractOpeningElement(
-            sourceRecordPanel,
-            'data-sot-part="recording-source-record-hint"',
-            "FieldDescription",
-        );
-        const sourceRecordPaneOpening = extractOpeningElement(
-            detail,
-            'data-sot-part="recording-source-record-pane"',
-            "div",
-        );
 
         expect(detail).toContain(
             'import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";',
@@ -12452,15 +12485,29 @@ describe("full UI replacement regression coverage", () => {
         expect(sourceRecordPanel).toContain(
             'data-sot-panel="recording-source-record"',
         );
-        expect(sourceRecordShellOpening).toContain(
-            'className="flex min-h-0 flex-col gap-4"',
-        );
-        expect(sourceRecordActionsOpening).toContain(
-            'className="ml-auto flex max-w-full grow-0 shrink basis-auto flex-wrap items-center gap-2"',
-        );
-        expect(sourceRecordTabsOpening).toContain('className="flex min-w-0"');
-        expect(sourceRecordHintOpening).toContain('className="m-0"');
-        expect(sourceRecordPaneOpening).toContain('className="min-h-0"');
+        for (const {
+            constName,
+            expected,
+            marker,
+            tagName,
+        } of RECORDING_SOURCE_RECORD_OWNER_CLASS_INITIALIZERS) {
+            const ownerClassName = expectExactStringConstInitializer(
+                detail,
+                constName,
+                expected,
+            );
+            const openingElement = extractOpeningElement(
+                detail,
+                marker,
+                tagName,
+            );
+
+            expect(openingElement).toContain(marker);
+            expectClassNameConstReference(openingElement, constName);
+            expect(ownerClassName).not.toMatch(
+                OWNER_WORKSPACE_FORBIDDEN_CLASS_PATTERN,
+            );
+        }
         for (const part of [
             "recording-source-record-header",
             "recording-source-record-title",
