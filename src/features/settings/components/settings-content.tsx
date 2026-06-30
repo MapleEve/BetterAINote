@@ -334,7 +334,7 @@ const SETTINGS_SECTION_HEAD_DESCRIPTION_CLASS =
     "mt-1 mb-0 max-w-[64ch] font-sans text-[12.5px] leading-[1.55] text-[var(--fg-tertiary)]";
 
 const SETTINGS_SAVE_ACTIONS_CLASS =
-    "relative z-[2] mt-[18px] ml-auto flex flex-row-reverse items-center gap-2 pointer-events-none [&_[data-sot-control=settings-save]]:pointer-events-auto [&_[data-sot-control=settings-save]]:relative [&_[data-sot-control=settings-save]]:z-[3] [&_[data-sot-control=voscript-test]]:pointer-events-auto [&_[data-sot-control=voscript-test]]:relative [&_[data-sot-control=voscript-test]]:z-[3] [&_[data-sot-part=settings-save-status]]:pointer-events-auto [&_[data-sot-part=settings-save-status]]:relative [&_[data-sot-part=settings-save-status]]:z-[3] data-[sot-state=saving]:[&_[data-sot-control=settings-save]]:pointer-events-none data-[sot-state=saving]:[&_[data-sot-control=voscript-test]]:pointer-events-none";
+    "relative z-10 mt-[18px] ml-auto flex flex-row-reverse items-center gap-2 pointer-events-none [&_[data-sot-control=settings-save]]:pointer-events-auto [&_[data-sot-control=settings-save]]:relative [&_[data-sot-control=settings-save]]:z-20 [&_[data-sot-control=voscript-test]]:pointer-events-auto [&_[data-sot-control=voscript-test]]:relative [&_[data-sot-control=voscript-test]]:z-20 [&_[data-sot-part=settings-save-status]]:pointer-events-auto [&_[data-sot-part=settings-save-status]]:relative [&_[data-sot-part=settings-save-status]]:z-20 data-[sot-state=saving]:[&_[data-sot-control=settings-save]]:pointer-events-none data-[sot-state=saving]:[&_[data-sot-control=voscript-test]]:pointer-events-none";
 
 function SourceActionButton({
     className,

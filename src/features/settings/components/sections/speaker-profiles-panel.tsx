@@ -87,7 +87,7 @@ const speakerSectionGroupClassName = "relative mb-[22px]";
 const speakerRowsListClassName = "m-0 flex list-none flex-col gap-1.5 p-0";
 
 const speakerRowItemClassName =
-    "grid min-w-0 grid-cols-[36px_minmax(0,1fr)_auto_auto] items-center gap-2.5 rounded-md border border-[var(--line-hairline)] bg-[var(--bg-elevated)] px-3 py-2.5 hover:bg-[var(--bg-recessed)] [[data-theme=dark]_&]:border-[var(--glass-border-soft)]";
+    "grid min-w-0 grid-cols-[36px_minmax(0,1fr)_auto_auto] items-center gap-2.5 rounded-md border border-[var(--card-elevated-border)] bg-[var(--bg-elevated)] px-3 py-2.5 hover:bg-[var(--bg-recessed)]";
 
 const speakerRowMetaClassName = "flex min-w-0 flex-col gap-0.5";
 

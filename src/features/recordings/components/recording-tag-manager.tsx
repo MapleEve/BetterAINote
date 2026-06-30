@@ -125,7 +125,7 @@ const recordingTagManagerButtonClassNames = {
 } as const;
 
 const recordingTagManagerCardClassNames = {
-    panel: "tagm-panel fixed top-[96px] right-[28px] z-[240] max-h-[460px] w-[320px] max-w-[calc(100vw-2rem)] gap-0 overflow-hidden rounded-[12px] border-[var(--card-popover-border)] bg-[var(--card-popover-bg)] shadow-[var(--card-popover-shadow)] backdrop-blur-none pointer-events-auto max-md:top-[76px] max-md:right-[12px] max-md:left-[12px] max-md:w-auto max-md:max-w-none",
+    panel: "tagm-panel fixed top-[96px] right-[28px] z-[var(--z-dropdown)] max-h-[460px] w-[320px] max-w-[calc(100vw-2rem)] gap-0 overflow-hidden rounded-[12px] border-[var(--card-popover-border)] bg-[var(--card-popover-bg)] shadow-[var(--card-popover-shadow)] backdrop-blur-none pointer-events-auto max-md:top-[76px] max-md:right-[12px] max-md:left-[12px] max-md:w-auto max-md:max-w-none",
     header: "tagm-head flex flex-row items-center justify-between gap-[normal] border-b-[1px] border-[var(--card-popover-divider)] px-[12px] pt-[10px] pb-[10px] [&>[data-slot=card-action]]:self-center",
     title: "tagm-title text-[12.5px] font-semibold leading-[17px] text-[var(--fg-primary)]",
     footer: "min-h-[49px] gap-[6px] border-t border-[var(--card-popover-divider)] bg-[var(--card-popover-footer-bg)] px-[14px] py-[10px]",

@@ -3025,15 +3025,17 @@ describe("settings SOT interaction regressions", () => {
             "m-0 flex list-none flex-col gap-1.5 p-0",
             "speakerRowItemClassName",
             "grid min-w-0 grid-cols-[36px_minmax(0,1fr)_auto_auto]",
-            "border-[var(--line-hairline)]",
+            "border-[var(--card-elevated-border)]",
             "bg-[var(--bg-elevated)]",
             "hover:bg-[var(--bg-recessed)]",
-            "[[data-theme=dark]_&]:border-[var(--glass-border-soft)]",
             "speakerRowMetaClassName",
             "flex min-w-0 flex-col gap-0.5",
             "speakerRowSubClassName",
             "font-mono text-[11.5px] font-medium leading-[1.4] tracking-normal text-[var(--fg-tertiary)]",
         ]);
+        expect(speakers).not.toMatch(
+            /\[\[data-theme=dark\]_&\]:border-\[var\(--glass-border-soft\)\]/,
+        );
         expect(speakers).toContain("className={speakerProfilesPanelClassName}");
         expect(
             speakers.match(/className=\{speakerSectionGroupClassName\}/g) ?? [],

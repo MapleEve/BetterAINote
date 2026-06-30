@@ -13757,7 +13757,7 @@ describe("full UI replacement regression coverage", () => {
         expect(globals).not.toContain(["--z", "context-menu"].join("-"));
         for (const ownerPanelSnippet of [
             "tagm-panel fixed top-[96px] right-[28px]",
-            "z-[240]",
+            "z-[var(--z-dropdown)]",
             "max-h-[460px] w-[320px] max-w-[calc(100vw-2rem)]",
             "pointer-events-auto",
             "max-md:top-[76px] max-md:right-[12px] max-md:left-[12px]",
