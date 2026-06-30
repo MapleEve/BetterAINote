@@ -16,7 +16,7 @@ const SETTINGS_LIST_SKELETON_CLASS = SETTINGS_SKELETON_PANEL_CLASS;
 const SKELETON_ROW_CONTROL_CLASS =
     "flex min-w-0 flex-wrap items-center justify-end gap-2";
 const SKELETON_SYNC_DOT_CLASS =
-    "size-2 rounded-full bg-[var(--signal-success)] shadow-[0_0_0_3px_color-mix(in_srgb,var(--signal-success)_22%,transparent)]";
+    "size-2 rounded-full bg-primary ring-4 ring-primary/20";
 
 interface SettingsCardSkeletonProps {
     className?: string;

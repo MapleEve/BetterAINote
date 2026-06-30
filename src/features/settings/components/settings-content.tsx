@@ -55,10 +55,10 @@ import {
     SOURCE_PROVIDER_DETAIL_CREDENTIAL_FIELD_CONTENT_CLASS,
     SOURCE_PROVIDER_DETAIL_CREDENTIAL_FIELD_DESCRIPTION_CLASS,
     SOURCE_PROVIDER_DETAIL_CREDENTIAL_FIELD_LABEL_CLASS,
-    SOURCE_PROVIDER_DETAIL_FIELD_DESCRIPTION_CLASS,
     SOURCE_PROVIDER_DETAIL_FIELD_CLASS,
     SOURCE_PROVIDER_DETAIL_FIELD_CONTENT_CLASS,
     SOURCE_PROVIDER_DETAIL_FIELD_CONTROL_CLASS,
+    SOURCE_PROVIDER_DETAIL_FIELD_DESCRIPTION_CLASS,
     SOURCE_PROVIDER_DETAIL_FIELD_LABEL_CLASS,
     SOURCE_PROVIDER_DETAIL_INPUT_CLASS,
     SOURCE_PROVIDER_DETAIL_SWITCH_CLASS,
@@ -196,11 +196,10 @@ type SourceActionStatusBadgeProps = Omit<
 const SOURCE_ACTION_BUTTON_SIZE_CLASS =
     "h-[26px] gap-[7px] rounded-[7px] px-[10px] text-[12px] font-semibold leading-[normal] has-[>svg]:px-[10px] [&_svg:not([class*='size-'])]:size-[11px]";
 
-const SOURCE_PROVIDER_THEME_CLASS =
-    "[--source-provider-card-hover:color-mix(in_srgb,var(--fg-primary)_5%,transparent)] [--source-provider-status-success-bg:color-mix(in_srgb,var(--signal-success)_14%,transparent)] [--source-provider-status-success-border:color-mix(in_srgb,var(--signal-success)_30%,transparent)] [--source-provider-status-info-bg:color-mix(in_srgb,var(--signal-info)_14%,transparent)] [--source-provider-status-info-border:color-mix(in_srgb,var(--signal-info)_30%,transparent)] [--source-provider-status-warning-bg:color-mix(in_srgb,var(--signal-warning)_18%,transparent)] [--source-provider-status-warning-border:color-mix(in_srgb,var(--signal-warning)_32%,transparent)] [--source-provider-status-danger-bg:color-mix(in_srgb,var(--signal-danger)_14%,transparent)] [--source-provider-status-danger-border:color-mix(in_srgb,var(--signal-danger)_30%,transparent)] [--source-provider-primary-bg:linear-gradient(180deg,color-mix(in_srgb,var(--accent)_92%,white_18%),var(--accent))] [--source-provider-primary-hover-bg:linear-gradient(180deg,color-mix(in_srgb,var(--accent)_92%,white_18%),var(--accent))] [--source-provider-primary-border:color-mix(in_srgb,var(--accent)_60%,black_8%)] [--source-provider-primary-shadow:0_2px_6px_color-mix(in_srgb,var(--accent)_24%,transparent),inset_0_1px_0_rgb(255_255_255_/_0.22)]";
+const SOURCE_PROVIDER_THEME_CLASS = "";
 
 const SOURCE_PROVIDER_TILE_BUTTON_CLASS =
-    "group/source-provider !grid h-auto w-full grid-cols-[28px_1fr_auto] items-center justify-start gap-[10px] rounded-[10px] border border-solid border-transparent bg-transparent p-[10px] text-left whitespace-normal shadow-none [box-shadow:none] hover:bg-transparent hover:text-inherit has-[>svg]:px-[10px] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[color-mix(in_srgb,var(--accent)_55%,transparent)] data-[sot-dimmed=true]:opacity-[0.55] data-[state=idle]:hover:bg-[var(--source-provider-card-hover)] data-[state=selected]:border-[var(--line-hairline)] data-[state=selected]:bg-[var(--bg-elevated)] data-[state=selected]:shadow-xs dark:data-[state=selected]:border-[var(--glass-border)] dark:data-[state=selected]:bg-[rgb(255_255_255_/_0.06)] dark:data-[state=selected]:shadow-none dark:data-[state=selected]:[box-shadow:none] [&_[data-sot-part=source-provider-mark]]:flex [&_[data-sot-part=source-provider-mark]]:size-7 [&_[data-sot-part=source-provider-mark]]:shrink-0 [&_[data-sot-part=source-provider-mark]]:items-center [&_[data-sot-part=source-provider-mark]]:justify-center [&_[data-sot-part=source-provider-mark]]:overflow-hidden [&_[data-sot-part=source-provider-mark]]:rounded-[7px] [&_[data-sot-part=source-provider-mark]]:border [&_[data-sot-part=source-provider-mark]]:border-[var(--line-hairline)] [&_[data-sot-part=source-provider-mark]]:bg-white [&_[data-sot-part=source-provider-meta]]:flex [&_[data-sot-part=source-provider-meta]]:min-w-0 [&_[data-sot-part=source-provider-meta]]:flex-col [&_[data-sot-part=source-provider-meta]]:gap-[2px] [&_[data-sot-provider-name]]:truncate [&_[data-sot-provider-name]]:font-sans [&_[data-sot-provider-name]]:text-[13px] [&_[data-sot-provider-name]]:font-semibold [&_[data-sot-provider-name]]:leading-[normal] [&_[data-sot-provider-name]]:text-[var(--fg-primary)] [&_[data-sot-provider-hint]]:truncate [&_[data-sot-provider-hint]]:font-mono [&_[data-sot-provider-hint]]:text-[11.5px] [&_[data-sot-provider-hint]]:font-medium [&_[data-sot-provider-hint]]:leading-[normal] [&_[data-sot-provider-hint]]:text-[var(--fg-tertiary)]";
+    "group/source-provider !grid h-auto w-full grid-cols-[28px_1fr_auto] items-center justify-start gap-[10px] rounded-[10px] border border-solid border-transparent bg-transparent p-[10px] text-left whitespace-normal shadow-none [box-shadow:none] hover:bg-transparent hover:text-inherit has-[>svg]:px-[10px] data-[sot-dimmed=true]:opacity-[0.55] data-[state=idle]:hover:bg-accent data-[state=selected]:border-border data-[state=selected]:bg-card data-[state=selected]:shadow-xs [&_[data-sot-part=source-provider-mark]]:flex [&_[data-sot-part=source-provider-mark]]:size-7 [&_[data-sot-part=source-provider-mark]]:shrink-0 [&_[data-sot-part=source-provider-mark]]:items-center [&_[data-sot-part=source-provider-mark]]:justify-center [&_[data-sot-part=source-provider-mark]]:overflow-hidden [&_[data-sot-part=source-provider-mark]]:rounded-[7px] [&_[data-sot-part=source-provider-mark]]:border [&_[data-sot-part=source-provider-mark]]:border-border [&_[data-sot-part=source-provider-mark]]:bg-background [&_[data-sot-part=source-provider-meta]]:flex [&_[data-sot-part=source-provider-meta]]:min-w-0 [&_[data-sot-part=source-provider-meta]]:flex-col [&_[data-sot-part=source-provider-meta]]:gap-[2px] [&_[data-sot-provider-name]]:truncate [&_[data-sot-provider-name]]:font-sans [&_[data-sot-provider-name]]:text-[13px] [&_[data-sot-provider-name]]:font-semibold [&_[data-sot-provider-name]]:leading-[normal] [&_[data-sot-provider-name]]:text-foreground [&_[data-sot-provider-hint]]:truncate [&_[data-sot-provider-hint]]:font-mono [&_[data-sot-provider-hint]]:text-[11.5px] [&_[data-sot-provider-hint]]:font-medium [&_[data-sot-provider-hint]]:leading-[normal] [&_[data-sot-provider-hint]]:text-muted-foreground";
 
 const SETTINGS_BANNER_ICON_SLOT_CLASS =
     "[&_[data-sot-banner-icon]]:inline-flex [&_[data-sot-banner-icon]]:size-6 [&_[data-sot-banner-icon]]:flex-none [&_[data-sot-banner-icon]]:items-center [&_[data-sot-banner-icon]]:justify-center [&_[data-sot-banner-icon]]:rounded-md [&_[data-sot-banner-icon]]:border [&_[data-sot-banner-icon]]:border-[var(--settings-banner-icon-border)] [&_[data-sot-banner-icon]]:bg-[var(--settings-banner-icon-bg)] [&_[data-sot-banner-icon]]:text-[var(--settings-banner-icon-color)] [&_[data-sot-banner-icon]_svg]:size-3.5";
@@ -250,7 +249,7 @@ const SETTINGS_SEGMENT_OPTION_CLASS =
     "data-[state=on]:border-primary/30 data-[state=on]:bg-primary/10 data-[state=on]:text-primary data-[sot-state=selected]:border-primary/30 data-[sot-state=selected]:bg-primary/10 data-[sot-state=selected]:text-primary";
 
 const SOURCE_PROVIDERS_LIST_CLASS =
-    "flex flex-col gap-1.5 overflow-y-auto border-r border-[var(--line-hairline)] bg-[color-mix(in_srgb,var(--bg-recessed)_55%,transparent)] px-3.5 py-4 dark:border-r-[var(--glass-border-soft)] dark:bg-[rgb(0_0_0_/_0.08)]";
+    "flex flex-col gap-1.5 overflow-y-auto border-r border-border bg-secondary/30 px-3.5 py-4";
 
 const SOURCE_PROVIDERS_TITLE_CLASS =
     "px-2 pt-1 pb-2 font-mono text-[11px] font-semibold tracking-[0.08em] text-[var(--fg-tertiary)] uppercase";
@@ -270,7 +269,7 @@ const SOURCE_PROVIDER_DETAIL_SUBTITLE_CLASS =
 const SOURCE_PROVIDER_FIELDS_LIST_CLASS = "flex flex-col";
 
 const SOURCE_PROVIDER_SECTION_DIVIDER_CLASS =
-    "!mt-[13px] !mb-[10px] h-px border-0 bg-[var(--line-hairline)] dark:bg-[var(--glass-border-soft)]";
+    "!mt-[13px] !mb-[10px] h-px border-0 bg-border";
 
 const SOURCE_PROVIDER_ACTION_CLUSTER_DIVIDER_CLASS = cn(
     SOURCE_PROVIDER_SECTION_DIVIDER_CLASS,
@@ -281,20 +280,20 @@ const SOURCE_ACTION_BUTTON_PRIMITIVE_VARIANT_BY_TONE: Record<
     SourceActionButtonTone,
     ButtonProps["variant"]
 > = {
-    danger: "ghost",
+    danger: "destructive",
     neutral: "ghost",
-    primary: "ghost",
+    primary: "default",
 };
 
 const SOURCE_ACTION_BUTTON_CLASS_BY_TONE: Record<
     SourceActionButtonTone,
     string
 > = {
-    danger: "border border-transparent bg-transparent text-[var(--signal-danger)] shadow-none hover:bg-[var(--bg-recessed)] hover:text-[var(--signal-danger)]",
+    danger: "shadow-none",
     neutral:
-        "border border-transparent bg-transparent text-[var(--fg-secondary)] shadow-none hover:bg-[var(--bg-recessed)] hover:text-[var(--fg-primary)] data-[sot-state=error]:text-destructive data-[sot-state=success]:text-primary",
+        "border border-transparent bg-transparent text-muted-foreground shadow-none hover:bg-accent hover:text-accent-foreground data-[sot-state=error]:text-destructive data-[sot-state=success]:text-primary",
     primary:
-        "border border-[var(--source-provider-primary-border)] bg-[image:var(--source-provider-primary-bg)] !text-white shadow-[var(--source-provider-primary-shadow)] hover:bg-[image:var(--source-provider-primary-hover-bg)] data-[sot-state=error]:text-[var(--signal-danger)]",
+        "shadow-xs data-[sot-state=error]:bg-destructive data-[sot-state=error]:text-destructive-foreground data-[sot-state=error]:hover:bg-destructive/90",
 };
 
 const SOURCE_ACTION_STATUS_BADGE_CLASS =
@@ -307,10 +306,10 @@ const SOURCE_AUTH_MODE_BADGE_CLASS =
     "px-1.5 data-[sot-tone=recommended]:bg-secondary data-[sot-tone=recommended]:text-secondary-foreground data-[sot-tone=personal]:border-border data-[sot-tone=personal]:text-foreground";
 
 const SOURCE_PROVIDER_STATUS_BADGE_CLASS =
-    "h-[18px] gap-[4px] rounded-[999px] border border-solid px-[7px] py-0 text-[10.5px] font-semibold leading-[normal] data-[sot-tone=ok]:border-[var(--source-provider-status-success-border)] data-[sot-tone=ok]:bg-[var(--source-provider-status-success-bg)] data-[sot-tone=ok]:text-[var(--signal-success)] data-[sot-tone=info]:border-[var(--source-provider-status-info-border)] data-[sot-tone=info]:bg-[var(--source-provider-status-info-bg)] data-[sot-tone=info]:text-[var(--signal-info)] data-[sot-tone=syncing]:border-[var(--source-provider-status-info-border)] data-[sot-tone=syncing]:bg-[var(--source-provider-status-info-bg)] data-[sot-tone=syncing]:text-[var(--signal-info)] data-[sot-tone=warn]:border-[var(--source-provider-status-warning-border)] data-[sot-tone=warn]:bg-[var(--source-provider-status-warning-bg)] data-[sot-tone=warn]:text-[var(--signal-warning-strong)] data-[sot-tone=err]:border-[var(--source-provider-status-danger-border)] data-[sot-tone=err]:bg-[var(--source-provider-status-danger-bg)] data-[sot-tone=err]:text-[var(--signal-danger)] data-[sot-tone=neu]:border-[var(--line-hairline)] data-[sot-tone=neu]:bg-[var(--bg-recessed)] data-[sot-tone=neu]:text-[var(--fg-secondary)] group-data-[sot-dimmed=true]/source-provider:border-[var(--line-hairline)] group-data-[sot-dimmed=true]/source-provider:bg-[var(--bg-recessed)] group-data-[sot-dimmed=true]/source-provider:text-[var(--fg-tertiary)] [&_[data-sot-provider-status-dot]]:size-[4px] [&_[data-sot-provider-status-dot]]:rounded-full [&_[data-sot-provider-status-dot]]:bg-current data-[sot-tone=syncing]:[&_[data-sot-provider-status-dot]]:animate-pulse";
+    "h-[18px] gap-[4px] rounded-[999px] border border-solid px-[7px] py-0 text-[10.5px] font-semibold leading-[normal] data-[sot-tone=ok]:border-primary/30 data-[sot-tone=ok]:bg-primary/10 data-[sot-tone=ok]:text-primary data-[sot-tone=info]:border-primary/30 data-[sot-tone=info]:bg-primary/10 data-[sot-tone=info]:text-primary data-[sot-tone=syncing]:border-primary/30 data-[sot-tone=syncing]:bg-primary/10 data-[sot-tone=syncing]:text-primary data-[sot-tone=warn]:border-border data-[sot-tone=warn]:bg-secondary data-[sot-tone=warn]:text-secondary-foreground data-[sot-tone=err]:border-destructive/30 data-[sot-tone=err]:bg-destructive/10 data-[sot-tone=err]:text-destructive data-[sot-tone=neu]:border-border data-[sot-tone=neu]:bg-secondary data-[sot-tone=neu]:text-muted-foreground group-data-[sot-dimmed=true]/source-provider:border-border group-data-[sot-dimmed=true]/source-provider:bg-secondary group-data-[sot-dimmed=true]/source-provider:text-muted-foreground [&_[data-sot-provider-status-dot]]:size-[4px] [&_[data-sot-provider-status-dot]]:rounded-full [&_[data-sot-provider-status-dot]]:bg-current data-[sot-tone=syncing]:[&_[data-sot-provider-status-dot]]:animate-pulse";
 
 const SOURCE_DETAIL_STATUS_BADGE_CLASS =
-    "h-[24px] justify-normal gap-[6px] overflow-visible rounded-[999px] border border-solid px-[10px] py-0 text-[11.5px] font-semibold leading-[normal] data-[sot-tone=ok]:border-[color-mix(in_srgb,var(--signal-success)_30%,transparent)] data-[sot-tone=ok]:bg-[color-mix(in_srgb,var(--signal-success)_14%,transparent)] data-[sot-tone=ok]:text-[var(--signal-success)] data-[sot-tone=info]:border-[var(--source-provider-status-info-border)] data-[sot-tone=info]:bg-[var(--source-provider-status-info-bg)] data-[sot-tone=info]:text-[var(--signal-info)] data-[sot-tone=syncing]:border-[var(--source-provider-status-info-border)] data-[sot-tone=syncing]:bg-[var(--source-provider-status-info-bg)] data-[sot-tone=syncing]:text-[var(--signal-info)] data-[sot-tone=warn]:border-[var(--source-provider-status-warning-border)] data-[sot-tone=warn]:bg-[var(--source-provider-status-warning-bg)] data-[sot-tone=warn]:text-[var(--signal-warning-strong)] data-[sot-tone=err]:border-[var(--source-provider-status-danger-border)] data-[sot-tone=err]:bg-[var(--source-provider-status-danger-bg)] data-[sot-tone=err]:text-[var(--signal-danger)] data-[sot-tone=neu]:border-[var(--line-hairline)] data-[sot-tone=neu]:bg-[var(--bg-recessed)] data-[sot-tone=neu]:text-[var(--fg-secondary)]";
+    "h-[24px] justify-normal gap-[6px] overflow-visible rounded-[999px] border border-solid px-[10px] py-0 text-[11.5px] font-semibold leading-[normal] data-[sot-tone=ok]:border-[var(--primary)] data-[sot-tone=ok]:bg-[var(--primary)]/10 data-[sot-tone=ok]:text-[var(--signal-success)] data-[sot-tone=info]:border-primary/30 data-[sot-tone=info]:bg-primary/10 data-[sot-tone=info]:text-primary data-[sot-tone=syncing]:border-primary/30 data-[sot-tone=syncing]:bg-primary/10 data-[sot-tone=syncing]:text-primary data-[sot-tone=warn]:border-border data-[sot-tone=warn]:bg-secondary data-[sot-tone=warn]:text-secondary-foreground data-[sot-tone=err]:border-destructive/30 data-[sot-tone=err]:bg-destructive/10 data-[sot-tone=err]:text-destructive data-[sot-tone=neu]:border-border data-[sot-tone=neu]:bg-secondary data-[sot-tone=neu]:text-muted-foreground";
 
 const SETTINGS_SAVE_STATUS_BADGE_CLASS =
     "h-auto gap-1.5 border-0 bg-transparent p-0 text-muted-foreground data-[sot-state=idle]:hidden data-[sot-state=saved]:text-primary data-[sot-state=saving]:text-primary data-[sot-state=error]:text-destructive [&_[data-sot-part=settings-save-status-indicator]]:size-2 [&_[data-sot-part=settings-save-status-indicator]]:rounded-full [&_[data-sot-part=settings-save-status-indicator]]:bg-secondary-foreground/45 data-[sot-state=saved]:[&_[data-sot-part=settings-save-status-indicator]]:bg-primary data-[sot-state=saving]:[&_[data-sot-part=settings-save-status-indicator]]:animate-pulse data-[sot-state=saving]:[&_[data-sot-part=settings-save-status-indicator]]:bg-primary data-[sot-state=error]:[&_[data-sot-part=settings-save-status-indicator]]:bg-destructive";
@@ -1764,7 +1763,9 @@ function DataSourcesSettingsPanel({
                                 }
                             >
                                 <Switch
-                                    className={SOURCE_PROVIDER_DETAIL_SWITCH_CLASS}
+                                    className={
+                                        SOURCE_PROVIDER_DETAIL_SWITCH_CLASS
+                                    }
                                     data-sot-control="source-auto-update"
                                     data-sot-provider={selectedSource.provider}
                                     data-sot-state={
@@ -1849,7 +1850,9 @@ function DataSourcesSettingsPanel({
                             >
                                 <Switch
                                     id={`${selectedSource.provider}-enabled`}
-                                    className={SOURCE_PROVIDER_DETAIL_SWITCH_CLASS}
+                                    className={
+                                        SOURCE_PROVIDER_DETAIL_SWITCH_CLASS
+                                    }
                                     data-sot-control="source-enable-sync"
                                     data-sot-provider={selectedSource.provider}
                                     data-sot-state={
@@ -1858,7 +1861,9 @@ function DataSourcesSettingsPanel({
                                             : "unchecked"
                                     }
                                     data-sot-enabled={
-                                        selectedSource.enabled ? "true" : "false"
+                                        selectedSource.enabled
+                                            ? "true"
+                                            : "false"
                                     }
                                     data-sot-disabled={
                                         interactionDisabled ? "true" : "false"
@@ -1879,7 +1884,9 @@ function DataSourcesSettingsPanel({
                         </Field>
 
                         <div
-                            className={SOURCE_PROVIDER_ACTION_CLUSTER_DIVIDER_CLASS}
+                            className={
+                                SOURCE_PROVIDER_ACTION_CLUSTER_DIVIDER_CLASS
+                            }
                             data-sot-section-divider
                         />
 
@@ -2314,8 +2321,14 @@ function SettingsGroup({
     title: string;
 }) {
     return (
-        <section className={SETTINGS_SECTION_GROUP_CLASS} data-sot-section-group>
-            <header className={SETTINGS_SECTION_HEAD_CLASS} data-sot-section-head>
+        <section
+            className={SETTINGS_SECTION_GROUP_CLASS}
+            data-sot-section-group
+        >
+            <header
+                className={SETTINGS_SECTION_HEAD_CLASS}
+                data-sot-section-head
+            >
                 <h4 className={SETTINGS_SECTION_HEAD_TITLE_CLASS}>{title}</h4>
                 {subtitle ? (
                     <p className={SETTINGS_SECTION_HEAD_DESCRIPTION_CLASS}>

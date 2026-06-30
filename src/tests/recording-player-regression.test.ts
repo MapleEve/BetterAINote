@@ -3,7 +3,7 @@ import path from "node:path";
 import { describe, expect, it } from "vitest";
 
 const OLD_UI_CONTRACT_RE =
-    /uikit-|glass-surface|glass-control|bg-muted|text-muted-foreground|<LibrarySearch[\s/>]|<SourceFilterStackStrip[\s/>]|\.\/components\/library-search|\.\/components\/source-filter-stack-strip/;
+    /uikit-|glass-surface|glass-control|<LibrarySearch[\s/>]|<SourceFilterStackStrip[\s/>]|\.\/components\/library-search|\.\/components\/source-filter-stack-strip/;
 
 const RECORDING_PLAYER_LEGACY_CLASS_TOKENS = [
     'className="player"',
@@ -39,7 +39,7 @@ const SOT_PLAYER_NO_AUDIO_CLASS_INITIALIZERS = [
     {
         constName: "SOT_PLAYER_NO_AUDIO_ICON_CLASS",
         expected:
-            "inline-grid size-[26px] flex-none place-items-center rounded-[50%] bg-[color-mix(in_srgb,var(--signal-warning)_18%,transparent)] text-[var(--signal-warning)] [&_svg]:size-[14px]",
+            "inline-grid size-[26px] flex-none place-items-center rounded-[50%] bg-[var(--system-banner-offline-icon-bg)] text-[var(--signal-warning)] [&_svg]:size-[14px]",
     },
     {
         constName: "SOT_PLAYER_NO_AUDIO_TEXT_CLASS",
@@ -60,12 +60,12 @@ const SOT_PLAYER_SOURCE_CLASS_INITIALIZERS = [
     {
         constName: "SOT_PLAYER_SOURCE_BADGE_CLASS",
         expected:
-            "h-[22px] flex-none justify-normal gap-[6px] rounded-[6px] border-[var(--line-hairline)] bg-[var(--bg-elevated)] py-0 pl-[3px] pr-[8px] [font:600_11.5px_var(--font-sans)] text-[var(--fg-secondary)] shadow-[var(--shadow-xs)] dark:border-[var(--glass-border)] dark:bg-[rgb(255_255_255_/_0.04)] dark:text-[var(--fg-primary)]",
+            "h-[22px] flex-none justify-normal gap-[6px] rounded-[6px] border-border bg-card py-0 pl-[3px] pr-[8px] [font:600_11.5px_var(--font-sans)] text-muted-foreground shadow-xs",
     },
     {
         constName: "SOT_PLAYER_SOURCE_ICON_CLASS",
         expected:
-            "inline-flex size-[16px] flex-none shrink-0 items-center justify-center overflow-hidden rounded-[4px] border border-[var(--line-hairline)] bg-white data-[sot-source-icon=letter]:bg-[var(--bg-recessed)] data-[sot-source-icon=letter]:[font:700_9px_var(--font-sans)] data-[sot-source-icon=letter]:text-[var(--fg-secondary)] [&[data-sot-cover=true]_img]:object-cover",
+            "inline-flex size-[16px] flex-none shrink-0 items-center justify-center overflow-hidden rounded-[4px] border border-border bg-background data-[sot-source-icon=letter]:bg-muted data-[sot-source-icon=letter]:[font:700_9px_var(--font-sans)] data-[sot-source-icon=letter]:text-muted-foreground [&[data-sot-cover=true]_img]:object-cover",
     },
     {
         constName: "SOT_PLAYER_SOURCE_ICON_IMAGE_CLASS",
@@ -498,30 +498,22 @@ describe("dashboard recording player regressions", () => {
             "[&_[data-sot-part=status-label]]",
         );
         for (const playerStatusToken of [
-            "[--sot-player-status-ok-bg:color-mix(in_srgb,var(--signal-success)_14%,transparent)]",
-            "[--sot-player-status-ok-border:color-mix(in_srgb,var(--signal-success)_30%,transparent)]",
-            "[--sot-player-status-info-bg:color-mix(in_srgb,var(--signal-info)_14%,transparent)]",
-            "[--sot-player-status-info-border:color-mix(in_srgb,var(--signal-info)_30%,transparent)]",
-            "[--sot-player-status-warn-bg:color-mix(in_srgb,var(--signal-warning)_18%,transparent)]",
-            "[--sot-player-status-warn-border:color-mix(in_srgb,var(--signal-warning)_32%,transparent)]",
-            "[--sot-player-status-err-bg:color-mix(in_srgb,var(--signal-danger)_14%,transparent)]",
-            "[--sot-player-status-err-border:color-mix(in_srgb,var(--signal-danger)_30%,transparent)]",
             "h-[20px]",
             "min-w-[65.171875px]",
             "justify-normal",
             "gap-[5px]",
             "tracking-[0.005em]",
-            "data-[sot-tone=ok]:border-[var(--sot-player-status-ok-border)]",
-            "data-[sot-tone=ok]:bg-[var(--sot-player-status-ok-bg)]",
+            "data-[sot-tone=ok]:border-[var(--button-copy-success-border)]",
+            "data-[sot-tone=ok]:bg-[var(--button-copy-success-bg)]",
             "data-[sot-tone=ok]:text-[var(--signal-success)]",
-            "data-[sot-tone=warn]:border-[var(--sot-player-status-warn-border)]",
-            "data-[sot-tone=warn]:bg-[var(--sot-player-status-warn-bg)]",
+            "data-[sot-tone=warn]:border-[var(--system-banner-offline-border)]",
+            "data-[sot-tone=warn]:bg-[var(--system-banner-offline-bg)]",
             "data-[sot-tone=warn]:text-[var(--signal-warning-strong)]",
-            "data-[sot-tone=err]:border-[var(--sot-player-status-err-border)]",
-            "data-[sot-tone=err]:bg-[var(--sot-player-status-err-bg)]",
+            "data-[sot-tone=err]:border-[var(--alert-destructive-soft-border)]",
+            "data-[sot-tone=err]:bg-[var(--alert-destructive-soft-bg)]",
             "data-[sot-tone=err]:text-[var(--signal-danger)]",
-            "data-[sot-tone=info]:border-[var(--sot-player-status-info-border)]",
-            "data-[sot-tone=info]:bg-[var(--sot-player-status-info-bg)]",
+            "data-[sot-tone=info]:border-[var(--system-banner-update-border)]",
+            "data-[sot-tone=info]:bg-[var(--system-banner-update-bg)]",
             "data-[sot-tone=info]:text-[var(--signal-info)]",
             "data-[sot-tone=neu]:border-[var(--line-hairline)]",
             "data-[sot-tone=neu]:bg-[var(--bg-recessed)]",
@@ -583,7 +575,7 @@ describe("dashboard recording player regressions", () => {
             expect(sotPlayerPrimitives).toContain(tagClassConstant);
         }
         for (const tagClassToken of [
-            "data-[sot-tag-color=blue]:[--tag-c:var(--tag-blue)]",
+            "data-[sot-tag-color=blue]:[--sot-player-tag-chip-fg:var(--tag-blue)]",
             "data-[sot-state=open]:border-[var(--line-strong)]",
             "border-dashed border-[var(--line-hairline)]",
             "hover:border-[var(--line-strong)]",
@@ -610,9 +602,7 @@ describe("dashboard recording player regressions", () => {
         expect(sotPlayerPrimitives).toContain(
             "SOT_PLAYER_TAG_CHIP_VARIABLES_CLASS",
         );
-        expect(sotPlayerPrimitives).not.toContain(
-            "SOT_PLAYER_TAG_COLOR_TOKEN",
-        );
+        expect(sotPlayerPrimitives).not.toContain("SOT_PLAYER_TAG_COLOR_TOKEN");
         expect(sotPlayerPrimitives).not.toContain("sotPlayerTagChipStyle");
         expect(sotPlayerPrimitives).not.toContain(
             'background: "var(--sot-player-tag-chip-bg)"',
@@ -862,11 +852,11 @@ describe("dashboard recording player regressions", () => {
         for (const wrapperClassToken of [
             "SOT_PLAYER_SEEK_SLIDER_CLASS",
             "h-[14px] min-w-0 flex-1 cursor-pointer",
-            "[&_[data-slot=slider-track]]:bg-[var(--graphite-200)]",
+            "[&_[data-slot=slider-track]]:bg-muted",
             "[&_[data-slot=slider-track]]:rounded-[999px]",
-            "[&_[data-slot=slider-track]]:[box-shadow:inset_0_1px_1px_rgb(0_0_0_/_0.04)]",
-            "bg-[image:linear-gradient(90deg,var(--steel-500),var(--accent))]",
-            "shadow-[0_1px_4px_rgb(0_0_0_/_0.15),0_0_0_1px_var(--line-hairline)]",
+            "[&_[data-slot=slider-track]]:shadow-inner",
+            "bg-primary",
+            "size-[14px] border-0 bg-background p-0 shadow-sm ring-1 ring-border",
             "SOT_PLAYER_VOLUME_SLIDER_CLASS",
             "h-[18px] min-w-[110px] flex-1",
             "SOT_PLAYER_VOLUME_POPOVER_CONTENT_CLASS",

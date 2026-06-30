@@ -15,13 +15,12 @@ const EXPECTED_DASHBOARD_TRANSCRIPT_BODY_BASE_CLASS_NAME =
 const EXPECTED_DASHBOARD_TRANSCRIPT_ACTIONS_CLASS_NAME =
     "ml-auto inline-flex max-w-full flex-[0_1_auto] flex-wrap items-center gap-2";
 const EXPECTED_DASHBOARD_TRANSCRIPT_SHELL_CARD_CLASS_NAME =
-    "flex min-h-0 flex-1 flex-col gap-0 rounded-[16px] border border-[var(--line-hairline)] bg-[var(--bg-elevated)] shadow-[var(--shadow-sm)] backdrop-blur-none dark:border-[var(--glass-border-soft)] dark:bg-[rgb(255_255_255_/_0.025)] dark:shadow-none";
+    "flex min-h-0 flex-1 flex-col gap-0 rounded-[16px] border border-[var(--line-hairline)] bg-[var(--bg-elevated)] shadow-[var(--shadow-sm)] backdrop-blur-none";
 const EXPECTED_DASHBOARD_WORKSPACE_CLASS_NAME =
     "grid flex-1 min-h-0 grid-cols-[380px_1fr] gap-4 px-5 pt-4 pb-5 max-[860px]:min-w-0 max-[860px]:max-w-full max-[860px]:box-border max-[860px]:grid-cols-[380px_0px] max-[860px]:[&>[data-sot-panel=dashboard-detail]]:hidden";
 const EXPECTED_RECORDING_WORKSTATION_WORKSPACE_CLASS_NAME =
     "grid flex-1 min-h-0 grid-cols-[380px_1fr] gap-4 px-5 pt-4 pb-5 max-[860px]:min-w-0 max-[860px]:max-w-full max-[860px]:box-border max-[860px]:grid-cols-[minmax(0,1fr)]";
-const EXPECTED_DETAIL_PANEL_CLASS_NAME =
-    "flex min-h-0 min-w-0 flex-col gap-4";
+const EXPECTED_DETAIL_PANEL_CLASS_NAME = "flex min-h-0 min-w-0 flex-col gap-4";
 const EXPECTED_RECORDING_WORKSTATION_DETAIL_PANEL_CLASS_NAME =
     "flex min-h-0 min-w-0 flex-col gap-4 max-[860px]:max-w-full max-[860px]:box-border";
 const EXPECTED_RECORDING_DETAIL_LIST_CARD_CLASS_NAME =
@@ -191,36 +190,40 @@ const SOURCE_REPORT_SKELETON_OWNER_TOKENS = [
     "SOURCE_REPORT_SKELETON_CLASS_NAME",
     "SOURCE_REPORT_CARD_SKELETON_CLASS_NAMES",
     "SOURCE_REPORT_SEGMENT_SKELETON_CLASS_NAMES",
-    "count: `${SOURCE_REPORT_SKELETON_CLASS_NAME} inline-block h-[18px] w-[48px] align-middle rounded-[6px]`",
-    "status: `${SOURCE_REPORT_SKELETON_CLASS_NAME} inline-block h-[18px] w-[80px] align-middle rounded-[6px]`",
-    "source: `${SOURCE_REPORT_SKELETON_CLASS_NAME} inline-block h-[18px] w-[120px] align-middle rounded-[6px]`",
-    '"line-long": `${SOURCE_REPORT_SKELETON_CLASS_NAME} mt-1.5 inline-block h-[13px] w-[92%] align-middle rounded-[4px]`',
-    '"line-wide": `${SOURCE_REPORT_SKELETON_CLASS_NAME} mt-[7px] inline-block h-[13px] w-[88%] align-middle rounded-[4px]`',
-    "speaker: `${SOURCE_REPORT_SKELETON_CLASS_NAME} ml-[5px] inline-block h-[12px] w-[54px] align-middle rounded-[4px]`",
-    "time: `${SOURCE_REPORT_SKELETON_CLASS_NAME} inline-block h-[12px] w-[96px] align-middle rounded-[4px]`",
+    `count: \`\${SOURCE_REPORT_SKELETON_CLASS_NAME} inline-block h-[18px] w-[48px] align-middle rounded-[6px]\``,
+    `status: \`\${SOURCE_REPORT_SKELETON_CLASS_NAME} inline-block h-[18px] w-[80px] align-middle rounded-[6px]\``,
+    `source: \`\${SOURCE_REPORT_SKELETON_CLASS_NAME} inline-block h-[18px] w-[120px] align-middle rounded-[6px]\``,
+    `"line-long": \`\${SOURCE_REPORT_SKELETON_CLASS_NAME} mt-1.5 inline-block h-[13px] w-[92%] align-middle rounded-[4px]\``,
+    `"line-wide": \`\${SOURCE_REPORT_SKELETON_CLASS_NAME} mt-[7px] inline-block h-[13px] w-[88%] align-middle rounded-[4px]\``,
+    `speaker: \`\${SOURCE_REPORT_SKELETON_CLASS_NAME} ml-[5px] inline-block h-[12px] w-[54px] align-middle rounded-[4px]\``,
+    `time: \`\${SOURCE_REPORT_SKELETON_CLASS_NAME} inline-block h-[12px] w-[96px] align-middle rounded-[4px]\``,
 ] as const;
 
 const EXPECTED_SOURCE_REPORT_METRIC_CARD_CLASS_NAME =
-    "gap-[6px] overflow-visible rounded-[10px] border-[var(--source-report-metric-border)] bg-[var(--source-report-metric-bg)] px-[12px] py-[10px] shadow-none backdrop-blur-none";
+    "gap-[6px] overflow-visible rounded-[10px] border-border bg-muted/40 px-[12px] py-[10px] shadow-none backdrop-blur-none";
 const SOURCE_REPORT_METRIC_CARD_CLASS_TOKENS =
     EXPECTED_SOURCE_REPORT_METRIC_CARD_CLASS_NAME.split(" ");
 const SOURCE_REPORT_STYLE_OWNER_SNIPPETS = [
     "type SourceReportStyleVariables = CSSProperties & {",
     "export const SOURCE_REPORT_STYLE_VARIABLES = {",
-    '"--source-report-metric-bg": "var(--card-popover-footer-bg)"',
-    '"--source-report-metric-border": "var(--card-elevated-border)"',
-    '"--source-report-status-ok-fg": "oklch(0.62 0.13 158)"',
-    '"--source-report-status-warn-fg": "oklch(0.55 0.16 70)"',
-    '"--source-report-skeleton-bg":',
-    "linear-gradient(90deg, color-mix(in srgb, var(--fg-primary) 5%, transparent)",
+    '"--source-report-metric-bg": "var(--bg-recessed)"',
+    '"--source-report-metric-border": "var(--line-hairline)"',
+    '"--source-report-status-ok-fg": "var(--signal-success)"',
+    '"--source-report-status-ok-bg": "var(--bg-recessed)"',
+    '"--source-report-status-ok-border": "var(--line-hairline)"',
+    '"--source-report-status-warn-bg": "var(--bg-recessed)"',
+    '"--source-report-status-warn-border": "var(--line-hairline)"',
+    '"--source-report-status-warn-fg": "var(--signal-warning-strong)"',
+    '"--source-report-status-err-bg": "var(--bg-recessed)"',
+    '"--source-report-status-err-border": "var(--line-hairline)"',
+    '"--source-report-skeleton-bg": "var(--bg-recessed)"',
     "export const SOURCE_REPORT_SKELETON_CLASS_NAME =",
     "export type SourceReportTone =",
     "export type SourceReportCardSkeletonSize =",
     "export type SourceReportSegmentSkeletonSize =",
     "export const SOURCE_REPORT_CARD_SKELETON_CLASS_NAMES =",
     "export const SOURCE_REPORT_SEGMENT_SKELETON_CLASS_NAMES =",
-    "![background-color:transparent]",
-    "dark:[background-image:linear-gradient(90deg,rgb(255_255_255_/_0.05)_0%,rgb(255_255_255_/_0.12)_50%,rgb(255_255_255_/_0.05)_100%)]",
+    '"bg-muted"',
     "export const SOURCE_REPORT_PANE_CLASS_NAME =",
     "export const SOURCE_REPORT_METRIC_CARD_CLASS_NAME =",
     "export const SOURCE_REPORT_EMPTY_SURFACE_CLASS_NAME =",
@@ -367,7 +370,7 @@ const AI_RENAME_PREVIEW_FEATURE_OWNER_CLASS_SNIPPETS = [
         label: "body",
         snippets: [
             "p-[14px]",
-            "loadingContent: \"h-[78px]\"",
+            'loadingContent: "h-[78px]"',
             "font-display text-[15px] font-semibold leading-[1.4]",
         ],
     },
@@ -661,7 +664,7 @@ function collectExactCssRuleBlocks(source: string, selector: string) {
 }
 
 const OLD_UI_CONTRACT_RE =
-    /uikit-|glass-surface|glass-control|bg-muted|text-muted-foreground|<LibrarySearch[\s/>]|<SourceFilterStackStrip[\s/>]|\.\/components\/library-search|\.\/components\/source-filter-stack-strip/;
+    /uikit-|glass-surface|glass-control|<LibrarySearch[\s/>]|<SourceFilterStackStrip[\s/>]|\.\/components\/library-search|\.\/components\/source-filter-stack-strip/;
 
 const DASHBOARD_WORKSTATION_LEGACY_CONTROL_RE =
     /className=["']btn(?:\s+(?:ghost|primary|glass))?\b|track-fill|track-thumb|sk _is|_is-/;
@@ -1391,8 +1394,12 @@ describe("recording detail copy and title action UI regressions", () => {
         ).toEqual([]);
         expect(sourceReportStyles).toContain("SOURCE_REPORT_STATE_CLASS_NAME");
         expect(sourceReport).toContain("@/features/source-report/styles");
-        expect(sourceReportStyles).toContain("SOURCE_REPORT_SKELETON_CLASS_NAME");
-        expect(sourceReport).toContain("SOURCE_REPORT_CARD_SKELETON_CLASS_NAMES");
+        expect(sourceReportStyles).toContain(
+            "SOURCE_REPORT_SKELETON_CLASS_NAME",
+        );
+        expect(sourceReport).toContain(
+            "SOURCE_REPORT_CARD_SKELETON_CLASS_NAMES",
+        );
         expect(sourceReport).toContain(
             "SOURCE_REPORT_SEGMENT_SKELETON_CLASS_NAMES",
         );
@@ -1511,12 +1518,13 @@ describe("recording detail copy and title action UI regressions", () => {
             "inline-grid",
             "size-10",
             "place-items-center",
-            "border-[var(--line-hairline)]",
-            "text-[var(--fg-tertiary)]",
+            "border-border",
+            "bg-muted",
+            "text-muted-foreground",
             "[&_svg:not([class*='size-'])]:size-4",
-            "border-[color-mix(in_srgb,var(--signal-danger)_28%,transparent)]",
-            "bg-[color-mix(in_srgb,var(--signal-danger)_14%,transparent)]",
-            "text-[var(--signal-danger)]",
+            "border-destructive/30",
+            "bg-destructive/10",
+            "text-destructive",
         ] as const) {
             expect(sourceReportStyles).toContain(
                 sourceReportEmptyIconStyleSnippet,
@@ -1574,7 +1582,9 @@ describe("recording detail copy and title action UI regressions", () => {
         expect(sourceReportStyles).toContain(
             '"ghost" satisfies ButtonProps["variant"]',
         );
-        expect(sourceReportStyles).toContain('"sm" satisfies ButtonProps["size"]');
+        expect(sourceReportStyles).toContain(
+            '"sm" satisfies ButtonProps["size"]',
+        );
         for (const token of SOURCE_REPORT_SKELETON_SHARED_TOKENS) {
             expect(skeletonPrimitive).not.toContain(token);
         }
@@ -1736,7 +1746,9 @@ describe("recording detail copy and title action UI regressions", () => {
                 legacySourceReportPrimitiveClass,
             );
         }
-        expect(sourceReport).not.toMatch(/\bSOURCE_REPORT_STATUS_BADGE_CLASS\s*=/);
+        expect(sourceReport).not.toMatch(
+            /\bSOURCE_REPORT_STATUS_BADGE_CLASS\s*=/,
+        );
         for (const control of sourceReportButtonControls) {
             const controlIndex = sourceReport.indexOf(control);
             expect(controlIndex).toBeGreaterThanOrEqual(0);
@@ -1972,7 +1984,8 @@ describe("recording detail copy and title action UI regressions", () => {
         );
         for (const { expected, openingElement, constName } of [
             {
-                expected: EXPECTED_RECORDING_WORKSTATION_DETAIL_PANEL_CLASS_NAME,
+                expected:
+                    EXPECTED_RECORDING_WORKSTATION_DETAIL_PANEL_CLASS_NAME,
                 openingElement: recordingDetailPanel,
                 constName: "RECORDING_WORKSTATION_DETAIL_PANEL_CLASS_NAME",
             },
@@ -2116,10 +2129,15 @@ describe("recording detail copy and title action UI regressions", () => {
         expect(globals).not.toContain(
             '[data-theme="dark"] [data-sot-panel="workstation-sidebar"]',
         );
-        expect(globals).not.toContain('.dark [data-sot-panel="workstation-sidebar"]');
+        expect(globals).not.toContain(
+            '.dark [data-sot-panel="workstation-sidebar"]',
+        );
         expect(globals).not.toContain('[data-sot-panel="workstation-main"]');
         expect(
-            collectCssRuleBlocks(globals, '[data-sot-panel="workstation-main"]'),
+            collectCssRuleBlocks(
+                globals,
+                '[data-sot-panel="workstation-main"]',
+            ),
         ).toEqual([]);
         const dashboardWorkstation = readSource(
             "features/dashboard/workstation.tsx",
@@ -2154,7 +2172,9 @@ describe("recording detail copy and title action UI regressions", () => {
         expect(dashboardMainClassName).not.toMatch(
             DASHBOARD_MAIN_FORBIDDEN_CLASS_PATTERN,
         );
-        expect(dashboardMain).toContain("className={DASHBOARD_MAIN_CLASS_NAME}");
+        expect(dashboardMain).toContain(
+            "className={DASHBOARD_MAIN_CLASS_NAME}",
+        );
         const dashboardTopbar = extractElementSlice(
             dashboardWorkstation,
             'data-sot-panel="dashboard-topbar"',
@@ -3046,7 +3066,9 @@ describe("recording detail copy and title action UI regressions", () => {
         expect(dashboardTranscriptBody).toContain(
             "SOT_DASHBOARD_TRANSCRIPT_BODY_BASE_CLASS_NAME",
         );
-        expect(dashboardTranscriptBody).toContain("dashboardScrollbarClassName");
+        expect(dashboardTranscriptBody).toContain(
+            "dashboardScrollbarClassName",
+        );
         expect(dashboardTranscriptBody).toContain(
             "dashboardRetranscriptionThemeClassName",
         );
@@ -3866,9 +3888,8 @@ describe("recording detail copy and title action UI regressions", () => {
             "recordingTagManagerBadgeClassNames[appearance]",
         );
         expect(tagManager).toContain("h-[22px] justify-normal gap-[5px]");
-        expect(tagManager).toContain(
-            "bg-[color-mix(in_srgb,var(--accent)_70%,transparent)]",
-        );
+        expect(tagManager).toContain("bg-primary");
+        expect(tagManager).toContain("text-primary-foreground");
         expect(tagManager).not.toContain("--badge-pill-height");
         expect(tagManager).not.toContain("--badge-check-bg");
         expect(globals).not.toContain("--badge-pill-height");

@@ -60,7 +60,7 @@ const speakerAvatarFallbackClassName =
     "bg-accent text-[11px] font-bold text-primary";
 
 const speakerStateBadgeClassName =
-    "h-5 gap-1 rounded-full border px-2 py-0 text-[10.5px] font-semibold data-[sot-tone=success]:border-[color-mix(in_srgb,var(--signal-success)_30%,transparent)] data-[sot-tone=success]:bg-[color-mix(in_srgb,var(--signal-success)_14%,transparent)] data-[sot-tone=success]:text-[var(--signal-success)] data-[sot-tone=warning]:border-[color-mix(in_srgb,var(--signal-warning)_32%,transparent)] data-[sot-tone=warning]:bg-[color-mix(in_srgb,var(--signal-warning)_18%,transparent)] data-[sot-tone=warning]:text-[var(--signal-warning-strong)] data-[sot-tone=danger]:border-[color-mix(in_srgb,var(--signal-danger)_30%,transparent)] data-[sot-tone=danger]:bg-[color-mix(in_srgb,var(--signal-danger)_14%,transparent)] data-[sot-tone=danger]:text-[var(--signal-danger)] data-[sot-tone=neutral]:border-[var(--line-hairline)] data-[sot-tone=neutral]:bg-[var(--bg-recessed)] data-[sot-tone=neutral]:text-[var(--fg-secondary)]";
+    "h-5 gap-1 rounded-full border px-2 py-0 text-[10.5px] font-semibold data-[sot-tone=success]:border-primary/30 data-[sot-tone=success]:bg-primary/10 data-[sot-tone=success]:text-primary data-[sot-tone=warning]:border-border data-[sot-tone=warning]:bg-secondary data-[sot-tone=warning]:text-secondary-foreground data-[sot-tone=danger]:border-destructive/30 data-[sot-tone=danger]:bg-destructive/10 data-[sot-tone=danger]:text-destructive data-[sot-tone=neutral]:border-border data-[sot-tone=neutral]:bg-secondary data-[sot-tone=neutral]:text-muted-foreground";
 
 const speakerSettingsRowClassName = "border-b border-border py-3";
 

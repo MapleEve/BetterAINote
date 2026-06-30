@@ -14,20 +14,29 @@ export const recordingTagSotColorLabel: Record<RecordingTag["color"], string> =
         slate: "石",
     };
 
-function tagSwatchStyle(value: string): CSSProperties {
-    return { "--tag-sw": value } as CSSProperties;
+const recordingTagSwatchTokens: Record<RecordingTag["color"], string> = {
+    red: "var(--tag-rose)",
+    orange: "var(--tag-amber)",
+    green: "var(--tag-green)",
+    blue: "var(--tag-blue)",
+    purple: "var(--tag-violet)",
+    slate: "var(--tag-slate)",
+};
+
+function tagSwatchStyle(color: RecordingTag["color"]): CSSProperties {
+    return { "--tag-sw": recordingTagSwatchTokens[color] } as CSSProperties;
 }
 
 export const recordingTagSwatchStyle: Record<
     RecordingTag["color"],
     CSSProperties
 > = {
-    red: tagSwatchStyle("oklch(0.595 0.165 18)"),
-    orange: tagSwatchStyle("oklch(0.62 0.14 70)"),
-    green: tagSwatchStyle("oklch(0.56 0.13 158)"),
-    blue: tagSwatchStyle("oklch(0.58 0.13 235)"),
-    purple: tagSwatchStyle("oklch(0.56 0.15 285)"),
-    slate: tagSwatchStyle("oklch(0.58 0.02 250)"),
+    red: tagSwatchStyle("red"),
+    orange: tagSwatchStyle("orange"),
+    green: tagSwatchStyle("green"),
+    blue: tagSwatchStyle("blue"),
+    purple: tagSwatchStyle("purple"),
+    slate: tagSwatchStyle("slate"),
 };
 
 const recordingTagIconPaths = {
@@ -101,10 +110,9 @@ const recordingTagManagerIconPaths: Partial<
 };
 
 const recordingTagChipVariablesClassName =
-    "[--sot-player-tag-chip-bg:color-mix(in_srgb,var(--tag-c)_12%,var(--bg-elevated))] [--sot-player-tag-chip-border:color-mix(in_srgb,var(--tag-c)_32%,transparent)] [--sot-player-tag-chip-fg:color-mix(in_srgb,var(--tag-c)_72%,var(--fg-primary))] dark:[--sot-player-tag-chip-bg:color-mix(in_srgb,var(--tag-c)_18%,transparent)] dark:[--sot-player-tag-chip-border:color-mix(in_srgb,var(--tag-c)_36%,transparent)] dark:[--sot-player-tag-chip-fg:color-mix(in_srgb,var(--tag-c)_30%,var(--fg-primary))]";
+    "[--sot-player-tag-chip-bg:var(--bg-recessed)] [--sot-player-tag-chip-border:var(--line-hairline)] [--sot-player-tag-chip-fg:var(--fg-primary)] data-[sot-tag-color=blue]:[--sot-player-tag-chip-fg:var(--tag-blue)] data-[sot-tag-color=green]:[--sot-player-tag-chip-fg:var(--tag-green)] data-[sot-tag-color=orange]:[--sot-player-tag-chip-fg:var(--tag-amber)] data-[sot-tag-color=purple]:[--sot-player-tag-chip-fg:var(--tag-violet)] data-[sot-tag-color=red]:[--sot-player-tag-chip-fg:var(--tag-rose)] data-[sot-tag-color=slate]:[--sot-player-tag-chip-fg:var(--tag-slate)]";
 
-const recordingTagChipClassName =
-    `${recordingTagChipVariablesClassName} h-[22px] w-fit justify-normal gap-[5px] rounded-[6px] border-[var(--sot-player-tag-chip-border)] bg-[var(--sot-player-tag-chip-bg)] py-0 pl-[7px] pr-[9px] [--tag-c:var(--graphite-500)] [font:600_11.5px_var(--font-sans)] text-[var(--sot-player-tag-chip-fg)] shadow-[var(--shadow-xs)] transition-none data-[sot-tag-color=blue]:[--tag-c:var(--tag-blue)] data-[sot-tag-color=green]:[--tag-c:var(--tag-green)] data-[sot-tag-color=orange]:[--tag-c:var(--tag-amber)] data-[sot-tag-color=purple]:[--tag-c:var(--tag-violet)] data-[sot-tag-color=red]:[--tag-c:var(--tag-rose)] data-[sot-tag-color=slate]:[--tag-c:var(--tag-slate)] [&>svg]:size-[11px] [&>svg]:fill-none [&>svg]:stroke-2 [&>svg]:stroke-current [&>svg]:[stroke-linecap:round] [&>svg]:[stroke-linejoin:round]`;
+const recordingTagChipClassName = `${recordingTagChipVariablesClassName} h-[22px] w-fit justify-normal gap-[5px] rounded-[6px] border-[var(--sot-player-tag-chip-border)] bg-[var(--sot-player-tag-chip-bg)] py-0 pl-[7px] pr-[9px] [font:600_11.5px_var(--font-sans)] text-[var(--sot-player-tag-chip-fg)] shadow-[var(--shadow-xs)] transition-none [&>svg]:size-[11px] [&>svg]:fill-none [&>svg]:stroke-2 [&>svg]:stroke-current [&>svg]:[stroke-linecap:round] [&>svg]:[stroke-linejoin:round]`;
 
 export function RecordingTagIconGlyph({
     icon,

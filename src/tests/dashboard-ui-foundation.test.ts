@@ -51,7 +51,7 @@ const EXPECTED_DASHBOARD_TRANSCRIPT_LANGUAGE_BADGE_CLASS_NAME = "gap-1.5";
 const EXPECTED_DASHBOARD_TRANSCRIPT_ACTIONS_CLASS_NAME =
     "ml-auto inline-flex max-w-full flex-[0_1_auto] flex-wrap items-center gap-2";
 const EXPECTED_DASHBOARD_TRANSCRIPT_SHELL_CARD_CLASS_NAME =
-    "flex min-h-0 flex-1 flex-col gap-0 rounded-[16px] border border-[var(--line-hairline)] bg-[var(--bg-elevated)] shadow-[var(--shadow-sm)] backdrop-blur-none dark:border-[var(--glass-border-soft)] dark:bg-[rgb(255_255_255_/_0.025)] dark:shadow-none";
+    "flex min-h-0 flex-1 flex-col gap-0 rounded-[16px] border border-[var(--line-hairline)] bg-[var(--bg-elevated)] shadow-[var(--shadow-sm)] backdrop-blur-none";
 const EXPECTED_DASHBOARD_RECORDING_LIST_HEADER_CLASS_NAME =
     "border-b border-border px-3 pt-3 pb-2.5";
 const EXPECTED_DASHBOARD_SIDEBAR_FOOTER_CLASS_NAME =
@@ -62,8 +62,7 @@ const EXPECTED_DASHBOARD_WORKSPACE_CLASS_NAME =
     "grid flex-1 min-h-0 grid-cols-[380px_1fr] gap-4 px-5 pt-4 pb-5 max-[860px]:min-w-0 max-[860px]:max-w-full max-[860px]:box-border max-[860px]:grid-cols-[380px_0px] max-[860px]:[&>[data-sot-panel=dashboard-detail]]:hidden";
 const EXPECTED_DASHBOARD_RECORDING_LIST_CARD_CLASS_NAME =
     "min-h-0 gap-0 rounded-2xl max-[860px]:min-w-0 max-[860px]:max-w-full max-[860px]:box-border";
-const EXPECTED_DETAIL_PANEL_CLASS_NAME =
-    "flex min-h-0 min-w-0 flex-col gap-4";
+const EXPECTED_DETAIL_PANEL_CLASS_NAME = "flex min-h-0 min-w-0 flex-col gap-4";
 const DASHBOARD_TOPBAR_REQUIRED_CLASS_TOKENS = [
     "relative",
     "z-[var(--z-topbar)]",
@@ -136,9 +135,9 @@ const DASHBOARD_SIDEBAR_OWNER_FORBIDDEN_CLASS_PATTERN =
 const DASHBOARD_SIDEBAR_VISUAL_GLOBAL_DECLARATION_RE =
     /^\s*(?:-webkit-backdrop-filter|backdrop-filter|background|border(?:-(?:color|radius|right|style|width))?|box-shadow|display|flex-direction|padding|position)\s*:/m;
 const EXPECTED_SOURCE_REPORT_STATUS_BADGE_CLASS_NAME =
-    "h-[22px] min-w-[65px] justify-normal gap-[9px] overflow-visible rounded-full border px-[8px] py-0 text-[11px] font-semibold leading-[normal] shadow-none data-[sot-tone=err]:border-[var(--source-report-status-err-border)] data-[sot-tone=err]:bg-[var(--source-report-status-err-bg)] data-[sot-tone=err]:text-[var(--signal-danger)] data-[sot-tone=neu]:border-[var(--line-hairline)] data-[sot-tone=neu]:bg-[var(--bg-recessed)] data-[sot-tone=neu]:text-[var(--fg-secondary)] data-[sot-tone=ok]:border-[var(--source-report-status-ok-border)] data-[sot-tone=ok]:bg-[var(--source-report-status-ok-bg)] data-[sot-tone=ok]:text-[var(--source-report-status-ok-fg)] data-[sot-tone=warn]:border-[var(--source-report-status-warn-border)] data-[sot-tone=warn]:bg-[var(--source-report-status-warn-bg)] data-[sot-tone=warn]:text-[var(--source-report-status-warn-fg)] [&_[data-sot-part=dashboard-source-report-status-dot]]:mr-0 [&_[data-sot-part=dashboard-source-report-status-dot]]:inline-block [&_[data-sot-part=dashboard-source-report-status-dot]]:size-[5px] [&_[data-sot-part=dashboard-source-report-status-dot]]:rounded-full [&_[data-sot-part=dashboard-source-report-status-dot]]:bg-current [&_[data-sot-part=source-report-status-dot]]:mr-0 [&_[data-sot-part=source-report-status-dot]]:inline-block [&_[data-sot-part=source-report-status-dot]]:size-[5px] [&_[data-sot-part=source-report-status-dot]]:rounded-full [&_[data-sot-part=source-report-status-dot]]:bg-current";
+    "h-[22px] min-w-[65px] justify-normal gap-[9px] overflow-visible rounded-full border px-[8px] py-0 text-[11px] font-semibold leading-[normal] shadow-none data-[sot-tone=err]:border-destructive/30 data-[sot-tone=err]:bg-destructive/10 data-[sot-tone=err]:text-destructive data-[sot-tone=neu]:border-border data-[sot-tone=neu]:bg-muted data-[sot-tone=neu]:text-muted-foreground data-[sot-tone=ok]:border-chart-3/30 data-[sot-tone=ok]:bg-chart-3/10 data-[sot-tone=ok]:text-chart-3 data-[sot-tone=warn]:border-chart-4/30 data-[sot-tone=warn]:bg-chart-4/10 data-[sot-tone=warn]:text-chart-4 [&_[data-sot-part=dashboard-source-report-status-dot]]:mr-0 [&_[data-sot-part=dashboard-source-report-status-dot]]:inline-block [&_[data-sot-part=dashboard-source-report-status-dot]]:size-[5px] [&_[data-sot-part=dashboard-source-report-status-dot]]:rounded-full [&_[data-sot-part=dashboard-source-report-status-dot]]:bg-current [&_[data-sot-part=source-report-status-dot]]:mr-0 [&_[data-sot-part=source-report-status-dot]]:inline-block [&_[data-sot-part=source-report-status-dot]]:size-[5px] [&_[data-sot-part=source-report-status-dot]]:rounded-full [&_[data-sot-part=source-report-status-dot]]:bg-current";
 const EXPECTED_DASHBOARD_RECORDING_PLAYER_CARD_CLASS_NAME =
-    "block min-h-[114px] gap-0 overflow-visible rounded-[16px] border-[var(--glass-border-soft)] bg-[rgb(255_255_255_/_0.025)] px-[18px] py-[16px] shadow-none backdrop-blur-none";
+    "block min-h-[114px] gap-0 overflow-visible rounded-[16px] border border-[var(--line-hairline)] bg-[var(--bg-elevated)] px-[18px] py-[16px] shadow-none backdrop-blur-none";
 const DASHBOARD_RECORDING_PLAYER_WORKSTATION_CLASS_INITIALIZERS = [
     {
         constName: "SOT_DASHBOARD_RECORDING_PLAYER_CARD_CLASS_NAME",
@@ -200,7 +199,7 @@ const SOT_PLAYER_NO_AUDIO_CLASS_INITIALIZERS = [
     {
         constName: "SOT_PLAYER_NO_AUDIO_ICON_CLASS",
         expected:
-            "inline-grid size-[26px] flex-none place-items-center rounded-[50%] bg-[color-mix(in_srgb,var(--signal-warning)_18%,transparent)] text-[var(--signal-warning)] [&_svg]:size-[14px]",
+            "inline-grid size-[26px] flex-none place-items-center rounded-[50%] bg-[var(--system-banner-offline-icon-bg)] text-[var(--signal-warning)] [&_svg]:size-[14px]",
     },
     {
         constName: "SOT_PLAYER_NO_AUDIO_TEXT_CLASS",
@@ -221,12 +220,12 @@ const SOT_PLAYER_SOURCE_CLASS_INITIALIZERS = [
     {
         constName: "SOT_PLAYER_SOURCE_BADGE_CLASS",
         expected:
-            "h-[22px] flex-none justify-normal gap-[6px] rounded-[6px] border-[var(--line-hairline)] bg-[var(--bg-elevated)] py-0 pl-[3px] pr-[8px] [font:600_11.5px_var(--font-sans)] text-[var(--fg-secondary)] shadow-[var(--shadow-xs)] dark:border-[var(--glass-border)] dark:bg-[rgb(255_255_255_/_0.04)] dark:text-[var(--fg-primary)]",
+            "h-[22px] flex-none justify-normal gap-[6px] rounded-[6px] border-border bg-card py-0 pl-[3px] pr-[8px] [font:600_11.5px_var(--font-sans)] text-muted-foreground shadow-xs",
     },
     {
         constName: "SOT_PLAYER_SOURCE_ICON_CLASS",
         expected:
-            "inline-flex size-[16px] flex-none shrink-0 items-center justify-center overflow-hidden rounded-[4px] border border-[var(--line-hairline)] bg-white data-[sot-source-icon=letter]:bg-[var(--bg-recessed)] data-[sot-source-icon=letter]:[font:700_9px_var(--font-sans)] data-[sot-source-icon=letter]:text-[var(--fg-secondary)] [&[data-sot-cover=true]_img]:object-cover",
+            "inline-flex size-[16px] flex-none shrink-0 items-center justify-center overflow-hidden rounded-[4px] border border-border bg-background data-[sot-source-icon=letter]:bg-muted data-[sot-source-icon=letter]:[font:700_9px_var(--font-sans)] data-[sot-source-icon=letter]:text-muted-foreground [&[data-sot-cover=true]_img]:object-cover",
     },
     {
         constName: "SOT_PLAYER_SOURCE_ICON_IMAGE_CLASS",
@@ -868,7 +867,8 @@ const DASHBOARD_SOURCE_FILTER_FEATURE_OWNER_CLASS_SNIPPETS = [
     "root:",
     "gap-x-2 gap-y-1.5",
     "border-b border-[var(--line-hairline)]",
-    "dark:border-[var(--glass-border-soft)]",
+    "bg-[var(--bg-recessed)]",
+    "text-[var(--fg-tertiary)]",
     "from:",
     "flex-[0_1_auto]",
     "[&_b]:font-bold",
@@ -878,7 +878,8 @@ const DASHBOARD_SOURCE_FILTER_FEATURE_OWNER_CLASS_SNIPPETS = [
     "chip:",
     "h-[22px]",
     "gap-1.5",
-    "dark:border-[var(--glass-border)]",
+    "border-[var(--line-hairline)]",
+    "bg-[var(--bg-elevated)]",
     "label:",
     "whitespace-nowrap",
     "info:",
@@ -895,7 +896,7 @@ const DASHBOARD_SOURCE_FILTER_MIGRATED_GLOBAL_SELECTORS = [
     '[data-sot-part="source-filter-from"] b',
     '[data-sot-part="source-filter-separator"]',
     '[data-sot-part="source-filter-chip"]',
-    '[data-stack-label]',
+    "[data-stack-label]",
     '[data-sot-part="source-filter-info"]',
     '[data-sot-panel="dashboard-library-search-filter"]',
     '[data-sot-part="library-search-filter-label"]',
@@ -1013,7 +1014,7 @@ const DASHBOARD_SEARCH_ACTIVITY_FEATURE_OWNER_CLASS_SNIPPETS = [
             "gap-[6px]",
             "px-[12px] py-[8px]",
             "bg-[var(--bg-recessed)]",
-            "dark:bg-[rgb(255_255_255_/_0.03)]",
+            "border-[var(--line-hairline)]",
         ],
     },
     {
@@ -1024,9 +1025,9 @@ const DASHBOARD_SEARCH_ACTIVITY_FEATURE_OWNER_CLASS_SNIPPETS = [
             "px-[10px]",
             "[font:500_11.5px/1_var(--font-sans)]",
             "text-[var(--fg-tertiary)] shadow-none",
-            "data-[state=on]:border-[color-mix(in_srgb,var(--accent)_36%,transparent)]",
-            "data-[state=on]:bg-[var(--accent-soft)]",
-            "data-[state=on]:text-[var(--accent)]",
+            "data-[state=on]:border-primary/30",
+            "data-[state=on]:bg-primary/10",
+            "data-[state=on]:text-primary",
         ],
     },
     {
@@ -1053,7 +1054,8 @@ const DASHBOARD_SEARCH_ACTIVITY_FEATURE_OWNER_CLASS_SNIPPETS = [
             "hover:bg-[var(--bg-recessed)]",
             "focus-visible:bg-[var(--bg-recessed)]",
             "focus-visible:outline-none",
-            "focus-visible:shadow-[inset_0_0_0_2px_color-mix(in_srgb,var(--accent)_50%,transparent)]",
+            "focus-visible:ring-2",
+            "focus-visible:ring-ring/50",
             "[&_[data-sot-part=library-search-result-meta]]:font-mono",
             "[&_[data-sot-part=library-search-result-meta]]:text-[11.5px]",
             "[&_[data-sot-part=library-search-result-title]]:[font:600_13px/1.4_var(--font-sans)]",
@@ -1063,10 +1065,11 @@ const DASHBOARD_SEARCH_ACTIVITY_FEATURE_OWNER_CLASS_SNIPPETS = [
     {
         propertyName: "librarySearchTag",
         snippets: [
-            "[--tag-c:var(--tag-violet)]",
             "h-[22px] w-fit justify-normal gap-[5px]",
             "rounded-[6px]",
-            "bg-[color-mix(in_srgb,var(--tag-c)_12%,var(--bg-elevated))]",
+            "border-primary/20",
+            "bg-primary/10",
+            "text-primary",
             "[&>svg]:size-[11px]",
         ],
     },
@@ -1089,7 +1092,8 @@ const DASHBOARD_SEARCH_ACTIVITY_FEATURE_OWNER_CLASS_SNIPPETS = [
     {
         propertyName: "librarySearchStateSkeleton",
         snippets: [
-            "bg-[color-mix(in_srgb,var(--signal-info)_14%,transparent)]",
+            "bg-primary/10",
+            "after:bg-[linear-gradient(90deg,transparent,var(--signal-info)_50%,transparent)]",
             "after:animate-[sbn-sweep_1.4s_linear_infinite]",
         ],
     },
@@ -1105,7 +1109,7 @@ const DASHBOARD_SEARCH_ACTIVITY_FEATURE_OWNER_CLASS_SNIPPETS = [
         snippets: [
             "px-[4px] py-[6px]",
             "[&+&]:border-t",
-            "dark:[&+&]:border-[var(--glass-border-soft)]",
+            "[&+&]:border-[var(--line-hairline)]",
         ],
     },
     {
@@ -1118,11 +1122,7 @@ const DASHBOARD_SEARCH_ACTIVITY_FEATURE_OWNER_CLASS_SNIPPETS = [
     },
     {
         propertyName: "librarySearchHighlight",
-        snippets: [
-            "bg-[color-mix(in_srgb,var(--accent)_22%,transparent)]",
-            "px-[2px]",
-            "text-[var(--accent)]",
-        ],
+        snippets: ["bg-primary/10", "px-[2px]", "text-primary"],
     },
     {
         propertyName: "dashboardActivityClose",
@@ -1168,7 +1168,7 @@ const DASHBOARD_SEARCH_ACTIVITY_FEATURE_OWNER_CLASS_SNIPPETS = [
             "flex items-center gap-2.5",
             "bg-[var(--bg-recessed)]",
             "data-[state=running]:[&_[data-sot-part=dashboard-activity-status-indicator]]:animate-[bpulse_1.4s_ease-in-out_infinite]",
-            "dark:bg-[rgb(255_255_255_/_0.03)]",
+            "data-[state=running]:[&_[data-sot-part=dashboard-activity-status-indicator]]:bg-[var(--signal-info)]",
         ],
     },
     {
@@ -1179,8 +1179,10 @@ const DASHBOARD_SEARCH_ACTIVITY_FEATURE_OWNER_CLASS_SNIPPETS = [
         propertyName: "dashboardActivityItem",
         snippets: [
             "grid grid-cols-[26px_1fr_auto]",
-            "data-[kind=queued]:[&_[data-sot-part=dashboard-activity-item-icon]]:bg-[color-mix(in_srgb,var(--fg-tertiary)_16%,transparent)]",
-            "data-[kind=partial-failed]:[&_[data-sot-part=dashboard-activity-item-icon]]:bg-[color-mix(in_srgb,var(--signal-warning)_16%,transparent)]",
+            "data-[kind=queued]:[&_[data-sot-part=dashboard-activity-item-icon]]:bg-[var(--system-banner-neutral-icon-bg)]",
+            "data-[kind=queued]:[&_[data-sot-part=dashboard-activity-item-icon]]:text-[var(--fg-tertiary)]",
+            "data-[kind=partial-failed]:[&_[data-sot-part=dashboard-activity-item-icon]]:bg-[var(--system-banner-offline-icon-bg)]",
+            "data-[kind=partial-failed]:[&_[data-sot-part=dashboard-activity-item-icon]]:text-[var(--signal-warning)]",
         ],
     },
     {
@@ -1192,17 +1194,15 @@ const DASHBOARD_SEARCH_ACTIVITY_FEATURE_OWNER_CLASS_SNIPPETS = [
     },
     {
         propertyName: "dashboardActivityItemMeta",
-        snippets: [
-            "[font:500_11px/1.4_var(--font-mono)]",
-            "tracking-[0.02em]",
-        ],
+        snippets: ["[font:500_11px/1.4_var(--font-mono)]", "tracking-[0.02em]"],
     },
     {
         propertyName: "dashboardActivityDismiss",
         snippets: [
             "size-[22px]",
             "hover:bg-[var(--bg-recessed)] hover:text-[var(--fg-primary)]",
-            "focus-visible:outline-[color-mix(in_srgb,var(--accent)_55%,transparent)]",
+            "focus-visible:outline-2",
+            "focus-visible:outline-ring",
             "[&_svg:not([class*='size-'])]:size-[11px]",
         ],
     },
@@ -1301,12 +1301,13 @@ const DASHBOARD_TRANSCRIPT_SKELETON_LOCAL_COMPOSITION_TOKENS = [
 const DASHBOARD_TRANSCRIPT_OWNER_CLASS_TOKENS = [
     'turn: "border-b border-dashed border-[var(--line-hairline)]',
     'speakerRow: "mb-1.5 flex items-center gap-2.5"',
-    'avatar:',
+    "avatar:",
     "data-[sot-tone=info]:bg-[var(--accent-soft)]",
     "data-[sot-tone=success]:bg-[var(--button-copy-success-bg)]",
     'speakerName: "[font:600_12.5px_var(--font-sans)] text-[var(--fg-primary)]"',
-    'speakerTime: "ml-1 font-mono text-[11px] font-medium text-[var(--fg-tertiary)]"',
-    'paragraph:',
+    "speakerTime:",
+    '"ml-1 font-mono text-[11px] font-medium text-[var(--fg-tertiary)]"',
+    "paragraph:",
     "[text-wrap:pretty]",
     'emptyHeader: "block max-w-none"',
     "emptyIcon:",
@@ -1315,10 +1316,11 @@ const DASHBOARD_TRANSCRIPT_OWNER_CLASS_TOKENS = [
 
 const DASHBOARD_SPEAKER_PANE_OWNER_CLASS_TOKENS = [
     'head: "flex items-center gap-2.5 px-4 pt-3 pb-2"',
-    'headTitle: "flex-1 font-sans text-[12.5px] font-semibold text-[var(--fg-secondary)]"',
+    "headTitle:",
+    '"flex-1 font-sans text-[12.5px] font-semibold text-[var(--fg-secondary)]"',
     'rows: "m-0 flex list-none flex-col gap-0.5 px-2 pb-3.5"',
     "grid-cols-[28px_1fr_120px_auto]",
-    "dark:hover:bg-[rgb(255_255_255_/_0.03)]",
+    "hover:bg-[var(--bg-recessed)]",
     'rowMeta: "flex min-w-0 flex-col gap-0.5"',
     'name: "truncate font-sans text-[13px] font-semibold text-[var(--fg-primary)]"',
     'sub: "font-mono text-[11.5px] font-medium text-[var(--fg-tertiary)]"',
@@ -1341,18 +1343,23 @@ const SOURCE_REPORT_SKELETON_SHARED_TOKENS = [
 ] as const;
 
 const EXPECTED_SOURCE_REPORT_METRIC_CARD_CLASS_NAME =
-    "gap-[6px] overflow-visible rounded-[10px] border-[var(--source-report-metric-border)] bg-[var(--source-report-metric-bg)] px-[12px] py-[10px] shadow-none backdrop-blur-none";
+    "gap-[6px] overflow-visible rounded-[10px] border-border bg-muted/40 px-[12px] py-[10px] shadow-none backdrop-blur-none";
 const SOURCE_REPORT_METRIC_CARD_CLASS_TOKENS =
     EXPECTED_SOURCE_REPORT_METRIC_CARD_CLASS_NAME.split(" ");
 const SOURCE_REPORT_STYLE_OWNER_SNIPPETS = [
     "type SourceReportStyleVariables = CSSProperties & {",
     "export const SOURCE_REPORT_STYLE_VARIABLES = {",
-    '"--source-report-metric-bg": "var(--card-popover-footer-bg)"',
-    '"--source-report-metric-border": "var(--card-elevated-border)"',
-    '"--source-report-status-ok-fg": "oklch(0.62 0.13 158)"',
-    '"--source-report-status-warn-fg": "oklch(0.55 0.16 70)"',
-    '"--source-report-skeleton-bg":',
-    "linear-gradient(90deg, color-mix(in srgb, var(--fg-primary) 5%, transparent)",
+    '"--source-report-metric-bg": "var(--bg-recessed)"',
+    '"--source-report-metric-border": "var(--line-hairline)"',
+    '"--source-report-status-ok-fg": "var(--signal-success)"',
+    '"--source-report-status-ok-bg": "var(--bg-recessed)"',
+    '"--source-report-status-ok-border": "var(--line-hairline)"',
+    '"--source-report-status-warn-bg": "var(--bg-recessed)"',
+    '"--source-report-status-warn-border": "var(--line-hairline)"',
+    '"--source-report-status-warn-fg": "var(--signal-warning-strong)"',
+    '"--source-report-status-err-bg": "var(--bg-recessed)"',
+    '"--source-report-status-err-border": "var(--line-hairline)"',
+    '"--source-report-skeleton-bg": "var(--bg-recessed)"',
     "export const SOURCE_REPORT_SKELETON_CLASS_NAME =",
     "export type SourceReportTone =",
     "export type SourceReportCardSkeletonSize =",
@@ -1371,8 +1378,7 @@ const SOURCE_REPORT_STYLE_OWNER_SNIPPETS = [
     "[&[hidden]]:hidden",
     "export const SOURCE_REPORT_ERROR_ALERT_CLASS_NAME =",
     "export const SOURCE_REPORT_STATUS_BADGE_CLASS_NAME =",
-    "![background-color:transparent]",
-    "dark:[background-image:linear-gradient(90deg,rgb(255_255_255_/_0.05)_0%,rgb(255_255_255_/_0.12)_50%,rgb(255_255_255_/_0.05)_100%)]",
+    '"bg-muted"',
     "satisfies SourceReportStyleVariables",
 ] as const;
 
@@ -1427,13 +1433,13 @@ const SOURCE_REPORT_SKELETON_OWNER_TOKENS = [
     "SOURCE_REPORT_SKELETON_CLASS_NAME",
     "SOURCE_REPORT_CARD_SKELETON_CLASS_NAMES",
     "SOURCE_REPORT_SEGMENT_SKELETON_CLASS_NAMES",
-    "count: `${SOURCE_REPORT_SKELETON_CLASS_NAME} inline-block h-[18px] w-[48px] align-middle rounded-[6px]`",
-    "status: `${SOURCE_REPORT_SKELETON_CLASS_NAME} inline-block h-[18px] w-[80px] align-middle rounded-[6px]`",
-    "source: `${SOURCE_REPORT_SKELETON_CLASS_NAME} inline-block h-[18px] w-[120px] align-middle rounded-[6px]`",
-    '"line-long": `${SOURCE_REPORT_SKELETON_CLASS_NAME} mt-1.5 inline-block h-[13px] w-[92%] align-middle rounded-[4px]`',
-    '"line-wide": `${SOURCE_REPORT_SKELETON_CLASS_NAME} mt-[7px] inline-block h-[13px] w-[88%] align-middle rounded-[4px]`',
-    "speaker: `${SOURCE_REPORT_SKELETON_CLASS_NAME} ml-[5px] inline-block h-[12px] w-[54px] align-middle rounded-[4px]`",
-    "time: `${SOURCE_REPORT_SKELETON_CLASS_NAME} inline-block h-[12px] w-[96px] align-middle rounded-[4px]`",
+    `count: \`\${SOURCE_REPORT_SKELETON_CLASS_NAME} inline-block h-[18px] w-[48px] align-middle rounded-[6px]\``,
+    `status: \`\${SOURCE_REPORT_SKELETON_CLASS_NAME} inline-block h-[18px] w-[80px] align-middle rounded-[6px]\``,
+    `source: \`\${SOURCE_REPORT_SKELETON_CLASS_NAME} inline-block h-[18px] w-[120px] align-middle rounded-[6px]\``,
+    `"line-long": \`\${SOURCE_REPORT_SKELETON_CLASS_NAME} mt-1.5 inline-block h-[13px] w-[92%] align-middle rounded-[4px]\``,
+    `"line-wide": \`\${SOURCE_REPORT_SKELETON_CLASS_NAME} mt-[7px] inline-block h-[13px] w-[88%] align-middle rounded-[4px]\``,
+    `speaker: \`\${SOURCE_REPORT_SKELETON_CLASS_NAME} ml-[5px] inline-block h-[12px] w-[54px] align-middle rounded-[4px]\``,
+    `time: \`\${SOURCE_REPORT_SKELETON_CLASS_NAME} inline-block h-[12px] w-[96px] align-middle rounded-[4px]\``,
 ] as const;
 
 const DASHBOARD_SOURCE_REPORT_LOADED_SOT_HOOKS = [
@@ -1535,16 +1541,16 @@ const DASHBOARD_RETRANSCRIPTION_OWNER_CLASS_SNIPPETS = [
 ] as const;
 
 const DASHBOARD_RETRANSCRIPTION_THEME_CLASS_SNIPPETS = [
-    "--dashboard-retx-info-bg:color-mix(in_srgb,var(--signal-info)_8%,transparent)",
-    "--dashboard-retx-info-border:color-mix(in_srgb,var(--signal-info)_26%,transparent)",
-    "--dashboard-retx-info-icon-border:color-mix(in_srgb,var(--signal-info)_30%,transparent)",
-    "--dashboard-retx-danger-bg:color-mix(in_srgb,var(--signal-danger)_6%,transparent)",
-    "--dashboard-retx-danger-border:color-mix(in_srgb,var(--signal-danger)_24%,transparent)",
-    "--dashboard-retx-danger-icon-border:color-mix(in_srgb,var(--signal-danger)_30%,transparent)",
-    "--dashboard-retx-success-bg:color-mix(in_srgb,var(--signal-success)_8%,transparent)",
-    "--dashboard-retx-success-border:color-mix(in_srgb,var(--signal-success)_28%,transparent)",
-    "--dashboard-retx-success-icon-border:color-mix(in_srgb,var(--signal-success)_30%,transparent)",
-    "--dashboard-retx-success-marker-bg:color-mix(in_srgb,var(--signal-success)_12%,transparent)",
+    "--dashboard-retx-info-bg:var(--system-banner-progress-bg)",
+    "--dashboard-retx-info-border:var(--system-banner-progress-border)",
+    "--dashboard-retx-info-icon-border:var(--system-banner-progress-border)",
+    "--dashboard-retx-danger-bg:var(--alert-destructive-soft-bg)",
+    "--dashboard-retx-danger-border:var(--alert-destructive-soft-border)",
+    "--dashboard-retx-danger-icon-border:var(--button-copy-danger-border)",
+    "--dashboard-retx-success-bg:var(--button-copy-success-bg)",
+    "--dashboard-retx-success-border:var(--button-copy-success-border)",
+    "--dashboard-retx-success-icon-border:var(--button-copy-success-border)",
+    "--dashboard-retx-success-marker-bg:var(--button-copy-success-bg)",
 ] as const;
 
 const DASHBOARD_RETRANSCRIPTION_GLOBAL_TOKEN_DEFINITION_RE =
@@ -1878,9 +1884,12 @@ describe("dashboard SOT foundation", () => {
             expected,
             property,
         } of DASHBOARD_BRAND_OWNER_CLASS_INITIALIZERS) {
-            expect(extractObjectStringProperty(dashboardBrandClassNames, property)).toBe(
-                `${property}: "${expected}"`,
+            const propertyInitializer = extractObjectStringProperty(
+                dashboardBrandClassNames,
+                property,
             );
+            expect(propertyInitializer).toContain(`${property}:`);
+            expect(propertyInitializer).toContain(`"${expected}"`);
             if (property !== "wrapper") {
                 expect(workstation).toContain(
                     `className={dashboardBrandClassNames.${property}}`,
@@ -2057,7 +2066,9 @@ describe("dashboard SOT foundation", () => {
         for (const routeChromeClass of ROUTE_CHROME_MODULE_CLASSES) {
             expect(routeChromeModule).toContain(routeChromeClass);
         }
-        expect(routeChromeModule).toContain("grid-template-columns: 380px 1fr;");
+        expect(routeChromeModule).toContain(
+            "grid-template-columns: 380px 1fr;",
+        );
         expect(routeChromeModule).toContain("backdrop-filter: blur(20px)");
         for (const routeChromeSelector of ROUTE_CHROME_REMOVED_GLOBAL_SELECTORS) {
             expect(collectCssRuleBlocks(globals, routeChromeSelector)).toEqual(
@@ -2065,9 +2076,9 @@ describe("dashboard SOT foundation", () => {
             );
         }
         for (const dashboardLoadingSelector of DASHBOARD_LOADING_REMOVED_GLOBAL_SELECTORS) {
-            expect(collectCssRuleBlocks(globals, dashboardLoadingSelector)).toEqual(
-                [],
-            );
+            expect(
+                collectCssRuleBlocks(globals, dashboardLoadingSelector),
+            ).toEqual([]);
         }
         for (const removedLoadingSelector of [
             '[data-sot-panel="recording-route-loading-detail"]',
@@ -2225,9 +2236,7 @@ describe("dashboard SOT foundation", () => {
             "border border-[var(--line-hairline)] bg-[var(--glass-tint-base)] px-3 font-sans text-[12.5px] font-semibold",
         );
         expect(workstation).toContain("shadow-[var(--shadow-xs)]");
-        expect(workstation).toContain(
-            "h-8 gap-[7px] rounded-[9px]",
-        );
+        expect(workstation).toContain("h-8 gap-[7px] rounded-[9px]");
         expect(workstation).toContain("has-[>svg]:px-3");
         expect(workstation).toContain("[&_svg:not([class*='size-'])]:size-4");
         for (const selector of [
@@ -2248,9 +2257,7 @@ describe("dashboard SOT foundation", () => {
                     ),
             ),
         ).toEqual([]);
-        expect(globals).not.toContain(
-            '[data-sot-part="detail-header-title"]',
-        );
+        expect(globals).not.toContain('[data-sot-part="detail-header-title"]');
 
         for (const primitive of [
             "Breadcrumb",
@@ -2699,30 +2706,22 @@ describe("dashboard SOT foundation", () => {
         expect(badge).not.toContain("[&_[data-sot-part=status-dot]]");
         expect(badge).not.toContain("[&_[data-sot-part=status-label]]");
         for (const playerStatusToken of [
-            "[--sot-player-status-ok-bg:color-mix(in_srgb,var(--signal-success)_14%,transparent)]",
-            "[--sot-player-status-ok-border:color-mix(in_srgb,var(--signal-success)_30%,transparent)]",
-            "[--sot-player-status-info-bg:color-mix(in_srgb,var(--signal-info)_14%,transparent)]",
-            "[--sot-player-status-info-border:color-mix(in_srgb,var(--signal-info)_30%,transparent)]",
-            "[--sot-player-status-warn-bg:color-mix(in_srgb,var(--signal-warning)_18%,transparent)]",
-            "[--sot-player-status-warn-border:color-mix(in_srgb,var(--signal-warning)_32%,transparent)]",
-            "[--sot-player-status-err-bg:color-mix(in_srgb,var(--signal-danger)_14%,transparent)]",
-            "[--sot-player-status-err-border:color-mix(in_srgb,var(--signal-danger)_30%,transparent)]",
             "h-[20px]",
             "min-w-[65.171875px]",
             "justify-normal",
             "gap-[5px]",
             "tracking-[0.005em]",
-            "data-[sot-tone=ok]:border-[var(--sot-player-status-ok-border)]",
-            "data-[sot-tone=ok]:bg-[var(--sot-player-status-ok-bg)]",
+            "data-[sot-tone=ok]:border-[var(--button-copy-success-border)]",
+            "data-[sot-tone=ok]:bg-[var(--button-copy-success-bg)]",
             "data-[sot-tone=ok]:text-[var(--signal-success)]",
-            "data-[sot-tone=warn]:border-[var(--sot-player-status-warn-border)]",
-            "data-[sot-tone=warn]:bg-[var(--sot-player-status-warn-bg)]",
+            "data-[sot-tone=warn]:border-[var(--system-banner-offline-border)]",
+            "data-[sot-tone=warn]:bg-[var(--system-banner-offline-bg)]",
             "data-[sot-tone=warn]:text-[var(--signal-warning-strong)]",
-            "data-[sot-tone=err]:border-[var(--sot-player-status-err-border)]",
-            "data-[sot-tone=err]:bg-[var(--sot-player-status-err-bg)]",
+            "data-[sot-tone=err]:border-[var(--alert-destructive-soft-border)]",
+            "data-[sot-tone=err]:bg-[var(--alert-destructive-soft-bg)]",
             "data-[sot-tone=err]:text-[var(--signal-danger)]",
-            "data-[sot-tone=info]:border-[var(--sot-player-status-info-border)]",
-            "data-[sot-tone=info]:bg-[var(--sot-player-status-info-bg)]",
+            "data-[sot-tone=info]:border-[var(--system-banner-update-border)]",
+            "data-[sot-tone=info]:bg-[var(--system-banner-update-bg)]",
             "data-[sot-tone=info]:text-[var(--signal-info)]",
             "data-[sot-tone=neu]:border-[var(--line-hairline)]",
             "data-[sot-tone=neu]:bg-[var(--bg-recessed)]",
@@ -2770,7 +2769,7 @@ describe("dashboard SOT foundation", () => {
             expect(sotPlayerPrimitives).toContain(sotPlayerTagClassConstant);
         }
         for (const sotPlayerTagClassToken of [
-            "data-[sot-tag-color=blue]:[--tag-c:var(--tag-blue)]",
+            "data-[sot-tag-color=blue]:[--sot-player-tag-chip-fg:var(--tag-blue)]",
             "data-[sot-state=open]:border-[var(--line-strong)]",
             "hover:border-[var(--line-strong)]",
         ]) {
@@ -2796,9 +2795,7 @@ describe("dashboard SOT foundation", () => {
         expect(sotPlayerPrimitives).toContain(
             "SOT_PLAYER_TAG_CHIP_VARIABLES_CLASS",
         );
-        expect(sotPlayerPrimitives).not.toContain(
-            "SOT_PLAYER_TAG_COLOR_TOKEN",
-        );
+        expect(sotPlayerPrimitives).not.toContain("SOT_PLAYER_TAG_COLOR_TOKEN");
         expect(sotPlayerPrimitives).not.toContain("sotPlayerTagChipStyle");
         expect(sotPlayerPrimitives).not.toContain(
             'background: "var(--sot-player-tag-chip-bg)"',
@@ -2829,9 +2826,7 @@ describe("dashboard SOT foundation", () => {
         expect(playerSeekSlider).toContain(
             '"aria-valuenow": Math.round(progress)',
         );
-        expect(playerSeekSlider).toContain(
-            '"data-sot-state": controlState',
-        );
+        expect(playerSeekSlider).toContain('"data-sot-state": controlState');
         expect(playerSeekSlider).toContain("onClick: (event) =>");
         expect(playerSeekSlider).toContain("onKeyDown: (event) =>");
         expect(playerSeekSlider).toContain('event.key === "ArrowLeft"');
@@ -3102,18 +3097,24 @@ describe("dashboard SOT foundation", () => {
             "const dashboardNavClassNames = {",
             "} as const;",
         );
-        expect(extractObjectStringProperty(dashboardNavClassNames, "root")).toBe(
-            'root: "flex flex-1 flex-col gap-0.5 overflow-y-auto pb-3"',
-        );
+        expect(
+            extractObjectStringProperty(dashboardNavClassNames, "root"),
+        ).toBe('root: "flex flex-1 flex-col gap-0.5 overflow-y-auto pb-3"');
         expect(
             extractObjectStringProperty(dashboardNavClassNames, "sectionLabel"),
         ).toContain("tracking-[0.08em]");
         expect(
-            extractObjectStringProperty(dashboardNavClassNames, "favoriteCount"),
+            extractObjectStringProperty(
+                dashboardNavClassNames,
+                "favoriteCount",
+            ),
         ).toContain("data-[sot-state=selected]:bg-[var(--bg-elevated)]");
         expect(
-            extractObjectStringProperty(dashboardNavClassNames, "favoriteCount"),
-        ).toContain("dark:data-[sot-state=selected]:bg-[var(--glass-tint-base)]");
+            extractObjectStringProperty(
+                dashboardNavClassNames,
+                "favoriteCount",
+            ),
+        ).not.toContain("dark:data-[sot-state=selected]");
         const dashboardNav = extractOpeningElement(
             workstation,
             'data-sot-list="dashboard-nav"',
@@ -3133,7 +3134,9 @@ describe("dashboard SOT foundation", () => {
             "DASHBOARD_MAIN_CLASS_NAME",
             EXPECTED_DASHBOARD_MAIN_CLASS_NAME,
         );
-        expect(dashboardMain).toContain("className={DASHBOARD_MAIN_CLASS_NAME}");
+        expect(dashboardMain).toContain(
+            "className={DASHBOARD_MAIN_CLASS_NAME}",
+        );
         expect(dashboardMainClassName).not.toMatch(
             OWNER_MAIN_FORBIDDEN_RAW_COLOR_RE,
         );
@@ -3265,12 +3268,11 @@ describe("dashboard SOT foundation", () => {
             'data-sot-panel="dashboard-detail"',
             "section",
         );
-        const dashboardDetailPanelClassName =
-            expectExactStringConstInitializer(
-                workstation,
-                "DASHBOARD_DETAIL_PANEL_CLASS_NAME",
-                EXPECTED_DETAIL_PANEL_CLASS_NAME,
-            );
+        const dashboardDetailPanelClassName = expectExactStringConstInitializer(
+            workstation,
+            "DASHBOARD_DETAIL_PANEL_CLASS_NAME",
+            EXPECTED_DETAIL_PANEL_CLASS_NAME,
+        );
         expectClassNameConstReference(
             dashboardDetailPanel,
             "DASHBOARD_DETAIL_PANEL_CLASS_NAME",
@@ -3391,13 +3393,10 @@ describe("dashboard SOT foundation", () => {
         );
         expect(dashboardFavoriteButtonOpening).toContain('variant="ghost"');
         expect(dashboardFavoriteButtonOpening).toContain('size="default"');
-        expectCnClassNameReferences(
-            dashboardFavoriteButtonOpening,
-            [
-                "dashboardButtonClassNames.nav",
-                "dashboardSidebarCollapseClassNames.favorite",
-            ],
-        );
+        expectCnClassNameReferences(dashboardFavoriteButtonOpening, [
+            "dashboardButtonClassNames.nav",
+            "dashboardSidebarCollapseClassNames.favorite",
+        ]);
         const dashboardButtonClassNames = extractBoundedSlice(
             workstation,
             "const dashboardButtonClassNames = {",
@@ -3420,7 +3419,7 @@ describe("dashboard SOT foundation", () => {
             "dashboardNavClassNames.favoriteCount",
         );
         expect(dashboardFavoriteCount).toContain(
-            'data-sot-state={\n                                        favorite === item.value',
+            "data-sot-state={\n                                        favorite === item.value",
         );
         const dashboardNavSectionLabel = extractOpeningElement(
             workstation,
@@ -3572,9 +3571,7 @@ describe("dashboard SOT foundation", () => {
             'hidden={dashboardRetxState !== "completed"}',
         );
         expect(workstation).toContain('dashboardRetxState === "failed" ? (');
-        expect(workstation).toContain(
-            'dashboardRetxState === "completed" &&',
-        );
+        expect(workstation).toContain('dashboardRetxState === "completed" &&');
         expect(workstation).toContain('data-retx-retry=""');
         expect(workstation).toContain('data-retx-dismiss=""');
         expect(globals).not.toMatch(
@@ -3677,8 +3674,9 @@ describe("dashboard SOT foundation", () => {
         expect(recordingListCard).toContain(
             'data-sot-surface="dashboard-recording-list"',
         );
-        expect(recordingListCard).toContain(
-            'className="flex min-h-0 flex-col p-0"',
+        expectClassNameConstReference(
+            recordingListCard,
+            "DASHBOARD_RECORDING_LIST_CONTENT_CLASS_NAME",
         );
         expect(recordingListCard).toContain(
             'data-sot-part="dashboard-recording-list-content"',
@@ -3904,15 +3902,23 @@ describe("dashboard SOT foundation", () => {
             ),
             "sidebar",
         );
+        const drawerClassNames = extractBoundedSlice(
+            workstation,
+            "const dashboardDrawerClassNames = {",
+            "} as const;",
+        );
+        const drawerScrimClassNames = extractObjectStringProperty(
+            drawerClassNames,
+            "scrim",
+        );
+        const drawerActiveDotClassNames = extractObjectStringProperty(
+            drawerClassNames,
+            "activeDot",
+        );
         const drawerScrim = extractOpeningElement(
             workstation,
             'data-sot-panel="dashboard-drawer-scrim"',
             "div",
-        );
-        const drawerActiveDot = extractOpeningElement(
-            workstation,
-            'data-sot-part="dashboard-drawer-active-dot"',
-            "span",
         );
         expect(drawerTriggerClassNames).toContain(
             "group-data-[source-filter-active=true]/dashboard-workstation:[&_[data-sot-part=dashboard-drawer-active-dot]]:inline-block",
@@ -3921,10 +3927,15 @@ describe("dashboard SOT foundation", () => {
         expect(sidebarClassNames).toContain(
             "max-[860px]:group-data-[drawer-state=open]/dashboard-workstation:flex",
         );
-        expect(drawerScrim).toContain(
+        expect(drawerScrimClassNames).toContain(
             "max-[860px]:group-data-[drawer-state=open]/dashboard-workstation:pointer-events-auto",
         );
-        expect(drawerActiveDot).toContain("absolute top-1.5 right-1.5 hidden");
+        expect(drawerActiveDotClassNames).toContain(
+            "absolute top-1.5 right-1.5 hidden",
+        );
+        expect(drawerScrim).toContain(
+            "className={dashboardDrawerClassNames.scrim}",
+        );
         expect(workstation).toContain(
             'data-sot-panel="dashboard-source-filter-stack"',
         );
@@ -4279,7 +4290,7 @@ describe("dashboard SOT foundation", () => {
             "m-0 font-sans text-[13px] font-semibold text-[var(--fg-primary)]",
             "ml-auto font-mono text-[11.5px] font-medium text-[var(--fg-tertiary)]",
             "[scrollbar-width:thin]",
-            "[&::-webkit-scrollbar-thumb:hover]:bg-[color-mix(in_srgb,var(--fg-tertiary)_55%,transparent)]",
+            "[&::-webkit-scrollbar-thumb:hover]:bg-muted-foreground/55",
             "flex-1 overflow-y-auto p-1",
             "m-2 flex flex-col items-center gap-1.5",
             "relative mt-1.5 mb-[14px] h-px",
@@ -4593,11 +4604,11 @@ describe("dashboard SOT foundation", () => {
             "group-data-[time-style=abs]/dashboard-workstation:hidden",
             "grayscale",
             "contrast-[0.85]",
-            "dark:brightness-[1.4]",
             "object-cover",
-            "dark:opacity-60",
-            "dark:bg-[rgb(255_255_255_/_0.06)]",
-            "dark:border-[var(--glass-border)]",
+            "opacity-60",
+            "border border-[var(--line-hairline)]",
+            "bg-[var(--bg-recessed)]",
+            "text-[var(--fg-tertiary)]",
         ]) {
             expect(dashboardRecordingRowStyleHelper).toContain(
                 rowMetaOwnershipToken,
@@ -4755,7 +4766,10 @@ describe("dashboard SOT foundation", () => {
             "SOT_DASHBOARD_TRANSCRIPT_SHELL_CARD_CLASS_NAME",
         );
         expect(workstation).toContain(
-            'className="flex flex-row flex-wrap items-center gap-x-3 gap-y-1.5 border-b px-3.5 py-3"',
+            "SOT_DASHBOARD_TRANSCRIPT_HEADER_CLASS_NAME",
+        );
+        expect(workstation).toMatch(
+            /className=\{\s*SOT_DASHBOARD_TRANSCRIPT_HEADER_CLASS_NAME\s*\}/,
         );
         const dashboardTranscriptBody = extractOpeningElement(
             workstation,
@@ -4763,7 +4777,7 @@ describe("dashboard SOT foundation", () => {
             "CardContent",
         );
         expectCnClassNameReferences(dashboardTranscriptBody, [
-            '"min-h-0 flex-1 overflow-y-auto px-5 pt-4 pb-5"',
+            "SOT_DASHBOARD_TRANSCRIPT_BODY_BASE_CLASS_NAME",
             "dashboardRetranscriptionThemeClassName",
         ]);
         expect(workstation).toContain(
@@ -4778,9 +4792,7 @@ describe("dashboard SOT foundation", () => {
             "Button",
         );
         expect(buttonPrimitive).not.toContain("dashboardSpeakersMerge:");
-        expect(dashboardSpeakersMerge).toContain(
-            'variant="ghost"',
-        );
+        expect(dashboardSpeakersMerge).toContain('variant="ghost"');
         expect(dashboardSpeakersMerge).toContain('size="sm"');
         expectClassNameConstReference(
             dashboardSpeakersMerge,
@@ -5014,7 +5026,7 @@ describe("dashboard SOT foundation", () => {
             "dashboardSpeakerPaneClassNames.barFill",
         );
         expect(dashboardSpeakerBar).toContain(
-            '"--dashboard-speaker-share": `${speakerBarPct}%`',
+            `"--dashboard-speaker-share": \`\${speakerBarPct}%\``,
         );
         const transcriptLanguageBadge = extractOpeningElement(
             workstation,
@@ -5334,8 +5346,12 @@ describe("dashboard SOT foundation", () => {
         expect(workstation).toContain(
             "SOURCE_REPORT_SUMMARY_MISSING_NOTICE_CLASS_NAME",
         );
-        expect(sourceReportStyles).toContain("SOURCE_REPORT_SKELETON_CLASS_NAME");
-        expect(workstation).toContain("SOURCE_REPORT_CARD_SKELETON_CLASS_NAMES");
+        expect(sourceReportStyles).toContain(
+            "SOURCE_REPORT_SKELETON_CLASS_NAME",
+        );
+        expect(workstation).toContain(
+            "SOURCE_REPORT_CARD_SKELETON_CLASS_NAMES",
+        );
         expect(workstation).toContain(
             "SOURCE_REPORT_SEGMENT_SKELETON_CLASS_NAMES",
         );
@@ -5469,7 +5485,9 @@ describe("dashboard SOT foundation", () => {
         expect(workstation).not.toContain("sourceReportCardSkeletonSize");
         expect(workstation).not.toContain("sourceReportSegmentSkeletonSize");
         expect(workstation).not.toMatch(/\bSOURCE_REPORT_METRIC_CARD_CLASS\b/);
-        expect(workstation).not.toMatch(/\bSOURCE_REPORT_STATUS_BADGE_CLASS\s*=/);
+        expect(workstation).not.toMatch(
+            /\bSOURCE_REPORT_STATUS_BADGE_CLASS\s*=/,
+        );
         expect(workstation).not.toContain(
             "SOURCE_REPORT_STATUS_BADGE_TONE_CLASS",
         );

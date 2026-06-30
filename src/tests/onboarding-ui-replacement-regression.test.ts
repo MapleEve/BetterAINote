@@ -29,7 +29,7 @@ const EXPECTED_ONBOARDING_CARD_CLASS_INITIALIZERS = [
     {
         property: "providerCard",
         expected:
-            "grid h-auto w-full grid-cols-[36px_1fr_auto_auto] items-center justify-start gap-3 rounded-md px-3.5 py-3 text-left whitespace-normal data-[sot-state=selected]:border-transparent data-[sot-state=selected]:bg-secondary data-[sot-state=selected]:text-secondary-foreground data-[sot-state=selected]:hover:bg-secondary/80 dark:data-[sot-state=selected]:bg-secondary has-[>svg]:px-3.5",
+            "grid h-auto w-full grid-cols-[36px_1fr_auto_auto] items-center justify-start gap-3 rounded-md px-3.5 py-3 text-left whitespace-normal data-[sot-state=selected]:border-transparent data-[sot-state=selected]:bg-secondary data-[sot-state=selected]:text-secondary-foreground data-[sot-state=selected]:hover:bg-secondary/80 has-[>svg]:px-3.5",
     },
     {
         property: "providerList",
@@ -42,7 +42,7 @@ const EXPECTED_ONBOARDING_CARD_CLASS_INITIALIZERS = [
     {
         property: "matrixRow",
         expected:
-            "grid min-h-[30px] grid-cols-[80px_1fr] items-baseline gap-[8px] border-b border-dashed border-[var(--line-hairline)] py-[6px] dark:border-[var(--glass-border-soft)]",
+            "grid min-h-[30px] grid-cols-[80px_1fr] items-baseline gap-[8px] border-b border-dashed border-border py-[6px]",
     },
     {
         property: "matrixLabel",
@@ -66,12 +66,12 @@ const EXPECTED_ONBOARDING_CARD_CLASS_INITIALIZERS = [
     {
         property: "secondaryAction",
         expected:
-            "[display:inline-flex] [align-items:center] [height:26px] [gap:6px] [border-radius:8px] [border:1px_solid_var(--line-hairline)] [background:transparent] [padding:0_10px] [font:600_11px_var(--font-sans)] [line-height:normal] [color:var(--fg-secondary)] shadow-none hover:[background:transparent] hover:[color:var(--fg-secondary)] disabled:cursor-not-allowed has-[>svg]:px-[10px]",
+            "[display:inline-flex] [align-items:center] [height:26px] [gap:6px] rounded-md border border-border bg-transparent [padding:0_10px] [font:600_11px_var(--font-sans)] [line-height:normal] text-muted-foreground shadow-none hover:bg-accent hover:text-accent-foreground disabled:cursor-not-allowed has-[>svg]:px-[10px]",
     },
     {
         property: "primaryAction",
         expected:
-            "[display:inline-flex] [align-items:center] [height:26px] [gap:6px] [border-radius:8px] [border:1px_solid_transparent] [background:var(--accent)] [padding:0_10px] [font:600_11px_var(--font-sans)] [line-height:normal] [color:white] shadow-none hover:[background:var(--accent)] focus-visible:border-primary focus-visible:ring-0 disabled:cursor-not-allowed has-[>svg]:px-[10px]",
+            "[display:inline-flex] [align-items:center] [height:26px] [gap:6px] rounded-md border border-transparent bg-primary [padding:0_10px] [font:600_11px_var(--font-sans)] [line-height:normal] text-primary-foreground shadow-none hover:bg-primary/90 focus-visible:border-ring focus-visible:ring-0 disabled:cursor-not-allowed has-[>svg]:px-[10px]",
     },
     {
         property: "header",
@@ -110,7 +110,8 @@ const EXPECTED_ONBOARDING_CARD_CLASS_INITIALIZERS = [
     },
     {
         property: "stepTitle",
-        expected: "[font:600_14px_var(--font-display)] [color:var(--fg-primary)]",
+        expected:
+            "[font:600_14px_var(--font-display)] [color:var(--fg-primary)]",
     },
     {
         property: "stepDescription",
@@ -129,12 +130,12 @@ const EXPECTED_ONBOARDING_CARD_CLASS_INITIALIZERS = [
     {
         property: "defaultSource",
         expected:
-            "[appearance:none] [display:flex] [align-items:center] [gap:8px] [padding:8px] [border-radius:8px] [border:1px_solid_var(--line-hairline)] [background:transparent] [color:var(--fg-primary)] [cursor:pointer] [text-align:left] data-[sot-state=selected]:[border-color:var(--accent)] data-[sot-state=selected]:[background:color-mix(in_oklab,var(--accent)_6%,transparent)] data-[sot-state=disabled]:[cursor:not-allowed] data-[sot-state=disabled]:opacity-[0.55]",
+            "[appearance:none] [display:flex] [align-items:center] [gap:8px] [padding:8px] rounded-md border border-border bg-transparent text-foreground [cursor:pointer] [text-align:left] data-[sot-state=selected]:border-primary data-[sot-state=selected]:bg-primary/10 data-[sot-state=disabled]:[cursor:not-allowed] data-[sot-state=disabled]:opacity-[0.55]",
     },
     {
         property: "defaultSourceSwatch",
         expected:
-            "[width:20px] [height:20px] [flex:0_0_20px] [border-radius:4px] [background:transparent] data-[sot-swatch=accent]:[background:#1296db]",
+            "size-5 flex-none rounded-sm bg-transparent data-[sot-swatch=accent]:bg-primary",
     },
     {
         property: "actions",
@@ -144,7 +145,7 @@ const EXPECTED_ONBOARDING_CARD_CLASS_INITIALIZERS = [
     {
         property: "providerIcon",
         expected:
-            "[display:inline-flex] [width:36px] [height:36px] flex-none [align-items:center] [justify-content:center] [overflow:hidden] [border-radius:8px] [border:1px_solid_var(--line-hairline)] [background:#fff] [&_img]:[display:block] [&_img]:[width:100%] [&_img]:[height:100%] [&_img]:[object-fit:contain] [&_svg]:[width:18px] [&_svg]:[height:18px] [&_svg]:[fill:none] [&_svg]:[stroke:currentColor] [&_svg]:[stroke-width:1.8] [&_svg]:[stroke-linecap:round] [&_svg]:[stroke-linejoin:round] [&[data-sot-cover=true]_img]:[object-fit:cover]",
+            "inline-flex size-9 flex-none items-center justify-center overflow-hidden rounded-md border border-border bg-card text-foreground [&_img]:block [&_img]:size-full [&_img]:object-contain [&_svg]:size-[18px] [&_svg]:fill-none [&_svg]:stroke-current [&_svg]:stroke-[1.8] [&_svg]:[stroke-linecap:round] [&_svg]:[stroke-linejoin:round] [&[data-sot-cover=true]_img]:object-cover",
     },
     {
         property: "providerName",
@@ -265,7 +266,7 @@ function extractOpeningElementAt(
 }
 
 const OLD_UI_CONTRACT_RE =
-    /uikit-|glass-surface|glass-control|bg-muted|text-muted-foreground|<LibrarySearch[\s/>]|<SourceFilterStackStrip[\s/>]|\.\/components\/library-search|\.\/components\/source-filter-stack-strip/;
+    /uikit-|glass-surface|glass-control|<LibrarySearch[\s/>]|<SourceFilterStackStrip[\s/>]|\.\/components\/library-search|\.\/components\/source-filter-stack-strip/;
 
 const ONBOARDING_DEFAULT_SOURCE_ROOT_REPAINT_SELECTORS = [
     '[data-sot-control="onboarding-default-source"]',
@@ -398,9 +399,7 @@ describe("onboarding UI replacement regression", () => {
         expect(dataSourceFieldControl).toContain(
             "ONBOARDING_SOURCE_FIELD_CONTROL_CLASS_NAME",
         );
-        expect(dataSourceFieldControl).not.toContain(
-            "onboardingSourceField",
-        );
+        expect(dataSourceFieldControl).not.toContain("onboardingSourceField");
         expect(source).toContain("const onboardingCardClassNames = {");
         for (const initializer of EXPECTED_ONBOARDING_CARD_CLASS_INITIALIZERS) {
             expect(source).toContain(`${initializer.property}:`);
@@ -554,15 +553,11 @@ describe("onboarding UI replacement regression", () => {
         expect(source).toContain("CardHeader,");
         expect(source).toContain("CardTitle,");
         expect(source).toContain('data-sot-part="onboarding-card-header"');
-        expect(source).toContain(
-            "className={onboardingCardClassNames.header}",
-        );
+        expect(source).toContain("className={onboardingCardClassNames.header}");
         expect(source).toContain(
             "className={onboardingCardClassNames.heading}",
         );
-        expect(source).toContain(
-            "className={onboardingCardClassNames.sub}",
-        );
+        expect(source).toContain("className={onboardingCardClassNames.sub}");
         expect(source).toContain('data-sot-part="onboarding-step-header"');
         expect(source).toContain(
             "className={onboardingCardClassNames.stepTitle}",
@@ -598,10 +593,14 @@ describe("onboarding UI replacement regression", () => {
         expect(source).toContain(
             'data-sot-part="onboarding-default-source-swatch"',
         );
-        expect(source).toContain('role="button"');
+        expect(source).toMatch(
+            /<button[\s\S]*data-sot-control="onboarding-default-source"[\s\S]*type="button"/,
+        );
+        expect(source).toContain("disabled={isSaving || !option.connected}");
+        expect(source).not.toContain('role="button"');
         expect(source).not.toContain("style={{");
-        expect(source).toContain("tabIndex=");
-        expect(source).toContain("onKeyDown={(event) =>");
+        expect(source).not.toContain("tabIndex=");
+        expect(source).not.toContain("onKeyDown={(event) =>");
         expect(source).toContain('data-sot-control="speaker-profile-draft"');
         expect(source).toContain('data-sot-list="speaker-profiles"');
         expect(source).toContain('data-sot-list="finish-summary"');
@@ -656,7 +655,10 @@ describe("onboarding UI replacement regression", () => {
             ),
         ).toEqual([]);
         expect(
-            collectCssRuleBlocks(globals, '[data-sot-part="onboarding-actions"]'),
+            collectCssRuleBlocks(
+                globals,
+                '[data-sot-part="onboarding-actions"]',
+            ),
         ).toEqual([]);
         expect(globals).not.toMatch(
             /\.onboarding-step-(head|title|sub|body)\b/,
@@ -674,7 +676,9 @@ describe("onboarding UI replacement regression", () => {
         expect(source).not.toContain('className="onboarding-actions"');
         expect(source).not.toContain('className="sr-meta-row"');
         expect(source).not.toContain('className="sm"');
-        expect(source).not.toMatch(/\bbg-(background|card|muted)\b/);
+        expect(source).not.toMatch(
+            /\bbg-(slate|gray|zinc|neutral|stone|red|orange|amber|yellow|lime|green|emerald|teal|cyan|sky|blue|indigo|violet|purple|fuchsia|pink|rose)(?:[/-]\d+)?\b/,
+        );
         expect(source).not.toMatch(OLD_UI_CONTRACT_RE);
     });
 

@@ -39,8 +39,7 @@ const EXPECTED_DASHBOARD_DRAWER_ACTIVE_DOT_CLASS_NAME =
     "absolute top-1.5 right-1.5 hidden size-1.5 rounded-full bg-[var(--accent)]";
 const EXPECTED_RECORDING_WORKSTATION_WORKSPACE_CLASS_NAME =
     "grid flex-1 min-h-0 grid-cols-[380px_1fr] gap-4 px-5 pt-4 pb-5 max-[860px]:min-w-0 max-[860px]:max-w-full max-[860px]:box-border max-[860px]:grid-cols-[minmax(0,1fr)]";
-const EXPECTED_DETAIL_PANEL_CLASS_NAME =
-    "flex min-h-0 min-w-0 flex-col gap-4";
+const EXPECTED_DETAIL_PANEL_CLASS_NAME = "flex min-h-0 min-w-0 flex-col gap-4";
 const EXPECTED_RECORDING_WORKSTATION_DETAIL_PANEL_CLASS_NAME =
     "flex min-h-0 min-w-0 flex-col gap-4 max-[860px]:max-w-full max-[860px]:box-border";
 const EXPECTED_RECORDING_DETAIL_LIST_CARD_CLASS_NAME =
@@ -409,7 +408,7 @@ const RECORDING_ROUTE_EMPTY_TITLE_CLASS_VALUE =
 const RECORDING_ROUTE_EMPTY_DESCRIPTION_CLASS_VALUE =
     "max-w-[320px] [font:500_12.5px/1.55_var(--font-sans)] text-[var(--fg-tertiary)]";
 const EXPECTED_DASHBOARD_RECORDING_PLAYER_CARD_CLASS_NAME =
-    "block min-h-[114px] gap-0 overflow-visible rounded-[16px] border-[var(--glass-border-soft)] bg-[rgb(255_255_255_/_0.025)] px-[18px] py-[16px] shadow-none backdrop-blur-none";
+    "block min-h-[114px] gap-0 overflow-visible rounded-[16px] border border-[var(--line-hairline)] bg-[var(--bg-elevated)] px-[18px] py-[16px] shadow-none backdrop-blur-none";
 const DASHBOARD_RECORDING_PLAYER_WORKSTATION_CLASS_INITIALIZERS = [
     {
         constName: "SOT_DASHBOARD_RECORDING_PLAYER_CARD_CLASS_NAME",
@@ -471,7 +470,7 @@ const SOT_PLAYER_NO_AUDIO_CLASS_INITIALIZERS = [
     {
         constName: "SOT_PLAYER_NO_AUDIO_ICON_CLASS",
         expected:
-            "inline-grid size-[26px] flex-none place-items-center rounded-[50%] bg-[color-mix(in_srgb,var(--signal-warning)_18%,transparent)] text-[var(--signal-warning)] [&_svg]:size-[14px]",
+            "inline-grid size-[26px] flex-none place-items-center rounded-[50%] bg-[var(--system-banner-offline-icon-bg)] text-[var(--signal-warning)] [&_svg]:size-[14px]",
     },
     {
         constName: "SOT_PLAYER_NO_AUDIO_TEXT_CLASS",
@@ -492,12 +491,12 @@ const SOT_PLAYER_SOURCE_CLASS_INITIALIZERS = [
     {
         constName: "SOT_PLAYER_SOURCE_BADGE_CLASS",
         expected:
-            "h-[22px] flex-none justify-normal gap-[6px] rounded-[6px] border-[var(--line-hairline)] bg-[var(--bg-elevated)] py-0 pl-[3px] pr-[8px] [font:600_11.5px_var(--font-sans)] text-[var(--fg-secondary)] shadow-[var(--shadow-xs)] dark:border-[var(--glass-border)] dark:bg-[rgb(255_255_255_/_0.04)] dark:text-[var(--fg-primary)]",
+            "h-[22px] flex-none justify-normal gap-[6px] rounded-[6px] border-border bg-card py-0 pl-[3px] pr-[8px] [font:600_11.5px_var(--font-sans)] text-muted-foreground shadow-xs",
     },
     {
         constName: "SOT_PLAYER_SOURCE_ICON_CLASS",
         expected:
-            "inline-flex size-[16px] flex-none shrink-0 items-center justify-center overflow-hidden rounded-[4px] border border-[var(--line-hairline)] bg-white data-[sot-source-icon=letter]:bg-[var(--bg-recessed)] data-[sot-source-icon=letter]:[font:700_9px_var(--font-sans)] data-[sot-source-icon=letter]:text-[var(--fg-secondary)] [&[data-sot-cover=true]_img]:object-cover",
+            "inline-flex size-[16px] flex-none shrink-0 items-center justify-center overflow-hidden rounded-[4px] border border-border bg-background data-[sot-source-icon=letter]:bg-muted data-[sot-source-icon=letter]:[font:700_9px_var(--font-sans)] data-[sot-source-icon=letter]:text-muted-foreground [&[data-sot-cover=true]_img]:object-cover",
     },
     {
         constName: "SOT_PLAYER_SOURCE_ICON_IMAGE_CLASS",
@@ -677,7 +676,7 @@ const DASHBOARD_SEARCH_ACTIVITY_FEATURE_OWNER_CLASS_SNIPPETS = [
             "gap-[6px]",
             "px-[12px] py-[8px]",
             "bg-[var(--bg-recessed)]",
-            "dark:bg-[rgb(255_255_255_/_0.03)]",
+            "border-[var(--line-hairline)]",
         ],
     },
     {
@@ -688,9 +687,9 @@ const DASHBOARD_SEARCH_ACTIVITY_FEATURE_OWNER_CLASS_SNIPPETS = [
             "px-[10px]",
             "[font:500_11.5px/1_var(--font-sans)]",
             "text-[var(--fg-tertiary)] shadow-none",
-            "data-[state=on]:border-[color-mix(in_srgb,var(--accent)_36%,transparent)]",
-            "data-[state=on]:bg-[var(--accent-soft)]",
-            "data-[state=on]:text-[var(--accent)]",
+            "data-[state=on]:border-primary/30",
+            "data-[state=on]:bg-primary/10",
+            "data-[state=on]:text-primary",
         ],
     },
     {
@@ -717,7 +716,8 @@ const DASHBOARD_SEARCH_ACTIVITY_FEATURE_OWNER_CLASS_SNIPPETS = [
             "hover:bg-[var(--bg-recessed)]",
             "focus-visible:bg-[var(--bg-recessed)]",
             "focus-visible:outline-none",
-            "focus-visible:shadow-[inset_0_0_0_2px_color-mix(in_srgb,var(--accent)_50%,transparent)]",
+            "focus-visible:ring-2",
+            "focus-visible:ring-ring/50",
             "[&_[data-sot-part=library-search-result-meta]]:font-mono",
             "[&_[data-sot-part=library-search-result-meta]]:text-[11.5px]",
             "[&_[data-sot-part=library-search-result-title]]:[font:600_13px/1.4_var(--font-sans)]",
@@ -727,10 +727,11 @@ const DASHBOARD_SEARCH_ACTIVITY_FEATURE_OWNER_CLASS_SNIPPETS = [
     {
         propertyName: "librarySearchTag",
         snippets: [
-            "[--tag-c:var(--tag-violet)]",
             "h-[22px] w-fit justify-normal gap-[5px]",
             "rounded-[6px]",
-            "bg-[color-mix(in_srgb,var(--tag-c)_12%,var(--bg-elevated))]",
+            "border-primary/20",
+            "bg-primary/10",
+            "text-primary",
             "[&>svg]:size-[11px]",
         ],
     },
@@ -753,7 +754,8 @@ const DASHBOARD_SEARCH_ACTIVITY_FEATURE_OWNER_CLASS_SNIPPETS = [
     {
         propertyName: "librarySearchStateSkeleton",
         snippets: [
-            "bg-[color-mix(in_srgb,var(--signal-info)_14%,transparent)]",
+            "bg-primary/10",
+            "after:bg-[linear-gradient(90deg,transparent,var(--signal-info)_50%,transparent)]",
             "after:animate-[sbn-sweep_1.4s_linear_infinite]",
         ],
     },
@@ -769,7 +771,7 @@ const DASHBOARD_SEARCH_ACTIVITY_FEATURE_OWNER_CLASS_SNIPPETS = [
         snippets: [
             "px-[4px] py-[6px]",
             "[&+&]:border-t",
-            "dark:[&+&]:border-[var(--glass-border-soft)]",
+            "[&+&]:border-[var(--line-hairline)]",
         ],
     },
     {
@@ -782,11 +784,7 @@ const DASHBOARD_SEARCH_ACTIVITY_FEATURE_OWNER_CLASS_SNIPPETS = [
     },
     {
         propertyName: "librarySearchHighlight",
-        snippets: [
-            "bg-[color-mix(in_srgb,var(--accent)_22%,transparent)]",
-            "px-[2px]",
-            "text-[var(--accent)]",
-        ],
+        snippets: ["bg-primary/10", "px-[2px]", "text-primary"],
     },
     {
         propertyName: "dashboardActivityClose",
@@ -832,7 +830,7 @@ const DASHBOARD_SEARCH_ACTIVITY_FEATURE_OWNER_CLASS_SNIPPETS = [
             "flex items-center gap-2.5",
             "bg-[var(--bg-recessed)]",
             "data-[state=running]:[&_[data-sot-part=dashboard-activity-status-indicator]]:animate-[bpulse_1.4s_ease-in-out_infinite]",
-            "dark:bg-[rgb(255_255_255_/_0.03)]",
+            "data-[state=running]:[&_[data-sot-part=dashboard-activity-status-indicator]]:bg-[var(--signal-info)]",
         ],
     },
     {
@@ -843,8 +841,10 @@ const DASHBOARD_SEARCH_ACTIVITY_FEATURE_OWNER_CLASS_SNIPPETS = [
         propertyName: "dashboardActivityItem",
         snippets: [
             "grid grid-cols-[26px_1fr_auto]",
-            "data-[kind=queued]:[&_[data-sot-part=dashboard-activity-item-icon]]:bg-[color-mix(in_srgb,var(--fg-tertiary)_16%,transparent)]",
-            "data-[kind=partial-failed]:[&_[data-sot-part=dashboard-activity-item-icon]]:bg-[color-mix(in_srgb,var(--signal-warning)_16%,transparent)]",
+            "data-[kind=queued]:[&_[data-sot-part=dashboard-activity-item-icon]]:bg-[var(--system-banner-neutral-icon-bg)]",
+            "data-[kind=queued]:[&_[data-sot-part=dashboard-activity-item-icon]]:text-[var(--fg-tertiary)]",
+            "data-[kind=partial-failed]:[&_[data-sot-part=dashboard-activity-item-icon]]:bg-[var(--system-banner-offline-icon-bg)]",
+            "data-[kind=partial-failed]:[&_[data-sot-part=dashboard-activity-item-icon]]:text-[var(--signal-warning)]",
         ],
     },
     {
@@ -863,7 +863,8 @@ const DASHBOARD_SEARCH_ACTIVITY_FEATURE_OWNER_CLASS_SNIPPETS = [
         snippets: [
             "size-[22px]",
             "hover:bg-[var(--bg-recessed)] hover:text-[var(--fg-primary)]",
-            "focus-visible:outline-[color-mix(in_srgb,var(--accent)_55%,transparent)]",
+            "focus-visible:outline-2",
+            "focus-visible:outline-ring",
             "[&_svg:not([class*='size-'])]:size-[11px]",
         ],
     },
@@ -2083,10 +2084,10 @@ const EXPECTED_DASHBOARD_TRANSCRIPT_ACTIONS_CLASS_NAME =
 const EXPECTED_DASHBOARD_TRANSCRIPT_BODY_BASE_CLASS_NAME =
     "min-h-0 flex-1 overflow-y-auto px-5 pt-4 pb-5";
 const EXPECTED_DASHBOARD_TRANSCRIPT_SHELL_CARD_CLASS_NAME =
-    "flex min-h-0 flex-1 flex-col gap-0 rounded-[16px] border border-[var(--line-hairline)] bg-[var(--bg-elevated)] shadow-[var(--shadow-sm)] backdrop-blur-none dark:border-[var(--glass-border-soft)] dark:bg-[rgb(255_255_255_/_0.025)] dark:shadow-none";
+    "flex min-h-0 flex-1 flex-col gap-0 rounded-[16px] border border-[var(--line-hairline)] bg-[var(--bg-elevated)] shadow-[var(--shadow-sm)] backdrop-blur-none";
 
 const EXPECTED_SOURCE_REPORT_STATUS_BADGE_CLASS_NAME =
-    "h-[22px] min-w-[65px] justify-normal gap-[9px] overflow-visible rounded-full border px-[8px] py-0 text-[11px] font-semibold leading-[normal] shadow-none data-[sot-tone=err]:border-[var(--source-report-status-err-border)] data-[sot-tone=err]:bg-[var(--source-report-status-err-bg)] data-[sot-tone=err]:text-[var(--signal-danger)] data-[sot-tone=neu]:border-[var(--line-hairline)] data-[sot-tone=neu]:bg-[var(--bg-recessed)] data-[sot-tone=neu]:text-[var(--fg-secondary)] data-[sot-tone=ok]:border-[var(--source-report-status-ok-border)] data-[sot-tone=ok]:bg-[var(--source-report-status-ok-bg)] data-[sot-tone=ok]:text-[var(--source-report-status-ok-fg)] data-[sot-tone=warn]:border-[var(--source-report-status-warn-border)] data-[sot-tone=warn]:bg-[var(--source-report-status-warn-bg)] data-[sot-tone=warn]:text-[var(--source-report-status-warn-fg)] [&_[data-sot-part=dashboard-source-report-status-dot]]:mr-0 [&_[data-sot-part=dashboard-source-report-status-dot]]:inline-block [&_[data-sot-part=dashboard-source-report-status-dot]]:size-[5px] [&_[data-sot-part=dashboard-source-report-status-dot]]:rounded-full [&_[data-sot-part=dashboard-source-report-status-dot]]:bg-current [&_[data-sot-part=source-report-status-dot]]:mr-0 [&_[data-sot-part=source-report-status-dot]]:inline-block [&_[data-sot-part=source-report-status-dot]]:size-[5px] [&_[data-sot-part=source-report-status-dot]]:rounded-full [&_[data-sot-part=source-report-status-dot]]:bg-current";
+    "h-[22px] min-w-[65px] justify-normal gap-[9px] overflow-visible rounded-full border px-[8px] py-0 text-[11px] font-semibold leading-[normal] shadow-none data-[sot-tone=err]:border-destructive/30 data-[sot-tone=err]:bg-destructive/10 data-[sot-tone=err]:text-destructive data-[sot-tone=neu]:border-border data-[sot-tone=neu]:bg-muted data-[sot-tone=neu]:text-muted-foreground data-[sot-tone=ok]:border-chart-3/30 data-[sot-tone=ok]:bg-chart-3/10 data-[sot-tone=ok]:text-chart-3 data-[sot-tone=warn]:border-chart-4/30 data-[sot-tone=warn]:bg-chart-4/10 data-[sot-tone=warn]:text-chart-4 [&_[data-sot-part=dashboard-source-report-status-dot]]:mr-0 [&_[data-sot-part=dashboard-source-report-status-dot]]:inline-block [&_[data-sot-part=dashboard-source-report-status-dot]]:size-[5px] [&_[data-sot-part=dashboard-source-report-status-dot]]:rounded-full [&_[data-sot-part=dashboard-source-report-status-dot]]:bg-current [&_[data-sot-part=source-report-status-dot]]:mr-0 [&_[data-sot-part=source-report-status-dot]]:inline-block [&_[data-sot-part=source-report-status-dot]]:size-[5px] [&_[data-sot-part=source-report-status-dot]]:rounded-full [&_[data-sot-part=source-report-status-dot]]:bg-current";
 
 const CARD_PRIMITIVE_FORBIDDEN_BUSINESS_TOKENS = [
     "onboarding",
@@ -2218,8 +2219,8 @@ const AUTH_LOGIN_FEATURE_OWNER_CLASS_SNIPPETS = [
         snippets: [
             "h-[38px]",
             "w-full",
-            "bg-[var(--accent)]",
-            "text-white",
+            "rounded-[8px]",
+            "font-semibold",
             "focus-visible:border-primary",
         ],
     },
@@ -2340,7 +2341,8 @@ const DASHBOARD_SOURCE_FILTER_FEATURE_OWNER_CLASS_SNIPPETS = [
     "root:",
     "gap-x-2 gap-y-1.5",
     "border-b border-[var(--line-hairline)]",
-    "dark:border-[var(--glass-border-soft)]",
+    "bg-[var(--bg-recessed)]",
+    "text-[var(--fg-tertiary)]",
     "from:",
     "flex-[0_1_auto]",
     "[&_b]:font-bold",
@@ -2350,7 +2352,8 @@ const DASHBOARD_SOURCE_FILTER_FEATURE_OWNER_CLASS_SNIPPETS = [
     "chip:",
     "h-[22px]",
     "gap-1.5",
-    "dark:border-[var(--glass-border)]",
+    "border-[var(--line-hairline)]",
+    "bg-[var(--bg-elevated)]",
     "label:",
     "whitespace-nowrap",
     "info:",
@@ -2760,10 +2763,7 @@ function listSourceFiles(directory: string): string[] {
 
 function isOwnerLocalModernColorLine(relativePath: string, line: string) {
     if (relativePath === "features/settings/components/settings-content.tsx") {
-        return (
-            line.includes("source-provider") ||
-            line.includes("bg-[color-mix(in_srgb,var(--bg-recessed)_55%")
-        );
+        return line.includes("source-provider");
     }
 
     if (
@@ -2778,13 +2778,9 @@ function isOwnerLocalModernColorLine(relativePath: string, line: string) {
             line.includes("source-provider") ||
             line.includes("--dashboard-retx-") ||
             line.includes("sbn-sweep") ||
-            line.includes("var(--accent)_22%") ||
-            line.includes("var(--accent)_36%") ||
-            line.includes("--tag-c:var(--tag-violet)") ||
             line.includes("data-sot-part=dashboard-activity") ||
             line.includes("scrollbar-color") ||
-            line.includes("::-webkit-scrollbar") ||
-            line.includes("focus-visible:outline-[color-mix")
+            line.includes("::-webkit-scrollbar")
         );
     }
 
@@ -2792,9 +2788,7 @@ function isOwnerLocalModernColorLine(relativePath: string, line: string) {
         relativePath ===
         "features/recordings/components/recording-tag-manager.tsx"
     ) {
-        return line.includes(
-            "bg-[color-mix(in_srgb,var(--accent)_70%,transparent)]",
-        );
+        return false;
     }
 
     if (relativePath === "features/source-report/styles.ts") {
@@ -2826,54 +2820,6 @@ function collectInlineModernColorFindings() {
         for (const [index, line] of lines.entries()) {
             if (!MODERN_COLOR_RE.test(line)) continue;
 
-            const sharedNoAudioPrimitiveColor =
-                relativePath ===
-                    "features/recordings/components/sot-player-primitives.tsx" &&
-                line.includes(
-                    "bg-[color-mix(in_srgb,var(--signal-warning)_18%,transparent)]",
-                );
-            if (sharedNoAudioPrimitiveColor) continue;
-
-            const sharedPlayerStatusPrimitiveColor =
-                relativePath ===
-                    "features/recordings/components/sot-player-primitives.tsx" &&
-                line.includes("--sot-player-status-");
-            if (sharedPlayerStatusPrimitiveColor) continue;
-
-            const sharedPlayerTagChipPrimitiveColor =
-                relativePath ===
-                    "features/recordings/components/sot-player-primitives.tsx" &&
-                line.includes("--sot-player-tag-chip-bg:color-mix") &&
-                line.includes("--sot-player-tag-chip-fg:color-mix");
-            if (sharedPlayerTagChipPrimitiveColor) continue;
-
-            const sharedRecordingTagChipVisualColor =
-                relativePath ===
-                    "features/recordings/components/recording-tag-visuals.tsx" &&
-                line.includes("--sot-player-tag-chip-bg:color-mix") &&
-                line.includes("--sot-player-tag-chip-fg:color-mix");
-            if (sharedRecordingTagChipVisualColor) continue;
-
-            const sharedPlayerPrimaryButtonColor =
-                relativePath ===
-                    "features/recordings/components/sot-player-primitives.tsx" &&
-                line.includes(
-                    "color-mix(in_srgb,var(--accent)_60%,black_8%)",
-                ) &&
-                line.includes("linear-gradient");
-            if (sharedPlayerPrimaryButtonColor) continue;
-
-            const onboardingDefaultSourceSotColor =
-                relativePath ===
-                    "features/onboarding/components/onboarding-form.tsx" &&
-                (line.includes(
-                    "color-mix(in oklab, var(--accent) 6%, transparent)",
-                ) ||
-                    line.includes(
-                        "color-mix(in_oklab,var(--accent)_6%,transparent)",
-                    ));
-            if (onboardingDefaultSourceSotColor) continue;
-
             if (isOwnerLocalModernColorLine(relativePath, line)) {
                 continue;
             }
@@ -2897,6 +2843,10 @@ function collectInlineModernColorFindings() {
     for (const [index, line] of tagVisualLines.entries()) {
         if (!line.includes("tagSwatchStyle(")) continue;
         if (/^\s*function tagSwatchStyle\(/.test(line)) continue;
+        const semanticTokenCall = line.match(
+            /^\s*(red|orange|green|blue|purple|slate): tagSwatchStyle\("(red|orange|green|blue|purple|slate)"\),$/,
+        );
+        if (semanticTokenCall?.[1] === semanticTokenCall?.[2]) continue;
         if (
             !/^\s*(red|orange|green|blue|purple|slate): tagSwatchStyle\("oklch\([^)]+\)"\),$/.test(
                 line,
@@ -3033,26 +2983,30 @@ const SOURCE_REPORT_SKELETON_SHARED_TOKENS = [
 ] as const;
 
 const EXPECTED_SOURCE_REPORT_METRIC_CARD_CLASS_NAME =
-    "gap-[6px] overflow-visible rounded-[10px] border-[var(--source-report-metric-border)] bg-[var(--source-report-metric-bg)] px-[12px] py-[10px] shadow-none backdrop-blur-none";
+    "gap-[6px] overflow-visible rounded-[10px] border-border bg-muted/40 px-[12px] py-[10px] shadow-none backdrop-blur-none";
 const SOURCE_REPORT_METRIC_CARD_CLASS_TOKENS =
     EXPECTED_SOURCE_REPORT_METRIC_CARD_CLASS_NAME.split(" ");
 const SOURCE_REPORT_STYLE_OWNER_SNIPPETS = [
     "type SourceReportStyleVariables = CSSProperties & {",
     "export const SOURCE_REPORT_STYLE_VARIABLES = {",
-    '"--source-report-metric-bg": "var(--card-popover-footer-bg)"',
-    '"--source-report-metric-border": "var(--card-elevated-border)"',
-    '"--source-report-status-ok-fg": "oklch(0.62 0.13 158)"',
-    '"--source-report-status-warn-fg": "oklch(0.55 0.16 70)"',
-    '"--source-report-skeleton-bg":',
-    "linear-gradient(90deg, color-mix(in srgb, var(--fg-primary) 5%, transparent)",
+    '"--source-report-metric-bg": "var(--bg-recessed)"',
+    '"--source-report-metric-border": "var(--line-hairline)"',
+    '"--source-report-status-ok-fg": "var(--signal-success)"',
+    '"--source-report-status-ok-bg": "var(--bg-recessed)"',
+    '"--source-report-status-ok-border": "var(--line-hairline)"',
+    '"--source-report-status-warn-bg": "var(--bg-recessed)"',
+    '"--source-report-status-warn-border": "var(--line-hairline)"',
+    '"--source-report-status-warn-fg": "var(--signal-warning-strong)"',
+    '"--source-report-status-err-bg": "var(--bg-recessed)"',
+    '"--source-report-status-err-border": "var(--line-hairline)"',
+    '"--source-report-skeleton-bg": "var(--bg-recessed)"',
     "export const SOURCE_REPORT_SKELETON_CLASS_NAME =",
     "export type SourceReportTone =",
     "export type SourceReportCardSkeletonSize =",
     "export type SourceReportSegmentSkeletonSize =",
     "export const SOURCE_REPORT_CARD_SKELETON_CLASS_NAMES =",
     "export const SOURCE_REPORT_SEGMENT_SKELETON_CLASS_NAMES =",
-    "![background-color:transparent]",
-    "dark:[background-image:linear-gradient(90deg,rgb(255_255_255_/_0.05)_0%,rgb(255_255_255_/_0.12)_50%,rgb(255_255_255_/_0.05)_100%)]",
+    '"bg-muted"',
     "export const SOURCE_REPORT_PANE_CLASS_NAME =",
     "export const SOURCE_REPORT_METRIC_CARD_CLASS_NAME =",
     "export const SOURCE_REPORT_MISSING_NOTICE_CLASS_NAME =",
@@ -3167,13 +3121,13 @@ const SOURCE_REPORT_SKELETON_OWNER_TOKENS = [
     "SOURCE_REPORT_SKELETON_CLASS_NAME",
     "SOURCE_REPORT_CARD_SKELETON_CLASS_NAMES",
     "SOURCE_REPORT_SEGMENT_SKELETON_CLASS_NAMES",
-    "count: `${SOURCE_REPORT_SKELETON_CLASS_NAME} inline-block h-[18px] w-[48px] align-middle rounded-[6px]`",
-    "status: `${SOURCE_REPORT_SKELETON_CLASS_NAME} inline-block h-[18px] w-[80px] align-middle rounded-[6px]`",
-    "source: `${SOURCE_REPORT_SKELETON_CLASS_NAME} inline-block h-[18px] w-[120px] align-middle rounded-[6px]`",
-    '"line-long": `${SOURCE_REPORT_SKELETON_CLASS_NAME} mt-1.5 inline-block h-[13px] w-[92%] align-middle rounded-[4px]`',
-    '"line-wide": `${SOURCE_REPORT_SKELETON_CLASS_NAME} mt-[7px] inline-block h-[13px] w-[88%] align-middle rounded-[4px]`',
-    "speaker: `${SOURCE_REPORT_SKELETON_CLASS_NAME} ml-[5px] inline-block h-[12px] w-[54px] align-middle rounded-[4px]`",
-    "time: `${SOURCE_REPORT_SKELETON_CLASS_NAME} inline-block h-[12px] w-[96px] align-middle rounded-[4px]`",
+    `count: \`\${SOURCE_REPORT_SKELETON_CLASS_NAME} inline-block h-[18px] w-[48px] align-middle rounded-[6px]\``,
+    `status: \`\${SOURCE_REPORT_SKELETON_CLASS_NAME} inline-block h-[18px] w-[80px] align-middle rounded-[6px]\``,
+    `source: \`\${SOURCE_REPORT_SKELETON_CLASS_NAME} inline-block h-[18px] w-[120px] align-middle rounded-[6px]\``,
+    `"line-long": \`\${SOURCE_REPORT_SKELETON_CLASS_NAME} mt-1.5 inline-block h-[13px] w-[92%] align-middle rounded-[4px]\``,
+    `"line-wide": \`\${SOURCE_REPORT_SKELETON_CLASS_NAME} mt-[7px] inline-block h-[13px] w-[88%] align-middle rounded-[4px]\``,
+    `speaker: \`\${SOURCE_REPORT_SKELETON_CLASS_NAME} ml-[5px] inline-block h-[12px] w-[54px] align-middle rounded-[4px]\``,
+    `time: \`\${SOURCE_REPORT_SKELETON_CLASS_NAME} inline-block h-[12px] w-[96px] align-middle rounded-[4px]\``,
 ] as const;
 
 const SOURCE_REPORT_EMPTY_LEGACY_CSS_SELECTOR_RE =
@@ -3476,16 +3430,16 @@ const DASHBOARD_RETRANSCRIPTION_OWNER_CLASS_SNIPPETS = [
 ] as const;
 
 const DASHBOARD_RETRANSCRIPTION_THEME_CLASS_SNIPPETS = [
-    "--dashboard-retx-info-bg:color-mix(in_srgb,var(--signal-info)_8%,transparent)",
-    "--dashboard-retx-info-border:color-mix(in_srgb,var(--signal-info)_26%,transparent)",
-    "--dashboard-retx-info-icon-border:color-mix(in_srgb,var(--signal-info)_30%,transparent)",
-    "--dashboard-retx-danger-bg:color-mix(in_srgb,var(--signal-danger)_6%,transparent)",
-    "--dashboard-retx-danger-border:color-mix(in_srgb,var(--signal-danger)_24%,transparent)",
-    "--dashboard-retx-danger-icon-border:color-mix(in_srgb,var(--signal-danger)_30%,transparent)",
-    "--dashboard-retx-success-bg:color-mix(in_srgb,var(--signal-success)_8%,transparent)",
-    "--dashboard-retx-success-border:color-mix(in_srgb,var(--signal-success)_28%,transparent)",
-    "--dashboard-retx-success-icon-border:color-mix(in_srgb,var(--signal-success)_30%,transparent)",
-    "--dashboard-retx-success-marker-bg:color-mix(in_srgb,var(--signal-success)_12%,transparent)",
+    "--dashboard-retx-info-bg:var(--system-banner-progress-bg)",
+    "--dashboard-retx-info-border:var(--system-banner-progress-border)",
+    "--dashboard-retx-info-icon-border:var(--system-banner-progress-border)",
+    "--dashboard-retx-danger-bg:var(--alert-destructive-soft-bg)",
+    "--dashboard-retx-danger-border:var(--alert-destructive-soft-border)",
+    "--dashboard-retx-danger-icon-border:var(--button-copy-danger-border)",
+    "--dashboard-retx-success-bg:var(--button-copy-success-bg)",
+    "--dashboard-retx-success-border:var(--button-copy-success-border)",
+    "--dashboard-retx-success-icon-border:var(--button-copy-success-border)",
+    "--dashboard-retx-success-marker-bg:var(--button-copy-success-bg)",
 ] as const;
 
 const DASHBOARD_RETRANSCRIPTION_GLOBAL_TOKEN_DEFINITION_RE =
@@ -4016,7 +3970,7 @@ const AI_RENAME_PREVIEW_FEATURE_OWNER_CLASS_SNIPPETS = [
         label: "body",
         snippets: [
             "p-[14px]",
-            "loadingContent: \"h-[78px]\"",
+            'loadingContent: "h-[78px]"',
             "font-display text-[15px] font-semibold leading-[1.4]",
         ],
     },
@@ -4072,7 +4026,9 @@ describe("full UI replacement regression coverage", () => {
     it("keeps dashboard and recording workstation brand globals migrated to owner-local classes", () => {
         const globals = readSource("app/globals.css");
         const workstation = readSource("features/dashboard/workstation.tsx");
-        const detailWorkstation = readSource("features/recordings/workstation.tsx");
+        const detailWorkstation = readSource(
+            "features/recordings/workstation.tsx",
+        );
         const dashboardBrandClassNames = extractBoundedSlice(
             workstation,
             "const dashboardBrandClassNames = {",
@@ -4110,9 +4066,12 @@ describe("full UI replacement regression coverage", () => {
             expected,
             property,
         } of DASHBOARD_BRAND_OWNER_CLASS_INITIALIZERS) {
-            expect(extractObjectStringProperty(dashboardBrandClassNames, property)).toBe(
-                `${property}: "${expected}"`,
+            const propertyInitializer = extractObjectStringProperty(
+                dashboardBrandClassNames,
+                property,
             );
+            expect(propertyInitializer).toContain(`${property}:`);
+            expect(propertyInitializer).toContain(`"${expected}"`);
             if (property !== "wrapper") {
                 expect(workstation).toContain(
                     `className={dashboardBrandClassNames.${property}}`,
@@ -5458,9 +5417,7 @@ describe("full UI replacement regression coverage", () => {
             expect(routeSource).toContain(
                 "className={routeChromeStyles.sidebar}",
             );
-            expect(routeSource).toContain(
-                "className={routeChromeStyles.main}",
-            );
+            expect(routeSource).toContain("className={routeChromeStyles.main}");
             expect(routeSource).toContain(
                 "className={routeChromeStyles.topbar}",
             );
@@ -5603,7 +5560,8 @@ describe("full UI replacement regression coverage", () => {
     it("keeps dashboard sidebar footer and list residuals owner-local", () => {
         const globals = readSource("app/globals.css");
         const workstation = readSource("features/dashboard/workstation.tsx");
-        const featureOwnerClassSource = collectFeatureOwnerClassSource(workstation);
+        const featureOwnerClassSource =
+            collectFeatureOwnerClassSource(workstation);
         const legacySelectorLines = globals
             .split("\n")
             .map((text, index) => ({ line: index + 1, text }))
@@ -5671,7 +5629,7 @@ describe("full UI replacement regression coverage", () => {
             "m-0 font-sans text-[13px] font-semibold text-[var(--fg-primary)]",
             "ml-auto font-mono text-[11.5px] font-medium text-[var(--fg-tertiary)]",
             "[scrollbar-width:thin]",
-            "[&::-webkit-scrollbar-thumb:hover]:bg-[color-mix(in_srgb,var(--fg-tertiary)_55%,transparent)]",
+            "[&::-webkit-scrollbar-thumb:hover]:bg-muted-foreground/55",
             "flex-1 overflow-y-auto p-1",
             "m-2 flex flex-col items-center gap-1.5",
             "relative mt-1.5 mb-[14px] h-px",
@@ -5875,9 +5833,7 @@ describe("full UI replacement regression coverage", () => {
         expect(drawerTriggerClassNames).toContain(
             "group-data-[source-filter-active=true]/dashboard-workstation:[&_[data-sot-part=dashboard-drawer-active-dot]]:inline-block",
         );
-        expect(sidebarCollapseButtonClassNames).toContain(
-            "max-[860px]:hidden",
-        );
+        expect(sidebarCollapseButtonClassNames).toContain("max-[860px]:hidden");
         expect(
             extractObjectStringProperty(dashboardDrawerClassNames, "scrim"),
         ).toContain(`"${EXPECTED_DASHBOARD_DRAWER_SCRIM_CLASS_NAME}"`);
@@ -5899,10 +5855,18 @@ describe("full UI replacement regression coverage", () => {
             drawerActiveDot,
             "dashboardDrawerClassNames.activeDot",
         );
-        expect(workstation).toContain("dashboardSidebarCollapseClassNames.sidebar");
-        expect(workstation).toContain("dashboardSidebarCollapseClassNames.hidden");
-        expect(workstation).toContain("dashboardSidebarCollapseClassNames.brand");
-        expect(workstation).toContain("dashboardSidebarCollapseClassNames.favorite");
+        expect(workstation).toContain(
+            "dashboardSidebarCollapseClassNames.sidebar",
+        );
+        expect(workstation).toContain(
+            "dashboardSidebarCollapseClassNames.hidden",
+        );
+        expect(workstation).toContain(
+            "dashboardSidebarCollapseClassNames.brand",
+        );
+        expect(workstation).toContain(
+            "dashboardSidebarCollapseClassNames.favorite",
+        );
         expect(workstation).toContain("dashboardSyncClassNames.panel");
         expect(productCss).not.toContain(
             'Desktop sidebar-collapsed — bridge body[data-sidebar="collapsed"]',
@@ -6388,7 +6352,9 @@ describe("full UI replacement regression coverage", () => {
         expect(transcriptEmpty).toContain(
             'data-sot-panel="dashboard-transcript-empty"',
         );
-        expect(transcriptEmpty).toContain("dashboardTranscriptClassNames.empty");
+        expect(transcriptEmpty).toContain(
+            "dashboardTranscriptClassNames.empty",
+        );
         expect(transcriptEmpty).toContain("<EmptyHeader");
         expect(transcriptEmpty).toContain(
             "dashboardTranscriptClassNames.emptyHeader",
@@ -6481,17 +6447,10 @@ describe("full UI replacement regression coverage", () => {
         expect(findings).toEqual([]);
     });
 
-    it("keeps inline OKLCH tag swatches limited to the SOT catalog", () => {
+    it("keeps inline OKLCH tag swatches removed from the SOT catalog", () => {
         const findings = collectInlineModernColorFindings();
 
-        expect(findings.catalogSwatches).toEqual([
-            "red",
-            "orange",
-            "green",
-            "blue",
-            "purple",
-            "slate",
-        ]);
+        expect(findings.catalogSwatches).toEqual([]);
         expect(findings.unexpectedModernColorLines).toEqual([]);
         expect(findings.unexpectedTagSwatchCalls).toEqual([]);
     });
@@ -6861,9 +6820,15 @@ describe("full UI replacement regression coverage", () => {
         expect(onboarding).toContain(
             'data-sot-part="onboarding-default-source-swatch"',
         );
-        expect(onboarding).toContain('role="button"');
+        expect(onboarding).toMatch(
+            /<button[\s\S]*data-sot-control="onboarding-default-source"[\s\S]*type="button"/,
+        );
+        expect(onboarding).toContain(
+            "disabled={isSaving || !option.connected}",
+        );
+        expect(onboarding).not.toContain('role="button"');
         expect(onboarding).not.toContain("style={{");
-        expect(onboarding).toContain("tabIndex=");
+        expect(onboarding).not.toContain("tabIndex=");
         expect(onboarding).toContain(
             'data-sot-control="speaker-profile-draft"',
         );
@@ -7071,8 +7036,8 @@ describe("full UI replacement regression coverage", () => {
         expect(onboarding).not.toContain('className="onboarding-actions"');
         expect(onboarding).not.toContain('className="sr-meta-row"');
         expect(onboarding).not.toContain('className="sm"');
-        expect(onboarding).toContain('role="button"');
-        expect(onboarding).toContain("onKeyDown={(event) =>");
+        expect(onboarding).not.toContain('role="button"');
+        expect(onboarding).not.toContain("onKeyDown={(event) =>");
         for (const selector of REMOVED_AUTH_ONBOARDING_CARD_GLOBAL_SELECTORS) {
             expect(globals).not.toContain(selector);
         }
@@ -7188,18 +7153,24 @@ describe("full UI replacement regression coverage", () => {
             "const dashboardNavClassNames = {",
             "} as const;",
         );
-        expect(extractObjectStringProperty(dashboardNavClassNames, "root")).toBe(
-            'root: "flex flex-1 flex-col gap-0.5 overflow-y-auto pb-3"',
-        );
+        expect(
+            extractObjectStringProperty(dashboardNavClassNames, "root"),
+        ).toBe('root: "flex flex-1 flex-col gap-0.5 overflow-y-auto pb-3"');
         expect(
             extractObjectStringProperty(dashboardNavClassNames, "sectionLabel"),
         ).toContain("tracking-[0.08em]");
         expect(
-            extractObjectStringProperty(dashboardNavClassNames, "favoriteCount"),
+            extractObjectStringProperty(
+                dashboardNavClassNames,
+                "favoriteCount",
+            ),
         ).toContain("data-[sot-state=selected]:bg-[var(--bg-elevated)]");
         expect(
-            extractObjectStringProperty(dashboardNavClassNames, "favoriteCount"),
-        ).toContain("dark:data-[sot-state=selected]:bg-[var(--glass-tint-base)]");
+            extractObjectStringProperty(
+                dashboardNavClassNames,
+                "favoriteCount",
+            ),
+        ).not.toContain("dark:data-[sot-state=selected]");
         const dashboardNav = extractOpeningElement(
             workstation,
             'data-sot-list="dashboard-nav"',
@@ -7280,12 +7251,11 @@ describe("full UI replacement regression coverage", () => {
             'data-sot-panel="dashboard-detail"',
             "section",
         );
-        const dashboardDetailPanelClassName =
-            expectExactStringConstInitializer(
-                workstation,
-                "DASHBOARD_DETAIL_PANEL_CLASS_NAME",
-                EXPECTED_DETAIL_PANEL_CLASS_NAME,
-            );
+        const dashboardDetailPanelClassName = expectExactStringConstInitializer(
+            workstation,
+            "DASHBOARD_DETAIL_PANEL_CLASS_NAME",
+            EXPECTED_DETAIL_PANEL_CLASS_NAME,
+        );
         expectClassNameConstReference(
             dashboardDetailPanel,
             "DASHBOARD_DETAIL_PANEL_CLASS_NAME",
@@ -7374,7 +7344,7 @@ describe("full UI replacement regression coverage", () => {
             "dashboardNavClassNames.favoriteCount",
         );
         expect(dashboardFavoriteCount).toContain(
-            'data-sot-state={\n                                        favorite === item.value',
+            "data-sot-state={\n                                        favorite === item.value",
         );
         const dashboardNavSectionLabel = extractOpeningElement(
             workstation,
@@ -7961,12 +7931,11 @@ describe("full UI replacement regression coverage", () => {
             'data-sot-part="dashboard-recording-list-content"',
             "CardContent",
         );
-        const recordingListContentClassName =
-            expectExactStringConstInitializer(
-                workstation,
-                "DASHBOARD_RECORDING_LIST_CONTENT_CLASS_NAME",
-                EXPECTED_DASHBOARD_RECORDING_LIST_CONTENT_CLASS_NAME,
-            );
+        const recordingListContentClassName = expectExactStringConstInitializer(
+            workstation,
+            "DASHBOARD_RECORDING_LIST_CONTENT_CLASS_NAME",
+            EXPECTED_DASHBOARD_RECORDING_LIST_CONTENT_CLASS_NAME,
+        );
         expect(recordingListCard).toContain(
             'data-sot-surface="dashboard-recording-list"',
         );
@@ -8198,11 +8167,11 @@ describe("full UI replacement regression coverage", () => {
             "group-data-[time-style=abs]/dashboard-workstation:hidden",
             "grayscale",
             "contrast-[0.85]",
-            "dark:brightness-[1.4]",
             "object-cover",
-            "dark:opacity-60",
-            "dark:bg-[rgb(255_255_255_/_0.06)]",
-            "dark:border-[var(--glass-border)]",
+            "opacity-60",
+            "border border-[var(--line-hairline)]",
+            "bg-[var(--bg-recessed)]",
+            "text-[var(--fg-tertiary)]",
         ]) {
             expect(dashboardRecordingRowStyleHelper).toContain(
                 rowMetaOwnershipToken,
@@ -9868,8 +9837,12 @@ describe("full UI replacement regression coverage", () => {
         expect(workstation).toContain(
             "SOURCE_REPORT_SUMMARY_MISSING_NOTICE_CLASS_NAME",
         );
-        expect(sourceReportStyles).toContain("SOURCE_REPORT_SKELETON_CLASS_NAME");
-        expect(workstation).toContain("SOURCE_REPORT_CARD_SKELETON_CLASS_NAMES");
+        expect(sourceReportStyles).toContain(
+            "SOURCE_REPORT_SKELETON_CLASS_NAME",
+        );
+        expect(workstation).toContain(
+            "SOURCE_REPORT_CARD_SKELETON_CLASS_NAMES",
+        );
         expect(workstation).toContain(
             "SOURCE_REPORT_SEGMENT_SKELETON_CLASS_NAMES",
         );
@@ -9909,7 +9882,9 @@ describe("full UI replacement regression coverage", () => {
         );
         expect(workstation).not.toContain('variant="sourceReportStatus"');
         expect(workstation).toMatch(/data-sot-tone=\{\s*tone\s*\}/);
-        expect(workstation).not.toMatch(/\bSOURCE_REPORT_STATUS_BADGE_CLASS\s*=/);
+        expect(workstation).not.toMatch(
+            /\bSOURCE_REPORT_STATUS_BADGE_CLASS\s*=/,
+        );
         expect(workstation).not.toContain(
             "SOURCE_REPORT_STATUS_BADGE_TONE_CLASS",
         );
@@ -10210,9 +10185,7 @@ describe("full UI replacement regression coverage", () => {
                     ),
             ),
         ).toEqual([]);
-        expect(globals).not.toContain(
-            '[data-sot-part="detail-header-title"]',
-        );
+        expect(globals).not.toContain('[data-sot-part="detail-header-title"]');
         expect(globals).not.toContain(
             '[data-sot-part="detail-header-action-anchor"]',
         );
@@ -10300,9 +10273,7 @@ describe("full UI replacement regression coverage", () => {
             'hidden={dashboardRetxState !== "completed"}',
         );
         expect(workstation).toContain('dashboardRetxState === "failed" ? (');
-        expect(workstation).toContain(
-            'dashboardRetxState === "completed" &&',
-        );
+        expect(workstation).toContain('dashboardRetxState === "completed" &&');
         expect(workstation).toContain('data-retx-retry=""');
         expect(workstation).toContain('data-retx-dismiss=""');
         expect(globals).not.toMatch(
@@ -10967,7 +10938,10 @@ describe("full UI replacement regression coverage", () => {
         );
         expect(globals).not.toContain('[data-sot-panel="workstation-main"]');
         expect(
-            collectCssRuleBlocks(globals, '[data-sot-panel="workstation-main"]'),
+            collectCssRuleBlocks(
+                globals,
+                '[data-sot-panel="workstation-main"]',
+            ),
         ).toEqual([]);
         const dashboardMainGlobalBlocks = collectCssRuleBlocks(
             globals,
@@ -11031,7 +11005,8 @@ describe("full UI replacement regression coverage", () => {
         );
         for (const { expected, openingElement, constName } of [
             {
-                expected: EXPECTED_RECORDING_WORKSTATION_DETAIL_PANEL_CLASS_NAME,
+                expected:
+                    EXPECTED_RECORDING_WORKSTATION_DETAIL_PANEL_CLASS_NAME,
                 openingElement: recordingDetailPanel,
                 constName: "RECORDING_WORKSTATION_DETAIL_PANEL_CLASS_NAME",
             },
@@ -11383,30 +11358,22 @@ describe("full UI replacement regression coverage", () => {
         expect(badge).not.toContain("[&_[data-sot-part=status-dot]]");
         expect(badge).not.toContain("[&_[data-sot-part=status-label]]");
         for (const playerStatusToken of [
-            "[--sot-player-status-ok-bg:color-mix(in_srgb,var(--signal-success)_14%,transparent)]",
-            "[--sot-player-status-ok-border:color-mix(in_srgb,var(--signal-success)_30%,transparent)]",
-            "[--sot-player-status-info-bg:color-mix(in_srgb,var(--signal-info)_14%,transparent)]",
-            "[--sot-player-status-info-border:color-mix(in_srgb,var(--signal-info)_30%,transparent)]",
-            "[--sot-player-status-warn-bg:color-mix(in_srgb,var(--signal-warning)_18%,transparent)]",
-            "[--sot-player-status-warn-border:color-mix(in_srgb,var(--signal-warning)_32%,transparent)]",
-            "[--sot-player-status-err-bg:color-mix(in_srgb,var(--signal-danger)_14%,transparent)]",
-            "[--sot-player-status-err-border:color-mix(in_srgb,var(--signal-danger)_30%,transparent)]",
             "h-[20px]",
             "min-w-[65.171875px]",
             "justify-normal",
             "gap-[5px]",
             "tracking-[0.005em]",
-            "data-[sot-tone=ok]:border-[var(--sot-player-status-ok-border)]",
-            "data-[sot-tone=ok]:bg-[var(--sot-player-status-ok-bg)]",
+            "data-[sot-tone=ok]:border-[var(--button-copy-success-border)]",
+            "data-[sot-tone=ok]:bg-[var(--button-copy-success-bg)]",
             "data-[sot-tone=ok]:text-[var(--signal-success)]",
-            "data-[sot-tone=warn]:border-[var(--sot-player-status-warn-border)]",
-            "data-[sot-tone=warn]:bg-[var(--sot-player-status-warn-bg)]",
+            "data-[sot-tone=warn]:border-[var(--system-banner-offline-border)]",
+            "data-[sot-tone=warn]:bg-[var(--system-banner-offline-bg)]",
             "data-[sot-tone=warn]:text-[var(--signal-warning-strong)]",
-            "data-[sot-tone=err]:border-[var(--sot-player-status-err-border)]",
-            "data-[sot-tone=err]:bg-[var(--sot-player-status-err-bg)]",
+            "data-[sot-tone=err]:border-[var(--alert-destructive-soft-border)]",
+            "data-[sot-tone=err]:bg-[var(--alert-destructive-soft-bg)]",
             "data-[sot-tone=err]:text-[var(--signal-danger)]",
-            "data-[sot-tone=info]:border-[var(--sot-player-status-info-border)]",
-            "data-[sot-tone=info]:bg-[var(--sot-player-status-info-bg)]",
+            "data-[sot-tone=info]:border-[var(--system-banner-update-border)]",
+            "data-[sot-tone=info]:bg-[var(--system-banner-update-bg)]",
             "data-[sot-tone=info]:text-[var(--signal-info)]",
             "data-[sot-tone=neu]:border-[var(--line-hairline)]",
             "data-[sot-tone=neu]:bg-[var(--bg-recessed)]",
@@ -11609,7 +11576,10 @@ describe("full UI replacement regression coverage", () => {
         for (const selector of SPEAKER_REVIEW_RESIDUAL_GLOBAL_SELECTORS) {
             expect(globals).not.toContain(selector);
         }
-        for (const { constName, tokens } of SPEAKER_REVIEW_RESIDUAL_OWNER_CLASS_TOKENS) {
+        for (const {
+            constName,
+            tokens,
+        } of SPEAKER_REVIEW_RESIDUAL_OWNER_CLASS_TOKENS) {
             const ownerClass = extractBoundedSlice(
                 speakerReview,
                 `const ${constName} =`,
@@ -12701,12 +12671,8 @@ describe("full UI replacement regression coverage", () => {
         expect(detailHeader).toContain(
             "recordingWorkstationButtonClassNames.headerActionButton",
         );
-        expect(detail).not.toContain(
-            "dark:data-[sot-state=selected]:border",
-        );
-        expect(detail).not.toContain(
-            "dark:data-[sot-state=selected]:bg-[rgb(",
-        );
+        expect(detail).not.toContain("dark:data-[sot-state=selected]:border");
+        expect(detail).not.toContain("dark:data-[sot-state=selected]:bg-[rgb(");
         expect(detail).not.toContain(
             "dark:data-[sot-state=selected]:shadow-none",
         );
@@ -13525,9 +13491,8 @@ describe("full UI replacement regression coverage", () => {
         expect(tagManagerBadgeClassNames).toContain(
             "h-[22px] justify-normal gap-[5px]",
         );
-        expect(tagManagerBadgeClassNames).toContain(
-            "bg-[color-mix(in_srgb,var(--accent)_70%,transparent)]",
-        );
+        expect(tagManagerBadgeClassNames).toContain("bg-primary");
+        expect(tagManagerBadgeClassNames).toContain("text-primary-foreground");
         expect(tagManager).not.toContain("--badge-pill-height");
         expect(tagManager).not.toContain("--badge-check-bg");
         expect(globals).not.toContain("--badge-pill-height");
@@ -13816,8 +13781,12 @@ describe("full UI replacement regression coverage", () => {
         expect(sourceReport).toContain(
             "SOURCE_REPORT_SUMMARY_MISSING_NOTICE_CLASS_NAME",
         );
-        expect(sourceReportStyles).toContain("SOURCE_REPORT_SKELETON_CLASS_NAME");
-        expect(sourceReport).toContain("SOURCE_REPORT_CARD_SKELETON_CLASS_NAMES");
+        expect(sourceReportStyles).toContain(
+            "SOURCE_REPORT_SKELETON_CLASS_NAME",
+        );
+        expect(sourceReport).toContain(
+            "SOURCE_REPORT_CARD_SKELETON_CLASS_NAMES",
+        );
         expect(sourceReport).toContain(
             "SOURCE_REPORT_SEGMENT_SKELETON_CLASS_NAMES",
         );
@@ -13950,12 +13919,13 @@ describe("full UI replacement regression coverage", () => {
             "inline-grid",
             "size-10",
             "place-items-center",
-            "border-[var(--line-hairline)]",
-            "text-[var(--fg-tertiary)]",
+            "border-border",
+            "bg-muted",
+            "text-muted-foreground",
             "[&_svg:not([class*='size-'])]:size-4",
-            "border-[color-mix(in_srgb,var(--signal-danger)_28%,transparent)]",
-            "bg-[color-mix(in_srgb,var(--signal-danger)_14%,transparent)]",
-            "text-[var(--signal-danger)]",
+            "border-destructive/30",
+            "bg-destructive/10",
+            "text-destructive",
         ] as const) {
             expect(sourceReportStyles).toContain(
                 sourceReportEmptyIconStyleSnippet,
@@ -14019,7 +13989,9 @@ describe("full UI replacement regression coverage", () => {
         expect(sourceReportStyles).toContain(
             '"ghost" satisfies ButtonProps["variant"]',
         );
-        expect(sourceReportStyles).toContain('"sm" satisfies ButtonProps["size"]');
+        expect(sourceReportStyles).toContain(
+            '"sm" satisfies ButtonProps["size"]',
+        );
         expect(sourceReport).toContain("SOURCE_REPORT_COPY_BUTTON_CLASS_NAME");
         for (const token of SOURCE_REPORT_SKELETON_SHARED_TOKENS) {
             expect(skeletonPrimitive).not.toContain(token);
@@ -14147,7 +14119,9 @@ describe("full UI replacement regression coverage", () => {
                 legacySourceReportPrimitiveClass,
             );
         }
-        expect(sourceReport).not.toMatch(/\bSOURCE_REPORT_STATUS_BADGE_CLASS\s*=/);
+        expect(sourceReport).not.toMatch(
+            /\bSOURCE_REPORT_STATUS_BADGE_CLASS\s*=/,
+        );
         expect(sourceReport).not.toMatch(
             /\bCSSProperties\b|SOURCE_REPORT_LOADING_SKELETON_STYLES|style=\{(?!SOURCE_REPORT_STYLE_VARIABLES\})|sk _is|_is-/,
         );
@@ -14180,7 +14154,7 @@ describe("full UI replacement regression coverage", () => {
             expect(sotPlayerPrimitives).toContain(sotPlayerTagClassConstant);
         }
         for (const sotPlayerTagClassToken of [
-            "data-[sot-tag-color=blue]:[--tag-c:var(--tag-blue)]",
+            "data-[sot-tag-color=blue]:[--sot-player-tag-chip-fg:var(--tag-blue)]",
             "data-[sot-state=open]:border-[var(--line-strong)]",
             "border-dashed border-[var(--line-hairline)]",
             "hover:border-[var(--line-strong)]",
@@ -14472,8 +14446,9 @@ describe("full UI replacement regression coverage", () => {
         );
         expect(speakerVoiceprintsOpening).toContain("data-sot-section-group");
         expect(
-            speakerProfiles.match(/className=\{speakerSectionGroupClassName\}/g) ??
-                [],
+            speakerProfiles.match(
+                /className=\{speakerSectionGroupClassName\}/g,
+            ) ?? [],
         ).toHaveLength(2);
         expect(speakerRowFields.length).toBeGreaterThanOrEqual(3);
         for (const field of speakerRowFields) {
@@ -14522,9 +14497,9 @@ describe("full UI replacement regression coverage", () => {
         expect(globals).not.toContain(
             '[data-sot-part="speaker-voiceprint-avatar"] [data-slot="avatar-fallback"]',
         );
-        expect(collectExactCssRuleBlocks(globals, "[data-sot-section-group]")).toEqual(
-            [],
-        );
+        expect(
+            collectExactCssRuleBlocks(globals, "[data-sot-section-group]"),
+        ).toEqual([]);
         for (const source of [player, tagManager, sourceReport]) {
             expect(source).not.toContain('className="btn ghost btn-sm"');
             expect(source).not.toContain('className="btn primary btn-sm"');

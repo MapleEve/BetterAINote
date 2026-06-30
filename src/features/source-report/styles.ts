@@ -18,36 +18,24 @@ export type SourceReportSegmentSkeletonSize =
     | "time";
 
 export const SOURCE_REPORT_STYLE_VARIABLES = {
-    "--source-report-metric-bg": "var(--card-popover-footer-bg)",
-    "--source-report-metric-border": "var(--card-elevated-border)",
-    "--source-report-status-ok-fg": "oklch(0.62 0.13 158)",
-    "--source-report-status-ok-bg":
-        "color-mix(in srgb, var(--source-report-status-ok-fg) 14%, transparent)",
-    "--source-report-status-ok-border":
-        "color-mix(in srgb, var(--source-report-status-ok-fg) 30%, transparent)",
-    "--source-report-status-warn-bg":
-        "color-mix(in srgb, var(--signal-warning) 18%, transparent)",
-    "--source-report-status-warn-border":
-        "color-mix(in srgb, var(--signal-warning) 32%, transparent)",
-    "--source-report-status-warn-fg": "oklch(0.55 0.16 70)",
-    "--source-report-status-err-bg":
-        "color-mix(in srgb, var(--signal-danger) 14%, transparent)",
-    "--source-report-status-err-border":
-        "color-mix(in srgb, var(--signal-danger) 30%, transparent)",
-    "--source-report-skeleton-bg":
-        "linear-gradient(90deg, color-mix(in srgb, var(--fg-primary) 5%, transparent) 0%, color-mix(in srgb, var(--fg-primary) 10%, transparent) 50%, color-mix(in srgb, var(--fg-primary) 5%, transparent) 100%)",
-    "--source-report-primary-border":
-        "color-mix(in srgb, var(--accent) 60%, black 8%)",
-    "--source-report-primary-bg":
-        "linear-gradient(180deg, color-mix(in srgb, var(--accent) 92%, white 18%), var(--accent))",
-    "--source-report-primary-hover-bg":
-        "linear-gradient(180deg, color-mix(in srgb, var(--accent) 96%, white 8%), var(--accent))",
-    "--source-report-primary-shadow":
-        "0 2px 6px color-mix(in srgb, var(--accent) 24%, transparent), inset 0 1px 0 rgb(255 255 255 / 0.22)",
+    "--source-report-metric-bg": "var(--bg-recessed)",
+    "--source-report-metric-border": "var(--line-hairline)",
+    "--source-report-status-ok-fg": "var(--signal-success)",
+    "--source-report-status-ok-bg": "var(--bg-recessed)",
+    "--source-report-status-ok-border": "var(--line-hairline)",
+    "--source-report-status-warn-bg": "var(--bg-recessed)",
+    "--source-report-status-warn-border": "var(--line-hairline)",
+    "--source-report-status-warn-fg": "var(--signal-warning-strong)",
+    "--source-report-status-err-bg": "var(--bg-recessed)",
+    "--source-report-status-err-border": "var(--line-hairline)",
+    "--source-report-skeleton-bg": "var(--bg-recessed)",
+    "--source-report-primary-border": "var(--accent)",
+    "--source-report-primary-bg": "var(--accent)",
+    "--source-report-primary-hover-bg": "var(--accent-hover)",
+    "--source-report-primary-shadow": "var(--shadow-sm)",
 } satisfies SourceReportStyleVariables;
 
-export const SOURCE_REPORT_SKELETON_CLASS_NAME =
-    "![background-color:transparent] [background-image:var(--source-report-skeleton-bg)] dark:[background-image:linear-gradient(90deg,rgb(255_255_255_/_0.05)_0%,rgb(255_255_255_/_0.12)_50%,rgb(255_255_255_/_0.05)_100%)] [background-size:220%_100%]";
+export const SOURCE_REPORT_SKELETON_CLASS_NAME = "bg-muted";
 
 export const SOURCE_REPORT_CARD_SKELETON_CLASS_NAMES = {
     count: `${SOURCE_REPORT_SKELETON_CLASS_NAME} inline-block h-[18px] w-[48px] align-middle rounded-[6px]`,
@@ -76,28 +64,28 @@ export const SOURCE_REPORT_METRIC_CARDS_CLASS_NAME =
     "grid grid-cols-4 gap-[8px] max-[1200px]:grid-cols-2";
 
 export const SOURCE_REPORT_METRIC_CARD_CLASS_NAME =
-    "gap-[6px] overflow-visible rounded-[10px] border-[var(--source-report-metric-border)] bg-[var(--source-report-metric-bg)] px-[12px] py-[10px] shadow-none backdrop-blur-none";
+    "gap-[6px] overflow-visible rounded-[10px] border-border bg-muted/40 px-[12px] py-[10px] shadow-none backdrop-blur-none";
 
 export const SOURCE_REPORT_CARD_LABEL_CLASS_NAME =
-    "text-[10.5px] font-semibold leading-[normal] uppercase tracking-[0.06em] text-[var(--fg-tertiary)]";
+    "text-[10.5px] font-semibold leading-[normal] uppercase tracking-[0.06em] text-muted-foreground";
 
 export const SOURCE_REPORT_CARD_VALUE_CLASS_NAME =
-    "text-[13px] font-semibold leading-[normal] text-[var(--fg-primary)]";
+    "text-[13px] font-semibold leading-[normal] text-foreground";
 
 export const SOURCE_REPORT_CARD_SOURCE_VALUE_CLASS_NAME =
     "flex items-center gap-1.5";
 
 export const SOURCE_REPORT_CARD_NUMBER_VALUE_CLASS_NAME =
-    "font-mono text-[16px] font-semibold leading-[normal] text-[var(--fg-primary)]";
+    "font-mono text-[16px] font-semibold leading-[normal] text-foreground";
 
 export const SOURCE_REPORT_CARD_SOURCE_ICON_CLASS_NAME =
     "size-[14px] flex-none rounded-[3px] object-contain";
 
 export const SOURCE_REPORT_CARD_SOURCE_FALLBACK_CLASS_NAME =
-    "text-[11px] font-bold text-[var(--fg-tertiary)]";
+    "text-[11px] font-bold text-muted-foreground";
 
 export const SOURCE_REPORT_SECTION_CLASS_NAME =
-    "flex flex-col gap-[8px] border-t border-[var(--line-hairline)] pt-[8px] dark:border-[var(--glass-border-soft)]";
+    "flex flex-col gap-[8px] border-t border-border pt-[8px]";
 
 export const SOURCE_REPORT_SECTION_SEPARATOR_CLASS_NAME = "hidden";
 
@@ -105,19 +93,17 @@ export const SOURCE_REPORT_SECTION_HEADER_CLASS_NAME =
     "flex items-baseline gap-[10px]";
 
 export const SOURCE_REPORT_SECTION_TITLE_CLASS_NAME =
-    "m-0 ![font-size:12.5px] ![letter-spacing:0] ![line-height:normal] font-semibold text-[var(--fg-primary)]";
+    "m-0 ![font-size:12.5px] ![letter-spacing:0] ![line-height:normal] font-semibold text-foreground";
 
 export const SOURCE_REPORT_DESCRIPTION_CLASS_NAME =
-    "text-[11.5px] font-medium leading-[normal] text-[var(--fg-tertiary)]";
+    "text-[11.5px] font-medium leading-[normal] text-muted-foreground";
 
 export const SOURCE_REPORT_MISSING_NOTICE_CLASS_NAME =
-    "block rounded-[10px] border border-[color-mix(in_srgb,var(--signal-warning)_28%,transparent)] bg-[color-mix(in_srgb,var(--signal-warning)_8%,var(--bg-elevated))] px-[12px] py-[10px] text-[12.5px]/[1.55] font-medium text-[var(--fg-secondary)]";
+    "block rounded-[10px] border border-border bg-muted/40 px-[12px] py-[10px] text-[12.5px]/[1.55] font-medium text-muted-foreground";
 
-export const SOURCE_REPORT_TRANSCRIPT_MISSING_NOTICE_CLASS_NAME =
-    `${SOURCE_REPORT_MISSING_NOTICE_CLASS_NAME} mt-[8px]`;
+export const SOURCE_REPORT_TRANSCRIPT_MISSING_NOTICE_CLASS_NAME = `${SOURCE_REPORT_MISSING_NOTICE_CLASS_NAME} mt-[8px]`;
 
-export const SOURCE_REPORT_SUMMARY_MISSING_NOTICE_CLASS_NAME =
-    `${SOURCE_REPORT_MISSING_NOTICE_CLASS_NAME} mb-[8px]`;
+export const SOURCE_REPORT_SUMMARY_MISSING_NOTICE_CLASS_NAME = `${SOURCE_REPORT_MISSING_NOTICE_CLASS_NAME} mb-[8px]`;
 
 export const SOURCE_REPORT_SUMMARY_BODY_CLASS_NAME = "flex flex-col gap-1.5";
 
@@ -125,56 +111,56 @@ export const SOURCE_REPORT_SEGMENTS_CLASS_NAME =
     "m-0 flex list-none flex-col gap-0.5 p-0";
 
 export const SOURCE_REPORT_SEGMENT_CLASS_NAME =
-    "grid grid-cols-[96px_56px_1fr] items-start gap-2.5 rounded-[6px] bg-transparent px-2.5 py-2 hover:bg-[var(--bg-recessed)] dark:hover:bg-[rgb(255_255_255_/_0.03)]";
+    "grid grid-cols-[96px_56px_1fr] items-start gap-2.5 rounded-[6px] bg-transparent px-2.5 py-2 hover:bg-muted/60";
 
 export const SOURCE_REPORT_SEGMENT_SKELETON_CONTAINER_CLASS_NAME =
     "block px-2.5 py-2";
 
 export const SOURCE_REPORT_SEGMENT_TIME_CLASS_NAME =
-    "font-mono text-[11.5px] font-medium text-[var(--fg-tertiary)]";
+    "font-mono text-[11.5px] font-medium text-muted-foreground";
 
 export const SOURCE_REPORT_SEGMENT_SPEAKER_CLASS_NAME =
-    "text-[12px] font-semibold text-[var(--fg-secondary)]";
+    "text-[12px] font-semibold text-muted-foreground";
 
 export const SOURCE_REPORT_SEGMENT_TEXT_CLASS_NAME =
-    "m-0 text-[12.5px]/[1.55] font-medium text-[var(--fg-primary)] [text-wrap:pretty]";
+    "m-0 text-[12.5px]/[1.55] font-medium text-foreground [text-wrap:pretty]";
 
 export const SOURCE_REPORT_SUMMARY_TEXT_CLASS_NAME =
-    "m-0 whitespace-pre-wrap text-[12.5px]/[1.55] font-medium text-[var(--fg-primary)] [text-wrap:pretty]";
+    "m-0 whitespace-pre-wrap text-[12.5px]/[1.55] font-medium text-foreground [text-wrap:pretty]";
 
 export const SOURCE_REPORT_META_CLASS_NAME =
     "my-[15px] grid grid-cols-2 gap-x-[14px] gap-y-[6px] max-[1200px]:grid-cols-1";
 
 export const SOURCE_REPORT_META_ROW_CLASS_NAME =
-    "grid min-h-[30px] grid-cols-[80px_1fr] items-baseline gap-[8px] border-b border-dashed border-[var(--line-hairline)] py-[6px] dark:border-[var(--glass-border-soft)]";
+    "grid min-h-[30px] grid-cols-[80px_1fr] items-baseline gap-[8px] border-b border-dashed border-border py-[6px]";
 
 export const SOURCE_REPORT_META_LABEL_CLASS_NAME =
-    "m-0 text-[11px] font-semibold leading-[normal] text-[var(--fg-tertiary)]";
+    "m-0 text-[11px] font-semibold leading-[normal] text-muted-foreground";
 
 export const SOURCE_REPORT_META_VALUE_CLASS_NAME =
-    "m-0 break-words text-[12px] font-medium leading-[normal] text-[var(--fg-primary)]";
+    "m-0 break-words text-[12px] font-medium leading-[normal] text-foreground";
 
 export const SOURCE_REPORT_META_MONO_VALUE_CLASS_NAME = "font-mono";
 
 export const SOURCE_REPORT_ACTION_ROW_CLASS_NAME =
     "mt-[4px] flex flex-wrap items-center gap-[8px]";
 
-export const SOURCE_REPORT_ACTION_BUTTON_CLASS_NAME =
-    "text-[var(--fg-primary)]";
+export const SOURCE_REPORT_ACTION_BUTTON_CLASS_NAME = "text-foreground";
 
 export const SOURCE_REPORT_PRIMARY_ACTION_BUTTON_CLASS_NAME =
-    "h-[26px] gap-[7px] rounded-[7px] border border-[var(--source-report-primary-border)] [background:var(--source-report-primary-bg)] px-[10px] text-[12px] font-semibold leading-[normal] text-white shadow-[var(--source-report-primary-shadow)] has-[>svg]:px-[10px] hover:[background:var(--source-report-primary-hover-bg)] hover:text-white";
+    "h-[26px] gap-[7px] rounded-[7px] px-[10px] text-[12px] font-semibold leading-[normal] text-primary-foreground shadow-sm has-[>svg]:px-[10px] hover:text-primary-foreground";
 
 export const SOURCE_REPORT_GHOST_ACTION_BUTTON_CLASS_NAME =
-    "h-[26px] gap-[7px] rounded-[7px] border border-transparent bg-transparent px-[10px] text-[12px] font-semibold leading-[normal] text-[var(--fg-secondary)] shadow-none has-[>svg]:px-[10px] hover:bg-[var(--bg-recessed)] hover:text-[var(--fg-primary)] dark:hover:bg-[var(--bg-recessed)]";
+    "h-[26px] gap-[7px] rounded-[7px] border border-transparent bg-transparent px-[10px] text-[12px] font-semibold leading-[normal] text-muted-foreground shadow-none has-[>svg]:px-[10px] hover:bg-accent hover:text-accent-foreground";
 
 export const SOURCE_REPORT_COPY_BUTTON_VARIANT =
     "ghost" satisfies ButtonProps["variant"];
 
-export const SOURCE_REPORT_COPY_BUTTON_SIZE = "sm" satisfies ButtonProps["size"];
+export const SOURCE_REPORT_COPY_BUTTON_SIZE =
+    "sm" satisfies ButtonProps["size"];
 
 export const SOURCE_REPORT_COPY_BUTTON_CLASS_NAME =
-    "h-[26px] gap-[6px] rounded-[7px] px-[10px] text-[12px] font-semibold leading-normal text-[var(--fg-secondary)] has-[>svg]:px-[10px] hover:bg-[var(--bg-recessed)] hover:text-[var(--fg-primary)] [&[hidden]]:hidden [&_svg:not([class*='size-'])]:size-[14px] data-[copy-state=ok]:border-[var(--button-copy-success-border)] data-[copy-state=ok]:bg-[var(--button-copy-success-bg)] data-[copy-state=ok]:text-[var(--signal-success)] data-[copy-state=ok]:hover:bg-[var(--button-copy-success-bg)] data-[copy-state=ok]:hover:text-[var(--signal-success)] data-[copy-state=err]:border-[var(--button-copy-danger-border)] data-[copy-state=err]:text-[var(--signal-danger)] data-[copy-state=err]:hover:bg-transparent data-[copy-state=err]:hover:text-[var(--signal-danger)]";
+    "h-[26px] gap-[6px] rounded-[7px] px-[10px] text-[12px] font-semibold leading-normal text-muted-foreground has-[>svg]:px-[10px] hover:bg-accent hover:text-accent-foreground [&[hidden]]:hidden [&_svg:not([class*='size-'])]:size-[14px] data-[copy-state=ok]:border-chart-3/30 data-[copy-state=ok]:bg-chart-3/10 data-[copy-state=ok]:text-chart-3 data-[copy-state=ok]:hover:bg-chart-3/10 data-[copy-state=ok]:hover:text-chart-3 data-[copy-state=err]:border-destructive/30 data-[copy-state=err]:text-destructive data-[copy-state=err]:hover:bg-transparent data-[copy-state=err]:hover:text-destructive";
 
 export const SOURCE_REPORT_EMPTY_ACTION_ROW_CLASS_NAME =
     "mt-2 flex flex-wrap items-center gap-1.5";
@@ -183,21 +169,21 @@ export const SOURCE_REPORT_ERROR_ALERT_CLASS_NAME =
     "flex w-full flex-col items-center gap-2 rounded-lg px-4 py-8 text-center text-sm [&>svg]:text-current";
 
 export const SOURCE_REPORT_EMPTY_SURFACE_CLASS_NAME =
-    "flex flex-col items-center gap-1 rounded-[10px] border border-dashed border-[var(--line-hairline)] bg-[var(--bg-recessed)] px-[18px] py-7 text-center shadow-none backdrop-blur-none dark:border-[var(--glass-border-soft)] data-[sot-tone=err]:border-[color-mix(in_srgb,var(--signal-danger)_26%,transparent)] data-[sot-tone=err]:bg-[color-mix(in_srgb,var(--signal-danger)_6%,transparent)]";
+    "flex flex-col items-center gap-1 rounded-[10px] border border-dashed border-border bg-muted/40 px-[18px] py-7 text-center shadow-none backdrop-blur-none data-[sot-tone=err]:border-destructive/30 data-[sot-tone=err]:bg-destructive/10";
 
 export const SOURCE_REPORT_EMPTY_HEADER_CLASS_NAME = "gap-1";
 
 export const SOURCE_REPORT_EMPTY_ICON_CLASS_NAME =
-    "mb-1 inline-grid size-10 place-items-center rounded-full border border-[var(--line-hairline)] bg-[var(--bg-recessed)] text-[var(--fg-tertiary)] [&_svg]:fill-none [&_svg]:stroke-current [&_svg]:stroke-[1.8] [&_svg]:[stroke-linecap:round] [&_svg]:[stroke-linejoin:round] [&_svg:not([class*='size-'])]:size-4";
+    "mb-1 inline-grid size-10 place-items-center rounded-full border border-border bg-muted text-muted-foreground [&_svg]:fill-none [&_svg]:stroke-current [&_svg]:stroke-[1.8] [&_svg]:[stroke-linecap:round] [&_svg]:[stroke-linejoin:round] [&_svg:not([class*='size-'])]:size-4";
 
 export const SOURCE_REPORT_EMPTY_ERROR_ICON_CLASS_NAME =
-    "border-[color-mix(in_srgb,var(--signal-danger)_28%,transparent)] bg-[color-mix(in_srgb,var(--signal-danger)_14%,transparent)] text-[var(--signal-danger)]";
+    "border-destructive/30 bg-destructive/10 text-destructive";
 
 export const SOURCE_REPORT_EMPTY_TITLE_CLASS_NAME =
-    "m-0 block min-h-0 overflow-visible text-[13px]/[1.35] font-semibold tracking-normal text-[var(--fg-primary)]";
+    "m-0 block min-h-0 overflow-visible text-[13px]/[1.35] font-semibold tracking-normal text-foreground";
 
 export const SOURCE_REPORT_EMPTY_DESCRIPTION_CLASS_NAME =
-    "block max-w-[360px] text-[12px]/[1.5] font-medium tracking-normal text-[var(--fg-tertiary)]";
+    "block max-w-[360px] text-[12px]/[1.5] font-medium tracking-normal text-muted-foreground";
 
 export const SOURCE_REPORT_COPY_LABEL_CLASS_NAME =
     "inline-flex min-w-0 items-center";
@@ -206,4 +192,4 @@ export const SOURCE_REPORT_COPY_ICON_CLASS_NAME =
     "stroke-current transition-[opacity,transform] duration-200 ease-out";
 
 export const SOURCE_REPORT_STATUS_BADGE_CLASS_NAME =
-    "h-[22px] min-w-[65px] justify-normal gap-[9px] overflow-visible rounded-full border px-[8px] py-0 text-[11px] font-semibold leading-[normal] shadow-none data-[sot-tone=err]:border-[var(--source-report-status-err-border)] data-[sot-tone=err]:bg-[var(--source-report-status-err-bg)] data-[sot-tone=err]:text-[var(--signal-danger)] data-[sot-tone=neu]:border-[var(--line-hairline)] data-[sot-tone=neu]:bg-[var(--bg-recessed)] data-[sot-tone=neu]:text-[var(--fg-secondary)] data-[sot-tone=ok]:border-[var(--source-report-status-ok-border)] data-[sot-tone=ok]:bg-[var(--source-report-status-ok-bg)] data-[sot-tone=ok]:text-[var(--source-report-status-ok-fg)] data-[sot-tone=warn]:border-[var(--source-report-status-warn-border)] data-[sot-tone=warn]:bg-[var(--source-report-status-warn-bg)] data-[sot-tone=warn]:text-[var(--source-report-status-warn-fg)] [&_[data-sot-part=dashboard-source-report-status-dot]]:mr-0 [&_[data-sot-part=dashboard-source-report-status-dot]]:inline-block [&_[data-sot-part=dashboard-source-report-status-dot]]:size-[5px] [&_[data-sot-part=dashboard-source-report-status-dot]]:rounded-full [&_[data-sot-part=dashboard-source-report-status-dot]]:bg-current [&_[data-sot-part=source-report-status-dot]]:mr-0 [&_[data-sot-part=source-report-status-dot]]:inline-block [&_[data-sot-part=source-report-status-dot]]:size-[5px] [&_[data-sot-part=source-report-status-dot]]:rounded-full [&_[data-sot-part=source-report-status-dot]]:bg-current";
+    "h-[22px] min-w-[65px] justify-normal gap-[9px] overflow-visible rounded-full border px-[8px] py-0 text-[11px] font-semibold leading-[normal] shadow-none data-[sot-tone=err]:border-destructive/30 data-[sot-tone=err]:bg-destructive/10 data-[sot-tone=err]:text-destructive data-[sot-tone=neu]:border-border data-[sot-tone=neu]:bg-muted data-[sot-tone=neu]:text-muted-foreground data-[sot-tone=ok]:border-chart-3/30 data-[sot-tone=ok]:bg-chart-3/10 data-[sot-tone=ok]:text-chart-3 data-[sot-tone=warn]:border-chart-4/30 data-[sot-tone=warn]:bg-chart-4/10 data-[sot-tone=warn]:text-chart-4 [&_[data-sot-part=dashboard-source-report-status-dot]]:mr-0 [&_[data-sot-part=dashboard-source-report-status-dot]]:inline-block [&_[data-sot-part=dashboard-source-report-status-dot]]:size-[5px] [&_[data-sot-part=dashboard-source-report-status-dot]]:rounded-full [&_[data-sot-part=dashboard-source-report-status-dot]]:bg-current [&_[data-sot-part=source-report-status-dot]]:mr-0 [&_[data-sot-part=source-report-status-dot]]:inline-block [&_[data-sot-part=source-report-status-dot]]:size-[5px] [&_[data-sot-part=source-report-status-dot]]:rounded-full [&_[data-sot-part=source-report-status-dot]]:bg-current";

@@ -113,7 +113,7 @@ const recordingTagManagerButtonClassNames = {
     primaryAction:
         "h-[var(--button-compact-height)] justify-normal [justify-content:normal] gap-[7px] rounded-[7px] border border-[var(--button-primary-border)] bg-[image:var(--button-primary-bg)] px-[10px] text-[12px] font-semibold leading-[normal] text-[var(--button-primary-fg)] shadow-[var(--button-primary-shadow)] hover:bg-[image:var(--button-primary-hover-bg)] has-[>svg]:px-[10px] [&_svg:not([class*='size-'])]:size-[11px]",
     destructiveAction:
-        "h-[var(--button-compact-height)] justify-normal [justify-content:normal] gap-[7px] rounded-[7px] border border-[var(--button-destructive-border)] bg-[image:var(--button-destructive-bg)] px-[10px] text-[12px] font-semibold leading-[normal] text-[var(--button-destructive-fg)] shadow-[var(--button-destructive-shadow)] hover:bg-[image:var(--button-destructive-hover-bg)] focus-visible:ring-destructive/20 has-[>svg]:px-[10px] dark:focus-visible:ring-destructive/40 [&_svg:not([class*='size-'])]:size-[11px]",
+        "h-[var(--button-compact-height)] justify-normal [justify-content:normal] gap-[7px] rounded-[7px] border border-[var(--button-destructive-border)] bg-[image:var(--button-destructive-bg)] px-[10px] text-[12px] font-semibold leading-[normal] text-[var(--button-destructive-fg)] shadow-[var(--button-destructive-shadow)] hover:bg-[image:var(--button-destructive-hover-bg)] focus-visible:ring-destructive/20 has-[>svg]:px-[10px] [&_svg:not([class*='size-'])]:size-[11px]",
     inlineCreate:
         "border border-[var(--accent)] bg-[var(--accent)] text-[var(--accent)] shadow-none hover:bg-[var(--accent-hover)] hover:text-[var(--accent)] disabled:opacity-100",
     tagToggle:
@@ -153,7 +153,7 @@ const recordingTagManagerContentClassNames = {
 const recordingTagManagerBadgeClassNames = {
     pill: "h-[22px] justify-normal gap-[5px] rounded-[999px] border-[var(--line-hairline)] bg-[var(--bg-recessed)] py-0 pl-[8px] pr-[4px] [font:600_11px_var(--font-sans)] [line-height:normal] text-[var(--fg-primary)] [&>svg]:size-[11px] [&>svg]:stroke-2",
     checkDot:
-        "ml-0.5 inline-grid size-[14px] place-items-center rounded-[50%] border-0 bg-[color-mix(in_srgb,var(--accent)_70%,transparent)] p-0 text-[11.5px] font-semibold leading-none text-[var(--accent-on)] [&>svg]:size-[9px] [&>svg]:stroke-[3] [&>svg]:[stroke-linecap:butt] [&>svg]:[stroke-linejoin:miter]",
+        "ml-0.5 inline-grid size-[14px] place-items-center rounded-[50%] border-0 bg-primary p-0 text-[11.5px] font-semibold leading-none text-primary-foreground [&>svg]:size-[9px] [&>svg]:stroke-[3] [&>svg]:[stroke-linecap:butt] [&>svg]:[stroke-linejoin:miter]",
 } as const;
 
 const recordingTagManagerFieldClassNames = {
@@ -1229,7 +1229,10 @@ export function RecordingTagManager({
                       })
                     : null}
 
-                <FieldGroup className="tagm-create gap-2" data-sot-part="create">
+                <FieldGroup
+                    className="tagm-create gap-2"
+                    data-sot-part="create"
+                >
                     {renderNameField({
                         placeholder: "新建标签…",
                         withInlineAction: true,

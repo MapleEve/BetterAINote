@@ -261,7 +261,7 @@ const DASHBOARD_SEARCH_ACTIVITY_FEATURE_OWNER_CLASS_SNIPPETS = [
             "gap-[6px]",
             "px-[12px] py-[8px]",
             "bg-[var(--bg-recessed)]",
-            "dark:bg-[rgb(255_255_255_/_0.03)]",
+            "border-[var(--line-hairline)]",
         ],
     },
     {
@@ -272,9 +272,9 @@ const DASHBOARD_SEARCH_ACTIVITY_FEATURE_OWNER_CLASS_SNIPPETS = [
             "px-[10px]",
             "[font:500_11.5px/1_var(--font-sans)]",
             "text-[var(--fg-tertiary)] shadow-none",
-            "data-[state=on]:border-[color-mix(in_srgb,var(--accent)_36%,transparent)]",
-            "data-[state=on]:bg-[var(--accent-soft)]",
-            "data-[state=on]:text-[var(--accent)]",
+            "data-[state=on]:border-primary/30",
+            "data-[state=on]:bg-primary/10",
+            "data-[state=on]:text-primary",
         ],
     },
     {
@@ -301,7 +301,8 @@ const DASHBOARD_SEARCH_ACTIVITY_FEATURE_OWNER_CLASS_SNIPPETS = [
             "hover:bg-[var(--bg-recessed)]",
             "focus-visible:bg-[var(--bg-recessed)]",
             "focus-visible:outline-none",
-            "focus-visible:shadow-[inset_0_0_0_2px_color-mix(in_srgb,var(--accent)_50%,transparent)]",
+            "focus-visible:ring-2",
+            "focus-visible:ring-ring/50",
             "[&_[data-sot-part=library-search-result-meta]]:font-mono",
             "[&_[data-sot-part=library-search-result-meta]]:text-[11.5px]",
             "[&_[data-sot-part=library-search-result-title]]:[font:600_13px/1.4_var(--font-sans)]",
@@ -311,10 +312,11 @@ const DASHBOARD_SEARCH_ACTIVITY_FEATURE_OWNER_CLASS_SNIPPETS = [
     {
         propertyName: "librarySearchTag",
         snippets: [
-            "[--tag-c:var(--tag-violet)]",
             "h-[22px] w-fit justify-normal gap-[5px]",
             "rounded-[6px]",
-            "bg-[color-mix(in_srgb,var(--tag-c)_12%,var(--bg-elevated))]",
+            "border-primary/20",
+            "bg-primary/10",
+            "text-primary",
             "[&>svg]:size-[11px]",
         ],
     },
@@ -328,10 +330,7 @@ const DASHBOARD_SEARCH_ACTIVITY_FEATURE_OWNER_CLASS_SNIPPETS = [
     },
     {
         propertyName: "librarySearchRetry",
-        snippets: [
-            "h-6 gap-1",
-            "hover:bg-accent hover:text-accent-foreground",
-        ],
+        snippets: ["h-6 gap-1", "hover:bg-accent hover:text-accent-foreground"],
     },
     {
         propertyName: "librarySearchScroll",
@@ -339,13 +338,17 @@ const DASHBOARD_SEARCH_ACTIVITY_FEATURE_OWNER_CLASS_SNIPPETS = [
     },
     {
         propertyName: "librarySearchIndexing",
-        snippets: ["flex items-center gap-[10px]", "text-[var(--fg-secondary)]"],
+        snippets: [
+            "flex items-center gap-[10px]",
+            "text-[var(--fg-secondary)]",
+        ],
     },
     {
         propertyName: "librarySearchStateSkeleton",
         snippets: [
             "inline-flex h-1",
-            "bg-[color-mix(in_srgb,var(--signal-info)_14%,transparent)]",
+            "bg-primary/10",
+            "after:bg-[linear-gradient(90deg,transparent,var(--signal-info)_50%,transparent)]",
             "after:animate-[sbn-sweep_1.4s_linear_infinite]",
             "after:content-['']",
         ],
@@ -367,7 +370,7 @@ const DASHBOARD_SEARCH_ACTIVITY_FEATURE_OWNER_CLASS_SNIPPETS = [
             "flex flex-col gap-[2px]",
             "px-[4px] py-[6px]",
             "[&+&]:border-t",
-            "dark:[&+&]:border-[var(--glass-border-soft)]",
+            "[&+&]:border-[var(--line-hairline)]",
         ],
     },
     {
@@ -381,11 +384,7 @@ const DASHBOARD_SEARCH_ACTIVITY_FEATURE_OWNER_CLASS_SNIPPETS = [
     },
     {
         propertyName: "librarySearchHighlight",
-        snippets: [
-            "bg-[color-mix(in_srgb,var(--accent)_22%,transparent)]",
-            "px-[2px]",
-            "text-[var(--accent)]",
-        ],
+        snippets: ["bg-primary/10", "px-[2px]", "text-primary"],
     },
     {
         propertyName: "dashboardActivityClose",
@@ -426,7 +425,7 @@ const DASHBOARD_SEARCH_ACTIVITY_FEATURE_OWNER_CLASS_SNIPPETS = [
             "flex items-center gap-2.5",
             "bg-[var(--bg-recessed)]",
             "data-[state=running]:[&_[data-sot-part=dashboard-activity-status-indicator]]:animate-[bpulse_1.4s_ease-in-out_infinite]",
-            "dark:bg-[rgb(255_255_255_/_0.03)]",
+            "data-[state=running]:[&_[data-sot-part=dashboard-activity-status-indicator]]:bg-[var(--signal-info)]",
         ],
     },
     {
@@ -437,8 +436,10 @@ const DASHBOARD_SEARCH_ACTIVITY_FEATURE_OWNER_CLASS_SNIPPETS = [
         propertyName: "dashboardActivityItem",
         snippets: [
             "grid grid-cols-[26px_1fr_auto]",
-            "data-[kind=queued]:[&_[data-sot-part=dashboard-activity-item-icon]]:bg-[color-mix(in_srgb,var(--fg-tertiary)_16%,transparent)]",
-            "data-[kind=partial-failed]:[&_[data-sot-part=dashboard-activity-item-icon]]:bg-[color-mix(in_srgb,var(--signal-warning)_16%,transparent)]",
+            "data-[kind=queued]:[&_[data-sot-part=dashboard-activity-item-icon]]:bg-[var(--system-banner-neutral-icon-bg)]",
+            "data-[kind=queued]:[&_[data-sot-part=dashboard-activity-item-icon]]:text-[var(--fg-tertiary)]",
+            "data-[kind=partial-failed]:[&_[data-sot-part=dashboard-activity-item-icon]]:bg-[var(--system-banner-offline-icon-bg)]",
+            "data-[kind=partial-failed]:[&_[data-sot-part=dashboard-activity-item-icon]]:text-[var(--signal-warning)]",
         ],
     },
     {
@@ -454,10 +455,7 @@ const DASHBOARD_SEARCH_ACTIVITY_FEATURE_OWNER_CLASS_SNIPPETS = [
     },
     {
         propertyName: "dashboardActivityItemMeta",
-        snippets: [
-            "[font:500_11px/1.4_var(--font-mono)]",
-            "tracking-[0.02em]",
-        ],
+        snippets: ["[font:500_11px/1.4_var(--font-mono)]", "tracking-[0.02em]"],
     },
     {
         propertyName: "dashboardActivityAction",
@@ -473,7 +471,8 @@ const DASHBOARD_SEARCH_ACTIVITY_FEATURE_OWNER_CLASS_SNIPPETS = [
             "size-[22px]",
             "p-px",
             "hover:bg-[var(--bg-recessed)] hover:text-[var(--fg-primary)]",
-            "focus-visible:outline-[color-mix(in_srgb,var(--accent)_55%,transparent)]",
+            "focus-visible:outline-2",
+            "focus-visible:outline-ring",
             "[&_svg:not([class*='size-'])]:size-[11px]",
         ],
     },
@@ -505,8 +504,8 @@ const DASHBOARD_SEARCH_ACTIVITY_SOT_BODY_FORBIDDEN_CLASS_SNIPPETS = [
 ] as const;
 
 const DASHBOARD_SEARCH_ACTIVITY_FEATURE_OWNER_SOURCE_SNIPPETS = [
-    'aria-expanded={searchOpen}',
-    'aria-expanded={activityOpen}',
+    "aria-expanded={searchOpen}",
+    "aria-expanded={activityOpen}",
     'data-sot-state={searchOpen ? "open" : "idle"}',
     'data-sot-state={activityOpen ? "open" : "idle"}',
     "placeholder={t(",
@@ -654,7 +653,10 @@ describe("dashboard SOT search and activity interactions", () => {
             expect(productGlobals).not.toContain(selector);
         }
         expect(
-            extractObjectStringProperty(classNames, "librarySearchStateSkeleton"),
+            extractObjectStringProperty(
+                classNames,
+                "librarySearchStateSkeleton",
+            ),
         ).toContain("after:animate-[sbn-sweep_1.4s_linear_infinite]");
     });
 
@@ -708,7 +710,7 @@ describe("dashboard SOT search and activity interactions", () => {
         const workstation = readSource("features/dashboard/workstation.tsx");
 
         expect(workstation).toContain(
-            "fetch(`/api/search?${params.toString()}`)",
+            `fetch(\`/api/search?\${params.toString()}\`)`,
         );
         expect(workstation).toContain('params.set("type", searchScope)');
         expect(workstation).toContain("SEARCH_SCOPES.map");
@@ -938,14 +940,14 @@ describe("dashboard SOT search and activity interactions", () => {
         expect(workstation).toContain(
             "className={DASHBOARD_RECORDING_LIST_CARD_CLASS_NAME}",
         );
-        expect(workstation).toContain(
-            "className={DASHBOARD_RECORDING_LIST_CONTENT_CLASS_NAME}",
+        expect(workstation).toMatch(
+            /className=\{\s*DASHBOARD_RECORDING_LIST_CONTENT_CLASS_NAME\s*\}/,
         );
         expect(workstation).toContain(
             "SOT_DASHBOARD_DETAIL_HEADER_ACTION_ANCHOR_CLASS_NAME",
         );
-        expect(workstation).toContain(
-            "className={SOT_DASHBOARD_TRANSCRIPT_HEADER_CLASS_NAME}",
+        expect(workstation).toMatch(
+            /className=\{\s*SOT_DASHBOARD_TRANSCRIPT_HEADER_CLASS_NAME\s*\}/,
         );
         expect(workstation).toContain(
             "SOT_DASHBOARD_TRANSCRIPT_SEGMENTED_TABS_CLASS_NAME",
@@ -1002,11 +1004,17 @@ describe("dashboard SOT search and activity interactions", () => {
         );
 
         expect(favoritesDefinition).not.toContain("label:");
-        expect(favoritesNavSlice).toContain("{getFavoriteLabel(item.value, t)}");
+        expect(favoritesNavSlice).toContain(
+            "{getFavoriteLabel(item.value, t)}",
+        );
         expect(favoritesNavSlice).not.toContain("item.label");
         expect(workstation).toContain("function providerLabel(");
-        expect(workstation).toContain("getSourceProviderLabel(provider, language)");
-        expect(sourceRowsSlice).toContain("label: providerLabel(item.key, language)");
+        expect(workstation).toContain(
+            "getSourceProviderLabel(provider, language)",
+        );
+        expect(sourceRowsSlice).toContain(
+            "label: providerLabel(item.key, language)",
+        );
         expect(recordingRowsSlice).toContain("sourceDefinition(");
         expect(recordingRowsSlice).toContain("title={providerLabel(");
         expect(recordingRowsSlice).not.toContain("SOURCE_ORDER.find(");
@@ -1024,7 +1032,10 @@ describe("dashboard SOT search and activity interactions", () => {
     it("keeps search and activity business tokens out of shadcn primitives", () => {
         const primitiveBusinessTokens = SEARCH_ACTIVITY_PRIMITIVE_FILES.flatMap(
             (file) =>
-                (readSource(file).match(SEARCH_ACTIVITY_BUSINESS_TOKEN_RE) ?? [])
+                (
+                    readSource(file).match(SEARCH_ACTIVITY_BUSINESS_TOKEN_RE) ??
+                    []
+                )
                     .sort()
                     .map((token) => `${file}:${token}`),
         );

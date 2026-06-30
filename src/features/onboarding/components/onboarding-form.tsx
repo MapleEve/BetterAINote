@@ -86,20 +86,18 @@ const PROVIDER_ASSETS: Partial<Record<SourceProvider, string>> = {
 };
 
 const onboardingCardClassNames = {
-    layout:
-        "grid min-h-[100svh] place-items-center bg-[var(--bg-canvas)] px-[32px] pb-[80px] pt-[28px] text-[var(--fg-primary)]",
+    layout: "grid min-h-[100svh] place-items-center bg-[var(--bg-canvas)] px-[32px] pb-[80px] pt-[28px] text-[var(--fg-primary)]",
     surface:
         "!block !gap-0 !overflow-visible !rounded-[14px] !border !border-[var(--line-hairline)] !bg-[var(--bg-elevated)] !p-[18px] !shadow-[var(--shadow-xs)] !backdrop-blur-none [box-sizing:border-box] [min-height:375px] [width:min(420px,100%)]",
-    frame:
-        "[overflow:hidden] [border-radius:12px] [border:1px_solid_var(--line-hairline)] [background:var(--bg-canvas)] [padding:18px]",
+    frame: "[overflow:hidden] [border-radius:12px] [border:1px_solid_var(--line-hairline)] [background:var(--bg-canvas)] [padding:18px]",
     speakerDraft:
         "grid grid-cols-[36px_1fr_auto_auto] items-center gap-3 border-primary/50 bg-primary/10 p-3.5",
     providerCard:
-        "grid h-auto w-full grid-cols-[36px_1fr_auto_auto] items-center justify-start gap-3 rounded-md px-3.5 py-3 text-left whitespace-normal data-[sot-state=selected]:border-transparent data-[sot-state=selected]:bg-secondary data-[sot-state=selected]:text-secondary-foreground data-[sot-state=selected]:hover:bg-secondary/80 dark:data-[sot-state=selected]:bg-secondary has-[>svg]:px-3.5",
+        "grid h-auto w-full grid-cols-[36px_1fr_auto_auto] items-center justify-start gap-3 rounded-md px-3.5 py-3 text-left whitespace-normal data-[sot-state=selected]:border-transparent data-[sot-state=selected]:bg-secondary data-[sot-state=selected]:text-secondary-foreground data-[sot-state=selected]:hover:bg-secondary/80 has-[>svg]:px-3.5",
     providerList: "mb-[18px] flex flex-col gap-[8px]",
     summaryList: "mb-[18px] flex flex-col gap-[8px]",
     matrixRow:
-        "grid min-h-[30px] grid-cols-[80px_1fr] items-baseline gap-[8px] border-b border-dashed border-[var(--line-hairline)] py-[6px] dark:border-[var(--glass-border-soft)]",
+        "grid min-h-[30px] grid-cols-[80px_1fr] items-baseline gap-[8px] border-b border-dashed border-border py-[6px]",
     matrixLabel:
         "m-0 [font:600_11px_var(--font-sans)] [color:var(--fg-tertiary)]",
     matrixValue:
@@ -108,13 +106,12 @@ const onboardingCardClassNames = {
     sourceAuthModeOption:
         "h-auto flex-col items-start justify-start whitespace-normal px-3.5 py-3 text-left",
     secondaryAction:
-        "[display:inline-flex] [align-items:center] [height:26px] [gap:6px] [border-radius:8px] [border:1px_solid_var(--line-hairline)] [background:transparent] [padding:0_10px] [font:600_11px_var(--font-sans)] [line-height:normal] [color:var(--fg-secondary)] shadow-none hover:[background:transparent] hover:[color:var(--fg-secondary)] disabled:cursor-not-allowed has-[>svg]:px-[10px]",
+        "[display:inline-flex] [align-items:center] [height:26px] [gap:6px] rounded-md border border-border bg-transparent [padding:0_10px] [font:600_11px_var(--font-sans)] [line-height:normal] text-muted-foreground shadow-none hover:bg-accent hover:text-accent-foreground disabled:cursor-not-allowed has-[>svg]:px-[10px]",
     primaryAction:
-        "[display:inline-flex] [align-items:center] [height:26px] [gap:6px] [border-radius:8px] [border:1px_solid_transparent] [background:var(--accent)] [padding:0_10px] [font:600_11px_var(--font-sans)] [line-height:normal] [color:white] shadow-none hover:[background:var(--accent)] focus-visible:border-primary focus-visible:ring-0 disabled:cursor-not-allowed has-[>svg]:px-[10px]",
+        "[display:inline-flex] [align-items:center] [height:26px] [gap:6px] rounded-md border border-transparent bg-primary [padding:0_10px] [font:600_11px_var(--font-sans)] [line-height:normal] text-primary-foreground shadow-none hover:bg-primary/90 focus-visible:border-ring focus-visible:ring-0 disabled:cursor-not-allowed has-[>svg]:px-[10px]",
     header: "grid auto-rows-min gap-0 p-0",
     steps: "mb-[14px] flex gap-[6px]",
-    step:
-        "[appearance:none] flex-1 [height:4px] [padding:0] [border:0] [border-radius:2px] [background:var(--bg-recessed)] [cursor:pointer] data-[sot-state=active]:[background:var(--accent)] data-[sot-state=complete]:[background:var(--accent)] disabled:cursor-not-allowed",
+    step: "[appearance:none] flex-1 [height:4px] [padding:0] [border:0] [border-radius:2px] [background:var(--bg-recessed)] [cursor:pointer] data-[sot-state=active]:[background:var(--accent)] data-[sot-state=complete]:[background:var(--accent)] disabled:cursor-not-allowed",
     stepHeader: "grid auto-rows-min gap-0 p-0",
     providerMeta: "grid min-w-0 auto-rows-min gap-0 p-0",
     heading:
@@ -128,13 +125,13 @@ const onboardingCardClassNames = {
     stepBody: "[display:flex] [flex-direction:column] [gap:12px] p-0",
     defaultSources: "[display:flex] [flex-direction:column] [gap:6px]",
     defaultSource:
-        "[appearance:none] [display:flex] [align-items:center] [gap:8px] [padding:8px] [border-radius:8px] [border:1px_solid_var(--line-hairline)] [background:transparent] [color:var(--fg-primary)] [cursor:pointer] [text-align:left] data-[sot-state=selected]:[border-color:var(--accent)] data-[sot-state=selected]:[background:color-mix(in_oklab,var(--accent)_6%,transparent)] data-[sot-state=disabled]:[cursor:not-allowed] data-[sot-state=disabled]:opacity-[0.55]",
+        "[appearance:none] [display:flex] [align-items:center] [gap:8px] [padding:8px] rounded-md border border-border bg-transparent text-foreground [cursor:pointer] [text-align:left] data-[sot-state=selected]:border-primary data-[sot-state=selected]:bg-primary/10 data-[sot-state=disabled]:[cursor:not-allowed] data-[sot-state=disabled]:opacity-[0.55]",
     defaultSourceSwatch:
-        "[width:20px] [height:20px] [flex:0_0_20px] [border-radius:4px] [background:transparent] data-[sot-swatch=accent]:[background:#1296db]",
+        "size-5 flex-none rounded-sm bg-transparent data-[sot-swatch=accent]:bg-primary",
     actions:
         "[display:flex] [gap:8px] [justify-content:flex-end] [margin-top:14px]",
     providerIcon:
-        "[display:inline-flex] [width:36px] [height:36px] flex-none [align-items:center] [justify-content:center] [overflow:hidden] [border-radius:8px] [border:1px_solid_var(--line-hairline)] [background:#fff] [&_img]:[display:block] [&_img]:[width:100%] [&_img]:[height:100%] [&_img]:[object-fit:contain] [&_svg]:[width:18px] [&_svg]:[height:18px] [&_svg]:[fill:none] [&_svg]:[stroke:currentColor] [&_svg]:[stroke-width:1.8] [&_svg]:[stroke-linecap:round] [&_svg]:[stroke-linejoin:round] [&[data-sot-cover=true]_img]:[object-fit:cover]",
+        "inline-flex size-9 flex-none items-center justify-center overflow-hidden rounded-md border border-border bg-card text-foreground [&_img]:block [&_img]:size-full [&_img]:object-contain [&_svg]:size-[18px] [&_svg]:fill-none [&_svg]:stroke-current [&_svg]:stroke-[1.8] [&_svg]:[stroke-linecap:round] [&_svg]:[stroke-linejoin:round] [&[data-sot-cover=true]_img]:object-cover",
     providerName: "[font:600_14px_var(--font-sans)] [color:var(--fg-primary)]",
     providerHint:
         "[font:500_12px_var(--font-sans)] [color:var(--fg-tertiary)] [margin-top:2px]",
@@ -422,7 +419,9 @@ export function OnboardingForm({ onConnected }: OnboardingFormProps) {
                     >
                         {finishError ? (
                             <div
-                                className={onboardingCardClassNames.errorMessage}
+                                className={
+                                    onboardingCardClassNames.errorMessage
+                                }
                                 data-sot-part="onboarding-error"
                                 data-sot-state="error"
                                 role="alert"
@@ -593,7 +592,9 @@ function SourceStep({
                             type="button"
                         >
                             <span
-                                className={onboardingCardClassNames.providerIcon}
+                                className={
+                                    onboardingCardClassNames.providerIcon
+                                }
                                 data-sot-part="provider-icon"
                                 data-sot-cover={
                                     item.provider === "feishu-minutes"
@@ -608,7 +609,9 @@ function SourceStep({
                                 )}
                             </span>
                             <span
-                                className={onboardingCardClassNames.providerMeta}
+                                className={
+                                    onboardingCardClassNames.providerMeta
+                                }
                                 data-sot-part="provider-meta"
                             >
                                 <span
@@ -790,12 +793,7 @@ function TranscriptionStep({
                     const isActive = option.id === defaultTranscriptionSource;
 
                     return (
-                        <div
-                            aria-disabled={
-                                isSaving || !option.connected
-                                    ? "true"
-                                    : undefined
-                            }
+                        <button
                             className={onboardingCardClassNames.defaultSource}
                             data-sot-control="onboarding-default-source"
                             data-sot-provider={option.id}
@@ -806,27 +804,15 @@ function TranscriptionStep({
                                       ? "idle"
                                       : "disabled"
                             }
+                            disabled={isSaving || !option.connected}
                             key={option.id}
-                            onKeyDown={(event) => {
-                                if (
-                                    isSaving ||
-                                    !option.connected ||
-                                    (event.key !== "Enter" && event.key !== " ")
-                                ) {
-                                    return;
-                                }
-
-                                event.preventDefault();
-                                setDefaultTranscriptionSource(option.id);
-                            }}
                             onClick={() => {
                                 if (isSaving || !option.connected) {
                                     return;
                                 }
                                 setDefaultTranscriptionSource(option.id);
                             }}
-                            role="button"
-                            tabIndex={isSaving || !option.connected ? -1 : 0}
+                            type="button"
                         >
                             <span
                                 className={
@@ -836,7 +822,7 @@ function TranscriptionStep({
                                 data-sot-swatch={option.swatch}
                             />
                             {option.label}
-                        </div>
+                        </button>
                     );
                 })}
             </div>

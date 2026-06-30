@@ -59,44 +59,6 @@ function readCssBlock(source: string, marker: string) {
     throw new Error(`Missing closing brace for ${marker}`);
 }
 
-function readCssBlocks(source: string, marker: string) {
-    const blocks: string[] = [];
-    let searchIndex = 0;
-
-    while (searchIndex < source.length) {
-        const markerIndex = source.indexOf(marker, searchIndex);
-
-        if (markerIndex < 0) {
-            break;
-        }
-
-        const openBraceIndex = source.indexOf("{", markerIndex);
-        expect(openBraceIndex).toBeGreaterThanOrEqual(0);
-
-        let depth = 0;
-        for (let index = openBraceIndex; index < source.length; index += 1) {
-            const character = source[index];
-
-            if (character === "{") {
-                depth += 1;
-            }
-
-            if (character === "}") {
-                depth -= 1;
-            }
-
-            if (depth === 0) {
-                blocks.push(source.slice(openBraceIndex + 1, index));
-                searchIndex = index + 1;
-                break;
-            }
-        }
-    }
-
-    expect(blocks.length).toBeGreaterThan(0);
-    return blocks;
-}
-
 function collectCssRuleBlocks(source: string, selectorFragment: string) {
     const blocks: Array<{ prelude: string; declarations: string }> = [];
     let searchFrom = 0;
@@ -520,9 +482,7 @@ describe("settings SOT interaction regressions", () => {
         expect(settingsNavButton).toContain('data-sot-control="settings-nav"');
         expect(settingsNavButton).toContain('variant="ghost"');
         expect(settingsNavButton).toContain("SETTINGS_NAV_BUTTON_CLASS");
-        expect(settingsNavButton).toMatch(
-            /className=\{\s*[A-Za-z0-9_]+\s*\}/,
-        );
+        expect(settingsNavButton).toMatch(/className=\{\s*[A-Za-z0-9_]+\s*\}/);
         for (const settingsControlButton of [
             settingsCloseButton,
             settingsNavButton,
@@ -795,9 +755,9 @@ describe("settings SOT interaction regressions", () => {
         for (const selector of REMOVED_SETTINGS_MAIN_VISUAL_DATA_SOT_CSS_SELECTORS) {
             expect(collectExactCssRuleBlocks(globals, selector)).toEqual([]);
         }
-        expect(collectExactCssRuleBlocks(globals, "[data-sot-section-group]")).toEqual(
-            [],
-        );
+        expect(
+            collectExactCssRuleBlocks(globals, "[data-sot-section-group]"),
+        ).toEqual([]);
         for (const selector of REMOVED_SETTINGS_DUPLICATE_DISPLAY_GLOBAL_SELECTORS) {
             expect(collectExactCssRuleBlocks(globals, selector)).toEqual([]);
         }
@@ -1268,8 +1228,9 @@ describe("settings SOT interaction regressions", () => {
             /getSourceAuthModeDisplayLabel\(\s*mode,\s*language,\s*\)/,
         );
         const settingsGroup =
-            content.match(/function SettingsGroup[\s\S]*?function SettingsRow/)?.[0] ??
-            "";
+            content.match(
+                /function SettingsGroup[\s\S]*?function SettingsRow/,
+            )?.[0] ?? "";
         const [sourceAuthModeBadge] = collectElementSlices(
             content,
             'data-sot-badge="source-auth-mode"',
@@ -1615,7 +1576,9 @@ describe("settings SOT interaction regressions", () => {
         expect(providerStateBanner).toContain("SETTINGS_BANNER_LAYOUT_CLASS");
         expect(providerStateBanner).toContain("SETTINGS_BANNER_ERROR_CLASS");
         expect(providerStateBanner).toContain("SETTINGS_BANNER_TONE_CLASS");
-        expect(bannerIconSlotClass).toContain("SETTINGS_BANNER_ICON_SLOT_CLASS");
+        expect(bannerIconSlotClass).toContain(
+            "SETTINGS_BANNER_ICON_SLOT_CLASS",
+        );
         expect(bannerIconSlotClass).toContain(
             "[&_[data-sot-banner-icon]]:inline-flex",
         );
@@ -1919,9 +1882,7 @@ describe("settings SOT interaction regressions", () => {
         expect(onboardingProviderFieldSlice).not.toContain(
             'variant="settings"',
         );
-        expect(fieldPrimitive).toContain(
-            'type FieldVariant = "default";',
-        );
+        expect(fieldPrimitive).toContain('type FieldVariant = "default";');
         expectPrimitiveToExcludeBusinessTokens(
             fieldPrimitive,
             AUTH_FIELD_PRIMITIVE_FORBIDDEN_TOKENS,
@@ -1962,13 +1923,11 @@ describe("settings SOT interaction regressions", () => {
         expect(keyStatusClass).toContain("data-[sot-state=stored]");
         expect(keyStatusClass).toContain("text-[var(--fg-tertiary)]");
         expect(keyStatusClass).toContain("text-[var(--signal-success)]");
-        expect(content).toContain(
-            "className={SETTINGS_SHORTCUTS_GRID_CLASS}",
-        );
+        expect(content).toContain("className={SETTINGS_SHORTCUTS_GRID_CLASS}");
         expect(content).toContain("className={SETTINGS_SHORTCUT_ROW_CLASS}");
         expect(content).toContain("className={SETTINGS_SHORTCUT_KEY_CLASS}");
         expect(content).toContain("className={SETTINGS_KEY_STATUS_CLASS}");
-        expect(content).toContain('data-sot-key-status');
+        expect(content).toContain("data-sot-key-status");
         expect(content).not.toContain('data-state="valid"');
         expect(content).not.toContain('data-state="invalid"');
         for (const selector of REMOVED_SETTINGS_SHORTCUTS_KEY_STATUS_VISUAL_SELECTORS) {
@@ -2244,7 +2203,9 @@ describe("settings SOT interaction regressions", () => {
         ).toBe(true);
         expect(providerFieldsIndex).toBeGreaterThanOrEqual(0);
         expect(firstProviderDividerIndex).toBeGreaterThan(providerFieldsIndex);
-        expect(autoUpdateDetailIndex).toBeGreaterThan(firstProviderDividerIndex);
+        expect(autoUpdateDetailIndex).toBeGreaterThan(
+            firstProviderDividerIndex,
+        );
         expect(enableSyncDetailIndex).toBeGreaterThan(autoUpdateDetailIndex);
         expect(actionClusterDividerIndex).toBeGreaterThan(
             enableSyncDetailIndex,
@@ -3197,7 +3158,7 @@ describe("settings SOT interaction regressions", () => {
         expect(speakers).toMatch(
             /aria-describedby=\{\s*voiceprintNameDescriptionId\s*\}/,
         );
-        expect(speakers).toContain("className=\"sr-only\"");
+        expect(speakers).toContain('className="sr-only"');
         expect(speakers).toContain("Rename voiceprint");
         expect(speakers).toContain("Delete voiceprint");
         expect(speakers).not.toMatch(/<Label\s+hidden/);
@@ -3255,9 +3216,7 @@ describe("settings SOT interaction regressions", () => {
         expect(skeletons).toContain(
             "cn(SETTINGS_SECTION_SKELETON_CLASS, className)",
         );
-        expect(skeletons).toContain(
-            "className={SETTINGS_LIST_SKELETON_CLASS}",
-        );
+        expect(skeletons).toContain("className={SETTINGS_LIST_SKELETON_CLASS}");
         expect(skeletons).toContain('data-sot-part="settings-skeleton-row"');
         expect(skeletons).toContain('data-sot-panel="settings-empty-hint"');
         expect(skeletons).toContain('data-sot-part="settings-empty-title"');
@@ -3269,10 +3228,10 @@ describe("settings SOT interaction regressions", () => {
         );
         expect(skeletons).toContain("SKELETON_SYNC_DOT_CLASS");
         expect(skeletons).toContain("size-2 rounded-full");
-        expect(skeletons).toContain("bg-[var(--signal-success)]");
-        expect(skeletons).toContain(
-            "shadow-[0_0_0_3px_color-mix(in_srgb,var(--signal-success)_22%,transparent)]",
-        );
+        expect(skeletons).toContain("bg-primary");
+        expect(skeletons).toContain("ring-4 ring-primary/20");
+        expect(skeletons).not.toContain("color-mix(");
+        expect(skeletons).not.toContain("bg-[var(--signal-success)]");
         expect(globals).not.toContain(
             '[data-sot-part="settings-skeleton-sync-dot"]',
         );
