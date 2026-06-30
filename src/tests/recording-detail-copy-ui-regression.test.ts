@@ -31,6 +31,31 @@ const RECORDING_WORKSTATION_SIDEBAR_REQUIRED_CLASS_TOKENS = [
     "supports-[backdrop-filter]:backdrop-blur-[22px]",
     "supports-[backdrop-filter]:backdrop-saturate-[140%]",
 ] as const;
+const DASHBOARD_SIDEBAR_REQUIRED_CLASS_TOKENS = [
+    "relative",
+    "flex",
+    "flex-col",
+    "rounded-none",
+    "border",
+    "border-[var(--glass-border)]",
+    "border-r-[var(--line-hairline)]",
+    "bg-[var(--glass-tint-strong)]",
+    "px-3",
+    "pt-4",
+    "pb-3",
+    "shadow-[var(--glass-shadow-cast),var(--shadow-inset)]",
+    "backdrop-blur-[var(--glass-blur)]",
+    "backdrop-saturate-[var(--glass-saturate)]",
+] as const;
+const DASHBOARD_SIDEBAR_VISUAL_GLOBAL_SELECTORS = [
+    '[data-sot-panel="dashboard-sidebar"]',
+    '[data-theme="dark"] [data-sot-panel="dashboard-sidebar"]',
+    '.dark [data-sot-panel="dashboard-sidebar"]',
+] as const;
+const DASHBOARD_SIDEBAR_FORBIDDEN_CLASS_PATTERN =
+    /\bspace-[xy]-|\b(?:rgb|rgba|hsl|hsla|oklch|color-mix)\(|#[0-9A-Fa-f]{3,8}\b|\bdark:|(?:^|\s)(?:bg|border|text|shadow|ring|fill|stroke|from|via|to)-(?:white|black|transparent|slate|gray|zinc|neutral|stone|red|orange|amber|yellow|lime|green|emerald|teal|cyan|sky|blue|indigo|violet|purple|fuchsia|pink|rose)(?:[/-]\d+)?\b/;
+const DASHBOARD_SIDEBAR_VISUAL_GLOBAL_DECLARATION_RE =
+    /^\s*(?:-webkit-backdrop-filter|backdrop-filter|background|border(?:-(?:color|radius|right|style|width))?|box-shadow|display|flex-direction|padding|position)\s*:/m;
 const RECORDING_WORKSTATION_MAIN_REQUIRED_CLASS_TOKENS = [
     "flex",
     "h-screen",
@@ -1930,14 +1955,25 @@ describe("recording detail copy and title action UI regressions", () => {
         );
         expect(detailWorkstation).toContain('data-sot-state="selected"');
         expect(globals).toContain('[data-sot-shell="recording-workstation"]');
-        expect(globals).toContain(
-            '[data-sot-panel="dashboard-sidebar"] {\n    position: relative;',
-        );
-        expect(globals).toContain(
-            '[data-sot-panel="dashboard-sidebar"] {\n    background: var(--glass-tint-strong);',
-        );
-        expect(globals).toContain(
+        for (const selector of DASHBOARD_SIDEBAR_VISUAL_GLOBAL_SELECTORS) {
+            expect(collectExactCssRuleBlocks(globals, selector)).toEqual([]);
+        }
+        expect(globals).not.toContain(
             '[data-theme="dark"] [data-sot-panel="dashboard-sidebar"],\n.dark [data-sot-panel="dashboard-sidebar"]',
+        );
+        const dashboardSidebarGlobalBlocks = collectCssRuleBlocks(
+            globals,
+            '[data-sot-panel="dashboard-sidebar"]',
+        );
+        expect(dashboardSidebarGlobalBlocks).toHaveLength(1);
+        expect(dashboardSidebarGlobalBlocks[0]?.prelude).toContain(
+            '[data-sot-panel="dashboard-sync"]',
+        );
+        expect(dashboardSidebarGlobalBlocks[0]?.declarations).toContain(
+            "pointer-events: none;",
+        );
+        expect(dashboardSidebarGlobalBlocks[0]?.declarations).not.toMatch(
+            DASHBOARD_SIDEBAR_VISUAL_GLOBAL_DECLARATION_RE,
         );
         expect(globals).not.toContain(
             '[data-sot-panel="dashboard-sidebar"],\n[data-sot-panel="workstation-sidebar"]',
@@ -1964,6 +2000,20 @@ describe("recording detail copy and title action UI regressions", () => {
         ).toEqual([]);
         const dashboardWorkstation = readSource(
             "features/dashboard/workstation.tsx",
+        );
+        const dashboardSidebarClassNames = extractBoundedSlice(
+            dashboardWorkstation,
+            "const dashboardSidebarCollapseClassNames = {",
+            "} as const;",
+        );
+        for (const classToken of DASHBOARD_SIDEBAR_REQUIRED_CLASS_TOKENS) {
+            expect(dashboardSidebarClassNames).toContain(classToken);
+        }
+        expect(dashboardSidebarClassNames).not.toMatch(
+            DASHBOARD_SIDEBAR_FORBIDDEN_CLASS_PATTERN,
+        );
+        expect(dashboardWorkstation).toContain(
+            "className={dashboardSidebarCollapseClassNames.sidebar}",
         );
         const dashboardMain = extractElementSlice(
             dashboardWorkstation,

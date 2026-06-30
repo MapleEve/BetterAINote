@@ -662,25 +662,6 @@ kbd {
 /* ===========================================================
    GLASS PRIMITIVES
    =========================================================== */
-[data-sot-panel="dashboard-sidebar"] {
-    position: relative;
-    background:
-        linear-gradient(
-            180deg,
-            var(--glass-highlight-top),
-            var(--glass-highlight-bottom) 60%,
-            transparent
-        ), var(--glass-tint-base);
-    border: 1px solid var(--glass-border);
-    border-radius: var(--radius-lg);
-    backdrop-filter: blur(var(--glass-blur)) saturate(var(--glass-saturate));
-    -webkit-backdrop-filter: blur(var(--glass-blur))
-        saturate(var(--glass-saturate));
-    box-shadow: var(--glass-shadow-cast), var(--shadow-inset);
-}
-[data-sot-panel="dashboard-sidebar"] {
-    background: var(--glass-tint-strong);
-}
 /* SOT web kit: exact visual source */
 /* BetterAINote · Workstation UI kit
    Apple-leaning grayscale + restrained steel accent + liquid glass */
@@ -738,30 +719,8 @@ button:not([data-slot]) {
    Dark mode: translucent + saturated so backdrop-blur actually shows. */
 /* Liquid glass — actually translucent. No gradient. Single hairline.
    The canvas behind shows through; backdrop-filter does the work. */
-[data-theme="dark"] [data-sot-panel="dashboard-sidebar"],
-.dark [data-sot-panel="dashboard-sidebar"] {
-    background: var(--glass-tint-base);
-    border-color: var(--glass-border-soft);
-    backdrop-filter: blur(28px) saturate(160%);
-    -webkit-backdrop-filter: blur(28px) saturate(160%);
-    box-shadow: 0 0 0 0.5px rgb(255 255 255 / 0.04);
-}
-[data-theme="dark"] [data-sot-panel="dashboard-sidebar"],
-.dark [data-sot-panel="dashboard-sidebar"] {
-    background: var(--glass-tint-strong);
-    backdrop-filter: blur(36px) saturate(180%);
-    -webkit-backdrop-filter: blur(36px) saturate(180%);
-}
 
 /* ======== Sidebar ======== */
-[data-sot-panel="dashboard-sidebar"] {
-    display: flex;
-    flex-direction: column;
-    padding: 16px 12px 12px;
-    border-right: 1px solid var(--line-hairline);
-    border-radius: 0;
-    position: relative;
-}
 /* ======== Overlay layer system ========================================
    Single source of truth for stacking. Dropdowns from the topbar always
    sit above the workspace list/detail/player; the settings scrim sits

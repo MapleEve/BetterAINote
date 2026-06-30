@@ -107,6 +107,31 @@ const DASHBOARD_TOPBAR_OWNER_CLASS_INITIALIZERS = [
         expected: "font-semibold text-[var(--fg-primary)] max-[860px]:hidden",
     },
 ] as const;
+const DASHBOARD_SIDEBAR_OWNER_CLASS_TOKENS = [
+    "relative",
+    "flex",
+    "flex-col",
+    "rounded-none",
+    "border",
+    "border-[var(--glass-border)]",
+    "border-r-[var(--line-hairline)]",
+    "bg-[var(--glass-tint-strong)]",
+    "px-3",
+    "pt-4",
+    "pb-3",
+    "shadow-[var(--glass-shadow-cast),var(--shadow-inset)]",
+    "backdrop-blur-[var(--glass-blur)]",
+    "backdrop-saturate-[var(--glass-saturate)]",
+] as const;
+const DASHBOARD_SIDEBAR_VISUAL_GLOBAL_SELECTORS = [
+    '[data-sot-panel="dashboard-sidebar"]',
+    '[data-theme="dark"] [data-sot-panel="dashboard-sidebar"]',
+    '.dark [data-sot-panel="dashboard-sidebar"]',
+] as const;
+const DASHBOARD_SIDEBAR_OWNER_FORBIDDEN_CLASS_PATTERN =
+    /\bspace-[xy]-|\b(?:rgb|rgba|hsl|hsla|oklch|color-mix)\(|#[0-9A-Fa-f]{3,8}\b|\bdark:|(?:^|\s)(?:bg|border|text|shadow|ring|fill|stroke|from|via|to)-(?:white|black|transparent|slate|gray|zinc|neutral|stone|red|orange|amber|yellow|lime|green|emerald|teal|cyan|sky|blue|indigo|violet|purple|fuchsia|pink|rose)(?:[/-]\d+)?\b/;
+const DASHBOARD_SIDEBAR_VISUAL_GLOBAL_DECLARATION_RE =
+    /^\s*(?:-webkit-backdrop-filter|backdrop-filter|background|border(?:-(?:color|radius|right|style|width))?|box-shadow|display|flex-direction|padding|position)\s*:/m;
 const EXPECTED_SOURCE_REPORT_STATUS_BADGE_CLASS_NAME =
     "h-[22px] min-w-[65px] justify-normal gap-[9px] overflow-visible rounded-full border px-[8px] py-0 text-[11px] font-semibold leading-[normal] shadow-none data-[sot-tone=err]:border-[var(--source-report-status-err-border)] data-[sot-tone=err]:bg-[var(--source-report-status-err-bg)] data-[sot-tone=err]:text-[var(--signal-danger)] data-[sot-tone=neu]:border-[var(--line-hairline)] data-[sot-tone=neu]:bg-[var(--bg-recessed)] data-[sot-tone=neu]:text-[var(--fg-secondary)] data-[sot-tone=ok]:border-[var(--source-report-status-ok-border)] data-[sot-tone=ok]:bg-[var(--source-report-status-ok-bg)] data-[sot-tone=ok]:text-[var(--source-report-status-ok-fg)] data-[sot-tone=warn]:border-[var(--source-report-status-warn-border)] data-[sot-tone=warn]:bg-[var(--source-report-status-warn-bg)] data-[sot-tone=warn]:text-[var(--source-report-status-warn-fg)] [&_[data-sot-part=dashboard-source-report-status-dot]]:mr-0 [&_[data-sot-part=dashboard-source-report-status-dot]]:inline-block [&_[data-sot-part=dashboard-source-report-status-dot]]:size-[5px] [&_[data-sot-part=dashboard-source-report-status-dot]]:rounded-full [&_[data-sot-part=dashboard-source-report-status-dot]]:bg-current [&_[data-sot-part=source-report-status-dot]]:mr-0 [&_[data-sot-part=source-report-status-dot]]:inline-block [&_[data-sot-part=source-report-status-dot]]:size-[5px] [&_[data-sot-part=source-report-status-dot]]:rounded-full [&_[data-sot-part=source-report-status-dot]]:bg-current";
 const EXPECTED_DASHBOARD_RECORDING_PLAYER_CARD_CLASS_NAME =
@@ -684,6 +709,15 @@ function collectCssRuleBlocks(source: string, selectorFragment: string) {
     }
 
     return blocks;
+}
+
+function collectExactCssRuleBlocks(source: string, selector: string) {
+    return collectCssRuleBlocks(source, selector).filter(({ prelude }) =>
+        prelude
+            .split(",")
+            .map((selectorPart) => selectorPart.trim())
+            .includes(selector),
+    );
 }
 
 const DASHBOARD_SHELL_SOURCE_BUTTON_CONSTANTS = [
@@ -3175,8 +3209,48 @@ describe("dashboard SOT foundation", () => {
         expect(globals).not.toContain(
             '[data-sot-panel="dashboard-workspace"]\n        > [data-sot-panel="dashboard-detail"]',
         );
-        expect(globals).toContain(
-            '[data-sot-panel="dashboard-sidebar"] {\n    background: var(--glass-tint-strong);',
+        const dashboardSidebar = extractOpeningElement(
+            workstation,
+            'data-sot-panel="dashboard-sidebar"',
+            "aside",
+        );
+        const dashboardSidebarClassNames = extractBoundedSlice(
+            workstation,
+            "const dashboardSidebarCollapseClassNames = {",
+            "} as const;",
+        );
+        const dashboardSidebarClass = extractObjectStringProperty(
+            dashboardSidebarClassNames,
+            "sidebar",
+        );
+        expect(dashboardSidebar).toContain(
+            "className={dashboardSidebarCollapseClassNames.sidebar}",
+        );
+        for (const ownerClassToken of DASHBOARD_SIDEBAR_OWNER_CLASS_TOKENS) {
+            expect(dashboardSidebarClass).toContain(ownerClassToken);
+        }
+        expect(dashboardSidebarClass).not.toMatch(
+            DASHBOARD_SIDEBAR_OWNER_FORBIDDEN_CLASS_PATTERN,
+        );
+        for (const selector of DASHBOARD_SIDEBAR_VISUAL_GLOBAL_SELECTORS) {
+            expect(collectExactCssRuleBlocks(globals, selector)).toEqual([]);
+        }
+        expect(globals).not.toContain(
+            '[data-theme="dark"] [data-sot-panel="dashboard-sidebar"],\n.dark [data-sot-panel="dashboard-sidebar"]',
+        );
+        const dashboardSidebarGlobalBlocks = collectCssRuleBlocks(
+            globals,
+            '[data-sot-panel="dashboard-sidebar"]',
+        );
+        expect(dashboardSidebarGlobalBlocks).toHaveLength(1);
+        expect(dashboardSidebarGlobalBlocks[0]?.prelude).toContain(
+            '[data-sot-panel="dashboard-sync"]',
+        );
+        expect(dashboardSidebarGlobalBlocks[0]?.declarations).toContain(
+            "pointer-events: none;",
+        );
+        expect(dashboardSidebarGlobalBlocks[0]?.declarations).not.toMatch(
+            DASHBOARD_SIDEBAR_VISUAL_GLOBAL_DECLARATION_RE,
         );
         expect(globals).toContain(
             '[data-sot-control="dashboard-sync"][disabled] {\n    pointer-events: none;',
