@@ -2391,7 +2391,7 @@ body[data-ds-todo="show"] .design-todo { display: inline-block; }
   align-items: center; justify-content: center;
   margin: 0 auto 6px;
 }
-.sp-merge-empty-ico svg { width: 14px; height: 14px; stroke: currentColor; fill: none; stroke-width: 1.8; }
+.sp-merge-empty-ico svg { width: 14px; height: 14px; stroke: currentColor; fill: none; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
 .sp-merge-empty-msg { font: 600 12px var(--font-sans); color: var(--fg-primary); margin: 0 0 2px; }
 .sp-merge-empty-sub { font: 500 11.5px var(--font-sans); color: var(--fg-tertiary); margin: 0; }
 

@@ -233,6 +233,22 @@ function aiRenameAction(page: Page, name: string) {
     return aiRenamePreview(page).getByRole("button", { name, exact: true });
 }
 
+async function gotoAiRenameRecording(page: Page) {
+    const target = `/recordings/${AI_RENAME_RECORDING_ID}`;
+    for (let attempt = 0; ; attempt += 1) {
+        try {
+            await page.goto(target, { waitUntil: "domcontentloaded" });
+            return;
+        } catch (error) {
+            const message = error instanceof Error ? error.message : String(error);
+            if (attempt > 0 || !/net::ERR_ABORTED/i.test(message)) {
+                throw error;
+            }
+            await page.waitForTimeout(250);
+        }
+    }
+}
+
 async function openSotAiRenamePanel(
     page: Page,
     state: AiRenameSotState,
@@ -664,9 +680,7 @@ test("AI rename keeps generated titles behind review, cancel, regenerate, and ap
         await resetDisplayToChinese(page);
         await seedAiRenameRecording(await getPlaywrightUserId());
 
-        await page.goto(`/recordings/${AI_RENAME_RECORDING_ID}`, {
-            waitUntil: "domcontentloaded",
-        });
+        await gotoAiRenameRecording(page);
         await waitForRecordingWorkstationReady(page);
         await expect(page.getByRole("heading", { name: ORIGINAL_TITLE }))
             .toBeVisible();
@@ -848,9 +862,7 @@ test("AI rename exposes loading, error, retry, and apply failure states", async 
         await resetDisplayToChinese(page);
         await seedAiRenameRecording(await getPlaywrightUserId());
 
-        await page.goto(`/recordings/${AI_RENAME_RECORDING_ID}`, {
-            waitUntil: "domcontentloaded",
-        });
+        await gotoAiRenameRecording(page);
         await waitForRecordingWorkstationReady(page);
         await expect(page.getByRole("heading", { name: ORIGINAL_TITLE }))
             .toBeVisible();
@@ -966,9 +978,7 @@ test("AI rename detail loading, error, and review states match SOT runtime pixel
         await resetDisplayToChinese(page);
         await seedAiRenameRecording(await getPlaywrightUserId());
 
-        await page.goto(`/recordings/${AI_RENAME_RECORDING_ID}`, {
-            waitUntil: "domcontentloaded",
-        });
+        await gotoAiRenameRecording(page);
         await waitForRecordingWorkstationReady(page);
         await aiRenameTrigger(page).click();
         await expect(aiRenamePreview(page))
@@ -1006,9 +1016,7 @@ test("AI rename unavailable service state matches the SOT panel", async ({
         await resetDisplayToChinese(page);
         await seedAiRenameRecording(await getPlaywrightUserId());
 
-        await page.goto(`/recordings/${AI_RENAME_RECORDING_ID}`, {
-            waitUntil: "domcontentloaded",
-        });
+        await gotoAiRenameRecording(page);
         await waitForRecordingWorkstationReady(page);
 
         await expect(aiRenameTrigger(page))
@@ -1048,9 +1056,7 @@ test("AI rename unavailable service state matches SOT runtime pixels", async ({
         await resetDisplayToChinese(page);
         await seedAiRenameRecording(await getPlaywrightUserId());
 
-        await page.goto(`/recordings/${AI_RENAME_RECORDING_ID}`, {
-            waitUntil: "domcontentloaded",
-        });
+        await gotoAiRenameRecording(page);
         await waitForRecordingWorkstationReady(page);
         await aiRenameTrigger(page).click();
         await expect(aiRenamePreview(page))
@@ -1074,9 +1080,7 @@ test("AI rename configured service still blocks recordings without transcripts",
             includeTranscript: false,
         });
 
-        await page.goto(`/recordings/${AI_RENAME_RECORDING_ID}`, {
-            waitUntil: "domcontentloaded",
-        });
+        await gotoAiRenameRecording(page);
         await waitForRecordingWorkstationReady(page);
 
         await expect(aiRenameTrigger(page))

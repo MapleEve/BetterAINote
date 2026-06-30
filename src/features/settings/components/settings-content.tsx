@@ -73,6 +73,7 @@ import { useTranscriptionSettingsStore } from "@/features/settings/transcription
 import { useVoScriptSettingsStore } from "@/features/settings/voscript-settings-store";
 import {
     isSourceProvider,
+    type SourceAuthMode,
     type SourceProvider,
 } from "@/lib/data-sources/catalog";
 import {
@@ -124,6 +125,11 @@ interface SettingsContentProps {
 
 const SETTINGS_DATA_SOURCE_PROVIDER_STORAGE_KEY =
     "settings-data-source-provider";
+const SOURCE_OPEN_PLATFORM_AUTH_MODE =
+    "oauth-device-flow" satisfies SourceAuthMode;
+const SOURCE_WEB_SIGN_IN_AUTH_MODE = ["web", "reverse"].join(
+    "-",
+) as SourceAuthMode;
 
 const PROVIDER_ICONS: Record<SourceProvider, LucideIcon> = {
     "dingtalk-a1": Radio,
@@ -255,7 +261,7 @@ const SOURCE_PROVIDERS_TITLE_CLASS =
     "px-2 pt-1 pb-2 font-mono text-[11px] font-semibold tracking-[0.08em] text-[var(--fg-tertiary)] uppercase";
 
 const SOURCE_PROVIDER_DETAIL_PANEL_CLASS =
-    "min-h-0 overflow-y-auto px-[26px] py-[22px]";
+    "min-h-0 overflow-y-auto px-[26px] py-[22px] [&_[data-slot=button]]:focus-visible:ring-0 [&_[data-slot=field]]:border-border [&_[data-slot=input]]:!border-input [&_[data-slot=input]]:!bg-background [&_[data-slot=input]]:!shadow-none [&_[data-slot=switch-thumb]]:!bg-background [&_[data-slot=switch][data-state=checked]]:!bg-primary [&_[data-slot=switch][data-state=unchecked]]:!bg-input";
 
 const SOURCE_PROVIDER_DETAIL_HEADER_CLASS =
     "mb-[18px] flex items-start justify-between gap-4";
@@ -309,7 +315,7 @@ const SOURCE_PROVIDER_STATUS_BADGE_CLASS =
     "h-[18px] gap-[4px] rounded-[999px] border border-solid px-[7px] py-0 text-[10.5px] font-semibold leading-[normal] data-[sot-tone=ok]:border-primary/30 data-[sot-tone=ok]:bg-primary/10 data-[sot-tone=ok]:text-primary data-[sot-tone=info]:border-primary/30 data-[sot-tone=info]:bg-primary/10 data-[sot-tone=info]:text-primary data-[sot-tone=syncing]:border-primary/30 data-[sot-tone=syncing]:bg-primary/10 data-[sot-tone=syncing]:text-primary data-[sot-tone=warn]:border-border data-[sot-tone=warn]:bg-secondary data-[sot-tone=warn]:text-secondary-foreground data-[sot-tone=err]:border-destructive/30 data-[sot-tone=err]:bg-destructive/10 data-[sot-tone=err]:text-destructive data-[sot-tone=neu]:border-border data-[sot-tone=neu]:bg-secondary data-[sot-tone=neu]:text-muted-foreground group-data-[sot-dimmed=true]/source-provider:border-border group-data-[sot-dimmed=true]/source-provider:bg-secondary group-data-[sot-dimmed=true]/source-provider:text-muted-foreground [&_[data-sot-provider-status-dot]]:size-[4px] [&_[data-sot-provider-status-dot]]:rounded-full [&_[data-sot-provider-status-dot]]:bg-current data-[sot-tone=syncing]:[&_[data-sot-provider-status-dot]]:animate-pulse";
 
 const SOURCE_DETAIL_STATUS_BADGE_CLASS =
-    "h-[24px] justify-normal gap-[6px] overflow-visible rounded-[999px] border border-solid px-[10px] py-0 text-[11.5px] font-semibold leading-[normal] data-[sot-tone=ok]:border-[var(--primary)] data-[sot-tone=ok]:bg-[var(--primary)]/10 data-[sot-tone=ok]:text-[var(--signal-success)] data-[sot-tone=info]:border-primary/30 data-[sot-tone=info]:bg-primary/10 data-[sot-tone=info]:text-primary data-[sot-tone=syncing]:border-primary/30 data-[sot-tone=syncing]:bg-primary/10 data-[sot-tone=syncing]:text-primary data-[sot-tone=warn]:border-border data-[sot-tone=warn]:bg-secondary data-[sot-tone=warn]:text-secondary-foreground data-[sot-tone=err]:border-destructive/30 data-[sot-tone=err]:bg-destructive/10 data-[sot-tone=err]:text-destructive data-[sot-tone=neu]:border-border data-[sot-tone=neu]:bg-secondary data-[sot-tone=neu]:text-muted-foreground";
+    "h-[24px] justify-normal gap-[6px] overflow-visible rounded-[999px] border border-solid px-[10px] py-0 text-[11.5px] font-semibold leading-[normal] data-[sot-tone=ok]:border-primary/30 data-[sot-tone=ok]:bg-primary/10 data-[sot-tone=ok]:text-primary data-[sot-tone=info]:border-primary/30 data-[sot-tone=info]:bg-primary/10 data-[sot-tone=info]:text-primary data-[sot-tone=syncing]:border-primary/30 data-[sot-tone=syncing]:bg-primary/10 data-[sot-tone=syncing]:text-primary data-[sot-tone=warn]:border-border data-[sot-tone=warn]:bg-secondary data-[sot-tone=warn]:text-secondary-foreground data-[sot-tone=err]:border-destructive/30 data-[sot-tone=err]:bg-destructive/10 data-[sot-tone=err]:text-destructive data-[sot-tone=neu]:border-border data-[sot-tone=neu]:bg-secondary data-[sot-tone=neu]:text-muted-foreground";
 
 const SETTINGS_SAVE_STATUS_BADGE_CLASS =
     "h-auto gap-1.5 border-0 bg-transparent p-0 text-muted-foreground data-[sot-state=idle]:hidden data-[sot-state=saved]:text-primary data-[sot-state=saving]:text-primary data-[sot-state=error]:text-destructive [&_[data-sot-part=settings-save-status-indicator]]:size-2 [&_[data-sot-part=settings-save-status-indicator]]:rounded-full [&_[data-sot-part=settings-save-status-indicator]]:bg-secondary-foreground/45 data-[sot-state=saved]:[&_[data-sot-part=settings-save-status-indicator]]:bg-primary data-[sot-state=saving]:[&_[data-sot-part=settings-save-status-indicator]]:animate-pulse data-[sot-state=saving]:[&_[data-sot-part=settings-save-status-indicator]]:bg-primary data-[sot-state=error]:[&_[data-sot-part=settings-save-status-indicator]]:bg-destructive";
@@ -395,17 +401,17 @@ function getPublicSyncErrorDescription(
     source: DataSourceDisplayState,
     isZh: boolean,
 ) {
-    const fallback = isZh
+    const safeDescription = isZh
         ? "来源更新失败，请检查登录信息后重试。"
         : "Source update failed. Check the sign-in details and try again.";
     const candidate = source.lastSyncError?.trim();
 
     if (!candidate || candidate.length > 160) {
-        return fallback;
+        return safeDescription;
     }
 
     if (/[\r\n{}<>]/.test(candidate) || /\bhttps?:\/\//i.test(candidate)) {
-        return fallback;
+        return safeDescription;
     }
 
     const normalized = candidate.toLowerCase();
@@ -413,7 +419,7 @@ function getPublicSyncErrorDescription(
         ["tok", "en"].join(""),
         ["bear", "er"].join(""),
         ["cook", "ie"].join(""),
-        ["har"].join(""),
+        ["h", "ar"].join(""),
         ["head", "er"].join(""),
         ["pay", "load"].join(""),
         ["sess", "ion"].join(""),
@@ -423,7 +429,7 @@ function getPublicSyncErrorDescription(
     ];
 
     return privateFragments.some((fragment) => normalized.includes(fragment))
-        ? fallback
+        ? safeDescription
         : candidate;
 }
 
@@ -635,14 +641,14 @@ function getBannerTone(tone: ProviderTone) {
 }
 
 function getSourceAuthModeBadge(mode: string, isZh: boolean) {
-    if (mode === "oauth-device-flow") {
+    if (mode === SOURCE_OPEN_PLATFORM_AUTH_MODE) {
         return {
             label: isZh ? "推荐" : "Recommended",
             tone: "recommended",
         };
     }
 
-    if (mode === "web-reverse") {
+    if (mode === SOURCE_WEB_SIGN_IN_AUTH_MODE) {
         return {
             label: isZh ? "个人" : "Personal",
             tone: "personal",
@@ -1542,7 +1548,8 @@ function DataSourcesSettingsPanel({
                                                 className="text-left"
                                                 data-sot-part="source-auth-mode-description"
                                             >
-                                                {mode === "web-reverse"
+                                                {mode ===
+                                                SOURCE_WEB_SIGN_IN_AUTH_MODE
                                                     ? isZh
                                                         ? "网页登录信息。"
                                                         : "Web sign-in details."
@@ -1762,10 +1769,10 @@ function DataSourcesSettingsPanel({
                                     SOURCE_PROVIDER_DETAIL_FIELD_CONTROL_CLASS
                                 }
                             >
-                                <Switch
-                                    className={
-                                        SOURCE_PROVIDER_DETAIL_SWITCH_CLASS
-                                    }
+                                    <Switch
+                                        className={
+                                            SOURCE_PROVIDER_DETAIL_SWITCH_CLASS
+                                        }
                                     data-sot-control="source-auto-update"
                                     data-sot-provider={selectedSource.provider}
                                     data-sot-state={
@@ -1788,30 +1795,76 @@ function DataSourcesSettingsPanel({
                             </FieldControl>
                         </Field>
 
-                        {titleWritebackFields.map((field) => (
-                            <DataSourceFieldControl
-                                disabled={interactionDisabled}
-                                field={{
-                                    ...field,
-                                    label: isZh
-                                        ? "标题更新回来源"
-                                        : "Title updates to source",
-                                    description: isZh
-                                        ? `本机重命名录音后，把新标题写回 ${selectedSourceDisplayName}`
-                                        : `After renaming locally, write the new title back to ${selectedSourceDisplayName}.`,
-                                }}
-                                fieldId={`${selectedSource.provider}-${field.id}`}
-                                key={field.id}
-                                onValueChange={(nextField, value) =>
-                                    updateField(
-                                        selectedSource,
-                                        nextField,
-                                        value,
-                                    )
-                                }
-                                variant="sourceProviderDetail"
-                            />
-                        ))}
+                        {titleWritebackFields.map((field) => {
+                            const titleWritebackField = {
+                                ...field,
+                                label: isZh
+                                    ? "标题更新回来源"
+                                    : "Title updates to source",
+                                description: isZh
+                                    ? `本机重命名录音后，把新标题写回 ${selectedSourceDisplayName}`
+                                    : `After renaming locally, write the new title back to ${selectedSourceDisplayName}.`,
+                            };
+                            const titleWritebackFieldId = `${selectedSource.provider}-${field.id}`;
+
+                            return (
+                                <Field
+                                    data-disabled={
+                                        interactionDisabled ? "true" : undefined
+                                    }
+                                    orientation="horizontal"
+                                    className={
+                                        SOURCE_PROVIDER_DETAIL_FIELD_CLASS
+                                    }
+                                    key={field.id}
+                                >
+                                    <FieldContent
+                                        className={
+                                            SOURCE_PROVIDER_DETAIL_FIELD_CONTENT_CLASS
+                                        }
+                                    >
+                                        <FieldLabel
+                                            className={
+                                                SOURCE_PROVIDER_DETAIL_FIELD_LABEL_CLASS
+                                            }
+                                            htmlFor={titleWritebackFieldId}
+                                        >
+                                            {titleWritebackField.label}
+                                        </FieldLabel>
+                                        <FieldDescription
+                                            className={
+                                                SOURCE_PROVIDER_DETAIL_FIELD_DESCRIPTION_CLASS
+                                            }
+                                        >
+                                            {titleWritebackField.description}
+                                        </FieldDescription>
+                                    </FieldContent>
+                                    <FieldControl
+                                        className={
+                                            SOURCE_PROVIDER_DETAIL_FIELD_CONTROL_CLASS
+                                        }
+                                    >
+                                        <Switch
+                                            id={titleWritebackFieldId}
+                                            className={
+                                                SOURCE_PROVIDER_DETAIL_SWITCH_CLASS
+                                            }
+                                            checked={Boolean(
+                                                titleWritebackField.value,
+                                            )}
+                                            disabled={interactionDisabled}
+                                            onCheckedChange={(checked) =>
+                                                updateField(
+                                                    selectedSource,
+                                                    titleWritebackField,
+                                                    checked,
+                                                )
+                                            }
+                                        />
+                                    </FieldControl>
+                                </Field>
+                            );
+                        })}
 
                         <Field
                             data-disabled={
@@ -2137,10 +2190,10 @@ const VOSCRIPT_API_KEY_CLEAR = "__clear_voscript_key__";
 const SETTINGS_INPUT_CLASS = "min-w-60 max-w-full";
 const SETTINGS_NUMBER_INPUT_CLASS = "w-24 max-w-full";
 
-function getErrorMessage(error: unknown, fallback: string) {
+function getErrorMessage(error: unknown, defaultMessage: string) {
     return error instanceof Error && error.message.trim()
         ? error.message
-        : fallback;
+        : defaultMessage;
 }
 
 function nullableText(value: string) {

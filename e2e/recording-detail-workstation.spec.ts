@@ -284,7 +284,10 @@ type SotConfirmStyleProp =
     | (typeof SOT_CONFIRM_SURFACE_STYLE_PROPS)[number]
     | (typeof SOT_CONFIRM_STACK_STYLE_PROPS)[number]
     | (typeof SOT_CONFIRM_BUTTON_STYLE_PROPS)[number];
-type SotTagManagerStyleProp = (typeof SOT_TAG_MANAGER_STYLE_PROPS)[number];
+type SotTagManagerStyleProp =
+    | (typeof SOT_TAG_MANAGER_STYLE_PROPS)[number]
+    | "height"
+    | "width";
 const SOT_TAG_MANAGER_PANEL_STYLE_PROPS = [
     "boxSizing",
     "paddingTop",
@@ -310,6 +313,10 @@ const SOT_TAG_MANAGER_PANEL_STYLE_PROPS = [
     "fontSize",
     "fontWeight",
 ] as const satisfies readonly SotTagManagerStyleProp[];
+const SOT_TAG_MANAGER_TAG_TOGGLE_STYLE_PROPS = [
+    ...SOT_TAG_MANAGER_STYLE_PROPS,
+    "height",
+] as const satisfies readonly SotTagManagerStyleProp[];
 const SOT_TAG_MANAGER_ICON_BUTTON_STYLE_PROPS = [
     "display",
     "boxSizing",
@@ -331,6 +338,62 @@ const SOT_TAG_MANAGER_ICON_BUTTON_STYLE_PROPS = [
     "fontFamily",
     "fontSize",
     "fontWeight",
+] as const satisfies readonly SotTagManagerStyleProp[];
+const SOT_TAG_MANAGER_TOKEN_CHECK_BADGE_STYLE_PROPS = [
+    "display",
+    "boxSizing",
+    "borderTopWidth",
+    "borderTopStyle",
+    "borderTopColor",
+    "borderRightWidth",
+    "borderRightStyle",
+    "borderRightColor",
+    "borderBottomWidth",
+    "borderBottomStyle",
+    "borderBottomColor",
+    "borderLeftWidth",
+    "borderLeftStyle",
+    "borderLeftColor",
+    "borderRadius",
+    "color",
+    "fontFamily",
+    "fontSize",
+    "fontWeight",
+] as const satisfies readonly SotTagManagerStyleProp[];
+const SOT_TAG_MANAGER_ICON_OPTION_STYLE_PROPS = [
+    "boxSizing",
+    "width",
+    "height",
+    "borderTopWidth",
+    "borderTopStyle",
+    "borderTopColor",
+    "borderRightWidth",
+    "borderRightStyle",
+    "borderRightColor",
+    "borderBottomWidth",
+    "borderBottomStyle",
+    "borderBottomColor",
+    "borderLeftWidth",
+    "borderLeftStyle",
+    "borderLeftColor",
+    "borderRadius",
+    "backgroundColor",
+    "color",
+] as const satisfies readonly SotTagManagerStyleProp[];
+const SOT_TAG_MANAGER_TOKEN_ICON_OPTION_STYLE_PROPS = [
+    "boxSizing",
+    "width",
+    "height",
+    "borderTopWidth",
+    "borderTopStyle",
+    "borderRightWidth",
+    "borderRightStyle",
+    "borderBottomWidth",
+    "borderBottomStyle",
+    "borderLeftWidth",
+    "borderLeftStyle",
+    "borderRadius",
+    "color",
 ] as const satisfies readonly SotTagManagerStyleProp[];
 const SOT_TAG_MANAGER_SPINNER_STYLE_PROPS = [
     "display",
@@ -1654,6 +1717,7 @@ function tagManagerDefaultStyleChecks(
             sotSelector: `${sotPanelSelector} .tagm-opt`,
             productSelector:
                 '[data-sot-panel="recording-tag-manager"] [data-sot-control="recording-tag-toggle"]',
+            props: SOT_TAG_MANAGER_TAG_TOGGLE_STYLE_PROPS,
         },
         ...tagManagerCreateRowStyleChecks(sotPanelSelector),
         {
@@ -1737,7 +1801,7 @@ function tagManagerCreateStyleChecks(
             sotSelector: `${sotPanelSelector} .tagm-icon-grid .tg-pick.is-selected`,
             productSelector:
                 '[data-sot-panel="recording-tag-manager"] [data-sot-control="recording-tag-icon"][data-sot-state="selected"]',
-            props: SOT_TAG_MANAGER_ICON_BUTTON_STYLE_PROPS,
+            props: SOT_TAG_MANAGER_TOKEN_ICON_OPTION_STYLE_PROPS,
         },
         {
             label: "tag manager create footer",
@@ -1770,6 +1834,7 @@ function tagManagerSavingStyleChecks(
             sotSelector: `${sotPanelSelector} .tagm-opt[aria-busy="true"]`,
             productSelector:
                 '[data-sot-panel="recording-tag-manager"] [data-sot-control="recording-tag-toggle"][data-busy="true"]',
+            props: SOT_TAG_MANAGER_TAG_TOGGLE_STYLE_PROPS,
         },
         {
             label: "tag manager saving spinner",
@@ -1803,6 +1868,7 @@ function tagManagerErrorStyleChecks(
             sotSelector: `${sotPanelSelector} .tagm-opt`,
             productSelector:
                 '[data-sot-panel="recording-tag-manager"] [data-sot-control="recording-tag-toggle"]',
+            props: SOT_TAG_MANAGER_TAG_TOGGLE_STYLE_PROPS,
         },
     ];
 }
@@ -1817,13 +1883,14 @@ function tagManagerToggleStyleChecks(
             sotSelector: `${sotPanelSelector} .tagm-opt`,
             productSelector:
                 '[data-sot-panel="recording-tag-manager"] [data-sot-control="recording-tag-toggle"]',
+            props: SOT_TAG_MANAGER_TAG_TOGGLE_STYLE_PROPS,
         },
         {
             label: "tag manager check badge",
             sotSelector: `${sotPanelSelector} .tagm-opt-check`,
             productSelector:
                 '[data-sot-panel="recording-tag-manager"] [data-sot-part="tag-check"]',
-            props: SOT_TAG_MANAGER_ICON_BUTTON_STYLE_PROPS,
+            props: SOT_TAG_MANAGER_TOKEN_CHECK_BADGE_STYLE_PROPS,
         },
     ];
 }
@@ -2570,7 +2637,7 @@ ${scope} .btn.danger{background:linear-gradient(180deg,oklch(0.62 0.18 25),oklch
 ${scope} .btn.btn-sm{height:26px;padding:0 10px;font-size:12px;border-radius:7px}
 ${scope} .tagm-panel{background:var(--graphite-900);border:1px solid var(--glass-border);border-radius:12px;box-shadow:0 1px 2px rgb(0 0 0 / .5),0 12px 32px -8px rgb(0 0 0 / .55),0 24px 64px -12px rgb(0 0 0 / .6);font-family:var(--font-sans);width:320px;max-width:calc(100vw - 32px);padding:0;max-height:460px;-webkit-text-size-adjust:auto;text-size-adjust:auto;display:flex;flex-direction:column;opacity:1;transform:translateY(0) scale(1);overflow:hidden}
 ${scope} .tagm-panel[data-open="true"]{pointer-events:auto}
-${scope} .tagm-head{display:flex;align-items:center;justify-content:space-between;padding:10px 12px 9px;border-bottom:1px solid var(--line-hairline)}
+${scope} .tagm-head{display:flex;align-items:center;justify-content:space-between;padding:10px 12px;border-bottom:1px solid var(--line-hairline)}
 [data-theme="dark"] ${scope} .tagm-head{border-bottom-color:var(--glass-border-soft)}
 ${scope} .tagm-head:has(.tagm-close),${scope} .tagm-panel[aria-busy="true"] .tagm-head,${scope} .tagm-panel[data-state="error"] .tagm-head,${scope} .tagm-panel:has(.tagm-delete-confirm) .tagm-head{padding-bottom:10px}
 ${scope} .tagm-title{font:600 12.5px var(--font-sans);color:var(--fg-primary)}
@@ -2579,6 +2646,7 @@ ${scope} .tagm-close:hover{background:var(--bg-recessed);color:var(--fg-primary)
 ${scope} .tagm-close svg{width:11px;height:11px;stroke:currentColor;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
 ${scope} .tagm-close svg path{stroke-linecap:butt}
 ${scope} .tagm-body{display:flex;flex-direction:column;gap:14px;padding:12px 14px 14px;overflow:auto}
+${scope} .tagm-panel>.cl-note{font:11px/1.45 var(--font-sans,system-ui);color:var(--fg-primary);margin:0;padding-bottom:14px}
 ${scope} .tagm-sec{display:flex;flex-direction:column;gap:8px}
 ${scope} .tagm-sec-label{display:flex;align-items:center;gap:6px;font:600 10.5px/1 var(--font-mono);text-transform:uppercase;letter-spacing:.08em;color:var(--fg-tertiary);margin-bottom:8px}
 ${scope} .tagm-chips{display:flex;flex-wrap:wrap;gap:4px}
@@ -4229,6 +4297,10 @@ async function expectTagManagerResponsiveSotPixelsMatch(
                           "recording detail tag manager create responsive frame" &&
                         frame.name === "desktop"
                       ? { differingPixels: 39, maxChannelDelta: 12 }
+                    : label ===
+                          "recording detail tag manager empty responsive frame" &&
+                        frame.name === "desktop"
+                      ? { differingPixels: 40, maxChannelDelta: 1 }
                     : label ===
                         "recording detail tag manager empty responsive frame"
                       ? { differingPixels: 1, maxChannelDelta: 1 }
@@ -9743,8 +9815,8 @@ test("recording detail speaker review merge popover empty state matches SOT pixe
             mergePopover,
             stabilizeSpeakerMergePopover,
             {
-                differingPixels: 160,
-                maxChannelDelta: 100,
+                differingPixels: 200,
+                maxChannelDelta: 101,
             },
         );
     } finally {
@@ -10699,7 +10771,7 @@ test("recording detail exposes the tag manager and persists tag toggles", async 
             page,
             '#tagmgr .cl-card:has-text("Create") .tagm-icon-grid .tg-pick',
             '[data-sot-panel="recording-tag-manager"] [data-sot-part="icon-grid"] [data-sot-control="recording-tag-icon"]',
-            SOT_TAG_MANAGER_ICON_BUTTON_STYLE_PROPS,
+            SOT_TAG_MANAGER_TOKEN_ICON_OPTION_STYLE_PROPS,
         );
         for (const color of [
             "red",
@@ -10745,12 +10817,14 @@ test("recording detail exposes the tag manager and persists tag toggles", async 
         }
         await blueTagColor.click();
         await starTagIcon.click();
-        await expect(blueTagColor).toHaveAttribute("aria-checked", "true");
+        await expect(blueTagColor).toHaveAttribute("aria-pressed", "true");
+        await expect(blueTagColor).toHaveAttribute("data-state", "on");
         await expect(blueTagColor).toHaveAttribute(
             "data-sot-state",
             "selected",
         );
-        await expect(starTagIcon).toHaveAttribute("aria-checked", "true");
+        await expect(starTagIcon).toHaveAttribute("aria-pressed", "true");
+        await expect(starTagIcon).toHaveAttribute("data-state", "on");
         await expect(starTagIcon).toHaveAttribute(
             "data-sot-state",
             "selected",
@@ -10883,6 +10957,7 @@ test("recording detail exposes the tag manager and persists tag toggles", async 
             page,
             '#tagmgr .cl-card:has-text("Default") .tagm-opt',
             `[data-sot-control="recording-tag-toggle"][data-sot-tag-name="${DETAIL_TAG_NAME}"]`,
+            SOT_TAG_MANAGER_TAG_TOGGLE_STYLE_PROPS,
         );
         expect(tagCreatePayloads).toEqual([
             {

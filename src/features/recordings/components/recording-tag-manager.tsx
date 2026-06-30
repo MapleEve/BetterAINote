@@ -1,6 +1,6 @@
 "use client";
 
-import { Check, Plus, X } from "lucide-react";
+import { Check, X } from "lucide-react";
 import {
     type ComponentProps,
     Fragment,
@@ -28,13 +28,7 @@ import {
     EmptyHeader,
     EmptyTitle,
 } from "@/components/ui/empty";
-import {
-    Field,
-    FieldGroup,
-    FieldLabel,
-    FieldLegend,
-    FieldSet,
-} from "@/components/ui/field";
+import { Field, FieldGroup, FieldLabel } from "@/components/ui/field";
 import {
     InputGroup,
     InputGroupAddon,
@@ -85,7 +79,7 @@ const SOT_TAG_MANAGER_ERROR_TEXT = "保存失败 · 请稍后再试";
 const RECORDING_TAG_INLINE_CREATE_BUTTON_CLASS_NAME =
     "size-[30px] rounded-[6px] p-0 text-[14px] leading-[0] font-semibold has-[>svg]:p-0 [&_svg:not([class*='size-'])]:size-[14px]";
 const RECORDING_TAG_SWATCH_ITEM_CLASS_NAME =
-    "tagm-swatch !grid !size-[18px] min-w-0 place-items-center rounded-[50%] border-2 border-transparent !p-0 text-[13.3333px] font-normal leading-[0] !text-[var(--fg-primary)] shadow-none hover:!text-[var(--fg-primary)] data-[state=on]:border-[var(--fg-primary)] data-[state=on]:!text-[var(--fg-primary)] data-[state=on]:shadow-[inset_0_0_0_2px_var(--bg-elevated)]";
+    "tagm-swatch !grid !size-[18px] min-w-0 place-items-center rounded-[50%] border-2 border-transparent !p-0 text-[13.3333px] font-normal leading-[0] !text-[var(--fg-primary)] !transition-[transform] duration-[var(--duration-fast)] ease-[var(--ease-out)] shadow-none hover:scale-110 hover:!text-[var(--fg-primary)] data-[state=on]:!border-[var(--fg-primary)] data-[state=on]:!text-[var(--fg-primary)] data-[state=on]:shadow-[inset_0_0_0_2px_var(--bg-elevated)]";
 const recordingTagManagerSotColorClassName: Record<RecordingTagColor, string> =
     {
         blue: "c-blue",
@@ -111,9 +105,9 @@ const recordingTagManagerButtonClassNames = {
     neutralAction:
         "h-[var(--button-compact-height)] justify-normal [justify-content:normal] gap-[7px] rounded-[7px] border border-transparent bg-transparent px-[10px] text-[12px] font-semibold leading-[normal] text-[var(--fg-secondary)] shadow-none hover:bg-[var(--bg-recessed)] hover:text-[var(--fg-primary)] has-[>svg]:px-[10px] [&_svg:not([class*='size-'])]:size-[11px]",
     primaryAction:
-        "h-[var(--button-compact-height)] justify-normal [justify-content:normal] gap-[7px] rounded-[7px] border border-[var(--button-primary-border)] bg-[image:var(--button-primary-bg)] px-[10px] text-[12px] font-semibold leading-[normal] text-[var(--button-primary-fg)] shadow-[var(--button-primary-shadow)] hover:bg-[image:var(--button-primary-hover-bg)] has-[>svg]:px-[10px] [&_svg:not([class*='size-'])]:size-[11px]",
+        "h-[var(--button-compact-height)] justify-normal [justify-content:normal] gap-[7px] rounded-[7px] border border-[var(--button-primary-border)] bg-transparent bg-[image:var(--button-primary-bg)] px-[10px] text-[12px] font-semibold leading-[normal] text-[var(--button-primary-fg)] shadow-[var(--button-primary-shadow)] hover:bg-transparent hover:bg-[image:var(--button-primary-hover-bg)] has-[>svg]:px-[10px] [&_svg:not([class*='size-'])]:size-[11px]",
     destructiveAction:
-        "h-[var(--button-compact-height)] justify-normal [justify-content:normal] gap-[7px] rounded-[7px] border border-[var(--button-destructive-border)] bg-[image:var(--button-destructive-bg)] px-[10px] text-[12px] font-semibold leading-[normal] text-[var(--button-destructive-fg)] shadow-[var(--button-destructive-shadow)] hover:bg-[image:var(--button-destructive-hover-bg)] focus-visible:ring-destructive/20 has-[>svg]:px-[10px] [&_svg:not([class*='size-'])]:size-[11px]",
+        "h-[var(--button-compact-height)] justify-normal [justify-content:normal] gap-[7px] rounded-[7px] border border-[var(--button-destructive-border)] bg-transparent bg-[image:var(--button-destructive-bg)] px-[10px] text-[12px] font-semibold leading-[normal] text-[var(--button-destructive-fg)] shadow-[var(--button-destructive-shadow)] hover:bg-transparent hover:bg-[image:var(--button-destructive-hover-bg)] focus-visible:ring-destructive/20 has-[>svg]:px-[10px] [&_svg:not([class*='size-'])]:size-[11px]",
     inlineCreate:
         "border border-[var(--accent)] bg-[var(--accent)] text-[var(--accent)] shadow-none hover:bg-[var(--accent-hover)] hover:text-[var(--accent)] disabled:opacity-100",
     tagToggle:
@@ -125,17 +119,17 @@ const recordingTagManagerButtonClassNames = {
 } as const;
 
 const recordingTagManagerCardClassNames = {
-    panel: "tagm-panel fixed top-[96px] right-[28px] z-[var(--z-dropdown)] max-h-[460px] w-[320px] max-w-[calc(100vw-2rem)] gap-0 overflow-hidden rounded-[12px] border-[var(--card-popover-border)] bg-[var(--card-popover-bg)] shadow-[var(--card-popover-shadow)] backdrop-blur-none pointer-events-auto max-md:top-[76px] max-md:right-[12px] max-md:left-[12px] max-md:w-auto max-md:max-w-none",
+    panel: "tagm-panel fixed top-[96px] right-[28px] z-[var(--z-dropdown)] max-h-[460px] w-[320px] max-w-[calc(100vw-2rem)] gap-0 overflow-hidden rounded-[12px] border-[var(--card-popover-border)] bg-[var(--card-popover-bg)] shadow-[var(--card-popover-shadow)] backdrop-blur-none pointer-events-auto data-[sot-state=create]:h-[342px] data-[sot-state=create]:overflow-hidden max-md:top-[76px] max-md:right-[12px] max-md:left-[12px] max-md:w-auto max-md:max-w-none",
     header: "tagm-head flex flex-row items-center justify-between gap-[normal] border-b-[1px] border-[var(--card-popover-divider)] px-[12px] pt-[10px] pb-[10px] [&>[data-slot=card-action]]:self-center",
     title: "tagm-title text-[12.5px] font-semibold leading-[17px] text-[var(--fg-primary)]",
-    footer: "min-h-[49px] gap-[6px] border-t border-[var(--card-popover-divider)] bg-[var(--card-popover-footer-bg)] px-[14px] py-[10px]",
+    footer: "min-h-[47px] gap-[6px] border-t border-[var(--card-popover-divider)] bg-[var(--card-popover-footer-bg)] !px-[14px] !py-[10px]",
     toggleNote:
-        "max-h-[31px] overflow-hidden px-[14px] pt-[15px] pb-0 text-[11px] leading-[1.45] font-normal text-[var(--card-popover-note-fg)]",
+        "tagm-note m-0 pb-[14px] [font:11px/1.45_var(--font-sans,system-ui)] text-[var(--fg-primary)]",
 } as const;
 
 const recordingTagManagerContentClassNames = {
     recordingTagManagerCompact:
-        "flex flex-col gap-[14px] overflow-auto px-[14px] pb-[14px] pt-[12px]",
+        "tagm-body flex min-h-[52px] flex-col gap-[14px] overflow-auto px-[14px] pb-[14px] pt-[12px]",
     recordingTagManagerCreate:
         "flex flex-col gap-[14px] overflow-auto px-[14px] pb-[14px] pt-[12px]",
     recordingTagManagerDefault:
@@ -153,19 +147,21 @@ const recordingTagManagerContentClassNames = {
 const recordingTagManagerBadgeClassNames = {
     pill: "h-[22px] justify-normal gap-[5px] rounded-[999px] border-[var(--line-hairline)] bg-[var(--bg-recessed)] py-0 pl-[8px] pr-[4px] [font:600_11px_var(--font-sans)] [line-height:normal] text-[var(--fg-primary)] [&>svg]:size-[11px] [&>svg]:stroke-2",
     checkDot:
-        "ml-0.5 inline-grid size-[14px] place-items-center rounded-[50%] border-0 bg-primary p-0 text-[11.5px] font-semibold leading-none text-primary-foreground [&>svg]:size-[9px] [&>svg]:stroke-[3] [&>svg]:[stroke-linecap:butt] [&>svg]:[stroke-linejoin:miter]",
+        "tagm-opt-check ml-0.5 inline-grid size-[14px] place-items-center rounded-[50%] border-0 bg-primary/70 p-0 text-[11.5px] font-semibold leading-none text-primary-foreground [&>svg]:size-[9px] [&>svg]:stroke-[3] [&>svg]:[stroke-linecap:butt] [&>svg]:[stroke-linejoin:miter]",
 } as const;
 
 const recordingTagManagerFieldClassNames = {
-    pickerFrame: "gap-2.5 rounded-md border bg-muted/40 p-3",
+    pickerFrame:
+        "tagm-picker flex flex-col !gap-[10px] rounded-[var(--radius-md)] border border-[var(--line-hairline)] bg-[var(--bg-recessed)] !px-[12px] !py-[10px]",
     colorPickerFrame: "min-h-[59px]",
     iconPickerFrame: "min-h-[103px]",
     pickerLabel:
-        "m-0 p-0 font-mono text-[11px] leading-none font-semibold uppercase tracking-[0.06em] text-muted-foreground",
+        "tagm-picker-label m-0 p-0 [font:600_11px/1_var(--font-mono)] uppercase tracking-[0.06em] text-[var(--fg-tertiary)]",
 } as const;
 
 const recordingTagManagerToggleGroupClassNames = {
-    iconOption: "size-7 min-w-0 shrink-0 p-0",
+    iconOption:
+        "tg-pick !size-[28px] min-w-0 shrink-0 rounded-[var(--radius-sm)] border border-[var(--line-hairline)] bg-[var(--bg-elevated)] !p-0 text-[var(--fg-secondary)] shadow-none hover:border-[var(--line-strong)] hover:bg-[var(--bg-elevated)] hover:text-[var(--fg-primary)] data-[state=on]:border-primary/50 data-[state=on]:bg-primary/15 data-[state=on]:text-primary [&_svg:not([class*='size-'])]:size-[14px]",
 } as const;
 
 type RecordingTagManagerContentVariant =
@@ -537,6 +533,8 @@ export function RecordingTagManager({
     };
 
     const tagNameInputId = "recording-tag-name-input";
+    const tagColorPickerLabelId = "recording-tag-color-picker-label";
+    const tagIconPickerLabelId = "recording-tag-icon-picker-label";
 
     const renderErrorAlert = ({
         message = SOT_TAG_MANAGER_ERROR_TEXT,
@@ -611,7 +609,7 @@ export function RecordingTagManager({
                 recordingTagManagerButtonClassNames.tagToggle,
                 recordingTagManagerSotColorClassName[tag.color],
                 "relative whitespace-nowrap",
-                saving && "pointer-events-none",
+                saving && "pointer-events-none before:hidden",
             )}
             onClick={interactive ? () => void handleToggleTag(tag) : undefined}
             disabled={interactive ? busy : undefined}
@@ -630,6 +628,7 @@ export function RecordingTagManager({
                 <Spinner
                     size="xs"
                     placement="inlineStart"
+                    className="btn-spinner"
                     data-icon="inline-start"
                     data-sot-part="tag-loading-icon"
                     aria-hidden="true"
@@ -722,7 +721,7 @@ export function RecordingTagManager({
                             disabled={!canCreate}
                             onClick={() => void handleCreateTag()}
                         >
-                            <Plus aria-hidden="true" />
+                            <span aria-hidden="true">+</span>
                         </Button>
                     </InputGroupAddon>
                 ) : null}
@@ -746,6 +745,11 @@ export function RecordingTagManager({
             size="sm"
             className="tagm-swatches flex-wrap"
             spacing={picker === "quick" ? 1 : 2}
+            style={{
+                alignItems: "normal",
+                borderRadius: 0,
+                gap: picker === "quick" ? 4 : 8,
+            }}
             aria-label="颜色"
             data-sot-part="color-swatches"
             data-sot-picker={picker}
@@ -765,18 +769,15 @@ export function RecordingTagManager({
                         recordingTagManagerSotColorClassName[item],
                         color === item && "is-selected",
                     )}
-                    style={
-                        picker === "quick" && item === "orange"
-                            ? { marginLeft: 1 }
-                            : undefined
-                    }
                 />
             ))}
         </ToggleGroup>
     );
 
     const renderColorPicker = () => (
-        <FieldSet
+        <div
+            role="group"
+            aria-labelledby={tagColorPickerLabelId}
             className={cn(
                 recordingTagManagerFieldClassNames.pickerFrame,
                 recordingTagManagerFieldClassNames.colorPickerFrame,
@@ -784,20 +785,23 @@ export function RecordingTagManager({
             data-sot-part="picker-frame"
             data-sot-picker="color"
         >
-            <FieldLegend
+            <div
+                id={tagColorPickerLabelId}
                 className={recordingTagManagerFieldClassNames.pickerLabel}
                 data-sot-part="picker-label"
             >
                 颜色
-            </FieldLegend>
+            </div>
             <div data-sot-part="picker" data-sot-picker="color">
                 {renderColorToggleGroup(RECORDING_TAG_COLORS, "full")}
             </div>
-        </FieldSet>
+        </div>
     );
 
     const renderIconPicker = () => (
-        <FieldSet
+        <div
+            role="group"
+            aria-labelledby={tagIconPickerLabelId}
             className={cn(
                 recordingTagManagerFieldClassNames.pickerFrame,
                 recordingTagManagerFieldClassNames.iconPickerFrame,
@@ -805,12 +809,13 @@ export function RecordingTagManager({
             data-sot-part="picker-frame"
             data-sot-picker="icon"
         >
-            <FieldLegend
+            <div
+                id={tagIconPickerLabelId}
                 className={recordingTagManagerFieldClassNames.pickerLabel}
                 data-sot-part="picker-label"
             >
                 图标
-            </FieldLegend>
+            </div>
             <div data-sot-part="picker" data-sot-picker="icon">
                 <ToggleGroup
                     type="single"
@@ -823,8 +828,9 @@ export function RecordingTagManager({
                     variant="default"
                     size="sm"
                     layout="default"
-                    className="grid grid-cols-6"
-                    spacing={2}
+                    className="tagm-icon-grid grid grid-cols-6"
+                    spacing={1.5}
+                    style={{ alignItems: "normal", borderRadius: 0, gap: 6 }}
                     aria-label="图标"
                     data-sot-part="icon-grid"
                 >
@@ -839,16 +845,17 @@ export function RecordingTagManager({
                             data-sot-tag-icon={item}
                             variant="outline"
                             size="sm"
-                            className={
-                                recordingTagManagerToggleGroupClassNames.iconOption
-                            }
+                            className={cn(
+                                recordingTagManagerToggleGroupClassNames.iconOption,
+                                icon === item && "is-selected",
+                            )}
                         >
                             <RecordingTagIconGlyph icon={item} />
                         </ToggleGroupItem>
                     ))}
                 </ToggleGroup>
             </div>
-        </FieldSet>
+        </div>
     );
 
     let panelContent: ReactNode;
@@ -943,6 +950,7 @@ export function RecordingTagManager({
                     density="comfortable"
                     layout="inline"
                     variant="destructiveSoftNeutral"
+                    className="tagm-delete-confirm"
                     data-sot-panel="recording-tag-delete-confirm"
                     data-sot-part="delete-confirm"
                     data-sot-state={
@@ -956,7 +964,7 @@ export function RecordingTagManager({
                     />
                     <AlertDescription
                         density="comfortable"
-                        className="flex-1"
+                        className="tagm-delete-msg flex-1"
                         data-sot-part="delete-message"
                     >
                         <strong>{deleteTarget.name}</strong> 将从{" "}
@@ -976,12 +984,16 @@ export function RecordingTagManager({
         );
         panelFooter = (
             <>
-                <span className="flex-1" data-sot-part="footer-spacer" />
+                <span
+                    className="tagm-spacer flex-1"
+                    data-sot-part="footer-spacer"
+                />
                 <Button
                     type="button"
                     variant="ghost"
                     size="sm"
                     className={cn(
+                        "btn ghost btn-sm",
                         recordingTagManagerButtonClassNames.neutralAction,
                         "shrink-0",
                     )}
@@ -999,6 +1011,7 @@ export function RecordingTagManager({
                     variant="destructive"
                     size="sm"
                     className={cn(
+                        "btn danger btn-sm",
                         recordingTagManagerButtonClassNames.destructiveAction,
                         "shrink-0",
                     )}
@@ -1015,6 +1028,7 @@ export function RecordingTagManager({
                     {deletingTagId === deleteTarget.id ? (
                         <Spinner
                             size="xs"
+                            className="btn-spinner"
                             data-icon="inline-start"
                             data-sot-part="tag-loading-icon"
                             aria-hidden="true"
@@ -1026,7 +1040,7 @@ export function RecordingTagManager({
         );
     } else if (isCreateMode) {
         panelContent = (
-            <FieldGroup className="gap-3.5" data-sot-part="create">
+            <FieldGroup className="gap-[14px]" data-sot-part="create">
                 {renderNameField({
                     disabled: isCreating,
                     enableEnterCreate: true,
@@ -1079,6 +1093,7 @@ export function RecordingTagManager({
                     {isCreating ? (
                         <Spinner
                             size="xs"
+                            className="btn-spinner"
                             data-icon="inline-start"
                             data-sot-part="tag-loading-icon"
                             aria-hidden="true"
@@ -1307,7 +1322,10 @@ export function RecordingTagManager({
             </RecordingTagManagerContent>
             {panelAfterBody}
             {panelFooter ? (
-                <RecordingTagManagerFooter data-sot-part="footer">
+                <RecordingTagManagerFooter
+                    className="tagm-actions"
+                    data-sot-part="footer"
+                >
                     {panelFooter}
                 </RecordingTagManagerFooter>
             ) : null}

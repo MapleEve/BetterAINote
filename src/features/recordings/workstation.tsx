@@ -6,8 +6,8 @@ import {
     Copy,
     EllipsisVertical,
     FileText,
-    Pencil,
-    Sparkles,
+    Pen,
+    Sparkle,
     X,
 } from "lucide-react";
 import {
@@ -99,13 +99,88 @@ interface TranscriptionJob {
 }
 
 const RECORDING_DETAIL_HEADER_CLASS_NAME =
-    "relative flex flex-row items-center gap-2.5 px-1 pt-1 pb-0 data-[sot-state=saving]:py-0";
+    "rec-head relative flex flex-row items-center gap-[10px] px-1 pt-1 pb-0 data-[sot-state=saving]:pb-px";
 const RECORDING_DETAIL_HEADER_TITLE_CLASS_NAME =
-    "leading-none font-semibold min-w-0 flex-1 truncate";
+    "rec-h2 m-0 min-w-0 flex-1 truncate [font:600_22px_var(--font-display)] [line-height:normal] tracking-[-0.014em] text-[var(--fg-primary)]";
 const RECORDING_DETAIL_HEADER_TITLE_INPUT_CLASS_NAME =
-    "h-8 min-w-0 flex-1 px-3 py-1 text-base md:text-sm";
-const RECORDING_DETAIL_HEADER_LOCAL_BADGE_CLASS_NAME = "ml-1 shrink-0";
-const RECORDING_DETAIL_HEADER_STATUS_BADGE_CLASS_NAME = "ml-1 shrink-0";
+    "rec-h2-input !h-8 min-w-0 flex-1 rounded-[var(--radius-sm)] !border !border-[var(--line-hairline)] !bg-[var(--bg-recessed)] px-[10px] py-0 [font:600_16px/1.35_var(--font-display)] text-[var(--fg-primary)] shadow-none focus-visible:!border-ring focus-visible:!ring-[3px] focus-visible:!ring-ring/50";
+const RECORDING_DETAIL_HEADER_LOCAL_BADGE_CLASS_NAME =
+    "rec-h2-local ml-1 inline-flex h-[22px] shrink-0 items-center rounded-full border border-[var(--system-banner-offline-border)] bg-[var(--system-banner-offline-bg)] px-[8px] py-0 [font:600_11px/1_var(--font-sans)] text-[var(--signal-warning-strong)] shadow-none";
+const RECORDING_DETAIL_HEADER_STATUS_BADGE_CLASS_NAME =
+    "rec-h2-status ml-1 shrink-0 rounded-none border-0 bg-transparent px-0 py-0 [font:500_11.5px/1.4_var(--font-mono)] text-[var(--fg-tertiary)] shadow-none";
+const RECORDING_DETAIL_CONFIRM_DIALOG_SOT_STYLE = `
+[data-sot-content="confirm-dialog"] {
+    background: var(--card-popover-bg);
+    border-color: var(--glass-border);
+    box-shadow: 0 22px 56px rgb(0 0 0 / 0.50);
+}
+[data-sot-content="confirm-dialog"] [data-sot-part="confirm-head"] {
+    gap: normal;
+    padding: 16px 20px 4px;
+}
+[data-sot-content="confirm-dialog"] [data-sot-part="confirm-title"] {
+    font: 600 16px/1.35 var(--font-display);
+    letter-spacing: -0.012em;
+    color: var(--fg-primary);
+    margin: 0;
+}
+[data-sot-content="confirm-dialog"] [data-sot-part="confirm-body"] {
+    padding: 8px 20px 4px;
+    font: 500 13px/1.55 var(--font-sans);
+    color: var(--fg-secondary);
+}
+[data-sot-content="confirm-dialog"] [data-sot-part="confirm-description"] {
+    margin: 0 0 8px;
+    font: inherit;
+    color: inherit;
+}
+[data-sot-content="confirm-dialog"] [data-sot-list="confirm-dialog-details"] {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    list-style: disc;
+    margin: 4px 0 8px;
+    padding-left: 18px;
+}
+[data-sot-content="confirm-dialog"] [data-sot-item="confirm-dialog-detail"] {
+    display: flex;
+    gap: 6px;
+    font: 500 12.5px/1.55 var(--font-sans);
+    color: var(--fg-secondary);
+}
+[data-sot-content="confirm-dialog"] [data-sot-part="confirm-foot"] {
+    display: flex;
+    justify-content: flex-end;
+    gap: 8px;
+    padding: 12px 16px 16px;
+    background: var(--card-popover-footer-bg);
+    border-top-color: var(--glass-border-soft);
+}
+[data-sot-content="confirm-dialog"] [data-sot-control="confirm-dialog-cancel"],
+[data-sot-content="confirm-dialog"] [data-sot-control="confirm-dialog-confirm"] {
+    display: inline-flex;
+    align-items: center;
+    gap: 7px;
+    height: 26px;
+    padding: 0 10px;
+    border-radius: 7px;
+    font: 600 12px var(--font-sans);
+}
+[data-sot-content="confirm-dialog"] [data-sot-control="confirm-dialog-cancel"] {
+    background: transparent;
+    border-color: transparent;
+    box-shadow: none;
+    color: var(--fg-secondary);
+}
+[data-sot-content="confirm-dialog"] [data-sot-control="confirm-dialog-confirm"] {
+    background: var(--signal-danger);
+    border: 1px solid var(--signal-danger);
+    color: var(--button-primary-fg);
+    box-shadow:
+        0 2px 6px var(--alert-destructive-soft-border),
+        inset 0 1px 0 rgb(255 255 255 / 0.20);
+}
+`;
 const RECORDING_WORKSTATION_SHELL_CLASS_NAME =
     "grid h-screen min-h-[720px] grid-cols-[264px_1fr] transition-[grid-template-columns] duration-[320ms] ease-[var(--ease-out)] max-[860px]:h-auto max-[860px]:min-h-[100svh] max-[860px]:grid-cols-[minmax(0,1fr)] max-[860px]:overflow-x-clip";
 const RECORDING_WORKSTATION_MAIN_CLASS_NAME =
@@ -180,9 +255,9 @@ const recordingWorkstationButtonClassNames = {
     detailBack:
         "relative h-auto w-full justify-start gap-2.5 rounded-[9px] border border-transparent bg-transparent px-2.5 py-[7px] text-left text-[13px] font-medium text-[var(--fg-secondary)] shadow-none hover:bg-accent hover:text-[var(--fg-primary)] focus-visible:text-[var(--fg-primary)] disabled:cursor-not-allowed disabled:opacity-50 data-[sot-state=selected]:border-[var(--line-hairline)] data-[sot-state=selected]:bg-[var(--bg-elevated)] data-[sot-state=selected]:text-[var(--fg-primary)] data-[sot-state=selected]:shadow-xs has-[>svg]:px-2.5 [&_span]:min-w-0 [&_span]:flex-1 [&_span]:truncate [&_svg]:flex-none [&_svg]:fill-none [&_svg]:stroke-current [&_svg]:stroke-[1.7] [&_svg]:opacity-[0.85] [&_svg]:[stroke-linecap:round] [&_svg]:[stroke-linejoin:round]",
     headerIconButton:
-        "size-[32px] border border-transparent bg-transparent p-0 text-[var(--fg-secondary)] shadow-none hover:bg-accent hover:text-accent-foreground [&_svg]:fill-none [&_svg]:stroke-current [&_svg]:stroke-[1.8] [&_svg]:[stroke-linecap:round] [&_svg]:[stroke-linejoin:round]",
+        "size-[32px] rounded-[8px] border border-transparent bg-transparent p-0 text-[var(--fg-secondary)] shadow-none hover:bg-[var(--bg-recessed)] hover:text-[var(--fg-primary)] [&_svg]:fill-none [&_svg]:stroke-current [&_svg]:stroke-[1.8] [&_svg]:[stroke-linecap:round] [&_svg]:[stroke-linejoin:round]",
     headerActionButton:
-        "h-8 gap-[7px] rounded-[9px] border border-[var(--line-hairline)] bg-[var(--glass-tint-base)] px-3 font-sans text-[12.5px] font-semibold leading-normal text-[var(--fg-primary)] shadow-[var(--shadow-xs)] hover:bg-[var(--glass-tint-base)] hover:text-[var(--fg-primary)] has-[>svg]:px-3 [&_svg]:fill-none [&_svg]:stroke-current [&_svg]:stroke-[1.8] [&_svg]:[stroke-linecap:round] [&_svg]:[stroke-linejoin:round] [&_svg:not([class*='size-'])]:size-4",
+        "h-8 gap-[7px] rounded-[9px] !border-[var(--line-hairline)] !bg-[var(--glass-tint-base)] px-3 font-sans text-[12.5px] font-semibold leading-normal text-[var(--fg-primary)] shadow-[var(--shadow-xs)] backdrop-blur-[14px] backdrop-saturate-[140%] hover:!bg-[var(--glass-tint-base)] hover:text-[var(--fg-primary)] has-[>svg]:px-3 [&_svg]:fill-none [&_svg]:stroke-current [&_svg]:stroke-[1.8] [&_svg]:[stroke-linecap:round] [&_svg]:[stroke-linejoin:round] [&_svg:not([class*='size-'])]:size-4",
 } as const;
 
 function RecordingDetailCardHeader({
@@ -920,6 +995,9 @@ export function RecordingWorkstation({
             data-sot-surface="recording-workstation"
             data-sot-state={hydrated ? "ready" : "loading"}
         >
+            <style data-sot-recording-detail-confirm-style>
+                {RECORDING_DETAIL_CONFIRM_DIALOG_SOT_STYLE}
+            </style>
             <aside
                 className={RECORDING_WORKSTATION_SIDEBAR_CLASS_NAME}
                 data-sot-panel="workstation-sidebar"
@@ -1170,7 +1248,7 @@ export function RecordingWorkstation({
                                     data-sot-part="detail-header-action"
                                     data-sot-mode="normal"
                                 >
-                                    <Pencil data-icon="inline-start" />
+                                    <Pen data-icon="inline-start" />
                                 </Button>
                             ) : null}
 
@@ -1211,7 +1289,7 @@ export function RecordingWorkstation({
                                                   : "idle"
                                         }
                                     >
-                                        <Sparkles data-icon="inline-start" />
+                                        <Sparkle data-icon="inline-start" />
                                         {t("transcription.aiRename")}
                                     </Button>
                                     {autoRenamePanel}

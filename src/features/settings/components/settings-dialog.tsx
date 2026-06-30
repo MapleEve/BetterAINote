@@ -151,16 +151,16 @@ const SETTINGS_USER_SUBTITLE_CLASS =
 const SETTINGS_BODY_CLASS = "grid min-h-0 flex-1 grid-cols-[200px_1fr]";
 
 const SETTINGS_RAIL_CLASS =
-    "flex min-h-0 flex-col gap-0.5 overflow-y-auto border-r border-[var(--line-hairline)] bg-[var(--bg-recessed)] px-2 py-3.5 [overscroll-behavior:contain] [writing-mode:horizontal-tb] [&_*]:[writing-mode:horizontal-tb]";
+    "flex min-h-0 flex-col gap-[2px] overflow-y-auto border-r border-border bg-[var(--bg-recessed)] px-[8px] py-[14px] [overscroll-behavior:contain] [writing-mode:horizontal-tb] [&_*]:[writing-mode:horizontal-tb]";
 
 const SETTINGS_NAV_GROUP_CLASS =
-    "flex w-full min-w-0 flex-col items-stretch gap-0.5 p-0 [&+&]:mt-2.5";
+    "flex w-full min-w-0 flex-col items-stretch gap-[2px] p-0 [&+&]:mt-[10px]";
 
 const SETTINGS_NAV_GROUP_LABEL_CLASS =
-    "block w-full truncate px-2.5 pt-2.5 pb-1 font-sans text-[10px] font-semibold leading-normal tracking-[0.08em] text-[var(--fg-tertiary)] uppercase";
+    "block w-full truncate px-[10px] pt-[10px] pb-[4px] font-sans text-[10px] font-semibold leading-[normal] tracking-[0.08em] text-muted-foreground uppercase";
 
 const SETTINGS_NAV_BUTTON_CLASS =
-    "h-auto w-full min-w-0 cursor-pointer justify-start gap-[10px] truncate rounded-[8px] border border-transparent bg-transparent px-[10px] py-[8px] text-left font-sans text-[13px] font-medium leading-[normal] tracking-normal text-[var(--fg-secondary)] shadow-none data-[state=inactive]:[box-shadow:none] hover:bg-[var(--bg-recessed)] hover:text-[var(--fg-primary)] focus-visible:border-transparent focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--accent)] focus-visible:ring-0 data-[state=active]:border-border data-[state=active]:bg-card data-[state=active]:text-card-foreground data-[state=active]:shadow-xs data-[state=active]:hover:bg-card data-[state=active]:hover:text-card-foreground has-[>svg]:px-[10px] [&_span]:min-w-0 [&_span]:truncate [&_svg:not([class*='size-'])]:size-[14px] [&_svg]:flex-none [&_svg]:fill-none [&_svg]:stroke-current [&_svg]:stroke-[1.8] [&_svg]:[stroke-linecap:round] [&_svg]:[stroke-linejoin:round]";
+    "h-auto w-full min-w-0 cursor-pointer justify-start gap-[10px] truncate rounded-[8px] border border-transparent bg-transparent px-[10px] py-[8px] text-left font-sans text-[13px] font-medium leading-[normal] tracking-normal text-muted-foreground shadow-none [box-shadow:none] data-[state=inactive]:[box-shadow:none] hover:bg-accent hover:text-accent-foreground focus-visible:border-ring focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring focus-visible:ring-0 data-[state=active]:border-border data-[state=active]:bg-accent data-[state=active]:text-accent-foreground data-[state=active]:[box-shadow:none] data-[state=active]:hover:bg-accent data-[state=active]:hover:text-accent-foreground has-[>svg]:px-[10px] [&_span]:min-w-0 [&_span]:truncate [&_svg:not([class*='size-'])]:size-[14px] [&_svg]:flex-none [&_svg]:fill-none [&_svg]:stroke-current [&_svg]:stroke-[1.8] [&_svg]:[stroke-linecap:round] [&_svg]:[stroke-linejoin:round]";
 
 const STORAGE_KEY = "settings-last-section";
 

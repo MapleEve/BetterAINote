@@ -10,7 +10,6 @@ import {
 } from "react";
 import { toast } from "sonner";
 import { useLanguage } from "@/components/language-provider";
-import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
@@ -24,15 +23,14 @@ import {
 import {
     Empty,
     EmptyDescription,
-    EmptyHeader,
     EmptyMedia,
     EmptyTitle,
 } from "@/components/ui/empty";
 import { Separator } from "@/components/ui/separator";
 import { Skeleton } from "@/components/ui/skeleton";
 import {
-    SOURCE_REPORT_ACTION_ROW_CLASS_NAME,
     SOURCE_REPORT_ACTION_BUTTON_CLASS_NAME,
+    SOURCE_REPORT_ACTION_ROW_CLASS_NAME,
     SOURCE_REPORT_CARD_LABEL_CLASS_NAME,
     SOURCE_REPORT_CARD_NUMBER_VALUE_CLASS_NAME,
     SOURCE_REPORT_CARD_SKELETON_CLASS_NAMES,
@@ -49,7 +47,6 @@ import {
     SOURCE_REPORT_EMPTY_ACTION_ROW_CLASS_NAME,
     SOURCE_REPORT_EMPTY_DESCRIPTION_CLASS_NAME,
     SOURCE_REPORT_EMPTY_ERROR_ICON_CLASS_NAME,
-    SOURCE_REPORT_EMPTY_HEADER_CLASS_NAME,
     SOURCE_REPORT_EMPTY_ICON_CLASS_NAME,
     SOURCE_REPORT_EMPTY_SURFACE_CLASS_NAME,
     SOURCE_REPORT_EMPTY_TITLE_CLASS_NAME,
@@ -62,8 +59,8 @@ import {
     SOURCE_REPORT_META_VALUE_CLASS_NAME,
     SOURCE_REPORT_METRIC_CARD_CLASS_NAME,
     SOURCE_REPORT_METRIC_CARDS_CLASS_NAME,
-    SOURCE_REPORT_MISSING_NOTICE_CLASS_NAME,
     SOURCE_REPORT_PANE_CLASS_NAME,
+    SOURCE_REPORT_PRIMARY_ACTION_BUTTON_CLASS_NAME,
     SOURCE_REPORT_SECTION_CLASS_NAME,
     SOURCE_REPORT_SECTION_HEADER_CLASS_NAME,
     SOURCE_REPORT_SECTION_SEPARATOR_CLASS_NAME,
@@ -75,15 +72,15 @@ import {
     SOURCE_REPORT_SEGMENT_TEXT_CLASS_NAME,
     SOURCE_REPORT_SEGMENT_TIME_CLASS_NAME,
     SOURCE_REPORT_SEGMENTS_CLASS_NAME,
-    SOURCE_REPORT_PRIMARY_ACTION_BUTTON_CLASS_NAME,
     SOURCE_REPORT_STATE_CLASS_NAME,
     SOURCE_REPORT_STATE_STACK_CLASS_NAME,
     SOURCE_REPORT_STATUS_BADGE_CLASS_NAME,
+    SOURCE_REPORT_STATUS_BADGE_WRAPPER_CLASS_NAME,
     SOURCE_REPORT_STYLE_VARIABLES,
-    SOURCE_REPORT_SUMMARY_MISSING_NOTICE_CLASS_NAME,
     SOURCE_REPORT_SUMMARY_BODY_CLASS_NAME,
+    SOURCE_REPORT_SUMMARY_MISSING_SECTION_CLASS_NAME,
     SOURCE_REPORT_SUMMARY_TEXT_CLASS_NAME,
-    SOURCE_REPORT_TRANSCRIPT_MISSING_NOTICE_CLASS_NAME,
+    SOURCE_REPORT_TRANSCRIPT_MISSING_SECTION_CLASS_NAME,
     type SourceReportCardSkeletonSize,
     type SourceReportSegmentSkeletonSize,
     type SourceReportTone,
@@ -503,7 +500,7 @@ function SourceReportStatusDot() {
 function SourceReportAlertGlyph() {
     return (
         <svg
-            className="size-4"
+            className="size-[16px]"
             viewBox="0 0 24 24"
             fill="none"
             stroke="currentColor"
@@ -523,7 +520,7 @@ function SourceReportAlertGlyph() {
 function SourceReportEmptyGlyph() {
     return (
         <svg
-            className="size-4"
+            className="size-[16px]"
             viewBox="0 0 24 24"
             fill="none"
             stroke="currentColor"
@@ -549,11 +546,16 @@ function SourceReportStatusBadge({
     return (
         <Badge
             variant="ghost"
-            className={SOURCE_REPORT_STATUS_BADGE_CLASS_NAME}
+            className={SOURCE_REPORT_STATUS_BADGE_WRAPPER_CLASS_NAME}
             data-sot-badge="source-report-status"
             data-sot-tone={tone}
         >
-            {children}
+            <span
+                className={SOURCE_REPORT_STATUS_BADGE_CLASS_NAME}
+                data-sot-tone={tone}
+            >
+                {children}
+            </span>
         </Badge>
     );
 }
@@ -606,30 +608,30 @@ function SourceReportState({
 
 function SourceReportSection({
     children,
+    className,
     description,
-    noticeAfter,
-    noticeBefore,
+    missingCopy,
     section,
     title,
 }: {
     children: ReactNode;
+    className?: string;
     description: ReactNode;
-    noticeAfter?: ReactNode;
-    noticeBefore?: ReactNode;
+    missingCopy?: string;
     section: "metadata" | "summary" | "transcript";
     title: string;
 }) {
     return (
         <section
-            className={SOURCE_REPORT_SECTION_CLASS_NAME}
+            className={cn(SOURCE_REPORT_SECTION_CLASS_NAME, className)}
             data-sot-source-report-section
             data-sot-section={section}
+            data-sot-missing-copy={missingCopy}
         >
             <Separator
                 className={SOURCE_REPORT_SECTION_SEPARATOR_CLASS_NAME}
                 data-sot-source-report-section-separator
             />
-            {noticeBefore}
             <header
                 className={SOURCE_REPORT_SECTION_HEADER_CLASS_NAME}
                 data-sot-source-report-section-header
@@ -647,29 +649,8 @@ function SourceReportSection({
                     {description}
                 </span>
             </header>
-            {noticeAfter}
             {children}
         </section>
-    );
-}
-
-function SourceReportMissingNotice({
-    children,
-    className,
-    state,
-}: {
-    children: ReactNode;
-    className?: string;
-    state: "summary-missing" | "transcript-missing";
-}) {
-    return (
-        <div
-            className={className ?? SOURCE_REPORT_MISSING_NOTICE_CLASS_NAME}
-            data-sot-source-report-missing-notice
-            data-sot-missing={state}
-        >
-            {children}
-        </div>
     );
 }
 
@@ -1371,8 +1352,8 @@ export function SourceReportPanel({
         >
             {error && (
                 <SourceReportState sotState="error" state="error" error={error}>
-                    <Alert
-                        variant="statusError"
+                    <div
+                        role="alert"
                         className={cn(
                             SOURCE_REPORT_ERROR_ALERT_CLASS_NAME,
                             SOURCE_REPORT_EMPTY_SURFACE_CLASS_NAME,
@@ -1390,25 +1371,21 @@ export function SourceReportPanel({
                         >
                             <SourceReportAlertGlyph />
                         </EmptyMedia>
-                        <AlertTitle
-                            className={cn(
-                                "text-center",
-                                SOURCE_REPORT_EMPTY_TITLE_CLASS_NAME,
-                            )}
+                        <div
+                            className={SOURCE_REPORT_EMPTY_TITLE_CLASS_NAME}
                             data-sot-source-report-empty-title
                         >
                             无法读取来源详情
-                        </AlertTitle>
-                        <AlertDescription
-                            className={cn(
-                                "max-w-xs justify-items-center text-center",
-                                SOURCE_REPORT_EMPTY_DESCRIPTION_CLASS_NAME,
-                            )}
+                        </div>
+                        <div
+                            className={
+                                SOURCE_REPORT_EMPTY_DESCRIPTION_CLASS_NAME
+                            }
                             data-sot-source-report-empty-description
                         >
                             {sourceProviderSentenceName}
                             返回了一个错误，可能是网络抖动或来源临时不可用。
-                        </AlertDescription>
+                        </div>
                         <div
                             data-sot-source-report-empty-actions
                             className={cn(
@@ -1446,7 +1423,7 @@ export function SourceReportPanel({
                                 查看同步日志
                             </Button>
                         </div>
-                    </Alert>
+                    </div>
                 </SourceReportState>
             )}
 
@@ -1595,17 +1572,15 @@ export function SourceReportPanel({
                     <SourceReportSection
                         section="transcript"
                         title="来源转写"
-                        noticeAfter={
-                            transcriptAvailable ? null : (
-                                <SourceReportMissingNotice
-                                    className={
-                                        SOURCE_REPORT_TRANSCRIPT_MISSING_NOTICE_CLASS_NAME
-                                    }
-                                    state="transcript-missing"
-                                >
-                                    来源未提供逐字稿。可以稍后再来，或运行私有转写。
-                                </SourceReportMissingNotice>
-                            )
+                        className={
+                            transcriptAvailable
+                                ? undefined
+                                : SOURCE_REPORT_TRANSCRIPT_MISSING_SECTION_CLASS_NAME
+                        }
+                        missingCopy={
+                            transcriptAvailable
+                                ? undefined
+                                : "来源未提供逐字稿。可以稍后再来，或运行私有转写。"
                         }
                         description={
                             <>
@@ -1704,17 +1679,13 @@ export function SourceReportPanel({
                     <SourceReportSection
                         section="metadata"
                         title="来源信息"
-                        noticeBefore={
-                            reportAvailable ? null : (
-                                <SourceReportMissingNotice
-                                    className={
-                                        SOURCE_REPORT_SUMMARY_MISSING_NOTICE_CLASS_NAME
-                                    }
-                                    state="summary-missing"
-                                >
-                                    来源未提供官方摘要。
-                                </SourceReportMissingNotice>
-                            )
+                        className={
+                            reportAvailable
+                                ? undefined
+                                : SOURCE_REPORT_SUMMARY_MISSING_SECTION_CLASS_NAME
+                        }
+                        missingCopy={
+                            reportAvailable ? undefined : "来源未提供官方摘要。"
                         }
                         description={
                             <>由{sourceProviderLabel}返回的公开元数据</>
@@ -1796,32 +1767,25 @@ export function SourceReportPanel({
                         data-sot-source-report-empty
                         data-sot-tone="neutral"
                     >
-                        <EmptyHeader
-                            className={SOURCE_REPORT_EMPTY_HEADER_CLASS_NAME}
-                            data-sot-source-report-empty-header
+                        <EmptyMedia
+                            variant="icon"
+                            className={SOURCE_REPORT_EMPTY_ICON_CLASS_NAME}
+                            data-sot-source-report-empty-icon
                         >
-                            <EmptyMedia
-                                variant="icon"
-                                className={SOURCE_REPORT_EMPTY_ICON_CLASS_NAME}
-                                data-sot-source-report-empty-icon
-                            >
-                                <SourceReportEmptyGlyph />
-                            </EmptyMedia>
-                            <EmptyTitle
-                                className={SOURCE_REPORT_EMPTY_TITLE_CLASS_NAME}
-                                data-sot-source-report-empty-title
-                            >
-                                这条录音没有关联来源
-                            </EmptyTitle>
-                            <EmptyDescription
-                                className={
-                                    SOURCE_REPORT_EMPTY_DESCRIPTION_CLASS_NAME
-                                }
-                                data-sot-source-report-empty-description
-                            >
-                                本地导入或离线录制的录音不会有来源详情。
-                            </EmptyDescription>
-                        </EmptyHeader>
+                            <SourceReportEmptyGlyph />
+                        </EmptyMedia>
+                        <EmptyTitle
+                            className={SOURCE_REPORT_EMPTY_TITLE_CLASS_NAME}
+                            data-sot-source-report-empty-title
+                        >
+                            这条录音没有关联来源
+                        </EmptyTitle>
+                        <EmptyDescription
+                            className={SOURCE_REPORT_EMPTY_DESCRIPTION_CLASS_NAME}
+                            data-sot-source-report-empty-description
+                        >
+                            本地导入或离线录制的录音不会有来源详情。
+                        </EmptyDescription>
                     </Empty>
                 </SourceReportState>
             )}

@@ -24,6 +24,7 @@ import {
 import {
     Field,
     FieldContent,
+    FieldControl,
     FieldDescription,
     FieldLabel,
 } from "@/components/ui/field";
@@ -105,10 +106,17 @@ const onboardingCardClassNames = {
     sourceAuthModeGroup: "grid w-full grid-cols-2 items-stretch",
     sourceAuthModeOption:
         "h-auto flex-col items-start justify-start whitespace-normal px-3.5 py-3 text-left",
+    sourceField: "flex-col gap-2",
+    sourceFieldContent: "min-w-0 gap-1",
+    sourceFieldDescription:
+        "max-w-full text-[12px] leading-normal text-muted-foreground [overflow-wrap:normal] [word-break:keep-all]",
+    sourceFieldControl: "min-w-0 flex-1 [&>*]:w-full",
+    sourceProviderFields:
+        "flex flex-col gap-0 [&_[data-slot=field]]:!flex-col [&_[data-slot=field]]:!items-stretch [&_[data-slot=field]]:!gap-2 [&_[data-slot=field]>*]:!w-full [&_[data-slot=field-control]]:!w-full [&_[data-slot=field-control]]:!justify-stretch [&_[data-slot=field-description]]:[overflow-wrap:normal] [&_[data-slot=field-description]]:[word-break:keep-all]",
     secondaryAction:
-        "[display:inline-flex] [align-items:center] [height:26px] [gap:6px] rounded-md border border-border bg-transparent [padding:0_10px] [font:600_11px_var(--font-sans)] [line-height:normal] text-muted-foreground shadow-none hover:bg-accent hover:text-accent-foreground disabled:cursor-not-allowed has-[>svg]:px-[10px]",
+        "[display:inline-flex] [align-items:center] [height:26px] [gap:6px] [border-radius:8px] [border:1px_solid_var(--line-hairline)] bg-transparent [padding:0_10px] [font:600_11px_var(--font-sans)] [line-height:normal] text-[var(--fg-secondary)] shadow-none hover:bg-accent hover:text-accent-foreground disabled:cursor-not-allowed has-[>svg]:px-[10px]",
     primaryAction:
-        "[display:inline-flex] [align-items:center] [height:26px] [gap:6px] rounded-md border border-transparent bg-primary [padding:0_10px] [font:600_11px_var(--font-sans)] [line-height:normal] text-primary-foreground shadow-none hover:bg-primary/90 focus-visible:border-ring focus-visible:ring-0 disabled:cursor-not-allowed has-[>svg]:px-[10px]",
+        "[display:inline-flex] [align-items:center] [height:26px] [gap:6px] [border-radius:8px] [border:1px_solid_transparent] bg-primary [padding:0_10px] [font:600_11px_var(--font-sans)] [line-height:normal] text-[var(--button-primary-fg)] shadow-none hover:bg-primary/90 hover:text-[var(--button-primary-fg)] focus-visible:border-ring focus-visible:ring-0 disabled:cursor-not-allowed has-[>svg]:px-[10px]",
     header: "grid auto-rows-min gap-0 p-0",
     steps: "mb-[14px] flex gap-[6px]",
     step: "[appearance:none] flex-1 [height:4px] [padding:0] [border:0] [border-radius:2px] [background:var(--bg-recessed)] [cursor:pointer] data-[sot-state=active]:[background:var(--accent)] data-[sot-state=complete]:[background:var(--accent)] disabled:cursor-not-allowed",
@@ -125,9 +133,9 @@ const onboardingCardClassNames = {
     stepBody: "[display:flex] [flex-direction:column] [gap:12px] p-0",
     defaultSources: "[display:flex] [flex-direction:column] [gap:6px]",
     defaultSource:
-        "[appearance:none] [display:flex] [align-items:center] [gap:8px] [padding:8px] rounded-md border border-border bg-transparent text-foreground [cursor:pointer] [text-align:left] data-[sot-state=selected]:border-primary data-[sot-state=selected]:bg-primary/10 data-[sot-state=disabled]:[cursor:not-allowed] data-[sot-state=disabled]:opacity-[0.55]",
+        "flex items-center gap-[8px] rounded-[8px] border border-solid border-[var(--line-hairline)] bg-transparent p-[8px] text-left [appearance:none] font-sans text-[15px] font-normal leading-[var(--lh-body)] text-[var(--fg-primary)] data-[sot-state=selected]:border-primary data-[sot-state=selected]:bg-primary/10 data-[sot-state=disabled]:opacity-[0.55] disabled:cursor-not-allowed",
     defaultSourceSwatch:
-        "size-5 flex-none rounded-sm bg-transparent data-[sot-swatch=accent]:bg-primary",
+        "[height:20px] [width:20px] flex-none rounded-[4px] bg-transparent data-[sot-swatch=accent]:bg-primary",
     actions:
         "[display:flex] [gap:8px] [justify-content:flex-end] [margin-top:14px]",
     providerIcon:
@@ -156,14 +164,25 @@ function OnboardingFieldRow({
 }) {
     return (
         <Field
+            className={onboardingCardClassNames.sourceField}
             data-disabled={disabled ? "true" : undefined}
-            orientation="horizontal"
+            orientation="responsive"
         >
-            <FieldContent>
+            <FieldContent
+                className={onboardingCardClassNames.sourceFieldContent}
+            >
                 <FieldLabel htmlFor={id}>{label}</FieldLabel>
-                <FieldDescription>{description}</FieldDescription>
+                <FieldDescription
+                    className={onboardingCardClassNames.sourceFieldDescription}
+                >
+                    {description}
+                </FieldDescription>
             </FieldContent>
-            {children}
+            <FieldControl
+                className={onboardingCardClassNames.sourceFieldControl}
+            >
+                {children}
+            </FieldControl>
         </Field>
     );
 }
@@ -728,16 +747,18 @@ function SourceStep({
                 />
             )}
 
-            {providerFields.map((field) => (
-                <DataSourceFieldControl
-                    disabled={isSaving}
-                    field={field}
-                    fieldId={field.id}
-                    key={field.id}
-                    onValueChange={updateField}
-                    variant="onboarding"
-                />
-            ))}
+            <div className={onboardingCardClassNames.sourceProviderFields}>
+                {providerFields.map((field) => (
+                    <DataSourceFieldControl
+                        disabled={isSaving}
+                        field={field}
+                        fieldId={field.id}
+                        key={field.id}
+                        onValueChange={updateField}
+                        variant="onboarding"
+                    />
+                ))}
+            </div>
 
             <WizardActions
                 isSaving={isSaving}
@@ -804,6 +825,7 @@ function TranscriptionStep({
                                       ? "idle"
                                       : "disabled"
                             }
+                            data-slot="button"
                             disabled={isSaving || !option.connected}
                             key={option.id}
                             onClick={() => {

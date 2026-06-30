@@ -18,7 +18,7 @@ import {
     Plus,
     RefreshCw,
     Search,
-    Sparkles,
+    Sparkle,
     Tags,
     X,
 } from "lucide-react";
@@ -138,9 +138,7 @@ import {
     SOURCE_REPORT_STATE_CLASS_NAME,
     SOURCE_REPORT_STATUS_BADGE_CLASS_NAME,
     SOURCE_REPORT_STYLE_VARIABLES,
-    SOURCE_REPORT_SUMMARY_BODY_CLASS_NAME,
     SOURCE_REPORT_SUMMARY_MISSING_NOTICE_CLASS_NAME,
-    SOURCE_REPORT_SUMMARY_TEXT_CLASS_NAME,
     SOURCE_REPORT_TRANSCRIPT_MISSING_NOTICE_CLASS_NAME,
     type SourceReportCardSkeletonSize,
     type SourceReportSegmentSkeletonSize,
@@ -354,7 +352,7 @@ const DASHBOARD_MAIN_CLASS_NAME =
 const DASHBOARD_WORKSPACE_CLASS_NAME =
     "grid flex-1 min-h-0 grid-cols-[380px_1fr] gap-4 px-5 pt-4 pb-5 max-[860px]:min-w-0 max-[860px]:max-w-full max-[860px]:box-border max-[860px]:grid-cols-[380px_0px] max-[860px]:[&>[data-sot-panel=dashboard-detail]]:hidden";
 const DASHBOARD_RECORDING_LIST_CARD_CLASS_NAME =
-    "min-h-0 gap-0 rounded-2xl max-[860px]:min-w-0 max-[860px]:max-w-full max-[860px]:box-border";
+    "h-full min-h-0 gap-0 overflow-hidden rounded-2xl border-[var(--glass-border)] bg-[var(--bg-elevated)] shadow-[var(--shadow-sm)] backdrop-blur-none max-[860px]:min-w-0 max-[860px]:max-w-full max-[860px]:box-border";
 const DASHBOARD_DETAIL_PANEL_CLASS_NAME = "flex min-h-0 min-w-0 flex-col gap-4";
 const DASHBOARD_RECORDING_LIST_CONTENT_CLASS_NAME = "flex min-h-0 flex-col p-0";
 const DASHBOARD_DETAIL_EMPTY_STATE_CLASS_NAME = "min-h-[280px] p-9 md:p-9";
@@ -641,6 +639,27 @@ const dashboardRecordingListStateStyles = {
         "max-w-[300px] font-sans text-[12px] font-medium leading-[1.5] text-[var(--fg-tertiary)]",
 } as const;
 
+const dashboardRecordingListLoadingSkeletonClassNames = {
+    root: "flex flex-col gap-0.5 p-1",
+    day: "flex items-center gap-2.5 px-2.5 pt-3.5 pb-1.5",
+    dayLabel: "h-[11px] w-[100px]",
+    dayLabel40: "h-[11px] w-10",
+    dayLine: "h-px flex-1 bg-[var(--line-hairline)]",
+    row: "grid grid-cols-[1fr_auto] items-center gap-3.5 px-3 py-[11px]",
+    rowBody: "flex min-w-0 flex-col gap-1.5",
+    meta: "flex items-center gap-2",
+    title: "h-[13px] w-full",
+    title90: "h-[13px] w-[90%]",
+    title85: "h-[13px] w-[85%]",
+    title80: "h-[13px] w-4/5",
+    title70: "h-[13px] w-[70%]",
+    metaTime: "h-[11px] w-20",
+    metaTag: "h-[18px] w-16 rounded-[6px]",
+    metaPill: "h-[18px] w-16 rounded-full",
+    metaPill70: "h-[18px] w-12 rounded-full",
+    tag: "h-[22px] w-20 rounded-[6px]",
+} as const;
+
 const dashboardRecordingListPaginationStyles = {
     root: "m-2 flex flex-col items-stretch gap-1.5 border-0 bg-transparent p-[14px] text-center",
     divider: "relative mt-1.5 mb-[14px] h-px bg-[var(--line-hairline)]",
@@ -764,24 +783,28 @@ const dashboardButtonClassNames = {
     headerIconButton:
         "size-[32px] border border-transparent bg-transparent p-0 text-[var(--fg-secondary)] shadow-none hover:bg-accent hover:text-accent-foreground [&_svg]:fill-none [&_svg]:stroke-current [&_svg]:stroke-[1.8] [&_svg]:[stroke-linecap:round] [&_svg]:[stroke-linejoin:round]",
     headerActionButton:
-        "h-8 gap-[7px] rounded-[9px] border border-[var(--line-hairline)] bg-[var(--glass-tint-base)] px-3 font-sans text-[12.5px] font-semibold leading-normal text-[var(--fg-primary)] shadow-[var(--shadow-xs)] hover:bg-[var(--glass-tint-base)] hover:text-[var(--fg-primary)] has-[>svg]:px-3 [&_svg]:fill-none [&_svg]:stroke-current [&_svg]:stroke-[1.8] [&_svg]:[stroke-linecap:round] [&_svg]:[stroke-linejoin:round] [&_svg:not([class*='size-'])]:size-4",
+        "h-8 gap-[7px] rounded-[9px] border border-[var(--line-hairline)] bg-[var(--glass-tint-base)] px-3 font-sans text-[12.5px] font-semibold leading-normal text-[var(--fg-primary)] shadow-[var(--shadow-xs)] hover:bg-[var(--glass-tint-base)] hover:text-[var(--fg-primary)] has-[>svg]:px-3 [&_svg]:fill-none [&_svg]:stroke-current [&_svg]:stroke-[1.8] [&_svg]:[stroke-linecap:round] [&_svg]:[stroke-linejoin:round] [&_svg:not([class*='size-'])]:size-4 min-w-[103px] backdrop-blur-[14px] backdrop-saturate-[140%]",
 } as const;
+
+const dashboardRetranscriptionThemeClassName =
+    "[--dashboard-retx-info-bg:color-mix(in_srgb,var(--signal-info)_8%,transparent)] [--dashboard-retx-info-border:color-mix(in_srgb,var(--signal-info)_26%,transparent)] [--dashboard-retx-info-icon-border:color-mix(in_srgb,var(--signal-info)_30%,transparent)] [--dashboard-retx-danger-bg:color-mix(in_srgb,var(--signal-danger)_6%,transparent)] [--dashboard-retx-danger-border:color-mix(in_srgb,var(--signal-danger)_24%,transparent)] [--dashboard-retx-danger-icon-border:color-mix(in_srgb,var(--signal-danger)_30%,transparent)] [--dashboard-retx-success-bg:color-mix(in_srgb,var(--signal-success)_8%,transparent)] [--dashboard-retx-success-border:color-mix(in_srgb,var(--signal-success)_28%,transparent)] [--dashboard-retx-success-icon-border:color-mix(in_srgb,var(--signal-success)_30%,transparent)] [--dashboard-retx-success-marker-bg:color-mix(in_srgb,var(--signal-success)_12%,transparent)]";
 
 const dashboardRetranscriptionClassNames = {
     disabledHint:
-        "inline-flex items-center rounded-[4px] border border-[var(--line-hairline)] bg-[var(--bg-recessed)] px-[6px] py-[2px] [font:500_11px_var(--font-sans)] text-[var(--fg-tertiary)] [&[hidden]]:hidden",
-    banner: "group/retx flex items-center gap-[10px] border-b border-[var(--line-hairline)] bg-[var(--bg-recessed)] px-[14px] py-[10px] data-[retx-state=completed]:border-[var(--dashboard-retx-success-border)] data-[retx-state=completed]:bg-[var(--dashboard-retx-success-bg)] data-[retx-state=failed]:border-[var(--dashboard-retx-danger-border)] data-[retx-state=failed]:bg-[var(--dashboard-retx-danger-bg)] data-[retx-state=idle]:hidden data-[retx-state=queued]:border-[var(--dashboard-retx-info-border)] data-[retx-state=queued]:bg-[var(--dashboard-retx-info-bg)] data-[retx-state=running]:border-[var(--dashboard-retx-info-border)] data-[retx-state=running]:bg-[var(--dashboard-retx-info-bg)] [&[hidden]]:hidden",
-    icon: "inline-flex size-[28px] flex-none items-center justify-center rounded-full border border-[var(--line-hairline)] bg-[var(--bg-elevated)] group-data-[retx-state=completed]/retx:border-[var(--dashboard-retx-success-icon-border)] group-data-[retx-state=completed]/retx:text-[var(--signal-success)] group-data-[retx-state=failed]/retx:border-[var(--dashboard-retx-danger-icon-border)] group-data-[retx-state=failed]/retx:text-[var(--signal-danger)] group-data-[retx-state=queued]/retx:border-[var(--dashboard-retx-info-icon-border)] group-data-[retx-state=queued]/retx:text-[var(--signal-info)] group-data-[retx-state=running]/retx:border-[var(--dashboard-retx-info-icon-border)] group-data-[retx-state=running]/retx:text-[var(--signal-info)] [&_svg]:size-[13px] [&_svg]:fill-none [&_svg]:stroke-2 [&_svg]:stroke-current [&_svg]:[stroke-linecap:round] [&_svg]:[stroke-linejoin:round]",
+        "block rounded-[4px] border border-[var(--line-hairline)] bg-[var(--bg-recessed)] px-[6px] py-[2px] [font:500_11px_var(--font-sans)] text-[var(--fg-tertiary)] [&[hidden]]:hidden",
+    banner: `${dashboardRetranscriptionThemeClassName} group/retx flex items-center gap-[10px] border-b border-b-[var(--line-hairline)] bg-[var(--bg-recessed)] px-[14px] py-[10px] data-[retx-state=completed]:[border-bottom-color:var(--dashboard-retx-success-border)] data-[retx-state=completed]:bg-[var(--dashboard-retx-success-bg)] data-[retx-state=failed]:[border-bottom-color:var(--dashboard-retx-danger-border)] data-[retx-state=failed]:bg-[var(--dashboard-retx-danger-bg)] data-[retx-state=idle]:hidden data-[retx-state=queued]:[border-bottom-color:var(--dashboard-retx-info-border)] data-[retx-state=queued]:bg-[var(--dashboard-retx-info-bg)] data-[retx-state=running]:[border-bottom-color:var(--dashboard-retx-info-border)] data-[retx-state=running]:bg-[var(--dashboard-retx-info-bg)] [&[hidden]]:hidden`,
+    icon: "inline-flex size-[28px] flex-none items-center justify-center rounded-[50%] border border-[var(--line-hairline)] bg-[var(--bg-elevated)] group-data-[retx-state=completed]/retx:border-[var(--dashboard-retx-success-icon-border)] group-data-[retx-state=completed]/retx:text-[var(--signal-success)] group-data-[retx-state=failed]/retx:border-[var(--dashboard-retx-danger-icon-border)] group-data-[retx-state=failed]/retx:text-[var(--signal-danger)] group-data-[retx-state=queued]/retx:border-[var(--dashboard-retx-info-icon-border)] group-data-[retx-state=queued]/retx:text-[var(--signal-info)] group-data-[retx-state=running]/retx:border-[var(--dashboard-retx-info-icon-border)] group-data-[retx-state=running]/retx:text-[var(--signal-info)] [&_svg]:size-[13px] [&_svg]:fill-none [&_svg]:stroke-2 [&_svg]:stroke-current [&_svg]:[stroke-linecap:round] [&_svg]:[stroke-linejoin:round]",
+    spinner:
+        "h-[12px] w-[12px] rounded-[50%] border-[1.6px] border-[var(--signal-info)] border-t-transparent border-r-[var(--signal-info)] animate-[spin_700ms_linear_infinite]",
     body: "flex min-w-0 flex-1 flex-col gap-[2px]",
     title: "[font:600_12.5px_var(--font-sans)] text-[var(--fg-primary)]",
     sub: "[font:500_11.5px_var(--font-sans)] text-[var(--fg-secondary)]",
     actions: "flex flex-none items-center gap-[6px]",
+    closeButton:
+        "[&>svg]:h-[16px] [&>svg]:w-[16px] [&>svg]:fill-none [&>svg]:stroke-current [&>svg]:stroke-[1.8] [&>svg]:[stroke-linecap:round] [&>svg]:[stroke-linejoin:round]",
     refreshMarker:
-        "inline-flex items-center gap-[4px] rounded-full bg-[var(--dashboard-retx-success-marker-bg)] px-[6px] py-px [font:500_10.5px_var(--font-mono)] text-[var(--signal-success)] [&[hidden]]:hidden",
+        `${dashboardRetranscriptionThemeClassName} inline-flex items-center gap-[4px] rounded-full bg-[var(--dashboard-retx-success-marker-bg)] px-[6px] py-px font-mono ![font-size:10.5px] font-medium ![line-height:normal] [margin:0] ![color:var(--signal-success)] [&[hidden]]:hidden`,
 } as const;
-
-const dashboardRetranscriptionThemeClassName =
-    "[--dashboard-retx-info-bg:var(--system-banner-progress-bg)] [--dashboard-retx-info-border:var(--system-banner-progress-border)] [--dashboard-retx-info-icon-border:var(--system-banner-progress-border)] [--dashboard-retx-danger-bg:var(--alert-destructive-soft-bg)] [--dashboard-retx-danger-border:var(--alert-destructive-soft-border)] [--dashboard-retx-danger-icon-border:var(--button-copy-danger-border)] [--dashboard-retx-success-bg:var(--button-copy-success-bg)] [--dashboard-retx-success-border:var(--button-copy-success-border)] [--dashboard-retx-success-icon-border:var(--button-copy-success-border)] [--dashboard-retx-success-marker-bg:var(--button-copy-success-bg)]";
 
 const sourceProviderThemeClassName =
     "[--source-provider-status-success-bg:var(--button-copy-success-bg)] [--source-provider-status-success-border:var(--button-copy-success-border)] [--source-provider-status-info-bg:var(--system-banner-progress-icon-bg)] [--source-provider-status-info-border:var(--system-banner-progress-border)] [--source-provider-status-warning-bg:var(--system-banner-offline-icon-bg)] [--source-provider-status-warning-border:var(--system-banner-offline-border)] [--source-provider-status-danger-bg:var(--alert-destructive-soft-bg)] [--source-provider-status-danger-border:var(--alert-destructive-soft-border)] [--source-provider-primary-border:var(--accent)]";
@@ -839,17 +862,17 @@ const dashboardRecordingRowStyles = {
     groupSeparator: "mx-1 my-1",
     groupHeading: "flex items-baseline gap-2.5 px-2.5 pb-1.5 pt-3.5",
     groupLabel:
-        "font-mono text-[11px] font-semibold uppercase text-muted-foreground",
-    groupCount: "font-mono text-[11px] font-medium text-muted-foreground/60",
+        "font-mono text-[11px] font-semibold uppercase tracking-[0.06em] text-[var(--fg-tertiary)]",
+    groupCount: "font-mono text-[11px] font-medium text-[var(--fg-disabled)]",
     groupDivider: "ml-1 min-w-0 flex-1",
-    row: "grid h-auto w-full grid-cols-[1fr_auto] items-center gap-[14px] whitespace-normal rounded-[10px] border border-transparent bg-transparent px-3 py-[11px] text-left text-[13.3333px] font-normal leading-normal shadow-none hover:bg-[var(--bg-recessed)] hover:text-[var(--fg-primary)] data-[sot-state=selected]:border-primary/30 data-[sot-state=selected]:bg-[var(--accent-soft)] [&.is-hover-demo]:bg-[var(--bg-recessed)] [&.is-hover-demo]:text-[var(--fg-primary)] [&.is-focus-demo]:border-ring [&.is-focus-demo]:ring-[3px] [&.is-focus-demo]:ring-ring/50",
+    row: "grid h-auto w-full grid-cols-[minmax(0,1fr)_auto] items-center justify-normal gap-[14px] whitespace-normal rounded-[10px] border ![border-color:transparent] bg-transparent px-[12px] py-[11px] text-left text-[13.3333px] font-normal leading-normal ![box-shadow:none] [--dashboard-recording-row-selected-border:color-mix(in_srgb,var(--accent)_38%,transparent)] hover:!bg-[var(--bg-recessed)] hover:text-[var(--fg-primary)] focus:!border-ring focus:!outline-none focus:![outline-width:0px] focus:!ring-[3px] focus:!ring-ring/50 focus-visible:!border-ring focus-visible:!outline-none focus-visible:![outline-width:0px] focus-visible:!ring-[3px] focus-visible:!ring-ring/50 data-[sot-state=selected]:![border-color:var(--dashboard-recording-row-selected-border)] data-[sot-state=selected]:bg-[var(--accent-soft)] [&.is-hover-demo]:!bg-[var(--bg-recessed)] [&.is-hover-demo]:text-[var(--fg-primary)] [&.is-focus-demo]:!border-ring [&.is-focus-demo]:!outline-none [&.is-focus-demo]:![outline-width:0px] [&.is-focus-demo]:!ring-[3px] [&.is-focus-demo]:!ring-ring/50",
     body: "flex min-w-0 flex-col gap-[5px]",
-    title: "truncate font-sans text-[13.5px] font-semibold text-foreground",
+    title: "truncate font-sans text-[13.5px] font-semibold tracking-[-0.005em] text-[var(--fg-primary)]",
     meta: "flex flex-wrap items-center gap-2",
     sourceMark:
-        "inline-flex size-[14px] flex-none items-center justify-center overflow-hidden rounded-[3px] opacity-60",
+        "inline-flex size-[14px] flex-none items-center justify-center overflow-hidden rounded-[3px] opacity-[0.55] dark:opacity-60",
     sourceMarkImage:
-        "block size-[14px] max-w-none object-contain align-baseline grayscale contrast-[0.85]",
+        "block size-[14px] max-w-none object-contain align-baseline grayscale contrast-[0.85] dark:brightness-[1.4]",
     sourceMarkImageCover: "object-cover",
     sourceMarkLetter:
         "border border-[var(--line-hairline)] bg-[var(--bg-recessed)] [font:700_9px_var(--font-sans)] text-[var(--fg-tertiary)]",
@@ -862,7 +885,7 @@ const dashboardRecordingRowStyles = {
         "hidden group-data-[time-style=abs]/dashboard-workstation:inline",
     timestampRelative:
         "inline group-data-[time-style=abs]/dashboard-workstation:hidden",
-    actions: "flex items-center gap-2",
+    actions: "flex w-max min-w-max flex-none items-center justify-end justify-self-end gap-2 [&_[data-recording-tag-chip]]:[--dashboard-recording-tag-c:var(--tag-slate)] [&_[data-recording-tag-chip]]:[--sot-player-tag-chip-bg:color-mix(in_srgb,var(--dashboard-recording-tag-c)_18%,transparent)] [&_[data-recording-tag-chip]]:[--sot-player-tag-chip-border:color-mix(in_srgb,var(--dashboard-recording-tag-c)_36%,transparent)] [&_[data-recording-tag-chip]]:[--sot-player-tag-chip-fg:color-mix(in_srgb,var(--dashboard-recording-tag-c)_30%,var(--fg-primary))] [&_[data-recording-tag-chip]]:![box-shadow:var(--shadow-xs)] [&_[data-recording-tag-chip][data-sot-tag-color=blue]]:[--dashboard-recording-tag-c:var(--tag-blue)] [&_[data-recording-tag-chip][data-sot-tag-color=green]]:[--dashboard-recording-tag-c:var(--tag-green)] [&_[data-recording-tag-chip][data-sot-tag-color=orange]]:[--dashboard-recording-tag-c:var(--tag-amber)] [&_[data-recording-tag-chip][data-sot-tag-color=purple]]:[--dashboard-recording-tag-c:var(--tag-violet)] [&_[data-recording-tag-chip][data-sot-tag-color=red]]:[--dashboard-recording-tag-c:var(--tag-rose)] [&_[data-recording-tag-chip][data-sot-tag-color=slate]]:[--dashboard-recording-tag-c:var(--tag-slate)]",
 } as const;
 
 function tagFilterValue(tagId: string): TagFilterValue {
@@ -1139,23 +1162,6 @@ function getSourceReportSubState(
     return "summary-missing";
 }
 
-function formatSourceSummaryDisplayText(markdown: string) {
-    return markdown
-        .split(/\r?\n/)
-        .map((line) =>
-            line
-                .trim()
-                .replace(/^#{1,6}\s+/, "")
-                .replace(/^[-*]\s+/, ""),
-        )
-        .filter(Boolean)
-        .join("\n");
-}
-
-function sourceSummaryHasDisplayHeading(markdown: string) {
-    return /^#{1,6}\s+\S/m.test(markdown);
-}
-
 function sourceReportReadinessLabel(
     readiness: boolean | string | null | undefined,
     hasReadableContent: boolean,
@@ -1228,6 +1234,12 @@ const SOT_DASHBOARD_DETAIL_HEADER_TITLE_INPUT_CLASS_NAME =
 const SOT_DASHBOARD_DETAIL_HEADER_BADGE_CLASS_NAME = "ml-1 shrink-0";
 const SOT_DASHBOARD_DETAIL_HEADER_ACTION_ANCHOR_CLASS_NAME =
     "relative inline-flex items-center gap-1.5";
+const SOT_DASHBOARD_MORE_MENU_CONTENT_CLASS_NAME =
+    "!border-[var(--line-hairline)] ![background-color:color(srgb_0.0943052_0.100332_0.106792_/_0.96)] !p-[6px] ![box-shadow:0_12px_32px_rgb(0_0_0_/_0.42)] dark:!border-[var(--glass-border)]";
+const SOT_DASHBOARD_MORE_MENU_ITEM_CLASS_NAME =
+    "!min-h-[32px] !cursor-pointer !gap-[10px] !px-[10px] !py-[6px] !text-left data-[disabled]:!cursor-not-allowed data-[disabled]:![background-color:color(srgb_0.820356_0.259555_0.255348_/_0.12)]";
+const SOT_DASHBOARD_MORE_MENU_SEPARATOR_CLASS_NAME = "!mx-[2px] !my-[4px]";
+const SOT_DASHBOARD_MORE_MENU_HINT_CLASS_NAME = "mr-[0.5px]";
 
 const SOT_DASHBOARD_TRANSCRIPT_LANGUAGE_BADGE_CLASS_NAME = "gap-1.5";
 const SOT_DASHBOARD_TRANSCRIPT_HEADER_CLASS_NAME =
@@ -1535,7 +1547,7 @@ function getRecordingListStatus(
 }
 
 const SOT_DASHBOARD_RECORDING_STATUS_BADGE_CLASS =
-    "h-[20px] justify-normal gap-[5px] overflow-visible rounded-full border px-[8px] py-0 [font:600_11px_var(--font-sans)] tracking-[0.005em] shadow-none data-[sot-tone=ok]:border-[var(--source-provider-status-success-border)] data-[sot-tone=ok]:bg-[var(--source-provider-status-success-bg)] data-[sot-tone=ok]:text-[var(--signal-success)] data-[sot-tone=warn]:border-[var(--source-provider-status-warning-border)] data-[sot-tone=warn]:bg-[var(--source-provider-status-warning-bg)] data-[sot-tone=warn]:text-[var(--signal-warning-strong)] data-[sot-tone=err]:border-[var(--source-provider-status-danger-border)] data-[sot-tone=err]:bg-[var(--source-provider-status-danger-bg)] data-[sot-tone=err]:text-[var(--signal-danger)] data-[sot-tone=info]:border-[var(--source-provider-status-info-border)] data-[sot-tone=info]:bg-[var(--source-provider-status-info-bg)] data-[sot-tone=info]:text-[var(--signal-info)] data-[sot-tone=neu]:border-[var(--line-hairline)] data-[sot-tone=neu]:bg-[var(--bg-recessed)] data-[sot-tone=neu]:text-[var(--fg-secondary)] [&_[data-sot-part=dashboard-recording-status-dot]]:size-[5px] [&_[data-sot-part=dashboard-recording-status-dot]]:rounded-full [&_[data-sot-part=dashboard-recording-status-dot]]:bg-current data-[sot-tone=neu]:[&_[data-sot-part=dashboard-recording-status-dot]]:bg-[var(--fg-tertiary)] data-[sot-tone=warn]:[&_[data-sot-part=dashboard-recording-status-dot]]:animate-[bpulse_1.4s_ease-in-out_infinite]";
+    "[--dashboard-recording-status-ok-bg:color-mix(in_srgb,var(--signal-success)_14%,transparent)] [--dashboard-recording-status-ok-border:color-mix(in_srgb,var(--signal-success)_30%,transparent)] [--dashboard-recording-status-warn-bg:color-mix(in_srgb,var(--signal-warning)_18%,transparent)] [--dashboard-recording-status-warn-border:color-mix(in_srgb,var(--signal-warning)_32%,transparent)] [--dashboard-recording-status-err-bg:color-mix(in_srgb,var(--signal-danger)_14%,transparent)] [--dashboard-recording-status-err-border:color-mix(in_srgb,var(--signal-danger)_30%,transparent)] [--dashboard-recording-status-info-bg:color-mix(in_srgb,var(--signal-info)_14%,transparent)] [--dashboard-recording-status-info-border:color-mix(in_srgb,var(--signal-info)_30%,transparent)] h-[20px] justify-normal gap-[5px] overflow-visible rounded-[999px] border px-[8px] py-0 [font:600_11px_var(--font-sans)] tracking-[0.005em] shadow-none data-[sot-tone=ok]:border-[var(--dashboard-recording-status-ok-border)] data-[sot-tone=ok]:bg-[var(--dashboard-recording-status-ok-bg)] data-[sot-tone=ok]:text-[var(--signal-success)] data-[sot-tone=warn]:border-[var(--dashboard-recording-status-warn-border)] data-[sot-tone=warn]:bg-[var(--dashboard-recording-status-warn-bg)] data-[sot-tone=warn]:text-[var(--signal-warning-strong)] data-[sot-tone=err]:border-[var(--dashboard-recording-status-err-border)] data-[sot-tone=err]:bg-[var(--dashboard-recording-status-err-bg)] data-[sot-tone=err]:text-[var(--signal-danger)] data-[sot-tone=info]:border-[var(--dashboard-recording-status-info-border)] data-[sot-tone=info]:bg-[var(--dashboard-recording-status-info-bg)] data-[sot-tone=info]:text-[var(--signal-info)] data-[sot-tone=neu]:border-[var(--line-hairline)] data-[sot-tone=neu]:bg-[var(--bg-recessed)] data-[sot-tone=neu]:text-[var(--fg-secondary)] [&_[data-sot-part=dashboard-recording-status-dot]]:size-[5px] [&_[data-sot-part=dashboard-recording-status-dot]]:rounded-full [&_[data-sot-part=dashboard-recording-status-dot]]:bg-current data-[sot-tone=neu]:[&_[data-sot-part=dashboard-recording-status-dot]]:bg-[var(--fg-tertiary)] data-[sot-tone=warn]:[&_[data-sot-part=dashboard-recording-status-dot]]:animate-[bpulse_1.4s_ease-in-out_infinite]";
 
 function SotDashboardRecordingStatusBadge({
     className,
@@ -1782,13 +1794,8 @@ function RetxOkIcon() {
 function RetxCloseIcon() {
     return (
         <svg
-            data-icon="inline-start"
+            className="size-[16px]"
             viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            strokeWidth="1.8"
             aria-hidden="true"
             focusable="false"
         >
@@ -1891,89 +1898,281 @@ function SotSourceReportEmptyIcon() {
 
 function SotRecordingListSkeleton() {
     return (
-        <div data-sot-panel="recording-list-loading">
-            <div data-sot-part="skeleton-day">
-                <Skeleton data-sot-part="skeleton-day-label" />
-                <span data-sot-part="skeleton-day-line" />
+        <div
+            className={dashboardRecordingListLoadingSkeletonClassNames.root}
+            data-sot-panel="recording-list-loading"
+        >
+            <div
+                className={dashboardRecordingListLoadingSkeletonClassNames.day}
+                data-sot-part="skeleton-day"
+            >
+                <Skeleton
+                    className={
+                        dashboardRecordingListLoadingSkeletonClassNames.dayLabel
+                    }
+                    data-sot-part="skeleton-day-label"
+                />
+                <span
+                    className={
+                        dashboardRecordingListLoadingSkeletonClassNames.dayLine
+                    }
+                    data-sot-part="skeleton-day-line"
+                />
             </div>
-            <div data-sot-part="skeleton-row">
-                <div data-sot-part="skeleton-row-body">
-                    <Skeleton data-sot-part="skeleton-title" />
-                    <div data-sot-part="skeleton-meta">
-                        <Skeleton data-sot-part="skeleton-meta-time" />
-                        <Skeleton data-sot-part="skeleton-meta-tag" />
-                        <Skeleton data-sot-part="skeleton-meta-pill" />
+            <div
+                className={dashboardRecordingListLoadingSkeletonClassNames.row}
+                data-sot-part="skeleton-row"
+            >
+                <div
+                    className={
+                        dashboardRecordingListLoadingSkeletonClassNames.rowBody
+                    }
+                    data-sot-part="skeleton-row-body"
+                >
+                    <Skeleton
+                        className={
+                            dashboardRecordingListLoadingSkeletonClassNames.title
+                        }
+                        data-sot-part="skeleton-title"
+                    />
+                    <div
+                        className={
+                            dashboardRecordingListLoadingSkeletonClassNames.meta
+                        }
+                        data-sot-part="skeleton-meta"
+                    >
+                        <Skeleton
+                            className={
+                                dashboardRecordingListLoadingSkeletonClassNames.metaTime
+                            }
+                            data-sot-part="skeleton-meta-time"
+                        />
+                        <Skeleton
+                            className={
+                                dashboardRecordingListLoadingSkeletonClassNames.metaTag
+                            }
+                            data-sot-part="skeleton-meta-tag"
+                        />
+                        <Skeleton
+                            className={
+                                dashboardRecordingListLoadingSkeletonClassNames.metaPill
+                            }
+                            data-sot-part="skeleton-meta-pill"
+                        />
                     </div>
                 </div>
                 <div data-sot-part="skeleton-row-tail">
-                    <Skeleton data-sot-part="skeleton-tag" />
+                    <Skeleton
+                        className={
+                            dashboardRecordingListLoadingSkeletonClassNames.tag
+                        }
+                        data-sot-part="skeleton-tag"
+                    />
                 </div>
             </div>
-            <div data-sot-part="skeleton-row">
-                <div data-sot-part="skeleton-row-body">
+            <div
+                className={dashboardRecordingListLoadingSkeletonClassNames.row}
+                data-sot-part="skeleton-row"
+            >
+                <div
+                    className={
+                        dashboardRecordingListLoadingSkeletonClassNames.rowBody
+                    }
+                    data-sot-part="skeleton-row-body"
+                >
                     <Skeleton
+                        className={
+                            dashboardRecordingListLoadingSkeletonClassNames.title90
+                        }
                         data-sot-part="skeleton-title"
                         data-sot-size="90"
                     />
-                    <div data-sot-part="skeleton-meta">
-                        <Skeleton data-sot-part="skeleton-meta-time" />
-                        <Skeleton data-sot-part="skeleton-meta-tag" />
+                    <div
+                        className={
+                            dashboardRecordingListLoadingSkeletonClassNames.meta
+                        }
+                        data-sot-part="skeleton-meta"
+                    >
                         <Skeleton
+                            className={
+                                dashboardRecordingListLoadingSkeletonClassNames.metaTime
+                            }
+                            data-sot-part="skeleton-meta-time"
+                        />
+                        <Skeleton
+                            className={
+                                dashboardRecordingListLoadingSkeletonClassNames.metaTag
+                            }
+                            data-sot-part="skeleton-meta-tag"
+                        />
+                        <Skeleton
+                            className={
+                                dashboardRecordingListLoadingSkeletonClassNames.metaPill70
+                            }
                             data-sot-part="skeleton-meta-pill"
                             data-sot-size="70"
                         />
                     </div>
                 </div>
                 <div data-sot-part="skeleton-row-tail">
-                    <Skeleton data-sot-part="skeleton-tag" />
+                    <Skeleton
+                        className={
+                            dashboardRecordingListLoadingSkeletonClassNames.tag
+                        }
+                        data-sot-part="skeleton-tag"
+                    />
                 </div>
             </div>
-            <div data-sot-part="skeleton-day">
+            <div
+                className={dashboardRecordingListLoadingSkeletonClassNames.day}
+                data-sot-part="skeleton-day"
+            >
                 <Skeleton
+                    className={
+                        dashboardRecordingListLoadingSkeletonClassNames.dayLabel40
+                    }
                     data-sot-part="skeleton-day-label"
                     data-sot-size="40"
                 />
-                <span data-sot-part="skeleton-day-line" />
+                <span
+                    className={
+                        dashboardRecordingListLoadingSkeletonClassNames.dayLine
+                    }
+                    data-sot-part="skeleton-day-line"
+                />
             </div>
-            <div data-sot-part="skeleton-row">
-                <div data-sot-part="skeleton-row-body">
+            <div
+                className={dashboardRecordingListLoadingSkeletonClassNames.row}
+                data-sot-part="skeleton-row"
+            >
+                <div
+                    className={
+                        dashboardRecordingListLoadingSkeletonClassNames.rowBody
+                    }
+                    data-sot-part="skeleton-row-body"
+                >
                     <Skeleton
+                        className={
+                            dashboardRecordingListLoadingSkeletonClassNames.title80
+                        }
                         data-sot-part="skeleton-title"
                         data-sot-size="80"
                     />
-                    <div data-sot-part="skeleton-meta">
-                        <Skeleton data-sot-part="skeleton-meta-time" />
-                        <Skeleton data-sot-part="skeleton-meta-tag" />
-                        <Skeleton data-sot-part="skeleton-meta-pill" />
+                    <div
+                        className={
+                            dashboardRecordingListLoadingSkeletonClassNames.meta
+                        }
+                        data-sot-part="skeleton-meta"
+                    >
+                        <Skeleton
+                            className={
+                                dashboardRecordingListLoadingSkeletonClassNames.metaTime
+                            }
+                            data-sot-part="skeleton-meta-time"
+                        />
+                        <Skeleton
+                            className={
+                                dashboardRecordingListLoadingSkeletonClassNames.metaTag
+                            }
+                            data-sot-part="skeleton-meta-tag"
+                        />
+                        <Skeleton
+                            className={
+                                dashboardRecordingListLoadingSkeletonClassNames.metaPill
+                            }
+                            data-sot-part="skeleton-meta-pill"
+                        />
                     </div>
                 </div>
                 <div data-sot-part="skeleton-row-tail" />
             </div>
-            <div data-sot-part="skeleton-row">
-                <div data-sot-part="skeleton-row-body">
+            <div
+                className={dashboardRecordingListLoadingSkeletonClassNames.row}
+                data-sot-part="skeleton-row"
+            >
+                <div
+                    className={
+                        dashboardRecordingListLoadingSkeletonClassNames.rowBody
+                    }
+                    data-sot-part="skeleton-row-body"
+                >
                     <Skeleton
+                        className={
+                            dashboardRecordingListLoadingSkeletonClassNames.title70
+                        }
                         data-sot-part="skeleton-title"
                         data-sot-size="70"
                     />
-                    <div data-sot-part="skeleton-meta">
-                        <Skeleton data-sot-part="skeleton-meta-time" />
-                        <Skeleton data-sot-part="skeleton-meta-tag" />
+                    <div
+                        className={
+                            dashboardRecordingListLoadingSkeletonClassNames.meta
+                        }
+                        data-sot-part="skeleton-meta"
+                    >
+                        <Skeleton
+                            className={
+                                dashboardRecordingListLoadingSkeletonClassNames.metaTime
+                            }
+                            data-sot-part="skeleton-meta-time"
+                        />
+                        <Skeleton
+                            className={
+                                dashboardRecordingListLoadingSkeletonClassNames.metaTag
+                            }
+                            data-sot-part="skeleton-meta-tag"
+                        />
                     </div>
                 </div>
                 <div data-sot-part="skeleton-row-tail">
-                    <Skeleton data-sot-part="skeleton-tag" />
+                    <Skeleton
+                        className={
+                            dashboardRecordingListLoadingSkeletonClassNames.tag
+                        }
+                        data-sot-part="skeleton-tag"
+                    />
                 </div>
             </div>
-            <div data-sot-part="skeleton-row">
-                <div data-sot-part="skeleton-row-body">
+            <div
+                className={dashboardRecordingListLoadingSkeletonClassNames.row}
+                data-sot-part="skeleton-row"
+            >
+                <div
+                    className={
+                        dashboardRecordingListLoadingSkeletonClassNames.rowBody
+                    }
+                    data-sot-part="skeleton-row-body"
+                >
                     <Skeleton
+                        className={
+                            dashboardRecordingListLoadingSkeletonClassNames.title85
+                        }
                         data-sot-part="skeleton-title"
                         data-sot-size="85"
                     />
-                    <div data-sot-part="skeleton-meta">
-                        <Skeleton data-sot-part="skeleton-meta-time" />
-                        <Skeleton data-sot-part="skeleton-meta-tag" />
-                        <Skeleton data-sot-part="skeleton-meta-pill" />
+                    <div
+                        className={
+                            dashboardRecordingListLoadingSkeletonClassNames.meta
+                        }
+                        data-sot-part="skeleton-meta"
+                    >
+                        <Skeleton
+                            className={
+                                dashboardRecordingListLoadingSkeletonClassNames.metaTime
+                            }
+                            data-sot-part="skeleton-meta-time"
+                        />
+                        <Skeleton
+                            className={
+                                dashboardRecordingListLoadingSkeletonClassNames.metaTag
+                            }
+                            data-sot-part="skeleton-meta-tag"
+                        />
+                        <Skeleton
+                            className={
+                                dashboardRecordingListLoadingSkeletonClassNames.metaPill
+                            }
+                            data-sot-part="skeleton-meta-pill"
+                        />
                     </div>
                 </div>
                 <div data-sot-part="skeleton-row-tail" />
@@ -2843,11 +3042,6 @@ export function Workstation({
         buildSourceTranscriptCopyText(sourceReportData);
     const sourceTranscriptAvailable = Boolean(sourceTranscriptCopyText.trim());
     const sourceSummaryText = sourceReportData?.summaryMarkdown?.trim() ?? "";
-    const sourceSummaryRenderedText =
-        formatSourceSummaryDisplayText(sourceSummaryText);
-    const sourceSummaryVisible =
-        sourceSummaryRenderedText &&
-        sourceSummaryHasDisplayHeading(sourceSummaryText);
     const sourceSummaryAvailable =
         Boolean(sourceSummaryText) || sourceReportData?.summaryReady === true;
     const sourceTranscriptStatusLabel = sourceReportReadinessLabel(
@@ -3415,10 +3609,10 @@ export function Workstation({
         setSourceRepullState("loading");
         try {
             await runDataSourcesSync();
+            setSourceRepullState("success");
             await Promise.all([refreshStatus(), loadDataSources()]);
             refreshBrowserRoute(router);
             await loadSourceReport();
-            setSourceRepullState("success");
             toast.success(t("sourceReport.repullComplete"));
         } catch {
             setSourceRepullState("error");
@@ -6594,30 +6788,30 @@ export function Workstation({
                                                                                         )}
                                                                                     </span>
                                                                                 </span>
-                                                                                <SotDashboardRecordingStatusBadge
-                                                                                    label={
-                                                                                        rowStatus.label
-                                                                                    }
-                                                                                    tone={
-                                                                                        rowStatus.tone
-                                                                                    }
-                                                                                />
                                                                             </div>
                                                                         </div>
-                                                                        {primaryTag ? (
-                                                                            <div
-                                                                                className={
-                                                                                    dashboardRecordingRowStyles.actions
+                                                                        <div
+                                                                            className={
+                                                                                dashboardRecordingRowStyles.actions
+                                                                            }
+                                                                            data-sot-part="dashboard-recording-row-actions"
+                                                                        >
+                                                                            <SotDashboardRecordingStatusBadge
+                                                                                label={
+                                                                                    rowStatus.label
                                                                                 }
-                                                                                data-sot-part="dashboard-recording-row-actions"
-                                                                            >
+                                                                                tone={
+                                                                                    rowStatus.tone
+                                                                                }
+                                                                            />
+                                                                            {primaryTag ? (
                                                                                 <SotPlayerTagChip
                                                                                     tag={
                                                                                         primaryTag
                                                                                     }
                                                                                 />
-                                                                            </div>
-                                                                        ) : null}
+                                                                            ) : null}
+                                                                        </div>
                                                                     </Button>
                                                                 );
                                                             },
@@ -7030,11 +7224,12 @@ export function Workstation({
                                         title={aiUnavailableReason || undefined}
                                         onClick={() => void previewAutoRename()}
                                     >
-                                        <Sparkles data-icon="inline-start" />
+                                        <Sparkle data-icon="inline-start" />
                                         AI 重命名
                                     </Button>
                                     {aiOpen && selectedRecording ? (
                                         <AiRenamePreview
+                                            className="![right:1px]"
                                             applyLabel="应用"
                                             bodyLabel="建议标题"
                                             cancelLabel="取消"
@@ -7167,6 +7362,9 @@ export function Workstation({
                                             align="end"
                                             sideOffset={6}
                                             variant="glass"
+                                            className={
+                                                SOT_DASHBOARD_MORE_MENU_CONTENT_CLASS_NAME
+                                            }
                                             data-sot-menu="recording-more-actions"
                                             data-open="true"
                                             data-sot-local-delete-available={
@@ -7180,6 +7378,9 @@ export function Workstation({
                                             <DropdownMenuGroup>
                                                 <DropdownMenuItem
                                                     density="compact"
+                                                    className={
+                                                        SOT_DASHBOARD_MORE_MENU_ITEM_CLASS_NAME
+                                                    }
                                                     data-sot-menu-item="rename"
                                                     disabled={
                                                         !selectedRecording
@@ -7208,6 +7409,9 @@ export function Workstation({
                                                 </DropdownMenuItem>
                                                 <DropdownMenuItem
                                                     density="compact"
+                                                    className={
+                                                        SOT_DASHBOARD_MORE_MENU_ITEM_CLASS_NAME
+                                                    }
                                                     data-sot-menu-item="ai-rename"
                                                     disabled={
                                                         !selectedRecording
@@ -7231,6 +7435,9 @@ export function Workstation({
                                                 {moreActionsShowRetranscribe ? (
                                                     <DropdownMenuItem
                                                         density="compact"
+                                                        className={
+                                                            SOT_DASHBOARD_MORE_MENU_ITEM_CLASS_NAME
+                                                        }
                                                         data-sot-menu-item="retranscribe"
                                                         disabled={
                                                             !selectedRecording
@@ -7256,11 +7463,17 @@ export function Workstation({
                                                 {moreActionsShowSeparator ? (
                                                     <DropdownMenuSeparator
                                                         density="compact"
+                                                        className={
+                                                            SOT_DASHBOARD_MORE_MENU_SEPARATOR_CLASS_NAME
+                                                        }
                                                         data-sot-menu-separator="delete"
                                                     />
                                                 ) : null}
                                                 <DropdownMenuItem
                                                     density="compact"
+                                                    className={
+                                                        SOT_DASHBOARD_MORE_MENU_ITEM_CLASS_NAME
+                                                    }
                                                     variant="destructive"
                                                     data-sot-menu-item="delete-local"
                                                     data-sot-tone="danger"
@@ -7296,6 +7509,11 @@ export function Workstation({
                                                     {selectedRecording?.sourceProvider ? (
                                                         <DropdownMenuShortcut
                                                             variant="hint"
+                                                            className={
+                                                                localDeleteAvailable
+                                                                    ? undefined
+                                                                    : SOT_DASHBOARD_MORE_MENU_HINT_CLASS_NAME
+                                                            }
                                                             data-sot-menu-hint=""
                                                         >
                                                             {selectedRecording.upstreamDeleted
@@ -7792,8 +8010,11 @@ export function Workstation({
                                         {dashboardRetxState === "queued" ||
                                         dashboardRetxState === "running" ? (
                                             <Spinner
-                                                size="xs"
+                                                className={
+                                                    dashboardRetranscriptionClassNames.spinner
+                                                }
                                                 data-sot-part="dashboard-retranscription-spinner"
+                                                size="xs"
                                             />
                                         ) : dashboardRetxState === "failed" ? (
                                             <RetxWarnIcon />
@@ -7855,9 +8076,10 @@ export function Workstation({
                                             <Button
                                                 variant="ghost"
                                                 size="sm"
-                                                className={
-                                                    dashboardButtonClassNames.compactAction
-                                                }
+                                                className={cn(
+                                                    dashboardButtonClassNames.compactAction,
+                                                    dashboardRetranscriptionClassNames.closeButton,
+                                                )}
                                                 type="button"
                                                 aria-label="收起"
                                                 data-retx-dismiss=""
@@ -7880,9 +8102,10 @@ export function Workstation({
                                             <Button
                                                 variant="ghost"
                                                 size="sm"
-                                                className={
-                                                    dashboardButtonClassNames.compactAction
-                                                }
+                                                className={cn(
+                                                    dashboardButtonClassNames.compactAction,
+                                                    dashboardRetranscriptionClassNames.closeButton,
+                                                )}
                                                 type="button"
                                                 aria-label="收起"
                                                 data-retx-dismiss=""
@@ -8455,48 +8678,6 @@ export function Workstation({
                                                     )}
                                                 </ol>
                                             </SotSourceReportSection>
-
-                                            {sourceSummaryVisible ? (
-                                                <SotSourceReportSection
-                                                    section="summary"
-                                                    title="来源原始报告"
-                                                    description={
-                                                        <>
-                                                            由
-                                                            {
-                                                                sourceReportProviderName
-                                                            }
-                                                            返回的只读摘要
-                                                        </>
-                                                    }
-                                                >
-                                                    <div
-                                                        className={
-                                                            SOURCE_REPORT_SUMMARY_BODY_CLASS_NAME
-                                                        }
-                                                        data-sot-source-report-summary-body
-                                                    >
-                                                        {sourceSummaryRenderedText
-                                                            .split("\n")
-                                                            .map(
-                                                                (
-                                                                    line,
-                                                                    index,
-                                                                ) => (
-                                                                    <p
-                                                                        key={`${index}:${line}`}
-                                                                        className={
-                                                                            SOURCE_REPORT_SUMMARY_TEXT_CLASS_NAME
-                                                                        }
-                                                                        data-sot-source-report-segment-text
-                                                                    >
-                                                                        {line}
-                                                                    </p>
-                                                                ),
-                                                            )}
-                                                    </div>
-                                                </SotSourceReportSection>
-                                            ) : null}
 
                                             <SotSourceReportSection
                                                 section="metadata"

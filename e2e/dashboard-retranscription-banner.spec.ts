@@ -1035,6 +1035,13 @@ const RETX_PIXEL_FRAMES = [
     },
 ] as const satisfies readonly RetxPixelFrame[];
 
+const RETX_DISABLED_HINT_ACTION_ROW_CLASS =
+    "t-actions ml-auto inline-flex max-w-full flex-[0_1_auto] flex-wrap items-center gap-2";
+
+function wrapRetxDisabledHintActionRow(html: string) {
+    return `<div class="${RETX_DISABLED_HINT_ACTION_ROW_CLASS}">${html}</div>`;
+}
+
 const SOURCE_REPORT_PIXEL_FRAMES = [
     {
         name: "desktop",
@@ -2988,7 +2995,7 @@ test("dashboard retranscription primitives match SOT component library styles", 
             "#retx-disabled-hint",
             '[data-sot-part="dashboard-retranscription-disabled-hint"]',
         );
-        await expectRetxPixelsMatch(
+        await expectTransformedPixelsMatch(
             page,
             testInfo,
             "Retx unavailable",
@@ -2998,6 +3005,7 @@ test("dashboard retranscription primitives match SOT component library styles", 
                     '[data-sot-part="dashboard-retranscription-disabled-hint"]',
                 )
                 .first(),
+            wrapRetxDisabledHintActionRow,
         );
         await expectRetxResponsivePixelsMatch(
             page,
@@ -3009,6 +3017,9 @@ test("dashboard retranscription primitives match SOT component library styles", 
                     '[data-sot-part="dashboard-retranscription-disabled-hint"]',
                 )
                 .first(),
+            "var(--bg-canvas)",
+            RETX_PIXEL_FRAMES,
+            wrapRetxDisabledHintActionRow,
         );
     } finally {
         await sotPage?.close();

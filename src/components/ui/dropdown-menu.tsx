@@ -8,7 +8,7 @@ import { cn } from "@/lib/utils";
 
 const dropdownMenuContentVariants = {
     default: "",
-    glass: "w-[296px] max-w-[calc(100vw-24px)] rounded-[var(--radius-md)] border-[var(--line-hairline)] bg-[var(--bg-elevated)] p-1.5 font-sans shadow-[var(--shadow-md)] dark:border-[var(--glass-border)] dark:bg-[var(--graphite-900)] dark:shadow-[0_12px_32px_rgb(0_0_0_/_0.42)]",
+    glass: "w-[296px] max-w-[calc(100vw-24px)] rounded-[var(--radius-md)] border-border bg-popover p-1.5 font-sans text-popover-foreground shadow-md",
 } as const;
 
 const dropdownMenuItemDensities = {

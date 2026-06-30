@@ -25,32 +25,32 @@ import {
 } from "@/lib/platform/browser-router";
 
 const authLoginClassNames = {
-    layout: "grid min-h-[100svh] place-items-center bg-background px-[32px] pb-[80px] pt-[28px] text-foreground",
+    layout: "grid min-h-[100svh] place-items-center bg-[var(--bg-canvas)] px-[32px] pb-[80px] pt-[28px] text-[var(--fg-primary)]",
     surface:
-        "gap-0 w-[min(420px,100%)] min-h-[389px] overflow-visible rounded-[14px] border border-border bg-card p-[18px] text-card-foreground shadow-xs backdrop-blur-none",
+        "!block gap-0 w-[min(420px,100%)] min-h-[389px] overflow-visible rounded-[14px] border border-[var(--line-hairline)] bg-[var(--bg-elevated)] p-[18px] text-[var(--fg-primary)] !shadow-[var(--shadow-xs)] !backdrop-blur-none",
     header: "grid auto-rows-min gap-0 p-0",
     headerTitle:
-        "mb-1 font-sans text-[13px] font-semibold leading-[normal] text-foreground",
+        "mb-1 font-sans text-[13px] font-semibold leading-[normal] text-[var(--fg-primary)]",
     headerDescription:
-        "mb-[14px] font-sans text-[12px] leading-[1.5] text-muted-foreground",
-    frame: "overflow-hidden rounded-xl border border-border bg-background p-7 text-center",
-    logoMark: "mb-[14px] inline size-9 align-baseline",
+        "mb-[14px] font-sans text-[12px] leading-[1.5] text-[var(--fg-tertiary)]",
+    frame: "min-h-[292px] overflow-hidden [border-radius:12px] border border-[var(--line-hairline)] bg-[var(--bg-canvas)] !p-[28px] text-center",
+    logoMark: "mb-[14px] inline [height:36px] [width:36px] align-baseline",
     frameTitle:
-        "mb-1 font-display text-lg font-semibold leading-none text-foreground",
+        "[font:600_18px_var(--font-display)] [margin-bottom:4px] leading-[normal] text-[var(--fg-primary)]",
     frameDescription:
-        "mb-[18px] font-sans text-[12px] leading-normal text-muted-foreground",
+        "[font:12px_var(--font-sans)] mb-[18px] leading-[normal] text-[var(--fg-tertiary)]",
     fieldGroup: "mx-auto max-w-[280px] gap-[10px]",
     field: "flex flex-col gap-0 [&>*]:w-full",
     actionField: "flex flex-col gap-0 [&>*]:w-full [&>.sr-only]:w-auto",
     emailInput:
-        "h-[36px] rounded-[9px] border-input bg-background px-[12px] py-0 text-[13px] font-medium leading-[normal] text-foreground shadow-xs focus-visible:border-ring focus-visible:ring-ring/50 aria-invalid:border-destructive aria-invalid:ring-destructive/20 md:text-[13px]",
+        "[display:flex] h-[36px] [align-items:center] rounded-[9px] border-[var(--line-hairline)] !bg-[var(--bg-elevated)] px-[12px] py-0 [font:500_13px_var(--font-sans)] leading-[normal] text-[var(--fg-primary)] shadow-none focus-visible:!border-ring focus-visible:ring-[3px] focus-visible:ring-ring/50 aria-invalid:border-destructive aria-invalid:ring-destructive/20 md:text-[13px]",
     submitButton:
-        "h-[38px] w-full rounded-[8px] px-[12px] py-0 text-[12px] font-semibold leading-[normal] shadow-none focus-visible:ring-0 has-[>svg]:px-[12px]",
+        "[display:inline-flex] h-[38px] w-full rounded-[8px] border border-transparent px-[12px] py-0 [font:600_12px_var(--font-sans)] leading-[normal] text-[var(--button-primary-fg)] shadow-none hover:text-[var(--button-primary-fg)] focus-visible:ring-0 has-[>svg]:px-[12px]",
     formMessage:
         "mx-auto mb-[10px] mt-[-2px] max-w-[280px] text-left text-[12px] font-normal leading-normal text-muted-foreground data-[sot-state=error]:text-destructive data-[sot-state=success]:text-primary",
-    footer: "!mt-[14px] !text-[12px] !leading-[normal] !text-muted-foreground/70",
+    footer: "!mt-[14px] [font:12px_var(--font-sans)] !leading-[normal] !text-[var(--fg-disabled)]",
     inlineLink:
-        "h-auto min-h-0 rounded-none p-0 align-baseline text-[12px] font-normal leading-[normal] text-primary underline underline-offset-auto hover:text-primary hover:underline",
+        "h-auto min-h-0 rounded-none p-0 align-baseline [font:inherit] text-primary underline underline-offset-auto hover:text-primary hover:underline",
 } as const;
 
 export function LoginForm({

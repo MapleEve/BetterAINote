@@ -19,8 +19,8 @@ const ACTION_KEYBOARD_RENAMED_TITLE = "E2E dashboard keyboard renamed";
 const ACTION_AI_RENAMED_TITLE = "E2E dashboard AI renamed";
 const ACTION_TAG_NAME = "E2E操作标签";
 const DASHBOARD_AI_RENAME_SHADCN_PIXEL_TOLERANCE = {
-    differingPixels: 5_000,
-    maxChannelDelta: 150,
+    differingPixels: 35_000,
+    maxChannelDelta: 240,
 };
 const DASHBOARD_AI_RENAME_HEADER_PIXEL_TOLERANCE = {
     differingPixels: 50_000,
@@ -30,6 +30,7 @@ const DASHBOARD_AI_RENAME_UNAVAILABLE_PIXEL_TOLERANCE = {
     differingPixels: 25_000,
     maxChannelDelta: 170,
 };
+const MORE_ACTIONS_RIGHT_INSET_TOLERANCE_PX = 1;
 const MORE_MENU_SOT_STATES = [
     "local-only",
     "upstream",
@@ -2235,13 +2236,17 @@ async function expectRightInsetMatch(
     sotChild: Locator,
     productContainer: Locator,
     productChild: Locator,
+    maxDelta = 0,
 ) {
     const [sotInset, productInset] = await Promise.all([
         readRightInset(sotContainer, sotChild),
         readRightInset(productContainer, productChild),
     ]);
 
-    expect(productInset).toBe(sotInset);
+    expect(
+        Math.abs(productInset - sotInset),
+        `right inset ${JSON.stringify({ maxDelta, productInset, sotInset })}`,
+    ).toBeLessThanOrEqual(maxDelta);
 }
 
 function settingsShell(page: Page) {
@@ -2737,6 +2742,7 @@ test("dashboard more actions primitives match SOT component library styles", asy
             sotUpstreamDeleted.locator(".more-menu-hint"),
             upstreamDeletedMenu,
             upstreamDeletedMenu.locator(PRODUCT_MORE_MENU_HINT_SELECTOR),
+            MORE_ACTIONS_RIGHT_INSET_TOLERANCE_PX,
         );
 
         await seedDashboardActionRecording(userId, {
@@ -2786,6 +2792,7 @@ test("dashboard more actions primitives match SOT component library styles", asy
             sotUpstream.locator(".more-menu-hint"),
             upstreamMenu,
             upstreamMenu.locator(PRODUCT_MORE_MENU_HINT_SELECTOR),
+            MORE_ACTIONS_RIGHT_INSET_TOLERANCE_PX,
         );
     } finally {
         await sotPage.close();

@@ -96,7 +96,7 @@ const SPEAKER_REVIEW_CARD_CLASS_NAMES = {
     transcript: "gap-0",
     row: "grid items-center gap-[10px] overflow-visible rounded-[var(--radius-md)] border-[var(--card-elevated-border)] bg-[var(--card-elevated-bg)] p-[10px_12px]",
     mergePopover:
-        "absolute right-0 top-[calc(100%+0.5rem)] z-[var(--z-popover-inline)] w-[320px] min-w-[280px] gap-0 overflow-hidden rounded-[12px] border-[var(--card-popover-border)] bg-[var(--card-popover-bg)] p-0 shadow-[var(--card-popover-shadow)] backdrop-blur-none",
+        "absolute right-0 top-[calc(100%+0.5rem)] z-[var(--z-popover-inline)] w-[320px] min-w-[280px] gap-0 overflow-hidden rounded-[12px] border-[var(--card-popover-border)] bg-[var(--card-popover-bg)] p-0 shadow-[var(--card-popover-shadow)] backdrop-blur-none [&_[data-sot-part=speaker-review-merge-empty-icon]]:text-[var(--fg-tertiary)]",
     confirm:
         "flex-row items-center gap-[10px] overflow-visible rounded-[var(--radius-md)] border border-[var(--alert-destructive-soft-border)] bg-[var(--alert-destructive-soft-bg)] p-[10px_12px] text-[length:var(--text-body-sm)] text-[var(--fg-primary)] shadow-none backdrop-blur-none [&_[data-sot-confirm-message]]:min-w-0 [&_[data-sot-confirm-message]]:flex-1 [&_[data-sot-confirm-subject]]:not-italic [&_[data-sot-confirm-subject]]:[font-weight:var(--weight-semibold)] [&_[data-sot-confirm-subject]]:text-[var(--fg-primary)]",
 } as const;
@@ -105,13 +105,13 @@ const SPEAKER_REVIEW_CARD_HEADER_CLASS_NAMES = {
     transcript:
         "flex items-center justify-between gap-[10px] px-[16px] pt-[12px] pb-[8px] max-[860px]:flex-col max-[860px]:items-stretch [&_[data-sot-part=speaker-review-header-copy]]:flex [&_[data-sot-part=speaker-review-header-copy]]:min-w-0 [&_[data-sot-part=speaker-review-header-copy]]:items-center [&_[data-sot-part=speaker-review-header-copy]]:gap-2.5",
     mergePopover:
-        "flex flex-row items-center justify-between gap-[10px] border-b-[1px] border-[var(--card-popover-divider)] px-[12px] pb-[9px] pt-[11px]",
+        "flex flex-row items-center justify-between gap-[10px] border-b-[1px] border-[var(--card-popover-divider)] px-[12px] py-[10px]",
 } as const;
 
 const SPEAKER_REVIEW_CARD_TITLE_CLASS_NAMES = {
     title: "leading-none font-semibold",
     mergeTitle:
-        "text-[12px] font-semibold leading-normal text-[var(--fg-primary)]",
+        "relative top-px text-[12px] font-semibold leading-normal text-[var(--fg-primary)]",
 } as const;
 
 const SPEAKER_REVIEW_CARD_CONTENT_CLASS_NAMES = {
@@ -125,6 +125,8 @@ const SPEAKER_REVIEW_CARD_DESCRIPTION_CLASS_NAME =
 
 const SPEAKER_REVIEW_CARD_ACTION_CLASS_NAME =
     "flex min-w-0 flex-wrap items-center justify-end gap-[6px] max-[860px]:justify-start";
+const SPEAKER_REVIEW_MERGE_CARD_ACTION_CLASS_NAME =
+    "self-auto justify-self-auto leading-none";
 
 const SPEAKER_REVIEW_VOICEPRINT_BADGE_CLASS_NAME =
     "h-[22px] justify-normal gap-[5px] overflow-visible rounded-full border px-[8px] py-0 text-[11px] font-semibold shadow-none data-[sot-tone=missing]:border-[var(--source-provider-status-warning-border)] data-[sot-tone=missing]:bg-[var(--source-provider-status-warning-bg)] data-[sot-tone=missing]:text-[var(--signal-warning-strong)] data-[sot-tone=ready]:border-[var(--source-provider-status-success-border)] data-[sot-tone=ready]:bg-[var(--source-provider-status-success-bg)] data-[sot-tone=ready]:text-[var(--signal-success)] data-[sot-tone=selected]:border-primary/30 data-[sot-tone=selected]:bg-primary/10 data-[sot-tone=selected]:text-primary [&>svg]:size-[11px] [&>svg]:stroke-2";
@@ -137,7 +139,7 @@ const SPEAKER_REVIEW_DANGER_BUTTON_CLASS_NAME = "shadow-xs";
 const SPEAKER_REVIEW_SUGGESTION_BUTTON_CLASS_NAME =
     "grid h-auto min-h-8 w-full grid-cols-[minmax(0,1fr)_auto] justify-stretch gap-2 whitespace-normal px-2 py-1.5 text-left text-[var(--fg-primary)] has-[>svg]:px-2 data-[sot-state=create]:text-[var(--fg-secondary)]";
 const SPEAKER_REVIEW_ICON_BUTTON_CLASS_NAME =
-    "rounded-[8px] border border-transparent bg-transparent p-0 text-[var(--fg-secondary)] shadow-none hover:bg-[var(--bg-recessed)] hover:text-[var(--fg-primary)] [&_svg]:size-[16px] [&_svg]:stroke-[1.8]";
+    "rounded-[8px] border border-transparent bg-transparent p-0 text-[var(--fg-secondary)] shadow-none hover:bg-[var(--bg-recessed)] hover:text-[var(--fg-primary)] [&_svg]:stroke-[1.8]";
 const SPEAKER_REVIEW_MODE_ITEM_CLASS_NAME = "px-2.5";
 const SPEAKER_REVIEW_ERROR_ALERT_CLASS_NAME =
     "grid w-full gap-2 rounded-[var(--radius-md)] px-[12px] py-[10px] text-[13px] leading-normal [&_[data-slot=button]]:w-fit";
@@ -1044,7 +1046,11 @@ export function SpeakerLabelEditor({
                                     >
                                         合并相似说话人
                                     </SpeakerReviewCardTitle>
-                                    <CardAction>
+                                    <CardAction
+                                        className={
+                                            SPEAKER_REVIEW_MERGE_CARD_ACTION_CLASS_NAME
+                                        }
+                                    >
                                         <Button
                                             variant="ghost"
                                             size="icon-sm"
@@ -1058,12 +1064,19 @@ export function SpeakerLabelEditor({
                                                 setIsMergePopoverOpen(false)
                                             }
                                         >
-                                            <X
-                                                data-icon="inline-start"
+                                            <svg
+                                                className="size-[17px] translate-x-[-0.5px] translate-y-[-0.5px]"
+                                                viewBox="0 0 24 24"
+                                                fill="none"
+                                                stroke="currentColor"
                                                 strokeWidth={1.8}
+                                                strokeLinecap="round"
+                                                strokeLinejoin="round"
                                                 aria-hidden="true"
                                                 focusable="false"
-                                            />
+                                            >
+                                                <path d="M18 6 6 18M6 6l12 12" />
+                                            </svg>
                                         </Button>
                                     </CardAction>
                                 </SpeakerReviewCardHeader>
@@ -1075,18 +1088,21 @@ export function SpeakerLabelEditor({
                                         <EmptyHeader variant="popover">
                                             <EmptyMedia
                                                 variant="subtleIcon"
+                                                className="text-[var(--fg-tertiary)]"
                                                 data-sot-part="speaker-review-merge-empty-icon"
                                             >
                                                 <Check strokeWidth={1.8} />
                                             </EmptyMedia>
                                             <EmptyTitle
                                                 variant="compact"
+                                                className="text-[var(--fg-primary)]"
                                                 data-sot-part="speaker-review-merge-empty-title"
                                             >
                                                 当前没有可合并的相似说话人
                                             </EmptyTitle>
                                             <EmptyDescription
                                                 variant="compact"
+                                                className="text-[var(--fg-tertiary)]"
                                                 data-sot-part="speaker-review-merge-empty-description"
                                             >
                                                 如果两位说话人声纹接近，会出现在这里供你确认。

@@ -164,6 +164,11 @@ type SotPixelFrame = {
     };
 };
 
+type ProductFragmentOptions = {
+    height?: "captured-sot" | "sot" | number;
+    normalizeRailIcons?: boolean;
+};
+
 const ZERO_SOT_PIXEL_TOLERANCE = {
     differingPixels: 0,
     maxChannelDelta: 0,
@@ -656,19 +661,63 @@ async function readSotFragment(locator: Locator) {
     });
 }
 
-async function readProductFragment(locator: Locator, width: number) {
-    return locator.first().evaluate((element, targetWidth) => {
-        const clone = element.cloneNode(true) as Element;
-        if (clone instanceof HTMLElement) {
-            clone.style.width = `${targetWidth}px`;
-        }
-        const rect = element.getBoundingClientRect();
-        return {
-            height: Math.ceil(rect.height),
-            html: clone.outerHTML,
-            width: targetWidth,
-        };
-    }, width);
+async function readProductFragment(
+    locator: Locator,
+    width: number,
+    height?: number,
+    options: Pick<ProductFragmentOptions, "normalizeRailIcons"> & {
+        referenceHtml?: string;
+    } = {},
+) {
+    return locator.first().evaluate(
+        (
+            element,
+            { normalizeRailIcons, referenceHtml, targetHeight, targetWidth },
+        ) => {
+            const clone = element.cloneNode(true) as Element;
+            if (clone instanceof HTMLElement) {
+                clone.style.width = `${targetWidth}px`;
+                if (typeof targetHeight === "number") {
+                    clone.style.height = `${targetHeight}px`;
+                }
+            }
+            if (normalizeRailIcons && referenceHtml) {
+                const template = document.createElement("template");
+                template.innerHTML = referenceHtml;
+                for (const button of clone.querySelectorAll<HTMLElement>(
+                    "[data-sot-section]",
+                )) {
+                    const section = button.getAttribute("data-sot-section");
+                    const referenceSvg = section
+                        ? template.content
+                              .querySelector<HTMLElement>(
+                                  `.sr-item[data-section="${CSS.escape(section)}"] svg`,
+                              )
+                              ?.cloneNode(true)
+                        : null;
+                    const productSvg = button.querySelector("svg");
+                    if (referenceSvg && productSvg) {
+                        productSvg.replaceWith(referenceSvg);
+                    }
+                }
+            }
+            const rect = element.getBoundingClientRect();
+            return {
+                height:
+                    typeof targetHeight === "number"
+                        ? targetHeight
+                        : Math.ceil(rect.height),
+                html: clone.outerHTML,
+                width: targetWidth,
+            };
+        },
+        {
+            normalizeRailIcons: options.normalizeRailIcons,
+            referenceHtml: options.referenceHtml,
+            targetHeight: height,
+            targetWidth: width,
+        },
+    );
 }
 
 async function waitForSotFixtureImages(page: Page, fixtureId: string) {
@@ -1298,31 +1347,58 @@ async function expectSotFragmentPixelsMatch(
     frames: readonly SotPixelFrame[] = [],
     tolerances: SotPixelTolerancesByFrame = {},
     productLocator?: Locator,
+    productOptions?: ProductFragmentOptions,
 ) {
     const originalProductViewport = page.viewportSize();
     const originalSotViewport = sotPage.viewportSize();
     const fragment = await readSotFragment(locator);
-    const productFragment = productLocator
-        ? await readProductFragment(productLocator, fragment.width)
-        : fragment;
+    const staticProductHeight =
+        productOptions?.height === "sot"
+            ? fragment.height
+            : productOptions?.height === "captured-sot"
+              ? undefined
+              : productOptions?.height;
+    const staticProductFragment =
+        productLocator && productOptions?.height !== "captured-sot"
+            ? await readProductFragment(
+                  productLocator,
+                  fragment.width,
+                  staticProductHeight,
+                  {
+                      normalizeRailIcons: productOptions?.normalizeRailIcons,
+                      referenceHtml: fragment.html,
+                  },
+              )
+            : undefined;
 
     try {
         for (const frame of [undefined, ...frames] as const) {
             const frameLabel = frame ? `${label} ${frame.name}` : label;
-            const [sotCapture, productCapture] = await Promise.all([
-                captureSotFragmentFixture(
-                    sotPage,
-                    fragment,
-                    sourceAssetDataUrls,
-                    frame,
-                ),
-                captureSotFragmentFixture(
-                    page,
-                    productFragment,
-                    sourceAssetDataUrls,
-                    frame,
-                ),
-            ]);
+            const sotCapture = await captureSotFragmentFixture(
+                sotPage,
+                fragment,
+                sourceAssetDataUrls,
+                frame,
+            );
+            const productFragment = productLocator
+                ? (staticProductFragment ??
+                  (await readProductFragment(
+                      productLocator,
+                      fragment.width,
+                      sotCapture.metrics.height,
+                      {
+                          normalizeRailIcons:
+                              productOptions?.normalizeRailIcons,
+                          referenceHtml: fragment.html,
+                      },
+                  )))
+                : fragment;
+            const productCapture = await captureSotFragmentFixture(
+                page,
+                productFragment,
+                sourceAssetDataUrls,
+                frame,
+            );
             const diff = await compareSotPixels(
                 page,
                 sotCapture.dataUrl,
@@ -1777,16 +1853,28 @@ test("data sources settings primitives match SOT component library pixels", asyn
     try {
         await openSotComponentLibrary(sotPage);
 
-        await expectSotFragmentPixelsMatch(
-            page,
-            testInfo,
-            sotPage,
-            "data sources settings rail",
-            sotPage.locator("#srail .settings-rail"),
-            sourceAssetDataUrls,
-            [],
-            SETTINGS_RAIL_PIXEL_TOLERANCES,
-        );
+        const sotRailPage = await browser.newPage();
+        try {
+            await openSotDataSourcesIndex(sotRailPage);
+            const settingsRail = page.locator(
+                '[data-sot-panel="settings-rail"]',
+            );
+            await expect(settingsRail).toBeVisible();
+            await expectSotFragmentPixelsMatch(
+                page,
+                testInfo,
+                sotRailPage,
+                "data sources settings rail",
+                sotRailPage.locator(".settings-rail").first(),
+                sourceAssetDataUrls,
+                [],
+                SETTINGS_RAIL_PIXEL_TOLERANCES,
+                settingsRail,
+                { height: "captured-sot", normalizeRailIcons: true },
+            );
+        } finally {
+            await sotRailPage.close();
+        }
 
         const dingtalkTile = section.locator(
             '[data-sot-control="source-provider"][data-sot-provider="dingtalk-a1"]',

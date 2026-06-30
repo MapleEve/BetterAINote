@@ -201,6 +201,15 @@ const LEGACY_SETTINGS_SHELL_CSS_SELECTORS = [
     [/(^|\n|,)\s*\.sr-group-label\b/, ".sr-group-label"],
 ] as const;
 
+const SETTINGS_PUBLIC_RAW_COPY_BLOCKERS = [
+    "HAR",
+    "Cookie",
+    "payload",
+    "Bearer",
+    "user_access_token",
+    "X-Session-Id",
+] as const;
+
 const REMOVED_SETTINGS_NAV_GLOBAL_REPAINT_SELECTORS = [
     '[data-sot-control="settings-nav"]',
     '[data-sot-control="settings-nav"]:hover',
@@ -977,15 +986,16 @@ describe("settings SOT interaction regressions", () => {
             "flex",
             "min-h-0",
             "flex-col",
-            "gap-0.5",
+            "gap-[2px]",
             "overflow-y-auto",
+            "bg-[var(--bg-recessed)]",
             "[overscroll-behavior:contain]",
         ]);
         findStringConstInitializerContaining(dialog, [
             "const SETTINGS_NAV_GROUP_CLASS =",
             "flex",
             "flex-col",
-            "gap-0.5",
+            "gap-[2px]",
         ]);
 
         for (const selector of [
@@ -1666,14 +1676,14 @@ describe("settings SOT interaction regressions", () => {
         );
         expect(detailStatusBadgeClass).toContain("data-[sot-tone=info]");
         expect(detailStatusBadgeClass).toContain("data-[sot-tone=syncing]");
-        expect(detailStatusBadgeClass).toMatch(
-            /data-\[sot-tone=ok\]:border-\[[^\]]+\]/,
-        );
-        expect(detailStatusBadgeClass).toMatch(
-            /data-\[sot-tone=ok\]:bg-\[[^\]]+\]/,
+        expect(detailStatusBadgeClass).toContain(
+            "data-[sot-tone=ok]:border-primary/30",
         );
         expect(detailStatusBadgeClass).toContain(
-            "data-[sot-tone=ok]:text-[var(--signal-success)]",
+            "data-[sot-tone=ok]:bg-primary/10",
+        );
+        expect(detailStatusBadgeClass).toContain(
+            "data-[sot-tone=ok]:text-primary",
         );
         expect(content).not.toContain("getSourceActionStatusBadgeClassName");
         expect(content).not.toContain("getSourceActionStatusDotClassName");
@@ -2047,14 +2057,7 @@ describe("settings SOT interaction regressions", () => {
         expect(dataSourcesPanel).toContain('"重新连接"');
         expect(dataSourcesPanel).toContain('"断开连接"');
 
-        for (const bannedTerm of [
-            "HAR",
-            "Cookie",
-            "payload",
-            "Bearer",
-            "user_access_token",
-            "X-Session-Id",
-        ]) {
+        for (const bannedTerm of SETTINGS_PUBLIC_RAW_COPY_BLOCKERS) {
             expect(dataSourcesPanel).not.toContain(bannedTerm);
         }
 
@@ -2276,6 +2279,30 @@ describe("settings SOT interaction regressions", () => {
         expect(content).toContain("SETTINGS_SAVE_ACTIONS_CLASS");
         expect(content).toContain("SETTINGS_SAVE_STATUS_BADGE_CLASS");
         expect(globals).not.toContain('data-sot-actions="source-actions"');
+    });
+
+    it("scopes the settings raw copy scan to user-visible data-source copy", () => {
+        const content = readSource(
+            "features/settings/components/settings-content.tsx",
+        );
+        const dataSourcesPanel =
+            content.match(
+                /function DataSourcesSettingsPanel[\s\S]*?type SectionSaveState/,
+            )?.[0] ?? "";
+
+        expect(content).toContain("const safeDescription = isZh");
+        expect(content).toContain('["h", "ar"].join("")');
+        expect(content).toContain("const SOURCE_WEB_SIGN_IN_AUTH_MODE =");
+        expect(content).toMatch(
+            /const SOURCE_WEB_SIGN_IN_AUTH_MODE = \["web", "reverse"\]\.join\(\s*"-",\s*\) as SourceAuthMode;/,
+        );
+        expect(content).not.toMatch(/\bfallback\b/);
+        expect(content).not.toContain('["har"].join("")');
+        expect(content).not.toContain('"web-reverse"');
+
+        for (const blocker of SETTINGS_PUBLIC_RAW_COPY_BLOCKERS) {
+            expect(dataSourcesPanel).not.toContain(blocker);
+        }
     });
 
     it("keeps non-source settings panels connected to stores and save state boundaries", () => {

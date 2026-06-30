@@ -66,12 +66,34 @@ const EXPECTED_ONBOARDING_CARD_CLASS_INITIALIZERS = [
     {
         property: "secondaryAction",
         expected:
-            "[display:inline-flex] [align-items:center] [height:26px] [gap:6px] rounded-md border border-border bg-transparent [padding:0_10px] [font:600_11px_var(--font-sans)] [line-height:normal] text-muted-foreground shadow-none hover:bg-accent hover:text-accent-foreground disabled:cursor-not-allowed has-[>svg]:px-[10px]",
+            "[display:inline-flex] [align-items:center] [height:26px] [gap:6px] [border-radius:8px] [border:1px_solid_var(--line-hairline)] bg-transparent [padding:0_10px] [font:600_11px_var(--font-sans)] [line-height:normal] text-[var(--fg-secondary)] shadow-none hover:bg-accent hover:text-accent-foreground disabled:cursor-not-allowed has-[>svg]:px-[10px]",
     },
     {
         property: "primaryAction",
         expected:
-            "[display:inline-flex] [align-items:center] [height:26px] [gap:6px] rounded-md border border-transparent bg-primary [padding:0_10px] [font:600_11px_var(--font-sans)] [line-height:normal] text-primary-foreground shadow-none hover:bg-primary/90 focus-visible:border-ring focus-visible:ring-0 disabled:cursor-not-allowed has-[>svg]:px-[10px]",
+            "[display:inline-flex] [align-items:center] [height:26px] [gap:6px] [border-radius:8px] [border:1px_solid_transparent] bg-primary [padding:0_10px] [font:600_11px_var(--font-sans)] [line-height:normal] text-[var(--button-primary-fg)] shadow-none hover:bg-primary/90 hover:text-[var(--button-primary-fg)] focus-visible:border-ring focus-visible:ring-0 disabled:cursor-not-allowed has-[>svg]:px-[10px]",
+    },
+    {
+        property: "sourceField",
+        expected: "flex-col gap-2",
+    },
+    {
+        property: "sourceFieldContent",
+        expected: "min-w-0 gap-1",
+    },
+    {
+        property: "sourceFieldDescription",
+        expected:
+            "max-w-full text-[12px] leading-normal text-muted-foreground [overflow-wrap:normal] [word-break:keep-all]",
+    },
+    {
+        property: "sourceFieldControl",
+        expected: "min-w-0 flex-1 [&>*]:w-full",
+    },
+    {
+        property: "sourceProviderFields",
+        expected:
+            "flex flex-col gap-0 [&_[data-slot=field]]:!flex-col [&_[data-slot=field]]:!items-stretch [&_[data-slot=field]]:!gap-2 [&_[data-slot=field]>*]:!w-full [&_[data-slot=field-control]]:!w-full [&_[data-slot=field-control]]:!justify-stretch [&_[data-slot=field-description]]:[overflow-wrap:normal] [&_[data-slot=field-description]]:[word-break:keep-all]",
     },
     {
         property: "header",
@@ -130,12 +152,12 @@ const EXPECTED_ONBOARDING_CARD_CLASS_INITIALIZERS = [
     {
         property: "defaultSource",
         expected:
-            "[appearance:none] [display:flex] [align-items:center] [gap:8px] [padding:8px] rounded-md border border-border bg-transparent text-foreground [cursor:pointer] [text-align:left] data-[sot-state=selected]:border-primary data-[sot-state=selected]:bg-primary/10 data-[sot-state=disabled]:[cursor:not-allowed] data-[sot-state=disabled]:opacity-[0.55]",
+            "flex items-center gap-[8px] rounded-[8px] border border-solid border-[var(--line-hairline)] bg-transparent p-[8px] text-left [appearance:none] font-sans text-[15px] font-normal leading-[var(--lh-body)] text-[var(--fg-primary)] data-[sot-state=selected]:border-primary data-[sot-state=selected]:bg-primary/10 data-[sot-state=disabled]:opacity-[0.55] disabled:cursor-not-allowed",
     },
     {
         property: "defaultSourceSwatch",
         expected:
-            "size-5 flex-none rounded-sm bg-transparent data-[sot-swatch=accent]:bg-primary",
+            "[height:20px] [width:20px] flex-none rounded-[4px] bg-transparent data-[sot-swatch=accent]:bg-primary",
     },
     {
         property: "actions",

@@ -200,32 +200,42 @@ const SOURCE_REPORT_SKELETON_OWNER_TOKENS = [
 ] as const;
 
 const EXPECTED_SOURCE_REPORT_METRIC_CARD_CLASS_NAME =
-    "gap-[6px] overflow-visible rounded-[10px] border-border bg-muted/40 px-[12px] py-[10px] shadow-none backdrop-blur-none";
+    "sr-card gap-[6px] !overflow-visible rounded-[10px] border border-[var(--source-report-metric-border)] bg-[var(--source-report-metric-bg)] px-[12px] py-[10px] shadow-none backdrop-blur-none";
 const SOURCE_REPORT_METRIC_CARD_CLASS_TOKENS =
     EXPECTED_SOURCE_REPORT_METRIC_CARD_CLASS_NAME.split(" ");
 const SOURCE_REPORT_STYLE_OWNER_SNIPPETS = [
     "type SourceReportStyleVariables = CSSProperties & {",
     "export const SOURCE_REPORT_STYLE_VARIABLES = {",
-    '"--source-report-metric-bg": "var(--bg-recessed)"',
-    '"--source-report-metric-border": "var(--line-hairline)"',
+    '"--source-report-metric-bg": "var(--card-popover-footer-bg)"',
+    '"--source-report-metric-border": "var(--glass-border-soft)"',
     '"--source-report-status-ok-fg": "var(--signal-success)"',
-    '"--source-report-status-ok-bg": "var(--bg-recessed)"',
-    '"--source-report-status-ok-border": "var(--line-hairline)"',
-    '"--source-report-status-warn-bg": "var(--bg-recessed)"',
-    '"--source-report-status-warn-border": "var(--line-hairline)"',
+    '"--source-report-status-ok-bg":',
+    '"color-mix(in srgb, var(--source-report-status-ok-fg) 14%, transparent)"',
+    '"--source-report-status-ok-border":',
+    '"color-mix(in srgb, var(--source-report-status-ok-fg) 30%, transparent)"',
+    '"--source-report-status-warn-bg":',
+    '"color-mix(in srgb, var(--signal-warning) 18%, transparent)"',
+    '"--source-report-status-warn-border":',
+    '"color-mix(in srgb, var(--signal-warning) 32%, transparent)"',
     '"--source-report-status-warn-fg": "var(--signal-warning-strong)"',
-    '"--source-report-status-err-bg": "var(--bg-recessed)"',
-    '"--source-report-status-err-border": "var(--line-hairline)"',
-    '"--source-report-skeleton-bg": "var(--bg-recessed)"',
+    '"--source-report-status-err-bg":',
+    '"color-mix(in srgb, var(--signal-danger) 14%, transparent)"',
+    '"--source-report-status-err-border":',
+    '"color-mix(in srgb, var(--signal-danger) 30%, transparent)"',
+    '"--source-report-skeleton-bg":',
+    '"linear-gradient(90deg, rgb(255 255 255 / 0.05) 0%, rgb(255 255 255 / 0.12) 50%, rgb(255 255 255 / 0.05) 100%)"',
     "export const SOURCE_REPORT_SKELETON_CLASS_NAME =",
     "export type SourceReportTone =",
     "export type SourceReportCardSkeletonSize =",
     "export type SourceReportSegmentSkeletonSize =",
     "export const SOURCE_REPORT_CARD_SKELETON_CLASS_NAMES =",
     "export const SOURCE_REPORT_SEGMENT_SKELETON_CLASS_NAMES =",
-    '"bg-muted"',
+    '"![background-color:transparent] bg-[image:var(--source-report-skeleton-bg)] bg-[length:220%_100%] bg-[position:0_50%]"',
+    '"sr-state block [font-feature-settings:normal] [text-rendering:auto] [&[hidden]]:hidden"',
     "export const SOURCE_REPORT_PANE_CLASS_NAME =",
     "export const SOURCE_REPORT_METRIC_CARD_CLASS_NAME =",
+    "sr-card-value ![font:600_13px_var(--font-sans)] leading-[normal] tracking-normal text-[var(--fg-primary)]",
+    "sr-card-source flex items-center gap-[6px]",
     "export const SOURCE_REPORT_EMPTY_SURFACE_CLASS_NAME =",
     "export const SOURCE_REPORT_EMPTY_ICON_CLASS_NAME =",
     "export const SOURCE_REPORT_ACTION_BUTTON_CLASS_NAME =",
@@ -237,6 +247,14 @@ const SOURCE_REPORT_STYLE_OWNER_SNIPPETS = [
     "[&[hidden]]:hidden",
     "export const SOURCE_REPORT_ERROR_ALERT_CLASS_NAME =",
     "export const SOURCE_REPORT_STATUS_BADGE_CLASS_NAME =",
+    "sr-empty-actions mt-[8px] flex flex-wrap items-center gap-[6px]",
+    "h-[26px] min-w-[46px] gap-[7px] rounded-[7px] border border-[var(--button-primary-border)] bg-[image:var(--button-primary-bg)] ![background-color:transparent]",
+    "flex w-full flex-col items-center !gap-[4px] rounded-[10px] !px-[18px] !py-[28px] text-center [&>svg]:text-current",
+    "sr-empty flex flex-col items-center !gap-[4px] rounded-[10px] border border-dashed border-[var(--line-hairline)] bg-[var(--bg-recessed)] !px-[18px] !py-[28px] text-center shadow-none backdrop-blur-none data-[sot-tone=err]:border-[color-mix(in_srgb,var(--signal-danger)_26%,transparent)] data-[sot-tone=err]:bg-[color-mix(in_srgb,var(--signal-danger)_6%,transparent)]",
+    "sr-empty-ico !mb-[4px] inline-grid !size-[40px] place-items-center rounded-full border border-[var(--line-hairline)] bg-[var(--bg-recessed)] text-[var(--fg-tertiary)]",
+    "![font:600_13px/1.35_var(--font-sans)]",
+    "max-w-[360px] ![font:500_12px/1.5_var(--font-sans)] tracking-normal !text-[var(--fg-tertiary)]",
+    "sr-pill inline-flex h-[22px] min-w-[65px] justify-normal items-center gap-[9px]",
     "satisfies SourceReportStyleVariables",
 ] as const;
 
@@ -361,7 +379,7 @@ const AI_RENAME_PREVIEW_FEATURE_OWNER_CLASS_SNIPPETS = [
         snippets: [
             "h-[55px]",
             "grid-cols-[1fr_auto]",
-            "border-b border-border",
+            "border-b border-[var(--card-popover-divider)]",
             "px-[14px] pt-3 pb-2",
             "[&_[data-slot=card-head-copy]]:min-w-0",
         ],
@@ -386,7 +404,7 @@ const AI_RENAME_PREVIEW_FEATURE_OWNER_CLASS_SNIPPETS = [
         label: "review",
         snippets: [
             "my-1.5 flex flex-col gap-1.5",
-            "rounded-lg border border-border bg-[var(--bg-recessed)]",
+            "rounded-[8px] border border-border bg-[var(--bg-recessed)]",
             "text-[var(--fg-secondary)] line-through",
             "text-[var(--fg-primary)]",
         ],
@@ -394,7 +412,7 @@ const AI_RENAME_PREVIEW_FEATURE_OWNER_CLASS_SNIPPETS = [
     {
         label: "actions",
         snippets: [
-            "h-[48px] gap-1.5 bg-[var(--bg-recessed)] px-[14px] py-0",
+            "h-[48px] gap-1.5 bg-[var(--card-popover-footer-bg)] px-[14px] py-0",
             "bg-[var(--glass-tint-base)]",
         ],
     },
@@ -1439,7 +1457,7 @@ describe("recording detail copy and title action UI regressions", () => {
         expect(sourceReport).toContain(
             'import { Button } from "@/components/ui/button";',
         );
-        expect(sourceReport).toContain(
+        expect(sourceReport).not.toContain(
             'import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";',
         );
         expect(sourceReport).toContain(
@@ -1518,17 +1536,17 @@ describe("recording detail copy and title action UI regressions", () => {
             );
         }
         for (const sourceReportEmptyIconStyleSnippet of [
-            "mb-1",
+            "!mb-[4px]",
             "inline-grid",
-            "size-10",
+            "!size-[40px]",
             "place-items-center",
-            "border-border",
-            "bg-muted",
-            "text-muted-foreground",
-            "[&_svg:not([class*='size-'])]:size-4",
-            "border-destructive/30",
-            "bg-destructive/10",
-            "text-destructive",
+            "border-[var(--line-hairline)]",
+            "bg-[var(--bg-recessed)]",
+            "text-[var(--fg-tertiary)]",
+            "[&_svg:not([class*='size-'])]:!size-[16px]",
+            "border-[color-mix(in_srgb,var(--signal-danger)_28%,transparent)]",
+            "bg-[color-mix(in_srgb,var(--signal-danger)_14%,transparent)]",
+            "text-[var(--signal-danger)]",
         ] as const) {
             expect(sourceReportStyles).toContain(
                 sourceReportEmptyIconStyleSnippet,
@@ -1538,13 +1556,25 @@ describe("recording detail copy and title action UI regressions", () => {
             "SOURCE_REPORT_ERROR_ICON_CLASS_NAME",
         );
         expect(sourceReport).not.toContain('variant="sourceReportErrorIcon"');
+        expect(sourceReportErrorState).toContain(
+            '<div\n                        role="alert"',
+        );
+        expect(sourceReportErrorState).not.toContain("<Alert");
+        expect(sourceReportErrorState).not.toContain("<AlertTitle");
+        expect(sourceReportErrorState).not.toContain("<AlertDescription");
         expect(sourceReportErrorState).toContain("<EmptyMedia");
-        expect(sourceReportErrorState).toContain('variant="statusError"');
+        expect(sourceReportErrorState).not.toContain('variant="statusError"');
         expect(sourceReportErrorState).toContain(
             "SOURCE_REPORT_ERROR_ALERT_CLASS_NAME",
         );
         expect(sourceReportErrorState).toContain(
             "SOURCE_REPORT_EMPTY_SURFACE_CLASS_NAME",
+        );
+        expect(sourceReportErrorState).toContain(
+            "className={SOURCE_REPORT_EMPTY_TITLE_CLASS_NAME}",
+        );
+        expect(sourceReportErrorState).toContain(
+            "SOURCE_REPORT_EMPTY_DESCRIPTION_CLASS_NAME",
         );
         expect(sourceReport).toContain("SOURCE_REPORT_ERROR_ALERT_CLASS_NAME");
         expect(sourceReport).not.toContain('variant="sourceReportError"');
@@ -3892,8 +3922,8 @@ describe("recording detail copy and title action UI regressions", () => {
             "recordingTagManagerBadgeClassNames[appearance]",
         );
         expect(tagManager).toContain("h-[22px] justify-normal gap-[5px]");
-        expect(tagManager).toContain("bg-primary");
-        expect(tagManager).toContain("text-primary-foreground");
+        expect(tagManager).toContain("bg-[var(--bg-recessed)]");
+        expect(tagManager).toContain("text-[var(--fg-primary)]");
         expect(tagManager).not.toContain("--badge-pill-height");
         expect(tagManager).not.toContain("--badge-check-bg");
         expect(globals).not.toContain("--badge-pill-height");

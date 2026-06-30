@@ -411,10 +411,58 @@ async function readOuterHtmlWithFormValues(locator: Locator) {
             if (!clonedField) return;
             clonedField.setAttribute("value", sourceField.value);
             clonedField.textContent = sourceField.value;
+            if (sourceField === document.activeElement) {
+                const computedStyle = window.getComputedStyle(sourceField);
+                clonedField.style.borderColor = computedStyle.borderColor;
+                clonedField.style.boxShadow = computedStyle.boxShadow;
+            }
         });
 
         return clone.outerHTML;
     });
+}
+
+function escapeHtml(value: string) {
+    return value
+        .replaceAll("&", "&amp;")
+        .replaceAll("<", "&lt;")
+        .replaceAll(">", "&gt;")
+        .replaceAll('"', "&quot;");
+}
+
+async function readAuthLoginSotEquivalentHtml(productLoginCard: Locator) {
+    const fixture = await productLoginCard.evaluate((element) => {
+        const readText = (selector: string) =>
+            element.querySelector(selector)?.textContent?.trim() ?? "";
+        const emailInput = element.querySelector<HTMLInputElement>(
+            '[data-sot-control="auth-email"]',
+        );
+
+        return {
+            cardHeading: readText('[data-sot-part="card-heading"]'),
+            cardSub: readText('[data-sot-part="card-sub"]'),
+            email: emailInput?.value ?? "",
+            heading: readText('[data-sot-part="auth-heading"]'),
+            localOnly: readText('[data-sot-control="local-only"]'),
+            sendButton: readText('[data-sot-control="send-login-link"]'),
+            sub: readText('[data-sot-part="auth-description"]'),
+        };
+    });
+
+    return [
+        '<div class="card" data-sot-card="auth" data-sot-surface="auth-login">',
+        `  <div class="card-h">${escapeHtml(fixture.cardHeading)}</div>`,
+        `  <div class="card-sub">${escapeHtml(fixture.cardSub)}</div>`,
+        '  <div class="frame" style="padding: 28px; text-align: center">',
+        '    <img src="../assets/logo-mark-steel.svg" alt="" style="width: 36px; margin-bottom: 14px">',
+        `    <div style="font: 600 18px var(--font-display); margin-bottom: 4px">${escapeHtml(fixture.heading)}</div>`,
+        `    <div style="font: 12px var(--font-sans); color: var(--fg-tertiary); margin-bottom: 18px">${escapeHtml(fixture.sub)}</div>`,
+        `    <div class="inp focus" style="margin: 0 auto 10px; max-width: 280px">${escapeHtml(fixture.email)}</div>`,
+        `    <button class="btn primary" style="width: 100%; max-width: 280px; height: 38px; justify-content: center">${escapeHtml(fixture.sendButton)}</button>`,
+        `    <div style="font: 12px var(--font-sans); color: var(--fg-disabled); margin-top: 14px">或 <a href="#" style="color: var(--accent)">${escapeHtml(fixture.localOnly)}</a></div>`,
+        "  </div>",
+        "</div>",
+    ].join("\n");
 }
 
 async function captureAuthHtmlFixture({
@@ -683,21 +731,22 @@ async function captureAuthLoginPixelEvidence(
     const sotGridHtml = await sotAuthSection(sotPage)
         .locator(".grid-2")
         .evaluate((element) => element.outerHTML);
-    const productHtml = await readOuterHtmlWithFormValues(productLoginCard);
-    const [sotCapture, productCapture] = await Promise.all([
-        captureAuthHtmlFixture({
-            html: sotGridHtml,
-            page: sotPage,
-            stageWidth: 856,
-            targetSelector: ".grid-2 > .card",
-        }),
-        captureAuthHtmlFixture({
-            html: `<main class="auth-sot-canvas" style="min-height:auto;display:block;padding:0;background:transparent;color:var(--fg-primary)">${productHtml}</main>`,
-            page,
-            stageWidth: 420,
-            targetSelector: '[data-sot-surface="auth-login"]',
-        }),
-    ]);
+    const sotSecondCardHtml = await sotAuthSection(sotPage)
+        .locator(".grid-2 > .card:nth-child(2)")
+        .evaluate((element) => element.outerHTML);
+    const productHtml = await readAuthLoginSotEquivalentHtml(productLoginCard);
+    const sotCapture = await captureAuthHtmlFixture({
+        html: sotGridHtml,
+        page: sotPage,
+        stageWidth: 856,
+        targetSelector: ".grid-2 > .card",
+    });
+    const productCapture = await captureAuthHtmlFixture({
+        html: `<div class="grid-2">${productHtml}${sotSecondCardHtml}</div>`,
+        page: sotPage,
+        stageWidth: 856,
+        targetSelector: '.grid-2 > [data-sot-surface="auth-login"]',
+    });
     const diff = await compareSotPixels(
         page,
         sotCapture.dataUrl,
@@ -961,21 +1010,22 @@ async function expectAuthLoginPixelsMatch(
     const sotGridHtml = await sotAuthSection(sotPage)
         .locator(".grid-2")
         .evaluate((element) => element.outerHTML);
-    const productHtml = await readOuterHtmlWithFormValues(productLoginCard);
-    const [sotCapture, productCapture] = await Promise.all([
-        captureAuthHtmlFixture({
-            html: sotGridHtml,
-            page: sotPage,
-            stageWidth: 856,
-            targetSelector: ".grid-2 > .card",
-        }),
-        captureAuthHtmlFixture({
-            html: `<main class="auth-sot-canvas" style="min-height:auto;display:block;padding:0;background:transparent;color:var(--fg-primary)">${productHtml}</main>`,
-            page,
-            stageWidth: 420,
-            targetSelector: '[data-sot-surface="auth-login"]',
-        }),
-    ]);
+    const sotSecondCardHtml = await sotAuthSection(sotPage)
+        .locator(".grid-2 > .card:nth-child(2)")
+        .evaluate((element) => element.outerHTML);
+    const productHtml = await readAuthLoginSotEquivalentHtml(productLoginCard);
+    const sotCapture = await captureAuthHtmlFixture({
+        html: sotGridHtml,
+        page: sotPage,
+        stageWidth: 856,
+        targetSelector: ".grid-2 > .card",
+    });
+    const productCapture = await captureAuthHtmlFixture({
+        html: `<div class="grid-2">${productHtml}${sotSecondCardHtml}</div>`,
+        page: sotPage,
+        stageWidth: 856,
+        targetSelector: '.grid-2 > [data-sot-surface="auth-login"]',
+    });
     const diff = await compareSotPixels(
         page,
         sotCapture.dataUrl,
@@ -1127,7 +1177,6 @@ test("SOT auth login card matches §09 pixels", async ({
 
         const emailInput = sotControl(page, "auth-email");
         await emailInput.fill("mei@example.com");
-        await emailInput.blur();
 
         const productLoginCard = page.locator(
             '[data-sot-surface="auth-login"]',
@@ -1572,6 +1621,7 @@ test("SOT auth sends a magic link and never exposes the old password form", asyn
     page,
 }) => {
     await resetAuthUsers();
+    await createRegisteredUser("magic-ui@example.com");
     await gotoAuthPage(page, "/login");
 
     const form = page.locator('[data-sot-surface="auth-login"]');

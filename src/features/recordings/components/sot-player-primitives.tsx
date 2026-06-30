@@ -89,7 +89,7 @@ type SotPlayerControlButtonProps = SotPlayerButtonProps & {
 };
 
 const SOT_PLAYER_CONTROL_BUTTON_CLASS =
-    "text-muted-foreground active:scale-[0.96] [&_[data-player-control-icon]_svg]:fill-none [&_[data-player-control-icon]_svg]:stroke-current [&_[data-player-control-icon]_svg]:stroke-[1.8]";
+    "border border-[var(--line-hairline)] bg-[var(--bg-elevated)] text-[var(--fg-secondary)] shadow-[var(--shadow-xs)] hover:bg-[var(--bg-recessed)] hover:text-[var(--fg-primary)] active:scale-[0.96] [&_[data-player-control-icon]_svg]:fill-none [&_[data-player-control-icon]_svg]:stroke-current [&_[data-player-control-icon]_svg]:stroke-[1.8]";
 
 const SOT_PLAYER_CONTROL_BUTTON_SIZE_CLASS =
     "size-[36px] rounded-[50%] px-[6px] py-px text-[13.3333px] font-normal";
@@ -117,7 +117,7 @@ export function SotPlayerControlButton({
     return (
         <Button
             {...props}
-            variant="outline"
+            variant="ghost"
             size="icon"
             className={cn(
                 SOT_PLAYER_CONTROL_BUTTON_CLASS,
@@ -632,7 +632,7 @@ export function SotPlayerNoAudioAlert({
                 display: playbackDisabled ? "flex" : "none",
                 gap: "10px",
                 height: "57px",
-                marginBottom: "13px",
+                marginBottom: "12px",
                 padding: "10px 12px",
                 ...style,
             }}

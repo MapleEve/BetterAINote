@@ -26,7 +26,7 @@ const DASHBOARD_MAIN_REQUIRED_CLASS_TOKENS = [
 const EXPECTED_DASHBOARD_WORKSPACE_CLASS_NAME =
     "grid flex-1 min-h-0 grid-cols-[380px_1fr] gap-4 px-5 pt-4 pb-5 max-[860px]:min-w-0 max-[860px]:max-w-full max-[860px]:box-border max-[860px]:grid-cols-[380px_0px] max-[860px]:[&>[data-sot-panel=dashboard-detail]]:hidden";
 const EXPECTED_DASHBOARD_RECORDING_LIST_CARD_CLASS_NAME =
-    "min-h-0 gap-0 rounded-2xl max-[860px]:min-w-0 max-[860px]:max-w-full max-[860px]:box-border";
+    "h-full min-h-0 gap-0 overflow-hidden rounded-2xl border-[var(--glass-border)] bg-[var(--bg-elevated)] shadow-[var(--shadow-sm)] backdrop-blur-none max-[860px]:min-w-0 max-[860px]:max-w-full max-[860px]:box-border";
 const EXPECTED_DASHBOARD_RECORDING_LIST_CONTENT_CLASS_NAME =
     "flex min-h-0 flex-col p-0";
 const EXPECTED_DASHBOARD_DETAIL_EMPTY_STATE_CLASS_NAME =
@@ -2087,7 +2087,7 @@ const EXPECTED_DASHBOARD_TRANSCRIPT_SHELL_CARD_CLASS_NAME =
     "flex min-h-0 flex-1 flex-col gap-0 rounded-[16px] border border-[var(--line-hairline)] bg-[var(--bg-elevated)] shadow-[var(--shadow-sm)] backdrop-blur-none";
 
 const EXPECTED_SOURCE_REPORT_STATUS_BADGE_CLASS_NAME =
-    "h-[22px] min-w-[65px] justify-normal gap-[9px] overflow-visible rounded-full border px-[8px] py-0 text-[11px] font-semibold leading-[normal] shadow-none data-[sot-tone=err]:border-destructive/30 data-[sot-tone=err]:bg-destructive/10 data-[sot-tone=err]:text-destructive data-[sot-tone=neu]:border-border data-[sot-tone=neu]:bg-muted data-[sot-tone=neu]:text-muted-foreground data-[sot-tone=ok]:border-chart-3/30 data-[sot-tone=ok]:bg-chart-3/10 data-[sot-tone=ok]:text-chart-3 data-[sot-tone=warn]:border-chart-4/30 data-[sot-tone=warn]:bg-chart-4/10 data-[sot-tone=warn]:text-chart-4 [&_[data-sot-part=dashboard-source-report-status-dot]]:mr-0 [&_[data-sot-part=dashboard-source-report-status-dot]]:inline-block [&_[data-sot-part=dashboard-source-report-status-dot]]:size-[5px] [&_[data-sot-part=dashboard-source-report-status-dot]]:rounded-full [&_[data-sot-part=dashboard-source-report-status-dot]]:bg-current [&_[data-sot-part=source-report-status-dot]]:mr-0 [&_[data-sot-part=source-report-status-dot]]:inline-block [&_[data-sot-part=source-report-status-dot]]:size-[5px] [&_[data-sot-part=source-report-status-dot]]:rounded-full [&_[data-sot-part=source-report-status-dot]]:bg-current";
+    "sr-pill inline-flex h-[22px] min-w-[65px] justify-normal items-center gap-[9px] overflow-visible rounded-full border px-[8px] py-0 ![font:600_11px_var(--font-sans)] leading-[normal] shadow-none data-[sot-tone=err]:border-[var(--source-report-status-err-border)] data-[sot-tone=err]:bg-[var(--source-report-status-err-bg)] data-[sot-tone=err]:text-[var(--signal-danger)] data-[sot-tone=neu]:border-[var(--line-hairline)] data-[sot-tone=neu]:bg-[var(--bg-recessed)] data-[sot-tone=neu]:text-[var(--fg-secondary)] data-[sot-tone=ok]:border-[var(--source-report-status-ok-border)] data-[sot-tone=ok]:bg-[var(--source-report-status-ok-bg)] data-[sot-tone=ok]:text-[var(--source-report-status-ok-fg)] data-[sot-tone=warn]:border-[var(--source-report-status-warn-border)] data-[sot-tone=warn]:bg-[var(--source-report-status-warn-bg)] data-[sot-tone=warn]:text-[var(--source-report-status-warn-fg)] [&_[data-sot-part=dashboard-source-report-status-dot]]:mr-0 [&_[data-sot-part=dashboard-source-report-status-dot]]:inline-block [&_[data-sot-part=dashboard-source-report-status-dot]]:size-[5px] [&_[data-sot-part=dashboard-source-report-status-dot]]:rounded-full [&_[data-sot-part=dashboard-source-report-status-dot]]:bg-current [&_[data-sot-part=source-report-status-dot]]:mr-0 [&_[data-sot-part=source-report-status-dot]]:inline-block [&_[data-sot-part=source-report-status-dot]]:size-[5px] [&_[data-sot-part=source-report-status-dot]]:rounded-full [&_[data-sot-part=source-report-status-dot]]:bg-current";
 
 const CARD_PRIMITIVE_FORBIDDEN_BUSINESS_TOKENS = [
     "onboarding",
@@ -2105,8 +2105,8 @@ const AUTH_LOGIN_FEATURE_OWNER_CLASS_SNIPPETS = [
         snippets: [
             "min-h-[100svh]",
             "place-items-center",
-            "bg-background",
-            "text-foreground",
+            "bg-[var(--bg-canvas)]",
+            "text-[var(--fg-primary)]",
             "px-[32px]",
             "pb-[80px]",
             "pt-[28px]",
@@ -2118,9 +2118,9 @@ const AUTH_LOGIN_FEATURE_OWNER_CLASS_SNIPPETS = [
             "w-[min(420px,100%)]",
             "min-h-[389px]",
             "rounded-[14px]",
-            "border-border",
-            "bg-card",
-            "text-card-foreground",
+            "border-[var(--line-hairline)]",
+            "bg-[var(--bg-elevated)]",
+            "text-[var(--fg-primary)]",
             "p-[18px]",
         ],
     },
@@ -2135,7 +2135,7 @@ const AUTH_LOGIN_FEATURE_OWNER_CLASS_SNIPPETS = [
             "font-sans",
             "text-[13px]",
             "font-semibold",
-            "text-foreground",
+            "text-[var(--fg-primary)]",
         ],
     },
     {
@@ -2145,32 +2145,37 @@ const AUTH_LOGIN_FEATURE_OWNER_CLASS_SNIPPETS = [
             "font-sans",
             "text-[12px]",
             "leading-[1.5]",
-            "text-muted-foreground",
+            "text-[var(--fg-tertiary)]",
         ],
     },
     {
         label: "frame",
         snippets: [
             "overflow-hidden",
-            "rounded-xl",
-            "border-border",
-            "bg-background",
-            "p-7",
+            "[border-radius:12px]",
+            "border-[var(--line-hairline)]",
+            "bg-[var(--bg-canvas)]",
+            "!p-[28px]",
             "text-center",
         ],
     },
     {
         label: "logo mark",
-        snippets: ["inline", "size-9", "mb-[14px]", "align-baseline"],
+        snippets: [
+            "inline",
+            "[height:36px]",
+            "[width:36px]",
+            "mb-[14px]",
+            "align-baseline",
+        ],
     },
     {
         label: "frame title",
         snippets: [
-            "mb-1",
-            "font-display",
-            "text-lg",
-            "font-semibold",
-            "text-foreground",
+            "[font:600_18px_var(--font-display)]",
+            "[margin-bottom:4px]",
+            "leading-[normal]",
+            "text-[var(--fg-primary)]",
         ],
     },
     {
@@ -2178,7 +2183,7 @@ const AUTH_LOGIN_FEATURE_OWNER_CLASS_SNIPPETS = [
         snippets: [
             "font-sans",
             "text-[12px]",
-            "text-muted-foreground",
+            "text-[var(--fg-tertiary)]",
             "mb-[18px]",
         ],
     },
@@ -2188,7 +2193,11 @@ const AUTH_LOGIN_FEATURE_OWNER_CLASS_SNIPPETS = [
     },
     {
         label: "footer",
-        snippets: ["!mt-[14px]", "!text-[12px]", "!text-muted-foreground/70"],
+        snippets: [
+            "!mt-[14px]",
+            "[font:12px_var(--font-sans)]",
+            "!text-[var(--fg-disabled)]",
+        ],
     },
     {
         label: "field",
@@ -2199,10 +2208,11 @@ const AUTH_LOGIN_FEATURE_OWNER_CLASS_SNIPPETS = [
         snippets: [
             "h-[36px]",
             "rounded-[9px]",
-            "border-input",
-            "bg-background",
-            "text-foreground",
-            "focus-visible:border-ring",
+            "border-[var(--line-hairline)]",
+            "bg-[var(--bg-elevated)]",
+            "text-[var(--fg-primary)]",
+            "focus-visible:!border-ring",
+            "focus-visible:ring-[3px]",
             "focus-visible:ring-ring/50",
             "aria-invalid:border-destructive",
             "aria-invalid:ring-destructive/20",
@@ -2227,6 +2237,7 @@ const AUTH_LOGIN_FEATURE_OWNER_CLASS_SNIPPETS = [
             "w-full",
             "rounded-[8px]",
             "font-semibold",
+            "text-[var(--button-primary-fg)]",
             "shadow-none",
             "focus-visible:ring-0",
         ],
@@ -2770,7 +2781,26 @@ function listSourceFiles(directory: string): string[] {
 
 function isOwnerLocalModernColorLine(relativePath: string, line: string) {
     if (relativePath === "features/settings/components/settings-content.tsx") {
-        return line.includes("source-provider");
+        return line.includes("source-provider") || line.includes("data-[sot-tone=");
+    }
+
+    if (relativePath === "features/settings/components/settings-dialog.tsx") {
+        return (
+            line.includes("data-[state=active]") &&
+            line.includes("var(--fg-primary)")
+        );
+    }
+
+    if (
+        relativePath ===
+        "features/recordings/components/ai-rename-preview-card.tsx"
+    ) {
+        return (
+            line.includes("var(--bg-elevated)") ||
+            line.includes("var(--accent)") ||
+            line.includes("var(--signal-warning)") ||
+            line.includes("var(--fg-tertiary)")
+        );
     }
 
     if (
@@ -2784,6 +2814,9 @@ function isOwnerLocalModernColorLine(relativePath: string, line: string) {
         return (
             line.includes("source-provider") ||
             line.includes("--dashboard-retx-") ||
+            line.includes("--dashboard-recording-status-") ||
+            line.includes("--dashboard-recording-tag-") ||
+            line.includes("--dashboard-recording-row-selected-border") ||
             line.includes("sbn-sweep") ||
             line.includes("data-sot-part=dashboard-activity") ||
             line.includes("scrollbar-color") ||
@@ -2990,32 +3023,45 @@ const SOURCE_REPORT_SKELETON_SHARED_TOKENS = [
 ] as const;
 
 const EXPECTED_SOURCE_REPORT_METRIC_CARD_CLASS_NAME =
-    "gap-[6px] overflow-visible rounded-[10px] border-border bg-muted/40 px-[12px] py-[10px] shadow-none backdrop-blur-none";
+    "sr-card gap-[6px] !overflow-visible rounded-[10px] border border-[var(--source-report-metric-border)] bg-[var(--source-report-metric-bg)] px-[12px] py-[10px] shadow-none backdrop-blur-none";
 const SOURCE_REPORT_METRIC_CARD_CLASS_TOKENS =
     EXPECTED_SOURCE_REPORT_METRIC_CARD_CLASS_NAME.split(" ");
 const SOURCE_REPORT_STYLE_OWNER_SNIPPETS = [
     "type SourceReportStyleVariables = CSSProperties & {",
     "export const SOURCE_REPORT_STYLE_VARIABLES = {",
-    '"--source-report-metric-bg": "var(--bg-recessed)"',
-    '"--source-report-metric-border": "var(--line-hairline)"',
+    '"--source-report-metric-bg": "var(--card-popover-footer-bg)"',
+    '"--source-report-metric-border": "var(--glass-border-soft)"',
     '"--source-report-status-ok-fg": "var(--signal-success)"',
-    '"--source-report-status-ok-bg": "var(--bg-recessed)"',
-    '"--source-report-status-ok-border": "var(--line-hairline)"',
-    '"--source-report-status-warn-bg": "var(--bg-recessed)"',
-    '"--source-report-status-warn-border": "var(--line-hairline)"',
+    '"--source-report-status-ok-bg":',
+    '"color-mix(in srgb, var(--source-report-status-ok-fg) 14%, transparent)"',
+    '"--source-report-status-ok-border":',
+    '"color-mix(in srgb, var(--source-report-status-ok-fg) 30%, transparent)"',
+    '"--source-report-status-warn-bg":',
+    '"color-mix(in srgb, var(--signal-warning) 18%, transparent)"',
+    '"--source-report-status-warn-border":',
+    '"color-mix(in srgb, var(--signal-warning) 32%, transparent)"',
     '"--source-report-status-warn-fg": "var(--signal-warning-strong)"',
-    '"--source-report-status-err-bg": "var(--bg-recessed)"',
-    '"--source-report-status-err-border": "var(--line-hairline)"',
-    '"--source-report-skeleton-bg": "var(--bg-recessed)"',
+    '"--source-report-status-err-bg":',
+    '"color-mix(in srgb, var(--signal-danger) 14%, transparent)"',
+    '"--source-report-status-err-border":',
+    '"color-mix(in srgb, var(--signal-danger) 30%, transparent)"',
+    '"--source-report-skeleton-bg":',
+    '"linear-gradient(90deg, rgb(255 255 255 / 0.05) 0%, rgb(255 255 255 / 0.12) 50%, rgb(255 255 255 / 0.05) 100%)"',
     "export const SOURCE_REPORT_SKELETON_CLASS_NAME =",
     "export type SourceReportTone =",
     "export type SourceReportCardSkeletonSize =",
     "export type SourceReportSegmentSkeletonSize =",
     "export const SOURCE_REPORT_CARD_SKELETON_CLASS_NAMES =",
     "export const SOURCE_REPORT_SEGMENT_SKELETON_CLASS_NAMES =",
-    '"bg-muted"',
+    '"![background-color:transparent] bg-[image:var(--source-report-skeleton-bg)] bg-[length:220%_100%] bg-[position:0_50%]"',
+    "sr-seg skel",
+    '"sr-state block [font-feature-settings:normal] [text-rendering:auto] [&[hidden]]:hidden"',
+    "sr-meta my-[15px]",
+    "![font:500_12.5px/1.55_var(--font-sans)]",
     "export const SOURCE_REPORT_PANE_CLASS_NAME =",
     "export const SOURCE_REPORT_METRIC_CARD_CLASS_NAME =",
+    "sr-card-value ![font:600_13px_var(--font-sans)] leading-[normal] tracking-normal text-[var(--fg-primary)]",
+    "sr-card-source flex items-center gap-[6px]",
     "export const SOURCE_REPORT_MISSING_NOTICE_CLASS_NAME =",
     "export const SOURCE_REPORT_TRANSCRIPT_MISSING_NOTICE_CLASS_NAME =",
     "export const SOURCE_REPORT_SUMMARY_MISSING_NOTICE_CLASS_NAME =",
@@ -3030,6 +3076,14 @@ const SOURCE_REPORT_STYLE_OWNER_SNIPPETS = [
     "[&[hidden]]:hidden",
     "export const SOURCE_REPORT_ERROR_ALERT_CLASS_NAME =",
     "export const SOURCE_REPORT_STATUS_BADGE_CLASS_NAME =",
+    "sr-empty-actions mt-[8px] flex flex-wrap items-center gap-[6px]",
+    "h-[26px] min-w-[46px] gap-[7px] rounded-[7px] border border-[var(--button-primary-border)] bg-[image:var(--button-primary-bg)] ![background-color:transparent]",
+    "flex w-full flex-col items-center !gap-[4px] rounded-[10px] !px-[18px] !py-[28px] text-center [&>svg]:text-current",
+    "sr-empty flex flex-col items-center !gap-[4px] rounded-[10px] border border-dashed border-[var(--line-hairline)] bg-[var(--bg-recessed)] !px-[18px] !py-[28px] text-center shadow-none backdrop-blur-none data-[sot-tone=err]:border-[color-mix(in_srgb,var(--signal-danger)_26%,transparent)] data-[sot-tone=err]:bg-[color-mix(in_srgb,var(--signal-danger)_6%,transparent)]",
+    "sr-empty-ico !mb-[4px] inline-grid !size-[40px] place-items-center rounded-full border border-[var(--line-hairline)] bg-[var(--bg-recessed)] text-[var(--fg-tertiary)]",
+    "![font:600_13px/1.35_var(--font-sans)]",
+    "max-w-[360px] ![font:500_12px/1.5_var(--font-sans)] tracking-normal !text-[var(--fg-tertiary)]",
+    "sr-pill inline-flex h-[22px] min-w-[65px] justify-normal items-center gap-[9px]",
     "satisfies SourceReportStyleVariables",
 ] as const;
 
@@ -3414,10 +3468,13 @@ const DASHBOARD_RETRANSCRIPTION_OWNER_CLASS_SNIPPETS = [
     "title:",
     "sub:",
     "actions:",
+    "closeButton:",
     "refreshMarker:",
     "group/retx flex items-center gap-[10px]",
     "data-[retx-state=idle]:hidden",
+    "data-[retx-state=queued]:[border-bottom-color:var(--dashboard-retx-info-border)]",
     "data-[retx-state=queued]:bg-[var(--dashboard-retx-info-bg)]",
+    "data-[retx-state=running]:[border-bottom-color:var(--dashboard-retx-info-border)]",
     "data-[retx-state=failed]:bg-[var(--dashboard-retx-danger-bg)]",
     "data-[retx-state=completed]:bg-[var(--dashboard-retx-success-bg)]",
     "[&[hidden]]:hidden",
@@ -3425,6 +3482,12 @@ const DASHBOARD_RETRANSCRIPTION_OWNER_CLASS_SNIPPETS = [
     'body: "flex min-w-0 flex-1 flex-col gap-[2px]"',
     'actions: "flex flex-none items-center gap-[6px]"',
     "inline-flex items-center gap-[4px]",
+    "font-mono ![font-size:10.5px] font-medium ![line-height:normal]",
+    "![color:var(--signal-success)]",
+    "[margin:0]",
+    "[&>svg]:h-[16px]",
+    "[&>svg]:w-[16px]",
+    "[&>svg]:stroke-[1.8]",
     "group-data-[retx-state=running]/retx:text-[var(--signal-info)]",
     "group-data-[retx-state=running]/retx:border-[var(--dashboard-retx-info-icon-border)]",
     "group-data-[retx-state=failed]/retx:text-[var(--signal-danger)]",
@@ -3437,16 +3500,16 @@ const DASHBOARD_RETRANSCRIPTION_OWNER_CLASS_SNIPPETS = [
 ] as const;
 
 const DASHBOARD_RETRANSCRIPTION_THEME_CLASS_SNIPPETS = [
-    "--dashboard-retx-info-bg:var(--system-banner-progress-bg)",
-    "--dashboard-retx-info-border:var(--system-banner-progress-border)",
-    "--dashboard-retx-info-icon-border:var(--system-banner-progress-border)",
-    "--dashboard-retx-danger-bg:var(--alert-destructive-soft-bg)",
-    "--dashboard-retx-danger-border:var(--alert-destructive-soft-border)",
-    "--dashboard-retx-danger-icon-border:var(--button-copy-danger-border)",
-    "--dashboard-retx-success-bg:var(--button-copy-success-bg)",
-    "--dashboard-retx-success-border:var(--button-copy-success-border)",
-    "--dashboard-retx-success-icon-border:var(--button-copy-success-border)",
-    "--dashboard-retx-success-marker-bg:var(--button-copy-success-bg)",
+    "--dashboard-retx-info-bg:color-mix(in_srgb,var(--signal-info)_8%,transparent)",
+    "--dashboard-retx-info-border:color-mix(in_srgb,var(--signal-info)_26%,transparent)",
+    "--dashboard-retx-info-icon-border:color-mix(in_srgb,var(--signal-info)_30%,transparent)",
+    "--dashboard-retx-danger-bg:color-mix(in_srgb,var(--signal-danger)_6%,transparent)",
+    "--dashboard-retx-danger-border:color-mix(in_srgb,var(--signal-danger)_24%,transparent)",
+    "--dashboard-retx-danger-icon-border:color-mix(in_srgb,var(--signal-danger)_30%,transparent)",
+    "--dashboard-retx-success-bg:color-mix(in_srgb,var(--signal-success)_8%,transparent)",
+    "--dashboard-retx-success-border:color-mix(in_srgb,var(--signal-success)_28%,transparent)",
+    "--dashboard-retx-success-icon-border:color-mix(in_srgb,var(--signal-success)_30%,transparent)",
+    "--dashboard-retx-success-marker-bg:color-mix(in_srgb,var(--signal-success)_12%,transparent)",
 ] as const;
 
 const DASHBOARD_RETRANSCRIPTION_GLOBAL_TOKEN_DEFINITION_RE =
@@ -3460,6 +3523,7 @@ const DASHBOARD_RETRANSCRIPTION_OWNER_CLASS_USAGES = [
     "dashboardRetranscriptionClassNames.title",
     "dashboardRetranscriptionClassNames.sub",
     "dashboardRetranscriptionClassNames.actions",
+    "dashboardRetranscriptionClassNames.closeButton",
     "dashboardRetranscriptionClassNames.refreshMarker",
 ] as const;
 
@@ -3968,7 +4032,7 @@ const AI_RENAME_PREVIEW_FEATURE_OWNER_CLASS_SNIPPETS = [
         snippets: [
             "h-[55px]",
             "grid-cols-[1fr_auto]",
-            "border-b border-border",
+            "border-b border-[var(--card-popover-divider)]",
             "px-[14px] pt-3 pb-2",
             "[&_[data-slot=card-head-copy]]:min-w-0",
         ],
@@ -3993,7 +4057,7 @@ const AI_RENAME_PREVIEW_FEATURE_OWNER_CLASS_SNIPPETS = [
         label: "review",
         snippets: [
             "my-1.5 flex flex-col gap-1.5",
-            "rounded-lg border border-border bg-[var(--bg-recessed)]",
+            "rounded-[8px] border border-border bg-[var(--bg-recessed)]",
             "text-[var(--fg-secondary)] line-through",
             "text-[var(--fg-primary)]",
         ],
@@ -4001,7 +4065,7 @@ const AI_RENAME_PREVIEW_FEATURE_OWNER_CLASS_SNIPPETS = [
     {
         label: "actions",
         snippets: [
-            "h-[48px] gap-1.5 bg-[var(--bg-recessed)] px-[14px] py-0",
+            "h-[48px] gap-1.5 bg-[var(--card-popover-footer-bg)] px-[14px] py-0",
             "bg-[var(--glass-tint-base)]",
         ],
     },
@@ -4238,7 +4302,10 @@ describe("full UI replacement regression coverage", () => {
         expect(tagManager).toContain("leading-[0]");
         expect(tagManager).toContain("!text-[var(--fg-primary)]");
         expect(tagManager).toContain(
-            "data-[state=on]:border-[var(--fg-primary)]",
+            "data-[state=on]:!border-[var(--fg-primary)]",
+        );
+        expect(tagManager).toContain(
+            "data-[state=on]:!text-[var(--fg-primary)]",
         );
         expect(tagManager).toContain(
             "data-[state=on]:shadow-[inset_0_0_0_2px_var(--bg-elevated)]",
@@ -4440,12 +4507,15 @@ describe("full UI replacement regression coverage", () => {
         expectExactStringConstInitializer(
             confirmDialog,
             "CONFIRM_DIALOG_CONTENT_CLASS",
-            "m-[12px_auto] block w-full max-w-[460px] gap-0 overflow-hidden rounded-lg border border-[var(--line-hairline)] bg-[var(--bg-elevated)] p-0 font-sans text-[var(--fg-primary)] shadow-[var(--shadow-md)] data-[state=closed]:opacity-0 sm:max-w-[460px]",
+            "m-[12px_auto] block w-full max-w-[460px] gap-0 overflow-hidden rounded-lg border border-[var(--card-popover-border)] p-0 font-sans text-[var(--fg-primary)] ![box-shadow:0_22px_56px_rgb(0_0_0_/_0.50)] data-[state=closed]:opacity-0 sm:max-w-[460px]",
+        );
+        expect(confirmDialog).toContain(
+            'backgroundColor: "color(srgb 0.0943052 0.100332 0.106792 / 0.92)"',
         );
         expectExactStringConstInitializer(
             confirmDialog,
             "CONFIRM_DIALOG_BODY_CLASS",
-            "block px-5 pt-2 pb-1 font-sans text-[13px] leading-[1.55] font-medium text-[var(--fg-secondary)]",
+            "block px-[20px] pt-[8px] pb-[4px] font-sans text-[13px] leading-[1.55] font-medium text-[var(--fg-secondary)]",
         );
         expectExactStringConstInitializer(
             confirmDialog,
@@ -4455,12 +4525,12 @@ describe("full UI replacement regression coverage", () => {
         expectExactStringConstInitializer(
             confirmDialog,
             "CONFIRM_DIALOG_DETAILS_LIST_CLASS",
-            "mt-1 mb-2 flex list-disc flex-col gap-1 pl-[18px]",
+            "mt-[4px] mb-[8px] flex list-disc flex-col gap-[4px] pl-[18px]",
         );
         expectExactStringConstInitializer(
             confirmDialog,
             "CONFIRM_DIALOG_DETAIL_ITEM_CLASS",
-            "flex items-center gap-1.5 font-sans text-[12.5px] leading-[1.55] font-medium text-[var(--fg-secondary)]",
+            "flex items-center [gap:6px] font-sans text-[12.5px] leading-[1.55] font-medium text-[var(--fg-secondary)]",
         );
         expectExactStringConstInitializer(
             confirmDialog,
@@ -4470,9 +4540,8 @@ describe("full UI replacement regression coverage", () => {
         expectExactStringConstInitializer(
             confirmDialog,
             "CONFIRM_DIALOG_FOOTER_CLASS",
-            "flex justify-end border-t border-[var(--line-hairline)] bg-[var(--bg-recessed)] px-4 pt-3 pb-4",
+            "flex justify-end border-t border-[var(--card-popover-divider)] bg-[var(--card-popover-footer-bg)] px-[16px] pt-[12px] pb-[16px]",
         );
-        expect(confirmDialog).not.toContain("color-mix(");
         expect(confirmDialog).not.toContain("oklch(");
 
         expect(card.trim()).not.toBe("export {};");
@@ -5092,6 +5161,7 @@ describe("full UI replacement regression coverage", () => {
         expect(confirmDialog).toMatch(
             /<DialogFooter[\s\S]*\{\.\.\.footerSlotProps\}[\s\S]*"gap-\[8px\] sm:justify-end"/,
         );
+        expect(confirmDialog).not.toContain("dark:[background:");
         expect(confirmDialog).toContain(
             'confirmVariant?: "default" | "destructive"',
         );
@@ -8034,6 +8104,21 @@ describe("full UI replacement regression coverage", () => {
         ]) {
             expect(dashboardRecordingRowStyleHelper).toContain(rowStateToken);
         }
+        for (const rowTagToken of [
+            "[&_[data-recording-tag-chip]]:[--dashboard-recording-tag-c:var(--tag-slate)]",
+            "[&_[data-recording-tag-chip]]:[--sot-player-tag-chip-bg:color-mix(in_srgb,var(--dashboard-recording-tag-c)_18%,transparent)]",
+            "[&_[data-recording-tag-chip]]:[--sot-player-tag-chip-border:color-mix(in_srgb,var(--dashboard-recording-tag-c)_36%,transparent)]",
+            "[&_[data-recording-tag-chip]]:[--sot-player-tag-chip-fg:color-mix(in_srgb,var(--dashboard-recording-tag-c)_30%,var(--fg-primary))]",
+            "[&_[data-recording-tag-chip]]:![box-shadow:var(--shadow-xs)]",
+            "[&_[data-recording-tag-chip][data-sot-tag-color=blue]]:[--dashboard-recording-tag-c:var(--tag-blue)]",
+            "[&_[data-recording-tag-chip][data-sot-tag-color=green]]:[--dashboard-recording-tag-c:var(--tag-green)]",
+            "[&_[data-recording-tag-chip][data-sot-tag-color=orange]]:[--dashboard-recording-tag-c:var(--tag-amber)]",
+            "[&_[data-recording-tag-chip][data-sot-tag-color=purple]]:[--dashboard-recording-tag-c:var(--tag-violet)]",
+            "[&_[data-recording-tag-chip][data-sot-tag-color=red]]:[--dashboard-recording-tag-c:var(--tag-rose)]",
+            "[&_[data-recording-tag-chip][data-sot-tag-color=slate]]:[--dashboard-recording-tag-c:var(--tag-slate)]",
+        ]) {
+            expect(dashboardRecordingRowStyleHelper).toContain(rowTagToken);
+        }
         expect(dashboardRecordingRows).toContain(
             "dashboardRecordingRowStyles.rows",
         );
@@ -8128,6 +8213,29 @@ describe("full UI replacement regression coverage", () => {
         expect(dashboardRecordingStatusBadgeClass).toContain(
             "data-[sot-tone=ok]:text-[var(--signal-success)]",
         );
+        for (const dashboardStatusToken of [
+            "--dashboard-recording-status-ok-bg:color-mix(in_srgb,var(--signal-success)_14%,transparent)",
+            "--dashboard-recording-status-ok-border:color-mix(in_srgb,var(--signal-success)_30%,transparent)",
+            "--dashboard-recording-status-warn-bg:color-mix(in_srgb,var(--signal-warning)_18%,transparent)",
+            "--dashboard-recording-status-warn-border:color-mix(in_srgb,var(--signal-warning)_32%,transparent)",
+            "--dashboard-recording-status-err-bg:color-mix(in_srgb,var(--signal-danger)_14%,transparent)",
+            "--dashboard-recording-status-err-border:color-mix(in_srgb,var(--signal-danger)_30%,transparent)",
+            "--dashboard-recording-status-info-bg:color-mix(in_srgb,var(--signal-info)_14%,transparent)",
+            "--dashboard-recording-status-info-border:color-mix(in_srgb,var(--signal-info)_30%,transparent)",
+            "rounded-[999px]",
+            "data-[sot-tone=ok]:border-[var(--dashboard-recording-status-ok-border)]",
+            "data-[sot-tone=ok]:bg-[var(--dashboard-recording-status-ok-bg)]",
+            "data-[sot-tone=warn]:border-[var(--dashboard-recording-status-warn-border)]",
+            "data-[sot-tone=warn]:bg-[var(--dashboard-recording-status-warn-bg)]",
+            "data-[sot-tone=err]:border-[var(--dashboard-recording-status-err-border)]",
+            "data-[sot-tone=err]:bg-[var(--dashboard-recording-status-err-bg)]",
+            "data-[sot-tone=info]:border-[var(--dashboard-recording-status-info-border)]",
+            "data-[sot-tone=info]:bg-[var(--dashboard-recording-status-info-bg)]",
+        ]) {
+            expect(dashboardRecordingStatusBadgeClass).toContain(
+                dashboardStatusToken,
+            );
+        }
         expect(
             collectCssRuleBlocks(
                 globals,
@@ -8690,10 +8798,17 @@ describe("full UI replacement regression coverage", () => {
             );
             expect(buttonOpening).toContain('variant="ghost"');
             expect(buttonOpening).toContain('size="sm"');
-            expectClassNameConstReference(
-                buttonOpening,
-                "dashboardButtonClassNames.compactAction",
-            );
+            if (control.startsWith("dismiss-retranscription-")) {
+                expectCnClassNameReferences(buttonOpening, [
+                    "dashboardButtonClassNames.compactAction",
+                    "dashboardRetranscriptionClassNames.closeButton",
+                ]);
+            } else {
+                expectClassNameConstReference(
+                    buttonOpening,
+                    "dashboardButtonClassNames.compactAction",
+                );
+            }
         }
         for (const control of DASHBOARD_TRANSCRIPT_COMPACT_ACTION_CONTROLS) {
             const buttonOpening = extractOpeningElement(
@@ -9470,7 +9585,7 @@ describe("full UI replacement regression coverage", () => {
             "VariantProps<typeof emptyMediaVariants>",
         );
         expect(sourceReportPanel).toContain(
-            'import {\n    Empty,\n    EmptyDescription,\n    EmptyHeader,\n    EmptyMedia,\n    EmptyTitle,\n} from "@/components/ui/empty";',
+            'import {\n    Empty,\n    EmptyDescription,\n    EmptyMedia,\n    EmptyTitle,\n} from "@/components/ui/empty";',
         );
 
         const sourceReportEmptyLegacySelectorLines = globals
@@ -9514,8 +9629,8 @@ describe("full UI replacement regression coverage", () => {
         expect(sourceReportNoSourceEmpty).toContain(
             "data-sot-source-report-empty",
         );
-        expect(sourceReportNoSourceEmpty).toContain("<EmptyHeader");
-        expect(sourceReportNoSourceEmpty).toContain(
+        expect(sourceReportNoSourceEmpty).not.toContain("<EmptyHeader");
+        expect(sourceReportNoSourceEmpty).not.toContain(
             "data-sot-source-report-empty-header",
         );
         expect(sourceReportNoSourceEmpty).toContain("<EmptyMedia");
@@ -9768,7 +9883,7 @@ describe("full UI replacement regression coverage", () => {
         const sourceReportEmptyActions = extractBoundedSlice(
             sourceReportPanel,
             "data-sot-source-report-empty-actions",
-            "</div>\n                    </Alert>",
+            "</SourceReportState>",
         );
         expect(sourceReportEmptyActions).toContain(
             "data-sot-source-report-empty-actions",
@@ -11798,10 +11913,10 @@ describe("full UI replacement regression coverage", () => {
             "<Check strokeWidth={1.8} />",
         );
         expect(speakerReviewMergeEmpty).toMatch(
-            /<EmptyTitle\s+variant="compact"\s+data-sot-part="speaker-review-merge-empty-title"\s*>/,
+            /<EmptyTitle\b[^>]*\bvariant="compact"[^>]*\bdata-sot-part="speaker-review-merge-empty-title"[^>]*>/,
         );
         expect(speakerReviewMergeEmpty).toMatch(
-            /<EmptyDescription\s+variant="compact"\s+data-sot-part="speaker-review-merge-empty-description"\s*>/,
+            /<EmptyDescription\b[^>]*\bvariant="compact"[^>]*\bdata-sot-part="speaker-review-merge-empty-description"[^>]*>/,
         );
         const speakerReviewNoSamplesEmpty = extractElementSlice(
             speakerReview,
@@ -12637,7 +12752,7 @@ describe("full UI replacement regression coverage", () => {
             "RECORDING_DETAIL_HEADER_TITLE_INPUT_CLASS_NAME",
         );
         expect(detail).toContain(
-            '"h-8 min-w-0 flex-1 px-3 py-1 text-base md:text-sm"',
+            '"rec-h2-input !h-8 min-w-0 flex-1 rounded-[var(--radius-sm)] !border !border-[var(--line-hairline)] !bg-[var(--bg-recessed)] px-[10px] py-0 [font:600_16px/1.35_var(--font-display)] text-[var(--fg-primary)] shadow-none focus-visible:!border-ring focus-visible:!ring-[3px] focus-visible:!ring-ring/50"',
         );
         expect(detail).toContain(
             "RECORDING_DETAIL_HEADER_LOCAL_BADGE_CLASS_NAME",
@@ -13304,8 +13419,8 @@ describe("full UI replacement regression coverage", () => {
         expect(tagManager).toContain("<Button");
         expect(tagManager).toContain("<Field");
         expect(tagManager).toContain("<FieldGroup");
-        expect(tagManager).toContain("<FieldSet");
-        expect(tagManager).toContain("<FieldLegend");
+        expect(tagManager).not.toContain("<FieldSet");
+        expect(tagManager).not.toContain("<FieldLegend");
         expect(tagManager).toContain("<InputGroup");
         expect(tagManager).toContain("<InputGroupInput");
         expect(tagManager).not.toContain("<InputGroupButton");
@@ -13347,11 +13462,41 @@ describe("full UI replacement regression coverage", () => {
         expect(tagManagerColorPicker).not.toContain('variant="swatch"');
         expect(tagManagerColorPicker).not.toContain('size="swatch"');
         expect(tagManagerColorPicker).not.toContain('variant="outline"');
+        const tagManagerColorPickerFrame = extractBoundedSlice(
+            tagManager,
+            "const renderColorPicker = () => (",
+            "const renderIconPicker = () => (",
+        );
+        expect(tagManagerColorPickerFrame).toContain("<div");
+        expect(tagManagerColorPickerFrame).toContain('role="group"');
+        expect(tagManagerColorPickerFrame).toContain(
+            "aria-labelledby={tagColorPickerLabelId}",
+        );
+        expect(tagManagerColorPickerFrame).toContain(
+            'data-sot-part="picker-frame"',
+        );
+        expect(tagManagerColorPickerFrame).toContain('data-sot-picker="color"');
+        expect(tagManagerColorPickerFrame).toContain(
+            "id={tagColorPickerLabelId}",
+        );
+        expect(tagManagerColorPickerFrame).toContain(
+            "className={recordingTagManagerFieldClassNames.pickerLabel}",
+        );
+        expect(tagManagerColorPickerFrame).toContain(
+            'data-sot-part="picker-label"',
+        );
+        expect(tagManagerColorPickerFrame).not.toContain("<FieldSet");
+        expect(tagManagerColorPickerFrame).not.toContain("<FieldLegend");
+        expect(tagManagerColorPickerFrame).not.toContain(
+            'data-slot="field-legend"',
+        );
         expect(tagManagerIconPicker).toContain('variant="default"');
         expect(tagManagerIconPicker).toContain('size="sm"');
         expect(tagManagerIconPicker).toContain('layout="default"');
-        expect(tagManagerIconPicker).toContain('className="grid grid-cols-6"');
-        expect(tagManagerIconPicker).toContain("spacing={2}");
+        expect(tagManagerIconPicker).toContain(
+            'className="tagm-icon-grid grid grid-cols-6"',
+        );
+        expect(tagManagerIconPicker).toContain("spacing={1.5}");
         expect(tagManagerIconPicker).toContain('variant="outline"');
         expect(tagManagerIconPicker).toContain('size="sm"');
         expect(tagManagerIconPicker).toContain(
@@ -13370,6 +13515,32 @@ describe("full UI replacement regression coverage", () => {
         expect(tagManagerIconPicker).not.toContain(
             'spacing="recordingTagIconPicker"',
         );
+        const tagManagerIconPickerFrame = extractBoundedSlice(
+            tagManager,
+            "const renderIconPicker = () => (",
+            "let panelContent: ReactNode;",
+        );
+        expect(tagManagerIconPickerFrame).toContain("<div");
+        expect(tagManagerIconPickerFrame).toContain('role="group"');
+        expect(tagManagerIconPickerFrame).toContain(
+            "aria-labelledby={tagIconPickerLabelId}",
+        );
+        expect(tagManagerIconPickerFrame).toContain(
+            'data-sot-part="picker-frame"',
+        );
+        expect(tagManagerIconPickerFrame).toContain('data-sot-picker="icon"');
+        expect(tagManagerIconPickerFrame).toContain("id={tagIconPickerLabelId}");
+        expect(tagManagerIconPickerFrame).toContain(
+            "className={recordingTagManagerFieldClassNames.pickerLabel}",
+        );
+        expect(tagManagerIconPickerFrame).toContain(
+            'data-sot-part="picker-label"',
+        );
+        expect(tagManagerIconPickerFrame).not.toContain("<FieldSet");
+        expect(tagManagerIconPickerFrame).not.toContain("<FieldLegend");
+        expect(tagManagerIconPickerFrame).not.toContain(
+            'data-slot="field-legend"',
+        );
         expect(tagManagerIconPicker).not.toContain(
             'variant="recordingTagIconOption"',
         );
@@ -13379,8 +13550,7 @@ describe("full UI replacement regression coverage", () => {
         for (const primitiveImport of [
             "Field,",
             "FieldGroup,",
-            "FieldLegend,",
-            "FieldSet,",
+            "FieldLabel",
             "InputGroup,",
             "ToggleGroup,",
             "Badge",
@@ -13502,8 +13672,8 @@ describe("full UI replacement regression coverage", () => {
         expect(tagManagerBadgeClassNames).toContain(
             "h-[22px] justify-normal gap-[5px]",
         );
-        expect(tagManagerBadgeClassNames).toContain("bg-primary");
-        expect(tagManagerBadgeClassNames).toContain("text-primary-foreground");
+        expect(tagManagerBadgeClassNames).toContain("bg-[var(--bg-recessed)]");
+        expect(tagManagerBadgeClassNames).toContain("text-[var(--fg-primary)]");
         expect(tagManager).not.toContain("--badge-pill-height");
         expect(tagManager).not.toContain("--badge-check-bg");
         expect(globals).not.toContain("--badge-pill-height");
@@ -13512,7 +13682,10 @@ describe("full UI replacement regression coverage", () => {
         expect(tagManager).toContain("!p-0");
         expect(tagManager).toContain("hover:!text-[var(--fg-primary)]");
         expect(tagManager).toContain(
-            "data-[state=on]:border-[var(--fg-primary)]",
+            "data-[state=on]:!border-[var(--fg-primary)]",
+        );
+        expect(tagManager).toContain(
+            "data-[state=on]:!text-[var(--fg-primary)]",
         );
         expect(tagManager).toContain(
             "data-[state=on]:shadow-[inset_0_0_0_2px_var(--bg-elevated)]",
@@ -13520,7 +13693,9 @@ describe("full UI replacement regression coverage", () => {
         expect(tagManager).not.toContain('size="icon-compact"');
         expect(tagManager).toContain('placement="inlineStart"');
         expect(tagManager).toContain('"relative whitespace-nowrap"');
-        expect(tagManager).toContain('saving && "pointer-events-none"');
+        expect(tagManager).toContain(
+            'saving && "pointer-events-none before:hidden"',
+        );
         expect(tagManager).toContain("<Spinner");
         expect(tagManager).toContain('appearance="checkDot"');
         expect(tagManager).not.toContain("<LoaderCircle");
@@ -13567,6 +13742,15 @@ describe("full UI replacement regression coverage", () => {
         ]) {
             expect(tagManager).toContain(featureOwnedFieldClassName);
         }
+        const tagManagerFieldClassNames = extractBoundedSlice(
+            tagManager,
+            "const recordingTagManagerFieldClassNames = {",
+            "} as const;",
+        );
+        expect(tagManagerFieldClassNames).toContain(
+            '"tagm-picker flex flex-col !gap-[10px]',
+        );
+        expect(tagManagerFieldClassNames).toContain('"tagm-picker-label');
         expect(tagManager).toContain(
             "recordingTagManagerToggleGroupClassNames.iconOption",
         );
@@ -13625,7 +13809,7 @@ describe("full UI replacement regression coverage", () => {
         expect(tagManager).toContain('size="sm"');
         expect(tagManager).toContain('data-sot-control="recording-tag-create"');
         expect(tagManager).toContain('"min-w-0 max-w-full"');
-        expect(tagManager).toContain('className="gap-3.5"');
+        expect(tagManager).toContain('className="gap-[14px]"');
         expect(tagManager).toContain('className="tagm-create gap-2"');
         expect(tagManager).toContain("disabled={!canCreate}");
         expect(tagManager).toContain("onClick={() => void handleCreateTag()}");
@@ -13691,6 +13875,7 @@ describe("full UI replacement regression coverage", () => {
             '[data-sot-panel="recording-tag-manager"]\n    [data-sot-part="create"][data-slot="field-group"]',
             '[data-sot-panel="recording-tag-manager"]\n    [data-sot-part="picker"][data-slot="field-set"]',
             '[data-sot-panel="recording-tag-manager"]\n    [data-sot-part="picker-label"][data-slot="field-legend"]',
+            '[data-sot-panel="recording-tag-manager"]\n    [data-sot-part="picker-frame"][data-slot="field-set"]',
             '[data-sot-panel="recording-tag-manager"]\n    [data-sot-part="selected-chip"][data-slot="badge"]',
             '[data-sot-panel="recording-tag-manager"] [data-sot-part="tag-loading-icon"]',
             '[data-sot-panel="recording-tag-manager"] [data-sot-part="tag-check"]',
@@ -13784,13 +13969,13 @@ describe("full UI replacement regression coverage", () => {
         ).toEqual([]);
         expect(sourceReportStyles).toContain("SOURCE_REPORT_STATE_CLASS_NAME");
         expect(sourceReport).toContain("@/features/source-report/styles");
-        expect(sourceReport).toContain("SourceReportMissingNotice");
-        expect(sourceReport).toContain("data-sot-source-report-missing-notice");
+        expect(sourceReport).not.toContain("SourceReportMissingNotice");
+        expect(sourceReport).toContain("data-sot-missing-copy");
         expect(sourceReport).toContain(
-            "SOURCE_REPORT_TRANSCRIPT_MISSING_NOTICE_CLASS_NAME",
+            "SOURCE_REPORT_TRANSCRIPT_MISSING_SECTION_CLASS_NAME",
         );
         expect(sourceReport).toContain(
-            "SOURCE_REPORT_SUMMARY_MISSING_NOTICE_CLASS_NAME",
+            "SOURCE_REPORT_SUMMARY_MISSING_SECTION_CLASS_NAME",
         );
         expect(sourceReportStyles).toContain(
             "SOURCE_REPORT_SKELETON_CLASS_NAME",
@@ -13816,7 +14001,7 @@ describe("full UI replacement regression coverage", () => {
         expect(sourceReport).toContain(
             'import { Button } from "@/components/ui/button";',
         );
-        expect(sourceReport).toContain(
+        expect(sourceReport).not.toContain(
             'import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";',
         );
         expect(sourceReport).toContain(
@@ -13833,9 +14018,11 @@ describe("full UI replacement regression coverage", () => {
             'import { Skeleton } from "@/components/ui/skeleton";',
         );
         expect(sourceReport).toContain('from "@/components/ui/empty";');
-        expect(sourceReport).toContain("<Alert");
+        expect(sourceReport).not.toContain("<Alert");
+        expect(sourceReport).not.toContain("<AlertTitle");
+        expect(sourceReport).not.toContain("<AlertDescription");
         expect(sourceReport).toContain("<Empty");
-        expect(sourceReport).toContain("<EmptyHeader");
+        expect(sourceReport).not.toContain("<EmptyHeader");
         expect(sourceReport).toContain("<EmptyMedia");
         expect(sourceReport).toContain("<EmptyTitle");
         expect(sourceReport).toContain("<EmptyDescription");
@@ -13926,17 +14113,17 @@ describe("full UI replacement regression coverage", () => {
             );
         }
         for (const sourceReportEmptyIconStyleSnippet of [
-            "mb-1",
+            "!mb-[4px]",
             "inline-grid",
-            "size-10",
+            "!size-[40px]",
             "place-items-center",
-            "border-border",
-            "bg-muted",
-            "text-muted-foreground",
-            "[&_svg:not([class*='size-'])]:size-4",
-            "border-destructive/30",
-            "bg-destructive/10",
-            "text-destructive",
+            "border-[var(--line-hairline)]",
+            "bg-[var(--bg-recessed)]",
+            "text-[var(--fg-tertiary)]",
+            "[&_svg:not([class*='size-'])]:!size-[16px]",
+            "border-[color-mix(in_srgb,var(--signal-danger)_28%,transparent)]",
+            "bg-[color-mix(in_srgb,var(--signal-danger)_14%,transparent)]",
+            "text-[var(--signal-danger)]",
         ] as const) {
             expect(sourceReportStyles).toContain(
                 sourceReportEmptyIconStyleSnippet,
@@ -13946,13 +14133,25 @@ describe("full UI replacement regression coverage", () => {
             "SOURCE_REPORT_ERROR_ICON_CLASS_NAME",
         );
         expect(sourceReport).not.toContain('variant="sourceReportErrorIcon"');
+        expect(sourceReportErrorState).toContain(
+            '<div\n                        role="alert"',
+        );
+        expect(sourceReportErrorState).not.toContain("<Alert");
+        expect(sourceReportErrorState).not.toContain("<AlertTitle");
+        expect(sourceReportErrorState).not.toContain("<AlertDescription");
         expect(sourceReportErrorState).toContain("<EmptyMedia");
-        expect(sourceReportErrorState).toContain('variant="statusError"');
+        expect(sourceReportErrorState).not.toContain('variant="statusError"');
         expect(sourceReportErrorState).toContain(
             "SOURCE_REPORT_ERROR_ALERT_CLASS_NAME",
         );
         expect(sourceReportErrorState).toContain(
             "SOURCE_REPORT_EMPTY_SURFACE_CLASS_NAME",
+        );
+        expect(sourceReportErrorState).toContain(
+            "className={SOURCE_REPORT_EMPTY_TITLE_CLASS_NAME}",
+        );
+        expect(sourceReportErrorState).toContain(
+            "SOURCE_REPORT_EMPTY_DESCRIPTION_CLASS_NAME",
         );
         expect(sourceReportErrorState).not.toContain(
             'density="sourceReportError"',

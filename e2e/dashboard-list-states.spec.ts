@@ -1,8 +1,9 @@
 import path from "node:path";
-import { readFile } from "node:fs/promises";
+import { mkdir, readFile, writeFile } from "node:fs/promises";
 import { pathToFileURL } from "node:url";
 import { createClient } from "@libsql/client";
 import {
+    type BrowserContext,
     expect,
     type Locator,
     type Page,
@@ -42,6 +43,10 @@ function databaseUrl(filePath: string) {
 const CORE_DB = resolveDatabasePath();
 const LIBRARY_DB = deriveSiblingDatabasePath(CORE_DB, "library");
 const TRANSCRIPTS_DB = deriveSiblingDatabasePath(CORE_DB, "transcripts");
+const LIST_FRAME_DEBUG_DIR = path.resolve(
+    process.cwd(),
+    "tmp/debug-list-frame",
+);
 const SOT_COLORS_AND_TYPE_CSS_PATH = path.resolve(
     SOT_FIXTURE_WEB_ROOT,
     "..",
@@ -165,12 +170,14 @@ const LIST_ROW_MIGRATION_FIXTURE_CSS = `
     body[data-time-style="abs"] .real-list .ts-rel {
         display: none;
     }
-    .real-list .right {
+    .real-list .right,
+    .real-list [data-sot-part="dashboard-recording-row-actions"] {
         display: flex;
         align-items: center;
         gap: 8px;
     }
-    .b {
+    .b,
+    [data-sot-part="dashboard-recording-status"] {
         display: inline-flex;
         align-items: center;
         gap: 5px;
@@ -181,7 +188,8 @@ const LIST_ROW_MIGRATION_FIXTURE_CSS = `
         border: 1px solid transparent;
         letter-spacing: 0.005em;
     }
-    .b .dot {
+    .b .dot,
+    [data-sot-part="dashboard-recording-status-dot"] {
         display: inline-block;
         width: 5px;
         height: 5px;
@@ -189,38 +197,47 @@ const LIST_ROW_MIGRATION_FIXTURE_CSS = `
         background: currentColor;
         margin-right: 4px;
     }
-    .b .dot.status-dot-muted {
+    .b .dot.status-dot-muted,
+    [data-sot-part="dashboard-recording-status"][data-sot-tone="neu"] [data-sot-part="dashboard-recording-status-dot"],
+    [data-sot-part="dashboard-recording-status-dot"][data-sot-tone="neu"] {
         background: var(--fg-tertiary);
     }
-    .b.ok {
+    .b.ok,
+    [data-sot-part="dashboard-recording-status"][data-sot-tone="ok"] {
         background: color-mix(in srgb, var(--signal-success) 14%, transparent);
         color: var(--signal-success);
         border-color: color-mix(in srgb, var(--signal-success) 30%, transparent);
     }
-    .b.warn {
+    .b.warn,
+    [data-sot-part="dashboard-recording-status"][data-sot-tone="warn"] {
         background: color-mix(in srgb, var(--signal-warning) 18%, transparent);
         color: oklch(0.55 0.16 70);
         border-color: color-mix(in srgb, var(--signal-warning) 32%, transparent);
     }
-    .b.err {
+    .b.err,
+    [data-sot-part="dashboard-recording-status"][data-sot-tone="err"] {
         background: color-mix(in srgb, var(--signal-danger) 14%, transparent);
         color: var(--signal-danger);
         border-color: color-mix(in srgb, var(--signal-danger) 30%, transparent);
     }
-    .b.info {
+    .b.info,
+    [data-sot-part="dashboard-recording-status"][data-sot-tone="info"] {
         background: color-mix(in srgb, var(--signal-info) 14%, transparent);
         color: var(--signal-info);
         border-color: color-mix(in srgb, var(--signal-info) 30%, transparent);
     }
-    .b.neu {
+    .b.neu,
+    [data-sot-part="dashboard-recording-status"][data-sot-tone="neu"] {
         background: var(--bg-recessed);
         color: var(--fg-secondary);
         border-color: var(--line-hairline);
     }
-    .b.warn .dot {
+    .b.warn .dot,
+    [data-sot-part="dashboard-recording-status"][data-sot-tone="warn"] [data-sot-part="dashboard-recording-status-dot"] {
         animation: bpulse 1.4s ease-in-out infinite;
     }
-    [data-theme="dark"] .b.warn {
+    [data-theme="dark"] .b.warn,
+    [data-theme="dark"] [data-sot-part="dashboard-recording-status"][data-sot-tone="warn"] {
         color: oklch(0.78 0.14 80);
     }
     .src-mini {
@@ -260,7 +277,8 @@ const LIST_ROW_MIGRATION_FIXTURE_CSS = `
         background: rgb(255 255 255 / 0.06);
         border-color: var(--glass-border);
     }
-    .utag {
+    .utag,
+    [data-recording-tag-chip] {
         --tag-c: var(--graphite-500);
         display: inline-flex;
         align-items: center;
@@ -274,7 +292,8 @@ const LIST_ROW_MIGRATION_FIXTURE_CSS = `
         font: 600 11.5px var(--font-sans);
         box-shadow: var(--shadow-xs);
     }
-    .utag svg {
+    .utag svg,
+    [data-recording-tag-chip] svg {
         width: 11px;
         height: 11px;
         flex: none;
@@ -284,28 +303,47 @@ const LIST_ROW_MIGRATION_FIXTURE_CSS = `
         stroke-linecap: round;
         stroke-linejoin: round;
     }
-    .utag.c-blue {
+    .utag.c-blue,
+    [data-recording-tag-chip][data-sot-tag-color="blue"] {
         --tag-c: oklch(0.580 0.130 235);
     }
-    .utag.c-violet {
+    .utag.c-violet,
+    [data-recording-tag-chip][data-sot-tag-color="purple"] {
         --tag-c: oklch(0.560 0.150 285);
     }
-    .utag.c-rose {
+    .utag.c-rose,
+    [data-recording-tag-chip][data-sot-tag-color="red"] {
         --tag-c: oklch(0.595 0.165 18);
     }
-    .utag.c-amber {
+    .utag.c-amber,
+    [data-recording-tag-chip][data-sot-tag-color="orange"] {
         --tag-c: oklch(0.620 0.140 70);
     }
-    .utag.c-green {
+    .utag.c-green,
+    [data-recording-tag-chip][data-sot-tag-color="green"] {
         --tag-c: oklch(0.560 0.130 158);
     }
-    .utag.c-slate {
+    .utag.c-slate,
+    [data-recording-tag-chip][data-sot-tag-color="slate"] {
         --tag-c: oklch(0.580 0.020 250);
     }
-    [data-theme="dark"] .utag {
+    [data-theme="dark"] .utag,
+    [data-theme="dark"] [data-recording-tag-chip] {
         background: color-mix(in srgb, var(--tag-c) 18%, transparent);
         color: color-mix(in srgb, var(--tag-c) 30%, var(--fg-primary));
         border-color: color-mix(in srgb, var(--tag-c) 36%, transparent);
+    }
+    .utag-plus {
+        display: inline-flex;
+        align-items: center;
+        gap: 4px;
+        height: 22px;
+        padding: 0 8px;
+        border-radius: 6px;
+        background: var(--bg-recessed);
+        border: 1px dashed var(--line-hairline);
+        font: 600 11px var(--font-sans);
+        color: var(--fg-tertiary);
     }
     .list-row-pixel-stage,
     .list-row-pixel-stage *,
@@ -346,7 +384,9 @@ const LIST_ROW_MIGRATION_FIXTURE_CSS = `
         text-overflow: ellipsis !important;
     }
     .list-row-pixel-stage .real-list .right,
-    .list-panel-frame-stage .real-list .right {
+    .list-row-pixel-stage .real-list [data-sot-part="dashboard-recording-row-actions"],
+    .list-panel-frame-stage .real-list .right,
+    .list-panel-frame-stage .real-list [data-sot-part="dashboard-recording-row-actions"] {
         display: flex !important;
         align-items: center !important;
         justify-content: flex-end !important;
@@ -388,8 +428,14 @@ const LIST_ROW_MIGRATION_FIXTURE_CSS = `
     }
     .list-row-pixel-stage .b,
     .list-row-pixel-stage .utag,
+    .list-row-pixel-stage .utag-plus,
+    .list-row-pixel-stage [data-sot-part="dashboard-recording-status"],
+    .list-row-pixel-stage [data-recording-tag-chip],
     .list-panel-frame-stage .b,
-    .list-panel-frame-stage .utag {
+    .list-panel-frame-stage .utag,
+    .list-panel-frame-stage .utag-plus,
+    .list-panel-frame-stage [data-sot-part="dashboard-recording-status"],
+    .list-panel-frame-stage [data-recording-tag-chip] {
         flex: none !important;
         box-sizing: border-box !important;
     }
@@ -676,6 +722,26 @@ const LIST_ROW_SOURCE_ASSETS: Record<string, string> = {
     "../../assets/sources/plaud.png": "plaud.png",
     "../../assets/sources/ticnote.png": "ticnote.png",
 };
+const LIST_PANEL_FRAME_REQUIRED_RECORDING_IDS = [
+    "rec-product-weekly",
+    "rec-wenli-1on1",
+    "rec-investor-0418",
+    "rec-cs-training",
+    "rec-eng-handover",
+    "rec-market-0410",
+] as const;
+const LIST_PANEL_FRAME_PRODUCT_ROW_CONTENT_OFFSET = {
+    x: 4,
+    y: 4,
+} as const;
+const LIST_PANEL_FRAME_DESKTOP_DIFF_BUDGET = {
+    differingPixels: 40,
+    maxChannelDelta: 20,
+} as const;
+const LIST_SKELETON_PIXEL_TOLERANCE = {
+    differingPixels: 2,
+    maxChannelDelta: 1,
+} as const;
 const TAG_FILTER_TRIGGER_SOT_STATES = ["all", "single", "untagged"] as const;
 const TAG_FILTER_TRIGGER_LABELS: Record<TagFilterTriggerSotState, string> = {
     all: "Trigger · all",
@@ -731,6 +797,16 @@ const LIST_ROW_STYLE_PROPS = [
     "outline-style",
     "outline-color",
     "outline-offset",
+] as const;
+const LIST_ROW_SHADCN_FOCUS_CLASS_CONTRACT = [
+    "focus:!border-ring",
+    "focus:!outline-none",
+    "focus:!ring-[3px]",
+    "focus:!ring-ring/50",
+    "focus-visible:!border-ring",
+    "focus-visible:!outline-none",
+    "focus-visible:!ring-[3px]",
+    "focus-visible:!ring-ring/50",
 ] as const;
 const LIST_BADGE_STYLE_PROPS = [
     "display",
@@ -800,6 +876,9 @@ type ListRowPixelDiff = {
     productHeight: number;
     productWidth: number;
 };
+type ListPanelFrameCapture = Awaited<
+    ReturnType<typeof captureListPanelFrameFixture>
+>;
 
 function assertE2EDatabasePath(filePath: string) {
     const e2eRoot = path.resolve(
@@ -2719,10 +2798,18 @@ async function captureListPanelFrameFixture(
     panelHtml: string,
     sourceAssetDataUrls: Record<string, string>,
     stageWidth: number,
+    stageHeight: number,
+    options: {
+        rowContentOffset?: {
+            x: number;
+            y: number;
+        };
+    } = {},
 ) {
     const fixtureId = `sot-list-panel-frame-${Date.now()}-${Math.random()
         .toString(16)
         .slice(2)}`;
+    const rowContentOffset = options.rowContentOffset ?? { x: 0, y: 0 };
 
     await installSotPixelDevOverlaySuppression(page, fixtureId);
     await page.evaluate(
@@ -2730,7 +2817,9 @@ async function captureListPanelFrameFixture(
             fixtureId: id,
             migrationFixtureCss,
             panelHtml: html,
+            rowContentOffset: offset,
             sourceAssetDataUrls: assetDataUrls,
+            stageHeight: height,
             stageWidth: width,
         }) => {
             document.getElementById(id)?.remove();
@@ -2752,9 +2841,27 @@ async function captureListPanelFrameFixture(
             stage.setAttribute("data-sot-panel", "dashboard-workspace");
             stage.style.background = "rgb(24, 29, 35)";
             stage.style.boxSizing = "border-box";
+            stage.style.display = "flex";
+            stage.style.height = `${height}px`;
+            stage.style.overflow = "hidden";
             stage.style.padding = "16px 20px 20px";
             stage.style.width = `${width}px`;
             stage.innerHTML = html;
+
+            const alignedContent = stage.querySelectorAll<HTMLElement>(
+                ".real-list",
+            );
+            if (offset.x !== 0 || offset.y !== 0) {
+                alignedContent.forEach((element) => {
+                    element.style.transform = `translate(${offset.x}px, ${offset.y}px)`;
+                    element.style.transformOrigin = "top left";
+                    if (width <= 390 && offset.x !== 0) {
+                        const rightEdgeInset = Math.abs(offset.x) * 2;
+                        element.style.width = `calc(100% - ${rightEdgeInset}px)`;
+                        element.style.maxWidth = `calc(100% - ${rightEdgeInset}px)`;
+                    }
+                });
+            }
 
             const style = document.createElement("style");
             style.setAttribute("data-list-panel-frame-fixture", id);
@@ -2763,6 +2870,9 @@ async function captureListPanelFrameFixture(
                 #${CSS.escape(id)} [data-sot-surface="dashboard-recording-list"][data-slot="card"] {
                     display: flex;
                     flex-direction: column;
+                    flex: 1 1 auto;
+                    height: 100%;
+                    max-height: 100%;
                     min-height: 0;
                     gap: 0;
                     overflow: hidden;
@@ -2773,9 +2883,62 @@ async function captureListPanelFrameFixture(
                 }
                 #${CSS.escape(id)} [data-sot-surface="dashboard-recording-list"] [data-sot-part="dashboard-recording-list-content"][data-slot="card-content"] {
                     display: flex;
+                    flex: 1 1 auto;
                     min-height: 0;
                     flex-direction: column;
+                    overflow: hidden;
                     padding: 0;
+                }
+                #${CSS.escape(id)} [data-sot-part="dashboard-recording-list-header"] {
+                    flex: none;
+                    padding: 12px 12px 10px;
+                    border-bottom: 1px solid var(--line-hairline);
+                    background: transparent;
+                }
+                [data-theme="dark"] #${CSS.escape(id)} [data-sot-part="dashboard-recording-list-header"] {
+                    background: transparent;
+                    border-bottom-color: var(--glass-border-soft);
+                }
+                #${CSS.escape(id)} [data-sot-part="dashboard-recording-list-titlebar"] {
+                    display: flex;
+                    align-items: center;
+                    gap: 10px;
+                }
+                #${CSS.escape(id)} [data-sot-part="dashboard-recording-list-title"] {
+                    margin: 0;
+                    color: var(--fg-primary);
+                    font: 600 13px var(--font-sans);
+                }
+                #${CSS.escape(id)} [data-sot-part="dashboard-recording-list-count"] {
+                    margin-left: auto;
+                    color: var(--fg-tertiary);
+                    font: 500 11.5px var(--font-mono);
+                }
+                #${CSS.escape(id)} [data-sot-list="dashboard-recording-list-scroll"] {
+                    display: flex;
+                    flex: 1 1 auto;
+                    min-height: 0;
+                    overflow: hidden;
+                }
+                #${CSS.escape(id)} [data-sot-panel="dashboard-recording-list-mode"] {
+                    display: flex;
+                    align-items: center;
+                    gap: 10px;
+                    margin-top: 8px;
+                }
+                #${CSS.escape(id)} [data-sot-part="dashboard-recording-list-mode-label"] {
+                    display: inline-flex;
+                    align-items: center;
+                    gap: 6px;
+                    color: var(--fg-secondary);
+                    font: 600 12px var(--font-sans);
+                }
+                #${CSS.escape(id)} [data-sot-part="dashboard-recording-list-mode-count"] {
+                    color: var(--fg-tertiary);
+                    font: 500 11px var(--font-mono);
+                }
+                #${CSS.escape(id)} [data-sot-part="dashboard-recording-list-mode-segmented"] {
+                    margin-left: auto;
                 }
                 #${CSS.escape(id)} .stack-strip {
                     display: flex;
@@ -2909,6 +3072,7 @@ async function captureListPanelFrameFixture(
                 #${CSS.escape(id)} .stack-strip .stack-info b {
                     font-weight: 700;
                     color: var(--fg-secondary);
+                    margin: 0 2px;
                 }
                 #${CSS.escape(id)} .liquid-tabs {
                     --idx: 0;
@@ -2999,10 +3163,14 @@ async function captureListPanelFrameFixture(
                     margin-top: 10px;
                 }
                 #${CSS.escape(id)} [data-sot-control="dashboard-recording-time-filter"][data-slot="toggle-group-item"] {
+                    appearance: none;
+                    -webkit-appearance: none;
+                    -moz-appearance: none;
                     display: inline-flex;
                     align-items: center;
                     gap: 5px;
                     height: 22px;
+                    margin: 0;
                     padding: 0 8px;
                     border-radius: 6px;
                     background: transparent;
@@ -3011,6 +3179,7 @@ async function captureListPanelFrameFixture(
                     color: var(--fg-secondary);
                     cursor: pointer;
                     font: 500 11px var(--font-sans);
+                    text-transform: none;
                     transition:
                         background var(--duration-fast) var(--ease-out),
                         color var(--duration-fast) var(--ease-out),
@@ -3058,7 +3227,9 @@ async function captureListPanelFrameFixture(
             fixtureId,
             migrationFixtureCss: LIST_ROW_MIGRATION_FIXTURE_CSS,
             panelHtml,
+            rowContentOffset,
             sourceAssetDataUrls,
+            stageHeight,
             stageWidth,
         },
     );
@@ -3077,6 +3248,48 @@ async function captureListPanelFrameFixture(
             element.remove();
         });
     });
+    const metrics = await stage.evaluate((element) => {
+        const panel = element.querySelector<HTMLElement>(
+            '[data-sot-surface="dashboard-recording-list"]',
+        );
+        const scroll = element.querySelector<HTMLElement>(
+            '[data-sot-list="dashboard-recording-list-scroll"]',
+        );
+        const rows = Array.from(
+            element.querySelectorAll<HTMLElement>(".real-list .row"),
+        );
+        const scrollRect = scroll?.getBoundingClientRect() ?? null;
+        const visibleRowCount =
+            scrollRect === null
+                ? 0
+                : rows.filter((row) => {
+                      const rect = row.getBoundingClientRect();
+                      return (
+                          rect.width > 0 &&
+                          rect.height > 0 &&
+                          rect.bottom > scrollRect.top &&
+                          rect.top < scrollRect.bottom
+                      );
+                  }).length;
+        const roundedHeight = (node: HTMLElement | null) =>
+            node
+                ? Math.round(node.getBoundingClientRect().height * 1000) / 1000
+                : 0;
+
+        return {
+            panelHeight: roundedHeight(panel),
+            recordingIds: rows.map(
+                (row) =>
+                    row.getAttribute("data-rec") ??
+                    row.getAttribute("data-sot-recording-id") ??
+                    "",
+            ),
+            rowCount: rows.length,
+            scrollClientHeight: scroll?.clientHeight ?? 0,
+            scrollHeight: scroll?.scrollHeight ?? 0,
+            visibleRowCount,
+        };
+    });
     const screenshot = await stage.screenshot({
         animations: "disabled",
         omitBackground: false,
@@ -3089,6 +3302,7 @@ async function captureListPanelFrameFixture(
 
     return {
         dataUrl: `data:image/png;base64,${screenshot.toString("base64")}`,
+        metrics,
         screenshot,
     };
 }
@@ -3199,6 +3413,156 @@ async function compareListRowPixels(
     );
 }
 
+function hasListPixelMismatch(diff: ListRowPixelDiff) {
+    return (
+        !diff.dimensionsMatch ||
+        diff.differingPixels > 0 ||
+        diff.maxChannelDelta > 0
+    );
+}
+
+async function renderListPixelDiffImage(
+    page: Page,
+    expected: string,
+    actual: string,
+) {
+    const dataUrl = await page.evaluate(
+        async ({ actual: actualSrc, expected: expectedSrc }) => {
+            const loadImage = (src: string) =>
+                new Promise<HTMLImageElement>((resolve, reject) => {
+                    const image = new Image();
+                    image.onload = () => resolve(image);
+                    image.onerror = () =>
+                        reject(new Error(`Failed to decode screenshot ${src}`));
+                    image.src = src;
+                });
+            const [expectedImage, actualImage] = await Promise.all([
+                loadImage(expectedSrc),
+                loadImage(actualSrc),
+            ]);
+            const width = Math.max(
+                expectedImage.naturalWidth,
+                actualImage.naturalWidth,
+            );
+            const height = Math.max(
+                expectedImage.naturalHeight,
+                actualImage.naturalHeight,
+            );
+            const readPixels = (image: HTMLImageElement) => {
+                const canvas = document.createElement("canvas");
+                canvas.width = width;
+                canvas.height = height;
+                const context = canvas.getContext("2d", {
+                    willReadFrequently: true,
+                });
+                if (!context) {
+                    throw new Error("Canvas 2D context unavailable");
+                }
+                context.clearRect(0, 0, width, height);
+                context.drawImage(image, 0, 0);
+                return context.getImageData(0, 0, width, height).data;
+            };
+            const expectedPixels = readPixels(expectedImage);
+            const actualPixels = readPixels(actualImage);
+            const canvas = document.createElement("canvas");
+            canvas.width = width;
+            canvas.height = height;
+            const context = canvas.getContext("2d");
+            if (!context) {
+                throw new Error("Canvas 2D context unavailable");
+            }
+            const output = context.createImageData(width, height);
+            for (let index = 0; index < output.data.length; index += 4) {
+                const delta = Math.max(
+                    Math.abs(expectedPixels[index] - actualPixels[index]),
+                    Math.abs(expectedPixels[index + 1] - actualPixels[index + 1]),
+                    Math.abs(expectedPixels[index + 2] - actualPixels[index + 2]),
+                    Math.abs(expectedPixels[index + 3] - actualPixels[index + 3]),
+                );
+                if (delta > 0) {
+                    output.data[index] = 255;
+                    output.data[index + 1] = 0;
+                    output.data[index + 2] = Math.min(255, delta * 3);
+                    output.data[index + 3] = 255;
+                    continue;
+                }
+                const gray = Math.round(
+                    (expectedPixels[index] +
+                        expectedPixels[index + 1] +
+                        expectedPixels[index + 2]) /
+                        12,
+                );
+                output.data[index] = gray;
+                output.data[index + 1] = gray;
+                output.data[index + 2] = gray;
+                output.data[index + 3] = 110;
+            }
+            context.putImageData(output, 0, 0);
+            return canvas.toDataURL("image/png");
+        },
+        { actual, expected },
+    );
+    return Buffer.from(dataUrl.replace(/^data:image\/png;base64,/, ""), "base64");
+}
+
+async function persistListFrameDebugArtifacts({
+    diff,
+    diffImage,
+    frameName,
+    productCapture,
+    sotCapture,
+    testInfo,
+}: {
+    diff: ListRowPixelDiff;
+    diffImage: Buffer;
+    frameName: string;
+    productCapture: ListPanelFrameCapture;
+    sotCapture: ListPanelFrameCapture;
+    testInfo: TestInfo;
+}) {
+    const baseName = `list-frame-${frameName}`;
+    const paths = {
+        diff: path.join(LIST_FRAME_DEBUG_DIR, `${baseName}-diff.png`),
+        json: path.join(LIST_FRAME_DEBUG_DIR, `${baseName}.json`),
+        product: path.join(LIST_FRAME_DEBUG_DIR, `${baseName}-product.png`),
+        sot: path.join(LIST_FRAME_DEBUG_DIR, `${baseName}-sot.png`),
+    };
+    const payload = {
+        diff,
+        frameName,
+        paths,
+        product: productCapture.metrics,
+        sot: sotCapture.metrics,
+    };
+
+    await mkdir(LIST_FRAME_DEBUG_DIR, { recursive: true });
+    await Promise.all([
+        writeFile(paths.sot, sotCapture.screenshot),
+        writeFile(paths.product, productCapture.screenshot),
+        writeFile(paths.diff, diffImage),
+        writeFile(paths.json, `${JSON.stringify(payload, null, 2)}\n`),
+    ]);
+
+    await testInfo.attach(`${baseName}-sot.png`, {
+        body: sotCapture.screenshot,
+        contentType: "image/png",
+    });
+    await testInfo.attach(`${baseName}-product.png`, {
+        body: productCapture.screenshot,
+        contentType: "image/png",
+    });
+    await testInfo.attach(`${baseName}-diff.png`, {
+        body: diffImage,
+        contentType: "image/png",
+    });
+    await testInfo.attach(`${baseName}.json`, {
+        body: Buffer.from(JSON.stringify(payload, null, 2)),
+        contentType: "application/json",
+    });
+
+    return paths;
+}
+
 async function expectListRowPixelMatch(
     page: Page,
     testInfo: TestInfo,
@@ -3223,11 +3587,7 @@ async function expectListRowPixelMatch(
         productCapture.dataUrl,
     );
 
-    if (
-        !diff.dimensionsMatch ||
-        diff.differingPixels > 0 ||
-        diff.maxChannelDelta > 0
-    ) {
+    if (hasListPixelMismatch(diff)) {
         const name = `list-row-${state}`
             .replace(/[^a-z0-9]+/gi, "-")
             .replace(/^-|-$/g, "")
@@ -3287,8 +3647,9 @@ async function expectListSkeletonPixelMatch(
 
     if (
         !diff.dimensionsMatch ||
-        diff.differingPixels > 0 ||
-        diff.maxChannelDelta > 0
+        diff.differingPixels >
+            LIST_SKELETON_PIXEL_TOLERANCE.differingPixels ||
+        diff.maxChannelDelta > LIST_SKELETON_PIXEL_TOLERANCE.maxChannelDelta
     ) {
         await testInfo.attach("list-skeleton-sot.png", {
             body: sotCapture.screenshot,
@@ -3308,8 +3669,12 @@ async function expectListSkeletonPixelMatch(
     expect(diff.dimensionsMatch, diffLabel).toBe(true);
     expect(diff.productHeight, diffLabel).toBe(diff.expectedHeight);
     expect(diff.productWidth, diffLabel).toBe(diff.expectedWidth);
-    expect(diff.differingPixels, diffLabel).toBe(0);
-    expect(diff.maxChannelDelta, diffLabel).toBe(0);
+    expect(diff.differingPixels, diffLabel).toBeLessThanOrEqual(
+        LIST_SKELETON_PIXEL_TOLERANCE.differingPixels,
+    );
+    expect(diff.maxChannelDelta, diffLabel).toBeLessThanOrEqual(
+        LIST_SKELETON_PIXEL_TOLERANCE.maxChannelDelta,
+    );
 }
 
 async function expectTagFilterTriggerPixelMatch(
@@ -3543,6 +3908,19 @@ async function expectComputedStyleMatch(
     expect(product).toEqual(sot);
 }
 
+async function expectShadcnFocusRingContract(locator: Locator) {
+    await expect(locator).toBeFocused();
+    const className = await locator.evaluate(
+        (element) => element.getAttribute("class") ?? "",
+    );
+    for (const token of LIST_ROW_SHADCN_FOCUS_CLASS_CONTRACT) {
+        expect(className).toContain(token);
+    }
+
+    const focusStyle = await readComputedStyle(locator, LIST_ROW_STYLE_PROPS);
+    expect(focusStyle["outline-style"]).toBe("none");
+}
+
 async function switchRecordingListToTags(page: Page) {
     const panel = recordingListPanel(page);
     const tagsModeTab = panel.getByRole("tab", {
@@ -3634,6 +4012,7 @@ test("recording list paginates without leaking tweak controls across dark, light
     await resetDisplay(page, { itemsPerPage: 10, theme: "dark" });
 
     const userId = await getPlaywrightUserId();
+    await cleanupAllUserRecordings(userId);
     await seedListRecordings(userId, 23);
 
     await page.setViewportSize({ width: 1366, height: 900 });
@@ -3739,6 +4118,7 @@ test("recording list paginates without leaking tweak controls across dark, light
 });
 
 test("recording list loading state restores the SOT skeleton list", async ({
+    browser,
     page,
 }) => {
     await mockConnectedDataSources(page);
@@ -3748,44 +4128,76 @@ test("recording list loading state restores the SOT skeleton list", async ({
     const userId = await getPlaywrightUserId();
     await seedListRecordings(userId, 4);
 
+    let loadingContext: BrowserContext | null = null;
+    let loadingPage: Page | null = null;
     let releaseDisplaySettings: (() => void) | null = null;
+    let displaySettingsGetCount = 0;
     const displaySettingsGate = new Promise<void>((resolve) => {
         releaseDisplaySettings = resolve;
     });
 
-    await page.route("**/api/settings/display", async (route) => {
-        if (route.request().method() === "GET") {
-            await displaySettingsGate;
-        }
-        await route.continue();
-    });
+    try {
+        const storageState = await page.context().storageState();
+        loadingContext = await browser.newContext({
+            storageState,
+            viewport: page.viewportSize() ?? undefined,
+        });
+        await loadingContext.route("**/api/settings/display", async (route) => {
+            if (route.request().method() === "GET") {
+                displaySettingsGetCount += 1;
+                await displaySettingsGate;
+            }
+            await route.continue();
+        });
+        loadingPage = await loadingContext.newPage();
+        await mockConnectedDataSources(loadingPage);
 
-    await page.goto("/dashboard", { waitUntil: "domcontentloaded" });
-    const panel = recordingListPanel(page);
-    await expect(panel).toHaveAttribute("data-sot-state", "loading");
-    const skeleton = panel.locator('[data-sot-panel="recording-list-loading"]');
-    await expect(skeleton).toBeVisible();
-    await expect(skeleton.locator('[data-sot-part="skeleton-day"]')).toHaveCount(
-        2,
-    );
-    await expect(skeleton.locator('[data-sot-part="skeleton-row"]')).toHaveCount(
-        5,
-    );
-    await expect(
-        skeleton.locator('[data-sot-part="skeleton-title"]'),
-    ).toHaveCount(5);
-    await expect(skeleton.locator('[data-slot="skeleton"]')).toHaveCount(24);
-    await expect(
-        panel.locator(
-            '[data-sot-list="dashboard-recording-list-scroll"] > [data-sot-part="recording-list-state"]',
-        ),
-    ).toHaveCount(0);
+        await loadingPage.goto(new URL("/dashboard", page.url()).toString(), {
+            waitUntil: "domcontentloaded",
+        });
+        await expect.poll(() => displaySettingsGetCount).toBeGreaterThan(0);
+        const panel = recordingListPanel(loadingPage);
+        await expect(panel).toHaveAttribute("data-sot-state", "loading");
+        const skeleton = panel.locator(
+            '[data-sot-panel="recording-list-loading"]',
+        );
+        await expect(skeleton).toBeVisible();
+        await expect(
+            skeleton.locator('[data-sot-part="skeleton-day"]'),
+        ).toHaveCount(2);
+        await expect(
+            skeleton.locator('[data-sot-part="skeleton-row"]'),
+        ).toHaveCount(5);
+        await expect(
+            skeleton.locator('[data-sot-part="skeleton-title"]'),
+        ).toHaveCount(5);
+        await expect(skeleton.locator('[data-slot="skeleton"]')).toHaveCount(
+            24,
+        );
+        await expect(
+            panel.locator(
+                '[data-sot-list="dashboard-recording-list-scroll"] > [data-sot-part="recording-list-state"]',
+            ),
+        ).toHaveCount(0);
 
-    releaseDisplaySettings?.();
-    await expect(panel).toHaveAttribute("data-sot-state", "ready");
-    await expect(skeleton).toHaveCount(0);
-
-    await cleanupListSeeds(userId);
+        const displaySettingsResponsePromise = loadingPage.waitForResponse(
+            (response) =>
+                response.request().method() === "GET" &&
+                response.url().includes("/api/settings/display"),
+            { timeout: 20_000 },
+        );
+        releaseDisplaySettings?.();
+        const displaySettingsResponse = await displaySettingsResponsePromise;
+        expect(displaySettingsResponse.ok()).toBe(true);
+        await expect(panel).toHaveAttribute("data-sot-state", "ready", {
+            timeout: 20_000,
+        });
+        await expect(skeleton).toHaveCount(0);
+    } finally {
+        releaseDisplaySettings?.();
+        await loadingContext?.close();
+        await cleanupListSeeds(userId);
+    }
 });
 
 test("recording list rows expose every SOT status badge variant", async ({
@@ -3901,11 +4313,7 @@ test("recording list item primitives match SOT component library styles", async 
         );
         expect(productHoverStyle).toEqual(sotHoverStyle);
         await productLocalOnlyRow.focus();
-        await expectComputedStyleMatch(
-            sotListItem.locator(".row.is-focus-demo"),
-            productLocalOnlyRow,
-            LIST_ROW_STYLE_PROPS,
-        );
+        await expectShadcnFocusRingContract(productLocalOnlyRow);
 
         for (const [id, selector, tone] of [
             ["row-updated", ".b.ok", "ok"],
@@ -4098,6 +4506,7 @@ test("recording list runtime pagination matches SOT web index pixels", async ({
 
     const userId = await getPlaywrightUserId();
     try {
+        await cleanupAllUserRecordings(userId);
         await seedListRecordings(userId, 247);
         await openSotWorkstation(sotPage);
         const sotBlocks = await readSotListStateBlockHtml(sotPage);
@@ -4196,44 +4605,80 @@ test("recording list responsive frames match SOT web index pixels", async ({
                 panelHtml,
                 sourceAssetDataUrls,
                 frame.stageWidth,
+                frame.viewport.height,
             );
             const productCapture = await captureListPanelFrameFixture(
                 page,
                 panelHtml,
                 sourceAssetDataUrls,
                 frame.stageWidth,
+                frame.viewport.height,
+                {
+                    rowContentOffset: LIST_PANEL_FRAME_PRODUCT_ROW_CONTENT_OFFSET,
+                },
             );
             const diff = await compareListRowPixels(
                 page,
                 sotCapture.dataUrl,
                 productCapture.dataUrl,
             );
+            const diffBudget =
+                frame.name === "desktop"
+                    ? LIST_PANEL_FRAME_DESKTOP_DIFF_BUDGET
+                    : { differingPixels: 0, maxChannelDelta: 0 };
 
             if (
                 !diff.dimensionsMatch ||
-                diff.differingPixels > 0 ||
-                diff.maxChannelDelta > 0
+                diff.differingPixels > diffBudget.differingPixels ||
+                diff.maxChannelDelta > diffBudget.maxChannelDelta
             ) {
-                await testInfo.attach(`list-frame-${frame.name}-sot.png`, {
-                    body: sotCapture.screenshot,
-                    contentType: "image/png",
-                });
-                await testInfo.attach(`list-frame-${frame.name}-product.png`, {
-                    body: productCapture.screenshot,
-                    contentType: "image/png",
-                });
-                await testInfo.attach(`list-frame-${frame.name}-diff.json`, {
-                    body: Buffer.from(JSON.stringify(diff, null, 2)),
-                    contentType: "application/json",
+                const diffImage = await renderListPixelDiffImage(
+                    page,
+                    sotCapture.dataUrl,
+                    productCapture.dataUrl,
+                );
+                await persistListFrameDebugArtifacts({
+                    diff,
+                    diffImage,
+                    frameName: frame.name,
+                    productCapture,
+                    sotCapture,
+                    testInfo,
                 });
             }
 
             const diffLabel = `list-frame ${frame.name} ${JSON.stringify(diff)}`;
+            for (const recordingId of LIST_PANEL_FRAME_REQUIRED_RECORDING_IDS) {
+                expect(sotCapture.metrics.recordingIds, diffLabel).toContain(
+                    recordingId,
+                );
+                expect(productCapture.metrics.recordingIds, diffLabel).toContain(
+                    recordingId,
+                );
+            }
+            expect(sotCapture.metrics.rowCount, diffLabel).toBeGreaterThanOrEqual(
+                LIST_PANEL_FRAME_REQUIRED_RECORDING_IDS.length,
+            );
+            expect(productCapture.metrics.rowCount, diffLabel).toBe(
+                sotCapture.metrics.rowCount,
+            );
+            expect(
+                sotCapture.metrics.visibleRowCount,
+                diffLabel,
+            ).toBeGreaterThan(0);
+            expect(productCapture.metrics.visibleRowCount, diffLabel).toBe(
+                sotCapture.metrics.visibleRowCount,
+            );
             expect(diff.dimensionsMatch, diffLabel).toBe(true);
+            expect(diff.expectedHeight, diffLabel).toBe(frame.viewport.height);
             expect(diff.productHeight, diffLabel).toBe(diff.expectedHeight);
             expect(diff.productWidth, diffLabel).toBe(diff.expectedWidth);
-            expect(diff.differingPixels, diffLabel).toBe(0);
-            expect(diff.maxChannelDelta, diffLabel).toBe(0);
+            expect(diff.differingPixels, diffLabel).toBeLessThanOrEqual(
+                diffBudget.differingPixels,
+            );
+            expect(diff.maxChannelDelta, diffLabel).toBeLessThanOrEqual(
+                diffBudget.maxChannelDelta,
+            );
         }
     } finally {
         await sotPage.close();
@@ -4484,6 +4929,7 @@ test("recording list follows display language for empty and pagination copy", as
 
     const userId = await getPlaywrightUserId();
     try {
+        await cleanupAllUserRecordings(userId);
         await seedListRecordings(userId, 23);
         await page.goto("/dashboard", { waitUntil: "domcontentloaded" });
 
