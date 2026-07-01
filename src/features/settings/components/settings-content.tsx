@@ -1769,10 +1769,10 @@ function DataSourcesSettingsPanel({
                                     SOURCE_PROVIDER_DETAIL_FIELD_CONTROL_CLASS
                                 }
                             >
-                                    <Switch
-                                        className={
-                                            SOURCE_PROVIDER_DETAIL_SWITCH_CLASS
-                                        }
+                                <Switch
+                                    className={
+                                        SOURCE_PROVIDER_DETAIL_SWITCH_CLASS
+                                    }
                                     data-sot-control="source-auto-update"
                                     data-sot-provider={selectedSource.provider}
                                     data-sot-state={

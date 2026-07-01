@@ -1,5 +1,6 @@
 "use client";
 
+import Image from "next/image";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
@@ -175,11 +176,13 @@ export function LoginForm({
                         className={authLoginClassNames.frame}
                         data-sot-frame="auth"
                     >
-                        <img
+                        <Image
                             className={authLoginClassNames.logoMark}
                             data-sot-part="auth-logo-mark"
                             src="/assets/logo-mark-steel.svg"
                             alt=""
+                            width={36}
+                            height={36}
                         />{" "}
                         <CardTitle
                             className={authLoginClassNames.frameTitle}

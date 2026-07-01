@@ -181,11 +181,21 @@ const DASHBOARD_SEARCH_ACTIVITY_FEATURE_OWNER_CLASS_SNIPPETS = [
     },
     {
         propertyName: "librarySearchAnchor",
-        snippets: ["relative inline-flex size-8", "items-center"],
+        snippets: [
+            "relative inline-flex size-[32px]",
+            "items-center",
+            "justify-center",
+            "p-0",
+        ],
     },
     {
         propertyName: "dashboardActivityAnchor",
-        snippets: ["relative inline-flex size-8", "items-center"],
+        snippets: [
+            "relative inline-flex size-[32px]",
+            "items-center",
+            "justify-center",
+            "p-0",
+        ],
     },
     {
         propertyName: "dashboardSearchTrigger",

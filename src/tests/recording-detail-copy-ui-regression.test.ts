@@ -200,7 +200,7 @@ const SOURCE_REPORT_SKELETON_OWNER_TOKENS = [
 ] as const;
 
 const EXPECTED_SOURCE_REPORT_METRIC_CARD_CLASS_NAME =
-    "sr-card gap-[6px] !overflow-visible rounded-[10px] border border-[var(--source-report-metric-border)] bg-[var(--source-report-metric-bg)] px-[12px] py-[10px] shadow-none backdrop-blur-none";
+    "gap-[6px] !overflow-visible rounded-[10px] border border-[var(--source-report-metric-border)] bg-[var(--source-report-metric-bg)] px-[12px] py-[10px] shadow-none backdrop-blur-none";
 const SOURCE_REPORT_METRIC_CARD_CLASS_TOKENS =
     EXPECTED_SOURCE_REPORT_METRIC_CARD_CLASS_NAME.split(" ");
 const SOURCE_REPORT_STYLE_OWNER_SNIPPETS = [
@@ -210,34 +210,33 @@ const SOURCE_REPORT_STYLE_OWNER_SNIPPETS = [
     '"--source-report-metric-border": "var(--glass-border-soft)"',
     '"--source-report-status-ok-fg": "var(--signal-success)"',
     '"--source-report-status-ok-bg":',
-    '"color-mix(in srgb, var(--source-report-status-ok-fg) 14%, transparent)"',
+    "color-mix(in srgb, var(--source-report-status-ok-fg) 14%, transparent)",
     '"--source-report-status-ok-border":',
-    '"color-mix(in srgb, var(--source-report-status-ok-fg) 30%, transparent)"',
+    "color-mix(in srgb, var(--source-report-status-ok-fg) 30%, transparent)",
     '"--source-report-status-warn-bg":',
-    '"color-mix(in srgb, var(--signal-warning) 18%, transparent)"',
+    "color-mix(in srgb, var(--signal-warning) 18%, transparent)",
     '"--source-report-status-warn-border":',
-    '"color-mix(in srgb, var(--signal-warning) 32%, transparent)"',
+    "color-mix(in srgb, var(--signal-warning) 32%, transparent)",
     '"--source-report-status-warn-fg": "var(--signal-warning-strong)"',
     '"--source-report-status-err-bg":',
-    '"color-mix(in srgb, var(--signal-danger) 14%, transparent)"',
+    "color-mix(in srgb, var(--signal-danger) 14%, transparent)",
     '"--source-report-status-err-border":',
-    '"color-mix(in srgb, var(--signal-danger) 30%, transparent)"',
+    "color-mix(in srgb, var(--signal-danger) 30%, transparent)",
     '"--source-report-skeleton-bg":',
-    '"linear-gradient(90deg, rgb(255 255 255 / 0.05) 0%, rgb(255 255 255 / 0.12) 50%, rgb(255 255 255 / 0.05) 100%)"',
+    "linear-gradient(90deg, rgb(255 255 255 / 0.05)",
     "export const SOURCE_REPORT_SKELETON_CLASS_NAME =",
+    "![background-color:transparent]",
+    "bg-[image:var(--source-report-skeleton-bg)]",
     "export type SourceReportTone =",
     "export type SourceReportCardSkeletonSize =",
     "export type SourceReportSegmentSkeletonSize =",
     "export const SOURCE_REPORT_CARD_SKELETON_CLASS_NAMES =",
     "export const SOURCE_REPORT_SEGMENT_SKELETON_CLASS_NAMES =",
-    '"![background-color:transparent] bg-[image:var(--source-report-skeleton-bg)] bg-[length:220%_100%] bg-[position:0_50%]"',
-    '"sr-state block [font-feature-settings:normal] [text-rendering:auto] [&[hidden]]:hidden"',
     "export const SOURCE_REPORT_PANE_CLASS_NAME =",
     "export const SOURCE_REPORT_METRIC_CARD_CLASS_NAME =",
-    "sr-card-value ![font:600_13px_var(--font-sans)] leading-[normal] tracking-normal text-[var(--fg-primary)]",
-    "sr-card-source flex items-center gap-[6px]",
-    "export const SOURCE_REPORT_EMPTY_SURFACE_CLASS_NAME =",
-    "export const SOURCE_REPORT_EMPTY_ICON_CLASS_NAME =",
+    "export const SOURCE_REPORT_MISSING_NOTICE_CLASS_NAME =",
+    "export const SOURCE_REPORT_TRANSCRIPT_MISSING_NOTICE_CLASS_NAME =",
+    "export const SOURCE_REPORT_SUMMARY_MISSING_NOTICE_CLASS_NAME =",
     "export const SOURCE_REPORT_ACTION_BUTTON_CLASS_NAME =",
     "export const SOURCE_REPORT_PRIMARY_ACTION_BUTTON_CLASS_NAME =",
     "export const SOURCE_REPORT_GHOST_ACTION_BUTTON_CLASS_NAME =",
@@ -247,14 +246,6 @@ const SOURCE_REPORT_STYLE_OWNER_SNIPPETS = [
     "[&[hidden]]:hidden",
     "export const SOURCE_REPORT_ERROR_ALERT_CLASS_NAME =",
     "export const SOURCE_REPORT_STATUS_BADGE_CLASS_NAME =",
-    "sr-empty-actions mt-[8px] flex flex-wrap items-center gap-[6px]",
-    "h-[26px] min-w-[46px] gap-[7px] rounded-[7px] border border-[var(--button-primary-border)] bg-[image:var(--button-primary-bg)] ![background-color:transparent]",
-    "flex w-full flex-col items-center !gap-[4px] rounded-[10px] !px-[18px] !py-[28px] text-center [&>svg]:text-current",
-    "sr-empty flex flex-col items-center !gap-[4px] rounded-[10px] border border-dashed border-[var(--line-hairline)] bg-[var(--bg-recessed)] !px-[18px] !py-[28px] text-center shadow-none backdrop-blur-none data-[sot-tone=err]:border-[color-mix(in_srgb,var(--signal-danger)_26%,transparent)] data-[sot-tone=err]:bg-[color-mix(in_srgb,var(--signal-danger)_6%,transparent)]",
-    "sr-empty-ico !mb-[4px] inline-grid !size-[40px] place-items-center rounded-full border border-[var(--line-hairline)] bg-[var(--bg-recessed)] text-[var(--fg-tertiary)]",
-    "![font:600_13px/1.35_var(--font-sans)]",
-    "max-w-[360px] ![font:500_12px/1.5_var(--font-sans)] tracking-normal !text-[var(--fg-tertiary)]",
-    "sr-pill inline-flex h-[22px] min-w-[65px] justify-normal items-center gap-[9px]",
     "satisfies SourceReportStyleVariables",
 ] as const;
 
@@ -340,6 +331,8 @@ const ROUTE_CHROME_REMOVED_GLOBAL_SELECTORS = [
     '[data-sot-part="route-crumb-current"]',
     '[data-sot-panel="route-workspace"]',
 ] as const;
+const ROUTE_CHROME_FORBIDDEN_FRAMEWORK_RE =
+    /var\(--glass|var\(--graphite|color-mix\(|backdrop-filter/;
 
 const AI_RENAME_PREVIEW_SHARED_PRIMITIVE_FILES = [
     "components/ui/alert.tsx",
@@ -363,13 +356,9 @@ const AI_RENAME_PREVIEW_FEATURE_OWNER_CLASS_SNIPPETS = [
     {
         label: "panel",
         snippets: [
-            "pointer-events-none",
-            "absolute",
-            "top-[calc(100%+8px)]",
-            "right-0",
-            "z-[var(--z-popover-inline)]",
             "w-[min(360px,calc(100vw-32px))]",
             "gap-0",
+            "p-0",
             "data-[open=true]:pointer-events-auto",
             "[&_[data-sot-part=state][hidden]]:!hidden",
         ],
@@ -579,40 +568,77 @@ function extractOpeningElement(
     return source.slice(start, end + 1);
 }
 
-function extractExactOpeningElement(
-    source: string,
-    marker: string,
-    tagName: string,
-) {
-    const markerIndex = source.indexOf(marker);
-    expect(markerIndex).toBeGreaterThanOrEqual(0);
-    const tagPattern = new RegExp(`<${tagName}(?=\\s|>)`, "g");
-    let start = -1;
-    let match = tagPattern.exec(source);
+function collectOpeningElements(source: string, tagName: string) {
+    const openings: string[] = [];
+    let searchFrom = 0;
 
-    while (match && match.index <= markerIndex) {
-        start = match.index;
-        match = tagPattern.exec(source);
+    while (searchFrom < source.length) {
+        const start = source.indexOf(`<${tagName}`, searchFrom);
+        if (start < 0) break;
+
+        let braceDepth = 0;
+        let quote: '"' | "'" | "`" | null = null;
+        let end = -1;
+
+        for (
+            let index = start + tagName.length + 1;
+            index < source.length;
+            index += 1
+        ) {
+            const character = source[index];
+            const previous = source[index - 1];
+
+            if (quote) {
+                if (character === quote && previous !== "\\") {
+                    quote = null;
+                }
+                continue;
+            }
+
+            if (character === '"' || character === "'" || character === "`") {
+                quote = character;
+                continue;
+            }
+
+            if (character === "{") {
+                braceDepth += 1;
+                continue;
+            }
+
+            if (character === "}") {
+                braceDepth = Math.max(0, braceDepth - 1);
+                continue;
+            }
+
+            if (character === ">" && braceDepth === 0) {
+                end = index;
+                break;
+            }
+        }
+
+        expect(end).toBeGreaterThan(start);
+        openings.push(source.slice(start, end + 1));
+        searchFrom = end + 1;
     }
 
-    expect(start).toBeGreaterThanOrEqual(0);
-    const end = source.indexOf(">", start);
-    expect(end).toBeGreaterThan(start);
-    return source.slice(start, end + 1);
+    return openings;
 }
 
 function expectAiRenameGenericPrimitiveCall(
     source: string,
     marker: string,
-    tagName: "Alert" | "Badge" | "Button" | "Card",
+    tagName: "Alert" | "Badge" | "Button" | "Card" | "PopoverContent",
 ) {
-    const openingElement = extractExactOpeningElement(source, marker, tagName);
+    const openingElement = collectOpeningElements(source, tagName).find(
+        (candidate) => candidate.includes(marker),
+    );
 
-    expect(openingElement).toContain("className=");
-    expect(openingElement).not.toMatch(
+    expect(openingElement).toBeDefined();
+    expect(openingElement ?? "").toContain("className=");
+    expect(openingElement ?? "").not.toMatch(
         /\b(?:variant|size|density|layout)="aiRenamePreview[A-Za-z0-9_]*"/,
     );
-    return openingElement;
+    return openingElement ?? "";
 }
 
 function extractCssBlock(source: string, marker: string) {
@@ -1438,6 +1464,7 @@ describe("recording detail copy and title action UI regressions", () => {
         expect(sourceReport).toContain("subState={sourceReportSubState}");
         expect(sourceReport).toContain("data-sot-source-report-section-title");
         expect(sourceReport).toContain('title="来源转写"');
+        expect(sourceReport).toContain('title="来源原始报告"');
         expect(sourceReport).toContain('title="来源信息"');
         expect(sourceReport).toContain(
             'data-sot-control="copy-source-transcript"',
@@ -1457,9 +1484,11 @@ describe("recording detail copy and title action UI regressions", () => {
         expect(sourceReport).toContain(
             'import { Button } from "@/components/ui/button";',
         );
-        expect(sourceReport).not.toContain(
+        expect(sourceReport).toContain(
             'import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";',
         );
+        expect(sourceReport).toContain('variant="statusError"');
+        expect(sourceReport).not.toContain("{error}</AlertDescription>");
         expect(sourceReport).toContain(
             'import { Skeleton } from "@/components/ui/skeleton";',
         );
@@ -1543,6 +1572,7 @@ describe("recording detail copy and title action UI regressions", () => {
             "border-[var(--line-hairline)]",
             "bg-[var(--bg-recessed)]",
             "text-[var(--fg-tertiary)]",
+            "[&_svg]:stroke-[1.8]",
             "[&_svg:not([class*='size-'])]:!size-[16px]",
             "border-[color-mix(in_srgb,var(--signal-danger)_28%,transparent)]",
             "bg-[color-mix(in_srgb,var(--signal-danger)_14%,transparent)]",
@@ -1556,14 +1586,11 @@ describe("recording detail copy and title action UI regressions", () => {
             "SOURCE_REPORT_ERROR_ICON_CLASS_NAME",
         );
         expect(sourceReport).not.toContain('variant="sourceReportErrorIcon"');
-        expect(sourceReportErrorState).toContain(
-            '<div\n                        role="alert"',
-        );
-        expect(sourceReportErrorState).not.toContain("<Alert");
-        expect(sourceReportErrorState).not.toContain("<AlertTitle");
-        expect(sourceReportErrorState).not.toContain("<AlertDescription");
+        expect(sourceReportErrorState).toContain("<Alert");
+        expect(sourceReportErrorState).toContain("<AlertTitle");
+        expect(sourceReportErrorState).toContain("<AlertDescription");
         expect(sourceReportErrorState).toContain("<EmptyMedia");
-        expect(sourceReportErrorState).not.toContain('variant="statusError"');
+        expect(sourceReportErrorState).toContain('variant="statusError"');
         expect(sourceReportErrorState).toContain(
             "SOURCE_REPORT_ERROR_ALERT_CLASS_NAME",
         );
@@ -1588,7 +1615,9 @@ describe("recording detail copy and title action UI regressions", () => {
             "data-sot-source-report-empty-icon",
         );
         expect(sourceReportErrorIcon).toContain('aria-hidden="true"');
-        expect(sourceReportErrorState).toContain("<SourceReportAlertGlyph />");
+        expect(sourceReportErrorState).toContain(
+            '<CircleAlert aria-hidden="true" />',
+        );
         expect(sourceReportErrorState).toContain("无法读取来源详情");
         expect(sourceReportErrorState).toContain("sourceProviderSentenceName");
         expect(sourceReportErrorState).toContain(
@@ -1973,8 +2002,10 @@ describe("recording detail copy and title action UI regressions", () => {
             expect(recordingWorkstationTopbarClassNames).toContain(
                 `"${expected}"`,
             );
-            expect(detailWorkstation).toContain(
-                `className={recordingWorkstationTopbarClassNames.${property}}`,
+            expect(detailWorkstation).toMatch(
+                new RegExp(
+                    `className=\\{\\s*recordingWorkstationTopbarClassNames\\.${property}\\s*\\}`,
+                ),
             );
         }
         for (const classToken of RECORDING_WORKSTATION_TOPBAR_REQUIRED_CLASS_TOKENS) {
@@ -2051,8 +2082,8 @@ describe("recording detail copy and title action UI regressions", () => {
         expect(detailWorkstation).toContain(
             'name: "[font:600_15px_var(--font-sans)] tracking-[-0.012em] text-[var(--fg-primary)]"',
         );
-        expect(detailWorkstation).toContain(
-            'subtitle: "mt-px [font:500_11px_var(--font-sans)] text-[var(--fg-tertiary)]"',
+        expect(detailWorkstation).toMatch(
+            /subtitle:\s*"mt-px \[font:500_11px_var\(--font-sans\)\] text-\[var\(--fg-tertiary\)\]"/,
         );
         expect(detailWorkstation).toContain(
             "className={recordingWorkstationBrandClassNames.wrapper}",
@@ -3542,6 +3573,12 @@ describe("recording detail copy and title action UI regressions", () => {
         expect(routeChromeModule).toContain(".brand");
         expect(routeChromeModule).toContain(".main");
         expect(routeChromeModule).toContain(".workspace");
+        expect(routeChromeModule.match(/^\.sidebar \{/gm) ?? []).toHaveLength(
+            1,
+        );
+        expect(routeChromeModule).not.toMatch(
+            ROUTE_CHROME_FORBIDDEN_FRAMEWORK_RE,
+        );
         expect(globals).toContain("[data-detail-empty]");
         expect(globals).toContain(
             '[data-sot-panel="dashboard-detail"][data-empty="true"] [data-detail-empty]',
@@ -3651,8 +3688,12 @@ describe("recording detail copy and title action UI regressions", () => {
         expect(aiRenamePreview).toContain('data-sot-panel="ai-rename-preview"');
         expect(aiRenamePreview).toContain('data-open="true"');
         expect(aiRenamePreview).toContain("data-sot-state={state}");
-        expect(aiRenamePreview).toContain('role="dialog"');
-        expect(aiRenamePreview).toContain("aria-label={title}");
+        expect(aiRenamePreview).toContain("aria-labelledby={titleId}");
+        expect(aiRenamePreview).toContain(
+            "aria-describedby={subtitle ? descriptionId : undefined}",
+        );
+        expect(aiRenamePreview).not.toContain('role="dialog"');
+        expect(aiRenamePreview).not.toContain("aria-label={title}");
         expect(aiRenamePreview).toMatch(
             /const\s+aiRenamePreview[A-Za-z0-9_]*ClassNames\s*=\s*{/,
         );
@@ -3666,7 +3707,7 @@ describe("recording detail copy and title action UI regressions", () => {
         expectAiRenameGenericPrimitiveCall(
             aiRenamePreview,
             'data-sot-panel="ai-rename-preview"',
-            "Card",
+            "PopoverContent",
         );
         for (const primitiveCall of [
             {
@@ -3892,7 +3933,7 @@ describe("recording detail copy and title action UI regressions", () => {
         expect(tagManager).toContain(
             "recordingTagManagerContentClassNames[contentVariant]",
         );
-        expect(tagManager).toContain("<RecordingTagManagerPanelCard");
+        expect(tagManager).toContain("<RecordingTagManagerPopoverContent");
         expect(tagManager).toContain("<RecordingTagManagerHeader");
         expect(tagManager).toContain("<RecordingTagManagerTitle");
         expect(tagManager).toContain("<RecordingTagManagerContent");

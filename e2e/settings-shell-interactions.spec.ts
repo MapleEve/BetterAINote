@@ -2440,6 +2440,7 @@ test("settings shell restores the last section and supports keyboard section sel
         "data-keyboard-selected",
         "true",
     );
+    await expect(shell).toHaveAttribute("data-sot-state", "idle");
 
     await page.keyboard.press("ArrowDown");
     await expect(settingsNav(page, "voscript")).toHaveAttribute(
@@ -2461,6 +2462,7 @@ test("settings shell restores the last section and supports keyboard section sel
             page.evaluate(() => localStorage.getItem("settings-last-section")),
         )
         .toBe("voscript");
+    await expect(shell).toHaveAttribute("data-sot-state", "idle");
 
     await page.keyboard.press("ArrowDown");
     await expect(settingsNav(page, "data-sources")).toHaveAttribute(
@@ -2472,6 +2474,7 @@ test("settings shell restores the last section and supports keyboard section sel
         "data-sot-section",
         "data-sources",
     );
+    await expect(shell).toHaveAttribute("data-sot-state", "idle");
 
     await page.keyboard.press("ArrowUp");
     await expect(settingsNav(page, "voscript")).toHaveAttribute(
@@ -2483,6 +2486,7 @@ test("settings shell restores the last section and supports keyboard section sel
         "data-sot-section",
         "voscript",
     );
+    await expect(shell).toHaveAttribute("data-sot-state", "idle");
 
     await page.keyboard.press("Escape");
     await expect(shell).toBeHidden();
@@ -2619,7 +2623,6 @@ test("settings shell six canonical sections meet SOT acceptance evidence", async
 });
 
 test("settings shell row 117 captures responsive visual matrix", async ({
-    browser,
     page,
 }) => {
     await mkdir(ROW_117_EVIDENCE_DIR, { recursive: true });
@@ -2631,7 +2634,7 @@ test("settings shell row 117 captures responsive visual matrix", async ({
     await seedRow117ReadyStateRoutes(page);
 
     const frames: Row117FrameEvidence[] = [];
-    const sotPage = await browser.newPage();
+    const sotPage = await page.context().newPage();
 
     try {
         const desktop = row117PixelFrames[0];
@@ -3001,6 +3004,9 @@ test("settings shell row 117 captures responsive visual matrix", async ({
                     section,
                     viewport: readyFrameViewport.viewport,
                 };
+                if (section === "appearance") {
+                    await putRow117AppearanceReadyState(page);
+                }
                 const productShell = await openProductSettingsSection(
                     page,
                     section,

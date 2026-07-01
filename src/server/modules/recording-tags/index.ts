@@ -234,5 +234,5 @@ export async function updateRecordingTagAssignments(
     return tagIds
         .map((tagId) => tagById.get(tagId))
         .filter((tag): tag is typeof recordingTags.$inferSelect => Boolean(tag))
-        .map(serializeTag);
+        .map((tag) => serializeTag(tag));
 }

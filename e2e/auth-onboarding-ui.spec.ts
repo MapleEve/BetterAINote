@@ -1,4 +1,5 @@
 import { execFileSync } from "node:child_process";
+import { createCipheriv, randomBytes } from "node:crypto";
 import path from "node:path";
 import { copyFile, mkdir, readFile, writeFile } from "node:fs/promises";
 import { pathToFileURL } from "node:url";
@@ -11,13 +12,22 @@ import {
     type TestInfo,
 } from "@playwright/test";
 import { ensureSignedIn } from "./helpers/auth";
+import { chooseShadcnSelectOption } from "./helpers/shadcn-select";
 import {
     SOT_FIXTURE_PROJECT_ROOT,
     SOT_SYSTEM_REFERENCE_URL,
 } from "./helpers/sot-fixtures";
 
 const E2E_DATA_DIR = path.resolve(process.cwd(), "tmp/e2e/data");
+const E2E_ENCRYPTION_KEY =
+    "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef";
 const PLAYWRIGHT_EMAIL = "playwright-admin@example.com";
+const ONBOARDING_BACKEND_PERSISTENCE_TOKEN =
+    "playwright-onboarding-backend-token";
+const ONBOARDING_BACKEND_PERSISTENCE_SPEAKER =
+    "林梅 Backend Readback";
+const ONBOARDING_BACKEND_PERSISTENCE_VOICEPRINT =
+    "voiceprint-onboarding-backend-e2e";
 const SOT_SYSTEM_REFERENCE_REL = path
     .relative(
         process.cwd(),
@@ -217,11 +227,50 @@ function databaseUrl(filePath: string) {
 }
 
 const CORE_DB = resolveDatabasePath();
+const VOICEPRINTS_DB = deriveSiblingDatabasePath(CORE_DB, "voiceprints");
+
+function deriveSiblingDatabasePath(databasePath: string, suffix: string) {
+    const parsed = path.parse(databasePath);
+    return path.resolve(
+        parsed.dir || ".",
+        `${parsed.name || "betterainote"}-${suffix}${parsed.ext || ".db"}`,
+    );
+}
+
+function encryptWithE2EKey(plaintext: string) {
+    const iv = randomBytes(16);
+    const cipher = createCipheriv(
+        "aes-256-gcm",
+        Buffer.from(process.env.ENCRYPTION_KEY || E2E_ENCRYPTION_KEY, "hex"),
+        iv,
+    );
+    const encrypted = Buffer.concat([
+        cipher.update(plaintext, "utf8"),
+        cipher.final(),
+    ]);
+
+    return [
+        iv.toString("hex"),
+        cipher.getAuthTag().toString("hex"),
+        encrypted.toString("hex"),
+    ].join(":");
+}
 
 async function withCoreClient<T>(
     callback: (client: ReturnType<typeof createClient>) => Promise<T>,
 ) {
     const client = createClient({ url: databaseUrl(CORE_DB) });
+    try {
+        return await callback(client);
+    } finally {
+        await client.close();
+    }
+}
+
+async function withVoiceprintsClient<T>(
+    callback: (client: ReturnType<typeof createClient>) => Promise<T>,
+) {
+    const client = createClient({ url: databaseUrl(VOICEPRINTS_DB) });
     try {
         return await callback(client);
     } finally {
@@ -241,6 +290,120 @@ async function getPlaywrightUserId() {
         }
         return id;
     });
+}
+
+async function resetOnboardingBackendPersistenceState(userId: string) {
+    await withCoreClient(async (client) => {
+        await client.batch(
+            [
+                {
+                    sql: "DELETE FROM source_connections WHERE user_id = ? AND provider = 'plaud'",
+                    args: [userId],
+                },
+                {
+                    sql: "DELETE FROM user_settings WHERE user_id = ?",
+                    args: [userId],
+                },
+            ],
+            "write",
+        );
+    });
+    await withVoiceprintsClient(async (client) => {
+        await client.batch(
+            [
+                {
+                    sql: "DELETE FROM recording_speakers WHERE user_id = ?",
+                    args: [userId],
+                },
+                {
+                    sql: "DELETE FROM speaker_profiles WHERE user_id = ?",
+                    args: [userId],
+                },
+            ],
+            "write",
+        );
+    });
+}
+
+async function seedDisabledPlaudConnectionForBackendReadback(userId: string) {
+    const now = Date.now();
+    await withCoreClient(async (client) => {
+        await client.execute({
+            sql: `
+                INSERT INTO source_connections (
+                    id, user_id, provider, enabled, auth_mode, base_url,
+                    config, secret_config, created_at, updated_at
+                ) VALUES (?, ?, 'plaud', 0, 'bearer', ?, ?, ?, ?, ?)
+            `,
+            args: [
+                `onboarding-backend-readback-${now}`,
+                userId,
+                "https://api.plaud.ai",
+                JSON.stringify({
+                    server: "global",
+                    customApiBase: "",
+                    syncTitleToSource: true,
+                }),
+                encryptWithE2EKey(
+                    JSON.stringify({
+                        bearerToken: ONBOARDING_BACKEND_PERSISTENCE_TOKEN,
+                    }),
+                ),
+                now,
+                now,
+            ],
+        });
+    });
+}
+
+async function readOnboardingBackendPersistenceRows(userId: string) {
+    const [core, speakers] = await Promise.all([
+        withCoreClient(async (client) => {
+            const [source, settings] = await Promise.all([
+                client.execute({
+                    sql: `
+                        SELECT provider, enabled, auth_mode, base_url, config,
+                            secret_config, updated_at
+                        FROM source_connections
+                        WHERE user_id = ? AND provider = 'plaud'
+                        LIMIT 1
+                    `,
+                    args: [userId],
+                }),
+                client.execute({
+                    sql: `
+                        SELECT auto_transcribe, default_transcription_language
+                        FROM user_settings
+                        WHERE user_id = ?
+                        LIMIT 1
+                    `,
+                    args: [userId],
+                }),
+            ]);
+
+            return {
+                source: source.rows[0] ?? null,
+                settings: settings.rows[0] ?? null,
+            };
+        }),
+        withVoiceprintsClient(async (client) => {
+            const result = await client.execute({
+                sql: `
+                    SELECT display_name, voiceprint_ref
+                    FROM speaker_profiles
+                    WHERE user_id = ?
+                    ORDER BY display_name
+                `,
+                args: [userId],
+            });
+            return result.rows;
+        }),
+    ]);
+
+    return {
+        ...core,
+        speakers,
+    };
 }
 
 async function resetOnboardingConnections(userId: string) {
@@ -1865,9 +2028,12 @@ test("SOT onboarding exposes source, default transcription, speaker, and finish 
     await expect(
         page.locator('[data-sot-control="onboarding-default-source"]').first(),
     ).toHaveAttribute("data-sot-state", "selected");
-    await page.getByRole("button", { name: /TicNote/ }).click();
+    const ticnoteDefaultSource = page.locator(
+        '[data-sot-control="onboarding-default-source"][data-sot-provider="ticnote"]',
+    );
+    await ticnoteDefaultSource.click();
     await expect(
-        page.locator('[data-sot-control="onboarding-default-source"]').nth(1),
+        ticnoteDefaultSource,
     ).toHaveAttribute("data-sot-state", "selected");
 
     await goToOnboardingState(page, "speakers");
@@ -1997,4 +2163,181 @@ test("SOT onboarding save connects source, transcription defaults, and speaker p
         displayName: "林梅",
         voiceprintRef: "voiceprint-playwright",
     });
+});
+
+test("SOT onboarding finish/save persists through the real local backend and reads back saved state", async ({
+    page,
+}) => {
+    await ensureSignedIn(page);
+    const userId = await getPlaywrightUserId();
+    await resetOnboardingBackendPersistenceState(userId);
+    await seedDisabledPlaudConnectionForBackendReadback(userId);
+
+    await gotoOnboardingPage(page);
+
+    const authorizationInput = page.locator("#source-secret");
+    await expect(authorizationInput).toBeEditable();
+    await authorizationInput.fill(
+        `Bearer ${ONBOARDING_BACKEND_PERSISTENCE_TOKEN}`,
+    );
+
+    await goToOnboardingState(page, "transcription");
+    const ticnoteDefaultSource = page.locator(
+        '[data-sot-control="onboarding-default-source"][data-sot-provider="ticnote"]',
+    );
+    await ticnoteDefaultSource.click();
+    await expect(
+        ticnoteDefaultSource,
+    ).toHaveAttribute("data-sot-state", "selected");
+
+    await goToOnboardingState(page, "speakers");
+    await page
+        .locator('[data-sot-control="speaker-name"]')
+        .fill(ONBOARDING_BACKEND_PERSISTENCE_SPEAKER);
+    await page
+        .locator('[data-sot-control="speaker-voiceprint"]')
+        .fill(ONBOARDING_BACKEND_PERSISTENCE_VOICEPRINT);
+    await goToOnboardingState(page, "finish");
+
+    const [dataSourceResponse, transcriptionResponse, speakerResponse] =
+        await Promise.all([
+            page.waitForResponse(
+                (response) =>
+                    response.url().includes("/api/data-sources") &&
+                    response.request().method() === "PUT",
+            ),
+            page.waitForResponse(
+                (response) =>
+                    response.url().includes("/api/settings/transcription") &&
+                    response.request().method() === "PUT",
+            ),
+            page.waitForResponse(
+                (response) =>
+                    response.url().includes("/api/speakers/profiles") &&
+                    response.request().method() === "POST",
+            ),
+            page.waitForURL("**/dashboard", { waitUntil: "commit" }),
+            page.locator('[data-sot-control="save-enter"]').click(),
+        ]);
+
+    expect(dataSourceResponse.ok()).toBe(true);
+    expect(transcriptionResponse.ok()).toBe(true);
+    expect(speakerResponse.ok()).toBe(true);
+
+    const dataSourcesReadback = await page.request.get("/api/data-sources");
+    expect(dataSourcesReadback.ok()).toBe(true);
+    const dataSourcesJson = (await dataSourcesReadback.json()) as {
+        sources?: Array<Record<string, unknown>>;
+    };
+    const plaudSource = dataSourcesJson.sources?.find(
+        (source) => source.provider === "plaud",
+    );
+    expect(plaudSource).toMatchObject({
+        provider: "plaud",
+        enabled: true,
+        connected: true,
+        authMode: "bearer",
+        baseUrl: "https://api.plaud.ai",
+        secretsConfigured: {
+            bearerToken: true,
+        },
+    });
+    expect(JSON.stringify(plaudSource)).not.toContain(
+        ONBOARDING_BACKEND_PERSISTENCE_TOKEN,
+    );
+
+    const transcriptionReadback = await page.request.get(
+        "/api/settings/transcription",
+    );
+    expect(transcriptionReadback.ok()).toBe(true);
+    await expect(transcriptionReadback.json()).resolves.toMatchObject({
+        autoTranscribe: true,
+        defaultTranscriptionLanguage: "zh",
+    });
+
+    const speakerReadback = await page.request.get("/api/speakers/profiles");
+    expect(speakerReadback.ok()).toBe(true);
+    await expect(speakerReadback.json()).resolves.toMatchObject({
+        profiles: expect.arrayContaining([
+            expect.objectContaining({
+                displayName: ONBOARDING_BACKEND_PERSISTENCE_SPEAKER,
+                voiceprintRef: ONBOARDING_BACKEND_PERSISTENCE_VOICEPRINT,
+            }),
+        ]),
+    });
+
+    const rows = await readOnboardingBackendPersistenceRows(userId);
+    const persistedSource = rows.source as Record<string, unknown>;
+    const persistedSettings = rows.settings as Record<string, unknown>;
+    expect(persistedSource).toBeTruthy();
+    expect(persistedSettings).toBeTruthy();
+    expect(persistedSource.provider).toBe("plaud");
+    expect(Number(persistedSource.enabled)).toBe(1);
+    expect(persistedSource.auth_mode).toBe("bearer");
+    expect(persistedSource.base_url).toBe("https://api.plaud.ai");
+    expect(String(persistedSource.secret_config)).toMatch(
+        /^[0-9a-f]+:[0-9a-f]+:[0-9a-f]+$/,
+    );
+    expect(String(persistedSource.secret_config)).not.toContain(
+        ONBOARDING_BACKEND_PERSISTENCE_TOKEN,
+    );
+    expect(JSON.parse(String(persistedSource.config))).toMatchObject({
+        server: "global",
+        customApiBase: "",
+        syncTitleToSource: false,
+    });
+    expect(Number(persistedSettings.auto_transcribe)).toBe(1);
+    expect(persistedSettings.default_transcription_language).toBe("zh");
+    expect(rows.speakers).toEqual(
+        expect.arrayContaining([
+            expect.objectContaining({
+                display_name: ONBOARDING_BACKEND_PERSISTENCE_SPEAKER,
+                voiceprint_ref: ONBOARDING_BACKEND_PERSISTENCE_VOICEPRINT,
+            }),
+        ]),
+    );
+});
+
+test("SOT onboarding finish/save surfaces a real backend data-source failure without route mocks", async ({
+    page,
+}) => {
+    await ensureSignedIn(page);
+    const userId = await getPlaywrightUserId();
+    await resetOnboardingBackendPersistenceState(userId);
+
+    await gotoOnboardingPage(page);
+
+    await chooseShadcnSelectOption(
+        page,
+        page.getByRole("combobox", { name: "站点版本" }),
+        "自定义",
+    );
+    await page.locator("#source-custom-api-base").fill("https://example.com");
+    await page.locator("#source-secret").fill("Bearer invalid-custom-server");
+
+    await goToOnboardingState(page, "transcription");
+    await goToOnboardingState(page, "speakers");
+    await goToOnboardingState(page, "finish");
+
+    const [dataSourceResponse] = await Promise.all([
+        page.waitForResponse(
+            (response) =>
+                response.url().includes("/api/data-sources") &&
+                response.request().method() === "PUT",
+        ),
+        page.locator('[data-sot-control="save-enter"]').click(),
+    ]);
+
+    expect(dataSourceResponse.status()).toBe(400);
+    await expect(dataSourceResponse.json()).resolves.toEqual({
+        error: "Please enter a valid Plaud service address.",
+    });
+    await expect(page).toHaveURL(/\/onboarding/);
+    await expect(currentOnboardingPanel(page)).toHaveAttribute(
+        "data-sot-state",
+        "source",
+    );
+    await expect(page.locator('[data-sot-part="onboarding-error"]')).toContainText(
+        "请先补全来源授权",
+    );
 });

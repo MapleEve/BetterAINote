@@ -135,7 +135,7 @@ const DASHBOARD_SIDEBAR_OWNER_FORBIDDEN_CLASS_PATTERN =
 const DASHBOARD_SIDEBAR_VISUAL_GLOBAL_DECLARATION_RE =
     /^\s*(?:-webkit-backdrop-filter|backdrop-filter|background|border(?:-(?:color|radius|right|style|width))?|box-shadow|display|flex-direction|padding|position)\s*:/m;
 const EXPECTED_SOURCE_REPORT_STATUS_BADGE_CLASS_NAME =
-    "h-[22px] min-w-[65px] justify-normal gap-[9px] overflow-visible rounded-full border px-[8px] py-0 text-[11px] font-semibold leading-[normal] shadow-none data-[sot-tone=err]:border-destructive/30 data-[sot-tone=err]:bg-destructive/10 data-[sot-tone=err]:text-destructive data-[sot-tone=neu]:border-border data-[sot-tone=neu]:bg-muted data-[sot-tone=neu]:text-muted-foreground data-[sot-tone=ok]:border-chart-3/30 data-[sot-tone=ok]:bg-chart-3/10 data-[sot-tone=ok]:text-chart-3 data-[sot-tone=warn]:border-chart-4/30 data-[sot-tone=warn]:bg-chart-4/10 data-[sot-tone=warn]:text-chart-4 [&_[data-sot-part=dashboard-source-report-status-dot]]:mr-0 [&_[data-sot-part=dashboard-source-report-status-dot]]:inline-block [&_[data-sot-part=dashboard-source-report-status-dot]]:size-[5px] [&_[data-sot-part=dashboard-source-report-status-dot]]:rounded-full [&_[data-sot-part=dashboard-source-report-status-dot]]:bg-current [&_[data-sot-part=source-report-status-dot]]:mr-0 [&_[data-sot-part=source-report-status-dot]]:inline-block [&_[data-sot-part=source-report-status-dot]]:size-[5px] [&_[data-sot-part=source-report-status-dot]]:rounded-full [&_[data-sot-part=source-report-status-dot]]:bg-current";
+    "inline-flex h-[22px] min-w-[65px] justify-normal items-center gap-[9px] overflow-visible rounded-full border px-[8px] py-0 ![font:600_11px_var(--font-sans)] leading-[normal] shadow-none data-[sot-tone=err]:border-[var(--source-report-status-err-border)] data-[sot-tone=err]:bg-[var(--source-report-status-err-bg)] data-[sot-tone=err]:text-[var(--signal-danger)] data-[sot-tone=neu]:border-[var(--line-hairline)] data-[sot-tone=neu]:bg-[var(--bg-recessed)] data-[sot-tone=neu]:text-[var(--fg-secondary)] data-[sot-tone=ok]:border-[var(--source-report-status-ok-border)] data-[sot-tone=ok]:bg-[var(--source-report-status-ok-bg)] data-[sot-tone=ok]:text-[var(--source-report-status-ok-fg)] data-[sot-tone=warn]:border-[var(--source-report-status-warn-border)] data-[sot-tone=warn]:bg-[var(--source-report-status-warn-bg)] data-[sot-tone=warn]:text-[var(--source-report-status-warn-fg)] [&_[data-sot-part=dashboard-source-report-status-dot]]:mr-0 [&_[data-sot-part=dashboard-source-report-status-dot]]:inline-block [&_[data-sot-part=dashboard-source-report-status-dot]]:size-[5px] [&_[data-sot-part=dashboard-source-report-status-dot]]:rounded-full [&_[data-sot-part=dashboard-source-report-status-dot]]:bg-current [&_[data-sot-part=source-report-status-dot]]:mr-0 [&_[data-sot-part=source-report-status-dot]]:inline-block [&_[data-sot-part=source-report-status-dot]]:size-[5px] [&_[data-sot-part=source-report-status-dot]]:rounded-full [&_[data-sot-part=source-report-status-dot]]:bg-current";
 const EXPECTED_DASHBOARD_RECORDING_PLAYER_CARD_CLASS_NAME =
     "block min-h-[114px] gap-0 overflow-visible rounded-[16px] border border-[var(--line-hairline)] bg-[var(--bg-elevated)] px-[18px] py-[16px] shadow-none backdrop-blur-none";
 const DASHBOARD_RECORDING_PLAYER_WORKSTATION_CLASS_INITIALIZERS = [
@@ -156,16 +156,6 @@ const DASHBOARD_RECORDING_PLAYER_WORKSTATION_CLASS_INITIALIZERS = [
 ] as const;
 const DASHBOARD_RECORDING_PLAYER_CONTROLS_CLASS_INITIALIZERS = [
     {
-        constName: "DASHBOARD_PLAYER_CONTROL_ICON_CLASS_NAME",
-        expected:
-            "inline-flex items-center justify-center [&_svg]:size-4 [&_svg]:fill-current [&_svg]:stroke-current [&_svg]:stroke-[1.8] [&_svg]:[stroke-linecap:round] [&_svg]:[stroke-linejoin:round]",
-    },
-    {
-        constName: "DASHBOARD_PLAYER_PRIMARY_CONTROL_ICON_CLASS_NAME",
-        expected:
-            "inline-flex items-center justify-center [&_svg]:size-[18px] [&_svg]:fill-white [&_svg]:stroke-white [&_svg]:stroke-[1.8] [&_svg]:[stroke-linecap:round] [&_svg]:[stroke-linejoin:round]",
-    },
-    {
         constName: "DASHBOARD_PLAYER_TIME_CLASS_NAME",
         expected:
             "min-w-11 text-center font-mono text-xs font-medium tracking-[0.03em] text-[var(--fg-tertiary)]",
@@ -173,7 +163,7 @@ const DASHBOARD_RECORDING_PLAYER_CONTROLS_CLASS_INITIALIZERS = [
     {
         constName: "DASHBOARD_PLAYER_DURATION_CLASS_NAME",
         expected:
-            "min-w-11 translate-x-[-0.109375px] text-center font-mono text-xs font-medium tracking-[0.03em] text-[var(--fg-tertiary)]",
+            "min-w-11 text-center font-mono text-xs font-medium tracking-[0.03em] text-[var(--fg-tertiary)]",
     },
     {
         constName: "DASHBOARD_PLAYER_DISABLED_CLASS_NAME",
@@ -188,48 +178,6 @@ const DASHBOARD_RECORDING_PLAYER_CONTROLS_CLASS_INITIALIZERS = [
         constName: "DASHBOARD_PLAYER_SPEED_CLASS_NAME",
         expected:
             "max-[640px]:w-[50.75px] max-[640px]:min-w-[50.75px] max-[640px]:basis-[50.75px] max-[640px]:grow-0 max-[640px]:shrink-0",
-    },
-] as const;
-const SOT_PLAYER_NO_AUDIO_CLASS_INITIALIZERS = [
-    {
-        constName: "SOT_PLAYER_NO_AUDIO_ALERT_CLASS",
-        expected:
-            "mb-3 flex w-full items-center gap-2.5 rounded-[10px] border border-[var(--system-banner-offline-border)] bg-[var(--system-banner-offline-bg)] px-3 py-2.5 text-[12.5px] leading-normal text-[var(--fg-primary)] [&[hidden]]:hidden",
-    },
-    {
-        constName: "SOT_PLAYER_NO_AUDIO_ICON_CLASS",
-        expected:
-            "inline-grid size-[26px] flex-none place-items-center rounded-[50%] bg-[var(--system-banner-offline-icon-bg)] text-[var(--signal-warning)] [&_svg]:size-[14px]",
-    },
-    {
-        constName: "SOT_PLAYER_NO_AUDIO_TEXT_CLASS",
-        expected: "flex min-w-0 flex-col gap-px",
-    },
-    {
-        constName: "SOT_PLAYER_NO_AUDIO_TITLE_CLASS",
-        expected:
-            "min-h-0 overflow-visible font-sans text-[12.5px] font-semibold leading-normal tracking-normal text-[var(--fg-primary)] [display:block] [-webkit-box-orient:unset] [-webkit-line-clamp:unset]",
-    },
-    {
-        constName: "SOT_PLAYER_NO_AUDIO_DESCRIPTION_CLASS",
-        expected:
-            "block font-sans text-[11.5px] font-medium leading-[1.5] text-[var(--fg-tertiary)] [&_p]:leading-[1.5]",
-    },
-] as const;
-const SOT_PLAYER_SOURCE_CLASS_INITIALIZERS = [
-    {
-        constName: "SOT_PLAYER_SOURCE_BADGE_CLASS",
-        expected:
-            "h-[22px] flex-none justify-normal gap-[6px] rounded-[6px] border-border bg-card py-0 pl-[3px] pr-[8px] [font:600_11.5px_var(--font-sans)] text-muted-foreground shadow-xs",
-    },
-    {
-        constName: "SOT_PLAYER_SOURCE_ICON_CLASS",
-        expected:
-            "inline-flex size-[16px] flex-none shrink-0 items-center justify-center overflow-hidden rounded-[4px] border border-border bg-background data-[sot-source-icon=letter]:bg-muted data-[sot-source-icon=letter]:[font:700_9px_var(--font-sans)] data-[sot-source-icon=letter]:text-muted-foreground [&[data-sot-cover=true]_img]:object-cover",
-    },
-    {
-        constName: "SOT_PLAYER_SOURCE_ICON_IMAGE_CLASS",
-        expected: "block size-[16px] max-w-none object-contain",
     },
 ] as const;
 const REMOVED_DASHBOARD_PLAYER_GLOBAL_SELECTOR_FRAGMENTS = [
@@ -554,6 +502,22 @@ function expectCnClassNameReferences(
     expect(openingElement).not.toContain('className="');
 }
 
+function expectExactCnClassNameConstReferences(
+    openingElement: string,
+    constNames: readonly string[],
+) {
+    const classNameMatch = /className=\{\s*cn\(([\s\S]*?)\)\s*\}/.exec(
+        openingElement,
+    );
+    expect(classNameMatch).not.toBeNull();
+    const actualConstNames = (classNameMatch?.[1] ?? "")
+        .split(",")
+        .map((className) => className.trim())
+        .filter(Boolean);
+    expect(actualConstNames).toEqual(constNames);
+    expect(openingElement).not.toContain('className="');
+}
+
 function expectSotPlayerNoAudioPrimitiveBindings(source: string) {
     const noAudioAlert = extractOpeningElement(
         source,
@@ -563,7 +527,7 @@ function expectSotPlayerNoAudioPrimitiveBindings(source: string) {
     const noAudioIcon = extractOpeningElement(
         source,
         "data-sot-part={iconPart}",
-        "span",
+        "VolumeX",
     );
     const noAudioText = extractOpeningElement(
         source,
@@ -581,34 +545,22 @@ function expectSotPlayerNoAudioPrimitiveBindings(source: string) {
         "AlertDescription",
     );
 
-    expect(noAudioAlert).toMatch(
-        /className=\{\s*cn\(\s*SOT_PLAYER_NO_AUDIO_ALERT_CLASS,\s*className\s*\)\s*\}/,
-    );
+    expect(noAudioAlert).toContain('variant="default"');
+    expect(noAudioAlert).toContain('density="comfortable"');
+    expect(noAudioAlert).toContain('layout="inline"');
+    expect(noAudioAlert).toContain('className={cn("mb-3", className)}');
     expect(noAudioAlert).toContain("data-sot-part={part}");
     expect(noAudioAlert).toContain(
         'data-sot-state={playbackDisabled ? "visible" : "hidden"}',
     );
     expect(noAudioAlert).toContain("hidden={!playbackDisabled}");
     expect(noAudioAlert).toContain('role="status"');
-    expectClassNameConstReference(
-        noAudioIcon,
-        "SOT_PLAYER_NO_AUDIO_ICON_CLASS",
-    );
     expect(noAudioIcon).toContain("data-sot-part={iconPart}");
-    expectClassNameConstReference(
-        noAudioText,
-        "SOT_PLAYER_NO_AUDIO_TEXT_CLASS",
-    );
+    expectClassNameConstReference(noAudioText, "PLAYER_NO_AUDIO_TEXT_CLASS");
     expect(noAudioText).toContain("data-player-no-audio-text");
     expect(noAudioText).toContain("data-sot-part={textPart}");
-    expectClassNameConstReference(
-        noAudioTitle,
-        "SOT_PLAYER_NO_AUDIO_TITLE_CLASS",
-    );
-    expectClassNameConstReference(
-        noAudioDescription,
-        "SOT_PLAYER_NO_AUDIO_DESCRIPTION_CLASS",
-    );
+    expect(noAudioTitle).not.toContain("className=");
+    expect(noAudioDescription).toContain('density="comfortable"');
 }
 
 function expectSotPlayerSourcePrimitiveBindings(source: string) {
@@ -625,20 +577,20 @@ function expectSotPlayerSourcePrimitiveBindings(source: string) {
     const sourceIconImage = extractOpeningElement(
         source,
         "src={badge.icon}",
-        "img",
+        "Image",
     );
 
-    expectClassNameConstReference(sourceBadge, "SOT_PLAYER_SOURCE_BADGE_CLASS");
-    expect(sourceBadge).toContain('variant="ghost"');
+    expectClassNameConstReference(sourceBadge, "PLAYER_SOURCE_BADGE_CLASS");
+    expect(sourceBadge).toContain('variant="outline"');
     expect(sourceBadge).toContain('data-sot-control="player-source-tag"');
-    expectClassNameConstReference(sourceIcon, "SOT_PLAYER_SOURCE_ICON_CLASS");
+    expectClassNameConstReference(sourceIcon, "PLAYER_SOURCE_ICON_CLASS");
     expect(sourceIcon).toContain('data-sot-part="source-icon"');
     expect(sourceIcon).toContain(
         'data-sot-source-icon={hasImage ? "image" : "letter"}',
     );
     expectClassNameConstReference(
         sourceIconImage,
-        "SOT_PLAYER_SOURCE_ICON_IMAGE_CLASS",
+        "PLAYER_SOURCE_ICON_IMAGE_CLASS",
     );
 }
 
@@ -919,6 +871,9 @@ const DASHBOARD_TRANSCRIPT_GENERIC_COPY_CONTROLS = [
 const DASHBOARD_TRANSCRIPT_GENERIC_COMPACT_ACTION_CONTROLS = [
     "retranscribe-recording",
     "retry-retranscription",
+] as const;
+
+const DASHBOARD_TRANSCRIPT_RETRANSCRIPTION_DISMISS_CONTROLS = [
     "dismiss-retranscription-failed",
     "dismiss-retranscription-complete",
 ] as const;
@@ -942,11 +897,11 @@ const DASHBOARD_SEARCH_ACTIVITY_FEATURE_OWNER_CLASS_SNIPPETS = [
     },
     {
         propertyName: "librarySearchAnchor",
-        snippets: ["relative inline-flex size-8"],
+        snippets: ["relative inline-flex size-[32px]"],
     },
     {
         propertyName: "dashboardActivityAnchor",
-        snippets: ["relative inline-flex size-8"],
+        snippets: ["relative inline-flex size-[32px]"],
     },
     {
         propertyName: "dashboardSearchTrigger",
@@ -1343,23 +1298,30 @@ const SOURCE_REPORT_SKELETON_SHARED_TOKENS = [
 ] as const;
 
 const EXPECTED_SOURCE_REPORT_METRIC_CARD_CLASS_NAME =
-    "gap-[6px] overflow-visible rounded-[10px] border-border bg-muted/40 px-[12px] py-[10px] shadow-none backdrop-blur-none";
+    "gap-[6px] !overflow-visible rounded-[10px] border border-[var(--source-report-metric-border)] bg-[var(--source-report-metric-bg)] px-[12px] py-[10px] shadow-none backdrop-blur-none";
 const SOURCE_REPORT_METRIC_CARD_CLASS_TOKENS =
     EXPECTED_SOURCE_REPORT_METRIC_CARD_CLASS_NAME.split(" ");
 const SOURCE_REPORT_STYLE_OWNER_SNIPPETS = [
     "type SourceReportStyleVariables = CSSProperties & {",
     "export const SOURCE_REPORT_STYLE_VARIABLES = {",
-    '"--source-report-metric-bg": "var(--bg-recessed)"',
-    '"--source-report-metric-border": "var(--line-hairline)"',
+    '"--source-report-metric-bg": "var(--card-popover-footer-bg)"',
+    '"--source-report-metric-border": "var(--glass-border-soft)"',
     '"--source-report-status-ok-fg": "var(--signal-success)"',
-    '"--source-report-status-ok-bg": "var(--bg-recessed)"',
-    '"--source-report-status-ok-border": "var(--line-hairline)"',
-    '"--source-report-status-warn-bg": "var(--bg-recessed)"',
-    '"--source-report-status-warn-border": "var(--line-hairline)"',
+    '"--source-report-status-ok-bg":',
+    "color-mix(in srgb, var(--source-report-status-ok-fg) 14%, transparent)",
+    '"--source-report-status-ok-border":',
+    "color-mix(in srgb, var(--source-report-status-ok-fg) 30%, transparent)",
+    '"--source-report-status-warn-bg":',
+    "color-mix(in srgb, var(--signal-warning) 18%, transparent)",
+    '"--source-report-status-warn-border":',
+    "color-mix(in srgb, var(--signal-warning) 32%, transparent)",
     '"--source-report-status-warn-fg": "var(--signal-warning-strong)"',
-    '"--source-report-status-err-bg": "var(--bg-recessed)"',
-    '"--source-report-status-err-border": "var(--line-hairline)"',
-    '"--source-report-skeleton-bg": "var(--bg-recessed)"',
+    '"--source-report-status-err-bg":',
+    "color-mix(in srgb, var(--signal-danger) 14%, transparent)",
+    '"--source-report-status-err-border":',
+    "color-mix(in srgb, var(--signal-danger) 30%, transparent)",
+    '"--source-report-skeleton-bg":',
+    "linear-gradient(90deg, rgb(255 255 255 / 0.05)",
     "export const SOURCE_REPORT_SKELETON_CLASS_NAME =",
     "export type SourceReportTone =",
     "export type SourceReportCardSkeletonSize =",
@@ -1378,7 +1340,6 @@ const SOURCE_REPORT_STYLE_OWNER_SNIPPETS = [
     "[&[hidden]]:hidden",
     "export const SOURCE_REPORT_ERROR_ALERT_CLASS_NAME =",
     "export const SOURCE_REPORT_STATUS_BADGE_CLASS_NAME =",
-    '"bg-muted"',
     "satisfies SourceReportStyleVariables",
 ] as const;
 
@@ -1829,6 +1790,10 @@ const ROUTE_CHROME_MODULE_CLASSES = [
     ".crumbCurrent",
     ".workspace",
 ] as const;
+const ROUTE_CHROME_FORBIDDEN_FRAMEWORK_RE =
+    /var\(--glass|var\(--graphite|color-mix\(|backdrop-filter/;
+const GLOBALS_FRAMEWORK_MARKETING_RE =
+    /Graphite Glass|SOT web kit|Liquid Glass|Apple-graphite|radial-gradient/;
 const REMOVED_DASHBOARD_BRAND_GLOBAL_SELECTORS = [
     '[data-sot-part="dashboard-brand"]',
     '[data-sot-part="dashboard-brand"] img',
@@ -2069,7 +2034,12 @@ describe("dashboard SOT foundation", () => {
         expect(routeChromeModule).toContain(
             "grid-template-columns: 380px 1fr;",
         );
-        expect(routeChromeModule).toContain("backdrop-filter: blur(20px)");
+        expect(routeChromeModule.match(/^\.sidebar \{/gm) ?? []).toHaveLength(
+            1,
+        );
+        expect(routeChromeModule).not.toMatch(
+            ROUTE_CHROME_FORBIDDEN_FRAMEWORK_RE,
+        );
         for (const routeChromeSelector of ROUTE_CHROME_REMOVED_GLOBAL_SELECTORS) {
             expect(collectCssRuleBlocks(globals, routeChromeSelector)).toEqual(
                 [],
@@ -2381,31 +2351,31 @@ describe("dashboard SOT foundation", () => {
         const volumeMuteControl = extractOpeningElement(
             playerControls,
             'data-sot-control="dashboard-player-volume-mute"',
-            "SotPlayerControlButton",
+            "Button",
         );
         const playerVolumeControl = extractOpeningElement(
             playerControls,
             'data-sot-control="dashboard-player-volume"',
-            "SotPlayerControlButton",
+            "Button",
+        );
+        const playerBackControl = extractOpeningElement(
+            playerControls,
+            'data-sot-control="dashboard-player-back"',
+            "Button",
+        );
+        const playerPlayControl = extractOpeningElement(
+            playerControls,
+            'data-sot-control="dashboard-player-play"',
+            "Button",
+        );
+        const playerForwardControl = extractOpeningElement(
+            playerControls,
+            'data-sot-control="dashboard-player-forward"',
+            "Button",
         );
         const playerDate = extractOpeningElement(
             player,
             'data-sot-part="dashboard-recording-player-date"',
-            "span",
-        );
-        const playerControlIcon = extractOpeningElement(
-            playerControls,
-            'data-sot-part="dashboard-player-control-icon"',
-            "span",
-        );
-        const playerPrimaryControlIconFunction = extractBoundedSlice(
-            playerControls,
-            "function DashboardPlayerPrimaryControlIcon",
-            "function DashboardPlayerSeekSlider",
-        );
-        const playerPlayIcon = extractOpeningElement(
-            playerPrimaryControlIconFunction,
-            "DASHBOARD_PLAYER_PRIMARY_CONTROL_ICON_CLASS_NAME",
             "span",
         );
         const playerCurrentTime = extractOpeningElement(
@@ -2426,12 +2396,12 @@ describe("dashboard SOT foundation", () => {
         const playerSeekSlider = extractSelfClosingElement(
             playerControls,
             'data-sot-control="dashboard-player-seek"',
-            "SotPlayerSeekSlider",
+            "Slider",
         );
         const playerSpeed = extractOpeningElement(
             playerControls,
             'data-sot-control="dashboard-player-speed"',
-            "SotPlayerSpeedButton",
+            "Button",
         );
         const playerVolumeAnchor = extractOpeningElement(
             playerControls,
@@ -2496,13 +2466,24 @@ describe("dashboard SOT foundation", () => {
             playerDate,
             "SOT_DASHBOARD_RECORDING_PLAYER_DATE_CLASS_NAME",
         );
-        expectClassNameConstReference(
-            playerControlIcon,
-            "DASHBOARD_PLAYER_CONTROL_ICON_CLASS_NAME",
+        expect(playerBackControl).toContain('variant="ghost"');
+        expect(playerBackControl).toContain('size="icon"');
+        expect(playerBackControl).toContain(
+            "className={DASHBOARD_PLAYER_DISABLED_BUTTON_CLASS_NAME}",
         );
-        expectClassNameConstReference(
-            playerPlayIcon,
-            "DASHBOARD_PLAYER_PRIMARY_CONTROL_ICON_CLASS_NAME",
+        expect(playerPlayControl).toContain('variant="default"');
+        expect(playerPlayControl).toContain('size="icon-lg"');
+        expect(playerPlayControl).toContain(
+            "className={DASHBOARD_PLAYER_DISABLED_BUTTON_CLASS_NAME}",
+        );
+        expect(playerForwardControl).toContain('variant="ghost"');
+        expect(playerForwardControl).toContain('size="icon"');
+        expect(playerForwardControl).toContain(
+            "className={DASHBOARD_PLAYER_DISABLED_BUTTON_CLASS_NAME}",
+        );
+        expect(playerControls).toContain('data-icon="inline-start"');
+        expect(playerControls).toContain(
+            'data-sot-part="dashboard-player-control-icon"',
         );
         expectCnClassNameReferences(playerCurrentTime, [
             "DASHBOARD_PLAYER_TIME_CLASS_NAME",
@@ -2510,7 +2491,7 @@ describe("dashboard SOT foundation", () => {
             "DASHBOARD_PLAYER_DISABLED_CLASS_NAME",
         ]);
         expect(playerSeekShell).toContain(
-            'className="relative block h-[14px] w-[168px] min-w-[168px] grow-0 shrink-0 basis-[168px]"',
+            'className="relative block min-w-[168px] grow-0 shrink-0 basis-[168px]"',
         );
         expectCnClassNameReferences(playerSeekSlider, [
             '"flex-none"',
@@ -2531,7 +2512,7 @@ describe("dashboard SOT foundation", () => {
             "DASHBOARD_PLAYER_DISABLED_BUTTON_CLASS_NAME",
         );
         expect(playerVolumeAnchor).toContain(
-            'className="relative ml-0 inline-flex"',
+            'className="relative inline-flex"',
         );
         expect(playerVolumeValue).toContain(
             'className="min-w-11 text-center font-mono text-xs font-medium tracking-[0.03em] tabular-nums"',
@@ -2616,12 +2597,8 @@ describe("dashboard SOT foundation", () => {
         expect(noAudioAlert).not.toContain("layout=");
         expect(noAudioAlert).not.toContain("className=");
         expect(sotPlayerPrimitives).toContain("SotPlayerNoAudioAlert");
-        expectExactStringConstInitializers(
-            sotPlayerPrimitives,
-            SOT_PLAYER_NO_AUDIO_CLASS_INITIALIZERS,
-        );
         expectSotPlayerNoAudioPrimitiveBindings(sotPlayerPrimitives);
-        expect(sotPlayerPrimitives).toContain("<SotPlayerNoAudioIcon");
+        expect(sotPlayerPrimitives).not.toContain("<SotPlayerNoAudioIcon");
         expect(player).not.toContain(
             '<SotPlayerNoAudioIcon className="size-3.5" />',
         );
@@ -2644,7 +2621,7 @@ describe("dashboard SOT foundation", () => {
         expect(button).not.toContain("playerSpeed:");
         expect(button).not.toContain("playerControlSm:");
         expect(button).not.toContain("playerControlLg:");
-        for (const playerButtonClassToken of [
+        for (const removedPlayerButtonPrimitiveToken of [
             "SOT_PLAYER_CONTROL_BUTTON_CLASS",
             "SOT_PLAYER_CONTROL_BUTTON_SIZE_CLASS",
             "SOT_PLAYER_CONTROL_BUTTON_SM_SIZE_CLASS",
@@ -2652,23 +2629,22 @@ describe("dashboard SOT foundation", () => {
             "SOT_PLAYER_PRIMARY_BUTTON_SIZE_CLASS",
             "SOT_PLAYER_SPEED_BUTTON_CLASS",
             "SOT_PLAYER_SPEED_BUTTON_SIZE_CLASS",
-            "size-[36px]",
-            "size-[30px]",
-            "size-[44px]",
-            "min-w-[50px]",
-            "data-player-control-icon",
+            "type SotPlayerButtonProps",
+            "SotPlayerControlButton",
+            "SotPlayerPrimaryButton",
+            "SotPlayerSpeedButton",
         ]) {
-            expect(sotPlayerPrimitives).toContain(playerButtonClassToken);
+            expect(sotPlayerPrimitives).not.toContain(
+                removedPlayerButtonPrimitiveToken,
+            );
         }
-        expect(sotPlayerPrimitives).toContain(
-            'type SotPlayerButtonProps = Omit<ButtonProps, "variant" | "size">',
-        );
         expect(button).not.toContain("dashboard-player-volume-icon");
         expect(button).not.toContain("recording-player-volume-icon");
-        expect(playerControls).toContain("<SotPlayerControlButton");
-        expect(playerControls).toContain("<SotPlayerPrimaryButton");
-        expect(playerControls).toContain("<SotPlayerSpeedButton");
-        expect(playerControls).toContain('controlSize="sm"');
+        expect(playerControls).toContain("<Button");
+        expect(playerControls).not.toContain("<SotPlayerControlButton");
+        expect(playerControls).not.toContain("<SotPlayerPrimaryButton");
+        expect(playerControls).not.toContain("<SotPlayerSpeedButton");
+        expect(playerControls).not.toContain('controlSize="sm"');
         for (const removedPlayerProp of [
             `variant="${"playerControl"}"`,
             `size="${"playerControl"}"`,
@@ -2680,21 +2656,19 @@ describe("dashboard SOT foundation", () => {
         ]) {
             expect(playerControls).not.toContain(removedPlayerProp);
         }
-        expect(volumeMuteControl).toContain('controlSize="sm"');
-        expect(volumeMuteControl).not.toContain("variant=");
-        expect(volumeMuteControl).not.toContain("size=");
+        expect(volumeMuteControl).toContain('variant="ghost"');
+        expect(volumeMuteControl).toContain('size="icon-sm"');
         expect(volumeMuteControl).not.toContain("className=");
-        expect(playerControls).toContain("data-player-control-icon");
+        expect(playerControls).not.toContain("data-player-control-icon");
         expect(playerControls).not.toContain("SOT_PLAYER_BUTTON_CLASS");
         expect(playerControls).not.toContain("SOT_PLAYER_PRIMARY_BUTTON_CLASS");
         expect(playerControls).not.toContain("SOT_PLAYER_BUTTON_SM_CLASS");
         expect(playerControls).not.toContain("SOT_PLAYER_SPEED_BUTTON_CLASS");
-        expect(playerControls).not.toContain('variant="ghost"');
-        expect(playerControls).not.toContain('variant="outline"');
-        expect(playerControls).not.toContain('variant="default"');
-        expect(playerControls).not.toContain('size="icon-sm"');
+        expect(playerControls).toContain('variant="ghost"');
+        expect(playerControls).toContain('variant="default"');
+        expect(playerControls).toContain('size="icon-sm"');
         expect(playerControls).not.toContain('size="icon-xs"');
-        expect(playerControls).not.toContain('size="sm"');
+        expect(playerControls).toContain('size="sm"');
         expect(playerControls).not.toContain('variant="player"');
         expect(playerControls).not.toContain('variant="player-primary"');
         expect(playerControls).not.toContain('size="player"');
@@ -2705,35 +2679,23 @@ describe("dashboard SOT foundation", () => {
         expect(badge).not.toContain("min-w-[65.171875px]");
         expect(badge).not.toContain("[&_[data-sot-part=status-dot]]");
         expect(badge).not.toContain("[&_[data-sot-part=status-label]]");
-        for (const playerStatusToken of [
-            "h-[20px]",
-            "min-w-[65.171875px]",
-            "justify-normal",
-            "gap-[5px]",
-            "tracking-[0.005em]",
-            "data-[sot-tone=ok]:border-[var(--button-copy-success-border)]",
-            "data-[sot-tone=ok]:bg-[var(--button-copy-success-bg)]",
-            "data-[sot-tone=ok]:text-[var(--signal-success)]",
-            "data-[sot-tone=warn]:border-[var(--system-banner-offline-border)]",
-            "data-[sot-tone=warn]:bg-[var(--system-banner-offline-bg)]",
-            "data-[sot-tone=warn]:text-[var(--signal-warning-strong)]",
-            "data-[sot-tone=err]:border-[var(--alert-destructive-soft-border)]",
-            "data-[sot-tone=err]:bg-[var(--alert-destructive-soft-bg)]",
-            "data-[sot-tone=err]:text-[var(--signal-danger)]",
-            "data-[sot-tone=info]:border-[var(--system-banner-update-border)]",
-            "data-[sot-tone=info]:bg-[var(--system-banner-update-bg)]",
-            "data-[sot-tone=info]:text-[var(--signal-info)]",
-            "data-[sot-tone=neu]:border-[var(--line-hairline)]",
-            "data-[sot-tone=neu]:bg-[var(--bg-recessed)]",
-            "data-[sot-tone=neu]:text-[var(--fg-secondary)]",
-            "[&_[data-sot-part=status-dot]]:size-[5px]",
-            "[&_[data-sot-part=status-dot]]:rounded-full",
-            "[&_[data-sot-part=status-dot]]:bg-current",
-            "data-[sot-tone=warn]:[&_[data-sot-part=status-dot]]:animate-[bpulse_1.4s_ease-in-out_infinite]",
-            "[&_[data-sot-part=status-label]]:ml-[4px]",
-        ]) {
-            expect(sotPlayerPrimitives).toContain(playerStatusToken);
-        }
+        expect(sotPlayerPrimitives).toContain("const PLAYER_STATUS_VARIANT");
+        expect(sotPlayerPrimitives).toContain(
+            'React.ComponentProps<typeof Badge>["variant"]',
+        );
+        expect(sotPlayerPrimitives).toContain("const PLAYER_STATUS_TONE_CLASS");
+        expect(sotPlayerPrimitives).toContain(
+            'className={cn("gap-1.5", PLAYER_STATUS_TONE_CLASS[tone], className)}',
+        );
+        expect(sotPlayerPrimitives).toContain(
+            "variant={PLAYER_STATUS_VARIANT[tone]}",
+        );
+        expect(sotPlayerPrimitives).toContain(
+            '"size-1.5 rounded-full bg-current"',
+        );
+        expect(sotPlayerPrimitives).toMatch(
+            /tone === "warn" &&\s*"animate-\[bpulse_1\.4s_ease-in-out_infinite\]"/,
+        );
         expect(sotPlayerPrimitives).not.toContain("--source-provider-status");
         expect(badge).not.toContain("playerTagChip:");
         expect(badge).not.toContain("playerTagOverflow:");
@@ -2743,10 +2705,11 @@ describe("dashboard SOT foundation", () => {
             /tone=\{\s*selectedPlayerStatus\.tone\s*\}/,
         );
         expect(statusBadge).toContain('className="ml-auto"');
-        expect(sotPlayerPrimitives).toContain("SOT_PLAYER_STATUS_BADGE_CLASS");
-        expect(sotPlayerPrimitives).toContain('variant="ghost"');
+        expect(sotPlayerPrimitives).not.toContain(
+            "SOT_PLAYER_STATUS_BADGE_CLASS",
+        );
         expect(sotPlayerPrimitives).toContain(
-            "className={cn(SOT_PLAYER_STATUS_BADGE_CLASS, className)}",
+            "variant={PLAYER_STATUS_VARIANT[tone]}",
         );
         expect(sotPlayerPrimitives).toContain(
             'data-sot-control="player-status"',
@@ -2754,26 +2717,26 @@ describe("dashboard SOT foundation", () => {
         expect(sotPlayerPrimitives).toContain("data-sot-tone={tone}");
         expect(sotPlayerPrimitives).toContain('data-sot-part="status-dot"');
         expect(sotPlayerPrimitives).toContain('data-sot-part="status-label"');
-        expectExactStringConstInitializers(
-            sotPlayerPrimitives,
-            SOT_PLAYER_SOURCE_CLASS_INITIALIZERS,
-        );
         expectSotPlayerSourcePrimitiveBindings(sotPlayerPrimitives);
         for (const sotPlayerTagClassConstant of [
+            "PLAYER_TAG_COLOR_CLASS",
+            "PLAYER_TAG_CHIP_CLASS",
+            "PLAYER_TAG_OVERFLOW_CLASS",
+        ]) {
+            expect(sotPlayerPrimitives).toContain(sotPlayerTagClassConstant);
+        }
+        for (const removedSotPlayerTagClassConstant of [
             "SOT_PLAYER_TAG_BADGE_CLASS",
             "SOT_PLAYER_TAG_OVERFLOW_BADGE_CLASS",
             "SOT_PLAYER_TAG_ADD_BUTTON_CLASS",
             "SOT_PLAYER_TAG_CHIP_BUTTON_CLASS",
             "SOT_PLAYER_TAG_OVERFLOW_BUTTON_CLASS",
+            "SOT_PLAYER_TAG_CHIP_VARIABLES_CLASS",
+            "SOT_PLAYER_TAG_COLOR_TOKEN",
         ]) {
-            expect(sotPlayerPrimitives).toContain(sotPlayerTagClassConstant);
-        }
-        for (const sotPlayerTagClassToken of [
-            "data-[sot-tag-color=blue]:[--sot-player-tag-chip-fg:var(--tag-blue)]",
-            "data-[sot-state=open]:border-[var(--line-strong)]",
-            "hover:border-[var(--line-strong)]",
-        ]) {
-            expect(sotPlayerPrimitives).toContain(sotPlayerTagClassToken);
+            expect(sotPlayerPrimitives).not.toContain(
+                removedSotPlayerTagClassConstant,
+            );
         }
         for (const sotPlayerTagChipToken of [
             "--sot-player-tag-chip-bg",
@@ -2784,18 +2747,8 @@ describe("dashboard SOT foundation", () => {
             "--sot-player-tag-chip-blue-fg",
         ]) {
             expect(globals).not.toContain(sotPlayerTagChipToken);
+            expect(sotPlayerPrimitives).not.toContain(sotPlayerTagChipToken);
         }
-        for (const sotPlayerTagChipToken of [
-            "--sot-player-tag-chip-bg",
-            "--sot-player-tag-chip-border",
-            "--sot-player-tag-chip-fg",
-        ]) {
-            expect(sotPlayerPrimitives).toContain(sotPlayerTagChipToken);
-        }
-        expect(sotPlayerPrimitives).toContain(
-            "SOT_PLAYER_TAG_CHIP_VARIABLES_CLASS",
-        );
-        expect(sotPlayerPrimitives).not.toContain("SOT_PLAYER_TAG_COLOR_TOKEN");
         expect(sotPlayerPrimitives).not.toContain("sotPlayerTagChipStyle");
         expect(sotPlayerPrimitives).not.toContain(
             'background: "var(--sot-player-tag-chip-bg)"',
@@ -2817,24 +2770,23 @@ describe("dashboard SOT foundation", () => {
         expect(playerControls).toContain(
             'data-sot-control="dashboard-player-seek"',
         );
-        expect(playerControls).toContain("<SotPlayerSeekSlider");
+        expect(playerControls).toContain("<Slider");
         expect(playerControls).toContain('"flex-none"');
-        expect(playerSeekSlider).toContain("rootProps={{");
         expect(playerSeekSlider).toContain(
-            '"aria-disabled": disabled ? "true" : undefined',
+            'aria-disabled={disabled ? "true" : undefined}',
         );
         expect(playerSeekSlider).toContain(
-            '"aria-valuenow": Math.round(progress)',
+            "aria-valuenow={Math.round(progress)}",
         );
-        expect(playerSeekSlider).toContain('"data-sot-state": controlState');
-        expect(playerSeekSlider).toContain("onClick: (event) =>");
-        expect(playerSeekSlider).toContain("onKeyDown: (event) =>");
+        expect(playerSeekSlider).toContain("data-sot-state={controlState}");
+        expect(playerSeekSlider).toContain("onClick={(event) =>");
+        expect(playerSeekSlider).toContain("onKeyDown={(event) =>");
         expect(playerSeekSlider).toContain('event.key === "ArrowLeft"');
         expect(playerSeekSlider).toContain('event.key === "ArrowRight"');
         expect(playerSeekSlider).toContain('event.key === "Home"');
         expect(playerSeekSlider).toContain('event.key === "End"');
-        expect(playerSeekSlider).toContain('role: "slider"');
-        expect(playerSeekSlider).toContain("tabIndex: disabled ? -1 : 0");
+        expect(playerSeekSlider).not.toContain("rootProps={{");
+        expect(playerSeekSlider).toContain("tabIndex={disabled ? -1 : 0}");
         expect(playerControls).toContain(
             "DASHBOARD_PLAYER_DISABLED_CLASS_NAME",
         );
@@ -2854,8 +2806,8 @@ describe("dashboard SOT foundation", () => {
         );
         expect(playerControls).toContain("<Popover");
         expect(playerControls).toContain("<PopoverTrigger asChild>");
-        expect(playerControls).toContain("<SotPlayerVolumePopoverContent");
-        expect(playerControls).toContain("<SotPlayerVolumeSlider");
+        expect(playerControls).toContain("<PopoverContent");
+        expect(playerControls).toContain("<Slider");
         expect(playerControls).not.toContain(`variant="${"player"}Seek"`);
         expect(playerControls).not.toContain(`variant="${"player"}Volume"`);
         expect(playerControls).not.toContain(
@@ -2870,8 +2822,11 @@ describe("dashboard SOT foundation", () => {
             "SOT_PLAYER_SEEK_THUMB_CLASS",
             "SOT_PLAYER_VOLUME_SLIDER_CLASS",
             "SOT_PLAYER_VOLUME_POPOVER_CONTENT_CLASS",
+            "SotPlayerSeekSlider",
+            "SotPlayerVolumeSlider",
+            "SotPlayerVolumePopoverContent",
         ]) {
-            expect(sotPlayerPrimitives).toContain(wrapperToken);
+            expect(sotPlayerPrimitives).not.toContain(wrapperToken);
         }
 
         for (const removedGlobalSelector of REMOVED_DASHBOARD_PLAYER_GLOBAL_SELECTOR_FRAGMENTS) {
@@ -3257,7 +3212,7 @@ describe("dashboard SOT foundation", () => {
             '[data-sot-control="dashboard-sync"][disabled] {\n    pointer-events: none;',
         );
         expect(globals).toContain(
-            '[data-sot-panel="settings-scroll-body"][hidden] {\n    display: none !important;\n}',
+            '[data-sot-panel="settings-scroll-body"][hidden] {\n    display: none;\n}',
         );
         expect(globals).toContain(
             '[data-sot-panel="dashboard-detail"][data-empty="true"] [data-detail-empty] {\n    display: flex;',
@@ -5178,6 +5133,19 @@ describe("dashboard SOT foundation", () => {
                 "dashboardButtonClassNames.compactAction",
             );
         }
+        for (const control of DASHBOARD_TRANSCRIPT_RETRANSCRIPTION_DISMISS_CONTROLS) {
+            const buttonOpening = extractOpeningElement(
+                workstation,
+                `data-sot-control="${control}"`,
+                "Button",
+            );
+            expect(buttonOpening).toContain('variant="ghost"');
+            expect(buttonOpening).toContain('size="sm"');
+            expectExactCnClassNameConstReferences(buttonOpening, [
+                "dashboardButtonClassNames.compactAction",
+                "dashboardRetranscriptionClassNames.closeButton",
+            ]);
+        }
         for (const control of DASHBOARD_TRANSCRIPT_COMPACT_ACTION_CONTROLS) {
             const buttonOpening = extractOpeningElement(
                 workstation,
@@ -5302,9 +5270,13 @@ describe("dashboard SOT foundation", () => {
             'import { Slider } from "@/components/ui/slider";',
         );
         expect(dashboardRecordingPlayerControls).toContain(
+            'import { Slider } from "@/components/ui/slider";',
+        );
+        expect(dashboardRecordingPlayerControls).toContain("<Slider");
+        expect(dashboardRecordingPlayerControls).not.toContain(
             "<SotPlayerSeekSlider",
         );
-        expect(dashboardRecordingPlayerControls).toContain(
+        expect(dashboardRecordingPlayerControls).not.toContain(
             "<SotPlayerVolumeSlider",
         );
         const sourceReportLoading = extractBoundedSlice(
@@ -5568,7 +5540,7 @@ describe("dashboard SOT foundation", () => {
         );
 
         for (const token of [
-            "BetterAINote · Graphite Glass Design System",
+            "BetterAINote global design tokens",
             "--bg-canvas:",
             "--bg-elevated:",
             "--fg-primary:",
@@ -5577,6 +5549,13 @@ describe("dashboard SOT foundation", () => {
         ]) {
             expect(globals).toContain(token);
         }
+        expect(globals).not.toMatch(GLOBALS_FRAMEWORK_MARKETING_RE);
+        expect(globals).toContain("--background: var(--bg-canvas);");
+        expect(globals).toContain("--foreground: var(--fg-primary);");
+        expect(globals).toContain("--color-background: var(--background);");
+        expect(globals).toContain("--color-foreground: var(--foreground);");
+        expect(globals).not.toContain("--color-background: var(--bg-canvas);");
+        expect(globals).not.toContain("--color-foreground: var(--fg-primary);");
 
         expect(segmentedTabs).not.toContain(
             'data-sot-control="segmented-tabs"',
@@ -5691,10 +5670,13 @@ describe("dashboard SOT foundation", () => {
         expect(banner).not.toContain('variant="systemBannerDismissAction"');
         expect(banner).not.toContain("variant={primaryActionVariant}");
         expect(banner).toContain('"primary"');
-        expect(banner).not.toContain('size="sm"');
+        expect(banner).toContain('size="sm"');
         expect(banner).not.toContain('size="icon-sm"');
-        expect(banner).not.toContain('variant="ghost"');
-        expect(banner).not.toContain('variant="outline"');
+        expect(banner).toContain(
+            'variant={tone === "primary" ? "outline" : "ghost"}',
+        );
+        expect(banner).toContain("systemBannerButtonClassNames.actionSize");
+        expect(banner).toContain("systemBannerButtonClassNames.dismissSize");
         expect(banner).toMatch(
             /data-sot-control="system-banner-dismiss-action"[\s\S]*<CloseIcon\s+data-icon="inline-start"\s+aria-hidden="true"\s*\/>/,
         );

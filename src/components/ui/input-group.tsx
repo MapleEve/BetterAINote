@@ -88,11 +88,9 @@ function InputGroupAddon({
 
 function inputGroupButtonClassName({
     size,
-    variant,
     className,
 }: {
     size: InputGroupButtonSize;
-    variant: InputGroupButtonVariant;
     className?: string;
 }) {
     return cn(
@@ -127,7 +125,6 @@ function InputGroupButton({
             variant={variant}
             className={inputGroupButtonClassName({
                 size,
-                variant,
                 className,
             })}
             {...props}

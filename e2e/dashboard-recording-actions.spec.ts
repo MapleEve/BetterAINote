@@ -728,7 +728,15 @@ function dashboardRecordingHeader(page: Page) {
 }
 
 function tagDialog(page: Page) {
-    return page.getByRole("dialog", { name: "标签" });
+    return page.locator('[data-sot-panel="recording-tag-manager"]').first();
+}
+
+async function openDashboardTagManager(page: Page) {
+    await page
+        .locator(
+            '[data-sot-panel="dashboard-detail"] [data-sot-control="recording-tag-manager"]',
+        )
+        .click();
 }
 
 function tagDialogCreateInput(page: Page) {
@@ -929,6 +937,30 @@ async function readFixtureOuterHtml(
     }, options);
 }
 
+function inlineAiRenamePopoverContentForHeaderPlacement(
+    headerHtml: string,
+    panelHtml: string,
+) {
+    const anchorMarker = 'data-sot-part="ai-rename-anchor"';
+    const anchorIndex = headerHtml.indexOf(anchorMarker);
+    if (anchorIndex === -1) {
+        throw new Error("AI rename header anchor not found in product HTML");
+    }
+
+    const anchorCloseIndex = headerHtml.indexOf("</span>", anchorIndex);
+    if (anchorCloseIndex === -1) {
+        throw new Error("AI rename header anchor close tag not found");
+    }
+
+    const insertAt = anchorCloseIndex + "</span>".length;
+    const fixturePanelHtml = `<style>
+.dashboard-header-placement-stage [data-sot-part="detail-header-action-anchor"]{position:relative!important}
+.dashboard-header-placement-stage [data-sot-panel="ai-rename-preview"]{position:absolute!important;top:calc(100% + 8px)!important;right:0!important;left:auto!important;z-index:240!important;transform:none!important}
+</style>${panelHtml}`;
+
+    return `${headerHtml.slice(0, insertAt)}${fixturePanelHtml}${headerHtml.slice(insertAt)}`;
+}
+
 async function captureHeaderPlacementFixture(
     page: Page,
     html: string,
@@ -999,6 +1031,7 @@ async function expectDashboardHeaderPlacementPixelMatch(
     sotPage: Page,
     label: string,
     widths?: readonly number[],
+    options: { productHtml?: string } = {},
 ) {
     const sotHeader = sotPage.locator(".detail .rec-head").first();
     const productHeader = dashboardRecordingHeader(page);
@@ -1011,12 +1044,13 @@ async function expectDashboardHeaderPlacementPixelMatch(
         readFixtureOuterHtml(sotHeader, { localOnly: productLocalOnly }),
         readFixtureOuterHtml(productHeader),
     ]);
+    const resolvedProductHtml = options.productHtml ?? productHtml;
     const targetWidths = widths ?? [defaultWidth];
 
     for (const width of targetWidths) {
         const [sotCapture, productCapture] = await Promise.all([
             captureHeaderPlacementFixture(sotPage, sotHtml, width),
-            captureHeaderPlacementFixture(page, productHtml, width),
+            captureHeaderPlacementFixture(page, resolvedProductHtml, width),
         ]);
         const diff = await compareMoreMenuPixels(
             page,
@@ -1076,15 +1110,19 @@ async function expectDashboardHeaderPlacementPixelMatch(
     }
 }
 
-async function captureAiRenamePanelFixture(page: Page, locator: Locator) {
+async function captureAiRenamePanelFixture(
+    locator: Locator,
+    source: "product" | "sot",
+) {
     await expect(locator).toBeVisible();
     const html = await locator.evaluate((element) => element.outerHTML);
+    const page = locator.page();
     const fixtureId = `dashboard-ai-rename-${Date.now()}-${Math.random()
         .toString(16)
         .slice(2)}`;
 
     await page.evaluate(
-        ({ fixtureId: id, html: fixtureHtml }) => {
+        ({ fixtureId: id, html: fixtureHtml, source }) => {
             document.getElementById(id)?.remove();
             document.documentElement.dataset.theme = "dark";
             document.body.dataset.theme = "dark";
@@ -1098,6 +1136,13 @@ async function captureAiRenamePanelFixture(page: Page, locator: Locator) {
             host.style.pointerEvents = "none";
             host.style.background = "transparent";
 
+            const stableAnimationStyle = document.createElement("style");
+            stableAnimationStyle.textContent =
+                source === "sot"
+                    ? ".ai-rename-pixel-stage .airp-spinner{animation:none!important;transform:rotate(0deg)!important}"
+                    : ".ai-rename-pixel-stage [data-sot-part='loading-spinner']{animation:none!important;transform:rotate(0deg)!important}";
+            host.appendChild(stableAnimationStyle);
+
             const stage = document.createElement("div");
             stage.className = "ai-rename-pixel-stage";
             stage.style.boxSizing = "border-box";
@@ -1109,14 +1154,22 @@ async function captureAiRenamePanelFixture(page: Page, locator: Locator) {
             stage.innerHTML = fixtureHtml;
 
             const panel = stage.querySelector<HTMLElement>(
-                ".ai-rename-panel, [data-sot-panel='ai-rename-preview']",
+                source === "sot"
+                    ? ".ai-rename-panel"
+                    : "[data-sot-panel='ai-rename-preview']",
             );
             if (!panel) {
                 throw new Error("AI rename fixture panel not found");
             }
             panel.hidden = false;
             panel.dataset.open = "true";
-            panel.style.display = "flex";
+            if (source === "sot") {
+                panel.style.display = "flex";
+                panel.style.flexDirection = "column";
+            } else {
+                panel.style.removeProperty("display");
+                panel.style.removeProperty("flex-direction");
+            }
             panel.style.inset = "auto";
             panel.style.left = "auto";
             panel.style.opacity = "1";
@@ -1129,7 +1182,7 @@ async function captureAiRenamePanelFixture(page: Page, locator: Locator) {
             host.appendChild(stage);
             document.body.appendChild(host);
         },
-        { fixtureId, html },
+        { fixtureId, html, source },
     );
 
     const stage = page.locator(`#${fixtureId} > .ai-rename-pixel-stage`).first();
@@ -1146,10 +1199,10 @@ async function captureAiRenamePanelFixture(page: Page, locator: Locator) {
         return {
             height: Math.round(rect.height * 1000) / 1000,
             state:
-                element.getAttribute("data-sot-state") ||
+                element.getAttribute("data-sot-state") ??
                 element
                     .querySelector<HTMLElement>("[data-airp-state]:not([hidden])")
-                    ?.getAttribute("data-airp-state") ||
+                    ?.getAttribute("data-airp-state") ??
                 null,
             width: Math.round(rect.width * 1000) / 1000,
         };
@@ -1181,12 +1234,20 @@ async function expectDashboardAiRenamePixelMatch(
         throw new Error("AI rename edge antialias tolerance is unavailable-only");
     }
     await openSotAiRenamePanel(sotPage, state, options);
+    const productPanel = dashboardAiRenamePanel(page).first();
+    await expect(productPanel).toHaveAttribute(
+        "data-slot",
+        "popover-content",
+    );
+    await expect(productPanel).toHaveAttribute("role", "dialog");
+    await expect(productPanel).toHaveAttribute("data-state", "open");
+    await expect(productPanel).toHaveAttribute("data-sot-state", state);
     const [sotCapture, productCapture] = await Promise.all([
         captureAiRenamePanelFixture(
-            sotPage,
             sotPage.locator("[data-rh-ai-panel]").first(),
+            "sot",
         ),
-        captureAiRenamePanelFixture(page, dashboardAiRenamePanel(page).first()),
+        captureAiRenamePanelFixture(productPanel, "product"),
     ]);
     const diff = await compareMoreMenuPixels(
         page,
@@ -2370,13 +2431,19 @@ test("dashboard renames, tags, and deletes an upstream-deleted local copy throug
             .poll(async () => (await getRecordingSnapshot(userId ?? "")).filename)
             .toBe(ACTION_RENAMED_TITLE);
 
-        await page.getByRole("button", { name: "标签", exact: true }).click();
+        await openDashboardTagManager(page);
         await expect(tagDialog(page)).toBeVisible();
         await expect(tagDialog(page)).toHaveAttribute(
             "data-sot-panel",
             "recording-tag-manager",
         );
         await tagDialogCreateInput(page).fill(ACTION_TAG_NAME);
+        await expect(tagDialog(page)).toHaveAttribute("data-sot-state", "create");
+        const createTagButton = tagDialog(page).getByRole("button", {
+            name: "创建",
+            exact: true,
+        });
+        await expect(createTagButton).toBeEnabled();
         await Promise.all([
             page.waitForResponse(
                 (response) =>
@@ -3089,7 +3156,9 @@ test("dashboard AI rename header placement matches SOT pixels", async (
 
         await gotoHydratedDashboard(page);
         await page
-            .getByRole("button", { name: new RegExp(placementTitle) })
+            .locator(
+                `[data-sot-control="dashboard-recording-row"][data-sot-recording-id="${ACTION_RECORDING_ID}"]`,
+            )
             .click();
         await expect(selectedRecordingTitle(page, placementTitle)).toHaveText(
             placementTitle,
@@ -3116,6 +3185,11 @@ test("dashboard AI rename header placement matches SOT pixels", async (
                 '[data-sot-part="review-new"]',
             ),
         ).toHaveText(placementAiTitle);
+        const productHeaderWithPanelHtml =
+            inlineAiRenamePopoverContentForHeaderPlacement(
+                await readFixtureOuterHtml(dashboardRecordingHeader(page)),
+                await readFixtureOuterHtml(dashboardAiRenamePanel(page).first()),
+            );
 
         await expectDashboardHeaderPlacementPixelMatch(
             page,
@@ -3123,6 +3197,7 @@ test("dashboard AI rename header placement matches SOT pixels", async (
             sotPage,
             "Dashboard AI rename review header placement",
             [580, 390],
+            { productHtml: productHeaderWithPanelHtml },
         );
     } finally {
         await sotPage?.close();

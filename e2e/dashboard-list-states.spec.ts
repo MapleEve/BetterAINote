@@ -204,27 +204,27 @@ const LIST_ROW_MIGRATION_FIXTURE_CSS = `
     }
     .b.ok,
     [data-sot-part="dashboard-recording-status"][data-sot-tone="ok"] {
-        background: color-mix(in srgb, var(--signal-success) 14%, transparent);
+        background: color-mix(in srgb, var(--signal-success) 10%, transparent);
         color: var(--signal-success);
-        border-color: color-mix(in srgb, var(--signal-success) 30%, transparent);
+        border-color: color-mix(in srgb, var(--signal-success) 36%, transparent);
     }
     .b.warn,
     [data-sot-part="dashboard-recording-status"][data-sot-tone="warn"] {
-        background: color-mix(in srgb, var(--signal-warning) 18%, transparent);
-        color: oklch(0.55 0.16 70);
-        border-color: color-mix(in srgb, var(--signal-warning) 32%, transparent);
+        background: color-mix(in srgb, var(--signal-warning) 16%, transparent);
+        color: var(--signal-warning-strong);
+        border-color: color-mix(in srgb, var(--signal-warning) 28%, transparent);
     }
     .b.err,
     [data-sot-part="dashboard-recording-status"][data-sot-tone="err"] {
-        background: color-mix(in srgb, var(--signal-danger) 14%, transparent);
+        background: color-mix(in srgb, var(--signal-danger) 10%, transparent);
         color: var(--signal-danger);
-        border-color: color-mix(in srgb, var(--signal-danger) 30%, transparent);
+        border-color: color-mix(in srgb, var(--signal-danger) 26%, transparent);
     }
     .b.info,
     [data-sot-part="dashboard-recording-status"][data-sot-tone="info"] {
         background: color-mix(in srgb, var(--signal-info) 14%, transparent);
         color: var(--signal-info);
-        border-color: color-mix(in srgb, var(--signal-info) 30%, transparent);
+        border-color: color-mix(in srgb, var(--signal-info) 22%, transparent);
     }
     .b.neu,
     [data-sot-part="dashboard-recording-status"][data-sot-tone="neu"] {
@@ -438,6 +438,30 @@ const LIST_ROW_MIGRATION_FIXTURE_CSS = `
     .list-panel-frame-stage [data-recording-tag-chip] {
         flex: none !important;
         box-sizing: border-box !important;
+    }
+`;
+const LIST_COMPONENT_LIBRARY_SHADCN_TAG_FIXTURE_CSS = `
+    #badge .utag {
+        box-sizing: border-box;
+        display: inline-flex;
+        align-items: center;
+        justify-content: flex-start;
+        gap: 5.625px;
+        height: auto;
+        padding: 1.875px 7.5px;
+        border-radius: calc(infinity * 1px);
+        background: oklch(0.165 0.004 250);
+        border: 1px solid transparent;
+        color: oklch(0.555 0.09 224);
+        font-family: var(--font-sans);
+        font-size: 11.25px;
+        font-weight: 500;
+        line-height: 15px;
+        box-shadow: 0 1px 1px rgb(0 0 0 / 0.3);
+    }
+    #badge .utag svg {
+        width: 11.25px;
+        height: 11.25px;
     }
 `;
 const LIST_SKELETON_MIGRATION_FIXTURE_CSS = `
@@ -1615,6 +1639,12 @@ async function openSotComponentLibrary(page: Page) {
     await page.goto(SOT_COMPONENT_LIBRARY_URL, { waitUntil: "load" });
     await page.evaluate(() => {
         document.documentElement.dataset.theme = "dark";
+    });
+}
+
+async function applyListRowMigrationFixtureCss(page: Page) {
+    await page.addStyleTag({
+        content: `${LIST_ROW_MIGRATION_FIXTURE_CSS}\n${LIST_COMPONENT_LIBRARY_SHADCN_TAG_FIXTURE_CSS}`,
     });
 }
 
@@ -4250,6 +4280,7 @@ test("recording list item primitives match SOT component library styles", async 
     try {
         await seedRowStatusRecordings(userId);
         await openSotComponentLibrary(sotPage);
+        await applyListRowMigrationFixtureCss(sotPage);
         await page.goto("/dashboard", { waitUntil: "domcontentloaded" });
         const panel = recordingListPanel(page);
         await expect(panel).toHaveAttribute("data-sot-state", "ready");

@@ -61,7 +61,8 @@ export function DataSourceFieldControl({
         field.readOnly &&
         typeof field.value === "string" &&
         field.value.includes("•");
-    const sensitiveTextField = !field.readOnly && isSensitiveProviderField(field);
+    const sensitiveTextField =
+        !field.readOnly && isSensitiveProviderField(field);
     const sensitiveTextareaPasswordFallback =
         !field.readOnly && shouldRenderTextareaAsPasswordInput(field);
     const renderedField = {

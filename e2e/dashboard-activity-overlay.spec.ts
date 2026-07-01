@@ -706,8 +706,8 @@ async function captureActivityFixture(
             const stage = document.createElement("div");
             stage.className =
                 fixtureKind === "panel"
-                    ? "activity-pixel-stage cl-stage cl-pop-host"
-                    : "activity-pixel-stage cl-stage";
+                    ? "activity-pixel-stage cl-pop-host"
+                    : "activity-pixel-stage";
             stage.style.boxSizing = "border-box";
             stage.style.background = "var(--bg-canvas)";
             stage.style.overflow = "visible";
@@ -720,6 +720,8 @@ async function captureActivityFixture(
                 stage.style.display = "flex";
                 stage.style.alignItems = "center";
                 stage.style.justifyContent = "center";
+            } else {
+                stage.style.display = "block";
             }
 
             host.appendChild(stage);

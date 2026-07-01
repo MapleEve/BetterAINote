@@ -193,6 +193,16 @@ function shouldBypassSettingsKeyboardNav(target: EventTarget | null) {
     );
 }
 
+function isSettingsActivationKey(event: Pick<KeyboardEvent, "code" | "key">) {
+    return (
+        event.key === "Enter" ||
+        event.key === " " ||
+        event.key === "Space" ||
+        event.key === "Spacebar" ||
+        event.code === "Space"
+    );
+}
+
 export function normalizeSettingsSection(
     value: string | null | undefined,
 ): CanonicalSettingsSection | null {
@@ -283,6 +293,26 @@ export function SettingsDialog(props: SettingsDialogProps) {
         },
         [applyKeyboardSelectedIndex],
     );
+    const focusSettingsNavItem = React.useCallback(
+        (section: CanonicalSettingsSection) => {
+            startBrowserTimeout(() => {
+                navBoundaryRef.current
+                    ?.querySelector<HTMLButtonElement>(
+                        `[data-settings-nav-control][data-sot-section="${section}"]`,
+                    )
+                    ?.focus({ preventScroll: true });
+            }, 0);
+        },
+        [],
+    );
+    const activateKeyboardSelectedSection = React.useCallback(() => {
+        const selectedItem =
+            orderedSettingsNav[keyboardSelectedIndexRef.current];
+        if (selectedItem) {
+            applyActiveSettingsSection(selectedItem.id);
+            focusSettingsNavItem(selectedItem.id);
+        }
+    }, [applyActiveSettingsSection, focusSettingsNavItem]);
     const busyContextValue = React.useMemo<SettingsBusyContextValue>(
         () => ({
             isSettingsBusy,
@@ -350,7 +380,7 @@ export function SettingsDialog(props: SettingsDialogProps) {
 
     const handleCloseKeyDown = React.useCallback(
         (event: React.KeyboardEvent<HTMLButtonElement>) => {
-            if (event.key !== "Enter" && event.key !== " ") {
+            if (!isSettingsActivationKey(event)) {
                 return;
             }
 
@@ -358,6 +388,53 @@ export function SettingsDialog(props: SettingsDialogProps) {
             handleCloseSettings();
         },
         [handleCloseSettings],
+    );
+    const handleNavKeyDown = React.useCallback(
+        (event: React.KeyboardEvent<HTMLButtonElement>) => {
+            if (event.key === "ArrowDown") {
+                event.preventDefault();
+                event.stopPropagation();
+                applyKeyboardSelectedIndex(
+                    keyboardSelectedIndexRef.current + 1,
+                );
+                return;
+            }
+
+            if (event.key === "ArrowUp") {
+                event.preventDefault();
+                event.stopPropagation();
+                applyKeyboardSelectedIndex(
+                    keyboardSelectedIndexRef.current - 1,
+                );
+                return;
+            }
+
+            if (!isSettingsActivationKey(event)) {
+                return;
+            }
+
+            event.preventDefault();
+            event.stopPropagation();
+            if (!isSettingsBusy) {
+                activateKeyboardSelectedSection();
+            }
+        },
+        [
+            activateKeyboardSelectedSection,
+            applyKeyboardSelectedIndex,
+            isSettingsBusy,
+        ],
+    );
+    const handleNavKeyUp = React.useCallback(
+        (event: React.KeyboardEvent<HTMLButtonElement>) => {
+            if (!isSettingsActivationKey(event)) {
+                return;
+            }
+
+            event.preventDefault();
+            event.stopPropagation();
+        },
+        [],
     );
     const handleCloseAutoFocus = React.useCallback(
         (event: Event) => {
@@ -517,8 +594,10 @@ export function SettingsDialog(props: SettingsDialogProps) {
                             keyboardSelectedIndexRef.current - 1,
                         );
                         break;
-                    case "Enter":
-                    case " ":
+                    default:
+                        if (!isSettingsActivationKey(event)) {
+                            break;
+                        }
                         event.preventDefault();
                         event.stopPropagation();
                         break;
@@ -539,20 +618,18 @@ export function SettingsDialog(props: SettingsDialogProps) {
                         keyboardSelectedIndexRef.current - 1,
                     );
                     break;
-                case "Enter":
-                case " ": {
-                    event.preventDefault();
-                    const selectedIndex = keyboardSelectedIndexRef.current;
-                    const selectedItem = orderedSettingsNav[selectedIndex];
-                    if (selectedItem) {
-                        applyActiveSettingsSection(selectedItem.id);
+                default: {
+                    if (!isSettingsActivationKey(event)) {
+                        break;
                     }
+                    event.preventDefault();
+                    activateKeyboardSelectedSection();
                     break;
                 }
             }
         },
         [
-            applyActiveSettingsSection,
+            activateKeyboardSelectedSection,
             applyKeyboardSelectedIndex,
             isSettingsBusy,
             props,
@@ -652,7 +729,10 @@ export function SettingsDialog(props: SettingsDialogProps) {
                                 disabled={isSettingsBusy}
                                 type="button"
                             >
-                                <X data-icon="inline-start" aria-hidden="true" />
+                                <X
+                                    data-icon="inline-start"
+                                    aria-hidden="true"
+                                />
                             </Button>
                         </DialogClose>
                     </header>
@@ -728,7 +808,7 @@ export function SettingsDialog(props: SettingsDialogProps) {
                                                 }
                                                 data-keyboard-selected={
                                                     keyboardSelectedIndex ===
-                                                        itemIndex
+                                                    itemIndex
                                                 }
                                                 onClick={() => {
                                                     if (!isSettingsBusy) {
@@ -744,6 +824,8 @@ export function SettingsDialog(props: SettingsDialogProps) {
                                                         ? "page"
                                                         : undefined
                                                 }
+                                                onKeyDown={handleNavKeyDown}
+                                                onKeyUp={handleNavKeyUp}
                                                 type="button"
                                             >
                                                 <item.icon

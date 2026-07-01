@@ -130,9 +130,7 @@ describe("React surface SSR coverage", () => {
         expect(html).not.toContain('class="panel');
         expect(html).toContain('data-slot="button"');
         expect(html).toContain('data-variant="default"');
-        expect(html).toMatch(
-            /data-slot="button"[^>]*data-variant="outline"/,
-        );
+        expect(html).toMatch(/data-slot="button"[^>]*data-variant="outline"/);
         expect(html).toContain('data-slot="input"');
         expect(html).toContain('data-slot="label"');
         expect(html).toContain('data-slot="textarea"');
@@ -379,8 +377,6 @@ describe("React surface SSR coverage", () => {
         expect(html).toContain(
             'data-sot-privacy-boundary="sensitive-textarea-password-input"',
         );
-        expect(html).not.toMatch(
-            /<textarea(?=[^>]*id="field-login-material")/,
-        );
+        expect(html).not.toMatch(/<textarea(?=[^>]*id="field-login-material")/);
     });
 });

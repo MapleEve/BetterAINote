@@ -28,10 +28,7 @@ const fieldControlVariantClassNames: Record<FieldControlVariant, string> = {
     default: "flex flex-none items-center gap-2",
 };
 
-function FieldSet({
-    className,
-    ...props
-}: React.ComponentProps<"fieldset">) {
+function FieldSet({ className, ...props }: React.ComponentProps<"fieldset">) {
     return (
         <fieldset
             data-slot="field-set"

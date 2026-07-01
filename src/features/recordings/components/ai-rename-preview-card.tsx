@@ -1,12 +1,11 @@
 "use client";
 
 import { Check, RefreshCw, X } from "lucide-react";
-import type { SVGProps } from "react";
+import { type SVGProps, useId } from "react";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
-    Card,
     CardAction,
     CardContent,
     CardDescription,
@@ -14,6 +13,11 @@ import {
     CardHeader,
     CardTitle,
 } from "@/components/ui/card";
+import {
+    Popover,
+    PopoverAnchor,
+    PopoverContent,
+} from "@/components/ui/popover";
 import { Separator } from "@/components/ui/separator";
 import { Spinner } from "@/components/ui/spinner";
 import { cn } from "@/lib/utils";
@@ -72,7 +76,7 @@ function AiRenameErrorIcon(props: SVGProps<SVGSVGElement>) {
 
 const aiRenamePreviewClassNames = {
     card: {
-        root: "pointer-events-none absolute top-[calc(100%+8px)] right-0 z-[var(--z-popover-inline)] w-[min(360px,calc(100vw-32px))] gap-0 rounded-[var(--radius-lg)] border-[var(--card-popover-border)] bg-[var(--bg-elevated)] font-sans shadow-[var(--shadow-md)] backdrop-blur-none transition-none data-[sot-state=review]:top-[calc(100%+9px)] data-[open=true]:pointer-events-auto dark:[background:color-mix(in_srgb,var(--bg-elevated)_92%,transparent)] dark:shadow-[0_18px_44px_rgb(0_0_0_/_0.40)] [&_[data-sot-part=state][hidden]]:!hidden",
+        root: "w-[min(360px,calc(100vw-32px))] gap-0 rounded-[var(--radius-lg)] border-[var(--card-popover-border)] bg-[var(--bg-elevated)] p-0 font-sans shadow-[var(--shadow-md)] backdrop-blur-none transition-none data-[open=true]:pointer-events-auto dark:[background:color-mix(in_srgb,var(--bg-elevated)_92%,transparent)] dark:shadow-[0_18px_44px_rgb(0_0_0_/_0.40)] [&_[data-sot-part=state][hidden]]:!hidden",
         header: "h-[55px] grid-cols-[1fr_auto] items-start gap-x-2.5 gap-y-0.5 border-b border-[var(--card-popover-divider)] px-[14px] pt-3 pb-2 [&_[data-slot=card-head-copy]]:min-w-0",
         title: "break-words font-sans text-[11px] font-semibold leading-normal tracking-[0.02em] text-[var(--fg-secondary)]",
         content: "flex flex-col p-[14px]",
@@ -145,6 +149,8 @@ export function AiRenamePreviewCard({
     subtitle,
     title,
 }: AiRenamePreviewCardProps) {
+    const titleId = useId();
+    const descriptionId = useId();
     const isBusy = isApplying || isRegenerating;
     const canAct = state === "preview" || state === "review";
     const showRegenerate = Boolean(onRegenerate && regenerateLabel);
@@ -158,352 +164,386 @@ export function AiRenamePreviewCard({
         state === "unavailable" ? AiRenameUnavailableIcon : AiRenameErrorIcon;
 
     return (
-        <Card
-            hasNoPadding
-            className={cn(aiRenamePreviewClassNames.card.root, className)}
-            data-open="true"
-            data-sot-panel="ai-rename-preview"
-            data-sot-state={state}
-            role="dialog"
-            aria-label={title}
-        >
-            <CardHeader
-                className={aiRenamePreviewClassNames.card.header}
-                data-sot-part="head"
-            >
-                <div data-slot="card-head-copy" data-sot-part="head-copy">
-                    <CardTitle
-                        className={aiRenamePreviewClassNames.card.title}
-                        data-sot-part="eyebrow"
-                    >
-                        {title}
-                    </CardTitle>
-                    <CardDescription
-                        className={aiRenamePreviewClassNames.card.description}
-                        data-sot-part="subtitle"
-                    >
-                        {subtitle ?? ""}
-                    </CardDescription>
-                </div>
-                {onCancel ? (
-                    <CardAction
-                        className={aiRenamePreviewClassNames.card.action}
-                        data-sot-part="head-action"
-                    >
-                        <Button
-                            type="button"
-                            variant="ghost"
-                            size="icon-xs"
-                            className={aiRenamePreviewClassNames.button.close}
-                            onClick={onCancel}
-                            disabled={isApplying}
-                            aria-label={closeLabel ?? cancelLabel}
-                            title={closeLabel ?? cancelLabel}
-                            data-sot-control="ai-rename-close"
-                            data-sot-state={isApplying ? "busy" : state}
-                        >
-                            <X data-icon="inline-start" aria-hidden="true" />
-                        </Button>
-                    </CardAction>
-                ) : null}
-            </CardHeader>
-
-            <CardContent
-                className={cn(
-                    aiRenamePreviewClassNames.card.content,
-                    state === "loading" &&
-                        aiRenamePreviewClassNames.card.loadingContent,
-                    state === "error" &&
-                        aiRenamePreviewClassNames.card.errorContent,
-                    state === "unavailable" &&
-                        aiRenamePreviewClassNames.card.unavailableContent,
-                )}
-                data-sot-part="body"
+        <Popover open modal={false}>
+            <PopoverAnchor asChild>
+                <span
+                    className="inline-flex size-0"
+                    data-sot-part="ai-rename-anchor"
+                    aria-hidden="true"
+                />
+            </PopoverAnchor>
+            <PopoverContent
+                align="end"
+                side="bottom"
+                sideOffset={8}
+                avoidCollisions={false}
+                onOpenAutoFocus={(event) => event.preventDefault()}
+                className={cn(aiRenamePreviewClassNames.card.root, className)}
+                data-open="true"
+                data-sot-panel="ai-rename-preview"
                 data-sot-state={state}
+                aria-labelledby={titleId}
+                aria-describedby={subtitle ? descriptionId : undefined}
             >
-                {state === "loading" ? (
-                    <div
-                        className={aiRenamePreviewClassNames.state.root}
-                        data-slot="card-state"
-                        data-sot-part="state"
-                        data-sot-state="loading"
-                    >
-                        <Spinner
-                            className={aiRenamePreviewClassNames.state.spinner}
-                            data-sot-part="loading-spinner"
-                            aria-hidden="true"
-                        />
-                        <p
-                            className={aiRenamePreviewClassNames.state.message}
-                            data-slot="card-message"
-                            data-sot-part="message"
+                <CardHeader
+                    className={aiRenamePreviewClassNames.card.header}
+                    data-sot-part="head"
+                >
+                    <div data-slot="card-head-copy" data-sot-part="head-copy">
+                        <CardTitle
+                            id={titleId}
+                            className={aiRenamePreviewClassNames.card.title}
+                            data-sot-part="eyebrow"
                         >
-                            {message ?? title}
-                        </p>
-                    </div>
-                ) : isErrorState ? (
-                    <Alert
-                        className={cn(
-                            aiRenamePreviewClassNames.alert.root,
-                            state === "error"
-                                ? aiRenamePreviewClassNames.alert.error
-                                : aiRenamePreviewClassNames.alert.unavailable,
-                        )}
-                        data-sot-part="state"
-                        data-sot-state={state}
-                    >
-                        <span
-                            data-slot="alert-icon"
-                            data-sot-part="error-icon"
-                            aria-hidden="true"
-                        >
-                            <ErrorIcon aria-hidden="true" />
-                        </span>
-                        <AlertTitle className="sr-only">{title}</AlertTitle>
-                        <AlertDescription
+                            {title}
+                        </CardTitle>
+                        <CardDescription
+                            id={descriptionId}
                             className={
-                                aiRenamePreviewClassNames.alert.description
+                                aiRenamePreviewClassNames.card.description
                             }
-                            data-sot-part="state-description"
+                            data-sot-part="subtitle"
                         >
+                            {subtitle ?? ""}
+                        </CardDescription>
+                    </div>
+                    {onCancel ? (
+                        <CardAction
+                            className={aiRenamePreviewClassNames.card.action}
+                            data-sot-part="head-action"
+                        >
+                            <Button
+                                type="button"
+                                variant="ghost"
+                                size="icon-xs"
+                                className={
+                                    aiRenamePreviewClassNames.button.close
+                                }
+                                onClick={onCancel}
+                                disabled={isApplying}
+                                aria-label={closeLabel ?? cancelLabel}
+                                title={closeLabel ?? cancelLabel}
+                                data-sot-control="ai-rename-close"
+                                data-sot-state={isApplying ? "busy" : state}
+                            >
+                                <X
+                                    data-icon="inline-start"
+                                    aria-hidden="true"
+                                />
+                            </Button>
+                        </CardAction>
+                    ) : null}
+                </CardHeader>
+
+                <CardContent
+                    className={cn(
+                        aiRenamePreviewClassNames.card.content,
+                        state === "loading" &&
+                            aiRenamePreviewClassNames.card.loadingContent,
+                        state === "error" &&
+                            aiRenamePreviewClassNames.card.errorContent,
+                        state === "unavailable" &&
+                            aiRenamePreviewClassNames.card.unavailableContent,
+                    )}
+                    data-sot-part="body"
+                    data-sot-state={state}
+                >
+                    {state === "loading" ? (
+                        <div
+                            className={aiRenamePreviewClassNames.state.root}
+                            data-slot="card-state"
+                            data-sot-part="state"
+                            data-sot-state="loading"
+                        >
+                            <Spinner
+                                className={
+                                    aiRenamePreviewClassNames.state.spinner
+                                }
+                                data-sot-part="loading-spinner"
+                                aria-hidden="true"
+                            />
                             <p
                                 className={
                                     aiRenamePreviewClassNames.state.message
                                 }
-                                data-slot="alert-message"
+                                data-slot="card-message"
                                 data-sot-part="message"
                             >
                                 {message ?? title}
                             </p>
-                            {hint ? (
+                        </div>
+                    ) : isErrorState ? (
+                        <Alert
+                            className={cn(
+                                aiRenamePreviewClassNames.alert.root,
+                                state === "error"
+                                    ? aiRenamePreviewClassNames.alert.error
+                                    : aiRenamePreviewClassNames.alert
+                                          .unavailable,
+                            )}
+                            data-sot-part="state"
+                            data-sot-state={state}
+                        >
+                            <span
+                                data-slot="alert-icon"
+                                data-sot-part="error-icon"
+                                aria-hidden="true"
+                            >
+                                <ErrorIcon aria-hidden="true" />
+                            </span>
+                            <AlertTitle className="sr-only">{title}</AlertTitle>
+                            <AlertDescription
+                                className={
+                                    aiRenamePreviewClassNames.alert.description
+                                }
+                                data-sot-part="state-description"
+                            >
                                 <p
                                     className={
-                                        aiRenamePreviewClassNames.state.hint
+                                        aiRenamePreviewClassNames.state.message
                                     }
-                                    data-slot="alert-hint"
-                                    data-sot-part="hint"
+                                    data-slot="alert-message"
+                                    data-sot-part="message"
                                 >
-                                    {hint}
+                                    {message ?? title}
+                                </p>
+                                {hint ? (
+                                    <p
+                                        className={
+                                            aiRenamePreviewClassNames.state.hint
+                                        }
+                                        data-slot="alert-hint"
+                                        data-sot-part="hint"
+                                    >
+                                        {hint}
+                                    </p>
+                                ) : null}
+                            </AlertDescription>
+                        </Alert>
+                    ) : (
+                        <div
+                            className={aiRenamePreviewClassNames.state.root}
+                            data-slot="card-state"
+                            data-sot-part="state"
+                            data-sot-state={state}
+                        >
+                            <div
+                                className={
+                                    aiRenamePreviewClassNames.state.label
+                                }
+                                data-slot="card-state-label"
+                                data-sot-part="label"
+                            >
+                                {stateLabel}
+                            </div>
+                            {state === "review" ? (
+                                <div
+                                    className={
+                                        aiRenamePreviewClassNames.state
+                                            .reviewRow
+                                    }
+                                    data-slot="card-review-row"
+                                    data-sot-part="review-row"
+                                >
+                                    <div
+                                        className={
+                                            aiRenamePreviewClassNames.state
+                                                .reviewLine
+                                        }
+                                        data-slot="card-review-line"
+                                        data-sot-part="review-line"
+                                    >
+                                        <Badge
+                                            variant="outline"
+                                            className={
+                                                aiRenamePreviewClassNames.badge
+                                                    .oldTag
+                                            }
+                                            data-sot-part="review-tag"
+                                            data-sot-review-field="old"
+                                        >
+                                            原标题
+                                        </Badge>
+                                        <span
+                                            className={cn(
+                                                aiRenamePreviewClassNames.state
+                                                    .reviewValue,
+                                                aiRenamePreviewClassNames.state
+                                                    .reviewOld,
+                                            )}
+                                            data-slot="card-review-value"
+                                            data-review-tone="old"
+                                            data-sot-part="review-old"
+                                            data-sot-review-value="old"
+                                        >
+                                            {reviewOldTitle}
+                                        </span>
+                                    </div>
+                                    <div
+                                        className={
+                                            aiRenamePreviewClassNames.state
+                                                .reviewLine
+                                        }
+                                        data-slot="card-review-line"
+                                        data-sot-part="review-line"
+                                    >
+                                        <Badge
+                                            variant="secondary"
+                                            className={
+                                                aiRenamePreviewClassNames.badge
+                                                    .newTag
+                                            }
+                                            data-sot-part="review-tag"
+                                            data-sot-review-field="new"
+                                        >
+                                            新标题
+                                        </Badge>
+                                        <span
+                                            className={cn(
+                                                aiRenamePreviewClassNames.state
+                                                    .reviewValue,
+                                                aiRenamePreviewClassNames.state
+                                                    .reviewNew,
+                                            )}
+                                            data-slot="card-review-value"
+                                            data-review-tone="new"
+                                            data-sot-part="review-new"
+                                            data-sot-review-value="new"
+                                        >
+                                            {reviewNewTitle}
+                                        </span>
+                                    </div>
+                                </div>
+                            ) : filename ? (
+                                <div
+                                    className={
+                                        aiRenamePreviewClassNames.state
+                                            .previewTitle
+                                    }
+                                    data-slot="card-preview-title"
+                                    data-sot-part="title"
+                                >
+                                    {filename}
+                                </div>
+                            ) : null}
+                            {message ? (
+                                <p
+                                    className={
+                                        state === "review"
+                                            ? aiRenamePreviewClassNames.state
+                                                  .reviewHint
+                                            : aiRenamePreviewClassNames.state
+                                                  .hint
+                                    }
+                                    data-slot="card-hint"
+                                    data-sot-part="hint"
+                                    style={
+                                        state === "review"
+                                            ? {
+                                                  font: "500 10px/1.5 var(--font-sans)",
+                                                  whiteSpace: "nowrap",
+                                              }
+                                            : undefined
+                                    }
+                                >
+                                    {message}
                                 </p>
                             ) : null}
-                        </AlertDescription>
-                    </Alert>
-                ) : (
-                    <div
-                        className={aiRenamePreviewClassNames.state.root}
-                        data-slot="card-state"
-                        data-sot-part="state"
-                        data-sot-state={state}
-                    >
-                        <div
-                            className={aiRenamePreviewClassNames.state.label}
-                            data-slot="card-state-label"
-                            data-sot-part="label"
-                        >
-                            {stateLabel}
                         </div>
-                        {state === "review" ? (
-                            <div
-                                className={
-                                    aiRenamePreviewClassNames.state.reviewRow
-                                }
-                                data-slot="card-review-row"
-                                data-sot-part="review-row"
-                            >
-                                <div
-                                    className={
-                                        aiRenamePreviewClassNames.state
-                                            .reviewLine
-                                    }
-                                    data-slot="card-review-line"
-                                    data-sot-part="review-line"
-                                >
-                                    <Badge
-                                        variant="outline"
-                                        className={
-                                            aiRenamePreviewClassNames.badge
-                                                .oldTag
-                                        }
-                                        data-sot-part="review-tag"
-                                        data-sot-review-field="old"
-                                    >
-                                        原标题
-                                    </Badge>
-                                    <span
-                                        className={cn(
-                                            aiRenamePreviewClassNames.state
-                                                .reviewValue,
-                                            aiRenamePreviewClassNames.state
-                                                .reviewOld,
-                                        )}
-                                        data-slot="card-review-value"
-                                        data-review-tone="old"
-                                        data-sot-part="review-old"
-                                        data-sot-review-value="old"
-                                    >
-                                        {reviewOldTitle}
-                                    </span>
-                                </div>
-                                <div
-                                    className={
-                                        aiRenamePreviewClassNames.state
-                                            .reviewLine
-                                    }
-                                    data-slot="card-review-line"
-                                    data-sot-part="review-line"
-                                >
-                                    <Badge
-                                        variant="secondary"
-                                        className={
-                                            aiRenamePreviewClassNames.badge
-                                                .newTag
-                                        }
-                                        data-sot-part="review-tag"
-                                        data-sot-review-field="new"
-                                    >
-                                        新标题
-                                    </Badge>
-                                    <span
-                                        className={cn(
-                                            aiRenamePreviewClassNames.state
-                                                .reviewValue,
-                                            aiRenamePreviewClassNames.state
-                                                .reviewNew,
-                                        )}
-                                        data-slot="card-review-value"
-                                        data-review-tone="new"
-                                        data-sot-part="review-new"
-                                        data-sot-review-value="new"
-                                    >
-                                        {reviewNewTitle}
-                                    </span>
-                                </div>
-                            </div>
-                        ) : filename ? (
-                            <div
-                                className={
-                                    aiRenamePreviewClassNames.state.previewTitle
-                                }
-                                data-slot="card-preview-title"
-                                data-sot-part="title"
-                            >
-                                {filename}
-                            </div>
-                        ) : null}
-                        {message ? (
-                            <p
-                                className={
-                                    state === "review"
-                                        ? aiRenamePreviewClassNames.state
-                                              .reviewHint
-                                        : aiRenamePreviewClassNames.state.hint
-                                }
-                                data-slot="card-hint"
-                                data-sot-part="hint"
-                                style={
-                                    state === "review"
-                                        ? {
-                                              font: "500 10px/1.5 var(--font-sans)",
-                                              whiteSpace: "nowrap",
-                                          }
-                                        : undefined
-                                }
-                            >
-                                {message}
-                            </p>
-                        ) : null}
-                    </div>
-                )}
-            </CardContent>
+                    )}
+                </CardContent>
 
-            {showRegenerate || showCancel || showApply ? (
-                <>
-                    <Separator className="bg-[var(--card-popover-divider)]" />
-                    <CardFooter
-                        className={aiRenamePreviewClassNames.card.footer}
-                        data-sot-part="actions"
-                    >
-                        {showRegenerate ? (
-                            <Button
-                                type="button"
-                                variant="ghost"
-                                size="xs"
-                                className={
-                                    aiRenamePreviewClassNames.button.action
-                                }
-                                onClick={onRegenerate}
-                                disabled={isBusy || state === "unavailable"}
-                                aria-busy={isRegenerating}
-                                aria-disabled={
-                                    isBusy || state === "unavailable"
-                                        ? "true"
-                                        : "false"
-                                }
-                                aria-label={regenerateLabel}
-                                title={regenerateLabel}
-                                data-sot-control="ai-rename-regenerate"
-                                data-sot-state={
-                                    isRegenerating ? "loading" : state
-                                }
-                            >
-                                <RefreshCw
-                                    data-icon="inline-start"
-                                    aria-hidden="true"
-                                />
-                                {regenerateLabel}
-                            </Button>
-                        ) : null}
-                        <span
-                            className="flex-1"
-                            data-sot-part="actions-spacer"
-                        />
-                        {showCancel ? (
-                            <Button
-                                type="button"
-                                variant="ghost"
-                                size="xs"
-                                className={
-                                    aiRenamePreviewClassNames.button.action
-                                }
-                                onClick={onCancel}
-                                disabled={isApplying}
-                                aria-label={cancelLabel}
-                                title={cancelLabel}
-                                data-sot-control="ai-rename-cancel"
-                                data-sot-state={isApplying ? "busy" : state}
-                            >
-                                {cancelLabel}
-                            </Button>
-                        ) : null}
-                        {showApply ? (
-                            <Button
-                                type="button"
-                                size="xs"
-                                className={
-                                    aiRenamePreviewClassNames.button
-                                        .primaryAction
-                                }
-                                onClick={onApply}
-                                disabled={isBusy || !canAct}
-                                aria-disabled={
-                                    isBusy || !canAct ? "true" : "false"
-                                }
-                                aria-busy={isApplying}
-                                aria-label={applyLabel}
-                                title={applyLabel}
-                                data-sot-control="ai-rename-apply"
-                                data-sot-state={isApplying ? "loading" : state}
-                            >
-                                <Check
-                                    data-icon="inline-start"
-                                    aria-hidden="true"
-                                />
-                                {applyLabel}
-                            </Button>
-                        ) : null}
-                    </CardFooter>
-                </>
-            ) : null}
-        </Card>
+                {showRegenerate || showCancel || showApply ? (
+                    <>
+                        <Separator className="bg-[var(--card-popover-divider)]" />
+                        <CardFooter
+                            className={aiRenamePreviewClassNames.card.footer}
+                            data-sot-part="actions"
+                        >
+                            {showRegenerate ? (
+                                <Button
+                                    type="button"
+                                    variant="ghost"
+                                    size="xs"
+                                    className={
+                                        aiRenamePreviewClassNames.button.action
+                                    }
+                                    onClick={onRegenerate}
+                                    disabled={isBusy || state === "unavailable"}
+                                    aria-busy={isRegenerating}
+                                    aria-disabled={
+                                        isBusy || state === "unavailable"
+                                            ? "true"
+                                            : "false"
+                                    }
+                                    aria-label={regenerateLabel}
+                                    title={regenerateLabel}
+                                    data-sot-control="ai-rename-regenerate"
+                                    data-sot-state={
+                                        isRegenerating ? "loading" : state
+                                    }
+                                >
+                                    <RefreshCw
+                                        data-icon="inline-start"
+                                        aria-hidden="true"
+                                    />
+                                    {regenerateLabel}
+                                </Button>
+                            ) : null}
+                            <span
+                                className="flex-1"
+                                data-sot-part="actions-spacer"
+                            />
+                            {showCancel ? (
+                                <Button
+                                    type="button"
+                                    variant="ghost"
+                                    size="xs"
+                                    className={
+                                        aiRenamePreviewClassNames.button.action
+                                    }
+                                    onClick={onCancel}
+                                    disabled={isApplying}
+                                    aria-label={cancelLabel}
+                                    title={cancelLabel}
+                                    data-sot-control="ai-rename-cancel"
+                                    data-sot-state={isApplying ? "busy" : state}
+                                >
+                                    {cancelLabel}
+                                </Button>
+                            ) : null}
+                            {showApply ? (
+                                <Button
+                                    type="button"
+                                    size="xs"
+                                    className={
+                                        aiRenamePreviewClassNames.button
+                                            .primaryAction
+                                    }
+                                    onClick={onApply}
+                                    disabled={isBusy || !canAct}
+                                    aria-disabled={
+                                        isBusy || !canAct ? "true" : "false"
+                                    }
+                                    aria-busy={isApplying}
+                                    aria-label={applyLabel}
+                                    title={applyLabel}
+                                    data-sot-control="ai-rename-apply"
+                                    data-sot-state={
+                                        isApplying ? "loading" : state
+                                    }
+                                >
+                                    <Check
+                                        data-icon="inline-start"
+                                        aria-hidden="true"
+                                    />
+                                    {applyLabel}
+                                </Button>
+                            ) : null}
+                        </CardFooter>
+                    </>
+                ) : null}
+            </PopoverContent>
+        </Popover>
     );
 }

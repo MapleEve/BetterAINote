@@ -289,7 +289,7 @@ body[data-theme="dark"] .settings-rail .sr-item.active {
 .sp-card.active,
 [data-theme="dark"] .sp-card.active,
 body[data-theme="dark"] .sp-card.active {
-    background: oklab(0.999994 0.0000455678 0.0000200868 / 0.0509804);
+    background: var(--bg-elevated);
     border-color: var(--line-hairline);
     box-shadow:
         0 0 #0000,
@@ -1883,6 +1883,7 @@ test("data sources settings rail and provider primitives match SOT computed styl
             '[data-sot-control="source-provider"][data-sot-provider="iflyrec"]',
         );
         await dingtalkTile.click();
+        await page.mouse.move(0, 0);
         await expect(dingtalkTile).toHaveAttribute("data-state", "selected");
         await expect(dingtalkTile).toHaveAttribute("data-sot-dimmed", "false");
         await expect(ticnoteTile).toHaveAttribute("data-sot-dimmed", "false");

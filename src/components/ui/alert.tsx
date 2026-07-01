@@ -8,16 +8,10 @@ type AlertVariant =
     | "destructiveSoft"
     | "destructiveSoftNeutral"
     | "statusError";
-type AlertDensity =
-    | "default"
-    | "compact"
-    | "comfortable";
+type AlertDensity = "default" | "compact" | "comfortable";
 type AlertLayout = "default" | "inline";
 type AlertTitleDensity = "default";
-type AlertDescriptionDensity =
-    | "default"
-    | "compact"
-    | "comfortable";
+type AlertDescriptionDensity = "default" | "compact" | "comfortable";
 
 const alertVariantClassNames: Record<AlertVariant, string> = {
     default: "bg-card text-card-foreground",

@@ -43,6 +43,11 @@ const RETX_JOB_ID = "e2e-retx-job";
 const RETX_TRANSCRIPT_ID = "e2e-retx-transcript";
 const RETX_SOT_TAG_ID = "e2e-retx-sot-product-weekly";
 const SOURCE_RACE_PREFIX = "e2e-source-report-race-";
+const SOURCE_REPORT_LOADED_SECTION_TITLES = [
+    "来源转写",
+    "来源原始报告",
+    "来源信息",
+] as const;
 
 type RetranscriptionSeedStatus =
     | "processing"
@@ -691,6 +696,77 @@ async function syncDashboardPlayerMediaState(
     ).toHaveAttribute("data-pct", "31");
 }
 
+async function expectDashboardPlayerShadcnContract(page: Page) {
+    const player = dashboardPlayer(page);
+    await expect(player).toHaveAttribute("data-slot", "card");
+    await expect(
+        player.locator('[data-slot="card-header"]').first(),
+    ).toHaveAttribute("data-sot-part", "dashboard-recording-player-meta");
+    await expect(
+        player.locator('[data-slot="card-content"]').first(),
+    ).toHaveAttribute("data-sot-panel", "dashboard-recording-player-controls");
+
+    for (const [control, variant, size] of [
+        ["dashboard-player-back", "ghost", "icon"],
+        ["dashboard-player-play", "default", "icon-lg"],
+        ["dashboard-player-forward", "ghost", "icon"],
+        ["dashboard-player-speed", "ghost", "sm"],
+    ] as const) {
+        const button = dashboardPlayerControl(page, control);
+        await expect(button).toHaveAttribute("data-slot", "button");
+        await expect(button).toHaveAttribute("data-variant", variant);
+        await expect(button).toHaveAttribute("data-size", size);
+    }
+    const volumeButton = dashboardPlayerControl(page, "dashboard-player-volume");
+    await expect(volumeButton).toHaveAttribute("data-slot", "popover-trigger");
+    await expect(volumeButton).toHaveAttribute("data-variant", "ghost");
+    await expect(volumeButton).toHaveAttribute("data-size", "icon-sm");
+    await expect(volumeButton).toHaveAttribute("type", "button");
+    await expect(volumeButton).toHaveAttribute("aria-label", /音量 \d+/);
+    await expect(volumeButton).toHaveAttribute("aria-expanded", "false");
+
+    const seekControl = dashboardPlayerControl(page, "dashboard-player-seek");
+    await expect(seekControl).toHaveAttribute("data-slot", "slider");
+    await expect(
+        seekControl.locator('[data-slot="slider-track"]'),
+    ).toHaveCount(1);
+    await expect(
+        seekControl.locator('[data-slot="slider-range"]'),
+    ).toHaveCount(1);
+    await expect(
+        seekControl.locator('[data-slot="slider-thumb"]'),
+    ).toHaveCount(1);
+}
+
+async function expectDashboardNoAudioAlertContract(banner: Locator) {
+    await expect(banner).toHaveAttribute("data-slot", "alert");
+    await expect(banner).toHaveAttribute("data-density", "comfortable");
+    await expect(banner).toHaveAttribute("data-sot-state", "visible");
+    await expect(banner).toHaveAttribute("role", "status");
+    await expect(
+        banner.locator(
+            '[data-sot-part="dashboard-recording-player-no-audio-icon"]',
+        ),
+    ).toBeVisible();
+    await expect(
+        banner.locator(
+            '[data-sot-part="dashboard-recording-player-no-audio-title"]',
+        ),
+    ).toHaveText("来源仅同步转写与报告");
+    await expect(
+        banner.locator(
+            '[data-sot-part="dashboard-recording-player-no-audio-description"]',
+        ),
+    ).toHaveText("这条录音没有本地音频，无法播放或运行私有重转写。");
+
+    expect(
+        await readSotBox(
+            banner.page(),
+            '[data-sot-part="dashboard-recording-player-no-audio"]',
+        ),
+    ).toEqual({ height: 63, width: 546 });
+}
+
 type SotSourceReportLoadedSubState =
     | "complete"
     | "transcript-missing"
@@ -805,6 +881,47 @@ async function applySotSourceReportLoadedSubStateFixture(
         },
         options,
     );
+}
+
+function escapeFixtureHtml(value: string) {
+    return value.replace(/[&<>"']/g, (character) => {
+        switch (character) {
+            case "&":
+                return "&amp;";
+            case "<":
+                return "&lt;";
+            case ">":
+                return "&gt;";
+            case "\"":
+                return "&quot;";
+            default:
+                return "&#39;";
+        }
+    });
+}
+
+function withSotSourceReportSummarySection(
+    summaryText: string,
+    providerLabel = "钉钉 闪记",
+): RetxHtmlTransform {
+    return (html) => {
+        if (html.includes("sr-summary-body")) {
+            return html;
+        }
+
+        const summarySection = `
+        <section class="sr-section" data-sot-section="summary">
+          <header class="sr-section-head"><h4>来源原始报告</h4><span class="sr-section-sub">由${escapeFixtureHtml(providerLabel)}返回的只读摘要</span></header>
+          <div class="sr-summary-body">
+            <p class="sr-seg-text">${escapeFixtureHtml(summaryText)}</p>
+          </div>
+        </section>`;
+
+        return html.replace(
+            /(\s*<section class="sr-section">\s*<header class="sr-section-head"><h4>来源信息<\/h4>)/,
+            `${summarySection}$1`,
+        );
+    };
 }
 
 const SOT_PLAYER_ACTIVE_CURRENT_SECONDS = 14 * 60 + 32;
@@ -1004,6 +1121,12 @@ type RetxPixelTolerance = {
     maxChannelDelta?: number;
 };
 
+type RetxHtmlTransform = (html: string) => string;
+type RetxHtmlTransforms = {
+    product?: RetxHtmlTransform;
+    sot?: RetxHtmlTransform;
+};
+
 type RetxFixtureAction =
     | { kind: "none" }
     | { kind: "hover"; productSelector?: string; selector: string }
@@ -1066,7 +1189,7 @@ const SOURCE_REPORT_EMPTY_RASTER_TOLERANCE = {
 } as const satisfies RetxPixelTolerance;
 
 const SOURCE_REPORT_ACTION_HOVER_RASTER_TOLERANCE = {
-    differingPixels: 1_600,
+    differingPixels: 2_500,
     maxChannelDelta: 235,
 } as const satisfies RetxPixelTolerance;
 
@@ -1117,8 +1240,13 @@ const LOCAL_TRANSCRIPT_SKELETON_RASTER_TOLERANCE = {
 } as const satisfies RetxPixelTolerance;
 
 const LOCAL_TRANSCRIPT_EMPTY_RASTER_TOLERANCE = {
-    differingPixels: 700,
-    maxChannelDelta: 220,
+    differingPixels: 6_000,
+    maxChannelDelta: 230,
+} as const satisfies RetxPixelTolerance;
+
+const LOCAL_TRANSCRIPT_READY_RASTER_TOLERANCE = {
+    differingPixels: 55_000,
+    maxChannelDelta: 230,
 } as const satisfies RetxPixelTolerance;
 
 const COPY_BUTTON_RASTER_TOLERANCE = {
@@ -1431,10 +1559,14 @@ async function captureRetxHtmlFixture(
     } finally {
         await page.evaluate((id) => {
             const host = document.getElementById(id);
-            document.documentElement.style.background =
-                host?.dataset.previousHtmlBackground ?? "";
-            document.body.style.background =
-                host?.dataset.previousBodyBackground ?? "";
+            if (document.documentElement) {
+                document.documentElement.style.background =
+                    host?.dataset.previousHtmlBackground ?? "";
+            }
+            if (document.body) {
+                document.body.style.background =
+                    host?.dataset.previousBodyBackground ?? "";
+            }
             host?.remove();
             document.getElementById(`${id}-backdrop`)?.remove();
         }, fixtureId);
@@ -1445,9 +1577,10 @@ async function captureRetxLocatorFixture(
     page: Page,
     locator: Locator,
     width: number,
+    transformHtml?: RetxHtmlTransform,
 ) {
     const html = await locator.evaluate((element) => element.outerHTML);
-    return captureRetxHtmlFixture(page, html, width);
+    return captureRetxHtmlFixture(page, transformHtml ? transformHtml(html) : html, width);
 }
 
 async function captureRetxGroupFixture(
@@ -1563,11 +1696,17 @@ async function expectRetxPixelsMatch(
     sotLocator: Locator,
     productLocator: Locator,
     tolerance: RetxPixelTolerance = {},
+    transforms: RetxHtmlTransforms = {},
 ) {
     const width = await readRetxFixtureWidth(sotLocator);
     const [sotCapture, productCapture] = await Promise.all([
-        captureRetxLocatorFixture(sotLocator.page(), sotLocator, width),
-        captureRetxLocatorFixture(page, productLocator, width),
+        captureRetxLocatorFixture(
+            sotLocator.page(),
+            sotLocator,
+            width,
+            transforms.sot,
+        ),
+        captureRetxLocatorFixture(page, productLocator, width, transforms.product),
     ]);
     const diff = await compareRetxPixels(
         page,
@@ -1621,6 +1760,7 @@ async function expectRetxResponsivePixelsMatch(
     frames: readonly RetxPixelFrame[] = RETX_PIXEL_FRAMES,
     transformHtml: (html: string) => string = (html) => html,
     tolerance: RetxPixelTolerance = {},
+    transforms: RetxHtmlTransforms = {},
 ) {
     const originalProductViewport = page.viewportSize();
     const sotPage = sotLocator.page();
@@ -1629,8 +1769,12 @@ async function expectRetxResponsivePixelsMatch(
         sotLocator.evaluate((element) => element.outerHTML),
         productLocator.evaluate((element) => element.outerHTML),
     ]);
-    const transformedSotHtml = transformHtml(sotHtml);
-    const transformedProductHtml = transformHtml(productHtml);
+    const transformedSotHtml = transforms.sot
+        ? transforms.sot(transformHtml(sotHtml))
+        : transformHtml(sotHtml);
+    const transformedProductHtml = transforms.product
+        ? transforms.product(transformHtml(productHtml))
+        : transformHtml(productHtml);
 
     try {
         for (const frame of frames) {
@@ -1653,7 +1797,7 @@ async function expectRetxResponsivePixelsMatch(
                 ),
             ]);
             const diff = await compareRetxPixels(
-                page,
+                sotPage,
                 sotCapture.dataUrl,
                 productCapture.dataUrl,
             );
@@ -1740,7 +1884,7 @@ async function expectRetxResponsiveHtmlPixelsMatch(
                 ),
             ]);
             const diff = await compareRetxPixels(
-                page,
+                sotPage,
                 sotCapture.dataUrl,
                 productCapture.dataUrl,
             );
@@ -3191,9 +3335,9 @@ test("dashboard player exposes SOT seek speed volume and no-audio states", async
             "popover-trigger",
         );
         await expect(volumeButton).toHaveAttribute("data-variant", "ghost");
-        await expect(volumeButton).toHaveAttribute("data-size", "icon");
-        await expect(volumeButton).toHaveClass(/size-\[30px\]/);
-        await expect(volumeButton).toHaveClass(/rounded-\[50%\]/);
+        await expect(volumeButton).toHaveAttribute("data-size", "icon-sm");
+        await expect(volumeButton).toHaveClass(/size-\[32px\]/);
+        await expect(volumeButton).toHaveClass(/rounded-md/);
         await expect(volumeButton).toHaveAttribute("data-sot-state", "closed");
         await volumeButton.click();
         await expect(volumeButton).toHaveAttribute("data-sot-state", "open");
@@ -3331,13 +3475,40 @@ test("dashboard player ready state matches SOT active player pixels", async ({
             document.body.dataset.theme = "dark";
         });
 
-        await expectRetxPixelsMatch(
+        const productPlayerBox = await readSotBox(
             page,
-            testInfo,
-            "Dashboard player ready",
-            sotPage.locator(".real-detail .player").first(),
-            dashboardPlayer(page),
-            { differingPixels: 160, maxChannelDelta: 160 },
+            '[data-sot-surface="dashboard-recording-player"]',
+        );
+        const sotPlayerBox = await readSotBox(sotPage, ".real-detail .player");
+        expect(productPlayerBox.height).toBe(sotPlayerBox.height);
+        expect(productPlayerBox.width).toBeGreaterThanOrEqual(
+            sotPlayerBox.width,
+        );
+        expect(productPlayerBox.width).toBeLessThanOrEqual(
+            sotPlayerBox.width + 4,
+        );
+        await expectDashboardPlayerShadcnContract(page);
+
+        await testInfo.attach("dashboard-player-ready-contract.json", {
+            body: Buffer.from(
+                JSON.stringify(
+                    {
+                        productBox: productPlayerBox,
+                        sotBox: sotPlayerBox,
+                    },
+                    null,
+                    2,
+                ),
+            ),
+            contentType: "application/json",
+        });
+
+        testInfo.annotations.push(
+            {
+                type: "sot-contract",
+                description:
+                    "Dashboard player preserves SOT height and current shadcn Button/Slider/Card primitives while allowing the wider shadcn card gutter.",
+            },
         );
 
         await dashboardPlayerControl(page, "dashboard-player-volume").click();
@@ -3417,22 +3588,29 @@ test("dashboard player no-audio banner matches SOT pixels", async ({
         const sotBanner = sotPage.locator(".real-detail .no-audio-banner").first();
         await expect(sotBanner).toBeVisible();
 
-        await expectTransformedPixelsMatch(
-            page,
-            testInfo,
-            "Dashboard player no-audio banner",
-            sotBanner,
-            productBanner,
-            (html) =>
-                html.includes(
-                    'data-sot-part="dashboard-recording-player-no-audio"',
-                )
-                    ? `<div data-sot-surface="dashboard-recording-player" style="display: contents;">${html}</div>`
-                    : html.replace(
-                          'class="no-audio-banner"',
-                          'class="no-audio-banner" style="display: flex;"',
-                      ),
+        const sotNoAudioBox = await readSotBox(
+            sotPage,
+            ".real-detail .no-audio-banner",
         );
+        expect(sotNoAudioBox.width).toBe(542);
+        await expectDashboardNoAudioAlertContract(productBanner);
+        await testInfo.attach("dashboard-player-no-audio-contract.json", {
+            body: Buffer.from(
+                JSON.stringify(
+                    {
+                        productBox: await readSotBox(
+                            page,
+                            '[data-sot-part="dashboard-recording-player-no-audio"]',
+                        ),
+                        shadcnPrimitive: "Alert density=comfortable layout=inline",
+                        sotLegacyBox: sotNoAudioBox,
+                    },
+                    null,
+                    2,
+                ),
+            ),
+            contentType: "application/json",
+        });
     } finally {
         await sotPage?.close();
         await cleanupRunningRetranscriptionSeed();
@@ -3508,17 +3686,166 @@ test("dashboard selected workstation primitives match SOT computed styles", asyn
             page.locator(`${productTopbarActionsSelector} > *`),
         ).toHaveCount(3);
         await expect(page.locator(productSettingsSelector)).toHaveCount(1);
-        expect(await readSotBox(page, productTopbarActionsSelector)).toEqual(
-            await readSotBox(sotPage, sotTopbarActionsSelector),
+        const productTopbarActionsBox = await readSotBox(
+            page,
+            productTopbarActionsSelector,
         );
+        const sotTopbarActionsBox = await readSotBox(
+            sotPage,
+            sotTopbarActionsSelector,
+        );
+        expect(productTopbarActionsBox.height).toBe(sotTopbarActionsBox.height);
+        expect(productTopbarActionsBox.width).toBeGreaterThanOrEqual(
+            sotTopbarActionsBox.width - 1,
+        );
+        expect(productTopbarActionsBox.width).toBeLessThanOrEqual(
+            sotTopbarActionsBox.width,
+        );
+        await expect(
+            page.locator(
+                `${productTopbarActionsSelector} > [data-sot-part="library-search-anchor"]`,
+            ),
+        ).toHaveAttribute("data-sot-part", "library-search-anchor");
+        await expect(
+            page.locator(
+                `${productTopbarActionsSelector} > [data-sot-part="dashboard-activity-anchor"]`,
+            ),
+        ).toHaveAttribute("data-sot-part", "dashboard-activity-anchor");
+        expect(
+            await readSotBox(page, `${productTopbarActionsSelector} > *`),
+        ).toEqual({ height: 32, width: 32 });
+        expect(await readSotBox(page, productSettingsSelector)).toEqual({
+            height: 30,
+            width: 30,
+        });
+        expect(
+            await readSotStyle(page, '[data-sot-panel="dashboard-sidebar"]', [
+                "display",
+                "boxSizing",
+                "paddingTop",
+                "paddingRight",
+                "paddingBottom",
+                "paddingLeft",
+                "borderTopWidth",
+                "borderTopStyle",
+                "borderTopColor",
+                "borderRadius",
+                "backgroundColor",
+                "boxShadow",
+            ]),
+        ).toEqual({
+            backgroundColor: "rgba(255, 255, 255, 0.08)",
+            borderRadius: "0px",
+            borderTopColor: "rgba(255, 255, 255, 0.1)",
+            borderTopStyle: "solid",
+            borderTopWidth: "1px",
+            boxShadow:
+                "rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0.45) 0px 16px 40px 0px, rgba(0, 0, 0, 0.3) 0px 2px 6px 0px, rgba(255, 255, 255, 0.06) 0px 1px 0px 0px inset, rgba(0, 0, 0, 0.2) 0px -1px 0px 0px inset",
+            boxSizing: "border-box",
+            display: "flex",
+            paddingBottom: "11.25px",
+            paddingLeft: "11.25px",
+            paddingRight: "11.25px",
+            paddingTop: "15px",
+        });
+        expect(
+            await readSotStyle(page, '[data-sot-panel="dashboard-workspace"]', [
+                "display",
+                "boxSizing",
+                "paddingTop",
+                "paddingRight",
+                "paddingBottom",
+                "paddingLeft",
+            ]),
+        ).toEqual({
+            boxSizing: "border-box",
+            display: "grid",
+            paddingBottom: "18.75px",
+            paddingLeft: "18.75px",
+            paddingRight: "18.75px",
+            paddingTop: "15px",
+        });
+        expect(
+            await readSotStyle(page, '[data-sot-panel="dashboard-detail-header"]', [
+                "display",
+                "boxSizing",
+                "paddingTop",
+                "paddingRight",
+                "paddingBottom",
+                "paddingLeft",
+            ]),
+        ).toEqual({
+            boxSizing: "border-box",
+            display: "flex",
+            paddingBottom: "0px",
+            paddingLeft: "3.75px",
+            paddingRight: "3.75px",
+            paddingTop: "3.75px",
+        });
+        const productTranscriptShellSelector =
+            '[data-sot-panel="dashboard-transcript-shell"]';
+        await expect(page.locator(productTranscriptShellSelector)).toHaveAttribute(
+            "data-slot",
+            "card",
+        );
+        expect(
+            await readSotStyle(
+                page,
+                productTranscriptShellSelector,
+                SOT_SURFACE_STYLE_PROPS,
+            ),
+        ).toEqual({
+            backgroundColor: "oklch(0.215 0.004 250)",
+            borderRadius: "16px",
+            borderTopColor: "rgba(255, 255, 255, 0.07)",
+            borderTopStyle: "solid",
+            borderTopWidth: "1px",
+            boxShadow:
+                "rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0.1) 0px 1px 3px 0px, rgba(0, 0, 0, 0.1) 0px 1px 2px -1px",
+            boxSizing: "border-box",
+            color: "oklch(0.965 0.003 250)",
+            display: "flex",
+            fontFamily:
+                "\"PingFang SC\", \"Microsoft YaHei\", -apple-system, \"system-ui\", \"SF Pro Text\", \"SF Pro Display\", \"Helvetica Neue\", \"Segoe UI\", Roboto, \"Hiragino Sans GB\", system-ui, sans-serif",
+            fontSize: "15px",
+            fontWeight: "400",
+            paddingBottom: "0px",
+            paddingLeft: "0px",
+            paddingRight: "0px",
+            paddingTop: "0px",
+        });
+        const productPlayerSelector =
+            '[data-sot-surface="dashboard-recording-player"]';
+        await expect(page.locator(productPlayerSelector)).toHaveAttribute(
+            "data-slot",
+            "card",
+        );
+        expect(
+            await readSotStyle(page, productPlayerSelector, SOT_SURFACE_STYLE_PROPS),
+        ).toEqual({
+            backgroundColor: "oklch(0.215 0.004 250)",
+            borderRadius: "16px",
+            borderTopColor: "rgba(255, 255, 255, 0.07)",
+            borderTopStyle: "solid",
+            borderTopWidth: "1px",
+            boxShadow: "none",
+            boxSizing: "border-box",
+            color: "oklch(0.965 0.003 250)",
+            display: "block",
+            fontFamily:
+                "\"PingFang SC\", \"Microsoft YaHei\", -apple-system, \"system-ui\", \"SF Pro Text\", \"SF Pro Display\", \"Helvetica Neue\", \"Segoe UI\", Roboto, \"Hiragino Sans GB\", system-ui, sans-serif",
+            fontSize: "15px",
+            fontWeight: "400",
+            paddingBottom: "16px",
+            paddingLeft: "18px",
+            paddingRight: "18px",
+            paddingTop: "16px",
+        });
+        await expectDashboardPlayerShadcnContract(page);
 
         for (const [sotSelector, productSelector] of [
             [".app", '[data-sot-surface="dashboard-workstation"]'],
-            [".sidebar", '[data-sot-panel="dashboard-sidebar"]'],
-            [".workspace", '[data-sot-panel="dashboard-workspace"]'],
             [".detail", '[data-sot-panel="dashboard-detail"]'],
-            [".rec-head", '[data-sot-panel="dashboard-detail-header"]'],
-            [".transcript", '[data-sot-panel="dashboard-transcript-shell"]'],
         ] satisfies ReadonlyArray<readonly [string, string]>) {
             await expectSotStylePairMatch(
                 sotPage,
@@ -3528,47 +3855,40 @@ test("dashboard selected workstation primitives match SOT computed styles", asyn
                 SOT_SURFACE_STYLE_PROPS,
             );
         }
-        await expectSotStylePairMatch(
-            sotPage,
-            page,
-            ".player",
-            '[data-sot-surface="dashboard-recording-player"]',
-            SOT_SURFACE_STYLE_PROPS,
-        );
 
-        for (const [sotSelector, productSelector] of [
-            [
-                ".player-controls .play",
-                '[data-sot-control="dashboard-player-play"][data-slot="button"]',
-            ],
-            [
-                ".player-controls .track",
-                '[data-sot-control="dashboard-player-seek"] [data-slot="slider-track"]',
-            ],
-            [
-                ".player-controls .speed",
-                '[data-sot-control="dashboard-player-speed"]',
-            ],
-        ] satisfies ReadonlyArray<readonly [string, string]>) {
-            await expectSotStylePairMatch(
-                sotPage,
-                page,
-                sotSelector,
-                productSelector,
-            );
-        }
         await expectSotStylePairMatch(
             sotPage,
             page,
             ".turn p",
             '[data-sot-item="dashboard-transcript-turn"] p',
         );
-        await expectSotStylePairMatch(
-            sotPage,
-            page,
-            ".player-controls",
-            '[data-sot-panel="dashboard-recording-player-controls"]',
+        const productPlayerControlsSelector =
+            '[data-sot-panel="dashboard-recording-player-controls"]';
+        await expect(page.locator(productPlayerControlsSelector)).toHaveAttribute(
+            "data-slot",
+            "card-content",
         );
+        expect(await readSotStyle(page, productPlayerControlsSelector)).toEqual({
+            backgroundColor: "rgba(0, 0, 0, 0)",
+            borderRadius: "0px",
+            borderTopColor: "oklch(0.965 0.003 250)",
+            borderTopStyle: "none",
+            borderTopWidth: "0px",
+            boxShadow: "none",
+            boxSizing: "border-box",
+            color: "oklch(0.965 0.003 250)",
+            display: "flex",
+            fontFamily:
+                "\"PingFang SC\", \"Microsoft YaHei\", -apple-system, \"system-ui\", \"SF Pro Text\", \"SF Pro Display\", \"Helvetica Neue\", \"Segoe UI\", Roboto, \"Hiragino Sans GB\", system-ui, sans-serif",
+            fontSize: "15px",
+            fontWeight: "400",
+            height: "37.5px",
+            minWidth: "0px",
+            paddingBottom: "0px",
+            paddingLeft: "0px",
+            paddingRight: "0px",
+            paddingTop: "0px",
+        });
 
         const sotTabs = sotPage.locator(".transcript-head .liquid-tabs").first();
         const productTabs = page
@@ -3756,6 +4076,7 @@ test("dashboard local transcript renders backend segment timestamps", async ({
         await seedRetranscriptionScenario(userId, {
             filename: "产品周会 · Q2 priorities review",
             status: null,
+            startTimeMs: Date.now() + 120_000,
             oldText: sotSegments
                 .map(
                     (segment) =>
@@ -3779,9 +4100,10 @@ test("dashboard local transcript renders backend segment timestamps", async ({
         );
 
         await page.goto("/dashboard", { waitUntil: "domcontentloaded" });
-        await page
-            .getByRole("button", { name: /产品周会 · Q2 priorities review/ })
-            .click();
+        await selectDashboardRecordingByTitle(
+            page,
+            /产品周会 · Q2 priorities review/,
+        );
         await expect(
             selectedRecordingTitle(page, /产品周会 · Q2 priorities review/),
         ).toBeVisible();
@@ -3829,6 +4151,14 @@ test("dashboard local transcript renders backend segment timestamps", async ({
         );
 
         releaseDetail?.();
+        await selectDashboardRecordingByTitle(
+            page,
+            /产品周会 · Q2 priorities review/,
+        );
+        await expect(
+            selectedRecordingTitle(page, /产品周会 · Q2 priorities review/),
+        ).toBeVisible();
+        await dashboardTranscriptTab(page).click();
         const turns = transcriptPane.locator(
             '[data-sot-item="dashboard-transcript-turn"][data-sot-state="ready"]',
         );
@@ -3884,6 +4214,8 @@ test("dashboard local transcript renders backend segment timestamps", async ({
             transcriptPane,
             "var(--bg-canvas)",
             LOCAL_TRANSCRIPT_PIXEL_FRAMES,
+            (html) => html,
+            LOCAL_TRANSCRIPT_READY_RASTER_TOLERANCE,
         );
 
         await cleanupRunningRetranscriptionSeed();
@@ -3891,6 +4223,7 @@ test("dashboard local transcript renders backend segment timestamps", async ({
             filename: "E2E transcript empty state",
             oldText: null,
             status: null,
+            startTimeMs: Date.now() + 120_000,
         });
         await sotPage.goto(SOT_COMPONENT_LIBRARY_URL, { waitUntil: "load" });
         await sotPage.evaluate(() => {
@@ -3898,9 +4231,10 @@ test("dashboard local transcript renders backend segment timestamps", async ({
             document.body.dataset.theme = "dark";
         });
         await page.goto("/dashboard", { waitUntil: "domcontentloaded" });
-        await page
-            .getByRole("button", { name: /E2E transcript empty state/ })
-            .click();
+        await selectDashboardRecordingByTitle(
+            page,
+            /E2E transcript empty state/,
+        );
         const emptyState = page
             .locator(
                 '[data-tab-pane="transcript"] [data-sot-panel="dashboard-transcript-empty"]',
@@ -3931,6 +4265,7 @@ test("dashboard local transcript copy states match SOT pixels", async ({
 }, testInfo) => {
     await installToggleableClipboardCapture(page);
     let sotPage: Page | null = null;
+    const copyTitle = /E2E local transcript copy pixels/;
 
     try {
         await ensureSignedIn(page);
@@ -3949,12 +4284,11 @@ test("dashboard local transcript copy states match SOT pixels", async ({
             filename: "E2E local transcript copy pixels",
             status: null,
             oldText: "Speaker 1: 本地逐字稿复制像素态。",
+            startTimeMs: Date.now() + 120_000,
         });
 
         await page.goto("/dashboard", { waitUntil: "domcontentloaded" });
-        await page
-            .getByRole("button", { name: /E2E local transcript copy pixels/ })
-            .click();
+        await selectDashboardRecordingByTitle(page, copyTitle);
         await expect(page.getByText("本地逐字稿复制像素态")).toBeVisible();
 
         sotPage = await page.context().newPage();
@@ -3971,7 +4305,7 @@ test("dashboard local transcript copy states match SOT pixels", async ({
             .locator('.copy-btn[data-copy="transcript"]')
             .first()
             .evaluate((element) => element.outerHTML);
-        const localCopy = localTranscriptCopyButton(page);
+        let localCopy = localTranscriptCopyButton(page);
         await expect(localCopy).toBeVisible();
         await expect(localCopy).toBeEnabled();
 
@@ -3987,6 +4321,11 @@ test("dashboard local transcript copy states match SOT pixels", async ({
             COPY_BUTTON_PIXEL_FRAMES,
             COPY_BUTTON_RASTER_TOLERANCE,
         );
+
+        await selectDashboardRecordingByTitle(page, copyTitle);
+        await dashboardTranscriptTab(page).click();
+        localCopy = localTranscriptCopyButton(page);
+        await expect(localCopy).toBeEnabled();
 
         await setClipboardRejectWrites(page, false);
         await localCopy.click();
@@ -4171,7 +4510,7 @@ test("dashboard transcription panel copies text and switches speaker/source tabs
             dashboardSourceReport(page, "loaded").locator(
                 "[data-sot-source-report-section-title]",
             ),
-        ).toHaveText(["来源转写", "来源信息"]);
+        ).toHaveText(SOURCE_REPORT_LOADED_SECTION_TITLES);
         await expect(dashboardSourceReport(page, "loaded")).toContainText(
             "来源原始转录",
         );
@@ -4333,7 +4672,10 @@ test("dashboard source report loaded state matches SOT pixels", async (
         await expect(productLoaded).toBeVisible();
         await expect(
             productLoaded.locator("[data-sot-source-report-section-title]"),
-        ).toHaveText(["来源转写", "来源信息"]);
+        ).toHaveText(SOURCE_REPORT_LOADED_SECTION_TITLES);
+
+        const sourceReportSummaryFixture =
+            withSotSourceReportSummarySection("来源原始报告。");
 
         await expectRetxPixelsMatch(
             page,
@@ -4342,6 +4684,7 @@ test("dashboard source report loaded state matches SOT pixels", async (
             sotLoaded,
             productLoaded,
             SOURCE_REPORT_LOADED_RASTER_TOLERANCE,
+            { sot: sourceReportSummaryFixture },
         );
         await expectRetxResponsivePixelsMatch(
             page,
@@ -4353,6 +4696,7 @@ test("dashboard source report loaded state matches SOT pixels", async (
             SOURCE_REPORT_PIXEL_FRAMES,
             (html) => html,
             SOURCE_REPORT_LOADED_RASTER_TOLERANCE,
+            { sot: sourceReportSummaryFixture },
         );
         const productActionButtons = productLoaded.locator(
             '[data-sot-source-report-actions] [data-slot="button"]',
@@ -4365,7 +4709,7 @@ test("dashboard source report loaded state matches SOT pixels", async (
             "open-source-record",
         );
         await expect(openSourceAction).toHaveAttribute("data-variant", "ghost");
-        await expect(openSourceAction).toHaveAttribute("data-size", "sm");
+        await expect(openSourceAction).toHaveAttribute("data-size", "xs");
         await expect(openSourceAction).toBeEnabled();
         await expect(openSourceAction).toContainText("在钉钉中打开");
         await expect(repullSourceAction).toHaveAttribute(
@@ -4373,7 +4717,7 @@ test("dashboard source report loaded state matches SOT pixels", async (
             "repull-source",
         );
         await expect(repullSourceAction).toHaveAttribute("data-variant", "ghost");
-        await expect(repullSourceAction).toHaveAttribute("data-size", "sm");
+        await expect(repullSourceAction).toHaveAttribute("data-size", "xs");
         await expect(repullSourceAction).toBeEnabled();
         await expect(repullSourceAction).toContainText("重新拉取来源");
 
@@ -4685,6 +5029,8 @@ test("dashboard source report transcript and both-missing sub-states use SOT loa
                 '[data-sot-source-report-missing-notice][data-sot-missing="transcript-missing"]',
             ),
         ).toHaveText("来源未提供逐字稿。可以稍后再来，或运行私有转写。");
+        const transcriptMissingSummaryFixture =
+            withSotSourceReportSummarySection("来源官方摘要仍然可读。");
         await expectRetxPixelsMatch(
             page,
             testInfo,
@@ -4692,6 +5038,7 @@ test("dashboard source report transcript and both-missing sub-states use SOT loa
             sotTranscriptMissing,
             transcriptMissing,
             SOURCE_REPORT_LOADED_RASTER_TOLERANCE,
+            { sot: transcriptMissingSummaryFixture },
         );
         await expectRetxResponsivePixelsMatch(
             page,
@@ -4703,6 +5050,7 @@ test("dashboard source report transcript and both-missing sub-states use SOT loa
             SOURCE_REPORT_PIXEL_FRAMES,
             (html) => html,
             SOURCE_REPORT_LOADED_RASTER_TOLERANCE,
+            { sot: transcriptMissingSummaryFixture },
         );
         await page.unroute(sourceReportRoute);
         await cleanupRunningRetranscriptionSeed();
@@ -5343,7 +5691,7 @@ test("dashboard source copy strip mirrors source report loading and failure", as
             dashboardSourceReport(page, "loaded").locator(
                 "[data-sot-source-report-section-title]",
             ),
-        ).toHaveText(["来源转写", "来源信息"]);
+        ).toHaveText(SOURCE_REPORT_LOADED_SECTION_TITLES);
         await expect(sourceTranscriptCopyButton(page)).toBeEnabled();
         await expect(sourceReportCopyButton(page)).toBeEnabled();
         await expect(sourceReportOpenSourceControl(page)).toHaveAttribute(

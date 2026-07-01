@@ -1,51 +1,31 @@
 "use client";
-
-import type { CSSProperties, ReactNode } from "react";
+import {
+    FastForward,
+    Pause,
+    Play,
+    Rewind,
+    Volume2,
+    VolumeX,
+} from "lucide-react";
+import { Button } from "@/components/ui/button";
 import { CardContent } from "@/components/ui/card";
-import { Popover, PopoverTrigger } from "@/components/ui/popover";
+import {
+    Popover,
+    PopoverContent,
+    PopoverTrigger,
+} from "@/components/ui/popover";
+import { Slider } from "@/components/ui/slider";
 import {
     formatSotPlayerTime,
-    SotPlayerBackIcon,
-    SotPlayerControlButton,
-    SotPlayerForwardIcon,
-    SotPlayerPauseIcon,
-    SotPlayerPlayIcon,
-    SotPlayerPrimaryButton,
-    SotPlayerSeekSlider,
-    SotPlayerSpeedButton,
-    SotPlayerVolumeIcon,
-    SotPlayerVolumePopoverContent,
-    SotPlayerVolumeSlider,
     sotPlayerVolumeLevel,
 } from "@/features/recordings/components/sot-player-primitives";
 import { cn } from "@/lib/utils";
-
-const DASHBOARD_PLAYER_CONTROL_ICON_CLASS_NAME =
-    "inline-flex items-center justify-center [&_svg]:size-4 [&_svg]:fill-current [&_svg]:stroke-current [&_svg]:stroke-[1.8] [&_svg]:[stroke-linecap:round] [&_svg]:[stroke-linejoin:round]";
-
-const DASHBOARD_PLAYER_CONTROL_ICON_STYLE = {
-    flex: "none",
-    height: 16,
-    lineHeight: 1,
-    transformOrigin: "center",
-    width: 16,
-} satisfies CSSProperties;
-
-const DASHBOARD_PLAYER_PRIMARY_CONTROL_ICON_CLASS_NAME =
-    "inline-flex items-center justify-center [&_svg]:size-[18px] [&_svg]:fill-white [&_svg]:stroke-white [&_svg]:stroke-[1.8] [&_svg]:[stroke-linecap:round] [&_svg]:[stroke-linejoin:round]";
-
-const DASHBOARD_PLAYER_PRIMARY_CONTROL_ICON_STYLE = {
-    flex: "none",
-    height: 18,
-    lineHeight: 1,
-    width: 18,
-} satisfies CSSProperties;
 
 const DASHBOARD_PLAYER_TIME_CLASS_NAME =
     "min-w-11 text-center font-mono text-xs font-medium tracking-[0.03em] text-[var(--fg-tertiary)]";
 
 const DASHBOARD_PLAYER_DURATION_CLASS_NAME =
-    "min-w-11 translate-x-[-0.109375px] text-center font-mono text-xs font-medium tracking-[0.03em] text-[var(--fg-tertiary)]";
+    "min-w-11 text-center font-mono text-xs font-medium tracking-[0.03em] text-[var(--fg-tertiary)]";
 
 const DASHBOARD_PLAYER_DISABLED_CLASS_NAME =
     "pointer-events-none opacity-[0.42] data-[disabled]:opacity-[0.42]";
@@ -73,45 +53,6 @@ type DashboardRecordingPlayerControlsProps = {
     volumePopoverOpen: boolean;
 };
 
-function DashboardPlayerControlIcon({
-    children,
-    transform,
-}: {
-    children: ReactNode;
-    transform: string;
-}) {
-    return (
-        <span
-            className={DASHBOARD_PLAYER_CONTROL_ICON_CLASS_NAME}
-            data-icon="inline-start"
-            data-sot-part="dashboard-player-control-icon"
-            style={{
-                ...DASHBOARD_PLAYER_CONTROL_ICON_STYLE,
-                transform,
-            }}
-        >
-            {children}
-        </span>
-    );
-}
-
-function DashboardPlayerPrimaryControlIcon({
-    children,
-}: {
-    children: ReactNode;
-}) {
-    return (
-        <span
-            className={DASHBOARD_PLAYER_PRIMARY_CONTROL_ICON_CLASS_NAME}
-            data-icon="inline-start"
-            data-sot-part="dashboard-player-control-icon"
-            style={DASHBOARD_PLAYER_PRIMARY_CONTROL_ICON_STYLE}
-        >
-            {children}
-        </span>
-    );
-}
-
 function DashboardPlayerSeekSlider({
     disabled,
     onSeekToPercent,
@@ -127,14 +68,10 @@ function DashboardPlayerSeekSlider({
 
     return (
         <span
-            className="relative block h-[14px] w-[168px] min-w-[168px] grow-0 shrink-0 basis-[168px]"
+            className="relative block min-w-[168px] grow-0 shrink-0 basis-[168px]"
             data-sot-part="dashboard-player-seek-shell"
-            style={{
-                marginLeft: "3px",
-                marginRight: "3px",
-            }}
         >
-            <SotPlayerSeekSlider
+            <Slider
                 className={cn(
                     "flex-none",
                     disabled && DASHBOARD_PLAYER_DISABLED_CLASS_NAME,
@@ -151,68 +88,40 @@ function DashboardPlayerSeekSlider({
                 step={1}
                 thumbProps={{
                     "data-pct": progressPct,
-                    className: "-ml-[4.1875px]",
                 }}
-                rootProps={{
-                    "aria-disabled": disabled ? "true" : undefined,
-                    "aria-label": "播放进度",
-                    "aria-valuemax": 100,
-                    "aria-valuemin": 0,
-                    "aria-valuenow": Math.round(progress),
-                    "data-pct": progressPct,
-                    "data-sot-control": "dashboard-player-seek",
-                    "data-sot-state": controlState,
-                    onClick: (event) => {
-                        const rect =
-                            event.currentTarget.getBoundingClientRect();
-                        if (rect.width <= 0) {
-                            return;
-                        }
-                        onSeekToPercent(
-                            ((event.clientX - rect.left) / rect.width) * 100,
-                        );
-                    },
-                    onKeyDown: (event) => {
-                        if (event.key === "ArrowLeft") {
-                            onSeekToPercent(progress - 5);
-                        }
-                        if (event.key === "ArrowRight") {
-                            onSeekToPercent(progress + 5);
-                        }
-                        if (event.key === "Home") {
-                            onSeekToPercent(0);
-                        }
-                        if (event.key === "End") {
-                            onSeekToPercent(100);
-                        }
-                    },
-                    role: "slider",
-                    tabIndex: disabled ? -1 : 0,
+                aria-disabled={disabled ? "true" : undefined}
+                aria-label="播放进度"
+                aria-valuemax={100}
+                aria-valuemin={0}
+                aria-valuenow={Math.round(progress)}
+                onClick={(event) => {
+                    const rect = event.currentTarget.getBoundingClientRect();
+                    if (rect.width <= 0) {
+                        return;
+                    }
+                    onSeekToPercent(
+                        ((event.clientX - rect.left) / rect.width) * 100,
+                    );
                 }}
+                onKeyDown={(event) => {
+                    if (event.key === "ArrowLeft") {
+                        onSeekToPercent(progress - 5);
+                    }
+                    if (event.key === "ArrowRight") {
+                        onSeekToPercent(progress + 5);
+                    }
+                    if (event.key === "Home") {
+                        onSeekToPercent(0);
+                    }
+                    if (event.key === "End") {
+                        onSeekToPercent(100);
+                    }
+                }}
+                tabIndex={disabled ? -1 : 0}
                 value={[progress]}
                 onValueChange={(values) => onSeekToPercent(values[0] ?? 0)}
             />
         </span>
-    );
-}
-
-function DashboardPlayerVolumeIcon({
-    disabled,
-    volume,
-}: {
-    disabled: boolean;
-    volume: number;
-}) {
-    return (
-        <DashboardPlayerControlIcon
-            transform={
-                disabled
-                    ? "translate(0.875px, -0.625px)"
-                    : "translate(-0.5px, -0.5px) scale(1.0625)"
-            }
-        >
-            <SotPlayerVolumeIcon volume={volume} />
-        </DashboardPlayerControlIcon>
     );
 }
 
@@ -250,7 +159,9 @@ export function DashboardRecordingPlayerControls({
             data-sot-panel="dashboard-recording-player-controls"
             data-sot-state={playerControlsState}
         >
-            <SotPlayerControlButton
+            <Button
+                variant="ghost"
+                size="icon"
                 type="button"
                 aria-label="后退 5 秒"
                 className={DASHBOARD_PLAYER_DISABLED_BUTTON_CLASS_NAME}
@@ -259,17 +170,14 @@ export function DashboardRecordingPlayerControls({
                 disabled={playbackDisabled}
                 onClick={() => onSeekBySeconds(-5)}
             >
-                <DashboardPlayerControlIcon
-                    transform={
-                        playbackDisabled
-                            ? "translate(-0.5px, -0.5px)"
-                            : "translate(-0.5px, -0.5px) scale(1.0625)"
-                    }
-                >
-                    <SotPlayerBackIcon />
-                </DashboardPlayerControlIcon>
-            </SotPlayerControlButton>
-            <SotPlayerPrimaryButton
+                <Rewind
+                    data-icon="inline-start"
+                    data-sot-part="dashboard-player-control-icon"
+                />
+            </Button>
+            <Button
+                variant="default"
+                size="icon-lg"
                 type="button"
                 aria-label={isPlaying ? "暂停" : "播放"}
                 className={DASHBOARD_PLAYER_DISABLED_BUTTON_CLASS_NAME}
@@ -285,11 +193,21 @@ export function DashboardRecordingPlayerControls({
                 disabled={playbackDisabled}
                 onClick={onTogglePlayPause}
             >
-                <DashboardPlayerPrimaryControlIcon>
-                    {isPlaying ? <SotPlayerPauseIcon /> : <SotPlayerPlayIcon />}
-                </DashboardPlayerPrimaryControlIcon>
-            </SotPlayerPrimaryButton>
-            <SotPlayerControlButton
+                {isPlaying ? (
+                    <Pause
+                        data-icon="inline-start"
+                        data-sot-part="dashboard-player-control-icon"
+                    />
+                ) : (
+                    <Play
+                        data-icon="inline-start"
+                        data-sot-part="dashboard-player-control-icon"
+                    />
+                )}
+            </Button>
+            <Button
+                variant="ghost"
+                size="icon"
                 type="button"
                 aria-label="前进 5 秒"
                 className={DASHBOARD_PLAYER_DISABLED_BUTTON_CLASS_NAME}
@@ -298,28 +216,17 @@ export function DashboardRecordingPlayerControls({
                 disabled={playbackDisabled}
                 onClick={() => onSeekBySeconds(5)}
             >
-                <DashboardPlayerControlIcon
-                    transform={
-                        playbackDisabled
-                            ? "translate(-0.25px, -0.5px)"
-                            : "translate(-0.5px, -0.5px) scale(1.05)"
-                    }
-                >
-                    <SotPlayerForwardIcon />
-                </DashboardPlayerControlIcon>
-            </SotPlayerControlButton>
+                <FastForward
+                    data-icon="inline-start"
+                    data-sot-part="dashboard-player-control-icon"
+                />
+            </Button>
             <span
                 className={cn(
                     DASHBOARD_PLAYER_TIME_CLASS_NAME,
                     playbackDisabled && DASHBOARD_PLAYER_DISABLED_CLASS_NAME,
                 )}
                 data-sot-part="dashboard-player-current-time"
-                style={{
-                    font: "500 12px var(--font-mono)",
-                    marginLeft: "1px",
-                    marginRight: "-1px",
-                    transform: "translateX(0.375px)",
-                }}
             >
                 {formatSotPlayerTime(currentTime)}
             </span>
@@ -335,16 +242,12 @@ export function DashboardRecordingPlayerControls({
                     playbackDisabled && DASHBOARD_PLAYER_DISABLED_CLASS_NAME,
                 )}
                 data-sot-part="dashboard-player-duration"
-                style={{
-                    font: "500 12px var(--font-mono)",
-                    left: "-2px",
-                    position: "relative",
-                    transform: "translateX(0.1875px)",
-                }}
             >
                 {formatSotPlayerTime(duration)}
             </span>
-            <SotPlayerSpeedButton
+            <Button
+                variant="ghost"
+                size="sm"
                 type="button"
                 disabled={playbackDisabled}
                 aria-label="切换播放倍速"
@@ -356,29 +259,20 @@ export function DashboardRecordingPlayerControls({
                 data-sot-state={playerControlState}
                 onClick={onCyclePlaybackSpeed}
             >
-                <span
-                    style={{
-                        display: "inline-block",
-                        transform: "translateX(-0.5px)",
-                    }}
-                >
-                    {playbackSpeedLabel}
-                </span>
-            </SotPlayerSpeedButton>
+                {playbackSpeedLabel}
+            </Button>
             <Popover
                 open={volumePopoverOpen}
                 onOpenChange={(open) => onVolumeOpenChange(open)}
             >
                 <div
-                    className="relative ml-0 inline-flex"
+                    className="relative inline-flex"
                     data-sot-part="dashboard-player-volume-anchor"
-                    style={{
-                        transform: "translateX(-1px)",
-                    }}
                 >
                     <PopoverTrigger asChild>
-                        <SotPlayerControlButton
-                            controlSize="sm"
+                        <Button
+                            variant="ghost"
+                            size="icon-sm"
                             type="button"
                             aria-label={`音量 ${volume}`}
                             className={
@@ -400,14 +294,22 @@ export function DashboardRecordingPlayerControls({
                             }
                             disabled={playbackDisabled}
                         >
-                            <DashboardPlayerVolumeIcon
-                                disabled={playbackDisabled}
-                                volume={volume}
-                            />
-                        </SotPlayerControlButton>
+                            {volumeMuted ? (
+                                <VolumeX
+                                    data-icon="inline-start"
+                                    data-sot-part="dashboard-player-control-icon"
+                                />
+                            ) : (
+                                <Volume2
+                                    data-icon="inline-start"
+                                    data-sot-part="dashboard-player-control-icon"
+                                />
+                            )}
+                        </Button>
                     </PopoverTrigger>
-                    <SotPlayerVolumePopoverContent
+                    <PopoverContent
                         align="end"
+                        className="w-56"
                         side="top"
                         sideOffset={8}
                         data-open={volumePopoverOpen ? "true" : "false"}
@@ -419,8 +321,9 @@ export function DashboardRecordingPlayerControls({
                             className="flex items-center gap-2"
                             data-sot-part="dashboard-player-volume-row"
                         >
-                            <SotPlayerControlButton
-                                controlSize="sm"
+                            <Button
+                                variant="ghost"
+                                size="icon-sm"
                                 type="button"
                                 aria-label="静音切换"
                                 data-sot-control="dashboard-player-volume-mute"
@@ -432,15 +335,20 @@ export function DashboardRecordingPlayerControls({
                                     onVolumeChange(volumeMuted ? 70 : 0)
                                 }
                             >
-                                <span
-                                    data-icon="inline-start"
-                                    data-player-control-icon=""
-                                    data-sot-part="dashboard-player-volume-icon"
-                                >
-                                    <SotPlayerVolumeIcon volume={volume} />
-                                </span>
-                            </SotPlayerControlButton>
-                            <SotPlayerVolumeSlider
+                                {volumeMuted ? (
+                                    <VolumeX
+                                        data-icon="inline-start"
+                                        data-sot-part="dashboard-player-volume-icon"
+                                    />
+                                ) : (
+                                    <Volume2
+                                        data-icon="inline-start"
+                                        data-sot-part="dashboard-player-volume-icon"
+                                    />
+                                )}
+                            </Button>
+                            <Slider
+                                className="min-w-[110px] flex-1"
                                 min={0}
                                 max={100}
                                 step={1}
@@ -460,7 +368,7 @@ export function DashboardRecordingPlayerControls({
                                 {volume}
                             </span>
                         </div>
-                    </SotPlayerVolumePopoverContent>
+                    </PopoverContent>
                 </div>
             </Popover>
         </CardContent>

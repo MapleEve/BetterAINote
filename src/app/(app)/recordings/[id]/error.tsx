@@ -1,5 +1,6 @@
 "use client";
 
+import Image from "next/image";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import routeChromeStyles from "../../route-chrome.module.css";
@@ -31,7 +32,12 @@ export default function RecordingError({ reset }: { reset: () => void }) {
                     data-sot-part="route-brand"
                     className={routeChromeStyles.brand}
                 >
-                    <img src="/assets/logo-mark-steel.svg" alt="" />
+                    <Image
+                        src="/assets/logo-mark-steel.svg"
+                        alt=""
+                        width={36}
+                        height={36}
+                    />
                     <div>
                         <div
                             data-sot-part="route-brand-name"
@@ -125,11 +131,7 @@ export default function RecordingError({ reset }: { reset: () => void }) {
                                 >
                                     重试
                                 </Button>
-                                <Button
-                                    asChild
-                                    variant="ghost"
-                                    size="default"
-                                >
+                                <Button asChild variant="ghost" size="default">
                                     <Link href="/dashboard">返回工作台</Link>
                                 </Button>
                             </div>

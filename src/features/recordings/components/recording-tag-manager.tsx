@@ -14,7 +14,6 @@ import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
-    Card,
     CardAction,
     CardContent,
     CardDescription,
@@ -28,12 +27,23 @@ import {
     EmptyHeader,
     EmptyTitle,
 } from "@/components/ui/empty";
-import { Field, FieldGroup, FieldLabel } from "@/components/ui/field";
+import {
+    Field,
+    FieldGroup,
+    FieldLabel,
+    FieldLegend,
+    FieldSet,
+} from "@/components/ui/field";
 import {
     InputGroup,
     InputGroupAddon,
     InputGroupInput,
 } from "@/components/ui/input-group";
+import {
+    Popover,
+    PopoverAnchor,
+    PopoverContent,
+} from "@/components/ui/popover";
 import { Spinner } from "@/components/ui/spinner";
 import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
 import {
@@ -119,7 +129,7 @@ const recordingTagManagerButtonClassNames = {
 } as const;
 
 const recordingTagManagerCardClassNames = {
-    panel: "tagm-panel fixed top-[96px] right-[28px] z-[var(--z-dropdown)] max-h-[460px] w-[320px] max-w-[calc(100vw-2rem)] gap-0 overflow-hidden rounded-[12px] border-[var(--card-popover-border)] bg-[var(--card-popover-bg)] shadow-[var(--card-popover-shadow)] backdrop-blur-none pointer-events-auto data-[sot-state=create]:h-[342px] data-[sot-state=create]:overflow-hidden max-md:top-[76px] max-md:right-[12px] max-md:left-[12px] max-md:w-auto max-md:max-w-none",
+    panel: "tagm-panel max-h-[460px] w-[320px] max-w-[calc(100vw-2rem)] gap-0 overflow-hidden rounded-[12px] border-[var(--card-popover-border)] bg-[var(--card-popover-bg)] p-0 shadow-[var(--card-popover-shadow)] backdrop-blur-none data-[sot-state=create]:h-[342px] data-[sot-state=create]:overflow-hidden max-md:w-[calc(100vw-24px)] max-md:max-w-none",
     header: "tagm-head flex flex-row items-center justify-between gap-[normal] border-b-[1px] border-[var(--card-popover-divider)] px-[12px] pt-[10px] pb-[10px] [&>[data-slot=card-action]]:self-center",
     title: "tagm-title text-[12.5px] font-semibold leading-[17px] text-[var(--fg-primary)]",
     footer: "min-h-[47px] gap-[6px] border-t border-[var(--card-popover-divider)] bg-[var(--card-popover-footer-bg)] !px-[14px] !py-[10px]",
@@ -169,13 +179,26 @@ type RecordingTagManagerContentVariant =
 type RecordingTagManagerBadgeAppearance =
     keyof typeof recordingTagManagerBadgeClassNames;
 
-function RecordingTagManagerPanelCard({
+function RecordingTagManagerPopoverContent({
     className,
+    onFocusOutside,
+    onOpenAutoFocus,
     ...props
-}: Omit<ComponentProps<typeof Card>, "hasNoPadding" | "variant">) {
+}: Omit<ComponentProps<typeof PopoverContent>, "variant">) {
     return (
-        <Card
-            hasNoPadding
+        <PopoverContent
+            align="end"
+            side="bottom"
+            sideOffset={8}
+            avoidCollisions={false}
+            onOpenAutoFocus={(event) => {
+                event.preventDefault();
+                onOpenAutoFocus?.(event);
+            }}
+            onFocusOutside={(event) => {
+                event.preventDefault();
+                onFocusOutside?.(event);
+            }}
             className={cn(recordingTagManagerCardClassNames.panel, className)}
             {...props}
         />
@@ -775,9 +798,7 @@ export function RecordingTagManager({
     );
 
     const renderColorPicker = () => (
-        <div
-            role="group"
-            aria-labelledby={tagColorPickerLabelId}
+        <FieldSet
             className={cn(
                 recordingTagManagerFieldClassNames.pickerFrame,
                 recordingTagManagerFieldClassNames.colorPickerFrame,
@@ -785,23 +806,22 @@ export function RecordingTagManager({
             data-sot-part="picker-frame"
             data-sot-picker="color"
         >
-            <div
+            <FieldLegend
                 id={tagColorPickerLabelId}
+                variant="label"
                 className={recordingTagManagerFieldClassNames.pickerLabel}
                 data-sot-part="picker-label"
             >
                 颜色
-            </div>
+            </FieldLegend>
             <div data-sot-part="picker" data-sot-picker="color">
                 {renderColorToggleGroup(RECORDING_TAG_COLORS, "full")}
             </div>
-        </div>
+        </FieldSet>
     );
 
     const renderIconPicker = () => (
-        <div
-            role="group"
-            aria-labelledby={tagIconPickerLabelId}
+        <FieldSet
             className={cn(
                 recordingTagManagerFieldClassNames.pickerFrame,
                 recordingTagManagerFieldClassNames.iconPickerFrame,
@@ -809,13 +829,14 @@ export function RecordingTagManager({
             data-sot-part="picker-frame"
             data-sot-picker="icon"
         >
-            <div
+            <FieldLegend
                 id={tagIconPickerLabelId}
+                variant="label"
                 className={recordingTagManagerFieldClassNames.pickerLabel}
                 data-sot-part="picker-label"
             >
                 图标
-            </div>
+            </FieldLegend>
             <div data-sot-part="picker" data-sot-picker="icon">
                 <ToggleGroup
                     type="single"
@@ -855,7 +876,7 @@ export function RecordingTagManager({
                     ))}
                 </ToggleGroup>
             </div>
-        </div>
+        </FieldSet>
     );
 
     let panelContent: ReactNode;
@@ -1269,66 +1290,82 @@ export function RecordingTagManager({
     }
 
     return (
-        <RecordingTagManagerPanelCard
-            role="dialog"
-            aria-label="管理标签"
-            aria-busy={busy ? "true" : undefined}
-            data-open="true"
-            data-state={visibleError ? "error" : undefined}
-            data-sot-panel="recording-tag-manager"
-            data-sot-create-state={isCreating ? "saving" : "idle"}
-            data-sot-error={visibleError ? "true" : "false"}
-            data-sot-error-message={visibleError ?? undefined}
-            data-sot-state={panelState}
-            data-sot-toggle-state={
-                savingTagId
-                    ? "saving"
-                    : shouldShowToggleState
-                      ? "toggle"
-                      : "idle"
-            }
-            data-sot-variant={variant}
+        <Popover
+            open
+            modal={false}
+            onOpenChange={(open) => {
+                if (!open) {
+                    onClose?.();
+                }
+            }}
         >
-            <RecordingTagManagerHeader data-sot-part="head">
-                <RecordingTagManagerTitle data-sot-part="title">
-                    {title}
-                </RecordingTagManagerTitle>
-                {showCloseButton ? (
-                    <CardAction data-sot-part="head-action">
-                        <Button
-                            variant="ghost"
-                            size="icon-xs"
-                            className={cn(
-                                "tagm-close",
-                                recordingTagManagerButtonClassNames.panelClose,
-                                "shrink-0",
-                            )}
-                            type="button"
-                            aria-label="关闭"
-                            data-sot-control="recording-tag-manager-close"
-                            data-sot-state="idle"
-                            onClick={() => onClose?.()}
-                        >
-                            <X aria-hidden="true" />
-                        </Button>
-                    </CardAction>
-                ) : null}
-            </RecordingTagManagerHeader>
-            <RecordingTagManagerContent
-                contentVariant={contentVariant}
-                data-sot-part="body"
+            <PopoverAnchor asChild>
+                <span
+                    className="inline-flex size-0"
+                    data-sot-part="recording-tag-manager-anchor"
+                    aria-hidden="true"
+                />
+            </PopoverAnchor>
+            <RecordingTagManagerPopoverContent
+                aria-label="管理标签"
+                aria-busy={busy ? "true" : undefined}
+                data-open="true"
+                data-state={visibleError ? "error" : undefined}
+                data-sot-panel="recording-tag-manager"
+                data-sot-create-state={isCreating ? "saving" : "idle"}
+                data-sot-error={visibleError ? "true" : "false"}
+                data-sot-error-message={visibleError ?? undefined}
+                data-sot-state={panelState}
+                data-sot-toggle-state={
+                    savingTagId
+                        ? "saving"
+                        : shouldShowToggleState
+                          ? "toggle"
+                          : "idle"
+                }
+                data-sot-variant={variant}
             >
-                {panelContent}
-            </RecordingTagManagerContent>
-            {panelAfterBody}
-            {panelFooter ? (
-                <RecordingTagManagerFooter
-                    className="tagm-actions"
-                    data-sot-part="footer"
+                <RecordingTagManagerHeader data-sot-part="head">
+                    <RecordingTagManagerTitle data-sot-part="title">
+                        {title}
+                    </RecordingTagManagerTitle>
+                    {showCloseButton ? (
+                        <CardAction data-sot-part="head-action">
+                            <Button
+                                variant="ghost"
+                                size="icon-xs"
+                                className={cn(
+                                    "tagm-close",
+                                    recordingTagManagerButtonClassNames.panelClose,
+                                    "shrink-0",
+                                )}
+                                type="button"
+                                aria-label="关闭"
+                                data-sot-control="recording-tag-manager-close"
+                                data-sot-state="idle"
+                                onClick={() => onClose?.()}
+                            >
+                                <X aria-hidden="true" />
+                            </Button>
+                        </CardAction>
+                    ) : null}
+                </RecordingTagManagerHeader>
+                <RecordingTagManagerContent
+                    contentVariant={contentVariant}
+                    data-sot-part="body"
                 >
-                    {panelFooter}
-                </RecordingTagManagerFooter>
-            ) : null}
-        </RecordingTagManagerPanelCard>
+                    {panelContent}
+                </RecordingTagManagerContent>
+                {panelAfterBody}
+                {panelFooter ? (
+                    <RecordingTagManagerFooter
+                        className="tagm-actions"
+                        data-sot-part="footer"
+                    >
+                        {panelFooter}
+                    </RecordingTagManagerFooter>
+                ) : null}
+            </RecordingTagManagerPopoverContent>
+        </Popover>
     );
 }

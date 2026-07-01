@@ -50,10 +50,9 @@ export const SOURCE_PROVIDER_DETAIL_FIELD_CONTROL_CLASS =
     "flex flex-none items-center justify-end gap-[10px]";
 
 export const SOURCE_PROVIDER_DETAIL_INPUT_CLASS =
-    "h-[30px] w-[240px] min-w-[240px] max-w-[240px] rounded-[7px] border-[var(--line-hairline)] bg-[var(--bg-recessed)] px-[10px] py-0 font-mono text-[12px] font-medium leading-[normal] text-[var(--fg-primary)] shadow-none focus-visible:border-[var(--line-hairline)] focus-visible:ring-0 aria-invalid:border-destructive aria-invalid:ring-0 md:text-[12px]";
+    "h-[30px] w-[240px] min-w-[240px] max-w-[240px] rounded-[7px] px-[10px] py-0 font-mono text-[12px] font-medium leading-[normal] md:text-[12px]";
 
-export const SOURCE_PROVIDER_DETAIL_SWITCH_CLASS =
-    "relative !h-[20px] !w-[36px] border-transparent bg-input p-0 shadow-none data-[state=checked]:!bg-primary [&_[data-slot=switch-thumb]]:absolute [&_[data-slot=switch-thumb]]:left-[2px] [&_[data-slot=switch-thumb]]:top-[2px] [&_[data-slot=switch-thumb]]:!size-[16px] [&_[data-slot=switch-thumb]]:bg-background [&_[data-slot=switch-thumb]]:shadow-xs [&_[data-slot=switch-thumb][data-state=checked]]:!translate-x-[16px] [&_[data-slot=switch-thumb][data-state=unchecked]]:!translate-x-0";
+export const SOURCE_PROVIDER_DETAIL_SWITCH_CLASS = "";
 
 export interface SettingFieldOption {
     value: string;

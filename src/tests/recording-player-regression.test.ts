@@ -30,48 +30,6 @@ const ROUTE_LOADING_SURFACE_CLASS_VALUE =
     "min-h-0 gap-0 overflow-hidden rounded-[16px] border-[var(--line-hairline)] bg-[var(--bg-elevated)] shadow-[var(--shadow-sm)] backdrop-blur-none dark:border-[var(--glass-border)]";
 const ROUTE_LOADING_SURFACE_CLASS_TOKENS =
     ROUTE_LOADING_SURFACE_CLASS_VALUE.split(" ");
-const SOT_PLAYER_NO_AUDIO_CLASS_INITIALIZERS = [
-    {
-        constName: "SOT_PLAYER_NO_AUDIO_ALERT_CLASS",
-        expected:
-            "mb-3 flex w-full items-center gap-2.5 rounded-[10px] border border-[var(--system-banner-offline-border)] bg-[var(--system-banner-offline-bg)] px-3 py-2.5 text-[12.5px] leading-normal text-[var(--fg-primary)] [&[hidden]]:hidden",
-    },
-    {
-        constName: "SOT_PLAYER_NO_AUDIO_ICON_CLASS",
-        expected:
-            "inline-grid size-[26px] flex-none place-items-center rounded-[50%] bg-[var(--system-banner-offline-icon-bg)] text-[var(--signal-warning)] [&_svg]:size-[14px]",
-    },
-    {
-        constName: "SOT_PLAYER_NO_AUDIO_TEXT_CLASS",
-        expected: "flex min-w-0 flex-col gap-px",
-    },
-    {
-        constName: "SOT_PLAYER_NO_AUDIO_TITLE_CLASS",
-        expected:
-            "min-h-0 overflow-visible font-sans text-[12.5px] font-semibold leading-normal tracking-normal text-[var(--fg-primary)] [display:block] [-webkit-box-orient:unset] [-webkit-line-clamp:unset]",
-    },
-    {
-        constName: "SOT_PLAYER_NO_AUDIO_DESCRIPTION_CLASS",
-        expected:
-            "block font-sans text-[11.5px] font-medium leading-[1.5] text-[var(--fg-tertiary)] [&_p]:leading-[1.5]",
-    },
-] as const;
-const SOT_PLAYER_SOURCE_CLASS_INITIALIZERS = [
-    {
-        constName: "SOT_PLAYER_SOURCE_BADGE_CLASS",
-        expected:
-            "h-[22px] flex-none justify-normal gap-[6px] rounded-[6px] border-border bg-card py-0 pl-[3px] pr-[8px] [font:600_11.5px_var(--font-sans)] text-muted-foreground shadow-xs",
-    },
-    {
-        constName: "SOT_PLAYER_SOURCE_ICON_CLASS",
-        expected:
-            "inline-flex size-[16px] flex-none shrink-0 items-center justify-center overflow-hidden rounded-[4px] border border-border bg-background data-[sot-source-icon=letter]:bg-muted data-[sot-source-icon=letter]:[font:700_9px_var(--font-sans)] data-[sot-source-icon=letter]:text-muted-foreground [&[data-sot-cover=true]_img]:object-cover",
-    },
-    {
-        constName: "SOT_PLAYER_SOURCE_ICON_IMAGE_CLASS",
-        expected: "block size-[16px] max-w-none object-contain",
-    },
-] as const;
 const RECORDING_PLAYER_CLASS_INITIALIZERS = [
     {
         constName: "RECORDING_PLAYER_META_CLASS_NAME",
@@ -89,16 +47,6 @@ const RECORDING_PLAYER_CLASS_INITIALIZERS = [
     {
         constName: "RECORDING_PLAYER_CONTROLS_CLASS_NAME",
         expected: "flex min-w-0 items-center gap-3 overflow-visible",
-    },
-    {
-        constName: "RECORDING_PLAYER_CONTROL_ICON_CLASS_NAME",
-        expected:
-            "inline-flex items-center justify-center [&_svg]:size-4 [&_svg]:fill-current [&_svg]:stroke-current [&_svg]:stroke-[1.8] [&_svg]:[stroke-linecap:round] [&_svg]:[stroke-linejoin:round]",
-    },
-    {
-        constName: "RECORDING_PLAYER_PRIMARY_CONTROL_ICON_CLASS_NAME",
-        expected:
-            "inline-flex items-center justify-center [&_svg]:size-[18px] [&_svg]:fill-white [&_svg]:stroke-white [&_svg]:stroke-[1.8] [&_svg]:[stroke-linecap:round] [&_svg]:[stroke-linejoin:round]",
     },
     {
         constName: "RECORDING_PLAYER_TIME_CLASS_NAME",
@@ -265,7 +213,7 @@ function expectSotPlayerNoAudioPrimitiveBindings(source: string) {
     const noAudioIcon = extractOpeningElement(
         source,
         "data-sot-part={iconPart}",
-        "span",
+        "VolumeX",
     );
     const noAudioText = extractOpeningElement(
         source,
@@ -283,34 +231,22 @@ function expectSotPlayerNoAudioPrimitiveBindings(source: string) {
         "AlertDescription",
     );
 
-    expect(noAudioAlert).toMatch(
-        /className=\{\s*cn\(\s*SOT_PLAYER_NO_AUDIO_ALERT_CLASS,\s*className\s*\)\s*\}/,
-    );
+    expect(noAudioAlert).toContain('variant="default"');
+    expect(noAudioAlert).toContain('density="comfortable"');
+    expect(noAudioAlert).toContain('layout="inline"');
+    expect(noAudioAlert).toContain('className={cn("mb-3", className)}');
     expect(noAudioAlert).toContain("data-sot-part={part}");
     expect(noAudioAlert).toContain(
         'data-sot-state={playbackDisabled ? "visible" : "hidden"}',
     );
     expect(noAudioAlert).toContain("hidden={!playbackDisabled}");
     expect(noAudioAlert).toContain('role="status"');
-    expectClassNameConstReference(
-        noAudioIcon,
-        "SOT_PLAYER_NO_AUDIO_ICON_CLASS",
-    );
     expect(noAudioIcon).toContain("data-sot-part={iconPart}");
-    expectClassNameConstReference(
-        noAudioText,
-        "SOT_PLAYER_NO_AUDIO_TEXT_CLASS",
-    );
+    expectClassNameConstReference(noAudioText, "PLAYER_NO_AUDIO_TEXT_CLASS");
     expect(noAudioText).toContain("data-player-no-audio-text");
     expect(noAudioText).toContain("data-sot-part={textPart}");
-    expectClassNameConstReference(
-        noAudioTitle,
-        "SOT_PLAYER_NO_AUDIO_TITLE_CLASS",
-    );
-    expectClassNameConstReference(
-        noAudioDescription,
-        "SOT_PLAYER_NO_AUDIO_DESCRIPTION_CLASS",
-    );
+    expect(noAudioTitle).not.toContain("className=");
+    expect(noAudioDescription).toContain('density="comfortable"');
 }
 
 function expectSotPlayerSourcePrimitiveBindings(source: string) {
@@ -327,20 +263,20 @@ function expectSotPlayerSourcePrimitiveBindings(source: string) {
     const sourceIconImage = extractOpeningElement(
         source,
         "src={badge.icon}",
-        "img",
+        "Image",
     );
 
-    expectClassNameConstReference(sourceBadge, "SOT_PLAYER_SOURCE_BADGE_CLASS");
-    expect(sourceBadge).toContain('variant="ghost"');
+    expectClassNameConstReference(sourceBadge, "PLAYER_SOURCE_BADGE_CLASS");
+    expect(sourceBadge).toContain('variant="outline"');
     expect(sourceBadge).toContain('data-sot-control="player-source-tag"');
-    expectClassNameConstReference(sourceIcon, "SOT_PLAYER_SOURCE_ICON_CLASS");
+    expectClassNameConstReference(sourceIcon, "PLAYER_SOURCE_ICON_CLASS");
     expect(sourceIcon).toContain('data-sot-part="source-icon"');
     expect(sourceIcon).toContain(
         'data-sot-source-icon={hasImage ? "image" : "letter"}',
     );
     expectClassNameConstReference(
         sourceIconImage,
-        "SOT_PLAYER_SOURCE_ICON_IMAGE_CLASS",
+        "PLAYER_SOURCE_ICON_IMAGE_CLASS",
     );
 }
 
@@ -425,12 +361,8 @@ describe("dashboard recording player regressions", () => {
         expect(noAudioAlert).not.toContain("layout=");
         expect(noAudioAlert).not.toContain("className=");
         expect(sotPlayerPrimitives).toContain("SotPlayerNoAudioAlert");
-        expectExactStringConstInitializers(
-            sotPlayerPrimitives,
-            SOT_PLAYER_NO_AUDIO_CLASS_INITIALIZERS,
-        );
         expectSotPlayerNoAudioPrimitiveBindings(sotPlayerPrimitives);
-        expect(sotPlayerPrimitives).toContain("<SotPlayerNoAudioIcon");
+        expect(sotPlayerPrimitives).toContain("<VolumeX");
         expect(sotPlayerPrimitives).toContain("<AlertTitle");
         expect(sotPlayerPrimitives).toContain("<AlertDescription");
         expect(sotPlayerPrimitives).toContain(
@@ -450,7 +382,7 @@ describe("dashboard recording player regressions", () => {
         expect(source).not.toMatch(OLD_UI_CONTRACT_RE);
     });
 
-    it("keeps player status styling in the feature wrapper instead of Badge variants", () => {
+    it("keeps player status and tags on shadcn badges without SOT player style vars", () => {
         const badgePrimitive = readFileSync(
             path.join(process.cwd(), "src/components/ui/badge.tsx"),
             "utf8",
@@ -497,36 +429,15 @@ describe("dashboard recording player regressions", () => {
         expect(badgePrimitive).not.toContain(
             "[&_[data-sot-part=status-label]]",
         );
-        for (const playerStatusToken of [
-            "h-[20px]",
+        for (const forbiddenSotPlayerToken of [
+            "SOT_PLAYER_",
+            "--sot-player-",
             "min-w-[65.171875px]",
-            "justify-normal",
-            "gap-[5px]",
-            "tracking-[0.005em]",
-            "data-[sot-tone=ok]:border-[var(--button-copy-success-border)]",
-            "data-[sot-tone=ok]:bg-[var(--button-copy-success-bg)]",
-            "data-[sot-tone=ok]:text-[var(--signal-success)]",
-            "data-[sot-tone=warn]:border-[var(--system-banner-offline-border)]",
-            "data-[sot-tone=warn]:bg-[var(--system-banner-offline-bg)]",
-            "data-[sot-tone=warn]:text-[var(--signal-warning-strong)]",
-            "data-[sot-tone=err]:border-[var(--alert-destructive-soft-border)]",
-            "data-[sot-tone=err]:bg-[var(--alert-destructive-soft-bg)]",
-            "data-[sot-tone=err]:text-[var(--signal-danger)]",
-            "data-[sot-tone=info]:border-[var(--system-banner-update-border)]",
-            "data-[sot-tone=info]:bg-[var(--system-banner-update-bg)]",
-            "data-[sot-tone=info]:text-[var(--signal-info)]",
-            "data-[sot-tone=neu]:border-[var(--line-hairline)]",
-            "data-[sot-tone=neu]:bg-[var(--bg-recessed)]",
-            "data-[sot-tone=neu]:text-[var(--fg-secondary)]",
-            "[&_[data-sot-part=status-dot]]:size-[5px]",
-            "[&_[data-sot-part=status-dot]]:rounded-full",
-            "[&_[data-sot-part=status-dot]]:bg-current",
-            "data-[sot-tone=warn]:[&_[data-sot-part=status-dot]]:animate-[bpulse_1.4s_ease-in-out_infinite]",
-            "[&_[data-sot-part=status-label]]:ml-[4px]",
+            "[&_[data-sot-part=status-dot]]",
+            "[&_[data-sot-part=status-label]]",
         ]) {
-            expect(sotPlayerPrimitives).toContain(playerStatusToken);
+            expect(sotPlayerPrimitives).not.toContain(forbiddenSotPlayerToken);
         }
-        expect(sotPlayerPrimitives).not.toContain("--source-provider-status");
         expect(badgePrimitive).not.toContain("playerTagChip:");
         expect(badgePrimitive).not.toContain("playerTagOverflow:");
         expect(buttonPrimitive).not.toContain("playerTagAdd:");
@@ -535,53 +446,29 @@ describe("dashboard recording player regressions", () => {
         expect(sotPlayerPrimitives).toContain(
             'import { Badge } from "@/components/ui/badge";',
         );
-        expectExactStringConstInitializers(
-            sotPlayerPrimitives,
-            SOT_PLAYER_SOURCE_CLASS_INITIALIZERS,
-        );
         expectSotPlayerSourcePrimitiveBindings(sotPlayerPrimitives);
-        expect(sourceBadge).toContain('variant="ghost"');
-        expect(sourceBadge).toContain(
-            "className={SOT_PLAYER_SOURCE_BADGE_CLASS}",
-        );
+        expect(sourceBadge).toContain('variant="outline"');
+        expect(sourceBadge).toContain("className={PLAYER_SOURCE_BADGE_CLASS}");
         expect(sourceBadge).toContain('data-sot-control="player-source-tag"');
         expect(sotPlayerPrimitives).not.toContain(
             legacyPlayerSourceVariantUsage,
         );
-        expect(sotPlayerPrimitives).toContain("SOT_PLAYER_STATUS_BADGE_CLASS");
-        expect(statusBadge).toContain('variant="ghost"');
+        expect(sotPlayerPrimitives).toContain("PLAYER_STATUS_VARIANT");
+        expect(sotPlayerPrimitives).toContain("PLAYER_STATUS_TONE_CLASS");
+        expect(statusBadge).toContain("variant={PLAYER_STATUS_VARIANT[tone]}");
         expect(statusBadge).toContain(
-            "className={cn(SOT_PLAYER_STATUS_BADGE_CLASS, className)}",
+            'className={cn("gap-1.5", PLAYER_STATUS_TONE_CLASS[tone], className)}',
         );
         expect(statusBadge).toContain('data-sot-control="player-status"');
         expect(statusBadge).toContain("data-sot-tone={tone}");
         expect(sotPlayerPrimitives).toContain("className?: string;");
-        expect(sotPlayerPrimitives).toContain(
-            '<span data-sot-part="status-dot" />',
-        );
+        expect(sotPlayerPrimitives).toContain('data-sot-part="status-dot"');
         expect(sotPlayerPrimitives).toContain(
             '<span data-sot-part="status-label">{label}</span>',
         );
         expect(
             collectCssRuleBlocks(globals, '[data-sot-control="player-status"]'),
         ).toEqual([]);
-        for (const tagClassConstant of [
-            "SOT_PLAYER_TAG_BADGE_CLASS",
-            "SOT_PLAYER_TAG_OVERFLOW_BADGE_CLASS",
-            "SOT_PLAYER_TAG_ADD_BUTTON_CLASS",
-            "SOT_PLAYER_TAG_CHIP_BUTTON_CLASS",
-            "SOT_PLAYER_TAG_OVERFLOW_BUTTON_CLASS",
-        ]) {
-            expect(sotPlayerPrimitives).toContain(tagClassConstant);
-        }
-        for (const tagClassToken of [
-            "data-[sot-tag-color=blue]:[--sot-player-tag-chip-fg:var(--tag-blue)]",
-            "data-[sot-state=open]:border-[var(--line-strong)]",
-            "border-dashed border-[var(--line-hairline)]",
-            "hover:border-[var(--line-strong)]",
-        ]) {
-            expect(sotPlayerPrimitives).toContain(tagClassToken);
-        }
         for (const sotPlayerTagChipToken of [
             "--sot-player-tag-chip-bg",
             "--sot-player-tag-chip-border",
@@ -589,20 +476,13 @@ describe("dashboard recording player regressions", () => {
             "--sot-player-tag-chip-blue-bg",
             "--sot-player-tag-chip-blue-border",
             "--sot-player-tag-chip-blue-fg",
+            "SOT_PLAYER_TAG",
         ]) {
             expect(globals).not.toContain(sotPlayerTagChipToken);
+            expect(sotPlayerPrimitives).not.toContain(sotPlayerTagChipToken);
         }
-        for (const sotPlayerTagChipToken of [
-            "--sot-player-tag-chip-bg",
-            "--sot-player-tag-chip-border",
-            "--sot-player-tag-chip-fg",
-        ]) {
-            expect(sotPlayerPrimitives).toContain(sotPlayerTagChipToken);
-        }
-        expect(sotPlayerPrimitives).toContain(
-            "SOT_PLAYER_TAG_CHIP_VARIABLES_CLASS",
-        );
-        expect(sotPlayerPrimitives).not.toContain("SOT_PLAYER_TAG_COLOR_TOKEN");
+        expect(sotPlayerPrimitives).toContain("PLAYER_TAG_COLOR_CLASS");
+        expect(sotPlayerPrimitives).toContain("PLAYER_TAG_CHIP_CLASS");
         expect(sotPlayerPrimitives).not.toContain("sotPlayerTagChipStyle");
         expect(sotPlayerPrimitives).not.toContain(
             'background: "var(--sot-player-tag-chip-bg)"',
@@ -618,20 +498,11 @@ describe("dashboard recording player regressions", () => {
         expect(sotPlayerPrimitives).not.toContain(
             "dashboard-recording-tag-chip",
         );
-        expect(tagChipPrimitive).toContain('variant="ghost"');
+        expect(tagChipPrimitive).toContain('variant="secondary"');
+        expect(tagChipPrimitive).toContain('variant="outline"');
         expect(tagChipPrimitive).toContain('size="xs"');
-        expect(tagChipPrimitive).toContain(
-            "className={SOT_PLAYER_TAG_ADD_BUTTON_CLASS}",
-        );
-        expect(tagChipPrimitive).toContain(
-            "className={SOT_PLAYER_TAG_BADGE_CLASS}",
-        );
-        expect(tagChipPrimitive).toContain(
-            "className={SOT_PLAYER_TAG_CHIP_BUTTON_CLASS}",
-        );
-        expect(tagChipPrimitive).toContain(
-            "className={SOT_PLAYER_TAG_OVERFLOW_BUTTON_CLASS}",
-        );
+        expect(tagChipPrimitive).toContain("PLAYER_TAG_COLOR_CLASS[tag.color]");
+        expect(tagChipPrimitive).toContain("PLAYER_TAG_OVERFLOW_CLASS");
         expect(tagChipPrimitive).not.toContain(
             legacyPlayerTagVariantUsagePrefix,
         );
@@ -687,114 +558,95 @@ describe("dashboard recording player regressions", () => {
         expect(buttonSource).not.toContain("playerControlSm:");
         expect(buttonSource).not.toContain("playerControlLg:");
         expect(buttonSource).not.toContain("data-player-control-icon");
-        expect(sotPlayerPrimitives).toContain(
-            'type SotPlayerButtonProps = Omit<ButtonProps, "variant" | "size">',
-        );
-        for (const wrapperExport of [
+        for (const removedWrapperToken of [
+            "type SotPlayerButtonProps",
             "export function SotPlayerControlButton",
             "export function SotPlayerPrimaryButton",
             "export function SotPlayerSpeedButton",
-        ]) {
-            expect(sotPlayerPrimitives).toContain(wrapperExport);
-        }
-        for (const playerButtonClassToken of [
+            "export function SotPlayerSeekSlider",
+            "export function SotPlayerVolumeSlider",
+            "export function SotPlayerVolumePopoverContent",
             "SOT_PLAYER_CONTROL_BUTTON_CLASS",
-            "SOT_PLAYER_CONTROL_BUTTON_SIZE_CLASS",
-            "SOT_PLAYER_CONTROL_BUTTON_SM_SIZE_CLASS",
             "SOT_PLAYER_PRIMARY_BUTTON_CLASS",
-            "SOT_PLAYER_PRIMARY_BUTTON_SIZE_CLASS",
             "SOT_PLAYER_SPEED_BUTTON_CLASS",
-            "SOT_PLAYER_SPEED_BUTTON_SIZE_CLASS",
-            "size-[36px]",
-            "size-[30px]",
-            "size-[44px]",
-            "min-w-[50px]",
-            "tabular-nums",
+            "SOT_PLAYER_SEEK_SLIDER_CLASS",
+            "SOT_PLAYER_VOLUME_SLIDER_CLASS",
             "data-player-control-icon",
         ]) {
-            expect(sotPlayerPrimitives).toContain(playerButtonClassToken);
+            expect(sotPlayerPrimitives).not.toContain(removedWrapperToken);
         }
         expect(buttonSource).not.toContain("dashboard-player-volume-icon");
         expect(buttonSource).not.toContain("recording-player-volume-icon");
-        expect(source).not.toContain(
+        expect(source).toContain(
             'import { Button } from "@/components/ui/button";',
         );
-        expect(source).toContain("<SotPlayerControlButton");
-        expect(source).toContain("<SotPlayerPrimaryButton");
-        expect(source).toContain("<SotPlayerSpeedButton");
+        expect(source).toContain("PopoverContent");
         expect(source).toContain(
-            'import { Popover, PopoverTrigger } from "@/components/ui/popover";',
+            'import { Slider } from "@/components/ui/slider";',
         );
         expect(source).toContain("<Popover");
         expect(source).toContain("<PopoverTrigger asChild>");
-        expect(source).toContain("<SotPlayerVolumePopoverContent");
+        expect(source).toContain("<PopoverContent");
         const backControl = extractOpeningElement(
             source,
             'data-sot-control="recording-player-back"',
-            "SotPlayerControlButton",
+            "Button",
         );
         const playControl = extractOpeningElement(
             source,
             'data-sot-control="recording-player-play"',
-            "SotPlayerPrimaryButton",
+            "Button",
         );
         const forwardControl = extractOpeningElement(
             source,
             'data-sot-control="recording-player-forward"',
-            "SotPlayerControlButton",
+            "Button",
         );
         const speedControl = extractOpeningElement(
             source,
             'data-sot-control="recording-player-speed"',
-            "SotPlayerSpeedButton",
+            "Button",
         );
         const volumeControl = extractOpeningElement(
             source,
             'data-sot-control="recording-player-volume"',
-            "SotPlayerControlButton",
+            "Button",
         );
         const volumeMuteControl = extractOpeningElement(
             source,
             'data-sot-control="recording-player-volume-mute"',
-            "SotPlayerControlButton",
+            "Button",
         );
 
         for (const control of [backControl, forwardControl]) {
-            expect(control).toContain("<SotPlayerControlButton");
-            expect(control).not.toContain("controlSize=");
-            expect(control).not.toContain("variant=");
-            expect(control).not.toContain("size=");
+            expect(control).toContain("<Button");
+            expect(control).toContain('variant="ghost"');
+            expect(control).toContain('size="icon"');
             expect(control).not.toContain("className=");
         }
-        expect(playControl).toContain("<SotPlayerPrimaryButton");
-        expect(playControl).not.toContain("variant=");
-        expect(playControl).not.toContain("size=");
+        expect(playControl).toContain("<Button");
+        expect(playControl).toContain('variant="default"');
+        expect(playControl).toContain('size="icon-lg"');
         expect(playControl).not.toContain("className=");
-        expect(speedControl).toContain("<SotPlayerSpeedButton");
-        expect(speedControl).not.toContain("variant=");
-        expect(speedControl).not.toContain("size=");
+        expect(speedControl).toContain("<Button");
+        expect(speedControl).toContain('variant="ghost"');
+        expect(speedControl).toContain('size="sm"');
         expect(speedControl).toContain(
             "className={RECORDING_PLAYER_SPEED_CLASS_NAME}",
         );
         for (const control of [volumeControl, volumeMuteControl]) {
-            expect(control).toContain("<SotPlayerControlButton");
-            expect(control).toContain('controlSize="sm"');
-            expect(control).not.toContain("variant=");
-            expect(control).not.toContain("size=");
+            expect(control).toContain("<Button");
+            expect(control).toContain('variant="ghost"');
+            expect(control).toContain('size="icon-sm"');
             expect(control).not.toContain("className=");
         }
-        expect(source).toContain("data-player-control-icon");
+        expect(source).not.toContain("data-player-control-icon");
         for (const legacyControlToken of [
-            'variant="outline"',
-            'variant="default"',
-            'variant="ghost"',
-            'size="icon"',
-            'size="icon-sm"',
-            'size="icon-lg"',
-            'size="sm"',
-            'size="icon-xs"',
             'className="size-11 shrink rounded-full shadow-sm"',
             'className="shrink rounded-full"',
+            "<SotPlayerControlButton",
+            "<SotPlayerPrimaryButton",
+            "<SotPlayerSpeedButton",
         ]) {
             expect(source).not.toContain(legacyControlToken);
         }
@@ -842,89 +694,52 @@ describe("dashboard recording player regressions", () => {
         ]) {
             expect(popoverSource).not.toContain(primitiveResidue);
         }
-        for (const wrapperExport of [
-            "export function SotPlayerSeekSlider",
-            "export function SotPlayerVolumeSlider",
-            "export function SotPlayerVolumePopoverContent",
-        ]) {
-            expect(sotPlayerPrimitives).toContain(wrapperExport);
-        }
-        for (const wrapperClassToken of [
-            "SOT_PLAYER_SEEK_SLIDER_CLASS",
-            "h-[14px] min-w-0 flex-1 cursor-pointer",
-            "[&_[data-slot=slider-track]]:bg-muted",
-            "[&_[data-slot=slider-track]]:rounded-[999px]",
-            "[&_[data-slot=slider-track]]:shadow-inner",
-            "bg-primary",
-            "size-[14px] border-0 bg-background p-0 shadow-sm ring-1 ring-border",
-            "SOT_PLAYER_VOLUME_SLIDER_CLASS",
-            "h-[18px] min-w-[110px] flex-1",
-            "SOT_PLAYER_VOLUME_POPOVER_CONTENT_CLASS",
-            "w-[200px] min-w-[200px] gap-0 overflow-visible px-2.5 py-2",
-        ]) {
-            expect(sotPlayerPrimitives).toContain(wrapperClassToken);
-        }
-        expect(sotPlayerPrimitives).toContain(
-            "className={cn(SOT_PLAYER_SEEK_SLIDER_CLASS, className)}",
-        );
-        expect(sotPlayerPrimitives).toContain(
-            "className: cn(SOT_PLAYER_SEEK_RANGE_CLASS, rangeClassName)",
-        );
-        expect(sotPlayerPrimitives).toContain(
-            "className: cn(SOT_PLAYER_SEEK_THUMB_CLASS, thumbClassName)",
-        );
-        expect(sotPlayerPrimitives).toContain(
-            "className={cn(SOT_PLAYER_VOLUME_SLIDER_CLASS, className)}",
-        );
-        expect(sotPlayerPrimitives).toContain(
-            "className={cn(SOT_PLAYER_VOLUME_POPOVER_CONTENT_CLASS, className)}",
-        );
         expect(sliderSource).not.toContain("track-fill");
         expect(sliderSource).not.toContain("track-thumb");
-        expect(source).toContain('"data-sot-control": "recording-player-seek"');
+        expect(source).toContain('data-sot-control="recording-player-seek"');
         expect(source).not.toContain("recordingSeekSliderRootStyle");
         expect(source).not.toContain("sotPlayerSeekRangeStyle");
         expect(source).not.toContain("sotPlayerSeekThumbStyle");
         const seekSliderSource = extractSelfClosingElement(
             source,
-            '"data-sot-control": "recording-player-seek"',
-            "SotPlayerSeekSlider",
+            'data-sot-control="recording-player-seek"',
+            "Slider",
         );
-        expect(seekSliderSource).toContain("rootProps={{");
         expect(seekSliderSource).toContain("rangeProps={{");
         expect(seekSliderSource).toContain("thumbProps={{");
-        expect(seekSliderSource).toContain('"data-pct": playerProgressPct');
+        expect(seekSliderSource).toContain("data-pct={playerProgressPct}");
         expect(seekSliderSource).toContain(
-            '"aria-disabled": playbackDisabled ? "true" : undefined',
+            'aria-disabled={playbackDisabled ? "true" : undefined}',
         );
-        expect(seekSliderSource).toContain('"aria-valuemax": 100');
-        expect(seekSliderSource).toContain('"aria-valuemin": 0');
+        expect(seekSliderSource).toContain("aria-valuemax={100}");
+        expect(seekSliderSource).toContain("aria-valuemin={0}");
         expect(seekSliderSource).toContain(
-            '"aria-valuenow": Math.round(progress)',
+            "aria-valuenow={Math.round(progress)}",
         );
-        expect(seekSliderSource).toContain('"data-sot-state": controlState');
-        expect(seekSliderSource).toContain("onClick: (event) =>");
+        expect(seekSliderSource).toContain("data-sot-state={controlState}");
+        expect(seekSliderSource).toContain("onClick={(event) =>");
         expect(seekSliderSource).toContain("seekToPercent(");
-        expect(seekSliderSource).toContain("onKeyDown: (event) =>");
+        expect(seekSliderSource).toContain("onKeyDown={(event) =>");
         expect(seekSliderSource).toContain('event.key === "ArrowLeft"');
         expect(seekSliderSource).toContain('event.key === "ArrowRight"');
         expect(seekSliderSource).toContain('event.key === "Home"');
         expect(seekSliderSource).toContain('event.key === "End"');
-        expect(seekSliderSource).toContain('role: "slider"');
         expect(seekSliderSource).toContain(
-            "tabIndex: playbackDisabled ? -1 : 0",
+            "tabIndex={playbackDisabled ? -1 : 0}",
         );
         expect(seekSliderSource).toContain(
             "className={\n                        playbackDisabled",
         );
-        expect(seekSliderSource).toContain(
-            "? RECORDING_PLAYER_DISABLED_CLASS_NAME",
+        expect(seekSliderSource).toMatch(
+            /cn\(\s*"min-w-0 flex-1",\s*RECORDING_PLAYER_DISABLED_CLASS_NAME,\s*\)/,
         );
         expect(seekSliderSource).not.toContain("className:");
         expect(seekSliderSource).not.toContain("style:");
-        expect(source).toContain("<SotPlayerSeekSlider");
-        expect(source).toContain("<SotPlayerVolumeSlider");
-        expect(source).toContain("<SotPlayerVolumePopoverContent");
+        expect(source).toContain("<Slider");
+        expect(source).toContain("<PopoverContent");
+        expect(source).not.toContain("<SotPlayerSeekSlider");
+        expect(source).not.toContain("<SotPlayerVolumeSlider");
+        expect(source).not.toContain("<SotPlayerVolumePopoverContent");
         expect(source).not.toContain(`variant="${"player"}Seek"`);
         expect(source).not.toContain(`variant="${"player"}Volume"`);
         const recordingSliderPrimitiveBlocks = [
@@ -948,12 +763,12 @@ describe("dashboard recording player regressions", () => {
         const volumePopoverSource = extractOpeningElement(
             source,
             'data-sot-panel="recording-player-volume-popover"',
-            "SotPlayerVolumePopoverContent",
+            "PopoverContent",
         );
         expect(volumePopoverSource).not.toContain(
             `variant="${"player"}Volume"`,
         );
-        expect(volumePopoverSource).not.toContain("className=");
+        expect(volumePopoverSource).toContain('className="w-56"');
         expect(source).not.toContain(
             'className="w-[200px] min-w-[200px] gap-0 overflow-visible px-2.5 py-2"',
         );
@@ -965,12 +780,14 @@ describe("dashboard recording player regressions", () => {
         const volumeSliderSource = extractSelfClosingElement(
             source,
             'data-sot-control="recording-player-volume-slider"',
-            "SotPlayerVolumeSlider",
+            "Slider",
         );
         expect(volumeSliderSource).toContain("data-sot-state={controlState}");
         expect(volumeSliderSource).toContain("aria-label={");
         expect(volumeSliderSource).toContain("onValueChange={(nextValue) =>");
-        expect(volumeSliderSource).not.toContain("className=");
+        expect(volumeSliderSource).toContain(
+            'className="min-w-[110px] flex-1"',
+        );
         expect(volumeSliderSource).not.toContain(
             "SOT_PLAYER_VOLUME_SLIDER_CLASS",
         );
@@ -995,14 +812,14 @@ describe("dashboard recording player regressions", () => {
         expect(source).toContain('"Cycle playback speed"');
         expect(source).toContain("cyclePlaybackSpeed");
         expect(source).toContain("playbackSpeedLabel");
-        expect(source).not.toContain(
+        expect(source).toContain(
             'import { Button } from "@/components/ui/button";',
         );
         const speedControlIndex = source.indexOf(
             'data-sot-control="recording-player-speed"',
         );
         expect(speedControlIndex).toBeGreaterThanOrEqual(0);
-        expect(speedControl).toContain("<SotPlayerSpeedButton");
+        expect(speedControl).toContain("<Button");
         expect(speedControl).toContain(
             'data-sot-control="recording-player-speed"',
         );
@@ -1012,13 +829,11 @@ describe("dashboard recording player regressions", () => {
         expect(source).toContain("togglePlayPause");
         expect(source).toContain("seekToSliderValue");
         expect(source).toContain("setVolume");
-        expect(source).not.toContain('from "@/components/ui/slider"');
-        expect(
-            source.match(/<SotPlayer(?:Seek|Volume)Slider\b/g)?.length ?? 0,
-        ).toBeGreaterThanOrEqual(2);
-        expect(source).toContain(
-            'import { Popover, PopoverTrigger } from "@/components/ui/popover";',
+        expect(source).toContain('from "@/components/ui/slider"');
+        expect(source.match(/<Slider\b/g)?.length ?? 0).toBeGreaterThanOrEqual(
+            2,
         );
+        expect(source).toContain("PopoverContent");
         expect(source).not.toContain(
             '<input\n                                className="vol-range"',
         );
@@ -1111,8 +926,8 @@ describe("dashboard recording player regressions", () => {
         expect(recordingPlayer).toContain(
             "className={RECORDING_PLAYER_VOLUME_ANCHOR_CLASS_NAME}",
         );
-        expect(recordingPlayer).toContain(
-            "playbackDisabled && RECORDING_PLAYER_DISABLED_CLASS_NAME",
+        expect(recordingPlayer).toMatch(
+            /playbackDisabled &&\s*RECORDING_PLAYER_DISABLED_CLASS_NAME/,
         );
         expect(globals).not.toContain("dashboard-recording-player");
         expect(globals).not.toContain("dashboard-player-control-icon");

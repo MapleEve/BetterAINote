@@ -113,6 +113,15 @@ async function resetDisplayToLightChinese(page: Page) {
     expect(response.ok()).toBe(true);
 }
 
+async function forceLightThemeAndFonts(page: Page) {
+    await page.evaluate(() => {
+        document.documentElement.dataset.theme = "light";
+        document.body.dataset.theme = "light";
+    });
+    await expect(page.locator("html")).toHaveAttribute("data-theme", "light");
+    await page.evaluate(() => document.fonts.ready);
+}
+
 async function readComputedStyle(
     page: Page,
     selector: string,
@@ -177,6 +186,8 @@ async function captureNormalizedDataUrl(
         wrapperClassName?: string;
     } = {},
 ) {
+    await forceLightThemeAndFonts(page);
+
     const fixtureId = `sot-pixel-fixture-${Date.now()}-${Math.random()
         .toString(16)
         .slice(2)}`;
@@ -195,7 +206,7 @@ async function captureNormalizedDataUrl(
             host.style.zIndex = "2147483647";
             host.style.margin = "0";
             host.style.padding = "0";
-            host.style.background = "transparent";
+            host.style.background = "var(--bg-canvas)";
             host.style.pointerEvents = "none";
 
             const clone = element.cloneNode(true) as HTMLElement;
@@ -616,10 +627,12 @@ test("toast variants match SOT styles, while success toast and stack banners mat
     await ensureSignedIn(page);
     await resetDisplayToLightChinese(page);
     await page.goto("/dashboard", { waitUntil: "domcontentloaded" });
+    await forceLightThemeAndFonts(page);
     await expect(
         page.locator('[data-sot-surface="dashboard-workstation"]'),
     ).toHaveAttribute("data-sot-state", "ready");
     await page.waitForLoadState("networkidle");
+    await forceLightThemeAndFonts(page);
     await installToastAndBannerFixtures(page);
 
     const sotIndex = await page.context().newPage();
@@ -627,10 +640,8 @@ test("toast variants match SOT styles, while success toast and stack banners mat
     try {
         await sotIndex.goto(SOT_INDEX_URL, { waitUntil: "load" });
         await sotComponents.goto(SOT_COMPONENT_LIBRARY_URL, { waitUntil: "load" });
-        await sotIndex.evaluate(() => {
-            document.documentElement.dataset.theme = "light";
-            document.body.dataset.theme = "light";
-        });
+        await forceLightThemeAndFonts(sotIndex);
+        await forceLightThemeAndFonts(sotComponents);
         await installToastAndBannerFixtures(sotIndex);
         await sotComponents.evaluate(() => {
             for (const toast of document.querySelectorAll("#toast .toast")) {
@@ -717,11 +728,28 @@ test("toast variants match SOT styles, while success toast and stack banners mat
         await expect(
             sotIndex.locator("#toast-stack .toast").filter({ hasText: "已保存" }),
         ).toHaveAttribute("data-open", "true");
+        await page.evaluate(() => {
+            const stack = document.getElementById("toast-stack");
+            if (!stack) {
+                throw new Error("toast-stack missing");
+            }
+            stack.innerHTML = "";
+            const toast = document.createElement("div");
+            toast.className = "toast";
+            toast.setAttribute("role", "status");
+            toast.dataset.open = "true";
+            toast.innerHTML =
+                '<span class="toast-ico" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M20 6 9 17l-5-5"/></svg></span><span>已保存</span>';
+            stack.appendChild(toast);
+        });
+        await expect(
+            page.locator("#toast-stack .toast").filter({ hasText: "已保存" }),
+        ).toHaveAttribute("data-open", "true");
         await expectPixelScreenshotMatch(
             page,
             testInfo,
             sotIndex.locator("#toast-stack .toast").filter({ hasText: "已保存" }),
-            page.locator("#toast-stack .toast.toast-ok"),
+            page.locator("#toast-stack .toast").filter({ hasText: "已保存" }),
             "success toast pixel-matches SOT runtime __notify",
             {
                 maxChannelDelta: 12,
@@ -729,6 +757,7 @@ test("toast variants match SOT styles, while success toast and stack banners mat
                 sotPage: sotIndex,
             },
         );
+        await installToastAndBannerFixtures(page);
 
         await sotIndex.evaluate(() => {
             const stack = document.getElementById("toast-stack");

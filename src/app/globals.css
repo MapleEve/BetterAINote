@@ -4,16 +4,12 @@
 @custom-variant dark (&:is([data-theme="dark"] *));
 
 /* ============================================================
-   BetterAINote · Graphite Glass Design System
-   ------------------------------------------------------------
-   Cool Apple-graphite neutrals + restrained steel-blue accent
-   + Liquid Glass surfaces, inspired by MarginNote's content-
-   first composure.
+   BetterAINote global design tokens
    ============================================================ */
 
 :root {
     /* -----------------------------------------------------------
-       PALETTE — Graphite (cool neutrals)
+       PALETTE — neutral scale
        ----------------------------------------------------------- */
     --graphite-50: rgb(250 251 252); /* rgba fallback */
     --graphite-50: oklch(0.985 0.002 250); /* paper-white */
@@ -230,11 +226,7 @@
         transparent
     );
     --modal-scrim-bg: rgb(11 16 22 / 0.36);
-    --modal-scrim-bg: color-mix(
-        in srgb,
-        var(--graphite-950) 36%,
-        transparent
-    );
+    --modal-scrim-bg: color-mix(in srgb, var(--graphite-950) 36%, transparent);
     --bg-recessed: var(--graphite-150);
     --bg-overlay: rgb(250 251 252 / 0.72);
     --bg-overlay: oklch(0.99 0.003 250 / 0.72);
@@ -334,7 +326,7 @@
         transparent
     );
     /* -----------------------------------------------------------
-       LIQUID GLASS surfaces (Apple-style, layered)
+       Compatibility surface aliases
        ----------------------------------------------------------- */
     --glass-tint-strong: rgb(250 251 252 / 0.7);
     --glass-tint-strong: color-mix(
@@ -366,7 +358,7 @@
         0 22px 56px rgb(20 22 28 / 0.14), 0 4px 10px rgb(20 22 28 / 0.08);
 
     /* -----------------------------------------------------------
-       ELEVATION (cool, restrained — never theatrical)
+       ELEVATION
        ----------------------------------------------------------- */
     --shadow-xs: 0 1px 1px rgb(20 22 28 / 0.04), 0 1px 2px rgb(20 22 28 / 0.04);
     --shadow-sm: 0 1px 2px rgb(20 22 28 / 0.05), 0 2px 6px rgb(20 22 28 / 0.05);
@@ -384,7 +376,7 @@
         color-mix(in srgb, var(--steel-500) 28%, transparent);
 
     /* -----------------------------------------------------------
-       RADIUS — Apple-ish soft squircles
+       RADIUS
        ----------------------------------------------------------- */
     --radius-xs: 4px;
     --radius-sm: 8px;
@@ -410,7 +402,7 @@
     --space-20: 80px;
 
     /* -----------------------------------------------------------
-       MOTION — Apple "liquid" eases
+       MOTION
        ----------------------------------------------------------- */
     --ease-sine: cubic-bezier(0.37, 0, 0.63, 1);
     --ease-out: cubic-bezier(0.22, 1, 0.36, 1);
@@ -470,15 +462,46 @@
     --weight-medium: 500;
     --weight-semibold: 600;
     --weight-bold: 700;
+
+    --background: var(--bg-canvas);
+    --foreground: var(--fg-primary);
+    --card: var(--bg-elevated);
+    --card-foreground: var(--fg-primary);
+    --popover: var(--bg-overlay);
+    --popover-foreground: var(--fg-primary);
+    --primary: var(--accent);
+    --primary-foreground: var(--accent-on);
+    --secondary: var(--bg-recessed);
+    --secondary-foreground: var(--fg-primary);
+    --muted: var(--bg-recessed);
+    --muted-foreground: var(--fg-tertiary);
+    --accent-foreground: var(--fg-primary);
+    --destructive: var(--signal-danger);
+    --destructive-foreground: var(--fg-on-accent);
+    --border: var(--line-hairline);
+    --input: var(--line-strong);
+    --ring: var(--line-focus);
+    --chart-1: var(--steel-500);
+    --chart-2: var(--signal-info);
+    --chart-3: var(--signal-success);
+    --chart-4: var(--signal-warning);
+    --chart-5: var(--signal-danger);
+    --sidebar: var(--bg-elevated);
+    --sidebar-foreground: var(--fg-primary);
+    --sidebar-primary: var(--primary);
+    --sidebar-primary-foreground: var(--primary-foreground);
+    --sidebar-accent: var(--secondary);
+    --sidebar-accent-foreground: var(--secondary-foreground);
+    --sidebar-border: var(--border);
+    --sidebar-ring: var(--ring);
+    --radius: var(--radius-md);
 }
 
 /* ===========================================================
-   DARK MODE — Obsidian graphite (true Apple Pro look)
+   DARK MODE
    =========================================================== */
 .dark,
 [data-theme="dark"] {
-    /* macOS-restrained: deep neutral graphite, no purple cast.
-       Surfaces step in tiny lightness deltas — no big jumps, no gradients. */
     --bg-canvas: rgb(24 29 35);
     --bg-canvas: oklch(0.185 0.004 250); /* near-black, faintly cool */
     --bg-elevated: rgb(31 36 42);
@@ -554,8 +577,6 @@
     --signal-warning-bright: rgb(232 186 70);
     --signal-warning-bright: oklch(0.8 0.14 80);
 
-    /* Liquid glass — actually translucent so backdrop-filter shows.
-       NOT a flat lifted card. Let what's behind bleed through. */
     --glass-tint-strong: rgb(255 255 255 / 0.08);
     --glass-tint-base: rgb(255 255 255 / 0.05);
     --glass-tint-subtle: rgb(255 255 255 / 0.03);
@@ -589,8 +610,9 @@
 html,
 body {
     margin: 0;
-    background: var(--bg-canvas);
-    color: var(--fg-primary);
+    min-height: 100%;
+    background: var(--background);
+    color: var(--foreground);
     font-family: var(--font-sans);
     font-size: var(--text-body);
     line-height: var(--lh-body);
@@ -659,68 +681,14 @@ kbd {
     font-family: var(--font-mono);
     font-size: 13px;
 }
-/* ===========================================================
-   GLASS PRIMITIVES
-   =========================================================== */
-/* SOT web kit: exact visual source */
-/* BetterAINote · Workstation UI kit
-   Apple-leaning grayscale + restrained steel accent + liquid glass */
-
-* {
-    box-sizing: border-box;
-}
-html,
 body {
-    margin: 0;
-    height: 100%;
-}
-body {
-    font-family: var(--font-sans);
-    color: var(--fg-primary);
-    background:
-        radial-gradient(
-            ellipse 1200px 800px at 12% -8%,
-            color-mix(in srgb, var(--steel-500) 18%, transparent),
-            transparent 58%
-        ),
-        radial-gradient(
-            ellipse 1000px 800px at 112% 112%,
-            color-mix(in srgb, var(--steel-500) 14%, transparent),
-            transparent 55%
-        ),
-        radial-gradient(
-            ellipse 700px 600px at 60% 50%,
-            color-mix(in srgb, var(--graphite-300) 30%, transparent),
-            transparent 60%
-        ), var(--graphite-150);
     min-height: 100vh;
-}
-[data-theme="dark"] body,
-body[data-theme="dark"] {
-    background:
-        radial-gradient(
-            ellipse 1100px 700px at 8% -6%,
-            color-mix(in srgb, var(--steel-500) 9%, transparent),
-            transparent 60%
-        ),
-        radial-gradient(
-            ellipse 900px 700px at 110% 110%,
-            color-mix(in srgb, var(--steel-500) 7%, transparent),
-            transparent 58%
-        ), var(--graphite-950);
 }
 
 button:not([data-slot]) {
     font-family: inherit;
 }
 
-/* ======== Glass surfaces ========
-   Light mode: nearly-solid white veil so chrome reads on a tinted canvas.
-   Dark mode: translucent + saturated so backdrop-blur actually shows. */
-/* Liquid glass — actually translucent. No gradient. Single hairline.
-   The canvas behind shows through; backdrop-filter does the work. */
-
-/* ======== Sidebar ======== */
 /* ======== Overlay layer system ========================================
    Single source of truth for stacking. Dropdowns from the topbar always
    sit above the workspace list/detail/player; the settings scrim sits
@@ -758,11 +726,11 @@ button:not([data-slot]) {
     pointer-events: none;
 }
 [data-sot-panel="settings-scroll-body"][hidden] {
-    display: none !important;
+    display: none;
 }
 [data-sot-panel="settings-scroll-body"][data-sot-availability="unavailable"]
     [data-sot-panel="voscript-unavailable-banner"] {
-    display: grid !important;
+    display: grid;
 }
 [data-detail-empty] {
     display: none;
@@ -794,7 +762,7 @@ button:not([data-slot]) {
 
 /* ---------- Settings panel: field groups, banners, save state, voscript ---------- */
 [data-detail-empty][hidden] {
-    display: none !important;
+    display: none;
 }
 
 /* ============================================================
@@ -908,38 +876,38 @@ select::-ms-expand {
     --font-sans: var(--font-sans);
     --font-mono: var(--font-mono);
     --font-serif: var(--font-serif);
-    --color-background: var(--bg-canvas);
-    --color-foreground: var(--fg-primary);
-    --color-card: var(--glass-tint-base);
-    --color-card-foreground: var(--fg-primary);
-    --color-popover: var(--bg-overlay);
-    --color-popover-foreground: var(--fg-primary);
-    --color-primary: var(--accent);
-    --color-primary-foreground: var(--accent-on);
-    --color-secondary: var(--bg-recessed);
-    --color-secondary-foreground: var(--fg-primary);
-    --color-muted: var(--bg-recessed);
-    --color-muted-foreground: var(--fg-tertiary);
-    --color-accent: var(--accent-soft);
-    --color-accent-foreground: var(--fg-primary);
-    --color-destructive: var(--signal-danger);
-    --color-destructive-foreground: var(--fg-on-accent);
-    --color-border: var(--line-hairline);
-    --color-input: var(--line-strong);
-    --color-ring: var(--line-focus);
-    --color-chart-1: var(--steel-500);
-    --color-chart-2: var(--signal-info);
-    --color-chart-3: var(--signal-success);
-    --color-chart-4: var(--signal-warning);
-    --color-chart-5: var(--signal-danger);
-    --color-sidebar: var(--glass-tint-strong);
-    --color-sidebar-foreground: var(--fg-primary);
-    --color-sidebar-primary: var(--accent);
-    --color-sidebar-primary-foreground: var(--accent-on);
-    --color-sidebar-accent: var(--accent-soft);
-    --color-sidebar-accent-foreground: var(--fg-primary);
-    --color-sidebar-border: var(--line-hairline);
-    --color-sidebar-ring: var(--line-focus);
+    --color-background: var(--background);
+    --color-foreground: var(--foreground);
+    --color-card: var(--card);
+    --color-card-foreground: var(--card-foreground);
+    --color-popover: var(--popover);
+    --color-popover-foreground: var(--popover-foreground);
+    --color-primary: var(--primary);
+    --color-primary-foreground: var(--primary-foreground);
+    --color-secondary: var(--secondary);
+    --color-secondary-foreground: var(--secondary-foreground);
+    --color-muted: var(--muted);
+    --color-muted-foreground: var(--muted-foreground);
+    --color-accent: var(--accent);
+    --color-accent-foreground: var(--accent-foreground);
+    --color-destructive: var(--destructive);
+    --color-destructive-foreground: var(--destructive-foreground);
+    --color-border: var(--border);
+    --color-input: var(--input);
+    --color-ring: var(--ring);
+    --color-chart-1: var(--chart-1);
+    --color-chart-2: var(--chart-2);
+    --color-chart-3: var(--chart-3);
+    --color-chart-4: var(--chart-4);
+    --color-chart-5: var(--chart-5);
+    --color-sidebar: var(--sidebar);
+    --color-sidebar-foreground: var(--sidebar-foreground);
+    --color-sidebar-primary: var(--sidebar-primary);
+    --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
+    --color-sidebar-accent: var(--sidebar-accent);
+    --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
+    --color-sidebar-border: var(--sidebar-border);
+    --color-sidebar-ring: var(--sidebar-ring);
 }
 
 @supports not (color: oklch(0.5 0.1 250)) {

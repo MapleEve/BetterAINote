@@ -25,7 +25,8 @@ const dropdownMenuLabelDensities = {
 
 const dropdownMenuSeparatorDensities = {
     default: "",
-    compact: "mx-0.5 my-1 bg-[var(--line-hairline)] dark:bg-[var(--glass-border-soft)]",
+    compact:
+        "mx-0.5 my-1 bg-[var(--line-hairline)] dark:bg-[var(--glass-border-soft)]",
 } as const;
 
 const dropdownMenuShortcutVariants = {

@@ -33,7 +33,7 @@ const EXPECTED_ONBOARDING_CARD_CLASS_INITIALIZERS = [
     },
     {
         property: "providerList",
-        expected: "mb-5 flex flex-col gap-2",
+        expected: "mb-5 flex w-full flex-col items-stretch gap-2",
     },
     {
         property: "summaryList",
@@ -46,7 +46,8 @@ const EXPECTED_ONBOARDING_CARD_CLASS_INITIALIZERS = [
     },
     {
         property: "matrixLabel",
-        expected: "m-0 w-20 flex-none text-xs font-semibold text-muted-foreground",
+        expected:
+            "m-0 w-20 flex-none text-xs font-semibold text-muted-foreground",
     },
     {
         property: "matrixValue",
@@ -72,8 +73,7 @@ const EXPECTED_ONBOARDING_CARD_CLASS_INITIALIZERS = [
     },
     {
         property: "sourceFieldDescription",
-        expected:
-            "max-w-full text-xs leading-normal text-muted-foreground",
+        expected: "max-w-full text-xs leading-normal text-muted-foreground",
     },
     {
         property: "sourceFieldControl",
@@ -453,12 +453,16 @@ describe("onboarding UI replacement regression", () => {
         for (const blocker of REMOVED_ONBOARDING_SHADCN_BLOCKER_PATTERNS) {
             expect(source).not.toContain(blocker);
         }
-        expect(source).toContain('className={cn(\n                                            "block size-full",');
+        expect(source).toContain(
+            'className={cn(\n                                            "block size-full",',
+        );
         expect(source).toContain(
             '? "object-cover"\n                                                : "object-contain"',
         );
         expect(source).toContain("const DEFAULT_SOURCE_SWATCH_CLASS_NAMES = {");
-        expect(source).toContain('accent: "size-5 flex-none rounded bg-primary"');
+        expect(source).toContain(
+            'accent: "size-5 flex-none rounded bg-primary"',
+        );
         expect(source).toContain('empty: "size-5 flex-none rounded bg-muted"');
         expect(source).not.toContain("border-[var(--accent)]");
         expect(source).not.toContain("bg-[color-mix(");
@@ -488,9 +492,7 @@ describe("onboarding UI replacement regression", () => {
         );
         expect(onboardingCard).not.toContain("variant=");
         expect(source).toContain('data-sot-card="onboarding"');
-        expect(source).toContain(
-            "onboardingCardClassNames.providerCard",
-        );
+        expect(source).toContain("onboardingCardClassNames.providerCard");
         expect(source).not.toContain("secondaryAction:");
         expect(source).not.toContain("primaryAction:");
         expect(source).not.toContain(
@@ -509,7 +511,7 @@ describe("onboarding UI replacement regression", () => {
         expect(source).not.toContain('variant="accent"');
         expect(source).not.toContain('variant="quietOutline"');
         expect(source).not.toContain('size="control-xs"');
-        expect(source).toContain(
+        expect(source).not.toContain(
             'variant={isActive ? "secondary" : "outline"}',
         );
         const onboardingStepButton = extractOpeningElement(
@@ -542,21 +544,56 @@ describe("onboarding UI replacement regression", () => {
         expect(defaultSourceNextButton).toContain('variant="default"');
         expect(defaultSourceNextButton).toContain('size="xs"');
         expect(defaultSourceNextButton).not.toContain("className=");
-        const providerCardButton = extractOpeningElement(
+        const providerCardsMarkerIndex = source.indexOf(
+            'data-sot-list="provider-cards"',
+        );
+        expect(providerCardsMarkerIndex).toBeGreaterThanOrEqual(0);
+        const providerCardsStartIndex = source.lastIndexOf(
+            "<ToggleGroup",
+            providerCardsMarkerIndex,
+        );
+        const providerCardsEndIndex = source.indexOf(
+            "</ToggleGroup>",
+            providerCardsMarkerIndex,
+        );
+        expect(providerCardsStartIndex).toBeGreaterThanOrEqual(0);
+        expect(providerCardsEndIndex).toBeGreaterThan(providerCardsMarkerIndex);
+        const providerCardsGroup = source.slice(
+            providerCardsStartIndex,
+            providerCardsEndIndex + "</ToggleGroup>".length,
+        );
+        expect(providerCardsGroup).toContain('aria-label="来源"');
+        expect(providerCardsGroup).toContain(
+            "className={onboardingCardClassNames.providerList}",
+        );
+        expect(providerCardsGroup).toContain('data-sot-list="provider-cards"');
+        expect(providerCardsGroup).toContain("disabled={isSaving}");
+        expect(providerCardsGroup).toContain("onValueChange={(value) => {");
+        expect(providerCardsGroup).toContain("selectProvider(value);");
+        expect(providerCardsGroup).toContain('orientation="vertical"');
+        expect(providerCardsGroup).toContain("spacing={2}");
+        expect(providerCardsGroup).toContain('type="single"');
+        expect(providerCardsGroup).toContain("value={provider}");
+        expect(providerCardsGroup).toContain('variant="outline"');
+        const providerCardItem = extractOpeningElement(
             source,
             'data-sot-control="provider-card"',
-            "Button",
+            "ToggleGroupItem",
         );
-        expect(providerCardButton).toContain(
-            'variant={isActive ? "secondary" : "outline"}',
-        );
-        expect(providerCardButton).toContain("className={cn(");
-        expect(providerCardButton).toContain(
+        expect(providerCardItem).toContain("className={cn(");
+        expect(providerCardItem).toContain(
             "onboardingCardClassNames.providerCard",
         );
-        expect(providerCardButton).toContain(
-            'isActive && "border-transparent"',
+        expect(providerCardItem).toContain('isActive && "border-transparent"');
+        expect(providerCardItem).toContain("disabled={isSaving}");
+        expect(providerCardItem).toContain("key={item.provider}");
+        expect(providerCardItem).toContain('data-sot-control="provider-card"');
+        expect(providerCardItem).toContain("data-sot-provider={item.provider}");
+        expect(providerCardItem).toContain(
+            'data-sot-state={isActive ? "selected" : "idle"}',
         );
+        expect(providerCardItem).toContain("value={item.provider}");
+        expect(providerCardItem).not.toContain("variant=");
         expect(source).toContain("className={cn(");
         expect(source).toContain(
             'import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";',
@@ -684,10 +721,15 @@ describe("onboarding UI replacement regression", () => {
         expect(defaultSourceControl).toContain(
             "setDefaultTranscriptionSource(selectedOption.id)",
         );
+        expect(defaultSourceControl).toContain("aria-label={option.label}");
         expect(defaultSourceControl).toContain("aria-pressed={isActive}");
         expect(defaultSourceControl).toContain("data-sot-state={");
-        expect(defaultSourceControl).toContain('role="button"');
-        expect(defaultSourceControl).toContain('type="button"');
+        expect(defaultSourceControl).toContain(
+            "disabled={isSaving || !option.connected}",
+        );
+        expect(defaultSourceControl).toContain("value={option.id}");
+        expect(defaultSourceControl).not.toContain('role="button"');
+        expect(defaultSourceControl).not.toContain('type="button"');
         expect(defaultSourceControl).not.toContain("<button");
         expect(defaultSourceControl).not.toContain("data-sot-swatch");
         expect(source).toContain("disabled={isSaving || !option.connected}");

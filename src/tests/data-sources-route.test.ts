@@ -398,10 +398,15 @@ describe("data sources route", () => {
             }),
         });
         (db.update as Mock).mockReturnValueOnce({ set: updateSet });
-        (PlaudClient as unknown as Mock).mockImplementation(() => ({
-            testConnection: vi.fn().mockResolvedValue(true),
-            listDevices: vi.fn().mockResolvedValue({ data_devices: [] }),
-        }));
+        function createPlaudClientMock() {
+            return {
+                testConnection: vi.fn().mockResolvedValue(true),
+                listDevices: vi.fn().mockResolvedValue({ data_devices: [] }),
+            };
+        }
+        (PlaudClient as unknown as Mock).mockImplementation(
+            createPlaudClientMock,
+        );
 
         const response = await PUT(
             new Request("http://localhost/api/data-sources", {
@@ -1087,12 +1092,15 @@ describe("data sources route", () => {
             ],
         });
 
-        (PlaudClient as unknown as Mock).mockImplementation(function () {
+        function createPlaudClientMock() {
             return {
                 testConnection,
                 listDevices,
             };
-        });
+        }
+        (PlaudClient as unknown as Mock).mockImplementation(
+            createPlaudClientMock,
+        );
         (db.select as Mock)
             .mockReturnValueOnce({
                 from: vi.fn().mockReturnValue({
@@ -1196,12 +1204,15 @@ describe("data sources route", () => {
         const testConnection = vi.fn().mockResolvedValue(false);
         const listDevices = vi.fn();
 
-        (PlaudClient as unknown as Mock).mockImplementation(function () {
+        function createPlaudClientMock() {
             return {
                 testConnection,
                 listDevices,
             };
-        });
+        }
+        (PlaudClient as unknown as Mock).mockImplementation(
+            createPlaudClientMock,
+        );
         (db.select as Mock).mockReturnValueOnce({
             from: vi.fn().mockReturnValue({
                 where: vi.fn().mockReturnValue({
@@ -1257,12 +1268,15 @@ describe("data sources route", () => {
         const testConnection = vi.fn().mockResolvedValue(true);
         const listDevices = vi.fn().mockResolvedValue({ data_devices: [] });
 
-        (PlaudClient as unknown as Mock).mockImplementation(function () {
+        function createPlaudClientMock() {
             return {
                 testConnection,
                 listDevices,
             };
-        });
+        }
+        (PlaudClient as unknown as Mock).mockImplementation(
+            createPlaudClientMock,
+        );
         (db.select as Mock).mockReturnValueOnce({
             from: vi.fn().mockReturnValue({
                 where: vi.fn().mockReturnValue({

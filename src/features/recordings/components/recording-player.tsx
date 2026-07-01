@@ -1,10 +1,24 @@
 "use client";
 
+import {
+    FastForward,
+    Pause,
+    Play,
+    Rewind,
+    Volume2,
+    VolumeX,
+} from "lucide-react";
 import type { CSSProperties, ReactNode } from "react";
 import { useEffect, useState } from "react";
 import { useLanguage } from "@/components/language-provider";
+import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
-import { Popover, PopoverTrigger } from "@/components/ui/popover";
+import {
+    Popover,
+    PopoverContent,
+    PopoverTrigger,
+} from "@/components/ui/popover";
+import { Slider } from "@/components/ui/slider";
 import { useRecordingPlayback } from "@/hooks/use-recording-playback";
 import type { RecordingTag } from "@/lib/recording-tags";
 import { cn } from "@/lib/utils";
@@ -12,21 +26,10 @@ import type { Recording } from "@/types/recording";
 import {
     formatSotPlayerDate,
     formatSotPlayerTime,
-    SotPlayerBackIcon,
-    SotPlayerControlButton,
-    SotPlayerForwardIcon,
     SotPlayerNoAudioAlert,
-    SotPlayerPauseIcon,
-    SotPlayerPlayIcon,
-    SotPlayerPrimaryButton,
-    SotPlayerSeekSlider,
     SotPlayerSourceTag,
-    SotPlayerSpeedButton,
     SotPlayerStatusBadge,
     SotPlayerTagChip,
-    SotPlayerVolumePopoverContent,
-    SotPlayerVolumeIcon,
-    SotPlayerVolumeSlider,
     sotPlayerVolumeLevel,
 } from "./sot-player-primitives";
 
@@ -44,8 +47,7 @@ const sotPlayerFontVariables: CSSProperties & { "--font-mono": string } = {
         'ui-monospace, "SF Mono", "JetBrains Mono", Menlo, Monaco, Consolas, "Liberation Mono", monospace',
 };
 
-const RECORDING_PLAYER_META_CLASS_NAME =
-    "flex flex-wrap items-center gap-2.5";
+const RECORDING_PLAYER_META_CLASS_NAME = "flex flex-wrap items-center gap-2.5";
 
 const RECORDING_PLAYER_DATE_CLASS_NAME =
     "[font:500_11.5px_var(--font-mono)] tracking-[0.02em] text-[var(--fg-tertiary)]";
@@ -54,12 +56,6 @@ const RECORDING_PLAYER_TAG_MANAGER_SLOT_CLASS_NAME = "mb-3";
 
 const RECORDING_PLAYER_CONTROLS_CLASS_NAME =
     "flex min-w-0 items-center gap-3 overflow-visible";
-
-const RECORDING_PLAYER_CONTROL_ICON_CLASS_NAME =
-    "inline-flex items-center justify-center [&_svg]:size-4 [&_svg]:fill-current [&_svg]:stroke-current [&_svg]:stroke-[1.8] [&_svg]:[stroke-linecap:round] [&_svg]:[stroke-linejoin:round]";
-
-const RECORDING_PLAYER_PRIMARY_CONTROL_ICON_CLASS_NAME =
-    "inline-flex items-center justify-center [&_svg]:size-[18px] [&_svg]:fill-white [&_svg]:stroke-white [&_svg]:stroke-[1.8] [&_svg]:[stroke-linecap:round] [&_svg]:[stroke-linejoin:round]";
 
 const RECORDING_PLAYER_TIME_CLASS_NAME =
     "min-w-11 text-center [font:500_12px_var(--font-mono)] tracking-[0.03em] text-[var(--fg-tertiary)]";
@@ -196,7 +192,9 @@ export function RecordingPlayer({
                 data-sot-panel="recording-player-controls"
                 data-sot-state={controlsState}
             >
-                <SotPlayerControlButton
+                <Button
+                    variant="ghost"
+                    size="icon"
                     type="button"
                     aria-label={
                         language === "zh-CN" ? "后退 5 秒" : "Back 5 seconds"
@@ -206,16 +204,15 @@ export function RecordingPlayer({
                     disabled={playbackDisabled}
                     onClick={() => seekBySeconds(-5)}
                 >
-                    <span
-                        className={RECORDING_PLAYER_CONTROL_ICON_CLASS_NAME}
+                    <Rewind
                         data-icon="inline-start"
                         data-sot-part="recording-player-control-icon"
-                    >
-                        <SotPlayerBackIcon />
-                    </span>
-                </SotPlayerControlButton>
+                    />
+                </Button>
 
-                <SotPlayerPrimaryButton
+                <Button
+                    variant="default"
+                    size="icon-lg"
                     type="button"
                     onClick={togglePlayPause}
                     data-sot-control="recording-player-play"
@@ -238,22 +235,22 @@ export function RecordingPlayer({
                               : "Play"
                     }
                 >
-                    <span
-                        className={
-                            RECORDING_PLAYER_PRIMARY_CONTROL_ICON_CLASS_NAME
-                        }
-                        data-icon="inline-start"
-                        data-sot-part="recording-player-control-icon"
-                    >
-                        {isPlaying ? (
-                            <SotPlayerPauseIcon />
-                        ) : (
-                            <SotPlayerPlayIcon />
-                        )}
-                    </span>
-                </SotPlayerPrimaryButton>
+                    {isPlaying ? (
+                        <Pause
+                            data-icon="inline-start"
+                            data-sot-part="recording-player-control-icon"
+                        />
+                    ) : (
+                        <Play
+                            data-icon="inline-start"
+                            data-sot-part="recording-player-control-icon"
+                        />
+                    )}
+                </Button>
 
-                <SotPlayerControlButton
+                <Button
+                    variant="ghost"
+                    size="icon"
                     type="button"
                     aria-label={
                         language === "zh-CN" ? "前进 5 秒" : "Forward 5 seconds"
@@ -263,32 +260,36 @@ export function RecordingPlayer({
                     disabled={playbackDisabled}
                     onClick={() => seekBySeconds(5)}
                 >
-                    <span
-                        className={RECORDING_PLAYER_CONTROL_ICON_CLASS_NAME}
+                    <FastForward
                         data-icon="inline-start"
                         data-sot-part="recording-player-control-icon"
-                    >
-                        <SotPlayerForwardIcon />
-                    </span>
-                </SotPlayerControlButton>
+                    />
+                </Button>
 
                 <span
                     className={cn(
                         RECORDING_PLAYER_TIME_CLASS_NAME,
-                        playbackDisabled && RECORDING_PLAYER_DISABLED_CLASS_NAME,
+                        playbackDisabled &&
+                            RECORDING_PLAYER_DISABLED_CLASS_NAME,
                     )}
                     data-sot-part="recording-player-current-time"
                 >
                     {formatSotPlayerTime(currentTime)}
                 </span>
 
-                <SotPlayerSeekSlider
+                <Slider
                     className={
                         playbackDisabled
-                            ? RECORDING_PLAYER_DISABLED_CLASS_NAME
-                            : undefined
+                            ? cn(
+                                  "min-w-0 flex-1",
+                                  RECORDING_PLAYER_DISABLED_CLASS_NAME,
+                              )
+                            : "min-w-0 flex-1"
                     }
                     disabled={playbackDisabled}
+                    data-pct={playerProgressPct}
+                    data-sot-control="recording-player-seek"
+                    data-sot-state={controlState}
                     max={100}
                     min={0}
                     onValueChange={seekToSliderValue}
@@ -296,46 +297,38 @@ export function RecordingPlayer({
                     rangeProps={{
                         "data-pct": playerProgressPct,
                     }}
-                    rootProps={{
-                        "aria-disabled": playbackDisabled ? "true" : undefined,
-                        "aria-label":
-                            language === "zh-CN"
-                                ? "播放进度"
-                                : "Playback progress",
-                        "aria-valuemax": 100,
-                        "aria-valuemin": 0,
-                        "aria-valuenow": Math.round(progress),
-                        "data-pct": playerProgressPct,
-                        "data-sot-control": "recording-player-seek",
-                        "data-sot-state": controlState,
-                        onClick: (event) => {
-                            const rect =
-                                event.currentTarget.getBoundingClientRect();
-                            if (rect.width <= 0) {
-                                return;
-                            }
-                            seekToPercent(
-                                ((event.clientX - rect.left) / rect.width) *
-                                    100,
-                            );
-                        },
-                        onKeyDown: (event) => {
-                            if (event.key === "ArrowLeft") {
-                                seekToPercent(progress - 5);
-                            }
-                            if (event.key === "ArrowRight") {
-                                seekToPercent(progress + 5);
-                            }
-                            if (event.key === "Home") {
-                                seekToPercent(0);
-                            }
-                            if (event.key === "End") {
-                                seekToPercent(100);
-                            }
-                        },
-                        role: "slider",
-                        tabIndex: playbackDisabled ? -1 : 0,
+                    aria-disabled={playbackDisabled ? "true" : undefined}
+                    aria-label={
+                        language === "zh-CN" ? "播放进度" : "Playback progress"
+                    }
+                    aria-valuemax={100}
+                    aria-valuemin={0}
+                    aria-valuenow={Math.round(progress)}
+                    onClick={(event) => {
+                        const rect =
+                            event.currentTarget.getBoundingClientRect();
+                        if (rect.width <= 0) {
+                            return;
+                        }
+                        seekToPercent(
+                            ((event.clientX - rect.left) / rect.width) * 100,
+                        );
                     }}
+                    onKeyDown={(event) => {
+                        if (event.key === "ArrowLeft") {
+                            seekToPercent(progress - 5);
+                        }
+                        if (event.key === "ArrowRight") {
+                            seekToPercent(progress + 5);
+                        }
+                        if (event.key === "Home") {
+                            seekToPercent(0);
+                        }
+                        if (event.key === "End") {
+                            seekToPercent(100);
+                        }
+                    }}
+                    tabIndex={playbackDisabled ? -1 : 0}
                     step={1}
                     thumbProps={{
                         "data-pct": playerProgressPct,
@@ -346,14 +339,17 @@ export function RecordingPlayer({
                 <span
                     className={cn(
                         RECORDING_PLAYER_TIME_CLASS_NAME,
-                        playbackDisabled && RECORDING_PLAYER_DISABLED_CLASS_NAME,
+                        playbackDisabled &&
+                            RECORDING_PLAYER_DISABLED_CLASS_NAME,
                     )}
                     data-sot-part="recording-player-duration"
                 >
                     {formatSotPlayerTime(playerDurationValue)}
                 </span>
 
-                <SotPlayerSpeedButton
+                <Button
+                    variant="ghost"
+                    size="sm"
                     type="button"
                     onClick={cyclePlaybackSpeed}
                     title="Click to cycle playback speed"
@@ -368,7 +364,7 @@ export function RecordingPlayer({
                     }
                 >
                     {playbackSpeedLabel}
-                </SotPlayerSpeedButton>
+                </Button>
 
                 <Popover
                     open={volumePopoverOpen}
@@ -379,8 +375,9 @@ export function RecordingPlayer({
                         data-sot-part="recording-player-volume-anchor"
                     >
                         <PopoverTrigger asChild>
-                            <SotPlayerControlButton
-                                controlSize="sm"
+                            <Button
+                                variant="ghost"
+                                size="icon-sm"
                                 type="button"
                                 aria-label={
                                     language === "zh-CN"
@@ -407,19 +404,22 @@ export function RecordingPlayer({
                                 }
                                 disabled={playbackDisabled}
                             >
-                                <span
-                                    className={
-                                        RECORDING_PLAYER_CONTROL_ICON_CLASS_NAME
-                                    }
-                                    data-icon="inline-start"
-                                    data-sot-part="recording-player-control-icon"
-                                >
-                                    <SotPlayerVolumeIcon volume={volume} />
-                                </span>
-                            </SotPlayerControlButton>
+                                {volumeMuted ? (
+                                    <VolumeX
+                                        data-icon="inline-start"
+                                        data-sot-part="recording-player-control-icon"
+                                    />
+                                ) : (
+                                    <Volume2
+                                        data-icon="inline-start"
+                                        data-sot-part="recording-player-control-icon"
+                                    />
+                                )}
+                            </Button>
                         </PopoverTrigger>
-                        <SotPlayerVolumePopoverContent
+                        <PopoverContent
                             align="end"
+                            className="w-56"
                             side="top"
                             sideOffset={8}
                             data-open={volumePopoverOpen ? "true" : "false"}
@@ -435,8 +435,9 @@ export function RecordingPlayer({
                                 className="flex items-center gap-2"
                                 data-sot-part="recording-player-volume-row"
                             >
-                                <SotPlayerControlButton
-                                    controlSize="sm"
+                                <Button
+                                    variant="ghost"
+                                    size="icon-sm"
                                     type="button"
                                     aria-label={
                                         language === "zh-CN"
@@ -452,15 +453,20 @@ export function RecordingPlayer({
                                         setVolume(volumeMuted ? 70 : 0)
                                     }
                                 >
-                                    <span
-                                        data-icon="inline-start"
-                                        data-player-control-icon=""
-                                        data-sot-part="recording-player-volume-icon"
-                                    >
-                                        <SotPlayerVolumeIcon volume={volume} />
-                                    </span>
-                                </SotPlayerControlButton>
-                                <SotPlayerVolumeSlider
+                                    {volumeMuted ? (
+                                        <VolumeX
+                                            data-icon="inline-start"
+                                            data-sot-part="recording-player-volume-icon"
+                                        />
+                                    ) : (
+                                        <Volume2
+                                            data-icon="inline-start"
+                                            data-sot-part="recording-player-volume-icon"
+                                        />
+                                    )}
+                                </Button>
+                                <Slider
+                                    className="min-w-[110px] flex-1"
                                     min={0}
                                     max={100}
                                     step={1}
@@ -469,9 +475,7 @@ export function RecordingPlayer({
                                     data-sot-control="recording-player-volume-slider"
                                     data-sot-state={controlState}
                                     aria-label={
-                                        language === "zh-CN"
-                                            ? "音量"
-                                            : "Volume"
+                                        language === "zh-CN" ? "音量" : "Volume"
                                     }
                                     onValueChange={(nextValue) =>
                                         setVolume(nextValue[0] ?? volume)
@@ -484,7 +488,7 @@ export function RecordingPlayer({
                                     {volume}
                                 </span>
                             </div>
-                        </SotPlayerVolumePopoverContent>
+                        </PopoverContent>
                     </div>
                 </Popover>
             </CardContent>

@@ -144,8 +144,7 @@ function EmptyDescription({
     className,
     variant = "default",
     ...props
-}: React.ComponentProps<"p"> &
-    VariantProps<typeof emptyDescriptionVariants>) {
+}: React.ComponentProps<"p"> & VariantProps<typeof emptyDescriptionVariants>) {
     return (
         <div
             data-slot="empty-description"

@@ -5,9 +5,8 @@ import { describe, expect, it } from "vitest";
 const OLD_UI_CONTRACT_RE =
     /uikit-|glass-surface|glass-control|bg-muted|text-muted-foreground|<LibrarySearch[\s/>]|<SourceFilterStackStrip[\s/>]|\.\/components\/library-search|\.\/components\/source-filter-stack-strip/;
 const SPEAKER_REVIEW_MERGE_POPOVER_PLACEMENT =
-    "absolute right-0 top-[calc(100%+0.5rem)] z-[var(--z-popover-inline)] w-[320px] min-w-[280px]";
-const SPEAKER_REVIEW_PRIMITIVE_BUSINESS_RE =
-    /\bspeakerReview[A-Za-z0-9_]*\b/;
+    "w-[320px] min-w-[280px] gap-0 overflow-hidden rounded-[12px]";
+const SPEAKER_REVIEW_PRIMITIVE_BUSINESS_RE = /\bspeakerReview[A-Za-z0-9_]*\b/;
 const SPEAKER_REVIEW_RESIDUAL_GLOBAL_SELECTORS = [
     '[data-sot-list="speaker-review-meta"] > span',
     '[data-sot-part="speaker-review-section-description"]',
@@ -467,6 +466,7 @@ describe("dashboard speaker label editor regressions", () => {
         expect(source).toContain('from "@/components/ui/field";');
         expect(source).toContain('from "@/components/ui/input-group";');
         expect(source).toContain('from "@/components/ui/empty";');
+        expect(source).toContain('from "@/components/ui/popover";');
         for (const primitive of [
             "<Button",
             "<Badge",
@@ -483,6 +483,9 @@ describe("dashboard speaker label editor regressions", () => {
             "<EmptyMedia",
             "<EmptyTitle",
             "<EmptyDescription",
+            "<Popover",
+            "<PopoverTrigger",
+            "<PopoverContent",
         ]) {
             expect(source).toContain(primitive);
         }
@@ -493,7 +496,7 @@ describe("dashboard speaker label editor regressions", () => {
             '[data-sot-panel="speaker-review"] [data-slot="card"]',
             '[data-sot-control="speaker-review-mode"]',
             '[data-sot-control="speaker-review-mode-option"]',
-            '[data-sot-panel="speaker-review-merge"][data-slot="card"]',
+            '[data-sot-panel="speaker-review-merge"][data-slot="popover-content"]',
             '[data-sot-part="speaker-review-merge-empty"]',
             '[data-sot-part="speaker-review-merge-empty-icon"]',
             '[data-sot-part="speaker-review-merge-empty-title"]',
@@ -556,7 +559,10 @@ describe("dashboard speaker label editor regressions", () => {
         ]) {
             expect(source).toContain(token);
         }
-        for (const { constName, tokens } of SPEAKER_REVIEW_RESIDUAL_OWNER_CLASS_TOKENS) {
+        for (const {
+            constName,
+            tokens,
+        } of SPEAKER_REVIEW_RESIDUAL_OWNER_CLASS_TOKENS) {
             const ownerClass = extractSpeakerReviewConst(constName);
             for (const token of tokens) {
                 expect(ownerClass).toContain(token);
@@ -680,12 +686,8 @@ describe("dashboard speaker label editor regressions", () => {
                 opening.includes('data-sot-item="speaker-review-row"'),
             ),
         ).toContain('surface="row"');
-        expect(
-            cardOpenings.find((opening) =>
-                opening.includes('data-sot-panel="speaker-review-merge"'),
-            ),
-        ).toContain('surface="mergePopover"');
-        const mergePopoverOpening = cardOpenings.find((opening) =>
+        const popoverContentOpenings = collectOpeningElements("PopoverContent");
+        const mergePopoverOpening = popoverContentOpenings.find((opening) =>
             opening.includes('data-sot-panel="speaker-review-merge"'),
         );
         expect(mergePopoverOpening).toBeDefined();
@@ -694,9 +696,14 @@ describe("dashboard speaker label editor regressions", () => {
         expect(mergePopoverOpening).toContain(
             "data-open={String(isMergePopoverOpen)}",
         );
-        expect(mergePopoverOpening).toContain("hidden={!isMergePopoverOpen}");
-        expect(mergePopoverOpening).toContain('role="dialog"');
+        expect(mergePopoverOpening).toContain(
+            "SPEAKER_REVIEW_CARD_CLASS_NAMES.mergePopover",
+        );
         expect(mergePopoverOpening).toContain('aria-label="合并相似说话人"');
+        expect(mergePopoverOpening).not.toContain('role="dialog"');
+        expect(mergePopoverOpening).not.toContain(
+            "hidden={!isMergePopoverOpen}",
+        );
         expect(mergePopoverOpening).not.toContain(
             `className="${SPEAKER_REVIEW_MERGE_POPOVER_PLACEMENT}"`,
         );
@@ -705,15 +712,8 @@ describe("dashboard speaker label editor regressions", () => {
             `className="${SPEAKER_REVIEW_MERGE_POPOVER_PLACEMENT}"`,
         );
 
-        // The feature keeps only the relative anchor shell; owner-local Card wrapper owns popover placement.
-        const mergeAnchorOpening = collectOpeningElements("div").find(
-            (opening) =>
-                opening.includes('data-sot-part="speaker-review-merge-anchor"'),
-        );
-        expect(mergeAnchorOpening).toContain(
-            'className="relative inline-flex"',
-        );
-        expect(mergeAnchorOpening).toContain("ref={mergeAnchorRef}");
+        expect(source).toContain("onOpenChange={setIsMergePopoverOpen}");
+        expect(source).toContain("<PopoverTrigger asChild>");
         const mergeTriggerOpening = collectOpeningElements("Button").find(
             (opening) =>
                 opening.includes('data-sot-control="speaker-review-merge"'),
@@ -856,11 +856,13 @@ describe("dashboard speaker label editor regressions", () => {
         expect(mappingClear).toBeDefined();
         expect(mappingClear).toContain('size="icon-xs"');
         expect(mappingClear).toContain('variant="ghost"');
-        expect(mappingClear).toContain(
-            "className={SPEAKER_REVIEW_MAPPING_CLEAR_BUTTON_CLASS_NAME}",
+        expect(mappingClear).toMatch(
+            /className=\{\s*SPEAKER_REVIEW_MAPPING_CLEAR_BUTTON_CLASS_NAME\s*\}/,
         );
         expect(mappingClear).not.toContain('size="speakerReviewMappingClear"');
-        expect(mappingClear).not.toContain('variant="speakerReviewMappingClear"');
+        expect(mappingClear).not.toContain(
+            'variant="speakerReviewMappingClear"',
+        );
         expect(mappingSlice).toContain("aria-busy={");
         expect(mappingSlice).toContain("disabled={");
         expect(mappingSlice).toContain("onFocus={() =>");
@@ -955,10 +957,11 @@ describe("dashboard speaker label editor regressions", () => {
             'data-sot-state="create"',
             'return hasLiveNoMatch ? "no-match" : undefined;',
             "data-open={String(isMergePopoverOpen)}",
-            "hidden={!isMergePopoverOpen}",
+            "onOpenChange={setIsMergePopoverOpen}",
         ]) {
             expect(source).toContain(anchor);
         }
+        expect(source).not.toContain("hidden={!isMergePopoverOpen}");
         expect(source).toMatch(
             /disabled=\{\s*isSpeakerSaving\s*\|\|\s*speaker\.matchedProfileId ===\s*profile\.id\s*\}/,
         );

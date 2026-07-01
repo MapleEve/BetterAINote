@@ -1,65 +1,13 @@
 .sidebar {
     position: relative;
-    background:
-        linear-gradient(
-            180deg,
-            var(--glass-highlight-top),
-            var(--glass-highlight-bottom) 60%,
-            transparent
-        ), var(--glass-tint-base);
-    border: 1px solid var(--glass-border);
-    border-radius: var(--radius-lg);
-    backdrop-filter: blur(var(--glass-blur)) saturate(var(--glass-saturate));
-    -webkit-backdrop-filter: blur(var(--glass-blur))
-        saturate(var(--glass-saturate));
-    box-shadow: var(--glass-shadow-cast), var(--shadow-inset);
-}
-
-.sidebar {
-    background: var(--glass-tint-strong);
-}
-
-.sidebar {
-    background:
-        linear-gradient(180deg, var(--glass-highlight-top), transparent 55%),
-        color-mix(in srgb, white 78%, transparent);
-    border: 1px solid color-mix(in srgb, var(--graphite-300) 60%, transparent);
-    backdrop-filter: blur(22px) saturate(140%);
-    -webkit-backdrop-filter: blur(22px) saturate(140%);
-    box-shadow:
-        var(--shadow-sm),
-        inset 0 1px 0 rgb(255 255 255 / 0.65);
-}
-
-.sidebar {
-    background:
-        linear-gradient(180deg, var(--glass-highlight-top), transparent 55%),
-        color-mix(in srgb, white 86%, transparent);
-}
-
-:global([data-theme="dark"]) .sidebar,
-:global(.dark) .sidebar {
-    background: var(--glass-tint-base);
-    border-color: var(--glass-border-soft);
-    backdrop-filter: blur(28px) saturate(160%);
-    -webkit-backdrop-filter: blur(28px) saturate(160%);
-    box-shadow: 0 0 0 0.5px rgb(255 255 255 / 0.04);
-}
-
-:global([data-theme="dark"]) .sidebar,
-:global(.dark) .sidebar {
-    background: var(--glass-tint-strong);
-    backdrop-filter: blur(36px) saturate(180%);
-    -webkit-backdrop-filter: blur(36px) saturate(180%);
-}
-
-.sidebar {
     display: flex;
     flex-direction: column;
     padding: 16px 12px 12px;
-    border-right: 1px solid var(--line-hairline);
+    border-right: 1px solid var(--sidebar-border);
     border-radius: 0;
-    position: relative;
+    background: var(--sidebar);
+    color: var(--sidebar-foreground);
+    box-shadow: var(--shadow-sm);
 }
 
 .brand {
@@ -78,12 +26,12 @@
 .brandName {
     font: 600 15px var(--font-sans);
     letter-spacing: -0.012em;
-    color: var(--fg-primary);
+    color: var(--foreground);
 }
 
 .brandSubtitle {
     font: 500 11px var(--font-sans);
-    color: var(--fg-tertiary);
+    color: var(--muted-foreground);
     margin-top: 1px;
 }
 
@@ -103,19 +51,9 @@
     flex: none;
     position: relative;
     z-index: var(--z-topbar);
-    border-bottom: 1px solid
-        color-mix(in srgb, var(--graphite-300) 50%, transparent);
-    background: color-mix(in srgb, white 60%, transparent);
-    backdrop-filter: blur(20px) saturate(140%);
-    -webkit-backdrop-filter: blur(20px) saturate(140%);
-}
-
-:global([data-theme="dark"]) .topbar {
-    border-bottom-color: var(--glass-border-soft);
-    background: rgb(255 255 255 / 0.03);
-    backdrop-filter: blur(28px) saturate(160%);
-    -webkit-backdrop-filter: blur(28px) saturate(160%);
-    box-shadow: none;
+    border-bottom: 1px solid var(--border);
+    background: var(--background);
+    box-shadow: var(--shadow-xs);
 }
 
 .crumbs {
@@ -123,11 +61,11 @@
     align-items: center;
     gap: 8px;
     font: 500 13px var(--font-sans);
-    color: var(--fg-tertiary);
+    color: var(--muted-foreground);
 }
 
 .crumbCurrent {
-    color: var(--fg-primary);
+    color: var(--foreground);
     font-weight: 600;
 }
 

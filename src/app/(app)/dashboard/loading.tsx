@@ -1,3 +1,4 @@
+import Image from "next/image";
 import { Card } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import { cn } from "@/lib/utils";
@@ -45,7 +46,12 @@ export default function DashboardLoading() {
                     data-sot-part="route-brand"
                     className={routeChromeStyles.brand}
                 >
-                    <img src="/assets/logo-mark-steel.svg" alt="" />
+                    <Image
+                        src="/assets/logo-mark-steel.svg"
+                        alt=""
+                        width={36}
+                        height={36}
+                    />
                     <div data-sot-part="route-brand-text">
                         <div
                             data-sot-part="route-brand-name"

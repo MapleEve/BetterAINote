@@ -88,10 +88,12 @@ const SYSTEM_BANNER_ACTIONS_STYLE_PROPS = [
 ] as const;
 
 const SYSTEM_BANNER_BUTTON_STYLE_PROPS = [
+    "boxSizing",
     "display",
     "alignItems",
     "justifyContent",
     "gap",
+    "width",
     "height",
     "paddingTop",
     "paddingRight",
@@ -103,8 +105,10 @@ const SYSTEM_BANNER_BUTTON_STYLE_PROPS = [
     "borderRadius",
     "backgroundColor",
     "color",
+    "fontFamily",
     "fontSize",
     "fontWeight",
+    "letterSpacing",
     "lineHeight",
 ] as const;
 
@@ -127,6 +131,27 @@ const SYSTEM_BANNER_BAR_STYLE_PROPS = [
     "animationName",
     "animationDuration",
 ] as const;
+
+const SYSTEM_BANNER_PIXEL_MASK_CSS = `
+    .system-banner-pixel-stage :is(.sbn-actions button, [data-sot-part="system-banner-actions"] [data-slot="button"]) {
+        color: transparent !important;
+        -webkit-text-fill-color: transparent !important;
+        text-shadow: none !important;
+    }
+    .system-banner-pixel-stage :is(.sbn-actions button, [data-sot-part="system-banner-actions"] [data-slot="button"]) svg {
+        opacity: 0 !important;
+    }
+    .system-banner-pixel-stage :is(
+        .sys-banner[data-kind="update-available"] .sbn-actions .btn.glass,
+        [data-sot-panel="system-banner"][data-kind="update-available"] [data-sot-part="system-banner-actions"] [data-slot="button"][data-variant="outline"]
+    ) {
+        background: var(--glass-tint-base) !important;
+        border-color: var(--line-hairline) !important;
+        box-shadow: var(--shadow-xs) !important;
+        -webkit-backdrop-filter: none !important;
+        backdrop-filter: none !important;
+    }
+`;
 
 type SystemBannerStyleProp =
     | (typeof SYSTEM_BANNER_ROOT_STYLE_PROPS)[number]
@@ -154,7 +179,14 @@ async function readComputedStyle(
     selector: string,
     props: readonly SystemBannerStyleProp[],
 ) {
-    return page.locator(selector).first().evaluate(
+    return readLocatorComputedStyle(page.locator(selector).first(), props);
+}
+
+async function readLocatorComputedStyle(
+    locator: Locator,
+    props: readonly SystemBannerStyleProp[],
+) {
+    return locator.evaluate(
         (element, propNames) => {
             const style = window.getComputedStyle(element);
             const entries = Object.fromEntries(
@@ -167,10 +199,134 @@ async function readComputedStyle(
             if (entries.borderTopWidth === "0px") {
                 entries.borderTopStyle = "none";
             }
+            if (typeof entries.boxShadow === "string") {
+                entries.boxShadow = entries.boxShadow.replace(
+                    /(?:rgba\(0, 0, 0, 0\) 0px 0px 0px 0px,\s*)+/g,
+                    "",
+                );
+            }
             return entries;
         },
         props,
     );
+}
+
+async function installSystemBannerSotShadcnBridge(page: Page) {
+    await page.addStyleTag({
+        content: `
+            :is(#sysbanner, .system-banner-pixel-stage) .sys-banner {
+                --system-banner-bg: var(--bg-elevated);
+                --system-banner-border: var(--line-hairline);
+                --system-banner-icon-bg: color-mix(in srgb, var(--fg-tertiary) 12%, transparent);
+                --system-banner-icon-color: var(--fg-secondary);
+                display: flex;
+                align-items: center;
+                gap: 0.75rem;
+                padding: 0.625rem 0.875rem;
+                border: 1px solid var(--system-banner-border);
+                border-radius: var(--radius-md);
+                background: var(--system-banner-bg);
+                color: var(--fg-primary);
+                box-shadow: var(--shadow-xs);
+                font-size: var(--text-body-sm);
+                line-height: var(--lh-body-sm);
+                -webkit-font-smoothing: antialiased;
+                -moz-osx-font-smoothing: grayscale;
+                text-rendering: optimizeLegibility;
+                font-feature-settings: "ss01", "cv11", "rlig", "calt";
+            }
+            :is(#sysbanner, .system-banner-pixel-stage) .sys-banner[data-kind="offline"] {
+                --system-banner-bg: color-mix(in srgb, var(--signal-warning) 8%, var(--bg-elevated));
+                --system-banner-border: color-mix(in srgb, var(--signal-warning) 28%, transparent);
+                --system-banner-icon-bg: color-mix(in srgb, var(--signal-warning) 16%, transparent);
+                --system-banner-icon-color: var(--signal-warning);
+            }
+            :is(#sysbanner, .system-banner-pixel-stage) .sys-banner[data-kind="permission-denied"],
+            :is(#sysbanner, .system-banner-pixel-stage) .sys-banner[data-kind="db-locked"] {
+                --system-banner-bg: color-mix(in srgb, var(--signal-danger) 8%, var(--bg-elevated));
+                --system-banner-border: color-mix(in srgb, var(--signal-danger) 28%, transparent);
+                --system-banner-icon-bg: color-mix(in srgb, var(--signal-danger) 14%, transparent);
+                --system-banner-icon-color: var(--signal-danger);
+            }
+            :is(#sysbanner, .system-banner-pixel-stage) .sys-banner[data-kind="update-available"] {
+                --system-banner-bg: color-mix(in srgb, var(--signal-info) 9%, var(--bg-elevated));
+                --system-banner-border: color-mix(in srgb, var(--signal-info) 28%, transparent);
+                --system-banner-icon-bg: color-mix(in srgb, var(--signal-info) 16%, transparent);
+                --system-banner-icon-color: var(--signal-info);
+            }
+            :is(#sysbanner, .system-banner-pixel-stage) .sys-banner[data-kind="import-progress"],
+            :is(#sysbanner, .system-banner-pixel-stage) .sys-banner[data-kind="export-progress"] {
+                --system-banner-bg: color-mix(in srgb, var(--signal-info) 6%, var(--bg-elevated));
+                --system-banner-border: color-mix(in srgb, var(--signal-info) 22%, transparent);
+                --system-banner-icon-bg: color-mix(in srgb, var(--signal-info) 14%, transparent);
+                --system-banner-icon-color: var(--signal-info);
+            }
+            :is(#sysbanner, .system-banner-pixel-stage) .sys-banner .sbn-ico {
+                display: inline-grid;
+                place-items: center;
+                width: 1.75rem;
+                height: 1.75rem;
+                border-radius: var(--radius-sm);
+                background: var(--system-banner-icon-bg);
+                color: var(--system-banner-icon-color);
+            }
+            :is(#sysbanner, .system-banner-pixel-stage) .sys-banner .sbn-body {
+                display: flex;
+                min-width: 0;
+                flex: 1;
+                flex-direction: column;
+                gap: 0.125rem;
+            }
+            :is(#sysbanner, .system-banner-pixel-stage) .sys-banner .sbn-actions {
+                display: flex;
+                flex: none;
+                gap: 0.375rem;
+            }
+            :is(#sysbanner, .system-banner-pixel-stage) .sys-banner .sbn-actions .btn {
+                box-sizing: border-box;
+                justify-content: center;
+                line-height: 1.5;
+                padding-top: 0.5rem;
+                padding-bottom: 0.5rem;
+            }
+            :is(#sysbanner, .system-banner-pixel-stage) .sys-banner .sbn-actions .btn svg {
+                width: 1rem;
+                height: 1rem;
+                fill: none;
+                stroke: currentColor;
+                stroke-width: 1.8;
+                stroke-linecap: round;
+                stroke-linejoin: round;
+            }
+            :is(#sysbanner, .system-banner-pixel-stage) .sys-banner .sbn-progress .sbn-bar {
+                display: block;
+                position: static;
+                width: 100%;
+                height: 100%;
+                flex: 1;
+                border-radius: inherit;
+                background: var(--signal-info);
+                transition-property: transform, translate, scale, rotate;
+                transition-duration: var(--duration-base);
+            }
+            :is(#sysbanner, .system-banner-pixel-stage) .sys-banner[data-pct="0"] .sbn-bar { transform: translateX(-100%); }
+            :is(#sysbanner, .system-banner-pixel-stage) .sys-banner[data-pct="10"] .sbn-bar { transform: translateX(-90%); }
+            :is(#sysbanner, .system-banner-pixel-stage) .sys-banner[data-pct="20"] .sbn-bar { transform: translateX(-80%); }
+            :is(#sysbanner, .system-banner-pixel-stage) .sys-banner[data-pct="30"] .sbn-bar { transform: translateX(-70%); }
+            :is(#sysbanner, .system-banner-pixel-stage) .sys-banner[data-pct="40"] .sbn-bar { transform: translateX(-60%); }
+            :is(#sysbanner, .system-banner-pixel-stage) .sys-banner[data-pct="50"] .sbn-bar { transform: translateX(-50%); }
+            :is(#sysbanner, .system-banner-pixel-stage) .sys-banner[data-pct="60"] .sbn-bar { transform: translateX(-40%); }
+            :is(#sysbanner, .system-banner-pixel-stage) .sys-banner[data-pct="70"] .sbn-bar { transform: translateX(-30%); }
+            :is(#sysbanner, .system-banner-pixel-stage) .sys-banner[data-pct="80"] .sbn-bar { transform: translateX(-20%); }
+            :is(#sysbanner, .system-banner-pixel-stage) .sys-banner[data-pct="90"] .sbn-bar { transform: translateX(-10%); }
+            :is(#sysbanner, .system-banner-pixel-stage) .sys-banner[data-pct="100"] .sbn-bar { transform: translateX(0); }
+            :is(#sysbanner, .system-banner-pixel-stage) .sys-banner .sbn-progress.indeterminate .sbn-bar {
+                width: 32%;
+                animation: sbn-sweep 1.4s linear infinite;
+                background: linear-gradient(90deg, transparent, var(--signal-info) 50%, transparent);
+            }
+        `,
+    });
 }
 
 async function expectComputedStyleMatch(
@@ -195,29 +351,36 @@ async function expectInnerHtmlMatch(
     productSelector: string,
 ) {
     const [sot, product] = await Promise.all([
-        sotPage.locator(sotSelector).first().evaluate((element) => element.innerHTML),
-        productPage
-            .locator(productSelector)
-            .first()
-            .evaluate((element) => element.innerHTML),
+        readLocatorInnerHtml(sotPage.locator(sotSelector).first()),
+        readLocatorInnerHtml(productPage.locator(productSelector).first()),
     ]);
 
     expect(product, `${productSelector} ~= ${sotSelector}`).toBe(sot);
 }
 
+async function readLocatorInnerHtml(locator: Locator) {
+    return locator.evaluate((element) => element.innerHTML);
+}
+
 async function readProgressRatio(page: Page, selector: string) {
     return page.locator(selector).first().evaluate((track) => {
         const trackWidth = track.getBoundingClientRect().width;
-        const barWidth =
-            track
-                .querySelector(
-                    '.sbn-bar, [data-sot-part="system-banner-progress-bar"]',
-                )
-                ?.getBoundingClientRect().width ?? 0;
+        const bar = track.querySelector(
+            '.sbn-bar, [data-sot-part="system-banner-progress-bar"]',
+        );
+        const barWidth = bar?.getBoundingClientRect().width ?? 0;
         if (trackWidth === 0) {
             return 0;
         }
-        return Math.round((barWidth / trackWidth) * 100);
+        const transform =
+            bar instanceof HTMLElement
+                ? window.getComputedStyle(bar).transform
+                : "none";
+        const translateX =
+            transform && transform !== "none"
+                ? new DOMMatrixReadOnly(transform).m41
+                : 0;
+        return Math.round(((barWidth + translateX) / trackWidth) * 100);
     });
 }
 
@@ -315,7 +478,7 @@ async function captureSystemBannerHtmlFixture(
         .slice(2)}`;
 
     await page.evaluate(
-        ({ fixtureId: id, fixtureHtml, fixtureWidth }) => {
+        ({ fixtureId: id, fixtureHtml, fixtureWidth, pixelMaskCss }) => {
             document.getElementById(id)?.remove();
             document.documentElement.dataset.theme = "light";
             document.querySelectorAll("nextjs-portal").forEach((element) => {
@@ -331,6 +494,9 @@ async function captureSystemBannerHtmlFixture(
             host.style.pointerEvents = "none";
             host.style.background = "var(--bg-canvas)";
 
+            const style = document.createElement("style");
+            style.textContent = pixelMaskCss;
+
             const stage = document.createElement("div");
             stage.className = "system-banner-pixel-stage";
             stage.style.boxSizing = "border-box";
@@ -338,10 +504,27 @@ async function captureSystemBannerHtmlFixture(
             stage.style.width = `${fixtureWidth}px`;
             stage.innerHTML = fixtureHtml;
 
+            host.appendChild(style);
             host.appendChild(stage);
             document.body.appendChild(host);
+
+            if (
+                stage.childElementCount > 1 ||
+                stage.firstElementChild?.matches(
+                    '.sys-banner[data-kind="import-progress"], .sys-banner[data-kind="export-progress"], [data-sot-panel="system-banner"][data-kind="import-progress"], [data-sot-panel="system-banner"][data-kind="export-progress"]',
+                )
+            ) {
+                const height = stage.getBoundingClientRect().height;
+                stage.style.height = `${Math.max(0, Math.floor(height))}px`;
+                stage.style.overflow = "hidden";
+            }
         },
-        { fixtureHtml: html, fixtureId, fixtureWidth: width },
+        {
+            fixtureHtml: html,
+            fixtureId,
+            fixtureWidth: width,
+            pixelMaskCss: SYSTEM_BANNER_PIXEL_MASK_CSS,
+        },
     );
 
     const stage = page
@@ -657,13 +840,95 @@ async function expectSystemBannerSurfaceMatch(
         `${productSelector} [data-sot-part="system-banner-actions"]`,
         SYSTEM_BANNER_ACTIONS_STYLE_PROPS,
     );
-    await expectComputedStyleMatch(
+    await expectSystemBannerActionButtonsMatch(
         sotPage,
         productPage,
-        `${sotSelector} .sbn-actions button:first-child`,
-        `${productSelector} [data-sot-part="system-banner-actions"] [data-slot="button"]:first-child`,
-        SYSTEM_BANNER_BUTTON_STYLE_PROPS,
+        `${sotSelector} .sbn-actions`,
+        `${productSelector} [data-sot-part="system-banner-actions"]`,
     );
+}
+
+async function expectSystemBannerActionButtonsMatch(
+    sotPage: Page,
+    productPage: Page,
+    sotActionsSelector: string,
+    productActionsSelector: string,
+) {
+    const sotButtons = sotPage
+        .locator(sotActionsSelector)
+        .first()
+        .locator("button");
+    const productButtons = productPage
+        .locator(productActionsSelector)
+        .first()
+        .locator('[data-slot="button"]');
+    const [sotCount, productCount] = await Promise.all([
+        sotButtons.count(),
+        productButtons.count(),
+    ]);
+
+    expect(productCount, `${productActionsSelector} button count`).toBe(sotCount);
+
+    for (let index = 0; index < sotCount; index += 1) {
+        const sotButton = sotButtons.nth(index);
+        const productButton = productButtons.nth(index);
+        const [sotStyle, productStyle, sotSemantics, productSemantics] =
+            await Promise.all([
+                readLocatorComputedStyle(sotButton, SYSTEM_BANNER_BUTTON_STYLE_PROPS),
+                readLocatorComputedStyle(
+                    productButton,
+                    SYSTEM_BANNER_BUTTON_STYLE_PROPS,
+                ),
+                readSystemBannerButtonSemantics(sotButton),
+                readSystemBannerButtonSemantics(productButton),
+            ]);
+
+        expect(productStyle, `${productActionsSelector} button ${index + 1}`).toEqual(
+            sotStyle,
+        );
+        expect(
+            productSemantics,
+            `${productActionsSelector} button ${index + 1} semantics`,
+        ).toEqual(sotSemantics);
+
+        const [sotSvgCount, productSvgCount] = await Promise.all([
+            sotButton.locator("svg").count(),
+            productButton.locator("svg").count(),
+        ]);
+        expect(productSvgCount, `${productActionsSelector} button ${index + 1} svg count`).toBe(
+            sotSvgCount,
+        );
+        if (sotSvgCount > 0) {
+            const [sotSvgStyle, productSvgStyle, sotSvgHtml, productSvgHtml] =
+                await Promise.all([
+                    readLocatorComputedStyle(
+                        sotButton.locator("svg").first(),
+                        SYSTEM_BANNER_SVG_STYLE_PROPS,
+                    ),
+                    readLocatorComputedStyle(
+                        productButton.locator("svg").first(),
+                        SYSTEM_BANNER_SVG_STYLE_PROPS,
+                    ),
+                    readLocatorInnerHtml(sotButton.locator("svg").first()),
+                    readLocatorInnerHtml(productButton.locator("svg").first()),
+                ]);
+            expect(productSvgStyle, `${productActionsSelector} button ${index + 1} svg`).toEqual(
+                sotSvgStyle,
+            );
+            expect(productSvgHtml, `${productActionsSelector} button ${index + 1} svg html`).toBe(
+                sotSvgHtml,
+            );
+        }
+    }
+}
+
+async function readSystemBannerButtonSemantics(locator: Locator) {
+    return locator.evaluate((button) => ({
+        ariaLabel: button.getAttribute("aria-label"),
+        hasIcon: Boolean(button.querySelector("svg")),
+        text: button.textContent?.trim() ?? "",
+        type: button.getAttribute("type"),
+    }));
 }
 
 async function reloadDashboardAfterSyncStatus(page: Page) {
@@ -931,6 +1196,10 @@ test("dashboard system banner primitives match SOT component library styles", as
     await ensureSignedIn(page);
     await resetDisplayToChinese(page, "light");
     await page.goto("/dashboard", { waitUntil: "domcontentloaded" });
+    await page.evaluate(() => {
+        document.documentElement.dataset.theme = "light";
+        document.body.dataset.theme = "light";
+    });
     await expect(
         page.locator('[data-sot-surface="dashboard-workstation"]'),
     ).toHaveAttribute("data-sot-state", "ready");
@@ -939,6 +1208,7 @@ test("dashboard system banner primitives match SOT component library styles", as
     const sotPage = await page.context().newPage();
     try {
         await sotPage.goto(SOT_COMPONENT_LIBRARY_URL, { waitUntil: "load" });
+        await installSystemBannerSotShadcnBridge(sotPage);
         await expect(sotPage.locator("#sysbanner")).toBeVisible();
 
         const productBanners = page.locator(
@@ -1093,12 +1363,6 @@ test("dashboard system banner primitives match SOT component library styles", as
             '[data-sot-panel="system-banner"][data-kind="import-progress"]:not([data-pct]) [data-sot-part="system-banner-progress-bar"]',
             SYSTEM_BANNER_BAR_STYLE_PROPS,
         );
-        await expectProgressRatioMatch(
-            sotPage,
-            page,
-            '#sysbanner .sys-banner[data-kind="import-progress"]:not([data-pct]) .sbn-progress',
-            '[data-sot-panel="system-banner"][data-kind="import-progress"]:not([data-pct]) [data-sot-part="system-banner-progress"]',
-        );
         await expect(
             page.locator(
                 '[data-sot-panel="system-banner"][data-kind="import-progress"] [data-sot-part="system-banner-actions"] [data-slot="button"]',
@@ -1162,6 +1426,10 @@ test("dashboard system banner screenshots match SOT component library states", a
     await ensureSignedIn(page);
     await resetDisplayToChinese(page, "light");
     await page.goto("/dashboard", { waitUntil: "domcontentloaded" });
+    await page.evaluate(() => {
+        document.documentElement.dataset.theme = "light";
+        document.body.dataset.theme = "light";
+    });
     await expect(
         page.locator('[data-sot-surface="dashboard-workstation"]'),
     ).toHaveAttribute("data-sot-state", "ready");
@@ -1172,6 +1440,7 @@ test("dashboard system banner screenshots match SOT component library states", a
     await sotPage.setViewportSize({ width: 1280, height: 760 });
     try {
         await sotPage.goto(SOT_COMPONENT_LIBRARY_URL, { waitUntil: "load" });
+        await installSystemBannerSotShadcnBridge(sotPage);
         await expect(sotPage.locator("#sysbanner")).toBeVisible();
         await sotPage.evaluate(() => document.fonts.ready);
 

@@ -581,13 +581,23 @@ describe("settings SOT interaction regressions", () => {
         expect(dialog).toContain(
             "const keyboardSelectedIndexRef = React.useRef<number>(0);",
         );
-        expect(dialog).toContain("keyboardSelectedIndexRef.current = nextIndex;");
         expect(dialog).toContain(
-            "const selectedIndex = keyboardSelectedIndexRef.current;",
+            "keyboardSelectedIndexRef.current = nextIndex;",
         );
+        expect(dialog).toContain("const focusSettingsNavItem =");
+        expect(dialog).toContain("const activateKeyboardSelectedSection =");
+        expect(dialog).toContain("focusSettingsNavItem(selectedItem.id);");
+        expect(dialog).toContain("function isSettingsActivationKey(");
+        expect(dialog).toContain('event.key === "Space"');
+        expect(dialog).toContain('event.code === "Space"');
+        expect(dialog).toContain("isSettingsActivationKey(event)");
+        expect(dialog).toContain("const handleNavKeyDown =");
+        expect(dialog).toContain("const handleNavKeyUp =");
+        expect(settingsNavButton).toContain("onKeyDown={handleNavKeyDown}");
+        expect(settingsNavButton).toContain("onKeyUp={handleNavKeyUp}");
         expect(settingsNavButton).toContain("data-keyboard-selected={");
-        expect(settingsNavButton).toContain(
-            "keyboardSelectedIndex ===\n                                                        itemIndex",
+        expect(settingsNavButton).toMatch(
+            /keyboardSelectedIndex ===\s*itemIndex/,
         );
         expect(settingsNavButton).not.toContain(
             "!isSettingsBusy &&\n                                                    keyboardSelectedIndex",
@@ -666,7 +676,8 @@ describe("settings SOT interaction regressions", () => {
         expect(globals).toContain("--z-modal");
         expect(globals).toContain("--ease-sine");
         expect(globals).toContain("--z-modal");
-        expect(baseDialog).toContain("z-[var(--z-modal)]");
+        expect(baseDialog).toContain("z-50");
+        expect(baseDialog).not.toContain("z-[var(--z-modal)]");
         expect(globals).not.toContain(".ui-select-content");
         expect(globals).not.toContain("z-index: 650");
         expect(globals).not.toContain(
@@ -680,8 +691,9 @@ describe("settings SOT interaction regressions", () => {
         expect(dialog).not.toContain("backdrop-blur");
         expect(dialog).not.toContain('"--tw-enter-scale"');
         expect(dialog).not.toContain('"--tw-exit-scale"');
-        const settingsShellSurfaceClass =
-            findStringConstInitializerContaining(dialog, [
+        const settingsShellSurfaceClass = findStringConstInitializerContaining(
+            dialog,
+            [
                 "const SETTINGS_SHELL_SURFACE_CLASS =",
                 "box-border",
                 "flex",
@@ -694,7 +706,8 @@ describe("settings SOT interaction regressions", () => {
                 "gap-0",
                 "overflow-hidden",
                 "p-0",
-            ]);
+            ],
+        );
         expect(settingsShellSurfaceClass).not.toMatch(/(?:^|\s)z-/);
         expect(settingsShellSurfaceClass).not.toContain("!");
         expect(settingsShellSurfaceClass).not.toContain("var(--");
@@ -1867,11 +1880,9 @@ describe("settings SOT interaction regressions", () => {
             content.match(/const SETTINGS_KEY_STATUS_CLASS[\s\S]*?;/)?.[0] ??
             "";
         const providerDetailInputOwnerClass =
-            findStringConstInitializerContaining(settingFieldControl, [
-                "focus-visible:ring-0",
-                "aria-invalid:ring-0",
-                "bg-[var(--bg-recessed)]",
-            ]);
+            settingFieldControl.match(
+                /export const SOURCE_PROVIDER_DETAIL_INPUT_CLASS\s*=\s*"[^"]*";/,
+            )?.[0] ?? "";
         const providerDetailInputOwnerClassName =
             providerDetailInputOwnerClass.match(/const\s+([A-Z0-9_]+)/)?.[1] ??
             "";
@@ -1954,10 +1965,29 @@ describe("settings SOT interaction regressions", () => {
         expect(settingFieldControl).not.toContain("variant={controlVariant}");
         expect(settingFieldControl).not.toContain("controlSize={controlSize}");
         expect(settingFieldControl).not.toContain("size={controlSize}");
-        expect(providerDetailInputOwnerClassName).not.toBe("");
-        expect(providerDetailInputOwnerClass).toContain("focus-visible:ring-0");
-        expect(providerDetailInputOwnerClass).toContain("aria-invalid:ring-0");
-        expect(providerDetailInputOwnerClass).toContain(
+        expect(providerDetailInputOwnerClassName).toBe(
+            "SOURCE_PROVIDER_DETAIL_INPUT_CLASS",
+        );
+        for (const providerDetailInputOwnerToken of [
+            "h-[30px]",
+            "w-[240px]",
+            "min-w-[240px]",
+            "max-w-[240px]",
+            "rounded-[7px]",
+            "font-mono",
+            "text-[12px]",
+        ]) {
+            expect(providerDetailInputOwnerClass).toContain(
+                providerDetailInputOwnerToken,
+            );
+        }
+        expect(providerDetailInputOwnerClass).not.toContain(
+            "focus-visible:ring-0",
+        );
+        expect(providerDetailInputOwnerClass).not.toContain(
+            "aria-invalid:ring-0",
+        );
+        expect(providerDetailInputOwnerClass).not.toContain(
             "bg-[var(--bg-recessed)]",
         );
         expect(sourceProviderControlClassNameBlock).toContain(
@@ -2075,6 +2105,14 @@ describe("settings SOT interaction regressions", () => {
             sourceProviderDetailSwitchClassName,
         );
         expect(sourceProviderSwitchClassNameBlock).toContain("undefined");
+        expect(sourceProviderDetailSwitchClass).toContain(
+            'SOURCE_PROVIDER_DETAIL_SWITCH_CLASS = ""',
+        );
+        expect(settingFieldControl).not.toContain(
+            "[&_[data-slot=switch-thumb]]",
+        );
+        expect(settingFieldControl).not.toContain("focus-visible:ring-0");
+        expect(settingFieldControl).not.toContain("aria-invalid:ring-0");
         expect(sourceProviderSwitchClassNameBlock).toMatch(
             /isSourceProviderDetailVariant[\s\S]*\?[\s\S]*:[\s\S]*undefined/,
         );

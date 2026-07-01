@@ -1,6 +1,13 @@
 "use client";
 
-import { Check, CloudDownload, Copy, LoaderCircle } from "lucide-react";
+import {
+    Check,
+    CircleAlert,
+    CloudDownload,
+    Copy,
+    FileText,
+    LoaderCircle,
+} from "lucide-react";
 import {
     type ReactNode,
     useCallback,
@@ -10,6 +17,7 @@ import {
 } from "react";
 import { toast } from "sonner";
 import { useLanguage } from "@/components/language-provider";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
@@ -75,7 +83,6 @@ import {
     SOURCE_REPORT_STATE_CLASS_NAME,
     SOURCE_REPORT_STATE_STACK_CLASS_NAME,
     SOURCE_REPORT_STATUS_BADGE_CLASS_NAME,
-    SOURCE_REPORT_STATUS_BADGE_WRAPPER_CLASS_NAME,
     SOURCE_REPORT_STYLE_VARIABLES,
     SOURCE_REPORT_SUMMARY_BODY_CLASS_NAME,
     SOURCE_REPORT_SUMMARY_MISSING_SECTION_CLASS_NAME,
@@ -497,45 +504,6 @@ function SourceReportStatusDot() {
     return <span data-sot-part="source-report-status-dot" aria-hidden="true" />;
 }
 
-function SourceReportAlertGlyph() {
-    return (
-        <svg
-            className="size-[16px]"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            strokeWidth="1.8"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            aria-hidden="true"
-            focusable="false"
-        >
-            <circle cx="12" cy="12" r="9" />
-            <path d="M12 8v5" />
-            <circle cx="12" cy="16" r=".8" fill="currentColor" />
-        </svg>
-    );
-}
-
-function SourceReportEmptyGlyph() {
-    return (
-        <svg
-            className="size-[16px]"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            strokeWidth="1.8"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            aria-hidden="true"
-            focusable="false"
-        >
-            <rect x="3" y="6" width="18" height="14" rx="2" />
-            <path d="M8 6V4h8v2" />
-        </svg>
-    );
-}
-
 function SourceReportStatusBadge({
     children,
     tone,
@@ -546,16 +514,11 @@ function SourceReportStatusBadge({
     return (
         <Badge
             variant="ghost"
-            className={SOURCE_REPORT_STATUS_BADGE_WRAPPER_CLASS_NAME}
+            className={SOURCE_REPORT_STATUS_BADGE_CLASS_NAME}
             data-sot-badge="source-report-status"
             data-sot-tone={tone}
         >
-            <span
-                className={SOURCE_REPORT_STATUS_BADGE_CLASS_NAME}
-                data-sot-tone={tone}
-            >
-                {children}
-            </span>
+            {children}
         </Badge>
     );
 }
@@ -1352,8 +1315,8 @@ export function SourceReportPanel({
         >
             {error && (
                 <SourceReportState sotState="error" state="error" error={error}>
-                    <div
-                        role="alert"
+                    <Alert
+                        variant="statusError"
                         className={cn(
                             SOURCE_REPORT_ERROR_ALERT_CLASS_NAME,
                             SOURCE_REPORT_EMPTY_SURFACE_CLASS_NAME,
@@ -1369,15 +1332,15 @@ export function SourceReportPanel({
                             data-sot-source-report-empty-icon
                             aria-hidden="true"
                         >
-                            <SourceReportAlertGlyph />
+                            <CircleAlert aria-hidden="true" />
                         </EmptyMedia>
-                        <div
+                        <AlertTitle
                             className={SOURCE_REPORT_EMPTY_TITLE_CLASS_NAME}
                             data-sot-source-report-empty-title
                         >
                             无法读取来源详情
-                        </div>
-                        <div
+                        </AlertTitle>
+                        <AlertDescription
                             className={
                                 SOURCE_REPORT_EMPTY_DESCRIPTION_CLASS_NAME
                             }
@@ -1385,7 +1348,7 @@ export function SourceReportPanel({
                         >
                             {sourceProviderSentenceName}
                             返回了一个错误，可能是网络抖动或来源临时不可用。
-                        </div>
+                        </AlertDescription>
                         <div
                             data-sot-source-report-empty-actions
                             className={cn(
@@ -1423,7 +1386,7 @@ export function SourceReportPanel({
                                 查看同步日志
                             </Button>
                         </div>
-                    </div>
+                    </Alert>
                 </SourceReportState>
             )}
 
@@ -1772,7 +1735,7 @@ export function SourceReportPanel({
                             className={SOURCE_REPORT_EMPTY_ICON_CLASS_NAME}
                             data-sot-source-report-empty-icon
                         >
-                            <SourceReportEmptyGlyph />
+                            <FileText aria-hidden="true" />
                         </EmptyMedia>
                         <EmptyTitle
                             className={SOURCE_REPORT_EMPTY_TITLE_CLASS_NAME}
@@ -1781,7 +1744,9 @@ export function SourceReportPanel({
                             这条录音没有关联来源
                         </EmptyTitle>
                         <EmptyDescription
-                            className={SOURCE_REPORT_EMPTY_DESCRIPTION_CLASS_NAME}
+                            className={
+                                SOURCE_REPORT_EMPTY_DESCRIPTION_CLASS_NAME
+                            }
                             data-sot-source-report-empty-description
                         >
                             本地导入或离线录制的录音不会有来源详情。

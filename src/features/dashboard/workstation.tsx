@@ -22,6 +22,7 @@ import {
     Tags,
     X,
 } from "lucide-react";
+import Image from "next/image";
 import {
     type CSSProperties,
     Fragment,
@@ -138,7 +139,9 @@ import {
     SOURCE_REPORT_STATE_CLASS_NAME,
     SOURCE_REPORT_STATUS_BADGE_CLASS_NAME,
     SOURCE_REPORT_STYLE_VARIABLES,
+    SOURCE_REPORT_SUMMARY_BODY_CLASS_NAME,
     SOURCE_REPORT_SUMMARY_MISSING_NOTICE_CLASS_NAME,
+    SOURCE_REPORT_SUMMARY_TEXT_CLASS_NAME,
     SOURCE_REPORT_TRANSCRIPT_MISSING_NOTICE_CLASS_NAME,
     type SourceReportCardSkeletonSize,
     type SourceReportSegmentSkeletonSize,
@@ -352,7 +355,7 @@ const DASHBOARD_MAIN_CLASS_NAME =
 const DASHBOARD_WORKSPACE_CLASS_NAME =
     "grid flex-1 min-h-0 grid-cols-[380px_1fr] gap-4 px-5 pt-4 pb-5 max-[860px]:min-w-0 max-[860px]:max-w-full max-[860px]:box-border max-[860px]:grid-cols-[380px_0px] max-[860px]:[&>[data-sot-panel=dashboard-detail]]:hidden";
 const DASHBOARD_RECORDING_LIST_CARD_CLASS_NAME =
-    "h-full min-h-0 gap-0 overflow-hidden rounded-2xl border-[var(--glass-border)] bg-[var(--bg-elevated)] shadow-[var(--shadow-sm)] backdrop-blur-none max-[860px]:min-w-0 max-[860px]:max-w-full max-[860px]:box-border";
+    "min-h-0 gap-0 rounded-2xl max-[860px]:min-w-0 max-[860px]:max-w-full max-[860px]:box-border";
 const DASHBOARD_DETAIL_PANEL_CLASS_NAME = "flex min-h-0 min-w-0 flex-col gap-4";
 const DASHBOARD_RECORDING_LIST_CONTENT_CLASS_NAME = "flex min-h-0 flex-col p-0";
 const DASHBOARD_DETAIL_EMPTY_STATE_CLASS_NAME = "min-h-[280px] p-9 md:p-9";
@@ -447,7 +450,7 @@ const dashboardTranscriptClassNames = {
     speakerTime:
         "ml-1 font-mono text-[11px] font-medium text-[var(--fg-tertiary)]",
     paragraph:
-        "m-0 font-sans text-[14.5px] leading-[1.65] text-[var(--fg-primary)] [text-wrap:pretty]",
+        "m-0 ![font:400_14.5px/1.65_var(--font-sans)] ![color:var(--fg-primary)] [text-wrap:pretty]",
     empty: "block min-w-0 flex-none rounded-none border-0 bg-transparent px-[18px] py-[26px] text-center shadow-none",
     emptyHeader: "block max-w-none",
     emptyIcon:
@@ -671,9 +674,9 @@ const dashboardRecordingListPaginationStyles = {
 const dashboardSearchActivityClassNames = {
     dashboardTopbarActions: "ml-auto flex items-center gap-2",
     librarySearchAnchor:
-        "relative inline-flex size-8 items-center justify-center p-0",
+        "relative inline-flex size-[32px] items-center justify-center p-0",
     dashboardActivityAnchor:
-        "relative inline-flex size-8 items-center justify-center p-0",
+        "relative inline-flex size-[32px] items-center justify-center p-0",
     dashboardSearchTrigger:
         "relative size-[32px] rounded-md border border-transparent bg-transparent p-0 text-muted-foreground shadow-none hover:bg-accent hover:text-accent-foreground data-[sot-state=open]:border-border data-[sot-state=open]:bg-accent data-[sot-state=open]:text-accent-foreground [&_svg]:stroke-current [&_svg:not([class*='size-'])]:size-4",
     librarySearchPanel:
@@ -787,13 +790,16 @@ const dashboardButtonClassNames = {
 } as const;
 
 const dashboardRetranscriptionThemeClassName =
-    "[--dashboard-retx-info-bg:color-mix(in_srgb,var(--signal-info)_8%,transparent)] [--dashboard-retx-info-border:color-mix(in_srgb,var(--signal-info)_26%,transparent)] [--dashboard-retx-info-icon-border:color-mix(in_srgb,var(--signal-info)_30%,transparent)] [--dashboard-retx-danger-bg:color-mix(in_srgb,var(--signal-danger)_6%,transparent)] [--dashboard-retx-danger-border:color-mix(in_srgb,var(--signal-danger)_24%,transparent)] [--dashboard-retx-danger-icon-border:color-mix(in_srgb,var(--signal-danger)_30%,transparent)] [--dashboard-retx-success-bg:color-mix(in_srgb,var(--signal-success)_8%,transparent)] [--dashboard-retx-success-border:color-mix(in_srgb,var(--signal-success)_28%,transparent)] [--dashboard-retx-success-icon-border:color-mix(in_srgb,var(--signal-success)_30%,transparent)] [--dashboard-retx-success-marker-bg:color-mix(in_srgb,var(--signal-success)_12%,transparent)]";
+    "[--dashboard-retx-info-bg:var(--system-banner-progress-bg)] [--dashboard-retx-info-border:var(--system-banner-progress-border)] [--dashboard-retx-info-icon-border:var(--system-banner-progress-border)] [--dashboard-retx-danger-bg:var(--alert-destructive-soft-bg)] [--dashboard-retx-danger-border:var(--alert-destructive-soft-border)] [--dashboard-retx-danger-icon-border:var(--button-copy-danger-border)] [--dashboard-retx-success-bg:var(--button-copy-success-bg)] [--dashboard-retx-success-border:var(--button-copy-success-border)] [--dashboard-retx-success-icon-border:var(--button-copy-success-border)] [--dashboard-retx-success-marker-bg:var(--button-copy-success-bg)]";
+
+const dashboardRetranscriptionSotClassName =
+    "[--dashboard-retx-sot-info-bg:color-mix(in_srgb,var(--signal-info)_8%,transparent)] [--dashboard-retx-sot-info-border:color-mix(in_srgb,var(--signal-info)_26%,transparent)] [--dashboard-retx-sot-info-icon-border:color-mix(in_srgb,var(--signal-info)_30%,transparent)] [--dashboard-retx-sot-danger-bg:color-mix(in_srgb,var(--signal-danger)_6%,transparent)] [--dashboard-retx-sot-danger-border:color-mix(in_srgb,var(--signal-danger)_24%,transparent)] [--dashboard-retx-sot-danger-icon-border:color-mix(in_srgb,var(--signal-danger)_30%,transparent)] [--dashboard-retx-sot-success-bg:color-mix(in_srgb,var(--signal-success)_8%,transparent)] [--dashboard-retx-sot-success-border:color-mix(in_srgb,var(--signal-success)_28%,transparent)] [--dashboard-retx-sot-success-icon-border:color-mix(in_srgb,var(--signal-success)_30%,transparent)] [--dashboard-retx-sot-success-marker-bg:color-mix(in_srgb,var(--signal-success)_12%,transparent)]";
 
 const dashboardRetranscriptionClassNames = {
     disabledHint:
         "block rounded-[4px] border border-[var(--line-hairline)] bg-[var(--bg-recessed)] px-[6px] py-[2px] [font:500_11px_var(--font-sans)] text-[var(--fg-tertiary)] [&[hidden]]:hidden",
-    banner: `${dashboardRetranscriptionThemeClassName} group/retx flex items-center gap-[10px] border-b border-b-[var(--line-hairline)] bg-[var(--bg-recessed)] px-[14px] py-[10px] data-[retx-state=completed]:[border-bottom-color:var(--dashboard-retx-success-border)] data-[retx-state=completed]:bg-[var(--dashboard-retx-success-bg)] data-[retx-state=failed]:[border-bottom-color:var(--dashboard-retx-danger-border)] data-[retx-state=failed]:bg-[var(--dashboard-retx-danger-bg)] data-[retx-state=idle]:hidden data-[retx-state=queued]:[border-bottom-color:var(--dashboard-retx-info-border)] data-[retx-state=queued]:bg-[var(--dashboard-retx-info-bg)] data-[retx-state=running]:[border-bottom-color:var(--dashboard-retx-info-border)] data-[retx-state=running]:bg-[var(--dashboard-retx-info-bg)] [&[hidden]]:hidden`,
-    icon: "inline-flex size-[28px] flex-none items-center justify-center rounded-[50%] border border-[var(--line-hairline)] bg-[var(--bg-elevated)] group-data-[retx-state=completed]/retx:border-[var(--dashboard-retx-success-icon-border)] group-data-[retx-state=completed]/retx:text-[var(--signal-success)] group-data-[retx-state=failed]/retx:border-[var(--dashboard-retx-danger-icon-border)] group-data-[retx-state=failed]/retx:text-[var(--signal-danger)] group-data-[retx-state=queued]/retx:border-[var(--dashboard-retx-info-icon-border)] group-data-[retx-state=queued]/retx:text-[var(--signal-info)] group-data-[retx-state=running]/retx:border-[var(--dashboard-retx-info-icon-border)] group-data-[retx-state=running]/retx:text-[var(--signal-info)] [&_svg]:size-[13px] [&_svg]:fill-none [&_svg]:stroke-2 [&_svg]:stroke-current [&_svg]:[stroke-linecap:round] [&_svg]:[stroke-linejoin:round]",
+    banner: `${dashboardRetranscriptionThemeClassName} ${dashboardRetranscriptionSotClassName} [--dashboard-retx-banner-bg:var(--bg-recessed)] [--dashboard-retx-banner-border:var(--line-hairline)] group/retx flex items-center gap-[10px] border-b [border-bottom-color:var(--dashboard-retx-banner-border)] [background:var(--dashboard-retx-banner-bg)] px-[14px] py-[10px] data-[retx-state=completed]:[--dashboard-retx-banner-bg:var(--dashboard-retx-sot-success-bg)] data-[retx-state=completed]:[--dashboard-retx-banner-border:var(--dashboard-retx-sot-success-border)] data-[retx-state=completed]:![background:var(--dashboard-retx-sot-success-bg)] data-[retx-state=completed]:![border-bottom-color:var(--dashboard-retx-sot-success-border)] data-[retx-state=completed]:[border-bottom-color:var(--dashboard-retx-success-border)] data-[retx-state=completed]:bg-[var(--dashboard-retx-success-bg)] data-[retx-state=failed]:[--dashboard-retx-banner-bg:var(--dashboard-retx-sot-danger-bg)] data-[retx-state=failed]:[--dashboard-retx-banner-border:var(--dashboard-retx-sot-danger-border)] data-[retx-state=failed]:![background:var(--dashboard-retx-sot-danger-bg)] data-[retx-state=failed]:![border-bottom-color:var(--dashboard-retx-sot-danger-border)] data-[retx-state=failed]:[border-bottom-color:var(--dashboard-retx-danger-border)] data-[retx-state=failed]:bg-[var(--dashboard-retx-danger-bg)] data-[retx-state=idle]:hidden data-[retx-state=queued]:[--dashboard-retx-banner-bg:var(--dashboard-retx-sot-info-bg)] data-[retx-state=queued]:[--dashboard-retx-banner-border:var(--dashboard-retx-sot-info-border)] data-[retx-state=queued]:![background:var(--dashboard-retx-sot-info-bg)] data-[retx-state=queued]:![border-bottom-color:var(--dashboard-retx-sot-info-border)] data-[retx-state=queued]:[border-bottom-color:var(--dashboard-retx-info-border)] data-[retx-state=queued]:bg-[var(--dashboard-retx-info-bg)] data-[retx-state=running]:[--dashboard-retx-banner-bg:var(--dashboard-retx-sot-info-bg)] data-[retx-state=running]:[--dashboard-retx-banner-border:var(--dashboard-retx-sot-info-border)] data-[retx-state=running]:![background:var(--dashboard-retx-sot-info-bg)] data-[retx-state=running]:![border-bottom-color:var(--dashboard-retx-sot-info-border)] data-[retx-state=running]:[border-bottom-color:var(--dashboard-retx-info-border)] data-[retx-state=running]:bg-[var(--dashboard-retx-info-bg)] [&[hidden]]:hidden`,
+    icon: "inline-flex size-[28px] flex-none items-center justify-center rounded-[50%] border border-[var(--line-hairline)] bg-[var(--bg-elevated)] group-data-[retx-state=completed]/retx:!border-[var(--dashboard-retx-sot-success-icon-border)] group-data-[retx-state=completed]/retx:border-[var(--dashboard-retx-success-icon-border)] group-data-[retx-state=completed]/retx:text-[var(--signal-success)] group-data-[retx-state=failed]/retx:!border-[var(--dashboard-retx-sot-danger-icon-border)] group-data-[retx-state=failed]/retx:border-[var(--dashboard-retx-danger-icon-border)] group-data-[retx-state=failed]/retx:text-[var(--signal-danger)] group-data-[retx-state=queued]/retx:!border-[var(--dashboard-retx-sot-info-icon-border)] group-data-[retx-state=queued]/retx:border-[var(--dashboard-retx-info-icon-border)] group-data-[retx-state=queued]/retx:text-[var(--signal-info)] group-data-[retx-state=running]/retx:!border-[var(--dashboard-retx-sot-info-icon-border)] group-data-[retx-state=running]/retx:border-[var(--dashboard-retx-info-icon-border)] group-data-[retx-state=running]/retx:text-[var(--signal-info)] [&_svg]:size-[13px] [&_svg]:fill-none [&_svg]:stroke-2 [&_svg]:stroke-current [&_svg]:[stroke-linecap:round] [&_svg]:[stroke-linejoin:round]",
     spinner:
         "h-[12px] w-[12px] rounded-[50%] border-[1.6px] border-[var(--signal-info)] border-t-transparent border-r-[var(--signal-info)] animate-[spin_700ms_linear_infinite]",
     body: "flex min-w-0 flex-1 flex-col gap-[2px]",
@@ -802,8 +808,7 @@ const dashboardRetranscriptionClassNames = {
     actions: "flex flex-none items-center gap-[6px]",
     closeButton:
         "[&>svg]:h-[16px] [&>svg]:w-[16px] [&>svg]:fill-none [&>svg]:stroke-current [&>svg]:stroke-[1.8] [&>svg]:[stroke-linecap:round] [&>svg]:[stroke-linejoin:round]",
-    refreshMarker:
-        `${dashboardRetranscriptionThemeClassName} inline-flex items-center gap-[4px] rounded-full bg-[var(--dashboard-retx-success-marker-bg)] px-[6px] py-px font-mono ![font-size:10.5px] font-medium ![line-height:normal] [margin:0] ![color:var(--signal-success)] [&[hidden]]:hidden`,
+    refreshMarker: `${dashboardRetranscriptionThemeClassName} ${dashboardRetranscriptionSotClassName} inline-flex items-center gap-[4px] rounded-full bg-[var(--dashboard-retx-success-marker-bg)] ![background:var(--dashboard-retx-sot-success-marker-bg)] px-[6px] py-px font-mono ![font-size:10.5px] font-medium ![line-height:normal] [margin:0] ![color:var(--signal-success)] [&[hidden]]:hidden`,
 } as const;
 
 const sourceProviderThemeClassName =
@@ -885,7 +890,8 @@ const dashboardRecordingRowStyles = {
         "hidden group-data-[time-style=abs]/dashboard-workstation:inline",
     timestampRelative:
         "inline group-data-[time-style=abs]/dashboard-workstation:hidden",
-    actions: "flex w-max min-w-max flex-none items-center justify-end justify-self-end gap-2 [&_[data-recording-tag-chip]]:[--dashboard-recording-tag-c:var(--tag-slate)] [&_[data-recording-tag-chip]]:[--sot-player-tag-chip-bg:color-mix(in_srgb,var(--dashboard-recording-tag-c)_18%,transparent)] [&_[data-recording-tag-chip]]:[--sot-player-tag-chip-border:color-mix(in_srgb,var(--dashboard-recording-tag-c)_36%,transparent)] [&_[data-recording-tag-chip]]:[--sot-player-tag-chip-fg:color-mix(in_srgb,var(--dashboard-recording-tag-c)_30%,var(--fg-primary))] [&_[data-recording-tag-chip]]:![box-shadow:var(--shadow-xs)] [&_[data-recording-tag-chip][data-sot-tag-color=blue]]:[--dashboard-recording-tag-c:var(--tag-blue)] [&_[data-recording-tag-chip][data-sot-tag-color=green]]:[--dashboard-recording-tag-c:var(--tag-green)] [&_[data-recording-tag-chip][data-sot-tag-color=orange]]:[--dashboard-recording-tag-c:var(--tag-amber)] [&_[data-recording-tag-chip][data-sot-tag-color=purple]]:[--dashboard-recording-tag-c:var(--tag-violet)] [&_[data-recording-tag-chip][data-sot-tag-color=red]]:[--dashboard-recording-tag-c:var(--tag-rose)] [&_[data-recording-tag-chip][data-sot-tag-color=slate]]:[--dashboard-recording-tag-c:var(--tag-slate)]",
+    actions:
+        "flex w-max min-w-max flex-none items-center justify-end justify-self-end gap-2 [&_[data-recording-tag-chip]]:[--dashboard-recording-tag-c:var(--tag-slate)] [&_[data-recording-tag-chip]]:[--sot-player-tag-chip-bg:color-mix(in_srgb,var(--dashboard-recording-tag-c)_18%,transparent)] [&_[data-recording-tag-chip]]:[--sot-player-tag-chip-border:color-mix(in_srgb,var(--dashboard-recording-tag-c)_36%,transparent)] [&_[data-recording-tag-chip]]:[--sot-player-tag-chip-fg:color-mix(in_srgb,var(--dashboard-recording-tag-c)_30%,var(--fg-primary))] [&_[data-recording-tag-chip]]:![box-shadow:var(--shadow-xs)] [&_[data-recording-tag-chip][data-sot-tag-color=blue]]:[--dashboard-recording-tag-c:var(--tag-blue)] [&_[data-recording-tag-chip][data-sot-tag-color=green]]:[--dashboard-recording-tag-c:var(--tag-green)] [&_[data-recording-tag-chip][data-sot-tag-color=orange]]:[--dashboard-recording-tag-c:var(--tag-amber)] [&_[data-recording-tag-chip][data-sot-tag-color=purple]]:[--dashboard-recording-tag-c:var(--tag-violet)] [&_[data-recording-tag-chip][data-sot-tag-color=red]]:[--dashboard-recording-tag-c:var(--tag-rose)] [&_[data-recording-tag-chip][data-sot-tag-color=slate]]:[--dashboard-recording-tag-c:var(--tag-slate)]",
 } as const;
 
 function tagFilterValue(tagId: string): TagFilterValue {
@@ -953,6 +959,18 @@ function sourceReportDetailText(
         }
     }
     return null;
+}
+
+function sourceReportSummaryLines(markdown: string) {
+    return markdown
+        .split(/\r?\n/)
+        .map((line) =>
+            line
+                .trim()
+                .replace(/^#{1,6}\s+/, "")
+                .replace(/^[-*]\s+/, ""),
+        )
+        .filter(Boolean);
 }
 
 function formatDuration(value: number) {
@@ -1547,7 +1565,7 @@ function getRecordingListStatus(
 }
 
 const SOT_DASHBOARD_RECORDING_STATUS_BADGE_CLASS =
-    "[--dashboard-recording-status-ok-bg:color-mix(in_srgb,var(--signal-success)_14%,transparent)] [--dashboard-recording-status-ok-border:color-mix(in_srgb,var(--signal-success)_30%,transparent)] [--dashboard-recording-status-warn-bg:color-mix(in_srgb,var(--signal-warning)_18%,transparent)] [--dashboard-recording-status-warn-border:color-mix(in_srgb,var(--signal-warning)_32%,transparent)] [--dashboard-recording-status-err-bg:color-mix(in_srgb,var(--signal-danger)_14%,transparent)] [--dashboard-recording-status-err-border:color-mix(in_srgb,var(--signal-danger)_30%,transparent)] [--dashboard-recording-status-info-bg:color-mix(in_srgb,var(--signal-info)_14%,transparent)] [--dashboard-recording-status-info-border:color-mix(in_srgb,var(--signal-info)_30%,transparent)] h-[20px] justify-normal gap-[5px] overflow-visible rounded-[999px] border px-[8px] py-0 [font:600_11px_var(--font-sans)] tracking-[0.005em] shadow-none data-[sot-tone=ok]:border-[var(--dashboard-recording-status-ok-border)] data-[sot-tone=ok]:bg-[var(--dashboard-recording-status-ok-bg)] data-[sot-tone=ok]:text-[var(--signal-success)] data-[sot-tone=warn]:border-[var(--dashboard-recording-status-warn-border)] data-[sot-tone=warn]:bg-[var(--dashboard-recording-status-warn-bg)] data-[sot-tone=warn]:text-[var(--signal-warning-strong)] data-[sot-tone=err]:border-[var(--dashboard-recording-status-err-border)] data-[sot-tone=err]:bg-[var(--dashboard-recording-status-err-bg)] data-[sot-tone=err]:text-[var(--signal-danger)] data-[sot-tone=info]:border-[var(--dashboard-recording-status-info-border)] data-[sot-tone=info]:bg-[var(--dashboard-recording-status-info-bg)] data-[sot-tone=info]:text-[var(--signal-info)] data-[sot-tone=neu]:border-[var(--line-hairline)] data-[sot-tone=neu]:bg-[var(--bg-recessed)] data-[sot-tone=neu]:text-[var(--fg-secondary)] [&_[data-sot-part=dashboard-recording-status-dot]]:size-[5px] [&_[data-sot-part=dashboard-recording-status-dot]]:rounded-full [&_[data-sot-part=dashboard-recording-status-dot]]:bg-current data-[sot-tone=neu]:[&_[data-sot-part=dashboard-recording-status-dot]]:bg-[var(--fg-tertiary)] data-[sot-tone=warn]:[&_[data-sot-part=dashboard-recording-status-dot]]:animate-[bpulse_1.4s_ease-in-out_infinite]";
+    "[--source-provider-status-success-bg:var(--button-copy-success-bg)] [--source-provider-status-success-border:var(--button-copy-success-border)] [--source-provider-status-info-bg:var(--system-banner-progress-icon-bg)] [--source-provider-status-info-border:var(--system-banner-progress-border)] [--source-provider-status-warning-bg:var(--system-banner-offline-icon-bg)] [--source-provider-status-warning-border:var(--system-banner-offline-border)] [--source-provider-status-danger-bg:var(--alert-destructive-soft-bg)] [--source-provider-status-danger-border:var(--alert-destructive-soft-border)] h-[20px] justify-normal gap-[5px] overflow-visible rounded-[999px] border px-[8px] py-0 [font:600_11px_var(--font-sans)] tracking-[0.005em] shadow-none data-[sot-tone=ok]:border-[var(--source-provider-status-success-border)] data-[sot-tone=ok]:bg-[var(--source-provider-status-success-bg)] data-[sot-tone=ok]:text-[var(--signal-success)] data-[sot-tone=warn]:border-[var(--source-provider-status-warning-border)] data-[sot-tone=warn]:bg-[var(--source-provider-status-warning-bg)] data-[sot-tone=warn]:text-[var(--signal-warning-strong)] data-[sot-tone=err]:border-[var(--source-provider-status-danger-border)] data-[sot-tone=err]:bg-[var(--source-provider-status-danger-bg)] data-[sot-tone=err]:text-[var(--signal-danger)] data-[sot-tone=info]:border-[var(--source-provider-status-info-border)] data-[sot-tone=info]:bg-[var(--source-provider-status-info-bg)] data-[sot-tone=info]:text-[var(--signal-info)] data-[sot-tone=neu]:border-[var(--line-hairline)] data-[sot-tone=neu]:bg-[var(--bg-recessed)] data-[sot-tone=neu]:text-[var(--fg-secondary)] [&_[data-sot-part=dashboard-recording-status-dot]]:size-[5px] [&_[data-sot-part=dashboard-recording-status-dot]]:rounded-full [&_[data-sot-part=dashboard-recording-status-dot]]:bg-current data-[sot-tone=neu]:[&_[data-sot-part=dashboard-recording-status-dot]]:bg-[var(--fg-tertiary)] data-[sot-tone=warn]:[&_[data-sot-part=dashboard-recording-status-dot]]:animate-[bpulse_1.4s_ease-in-out_infinite]";
 
 function SotDashboardRecordingStatusBadge({
     className,
@@ -2350,6 +2368,7 @@ export function Workstation({
     const tagFilterRef = useRef<HTMLDivElement | null>(null);
     const searchInputRef = useRef<HTMLInputElement | null>(null);
     const restoreActivityFocusRef = useRef(false);
+    const activityFocusRestoreTimerRefs = useRef<number[]>([]);
     const copyFeedbackTimerRef = useRef<number | null>(null);
     const sourceReportRequestRef = useRef<{
         controller: AbortController;
@@ -2375,27 +2394,71 @@ export function Workstation({
         }
     }, []);
 
+    const clearActivityFocusRestoreTimers = useCallback(() => {
+        for (const timer of activityFocusRestoreTimerRefs.current) {
+            window.clearTimeout(timer);
+        }
+        activityFocusRestoreTimerRefs.current = [];
+    }, []);
+
+    const restoreActivityTriggerFocus = useCallback(() => {
+        clearActivityFocusRestoreTimers();
+        restoreActivityFocusRef.current = true;
+
+        const focusTrigger = () => {
+            if (!restoreActivityFocusRef.current) return;
+            const activeElement = document.activeElement;
+            const activeHTMLElement =
+                activeElement instanceof HTMLElement ? activeElement : null;
+            const shouldRestoreFocus =
+                !activeHTMLElement ||
+                activeElement === document.body ||
+                activeElement === document.documentElement ||
+                activeElement === activityTriggerRef.current ||
+                activeElement === settingsTriggerRef.current;
+
+            if (shouldRestoreFocus) {
+                activityTriggerRef.current?.focus({ preventScroll: true });
+            }
+        };
+
+        focusTrigger();
+        const restoreDelays = [0, 50, 250, 750, 1250, 2000, 2100];
+        activityFocusRestoreTimerRefs.current = restoreDelays.map(
+            (delay, index) =>
+                window.setTimeout(() => {
+                    focusTrigger();
+                    if (index === restoreDelays.length - 1) {
+                        restoreActivityFocusRef.current = false;
+                        activityFocusRestoreTimerRefs.current = [];
+                    }
+                }, delay),
+        );
+    }, [clearActivityFocusRestoreTimers]);
+
     const closeActivityOverlay = useCallback(
         (options: { restoreFocus?: boolean } = {}) => {
             if (options.restoreFocus) {
-                restoreActivityFocusRef.current = true;
-                activityTriggerRef.current?.focus({ preventScroll: true });
-                window.setTimeout(() => {
-                    activityTriggerRef.current?.focus({ preventScroll: true });
-                }, 0);
-                window.setTimeout(() => {
-                    activityTriggerRef.current?.focus({ preventScroll: true });
-                    restoreActivityFocusRef.current = false;
-                }, 50);
+                restoreActivityTriggerFocus();
+            } else {
+                clearActivityFocusRestoreTimers();
+                restoreActivityFocusRef.current = false;
             }
             setActivityOpen(false);
         },
-        [],
+        [clearActivityFocusRestoreTimers, restoreActivityTriggerFocus],
     );
 
     useEffect(() => {
         setHydrated(true);
     }, []);
+
+    useEffect(
+        () => () => {
+            clearActivityFocusRestoreTimers();
+        },
+        [clearActivityFocusRestoreTimers],
+    );
 
     const {
         autoSyncEnabled,
@@ -3042,6 +3105,7 @@ export function Workstation({
         buildSourceTranscriptCopyText(sourceReportData);
     const sourceTranscriptAvailable = Boolean(sourceTranscriptCopyText.trim());
     const sourceSummaryText = sourceReportData?.summaryMarkdown?.trim() ?? "";
+    const sourceSummaryLines = sourceReportSummaryLines(sourceSummaryText);
     const sourceSummaryAvailable =
         Boolean(sourceSummaryText) || sourceReportData?.summaryReady === true;
     const sourceTranscriptStatusLabel = sourceReportReadinessLabel(
@@ -3806,9 +3870,16 @@ export function Workstation({
 
     useEffect(() => {
         if (activityOpen || !restoreActivityFocusRef.current) return;
-        restoreActivityFocusRef.current = false;
         const frame = window.requestAnimationFrame(() => {
-            activityTriggerRef.current?.focus({ preventScroll: true });
+            const activeElement = document.activeElement;
+            if (
+                activeElement === document.body ||
+                activeElement === document.documentElement ||
+                activeElement === activityTriggerRef.current ||
+                activeElement === settingsTriggerRef.current
+            ) {
+                activityTriggerRef.current?.focus({ preventScroll: true });
+            }
         });
         return () => window.cancelAnimationFrame(frame);
     }, [activityOpen]);
@@ -4521,10 +4592,12 @@ export function Workstation({
                     )}
                     data-sot-part="dashboard-brand"
                 >
-                    <img
+                    <Image
                         className={dashboardBrandClassNames.image}
                         src="/assets/logo-mark-steel.svg"
                         alt=""
+                        width={36}
+                        height={36}
                     />
                     <div
                         className={dashboardSidebarCollapseClassNames.hidden}
@@ -4767,7 +4840,12 @@ export function Workstation({
                                             }
                                             data-sot-variant="image"
                                         >
-                                            <img src={item.icon} alt="" />
+                                            <Image
+                                                src={item.icon}
+                                                alt=""
+                                                width={18}
+                                                height={18}
+                                            />
                                         </span>
                                     ) : (
                                         <span
@@ -5546,6 +5624,8 @@ export function Workstation({
                                     activityBadgeCount,
                                 )}
                                 onClick={() => {
+                                    clearActivityFocusRestoreTimers();
+                                    restoreActivityFocusRef.current = false;
                                     setSearchOpen(false);
                                     setMoreOpen(false);
                                     setTagOpen(false);
@@ -6714,7 +6794,7 @@ export function Workstation({
                                                                                             language,
                                                                                         )}
                                                                                     >
-                                                                                        <img
+                                                                                        <Image
                                                                                             className={cn(
                                                                                                 dashboardRecordingRowStyles.sourceMarkImage,
                                                                                                 sourceMeta.cover
@@ -6725,6 +6805,12 @@ export function Workstation({
                                                                                                 sourceMeta.icon
                                                                                             }
                                                                                             alt=""
+                                                                                            width={
+                                                                                                14
+                                                                                            }
+                                                                                            height={
+                                                                                                14
+                                                                                            }
                                                                                         />
                                                                                     </span>
                                                                                 ) : (
@@ -8678,6 +8764,43 @@ export function Workstation({
                                                     )}
                                                 </ol>
                                             </SotSourceReportSection>
+
+                                            {sourceSummaryLines.length > 0 ? (
+                                                <SotSourceReportSection
+                                                    section="summary"
+                                                    title="来源原始报告"
+                                                    description={
+                                                        <>
+                                                            由
+                                                            {
+                                                                sourceReportProviderName
+                                                            }
+                                                            返回的只读摘要
+                                                        </>
+                                                    }
+                                                >
+                                                    <div
+                                                        className={
+                                                            SOURCE_REPORT_SUMMARY_BODY_CLASS_NAME
+                                                        }
+                                                        data-sot-source-report-summary-body
+                                                    >
+                                                        {sourceSummaryLines.map(
+                                                            (line, index) => (
+                                                                <p
+                                                                    key={`${index}:${line}`}
+                                                                    className={
+                                                                        SOURCE_REPORT_SUMMARY_TEXT_CLASS_NAME
+                                                                    }
+                                                                    data-sot-source-report-segment-text
+                                                                >
+                                                                    {line}
+                                                                </p>
+                                                            ),
+                                                        )}
+                                                    </div>
+                                                </SotSourceReportSection>
+                                            ) : null}
 
                                             <SotSourceReportSection
                                                 section="metadata"

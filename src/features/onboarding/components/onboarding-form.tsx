@@ -11,6 +11,7 @@ import {
     Radio,
     UserRound,
 } from "lucide-react";
+import Image from "next/image";
 import { type ReactNode, useEffect, useState } from "react";
 import { useLanguage } from "@/components/language-provider";
 import { Button } from "@/components/ui/button";
@@ -71,10 +72,7 @@ const ONBOARDING_STEPS = [
 ] as const;
 
 type OnboardingStepId = (typeof ONBOARDING_STEPS)[number]["id"];
-type DefaultTranscriptionSource =
-    | "dingtalk-a1"
-    | "ticnote"
-    | "feishu-minutes";
+type DefaultTranscriptionSource = "dingtalk-a1" | "ticnote" | "feishu-minutes";
 
 const PROVIDER_ICONS: Record<SourceProvider, LucideIcon> = {
     "dingtalk-a1": Radio,
@@ -100,11 +98,12 @@ const onboardingCardClassNames = {
         "flex flex-row items-center gap-3 border-primary/50 bg-primary/10 p-3.5",
     providerCard:
         "flex h-auto w-full flex-row items-center justify-start gap-3 rounded-md px-3.5 py-3 text-left whitespace-normal",
-    providerList: "mb-5 flex flex-col gap-2",
+    providerList: "mb-5 flex w-full flex-col items-stretch gap-2",
     summaryList: "mb-5 flex flex-col gap-2",
     matrixRow:
         "flex min-h-8 items-baseline gap-2 border-b border-dashed border-border py-1.5",
-    matrixLabel: "m-0 w-20 flex-none text-xs font-semibold text-muted-foreground",
+    matrixLabel:
+        "m-0 w-20 flex-none text-xs font-semibold text-muted-foreground",
     matrixValue:
         "m-0 min-w-0 flex-1 break-words text-xs font-medium text-foreground",
     sourceAuthModeGroup: "grid w-full grid-cols-2 items-stretch",
@@ -587,9 +586,21 @@ function SourceStep({
                 />
             </OnboardingFieldRow>
 
-            <div
+            <ToggleGroup
+                aria-label="来源"
                 className={onboardingCardClassNames.providerList}
                 data-sot-list="provider-cards"
+                disabled={isSaving}
+                onValueChange={(value) => {
+                    if (value) {
+                        selectProvider(value);
+                    }
+                }}
+                orientation="vertical"
+                spacing={2}
+                type="single"
+                value={provider}
+                variant="outline"
             >
                 {providerOptions.map((item) => {
                     const isActive = item.provider === provider;
@@ -597,16 +608,13 @@ function SourceStep({
                     const asset = PROVIDER_ASSETS[item.provider];
 
                     return (
-                        <Button
-                            variant={isActive ? "secondary" : "outline"}
+                        <ToggleGroupItem
                             className={cn(
                                 onboardingCardClassNames.providerCard,
                                 isActive && "border-transparent",
                             )}
                             disabled={isSaving}
                             key={item.provider}
-                            onClick={() => selectProvider(item.provider)}
-                            type="button"
                             data-sot-control="provider-card"
                             data-sot-cover={
                                 item.provider === "feishu-minutes"
@@ -615,6 +623,7 @@ function SourceStep({
                             }
                             data-sot-provider={item.provider}
                             data-sot-state={isActive ? "selected" : "idle"}
+                            value={item.provider}
                         >
                             <span
                                 className={
@@ -628,9 +637,11 @@ function SourceStep({
                                 }
                             >
                                 {asset ? (
-                                    <img
+                                    <Image
                                         src={asset}
                                         alt=""
+                                        width={36}
+                                        height={36}
                                         className={cn(
                                             "block size-full",
                                             item.provider === "feishu-minutes"
@@ -667,10 +678,10 @@ function SourceStep({
                                         : "可在后续设置里继续补充"}
                                 </span>
                             </span>
-                        </Button>
+                        </ToggleGroupItem>
                     );
                 })}
-            </div>
+            </ToggleGroup>
 
             {currentProviderCatalog.authModes.length > 1 ? (
                 <OnboardingFieldRow
@@ -794,9 +805,7 @@ function TranscriptionStep({
     defaultTranscriptionSource: DefaultTranscriptionSource;
     isSaving: boolean;
     onNext: () => void;
-    setDefaultTranscriptionSource: (
-        value: DefaultTranscriptionSource,
-    ) => void;
+    setDefaultTranscriptionSource: (value: DefaultTranscriptionSource) => void;
 }) {
     const options = [
         {
@@ -866,8 +875,6 @@ function TranscriptionStep({
                             }
                             disabled={isSaving || !option.connected}
                             key={option.id}
-                            role="button"
-                            type="button"
                             value={option.id}
                         >
                             <span

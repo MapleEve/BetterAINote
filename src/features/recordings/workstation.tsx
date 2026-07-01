@@ -10,6 +10,7 @@ import {
     Sparkle,
     X,
 } from "lucide-react";
+import Image from "next/image";
 import {
     type ComponentProps,
     useCallback,
@@ -197,8 +198,7 @@ const RECORDING_DETAIL_LIST_CARD_CLASS_NAME =
     "min-h-0 gap-0 max-[860px]:min-w-0 max-[860px]:max-w-full max-[860px]:box-border";
 const RECORDING_DETAIL_LIST_HEADER_CLASS_NAME = "gap-0 border-b px-3 py-3";
 const RECORDING_DETAIL_LIST_TITLE_CLASS_NAME = "text-sm";
-const RECORDING_DETAIL_LIST_CONTENT_CLASS_NAME =
-    "flex min-h-0 flex-col px-0";
+const RECORDING_DETAIL_LIST_CONTENT_CLASS_NAME = "flex min-h-0 flex-col px-0";
 const RECORDING_DETAIL_LIST_ROWS_CLASS_NAME = "flex flex-col gap-0.5 p-1";
 const RECORDING_DETAIL_LIST_ROW_CLASS_NAME =
     "grid w-full cursor-pointer grid-cols-[1fr_auto] items-center gap-[14px] rounded-[10px] border border-transparent bg-transparent px-3 py-[11px] text-left font-sans text-[13.3333px] font-normal transition-colors duration-[var(--duration-fast)] ease-[var(--ease-out)] hover:bg-[var(--bg-recessed)] data-[sot-state=selected]:border-primary/40 data-[sot-state=selected]:bg-[var(--accent-soft)]";
@@ -217,8 +217,7 @@ const RECORDING_DETAIL_METADATA_TITLE_CLASS_NAME =
     "min-w-0 flex-1 truncate text-xl";
 const RECORDING_DETAIL_METADATA_BODY_CLASS_NAME =
     "flex min-h-0 flex-1 flex-col gap-3.5 overflow-y-auto px-5 pt-4 pb-6";
-const RECORDING_SOURCE_RECORD_SHELL_CLASS_NAME =
-    "flex min-h-0 flex-col gap-4";
+const RECORDING_SOURCE_RECORD_SHELL_CLASS_NAME = "flex min-h-0 flex-col gap-4";
 const RECORDING_SOURCE_RECORD_CARD_CLASS_NAME = "min-h-0 gap-0";
 const RECORDING_SOURCE_RECORD_HEADER_CLASS_NAME =
     "flex items-center gap-3 border-b px-4 py-3";
@@ -233,10 +232,8 @@ const RECORDING_SOURCE_RECORD_HINT_CLASS_NAME = "m-0";
 const RECORDING_SOURCE_RECORD_PANE_CLASS_NAME = "min-h-0";
 const RECORDING_SOURCE_RECORD_EMPTY_CLASS_NAME = "min-h-[280px] flex-1";
 const recordingWorkstationTopbarClassNames = {
-    topbar:
-        "relative z-[var(--z-topbar)] flex h-14 flex-none flex-row items-center gap-3.5 border-b border-border bg-background/80 px-5 py-3 shadow-none backdrop-blur-[20px] backdrop-saturate-[140%] supports-[backdrop-filter]:bg-background/60 max-[860px]:min-w-0 max-[860px]:max-w-full max-[860px]:box-border",
-    crumbs:
-        "flex items-center gap-2 font-sans text-[13px] font-medium text-[var(--fg-tertiary)]",
+    topbar: "relative z-[var(--z-topbar)] flex h-14 flex-none flex-row items-center gap-3.5 border-b border-border bg-background/80 px-5 py-3 shadow-none backdrop-blur-[20px] backdrop-saturate-[140%] supports-[backdrop-filter]:bg-background/60 max-[860px]:min-w-0 max-[860px]:max-w-full max-[860px]:box-border",
+    crumbs: "flex items-center gap-2 font-sans text-[13px] font-medium text-[var(--fg-tertiary)]",
     crumb: "text-[var(--fg-tertiary)]",
     separator: "text-[var(--fg-tertiary)] opacity-60",
     current: "font-semibold text-[var(--fg-primary)]",
@@ -245,7 +242,8 @@ const recordingWorkstationBrandClassNames = {
     wrapper: "flex items-center gap-[10px] px-2 pt-1 pb-4",
     image: "size-9 rounded-[9px]",
     name: "[font:600_15px_var(--font-sans)] tracking-[-0.012em] text-[var(--fg-primary)]",
-    subtitle: "mt-px [font:500_11px_var(--font-sans)] text-[var(--fg-tertiary)]",
+    subtitle:
+        "mt-px [font:500_11px_var(--font-sans)] text-[var(--fg-tertiary)]",
 } as const;
 const recordingWorkstationNavClassNames = {
     list: "flex flex-1 flex-col gap-0.5 overflow-y-auto pb-3",
@@ -1007,10 +1005,12 @@ export function RecordingWorkstation({
                     className={recordingWorkstationBrandClassNames.wrapper}
                     data-sot-part="workstation-brand"
                 >
-                    <img
+                    <Image
                         className={recordingWorkstationBrandClassNames.image}
                         src="/assets/logo-mark-steel.svg"
                         alt=""
+                        width={36}
+                        height={36}
                     />
                     <div data-sot-part="workstation-brand-text">
                         <div
@@ -1020,7 +1020,9 @@ export function RecordingWorkstation({
                             BetterAINote
                         </div>
                         <div
-                            className={recordingWorkstationBrandClassNames.subtitle}
+                            className={
+                                recordingWorkstationBrandClassNames.subtitle
+                            }
                             data-sot-part="workstation-brand-subtitle"
                         >
                             私人工作空间
@@ -1041,7 +1043,9 @@ export function RecordingWorkstation({
                     <Button
                         variant="ghost"
                         size="default"
-                        className={recordingWorkstationButtonClassNames.detailBack}
+                        className={
+                            recordingWorkstationButtonClassNames.detailBack
+                        }
                         data-sot-control="recording-detail-back"
                         data-sot-state="selected"
                         type="button"
@@ -1067,19 +1071,25 @@ export function RecordingWorkstation({
                         data-sot-part="workstation-crumbs"
                     >
                         <span
-                            className={recordingWorkstationTopbarClassNames.crumb}
+                            className={
+                                recordingWorkstationTopbarClassNames.crumb
+                            }
                             data-sot-part="workstation-crumb"
                         >
                             录音
                         </span>
                         <span
-                            className={recordingWorkstationTopbarClassNames.separator}
+                            className={
+                                recordingWorkstationTopbarClassNames.separator
+                            }
                             data-sot-part="workstation-crumb-separator"
                         >
                             /
                         </span>
                         <span
-                            className={recordingWorkstationTopbarClassNames.current}
+                            className={
+                                recordingWorkstationTopbarClassNames.current
+                            }
                             data-sot-part="workstation-crumb-current"
                         >
                             {filename}
@@ -1102,7 +1112,9 @@ export function RecordingWorkstation({
                             data-sot-part="recording-detail-list-header"
                         >
                             <CardTitle
-                                className={RECORDING_DETAIL_LIST_TITLE_CLASS_NAME}
+                                className={
+                                    RECORDING_DETAIL_LIST_TITLE_CLASS_NAME
+                                }
                                 data-sot-part="recording-detail-list-title"
                             >
                                 当前录音
@@ -1113,30 +1125,42 @@ export function RecordingWorkstation({
                             data-sot-part="recording-detail-list-content"
                         >
                             <div
-                                className={RECORDING_DETAIL_LIST_ROWS_CLASS_NAME}
+                                className={
+                                    RECORDING_DETAIL_LIST_ROWS_CLASS_NAME
+                                }
                                 data-sot-list="recording-detail-list-rows"
                             >
                                 <div
-                                    className={RECORDING_DETAIL_LIST_ROW_CLASS_NAME}
+                                    className={
+                                        RECORDING_DETAIL_LIST_ROW_CLASS_NAME
+                                    }
                                     data-sot-item="recording-detail-list-row"
                                     data-sot-state="selected"
                                 >
                                     <div
-                                        className={RECORDING_DETAIL_LIST_ROW_BODY_CLASS_NAME}
+                                        className={
+                                            RECORDING_DETAIL_LIST_ROW_BODY_CLASS_NAME
+                                        }
                                         data-sot-part="recording-detail-list-row-body"
                                     >
                                         <div
-                                            className={RECORDING_DETAIL_LIST_ROW_TITLE_CLASS_NAME}
+                                            className={
+                                                RECORDING_DETAIL_LIST_ROW_TITLE_CLASS_NAME
+                                            }
                                             data-sot-part="recording-detail-list-row-title"
                                         >
                                             {filename}
                                         </div>
                                         <div
-                                            className={RECORDING_DETAIL_LIST_ROW_META_CLASS_NAME}
+                                            className={
+                                                RECORDING_DETAIL_LIST_ROW_META_CLASS_NAME
+                                            }
                                             data-sot-part="recording-detail-list-row-meta"
                                         >
                                             <span
-                                                className={RECORDING_DETAIL_LIST_ROW_DURATION_CLASS_NAME}
+                                                className={
+                                                    RECORDING_DETAIL_LIST_ROW_DURATION_CLASS_NAME
+                                                }
                                                 data-sot-part="recording-detail-list-row-duration"
                                             >
                                                 {durationLabel}
@@ -1155,7 +1179,9 @@ export function RecordingWorkstation({
                         </CardContent>
                     </Card>
                     <section
-                        className={RECORDING_WORKSTATION_DETAIL_PANEL_CLASS_NAME}
+                        className={
+                            RECORDING_WORKSTATION_DETAIL_PANEL_CLASS_NAME
+                        }
                         data-sot-panel="recording-workstation-detail"
                     >
                         <RecordingDetailCardHeader
@@ -1541,15 +1567,21 @@ export function RecordingWorkstation({
 
                                 <Card
                                     hasNoPadding
-                                    className={RECORDING_DETAIL_METADATA_CARD_CLASS_NAME}
+                                    className={
+                                        RECORDING_DETAIL_METADATA_CARD_CLASS_NAME
+                                    }
                                     data-sot-panel="recording-detail-metadata"
                                 >
                                     <CardHeader
-                                        className={RECORDING_DETAIL_METADATA_HEADER_CLASS_NAME}
+                                        className={
+                                            RECORDING_DETAIL_METADATA_HEADER_CLASS_NAME
+                                        }
                                         data-sot-part="recording-detail-metadata-header"
                                     >
                                         <CardTitle
-                                            className={RECORDING_DETAIL_METADATA_TITLE_CLASS_NAME}
+                                            className={
+                                                RECORDING_DETAIL_METADATA_TITLE_CLASS_NAME
+                                            }
                                             data-sot-part="recording-detail-metadata-title"
                                             role="heading"
                                             aria-level={2}
@@ -1558,7 +1590,9 @@ export function RecordingWorkstation({
                                         </CardTitle>
                                     </CardHeader>
                                     <CardContent
-                                        className={RECORDING_DETAIL_METADATA_BODY_CLASS_NAME}
+                                        className={
+                                            RECORDING_DETAIL_METADATA_BODY_CLASS_NAME
+                                        }
                                         data-sot-part="recording-detail-metadata-body"
                                     >
                                         <Field>
@@ -1854,7 +1888,9 @@ export function RecordingWorkstation({
                                         </div>
                                     ) : (
                                         <Empty
-                                            className={RECORDING_SOURCE_RECORD_EMPTY_CLASS_NAME}
+                                            className={
+                                                RECORDING_SOURCE_RECORD_EMPTY_CLASS_NAME
+                                            }
                                             data-sot-panel="recording-source-record-empty"
                                         >
                                             <EmptyHeader>

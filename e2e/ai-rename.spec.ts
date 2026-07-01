@@ -377,7 +377,13 @@ async function captureAiRenamePanel(locator: Locator, source: "product" | "sot")
             }
             panel.hidden = false;
             panel.dataset.open = "true";
-            panel.style.display = "flex";
+            if (source === "sot") {
+                panel.style.display = "flex";
+                panel.style.flexDirection = "column";
+            } else {
+                panel.style.removeProperty("display");
+                panel.style.removeProperty("flex-direction");
+            }
             panel.style.inset = "auto";
             panel.style.left = "auto";
             panel.style.opacity = "1";
@@ -550,6 +556,13 @@ async function expectAiRenamePixelMatch(
     await openSotAiRenamePanel(sotPage, state, options);
     const sotPanel = sotPage.locator("[data-rh-ai-panel]").first();
     const productPanel = aiRenamePreview(page).first();
+    await expect(productPanel).toHaveAttribute(
+        "data-slot",
+        "popover-content",
+    );
+    await expect(productPanel).toHaveAttribute("role", "dialog");
+    await expect(productPanel).toHaveAttribute("data-state", "open");
+    await expect(productPanel).toHaveAttribute("data-sot-state", state);
     const [sotCapture, productCapture] = await Promise.all([
         captureAiRenamePanel(sotPanel, "sot"),
         captureAiRenamePanel(productPanel, "product"),

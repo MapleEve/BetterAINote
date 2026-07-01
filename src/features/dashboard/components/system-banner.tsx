@@ -1,6 +1,12 @@
 "use client";
 
-import { type ReactNode, type SVGProps, useEffect, useState } from "react";
+import {
+    type CSSProperties,
+    type ReactNode,
+    type SVGProps,
+    useEffect,
+    useState,
+} from "react";
 import { useLanguage } from "@/components/language-provider";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Button, type ButtonProps } from "@/components/ui/button";
@@ -72,7 +78,7 @@ interface SystemBannerProgressProps {
 }
 
 const systemBannerAlertClassNames = {
-    root: "[--system-banner-bg:var(--bg-elevated)] [--system-banner-border:var(--line-hairline)] [--system-banner-icon-bg:var(--system-banner-neutral-icon-bg)] [--system-banner-icon-color:var(--fg-secondary)] flex w-full items-center gap-3 rounded-[var(--radius-md)] bg-[var(--system-banner-bg)] px-3.5 py-2.5 text-[length:var(--text-body-sm)] leading-[var(--lh-body-sm)] text-[var(--fg-primary)] [border-color:var(--system-banner-border)] shadow-[var(--shadow-xs)] data-[kind=offline]:[--system-banner-bg:var(--system-banner-offline-bg)] data-[kind=offline]:[--system-banner-border:var(--system-banner-offline-border)] data-[kind=offline]:[--system-banner-icon-bg:var(--system-banner-offline-icon-bg)] data-[kind=offline]:[--system-banner-icon-color:var(--signal-warning)] data-[kind=permission-denied]:[--system-banner-bg:var(--system-banner-danger-bg)] data-[kind=permission-denied]:[--system-banner-border:var(--system-banner-danger-border)] data-[kind=permission-denied]:[--system-banner-icon-bg:var(--system-banner-danger-icon-bg)] data-[kind=permission-denied]:[--system-banner-icon-color:var(--signal-danger)] data-[kind=db-locked]:[--system-banner-bg:var(--system-banner-danger-bg)] data-[kind=db-locked]:[--system-banner-border:var(--system-banner-danger-border)] data-[kind=db-locked]:[--system-banner-icon-bg:var(--system-banner-danger-icon-bg)] data-[kind=db-locked]:[--system-banner-icon-color:var(--signal-danger)] data-[kind=update-available]:[--system-banner-bg:var(--system-banner-update-bg)] data-[kind=update-available]:[--system-banner-border:var(--system-banner-update-border)] data-[kind=update-available]:[--system-banner-icon-bg:var(--system-banner-update-icon-bg)] data-[kind=update-available]:[--system-banner-icon-color:var(--signal-info)] data-[kind=import-progress]:[--system-banner-bg:var(--system-banner-progress-bg)] data-[kind=import-progress]:[--system-banner-border:var(--system-banner-progress-border)] data-[kind=import-progress]:[--system-banner-icon-bg:var(--system-banner-progress-icon-bg)] data-[kind=import-progress]:[--system-banner-icon-color:var(--signal-info)] data-[kind=export-progress]:[--system-banner-bg:var(--system-banner-progress-bg)] data-[kind=export-progress]:[--system-banner-border:var(--system-banner-progress-border)] data-[kind=export-progress]:[--system-banner-icon-bg:var(--system-banner-progress-icon-bg)] data-[kind=export-progress]:[--system-banner-icon-color:var(--signal-info)]",
+    root: "[--system-banner-bg:var(--bg-elevated)] [--system-banner-border:var(--line-hairline)] [--system-banner-icon-bg:var(--system-banner-neutral-icon-bg)] [--system-banner-icon-color:var(--fg-secondary)] flex w-full items-center gap-3 rounded-[var(--radius-md)] bg-[var(--system-banner-bg)] px-3.5 py-2.5 text-[length:var(--text-body-sm)] leading-[var(--lh-body-sm)] text-[var(--fg-primary)] shadow-[var(--shadow-xs)] data-[kind=offline]:[--system-banner-bg:var(--system-banner-offline-bg)] data-[kind=offline]:[--system-banner-border:var(--system-banner-offline-border)] data-[kind=offline]:[--system-banner-icon-bg:var(--system-banner-offline-icon-bg)] data-[kind=offline]:[--system-banner-icon-color:var(--signal-warning)] data-[kind=permission-denied]:[--system-banner-bg:var(--system-banner-danger-bg)] data-[kind=permission-denied]:[--system-banner-border:var(--system-banner-danger-border)] data-[kind=permission-denied]:[--system-banner-icon-bg:var(--system-banner-danger-icon-bg)] data-[kind=permission-denied]:[--system-banner-icon-color:var(--signal-danger)] data-[kind=db-locked]:[--system-banner-bg:var(--system-banner-danger-bg)] data-[kind=db-locked]:[--system-banner-border:var(--system-banner-danger-border)] data-[kind=db-locked]:[--system-banner-icon-bg:var(--system-banner-danger-icon-bg)] data-[kind=db-locked]:[--system-banner-icon-color:var(--signal-danger)] data-[kind=update-available]:[--system-banner-bg:var(--system-banner-update-bg)] data-[kind=update-available]:[--system-banner-border:var(--system-banner-update-border)] data-[kind=update-available]:[--system-banner-icon-bg:var(--system-banner-update-icon-bg)] data-[kind=update-available]:[--system-banner-icon-color:var(--signal-info)] data-[kind=import-progress]:[--system-banner-bg:var(--system-banner-progress-bg)] data-[kind=import-progress]:[--system-banner-border:var(--system-banner-progress-border)] data-[kind=import-progress]:[--system-banner-icon-bg:var(--system-banner-progress-icon-bg)] data-[kind=import-progress]:[--system-banner-icon-color:var(--signal-info)] data-[kind=export-progress]:[--system-banner-bg:var(--system-banner-progress-bg)] data-[kind=export-progress]:[--system-banner-border:var(--system-banner-progress-border)] data-[kind=export-progress]:[--system-banner-icon-bg:var(--system-banner-progress-icon-bg)] data-[kind=export-progress]:[--system-banner-icon-color:var(--signal-info)]",
     icon: "inline-grid size-7 flex-none place-items-center rounded-[var(--radius-sm)] bg-[var(--system-banner-icon-bg)] text-[var(--system-banner-icon-color)] [&_svg]:size-[14px] [&_svg]:fill-none [&_svg]:stroke-current [&_svg]:stroke-2 [&_svg]:[stroke-linecap:round] [&_svg]:[stroke-linejoin:round]",
     body: "flex min-w-0 flex-1 flex-col gap-0.5",
     title: "block [min-height:auto] overflow-visible [-webkit-line-clamp:unset] [-webkit-box-orient:horizontal] font-semibold tracking-normal text-[var(--fg-primary)]",
@@ -88,18 +94,22 @@ const systemBannerButtonClassNames = {
     dismissAction:
         "cursor-pointer border border-transparent bg-transparent text-[var(--fg-secondary)] shadow-none hover:bg-[var(--bg-recessed)] hover:text-[var(--fg-primary)]",
     actionSize:
-        "h-[26px] w-auto gap-[7px] rounded-[7px] px-[10px] text-[12px] font-semibold leading-normal has-[>svg]:px-[10px] [&_svg:not([class*='size-'])]:size-4 [&_svg]:stroke-[1.8]",
+        "box-border h-[26px] w-auto gap-[7px] rounded-[7px] px-[10px] py-[7.5px] text-[12px] font-semibold leading-normal has-[>svg]:px-[10px] [&_svg:not([class*='size-'])]:size-4 [&_svg]:stroke-[1.8]",
     dismissSize:
-        "size-[26px] rounded-[7px] p-0 [&_svg:not([class*='size-'])]:size-4 [&_svg]:stroke-[1.8]",
+        "box-border h-[26px] w-auto gap-[7px] rounded-[7px] px-[10px] py-[7.5px] text-[12px] font-semibold leading-normal has-[>svg]:px-[10px] [&_svg:not([class*='size-'])]:size-4 [&_svg]:stroke-[1.8]",
 } as const;
 
 const systemBannerProgressClassNames = {
-    root: "relative h-1.5 min-w-[120px] flex-1 overflow-hidden rounded-full bg-[var(--system-banner-progress-track)] data-[sot-state=indeterminate]:bg-[var(--system-banner-progress-indeterminate-track)]",
+    root: "relative h-[6px] min-w-[120px] flex-1 overflow-hidden rounded-[999px] bg-[var(--system-banner-progress-track)] data-[sot-state=indeterminate]:bg-[var(--system-banner-progress-indeterminate-track)]",
     indicator:
         "h-full w-full flex-1 rounded-[inherit] bg-[var(--signal-info)] transition-transform duration-[var(--duration-base)] ease-[var(--ease-out)]",
     indeterminateIndicator:
         "w-[32%] animate-[sbn-sweep_1.4s_linear_infinite] bg-[image:var(--system-banner-progress-indeterminate-bg)]",
 } as const;
+
+const systemBannerAlertStyle = {
+    borderColor: "var(--system-banner-border)",
+} satisfies CSSProperties;
 
 function getDefaultCopy(state: SystemBannerState, isZh: boolean) {
     switch (state) {
@@ -371,7 +381,14 @@ function SystemBannerIcon({
 function CloseIcon(props: SVGProps<SVGSVGElement>) {
     return (
         // biome-ignore lint/a11y/noSvgWithoutTitle: SOT close icon is inside a button with aria-label.
-        <svg viewBox="0 0 24 24" {...props}>
+        <svg
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            {...props}
+        >
             <path d="M18 6 6 18M6 6l12 12" />
         </svg>
     );
@@ -390,6 +407,7 @@ function SystemBannerAlert({
             aria-live={a11y["aria-live"]}
             role={a11y.role}
             className={cn(systemBannerAlertClassNames.root, className)}
+            style={systemBannerAlertStyle}
             data-sot-panel="system-banner"
             data-kind={banner.state}
             data-layout={isStacked ? "stacked" : "single"}
@@ -407,6 +425,8 @@ function SystemBannerButton({
 }: SystemBannerButtonProps) {
     return (
         <Button
+            size="sm"
+            variant={tone === "primary" ? "outline" : "ghost"}
             className={cn(
                 tone === "primary"
                     ? systemBannerButtonClassNames.primaryAction
@@ -441,6 +461,9 @@ function SystemBannerProgress({
             )}
             indicatorProps={{
                 "data-sot-part": "system-banner-progress-bar",
+                style: indeterminate
+                    ? { backgroundColor: "transparent" }
+                    : undefined,
             }}
             value={value}
         />
