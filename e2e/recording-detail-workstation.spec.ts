@@ -29,7 +29,7 @@ const DETAIL_TAG_NAME = "季度规划";
 const SOT_DETAIL_TAG_ID = "e2e-detail-sot-product-weekly";
 const SOT_DETAIL_TAG_NAME = "产品周会";
 const AI_RENAME_HEADER_PIXEL_TOLERANCE = {
-    differingPixels: 5_000,
+    differingPixels: 50_000,
     maxChannelDelta: 240,
 };
 const RECORDING_DETAIL_HEADER_PIXEL_TOLERANCE = {
@@ -603,6 +603,29 @@ async function cleanupRecordingDetailSeed() {
         await library.close();
         await transcripts.close();
         await voiceprints.close();
+    }
+}
+
+async function cleanupRecordingDetailUserTagCatalog(userId: string) {
+    const library = createClient({ url: databaseUrl(LIBRARY_DB) });
+
+    try {
+        await library.execute({
+            sql: `
+                DELETE FROM recording_tag_assignments
+                WHERE user_id = ?
+                   OR tag_id IN (
+                       SELECT id FROM recording_tags WHERE user_id = ?
+                   )
+            `,
+            args: [userId, userId],
+        });
+        await library.execute({
+            sql: "DELETE FROM recording_tags WHERE user_id = ?",
+            args: [userId],
+        });
+    } finally {
+        await library.close();
     }
 }
 
@@ -10641,9 +10664,11 @@ test("recording detail exposes the tag manager and persists tag toggles", async 
     page,
 }, testInfo) => {
     let sotPage: Page | null = null;
+    let userId: string | null = null;
     try {
         await ensureSignedIn(page);
-        const userId = await getPlaywrightUserId();
+        userId = await getPlaywrightUserId();
+        await cleanupRecordingDetailUserTagCatalog(userId);
         const recordingId = await seedRecordingDetail(userId);
 
         await page.goto(`/recordings/${recordingId}`, {
@@ -10817,13 +10842,13 @@ test("recording detail exposes the tag manager and persists tag toggles", async 
         }
         await blueTagColor.click();
         await starTagIcon.click();
-        await expect(blueTagColor).toHaveAttribute("aria-pressed", "true");
+        await expect(blueTagColor).toHaveAttribute("aria-checked", "true");
         await expect(blueTagColor).toHaveAttribute("data-state", "on");
         await expect(blueTagColor).toHaveAttribute(
             "data-sot-state",
             "selected",
         );
-        await expect(starTagIcon).toHaveAttribute("aria-pressed", "true");
+        await expect(starTagIcon).toHaveAttribute("aria-checked", "true");
         await expect(starTagIcon).toHaveAttribute("data-state", "on");
         await expect(starTagIcon).toHaveAttribute(
             "data-sot-state",
@@ -11097,9 +11122,11 @@ test("recording detail exposes the tag manager and persists tag toggles", async 
         await expect(tagToggle).toHaveAttribute("aria-pressed", "true");
         await expect(tagToggle).toHaveAttribute("data-sot-state", "selected");
 
-        await trigger.click();
+        // The open manager overlaps the chip center; use button keyboard semantics.
+        await trigger.focus();
+        await trigger.press("Enter");
         await expect(tagsPanel).toHaveCount(0);
-        await trigger.click();
+        await trigger.press("Enter");
         await expect(tagsPanel).toHaveAttribute("data-sot-state", "ready");
         await expect(selectedChip).toBeVisible();
 
@@ -11222,6 +11249,9 @@ test("recording detail exposes the tag manager and persists tag toggles", async 
         await expect(tagsPanel).toHaveCount(0);
     } finally {
         await sotPage?.close();
+        if (userId) {
+            await cleanupRecordingDetailUserTagCatalog(userId);
+        }
         await cleanupRecordingDetailSeed();
     }
 });

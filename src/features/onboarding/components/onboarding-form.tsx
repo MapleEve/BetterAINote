@@ -39,6 +39,7 @@ import {
     navigateAndRefreshBrowserRoute,
     useBrowserRouteController,
 } from "@/lib/platform/browser-router";
+import { cn } from "@/lib/utils";
 
 interface OnboardingFormProps {
     onConnected?: () => void;
@@ -70,6 +71,10 @@ const ONBOARDING_STEPS = [
 ] as const;
 
 type OnboardingStepId = (typeof ONBOARDING_STEPS)[number]["id"];
+type DefaultTranscriptionSource =
+    | "dingtalk-a1"
+    | "ticnote"
+    | "feishu-minutes";
 
 const PROVIDER_ICONS: Record<SourceProvider, LucideIcon> = {
     "dingtalk-a1": Radio,
@@ -87,62 +92,54 @@ const PROVIDER_ASSETS: Partial<Record<SourceProvider, string>> = {
 };
 
 const onboardingCardClassNames = {
-    layout: "grid min-h-[100svh] place-items-center bg-[var(--bg-canvas)] px-[32px] pb-[80px] pt-[28px] text-[var(--fg-primary)]",
+    layout: "grid min-h-svh place-items-center bg-background px-8 pb-20 pt-7 text-foreground",
     surface:
-        "!block !gap-0 !overflow-visible !rounded-[14px] !border !border-[var(--line-hairline)] !bg-[var(--bg-elevated)] !p-[18px] !shadow-[var(--shadow-xs)] !backdrop-blur-none [box-sizing:border-box] [min-height:375px] [width:min(420px,100%)]",
-    frame: "[overflow:hidden] [border-radius:12px] [border:1px_solid_var(--line-hairline)] [background:var(--bg-canvas)] [padding:18px]",
+        "block min-h-96 w-full max-w-md box-border gap-0 overflow-visible rounded-xl border border-border bg-card p-5 shadow-sm backdrop-blur-none",
+    frame: "overflow-hidden rounded-xl border border-border bg-background p-5",
     speakerDraft:
-        "grid grid-cols-[36px_1fr_auto_auto] items-center gap-3 border-primary/50 bg-primary/10 p-3.5",
+        "flex flex-row items-center gap-3 border-primary/50 bg-primary/10 p-3.5",
     providerCard:
-        "grid h-auto w-full grid-cols-[36px_1fr_auto_auto] items-center justify-start gap-3 rounded-md px-3.5 py-3 text-left whitespace-normal data-[sot-state=selected]:border-transparent data-[sot-state=selected]:bg-secondary data-[sot-state=selected]:text-secondary-foreground data-[sot-state=selected]:hover:bg-secondary/80 has-[>svg]:px-3.5",
-    providerList: "mb-[18px] flex flex-col gap-[8px]",
-    summaryList: "mb-[18px] flex flex-col gap-[8px]",
+        "flex h-auto w-full flex-row items-center justify-start gap-3 rounded-md px-3.5 py-3 text-left whitespace-normal",
+    providerList: "mb-5 flex flex-col gap-2",
+    summaryList: "mb-5 flex flex-col gap-2",
     matrixRow:
-        "grid min-h-[30px] grid-cols-[80px_1fr] items-baseline gap-[8px] border-b border-dashed border-border py-[6px]",
-    matrixLabel:
-        "m-0 [font:600_11px_var(--font-sans)] [color:var(--fg-tertiary)]",
+        "flex min-h-8 items-baseline gap-2 border-b border-dashed border-border py-1.5",
+    matrixLabel: "m-0 w-20 flex-none text-xs font-semibold text-muted-foreground",
     matrixValue:
-        "m-0 [font:500_12px_var(--font-sans)] [color:var(--fg-primary)] [word-break:break-word]",
+        "m-0 min-w-0 flex-1 break-words text-xs font-medium text-foreground",
     sourceAuthModeGroup: "grid w-full grid-cols-2 items-stretch",
     sourceAuthModeOption:
         "h-auto flex-col items-start justify-start whitespace-normal px-3.5 py-3 text-left",
     sourceField: "flex-col gap-2",
     sourceFieldContent: "min-w-0 gap-1",
     sourceFieldDescription:
-        "max-w-full text-[12px] leading-normal text-muted-foreground [overflow-wrap:normal] [word-break:keep-all]",
-    sourceFieldControl: "min-w-0 flex-1 [&>*]:w-full",
-    sourceProviderFields:
-        "flex flex-col gap-0 [&_[data-slot=field]]:!flex-col [&_[data-slot=field]]:!items-stretch [&_[data-slot=field]]:!gap-2 [&_[data-slot=field]>*]:!w-full [&_[data-slot=field-control]]:!w-full [&_[data-slot=field-control]]:!justify-stretch [&_[data-slot=field-description]]:[overflow-wrap:normal] [&_[data-slot=field-description]]:[word-break:keep-all]",
-    secondaryAction:
-        "[display:inline-flex] [align-items:center] [height:26px] [gap:6px] [border-radius:8px] [border:1px_solid_var(--line-hairline)] bg-transparent [padding:0_10px] [font:600_11px_var(--font-sans)] [line-height:normal] text-[var(--fg-secondary)] shadow-none hover:bg-accent hover:text-accent-foreground disabled:cursor-not-allowed has-[>svg]:px-[10px]",
-    primaryAction:
-        "[display:inline-flex] [align-items:center] [height:26px] [gap:6px] [border-radius:8px] [border:1px_solid_transparent] bg-primary [padding:0_10px] [font:600_11px_var(--font-sans)] [line-height:normal] text-[var(--button-primary-fg)] shadow-none hover:bg-primary/90 hover:text-[var(--button-primary-fg)] focus-visible:border-ring focus-visible:ring-0 disabled:cursor-not-allowed has-[>svg]:px-[10px]",
+        "max-w-full text-xs leading-normal text-muted-foreground",
+    sourceFieldControl: "min-w-0 flex-1",
+    sourceProviderFields: "flex flex-col gap-0",
     header: "grid auto-rows-min gap-0 p-0",
-    steps: "mb-[14px] flex gap-[6px]",
-    step: "[appearance:none] flex-1 [height:4px] [padding:0] [border:0] [border-radius:2px] [background:var(--bg-recessed)] [cursor:pointer] data-[sot-state=active]:[background:var(--accent)] data-[sot-state=complete]:[background:var(--accent)] disabled:cursor-not-allowed",
+    steps: "mb-3.5 flex gap-1.5",
+    step: "h-1 flex-1 rounded-sm bg-muted p-0 hover:bg-muted disabled:cursor-not-allowed",
     stepHeader: "grid auto-rows-min gap-0 p-0",
     providerMeta: "grid min-w-0 auto-rows-min gap-0 p-0",
-    heading:
-        "[font:600_13px_var(--font-sans)] [color:var(--fg-primary)] [margin:0_0_4px]",
-    sub: "[font:12px/1.5_var(--font-sans)] [color:var(--fg-tertiary)] [margin:0_0_14px]",
-    stepTitle: "[font:600_14px_var(--font-display)] [color:var(--fg-primary)]",
-    stepDescription:
-        "[font:12px_var(--font-sans)] [color:var(--fg-tertiary)] [margin-bottom:14px]",
-    errorMessage:
-        "[font:12px_var(--font-sans)] [color:var(--fg-tertiary)] data-[sot-state=error]:[color:var(--signal-danger)]",
-    stepBody: "[display:flex] [flex-direction:column] [gap:12px] p-0",
-    defaultSources: "[display:flex] [flex-direction:column] [gap:6px]",
+    heading: "mb-1 text-sm font-semibold text-foreground",
+    sub: "mb-3.5 text-xs leading-normal text-muted-foreground",
+    stepTitle: "text-sm font-semibold text-foreground",
+    stepDescription: "mb-3.5 text-xs text-muted-foreground",
+    errorMessage: "text-xs text-muted-foreground",
+    stepBody: "flex flex-col gap-3 p-0",
+    defaultSources: "flex w-full flex-col items-stretch gap-1.5",
     defaultSource:
-        "flex items-center gap-[8px] rounded-[8px] border border-solid border-[var(--line-hairline)] bg-transparent p-[8px] text-left [appearance:none] font-sans text-[15px] font-normal leading-[var(--lh-body)] text-[var(--fg-primary)] data-[sot-state=selected]:border-primary data-[sot-state=selected]:bg-primary/10 data-[sot-state=disabled]:opacity-[0.55] disabled:cursor-not-allowed",
-    defaultSourceSwatch:
-        "[height:20px] [width:20px] flex-none rounded-[4px] bg-transparent data-[sot-swatch=accent]:bg-primary",
-    actions:
-        "[display:flex] [gap:8px] [justify-content:flex-end] [margin-top:14px]",
+        "h-auto w-full justify-start whitespace-normal px-3 py-2 text-left",
+    actions: "mt-3.5 flex justify-end gap-2",
     providerIcon:
-        "inline-flex size-9 flex-none items-center justify-center overflow-hidden rounded-md border border-border bg-card text-foreground [&_img]:block [&_img]:size-full [&_img]:object-contain [&_svg]:size-[18px] [&_svg]:fill-none [&_svg]:stroke-current [&_svg]:stroke-[1.8] [&_svg]:[stroke-linecap:round] [&_svg]:[stroke-linejoin:round] [&[data-sot-cover=true]_img]:object-cover",
-    providerName: "[font:600_14px_var(--font-sans)] [color:var(--fg-primary)]",
-    providerHint:
-        "[font:500_12px_var(--font-sans)] [color:var(--fg-tertiary)] [margin-top:2px]",
+        "inline-flex size-9 flex-none items-center justify-center overflow-hidden rounded-md border border-border bg-card text-foreground",
+    providerName: "text-sm font-semibold text-foreground",
+    providerHint: "mt-0.5 text-xs font-medium text-muted-foreground",
+} as const;
+
+const DEFAULT_SOURCE_SWATCH_CLASS_NAMES = {
+    accent: "size-5 flex-none rounded bg-primary",
+    empty: "size-5 flex-none rounded bg-muted",
 } as const;
 
 function getStepIndex(step: OnboardingStepId) {
@@ -194,7 +191,7 @@ export function OnboardingForm({ onConnected }: OnboardingFormProps) {
     const [isMounted, setIsMounted] = useState(false);
     const [activeStep, setActiveStep] = useState<OnboardingStepId>("source");
     const [defaultTranscriptionSource, setDefaultTranscriptionSource] =
-        useState<"dingtalk-a1" | "ticnote" | "feishu-minutes">("dingtalk-a1");
+        useState<DefaultTranscriptionSource>("dingtalk-a1");
     const [speakerName, setSpeakerName] = useState("");
     const [speakerVoiceprint, setSpeakerVoiceprint] = useState("");
     const [speakerState, setSpeakerState] = useState<
@@ -400,17 +397,22 @@ export function OnboardingForm({ onConnected }: OnboardingFormProps) {
                                   : "idle";
 
                             return (
-                                <button
+                                <Button
                                     aria-label={`第 ${index + 1} 步 · ${step.title}`}
-                                    className={onboardingCardClassNames.step}
-                                    data-sot-control="onboarding-step"
-                                    data-sot-step={step.id}
-                                    data-sot-state={status}
-                                    data-slot="button"
+                                    className={cn(
+                                        onboardingCardClassNames.step,
+                                        status !== "idle" &&
+                                            "bg-primary hover:bg-primary/90",
+                                    )}
                                     disabled={controlsLocked}
                                     key={step.id}
                                     onClick={() => goToStep(step.id)}
+                                    size="xs"
                                     type="button"
+                                    variant="ghost"
+                                    data-sot-control="onboarding-step"
+                                    data-sot-step={step.id}
+                                    data-sot-state={status}
                                 />
                             );
                         })}
@@ -438,9 +440,10 @@ export function OnboardingForm({ onConnected }: OnboardingFormProps) {
                     >
                         {finishError ? (
                             <div
-                                className={
-                                    onboardingCardClassNames.errorMessage
-                                }
+                                className={cn(
+                                    onboardingCardClassNames.errorMessage,
+                                    "text-destructive",
+                                )}
                                 data-sot-part="onboarding-error"
                                 data-sot-state="error"
                                 role="alert"
@@ -595,8 +598,15 @@ function SourceStep({
 
                     return (
                         <Button
-                            variant="outline"
-                            className={onboardingCardClassNames.providerCard}
+                            variant={isActive ? "secondary" : "outline"}
+                            className={cn(
+                                onboardingCardClassNames.providerCard,
+                                isActive && "border-transparent",
+                            )}
+                            disabled={isSaving}
+                            key={item.provider}
+                            onClick={() => selectProvider(item.provider)}
+                            type="button"
                             data-sot-control="provider-card"
                             data-sot-cover={
                                 item.provider === "feishu-minutes"
@@ -605,10 +615,6 @@ function SourceStep({
                             }
                             data-sot-provider={item.provider}
                             data-sot-state={isActive ? "selected" : "idle"}
-                            disabled={isSaving}
-                            key={item.provider}
-                            onClick={() => selectProvider(item.provider)}
-                            type="button"
                         >
                             <span
                                 className={
@@ -622,9 +628,18 @@ function SourceStep({
                                 }
                             >
                                 {asset ? (
-                                    <img src={asset} alt="" />
+                                    <img
+                                        src={asset}
+                                        alt=""
+                                        className={cn(
+                                            "block size-full",
+                                            item.provider === "feishu-minutes"
+                                                ? "object-cover"
+                                                : "object-contain",
+                                        )}
+                                    />
                                 ) : (
-                                    <ProviderIcon />
+                                    <ProviderIcon data-icon="inline-start" />
                                 )}
                             </span>
                             <span
@@ -776,11 +791,11 @@ function TranscriptionStep({
     onNext,
     setDefaultTranscriptionSource,
 }: {
-    defaultTranscriptionSource: "dingtalk-a1" | "ticnote" | "feishu-minutes";
+    defaultTranscriptionSource: DefaultTranscriptionSource;
     isSaving: boolean;
     onNext: () => void;
     setDefaultTranscriptionSource: (
-        value: "dingtalk-a1" | "ticnote" | "feishu-minutes",
+        value: DefaultTranscriptionSource,
     ) => void;
 }) {
     const options = [
@@ -806,15 +821,39 @@ function TranscriptionStep({
 
     return (
         <div data-sot-panel="onboarding-default-source-step">
-            <div
+            <ToggleGroup
+                aria-label="默认转写来源"
                 className={onboardingCardClassNames.defaultSources}
                 data-sot-list="onboarding-default-sources"
+                disabled={isSaving}
+                onValueChange={(value) => {
+                    if (!value || isSaving) {
+                        return;
+                    }
+
+                    const selectedOption = options.find(
+                        (option) => option.id === value,
+                    );
+                    if (!selectedOption?.connected) {
+                        return;
+                    }
+
+                    setDefaultTranscriptionSource(selectedOption.id);
+                }}
+                orientation="vertical"
+                role="group"
+                spacing={2}
+                type="single"
+                value={defaultTranscriptionSource}
+                variant="outline"
             >
                 {options.map((option) => {
                     const isActive = option.id === defaultTranscriptionSource;
 
                     return (
-                        <button
+                        <ToggleGroupItem
+                            aria-label={option.label}
+                            aria-pressed={isActive}
                             className={onboardingCardClassNames.defaultSource}
                             data-sot-control="onboarding-default-source"
                             data-sot-provider={option.id}
@@ -825,53 +864,49 @@ function TranscriptionStep({
                                       ? "idle"
                                       : "disabled"
                             }
-                            data-slot="button"
                             disabled={isSaving || !option.connected}
                             key={option.id}
-                            onClick={() => {
-                                if (isSaving || !option.connected) {
-                                    return;
-                                }
-                                setDefaultTranscriptionSource(option.id);
-                            }}
+                            role="button"
                             type="button"
+                            value={option.id}
                         >
                             <span
                                 className={
-                                    onboardingCardClassNames.defaultSourceSwatch
+                                    DEFAULT_SOURCE_SWATCH_CLASS_NAMES[
+                                        option.swatch
+                                    ]
                                 }
                                 data-sot-part="onboarding-default-source-swatch"
-                                data-sot-swatch={option.swatch}
                             />
                             {option.label}
-                        </button>
+                        </ToggleGroupItem>
                     );
                 })}
-            </div>
+            </ToggleGroup>
             <div
                 className={onboardingCardClassNames.actions}
                 data-sot-part="onboarding-actions"
             >
-                <button
-                    className={onboardingCardClassNames.secondaryAction}
+                <Button
                     data-sot-control="onboarding-skip"
-                    data-slot="button"
                     disabled={isSaving}
                     onClick={onNext}
+                    size="xs"
                     type="button"
+                    variant="outline"
                 >
                     跳过
-                </button>
-                <button
-                    className={onboardingCardClassNames.primaryAction}
+                </Button>
+                <Button
                     data-sot-control="onboarding-next"
-                    data-slot="button"
                     disabled={isSaving}
                     onClick={onNext}
+                    size="xs"
                     type="button"
+                    variant="default"
                 >
                     下一步
-                </button>
+                </Button>
             </div>
         </div>
     );
@@ -997,7 +1032,7 @@ function FinishStep({
     transcriptionSaved,
 }: {
     connectedSourceLabel: string | null;
-    defaultTranscriptionSource: "dingtalk-a1" | "ticnote" | "feishu-minutes";
+    defaultTranscriptionSource: DefaultTranscriptionSource;
     isFinishing: boolean;
     isSaving: boolean;
     onBack: () => void;
@@ -1049,8 +1084,8 @@ function FinishStep({
             >
                 <Button
                     type="button"
-                    variant="ghost"
-                    className={onboardingCardClassNames.secondaryAction}
+                    variant="outline"
+                    size="xs"
                     disabled={isSaving}
                     onClick={onBack}
                 >
@@ -1059,7 +1094,7 @@ function FinishStep({
                 <Button
                     type="button"
                     variant="default"
-                    className={onboardingCardClassNames.primaryAction}
+                    size="xs"
                     disabled={isSaving || isFinishing}
                     aria-busy={isSaving || isFinishing}
                     data-sot-control="save-enter"
@@ -1125,8 +1160,8 @@ function WizardActions({
             {onBack ? (
                 <Button
                     type="button"
-                    variant="ghost"
-                    className={onboardingCardClassNames.secondaryAction}
+                    variant="outline"
+                    size="xs"
                     disabled={isSaving}
                     onClick={onBack}
                 >
@@ -1136,7 +1171,7 @@ function WizardActions({
             <Button
                 type="button"
                 variant="default"
-                className={onboardingCardClassNames.primaryAction}
+                size="xs"
                 disabled={isSaving}
                 data-sot-control="onboarding-next"
                 onClick={onNext}

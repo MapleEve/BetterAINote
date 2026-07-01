@@ -248,6 +248,31 @@ const REMOVED_ONBOARDING_MATRIX_GLOBAL_SELECTORS = [
     '[data-sot-part="matrix-label"]',
     '[data-sot-part="matrix-value"]',
 ] as const;
+
+const REMOVED_ONBOARDING_ARBITRARY_LAYOUT_CLASSES = [
+    "min-h-[100svh]",
+    "px-[32px]",
+    "pb-[80px]",
+    "pt-[28px]",
+    "p-[18px]",
+    "[box-sizing:border-box]",
+    "[min-height:375px]",
+    "[width:min(420px,100%)]",
+    "grid-cols-[36px_1fr_auto_auto]",
+    "has-[>svg]:px-3.5",
+    "mb-[18px]",
+    "gap-[8px]",
+    "min-h-[30px]",
+    "grid-cols-[80px_1fr]",
+    "py-[6px]",
+    "text-[12px]",
+    "[overflow-wrap:normal]",
+    "[word-break:keep-all]",
+    "[&>*]:w-full",
+    "mb-[14px]",
+    "gap-[6px]",
+    "shadow-none",
+] as const;
 const REMOVED_DASHBOARD_BRAND_GLOBAL_SELECTORS = [
     '[data-sot-part="dashboard-brand"]',
     '[data-sot-part="dashboard-brand"] img',
@@ -2784,13 +2809,6 @@ function isOwnerLocalModernColorLine(relativePath: string, line: string) {
         return line.includes("source-provider") || line.includes("data-[sot-tone=");
     }
 
-    if (relativePath === "features/settings/components/settings-dialog.tsx") {
-        return (
-            line.includes("data-[state=active]") &&
-            line.includes("var(--fg-primary)")
-        );
-    }
-
     if (
         relativePath ===
         "features/recordings/components/ai-rename-preview-card.tsx"
@@ -4379,43 +4397,42 @@ describe("full UI replacement regression coverage", () => {
         for (const selector of REMOVED_SETTINGS_SHELL_GLOBAL_SELECTORS) {
             expect(collectExactCssRuleBlocks(productCss, selector)).toEqual([]);
         }
-        const settingsOverlayClass = findStringConstInitializerContaining(
+        expect(settingsDialog).toContain('"data-sot-overlay": "settings-shell"');
+        expect(settingsDialog).not.toContain("const SETTINGS_OVERLAY_CLASS =");
+        expect(settingsDialog).not.toContain("className: SETTINGS_OVERLAY_CLASS");
+        expect(settingsDialog).not.toContain("overlayClassName");
+        expect(settingsDialog).not.toContain("bg-[var(--modal-scrim-bg)]");
+        expect(settingsDialog).not.toContain("backdrop-blur");
+        const settingsShellSurfaceClass = findStringConstInitializerContaining(
             settingsDialog,
             [
-                "const SETTINGS_OVERLAY_CLASS =",
-                "m-0",
-                "w-auto",
-                "max-w-none",
-                "max-h-none",
-                "border-0",
-                "bg-[var(--modal-scrim-bg)]",
+                "const SETTINGS_SHELL_SURFACE_CLASS =",
+                "box-border",
+                "flex",
+                "h-[min(94svh,980px)]",
+                "max-h-[calc(100svh_-_1rem)]",
+                "w-[920px]",
+                "max-w-[calc(100vw_-_2rem)]",
+                "sm:max-w-[920px]",
+                "flex-col",
+                "gap-0",
+                "overflow-hidden",
                 "p-0",
-                "backdrop-blur-[6px]",
-                "data-[state=closed]:pointer-events-none",
-                "data-[state=closed]:opacity-0",
-                "data-[state=open]:pointer-events-auto",
-                "data-[state=open]:opacity-100",
             ],
         );
-        expect(settingsOverlayClass).not.toContain("data-sot-state");
-        findStringConstInitializerContaining(settingsDialog, [
-            "const SETTINGS_SHELL_SURFACE_CLASS =",
-            "z-[calc(var(--z-modal)+1)]",
-            "h-[min(94svh,980px)]",
-            "w-[920px]",
-            "max-w-[calc(100vw-40px)]",
-            "flex-col",
-            "overflow-hidden",
-            "data-[state=closed]:translate-y-[8px]",
-            "data-[state=closed]:scale-[0.985]",
-            "data-[state=closed]:opacity-0",
-        ]);
+        expect(settingsShellSurfaceClass).not.toMatch(/(?:^|\s)z-/);
+        expect(settingsShellSurfaceClass).not.toContain("data-[state=closed]");
+        expect(settingsShellSurfaceClass).not.toContain("!");
+        expect(settingsShellSurfaceClass).not.toContain("var(--");
+        expect(settingsShellSurfaceClass).not.toContain("shadow-");
+        expect(settingsShellSurfaceClass).not.toContain("[box-shadow");
         findStringConstInitializerContaining(settingsDialog, [
             "const SETTINGS_HEADER_CLASS =",
             "flex-none",
             "items-center",
             "max-[720px]:flex-wrap",
             "max-[720px]:items-start",
+            "max-[720px]:gap-3",
         ]);
         findStringConstInitializerContaining(settingsDialog, [
             "const SETTINGS_BODY_CLASS =",
@@ -6831,7 +6848,6 @@ describe("full UI replacement regression coverage", () => {
         expect(onboarding).toContain("stepBody:");
         expect(onboarding).toContain("defaultSources:");
         expect(onboarding).toContain("defaultSource:");
-        expect(onboarding).toContain("defaultSourceSwatch:");
         expect(onboarding).toContain("actions:");
         expect(onboarding).toContain("providerCard:");
         expect(onboarding).toContain("providerList:");
@@ -6844,8 +6860,18 @@ describe("full UI replacement regression coverage", () => {
         expect(onboarding).toContain("providerHint:");
         expect(onboarding).toContain("sourceAuthModeGroup:");
         expect(onboarding).toContain("sourceAuthModeOption:");
-        expect(onboarding).toContain("secondaryAction:");
-        expect(onboarding).toContain("primaryAction:");
+        expect(onboarding).not.toContain("secondaryAction:");
+        expect(onboarding).not.toContain("primaryAction:");
+        expect(onboarding).toContain("const DEFAULT_SOURCE_SWATCH_CLASS_NAMES = {");
+        expect(onboarding).toContain(
+            'accent: "size-5 flex-none rounded bg-primary"',
+        );
+        expect(onboarding).toContain(
+            'empty: "size-5 flex-none rounded bg-muted"',
+        );
+        for (const removedClass of REMOVED_ONBOARDING_ARBITRARY_LAYOUT_CLASSES) {
+            expect(onboarding).not.toContain(removedClass);
+        }
         expect(onboarding).toContain('data-sot-part="onboarding-card-header"');
         expect(onboarding).toContain(
             "className={onboardingCardClassNames.header}",
@@ -6897,13 +6923,48 @@ describe("full UI replacement regression coverage", () => {
         expect(onboarding).toContain(
             'data-sot-part="onboarding-default-source-swatch"',
         );
-        expect(onboarding).toMatch(
-            /<button[\s\S]*data-sot-control="onboarding-default-source"[\s\S]*type="button"/,
+        const defaultSourceMarkerIndex = onboarding.indexOf(
+            'data-sot-list="onboarding-default-sources"',
         );
+        expect(defaultSourceMarkerIndex).toBeGreaterThanOrEqual(0);
+        const defaultSourceStartIndex = onboarding.lastIndexOf(
+            "<ToggleGroup",
+            defaultSourceMarkerIndex,
+        );
+        const defaultSourceEndIndex = onboarding.indexOf(
+            "</ToggleGroup>",
+            defaultSourceMarkerIndex,
+        );
+        expect(defaultSourceStartIndex).toBeGreaterThanOrEqual(0);
+        expect(defaultSourceEndIndex).toBeGreaterThan(
+            defaultSourceMarkerIndex,
+        );
+        const defaultSourceControl = onboarding.slice(
+            defaultSourceStartIndex,
+            defaultSourceEndIndex + "</ToggleGroup>".length,
+        );
+        expect(defaultSourceControl).toContain("<ToggleGroup");
+        expect(defaultSourceControl).toContain("<ToggleGroupItem");
+        expect(defaultSourceControl).toContain('type="single"');
+        expect(defaultSourceControl).toContain('orientation="vertical"');
+        expect(defaultSourceControl).toContain('role="group"');
+        expect(defaultSourceControl).toContain('variant="outline"');
+        expect(defaultSourceControl).toContain("spacing={2}");
+        expect(defaultSourceControl).toContain(
+            "value={defaultTranscriptionSource}",
+        );
+        expect(defaultSourceControl).toContain(
+            "setDefaultTranscriptionSource(selectedOption.id)",
+        );
+        expect(defaultSourceControl).toContain("aria-pressed={isActive}");
+        expect(defaultSourceControl).toContain("data-sot-state={");
+        expect(defaultSourceControl).toContain('role="button"');
+        expect(defaultSourceControl).toContain('type="button"');
+        expect(defaultSourceControl).not.toContain("<button");
+        expect(defaultSourceControl).not.toContain("data-sot-swatch");
         expect(onboarding).toContain(
             "disabled={isSaving || !option.connected}",
         );
-        expect(onboarding).not.toContain('role="button"');
         expect(onboarding).not.toContain("style={{");
         expect(onboarding).not.toContain("tabIndex=");
         expect(onboarding).toContain(
@@ -6943,12 +7004,12 @@ describe("full UI replacement regression coverage", () => {
             "className={onboardingCardClassNames.surface}",
         );
         expect(onboarding).toContain(
-            "className={onboardingCardClassNames.providerCard}",
+            "onboardingCardClassNames.providerCard",
         );
-        expect(onboarding).toContain(
+        expect(onboarding).not.toContain(
             "className={onboardingCardClassNames.secondaryAction}",
         );
-        expect(onboarding).toContain(
+        expect(onboarding).not.toContain(
             "className={onboardingCardClassNames.primaryAction}",
         );
         expect(onboarding).not.toContain('variant="onboardingProviderCard"');
@@ -6961,34 +7022,27 @@ describe("full UI replacement regression coverage", () => {
         expect(onboarding).not.toContain('variant="accent"');
         expect(onboarding).not.toContain('variant="quietOutline"');
         expect(onboarding).not.toContain('size="control-xs"');
-        expect(onboarding).not.toContain(
+        expect(onboarding).toContain(
             'variant={isActive ? "secondary" : "outline"}',
         );
         const onboardingSkipButton = extractOpeningElement(
             onboarding,
             'data-sot-control="onboarding-skip"',
-            "button",
+            "Button",
         );
         const defaultSourceNextButton = extractOpeningElement(
             onboarding,
             'data-sot-control="onboarding-next"',
-            "button",
+            "Button",
         );
         expect(onboardingSkipButton).toContain('type="button"');
-        expect(onboardingSkipButton).toContain(
-            "className={onboardingCardClassNames.secondaryAction}",
-        );
+        expect(onboardingSkipButton).toContain('variant="outline"');
+        expect(onboardingSkipButton).toContain('size="xs"');
+        expect(onboardingSkipButton).not.toContain("className=");
         expect(defaultSourceNextButton).toContain('type="button"');
-        expect(defaultSourceNextButton).toContain(
-            "className={onboardingCardClassNames.primaryAction}",
-        );
-        expect(onboarding).toContain(
-            "className={onboardingCardClassNames.primaryAction}",
-        );
-        const onboardingActionClassInitializers = [
-            extractObjectStringProperty(onboarding, "secondaryAction"),
-            extractObjectStringProperty(onboarding, "primaryAction"),
-        ];
+        expect(defaultSourceNextButton).toContain('variant="default"');
+        expect(defaultSourceNextButton).toContain('size="xs"');
+        expect(defaultSourceNextButton).not.toContain("className=");
         for (const removedOnboardingPrimitiveRepaintClass of [
             "!h-[26px]",
             "!gap-[6px]",
@@ -7003,8 +7057,11 @@ describe("full UI replacement regression coverage", () => {
             "!text-white",
             "!shadow-none",
         ]) {
-            for (const actionClassInitializer of onboardingActionClassInitializers) {
-                expect(actionClassInitializer).not.toContain(
+            for (const actionButtonOpening of [
+                onboardingSkipButton,
+                defaultSourceNextButton,
+            ]) {
+                expect(actionButtonOpening).not.toContain(
                     removedOnboardingPrimitiveRepaintClass,
                 );
             }
@@ -7014,9 +7071,15 @@ describe("full UI replacement regression coverage", () => {
             'data-sot-control="provider-card"',
             "Button",
         );
-        expect(providerCardButton).toContain('variant="outline"');
         expect(providerCardButton).toContain(
-            "className={onboardingCardClassNames.providerCard}",
+            'variant={isActive ? "secondary" : "outline"}',
+        );
+        expect(providerCardButton).toContain("className={cn(");
+        expect(providerCardButton).toContain(
+            "onboardingCardClassNames.providerCard",
+        );
+        expect(providerCardButton).toContain(
+            'isActive && "border-transparent"',
         );
         expect(onboarding).not.toContain(
             '"grid h-auto w-full grid-cols-[36px_1fr_auto_auto] items-center justify-start gap-3 px-3.5 py-3 text-left"',
@@ -7113,7 +7176,6 @@ describe("full UI replacement regression coverage", () => {
         expect(onboarding).not.toContain('className="onboarding-actions"');
         expect(onboarding).not.toContain('className="sr-meta-row"');
         expect(onboarding).not.toContain('className="sm"');
-        expect(onboarding).not.toContain('role="button"');
         expect(onboarding).not.toContain("onKeyDown={(event) =>");
         for (const selector of REMOVED_AUTH_ONBOARDING_CARD_GLOBAL_SELECTORS) {
             expect(globals).not.toContain(selector);
@@ -10877,6 +10939,17 @@ describe("full UI replacement regression coverage", () => {
             'data-sot-control="settings-nav"\n',
             "Button",
         );
+        const settingsNavButtonClass = findStringConstInitializerContaining(
+            settingsDialog,
+            [
+                "const SETTINGS_NAV_BUTTON_CLASS =",
+                "w-full",
+                "min-w-0",
+                "justify-start",
+                "truncate",
+                "text-left",
+            ],
+        );
         const settingsSectionTitleClass =
             settings.match(
                 /const SETTINGS_SECTION_TITLE_CLASS\s*=\s*"[^"]*";/,
@@ -10916,14 +10989,53 @@ describe("full UI replacement regression coverage", () => {
         expect(settingsCloseButton).toMatch(
             /className=\{\s*[A-Za-z0-9_]+\s*\}/,
         );
+        expect(settingsCloseButton).toMatch(
+            /<X\s+data-icon="inline-start"\s+aria-hidden="true"\s*\/>/,
+        );
         expect(settingsCloseButton).not.toContain('variant="settingsClose"');
         expect(settingsCloseButton).not.toContain('size="settingsClose"');
         expect(settingsNavButton).toContain('data-sot-control="settings-nav"');
-        expect(settingsNavButton).toContain('variant="ghost"');
+        expect(settingsNavButton).toMatch(
+            /variant=\{\s*isActive\s*\?\s*"secondary"\s*:\s*"ghost"\s*\}/,
+        );
+        expect(settingsNavButton).toContain('size="sm"');
         expect(settingsNavButton).toContain("SETTINGS_NAV_BUTTON_CLASS");
         expect(settingsNavButton).toMatch(/className=\{\s*[A-Za-z0-9_]+\s*\}/);
+        expect(settingsNavButton).toContain('data-icon="inline-start"');
+        expect(settingsNavButton).toContain('className="min-w-0 truncate"');
         expect(settingsNavButton).not.toContain('variant="settingsNav"');
         expect(settingsNavButton).not.toContain('size="settingsNav"');
+        for (const removedNavButtonOverride of [
+            "[box-shadow",
+            "shadow-none",
+            "data-[state=active]",
+            "data-[state=inactive]",
+            "bg-transparent",
+            "border-transparent",
+            "font-sans",
+            "text-[13px]",
+            "leading-[normal]",
+            "tracking-normal",
+            "[&_svg",
+            "stroke-[",
+        ]) {
+            expect(settingsNavButtonClass).not.toContain(
+                removedNavButtonOverride,
+            );
+        }
+        const settingsAvatarClass = findStringConstInitializerContaining(
+            settingsDialog,
+            [
+                "const SETTINGS_USER_AVATAR_CLASS =",
+                "grid",
+                "size-9",
+                "place-items-center",
+                "text-muted-foreground",
+            ],
+        );
+        expect(settingsAvatarClass).not.toContain("[&_svg");
+        expect(settingsAvatarClass).not.toContain("svg:not");
+        expect(settingsAvatarClass).not.toContain("size-4");
         expect(button).not.toContain("settingsNav:");
         expect(button).not.toContain("settingsClose:");
         expect(avatarPrimitive).not.toMatch(/-space-[xy]-/);

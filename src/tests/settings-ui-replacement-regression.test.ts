@@ -142,8 +142,17 @@ function findStringConstInitializerContaining(
     return initializer;
 }
 
+function expectNoDataSotDrivenTailwindSelectors(source: string) {
+    const selectors =
+        source.match(
+            /(?:data-\[sot-[^\s"`]+:[^\s"`]+|\[[^\]\s"`]*data-sot[^\]\s"`]*\]:[^\s"`]+)/g,
+        ) ?? [];
+
+    expect(selectors).toEqual([]);
+}
+
 const OLD_UI_RE =
-    /uikit-|glass-surface|glass-control|CardContent|from "@\/components\/ui\/card"|bg-muted/;
+    /uikit-|glass-surface|glass-control|CardContent|from "@\/components\/ui\/card"/;
 
 const TARGET_SETTINGS_MIGRATION_PATHS = [
     "features/settings/components/settings-content.tsx",
@@ -446,6 +455,17 @@ describe("settings SOT interaction regressions", () => {
             'data-sot-control="settings-nav"\n',
             "Button",
         );
+        const settingsNavButtonClass = findStringConstInitializerContaining(
+            dialog,
+            [
+                "const SETTINGS_NAV_BUTTON_CLASS =",
+                "w-full",
+                "min-w-0",
+                "justify-start",
+                "truncate",
+                "text-left",
+            ],
+        );
 
         expect(dialog).toContain('data-sot-surface="settings-shell"');
         expect(dialog).toContain("data-sot-busy=");
@@ -457,6 +477,21 @@ describe("settings SOT interaction regressions", () => {
         expect(dialog).toContain("<aside");
         expect(dialog).toContain('data-sot-control="settings-nav"');
         expect(dialog).toContain('data-sot-control="settings-close"');
+        expectNoDataSotDrivenTailwindSelectors(dialog);
+        expect(dialog).toContain("SETTINGS_NAV_CONTROL_SELECTOR");
+        expect(dialog).toContain("SETTINGS_INNER_SCROLL_SELECTOR");
+        expect(dialog).toContain("settingsShellRef");
+        expect(dialog).toContain("firstNavButtonRef");
+        expect(settingsNavButton).toContain("data-settings-nav-control");
+        expect(dialog).not.toMatch(
+            /closest\(\s*["']\[data-sot-control="settings-nav"\]/,
+        );
+        expect(dialog).not.toMatch(
+            /closest\(\s*["']\[data-sot-surface="settings-shell"\]/,
+        );
+        expect(dialog).not.toMatch(
+            /querySelector(?:All)?(?:<[^>]+>)?\(\s*["']\[data-sot-(?:nav|inner-scroll)/,
+        );
         expect(globals).not.toContain(
             '[data-sot-control="settings-close"][data-slot="button"]',
         );
@@ -488,10 +523,36 @@ describe("settings SOT interaction regressions", () => {
         expect(settingsCloseButton).toMatch(
             /className=\{\s*[A-Za-z0-9_]+\s*\}/,
         );
+        expect(settingsCloseButton).toMatch(
+            /<X\s+data-icon="inline-start"\s+aria-hidden="true"\s*\/>/,
+        );
         expect(settingsNavButton).toContain('data-sot-control="settings-nav"');
-        expect(settingsNavButton).toContain('variant="ghost"');
+        expect(settingsNavButton).toMatch(
+            /variant=\{\s*isActive\s*\?\s*"secondary"\s*:\s*"ghost"\s*\}/,
+        );
+        expect(settingsNavButton).toContain('size="sm"');
         expect(settingsNavButton).toContain("SETTINGS_NAV_BUTTON_CLASS");
         expect(settingsNavButton).toMatch(/className=\{\s*[A-Za-z0-9_]+\s*\}/);
+        expect(settingsNavButton).toContain('data-icon="inline-start"');
+        expect(settingsNavButton).toContain('className="min-w-0 truncate"');
+        for (const removedNavButtonOverride of [
+            "[box-shadow",
+            "shadow-none",
+            "data-[state=active]",
+            "data-[state=inactive]",
+            "bg-transparent",
+            "border-transparent",
+            "font-sans",
+            "text-[13px]",
+            "leading-[normal]",
+            "tracking-normal",
+            "[&_svg",
+            "stroke-[",
+        ]) {
+            expect(settingsNavButtonClass).not.toContain(
+                removedNavButtonOverride,
+            );
+        }
         for (const settingsControlButton of [
             settingsCloseButton,
             settingsNavButton,
@@ -517,6 +578,27 @@ describe("settings SOT interaction regressions", () => {
         expect(dialog).toContain("SettingsBusyProvider");
         expect(dialog).toContain("isSettingsBusy");
         expect(dialog).toContain("returnFocusRef");
+        expect(dialog).toContain(
+            "const keyboardSelectedIndexRef = React.useRef<number>(0);",
+        );
+        expect(dialog).toContain("keyboardSelectedIndexRef.current = nextIndex;");
+        expect(dialog).toContain(
+            "const selectedIndex = keyboardSelectedIndexRef.current;",
+        );
+        expect(settingsNavButton).toContain("data-keyboard-selected={");
+        expect(settingsNavButton).toContain(
+            "keyboardSelectedIndex ===\n                                                        itemIndex",
+        );
+        expect(settingsNavButton).not.toContain(
+            "!isSettingsBusy &&\n                                                    keyboardSelectedIndex",
+        );
+        expect(settingsNavButton).toMatch(
+            /applyActiveSettingsSection\(\s*item\.id,?\s*\)/,
+        );
+        expect(settingsNavButton).not.toContain("setActiveSection(item.id)");
+        expect(dialog).not.toContain(
+            "orderedSettingsNav[keyboardSelectedIndex].id",
+        );
         expect(dialog).toContain("focus({ preventScroll: true })");
         expect(dialog).toContain("onInteractOutside");
         expect(dialog).toContain("normalizeSettingsSection");
@@ -590,29 +672,38 @@ describe("settings SOT interaction regressions", () => {
         expect(globals).not.toContain(
             '.scrim[data-open="false"] > [data-sot-surface="settings-shell"]',
         );
-        const settingsOverlayClass = findStringConstInitializerContaining(
-            dialog,
-            [
-                "const SETTINGS_OVERLAY_CLASS =",
-                "m-0",
-                "w-auto",
-                "max-w-none",
-                "max-h-none",
-                "border-0",
-                "bg-[var(--modal-scrim-bg)]",
+        expect(dialog).toContain('"data-sot-overlay": "settings-shell"');
+        expect(dialog).not.toContain("const SETTINGS_OVERLAY_CLASS =");
+        expect(dialog).not.toContain("className: SETTINGS_OVERLAY_CLASS");
+        expect(dialog).not.toContain("overlayClassName");
+        expect(dialog).not.toContain("bg-[var(--modal-scrim-bg)]");
+        expect(dialog).not.toContain("backdrop-blur");
+        expect(dialog).not.toContain('"--tw-enter-scale"');
+        expect(dialog).not.toContain('"--tw-exit-scale"');
+        const settingsShellSurfaceClass =
+            findStringConstInitializerContaining(dialog, [
+                "const SETTINGS_SHELL_SURFACE_CLASS =",
+                "box-border",
+                "flex",
+                "h-[min(94svh,980px)]",
+                "max-h-[calc(100svh_-_1rem)]",
+                "w-[920px]",
+                "max-w-[calc(100vw_-_2rem)]",
+                "sm:max-w-[920px]",
+                "flex-col",
+                "gap-0",
+                "overflow-hidden",
                 "p-0",
-                "backdrop-blur-[6px]",
-                "data-[state=closed]:pointer-events-none",
-                "data-[state=closed]:opacity-0",
-                "data-[state=open]:pointer-events-auto",
-                "data-[state=open]:opacity-100",
-            ],
-        );
-        expect(settingsOverlayClass).not.toContain("data-sot-state");
+            ]);
+        expect(settingsShellSurfaceClass).not.toMatch(/(?:^|\s)z-/);
+        expect(settingsShellSurfaceClass).not.toContain("!");
+        expect(settingsShellSurfaceClass).not.toContain("var(--");
+        expect(settingsShellSurfaceClass).not.toContain("shadow-");
+        expect(settingsShellSurfaceClass).not.toContain("[box-shadow");
         findStringConstInitializerContaining(dialog, [
             "const SETTINGS_SHELL_SURFACE_CLASS =",
-            "z-[calc(var(--z-modal)+1)]",
-            "data-[state=closed]:opacity-0",
+            "max-w-[calc(100vw_-_2rem)]",
+            "sm:max-w-[920px]",
         ]);
         for (const [pattern, label] of LEGACY_SETTINGS_SHELL_CSS_SELECTORS) {
             expect(globals, `globals should not use ${label}`).not.toMatch(
@@ -891,6 +982,16 @@ describe("settings SOT interaction regressions", () => {
         expect(localBadge).toContain('aria-hidden="true"');
         expect(localBadge).toContain('data-sot-part="settings-user-avatar"');
         expect(localBadge).toContain("<Monitor");
+        const avatarClass = findStringConstInitializerContaining(dialog, [
+            "const SETTINGS_USER_AVATAR_CLASS =",
+            "grid",
+            "size-9",
+            "place-items-center",
+            "text-muted-foreground",
+        ]);
+        expect(avatarClass).not.toContain("[&_svg");
+        expect(avatarClass).not.toContain("svg:not");
+        expect(avatarClass).not.toContain("size-4");
         expect(localBadge).not.toContain("{settingsUserName}");
         expect(localBadge).not.toContain("getSettingsUserInitial");
         expect(localBadge).not.toContain("settingsUserInitial");
@@ -917,22 +1018,24 @@ describe("settings SOT interaction regressions", () => {
         expect(dialog).toContain("<Monitor");
         expect(dialog).toContain("{settingsUserSubtitle}");
 
-        findStringConstInitializerContaining(dialog, [
+        const shellSurfaceClass = findStringConstInitializerContaining(dialog, [
             "const SETTINGS_SHELL_SURFACE_CLASS =",
-            "z-[calc(var(--z-modal)+1)]",
             "box-border",
             "flex",
             "h-[min(94svh,980px)]",
-            "max-h-[calc(100svh-1rem)]",
+            "max-h-[calc(100svh_-_1rem)]",
             "w-[920px]",
-            "max-w-[calc(100vw-40px)]",
+            "max-w-[calc(100vw_-_2rem)]",
+            "sm:max-w-[920px]",
             "flex-col",
             "gap-0",
             "overflow-hidden",
-            "data-[state=closed]:translate-y-[8px]",
-            "data-[state=closed]:scale-[0.985]",
-            "data-[state=closed]:opacity-0",
+            "p-0",
         ]);
+        expect(shellSurfaceClass).not.toContain("z-[");
+        expect(shellSurfaceClass).not.toContain("data-[state=closed]");
+        expect(shellSurfaceClass).not.toContain("!");
+        expect(shellSurfaceClass).not.toContain("var(--");
         findStringConstInitializerContaining(dialog, [
             "const SETTINGS_HEADER_CLASS =",
             "flex",
@@ -949,7 +1052,7 @@ describe("settings SOT interaction regressions", () => {
             "flex-1",
             "items-center",
             "gap-3",
-            "max-[720px]:basis-[calc(100%-42px)]",
+            "max-[720px]:basis-[calc(100%_-_42px)]",
         ]);
         findStringConstInitializerContaining(dialog, [
             "const SETTINGS_USER_AVATAR_CLASS =",
@@ -988,7 +1091,7 @@ describe("settings SOT interaction regressions", () => {
             "flex-col",
             "gap-[2px]",
             "overflow-y-auto",
-            "bg-[var(--bg-recessed)]",
+            "bg-muted/50",
             "[overscroll-behavior:contain]",
         ]);
         findStringConstInitializerContaining(dialog, [
@@ -1010,20 +1113,21 @@ describe("settings SOT interaction regressions", () => {
         }
     });
 
-    it("keeps the SOT settings shell shadow token above the DialogContent base shadow", () => {
+    it("uses the DialogContent base shadow without settings shell overrides", () => {
         const dialog = readSource(
             "features/settings/components/settings-dialog.tsx",
         );
         const dialogPrimitive = readSource("components/ui/dialog.tsx");
         const shellSurfaceClass = findStringConstInitializerContaining(dialog, [
             "const SETTINGS_SHELL_SURFACE_CLASS =",
-            "![box-shadow:var(--shadow-xl)]",
+            "box-border",
+            "p-0",
         ]);
 
         expect(dialogPrimitive).toContain("shadow-lg");
-        expect(shellSurfaceClass).not.toMatch(
-            /(?:^|\s)shadow-\[var\(--shadow-xl\)\](?=\s|";)/,
-        );
+        expect(shellSurfaceClass).not.toContain("shadow-");
+        expect(shellSurfaceClass).not.toContain("[box-shadow");
+        expect(shellSurfaceClass).not.toContain("!");
         expect(dialog).toContain("className={SETTINGS_SHELL_SURFACE_CLASS}");
     });
 

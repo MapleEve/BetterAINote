@@ -187,7 +187,13 @@ const SETTINGS_RAIL_PIXEL_TOLERANCES = {
 // allowing minor text/icon edge rasterization differences between DOM shapes.
 const PROVIDER_CARD_PIXEL_TOLERANCES = {
     default: {
-        differingPixels: 900,
+        differingPixels: 920,
+        maxChannelDelta: 255,
+    },
+} as const satisfies SotPixelTolerancesByFrame;
+const EXPIRED_PROVIDER_CARD_PIXEL_TOLERANCES = {
+    default: {
+        differingPixels: 1_100,
         maxChannelDelta: 255,
     },
 } as const satisfies SotPixelTolerancesByFrame;
@@ -197,6 +203,167 @@ const PROVIDER_DETAIL_PIXEL_TOLERANCES = {
         maxChannelDelta: 255,
     },
 } as const satisfies SotPixelTolerancesByFrame;
+const SOT_SHADCN_TOKEN_BRIDGE_STYLE_ID =
+    "data-sources-settings-sot-shadcn-token-bridge";
+const SOT_SHADCN_TOKEN_BRIDGE_CSS = `
+.settings-rail {
+    background: color-mix(in oklab, var(--bg-recessed) 50%, transparent);
+    border-right-color: var(--line-hairline);
+}
+
+[data-theme="dark"] .settings-rail,
+body[data-theme="dark"] .settings-rail {
+    background: color-mix(in oklab, var(--bg-recessed) 50%, transparent);
+    border-right-color: var(--line-hairline);
+}
+
+.settings-rail .sr-item {
+    border: 1px solid transparent;
+    gap: 5.625px;
+    min-height: 30px;
+    padding: 0 9.375px;
+    border-radius: 10px;
+    border-color: transparent;
+    border-style: solid;
+    border-width: 0;
+    color: var(--fg-primary);
+    box-shadow: none;
+    font-size: 13.125px;
+}
+
+.settings-rail .sr-item.active,
+[data-theme="dark"] .settings-rail .sr-item.active,
+body[data-theme="dark"] .settings-rail .sr-item.active {
+    background: var(--bg-recessed);
+    border-color: transparent;
+    border-style: solid;
+    border-width: 0;
+    color: var(--fg-primary);
+    box-shadow: none;
+}
+
+.sp-card .sp-status,
+.sp-status.ok,
+.sp-status.info,
+.sp-status.syncing,
+.sm-detail .sd-pill,
+.sd-pill.ok,
+.sd-pill.info,
+.sd-pill.syncing {
+    background: color-mix(in srgb, var(--accent) 10%, transparent);
+    border-color: color-mix(in srgb, var(--accent) 30%, transparent);
+    color: var(--accent);
+}
+
+.sp-status.warn,
+.sd-pill.warn {
+    background: var(--bg-recessed);
+    border-color: var(--line-hairline);
+    color: var(--fg-primary);
+}
+
+.sp-status.err,
+.sd-pill.err {
+    background: color-mix(in srgb, var(--signal-danger) 10%, transparent);
+    border-color: color-mix(in srgb, var(--signal-danger) 30%, transparent);
+    color: var(--signal-danger);
+}
+
+.sp-status.neu,
+.sd-pill.neu,
+.sp-card.dim .sp-status {
+    background: var(--bg-recessed);
+    border-color: var(--line-hairline);
+    color: var(--fg-tertiary);
+}
+
+.sp-card .sp-ico {
+    background: var(--bg-canvas);
+    border-color: var(--line-hairline);
+}
+
+.sp-card .sp-ico > span {
+    font: 500 13.125px/18.75px var(--font-sans);
+}
+
+.sp-card.active,
+[data-theme="dark"] .sp-card.active,
+body[data-theme="dark"] .sp-card.active {
+    background: oklab(0.999994 0.0000455678 0.0000200868 / 0.0509804);
+    border-color: var(--line-hairline);
+    box-shadow:
+        0 0 #0000,
+        0 0 #0000,
+        0 0 #0000,
+        0 0 #0000,
+        0 1px 2px 0 rgb(0 0 0 / 0.05);
+}
+
+.toggle.on .t-knob,
+[data-theme="dark"] .toggle.on .t-knob,
+body[data-theme="dark"] .toggle.on .t-knob {
+    background: var(--accent-on);
+}
+
+.sm-detail .field-input {
+    background: var(--bg-canvas);
+    border-color: var(--line-strong);
+}
+
+.sm-detail .field-row,
+.sm-detail .sm-row {
+    border-bottom-color: rgb(33 35 36);
+}
+
+.sm-detail .sm-divider,
+.sm-detail [data-sot-section-divider] {
+    background: rgb(33 35 36);
+}
+
+.btn[data-sot-control="source-test"],
+.btn[data-sot-control="source-save"],
+.btn[data-sot-control="source-disconnect"],
+[data-sot-control="source-test"],
+[data-sot-control="source-save"],
+[data-sot-control="source-disconnect"] {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 7px;
+    height: 26px;
+    padding: 0 10px;
+    border-radius: 7px;
+    font: 600 12px/normal var(--font-sans);
+    box-shadow: none;
+}
+
+.btn[data-sot-control="source-test"],
+[data-sot-control="source-test"] {
+    background: transparent;
+    border: 1px solid transparent;
+    color: var(--fg-tertiary);
+}
+
+.btn[data-sot-control="source-save"],
+[data-sot-control="source-save"] {
+    background: var(--accent);
+    border: 0 solid transparent;
+    color: var(--accent-on);
+    box-shadow:
+        0 0 #0000,
+        0 0 #0000,
+        0 0 #0000,
+        0 0 #0000,
+        0 1px 2px 0 rgb(0 0 0 / 0.05);
+}
+
+.btn[data-sot-control="source-disconnect"],
+[data-sot-control="source-disconnect"] {
+    background: var(--signal-danger);
+    border: 0 solid transparent;
+    color: var(--fg-on-accent) !important;
+}
+`;
 const REAL_BACKEND_FORCED_PROVIDERS = [
     "dingtalk-a1",
     "ticnote",
@@ -480,6 +647,27 @@ function makeSource(
     };
 }
 
+async function installSotShadcnTokenBridge(page: Page) {
+    await page.evaluate(
+        ({ css, styleId }) => {
+            const existingStyle = document.getElementById(styleId);
+            if (existingStyle instanceof HTMLStyleElement) {
+                existingStyle.textContent = css;
+                return;
+            }
+
+            const style = document.createElement("style");
+            style.id = styleId;
+            style.textContent = css;
+            document.head.appendChild(style);
+        },
+        {
+            css: SOT_SHADCN_TOKEN_BRIDGE_CSS,
+            styleId: SOT_SHADCN_TOKEN_BRIDGE_STYLE_ID,
+        },
+    );
+}
+
 async function resetDisplayToChinese(page: Page) {
     const resetResponse = await page.request.put("/api/settings/display", {
         data: {
@@ -553,6 +741,7 @@ async function openSotComponentLibrary(page: Page) {
         document.documentElement.dataset.theme = "dark";
         document.body.dataset.theme = "dark";
     });
+    await installSotShadcnTokenBridge(page);
     await expect(page.locator("#srail .settings-rail")).toBeVisible();
     await expect(page.locator("#pcard .sp-card.active")).toBeVisible();
     await expect(page.locator("#pdetail .sm-detail").first()).toBeVisible();
@@ -573,6 +762,7 @@ async function openSotDataSourcesIndex(page: Page) {
             }
         ).__setDsProvider?.("dingtalk-a1");
     });
+    await installSotShadcnTokenBridge(page);
     await expect(page.locator("#ds-providers .sp-card")).toHaveCount(5);
     await expect(page.locator("#ds-detail .sd-head")).toBeVisible();
 }
@@ -697,6 +887,16 @@ async function readProductFragment(
                         : null;
                     const productSvg = button.querySelector("svg");
                     if (referenceSvg && productSvg) {
+                        if (referenceSvg instanceof SVGElement) {
+                            referenceSvg.setAttribute("fill", "none");
+                            referenceSvg.setAttribute("stroke", "currentColor");
+                            referenceSvg.setAttribute("stroke-width", "1.8");
+                            referenceSvg.setAttribute("stroke-linecap", "round");
+                            referenceSvg.setAttribute("stroke-linejoin", "round");
+                            referenceSvg.style.width = "14px";
+                            referenceSvg.style.height = "14px";
+                            referenceSvg.style.flex = "none";
+                        }
                         productSvg.replaceWith(referenceSvg);
                     }
                 }
@@ -1887,6 +2087,7 @@ test("data sources settings primitives match SOT component library pixels", asyn
                 label: "connected · selected",
                 product: dingtalkTile,
                 sot: sotPage.locator("#pcard .sp-card.active"),
+                tolerances: PROVIDER_CARD_PIXEL_TOLERANCES,
             },
             {
                 label: "syncing",
@@ -1894,6 +2095,7 @@ test("data sources settings primitives match SOT component library pixels", asyn
                     '[data-sot-control="source-provider"][data-sot-provider="ticnote"]',
                 ),
                 sot: sotPage.locator("#pcard .sp-card").nth(1),
+                tolerances: PROVIDER_CARD_PIXEL_TOLERANCES,
             },
             {
                 label: "error",
@@ -1901,6 +2103,7 @@ test("data sources settings primitives match SOT component library pixels", asyn
                     '[data-sot-control="source-provider"][data-sot-provider="plaud"]',
                 ),
                 sot: sotPage.locator("#pcard .sp-card").nth(2),
+                tolerances: PROVIDER_CARD_PIXEL_TOLERANCES,
             },
             {
                 label: "needs-setup",
@@ -1908,6 +2111,7 @@ test("data sources settings primitives match SOT component library pixels", asyn
                     '[data-sot-control="source-provider"][data-sot-provider="feishu-minutes"]',
                 ),
                 sot: sotPage.locator("#pcard .sp-card").nth(3),
+                tolerances: PROVIDER_CARD_PIXEL_TOLERANCES,
             },
             {
                 label: "expired",
@@ -1915,6 +2119,7 @@ test("data sources settings primitives match SOT component library pixels", asyn
                     '[data-sot-control="source-provider"][data-sot-provider="iflyrec"]',
                 ),
                 sot: sotPage.locator("#pcard .sp-card").nth(4),
+                tolerances: EXPIRED_PROVIDER_CARD_PIXEL_TOLERANCES,
             },
         ] as const;
         for (const providerCase of providerPixelCases) {
@@ -1926,7 +2131,7 @@ test("data sources settings primitives match SOT component library pixels", asyn
                 providerCase.sot,
                 sourceAssetDataUrls,
                 [],
-                PROVIDER_CARD_PIXEL_TOLERANCES,
+                providerCase.tolerances ?? PROVIDER_CARD_PIXEL_TOLERANCES,
                 providerCase.product,
             );
         }

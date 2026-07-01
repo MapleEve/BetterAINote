@@ -9,50 +9,49 @@ const EXPECTED_ONBOARDING_CARD_CLASS_INITIALIZERS = [
     {
         property: "layout",
         expected:
-            "grid min-h-[100svh] place-items-center bg-[var(--bg-canvas)] px-[32px] pb-[80px] pt-[28px] text-[var(--fg-primary)]",
+            "grid min-h-svh place-items-center bg-background px-8 pb-20 pt-7 text-foreground",
     },
     {
         property: "surface",
         expected:
-            "!block !gap-0 !overflow-visible !rounded-[14px] !border !border-[var(--line-hairline)] !bg-[var(--bg-elevated)] !p-[18px] !shadow-[var(--shadow-xs)] !backdrop-blur-none [box-sizing:border-box] [min-height:375px] [width:min(420px,100%)]",
+            "block min-h-96 w-full max-w-md box-border gap-0 overflow-visible rounded-xl border border-border bg-card p-5 shadow-sm backdrop-blur-none",
     },
     {
         property: "frame",
         expected:
-            "[overflow:hidden] [border-radius:12px] [border:1px_solid_var(--line-hairline)] [background:var(--bg-canvas)] [padding:18px]",
+            "overflow-hidden rounded-xl border border-border bg-background p-5",
     },
     {
         property: "speakerDraft",
         expected:
-            "grid grid-cols-[36px_1fr_auto_auto] items-center gap-3 border-primary/50 bg-primary/10 p-3.5",
+            "flex flex-row items-center gap-3 border-primary/50 bg-primary/10 p-3.5",
     },
     {
         property: "providerCard",
         expected:
-            "grid h-auto w-full grid-cols-[36px_1fr_auto_auto] items-center justify-start gap-3 rounded-md px-3.5 py-3 text-left whitespace-normal data-[sot-state=selected]:border-transparent data-[sot-state=selected]:bg-secondary data-[sot-state=selected]:text-secondary-foreground data-[sot-state=selected]:hover:bg-secondary/80 has-[>svg]:px-3.5",
+            "flex h-auto w-full flex-row items-center justify-start gap-3 rounded-md px-3.5 py-3 text-left whitespace-normal",
     },
     {
         property: "providerList",
-        expected: "mb-[18px] flex flex-col gap-[8px]",
+        expected: "mb-5 flex flex-col gap-2",
     },
     {
         property: "summaryList",
-        expected: "mb-[18px] flex flex-col gap-[8px]",
+        expected: "mb-5 flex flex-col gap-2",
     },
     {
         property: "matrixRow",
         expected:
-            "grid min-h-[30px] grid-cols-[80px_1fr] items-baseline gap-[8px] border-b border-dashed border-border py-[6px]",
+            "flex min-h-8 items-baseline gap-2 border-b border-dashed border-border py-1.5",
     },
     {
         property: "matrixLabel",
-        expected:
-            "m-0 [font:600_11px_var(--font-sans)] [color:var(--fg-tertiary)]",
+        expected: "m-0 w-20 flex-none text-xs font-semibold text-muted-foreground",
     },
     {
         property: "matrixValue",
         expected:
-            "m-0 [font:500_12px_var(--font-sans)] [color:var(--fg-primary)] [word-break:break-word]",
+            "m-0 min-w-0 flex-1 break-words text-xs font-medium text-foreground",
     },
     {
         property: "sourceAuthModeGroup",
@@ -62,16 +61,6 @@ const EXPECTED_ONBOARDING_CARD_CLASS_INITIALIZERS = [
         property: "sourceAuthModeOption",
         expected:
             "h-auto flex-col items-start justify-start whitespace-normal px-3.5 py-3 text-left",
-    },
-    {
-        property: "secondaryAction",
-        expected:
-            "[display:inline-flex] [align-items:center] [height:26px] [gap:6px] [border-radius:8px] [border:1px_solid_var(--line-hairline)] bg-transparent [padding:0_10px] [font:600_11px_var(--font-sans)] [line-height:normal] text-[var(--fg-secondary)] shadow-none hover:bg-accent hover:text-accent-foreground disabled:cursor-not-allowed has-[>svg]:px-[10px]",
-    },
-    {
-        property: "primaryAction",
-        expected:
-            "[display:inline-flex] [align-items:center] [height:26px] [gap:6px] [border-radius:8px] [border:1px_solid_transparent] bg-primary [padding:0_10px] [font:600_11px_var(--font-sans)] [line-height:normal] text-[var(--button-primary-fg)] shadow-none hover:bg-primary/90 hover:text-[var(--button-primary-fg)] focus-visible:border-ring focus-visible:ring-0 disabled:cursor-not-allowed has-[>svg]:px-[10px]",
     },
     {
         property: "sourceField",
@@ -84,16 +73,15 @@ const EXPECTED_ONBOARDING_CARD_CLASS_INITIALIZERS = [
     {
         property: "sourceFieldDescription",
         expected:
-            "max-w-full text-[12px] leading-normal text-muted-foreground [overflow-wrap:normal] [word-break:keep-all]",
+            "max-w-full text-xs leading-normal text-muted-foreground",
     },
     {
         property: "sourceFieldControl",
-        expected: "min-w-0 flex-1 [&>*]:w-full",
+        expected: "min-w-0 flex-1",
     },
     {
         property: "sourceProviderFields",
-        expected:
-            "flex flex-col gap-0 [&_[data-slot=field]]:!flex-col [&_[data-slot=field]]:!items-stretch [&_[data-slot=field]]:!gap-2 [&_[data-slot=field]>*]:!w-full [&_[data-slot=field-control]]:!w-full [&_[data-slot=field-control]]:!justify-stretch [&_[data-slot=field-description]]:[overflow-wrap:normal] [&_[data-slot=field-description]]:[word-break:keep-all]",
+        expected: "flex flex-col gap-0",
     },
     {
         property: "header",
@@ -101,12 +89,12 @@ const EXPECTED_ONBOARDING_CARD_CLASS_INITIALIZERS = [
     },
     {
         property: "steps",
-        expected: "mb-[14px] flex gap-[6px]",
+        expected: "mb-3.5 flex gap-1.5",
     },
     {
         property: "step",
         expected:
-            "[appearance:none] flex-1 [height:4px] [padding:0] [border:0] [border-radius:2px] [background:var(--bg-recessed)] [cursor:pointer] data-[sot-state=active]:[background:var(--accent)] data-[sot-state=complete]:[background:var(--accent)] disabled:cursor-not-allowed",
+            "h-1 flex-1 rounded-sm bg-muted p-0 hover:bg-muted disabled:cursor-not-allowed",
     },
     {
         property: "stepHeader",
@@ -118,66 +106,98 @@ const EXPECTED_ONBOARDING_CARD_CLASS_INITIALIZERS = [
     },
     {
         property: "heading",
-        expected:
-            "[font:600_13px_var(--font-sans)] [color:var(--fg-primary)] [margin:0_0_4px]",
+        expected: "mb-1 text-sm font-semibold text-foreground",
     },
     {
         property: "sub",
-        expected:
-            "[font:12px/1.5_var(--font-sans)] [color:var(--fg-tertiary)] [margin:0_0_14px]",
+        expected: "mb-3.5 text-xs leading-normal text-muted-foreground",
     },
     {
         property: "stepBody",
-        expected: "[display:flex] [flex-direction:column] [gap:12px] p-0",
+        expected: "flex flex-col gap-3 p-0",
     },
     {
         property: "stepTitle",
-        expected:
-            "[font:600_14px_var(--font-display)] [color:var(--fg-primary)]",
+        expected: "text-sm font-semibold text-foreground",
     },
     {
         property: "stepDescription",
-        expected:
-            "[font:12px_var(--font-sans)] [color:var(--fg-tertiary)] [margin-bottom:14px]",
+        expected: "mb-3.5 text-xs text-muted-foreground",
     },
     {
         property: "errorMessage",
-        expected:
-            "[font:12px_var(--font-sans)] [color:var(--fg-tertiary)] data-[sot-state=error]:[color:var(--signal-danger)]",
+        expected: "text-xs text-muted-foreground",
     },
     {
         property: "defaultSources",
-        expected: "[display:flex] [flex-direction:column] [gap:6px]",
+        expected: "flex w-full flex-col items-stretch gap-1.5",
     },
     {
         property: "defaultSource",
         expected:
-            "flex items-center gap-[8px] rounded-[8px] border border-solid border-[var(--line-hairline)] bg-transparent p-[8px] text-left [appearance:none] font-sans text-[15px] font-normal leading-[var(--lh-body)] text-[var(--fg-primary)] data-[sot-state=selected]:border-primary data-[sot-state=selected]:bg-primary/10 data-[sot-state=disabled]:opacity-[0.55] disabled:cursor-not-allowed",
-    },
-    {
-        property: "defaultSourceSwatch",
-        expected:
-            "[height:20px] [width:20px] flex-none rounded-[4px] bg-transparent data-[sot-swatch=accent]:bg-primary",
+            "h-auto w-full justify-start whitespace-normal px-3 py-2 text-left",
     },
     {
         property: "actions",
-        expected:
-            "[display:flex] [gap:8px] [justify-content:flex-end] [margin-top:14px]",
+        expected: "mt-3.5 flex justify-end gap-2",
     },
     {
         property: "providerIcon",
         expected:
-            "inline-flex size-9 flex-none items-center justify-center overflow-hidden rounded-md border border-border bg-card text-foreground [&_img]:block [&_img]:size-full [&_img]:object-contain [&_svg]:size-[18px] [&_svg]:fill-none [&_svg]:stroke-current [&_svg]:stroke-[1.8] [&_svg]:[stroke-linecap:round] [&_svg]:[stroke-linejoin:round] [&[data-sot-cover=true]_img]:object-cover",
+            "inline-flex size-9 flex-none items-center justify-center overflow-hidden rounded-md border border-border bg-card text-foreground",
     },
     {
         property: "providerName",
-        expected: "[font:600_14px_var(--font-sans)] [color:var(--fg-primary)]",
+        expected: "text-sm font-semibold text-foreground",
     },
     {
         property: "providerHint",
-        expected:
-            "[font:500_12px_var(--font-sans)] [color:var(--fg-tertiary)] [margin-top:2px]",
+        expected: "mt-0.5 text-xs font-medium text-muted-foreground",
     },
+] as const;
+
+const REMOVED_ONBOARDING_SHADCN_BLOCKER_PATTERNS = [
+    "min-h-[100svh]",
+    "px-[32px]",
+    "pb-[80px]",
+    "pt-[28px]",
+    "p-[18px]",
+    "[box-sizing:border-box]",
+    "[min-height:375px]",
+    "[width:min(420px,100%)]",
+    "grid-cols-[36px_1fr_auto_auto]",
+    "has-[>svg]:px-3.5",
+    "mb-[18px]",
+    "gap-[8px]",
+    "min-h-[30px]",
+    "grid-cols-[80px_1fr]",
+    "py-[6px]",
+    "text-[12px]",
+    "[overflow-wrap:normal]",
+    "[word-break:keep-all]",
+    "[&>*]:w-full",
+    "mb-[14px]",
+    "gap-[6px]",
+    "shadow-none",
+    "[border:1px_solid_var(--line-hairline)]",
+    "[background:var(--bg-canvas)]",
+    "[font:600_11px_var(--font-sans)]",
+    "[font:500_12px_var(--font-sans)]",
+    "[font:12px/1.5_var(--font-sans)]",
+    "[font:600_14px_var(--font-display)]",
+    "[font:12px_var(--font-sans)]",
+    "[font:600_14px_var(--font-sans)]",
+    "[font:500_12px_var(--font-sans)]",
+    "[color:var(--fg-tertiary)]",
+    "[color:var(--fg-primary)]",
+    "!flex-col",
+    "!items-stretch",
+    "!gap-2",
+    "!w-full",
+    "!justify-stretch",
+    "[&[data-sot-cover=true]_img]",
+    "[&_svg]:size-[18px]",
+    "[&_svg]:stroke-[1.8]",
 ] as const;
 
 const REMOVED_ONBOARDING_CARD_BUSINESS_VARIANTS = [
@@ -290,6 +310,8 @@ function extractOpeningElementAt(
 const OLD_UI_CONTRACT_RE =
     /uikit-|glass-surface|glass-control|<LibrarySearch[\s/>]|<SourceFilterStackStrip[\s/>]|\.\/components\/library-search|\.\/components\/source-filter-stack-strip/;
 
+const SOT_STATE_STYLE_SELECTOR_PREFIX = ["data-", "[sot-state"].join("");
+
 const ONBOARDING_DEFAULT_SOURCE_ROOT_REPAINT_SELECTORS = [
     '[data-sot-control="onboarding-default-source"]',
     '[data-sot-control="onboarding-default-source"][data-sot-state="selected"]',
@@ -378,6 +400,7 @@ describe("onboarding UI replacement regression", () => {
         expect(source).toContain(
             'import { Button } from "@/components/ui/button";',
         );
+        expect(source).toContain('import { cn } from "@/lib/utils";');
         expect(source).toContain(
             "className={onboardingCardClassNames.sourceAuthModeGroup}",
         );
@@ -427,6 +450,30 @@ describe("onboarding UI replacement regression", () => {
             expect(source).toContain(`${initializer.property}:`);
             expect(source).toContain(`"${initializer.expected}"`);
         }
+        for (const blocker of REMOVED_ONBOARDING_SHADCN_BLOCKER_PATTERNS) {
+            expect(source).not.toContain(blocker);
+        }
+        expect(source).toContain('className={cn(\n                                            "block size-full",');
+        expect(source).toContain(
+            '? "object-cover"\n                                                : "object-contain"',
+        );
+        expect(source).toContain("const DEFAULT_SOURCE_SWATCH_CLASS_NAMES = {");
+        expect(source).toContain('accent: "size-5 flex-none rounded bg-primary"');
+        expect(source).toContain('empty: "size-5 flex-none rounded bg-muted"');
+        expect(source).not.toContain("border-[var(--accent)]");
+        expect(source).not.toContain("bg-[color-mix(");
+        expect(source).not.toContain("bg-[#1296db]");
+        expect(source).not.toContain(SOT_STATE_STYLE_SELECTOR_PREFIX);
+        expect(source).not.toContain(
+            `${SOT_STATE_STYLE_SELECTOR_PREFIX}=selected]:border-[var(--accent)]`,
+        );
+        expect(source).not.toContain(
+            `${SOT_STATE_STYLE_SELECTOR_PREFIX}=selected]:bg-[color-mix(`,
+        );
+        expect(source).not.toContain(
+            `${SOT_STATE_STYLE_SELECTOR_PREFIX}=disabled]:opacity`,
+        );
+        expect(source).not.toContain("data-sot-swatch={option.swatch}");
         for (const removedVariant of REMOVED_ONBOARDING_CARD_BUSINESS_VARIANTS) {
             expect(source).not.toContain(`variant="${removedVariant}"`);
         }
@@ -442,12 +489,14 @@ describe("onboarding UI replacement regression", () => {
         expect(onboardingCard).not.toContain("variant=");
         expect(source).toContain('data-sot-card="onboarding"');
         expect(source).toContain(
-            "className={onboardingCardClassNames.providerCard}",
+            "onboardingCardClassNames.providerCard",
         );
-        expect(source).toContain(
+        expect(source).not.toContain("secondaryAction:");
+        expect(source).not.toContain("primaryAction:");
+        expect(source).not.toContain(
             "className={onboardingCardClassNames.secondaryAction}",
         );
-        expect(source).toContain(
+        expect(source).not.toContain(
             "className={onboardingCardClassNames.primaryAction}",
         );
         expect(source).not.toContain('variant="onboardingProviderCard"');
@@ -460,66 +509,55 @@ describe("onboarding UI replacement regression", () => {
         expect(source).not.toContain('variant="accent"');
         expect(source).not.toContain('variant="quietOutline"');
         expect(source).not.toContain('size="control-xs"');
-        expect(source).not.toContain(
+        expect(source).toContain(
             'variant={isActive ? "secondary" : "outline"}',
+        );
+        const onboardingStepButton = extractOpeningElement(
+            source,
+            'data-sot-control="onboarding-step"',
+            "Button",
+        );
+        expect(onboardingStepButton).toContain('variant="ghost"');
+        expect(onboardingStepButton).toContain('size="xs"');
+        expect(onboardingStepButton).toContain("className={cn(");
+        expect(onboardingStepButton).not.toContain('data-slot="button"');
+        expect(source).not.toMatch(
+            /<button[\s\S]*data-sot-control="onboarding-step"/,
         );
         const onboardingSkipButton = extractOpeningElement(
             source,
             'data-sot-control="onboarding-skip"',
-            "button",
+            "Button",
         );
         const defaultSourceNextButton = extractOpeningElement(
             source,
             'data-sot-control="onboarding-next"',
-            "button",
+            "Button",
         );
         expect(onboardingSkipButton).toContain('type="button"');
-        expect(onboardingSkipButton).toContain(
-            "className={onboardingCardClassNames.secondaryAction}",
-        );
+        expect(onboardingSkipButton).toContain('variant="outline"');
+        expect(onboardingSkipButton).toContain('size="xs"');
+        expect(onboardingSkipButton).not.toContain("className=");
         expect(defaultSourceNextButton).toContain('type="button"');
-        expect(defaultSourceNextButton).toContain(
-            "className={onboardingCardClassNames.primaryAction}",
-        );
-        expect(source).toContain(
-            "className={onboardingCardClassNames.primaryAction}",
-        );
-        const onboardingActionClassInitializers =
-            EXPECTED_ONBOARDING_CARD_CLASS_INITIALIZERS.filter(
-                ({ property }) =>
-                    property === "secondaryAction" ||
-                    property === "primaryAction",
-            ).map(({ expected }) => expected);
-        for (const removedPrimitiveRepaintClass of [
-            "!h-[26px]",
-            "!gap-[6px]",
-            "!rounded-[8px]",
-            "!border",
-            "!bg-[var(--accent)]",
-            "!px-[10px]",
-            "!text-[11px]",
-            "!font-semibold",
-            "!leading-[normal]",
-            "!text-[var(--fg-secondary)]",
-            "!text-white",
-            "!shadow-none",
-        ]) {
-            for (const actionClassInitializer of onboardingActionClassInitializers) {
-                expect(actionClassInitializer).not.toContain(
-                    removedPrimitiveRepaintClass,
-                );
-            }
-        }
+        expect(defaultSourceNextButton).toContain('variant="default"');
+        expect(defaultSourceNextButton).toContain('size="xs"');
+        expect(defaultSourceNextButton).not.toContain("className=");
         const providerCardButton = extractOpeningElement(
             source,
             'data-sot-control="provider-card"',
             "Button",
         );
-        expect(providerCardButton).toContain('variant="outline"');
         expect(providerCardButton).toContain(
-            "className={onboardingCardClassNames.providerCard}",
+            'variant={isActive ? "secondary" : "outline"}',
         );
-        expect(source).not.toContain("className={cn(");
+        expect(providerCardButton).toContain("className={cn(");
+        expect(providerCardButton).toContain(
+            "onboardingCardClassNames.providerCard",
+        );
+        expect(providerCardButton).toContain(
+            'isActive && "border-transparent"',
+        );
+        expect(source).toContain("className={cn(");
         expect(source).toContain(
             'import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";',
         );
@@ -615,11 +653,44 @@ describe("onboarding UI replacement regression", () => {
         expect(source).toContain(
             'data-sot-part="onboarding-default-source-swatch"',
         );
-        expect(source).toMatch(
-            /<button[\s\S]*data-sot-control="onboarding-default-source"[\s\S]*type="button"/,
+        const defaultSourceMarkerIndex = source.indexOf(
+            'data-sot-list="onboarding-default-sources"',
         );
+        expect(defaultSourceMarkerIndex).toBeGreaterThanOrEqual(0);
+        const defaultSourceStartIndex = source.lastIndexOf(
+            "<ToggleGroup",
+            defaultSourceMarkerIndex,
+        );
+        const defaultSourceEndIndex = source.indexOf(
+            "</ToggleGroup>",
+            defaultSourceMarkerIndex,
+        );
+        expect(defaultSourceStartIndex).toBeGreaterThanOrEqual(0);
+        expect(defaultSourceEndIndex).toBeGreaterThan(defaultSourceMarkerIndex);
+        const defaultSourceControl = source.slice(
+            defaultSourceStartIndex,
+            defaultSourceEndIndex + "</ToggleGroup>".length,
+        );
+        expect(defaultSourceControl).toContain("<ToggleGroup");
+        expect(defaultSourceControl).toContain("<ToggleGroupItem");
+        expect(defaultSourceControl).toContain('type="single"');
+        expect(defaultSourceControl).toContain('orientation="vertical"');
+        expect(defaultSourceControl).toContain('role="group"');
+        expect(defaultSourceControl).toContain('variant="outline"');
+        expect(defaultSourceControl).toContain("spacing={2}");
+        expect(defaultSourceControl).toContain(
+            "value={defaultTranscriptionSource}",
+        );
+        expect(defaultSourceControl).toContain(
+            "setDefaultTranscriptionSource(selectedOption.id)",
+        );
+        expect(defaultSourceControl).toContain("aria-pressed={isActive}");
+        expect(defaultSourceControl).toContain("data-sot-state={");
+        expect(defaultSourceControl).toContain('role="button"');
+        expect(defaultSourceControl).toContain('type="button"');
+        expect(defaultSourceControl).not.toContain("<button");
+        expect(defaultSourceControl).not.toContain("data-sot-swatch");
         expect(source).toContain("disabled={isSaving || !option.connected}");
-        expect(source).not.toContain('role="button"');
         expect(source).not.toContain("style={{");
         expect(source).not.toContain("tabIndex=");
         expect(source).not.toContain("onKeyDown={(event) =>");

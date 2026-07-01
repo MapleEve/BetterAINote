@@ -125,33 +125,30 @@ const orderedSettingsNav = settingsNavGroups.flatMap((group) => group.items);
 
 const SETTINGS_CLOSE_BUTTON_CLASS = "shrink-0 size-[32px]";
 
-const SETTINGS_OVERLAY_CLASS =
-    "m-0 w-auto max-w-none max-h-none border-0 bg-[var(--modal-scrim-bg)] p-0 backdrop-blur-[6px] backdrop-saturate-[120%] transition-opacity duration-[220ms] ease-[var(--ease-out)] data-[state=closed]:pointer-events-none data-[state=closed]:opacity-0 data-[state=open]:pointer-events-auto data-[state=open]:opacity-100";
-
 const SETTINGS_SHELL_SURFACE_CLASS =
-    "z-[calc(var(--z-modal)+1)] box-border flex h-[min(94svh,980px)] max-h-[calc(100svh-1rem)] w-[920px] !max-w-[calc(100vw-40px)] sm:!max-w-[calc(100vw-40px)] flex-col gap-0 overflow-hidden rounded-[16px] border border-[var(--line-hairline)] bg-[var(--bg-elevated)] p-0 font-sans text-[var(--fg-primary)] ![box-shadow:var(--shadow-xl)] transition-[transform,opacity] duration-[280ms] ease-[var(--ease-out)] data-[state=closed]:translate-y-[8px] data-[state=closed]:scale-[0.985] data-[state=closed]:opacity-0";
+    "box-border flex h-[min(94svh,980px)] max-h-[calc(100svh_-_1rem)] w-[920px] max-w-[calc(100vw_-_2rem)] flex-col gap-0 overflow-hidden p-0 sm:max-w-[920px]";
 
 const SETTINGS_HEADER_CLASS =
-    "flex flex-none items-center border-b border-[var(--line-hairline)] px-5 py-[18px] max-[720px]:flex-wrap max-[720px]:items-start max-[720px]:gap-3";
+    "flex flex-none items-center border-b border-border px-5 py-[18px] max-[720px]:flex-wrap max-[720px]:items-start max-[720px]:gap-3";
 
 const SETTINGS_USER_SUMMARY_CLASS =
-    "flex min-w-0 flex-1 items-center gap-3 max-[720px]:basis-[calc(100%-42px)]";
+    "flex min-w-0 flex-1 items-center gap-3 max-[720px]:basis-[calc(100%_-_42px)]";
 
 const SETTINGS_USER_SUMMARY_TEXT_CLASS = "min-w-0";
 
 const SETTINGS_USER_AVATAR_CLASS =
-    "grid size-9 flex-none place-items-center rounded-full border border-[var(--line-hairline)] bg-[var(--bg-recessed)] text-[var(--fg-secondary)] [&_svg:not([class*='size-'])]:size-4";
+    "grid size-9 flex-none place-items-center rounded-full border border-border bg-muted text-muted-foreground";
 
 const SETTINGS_USER_NAME_CLASS =
-    "m-0 font-sans text-sm font-semibold leading-normal tracking-normal text-[var(--fg-primary)] max-[720px]:truncate";
+    "m-0 font-sans text-sm font-semibold leading-normal tracking-normal text-foreground max-[720px]:truncate";
 
 const SETTINGS_USER_SUBTITLE_CLASS =
-    "mt-0.5 mb-0 font-mono text-xs font-medium leading-normal tracking-normal text-[var(--fg-tertiary)] max-[720px]:truncate";
+    "mt-0.5 mb-0 font-mono text-xs font-medium leading-normal tracking-normal text-muted-foreground max-[720px]:truncate";
 
 const SETTINGS_BODY_CLASS = "grid min-h-0 flex-1 grid-cols-[200px_1fr]";
 
 const SETTINGS_RAIL_CLASS =
-    "flex min-h-0 flex-col gap-[2px] overflow-y-auto border-r border-border bg-[var(--bg-recessed)] px-[8px] py-[14px] [overscroll-behavior:contain] [writing-mode:horizontal-tb] [&_*]:[writing-mode:horizontal-tb]";
+    "flex min-h-0 flex-col gap-[2px] overflow-y-auto border-r border-border bg-muted/50 px-[8px] py-[14px] [overscroll-behavior:contain] [writing-mode:horizontal-tb] [&_*]:[writing-mode:horizontal-tb]";
 
 const SETTINGS_NAV_GROUP_CLASS =
     "flex w-full min-w-0 flex-col items-stretch gap-[2px] p-0 [&+&]:mt-[10px]";
@@ -160,7 +157,10 @@ const SETTINGS_NAV_GROUP_LABEL_CLASS =
     "block w-full truncate px-[10px] pt-[10px] pb-[4px] font-sans text-[10px] font-semibold leading-[normal] tracking-[0.08em] text-muted-foreground uppercase";
 
 const SETTINGS_NAV_BUTTON_CLASS =
-    "h-auto w-full min-w-0 cursor-pointer justify-start gap-[10px] truncate rounded-[8px] border border-transparent bg-transparent px-[10px] py-[8px] text-left font-sans text-[13px] font-medium leading-[normal] tracking-normal text-muted-foreground shadow-none [box-shadow:none] data-[state=inactive]:[box-shadow:none] hover:bg-accent hover:text-accent-foreground focus-visible:border-ring focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring focus-visible:ring-0 data-[state=active]:border-border data-[state=active]:bg-accent data-[state=active]:text-accent-foreground data-[state=active]:[box-shadow:none] data-[state=active]:hover:bg-accent data-[state=active]:hover:text-accent-foreground has-[>svg]:px-[10px] [&_span]:min-w-0 [&_span]:truncate [&_svg:not([class*='size-'])]:size-[14px] [&_svg]:flex-none [&_svg]:fill-none [&_svg]:stroke-current [&_svg]:stroke-[1.8] [&_svg]:[stroke-linecap:round] [&_svg]:[stroke-linejoin:round]";
+    "w-full min-w-0 justify-start truncate text-left";
+
+const SETTINGS_NAV_CONTROL_SELECTOR = "[data-settings-nav-control]";
+const SETTINGS_INNER_SCROLL_SELECTOR = "[data-settings-inner-scroll]";
 
 const STORAGE_KEY = "settings-last-section";
 
@@ -169,7 +169,7 @@ function shouldBypassSettingsKeyboardNav(target: EventTarget | null) {
         return false;
     }
 
-    if (target.closest('[data-sot-control="settings-nav"]')) {
+    if (target.closest(SETTINGS_NAV_CONTROL_SELECTOR)) {
         return false;
     }
 
@@ -236,9 +236,12 @@ export function SettingsDialog(props: SettingsDialogProps) {
         Record<string, true>
     >({});
     const navBoundaryRef = React.useRef<HTMLElement | null>(null);
+    const settingsShellRef = React.useRef<HTMLDivElement | null>(null);
+    const firstNavButtonRef = React.useRef<HTMLButtonElement | null>(null);
     const scrollBodyRef = React.useRef<HTMLDivElement | null>(null);
     const returnFocusRef = React.useRef<HTMLElement | null>(null);
     const previousOpenRef = React.useRef(false);
+    const keyboardSelectedIndexRef = React.useRef<number>(0);
 
     const settingsUserName = t("settingsDialog.localDeployment");
     const settingsUserSubtitle = t("settingsDialog.singleUserSelfHosted");
@@ -264,12 +267,21 @@ export function SettingsDialog(props: SettingsDialogProps) {
         },
         [],
     );
+    const applyKeyboardSelectedIndex = React.useCallback((index: number) => {
+        const nextIndex = Math.max(
+            0,
+            Math.min(index, orderedSettingsNav.length - 1),
+        );
+        keyboardSelectedIndexRef.current = nextIndex;
+        setKeyboardSelectedIndex(nextIndex);
+        return nextIndex;
+    }, []);
     const applyActiveSettingsSection = React.useCallback(
         (section: CanonicalSettingsSection) => {
             setActiveSection(section);
-            setKeyboardSelectedIndex(getSettingsSectionIndex(section));
+            applyKeyboardSelectedIndex(getSettingsSectionIndex(section));
         },
-        [],
+        [applyKeyboardSelectedIndex],
     );
     const busyContextValue = React.useMemo<SettingsBusyContextValue>(
         () => ({
@@ -296,17 +308,23 @@ export function SettingsDialog(props: SettingsDialogProps) {
             const focusTarget = () => {
                 if (target && document.contains(target)) {
                     const activeElement = document.activeElement;
+                    const activeHTMLElement =
+                        activeElement instanceof HTMLElement
+                            ? activeElement
+                            : null;
+                    const isFocusInsideSettingsShell = Boolean(
+                        activeHTMLElement &&
+                            settingsShellRef.current?.contains(
+                                activeHTMLElement,
+                            ),
+                    );
                     const shouldRestoreFocus =
                         forceFocus ||
                         activeElement === target ||
                         activeElement === document.body ||
                         activeElement === document.documentElement ||
-                        !(activeElement instanceof HTMLElement) ||
-                        Boolean(
-                            activeElement.closest(
-                                '[data-sot-surface="settings-shell"]',
-                            ),
-                        );
+                        !activeHTMLElement ||
+                        isFocusInsideSettingsShell;
 
                     if (shouldRestoreFocus) {
                         target.focus({ preventScroll: true });
@@ -444,10 +462,7 @@ export function SettingsDialog(props: SettingsDialogProps) {
         if (!props.open) return;
 
         const timer = startBrowserTimeout(() => {
-            const firstButton = navBoundaryRef.current?.querySelector(
-                '[data-sot-nav="first"]',
-            ) as HTMLButtonElement | null;
-            firstButton?.focus();
+            firstNavButtonRef.current?.focus();
         }, 100);
 
         return () => stopBrowserTimeout(timer);
@@ -459,7 +474,7 @@ export function SettingsDialog(props: SettingsDialogProps) {
         scrollBodyRef.current?.setAttribute("data-sot-section", activeSection);
         scrollBodyRef.current?.scrollTo({ top: 0, left: 0 });
         scrollBodyRef.current
-            ?.querySelectorAll<HTMLElement>("[data-sot-inner-scroll]")
+            ?.querySelectorAll<HTMLElement>(SETTINGS_INNER_SCROLL_SELECTOR)
             .forEach((node) => {
                 node.scrollTop = 0;
                 node.scrollLeft = 0;
@@ -487,14 +502,26 @@ export function SettingsDialog(props: SettingsDialogProps) {
             }
 
             if (isSettingsBusy) {
-                if (
-                    event.key === "ArrowDown" ||
-                    event.key === "ArrowUp" ||
-                    event.key === "Enter" ||
-                    event.key === " "
-                ) {
-                    event.preventDefault();
-                    event.stopPropagation();
+                switch (event.key) {
+                    case "ArrowDown":
+                        event.preventDefault();
+                        event.stopPropagation();
+                        applyKeyboardSelectedIndex(
+                            keyboardSelectedIndexRef.current + 1,
+                        );
+                        break;
+                    case "ArrowUp":
+                        event.preventDefault();
+                        event.stopPropagation();
+                        applyKeyboardSelectedIndex(
+                            keyboardSelectedIndexRef.current - 1,
+                        );
+                        break;
+                    case "Enter":
+                    case " ":
+                        event.preventDefault();
+                        event.stopPropagation();
+                        break;
                 }
                 return;
             }
@@ -502,28 +529,35 @@ export function SettingsDialog(props: SettingsDialogProps) {
             switch (event.key) {
                 case "ArrowDown":
                     event.preventDefault();
-                    setKeyboardSelectedIndex((previous) =>
-                        Math.min(previous + 1, orderedSettingsNav.length - 1),
+                    applyKeyboardSelectedIndex(
+                        keyboardSelectedIndexRef.current + 1,
                     );
                     break;
                 case "ArrowUp":
                     event.preventDefault();
-                    setKeyboardSelectedIndex((previous) =>
-                        Math.max(previous - 1, 0),
+                    applyKeyboardSelectedIndex(
+                        keyboardSelectedIndexRef.current - 1,
                     );
                     break;
                 case "Enter":
-                case " ":
+                case " ": {
                     event.preventDefault();
-                    if (orderedSettingsNav[keyboardSelectedIndex]) {
-                        setActiveSection(
-                            orderedSettingsNav[keyboardSelectedIndex].id,
-                        );
+                    const selectedIndex = keyboardSelectedIndexRef.current;
+                    const selectedItem = orderedSettingsNav[selectedIndex];
+                    if (selectedItem) {
+                        applyActiveSettingsSection(selectedItem.id);
                     }
                     break;
+                }
             }
         },
-        [isSettingsBusy, keyboardSelectedIndex, props, restoreReturnFocus],
+        [
+            applyActiveSettingsSection,
+            applyKeyboardSelectedIndex,
+            isSettingsBusy,
+            props,
+            restoreReturnFocus,
+        ],
     );
 
     React.useEffect(() => {
@@ -532,18 +566,10 @@ export function SettingsDialog(props: SettingsDialogProps) {
         return () => removeBrowserWindowEventListener("keydown", handleKeyDown);
     }, [handleKeyDown, props.open]);
 
-    React.useEffect(() => {
-        const index = orderedSettingsNav.findIndex(
-            (item) => item.id === activeSection,
-        );
-        if (index !== -1) {
-            setKeyboardSelectedIndex(index);
-        }
-    }, [activeSection]);
-
     return (
         <Dialog open={props.open} onOpenChange={handleDialogOpenChange}>
             <DialogContent
+                ref={settingsShellRef}
                 data-sot-busy={isSettingsBusy ? "true" : "false"}
                 data-sot-section={activeSection}
                 data-sot-state={isSettingsBusy ? "busy" : "idle"}
@@ -552,7 +578,6 @@ export function SettingsDialog(props: SettingsDialogProps) {
                 aria-busy={isSettingsBusy}
                 overlayProps={{
                     "data-sot-overlay": "settings-shell",
-                    className: SETTINGS_OVERLAY_CLASS,
                 }}
                 className={SETTINGS_SHELL_SURFACE_CLASS}
                 onCloseAutoFocus={handleCloseAutoFocus}
@@ -572,12 +597,6 @@ export function SettingsDialog(props: SettingsDialogProps) {
                     }
                 }}
                 showCloseButton={false}
-                style={
-                    {
-                        "--tw-enter-scale": "1",
-                        "--tw-exit-scale": "1",
-                    } as React.CSSProperties
-                }
             >
                 <DialogTitle className="sr-only">
                     {t("settingsDialog.title")}
@@ -633,7 +652,7 @@ export function SettingsDialog(props: SettingsDialogProps) {
                                 disabled={isSettingsBusy}
                                 type="button"
                             >
-                                <X aria-hidden="true" />
+                                <X data-icon="inline-start" aria-hidden="true" />
                             </Button>
                         </DialogClose>
                     </header>
@@ -669,15 +688,28 @@ export function SettingsDialog(props: SettingsDialogProps) {
                                             orderedSettingsNav.findIndex(
                                                 (entry) => entry.id === item.id,
                                             );
+                                        const isActive =
+                                            activeSection === item.id;
 
                                         return (
                                             <Button
                                                 key={item.id}
-                                                variant="ghost"
+                                                ref={
+                                                    itemIndex === 0
+                                                        ? firstNavButtonRef
+                                                        : undefined
+                                                }
+                                                variant={
+                                                    isActive
+                                                        ? "secondary"
+                                                        : "ghost"
+                                                }
+                                                size="sm"
                                                 className={
                                                     SETTINGS_NAV_BUTTON_CLASS
                                                 }
                                                 data-sot-control="settings-nav"
+                                                data-settings-nav-control=""
                                                 data-sot-nav={
                                                     itemIndex === 0
                                                         ? "first"
@@ -685,27 +717,30 @@ export function SettingsDialog(props: SettingsDialogProps) {
                                                 }
                                                 data-sot-section={item.id}
                                                 data-state={
-                                                    activeSection === item.id
+                                                    isActive
                                                         ? "active"
                                                         : "inactive"
                                                 }
                                                 data-sot-state={
-                                                    activeSection === item.id
+                                                    isActive
                                                         ? "selected"
                                                         : "idle"
                                                 }
                                                 data-keyboard-selected={
                                                     keyboardSelectedIndex ===
-                                                    itemIndex
+                                                        itemIndex
                                                 }
-                                                onClick={() =>
-                                                    !isSettingsBusy &&
-                                                    setActiveSection(item.id)
-                                                }
+                                                onClick={() => {
+                                                    if (!isSettingsBusy) {
+                                                        applyActiveSettingsSection(
+                                                            item.id,
+                                                        );
+                                                    }
+                                                }}
                                                 disabled={isSettingsBusy}
                                                 aria-label={`${t(item.labelKey)} ${t("settingsDialog.title")}`}
                                                 aria-current={
-                                                    activeSection === item.id
+                                                    isActive
                                                         ? "page"
                                                         : undefined
                                                 }
@@ -715,7 +750,9 @@ export function SettingsDialog(props: SettingsDialogProps) {
                                                     data-icon="inline-start"
                                                     aria-hidden="true"
                                                 />
-                                                <span>{t(item.labelKey)}</span>
+                                                <span className="min-w-0 truncate">
+                                                    {t(item.labelKey)}
+                                                </span>
                                             </Button>
                                         );
                                     })}

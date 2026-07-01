@@ -465,6 +465,107 @@ async function readAuthLoginSotEquivalentHtml(productLoginCard: Locator) {
     ].join("\n");
 }
 
+async function readOnboardingDefaultSourceSotEquivalentHtml(
+    productOnboardingCard: Locator,
+) {
+    const fixture = await productOnboardingCard.evaluate((element) => {
+        const normalizeText = (value: string | null | undefined) =>
+            value?.trim().replace(/\s+/g, " ") ?? "";
+        const readText = (selector: string) =>
+            normalizeText(element.querySelector(selector)?.textContent);
+        const steps = Array.from(
+            element.querySelectorAll<HTMLElement>(
+                '[data-sot-control="onboarding-step"]',
+            ),
+        ).map((step) => step.getAttribute("data-sot-state") ?? "idle");
+        const sources = Array.from(
+            element.querySelectorAll<HTMLElement>(
+                '[data-sot-control="onboarding-default-source"]',
+            ),
+        ).map((source) => ({
+            label: normalizeText(source.textContent),
+            state: source.getAttribute("data-sot-state") ?? "idle",
+        }));
+
+        if (steps.length !== 4) {
+            throw new Error(
+                `Expected 4 onboarding step markers, found ${steps.length}`,
+            );
+        }
+        if (sources.length !== 3) {
+            throw new Error(
+                `Expected 3 onboarding default source options, found ${sources.length}`,
+            );
+        }
+
+        return {
+            cardHeading: readText('[data-sot-part="card-heading"]'),
+            cardSub: readText('[data-sot-part="card-sub"]'),
+            nextButton: readText('[data-sot-control="onboarding-next"]'),
+            skipButton: readText('[data-sot-control="onboarding-skip"]'),
+            sources,
+            stepDescription: readText(
+                '[data-sot-part="onboarding-step-description"]',
+            ),
+            steps,
+            stepTitle: readText('[data-sot-part="onboarding-step-title"]'),
+        };
+    });
+
+    const stepHtml = fixture.steps
+        .map((state) => {
+            const background =
+                state === "idle" ? "var(--bg-recessed)" : "var(--accent)";
+            return `          <div style="flex:1; height: 4px; border-radius: 2px; background: ${background}"></div>`;
+        })
+        .join("\n");
+    const sourceHtml = fixture.sources
+        .map((source) => {
+            const isSelected = source.state === "selected";
+            const isDisabled = source.state === "disabled";
+            const sourceStyle = [
+                "display: flex",
+                "align-items: center",
+                "gap: 8px",
+                "padding: 8px",
+                "border-radius: 8px",
+                `border: 1px solid ${
+                    isSelected ? "var(--accent)" : "var(--line-hairline)"
+                }`,
+                isSelected
+                    ? "background: color-mix(in oklab, var(--accent) 6%, transparent)"
+                    : "",
+                isDisabled ? "opacity: .55" : "",
+            ]
+                .filter(Boolean)
+                .join("; ");
+            const swatchStyle = isSelected
+                ? "width:20px;height:20px;border-radius:4px;background:#1296db"
+                : "width:20px;height:20px;border-radius:4px";
+
+            return `          <div style="${sourceStyle}"><div class="blk" style="${swatchStyle}"></div>${escapeHtml(source.label)}</div>`;
+        })
+        .join("\n");
+
+    return [
+        '<div class="card" data-sot-card="onboarding" data-sot-surface="onboarding-default-source">',
+        `  <div class="card-h">${escapeHtml(fixture.cardHeading)}</div>`,
+        `  <div class="card-sub">${escapeHtml(fixture.cardSub)}</div>`,
+        '  <div class="frame" style="padding: 18px">',
+        '        <div style="display: flex; gap: 6px; margin-bottom: 14px">',
+        stepHtml,
+        "        </div>",
+        `        <div style="font: 600 14px var(--font-display)">${escapeHtml(fixture.stepTitle)}</div>`,
+        `        <div style="font: 12px var(--font-sans); color: var(--fg-tertiary); margin-bottom: 14px">${escapeHtml(fixture.stepDescription)}</div>`,
+        '        <div style="display: flex; flex-direction: column; gap: 6px">',
+        sourceHtml,
+        "        </div>",
+        `        <div style="display: flex; gap: 8px; justify-content: flex-end; margin-top: 14px"><button class="btn ghost sm">${escapeHtml(fixture.skipButton)}</button><button class="btn primary sm">${escapeHtml(fixture.nextButton)}</button></div>`,
+        "      </div>",
+        "</div>",
+    ].join("\n");
+}
+
 async function captureAuthHtmlFixture({
     page,
     html,
@@ -804,7 +905,10 @@ async function captureOnboardingDefaultSourcePixelEvidence(
     const sotCardHtml = await sotAuthSection(sotPage)
         .locator(".grid-2 > .card:nth-child(2)")
         .evaluate((element) => element.outerHTML);
-    const productHtml = await readOuterHtmlWithFormValues(productOnboardingCard);
+    const productHtml =
+        await readOnboardingDefaultSourceSotEquivalentHtml(
+            productOnboardingCard,
+        );
     const [sotCapture, productCapture] = await Promise.all([
         captureAuthHtmlFixture({
             html: `<main class="onboarding-sot-canvas" style="min-height:auto;display:block;padding:0;background:transparent;color:var(--fg-primary)">${sotCardHtml}</main>`,
@@ -814,7 +918,7 @@ async function captureOnboardingDefaultSourcePixelEvidence(
         }),
         captureAuthHtmlFixture({
             html: `<main class="onboarding-sot-canvas" style="min-height:auto;display:block;padding:0;background:transparent;color:var(--fg-primary)">${productHtml}</main>`,
-            page,
+            page: sotPage,
             stageWidth: 420,
             targetSelector: '[data-sot-card="onboarding"]',
         }),
@@ -1083,7 +1187,10 @@ async function expectOnboardingDefaultSourcePixelsMatch(
     const sotCardHtml = await sotAuthSection(sotPage)
         .locator(".grid-2 > .card:nth-child(2)")
         .evaluate((element) => element.outerHTML);
-    const productHtml = await readOuterHtmlWithFormValues(productOnboardingCard);
+    const productHtml =
+        await readOnboardingDefaultSourceSotEquivalentHtml(
+            productOnboardingCard,
+        );
     const [sotCapture, productCapture] = await Promise.all([
         captureAuthHtmlFixture({
             html: `<main class="onboarding-sot-canvas" style="min-height:auto;display:block;padding:0;background:transparent;color:var(--fg-primary)">${sotCardHtml}</main>`,
@@ -1093,7 +1200,7 @@ async function expectOnboardingDefaultSourcePixelsMatch(
         }),
         captureAuthHtmlFixture({
             html: `<main class="onboarding-sot-canvas" style="min-height:auto;display:block;padding:0;background:transparent;color:var(--fg-primary)">${productHtml}</main>`,
-            page,
+            page: sotPage,
             stageWidth: 420,
             targetSelector: '[data-sot-card="onboarding"]',
         }),

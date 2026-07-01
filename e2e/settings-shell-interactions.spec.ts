@@ -183,6 +183,32 @@ async function settingsShellHeight(page: Page) {
     );
 }
 
+async function settingsShellViewportBox(page: Page) {
+    return settingsShell(page).evaluate((node) => {
+        const rect = node.getBoundingClientRect();
+
+        return {
+            bottom: rect.bottom,
+            height: rect.height,
+            left: rect.left,
+            right: rect.right,
+            top: rect.top,
+            width: rect.width,
+            viewportHeight: window.innerHeight,
+            viewportWidth: window.innerWidth,
+        };
+    });
+}
+
+async function settingsShellViewportMetrics(page: Page) {
+    const metrics = await settingsShellViewportBox(page);
+
+    return {
+        height: metrics.height,
+        viewportHeight: metrics.viewportHeight,
+    };
+}
+
 async function expectShellHeightStable(page: Page, baseline: number) {
     const current = await settingsShellHeight(page);
     expect(Math.abs(current - baseline)).toBeLessThan(2);
@@ -920,6 +946,23 @@ async function captureShellFrame(
 }
 
 type Row117ShellCapture = Awaited<ReturnType<typeof captureShellFrame>>;
+
+function expectShadcnDialogBaseShadow(
+    productCapture: Row117ShellCapture,
+    sotCapture: Row117ShellCapture,
+) {
+    expect(productCapture.metrics.className).toContain("shadow-lg");
+    expect(productCapture.metrics.className).not.toContain("[box-shadow");
+    expect(productCapture.metrics.boxShadow).toContain(
+        "rgba(0, 0, 0, 0.1) 0px 10px 15px -3px",
+    );
+    expect(productCapture.metrics.boxShadow).toContain(
+        "rgba(0, 0, 0, 0.1) 0px 4px 6px -4px",
+    );
+    expect(productCapture.metrics.boxShadow).not.toBe(
+        sotCapture.metrics.boxShadow,
+    );
+}
 
 async function readDataSourcesStructuralEvidence(locator: Locator) {
     return locator.evaluate((node) => {
@@ -1929,20 +1972,20 @@ function settingsSixSectionAcceptanceMarkdown(evidence: {
 }
 
 async function expectShellFitsViewport(page: Page) {
-    const metrics = await settingsShell(page).evaluate((node) => {
-        const rect = node.getBoundingClientRect();
-
-        return {
-            bottom: rect.bottom,
-            height: rect.height,
-            left: rect.left,
-            right: rect.right,
-            top: rect.top,
-            width: rect.width,
-            viewportHeight: window.innerHeight,
-            viewportWidth: window.innerWidth,
-        };
-    });
+    await expect
+        .poll(async () => {
+            const metrics = await settingsShellViewportBox(page);
+            return (
+                metrics.width > 0 &&
+                metrics.height > 0 &&
+                metrics.top >= 0 &&
+                metrics.left >= 0 &&
+                metrics.bottom <= metrics.viewportHeight &&
+                metrics.right <= metrics.viewportWidth
+            );
+        })
+        .toBe(true);
+    const metrics = await settingsShellViewportBox(page);
 
     expect(metrics.width).toBeGreaterThan(0);
     expect(metrics.height).toBeGreaterThan(0);
@@ -1986,9 +2029,20 @@ test("settings shell closes sibling overlays, locks height, bounds wheel scroll,
         "P",
     );
 
-    const baselineHeight = await settingsShellHeight(page);
-    expect(baselineHeight).toBeGreaterThan(590);
-    expect(baselineHeight).toBeLessThanOrEqual(640);
+    await expect
+        .poll(async () => {
+            const metrics = await settingsShellViewportMetrics(page);
+            return metrics.height / metrics.viewportHeight;
+        })
+        .toBeGreaterThan(0.93);
+    const baselineMetrics = await settingsShellViewportMetrics(page);
+    const baselineHeight = baselineMetrics.height;
+    expect(baselineHeight).toBeGreaterThan(
+        baselineMetrics.viewportHeight * 0.93,
+    );
+    expect(baselineHeight).toBeLessThanOrEqual(
+        baselineMetrics.viewportHeight,
+    );
     await expect(settingsShell(page)).toHaveAttribute(
         "data-sot-section",
         "data-sources",
@@ -2647,9 +2701,7 @@ test("settings shell row 117 captures responsive visual matrix", async ({
             desktop.viewport,
         );
         let sotCapture = await captureShellFrame(sotShell, sotPath);
-        expect(productCapture.metrics.boxShadow).toBe(
-            sotCapture.metrics.boxShadow,
-        );
+        expectShadcnDialogBaseShadow(productCapture, sotCapture);
         let diff = await comparePngPixels(
             page,
             sotCapture.screenshot,
@@ -2660,7 +2712,7 @@ test("settings shell row 117 captures responsive visual matrix", async ({
                 "desktop shell visible and viewport-bound",
                 "same-page hash switch activates appearance",
                 "desktop rail active state follows selected section",
-                "computed shell box-shadow matches the handoff SOT token",
+                "computed shell box-shadow uses the shadcn DialogContent base shadow",
             ],
             blockerReason: diff.blockerReason,
             diff,
@@ -2668,6 +2720,7 @@ test("settings shell row 117 captures responsive visual matrix", async ({
             notes: [
                 "product runtime compared against handoff SOT Web/index shell",
                 "hash transition focus is cleared before screenshot capture",
+                "handoff SOT retains the pre-shadcn custom shell shadow and is recorded as reference, not as the product compliance target",
                 "product header uses SOT local deployment copy and omits test account email",
             ],
             parityType: "pixel",
