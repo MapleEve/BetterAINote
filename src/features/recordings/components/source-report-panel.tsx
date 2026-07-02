@@ -83,7 +83,6 @@ import {
     SOURCE_REPORT_STATE_CLASS_NAME,
     SOURCE_REPORT_STATE_STACK_CLASS_NAME,
     SOURCE_REPORT_STATUS_BADGE_CLASS_NAME,
-    SOURCE_REPORT_STYLE_VARIABLES,
     SOURCE_REPORT_SUMMARY_BODY_CLASS_NAME,
     SOURCE_REPORT_SUMMARY_MISSING_SECTION_CLASS_NAME,
     SOURCE_REPORT_SUMMARY_TEXT_CLASS_NAME,
@@ -562,7 +561,6 @@ function SourceReportState({
             data-sub-state={subState}
             data-sot-error={error}
             className={SOURCE_REPORT_STATE_CLASS_NAME}
-            style={SOURCE_REPORT_STYLE_VARIABLES}
         >
             {children}
         </div>
@@ -1770,7 +1768,6 @@ export function SourceReportPanel({
                 data-sot-panel="recording-source-report"
                 data-sot-state={sourceReportState}
                 data-sot-variant="embedded"
-                style={SOURCE_REPORT_STYLE_VARIABLES}
             >
                 {header}
                 {content}
@@ -1790,7 +1787,6 @@ export function SourceReportPanel({
             data-sot-panel="recording-source-report"
             data-sot-state={sourceReportState}
             data-sot-variant="card"
-            style={SOURCE_REPORT_STYLE_VARIABLES}
         >
             {header}
             {content}

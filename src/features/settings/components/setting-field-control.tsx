@@ -23,34 +23,26 @@ export const SETTINGS_FIELD_CONTROL_CLASS =
     "flex min-w-0 flex-wrap items-center justify-end gap-2 @md/field-group:justify-end";
 
 export const SOURCE_PROVIDER_DETAIL_FIELD_CLASS =
-    "!grid grid-cols-[1fr_auto] !items-center gap-[18px] border-b border-border py-[14px] -mb-[2px] last:border-b-0";
+    "border-b border-border py-3 last:border-b-0";
 
 export const SOURCE_PROVIDER_DETAIL_CREDENTIAL_FIELD_CLASS =
-    "!grid grid-cols-[minmax(0,1fr)_auto] !items-center gap-[18px] border-b border-border pt-[8px] pb-[13px] mb-[2px] last:border-b-0";
+    "border-b border-border py-3 last:border-b-0";
 
-export const SOURCE_PROVIDER_DETAIL_FIELD_LABEL_CLASS =
-    "font-sans !text-[13px] font-semibold !leading-[normal] tracking-normal !text-[var(--fg-primary)]";
+export const SOURCE_PROVIDER_DETAIL_FIELD_LABEL_CLASS = "";
 
-export const SOURCE_PROVIDER_DETAIL_CREDENTIAL_FIELD_LABEL_CLASS =
-    "!block !w-full !gap-0 font-mono !text-[11.5px] font-semibold !leading-[normal] tracking-[0.02em] !text-[var(--fg-primary)]";
+export const SOURCE_PROVIDER_DETAIL_CREDENTIAL_FIELD_LABEL_CLASS = "";
 
-export const SOURCE_PROVIDER_DETAIL_FIELD_DESCRIPTION_CLASS =
-    "mt-[2px] font-sans !text-[12px] font-normal !leading-[1.5] !text-[var(--fg-tertiary)]";
+export const SOURCE_PROVIDER_DETAIL_FIELD_DESCRIPTION_CLASS = "";
 
-export const SOURCE_PROVIDER_DETAIL_CREDENTIAL_FIELD_DESCRIPTION_CLASS =
-    "!mt-[3px] !block w-full font-sans !text-[12px] font-normal !leading-[1.5] !text-[var(--fg-tertiary)]";
+export const SOURCE_PROVIDER_DETAIL_CREDENTIAL_FIELD_DESCRIPTION_CLASS = "";
 
-export const SOURCE_PROVIDER_DETAIL_FIELD_CONTENT_CLASS =
-    "min-w-0 gap-0 [&_[data-slot=field-label]]:font-sans [&_[data-slot=field-label]]:text-[13px] [&_[data-slot=field-label]]:font-semibold [&_[data-slot=field-label]]:leading-[normal] [&_[data-slot=field-label]]:tracking-normal [&_[data-slot=field-label]]:text-[var(--fg-primary)] [&_[data-slot=field-description]]:mt-[2px] [&_[data-slot=field-description]]:font-sans [&_[data-slot=field-description]]:text-[12px] [&_[data-slot=field-description]]:font-normal [&_[data-slot=field-description]]:leading-[1.5] [&_[data-slot=field-description]]:text-[var(--fg-tertiary)]";
+export const SOURCE_PROVIDER_DETAIL_FIELD_CONTENT_CLASS = "min-w-0";
 
-export const SOURCE_PROVIDER_DETAIL_CREDENTIAL_FIELD_CONTENT_CLASS =
-    "min-w-0 gap-0 [&_[data-slot=field-label]]:mb-0 [&_[data-slot=field-label]]:font-mono [&_[data-slot=field-label]]:text-[11.5px] [&_[data-slot=field-label]]:font-semibold [&_[data-slot=field-label]]:leading-[normal] [&_[data-slot=field-label]]:tracking-[0.02em] [&_[data-slot=field-label]]:text-[var(--fg-primary)] [&_[data-slot=field-description]]:mt-[3px] [&_[data-slot=field-description]]:font-sans [&_[data-slot=field-description]]:text-[12px] [&_[data-slot=field-description]]:font-normal [&_[data-slot=field-description]]:leading-[1.5] [&_[data-slot=field-description]]:text-[var(--fg-tertiary)]";
+export const SOURCE_PROVIDER_DETAIL_CREDENTIAL_FIELD_CONTENT_CLASS = "min-w-0";
 
-export const SOURCE_PROVIDER_DETAIL_FIELD_CONTROL_CLASS =
-    "flex flex-none items-center justify-end gap-[10px]";
+export const SOURCE_PROVIDER_DETAIL_FIELD_CONTROL_CLASS = "justify-end";
 
-export const SOURCE_PROVIDER_DETAIL_INPUT_CLASS =
-    "h-[30px] w-[240px] min-w-[240px] max-w-[240px] rounded-[7px] px-[10px] py-0 font-mono text-[12px] font-medium leading-[normal] md:text-[12px]";
+export const SOURCE_PROVIDER_DETAIL_INPUT_CLASS = "w-full max-w-64 font-mono";
 
 export const SOURCE_PROVIDER_DETAIL_SWITCH_CLASS = "";
 
@@ -146,7 +138,7 @@ export function SettingFieldControl({
     const inputClassName = cn(
         isSettingsVariant && "min-w-60 max-w-full",
         sourceProviderControlClassName,
-        field.masked && "!tracking-[0.15em]",
+        field.masked && "tracking-widest",
         field.className,
     );
 

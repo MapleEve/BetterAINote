@@ -539,7 +539,6 @@ const DASHBOARD_STATIC_OWNER_OBJECT_CONSTANTS = [
 const DASHBOARD_STATIC_OWNER_DEFERRED_TOKEN_AREAS = [
     "dashboardSearchActivityClassNames",
     "dashboardRetranscriptionThemeClassName",
-    "sourceProviderThemeClassName",
     "dashboardSourceClassNames",
     "sourceFilterStackClassNames",
     "dashboardRecordingRowStyles",

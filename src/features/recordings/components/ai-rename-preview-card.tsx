@@ -76,7 +76,7 @@ function AiRenameErrorIcon(props: SVGProps<SVGSVGElement>) {
 
 const aiRenamePreviewClassNames = {
     card: {
-        root: "w-[min(360px,calc(100vw-32px))] gap-0 rounded-[var(--radius-lg)] border-[var(--card-popover-border)] bg-[var(--bg-elevated)] p-0 font-sans shadow-[var(--shadow-md)] backdrop-blur-none transition-none data-[open=true]:pointer-events-auto dark:[background:color-mix(in_srgb,var(--bg-elevated)_92%,transparent)] dark:shadow-[0_18px_44px_rgb(0_0_0_/_0.40)] [&_[data-sot-part=state][hidden]]:!hidden",
+        root: "w-[min(360px,calc(100vw-32px))] gap-0 rounded-[var(--radius-lg)] border-[var(--card-popover-border)] bg-[var(--card-popover-bg)] p-0 font-sans shadow-[var(--card-popover-shadow)] backdrop-blur-none transition-none data-[open=true]:pointer-events-auto [&_[data-sot-part=state][hidden]]:!hidden",
         header: "h-[55px] grid-cols-[1fr_auto] items-start gap-x-2.5 gap-y-0.5 border-b border-[var(--card-popover-divider)] px-[14px] pt-3 pb-2 [&_[data-slot=card-head-copy]]:min-w-0",
         title: "break-words font-sans text-[11px] font-semibold leading-normal tracking-[0.02em] text-[var(--fg-secondary)]",
         content: "flex flex-col p-[14px]",
@@ -104,10 +104,10 @@ const aiRenamePreviewClassNames = {
         reviewValue:
             "min-w-0 break-words font-sans text-[13px] font-semibold leading-[1.4]",
         reviewOld:
-            "text-[var(--fg-secondary)] line-through [text-decoration-color:color-mix(in_srgb,var(--fg-tertiary)_50%,transparent)]",
+            "text-[var(--fg-secondary)] line-through decoration-muted-foreground",
         reviewNew: "text-[var(--fg-primary)]",
         spinner:
-            "mx-auto mb-1.5 size-4 border-2 [border-color:color-mix(in_srgb,var(--accent)_36%,transparent)] [border-right-color:color-mix(in_srgb,var(--accent)_36%,transparent)] [border-top-color:var(--accent)] text-[var(--accent)]",
+            "mx-auto mb-1.5 size-4 border-2 text-primary",
     },
     button: {
         close: "size-6 rounded-md border border-transparent bg-transparent p-0 text-[var(--fg-secondary)] shadow-none hover:bg-accent hover:text-accent-foreground [&_svg:not([class*='size-'])]:size-3",
@@ -123,7 +123,7 @@ const aiRenamePreviewClassNames = {
         root: "flex w-full items-start gap-3 px-1 py-2 font-sans text-sm [&_[data-slot=alert-icon]]:flex [&_[data-slot=alert-icon]]:size-7 [&_[data-slot=alert-icon]]:shrink-0 [&_[data-slot=alert-icon]]:items-center [&_[data-slot=alert-icon]]:justify-center [&_[data-slot=alert-icon]]:rounded-full [&_[data-slot=alert-icon]_svg]:size-[14px]",
         error: "flex-col items-center border-0 bg-transparent text-center text-[var(--fg-primary)] shadow-none *:data-[slot=alert-description]:text-[var(--fg-primary)] [&_[data-slot=alert-icon]]:bg-destructive/10 [&_[data-slot=alert-icon]]:text-destructive",
         unavailable:
-            "flex-col items-center border-0 bg-transparent text-center text-[var(--fg-secondary)] shadow-none *:data-[slot=alert-description]:text-[var(--fg-secondary)] [&_[data-slot=alert-icon]]:[background:color-mix(in_srgb,var(--signal-warning)_14%,transparent)] [&_[data-slot=alert-icon]]:text-[var(--signal-warning)]",
+            "flex-col items-center border-0 bg-transparent text-center text-[var(--fg-secondary)] shadow-none *:data-[slot=alert-description]:text-[var(--fg-secondary)] [&_[data-slot=alert-icon]]:bg-[var(--system-banner-offline-icon-bg)] [&_[data-slot=alert-icon]]:text-[var(--signal-warning)]",
         description:
             "grid min-w-0 gap-1 text-center [&_[data-slot=alert-message]]:m-0 [&_[data-slot=alert-message]]:break-words [&_[data-slot=alert-message]]:font-sans [&_[data-slot=alert-message]]:text-[12.5px] [&_[data-slot=alert-message]]:font-medium [&_[data-slot=alert-message]]:leading-[1.5] [&_[data-slot=alert-message]]:text-[var(--fg-secondary)] [&_[data-slot=alert-hint]]:m-0 [&_[data-slot=alert-hint]]:break-words [&_[data-slot=alert-hint]]:font-sans [&_[data-slot=alert-hint]]:text-[11.5px] [&_[data-slot=alert-hint]]:font-medium [&_[data-slot=alert-hint]]:leading-[1.5] [&_[data-slot=alert-hint]]:text-[var(--fg-tertiary)]",
     },
@@ -437,14 +437,6 @@ export function AiRenamePreviewCard({
                                     }
                                     data-slot="card-hint"
                                     data-sot-part="hint"
-                                    style={
-                                        state === "review"
-                                            ? {
-                                                  font: "500 10px/1.5 var(--font-sans)",
-                                                  whiteSpace: "nowrap",
-                                              }
-                                            : undefined
-                                    }
                                 >
                                     {message}
                                 </p>

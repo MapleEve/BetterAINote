@@ -2035,7 +2035,7 @@ const EXPECTED_DASHBOARD_TRANSCRIPT_SHELL_CARD_CLASS_NAME =
     "flex min-h-0 flex-1 flex-col gap-0 rounded-[16px] border border-[var(--line-hairline)] bg-[var(--bg-elevated)] shadow-[var(--shadow-sm)] backdrop-blur-none";
 
 const EXPECTED_SOURCE_REPORT_STATUS_BADGE_CLASS_NAME =
-    "inline-flex h-[22px] min-w-[65px] justify-normal items-center gap-[9px] overflow-visible rounded-full border px-[8px] py-0 ![font:600_11px_var(--font-sans)] leading-[normal] shadow-none data-[sot-tone=err]:border-[var(--source-report-status-err-border)] data-[sot-tone=err]:bg-[var(--source-report-status-err-bg)] data-[sot-tone=err]:text-[var(--signal-danger)] data-[sot-tone=neu]:border-[var(--line-hairline)] data-[sot-tone=neu]:bg-[var(--bg-recessed)] data-[sot-tone=neu]:text-[var(--fg-secondary)] data-[sot-tone=ok]:border-[var(--source-report-status-ok-border)] data-[sot-tone=ok]:bg-[var(--source-report-status-ok-bg)] data-[sot-tone=ok]:text-[var(--source-report-status-ok-fg)] data-[sot-tone=warn]:border-[var(--source-report-status-warn-border)] data-[sot-tone=warn]:bg-[var(--source-report-status-warn-bg)] data-[sot-tone=warn]:text-[var(--source-report-status-warn-fg)] [&_[data-sot-part=dashboard-source-report-status-dot]]:mr-0 [&_[data-sot-part=dashboard-source-report-status-dot]]:inline-block [&_[data-sot-part=dashboard-source-report-status-dot]]:size-[5px] [&_[data-sot-part=dashboard-source-report-status-dot]]:rounded-full [&_[data-sot-part=dashboard-source-report-status-dot]]:bg-current [&_[data-sot-part=source-report-status-dot]]:mr-0 [&_[data-sot-part=source-report-status-dot]]:inline-block [&_[data-sot-part=source-report-status-dot]]:size-[5px] [&_[data-sot-part=source-report-status-dot]]:rounded-full [&_[data-sot-part=source-report-status-dot]]:bg-current";
+    "inline-flex h-[22px] min-w-[65px] justify-normal items-center gap-[9px] overflow-visible rounded-full border px-[8px] py-0 ![font:600_11px_var(--font-sans)] leading-[normal] shadow-none data-[sot-tone=err]:border-destructive/30 data-[sot-tone=err]:bg-destructive/10 data-[sot-tone=err]:text-destructive data-[sot-tone=neu]:border-border data-[sot-tone=neu]:bg-muted data-[sot-tone=neu]:text-muted-foreground data-[sot-tone=ok]:border-primary/30 data-[sot-tone=ok]:bg-primary/10 data-[sot-tone=ok]:text-primary data-[sot-tone=warn]:border-border data-[sot-tone=warn]:bg-secondary data-[sot-tone=warn]:text-secondary-foreground [&_[data-sot-part=dashboard-source-report-status-dot]]:mr-0 [&_[data-sot-part=dashboard-source-report-status-dot]]:inline-block [&_[data-sot-part=dashboard-source-report-status-dot]]:size-[5px] [&_[data-sot-part=dashboard-source-report-status-dot]]:rounded-full [&_[data-sot-part=dashboard-source-report-status-dot]]:bg-current [&_[data-sot-part=source-report-status-dot]]:mr-0 [&_[data-sot-part=source-report-status-dot]]:inline-block [&_[data-sot-part=source-report-status-dot]]:size-[5px] [&_[data-sot-part=source-report-status-dot]]:rounded-full [&_[data-sot-part=source-report-status-dot]]:bg-current";
 
 const CARD_PRIMITIVE_FORBIDDEN_BUSINESS_TOKENS = [
     "onboarding",
@@ -2277,9 +2277,9 @@ const DASHBOARD_SOURCE_FILTER_FEATURE_OWNER_CLASS_SNIPPETS = [
     "h-[22px]",
     "rounded-full",
     "data-[sot-action=retry]:hidden",
-    "data-[sot-action=retry]:border-[var(--source-provider-status-danger-border)]",
-    "data-[sot-action=retry]:bg-[var(--source-provider-status-danger-bg)]",
-    "data-[sot-action=connect]:border-[var(--source-provider-primary-border)]",
+    "data-[sot-action=retry]:border-[var(--alert-destructive-soft-border)]",
+    "data-[sot-action=retry]:bg-[var(--alert-destructive-soft-bg)]",
+    "data-[sot-action=connect]:border-[var(--accent)]",
     "data-[sot-action=connect]:bg-[var(--accent-soft)]",
     "group-hover/source-provider:data-[sot-action=retry]:inline-flex",
     "group-focus-within/source-provider:data-[sot-action=retry]:inline-flex",
@@ -2966,40 +2966,25 @@ const SOURCE_REPORT_SKELETON_SHARED_TOKENS = [
 ] as const;
 
 const EXPECTED_SOURCE_REPORT_METRIC_CARD_CLASS_NAME =
-    "gap-[6px] !overflow-visible rounded-[10px] border border-[var(--source-report-metric-border)] bg-[var(--source-report-metric-bg)] px-[12px] py-[10px] shadow-none backdrop-blur-none";
+    "gap-[6px] !overflow-visible rounded-[10px] border border-border bg-muted px-[12px] py-[10px] shadow-none backdrop-blur-none";
 const SOURCE_REPORT_METRIC_CARD_CLASS_TOKENS =
     EXPECTED_SOURCE_REPORT_METRIC_CARD_CLASS_NAME.split(" ");
 const SOURCE_REPORT_STYLE_OWNER_SNIPPETS = [
-    "type SourceReportStyleVariables = CSSProperties & {",
-    "export const SOURCE_REPORT_STYLE_VARIABLES = {",
-    '"--source-report-metric-bg": "var(--card-popover-footer-bg)"',
-    '"--source-report-metric-border": "var(--glass-border-soft)"',
-    '"--source-report-status-ok-fg": "var(--signal-success)"',
-    '"--source-report-status-ok-bg":',
-    "color-mix(in srgb, var(--source-report-status-ok-fg) 14%, transparent)",
-    '"--source-report-status-ok-border":',
-    "color-mix(in srgb, var(--source-report-status-ok-fg) 30%, transparent)",
-    '"--source-report-status-warn-bg":',
-    "color-mix(in srgb, var(--signal-warning) 18%, transparent)",
-    '"--source-report-status-warn-border":',
-    "color-mix(in srgb, var(--signal-warning) 32%, transparent)",
-    '"--source-report-status-warn-fg": "var(--signal-warning-strong)"',
-    '"--source-report-status-err-bg":',
-    "color-mix(in srgb, var(--signal-danger) 14%, transparent)",
-    '"--source-report-status-err-border":',
-    "color-mix(in srgb, var(--signal-danger) 30%, transparent)",
-    '"--source-report-skeleton-bg":',
-    "linear-gradient(90deg, rgb(255 255 255 / 0.05)",
     "export const SOURCE_REPORT_SKELETON_CLASS_NAME =",
-    "![background-color:transparent]",
-    "bg-[image:var(--source-report-skeleton-bg)]",
+    '"bg-accent"',
     "export type SourceReportTone =",
     "export type SourceReportCardSkeletonSize =",
     "export type SourceReportSegmentSkeletonSize =",
     "export const SOURCE_REPORT_CARD_SKELETON_CLASS_NAMES =",
     "export const SOURCE_REPORT_SEGMENT_SKELETON_CLASS_NAMES =",
     "export const SOURCE_REPORT_PANE_CLASS_NAME =",
+    '"flex flex-col gap-3.5"',
+    "export const SOURCE_REPORT_STATE_CLASS_NAME =",
+    "[&[hidden]]:hidden",
     "export const SOURCE_REPORT_METRIC_CARD_CLASS_NAME =",
+    "border border-border bg-muted",
+    "text-muted-foreground",
+    "text-foreground",
     "export const SOURCE_REPORT_MISSING_NOTICE_CLASS_NAME =",
     "export const SOURCE_REPORT_TRANSCRIPT_MISSING_NOTICE_CLASS_NAME =",
     "export const SOURCE_REPORT_SUMMARY_MISSING_NOTICE_CLASS_NAME =",
@@ -3009,10 +2994,13 @@ const SOURCE_REPORT_STYLE_OWNER_SNIPPETS = [
     "export const SOURCE_REPORT_COPY_BUTTON_VARIANT =",
     "export const SOURCE_REPORT_COPY_BUTTON_SIZE =",
     "export const SOURCE_REPORT_COPY_BUTTON_CLASS_NAME =",
-    "[&[hidden]]:hidden",
+    "hover:bg-accent hover:text-accent-foreground",
     "export const SOURCE_REPORT_ERROR_ALERT_CLASS_NAME =",
     "export const SOURCE_REPORT_STATUS_BADGE_CLASS_NAME =",
-    "satisfies SourceReportStyleVariables",
+    "data-[sot-tone=err]:border-destructive/30 data-[sot-tone=err]:bg-destructive/10 data-[sot-tone=err]:text-destructive",
+    "data-[sot-tone=neu]:border-border data-[sot-tone=neu]:bg-muted data-[sot-tone=neu]:text-muted-foreground",
+    "data-[sot-tone=ok]:border-primary/30 data-[sot-tone=ok]:bg-primary/10 data-[sot-tone=ok]:text-primary",
+    "data-[sot-tone=warn]:border-border data-[sot-tone=warn]:bg-secondary data-[sot-tone=warn]:text-secondary-foreground",
 ] as const;
 
 const DASHBOARD_SOURCE_REPORT_LOADING_METRIC_CARDS = [
@@ -4221,22 +4209,22 @@ describe("full UI replacement regression coverage", () => {
         expect(toggleGroup).not.toContain("tone:");
         expect(toggleGroup).not.toContain("data-tone=");
         expect(tagManager).toContain("RECORDING_TAG_SWATCH_ITEM_CLASS_NAME");
-        expect(tagManager).toContain("recordingTagManagerSwatchToneClassNames");
+        expect(tagManager).toContain("RECORDING_TAG_COLOR_TOKEN_CLASS_NAME");
+        expect(tagManager).toContain("RECORDING_TAG_SWATCH_COLOR_CLASS_NAME");
+        expect(tagManager).not.toContain(
+            "recordingTagManagerSwatchToneClassNames",
+        );
         expect(tagManager).toContain("!grid");
         expect(tagManager).toContain("place-items-center");
-        expect(tagManager).toContain("rounded-[50%]");
-        expect(tagManager).toContain("text-[13.3333px]");
-        expect(tagManager).toContain("font-normal");
-        expect(tagManager).toContain("leading-[0]");
-        expect(tagManager).toContain("!text-[var(--fg-primary)]");
+        expect(tagManager).toContain("rounded-full");
+        expect(tagManager).toContain("text-[13px]");
+        expect(tagManager).toContain("leading-none");
+        expect(tagManager).toContain("!text-foreground");
         expect(tagManager).toContain(
-            "data-[state=on]:!border-[var(--fg-primary)]",
+            "data-[state=on]:!border-foreground",
         );
         expect(tagManager).toContain(
-            "data-[state=on]:!text-[var(--fg-primary)]",
-        );
-        expect(tagManager).toContain(
-            "data-[state=on]:shadow-[inset_0_0_0_2px_var(--bg-elevated)]",
+            "data-[state=on]:shadow-[inset_0_0_0_2px_var(--background)]",
         );
         for (const [tone, token] of [
             ["blue", "--tag-blue"],
@@ -4246,11 +4234,15 @@ describe("full UI replacement regression coverage", () => {
             ["red", "--tag-rose"],
             ["slate", "--tag-slate"],
         ]) {
-            expect(tagManager).toContain(`${tone}:`);
-            expect(tagManager).toContain(`!bg-[var(${token})]`);
-            expect(tagManager).toContain(`hover:!bg-[var(${token})]`);
-            expect(tagManager).toContain(`data-[state=on]:!bg-[var(${token})]`);
+            expect(tagManager).toContain(
+                `data-[sot-tag-color=${tone}]:[--recording-tag-accent:var(${token})]`,
+            );
         }
+        expect(tagManager).toContain(
+            "!bg-[var(--recording-tag-accent)]",
+        );
+        expect(tagManager).toContain("data-sot-tag-color={item}");
+        expect(tagManager).toContain("data-sot-tag-color={tag.color}");
         expect(
             collectCssRuleBlocks(
                 globals,
@@ -4445,11 +4437,11 @@ describe("full UI replacement regression coverage", () => {
         expectExactStringConstInitializer(
             confirmDialog,
             "CONFIRM_DIALOG_CONTENT_CLASS",
-            "m-[12px_auto] block w-full max-w-[460px] gap-0 overflow-hidden rounded-lg border border-[var(--card-popover-border)] p-0 font-sans text-[var(--fg-primary)] ![box-shadow:0_22px_56px_rgb(0_0_0_/_0.50)] data-[state=closed]:opacity-0 sm:max-w-[460px]",
+            "m-[12px_auto] block w-full max-w-[460px] gap-0 overflow-hidden rounded-lg border border-[var(--card-popover-border)] bg-[var(--card-popover-bg)] p-0 font-sans text-[var(--fg-primary)] shadow-[var(--card-popover-shadow)] data-[state=closed]:opacity-0 sm:max-w-[460px]",
         );
-        expect(confirmDialog).toContain(
-            'backgroundColor: "color(srgb 0.0943052 0.100332 0.106792 / 0.92)"',
-        );
+        expect(confirmDialog).not.toContain("color(srgb");
+        expect(confirmDialog).not.toContain("CONFIRM_DIALOG_CONTENT_STYLE");
+        expect(confirmDialog).not.toContain("CONFIRM_DIALOG_FOOTER_STYLE");
         expectExactStringConstInitializer(
             confirmDialog,
             "CONFIRM_DIALOG_BODY_CLASS",
@@ -4684,7 +4676,7 @@ describe("full UI replacement regression coverage", () => {
             "hover:bg-[image:var(--button-destructive-hover-bg)]",
         ]) {
             expect(button).not.toContain(actionButtonClass);
-            expect(tagManager).toContain(actionButtonClass);
+            expect(tagManager).not.toContain(actionButtonClass);
         }
         for (const recordingTagButtonToken of [
             "recordingTagErrorRetry",
@@ -4700,8 +4692,22 @@ describe("full UI replacement regression coverage", () => {
             expect(button).not.toContain(recordingTagButtonToken);
         }
         expect(button).not.toContain("text-[var(--accent)]");
-        expect(tagManager).toContain("recordingTagManagerButtonClassNames");
-        expect(tagManager).toContain("text-[var(--accent)]");
+        expect(tagManager).not.toContain("recordingTagManagerButtonClassNames");
+        for (const tagManagerButtonContract of [
+            'variant="default"',
+            'variant="destructive"',
+            'variant="ghost"',
+            'size="xs"',
+            'size="icon-xs"',
+            'size="icon-compact"',
+            "text-muted-foreground",
+            "hover:bg-muted",
+            "hover:text-foreground",
+        ]) {
+            expect(tagManager).toContain(tagManagerButtonContract);
+        }
+        expect(tagManager).toContain("text-primary-foreground");
+        expect(tagManager).toContain("text-primary");
         for (const removedAuthOnboardingButtonToken of [
             "accent:",
             "accentLink:",
@@ -4793,7 +4799,11 @@ describe("full UI replacement regression coverage", () => {
         expect(button).not.toContain("chipRemove:");
         expect(button).not.toContain("[&_svg]:invisible");
         expect(tagManager).toContain(
-            "recordingTagManagerButtonClassNames.chipRemove",
+            'data-sot-control="recording-tag-delete-open"',
+        );
+        expect(tagManager).toContain('size="icon-xs"');
+        expect(tagManager).toContain(
+            "size-[var(--icon-chip-size)] shrink-0 rounded-full p-0 text-muted-foreground hover:bg-muted hover:text-foreground",
         );
         expect(tagManager).toContain("[&_svg]:invisible");
         expect(button).not.toContain("accentSelf");
@@ -6003,9 +6013,21 @@ describe("full UI replacement regression coverage", () => {
         for (const token of SYSTEM_BANNER_FEATURE_LOCAL_TOKENS) {
             expect(banner).toContain(token);
         }
-        expect(progressPrimitive).toContain(
-            'import { Progress as ProgressPrimitive } from "radix-ui";',
-        );
+        for (const localProgressContract of [
+            'data-slot="progress"',
+            'role="progressbar"',
+            "aria-valuemax={maxValue}",
+            "aria-valuemin={0}",
+            "aria-valuenow={progressValue ?? undefined}",
+            "aria-valuetext={valueLabel}",
+            'data-slot="progress-indicator"',
+            "indicatorClassName",
+            "indicatorProps",
+            "transform: `translateX(-${100 - progressPercent}%)`",
+        ]) {
+            expect(progressPrimitive).toContain(localProgressContract);
+        }
+        expect(progressPrimitive).not.toContain("radix-ui");
     });
 
     it("composes system banners with shadcn Alert, Button, and Progress primitives", () => {
@@ -7201,12 +7223,6 @@ describe("full UI replacement regression coverage", () => {
         );
         const globals = readSource("app/globals.css");
         const productCss = readProductCss(globals);
-        const sourceProviderThemeClassName =
-            findStringConstInitializerContaining(workstation, [
-                "--source-provider-status-",
-                "--source-provider-primary-",
-            ]);
-
         expect(workstation).toContain(
             'data-sot-surface="dashboard-workstation"',
         );
@@ -7372,12 +7388,9 @@ describe("full UI replacement regression coverage", () => {
         expect(workstation).toContain(
             'data-sot-control="dashboard-source-provider"',
         );
-        expect(sourceProviderThemeClassName).toMatch(
-            /--source-provider-status-[a-z-]+:/,
-        );
-        expect(sourceProviderThemeClassName).toMatch(
-            /--source-provider-primary-[a-z-]+:/,
-        );
+        expect(workstation).not.toContain("sourceProviderThemeClassName");
+        expect(workstation).not.toMatch(/--source-provider-status-[a-z-]+:/);
+        expect(workstation).not.toMatch(/--source-provider-primary-[a-z-]+:/);
         expect(globals).not.toMatch(/--source-provider-status-[a-z-]+/);
         expect(button).not.toMatch(/--source-provider-status-[a-z-]+/);
         expect(workstation).toContain(
@@ -8224,23 +8237,15 @@ describe("full UI replacement regression coverage", () => {
             "data-[sot-tone=ok]:text-[var(--signal-success)]",
         );
         for (const dashboardStatusToken of [
-            "--source-provider-status-success-bg:var(--button-copy-success-bg)",
-            "--source-provider-status-success-border:var(--button-copy-success-border)",
-            "--source-provider-status-warning-bg:var(--system-banner-offline-icon-bg)",
-            "--source-provider-status-warning-border:var(--system-banner-offline-border)",
-            "--source-provider-status-danger-bg:var(--alert-destructive-soft-bg)",
-            "--source-provider-status-danger-border:var(--alert-destructive-soft-border)",
-            "--source-provider-status-info-bg:var(--system-banner-progress-icon-bg)",
-            "--source-provider-status-info-border:var(--system-banner-progress-border)",
             "rounded-[999px]",
-            "data-[sot-tone=ok]:border-[var(--source-provider-status-success-border)]",
-            "data-[sot-tone=ok]:bg-[var(--source-provider-status-success-bg)]",
-            "data-[sot-tone=warn]:border-[var(--source-provider-status-warning-border)]",
-            "data-[sot-tone=warn]:bg-[var(--source-provider-status-warning-bg)]",
-            "data-[sot-tone=err]:border-[var(--source-provider-status-danger-border)]",
-            "data-[sot-tone=err]:bg-[var(--source-provider-status-danger-bg)]",
-            "data-[sot-tone=info]:border-[var(--source-provider-status-info-border)]",
-            "data-[sot-tone=info]:bg-[var(--source-provider-status-info-bg)]",
+            "data-[sot-tone=ok]:border-[var(--button-copy-success-border)]",
+            "data-[sot-tone=ok]:bg-[var(--button-copy-success-bg)]",
+            "data-[sot-tone=warn]:border-[var(--system-banner-offline-border)]",
+            "data-[sot-tone=warn]:bg-[var(--system-banner-offline-icon-bg)]",
+            "data-[sot-tone=err]:border-[var(--alert-destructive-soft-border)]",
+            "data-[sot-tone=err]:bg-[var(--alert-destructive-soft-bg)]",
+            "data-[sot-tone=info]:border-[var(--system-banner-progress-border)]",
+            "data-[sot-tone=info]:bg-[var(--system-banner-progress-icon-bg)]",
         ]) {
             expect(dashboardRecordingStatusBadgeClass).toContain(
                 dashboardStatusToken,
@@ -9988,6 +9993,9 @@ describe("full UI replacement regression coverage", () => {
         for (const snippet of SOURCE_REPORT_STYLE_OWNER_SNIPPETS) {
             expect(sourceReportStyles).toContain(snippet);
         }
+        expect(sourceReportStyles).not.toMatch(
+            /SOURCE_REPORT_STYLE_VARIABLES|SourceReportStyleVariables|--source-report-|color-mix\(|linear-gradient\(/,
+        );
         expect(globals).not.toMatch(/--source-report-[a-z-]+/);
         expect(
             collectExactCssRuleBlocks(
@@ -10014,23 +10022,27 @@ describe("full UI replacement regression coverage", () => {
         expect(workstation).toContain(
             "SOURCE_REPORT_SEGMENT_SKELETON_CLASS_NAMES",
         );
-        expect(workstation).toContain("SOURCE_REPORT_STYLE_VARIABLES");
+        expect(workstation).not.toContain("SOURCE_REPORT_STYLE_VARIABLES");
         const dashboardSourceReportPane = extractOpeningElement(
             workstation,
             'data-sot-panel="dashboard-source-report"',
             "div",
         );
-        expect(dashboardSourceReportPane).toContain(
-            "style={SOURCE_REPORT_STYLE_VARIABLES}",
-        );
+        expectCnClassNameReferences(dashboardSourceReportPane, [
+            "SOURCE_REPORT_PANE_CLASS_NAME",
+            "dashboardTabPaneHiddenClassName",
+        ]);
+        expect(dashboardSourceReportPane).not.toContain("style=");
         const dashboardSourceReportState = extractOpeningElement(
             workstation,
             'data-sot-panel="dashboard-source-report-state"',
             "div",
         );
-        expect(dashboardSourceReportState).toContain(
-            "style={SOURCE_REPORT_STYLE_VARIABLES}",
+        expectClassNameConstReference(
+            dashboardSourceReportState,
+            "SOURCE_REPORT_STATE_CLASS_NAME",
         );
+        expect(dashboardSourceReportState).not.toContain("style=");
         expectSourceToExcludeForbiddenSubstrings(
             sourceReportBadgePrimitive,
             BADGE_PRIMITIVE_FORBIDDEN_BUSINESS_TOKENS,
@@ -11076,7 +11088,7 @@ describe("full UI replacement regression coverage", () => {
         );
         const providerDetailDividers = [
             ...settingsProviderDetail.matchAll(
-                /<div[\s\S]*?data-sot-section-divider[\s\S]*?\/>/g,
+                /<(?:div|Separator)[\s\S]*?data-sot-section-divider[\s\S]*?\/>/g,
             ),
         ].map((match) => match[0]);
         expect(settingsProviderDetail).not.toContain("data-sot-section-group");
@@ -11084,7 +11096,7 @@ describe("full UI replacement regression coverage", () => {
             "const SOURCE_PROVIDER_SECTION_DIVIDER_CLASS =",
         );
         expect(settings).toContain(
-            "const SOURCE_PROVIDER_ACTION_CLUSTER_DIVIDER_CLASS = cn(",
+            "const SOURCE_PROVIDER_ACTION_CLUSTER_DIVIDER_CLASS =\n    SOURCE_PROVIDER_SECTION_DIVIDER_CLASS;",
         );
         expect(
             providerDetailDividers.some((divider) =>
@@ -11378,16 +11390,20 @@ describe("full UI replacement regression coverage", () => {
         expect(settingsSourceActionStatus).not.toContain("className=");
         expect(settingsSourceActionStatus).not.toContain("showIndicator");
         expect(sourceActionButtonWrapper).toContain("<Button");
-        expect(sourceActionButtonWrapper).toContain("variant={");
-        expect(sourceActionButtonWrapper).toContain("className={cn(");
-        expect(sourceActionButtonWrapper).toMatch(
-            /className=\{cn\([\s\S]*className[\s\S]*\)\}/,
+        expect(sourceActionButtonWrapper).toContain(
+            "variant={SOURCE_ACTION_BUTTON_PRIMITIVE_VARIANT_BY_TONE[tone]}",
         );
+        expect(sourceActionButtonWrapper).toContain('size="xs"');
+        expect(sourceActionButtonWrapper).toContain("className={className}");
+        expect(sourceActionButtonWrapper).not.toContain("className={cn(");
         expect(sourceActionButtonWrapper).not.toMatch(
             /\bsize=["'{][^"'}]*sourceProviderAction/i,
         );
         expect(sourceActionStatusWrapper).toContain("<Badge");
-        expect(sourceActionStatusWrapper).toContain('variant="ghost"');
+        expect(sourceActionStatusWrapper).toContain(
+            "variant={getSourceActionStatusBadgeVariant(state)}",
+        );
+        expect(sourceActionStatusWrapper).not.toContain('variant="ghost"');
         expect(sourceActionStatusWrapper).toContain(
             'data-sot-part="source-action-status-indicator"',
         );
@@ -11470,17 +11486,34 @@ describe("full UI replacement regression coverage", () => {
             "isSourceProviderCredentialField",
         );
         for (const providerDetailInputOwnerToken of [
+            "w-full",
+            "max-w-64",
+            "font-mono",
+        ]) {
+            expect(providerDetailInputOwnerClass).toContain(
+                providerDetailInputOwnerToken,
+            );
+        }
+        for (const retiredProviderDetailInputOwnerToken of [
             "h-[30px]",
             "w-[240px]",
             "min-w-[240px]",
             "max-w-[240px]",
             "rounded-[7px]",
-            "font-mono",
             "text-[12px]",
         ]) {
-            expect(providerDetailInputOwnerClass).toContain(
-                providerDetailInputOwnerToken,
+            expect(providerDetailInputOwnerClass).not.toContain(
+                retiredProviderDetailInputOwnerToken,
             );
+        }
+        for (const inputPrimitiveToken of [
+            "h-9 px-3 py-1 text-base md:text-sm",
+            "rounded-md border-input",
+            "focus-visible:border-ring",
+            "focus-visible:ring-[3px]",
+            "aria-invalid:border-destructive",
+        ]) {
+            expect(inputPrimitive).toContain(inputPrimitiveToken);
         }
         expect(providerDetailInputOwnerClass).not.toContain(
             "focus-visible:ring-0",
@@ -11682,12 +11715,20 @@ describe("full UI replacement regression coverage", () => {
             "SETTINGS_BANNER_BASE_CLASS",
         );
         expect(settingsSourceStateAlert).toContain(
+            'variant={tone === "err" ? "destructiveSoft" : "default"}',
+        );
+        expect(settingsSourceStateAlert).toContain('density="comfortable"');
+        expect(settingsSourceStateAlert).toContain(
+            "data-sot-state={getBannerTone(tone)}",
+        );
+        expect(settingsSourceStateAlert).toContain("data-sot-tone={tone}");
+        expect(settingsSourceStateAlert).not.toContain(
             "SETTINGS_BANNER_LAYOUT_CLASS",
         );
-        expect(settingsSourceStateAlert).toContain(
+        expect(settingsSourceStateAlert).not.toContain(
             "SETTINGS_BANNER_ERROR_CLASS",
         );
-        expect(settingsSourceStateAlert).toContain(
+        expect(settingsSourceStateAlert).not.toContain(
             "SETTINGS_BANNER_TONE_CLASS",
         );
         for (const settingsLoadErrorAlert of [
@@ -11697,10 +11738,13 @@ describe("full UI replacement regression coverage", () => {
             expect(settingsLoadErrorAlert).toContain(
                 "SETTINGS_BANNER_BASE_CLASS",
             );
-            expect(settingsLoadErrorAlert).toContain(
+            expect(settingsLoadErrorAlert).toContain('variant="destructiveSoft"');
+            expect(settingsLoadErrorAlert).toContain('density="comfortable"');
+            expect(settingsLoadErrorAlert).toContain('data-sot-tone="err"');
+            expect(settingsLoadErrorAlert).not.toContain(
                 "SETTINGS_BANNER_ACTION_LAYOUT_CLASS",
             );
-            expect(settingsLoadErrorAlert).toContain(
+            expect(settingsLoadErrorAlert).not.toContain(
                 "SETTINGS_BANNER_ERROR_CLASS",
             );
             expect(settingsLoadErrorAlert).not.toContain(
@@ -11717,6 +11761,18 @@ describe("full UI replacement regression coverage", () => {
             "data-sot-section={section}",
         );
         expect(settingsVoScriptUnavailableAlert).toContain(
+            'density="comfortable"',
+        );
+        expect(settingsVoScriptUnavailableAlert).toContain(
+            'data-sot-tone="warn"',
+        );
+        expect(settingsVoScriptUnavailableAlert).toContain(
+            "SETTINGS_BANNER_BASE_CLASS",
+        );
+        expect(settingsVoScriptUnavailableAlert).toContain(
+            'connectionTestState === "test-error"',
+        );
+        expect(settingsVoScriptUnavailableAlert).not.toContain(
             "SETTINGS_BANNER_WARNING_CLASS",
         );
         expect(settingsVoScriptUnavailableAlert).not.toContain(
@@ -13523,7 +13579,7 @@ describe("full UI replacement regression coverage", () => {
         expect(tagManager).toContain("<FieldLegend");
         expect(tagManager).toContain("<InputGroup");
         expect(tagManager).toContain("<InputGroupInput");
-        expect(tagManager).not.toContain("<InputGroupButton");
+        expect(tagManager).toContain("<InputGroupButton");
         expect(tagManager).toContain("<ToggleGroup");
         expect(tagManager).toContain("<ToggleGroupItem");
         const tagManagerColorPicker = extractElementSlice(
@@ -13538,8 +13594,12 @@ describe("full UI replacement regression coverage", () => {
         );
         expect(tagManagerColorPicker).toContain('variant="default"');
         expect(tagManagerColorPicker).toContain('size="sm"');
+        expect(tagManagerColorPicker).toContain("className={cn(");
         expect(tagManagerColorPicker).toContain(
-            'className="tagm-swatches flex-wrap"',
+            '"tagm-swatches flex-wrap rounded-none"',
+        );
+        expect(tagManagerColorPicker).toContain(
+            'picker === "quick" ? "gap-1" : "gap-2"',
         );
         expect(tagManagerColorPicker).toContain(
             'spacing={picker === "quick" ? 1 : 2}',
@@ -13557,8 +13617,9 @@ describe("full UI replacement regression coverage", () => {
             "RECORDING_TAG_SWATCH_ITEM_CLASS_NAME",
         );
         expect(tagManagerColorPicker).toContain(
-            "recordingTagManagerSwatchToneClassNames[item]",
+            "RECORDING_TAG_SWATCH_COLOR_CLASS_NAME",
         );
+        expect(tagManagerColorPicker).toContain("data-sot-tag-color={item}");
         expect(tagManagerColorPicker).not.toContain('variant="swatch"');
         expect(tagManagerColorPicker).not.toContain('size="swatch"');
         expect(tagManagerColorPicker).not.toContain('variant="outline"');
@@ -13580,7 +13641,7 @@ describe("full UI replacement regression coverage", () => {
             "id={tagColorPickerLabelId}",
         );
         expect(tagManagerColorPickerFrame).toContain(
-            "className={recordingTagManagerFieldClassNames.pickerLabel}",
+            "className={RECORDING_TAG_MANAGER_PICKER_LABEL_CLASS_NAME}",
         );
         expect(tagManagerColorPickerFrame).toContain(
             'data-sot-part="picker-label"',
@@ -13589,15 +13650,15 @@ describe("full UI replacement regression coverage", () => {
         expect(tagManagerColorPickerFrame).not.toContain("<legend");
         expect(tagManagerIconPicker).toContain('variant="default"');
         expect(tagManagerIconPicker).toContain('size="sm"');
-        expect(tagManagerIconPicker).toContain('layout="default"');
+        expect(tagManagerIconPicker).toContain('layout="iconGrid"');
         expect(tagManagerIconPicker).toContain(
-            'className="tagm-icon-grid grid grid-cols-6"',
+            'className="tagm-icon-grid rounded-none"',
         );
         expect(tagManagerIconPicker).toContain("spacing={1.5}");
         expect(tagManagerIconPicker).toContain('variant="outline"');
         expect(tagManagerIconPicker).toContain('size="sm"');
         expect(tagManagerIconPicker).toContain(
-            "recordingTagManagerToggleGroupClassNames.iconOption",
+            "RECORDING_TAG_MANAGER_ICON_OPTION_CLASS_NAME",
         );
         expect(tagManagerIconPicker).not.toContain('size="iconPicker"');
         expect(tagManagerIconPicker).not.toContain(
@@ -13630,7 +13691,7 @@ describe("full UI replacement regression coverage", () => {
             "id={tagIconPickerLabelId}",
         );
         expect(tagManagerIconPickerFrame).toContain(
-            "className={recordingTagManagerFieldClassNames.pickerLabel}",
+            "className={RECORDING_TAG_MANAGER_PICKER_LABEL_CLASS_NAME}",
         );
         expect(tagManagerIconPickerFrame).toContain(
             'data-sot-part="picker-label"',
@@ -13665,11 +13726,6 @@ describe("full UI replacement regression coverage", () => {
         }
         expect(tagManager).toContain('data-sot-control="recording-tag-create"');
         for (const ownerWrapper of [
-            "recordingTagManagerCardClassNames",
-            "recordingTagManagerContentClassNames",
-            "recordingTagManagerBadgeClassNames",
-            "recordingTagManagerFieldClassNames",
-            "recordingTagManagerToggleGroupClassNames",
             "RecordingTagManagerPopoverContent",
             "RecordingTagManagerHeader",
             "RecordingTagManagerTitle",
@@ -13680,13 +13736,25 @@ describe("full UI replacement regression coverage", () => {
         ]) {
             expect(tagManager).toContain(ownerWrapper);
         }
-        expect(tagManager).toContain('"recordingTagManagerCreate"');
-        expect(tagManager).toContain('"recordingTagManagerDelete"');
-        expect(tagManager).toContain('"recordingTagManagerDefault"');
-        expect(tagManager).toContain('"recordingTagManagerEmpty"');
-        expect(tagManager).toContain('"recordingTagManagerSaving"');
-        expect(tagManager).toContain('"recordingTagManagerTight"');
-        expect(tagManager).toContain('"recordingTagManagerCompact"');
+        for (const removedOwnerMap of [
+            "recordingTagManagerButtonClassNames",
+            "recordingTagManagerCardClassNames",
+            "recordingTagManagerContentClassNames",
+            "recordingTagManagerBadgeClassNames",
+            "recordingTagManagerFieldClassNames",
+            "recordingTagManagerToggleGroupClassNames",
+            "recordingTagManagerSotColorClassName",
+            "recordingTagManagerSwatchToneClassNames",
+        ]) {
+            expect(tagManager).not.toContain(removedOwnerMap);
+        }
+        expect(tagManager).toContain('"create"');
+        expect(tagManager).toContain('"delete"');
+        expect(tagManager).toContain('"default"');
+        expect(tagManager).toContain('"empty"');
+        expect(tagManager).toContain('"saving"');
+        expect(tagManager).toContain('"tight"');
+        expect(tagManager).toContain('"compact"');
         expect(tagManager).toContain("contentVariant={contentVariant}");
         expect(tagManager).not.toContain('variant="recordingTagToggleNote"');
         for (const recordingTagBusinessProp of [
@@ -13709,7 +13777,7 @@ describe("full UI replacement regression coverage", () => {
         ]) {
             expect(tagManager).not.toContain(recordingTagBusinessProp);
         }
-        expect(tagManager).toContain(
+        expect(tagManager).not.toContain(
             "RECORDING_TAG_INLINE_CREATE_BUTTON_CLASS_NAME",
         );
         expect(tagManager).not.toContain(
@@ -13730,18 +13798,6 @@ describe("full UI replacement regression coverage", () => {
         ]) {
             expect(tagManager).not.toContain(retiredButtonProp);
         }
-        expect(tagManager).toContain("recordingTagManagerButtonClassNames");
-        for (const ownerClassName of [
-            "recordingTagManagerButtonClassNames.neutralAction",
-            "recordingTagManagerButtonClassNames.primaryAction",
-            "recordingTagManagerButtonClassNames.destructiveAction",
-            "recordingTagManagerButtonClassNames.inlineCreate",
-            "recordingTagManagerButtonClassNames.tagToggle",
-            "recordingTagManagerButtonClassNames.chipRemove",
-            "recordingTagManagerButtonClassNames.panelClose",
-        ]) {
-            expect(tagManager).toContain(ownerClassName);
-        }
         expect(tagManager).toContain('variant="ghost"');
         expect(tagManager).toContain('variant="default"');
         expect(tagManager).toContain('variant="destructive"');
@@ -13759,38 +13815,30 @@ describe("full UI replacement regression coverage", () => {
         expect(tagManager).not.toContain('size="colorPicker"');
         expect(tagManager).not.toContain('size="iconPicker"');
         expect(tagManager).toContain('size="sm"');
-        expect(tagManager).toContain('size="icon"');
+        expect(tagManager).not.toContain('size="icon"');
         expect(tagManager).toContain('size="icon-xs"');
+        expect(tagManager).toContain('size="icon-compact"');
         expect(tagManager).not.toContain('size="swatch"');
         expect(tagManager).toContain("RECORDING_TAG_SWATCH_ITEM_CLASS_NAME");
-        expect(tagManager).toContain("recordingTagManagerSwatchToneClassNames");
-        const tagManagerBadgeClassNames = extractBoundedSlice(
-            tagManager,
-            "const recordingTagManagerBadgeClassNames = {",
-            "} as const;",
-        );
-        expect(tagManagerBadgeClassNames).toContain(
-            "h-[22px] justify-normal gap-[5px]",
-        );
-        expect(tagManagerBadgeClassNames).toContain("bg-[var(--bg-recessed)]");
-        expect(tagManagerBadgeClassNames).toContain("text-[var(--fg-primary)]");
+        expect(tagManager).toContain("RECORDING_TAG_SWATCH_COLOR_CLASS_NAME");
+        expect(tagManager).toContain("RECORDING_TAG_COLOR_TOKEN_CLASS_NAME");
+        expect(tagManager).toContain("h-[22px] justify-normal gap-1");
+        expect(tagManager).toContain("bg-muted");
+        expect(tagManager).toContain("text-[var(--recording-tag-accent)]");
         expect(tagManager).not.toContain("--badge-pill-height");
         expect(tagManager).not.toContain("--badge-check-bg");
         expect(globals).not.toContain("--badge-pill-height");
         expect(globals).not.toContain("--badge-check-bg");
         expect(tagManager).toContain("!size-[18px]");
         expect(tagManager).toContain("!p-0");
-        expect(tagManager).toContain("hover:!text-[var(--fg-primary)]");
+        expect(tagManager).toContain("hover:scale-110");
         expect(tagManager).toContain(
-            "data-[state=on]:!border-[var(--fg-primary)]",
+            "data-[state=on]:!border-foreground",
         );
         expect(tagManager).toContain(
-            "data-[state=on]:!text-[var(--fg-primary)]",
+            "data-[state=on]:shadow-[inset_0_0_0_2px_var(--background)]",
         );
-        expect(tagManager).toContain(
-            "data-[state=on]:shadow-[inset_0_0_0_2px_var(--bg-elevated)]",
-        );
-        expect(tagManager).not.toContain('size="icon-compact"');
+        expect(tagManager).toContain('size="icon-compact"');
         expect(tagManager).toContain('placement="inlineStart"');
         expect(tagManager).toContain('"relative whitespace-nowrap"');
         expect(tagManager).toContain(
@@ -13811,9 +13859,7 @@ describe("full UI replacement regression coverage", () => {
         expect(tagManager).toContain(
             "max-h-[460px] w-[320px] max-w-[calc(100vw-2rem)] gap-0",
         );
-        expect(tagManager).toContain(
-            "recordingTagManagerCardClassNames.toggleNote",
-        );
+        expect(tagManager).toContain("RECORDING_TAG_MANAGER_TOGGLE_NOTE_CLASS_NAME");
         expect(emptyPrimitive).not.toContain("recordingTagEmptyState:");
         expect(inputGroupPrimitive).not.toContain("recordingTagCreateRow:");
         expect(inputGroupPrimitive).not.toContain("recordingTagNameInput:");
@@ -13835,24 +13881,15 @@ describe("full UI replacement regression coverage", () => {
             );
         }
         for (const featureOwnedFieldClassName of [
-            "recordingTagManagerFieldClassNames.pickerFrame",
-            "recordingTagManagerFieldClassNames.colorPickerFrame",
-            "recordingTagManagerFieldClassNames.iconPickerFrame",
-            "recordingTagManagerFieldClassNames.pickerLabel",
+            "RECORDING_TAG_MANAGER_PICKER_FRAME_CLASS_NAME",
+            "RECORDING_TAG_MANAGER_PICKER_LABEL_CLASS_NAME",
         ]) {
             expect(tagManager).toContain(featureOwnedFieldClassName);
         }
-        const tagManagerFieldClassNames = extractBoundedSlice(
-            tagManager,
-            "const recordingTagManagerFieldClassNames = {",
-            "} as const;",
-        );
-        expect(tagManagerFieldClassNames).toContain(
-            '"tagm-picker flex flex-col !gap-[10px]',
-        );
-        expect(tagManagerFieldClassNames).toContain('"tagm-picker-label');
+        expect(tagManager).toContain("tagm-picker flex flex-col gap-2.5");
+        expect(tagManager).toContain("tagm-picker-label");
         expect(tagManager).toContain(
-            "recordingTagManagerToggleGroupClassNames.iconOption",
+            "RECORDING_TAG_MANAGER_ICON_OPTION_CLASS_NAME",
         );
         expect(alertPrimitive).not.toContain("recordingTagError:");
         expect(alertPrimitive).not.toContain("recordingTagDeleteConfirm:");
@@ -13889,23 +13926,15 @@ describe("full UI replacement regression coverage", () => {
         const tagManagerInlineCreateButton = extractElementSlice(
             tagManager,
             'aria-label="添加"',
-            "Button",
+            "InputGroupButton",
         );
         expect(tagManagerInlineCreateButton).toContain('variant="default"');
-        expect(tagManagerInlineCreateButton).toContain('size="icon"');
-        expect(tagManagerInlineCreateButton).toContain(
-            "recordingTagManagerButtonClassNames.inlineCreate",
-        );
-        expect(tagManagerInlineCreateButton).toContain(
-            "RECORDING_TAG_INLINE_CREATE_BUTTON_CLASS_NAME",
-        );
+        expect(tagManagerInlineCreateButton).toContain('size="icon-compact"');
+        expect(tagManagerInlineCreateButton).toContain('"tagm-add-btn"');
         expect(tagManagerInlineCreateButton).toContain(
             'data-sot-control="recording-tag-create"',
         );
         expect(tagManagerInlineCreateButton).toContain("disabled={!canCreate}");
-        expect(tagManager).toContain(
-            "recordingTagManagerButtonClassNames.primaryAction",
-        );
         expect(tagManager).toContain('size="sm"');
         expect(tagManager).toContain('data-sot-control="recording-tag-create"');
         expect(tagManager).toContain('"min-w-0 max-w-full"');
@@ -14023,19 +14052,15 @@ describe("full UI replacement regression coverage", () => {
             globals,
             '[data-sot-panel="recording-tag-manager"]',
         );
-        const tagManagerCardClassNames = extractBoundedSlice(
+        const tagManagerPanelClass = extractBoundedSlice(
             tagManager,
-            "const recordingTagManagerCardClassNames = {",
-            "} as const;",
+            "const RECORDING_TAG_MANAGER_PANEL_CLASS_NAME =",
+            ";",
         );
-        const tagManagerContentClassNames = extractBoundedSlice(
+        const tagManagerContentClassName = extractBoundedSlice(
             tagManager,
-            "const recordingTagManagerContentClassNames = {",
-            "} as const;",
-        );
-        const tagManagerPanelClass = extractObjectStringProperty(
-            tagManagerCardClassNames,
-            "panel",
+            "const RECORDING_TAG_MANAGER_CONTENT_CLASS_NAME =",
+            ";",
         );
 
         expect(tagManagerGlobalPanelBlocks).toEqual([]);
@@ -14050,8 +14075,8 @@ describe("full UI replacement regression coverage", () => {
         expect(tagManagerPanelClass).not.toContain("fixed");
         expect(tagManagerPanelClass).not.toContain("z-[var(--z-dropdown)]");
         expect(tagManagerPanelClass).not.toContain("pointer-events-auto");
-        expect(tagManagerContentClassNames).toContain("tagm-body");
-        expect(tagManagerContentClassNames).toContain("overflow-auto");
+        expect(tagManagerContentClassName).toContain("overflow-auto");
+        expect(tagManager).toContain('"tagm-body"');
 
         expect(sourceReport).toContain("SAFE_SOURCE_DETAIL_KEYS");
         const sourceReportStyles = readSource(
@@ -14060,6 +14085,9 @@ describe("full UI replacement regression coverage", () => {
         for (const snippet of SOURCE_REPORT_STYLE_OWNER_SNIPPETS) {
             expect(sourceReportStyles).toContain(snippet);
         }
+        expect(sourceReportStyles).not.toMatch(
+            /SOURCE_REPORT_STYLE_VARIABLES|SourceReportStyleVariables|--source-report-|color-mix\(|linear-gradient\(/,
+        );
         expect(globals).not.toMatch(/--source-report-[a-z-]+/);
         expect(
             collectExactCssRuleBlocks(
@@ -14086,17 +14114,34 @@ describe("full UI replacement regression coverage", () => {
         expect(sourceReport).toContain(
             "SOURCE_REPORT_SEGMENT_SKELETON_CLASS_NAMES",
         );
-        expect(sourceReport).toContain("SOURCE_REPORT_STYLE_VARIABLES");
-        expect(
-            sourceReport.match(/style=\{SOURCE_REPORT_STYLE_VARIABLES\}/g) ??
-                [],
-        ).toHaveLength(3);
+        expect(sourceReport).not.toContain("SOURCE_REPORT_STYLE_VARIABLES");
         expect(sourceReport).toContain(
             'data-sot-panel="recording-source-report"',
         );
         expect(sourceReport).toContain(
             'data-sot-panel="recording-source-report-state"',
         );
+        const sourceReportPane = extractOpeningElement(
+            sourceReport,
+            'data-sot-panel="recording-source-report"',
+            "Card",
+        );
+        expectCnClassNameReferences(sourceReportPane, [
+            "SOURCE_REPORT_PANE_CLASS_NAME",
+            '"min-h-0 overflow-hidden px-5 pt-4 pb-6"',
+            "className",
+        ]);
+        expect(sourceReportPane).not.toContain("style=");
+        const sourceReportState = extractOpeningElement(
+            sourceReport,
+            'data-sot-panel="recording-source-report-state"',
+            "div",
+        );
+        expectClassNameConstReference(
+            sourceReportState,
+            "SOURCE_REPORT_STATE_CLASS_NAME",
+        );
+        expect(sourceReportState).not.toContain("style=");
         expect(sourceReport).toContain("data-sot-state={sourceReportState}");
         expect(sourceReport).toContain(
             'import { Button } from "@/components/ui/button";',
@@ -14217,14 +14262,14 @@ describe("full UI replacement regression coverage", () => {
             "inline-grid",
             "!size-[40px]",
             "place-items-center",
-            "border-[var(--line-hairline)]",
-            "bg-[var(--bg-recessed)]",
-            "text-[var(--fg-tertiary)]",
+            "border border-border",
+            "bg-card",
+            "text-muted-foreground",
             "[&_svg]:stroke-[1.8]",
             "[&_svg:not([class*='size-'])]:!size-[16px]",
-            "border-[color-mix(in_srgb,var(--signal-danger)_28%,transparent)]",
-            "bg-[color-mix(in_srgb,var(--signal-danger)_14%,transparent)]",
-            "text-[var(--signal-danger)]",
+            "border-destructive/30",
+            "bg-destructive/10",
+            "text-destructive",
         ] as const) {
             expect(sourceReportStyles).toContain(
                 sourceReportEmptyIconStyleSnippet,
@@ -14440,7 +14485,7 @@ describe("full UI replacement regression coverage", () => {
             /\bSOURCE_REPORT_STATUS_BADGE_CLASS\s*=/,
         );
         expect(sourceReport).not.toMatch(
-            /\bCSSProperties\b|SOURCE_REPORT_LOADING_SKELETON_STYLES|style=\{(?!SOURCE_REPORT_STYLE_VARIABLES\})|sk _is|_is-/,
+            /\bCSSProperties\b|SOURCE_REPORT_LOADING_SKELETON_STYLES|SOURCE_REPORT_STYLE_VARIABLES|style=\{|sk _is|_is-/,
         );
         expect(sourceReport).not.toMatch(SOURCE_REPORT_LEGACY_SURFACE_RE);
         const sotPlayerTagChip = extractBoundedSlice(

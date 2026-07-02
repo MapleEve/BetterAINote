@@ -5,7 +5,7 @@ import type { ReactNode } from "react";
 import { useCallback, useEffect, useState } from "react";
 import { toast } from "sonner";
 import { useLanguage } from "@/components/language-provider";
-import { Alert } from "@/components/ui/alert";
+import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -64,21 +64,31 @@ const speakerStateBadgeClassName =
 
 const speakerSettingsRowClassName = "border-b border-border py-3";
 
-const speakerSettingsBannerIconSlotClassName =
-    "[&_[data-sot-banner-icon]]:inline-flex [&_[data-sot-banner-icon]]:size-6 [&_[data-sot-banner-icon]]:flex-none [&_[data-sot-banner-icon]]:items-center [&_[data-sot-banner-icon]]:justify-center [&_[data-sot-banner-icon]]:rounded-md [&_[data-sot-banner-icon]]:border [&_[data-sot-banner-icon]]:border-[var(--settings-banner-icon-border)] [&_[data-sot-banner-icon]]:bg-[var(--settings-banner-icon-bg)] [&_[data-sot-banner-icon]]:text-[var(--settings-banner-icon-color)] [&_[data-sot-banner-icon]_svg]:size-3.5";
+const speakerSettingsBannerIconClassName =
+    "inline-flex size-6 flex-none items-center justify-center rounded-md border [&_svg]:size-3.5";
+
+const speakerSettingsBannerInfoIconClassName =
+    "border-border bg-card text-[var(--signal-info)]";
+
+const speakerSettingsBannerErrorIconClassName =
+    "border-[var(--alert-destructive-soft-border)] bg-[var(--alert-destructive-soft-strong-bg)] text-[var(--signal-danger)]";
 
 const speakerSettingsBannerBaseClassName =
     "mb-4 w-full rounded-lg border px-3.5 py-3 text-sm text-[var(--fg-primary)]";
 
 const speakerSettingsBannerLayoutClassName =
-    "grid grid-cols-[auto_1fr] items-start gap-3 [&_[data-sot-banner-body]]:min-w-0";
+    "grid grid-cols-[auto_1fr] items-start gap-3";
 
 const speakerSettingsBannerActionLayoutClassName =
-    "grid grid-cols-[auto_1fr_auto] items-start gap-3 [&_[data-sot-banner-body]]:min-w-0 [&_[data-slot=button]]:self-start";
+    "grid grid-cols-[auto_1fr] items-start gap-3";
 
-const speakerSettingsBannerInfoClassName = `${speakerSettingsBannerIconSlotClassName} [--settings-banner-icon-bg:var(--bg-elevated)] [--settings-banner-icon-border:var(--line-hairline)] [--settings-banner-icon-color:var(--signal-info)] border-[var(--line-hairline)] bg-card`;
+const speakerSettingsBannerBodyClassName =
+    "min-w-0 text-[var(--fg-primary)] [&_p]:leading-normal";
 
-const speakerSettingsBannerErrorClassName = `${speakerSettingsBannerIconSlotClassName} [--settings-banner-icon-bg:var(--alert-destructive-soft-strong-bg)] [--settings-banner-icon-border:var(--alert-destructive-soft-border)] [--settings-banner-icon-color:var(--signal-danger)] border-[var(--alert-destructive-soft-border)] bg-[var(--alert-destructive-soft-bg)]`;
+const speakerSettingsBannerInfoClassName = "border-border bg-card";
+
+const speakerSettingsBannerErrorClassName =
+    "border-[var(--alert-destructive-soft-border)] bg-[var(--alert-destructive-soft-bg)]";
 
 const speakerProfilesPanelClassName = "relative flex flex-col gap-2 !mb-3.5";
 
@@ -144,15 +154,26 @@ function PanelNotice({
             data-sot-state={state}
             data-sot-tone={bannerTone}
         >
-            <span data-sot-banner-icon>
+            <span
+                className={cn(
+                    speakerSettingsBannerIconClassName,
+                    tone === "danger"
+                        ? speakerSettingsBannerErrorIconClassName
+                        : speakerSettingsBannerInfoIconClassName,
+                )}
+                data-sot-banner-icon
+            >
                 <Icon aria-hidden="true" />
             </span>
-            <div data-sot-banner-body>
+            <AlertDescription
+                className={speakerSettingsBannerBodyClassName}
+                data-sot-banner-body
+            >
                 <p data-sot-banner-sub>{children}</p>
                 {action ? (
                     <div className="mt-2 flex items-center gap-2">{action}</div>
                 ) : null}
-            </div>
+            </AlertDescription>
         </Alert>
     );
 }

@@ -25,6 +25,14 @@ import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Badge } from "@/components/ui/badge";
 import { Button, type ButtonProps } from "@/components/ui/button";
 import {
+    Card,
+    CardAction,
+    CardContent,
+    CardDescription,
+    CardHeader,
+    CardTitle,
+} from "@/components/ui/card";
+import {
     Empty,
     EmptyDescription,
     EmptyHeader,
@@ -41,6 +49,7 @@ import {
 } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
 import { Select } from "@/components/ui/select";
+import { Separator } from "@/components/ui/separator";
 import { Slider } from "@/components/ui/slider";
 import { Switch } from "@/components/ui/switch";
 import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
@@ -197,39 +206,30 @@ type SourceActionStatusBadgeProps = Omit<
     "className" | "variant"
 > & {
     className?: string;
+    state: ProviderActionState;
 };
 
-const SOURCE_ACTION_BUTTON_SIZE_CLASS =
-    "h-[26px] gap-[7px] rounded-[7px] px-[10px] text-[12px] font-semibold leading-[normal] has-[>svg]:px-[10px] [&_svg:not([class*='size-'])]:size-[11px]";
+type BadgeVariant = NonNullable<ComponentProps<typeof Badge>["variant"]>;
 
 const SOURCE_PROVIDER_THEME_CLASS = "";
 
 const SOURCE_PROVIDER_TILE_BUTTON_CLASS =
-    "group/source-provider !grid h-auto w-full grid-cols-[28px_1fr_auto] items-center justify-start gap-[10px] rounded-[10px] border border-solid border-transparent bg-transparent p-[10px] text-left whitespace-normal shadow-none [box-shadow:none] hover:bg-transparent hover:text-inherit has-[>svg]:px-[10px] data-[sot-dimmed=true]:opacity-[0.55] data-[state=idle]:hover:bg-accent data-[state=selected]:border-border data-[state=selected]:bg-card data-[state=selected]:shadow-xs [&_[data-sot-part=source-provider-mark]]:flex [&_[data-sot-part=source-provider-mark]]:size-7 [&_[data-sot-part=source-provider-mark]]:shrink-0 [&_[data-sot-part=source-provider-mark]]:items-center [&_[data-sot-part=source-provider-mark]]:justify-center [&_[data-sot-part=source-provider-mark]]:overflow-hidden [&_[data-sot-part=source-provider-mark]]:rounded-[7px] [&_[data-sot-part=source-provider-mark]]:border [&_[data-sot-part=source-provider-mark]]:border-border [&_[data-sot-part=source-provider-mark]]:bg-background [&_[data-sot-part=source-provider-meta]]:flex [&_[data-sot-part=source-provider-meta]]:min-w-0 [&_[data-sot-part=source-provider-meta]]:flex-col [&_[data-sot-part=source-provider-meta]]:gap-[2px] [&_[data-sot-provider-name]]:truncate [&_[data-sot-provider-name]]:font-sans [&_[data-sot-provider-name]]:text-[13px] [&_[data-sot-provider-name]]:font-semibold [&_[data-sot-provider-name]]:leading-[normal] [&_[data-sot-provider-name]]:text-foreground [&_[data-sot-provider-hint]]:truncate [&_[data-sot-provider-hint]]:font-mono [&_[data-sot-provider-hint]]:text-[11.5px] [&_[data-sot-provider-hint]]:font-medium [&_[data-sot-provider-hint]]:leading-[normal] [&_[data-sot-provider-hint]]:text-muted-foreground";
+    "grid h-auto w-full grid-cols-[1.75rem_minmax(0,1fr)_auto] items-center justify-start gap-2.5 p-2.5 text-left whitespace-normal";
 
-const SETTINGS_BANNER_ICON_SLOT_CLASS =
-    "[&_[data-sot-banner-icon]]:inline-flex [&_[data-sot-banner-icon]]:size-6 [&_[data-sot-banner-icon]]:flex-none [&_[data-sot-banner-icon]]:items-center [&_[data-sot-banner-icon]]:justify-center [&_[data-sot-banner-icon]]:rounded-md [&_[data-sot-banner-icon]]:border [&_[data-sot-banner-icon]]:border-[var(--settings-banner-icon-border)] [&_[data-sot-banner-icon]]:bg-[var(--settings-banner-icon-bg)] [&_[data-sot-banner-icon]]:text-[var(--settings-banner-icon-color)] [&_[data-sot-banner-icon]_svg]:size-3.5";
+const SOURCE_PROVIDER_MARK_CLASS =
+    "flex size-7 shrink-0 items-center justify-center overflow-hidden rounded-md border border-border bg-background";
 
-const SETTINGS_BANNER_BASE_CLASS =
-    "mb-4 w-full rounded-lg border px-3.5 py-3 text-sm text-[var(--fg-primary)]";
+const SOURCE_PROVIDER_META_CLASS = "flex min-w-0 flex-col gap-0.5";
 
-const SETTINGS_BANNER_LAYOUT_CLASS =
-    "grid grid-cols-[auto_1fr] items-start gap-3 [&_[data-sot-banner-body]]:min-w-0";
+const SOURCE_PROVIDER_NAME_CLASS = "truncate text-sm font-medium";
 
-const SETTINGS_BANNER_ACTION_LAYOUT_CLASS =
-    "grid grid-cols-[auto_1fr_auto] items-start gap-3 [&_[data-sot-banner-body]]:min-w-0 [&_[data-slot=button]]:self-start";
+const SOURCE_PROVIDER_HINT_CLASS = "truncate text-xs text-muted-foreground";
 
-const SETTINGS_BANNER_TONE_CLASS = `${SETTINGS_BANNER_ICON_SLOT_CLASS} [--settings-banner-icon-bg:var(--bg-elevated)] [--settings-banner-icon-border:var(--line-hairline)] [--settings-banner-icon-color:var(--fg-tertiary)] border-[var(--line-hairline)] bg-card data-[sot-tone=ok]:[--settings-banner-icon-color:var(--signal-success)] data-[sot-tone=warn]:[--settings-banner-icon-color:var(--signal-warning)] data-[sot-tone=err]:[--settings-banner-icon-color:var(--signal-danger)] data-[sot-tone=syncing]:[--settings-banner-icon-color:var(--signal-info)] data-[sot-tone=neu]:[--settings-banner-icon-color:var(--fg-tertiary)] data-[sot-state=err]:[--settings-banner-icon-color:var(--signal-danger)]`;
+const SETTINGS_BANNER_BASE_CLASS = "mb-4";
 
-const SETTINGS_BANNER_ERROR_CLASS = `${SETTINGS_BANNER_ICON_SLOT_CLASS} [--settings-banner-icon-bg:var(--alert-destructive-soft-strong-bg)] [--settings-banner-icon-border:var(--alert-destructive-soft-border)] [--settings-banner-icon-color:var(--signal-danger)] border-[var(--alert-destructive-soft-border)] bg-[var(--alert-destructive-soft-bg)]`;
+const SETTINGS_BANNER_TITLE_CLASS = "";
 
-const SETTINGS_BANNER_WARNING_CLASS = `${SETTINGS_BANNER_TONE_CLASS} [--settings-banner-icon-color:var(--signal-warning)] data-[sot-state=test-error]:[--settings-banner-icon-color:var(--signal-danger)]`;
-
-const SETTINGS_BANNER_TITLE_CLASS =
-    "min-h-0 line-clamp-none font-medium leading-none tracking-normal";
-
-const SETTINGS_BANNER_DESCRIPTION_CLASS =
-    "col-start-auto mt-1 block gap-0 text-sm text-muted-foreground [&_p]:leading-normal";
+const SETTINGS_BANNER_DESCRIPTION_CLASS = "";
 
 const SETTINGS_SHORTCUTS_GRID_CLASS =
     "grid grid-cols-[1fr_auto] gap-x-3.5 gap-y-2";
@@ -244,10 +244,10 @@ const SETTINGS_KEY_STATUS_CLASS =
     "inline-flex items-center gap-1 font-sans text-[11.5px] font-medium leading-normal text-[var(--fg-tertiary)] data-[sot-state=stored]:before:font-bold data-[sot-state=stored]:before:text-[var(--signal-success)] data-[sot-state=stored]:before:content-['✓']";
 
 const SETTINGS_SOURCE_AUTH_MODE_GROUP_CLASS =
-    "mb-4 !grid w-full grid-cols-2 items-stretch";
+    "mb-4 grid w-full grid-cols-1 items-stretch sm:grid-cols-2";
 
 const SETTINGS_SOURCE_AUTH_MODE_OPTION_CLASS =
-    "h-auto flex-col items-start justify-start whitespace-normal border border-input bg-background px-3.5 py-3 text-left shadow-xs";
+    "h-auto flex-col items-start justify-start whitespace-normal px-3.5 py-3 text-left";
 
 const SETTINGS_SEGMENT_GROUP_CLASS = "flex-wrap";
 
@@ -258,64 +258,45 @@ const SOURCE_PROVIDERS_LIST_CLASS =
     "flex flex-col gap-1.5 overflow-y-auto border-r border-border bg-secondary/30 px-3.5 py-4";
 
 const SOURCE_PROVIDERS_TITLE_CLASS =
-    "px-2 pt-1 pb-2 font-mono text-[11px] font-semibold tracking-[0.08em] text-[var(--fg-tertiary)] uppercase";
+    "px-2 pt-1 pb-2 text-xs font-medium text-muted-foreground uppercase";
 
-const SOURCE_PROVIDER_DETAIL_PANEL_CLASS =
-    "min-h-0 overflow-y-auto px-[26px] py-[22px] [&_[data-slot=button]]:focus-visible:ring-0 [&_[data-slot=field]]:border-border [&_[data-slot=input]]:!border-input [&_[data-slot=input]]:!bg-background [&_[data-slot=input]]:!shadow-none [&_[data-slot=switch-thumb]]:!bg-background [&_[data-slot=switch][data-state=checked]]:!bg-primary [&_[data-slot=switch][data-state=unchecked]]:!bg-input";
+const SOURCE_PROVIDER_DETAIL_PANEL_CLASS = "min-h-0 overflow-y-auto p-6";
 
-const SOURCE_PROVIDER_DETAIL_HEADER_CLASS =
-    "mb-[18px] flex items-start justify-between gap-4";
+const SOURCE_PROVIDER_DETAIL_CARD_CLASS = "gap-0";
 
-const SOURCE_PROVIDER_DETAIL_TITLE_CLASS =
-    "m-0 font-display text-[18px] font-semibold leading-[normal] tracking-[-0.012em] text-[var(--fg-primary)]";
+const SOURCE_PROVIDER_DETAIL_HEADER_CLASS = "border-b px-5 py-4";
 
-const SOURCE_PROVIDER_DETAIL_SUBTITLE_CLASS =
-    "mt-1 font-sans text-[12.5px] font-medium text-[var(--fg-tertiary)]";
+const SOURCE_PROVIDER_DETAIL_TITLE_CLASS = "";
+
+const SOURCE_PROVIDER_DETAIL_SUBTITLE_CLASS = "";
+
+const SOURCE_PROVIDER_DETAIL_CONTENT_CLASS = "flex flex-col px-5 py-4";
 
 const SOURCE_PROVIDER_FIELDS_LIST_CLASS = "flex flex-col";
 
-const SOURCE_PROVIDER_SECTION_DIVIDER_CLASS =
-    "!mt-[13px] !mb-[10px] h-px border-0 bg-border";
+const SOURCE_PROVIDER_SECTION_DIVIDER_CLASS = "my-3";
 
-const SOURCE_PROVIDER_ACTION_CLUSTER_DIVIDER_CLASS = cn(
-    SOURCE_PROVIDER_SECTION_DIVIDER_CLASS,
-    "!mt-[15px] !mb-[10px]",
-);
+const SOURCE_PROVIDER_ACTION_CLUSTER_DIVIDER_CLASS =
+    SOURCE_PROVIDER_SECTION_DIVIDER_CLASS;
 
 const SOURCE_ACTION_BUTTON_PRIMITIVE_VARIANT_BY_TONE: Record<
     SourceActionButtonTone,
     ButtonProps["variant"]
 > = {
     danger: "destructive",
-    neutral: "ghost",
+    neutral: "outline",
     primary: "default",
 };
 
-const SOURCE_ACTION_BUTTON_CLASS_BY_TONE: Record<
-    SourceActionButtonTone,
-    string
-> = {
-    danger: "shadow-none",
-    neutral:
-        "border border-transparent bg-transparent text-muted-foreground shadow-none hover:bg-accent hover:text-accent-foreground data-[sot-state=error]:text-destructive data-[sot-state=success]:text-primary",
-    primary:
-        "shadow-xs data-[sot-state=error]:bg-destructive data-[sot-state=error]:text-destructive-foreground data-[sot-state=error]:hover:bg-destructive/90",
-};
+const SOURCE_ACTION_STATUS_BADGE_CLASS = "gap-1.5";
 
-const SOURCE_ACTION_STATUS_BADGE_CLASS =
-    "h-auto justify-normal gap-1.5 overflow-visible border-0 bg-transparent p-0 text-muted-foreground data-[sot-state=saved]:text-primary data-[sot-state=saving]:text-primary data-[sot-state=error]:text-destructive data-[sot-state=saved]:[&_[data-sot-part=source-action-status-indicator]]:bg-primary data-[sot-state=saving]:[&_[data-sot-part=source-action-status-indicator]]:animate-pulse data-[sot-state=saving]:[&_[data-sot-part=source-action-status-indicator]]:bg-primary data-[sot-state=error]:[&_[data-sot-part=source-action-status-indicator]]:bg-destructive";
+const SOURCE_ACTION_STATUS_INDICATOR_CLASS = "size-2 rounded-full bg-current";
 
-const SOURCE_ACTION_STATUS_INDICATOR_CLASS =
-    "size-2 rounded-full bg-secondary-foreground/45";
+const SOURCE_AUTH_MODE_BADGE_CLASS = "px-1.5";
 
-const SOURCE_AUTH_MODE_BADGE_CLASS =
-    "px-1.5 data-[sot-tone=recommended]:bg-secondary data-[sot-tone=recommended]:text-secondary-foreground data-[sot-tone=personal]:border-border data-[sot-tone=personal]:text-foreground";
+const SOURCE_PROVIDER_STATUS_BADGE_CLASS = "justify-self-end";
 
-const SOURCE_PROVIDER_STATUS_BADGE_CLASS =
-    "h-[18px] gap-[4px] rounded-[999px] border border-solid px-[7px] py-0 text-[10.5px] font-semibold leading-[normal] data-[sot-tone=ok]:border-primary/30 data-[sot-tone=ok]:bg-primary/10 data-[sot-tone=ok]:text-primary data-[sot-tone=info]:border-primary/30 data-[sot-tone=info]:bg-primary/10 data-[sot-tone=info]:text-primary data-[sot-tone=syncing]:border-primary/30 data-[sot-tone=syncing]:bg-primary/10 data-[sot-tone=syncing]:text-primary data-[sot-tone=warn]:border-border data-[sot-tone=warn]:bg-secondary data-[sot-tone=warn]:text-secondary-foreground data-[sot-tone=err]:border-destructive/30 data-[sot-tone=err]:bg-destructive/10 data-[sot-tone=err]:text-destructive data-[sot-tone=neu]:border-border data-[sot-tone=neu]:bg-secondary data-[sot-tone=neu]:text-muted-foreground group-data-[sot-dimmed=true]/source-provider:border-border group-data-[sot-dimmed=true]/source-provider:bg-secondary group-data-[sot-dimmed=true]/source-provider:text-muted-foreground [&_[data-sot-provider-status-dot]]:size-[4px] [&_[data-sot-provider-status-dot]]:rounded-full [&_[data-sot-provider-status-dot]]:bg-current data-[sot-tone=syncing]:[&_[data-sot-provider-status-dot]]:animate-pulse";
-
-const SOURCE_DETAIL_STATUS_BADGE_CLASS =
-    "h-[24px] justify-normal gap-[6px] overflow-visible rounded-[999px] border border-solid px-[10px] py-0 text-[11.5px] font-semibold leading-[normal] data-[sot-tone=ok]:border-primary/30 data-[sot-tone=ok]:bg-primary/10 data-[sot-tone=ok]:text-primary data-[sot-tone=info]:border-primary/30 data-[sot-tone=info]:bg-primary/10 data-[sot-tone=info]:text-primary data-[sot-tone=syncing]:border-primary/30 data-[sot-tone=syncing]:bg-primary/10 data-[sot-tone=syncing]:text-primary data-[sot-tone=warn]:border-border data-[sot-tone=warn]:bg-secondary data-[sot-tone=warn]:text-secondary-foreground data-[sot-tone=err]:border-destructive/30 data-[sot-tone=err]:bg-destructive/10 data-[sot-tone=err]:text-destructive data-[sot-tone=neu]:border-border data-[sot-tone=neu]:bg-secondary data-[sot-tone=neu]:text-muted-foreground";
+const SOURCE_DETAIL_STATUS_BADGE_CLASS = "shrink-0";
 
 const SETTINGS_SAVE_STATUS_BADGE_CLASS =
     "h-auto gap-1.5 border-0 bg-transparent p-0 text-muted-foreground data-[sot-state=idle]:hidden data-[sot-state=saved]:text-primary data-[sot-state=saving]:text-primary data-[sot-state=error]:text-destructive [&_[data-sot-part=settings-save-status-indicator]]:size-2 [&_[data-sot-part=settings-save-status-indicator]]:rounded-full [&_[data-sot-part=settings-save-status-indicator]]:bg-secondary-foreground/45 data-[sot-state=saved]:[&_[data-sot-part=settings-save-status-indicator]]:bg-primary data-[sot-state=saving]:[&_[data-sot-part=settings-save-status-indicator]]:animate-pulse data-[sot-state=saving]:[&_[data-sot-part=settings-save-status-indicator]]:bg-primary data-[sot-state=error]:[&_[data-sot-part=settings-save-status-indicator]]:bg-destructive";
@@ -351,31 +332,60 @@ function SourceActionButton({
         <Button
             variant={SOURCE_ACTION_BUTTON_PRIMITIVE_VARIANT_BY_TONE[tone]}
             size="xs"
-            className={cn(
-                SOURCE_ACTION_BUTTON_SIZE_CLASS,
-                SOURCE_ACTION_BUTTON_CLASS_BY_TONE[tone],
-                className,
-            )}
+            className={className}
             {...props}
         />
+    );
+}
+
+function getProviderStatusBadgeVariant(tone: ProviderTone): BadgeVariant {
+    if (tone === "err") return "destructive";
+    if (tone === "warn" || tone === "neu") return "secondary";
+    return "default";
+}
+
+function getSourceActionStatusBadgeVariant(
+    state: ProviderActionState,
+): BadgeVariant {
+    if (state.endsWith("error")) return "destructive";
+    if (
+        state === "saved" ||
+        state === "reconnected" ||
+        state === "test-success"
+    ) {
+        return "default";
+    }
+    return "secondary";
+}
+
+function isSourceActionStateBusy(state: ProviderActionState) {
+    return (
+        state === "disconnecting" ||
+        state === "reconnecting" ||
+        state === "saving" ||
+        state === "testing"
     );
 }
 
 function SourceActionStatusBadge({
     className,
     children,
+    state,
     ...props
 }: SourceActionStatusBadgeProps) {
     return (
         <Badge
-            variant="ghost"
+            variant={getSourceActionStatusBadgeVariant(state)}
             className={cn(SOURCE_ACTION_STATUS_BADGE_CLASS, className)}
             {...props}
         >
             <span
                 aria-hidden="true"
                 data-sot-part="source-action-status-indicator"
-                className={SOURCE_ACTION_STATUS_INDICATOR_CLASS}
+                className={cn(
+                    SOURCE_ACTION_STATUS_INDICATOR_CLASS,
+                    isSourceActionStateBusy(state) && "animate-pulse",
+                )}
             />
             {children}
         </Badge>
@@ -734,9 +744,12 @@ function DataSourceProviderTile({
     return (
         <Button
             type="button"
-            variant="ghost"
+            variant={isSelected ? "secondary" : "ghost"}
             aria-pressed={isSelected}
-            className={SOURCE_PROVIDER_TILE_BUTTON_CLASS}
+            className={cn(
+                SOURCE_PROVIDER_TILE_BUTTON_CLASS,
+                isDimmed && "opacity-60",
+            )}
             data-state={isSelected ? "selected" : "idle"}
             data-sot-provider-card=""
             data-sot-control="source-provider"
@@ -748,6 +761,7 @@ function DataSourceProviderTile({
             onClick={onSelect}
         >
             <span
+                className={SOURCE_PROVIDER_MARK_CLASS}
                 data-sot-provider-icon=""
                 data-sot-cover={
                     source.provider === "feishu-minutes" ? "true" : undefined
@@ -773,17 +787,26 @@ function DataSourceProviderTile({
                 )}
             </span>
             <span
+                className={SOURCE_PROVIDER_META_CLASS}
                 data-sot-provider-meta=""
                 data-sot-part="source-provider-meta"
             >
-                <span data-sot-provider-name="">{displayName}</span>
-                <span data-sot-provider-hint="">
+                <span
+                    className={SOURCE_PROVIDER_NAME_CLASS}
+                    data-sot-provider-name=""
+                >
+                    {displayName}
+                </span>
+                <span
+                    className={SOURCE_PROVIDER_HINT_CLASS}
+                    data-sot-provider-hint=""
+                >
                     {getSourceProviderStatusHint(source, language) ??
                         (isZh ? "录音来源" : "Recording source")}
                 </span>
             </span>
             <Badge
-                variant="ghost"
+                variant={getProviderStatusBadgeVariant(status.tone)}
                 className={cn(
                     SOURCE_PROVIDER_STATUS_BADGE_CLASS,
                     "justify-self-end",
@@ -794,7 +817,13 @@ function DataSourceProviderTile({
                 data-sot-tone={status.tone}
                 data-state={status.state}
             >
-                <span data-sot-provider-status-dot="" />
+                <span
+                    className={cn(
+                        "size-1 rounded-full bg-current",
+                        status.tone === "syncing" && "animate-pulse",
+                    )}
+                    data-sot-provider-status-dot=""
+                />
                 {status.label}
             </Badge>
         </Button>
@@ -825,38 +854,30 @@ function ProviderStateBanner({
 
     return (
         <Alert
+            variant={tone === "err" ? "destructiveSoft" : "default"}
+            density="comfortable"
             data-sot-banner="source-state"
             data-sot-panel="source-state-banner"
             data-sot-state={getBannerTone(tone)}
             data-sot-tone={tone}
-            className={cn(
-                SETTINGS_BANNER_BASE_CLASS,
-                SETTINGS_BANNER_LAYOUT_CLASS,
-                tone === "err"
-                    ? SETTINGS_BANNER_ERROR_CLASS
-                    : SETTINGS_BANNER_TONE_CLASS,
-            )}
+            className={SETTINGS_BANNER_BASE_CLASS}
         >
-            <span data-sot-banner-icon>
-                <Icon
-                    aria-hidden="true"
-                    className={tone === "syncing" ? "animate-spin" : undefined}
-                />
-            </span>
-            <div data-sot-banner-body>
-                <AlertTitle
-                    className={SETTINGS_BANNER_TITLE_CLASS}
-                    data-sot-banner-title
-                >
-                    {title}
-                </AlertTitle>
-                <AlertDescription
-                    className={SETTINGS_BANNER_DESCRIPTION_CLASS}
-                    data-sot-banner-sub
-                >
-                    {description}
-                </AlertDescription>
-            </div>
+            <Icon
+                aria-hidden="true"
+                className={tone === "syncing" ? "animate-spin" : undefined}
+            />
+            <AlertTitle
+                className={SETTINGS_BANNER_TITLE_CLASS}
+                data-sot-banner-title
+            >
+                {title}
+            </AlertTitle>
+            <AlertDescription
+                className={SETTINGS_BANNER_DESCRIPTION_CLASS}
+                data-sot-banner-sub
+            >
+                {description}
+            </AlertDescription>
         </Alert>
     );
 }
@@ -1312,45 +1333,40 @@ function DataSourcesSettingsPanel({
 
                 {loadError ? (
                     <Alert
+                        variant="destructiveSoft"
+                        density="comfortable"
                         data-sot-banner="source-load-error"
                         data-sot-panel="source-load-error"
                         data-sot-tone="err"
-                        className={cn(
-                            SETTINGS_BANNER_BASE_CLASS,
-                            SETTINGS_BANNER_ACTION_LAYOUT_CLASS,
-                            SETTINGS_BANNER_ERROR_CLASS,
-                        )}
+                        className={SETTINGS_BANNER_BASE_CLASS}
                     >
-                        <span data-sot-banner-icon>
-                            <AlertCircle aria-hidden="true" />
-                        </span>
-                        <span data-sot-banner-body>
-                            <AlertTitle
-                                className={SETTINGS_BANNER_TITLE_CLASS}
-                                data-sot-banner-title
-                            >
-                                {isZh ? "加载失败" : "Load failed"}
-                            </AlertTitle>
-                            <AlertDescription
-                                className={SETTINGS_BANNER_DESCRIPTION_CLASS}
-                                data-sot-banner-sub
-                            >
-                                {loadError}
-                            </AlertDescription>
-                        </span>
-                        <Button
-                            type="button"
-                            variant="default"
-                            size="sm"
-                            data-sot-control="source-load-retry"
-                            onClick={() => void refreshSources()}
+                        <AlertCircle aria-hidden="true" />
+                        <AlertTitle
+                            className={SETTINGS_BANNER_TITLE_CLASS}
+                            data-sot-banner-title
                         >
-                            <RotateCw
-                                data-icon="inline-start"
-                                aria-hidden="true"
-                            />
-                            {isZh ? "重试" : "Retry"}
-                        </Button>
+                            {isZh ? "加载失败" : "Load failed"}
+                        </AlertTitle>
+                        <AlertDescription
+                            className={SETTINGS_BANNER_DESCRIPTION_CLASS}
+                            data-sot-banner-sub
+                        >
+                            <span>{loadError}</span>
+                            <Button
+                                type="button"
+                                variant="default"
+                                size="sm"
+                                className="mt-3"
+                                data-sot-control="source-load-retry"
+                                onClick={() => void refreshSources()}
+                            >
+                                <RotateCw
+                                    data-icon="inline-start"
+                                    aria-hidden="true"
+                                />
+                                {isZh ? "重试" : "Retry"}
+                            </Button>
+                        </AlertDescription>
                     </Alert>
                 ) : null}
 
@@ -1413,14 +1429,18 @@ function DataSourcesSettingsPanel({
                 data-sot-status={status?.state ?? "empty"}
             >
                 {selectedSource && status ? (
-                    <>
-                        <div
+                    <Card
+                        hasNoPadding
+                        className={SOURCE_PROVIDER_DETAIL_CARD_CLASS}
+                        data-sot-card="source-provider-detail"
+                    >
+                        <CardHeader
                             className={SOURCE_PROVIDER_DETAIL_HEADER_CLASS}
                             data-sot-part="source-provider-header"
                             data-sot-state={status.state}
                         >
                             <div>
-                                <h3
+                                <CardTitle
                                     className={
                                         SOURCE_PROVIDER_DETAIL_TITLE_CLASS
                                     }
@@ -1430,8 +1450,8 @@ function DataSourcesSettingsPanel({
                                         selectedSource.provider,
                                         language,
                                     )}
-                                </h3>
-                                <div
+                                </CardTitle>
+                                <CardDescription
                                     className={
                                         SOURCE_PROVIDER_DETAIL_SUBTITLE_CLASS
                                     }
@@ -1441,128 +1461,332 @@ function DataSourcesSettingsPanel({
                                         selectedSource,
                                         isZh,
                                     )}
-                                </div>
+                                </CardDescription>
                             </div>
-                            <Badge
-                                variant="ghost"
-                                className={SOURCE_DETAIL_STATUS_BADGE_CLASS}
-                                data-sot-status={status.state}
-                                data-sot-tone={status.tone}
-                            >
-                                <span
-                                    className="size-[5px] rounded-full bg-current"
-                                    data-sot-status-dot
-                                />
-                                {status.label}
-                            </Badge>
-                        </div>
+                            <CardAction>
+                                <Badge
+                                    variant={getProviderStatusBadgeVariant(
+                                        status.tone,
+                                    )}
+                                    className={SOURCE_DETAIL_STATUS_BADGE_CLASS}
+                                    data-sot-status={status.state}
+                                    data-sot-tone={status.tone}
+                                >
+                                    <span
+                                        className={cn(
+                                            "size-1 rounded-full bg-current",
+                                            status.tone === "syncing" &&
+                                                "animate-pulse",
+                                        )}
+                                        data-sot-status-dot
+                                    />
+                                    {status.label}
+                                </Badge>
+                            </CardAction>
+                        </CardHeader>
 
-                        {shouldShowProviderStateBanner({
-                            actionMessage,
-                            status,
-                        }) ? (
-                            <ProviderStateBanner
-                                description={
-                                    actionMessage?.description ??
-                                    status.description
-                                }
-                                title={actionMessage?.title ?? status.label}
-                                tone={status.tone}
-                            />
-                        ) : null}
-
-                        {selectedSource.authModes.length > 1 ? (
-                            <ToggleGroup
-                                aria-label={
-                                    isZh ? "选择登录方式" : "Select auth mode"
-                                }
-                                disabled={interactionDisabled}
-                                data-sot-list="source-auth-modes"
-                                onValueChange={(mode) => {
-                                    if (!mode) {
-                                        return;
+                        <CardContent
+                            className={SOURCE_PROVIDER_DETAIL_CONTENT_CLASS}
+                        >
+                            {shouldShowProviderStateBanner({
+                                actionMessage,
+                                status,
+                            }) ? (
+                                <ProviderStateBanner
+                                    description={
+                                        actionMessage?.description ??
+                                        status.description
                                     }
-                                    updateSource(
-                                        selectedSource.provider,
-                                        (current) => ({
-                                            ...current,
-                                            authMode: mode,
-                                        }),
-                                    );
-                                }}
-                                className={
-                                    SETTINGS_SOURCE_AUTH_MODE_GROUP_CLASS
-                                }
-                                spacing={2}
-                                type="single"
-                                value={selectedSource.authMode}
-                                variant="outline"
-                            >
-                                {selectedSource.authModes.map((mode) => {
-                                    const active =
-                                        selectedSource.authMode === mode;
-                                    const modeBadge = getSourceAuthModeBadge(
-                                        mode,
-                                        isZh,
-                                    );
+                                    title={actionMessage?.title ?? status.label}
+                                    tone={status.tone}
+                                />
+                            ) : null}
 
-                                    return (
-                                        <ToggleGroupItem
-                                            key={mode}
-                                            aria-pressed={active}
-                                            data-sot-auth-mode={mode}
-                                            data-sot-control="source-auth-mode"
-                                            data-sot-state={
-                                                active ? "selected" : "idle"
-                                            }
-                                            disabled={interactionDisabled}
+                            {selectedSource.authModes.length > 1 ? (
+                                <ToggleGroup
+                                    aria-label={
+                                        isZh
+                                            ? "选择登录方式"
+                                            : "Select auth mode"
+                                    }
+                                    disabled={interactionDisabled}
+                                    data-sot-list="source-auth-modes"
+                                    onValueChange={(mode) => {
+                                        if (!mode) {
+                                            return;
+                                        }
+                                        updateSource(
+                                            selectedSource.provider,
+                                            (current) => ({
+                                                ...current,
+                                                authMode: mode,
+                                            }),
+                                        );
+                                    }}
+                                    className={
+                                        SETTINGS_SOURCE_AUTH_MODE_GROUP_CLASS
+                                    }
+                                    spacing={2}
+                                    type="single"
+                                    value={selectedSource.authMode}
+                                    variant="outline"
+                                >
+                                    {selectedSource.authModes.map((mode) => {
+                                        const active =
+                                            selectedSource.authMode === mode;
+                                        const modeBadge =
+                                            getSourceAuthModeBadge(mode, isZh);
+
+                                        return (
+                                            <ToggleGroupItem
+                                                key={mode}
+                                                aria-pressed={active}
+                                                data-sot-auth-mode={mode}
+                                                data-sot-control="source-auth-mode"
+                                                data-sot-state={
+                                                    active ? "selected" : "idle"
+                                                }
+                                                disabled={interactionDisabled}
+                                                className={
+                                                    SETTINGS_SOURCE_AUTH_MODE_OPTION_CLASS
+                                                }
+                                                value={mode}
+                                            >
+                                                <span
+                                                    className="flex items-center gap-2"
+                                                    data-sot-part="source-auth-mode-title"
+                                                >
+                                                    {getSourceAuthModeDisplayLabel(
+                                                        mode,
+                                                        language,
+                                                    )}
+                                                    {modeBadge ? (
+                                                        <Badge
+                                                            data-sot-badge="source-auth-mode"
+                                                            data-sot-tone={
+                                                                modeBadge.tone
+                                                            }
+                                                            variant={
+                                                                modeBadge.tone ===
+                                                                "recommended"
+                                                                    ? "secondary"
+                                                                    : "outline"
+                                                            }
+                                                            className={
+                                                                SOURCE_AUTH_MODE_BADGE_CLASS
+                                                            }
+                                                        >
+                                                            {modeBadge.label}
+                                                        </Badge>
+                                                    ) : null}
+                                                </span>
+                                                <span
+                                                    className="text-left"
+                                                    data-sot-part="source-auth-mode-description"
+                                                >
+                                                    {mode ===
+                                                    SOURCE_WEB_SIGN_IN_AUTH_MODE
+                                                        ? isZh
+                                                            ? "网页登录信息。"
+                                                            : "Web sign-in details."
+                                                        : isZh
+                                                          ? "授权信息。"
+                                                          : "Access details."}
+                                                </span>
+                                            </ToggleGroupItem>
+                                        );
+                                    })}
+                                </ToggleGroup>
+                            ) : selectedSource.provider !== "dingtalk-a1" ? (
+                                <Field
+                                    orientation="horizontal"
+                                    className={
+                                        SOURCE_PROVIDER_DETAIL_FIELD_CLASS
+                                    }
+                                >
+                                    <FieldContent
+                                        className={
+                                            SOURCE_PROVIDER_DETAIL_FIELD_CONTENT_CLASS
+                                        }
+                                    >
+                                        <FieldTitle
                                             className={
-                                                SETTINGS_SOURCE_AUTH_MODE_OPTION_CLASS
+                                                SOURCE_PROVIDER_DETAIL_FIELD_LABEL_CLASS
                                             }
-                                            value={mode}
                                         >
-                                            <span
-                                                className="flex items-center gap-2"
-                                                data-sot-part="source-auth-mode-title"
+                                            {isZh
+                                                ? "登录方式"
+                                                : "Sign-in method"}
+                                        </FieldTitle>
+                                        <FieldDescription
+                                            className={
+                                                SOURCE_PROVIDER_DETAIL_FIELD_DESCRIPTION_CLASS
+                                            }
+                                        >
+                                            {getSourceAuthModeDisplayLabel(
+                                                selectedSource.authMode,
+                                                language,
+                                            )}
+                                        </FieldDescription>
+                                    </FieldContent>
+                                </Field>
+                            ) : null}
+
+                            <div
+                                className={SOURCE_PROVIDER_FIELDS_LIST_CLASS}
+                                data-sot-list="source-fields"
+                                data-sot-panel="source-provider-fields"
+                            >
+                                {displayedServiceAddress &&
+                                !providerUsesCustomServerSelector(
+                                    selectedSource.provider,
+                                ) ? (
+                                    <Field
+                                        data-field-id="source-service-address"
+                                        data-disabled={
+                                            interactionDisabled
+                                                ? "true"
+                                                : undefined
+                                        }
+                                        orientation="horizontal"
+                                        className={
+                                            SOURCE_PROVIDER_DETAIL_CREDENTIAL_FIELD_CLASS
+                                        }
+                                    >
+                                        <FieldContent
+                                            className={
+                                                SOURCE_PROVIDER_DETAIL_CREDENTIAL_FIELD_CONTENT_CLASS
+                                            }
+                                        >
+                                            <FieldLabel
+                                                className={
+                                                    SOURCE_PROVIDER_DETAIL_CREDENTIAL_FIELD_LABEL_CLASS
+                                                }
+                                                htmlFor={`${selectedSource.provider}-base-url`}
                                             >
-                                                {getSourceAuthModeDisplayLabel(
-                                                    mode,
-                                                    language,
-                                                )}
-                                                {modeBadge ? (
-                                                    <Badge
-                                                        data-sot-badge="source-auth-mode"
-                                                        data-sot-tone={
-                                                            modeBadge.tone
-                                                        }
-                                                        variant="ghost"
-                                                        className={
-                                                            SOURCE_AUTH_MODE_BADGE_CLASS
-                                                        }
-                                                    >
-                                                        {modeBadge.label}
-                                                    </Badge>
-                                                ) : null}
-                                            </span>
-                                            <span
-                                                className="text-left"
-                                                data-sot-part="source-auth-mode-description"
-                                            >
-                                                {mode ===
-                                                SOURCE_WEB_SIGN_IN_AUTH_MODE
-                                                    ? isZh
-                                                        ? "网页登录信息。"
-                                                        : "Web sign-in details."
-                                                    : isZh
-                                                      ? "授权信息。"
-                                                      : "Access details."}
-                                            </span>
-                                        </ToggleGroupItem>
-                                    );
-                                })}
-                            </ToggleGroup>
-                        ) : selectedSource.provider !== "dingtalk-a1" ? (
+                                                {displayedServiceAddress.label}
+                                            </FieldLabel>
+                                            {displayedServiceAddress.description ? (
+                                                <FieldDescription
+                                                    className={
+                                                        SOURCE_PROVIDER_DETAIL_CREDENTIAL_FIELD_DESCRIPTION_CLASS
+                                                    }
+                                                >
+                                                    {
+                                                        displayedServiceAddress.description
+                                                    }
+                                                </FieldDescription>
+                                            ) : null}
+                                        </FieldContent>
+                                        <FieldControl
+                                            className={
+                                                SOURCE_PROVIDER_DETAIL_FIELD_CONTROL_CLASS
+                                            }
+                                        >
+                                            <Input
+                                                className={
+                                                    SOURCE_PROVIDER_DETAIL_INPUT_CLASS
+                                                }
+                                                id={`${selectedSource.provider}-base-url`}
+                                                value={
+                                                    displayedServiceAddress.value
+                                                }
+                                                readOnly={
+                                                    displayedServiceAddress.readOnly
+                                                }
+                                                disabled={interactionDisabled}
+                                                onChange={(event) =>
+                                                    displayedServiceAddress.readOnly
+                                                        ? undefined
+                                                        : updateSource(
+                                                              selectedSource.provider,
+                                                              (current) => ({
+                                                                  ...current,
+                                                                  baseUrl:
+                                                                      event
+                                                                          .target
+                                                                          .value,
+                                                              }),
+                                                          )
+                                                }
+                                            />
+                                        </FieldControl>
+                                    </Field>
+                                ) : null}
+
+                                {primaryFields.map((field) => (
+                                    <DataSourceFieldControl
+                                        disabled={interactionDisabled}
+                                        field={field}
+                                        fieldId={`${selectedSource.provider}-${field.id}`}
+                                        key={field.id}
+                                        onValueChange={(nextField, value) =>
+                                            updateField(
+                                                selectedSource,
+                                                nextField,
+                                                value,
+                                            )
+                                        }
+                                        variant="sourceProviderDetail"
+                                    />
+                                ))}
+
+                                {advancedFields.length > 0 ? (
+                                    <>
+                                        <Empty
+                                            className="mt-4 flex-none"
+                                            data-sot-panel="settings-empty-hint"
+                                            data-sot-section="data-sources"
+                                            data-sot-state="advanced"
+                                        >
+                                            <EmptyHeader>
+                                                <EmptyTitle data-sot-part="settings-empty-title">
+                                                    {isZh
+                                                        ? "高级选项（可选）"
+                                                        : "Advanced options"}
+                                                </EmptyTitle>
+                                                <EmptyDescription data-sot-part="settings-empty-description">
+                                                    {isZh
+                                                        ? "仅在来源要求额外组织信息时填写。"
+                                                        : "Fill these only when the source requires extra workspace details."}
+                                                </EmptyDescription>
+                                            </EmptyHeader>
+                                        </Empty>
+                                        {advancedFields.map((field) => (
+                                            <DataSourceFieldControl
+                                                disabled={interactionDisabled}
+                                                field={field}
+                                                fieldId={`${selectedSource.provider}-${field.id}`}
+                                                key={field.id}
+                                                onValueChange={(
+                                                    nextField,
+                                                    value,
+                                                ) =>
+                                                    updateField(
+                                                        selectedSource,
+                                                        nextField,
+                                                        value,
+                                                    )
+                                                }
+                                                variant="sourceProviderDetail"
+                                            />
+                                        ))}
+                                    </>
+                                ) : null}
+                            </div>
+
+                            <Separator
+                                className={
+                                    SOURCE_PROVIDER_SECTION_DIVIDER_CLASS
+                                }
+                                data-sot-section-divider
+                            />
+
                             <Field
+                                data-sot-part="source-auto-update-row"
+                                data-disabled={
+                                    interactionDisabled ? "true" : undefined
+                                }
                                 orientation="horizontal"
                                 className={SOURCE_PROVIDER_DETAIL_FIELD_CLASS}
                             >
@@ -1576,579 +1800,421 @@ function DataSourcesSettingsPanel({
                                             SOURCE_PROVIDER_DETAIL_FIELD_LABEL_CLASS
                                         }
                                     >
-                                        {isZh ? "登录方式" : "Sign-in method"}
+                                        {isZh
+                                            ? "自动更新"
+                                            : "Automatic updates"}
                                     </FieldTitle>
                                     <FieldDescription
                                         className={
                                             SOURCE_PROVIDER_DETAIL_FIELD_DESCRIPTION_CLASS
                                         }
                                     >
-                                        {getSourceAuthModeDisplayLabel(
-                                            selectedSource.authMode,
-                                            language,
-                                        )}
+                                        {isZh
+                                            ? "每 15 分钟读取一次新录音"
+                                            : "Read new recordings every 15 minutes"}
                                     </FieldDescription>
                                 </FieldContent>
-                            </Field>
-                        ) : null}
-
-                        <div
-                            className={SOURCE_PROVIDER_FIELDS_LIST_CLASS}
-                            data-sot-list="source-fields"
-                            data-sot-panel="source-provider-fields"
-                        >
-                            {displayedServiceAddress &&
-                            !providerUsesCustomServerSelector(
-                                selectedSource.provider,
-                            ) ? (
-                                <Field
-                                    data-field-id="source-service-address"
-                                    data-disabled={
-                                        interactionDisabled ? "true" : undefined
-                                    }
-                                    orientation="horizontal"
+                                <FieldControl
                                     className={
-                                        SOURCE_PROVIDER_DETAIL_CREDENTIAL_FIELD_CLASS
+                                        SOURCE_PROVIDER_DETAIL_FIELD_CONTROL_CLASS
                                     }
                                 >
-                                    <FieldContent
+                                    <Switch
                                         className={
-                                            SOURCE_PROVIDER_DETAIL_CREDENTIAL_FIELD_CONTENT_CLASS
+                                            SOURCE_PROVIDER_DETAIL_SWITCH_CLASS
                                         }
+                                        data-sot-control="source-auto-update"
+                                        data-sot-provider={
+                                            selectedSource.provider
+                                        }
+                                        data-sot-state={
+                                            selectedSource.enabled
+                                                ? "checked"
+                                                : "unchecked"
+                                        }
+                                        checked={selectedSource.enabled}
+                                        disabled={interactionDisabled}
+                                        onCheckedChange={(checked) =>
+                                            updateSource(
+                                                selectedSource.provider,
+                                                (current) => ({
+                                                    ...current,
+                                                    enabled: checked,
+                                                }),
+                                            )
+                                        }
+                                    />
+                                </FieldControl>
+                            </Field>
+
+                            {titleWritebackFields.map((field) => {
+                                const titleWritebackField = {
+                                    ...field,
+                                    label: isZh
+                                        ? "标题更新回来源"
+                                        : "Title updates to source",
+                                    description: isZh
+                                        ? `本机重命名录音后，把新标题写回 ${selectedSourceDisplayName}`
+                                        : `After renaming locally, write the new title back to ${selectedSourceDisplayName}.`,
+                                };
+                                const titleWritebackFieldId = `${selectedSource.provider}-${field.id}`;
+
+                                return (
+                                    <Field
+                                        data-disabled={
+                                            interactionDisabled
+                                                ? "true"
+                                                : undefined
+                                        }
+                                        orientation="horizontal"
+                                        className={
+                                            SOURCE_PROVIDER_DETAIL_FIELD_CLASS
+                                        }
+                                        key={field.id}
                                     >
-                                        <FieldLabel
+                                        <FieldContent
                                             className={
-                                                SOURCE_PROVIDER_DETAIL_CREDENTIAL_FIELD_LABEL_CLASS
+                                                SOURCE_PROVIDER_DETAIL_FIELD_CONTENT_CLASS
                                             }
-                                            htmlFor={`${selectedSource.provider}-base-url`}
                                         >
-                                            {displayedServiceAddress.label}
-                                        </FieldLabel>
-                                        {displayedServiceAddress.description ? (
+                                            <FieldLabel
+                                                className={
+                                                    SOURCE_PROVIDER_DETAIL_FIELD_LABEL_CLASS
+                                                }
+                                                htmlFor={titleWritebackFieldId}
+                                            >
+                                                {titleWritebackField.label}
+                                            </FieldLabel>
                                             <FieldDescription
                                                 className={
-                                                    SOURCE_PROVIDER_DETAIL_CREDENTIAL_FIELD_DESCRIPTION_CLASS
+                                                    SOURCE_PROVIDER_DETAIL_FIELD_DESCRIPTION_CLASS
                                                 }
                                             >
                                                 {
-                                                    displayedServiceAddress.description
+                                                    titleWritebackField.description
                                                 }
                                             </FieldDescription>
-                                        ) : null}
-                                    </FieldContent>
-                                    <FieldControl
-                                        className={
-                                            SOURCE_PROVIDER_DETAIL_FIELD_CONTROL_CLASS
-                                        }
-                                    >
-                                        <Input
+                                        </FieldContent>
+                                        <FieldControl
                                             className={
-                                                SOURCE_PROVIDER_DETAIL_INPUT_CLASS
-                                            }
-                                            id={`${selectedSource.provider}-base-url`}
-                                            value={
-                                                displayedServiceAddress.value
-                                            }
-                                            readOnly={
-                                                displayedServiceAddress.readOnly
-                                            }
-                                            disabled={interactionDisabled}
-                                            onChange={(event) =>
-                                                displayedServiceAddress.readOnly
-                                                    ? undefined
-                                                    : updateSource(
-                                                          selectedSource.provider,
-                                                          (current) => ({
-                                                              ...current,
-                                                              baseUrl:
-                                                                  event.target
-                                                                      .value,
-                                                          }),
-                                                      )
-                                            }
-                                        />
-                                    </FieldControl>
-                                </Field>
-                            ) : null}
-
-                            {primaryFields.map((field) => (
-                                <DataSourceFieldControl
-                                    disabled={interactionDisabled}
-                                    field={field}
-                                    fieldId={`${selectedSource.provider}-${field.id}`}
-                                    key={field.id}
-                                    onValueChange={(nextField, value) =>
-                                        updateField(
-                                            selectedSource,
-                                            nextField,
-                                            value,
-                                        )
-                                    }
-                                    variant="sourceProviderDetail"
-                                />
-                            ))}
-
-                            {advancedFields.length > 0 ? (
-                                <>
-                                    <Empty
-                                        className="mt-4 flex-none"
-                                        data-sot-panel="settings-empty-hint"
-                                        data-sot-section="data-sources"
-                                        data-sot-state="advanced"
-                                    >
-                                        <EmptyHeader>
-                                            <EmptyTitle data-sot-part="settings-empty-title">
-                                                {isZh
-                                                    ? "高级选项（可选）"
-                                                    : "Advanced options"}
-                                            </EmptyTitle>
-                                            <EmptyDescription data-sot-part="settings-empty-description">
-                                                {isZh
-                                                    ? "仅在来源要求额外组织信息时填写。"
-                                                    : "Fill these only when the source requires extra workspace details."}
-                                            </EmptyDescription>
-                                        </EmptyHeader>
-                                    </Empty>
-                                    {advancedFields.map((field) => (
-                                        <DataSourceFieldControl
-                                            disabled={interactionDisabled}
-                                            field={field}
-                                            fieldId={`${selectedSource.provider}-${field.id}`}
-                                            key={field.id}
-                                            onValueChange={(nextField, value) =>
-                                                updateField(
-                                                    selectedSource,
-                                                    nextField,
-                                                    value,
-                                                )
-                                            }
-                                            variant="sourceProviderDetail"
-                                        />
-                                    ))}
-                                </>
-                            ) : null}
-                        </div>
-
-                        <div
-                            className={SOURCE_PROVIDER_SECTION_DIVIDER_CLASS}
-                            data-sot-section-divider
-                        />
-
-                        <Field
-                            data-sot-part="source-auto-update-row"
-                            data-disabled={
-                                interactionDisabled ? "true" : undefined
-                            }
-                            orientation="horizontal"
-                            className={SOURCE_PROVIDER_DETAIL_FIELD_CLASS}
-                        >
-                            <FieldContent
-                                className={
-                                    SOURCE_PROVIDER_DETAIL_FIELD_CONTENT_CLASS
-                                }
-                            >
-                                <FieldTitle
-                                    className={
-                                        SOURCE_PROVIDER_DETAIL_FIELD_LABEL_CLASS
-                                    }
-                                >
-                                    {isZh ? "自动更新" : "Automatic updates"}
-                                </FieldTitle>
-                                <FieldDescription
-                                    className={
-                                        SOURCE_PROVIDER_DETAIL_FIELD_DESCRIPTION_CLASS
-                                    }
-                                >
-                                    {isZh
-                                        ? "每 15 分钟读取一次新录音"
-                                        : "Read new recordings every 15 minutes"}
-                                </FieldDescription>
-                            </FieldContent>
-                            <FieldControl
-                                className={
-                                    SOURCE_PROVIDER_DETAIL_FIELD_CONTROL_CLASS
-                                }
-                            >
-                                <Switch
-                                    className={
-                                        SOURCE_PROVIDER_DETAIL_SWITCH_CLASS
-                                    }
-                                    data-sot-control="source-auto-update"
-                                    data-sot-provider={selectedSource.provider}
-                                    data-sot-state={
-                                        selectedSource.enabled
-                                            ? "checked"
-                                            : "unchecked"
-                                    }
-                                    checked={selectedSource.enabled}
-                                    disabled={interactionDisabled}
-                                    onCheckedChange={(checked) =>
-                                        updateSource(
-                                            selectedSource.provider,
-                                            (current) => ({
-                                                ...current,
-                                                enabled: checked,
-                                            }),
-                                        )
-                                    }
-                                />
-                            </FieldControl>
-                        </Field>
-
-                        {titleWritebackFields.map((field) => {
-                            const titleWritebackField = {
-                                ...field,
-                                label: isZh
-                                    ? "标题更新回来源"
-                                    : "Title updates to source",
-                                description: isZh
-                                    ? `本机重命名录音后，把新标题写回 ${selectedSourceDisplayName}`
-                                    : `After renaming locally, write the new title back to ${selectedSourceDisplayName}.`,
-                            };
-                            const titleWritebackFieldId = `${selectedSource.provider}-${field.id}`;
-
-                            return (
-                                <Field
-                                    data-disabled={
-                                        interactionDisabled ? "true" : undefined
-                                    }
-                                    orientation="horizontal"
-                                    className={
-                                        SOURCE_PROVIDER_DETAIL_FIELD_CLASS
-                                    }
-                                    key={field.id}
-                                >
-                                    <FieldContent
-                                        className={
-                                            SOURCE_PROVIDER_DETAIL_FIELD_CONTENT_CLASS
-                                        }
-                                    >
-                                        <FieldLabel
-                                            className={
-                                                SOURCE_PROVIDER_DETAIL_FIELD_LABEL_CLASS
-                                            }
-                                            htmlFor={titleWritebackFieldId}
-                                        >
-                                            {titleWritebackField.label}
-                                        </FieldLabel>
-                                        <FieldDescription
-                                            className={
-                                                SOURCE_PROVIDER_DETAIL_FIELD_DESCRIPTION_CLASS
+                                                SOURCE_PROVIDER_DETAIL_FIELD_CONTROL_CLASS
                                             }
                                         >
-                                            {titleWritebackField.description}
-                                        </FieldDescription>
-                                    </FieldContent>
-                                    <FieldControl
+                                            <Switch
+                                                id={titleWritebackFieldId}
+                                                className={
+                                                    SOURCE_PROVIDER_DETAIL_SWITCH_CLASS
+                                                }
+                                                checked={Boolean(
+                                                    titleWritebackField.value,
+                                                )}
+                                                disabled={interactionDisabled}
+                                                onCheckedChange={(checked) =>
+                                                    updateField(
+                                                        selectedSource,
+                                                        titleWritebackField,
+                                                        checked,
+                                                    )
+                                                }
+                                            />
+                                        </FieldControl>
+                                    </Field>
+                                );
+                            })}
+
+                            <Field
+                                data-disabled={
+                                    interactionDisabled ? "true" : undefined
+                                }
+                                orientation="horizontal"
+                                className={SOURCE_PROVIDER_DETAIL_FIELD_CLASS}
+                            >
+                                <FieldContent
+                                    className={
+                                        SOURCE_PROVIDER_DETAIL_FIELD_CONTENT_CLASS
+                                    }
+                                >
+                                    <FieldLabel
                                         className={
-                                            SOURCE_PROVIDER_DETAIL_FIELD_CONTROL_CLASS
+                                            SOURCE_PROVIDER_DETAIL_FIELD_LABEL_CLASS
+                                        }
+                                        htmlFor={`${selectedSource.provider}-enabled`}
+                                    >
+                                        {isZh ? "启用同步" : "Enable sync"}
+                                    </FieldLabel>
+                                    <FieldDescription
+                                        className={
+                                            SOURCE_PROVIDER_DETAIL_FIELD_DESCRIPTION_CLASS
                                         }
                                     >
-                                        <Switch
-                                            id={titleWritebackFieldId}
-                                            className={
-                                                SOURCE_PROVIDER_DETAIL_SWITCH_CLASS
-                                            }
-                                            checked={Boolean(
-                                                titleWritebackField.value,
-                                            )}
-                                            disabled={interactionDisabled}
-                                            onCheckedChange={(checked) =>
-                                                updateField(
-                                                    selectedSource,
-                                                    titleWritebackField,
-                                                    checked,
-                                                )
-                                            }
-                                        />
-                                    </FieldControl>
-                                </Field>
-                            );
-                        })}
-
-                        <Field
-                            data-disabled={
-                                interactionDisabled ? "true" : undefined
-                            }
-                            orientation="horizontal"
-                            className={SOURCE_PROVIDER_DETAIL_FIELD_CLASS}
-                        >
-                            <FieldContent
-                                className={
-                                    SOURCE_PROVIDER_DETAIL_FIELD_CONTENT_CLASS
-                                }
-                            >
-                                <FieldLabel
+                                        {isZh
+                                            ? "关闭后不再从此来源读取任何新录音"
+                                            : "Turn off to stop reading new recordings from this source."}
+                                    </FieldDescription>
+                                </FieldContent>
+                                <FieldControl
                                     className={
-                                        SOURCE_PROVIDER_DETAIL_FIELD_LABEL_CLASS
-                                    }
-                                    htmlFor={`${selectedSource.provider}-enabled`}
-                                >
-                                    {isZh ? "启用同步" : "Enable sync"}
-                                </FieldLabel>
-                                <FieldDescription
-                                    className={
-                                        SOURCE_PROVIDER_DETAIL_FIELD_DESCRIPTION_CLASS
+                                        SOURCE_PROVIDER_DETAIL_FIELD_CONTROL_CLASS
                                     }
                                 >
-                                    {isZh
-                                        ? "关闭后不再从此来源读取任何新录音"
-                                        : "Turn off to stop reading new recordings from this source."}
-                                </FieldDescription>
-                            </FieldContent>
-                            <FieldControl
-                                className={
-                                    SOURCE_PROVIDER_DETAIL_FIELD_CONTROL_CLASS
-                                }
-                            >
-                                <Switch
-                                    id={`${selectedSource.provider}-enabled`}
-                                    className={
-                                        SOURCE_PROVIDER_DETAIL_SWITCH_CLASS
-                                    }
-                                    data-sot-control="source-enable-sync"
-                                    data-sot-provider={selectedSource.provider}
-                                    data-sot-state={
-                                        selectedSource.enabled
-                                            ? "checked"
-                                            : "unchecked"
-                                    }
-                                    data-sot-enabled={
-                                        selectedSource.enabled
-                                            ? "true"
-                                            : "false"
-                                    }
-                                    data-sot-disabled={
-                                        interactionDisabled ? "true" : "false"
-                                    }
-                                    checked={selectedSource.enabled}
-                                    disabled={interactionDisabled}
-                                    onCheckedChange={(checked) =>
-                                        updateSource(
-                                            selectedSource.provider,
-                                            (current) => ({
-                                                ...current,
-                                                enabled: checked,
-                                            }),
-                                        )
-                                    }
-                                />
-                            </FieldControl>
-                        </Field>
-
-                        <div
-                            className={
-                                SOURCE_PROVIDER_ACTION_CLUSTER_DIVIDER_CLASS
-                            }
-                            data-sot-section-divider
-                        />
-
-                        <footer
-                            className="flex items-center justify-start gap-[8px]"
-                            data-sot-panel="source-actions"
-                            data-sot-provider={selectedSource.provider}
-                            data-sot-state={sourceSaveState}
-                        >
-                            {actionMessage?.title ? (
-                                <SourceActionStatusBadge
-                                    data-sot-part="source-action-status"
-                                    data-sot-state={actionMessage.state}
-                                >
-                                    {actionMessage.title}
-                                </SourceActionStatusBadge>
-                            ) : null}
-                            <SourceActionButton
-                                type="button"
-                                tone="neutral"
-                                data-sot-action="test"
-                                data-sot-control="source-test"
-                                data-sot-provider={selectedSource.provider}
-                                data-sot-state={sourceTestState}
-                                disabled={interactionDisabled}
-                                aria-busy={actionState === "testing"}
-                                onClick={() =>
-                                    void handleTestSource(selectedSource)
-                                }
-                            >
-                                {actionState === "testing" ? (
-                                    <LoaderCircle
-                                        data-icon="inline-start"
-                                        aria-hidden="true"
-                                        className="animate-spin"
+                                    <Switch
+                                        id={`${selectedSource.provider}-enabled`}
+                                        className={
+                                            SOURCE_PROVIDER_DETAIL_SWITCH_CLASS
+                                        }
+                                        data-sot-control="source-enable-sync"
+                                        data-sot-provider={
+                                            selectedSource.provider
+                                        }
+                                        data-sot-state={
+                                            selectedSource.enabled
+                                                ? "checked"
+                                                : "unchecked"
+                                        }
+                                        data-sot-enabled={
+                                            selectedSource.enabled
+                                                ? "true"
+                                                : "false"
+                                        }
+                                        data-sot-disabled={
+                                            interactionDisabled
+                                                ? "true"
+                                                : "false"
+                                        }
+                                        checked={selectedSource.enabled}
+                                        disabled={interactionDisabled}
+                                        onCheckedChange={(checked) =>
+                                            updateSource(
+                                                selectedSource.provider,
+                                                (current) => ({
+                                                    ...current,
+                                                    enabled: checked,
+                                                }),
+                                            )
+                                        }
                                     />
-                                ) : null}
-                                {actionState === "testing"
-                                    ? isZh
-                                        ? "测试中"
-                                        : "Testing"
-                                    : actionState === "test-success"
-                                      ? isZh
-                                          ? "连接正常"
-                                          : "Ready"
-                                      : isZh
-                                        ? "测试连接"
-                                        : "Test"}
-                            </SourceActionButton>
-                            <SourceActionButton
-                                type="button"
-                                tone="primary"
-                                data-sot-action="save"
-                                data-sot-control="source-save"
+                                </FieldControl>
+                            </Field>
+
+                            <Separator
+                                className={
+                                    SOURCE_PROVIDER_ACTION_CLUSTER_DIVIDER_CLASS
+                                }
+                                data-sot-section-divider
+                            />
+
+                            <footer
+                                className="flex items-center justify-start gap-2"
+                                data-sot-panel="source-actions"
                                 data-sot-provider={selectedSource.provider}
                                 data-sot-state={sourceSaveState}
-                                disabled={interactionDisabled}
-                                aria-busy={actionState === "saving"}
-                                onClick={() =>
-                                    void handleSaveSource(selectedSource)
-                                }
                             >
-                                {actionState === "saving" ? (
-                                    <LoaderCircle
-                                        data-icon="inline-start"
-                                        aria-hidden="true"
-                                        className="animate-spin"
-                                    />
+                                {actionMessage?.title ? (
+                                    <SourceActionStatusBadge
+                                        state={actionMessage.state}
+                                        data-sot-part="source-action-status"
+                                        data-sot-state={actionMessage.state}
+                                    >
+                                        {actionMessage.title}
+                                    </SourceActionStatusBadge>
                                 ) : null}
-                                {actionState === "saving"
-                                    ? isZh
-                                        ? "保存中"
-                                        : "Saving"
-                                    : actionState === "saved"
-                                      ? isZh
-                                          ? "已保存"
-                                          : "Saved"
-                                      : isZh
-                                        ? "保存"
-                                        : "Save"}
-                            </SourceActionButton>
-                        </footer>
-
-                        <Field
-                            data-sot-part="source-reconnect-row"
-                            data-disabled={
-                                interactionDisabled ? "true" : undefined
-                            }
-                            orientation="horizontal"
-                            className={SOURCE_PROVIDER_DETAIL_FIELD_CLASS}
-                        >
-                            <FieldContent
-                                className={
-                                    SOURCE_PROVIDER_DETAIL_FIELD_CONTENT_CLASS
-                                }
-                            >
-                                <FieldTitle
-                                    className={
-                                        SOURCE_PROVIDER_DETAIL_FIELD_LABEL_CLASS
-                                    }
-                                >
-                                    {isZh ? "重新连接" : "Reconnect"}
-                                </FieldTitle>
-                                <FieldDescription
-                                    className={
-                                        SOURCE_PROVIDER_DETAIL_FIELD_DESCRIPTION_CLASS
-                                    }
-                                >
-                                    {isZh
-                                        ? "清除当前凭据后重新登录"
-                                        : "Clear current credentials, then sign in again."}
-                                </FieldDescription>
-                            </FieldContent>
-                            <FieldControl
-                                className={
-                                    SOURCE_PROVIDER_DETAIL_FIELD_CONTROL_CLASS
-                                }
-                            >
                                 <SourceActionButton
                                     type="button"
                                     tone="neutral"
-                                    data-sot-control="source-reconnect"
-                                    data-sot-state={sourceReconnectState}
+                                    data-sot-action="test"
+                                    data-sot-control="source-test"
+                                    data-sot-provider={selectedSource.provider}
+                                    data-sot-state={sourceTestState}
                                     disabled={interactionDisabled}
-                                    aria-busy={actionState === "reconnecting"}
+                                    aria-busy={actionState === "testing"}
                                     onClick={() =>
-                                        void handleReconnectSource(
-                                            selectedSource,
-                                        )
+                                        void handleTestSource(selectedSource)
                                     }
                                 >
-                                    {actionState === "reconnecting"
+                                    {actionState === "testing" ? (
+                                        <LoaderCircle
+                                            data-icon="inline-start"
+                                            aria-hidden="true"
+                                            className="animate-spin"
+                                        />
+                                    ) : null}
+                                    {actionState === "testing"
                                         ? isZh
-                                            ? "重新连接中"
-                                            : "Reconnecting"
-                                        : actionState === "reconnected"
+                                            ? "测试中"
+                                            : "Testing"
+                                        : actionState === "test-success"
                                           ? isZh
-                                              ? "已重新连接"
-                                              : "Reconnected"
+                                              ? "连接正常"
+                                              : "Ready"
                                           : isZh
-                                            ? "重新连接"
-                                            : "Reconnect"}
+                                            ? "测试连接"
+                                            : "Test"}
                                 </SourceActionButton>
-                            </FieldControl>
-                        </Field>
-
-                        <Field
-                            data-sot-part="source-disconnect-row"
-                            data-disabled={
-                                interactionDisabled ? "true" : undefined
-                            }
-                            orientation="horizontal"
-                            className={SOURCE_PROVIDER_DETAIL_FIELD_CLASS}
-                        >
-                            <FieldContent
-                                className={
-                                    SOURCE_PROVIDER_DETAIL_FIELD_CONTENT_CLASS
-                                }
-                            >
-                                <FieldTitle
-                                    className={
-                                        SOURCE_PROVIDER_DETAIL_FIELD_LABEL_CLASS
-                                    }
-                                >
-                                    {isZh ? "断开连接" : "Disconnect"}
-                                </FieldTitle>
-                                <FieldDescription
-                                    className={
-                                        SOURCE_PROVIDER_DETAIL_FIELD_DESCRIPTION_CLASS
-                                    }
-                                >
-                                    {isZh
-                                        ? `从此账号中删除 ${selectedSourceDisplayName} 授权`
-                                        : `Remove ${selectedSourceDisplayName} authorization from this account.`}
-                                </FieldDescription>
-                            </FieldContent>
-                            <FieldControl
-                                className={
-                                    SOURCE_PROVIDER_DETAIL_FIELD_CONTROL_CLASS
-                                }
-                            >
                                 <SourceActionButton
                                     type="button"
-                                    tone="danger"
-                                    data-sot-control="source-disconnect"
-                                    data-sot-state={sourceDisconnectState}
+                                    tone="primary"
+                                    data-sot-action="save"
+                                    data-sot-control="source-save"
+                                    data-sot-provider={selectedSource.provider}
+                                    data-sot-state={sourceSaveState}
                                     disabled={interactionDisabled}
-                                    aria-busy={actionState === "disconnecting"}
+                                    aria-busy={actionState === "saving"}
                                     onClick={() =>
-                                        void handleDisconnectSource(
-                                            selectedSource,
-                                        )
+                                        void handleSaveSource(selectedSource)
                                     }
                                 >
-                                    {actionState === "disconnecting"
+                                    {actionState === "saving" ? (
+                                        <LoaderCircle
+                                            data-icon="inline-start"
+                                            aria-hidden="true"
+                                            className="animate-spin"
+                                        />
+                                    ) : null}
+                                    {actionState === "saving"
                                         ? isZh
-                                            ? "断开中"
-                                            : "Disconnecting"
-                                        : actionState === "disconnected"
+                                            ? "保存中"
+                                            : "Saving"
+                                        : actionState === "saved"
                                           ? isZh
-                                              ? "已断开连接"
-                                              : "Disconnected"
+                                              ? "已保存"
+                                              : "Saved"
                                           : isZh
-                                            ? "断开连接"
-                                            : "Disconnect"}
+                                            ? "保存"
+                                            : "Save"}
                                 </SourceActionButton>
-                            </FieldControl>
-                        </Field>
-                    </>
+                            </footer>
+
+                            <Field
+                                data-sot-part="source-reconnect-row"
+                                data-disabled={
+                                    interactionDisabled ? "true" : undefined
+                                }
+                                orientation="horizontal"
+                                className={SOURCE_PROVIDER_DETAIL_FIELD_CLASS}
+                            >
+                                <FieldContent
+                                    className={
+                                        SOURCE_PROVIDER_DETAIL_FIELD_CONTENT_CLASS
+                                    }
+                                >
+                                    <FieldTitle
+                                        className={
+                                            SOURCE_PROVIDER_DETAIL_FIELD_LABEL_CLASS
+                                        }
+                                    >
+                                        {isZh ? "重新连接" : "Reconnect"}
+                                    </FieldTitle>
+                                    <FieldDescription
+                                        className={
+                                            SOURCE_PROVIDER_DETAIL_FIELD_DESCRIPTION_CLASS
+                                        }
+                                    >
+                                        {isZh
+                                            ? "清除当前凭据后重新登录"
+                                            : "Clear current credentials, then sign in again."}
+                                    </FieldDescription>
+                                </FieldContent>
+                                <FieldControl
+                                    className={
+                                        SOURCE_PROVIDER_DETAIL_FIELD_CONTROL_CLASS
+                                    }
+                                >
+                                    <SourceActionButton
+                                        type="button"
+                                        tone="neutral"
+                                        data-sot-control="source-reconnect"
+                                        data-sot-state={sourceReconnectState}
+                                        disabled={interactionDisabled}
+                                        aria-busy={
+                                            actionState === "reconnecting"
+                                        }
+                                        onClick={() =>
+                                            void handleReconnectSource(
+                                                selectedSource,
+                                            )
+                                        }
+                                    >
+                                        {actionState === "reconnecting"
+                                            ? isZh
+                                                ? "重新连接中"
+                                                : "Reconnecting"
+                                            : actionState === "reconnected"
+                                              ? isZh
+                                                  ? "已重新连接"
+                                                  : "Reconnected"
+                                              : isZh
+                                                ? "重新连接"
+                                                : "Reconnect"}
+                                    </SourceActionButton>
+                                </FieldControl>
+                            </Field>
+
+                            <Field
+                                data-sot-part="source-disconnect-row"
+                                data-disabled={
+                                    interactionDisabled ? "true" : undefined
+                                }
+                                orientation="horizontal"
+                                className={SOURCE_PROVIDER_DETAIL_FIELD_CLASS}
+                            >
+                                <FieldContent
+                                    className={
+                                        SOURCE_PROVIDER_DETAIL_FIELD_CONTENT_CLASS
+                                    }
+                                >
+                                    <FieldTitle
+                                        className={
+                                            SOURCE_PROVIDER_DETAIL_FIELD_LABEL_CLASS
+                                        }
+                                    >
+                                        {isZh ? "断开连接" : "Disconnect"}
+                                    </FieldTitle>
+                                    <FieldDescription
+                                        className={
+                                            SOURCE_PROVIDER_DETAIL_FIELD_DESCRIPTION_CLASS
+                                        }
+                                    >
+                                        {isZh
+                                            ? `从此账号中删除 ${selectedSourceDisplayName} 授权`
+                                            : `Remove ${selectedSourceDisplayName} authorization from this account.`}
+                                    </FieldDescription>
+                                </FieldContent>
+                                <FieldControl
+                                    className={
+                                        SOURCE_PROVIDER_DETAIL_FIELD_CONTROL_CLASS
+                                    }
+                                >
+                                    <SourceActionButton
+                                        type="button"
+                                        tone="danger"
+                                        data-sot-control="source-disconnect"
+                                        data-sot-state={sourceDisconnectState}
+                                        disabled={interactionDisabled}
+                                        aria-busy={
+                                            actionState === "disconnecting"
+                                        }
+                                        onClick={() =>
+                                            void handleDisconnectSource(
+                                                selectedSource,
+                                            )
+                                        }
+                                    >
+                                        {actionState === "disconnecting"
+                                            ? isZh
+                                                ? "断开中"
+                                                : "Disconnecting"
+                                            : actionState === "disconnected"
+                                              ? isZh
+                                                  ? "已断开连接"
+                                                  : "Disconnected"
+                                              : isZh
+                                                ? "断开连接"
+                                                : "Disconnect"}
+                                    </SourceActionButton>
+                                </FieldControl>
+                            </Field>
+                        </CardContent>
+                    </Card>
                 ) : (
                     <Empty
                         className="mt-4 flex-none"
@@ -2296,44 +2362,42 @@ function SectionShell({
                 className={SETTINGS_SCROLL_BODY_CLASS}
             >
                 <Alert
+                    variant="destructiveSoft"
+                    density="comfortable"
                     data-sot-banner="settings-section-load-error"
                     data-sot-panel="settings-section-load-error"
                     data-sot-section={section}
                     data-sot-tone="err"
-                    className={cn(
-                        SETTINGS_BANNER_BASE_CLASS,
-                        SETTINGS_BANNER_ACTION_LAYOUT_CLASS,
-                        SETTINGS_BANNER_ERROR_CLASS,
-                    )}
+                    className={SETTINGS_BANNER_BASE_CLASS}
                 >
-                    <span data-sot-banner-icon>
-                        <AlertCircle aria-hidden="true" />
-                    </span>
-                    <span data-sot-banner-body>
-                        <AlertTitle
-                            className={SETTINGS_BANNER_TITLE_CLASS}
-                            data-sot-banner-title
-                        >
-                            {isZh ? "加载失败" : "Load failed"}
-                        </AlertTitle>
-                        <AlertDescription
-                            className={SETTINGS_BANNER_DESCRIPTION_CLASS}
-                            data-sot-banner-sub
-                        >
-                            {loadError}
-                        </AlertDescription>
-                    </span>
-                    <Button
-                        type="button"
-                        variant="default"
-                        size="sm"
-                        onClick={onRetry}
-                        data-sot-control="settings-section-load-retry"
-                        data-sot-section={section}
+                    <AlertCircle aria-hidden="true" />
+                    <AlertTitle
+                        className={SETTINGS_BANNER_TITLE_CLASS}
+                        data-sot-banner-title
                     >
-                        <RotateCw data-icon="inline-start" aria-hidden="true" />
-                        {isZh ? "重试" : "Retry"}
-                    </Button>
+                        {isZh ? "加载失败" : "Load failed"}
+                    </AlertTitle>
+                    <AlertDescription
+                        className={SETTINGS_BANNER_DESCRIPTION_CLASS}
+                        data-sot-banner-sub
+                    >
+                        <span>{loadError}</span>
+                        <Button
+                            type="button"
+                            variant="default"
+                            size="sm"
+                            className="mt-3"
+                            onClick={onRetry}
+                            data-sot-control="settings-section-load-retry"
+                            data-sot-section={section}
+                        >
+                            <RotateCw
+                                data-icon="inline-start"
+                                aria-hidden="true"
+                            />
+                            {isZh ? "重试" : "Retry"}
+                        </Button>
+                    </AlertDescription>
                 </Alert>
             </div>
         );
@@ -3526,6 +3590,12 @@ function VoScriptSettingsPanel({
         >
             {showUnavailableBanner ? (
                 <Alert
+                    variant={
+                        connectionTestState === "test-error"
+                            ? "destructiveSoft"
+                            : "default"
+                    }
+                    density="comfortable"
                     data-sot-banner="voscript-unavailable"
                     data-sot-panel="voscript-unavailable-banner"
                     data-sot-state={
@@ -3534,36 +3604,28 @@ function VoScriptSettingsPanel({
                             : "missing-connection"
                     }
                     data-sot-tone="warn"
-                    className={cn(
-                        SETTINGS_BANNER_BASE_CLASS,
-                        SETTINGS_BANNER_LAYOUT_CLASS,
-                        SETTINGS_BANNER_WARNING_CLASS,
-                    )}
+                    className={SETTINGS_BANNER_BASE_CLASS}
                 >
-                    <span data-sot-banner-icon aria-hidden="true">
-                        <AlertCircle aria-hidden="true" />
-                    </span>
-                    <div data-sot-banner-body>
-                        <AlertTitle
-                            className={SETTINGS_BANNER_TITLE_CLASS}
-                            data-sot-banner-title
-                        >
-                            {isZh
-                                ? "VoScript 当前不可用"
-                                : "VoScript is unavailable"}
-                        </AlertTitle>
-                        <AlertDescription
-                            className={SETTINGS_BANNER_DESCRIPTION_CLASS}
-                            data-sot-banner-hint
-                        >
-                            {connectionTestState === "test-error" &&
-                            connectionTestMessage
-                                ? connectionTestMessage
-                                : isZh
-                                  ? "服务地址或 API key 缺失，列表中将无法触发新转写。填好下面字段并保存后会自动重试。"
-                                  : "The service URL or API key is missing. New transcription jobs cannot start until you fill these fields and save."}
-                        </AlertDescription>
-                    </div>
+                    <AlertCircle aria-hidden="true" />
+                    <AlertTitle
+                        className={SETTINGS_BANNER_TITLE_CLASS}
+                        data-sot-banner-title
+                    >
+                        {isZh
+                            ? "VoScript 当前不可用"
+                            : "VoScript is unavailable"}
+                    </AlertTitle>
+                    <AlertDescription
+                        className={SETTINGS_BANNER_DESCRIPTION_CLASS}
+                        data-sot-banner-hint
+                    >
+                        {connectionTestState === "test-error" &&
+                        connectionTestMessage
+                            ? connectionTestMessage
+                            : isZh
+                              ? "服务地址或 API key 缺失，列表中将无法触发新转写。填好下面字段并保存后会自动重试。"
+                              : "The service URL or API key is missing. New transcription jobs cannot start until you fill these fields and save."}
+                    </AlertDescription>
                 </Alert>
             ) : null}
             <SettingsGroup

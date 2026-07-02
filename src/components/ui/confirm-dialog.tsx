@@ -82,11 +82,7 @@ const CONFIRM_DIALOG_OVERLAY_CLASS =
     "m-0 h-auto max-h-none w-auto max-w-none border-0 bg-[var(--modal-scrim-bg)] p-0 backdrop-blur-[6px] backdrop-saturate-[120%] transition-opacity duration-[220ms] ease-[var(--ease-out)] data-[state=closed]:pointer-events-none data-[state=closed]:opacity-0 data-[state=open]:pointer-events-auto data-[state=open]:opacity-100";
 
 const CONFIRM_DIALOG_CONTENT_CLASS =
-    "m-[12px_auto] block w-full max-w-[460px] gap-0 overflow-hidden rounded-lg border border-[var(--card-popover-border)] p-0 font-sans text-[var(--fg-primary)] ![box-shadow:0_22px_56px_rgb(0_0_0_/_0.50)] data-[state=closed]:opacity-0 sm:max-w-[460px]";
-
-const CONFIRM_DIALOG_CONTENT_STYLE = {
-    backgroundColor: "color(srgb 0.0943052 0.100332 0.106792 / 0.92)",
-};
+    "m-[12px_auto] block w-full max-w-[460px] gap-0 overflow-hidden rounded-lg border border-[var(--card-popover-border)] bg-[var(--card-popover-bg)] p-0 font-sans text-[var(--fg-primary)] shadow-[var(--card-popover-shadow)] data-[state=closed]:opacity-0 sm:max-w-[460px]";
 
 const CONFIRM_DIALOG_HEADER_CLASS =
     "block flex-row ![gap:normal] px-[20px] pt-[16px] pb-[4px]";
@@ -112,10 +108,6 @@ const CONFIRM_DIALOG_WARNING_CLASS =
 
 const CONFIRM_DIALOG_FOOTER_CLASS =
     "flex justify-end border-t border-[var(--card-popover-divider)] bg-[var(--card-popover-footer-bg)] px-[16px] pt-[12px] pb-[16px]";
-
-const CONFIRM_DIALOG_FOOTER_STYLE = {
-    backgroundColor: "color(srgb 1 1 1 / 0.03)",
-};
 
 const CONFIRM_DIALOG_ACTION_BUTTON_CLASS =
     "h-[26px] min-w-[auto] gap-[7px] rounded-[7px] px-[10px] py-0 font-sans text-[12px] font-semibold leading-normal";
@@ -238,10 +230,6 @@ export function ConfirmDialogProvider({
                             portalWrapperSlotProps?.className,
                         ),
                     }}
-                    style={{
-                        ...CONFIRM_DIALOG_CONTENT_STYLE,
-                        ...contentSlotProps?.style,
-                    }}
                     className={cn(
                         CONFIRM_DIALOG_CONTENT_CLASS,
                         contentSlotProps?.className,
@@ -330,10 +318,6 @@ export function ConfirmDialogProvider({
                     </div>
                     <DialogFooter
                         {...footerSlotProps}
-                        style={{
-                            ...CONFIRM_DIALOG_FOOTER_STYLE,
-                            ...footerSlotProps?.style,
-                        }}
                         className={cn(
                             "gap-[8px] sm:justify-end",
                             CONFIRM_DIALOG_FOOTER_CLASS,
