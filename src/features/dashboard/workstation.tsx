@@ -588,6 +588,21 @@ const TIMELINE_FILTERS: {
 
 const dashboardTabPaneHiddenClassName = "[&[hidden]]:hidden";
 
+const DASHBOARD_ICON_CLASS_NAME =
+    "size-4 flex-none fill-none stroke-current stroke-[1.8]";
+const DASHBOARD_TINY_ICON_CLASS_NAME =
+    "size-3 flex-none fill-none stroke-current stroke-[1.8]";
+const DASHBOARD_MICRO_ICON_CLASS_NAME =
+    "size-[11px] flex-none fill-none stroke-current stroke-2";
+const DASHBOARD_RECORDING_LIST_STATE_ICON_CLASS_NAME =
+    "size-[15px] fill-none stroke-current stroke-[1.8]";
+const DASHBOARD_ACTIVITY_ITEM_ICON_CLASS_NAME =
+    "size-3 fill-none stroke-current stroke-2";
+const DASHBOARD_RETRANSCRIPTION_ICON_CLASS_NAME =
+    "size-[13px] fill-none stroke-current stroke-2";
+const DASHBOARD_RETRANSCRIPTION_CLOSE_ICON_CLASS_NAME =
+    "size-4 fill-none stroke-current stroke-[1.8]";
+
 const DASHBOARD_SIDEBAR_FOOTER_CLASS_NAME = "border-t border-border pt-2.5";
 
 const dashboardRecordingTimeFilterStyles = {
@@ -599,14 +614,14 @@ const dashboardRecordingTimeFilterStyles = {
 
 const dashboardRecordingTagFilterStyles = {
     root: "relative mt-2.5",
-    trigger: "w-full justify-start text-[var(--fg-primary)]",
+    trigger: "w-full justify-start text-foreground",
     label: "min-w-0 flex-1 truncate",
-    count: "font-mono text-[11px] font-medium text-[var(--fg-tertiary)]",
-    caret: "shrink-0 text-[var(--fg-tertiary)]",
-    list: "absolute left-0 right-0 top-[calc(100%+6px)] z-[var(--z-popover-inline)] max-h-[260px] overflow-y-auto rounded-[8px] border border-[var(--card-popover-border)] bg-[var(--card-popover-bg)] p-1 [box-shadow:var(--shadow-lg)]",
-    option: "w-full justify-start border border-transparent bg-transparent text-[var(--fg-secondary)] shadow-none data-[sot-state=selected]:bg-secondary data-[sot-state=selected]:text-secondary-foreground data-[sot-state=selected]:hover:bg-secondary/80",
+    count: "font-mono text-[11px] font-medium text-muted-foreground",
+    caret: "shrink-0 text-muted-foreground",
+    list: "absolute left-0 right-0 top-[calc(100%+6px)] z-[var(--z-popover-inline)] max-h-[260px] overflow-y-auto rounded-lg border border-border bg-popover p-1 text-popover-foreground shadow-lg",
+    option: "w-full justify-start border border-transparent bg-transparent text-muted-foreground shadow-none hover:bg-accent hover:text-accent-foreground data-[sot-state=selected]:bg-secondary data-[sot-state=selected]:text-secondary-foreground data-[sot-state=selected]:hover:bg-secondary/80",
     optionLabel: "min-w-0 flex-1 truncate",
-    optionCount: "font-mono text-[11px] font-medium text-[var(--fg-tertiary)]",
+    optionCount: "font-mono text-[11px] font-medium text-muted-foreground",
 } as const;
 
 const DASHBOARD_RECORDING_LIST_HEADER_CLASS_NAME =
@@ -614,12 +629,12 @@ const DASHBOARD_RECORDING_LIST_HEADER_CLASS_NAME =
 
 const dashboardRecordingListTitlebarStyles = {
     root: "flex items-center gap-2.5",
-    title: "m-0 font-sans text-[13px] font-semibold text-[var(--fg-primary)]",
-    count: "ml-auto font-mono text-[11.5px] font-medium text-[var(--fg-tertiary)]",
+    title: "m-0 font-sans text-[13px] font-semibold text-foreground",
+    count: "ml-auto font-mono text-[11.5px] font-medium text-muted-foreground",
 } as const;
 
 const dashboardScrollbarClassName =
-    "[scrollbar-width:thin] [scrollbar-color:var(--fg-tertiary)_transparent] [&::-webkit-scrollbar]:size-[10px] [&::-webkit-scrollbar-track]:bg-transparent [&::-webkit-scrollbar-thumb]:rounded-full [&::-webkit-scrollbar-thumb]:border-2 [&::-webkit-scrollbar-thumb]:border-transparent [&::-webkit-scrollbar-thumb]:bg-muted-foreground/35 [&::-webkit-scrollbar-thumb]:bg-clip-padding [&::-webkit-scrollbar-thumb:hover]:bg-muted-foreground/55 [&::-webkit-scrollbar-thumb:hover]:bg-clip-padding";
+    "[scrollbar-width:thin] [scrollbar-color:var(--muted-foreground)_transparent] [&::-webkit-scrollbar]:size-[10px] [&::-webkit-scrollbar-track]:bg-transparent [&::-webkit-scrollbar-thumb]:rounded-full [&::-webkit-scrollbar-thumb]:border-2 [&::-webkit-scrollbar-thumb]:border-transparent [&::-webkit-scrollbar-thumb]:bg-muted-foreground/35 [&::-webkit-scrollbar-thumb]:bg-clip-padding [&::-webkit-scrollbar-thumb:hover]:bg-muted-foreground/55 [&::-webkit-scrollbar-thumb:hover]:bg-clip-padding";
 
 const dashboardRecordingListScrollClassName = cn(
     "flex-1 overflow-y-auto p-1",
@@ -628,17 +643,17 @@ const dashboardRecordingListScrollClassName = cn(
 
 const dashboardRecordingListModeStyles = {
     root: "mt-2 flex items-center gap-2.5",
-    label: "inline-flex items-center gap-1.5 font-sans text-[12px] font-semibold text-[var(--fg-secondary)]",
-    count: "font-mono text-[11px] font-medium text-[var(--fg-tertiary)]",
+    label: "inline-flex items-center gap-1.5 font-sans text-[12px] font-semibold text-muted-foreground",
+    count: "font-mono text-[11px] font-medium text-muted-foreground",
     segmented: "ml-auto",
 } as const;
 
 const dashboardRecordingListStateStyles = {
-    root: "m-2 flex flex-col items-center gap-1.5 rounded-[10px] border border-dashed border-[var(--line-hairline)] bg-[var(--bg-recessed)] px-[18px] py-[26px] text-center",
-    icon: "mb-0.5 inline-flex size-[34px] items-center justify-center rounded-full border border-[var(--line-hairline)] bg-[var(--bg-elevated)] text-[var(--fg-tertiary)] [&_svg]:size-[15px] [&_svg]:fill-none [&_svg]:stroke-current [&_svg]:stroke-[1.8] [&_svg]:[stroke-linecap:round] [&_svg]:[stroke-linejoin:round]",
-    title: "font-sans text-[13px] font-semibold text-[var(--fg-primary)]",
+    root: "m-2 flex flex-col items-center gap-1.5 rounded-[10px] border border-dashed border-border bg-muted px-[18px] py-[26px] text-center",
+    icon: "mb-0.5 inline-flex size-[34px] items-center justify-center rounded-full border border-border bg-card text-muted-foreground",
+    title: "font-sans text-[13px] font-semibold text-foreground",
     description:
-        "max-w-[300px] font-sans text-[12px] font-medium leading-[1.5] text-[var(--fg-tertiary)]",
+        "max-w-[300px] font-sans text-[12px] font-medium leading-[1.5] text-muted-foreground",
 } as const;
 
 const dashboardRecordingListLoadingSkeletonClassNames = {
@@ -646,7 +661,7 @@ const dashboardRecordingListLoadingSkeletonClassNames = {
     day: "flex items-center gap-2.5 px-2.5 pt-3.5 pb-1.5",
     dayLabel: "h-[11px] w-[100px]",
     dayLabel40: "h-[11px] w-10",
-    dayLine: "h-px flex-1 bg-[var(--line-hairline)]",
+    dayLine: "h-px flex-1 bg-border",
     row: "grid grid-cols-[1fr_auto] items-center gap-3.5 px-3 py-[11px]",
     rowBody: "flex min-w-0 flex-col gap-1.5",
     meta: "flex items-center gap-2",
@@ -664,10 +679,10 @@ const dashboardRecordingListLoadingSkeletonClassNames = {
 
 const dashboardRecordingListPaginationStyles = {
     root: "m-2 flex flex-col items-stretch gap-1.5 border-0 bg-transparent p-[14px] text-center",
-    divider: "relative mt-1.5 mb-[14px] h-px bg-[var(--line-hairline)]",
-    status: "absolute left-1/2 -top-2 -translate-x-1/2 -translate-y-1/2 bg-[var(--bg-elevated)] px-2.5 font-mono text-[10.5px] font-medium text-[var(--fg-tertiary)]",
+    divider: "relative mt-1.5 mb-[14px] h-px bg-border",
+    status: "absolute left-1/2 -top-2 -translate-x-1/2 -translate-y-1/2 bg-card px-2.5 font-mono text-[10.5px] font-medium text-muted-foreground",
     nav: "mt-1 flex items-center justify-center gap-2.5",
-    number: "min-w-14 text-center font-mono text-[11.5px] font-medium text-[var(--fg-tertiary)]",
+    number: "min-w-14 text-center font-mono text-[11.5px] font-medium text-muted-foreground",
 } as const;
 
 const dashboardSearchActivityClassNames = {
@@ -677,169 +692,171 @@ const dashboardSearchActivityClassNames = {
     dashboardActivityAnchor:
         "relative inline-flex size-[32px] items-center justify-center p-0",
     dashboardSearchTrigger:
-        "relative size-[32px] rounded-md border border-transparent bg-transparent p-0 text-muted-foreground shadow-none hover:bg-accent hover:text-accent-foreground data-[sot-state=open]:border-border data-[sot-state=open]:bg-accent data-[sot-state=open]:text-accent-foreground [&_svg]:stroke-current [&_svg:not([class*='size-'])]:size-4",
+        "relative size-[32px] rounded-md border border-transparent bg-transparent p-0 text-muted-foreground shadow-none hover:bg-accent hover:text-accent-foreground data-[sot-state=open]:border-border data-[sot-state=open]:bg-accent data-[sot-state=open]:text-accent-foreground",
     librarySearchPanel:
-        "pointer-events-none absolute right-0 top-[calc(100%+8px)] z-[var(--z-dropdown)] flex max-h-[540px] w-[460px] max-w-[calc(100vw-32px)] flex-col gap-0 overflow-hidden rounded-[12px] border-[var(--card-popover-border)] bg-[var(--card-popover-bg)] font-sans text-card-foreground opacity-0 [box-shadow:var(--card-popover-shadow)] backdrop-blur-none transition-[opacity,transform] duration-[180ms] ease-[var(--ease-out)] [transform:translateY(-4px)_scale(0.99)] data-[open=true]:pointer-events-auto data-[open=true]:opacity-100 data-[open=true]:[transform:translateY(0)_scale(1)] min-[641px]:max-[860px]:fixed min-[641px]:max-[860px]:left-3 min-[641px]:max-[860px]:right-auto min-[641px]:max-[860px]:top-[72px] min-[641px]:max-[860px]:box-border min-[641px]:max-[860px]:max-h-[calc(100dvh-96px)] min-[641px]:max-[860px]:w-[min(460px,calc(100vw-24px))] min-[641px]:max-[860px]:max-w-[calc(100vw-24px)] max-[640px]:fixed max-[640px]:left-3 max-[640px]:right-3 max-[640px]:top-[72px] max-[640px]:box-border max-[640px]:max-h-[calc(100dvh-96px)] max-[640px]:w-[calc(100vw-24px)] max-[640px]:min-w-0 max-[640px]:max-w-none",
+        "pointer-events-none absolute right-0 top-[calc(100%+8px)] z-[var(--z-dropdown)] flex max-h-[540px] w-[460px] max-w-[calc(100vw-32px)] flex-col gap-0 overflow-hidden rounded-[12px] border-border bg-popover font-sans text-popover-foreground opacity-0 shadow-lg backdrop-blur-none transition-[opacity,transform] duration-[180ms] ease-[var(--ease-out)] [transform:translateY(-4px)_scale(0.99)] data-[open=true]:pointer-events-auto data-[open=true]:opacity-100 data-[open=true]:[transform:translateY(0)_scale(1)] min-[641px]:max-[860px]:fixed min-[641px]:max-[860px]:left-3 min-[641px]:max-[860px]:right-auto min-[641px]:max-[860px]:top-[72px] min-[641px]:max-[860px]:box-border min-[641px]:max-[860px]:max-h-[calc(100dvh-96px)] min-[641px]:max-[860px]:w-[min(460px,calc(100vw-24px))] min-[641px]:max-[860px]:max-w-[calc(100vw-24px)] max-[640px]:fixed max-[640px]:left-3 max-[640px]:right-3 max-[640px]:top-[72px] max-[640px]:box-border max-[640px]:max-h-[calc(100dvh-96px)] max-[640px]:w-[calc(100vw-24px)] max-[640px]:min-w-0 max-[640px]:max-w-none",
     librarySearchInputRow:
-        "h-[49px] min-h-[49px] gap-[8px] rounded-none border-x-0 border-t-0 border-b border-[var(--line-hairline)] bg-transparent px-[12px] py-[8px] shadow-none focus-within:border-[var(--line-hairline)] focus-within:ring-0",
+        "h-[49px] min-h-[49px] gap-[8px] rounded-none border-x-0 border-t-0 border-b border-border bg-transparent px-[12px] py-[8px] shadow-none focus-within:border-border focus-within:ring-0",
     librarySearchInputAddon:
-        "p-0 group-data-[disabled=true]/input-group:opacity-100 has-[>button]:m-0 [&>svg]:stroke-[1.8] [&>svg]:text-[var(--fg-tertiary)] [&>svg:not([class*='size-'])]:size-[15px]",
+        "p-0 text-muted-foreground group-data-[disabled=true]/input-group:opacity-100 has-[>button]:m-0",
     librarySearchInput:
-        "h-[32px] min-w-0 px-[4px] py-0 [font:500_13.5px/1.35_var(--font-sans)] text-[var(--fg-primary)] placeholder:text-[var(--fg-tertiary)] md:text-[13.5px]",
+        "h-[32px] min-w-0 px-[4px] py-0 [font:500_13.5px/1.35_var(--font-sans)] text-foreground placeholder:text-muted-foreground md:text-[13.5px]",
     librarySearchClear:
-        "size-6 rounded-[calc(var(--radius-md)-5px)] border border-transparent bg-transparent p-0 text-muted-foreground shadow-none hover:bg-transparent hover:text-foreground has-[>svg]:p-0 [&>svg:not([class*='size-'])]:size-3 [&_svg:not([class*='size-'])]:size-3",
+        "size-6 rounded-[calc(var(--radius-md)-5px)] border border-transparent bg-transparent p-0 text-muted-foreground shadow-none hover:bg-transparent hover:text-foreground has-[>svg]:p-0",
     librarySearchScope:
-        "min-h-[39px] w-full flex-wrap gap-[6px] rounded-none border-b border-[var(--line-hairline)] bg-[var(--bg-recessed)] px-[12px] py-[8px]",
+        "min-h-[39px] w-full flex-wrap gap-[6px] rounded-none border-b border-border bg-muted px-[12px] py-[8px]",
     librarySearchScopeItem:
-        "h-[22px] gap-[4px] rounded-full border border-transparent bg-transparent px-[10px] [font:500_11.5px/1_var(--font-sans)] text-[var(--fg-tertiary)] shadow-none hover:bg-[var(--bg-elevated)] hover:text-[var(--fg-primary)] data-[state=on]:border-primary/30 data-[state=on]:bg-primary/10 data-[state=on]:text-primary disabled:pointer-events-none disabled:opacity-[.45]",
+        "h-[22px] gap-[4px] rounded-full border border-transparent bg-transparent px-[10px] [font:500_11.5px/1_var(--font-sans)] text-muted-foreground shadow-none hover:bg-card hover:text-foreground data-[state=on]:border-primary/30 data-[state=on]:bg-primary/10 data-[state=on]:text-primary disabled:pointer-events-none disabled:opacity-[.45]",
     librarySearchError:
-        "flex w-full flex-col items-center gap-2 rounded-none border-0 bg-transparent px-4 py-4 text-center text-sm text-[var(--signal-danger)] shadow-none *:data-[slot=alert-description]:text-[var(--signal-danger)] [&>svg]:text-current",
+        "flex w-full flex-col items-center gap-2 rounded-none border-0 bg-transparent px-4 py-4 text-center text-sm text-destructive shadow-none *:data-[slot=alert-description]:text-destructive [&>svg]:text-current",
     librarySearchErrorTitle:
         "line-clamp-none min-h-0 text-center text-sm font-medium tracking-normal",
     librarySearchRetry:
-        "h-6 gap-1 rounded-md border border-input bg-background px-2 text-xs text-[var(--fg-primary)] shadow-xs hover:bg-accent hover:text-accent-foreground has-[>svg]:px-1.5 [&_svg:not([class*='size-'])]:size-3",
+        "h-6 gap-1 rounded-md border border-input bg-background px-2 text-xs text-foreground shadow-xs hover:bg-accent hover:text-accent-foreground has-[>svg]:px-1.5",
     librarySearchScroll:
         "min-h-0 flex-1 overflow-y-auto px-[6px] pt-[6px] pb-[8px]",
-    librarySearchState: "block text-[var(--fg-tertiary)]",
+    librarySearchState: "block text-muted-foreground",
     librarySearchIndexing:
-        "flex items-center gap-[10px] px-[16px] py-[14px] text-[length:var(--text-body-sm)] text-[var(--fg-secondary)]",
+        "flex items-center gap-[10px] px-[16px] py-[14px] text-[length:var(--text-body-sm)] text-muted-foreground",
     librarySearchStateSkeleton:
-        "relative inline-flex h-1 w-auto min-w-0 flex-1 overflow-hidden rounded-full bg-primary/10 animate-none after:absolute after:inset-y-0 after:left-0 after:w-[36%] after:rounded-[inherit] after:bg-[linear-gradient(90deg,transparent,var(--signal-info)_50%,transparent)] after:animate-[sbn-sweep_1.4s_linear_infinite] after:content-['']",
+        "relative inline-flex h-1 w-auto min-w-0 flex-1 overflow-hidden rounded-full bg-primary/10 animate-none after:absolute after:inset-y-0 after:left-0 after:w-[36%] after:rounded-[inherit] after:bg-primary/50 after:animate-[sbn-sweep_1.4s_linear_infinite] after:content-['']",
     librarySearchStateCopy:
-        "px-[16px] py-[22px] text-center [font:500_12.5px/1.55_var(--font-sans)] text-[var(--fg-tertiary)] [&_span]:font-semibold [&_span]:text-[var(--fg-primary)]",
+        "px-[16px] py-[22px] text-center [font:500_12.5px/1.55_var(--font-sans)] text-muted-foreground [&_span]:font-semibold [&_span]:text-foreground",
     librarySearchResults: "flex flex-col",
     librarySearchResultGroup:
-        "flex flex-col gap-[2px] px-[4px] py-[6px] [&+&]:mt-[4px] [&+&]:border-t [&+&]:border-[var(--line-hairline)] [&+&]:pt-[8px]",
+        "flex flex-col gap-[2px] px-[4px] py-[6px] [&+&]:mt-[4px] [&+&]:border-t [&+&]:border-border [&+&]:pt-[8px]",
     librarySearchGroupLabel:
-        "px-[6px] py-[4px] [font:600_10.5px/1_var(--font-mono)] uppercase tracking-[0.08em] text-[var(--fg-tertiary)]",
+        "px-[6px] py-[4px] [font:600_10.5px/1_var(--font-mono)] uppercase tracking-[0.08em] text-muted-foreground",
     librarySearchResult:
-        "h-auto w-full flex-col items-start justify-start gap-[2px] rounded-[var(--radius-sm)] border-0 bg-transparent px-[10px] py-[8px] text-left text-[var(--fg-primary)] whitespace-normal shadow-none hover:bg-[var(--bg-recessed)] focus-visible:bg-[var(--bg-recessed)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/50 [&_[data-sot-part=library-search-result-meta]]:font-mono [&_[data-sot-part=library-search-result-meta]]:text-[11.5px] [&_[data-sot-part=library-search-result-meta]]:font-medium [&_[data-sot-part=library-search-result-meta]]:leading-[1.4] [&_[data-sot-part=library-search-result-meta]]:tracking-[0.02em] [&_[data-sot-part=library-search-result-meta]]:text-[var(--fg-tertiary)] [&_[data-sot-part=library-search-result-title]]:[font:600_13px/1.4_var(--font-sans)] [&_[data-sot-part=library-search-result-title]]:text-[var(--fg-primary)]",
+        "h-auto w-full flex-col items-start justify-start gap-[2px] rounded-[var(--radius-sm)] border-0 bg-transparent px-[10px] py-[8px] text-left text-foreground whitespace-normal shadow-none hover:bg-muted focus-visible:bg-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/50",
+    librarySearchResultTitle:
+        "[font:600_13px/1.4_var(--font-sans)] text-foreground",
+    librarySearchResultMeta:
+        "font-mono text-[11.5px] font-medium leading-[1.4] tracking-[0.02em] text-muted-foreground",
     librarySearchHighlight: "rounded-[3px] bg-primary/10 px-[2px] text-primary",
     librarySearchTag:
-        "h-[22px] w-fit justify-normal gap-[5px] overflow-visible rounded-[6px] border border-primary/20 bg-primary/10 py-0 pr-[9px] pl-[7px] [font:600_11.5px_var(--font-sans)] text-primary whitespace-normal shadow-xs [box-shadow:var(--shadow-xs)] [a&]:hover:bg-primary/10 [&>svg]:size-[11px] [&>svg]:fill-none [&>svg]:stroke-2 [&>svg]:stroke-current [&>svg]:[stroke-linecap:round] [&>svg]:[stroke-linejoin:round]",
+        "h-[22px] w-fit justify-normal gap-[5px] overflow-visible rounded-[6px] border border-primary/20 bg-primary/10 py-0 pr-[9px] pl-[7px] [font:600_11.5px_var(--font-sans)] text-primary whitespace-normal shadow-xs [a&]:hover:bg-primary/10",
     dashboardActivityTrigger:
-        "relative size-[32px] rounded-md border border-transparent bg-transparent p-0 text-muted-foreground shadow-none hover:bg-accent hover:text-accent-foreground data-[sot-state=open]:border-border data-[sot-state=open]:bg-accent data-[sot-state=open]:text-accent-foreground data-[unread=0]:[&_[data-sot-part=dashboard-activity-badge]]:hidden [&_[data-sot-part=dashboard-activity-badge]]:pointer-events-none [&_[data-sot-part=dashboard-activity-badge]]:absolute [&_[data-sot-part=dashboard-activity-badge]]:right-0.5 [&_[data-sot-part=dashboard-activity-badge]]:top-0.5 [&_[data-sot-part=dashboard-activity-badge]]:inline-flex [&_[data-sot-part=dashboard-activity-badge]]:h-4 [&_[data-sot-part=dashboard-activity-badge]]:min-w-4 [&_[data-sot-part=dashboard-activity-badge]]:items-center [&_[data-sot-part=dashboard-activity-badge]]:justify-center [&_[data-sot-part=dashboard-activity-badge]]:rounded-full [&_[data-sot-part=dashboard-activity-badge]]:bg-[var(--signal-danger)] [&_[data-sot-part=dashboard-activity-badge]]:px-1 [&_[data-sot-part=dashboard-activity-badge]]:font-sans [&_[data-sot-part=dashboard-activity-badge]]:text-[9.5px] [&_[data-sot-part=dashboard-activity-badge]]:font-bold [&_[data-sot-part=dashboard-activity-badge]]:text-destructive-foreground [&_[data-sot-part=dashboard-activity-badge]]:shadow-[0_0_0_1.5px_var(--bg-elevated)] [&_svg:not([class*='size-'])]:size-4",
+        "relative size-[32px] rounded-md border border-transparent bg-transparent p-0 text-muted-foreground shadow-none hover:bg-accent hover:text-accent-foreground data-[sot-state=open]:border-border data-[sot-state=open]:bg-accent data-[sot-state=open]:text-accent-foreground data-[unread=0]:[&_[data-sot-part=dashboard-activity-badge]]:hidden [&_[data-sot-part=dashboard-activity-badge]]:pointer-events-none [&_[data-sot-part=dashboard-activity-badge]]:absolute [&_[data-sot-part=dashboard-activity-badge]]:right-0.5 [&_[data-sot-part=dashboard-activity-badge]]:top-0.5 [&_[data-sot-part=dashboard-activity-badge]]:inline-flex [&_[data-sot-part=dashboard-activity-badge]]:h-4 [&_[data-sot-part=dashboard-activity-badge]]:min-w-4 [&_[data-sot-part=dashboard-activity-badge]]:items-center [&_[data-sot-part=dashboard-activity-badge]]:justify-center [&_[data-sot-part=dashboard-activity-badge]]:rounded-full [&_[data-sot-part=dashboard-activity-badge]]:bg-destructive [&_[data-sot-part=dashboard-activity-badge]]:px-1 [&_[data-sot-part=dashboard-activity-badge]]:font-sans [&_[data-sot-part=dashboard-activity-badge]]:text-[9.5px] [&_[data-sot-part=dashboard-activity-badge]]:font-bold [&_[data-sot-part=dashboard-activity-badge]]:text-destructive-foreground [&_[data-sot-part=dashboard-activity-badge]]:ring-2 [&_[data-sot-part=dashboard-activity-badge]]:ring-card",
     dashboardActivityPanel:
-        "pointer-events-none absolute right-0 top-[calc(100%+8px)] z-[var(--z-dropdown)] flex max-h-[520px] w-[380px] max-w-[calc(100vw-32px)] flex-col gap-0 overflow-hidden rounded-[12px] border-[var(--card-popover-border)] bg-[var(--card-popover-bg)] opacity-0 [box-shadow:var(--card-popover-shadow)] backdrop-blur-none transition-[opacity,transform] duration-[180ms] ease-[var(--ease-out)] [transform:translateY(-4px)_scale(0.99)] data-[open=true]:pointer-events-auto data-[open=true]:opacity-100 data-[open=true]:[transform:translateY(0)_scale(1)] min-[641px]:max-[860px]:fixed min-[641px]:max-[860px]:left-3 min-[641px]:max-[860px]:right-auto min-[641px]:max-[860px]:top-[72px] min-[641px]:max-[860px]:box-border min-[641px]:max-[860px]:max-h-[calc(100dvh-96px)] min-[641px]:max-[860px]:w-[min(380px,calc(100vw-24px))] min-[641px]:max-[860px]:max-w-[calc(100vw-24px)] max-[640px]:fixed max-[640px]:left-3 max-[640px]:right-3 max-[640px]:top-[72px] max-[640px]:box-border max-[640px]:max-h-[calc(100dvh-96px)] max-[640px]:w-[calc(100vw-24px)] max-[640px]:min-w-0 max-[640px]:max-w-none",
+        "pointer-events-none absolute right-0 top-[calc(100%+8px)] z-[var(--z-dropdown)] flex max-h-[520px] w-[380px] max-w-[calc(100vw-32px)] flex-col gap-0 overflow-hidden rounded-[12px] border-border bg-popover text-popover-foreground opacity-0 shadow-lg backdrop-blur-none transition-[opacity,transform] duration-[180ms] ease-[var(--ease-out)] [transform:translateY(-4px)_scale(0.99)] data-[open=true]:pointer-events-auto data-[open=true]:opacity-100 data-[open=true]:[transform:translateY(0)_scale(1)] min-[641px]:max-[860px]:fixed min-[641px]:max-[860px]:left-3 min-[641px]:max-[860px]:right-auto min-[641px]:max-[860px]:top-[72px] min-[641px]:max-[860px]:box-border min-[641px]:max-[860px]:max-h-[calc(100dvh-96px)] min-[641px]:max-[860px]:w-[min(380px,calc(100vw-24px))] min-[641px]:max-[860px]:max-w-[calc(100vw-24px)] max-[640px]:fixed max-[640px]:left-3 max-[640px]:right-3 max-[640px]:top-[72px] max-[640px]:box-border max-[640px]:max-h-[calc(100dvh-96px)] max-[640px]:w-[calc(100vw-24px)] max-[640px]:min-w-0 max-[640px]:max-w-none",
     dashboardActivityHeader: "flex items-center gap-2.5 px-3.5 py-3",
     dashboardActivityHeading: "flex flex-1 flex-col gap-0.5",
     dashboardActivityTitle:
-        "[font:600_13px_var(--font-sans)] text-[var(--fg-primary)]",
+        "[font:600_13px_var(--font-sans)] text-foreground",
     dashboardActivityCount:
-        "justify-normal border-0 bg-transparent p-0 font-mono text-[11px] font-medium text-[var(--fg-tertiary)] [a&]:hover:bg-transparent",
+        "justify-normal border-0 bg-transparent p-0 font-mono text-[11px] font-medium text-muted-foreground [a&]:hover:bg-transparent",
     dashboardActivityClose:
-        "size-[26px] rounded-[7px] border border-transparent bg-transparent p-0 text-[var(--fg-secondary)] shadow-none hover:bg-[var(--bg-recessed)] hover:text-[var(--fg-primary)] [&_svg]:stroke-current [&_svg:not([class*='size-'])]:size-3",
+        "size-[26px] rounded-[7px] border border-transparent bg-transparent p-0 text-muted-foreground shadow-none hover:bg-accent hover:text-accent-foreground",
     dashboardActivityContent: "flex min-h-0 flex-1 flex-col p-0",
     dashboardActivityStatus:
-        "flex items-center gap-2.5 bg-[var(--bg-recessed)] px-3.5 py-2.5 data-[state=error]:[&_[data-sot-part=dashboard-activity-status-indicator]]:bg-[var(--signal-danger)] data-[state=running]:[&_[data-sot-part=dashboard-activity-status-indicator]]:animate-[bpulse_1.4s_ease-in-out_infinite] data-[state=running]:[&_[data-sot-part=dashboard-activity-status-indicator]]:bg-[var(--signal-info)] data-[state=syncing]:[&_[data-sot-part=dashboard-activity-status-indicator]]:animate-[bpulse_1.4s_ease-in-out_infinite] data-[state=syncing]:[&_[data-sot-part=dashboard-activity-status-indicator]]:bg-[var(--signal-info)]",
+        "flex items-center gap-2.5 bg-muted px-3.5 py-2.5 data-[state=error]:[&_[data-sot-part=dashboard-activity-status-indicator]]:bg-destructive data-[state=running]:[&_[data-sot-part=dashboard-activity-status-indicator]]:animate-[bpulse_1.4s_ease-in-out_infinite] data-[state=running]:[&_[data-sot-part=dashboard-activity-status-indicator]]:bg-primary data-[state=syncing]:[&_[data-sot-part=dashboard-activity-status-indicator]]:animate-[bpulse_1.4s_ease-in-out_infinite] data-[state=syncing]:[&_[data-sot-part=dashboard-activity-status-indicator]]:bg-primary",
     dashboardActivityStatusIndicator:
-        "size-2 flex-none rounded-full bg-[var(--signal-success)]",
+        "size-2 flex-none rounded-full bg-primary",
     dashboardActivityStatusCopy: "flex min-w-0 flex-1 flex-col gap-0.5",
     dashboardActivityStatusLine:
-        "[font:600_12px_var(--font-sans)] text-[var(--fg-primary)]",
+        "[font:600_12px_var(--font-sans)] text-foreground",
     dashboardActivityStatusSub:
-        "[font:500_11px_var(--font-mono)] text-[var(--fg-tertiary)]",
+        "[font:500_11px_var(--font-mono)] text-muted-foreground",
     dashboardActivitySync:
-        "h-[26px] gap-[7px] rounded-[7px] border border-transparent bg-transparent px-[10px] text-[12px] font-semibold leading-normal text-[var(--fg-secondary)] shadow-none hover:bg-[var(--bg-recessed)] hover:text-[var(--fg-primary)] data-[action-state=error]:text-[var(--signal-danger)] disabled:cursor-not-allowed has-[>svg]:px-[10px]",
+        "h-[26px] gap-[7px] rounded-[7px] border border-transparent bg-transparent px-[10px] text-[12px] font-semibold leading-normal text-muted-foreground shadow-none hover:bg-accent hover:text-accent-foreground data-[action-state=error]:text-destructive disabled:cursor-not-allowed has-[>svg]:px-[10px]",
     dashboardActivityItems:
         "m-0 max-h-[340px] flex-1 list-none overflow-y-auto p-1 empty:hidden",
     dashboardActivityItem:
-        "grid grid-cols-[26px_1fr_auto] items-start gap-2.5 rounded-lg p-2.5 [&+&]:rounded-none [&+&]:border-t [&+&]:border-[var(--line-hairline)] data-[kind=error]:[&_[data-sot-part=dashboard-activity-item-icon]]:border-[var(--alert-destructive-soft-border)] data-[kind=error]:[&_[data-sot-part=dashboard-activity-item-icon]]:bg-[var(--alert-destructive-soft-bg)] data-[kind=error]:[&_[data-sot-part=dashboard-activity-item-icon]]:text-[var(--signal-danger)] data-[kind=info]:[&_[data-sot-part=dashboard-activity-item-icon]]:border-[var(--system-banner-progress-border)] data-[kind=info]:[&_[data-sot-part=dashboard-activity-item-icon]]:bg-[var(--system-banner-progress-icon-bg)] data-[kind=info]:[&_[data-sot-part=dashboard-activity-item-icon]]:text-[var(--signal-info)] data-[kind=partial-failed]:[&_[data-sot-part=dashboard-activity-item-icon]]:bg-[var(--system-banner-offline-icon-bg)] data-[kind=partial-failed]:[&_[data-sot-part=dashboard-activity-item-icon]]:text-[var(--signal-warning)] data-[kind=queued]:[&_[data-sot-part=dashboard-activity-item-icon]]:bg-[var(--system-banner-neutral-icon-bg)] data-[kind=queued]:[&_[data-sot-part=dashboard-activity-item-icon]]:text-[var(--fg-tertiary)] data-[kind=success]:[&_[data-sot-part=dashboard-activity-item-icon]]:border-[var(--button-copy-success-border)] data-[kind=success]:[&_[data-sot-part=dashboard-activity-item-icon]]:bg-[var(--button-copy-success-bg)] data-[kind=success]:[&_[data-sot-part=dashboard-activity-item-icon]]:text-[var(--signal-success)] data-[kind=warn]:[&_[data-sot-part=dashboard-activity-item-icon]]:border-[var(--system-banner-offline-border)] data-[kind=warn]:[&_[data-sot-part=dashboard-activity-item-icon]]:bg-[var(--system-banner-offline-icon-bg)] data-[kind=warn]:[&_[data-sot-part=dashboard-activity-item-icon]]:text-[var(--signal-warning-strong)]",
+        "grid grid-cols-[26px_1fr_auto] items-start gap-2.5 rounded-lg p-2.5 [&+&]:rounded-none [&+&]:border-t [&+&]:border-border data-[kind=error]:[&_[data-sot-part=dashboard-activity-item-icon]]:border-destructive/30 data-[kind=error]:[&_[data-sot-part=dashboard-activity-item-icon]]:bg-destructive/10 data-[kind=error]:[&_[data-sot-part=dashboard-activity-item-icon]]:text-destructive data-[kind=info]:[&_[data-sot-part=dashboard-activity-item-icon]]:border-primary/30 data-[kind=info]:[&_[data-sot-part=dashboard-activity-item-icon]]:bg-primary/10 data-[kind=info]:[&_[data-sot-part=dashboard-activity-item-icon]]:text-primary data-[kind=partial-failed]:[&_[data-sot-part=dashboard-activity-item-icon]]:border-border data-[kind=partial-failed]:[&_[data-sot-part=dashboard-activity-item-icon]]:bg-secondary data-[kind=partial-failed]:[&_[data-sot-part=dashboard-activity-item-icon]]:text-secondary-foreground data-[kind=queued]:[&_[data-sot-part=dashboard-activity-item-icon]]:bg-muted data-[kind=queued]:[&_[data-sot-part=dashboard-activity-item-icon]]:text-muted-foreground data-[kind=success]:[&_[data-sot-part=dashboard-activity-item-icon]]:border-primary/30 data-[kind=success]:[&_[data-sot-part=dashboard-activity-item-icon]]:bg-primary/10 data-[kind=success]:[&_[data-sot-part=dashboard-activity-item-icon]]:text-primary data-[kind=warn]:[&_[data-sot-part=dashboard-activity-item-icon]]:border-border data-[kind=warn]:[&_[data-sot-part=dashboard-activity-item-icon]]:bg-secondary data-[kind=warn]:[&_[data-sot-part=dashboard-activity-item-icon]]:text-secondary-foreground",
     dashboardActivityItemIcon:
-        "inline-flex size-[26px] flex-none items-center justify-center rounded-[7px] border border-[var(--line-hairline)] bg-[var(--bg-recessed)] text-[var(--fg-tertiary)] [&_svg]:size-3 [&_svg]:fill-none [&_svg]:stroke-2 [&_svg]:stroke-current [&_svg]:[stroke-linecap:round] [&_svg]:[stroke-linejoin:round]",
+        "inline-flex size-[26px] flex-none items-center justify-center rounded-[7px] border border-border bg-muted text-muted-foreground",
     dashboardActivityItemCopy: "flex min-w-0 flex-col gap-[3px]",
     dashboardActivityItemTitle:
-        "[font:600_12.5px/1.35_var(--font-sans)] [margin:0] text-[var(--fg-primary)]",
+        "[font:600_12.5px/1.35_var(--font-sans)] [margin:0] text-foreground",
     dashboardActivityItemBody:
-        "[font:500_12px/1.5_var(--font-sans)] [margin:2px_0_0] text-[var(--fg-secondary)]",
+        "[font:500_12px/1.5_var(--font-sans)] [margin:2px_0_0] text-muted-foreground",
     dashboardActivityItemMeta:
-        "mt-1 [font:500_11px/1.4_var(--font-mono)] tracking-[0.02em] text-[var(--fg-tertiary)]",
+        "mt-1 [font:500_11px/1.4_var(--font-mono)] tracking-[0.02em] text-muted-foreground",
     dashboardActivityItemActions: "mt-1.5 flex items-center gap-1.5",
     dashboardActivityAction:
-        "h-[26px] gap-[7px] rounded-[7px] border border-transparent bg-transparent px-[10px] text-[12px] font-semibold leading-normal text-[var(--fg-secondary)] shadow-none hover:bg-[var(--bg-recessed)] hover:text-[var(--fg-primary)] data-[action-state=error]:text-[var(--signal-danger)] disabled:cursor-not-allowed has-[>svg]:px-[10px]",
+        "h-[26px] gap-[7px] rounded-[7px] border border-transparent bg-transparent px-[10px] text-[12px] font-semibold leading-normal text-muted-foreground shadow-none hover:bg-accent hover:text-accent-foreground data-[action-state=error]:text-destructive disabled:cursor-not-allowed has-[>svg]:px-[10px]",
     dashboardActivityDismiss:
-        "size-[22px] rounded-[6px] border border-transparent bg-transparent p-px text-[var(--fg-tertiary)] shadow-none hover:bg-[var(--bg-recessed)] hover:text-[var(--fg-primary)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring has-[>svg]:p-0 [&_svg]:stroke-current [&_svg:not([class*='size-'])]:size-[11px]",
+        "size-[22px] rounded-[6px] border border-transparent bg-transparent p-px text-muted-foreground shadow-none hover:bg-accent hover:text-accent-foreground focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring has-[>svg]:p-0",
     dashboardActivityEmpty: "p-7 md:p-7 [&[hidden]]:hidden",
 } as const;
 
 const dashboardButtonClassNames = {
-    nav: "relative h-auto w-full justify-start gap-2.5 rounded-[9px] border border-transparent bg-transparent px-2.5 py-[7px] text-left text-[13px] font-medium text-[var(--fg-secondary)] shadow-none hover:bg-accent hover:text-[var(--fg-primary)] focus-visible:text-[var(--fg-primary)] disabled:cursor-not-allowed disabled:opacity-50 data-[sot-state=selected]:border-[var(--line-hairline)] data-[sot-state=selected]:bg-[var(--bg-elevated)] data-[sot-state=selected]:text-[var(--fg-primary)] data-[sot-state=selected]:shadow-xs has-[>svg]:px-2.5 [&_svg]:size-4 [&_svg]:flex-none [&_svg]:fill-none [&_svg]:stroke-current [&_svg]:stroke-[1.7] [&_svg]:opacity-[0.85] [&_svg]:[stroke-linecap:round] [&_svg]:[stroke-linejoin:round] data-[sot-state=selected]:[&_svg]:opacity-100",
+    nav: "relative h-auto w-full justify-start gap-2.5 rounded-[9px] border border-transparent bg-transparent px-2.5 py-[7px] text-left text-[13px] font-medium text-muted-foreground shadow-none hover:bg-accent hover:text-foreground focus-visible:text-foreground disabled:cursor-not-allowed disabled:opacity-50 data-[sot-state=selected]:border-border data-[sot-state=selected]:bg-card data-[sot-state=selected]:text-foreground data-[sot-state=selected]:shadow-xs has-[>svg]:px-2.5",
     sync: "size-[32px] bg-transparent text-muted-foreground shadow-none hover:bg-accent hover:text-foreground",
-    copy: "h-[26px] gap-[6px] rounded-[7px] border border-transparent bg-transparent px-[10px] text-[12px] font-semibold leading-normal text-[var(--fg-secondary)] shadow-none hover:bg-[var(--bg-recessed)] hover:text-[var(--fg-primary)] data-[copy-state=ok]:border-[var(--button-copy-success-border)] data-[copy-state=ok]:bg-[var(--button-copy-success-bg)] data-[copy-state=ok]:text-[var(--signal-success)] data-[copy-state=ok]:hover:bg-[var(--button-copy-success-bg)] data-[copy-state=ok]:hover:text-[var(--signal-success)] data-[copy-state=err]:border-[var(--button-copy-danger-border)] data-[copy-state=err]:text-[var(--signal-danger)] data-[copy-state=err]:hover:bg-transparent data-[copy-state=err]:hover:text-[var(--signal-danger)] has-[>svg]:px-[10px] [&[hidden]]:hidden [&_svg:not([class*='size-'])]:size-[14px]",
+    copy: "h-[26px] gap-[6px] rounded-[7px] border border-transparent bg-transparent px-[10px] text-[12px] font-semibold leading-normal text-muted-foreground shadow-none hover:bg-accent hover:text-accent-foreground data-[copy-state=ok]:border-primary/30 data-[copy-state=ok]:bg-primary/10 data-[copy-state=ok]:text-primary data-[copy-state=ok]:hover:bg-primary/10 data-[copy-state=ok]:hover:text-primary data-[copy-state=err]:border-destructive/30 data-[copy-state=err]:text-destructive data-[copy-state=err]:hover:bg-transparent data-[copy-state=err]:hover:text-destructive has-[>svg]:px-[10px] [&[hidden]]:hidden",
     compactAction:
-        "h-[26px] gap-[7px] rounded-[7px] border border-transparent bg-transparent px-[10px] text-[12px] font-semibold text-[var(--fg-secondary)] shadow-none hover:bg-accent hover:text-accent-foreground has-[>svg]:px-[10px]",
+        "h-[26px] gap-[7px] rounded-[7px] border border-transparent bg-transparent px-[10px] text-[12px] font-semibold text-muted-foreground shadow-none hover:bg-accent hover:text-accent-foreground has-[>svg]:px-[10px]",
     speakersMerge:
-        "h-[26px] gap-[7px] rounded-[7px] border border-transparent bg-transparent px-[10px] text-[12px] font-semibold text-[var(--fg-secondary)] shadow-none hover:bg-accent hover:text-accent-foreground has-[>svg]:px-[10px]",
+        "h-[26px] gap-[7px] rounded-[7px] border border-transparent bg-transparent px-[10px] text-[12px] font-semibold text-muted-foreground shadow-none hover:bg-accent hover:text-accent-foreground has-[>svg]:px-[10px]",
     drawerTrigger:
-        "relative hidden h-auto w-auto rounded-md bg-transparent px-[6px] py-px text-[var(--fg-primary)] shadow-none hover:bg-[var(--bg-recessed)] hover:text-[var(--fg-primary)] max-[860px]:inline-flex group-data-[source-filter-active=true]/dashboard-workstation:[&_[data-sot-part=dashboard-drawer-active-dot]]:inline-block",
+        "relative hidden h-auto w-auto rounded-md bg-transparent px-[6px] py-px text-foreground shadow-none hover:bg-accent hover:text-foreground max-[860px]:inline-flex group-data-[source-filter-active=true]/dashboard-workstation:[&_[data-sot-part=dashboard-drawer-active-dot]]:inline-block",
     sidebarCollapse:
-        "size-[22px] rounded-full border border-[var(--line-hairline)] bg-[var(--bg-elevated)] text-muted-foreground shadow-sm hover:bg-accent hover:text-foreground max-[860px]:hidden",
+        "size-[22px] rounded-full border border-border bg-card text-muted-foreground shadow-sm hover:bg-accent hover:text-foreground max-[860px]:hidden",
     settingsAvatar:
-        "size-[30px] rounded-full border-0 bg-gradient-to-b from-[var(--steel-500)] to-[var(--steel-700)] text-xs font-semibold text-[var(--fg-on-accent)] shadow-xs hover:scale-[1.04] hover:bg-gradient-to-b hover:from-[var(--steel-500)] hover:to-[var(--steel-700)] hover:text-[var(--fg-on-accent)]",
+        "size-[30px] rounded-full border-0 bg-primary text-xs font-semibold text-primary-foreground shadow-xs hover:scale-[1.04] hover:bg-primary/90 hover:text-primary-foreground",
     listStatePrimary:
         "h-8 gap-1.5 rounded-md bg-primary px-3 text-primary-foreground shadow-xs hover:bg-primary/90 has-[>svg]:px-2.5",
     listStateAction:
-        "h-8 gap-1.5 rounded-md bg-transparent px-3 text-[var(--fg-secondary)] shadow-none hover:bg-accent hover:text-accent-foreground has-[>svg]:px-2.5",
+        "h-8 gap-1.5 rounded-md bg-transparent px-3 text-muted-foreground shadow-none hover:bg-accent hover:text-accent-foreground has-[>svg]:px-2.5",
     listPagination:
-        "h-8 gap-1.5 rounded-md bg-transparent px-3 text-[var(--fg-secondary)] shadow-none hover:bg-accent hover:text-accent-foreground has-[>svg]:px-2.5",
+        "h-8 gap-1.5 rounded-md bg-transparent px-3 text-muted-foreground shadow-none hover:bg-accent hover:text-accent-foreground has-[>svg]:px-2.5",
     headerIconButton:
-        "size-[32px] border border-transparent bg-transparent p-0 text-[var(--fg-secondary)] shadow-none hover:bg-accent hover:text-accent-foreground [&_svg]:fill-none [&_svg]:stroke-current [&_svg]:stroke-[1.8] [&_svg]:[stroke-linecap:round] [&_svg]:[stroke-linejoin:round]",
+        "size-[32px] border border-transparent bg-transparent p-0 text-muted-foreground shadow-none hover:bg-accent hover:text-accent-foreground",
     headerActionButton:
-        "h-8 gap-[7px] rounded-[9px] border border-[var(--line-hairline)] bg-[var(--glass-tint-base)] px-3 font-sans text-[12.5px] font-semibold leading-normal text-[var(--fg-primary)] shadow-[var(--shadow-xs)] hover:bg-[var(--glass-tint-base)] hover:text-[var(--fg-primary)] has-[>svg]:px-3 [&_svg]:fill-none [&_svg]:stroke-current [&_svg]:stroke-[1.8] [&_svg]:[stroke-linecap:round] [&_svg]:[stroke-linejoin:round] [&_svg:not([class*='size-'])]:size-4 min-w-[103px] backdrop-blur-[14px] backdrop-saturate-[140%]",
+        "h-8 min-w-[103px] gap-[7px] rounded-[9px] border border-border bg-card px-3 font-sans text-[12.5px] font-semibold leading-normal text-foreground shadow-xs hover:bg-accent hover:text-accent-foreground has-[>svg]:px-3",
 } as const;
 
 const dashboardRetranscriptionThemeClassName =
-    "[--dashboard-retx-info-bg:var(--system-banner-progress-bg)] [--dashboard-retx-info-border:var(--system-banner-progress-border)] [--dashboard-retx-info-icon-border:var(--system-banner-progress-border)] [--dashboard-retx-danger-bg:var(--alert-destructive-soft-bg)] [--dashboard-retx-danger-border:var(--alert-destructive-soft-border)] [--dashboard-retx-danger-icon-border:var(--button-copy-danger-border)] [--dashboard-retx-success-bg:var(--button-copy-success-bg)] [--dashboard-retx-success-border:var(--button-copy-success-border)] [--dashboard-retx-success-icon-border:var(--button-copy-success-border)] [--dashboard-retx-success-marker-bg:var(--button-copy-success-bg)]";
-
-const dashboardRetranscriptionSotClassName =
-    "[--dashboard-retx-sot-info-bg:color-mix(in_srgb,var(--signal-info)_8%,transparent)] [--dashboard-retx-sot-info-border:color-mix(in_srgb,var(--signal-info)_26%,transparent)] [--dashboard-retx-sot-info-icon-border:color-mix(in_srgb,var(--signal-info)_30%,transparent)] [--dashboard-retx-sot-danger-bg:color-mix(in_srgb,var(--signal-danger)_6%,transparent)] [--dashboard-retx-sot-danger-border:color-mix(in_srgb,var(--signal-danger)_24%,transparent)] [--dashboard-retx-sot-danger-icon-border:color-mix(in_srgb,var(--signal-danger)_30%,transparent)] [--dashboard-retx-sot-success-bg:color-mix(in_srgb,var(--signal-success)_8%,transparent)] [--dashboard-retx-sot-success-border:color-mix(in_srgb,var(--signal-success)_28%,transparent)] [--dashboard-retx-sot-success-icon-border:color-mix(in_srgb,var(--signal-success)_30%,transparent)] [--dashboard-retx-sot-success-marker-bg:color-mix(in_srgb,var(--signal-success)_12%,transparent)]";
+    "text-foreground";
 
 const dashboardRetranscriptionClassNames = {
     disabledHint:
-        "block rounded-[4px] border border-[var(--line-hairline)] bg-[var(--bg-recessed)] px-[6px] py-[2px] [font:500_11px_var(--font-sans)] text-[var(--fg-tertiary)] [&[hidden]]:hidden",
-    banner: `${dashboardRetranscriptionThemeClassName} ${dashboardRetranscriptionSotClassName} [--dashboard-retx-banner-bg:var(--bg-recessed)] [--dashboard-retx-banner-border:var(--line-hairline)] group/retx flex items-center gap-[10px] border-b [border-bottom-color:var(--dashboard-retx-banner-border)] [background:var(--dashboard-retx-banner-bg)] px-[14px] py-[10px] data-[retx-state=completed]:[--dashboard-retx-banner-bg:var(--dashboard-retx-sot-success-bg)] data-[retx-state=completed]:[--dashboard-retx-banner-border:var(--dashboard-retx-sot-success-border)] data-[retx-state=completed]:![background:var(--dashboard-retx-sot-success-bg)] data-[retx-state=completed]:![border-bottom-color:var(--dashboard-retx-sot-success-border)] data-[retx-state=completed]:[border-bottom-color:var(--dashboard-retx-success-border)] data-[retx-state=completed]:bg-[var(--dashboard-retx-success-bg)] data-[retx-state=failed]:[--dashboard-retx-banner-bg:var(--dashboard-retx-sot-danger-bg)] data-[retx-state=failed]:[--dashboard-retx-banner-border:var(--dashboard-retx-sot-danger-border)] data-[retx-state=failed]:![background:var(--dashboard-retx-sot-danger-bg)] data-[retx-state=failed]:![border-bottom-color:var(--dashboard-retx-sot-danger-border)] data-[retx-state=failed]:[border-bottom-color:var(--dashboard-retx-danger-border)] data-[retx-state=failed]:bg-[var(--dashboard-retx-danger-bg)] data-[retx-state=idle]:hidden data-[retx-state=queued]:[--dashboard-retx-banner-bg:var(--dashboard-retx-sot-info-bg)] data-[retx-state=queued]:[--dashboard-retx-banner-border:var(--dashboard-retx-sot-info-border)] data-[retx-state=queued]:![background:var(--dashboard-retx-sot-info-bg)] data-[retx-state=queued]:![border-bottom-color:var(--dashboard-retx-sot-info-border)] data-[retx-state=queued]:[border-bottom-color:var(--dashboard-retx-info-border)] data-[retx-state=queued]:bg-[var(--dashboard-retx-info-bg)] data-[retx-state=running]:[--dashboard-retx-banner-bg:var(--dashboard-retx-sot-info-bg)] data-[retx-state=running]:[--dashboard-retx-banner-border:var(--dashboard-retx-sot-info-border)] data-[retx-state=running]:![background:var(--dashboard-retx-sot-info-bg)] data-[retx-state=running]:![border-bottom-color:var(--dashboard-retx-sot-info-border)] data-[retx-state=running]:[border-bottom-color:var(--dashboard-retx-info-border)] data-[retx-state=running]:bg-[var(--dashboard-retx-info-bg)] [&[hidden]]:hidden`,
-    icon: "inline-flex size-[28px] flex-none items-center justify-center rounded-[50%] border border-[var(--line-hairline)] bg-[var(--bg-elevated)] group-data-[retx-state=completed]/retx:!border-[var(--dashboard-retx-sot-success-icon-border)] group-data-[retx-state=completed]/retx:border-[var(--dashboard-retx-success-icon-border)] group-data-[retx-state=completed]/retx:text-[var(--signal-success)] group-data-[retx-state=failed]/retx:!border-[var(--dashboard-retx-sot-danger-icon-border)] group-data-[retx-state=failed]/retx:border-[var(--dashboard-retx-danger-icon-border)] group-data-[retx-state=failed]/retx:text-[var(--signal-danger)] group-data-[retx-state=queued]/retx:!border-[var(--dashboard-retx-sot-info-icon-border)] group-data-[retx-state=queued]/retx:border-[var(--dashboard-retx-info-icon-border)] group-data-[retx-state=queued]/retx:text-[var(--signal-info)] group-data-[retx-state=running]/retx:!border-[var(--dashboard-retx-sot-info-icon-border)] group-data-[retx-state=running]/retx:border-[var(--dashboard-retx-info-icon-border)] group-data-[retx-state=running]/retx:text-[var(--signal-info)] [&_svg]:size-[13px] [&_svg]:fill-none [&_svg]:stroke-2 [&_svg]:stroke-current [&_svg]:[stroke-linecap:round] [&_svg]:[stroke-linejoin:round]",
+        "block rounded-[4px] border border-border bg-muted px-[6px] py-[2px] [font:500_11px_var(--font-sans)] text-muted-foreground [&[hidden]]:hidden",
+    banner:
+        "group/retx flex items-center gap-[10px] border-b border-border bg-muted px-[14px] py-[10px] data-[retx-state=completed]:border-primary/30 data-[retx-state=completed]:bg-primary/10 data-[retx-state=failed]:border-destructive/30 data-[retx-state=failed]:bg-destructive/10 data-[retx-state=idle]:hidden data-[retx-state=queued]:border-primary/30 data-[retx-state=queued]:bg-primary/10 data-[retx-state=running]:border-primary/30 data-[retx-state=running]:bg-primary/10 [&[hidden]]:hidden",
+    icon: "inline-flex size-[28px] flex-none items-center justify-center rounded-[50%] border border-border bg-card text-muted-foreground group-data-[retx-state=completed]/retx:border-primary/30 group-data-[retx-state=completed]/retx:text-primary group-data-[retx-state=failed]/retx:border-destructive/30 group-data-[retx-state=failed]/retx:text-destructive group-data-[retx-state=queued]/retx:border-primary/30 group-data-[retx-state=queued]/retx:text-primary group-data-[retx-state=running]/retx:border-primary/30 group-data-[retx-state=running]/retx:text-primary",
     spinner:
-        "h-[12px] w-[12px] rounded-[50%] border-[1.6px] border-[var(--signal-info)] border-t-transparent border-r-[var(--signal-info)] animate-[spin_700ms_linear_infinite]",
+        "h-[12px] w-[12px] rounded-[50%] border-[1.6px] border-primary border-t-transparent border-r-primary animate-[spin_700ms_linear_infinite]",
     body: "flex min-w-0 flex-1 flex-col gap-[2px]",
-    title: "[font:600_12.5px_var(--font-sans)] text-[var(--fg-primary)]",
-    sub: "[font:500_11.5px_var(--font-sans)] text-[var(--fg-secondary)]",
+    title: "[font:600_12.5px_var(--font-sans)] text-foreground",
+    sub: "[font:500_11.5px_var(--font-sans)] text-muted-foreground",
     actions: "flex flex-none items-center gap-[6px]",
-    closeButton:
-        "[&>svg]:h-[16px] [&>svg]:w-[16px] [&>svg]:fill-none [&>svg]:stroke-current [&>svg]:stroke-[1.8] [&>svg]:[stroke-linecap:round] [&>svg]:[stroke-linejoin:round]",
-    refreshMarker: `${dashboardRetranscriptionThemeClassName} ${dashboardRetranscriptionSotClassName} inline-flex items-center gap-[4px] rounded-full bg-[var(--dashboard-retx-success-marker-bg)] ![background:var(--dashboard-retx-sot-success-marker-bg)] px-[6px] py-px font-mono ![font-size:10.5px] font-medium ![line-height:normal] [margin:0] ![color:var(--signal-success)] [&[hidden]]:hidden`,
+    closeButton: "p-0",
+    refreshMarker:
+        "inline-flex items-center gap-[4px] rounded-full bg-primary/10 px-[6px] py-px font-mono ![font-size:10.5px] font-medium ![line-height:normal] text-primary [margin:0] [&[hidden]]:hidden",
 } as const;
 
 const dashboardSourceErrorClassName =
-    "px-[10px] py-1.5 font-sans text-[11.5px] font-medium text-[var(--signal-danger)]";
+    "px-[10px] py-1.5 font-sans text-[11.5px] font-medium text-destructive";
 
 const dashboardSourceClassNames = {
-    root: "group/source-provider relative h-auto w-full justify-start gap-2.5 rounded-[9px] border border-transparent bg-transparent px-2.5 py-[7px] text-left text-[13px] font-medium text-[var(--fg-secondary)] shadow-none hover:bg-accent hover:text-[var(--fg-primary)] focus-visible:text-[var(--fg-primary)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring disabled:cursor-not-allowed disabled:opacity-50 data-[sot-state=selected]:border-[var(--line-hairline)] data-[sot-state=selected]:bg-[var(--bg-elevated)] data-[sot-state=selected]:text-[var(--fg-primary)] data-[sot-state=selected]:shadow-xs data-[sot-state=connected-active]:border-[var(--line-hairline)] data-[sot-state=connected-active]:bg-[var(--bg-elevated)] data-[sot-state=connected-active]:text-[var(--fg-primary)] data-[sot-state=connected-active]:shadow-xs data-[sot-state=connected-idle]:text-[var(--fg-secondary)] data-[sot-state=syncing]:text-[var(--fg-secondary)] data-[sot-state=expired]:text-[var(--fg-secondary)] data-[sot-state=sync-error]:text-[var(--fg-primary)] data-[sot-state=no-results]:text-[var(--fg-tertiary)] data-[sot-state=needs-setup]:text-[var(--fg-tertiary)] data-[sot-state=disabled]:text-[var(--fg-tertiary)] data-[sot-state=disabled]:opacity-[0.55] has-[>svg]:px-2.5 [&_[data-sot-part=source-provider-mark]]:inline-flex [&_[data-sot-part=source-provider-mark]]:size-[18px] [&_[data-sot-part=source-provider-mark]]:flex-none [&_[data-sot-part=source-provider-mark]]:items-center [&_[data-sot-part=source-provider-mark]]:justify-center [&_[data-sot-part=source-provider-mark]]:overflow-hidden [&_[data-sot-part=source-provider-mark]]:rounded-[4px] [&_[data-sot-part=source-provider-mark]]:border [&_[data-sot-part=source-provider-mark]]:border-[var(--line-hairline)] [&_[data-sot-part=source-provider-mark]]:bg-background data-[sot-state=no-results]:[&_[data-sot-part=source-provider-mark]]:opacity-[0.65] data-[sot-state=needs-setup]:[&_[data-sot-part=source-provider-mark]]:opacity-60 data-[sot-state=needs-setup]:[&_[data-sot-part=source-provider-mark]]:grayscale data-[sot-state=disabled]:[&_[data-sot-part=source-provider-mark]]:grayscale-[0.7] [&_[data-sot-part=source-provider-mark][data-sot-variant=letter]]:[font:700_9px_var(--font-sans)] [&_[data-sot-part=source-provider-mark][data-sot-variant=letter]]:text-[var(--fg-secondary)] [&_[data-sot-part=source-provider-mark][data-sot-variant=letter]]:bg-[var(--bg-recessed)] [&_[data-sot-part=source-provider-mark]_img]:block [&_[data-sot-part=source-provider-mark]_img]:size-[18px] [&_[data-sot-part=source-provider-mark]_img]:max-w-none [&_[data-sot-part=source-provider-mark]_img]:object-contain [&_[data-sot-part=source-provider-mark]_img]:align-baseline [&_[data-sot-part=source-provider-mark][data-sot-provider-cover=true]_img]:object-cover",
-    clear: "h-[22px] w-fit gap-1 rounded-full border border-transparent bg-transparent px-[9px] text-[11px] font-semibold leading-normal text-[var(--fg-secondary)] shadow-none hover:bg-[var(--bg-recessed)] hover:text-[var(--fg-primary)] has-[>svg]:px-[9px] [&_svg:not([class*='size-'])]:size-3",
-    action: "ml-[6px] h-[22px] flex-none cursor-pointer gap-1 rounded-full border border-[var(--line-hairline)] bg-[var(--bg-elevated)] px-[9px] font-sans text-[11px] font-semibold leading-none text-[var(--fg-secondary)] whitespace-nowrap shadow-none hover:bg-[var(--bg-elevated)] hover:text-[var(--fg-primary)] focus-visible:border-transparent focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--accent)] focus-visible:ring-0 disabled:cursor-not-allowed disabled:opacity-50 data-[sot-action=retry]:hidden data-[sot-action=retry]:border-[var(--alert-destructive-soft-border)] data-[sot-action=retry]:bg-[var(--alert-destructive-soft-bg)] data-[sot-action=retry]:text-[var(--signal-danger)] data-[sot-action=retry]:hover:bg-[var(--alert-destructive-soft-strong-bg)] data-[sot-action=connect]:border-[var(--accent)] data-[sot-action=connect]:bg-[var(--accent-soft)] data-[sot-action=connect]:text-[var(--accent)] group-hover/source-provider:data-[sot-action=retry]:inline-flex group-focus-within/source-provider:data-[sot-action=retry]:inline-flex group-data-[sidebar-collapsed=true]/dashboard-workstation:hidden has-[>svg]:px-[9px] [&_svg]:inline [&_svg]:align-baseline [&_svg]:fill-none [&_svg]:stroke-2 [&_svg]:stroke-current [&_svg]:[stroke-linecap:round] [&_svg]:[stroke-linejoin:round] [&_svg:not([class*='size-'])]:size-[11px]",
-    status: "ml-0.5 size-1.5 min-w-1.5 self-center rounded-full border-0 bg-transparent p-0 data-[sot-effect=ring]:shadow-[0_0_0_2px_var(--system-banner-offline-icon-bg)] data-[sot-tone=disabled]:bg-[var(--graphite-400)] data-[sot-tone=err]:bg-[var(--signal-danger)] data-[sot-tone=err]:shadow-[0_0_0_2px_var(--alert-destructive-soft-bg)] data-[sot-tone=ok]:bg-[var(--signal-success)] data-[sot-tone=syncing]:animate-[bpulse_1.2s_ease-in-out_infinite] data-[sot-tone=syncing]:bg-[var(--signal-info)] data-[sot-tone=syncing]:shadow-[0_0_0_2px_var(--system-banner-progress-icon-bg)] data-[sot-tone=warn]:bg-[var(--signal-warning)]",
-    count: "min-w-[22px] rounded-[5px] border border-transparent bg-[var(--bg-recessed)] px-[6px] py-px text-center font-mono text-[11px] font-medium leading-[1.45] text-[var(--fg-tertiary)] data-[sot-tone=active]:border-[var(--line-hairline)] data-[sot-tone=active]:bg-[var(--bg-elevated)] data-[sot-tone=active]:text-[var(--fg-primary)] data-[sot-tone=empty]:border-[var(--line-hairline)] data-[sot-tone=empty]:bg-transparent data-[sot-tone=empty]:text-[var(--fg-disabled)] data-[sot-tone=empty]:line-through data-[sot-tone=err]:border-[var(--alert-destructive-soft-border)] data-[sot-tone=err]:bg-[var(--alert-destructive-soft-bg)] data-[sot-tone=err]:text-[var(--signal-danger)]",
+    root: "group/source-provider relative h-auto w-full justify-start gap-2.5 rounded-[9px] border border-transparent bg-transparent px-2.5 py-[7px] text-left text-[13px] font-medium text-muted-foreground shadow-none hover:bg-accent hover:text-foreground focus-visible:text-foreground focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring disabled:cursor-not-allowed disabled:opacity-50 data-[sot-state=selected]:border-border data-[sot-state=selected]:bg-card data-[sot-state=selected]:text-foreground data-[sot-state=selected]:shadow-xs data-[sot-state=connected-active]:border-border data-[sot-state=connected-active]:bg-card data-[sot-state=connected-active]:text-foreground data-[sot-state=connected-active]:shadow-xs data-[sot-state=connected-idle]:text-muted-foreground data-[sot-state=syncing]:text-muted-foreground data-[sot-state=expired]:text-muted-foreground data-[sot-state=sync-error]:text-foreground data-[sot-state=no-results]:text-muted-foreground data-[sot-state=needs-setup]:text-muted-foreground data-[sot-state=disabled]:text-muted-foreground data-[sot-state=disabled]:opacity-[0.55] has-[>svg]:px-2.5 [&_[data-sot-part=source-provider-mark]]:inline-flex [&_[data-sot-part=source-provider-mark]]:size-[18px] [&_[data-sot-part=source-provider-mark]]:flex-none [&_[data-sot-part=source-provider-mark]]:items-center [&_[data-sot-part=source-provider-mark]]:justify-center [&_[data-sot-part=source-provider-mark]]:overflow-hidden [&_[data-sot-part=source-provider-mark]]:rounded-[4px] [&_[data-sot-part=source-provider-mark]]:border [&_[data-sot-part=source-provider-mark]]:border-border [&_[data-sot-part=source-provider-mark]]:bg-background data-[sot-state=no-results]:[&_[data-sot-part=source-provider-mark]]:opacity-[0.65] data-[sot-state=needs-setup]:[&_[data-sot-part=source-provider-mark]]:opacity-60 data-[sot-state=needs-setup]:[&_[data-sot-part=source-provider-mark]]:grayscale data-[sot-state=disabled]:[&_[data-sot-part=source-provider-mark]]:grayscale-[0.7] [&_[data-sot-part=source-provider-mark][data-sot-variant=letter]]:[font:700_9px_var(--font-sans)] [&_[data-sot-part=source-provider-mark][data-sot-variant=letter]]:text-muted-foreground [&_[data-sot-part=source-provider-mark][data-sot-variant=letter]]:bg-muted [&_[data-sot-part=source-provider-mark]_img]:block [&_[data-sot-part=source-provider-mark]_img]:size-[18px] [&_[data-sot-part=source-provider-mark]_img]:max-w-none [&_[data-sot-part=source-provider-mark]_img]:object-contain [&_[data-sot-part=source-provider-mark]_img]:align-baseline [&_[data-sot-part=source-provider-mark][data-sot-provider-cover=true]_img]:object-cover",
+    clear: "h-[22px] w-fit gap-1 rounded-full border border-transparent bg-transparent px-[9px] text-[11px] font-semibold leading-normal text-muted-foreground shadow-none hover:bg-accent hover:text-accent-foreground has-[>svg]:px-[9px]",
+    action: "ml-[6px] h-[22px] flex-none cursor-pointer gap-1 rounded-full border border-border bg-card px-[9px] font-sans text-[11px] font-semibold leading-none text-muted-foreground whitespace-nowrap shadow-none hover:bg-accent hover:text-accent-foreground focus-visible:border-transparent focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring focus-visible:ring-0 disabled:cursor-not-allowed disabled:opacity-50 data-[sot-action=retry]:hidden data-[sot-action=retry]:border-destructive/30 data-[sot-action=retry]:bg-destructive/10 data-[sot-action=retry]:text-destructive data-[sot-action=retry]:hover:bg-destructive/10 data-[sot-action=connect]:border-primary/30 data-[sot-action=connect]:bg-primary/10 data-[sot-action=connect]:text-primary group-hover/source-provider:data-[sot-action=retry]:inline-flex group-focus-within/source-provider:data-[sot-action=retry]:inline-flex group-data-[sidebar-collapsed=true]/dashboard-workstation:hidden has-[>svg]:px-[9px]",
+    status: "ml-0.5 size-1.5 min-w-1.5 self-center rounded-full border-0 bg-transparent p-0 data-[sot-effect=ring]:ring-2 data-[sot-effect=ring]:ring-secondary data-[sot-tone=disabled]:bg-muted-foreground/40 data-[sot-tone=err]:bg-destructive data-[sot-tone=err]:ring-2 data-[sot-tone=err]:ring-destructive/15 data-[sot-tone=ok]:bg-primary data-[sot-tone=syncing]:animate-[bpulse_1.2s_ease-in-out_infinite] data-[sot-tone=syncing]:bg-primary data-[sot-tone=syncing]:ring-2 data-[sot-tone=syncing]:ring-primary/15 data-[sot-tone=warn]:bg-secondary-foreground",
+    count: "min-w-[22px] rounded-[5px] border border-transparent bg-muted px-[6px] py-px text-center font-mono text-[11px] font-medium leading-[1.45] text-muted-foreground data-[sot-tone=active]:border-border data-[sot-tone=active]:bg-card data-[sot-tone=active]:text-foreground data-[sot-tone=empty]:border-border data-[sot-tone=empty]:bg-transparent data-[sot-tone=empty]:text-muted-foreground data-[sot-tone=empty]:line-through data-[sot-tone=err]:border-destructive/30 data-[sot-tone=err]:bg-destructive/10 data-[sot-tone=err]:text-destructive",
 } as const;
 
 const sourceFilterClassNames = {
-    clear: "size-4 rounded-full border border-transparent bg-transparent p-0 text-[var(--fg-tertiary)] shadow-none hover:bg-[var(--bg-recessed)] hover:text-[var(--fg-primary)] [&_svg:not([class*='size-'])]:size-[11px]",
+    clear: "size-4 rounded-full border border-transparent bg-transparent p-0 text-muted-foreground shadow-none hover:bg-accent hover:text-accent-foreground",
     librarySearchFilterClear:
-        "size-4 rounded-full border border-transparent bg-transparent p-0 text-[var(--fg-tertiary)] shadow-none hover:bg-[var(--bg-recessed)] hover:text-[var(--fg-primary)] [&_svg:not([class*='size-'])]:size-[11px]",
-    action: "ml-[6px] h-[22px] flex-none cursor-pointer gap-1 rounded-full border border-[var(--line-hairline)] bg-[var(--bg-elevated)] px-[9px] font-sans text-[11px] font-semibold leading-none text-[var(--fg-secondary)] whitespace-nowrap shadow-none hover:bg-[var(--bg-elevated)] hover:text-[var(--fg-primary)] focus-visible:border-transparent focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--accent)] focus-visible:ring-0 disabled:cursor-not-allowed disabled:opacity-50 data-[sot-action=open-settings]:border-[var(--accent)] data-[sot-action=open-settings]:bg-[var(--accent-soft)] data-[sot-action=open-settings]:text-[var(--accent)] data-[sot-action=retry]:border-[var(--alert-destructive-soft-border)] data-[sot-action=retry]:bg-[var(--alert-destructive-soft-bg)] data-[sot-action=retry]:text-[var(--signal-danger)] data-[sot-action=retry]:hover:bg-[var(--alert-destructive-soft-strong-bg)] data-[sot-action=widen]:border-[var(--accent)] data-[sot-action=widen]:bg-[var(--accent-soft)] data-[sot-action=widen]:text-[var(--accent)] has-[>svg]:px-[9px] [&_svg]:inline [&_svg]:align-baseline [&_svg]:fill-none [&_svg]:stroke-2 [&_svg]:stroke-current [&_svg]:[stroke-linecap:round] [&_svg]:[stroke-linejoin:round] [&_svg:not([class*='size-'])]:size-[11px]",
+        "size-4 rounded-full border border-transparent bg-transparent p-0 text-muted-foreground shadow-none hover:bg-accent hover:text-accent-foreground",
+    action: "ml-[6px] h-[22px] flex-none cursor-pointer gap-1 rounded-full border border-border bg-card px-[9px] font-sans text-[11px] font-semibold leading-none text-muted-foreground whitespace-nowrap shadow-none hover:bg-accent hover:text-accent-foreground focus-visible:border-transparent focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring focus-visible:ring-0 disabled:cursor-not-allowed disabled:opacity-50 data-[sot-action=open-settings]:border-primary/30 data-[sot-action=open-settings]:bg-primary/10 data-[sot-action=open-settings]:text-primary data-[sot-action=retry]:border-destructive/30 data-[sot-action=retry]:bg-destructive/10 data-[sot-action=retry]:text-destructive data-[sot-action=retry]:hover:bg-destructive/10 data-[sot-action=widen]:border-primary/30 data-[sot-action=widen]:bg-primary/10 data-[sot-action=widen]:text-primary has-[>svg]:px-[9px]",
     clearAll:
         "h-6 rounded-md bg-transparent px-2 text-sm text-primary underline-offset-4 shadow-none hover:bg-transparent hover:text-primary hover:underline has-[>svg]:px-2",
 } as const;
 
 const sourceFilterStackClassNames = {
-    root: "flex min-w-0 flex-row flex-wrap items-center gap-x-2 gap-y-1.5 border-b border-[var(--line-hairline)] bg-[var(--bg-recessed)] px-3 py-2 font-sans text-[11.5px] font-medium text-[var(--fg-tertiary)]",
-    from: "inline-flex min-w-0 max-w-full flex-[0_1_auto] items-baseline overflow-hidden text-ellipsis whitespace-nowrap leading-[22px] [&_b]:whitespace-nowrap [&_b]:font-bold [&_b]:text-[var(--fg-secondary)]",
+    root: "flex min-w-0 flex-row flex-wrap items-center gap-x-2 gap-y-1.5 border-b border-border bg-muted px-3 py-2 font-sans text-[11.5px] font-medium text-muted-foreground",
+    from: "inline-flex min-w-0 max-w-full flex-[0_1_auto] items-baseline overflow-hidden text-ellipsis whitespace-nowrap leading-[22px] [&_b]:whitespace-nowrap [&_b]:font-bold [&_b]:text-foreground",
     separator:
-        "inline-flex h-[22px] w-2.5 flex-none select-none items-center justify-center text-[13px] leading-none text-[var(--fg-disabled)]",
-    chip: "inline-flex h-[22px] flex-none items-center gap-1.5 whitespace-nowrap rounded-full border border-[var(--line-hairline)] bg-[var(--bg-elevated)] py-0 pl-1.5 pr-1 font-sans text-[11.5px] font-semibold leading-none text-[var(--fg-primary)]",
+        "inline-flex h-[22px] w-2.5 flex-none select-none items-center justify-center text-[13px] leading-none text-muted-foreground/60",
+    chip: "inline-flex h-[22px] flex-none items-center gap-1.5 whitespace-nowrap rounded-full border border-border bg-card py-0 pl-1.5 pr-1 font-sans text-[11.5px] font-semibold leading-none text-foreground",
     label: "whitespace-nowrap",
-    info: "inline-flex min-w-0 flex-[0_1_auto] items-center overflow-hidden text-ellipsis whitespace-nowrap leading-[22px] text-[var(--fg-tertiary)] [&_b]:mx-0.5 [&_b]:font-bold [&_b]:text-[var(--fg-secondary)]",
+    info: "inline-flex min-w-0 flex-[0_1_auto] items-center overflow-hidden text-ellipsis whitespace-nowrap leading-[22px] text-muted-foreground [&_b]:mx-0.5 [&_b]:font-bold [&_b]:text-foreground",
     libraryRoot:
-        "mt-1.5 flex items-center gap-1.5 font-sans text-[11.5px] font-medium text-[var(--fg-tertiary)]",
+        "mt-1.5 flex items-center gap-1.5 font-sans text-[11.5px] font-medium text-muted-foreground",
     libraryLabel: "truncate",
 } as const;
 
@@ -863,12 +880,12 @@ const dashboardRecordingRowStyles = {
     groupSeparator: "mx-1 my-1",
     groupHeading: "flex items-baseline gap-2.5 px-2.5 pb-1.5 pt-3.5",
     groupLabel:
-        "font-mono text-[11px] font-semibold uppercase tracking-[0.06em] text-[var(--fg-tertiary)]",
-    groupCount: "font-mono text-[11px] font-medium text-[var(--fg-disabled)]",
+        "font-mono text-[11px] font-semibold uppercase tracking-[0.06em] text-muted-foreground",
+    groupCount: "font-mono text-[11px] font-medium text-muted-foreground/70",
     groupDivider: "ml-1 min-w-0 flex-1",
-    row: "grid h-auto w-full grid-cols-[minmax(0,1fr)_auto] items-center justify-normal gap-[14px] whitespace-normal rounded-[10px] border ![border-color:transparent] bg-transparent px-[12px] py-[11px] text-left text-[13.3333px] font-normal leading-normal ![box-shadow:none] [--dashboard-recording-row-selected-border:color-mix(in_srgb,var(--accent)_38%,transparent)] hover:!bg-[var(--bg-recessed)] hover:text-[var(--fg-primary)] focus:!border-ring focus:!outline-none focus:![outline-width:0px] focus:!ring-[3px] focus:!ring-ring/50 focus-visible:!border-ring focus-visible:!outline-none focus-visible:![outline-width:0px] focus-visible:!ring-[3px] focus-visible:!ring-ring/50 data-[sot-state=selected]:![border-color:var(--dashboard-recording-row-selected-border)] data-[sot-state=selected]:bg-[var(--accent-soft)] [&.is-hover-demo]:!bg-[var(--bg-recessed)] [&.is-hover-demo]:text-[var(--fg-primary)] [&.is-focus-demo]:!border-ring [&.is-focus-demo]:!outline-none [&.is-focus-demo]:![outline-width:0px] [&.is-focus-demo]:!ring-[3px] [&.is-focus-demo]:!ring-ring/50",
+    row: "grid h-auto w-full grid-cols-[minmax(0,1fr)_auto] items-center justify-normal gap-[14px] whitespace-normal rounded-[10px] border !border-transparent bg-transparent px-[12px] py-[11px] text-left text-[13.3333px] font-normal leading-normal !shadow-none hover:!bg-muted hover:text-foreground focus:!border-ring focus:!outline-none focus:![outline-width:0px] focus:!ring-[3px] focus:!ring-ring/50 focus-visible:!border-ring focus-visible:!outline-none focus-visible:![outline-width:0px] focus-visible:!ring-[3px] focus-visible:!ring-ring/50 data-[sot-state=selected]:!border-primary/30 data-[sot-state=selected]:bg-primary/10 [&.is-hover-demo]:!bg-muted [&.is-hover-demo]:text-foreground [&.is-focus-demo]:!border-ring [&.is-focus-demo]:!outline-none [&.is-focus-demo]:![outline-width:0px] [&.is-focus-demo]:!ring-[3px] [&.is-focus-demo]:!ring-ring/50",
     body: "flex min-w-0 flex-col gap-[5px]",
-    title: "truncate font-sans text-[13.5px] font-semibold tracking-[-0.005em] text-[var(--fg-primary)]",
+    title: "truncate font-sans text-[13.5px] font-semibold tracking-[-0.005em] text-foreground",
     meta: "flex flex-wrap items-center gap-2",
     sourceMark:
         "inline-flex size-[14px] flex-none items-center justify-center overflow-hidden rounded-[3px] opacity-[0.55] dark:opacity-60",
@@ -876,9 +893,9 @@ const dashboardRecordingRowStyles = {
         "block size-[14px] max-w-none object-contain align-baseline grayscale contrast-[0.85] dark:brightness-[1.4]",
     sourceMarkImageCover: "object-cover",
     sourceMarkLetter:
-        "border border-[var(--line-hairline)] bg-[var(--bg-recessed)] [font:700_9px_var(--font-sans)] text-[var(--fg-tertiary)]",
+        "border border-border bg-muted [font:700_9px_var(--font-sans)] text-muted-foreground",
     duration:
-        "font-mono text-[11.5px] font-medium tracking-[0.02em] text-[var(--fg-secondary)]",
+        "font-mono text-[11.5px] font-medium tracking-[0.02em] text-muted-foreground",
     secondary:
         "flex items-center gap-2 font-mono text-[11px] font-medium text-muted-foreground",
     timestamp: "tracking-[0.015em]",
@@ -887,7 +904,7 @@ const dashboardRecordingRowStyles = {
     timestampRelative:
         "inline group-data-[time-style=abs]/dashboard-workstation:hidden",
     actions:
-        "flex w-max min-w-max flex-none items-center justify-end justify-self-end gap-2 [&_[data-recording-tag-chip]]:[--dashboard-recording-tag-c:var(--tag-slate)] [&_[data-recording-tag-chip]]:[--sot-player-tag-chip-bg:color-mix(in_srgb,var(--dashboard-recording-tag-c)_18%,transparent)] [&_[data-recording-tag-chip]]:[--sot-player-tag-chip-border:color-mix(in_srgb,var(--dashboard-recording-tag-c)_36%,transparent)] [&_[data-recording-tag-chip]]:[--sot-player-tag-chip-fg:color-mix(in_srgb,var(--dashboard-recording-tag-c)_30%,var(--fg-primary))] [&_[data-recording-tag-chip]]:![box-shadow:var(--shadow-xs)] [&_[data-recording-tag-chip][data-sot-tag-color=blue]]:[--dashboard-recording-tag-c:var(--tag-blue)] [&_[data-recording-tag-chip][data-sot-tag-color=green]]:[--dashboard-recording-tag-c:var(--tag-green)] [&_[data-recording-tag-chip][data-sot-tag-color=orange]]:[--dashboard-recording-tag-c:var(--tag-amber)] [&_[data-recording-tag-chip][data-sot-tag-color=purple]]:[--dashboard-recording-tag-c:var(--tag-violet)] [&_[data-recording-tag-chip][data-sot-tag-color=red]]:[--dashboard-recording-tag-c:var(--tag-rose)] [&_[data-recording-tag-chip][data-sot-tag-color=slate]]:[--dashboard-recording-tag-c:var(--tag-slate)]",
+        "flex w-max min-w-max flex-none items-center justify-end justify-self-end gap-2",
 } as const;
 
 function tagFilterValue(tagId: string): TagFilterValue {
@@ -1132,7 +1149,12 @@ function formatLibrarySearchTimestamp(valueMs: number | null | undefined) {
 
 function LibrarySearchTagIcon() {
     return (
-        <svg viewBox="0 0 24 24" data-icon="inline-start" aria-hidden="true">
+        <svg
+            className={DASHBOARD_MICRO_ICON_CLASS_NAME}
+            viewBox="0 0 24 24"
+            data-icon="inline-start"
+            aria-hidden="true"
+        >
             <path d="M3 3h7v7H3z" />
             <path d="M14 3h7v7h-7z" />
         </svg>
@@ -1240,7 +1262,7 @@ const SOT_DASHBOARD_DETAIL_HEADER_CLASS_NAME =
     "relative flex flex-row items-center gap-2.5 px-1 pt-1 pb-0 data-[sot-state=saving]:py-0";
 
 const SOT_DASHBOARD_DETAIL_HEADER_TITLE_CLASS_NAME =
-    "m-0 min-w-0 flex-1 truncate font-display text-[22px] font-semibold leading-normal tracking-[-0.014em] text-[var(--fg-primary)]";
+    "m-0 min-w-0 flex-1 truncate font-display text-[22px] font-semibold leading-normal tracking-[-0.014em] text-foreground";
 
 const SOT_DASHBOARD_DETAIL_HEADER_TITLE_INPUT_CLASS_NAME =
     "h-8 min-w-0 flex-1 px-3 py-1 text-base md:text-sm";
@@ -1249,9 +1271,9 @@ const SOT_DASHBOARD_DETAIL_HEADER_BADGE_CLASS_NAME = "ml-1 shrink-0";
 const SOT_DASHBOARD_DETAIL_HEADER_ACTION_ANCHOR_CLASS_NAME =
     "relative inline-flex items-center gap-1.5";
 const SOT_DASHBOARD_MORE_MENU_CONTENT_CLASS_NAME =
-    "!border-[var(--line-hairline)] ![background-color:color(srgb_0.0943052_0.100332_0.106792_/_0.96)] !p-[6px] ![box-shadow:0_12px_32px_rgb(0_0_0_/_0.42)] dark:!border-[var(--glass-border)]";
+    "!border-border !bg-popover !p-[6px] !text-popover-foreground !shadow-md";
 const SOT_DASHBOARD_MORE_MENU_ITEM_CLASS_NAME =
-    "!min-h-[32px] !cursor-pointer !gap-[10px] !px-[10px] !py-[6px] !text-left data-[disabled]:!cursor-not-allowed data-[disabled]:![background-color:color(srgb_0.820356_0.259555_0.255348_/_0.12)]";
+    "!min-h-[32px] !cursor-pointer !gap-[10px] !px-[10px] !py-[6px] !text-left data-[disabled]:!cursor-not-allowed data-[disabled]:!bg-muted data-[disabled]:!text-muted-foreground";
 const SOT_DASHBOARD_MORE_MENU_SEPARATOR_CLASS_NAME = "!mx-[2px] !my-[4px]";
 const SOT_DASHBOARD_MORE_MENU_HINT_CLASS_NAME = "mr-[0.5px]";
 
@@ -1265,16 +1287,16 @@ const SOT_DASHBOARD_TRANSCRIPT_BODY_BASE_CLASS_NAME =
     "min-h-0 flex-1 overflow-y-auto px-5 pt-4 pb-5";
 
 const SOT_DASHBOARD_TRANSCRIPT_SHELL_CARD_CLASS_NAME =
-    "flex min-h-0 flex-1 flex-col gap-0 rounded-[16px] border border-[var(--line-hairline)] bg-[var(--bg-elevated)] shadow-[var(--shadow-sm)] backdrop-blur-none";
+    "flex min-h-0 flex-1 flex-col gap-0 rounded-[16px] border border-border bg-card shadow-sm backdrop-blur-none";
 
 const SOT_DASHBOARD_RECORDING_PLAYER_CARD_CLASS_NAME =
-    "block min-h-[114px] gap-0 overflow-visible rounded-[16px] border border-[var(--line-hairline)] bg-[var(--bg-elevated)] px-[18px] py-[16px] shadow-none backdrop-blur-none";
+    "block min-h-[114px] gap-0 overflow-visible rounded-[16px] border border-border bg-card px-[18px] py-[16px] shadow-none backdrop-blur-none";
 
 const SOT_DASHBOARD_RECORDING_PLAYER_META_CLASS_NAME =
     "mb-[12px] flex flex-row flex-wrap items-center gap-[10px] p-0";
 
 const SOT_DASHBOARD_RECORDING_PLAYER_DATE_CLASS_NAME =
-    "font-mono text-[11.5px] font-medium tracking-[0.02em] text-[var(--fg-tertiary)]";
+    "font-mono text-[11.5px] font-medium tracking-[0.02em] text-muted-foreground";
 
 function SotSourceReportMetricCard({
     children,
@@ -1782,6 +1804,7 @@ function RetxWarnIcon() {
     return (
         // biome-ignore lint/a11y/noSvgWithoutTitle: SOT retx icon SVG is hidden by the parent icon wrapper.
         <svg
+            className={DASHBOARD_RETRANSCRIPTION_ICON_CLASS_NAME}
             data-sot-part="dashboard-retranscription-icon-warn"
             viewBox="0 0 24 24"
         >
@@ -1796,6 +1819,7 @@ function RetxOkIcon() {
     return (
         // biome-ignore lint/a11y/noSvgWithoutTitle: SOT retx icon SVG is hidden by the parent icon wrapper.
         <svg
+            className={DASHBOARD_RETRANSCRIPTION_ICON_CLASS_NAME}
             data-sot-part="dashboard-retranscription-icon-ok"
             viewBox="0 0 24 24"
         >
@@ -1807,7 +1831,7 @@ function RetxOkIcon() {
 function RetxCloseIcon() {
     return (
         <svg
-            className="size-[16px]"
+            className={DASHBOARD_RETRANSCRIPTION_CLOSE_ICON_CLASS_NAME}
             viewBox="0 0 24 24"
             aria-hidden="true"
             focusable="false"
@@ -4676,7 +4700,10 @@ export function Workstation({
                                     );
                                 }}
                             >
-                                <Icon data-icon="inline-start" />
+                                <Icon
+                                    className={DASHBOARD_ICON_CLASS_NAME}
+                                    data-icon="inline-start"
+                                />
                                 <span
                                     className={cn(
                                         "min-w-0 flex-1 truncate",
@@ -4939,9 +4966,19 @@ export function Workstation({
                                             >
                                                 {actionKind === "retry" ||
                                                 actionKind === "reauth" ? (
-                                                    <RefreshCw data-icon="inline-start" />
+                                                    <RefreshCw
+                                                        className={
+                                                            DASHBOARD_MICRO_ICON_CLASS_NAME
+                                                        }
+                                                        data-icon="inline-start"
+                                                    />
                                                 ) : (
-                                                    <Plus data-icon="inline-start" />
+                                                    <Plus
+                                                        className={
+                                                            DASHBOARD_MICRO_ICON_CLASS_NAME
+                                                        }
+                                                        data-icon="inline-start"
+                                                    />
                                                 )}
                                                 {actionLabel}
                                             </span>
@@ -5141,7 +5178,10 @@ export function Workstation({
                                     setSearchOpen((open) => !open);
                                 }}
                             >
-                                <Search data-icon="inline-start" />
+                                <Search
+                                    className={DASHBOARD_ICON_CLASS_NAME}
+                                    data-icon="inline-start"
+                                />
                             </Button>
                             {searchOpen ? (
                                 <Card
@@ -5178,7 +5218,12 @@ export function Workstation({
                                                 dashboardSearchActivityClassNames.librarySearchInputAddon
                                             }
                                         >
-                                            <Search data-icon="inline-start" />
+                                            <Search
+                                                className={
+                                                    DASHBOARD_RECORDING_LIST_STATE_ICON_CLASS_NAME
+                                                }
+                                                data-icon="inline-start"
+                                            />
                                         </InputGroupAddon>
                                         <InputGroupInput
                                             variant="default"
@@ -5237,7 +5282,12 @@ export function Workstation({
                                                     }, 0);
                                                 }}
                                             >
-                                                <X data-icon="inline-start" />
+                                                <X
+                                                    className={
+                                                        DASHBOARD_TINY_ICON_CLASS_NAME
+                                                    }
+                                                    data-icon="inline-start"
+                                                />
                                             </InputGroupButton>
                                         ) : null}
                                     </InputGroup>
@@ -5517,14 +5567,24 @@ export function Workstation({
                                                                                     )}
                                                                                 </Badge>
                                                                             ) : (
-                                                                                <span data-sot-part="library-search-result-title">
+                                                                                <span
+                                                                                    className={
+                                                                                        dashboardSearchActivityClassNames.librarySearchResultTitle
+                                                                                    }
+                                                                                    data-sot-part="library-search-result-title"
+                                                                                >
                                                                                     {highlightSearchText(
                                                                                         title,
                                                                                         query,
                                                                                     )}
                                                                                 </span>
                                                                             )}
-                                                                            <span data-sot-part="library-search-result-meta">
+                                                                            <span
+                                                                                className={
+                                                                                    dashboardSearchActivityClassNames.librarySearchResultMeta
+                                                                                }
+                                                                                data-sot-part="library-search-result-meta"
+                                                                            >
                                                                                 {
                                                                                     meta
                                                                                 }
@@ -5627,7 +5687,10 @@ export function Workstation({
                                     setActivityOpen((open) => !open);
                                 }}
                             >
-                                <Bell data-icon="inline-start" />
+                                <Bell
+                                    className={DASHBOARD_ICON_CLASS_NAME}
+                                    data-icon="inline-start"
+                                />
                                 <span data-sot-part="dashboard-activity-badge">
                                     {activityBadgeCount > 99
                                         ? "99+"
@@ -5704,7 +5767,12 @@ export function Workstation({
                                                     })
                                                 }
                                             >
-                                                <X data-icon="inline-start" />
+                                                <X
+                                                    className={
+                                                        DASHBOARD_TINY_ICON_CLASS_NAME
+                                                    }
+                                                    data-icon="inline-start"
+                                                />
                                             </Button>
                                         </CardAction>
                                     </CardHeader>
@@ -5906,12 +5974,24 @@ export function Workstation({
                                                             >
                                                                 {item.tone ===
                                                                 "success" ? (
-                                                                    <CheckCircle />
+                                                                    <CheckCircle
+                                                                        className={
+                                                                            DASHBOARD_ACTIVITY_ITEM_ICON_CLASS_NAME
+                                                                        }
+                                                                    />
                                                                 ) : item.tone ===
                                                                   "info" ? (
-                                                                    <Bell />
+                                                                    <Bell
+                                                                        className={
+                                                                            DASHBOARD_ACTIVITY_ITEM_ICON_CLASS_NAME
+                                                                        }
+                                                                    />
                                                                 ) : (
-                                                                    <AlertCircle />
+                                                                    <AlertCircle
+                                                                        className={
+                                                                            DASHBOARD_ACTIVITY_ITEM_ICON_CLASS_NAME
+                                                                        }
+                                                                    />
                                                                 )}
                                                             </span>
                                                             <div
@@ -6026,7 +6106,12 @@ export function Workstation({
                                                                         )
                                                                     }
                                                                 >
-                                                                    <X data-icon="inline-start" />
+                                                                    <X
+                                                                        className={
+                                                                            DASHBOARD_MICRO_ICON_CLASS_NAME
+                                                                        }
+                                                                        data-icon="inline-start"
+                                                                    />
                                                                 </Button>
                                                             </div>
                                                         </li>

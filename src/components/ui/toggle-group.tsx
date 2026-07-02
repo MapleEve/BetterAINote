@@ -7,7 +7,15 @@ import * as React from "react";
 import { cn } from "@/lib/utils";
 
 type ToggleGroupLayout = "default" | "iconGrid";
-type ToggleGroupSpacing = number;
+type ToggleGroupSpacing = 0 | 1 | 1.5 | 1.6 | 2;
+
+const toggleGroupSpacingClassNames = {
+    0: "gap-0",
+    1: "gap-1",
+    1.5: "gap-1.5",
+    1.6: "gap-[0.4rem]",
+    2: "gap-2",
+} as const satisfies Record<ToggleGroupSpacing, string>;
 
 const toggleGroupItemVariants = cva(
     "inline-flex shrink-0 items-center justify-center gap-2 rounded-md text-sm font-medium whitespace-nowrap outline-none transition-colors hover:bg-muted hover:text-foreground focus-visible:ring-[3px] focus-visible:ring-ring/40 disabled:pointer-events-none disabled:opacity-50 data-[state=on]:bg-accent data-[state=on]:text-accent-foreground [&>svg]:pointer-events-none [&>svg]:size-4",
@@ -34,14 +42,12 @@ const toggleGroupItemVariants = cva(
 
 type ToggleGroupContextValue = VariantProps<typeof toggleGroupItemVariants> & {
     spacing: ToggleGroupSpacing;
-    spacingValue: number;
 };
 
 const ToggleGroupContext = React.createContext<ToggleGroupContextValue>({
     variant: "default",
     size: "default",
     spacing: 0,
-    spacingValue: 0,
 });
 
 type ToggleGroupProps = React.ComponentProps<typeof ToggleGroupPrimitive.Root> &
@@ -57,13 +63,11 @@ function ToggleGroup({
     size = "default",
     spacing = 0,
     children,
-    style,
     ...props
 }: ToggleGroupProps) {
-    const spacingValue = spacing;
     const contextValue = React.useMemo(
-        () => ({ variant, size, spacing, spacingValue }),
-        [variant, size, spacing, spacingValue],
+        () => ({ variant, size, spacing }),
+        [variant, size, spacing],
     );
 
     return (
@@ -73,10 +77,9 @@ function ToggleGroup({
             data-size={size}
             data-layout={layout}
             data-spacing={spacing}
-            data-spacing-value={spacingValue}
-            style={{ gap: `${spacingValue * 0.25}rem`, ...style }}
             className={cn(
                 "group/toggle-group flex w-fit items-center rounded-md",
+                toggleGroupSpacingClassNames[spacing],
                 layout === "iconGrid" && "grid grid-cols-6",
                 className,
             )}
@@ -115,7 +118,7 @@ function ToggleGroupItem({
                     variant: itemVariant,
                     size: itemSize,
                 }),
-                context.spacingValue === 0 &&
+                context.spacing === 0 &&
                     "rounded-none first:rounded-l-md last:rounded-r-md data-[variant=outline]:border-l-0 first:data-[variant=outline]:border-l data-[variant=segmented]:border-l-0 first:data-[variant=segmented]:border-l",
                 className,
             )}

@@ -43,7 +43,7 @@ const CARD_PRIMITIVE_FORBIDDEN_BUSINESS_TOKENS = [
 const EXPECTED_DASHBOARD_DETAIL_HEADER_CLASS_NAME =
     "relative flex flex-row items-center gap-2.5 px-1 pt-1 pb-0 data-[sot-state=saving]:py-0";
 const EXPECTED_DASHBOARD_DETAIL_HEADER_TITLE_CLASS_NAME =
-    "m-0 min-w-0 flex-1 truncate font-display text-[22px] font-semibold leading-normal tracking-[-0.014em] text-[var(--fg-primary)]";
+    "m-0 min-w-0 flex-1 truncate font-display text-[22px] font-semibold leading-normal tracking-[-0.014em] text-foreground";
 const EXPECTED_DASHBOARD_DETAIL_HEADER_TITLE_INPUT_CLASS_NAME =
     "h-8 min-w-0 flex-1 px-3 py-1 text-base md:text-sm";
 const EXPECTED_DASHBOARD_DETAIL_HEADER_BADGE_CLASS_NAME = "ml-1 shrink-0";
@@ -51,7 +51,7 @@ const EXPECTED_DASHBOARD_TRANSCRIPT_LANGUAGE_BADGE_CLASS_NAME = "gap-1.5";
 const EXPECTED_DASHBOARD_TRANSCRIPT_ACTIONS_CLASS_NAME =
     "ml-auto inline-flex max-w-full flex-[0_1_auto] flex-wrap items-center gap-2";
 const EXPECTED_DASHBOARD_TRANSCRIPT_SHELL_CARD_CLASS_NAME =
-    "flex min-h-0 flex-1 flex-col gap-0 rounded-[16px] border border-[var(--line-hairline)] bg-[var(--bg-elevated)] shadow-[var(--shadow-sm)] backdrop-blur-none";
+    "flex min-h-0 flex-1 flex-col gap-0 rounded-[16px] border border-border bg-card shadow-sm backdrop-blur-none";
 const EXPECTED_DASHBOARD_RECORDING_LIST_HEADER_CLASS_NAME =
     "border-b border-border px-3 pt-3 pb-2.5";
 const EXPECTED_DASHBOARD_SIDEBAR_FOOTER_CLASS_NAME =
@@ -137,7 +137,7 @@ const DASHBOARD_SIDEBAR_VISUAL_GLOBAL_DECLARATION_RE =
 const EXPECTED_SOURCE_REPORT_STATUS_BADGE_CLASS_NAME =
     "inline-flex h-[22px] min-w-[65px] justify-normal items-center gap-[9px] overflow-visible rounded-full border px-[8px] py-0 ![font:600_11px_var(--font-sans)] leading-[normal] shadow-none data-[sot-tone=err]:border-destructive/30 data-[sot-tone=err]:bg-destructive/10 data-[sot-tone=err]:text-destructive data-[sot-tone=neu]:border-border data-[sot-tone=neu]:bg-muted data-[sot-tone=neu]:text-muted-foreground data-[sot-tone=ok]:border-primary/30 data-[sot-tone=ok]:bg-primary/10 data-[sot-tone=ok]:text-primary data-[sot-tone=warn]:border-border data-[sot-tone=warn]:bg-secondary data-[sot-tone=warn]:text-secondary-foreground [&_[data-sot-part=dashboard-source-report-status-dot]]:mr-0 [&_[data-sot-part=dashboard-source-report-status-dot]]:inline-block [&_[data-sot-part=dashboard-source-report-status-dot]]:size-[5px] [&_[data-sot-part=dashboard-source-report-status-dot]]:rounded-full [&_[data-sot-part=dashboard-source-report-status-dot]]:bg-current [&_[data-sot-part=source-report-status-dot]]:mr-0 [&_[data-sot-part=source-report-status-dot]]:inline-block [&_[data-sot-part=source-report-status-dot]]:size-[5px] [&_[data-sot-part=source-report-status-dot]]:rounded-full [&_[data-sot-part=source-report-status-dot]]:bg-current";
 const EXPECTED_DASHBOARD_RECORDING_PLAYER_CARD_CLASS_NAME =
-    "block min-h-[114px] gap-0 overflow-visible rounded-[16px] border border-[var(--line-hairline)] bg-[var(--bg-elevated)] px-[18px] py-[16px] shadow-none backdrop-blur-none";
+    "block min-h-[114px] gap-0 overflow-visible rounded-[16px] border border-border bg-card px-[18px] py-[16px] shadow-none backdrop-blur-none";
 const DASHBOARD_RECORDING_PLAYER_WORKSTATION_CLASS_INITIALIZERS = [
     {
         constName: "SOT_DASHBOARD_RECORDING_PLAYER_CARD_CLASS_NAME",
@@ -151,7 +151,7 @@ const DASHBOARD_RECORDING_PLAYER_WORKSTATION_CLASS_INITIALIZERS = [
     {
         constName: "SOT_DASHBOARD_RECORDING_PLAYER_DATE_CLASS_NAME",
         expected:
-            "font-mono text-[11.5px] font-medium tracking-[0.02em] text-[var(--fg-tertiary)]",
+            "font-mono text-[11.5px] font-medium tracking-[0.02em] text-muted-foreground",
     },
 ] as const;
 const DASHBOARD_RECORDING_PLAYER_CONTROLS_CLASS_INITIALIZERS = [
@@ -706,10 +706,11 @@ const RECORDING_LIST_CHIP_CLEAR_FEATURE_OWNER_CLASS_SNIPPETS = [
     "rounded-full",
     "border border-transparent",
     "bg-transparent",
-    "text-[var(--fg-tertiary)]",
-    "hover:bg-[var(--bg-recessed)]",
-    "hover:text-[var(--fg-primary)]",
-    "[&_svg:not([class*='size-'])]:size-[11px]",
+    "p-0",
+    "text-muted-foreground",
+    "shadow-none",
+    "hover:bg-accent",
+    "hover:text-accent-foreground",
 ] as const;
 
 const DASHBOARD_SOURCE_FILTER_BUTTON_PRIMITIVE_FORBIDDEN_TOKENS = [
@@ -731,23 +732,25 @@ const DASHBOARD_RECORDING_TAG_FILTER_FEATURE_OWNER_CLASS_SNIPPETS = [
     "relative mt-2.5",
     "trigger:",
     "w-full justify-start",
-    "text-[var(--fg-primary)]",
+    "text-foreground",
     "label:",
     "min-w-0 flex-1 truncate",
     "count:",
-    "font-mono text-[11px] font-medium text-[var(--fg-tertiary)]",
+    "font-mono text-[11px] font-medium text-muted-foreground",
     "caret:",
-    "shrink-0 text-[var(--fg-tertiary)]",
+    "shrink-0 text-muted-foreground",
     "list:",
     "top-[calc(100%+6px)]",
     "z-[var(--z-popover-inline)]",
-    "border-[var(--card-popover-border)]",
-    "bg-[var(--card-popover-bg)]",
-    "[box-shadow:var(--shadow-lg)]",
+    "border border-border",
+    "bg-popover",
+    "text-popover-foreground",
+    "shadow-lg",
     "option:",
     "border border-transparent",
     "bg-transparent",
-    "text-[var(--fg-secondary)]",
+    "text-muted-foreground",
+    "hover:bg-accent hover:text-accent-foreground",
     "data-[sot-state=selected]:bg-secondary",
     "data-[sot-state=selected]:text-secondary-foreground",
     "optionLabel:",
@@ -766,50 +769,48 @@ const DASHBOARD_RECORDING_TAG_FILTER_MIGRATED_GLOBAL_SELECTORS = [
 
 const DASHBOARD_SOURCE_FILTER_FEATURE_OWNER_CLASS_SNIPPETS = [
     "group/source-provider",
-    "data-[sot-state=connected-active]:border-[var(--line-hairline)]",
-    "data-[sot-state=connected-active]:bg-[var(--bg-elevated)]",
-    "data-[sot-state=sync-error]:text-[var(--fg-primary)]",
+    "data-[sot-state=connected-active]:border-border",
+    "data-[sot-state=connected-active]:bg-card",
+    "data-[sot-state=sync-error]:text-foreground",
     "data-[sot-state=disabled]:opacity-[0.55]",
     "[&_[data-sot-part=source-provider-mark]]:size-[18px]",
     "[&_[data-sot-part=source-provider-mark]]:rounded-[4px]",
-    "[&_[data-sot-part=source-provider-mark]]:border-[var(--line-hairline)]",
+    "[&_[data-sot-part=source-provider-mark]]:border-border",
     "[&_[data-sot-part=source-provider-mark]_img]:object-contain",
     "[&_[data-sot-part=source-provider-mark][data-sot-provider-cover=true]_img]:object-cover",
     "data-[sot-state=no-results]:[&_[data-sot-part=source-provider-mark]]:opacity-[0.65]",
     "data-[sot-state=disabled]:[&_[data-sot-part=source-provider-mark]]:grayscale-[0.7]",
     "size-1.5",
-    "data-[sot-tone=err]:bg-[var(--signal-danger)]",
+    "data-[sot-tone=err]:bg-destructive",
     "data-[sot-tone=syncing]:animate-[bpulse_1.2s_ease-in-out_infinite]",
     "min-w-[22px]",
     "font-mono text-[11px]",
-    "data-[sot-tone=active]:bg-[var(--bg-elevated)]",
+    "data-[sot-tone=active]:bg-card",
     "data-[sot-tone=empty]:line-through",
-    "data-[sot-tone=err]:text-[var(--signal-danger)]",
+    "data-[sot-tone=err]:text-destructive",
     "ml-[6px]",
     "h-[22px]",
     "rounded-full",
     "data-[sot-action=retry]:hidden",
-    "data-[sot-action=retry]:border-[var(--alert-destructive-soft-border)]",
-    "data-[sot-action=retry]:bg-[var(--alert-destructive-soft-bg)]",
-    "data-[sot-action=connect]:border-[var(--accent)]",
-    "data-[sot-action=connect]:bg-[var(--accent-soft)]",
+    "data-[sot-action=retry]:border-destructive/30",
+    "data-[sot-action=retry]:bg-destructive/10",
+    "data-[sot-action=connect]:border-primary/30",
+    "data-[sot-action=connect]:bg-primary/10",
     "group-hover/source-provider:data-[sot-action=retry]:inline-flex",
     "group-focus-within/source-provider:data-[sot-action=retry]:inline-flex",
     "group-data-[sidebar-collapsed=true]/dashboard-workstation:hidden",
     "size-4",
-    "[&_svg:not([class*='size-'])]:size-[11px]",
+    "hover:bg-accent",
+    "hover:text-accent-foreground",
     "cursor-pointer",
-    "border-[var(--line-hairline)]",
-    "bg-[var(--bg-elevated)]",
-    "hover:text-[var(--fg-primary)]",
-    "focus-visible:outline-[var(--accent)]",
+    "border border-border",
+    "bg-card",
+    "focus-visible:outline-ring",
     "focus-visible:ring-0",
     "disabled:cursor-not-allowed",
-    "data-[sot-action=retry]:bg-[var(--alert-destructive-soft-bg)]",
-    "data-[sot-action=retry]:hover:bg-[var(--alert-destructive-soft-strong-bg)]",
-    "data-[sot-action=widen]:bg-[var(--accent-soft)]",
-    "data-[sot-action=open-settings]:bg-[var(--accent-soft)]",
-    "[&_svg]:stroke-current",
+    "data-[sot-action=retry]:hover:bg-destructive/10",
+    "data-[sot-action=widen]:bg-primary/10",
+    "data-[sot-action=open-settings]:bg-primary/10",
     "font-sans",
     "clearAll:",
     "h-6",
@@ -818,9 +819,9 @@ const DASHBOARD_SOURCE_FILTER_FEATURE_OWNER_CLASS_SNIPPETS = [
     "sourceFilterStackClassNames",
     "root:",
     "gap-x-2 gap-y-1.5",
-    "border-b border-[var(--line-hairline)]",
-    "bg-[var(--bg-recessed)]",
-    "text-[var(--fg-tertiary)]",
+    "border-b border-border",
+    "bg-muted",
+    "text-muted-foreground",
     "from:",
     "flex-[0_1_auto]",
     "[&_b]:font-bold",
@@ -830,8 +831,8 @@ const DASHBOARD_SOURCE_FILTER_FEATURE_OWNER_CLASS_SNIPPETS = [
     "chip:",
     "h-[22px]",
     "gap-1.5",
-    "border-[var(--line-hairline)]",
-    "bg-[var(--bg-elevated)]",
+    "border border-border",
+    "bg-card",
     "label:",
     "whitespace-nowrap",
     "info:",
@@ -919,7 +920,9 @@ const DASHBOARD_SEARCH_ACTIVITY_FEATURE_OWNER_CLASS_SNIPPETS = [
             "[&_[data-sot-part=dashboard-activity-badge]]:right-0.5",
             "[&_[data-sot-part=dashboard-activity-badge]]:top-0.5",
             "[&_[data-sot-part=dashboard-activity-badge]]:min-w-4",
-            "[&_[data-sot-part=dashboard-activity-badge]]:bg-[var(--signal-danger)]",
+            "[&_[data-sot-part=dashboard-activity-badge]]:bg-destructive",
+            "[&_[data-sot-part=dashboard-activity-badge]]:text-destructive-foreground",
+            "[&_[data-sot-part=dashboard-activity-badge]]:ring-card",
         ],
     },
     {
@@ -929,18 +932,20 @@ const DASHBOARD_SEARCH_ACTIVITY_FEATURE_OWNER_CLASS_SNIPPETS = [
             "z-[var(--z-dropdown)]",
             "w-[460px]",
             "data-[open=true]:pointer-events-auto",
-            "border-[var(--card-popover-border)]",
-            "bg-[var(--card-popover-bg)]",
-            "[box-shadow:var(--card-popover-shadow)]",
+            "border-border",
+            "bg-popover",
+            "text-popover-foreground",
+            "shadow-lg",
             "max-[640px]:fixed",
         ],
     },
     {
         propertyName: "dashboardActivityPanel",
         snippets: [
-            "border-[var(--card-popover-border)]",
-            "bg-[var(--card-popover-bg)]",
-            "[box-shadow:var(--card-popover-shadow)]",
+            "border-border",
+            "bg-popover",
+            "text-popover-foreground",
+            "shadow-lg",
         ],
     },
     {
@@ -959,7 +964,8 @@ const DASHBOARD_SEARCH_ACTIVITY_FEATURE_OWNER_CLASS_SNIPPETS = [
             "h-[32px]",
             "px-[4px] py-0",
             "[font:500_13.5px/1.35_var(--font-sans)]",
-            "placeholder:text-[var(--fg-tertiary)]",
+            "text-foreground",
+            "placeholder:text-muted-foreground",
         ],
     },
     {
@@ -968,8 +974,8 @@ const DASHBOARD_SEARCH_ACTIVITY_FEATURE_OWNER_CLASS_SNIPPETS = [
             "min-h-[39px]",
             "gap-[6px]",
             "px-[12px] py-[8px]",
-            "bg-[var(--bg-recessed)]",
-            "border-[var(--line-hairline)]",
+            "border-b border-border",
+            "bg-muted",
         ],
     },
     {
@@ -979,7 +985,8 @@ const DASHBOARD_SEARCH_ACTIVITY_FEATURE_OWNER_CLASS_SNIPPETS = [
             "border-transparent bg-transparent",
             "px-[10px]",
             "[font:500_11.5px/1_var(--font-sans)]",
-            "text-[var(--fg-tertiary)] shadow-none",
+            "text-muted-foreground shadow-none",
+            "hover:bg-card hover:text-foreground",
             "data-[state=on]:border-primary/30",
             "data-[state=on]:bg-primary/10",
             "data-[state=on]:text-primary",
@@ -990,7 +997,8 @@ const DASHBOARD_SEARCH_ACTIVITY_FEATURE_OWNER_CLASS_SNIPPETS = [
         snippets: [
             "flex w-full flex-col items-center gap-2",
             "px-4 py-4",
-            "*:data-[slot=alert-description]:text-[var(--signal-danger)]",
+            "text-destructive",
+            "*:data-[slot=alert-description]:text-destructive",
         ],
     },
     {
@@ -1005,16 +1013,24 @@ const DASHBOARD_SEARCH_ACTIVITY_FEATURE_OWNER_CLASS_SNIPPETS = [
             "flex-col items-start",
             "border-0 bg-transparent",
             "px-[10px] py-[8px]",
-            "text-[var(--fg-primary)]",
-            "hover:bg-[var(--bg-recessed)]",
-            "focus-visible:bg-[var(--bg-recessed)]",
+            "text-foreground",
+            "hover:bg-muted",
+            "focus-visible:bg-muted",
             "focus-visible:outline-none",
             "focus-visible:ring-2",
             "focus-visible:ring-ring/50",
-            "[&_[data-sot-part=library-search-result-meta]]:font-mono",
-            "[&_[data-sot-part=library-search-result-meta]]:text-[11.5px]",
-            "[&_[data-sot-part=library-search-result-title]]:[font:600_13px/1.4_var(--font-sans)]",
-            "[&_[data-sot-part=library-search-result-title]]:text-[var(--fg-primary)]",
+        ],
+    },
+    {
+        propertyName: "librarySearchResultTitle",
+        snippets: ["[font:600_13px/1.4_var(--font-sans)]", "text-foreground"],
+    },
+    {
+        propertyName: "librarySearchResultMeta",
+        snippets: [
+            "font-mono",
+            "text-[11.5px]",
+            "text-muted-foreground",
         ],
     },
     {
@@ -1025,7 +1041,7 @@ const DASHBOARD_SEARCH_ACTIVITY_FEATURE_OWNER_CLASS_SNIPPETS = [
             "border-primary/20",
             "bg-primary/10",
             "text-primary",
-            "[&>svg]:size-[11px]",
+            "shadow-xs",
         ],
     },
     {
@@ -1048,7 +1064,7 @@ const DASHBOARD_SEARCH_ACTIVITY_FEATURE_OWNER_CLASS_SNIPPETS = [
         propertyName: "librarySearchStateSkeleton",
         snippets: [
             "bg-primary/10",
-            "after:bg-[linear-gradient(90deg,transparent,var(--signal-info)_50%,transparent)]",
+            "after:bg-primary/50",
             "after:animate-[sbn-sweep_1.4s_linear_infinite]",
         ],
     },
@@ -1064,7 +1080,7 @@ const DASHBOARD_SEARCH_ACTIVITY_FEATURE_OWNER_CLASS_SNIPPETS = [
         snippets: [
             "px-[4px] py-[6px]",
             "[&+&]:border-t",
-            "[&+&]:border-[var(--line-hairline)]",
+            "[&+&]:border-border",
         ],
     },
     {
@@ -1083,20 +1099,20 @@ const DASHBOARD_SEARCH_ACTIVITY_FEATURE_OWNER_CLASS_SNIPPETS = [
         propertyName: "dashboardActivityClose",
         snippets: [
             "size-[26px]",
-            "hover:bg-[var(--bg-recessed)] hover:text-[var(--fg-primary)]",
+            "hover:bg-accent hover:text-accent-foreground",
         ],
     },
     {
         propertyName: "dashboardActivitySync",
         snippets: [
-            "data-[action-state=error]:text-[var(--signal-danger)]",
+            "data-[action-state=error]:text-destructive",
             "disabled:cursor-not-allowed",
         ],
     },
     {
         propertyName: "dashboardActivityAction",
         snippets: [
-            "data-[action-state=error]:text-[var(--signal-danger)]",
+            "data-[action-state=error]:text-destructive",
             "disabled:cursor-not-allowed",
         ],
     },
@@ -1121,9 +1137,9 @@ const DASHBOARD_SEARCH_ACTIVITY_FEATURE_OWNER_CLASS_SNIPPETS = [
         propertyName: "dashboardActivityStatus",
         snippets: [
             "flex items-center gap-2.5",
-            "bg-[var(--bg-recessed)]",
+            "bg-muted",
             "data-[state=running]:[&_[data-sot-part=dashboard-activity-status-indicator]]:animate-[bpulse_1.4s_ease-in-out_infinite]",
-            "data-[state=running]:[&_[data-sot-part=dashboard-activity-status-indicator]]:bg-[var(--signal-info)]",
+            "data-[state=running]:[&_[data-sot-part=dashboard-activity-status-indicator]]:bg-primary",
         ],
     },
     {
@@ -1134,17 +1150,17 @@ const DASHBOARD_SEARCH_ACTIVITY_FEATURE_OWNER_CLASS_SNIPPETS = [
         propertyName: "dashboardActivityItem",
         snippets: [
             "grid grid-cols-[26px_1fr_auto]",
-            "data-[kind=queued]:[&_[data-sot-part=dashboard-activity-item-icon]]:bg-[var(--system-banner-neutral-icon-bg)]",
-            "data-[kind=queued]:[&_[data-sot-part=dashboard-activity-item-icon]]:text-[var(--fg-tertiary)]",
-            "data-[kind=partial-failed]:[&_[data-sot-part=dashboard-activity-item-icon]]:bg-[var(--system-banner-offline-icon-bg)]",
-            "data-[kind=partial-failed]:[&_[data-sot-part=dashboard-activity-item-icon]]:text-[var(--signal-warning)]",
+            "data-[kind=queued]:[&_[data-sot-part=dashboard-activity-item-icon]]:bg-muted",
+            "data-[kind=queued]:[&_[data-sot-part=dashboard-activity-item-icon]]:text-muted-foreground",
+            "data-[kind=partial-failed]:[&_[data-sot-part=dashboard-activity-item-icon]]:bg-secondary",
+            "data-[kind=partial-failed]:[&_[data-sot-part=dashboard-activity-item-icon]]:text-secondary-foreground",
         ],
     },
     {
         propertyName: "dashboardActivityItemTitle",
         snippets: [
             "[font:600_12.5px/1.35_var(--font-sans)]",
-            "text-[var(--fg-primary)]",
+            "text-foreground",
         ],
     },
     {
@@ -1155,10 +1171,10 @@ const DASHBOARD_SEARCH_ACTIVITY_FEATURE_OWNER_CLASS_SNIPPETS = [
         propertyName: "dashboardActivityDismiss",
         snippets: [
             "size-[22px]",
-            "hover:bg-[var(--bg-recessed)] hover:text-[var(--fg-primary)]",
+            "hover:bg-accent hover:text-accent-foreground",
             "focus-visible:outline-2",
             "focus-visible:outline-ring",
-            "[&_svg:not([class*='size-'])]:size-[11px]",
+            "has-[>svg]:p-0",
         ],
     },
     {
@@ -1473,37 +1489,36 @@ const DASHBOARD_RETRANSCRIPTION_OWNER_CLASS_SNIPPETS = [
     "actions:",
     "refreshMarker:",
     "group/retx flex items-center gap-[10px]",
+    "border-b border-border bg-muted",
     "data-[retx-state=idle]:hidden",
-    "data-[retx-state=queued]:bg-[var(--dashboard-retx-info-bg)]",
-    "data-[retx-state=failed]:bg-[var(--dashboard-retx-danger-bg)]",
-    "data-[retx-state=completed]:bg-[var(--dashboard-retx-success-bg)]",
+    "data-[retx-state=queued]:border-primary/30",
+    "data-[retx-state=queued]:bg-primary/10",
+    "data-[retx-state=running]:border-primary/30",
+    "data-[retx-state=running]:bg-primary/10",
+    "data-[retx-state=failed]:border-destructive/30",
+    "data-[retx-state=failed]:bg-destructive/10",
+    "data-[retx-state=completed]:border-primary/30",
+    "data-[retx-state=completed]:bg-primary/10",
     "[&[hidden]]:hidden",
     "inline-flex size-[28px] flex-none",
+    "border border-border bg-card text-muted-foreground",
     'body: "flex min-w-0 flex-1 flex-col gap-[2px]"',
     'actions: "flex flex-none items-center gap-[6px]"',
     "inline-flex items-center gap-[4px]",
-    "group-data-[retx-state=running]/retx:text-[var(--signal-info)]",
-    "group-data-[retx-state=running]/retx:border-[var(--dashboard-retx-info-icon-border)]",
-    "group-data-[retx-state=failed]/retx:text-[var(--signal-danger)]",
-    "group-data-[retx-state=failed]/retx:border-[var(--dashboard-retx-danger-icon-border)]",
-    "group-data-[retx-state=completed]/retx:text-[var(--signal-success)]",
-    "group-data-[retx-state=completed]/retx:border-[var(--dashboard-retx-success-icon-border)]",
-    "[font:600_12.5px_var(--font-sans)] text-[var(--fg-primary)]",
-    "[font:500_11.5px_var(--font-sans)] text-[var(--fg-secondary)]",
-    "bg-[var(--dashboard-retx-success-marker-bg)]",
+    "group-data-[retx-state=running]/retx:text-primary",
+    "group-data-[retx-state=running]/retx:border-primary/30",
+    "group-data-[retx-state=failed]/retx:text-destructive",
+    "group-data-[retx-state=failed]/retx:border-destructive/30",
+    "group-data-[retx-state=completed]/retx:text-primary",
+    "group-data-[retx-state=completed]/retx:border-primary/30",
+    "[font:600_12.5px_var(--font-sans)] text-foreground",
+    "[font:500_11.5px_var(--font-sans)] text-muted-foreground",
+    "bg-primary/10",
+    "text-primary",
 ] as const;
 
 const DASHBOARD_RETRANSCRIPTION_THEME_CLASS_SNIPPETS = [
-    "--dashboard-retx-info-bg:var(--system-banner-progress-bg)",
-    "--dashboard-retx-info-border:var(--system-banner-progress-border)",
-    "--dashboard-retx-info-icon-border:var(--system-banner-progress-border)",
-    "--dashboard-retx-danger-bg:var(--alert-destructive-soft-bg)",
-    "--dashboard-retx-danger-border:var(--alert-destructive-soft-border)",
-    "--dashboard-retx-danger-icon-border:var(--button-copy-danger-border)",
-    "--dashboard-retx-success-bg:var(--button-copy-success-bg)",
-    "--dashboard-retx-success-border:var(--button-copy-success-border)",
-    "--dashboard-retx-success-icon-border:var(--button-copy-success-border)",
-    "--dashboard-retx-success-marker-bg:var(--button-copy-success-bg)",
+    "text-foreground",
 ] as const;
 
 const DASHBOARD_RETRANSCRIPTION_GLOBAL_TOKEN_DEFINITION_RE =
@@ -2192,15 +2207,15 @@ describe("dashboard SOT foundation", () => {
         expect(workstation).toContain("headerIconButton:");
         expect(workstation).toContain("headerActionButton:");
         expect(workstation).toContain(
-            "size-[32px] border border-transparent bg-transparent p-0 text-[var(--fg-secondary)] shadow-none",
+            "size-[32px] border border-transparent bg-transparent p-0 text-muted-foreground shadow-none",
         );
         expect(workstation).toContain(
-            "border border-[var(--line-hairline)] bg-[var(--glass-tint-base)] px-3 font-sans text-[12.5px] font-semibold",
+            "border border-border bg-card px-3 font-sans text-[12.5px] font-semibold",
         );
-        expect(workstation).toContain("shadow-[var(--shadow-xs)]");
-        expect(workstation).toContain("h-8 gap-[7px] rounded-[9px]");
+        expect(workstation).toContain("shadow-xs");
+        expect(workstation).toContain("h-8 min-w-[103px] gap-[7px] rounded-[9px]");
         expect(workstation).toContain("has-[>svg]:px-3");
-        expect(workstation).toContain("[&_svg:not([class*='size-'])]:size-4");
+        expect(workstation).not.toContain("[&_svg:not([class*='size-'])]:size-4");
         for (const selector of [
             'data-sot-control="rename-recording-title"',
             'data-sot-control="recording-more-actions"',
@@ -2955,11 +2970,11 @@ describe("dashboard SOT foundation", () => {
             expect(buttonSizeBlock).not.toContain(`${size}:`);
         }
         for (const copyStateClass of [
-            "data-[copy-state=ok]:border-[var(--button-copy-success-border)]",
-            "data-[copy-state=ok]:bg-[var(--button-copy-success-bg)]",
-            "data-[copy-state=ok]:text-[var(--signal-success)]",
-            "data-[copy-state=err]:border-[var(--button-copy-danger-border)]",
-            "data-[copy-state=err]:text-[var(--signal-danger)]",
+            "data-[copy-state=ok]:border-primary/30",
+            "data-[copy-state=ok]:bg-primary/10",
+            "data-[copy-state=ok]:text-primary",
+            "data-[copy-state=err]:border-destructive/30",
+            "data-[copy-state=err]:text-destructive",
             "data-[copy-state=err]:hover:bg-transparent",
         ]) {
             expect(buttonVariantBlock).not.toContain(copyStateClass);
@@ -3353,9 +3368,13 @@ describe("dashboard SOT foundation", () => {
             dashboardButtonClassNames,
             "nav",
         );
-        expect(dashboardNavButtonClassName).toContain("[&_svg]:size-4");
+        expect(workstation).toContain("const DASHBOARD_ICON_CLASS_NAME =");
+        expect(workstation).toContain(
+            "size-4 flex-none fill-none stroke-current stroke-[1.8]",
+        );
+        expect(workstation).toContain("className={DASHBOARD_ICON_CLASS_NAME}");
         expect(dashboardNavButtonClassName).toContain(
-            "data-[sot-state=selected]:[&_svg]:opacity-100",
+            "data-[sot-state=selected]:text-foreground",
         );
         const dashboardFavoriteCount = extractOpeningElement(
             workstation,
@@ -3377,15 +3396,15 @@ describe("dashboard SOT foundation", () => {
             "dashboardNavClassNames.sectionLabel",
         );
         expect(dashboardFavoriteButton).toContain(
-            '<Icon data-icon="inline-start" />',
+            "className={DASHBOARD_ICON_CLASS_NAME}",
         );
         const dashboardActivityDismissButton = extractBoundedSlice(
             workstation,
             'data-sot-control="dashboard-activity-dismiss"',
             "</Button>",
         );
-        expect(dashboardActivityDismissButton).toContain(
-            '<X data-icon="inline-start" />',
+        expect(dashboardActivityDismissButton).toMatch(
+            /className=\{\s*DASHBOARD_MICRO_ICON_CLASS_NAME\s*\}/,
         );
         const dashboardActivityStatusSub = extractOpeningElement(
             workstation,
@@ -4235,8 +4254,8 @@ describe("dashboard SOT foundation", () => {
         }
         for (const ownerClassToken of [
             "flex items-center gap-2.5",
-            "m-0 font-sans text-[13px] font-semibold text-[var(--fg-primary)]",
-            "ml-auto font-mono text-[11.5px] font-medium text-[var(--fg-tertiary)]",
+            "m-0 font-sans text-[13px] font-semibold text-foreground",
+            "ml-auto font-mono text-[11.5px] font-medium text-muted-foreground",
             "[scrollbar-width:thin]",
             "[&::-webkit-scrollbar-thumb:hover]:bg-muted-foreground/55",
             "flex-1 overflow-y-auto p-1",
@@ -4554,9 +4573,9 @@ describe("dashboard SOT foundation", () => {
             "contrast-[0.85]",
             "object-cover",
             "opacity-60",
-            "border border-[var(--line-hairline)]",
-            "bg-[var(--bg-recessed)]",
-            "text-[var(--fg-tertiary)]",
+            "border border-border",
+            "bg-muted",
+            "text-muted-foreground",
         ]) {
             expect(dashboardRecordingRowStyleHelper).toContain(
                 rowMetaOwnershipToken,
@@ -5578,6 +5597,12 @@ describe("dashboard SOT foundation", () => {
         expect(segmentedTabs).not.toContain('variant="outline"');
         expect(toggleGroupPrimitive).toContain("segmented:");
         expect(toggleGroupPrimitive).toContain("segmentedSm:");
+        expect(toggleGroupPrimitive).toContain(
+            "const toggleGroupSpacingClassNames",
+        );
+        expect(toggleGroupPrimitive).toContain('1.6: "gap-[0.4rem]"');
+        expect(toggleGroupPrimitive).not.toContain("data-spacing-value");
+        expect(toggleGroupPrimitive).not.toContain("style={{ gap:");
         expect(segmentedTabs).toContain("spacing={1}");
         expect(segmentedTabs).toContain('type="single"');
         expect(segmentedTabs).toContain("value={value}");
@@ -5617,6 +5642,12 @@ describe("dashboard SOT foundation", () => {
         expect(banner).toContain("const systemBannerAlertClassNames");
         expect(banner).toContain("const systemBannerButtonClassNames");
         expect(banner).toContain("const systemBannerProgressClassNames");
+        expect(banner).toContain("border-[var(--system-banner-border)]");
+        expect(banner).toContain("bg-transparent");
+        expect(banner).not.toContain("CSSProperties");
+        expect(banner).not.toContain("systemBannerAlertStyle");
+        expect(banner).not.toContain("style={systemBannerAlertStyle}");
+        expect(banner).not.toContain("backgroundColor");
         expect(banner).toContain("function SystemBannerAlert");
         expect(banner).toContain("function SystemBannerButton");
         expect(banner).toContain("function SystemBannerProgress");

@@ -15,7 +15,7 @@ const EXPECTED_DASHBOARD_TRANSCRIPT_BODY_BASE_CLASS_NAME =
 const EXPECTED_DASHBOARD_TRANSCRIPT_ACTIONS_CLASS_NAME =
     "ml-auto inline-flex max-w-full flex-[0_1_auto] flex-wrap items-center gap-2";
 const EXPECTED_DASHBOARD_TRANSCRIPT_SHELL_CARD_CLASS_NAME =
-    "flex min-h-0 flex-1 flex-col gap-0 rounded-[16px] border border-[var(--line-hairline)] bg-[var(--bg-elevated)] shadow-[var(--shadow-sm)] backdrop-blur-none";
+    "flex min-h-0 flex-1 flex-col gap-0 rounded-[16px] border border-border bg-card shadow-sm backdrop-blur-none";
 const EXPECTED_DASHBOARD_WORKSPACE_CLASS_NAME =
     "grid flex-1 min-h-0 grid-cols-[380px_1fr] gap-4 px-5 pt-4 pb-5 max-[860px]:min-w-0 max-[860px]:max-w-full max-[860px]:box-border max-[860px]:grid-cols-[380px_0px] max-[860px]:[&>[data-sot-panel=dashboard-detail]]:hidden";
 const EXPECTED_RECORDING_WORKSTATION_WORKSPACE_CLASS_NAME =
@@ -290,7 +290,7 @@ const RECORDING_ROUTE_FALLBACK_SHELL_CLASS_VALUE =
 const RECORDING_ROUTE_EMPTY_DETAIL_CLASS_VALUE =
     "flex min-h-0 min-w-0 flex-col gap-4 overflow-hidden rounded-[16px] border border-[var(--line-hairline)] bg-[var(--bg-elevated)] shadow-[var(--shadow-sm)] dark:border-[var(--glass-border)]";
 const RECORDING_ROUTE_EMPTY_PANEL_CLASS_VALUE =
-    "flex min-h-[280px] flex-1 flex-col items-center justify-center gap-2 rounded-[16px] border border-[var(--line-hairline)] bg-[var(--bg-elevated)] px-6 py-9 text-center shadow-[var(--shadow-sm)] dark:border-[var(--glass-border-soft)] dark:bg-[rgb(255_255_255_/_0.025)] dark:shadow-none";
+    "flex min-h-[280px] flex-1 flex-col items-center justify-center gap-2 rounded-[16px] border border-[var(--line-hairline)] bg-[var(--bg-elevated)] px-6 py-9 text-center shadow-[var(--shadow-sm)] dark:border-[var(--glass-border-soft)] dark:bg-[var(--card-elevated-bg)] dark:shadow-none";
 const RECORDING_ROUTE_EMPTY_ICON_CLASS_VALUE =
     "mb-1 inline-grid size-12 place-items-center rounded-full border border-[var(--line-hairline)] bg-[var(--bg-recessed)] text-[var(--fg-tertiary)] [&_svg]:size-[22px] [&_svg]:fill-none [&_svg]:stroke-current [&_svg]:stroke-[1.6] [&_svg]:[stroke-linecap:round] [&_svg]:[stroke-linejoin:round]";
 const RECORDING_ROUTE_EMPTY_TITLE_CLASS_VALUE =
@@ -3064,11 +3064,12 @@ describe("recording detail copy and title action UI regressions", () => {
         expect(dashboardTranscript).toContain(
             "const SOT_DASHBOARD_TRANSCRIPT_SHELL_CARD_CLASS_NAME",
         );
-        expectExactStringConstInitializer(
-            dashboardTranscript,
-            "SOT_DASHBOARD_TRANSCRIPT_SHELL_CARD_CLASS_NAME",
-            EXPECTED_DASHBOARD_TRANSCRIPT_SHELL_CARD_CLASS_NAME,
-        );
+        const dashboardTranscriptShellClassName =
+            expectExactStringConstInitializer(
+                dashboardTranscript,
+                "SOT_DASHBOARD_TRANSCRIPT_SHELL_CARD_CLASS_NAME",
+                EXPECTED_DASHBOARD_TRANSCRIPT_SHELL_CARD_CLASS_NAME,
+            );
         expect(dashboardTranscriptShell).toContain(
             "SOT_DASHBOARD_TRANSCRIPT_SHELL_CARD_CLASS_NAME",
         );
@@ -3130,6 +3131,7 @@ describe("recording detail copy and title action UI regressions", () => {
         );
         expect(dashboardTranscriptBody).not.toContain('className="');
         for (const className of [
+            dashboardTranscriptShellClassName,
             dashboardTranscriptHeaderClassName,
             dashboardTranscriptSegmentedTabsClassName,
             dashboardTranscriptBodyBaseClassName,

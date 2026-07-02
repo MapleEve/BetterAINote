@@ -113,7 +113,7 @@ const RECORDING_DETAIL_CONFIRM_DIALOG_SOT_STYLE = `
 [data-sot-content="confirm-dialog"] {
     background: var(--card-popover-bg);
     border-color: var(--glass-border);
-    box-shadow: 0 22px 56px rgb(0 0 0 / 0.50);
+    box-shadow: var(--card-popover-shadow);
 }
 [data-sot-content="confirm-dialog"] [data-sot-part="confirm-head"] {
     gap: normal;
@@ -177,9 +177,7 @@ const RECORDING_DETAIL_CONFIRM_DIALOG_SOT_STYLE = `
     background: var(--signal-danger);
     border: 1px solid var(--signal-danger);
     color: var(--button-primary-fg);
-    box-shadow:
-        0 2px 6px var(--alert-destructive-soft-border),
-        inset 0 1px 0 rgb(255 255 255 / 0.20);
+    box-shadow: var(--button-destructive-shadow);
 }
 `;
 const RECORDING_WORKSTATION_SHELL_CLASS_NAME =

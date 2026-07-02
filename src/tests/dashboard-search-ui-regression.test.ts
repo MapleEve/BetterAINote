@@ -218,8 +218,10 @@ const DASHBOARD_SEARCH_ACTIVITY_FEATURE_OWNER_CLASS_SNIPPETS = [
             "[&_[data-sot-part=dashboard-activity-badge]]:top-0.5",
             "[&_[data-sot-part=dashboard-activity-badge]]:h-4",
             "[&_[data-sot-part=dashboard-activity-badge]]:min-w-4",
-            "[&_[data-sot-part=dashboard-activity-badge]]:bg-[var(--signal-danger)]",
-            "[&_[data-sot-part=dashboard-activity-badge]]:shadow-[0_0_0_1.5px_var(--bg-elevated)]",
+            "[&_[data-sot-part=dashboard-activity-badge]]:bg-destructive",
+            "[&_[data-sot-part=dashboard-activity-badge]]:text-destructive-foreground",
+            "[&_[data-sot-part=dashboard-activity-badge]]:ring-2",
+            "[&_[data-sot-part=dashboard-activity-badge]]:ring-card",
         ],
     },
     {
@@ -229,20 +231,21 @@ const DASHBOARD_SEARCH_ACTIVITY_FEATURE_OWNER_CLASS_SNIPPETS = [
             "z-[var(--z-dropdown)]",
             "w-[460px]",
             "data-[open=true]:pointer-events-auto",
-            "border-[var(--card-popover-border)]",
-            "bg-[var(--card-popover-bg)]",
+            "border-border",
+            "bg-popover",
             "font-sans",
-            "text-card-foreground",
-            "[box-shadow:var(--card-popover-shadow)]",
+            "text-popover-foreground",
+            "shadow-lg",
             "max-[640px]:fixed",
         ],
     },
     {
         propertyName: "dashboardActivityPanel",
         snippets: [
-            "border-[var(--card-popover-border)]",
-            "bg-[var(--card-popover-bg)]",
-            "[box-shadow:var(--card-popover-shadow)]",
+            "border-border",
+            "bg-popover",
+            "text-popover-foreground",
+            "shadow-lg",
         ],
     },
     {
@@ -261,7 +264,8 @@ const DASHBOARD_SEARCH_ACTIVITY_FEATURE_OWNER_CLASS_SNIPPETS = [
             "h-[32px]",
             "px-[4px] py-0",
             "[font:500_13.5px/1.35_var(--font-sans)]",
-            "placeholder:text-[var(--fg-tertiary)]",
+            "text-foreground",
+            "placeholder:text-muted-foreground",
         ],
     },
     {
@@ -270,8 +274,8 @@ const DASHBOARD_SEARCH_ACTIVITY_FEATURE_OWNER_CLASS_SNIPPETS = [
             "min-h-[39px]",
             "gap-[6px]",
             "px-[12px] py-[8px]",
-            "bg-[var(--bg-recessed)]",
-            "border-[var(--line-hairline)]",
+            "border-b border-border",
+            "bg-muted",
         ],
     },
     {
@@ -281,7 +285,8 @@ const DASHBOARD_SEARCH_ACTIVITY_FEATURE_OWNER_CLASS_SNIPPETS = [
             "border-transparent bg-transparent",
             "px-[10px]",
             "[font:500_11.5px/1_var(--font-sans)]",
-            "text-[var(--fg-tertiary)] shadow-none",
+            "text-muted-foreground shadow-none",
+            "hover:bg-card hover:text-foreground",
             "data-[state=on]:border-primary/30",
             "data-[state=on]:bg-primary/10",
             "data-[state=on]:text-primary",
@@ -292,7 +297,8 @@ const DASHBOARD_SEARCH_ACTIVITY_FEATURE_OWNER_CLASS_SNIPPETS = [
         snippets: [
             "flex w-full flex-col items-center gap-2",
             "px-4 py-4",
-            "*:data-[slot=alert-description]:text-[var(--signal-danger)]",
+            "text-destructive",
+            "*:data-[slot=alert-description]:text-destructive",
         ],
     },
     {
@@ -307,16 +313,24 @@ const DASHBOARD_SEARCH_ACTIVITY_FEATURE_OWNER_CLASS_SNIPPETS = [
             "flex-col items-start",
             "border-0 bg-transparent",
             "px-[10px] py-[8px]",
-            "text-[var(--fg-primary)]",
-            "hover:bg-[var(--bg-recessed)]",
-            "focus-visible:bg-[var(--bg-recessed)]",
+            "text-foreground",
+            "hover:bg-muted",
+            "focus-visible:bg-muted",
             "focus-visible:outline-none",
             "focus-visible:ring-2",
             "focus-visible:ring-ring/50",
-            "[&_[data-sot-part=library-search-result-meta]]:font-mono",
-            "[&_[data-sot-part=library-search-result-meta]]:text-[11.5px]",
-            "[&_[data-sot-part=library-search-result-title]]:[font:600_13px/1.4_var(--font-sans)]",
-            "[&_[data-sot-part=library-search-result-title]]:text-[var(--fg-primary)]",
+        ],
+    },
+    {
+        propertyName: "librarySearchResultTitle",
+        snippets: ["[font:600_13px/1.4_var(--font-sans)]", "text-foreground"],
+    },
+    {
+        propertyName: "librarySearchResultMeta",
+        snippets: [
+            "font-mono",
+            "text-[11.5px]",
+            "text-muted-foreground",
         ],
     },
     {
@@ -327,7 +341,7 @@ const DASHBOARD_SEARCH_ACTIVITY_FEATURE_OWNER_CLASS_SNIPPETS = [
             "border-primary/20",
             "bg-primary/10",
             "text-primary",
-            "[&>svg]:size-[11px]",
+            "shadow-xs",
         ],
     },
     {
@@ -350,7 +364,7 @@ const DASHBOARD_SEARCH_ACTIVITY_FEATURE_OWNER_CLASS_SNIPPETS = [
         propertyName: "librarySearchIndexing",
         snippets: [
             "flex items-center gap-[10px]",
-            "text-[var(--fg-secondary)]",
+            "text-muted-foreground",
         ],
     },
     {
@@ -358,7 +372,7 @@ const DASHBOARD_SEARCH_ACTIVITY_FEATURE_OWNER_CLASS_SNIPPETS = [
         snippets: [
             "inline-flex h-1",
             "bg-primary/10",
-            "after:bg-[linear-gradient(90deg,transparent,var(--signal-info)_50%,transparent)]",
+            "after:bg-primary/50",
             "after:animate-[sbn-sweep_1.4s_linear_infinite]",
             "after:content-['']",
         ],
@@ -380,7 +394,7 @@ const DASHBOARD_SEARCH_ACTIVITY_FEATURE_OWNER_CLASS_SNIPPETS = [
             "flex flex-col gap-[2px]",
             "px-[4px] py-[6px]",
             "[&+&]:border-t",
-            "[&+&]:border-[var(--line-hairline)]",
+            "[&+&]:border-border",
         ],
     },
     {
@@ -400,13 +414,13 @@ const DASHBOARD_SEARCH_ACTIVITY_FEATURE_OWNER_CLASS_SNIPPETS = [
         propertyName: "dashboardActivityClose",
         snippets: [
             "size-[26px]",
-            "hover:bg-[var(--bg-recessed)] hover:text-[var(--fg-primary)]",
+            "hover:bg-accent hover:text-accent-foreground",
         ],
     },
     {
         propertyName: "dashboardActivitySync",
         snippets: [
-            "data-[action-state=error]:text-[var(--signal-danger)]",
+            "data-[action-state=error]:text-destructive",
             "disabled:cursor-not-allowed",
             "has-[>svg]:px-[10px]",
         ],
@@ -433,9 +447,9 @@ const DASHBOARD_SEARCH_ACTIVITY_FEATURE_OWNER_CLASS_SNIPPETS = [
         propertyName: "dashboardActivityStatus",
         snippets: [
             "flex items-center gap-2.5",
-            "bg-[var(--bg-recessed)]",
+            "bg-muted",
             "data-[state=running]:[&_[data-sot-part=dashboard-activity-status-indicator]]:animate-[bpulse_1.4s_ease-in-out_infinite]",
-            "data-[state=running]:[&_[data-sot-part=dashboard-activity-status-indicator]]:bg-[var(--signal-info)]",
+            "data-[state=running]:[&_[data-sot-part=dashboard-activity-status-indicator]]:bg-primary",
         ],
     },
     {
@@ -446,21 +460,26 @@ const DASHBOARD_SEARCH_ACTIVITY_FEATURE_OWNER_CLASS_SNIPPETS = [
         propertyName: "dashboardActivityItem",
         snippets: [
             "grid grid-cols-[26px_1fr_auto]",
-            "data-[kind=queued]:[&_[data-sot-part=dashboard-activity-item-icon]]:bg-[var(--system-banner-neutral-icon-bg)]",
-            "data-[kind=queued]:[&_[data-sot-part=dashboard-activity-item-icon]]:text-[var(--fg-tertiary)]",
-            "data-[kind=partial-failed]:[&_[data-sot-part=dashboard-activity-item-icon]]:bg-[var(--system-banner-offline-icon-bg)]",
-            "data-[kind=partial-failed]:[&_[data-sot-part=dashboard-activity-item-icon]]:text-[var(--signal-warning)]",
+            "data-[kind=queued]:[&_[data-sot-part=dashboard-activity-item-icon]]:bg-muted",
+            "data-[kind=queued]:[&_[data-sot-part=dashboard-activity-item-icon]]:text-muted-foreground",
+            "data-[kind=partial-failed]:[&_[data-sot-part=dashboard-activity-item-icon]]:bg-secondary",
+            "data-[kind=partial-failed]:[&_[data-sot-part=dashboard-activity-item-icon]]:text-secondary-foreground",
         ],
     },
     {
         propertyName: "dashboardActivityItemIcon",
-        snippets: ["inline-flex size-[26px]", "[&_svg]:size-3"],
+        snippets: [
+            "inline-flex size-[26px]",
+            "border border-border",
+            "bg-muted",
+            "text-muted-foreground",
+        ],
     },
     {
         propertyName: "dashboardActivityItemTitle",
         snippets: [
             "[font:600_12.5px/1.35_var(--font-sans)]",
-            "text-[var(--fg-primary)]",
+            "text-foreground",
         ],
     },
     {
@@ -470,7 +489,7 @@ const DASHBOARD_SEARCH_ACTIVITY_FEATURE_OWNER_CLASS_SNIPPETS = [
     {
         propertyName: "dashboardActivityAction",
         snippets: [
-            "data-[action-state=error]:text-[var(--signal-danger)]",
+            "data-[action-state=error]:text-destructive",
             "disabled:cursor-not-allowed",
             "has-[>svg]:px-[10px]",
         ],
@@ -480,10 +499,10 @@ const DASHBOARD_SEARCH_ACTIVITY_FEATURE_OWNER_CLASS_SNIPPETS = [
         snippets: [
             "size-[22px]",
             "p-px",
-            "hover:bg-[var(--bg-recessed)] hover:text-[var(--fg-primary)]",
+            "hover:bg-accent hover:text-accent-foreground",
             "focus-visible:outline-2",
             "focus-visible:outline-ring",
-            "[&_svg:not([class*='size-'])]:size-[11px]",
+            "has-[>svg]:p-0",
         ],
     },
     {
@@ -750,10 +769,10 @@ describe("dashboard SOT search and activity interactions", () => {
             /result\.entityType ===\s*"tag"\s*\?\s*\(\s*<Badge[\s\S]*data-sot-part="library-search-tag-chip"/,
         );
         expect(searchResultSlice).toMatch(
-            /\)\s*:\s*\(\s*<span data-sot-part="library-search-result-title">/,
+            /\)\s*:\s*\(\s*<span[\s\S]*className=\{\s*dashboardSearchActivityClassNames\.librarySearchResultTitle\s*\}[\s\S]*data-sot-part="library-search-result-title"/,
         );
         expect(searchResultSlice).not.toMatch(
-            /<span data-sot-part="library-search-result-title">[\s\S]*<Badge[\s\S]*data-sot-part="library-search-tag-chip"[\s\S]*<\/span>/,
+            /<span[\s\S]*data-sot-part="library-search-result-title"[\s\S]*<Badge[\s\S]*data-sot-part="library-search-tag-chip"[\s\S]*<\/span>/,
         );
         expect(workstation).not.toContain('className="ls-item"');
         expect(workstation).not.toContain('className="ls-item-title"');

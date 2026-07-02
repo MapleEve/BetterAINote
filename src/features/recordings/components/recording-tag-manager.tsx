@@ -113,13 +113,13 @@ const RECORDING_TAG_MANAGER_TAG_TOGGLE_CLASS_NAME =
 const RECORDING_TAG_MANAGER_SELECTED_BADGE_CLASS_NAME =
     `${RECORDING_TAG_COLOR_TEXT_CLASS_NAME} tagm-sel-chip h-[22px] justify-normal gap-1 rounded-full border-border bg-muted py-0 pl-2 pr-1 text-[11px] font-semibold leading-none`;
 const RECORDING_TAG_MANAGER_CHECK_BADGE_CLASS_NAME =
-    "tagm-opt-check ml-0.5 inline-grid size-3.5 place-items-center rounded-full border-0 bg-primary/70 p-0 text-[11px] font-semibold leading-none text-primary-foreground [&>svg]:size-2.5 [&>svg]:stroke-[3] [&>svg]:[stroke-linecap:butt] [&>svg]:[stroke-linejoin:miter]";
+    "tagm-opt-check ml-0.5 inline-grid size-3.5 place-items-center rounded-full border-0 bg-primary/70 p-0 text-[11px] font-semibold leading-none text-primary-foreground";
 const RECORDING_TAG_MANAGER_PICKER_FRAME_CLASS_NAME =
     "tagm-picker flex flex-col gap-2.5 rounded-md border border-border bg-muted px-3 py-2.5";
 const RECORDING_TAG_MANAGER_PICKER_LABEL_CLASS_NAME =
     "tagm-picker-label m-0 p-0 font-mono text-[11px] font-semibold leading-none uppercase tracking-wide text-muted-foreground";
 const RECORDING_TAG_MANAGER_ICON_OPTION_CLASS_NAME =
-    "tg-pick !size-7 min-w-0 shrink-0 rounded-md border-border bg-background !p-0 text-muted-foreground shadow-none hover:border-border hover:bg-muted hover:text-foreground data-[state=on]:border-primary/50 data-[state=on]:bg-primary/15 data-[state=on]:text-primary [&_svg:not([class*='size-'])]:size-3.5";
+    "tg-pick !size-7 min-w-0 shrink-0 rounded-md border-border bg-background !p-0 text-muted-foreground shadow-none hover:border-border hover:bg-muted hover:text-foreground data-[state=on]:border-primary/50 data-[state=on]:bg-primary/15 data-[state=on]:text-primary";
 
 type RecordingTagManagerContentVariant =
     | "compact"
@@ -633,7 +633,7 @@ export function RecordingTagManager({
                     data-sot-part="tag-check"
                     aria-hidden="true"
                 >
-                    <Check />
+                    <Check className="!size-2.5 stroke-[3] [stroke-linecap:butt] [stroke-linejoin:miter]" />
                 </RecordingTagManagerBadge>
             ) : null}
         </Button>
@@ -1139,7 +1139,7 @@ export function RecordingTagManager({
                                                 size="icon-xs"
                                                 className={cn(
                                                     "x",
-                                                    "size-[var(--icon-chip-size)] shrink-0 rounded-full p-0 text-muted-foreground hover:bg-muted hover:text-foreground [&_svg]:invisible",
+                                                    "size-[var(--icon-chip-size)] shrink-0 rounded-full p-0 text-muted-foreground hover:bg-muted hover:text-foreground",
                                                 )}
                                                 aria-label="移除"
                                                 data-sot-control="recording-tag-delete-open"
@@ -1157,7 +1157,10 @@ export function RecordingTagManager({
                                                     setDeleteTarget(catalogTag);
                                                 }}
                                             >
-                                                <X aria-hidden="true" />
+                                                <X
+                                                    aria-hidden="true"
+                                                    className="invisible"
+                                                />
                                             </Button>
                                         </RecordingTagManagerBadge>
                                     );
