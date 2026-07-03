@@ -2526,6 +2526,16 @@ describe("recording detail copy and title action UI regressions", () => {
         expect(detailHeader).toContain(
             "RECORDING_DETAIL_HEADER_STATUS_BADGE_CLASS_NAME",
         );
+        const detailHeaderLocalBadgeClass = extractBoundedSlice(
+            detailWorkstation,
+            "const RECORDING_DETAIL_HEADER_LOCAL_BADGE_CLASS_NAME =",
+            ";",
+        );
+        expect(detailHeaderLocalBadgeClass).not.toContain("--system-banner-");
+        expect(detailHeaderLocalBadgeClass).toContain("bg-secondary");
+        expect(detailHeaderLocalBadgeClass).toContain(
+            "text-secondary-foreground",
+        );
         for (const removedRecordingDetailVariant of [
             "detailHeader",
             "detailHeaderTitle",
@@ -3969,11 +3979,12 @@ describe("recording detail copy and title action UI regressions", () => {
         );
         expect(tagManager).toContain("h-[22px] justify-normal gap-1");
         expect(tagManager).toContain("bg-muted");
-        expect(tagManager).toContain("text-[var(--recording-tag-accent)]");
         expect(tagManager).toContain(
-            "data-[sot-tag-color=blue]:[--recording-tag-accent:var(--tag-blue)]",
+            "recordingTagTextColorClassName[tag.color]",
         );
-        expect(tagManager).toContain("RECORDING_TAG_SWATCH_COLOR_CLASS_NAME");
+        expect(tagManager).toContain("recordingTagSwatchColorClassName[item]");
+        expect(tagManager).not.toContain("--recording-tag-accent");
+        expect(tagManager).not.toContain("text-[var(--recording-tag-accent)]");
         expect(tagManager).toContain('layout="iconGrid"');
         expect(tagManager).not.toContain("style={{ alignItems");
         expect(tagManager).not.toContain("style={{");
@@ -3990,15 +4001,24 @@ describe("recording detail copy and title action UI regressions", () => {
         expect(tagManager).not.toContain(variantAttr("recordingTagChip"));
 
         expect(tagVisuals).toContain("const recordingTagChipClassName");
-        expect(tagVisuals).toContain("className={recordingTagChipClassName}");
-        expect(tagVisuals).toContain("recordingTagChipVariablesClassName");
+        expect(tagVisuals).toContain("className={cn(");
+        expect(tagVisuals).toContain("recordingTagChipClassName,");
+        expect(tagVisuals).toContain(
+            "recordingTagTextColorClassName[tag.color]",
+        );
+        expect(tagVisuals).toContain(
+            "satisfies Record<RecordingTagIcon, LucideIcon>",
+        );
         for (const recordingTagChipToken of [
             "--sot-player-tag-chip-bg",
             "--sot-player-tag-chip-border",
             "--sot-player-tag-chip-fg",
         ]) {
-            expect(tagVisuals).toContain(recordingTagChipToken);
+            expect(tagVisuals).not.toContain(recordingTagChipToken);
         }
+        expect(tagVisuals).not.toContain("recordingTagChipVariablesClassName");
+        expect(tagVisuals).not.toContain("recordingTagIconPaths");
+        expect(tagVisuals).not.toContain("<svg");
         expect(tagVisuals).not.toContain(variantAttr("recordingTagChip"));
     });
 });

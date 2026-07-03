@@ -109,80 +109,9 @@ const RECORDING_DETAIL_HEADER_TITLE_CLASS_NAME =
 const RECORDING_DETAIL_HEADER_TITLE_INPUT_CLASS_NAME =
     "rec-h2-input !h-8 min-w-0 flex-1 rounded-[var(--radius-sm)] !border !border-[var(--line-hairline)] !bg-[var(--bg-recessed)] px-[10px] py-0 [font:600_16px/1.35_var(--font-display)] text-[var(--fg-primary)] shadow-none focus-visible:!border-ring focus-visible:!ring-[3px] focus-visible:!ring-ring/50";
 const RECORDING_DETAIL_HEADER_LOCAL_BADGE_CLASS_NAME =
-    "rec-h2-local ml-1 inline-flex h-[22px] shrink-0 items-center rounded-full border border-[var(--system-banner-offline-border)] bg-[var(--system-banner-offline-bg)] px-[8px] py-0 [font:600_11px/1_var(--font-sans)] text-[var(--signal-warning-strong)] shadow-none";
+    "rec-h2-local ml-1 inline-flex h-[22px] shrink-0 items-center rounded-full border border-border bg-secondary px-[8px] py-0 [font:600_11px/1_var(--font-sans)] text-secondary-foreground shadow-none";
 const RECORDING_DETAIL_HEADER_STATUS_BADGE_CLASS_NAME =
     "rec-h2-status ml-1 shrink-0 rounded-none border-0 bg-transparent px-0 py-0 [font:500_11.5px/1.4_var(--font-mono)] text-[var(--fg-tertiary)] shadow-none";
-const RECORDING_DETAIL_CONFIRM_DIALOG_SOT_STYLE = `
-[data-sot-content="confirm-dialog"] {
-    background: var(--card-popover-bg);
-    border-color: var(--glass-border);
-    box-shadow: var(--card-popover-shadow);
-}
-[data-sot-content="confirm-dialog"] [data-sot-part="confirm-head"] {
-    gap: normal;
-    padding: 16px 20px 4px;
-}
-[data-sot-content="confirm-dialog"] [data-sot-part="confirm-title"] {
-    font: 600 16px/1.35 var(--font-display);
-    letter-spacing: -0.012em;
-    color: var(--fg-primary);
-    margin: 0;
-}
-[data-sot-content="confirm-dialog"] [data-sot-part="confirm-body"] {
-    padding: 8px 20px 4px;
-    font: 500 13px/1.55 var(--font-sans);
-    color: var(--fg-secondary);
-}
-[data-sot-content="confirm-dialog"] [data-sot-part="confirm-description"] {
-    margin: 0 0 8px;
-    font: inherit;
-    color: inherit;
-}
-[data-sot-content="confirm-dialog"] [data-sot-list="confirm-dialog-details"] {
-    display: flex;
-    flex-direction: column;
-    gap: 4px;
-    list-style: disc;
-    margin: 4px 0 8px;
-    padding-left: 18px;
-}
-[data-sot-content="confirm-dialog"] [data-sot-item="confirm-dialog-detail"] {
-    display: flex;
-    gap: 6px;
-    font: 500 12.5px/1.55 var(--font-sans);
-    color: var(--fg-secondary);
-}
-[data-sot-content="confirm-dialog"] [data-sot-part="confirm-foot"] {
-    display: flex;
-    justify-content: flex-end;
-    gap: 8px;
-    padding: 12px 16px 16px;
-    background: var(--card-popover-footer-bg);
-    border-top-color: var(--glass-border-soft);
-}
-[data-sot-content="confirm-dialog"] [data-sot-control="confirm-dialog-cancel"],
-[data-sot-content="confirm-dialog"] [data-sot-control="confirm-dialog-confirm"] {
-    display: inline-flex;
-    align-items: center;
-    gap: 7px;
-    height: 26px;
-    padding: 0 10px;
-    border-radius: 7px;
-    font: 600 12px var(--font-sans);
-}
-[data-sot-content="confirm-dialog"] [data-sot-control="confirm-dialog-cancel"] {
-    background: transparent;
-    border-color: transparent;
-    box-shadow: none;
-    color: var(--fg-secondary);
-}
-[data-sot-content="confirm-dialog"] [data-sot-control="confirm-dialog-confirm"] {
-    background: var(--signal-danger);
-    border: 1px solid var(--signal-danger);
-    color: var(--button-primary-fg);
-    box-shadow: var(--button-destructive-shadow);
-}
-`;
 const RECORDING_WORKSTATION_SHELL_CLASS_NAME =
     "grid h-screen min-h-[720px] grid-cols-[264px_1fr] transition-[grid-template-columns] duration-[320ms] ease-[var(--ease-out)] max-[860px]:h-auto max-[860px]:min-h-[100svh] max-[860px]:grid-cols-[minmax(0,1fr)] max-[860px]:overflow-x-clip";
 const RECORDING_WORKSTATION_MAIN_CLASS_NAME =
@@ -994,9 +923,6 @@ export function RecordingWorkstation({
             data-sot-surface="recording-workstation"
             data-sot-state={hydrated ? "ready" : "loading"}
         >
-            <style data-sot-recording-detail-confirm-style>
-                {RECORDING_DETAIL_CONFIRM_DIALOG_SOT_STYLE}
-            </style>
             <aside
                 className={RECORDING_WORKSTATION_SIDEBAR_CLASS_NAME}
                 data-sot-panel="workstation-sidebar"

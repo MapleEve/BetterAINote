@@ -134,7 +134,7 @@ const SPEAKER_REVIEW_MERGE_CARD_ACTION_CLASS_NAME =
     "self-auto justify-self-auto leading-none";
 
 const SPEAKER_REVIEW_VOICEPRINT_BADGE_CLASS_NAME =
-    "h-[22px] justify-normal gap-[5px] overflow-visible rounded-full border px-[8px] py-0 text-[11px] font-semibold shadow-none data-[sot-tone=missing]:border-[var(--source-provider-status-warning-border)] data-[sot-tone=missing]:bg-[var(--source-provider-status-warning-bg)] data-[sot-tone=missing]:text-[var(--signal-warning-strong)] data-[sot-tone=ready]:border-[var(--source-provider-status-success-border)] data-[sot-tone=ready]:bg-[var(--source-provider-status-success-bg)] data-[sot-tone=ready]:text-[var(--signal-success)] data-[sot-tone=selected]:border-primary/30 data-[sot-tone=selected]:bg-primary/10 data-[sot-tone=selected]:text-primary [&>svg]:size-[11px] [&>svg]:stroke-2";
+    "h-[22px] justify-normal gap-[5px] overflow-visible rounded-full border px-[8px] py-0 text-[11px] font-semibold shadow-none data-[sot-tone=missing]:border-border data-[sot-tone=missing]:bg-secondary data-[sot-tone=missing]:text-secondary-foreground data-[sot-tone=ready]:border-primary/30 data-[sot-tone=ready]:bg-primary/10 data-[sot-tone=ready]:text-primary data-[sot-tone=selected]:border-primary/30 data-[sot-tone=selected]:bg-primary/10 data-[sot-tone=selected]:text-primary [&>svg]:size-[11px] [&>svg]:stroke-2";
 const SPEAKER_REVIEW_ACTION_BUTTON_CLASS_NAME = "text-[var(--fg-primary)]";
 const SPEAKER_REVIEW_PRIMARY_BUTTON_CLASS_NAME = "shadow-xs";
 const SPEAKER_REVIEW_GHOST_BUTTON_CLASS_NAME =
@@ -1038,19 +1038,11 @@ export function SpeakerLabelEditor({
                                                 setIsMergePopoverOpen(false)
                                             }
                                         >
-                                            <svg
+                                            <X
                                                 className="size-[17px] translate-x-[-0.5px] translate-y-[-0.5px]"
-                                                viewBox="0 0 24 24"
-                                                fill="none"
-                                                stroke="currentColor"
-                                                strokeWidth={1.8}
-                                                strokeLinecap="round"
-                                                strokeLinejoin="round"
                                                 aria-hidden="true"
                                                 focusable="false"
-                                            >
-                                                <path d="M18 6 6 18M6 6l12 12" />
-                                            </svg>
+                                            />
                                         </Button>
                                     </CardAction>
                                 </SpeakerReviewCardHeader>

@@ -1,4 +1,4 @@
-/* biome-ignore-all lint/suspicious/noDuplicateCustomProperties: SOT tokens intentionally declare RGB fallbacks first, then OKLCH defaults for supporting browsers. */
+/* biome-ignore-all lint/suspicious/noDuplicateCustomProperties: BetterAINote semantic app tokens keep RGB fallbacks before OKLCH defaults for shadcn theme mappings. */
 @import "tailwindcss";
 @import "tw-animate-css";
 @custom-variant dark (&:is([data-theme="dark"] *));
@@ -71,102 +71,6 @@
     --signal-danger: oklch(0.585 0.18 25);
     --signal-info: rgb(65 134 164);
     --signal-info: oklch(0.62 0.09 224);
-    --system-banner-neutral-icon-bg: rgb(132 145 153 / 0.12);
-    --system-banner-neutral-icon-bg: color-mix(
-        in srgb,
-        var(--fg-tertiary) 12%,
-        transparent
-    );
-    --system-banner-offline-bg: rgb(245 241 234);
-    --system-banner-offline-bg: color-mix(
-        in srgb,
-        var(--signal-warning) 8%,
-        var(--bg-elevated)
-    );
-    --system-banner-offline-border: rgb(184 130 27 / 0.28);
-    --system-banner-offline-border: color-mix(
-        in srgb,
-        var(--signal-warning) 28%,
-        transparent
-    );
-    --system-banner-offline-icon-bg: rgb(184 130 27 / 0.16);
-    --system-banner-offline-icon-bg: color-mix(
-        in srgb,
-        var(--signal-warning) 16%,
-        transparent
-    );
-    --system-banner-danger-bg: rgb(247 236 236);
-    --system-banner-danger-bg: color-mix(
-        in srgb,
-        var(--signal-danger) 8%,
-        var(--bg-elevated)
-    );
-    --system-banner-danger-border: rgb(210 65 53 / 0.28);
-    --system-banner-danger-border: color-mix(
-        in srgb,
-        var(--signal-danger) 28%,
-        transparent
-    );
-    --system-banner-danger-icon-bg: rgb(210 65 53 / 0.14);
-    --system-banner-danger-icon-bg: color-mix(
-        in srgb,
-        var(--signal-danger) 14%,
-        transparent
-    );
-    --system-banner-update-bg: rgb(233 240 244);
-    --system-banner-update-bg: color-mix(
-        in srgb,
-        var(--signal-info) 9%,
-        var(--bg-elevated)
-    );
-    --system-banner-update-border: rgb(65 134 164 / 0.28);
-    --system-banner-update-border: color-mix(
-        in srgb,
-        var(--signal-info) 28%,
-        transparent
-    );
-    --system-banner-update-icon-bg: rgb(65 134 164 / 0.16);
-    --system-banner-update-icon-bg: color-mix(
-        in srgb,
-        var(--signal-info) 16%,
-        transparent
-    );
-    --system-banner-progress-bg: rgb(239 244 247);
-    --system-banner-progress-bg: color-mix(
-        in srgb,
-        var(--signal-info) 6%,
-        var(--bg-elevated)
-    );
-    --system-banner-progress-border: rgb(65 134 164 / 0.22);
-    --system-banner-progress-border: color-mix(
-        in srgb,
-        var(--signal-info) 22%,
-        transparent
-    );
-    --system-banner-progress-icon-bg: rgb(65 134 164 / 0.14);
-    --system-banner-progress-icon-bg: color-mix(
-        in srgb,
-        var(--signal-info) 14%,
-        transparent
-    );
-    --system-banner-progress-track: rgb(132 145 153 / 0.14);
-    --system-banner-progress-track: color-mix(
-        in srgb,
-        var(--fg-tertiary) 14%,
-        transparent
-    );
-    --system-banner-progress-indeterminate-track: rgb(65 134 164 / 0.12);
-    --system-banner-progress-indeterminate-track: color-mix(
-        in srgb,
-        var(--signal-info) 12%,
-        transparent
-    );
-    --system-banner-progress-indeterminate-bg: linear-gradient(
-        90deg,
-        transparent,
-        var(--signal-info) 50%,
-        transparent
-    );
     --tag-blue: rgb(69 125 178);
     --tag-blue: oklch(0.58 0.13 235);
     --tag-violet: rgb(126 95 188);
@@ -198,7 +102,6 @@
     --button-pill-height: 24px;
     --button-compact-height: 26px;
     --icon-compact-size: 22px;
-    --icon-chip-size: 16px;
     --input-compact-border: var(--line-hairline);
     --input-compact-bg: var(--bg-recessed);
     --alert-destructive-soft-bg: rgb(201 73 78 / 0.1);
@@ -704,19 +607,8 @@ button:not([data-slot]) {
     --z-toast: 700; /* toasts above everything */
 }
 
-/* ======== Dialog overlay + shadcn modal slots ======== */
-@keyframes bpulse {
-    0%,
-    100% {
-        opacity: 1;
-    }
-    50% {
-        opacity: 0.45;
-    }
-}
-
 /* ====================================================================
-   Functional-only compatibility rules.
+   Runtime data-attribute compatibility hooks.
    Kept properties: display/position/top/right/bottom/left/inset/
    visibility/z-index/overflow/pointer-events. No visual styling.
    ==================================================================== */
@@ -735,6 +627,9 @@ button:not([data-slot]) {
 [data-detail-empty] {
     display: none;
 }
+[data-detail-empty][hidden] {
+    display: none;
+}
 [data-sot-panel="dashboard-detail"][data-empty="true"]
     [data-sot-panel="dashboard-detail-header"] {
     display: none;
@@ -742,47 +637,19 @@ button:not([data-slot]) {
 [data-sot-panel="dashboard-detail"][data-empty="true"] [data-detail-empty] {
     display: flex;
 }
-/* ============================================================
-   Visual layer for migrated index.html surfaces.
-   Functional rules above already handle display/position/hidden;
-   these rules give them BetterAINote chrome: tokens-only, no
-   new color or spacing system. Ordered: popovers → sidebar
-   source states → list filter strips → source-report tab →
-   retx / more / tag manager → settings save/banner/voscript →
-   misc (toast, empty, list-state-block).
-   ============================================================ */
 
-@keyframes spin {
-    to {
-        transform: rotate(360deg);
+/* ============================================================
+   Shared keyframes used by component-owned animation classes.
+   ============================================================ */
+@keyframes bpulse {
+    0%,
+    100% {
+        opacity: 1;
+    }
+    50% {
+        opacity: 0.45;
     }
 }
-
-/* The retry pill replaces the count on hover only — already wired by functional rules. Hidden by default. */
-
-/* ---------- Settings panel: field groups, banners, save state, voscript ---------- */
-[data-detail-empty][hidden] {
-    display: none;
-}
-
-/* ============================================================
-   Static state hooks for runtime-driven values — replaces the
-   prior imperative style mutation.
-   These rules let JS just set data-* attributes; the actual
-   width/transform/positioning lives here.
-   ============================================================ */
-
-/* Speaker bars — discrete percent buckets (0..100) -------- */
-
-/* ============================================================
-   Popover positioning — fixed presets (no JS pixel math).
-   The prototype hosts each popover next to a positioned
-   anchor or, when body-mounted (tag manager), at a fixed slot.
-   ============================================================ */
-
-/* ============================================================
-   SystemBanner — primitive-owned surface.
-   ============================================================ */
 [data-sot-panel="system-banner"] + [data-sot-panel="system-banner"] {
     margin-top: 8px;
 }

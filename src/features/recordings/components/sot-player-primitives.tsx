@@ -315,7 +315,7 @@ const PLAYER_NO_AUDIO_TEXT_CLASS = "flex min-w-0 flex-col gap-px";
 
 type SotPlayerNoAudioAlertProps = Omit<
     React.ComponentProps<typeof Alert>,
-    "children" | "density" | "layout" | "variant"
+    "children" | "density" | "layout" | "style" | "variant"
 > & {
     descriptionPart: string;
     iconPart: string;
@@ -331,7 +331,6 @@ export function SotPlayerNoAudioAlert({
     iconPart,
     part,
     playbackDisabled,
-    style,
     textPart,
     titlePart,
     ...props
@@ -347,7 +346,6 @@ export function SotPlayerNoAudioAlert({
             data-sot-state={playbackDisabled ? "visible" : "hidden"}
             hidden={!playbackDisabled}
             role="status"
-            style={style}
         >
             <VolumeX data-icon="inline-start" data-sot-part={iconPart} />
             <span

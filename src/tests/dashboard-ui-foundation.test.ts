@@ -151,7 +151,7 @@ const DASHBOARD_RECORDING_PLAYER_WORKSTATION_CLASS_INITIALIZERS = [
     {
         constName: "SOT_DASHBOARD_RECORDING_PLAYER_DATE_CLASS_NAME",
         expected:
-            "font-mono text-[11.5px] font-medium tracking-[0.02em] text-muted-foreground",
+            "translate-y-px font-mono text-[11.5px] font-medium tracking-[0.02em] text-muted-foreground",
     },
 ] as const;
 const DASHBOARD_RECORDING_PLAYER_CONTROLS_CLASS_INITIALIZERS = [
@@ -1296,7 +1296,19 @@ const DASHBOARD_SPEAKER_PANE_OWNER_CLASS_TOKENS = [
     'name: "truncate font-sans text-[13px] font-semibold text-[var(--fg-primary)]"',
     'sub: "font-mono text-[11.5px] font-medium text-[var(--fg-tertiary)]"',
     'bar: "block h-1 w-full overflow-hidden rounded-full bg-[var(--bg-recessed)]"',
-    "[width:var(--dashboard-speaker-share,0%)]",
+    'barFill: "block h-full rounded-full bg-[var(--accent)]"',
+] as const;
+
+const DASHBOARD_SPEAKER_SHARE_CLASS_TOKENS = [
+    "DASHBOARD_SPEAKER_SHARE_CLASS_NAMES",
+    '"w-[24%]"',
+    '"w-[36%]"',
+    '"w-[48%]"',
+    '"w-[60%]"',
+    '"w-[72%]"',
+    '"w-[84%]"',
+    '"w-[96%]"',
+    '"w-full"',
 ] as const;
 
 const SOURCE_REPORT_SKELETON_SHARED_TOKENS = [
@@ -4620,22 +4632,22 @@ describe("dashboard SOT foundation", () => {
         expect(badgePrimitive).not.toContain("dashboard-recording-status");
         expect(badgePrimitive).not.toContain("dashboard-recording-status-dot");
         for (const dashboardStatusToken of [
-            "data-[sot-tone=ok]:border-[var(--button-copy-success-border)]",
-            "data-[sot-tone=ok]:bg-[var(--button-copy-success-bg)]",
-            "data-[sot-tone=ok]:text-[var(--signal-success)]",
-            "data-[sot-tone=warn]:border-[var(--system-banner-offline-border)]",
-            "data-[sot-tone=warn]:bg-[var(--system-banner-offline-icon-bg)]",
-            "data-[sot-tone=warn]:text-[var(--signal-warning-strong)]",
-            "data-[sot-tone=err]:border-[var(--alert-destructive-soft-border)]",
-            "data-[sot-tone=err]:bg-[var(--alert-destructive-soft-bg)]",
-            "data-[sot-tone=err]:text-[var(--signal-danger)]",
-            "data-[sot-tone=info]:border-[var(--system-banner-progress-border)]",
-            "data-[sot-tone=info]:bg-[var(--system-banner-progress-icon-bg)]",
-            "data-[sot-tone=info]:text-[var(--signal-info)]",
-            "data-[sot-tone=neu]:border-[var(--line-hairline)]",
-            "data-[sot-tone=neu]:bg-[var(--bg-recessed)]",
-            "data-[sot-tone=neu]:text-[var(--fg-secondary)]",
-            "data-[sot-tone=neu]:[&_[data-sot-part=dashboard-recording-status-dot]]:bg-[var(--fg-tertiary)]",
+            "data-[sot-tone=ok]:border-primary/30",
+            "data-[sot-tone=ok]:bg-primary/10",
+            "data-[sot-tone=ok]:text-primary",
+            "data-[sot-tone=warn]:border-border",
+            "data-[sot-tone=warn]:bg-secondary",
+            "data-[sot-tone=warn]:text-secondary-foreground",
+            "data-[sot-tone=err]:border-destructive/30",
+            "data-[sot-tone=err]:bg-destructive/10",
+            "data-[sot-tone=err]:text-destructive",
+            "data-[sot-tone=info]:border-primary/30",
+            "data-[sot-tone=info]:bg-primary/10",
+            "data-[sot-tone=info]:text-primary",
+            "data-[sot-tone=neu]:border-border",
+            "data-[sot-tone=neu]:bg-muted",
+            "data-[sot-tone=neu]:text-muted-foreground",
+            "data-[sot-tone=neu]:[&_[data-sot-part=dashboard-recording-status-dot]]:bg-muted-foreground",
             "[&_[data-sot-part=dashboard-recording-status-dot]]:size-[5px]",
             "[&_[data-sot-part=dashboard-recording-status-dot]]:rounded-full",
             "[&_[data-sot-part=dashboard-recording-status-dot]]:bg-current",
@@ -4901,6 +4913,9 @@ describe("dashboard SOT foundation", () => {
         for (const token of DASHBOARD_SPEAKER_PANE_OWNER_CLASS_TOKENS) {
             expect(dashboardSpeakerPaneClassNames).toContain(token);
         }
+        for (const token of DASHBOARD_SPEAKER_SHARE_CLASS_TOKENS) {
+            expect(workstation).toContain(token);
+        }
         expectClassNameConstReference(
             dashboardTranscriptLoadingTurn,
             "dashboardTranscriptClassNames.turn",
@@ -4988,12 +5003,13 @@ describe("dashboard SOT foundation", () => {
             dashboardSpeakerBar,
             "dashboardSpeakerPaneClassNames.bar",
         );
-        expectClassNameConstReference(
-            dashboardSpeakerBarFill,
+        expectCnClassNameReferences(dashboardSpeakerBarFill, [
             "dashboardSpeakerPaneClassNames.barFill",
-        );
-        expect(dashboardSpeakerBar).toContain(
-            `"--dashboard-speaker-share": \`\${speakerBarPct}%\``,
+            "getDashboardSpeakerShareClassName",
+        ]);
+        expect(dashboardSpeakerBar).not.toContain("style=");
+        expect(workstation).not.toContain(
+            ["--dashboard", "speaker-share"].join("-"),
         );
         const transcriptLanguageBadge = extractOpeningElement(
             workstation,
@@ -5645,9 +5661,26 @@ describe("dashboard SOT foundation", () => {
         expect(banner).toContain("const systemBannerIconStateClassNames");
         expect(banner).toContain("const systemBannerButtonClassNames");
         expect(banner).toContain("const systemBannerProgressClassNames");
+        expect(banner).toContain('} from "lucide-react";');
+        for (const systemBannerIcon of [
+            "Download",
+            "LockKeyhole",
+            "Package",
+            "Search",
+            "ShieldX",
+            "Upload",
+            "WifiOff",
+            "X",
+        ]) {
+            expect(banner).toContain(systemBannerIcon);
+        }
         expect(banner).not.toContain("[--system-banner");
         expect(banner).not.toContain("border-[var(--system-banner-border)]");
         expect(banner).not.toContain("bg-[var(--system-banner-bg)]");
+        expect(banner).not.toContain("SVGProps");
+        expect(banner).not.toContain("<svg");
+        expect(banner).not.toContain("a11y-ignore");
+        expect(banner).not.toContain("biome-ignore lint/a11y/noSvgWithoutTitle");
         expect(banner).toContain(
             'offline: "border-border bg-secondary text-secondary-foreground"',
         );
@@ -5742,14 +5775,14 @@ describe("dashboard SOT foundation", () => {
         expect(banner).toContain("systemBannerButtonClassNames.actionSize");
         expect(banner).toContain("systemBannerButtonClassNames.dismissSize");
         expect(banner).toMatch(
-            /data-sot-control="system-banner-dismiss-action"[\s\S]*<CloseIcon\s+data-icon="inline-start"\s+aria-hidden="true"\s*\/>/,
+            /data-sot-control="system-banner-dismiss-action"[\s\S]*<X\s+data-icon="inline-start"\s+aria-hidden="true"\s*\/>/,
         );
         expect(banner).not.toContain("btn ghost btn-sm");
         expect(banner).toContain("<SystemBannerIcon");
         expect(banner).toContain("visibleBanners.length === 0");
         expect(banner).toContain('banner.state === "update-available"');
         expect(banner).toContain("window.location.reload()");
-        expect(banner).not.toContain("lucide-react");
+        expect(banner).not.toContain("CloseIcon");
         expect(banner).not.toContain("data-system-banner");
         expect(banner).not.toMatch(OLD_UI_RE);
         expect(alertPrimitive).not.toContain('"systemBanner"');

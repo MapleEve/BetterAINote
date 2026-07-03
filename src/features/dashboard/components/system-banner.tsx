@@ -1,6 +1,16 @@
 "use client";
 
-import { type ReactNode, type SVGProps, useEffect, useState } from "react";
+import {
+    Download,
+    LockKeyhole,
+    Package,
+    Search,
+    ShieldX,
+    Upload,
+    WifiOff,
+    X,
+} from "lucide-react";
+import { type ReactNode, useEffect, useState } from "react";
 import { useLanguage } from "@/components/language-provider";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Button, type ButtonProps } from "@/components/ui/button";
@@ -285,137 +295,30 @@ function getDefaultActions(
 }
 
 function SystemBannerIcon({
-    isStacked,
     indeterminate,
     state,
 }: {
-    isStacked: boolean;
     indeterminate: boolean | undefined;
     state: SystemBannerState;
 }) {
     if (state === "import-progress" && indeterminate) {
-        return (
-            // biome-ignore lint/a11y/noSvgWithoutTitle: SOT icon SVG is hidden by the data-sot icon wrapper.
-            <svg viewBox="0 0 24 24">
-                <circle key="lens" cx="11" cy="11" r="8" />
-                <path key="handle" d="m21 21-4.35-4.35" />
-            </svg>
-        );
+        return <Search aria-hidden="true" />;
     }
 
     switch (state) {
         case "offline":
-            if (isStacked) {
-                return (
-                    // biome-ignore lint/a11y/noSvgWithoutTitle: SOT icon SVG is hidden by the data-sot icon wrapper.
-                    <svg viewBox="0 0 24 24">
-                        <path key="top-wave" d="M2 12s4-7 10-7" />
-                        <path key="bottom-wave" d="M22 12s-4 7-10 7" />
-                        <path key="slash" d="M2 2l20 20" />
-                    </svg>
-                );
-            }
-            return (
-                // biome-ignore lint/a11y/noSvgWithoutTitle: SOT icon SVG is hidden by the data-sot icon wrapper.
-                <svg viewBox="0 0 24 24">
-                    <path key="top-wave" d="M2 12s4-7 10-7c2.3 0 4.4.9 6 2.2" />
-                    <path
-                        key="bottom-wave"
-                        d="M22 12s-4 7-10 7c-2.3 0-4.4-.9-6-2.2"
-                    />
-                    <path key="slash" d="M2 2l20 20" />
-                </svg>
-            );
+            return <WifiOff aria-hidden="true" />;
         case "permission-denied":
-            return (
-                // biome-ignore lint/a11y/noSvgWithoutTitle: SOT icon SVG is hidden by the data-sot icon wrapper.
-                <svg viewBox="0 0 24 24">
-                    <rect
-                        key="body"
-                        x="3"
-                        y="11"
-                        width="18"
-                        height="11"
-                        rx="2"
-                    />
-                    <path key="shackle" d="M7 11V7a5 5 0 0 1 10 0v4" />
-                    <path key="slash" d="M2 2l20 20" />
-                </svg>
-            );
+            return <ShieldX aria-hidden="true" />;
         case "db-locked":
-            return (
-                // biome-ignore lint/a11y/noSvgWithoutTitle: SOT icon SVG is hidden by the data-sot icon wrapper.
-                <svg viewBox="0 0 24 24">
-                    <rect
-                        key="body"
-                        x="3"
-                        y="11"
-                        width="18"
-                        height="11"
-                        rx="2"
-                    />
-                    <path key="shackle" d="M7 11V7a5 5 0 0 1 10 0v4" />
-                </svg>
-            );
+            return <LockKeyhole aria-hidden="true" />;
         case "update-available":
-            if (isStacked) {
-                return (
-                    // biome-ignore lint/a11y/noSvgWithoutTitle: SOT icon SVG is hidden by the data-sot icon wrapper.
-                    <svg viewBox="0 0 24 24">
-                        <polyline key="tray" points="21 8 21 21 3 21 3 8" />
-                        <rect key="box" x="1" y="3" width="22" height="5" />
-                    </svg>
-                );
-            }
-            return (
-                // biome-ignore lint/a11y/noSvgWithoutTitle: SOT icon SVG is hidden by the data-sot icon wrapper.
-                <svg viewBox="0 0 24 24">
-                    <polyline key="tray" points="21 8 21 21 3 21 3 8" />
-                    <rect key="box" x="1" y="3" width="22" height="5" />
-                    <line key="mark" x1="10" y1="12" x2="14" y2="12" />
-                </svg>
-            );
+            return <Package aria-hidden="true" />;
         case "import-progress":
-            return (
-                // biome-ignore lint/a11y/noSvgWithoutTitle: SOT icon SVG is hidden by the data-sot icon wrapper.
-                <svg viewBox="0 0 24 24">
-                    <path
-                        key="tray"
-                        d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"
-                    />
-                    <polyline key="arrow-head" points="17 8 12 3 7 8" />
-                    <line key="arrow-stem" x1="12" y1="3" x2="12" y2="15" />
-                </svg>
-            );
+            return <Upload aria-hidden="true" />;
         case "export-progress":
-            return (
-                // biome-ignore lint/a11y/noSvgWithoutTitle: SOT icon SVG is hidden by the data-sot icon wrapper.
-                <svg viewBox="0 0 24 24">
-                    <path
-                        key="tray"
-                        d="M3 9v10a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V9"
-                    />
-                    <polyline key="arrow-head" points="7 16 12 21 17 16" />
-                    <line key="arrow-stem" x1="12" y1="3" x2="12" y2="21" />
-                </svg>
-            );
+            return <Download aria-hidden="true" />;
     }
-}
-
-function CloseIcon(props: SVGProps<SVGSVGElement>) {
-    return (
-        // biome-ignore lint/a11y/noSvgWithoutTitle: SOT close icon is inside a button with aria-label.
-        <svg
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            {...props}
-        >
-            <path d="M18 6 6 18M6 6l12 12" />
-        </svg>
-    );
 }
 
 function SystemBannerAlert({
@@ -650,7 +553,6 @@ function SystemBannerItem({
                 aria-hidden="true"
             >
                 <SystemBannerIcon
-                    isStacked={isStacked}
                     indeterminate={banner.indeterminate}
                     state={banner.state}
                 />
@@ -720,10 +622,7 @@ function SystemBannerItem({
                         tone="dismiss"
                         type="button"
                     >
-                        <CloseIcon
-                            data-icon="inline-start"
-                            aria-hidden="true"
-                        />
+                        <X data-icon="inline-start" aria-hidden="true" />
                     </SystemBannerButton>
                 ) : null}
             </div>

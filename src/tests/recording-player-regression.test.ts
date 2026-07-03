@@ -241,6 +241,11 @@ function expectSotPlayerNoAudioPrimitiveBindings(source: string) {
     );
     expect(noAudioAlert).toContain("hidden={!playbackDisabled}");
     expect(noAudioAlert).toContain('role="status"');
+    expect(noAudioAlert).not.toContain("style=");
+    expect(source).toContain(
+        '"children" | "density" | "layout" | "style" | "variant"',
+    );
+    expect(source).not.toContain("style={style}");
     expect(noAudioIcon).toContain("data-sot-part={iconPart}");
     expectClassNameConstReference(noAudioText, "PLAYER_NO_AUDIO_TEXT_CLASS");
     expect(noAudioText).toContain("data-player-no-audio-text");

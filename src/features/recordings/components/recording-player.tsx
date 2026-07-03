@@ -8,7 +8,7 @@ import {
     Volume2,
     VolumeX,
 } from "lucide-react";
-import type { CSSProperties, ReactNode } from "react";
+import type { ReactNode } from "react";
 import { useEffect, useState } from "react";
 import { useLanguage } from "@/components/language-provider";
 import { Button } from "@/components/ui/button";
@@ -41,11 +41,6 @@ interface RecordingPlayerProps {
     tagManagerPanel?: ReactNode;
     onEnded?: () => void;
 }
-
-const sotPlayerFontVariables: CSSProperties & { "--font-mono": string } = {
-    "--font-mono":
-        'ui-monospace, "SF Mono", "JetBrains Mono", Menlo, Monaco, Consolas, "Liberation Mono", monospace',
-};
 
 const RECORDING_PLAYER_META_CLASS_NAME = "flex flex-wrap items-center gap-2.5";
 
@@ -145,7 +140,6 @@ export function RecordingPlayer({
             data-playing={isPlaying ? "true" : undefined}
             data-sot-state={playbackDisabled ? "disabled" : "ready"}
             data-sot-surface="recording-player"
-            style={sotPlayerFontVariables}
         >
             <SotPlayerNoAudioAlert
                 part="recording-player-no-audio"

@@ -447,7 +447,7 @@ const DASHBOARD_RECORDING_PLAYER_WORKSTATION_CLASS_INITIALIZERS = [
     {
         constName: "SOT_DASHBOARD_RECORDING_PLAYER_DATE_CLASS_NAME",
         expected:
-            "font-mono text-[11.5px] font-medium tracking-[0.02em] text-muted-foreground",
+            "translate-y-px font-mono text-[11.5px] font-medium tracking-[0.02em] text-muted-foreground",
     },
 ] as const;
 const DASHBOARD_RECORDING_PLAYER_CONTROLS_CLASS_INITIALIZERS = [
@@ -2449,6 +2449,7 @@ const SYSTEM_BANNER_PROGRESS_PRIMITIVE_RETIRED_TOKENS = [
 ];
 
 const SYSTEM_BANNER_FEATURE_LOCAL_TOKENS = [
+    '} from "lucide-react";',
     "const systemBannerAlertVariantByState",
     "const systemBannerAlertClassNames",
     "const systemBannerAlertStateClassNames",
@@ -4224,8 +4225,14 @@ describe("full UI replacement regression coverage", () => {
         expect(toggleGroup).not.toContain("tone:");
         expect(toggleGroup).not.toContain("data-tone=");
         expect(tagManager).toContain("RECORDING_TAG_SWATCH_ITEM_CLASS_NAME");
-        expect(tagManager).toContain("RECORDING_TAG_COLOR_TOKEN_CLASS_NAME");
-        expect(tagManager).toContain("RECORDING_TAG_SWATCH_COLOR_CLASS_NAME");
+        expect(tagManager).toContain(
+            "recordingTagTextColorClassName[tag.color]",
+        );
+        expect(tagManager).toContain("recordingTagSwatchColorClassName[item]");
+        expect(tagManager).not.toContain(
+            "RECORDING_TAG_COLOR_TOKEN_CLASS_NAME",
+        );
+        expect(tagManager).not.toContain("--recording-tag-accent");
         expect(tagManager).not.toContain(
             "recordingTagManagerSwatchToneClassNames",
         );
@@ -4241,21 +4248,7 @@ describe("full UI replacement regression coverage", () => {
         expect(tagManager).toContain(
             "data-[state=on]:shadow-[inset_0_0_0_2px_var(--background)]",
         );
-        for (const [tone, token] of [
-            ["blue", "--tag-blue"],
-            ["green", "--tag-green"],
-            ["orange", "--tag-amber"],
-            ["purple", "--tag-violet"],
-            ["red", "--tag-rose"],
-            ["slate", "--tag-slate"],
-        ]) {
-            expect(tagManager).toContain(
-                `data-[sot-tag-color=${tone}]:[--recording-tag-accent:var(${token})]`,
-            );
-        }
-        expect(tagManager).toContain(
-            "!bg-[var(--recording-tag-accent)]",
-        );
+        expect(tagManager).not.toContain("!bg-[var(--recording-tag-accent)]");
         expect(tagManager).toContain("data-sot-tag-color={item}");
         expect(tagManager).toContain("data-sot-tag-color={tag.color}");
         expect(
@@ -4818,8 +4811,13 @@ describe("full UI replacement regression coverage", () => {
         );
         expect(tagManager).toContain('size="icon-xs"');
         expect(tagManager).toContain(
-            "size-[var(--icon-chip-size)] shrink-0 rounded-full p-0 text-muted-foreground hover:bg-muted hover:text-foreground",
+            "x size-4 shrink-0 rounded-full p-0 text-muted-foreground hover:bg-muted hover:text-foreground",
         );
+        expect(tagManager).toContain(
+            "tagm-close size-5 shrink-0 text-muted-foreground hover:bg-muted hover:text-foreground",
+        );
+        expect(tagManager).not.toContain("size-[var(--icon-chip-size)]");
+        expect(tagManager).not.toContain("size-[var(--icon-compact-size)]");
         expect(tagManager).not.toContain("[&_svg]:invisible");
         expect(tagManager).toContain('className="invisible"');
         expect(button).not.toContain("accentSelf");
@@ -6060,11 +6058,28 @@ describe("full UI replacement regression coverage", () => {
         expect(banner).toContain(
             'import { Progress } from "@/components/ui/progress";',
         );
+        expect(banner).toContain('} from "lucide-react";');
+        for (const systemBannerIcon of [
+            "Download",
+            "LockKeyhole",
+            "Package",
+            "Search",
+            "ShieldX",
+            "Upload",
+            "WifiOff",
+            "X",
+        ]) {
+            expect(banner).toContain(systemBannerIcon);
+        }
         expect(banner).toContain("function SystemBannerAlert");
         expect(banner).toContain("function SystemBannerButton");
         expect(banner).toContain("function SystemBannerProgress");
         expect(banner).not.toContain("[--system-banner");
         expect(banner).not.toContain("border-[var(--system-banner-border)]");
+        expect(banner).not.toContain("SVGProps");
+        expect(banner).not.toContain("<svg");
+        expect(banner).not.toContain("a11y-ignore");
+        expect(banner).not.toContain("biome-ignore lint/a11y/noSvgWithoutTitle");
         expect(banner).toContain(
             "variant={systemBannerAlertVariantByState[banner.state]}",
         );
@@ -6113,8 +6128,9 @@ describe("full UI replacement regression coverage", () => {
         expect(banner).not.toMatch(/<section[\s>]/);
         expect(banner).not.toContain('data-slot="system-banner"');
         expect(banner).toMatch(
-            /<CloseIcon\s+data-icon="inline-start"\s+aria-hidden="true"\s*\/>/,
+            /<X\s+data-icon="inline-start"\s+aria-hidden="true"\s*\/>/,
         );
+        expect(banner).not.toContain("CloseIcon");
     });
 
     it("keeps more actions menu styling owned by DropdownMenu primitives", () => {
@@ -8268,23 +8284,26 @@ describe("full UI replacement regression coverage", () => {
             "data-sot-part=dashboard-recording-status-dot",
         );
         expect(dashboardRecordingStatusBadgeClass).toContain(
-            "data-[sot-tone=ok]:text-[var(--signal-success)]",
+            "data-[sot-tone=ok]:text-primary",
         );
         for (const dashboardStatusToken of [
             "rounded-[999px]",
-            "data-[sot-tone=ok]:border-[var(--button-copy-success-border)]",
-            "data-[sot-tone=ok]:bg-[var(--button-copy-success-bg)]",
-            "data-[sot-tone=warn]:border-[var(--system-banner-offline-border)]",
-            "data-[sot-tone=warn]:bg-[var(--system-banner-offline-icon-bg)]",
-            "data-[sot-tone=err]:border-[var(--alert-destructive-soft-border)]",
-            "data-[sot-tone=err]:bg-[var(--alert-destructive-soft-bg)]",
-            "data-[sot-tone=info]:border-[var(--system-banner-progress-border)]",
-            "data-[sot-tone=info]:bg-[var(--system-banner-progress-icon-bg)]",
+            "data-[sot-tone=ok]:border-primary/30",
+            "data-[sot-tone=ok]:bg-primary/10",
+            "data-[sot-tone=warn]:border-border",
+            "data-[sot-tone=warn]:bg-secondary",
+            "data-[sot-tone=err]:border-destructive/30",
+            "data-[sot-tone=err]:bg-destructive/10",
+            "data-[sot-tone=info]:border-primary/30",
+            "data-[sot-tone=info]:bg-primary/10",
         ]) {
             expect(dashboardRecordingStatusBadgeClass).toContain(
                 dashboardStatusToken,
             );
         }
+        expect(dashboardRecordingStatusBadgeClass).not.toContain(
+            "--system-banner-",
+        );
         expect(
             collectCssRuleBlocks(
                 globals,
@@ -10858,6 +10877,7 @@ describe("full UI replacement regression coverage", () => {
         expect(aiRenamePreview).not.toContain("![box-shadow:");
         expect(aiRenamePreview).not.toMatch(/\bAI_RENAME_[A-Z0-9_]+_CLASS\b/);
         expect(aiRenamePreview).not.toMatch(/--ai-rename-[\w-]+/);
+        expect(aiRenamePreview).not.toContain("--system-banner-");
         expect(aiRenamePreview).not.toMatch(
             /(^|[\s"'`])ai-rename-panel($|[\s"'`])/,
         );
@@ -11896,6 +11916,15 @@ describe("full UI replacement regression coverage", () => {
             ";",
         );
         expect(speakerReviewVoiceprintBadgeClass).toContain("h-[22px]");
+        expect(speakerReviewVoiceprintBadgeClass).not.toContain(
+            "--source-provider-status-",
+        );
+        expect(speakerReviewVoiceprintBadgeClass).toContain(
+            "data-[sot-tone=missing]:bg-secondary",
+        );
+        expect(speakerReviewVoiceprintBadgeClass).toContain(
+            "data-[sot-tone=ready]:bg-primary/10",
+        );
         for (const selector of SPEAKER_REVIEW_RESIDUAL_GLOBAL_SELECTORS) {
             expect(globals).not.toContain(selector);
         }
@@ -13651,7 +13680,7 @@ describe("full UI replacement regression coverage", () => {
             "RECORDING_TAG_SWATCH_ITEM_CLASS_NAME",
         );
         expect(tagManagerColorPicker).toContain(
-            "RECORDING_TAG_SWATCH_COLOR_CLASS_NAME",
+            "recordingTagSwatchColorClassName[item]",
         );
         expect(tagManagerColorPicker).toContain("data-sot-tag-color={item}");
         expect(tagManagerColorPicker).not.toContain('variant="swatch"');
@@ -13854,11 +13883,17 @@ describe("full UI replacement regression coverage", () => {
         expect(tagManager).toContain('size="icon-compact"');
         expect(tagManager).not.toContain('size="swatch"');
         expect(tagManager).toContain("RECORDING_TAG_SWATCH_ITEM_CLASS_NAME");
-        expect(tagManager).toContain("RECORDING_TAG_SWATCH_COLOR_CLASS_NAME");
-        expect(tagManager).toContain("RECORDING_TAG_COLOR_TOKEN_CLASS_NAME");
+        expect(tagManager).toContain(
+            "recordingTagTextColorClassName[tag.color]",
+        );
+        expect(tagManager).toContain("recordingTagSwatchColorClassName[item]");
+        expect(tagManager).not.toContain(
+            "RECORDING_TAG_COLOR_TOKEN_CLASS_NAME",
+        );
         expect(tagManager).toContain("h-[22px] justify-normal gap-1");
         expect(tagManager).toContain("bg-muted");
-        expect(tagManager).toContain("text-[var(--recording-tag-accent)]");
+        expect(tagManager).not.toContain("text-[var(--recording-tag-accent)]");
+        expect(tagManager).not.toContain("--recording-tag-accent");
         expect(tagManager).not.toContain("--badge-pill-height");
         expect(tagManager).not.toContain("--badge-check-bg");
         expect(globals).not.toContain("--badge-pill-height");
@@ -14628,19 +14663,26 @@ describe("full UI replacement regression coverage", () => {
         expect(sharedRecordingTagChip).not.toContain(
             'variant="recordingTagChip"',
         );
-        expect(sharedRecordingTagChip).toContain(
-            "className={recordingTagChipClassName}",
+        expect(sharedRecordingTagChip).toContain("className={cn(");
+        expect(sharedRecordingTagChip).toContain("recordingTagChipClassName,");
+        expect(recordingTagVisuals).toContain(
+            "recordingTagTextColorClassName[tag.color]",
         );
         expect(recordingTagVisuals).toContain(
-            "recordingTagChipVariablesClassName",
+            "satisfies Record<RecordingTagIcon, LucideIcon>",
         );
         for (const recordingTagChipToken of [
             "--sot-player-tag-chip-bg",
             "--sot-player-tag-chip-border",
             "--sot-player-tag-chip-fg",
         ]) {
-            expect(recordingTagVisuals).toContain(recordingTagChipToken);
+            expect(recordingTagVisuals).not.toContain(recordingTagChipToken);
         }
+        expect(recordingTagVisuals).not.toContain(
+            "recordingTagChipVariablesClassName",
+        );
+        expect(recordingTagVisuals).not.toContain("recordingTagIconPaths");
+        expect(recordingTagVisuals).not.toContain("<svg");
         expect(sharedRecordingTagChip).toContain(
             "data-sot-tag-color={tag.color}",
         );

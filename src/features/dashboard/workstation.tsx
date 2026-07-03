@@ -28,7 +28,6 @@ import {
 } from "lucide-react";
 import Image from "next/image";
 import {
-    type CSSProperties,
     Fragment,
     type KeyboardEvent as ReactKeyboardEvent,
     type ReactNode,
@@ -475,9 +474,25 @@ const dashboardSpeakerPaneClassNames = {
     sub: "font-mono text-[11.5px] font-medium text-[var(--fg-tertiary)]",
     avatar: "inline-grid size-7 flex-none place-items-center rounded-full bg-[var(--accent-soft)] text-center [font:600_12px/1_var(--font-sans)] tracking-normal text-[var(--steel-700)]",
     bar: "block h-1 w-full overflow-hidden rounded-full bg-[var(--bg-recessed)]",
-    barFill:
-        "block h-full rounded-full bg-[var(--accent)] [width:var(--dashboard-speaker-share,0%)]",
+    barFill: "block h-full rounded-full bg-[var(--accent)]",
 } as const;
+
+const DASHBOARD_SPEAKER_SHARE_CLASS_NAMES = [
+    "w-[24%]",
+    "w-[36%]",
+    "w-[48%]",
+    "w-[60%]",
+    "w-[72%]",
+    "w-[84%]",
+    "w-[96%]",
+    "w-full",
+] as const;
+
+function getDashboardSpeakerShareClassName(index: number) {
+    return DASHBOARD_SPEAKER_SHARE_CLASS_NAMES[
+        Math.min(index, DASHBOARD_SPEAKER_SHARE_CLASS_NAMES.length - 1)
+    ];
+}
 
 const TRANSCRIPT_LOADING_SKELETON_ROWS = [
     {
@@ -1296,7 +1311,7 @@ const SOT_DASHBOARD_RECORDING_PLAYER_META_CLASS_NAME =
     "mb-[12px] flex flex-row flex-wrap items-center gap-[10px] p-0";
 
 const SOT_DASHBOARD_RECORDING_PLAYER_DATE_CLASS_NAME =
-    "font-mono text-[11.5px] font-medium tracking-[0.02em] text-muted-foreground";
+    "translate-y-px font-mono text-[11.5px] font-medium tracking-[0.02em] text-muted-foreground";
 
 function SotSourceReportMetricCard({
     children,
@@ -1582,7 +1597,7 @@ function getRecordingListStatus(
 }
 
 const SOT_DASHBOARD_RECORDING_STATUS_BADGE_CLASS =
-    "h-[20px] justify-normal gap-[5px] overflow-visible rounded-[999px] border px-[8px] py-0 [font:600_11px_var(--font-sans)] tracking-[0.005em] shadow-none data-[sot-tone=ok]:border-[var(--button-copy-success-border)] data-[sot-tone=ok]:bg-[var(--button-copy-success-bg)] data-[sot-tone=ok]:text-[var(--signal-success)] data-[sot-tone=warn]:border-[var(--system-banner-offline-border)] data-[sot-tone=warn]:bg-[var(--system-banner-offline-icon-bg)] data-[sot-tone=warn]:text-[var(--signal-warning-strong)] data-[sot-tone=err]:border-[var(--alert-destructive-soft-border)] data-[sot-tone=err]:bg-[var(--alert-destructive-soft-bg)] data-[sot-tone=err]:text-[var(--signal-danger)] data-[sot-tone=info]:border-[var(--system-banner-progress-border)] data-[sot-tone=info]:bg-[var(--system-banner-progress-icon-bg)] data-[sot-tone=info]:text-[var(--signal-info)] data-[sot-tone=neu]:border-[var(--line-hairline)] data-[sot-tone=neu]:bg-[var(--bg-recessed)] data-[sot-tone=neu]:text-[var(--fg-secondary)] [&_[data-sot-part=dashboard-recording-status-dot]]:size-[5px] [&_[data-sot-part=dashboard-recording-status-dot]]:rounded-full [&_[data-sot-part=dashboard-recording-status-dot]]:bg-current data-[sot-tone=neu]:[&_[data-sot-part=dashboard-recording-status-dot]]:bg-[var(--fg-tertiary)] data-[sot-tone=warn]:[&_[data-sot-part=dashboard-recording-status-dot]]:animate-[bpulse_1.4s_ease-in-out_infinite]";
+    "h-[20px] justify-normal gap-[5px] overflow-visible rounded-[999px] border px-[8px] py-0 [font:600_11px_var(--font-sans)] tracking-[0.005em] shadow-none data-[sot-tone=ok]:border-primary/30 data-[sot-tone=ok]:bg-primary/10 data-[sot-tone=ok]:text-primary data-[sot-tone=warn]:border-border data-[sot-tone=warn]:bg-secondary data-[sot-tone=warn]:text-secondary-foreground data-[sot-tone=err]:border-destructive/30 data-[sot-tone=err]:bg-destructive/10 data-[sot-tone=err]:text-destructive data-[sot-tone=info]:border-primary/30 data-[sot-tone=info]:bg-primary/10 data-[sot-tone=info]:text-primary data-[sot-tone=neu]:border-border data-[sot-tone=neu]:bg-muted data-[sot-tone=neu]:text-muted-foreground [&_[data-sot-part=dashboard-recording-status-dot]]:size-[5px] [&_[data-sot-part=dashboard-recording-status-dot]]:rounded-full [&_[data-sot-part=dashboard-recording-status-dot]]:bg-current data-[sot-tone=neu]:[&_[data-sot-part=dashboard-recording-status-dot]]:bg-muted-foreground data-[sot-tone=warn]:[&_[data-sot-part=dashboard-recording-status-dot]]:animate-[bpulse_1.4s_ease-in-out_infinite]";
 
 function SotDashboardRecordingStatusBadge({
     className,
@@ -4866,7 +4881,7 @@ export function Workstation({
                                                 dashboardSourceClassNames.action
                                             }
                                         >
-                                            {/* biome-ignore lint/a11y/useSemanticElements: shadcn Button is applied with asChild here to avoid nesting a native button inside the provider row button. */}
+                                            {/* biome-ignore lint/a11y/useSemanticElements: Button uses asChild here to avoid nesting a native button inside the provider row button. */}
                                             <span
                                                 role="button"
                                                 tabIndex={0}
@@ -7663,7 +7678,6 @@ export function Workstation({
                                         SOT_DASHBOARD_RECORDING_PLAYER_DATE_CLASS_NAME
                                     }
                                     data-sot-part="dashboard-recording-player-date"
-                                    style={{ transform: "translateY(1px)" }}
                                     suppressHydrationWarning
                                 >
                                     {selectedRecording
@@ -9065,11 +9079,6 @@ export function Workstation({
                                                   },
                                               ]
                                         ).map((turn, index) => {
-                                            const speakerBarPct = Math.min(
-                                                100,
-                                                24 + index * 12,
-                                            );
-
                                             return (
                                                 <li
                                                     className={
@@ -9116,16 +9125,14 @@ export function Workstation({
                                                             dashboardSpeakerPaneClassNames.bar
                                                         }
                                                         data-sot-part="dashboard-speaker-bar"
-                                                        style={
-                                                            {
-                                                                "--dashboard-speaker-share": `${speakerBarPct}%`,
-                                                            } as CSSProperties
-                                                        }
                                                     >
                                                         <span
-                                                            className={
-                                                                dashboardSpeakerPaneClassNames.barFill
-                                                            }
+                                                            className={cn(
+                                                                dashboardSpeakerPaneClassNames.barFill,
+                                                                getDashboardSpeakerShareClassName(
+                                                                    index,
+                                                                ),
+                                                            )}
                                                             data-sot-part="dashboard-speaker-bar-fill"
                                                         />
                                                     </span>

@@ -60,6 +60,8 @@ import type { Recording } from "@/types/recording";
 import {
     RecordingTagIconGlyph,
     recordingTagSotColorLabel,
+    recordingTagSwatchColorClassName,
+    recordingTagTextColorClassName,
 } from "./recording-tag-visuals";
 
 interface RecordingTagManagerProps {
@@ -89,12 +91,6 @@ const QUICK_RECORDING_TAG_COLORS = RECORDING_TAG_COLORS.filter(
 const SOT_TAG_MANAGER_ERROR_TEXT = "保存失败 · 请稍后再试";
 const RECORDING_TAG_SWATCH_ITEM_CLASS_NAME =
     "tagm-swatch !grid !size-[18px] min-w-0 place-items-center rounded-full border-2 border-transparent !p-0 text-[13px] leading-none !text-foreground shadow-none transition-transform duration-[var(--duration-fast)] ease-[var(--ease-out)] hover:scale-110 data-[state=on]:!border-foreground data-[state=on]:shadow-[inset_0_0_0_2px_var(--background)]";
-const RECORDING_TAG_COLOR_TOKEN_CLASS_NAME =
-    "[--recording-tag-accent:var(--tag-slate)] data-[sot-tag-color=blue]:[--recording-tag-accent:var(--tag-blue)] data-[sot-tag-color=green]:[--recording-tag-accent:var(--tag-green)] data-[sot-tag-color=orange]:[--recording-tag-accent:var(--tag-amber)] data-[sot-tag-color=purple]:[--recording-tag-accent:var(--tag-violet)] data-[sot-tag-color=red]:[--recording-tag-accent:var(--tag-rose)] data-[sot-tag-color=slate]:[--recording-tag-accent:var(--tag-slate)]";
-const RECORDING_TAG_COLOR_TEXT_CLASS_NAME =
-    `${RECORDING_TAG_COLOR_TOKEN_CLASS_NAME} text-[var(--recording-tag-accent)]`;
-const RECORDING_TAG_SWATCH_COLOR_CLASS_NAME =
-    `${RECORDING_TAG_COLOR_TOKEN_CLASS_NAME} !bg-[var(--recording-tag-accent)]`;
 
 const RECORDING_TAG_MANAGER_PANEL_CLASS_NAME =
     "tagm-panel max-h-[460px] w-[320px] max-w-[calc(100vw-2rem)] gap-0 overflow-hidden rounded-xl border-border bg-popover p-0 text-popover-foreground shadow-md backdrop-blur-none data-[sot-state=create]:h-[342px] data-[sot-state=create]:overflow-hidden max-md:w-[calc(100vw-24px)] max-md:max-w-none";
@@ -109,11 +105,15 @@ const RECORDING_TAG_MANAGER_TOGGLE_NOTE_CLASS_NAME =
 const RECORDING_TAG_MANAGER_CONTENT_CLASS_NAME =
     "flex flex-col gap-[14px] overflow-auto px-3.5 pb-3.5 pt-3";
 const RECORDING_TAG_MANAGER_TAG_TOGGLE_CLASS_NAME =
-    `${RECORDING_TAG_COLOR_TEXT_CLASS_NAME} tagm-opt relative inline-flex h-6 justify-normal gap-1 rounded-full border border-border px-2 py-0 text-[11.5px] font-semibold leading-none disabled:opacity-70`;
+    "tagm-opt relative inline-flex h-6 justify-normal gap-1 rounded-full border border-border px-2 py-0 text-[11.5px] font-semibold leading-none disabled:opacity-70";
 const RECORDING_TAG_MANAGER_SELECTED_BADGE_CLASS_NAME =
-    `${RECORDING_TAG_COLOR_TEXT_CLASS_NAME} tagm-sel-chip h-[22px] justify-normal gap-1 rounded-full border-border bg-muted py-0 pl-2 pr-1 text-[11px] font-semibold leading-none`;
+    "tagm-sel-chip h-[22px] justify-normal gap-1 rounded-full border-border bg-muted py-0 pl-2 pr-1 text-[11px] font-semibold leading-none";
+const RECORDING_TAG_MANAGER_CHIP_REMOVE_BUTTON_CLASS_NAME =
+    "x size-4 shrink-0 rounded-full p-0 text-muted-foreground hover:bg-muted hover:text-foreground";
 const RECORDING_TAG_MANAGER_CHECK_BADGE_CLASS_NAME =
     "tagm-opt-check ml-0.5 inline-grid size-3.5 place-items-center rounded-full border-0 bg-primary/70 p-0 text-[11px] font-semibold leading-none text-primary-foreground";
+const RECORDING_TAG_MANAGER_CLOSE_BUTTON_CLASS_NAME =
+    "tagm-close size-5 shrink-0 text-muted-foreground hover:bg-muted hover:text-foreground";
 const RECORDING_TAG_MANAGER_PICKER_FRAME_CLASS_NAME =
     "tagm-picker flex flex-col gap-2.5 rounded-md border border-border bg-muted px-3 py-2.5";
 const RECORDING_TAG_MANAGER_PICKER_LABEL_CLASS_NAME =
@@ -584,6 +584,7 @@ export function RecordingTagManager({
             size="xs"
             className={cn(
                 RECORDING_TAG_MANAGER_TAG_TOGGLE_CLASS_NAME,
+                recordingTagTextColorClassName[tag.color],
                 "relative whitespace-nowrap",
                 saving && "pointer-events-none before:hidden",
             )}
@@ -737,7 +738,7 @@ export function RecordingTagManager({
                     data-sot-tag-color={item}
                     className={cn(
                         RECORDING_TAG_SWATCH_ITEM_CLASS_NAME,
-                        RECORDING_TAG_SWATCH_COLOR_CLASS_NAME,
+                        recordingTagSwatchColorClassName[item],
                         color === item && "is-selected",
                     )}
                 />
@@ -1107,7 +1108,12 @@ export function RecordingTagManager({
                                         <RecordingTagManagerBadge
                                             key={tag.id}
                                             appearance="pill"
-                                            className="min-w-0 max-w-full"
+                                            className={cn(
+                                                "min-w-0 max-w-full",
+                                                recordingTagTextColorClassName[
+                                                    tag.color
+                                                ],
+                                            )}
                                             data-sot-part="selected-chip"
                                             data-sot-tag-color={tag.color}
                                             data-sot-tag-icon={tag.icon}
@@ -1123,10 +1129,9 @@ export function RecordingTagManager({
                                                 type="button"
                                                 variant="ghost"
                                                 size="icon-xs"
-                                                className={cn(
-                                                    "x",
-                                                    "size-[var(--icon-chip-size)] shrink-0 rounded-full p-0 text-muted-foreground hover:bg-muted hover:text-foreground",
-                                                )}
+                                                className={
+                                                    RECORDING_TAG_MANAGER_CHIP_REMOVE_BUTTON_CLASS_NAME
+                                                }
                                                 aria-label="移除"
                                                 data-sot-control="recording-tag-delete-open"
                                                 data-sot-state={
@@ -1263,10 +1268,9 @@ export function RecordingTagManager({
                             <Button
                                 variant="ghost"
                                 size="icon-xs"
-                                className={cn(
-                                    "tagm-close",
-                                    "size-[var(--icon-compact-size)] shrink-0 text-muted-foreground hover:bg-muted hover:text-foreground",
-                                )}
+                                className={
+                                    RECORDING_TAG_MANAGER_CLOSE_BUTTON_CLASS_NAME
+                                }
                                 type="button"
                                 aria-label="关闭"
                                 data-sot-control="recording-tag-manager-close"
