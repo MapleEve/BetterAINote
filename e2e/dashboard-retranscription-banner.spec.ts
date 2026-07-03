@@ -4811,13 +4811,37 @@ test("dashboard source report summary-missing loaded sub-state matches SOT pixel
     testInfo,
 ) => {
     let sotPage: Page | null = null;
-    const title = "市场研究讨论 0410";
+    const title = "产品周会 · Q2 priorities review";
     const sourceSegments = [
         {
-            speaker: "文丽",
+            speaker: "志远",
             startMs: 12_000,
-            endMs: 62_000,
-            text: "四款竞品访谈反馈：能私有化是明确决策点。",
+            endMs: 108_000,
+            text: "这周我们先看 Q2 的三个核心优先级。第一是把 AI 重命名做稳定，覆盖钉钉、TicNote 和 Plaud 三个来源。",
+        },
+        {
+            speaker: "文丽",
+            startMs: 110_000,
+            endMs: 154_000,
+            text: "关于 AI 重命名我们和后端确认了，标题写回会先在 TicNote 上线，钉钉这边的 API 还在等审核。",
+        },
+        {
+            speaker: "兆和",
+            startMs: 156_000,
+            endMs: 200_000,
+            text: "VoScript 的私有部署文档我已经更新了，下周可以发出来。worker 在 Docker 里我倾向默认手动启用。",
+        },
+        {
+            speaker: "志远",
+            startMs: 202_000,
+            endMs: 245_000,
+            text: "同意手动。我们的定位是 self-hosting first，默认行为应该向控制权倾斜。文丽帮忙把 dry-run 的 spec 写一下。",
+        },
+        {
+            speaker: "文丽",
+            startMs: 248_000,
+            endMs: 312_000,
+            text: "第二个话题，说话人审阅。当前流程要点开三个抽屉，目标是把合并、改名、确认压到一个面板里。",
         },
     ];
 
@@ -4826,10 +4850,10 @@ test("dashboard source report summary-missing loaded sub-state matches SOT pixel
         const userId = await getPlaywrightUserId();
         await seedRetranscriptionScenario(userId, {
             filename: title,
-            durationMs: 28 * 60_000 + 55_000,
+            durationMs: 47 * 60_000 + 18_000,
             oldText: "Speaker 1: summary missing state opens source details.",
-            sourceProvider: "iflyrec",
-            startTimeMs: new Date("2026-04-10T06:30:00.000Z").getTime(),
+            sourceProvider: "dingtalk-a1",
+            startTimeMs: Date.parse("2026-04-22T06:00:00.000Z"),
             status: null,
         });
         await page.route(
@@ -4840,33 +4864,33 @@ test("dashboard source report summary-missing loaded sub-state matches SOT pixel
                     body: JSON.stringify({
                         detail: {
                             language: "简体中文 (zh-CN)",
-                            providerName: "讯飞听见",
-                            providerSentenceName: "讯飞听见",
-                            readableContent: "音频 · 转写",
-                            recordedAt: "2026-04-10T06:30:00.000Z",
-                            sourceTitle: title,
-                            statusLabel: "待处理",
-                            updatedAt: "2026-04-10T07:20:00.000Z",
+                            providerName: "钉钉 闪记",
+                            providerSentenceName: "钉钉闪记",
+                            readableContent: "音频 · 转写 · 说话人",
+                            recordedAt: "2026-04-22T06:00:00.000Z",
+                            sourceTitle: "Q2 Sync · 周一",
+                            statusLabel: "已同步",
+                            updatedAt: "2026-04-22T08:38:00.000Z",
                         },
                         filename: title,
                         sourceActions: {
                             openSource: {
                                 available: true,
-                                url: "https://example.invalid/iflyrec-source",
+                                url: "https://source.example.test/recording/sot-summary-missing",
                             },
                             repullSource: { available: true },
                         },
-                        sourceProvider: "iflyrec",
+                        sourceProvider: "dingtalk-a1",
                         summaryMarkdown: "",
-                        summaryReady: "未生成",
+                        summaryReady: false,
                         transcript: {
-                            segmentCount: 12,
+                            segmentCount: 38,
                             segments: sourceSegments,
                             text: sourceSegments
                                 .map((segment) => segment.text)
                                 .join("\n"),
                         },
-                        transcriptReady: "已就绪",
+                        transcriptReady: true,
                     }),
                 });
             },
@@ -4877,8 +4901,16 @@ test("dashboard source report summary-missing loaded sub-state matches SOT pixel
 
         sotPage = await page.context().newPage();
         const sotLoaded = await openSotSourceReportState(sotPage, "loaded", {
-            recordingId: "rec-market-0410",
+            recordingId: "rec-product-weekly",
             subState: "summary-missing",
+        });
+        await applySotSourceReportLoadedSubStateFixture(sotLoaded, {
+            actionState: "ready",
+            readableContent: "音频 · 转写 · 说话人",
+            segmentCount: 38,
+            subState: "summary-missing",
+            summaryLabel: "未生成",
+            transcriptLabel: "已就绪",
         });
 
         await dashboardSourceTab(page).click();
@@ -4897,11 +4929,11 @@ test("dashboard source report summary-missing loaded sub-state matches SOT pixel
             productLoaded.locator("[data-sot-source-report-empty]"),
         ).toHaveCount(0);
         await expect(sourceReportCopyButton(page)).toBeEnabled();
-        await expect(
-            productLoaded.locator(
-                '[data-sot-source-report-missing-notice][data-sot-missing="summary-missing"]',
-            ),
-        ).toHaveText("来源未提供官方摘要。");
+        const summaryMissingNotice = productLoaded.locator(
+            '[data-sot-source-report-missing-notice][data-sot-missing="summary-missing"]',
+        );
+        await expect(summaryMissingNotice).toBeVisible();
+        await expect(summaryMissingNotice).toContainText("来源未提供官方摘要。");
 
         await expectRetxPixelsMatch(
             page,
@@ -5024,11 +5056,13 @@ test("dashboard source report transcript and both-missing sub-states use SOT loa
         );
         await expect(sourceTranscriptCopyButton(page)).toBeDisabled();
         await expect(sourceReportCopyButton(page)).toBeEnabled();
-        await expect(
-            transcriptMissing.locator(
-                '[data-sot-source-report-missing-notice][data-sot-missing="transcript-missing"]',
-            ),
-        ).toHaveText("来源未提供逐字稿。可以稍后再来，或运行私有转写。");
+        const transcriptMissingNotice = transcriptMissing.locator(
+            '[data-sot-source-report-missing-notice][data-sot-missing="transcript-missing"]',
+        );
+        await expect(transcriptMissingNotice).toBeVisible();
+        await expect(transcriptMissingNotice).toContainText(
+            "来源未提供逐字稿。可以稍后再来，或运行私有转写。",
+        );
         const transcriptMissingSummaryFixture =
             withSotSourceReportSummarySection("来源官方摘要仍然可读。");
         await expectRetxPixelsMatch(
@@ -5121,6 +5155,9 @@ test("dashboard source report transcript and both-missing sub-states use SOT loa
         await expect(
             bothMissing.locator("[data-sot-source-report-empty]"),
         ).toHaveCount(0);
+        await expect(
+            bothMissing.locator("[data-sot-source-report-missing-notice]"),
+        ).toHaveCount(2);
         await expect(bothMissing.locator('[data-sot-metric="transcript-status"]')).toContainText(
             "未生成",
         );
@@ -5141,12 +5178,12 @@ test("dashboard source report transcript and both-missing sub-states use SOT loa
             bothMissing.locator(
                 '[data-sot-source-report-missing-notice][data-sot-missing="transcript-missing"]',
             ),
-        ).toHaveText("来源未提供逐字稿。可以稍后再来，或运行私有转写。");
+        ).toContainText("来源未提供逐字稿。可以稍后再来，或运行私有转写。");
         await expect(
             bothMissing.locator(
                 '[data-sot-source-report-missing-notice][data-sot-missing="summary-missing"]',
             ),
-        ).toHaveText("来源未提供官方摘要。");
+        ).toContainText("来源未提供官方摘要。");
         await expectRetxPixelsMatch(
             page,
             testInfo,

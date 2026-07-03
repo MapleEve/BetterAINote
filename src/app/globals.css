@@ -110,6 +110,24 @@
         var(--signal-danger) 10%,
         transparent
     );
+    --alert-destructive-subtle-bg: rgb(201 73 78 / 0.06);
+    --alert-destructive-subtle-bg: color-mix(
+        in srgb,
+        var(--signal-danger) 6%,
+        transparent
+    );
+    --alert-destructive-icon-soft-bg: rgb(201 73 78 / 0.14);
+    --alert-destructive-icon-soft-bg: color-mix(
+        in srgb,
+        var(--signal-danger) 14%,
+        transparent
+    );
+    --alert-destructive-icon-soft-border: rgb(201 73 78 / 0.28);
+    --alert-destructive-icon-soft-border: color-mix(
+        in srgb,
+        var(--signal-danger) 28%,
+        transparent
+    );
     --alert-destructive-soft-strong-bg: rgb(246 239 240);
     --alert-destructive-soft-strong-bg: color-mix(
         in srgb,
@@ -120,6 +138,18 @@
     --alert-destructive-soft-strong-border: color-mix(
         in srgb,
         var(--signal-danger) 22%,
+        transparent
+    );
+    --alert-warning-soft-strong-bg: rgb(245 242 235);
+    --alert-warning-soft-strong-bg: color-mix(
+        in srgb,
+        var(--signal-warning) 8%,
+        var(--bg-elevated)
+    );
+    --alert-warning-soft-strong-border: rgb(184 130 27 / 0.28);
+    --alert-warning-soft-strong-border: color-mix(
+        in srgb,
+        var(--signal-warning) 28%,
         transparent
     );
     --alert-destructive-soft-border: rgb(201 73 78 / 0.26);
@@ -426,6 +456,24 @@
         var(--signal-danger) 10%,
         transparent
     );
+    --alert-destructive-subtle-bg: rgb(223 83 90 / 0.06);
+    --alert-destructive-subtle-bg: color-mix(
+        in srgb,
+        var(--signal-danger) 6%,
+        transparent
+    );
+    --alert-destructive-icon-soft-bg: rgb(223 83 90 / 0.14);
+    --alert-destructive-icon-soft-bg: color-mix(
+        in srgb,
+        var(--signal-danger) 14%,
+        transparent
+    );
+    --alert-destructive-icon-soft-border: rgb(223 83 90 / 0.28);
+    --alert-destructive-icon-soft-border: color-mix(
+        in srgb,
+        var(--signal-danger) 28%,
+        transparent
+    );
     --alert-destructive-soft-strong-bg: rgb(45 32 35);
     --alert-destructive-soft-strong-bg: color-mix(
         in srgb,
@@ -436,6 +484,18 @@
     --alert-destructive-soft-strong-border: color-mix(
         in srgb,
         var(--signal-danger) 22%,
+        transparent
+    );
+    --alert-warning-soft-strong-bg: rgb(43 44 41);
+    --alert-warning-soft-strong-bg: color-mix(
+        in srgb,
+        var(--signal-warning) 8%,
+        var(--bg-elevated)
+    );
+    --alert-warning-soft-strong-border: rgb(184 130 27 / 0.28);
+    --alert-warning-soft-strong-border: color-mix(
+        in srgb,
+        var(--signal-warning) 28%,
         transparent
     );
     --alert-destructive-soft-border: rgb(223 83 90 / 0.26);
@@ -804,6 +864,11 @@ select::-ms-expand {
         --signal-warning: rgb(188 137 22);
         --signal-danger: rgb(197 67 43);
         --signal-info: rgb(66 122 162);
+        --alert-destructive-subtle-bg: rgb(197 67 43 / 0.06);
+        --alert-destructive-icon-soft-bg: rgb(197 67 43 / 0.14);
+        --alert-destructive-icon-soft-border: rgb(197 67 43 / 0.28);
+        --alert-warning-soft-strong-bg: rgb(246 243 235);
+        --alert-warning-soft-strong-border: rgb(188 137 22 / 0.28);
         --bg-overlay: rgba(252, 253, 254, 0.72);
         --accent-on: rgb(251 252 253);
     }
@@ -821,6 +886,11 @@ select::-ms-expand {
         --accent-hover: rgb(124 181 218);
         --accent-pressed: rgb(81 140 181);
         --accent-on: rgb(13 16 21);
+        --alert-destructive-subtle-bg: rgb(223 83 90 / 0.06);
+        --alert-destructive-icon-soft-bg: rgb(223 83 90 / 0.14);
+        --alert-destructive-icon-soft-border: rgb(223 83 90 / 0.28);
+        --alert-warning-soft-strong-bg: rgb(46 44 39);
+        --alert-warning-soft-strong-border: rgb(188 137 22 / 0.28);
     }
 }
 

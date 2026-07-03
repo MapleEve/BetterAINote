@@ -2600,20 +2600,6 @@ async function openSotSourceReportState(
     return stateLocator;
 }
 
-async function readPseudoContent(
-    locator: Locator,
-    selector: string,
-    pseudoElement: "::before" | "::after",
-) {
-    return locator
-        .locator(selector)
-        .first()
-        .evaluate(
-            (element, pseudo) => getComputedStyle(element, pseudo).content,
-            pseudoElement,
-        );
-}
-
 async function applySotSourceReportLoadedSubStateFixture(
     locator: Locator,
     options: {
@@ -5320,8 +5306,8 @@ type SourceReportLoadedSubStateStateEvidence = {
         loadingStateCount: number;
         sectionHeadings: string[];
         segmentCount: number;
-        summaryMissingPseudo: string | null;
-        transcriptMissingPseudo: string | null;
+        summaryMissingNoticeTexts: string[];
+        transcriptMissingNoticeTexts: string[];
     };
     pixel: {
         element: SourceReportLoadedSubStatePixelEvidence;
@@ -5429,16 +5415,24 @@ async function readSourceReportLoadedSubStateMarkers(
         segmentCount: await loaded
             .locator("[data-sot-source-report-segment]")
             .count(),
-        summaryMissingPseudo: await readPseudoContent(
-            loaded,
-            '[data-sot-source-report-section][data-sot-section="metadata"]',
-            "::before",
-        ),
-        transcriptMissingPseudo: await readPseudoContent(
-            loaded,
-            '[data-sot-source-report-section][data-sot-section="transcript"]',
-            "::after",
-        ),
+        summaryMissingNoticeTexts: await loaded
+            .locator(
+                '[data-sot-source-report-section][data-sot-section="metadata"] [data-sot-source-report-missing-notice]',
+            )
+            .evaluateAll((notices) =>
+                notices.map((notice) =>
+                    (notice.textContent ?? "").replace(/\s+/g, " ").trim(),
+                ),
+            ),
+        transcriptMissingNoticeTexts: await loaded
+            .locator(
+                '[data-sot-source-report-section][data-sot-section="transcript"] [data-sot-source-report-missing-notice]',
+            )
+            .evaluateAll((notices) =>
+                notices.map((notice) =>
+                    (notice.textContent ?? "").replace(/\s+/g, " ").trim(),
+                ),
+            ),
     };
 }
 
@@ -7112,27 +7106,23 @@ test("recording detail source report loaded sub-states match SOT pixels", async 
                 subStateCase.state === "transcript-missing" ||
                 subStateCase.state === "both-missing"
             ) {
-                expect(
-                    await readPseudoContent(
-                        productLoaded,
-                        '[data-sot-source-report-section][data-sot-section="transcript"]',
-                        "::after",
+                await expect(
+                    productLoaded.locator(
+                        '[data-sot-source-report-section][data-sot-section="transcript"] [data-sot-source-report-missing-notice]',
                     ),
-                ).toBe(
-                    '"来源未提供逐字稿。可以稍后再来，或运行私有转写。"',
+                ).toContainText(
+                    "来源未提供逐字稿。可以稍后再来，或运行私有转写。",
                 );
             }
             if (
                 subStateCase.state === "summary-missing" ||
                 subStateCase.state === "both-missing"
             ) {
-                expect(
-                    await readPseudoContent(
-                        productLoaded,
-                        '[data-sot-source-report-section][data-sot-section="metadata"]',
-                        "::before",
+                await expect(
+                    productLoaded.locator(
+                        '[data-sot-source-report-section][data-sot-section="metadata"] [data-sot-source-report-missing-notice]',
                     ),
-                ).toBe('"来源未提供官方摘要。"');
+                ).toContainText("来源未提供官方摘要。");
             }
 
             const pixel =

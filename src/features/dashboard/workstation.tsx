@@ -126,6 +126,7 @@ import {
     SOURCE_REPORT_METRIC_CARD_CLASS_NAME,
     SOURCE_REPORT_METRIC_CARDS_CLASS_NAME,
     SOURCE_REPORT_MISSING_NOTICE_CLASS_NAME,
+    SOURCE_REPORT_MISSING_NOTICE_DESCRIPTION_CLASS_NAME,
     SOURCE_REPORT_PANE_CLASS_NAME,
     SOURCE_REPORT_PRIMARY_ACTION_BUTTON_CLASS_NAME,
     SOURCE_REPORT_SECTION_CLASS_NAME,
@@ -142,9 +143,7 @@ import {
     SOURCE_REPORT_STATE_CLASS_NAME,
     SOURCE_REPORT_STATUS_BADGE_CLASS_NAME,
     SOURCE_REPORT_SUMMARY_BODY_CLASS_NAME,
-    SOURCE_REPORT_SUMMARY_MISSING_NOTICE_CLASS_NAME,
     SOURCE_REPORT_SUMMARY_TEXT_CLASS_NAME,
-    SOURCE_REPORT_TRANSCRIPT_MISSING_NOTICE_CLASS_NAME,
     type SourceReportCardSkeletonSize,
     type SourceReportSegmentSkeletonSize,
     type SourceReportTone,
@@ -1466,21 +1465,24 @@ function SotSourceReportSection({
 
 function SotSourceReportMissingNotice({
     children,
-    className,
     state,
 }: {
     children: ReactNode;
-    className?: string;
     state: "summary-missing" | "transcript-missing";
 }) {
     return (
-        <div
-            className={className ?? SOURCE_REPORT_MISSING_NOTICE_CLASS_NAME}
+        <Alert
+            className={SOURCE_REPORT_MISSING_NOTICE_CLASS_NAME}
             data-sot-source-report-missing-notice
             data-sot-missing={state}
+            density="compact"
         >
-            {children}
-        </div>
+            <AlertDescription
+                className={SOURCE_REPORT_MISSING_NOTICE_DESCRIPTION_CLASS_NAME}
+            >
+                {children}
+            </AlertDescription>
+        </Alert>
     );
 }
 
@@ -1890,7 +1892,22 @@ function DashboardDetailEmptyState() {
 }
 
 function SotSourceReportErrorIcon() {
-    return <CircleAlert aria-hidden="true" focusable="false" />;
+    return (
+        <svg
+            aria-hidden="true"
+            fill="none"
+            focusable="false"
+            stroke="currentColor"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            strokeWidth="1.8"
+            viewBox="0 0 24 24"
+        >
+            <circle cx="12" cy="12" r="9" />
+            <path d="M12 8v5" />
+            <line x1="12" y1="16" x2="12.01" y2="16" />
+        </svg>
+    );
 }
 
 function SotSourceReportEmptyIcon() {
@@ -8684,12 +8701,7 @@ export function Workstation({
                                                 title="来源转写"
                                                 noticeAfter={
                                                     sourceTranscriptAvailable ? null : (
-                                                        <SotSourceReportMissingNotice
-                                                            className={
-                                                                SOURCE_REPORT_TRANSCRIPT_MISSING_NOTICE_CLASS_NAME
-                                                            }
-                                                            state="transcript-missing"
-                                                        >
+                                                        <SotSourceReportMissingNotice state="transcript-missing">
                                                             来源未提供逐字稿。可以稍后再来，或运行私有转写。
                                                         </SotSourceReportMissingNotice>
                                                     )
@@ -8830,12 +8842,7 @@ export function Workstation({
                                                 title="来源信息"
                                                 noticeBefore={
                                                     sourceSummaryAvailable ? null : (
-                                                        <SotSourceReportMissingNotice
-                                                            className={
-                                                                SOURCE_REPORT_SUMMARY_MISSING_NOTICE_CLASS_NAME
-                                                            }
-                                                            state="summary-missing"
-                                                        >
+                                                        <SotSourceReportMissingNotice state="summary-missing">
                                                             来源未提供官方摘要。
                                                         </SotSourceReportMissingNotice>
                                                     )

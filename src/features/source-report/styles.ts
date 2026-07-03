@@ -41,10 +41,10 @@ export const SOURCE_REPORT_METRIC_CARDS_CLASS_NAME =
     "grid grid-cols-[repeat(4,1fr)] gap-[8px] max-[1200px]:grid-cols-[repeat(2,1fr)]";
 
 export const SOURCE_REPORT_METRIC_CARD_CLASS_NAME =
-    "gap-[6px] !overflow-visible rounded-[10px] border border-border bg-muted px-[12px] py-[10px] shadow-none backdrop-blur-none";
+    "gap-[6px] !overflow-visible rounded-[10px] border border-[var(--line-hairline)] bg-[var(--bg-recessed)] px-[12px] py-[10px] shadow-none backdrop-blur-none dark:border-[var(--glass-border-soft)] dark:bg-[var(--glass-tint-subtle)]";
 
 export const SOURCE_REPORT_CARD_LABEL_CLASS_NAME =
-    "![font:600_10.5px_var(--font-sans)] uppercase tracking-[0.06em] text-muted-foreground";
+    "![font:600_10.5px_var(--font-sans)] uppercase tracking-[0.06em] text-[var(--fg-tertiary)]";
 
 export const SOURCE_REPORT_CARD_VALUE_CLASS_NAME =
     "![font:600_13px_var(--font-sans)] leading-[normal] tracking-normal text-foreground";
@@ -62,13 +62,17 @@ export const SOURCE_REPORT_CARD_SOURCE_FALLBACK_CLASS_NAME =
     "text-[11px] font-bold text-muted-foreground";
 
 export const SOURCE_REPORT_SECTION_CLASS_NAME =
-    "flex flex-col gap-[8px] border-t border-border pt-[8px]";
+    "flex flex-col gap-[8px] border-t border-[var(--line-hairline)] pt-[8px] dark:border-[var(--glass-border-soft)]";
 
-export const SOURCE_REPORT_TRANSCRIPT_MISSING_SECTION_CLASS_NAME =
-    "after:mt-[8px] after:block after:rounded-[10px] after:border after:border-border after:bg-muted after:px-[12px] after:py-[10px] after:![font:500_12.5px/1.55_var(--font-sans)] after:text-muted-foreground after:content-[attr(data-sot-missing-copy)]";
+export const SOURCE_REPORT_MISSING_NOTICE_CLASS_NAME =
+    "block rounded-[10px] border border-[var(--alert-warning-soft-strong-border)] bg-[var(--alert-warning-soft-strong-bg)] px-[12px] py-[10px] ![font:500_12.5px/1.55_var(--font-sans)] text-[var(--fg-secondary)] shadow-none data-[sot-missing=summary-missing]:mb-[8px] data-[sot-missing=transcript-missing]:mt-[8px]";
 
-export const SOURCE_REPORT_SUMMARY_MISSING_SECTION_CLASS_NAME =
-    "before:mb-[8px] before:block before:rounded-[10px] before:border before:border-border before:bg-muted before:px-[12px] before:py-[10px] before:![font:500_12.5px/1.55_var(--font-sans)] before:text-muted-foreground before:content-[attr(data-sot-missing-copy)]";
+export const SOURCE_REPORT_MISSING_NOTICE_DESCRIPTION_CLASS_NAME =
+    "!col-start-auto block gap-0 ![font:500_12.5px/1.55_var(--font-sans)] !text-[var(--fg-secondary)]";
+
+export const SOURCE_REPORT_TRANSCRIPT_MISSING_SECTION_CLASS_NAME = "";
+
+export const SOURCE_REPORT_SUMMARY_MISSING_SECTION_CLASS_NAME = "";
 
 export const SOURCE_REPORT_SECTION_SEPARATOR_CLASS_NAME = "hidden";
 
@@ -79,14 +83,7 @@ export const SOURCE_REPORT_SECTION_TITLE_CLASS_NAME =
     "m-0 ![font:600_12.5px_var(--font-sans)] ![line-height:normal] text-foreground";
 
 export const SOURCE_REPORT_DESCRIPTION_CLASS_NAME =
-    "![font:500_11.5px_var(--font-sans)] text-muted-foreground";
-
-export const SOURCE_REPORT_MISSING_NOTICE_CLASS_NAME =
-    "block rounded-[10px] border border-border bg-muted px-[12px] py-[10px] ![font:500_12.5px/1.55_var(--font-sans)] text-muted-foreground";
-
-export const SOURCE_REPORT_TRANSCRIPT_MISSING_NOTICE_CLASS_NAME = `${SOURCE_REPORT_MISSING_NOTICE_CLASS_NAME} mt-[8px]`;
-
-export const SOURCE_REPORT_SUMMARY_MISSING_NOTICE_CLASS_NAME = `${SOURCE_REPORT_MISSING_NOTICE_CLASS_NAME} mb-[8px]`;
+    "![font:500_11.5px_var(--font-sans)] text-[var(--fg-tertiary)]";
 
 export const SOURCE_REPORT_SUMMARY_BODY_CLASS_NAME = "flex flex-col gap-1.5";
 
@@ -100,10 +97,10 @@ export const SOURCE_REPORT_SEGMENT_SKELETON_CONTAINER_CLASS_NAME =
     "block rounded-[6px] bg-transparent px-[10px] py-[8px]";
 
 export const SOURCE_REPORT_SEGMENT_TIME_CLASS_NAME =
-    "![font:500_11.5px_var(--font-mono)] text-muted-foreground";
+    "![font:500_11.5px_var(--font-mono)] text-[var(--fg-tertiary)]";
 
 export const SOURCE_REPORT_SEGMENT_SPEAKER_CLASS_NAME =
-    "![font:600_12px_var(--font-sans)] text-muted-foreground";
+    "![font:600_12px_var(--font-sans)] text-[var(--fg-secondary)]";
 
 export const SOURCE_REPORT_SEGMENT_TEXT_CLASS_NAME =
     "m-0 ![font:500_12.5px/1.55_var(--font-sans)] !text-foreground [text-wrap:pretty]";
@@ -115,10 +112,10 @@ export const SOURCE_REPORT_META_CLASS_NAME =
     "my-[15px] grid grid-cols-2 gap-x-[14px] gap-y-[6px] max-[1200px]:grid-cols-1";
 
 export const SOURCE_REPORT_META_ROW_CLASS_NAME =
-    "grid min-h-[30px] grid-cols-[80px_1fr] items-baseline gap-[8px] border-b border-dashed border-border py-[6px]";
+    "grid min-h-[30px] grid-cols-[80px_1fr] items-baseline gap-[8px] border-b border-dashed border-[var(--line-hairline)] py-[6px] dark:border-[var(--glass-border-soft)]";
 
 export const SOURCE_REPORT_META_LABEL_CLASS_NAME =
-    "m-0 ![font:600_11px_var(--font-sans)] text-muted-foreground";
+    "m-0 ![font:600_11px_var(--font-sans)] text-[var(--fg-tertiary)]";
 
 export const SOURCE_REPORT_META_VALUE_CLASS_NAME =
     "m-0 break-words ![font:500_12px_var(--font-sans)] text-foreground";
@@ -131,10 +128,10 @@ export const SOURCE_REPORT_ACTION_ROW_CLASS_NAME =
 export const SOURCE_REPORT_ACTION_BUTTON_CLASS_NAME = "text-foreground";
 
 export const SOURCE_REPORT_PRIMARY_ACTION_BUTTON_CLASS_NAME =
-    "h-[26px] min-w-[46px] gap-[7px] rounded-[7px] px-[10px] ![font:600_12px_var(--font-sans)] has-[>svg]:px-[10px]";
+    "h-[26px] min-w-[46px] gap-[7px] rounded-[7px] border-[color-mix(in_srgb,var(--accent)_60%,black_8%)] bg-[linear-gradient(180deg,color-mix(in_srgb,var(--accent)_92%,white_18%),var(--accent))] px-[10px] ![font:600_12px_var(--font-sans)] !text-white shadow-[0_2px_6px_color-mix(in_srgb,var(--accent)_24%,transparent),inset_0_1px_0_rgb(255_255_255_/_0.22)] has-[>svg]:px-[10px] hover:bg-[linear-gradient(180deg,color-mix(in_srgb,var(--accent)_96%,white_8%),var(--accent))] hover:!text-white";
 
 export const SOURCE_REPORT_GHOST_ACTION_BUTTON_CLASS_NAME =
-    "h-[26px] gap-[7px] rounded-[7px] px-[10px] ![font:600_12px_var(--font-sans)] text-muted-foreground shadow-none has-[>svg]:px-[10px] hover:bg-accent hover:text-accent-foreground";
+    "h-[26px] gap-[7px] rounded-[7px] border border-transparent bg-transparent px-[10px] ![font:600_12px_var(--font-sans)] text-[var(--fg-secondary)] shadow-none has-[>svg]:px-[10px] hover:bg-[var(--bg-recessed)] hover:text-[var(--fg-primary)]";
 
 export const SOURCE_REPORT_COPY_BUTTON_VARIANT =
     "ghost" satisfies ButtonProps["variant"];
@@ -152,19 +149,19 @@ export const SOURCE_REPORT_ERROR_ALERT_CLASS_NAME =
     "flex w-full flex-col items-center !gap-[4px] rounded-[10px] !px-[18px] !py-[28px] text-center [&>svg]:text-current";
 
 export const SOURCE_REPORT_EMPTY_SURFACE_CLASS_NAME =
-    "flex flex-col items-center !gap-[4px] rounded-[10px] border border-dashed border-border bg-muted !px-[18px] !py-[28px] text-center shadow-none backdrop-blur-none data-[sot-tone=err]:border-destructive/30 data-[sot-tone=err]:bg-destructive/10";
+    "flex flex-col items-center !gap-[4px] rounded-[10px] border border-dashed border-[var(--line-hairline)] bg-[var(--bg-recessed)] !px-[18px] !py-[28px] text-center shadow-none backdrop-blur-none data-[sot-tone=err]:border-[var(--alert-destructive-soft-border)] data-[sot-tone=err]:bg-[var(--alert-destructive-subtle-bg)] data-[sot-tone=err]:text-[var(--fg-primary)]";
 
 export const SOURCE_REPORT_EMPTY_ICON_CLASS_NAME =
-    "!mb-[4px] inline-grid !size-[40px] place-items-center rounded-full border border-border bg-card text-muted-foreground [&_svg]:fill-none [&_svg]:stroke-current [&_svg]:stroke-[1.8] [&_svg]:[stroke-linecap:round] [&_svg]:[stroke-linejoin:round] [&_svg:not([class*='size-'])]:!size-[16px]";
+    "!mb-[4px] inline-grid !size-[40px] place-items-center rounded-full border border-[var(--line-hairline)] bg-[var(--bg-recessed)] text-[var(--fg-tertiary)] [&_svg]:fill-none [&_svg]:stroke-current [&_svg]:stroke-[1.8] [&_svg]:[stroke-linecap:round] [&_svg]:[stroke-linejoin:round] [&_svg:not([class*='size-'])]:!size-[16px]";
 
 export const SOURCE_REPORT_EMPTY_ERROR_ICON_CLASS_NAME =
-    "border-destructive/30 bg-destructive/10 text-destructive";
+    "border-[var(--alert-destructive-icon-soft-border)] bg-[var(--alert-destructive-icon-soft-bg)] text-[var(--signal-danger)]";
 
 export const SOURCE_REPORT_EMPTY_TITLE_CLASS_NAME =
     "m-0 block min-h-0 overflow-visible ![font:600_13px/1.35_var(--font-sans)] tracking-normal text-foreground";
 
 export const SOURCE_REPORT_EMPTY_DESCRIPTION_CLASS_NAME =
-    "block max-w-[360px] ![font:500_12px/1.5_var(--font-sans)] tracking-normal !text-muted-foreground";
+    "block max-w-[360px] ![font:500_12px/1.5_var(--font-sans)] tracking-normal !text-[var(--fg-tertiary)]";
 
 export const SOURCE_REPORT_COPY_LABEL_CLASS_NAME =
     "inline-flex min-w-0 items-center";
@@ -173,4 +170,4 @@ export const SOURCE_REPORT_COPY_ICON_CLASS_NAME =
     "stroke-current transition-[opacity,transform] duration-200 ease-out";
 
 export const SOURCE_REPORT_STATUS_BADGE_CLASS_NAME =
-    "inline-flex h-[22px] min-w-[65px] justify-normal items-center gap-[9px] overflow-visible rounded-full border px-[8px] py-0 ![font:600_11px_var(--font-sans)] leading-[normal] shadow-none data-[sot-tone=err]:border-destructive/30 data-[sot-tone=err]:bg-destructive/10 data-[sot-tone=err]:text-destructive data-[sot-tone=neu]:border-border data-[sot-tone=neu]:bg-muted data-[sot-tone=neu]:text-muted-foreground data-[sot-tone=ok]:border-primary/30 data-[sot-tone=ok]:bg-primary/10 data-[sot-tone=ok]:text-primary data-[sot-tone=warn]:border-border data-[sot-tone=warn]:bg-secondary data-[sot-tone=warn]:text-secondary-foreground [&_[data-sot-part=dashboard-source-report-status-dot]]:mr-0 [&_[data-sot-part=dashboard-source-report-status-dot]]:inline-block [&_[data-sot-part=dashboard-source-report-status-dot]]:size-[5px] [&_[data-sot-part=dashboard-source-report-status-dot]]:rounded-full [&_[data-sot-part=dashboard-source-report-status-dot]]:bg-current [&_[data-sot-part=source-report-status-dot]]:mr-0 [&_[data-sot-part=source-report-status-dot]]:inline-block [&_[data-sot-part=source-report-status-dot]]:size-[5px] [&_[data-sot-part=source-report-status-dot]]:rounded-full [&_[data-sot-part=source-report-status-dot]]:bg-current";
+    "inline-flex h-[22px] justify-normal items-center gap-[5px] overflow-visible rounded-full border px-[8px] py-0 ![font:600_11px_var(--font-sans)] leading-[normal] shadow-none data-[sot-tone=err]:border-[color-mix(in_srgb,var(--signal-danger)_30%,transparent)] data-[sot-tone=err]:bg-[color-mix(in_srgb,var(--signal-danger)_14%,transparent)] data-[sot-tone=err]:text-[var(--signal-danger)] data-[sot-tone=neu]:border-[var(--line-hairline)] data-[sot-tone=neu]:bg-[var(--bg-recessed)] data-[sot-tone=neu]:text-[var(--fg-secondary)] data-[sot-tone=ok]:border-[color-mix(in_srgb,var(--signal-success)_30%,transparent)] data-[sot-tone=ok]:bg-[color-mix(in_srgb,var(--signal-success)_14%,transparent)] data-[sot-tone=ok]:text-[var(--signal-success)] data-[sot-tone=warn]:border-[color-mix(in_srgb,var(--signal-warning)_32%,transparent)] data-[sot-tone=warn]:bg-[color-mix(in_srgb,var(--signal-warning)_18%,transparent)] data-[sot-tone=warn]:text-[oklch(0.55_0.16_70)] [&_[data-sot-part=dashboard-source-report-status-dot]]:mr-0 [&_[data-sot-part=dashboard-source-report-status-dot]]:inline-block [&_[data-sot-part=dashboard-source-report-status-dot]]:size-[5px] [&_[data-sot-part=dashboard-source-report-status-dot]]:rounded-full [&_[data-sot-part=dashboard-source-report-status-dot]]:bg-current [&_[data-sot-part=source-report-status-dot]]:mr-0 [&_[data-sot-part=source-report-status-dot]]:inline-block [&_[data-sot-part=source-report-status-dot]]:size-[5px] [&_[data-sot-part=source-report-status-dot]]:rounded-full [&_[data-sot-part=source-report-status-dot]]:bg-current";

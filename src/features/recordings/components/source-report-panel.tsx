@@ -67,6 +67,8 @@ import {
     SOURCE_REPORT_META_VALUE_CLASS_NAME,
     SOURCE_REPORT_METRIC_CARD_CLASS_NAME,
     SOURCE_REPORT_METRIC_CARDS_CLASS_NAME,
+    SOURCE_REPORT_MISSING_NOTICE_CLASS_NAME,
+    SOURCE_REPORT_MISSING_NOTICE_DESCRIPTION_CLASS_NAME,
     SOURCE_REPORT_PANE_CLASS_NAME,
     SOURCE_REPORT_PRIMARY_ACTION_BUTTON_CLASS_NAME,
     SOURCE_REPORT_SECTION_CLASS_NAME,
@@ -571,14 +573,12 @@ function SourceReportSection({
     children,
     className,
     description,
-    missingCopy,
     section,
     title,
 }: {
     children: ReactNode;
     className?: string;
     description: ReactNode;
-    missingCopy?: string;
     section: "metadata" | "summary" | "transcript";
     title: string;
 }) {
@@ -587,7 +587,6 @@ function SourceReportSection({
             className={cn(SOURCE_REPORT_SECTION_CLASS_NAME, className)}
             data-sot-source-report-section
             data-sot-section={section}
-            data-sot-missing-copy={missingCopy}
         >
             <Separator
                 className={SOURCE_REPORT_SECTION_SEPARATOR_CLASS_NAME}
@@ -612,6 +611,29 @@ function SourceReportSection({
             </header>
             {children}
         </section>
+    );
+}
+
+function SotSourceReportMissingNotice({
+    children,
+    state,
+}: {
+    children: ReactNode;
+    state: "summary-missing" | "transcript-missing";
+}) {
+    return (
+        <Alert
+            className={SOURCE_REPORT_MISSING_NOTICE_CLASS_NAME}
+            data-sot-source-report-missing-notice
+            data-sot-missing={state}
+            density="compact"
+        >
+            <AlertDescription
+                className={SOURCE_REPORT_MISSING_NOTICE_DESCRIPTION_CLASS_NAME}
+            >
+                {children}
+            </AlertDescription>
+        </Alert>
     );
 }
 
@@ -1538,11 +1560,6 @@ export function SourceReportPanel({
                                 ? undefined
                                 : SOURCE_REPORT_TRANSCRIPT_MISSING_SECTION_CLASS_NAME
                         }
-                        missingCopy={
-                            transcriptAvailable
-                                ? undefined
-                                : "来源未提供逐字稿。可以稍后再来，或运行私有转写。"
-                        }
                         description={
                             <>
                                 来自{sourceProviderSentenceName} ·{" "}
@@ -1551,6 +1568,11 @@ export function SourceReportPanel({
                             </>
                         }
                     >
+                        {!transcriptAvailable ? (
+                            <SotSourceReportMissingNotice state="transcript-missing">
+                                来源未提供逐字稿。可以稍后再来，或运行私有转写。
+                            </SotSourceReportMissingNotice>
+                        ) : null}
                         <ol
                             className={SOURCE_REPORT_SEGMENTS_CLASS_NAME}
                             data-sot-source-report-segments
@@ -1645,13 +1667,15 @@ export function SourceReportPanel({
                                 ? undefined
                                 : SOURCE_REPORT_SUMMARY_MISSING_SECTION_CLASS_NAME
                         }
-                        missingCopy={
-                            reportAvailable ? undefined : "来源未提供官方摘要。"
-                        }
                         description={
                             <>由{sourceProviderLabel}返回的公开元数据</>
                         }
                     >
+                        {!reportAvailable ? (
+                            <SotSourceReportMissingNotice state="summary-missing">
+                                来源未提供官方摘要。
+                            </SotSourceReportMissingNotice>
+                        ) : null}
                         <dl
                             className={SOURCE_REPORT_META_CLASS_NAME}
                             data-sot-source-report-meta
