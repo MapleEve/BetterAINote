@@ -327,11 +327,7 @@ const DASHBOARD_SEARCH_ACTIVITY_FEATURE_OWNER_CLASS_SNIPPETS = [
     },
     {
         propertyName: "librarySearchResultMeta",
-        snippets: [
-            "font-mono",
-            "text-[11.5px]",
-            "text-muted-foreground",
-        ],
+        snippets: ["font-mono", "text-[11.5px]", "text-muted-foreground"],
     },
     {
         propertyName: "librarySearchTag",
@@ -362,10 +358,7 @@ const DASHBOARD_SEARCH_ACTIVITY_FEATURE_OWNER_CLASS_SNIPPETS = [
     },
     {
         propertyName: "librarySearchIndexing",
-        snippets: [
-            "flex items-center gap-[10px]",
-            "text-muted-foreground",
-        ],
+        snippets: ["flex items-center gap-[10px]", "text-muted-foreground"],
     },
     {
         propertyName: "librarySearchStateSkeleton",

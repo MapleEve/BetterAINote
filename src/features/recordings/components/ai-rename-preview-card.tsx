@@ -75,8 +75,7 @@ const aiRenamePreviewClassNames = {
         reviewOld:
             "text-[var(--fg-secondary)] line-through decoration-muted-foreground",
         reviewNew: "text-[var(--fg-primary)]",
-        spinner:
-            "mx-auto mb-1.5 size-4 border-2 text-primary",
+        spinner: "mx-auto mb-1.5 size-4 border-2 text-primary",
     },
     button: {
         close: "size-6 rounded-md border border-transparent bg-transparent p-0 text-[var(--fg-secondary)] shadow-none hover:bg-accent hover:text-accent-foreground [&_svg:not([class*='size-'])]:size-3",

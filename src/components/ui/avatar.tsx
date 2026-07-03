@@ -39,6 +39,7 @@ function Avatar({
 }
 
 function AvatarImage({
+    alt = "",
     className,
     onError,
     onLoad,
@@ -56,6 +57,7 @@ function AvatarImage({
 
     return (
         <img
+            alt={alt}
             data-slot="avatar-image"
             className={cn("aspect-square size-full", className)}
             src={src}

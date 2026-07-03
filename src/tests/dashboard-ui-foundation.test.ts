@@ -1027,11 +1027,7 @@ const DASHBOARD_SEARCH_ACTIVITY_FEATURE_OWNER_CLASS_SNIPPETS = [
     },
     {
         propertyName: "librarySearchResultMeta",
-        snippets: [
-            "font-mono",
-            "text-[11.5px]",
-            "text-muted-foreground",
-        ],
+        snippets: ["font-mono", "text-[11.5px]", "text-muted-foreground"],
     },
     {
         propertyName: "librarySearchTag",
@@ -2225,9 +2221,13 @@ describe("dashboard SOT foundation", () => {
             "border border-border bg-card px-3 font-sans text-[12.5px] font-semibold",
         );
         expect(workstation).toContain("shadow-xs");
-        expect(workstation).toContain("h-8 min-w-[103px] gap-[7px] rounded-[9px]");
+        expect(workstation).toContain(
+            "h-8 min-w-[103px] gap-[7px] rounded-[9px]",
+        );
         expect(workstation).toContain("has-[>svg]:px-3");
-        expect(workstation).not.toContain("[&_svg:not([class*='size-'])]:size-4");
+        expect(workstation).not.toContain(
+            "[&_svg:not([class*='size-'])]:size-4",
+        );
         for (const selector of [
             'data-sot-control="rename-recording-title"',
             'data-sot-control="recording-more-actions"',
@@ -3715,7 +3715,9 @@ describe("dashboard SOT foundation", () => {
         }
         expect(workstation).toContain('data-sot-list="dashboard-sources"');
         expect(workstation).not.toContain("sourceProviderThemeClassName");
-        expect(workstation).not.toMatch(/--source-provider-(?:status|primary)-/);
+        expect(workstation).not.toMatch(
+            /--source-provider-(?:status|primary)-/,
+        );
         expect(workstation).toContain(
             'className={cn(\n                "group/dashboard-workstation"',
         );
@@ -5680,7 +5682,9 @@ describe("dashboard SOT foundation", () => {
         expect(banner).not.toContain("SVGProps");
         expect(banner).not.toContain("<svg");
         expect(banner).not.toContain("a11y-ignore");
-        expect(banner).not.toContain("biome-ignore lint/a11y/noSvgWithoutTitle");
+        expect(banner).not.toContain(
+            "biome-ignore lint/a11y/noSvgWithoutTitle",
+        );
         expect(banner).toContain(
             'offline: "border-border bg-secondary text-secondary-foreground"',
         );

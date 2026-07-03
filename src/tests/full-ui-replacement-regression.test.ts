@@ -696,11 +696,7 @@ const DASHBOARD_SEARCH_ACTIVITY_FEATURE_OWNER_CLASS_SNIPPETS = [
     },
     {
         propertyName: "librarySearchResultMeta",
-        snippets: [
-            "font-mono",
-            "text-[11.5px]",
-            "text-muted-foreground",
-        ],
+        snippets: ["font-mono", "text-[11.5px]", "text-muted-foreground"],
     },
     {
         propertyName: "librarySearchTag",
@@ -4242,9 +4238,7 @@ describe("full UI replacement regression coverage", () => {
         expect(tagManager).toContain("text-[13px]");
         expect(tagManager).toContain("leading-none");
         expect(tagManager).toContain("!text-foreground");
-        expect(tagManager).toContain(
-            "data-[state=on]:!border-foreground",
-        );
+        expect(tagManager).toContain("data-[state=on]:!border-foreground");
         expect(tagManager).toContain(
             "data-[state=on]:shadow-[inset_0_0_0_2px_var(--background)]",
         );
@@ -6079,7 +6073,9 @@ describe("full UI replacement regression coverage", () => {
         expect(banner).not.toContain("SVGProps");
         expect(banner).not.toContain("<svg");
         expect(banner).not.toContain("a11y-ignore");
-        expect(banner).not.toContain("biome-ignore lint/a11y/noSvgWithoutTitle");
+        expect(banner).not.toContain(
+            "biome-ignore lint/a11y/noSvgWithoutTitle",
+        );
         expect(banner).toContain(
             "variant={systemBannerAlertVariantByState[banner.state]}",
         );
@@ -8187,7 +8183,9 @@ describe("full UI replacement regression coverage", () => {
             "data-[sot-state=selected]:!border-primary/30",
             "data-[sot-state=selected]:bg-primary/10",
         ]) {
-            expect(dashboardRecordingRowStyleHelper).toContain(rowSemanticToken);
+            expect(dashboardRecordingRowStyleHelper).toContain(
+                rowSemanticToken,
+            );
         }
         expect(dashboardRecordingRowStyleHelper).not.toContain(
             "[&_[data-recording-tag-chip]]",
@@ -10249,9 +10247,13 @@ describe("full UI replacement regression coverage", () => {
             "border border-border bg-card px-3 font-sans text-[12.5px] font-semibold",
         );
         expect(workstation).toContain("shadow-xs");
-        expect(workstation).toContain("h-8 min-w-[103px] gap-[7px] rounded-[9px]");
+        expect(workstation).toContain(
+            "h-8 min-w-[103px] gap-[7px] rounded-[9px]",
+        );
         expect(workstation).toContain("has-[>svg]:px-3");
-        expect(workstation).not.toContain("[&_svg:not([class*='size-'])]:size-4");
+        expect(workstation).not.toContain(
+            "[&_svg:not([class*='size-'])]:size-4",
+        );
         expect(input).not.toContain("detailHeaderTitle");
         expect(input).not.toContain(
             '"h-8 min-w-0 flex-1 px-3 py-1 text-base md:text-sm"',
@@ -11792,7 +11794,9 @@ describe("full UI replacement regression coverage", () => {
             expect(settingsLoadErrorAlert).toContain(
                 "SETTINGS_BANNER_BASE_CLASS",
             );
-            expect(settingsLoadErrorAlert).toContain('variant="destructiveSoft"');
+            expect(settingsLoadErrorAlert).toContain(
+                'variant="destructiveSoft"',
+            );
             expect(settingsLoadErrorAlert).toContain('density="comfortable"');
             expect(settingsLoadErrorAlert).toContain('data-sot-tone="err"');
             expect(settingsLoadErrorAlert).not.toContain(
@@ -13901,9 +13905,7 @@ describe("full UI replacement regression coverage", () => {
         expect(tagManager).toContain("!size-[18px]");
         expect(tagManager).toContain("!p-0");
         expect(tagManager).toContain("hover:scale-110");
-        expect(tagManager).toContain(
-            "data-[state=on]:!border-foreground",
-        );
+        expect(tagManager).toContain("data-[state=on]:!border-foreground");
         expect(tagManager).toContain(
             "data-[state=on]:shadow-[inset_0_0_0_2px_var(--background)]",
         );
@@ -13928,7 +13930,9 @@ describe("full UI replacement regression coverage", () => {
         expect(tagManager).toContain(
             "max-h-[460px] w-[320px] max-w-[calc(100vw-2rem)] gap-0",
         );
-        expect(tagManager).toContain("RECORDING_TAG_MANAGER_TOGGLE_NOTE_CLASS_NAME");
+        expect(tagManager).toContain(
+            "RECORDING_TAG_MANAGER_TOGGLE_NOTE_CLASS_NAME",
+        );
         expect(emptyPrimitive).not.toContain("recordingTagEmptyState:");
         expect(inputGroupPrimitive).not.toContain("recordingTagCreateRow:");
         expect(inputGroupPrimitive).not.toContain("recordingTagNameInput:");

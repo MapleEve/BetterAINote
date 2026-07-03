@@ -12,8 +12,7 @@ export type SourceReportSegmentSkeletonSize =
     | "speaker"
     | "time";
 
-export const SOURCE_REPORT_SKELETON_CLASS_NAME =
-    "bg-accent";
+export const SOURCE_REPORT_SKELETON_CLASS_NAME = "bg-accent";
 
 export const SOURCE_REPORT_CARD_SKELETON_CLASS_NAMES = {
     count: `${SOURCE_REPORT_SKELETON_CLASS_NAME} inline-block h-[18px] w-[48px] align-middle rounded-[6px]`,
@@ -129,8 +128,7 @@ export const SOURCE_REPORT_META_MONO_VALUE_CLASS_NAME = "font-mono";
 export const SOURCE_REPORT_ACTION_ROW_CLASS_NAME =
     "mt-[4px] flex flex-wrap items-center gap-[8px]";
 
-export const SOURCE_REPORT_ACTION_BUTTON_CLASS_NAME =
-    "text-foreground";
+export const SOURCE_REPORT_ACTION_BUTTON_CLASS_NAME = "text-foreground";
 
 export const SOURCE_REPORT_PRIMARY_ACTION_BUTTON_CLASS_NAME =
     "h-[26px] min-w-[46px] gap-[7px] rounded-[7px] px-[10px] ![font:600_12px_var(--font-sans)] has-[>svg]:px-[10px]";

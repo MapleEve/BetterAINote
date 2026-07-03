@@ -761,8 +761,7 @@ const dashboardSearchActivityClassNames = {
         "pointer-events-none absolute right-0 top-[calc(100%+8px)] z-[var(--z-dropdown)] flex max-h-[520px] w-[380px] max-w-[calc(100vw-32px)] flex-col gap-0 overflow-hidden rounded-[12px] border-border bg-popover text-popover-foreground opacity-0 shadow-lg backdrop-blur-none transition-[opacity,transform] duration-[180ms] ease-[var(--ease-out)] [transform:translateY(-4px)_scale(0.99)] data-[open=true]:pointer-events-auto data-[open=true]:opacity-100 data-[open=true]:[transform:translateY(0)_scale(1)] min-[641px]:max-[860px]:fixed min-[641px]:max-[860px]:left-3 min-[641px]:max-[860px]:right-auto min-[641px]:max-[860px]:top-[72px] min-[641px]:max-[860px]:box-border min-[641px]:max-[860px]:max-h-[calc(100dvh-96px)] min-[641px]:max-[860px]:w-[min(380px,calc(100vw-24px))] min-[641px]:max-[860px]:max-w-[calc(100vw-24px)] max-[640px]:fixed max-[640px]:left-3 max-[640px]:right-3 max-[640px]:top-[72px] max-[640px]:box-border max-[640px]:max-h-[calc(100dvh-96px)] max-[640px]:w-[calc(100vw-24px)] max-[640px]:min-w-0 max-[640px]:max-w-none",
     dashboardActivityHeader: "flex items-center gap-2.5 px-3.5 py-3",
     dashboardActivityHeading: "flex flex-1 flex-col gap-0.5",
-    dashboardActivityTitle:
-        "[font:600_13px_var(--font-sans)] text-foreground",
+    dashboardActivityTitle: "[font:600_13px_var(--font-sans)] text-foreground",
     dashboardActivityCount:
         "justify-normal border-0 bg-transparent p-0 font-mono text-[11px] font-medium text-muted-foreground [a&]:hover:bg-transparent",
     dashboardActivityClose:
@@ -826,14 +825,12 @@ const dashboardButtonClassNames = {
         "h-8 min-w-[103px] gap-[7px] rounded-[9px] border border-border bg-card px-3 font-sans text-[12.5px] font-semibold leading-normal text-foreground shadow-xs hover:bg-accent hover:text-accent-foreground has-[>svg]:px-3",
 } as const;
 
-const dashboardRetranscriptionThemeClassName =
-    "text-foreground";
+const dashboardRetranscriptionThemeClassName = "text-foreground";
 
 const dashboardRetranscriptionClassNames = {
     disabledHint:
         "block rounded-[4px] border border-border bg-muted px-[6px] py-[2px] [font:500_11px_var(--font-sans)] text-muted-foreground [&[hidden]]:hidden",
-    banner:
-        "group/retx flex items-center gap-[10px] border-b border-border bg-muted px-[14px] py-[10px] data-[retx-state=completed]:border-primary/30 data-[retx-state=completed]:bg-primary/10 data-[retx-state=failed]:border-destructive/30 data-[retx-state=failed]:bg-destructive/10 data-[retx-state=idle]:hidden data-[retx-state=queued]:border-primary/30 data-[retx-state=queued]:bg-primary/10 data-[retx-state=running]:border-primary/30 data-[retx-state=running]:bg-primary/10 [&[hidden]]:hidden",
+    banner: "group/retx flex items-center gap-[10px] border-b border-border bg-muted px-[14px] py-[10px] data-[retx-state=completed]:border-primary/30 data-[retx-state=completed]:bg-primary/10 data-[retx-state=failed]:border-destructive/30 data-[retx-state=failed]:bg-destructive/10 data-[retx-state=idle]:hidden data-[retx-state=queued]:border-primary/30 data-[retx-state=queued]:bg-primary/10 data-[retx-state=running]:border-primary/30 data-[retx-state=running]:bg-primary/10 [&[hidden]]:hidden",
     icon: "inline-flex size-[28px] flex-none items-center justify-center rounded-[50%] border border-border bg-card text-muted-foreground group-data-[retx-state=completed]/retx:border-primary/30 group-data-[retx-state=completed]/retx:text-primary group-data-[retx-state=failed]/retx:border-destructive/30 group-data-[retx-state=failed]/retx:text-destructive group-data-[retx-state=queued]/retx:border-primary/30 group-data-[retx-state=queued]/retx:text-primary group-data-[retx-state=running]/retx:border-primary/30 group-data-[retx-state=running]/retx:text-primary",
     spinner:
         "h-[12px] w-[12px] rounded-[50%] border-[1.6px] border-primary border-t-transparent border-r-primary animate-[spin_700ms_linear_infinite]",
@@ -1859,9 +1856,7 @@ function SotCopyIcon({ state }: { state?: "err" | "ok" }) {
 }
 
 function SotTranscriptEmptyIcon() {
-    return (
-        <MessageSquareText aria-hidden="true" focusable="false" />
-    );
+    return <MessageSquareText aria-hidden="true" focusable="false" />;
 }
 
 function SotDetailEmptyIcon() {
