@@ -66,27 +66,61 @@ type SystemBannerButtonProps = Omit<ButtonProps, "size" | "variant"> & {
     tone?: SystemBannerButtonTone;
 };
 
+type SystemBannerAlertVariant = NonNullable<
+    Parameters<typeof Alert>[0]["variant"]
+>;
+
 interface SystemBannerProgressProps {
     indeterminate: boolean | undefined;
     value: number;
 }
 
+const systemBannerAlertVariantByState: Record<
+    SystemBannerState,
+    SystemBannerAlertVariant
+> = {
+    "db-locked": "destructiveSoftNeutral",
+    "export-progress": "default",
+    "import-progress": "default",
+    offline: "default",
+    "permission-denied": "destructiveSoftNeutral",
+    "update-available": "default",
+} as const;
+
 const systemBannerAlertClassNames = {
-    root: "[--system-banner-bg:var(--bg-elevated)] [--system-banner-border:var(--line-hairline)] [--system-banner-icon-bg:var(--system-banner-neutral-icon-bg)] [--system-banner-icon-color:var(--fg-secondary)] flex w-full items-center gap-3 rounded-[var(--radius-md)] border-[var(--system-banner-border)] bg-[var(--system-banner-bg)] px-3.5 py-2.5 text-[length:var(--text-body-sm)] leading-[var(--lh-body-sm)] text-[var(--fg-primary)] shadow-[var(--shadow-xs)] data-[kind=offline]:[--system-banner-bg:var(--system-banner-offline-bg)] data-[kind=offline]:[--system-banner-border:var(--system-banner-offline-border)] data-[kind=offline]:[--system-banner-icon-bg:var(--system-banner-offline-icon-bg)] data-[kind=offline]:[--system-banner-icon-color:var(--signal-warning)] data-[kind=permission-denied]:[--system-banner-bg:var(--system-banner-danger-bg)] data-[kind=permission-denied]:[--system-banner-border:var(--system-banner-danger-border)] data-[kind=permission-denied]:[--system-banner-icon-bg:var(--system-banner-danger-icon-bg)] data-[kind=permission-denied]:[--system-banner-icon-color:var(--signal-danger)] data-[kind=db-locked]:[--system-banner-bg:var(--system-banner-danger-bg)] data-[kind=db-locked]:[--system-banner-border:var(--system-banner-danger-border)] data-[kind=db-locked]:[--system-banner-icon-bg:var(--system-banner-danger-icon-bg)] data-[kind=db-locked]:[--system-banner-icon-color:var(--signal-danger)] data-[kind=update-available]:[--system-banner-bg:var(--system-banner-update-bg)] data-[kind=update-available]:[--system-banner-border:var(--system-banner-update-border)] data-[kind=update-available]:[--system-banner-icon-bg:var(--system-banner-update-icon-bg)] data-[kind=update-available]:[--system-banner-icon-color:var(--signal-info)] data-[kind=import-progress]:[--system-banner-bg:var(--system-banner-progress-bg)] data-[kind=import-progress]:[--system-banner-border:var(--system-banner-progress-border)] data-[kind=import-progress]:[--system-banner-icon-bg:var(--system-banner-progress-icon-bg)] data-[kind=import-progress]:[--system-banner-icon-color:var(--signal-info)] data-[kind=export-progress]:[--system-banner-bg:var(--system-banner-progress-bg)] data-[kind=export-progress]:[--system-banner-border:var(--system-banner-progress-border)] data-[kind=export-progress]:[--system-banner-icon-bg:var(--system-banner-progress-icon-bg)] data-[kind=export-progress]:[--system-banner-icon-color:var(--signal-info)]",
-    icon: "inline-grid size-7 flex-none place-items-center rounded-[var(--radius-sm)] bg-[var(--system-banner-icon-bg)] text-[var(--system-banner-icon-color)] [&_svg]:size-[14px] [&_svg]:fill-none [&_svg]:stroke-current [&_svg]:stroke-2 [&_svg]:[stroke-linecap:round] [&_svg]:[stroke-linejoin:round]",
+    root: "flex w-full items-center gap-3 rounded-[var(--radius-md)] border border-border bg-card px-3.5 py-2.5 text-[length:var(--text-body-sm)] leading-[var(--lh-body-sm)] text-card-foreground shadow-[var(--shadow-xs)]",
+    icon: "inline-grid size-7 flex-none place-items-center rounded-[var(--radius-sm)] bg-muted text-muted-foreground [&_svg]:size-[14px] [&_svg]:fill-none [&_svg]:stroke-current [&_svg]:stroke-2 [&_svg]:[stroke-linecap:round] [&_svg]:[stroke-linejoin:round]",
     body: "flex min-w-0 flex-1 flex-col gap-0.5",
-    title: "block [min-height:auto] overflow-visible [-webkit-line-clamp:unset] [-webkit-box-orient:horizontal] font-semibold tracking-normal text-[var(--fg-primary)]",
+    title: "block [min-height:auto] overflow-visible [-webkit-line-clamp:unset] [-webkit-box-orient:horizontal] font-semibold tracking-normal text-card-foreground",
     description:
-        "block [justify-items:normal] [gap:normal] font-sans text-[12px] leading-[1.45] font-medium text-[var(--fg-tertiary)] data-[sot-format=mono]:font-mono",
+        "block [justify-items:normal] [gap:normal] font-sans text-[12px] leading-[1.45] font-medium text-muted-foreground data-[sot-format=mono]:font-mono",
     actions: "flex flex-none gap-1.5",
 } as const;
 
+const systemBannerAlertStateClassNames: Record<SystemBannerState, string> = {
+    "db-locked": "",
+    "export-progress": "border-primary/30 bg-primary/10",
+    "import-progress": "border-primary/30 bg-primary/10",
+    offline: "border-border bg-secondary text-secondary-foreground",
+    "permission-denied": "",
+    "update-available": "border-primary/30 bg-primary/10",
+} as const;
+
+const systemBannerIconStateClassNames: Record<SystemBannerState, string> = {
+    "db-locked": "bg-destructive/10 text-destructive",
+    "export-progress": "bg-primary/10 text-primary",
+    "import-progress": "bg-primary/10 text-primary",
+    offline: "bg-secondary text-secondary-foreground",
+    "permission-denied": "bg-destructive/10 text-destructive",
+    "update-available": "bg-primary/10 text-primary",
+} as const;
+
 const systemBannerButtonClassNames = {
-    action: "cursor-pointer border border-transparent bg-transparent text-[var(--fg-secondary)] shadow-none hover:bg-[var(--bg-recessed)] hover:text-[var(--fg-primary)]",
+    action: "cursor-pointer border border-transparent bg-transparent text-muted-foreground shadow-none hover:bg-muted hover:text-foreground",
     primaryAction:
-        "cursor-pointer border border-[var(--line-hairline)] bg-[var(--glass-tint-base)] text-[var(--fg-primary)] shadow-[var(--shadow-xs)] backdrop-blur-[14px] backdrop-saturate-[140%] hover:bg-[var(--glass-tint-base)] hover:text-[var(--fg-primary)]",
+        "cursor-pointer border border-border bg-background text-foreground shadow-[var(--shadow-xs)] backdrop-blur-[14px] backdrop-saturate-[140%] hover:bg-muted hover:text-foreground",
     dismissAction:
-        "cursor-pointer border border-transparent bg-transparent text-[var(--fg-secondary)] shadow-none hover:bg-[var(--bg-recessed)] hover:text-[var(--fg-primary)]",
+        "cursor-pointer border border-transparent bg-transparent text-muted-foreground shadow-none hover:bg-muted hover:text-foreground",
     actionSize:
         "box-border h-[26px] w-auto gap-[7px] rounded-[7px] px-[10px] py-[7.5px] text-[12px] font-semibold leading-normal has-[>svg]:px-[10px] [&_svg:not([class*='size-'])]:size-4 [&_svg]:stroke-[1.8]",
     dismissSize:
@@ -94,11 +128,11 @@ const systemBannerButtonClassNames = {
 } as const;
 
 const systemBannerProgressClassNames = {
-    root: "relative h-[6px] min-w-[120px] flex-1 overflow-hidden rounded-[999px] bg-[var(--system-banner-progress-track)] data-[sot-state=indeterminate]:bg-[var(--system-banner-progress-indeterminate-track)]",
+    root: "relative h-[6px] min-w-[120px] flex-1 overflow-hidden rounded-[999px] bg-primary/10 data-[sot-state=indeterminate]:bg-primary/10",
     indicator:
-        "h-full w-full flex-1 rounded-[inherit] bg-[var(--signal-info)] transition-transform duration-[var(--duration-base)] ease-[var(--ease-out)]",
+        "h-full w-full flex-1 rounded-[inherit] bg-primary transition-transform duration-[var(--duration-base)] ease-[var(--ease-out)]",
     indeterminateIndicator:
-        "w-[32%] animate-[sbn-sweep_1.4s_linear_infinite] bg-[image:var(--system-banner-progress-indeterminate-bg)] bg-transparent",
+        "w-[32%] animate-[sbn-sweep_1.4s_linear_infinite] bg-primary/50",
 } as const;
 
 function getDefaultCopy(state: SystemBannerState, isZh: boolean) {
@@ -396,7 +430,12 @@ function SystemBannerAlert({
         <Alert
             aria-live={a11y["aria-live"]}
             role={a11y.role}
-            className={cn(systemBannerAlertClassNames.root, className)}
+            variant={systemBannerAlertVariantByState[banner.state]}
+            className={cn(
+                systemBannerAlertClassNames.root,
+                systemBannerAlertStateClassNames[banner.state],
+                className,
+            )}
             data-sot-panel="system-banner"
             data-kind={banner.state}
             data-layout={isStacked ? "stacked" : "single"}
@@ -603,7 +642,10 @@ function SystemBannerItem({
             progress={progress}
         >
             <span
-                className={systemBannerAlertClassNames.icon}
+                className={cn(
+                    systemBannerAlertClassNames.icon,
+                    systemBannerIconStateClassNames[banner.state],
+                )}
                 data-sot-part="system-banner-icon"
                 aria-hidden="true"
             >

@@ -1,6 +1,6 @@
 "use client";
 
-import { Check, X } from "lucide-react";
+import { Check, CircleAlert, X } from "lucide-react";
 import {
     type ComponentProps,
     Fragment,
@@ -264,22 +264,8 @@ function RecordingTagManagerBadge({
     );
 }
 
-function RecordingTagAlertIcon(props: ComponentProps<"svg">) {
-    return (
-        <svg
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            strokeWidth="2"
-            aria-hidden="true"
-            focusable="false"
-            {...props}
-        >
-            <path d="M12 9v4" />
-            <path d="M12 17h.01" />
-            <circle cx="12" cy="12" r="10" />
-        </svg>
-    );
+function RecordingTagAlertIcon(props: ComponentProps<typeof CircleAlert>) {
+    return <CircleAlert focusable="false" {...props} />;
 }
 
 export function RecordingTagManager({

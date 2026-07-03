@@ -5639,10 +5639,43 @@ describe("dashboard SOT foundation", () => {
         expect(banner).toContain(
             'import { Progress } from "@/components/ui/progress";',
         );
+        expect(banner).toContain("const systemBannerAlertVariantByState");
         expect(banner).toContain("const systemBannerAlertClassNames");
+        expect(banner).toContain("const systemBannerAlertStateClassNames");
+        expect(banner).toContain("const systemBannerIconStateClassNames");
         expect(banner).toContain("const systemBannerButtonClassNames");
         expect(banner).toContain("const systemBannerProgressClassNames");
-        expect(banner).toContain("border-[var(--system-banner-border)]");
+        expect(banner).not.toContain("[--system-banner");
+        expect(banner).not.toContain("border-[var(--system-banner-border)]");
+        expect(banner).not.toContain("bg-[var(--system-banner-bg)]");
+        expect(banner).toContain(
+            'offline: "border-border bg-secondary text-secondary-foreground"',
+        );
+        expect(banner).toContain(
+            '"permission-denied": "destructiveSoftNeutral"',
+        );
+        expect(banner).toContain(
+            '"update-available": "border-primary/30 bg-primary/10"',
+        );
+        expect(banner).toContain(
+            '"permission-denied": "bg-destructive/10 text-destructive"',
+        );
+        expect(banner).toContain(
+            "variant={systemBannerAlertVariantByState[banner.state]}",
+        );
+        expect(banner).toContain(
+            "systemBannerAlertStateClassNames[banner.state]",
+        );
+        expect(banner).toContain(
+            "systemBannerIconStateClassNames[banner.state]",
+        );
+        expect(banner).toContain(
+            "bg-primary/10 data-[sot-state=indeterminate]:bg-primary/10",
+        );
+        expect(banner).toContain("bg-primary transition-transform");
+        expect(banner).not.toContain(
+            "bg-[image:var(--system-banner-progress-indeterminate-bg)]",
+        );
         expect(banner).toContain("bg-transparent");
         expect(banner).not.toContain("CSSProperties");
         expect(banner).not.toContain("systemBannerAlertStyle");

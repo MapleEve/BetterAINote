@@ -6,8 +6,11 @@ import {
     Copy,
     EllipsisVertical,
     FileText,
+    Minus,
     Pen,
+    RotateCcw,
     Sparkle,
+    Trash2,
     X,
 } from "lucide-react";
 import Image from "next/image";
@@ -1418,13 +1421,10 @@ export function RecordingWorkstation({
                                                     onSelect={handleMoreRename}
                                                 >
                                                     {moreActionsShowPrimaryIcons ? (
-                                                        <svg
-                                                            viewBox="0 0 24 24"
+                                                        <Pen
                                                             aria-hidden="true"
                                                             focusable="false"
-                                                        >
-                                                            <path d="M17 3a2.828 2.828 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5L17 3z" />
-                                                        </svg>
+                                                        />
                                                     ) : null}
                                                     重命名
                                                 </DropdownMenuItem>
@@ -1436,13 +1436,10 @@ export function RecordingWorkstation({
                                                     }
                                                 >
                                                     {moreActionsShowPrimaryIcons ? (
-                                                        <svg
-                                                            viewBox="0 0 24 24"
+                                                        <Sparkle
                                                             aria-hidden="true"
                                                             focusable="false"
-                                                        >
-                                                            <path d="m12 3-1.6 4.6L6 9l4.4 1.4L12 15l1.6-4.6L18 9l-4.4-1.4z" />
-                                                        </svg>
+                                                        />
                                                     ) : null}
                                                     {t(
                                                         "transcription.aiRename",
@@ -1457,14 +1454,10 @@ export function RecordingWorkstation({
                                                         }
                                                     >
                                                         {moreActionsShowPrimaryIcons ? (
-                                                            <svg
-                                                                viewBox="0 0 24 24"
+                                                            <RotateCcw
                                                                 aria-hidden="true"
                                                                 focusable="false"
-                                                            >
-                                                                <path d="M3 12a9 9 0 1 0 3-6.7L3 8" />
-                                                                <path d="M3 3v5h5" />
-                                                            </svg>
+                                                            />
                                                         ) : null}
                                                         {t(
                                                             "transcription.retranscribe",
@@ -1493,22 +1486,18 @@ export function RecordingWorkstation({
                                                     }
                                                 >
                                                     {moreActionsShowDeleteIcon ? (
-                                                        <svg
-                                                            viewBox="0 0 24 24"
-                                                            aria-hidden="true"
-                                                            focusable="false"
-                                                        >
-                                                            {moreActionsState ===
-                                                            "upstream-deleted" ? (
-                                                                <path d="M3 6h18" />
-                                                            ) : (
-                                                                <>
-                                                                    <path d="M3 6h18" />
-                                                                    <path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" />
-                                                                    <path d="M19 6 18 20a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6" />
-                                                                </>
-                                                            )}
-                                                        </svg>
+                                                        moreActionsState ===
+                                                        "upstream-deleted" ? (
+                                                            <Minus
+                                                                aria-hidden="true"
+                                                                focusable="false"
+                                                            />
+                                                        ) : (
+                                                            <Trash2
+                                                                aria-hidden="true"
+                                                                focusable="false"
+                                                            />
+                                                        )
                                                     ) : null}
                                                     删除本地副本
                                                     {recording.sourceProvider ? (

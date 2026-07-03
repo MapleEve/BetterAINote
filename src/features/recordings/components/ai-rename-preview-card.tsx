@@ -1,7 +1,7 @@
 "use client";
 
-import { Check, RefreshCw, X } from "lucide-react";
-import { type SVGProps, useId } from "react";
+import { Ban, Check, RefreshCw, TriangleAlert, X } from "lucide-react";
+import { useId } from "react";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -41,37 +41,6 @@ interface AiRenamePreviewCardProps {
     subtitle?: string;
     state?: "loading" | "preview" | "review" | "error" | "unavailable";
     className?: string;
-}
-
-function AiRenameUnavailableIcon(props: SVGProps<SVGSVGElement>) {
-    return (
-        <svg
-            aria-hidden="true"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            {...props}
-        >
-            <circle cx="12" cy="12" r="10" />
-            <path d="M4.93 4.93l14.14 14.14" />
-        </svg>
-    );
-}
-
-function AiRenameErrorIcon(props: SVGProps<SVGSVGElement>) {
-    return (
-        <svg
-            aria-hidden="true"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            {...props}
-        >
-            <path d="M12 9v4" />
-            <path d="M12 17h.01" />
-            <path d="M10.29 3.86 1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z" />
-        </svg>
-    );
 }
 
 const aiRenamePreviewClassNames = {
@@ -160,8 +129,7 @@ export function AiRenamePreviewCard({
     const stateLabel = state === "review" ? "复核确认" : (bodyLabel ?? title);
     const reviewOldTitle = originalFilename?.trim() || "—";
     const reviewNewTitle = filename?.trim() || "—";
-    const ErrorIcon =
-        state === "unavailable" ? AiRenameUnavailableIcon : AiRenameErrorIcon;
+    const ErrorIcon = state === "unavailable" ? Ban : TriangleAlert;
 
     return (
         <Popover open modal={false}>

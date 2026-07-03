@@ -1,5 +1,6 @@
 "use client";
 
+import { Music2 } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
@@ -96,12 +97,7 @@ export default function RecordingError({ reset }: { reset: () => void }) {
                                     recordingRouteFallbackClassNames.emptyIcon
                                 }
                             >
-                                {/* biome-ignore lint/a11y/noSvgWithoutTitle: SOT decorative empty-state icon is hidden from assistive tech. */}
-                                <svg viewBox="0 0 24 24">
-                                    <path d="M9 18V5l12-2v13" />
-                                    <circle cx="6" cy="18" r="3" />
-                                    <circle cx="18" cy="16" r="3" />
-                                </svg>
+                                <Music2 aria-hidden="true" focusable="false" />
                             </div>
                             <div
                                 data-sot-part="recording-route-empty-title"

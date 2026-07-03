@@ -6,13 +6,16 @@ import {
     Check,
     CheckCircle,
     ChevronDown,
+    CircleAlert,
     CloudDownload,
     Copy,
     EllipsisVertical,
     FileText,
     Globe2,
     Menu,
+    MessageSquareText,
     Mic,
+    Music,
     PanelLeft,
     Pencil,
     Plus,
@@ -20,6 +23,7 @@ import {
     Search,
     Sparkle,
     Tags,
+    Trash2,
     X,
 } from "lucide-react";
 import Image from "next/image";
@@ -472,7 +476,7 @@ const dashboardSpeakerPaneClassNames = {
     avatar: "inline-grid size-7 flex-none place-items-center rounded-full bg-[var(--accent-soft)] text-center [font:600_12px/1_var(--font-sans)] tracking-normal text-[var(--steel-700)]",
     bar: "block h-1 w-full overflow-hidden rounded-full bg-[var(--bg-recessed)]",
     barFill:
-        "block h-full rounded-full bg-gradient-to-r from-[var(--steel-500)] to-[var(--accent)] [width:var(--dashboard-speaker-share,0%)]",
+        "block h-full rounded-full bg-[var(--accent)] [width:var(--dashboard-speaker-share,0%)]",
 } as const;
 
 const TRANSCRIPT_LOADING_SKELETON_ROWS = [
@@ -1149,15 +1153,11 @@ function formatLibrarySearchTimestamp(valueMs: number | null | undefined) {
 
 function LibrarySearchTagIcon() {
     return (
-        <svg
+        <Tags
             className={DASHBOARD_MICRO_ICON_CLASS_NAME}
-            viewBox="0 0 24 24"
             data-icon="inline-start"
             aria-hidden="true"
-        >
-            <path d="M3 3h7v7H3z" />
-            <path d="M14 3h7v7h-7z" />
-        </svg>
+        />
     );
 }
 
@@ -1802,42 +1802,31 @@ function searchResultFilterLabel(result: SearchResult) {
 
 function RetxWarnIcon() {
     return (
-        // biome-ignore lint/a11y/noSvgWithoutTitle: SOT retx icon SVG is hidden by the parent icon wrapper.
-        <svg
+        <CircleAlert
             className={DASHBOARD_RETRANSCRIPTION_ICON_CLASS_NAME}
             data-sot-part="dashboard-retranscription-icon-warn"
-            viewBox="0 0 24 24"
-        >
-            <path d="M12 9v4" />
-            <path d="M12 17h.01" />
-            <circle cx="12" cy="12" r="10" />
-        </svg>
+            aria-hidden="true"
+        />
     );
 }
 
 function RetxOkIcon() {
     return (
-        // biome-ignore lint/a11y/noSvgWithoutTitle: SOT retx icon SVG is hidden by the parent icon wrapper.
-        <svg
+        <Check
             className={DASHBOARD_RETRANSCRIPTION_ICON_CLASS_NAME}
             data-sot-part="dashboard-retranscription-icon-ok"
-            viewBox="0 0 24 24"
-        >
-            <path d="M20 6 9 17l-5-5" />
-        </svg>
+            aria-hidden="true"
+        />
     );
 }
 
 function RetxCloseIcon() {
     return (
-        <svg
+        <X
             className={DASHBOARD_RETRANSCRIPTION_CLOSE_ICON_CLASS_NAME}
-            viewBox="0 0 24 24"
             aria-hidden="true"
             focusable="false"
-        >
-            <path d="M18 6 6 18M6 6l12 12" />
-        </svg>
+        />
     );
 }
 
@@ -1856,36 +1845,12 @@ function SotCopyIcon({ state }: { state?: "err" | "ok" }) {
 
 function SotTranscriptEmptyIcon() {
     return (
-        <svg
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            strokeWidth="1.6"
-            aria-hidden="true"
-            focusable="false"
-        >
-            <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" />
-        </svg>
+        <MessageSquareText aria-hidden="true" focusable="false" />
     );
 }
 
 function SotDetailEmptyIcon() {
-    return (
-        <svg
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            strokeWidth="1.6"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            aria-hidden="true"
-            focusable="false"
-        >
-            <path d="M9 18V5l12-2v13" />
-            <circle cx="6" cy="18" r="3" />
-            <circle cx="18" cy="16" r="3" />
-        </svg>
-    );
+    return <Music aria-hidden="true" focusable="false" />;
 }
 
 function DashboardDetailEmptyState() {
@@ -1915,22 +1880,11 @@ function DashboardDetailEmptyState() {
 }
 
 function SotSourceReportErrorIcon() {
-    return (
-        <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
-            <circle cx="12" cy="12" r="9" />
-            <path d="M12 8v5" />
-            <circle cx="12" cy="16" r=".8" fill="currentColor" />
-        </svg>
-    );
+    return <CircleAlert aria-hidden="true" focusable="false" />;
 }
 
 function SotSourceReportEmptyIcon() {
-    return (
-        <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
-            <rect x="3" y="6" width="18" height="14" rx="2" />
-            <path d="M8 6V4h8v2" />
-        </svg>
-    );
+    return <FileText aria-hidden="true" focusable="false" />;
 }
 
 function SotRecordingListSkeleton() {
@@ -7562,13 +7516,11 @@ export function Workstation({
                                                     }}
                                                 >
                                                     {moreActionsShowPrimaryIcons ? (
-                                                        <svg
-                                                            viewBox="0 0 24 24"
+                                                        <Pencil
+                                                            data-icon="inline-start"
                                                             aria-hidden="true"
                                                             focusable="false"
-                                                        >
-                                                            <path d="M17 3a2.828 2.828 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5L17 3z" />
-                                                        </svg>
+                                                        />
                                                     ) : null}
                                                     重命名
                                                 </DropdownMenuItem>
@@ -7587,13 +7539,11 @@ export function Workstation({
                                                     }}
                                                 >
                                                     {moreActionsShowPrimaryIcons ? (
-                                                        <svg
-                                                            viewBox="0 0 24 24"
+                                                        <Sparkle
+                                                            data-icon="inline-start"
                                                             aria-hidden="true"
                                                             focusable="false"
-                                                        >
-                                                            <path d="m12 3-1.6 4.6L6 9l4.4 1.4L12 15l1.6-4.6L18 9l-4.4-1.4z" />
-                                                        </svg>
+                                                        />
                                                     ) : null}
                                                     AI 重命名
                                                 </DropdownMenuItem>
@@ -7613,14 +7563,11 @@ export function Workstation({
                                                         }}
                                                     >
                                                         {moreActionsShowPrimaryIcons ? (
-                                                            <svg
-                                                                viewBox="0 0 24 24"
+                                                            <RefreshCw
+                                                                data-icon="inline-start"
                                                                 aria-hidden="true"
                                                                 focusable="false"
-                                                            >
-                                                                <path d="M3 12a9 9 0 1 0 3-6.7L3 8" />
-                                                                <path d="M3 3v5h5" />
-                                                            </svg>
+                                                            />
                                                         ) : null}
                                                         重新转写
                                                     </DropdownMenuItem>
@@ -7653,22 +7600,11 @@ export function Workstation({
                                                     }
                                                 >
                                                     {moreActionsShowDeleteIcon ? (
-                                                        <svg
-                                                            viewBox="0 0 24 24"
+                                                        <Trash2
+                                                            data-icon="inline-start"
                                                             aria-hidden="true"
                                                             focusable="false"
-                                                        >
-                                                            {moreActionsState ===
-                                                            "upstream-deleted" ? (
-                                                                <path d="M3 6h18" />
-                                                            ) : (
-                                                                <>
-                                                                    <path d="M3 6h18" />
-                                                                    <path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" />
-                                                                    <path d="M19 6 18 20a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6" />
-                                                                </>
-                                                            )}
-                                                        </svg>
+                                                        />
                                                     ) : null}
                                                     删除本地副本
                                                     {selectedRecording?.sourceProvider ? (

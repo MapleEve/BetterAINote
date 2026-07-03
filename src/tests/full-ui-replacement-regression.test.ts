@@ -2449,7 +2449,10 @@ const SYSTEM_BANNER_PROGRESS_PRIMITIVE_RETIRED_TOKENS = [
 ];
 
 const SYSTEM_BANNER_FEATURE_LOCAL_TOKENS = [
+    "const systemBannerAlertVariantByState",
     "const systemBannerAlertClassNames",
+    "const systemBannerAlertStateClassNames",
+    "const systemBannerIconStateClassNames",
     "const systemBannerButtonClassNames",
     "const systemBannerProgressClassNames",
     "function SystemBannerAlert",
@@ -6060,6 +6063,20 @@ describe("full UI replacement regression coverage", () => {
         expect(banner).toContain("function SystemBannerAlert");
         expect(banner).toContain("function SystemBannerButton");
         expect(banner).toContain("function SystemBannerProgress");
+        expect(banner).not.toContain("[--system-banner");
+        expect(banner).not.toContain("border-[var(--system-banner-border)]");
+        expect(banner).toContain(
+            "variant={systemBannerAlertVariantByState[banner.state]}",
+        );
+        expect(banner).toContain(
+            "systemBannerAlertStateClassNames[banner.state]",
+        );
+        expect(banner).toContain(
+            "systemBannerIconStateClassNames[banner.state]",
+        );
+        expect(banner).toContain(
+            "bg-primary/10 data-[sot-state=indeterminate]:bg-primary/10",
+        );
         expect(banner).toMatch(/<Alert[\s\S]*data-sot-panel="system-banner"/);
         expect(banner).not.toContain('variant="systemBanner"');
         expect(banner).not.toContain('density="systemBanner"');
