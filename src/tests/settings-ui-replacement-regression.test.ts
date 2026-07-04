@@ -519,6 +519,7 @@ describe("settings SOT interaction regressions", () => {
         );
         expect(settingsCloseButton).toContain('variant="ghost"');
         expect(settingsCloseButton).toContain("SETTINGS_CLOSE_BUTTON_CLASS");
+        expect(settingsCloseButton).toContain('size="icon-sm"');
         expect(settingsCloseButton).toMatch(
             /className=\{\s*[A-Za-z0-9_]+\s*\}/,
         );
@@ -704,11 +705,11 @@ describe("settings SOT interaction regressions", () => {
                 "flex-col",
                 "gap-0",
                 "overflow-hidden",
-                "rounded-[16px]",
                 "bg-card",
                 "p-0",
             ],
         );
+        expect(settingsShellSurfaceClass).not.toContain("rounded-[");
         expect(settingsShellSurfaceClass).not.toMatch(/(?:^|\s)z-/);
         expect(settingsShellSurfaceClass).not.toContain("!");
         expect(settingsShellSurfaceClass).not.toContain("var(--");
@@ -1044,10 +1045,10 @@ describe("settings SOT interaction regressions", () => {
             "flex-col",
             "gap-0",
             "overflow-hidden",
-            "rounded-[16px]",
             "bg-card",
             "p-0",
         ]);
+        expect(shellSurfaceClass).not.toContain("rounded-[");
         expect(shellSurfaceClass).not.toContain("z-[");
         expect(shellSurfaceClass).not.toContain("data-[state=closed]");
         expect(shellSurfaceClass).not.toContain("!");
@@ -1883,19 +1884,11 @@ describe("settings SOT interaction regressions", () => {
             "";
         const providerDetailInputOwnerClass =
             settingFieldControl.match(
-                /export const SOURCE_PROVIDER_DETAIL_INPUT_CLASS\s*=\s*"[^"]*";/,
+                /const SOURCE_PROVIDER_DETAIL_INPUT_CLASS\s*=\s*"[^"]*";/,
             )?.[0] ?? "";
         const providerDetailInputOwnerClassName =
             providerDetailInputOwnerClass.match(/const\s+([A-Z0-9_]+)/)?.[1] ??
             "";
-        const sourceProviderDetailSwitchClass =
-            settingFieldControl.match(
-                /export const SOURCE_PROVIDER_DETAIL_SWITCH_CLASS\s*=\s*"[^"]*";/,
-            )?.[0] ?? "";
-        const sourceProviderDetailSwitchClassName =
-            sourceProviderDetailSwitchClass.match(
-                /export const\s+([A-Z0-9_]+)/,
-            )?.[1] ?? "";
         const inputClassNameBlock =
             settingFieldControl.match(
                 /const inputClassName = cn\([\s\S]*?\n\s*\);/,
@@ -1903,10 +1896,6 @@ describe("settings SOT interaction regressions", () => {
         const sourceProviderControlClassNameBlock =
             settingFieldControl.match(
                 /const sourceProviderControlClassName[\s\S]*?;/,
-            )?.[0] ?? "";
-        const sourceProviderSwitchClassNameBlock =
-            settingFieldControl.match(
-                /const sourceProviderSwitchClassName[\s\S]*?;/,
             )?.[0] ?? "";
 
         expect(content).toContain("SETTINGS_FIELD_ROW_CLASS");
@@ -1957,13 +1946,16 @@ describe("settings SOT interaction regressions", () => {
         expect(settingFieldControl).toContain(
             "className={fieldControlClassName}",
         );
+        expect(settingFieldControl).not.toMatch(/export const .*_CLASS/);
         expect(settingFieldControl).toContain("SETTINGS_FIELD_ROW_CLASS");
         expect(settingFieldControl).toContain("SETTINGS_FIELD_CONTENT_CLASS");
         expect(settingFieldControl).toContain("SETTINGS_FIELD_CONTROL_CLASS");
         expect(settingFieldControl).toContain("isSourceProviderDetailVariant");
-        expect(settingFieldControl).toContain(
+        expect(settingFieldControl).not.toContain(
             "isSourceProviderCredentialField",
         );
+        expect(settingFieldControl).not.toContain("fieldLabelClassName");
+        expect(settingFieldControl).not.toContain("fieldDescriptionClassName");
         expect(settingFieldControl).not.toContain("variant={controlVariant}");
         expect(settingFieldControl).not.toContain("controlSize={controlSize}");
         expect(settingFieldControl).not.toContain("size={controlSize}");
@@ -2054,35 +2046,38 @@ describe("settings SOT interaction regressions", () => {
         expect(buttonPrimitive).not.toContain("settingsSourceRetry:");
         expect(buttonPrimitive).not.toContain("settingsSectionRetry:");
         expect(saveStatusClass).toContain("SETTINGS_SAVE_STATUS_BADGE_CLASS");
-        expect(saveStatusClass).toContain("data-[sot-state=idle]:hidden");
-        expect(saveStatusClass).toContain(
-            "[&_[data-sot-part=settings-save-status-indicator]]",
-        );
+        expect(saveStatusClass).not.toContain("data-[sot-state=");
+        expect(saveStatusClass).not.toContain("[&_[data-sot-part");
+        expect(content).toContain("const statusClassName = cn(");
+        expect(content).toContain('saveState === "idle" && "hidden"');
+        expect(content).toContain("const indicatorClassName = cn(");
         expect(saveActionsClass).toContain("SETTINGS_SAVE_ACTIONS_CLASS");
         expect(saveActionsClass).toContain(
             "flex flex-row-reverse items-center gap-2",
         );
-        expect(saveActionsClass).toContain(
-            "data-[sot-state=saving]:[&_[data-sot-control=settings-save]]:pointer-events-none",
-        );
+        expect(saveActionsClass).not.toContain("data-[sot-state=");
+        expect(saveActionsClass).not.toContain("[&_[data-sot-control");
         expect(shortcutsGridClass).toContain("SETTINGS_SHORTCUTS_GRID_CLASS");
         expect(shortcutsGridClass).toContain("grid grid-cols-[1fr_auto]");
         expect(shortcutRowClass).toContain("SETTINGS_SHORTCUT_ROW_CLASS");
-        expect(shortcutRowClass).toContain("border-[var(--line-hairline)]");
-        expect(shortcutRowClass).toContain("text-[var(--fg-primary)]");
+        expect(shortcutRowClass).toContain("border-border");
+        expect(shortcutRowClass).toContain("text-foreground");
+        expect(shortcutRowClass).not.toContain("var(--");
         expect(shortcutKeyClass).toContain("SETTINGS_SHORTCUT_KEY_CLASS");
-        expect(shortcutKeyClass).toContain("bg-[var(--bg-recessed)]");
-        expect(shortcutKeyClass).toContain("text-[var(--fg-secondary)]");
+        expect(shortcutKeyClass).toContain("bg-muted");
+        expect(shortcutKeyClass).toContain("text-muted-foreground");
+        expect(shortcutKeyClass).not.toContain("var(--");
         expect(keyStatusClass).toContain("SETTINGS_KEY_STATUS_CLASS");
         expect(keyStatusClass).toContain("inline-flex items-center gap-1");
-        expect(keyStatusClass).toContain("data-[sot-state=stored]");
-        expect(keyStatusClass).toContain("text-[var(--fg-tertiary)]");
-        expect(keyStatusClass).toContain("text-[var(--signal-success)]");
+        expect(keyStatusClass).not.toContain("data-[sot-state=");
+        expect(keyStatusClass).toContain("text-muted-foreground");
+        expect(keyStatusClass).not.toContain("var(--");
         expect(content).toContain("className={SETTINGS_SHORTCUTS_GRID_CLASS}");
         expect(content).toContain("className={SETTINGS_SHORTCUT_ROW_CLASS}");
         expect(content).toContain("className={SETTINGS_SHORTCUT_KEY_CLASS}");
         expect(content).toContain("className={SETTINGS_KEY_STATUS_CLASS}");
         expect(content).toContain("data-sot-key-status");
+        expect(content).toContain('className="text-primary"');
         expect(content).not.toContain('data-state="valid"');
         expect(content).not.toContain('data-state="invalid"');
         for (const selector of REMOVED_SETTINGS_SHORTCUTS_KEY_STATUS_VISUAL_SELECTORS) {
@@ -2106,31 +2101,16 @@ describe("settings SOT interaction regressions", () => {
         }
         expect(switchPrimitive).toContain('type SwitchVariant = "default"');
         expect(switchPrimitive).toContain('type SwitchSize = "sm" | "default"');
-        expect(sourceProviderSwitchClassNameBlock).toContain(
-            "isSourceProviderDetailVariant",
-        );
-        expect(sourceProviderDetailSwitchClassName).toBe(
-            "SOURCE_PROVIDER_DETAIL_SWITCH_CLASS",
-        );
-        expect(sourceProviderSwitchClassNameBlock).toContain(
-            sourceProviderDetailSwitchClassName,
-        );
-        expect(sourceProviderSwitchClassNameBlock).toContain("undefined");
-        expect(sourceProviderDetailSwitchClass).toContain(
-            'SOURCE_PROVIDER_DETAIL_SWITCH_CLASS = ""',
-        );
         expect(settingFieldControl).not.toContain(
             "[&_[data-slot=switch-thumb]]",
         );
         expect(settingFieldControl).not.toContain("focus-visible:ring-0");
         expect(settingFieldControl).not.toContain("aria-invalid:ring-0");
-        expect(sourceProviderSwitchClassNameBlock).toMatch(
-            /isSourceProviderDetailVariant[\s\S]*\?[\s\S]*:[\s\S]*undefined/,
+        expect(settingFieldControl).toMatch(/<Switch\s+id=\{fieldId\}/);
+        expect(settingFieldControl).not.toContain(
+            "sourceProviderSwitchClassName",
         );
-        expect(settingFieldControl).toContain(
-            "className={sourceProviderSwitchClassName}",
-        );
-        expect(content).toContain("SOURCE_PROVIDER_DETAIL_SWITCH_CLASS");
+        expect(content).not.toContain("SOURCE_PROVIDER_DETAIL_SWITCH_CLASS");
         expect(content).toContain('data-sot-control="source-auto-update"');
         expect(content).toContain('data-sot-control="source-enable-sync"');
         expect(content).toContain("data-sot-state=");
@@ -2537,16 +2517,23 @@ describe("settings SOT interaction regressions", () => {
         );
         expect(content).not.toContain('className="settings-main"');
         expect(sectionTitleClass).toContain("SETTINGS_SECTION_TITLE_CLASS");
-        for (const ownerClassToken of [
+        for (const semanticClassToken of [
+            "mb-[18px]",
+            "text-lg",
+            "font-semibold",
+            "text-foreground",
+        ]) {
+            expect(sectionTitleClass).toContain(semanticClassToken);
+        }
+        for (const removedOwnerClassToken of [
             "[margin:0_0_18px]",
             "font-display",
             "text-[18px]",
-            "font-semibold",
             "leading-[normal]",
             "tracking-[-0.012em]",
             "text-[var(--fg-primary)]",
         ]) {
-            expect(sectionTitleClass).toContain(ownerClassToken);
+            expect(sectionTitleClass).not.toContain(removedOwnerClassToken);
         }
         expect(content).toContain("className={SETTINGS_SECTION_TITLE_CLASS}");
         expect(content).toMatch(
@@ -2947,6 +2934,10 @@ describe("settings SOT interaction regressions", () => {
         const segmentControl = content.match(
             /function SegmentControl[\s\S]*?function SaveActions/,
         )?.[0];
+        const segmentOptionClass =
+            content.match(
+                /const SETTINGS_SEGMENT_OPTION_CLASS[\s\S]*?;/,
+            )?.[0] ?? "";
         const themeOptions = content.match(
             /const themeOptions:[\s\S]*?const languageOptions:/,
         )?.[0];
@@ -2973,6 +2964,8 @@ describe("settings SOT interaction regressions", () => {
         expect(segmentControl).toContain(
             "className={SETTINGS_SEGMENT_OPTION_CLASS}",
         );
+        expect(segmentOptionClass).toContain("data-[state=on]");
+        expect(segmentOptionClass).not.toContain("data-[sot-state=");
         expect(segmentControl).not.toContain('layout="settingsSegment"');
         expect(segmentControl).not.toContain('variant="settingsSegmentOption"');
         expect(segmentControl).not.toContain('size="settingsSegmentOption"');

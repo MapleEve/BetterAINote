@@ -14,38 +14,23 @@ import { Switch } from "@/components/ui/switch";
 import { Textarea } from "@/components/ui/textarea";
 import { cn } from "@/lib/utils";
 
-export const SETTINGS_FIELD_ROW_CLASS =
+const SETTINGS_FIELD_ROW_CLASS =
     "border-b border-border py-3 last:border-b-0 @md/field-group:gap-4";
 
-export const SETTINGS_FIELD_CONTENT_CLASS = "min-w-0 gap-1";
+const SETTINGS_FIELD_CONTENT_CLASS = "min-w-0 gap-1";
 
-export const SETTINGS_FIELD_CONTROL_CLASS =
+const SETTINGS_FIELD_CONTROL_CLASS =
     "flex min-w-0 flex-wrap items-center justify-end gap-2 @md/field-group:justify-end";
 
-export const SOURCE_PROVIDER_DETAIL_FIELD_CLASS =
+const SOURCE_PROVIDER_DETAIL_FIELD_CLASS =
     "border-b border-border py-3 last:border-b-0";
 
-export const SOURCE_PROVIDER_DETAIL_CREDENTIAL_FIELD_CLASS =
-    "border-b border-border py-3 last:border-b-0";
+const SOURCE_PROVIDER_DETAIL_FIELD_CONTENT_CLASS = "min-w-0";
 
-export const SOURCE_PROVIDER_DETAIL_FIELD_LABEL_CLASS = "";
+const SOURCE_PROVIDER_DETAIL_FIELD_CONTROL_CLASS = "justify-end";
 
-export const SOURCE_PROVIDER_DETAIL_CREDENTIAL_FIELD_LABEL_CLASS = "";
-
-export const SOURCE_PROVIDER_DETAIL_FIELD_DESCRIPTION_CLASS = "";
-
-export const SOURCE_PROVIDER_DETAIL_CREDENTIAL_FIELD_DESCRIPTION_CLASS = "";
-
-export const SOURCE_PROVIDER_DETAIL_FIELD_CONTENT_CLASS = "min-w-0";
-
-export const SOURCE_PROVIDER_DETAIL_CREDENTIAL_FIELD_CONTENT_CLASS = "min-w-0";
-
-export const SOURCE_PROVIDER_DETAIL_FIELD_CONTROL_CLASS = "justify-end";
-
-export const SOURCE_PROVIDER_DETAIL_INPUT_CLASS =
+const SOURCE_PROVIDER_DETAIL_INPUT_CLASS =
     "w-full max-w-[15rem] bg-background font-mono shadow-none";
-
-export const SOURCE_PROVIDER_DETAIL_SWITCH_CLASS = "";
 
 export interface SettingFieldOption {
     value: string;
@@ -98,20 +83,14 @@ export function SettingFieldControl({
 
     const isSettingsVariant = variant === "settings";
     const isSourceProviderDetailVariant = variant === "sourceProviderDetail";
-    const isSourceProviderCredentialField =
-        isSourceProviderDetailVariant && field.kind !== "switch";
     const fieldOrientation = isSettingsVariant ? "responsive" : "horizontal";
     const fieldClassName = isSourceProviderDetailVariant
-        ? isSourceProviderCredentialField
-            ? SOURCE_PROVIDER_DETAIL_CREDENTIAL_FIELD_CLASS
-            : SOURCE_PROVIDER_DETAIL_FIELD_CLASS
+        ? SOURCE_PROVIDER_DETAIL_FIELD_CLASS
         : isSettingsVariant
           ? SETTINGS_FIELD_ROW_CLASS
           : "gap-[18px] py-2";
     const fieldContentClassName = isSourceProviderDetailVariant
-        ? isSourceProviderCredentialField
-            ? SOURCE_PROVIDER_DETAIL_CREDENTIAL_FIELD_CONTENT_CLASS
-            : SOURCE_PROVIDER_DETAIL_FIELD_CONTENT_CLASS
+        ? SOURCE_PROVIDER_DETAIL_FIELD_CONTENT_CLASS
         : isSettingsVariant
           ? SETTINGS_FIELD_CONTENT_CLASS
           : undefined;
@@ -122,19 +101,6 @@ export function SettingFieldControl({
           : undefined;
     const sourceProviderControlClassName = isSourceProviderDetailVariant
         ? SOURCE_PROVIDER_DETAIL_INPUT_CLASS
-        : undefined;
-    const sourceProviderSwitchClassName = isSourceProviderDetailVariant
-        ? SOURCE_PROVIDER_DETAIL_SWITCH_CLASS
-        : undefined;
-    const fieldLabelClassName = isSourceProviderDetailVariant
-        ? isSourceProviderCredentialField
-            ? SOURCE_PROVIDER_DETAIL_CREDENTIAL_FIELD_LABEL_CLASS
-            : SOURCE_PROVIDER_DETAIL_FIELD_LABEL_CLASS
-        : undefined;
-    const fieldDescriptionClassName = isSourceProviderDetailVariant
-        ? isSourceProviderCredentialField
-            ? SOURCE_PROVIDER_DETAIL_CREDENTIAL_FIELD_DESCRIPTION_CLASS
-            : SOURCE_PROVIDER_DETAIL_FIELD_DESCRIPTION_CLASS
         : undefined;
     const inputClassName = cn(
         isSettingsVariant && "min-w-60 max-w-full",
@@ -151,20 +117,15 @@ export function SettingFieldControl({
             className={fieldClassName}
         >
             <FieldContent className={fieldContentClassName}>
-                <FieldLabel className={fieldLabelClassName} htmlFor={fieldId}>
-                    {field.label}
-                </FieldLabel>
+                <FieldLabel htmlFor={fieldId}>{field.label}</FieldLabel>
                 {field.description ? (
-                    <FieldDescription className={fieldDescriptionClassName}>
-                        {field.description}
-                    </FieldDescription>
+                    <FieldDescription>{field.description}</FieldDescription>
                 ) : null}
             </FieldContent>
             <FieldControl className={fieldControlClassName}>
                 {field.kind === "switch" ? (
                     <Switch
                         id={fieldId}
-                        className={sourceProviderSwitchClassName}
                         checked={Boolean(field.value)}
                         onCheckedChange={(checked) =>
                             onValueChange(field, checked)

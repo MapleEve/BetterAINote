@@ -135,7 +135,7 @@ const DASHBOARD_SIDEBAR_OWNER_FORBIDDEN_CLASS_PATTERN =
 const DASHBOARD_SIDEBAR_VISUAL_GLOBAL_DECLARATION_RE =
     /^\s*(?:-webkit-backdrop-filter|backdrop-filter|background|border(?:-(?:color|radius|right|style|width))?|box-shadow|display|flex-direction|padding|position)\s*:/m;
 const EXPECTED_SOURCE_REPORT_STATUS_BADGE_CLASS_NAME =
-    "!inline-flex !h-[22px] !w-fit !shrink-0 !items-center !justify-normal !gap-[5px] !overflow-visible !rounded-full !border !px-[8px] !py-0 ![font:600_11px_var(--font-sans)] !leading-[normal] !shadow-none !whitespace-nowrap !transition-none data-[sot-tone=err]:!border-[color-mix(in_srgb,var(--signal-danger)_30%,transparent)] data-[sot-tone=err]:!bg-[color-mix(in_srgb,var(--signal-danger)_14%,transparent)] data-[sot-tone=err]:!text-[var(--signal-danger)] data-[sot-tone=neu]:!border-[var(--line-hairline)] data-[sot-tone=neu]:!bg-[var(--bg-recessed)] data-[sot-tone=neu]:!text-[var(--fg-secondary)] data-[sot-tone=ok]:!border-[color-mix(in_srgb,var(--signal-success)_30%,transparent)] data-[sot-tone=ok]:!bg-[color-mix(in_srgb,var(--signal-success)_14%,transparent)] data-[sot-tone=ok]:!text-[var(--signal-success)] data-[sot-tone=warn]:!border-[color-mix(in_srgb,var(--signal-warning)_32%,transparent)] data-[sot-tone=warn]:!bg-[color-mix(in_srgb,var(--signal-warning)_18%,transparent)] data-[sot-tone=warn]:!text-[oklch(0.55_0.16_70)] [&_[data-sot-part=dashboard-source-report-status-dot]]:!mr-0 [&_[data-sot-part=dashboard-source-report-status-dot]]:!inline-block [&_[data-sot-part=dashboard-source-report-status-dot]]:!size-[5px] [&_[data-sot-part=dashboard-source-report-status-dot]]:!rounded-full [&_[data-sot-part=dashboard-source-report-status-dot]]:!bg-current [&_[data-sot-part=source-report-status-dot]]:!mr-0 [&_[data-sot-part=source-report-status-dot]]:!inline-block [&_[data-sot-part=source-report-status-dot]]:!size-[5px] [&_[data-sot-part=source-report-status-dot]]:!rounded-full [&_[data-sot-part=source-report-status-dot]]:!bg-current";
+    "h-[22px] justify-normal gap-[5px] overflow-visible px-[8px] py-0 font-sans text-[11px] font-semibold leading-normal shadow-none transition-none data-[sot-tone=err]:border-destructive/30 data-[sot-tone=err]:bg-destructive/10 data-[sot-tone=err]:text-destructive data-[sot-tone=neu]:border-border data-[sot-tone=neu]:bg-muted data-[sot-tone=neu]:text-muted-foreground data-[sot-tone=ok]:border-primary/30 data-[sot-tone=ok]:bg-primary/10 data-[sot-tone=ok]:text-primary data-[sot-tone=warn]:border-secondary data-[sot-tone=warn]:bg-secondary data-[sot-tone=warn]:text-secondary-foreground";
 const EXPECTED_DASHBOARD_RECORDING_PLAYER_CARD_CLASS_NAME =
     "block min-h-[114px] gap-0 overflow-visible rounded-[16px] border border-border bg-card px-[18px] py-[16px] shadow-none backdrop-blur-none";
 const DASHBOARD_RECORDING_PLAYER_WORKSTATION_CLASS_INITIALIZERS = [
@@ -1322,64 +1322,49 @@ const SOURCE_REPORT_SKELETON_SHARED_TOKENS = [
 ] as const;
 
 const EXPECTED_SOURCE_REPORT_METRIC_CARD_CLASS_NAME =
-    "gap-[6px] !overflow-visible rounded-[10px] border border-[var(--line-hairline)] bg-[var(--bg-recessed)] px-[12px] py-[10px] shadow-none backdrop-blur-none dark:border-[var(--glass-border-soft)] dark:bg-[var(--glass-tint-subtle)]";
+    "gap-[6px] overflow-visible rounded-[10px] border-border bg-muted px-[12px] py-[10px] shadow-none backdrop-blur-none";
 const SOURCE_REPORT_METRIC_CARD_CLASS_TOKENS =
     EXPECTED_SOURCE_REPORT_METRIC_CARD_CLASS_NAME.split(" ");
-const EXPECTED_SOURCE_REPORT_SKELETON_CLASS_NAME =
-    "bg-transparent ![background:linear-gradient(90deg,color-mix(in_srgb,var(--fg-primary)_5%,transparent)_0%,color-mix(in_srgb,var(--fg-primary)_10%,transparent)_50%,color-mix(in_srgb,var(--fg-primary)_5%,transparent)_100%)] ![background-size:220%_100%] dark:![background:linear-gradient(90deg,rgb(255_255_255_/_0.05)_0%,rgb(255_255_255_/_0.12)_50%,rgb(255_255_255_/_0.05)_100%)] dark:![background-size:220%_100%]";
 const SOURCE_REPORT_STYLE_OWNER_SNIPPETS = [
-    "export const SOURCE_REPORT_SKELETON_CLASS_NAME =",
-    `"${EXPECTED_SOURCE_REPORT_SKELETON_CLASS_NAME}"`,
     "export type SourceReportTone =",
     "export type SourceReportCardSkeletonSize =",
     "export type SourceReportSegmentSkeletonSize =",
-    "export const SOURCE_REPORT_CARD_SKELETON_CLASS_NAMES =",
-    "export const SOURCE_REPORT_SEGMENT_SKELETON_CLASS_NAMES =",
-    "export const SOURCE_REPORT_PANE_CLASS_NAME =",
-    '"flex flex-col gap-3.5"',
-    "export const SOURCE_REPORT_STATE_CLASS_NAME =",
+    "const skeletonBaseClassName =",
+    "const cardSkeletonClassNames =",
+    "const segmentSkeletonClassNames =",
+    "export const sourceReportCopyButtonVariant =",
+    "export const sourceReportCopyButtonSize =",
+    "export const sourceReportClassNames =",
+    'pane: "flex flex-col gap-3.5"',
+    "state:",
     "[&[hidden]]:hidden",
-    "export const SOURCE_REPORT_METRIC_CARD_CLASS_NAME =",
-    "border border-[var(--line-hairline)] bg-[var(--bg-recessed)]",
-    "![font:600_10.5px_var(--font-sans)] uppercase tracking-[0.06em] text-[var(--fg-tertiary)]",
+    `metricCard:\n        "${EXPECTED_SOURCE_REPORT_METRIC_CARD_CLASS_NAME}"`,
+    "cardLabel:",
+    "font-sans text-[10.5px] font-semibold leading-normal tracking-[0.06em] text-muted-foreground uppercase",
     "text-foreground",
-    "export const SOURCE_REPORT_MISSING_NOTICE_CLASS_NAME =",
-    "block rounded-[10px] border border-[var(--alert-warning-soft-strong-border)] bg-[var(--alert-warning-soft-strong-bg)] px-[12px] py-[10px] ![font:500_12.5px/1.55_var(--font-sans)]",
-    "export const SOURCE_REPORT_MISSING_NOTICE_DESCRIPTION_CLASS_NAME =",
-    "![font:500_12.5px/1.55_var(--font-sans)] !text-[var(--fg-secondary)]",
-    "![font:500_11.5px_var(--font-sans)] text-[var(--fg-tertiary)]",
-    "![font:500_11.5px_var(--font-mono)] text-[var(--fg-tertiary)]",
-    "export const SOURCE_REPORT_SEGMENT_SPEAKER_CLASS_NAME =",
-    "![font:600_12px_var(--font-sans)] text-[var(--fg-secondary)]",
-    "m-0 ![font:600_11px_var(--font-sans)] text-[var(--fg-tertiary)]",
-    "export const SOURCE_REPORT_ACTION_BUTTON_CLASS_NAME =",
-    "export const SOURCE_REPORT_PRIMARY_ACTION_BUTTON_CLASS_NAME =",
-    "bg-[linear-gradient(180deg,color-mix(in_srgb,var(--accent)_92%,white_18%),var(--accent))]",
-    "!text-white shadow-[0_2px_6px_color-mix(in_srgb,var(--accent)_24%,transparent),inset_0_1px_0_rgb(255_255_255_/_0.22)]",
-    "export const SOURCE_REPORT_GHOST_ACTION_BUTTON_CLASS_NAME =",
-    "rounded-[7px] border border-transparent bg-transparent px-[10px]",
-    "text-[var(--fg-secondary)] shadow-none",
-    "hover:bg-[var(--bg-recessed)] hover:text-[var(--fg-primary)]",
-    "export const SOURCE_REPORT_COPY_BUTTON_VARIANT =",
-    "export const SOURCE_REPORT_COPY_BUTTON_SIZE =",
-    "export const SOURCE_REPORT_COPY_BUTTON_CLASS_NAME =",
-    "hover:bg-accent hover:text-accent-foreground",
-    "export const SOURCE_REPORT_ERROR_ALERT_CLASS_NAME =",
-    "export const SOURCE_REPORT_EMPTY_SURFACE_CLASS_NAME =",
-    "border border-dashed border-[var(--line-hairline)] bg-[var(--bg-recessed)]",
-    "data-[sot-tone=err]:border-[var(--alert-destructive-soft-border)] data-[sot-tone=err]:bg-[var(--alert-destructive-subtle-bg)] data-[sot-tone=err]:text-[var(--fg-primary)]",
-    "export const SOURCE_REPORT_EMPTY_ICON_CLASS_NAME =",
-    "border border-[var(--line-hairline)] bg-[var(--bg-recessed)] text-[var(--fg-tertiary)]",
-    "export const SOURCE_REPORT_EMPTY_ERROR_ICON_CLASS_NAME =",
-    "border-[var(--alert-destructive-icon-soft-border)] bg-[var(--alert-destructive-icon-soft-bg)] text-[var(--signal-danger)]",
-    "block max-w-[360px] ![font:500_12px/1.5_var(--font-sans)] tracking-normal !text-[var(--fg-tertiary)]",
-    "export const SOURCE_REPORT_STATUS_BADGE_CLASS_NAME =",
-    "data-[sot-tone=err]:!border-[color-mix(in_srgb,var(--signal-danger)_30%,transparent)] data-[sot-tone=err]:!bg-[color-mix(in_srgb,var(--signal-danger)_14%,transparent)] data-[sot-tone=err]:!text-[var(--signal-danger)]",
-    "data-[sot-tone=neu]:!border-[var(--line-hairline)] data-[sot-tone=neu]:!bg-[var(--bg-recessed)] data-[sot-tone=neu]:!text-[var(--fg-secondary)]",
-    "data-[sot-tone=ok]:!border-[color-mix(in_srgb,var(--signal-success)_30%,transparent)] data-[sot-tone=ok]:!bg-[color-mix(in_srgb,var(--signal-success)_14%,transparent)] data-[sot-tone=ok]:!text-[var(--signal-success)]",
-    "data-[sot-tone=warn]:!border-[color-mix(in_srgb,var(--signal-warning)_32%,transparent)] data-[sot-tone=warn]:!bg-[color-mix(in_srgb,var(--signal-warning)_18%,transparent)] data-[sot-tone=warn]:!text-[oklch(0.55_0.16_70)]",
+    "missingNotice:",
+    "block rounded-lg border-border bg-muted px-3 py-2 text-[12.5px] font-medium leading-relaxed text-muted-foreground",
+    "segmentSpeaker:",
+    "font-sans text-[12px] font-semibold leading-normal text-muted-foreground",
+    "primaryActionButton:",
+    "min-w-[46px]",
+    "ghostActionButton:",
+    "hover:bg-muted hover:text-foreground",
+    "copyButton:",
+    "h-[26px] gap-[6px]",
+    "[&[hidden]]:hidden",
+    "errorAlert:",
+    "emptySurface:",
+    "border border-dashed border-border bg-muted",
+    "data-[sot-tone=err]:border-destructive/30 data-[sot-tone=err]:bg-destructive/10 data-[sot-tone=err]:text-foreground",
+    "emptyIcon:",
+    "border border-border bg-card text-muted-foreground",
+    'emptyErrorIcon: "border-destructive/30 bg-destructive/10 text-destructive"',
+    "block max-w-[360px] font-sans text-[12px] font-medium leading-[1.5] tracking-normal text-muted-foreground",
+    "statusBadge:",
+    EXPECTED_SOURCE_REPORT_STATUS_BADGE_CLASS_NAME,
     "grid min-h-[30px] grid-cols-[80px_1fr]",
-    "border-b border-dashed border-[var(--line-hairline)]",
+    "border-b border-dashed border-border",
 ] as const;
 
 const DASHBOARD_SOURCE_REPORT_LOADING_METRIC_CARDS = [
@@ -1429,21 +1414,23 @@ const DASHBOARD_SOURCE_REPORT_LOADED_METRIC_CARDS = [
     },
 ] as const;
 
+const SOURCE_REPORT_SKELETON_BASE_REFERENCE = "$" + "{skeletonBaseClassName}";
+
 const SOURCE_REPORT_SKELETON_OWNER_TOKENS = [
-    "SOURCE_REPORT_SKELETON_CLASS_NAME",
-    "SOURCE_REPORT_CARD_SKELETON_CLASS_NAMES",
-    "SOURCE_REPORT_SEGMENT_SKELETON_CLASS_NAMES",
-    `count: \`\${SOURCE_REPORT_SKELETON_CLASS_NAME} inline-block h-[18px] w-[48px] align-middle rounded-[6px]\``,
-    `status: \`\${SOURCE_REPORT_SKELETON_CLASS_NAME} inline-block h-[18px] w-[80px] align-middle rounded-[6px]\``,
-    `source: \`\${SOURCE_REPORT_SKELETON_CLASS_NAME} inline-block h-[18px] w-[120px] align-middle rounded-[6px]\``,
-    `"line-long": \`\${SOURCE_REPORT_SKELETON_CLASS_NAME} mt-1.5 inline-block h-[13px] w-[92%] align-middle rounded-[4px]\``,
-    `"line-wide": \`\${SOURCE_REPORT_SKELETON_CLASS_NAME} mt-[6px] inline-block h-[13px] w-[88%] align-middle rounded-[4px]\``,
-    `speaker: \`\${SOURCE_REPORT_SKELETON_CLASS_NAME} ml-[5px] inline-block h-[12px] w-[54px] align-middle rounded-[4px]\``,
-    `time: \`\${SOURCE_REPORT_SKELETON_CLASS_NAME} inline-block h-[12px] w-[96px] align-middle rounded-[4px]\``,
+    "const skeletonBaseClassName =",
+    "const cardSkeletonClassNames =",
+    "const segmentSkeletonClassNames =",
+    `count: \`${SOURCE_REPORT_SKELETON_BASE_REFERENCE} inline-block h-[18px] w-[48px] align-middle rounded-md\``,
+    `status: \`${SOURCE_REPORT_SKELETON_BASE_REFERENCE} inline-block h-[18px] w-[80px] align-middle rounded-md\``,
+    `source: \`${SOURCE_REPORT_SKELETON_BASE_REFERENCE} inline-block h-[18px] w-[120px] align-middle rounded-md\``,
+    `"line-long": \`${SOURCE_REPORT_SKELETON_BASE_REFERENCE} mt-1.5 inline-block h-[13px] w-[92%] align-middle rounded-sm\``,
+    `"line-wide": \`${SOURCE_REPORT_SKELETON_BASE_REFERENCE} mt-1.5 inline-block h-[13px] w-[88%] align-middle rounded-sm\``,
+    `speaker: \`${SOURCE_REPORT_SKELETON_BASE_REFERENCE} ml-1 inline-block h-3 w-14 align-middle rounded-sm\``,
+    `time: \`${SOURCE_REPORT_SKELETON_BASE_REFERENCE} inline-block h-3 w-24 align-middle rounded-sm\``,
 ] as const;
 
 const DASHBOARD_SOURCE_REPORT_LOADED_SOT_HOOKS = [
-    'data-sot-part="dashboard-source-report-status-dot"',
+    "SotSourceReportStatusDot",
     "data-sot-source-report-segment-time",
     'data-sot-format="mono"',
     'valueFormat="mono"',
@@ -1793,11 +1780,11 @@ const DASHBOARD_TRANSCRIPT_DETAIL_PRIMITIVE_REPAINT_DECLARATION_RE =
     /^\s*(?:background(?:-clip)?|border(?:-(?:color|radius|style|width))?|box-shadow|color|font(?:-[\w-]+)?|height|line-height|padding|transition|width)\s*:|\b(?:color-mix|linear-gradient|oklch)\(/m;
 
 const ROUTE_LOADING_SURFACE_CLASS_VALUE =
-    "min-h-0 gap-0 overflow-hidden rounded-[16px] border-[var(--line-hairline)] bg-[var(--bg-elevated)] shadow-[var(--shadow-sm)] backdrop-blur-none dark:border-[var(--glass-border)]";
+    "min-h-0 gap-0 overflow-hidden rounded-2xl border-border bg-card shadow-sm backdrop-blur-none";
 const ROUTE_LOADING_SURFACE_CLASS_TOKENS =
     ROUTE_LOADING_SURFACE_CLASS_VALUE.split(" ");
-const DASHBOARD_ROUTE_LOADING_SHELL_CLASS_VALUE =
-    "grid h-screen min-h-[720px] grid-cols-[264px_1fr] transition-[grid-template-columns] duration-[320ms] ease-[var(--ease-out)]";
+const ROUTE_FALLBACK_CHROME_SHELL_CLASS_VALUE =
+    "grid h-screen min-h-[720px] grid-cols-[264px_1fr] bg-background text-foreground transition-[grid-template-columns] duration-300 ease-out max-[860px]:grid-cols-[0px_1fr]";
 const DASHBOARD_ROUTE_LOADING_DETAIL_CLASS_VALUE =
     "flex min-h-0 min-w-0 flex-col gap-4";
 const DASHBOARD_LOADING_REMOVED_GLOBAL_SELECTORS = [
@@ -1816,17 +1803,6 @@ const ROUTE_CHROME_REMOVED_GLOBAL_SELECTORS = [
     '[data-sot-part="route-crumbs"]',
     '[data-sot-part="route-crumb-current"]',
     '[data-sot-panel="route-workspace"]',
-] as const;
-const ROUTE_CHROME_MODULE_CLASSES = [
-    ".sidebar",
-    ".brand",
-    ".brandName",
-    ".brandSubtitle",
-    ".main",
-    ".topbar",
-    ".crumbs",
-    ".crumbCurrent",
-    ".workspace",
 ] as const;
 const ROUTE_CHROME_FORBIDDEN_FRAMEWORK_RE =
     /var\(--glass|var\(--graphite|color-mix\(|backdrop-filter/;
@@ -1913,21 +1889,22 @@ describe("dashboard SOT foundation", () => {
 
     it("keeps dashboard route loading skeleton on the shadcn primitive contract", () => {
         const loading = readSource("app/(app)/dashboard/loading.tsx");
+        const routeChrome = readSource("app/(app)/route-chrome.tsx");
         const cardPrimitive = readSource("components/ui/card.tsx");
         const skeletonPrimitive = readSource("components/ui/skeleton.tsx");
         const globals = readSource("app/globals.css");
         const routeChromeModule = readSource(
             "app/(app)/route-chrome.module.css",
         );
-        const routeLoadingSurfaceClassName = extractBoundedSlice(
-            loading,
-            "const routeLoadingSurfaceClassName =",
+        const routeFallbackSurfaceClassName = extractBoundedSlice(
+            routeChrome,
+            "const routeFallbackSurfaceClassName =",
             ";",
         );
-        const dashboardRouteLoadingShellClassName = extractBoundedSlice(
-            loading,
-            "const dashboardRouteLoadingShellClassName =",
-            ";",
+        const routeFallbackChromeClassNames = extractBoundedSlice(
+            routeChrome,
+            "const routeFallbackChromeClassNames =",
+            "} as const;",
         );
         const dashboardRouteLoadingListClassName = extractBoundedSlice(
             loading,
@@ -1941,8 +1918,8 @@ describe("dashboard SOT foundation", () => {
         );
         const dashboardLoadingShellOpening = extractOpeningElement(
             loading,
-            'data-sot-shell="dashboard-loading"',
-            "div",
+            'dataSotShell="dashboard-loading"',
+            "RouteFallbackChrome",
         );
         const dashboardLoadingListCard = extractElementSlice(
             loading,
@@ -1971,28 +1948,28 @@ describe("dashboard SOT foundation", () => {
         expect(loading).toContain(
             'import { Skeleton } from "@/components/ui/skeleton";',
         );
-        expect(loading).toContain('aria-busy="true"');
+        expect(loading).toContain("aria-busy={true}");
         expect(loading).toContain("<Card");
-        expect(routeLoadingSurfaceClassName).toContain(
+        expect(routeFallbackSurfaceClassName).toContain(
             `"${ROUTE_LOADING_SURFACE_CLASS_VALUE}"`,
         );
         for (const token of ROUTE_LOADING_SURFACE_CLASS_TOKENS) {
-            expect(routeLoadingSurfaceClassName).toContain(token);
+            expect(routeFallbackSurfaceClassName).toContain(token);
         }
-        expect(dashboardRouteLoadingShellClassName).toContain(
-            `"${DASHBOARD_ROUTE_LOADING_SHELL_CLASS_VALUE}"`,
+        expect(routeFallbackChromeClassNames).toContain(
+            `shell: "${ROUTE_FALLBACK_CHROME_SHELL_CLASS_VALUE}"`,
         );
         expect(dashboardRouteLoadingListClassName).toContain(
-            "routeLoadingSurfaceClassName",
+            "routeFallbackSurfaceClassName",
         );
         expect(dashboardRouteLoadingDetailClassName).toContain(
-            "routeLoadingSurfaceClassName",
+            "routeFallbackSurfaceClassName",
         );
         expect(dashboardRouteLoadingDetailClassName).toContain(
             `"${DASHBOARD_ROUTE_LOADING_DETAIL_CLASS_VALUE}"`,
         );
         expect(dashboardLoadingShellOpening).toContain(
-            "className={dashboardRouteLoadingShellClassName}",
+            'dataSotShell="dashboard-loading"',
         );
         for (const [label, card] of [
             ["dashboard-loading-list", dashboardLoadingListCard],
@@ -2038,43 +2015,26 @@ describe("dashboard SOT foundation", () => {
         expect(loading).toContain('variant="default"');
         expect(loading).toContain('size="default"');
         expect(loading).toContain("className={");
-        expect(loading).toContain('data-sot-shell="dashboard-loading"');
-        expect(loading).toContain('data-sot-panel="route-sidebar"');
-        expect(loading).toContain('data-sot-panel="route-main"');
-        expect(loading).toContain('data-sot-panel="route-topbar"');
-        expect(loading).toContain('data-sot-panel="route-workspace"');
-        expect(loading).toContain('data-sot-part="route-brand"');
-        expect(loading).toContain('data-sot-part="route-brand-name"');
-        expect(loading).toContain('data-sot-part="route-brand-subtitle"');
-        expect(loading).toContain('data-sot-part="route-crumbs"');
-        expect(loading).toContain('data-sot-part="route-crumb-current"');
+        expect(loading).toContain('dataSotShell="dashboard-loading"');
+        expect(routeChrome).toContain('data-sot-panel="route-sidebar"');
+        expect(routeChrome).toContain('data-sot-panel="route-main"');
+        expect(routeChrome).toContain('data-sot-panel="route-topbar"');
+        expect(routeChrome).toContain('data-sot-panel="route-workspace"');
+        expect(routeChrome).toContain('data-sot-part="route-brand"');
+        expect(routeChrome).toContain('data-sot-part="route-brand-name"');
+        expect(routeChrome).toContain('data-sot-part="route-brand-subtitle"');
+        expect(routeChrome).toContain('data-sot-part="route-crumbs"');
+        expect(routeChrome).toContain('data-sot-part="route-crumb-current"');
         expect(loading).toContain('data-sot-panel="dashboard-loading-list"');
         expect(loading).toContain('data-sot-panel="dashboard-loading-detail"');
         expect(loading).toContain('data-sot-panel="recording-list-loading"');
         expect(loading).toContain('data-sot-panel="recording-detail-loading"');
-        expect(loading).toContain(
-            'import routeChromeStyles from "../route-chrome.module.css";',
-        );
-        expect(loading).toContain("className={routeChromeStyles.sidebar}");
-        expect(loading).toContain("className={routeChromeStyles.brand}");
-        expect(loading).toContain("className={routeChromeStyles.brandName}");
-        expect(loading).toContain(
-            "className={routeChromeStyles.brandSubtitle}",
-        );
-        expect(loading).toContain("className={routeChromeStyles.main}");
-        expect(loading).toContain("className={routeChromeStyles.topbar}");
-        expect(loading).toContain("className={routeChromeStyles.crumbs}");
-        expect(loading).toContain("className={routeChromeStyles.crumbCurrent}");
-        expect(loading).toContain("className={routeChromeStyles.workspace}");
-        for (const routeChromeClass of ROUTE_CHROME_MODULE_CLASSES) {
-            expect(routeChromeModule).toContain(routeChromeClass);
-        }
-        expect(routeChromeModule).toContain(
-            "grid-template-columns: 380px 1fr;",
-        );
-        expect(routeChromeModule.match(/^\.sidebar \{/gm) ?? []).toHaveLength(
-            1,
-        );
+        expect(loading).toContain('from "../route-chrome";');
+        expect(loading).toContain("RouteFallbackChrome");
+        expect(loading).toContain("routeFallbackSurfaceClassName");
+        expect(loading).not.toContain("routeChromeStyles");
+        expect(loading).not.toContain("route-chrome.module.css");
+        expect(routeChromeModule.trim()).toBe("");
         expect(routeChromeModule).not.toMatch(
             ROUTE_CHROME_FORBIDDEN_FRAMEWORK_RE,
         );
@@ -3641,6 +3601,9 @@ describe("dashboard SOT foundation", () => {
         const sourceReportStyles = readSource(
             "features/source-report/styles.ts",
         );
+        const sourceReportPrimitives = readSource(
+            "features/source-report/primitives.tsx",
+        );
         const toggleGroupPrimitive = readSource(
             "components/ui/toggle-group.tsx",
         );
@@ -4752,9 +4715,7 @@ describe("dashboard SOT foundation", () => {
             "div",
         );
         expect(sourceReportHiddenPane).toContain("className={cn(");
-        expect(sourceReportHiddenPane).toContain(
-            "SOURCE_REPORT_PANE_CLASS_NAME",
-        );
+        expect(sourceReportHiddenPane).toContain("sourceReportClassNames.pane");
         expect(sourceReportHiddenPane).toContain(
             "dashboardTabPaneHiddenClassName",
         );
@@ -5089,7 +5050,7 @@ describe("dashboard SOT foundation", () => {
         );
         expectClassNameConstReference(
             dashboardCopyIcon,
-            "SOURCE_REPORT_COPY_ICON_CLASS_NAME",
+            "sourceReportClassNames.copyIcon",
         );
         const dashboardCopyLabel = extractOpeningElement(
             workstation,
@@ -5098,7 +5059,7 @@ describe("dashboard SOT foundation", () => {
         );
         expectClassNameConstReference(
             dashboardCopyLabel,
-            "SOURCE_REPORT_COPY_LABEL_CLASS_NAME",
+            "sourceReportClassNames.copyLabel",
         );
         const dashboardButtonClassNames = extractBoundedSlice(
             workstation,
@@ -5108,9 +5069,10 @@ describe("dashboard SOT foundation", () => {
         expect(dashboardButtonClassNames).toMatch(
             /copy:\s*"[^"]*\[&\[hidden\]\]:hidden[^"]*"/,
         );
-        expect(sourceReportStyles).toMatch(
-            /export const SOURCE_REPORT_COPY_BUTTON_CLASS_NAME\s*=\s*"[^"]*\[&\[hidden\]\]:hidden[^"]*";/,
-        );
+        expect(sourceReportStyles).toContain("copyIcon:");
+        expect(sourceReportStyles).toContain("copyLabel:");
+        expect(sourceReportStyles).toContain("copyButton:");
+        expect(sourceReportStyles).toContain("[&[hidden]]:hidden");
         expect(workstation).not.toContain(
             "const SOT_SOURCE_REPORT_COPY_BUTTON_CLASS_NAME",
         );
@@ -5161,10 +5123,12 @@ describe("dashboard SOT foundation", () => {
                 "Button",
             );
             expect(buttonOpening).toContain('variant="ghost"');
-            expect(buttonOpening).toContain('size="sm"');
+            expect(buttonOpening).toContain(
+                "size={sourceReportCopyButtonSize}",
+            );
             expectClassNameConstReference(
                 buttonOpening,
-                "SOURCE_REPORT_COPY_BUTTON_CLASS_NAME",
+                "sourceReportClassNames.copyButton",
             );
             expect(buttonOpening).not.toContain(
                 'variant="sourceReportCopyAction"',
@@ -5209,7 +5173,7 @@ describe("dashboard SOT foundation", () => {
             expect(buttonOpening).toContain('size="xs"');
             expectClassNameConstReference(
                 buttonOpening,
-                "SOURCE_REPORT_ACTION_BUTTON_CLASS_NAME",
+                "sourceReportClassNames.actionButton",
             );
             expect(buttonOpening).not.toContain('variant="sourceReportAction"');
             expect(buttonOpening).not.toContain('variant="ghost"');
@@ -5233,34 +5197,36 @@ describe("dashboard SOT foundation", () => {
         for (const hook of DASHBOARD_SOURCE_REPORT_LOADED_SOT_HOOKS) {
             expect(sourceReportLoaded).toContain(hook);
         }
-        expectExactStringConstInitializer(
-            sourceReportStyles,
-            "SOURCE_REPORT_STATUS_BADGE_CLASS_NAME",
+        expect(sourceReportStyles).toContain("statusBadge:");
+        expect(sourceReportStyles).toContain(
             EXPECTED_SOURCE_REPORT_STATUS_BADGE_CLASS_NAME,
         );
         expect(workstation).not.toContain(
             "SOT_DASHBOARD_SOURCE_REPORT_STATUS_CLASS_NAME",
         );
+        expect(sourceReportPrimitives).toContain(
+            "export function DashboardSourceReportStatusDot",
+        );
+        expect(sourceReportPrimitives).toContain(
+            'part="dashboard-source-report-status-dot"',
+        );
         const sourceReportStatusBadge = extractOpeningElement(
-            workstation,
+            sourceReportPrimitives,
             'data-sot-badge="source-report-status"',
             "Badge",
         );
-        expect(sourceReportStatusBadge).toContain('variant="ghost"');
-        expectClassNameConstReference(
-            sourceReportStatusBadge,
-            "SOURCE_REPORT_STATUS_BADGE_CLASS_NAME",
+        expect(sourceReportStatusBadge).toContain(
+            "variant={sourceReportStatusBadgeVariant(tone)}",
+        );
+        expect(sourceReportStatusBadge).toContain(
+            "sourceReportClassNames.statusBadge",
         );
         const sourceReportLoadedStatusBadge = extractOpeningElement(
             sourceReportLoaded,
-            'data-sot-tone="warn"',
-            "Badge",
+            'tone="warn"',
+            "SotSourceReportStatusBadge",
         );
-        expect(sourceReportLoadedStatusBadge).toContain('variant="ghost"');
-        expectClassNameConstReference(
-            sourceReportLoadedStatusBadge,
-            "SOURCE_REPORT_STATUS_BADGE_CLASS_NAME",
-        );
+        expect(sourceReportLoadedStatusBadge).toContain('tone="warn"');
         expect(sourceReportLoaded).not.toContain(
             DASHBOARD_OWNER_LOCAL_FORBIDDEN_VARIANT_PROPS[5],
         );
@@ -5288,13 +5254,13 @@ describe("dashboard SOT foundation", () => {
         expect(sourceReportOpenAction).toContain('size="xs"');
         expectClassNameConstReference(
             sourceReportOpenAction,
-            "SOURCE_REPORT_GHOST_ACTION_BUTTON_CLASS_NAME",
+            "sourceReportClassNames.ghostActionButton",
         );
         expect(sourceReportRepullAction).toContain('variant="ghost"');
         expect(sourceReportRepullAction).toContain('size="xs"');
         expectClassNameConstReference(
             sourceReportRepullAction,
-            "SOURCE_REPORT_GHOST_ACTION_BUTTON_CLASS_NAME",
+            "sourceReportClassNames.ghostActionButton",
         );
         for (const action of [
             sourceReportOpenAction,
@@ -5305,7 +5271,9 @@ describe("dashboard SOT foundation", () => {
             expect(action).not.toContain('size="sm"');
         }
         for (const hook of DASHBOARD_SOURCE_REPORT_META_VALUE_HELPER_HOOKS) {
-            expect(workstation).toContain(hook);
+            expect(
+                hook.startsWith("data-") ? sourceReportPrimitives : workstation,
+            ).toContain(hook);
         }
         for (const legacyClassName of DASHBOARD_SOURCE_REPORT_LOADED_LEGACY_CLASS_NAMES) {
             expect(sourceReportLoaded).not.toContain(legacyClassName);
@@ -5317,8 +5285,12 @@ describe("dashboard SOT foundation", () => {
         expect(workstation).toContain(
             'import { Skeleton } from "@/components/ui/skeleton";',
         );
+        expect(sourceReportPrimitives).toContain(
+            'import { Skeleton } from "@/components/ui/skeleton";',
+        );
         expect(workstation).toContain("<Button");
         expect(workstation).toContain("<Skeleton");
+        expect(sourceReportPrimitives).toContain("<Skeleton");
         expect(workstation).not.toContain(
             'import { Slider } from "@/components/ui/slider";',
         );
@@ -5348,14 +5320,14 @@ describe("dashboard SOT foundation", () => {
         expect(workstation).not.toContain(
             "const SOT_SOURCE_REPORT_METRIC_CARD_CLASS_NAME =",
         );
-        expect(sourceReportStyles).toContain(
-            "export const SOURCE_REPORT_METRIC_CARD_CLASS_NAME =",
-        );
         for (const snippet of SOURCE_REPORT_STYLE_OWNER_SNIPPETS) {
             expect(sourceReportStyles).toContain(snippet);
         }
         expect(sourceReportStyles).not.toMatch(
-            /SOURCE_REPORT_STYLE_VARIABLES|SourceReportStyleVariables|--source-report-/,
+            /SOURCE_REPORT_STYLE_VARIABLES|SourceReportStyleVariables|--source-report-|\bSOURCE_REPORT_[A-Z0-9_]*CLASS_NAME\b/,
+        );
+        expect(sourceReportStyles).not.toMatch(
+            /!\[|var\(--(?:fg|bg|signal|line)-|color-mix\(in_srgb,var\(--signal/,
         );
         expect(globals).toContain("--alert-warning-soft-strong-bg: color-mix(");
         expect(globals).toContain("var(--signal-warning) 8%,");
@@ -5383,8 +5355,17 @@ describe("dashboard SOT foundation", () => {
             expect(globals).not.toContain(sourceReportStateSelector);
         }
         expect(workstation).toContain("@/features/source-report/styles");
+        expect(workstation).toContain("@/features/source-report/primitives");
         expect(workstation).toContain("SotSourceReportMissingNotice");
-        expect(workstation).toContain("data-sot-source-report-missing-notice");
+        expect(sourceReportPrimitives).toContain(
+            "export function SourceReportMissingNotice",
+        );
+        expect(sourceReportPrimitives).toContain(
+            "data-sot-source-report-missing-notice",
+        );
+        expect(sourceReportPrimitives).toContain(
+            "sourceReportClassNames.missingNotice",
+        );
         expect(workstation).toContain("function SotSourceReportErrorIcon");
         expect(workstation).toContain(
             '<line x1="12" y1="16" x2="12.01" y2="16" />',
@@ -5397,15 +5378,6 @@ describe("dashboard SOT foundation", () => {
             "content-[attr(data-sot-missing-copy)]",
         );
         expect(sourceReportStyles).not.toMatch(/\b(?:before|after):content-\[/);
-        expect(sourceReportStyles).toContain(
-            "SOURCE_REPORT_SKELETON_CLASS_NAME",
-        );
-        expect(workstation).toContain(
-            "SOURCE_REPORT_CARD_SKELETON_CLASS_NAMES",
-        );
-        expect(workstation).toContain(
-            "SOURCE_REPORT_SEGMENT_SKELETON_CLASS_NAMES",
-        );
         expect(workstation).not.toContain("SOURCE_REPORT_STYLE_VARIABLES");
         const sourceReportPane = extractOpeningElement(
             workstation,
@@ -5413,33 +5385,33 @@ describe("dashboard SOT foundation", () => {
             "div",
         );
         expectCnClassNameReferences(sourceReportPane, [
-            "SOURCE_REPORT_PANE_CLASS_NAME",
+            "sourceReportClassNames.pane",
             "dashboardTabPaneHiddenClassName",
         ]);
         expect(sourceReportPane).not.toContain("style=");
         const sourceReportState = extractOpeningElement(
-            workstation,
-            'data-sot-panel="dashboard-source-report-state"',
+            sourceReportPrimitives,
+            "data-sot-panel={panel}",
             "div",
         );
         expectClassNameConstReference(
             sourceReportState,
-            "SOURCE_REPORT_STATE_CLASS_NAME",
+            "sourceReportClassNames.state",
         );
         expect(sourceReportState).not.toContain("style=");
         const sourceReportMetricCard = extractOpeningElement(
-            workstation,
+            sourceReportPrimitives,
             'data-sot-card="source-report-metric"',
             "Card",
         );
         const sourceReportMetricCardBlock = extractElementSlice(
-            workstation,
+            sourceReportPrimitives,
             'data-sot-card="source-report-metric"',
             "Card",
         );
         expect(sourceReportMetricCard).toContain("hasNoPadding");
         expect(sourceReportMetricCard).toContain(
-            "className={SOURCE_REPORT_METRIC_CARD_CLASS_NAME}",
+            "className={sourceReportClassNames.metricCard}",
         );
         expect(sourceReportMetricCard).toContain(
             'data-sot-card="source-report-metric"',
@@ -5448,14 +5420,8 @@ describe("dashboard SOT foundation", () => {
         expect(sourceReportMetricCardBlock).not.toContain(
             'variant="sourceReportMetric"',
         );
-        const sourceReportMetricCardClassName =
-            expectExactStringConstInitializer(
-                sourceReportStyles,
-                "SOURCE_REPORT_METRIC_CARD_CLASS_NAME",
-                EXPECTED_SOURCE_REPORT_METRIC_CARD_CLASS_NAME,
-            );
         for (const token of SOURCE_REPORT_METRIC_CARD_CLASS_TOKENS) {
-            expect(sourceReportMetricCardClassName).toContain(token);
+            expect(sourceReportStyles).toContain(token);
         }
         expectSourceReportMetricCallsites(
             sourceReportLoaded,
@@ -5498,7 +5464,7 @@ describe("dashboard SOT foundation", () => {
             "const sotSourceReportSegmentSkeletonClassNames",
         );
         const dashboardSourceReportCardSkeleton = extractOpeningElement(
-            workstation,
+            sourceReportPrimitives,
             'data-sot-part="source-report-card-skeleton"',
             "Skeleton",
         );
@@ -5507,7 +5473,7 @@ describe("dashboard SOT foundation", () => {
         );
         expect(dashboardSourceReportCardSkeleton).toContain('size="default"');
         expect(dashboardSourceReportCardSkeleton).toContain(
-            "className={SOURCE_REPORT_CARD_SKELETON_CLASS_NAMES[size]}",
+            "className={sourceReportClassNames.cardSkeleton[size]}",
         );
         expect(dashboardSourceReportCardSkeleton).toContain(
             'data-sot-part="source-report-card-skeleton"',
@@ -5516,7 +5482,7 @@ describe("dashboard SOT foundation", () => {
             "data-sot-size={size}",
         );
         const dashboardSourceReportSegmentSkeleton = extractOpeningElement(
-            workstation,
+            sourceReportPrimitives,
             'data-sot-part="source-report-segment-skeleton"',
             "Skeleton",
         );
@@ -5527,7 +5493,7 @@ describe("dashboard SOT foundation", () => {
             'size="default"',
         );
         expect(dashboardSourceReportSegmentSkeleton).toContain(
-            "className={SOURCE_REPORT_SEGMENT_SKELETON_CLASS_NAMES[size]}",
+            "className={sourceReportClassNames.segmentSkeleton[size]}",
         );
         expect(dashboardSourceReportSegmentSkeleton).toContain(
             'data-sot-part="source-report-segment-skeleton"',

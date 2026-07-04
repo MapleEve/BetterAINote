@@ -8,17 +8,10 @@ import {
     FileText,
     LoaderCircle,
 } from "lucide-react";
-import {
-    type ReactNode,
-    useCallback,
-    useEffect,
-    useRef,
-    useState,
-} from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
 import { useLanguage } from "@/components/language-provider";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
-import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
     Card,
@@ -34,64 +27,23 @@ import {
     EmptyMedia,
     EmptyTitle,
 } from "@/components/ui/empty";
-import { Separator } from "@/components/ui/separator";
-import { Skeleton } from "@/components/ui/skeleton";
 import {
-    SOURCE_REPORT_ACTION_BUTTON_CLASS_NAME,
-    SOURCE_REPORT_ACTION_ROW_CLASS_NAME,
-    SOURCE_REPORT_CARD_LABEL_CLASS_NAME,
-    SOURCE_REPORT_CARD_NUMBER_VALUE_CLASS_NAME,
-    SOURCE_REPORT_CARD_SKELETON_CLASS_NAMES,
-    SOURCE_REPORT_CARD_SOURCE_FALLBACK_CLASS_NAME,
-    SOURCE_REPORT_CARD_SOURCE_ICON_CLASS_NAME,
-    SOURCE_REPORT_CARD_SOURCE_VALUE_CLASS_NAME,
-    SOURCE_REPORT_CARD_VALUE_CLASS_NAME,
-    SOURCE_REPORT_COPY_BUTTON_CLASS_NAME,
-    SOURCE_REPORT_COPY_BUTTON_SIZE,
-    SOURCE_REPORT_COPY_BUTTON_VARIANT,
-    SOURCE_REPORT_COPY_ICON_CLASS_NAME,
-    SOURCE_REPORT_COPY_LABEL_CLASS_NAME,
-    SOURCE_REPORT_DESCRIPTION_CLASS_NAME,
-    SOURCE_REPORT_EMPTY_ACTION_ROW_CLASS_NAME,
-    SOURCE_REPORT_EMPTY_DESCRIPTION_CLASS_NAME,
-    SOURCE_REPORT_EMPTY_ERROR_ICON_CLASS_NAME,
-    SOURCE_REPORT_EMPTY_ICON_CLASS_NAME,
-    SOURCE_REPORT_EMPTY_SURFACE_CLASS_NAME,
-    SOURCE_REPORT_EMPTY_TITLE_CLASS_NAME,
-    SOURCE_REPORT_ERROR_ALERT_CLASS_NAME,
-    SOURCE_REPORT_GHOST_ACTION_BUTTON_CLASS_NAME,
-    SOURCE_REPORT_META_CLASS_NAME,
-    SOURCE_REPORT_META_LABEL_CLASS_NAME,
-    SOURCE_REPORT_META_MONO_VALUE_CLASS_NAME,
-    SOURCE_REPORT_META_ROW_CLASS_NAME,
-    SOURCE_REPORT_META_VALUE_CLASS_NAME,
-    SOURCE_REPORT_METRIC_CARD_CLASS_NAME,
-    SOURCE_REPORT_METRIC_CARDS_CLASS_NAME,
-    SOURCE_REPORT_MISSING_NOTICE_CLASS_NAME,
-    SOURCE_REPORT_MISSING_NOTICE_DESCRIPTION_CLASS_NAME,
-    SOURCE_REPORT_PANE_CLASS_NAME,
-    SOURCE_REPORT_PRIMARY_ACTION_BUTTON_CLASS_NAME,
-    SOURCE_REPORT_SECTION_CLASS_NAME,
-    SOURCE_REPORT_SECTION_HEADER_CLASS_NAME,
-    SOURCE_REPORT_SECTION_SEPARATOR_CLASS_NAME,
-    SOURCE_REPORT_SECTION_TITLE_CLASS_NAME,
-    SOURCE_REPORT_SEGMENT_CLASS_NAME,
-    SOURCE_REPORT_SEGMENT_SKELETON_CLASS_NAMES,
-    SOURCE_REPORT_SEGMENT_SKELETON_CONTAINER_CLASS_NAME,
-    SOURCE_REPORT_SEGMENT_SPEAKER_CLASS_NAME,
-    SOURCE_REPORT_SEGMENT_TEXT_CLASS_NAME,
-    SOURCE_REPORT_SEGMENT_TIME_CLASS_NAME,
-    SOURCE_REPORT_SEGMENTS_CLASS_NAME,
-    SOURCE_REPORT_STATE_CLASS_NAME,
-    SOURCE_REPORT_STATE_STACK_CLASS_NAME,
-    SOURCE_REPORT_STATUS_BADGE_CLASS_NAME,
-    SOURCE_REPORT_SUMMARY_BODY_CLASS_NAME,
-    SOURCE_REPORT_SUMMARY_MISSING_SECTION_CLASS_NAME,
-    SOURCE_REPORT_SUMMARY_TEXT_CLASS_NAME,
-    SOURCE_REPORT_TRANSCRIPT_MISSING_SECTION_CLASS_NAME,
-    type SourceReportCardSkeletonSize,
-    type SourceReportSegmentSkeletonSize,
+    SourceReportCardSkeleton,
+    SourceReportMetaRow,
+    SourceReportMetricCard,
+    SourceReportMetricCards,
+    SourceReportMissingNotice,
+    SourceReportSection,
+    SourceReportSegmentSkeleton,
+    SourceReportState,
+    SourceReportStatusBadge,
+    SourceReportStatusDot,
+} from "@/features/source-report/primitives";
+import {
     type SourceReportTone,
+    sourceReportClassNames,
+    sourceReportCopyButtonSize,
+    sourceReportCopyButtonVariant,
 } from "@/features/source-report/styles";
 import {
     getSourceProviderLabel,
@@ -493,238 +445,11 @@ function SotCopyIcon({ state }: { state?: "err" | "ok" }) {
 
     return (
         <Icon
-            className={SOURCE_REPORT_COPY_ICON_CLASS_NAME}
+            className={sourceReportClassNames.copyIcon}
             data-icon="inline-start"
             data-sot-part="source-report-copy-icon"
             aria-hidden="true"
         />
-    );
-}
-
-function SourceReportStatusDot() {
-    return <span data-sot-part="source-report-status-dot" aria-hidden="true" />;
-}
-
-function SourceReportStatusBadge({
-    children,
-    tone,
-}: {
-    children: ReactNode;
-    tone: SourceReportTone;
-}) {
-    return (
-        <Badge
-            variant="ghost"
-            className={SOURCE_REPORT_STATUS_BADGE_CLASS_NAME}
-            data-sot-badge="source-report-status"
-            data-sot-tone={tone}
-        >
-            {children}
-        </Badge>
-    );
-}
-
-function SourceReportSegmentSkeleton({
-    size,
-}: {
-    size: SourceReportSegmentSkeletonSize;
-}) {
-    return (
-        <Skeleton
-            variant="default"
-            size="default"
-            className={SOURCE_REPORT_SEGMENT_SKELETON_CLASS_NAMES[size]}
-            aria-hidden="true"
-            data-sot-part="source-report-segment-skeleton"
-            data-sot-size={size}
-        />
-    );
-}
-
-function SourceReportState({
-    children,
-    error,
-    sotState,
-    state,
-    subState,
-}: {
-    children: ReactNode;
-    error?: string;
-    sotState: SourceReportAvailabilitySnapshot["state"];
-    state: "empty" | "error" | "loaded" | "loading";
-    subState?: string;
-}) {
-    return (
-        <div
-            data-sot-source-report-state
-            data-sot-panel="recording-source-report-state"
-            data-sot-state={sotState}
-            data-state={state}
-            data-sub-state={subState}
-            data-sot-error={error}
-            className={SOURCE_REPORT_STATE_CLASS_NAME}
-        >
-            {children}
-        </div>
-    );
-}
-
-function SourceReportSection({
-    children,
-    className,
-    description,
-    section,
-    title,
-}: {
-    children: ReactNode;
-    className?: string;
-    description: ReactNode;
-    section: "metadata" | "summary" | "transcript";
-    title: string;
-}) {
-    return (
-        <section
-            className={cn(SOURCE_REPORT_SECTION_CLASS_NAME, className)}
-            data-sot-source-report-section
-            data-sot-section={section}
-        >
-            <Separator
-                className={SOURCE_REPORT_SECTION_SEPARATOR_CLASS_NAME}
-                data-sot-source-report-section-separator
-            />
-            <header
-                className={SOURCE_REPORT_SECTION_HEADER_CLASS_NAME}
-                data-sot-source-report-section-header
-            >
-                <h4
-                    className={SOURCE_REPORT_SECTION_TITLE_CLASS_NAME}
-                    data-sot-source-report-section-title
-                >
-                    {title}
-                </h4>
-                <span
-                    className={SOURCE_REPORT_DESCRIPTION_CLASS_NAME}
-                    data-sot-source-report-section-description
-                >
-                    {description}
-                </span>
-            </header>
-            {children}
-        </section>
-    );
-}
-
-function SotSourceReportMissingNotice({
-    children,
-    state,
-}: {
-    children: ReactNode;
-    state: "summary-missing" | "transcript-missing";
-}) {
-    return (
-        <Alert
-            className={SOURCE_REPORT_MISSING_NOTICE_CLASS_NAME}
-            data-sot-source-report-missing-notice
-            data-sot-missing={state}
-            density="compact"
-        >
-            <AlertDescription
-                className={SOURCE_REPORT_MISSING_NOTICE_DESCRIPTION_CLASS_NAME}
-            >
-                {children}
-            </AlertDescription>
-        </Alert>
-    );
-}
-
-function SourceReportMetricCards({ children }: { children: ReactNode }) {
-    return (
-        <div
-            className={SOURCE_REPORT_METRIC_CARDS_CLASS_NAME}
-            data-sot-list="source-report-cards"
-        >
-            {children}
-        </div>
-    );
-}
-
-function SourceReportMetricCard({
-    children,
-    label,
-    metric,
-    value,
-}: {
-    children: ReactNode;
-    label: string;
-    metric: "segment-count" | "source" | "summary-status" | "transcript-status";
-    value?: "number" | "skeleton" | "source";
-}) {
-    return (
-        <Card
-            hasNoPadding
-            className={SOURCE_REPORT_METRIC_CARD_CLASS_NAME}
-            data-sot-card="source-report-metric"
-            data-sot-metric={metric}
-        >
-            <div
-                className={SOURCE_REPORT_CARD_LABEL_CLASS_NAME}
-                data-sot-part="source-report-card-label"
-            >
-                {label}
-            </div>
-            {value === "skeleton" ? (
-                children
-            ) : (
-                <div
-                    className={cn(
-                        SOURCE_REPORT_CARD_VALUE_CLASS_NAME,
-                        value === "source" &&
-                            SOURCE_REPORT_CARD_SOURCE_VALUE_CLASS_NAME,
-                        value === "number" &&
-                            SOURCE_REPORT_CARD_NUMBER_VALUE_CLASS_NAME,
-                    )}
-                    data-sot-part="source-report-card-value"
-                    data-sot-value={value}
-                >
-                    {children}
-                </div>
-            )}
-        </Card>
-    );
-}
-
-function SourceReportCardSkeleton({
-    size,
-}: {
-    size: SourceReportCardSkeletonSize;
-}) {
-    return (
-        <Skeleton
-            variant="default"
-            size="default"
-            className={SOURCE_REPORT_CARD_SKELETON_CLASS_NAMES[size]}
-            aria-hidden="true"
-            data-sot-part="source-report-card-skeleton"
-            data-sot-size={size}
-        />
-    );
-}
-
-function SourceReportMetaRow({
-    children,
-    label,
-}: {
-    children: ReactNode;
-    label: string;
-}) {
-    return (
-        <div
-            className={SOURCE_REPORT_META_ROW_CLASS_NAME}
-            data-sot-source-report-meta-row
-        >
-            <dt className={SOURCE_REPORT_META_LABEL_CLASS_NAME}>{label}</dt>
-            <dd className={SOURCE_REPORT_META_VALUE_CLASS_NAME}>{children}</dd>
-        </div>
     );
 }
 
@@ -1127,13 +852,13 @@ export function SourceReportPanel({
 
     const sourceActionControls = data ? (
         <div
-            className={SOURCE_REPORT_ACTION_ROW_CLASS_NAME}
+            className={sourceReportClassNames.actionRow}
             data-sot-source-report-actions
         >
             <Button
                 variant="ghost"
                 size="xs"
-                className={SOURCE_REPORT_GHOST_ACTION_BUTTON_CLASS_NAME}
+                className={sourceReportClassNames.ghostActionButton}
                 type="button"
                 disabled={!openSourceUrl}
                 title={
@@ -1150,7 +875,7 @@ export function SourceReportPanel({
             <Button
                 variant="ghost"
                 size="xs"
-                className={SOURCE_REPORT_GHOST_ACTION_BUTTON_CLASS_NAME}
+                className={sourceReportClassNames.ghostActionButton}
                 type="button"
                 disabled={repullDisabled}
                 aria-busy={repullState === "loading"}
@@ -1190,7 +915,7 @@ export function SourceReportPanel({
                     {getSourceTabLabel(sourceProvider, language)}
                 </CardTitle>
                 <CardDescription
-                    className={SOURCE_REPORT_DESCRIPTION_CLASS_NAME}
+                    className={sourceReportClassNames.description}
                     data-sot-source-report-description
                 >
                     {getSourceRecordDescription(sourceProvider, language)}
@@ -1203,9 +928,9 @@ export function SourceReportPanel({
                 {data ? (
                     <>
                         <Button
-                            variant={SOURCE_REPORT_COPY_BUTTON_VARIANT}
-                            size={SOURCE_REPORT_COPY_BUTTON_SIZE}
-                            className={SOURCE_REPORT_COPY_BUTTON_CLASS_NAME}
+                            variant={sourceReportCopyButtonVariant}
+                            size={sourceReportCopyButtonSize}
+                            className={sourceReportClassNames.copyButton}
                             type="button"
                             data-copy="source-transcript"
                             data-copy-state={
@@ -1237,7 +962,7 @@ export function SourceReportPanel({
                                 }
                             />
                             <span
-                                className={SOURCE_REPORT_COPY_LABEL_CLASS_NAME}
+                                className={sourceReportClassNames.copyLabel}
                                 data-sot-part="source-report-copy-label"
                             >
                                 {copyFeedback?.action === "source-transcript"
@@ -1248,9 +973,9 @@ export function SourceReportPanel({
                             </span>
                         </Button>
                         <Button
-                            variant={SOURCE_REPORT_COPY_BUTTON_VARIANT}
-                            size={SOURCE_REPORT_COPY_BUTTON_SIZE}
-                            className={SOURCE_REPORT_COPY_BUTTON_CLASS_NAME}
+                            variant={sourceReportCopyButtonVariant}
+                            size={sourceReportCopyButtonSize}
+                            className={sourceReportClassNames.copyButton}
                             type="button"
                             data-copy="source-report"
                             data-copy-state={
@@ -1282,7 +1007,7 @@ export function SourceReportPanel({
                                 }
                             />
                             <span
-                                className={SOURCE_REPORT_COPY_LABEL_CLASS_NAME}
+                                className={sourceReportClassNames.copyLabel}
                                 data-sot-part="source-report-copy-label"
                             >
                                 {copyFeedback?.action === "source-report"
@@ -1298,7 +1023,7 @@ export function SourceReportPanel({
                     type="button"
                     variant="outline"
                     size="xs"
-                    className={SOURCE_REPORT_ACTION_BUTTON_CLASS_NAME}
+                    className={sourceReportClassNames.actionButton}
                     onClick={loadReport}
                     disabled={isLoading}
                     data-sot-control="refresh-source-report"
@@ -1330,7 +1055,7 @@ export function SourceReportPanel({
 
     const content = (
         <CardContent
-            className={cn("px-0", SOURCE_REPORT_STATE_STACK_CLASS_NAME)}
+            className={cn("px-0", sourceReportClassNames.stateStack)}
             data-sot-source-report-state-stack
         >
             {error && (
@@ -1338,16 +1063,16 @@ export function SourceReportPanel({
                     <Alert
                         variant="statusError"
                         className={cn(
-                            SOURCE_REPORT_ERROR_ALERT_CLASS_NAME,
-                            SOURCE_REPORT_EMPTY_SURFACE_CLASS_NAME,
+                            sourceReportClassNames.errorAlert,
+                            sourceReportClassNames.emptySurface,
                         )}
                         data-sot-source-report-empty
                         data-sot-tone="err"
                     >
                         <EmptyMedia
                             className={cn(
-                                SOURCE_REPORT_EMPTY_ICON_CLASS_NAME,
-                                SOURCE_REPORT_EMPTY_ERROR_ICON_CLASS_NAME,
+                                sourceReportClassNames.emptyIcon,
+                                sourceReportClassNames.emptyErrorIcon,
                             )}
                             data-sot-source-report-empty-icon
                             aria-hidden="true"
@@ -1355,15 +1080,13 @@ export function SourceReportPanel({
                             <CircleAlert aria-hidden="true" />
                         </EmptyMedia>
                         <AlertTitle
-                            className={SOURCE_REPORT_EMPTY_TITLE_CLASS_NAME}
+                            className={sourceReportClassNames.emptyTitle}
                             data-sot-source-report-empty-title
                         >
                             无法读取来源详情
                         </AlertTitle>
                         <AlertDescription
-                            className={
-                                SOURCE_REPORT_EMPTY_DESCRIPTION_CLASS_NAME
-                            }
+                            className={sourceReportClassNames.emptyDescription}
                             data-sot-source-report-empty-description
                         >
                             {sourceProviderSentenceName}
@@ -1373,7 +1096,7 @@ export function SourceReportPanel({
                             data-sot-source-report-empty-actions
                             className={cn(
                                 "justify-center",
-                                SOURCE_REPORT_EMPTY_ACTION_ROW_CLASS_NAME,
+                                sourceReportClassNames.emptyActionRow,
                             )}
                         >
                             <Button
@@ -1381,7 +1104,7 @@ export function SourceReportPanel({
                                 size="xs"
                                 variant="default"
                                 className={
-                                    SOURCE_REPORT_PRIMARY_ACTION_BUTTON_CLASS_NAME
+                                    sourceReportClassNames.primaryActionButton
                                 }
                                 onClick={loadReport}
                                 disabled={isLoading}
@@ -1395,7 +1118,7 @@ export function SourceReportPanel({
                                 size="xs"
                                 variant="ghost"
                                 className={
-                                    SOURCE_REPORT_GHOST_ACTION_BUTTON_CLASS_NAME
+                                    sourceReportClassNames.ghostActionButton
                                 }
                                 onClick={() => {
                                     window.location.assign(
@@ -1451,7 +1174,7 @@ export function SourceReportPanel({
                     >
                         <div
                             className={
-                                SOURCE_REPORT_SEGMENT_SKELETON_CONTAINER_CLASS_NAME
+                                sourceReportClassNames.segmentSkeletonContainer
                             }
                             data-sot-source-report-segment
                             data-sot-state="skeleton"
@@ -1463,7 +1186,7 @@ export function SourceReportPanel({
                         </div>
                         <div
                             className={
-                                SOURCE_REPORT_SEGMENT_SKELETON_CONTAINER_CLASS_NAME
+                                sourceReportClassNames.segmentSkeletonContainer
                             }
                             data-sot-source-report-segment
                             data-sot-state="skeleton"
@@ -1500,7 +1223,7 @@ export function SourceReportPanel({
                                 // biome-ignore lint/performance/noImgElement: SOT source cards render provider asset nodes directly.
                                 <img
                                     className={
-                                        SOURCE_REPORT_CARD_SOURCE_ICON_CLASS_NAME
+                                        sourceReportClassNames.cardSourceIcon
                                     }
                                     src={sourceProviderIcon}
                                     alt=""
@@ -1508,7 +1231,7 @@ export function SourceReportPanel({
                             ) : (
                                 <span
                                     className={
-                                        SOURCE_REPORT_CARD_SOURCE_FALLBACK_CLASS_NAME
+                                        sourceReportClassNames.cardSourceFallback
                                     }
                                     data-sot-part="source-report-card-source-fallback"
                                 >
@@ -1558,7 +1281,7 @@ export function SourceReportPanel({
                         className={
                             transcriptAvailable
                                 ? undefined
-                                : SOURCE_REPORT_TRANSCRIPT_MISSING_SECTION_CLASS_NAME
+                                : sourceReportClassNames.transcriptMissingSection
                         }
                         description={
                             <>
@@ -1569,12 +1292,12 @@ export function SourceReportPanel({
                         }
                     >
                         {!transcriptAvailable ? (
-                            <SotSourceReportMissingNotice state="transcript-missing">
+                            <SourceReportMissingNotice state="transcript-missing">
                                 来源未提供逐字稿。可以稍后再来，或运行私有转写。
-                            </SotSourceReportMissingNotice>
+                            </SourceReportMissingNotice>
                         ) : null}
                         <ol
-                            className={SOURCE_REPORT_SEGMENTS_CLASS_NAME}
+                            className={sourceReportClassNames.segments}
                             data-sot-source-report-segments
                             hidden={!transcriptAvailable}
                         >
@@ -1589,13 +1312,13 @@ export function SourceReportPanel({
                                         <li
                                             key={`${segment.startMs ?? "na"}-${segment.endMs ?? "na"}-${index}`}
                                             className={
-                                                SOURCE_REPORT_SEGMENT_CLASS_NAME
+                                                sourceReportClassNames.segment
                                             }
                                             data-sot-source-report-segment
                                         >
                                             <span
                                                 className={
-                                                    SOURCE_REPORT_SEGMENT_TIME_CLASS_NAME
+                                                    sourceReportClassNames.segmentTime
                                                 }
                                                 data-sot-source-report-segment-time
                                                 data-sot-format="mono"
@@ -1604,7 +1327,7 @@ export function SourceReportPanel({
                                             </span>
                                             <span
                                                 className={
-                                                    SOURCE_REPORT_SEGMENT_SPEAKER_CLASS_NAME
+                                                    sourceReportClassNames.segmentSpeaker
                                                 }
                                                 data-sot-source-report-segment-speaker
                                             >
@@ -1615,7 +1338,7 @@ export function SourceReportPanel({
                                             </span>
                                             <p
                                                 className={
-                                                    SOURCE_REPORT_SEGMENT_TEXT_CLASS_NAME
+                                                    sourceReportClassNames.segmentText
                                                 }
                                                 data-sot-source-report-segment-text
                                             >
@@ -1637,9 +1360,7 @@ export function SourceReportPanel({
                             }
                         >
                             <div
-                                className={
-                                    SOURCE_REPORT_SUMMARY_BODY_CLASS_NAME
-                                }
+                                className={sourceReportClassNames.summaryBody}
                                 data-sot-source-report-summary-body
                             >
                                 {sourceSummaryText
@@ -1648,7 +1369,7 @@ export function SourceReportPanel({
                                         <p
                                             key={`${index}:${line}`}
                                             className={
-                                                SOURCE_REPORT_SUMMARY_TEXT_CLASS_NAME
+                                                sourceReportClassNames.summaryText
                                             }
                                             data-sot-source-report-segment-text
                                         >
@@ -1665,19 +1386,19 @@ export function SourceReportPanel({
                         className={
                             reportAvailable
                                 ? undefined
-                                : SOURCE_REPORT_SUMMARY_MISSING_SECTION_CLASS_NAME
+                                : sourceReportClassNames.summaryMissingSection
                         }
                         description={
                             <>由{sourceProviderLabel}返回的公开元数据</>
                         }
                     >
                         {!reportAvailable ? (
-                            <SotSourceReportMissingNotice state="summary-missing">
+                            <SourceReportMissingNotice state="summary-missing">
                                 来源未提供官方摘要。
-                            </SotSourceReportMissingNotice>
+                            </SourceReportMissingNotice>
                         ) : null}
                         <dl
-                            className={SOURCE_REPORT_META_CLASS_NAME}
+                            className={sourceReportClassNames.meta}
                             data-sot-source-report-meta
                         >
                             <SourceReportMetaRow label="来源">
@@ -1696,7 +1417,7 @@ export function SourceReportPanel({
                             <SourceReportMetaRow label="录制于">
                                 <span
                                     className={
-                                        SOURCE_REPORT_META_MONO_VALUE_CLASS_NAME
+                                        sourceReportClassNames.metaMonoValue
                                     }
                                     data-sot-source-report-meta-value
                                     data-sot-format="mono"
@@ -1709,7 +1430,7 @@ export function SourceReportPanel({
                             <SourceReportMetaRow label="最近更新">
                                 <span
                                     className={
-                                        SOURCE_REPORT_META_MONO_VALUE_CLASS_NAME
+                                        sourceReportClassNames.metaMonoValue
                                     }
                                     data-sot-source-report-meta-value
                                     data-sot-format="mono"
@@ -1731,7 +1452,7 @@ export function SourceReportPanel({
                             <SourceReportMetaRow label="时长">
                                 <span
                                     className={
-                                        SOURCE_REPORT_META_MONO_VALUE_CLASS_NAME
+                                        sourceReportClassNames.metaMonoValue
                                     }
                                     data-sot-source-report-meta-value
                                     data-sot-format="mono"
@@ -1748,27 +1469,25 @@ export function SourceReportPanel({
             {!data && !error && !isLoading && (
                 <SourceReportState sotState="empty" state="empty">
                     <Empty
-                        className={SOURCE_REPORT_EMPTY_SURFACE_CLASS_NAME}
+                        className={sourceReportClassNames.emptySurface}
                         data-sot-source-report-empty
                         data-sot-tone="neutral"
                     >
                         <EmptyMedia
                             variant="icon"
-                            className={SOURCE_REPORT_EMPTY_ICON_CLASS_NAME}
+                            className={sourceReportClassNames.emptyIcon}
                             data-sot-source-report-empty-icon
                         >
                             <FileText aria-hidden="true" />
                         </EmptyMedia>
                         <EmptyTitle
-                            className={SOURCE_REPORT_EMPTY_TITLE_CLASS_NAME}
+                            className={sourceReportClassNames.emptyTitle}
                             data-sot-source-report-empty-title
                         >
                             这条录音没有关联来源
                         </EmptyTitle>
                         <EmptyDescription
-                            className={
-                                SOURCE_REPORT_EMPTY_DESCRIPTION_CLASS_NAME
-                            }
+                            className={sourceReportClassNames.emptyDescription}
                             data-sot-source-report-empty-description
                         >
                             本地导入或离线录制的录音不会有来源详情。
@@ -1784,7 +1503,7 @@ export function SourceReportPanel({
             <Card
                 hasNoPadding
                 className={cn(
-                    SOURCE_REPORT_PANE_CLASS_NAME,
+                    sourceReportClassNames.pane,
                     "min-h-0 overflow-hidden px-5 pt-4 pb-6",
                     className,
                 )}
@@ -1803,7 +1522,7 @@ export function SourceReportPanel({
         <Card
             hasNoPadding
             className={cn(
-                SOURCE_REPORT_PANE_CLASS_NAME,
+                sourceReportClassNames.pane,
                 "min-h-0 overflow-hidden px-5 pt-4 pb-6",
                 className,
             )}

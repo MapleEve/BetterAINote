@@ -56,22 +56,6 @@ import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
 import { DataSourceFieldControl } from "@/features/data-sources/data-source-field-control";
 import { useDataSourcesSettings } from "@/features/data-sources/use-data-sources-settings";
 import { SpeakerProfilesPanel } from "@/features/settings/components/sections/speaker-profiles-panel";
-import {
-    SETTINGS_FIELD_CONTENT_CLASS,
-    SETTINGS_FIELD_CONTROL_CLASS,
-    SETTINGS_FIELD_ROW_CLASS,
-    SOURCE_PROVIDER_DETAIL_CREDENTIAL_FIELD_CLASS,
-    SOURCE_PROVIDER_DETAIL_CREDENTIAL_FIELD_CONTENT_CLASS,
-    SOURCE_PROVIDER_DETAIL_CREDENTIAL_FIELD_DESCRIPTION_CLASS,
-    SOURCE_PROVIDER_DETAIL_CREDENTIAL_FIELD_LABEL_CLASS,
-    SOURCE_PROVIDER_DETAIL_FIELD_CLASS,
-    SOURCE_PROVIDER_DETAIL_FIELD_CONTENT_CLASS,
-    SOURCE_PROVIDER_DETAIL_FIELD_CONTROL_CLASS,
-    SOURCE_PROVIDER_DETAIL_FIELD_DESCRIPTION_CLASS,
-    SOURCE_PROVIDER_DETAIL_FIELD_LABEL_CLASS,
-    SOURCE_PROVIDER_DETAIL_INPUT_CLASS,
-    SOURCE_PROVIDER_DETAIL_SWITCH_CLASS,
-} from "@/features/settings/components/setting-field-control";
 import { useSettingsSectionBusy } from "@/features/settings/components/settings-busy-context";
 import { SettingsSectionSkeleton } from "@/features/settings/components/settings-skeletons";
 import { useDisplaySettingsStore } from "@/features/settings/display-settings-store";
@@ -235,13 +219,13 @@ const SETTINGS_SHORTCUTS_GRID_CLASS =
     "grid grid-cols-[1fr_auto] gap-x-3.5 gap-y-2";
 
 const SETTINGS_SHORTCUT_ROW_CLASS =
-    "flex items-center gap-2 border-b border-dashed border-[var(--line-hairline)] py-1.5 font-sans text-[12.5px] font-medium leading-normal text-[var(--fg-primary)]";
+    "flex items-center gap-2 border-b border-dashed border-border py-1.5 text-sm font-medium text-foreground";
 
 const SETTINGS_SHORTCUT_KEY_CLASS =
-    "rounded-[4px] border border-solid border-[var(--line-hairline)] bg-[var(--bg-recessed)] px-1.5 py-0.5 font-mono text-[11px] font-semibold leading-normal text-[var(--fg-secondary)]";
+    "rounded-md border border-border bg-muted px-1.5 py-0.5 font-mono text-xs font-semibold text-muted-foreground";
 
 const SETTINGS_KEY_STATUS_CLASS =
-    "inline-flex items-center gap-1 font-sans text-[11.5px] font-medium leading-normal text-[var(--fg-tertiary)] data-[sot-state=stored]:before:font-bold data-[sot-state=stored]:before:text-[var(--signal-success)] data-[sot-state=stored]:before:content-['✓']";
+    "inline-flex items-center gap-1 text-xs font-medium text-muted-foreground";
 
 const SETTINGS_SOURCE_AUTH_MODE_GROUP_CLASS =
     "mb-4 grid w-full grid-cols-1 items-stretch sm:grid-cols-2";
@@ -252,7 +236,7 @@ const SETTINGS_SOURCE_AUTH_MODE_OPTION_CLASS =
 const SETTINGS_SEGMENT_GROUP_CLASS = "flex-wrap";
 
 const SETTINGS_SEGMENT_OPTION_CLASS =
-    "data-[state=on]:border-primary/30 data-[state=on]:bg-primary/10 data-[state=on]:text-primary data-[sot-state=selected]:border-primary/30 data-[sot-state=selected]:bg-primary/10 data-[sot-state=selected]:text-primary";
+    "data-[state=on]:border-primary/30 data-[state=on]:bg-primary/10 data-[state=on]:text-primary";
 
 const SOURCE_PROVIDERS_LIST_CLASS =
     "flex flex-col gap-1.5 overflow-y-auto border-r border-border bg-secondary/30 px-3.5 py-4";
@@ -266,11 +250,25 @@ const SOURCE_PROVIDER_DETAIL_CARD_CLASS = "gap-0";
 
 const SOURCE_PROVIDER_DETAIL_HEADER_CLASS = "border-b px-5 py-4";
 
-const SOURCE_PROVIDER_DETAIL_TITLE_CLASS = "";
-
-const SOURCE_PROVIDER_DETAIL_SUBTITLE_CLASS = "";
-
 const SOURCE_PROVIDER_DETAIL_CONTENT_CLASS = "flex flex-col px-5 py-4";
+
+const SETTINGS_FIELD_ROW_CLASS =
+    "border-b border-border py-3 last:border-b-0 @md/field-group:gap-4";
+
+const SETTINGS_FIELD_CONTENT_CLASS = "min-w-0 gap-1";
+
+const SETTINGS_FIELD_CONTROL_CLASS =
+    "flex min-w-0 flex-wrap items-center justify-end gap-2 @md/field-group:justify-end";
+
+const SOURCE_PROVIDER_DETAIL_FIELD_CLASS =
+    "border-b border-border py-3 last:border-b-0";
+
+const SOURCE_PROVIDER_DETAIL_FIELD_CONTENT_CLASS = "min-w-0";
+
+const SOURCE_PROVIDER_DETAIL_FIELD_CONTROL_CLASS = "justify-end";
+
+const SOURCE_PROVIDER_DETAIL_INPUT_CLASS =
+    "w-full max-w-[15rem] bg-background font-mono shadow-none";
 
 const SOURCE_PROVIDER_FIELDS_LIST_CLASS = "flex flex-col";
 
@@ -299,13 +297,13 @@ const SOURCE_PROVIDER_STATUS_BADGE_CLASS = "justify-self-end";
 const SOURCE_DETAIL_STATUS_BADGE_CLASS = "shrink-0";
 
 const SETTINGS_SAVE_STATUS_BADGE_CLASS =
-    "h-auto gap-1.5 border-0 bg-transparent p-0 text-muted-foreground data-[sot-state=idle]:hidden data-[sot-state=saved]:text-primary data-[sot-state=saving]:text-primary data-[sot-state=error]:text-destructive [&_[data-sot-part=settings-save-status-indicator]]:size-2 [&_[data-sot-part=settings-save-status-indicator]]:rounded-full [&_[data-sot-part=settings-save-status-indicator]]:bg-secondary-foreground/45 data-[sot-state=saved]:[&_[data-sot-part=settings-save-status-indicator]]:bg-primary data-[sot-state=saving]:[&_[data-sot-part=settings-save-status-indicator]]:animate-pulse data-[sot-state=saving]:[&_[data-sot-part=settings-save-status-indicator]]:bg-primary data-[sot-state=error]:[&_[data-sot-part=settings-save-status-indicator]]:bg-destructive";
+    "h-auto gap-1.5 border-0 bg-transparent p-0 text-muted-foreground";
 
 const SETTINGS_SCROLL_BODY_CLASS =
     "min-h-0 overflow-y-auto px-[26px] py-[22px] [overscroll-behavior:contain]";
 
 const SETTINGS_SECTION_TITLE_CLASS =
-    "[margin:0_0_18px] font-display text-[18px] font-semibold leading-[normal] tracking-[-0.012em] text-[var(--fg-primary)]";
+    "mb-[18px] text-lg font-semibold text-foreground";
 
 const SETTINGS_THREE_PANE_SCROLL_BODY_CLASS =
     "grid min-h-0 grid-cols-[280px_1fr] overflow-hidden p-0";
@@ -315,13 +313,13 @@ const SETTINGS_SECTION_GROUP_CLASS = "relative mb-[22px]";
 const SETTINGS_SECTION_HEAD_CLASS = "mb-1.5";
 
 const SETTINGS_SECTION_HEAD_TITLE_CLASS =
-    "m-0 font-display text-[13.5px] font-semibold leading-normal tracking-normal text-[var(--fg-primary)]";
+    "m-0 text-sm font-semibold text-foreground";
 
 const SETTINGS_SECTION_HEAD_DESCRIPTION_CLASS =
-    "mt-1 mb-0 max-w-[64ch] font-sans text-[12.5px] leading-[1.55] text-[var(--fg-tertiary)]";
+    "mt-1 mb-0 max-w-[64ch] text-sm leading-relaxed text-muted-foreground";
 
 const SETTINGS_SAVE_ACTIONS_CLASS =
-    "relative z-10 mt-[18px] ml-auto flex flex-row-reverse items-center gap-2 pointer-events-none [&_[data-sot-control=settings-save]]:pointer-events-auto [&_[data-sot-control=settings-save]]:relative [&_[data-sot-control=settings-save]]:z-20 [&_[data-sot-control=voscript-test]]:pointer-events-auto [&_[data-sot-control=voscript-test]]:relative [&_[data-sot-control=voscript-test]]:z-20 [&_[data-sot-part=settings-save-status]]:pointer-events-auto [&_[data-sot-part=settings-save-status]]:relative [&_[data-sot-part=settings-save-status]]:z-20 data-[sot-state=saving]:[&_[data-sot-control=settings-save]]:pointer-events-none data-[sot-state=saving]:[&_[data-sot-control=voscript-test]]:pointer-events-none";
+    "mt-[18px] ml-auto flex flex-row-reverse items-center gap-2";
 
 function SourceActionButton({
     className,
@@ -1440,23 +1438,13 @@ function DataSourcesSettingsPanel({
                             data-sot-state={status.state}
                         >
                             <div>
-                                <CardTitle
-                                    className={
-                                        SOURCE_PROVIDER_DETAIL_TITLE_CLASS
-                                    }
-                                    data-sot-part="source-provider-title"
-                                >
+                                <CardTitle data-sot-part="source-provider-title">
                                     {getSourceProviderSettingsLabel(
                                         selectedSource.provider,
                                         language,
                                     )}
                                 </CardTitle>
-                                <CardDescription
-                                    className={
-                                        SOURCE_PROVIDER_DETAIL_SUBTITLE_CLASS
-                                    }
-                                    data-sot-part="source-provider-subtitle"
-                                >
+                                <CardDescription data-sot-part="source-provider-subtitle">
                                     {getSourceProviderDetailSubtitle(
                                         selectedSource,
                                         isZh,
@@ -1609,20 +1597,12 @@ function DataSourcesSettingsPanel({
                                             SOURCE_PROVIDER_DETAIL_FIELD_CONTENT_CLASS
                                         }
                                     >
-                                        <FieldTitle
-                                            className={
-                                                SOURCE_PROVIDER_DETAIL_FIELD_LABEL_CLASS
-                                            }
-                                        >
+                                        <FieldTitle>
                                             {isZh
                                                 ? "登录方式"
                                                 : "Sign-in method"}
                                         </FieldTitle>
-                                        <FieldDescription
-                                            className={
-                                                SOURCE_PROVIDER_DETAIL_FIELD_DESCRIPTION_CLASS
-                                            }
-                                        >
+                                        <FieldDescription>
                                             {getSourceAuthModeDisplayLabel(
                                                 selectedSource.authMode,
                                                 language,
@@ -1650,28 +1630,21 @@ function DataSourcesSettingsPanel({
                                         }
                                         orientation="horizontal"
                                         className={
-                                            SOURCE_PROVIDER_DETAIL_CREDENTIAL_FIELD_CLASS
+                                            SOURCE_PROVIDER_DETAIL_FIELD_CLASS
                                         }
                                     >
                                         <FieldContent
                                             className={
-                                                SOURCE_PROVIDER_DETAIL_CREDENTIAL_FIELD_CONTENT_CLASS
+                                                SOURCE_PROVIDER_DETAIL_FIELD_CONTENT_CLASS
                                             }
                                         >
                                             <FieldLabel
-                                                className={
-                                                    SOURCE_PROVIDER_DETAIL_CREDENTIAL_FIELD_LABEL_CLASS
-                                                }
                                                 htmlFor={`${selectedSource.provider}-base-url`}
                                             >
                                                 {displayedServiceAddress.label}
                                             </FieldLabel>
                                             {displayedServiceAddress.description ? (
-                                                <FieldDescription
-                                                    className={
-                                                        SOURCE_PROVIDER_DETAIL_CREDENTIAL_FIELD_DESCRIPTION_CLASS
-                                                    }
-                                                >
+                                                <FieldDescription>
                                                     {
                                                         displayedServiceAddress.description
                                                     }
@@ -1795,20 +1768,12 @@ function DataSourcesSettingsPanel({
                                         SOURCE_PROVIDER_DETAIL_FIELD_CONTENT_CLASS
                                     }
                                 >
-                                    <FieldTitle
-                                        className={
-                                            SOURCE_PROVIDER_DETAIL_FIELD_LABEL_CLASS
-                                        }
-                                    >
+                                    <FieldTitle>
                                         {isZh
                                             ? "自动更新"
                                             : "Automatic updates"}
                                     </FieldTitle>
-                                    <FieldDescription
-                                        className={
-                                            SOURCE_PROVIDER_DETAIL_FIELD_DESCRIPTION_CLASS
-                                        }
-                                    >
+                                    <FieldDescription>
                                         {isZh
                                             ? "每 15 分钟读取一次新录音"
                                             : "Read new recordings every 15 minutes"}
@@ -1820,9 +1785,6 @@ function DataSourcesSettingsPanel({
                                     }
                                 >
                                     <Switch
-                                        className={
-                                            SOURCE_PROVIDER_DETAIL_SWITCH_CLASS
-                                        }
                                         data-sot-control="source-auto-update"
                                         data-sot-provider={
                                             selectedSource.provider
@@ -1878,18 +1840,11 @@ function DataSourcesSettingsPanel({
                                             }
                                         >
                                             <FieldLabel
-                                                className={
-                                                    SOURCE_PROVIDER_DETAIL_FIELD_LABEL_CLASS
-                                                }
                                                 htmlFor={titleWritebackFieldId}
                                             >
                                                 {titleWritebackField.label}
                                             </FieldLabel>
-                                            <FieldDescription
-                                                className={
-                                                    SOURCE_PROVIDER_DETAIL_FIELD_DESCRIPTION_CLASS
-                                                }
-                                            >
+                                            <FieldDescription>
                                                 {
                                                     titleWritebackField.description
                                                 }
@@ -1902,9 +1857,6 @@ function DataSourcesSettingsPanel({
                                         >
                                             <Switch
                                                 id={titleWritebackFieldId}
-                                                className={
-                                                    SOURCE_PROVIDER_DETAIL_SWITCH_CLASS
-                                                }
                                                 checked={Boolean(
                                                     titleWritebackField.value,
                                                 )}
@@ -1935,18 +1887,11 @@ function DataSourcesSettingsPanel({
                                     }
                                 >
                                     <FieldLabel
-                                        className={
-                                            SOURCE_PROVIDER_DETAIL_FIELD_LABEL_CLASS
-                                        }
                                         htmlFor={`${selectedSource.provider}-enabled`}
                                     >
                                         {isZh ? "启用同步" : "Enable sync"}
                                     </FieldLabel>
-                                    <FieldDescription
-                                        className={
-                                            SOURCE_PROVIDER_DETAIL_FIELD_DESCRIPTION_CLASS
-                                        }
-                                    >
+                                    <FieldDescription>
                                         {isZh
                                             ? "关闭后不再从此来源读取任何新录音"
                                             : "Turn off to stop reading new recordings from this source."}
@@ -1959,9 +1904,6 @@ function DataSourcesSettingsPanel({
                                 >
                                     <Switch
                                         id={`${selectedSource.provider}-enabled`}
-                                        className={
-                                            SOURCE_PROVIDER_DETAIL_SWITCH_CLASS
-                                        }
                                         data-sot-control="source-enable-sync"
                                         data-sot-provider={
                                             selectedSource.provider
@@ -2097,18 +2039,10 @@ function DataSourcesSettingsPanel({
                                         SOURCE_PROVIDER_DETAIL_FIELD_CONTENT_CLASS
                                     }
                                 >
-                                    <FieldTitle
-                                        className={
-                                            SOURCE_PROVIDER_DETAIL_FIELD_LABEL_CLASS
-                                        }
-                                    >
+                                    <FieldTitle>
                                         {isZh ? "重新连接" : "Reconnect"}
                                     </FieldTitle>
-                                    <FieldDescription
-                                        className={
-                                            SOURCE_PROVIDER_DETAIL_FIELD_DESCRIPTION_CLASS
-                                        }
-                                    >
+                                    <FieldDescription>
                                         {isZh
                                             ? "清除当前凭据后重新登录"
                                             : "Clear current credentials, then sign in again."}
@@ -2162,18 +2096,10 @@ function DataSourcesSettingsPanel({
                                         SOURCE_PROVIDER_DETAIL_FIELD_CONTENT_CLASS
                                     }
                                 >
-                                    <FieldTitle
-                                        className={
-                                            SOURCE_PROVIDER_DETAIL_FIELD_LABEL_CLASS
-                                        }
-                                    >
+                                    <FieldTitle>
                                         {isZh ? "断开连接" : "Disconnect"}
                                     </FieldTitle>
-                                    <FieldDescription
-                                        className={
-                                            SOURCE_PROVIDER_DETAIL_FIELD_DESCRIPTION_CLASS
-                                        }
-                                    >
+                                    <FieldDescription>
                                         {isZh
                                             ? `从此账号中删除 ${selectedSourceDisplayName} 授权`
                                             : `Remove ${selectedSourceDisplayName} authorization from this account.`}
@@ -2293,11 +2219,23 @@ function SaveStatus({
               : saveState === "error"
                 ? (error ?? (isZh ? "保存失败" : "Save failed"))
                 : "";
+    const statusClassName = cn(
+        SETTINGS_SAVE_STATUS_BADGE_CLASS,
+        saveState === "idle" && "hidden",
+        (saveState === "saved" || saveState === "saving") && "text-primary",
+        saveState === "error" && "text-destructive",
+    );
+    const indicatorClassName = cn(
+        "size-2 rounded-full bg-secondary-foreground/45",
+        (saveState === "saved" || saveState === "saving") && "bg-primary",
+        saveState === "saving" && "animate-pulse",
+        saveState === "error" && "bg-destructive",
+    );
 
     return (
         <Badge
             variant="ghost"
-            className={SETTINGS_SAVE_STATUS_BADGE_CLASS}
+            className={statusClassName}
             data-sot-part="settings-save-status"
             data-sot-state={saveState}
         >
@@ -2305,6 +2243,7 @@ function SaveStatus({
                 <span
                     aria-hidden="true"
                     data-sot-part="settings-save-status-indicator"
+                    className={indicatorClassName}
                 />
             )}
             {label}
@@ -3100,6 +3039,9 @@ function TitleGenerationSettingsPanel({
                             data-sot-key-status
                             data-sot-state="stored"
                         >
+                            <span aria-hidden="true" className="text-primary">
+                                ✓
+                            </span>
                             {isZh ? "已存储" : "Stored"}
                         </span>
                     ) : null}
@@ -3678,6 +3620,9 @@ function VoScriptSettingsPanel({
                             data-sot-key-status
                             data-sot-state="stored"
                         >
+                            <span aria-hidden="true" className="text-primary">
+                                ✓
+                            </span>
                             {isZh ? "已存储" : "Stored"}
                         </span>
                     ) : null}

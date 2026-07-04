@@ -413,25 +413,13 @@ function findStringConstInitializerContaining(
 }
 
 const ROUTE_LOADING_SURFACE_CLASS_VALUE =
-    "min-h-0 gap-0 overflow-hidden rounded-[16px] border-[var(--line-hairline)] bg-[var(--bg-elevated)] shadow-[var(--shadow-sm)] backdrop-blur-none dark:border-[var(--glass-border)]";
+    "min-h-0 gap-0 overflow-hidden rounded-2xl border-border bg-card shadow-sm backdrop-blur-none";
 const ROUTE_LOADING_SURFACE_CLASS_TOKENS =
     ROUTE_LOADING_SURFACE_CLASS_VALUE.split(" ");
-const DASHBOARD_ROUTE_LOADING_SHELL_CLASS_VALUE =
-    "grid h-screen min-h-[720px] grid-cols-[264px_1fr] transition-[grid-template-columns] duration-[320ms] ease-[var(--ease-out)]";
+const ROUTE_FALLBACK_CHROME_SHELL_CLASS_VALUE =
+    "grid h-screen min-h-[720px] grid-cols-[264px_1fr] bg-background text-foreground transition-[grid-template-columns] duration-300 ease-out max-[860px]:grid-cols-[0px_1fr]";
 const DASHBOARD_ROUTE_LOADING_DETAIL_CLASS_VALUE =
     "flex min-h-0 min-w-0 flex-col gap-4";
-const RECORDING_ROUTE_FALLBACK_SHELL_CLASS_VALUE =
-    "grid h-screen min-h-[720px] grid-cols-[264px_1fr] transition-[grid-template-columns] duration-[320ms] ease-[var(--ease-out)]";
-const RECORDING_ROUTE_EMPTY_DETAIL_CLASS_VALUE =
-    "flex min-h-0 min-w-0 flex-col gap-4 overflow-hidden rounded-[16px] border border-[var(--line-hairline)] bg-[var(--bg-elevated)] shadow-[var(--shadow-sm)] dark:border-[var(--glass-border)]";
-const RECORDING_ROUTE_EMPTY_PANEL_CLASS_VALUE =
-    "flex min-h-[280px] flex-1 flex-col items-center justify-center gap-2 rounded-[16px] border border-[var(--line-hairline)] bg-[var(--bg-elevated)] px-6 py-9 text-center shadow-[var(--shadow-sm)] dark:border-[var(--glass-border-soft)] dark:bg-[var(--card-elevated-bg)] dark:shadow-none";
-const RECORDING_ROUTE_EMPTY_ICON_CLASS_VALUE =
-    "mb-1 inline-grid size-12 place-items-center rounded-full border border-[var(--line-hairline)] bg-[var(--bg-recessed)] text-[var(--fg-tertiary)] [&_svg]:size-[22px] [&_svg]:fill-none [&_svg]:stroke-current [&_svg]:stroke-[1.6] [&_svg]:[stroke-linecap:round] [&_svg]:[stroke-linejoin:round]";
-const RECORDING_ROUTE_EMPTY_TITLE_CLASS_VALUE =
-    "[font:600_14px_var(--font-sans)] text-[var(--fg-primary)]";
-const RECORDING_ROUTE_EMPTY_DESCRIPTION_CLASS_VALUE =
-    "max-w-[320px] [font:500_12.5px/1.55_var(--font-sans)] text-[var(--fg-tertiary)]";
 const EXPECTED_DASHBOARD_RECORDING_PLAYER_CARD_CLASS_NAME =
     "block min-h-[114px] gap-0 overflow-visible rounded-[16px] border border-border bg-card px-[18px] py-[16px] shadow-none backdrop-blur-none";
 const DASHBOARD_RECORDING_PLAYER_WORKSTATION_CLASS_INITIALIZERS = [
@@ -2046,9 +2034,6 @@ const EXPECTED_DASHBOARD_TRANSCRIPT_BODY_BASE_CLASS_NAME =
 const EXPECTED_DASHBOARD_TRANSCRIPT_SHELL_CARD_CLASS_NAME =
     "flex min-h-0 flex-1 flex-col gap-0 rounded-[16px] border border-border bg-card shadow-sm backdrop-blur-none";
 
-const EXPECTED_SOURCE_REPORT_STATUS_BADGE_CLASS_NAME =
-    "!inline-flex !h-[22px] !w-fit !shrink-0 !items-center !justify-normal !gap-[5px] !overflow-visible !rounded-full !border !px-[8px] !py-0 ![font:600_11px_var(--font-sans)] !leading-[normal] !shadow-none !whitespace-nowrap !transition-none data-[sot-tone=err]:!border-[color-mix(in_srgb,var(--signal-danger)_30%,transparent)] data-[sot-tone=err]:!bg-[color-mix(in_srgb,var(--signal-danger)_14%,transparent)] data-[sot-tone=err]:!text-[var(--signal-danger)] data-[sot-tone=neu]:!border-[var(--line-hairline)] data-[sot-tone=neu]:!bg-[var(--bg-recessed)] data-[sot-tone=neu]:!text-[var(--fg-secondary)] data-[sot-tone=ok]:!border-[color-mix(in_srgb,var(--signal-success)_30%,transparent)] data-[sot-tone=ok]:!bg-[color-mix(in_srgb,var(--signal-success)_14%,transparent)] data-[sot-tone=ok]:!text-[var(--signal-success)] data-[sot-tone=warn]:!border-[color-mix(in_srgb,var(--signal-warning)_32%,transparent)] data-[sot-tone=warn]:!bg-[color-mix(in_srgb,var(--signal-warning)_18%,transparent)] data-[sot-tone=warn]:!text-[oklch(0.55_0.16_70)] [&_[data-sot-part=dashboard-source-report-status-dot]]:!mr-0 [&_[data-sot-part=dashboard-source-report-status-dot]]:!inline-block [&_[data-sot-part=dashboard-source-report-status-dot]]:!size-[5px] [&_[data-sot-part=dashboard-source-report-status-dot]]:!rounded-full [&_[data-sot-part=dashboard-source-report-status-dot]]:!bg-current [&_[data-sot-part=source-report-status-dot]]:!mr-0 [&_[data-sot-part=source-report-status-dot]]:!inline-block [&_[data-sot-part=source-report-status-dot]]:!size-[5px] [&_[data-sot-part=source-report-status-dot]]:!rounded-full [&_[data-sot-part=source-report-status-dot]]:!bg-current";
-
 const CARD_PRIMITIVE_FORBIDDEN_BUSINESS_TOKENS = [
     "onboarding",
     "detailHeader",
@@ -2928,7 +2913,6 @@ const DASHBOARD_TRANSCRIPT_SKELETON_LOCAL_COMPOSITION_TOKENS = [
 ] as const;
 
 const DASHBOARD_SOURCE_REPORT_LOADED_SOT_HOOKS = [
-    'data-sot-part="dashboard-source-report-status-dot"',
     "data-sot-source-report-segment-time",
     'data-sot-format="mono"',
     'valueFormat="mono"',
@@ -2982,64 +2966,42 @@ const SOURCE_REPORT_SKELETON_SHARED_TOKENS = [
 ] as const;
 
 const EXPECTED_SOURCE_REPORT_METRIC_CARD_CLASS_NAME =
-    "gap-[6px] !overflow-visible rounded-[10px] border border-[var(--line-hairline)] bg-[var(--bg-recessed)] px-[12px] py-[10px] shadow-none backdrop-blur-none dark:border-[var(--glass-border-soft)] dark:bg-[var(--glass-tint-subtle)]";
+    "gap-[6px] overflow-visible rounded-[10px] border-border bg-muted px-[12px] py-[10px] shadow-none backdrop-blur-none";
 const SOURCE_REPORT_METRIC_CARD_CLASS_TOKENS =
     EXPECTED_SOURCE_REPORT_METRIC_CARD_CLASS_NAME.split(" ");
-const EXPECTED_SOURCE_REPORT_SKELETON_CLASS_NAME =
-    "bg-transparent ![background:linear-gradient(90deg,color-mix(in_srgb,var(--fg-primary)_5%,transparent)_0%,color-mix(in_srgb,var(--fg-primary)_10%,transparent)_50%,color-mix(in_srgb,var(--fg-primary)_5%,transparent)_100%)] ![background-size:220%_100%] dark:![background:linear-gradient(90deg,rgb(255_255_255_/_0.05)_0%,rgb(255_255_255_/_0.12)_50%,rgb(255_255_255_/_0.05)_100%)] dark:![background-size:220%_100%]";
 const SOURCE_REPORT_STYLE_OWNER_SNIPPETS = [
-    "export const SOURCE_REPORT_SKELETON_CLASS_NAME =",
-    `"${EXPECTED_SOURCE_REPORT_SKELETON_CLASS_NAME}"`,
     "export type SourceReportTone =",
     "export type SourceReportCardSkeletonSize =",
     "export type SourceReportSegmentSkeletonSize =",
-    "export const SOURCE_REPORT_CARD_SKELETON_CLASS_NAMES =",
-    "export const SOURCE_REPORT_SEGMENT_SKELETON_CLASS_NAMES =",
-    "export const SOURCE_REPORT_PANE_CLASS_NAME =",
-    '"flex flex-col gap-3.5"',
-    "export const SOURCE_REPORT_STATE_CLASS_NAME =",
-    "[&[hidden]]:hidden",
-    "export const SOURCE_REPORT_METRIC_CARD_CLASS_NAME =",
-    "border border-[var(--line-hairline)] bg-[var(--bg-recessed)]",
-    "![font:600_10.5px_var(--font-sans)] uppercase tracking-[0.06em] text-[var(--fg-tertiary)]",
+    "export const sourceReportCopyButtonVariant =",
+    "export const sourceReportCopyButtonSize =",
+    "export const sourceReportClassNames =",
+    'pane: "flex flex-col gap-3.5"',
+    `metricCard:\n        "${EXPECTED_SOURCE_REPORT_METRIC_CARD_CLASS_NAME}"`,
+    "cardLabel:",
+    "font-sans text-[10.5px] font-semibold leading-normal tracking-[0.06em] text-muted-foreground uppercase",
     "text-foreground",
-    "export const SOURCE_REPORT_MISSING_NOTICE_CLASS_NAME =",
-    "block rounded-[10px] border border-[var(--alert-warning-soft-strong-border)] bg-[var(--alert-warning-soft-strong-bg)] px-[12px] py-[10px] ![font:500_12.5px/1.55_var(--font-sans)]",
-    "export const SOURCE_REPORT_MISSING_NOTICE_DESCRIPTION_CLASS_NAME =",
-    "![font:500_12.5px/1.55_var(--font-sans)] !text-[var(--fg-secondary)]",
-    "![font:500_11.5px_var(--font-sans)] text-[var(--fg-tertiary)]",
-    "![font:500_11.5px_var(--font-mono)] text-[var(--fg-tertiary)]",
-    "export const SOURCE_REPORT_SEGMENT_SPEAKER_CLASS_NAME =",
-    "![font:600_12px_var(--font-sans)] text-[var(--fg-secondary)]",
-    "m-0 ![font:600_11px_var(--font-sans)] text-[var(--fg-tertiary)]",
-    "export const SOURCE_REPORT_ACTION_BUTTON_CLASS_NAME =",
-    "export const SOURCE_REPORT_PRIMARY_ACTION_BUTTON_CLASS_NAME =",
-    "bg-[linear-gradient(180deg,color-mix(in_srgb,var(--accent)_92%,white_18%),var(--accent))]",
-    "!text-white shadow-[0_2px_6px_color-mix(in_srgb,var(--accent)_24%,transparent),inset_0_1px_0_rgb(255_255_255_/_0.22)]",
-    "export const SOURCE_REPORT_GHOST_ACTION_BUTTON_CLASS_NAME =",
+    "missingNotice:",
+    "block rounded-lg border-border bg-muted px-3 py-2 text-[12.5px] font-medium leading-relaxed text-muted-foreground",
+    "segmentSpeaker:",
+    "font-sans text-[12px] font-semibold leading-normal text-muted-foreground",
+    "primaryActionButton:",
+    "min-w-[46px]",
+    "ghostActionButton:",
     "rounded-[7px] border border-transparent bg-transparent px-[10px]",
-    "text-[var(--fg-secondary)] shadow-none",
-    "hover:bg-[var(--bg-recessed)] hover:text-[var(--fg-primary)]",
-    "export const SOURCE_REPORT_COPY_BUTTON_VARIANT =",
-    "export const SOURCE_REPORT_COPY_BUTTON_SIZE =",
-    "export const SOURCE_REPORT_COPY_BUTTON_CLASS_NAME =",
-    "hover:bg-accent hover:text-accent-foreground",
-    "export const SOURCE_REPORT_ERROR_ALERT_CLASS_NAME =",
-    "export const SOURCE_REPORT_EMPTY_SURFACE_CLASS_NAME =",
-    "border border-dashed border-[var(--line-hairline)] bg-[var(--bg-recessed)]",
-    "data-[sot-tone=err]:border-[var(--alert-destructive-soft-border)] data-[sot-tone=err]:bg-[var(--alert-destructive-subtle-bg)] data-[sot-tone=err]:text-[var(--fg-primary)]",
-    "export const SOURCE_REPORT_EMPTY_ICON_CLASS_NAME =",
-    "border border-[var(--line-hairline)] bg-[var(--bg-recessed)] text-[var(--fg-tertiary)]",
-    "export const SOURCE_REPORT_EMPTY_ERROR_ICON_CLASS_NAME =",
-    "border-[var(--alert-destructive-icon-soft-border)] bg-[var(--alert-destructive-icon-soft-bg)] text-[var(--signal-danger)]",
-    "block max-w-[360px] ![font:500_12px/1.5_var(--font-sans)] tracking-normal !text-[var(--fg-tertiary)]",
-    "export const SOURCE_REPORT_STATUS_BADGE_CLASS_NAME =",
-    "data-[sot-tone=err]:!border-[color-mix(in_srgb,var(--signal-danger)_30%,transparent)] data-[sot-tone=err]:!bg-[color-mix(in_srgb,var(--signal-danger)_14%,transparent)] data-[sot-tone=err]:!text-[var(--signal-danger)]",
-    "data-[sot-tone=neu]:!border-[var(--line-hairline)] data-[sot-tone=neu]:!bg-[var(--bg-recessed)] data-[sot-tone=neu]:!text-[var(--fg-secondary)]",
-    "data-[sot-tone=ok]:!border-[color-mix(in_srgb,var(--signal-success)_30%,transparent)] data-[sot-tone=ok]:!bg-[color-mix(in_srgb,var(--signal-success)_14%,transparent)] data-[sot-tone=ok]:!text-[var(--signal-success)]",
-    "data-[sot-tone=warn]:!border-[color-mix(in_srgb,var(--signal-warning)_32%,transparent)] data-[sot-tone=warn]:!bg-[color-mix(in_srgb,var(--signal-warning)_18%,transparent)] data-[sot-tone=warn]:!text-[oklch(0.55_0.16_70)]",
+    "text-muted-foreground shadow-none",
+    "hover:bg-muted hover:text-foreground",
+    "copyButton:",
+    "h-[26px] gap-[6px]",
+    "[&[hidden]]:hidden",
+    "emptySurface:",
+    "border border-dashed border-border bg-muted",
+    'emptyErrorIcon: "border-destructive/30 bg-destructive/10 text-destructive"',
+    "statusBadge:",
+    "data-[sot-tone=ok]:border-primary/30 data-[sot-tone=ok]:bg-primary/10 data-[sot-tone=ok]:text-primary",
+    "data-[sot-tone=err]:border-destructive/30 data-[sot-tone=err]:bg-destructive/10 data-[sot-tone=err]:text-destructive",
     "grid min-h-[30px] grid-cols-[80px_1fr]",
-    "border-b border-dashed border-[var(--line-hairline)]",
+    "border-b border-dashed border-border",
 ] as const;
 
 const DASHBOARD_SOURCE_REPORT_LOADING_METRIC_CARDS = [
@@ -3133,17 +3095,19 @@ const RECORDING_SOURCE_REPORT_LOADED_METRIC_CARDS = [
     },
 ] as const;
 
+const SOURCE_REPORT_SKELETON_BASE_REFERENCE = "$" + "{skeletonBaseClassName}";
+
 const SOURCE_REPORT_SKELETON_OWNER_TOKENS = [
-    "SOURCE_REPORT_SKELETON_CLASS_NAME",
-    "SOURCE_REPORT_CARD_SKELETON_CLASS_NAMES",
-    "SOURCE_REPORT_SEGMENT_SKELETON_CLASS_NAMES",
-    `count: \`\${SOURCE_REPORT_SKELETON_CLASS_NAME} inline-block h-[18px] w-[48px] align-middle rounded-[6px]\``,
-    `status: \`\${SOURCE_REPORT_SKELETON_CLASS_NAME} inline-block h-[18px] w-[80px] align-middle rounded-[6px]\``,
-    `source: \`\${SOURCE_REPORT_SKELETON_CLASS_NAME} inline-block h-[18px] w-[120px] align-middle rounded-[6px]\``,
-    `"line-long": \`\${SOURCE_REPORT_SKELETON_CLASS_NAME} mt-1.5 inline-block h-[13px] w-[92%] align-middle rounded-[4px]\``,
-    `"line-wide": \`\${SOURCE_REPORT_SKELETON_CLASS_NAME} mt-[6px] inline-block h-[13px] w-[88%] align-middle rounded-[4px]\``,
-    `speaker: \`\${SOURCE_REPORT_SKELETON_CLASS_NAME} ml-[5px] inline-block h-[12px] w-[54px] align-middle rounded-[4px]\``,
-    `time: \`\${SOURCE_REPORT_SKELETON_CLASS_NAME} inline-block h-[12px] w-[96px] align-middle rounded-[4px]\``,
+    "const skeletonBaseClassName =",
+    "const cardSkeletonClassNames =",
+    "const segmentSkeletonClassNames =",
+    `count: \`${SOURCE_REPORT_SKELETON_BASE_REFERENCE} inline-block h-[18px] w-[48px] align-middle rounded-md\``,
+    `status: \`${SOURCE_REPORT_SKELETON_BASE_REFERENCE} inline-block h-[18px] w-[80px] align-middle rounded-md\``,
+    `source: \`${SOURCE_REPORT_SKELETON_BASE_REFERENCE} inline-block h-[18px] w-[120px] align-middle rounded-md\``,
+    `"line-long": \`${SOURCE_REPORT_SKELETON_BASE_REFERENCE} mt-1.5 inline-block h-[13px] w-[92%] align-middle rounded-sm\``,
+    `"line-wide": \`${SOURCE_REPORT_SKELETON_BASE_REFERENCE} mt-1.5 inline-block h-[13px] w-[88%] align-middle rounded-sm\``,
+    `speaker: \`${SOURCE_REPORT_SKELETON_BASE_REFERENCE} ml-1 inline-block h-3 w-14 align-middle rounded-sm\``,
+    `time: \`${SOURCE_REPORT_SKELETON_BASE_REFERENCE} inline-block h-3 w-24 align-middle rounded-sm\``,
 ] as const;
 
 const SOURCE_REPORT_EMPTY_LEGACY_CSS_SELECTOR_RE =
@@ -4355,11 +4319,11 @@ describe("full UI replacement regression coverage", () => {
                 "flex-col",
                 "gap-0",
                 "overflow-hidden",
-                "rounded-[16px]",
                 "bg-card",
                 "p-0",
             ],
         );
+        expect(settingsShellSurfaceClass).not.toContain("rounded-[");
         expect(settingsShellSurfaceClass).not.toMatch(/(?:^|\s)z-/);
         expect(settingsShellSurfaceClass).not.toContain("data-[state=closed]");
         expect(settingsShellSurfaceClass).not.toContain("!");
@@ -5178,15 +5142,16 @@ describe("full UI replacement regression coverage", () => {
     it("keeps standalone recording route fallback actions on route Button variants", () => {
         const notFound = readSource("app/(app)/recordings/[id]/not-found.tsx");
         const error = readSource("app/(app)/recordings/[id]/error.tsx");
-        const notFoundRouteFallbackClassNames = extractBoundedSlice(
-            notFound,
-            "const recordingRouteFallbackClassNames =",
+        const routeChrome = readSource("app/(app)/route-chrome.tsx");
+        const routeFallbackEmptyClassNames = extractBoundedSlice(
+            routeChrome,
+            "const routeFallbackEmptyClassNames =",
             "} as const;",
         );
-        const errorRouteFallbackClassNames = extractBoundedSlice(
-            error,
-            "const recordingRouteFallbackClassNames =",
-            "} as const;",
+        const routeFallbackSurfaceClassName = extractBoundedSlice(
+            routeChrome,
+            "const routeFallbackSurfaceClassName =",
+            ";",
         );
 
         const notFoundPrimaryAction = extractBoundedSlice(
@@ -5210,54 +5175,51 @@ describe("full UI replacement regression coverage", () => {
         expect(errorGhostAction).toContain('size="default"');
         expect(error).toContain("onClick={reset}");
         for (const source of [notFound, error]) {
+            expect(source).toContain('from "../../route-chrome";');
+            expect(source).toContain("<RouteFallbackChrome");
+            expect(source).toContain('workspaceVariant="single"');
+            expect(source).toContain("<RouteFallbackEmptyState");
             expect(source).not.toContain(
                 'variant="recordingRoutePrimaryAction"',
             );
             expect(source).not.toContain('variant="recordingRouteGhostAction"');
             expect(source).not.toContain('size="recordingRouteAction"');
-            expect(source).toContain(
-                "className={recordingRouteFallbackClassNames.shell}",
-            );
-            expect(source).toContain(
-                "className={recordingRouteFallbackClassNames.emptyDetail}",
-            );
-            expect(source).toContain(
-                "recordingRouteFallbackClassNames.emptyPanel",
-            );
-            expect(source).toContain(
-                "recordingRouteFallbackClassNames.emptyIcon",
-            );
-            expect(source).toContain(
-                "recordingRouteFallbackClassNames.emptyTitle",
-            );
-            expect(source).toContain(
-                "recordingRouteFallbackClassNames.emptyDescription",
-            );
+            expect(source).not.toContain("recordingRouteFallbackClassNames");
+            expect(source).not.toContain("routeChromeStyles");
+            expect(source).not.toContain("route-chrome.module.css");
             expect(source).not.toContain('data-detail-empty=""');
         }
-        for (const routeFallbackClassNames of [
-            notFoundRouteFallbackClassNames,
-            errorRouteFallbackClassNames,
+        expect(notFound).toContain('dataSotShell="recording-route-empty"');
+        expect(notFound).toContain('current="录音不存在或已删除"');
+        expect(error).toContain('dataSotShell="recording-route-error"');
+        expect(error).toContain('current="录音详情加载失败"');
+        expect(routeChrome).toContain('from "@/components/ui/empty";');
+        expect(routeChrome).toContain(
+            'import { Card } from "@/components/ui/card";',
+        );
+        expect(routeChrome).toContain("function RouteFallbackEmptyState");
+        expect(routeChrome).toContain(
+            'data-sot-panel="recording-route-empty-detail"',
+        );
+        expect(routeChrome).toContain('data-sot-panel="recording-route-empty"');
+        expect(routeChrome).toContain("<Card");
+        expect(routeChrome).toContain("<Empty");
+        expect(routeFallbackEmptyClassNames).toContain(
+            "routeFallbackSurfaceClassName",
+        );
+        expect(routeFallbackSurfaceClassName).toContain("bg-card");
+        expect(routeFallbackSurfaceClassName).toContain("border-border");
+        for (const semanticToken of [
+            "border-border",
+            "bg-muted",
+            "text-muted-foreground",
+            "text-foreground",
         ]) {
-            expect(routeFallbackClassNames).toContain(
-                `shell: "${RECORDING_ROUTE_FALLBACK_SHELL_CLASS_VALUE}"`,
-            );
-            expect(routeFallbackClassNames).toContain(
-                `emptyDetail:\n        "${RECORDING_ROUTE_EMPTY_DETAIL_CLASS_VALUE}"`,
-            );
-            expect(routeFallbackClassNames).toContain(
-                `emptyPanel:\n        "${RECORDING_ROUTE_EMPTY_PANEL_CLASS_VALUE}"`,
-            );
-            expect(routeFallbackClassNames).toContain(
-                `emptyIcon:\n        "${RECORDING_ROUTE_EMPTY_ICON_CLASS_VALUE}"`,
-            );
-            expect(routeFallbackClassNames).toContain(
-                `emptyTitle: "${RECORDING_ROUTE_EMPTY_TITLE_CLASS_VALUE}"`,
-            );
-            expect(routeFallbackClassNames).toContain(
-                `emptyDescription:\n        "${RECORDING_ROUTE_EMPTY_DESCRIPTION_CLASS_VALUE}"`,
-            );
+            expect(routeFallbackEmptyClassNames).toContain(semanticToken);
         }
+        expect(routeFallbackEmptyClassNames).not.toMatch(
+            /var\(--|dark:|bg-\[var|border-\[var|text-\[var/,
+        );
     });
 
     it("keeps recording route loading skeleton sizing route-local and off the Skeleton primitive", () => {
@@ -5268,6 +5230,7 @@ describe("full UI replacement regression coverage", () => {
         const cardPrimitive = readSource("components/ui/card.tsx");
         const skeletonPrimitive = readSource("components/ui/skeleton.tsx");
         const globals = readSource("app/globals.css");
+        const routeChrome = readSource("app/(app)/route-chrome.tsx");
         const routeChromeModule = readSource(
             "app/(app)/route-chrome.module.css",
         );
@@ -5290,15 +5253,15 @@ describe("full UI replacement regression coverage", () => {
             ...recordingListLoadingSizeTokens,
             ...recordingDetailLoadingSizeTokens,
         ];
-        const dashboardRouteLoadingSurfaceClassName = extractBoundedSlice(
-            dashboardLoading,
-            "const routeLoadingSurfaceClassName =",
+        const routeFallbackSurfaceClassName = extractBoundedSlice(
+            routeChrome,
+            "const routeFallbackSurfaceClassName =",
             ";",
         );
-        const dashboardRouteLoadingShellClassName = extractBoundedSlice(
-            dashboardLoading,
-            "const dashboardRouteLoadingShellClassName =",
-            ";",
+        const routeFallbackChromeClassNames = extractBoundedSlice(
+            routeChrome,
+            "const routeFallbackChromeClassNames =",
+            "} as const;",
         );
         const dashboardRouteLoadingListClassName = extractBoundedSlice(
             dashboardLoading,
@@ -5310,20 +5273,10 @@ describe("full UI replacement regression coverage", () => {
             "const dashboardRouteLoadingDetailClassName =",
             ";",
         );
-        const recordingRouteLoadingSurfaceClassName = extractBoundedSlice(
-            recordingLoading,
-            "const routeLoadingSurfaceClassName =",
-            ";",
-        );
-        const recordingRouteFallbackShellClassName = extractBoundedSlice(
-            recordingLoading,
-            "const recordingRouteFallbackShellClassName =",
-            ";",
-        );
         const dashboardLoadingShellOpening = extractOpeningElement(
             dashboardLoading,
-            'data-sot-shell="dashboard-loading"',
-            "div",
+            'dataSotShell="dashboard-loading"',
+            "RouteFallbackChrome",
         );
         const dashboardLoadingListCard = extractCardSlice(
             dashboardLoading,
@@ -5353,38 +5306,31 @@ describe("full UI replacement regression coverage", () => {
             "Card",
         );
 
-        for (const routeLoadingSurfaceClassName of [
-            dashboardRouteLoadingSurfaceClassName,
-            recordingRouteLoadingSurfaceClassName,
-        ]) {
-            expect(routeLoadingSurfaceClassName).toContain(
-                `"${ROUTE_LOADING_SURFACE_CLASS_VALUE}"`,
-            );
-            for (const token of ROUTE_LOADING_SURFACE_CLASS_TOKENS) {
-                expect(routeLoadingSurfaceClassName).toContain(token);
-            }
+        expect(routeFallbackSurfaceClassName).toContain(
+            `"${ROUTE_LOADING_SURFACE_CLASS_VALUE}"`,
+        );
+        for (const token of ROUTE_LOADING_SURFACE_CLASS_TOKENS) {
+            expect(routeFallbackSurfaceClassName).toContain(token);
         }
-        expect(dashboardRouteLoadingShellClassName).toContain(
-            `"${DASHBOARD_ROUTE_LOADING_SHELL_CLASS_VALUE}"`,
+        expect(routeFallbackChromeClassNames).toContain(
+            `shell: "${ROUTE_FALLBACK_CHROME_SHELL_CLASS_VALUE}"`,
         );
         expect(dashboardRouteLoadingListClassName).toContain(
-            "routeLoadingSurfaceClassName",
+            "routeFallbackSurfaceClassName",
         );
         expect(dashboardRouteLoadingDetailClassName).toContain(
-            "routeLoadingSurfaceClassName",
+            "routeFallbackSurfaceClassName",
         );
         expect(dashboardRouteLoadingDetailClassName).toContain(
             `"${DASHBOARD_ROUTE_LOADING_DETAIL_CLASS_VALUE}"`,
         );
         expect(dashboardLoadingShellOpening).toContain(
-            "className={dashboardRouteLoadingShellClassName}",
-        );
-        expect(recordingRouteFallbackShellClassName).toContain(
-            `"${RECORDING_ROUTE_FALLBACK_SHELL_CLASS_VALUE}"`,
+            'dataSotShell="dashboard-loading"',
         );
         expect(recordingLoading).toContain(
-            "className={recordingRouteFallbackShellClassName}",
+            'dataSotShell="recording-route-loading"',
         );
+        expect(recordingLoading).toContain('workspaceVariant="single"');
         for (const [label, card] of [
             ["dashboard-loading-list", dashboardLoadingListCard],
             ["dashboard-loading-detail", dashboardLoadingDetailCard],
@@ -5404,7 +5350,7 @@ describe("full UI replacement regression coverage", () => {
             "className={cn(",
         );
         expect(recordingRouteLoadingDetailCardOpening).toContain(
-            "routeLoadingSurfaceClassName,",
+            "routeFallbackSurfaceClassName,",
         );
         expect(recordingRouteLoadingDetailCardOpening).toContain(
             '"flex min-h-0 flex-col gap-4"',
@@ -5468,34 +5414,18 @@ describe("full UI replacement regression coverage", () => {
         for (const sizeToken of routeLoadingSizeTokens) {
             expect(skeletonPrimitive).not.toContain(sizeToken);
         }
-        expect(dashboardLoading).toContain(
-            'import routeChromeStyles from "../route-chrome.module.css";',
-        );
+        expect(dashboardLoading).toContain('from "../route-chrome";');
         for (const routeSource of [dashboardLoading, recordingLoading]) {
-            expect(routeSource).toContain(
-                "className={routeChromeStyles.sidebar}",
-            );
-            expect(routeSource).toContain("className={routeChromeStyles.main}");
-            expect(routeSource).toContain(
-                "className={routeChromeStyles.topbar}",
-            );
-            expect(routeSource).toContain(
-                "className={routeChromeStyles.crumbs}",
-            );
-            expect(routeSource).toContain(
-                "className={routeChromeStyles.crumbCurrent}",
-            );
+            expect(routeSource).toContain("RouteFallbackChrome");
+            expect(routeSource).toContain("routeFallbackSurfaceClassName");
+            expect(routeSource).not.toContain("routeChromeStyles");
+            expect(routeSource).not.toContain("route-chrome.module.css");
         }
-        expect(recordingLoading).not.toContain(
-            'data-sot-panel="route-workspace"',
-        );
-        expect(routeChromeModule).toContain(".sidebar");
-        expect(routeChromeModule).toContain(".brand");
-        expect(routeChromeModule).toContain(".topbar");
-        expect(routeChromeModule).toContain(".workspace");
-        expect(routeChromeModule.match(/^\.sidebar \{/gm) ?? []).toHaveLength(
-            1,
-        );
+        expect(routeChrome).toContain('data-sot-panel="route-workspace"');
+        expect(routeChrome).toContain('data-sot-panel="route-sidebar"');
+        expect(routeChrome).toContain('data-sot-panel="route-main"');
+        expect(routeChrome).toContain('data-sot-panel="route-topbar"');
+        expect(routeChromeModule.trim()).toBe("");
         expect(routeChromeModule).not.toMatch(
             ROUTE_CHROME_FORBIDDEN_FRAMEWORK_RE,
         );
@@ -6252,7 +6182,7 @@ describe("full UI replacement regression coverage", () => {
             "div",
         );
         expect(sourceReportPane).toContain("className={cn(");
-        expect(sourceReportPane).toContain("SOURCE_REPORT_PANE_CLASS_NAME");
+        expect(sourceReportPane).toContain("sourceReportClassNames.pane");
         expect(sourceReportPane).toContain("dashboardTabPaneHiddenClassName");
         const speakersPane = extractOpeningElement(
             workstation,
@@ -7271,6 +7201,9 @@ describe("full UI replacement regression coverage", () => {
         );
         const sourceReportStyles = readSource(
             "features/source-report/styles.ts",
+        );
+        const sourceReportPrimitives = readSource(
+            "features/source-report/primitives.tsx",
         );
         const sourceReportBadgePrimitive = readSource(
             "components/ui/badge.tsx",
@@ -8838,7 +8771,7 @@ describe("full UI replacement regression coverage", () => {
         );
         expectClassNameConstReference(
             dashboardCopyIcon,
-            "SOURCE_REPORT_COPY_ICON_CLASS_NAME",
+            "sourceReportClassNames.copyIcon",
         );
         const dashboardCopyLabel = extractOpeningElement(
             workstation,
@@ -8847,14 +8780,10 @@ describe("full UI replacement regression coverage", () => {
         );
         expectClassNameConstReference(
             dashboardCopyLabel,
-            "SOURCE_REPORT_COPY_LABEL_CLASS_NAME",
+            "sourceReportClassNames.copyLabel",
         );
-        expect(sourceReportStyles).toContain(
-            "SOURCE_REPORT_COPY_LABEL_CLASS_NAME",
-        );
-        expect(sourceReportStyles).toContain(
-            "SOURCE_REPORT_COPY_ICON_CLASS_NAME",
-        );
+        expect(sourceReportStyles).toContain("copyLabel:");
+        expect(sourceReportStyles).toContain("copyIcon:");
         const dashboardButtonClassNames = extractBoundedSlice(
             workstation,
             "const dashboardButtonClassNames = {",
@@ -8863,9 +8792,8 @@ describe("full UI replacement regression coverage", () => {
         expect(dashboardButtonClassNames).toMatch(
             /copy:\s*"[^"]*\[&\[hidden\]\]:hidden[^"]*"/,
         );
-        expect(sourceReportStyles).toMatch(
-            /export const SOURCE_REPORT_COPY_BUTTON_CLASS_NAME\s*=\s*"[^"]*\[&\[hidden\]\]:hidden[^"]*";/,
-        );
+        expect(sourceReportStyles).toContain("copyButton:");
+        expect(sourceReportStyles).toContain("[&[hidden]]:hidden");
         expect(workstation).not.toContain(
             "const SOT_SOURCE_REPORT_COPY_BUTTON_CLASS_NAME",
         );
@@ -8889,10 +8817,12 @@ describe("full UI replacement regression coverage", () => {
                 "Button",
             );
             expect(buttonOpening).toContain('variant="ghost"');
-            expect(buttonOpening).toContain('size="sm"');
+            expect(buttonOpening).toContain(
+                "size={sourceReportCopyButtonSize}",
+            );
             expectClassNameConstReference(
                 buttonOpening,
-                "SOURCE_REPORT_COPY_BUTTON_CLASS_NAME",
+                "sourceReportClassNames.copyButton",
             );
             expect(buttonOpening).not.toContain(
                 'variant="sourceReportCopyAction"',
@@ -8937,7 +8867,7 @@ describe("full UI replacement regression coverage", () => {
             expect(buttonOpening).toContain('size="xs"');
             expectClassNameConstReference(
                 buttonOpening,
-                "SOURCE_REPORT_ACTION_BUTTON_CLASS_NAME",
+                "sourceReportClassNames.actionButton",
             );
             expect(buttonOpening).not.toContain('variant="sourceReportAction"');
             expect(buttonOpening).not.toContain('variant="ghost"');
@@ -9632,9 +9562,13 @@ describe("full UI replacement regression coverage", () => {
         expect(workstation).toContain("listMode");
         expect(workstation).toContain("detailTab");
         expect(workstation).toContain("data-sot-source-report-pane");
-        expect(workstation).toContain("data-sot-source-report-state");
+        expect(sourceReportPrimitives).toContain(
+            "data-sot-source-report-state",
+        );
         expect(workstation).toContain("data-sot-source-report-empty");
-        expect(workstation).toContain("data-sot-source-report-section");
+        expect(sourceReportPrimitives).toContain(
+            "data-sot-source-report-section",
+        );
         expect(workstation).toContain("data-sot-source-report-segment");
         expect(workstation).toContain("data-sot-source-report-meta");
         expect(workstation).toContain("data-sot-source-report-actions");
@@ -9665,7 +9599,7 @@ describe("full UI replacement regression coverage", () => {
             "const sotSourceReportSegmentSkeletonClassNames",
         );
         const dashboardSourceReportCardSkeleton = extractOpeningElement(
-            workstation,
+            sourceReportPrimitives,
             'data-sot-part="source-report-card-skeleton"',
             "Skeleton",
         );
@@ -9674,10 +9608,10 @@ describe("full UI replacement regression coverage", () => {
         );
         expect(dashboardSourceReportCardSkeleton).toContain('size="default"');
         expect(dashboardSourceReportCardSkeleton).toContain(
-            "className={SOURCE_REPORT_CARD_SKELETON_CLASS_NAMES[size]}",
+            "className={sourceReportClassNames.cardSkeleton[size]}",
         );
         const dashboardSourceReportSegmentSkeleton = extractOpeningElement(
-            workstation,
+            sourceReportPrimitives,
             'data-sot-part="source-report-segment-skeleton"',
             "Skeleton",
         );
@@ -9688,7 +9622,7 @@ describe("full UI replacement regression coverage", () => {
             'size="default"',
         );
         expect(dashboardSourceReportSegmentSkeleton).toContain(
-            "className={SOURCE_REPORT_SEGMENT_SKELETON_CLASS_NAMES[size]}",
+            "className={sourceReportClassNames.segmentSkeleton[size]}",
         );
         expect(workstation).not.toContain('variant="sourceReportCard"');
         expect(workstation).not.toContain('variant="sourceReportSegment"');
@@ -9763,7 +9697,7 @@ describe("full UI replacement regression coverage", () => {
         expect(sourceReportNoSourceEmpty).toContain("<EmptyMedia");
         expect(sourceReportNoSourceEmpty).toContain('variant="icon"');
         expect(sourceReportNoSourceEmpty).toContain(
-            "className={SOURCE_REPORT_EMPTY_ICON_CLASS_NAME}",
+            "sourceReportClassNames.emptyIcon",
         );
         expect(sourceReportNoSourceEmpty).toContain(
             "data-sot-source-report-empty-icon",
@@ -9772,13 +9706,13 @@ describe("full UI replacement regression coverage", () => {
             "data-sot-source-report-empty-title",
         );
         expect(sourceReportNoSourceEmpty).toContain(
-            "SOURCE_REPORT_EMPTY_TITLE_CLASS_NAME",
+            "sourceReportClassNames.emptyTitle",
         );
         expect(sourceReportNoSourceEmpty).toContain(
             "data-sot-source-report-empty-description",
         );
         expect(sourceReportNoSourceEmpty).toContain(
-            "SOURCE_REPORT_EMPTY_DESCRIPTION_CLASS_NAME",
+            "sourceReportClassNames.emptyDescription",
         );
         expect(sourceReportNoSourceEmpty).not.toContain("<Alert");
         expect(sourceReportNoSourceEmpty).not.toContain("<AlertTitle");
@@ -9826,22 +9760,20 @@ describe("full UI replacement regression coverage", () => {
         expect(workstation).not.toContain(
             "const SOT_SOURCE_REPORT_METRIC_CARD_CLASS_NAME =",
         );
-        expect(sourceReportStyles).toContain(
-            "export const SOURCE_REPORT_METRIC_CARD_CLASS_NAME =",
-        );
+        expect(sourceReportStyles).toContain("metricCard:");
         const dashboardSourceReportMetricCard = extractOpeningElement(
-            workstation,
+            sourceReportPrimitives,
             'data-sot-card="source-report-metric"',
             "Card",
         );
         const dashboardSourceReportMetricCardBlock = extractElementSlice(
-            workstation,
+            sourceReportPrimitives,
             'data-sot-card="source-report-metric"',
             "Card",
         );
         expect(dashboardSourceReportMetricCard).toContain("hasNoPadding");
         expect(dashboardSourceReportMetricCard).toContain(
-            "className={SOURCE_REPORT_METRIC_CARD_CLASS_NAME}",
+            "className={sourceReportClassNames.metricCard}",
         );
         expect(dashboardSourceReportMetricCard).toContain(
             'data-sot-card="source-report-metric"',
@@ -9852,14 +9784,8 @@ describe("full UI replacement regression coverage", () => {
         expect(dashboardSourceReportMetricCardBlock).not.toContain(
             'variant="sourceReportMetric"',
         );
-        const dashboardSourceReportMetricCardClassName =
-            expectExactStringConstInitializer(
-                sourceReportStyles,
-                "SOURCE_REPORT_METRIC_CARD_CLASS_NAME",
-                EXPECTED_SOURCE_REPORT_METRIC_CARD_CLASS_NAME,
-            );
         for (const token of SOURCE_REPORT_METRIC_CARD_CLASS_TOKENS) {
-            expect(dashboardSourceReportMetricCardClassName).toContain(token);
+            expect(sourceReportStyles).toContain(token);
         }
         expect(workstation).not.toContain('variant="sourceReportMetric"');
         expect(workstation).not.toMatch(
@@ -9902,7 +9828,7 @@ describe("full UI replacement regression coverage", () => {
             expect(repaintBlocks).toEqual([]);
         }
         expect(sourceReportPanel).toContain("<CardContent");
-        expect(sourceReportPanel).toContain("SOURCE_REPORT_PANE_CLASS_NAME");
+        expect(sourceReportPanel).toContain("sourceReportClassNames.pane");
         expect(sourceReportPanel).toContain(
             '"min-h-0 overflow-hidden px-5 pt-4 pb-6"',
         );
@@ -9962,7 +9888,7 @@ describe("full UI replacement regression coverage", () => {
             );
         }
         expect(sourceReportPanel).toContain(
-            "SOURCE_REPORT_ACTION_BUTTON_CLASS_NAME",
+            "sourceReportClassNames.actionButton",
         );
         expect(sourceReportPanel).not.toContain(
             "SOURCE_REPORT_ACTIONS_CLASS_NAME",
@@ -9971,19 +9897,19 @@ describe("full UI replacement regression coverage", () => {
             "SOURCE_REPORT_ACTIONS_BOTH_MISSING_CLASS_NAME",
         );
         expect(sourceReportPanel).toContain(
-            "SOURCE_REPORT_GHOST_ACTION_BUTTON_CLASS_NAME",
+            "sourceReportClassNames.ghostActionButton",
         );
         expect(sourceReportPanel).toContain(
-            "SOURCE_REPORT_COPY_BUTTON_CLASS_NAME",
+            "sourceReportClassNames.copyButton",
         );
         expect(sourceReportActions).not.toContain('variant="outline"');
         expect(sourceReportActions).toContain('variant="ghost"');
         expect(sourceReportActions).toContain('size="xs"');
         expect(sourceReportActions).not.toContain(
-            "SOURCE_REPORT_ACTION_BUTTON_CLASS_NAME",
+            "sourceReportClassNames.actionButton",
         );
         expect(sourceReportActions).toContain(
-            "SOURCE_REPORT_GHOST_ACTION_BUTTON_CLASS_NAME",
+            "sourceReportClassNames.ghostActionButton",
         );
         expect(sourceReportActions).not.toContain(
             'variant="sourceReportAction"',
@@ -10018,16 +9944,16 @@ describe("full UI replacement regression coverage", () => {
         expect(sourceReportEmptyActions).toContain("className={cn(");
         expect(sourceReportEmptyActions).toContain('"justify-center"');
         expect(sourceReportEmptyActions).toContain(
-            "SOURCE_REPORT_EMPTY_ACTION_ROW_CLASS_NAME",
+            "sourceReportClassNames.emptyActionRow",
         );
         expect(sourceReportEmptyActions).toContain('variant="default"');
         expect(sourceReportEmptyActions).toContain('variant="ghost"');
         expect(sourceReportEmptyActions).toContain('size="xs"');
         expect(sourceReportEmptyActions).toContain(
-            "SOURCE_REPORT_PRIMARY_ACTION_BUTTON_CLASS_NAME",
+            "sourceReportClassNames.primaryActionButton",
         );
         expect(sourceReportEmptyActions).toContain(
-            "SOURCE_REPORT_GHOST_ACTION_BUTTON_CLASS_NAME",
+            "sourceReportClassNames.ghostActionButton",
         );
         expect(sourceReportEmptyActions).not.toContain(
             'variant="sourceReportPrimaryAction"',
@@ -10058,11 +9984,11 @@ describe("full UI replacement regression coverage", () => {
         for (const hook of DASHBOARD_SOURCE_REPORT_LOADED_SOT_HOOKS) {
             expect(dashboardSourceReportLoaded).toContain(hook);
         }
-        expectExactStringConstInitializer(
-            sourceReportStyles,
-            "SOURCE_REPORT_STATUS_BADGE_CLASS_NAME",
-            EXPECTED_SOURCE_REPORT_STATUS_BADGE_CLASS_NAME,
+        expect(sourceReportPrimitives).toContain(
+            '"dashboard-source-report-status-dot"',
         );
+        expect(sourceReportPrimitives).toContain("data-sot-part={part}");
+        expect(sourceReportStyles).toContain("statusBadge:");
         expect(workstation).not.toContain(
             "SOT_DASHBOARD_SOURCE_REPORT_STATUS_CLASS_NAME",
         );
@@ -10096,10 +10022,12 @@ describe("full UI replacement regression coverage", () => {
                 "[data-sot-source-report-state]",
             ),
         ).toEqual([]);
-        expect(sourceReportStyles).toContain("SOURCE_REPORT_STATE_CLASS_NAME");
+        expect(sourceReportStyles).toContain("state:");
         expect(workstation).toContain("@/features/source-report/styles");
         expect(workstation).toContain("SotSourceReportMissingNotice");
-        expect(workstation).toContain("data-sot-source-report-missing-notice");
+        expect(sourceReportPrimitives).toContain(
+            "data-sot-source-report-missing-notice",
+        );
         expect(workstation).toContain("function SotSourceReportErrorIcon");
         expect(workstation).toContain(
             '<line x1="12" y1="16" x2="12.01" y2="16" />',
@@ -10112,14 +10040,12 @@ describe("full UI replacement regression coverage", () => {
             "content-[attr(data-sot-missing-copy)]",
         );
         expect(sourceReportStyles).not.toMatch(/\b(?:before|after):content-\[/);
-        expect(sourceReportStyles).toContain(
-            "SOURCE_REPORT_SKELETON_CLASS_NAME",
+        expect(sourceReportStyles).toContain("const skeletonBaseClassName =");
+        expect(sourceReportPrimitives).toContain(
+            "sourceReportClassNames.cardSkeleton[size]",
         );
-        expect(workstation).toContain(
-            "SOURCE_REPORT_CARD_SKELETON_CLASS_NAMES",
-        );
-        expect(workstation).toContain(
-            "SOURCE_REPORT_SEGMENT_SKELETON_CLASS_NAMES",
+        expect(sourceReportPrimitives).toContain(
+            "sourceReportClassNames.segmentSkeleton[size]",
         );
         expect(workstation).not.toContain("SOURCE_REPORT_STYLE_VARIABLES");
         const dashboardSourceReportPane = extractOpeningElement(
@@ -10128,18 +10054,18 @@ describe("full UI replacement regression coverage", () => {
             "div",
         );
         expectCnClassNameReferences(dashboardSourceReportPane, [
-            "SOURCE_REPORT_PANE_CLASS_NAME",
+            "sourceReportClassNames.pane",
             "dashboardTabPaneHiddenClassName",
         ]);
         expect(dashboardSourceReportPane).not.toContain("style=");
         const dashboardSourceReportState = extractOpeningElement(
-            workstation,
-            'data-sot-panel="dashboard-source-report-state"',
+            sourceReportPrimitives,
+            "data-sot-source-report-state",
             "div",
         );
         expectClassNameConstReference(
             dashboardSourceReportState,
-            "SOURCE_REPORT_STATE_CLASS_NAME",
+            "sourceReportClassNames.state",
         );
         expect(dashboardSourceReportState).not.toContain("style=");
         expectSourceToExcludeForbiddenSubstrings(
@@ -10147,14 +10073,16 @@ describe("full UI replacement regression coverage", () => {
             BADGE_PRIMITIVE_FORBIDDEN_BUSINESS_TOKENS,
         );
         const dashboardSourceReportStatusBadge = extractOpeningElement(
-            workstation,
+            sourceReportPrimitives,
             'data-sot-badge="source-report-status"',
             "Badge",
         );
-        expect(dashboardSourceReportStatusBadge).toContain('variant="ghost"');
+        expect(dashboardSourceReportStatusBadge).toContain(
+            "variant={sourceReportStatusBadgeVariant(tone)}",
+        );
         expectClassNameConstReference(
             dashboardSourceReportStatusBadge,
-            "SOURCE_REPORT_STATUS_BADGE_CLASS_NAME",
+            "cn(sourceReportClassNames.statusBadge, className)",
         );
         expect(dashboardSourceReportLoaded).not.toContain(
             'variant="sourceReportStatus"',
@@ -10181,13 +10109,13 @@ describe("full UI replacement regression coverage", () => {
         expect(dashboardSourceReportOpenAction).toContain('size="xs"');
         expectClassNameConstReference(
             dashboardSourceReportOpenAction,
-            "SOURCE_REPORT_GHOST_ACTION_BUTTON_CLASS_NAME",
+            "sourceReportClassNames.ghostActionButton",
         );
         expect(dashboardSourceReportRepullAction).toContain('variant="ghost"');
         expect(dashboardSourceReportRepullAction).toContain('size="xs"');
         expectClassNameConstReference(
             dashboardSourceReportRepullAction,
-            "SOURCE_REPORT_GHOST_ACTION_BUTTON_CLASS_NAME",
+            "sourceReportClassNames.ghostActionButton",
         );
         for (const action of [
             dashboardSourceReportOpenAction,
@@ -10198,7 +10126,7 @@ describe("full UI replacement regression coverage", () => {
             expect(action).not.toContain('size="sm"');
         }
         for (const hook of DASHBOARD_SOURCE_REPORT_META_VALUE_HELPER_HOOKS) {
-            expect(workstation).toContain(hook);
+            expect(sourceReportPrimitives).toContain(hook);
         }
         for (const legacyClassName of DASHBOARD_SOURCE_REPORT_LOADED_LEGACY_CLASS_NAMES) {
             expect(dashboardSourceReportLoaded).not.toContain(legacyClassName);
@@ -11012,6 +10940,9 @@ describe("full UI replacement regression coverage", () => {
         const sourceReport = readSource(
             "features/recordings/components/source-report-panel.tsx",
         );
+        const sourceReportPrimitives = readSource(
+            "features/source-report/primitives.tsx",
+        );
         const transcriptionSection = readSource(
             "features/recordings/components/transcription-section.tsx",
         );
@@ -11066,16 +10997,25 @@ describe("full UI replacement regression coverage", () => {
         expect(settingsSectionTitleClass).toContain(
             "SETTINGS_SECTION_TITLE_CLASS",
         );
-        for (const ownerClassToken of [
+        for (const semanticClassToken of [
+            "mb-[18px]",
+            "text-lg",
+            "font-semibold",
+            "text-foreground",
+        ]) {
+            expect(settingsSectionTitleClass).toContain(semanticClassToken);
+        }
+        for (const removedOwnerClassToken of [
             "[margin:0_0_18px]",
             "font-display",
             "text-[18px]",
-            "font-semibold",
             "leading-[normal]",
             "tracking-[-0.012em]",
             "text-[var(--fg-primary)]",
         ]) {
-            expect(settingsSectionTitleClass).toContain(ownerClassToken);
+            expect(settingsSectionTitleClass).not.toContain(
+                removedOwnerClassToken,
+            );
         }
         expect(settings).toMatch(
             /<h3\s+className=\{SETTINGS_SECTION_TITLE_CLASS\}\s+data-sot-title>\s*\{title\}\s*<\/h3>/,
@@ -11526,6 +11466,10 @@ describe("full UI replacement regression coverage", () => {
             'data-sot-part="settings-save-status"',
             "Badge",
         );
+        const settingsSaveStatusClass =
+            settings.match(
+                /const SETTINGS_SAVE_STATUS_BADGE_CLASS[\s\S]*?;/,
+            )?.[0] ?? "";
         const settingsSaveAction = extractElementSlice(
             settings,
             'data-sot-control="settings-save"',
@@ -11552,24 +11496,15 @@ describe("full UI replacement regression coverage", () => {
         );
         const providerDetailInputOwnerClass =
             settingFieldControl.match(
-                /export const SOURCE_PROVIDER_DETAIL_INPUT_CLASS\s*=\s*"[^"]*";/,
+                /const SOURCE_PROVIDER_DETAIL_INPUT_CLASS\s*=\s*"[^"]*";/,
             )?.[0] ?? "";
+        const providerDetailInputOwnerClassName =
+            providerDetailInputOwnerClass.match(/const\s+([A-Z0-9_]+)/)?.[1] ??
+            "";
         const sourceProviderControlClassNameBlock =
             settingFieldControl.match(
                 /const sourceProviderControlClassName[\s\S]*?;/,
             )?.[0] ?? "";
-        const sourceProviderSwitchClassNameBlock =
-            settingFieldControl.match(
-                /const sourceProviderSwitchClassName[\s\S]*?;/,
-            )?.[0] ?? "";
-        const providerDetailSwitchOwnerClass =
-            settingFieldControl.match(
-                /export const SOURCE_PROVIDER_DETAIL_SWITCH_CLASS\s*=\s*"[^"]*";/,
-            )?.[0] ?? "";
-        const providerDetailSwitchOwnerClassName =
-            providerDetailSwitchOwnerClass.match(
-                /export const\s+([A-Z0-9_]+)/,
-            )?.[1] ?? "";
         const settingInputClassNameBlock =
             settingFieldControl.match(
                 /const inputClassName = cn\([\s\S]*?\n\s*\);/,
@@ -11586,8 +11521,14 @@ describe("full UI replacement regression coverage", () => {
         expect(settingFieldControl).toContain("SETTINGS_FIELD_CONTENT_CLASS");
         expect(settingFieldControl).toContain("SETTINGS_FIELD_CONTROL_CLASS");
         expect(settingFieldControl).toContain("isSourceProviderDetailVariant");
-        expect(settingFieldControl).toContain(
+        expect(settingFieldControl).not.toContain(
             "isSourceProviderCredentialField",
+        );
+        expect(settingFieldControl).not.toMatch(/export const .*_CLASS/);
+        expect(settingFieldControl).not.toContain("fieldLabelClassName");
+        expect(settingFieldControl).not.toContain("fieldDescriptionClassName");
+        expect(providerDetailInputOwnerClassName).toBe(
+            "SOURCE_PROVIDER_DETAIL_INPUT_CLASS",
         );
         for (const providerDetailInputOwnerToken of [
             "w-full",
@@ -11605,6 +11546,7 @@ describe("full UI replacement regression coverage", () => {
             "max-w-[240px]",
             "rounded-[7px]",
             "text-[12px]",
+            "leading-[normal]",
         ]) {
             expect(providerDetailInputOwnerClass).not.toContain(
                 retiredProviderDetailInputOwnerToken,
@@ -11634,35 +11576,22 @@ describe("full UI replacement regression coverage", () => {
         expect(sourceProviderControlClassNameBlock).toContain(
             "SOURCE_PROVIDER_DETAIL_INPUT_CLASS",
         );
+        expect(sourceProviderControlClassNameBlock).toContain("undefined");
         expect(settingInputClassNameBlock).toContain(
             "sourceProviderControlClassName",
         );
         expect(settingInputClassNameBlock).toContain("field.masked &&");
         expect(settingInputClassNameBlock).toContain("field.className");
-        expect(sourceProviderSwitchClassNameBlock).toContain(
-            "isSourceProviderDetailVariant",
-        );
-        expect(providerDetailSwitchOwnerClassName).toBe(
-            "SOURCE_PROVIDER_DETAIL_SWITCH_CLASS",
-        );
-        expect(providerDetailSwitchOwnerClass).toContain('= ""');
-        expect(providerDetailSwitchOwnerClass).not.toContain(
+        expect(settingFieldControl).not.toContain(
             "[&_[data-slot=switch-thumb]]",
         );
-        expect(providerDetailSwitchOwnerClass).not.toContain(
-            "data-[state=checked]",
+        expect(settingFieldControl).not.toContain("focus-visible:ring-0");
+        expect(settingFieldControl).not.toContain("aria-invalid:ring-0");
+        expect(settingFieldControl).toMatch(/<Switch\s+id=\{fieldId\}/);
+        expect(settingFieldControl).not.toContain(
+            "sourceProviderSwitchClassName",
         );
-        expect(sourceProviderSwitchClassNameBlock).toContain(
-            providerDetailSwitchOwnerClassName,
-        );
-        expect(sourceProviderSwitchClassNameBlock).toContain("undefined");
-        expect(sourceProviderSwitchClassNameBlock).toMatch(
-            /isSourceProviderDetailVariant[\s\S]*\?[\s\S]*:[\s\S]*undefined/,
-        );
-        expect(settingFieldControl).toContain(
-            "className={sourceProviderSwitchClassName}",
-        );
-        expect(settings).toContain("SOURCE_PROVIDER_DETAIL_SWITCH_CLASS");
+        expect(settings).not.toContain("SOURCE_PROVIDER_DETAIL_SWITCH_CLASS");
         expect(settings).toContain('data-sot-control="source-auto-update"');
         expect(settings).toContain('data-sot-control="source-enable-sync"');
         expect(settings).toContain("data-sot-state=");
@@ -11709,9 +11638,14 @@ describe("full UI replacement regression coverage", () => {
             'variant="settingsSegmentOption"',
         );
         expect(settingsSaveStatus).toContain('variant="ghost"');
-        expect(settingsSaveStatus).toContain(
+        expect(settingsSaveStatusClass).toContain(
             "SETTINGS_SAVE_STATUS_BADGE_CLASS",
         );
+        expect(settingsSaveStatusClass).not.toContain("data-[sot-state=");
+        expect(settingsSaveStatusClass).not.toContain("[&_[data-sot-part");
+        expect(settings).toContain("const statusClassName = cn(");
+        expect(settings).toContain('saveState === "idle" && "hidden"');
+        expect(settings).toContain("const indicatorClassName = cn(");
         expect(settingsSaveStatus).not.toContain(
             'variant="settingsSaveStatus"',
         );
@@ -14233,13 +14167,15 @@ describe("full UI replacement regression coverage", () => {
                 "[data-sot-source-report-state]",
             ),
         ).toEqual([]);
-        expect(sourceReportStyles).toContain("SOURCE_REPORT_STATE_CLASS_NAME");
+        expect(sourceReportStyles).toContain("state:");
         expect(sourceReport).toContain("@/features/source-report/styles");
-        expect(sourceReport).toContain("SotSourceReportMissingNotice");
-        expect(sourceReport).toContain(
-            "SOURCE_REPORT_MISSING_NOTICE_CLASS_NAME",
+        expect(sourceReport).toContain("SourceReportMissingNotice");
+        expect(sourceReportPrimitives).toContain(
+            "sourceReportClassNames.missingNotice",
         );
-        expect(sourceReport).toContain("data-sot-source-report-missing-notice");
+        expect(sourceReportPrimitives).toContain(
+            "data-sot-source-report-missing-notice",
+        );
         expect(sourceReport).not.toContain("data-sot-missing-copy");
         expect(sourceReport).not.toContain(
             "content-[attr(data-sot-missing-copy)]",
@@ -14248,21 +14184,19 @@ describe("full UI replacement regression coverage", () => {
             "content-[attr(data-sot-missing-copy)]",
         );
         expect(sourceReportStyles).not.toMatch(/\b(?:before|after):content-\[/);
-        expect(sourceReportStyles).toContain(
-            "SOURCE_REPORT_SKELETON_CLASS_NAME",
+        expect(sourceReportStyles).toContain("const skeletonBaseClassName =");
+        expect(sourceReportPrimitives).toContain(
+            "sourceReportClassNames.cardSkeleton[size]",
         );
-        expect(sourceReport).toContain(
-            "SOURCE_REPORT_CARD_SKELETON_CLASS_NAMES",
-        );
-        expect(sourceReport).toContain(
-            "SOURCE_REPORT_SEGMENT_SKELETON_CLASS_NAMES",
+        expect(sourceReportPrimitives).toContain(
+            "sourceReportClassNames.segmentSkeleton[size]",
         );
         expect(sourceReport).not.toContain("SOURCE_REPORT_STYLE_VARIABLES");
         expect(sourceReport).toContain(
             'data-sot-panel="recording-source-report"',
         );
-        expect(sourceReport).toContain(
-            'data-sot-panel="recording-source-report-state"',
+        expect(sourceReportPrimitives).toContain(
+            'panel = "recording-source-report-state"',
         );
         const sourceReportPane = extractOpeningElement(
             sourceReport,
@@ -14270,19 +14204,19 @@ describe("full UI replacement regression coverage", () => {
             "Card",
         );
         expectCnClassNameReferences(sourceReportPane, [
-            "SOURCE_REPORT_PANE_CLASS_NAME",
+            "sourceReportClassNames.pane",
             '"min-h-0 overflow-hidden px-5 pt-4 pb-6"',
             "className",
         ]);
         expect(sourceReportPane).not.toContain("style=");
         const sourceReportState = extractOpeningElement(
-            sourceReport,
-            'data-sot-panel="recording-source-report-state"',
+            sourceReportPrimitives,
+            "data-sot-source-report-state",
             "div",
         );
         expectClassNameConstReference(
             sourceReportState,
-            "SOURCE_REPORT_STATE_CLASS_NAME",
+            "sourceReportClassNames.state",
         );
         expect(sourceReportState).not.toContain("style=");
         expect(sourceReport).toContain("data-sot-state={sourceReportState}");
@@ -14292,17 +14226,17 @@ describe("full UI replacement regression coverage", () => {
         expect(sourceReport).toContain(
             'import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";',
         );
-        expect(sourceReport).toContain(
+        expect(sourceReportPrimitives).toContain(
             'import { Badge } from "@/components/ui/badge";',
         );
         expect(sourceReport).toContain("CardHeader");
         expect(sourceReport).toContain("CardTitle");
         expect(sourceReport).toContain("CardAction");
         expect(sourceReport).toContain("CardDescription");
-        expect(sourceReport).toContain(
+        expect(sourceReportPrimitives).toContain(
             'import { Separator } from "@/components/ui/separator";',
         );
-        expect(sourceReport).toContain(
+        expect(sourceReportPrimitives).toContain(
             'import { Skeleton } from "@/components/ui/skeleton";',
         );
         expect(sourceReport).toContain('from "@/components/ui/empty";');
@@ -14314,17 +14248,21 @@ describe("full UI replacement regression coverage", () => {
         expect(sourceReport).toContain("<EmptyMedia");
         expect(sourceReport).toContain("<EmptyTitle");
         expect(sourceReport).toContain("<EmptyDescription");
-        expect(sourceReport).toContain("<Badge");
+        expect(sourceReportPrimitives).toContain("<Badge");
         expect(sourceReport).toContain("<Card");
         expect(sourceReport).toContain("<CardHeader");
         expect(sourceReport).toContain("<CardTitle");
         expect(sourceReport).toContain("<CardAction");
         expect(sourceReport).toContain("<CardDescription");
-        expect(sourceReport).toContain("<Separator");
+        expect(sourceReportPrimitives).toContain("<Separator");
         expect(sourceReport).toContain("Copy");
         expect(sourceReport).toContain("Check");
-        expect(sourceReport).toContain('data-sot-list="source-report-cards"');
-        expect(sourceReport).toContain('data-sot-card="source-report-metric"');
+        expect(sourceReportPrimitives).toContain(
+            'data-sot-list="source-report-cards"',
+        );
+        expect(sourceReportPrimitives).toContain(
+            'data-sot-card="source-report-metric"',
+        );
         const sourceReportLoadingMetrics = extractBoundedSlice(
             sourceReport,
             "isLoading && !data && !error ? (",
@@ -14348,22 +14286,20 @@ describe("full UI replacement regression coverage", () => {
         expectPrimitiveToExcludeBusinessTokens(cardPrimitive, [
             "sourceReportMetric",
         ]);
-        expect(sourceReportStyles).toContain(
-            "export const SOURCE_REPORT_METRIC_CARD_CLASS_NAME =",
-        );
+        expect(sourceReportStyles).toContain("metricCard:");
         const sourceReportMetricCard = extractOpeningElement(
-            sourceReport,
+            sourceReportPrimitives,
             'data-sot-card="source-report-metric"',
             "Card",
         );
         const sourceReportMetricCardBlock = extractElementSlice(
-            sourceReport,
+            sourceReportPrimitives,
             'data-sot-card="source-report-metric"',
             "Card",
         );
         expect(sourceReportMetricCard).toContain("hasNoPadding");
         expect(sourceReportMetricCard).toContain(
-            "className={SOURCE_REPORT_METRIC_CARD_CLASS_NAME}",
+            "className={sourceReportClassNames.metricCard}",
         );
         expect(sourceReportMetricCard).toContain(
             'data-sot-card="source-report-metric"',
@@ -14372,14 +14308,8 @@ describe("full UI replacement regression coverage", () => {
         expect(sourceReportMetricCardBlock).not.toContain(
             'variant="sourceReportMetric"',
         );
-        const sourceReportMetricCardClassName =
-            expectExactStringConstInitializer(
-                sourceReportStyles,
-                "SOURCE_REPORT_METRIC_CARD_CLASS_NAME",
-                EXPECTED_SOURCE_REPORT_METRIC_CARD_CLASS_NAME,
-            );
         for (const token of SOURCE_REPORT_METRIC_CARD_CLASS_TOKENS) {
-            expect(sourceReportMetricCardClassName).toContain(token);
+            expect(sourceReportStyles).toContain(token);
         }
         expect(sourceReport).not.toContain('variant="sourceReportMetric"');
         const sourceReportErrorState = extractBoundedSlice(
@@ -14393,29 +14323,29 @@ describe("full UI replacement regression coverage", () => {
             "EmptyMedia",
         );
         for (const sourceReportErrorIconOwnerClassSnippet of [
-            "SOURCE_REPORT_EMPTY_ICON_CLASS_NAME",
-            "SOURCE_REPORT_EMPTY_ERROR_ICON_CLASS_NAME",
+            "sourceReportClassNames.emptyIcon",
+            "sourceReportClassNames.emptyErrorIcon",
         ] as const) {
             expect(sourceReportErrorIcon).toContain(
                 sourceReportErrorIconOwnerClassSnippet,
             );
         }
         for (const sourceReportEmptyIconStyleSnippet of [
-            "!mb-[4px]",
+            "mb-[4px]",
             "inline-grid",
-            "!size-[40px]",
+            "size-[40px]",
             "place-items-center",
-            "border border-[var(--line-hairline)]",
-            "bg-[var(--bg-recessed)]",
-            "text-[var(--fg-tertiary)]",
+            "border-border",
+            "bg-card",
+            "text-muted-foreground",
+            "[&_svg]:stroke-current",
             "[&_svg]:stroke-[1.8]",
-            "[&_svg:not([class*='size-'])]:!size-[16px]",
-            "border-[var(--alert-destructive-icon-soft-border)]",
-            "bg-[var(--alert-destructive-icon-soft-bg)]",
-            "text-[var(--signal-danger)]",
-            "data-[sot-tone=err]:border-[var(--alert-destructive-soft-border)]",
-            "data-[sot-tone=err]:bg-[var(--alert-destructive-subtle-bg)]",
-            "data-[sot-tone=err]:text-[var(--fg-primary)]",
+            "border-destructive/30",
+            "bg-destructive/10",
+            "text-destructive",
+            "data-[sot-tone=err]:border-destructive/30",
+            "data-[sot-tone=err]:bg-destructive/10",
+            "data-[sot-tone=err]:text-foreground",
         ] as const) {
             expect(sourceReportStyles).toContain(
                 sourceReportEmptyIconStyleSnippet,
@@ -14438,16 +14368,16 @@ describe("full UI replacement regression coverage", () => {
             /\b(?:list-empty|sr-state|sr-empty|sr-section|sr-segments|sr-seg|sr-meta|sr-card|sr-cards|sr-pill)\b/,
         );
         expect(sourceReportErrorState).toContain(
-            "SOURCE_REPORT_ERROR_ALERT_CLASS_NAME",
+            "sourceReportClassNames.errorAlert",
         );
         expect(sourceReportErrorState).toContain(
-            "SOURCE_REPORT_EMPTY_SURFACE_CLASS_NAME",
+            "sourceReportClassNames.emptySurface",
         );
         expect(sourceReportErrorState).toContain(
-            "className={SOURCE_REPORT_EMPTY_TITLE_CLASS_NAME}",
+            "className={sourceReportClassNames.emptyTitle}",
         );
         expect(sourceReportErrorState).toContain(
-            "SOURCE_REPORT_EMPTY_DESCRIPTION_CLASS_NAME",
+            "sourceReportClassNames.emptyDescription",
         );
         expect(sourceReportErrorState).not.toContain(
             'density="sourceReportError"',
@@ -14479,10 +14409,18 @@ describe("full UI replacement regression coverage", () => {
         expect(sourceReport).not.toContain(
             'className="flex size-10 items-center justify-center rounded-full border border-border bg-background text-muted-foreground"',
         );
-        expect(sourceReport).toContain('data-sot-badge="source-report-status"');
-        expect(sourceReport).toContain("SOURCE_REPORT_STATUS_BADGE_CLASS_NAME");
-        expect(sourceReport).toContain("function SourceReportStatusBadge");
-        expect(sourceReport).toContain('variant="ghost"');
+        expect(sourceReportPrimitives).toContain(
+            'data-sot-badge="source-report-status"',
+        );
+        expect(sourceReportPrimitives).toContain(
+            "function SourceReportStatusBadge",
+        );
+        expect(sourceReportPrimitives).toContain(
+            "sourceReportClassNames.statusBadge",
+        );
+        expect(sourceReportPrimitives).toContain(
+            "variant={sourceReportStatusBadgeVariant(tone)}",
+        );
         expectSourceToExcludeForbiddenSubstrings(
             badge,
             BADGE_PRIMITIVE_FORBIDDEN_BUSINESS_TOKENS,
@@ -14498,9 +14436,9 @@ describe("full UI replacement regression coverage", () => {
             '"ghost" satisfies ButtonProps["variant"]',
         );
         expect(sourceReportStyles).toContain(
-            '"sm" satisfies ButtonProps["size"]',
+            '"xs" satisfies ButtonProps["size"]',
         );
-        expect(sourceReport).toContain("SOURCE_REPORT_COPY_BUTTON_CLASS_NAME");
+        expect(sourceReport).toContain("sourceReportClassNames.copyButton");
         for (const token of SOURCE_REPORT_SKELETON_SHARED_TOKENS) {
             expect(skeletonPrimitive).not.toContain(token);
         }
@@ -14514,24 +14452,24 @@ describe("full UI replacement regression coverage", () => {
             "const sourceReportSegmentSkeletonClassNames",
         );
         const sourceReportCardSkeleton = extractOpeningElement(
-            sourceReport,
+            sourceReportPrimitives,
             'data-sot-part="source-report-card-skeleton"',
             "Skeleton",
         );
         expect(sourceReportCardSkeleton).toContain('variant="default"');
         expect(sourceReportCardSkeleton).toContain('size="default"');
         expect(sourceReportCardSkeleton).toContain(
-            "className={SOURCE_REPORT_CARD_SKELETON_CLASS_NAMES[size]}",
+            "className={sourceReportClassNames.cardSkeleton[size]}",
         );
         const sourceReportSegmentSkeleton = extractOpeningElement(
-            sourceReport,
+            sourceReportPrimitives,
             'data-sot-part="source-report-segment-skeleton"',
             "Skeleton",
         );
         expect(sourceReportSegmentSkeleton).toContain('variant="default"');
         expect(sourceReportSegmentSkeleton).toContain('size="default"');
         expect(sourceReportSegmentSkeleton).toContain(
-            "className={SOURCE_REPORT_SEGMENT_SKELETON_CLASS_NAMES[size]}",
+            "className={sourceReportClassNames.segmentSkeleton[size]}",
         );
         expect(sourceReport).not.toContain('variant="sourceReportCard"');
         expect(sourceReport).not.toContain('variant="sourceReportSegment"');
@@ -14549,52 +14487,45 @@ describe("full UI replacement regression coverage", () => {
                 "Button",
             );
             expect(copyControl).toContain(
-                "variant={SOURCE_REPORT_COPY_BUTTON_VARIANT}",
+                "variant={sourceReportCopyButtonVariant}",
             );
-            expect(copyControl).toContain(
-                "size={SOURCE_REPORT_COPY_BUTTON_SIZE}",
-            );
+            expect(copyControl).toContain("size={sourceReportCopyButtonSize}");
             expect(copyControl).not.toContain('variant="ghost"');
             expect(copyControl).not.toContain('variant="secondary"');
             expect(copyControl).not.toContain('variant="destructive"');
             expect(copyControl).not.toContain('size="sm"');
         }
-        expect(sourceReport).toContain(
+        expect(sourceReportPrimitives).toContain(
             'data-sot-part="source-report-segment-skeleton"',
         );
         expect(sourceReport).toContain(
             'data-sot-part="source-report-copy-label"',
         );
-        expect(sourceReport).toContain(
-            'data-sot-part="source-report-status-dot"',
+        expect(sourceReportPrimitives).toContain(
+            'part = "source-report-status-dot"',
         );
+        expect(sourceReportPrimitives).toContain("data-sot-part={part}");
         expect(sourceReport).toContain("data-sot-source-report-segment-time");
         expect(sourceReport).toContain('data-sot-format="mono"');
         expect(sourceReport).toContain("data-sot-source-report-meta-value");
-        expect(sourceReportStyles).toContain(
-            "SOURCE_REPORT_COPY_LABEL_CLASS_NAME",
-        );
+        expect(sourceReportStyles).toContain("copyLabel:");
         expect(
             collectCssRuleBlocks(
                 globals,
                 '[data-sot-part="source-report-copy-label"]',
             ),
         ).toEqual([]);
-        expect(sourceReportStyles).toContain(
-            "[&_[data-sot-part=source-report-status-dot]]:!bg-current",
-        );
+        expect(sourceReportStyles).toContain("statusDot:");
         for (const selector of SOURCE_REPORT_METRIC_GLOBAL_REPAINT_SELECTOR_FRAGMENTS) {
             expect(collectCssRuleBlocks(globals, selector)).toEqual([]);
         }
-        expect(sourceReportStyles).toContain(
-            "SOURCE_REPORT_SEGMENT_TIME_CLASS_NAME",
-        );
-        expect(sourceReportStyles).toContain(
-            "SOURCE_REPORT_META_MONO_VALUE_CLASS_NAME",
-        );
+        expect(sourceReportStyles).toContain("segmentTime:");
+        expect(sourceReportStyles).toContain("metaMonoValue:");
         expect(sourceReport).toContain("data-sot-source-report-state");
         expect(sourceReport).toContain("data-sot-source-report-empty");
-        expect(sourceReport).toContain("data-sot-source-report-section");
+        expect(sourceReportPrimitives).toContain(
+            "data-sot-source-report-section",
+        );
         expect(sourceReport).toContain("data-sot-source-report-segment");
         expect(sourceReport).toContain("data-sot-source-report-meta");
         expect(sourceReport).toContain("<Button");

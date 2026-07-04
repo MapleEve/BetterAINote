@@ -1,6 +1,10 @@
 import React from "react";
 import { renderToStaticMarkup } from "react-dom/server";
 import { describe, expect, it, vi } from "vitest";
+import DashboardLoading from "@/app/(app)/dashboard/loading";
+import RecordingError from "@/app/(app)/recordings/[id]/error";
+import RecordingLoading from "@/app/(app)/recordings/[id]/loading";
+import RecordingNotFound from "@/app/(app)/recordings/[id]/not-found";
 import { LanguageProvider } from "@/components/language-provider";
 import { Panel } from "@/components/panel";
 import { Button } from "@/components/ui/button";
@@ -96,6 +100,47 @@ function extractClassTokens(html: string) {
 }
 
 describe("React surface SSR coverage", () => {
+    it("renders App Router fallback chrome through shadcn surfaces", () => {
+        const html = render(
+            React.createElement(
+                "section",
+                null,
+                React.createElement(DashboardLoading),
+                React.createElement(RecordingLoading),
+                React.createElement(RecordingNotFound),
+                React.createElement(RecordingError, { reset: vi.fn() }),
+            ),
+        );
+
+        for (const shell of [
+            "dashboard-loading",
+            "recording-route-loading",
+            "recording-route-empty",
+            "recording-route-error",
+        ]) {
+            expect(html).toContain(`data-sot-shell="${shell}"`);
+        }
+        expect(html).toContain('data-sot-panel="route-sidebar"');
+        expect(html).toContain('data-sot-panel="route-main"');
+        expect(html).toContain('data-sot-panel="route-topbar"');
+        expect(html).toContain('data-sot-panel="route-workspace"');
+        expect(html).toContain('data-slot="card"');
+        expect(html).toContain('data-slot="skeleton"');
+        expect(html).toContain('data-slot="empty"');
+        expect(html).toContain('data-slot="button"');
+        for (const semanticToken of [
+            "bg-background",
+            "bg-card",
+            "border-border",
+            "text-muted-foreground",
+        ]) {
+            expect(html).toContain(semanticToken);
+        }
+        expect(html).not.toContain("routeChromeStyles");
+        expect(html).not.toContain("bg-[var(--bg-elevated)]");
+        expect(html).not.toContain("border-[var(--line-hairline)]");
+    });
+
     it("renders current SOT primitives without card compatibility", () => {
         const html = render(
             React.createElement(

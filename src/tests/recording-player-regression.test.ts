@@ -27,9 +27,52 @@ const RECORDING_PLAYER_LEGACY_CLASS_TOKENS = [
 ];
 
 const ROUTE_LOADING_SURFACE_CLASS_VALUE =
-    "min-h-0 gap-0 overflow-hidden rounded-[16px] border-[var(--line-hairline)] bg-[var(--bg-elevated)] shadow-[var(--shadow-sm)] backdrop-blur-none dark:border-[var(--glass-border)]";
+    "min-h-0 gap-0 overflow-hidden rounded-2xl border-border bg-card shadow-sm backdrop-blur-none";
 const ROUTE_LOADING_SURFACE_CLASS_TOKENS =
     ROUTE_LOADING_SURFACE_CLASS_VALUE.split(" ");
+const DASHBOARD_RECORDING_PLAYER_CLASS_INITIALIZERS = [
+    {
+        constName: "SOT_DASHBOARD_RECORDING_PLAYER_CARD_CLASS_NAME",
+        expected:
+            "block min-h-[114px] gap-0 overflow-visible rounded-[16px] border border-border bg-card px-[18px] py-[16px] shadow-none backdrop-blur-none",
+    },
+    {
+        constName: "SOT_DASHBOARD_RECORDING_PLAYER_META_CLASS_NAME",
+        expected:
+            "mb-[12px] flex flex-row flex-wrap items-center gap-[10px] p-0",
+    },
+    {
+        constName: "SOT_DASHBOARD_RECORDING_PLAYER_DATE_CLASS_NAME",
+        expected:
+            "translate-y-px font-mono text-[11.5px] font-medium tracking-[0.02em] text-muted-foreground",
+    },
+] as const;
+const DASHBOARD_PLAYER_CONTROLS_CLASS_INITIALIZERS = [
+    {
+        constName: "DASHBOARD_PLAYER_TIME_CLASS_NAME",
+        expected:
+            "min-w-11 text-center font-mono text-xs font-medium tracking-[0.03em] text-[var(--fg-tertiary)]",
+    },
+    {
+        constName: "DASHBOARD_PLAYER_DURATION_CLASS_NAME",
+        expected:
+            "min-w-11 text-center font-mono text-xs font-medium tracking-[0.03em] text-[var(--fg-tertiary)]",
+    },
+    {
+        constName: "DASHBOARD_PLAYER_DISABLED_CLASS_NAME",
+        expected:
+            "pointer-events-none opacity-[0.42] data-[disabled]:opacity-[0.42]",
+    },
+    {
+        constName: "DASHBOARD_PLAYER_DISABLED_BUTTON_CLASS_NAME",
+        expected: "disabled:cursor-not-allowed disabled:opacity-[0.42]",
+    },
+    {
+        constName: "DASHBOARD_PLAYER_SPEED_CLASS_NAME",
+        expected:
+            "max-[640px]:w-[50.75px] max-[640px]:min-w-[50.75px] max-[640px]:basis-[50.75px] max-[640px]:grow-0 max-[640px]:shrink-0",
+    },
+] as const;
 const RECORDING_PLAYER_CLASS_INITIALIZERS = [
     {
         constName: "RECORDING_PLAYER_META_CLASS_NAME",
@@ -879,9 +922,24 @@ describe("dashboard recording player regressions", () => {
             ),
             "utf8",
         );
-        const routeLoadingSurfaceClassName = extractBoundedSlice(
-            recordingLoading,
-            "const routeLoadingSurfaceClassName =",
+        const routeChrome = readFileSync(
+            path.join(process.cwd(), "src/app/(app)/route-chrome.tsx"),
+            "utf8",
+        );
+        const dashboardWorkstation = readFileSync(
+            path.join(process.cwd(), "src/features/dashboard/workstation.tsx"),
+            "utf8",
+        );
+        const dashboardPlayerControls = readFileSync(
+            path.join(
+                process.cwd(),
+                "src/features/dashboard/components/dashboard-recording-player-controls.tsx",
+            ),
+            "utf8",
+        );
+        const routeFallbackSurfaceClassName = extractBoundedSlice(
+            routeChrome,
+            "const routeFallbackSurfaceClassName =",
             ";",
         );
         const recordingRouteLoadingDetailCard = extractElementSlice(
@@ -893,6 +951,41 @@ describe("dashboard recording player regressions", () => {
             recordingLoading,
             'data-sot-panel="recording-route-loading-detail"',
             "Card",
+        );
+        const dashboardRecordingPlayerCard = extractElementSlice(
+            dashboardWorkstation,
+            'data-sot-surface="dashboard-recording-player"',
+            "Card",
+        );
+        const dashboardRecordingPlayerCardOpening = extractOpeningElement(
+            dashboardWorkstation,
+            'data-sot-surface="dashboard-recording-player"',
+            "Card",
+        );
+        const dashboardRecordingPlayerMeta = extractOpeningElement(
+            dashboardWorkstation,
+            'data-sot-part="dashboard-recording-player-meta"',
+            "CardHeader",
+        );
+        const dashboardRecordingPlayerDate = extractOpeningElement(
+            dashboardWorkstation,
+            'data-sot-part="dashboard-recording-player-date"',
+            "span",
+        );
+        const dashboardRecordingPlayerControls = extractSelfClosingElement(
+            dashboardWorkstation,
+            "<DashboardRecordingPlayerControls",
+            "DashboardRecordingPlayerControls",
+        );
+        const dashboardPlayerControlsPanel = extractElementSlice(
+            dashboardPlayerControls,
+            'data-sot-panel="dashboard-recording-player-controls"',
+            "CardContent",
+        );
+        const dashboardPlayerSeekSlider = extractSelfClosingElement(
+            dashboardPlayerControls,
+            'data-sot-control="dashboard-player-seek"',
+            "Slider",
         );
         const legacySelectorLines = globals
             .split("\n")
@@ -907,6 +1000,14 @@ describe("dashboard recording player regressions", () => {
         expectExactStringConstInitializers(
             recordingPlayer,
             RECORDING_PLAYER_CLASS_INITIALIZERS,
+        );
+        expectExactStringConstInitializers(
+            dashboardWorkstation,
+            DASHBOARD_RECORDING_PLAYER_CLASS_INITIALIZERS,
+        );
+        expectExactStringConstInitializers(
+            dashboardPlayerControls,
+            DASHBOARD_PLAYER_CONTROLS_CLASS_INITIALIZERS,
         );
         expect(globals).not.toContain('[data-sot-surface="recording-player"]');
         expect(globals).not.toContain(
@@ -947,6 +1048,144 @@ describe("dashboard recording player regressions", () => {
         expect(globals).not.toContain(
             '[data-sot-surface="dashboard-recording-player"][data-no-audio="true"]',
         );
+        expect(dashboardWorkstation).toContain(
+            'import { DashboardRecordingPlayerControls } from "@/features/dashboard/components/dashboard-recording-player-controls";',
+        );
+        expect(dashboardRecordingPlayerCard).toContain(
+            'data-sot-surface="dashboard-recording-player"',
+        );
+        expect(dashboardRecordingPlayerCard).toContain(
+            'part="dashboard-recording-player-no-audio"',
+        );
+        expect(dashboardRecordingPlayerCard).toContain(
+            'iconPart="dashboard-recording-player-no-audio-icon"',
+        );
+        expect(dashboardRecordingPlayerCard).toContain(
+            'textPart="dashboard-recording-player-no-audio-text"',
+        );
+        expect(dashboardRecordingPlayerCard).toContain(
+            'titlePart="dashboard-recording-player-no-audio-title"',
+        );
+        expect(dashboardRecordingPlayerCard).toContain(
+            'descriptionPart="dashboard-recording-player-no-audio-description"',
+        );
+        expect(dashboardRecordingPlayerCardOpening).toContain("hasNoPadding");
+        expect(dashboardRecordingPlayerCardOpening).toContain(
+            "className={\n                                SOT_DASHBOARD_RECORDING_PLAYER_CARD_CLASS_NAME\n                            }",
+        );
+        expect(dashboardRecordingPlayerCardOpening).toContain(
+            'data-no-audio={\n                                playbackDisabled ? "true" : undefined\n                            }',
+        );
+        expect(dashboardRecordingPlayerCardOpening).toContain(
+            'data-playing={isPlaying ? "true" : undefined}',
+        );
+        expect(dashboardRecordingPlayerCardOpening).toContain(
+            'data-sot-state={\n                                playbackDisabled ? "disabled" : "ready"\n                            }',
+        );
+        expect(dashboardRecordingPlayerMeta).toContain(
+            "SOT_DASHBOARD_RECORDING_PLAYER_META_CLASS_NAME",
+        );
+        expect(dashboardRecordingPlayerDate).toContain(
+            "SOT_DASHBOARD_RECORDING_PLAYER_DATE_CLASS_NAME",
+        );
+        expect(dashboardRecordingPlayerControls).toContain(
+            "currentTime={currentTime}",
+        );
+        expect(dashboardRecordingPlayerControls).toContain(
+            "duration={playerDurationValue}",
+        );
+        expect(dashboardRecordingPlayerControls).toContain(
+            "onCyclePlaybackSpeed={cyclePlaybackSpeed}",
+        );
+        expect(dashboardRecordingPlayerControls).toContain(
+            "onSeekBySeconds={seekDashboardPlayerBySeconds}",
+        );
+        expect(dashboardRecordingPlayerControls).toContain(
+            "onSeekToPercent={seekDashboardPlayerToPercent}",
+        );
+        expect(dashboardRecordingPlayerControls).toContain(
+            "onTogglePlayPause={togglePlayPause}",
+        );
+        expect(dashboardRecordingPlayerControls).toContain(
+            "onVolumeChange={setVolume}",
+        );
+        expect(dashboardRecordingPlayerControls).toContain(
+            "onVolumeOpenChange={setVolumeOpen}",
+        );
+        expect(dashboardRecordingPlayerControls).toContain(
+            "playbackDisabled={playbackDisabled}",
+        );
+        expect(dashboardPlayerControls).toContain(
+            'import { Button } from "@/components/ui/button";',
+        );
+        expect(dashboardPlayerControls).toContain(
+            'import { Slider } from "@/components/ui/slider";',
+        );
+        expect(dashboardPlayerControls).toContain("PopoverContent");
+        expect(dashboardPlayerControlsPanel).toContain(
+            'data-sot-panel="dashboard-recording-player-controls"',
+        );
+        expect(dashboardPlayerControlsPanel).toContain(
+            "data-sot-state={playerControlsState}",
+        );
+        for (const dashboardControlToken of [
+            'data-sot-control="dashboard-player-back"',
+            'data-sot-control="dashboard-player-play"',
+            'data-sot-control="dashboard-player-forward"',
+            'data-sot-control="dashboard-player-speed"',
+            'data-sot-control="dashboard-player-volume"',
+            'data-sot-control="dashboard-player-volume-mute"',
+            'data-sot-control="dashboard-player-volume-slider"',
+        ]) {
+            expect(dashboardPlayerControlsPanel).toContain(
+                dashboardControlToken,
+            );
+        }
+        for (const dashboardPartToken of [
+            'data-sot-part="dashboard-player-control-icon"',
+            'data-sot-part="dashboard-player-current-time"',
+            'data-sot-part="dashboard-player-duration"',
+            'data-sot-part="dashboard-player-volume-anchor"',
+            'data-sot-panel="dashboard-player-volume-popover"',
+            'data-sot-part="dashboard-player-volume-row"',
+            'data-sot-part="dashboard-player-volume-icon"',
+            'data-sot-part="dashboard-player-volume-value"',
+        ]) {
+            expect(dashboardPlayerControlsPanel).toContain(dashboardPartToken);
+        }
+        expect(dashboardPlayerControlsPanel).toContain(
+            "DASHBOARD_PLAYER_DISABLED_BUTTON_CLASS_NAME",
+        );
+        expect(dashboardPlayerControlsPanel).toContain(
+            "DASHBOARD_PLAYER_DISABLED_CLASS_NAME",
+        );
+        expect(dashboardPlayerControlsPanel).toContain(
+            "DASHBOARD_PLAYER_TIME_CLASS_NAME",
+        );
+        expect(dashboardPlayerControlsPanel).toContain(
+            "DASHBOARD_PLAYER_DURATION_CLASS_NAME",
+        );
+        expect(dashboardPlayerControlsPanel).toContain(
+            "DASHBOARD_PLAYER_SPEED_CLASS_NAME",
+        );
+        expect(dashboardPlayerSeekSlider).toContain(
+            'data-sot-control="dashboard-player-seek"',
+        );
+        expect(dashboardPlayerSeekSlider).toContain(
+            "data-sot-state={controlState}",
+        );
+        expect(dashboardPlayerSeekSlider).toContain("rangeProps={{");
+        expect(dashboardPlayerSeekSlider).toContain("thumbProps={{");
+        expect(dashboardPlayerSeekSlider).toContain("data-pct={progressPct}");
+        expect(dashboardPlayerSeekSlider).toContain(
+            'aria-disabled={disabled ? "true" : undefined}',
+        );
+        expect(dashboardPlayerControlsPanel).not.toContain(
+            "<SotPlayerControlButton",
+        );
+        expect(dashboardPlayerControlsPanel).not.toContain(
+            "<SotPlayerVolumeSlider",
+        );
         expect(globals).not.toContain(
             '[data-sot-panel="recording-detail-loading"]',
         );
@@ -954,11 +1193,11 @@ describe("dashboard recording player regressions", () => {
             'data-sot-panel="recording-detail-loading"',
         );
         expect(recordingLoading).toContain("<Card");
-        expect(routeLoadingSurfaceClassName).toContain(
+        expect(routeFallbackSurfaceClassName).toContain(
             `"${ROUTE_LOADING_SURFACE_CLASS_VALUE}"`,
         );
         for (const token of ROUTE_LOADING_SURFACE_CLASS_TOKENS) {
-            expect(routeLoadingSurfaceClassName).toContain(token);
+            expect(routeFallbackSurfaceClassName).toContain(token);
         }
         expect(recordingRouteLoadingDetailCard).toContain('variant="default"');
         expect(recordingRouteLoadingDetailCard).toContain("hasNoPadding");
@@ -969,7 +1208,7 @@ describe("dashboard recording player regressions", () => {
             "className={cn(",
         );
         expect(recordingRouteLoadingDetailCardOpening).toContain(
-            "routeLoadingSurfaceClassName,",
+            "routeFallbackSurfaceClassName,",
         );
         expect(recordingRouteLoadingDetailCardOpening).toContain(
             '"flex min-h-0 flex-col gap-4"',
