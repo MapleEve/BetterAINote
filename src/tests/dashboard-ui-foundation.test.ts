@@ -1343,11 +1343,20 @@ const SOURCE_REPORT_STYLE_OWNER_SNIPPETS = [
     "font-sans text-[10.5px] font-semibold leading-normal tracking-[0.06em] text-muted-foreground uppercase",
     "text-foreground",
     "missingNotice:",
-    "block rounded-lg border-border bg-muted px-3 py-2 text-[12.5px] font-medium leading-relaxed text-muted-foreground",
+    "block rounded-[10px] border-border bg-muted px-[12px] py-[10px] text-[12.5px] font-medium leading-[1.55] text-muted-foreground",
     "segmentSpeaker:",
     "font-sans text-[12px] font-semibold leading-normal text-muted-foreground",
+    'meta: "mt-[13px] mb-[13px] grid grid-cols-2 gap-x-3.5 gap-y-1.5',
+    "[[data-sot-panel=recording-source-report]_[data-sub-state=transcript-missing]_&]:mb-[14px]",
+    "[[data-sot-panel=dashboard-source-report]_[data-sub-state=complete]_&]:mb-[12px]",
     "primaryActionButton:",
     "min-w-[46px]",
+    "sectionTitle:",
+    "m-0 font-sans ![font-size:12.5px] font-semibold ![line-height:normal] !tracking-normal !text-foreground",
+    "segmentText:",
+    "m-0 font-sans ![font-size:12.5px] font-medium ![line-height:1.55] !tracking-normal !text-foreground [text-wrap:pretty]",
+    "summaryText:",
+    "m-0 whitespace-pre-wrap font-sans ![font-size:12.5px] font-medium ![line-height:1.55] !tracking-normal !text-foreground [text-wrap:pretty]",
     "ghostActionButton:",
     "hover:bg-muted hover:text-foreground",
     "copyButton:",
@@ -1363,7 +1372,7 @@ const SOURCE_REPORT_STYLE_OWNER_SNIPPETS = [
     "block max-w-[360px] font-sans text-[12px] font-medium leading-[1.5] tracking-normal text-muted-foreground",
     "statusBadge:",
     EXPECTED_SOURCE_REPORT_STATUS_BADGE_CLASS_NAME,
-    "grid min-h-[30px] grid-cols-[80px_1fr]",
+    "grid grid-cols-[80px_1fr] items-baseline gap-2 border-b border-dashed border-border py-1.5",
     "border-b border-dashed border-border",
 ] as const;
 
@@ -5323,11 +5332,13 @@ describe("dashboard SOT foundation", () => {
         for (const snippet of SOURCE_REPORT_STYLE_OWNER_SNIPPETS) {
             expect(sourceReportStyles).toContain(snippet);
         }
+        expect(sourceReportStyles).not.toContain("my-[15px]");
+        expect(sourceReportStyles).not.toContain("min-h-[30px]");
         expect(sourceReportStyles).not.toMatch(
             /SOURCE_REPORT_STYLE_VARIABLES|SourceReportStyleVariables|--source-report-|\bSOURCE_REPORT_[A-Z0-9_]*CLASS_NAME\b/,
         );
         expect(sourceReportStyles).not.toMatch(
-            /!\[|var\(--(?:fg|bg|signal|line)-|color-mix\(in_srgb,var\(--signal/,
+            /var\(--(?:fg|bg|signal|line)-|color-mix\(in_srgb,var\(--signal/,
         );
         expect(globals).toContain("--alert-warning-soft-strong-bg: color-mix(");
         expect(globals).toContain("var(--signal-warning) 8%,");

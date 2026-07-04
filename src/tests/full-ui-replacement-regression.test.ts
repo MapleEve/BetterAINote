@@ -2982,11 +2982,20 @@ const SOURCE_REPORT_STYLE_OWNER_SNIPPETS = [
     "font-sans text-[10.5px] font-semibold leading-normal tracking-[0.06em] text-muted-foreground uppercase",
     "text-foreground",
     "missingNotice:",
-    "block rounded-lg border-border bg-muted px-3 py-2 text-[12.5px] font-medium leading-relaxed text-muted-foreground",
+    "block rounded-[10px] border-border bg-muted px-[12px] py-[10px] text-[12.5px] font-medium leading-[1.55] text-muted-foreground",
     "segmentSpeaker:",
     "font-sans text-[12px] font-semibold leading-normal text-muted-foreground",
+    'meta: "mt-[13px] mb-[13px] grid grid-cols-2 gap-x-3.5 gap-y-1.5',
+    "[[data-sot-panel=recording-source-report]_[data-sub-state=transcript-missing]_&]:mb-[14px]",
+    "[[data-sot-panel=dashboard-source-report]_[data-sub-state=complete]_&]:mb-[12px]",
     "primaryActionButton:",
     "min-w-[46px]",
+    "sectionTitle:",
+    "m-0 font-sans ![font-size:12.5px] font-semibold ![line-height:normal] !tracking-normal !text-foreground",
+    "segmentText:",
+    "m-0 font-sans ![font-size:12.5px] font-medium ![line-height:1.55] !tracking-normal !text-foreground [text-wrap:pretty]",
+    "summaryText:",
+    "m-0 whitespace-pre-wrap font-sans ![font-size:12.5px] font-medium ![line-height:1.55] !tracking-normal !text-foreground [text-wrap:pretty]",
     "ghostActionButton:",
     "rounded-[7px] border border-transparent bg-transparent px-[10px]",
     "text-muted-foreground shadow-none",
@@ -3000,8 +3009,12 @@ const SOURCE_REPORT_STYLE_OWNER_SNIPPETS = [
     "statusBadge:",
     "data-[sot-tone=ok]:border-primary/30 data-[sot-tone=ok]:bg-primary/10 data-[sot-tone=ok]:text-primary",
     "data-[sot-tone=err]:border-destructive/30 data-[sot-tone=err]:bg-destructive/10 data-[sot-tone=err]:text-destructive",
-    "grid min-h-[30px] grid-cols-[80px_1fr]",
+    "grid grid-cols-[80px_1fr] items-baseline gap-2 border-b border-dashed border-border py-1.5",
     "border-b border-dashed border-border",
+] as const;
+const SOURCE_REPORT_GEOMETRY_FORBIDDEN_SNIPPETS = [
+    "my-[15px]",
+    "min-h-[30px]",
 ] as const;
 
 const DASHBOARD_SOURCE_REPORT_LOADING_METRIC_CARDS = [
@@ -9995,6 +10008,9 @@ describe("full UI replacement regression coverage", () => {
         for (const snippet of SOURCE_REPORT_STYLE_OWNER_SNIPPETS) {
             expect(sourceReportStyles).toContain(snippet);
         }
+        for (const snippet of SOURCE_REPORT_GEOMETRY_FORBIDDEN_SNIPPETS) {
+            expect(sourceReportStyles).not.toContain(snippet);
+        }
         expect(sourceReportStyles).not.toMatch(
             /SOURCE_REPORT_STYLE_VARIABLES|SourceReportStyleVariables|--source-report-/,
         );
@@ -14139,6 +14155,9 @@ describe("full UI replacement regression coverage", () => {
         );
         for (const snippet of SOURCE_REPORT_STYLE_OWNER_SNIPPETS) {
             expect(sourceReportStyles).toContain(snippet);
+        }
+        for (const snippet of SOURCE_REPORT_GEOMETRY_FORBIDDEN_SNIPPETS) {
+            expect(sourceReportStyles).not.toContain(snippet);
         }
         expect(sourceReportStyles).not.toMatch(
             /SOURCE_REPORT_STYLE_VARIABLES|SourceReportStyleVariables|--source-report-/,

@@ -70,12 +70,12 @@ export const sourceReportClassNames = {
         "flex w-full flex-col items-center gap-[4px] rounded-[10px] px-[18px] py-[28px]",
     ghostActionButton:
         "h-[26px] gap-[7px] rounded-[7px] border border-transparent bg-transparent px-[10px] font-sans text-[12px] font-semibold leading-normal text-muted-foreground shadow-none has-[>svg]:px-[10px] hover:bg-muted hover:text-foreground",
-    meta: "my-[15px] grid grid-cols-2 gap-x-3.5 gap-y-1.5 max-[1200px]:grid-cols-1",
+    meta: "mt-[13px] mb-[13px] grid grid-cols-2 gap-x-3.5 gap-y-1.5 max-[1200px]:grid-cols-1 [[data-sot-panel=recording-source-report]_[data-sub-state=transcript-missing]_&]:mb-[14px] [[data-sot-panel=dashboard-source-report]_[data-sub-state=complete]_&]:mb-[12px]",
     metaLabel:
         "m-0 font-sans text-[11px] font-semibold leading-normal text-muted-foreground",
     metaMonoValue: "font-mono",
     metaRow:
-        "grid min-h-[30px] grid-cols-[80px_1fr] items-baseline gap-2 border-b border-dashed border-border py-1.5",
+        "grid grid-cols-[80px_1fr] items-baseline gap-2 border-b border-dashed border-border py-1.5",
     metaValue:
         "m-0 break-words font-sans text-[12px] font-medium leading-normal text-foreground",
     metricCard:
@@ -83,9 +83,9 @@ export const sourceReportClassNames = {
     metricCards:
         "grid grid-cols-[repeat(4,1fr)] gap-[8px] max-[1200px]:grid-cols-[repeat(2,1fr)]",
     missingNotice:
-        "block rounded-lg border-border bg-muted px-3 py-2 text-[12.5px] font-medium leading-relaxed text-muted-foreground shadow-none data-[sot-missing=summary-missing]:mb-2 data-[sot-missing=transcript-missing]:mt-2",
+        "block rounded-[10px] border-border bg-muted px-[12px] py-[10px] text-[12.5px] font-medium leading-[1.55] text-muted-foreground shadow-none data-[sot-missing=summary-missing]:mb-2 data-[sot-missing=transcript-missing]:mt-2",
     missingNoticeDescription:
-        "col-start-auto block gap-0 text-[12.5px] font-medium leading-relaxed text-muted-foreground",
+        "col-start-auto block gap-0 text-[12.5px] font-medium leading-[1.55] text-muted-foreground",
     pane: "flex flex-col gap-3.5",
     primaryActionButton:
         "h-[26px] min-w-[46px] gap-[7px] rounded-[7px] px-[10px] font-sans text-[12px] font-semibold leading-normal has-[>svg]:px-[10px]",
@@ -93,7 +93,7 @@ export const sourceReportClassNames = {
     sectionHeader: "flex items-baseline gap-[10px]",
     sectionSeparator: "hidden",
     sectionTitle:
-        "m-0 font-sans text-[12.5px] font-semibold leading-normal text-foreground",
+        "m-0 font-sans ![font-size:12.5px] font-semibold ![line-height:normal] !tracking-normal !text-foreground",
     segment:
         "grid grid-cols-[96px_56px_1fr] items-start gap-[10px] rounded-[6px] bg-transparent px-[10px] py-[8px]",
     segmentSkeleton: segmentSkeletonClassNames,
@@ -102,7 +102,7 @@ export const sourceReportClassNames = {
     segmentSpeaker:
         "font-sans text-[12px] font-semibold leading-normal text-muted-foreground",
     segmentText:
-        "m-0 font-sans text-[12.5px] font-medium leading-[1.55] text-foreground [text-wrap:pretty]",
+        "m-0 font-sans ![font-size:12.5px] font-medium ![line-height:1.55] !tracking-normal !text-foreground [text-wrap:pretty]",
     segmentTime:
         "font-mono text-[11.5px] font-medium leading-normal text-muted-foreground",
     segments: "m-0 flex list-none flex-col gap-[2px] p-0",
@@ -114,6 +114,6 @@ export const sourceReportClassNames = {
     summaryBody: "flex flex-col gap-1.5",
     summaryMissingSection: "",
     summaryText:
-        "m-0 whitespace-pre-wrap font-sans text-[12.5px] font-medium leading-[1.55] text-foreground [text-wrap:pretty]",
+        "m-0 whitespace-pre-wrap font-sans ![font-size:12.5px] font-medium ![line-height:1.55] !tracking-normal !text-foreground [text-wrap:pretty]",
     transcriptMissingSection: "",
 } as const;
