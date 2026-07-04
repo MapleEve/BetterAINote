@@ -271,7 +271,7 @@ const sourceReportStatusBadgeStyles = cva(
                 err: "border-[color-mix(in_srgb,var(--signal-danger)_30%,transparent)] bg-[color-mix(in_srgb,var(--signal-danger)_14%,transparent)] text-[var(--signal-danger)]",
                 neu: "border-[var(--line-hairline)] bg-[var(--bg-recessed)] text-[var(--fg-secondary)]",
                 ok: "border-[color-mix(in_srgb,var(--signal-success)_30%,transparent)] bg-[color-mix(in_srgb,var(--signal-success)_14%,transparent)] text-[var(--signal-success)]",
-                warn: "border-[color-mix(in_srgb,var(--signal-warning)_32%,transparent)] bg-[color-mix(in_srgb,var(--signal-warning)_18%,transparent)] text-[var(--signal-warning-deep)]",
+                warn: "border-[color-mix(in_srgb,var(--signal-warning)_32%,transparent)] bg-[color-mix(in_srgb,var(--signal-warning)_18%,transparent)] text-[oklch(0.55_0.16_70)]",
             } satisfies Record<SourceReportTone, string>,
         },
         defaultVariants: {
@@ -924,7 +924,7 @@ export function SourceReportEmptySurface({
 }
 
 const sourceReportEmptyIconStyles = cva(
-    "mb-[4px] inline-grid size-[40px] place-items-center rounded-full border border-[var(--line-hairline)] bg-[var(--bg-elevated)] text-[var(--fg-tertiary)] [&_svg]:fill-none [&_svg]:stroke-current [&_svg]:stroke-[1.8] [&_svg]:[stroke-linecap:round] [&_svg]:[stroke-linejoin:round] [&_svg:not([class*='size-'])]:size-[16px]",
+    "mb-[4px] inline-grid size-[40px] place-items-center rounded-full border border-[var(--line-hairline)] bg-[var(--bg-recessed)] text-[var(--fg-tertiary)] [&_svg]:fill-none [&_svg]:stroke-current [&_svg]:stroke-[1.8] [&_svg]:[stroke-linecap:round] [&_svg]:[stroke-linejoin:round] [&_svg:not([class*='size-'])]:size-[16px]",
     {
         variants: {
             tone: {
