@@ -2047,7 +2047,7 @@ const EXPECTED_DASHBOARD_TRANSCRIPT_SHELL_CARD_CLASS_NAME =
     "flex min-h-0 flex-1 flex-col gap-0 rounded-[16px] border border-border bg-card shadow-sm backdrop-blur-none";
 
 const EXPECTED_SOURCE_REPORT_STATUS_BADGE_CLASS_NAME =
-    "inline-flex h-[22px] justify-normal items-center gap-[5px] overflow-visible rounded-full border px-[8px] py-0 ![font:600_11px_var(--font-sans)] leading-[normal] shadow-none data-[sot-tone=err]:border-[color-mix(in_srgb,var(--signal-danger)_30%,transparent)] data-[sot-tone=err]:bg-[color-mix(in_srgb,var(--signal-danger)_14%,transparent)] data-[sot-tone=err]:text-[var(--signal-danger)] data-[sot-tone=neu]:border-[var(--line-hairline)] data-[sot-tone=neu]:bg-[var(--bg-recessed)] data-[sot-tone=neu]:text-[var(--fg-secondary)] data-[sot-tone=ok]:border-[color-mix(in_srgb,var(--signal-success)_30%,transparent)] data-[sot-tone=ok]:bg-[color-mix(in_srgb,var(--signal-success)_14%,transparent)] data-[sot-tone=ok]:text-[var(--signal-success)] data-[sot-tone=warn]:border-[color-mix(in_srgb,var(--signal-warning)_32%,transparent)] data-[sot-tone=warn]:bg-[color-mix(in_srgb,var(--signal-warning)_18%,transparent)] data-[sot-tone=warn]:text-[oklch(0.55_0.16_70)] [&_[data-sot-part=dashboard-source-report-status-dot]]:mr-0 [&_[data-sot-part=dashboard-source-report-status-dot]]:inline-block [&_[data-sot-part=dashboard-source-report-status-dot]]:size-[5px] [&_[data-sot-part=dashboard-source-report-status-dot]]:rounded-full [&_[data-sot-part=dashboard-source-report-status-dot]]:bg-current [&_[data-sot-part=source-report-status-dot]]:mr-0 [&_[data-sot-part=source-report-status-dot]]:inline-block [&_[data-sot-part=source-report-status-dot]]:size-[5px] [&_[data-sot-part=source-report-status-dot]]:rounded-full [&_[data-sot-part=source-report-status-dot]]:bg-current";
+    "!inline-flex !h-[22px] !w-fit !shrink-0 !items-center !justify-normal !gap-[5px] !overflow-visible !rounded-full !border !px-[8px] !py-0 ![font:600_11px_var(--font-sans)] !leading-[normal] !shadow-none !whitespace-nowrap !transition-none data-[sot-tone=err]:!border-[color-mix(in_srgb,var(--signal-danger)_30%,transparent)] data-[sot-tone=err]:!bg-[color-mix(in_srgb,var(--signal-danger)_14%,transparent)] data-[sot-tone=err]:!text-[var(--signal-danger)] data-[sot-tone=neu]:!border-[var(--line-hairline)] data-[sot-tone=neu]:!bg-[var(--bg-recessed)] data-[sot-tone=neu]:!text-[var(--fg-secondary)] data-[sot-tone=ok]:!border-[color-mix(in_srgb,var(--signal-success)_30%,transparent)] data-[sot-tone=ok]:!bg-[color-mix(in_srgb,var(--signal-success)_14%,transparent)] data-[sot-tone=ok]:!text-[var(--signal-success)] data-[sot-tone=warn]:!border-[color-mix(in_srgb,var(--signal-warning)_32%,transparent)] data-[sot-tone=warn]:!bg-[color-mix(in_srgb,var(--signal-warning)_18%,transparent)] data-[sot-tone=warn]:!text-[oklch(0.55_0.16_70)] [&_[data-sot-part=dashboard-source-report-status-dot]]:!mr-0 [&_[data-sot-part=dashboard-source-report-status-dot]]:!inline-block [&_[data-sot-part=dashboard-source-report-status-dot]]:!size-[5px] [&_[data-sot-part=dashboard-source-report-status-dot]]:!rounded-full [&_[data-sot-part=dashboard-source-report-status-dot]]:!bg-current [&_[data-sot-part=source-report-status-dot]]:!mr-0 [&_[data-sot-part=source-report-status-dot]]:!inline-block [&_[data-sot-part=source-report-status-dot]]:!size-[5px] [&_[data-sot-part=source-report-status-dot]]:!rounded-full [&_[data-sot-part=source-report-status-dot]]:!bg-current";
 
 const CARD_PRIMITIVE_FORBIDDEN_BUSINESS_TOKENS = [
     "onboarding",
@@ -2985,9 +2985,11 @@ const EXPECTED_SOURCE_REPORT_METRIC_CARD_CLASS_NAME =
     "gap-[6px] !overflow-visible rounded-[10px] border border-[var(--line-hairline)] bg-[var(--bg-recessed)] px-[12px] py-[10px] shadow-none backdrop-blur-none dark:border-[var(--glass-border-soft)] dark:bg-[var(--glass-tint-subtle)]";
 const SOURCE_REPORT_METRIC_CARD_CLASS_TOKENS =
     EXPECTED_SOURCE_REPORT_METRIC_CARD_CLASS_NAME.split(" ");
+const EXPECTED_SOURCE_REPORT_SKELETON_CLASS_NAME =
+    "bg-transparent ![background:linear-gradient(90deg,color-mix(in_srgb,var(--fg-primary)_5%,transparent)_0%,color-mix(in_srgb,var(--fg-primary)_10%,transparent)_50%,color-mix(in_srgb,var(--fg-primary)_5%,transparent)_100%)] ![background-size:220%_100%] dark:![background:linear-gradient(90deg,rgb(255_255_255_/_0.05)_0%,rgb(255_255_255_/_0.12)_50%,rgb(255_255_255_/_0.05)_100%)] dark:![background-size:220%_100%]";
 const SOURCE_REPORT_STYLE_OWNER_SNIPPETS = [
     "export const SOURCE_REPORT_SKELETON_CLASS_NAME =",
-    '"bg-accent"',
+    `"${EXPECTED_SOURCE_REPORT_SKELETON_CLASS_NAME}"`,
     "export type SourceReportTone =",
     "export type SourceReportCardSkeletonSize =",
     "export type SourceReportSegmentSkeletonSize =",
@@ -3032,10 +3034,10 @@ const SOURCE_REPORT_STYLE_OWNER_SNIPPETS = [
     "border-[var(--alert-destructive-icon-soft-border)] bg-[var(--alert-destructive-icon-soft-bg)] text-[var(--signal-danger)]",
     "block max-w-[360px] ![font:500_12px/1.5_var(--font-sans)] tracking-normal !text-[var(--fg-tertiary)]",
     "export const SOURCE_REPORT_STATUS_BADGE_CLASS_NAME =",
-    "data-[sot-tone=err]:border-[color-mix(in_srgb,var(--signal-danger)_30%,transparent)] data-[sot-tone=err]:bg-[color-mix(in_srgb,var(--signal-danger)_14%,transparent)] data-[sot-tone=err]:text-[var(--signal-danger)]",
-    "data-[sot-tone=neu]:border-[var(--line-hairline)] data-[sot-tone=neu]:bg-[var(--bg-recessed)] data-[sot-tone=neu]:text-[var(--fg-secondary)]",
-    "data-[sot-tone=ok]:border-[color-mix(in_srgb,var(--signal-success)_30%,transparent)] data-[sot-tone=ok]:bg-[color-mix(in_srgb,var(--signal-success)_14%,transparent)] data-[sot-tone=ok]:text-[var(--signal-success)]",
-    "data-[sot-tone=warn]:border-[color-mix(in_srgb,var(--signal-warning)_32%,transparent)] data-[sot-tone=warn]:bg-[color-mix(in_srgb,var(--signal-warning)_18%,transparent)] data-[sot-tone=warn]:text-[oklch(0.55_0.16_70)]",
+    "data-[sot-tone=err]:!border-[color-mix(in_srgb,var(--signal-danger)_30%,transparent)] data-[sot-tone=err]:!bg-[color-mix(in_srgb,var(--signal-danger)_14%,transparent)] data-[sot-tone=err]:!text-[var(--signal-danger)]",
+    "data-[sot-tone=neu]:!border-[var(--line-hairline)] data-[sot-tone=neu]:!bg-[var(--bg-recessed)] data-[sot-tone=neu]:!text-[var(--fg-secondary)]",
+    "data-[sot-tone=ok]:!border-[color-mix(in_srgb,var(--signal-success)_30%,transparent)] data-[sot-tone=ok]:!bg-[color-mix(in_srgb,var(--signal-success)_14%,transparent)] data-[sot-tone=ok]:!text-[var(--signal-success)]",
+    "data-[sot-tone=warn]:!border-[color-mix(in_srgb,var(--signal-warning)_32%,transparent)] data-[sot-tone=warn]:!bg-[color-mix(in_srgb,var(--signal-warning)_18%,transparent)] data-[sot-tone=warn]:!text-[oklch(0.55_0.16_70)]",
     "grid min-h-[30px] grid-cols-[80px_1fr]",
     "border-b border-dashed border-[var(--line-hairline)]",
 ] as const;
@@ -3139,7 +3141,7 @@ const SOURCE_REPORT_SKELETON_OWNER_TOKENS = [
     `status: \`\${SOURCE_REPORT_SKELETON_CLASS_NAME} inline-block h-[18px] w-[80px] align-middle rounded-[6px]\``,
     `source: \`\${SOURCE_REPORT_SKELETON_CLASS_NAME} inline-block h-[18px] w-[120px] align-middle rounded-[6px]\``,
     `"line-long": \`\${SOURCE_REPORT_SKELETON_CLASS_NAME} mt-1.5 inline-block h-[13px] w-[92%] align-middle rounded-[4px]\``,
-    `"line-wide": \`\${SOURCE_REPORT_SKELETON_CLASS_NAME} mt-[7px] inline-block h-[13px] w-[88%] align-middle rounded-[4px]\``,
+    `"line-wide": \`\${SOURCE_REPORT_SKELETON_CLASS_NAME} mt-[6px] inline-block h-[13px] w-[88%] align-middle rounded-[4px]\``,
     `speaker: \`\${SOURCE_REPORT_SKELETON_CLASS_NAME} ml-[5px] inline-block h-[12px] w-[54px] align-middle rounded-[4px]\``,
     `time: \`\${SOURCE_REPORT_SKELETON_CLASS_NAME} inline-block h-[12px] w-[96px] align-middle rounded-[4px]\``,
 ] as const;
@@ -10068,9 +10070,7 @@ describe("full UI replacement regression coverage", () => {
         expect(sourceReportStyles).not.toMatch(
             /SOURCE_REPORT_STYLE_VARIABLES|SourceReportStyleVariables|--source-report-/,
         );
-        expect(globals).toContain(
-            "--alert-warning-soft-strong-bg: color-mix(",
-        );
+        expect(globals).toContain("--alert-warning-soft-strong-bg: color-mix(");
         expect(globals).toContain("var(--signal-warning) 8%,");
         expect(globals).toContain("var(--bg-elevated)");
         expect(globals).toContain(
@@ -10109,9 +10109,7 @@ describe("full UI replacement regression coverage", () => {
         expect(sourceReportStyles).not.toContain(
             "content-[attr(data-sot-missing-copy)]",
         );
-        expect(sourceReportStyles).not.toMatch(
-            /\b(?:before|after):content-\[/,
-        );
+        expect(sourceReportStyles).not.toMatch(/\b(?:before|after):content-\[/);
         expect(sourceReportStyles).toContain(
             "SOURCE_REPORT_SKELETON_CLASS_NAME",
         );
@@ -14209,9 +14207,7 @@ describe("full UI replacement regression coverage", () => {
         expect(sourceReportStyles).not.toMatch(
             /SOURCE_REPORT_STYLE_VARIABLES|SourceReportStyleVariables|--source-report-/,
         );
-        expect(globals).toContain(
-            "--alert-warning-soft-strong-bg: color-mix(",
-        );
+        expect(globals).toContain("--alert-warning-soft-strong-bg: color-mix(");
         expect(globals).toContain("var(--signal-warning) 8%,");
         expect(globals).toContain("var(--bg-elevated)");
         expect(globals).toContain(
@@ -14238,7 +14234,9 @@ describe("full UI replacement regression coverage", () => {
         expect(sourceReportStyles).toContain("SOURCE_REPORT_STATE_CLASS_NAME");
         expect(sourceReport).toContain("@/features/source-report/styles");
         expect(sourceReport).toContain("SotSourceReportMissingNotice");
-        expect(sourceReport).toContain("SOURCE_REPORT_MISSING_NOTICE_CLASS_NAME");
+        expect(sourceReport).toContain(
+            "SOURCE_REPORT_MISSING_NOTICE_CLASS_NAME",
+        );
         expect(sourceReport).toContain("data-sot-source-report-missing-notice");
         expect(sourceReport).not.toContain("data-sot-missing-copy");
         expect(sourceReport).not.toContain(
@@ -14247,9 +14245,7 @@ describe("full UI replacement regression coverage", () => {
         expect(sourceReportStyles).not.toContain(
             "content-[attr(data-sot-missing-copy)]",
         );
-        expect(sourceReportStyles).not.toMatch(
-            /\b(?:before|after):content-\[/,
-        );
+        expect(sourceReportStyles).not.toMatch(/\b(?:before|after):content-\[/);
         expect(sourceReportStyles).toContain(
             "SOURCE_REPORT_SKELETON_CLASS_NAME",
         );
@@ -14583,7 +14579,7 @@ describe("full UI replacement regression coverage", () => {
             ),
         ).toEqual([]);
         expect(sourceReportStyles).toContain(
-            "[&_[data-sot-part=source-report-status-dot]]:bg-current",
+            "[&_[data-sot-part=source-report-status-dot]]:!bg-current",
         );
         for (const selector of SOURCE_REPORT_METRIC_GLOBAL_REPAINT_SELECTOR_FRAGMENTS) {
             expect(collectCssRuleBlocks(globals, selector)).toEqual([]);

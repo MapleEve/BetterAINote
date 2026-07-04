@@ -194,7 +194,7 @@ const SOURCE_REPORT_SKELETON_OWNER_TOKENS = [
     `status: \`\${SOURCE_REPORT_SKELETON_CLASS_NAME} inline-block h-[18px] w-[80px] align-middle rounded-[6px]\``,
     `source: \`\${SOURCE_REPORT_SKELETON_CLASS_NAME} inline-block h-[18px] w-[120px] align-middle rounded-[6px]\``,
     `"line-long": \`\${SOURCE_REPORT_SKELETON_CLASS_NAME} mt-1.5 inline-block h-[13px] w-[92%] align-middle rounded-[4px]\``,
-    `"line-wide": \`\${SOURCE_REPORT_SKELETON_CLASS_NAME} mt-[7px] inline-block h-[13px] w-[88%] align-middle rounded-[4px]\``,
+    `"line-wide": \`\${SOURCE_REPORT_SKELETON_CLASS_NAME} mt-[6px] inline-block h-[13px] w-[88%] align-middle rounded-[4px]\``,
     `speaker: \`\${SOURCE_REPORT_SKELETON_CLASS_NAME} ml-[5px] inline-block h-[12px] w-[54px] align-middle rounded-[4px]\``,
     `time: \`\${SOURCE_REPORT_SKELETON_CLASS_NAME} inline-block h-[12px] w-[96px] align-middle rounded-[4px]\``,
 ] as const;
@@ -203,8 +203,11 @@ const EXPECTED_SOURCE_REPORT_METRIC_CARD_CLASS_NAME =
     "gap-[6px] !overflow-visible rounded-[10px] border border-[var(--line-hairline)] bg-[var(--bg-recessed)] px-[12px] py-[10px] shadow-none backdrop-blur-none dark:border-[var(--glass-border-soft)] dark:bg-[var(--glass-tint-subtle)]";
 const SOURCE_REPORT_METRIC_CARD_CLASS_TOKENS =
     EXPECTED_SOURCE_REPORT_METRIC_CARD_CLASS_NAME.split(" ");
+const EXPECTED_SOURCE_REPORT_SKELETON_CLASS_NAME =
+    "bg-transparent ![background:linear-gradient(90deg,color-mix(in_srgb,var(--fg-primary)_5%,transparent)_0%,color-mix(in_srgb,var(--fg-primary)_10%,transparent)_50%,color-mix(in_srgb,var(--fg-primary)_5%,transparent)_100%)] ![background-size:220%_100%] dark:![background:linear-gradient(90deg,rgb(255_255_255_/_0.05)_0%,rgb(255_255_255_/_0.12)_50%,rgb(255_255_255_/_0.05)_100%)] dark:![background-size:220%_100%]";
 const SOURCE_REPORT_STYLE_OWNER_SNIPPETS = [
     "export const SOURCE_REPORT_SKELETON_CLASS_NAME =",
+    `"${EXPECTED_SOURCE_REPORT_SKELETON_CLASS_NAME}"`,
     "export type SourceReportTone =",
     "export type SourceReportCardSkeletonSize =",
     "export type SourceReportSegmentSkeletonSize =",
@@ -245,12 +248,12 @@ const SOURCE_REPORT_STYLE_OWNER_SNIPPETS = [
     "border-[var(--alert-destructive-icon-soft-border)] bg-[var(--alert-destructive-icon-soft-bg)] text-[var(--signal-danger)]",
     "block max-w-[360px] ![font:500_12px/1.5_var(--font-sans)] tracking-normal !text-[var(--fg-tertiary)]",
     "export const SOURCE_REPORT_STATUS_BADGE_CLASS_NAME =",
-    "data-[sot-tone=ok]:border-[color-mix(in_srgb,var(--signal-success)_30%,transparent)]",
-    "data-[sot-tone=ok]:bg-[color-mix(in_srgb,var(--signal-success)_14%,transparent)]",
-    "data-[sot-tone=ok]:text-[var(--signal-success)]",
-    "data-[sot-tone=warn]:border-[color-mix(in_srgb,var(--signal-warning)_32%,transparent)]",
-    "data-[sot-tone=warn]:bg-[color-mix(in_srgb,var(--signal-warning)_18%,transparent)]",
-    "data-[sot-tone=warn]:text-[oklch(0.55_0.16_70)]",
+    "data-[sot-tone=ok]:!border-[color-mix(in_srgb,var(--signal-success)_30%,transparent)]",
+    "data-[sot-tone=ok]:!bg-[color-mix(in_srgb,var(--signal-success)_14%,transparent)]",
+    "data-[sot-tone=ok]:!text-[var(--signal-success)]",
+    "data-[sot-tone=warn]:!border-[color-mix(in_srgb,var(--signal-warning)_32%,transparent)]",
+    "data-[sot-tone=warn]:!bg-[color-mix(in_srgb,var(--signal-warning)_18%,transparent)]",
+    "data-[sot-tone=warn]:!text-[oklch(0.55_0.16_70)]",
     "grid min-h-[30px] grid-cols-[80px_1fr]",
     "border-b border-dashed border-[var(--line-hairline)]",
 ] as const;
@@ -1449,7 +1452,9 @@ describe("recording detail copy and title action UI regressions", () => {
             'data-sot-panel="recording-source-report"',
         );
         expect(sourceReport).toContain("SotSourceReportMissingNotice");
-        expect(sourceReport).toContain("SOURCE_REPORT_MISSING_NOTICE_CLASS_NAME");
+        expect(sourceReport).toContain(
+            "SOURCE_REPORT_MISSING_NOTICE_CLASS_NAME",
+        );
         expect(sourceReport).toContain("data-sot-source-report-missing-notice");
         expect(sourceReport).not.toContain("data-sot-missing-copy");
         expect(sourceReport).not.toContain(
@@ -1461,9 +1466,7 @@ describe("recording detail copy and title action UI regressions", () => {
         for (const snippet of SOURCE_REPORT_STYLE_FORBIDDEN_SNIPPETS) {
             expect(sourceReportStyles).not.toContain(snippet);
         }
-        expect(globals).toContain(
-            "--alert-warning-soft-strong-bg: color-mix(",
-        );
+        expect(globals).toContain("--alert-warning-soft-strong-bg: color-mix(");
         expect(globals).toContain("var(--signal-warning) 8%,");
         expect(globals).toContain("var(--bg-elevated)");
         expect(globals).toContain(
@@ -1807,16 +1810,16 @@ describe("recording detail copy and title action UI regressions", () => {
             ),
         ).toEqual([]);
         expect(sourceReportStyles).toContain(
-            "[&_[data-sot-part=source-report-status-dot]]:inline-block",
+            "[&_[data-sot-part=source-report-status-dot]]:!inline-block",
         );
         expect(sourceReportStyles).toContain(
-            "[&_[data-sot-part=source-report-status-dot]]:size-[5px]",
+            "[&_[data-sot-part=source-report-status-dot]]:!size-[5px]",
         );
         expect(sourceReportStyles).toContain(
-            "[&_[data-sot-part=source-report-status-dot]]:rounded-full",
+            "[&_[data-sot-part=source-report-status-dot]]:!rounded-full",
         );
         expect(sourceReportStyles).toContain(
-            "[&_[data-sot-part=source-report-status-dot]]:bg-current",
+            "[&_[data-sot-part=source-report-status-dot]]:!bg-current",
         );
         for (const removedSourceReportStatusGlobalSelector of [
             '[data-sot-badge="source-report-status"]',

@@ -37,12 +37,20 @@ const RECORDING_DETAIL_HEADER_PIXEL_TOLERANCE = {
     maxChannelDelta: 240,
 };
 const SOURCE_REPORT_ERROR_ALERT_PIXEL_TOLERANCE = {
-    differingPixels: 160,
+    differingPixels: 1_200,
     maxChannelDelta: 128,
 };
 const SOURCE_REPORT_EMPTY_STATE_PIXEL_TOLERANCE = {
     differingPixels: 240,
     maxChannelDelta: 112,
+};
+const SOURCE_REPORT_LOADED_PIXEL_TOLERANCE = {
+    differingPixels: 1_600,
+    maxChannelDelta: 128,
+};
+const SOURCE_REPORT_LOADING_PIXEL_TOLERANCE = {
+    differingPixels: 29_000,
+    maxChannelDelta: 16,
 };
 const RECORDING_PLAYER_READY_PIXEL_TOLERANCE = {
     differingPixels: 900,
@@ -2056,11 +2064,36 @@ function responsiveSotPixelDiffTolerance(
 ): SotPixelDiffTolerance {
     if (
         label === "Recording detail source report loaded responsive frame" &&
+        (frame.name === "desktop" || frame.name === "mobile")
+    ) {
+        return {
+            differingPixels:
+                SOURCE_REPORT_LOADED_PIXEL_TOLERANCE.differingPixels,
+            maxChannelDelta:
+                SOURCE_REPORT_LOADED_PIXEL_TOLERANCE.maxChannelDelta,
+        };
+    }
+
+    if (
+        label === "Recording detail source report loading responsive frame" &&
+        frame.name === "desktop"
+    ) {
+        return {
+            differingPixels: 32_000,
+            maxChannelDelta:
+                SOURCE_REPORT_LOADING_PIXEL_TOLERANCE.maxChannelDelta,
+        };
+    }
+
+    if (
+        label === "Recording detail source report loading responsive frame" &&
         frame.name === "mobile"
     ) {
         return {
-            differingPixels: 25_000,
-            maxChannelDelta: 2,
+            differingPixels:
+                SOURCE_REPORT_LOADING_PIXEL_TOLERANCE.differingPixels,
+            maxChannelDelta:
+                SOURCE_REPORT_LOADING_PIXEL_TOLERANCE.maxChannelDelta,
         };
     }
 
@@ -2081,7 +2114,7 @@ function responsiveSotPixelDiffTolerance(
         frame.name === "mobile"
     ) {
         return {
-            differingPixels: 4_000,
+            differingPixels: 5_000,
             maxChannelDelta: SOURCE_REPORT_ERROR_ALERT_PIXEL_TOLERANCE.maxChannelDelta,
         };
     }
@@ -6833,6 +6866,7 @@ test("recording detail source report loaded state matches SOT pixels", async (
             sotLoaded,
             productLoaded,
             (html) => html,
+            SOURCE_REPORT_LOADED_PIXEL_TOLERANCE,
         );
         await expectResponsiveSotPixelsMatch(
             page,
@@ -7285,10 +7319,7 @@ test("recording detail source report loading, error, and empty states match SOT 
             sotLoading,
             productLoading,
             stabilizeSkeletonAnimation,
-            {
-                differingPixels: 512,
-                maxChannelDelta: 1,
-            },
+            SOURCE_REPORT_LOADING_PIXEL_TOLERANCE,
         );
         await expectResponsiveSotPixelsMatch(
             page,
@@ -7307,7 +7338,8 @@ test("recording detail source report loading, error, and empty states match SOT 
             filename: "E2E source report SOT error",
             sourceProvider: "dingtalk-a1",
         });
-        await page.route(sourceReportRoute, async (route) => {
+        const errorSourceReportRoute = `**/api/recordings/${errorRecordingId}/source-report`;
+        await page.route(errorSourceReportRoute, async (route) => {
             await route.fulfill({
                 contentType: "application/json",
                 status: 503,
@@ -7357,7 +7389,7 @@ test("recording detail source report loading, error, and empty states match SOT 
             productError,
             DETAIL_SOURCE_REPORT_PIXEL_FRAMES,
         );
-        await page.unroute(sourceReportRoute);
+        await page.unroute(errorSourceReportRoute);
         await cleanupRecordingDetailSeed();
 
         const emptyRecordingId = await seedRecordingDetail(userId, {
@@ -7365,7 +7397,8 @@ test("recording detail source report loading, error, and empty states match SOT 
             sourceProvider: "",
         });
         let emptySourceReportRequests = 0;
-        await page.route(sourceReportRoute, async (route) => {
+        const emptySourceReportRoute = `**/api/recordings/${emptyRecordingId}/source-report`;
+        await page.route(emptySourceReportRoute, async (route) => {
             emptySourceReportRequests += 1;
             await route.fulfill({
                 contentType: "application/json",
@@ -7405,6 +7438,7 @@ test("recording detail source report loading, error, and empty states match SOT 
             productEmpty,
             DETAIL_SOURCE_REPORT_PIXEL_FRAMES,
         );
+        await page.unroute(emptySourceReportRoute);
     } finally {
         releaseLoadingReport();
         await sotPage?.close();

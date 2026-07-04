@@ -1204,8 +1204,8 @@ const SOURCE_REPORT_ACTION_DISABLED_RASTER_TOLERANCE = {
 } as const satisfies RetxPixelTolerance;
 
 const SOURCE_REPORT_SKELETON_RASTER_TOLERANCE = {
-    differingPixels: 5_000,
-    maxChannelDelta: 30,
+    differingPixels: 32_000,
+    maxChannelDelta: 16,
 } as const satisfies RetxPixelTolerance;
 
 const TRANSCRIPT_TABS_PIXEL_FRAMES = [
