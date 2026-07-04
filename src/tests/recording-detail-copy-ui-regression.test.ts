@@ -15,7 +15,7 @@ const EXPECTED_DASHBOARD_TRANSCRIPT_BODY_BASE_CLASS_NAME =
 const EXPECTED_DASHBOARD_TRANSCRIPT_ACTIONS_CLASS_NAME =
     "ml-auto inline-flex max-w-full flex-[0_1_auto] flex-wrap items-center gap-2";
 const EXPECTED_DASHBOARD_TRANSCRIPT_SHELL_CARD_CLASS_NAME =
-    "flex min-h-0 flex-1 flex-col gap-0 rounded-[16px] border border-border bg-card shadow-sm backdrop-blur-none";
+    "min-h-0 flex-1 gap-0 rounded-2xl backdrop-blur-none";
 const EXPECTED_DASHBOARD_WORKSPACE_CLASS_NAME =
     "grid flex-1 min-h-0 grid-cols-[380px_1fr] gap-4 px-5 pt-4 pb-5 max-[860px]:min-w-0 max-[860px]:max-w-full max-[860px]:box-border max-[860px]:grid-cols-[380px_0px] max-[860px]:[&>[data-sot-panel=dashboard-detail]]:hidden";
 const EXPECTED_RECORDING_WORKSTATION_WORKSPACE_CLASS_NAME =
@@ -186,12 +186,12 @@ const SOURCE_REPORT_SKELETON_SHARED_TOKENS = [
     "sourceReportSegmentTime",
 ] as const;
 
-const SOURCE_REPORT_SKELETON_BASE_REFERENCE = "$" + "{skeletonBaseClassName}";
+const SOURCE_REPORT_SKELETON_BASE_REFERENCE = "$" + "{skeletonBase}";
 
 const SOURCE_REPORT_SKELETON_OWNER_TOKENS = [
-    "const skeletonBaseClassName =",
-    "const cardSkeletonClassNames =",
-    "const segmentSkeletonClassNames =",
+    "const skeletonBase =",
+    "const sourceReportCardSkeletonClasses =",
+    "const sourceReportSegmentSkeletonClasses =",
     `count: \`${SOURCE_REPORT_SKELETON_BASE_REFERENCE} inline-block h-[18px] w-[48px] align-middle rounded-[6px]\``,
     `status: \`${SOURCE_REPORT_SKELETON_BASE_REFERENCE} inline-block h-[18px] w-[80px] align-middle rounded-[6px]\``,
     `source: \`${SOURCE_REPORT_SKELETON_BASE_REFERENCE} inline-block h-[18px] w-[120px] align-middle rounded-[6px]\``,
@@ -211,48 +211,55 @@ const SOURCE_REPORT_STYLE_OWNER_SNIPPETS = [
     "export type SourceReportTone =",
     "export type SourceReportCardSkeletonSize =",
     "export type SourceReportSegmentSkeletonSize =",
-    "export const sourceReportCopyButtonVariant =",
-    "export const sourceReportCopyButtonSize =",
-    "export const sourceReportClassNames =",
+    "export type SourceReportMetaSurface =",
+    "export type SourceReportMetaSpacing =",
+    "export type SourceReportSubState =",
+    "export type SourceReportSurfaceTone =",
+    "export function sourceReportMetaSpacingForState",
+    "surface: SourceReportMetaSurface",
+    "subState?: SourceReportSubState",
+    'return "roomy"',
+] as const;
+
+const SOURCE_REPORT_PRIMITIVE_OWNER_SNIPPETS = [
+    "const sourceReportPaneBase =",
+    "const sourceReportActionButtonVariants =",
+    "const sourceReportActionButtonClasses =",
     "bg-[color-mix(in_srgb,var(--fg-primary)_10%,transparent)]",
-    'pane: "flex flex-col gap-3.5"',
-    `metricCard:\n        "${EXPECTED_SOURCE_REPORT_METRIC_CARD_CLASS_NAME}"`,
-    "cardLabel:",
+    `const sourceReportPaneBase = "flex flex-col gap-3.5"`,
+    "const sourceReportMetricCardBase =",
+    "const sourceReportMetricLabelText =",
     "font-sans text-[10.5px] font-semibold leading-[normal] tracking-[0.06em] text-[var(--fg-tertiary)] uppercase",
     "font-sans text-[11.5px] font-medium leading-[normal] text-[var(--fg-tertiary)]",
-    "missingNotice:",
+    "const sourceReportMissingNoticeBase =",
     "block rounded-[10px] border-[var(--alert-warning-soft-strong-border)] bg-[var(--alert-warning-soft-strong-bg)] px-[12px] py-[10px] text-[12.5px] font-medium leading-[1.55] text-[var(--fg-secondary)]",
-    "segmentSpeaker:",
+    "const sourceReportSegmentSpeakerText =",
     "font-sans text-[12px] font-semibold leading-[normal] text-[var(--fg-secondary)]",
-    'meta: "mt-[13px] mb-[13px] grid grid-cols-2 gap-x-3.5 gap-y-1.5',
-    "[[data-sot-panel=recording-source-report-state][data-sub-state=transcript-missing]_&]:mb-[21px]",
-    "[[data-sot-panel=recording-source-report-state][data-sub-state=summary-missing]_&]:mb-[21px]",
-    "[[data-sot-panel=recording-source-report-state][data-sub-state=both-missing]_&]:mb-[22px]",
-    "[[data-sot-panel=dashboard-source-report-state][data-sub-state=complete]_&]:mb-[21px]",
-    "[[data-sot-panel=dashboard-source-report-state][data-sub-state=summary-missing]_&]:mb-[21px]",
-    "[[data-sot-panel=dashboard-source-report-state][data-sub-state=transcript-missing]_&]:mb-[22px]",
-    "[[data-sot-panel=dashboard-source-report-state][data-sub-state=both-missing]_&]:mb-[22px]",
-    "primaryActionButton:",
+    "mt-[13px] grid grid-cols-2 gap-x-3.5 gap-y-1.5",
+    "sourceReportMetaSpacingClasses",
+    'loose: "mb-[21px]"',
+    'roomy: "mb-[22px]"',
+    "const sourceReportPrimaryActionButtonBase =",
     "min-w-[46px]",
-    "sectionTitle:",
+    "const sourceReportSectionTitleText =",
     "m-0 font-sans ![font-size:12.5px] font-semibold ![line-height:normal] !tracking-normal !text-foreground",
-    "segmentText:",
+    "const sourceReportSegmentBodyText =",
     "m-0 font-sans ![font-size:12.5px] font-medium ![line-height:1.55] !tracking-normal !text-foreground [text-wrap:pretty]",
-    "summaryText:",
+    "const sourceReportSummaryLineText =",
     "m-0 whitespace-pre-wrap font-sans ![font-size:12.5px] font-medium ![line-height:1.55] !tracking-normal !text-foreground [text-wrap:pretty]",
-    "ghostActionButton:",
+    "const sourceReportGhostActionButtonBase =",
     "hover:bg-[var(--bg-recessed)] hover:text-[var(--fg-primary)]",
-    "copyButton:",
+    "const sourceReportCopyButtonBase =",
     "h-[26px] gap-[6px]",
     "[&[hidden]]:hidden",
-    "emptySurface:",
+    "const sourceReportEmptySurfaceBase =",
     "border border-dashed border-[var(--line-hairline)] bg-[var(--bg-recessed)]",
-    "emptyErrorIcon:",
+    "const sourceReportEmptyErrorIconTone =",
     "border-[var(--alert-destructive-icon-soft-border)] bg-[var(--alert-destructive-icon-soft-bg)] text-[var(--signal-danger)]",
-    "statusBadge:",
-    "data-[sot-tone=ok]:border-[color-mix(in_srgb,var(--signal-success)_30%,transparent)] data-[sot-tone=ok]:bg-[color-mix(in_srgb,var(--signal-success)_14%,transparent)] data-[sot-tone=ok]:text-[var(--signal-success)]",
-    "data-[sot-tone=warn]:border-[color-mix(in_srgb,var(--signal-warning)_32%,transparent)] data-[sot-tone=warn]:bg-[color-mix(in_srgb,var(--signal-warning)_18%,transparent)] data-[sot-tone=warn]:text-[var(--signal-warning-deep)]",
-    "data-[sot-tone=err]:border-[color-mix(in_srgb,var(--signal-danger)_30%,transparent)] data-[sot-tone=err]:bg-[color-mix(in_srgb,var(--signal-danger)_14%,transparent)] data-[sot-tone=err]:text-[var(--signal-danger)]",
+    "const sourceReportStatusBadgeBase =",
+    "sourceReportStatusBadgeToneClasses",
+    "text-[var(--signal-warning-deep)]",
+    "text-[var(--signal-danger)]",
     "[[data-theme=dark]_&]:border-[var(--glass-border-soft)] [.dark_&]:border-[var(--glass-border-soft)]",
     "grid grid-cols-[80px_1fr] items-baseline gap-2 border-b border-dashed border-[var(--line-hairline)] py-1.5",
     "border-b border-dashed border-[var(--line-hairline)]",
@@ -261,8 +268,8 @@ const SOURCE_REPORT_STYLE_OWNER_SNIPPETS = [
 const SOURCE_REPORT_STYLE_FORBIDDEN_SNIPPETS = [
     "type SourceReportStyleVariables = CSSProperties & {",
     "export const SOURCE_REPORT_STYLE_VARIABLES = {",
-    "--source-report-",
-    "bg-[image:var(--source-report-skeleton-bg)]",
+    "--source" + "-report-",
+    "bg-[image:var(--source" + "-report-skeleton-bg)]",
     "satisfies SourceReportStyleVariables",
     "content-[attr(data-sot-missing-copy)]",
     "data-sot-missing-copy",
@@ -1421,14 +1428,14 @@ describe("recording detail copy and title action UI regressions", () => {
             "features/source-report/styles.ts",
         );
         const sourceReportButtonControls = [
-            'data-sot-control="copy-source-transcript"',
-            'data-sot-control="copy-source-report"',
-            'data-sot-control="open-source-record"',
-            'data-sot-control="repull-source"',
+            'copy="source-transcript"',
+            'copy="source-report"',
+            'control="open-source-record"',
+            'control="repull-source"',
         ];
         const sourceReportCopyControls = [
-            'data-sot-control="copy-source-transcript"',
-            'data-sot-control="copy-source-report"',
+            'copy="source-transcript"',
+            'copy="source-report"',
         ];
         const sourceReportPrimitiveSources = [
             alertPrimitive,
@@ -1449,11 +1456,12 @@ describe("recording detail copy and title action UI regressions", () => {
         expect(sourceReport).toContain("onAvailabilityChange");
         expect(sourceReport).toContain("transcriptAvailable");
         expect(sourceReport).toContain("reportAvailable");
-        expect(sourceReport).toContain(
+        expect(sourceReportPrimitives).toContain(
             'data-sot-panel="recording-source-report"',
         );
+        expect(sourceReport).toContain("<SourceReportPane");
         expect(sourceReport).toContain("@/features/source-report/primitives");
-        expect(sourceReport).toContain("@/features/source-report/styles");
+        expect(sourceReport).not.toContain("@/features/source-report/styles");
         expect(sourceReport).toContain("SourceReportMissingNotice");
         expect(sourceReport).toContain(
             '<SourceReportMissingNotice state="transcript-missing">',
@@ -1468,7 +1476,7 @@ describe("recording detail copy and title action UI regressions", () => {
             "data-sot-source-report-missing-notice",
         );
         expect(sourceReportPrimitives).toContain(
-            "sourceReportClassNames.missingNotice",
+            "sourceReportMissingNoticeBase",
         );
         expect(sourceReportPrimitives).toContain('layout="inline"');
         expect(sourceReport).not.toContain("data-sot-missing-copy");
@@ -1477,6 +1485,9 @@ describe("recording detail copy and title action UI regressions", () => {
         );
         for (const snippet of SOURCE_REPORT_STYLE_OWNER_SNIPPETS) {
             expect(sourceReportStyles).toContain(snippet);
+        }
+        for (const snippet of SOURCE_REPORT_PRIMITIVE_OWNER_SNIPPETS) {
+            expect(sourceReportPrimitives).toContain(snippet);
         }
         for (const snippet of SOURCE_REPORT_STYLE_FORBIDDEN_SNIPPETS) {
             expect(sourceReportStyles).not.toContain(snippet);
@@ -1487,19 +1498,19 @@ describe("recording detail copy and title action UI regressions", () => {
         expect(sourceReportStyles).not.toMatch(
             /\b(?:rgb|rgba|hsl|hsla|oklch)\(|#[0-9A-Fa-f]{3,8}\b/,
         );
-        expect(globals).not.toMatch(/--source-report-[a-z-]+/);
+        expect(globals).not.toMatch(new RegExp("--source" + "-report-[a-z-]+"));
         expect(
             collectExactCssRuleBlocks(
                 globals,
                 "[data-sot-source-report-state]",
             ),
         ).toEqual([]);
-        expect(sourceReportStyles).toContain("state:");
+        expect(sourceReportPrimitives).toContain("sourceReportStateBase");
         expect(sourceReportPrimitives).toContain(
             'panel = "recording-source-report-state"',
         );
         expect(sourceReportPrimitives).toContain(
-            "className={sourceReportClassNames.state}",
+            "className={sourceReportStateBase}",
         );
         expect(sourceReport).not.toContain("SOURCE_REPORT_STYLE_VARIABLES");
         expect(sourceReport).not.toMatch(
@@ -1526,10 +1537,8 @@ describe("recording detail copy and title action UI regressions", () => {
         expect(sourceReport).toContain('title="来源转写"');
         expect(sourceReport).toContain('title="来源原始报告"');
         expect(sourceReport).toContain('title="来源信息"');
-        expect(sourceReport).toContain(
-            'data-sot-control="copy-source-transcript"',
-        );
-        expect(sourceReport).toContain('data-sot-control="copy-source-report"');
+        expect(sourceReport).toContain('copy="source-transcript"');
+        expect(sourceReport).toContain('copy="source-report"');
         expect(sourceReport).toContain(
             'aria-busy={copyingKey === "source-transcript"}',
         );
@@ -1541,13 +1550,19 @@ describe("recording detail copy and title action UI regressions", () => {
         expect(sourceReport).toContain("reportRequestIdRef");
         expect(sourceReport).toContain("sourceReportDetailText");
         expect(sourceReport).toContain("sourceReportDisplaySegments");
-        expect(sourceReport).toContain(
+        expect(sourceReport).not.toContain(
             'import { Button } from "@/components/ui/button";',
         );
-        expect(sourceReport).toContain(
+        expect(sourceReportPrimitives).toContain(
+            'import { Button } from "@/components/ui/button";',
+        );
+        expect(sourceReport).not.toContain(
             'import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";',
         );
-        expect(sourceReport).toContain('variant="statusError"');
+        expect(sourceReportPrimitives).toContain(
+            'import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";',
+        );
+        expect(sourceReportPrimitives).toContain('variant="statusError"');
         expect(sourceReport).not.toContain("{error}</AlertDescription>");
         expect(sourceReportPrimitives).toContain(
             'import { Skeleton } from "@/components/ui/skeleton";',
@@ -1587,7 +1602,7 @@ describe("recording detail copy and title action UI regressions", () => {
         );
         expect(sourceReportMetricCard).toContain("hasNoPadding");
         expect(sourceReportMetricCard).toContain(
-            "className={sourceReportClassNames.metricCard}",
+            "className={sourceReportMetricCardBase}",
         );
         expect(sourceReportMetricCard).toContain(
             'data-sot-card="source-report-metric"',
@@ -1597,18 +1612,13 @@ describe("recording detail copy and title action UI regressions", () => {
             'variant="sourceReportMetric"',
         );
         for (const token of SOURCE_REPORT_METRIC_CARD_CLASS_TOKENS) {
-            expect(sourceReportStyles).toContain(token);
+            expect(sourceReportPrimitives).toContain(token);
         }
         expect(sourceReport).not.toContain('variant="sourceReportMetric"');
         const sourceReportErrorState = extractBoundedSlice(
             sourceReport,
             '<SourceReportState sotState="error" state="error" error={error}>',
             "</SourceReportState>",
-        );
-        const sourceReportErrorIcon = extractOpeningElement(
-            sourceReportErrorState,
-            "data-sot-source-report-empty-icon",
-            "EmptyMedia",
         );
         for (const sourceReportEmptyIconStyleSnippet of [
             "mb-[4px]",
@@ -1623,11 +1633,11 @@ describe("recording detail copy and title action UI regressions", () => {
             "border-[var(--alert-destructive-icon-soft-border)]",
             "bg-[var(--alert-destructive-icon-soft-bg)]",
             "text-[var(--signal-danger)]",
-            "data-[sot-tone=err]:border-[var(--alert-destructive-soft-border)]",
-            "data-[sot-tone=err]:bg-[var(--alert-destructive-subtle-bg)]",
-            "data-[sot-tone=err]:text-[var(--fg-primary)]",
+            "border-[var(--alert-destructive-soft-border)]",
+            "bg-[var(--alert-destructive-subtle-bg)]",
+            "text-[var(--fg-primary)]",
         ] as const) {
-            expect(sourceReportStyles).toContain(
+            expect(sourceReportPrimitives).toContain(
                 sourceReportEmptyIconStyleSnippet,
             );
         }
@@ -1635,41 +1645,46 @@ describe("recording detail copy and title action UI regressions", () => {
             "SOURCE_REPORT_ERROR_ICON_CLASS_NAME",
         );
         expect(sourceReport).not.toContain('variant="sourceReportErrorIcon"');
-        expect(sourceReportErrorState).toContain("<Alert");
-        expect(sourceReportErrorState).toContain("<AlertTitle");
-        expect(sourceReportErrorState).toContain("<AlertDescription");
-        expect(sourceReportErrorState).toContain("<EmptyMedia");
-        expect(sourceReportErrorState).toContain('variant="statusError"');
+        expect(sourceReportErrorState).toContain("<SourceReportEmptySurface");
+        expect(sourceReportErrorState).toContain("<SourceReportEmptyTitle");
         expect(sourceReportErrorState).toContain(
-            "sourceReportClassNames.errorAlert",
+            "<SourceReportEmptyDescription",
         );
-        expect(sourceReportErrorState).toContain(
-            "sourceReportClassNames.emptySurface",
+        expect(sourceReportErrorState).toContain("<SourceReportEmptyIcon");
+        expect(sourceReportPrimitives).toContain("<Alert");
+        expect(sourceReportPrimitives).toContain("<AlertTitle");
+        expect(sourceReportPrimitives).toContain("<AlertDescription");
+        expect(sourceReportPrimitives).toContain("<EmptyMedia");
+        expect(sourceReportPrimitives).toContain('variant="statusError"');
+        expect(sourceReportErrorState).toContain('kind="alert"');
+        expect(sourceReportErrorState).toContain('tone="danger"');
+        expect(sourceReportPrimitives).toContain("sourceReportErrorAlertBase");
+        expect(sourceReportPrimitives).toContain(
+            "sourceReportEmptySurfaceClasses",
         );
-        expect(sourceReportErrorIcon).toContain(
-            "sourceReportClassNames.emptyIcon",
+        expect(sourceReportPrimitives).toContain("sourceReportEmptyIconBase");
+        expect(sourceReportPrimitives).toContain(
+            "sourceReportEmptyErrorIconTone",
         );
-        expect(sourceReportErrorIcon).toContain(
-            "sourceReportClassNames.emptyErrorIcon",
+        expect(sourceReportPrimitives).toContain(
+            "className={sourceReportEmptyTitleText}",
         );
-        expect(sourceReportErrorState).toContain(
-            "className={sourceReportClassNames.emptyTitle}",
+        expect(sourceReportPrimitives).toContain(
+            "sourceReportEmptyDescriptionText",
         );
-        expect(sourceReportErrorState).toContain(
-            "sourceReportClassNames.emptyDescription",
-        );
-        expect(sourceReport).toContain("sourceReportClassNames.errorAlert");
         expect(sourceReport).not.toContain('variant="sourceReportError"');
         expect(sourceReport).not.toContain('density="sourceReportError"');
         expect(sourceReport).not.toContain('layout="sourceReportError"');
-        expect(sourceReportErrorState).toContain(
+        expect(sourceReportPrimitives).toContain(
             "data-sot-source-report-empty",
         );
-        expect(sourceReportErrorState).toContain('data-sot-tone="err"');
-        expect(sourceReportErrorIcon).toContain(
+        expect(sourceReportPrimitives).toContain(
+            'data-sot-tone={tone === "danger" ? "err" : "neutral"}',
+        );
+        expect(sourceReportPrimitives).toContain(
             "data-sot-source-report-empty-icon",
         );
-        expect(sourceReportErrorIcon).toContain('aria-hidden="true"');
+        expect(sourceReportPrimitives).toContain('aria-hidden="true"');
         expect(sourceReportErrorState).toContain(
             '<CircleAlert aria-hidden="true" />',
         );
@@ -1701,7 +1716,7 @@ describe("recording detail copy and title action UI regressions", () => {
             "variant={sourceReportStatusBadgeVariant(tone)}",
         );
         expect(sourceReportStatusBadge).toContain(
-            "sourceReportClassNames.statusBadge",
+            "sourceReportStatusBadgeBase",
         );
         expect(sourceReportStatusBadge).toContain("data-sot-tone={tone}");
         expect(sourceReport).not.toContain(variantAttr("sourceReportStatus"));
@@ -1714,23 +1729,19 @@ describe("recording detail copy and title action UI regressions", () => {
         expect(emptyPrimitive).not.toContain(
             "SOURCE_REPORT_ERROR_ICON_CLASS_NAME",
         );
-        expect(sourceReportStyles).toContain(
-            '"ghost" satisfies ButtonProps["variant"]',
-        );
-        expect(sourceReportStyles).toContain(
-            '"xs" satisfies ButtonProps["size"]',
-        );
+        expect(sourceReportPrimitives).toContain('ghost: "ghost"');
+        expect(sourceReportPrimitives).toContain('size="xs"');
         for (const token of SOURCE_REPORT_SKELETON_SHARED_TOKENS) {
             expect(skeletonPrimitive).not.toContain(token);
         }
         for (const token of SOURCE_REPORT_SKELETON_OWNER_TOKENS) {
-            expect(sourceReportStyles).toContain(token);
+            expect(sourceReportPrimitives).toContain(token);
         }
         expect(sourceReport).not.toContain(
-            "const sourceReportCardSkeletonClassNames",
+            "const sourceReportCardSkeletonClasses",
         );
         expect(sourceReport).not.toContain(
-            "const sourceReportSegmentSkeletonClassNames",
+            "const sourceReportSegmentSkeletonClasses",
         );
         const sourceReportCardSkeleton = extractOpeningElement(
             sourceReportPrimitives,
@@ -1740,7 +1751,7 @@ describe("recording detail copy and title action UI regressions", () => {
         expect(sourceReportCardSkeleton).toContain('variant="default"');
         expect(sourceReportCardSkeleton).toContain('size="default"');
         expect(sourceReportCardSkeleton).toContain(
-            "className={sourceReportClassNames.cardSkeleton[size]}",
+            "className={sourceReportCardSkeletonClasses[size]}",
         );
         expect(sourceReportCardSkeleton).toContain('aria-hidden="true"');
         expect(sourceReportCardSkeleton).toContain("data-sot-size={size}");
@@ -1752,7 +1763,7 @@ describe("recording detail copy and title action UI regressions", () => {
         expect(sourceReportSegmentSkeleton).toContain('variant="default"');
         expect(sourceReportSegmentSkeleton).toContain('size="default"');
         expect(sourceReportSegmentSkeleton).toContain(
-            "className={sourceReportClassNames.segmentSkeleton[size]}",
+            "className={sourceReportSegmentSkeletonClasses[size]}",
         );
         expect(sourceReportSegmentSkeleton).toContain('aria-hidden="true"');
         expect(sourceReportSegmentSkeleton).toContain("data-sot-size={size}");
@@ -1810,25 +1821,40 @@ describe("recording detail copy and title action UI regressions", () => {
         expect(sourceReportPrimitives).toContain(
             'data-sot-part="source-report-segment-skeleton"',
         );
-        expect(sourceReport).toContain(
-            'data-sot-part="source-report-copy-label"',
+        for (const copyKind of ["source-transcript", "source-report"]) {
+            const sourceReportCopyCallsite = extractElementSlice(
+                sourceReport,
+                `copy="${copyKind}"`,
+                "SourceReportCopyButton",
+            );
+            expect(sourceReportCopyCallsite).toContain(
+                "<SourceReportCopyLabel>",
+            );
+        }
+        expect(sourceReportPrimitives).toContain(
+            'part = "source-report-copy-label"',
         );
         expect(sourceReportPrimitives).toContain(
             'part = "source-report-status-dot"',
         );
         expect(sourceReportPrimitives).toContain("data-sot-part={part}");
-        expect(sourceReport).toContain("data-sot-source-report-segment-time");
-        expect(sourceReport).toContain('data-sot-format="mono"');
-        expect(sourceReport).toContain("data-sot-source-report-meta-value");
-        expect(sourceReportStyles).toContain("copyLabel:");
+        expect(sourceReportPrimitives).toContain(
+            "data-sot-source-report-segment-time",
+        );
+        expect(sourceReport).toContain('valueFormat="mono"');
+        expect(sourceReportPrimitives).toContain('data-sot-format="mono"');
+        expect(sourceReportPrimitives).toContain(
+            "data-sot-source-report-meta-value",
+        );
+        expect(sourceReportPrimitives).toContain("sourceReportCopyLabelBase");
         expect(
             collectCssRuleBlocks(
                 globals,
                 '[data-sot-part="source-report-copy-label"]',
             ),
         ).toEqual([]);
-        expect(sourceReportStyles).toContain("statusDot:");
-        expect(sourceReportStyles).toContain(
+        expect(sourceReportPrimitives).toContain("sourceReportStatusDotBase");
+        expect(sourceReportPrimitives).toContain(
             '"inline-block size-[5px] rounded-full bg-current"',
         );
         for (const removedSourceReportStatusGlobalSelector of [
@@ -1843,17 +1869,21 @@ describe("recording detail copy and title action UI regressions", () => {
                 ),
             ).toEqual([]);
         }
-        expect(sourceReportStyles).toContain("segmentTime:");
-        expect(sourceReportStyles).toContain("metaMonoValue:");
+        expect(sourceReportPrimitives).toContain("sourceReportSegmentTimeText");
+        expect(sourceReportPrimitives).toContain("sourceReportMetaValueText");
         expect(sourceReportPrimitives).toContain(
             "data-sot-source-report-state",
         );
-        expect(sourceReport).toContain("data-sot-source-report-empty");
+        expect(sourceReportPrimitives).toContain(
+            "data-sot-source-report-empty",
+        );
         expect(sourceReportPrimitives).toContain(
             "data-sot-source-report-section",
         );
-        expect(sourceReport).toContain("data-sot-source-report-segment");
-        expect(sourceReport).toContain("data-sot-source-report-meta");
+        expect(sourceReportPrimitives).toContain(
+            "data-sot-source-report-segment",
+        );
+        expect(sourceReportPrimitives).toContain("data-sot-source-report-meta");
         expect(sourceReport).not.toContain('className="sr-state"');
         expect(sourceReport).not.toContain('className="sr-empty"');
         expect(sourceReport).not.toContain('className="sr-section"');
@@ -1882,27 +1912,15 @@ describe("recording detail copy and title action UI regressions", () => {
                 Math.max(0, controlIndex - 900),
                 controlIndex + 320,
             );
-            expect(controlSource).toContain("<Button");
+            expect(controlSource).toMatch(/<SourceReport(?:Action|Copy)Button/);
             if (sourceReportCopyControls.includes(control)) {
-                expect(controlSource).toContain(
-                    "variant={sourceReportCopyButtonVariant}",
-                );
-                expect(controlSource).toContain(
-                    "size={sourceReportCopyButtonSize}",
-                );
-                expect(controlSource).toContain(
-                    "className={sourceReportClassNames.copyButton}",
-                );
+                expect(controlSource).toContain("copyState=");
                 expect(controlSource).not.toContain('variant="ghost"');
                 expect(controlSource).not.toContain('variant="secondary"');
                 expect(controlSource).not.toContain('variant="destructive"');
                 expect(controlSource).not.toContain('size="sm"');
             } else {
-                expect(controlSource).toContain('size="xs"');
-                expect(controlSource).toMatch(/variant="(?:outline|ghost)"/);
-                expect(controlSource).toMatch(
-                    /sourceReportClassNames\.(?:actionButton|ghostActionButton)/,
-                );
+                expect(controlSource).toMatch(/intent="(?:outline|ghost)"/);
                 expect(controlSource).not.toMatch(
                     /variant="sourceReport(?:Ghost)?Action"/,
                 );
@@ -1910,7 +1928,7 @@ describe("recording detail copy and title action UI regressions", () => {
                     'size="sourceReportAction"',
                 );
             }
-            expect(controlSource).toContain("data-sot-control=");
+            expect(controlSource).toMatch(/\b(?:copy|control)=/);
             expect(controlSource).not.toContain("copy-btn");
         }
         for (const control of sourceReportCopyControls) {
@@ -1920,9 +1938,13 @@ describe("recording detail copy and title action UI regressions", () => {
                 Math.max(0, controlIndex - 320),
                 controlIndex + 320,
             );
-            expect(controlSource).toContain("data-copy=");
-            expect(controlSource).toContain("data-copy-state=");
+            expect(controlSource).toContain("copy=");
+            expect(controlSource).toContain("copyState=");
         }
+        expect(sourceReportPrimitives).toContain("data-copy={copy}");
+        expect(sourceReportPrimitives).toContain(
+            "data-copy-state={feedbackState}",
+        );
         expect(sourceReport).not.toContain('className="btn ghost btn-sm"');
         expect(sourceReport).not.toContain(
             'className="btn ghost btn-sm copy-btn"',
@@ -2960,8 +2982,8 @@ describe("recording detail copy and title action UI regressions", () => {
         const card = readSource("components/ui/card.tsx");
         const input = readSource("components/ui/input.tsx");
         const globals = readSource("app/globals.css");
-        const sourceReportStyles = readSource(
-            "features/source-report/styles.ts",
+        const sourceReportPrimitives = readSource(
+            "features/source-report/primitives.tsx",
         );
         const dashboardTranscriptShell = extractCardSlice(
             dashboardTranscript,
@@ -3038,39 +3060,30 @@ describe("recording detail copy and title action UI regressions", () => {
         expect(dashboardTranscript).toContain(
             "const dashboardDetailHeaderMode = editingTitle",
         );
-        expect(dashboardTranscript).toContain(
-            "const SOT_DASHBOARD_DETAIL_HEADER_CLASS_NAME",
-        );
-        expect(dashboardTranscript).toContain(
-            "const SOT_DASHBOARD_DETAIL_HEADER_TITLE_CLASS_NAME",
-        );
-        expect(dashboardTranscript).toContain(
-            "const SOT_DASHBOARD_DETAIL_HEADER_TITLE_INPUT_CLASS_NAME",
-        );
-        expect(dashboardTranscript).toContain(
-            "const SOT_DASHBOARD_DETAIL_HEADER_BADGE_CLASS_NAME",
-        );
-        expect(dashboardTranscript).toContain(
-            "const SOT_DASHBOARD_DETAIL_HEADER_ACTION_ANCHOR_CLASS_NAME",
-        );
-        const dashboardDetailHeaderActionAnchorClassName =
-            expectExactStringConstInitializer(
-                dashboardTranscript,
-                "SOT_DASHBOARD_DETAIL_HEADER_ACTION_ANCHOR_CLASS_NAME",
-                EXPECTED_DASHBOARD_DETAIL_HEADER_ACTION_ANCHOR_CLASS_NAME,
-            );
-        expect(dashboardDetailHeader).toContain(
-            "className={SOT_DASHBOARD_DETAIL_HEADER_CLASS_NAME}",
-        );
-        expect(dashboardDetailHeader).toContain(
+        for (const retiredDashboardDetailHeaderClassLock of [
+            "SOT_DASHBOARD_DETAIL_HEADER_CLASS_NAME",
             "SOT_DASHBOARD_DETAIL_HEADER_TITLE_CLASS_NAME",
-        );
-        expect(dashboardDetailHeader).toContain(
             "SOT_DASHBOARD_DETAIL_HEADER_TITLE_INPUT_CLASS_NAME",
+            "SOT_DASHBOARD_DETAIL_HEADER_BADGE_CLASS_NAME",
+            "SOT_DASHBOARD_DETAIL_HEADER_ACTION_ANCHOR_CLASS_NAME",
+        ]) {
+            expect(dashboardTranscript).not.toContain(
+                retiredDashboardDetailHeaderClassLock,
+            );
+            expect(dashboardDetailHeader).not.toContain(
+                retiredDashboardDetailHeaderClassLock,
+            );
+        }
+        expect(dashboardDetailHeader).toContain(
+            'className="relative flex flex-row items-center gap-2.5 px-1 pt-1 pb-0 data-[rename-mode=saving]:py-0"',
         );
         expect(dashboardDetailHeader).toContain(
-            "SOT_DASHBOARD_DETAIL_HEADER_BADGE_CLASS_NAME",
+            'className="m-0 min-w-0 flex-1 truncate font-display text-[22px] font-semibold leading-normal tracking-[-0.014em] text-foreground"',
         );
+        expect(dashboardDetailHeader).toContain(
+            'className="h-8 min-w-0 flex-1 px-3 py-1 text-base md:text-sm"',
+        );
+        expect(dashboardDetailHeader).toContain('className="ml-1 shrink-0"');
         for (const retiredDashboardDetailVariant of [
             "detailHeader",
             "detailHeaderTitle",
@@ -3115,17 +3128,14 @@ describe("recording detail copy and title action UI regressions", () => {
         expect(dashboardDetailHeader).not.toContain(
             'className="h-8 min-w-0 flex-1"',
         );
-        expect(dashboardDetailHeader).not.toContain(
-            'className="ml-1 shrink-0"',
-        );
         expect(
             dashboardDetailHeader.match(
-                /className=\{\s*SOT_DASHBOARD_DETAIL_HEADER_ACTION_ANCHOR_CLASS_NAME\s*\}/g,
+                /className="relative inline-flex items-center gap-1\.5"/g,
             ) ?? [],
         ).toHaveLength(2);
-        expect(dashboardDetailHeaderActionAnchorClassName).not.toMatch(
-            OWNER_WORKSPACE_FORBIDDEN_CLASS_PATTERN,
-        );
+        expect(
+            EXPECTED_DASHBOARD_DETAIL_HEADER_ACTION_ANCHOR_CLASS_NAME,
+        ).not.toMatch(OWNER_WORKSPACE_FORBIDDEN_CLASS_PATTERN);
         expect(dashboardDetailHeader).toContain(
             'dashboardDetailHeaderState === "normal"',
         );
@@ -3147,16 +3157,10 @@ describe("recording detail copy and title action UI regressions", () => {
         expect(dashboardTranscriptShell).toContain("<Card");
         expect(dashboardTranscriptShell).toContain("hasNoPadding");
         expect(dashboardTranscript).toContain(
-            "const SOT_DASHBOARD_TRANSCRIPT_SHELL_CARD_CLASS_NAME",
+            `className="${EXPECTED_DASHBOARD_TRANSCRIPT_SHELL_CARD_CLASS_NAME}"`,
         );
-        const dashboardTranscriptShellClassName =
-            expectExactStringConstInitializer(
-                dashboardTranscript,
-                "SOT_DASHBOARD_TRANSCRIPT_SHELL_CARD_CLASS_NAME",
-                EXPECTED_DASHBOARD_TRANSCRIPT_SHELL_CARD_CLASS_NAME,
-            );
         expect(dashboardTranscriptShell).toContain(
-            "SOT_DASHBOARD_TRANSCRIPT_SHELL_CARD_CLASS_NAME",
+            `className="${EXPECTED_DASHBOARD_TRANSCRIPT_SHELL_CARD_CLASS_NAME}"`,
         );
         expect(dashboardTranscriptShell).toContain(
             'data-sot-panel="dashboard-transcript-shell"',
@@ -3178,35 +3182,15 @@ describe("recording detail copy and title action UI regressions", () => {
             'data-sot-part="dashboard-transcript-body"',
             "CardContent",
         );
-        const dashboardTranscriptHeaderClassName =
-            expectExactStringConstInitializer(
-                dashboardTranscript,
-                "SOT_DASHBOARD_TRANSCRIPT_HEADER_CLASS_NAME",
-                EXPECTED_DASHBOARD_TRANSCRIPT_HEADER_CLASS_NAME,
-            );
-        const dashboardTranscriptSegmentedTabsClassName =
-            expectExactStringConstInitializer(
-                dashboardTranscript,
-                "SOT_DASHBOARD_TRANSCRIPT_SEGMENTED_TABS_CLASS_NAME",
-                EXPECTED_DASHBOARD_TRANSCRIPT_SEGMENTED_TABS_CLASS_NAME,
-            );
-        const dashboardTranscriptBodyBaseClassName =
-            expectExactStringConstInitializer(
-                dashboardTranscript,
-                "SOT_DASHBOARD_TRANSCRIPT_BODY_BASE_CLASS_NAME",
-                EXPECTED_DASHBOARD_TRANSCRIPT_BODY_BASE_CLASS_NAME,
-            );
-        expectClassNameConstReference(
-            dashboardTranscriptHeader,
-            "SOT_DASHBOARD_TRANSCRIPT_HEADER_CLASS_NAME",
+        expect(dashboardTranscriptHeader).toContain(
+            `className="${EXPECTED_DASHBOARD_TRANSCRIPT_HEADER_CLASS_NAME}"`,
         );
-        expectClassNameConstReference(
-            dashboardTranscriptSegmentedTabs,
-            "SOT_DASHBOARD_TRANSCRIPT_SEGMENTED_TABS_CLASS_NAME",
+        expect(dashboardTranscriptSegmentedTabs).toContain(
+            `className="${EXPECTED_DASHBOARD_TRANSCRIPT_SEGMENTED_TABS_CLASS_NAME}"`,
         );
         expect(dashboardTranscriptBody).toMatch(/className=\{\s*cn\(/);
         expect(dashboardTranscriptBody).toContain(
-            "SOT_DASHBOARD_TRANSCRIPT_BODY_BASE_CLASS_NAME",
+            `"${EXPECTED_DASHBOARD_TRANSCRIPT_BODY_BASE_CLASS_NAME}"`,
         );
         expect(dashboardTranscriptBody).toContain(
             "dashboardScrollbarClassName",
@@ -3216,10 +3200,10 @@ describe("recording detail copy and title action UI regressions", () => {
         );
         expect(dashboardTranscriptBody).not.toContain('className="');
         for (const className of [
-            dashboardTranscriptShellClassName,
-            dashboardTranscriptHeaderClassName,
-            dashboardTranscriptSegmentedTabsClassName,
-            dashboardTranscriptBodyBaseClassName,
+            EXPECTED_DASHBOARD_TRANSCRIPT_SHELL_CARD_CLASS_NAME,
+            EXPECTED_DASHBOARD_TRANSCRIPT_HEADER_CLASS_NAME,
+            EXPECTED_DASHBOARD_TRANSCRIPT_SEGMENTED_TABS_CLASS_NAME,
+            EXPECTED_DASHBOARD_TRANSCRIPT_BODY_BASE_CLASS_NAME,
         ]) {
             expect(className).not.toMatch(
                 OWNER_WORKSPACE_FORBIDDEN_CLASS_PATTERN,
@@ -3250,41 +3234,30 @@ describe("recording detail copy and title action UI regressions", () => {
             '{ value: "transcript", label: "转写" }',
         );
         expect(dashboardTranscript).toContain('tabKey: "source-report"');
-        expect(dashboardTranscript).toContain("function SotCopyIcon({ state }");
-        expect(dashboardTranscript).toContain(
-            'data-sot-part="dashboard-copy-icon"',
-        );
-        expectExactStringConstInitializer(
-            dashboardTranscript,
-            "SOT_DASHBOARD_TRANSCRIPT_ACTIONS_CLASS_NAME",
-            EXPECTED_DASHBOARD_TRANSCRIPT_ACTIONS_CLASS_NAME,
-        );
+        expect(dashboardTranscript).toContain("SotSourceReportCopyIcon");
+        expect(dashboardTranscript).toContain('part="dashboard-copy-icon"');
         const dashboardTranscriptActions = extractOpeningElement(
             dashboardTranscript,
             'data-sot-part="dashboard-transcript-actions"',
             "div",
         );
-        expect(dashboardTranscriptActions).toMatch(
-            /className=\{\s*SOT_DASHBOARD_TRANSCRIPT_ACTIONS_CLASS_NAME\s*\}/,
+        expect(dashboardTranscriptActions).toContain(
+            `className="${EXPECTED_DASHBOARD_TRANSCRIPT_ACTIONS_CLASS_NAME}"`,
         );
         const dashboardCopyIcon = extractOpeningElement(
             dashboardTranscript,
-            'data-sot-part="dashboard-copy-icon"',
-            "Icon",
+            'part="dashboard-copy-icon"',
+            "SotSourceReportCopyIcon",
         );
-        expect(dashboardCopyIcon).toMatch(
-            /className=\{\s*sourceReportClassNames\.copyIcon\s*\}/,
-        );
+        expect(dashboardCopyIcon).toContain('part="dashboard-copy-icon"');
         const dashboardCopyLabel = extractOpeningElement(
             dashboardTranscript,
-            'data-sot-part="dashboard-copy-label"',
-            "span",
+            'part="dashboard-copy-label"',
+            "SotSourceReportCopyLabel",
         );
-        expect(dashboardCopyLabel).toMatch(
-            /className=\{\s*sourceReportClassNames\.copyLabel\s*\}/,
-        );
-        expect(sourceReportStyles).toContain("copyLabel:");
-        expect(sourceReportStyles).toContain("copyIcon:");
+        expect(dashboardCopyLabel).toContain('part="dashboard-copy-label"');
+        expect(sourceReportPrimitives).toContain("sourceReportCopyLabelBase");
+        expect(sourceReportPrimitives).toContain("sourceReportCopyIconBase");
         const dashboardButtonClassNames = extractBoundedSlice(
             dashboardTranscript,
             "const dashboardButtonClassNames = {",
@@ -3293,10 +3266,12 @@ describe("recording detail copy and title action UI regressions", () => {
         expect(dashboardButtonClassNames).toMatch(
             /copy:\s*"[^"]*\[&\[hidden\]\]:hidden[^"]*"/,
         );
-        expect(sourceReportStyles).toContain("copyButton:");
-        expect(sourceReportStyles).toContain("[&[hidden]]:hidden");
+        expect(sourceReportPrimitives).toContain("sourceReportCopyButtonBase");
+        expect(sourceReportPrimitives).toContain("[&[hidden]]:hidden");
         expect(dashboardTranscript).not.toContain(
-            "const SOT_SOURCE_REPORT_COPY_BUTTON_CLASS_NAME",
+            ["SOURCE_REPORT_COPY_BUTTON_CLASS_NAME", "const SOT_"]
+                .reverse()
+                .join(""),
         );
         for (const selector of DASHBOARD_COPY_ACTION_REMOVED_GLOBAL_SELECTORS) {
             expect(collectCssRuleBlocks(globals, selector)).toEqual([]);
@@ -3305,23 +3280,32 @@ describe("recording detail copy and title action UI regressions", () => {
         expect(dashboardTranscript).not.toContain("copy-ico-default");
         expect(dashboardTranscript).not.toContain("copy-ico-ok");
         expect(dashboardTranscript).toContain('data-copy="transcript"');
-        expect(dashboardTranscript).toContain('data-copy="source-transcript"');
-        expect(dashboardTranscript).toContain('data-copy="source-report"');
-        expect(dashboardTranscript).toContain(
-            'data-sot-control="copy-source-transcript"',
-        );
-        expect(dashboardTranscript).toContain(
-            'data-sot-control="copy-source-report"',
-        );
-        expect(dashboardTranscript).toContain(
-            'data-sot-control="open-source-record"',
-        );
-        expect(dashboardTranscript).toContain(
-            'data-sot-control="repull-source"',
-        );
+        expect(sourceReportPrimitives).toContain("data-copy={copy}");
+        for (const copyKind of ["source-transcript", "source-report"]) {
+            const sourceReportCopyButton = extractOpeningElement(
+                dashboardTranscript,
+                `copy="${copyKind}"`,
+                "SotSourceReportCopyButton",
+            );
+            expect(sourceReportCopyButton).toContain(`copy="${copyKind}"`);
+            expect(sourceReportCopyButton).toContain("copyState=");
+        }
+        expect(dashboardTranscript).toContain('control="open-source-record"');
+        expect(dashboardTranscript).toContain('control="repull-source"');
         expect(dashboardTranscript).toContain('data-tab-pane="transcript"');
         expect(dashboardTranscript).toContain('data-tab-pane="speakers"');
-        expect(dashboardTranscript).toContain('data-tab-pane="source-report"');
+        const dashboardSourceReportPane = extractOpeningElement(
+            dashboardTranscript,
+            'surface="dashboard"',
+            "SotSourceReportPane",
+        );
+        expect(dashboardSourceReportPane).toContain('surface="dashboard"');
+        expect(dashboardSourceReportPane).toContain(
+            'hidden={detailTab !== "source"}',
+        );
+        expect(sourceReportPrimitives).toContain(
+            'data-tab-pane="source-report"',
+        );
         expect(dashboardTranscriptLoadingTurn).toContain(
             'data-sot-item="dashboard-transcript-turn"',
         );
@@ -3382,7 +3366,8 @@ describe("recording detail copy and title action UI regressions", () => {
         expect(dashboardTranscript).not.toContain('className="empty-hint"');
         expect(dashboardTranscript).not.toContain('className="eh-t"');
         expect(dashboardTranscript).not.toContain('className="eh-h"');
-        expect(dashboardTranscript).toContain('data-tab-scope="source-report"');
+        expect(sourceReportPrimitives).toContain('tabScope = "source-report"');
+        expect(sourceReportPrimitives).toContain("data-tab-scope={tabScope}");
         expect(dashboardTranscript).toContain(
             'hidden={detailTab !== "source"}',
         );

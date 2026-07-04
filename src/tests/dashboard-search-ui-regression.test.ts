@@ -29,6 +29,20 @@ function extractBoundedSlice(
     return source.slice(start, end);
 }
 
+function extractOpeningElement(
+    source: string,
+    marker: string,
+    tagName: string,
+) {
+    const markerIndex = source.indexOf(marker);
+    expect(markerIndex).toBeGreaterThanOrEqual(0);
+    const start = source.lastIndexOf(`<${tagName}`, markerIndex);
+    const end = source.indexOf(">", markerIndex);
+    expect(start).toBeGreaterThanOrEqual(0);
+    expect(end).toBeGreaterThan(markerIndex);
+    return source.slice(start, end + 1);
+}
+
 function extractDashboardSearchActivityClassNames(source: string) {
     const marker = "const dashboardSearchActivityClassNames = {";
     const start = source.indexOf(marker);
@@ -538,14 +552,18 @@ const DASHBOARD_SEARCH_ACTIVITY_FEATURE_OWNER_SOURCE_SNIPPETS = [
 const DASHBOARD_STATIC_OWNER_STRING_CONSTANTS = [
     "DASHBOARD_RECORDING_LIST_CONTENT_CLASS_NAME",
     "DASHBOARD_DETAIL_EMPTY_STATE_CLASS_NAME",
-    "SOT_DASHBOARD_DETAIL_HEADER_ACTION_ANCHOR_CLASS_NAME",
-    "SOT_DASHBOARD_TRANSCRIPT_HEADER_CLASS_NAME",
-    "SOT_DASHBOARD_TRANSCRIPT_SEGMENTED_TABS_CLASS_NAME",
-    "SOT_DASHBOARD_TRANSCRIPT_BODY_BASE_CLASS_NAME",
 ] as const;
 
 const DASHBOARD_STATIC_OWNER_OBJECT_CONSTANTS = [
     "dashboardDrawerClassNames",
+] as const;
+
+const RETIRED_DASHBOARD_SOT_CONSTANTS = [
+    "SOT_DASHBOARD_DETAIL_HEADER_ACTION_ANCHOR_CLASS_NAME",
+    "SOT_DASHBOARD_TRANSCRIPT_HEADER_CLASS_NAME",
+    "SOT_DASHBOARD_TRANSCRIPT_SEGMENTED_TABS_CLASS_NAME",
+    "SOT_DASHBOARD_TRANSCRIPT_BODY_BASE_CLASS_NAME",
+    "SOT_DASHBOARD_RECORDING_STATUS_BADGE_CLASS",
 ] as const;
 
 const DASHBOARD_STATIC_OWNER_DEFERRED_TOKEN_AREAS = [
@@ -556,7 +574,9 @@ const DASHBOARD_STATIC_OWNER_DEFERRED_TOKEN_AREAS = [
     "dashboardRecordingRowStyles",
     "dashboardScrollbarClassName",
     "dashboardSyncClassNames",
-    "SOT_DASHBOARD_RECORDING_STATUS_BADGE_CLASS",
+    "dashboardButtonClassNames",
+    "dashboardTranscriptClassNames",
+    "DashboardRecordingStatusBadge",
     "dashboardRetranscriptionClassNames",
 ] as const;
 
@@ -944,8 +964,71 @@ describe("dashboard SOT search and activity interactions", () => {
 
     it("keeps dashboard static-owner surface classes named and token-safe for phase 1", () => {
         const workstation = readSource("features/dashboard/workstation.tsx");
+        const detailHeader = extractOpeningElement(
+            workstation,
+            'data-sot-panel="dashboard-detail-header"',
+            "CardHeader",
+        );
+        const detailTitleInput = extractOpeningElement(
+            workstation,
+            'data-sot-part="detail-header-title-input"',
+            "Input",
+        );
+        const detailRenameButton = extractOpeningElement(
+            workstation,
+            'data-sot-control="rename-recording-title"',
+            "Button",
+        );
+        const detailActionAnchor = extractOpeningElement(
+            workstation,
+            'data-sot-part="detail-header-action-anchor"',
+            "div",
+        );
+        const detailAiRenameButton = extractOpeningElement(
+            workstation,
+            'data-sot-control="ai-rename"',
+            "Button",
+        );
+        const transcriptShell = extractOpeningElement(
+            workstation,
+            'data-sot-panel="dashboard-transcript-shell"',
+            "Card",
+        );
+        const transcriptHeader = extractOpeningElement(
+            workstation,
+            'data-sot-part="dashboard-transcript-header"',
+            "CardHeader",
+        );
+        const transcriptTabs = extractOpeningElement(
+            workstation,
+            'aria-label="详情标签"',
+            "SegmentedTabs",
+        );
+        const transcriptLanguageBadge = extractOpeningElement(
+            workstation,
+            'data-sot-part="dashboard-transcript-language"',
+            "Badge",
+        );
+        const transcriptCopyButton = extractOpeningElement(
+            workstation,
+            'data-sot-control="copy-local-transcript"',
+            "Button",
+        );
+        const transcriptBody = extractOpeningElement(
+            workstation,
+            'data-sot-part="dashboard-transcript-body"',
+            "CardContent",
+        );
+        const recordingStatusBadge = extractBoundedSlice(
+            workstation,
+            "function DashboardRecordingStatusBadge",
+            "function getRetxStateFromActiveJob",
+        );
 
         expect(workstation).not.toContain("text-white");
+        for (const retiredConstName of RETIRED_DASHBOARD_SOT_CONSTANTS) {
+            expect(workstation).not.toContain(retiredConstName);
+        }
         expect(workstation).toContain(
             "className={DASHBOARD_DETAIL_EMPTY_STATE_CLASS_NAME}",
         );
@@ -964,17 +1047,73 @@ describe("dashboard SOT search and activity interactions", () => {
         expect(workstation).toMatch(
             /className=\{\s*DASHBOARD_RECORDING_LIST_CONTENT_CLASS_NAME\s*\}/,
         );
-        expect(workstation).toContain(
-            "SOT_DASHBOARD_DETAIL_HEADER_ACTION_ANCHOR_CLASS_NAME",
+        expect(detailHeader).toContain("<CardHeader");
+        expect(detailHeader).toContain(
+            'className="relative flex flex-row items-center gap-2.5 px-1 pt-1 pb-0 data-[rename-mode=saving]:py-0"',
         );
-        expect(workstation).toMatch(
-            /className=\{\s*SOT_DASHBOARD_TRANSCRIPT_HEADER_CLASS_NAME\s*\}/,
+        expect(detailTitleInput).toContain("<Input");
+        expect(detailTitleInput).toContain(
+            'className="h-8 min-w-0 flex-1 px-3 py-1 text-base md:text-sm"',
         );
-        expect(workstation).toContain(
-            "SOT_DASHBOARD_TRANSCRIPT_SEGMENTED_TABS_CLASS_NAME",
+        expect(detailTitleInput).toContain(
+            'data-sot-part="detail-header-title-input"',
         );
-        expect(workstation).toContain(
-            "SOT_DASHBOARD_TRANSCRIPT_BODY_BASE_CLASS_NAME",
+        expect(detailRenameButton).toContain("<Button");
+        expect(detailRenameButton).toContain('variant="ghost"');
+        expect(detailRenameButton).toContain('size="icon-sm"');
+        expect(detailRenameButton).toContain(
+            "dashboardButtonClassNames.headerIconButton",
+        );
+        expect(detailActionAnchor).toContain(
+            'className="relative inline-flex items-center gap-1.5"',
+        );
+        expect(detailAiRenameButton).toContain("<Button");
+        expect(detailAiRenameButton).toContain('variant="outline"');
+        expect(detailAiRenameButton).toContain('size="sm"');
+        expect(detailAiRenameButton).toContain(
+            "dashboardButtonClassNames.headerActionButton",
+        );
+        expect(transcriptShell).toContain("<Card");
+        expect(transcriptShell).toContain("hasNoPadding");
+        expect(transcriptShell).toContain(
+            'className="min-h-0 flex-1 gap-0 rounded-2xl backdrop-blur-none"',
+        );
+        expect(transcriptHeader).toContain("<CardHeader");
+        expect(transcriptHeader).toContain(
+            'className="flex flex-row flex-wrap items-center gap-x-3 gap-y-1.5 border-b px-3.5 py-3"',
+        );
+        expect(transcriptTabs).toContain("<SegmentedTabs");
+        expect(transcriptTabs).toContain('variant="segmented"');
+        expect(transcriptTabs).toContain('size="segmentedSm"');
+        expect(transcriptTabs).toContain('className="shrink-0"');
+        expect(transcriptLanguageBadge).toContain("<Badge");
+        expect(transcriptLanguageBadge).toContain('variant="outline"');
+        expect(transcriptCopyButton).toContain("<Button");
+        expect(transcriptCopyButton).toContain('variant="ghost"');
+        expect(transcriptCopyButton).toContain(
+            "dashboardButtonClassNames.copy",
+        );
+        expect(transcriptBody).toContain("<CardContent");
+        expect(transcriptBody).toContain(
+            '"min-h-0 flex-1 overflow-y-auto px-5 pt-4 pb-5"',
+        );
+        expect(transcriptBody).toContain("dashboardScrollbarClassName");
+        expect(transcriptBody).toContain(
+            "dashboardRetranscriptionThemeClassName",
+        );
+        expect(workstation).toContain("dashboardTranscriptClassNames.turn");
+        expect(workstation).toContain("dashboardTranscriptClassNames.empty");
+        expect(workstation).toContain("function DashboardRecordingStatusBadge");
+        expect(recordingStatusBadge).toContain("<Badge");
+        expect(recordingStatusBadge).toContain('variant="ghost"');
+        expect(recordingStatusBadge).toContain("className={cn(");
+        expect(recordingStatusBadge).toContain("h-5 justify-normal");
+        expect(recordingStatusBadge).toContain(
+            'data-sot-part="dashboard-recording-status"',
+        );
+        expect(recordingStatusBadge).toContain("data-sot-tone={tone}");
+        expect(recordingStatusBadge).toContain(
+            'data-sot-part="dashboard-recording-status-dot"',
         );
         for (const inlineClass of [
             'className="min-h-[280px] p-9 md:p-9"',
@@ -982,9 +1121,6 @@ describe("dashboard SOT search and activity interactions", () => {
             'className="pointer-events-none absolute top-1/2 left-1/2 size-4',
             'className="absolute top-1.5 right-1.5 hidden size-1.5',
             'className="flex min-h-0 flex-col p-0"',
-            'className="relative inline-flex items-center gap-1.5"',
-            'className="flex flex-row flex-wrap items-center gap-x-3 gap-y-1.5 border-b',
-            'className="shrink-0"',
         ]) {
             expect(workstation).not.toContain(inlineClass);
         }
@@ -1021,7 +1157,7 @@ describe("dashboard SOT search and activity interactions", () => {
         const recordingRowsSlice = extractBoundedSlice(
             workstation,
             "group.entries.map(",
-            "<SotDashboardRecordingStatusBadge",
+            "<DashboardRecordingStatusBadge",
         );
 
         expect(favoritesDefinition).not.toContain("label:");

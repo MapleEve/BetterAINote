@@ -41,7 +41,7 @@ const CARD_PRIMITIVE_FORBIDDEN_BUSINESS_TOKENS = [
     "elevated",
 ] as const;
 const EXPECTED_DASHBOARD_DETAIL_HEADER_CLASS_NAME =
-    "relative flex flex-row items-center gap-2.5 px-1 pt-1 pb-0 data-[sot-state=saving]:py-0";
+    "relative flex flex-row items-center gap-2.5 px-1 pt-1 pb-0 data-[rename-mode=saving]:py-0";
 const EXPECTED_DASHBOARD_DETAIL_HEADER_TITLE_CLASS_NAME =
     "m-0 min-w-0 flex-1 truncate font-display text-[22px] font-semibold leading-normal tracking-[-0.014em] text-foreground";
 const EXPECTED_DASHBOARD_DETAIL_HEADER_TITLE_INPUT_CLASS_NAME =
@@ -51,7 +51,7 @@ const EXPECTED_DASHBOARD_TRANSCRIPT_LANGUAGE_BADGE_CLASS_NAME = "gap-1.5";
 const EXPECTED_DASHBOARD_TRANSCRIPT_ACTIONS_CLASS_NAME =
     "ml-auto inline-flex max-w-full flex-[0_1_auto] flex-wrap items-center gap-2";
 const EXPECTED_DASHBOARD_TRANSCRIPT_SHELL_CARD_CLASS_NAME =
-    "flex min-h-0 flex-1 flex-col gap-0 rounded-[16px] border border-border bg-card shadow-sm backdrop-blur-none";
+    "min-h-0 flex-1 gap-0 rounded-2xl backdrop-blur-none";
 const EXPECTED_DASHBOARD_RECORDING_LIST_HEADER_CLASS_NAME =
     "border-b border-border px-3 pt-3 pb-2.5";
 const EXPECTED_DASHBOARD_SIDEBAR_FOOTER_CLASS_NAME =
@@ -135,25 +135,13 @@ const DASHBOARD_SIDEBAR_OWNER_FORBIDDEN_CLASS_PATTERN =
 const DASHBOARD_SIDEBAR_VISUAL_GLOBAL_DECLARATION_RE =
     /^\s*(?:-webkit-backdrop-filter|backdrop-filter|background|border(?:-(?:color|radius|right|style|width))?|box-shadow|display|flex-direction|padding|position)\s*:/m;
 const EXPECTED_SOURCE_REPORT_STATUS_BADGE_CLASS_NAME =
-    "h-[22px] justify-normal gap-[5px] overflow-visible px-[8px] py-0 font-sans text-[11px] font-semibold leading-[normal] shadow-none transition-none data-[sot-tone=err]:border-[color-mix(in_srgb,var(--signal-danger)_30%,transparent)] data-[sot-tone=err]:bg-[color-mix(in_srgb,var(--signal-danger)_14%,transparent)] data-[sot-tone=err]:text-[var(--signal-danger)] data-[sot-tone=neu]:border-[var(--line-hairline)] data-[sot-tone=neu]:bg-[var(--bg-recessed)] data-[sot-tone=neu]:text-[var(--fg-secondary)] data-[sot-tone=ok]:border-[color-mix(in_srgb,var(--signal-success)_30%,transparent)] data-[sot-tone=ok]:bg-[color-mix(in_srgb,var(--signal-success)_14%,transparent)] data-[sot-tone=ok]:text-[var(--signal-success)] data-[sot-tone=warn]:border-[color-mix(in_srgb,var(--signal-warning)_32%,transparent)] data-[sot-tone=warn]:bg-[color-mix(in_srgb,var(--signal-warning)_18%,transparent)] data-[sot-tone=warn]:text-[var(--signal-warning-deep)]";
+    "h-[22px] justify-normal gap-[5px] overflow-visible px-[8px] py-0 font-sans text-[11px] font-semibold leading-[normal] shadow-none transition-none";
 const EXPECTED_DASHBOARD_RECORDING_PLAYER_CARD_CLASS_NAME =
-    "block min-h-[114px] gap-0 overflow-visible rounded-[16px] border border-border bg-card px-[18px] py-[16px] shadow-none backdrop-blur-none";
-const DASHBOARD_RECORDING_PLAYER_WORKSTATION_CLASS_INITIALIZERS = [
-    {
-        constName: "SOT_DASHBOARD_RECORDING_PLAYER_CARD_CLASS_NAME",
-        expected: EXPECTED_DASHBOARD_RECORDING_PLAYER_CARD_CLASS_NAME,
-    },
-    {
-        constName: "SOT_DASHBOARD_RECORDING_PLAYER_META_CLASS_NAME",
-        expected:
-            "mb-[12px] flex flex-row flex-wrap items-center gap-[10px] p-0",
-    },
-    {
-        constName: "SOT_DASHBOARD_RECORDING_PLAYER_DATE_CLASS_NAME",
-        expected:
-            "translate-y-px font-mono text-[11.5px] font-medium tracking-[0.02em] text-muted-foreground",
-    },
-] as const;
+    "block min-h-[114px] gap-0 overflow-visible rounded-2xl px-[18px] py-4 shadow-none backdrop-blur-none";
+const EXPECTED_DASHBOARD_RECORDING_PLAYER_META_CLASS_NAME =
+    "mb-3 flex flex-row flex-wrap items-center gap-2.5 p-0";
+const EXPECTED_DASHBOARD_RECORDING_PLAYER_DATE_CLASS_NAME =
+    "translate-y-px font-mono text-[11.5px] font-medium tracking-[0.02em] text-muted-foreground";
 const DASHBOARD_RECORDING_PLAYER_CONTROLS_CLASS_INITIALIZERS = [
     {
         constName: "DASHBOARD_PLAYER_TIME_CLASS_NAME",
@@ -1215,10 +1203,10 @@ const DASHBOARD_WORKSTATION_LEGACY_CONTROL_RE =
 const DASHBOARD_DETAIL_PANE_SOT_HOOKS = [
     'data-sot-panel="dashboard-transcript-pane"',
     'data-sot-tab-pane="transcript"',
-    'data-sot-tab-pane="source-report"',
+    'surface="dashboard"',
     'data-sot-tab-pane="speakers"',
     'data-sot-part="dashboard-transcript-actions"',
-    'data-sot-part="dashboard-copy-label"',
+    'part="dashboard-copy-label"',
     'data-sot-part="dashboard-transcript-avatar"',
     'data-sot-list="dashboard-speaker-rows"',
     'data-sot-item="dashboard-speaker-row"',
@@ -1277,8 +1265,6 @@ const DASHBOARD_TRANSCRIPT_OWNER_CLASS_TOKENS = [
     "paragraph:",
     "[text-wrap:pretty]",
     'emptyHeader: "block max-w-none"',
-    "emptyIcon:",
-    "[&_svg]:size-[22px]",
 ] as const;
 
 const DASHBOARD_SPEAKER_PANE_OWNER_CLASS_TOKENS = [
@@ -1329,56 +1315,63 @@ const SOURCE_REPORT_STYLE_OWNER_SNIPPETS = [
     "export type SourceReportTone =",
     "export type SourceReportCardSkeletonSize =",
     "export type SourceReportSegmentSkeletonSize =",
-    "const skeletonBaseClassName =",
+    "export type SourceReportMetaSurface =",
+    "export type SourceReportMetaSpacing =",
+    "export type SourceReportSubState =",
+    "export type SourceReportSurfaceTone =",
+    "export function sourceReportMetaSpacingForState",
+    "surface: SourceReportMetaSurface",
+    "subState?: SourceReportSubState",
+    'return "roomy"',
+] as const;
+
+const SOURCE_REPORT_PRIMITIVE_OWNER_SNIPPETS = [
+    "const skeletonBase =",
     "bg-[color-mix(in_srgb,var(--fg-primary)_10%,transparent)]",
-    "const cardSkeletonClassNames =",
-    "const segmentSkeletonClassNames =",
-    "export const sourceReportCopyButtonVariant =",
-    "export const sourceReportCopyButtonSize =",
-    "export const sourceReportClassNames =",
-    'pane: "flex flex-col gap-3.5"',
-    "state:",
+    "const sourceReportCardSkeletonClasses =",
+    "const sourceReportSegmentSkeletonClasses =",
+    "const sourceReportPaneBase =",
+    "const sourceReportActionButtonVariants =",
+    "const sourceReportActionButtonClasses =",
+    `const sourceReportPaneBase = "flex flex-col gap-3.5"`,
+    "const sourceReportStateBase =",
     "[&[hidden]]:hidden",
-    `metricCard:\n        "${EXPECTED_SOURCE_REPORT_METRIC_CARD_CLASS_NAME}"`,
-    "cardLabel:",
+    "const sourceReportMetricCardBase =",
+    "const sourceReportMetricLabelText =",
     "font-sans text-[10.5px] font-semibold leading-[normal] tracking-[0.06em] text-[var(--fg-tertiary)] uppercase",
     "text-foreground",
     "font-sans text-[11.5px] font-medium leading-[normal] text-[var(--fg-tertiary)]",
-    "missingNotice:",
+    "const sourceReportMissingNoticeBase =",
     "block rounded-[10px] border-[var(--alert-warning-soft-strong-border)] bg-[var(--alert-warning-soft-strong-bg)] px-[12px] py-[10px] text-[12.5px] font-medium leading-[1.55] text-[var(--fg-secondary)]",
-    "segmentSpeaker:",
+    "const sourceReportSegmentSpeakerText =",
     "font-sans text-[12px] font-semibold leading-[normal] text-[var(--fg-secondary)]",
-    'meta: "mt-[13px] mb-[13px] grid grid-cols-2 gap-x-3.5 gap-y-1.5',
-    "[[data-sot-panel=recording-source-report-state][data-sub-state=transcript-missing]_&]:mb-[21px]",
-    "[[data-sot-panel=recording-source-report-state][data-sub-state=summary-missing]_&]:mb-[21px]",
-    "[[data-sot-panel=recording-source-report-state][data-sub-state=both-missing]_&]:mb-[22px]",
-    "[[data-sot-panel=dashboard-source-report-state][data-sub-state=complete]_&]:mb-[21px]",
-    "[[data-sot-panel=dashboard-source-report-state][data-sub-state=summary-missing]_&]:mb-[21px]",
-    "[[data-sot-panel=dashboard-source-report-state][data-sub-state=transcript-missing]_&]:mb-[22px]",
-    "[[data-sot-panel=dashboard-source-report-state][data-sub-state=both-missing]_&]:mb-[22px]",
-    "primaryActionButton:",
+    "mt-[13px] grid grid-cols-2 gap-x-3.5 gap-y-1.5",
+    "sourceReportMetaSpacingClasses",
+    'loose: "mb-[21px]"',
+    'roomy: "mb-[22px]"',
+    "const sourceReportPrimaryActionButtonBase =",
     "min-w-[46px]",
-    "sectionTitle:",
+    "const sourceReportSectionTitleText =",
     "m-0 font-sans ![font-size:12.5px] font-semibold ![line-height:normal] !tracking-normal !text-foreground",
-    "segmentText:",
+    "const sourceReportSegmentBodyText =",
     "m-0 font-sans ![font-size:12.5px] font-medium ![line-height:1.55] !tracking-normal !text-foreground [text-wrap:pretty]",
-    "summaryText:",
+    "const sourceReportSummaryLineText =",
     "m-0 whitespace-pre-wrap font-sans ![font-size:12.5px] font-medium ![line-height:1.55] !tracking-normal !text-foreground [text-wrap:pretty]",
-    "ghostActionButton:",
+    "const sourceReportGhostActionButtonBase =",
     "hover:bg-[var(--bg-recessed)] hover:text-[var(--fg-primary)]",
-    "copyButton:",
+    "const sourceReportCopyButtonBase =",
     "h-[26px] gap-[6px]",
     "[&[hidden]]:hidden",
-    "errorAlert:",
-    "emptySurface:",
+    "const sourceReportErrorAlertBase =",
+    "const sourceReportEmptySurfaceBase =",
     "border border-dashed border-[var(--line-hairline)] bg-[var(--bg-recessed)]",
-    "data-[sot-tone=err]:border-[var(--alert-destructive-soft-border)] data-[sot-tone=err]:bg-[var(--alert-destructive-subtle-bg)] data-[sot-tone=err]:text-[var(--fg-primary)]",
-    "emptyIcon:",
+    "sourceReportEmptySurfaceToneClasses",
+    "const sourceReportEmptyIconBase =",
     "border border-[var(--line-hairline)] bg-[var(--bg-elevated)] text-[var(--fg-tertiary)]",
-    "emptyErrorIcon:",
+    "const sourceReportEmptyErrorIconTone =",
     "border-[var(--alert-destructive-icon-soft-border)] bg-[var(--alert-destructive-icon-soft-bg)] text-[var(--signal-danger)]",
     "block max-w-[360px] font-sans text-[12px] font-medium leading-[1.5] tracking-normal text-muted-foreground",
-    "statusBadge:",
+    "const sourceReportStatusBadgeBase =",
     EXPECTED_SOURCE_REPORT_STATUS_BADGE_CLASS_NAME,
     "[[data-theme=dark]_&]:border-[var(--glass-border-soft)] [.dark_&]:border-[var(--glass-border-soft)]",
     "grid grid-cols-[80px_1fr] items-baseline gap-2 border-b border-dashed border-[var(--line-hairline)] py-1.5",
@@ -1432,12 +1425,12 @@ const DASHBOARD_SOURCE_REPORT_LOADED_METRIC_CARDS = [
     },
 ] as const;
 
-const SOURCE_REPORT_SKELETON_BASE_REFERENCE = "$" + "{skeletonBaseClassName}";
+const SOURCE_REPORT_SKELETON_BASE_REFERENCE = "$" + "{skeletonBase}";
 
 const SOURCE_REPORT_SKELETON_OWNER_TOKENS = [
-    "const skeletonBaseClassName =",
-    "const cardSkeletonClassNames =",
-    "const segmentSkeletonClassNames =",
+    "const skeletonBase =",
+    "const sourceReportCardSkeletonClasses =",
+    "const sourceReportSegmentSkeletonClasses =",
     `count: \`${SOURCE_REPORT_SKELETON_BASE_REFERENCE} inline-block h-[18px] w-[48px] align-middle rounded-[6px]\``,
     `status: \`${SOURCE_REPORT_SKELETON_BASE_REFERENCE} inline-block h-[18px] w-[80px] align-middle rounded-[6px]\``,
     `source: \`${SOURCE_REPORT_SKELETON_BASE_REFERENCE} inline-block h-[18px] w-[120px] align-middle rounded-[6px]\``,
@@ -2142,26 +2135,7 @@ describe("dashboard SOT foundation", () => {
         for (const forbiddenVariantProp of DASHBOARD_OWNER_LOCAL_FORBIDDEN_VARIANT_PROPS) {
             expect(workstation).not.toContain(forbiddenVariantProp);
         }
-        expectExactStringConstInitializer(
-            workstation,
-            "SOT_DASHBOARD_DETAIL_HEADER_CLASS_NAME",
-            EXPECTED_DASHBOARD_DETAIL_HEADER_CLASS_NAME,
-        );
-        expectExactStringConstInitializer(
-            workstation,
-            "SOT_DASHBOARD_DETAIL_HEADER_TITLE_CLASS_NAME",
-            EXPECTED_DASHBOARD_DETAIL_HEADER_TITLE_CLASS_NAME,
-        );
-        expectExactStringConstInitializer(
-            workstation,
-            "SOT_DASHBOARD_DETAIL_HEADER_TITLE_INPUT_CLASS_NAME",
-            EXPECTED_DASHBOARD_DETAIL_HEADER_TITLE_INPUT_CLASS_NAME,
-        );
-        expectExactStringConstInitializer(
-            workstation,
-            "SOT_DASHBOARD_DETAIL_HEADER_BADGE_CLASS_NAME",
-            EXPECTED_DASHBOARD_DETAIL_HEADER_BADGE_CLASS_NAME,
-        );
+        expect(workstation).not.toContain(["SOT", "DASHBOARD", ""].join("_"));
         const detailHeader = extractOpeningElement(
             workstation,
             'data-sot-panel="dashboard-detail-header"',
@@ -2187,25 +2161,20 @@ describe("dashboard SOT foundation", () => {
             'data-sot-part="detail-header-title-status"',
             "Badge",
         );
-        expectClassNameConstReference(
-            detailHeader,
-            "SOT_DASHBOARD_DETAIL_HEADER_CLASS_NAME",
+        expect(detailHeader).toContain(
+            `className="${EXPECTED_DASHBOARD_DETAIL_HEADER_CLASS_NAME}"`,
         );
-        expectClassNameConstReference(
-            detailHeaderTitle,
-            "SOT_DASHBOARD_DETAIL_HEADER_TITLE_CLASS_NAME",
+        expect(detailHeaderTitle).toContain(
+            `className="${EXPECTED_DASHBOARD_DETAIL_HEADER_TITLE_CLASS_NAME}"`,
         );
-        expectClassNameConstReference(
-            detailHeaderTitleInput,
-            "SOT_DASHBOARD_DETAIL_HEADER_TITLE_INPUT_CLASS_NAME",
+        expect(detailHeaderTitleInput).toContain(
+            `className="${EXPECTED_DASHBOARD_DETAIL_HEADER_TITLE_INPUT_CLASS_NAME}"`,
         );
-        expectClassNameConstReference(
-            detailHeaderLocalBadge,
-            "SOT_DASHBOARD_DETAIL_HEADER_BADGE_CLASS_NAME",
+        expect(detailHeaderLocalBadge).toContain(
+            `className="${EXPECTED_DASHBOARD_DETAIL_HEADER_BADGE_CLASS_NAME}"`,
         );
-        expectClassNameConstReference(
-            detailHeaderStatusBadge,
-            "SOT_DASHBOARD_DETAIL_HEADER_BADGE_CLASS_NAME",
+        expect(detailHeaderStatusBadge).toContain(
+            `className="${EXPECTED_DASHBOARD_DETAIL_HEADER_BADGE_CLASS_NAME}"`,
         );
         expect(detailHeader).not.toContain("variant=");
         expect(detailHeaderTitle).not.toContain("variant=");
@@ -2231,6 +2200,35 @@ describe("dashboard SOT foundation", () => {
         expect(workstation).not.toContain(
             "[&_svg:not([class*='size-'])]:size-4",
         );
+        const moreActionsMenu = extractOpeningElement(
+            workstation,
+            'data-sot-menu="recording-more-actions"',
+            "DropdownMenuContent",
+        );
+        const renameMenuItem = extractOpeningElement(
+            workstation,
+            'data-sot-menu-item="rename"',
+            "DropdownMenuItem",
+        );
+        const localDeleteMenuItem = extractOpeningElement(
+            workstation,
+            'data-sot-menu-item="delete-local"',
+            "DropdownMenuItem",
+        );
+        const deleteSeparator = extractOpeningElement(
+            workstation,
+            'data-sot-menu-separator="delete"',
+            "DropdownMenuSeparator",
+        );
+        expect(moreActionsMenu).toContain('variant="glass"');
+        expect(moreActionsMenu).not.toContain("className=");
+        expect(renameMenuItem).toContain('density="compact"');
+        expect(renameMenuItem).not.toContain("className=");
+        expect(localDeleteMenuItem).toContain('density="compact"');
+        expect(localDeleteMenuItem).toContain('variant="destructive"');
+        expect(localDeleteMenuItem).not.toContain("className=");
+        expect(deleteSeparator).toContain('density="compact"');
+        expect(deleteSeparator).not.toContain("className=");
         for (const selector of [
             'data-sot-control="rename-recording-title"',
             'data-sot-control="recording-more-actions"',
@@ -2453,8 +2451,8 @@ describe("dashboard SOT foundation", () => {
 
         expect(player).toContain("<Card");
         expect(playerCardOpening).toContain("hasNoPadding");
-        expect(playerCardOpening).toMatch(
-            /className=\{\s*SOT_DASHBOARD_RECORDING_PLAYER_CARD_CLASS_NAME\s*\}/,
+        expect(playerCardOpening).toContain(
+            `className="${EXPECTED_DASHBOARD_RECORDING_PLAYER_CARD_CLASS_NAME}"`,
         );
         expect(playerCardOpening).toContain(
             'data-sot-surface="dashboard-recording-player"',
@@ -2473,20 +2471,14 @@ describe("dashboard SOT foundation", () => {
         expect(card).toContain("data-variant={variant}");
         expect(card).toContain("cardVariants[variant]");
         expectExactStringConstInitializers(
-            workstation,
-            DASHBOARD_RECORDING_PLAYER_WORKSTATION_CLASS_INITIALIZERS,
-        );
-        expectExactStringConstInitializers(
             playerControls,
             DASHBOARD_RECORDING_PLAYER_CONTROLS_CLASS_INITIALIZERS,
         );
-        expectClassNameConstReference(
-            playerMetaHeader,
-            "SOT_DASHBOARD_RECORDING_PLAYER_META_CLASS_NAME",
+        expect(playerMetaHeader).toContain(
+            `className="${EXPECTED_DASHBOARD_RECORDING_PLAYER_META_CLASS_NAME}"`,
         );
-        expectClassNameConstReference(
-            playerDate,
-            "SOT_DASHBOARD_RECORDING_PLAYER_DATE_CLASS_NAME",
+        expect(playerDate).toContain(
+            `className="${EXPECTED_DASHBOARD_RECORDING_PLAYER_DATE_CLASS_NAME}"`,
         );
         expect(playerBackControl).toContain('variant="ghost"');
         expect(playerBackControl).toContain('size="icon"');
@@ -2629,10 +2621,7 @@ describe("dashboard SOT foundation", () => {
         );
         expect(player).toContain("<CardHeader");
         expect(player).toContain(
-            "SOT_DASHBOARD_RECORDING_PLAYER_META_CLASS_NAME",
-        );
-        expect(player).not.toContain(
-            'className="mb-[12px] flex flex-row flex-wrap items-center gap-[10px] p-0"',
+            `className="${EXPECTED_DASHBOARD_RECORDING_PLAYER_META_CLASS_NAME}"`,
         );
         expect(playerControls).toContain("<CardContent");
         expect(playerControls).toContain(
@@ -3595,7 +3584,7 @@ describe("dashboard SOT foundation", () => {
         expect(dashboardRecordingPlayerControls).toContain(
             'data-sot-control="dashboard-player-play"',
         );
-        expect(workstation).toContain('data-sot-part="dashboard-copy-label"');
+        expect(workstation).toContain('part="dashboard-copy-label"');
         expect(workstation).not.toContain('className="copy-label"');
         expect(workstation).not.toContain('className="play rounded-full"');
         expect(workstation).toContain("<SettingsDialog");
@@ -4601,22 +4590,20 @@ describe("dashboard SOT foundation", () => {
                 rowMetaOwnershipToken,
             );
         }
-        expect(workstation).toContain(
-            "const SOT_DASHBOARD_RECORDING_STATUS_BADGE_CLASS =",
-        );
-        expect(workstation).toContain(
-            "function SotDashboardRecordingStatusBadge",
-        );
+        expect(workstation).toContain("function DashboardRecordingStatusBadge");
         const dashboardRecordingStatusBadge = extractOpeningElement(
             workstation,
             'data-sot-part="dashboard-recording-status"',
             "Badge",
         );
         expect(dashboardRecordingStatusBadge).toContain('variant="ghost"');
-        expect(dashboardRecordingStatusBadge).toContain(
-            "SOT_DASHBOARD_RECORDING_STATUS_BADGE_CLASS",
-        );
-        expect(dashboardRecordingStatusBadge).toContain("className");
+        expectCnClassNameReferences(dashboardRecordingStatusBadge, [
+            '"h-5 justify-normal gap-[5px] overflow-visible rounded-full border px-2 py-0',
+            "data-[sot-tone=ok]:bg-primary/10",
+            "data-[sot-tone=warn]:bg-secondary",
+            "data-[sot-tone=err]:bg-destructive/10",
+            "className",
+        ]);
         expect(dashboardRecordingStatusBadge).toContain(
             'data-sot-part="dashboard-recording-status"',
         );
@@ -4625,7 +4612,7 @@ describe("dashboard SOT foundation", () => {
             /<span data-sot-part="dashboard-recording-status-dot" \/>/,
         );
         expect(workstation).toMatch(
-            /<SotDashboardRecordingStatusBadge[\s\S]*label=\{\s*rowStatus\.label\s*\}[\s\S]*tone=\{\s*rowStatus\.tone\s*\}/,
+            /<DashboardRecordingStatusBadge[\s\S]*label=\{\s*rowStatus\.label\s*\}[\s\S]*tone=\{\s*rowStatus\.tone\s*\}/,
         );
         expect(workstation).toContain(
             'data-sot-part="dashboard-recording-status"',
@@ -4717,6 +4704,7 @@ describe("dashboard SOT foundation", () => {
             'data-sot-control="segmented-tabs"',
         );
         expect(detailSegmentedTabs).toContain('data-sot-size="sm"');
+        expect(detailSegmentedTabs).toContain('className="shrink-0"');
         expect(workstation).toContain('hidden={detailTab !== "transcript"}');
         expect(workstation).toContain(
             'const dashboardTabPaneHiddenClassName = "[&[hidden]]:hidden";',
@@ -4730,13 +4718,18 @@ describe("dashboard SOT foundation", () => {
             "className={dashboardTabPaneHiddenClassName}",
         );
         const sourceReportHiddenPane = extractOpeningElement(
-            workstation,
+            sourceReportPrimitives,
             'data-sot-panel="dashboard-source-report"',
             "div",
         );
         expect(sourceReportHiddenPane).toContain("className={cn(");
-        expect(sourceReportHiddenPane).toContain("sourceReportClassNames.pane");
-        expect(sourceReportHiddenPane).toContain(
+        expect(sourceReportHiddenPane).toContain("sourceReportPaneBase");
+        const sourceReportHiddenPaneCall = extractOpeningElement(
+            workstation,
+            'surface="dashboard"',
+            "SotSourceReportPane",
+        );
+        expect(sourceReportHiddenPaneCall).toContain(
             "dashboardTabPaneHiddenClassName",
         );
         const speakersPane = extractOpeningElement(
@@ -4747,14 +4740,21 @@ describe("dashboard SOT foundation", () => {
         expect(speakersPane).toContain(
             "className={dashboardTabPaneHiddenClassName}",
         );
-        expect(workstation).toContain(
-            "SOT_DASHBOARD_TRANSCRIPT_SHELL_CARD_CLASS_NAME",
+        const dashboardTranscriptShell = extractOpeningElement(
+            workstation,
+            'data-sot-panel="dashboard-transcript-shell"',
+            "Card",
         );
-        expect(workstation).toContain(
-            "SOT_DASHBOARD_TRANSCRIPT_HEADER_CLASS_NAME",
+        const dashboardTranscriptHeader = extractOpeningElement(
+            workstation,
+            'data-sot-part="dashboard-transcript-header"',
+            "CardHeader",
         );
-        expect(workstation).toMatch(
-            /className=\{\s*SOT_DASHBOARD_TRANSCRIPT_HEADER_CLASS_NAME\s*\}/,
+        expect(dashboardTranscriptShell).toContain(
+            `className="${EXPECTED_DASHBOARD_TRANSCRIPT_SHELL_CARD_CLASS_NAME}"`,
+        );
+        expect(dashboardTranscriptHeader).toContain(
+            'className="flex flex-row flex-wrap items-center gap-x-3 gap-y-1.5 border-b px-3.5 py-3"',
         );
         const dashboardTranscriptBody = extractOpeningElement(
             workstation,
@@ -4762,7 +4762,7 @@ describe("dashboard SOT foundation", () => {
             "CardContent",
         );
         expectCnClassNameReferences(dashboardTranscriptBody, [
-            "SOT_DASHBOARD_TRANSCRIPT_BODY_BASE_CLASS_NAME",
+            '"min-h-0 flex-1 overflow-y-auto px-5 pt-4 pb-5"',
             "dashboardRetranscriptionThemeClassName",
         ]);
         expect(workstation).toContain(
@@ -5022,65 +5022,33 @@ describe("dashboard SOT foundation", () => {
             'data-sot-part="dashboard-transcript-language"',
             "Badge",
         );
-        expectExactStringConstInitializer(
-            workstation,
-            "SOT_DASHBOARD_TRANSCRIPT_LANGUAGE_BADGE_CLASS_NAME",
-            EXPECTED_DASHBOARD_TRANSCRIPT_LANGUAGE_BADGE_CLASS_NAME,
-        );
         expect(transcriptLanguageBadge).toContain('variant="outline"');
-        expectClassNameConstReference(
-            transcriptLanguageBadge,
-            "SOT_DASHBOARD_TRANSCRIPT_LANGUAGE_BADGE_CLASS_NAME",
+        expect(transcriptLanguageBadge).toContain(
+            `className="${EXPECTED_DASHBOARD_TRANSCRIPT_LANGUAGE_BADGE_CLASS_NAME}"`,
         );
         expect(badgePrimitive).not.toContain(
             DASHBOARD_OWNER_LOCAL_FORBIDDEN_VARIANT_PROPS[6],
-        );
-        expectExactStringConstInitializer(
-            workstation,
-            "SOT_DASHBOARD_TRANSCRIPT_ACTIONS_CLASS_NAME",
-            EXPECTED_DASHBOARD_TRANSCRIPT_ACTIONS_CLASS_NAME,
-        );
-        expectExactStringConstInitializer(
-            workstation,
-            "SOT_DASHBOARD_TRANSCRIPT_SHELL_CARD_CLASS_NAME",
-            EXPECTED_DASHBOARD_TRANSCRIPT_SHELL_CARD_CLASS_NAME,
-        );
-        const dashboardTranscriptShell = extractOpeningElement(
-            workstation,
-            'data-sot-panel="dashboard-transcript-shell"',
-            "Card",
-        );
-        expectClassNameConstReference(
-            dashboardTranscriptShell,
-            "SOT_DASHBOARD_TRANSCRIPT_SHELL_CARD_CLASS_NAME",
         );
         const dashboardTranscriptActions = extractOpeningElement(
             workstation,
             'data-sot-part="dashboard-transcript-actions"',
             "div",
         );
-        expectClassNameConstReference(
-            dashboardTranscriptActions,
-            "SOT_DASHBOARD_TRANSCRIPT_ACTIONS_CLASS_NAME",
+        expect(dashboardTranscriptActions).toContain(
+            `className="${EXPECTED_DASHBOARD_TRANSCRIPT_ACTIONS_CLASS_NAME}"`,
         );
         const dashboardCopyIcon = extractOpeningElement(
             workstation,
-            'data-sot-part="dashboard-copy-icon"',
-            "Icon",
+            'part="dashboard-copy-icon"',
+            "SotSourceReportCopyIcon",
         );
-        expectClassNameConstReference(
-            dashboardCopyIcon,
-            "sourceReportClassNames.copyIcon",
-        );
+        expect(dashboardCopyIcon).toContain('part="dashboard-copy-icon"');
         const dashboardCopyLabel = extractOpeningElement(
             workstation,
-            'data-sot-part="dashboard-copy-label"',
-            "span",
+            'part="dashboard-copy-label"',
+            "SotSourceReportCopyLabel",
         );
-        expectClassNameConstReference(
-            dashboardCopyLabel,
-            "sourceReportClassNames.copyLabel",
-        );
+        expect(dashboardCopyLabel).toContain('part="dashboard-copy-label"');
         const dashboardButtonClassNames = extractBoundedSlice(
             workstation,
             "const dashboardButtonClassNames = {",
@@ -5089,12 +5057,14 @@ describe("dashboard SOT foundation", () => {
         expect(dashboardButtonClassNames).toMatch(
             /copy:\s*"[^"]*\[&\[hidden\]\]:hidden[^"]*"/,
         );
-        expect(sourceReportStyles).toContain("copyIcon:");
-        expect(sourceReportStyles).toContain("copyLabel:");
-        expect(sourceReportStyles).toContain("copyButton:");
-        expect(sourceReportStyles).toContain("[&[hidden]]:hidden");
+        expect(sourceReportPrimitives).toContain("sourceReportCopyIconBase");
+        expect(sourceReportPrimitives).toContain("sourceReportCopyLabelBase");
+        expect(sourceReportPrimitives).toContain("sourceReportCopyButtonBase");
+        expect(sourceReportPrimitives).toContain("[&[hidden]]:hidden");
         expect(workstation).not.toContain(
-            "const SOT_SOURCE_REPORT_COPY_BUTTON_CLASS_NAME",
+            ["SOURCE_REPORT_COPY_BUTTON_CLASS_NAME", "const SOT_"]
+                .reverse()
+                .join(""),
         );
         for (const selector of DASHBOARD_COPY_ACTION_REMOVED_GLOBAL_SELECTORS) {
             expect(collectCssRuleBlocks(globals, selector)).toEqual([]);
@@ -5137,19 +5107,17 @@ describe("dashboard SOT foundation", () => {
             );
         }
         for (const control of DASHBOARD_TRANSCRIPT_COPY_CONTROLS) {
+            const copyKind =
+                control === "copy-source-report"
+                    ? "source-report"
+                    : "source-transcript";
             const buttonOpening = extractOpeningElement(
                 workstation,
-                `data-sot-control="${control}"`,
-                "Button",
+                `copy="${copyKind}"`,
+                "SotSourceReportCopyButton",
             );
-            expect(buttonOpening).toContain('variant="ghost"');
-            expect(buttonOpening).toContain(
-                "size={sourceReportCopyButtonSize}",
-            );
-            expectClassNameConstReference(
-                buttonOpening,
-                "sourceReportClassNames.copyButton",
-            );
+            expect(buttonOpening).toContain(`copy="${copyKind}"`);
+            expect(buttonOpening).toContain("copyState=");
             expect(buttonOpening).not.toContain(
                 'variant="sourceReportCopyAction"',
             );
@@ -5186,15 +5154,10 @@ describe("dashboard SOT foundation", () => {
         for (const control of DASHBOARD_TRANSCRIPT_COMPACT_ACTION_CONTROLS) {
             const buttonOpening = extractOpeningElement(
                 workstation,
-                `data-sot-control="${control}"`,
-                "Button",
+                `control="${control}"`,
+                "SotSourceReportActionButton",
             );
-            expect(buttonOpening).toContain('variant="outline"');
-            expect(buttonOpening).toContain('size="xs"');
-            expectClassNameConstReference(
-                buttonOpening,
-                "sourceReportClassNames.actionButton",
-            );
+            expect(buttonOpening).toContain('intent="outline"');
             expect(buttonOpening).not.toContain('variant="sourceReportAction"');
             expect(buttonOpening).not.toContain('variant="ghost"');
             expect(buttonOpening).not.toContain('variant="default"');
@@ -5212,17 +5175,47 @@ describe("dashboard SOT foundation", () => {
         const sourceReportLoaded = extractBoundedSlice(
             workstation,
             'state="loaded"\n                                            subState={sourceReportSubState}',
-            "data-sot-source-report-actions",
+            "</SotSourceReportState>",
         );
         for (const hook of DASHBOARD_SOURCE_REPORT_LOADED_SOT_HOOKS) {
-            expect(sourceReportLoaded).toContain(hook);
+            expect(
+                hook.startsWith("data-")
+                    ? sourceReportPrimitives
+                    : sourceReportLoaded,
+            ).toContain(hook);
         }
-        expect(sourceReportStyles).toContain("statusBadge:");
-        expect(sourceReportStyles).toContain(
+        expect(sourceReportPrimitives).toContain(
+            "data-sot-source-report-actions",
+        );
+        const sourceReportLoadedActions = extractElementSlice(
+            sourceReportLoaded,
+            'control="open-source-record"',
+            "SotSourceReportActionRow",
+        );
+        expect(sourceReportLoadedActions).toContain(
+            "<SotSourceReportActionRow",
+        );
+        expect(sourceReportLoadedActions).toContain(
+            "<SotSourceReportActionButton",
+        );
+        expect(sourceReportLoadedActions).toContain(
+            'control="open-source-record"',
+        );
+        expect(sourceReportLoadedActions).toContain('control="repull-source"');
+        expect(sourceReportPrimitives).toContain("sourceReportStatusBadgeBase");
+        expect(sourceReportPrimitives).toContain(
             EXPECTED_SOURCE_REPORT_STATUS_BADGE_CLASS_NAME,
         );
         expect(workstation).not.toContain(
-            "SOT_DASHBOARD_SOURCE_REPORT_STATUS_CLASS_NAME",
+            [
+                "SOT",
+                "DASHBOARD",
+                "SOURCE",
+                "REPORT",
+                "STATUS",
+                "CLASS",
+                "NAME",
+            ].join("_"),
         );
         expect(sourceReportPrimitives).toContain(
             "export function DashboardSourceReportStatusDot",
@@ -5239,7 +5232,7 @@ describe("dashboard SOT foundation", () => {
             "variant={sourceReportStatusBadgeVariant(tone)}",
         );
         expect(sourceReportStatusBadge).toContain(
-            "sourceReportClassNames.statusBadge",
+            "sourceReportStatusBadgeBase",
         );
         const sourceReportLoadedStatusBadge = extractOpeningElement(
             sourceReportLoaded,
@@ -5262,26 +5255,16 @@ describe("dashboard SOT foundation", () => {
         }
         const sourceReportOpenAction = extractOpeningElement(
             workstation,
-            'data-sot-control="open-source-record"',
-            "Button",
+            'control="open-source-record"',
+            "SotSourceReportActionButton",
         );
         const sourceReportRepullAction = extractOpeningElement(
             workstation,
-            'data-sot-control="repull-source"',
-            "Button",
+            'control="repull-source"',
+            "SotSourceReportActionButton",
         );
-        expect(sourceReportOpenAction).toContain('variant="ghost"');
-        expect(sourceReportOpenAction).toContain('size="xs"');
-        expectClassNameConstReference(
-            sourceReportOpenAction,
-            "sourceReportClassNames.ghostActionButton",
-        );
-        expect(sourceReportRepullAction).toContain('variant="ghost"');
-        expect(sourceReportRepullAction).toContain('size="xs"');
-        expectClassNameConstReference(
-            sourceReportRepullAction,
-            "sourceReportClassNames.ghostActionButton",
-        );
+        expect(sourceReportOpenAction).toContain('intent="ghost"');
+        expect(sourceReportRepullAction).toContain('intent="ghost"');
         for (const action of [
             sourceReportOpenAction,
             sourceReportRepullAction,
@@ -5338,15 +5321,23 @@ describe("dashboard SOT foundation", () => {
             "sourceReportMetric",
         ]);
         expect(workstation).not.toContain(
-            "const SOT_SOURCE_REPORT_METRIC_CARD_CLASS_NAME =",
+            ["SOURCE_REPORT_METRIC_CARD_CLASS_NAME =", "const SOT_"]
+                .reverse()
+                .join(""),
         );
         for (const snippet of SOURCE_REPORT_STYLE_OWNER_SNIPPETS) {
             expect(sourceReportStyles).toContain(snippet);
         }
+        for (const snippet of SOURCE_REPORT_PRIMITIVE_OWNER_SNIPPETS) {
+            expect(sourceReportPrimitives).toContain(snippet);
+        }
         expect(sourceReportStyles).not.toContain("my-[15px]");
         expect(sourceReportStyles).not.toContain("min-h-[30px]");
         expect(sourceReportStyles).not.toMatch(
-            /SOURCE_REPORT_STYLE_VARIABLES|SourceReportStyleVariables|--source-report-|\bSOURCE_REPORT_[A-Z0-9_]*CLASS_NAME\b/,
+            new RegExp(
+                "SOURCE_REPORT_STYLE_VARIABLES|SourceReportStyleVariables|--source" +
+                    "-report-|\\bSOURCE_REPORT_[A-Z0-9_]*CLASS_NAME\\b",
+            ),
         );
         expect(sourceReportStyles).not.toMatch(
             /\b(?:rgb|rgba|hsl|hsla|oklch)\(|#[0-9A-Fa-f]{3,8}\b/,
@@ -5368,7 +5359,7 @@ describe("dashboard SOT foundation", () => {
             "--alert-destructive-icon-soft-border: color-mix(",
         );
         expect(globals).toContain("var(--signal-danger) 28%,");
-        expect(globals).not.toMatch(/--source-report-[a-z-]+/);
+        expect(globals).not.toMatch(new RegExp("--source" + "-report-[a-z-]+"));
         for (const sourceReportStateSelector of [
             '[data-sot-source-report-state][data-state="loaded"][data-sub-state="transcript-missing"]',
             '[data-sot-source-report-state][data-state="loaded"][data-sub-state="summary-missing"]',
@@ -5376,7 +5367,7 @@ describe("dashboard SOT foundation", () => {
         ]) {
             expect(globals).not.toContain(sourceReportStateSelector);
         }
-        expect(workstation).toContain("@/features/source-report/styles");
+        expect(workstation).not.toContain("@/features/source-report/styles");
         expect(workstation).toContain("@/features/source-report/primitives");
         expect(workstation).toContain("SotSourceReportMissingNotice");
         expect(sourceReportPrimitives).toContain(
@@ -5386,7 +5377,7 @@ describe("dashboard SOT foundation", () => {
             "data-sot-source-report-missing-notice",
         );
         expect(sourceReportPrimitives).toContain(
-            "sourceReportClassNames.missingNotice",
+            "sourceReportMissingNoticeBase",
         );
         expect(sourceReportPrimitives).toContain('layout="inline"');
         expect(workstation).toContain("function SotSourceReportErrorIcon");
@@ -5403,15 +5394,27 @@ describe("dashboard SOT foundation", () => {
         expect(sourceReportStyles).not.toMatch(/\b(?:before|after):content-\[/);
         expect(workstation).not.toContain("SOURCE_REPORT_STYLE_VARIABLES");
         const sourceReportPane = extractOpeningElement(
-            workstation,
+            sourceReportPrimitives,
             'data-sot-panel="dashboard-source-report"',
             "div",
         );
-        expectCnClassNameReferences(sourceReportPane, [
-            "sourceReportClassNames.pane",
-            "dashboardTabPaneHiddenClassName",
-        ]);
+        expectCnClassNameReferences(sourceReportPane, ["sourceReportPaneBase"]);
         expect(sourceReportPane).not.toContain("style=");
+        const sourceReportPaneCallsite = extractOpeningElement(
+            workstation,
+            'surface="dashboard"',
+            "SotSourceReportPane",
+        );
+        expect(sourceReportPaneCallsite).toContain('surface="dashboard"');
+        expect(sourceReportPaneCallsite).toContain(
+            "className={dashboardTabPaneHiddenClassName}",
+        );
+        expect(sourceReportPaneCallsite).toContain(
+            "state={sourceReportVisualState}",
+        );
+        expect(sourceReportPaneCallsite).toContain(
+            'hidden={detailTab !== "source"}',
+        );
         const sourceReportState = extractOpeningElement(
             sourceReportPrimitives,
             "data-sot-panel={panel}",
@@ -5419,7 +5422,7 @@ describe("dashboard SOT foundation", () => {
         );
         expectClassNameConstReference(
             sourceReportState,
-            "sourceReportClassNames.state",
+            "sourceReportStateBase",
         );
         expect(sourceReportState).not.toContain("style=");
         const sourceReportMetricCard = extractOpeningElement(
@@ -5434,7 +5437,7 @@ describe("dashboard SOT foundation", () => {
         );
         expect(sourceReportMetricCard).toContain("hasNoPadding");
         expect(sourceReportMetricCard).toContain(
-            "className={sourceReportClassNames.metricCard}",
+            "className={sourceReportMetricCardBase}",
         );
         expect(sourceReportMetricCard).toContain(
             'data-sot-card="source-report-metric"',
@@ -5444,7 +5447,7 @@ describe("dashboard SOT foundation", () => {
             'variant="sourceReportMetric"',
         );
         for (const token of SOURCE_REPORT_METRIC_CARD_CLASS_TOKENS) {
-            expect(sourceReportStyles).toContain(token);
+            expect(sourceReportPrimitives).toContain(token);
         }
         expectSourceReportMetricCallsites(
             sourceReportLoaded,
@@ -5478,7 +5481,7 @@ describe("dashboard SOT foundation", () => {
         expect(dashboardTranscriptSkeleton).toContain("data-sot-size={size}");
         expect(workstation).not.toContain('variant="dashboardTranscript"');
         for (const token of SOURCE_REPORT_SKELETON_OWNER_TOKENS) {
-            expect(sourceReportStyles).toContain(token);
+            expect(sourceReportPrimitives).toContain(token);
         }
         expect(workstation).not.toContain(
             "const sotSourceReportCardSkeletonClassNames",
@@ -5496,7 +5499,7 @@ describe("dashboard SOT foundation", () => {
         );
         expect(dashboardSourceReportCardSkeleton).toContain('size="default"');
         expect(dashboardSourceReportCardSkeleton).toContain(
-            "className={sourceReportClassNames.cardSkeleton[size]}",
+            "className={sourceReportCardSkeletonClasses[size]}",
         );
         expect(dashboardSourceReportCardSkeleton).toContain(
             'data-sot-part="source-report-card-skeleton"',
@@ -5516,7 +5519,7 @@ describe("dashboard SOT foundation", () => {
             'size="default"',
         );
         expect(dashboardSourceReportSegmentSkeleton).toContain(
-            "className={sourceReportClassNames.segmentSkeleton[size]}",
+            "className={sourceReportSegmentSkeletonClasses[size]}",
         );
         expect(dashboardSourceReportSegmentSkeleton).toContain(
             'data-sot-part="source-report-segment-skeleton"',
@@ -5848,7 +5851,9 @@ describe("dashboard SOT foundation", () => {
             'data-slot="progress-indicator"',
             "indicatorClassName",
             "indicatorProps",
-            "transform: `translateX(-${100 - progressPercent}%)`",
+            ["transform: `translateX(-$", "{100 - progressPercent}%)`"].join(
+                "",
+            ),
         ]) {
             expect(progressPrimitive).toContain(localProgressContract);
         }

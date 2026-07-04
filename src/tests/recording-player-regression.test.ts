@@ -30,22 +30,10 @@ const ROUTE_LOADING_SURFACE_CLASS_VALUE =
     "min-h-0 gap-0 overflow-hidden rounded-2xl border-border bg-card shadow-sm backdrop-blur-none";
 const ROUTE_LOADING_SURFACE_CLASS_TOKENS =
     ROUTE_LOADING_SURFACE_CLASS_VALUE.split(" ");
-const DASHBOARD_RECORDING_PLAYER_CLASS_INITIALIZERS = [
-    {
-        constName: "SOT_DASHBOARD_RECORDING_PLAYER_CARD_CLASS_NAME",
-        expected:
-            "block min-h-[114px] gap-0 overflow-visible rounded-[16px] border border-border bg-card px-[18px] py-[16px] shadow-none backdrop-blur-none",
-    },
-    {
-        constName: "SOT_DASHBOARD_RECORDING_PLAYER_META_CLASS_NAME",
-        expected:
-            "mb-[12px] flex flex-row flex-wrap items-center gap-[10px] p-0",
-    },
-    {
-        constName: "SOT_DASHBOARD_RECORDING_PLAYER_DATE_CLASS_NAME",
-        expected:
-            "translate-y-px font-mono text-[11.5px] font-medium tracking-[0.02em] text-muted-foreground",
-    },
+const RETIRED_DASHBOARD_RECORDING_PLAYER_SOT_CONSTANTS = [
+    "SOT_DASHBOARD_RECORDING_PLAYER_CARD_CLASS_NAME",
+    "SOT_DASHBOARD_RECORDING_PLAYER_META_CLASS_NAME",
+    "SOT_DASHBOARD_RECORDING_PLAYER_DATE_CLASS_NAME",
 ] as const;
 const DASHBOARD_PLAYER_CONTROLS_CLASS_INITIALIZERS = [
     {
@@ -1001,10 +989,9 @@ describe("dashboard recording player regressions", () => {
             recordingPlayer,
             RECORDING_PLAYER_CLASS_INITIALIZERS,
         );
-        expectExactStringConstInitializers(
-            dashboardWorkstation,
-            DASHBOARD_RECORDING_PLAYER_CLASS_INITIALIZERS,
-        );
+        for (const retiredConstName of RETIRED_DASHBOARD_RECORDING_PLAYER_SOT_CONSTANTS) {
+            expect(dashboardWorkstation).not.toContain(retiredConstName);
+        }
         expectExactStringConstInitializers(
             dashboardPlayerControls,
             DASHBOARD_PLAYER_CONTROLS_CLASS_INITIALIZERS,
@@ -1071,7 +1058,7 @@ describe("dashboard recording player regressions", () => {
         );
         expect(dashboardRecordingPlayerCardOpening).toContain("hasNoPadding");
         expect(dashboardRecordingPlayerCardOpening).toContain(
-            "className={\n                                SOT_DASHBOARD_RECORDING_PLAYER_CARD_CLASS_NAME\n                            }",
+            'className="block min-h-[114px] gap-0 overflow-visible rounded-2xl px-[18px] py-4 shadow-none backdrop-blur-none"',
         );
         expect(dashboardRecordingPlayerCardOpening).toContain(
             'data-no-audio={\n                                playbackDisabled ? "true" : undefined\n                            }',
@@ -1083,10 +1070,10 @@ describe("dashboard recording player regressions", () => {
             'data-sot-state={\n                                playbackDisabled ? "disabled" : "ready"\n                            }',
         );
         expect(dashboardRecordingPlayerMeta).toContain(
-            "SOT_DASHBOARD_RECORDING_PLAYER_META_CLASS_NAME",
+            'className="mb-3 flex flex-row flex-wrap items-center gap-2.5 p-0"',
         );
         expect(dashboardRecordingPlayerDate).toContain(
-            "SOT_DASHBOARD_RECORDING_PLAYER_DATE_CLASS_NAME",
+            'className="translate-y-px font-mono text-[11.5px] font-medium tracking-[0.02em] text-muted-foreground"',
         );
         expect(dashboardRecordingPlayerControls).toContain(
             "currentTime={currentTime}",

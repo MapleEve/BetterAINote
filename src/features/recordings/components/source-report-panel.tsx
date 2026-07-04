@@ -1,50 +1,47 @@
 "use client";
 
 import {
-    Check,
     CircleAlert,
     CloudDownload,
-    Copy,
     FileText,
     LoaderCircle,
 } from "lucide-react";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
 import { useLanguage } from "@/components/language-provider";
-import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
-import { Button } from "@/components/ui/button";
+import { CardAction, CardHeader, CardTitle } from "@/components/ui/card";
 import {
-    Card,
-    CardAction,
-    CardContent,
-    CardDescription,
-    CardHeader,
-    CardTitle,
-} from "@/components/ui/card";
-import {
-    Empty,
-    EmptyDescription,
-    EmptyMedia,
-    EmptyTitle,
-} from "@/components/ui/empty";
-import {
+    SourceReportActionButton,
+    SourceReportActionRow,
     SourceReportCardSkeleton,
+    SourceReportCopyButton,
+    SourceReportCopyIcon,
+    SourceReportCopyLabel,
+    SourceReportDescription,
+    SourceReportEmptyDescription,
+    SourceReportEmptyIcon,
+    SourceReportEmptySurface,
+    SourceReportEmptyTitle,
+    SourceReportMetaList,
     SourceReportMetaRow,
     SourceReportMetricCard,
     SourceReportMetricCards,
     SourceReportMissingNotice,
+    SourceReportPane,
     SourceReportSection,
+    SourceReportSegment,
     SourceReportSegmentSkeleton,
+    SourceReportSegmentSkeletonBlock,
+    SourceReportSegments,
+    SourceReportSourceIdentity,
     SourceReportState,
+    SourceReportStateStack,
     SourceReportStatusBadge,
     SourceReportStatusDot,
-} from "@/features/source-report/primitives";
-import {
+    SourceReportSummaryBody,
+    SourceReportSummaryLine,
     type SourceReportTone,
-    sourceReportClassNames,
-    sourceReportCopyButtonSize,
-    sourceReportCopyButtonVariant,
-} from "@/features/source-report/styles";
+} from "@/features/source-report/primitives";
 import {
     getSourceProviderLabel,
     getSourceRecordDescription,
@@ -52,7 +49,6 @@ import {
 } from "@/lib/data-sources/presentation";
 import type { UiLanguage } from "@/lib/i18n";
 import { writeBrowserClipboardText } from "@/lib/platform/clipboard";
-import { cn } from "@/lib/utils";
 import { runDataSourcesSync } from "@/services/data-sources";
 
 type SourceActionAvailability = {
@@ -438,19 +434,6 @@ function formatSourceReportStatusLabel(
     if (!value) return isZh(language) ? "已同步" : "synced";
     if (value === "available") return isZh(language) ? "已同步" : "synced";
     return value;
-}
-
-function SotCopyIcon({ state }: { state?: "err" | "ok" }) {
-    const Icon = state === "ok" ? Check : Copy;
-
-    return (
-        <Icon
-            className={sourceReportClassNames.copyIcon}
-            data-icon="inline-start"
-            data-sot-part="source-report-copy-icon"
-            aria-hidden="true"
-        />
-    );
 }
 
 export function SourceReportPanel({
@@ -851,14 +834,9 @@ export function SourceReportPanel({
     }, [loadReport, repullAvailable, repullDisabled, t]);
 
     const sourceActionControls = data ? (
-        <div
-            className={sourceReportClassNames.actionRow}
-            data-sot-source-report-actions
-        >
-            <Button
-                variant="ghost"
-                size="xs"
-                className={sourceReportClassNames.ghostActionButton}
+        <SourceReportActionRow>
+            <SourceReportActionButton
+                intent="ghost"
                 type="button"
                 disabled={!openSourceUrl}
                 title={
@@ -866,16 +844,14 @@ export function SourceReportPanel({
                         ? undefined
                         : t("sourceReport.openSourceUnavailable")
                 }
-                data-sot-control="open-source-record"
-                data-sot-state={openSourceControlState}
+                control="open-source-record"
+                state={openSourceControlState}
                 onClick={handleOpenSourceRecord}
             >
                 {getOpenSourceLabel(sourceProviderForReport, language)}
-            </Button>
-            <Button
-                variant="ghost"
-                size="xs"
-                className={sourceReportClassNames.ghostActionButton}
+            </SourceReportActionButton>
+            <SourceReportActionButton
+                intent="ghost"
                 type="button"
                 disabled={repullDisabled}
                 aria-busy={repullState === "loading"}
@@ -884,15 +860,15 @@ export function SourceReportPanel({
                         ? undefined
                         : t("sourceReport.repullUnavailable")
                 }
-                data-sot-control="repull-source"
-                data-sot-state={repullControlState}
+                control="repull-source"
+                state={repullControlState}
                 onClick={() => void handleRepullSource()}
             >
                 {repullState === "loading"
                     ? t("sourceReport.repullingSource")
                     : t("sourceReport.repullSource")}
-            </Button>
-        </div>
+            </SourceReportActionButton>
+        </SourceReportActionRow>
     ) : null;
 
     const header = (
@@ -914,12 +890,9 @@ export function SourceReportPanel({
                     />
                     {getSourceTabLabel(sourceProvider, language)}
                 </CardTitle>
-                <CardDescription
-                    className={sourceReportClassNames.description}
-                    data-sot-source-report-description
-                >
+                <SourceReportDescription>
                     {getSourceRecordDescription(sourceProvider, language)}
-                </CardDescription>
+                </SourceReportDescription>
             </div>
             <CardAction
                 className="static col-auto row-auto flex max-w-full flex-wrap items-center justify-end gap-2 self-auto justify-self-auto sm:ml-auto"
@@ -927,20 +900,15 @@ export function SourceReportPanel({
             >
                 {data ? (
                     <>
-                        <Button
-                            variant={sourceReportCopyButtonVariant}
-                            size={sourceReportCopyButtonSize}
-                            className={sourceReportClassNames.copyButton}
+                        <SourceReportCopyButton
                             type="button"
-                            data-copy="source-transcript"
-                            data-copy-state={
+                            copy="source-transcript"
+                            copyState={sourceTranscriptCopyState}
+                            feedbackState={
                                 copyFeedback?.action === "source-transcript"
                                     ? copyFeedback.state
                                     : undefined
                             }
-                            data-sot-control="copy-source-transcript"
-                            data-sot-state={sourceTranscriptCopyState}
-                            data-tab-scope="source-report"
                             aria-busy={copyingKey === "source-transcript"}
                             aria-disabled={
                                 sourceTranscriptCopyDisabled ? "true" : "false"
@@ -954,38 +922,30 @@ export function SourceReportPanel({
                             disabled={sourceTranscriptCopyDisabled}
                             onClick={() => void handleCopySourceTranscript()}
                         >
-                            <SotCopyIcon
+                            <SourceReportCopyIcon
                                 state={
                                     copyFeedback?.action === "source-transcript"
                                         ? copyFeedback.state
                                         : undefined
                                 }
                             />
-                            <span
-                                className={sourceReportClassNames.copyLabel}
-                                data-sot-part="source-report-copy-label"
-                            >
+                            <SourceReportCopyLabel>
                                 {copyFeedback?.action === "source-transcript"
                                     ? copyFeedback.state === "ok"
                                         ? t("common.copied")
                                         : t("common.copyFailedShort")
                                     : t("sourceReport.copySourceTranscript")}
-                            </span>
-                        </Button>
-                        <Button
-                            variant={sourceReportCopyButtonVariant}
-                            size={sourceReportCopyButtonSize}
-                            className={sourceReportClassNames.copyButton}
+                            </SourceReportCopyLabel>
+                        </SourceReportCopyButton>
+                        <SourceReportCopyButton
                             type="button"
-                            data-copy="source-report"
-                            data-copy-state={
+                            copy="source-report"
+                            copyState={sourceReportCopyState}
+                            feedbackState={
                                 copyFeedback?.action === "source-report"
                                     ? copyFeedback.state
                                     : undefined
                             }
-                            data-sot-control="copy-source-report"
-                            data-sot-state={sourceReportCopyState}
-                            data-tab-scope="source-report"
                             aria-busy={copyingKey === "source-report"}
                             aria-disabled={
                                 sourceReportCopyDisabled ? "true" : "false"
@@ -999,35 +959,30 @@ export function SourceReportPanel({
                             disabled={sourceReportCopyDisabled}
                             onClick={() => void handleCopySourceReport()}
                         >
-                            <SotCopyIcon
+                            <SourceReportCopyIcon
                                 state={
                                     copyFeedback?.action === "source-report"
                                         ? copyFeedback.state
                                         : undefined
                                 }
                             />
-                            <span
-                                className={sourceReportClassNames.copyLabel}
-                                data-sot-part="source-report-copy-label"
-                            >
+                            <SourceReportCopyLabel>
                                 {copyFeedback?.action === "source-report"
                                     ? copyFeedback.state === "ok"
                                         ? t("common.copied")
                                         : t("common.copyFailedShort")
                                     : t("sourceReport.copySourceReport")}
-                            </span>
-                        </Button>
+                            </SourceReportCopyLabel>
+                        </SourceReportCopyButton>
                     </>
                 ) : null}
-                <Button
+                <SourceReportActionButton
                     type="button"
-                    variant="outline"
-                    size="xs"
-                    className={sourceReportClassNames.actionButton}
+                    intent="outline"
                     onClick={loadReport}
                     disabled={isLoading}
-                    data-sot-control="refresh-source-report"
-                    data-sot-state={sourceReportState}
+                    control="refresh-source-report"
+                    state={sourceReportState}
                 >
                     {isLoading ? (
                         <>
@@ -1048,78 +1003,40 @@ export function SourceReportPanel({
                                 : t("sourceReport.loadDetail")}
                         </>
                     )}
-                </Button>
+                </SourceReportActionButton>
             </CardAction>
         </CardHeader>
     );
 
     const content = (
-        <CardContent
-            className={cn("px-0", sourceReportClassNames.stateStack)}
-            data-sot-source-report-state-stack
-        >
+        <SourceReportStateStack>
             {error && (
                 <SourceReportState sotState="error" state="error" error={error}>
-                    <Alert
-                        variant="statusError"
-                        className={cn(
-                            sourceReportClassNames.errorAlert,
-                            sourceReportClassNames.emptySurface,
-                        )}
-                        data-sot-source-report-empty
-                        data-sot-tone="err"
-                    >
-                        <EmptyMedia
-                            className={cn(
-                                sourceReportClassNames.emptyIcon,
-                                sourceReportClassNames.emptyErrorIcon,
-                            )}
-                            data-sot-source-report-empty-icon
-                            aria-hidden="true"
-                        >
+                    <SourceReportEmptySurface kind="alert" tone="danger">
+                        <SourceReportEmptyIcon tone="danger">
                             <CircleAlert aria-hidden="true" />
-                        </EmptyMedia>
-                        <AlertTitle
-                            className={sourceReportClassNames.emptyTitle}
-                            data-sot-source-report-empty-title
-                        >
+                        </SourceReportEmptyIcon>
+                        <SourceReportEmptyTitle kind="alert">
                             无法读取来源详情
-                        </AlertTitle>
-                        <AlertDescription
-                            className={sourceReportClassNames.emptyDescription}
-                            data-sot-source-report-empty-description
-                        >
+                        </SourceReportEmptyTitle>
+                        <SourceReportEmptyDescription kind="alert">
                             {sourceProviderSentenceName}
                             返回了一个错误，可能是网络抖动或来源临时不可用。
-                        </AlertDescription>
-                        <div
-                            data-sot-source-report-empty-actions
-                            className={cn(
-                                "justify-center",
-                                sourceReportClassNames.emptyActionRow,
-                            )}
-                        >
-                            <Button
+                        </SourceReportEmptyDescription>
+                        <SourceReportActionRow purpose="empty" align="center">
+                            <SourceReportActionButton
                                 type="button"
-                                size="xs"
-                                variant="default"
-                                className={
-                                    sourceReportClassNames.primaryActionButton
-                                }
+                                intent="primary"
                                 onClick={loadReport}
                                 disabled={isLoading}
-                                data-sot-control="refresh-source-report"
-                                data-sot-state="error"
+                                control="refresh-source-report"
+                                state="error"
                             >
                                 重试
-                            </Button>
-                            <Button
+                            </SourceReportActionButton>
+                            <SourceReportActionButton
                                 type="button"
-                                size="xs"
-                                variant="ghost"
-                                className={
-                                    sourceReportClassNames.ghostActionButton
-                                }
+                                intent="ghost"
                                 onClick={() => {
                                     window.location.assign(
                                         "/dashboard#activity",
@@ -1127,9 +1044,9 @@ export function SourceReportPanel({
                                 }}
                             >
                                 查看同步日志
-                            </Button>
-                        </div>
-                    </Alert>
+                            </SourceReportActionButton>
+                        </SourceReportActionRow>
+                    </SourceReportEmptySurface>
                 </SourceReportState>
             )}
 
@@ -1172,30 +1089,18 @@ export function SourceReportPanel({
                             <>正在从{sourceProviderSentenceName}读取…</>
                         }
                     >
-                        <div
-                            className={
-                                sourceReportClassNames.segmentSkeletonContainer
-                            }
-                            data-sot-source-report-segment
-                            data-sot-state="skeleton"
-                        >
+                        <SourceReportSegmentSkeletonBlock>
                             <SourceReportSegmentSkeleton size="time" />
                             <SourceReportSegmentSkeleton size="speaker" />
                             <SourceReportSegmentSkeleton size="line-long" />
                             <SourceReportSegmentSkeleton size="line-medium" />
-                        </div>
-                        <div
-                            className={
-                                sourceReportClassNames.segmentSkeletonContainer
-                            }
-                            data-sot-source-report-segment
-                            data-sot-state="skeleton"
-                        >
+                        </SourceReportSegmentSkeletonBlock>
+                        <SourceReportSegmentSkeletonBlock>
                             <SourceReportSegmentSkeleton size="time" />
                             <SourceReportSegmentSkeleton size="speaker" />
                             <SourceReportSegmentSkeleton size="line-wide" />
                             <SourceReportSegmentSkeleton size="line-short" />
-                        </div>
+                        </SourceReportSegmentSkeletonBlock>
                     </SourceReportSection>
                 </SourceReportState>
             ) : null}
@@ -1219,26 +1124,11 @@ export function SourceReportPanel({
                             metric="source"
                             value="source"
                         >
-                            {sourceProviderIcon ? (
-                                // biome-ignore lint/performance/noImgElement: SOT source cards render provider asset nodes directly.
-                                <img
-                                    className={
-                                        sourceReportClassNames.cardSourceIcon
-                                    }
-                                    src={sourceProviderIcon}
-                                    alt=""
-                                />
-                            ) : (
-                                <span
-                                    className={
-                                        sourceReportClassNames.cardSourceFallback
-                                    }
-                                    data-sot-part="source-report-card-source-fallback"
-                                >
-                                    {sourceProviderLetter}
-                                </span>
-                            )}
-                            <span>{sourceProviderLabel}</span>
+                            <SourceReportSourceIdentity
+                                fallback={sourceProviderLetter}
+                                icon={sourceProviderIcon}
+                                label={sourceProviderLabel}
+                            />
                         </SourceReportMetricCard>
                         <SourceReportMetricCard
                             label="转写状态"
@@ -1278,11 +1168,6 @@ export function SourceReportPanel({
                     <SourceReportSection
                         section="transcript"
                         title="来源转写"
-                        className={
-                            transcriptAvailable
-                                ? undefined
-                                : sourceReportClassNames.transcriptMissingSection
-                        }
                         description={
                             <>
                                 来自{sourceProviderSentenceName} ·{" "}
@@ -1296,11 +1181,7 @@ export function SourceReportPanel({
                                 来源未提供逐字稿。可以稍后再来，或运行私有转写。
                             </SourceReportMissingNotice>
                         ) : null}
-                        <ol
-                            className={sourceReportClassNames.segments}
-                            data-sot-source-report-segments
-                            hidden={!transcriptAvailable}
-                        >
+                        <SourceReportSegments hidden={!transcriptAvailable}>
                             {sourceReportDisplaySegments.map(
                                 (segment, index) => {
                                     const timeRange = formatTranscriptTimeRange(
@@ -1309,46 +1190,22 @@ export function SourceReportPanel({
                                     );
 
                                     return (
-                                        <li
+                                        <SourceReportSegment
                                             key={`${segment.startMs ?? "na"}-${segment.endMs ?? "na"}-${index}`}
-                                            className={
-                                                sourceReportClassNames.segment
-                                            }
-                                            data-sot-source-report-segment
-                                        >
-                                            <span
-                                                className={
-                                                    sourceReportClassNames.segmentTime
-                                                }
-                                                data-sot-source-report-segment-time
-                                                data-sot-format="mono"
-                                            >
-                                                {timeRange || "--"}
-                                            </span>
-                                            <span
-                                                className={
-                                                    sourceReportClassNames.segmentSpeaker
-                                                }
-                                                data-sot-source-report-segment-speaker
-                                            >
-                                                {formatTranscriptSpeaker(
+                                            time={timeRange || "--"}
+                                            speaker={
+                                                formatTranscriptSpeaker(
                                                     segment.speaker,
                                                     language,
-                                                ) || `说话人 ${index + 1}`}
-                                            </span>
-                                            <p
-                                                className={
-                                                    sourceReportClassNames.segmentText
-                                                }
-                                                data-sot-source-report-segment-text
-                                            >
-                                                {segment.text}
-                                            </p>
-                                        </li>
+                                                ) || `说话人 ${index + 1}`
+                                            }
+                                        >
+                                            {segment.text}
+                                        </SourceReportSegment>
                                     );
                                 },
                             )}
-                        </ol>
+                        </SourceReportSegments>
                     </SourceReportSection>
 
                     {sourceSummaryVisible ? (
@@ -1359,35 +1216,23 @@ export function SourceReportPanel({
                                 <>由{sourceProviderLabel}返回的只读摘要</>
                             }
                         >
-                            <div
-                                className={sourceReportClassNames.summaryBody}
-                                data-sot-source-report-summary-body
-                            >
+                            <SourceReportSummaryBody>
                                 {sourceSummaryText
                                     .split("\n")
                                     .map((line, index) => (
-                                        <p
+                                        <SourceReportSummaryLine
                                             key={`${index}:${line}`}
-                                            className={
-                                                sourceReportClassNames.summaryText
-                                            }
-                                            data-sot-source-report-segment-text
                                         >
                                             {line}
-                                        </p>
+                                        </SourceReportSummaryLine>
                                     ))}
-                            </div>
+                            </SourceReportSummaryBody>
                         </SourceReportSection>
                     ) : null}
 
                     <SourceReportSection
                         section="metadata"
                         title="来源信息"
-                        className={
-                            reportAvailable
-                                ? undefined
-                                : sourceReportClassNames.summaryMissingSection
-                        }
                         description={
                             <>由{sourceProviderLabel}返回的公开元数据</>
                         }
@@ -1397,9 +1242,9 @@ export function SourceReportPanel({
                                 来源未提供官方摘要。
                             </SourceReportMissingNotice>
                         ) : null}
-                        <dl
-                            className={sourceReportClassNames.meta}
-                            data-sot-source-report-meta
+                        <SourceReportMetaList
+                            surface="recording"
+                            subState={sourceReportSubState}
                         >
                             <SourceReportMetaRow label="来源">
                                 {sourceProviderLabel}
@@ -1414,31 +1259,21 @@ export function SourceReportPanel({
                                     {sourceReportStatusLabel}
                                 </SourceReportStatusBadge>
                             </SourceReportMetaRow>
-                            <SourceReportMetaRow label="录制于">
-                                <span
-                                    className={
-                                        sourceReportClassNames.metaMonoValue
-                                    }
-                                    data-sot-source-report-meta-value
-                                    data-sot-format="mono"
-                                >
-                                    {formatSotSourceReportDate(
-                                        sourceReportRecordedAt,
-                                    )}
-                                </span>
+                            <SourceReportMetaRow
+                                label="录制于"
+                                valueFormat="mono"
+                            >
+                                {formatSotSourceReportDate(
+                                    sourceReportRecordedAt,
+                                )}
                             </SourceReportMetaRow>
-                            <SourceReportMetaRow label="最近更新">
-                                <span
-                                    className={
-                                        sourceReportClassNames.metaMonoValue
-                                    }
-                                    data-sot-source-report-meta-value
-                                    data-sot-format="mono"
-                                >
-                                    {formatSotSourceReportDate(
-                                        sourceReportUpdatedAt,
-                                    )}
-                                </span>
+                            <SourceReportMetaRow
+                                label="最近更新"
+                                valueFormat="mono"
+                            >
+                                {formatSotSourceReportDate(
+                                    sourceReportUpdatedAt,
+                                )}
                             </SourceReportMetaRow>
                             <SourceReportMetaRow label="可读内容">
                                 {sourceReportReadable}
@@ -1449,18 +1284,13 @@ export function SourceReportPanel({
                             <SourceReportMetaRow label="语种">
                                 {sourceReportLanguage}
                             </SourceReportMetaRow>
-                            <SourceReportMetaRow label="时长">
-                                <span
-                                    className={
-                                        sourceReportClassNames.metaMonoValue
-                                    }
-                                    data-sot-source-report-meta-value
-                                    data-sot-format="mono"
-                                >
-                                    {sourceReportDurationLabel}
-                                </span>
+                            <SourceReportMetaRow
+                                label="时长"
+                                valueFormat="mono"
+                            >
+                                {sourceReportDurationLabel}
                             </SourceReportMetaRow>
-                        </dl>
+                        </SourceReportMetaList>
                         {sourceActionControls}
                     </SourceReportSection>
                 </SourceReportState>
@@ -1468,71 +1298,43 @@ export function SourceReportPanel({
 
             {!data && !error && !isLoading && (
                 <SourceReportState sotState="empty" state="empty">
-                    <Empty
-                        className={sourceReportClassNames.emptySurface}
-                        data-sot-source-report-empty
-                        data-sot-tone="neutral"
-                    >
-                        <EmptyMedia
-                            variant="icon"
-                            className={sourceReportClassNames.emptyIcon}
-                            data-sot-source-report-empty-icon
-                        >
+                    <SourceReportEmptySurface>
+                        <SourceReportEmptyIcon>
                             <FileText aria-hidden="true" />
-                        </EmptyMedia>
-                        <EmptyTitle
-                            className={sourceReportClassNames.emptyTitle}
-                            data-sot-source-report-empty-title
-                        >
+                        </SourceReportEmptyIcon>
+                        <SourceReportEmptyTitle>
                             这条录音没有关联来源
-                        </EmptyTitle>
-                        <EmptyDescription
-                            className={sourceReportClassNames.emptyDescription}
-                            data-sot-source-report-empty-description
-                        >
+                        </SourceReportEmptyTitle>
+                        <SourceReportEmptyDescription>
                             本地导入或离线录制的录音不会有来源详情。
-                        </EmptyDescription>
-                    </Empty>
+                        </SourceReportEmptyDescription>
+                    </SourceReportEmptySurface>
                 </SourceReportState>
             )}
-        </CardContent>
+        </SourceReportStateStack>
     );
 
     if (variant === "embedded") {
         return (
-            <Card
-                hasNoPadding
-                className={cn(
-                    sourceReportClassNames.pane,
-                    "min-h-0 overflow-hidden px-5 pt-4 pb-6",
-                    className,
-                )}
-                data-sot-source-report-pane
-                data-sot-panel="recording-source-report"
-                data-sot-state={sourceReportState}
-                data-sot-variant="embedded"
+            <SourceReportPane
+                className={className}
+                state={sourceReportState}
+                variant="embedded"
             >
                 {header}
                 {content}
-            </Card>
+            </SourceReportPane>
         );
     }
 
     return (
-        <Card
-            hasNoPadding
-            className={cn(
-                sourceReportClassNames.pane,
-                "min-h-0 overflow-hidden px-5 pt-4 pb-6",
-                className,
-            )}
-            data-sot-source-report-pane
-            data-sot-panel="recording-source-report"
-            data-sot-state={sourceReportState}
-            data-sot-variant="card"
+        <SourceReportPane
+            className={className}
+            state={sourceReportState}
+            variant="card"
         >
             {header}
             {content}
-        </Card>
+        </SourceReportPane>
     );
 }

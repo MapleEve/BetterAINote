@@ -8,7 +8,6 @@ import {
     ChevronDown,
     CircleAlert,
     CloudDownload,
-    Copy,
     EllipsisVertical,
     FileText,
     Globe2,
@@ -38,7 +37,7 @@ import {
 } from "react";
 import { toast } from "sonner";
 import { useLanguage } from "@/components/language-provider";
-import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import { Alert, AlertTitle } from "@/components/ui/alert";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
@@ -96,22 +95,35 @@ import { SettingsDialog } from "@/features/settings/components/settings-dialog";
 import { useDisplaySettingsStore } from "@/features/settings/display-settings-store";
 import { usePlaybackSettingsStore } from "@/features/settings/playback-settings-store";
 import {
+    SourceReportActionButton as SotSourceReportActionButton,
+    SourceReportActionRow as SotSourceReportActionRow,
     SourceReportCardSkeleton as SotSourceReportCardSkeleton,
+    SourceReportCopyButton as SotSourceReportCopyButton,
+    SourceReportCopyIcon as SotSourceReportCopyIcon,
+    SourceReportCopyLabel as SotSourceReportCopyLabel,
+    SourceReportEmptyDescription as SotSourceReportEmptyDescription,
+    SourceReportEmptyIcon as SotSourceReportEmptyMedia,
+    SourceReportEmptySurface as SotSourceReportEmptySurface,
+    SourceReportEmptyTitle as SotSourceReportEmptyTitle,
+    SourceReportMetaList as SotSourceReportMetaList,
     SourceReportMetaRow as SotSourceReportMetaRow,
     SourceReportMetricCard as SotSourceReportMetricCard,
     SourceReportMetricCards as SotSourceReportMetricCards,
     SourceReportMissingNotice as SotSourceReportMissingNotice,
+    SourceReportPane as SotSourceReportPane,
     SourceReportSection as SotSourceReportSection,
+    SourceReportSegment as SotSourceReportSegment,
     SourceReportSegmentSkeleton as SotSourceReportSegmentSkeleton,
+    SourceReportSegmentSkeletonBlock as SotSourceReportSegmentSkeletonBlock,
+    SourceReportSegments as SotSourceReportSegments,
+    SourceReportSourceIdentity as SotSourceReportSourceIdentity,
     DashboardSourceReportState as SotSourceReportState,
     SourceReportStatusBadge as SotSourceReportStatusBadge,
     DashboardSourceReportStatusDot as SotSourceReportStatusDot,
-} from "@/features/source-report/primitives";
-import {
+    SourceReportSummaryBody as SotSourceReportSummaryBody,
+    SourceReportSummaryLine as SotSourceReportSummaryLine,
     type SourceReportTone,
-    sourceReportClassNames,
-    sourceReportCopyButtonSize,
-} from "@/features/source-report/styles";
+} from "@/features/source-report/primitives";
 import { useAutoSync } from "@/hooks/use-auto-sync";
 import { useRecordingPlayback } from "@/hooks/use-recording-playback";
 import {
@@ -1203,46 +1215,6 @@ function sourceReportSyncTone(label: string): SourceReportTone {
     return "neu";
 }
 
-const SOT_DASHBOARD_DETAIL_HEADER_CLASS_NAME =
-    "relative flex flex-row items-center gap-2.5 px-1 pt-1 pb-0 data-[sot-state=saving]:py-0";
-
-const SOT_DASHBOARD_DETAIL_HEADER_TITLE_CLASS_NAME =
-    "m-0 min-w-0 flex-1 truncate font-display text-[22px] font-semibold leading-normal tracking-[-0.014em] text-foreground";
-
-const SOT_DASHBOARD_DETAIL_HEADER_TITLE_INPUT_CLASS_NAME =
-    "h-8 min-w-0 flex-1 px-3 py-1 text-base md:text-sm";
-
-const SOT_DASHBOARD_DETAIL_HEADER_BADGE_CLASS_NAME = "ml-1 shrink-0";
-const SOT_DASHBOARD_DETAIL_HEADER_ACTION_ANCHOR_CLASS_NAME =
-    "relative inline-flex items-center gap-1.5";
-const SOT_DASHBOARD_MORE_MENU_CONTENT_CLASS_NAME =
-    "!border-border !bg-popover !p-[6px] !text-popover-foreground !shadow-md";
-const SOT_DASHBOARD_MORE_MENU_ITEM_CLASS_NAME =
-    "!min-h-[32px] !cursor-pointer !gap-[10px] !px-[10px] !py-[6px] !text-left data-[disabled]:!cursor-not-allowed data-[disabled]:!bg-muted data-[disabled]:!text-muted-foreground";
-const SOT_DASHBOARD_MORE_MENU_SEPARATOR_CLASS_NAME = "!mx-[2px] !my-[4px]";
-const SOT_DASHBOARD_MORE_MENU_HINT_CLASS_NAME = "mr-[0.5px]";
-
-const SOT_DASHBOARD_TRANSCRIPT_LANGUAGE_BADGE_CLASS_NAME = "gap-1.5";
-const SOT_DASHBOARD_TRANSCRIPT_HEADER_CLASS_NAME =
-    "flex flex-row flex-wrap items-center gap-x-3 gap-y-1.5 border-b px-3.5 py-3";
-const SOT_DASHBOARD_TRANSCRIPT_SEGMENTED_TABS_CLASS_NAME = "shrink-0";
-const SOT_DASHBOARD_TRANSCRIPT_ACTIONS_CLASS_NAME =
-    "ml-auto inline-flex max-w-full flex-[0_1_auto] flex-wrap items-center gap-2";
-const SOT_DASHBOARD_TRANSCRIPT_BODY_BASE_CLASS_NAME =
-    "min-h-0 flex-1 overflow-y-auto px-5 pt-4 pb-5";
-
-const SOT_DASHBOARD_TRANSCRIPT_SHELL_CARD_CLASS_NAME =
-    "flex min-h-0 flex-1 flex-col gap-0 rounded-[16px] border border-border bg-card shadow-sm backdrop-blur-none";
-
-const SOT_DASHBOARD_RECORDING_PLAYER_CARD_CLASS_NAME =
-    "block min-h-[114px] gap-0 overflow-visible rounded-[16px] border border-border bg-card px-[18px] py-[16px] shadow-none backdrop-blur-none";
-
-const SOT_DASHBOARD_RECORDING_PLAYER_META_CLASS_NAME =
-    "mb-[12px] flex flex-row flex-wrap items-center gap-[10px] p-0";
-
-const SOT_DASHBOARD_RECORDING_PLAYER_DATE_CLASS_NAME =
-    "translate-y-px font-mono text-[11.5px] font-medium tracking-[0.02em] text-muted-foreground";
-
 function getSourceCopyState(
     sourceState: SourceReportViewState,
     available: boolean,
@@ -1320,10 +1292,7 @@ function getRecordingListStatus(
     };
 }
 
-const SOT_DASHBOARD_RECORDING_STATUS_BADGE_CLASS =
-    "h-[20px] justify-normal gap-[5px] overflow-visible rounded-[999px] border px-[8px] py-0 [font:600_11px_var(--font-sans)] tracking-[0.005em] shadow-none data-[sot-tone=ok]:border-primary/30 data-[sot-tone=ok]:bg-primary/10 data-[sot-tone=ok]:text-primary data-[sot-tone=warn]:border-border data-[sot-tone=warn]:bg-secondary data-[sot-tone=warn]:text-secondary-foreground data-[sot-tone=err]:border-destructive/30 data-[sot-tone=err]:bg-destructive/10 data-[sot-tone=err]:text-destructive data-[sot-tone=info]:border-primary/30 data-[sot-tone=info]:bg-primary/10 data-[sot-tone=info]:text-primary data-[sot-tone=neu]:border-border data-[sot-tone=neu]:bg-muted data-[sot-tone=neu]:text-muted-foreground [&_[data-sot-part=dashboard-recording-status-dot]]:size-[5px] [&_[data-sot-part=dashboard-recording-status-dot]]:rounded-full [&_[data-sot-part=dashboard-recording-status-dot]]:bg-current data-[sot-tone=neu]:[&_[data-sot-part=dashboard-recording-status-dot]]:bg-muted-foreground data-[sot-tone=warn]:[&_[data-sot-part=dashboard-recording-status-dot]]:animate-[bpulse_1.4s_ease-in-out_infinite]";
-
-function SotDashboardRecordingStatusBadge({
+function DashboardRecordingStatusBadge({
     className,
     label,
     tone,
@@ -1336,7 +1305,7 @@ function SotDashboardRecordingStatusBadge({
         <Badge
             variant="ghost"
             className={cn(
-                SOT_DASHBOARD_RECORDING_STATUS_BADGE_CLASS,
+                "h-5 justify-normal gap-[5px] overflow-visible rounded-full border px-2 py-0 [font:600_11px_var(--font-sans)] tracking-[0.005em] shadow-none data-[sot-tone=ok]:border-primary/30 data-[sot-tone=ok]:bg-primary/10 data-[sot-tone=ok]:text-primary data-[sot-tone=warn]:border-border data-[sot-tone=warn]:bg-secondary data-[sot-tone=warn]:text-secondary-foreground data-[sot-tone=err]:border-destructive/30 data-[sot-tone=err]:bg-destructive/10 data-[sot-tone=err]:text-destructive data-[sot-tone=info]:border-primary/30 data-[sot-tone=info]:bg-primary/10 data-[sot-tone=info]:text-primary data-[sot-tone=neu]:border-border data-[sot-tone=neu]:bg-muted data-[sot-tone=neu]:text-muted-foreground [&_[data-sot-part=dashboard-recording-status-dot]]:size-[5px] [&_[data-sot-part=dashboard-recording-status-dot]]:rounded-full [&_[data-sot-part=dashboard-recording-status-dot]]:bg-current data-[sot-tone=neu]:[&_[data-sot-part=dashboard-recording-status-dot]]:bg-muted-foreground data-[sot-tone=warn]:[&_[data-sot-part=dashboard-recording-status-dot]]:animate-[bpulse_1.4s_ease-in-out_infinite]",
                 className,
             )}
             data-sot-part="dashboard-recording-status"
@@ -1565,19 +1534,6 @@ function RetxCloseIcon() {
             className={DASHBOARD_RETRANSCRIPTION_CLOSE_ICON_CLASS_NAME}
             aria-hidden="true"
             focusable="false"
-        />
-    );
-}
-
-function SotCopyIcon({ state }: { state?: "err" | "ok" }) {
-    const Icon = state === "ok" ? Check : Copy;
-
-    return (
-        <Icon
-            className={sourceReportClassNames.copyIcon}
-            data-icon="inline-start"
-            data-sot-part="dashboard-copy-icon"
-            aria-hidden="true"
         />
     );
 }
@@ -6667,7 +6623,7 @@ export function Workstation({
                                                                             }
                                                                             data-sot-part="dashboard-recording-row-actions"
                                                                         >
-                                                                            <SotDashboardRecordingStatusBadge
+                                                                            <DashboardRecordingStatusBadge
                                                                                 label={
                                                                                     rowStatus.label
                                                                                 }
@@ -6962,7 +6918,7 @@ export function Workstation({
                         data-empty={selectedRecording ? "false" : "true"}
                     >
                         <CardHeader
-                            className={SOT_DASHBOARD_DETAIL_HEADER_CLASS_NAME}
+                            className="relative flex flex-row items-center gap-2.5 px-1 pt-1 pb-0 data-[rename-mode=saving]:py-0"
                             data-sot-panel="dashboard-detail-header"
                             data-sot-mode={dashboardDetailHeaderMode}
                             data-sot-state={dashboardDetailHeaderState}
@@ -6973,9 +6929,7 @@ export function Workstation({
                         >
                             {dashboardDetailHeaderState === "normal" ? (
                                 <CardTitle
-                                    className={
-                                        SOT_DASHBOARD_DETAIL_HEADER_TITLE_CLASS_NAME
-                                    }
+                                    className="m-0 min-w-0 flex-1 truncate font-display text-[22px] font-semibold leading-normal tracking-[-0.014em] text-foreground"
                                     data-sot-part="detail-header-title"
                                     data-rh-title
                                     role="heading"
@@ -6989,9 +6943,7 @@ export function Workstation({
                             localDeleteAvailable ? (
                                 <Badge
                                     variant="outline"
-                                    className={
-                                        SOT_DASHBOARD_DETAIL_HEADER_BADGE_CLASS_NAME
-                                    }
+                                    className="ml-1 shrink-0"
                                     data-sot-part="detail-header-local-badge"
                                     data-rh-local
                                     aria-label="仅存在本地副本"
@@ -7002,9 +6954,7 @@ export function Workstation({
                             {dashboardDetailHeaderState === "editing" ? (
                                 <Input
                                     type="text"
-                                    className={
-                                        SOT_DASHBOARD_DETAIL_HEADER_TITLE_INPUT_CLASS_NAME
-                                    }
+                                    className="h-8 min-w-0 flex-1 px-3 py-1 text-base md:text-sm"
                                     data-rh-input
                                     data-sot-part="detail-header-title-input"
                                     data-sot-state="editing"
@@ -7031,9 +6981,7 @@ export function Workstation({
                             {dashboardDetailHeaderState === "saving" ? (
                                 <Badge
                                     variant="ghost"
-                                    className={
-                                        SOT_DASHBOARD_DETAIL_HEADER_BADGE_CLASS_NAME
-                                    }
+                                    className="ml-1 shrink-0"
                                     data-sot-part="detail-header-title-status"
                                     data-sot-state="saving"
                                     data-rh-status
@@ -7065,9 +7013,7 @@ export function Workstation({
                             ) : null}
                             {dashboardDetailHeaderState === "normal" ? (
                                 <div
-                                    className={
-                                        SOT_DASHBOARD_DETAIL_HEADER_ACTION_ANCHOR_CLASS_NAME
-                                    }
+                                    className="relative inline-flex items-center gap-1.5"
                                     data-rh-ai-anchor
                                     data-sot-part="detail-header-action-anchor"
                                     data-sot-mode="normal"
@@ -7192,9 +7138,7 @@ export function Workstation({
                             ) : null}
                             {dashboardDetailHeaderState === "normal" ? (
                                 <div
-                                    className={
-                                        SOT_DASHBOARD_DETAIL_HEADER_ACTION_ANCHOR_CLASS_NAME
-                                    }
+                                    className="relative inline-flex items-center gap-1.5"
                                     data-sot-part="detail-header-action-anchor"
                                     data-sot-mode="normal"
                                 >
@@ -7233,9 +7177,6 @@ export function Workstation({
                                             align="end"
                                             sideOffset={6}
                                             variant="glass"
-                                            className={
-                                                SOT_DASHBOARD_MORE_MENU_CONTENT_CLASS_NAME
-                                            }
                                             data-sot-menu="recording-more-actions"
                                             data-open="true"
                                             data-sot-local-delete-available={
@@ -7249,9 +7190,6 @@ export function Workstation({
                                             <DropdownMenuGroup>
                                                 <DropdownMenuItem
                                                     density="compact"
-                                                    className={
-                                                        SOT_DASHBOARD_MORE_MENU_ITEM_CLASS_NAME
-                                                    }
                                                     data-sot-menu-item="rename"
                                                     disabled={
                                                         !selectedRecording
@@ -7278,9 +7216,6 @@ export function Workstation({
                                                 </DropdownMenuItem>
                                                 <DropdownMenuItem
                                                     density="compact"
-                                                    className={
-                                                        SOT_DASHBOARD_MORE_MENU_ITEM_CLASS_NAME
-                                                    }
                                                     data-sot-menu-item="ai-rename"
                                                     disabled={
                                                         !selectedRecording
@@ -7302,9 +7237,6 @@ export function Workstation({
                                                 {moreActionsShowRetranscribe ? (
                                                     <DropdownMenuItem
                                                         density="compact"
-                                                        className={
-                                                            SOT_DASHBOARD_MORE_MENU_ITEM_CLASS_NAME
-                                                        }
                                                         data-sot-menu-item="retranscribe"
                                                         disabled={
                                                             !selectedRecording
@@ -7327,17 +7259,11 @@ export function Workstation({
                                                 {moreActionsShowSeparator ? (
                                                     <DropdownMenuSeparator
                                                         density="compact"
-                                                        className={
-                                                            SOT_DASHBOARD_MORE_MENU_SEPARATOR_CLASS_NAME
-                                                        }
                                                         data-sot-menu-separator="delete"
                                                     />
                                                 ) : null}
                                                 <DropdownMenuItem
                                                     density="compact"
-                                                    className={
-                                                        SOT_DASHBOARD_MORE_MENU_ITEM_CLASS_NAME
-                                                    }
                                                     variant="destructive"
                                                     data-sot-menu-item="delete-local"
                                                     data-sot-tone="danger"
@@ -7365,7 +7291,7 @@ export function Workstation({
                                                             className={
                                                                 localDeleteAvailable
                                                                     ? undefined
-                                                                    : SOT_DASHBOARD_MORE_MENU_HINT_CLASS_NAME
+                                                                    : "mr-[0.5px]"
                                                             }
                                                             data-sot-menu-hint=""
                                                         >
@@ -7384,9 +7310,7 @@ export function Workstation({
 
                         <Card
                             hasNoPadding
-                            className={
-                                SOT_DASHBOARD_RECORDING_PLAYER_CARD_CLASS_NAME
-                            }
+                            className="block min-h-[114px] gap-0 overflow-visible rounded-2xl px-[18px] py-4 shadow-none backdrop-blur-none"
                             data-no-audio={
                                 playbackDisabled ? "true" : undefined
                             }
@@ -7405,15 +7329,11 @@ export function Workstation({
                                 playbackDisabled={playbackDisabled}
                             />
                             <CardHeader
-                                className={
-                                    SOT_DASHBOARD_RECORDING_PLAYER_META_CLASS_NAME
-                                }
+                                className="mb-3 flex flex-row flex-wrap items-center gap-2.5 p-0"
                                 data-sot-part="dashboard-recording-player-meta"
                             >
                                 <span
-                                    className={
-                                        SOT_DASHBOARD_RECORDING_PLAYER_DATE_CLASS_NAME
-                                    }
+                                    className="translate-y-px font-mono text-[11.5px] font-medium tracking-[0.02em] text-muted-foreground"
                                     data-sot-part="dashboard-recording-player-date"
                                     suppressHydrationWarning
                                 >
@@ -7495,24 +7415,18 @@ export function Workstation({
 
                         <Card
                             hasNoPadding
-                            className={
-                                SOT_DASHBOARD_TRANSCRIPT_SHELL_CARD_CLASS_NAME
-                            }
+                            className="min-h-0 flex-1 gap-0 rounded-2xl backdrop-blur-none"
                             data-sot-panel="dashboard-transcript-shell"
                         >
                             <CardHeader
-                                className={
-                                    SOT_DASHBOARD_TRANSCRIPT_HEADER_CLASS_NAME
-                                }
+                                className="flex flex-row flex-wrap items-center gap-x-3 gap-y-1.5 border-b px-3.5 py-3"
                                 data-sot-part="dashboard-transcript-header"
                             >
                                 <SegmentedTabs
                                     aria-label="详情标签"
                                     variant="segmented"
                                     size="segmentedSm"
-                                    className={
-                                        SOT_DASHBOARD_TRANSCRIPT_SEGMENTED_TABS_CLASS_NAME
-                                    }
+                                    className="shrink-0"
                                     data-sot-control="segmented-tabs"
                                     data-sot-size="sm"
                                     getItemProps={getSotSegmentedTabProps}
@@ -7536,18 +7450,14 @@ export function Workstation({
                                     }}
                                 />
                                 <div
-                                    className={
-                                        SOT_DASHBOARD_TRANSCRIPT_ACTIONS_CLASS_NAME
-                                    }
+                                    className="ml-auto inline-flex max-w-full flex-[0_1_auto] flex-wrap items-center gap-2"
                                     data-sot-part="dashboard-transcript-actions"
                                 >
                                     {detailTab === "transcript" &&
                                     selectedTranscription?.language ? (
                                         <Badge
                                             variant="outline"
-                                            className={
-                                                SOT_DASHBOARD_TRANSCRIPT_LANGUAGE_BADGE_CLASS_NAME
-                                            }
+                                            className="gap-1.5"
                                             data-sot-part="dashboard-transcript-language"
                                         >
                                             <Globe2 data-icon="inline-start" />
@@ -7599,7 +7509,8 @@ export function Workstation({
                                             void handleCopyLocalTranscript()
                                         }
                                     >
-                                        <SotCopyIcon
+                                        <SotSourceReportCopyIcon
+                                            part="dashboard-copy-icon"
                                             state={
                                                 copyFeedback?.action ===
                                                 "local-transcript"
@@ -7607,12 +7518,7 @@ export function Workstation({
                                                     : undefined
                                             }
                                         />
-                                        <span
-                                            className={
-                                                sourceReportClassNames.copyLabel
-                                            }
-                                            data-sot-part="dashboard-copy-label"
-                                        >
+                                        <SotSourceReportCopyLabel part="dashboard-copy-label">
                                             {copyFeedback?.action ===
                                             "local-transcript"
                                                 ? copyFeedback.state === "ok"
@@ -7623,27 +7529,18 @@ export function Workstation({
                                                 : t(
                                                       "transcription.copyTranscript",
                                                   )}
-                                        </span>
+                                        </SotSourceReportCopyLabel>
                                     </Button>
-                                    <Button
-                                        variant="ghost"
-                                        size={sourceReportCopyButtonSize}
-                                        className={
-                                            sourceReportClassNames.copyButton
-                                        }
+                                    <SotSourceReportCopyButton
                                         type="button"
-                                        data-copy="source-transcript"
-                                        data-copy-state={
+                                        copy="source-transcript"
+                                        copyState={sourceTranscriptCopyState}
+                                        feedbackState={
                                             copyFeedback?.action ===
                                             "source-transcript"
                                                 ? copyFeedback.state
                                                 : undefined
                                         }
-                                        data-sot-control="copy-source-transcript"
-                                        data-sot-state={
-                                            sourceTranscriptCopyState
-                                        }
-                                        data-tab-scope="source-report"
                                         aria-busy={
                                             copyingAction ===
                                             "source-transcript"
@@ -7670,7 +7567,8 @@ export function Workstation({
                                             )
                                         }
                                     >
-                                        <SotCopyIcon
+                                        <SotSourceReportCopyIcon
+                                            part="dashboard-copy-icon"
                                             state={
                                                 copyFeedback?.action ===
                                                 "source-transcript"
@@ -7678,12 +7576,7 @@ export function Workstation({
                                                     : undefined
                                             }
                                         />
-                                        <span
-                                            className={
-                                                sourceReportClassNames.copyLabel
-                                            }
-                                            data-sot-part="dashboard-copy-label"
-                                        >
+                                        <SotSourceReportCopyLabel part="dashboard-copy-label">
                                             {copyFeedback?.action ===
                                             "source-transcript"
                                                 ? copyFeedback.state === "ok"
@@ -7694,25 +7587,18 @@ export function Workstation({
                                                 : t(
                                                       "sourceReport.copySourceTranscript",
                                                   )}
-                                        </span>
-                                    </Button>
-                                    <Button
-                                        variant="ghost"
-                                        size={sourceReportCopyButtonSize}
-                                        className={
-                                            sourceReportClassNames.copyButton
-                                        }
+                                        </SotSourceReportCopyLabel>
+                                    </SotSourceReportCopyButton>
+                                    <SotSourceReportCopyButton
                                         type="button"
-                                        data-copy="source-report"
-                                        data-copy-state={
+                                        copy="source-report"
+                                        copyState={sourceReportCopyState}
+                                        feedbackState={
                                             copyFeedback?.action ===
                                             "source-report"
                                                 ? copyFeedback.state
                                                 : undefined
                                         }
-                                        data-sot-control="copy-source-report"
-                                        data-sot-state={sourceReportCopyState}
-                                        data-tab-scope="source-report"
                                         aria-busy={
                                             copyingAction === "source-report"
                                         }
@@ -7738,7 +7624,8 @@ export function Workstation({
                                             )
                                         }
                                     >
-                                        <SotCopyIcon
+                                        <SotSourceReportCopyIcon
+                                            part="dashboard-copy-icon"
                                             state={
                                                 copyFeedback?.action ===
                                                 "source-report"
@@ -7746,12 +7633,7 @@ export function Workstation({
                                                     : undefined
                                             }
                                         />
-                                        <span
-                                            className={
-                                                sourceReportClassNames.copyLabel
-                                            }
-                                            data-sot-part="dashboard-copy-label"
-                                        >
+                                        <SotSourceReportCopyLabel part="dashboard-copy-label">
                                             {copyFeedback?.action ===
                                             "source-report"
                                                 ? copyFeedback.state === "ok"
@@ -7762,18 +7644,14 @@ export function Workstation({
                                                 : t(
                                                       "sourceReport.copySourceReport",
                                                   )}
-                                        </span>
-                                    </Button>
+                                        </SotSourceReportCopyLabel>
+                                    </SotSourceReportCopyButton>
                                     {detailTab === "source" ? (
-                                        <Button
-                                            variant="outline"
-                                            size="xs"
-                                            className={
-                                                sourceReportClassNames.actionButton
-                                            }
+                                        <SotSourceReportActionButton
+                                            intent="outline"
                                             type="button"
-                                            data-sot-control="refresh-source-report"
-                                            data-sot-state={sourceReportState}
+                                            control="refresh-source-report"
+                                            state={sourceReportState}
                                             disabled={
                                                 sourceReportState === "loading"
                                             }
@@ -7787,7 +7665,7 @@ export function Workstation({
                                                       "sourceReport.loadingDetail",
                                                   )
                                                 : t("sourceReport.refresh")}
-                                        </Button>
+                                        </SotSourceReportActionButton>
                                     ) : null}
                                     <span
                                         data-sot-part="dashboard-retranscription-disabled-hint"
@@ -7834,7 +7712,7 @@ export function Workstation({
                             </CardHeader>
                             <CardContent
                                 className={cn(
-                                    SOT_DASHBOARD_TRANSCRIPT_BODY_BASE_CLASS_NAME,
+                                    "min-h-0 flex-1 overflow-y-auto px-5 pt-4 pb-5",
                                     dashboardScrollbarClassName,
                                     dashboardRetranscriptionThemeClassName,
                                 )}
@@ -8150,16 +8028,10 @@ export function Workstation({
                                         </Empty>
                                     )}
                                 </div>
-                                <div
-                                    className={cn(
-                                        sourceReportClassNames.pane,
-                                        dashboardTabPaneHiddenClassName,
-                                    )}
-                                    data-sot-source-report-pane
-                                    data-sot-panel="dashboard-source-report"
-                                    data-sot-tab-pane="source-report"
-                                    data-sot-state={sourceReportVisualState}
-                                    data-tab-pane="source-report"
+                                <SotSourceReportPane
+                                    surface="dashboard"
+                                    className={dashboardTabPaneHiddenClassName}
+                                    state={sourceReportVisualState}
                                     hidden={detailTab !== "source"}
                                 >
                                     {sourceReportState === "loading" ? (
@@ -8207,30 +8079,18 @@ export function Workstation({
                                                     </>
                                                 }
                                             >
-                                                <div
-                                                    className={
-                                                        sourceReportClassNames.segmentSkeletonContainer
-                                                    }
-                                                    data-sot-source-report-segment
-                                                    data-sot-state="skeleton"
-                                                >
+                                                <SotSourceReportSegmentSkeletonBlock>
                                                     <SotSourceReportSegmentSkeleton size="time" />
                                                     <SotSourceReportSegmentSkeleton size="speaker" />
                                                     <SotSourceReportSegmentSkeleton size="line-long" />
                                                     <SotSourceReportSegmentSkeleton size="line-medium" />
-                                                </div>
-                                                <div
-                                                    className={
-                                                        sourceReportClassNames.segmentSkeletonContainer
-                                                    }
-                                                    data-sot-source-report-segment
-                                                    data-sot-state="skeleton"
-                                                >
+                                                </SotSourceReportSegmentSkeletonBlock>
+                                                <SotSourceReportSegmentSkeletonBlock>
                                                     <SotSourceReportSegmentSkeleton size="time" />
                                                     <SotSourceReportSegmentSkeleton size="speaker" />
                                                     <SotSourceReportSegmentSkeleton size="line-wide" />
                                                     <SotSourceReportSegmentSkeleton size="line-short" />
-                                                </div>
+                                                </SotSourceReportSegmentSkeletonBlock>
                                             </SotSourceReportSection>
                                         </SotSourceReportState>
                                     ) : sourceReportState === "error" ? (
@@ -8240,74 +8100,42 @@ export function Workstation({
                                                 sourceReportError || undefined
                                             }
                                         >
-                                            <Alert
-                                                variant="statusError"
-                                                className={cn(
-                                                    sourceReportClassNames.errorAlert,
-                                                    sourceReportClassNames.emptySurface,
-                                                )}
-                                                data-sot-source-report-empty
-                                                data-sot-tone="err"
+                                            <SotSourceReportEmptySurface
+                                                kind="alert"
+                                                tone="danger"
                                             >
-                                                <div
-                                                    className={cn(
-                                                        sourceReportClassNames.emptyIcon,
-                                                        sourceReportClassNames.emptyErrorIcon,
-                                                    )}
-                                                    data-sot-source-report-empty-icon
-                                                    aria-hidden="true"
-                                                >
+                                                <SotSourceReportEmptyMedia tone="danger">
                                                     <SotSourceReportErrorIcon />
-                                                </div>
-                                                <AlertTitle
-                                                    className={
-                                                        sourceReportClassNames.emptyTitle
-                                                    }
-                                                    data-sot-source-report-empty-title
-                                                >
+                                                </SotSourceReportEmptyMedia>
+                                                <SotSourceReportEmptyTitle kind="alert">
                                                     无法读取来源详情
-                                                </AlertTitle>
-                                                <AlertDescription
-                                                    className={
-                                                        sourceReportClassNames.emptyDescription
-                                                    }
-                                                    data-sot-source-report-empty-description
-                                                >
+                                                </SotSourceReportEmptyTitle>
+                                                <SotSourceReportEmptyDescription kind="alert">
                                                     {
                                                         sourceReportProviderSentenceName
                                                     }
                                                     返回了一个错误，可能是网络抖动或来源临时不可用。
-                                                </AlertDescription>
-                                                <div
-                                                    className={
-                                                        sourceReportClassNames.emptyActionRow
-                                                    }
-                                                    data-sot-source-report-empty-actions
+                                                </SotSourceReportEmptyDescription>
+                                                <SotSourceReportActionRow
+                                                    purpose="empty"
+                                                    align="center"
                                                 >
-                                                    <Button
-                                                        variant="default"
-                                                        size="xs"
-                                                        className={
-                                                            sourceReportClassNames.primaryActionButton
-                                                        }
+                                                    <SotSourceReportActionButton
+                                                        intent="primary"
                                                         type="button"
-                                                        data-sot-control="refresh-source-report"
-                                                        data-sot-state="error"
+                                                        control="refresh-source-report"
+                                                        state="error"
                                                         onClick={() =>
                                                             void loadSourceReport()
                                                         }
                                                     >
                                                         重试
-                                                    </Button>
-                                                    <Button
-                                                        variant="ghost"
-                                                        size="xs"
-                                                        className={
-                                                            sourceReportClassNames.ghostActionButton
-                                                        }
+                                                    </SotSourceReportActionButton>
+                                                    <SotSourceReportActionButton
+                                                        intent="ghost"
                                                         type="button"
-                                                        data-sot-control="source-report-activity-log"
-                                                        data-sot-state="error"
+                                                        control="source-report-activity-log"
+                                                        state="error"
                                                         onClick={() => {
                                                             setSearchOpen(
                                                                 false,
@@ -8321,9 +8149,9 @@ export function Workstation({
                                                         }}
                                                     >
                                                         查看同步日志
-                                                    </Button>
-                                                </div>
-                                            </Alert>
+                                                    </SotSourceReportActionButton>
+                                                </SotSourceReportActionRow>
+                                            </SotSourceReportEmptySurface>
                                         </SotSourceReportState>
                                     ) : sourceReportData ? (
                                         <SotSourceReportState
@@ -8346,34 +8174,17 @@ export function Workstation({
                                                     metric="source"
                                                     value="source"
                                                 >
-                                                    {sourceReportProviderDefinition?.icon ? (
-                                                        // biome-ignore lint/performance/noImgElement: SOT source cards render provider asset nodes directly.
-                                                        <img
-                                                            className={
-                                                                sourceReportClassNames.cardSourceIcon
-                                                            }
-                                                            src={
-                                                                sourceReportProviderDefinition.icon
-                                                            }
-                                                            alt=""
-                                                        />
-                                                    ) : (
-                                                        <span
-                                                            className={
-                                                                sourceReportClassNames.cardSourceFallback
-                                                            }
-                                                            data-sot-part="source-report-card-source-fallback"
-                                                        >
-                                                            {sourceReportProviderName.charAt(
-                                                                0,
-                                                            )}
-                                                        </span>
-                                                    )}
-                                                    <span>
-                                                        {
+                                                    <SotSourceReportSourceIdentity
+                                                        fallback={sourceReportProviderName.charAt(
+                                                            0,
+                                                        )}
+                                                        icon={
+                                                            sourceReportProviderDefinition?.icon
+                                                        }
+                                                        label={
                                                             sourceReportProviderName
                                                         }
-                                                    </span>
+                                                    />
                                                 </SotSourceReportMetricCard>
                                                 <SotSourceReportMetricCard
                                                     label="转写状态"
@@ -8444,22 +8255,14 @@ export function Workstation({
                                                     </>
                                                 }
                                             >
-                                                <ol
-                                                    className={
-                                                        sourceReportClassNames.segments
-                                                    }
-                                                    data-sot-source-report-segments
+                                                <SotSourceReportSegments
                                                     hidden={
                                                         !sourceTranscriptAvailable
                                                     }
                                                 >
                                                     {sourceReportDisplaySegments.map(
                                                         (segment, index) => (
-                                                            <li
-                                                                className={
-                                                                    sourceReportClassNames.segment
-                                                                }
-                                                                data-sot-source-report-segment
+                                                            <SotSourceReportSegment
                                                                 key={[
                                                                     selectedRecordingId,
                                                                     "source",
@@ -8469,15 +8272,8 @@ export function Workstation({
                                                                     segment.text,
                                                                     index,
                                                                 ].join(":")}
-                                                            >
-                                                                <span
-                                                                    className={
-                                                                        sourceReportClassNames.segmentTime
-                                                                    }
-                                                                    data-sot-source-report-segment-time
-                                                                    data-sot-format="mono"
-                                                                >
-                                                                    {[
+                                                                time={
+                                                                    [
                                                                         formatSourceReportTimestamp(
                                                                             segment.startMs,
                                                                         ),
@@ -8491,31 +8287,18 @@ export function Workstation({
                                                                         .join(
                                                                             " – ",
                                                                         ) ||
-                                                                        "--"}
-                                                                </span>
-                                                                <span
-                                                                    className={
-                                                                        sourceReportClassNames.segmentSpeaker
-                                                                    }
-                                                                    data-sot-source-report-segment-speaker
-                                                                >
-                                                                    {segment.speaker ||
-                                                                        `说话人 ${index + 1}`}
-                                                                </span>
-                                                                <p
-                                                                    className={
-                                                                        sourceReportClassNames.segmentText
-                                                                    }
-                                                                    data-sot-source-report-segment-text
-                                                                >
-                                                                    {
-                                                                        segment.text
-                                                                    }
-                                                                </p>
-                                                            </li>
+                                                                    "--"
+                                                                }
+                                                                speaker={
+                                                                    segment.speaker ||
+                                                                    `说话人 ${index + 1}`
+                                                                }
+                                                            >
+                                                                {segment.text}
+                                                            </SotSourceReportSegment>
                                                         ),
                                                     )}
-                                                </ol>
+                                                </SotSourceReportSegments>
                                             </SotSourceReportSection>
 
                                             {sourceSummaryLines.length > 0 ? (
@@ -8532,26 +8315,17 @@ export function Workstation({
                                                         </>
                                                     }
                                                 >
-                                                    <div
-                                                        className={
-                                                            sourceReportClassNames.summaryBody
-                                                        }
-                                                        data-sot-source-report-summary-body
-                                                    >
+                                                    <SotSourceReportSummaryBody>
                                                         {sourceSummaryLines.map(
                                                             (line, index) => (
-                                                                <p
+                                                                <SotSourceReportSummaryLine
                                                                     key={`${index}:${line}`}
-                                                                    className={
-                                                                        sourceReportClassNames.summaryText
-                                                                    }
-                                                                    data-sot-source-report-segment-text
                                                                 >
                                                                     {line}
-                                                                </p>
+                                                                </SotSourceReportSummaryLine>
                                                             ),
                                                         )}
-                                                    </div>
+                                                    </SotSourceReportSummaryBody>
                                                 </SotSourceReportSection>
                                             ) : null}
 
@@ -8575,11 +8349,11 @@ export function Workstation({
                                                     </>
                                                 }
                                             >
-                                                <dl
-                                                    className={
-                                                        sourceReportClassNames.meta
+                                                <SotSourceReportMetaList
+                                                    surface="dashboard"
+                                                    subState={
+                                                        sourceReportSubState
                                                     }
-                                                    data-sot-source-report-meta
                                                 >
                                                     <SotSourceReportMetaRow label="来源">
                                                         {
@@ -8633,19 +8407,10 @@ export function Workstation({
                                                               )
                                                             : "--"}
                                                     </SotSourceReportMetaRow>
-                                                </dl>
-                                                <div
-                                                    className={
-                                                        sourceReportClassNames.actionRow
-                                                    }
-                                                    data-sot-source-report-actions
-                                                >
-                                                    <Button
-                                                        variant="ghost"
-                                                        size="xs"
-                                                        className={
-                                                            sourceReportClassNames.ghostActionButton
-                                                        }
+                                                </SotSourceReportMetaList>
+                                                <SotSourceReportActionRow>
+                                                    <SotSourceReportActionButton
+                                                        intent="ghost"
                                                         type="button"
                                                         disabled={
                                                             !sourceOpenUrl
@@ -8657,8 +8422,8 @@ export function Workstation({
                                                                       "sourceReport.openSourceUnavailable",
                                                                   )
                                                         }
-                                                        data-sot-control="open-source-record"
-                                                        data-sot-state={
+                                                        control="open-source-record"
+                                                        state={
                                                             sourceOpenControlState
                                                         }
                                                         onClick={
@@ -8670,13 +8435,9 @@ export function Workstation({
                                                                 selectedRecording?.sourceProvider,
                                                             language,
                                                         )}
-                                                    </Button>
-                                                    <Button
-                                                        variant="ghost"
-                                                        size="xs"
-                                                        className={
-                                                            sourceReportClassNames.ghostActionButton
-                                                        }
+                                                    </SotSourceReportActionButton>
+                                                    <SotSourceReportActionButton
+                                                        intent="ghost"
                                                         type="button"
                                                         disabled={
                                                             sourceRepullDisabled
@@ -8692,8 +8453,8 @@ export function Workstation({
                                                                       "sourceReport.repullUnavailable",
                                                                   )
                                                         }
-                                                        data-sot-control="repull-source"
-                                                        data-sot-state={
+                                                        control="repull-source"
+                                                        state={
                                                             sourceRepullControlState
                                                         }
                                                         onClick={() =>
@@ -8708,49 +8469,26 @@ export function Workstation({
                                                             : t(
                                                                   "sourceReport.repullSource",
                                                               )}
-                                                    </Button>
-                                                </div>
+                                                    </SotSourceReportActionButton>
+                                                </SotSourceReportActionRow>
                                             </SotSourceReportSection>
                                         </SotSourceReportState>
                                     ) : (
                                         <SotSourceReportState state="empty">
-                                            <Card
-                                                hasNoPadding
-                                                className={
-                                                    sourceReportClassNames.emptySurface
-                                                }
-                                                data-sot-source-report-empty
-                                                data-sot-tone="neutral"
-                                            >
-                                                <div
-                                                    className={
-                                                        sourceReportClassNames.emptyIcon
-                                                    }
-                                                    data-sot-source-report-empty-icon
-                                                    aria-hidden="true"
-                                                >
+                                            <SotSourceReportEmptySurface>
+                                                <SotSourceReportEmptyMedia>
                                                     <SotSourceReportEmptyIcon />
-                                                </div>
-                                                <div
-                                                    className={
-                                                        sourceReportClassNames.emptyTitle
-                                                    }
-                                                    data-sot-source-report-empty-title
-                                                >
+                                                </SotSourceReportEmptyMedia>
+                                                <SotSourceReportEmptyTitle>
                                                     这条录音没有关联来源
-                                                </div>
-                                                <div
-                                                    className={
-                                                        sourceReportClassNames.emptyDescription
-                                                    }
-                                                    data-sot-source-report-empty-description
-                                                >
+                                                </SotSourceReportEmptyTitle>
+                                                <SotSourceReportEmptyDescription>
                                                     本地导入或离线录制的录音不会有来源详情。
-                                                </div>
-                                            </Card>
+                                                </SotSourceReportEmptyDescription>
+                                            </SotSourceReportEmptySurface>
                                         </SotSourceReportState>
                                     )}
-                                </div>
+                                </SotSourceReportPane>
                                 <div
                                     className={dashboardTabPaneHiddenClassName}
                                     data-sot-panel="dashboard-speakers-pane"

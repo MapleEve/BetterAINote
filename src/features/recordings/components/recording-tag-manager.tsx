@@ -961,7 +961,7 @@ export function RecordingTagManager({
                     type="button"
                     variant="ghost"
                     size="xs"
-                    className="btn ghost btn-sm shrink-0"
+                    className="shrink-0"
                     data-sot-control="recording-tag-delete-cancel"
                     disabled={Boolean(deletingTagId)}
                     onClick={() => {
@@ -975,7 +975,7 @@ export function RecordingTagManager({
                     type="button"
                     variant="destructive"
                     size="xs"
-                    className="btn danger btn-sm shrink-0"
+                    className="shrink-0"
                     data-sot-control="recording-tag-delete-confirm"
                     data-sot-state={
                         deletingTagId === deleteTarget.id ? "saving" : "idle"
