@@ -28,9 +28,7 @@ type SourceReportStatusDotPart =
     | "dashboard-source-report-status-dot"
     | "source-report-status-dot";
 
-function sourceReportStatusBadgeVariant(tone: SourceReportTone) {
-    if (tone === "err") return "destructive";
-    if (tone === "ok") return "secondary";
+function sourceReportStatusBadgeVariant(_tone: SourceReportTone): "outline" {
     return "outline";
 }
 

@@ -135,7 +135,7 @@ const DASHBOARD_SIDEBAR_OWNER_FORBIDDEN_CLASS_PATTERN =
 const DASHBOARD_SIDEBAR_VISUAL_GLOBAL_DECLARATION_RE =
     /^\s*(?:-webkit-backdrop-filter|backdrop-filter|background|border(?:-(?:color|radius|right|style|width))?|box-shadow|display|flex-direction|padding|position)\s*:/m;
 const EXPECTED_SOURCE_REPORT_STATUS_BADGE_CLASS_NAME =
-    "h-[22px] justify-normal gap-[5px] overflow-visible px-[8px] py-0 font-sans text-[11px] font-semibold leading-normal shadow-none transition-none data-[sot-tone=err]:border-destructive/30 data-[sot-tone=err]:bg-destructive/10 data-[sot-tone=err]:text-destructive data-[sot-tone=neu]:border-border data-[sot-tone=neu]:bg-muted data-[sot-tone=neu]:text-muted-foreground data-[sot-tone=ok]:border-primary/30 data-[sot-tone=ok]:bg-primary/10 data-[sot-tone=ok]:text-primary data-[sot-tone=warn]:border-secondary data-[sot-tone=warn]:bg-secondary data-[sot-tone=warn]:text-secondary-foreground";
+    "h-[22px] justify-normal gap-[5px] overflow-visible px-[8px] py-0 font-sans text-[11px] font-semibold leading-[normal] shadow-none transition-none data-[sot-tone=err]:border-[var(--alert-destructive-soft-border)] data-[sot-tone=err]:bg-[var(--alert-destructive-soft-bg)] data-[sot-tone=err]:text-[var(--signal-danger)] data-[sot-tone=neu]:border-[var(--line-hairline)] data-[sot-tone=neu]:bg-[var(--bg-recessed)] data-[sot-tone=neu]:text-[var(--fg-secondary)] data-[sot-tone=ok]:border-[color-mix(in_srgb,var(--signal-success)_36%,transparent)] data-[sot-tone=ok]:bg-[color-mix(in_srgb,var(--signal-success)_10%,transparent)] data-[sot-tone=ok]:text-[var(--signal-success)] data-[sot-tone=warn]:border-[var(--alert-warning-soft-strong-border)] data-[sot-tone=warn]:bg-[var(--alert-warning-soft-strong-bg)] data-[sot-tone=warn]:text-[var(--signal-warning)]";
 const EXPECTED_DASHBOARD_RECORDING_PLAYER_CARD_CLASS_NAME =
     "block min-h-[114px] gap-0 overflow-visible rounded-[16px] border border-border bg-card px-[18px] py-[16px] shadow-none backdrop-blur-none";
 const DASHBOARD_RECORDING_PLAYER_WORKSTATION_CLASS_INITIALIZERS = [
@@ -1322,7 +1322,7 @@ const SOURCE_REPORT_SKELETON_SHARED_TOKENS = [
 ] as const;
 
 const EXPECTED_SOURCE_REPORT_METRIC_CARD_CLASS_NAME =
-    "gap-[6px] overflow-visible rounded-[10px] border-border bg-muted px-[12px] py-[10px] shadow-none backdrop-blur-none";
+    "gap-[6px] overflow-visible rounded-[10px] border-[var(--card-elevated-border)] bg-[var(--card-elevated-bg)] px-[12px] py-[10px] shadow-none backdrop-blur-none";
 const SOURCE_REPORT_METRIC_CARD_CLASS_TOKENS =
     EXPECTED_SOURCE_REPORT_METRIC_CARD_CLASS_NAME.split(" ");
 const SOURCE_REPORT_STYLE_OWNER_SNIPPETS = [
@@ -1340,15 +1340,20 @@ const SOURCE_REPORT_STYLE_OWNER_SNIPPETS = [
     "[&[hidden]]:hidden",
     `metricCard:\n        "${EXPECTED_SOURCE_REPORT_METRIC_CARD_CLASS_NAME}"`,
     "cardLabel:",
-    "font-sans text-[10.5px] font-semibold leading-normal tracking-[0.06em] text-muted-foreground uppercase",
+    "font-sans text-[10.5px] font-semibold leading-[normal] tracking-[0.06em] text-[var(--fg-tertiary)] uppercase",
     "text-foreground",
     "missingNotice:",
-    "block rounded-[10px] border-border bg-muted px-[12px] py-[10px] text-[12.5px] font-medium leading-[1.55] text-muted-foreground",
+    "block rounded-[10px] border-[var(--alert-warning-soft-strong-border)] bg-[var(--alert-warning-soft-strong-bg)] px-[12px] py-[10px] text-[12.5px] font-medium leading-[1.55] text-[var(--fg-secondary)]",
     "segmentSpeaker:",
-    "font-sans text-[12px] font-semibold leading-normal text-muted-foreground",
+    "font-sans text-[12px] font-semibold leading-[normal] text-[var(--fg-secondary)]",
     'meta: "mt-[13px] mb-[13px] grid grid-cols-2 gap-x-3.5 gap-y-1.5',
-    "[[data-sot-panel=recording-source-report]_[data-sub-state=transcript-missing]_&]:mb-[14px]",
-    "[[data-sot-panel=dashboard-source-report]_[data-sub-state=complete]_&]:mb-[12px]",
+    "[[data-sot-panel=recording-source-report-state][data-sub-state=transcript-missing]_&]:mb-[21px]",
+    "[[data-sot-panel=recording-source-report-state][data-sub-state=summary-missing]_&]:mb-[21px]",
+    "[[data-sot-panel=recording-source-report-state][data-sub-state=both-missing]_&]:mb-[22px]",
+    "[[data-sot-panel=dashboard-source-report-state][data-sub-state=complete]_&]:mb-[21px]",
+    "[[data-sot-panel=dashboard-source-report-state][data-sub-state=summary-missing]_&]:mb-[21px]",
+    "[[data-sot-panel=dashboard-source-report-state][data-sub-state=transcript-missing]_&]:mb-[22px]",
+    "[[data-sot-panel=dashboard-source-report-state][data-sub-state=both-missing]_&]:mb-[22px]",
     "primaryActionButton:",
     "min-w-[46px]",
     "sectionTitle:",
@@ -1358,22 +1363,23 @@ const SOURCE_REPORT_STYLE_OWNER_SNIPPETS = [
     "summaryText:",
     "m-0 whitespace-pre-wrap font-sans ![font-size:12.5px] font-medium ![line-height:1.55] !tracking-normal !text-foreground [text-wrap:pretty]",
     "ghostActionButton:",
-    "hover:bg-muted hover:text-foreground",
+    "hover:bg-[var(--bg-recessed)] hover:text-[var(--fg-primary)]",
     "copyButton:",
     "h-[26px] gap-[6px]",
     "[&[hidden]]:hidden",
     "errorAlert:",
     "emptySurface:",
-    "border border-dashed border-border bg-muted",
-    "data-[sot-tone=err]:border-destructive/30 data-[sot-tone=err]:bg-destructive/10 data-[sot-tone=err]:text-foreground",
+    "border border-dashed border-[var(--line-hairline)] bg-[var(--bg-recessed)]",
+    "data-[sot-tone=err]:border-[var(--alert-destructive-soft-border)] data-[sot-tone=err]:bg-[var(--alert-destructive-subtle-bg)] data-[sot-tone=err]:text-[var(--fg-primary)]",
     "emptyIcon:",
-    "border border-border bg-card text-muted-foreground",
-    'emptyErrorIcon: "border-destructive/30 bg-destructive/10 text-destructive"',
+    "border border-[var(--line-hairline)] bg-[var(--bg-elevated)] text-[var(--fg-tertiary)]",
+    "emptyErrorIcon:",
+    "border-[var(--alert-destructive-icon-soft-border)] bg-[var(--alert-destructive-icon-soft-bg)] text-[var(--signal-danger)]",
     "block max-w-[360px] font-sans text-[12px] font-medium leading-[1.5] tracking-normal text-muted-foreground",
     "statusBadge:",
     EXPECTED_SOURCE_REPORT_STATUS_BADGE_CLASS_NAME,
-    "grid grid-cols-[80px_1fr] items-baseline gap-2 border-b border-dashed border-border py-1.5",
-    "border-b border-dashed border-border",
+    "grid grid-cols-[80px_1fr] items-baseline gap-2 border-b border-dashed border-[var(--line-hairline)] py-1.5",
+    "border-b border-dashed border-[var(--line-hairline)]",
 ] as const;
 
 const DASHBOARD_SOURCE_REPORT_LOADING_METRIC_CARDS = [
@@ -5338,7 +5344,7 @@ describe("dashboard SOT foundation", () => {
             /SOURCE_REPORT_STYLE_VARIABLES|SourceReportStyleVariables|--source-report-|\bSOURCE_REPORT_[A-Z0-9_]*CLASS_NAME\b/,
         );
         expect(sourceReportStyles).not.toMatch(
-            /var\(--(?:fg|bg|signal|line)-|color-mix\(in_srgb,var\(--signal/,
+            /\b(?:rgb|rgba|hsl|hsla|oklch)\(|#[0-9A-Fa-f]{3,8}\b/,
         );
         expect(globals).toContain("--alert-warning-soft-strong-bg: color-mix(");
         expect(globals).toContain("var(--signal-warning) 8%,");
