@@ -240,6 +240,10 @@ describe("frontend data-source routing regression", () => {
             path.join(ROOT, "features/dashboard/workstation.tsx"),
             "utf8",
         );
+        const sourceReportPrimitives = readFileSync(
+            path.join(ROOT, "features/source-report/primitives.tsx"),
+            "utf8",
+        );
         const sourceReportPanel = readFileSync(
             path.join(
                 ROOT,
@@ -261,24 +265,85 @@ describe("frontend data-source routing regression", () => {
         expect(dashboardWorkstation).not.toContain(
             'sourceProvider === "plaud"',
         );
+        expect(sourceReportPrimitives).not.toContain(
+            'sourceProvider === "plaud"',
+        );
         expect(dashboardWorkstation).toContain('value: "source"');
         expect(dashboardWorkstation).toContain('label: "来源详情"');
         expect(dashboardWorkstation).toContain('tabKey: "source-report"');
         expect(dashboardWorkstation).toContain('detailTab === "source"');
-        expect(dashboardWorkstation).toContain('data-tab-pane="source-report"');
+        expect(dashboardWorkstation).toContain(
+            "SourceReportPane as SotSourceReportPane",
+        );
+        expect(dashboardWorkstation).toContain(
+            "SourceReportCopyButton as SotSourceReportCopyButton",
+        );
+        expect(dashboardWorkstation).toContain("<SotSourceReportPane");
+        expect(dashboardWorkstation).toContain("<SotSourceReportCopyButton");
+        expect(dashboardWorkstation).toContain('surface="dashboard"');
+        expect(dashboardWorkstation).toContain(
+            'hidden={detailTab !== "source"}',
+        );
         expect(dashboardWorkstation).toContain(
             "selectedRecording.sourceProvider",
         );
         expect(dashboardWorkstation).toContain("formatAbsoluteDate(");
-        expect(dashboardWorkstation).toContain(
+        expect(dashboardWorkstation).toContain('copy="source-transcript"');
+        expect(dashboardWorkstation).toContain('copy="source-report"');
+
+        const dashboardSourceReportPaneStart = sourceReportPrimitives.indexOf(
+            'if (surface === "dashboard")',
+        );
+        const recordingSourceReportPaneStart = sourceReportPrimitives.indexOf(
+            'data-sot-panel="recording-source-report"',
+            dashboardSourceReportPaneStart,
+        );
+        expect(dashboardSourceReportPaneStart).toBeGreaterThanOrEqual(0);
+        expect(recordingSourceReportPaneStart).toBeGreaterThan(
+            dashboardSourceReportPaneStart,
+        );
+        const dashboardSourceReportPane = sourceReportPrimitives.slice(
+            dashboardSourceReportPaneStart,
+            recordingSourceReportPaneStart,
+        );
+
+        expect(dashboardSourceReportPane).toContain(
+            "data-sot-source-report-pane",
+        );
+        expect(dashboardSourceReportPane).toContain(
             'data-sot-panel="dashboard-source-report"',
         );
-        expect(dashboardWorkstation).toContain(
-            'data-sot-control="copy-source-transcript"',
+        expect(dashboardSourceReportPane).toContain(
+            'data-sot-tab-pane="source-report"',
         );
-        expect(dashboardWorkstation).toContain(
-            'data-sot-control="copy-source-report"',
+        expect(dashboardSourceReportPane).toContain("data-sot-state={state}");
+        expect(dashboardSourceReportPane).toContain(
+            'data-tab-pane="source-report"',
         );
+        expect(dashboardSourceReportPane).toContain("hidden={hidden}");
+
+        const sourceReportCopyButtonStart = sourceReportPrimitives.indexOf(
+            "export function SourceReportCopyButton",
+        );
+        const sourceReportCopyButtonEnd = sourceReportPrimitives.indexOf(
+            "const sourceReportActionButtonStyles",
+            sourceReportCopyButtonStart,
+        );
+        expect(sourceReportCopyButtonStart).toBeGreaterThanOrEqual(0);
+        expect(sourceReportCopyButtonEnd).toBeGreaterThan(
+            sourceReportCopyButtonStart,
+        );
+        const sourceReportCopyButton = sourceReportPrimitives.slice(
+            sourceReportCopyButtonStart,
+            sourceReportCopyButtonEnd,
+        );
+
+        expect(sourceReportCopyButton).toContain("data-sot-control={");
+        expect(sourceReportCopyButton).toContain('? "copy-source-report"');
+        expect(sourceReportCopyButton).toContain(': "copy-source-transcript"');
+        expect(sourceReportCopyButton).toContain("data-sot-state={copyState}");
+        expect(sourceReportCopyButton).toContain("data-tab-scope={tabScope}");
+
         expect(sourceReportPanel).not.toContain('sourceProvider === "plaud"');
         expect(sourceReportPanel).not.toContain(
             ['t("sourceReport.detail', 'Payload")'].join(""),

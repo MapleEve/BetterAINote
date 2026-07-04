@@ -8,6 +8,7 @@ import {
     ChevronDown,
     CircleAlert,
     CloudDownload,
+    Copy,
     EllipsisVertical,
     FileText,
     Globe2,
@@ -27,8 +28,10 @@ import {
 } from "lucide-react";
 import Image from "next/image";
 import {
+    type ComponentProps,
     Fragment,
     type KeyboardEvent as ReactKeyboardEvent,
+    type ReactNode,
     useCallback,
     useEffect,
     useMemo,
@@ -99,8 +102,6 @@ import {
     SourceReportActionRow as SotSourceReportActionRow,
     SourceReportCardSkeleton as SotSourceReportCardSkeleton,
     SourceReportCopyButton as SotSourceReportCopyButton,
-    SourceReportCopyIcon as SotSourceReportCopyIcon,
-    SourceReportCopyLabel as SotSourceReportCopyLabel,
     SourceReportEmptyDescription as SotSourceReportEmptyDescription,
     SourceReportEmptyIcon as SotSourceReportEmptyMedia,
     SourceReportEmptySurface as SotSourceReportEmptySurface,
@@ -122,6 +123,8 @@ import {
     DashboardSourceReportStatusDot as SotSourceReportStatusDot,
     SourceReportSummaryBody as SotSourceReportSummaryBody,
     SourceReportSummaryLine as SotSourceReportSummaryLine,
+    SourceReportCopyIcon,
+    SourceReportCopyLabel,
     type SourceReportTone,
 } from "@/features/source-report/primitives";
 import { useAutoSync } from "@/hooks/use-auto-sync";
@@ -240,6 +243,7 @@ type DashboardCopyFeedback = {
     action: Exclude<DashboardCopyAction, null>;
     state: "ok" | "err";
 } | null;
+type DashboardCopyFeedbackState = Exclude<DashboardCopyFeedback, null>["state"];
 type SourceReportViewState = "idle" | "loading" | "loaded" | "error";
 type SourceReportCopyState = "ready" | "missing" | "loading" | "error";
 type SourceRepullState = "idle" | "loading" | "success" | "error";
@@ -1292,6 +1296,44 @@ function getRecordingListStatus(
     };
 }
 
+const dashboardRecordingStatusBadgeClassName =
+    "h-5 justify-normal gap-[5px] overflow-visible rounded-full px-2 py-0 font-sans text-[11px] font-semibold leading-normal tracking-[0.005em] shadow-none";
+
+const dashboardRecordingStatusBadgeVariants = {
+    err: "outline",
+    info: "secondary",
+    neu: "outline",
+    ok: "secondary",
+    warn: "secondary",
+} as const satisfies Record<
+    SotPlayerStatusTone,
+    ComponentProps<typeof Badge>["variant"]
+>;
+
+const dashboardRecordingStatusBadgeToneClassNames = {
+    err: "border-destructive/30 bg-destructive/10 text-destructive",
+    info: "border-primary/30 bg-primary/10 text-primary",
+    neu: "border-border bg-muted text-muted-foreground",
+    ok: "border-primary/30 bg-primary/10 text-primary",
+    warn: "border-border bg-secondary text-secondary-foreground",
+} as const satisfies Record<SotPlayerStatusTone, string>;
+
+const dashboardRecordingStatusDotClassName =
+    "size-[5px] rounded-full bg-current";
+
+const dashboardRecordingStatusDotToneClassNames = {
+    err: "",
+    info: "",
+    neu: "bg-muted-foreground",
+    ok: "",
+    warn: "animate-[bpulse_1.4s_ease-in-out_infinite]",
+} as const satisfies Record<SotPlayerStatusTone, string>;
+
+const dashboardLocalCopyClassNames = {
+    icon: "stroke-current transition-[opacity,transform] duration-200 ease-out",
+    label: "inline-flex min-w-0 items-center",
+} as const;
+
 function DashboardRecordingStatusBadge({
     className,
     label,
@@ -1303,17 +1345,51 @@ function DashboardRecordingStatusBadge({
 }) {
     return (
         <Badge
-            variant="ghost"
+            variant={dashboardRecordingStatusBadgeVariants[tone]}
             className={cn(
-                "h-5 justify-normal gap-[5px] overflow-visible rounded-full border px-2 py-0 [font:600_11px_var(--font-sans)] tracking-[0.005em] shadow-none data-[sot-tone=ok]:border-primary/30 data-[sot-tone=ok]:bg-primary/10 data-[sot-tone=ok]:text-primary data-[sot-tone=warn]:border-border data-[sot-tone=warn]:bg-secondary data-[sot-tone=warn]:text-secondary-foreground data-[sot-tone=err]:border-destructive/30 data-[sot-tone=err]:bg-destructive/10 data-[sot-tone=err]:text-destructive data-[sot-tone=info]:border-primary/30 data-[sot-tone=info]:bg-primary/10 data-[sot-tone=info]:text-primary data-[sot-tone=neu]:border-border data-[sot-tone=neu]:bg-muted data-[sot-tone=neu]:text-muted-foreground [&_[data-sot-part=dashboard-recording-status-dot]]:size-[5px] [&_[data-sot-part=dashboard-recording-status-dot]]:rounded-full [&_[data-sot-part=dashboard-recording-status-dot]]:bg-current data-[sot-tone=neu]:[&_[data-sot-part=dashboard-recording-status-dot]]:bg-muted-foreground data-[sot-tone=warn]:[&_[data-sot-part=dashboard-recording-status-dot]]:animate-[bpulse_1.4s_ease-in-out_infinite]",
+                dashboardRecordingStatusBadgeClassName,
+                dashboardRecordingStatusBadgeToneClassNames[tone],
                 className,
             )}
             data-sot-part="dashboard-recording-status"
             data-sot-tone={tone}
         >
-            <span data-sot-part="dashboard-recording-status-dot" />
-            {label}
+            <span
+                className={cn(
+                    dashboardRecordingStatusDotClassName,
+                    dashboardRecordingStatusDotToneClassNames[tone],
+                )}
+                data-sot-part="dashboard-recording-status-dot"
+                aria-hidden="true"
+            />
+            <span data-sot-part="dashboard-recording-status-label">
+                {label}
+            </span>
         </Badge>
+    );
+}
+
+function DashboardCopyIcon({ state }: { state?: DashboardCopyFeedbackState }) {
+    const Icon = state === "ok" ? Check : state === "err" ? X : Copy;
+
+    return (
+        <Icon
+            className={dashboardLocalCopyClassNames.icon}
+            data-icon="inline-start"
+            data-sot-part="dashboard-copy-icon"
+            aria-hidden="true"
+        />
+    );
+}
+
+function DashboardCopyLabel({ children }: { children: ReactNode }) {
+    return (
+        <span
+            className={dashboardLocalCopyClassNames.label}
+            data-sot-part="dashboard-copy-label"
+        >
+            {children}
+        </span>
     );
 }
 
@@ -7509,8 +7585,7 @@ export function Workstation({
                                             void handleCopyLocalTranscript()
                                         }
                                     >
-                                        <SotSourceReportCopyIcon
-                                            part="dashboard-copy-icon"
+                                        <DashboardCopyIcon
                                             state={
                                                 copyFeedback?.action ===
                                                 "local-transcript"
@@ -7518,7 +7593,7 @@ export function Workstation({
                                                     : undefined
                                             }
                                         />
-                                        <SotSourceReportCopyLabel part="dashboard-copy-label">
+                                        <DashboardCopyLabel>
                                             {copyFeedback?.action ===
                                             "local-transcript"
                                                 ? copyFeedback.state === "ok"
@@ -7529,7 +7604,7 @@ export function Workstation({
                                                 : t(
                                                       "transcription.copyTranscript",
                                                   )}
-                                        </SotSourceReportCopyLabel>
+                                        </DashboardCopyLabel>
                                     </Button>
                                     <SotSourceReportCopyButton
                                         type="button"
@@ -7567,7 +7642,7 @@ export function Workstation({
                                             )
                                         }
                                     >
-                                        <SotSourceReportCopyIcon
+                                        <SourceReportCopyIcon
                                             part="dashboard-copy-icon"
                                             state={
                                                 copyFeedback?.action ===
@@ -7576,7 +7651,7 @@ export function Workstation({
                                                     : undefined
                                             }
                                         />
-                                        <SotSourceReportCopyLabel part="dashboard-copy-label">
+                                        <SourceReportCopyLabel part="dashboard-copy-label">
                                             {copyFeedback?.action ===
                                             "source-transcript"
                                                 ? copyFeedback.state === "ok"
@@ -7587,7 +7662,7 @@ export function Workstation({
                                                 : t(
                                                       "sourceReport.copySourceTranscript",
                                                   )}
-                                        </SotSourceReportCopyLabel>
+                                        </SourceReportCopyLabel>
                                     </SotSourceReportCopyButton>
                                     <SotSourceReportCopyButton
                                         type="button"
@@ -7624,7 +7699,7 @@ export function Workstation({
                                             )
                                         }
                                     >
-                                        <SotSourceReportCopyIcon
+                                        <SourceReportCopyIcon
                                             part="dashboard-copy-icon"
                                             state={
                                                 copyFeedback?.action ===
@@ -7633,7 +7708,7 @@ export function Workstation({
                                                     : undefined
                                             }
                                         />
-                                        <SotSourceReportCopyLabel part="dashboard-copy-label">
+                                        <SourceReportCopyLabel part="dashboard-copy-label">
                                             {copyFeedback?.action ===
                                             "source-report"
                                                 ? copyFeedback.state === "ok"
@@ -7644,7 +7719,7 @@ export function Workstation({
                                                 : t(
                                                       "sourceReport.copySourceReport",
                                                   )}
-                                        </SotSourceReportCopyLabel>
+                                        </SourceReportCopyLabel>
                                     </SotSourceReportCopyButton>
                                     {detailTab === "source" ? (
                                         <SotSourceReportActionButton

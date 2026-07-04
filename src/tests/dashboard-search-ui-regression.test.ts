@@ -1105,9 +1105,16 @@ describe("dashboard SOT search and activity interactions", () => {
         expect(workstation).toContain("dashboardTranscriptClassNames.empty");
         expect(workstation).toContain("function DashboardRecordingStatusBadge");
         expect(recordingStatusBadge).toContain("<Badge");
-        expect(recordingStatusBadge).toContain('variant="ghost"');
+        expect(recordingStatusBadge).toContain(
+            "variant={dashboardRecordingStatusBadgeVariants[tone]}",
+        );
         expect(recordingStatusBadge).toContain("className={cn(");
-        expect(recordingStatusBadge).toContain("h-5 justify-normal");
+        expect(recordingStatusBadge).toContain(
+            "dashboardRecordingStatusBadgeClassName",
+        );
+        expect(recordingStatusBadge).toContain(
+            "dashboardRecordingStatusBadgeToneClassNames[tone]",
+        );
         expect(recordingStatusBadge).toContain(
             'data-sot-part="dashboard-recording-status"',
         );

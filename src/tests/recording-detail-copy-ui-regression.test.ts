@@ -223,8 +223,8 @@ const SOURCE_REPORT_STYLE_OWNER_SNIPPETS = [
 
 const SOURCE_REPORT_PRIMITIVE_OWNER_SNIPPETS = [
     "const sourceReportPaneBase =",
-    "const sourceReportActionButtonVariants =",
-    "const sourceReportActionButtonClasses =",
+    "const sourceReportActionButtonStyles = cva(",
+    "function sourceReportButtonVariantForIntent(",
     "bg-[color-mix(in_srgb,var(--fg-primary)_10%,transparent)]",
     `const sourceReportPaneBase = "flex flex-col gap-3.5"`,
     "const sourceReportMetricCardBase =",
@@ -239,7 +239,7 @@ const SOURCE_REPORT_PRIMITIVE_OWNER_SNIPPETS = [
     "sourceReportMetaSpacingClasses",
     'loose: "mb-[21px]"',
     'roomy: "mb-[22px]"',
-    "const sourceReportPrimaryActionButtonBase =",
+    'primary: "min-w-[46px]"',
     "min-w-[46px]",
     "const sourceReportSectionTitleText =",
     "m-0 font-sans ![font-size:12.5px] font-semibold ![line-height:normal] !tracking-normal !text-foreground",
@@ -247,17 +247,17 @@ const SOURCE_REPORT_PRIMITIVE_OWNER_SNIPPETS = [
     "m-0 font-sans ![font-size:12.5px] font-medium ![line-height:1.55] !tracking-normal !text-foreground [text-wrap:pretty]",
     "const sourceReportSummaryLineText =",
     "m-0 whitespace-pre-wrap font-sans ![font-size:12.5px] font-medium ![line-height:1.55] !tracking-normal !text-foreground [text-wrap:pretty]",
-    "const sourceReportGhostActionButtonBase =",
+    'ghost: "border border-transparent bg-transparent text-[var(--fg-secondary)] shadow-none hover:bg-[var(--bg-recessed)] hover:text-[var(--fg-primary)]"',
     "hover:bg-[var(--bg-recessed)] hover:text-[var(--fg-primary)]",
-    "const sourceReportCopyButtonBase =",
+    "const sourceReportCopyButtonStyles = cva(",
     "h-[26px] gap-[6px]",
     "[&[hidden]]:hidden",
-    "const sourceReportEmptySurfaceBase =",
+    "const sourceReportEmptySurfaceStyles = cva(",
     "border border-dashed border-[var(--line-hairline)] bg-[var(--bg-recessed)]",
-    "const sourceReportEmptyErrorIconTone =",
+    "const sourceReportEmptyIconStyles = cva(",
     "border-[var(--alert-destructive-icon-soft-border)] bg-[var(--alert-destructive-icon-soft-bg)] text-[var(--signal-danger)]",
-    "const sourceReportStatusBadgeBase =",
-    "sourceReportStatusBadgeToneClasses",
+    "const sourceReportStatusBadgeStyles = cva(",
+    "sourceReportStatusBadgeStyles({ tone, className })",
     "text-[var(--signal-warning-deep)]",
     "text-[var(--signal-danger)]",
     "[[data-theme=dark]_&]:border-[var(--glass-border-soft)] [.dark_&]:border-[var(--glass-border-soft)]",
@@ -1660,12 +1660,9 @@ describe("recording detail copy and title action UI regressions", () => {
         expect(sourceReportErrorState).toContain('tone="danger"');
         expect(sourceReportPrimitives).toContain("sourceReportErrorAlertBase");
         expect(sourceReportPrimitives).toContain(
-            "sourceReportEmptySurfaceClasses",
+            "sourceReportEmptySurfaceStyles",
         );
-        expect(sourceReportPrimitives).toContain("sourceReportEmptyIconBase");
-        expect(sourceReportPrimitives).toContain(
-            "sourceReportEmptyErrorIconTone",
-        );
+        expect(sourceReportPrimitives).toContain("sourceReportEmptyIconStyles");
         expect(sourceReportPrimitives).toContain(
             "className={sourceReportEmptyTitleText}",
         );
@@ -1702,21 +1699,16 @@ describe("recording detail copy and title action UI regressions", () => {
             'className="flex size-10 items-center justify-center rounded-full border border-border bg-background text-muted-foreground"',
         );
         expect(sourceReportPrimitives).toContain(
-            "function sourceReportStatusBadgeVariant",
+            "const sourceReportStatusBadgeStyles = cva(",
         );
-        expect(sourceReportPrimitives).toContain('return "outline"');
-        expect(sourceReportPrimitives).not.toContain('return "destructive"');
-        expect(sourceReportPrimitives).not.toContain('return "secondary"');
         const sourceReportStatusBadge = extractOpeningElement(
             sourceReportPrimitives,
             'data-sot-badge="source-report-status"',
             "Badge",
         );
+        expect(sourceReportStatusBadge).toContain('variant="outline"');
         expect(sourceReportStatusBadge).toContain(
-            "variant={sourceReportStatusBadgeVariant(tone)}",
-        );
-        expect(sourceReportStatusBadge).toContain(
-            "sourceReportStatusBadgeBase",
+            "sourceReportStatusBadgeStyles({ tone, className })",
         );
         expect(sourceReportStatusBadge).toContain("data-sot-tone={tone}");
         expect(sourceReport).not.toContain(variantAttr("sourceReportStatus"));
@@ -1729,7 +1721,7 @@ describe("recording detail copy and title action UI regressions", () => {
         expect(emptyPrimitive).not.toContain(
             "SOURCE_REPORT_ERROR_ICON_CLASS_NAME",
         );
-        expect(sourceReportPrimitives).toContain('ghost: "ghost"');
+        expect(sourceReportPrimitives).toContain('case "ghost":');
         expect(sourceReportPrimitives).toContain('size="xs"');
         for (const token of SOURCE_REPORT_SKELETON_SHARED_TOKENS) {
             expect(skeletonPrimitive).not.toContain(token);
@@ -3234,7 +3226,7 @@ describe("recording detail copy and title action UI regressions", () => {
             '{ value: "transcript", label: "转写" }',
         );
         expect(dashboardTranscript).toContain('tabKey: "source-report"');
-        expect(dashboardTranscript).toContain("SotSourceReportCopyIcon");
+        expect(dashboardTranscript).toContain("DashboardCopyIcon");
         expect(dashboardTranscript).toContain('part="dashboard-copy-icon"');
         const dashboardTranscriptActions = extractOpeningElement(
             dashboardTranscript,
@@ -3244,18 +3236,46 @@ describe("recording detail copy and title action UI regressions", () => {
         expect(dashboardTranscriptActions).toContain(
             `className="${EXPECTED_DASHBOARD_TRANSCRIPT_ACTIONS_CLASS_NAME}"`,
         );
-        const dashboardCopyIcon = extractOpeningElement(
+        const dashboardLocalCopyButton = extractElementSlice(
             dashboardTranscript,
-            'part="dashboard-copy-icon"',
-            "SotSourceReportCopyIcon",
+            'data-sot-control="copy-local-transcript"',
+            "Button",
         );
-        expect(dashboardCopyIcon).toContain('part="dashboard-copy-icon"');
-        const dashboardCopyLabel = extractOpeningElement(
+        expect(dashboardLocalCopyButton).toContain("<DashboardCopyIcon");
+        expect(dashboardLocalCopyButton).toContain("<DashboardCopyLabel>");
+        expect(dashboardLocalCopyButton).not.toContain("SourceReportCopyIcon");
+        expect(dashboardLocalCopyButton).not.toContain("SourceReportCopyLabel");
+        const dashboardCopyIcon = extractBoundedSlice(
             dashboardTranscript,
-            'part="dashboard-copy-label"',
-            "SotSourceReportCopyLabel",
+            "function DashboardCopyIcon",
+            "function DashboardCopyLabel",
         );
-        expect(dashboardCopyLabel).toContain('part="dashboard-copy-label"');
+        expect(dashboardCopyIcon).toContain(
+            'data-sot-part="dashboard-copy-icon"',
+        );
+        expect(dashboardCopyIcon).toContain(
+            "dashboardLocalCopyClassNames.icon",
+        );
+        const dashboardCopyLabel = extractBoundedSlice(
+            dashboardTranscript,
+            "function DashboardCopyLabel",
+            "function getRetxStateFromActiveJob",
+        );
+        expect(dashboardCopyLabel).toContain(
+            'data-sot-part="dashboard-copy-label"',
+        );
+        expect(dashboardCopyLabel).toContain(
+            "dashboardLocalCopyClassNames.label",
+        );
+        const sourceReportCopyButton = extractElementSlice(
+            dashboardTranscript,
+            'copy="source-transcript"',
+            "SotSourceReportCopyButton",
+        );
+        expect(sourceReportCopyButton).toContain("<SourceReportCopyIcon");
+        expect(sourceReportCopyButton).toContain('part="dashboard-copy-icon"');
+        expect(sourceReportCopyButton).toContain("<SourceReportCopyLabel");
+        expect(sourceReportCopyButton).toContain('part="dashboard-copy-label"');
         expect(sourceReportPrimitives).toContain("sourceReportCopyLabelBase");
         expect(sourceReportPrimitives).toContain("sourceReportCopyIconBase");
         const dashboardButtonClassNames = extractBoundedSlice(
@@ -3266,7 +3286,9 @@ describe("recording detail copy and title action UI regressions", () => {
         expect(dashboardButtonClassNames).toMatch(
             /copy:\s*"[^"]*\[&\[hidden\]\]:hidden[^"]*"/,
         );
-        expect(sourceReportPrimitives).toContain("sourceReportCopyButtonBase");
+        expect(sourceReportPrimitives).toContain(
+            "sourceReportCopyButtonStyles",
+        );
         expect(sourceReportPrimitives).toContain("[&[hidden]]:hidden");
         expect(dashboardTranscript).not.toContain(
             ["SOURCE_REPORT_COPY_BUTTON_CLASS_NAME", "const SOT_"]

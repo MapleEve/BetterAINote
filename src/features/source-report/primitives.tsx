@@ -1,3 +1,4 @@
+import { cva, type VariantProps } from "class-variance-authority";
 import { Check, Copy } from "lucide-react";
 import type * as React from "react";
 import type { ReactNode } from "react";
@@ -53,7 +54,6 @@ type SourceReportStatusDotPart =
     | "source-report-status-dot";
 
 type SourceReportCopyKind = "source-report" | "source-transcript";
-type SourceReportActionIntent = "ghost" | "outline" | "primary";
 type SourceReportEmptySurfaceKind = "alert" | "empty";
 
 const skeletonBase =
@@ -74,18 +74,6 @@ const sourceReportSegmentSkeletonClasses = {
     time: `${skeletonBase} inline-block h-[12px] w-[96px] align-middle rounded-[4px]`,
 } as const satisfies Record<SourceReportSegmentSkeletonSize, string>;
 
-const sourceReportStatusBadgeToneClasses = {
-    err: "border-[color-mix(in_srgb,var(--signal-danger)_30%,transparent)] bg-[color-mix(in_srgb,var(--signal-danger)_14%,transparent)] text-[var(--signal-danger)]",
-    neu: "border-[var(--line-hairline)] bg-[var(--bg-recessed)] text-[var(--fg-secondary)]",
-    ok: "border-[color-mix(in_srgb,var(--signal-success)_30%,transparent)] bg-[color-mix(in_srgb,var(--signal-success)_14%,transparent)] text-[var(--signal-success)]",
-    warn: "border-[color-mix(in_srgb,var(--signal-warning)_32%,transparent)] bg-[color-mix(in_srgb,var(--signal-warning)_18%,transparent)] text-[var(--signal-warning-deep)]",
-} as const satisfies Record<SourceReportTone, string>;
-
-const sourceReportEmptySurfaceToneClasses = {
-    danger: "border-[var(--alert-destructive-soft-border)] bg-[var(--alert-destructive-subtle-bg)] text-[var(--fg-primary)]",
-    neutral: "",
-} as const satisfies Record<SourceReportSurfaceTone, string>;
-
 const sourceReportMetaSpacingClasses = {
     default: "mb-[13px]",
     loose: "mb-[21px]",
@@ -99,22 +87,9 @@ const sourceReportStateStackBase = "flex flex-col gap-3.5";
 const sourceReportStateBase =
     "block [font-feature-settings:normal] [text-rendering:auto] [&[hidden]]:hidden";
 
-const sourceReportCopyButtonBase =
-    "h-[26px] gap-[6px] rounded-[7px] border border-transparent px-[10px] font-sans text-[12px] font-semibold leading-[normal] shadow-none has-[>svg]:px-[10px] data-[copy-state=err]:border-[var(--alert-destructive-soft-border)] data-[copy-state=err]:text-[var(--signal-danger)] data-[copy-state=err]:hover:bg-transparent data-[copy-state=err]:hover:text-[var(--signal-danger)] data-[copy-state=ok]:border-[color-mix(in_srgb,var(--signal-success)_36%,transparent)] data-[copy-state=ok]:bg-[color-mix(in_srgb,var(--signal-success)_10%,transparent)] data-[copy-state=ok]:text-[var(--signal-success)] data-[copy-state=ok]:hover:bg-[color-mix(in_srgb,var(--signal-success)_10%,transparent)] data-[copy-state=ok]:hover:text-[var(--signal-success)] [&[hidden]]:hidden";
 const sourceReportCopyIconBase =
     "stroke-current transition-[opacity,transform] duration-200 ease-out";
 const sourceReportCopyLabelBase = "inline-flex min-w-0 items-center";
-
-const sourceReportActionButtonBase =
-    "h-[26px] gap-[7px] rounded-[7px] px-[10px] font-sans text-[12px] font-semibold leading-[normal] text-foreground has-[>svg]:px-[10px]";
-const sourceReportGhostActionButtonBase =
-    "h-[26px] gap-[7px] rounded-[7px] border border-transparent bg-transparent px-[10px] font-sans text-[12px] font-semibold leading-[normal] text-[var(--fg-secondary)] shadow-none has-[>svg]:px-[10px] hover:bg-[var(--bg-recessed)] hover:text-[var(--fg-primary)]";
-const sourceReportPrimaryActionButtonBase =
-    "h-[26px] min-w-[46px] gap-[7px] rounded-[7px] px-[10px] font-sans text-[12px] font-semibold leading-[normal] has-[>svg]:px-[10px]";
-const sourceReportActionRowBase =
-    "mt-[4px] flex flex-wrap items-center gap-[8px]";
-const sourceReportEmptyActionRowBase =
-    "mt-[8px] flex flex-wrap items-center justify-center gap-[6px]";
 
 const sourceReportMetricGridBase =
     "grid grid-cols-[repeat(4,1fr)] gap-[8px] max-[1200px]:grid-cols-[repeat(2,1fr)]";
@@ -168,53 +143,15 @@ const sourceReportSummaryStack = "flex flex-col gap-1.5";
 const sourceReportSummaryLineText =
     "m-0 whitespace-pre-wrap font-sans ![font-size:12.5px] font-medium ![line-height:1.55] !tracking-normal !text-foreground [text-wrap:pretty]";
 
-const sourceReportEmptySurfaceBase =
-    "flex flex-col items-center gap-[4px] rounded-[10px] border border-dashed border-[var(--line-hairline)] bg-[var(--bg-recessed)] px-[18px] py-[28px] text-center shadow-none backdrop-blur-none";
 const sourceReportErrorAlertBase =
     "flex w-full flex-col items-center gap-[4px] rounded-[10px] px-[18px] py-[28px]";
-const sourceReportEmptyIconBase =
-    "mb-[4px] inline-grid size-[40px] place-items-center rounded-full border border-[var(--line-hairline)] bg-[var(--bg-elevated)] text-[var(--fg-tertiary)] [&_svg]:fill-none [&_svg]:stroke-current [&_svg]:stroke-[1.8] [&_svg]:[stroke-linecap:round] [&_svg]:[stroke-linejoin:round] [&_svg:not([class*='size-'])]:size-[16px]";
-const sourceReportEmptyErrorIconTone =
-    "border-[var(--alert-destructive-icon-soft-border)] bg-[var(--alert-destructive-icon-soft-bg)] text-[var(--signal-danger)]";
 const sourceReportEmptyTitleText =
     "m-0 block min-h-0 overflow-visible font-sans text-[13px] font-semibold leading-[1.35] tracking-normal text-foreground";
 const sourceReportEmptyDescriptionText =
     "block max-w-[360px] font-sans text-[12px] font-medium leading-[1.5] tracking-normal text-muted-foreground";
 
-const sourceReportStatusBadgeBase =
-    "h-[22px] justify-normal gap-[5px] overflow-visible px-[8px] py-0 font-sans text-[11px] font-semibold leading-[normal] shadow-none transition-none";
 const sourceReportStatusDotBase =
     "inline-block size-[5px] rounded-full bg-current";
-
-const sourceReportActionButtonVariants = {
-    ghost: "ghost",
-    outline: "outline",
-    primary: "default",
-} as const satisfies Record<SourceReportActionIntent, ButtonProps["variant"]>;
-
-const sourceReportActionButtonClasses = {
-    ghost: sourceReportGhostActionButtonBase,
-    outline: sourceReportActionButtonBase,
-    primary: sourceReportPrimaryActionButtonBase,
-} as const satisfies Record<SourceReportActionIntent, string>;
-
-function sourceReportStatusBadgeVariant(_tone: SourceReportTone): "outline" {
-    return "outline";
-}
-
-function sourceReportEmptySurfaceClasses({
-    className,
-    tone = "neutral",
-}: {
-    className?: string;
-    tone?: SourceReportSurfaceTone;
-} = {}) {
-    return cn(
-        sourceReportEmptySurfaceBase,
-        sourceReportEmptySurfaceToneClasses[tone],
-        className,
-    );
-}
 
 function sourceReportMetaClasses({
     spacing = "default",
@@ -326,6 +263,23 @@ export function DashboardSourceReportStatusDot() {
     return <SourceReportStatusDot part="dashboard-source-report-status-dot" />;
 }
 
+const sourceReportStatusBadgeStyles = cva(
+    "h-[22px] justify-normal gap-[5px] overflow-visible px-[8px] py-0 font-sans text-[11px] font-semibold leading-[normal] shadow-none transition-none",
+    {
+        variants: {
+            tone: {
+                err: "border-[color-mix(in_srgb,var(--signal-danger)_30%,transparent)] bg-[color-mix(in_srgb,var(--signal-danger)_14%,transparent)] text-[var(--signal-danger)]",
+                neu: "border-[var(--line-hairline)] bg-[var(--bg-recessed)] text-[var(--fg-secondary)]",
+                ok: "border-[color-mix(in_srgb,var(--signal-success)_30%,transparent)] bg-[color-mix(in_srgb,var(--signal-success)_14%,transparent)] text-[var(--signal-success)]",
+                warn: "border-[color-mix(in_srgb,var(--signal-warning)_32%,transparent)] bg-[color-mix(in_srgb,var(--signal-warning)_18%,transparent)] text-[var(--signal-warning-deep)]",
+            } satisfies Record<SourceReportTone, string>,
+        },
+        defaultVariants: {
+            tone: "neu",
+        },
+    },
+);
+
 export function SourceReportStatusBadge({
     children,
     className,
@@ -337,12 +291,8 @@ export function SourceReportStatusBadge({
 }) {
     return (
         <Badge
-            variant={sourceReportStatusBadgeVariant(tone)}
-            className={cn(
-                sourceReportStatusBadgeBase,
-                sourceReportStatusBadgeToneClasses[tone],
-                className,
-            )}
+            variant="outline"
+            className={sourceReportStatusBadgeStyles({ tone, className })}
             data-sot-badge="source-report-status"
             data-sot-tone={tone}
         >
@@ -384,6 +334,22 @@ export function SourceReportCopyLabel({
     );
 }
 
+const sourceReportCopyButtonStyles = cva(
+    "h-[26px] gap-[6px] rounded-[7px] border border-transparent px-[10px] font-sans text-[12px] font-semibold leading-[normal] shadow-none has-[>svg]:px-[10px] [&[hidden]]:hidden",
+    {
+        variants: {
+            feedback: {
+                idle: "",
+                err: "border-[var(--alert-destructive-soft-border)] text-[var(--signal-danger)] hover:bg-transparent hover:text-[var(--signal-danger)]",
+                ok: "border-[color-mix(in_srgb,var(--signal-success)_36%,transparent)] bg-[color-mix(in_srgb,var(--signal-success)_10%,transparent)] text-[var(--signal-success)] hover:bg-[color-mix(in_srgb,var(--signal-success)_10%,transparent)] hover:text-[var(--signal-success)]",
+            },
+        },
+        defaultVariants: {
+            feedback: "idle",
+        },
+    },
+);
+
 export function SourceReportCopyButton({
     children,
     copy,
@@ -402,7 +368,9 @@ export function SourceReportCopyButton({
         <Button
             variant="ghost"
             size="xs"
-            className={sourceReportCopyButtonBase}
+            className={sourceReportCopyButtonStyles({
+                feedback: feedbackState ?? "idle",
+            })}
             data-copy={copy}
             data-copy-state={feedbackState}
             data-sot-control={
@@ -419,6 +387,39 @@ export function SourceReportCopyButton({
     );
 }
 
+const sourceReportActionButtonStyles = cva(
+    "h-[26px] gap-[7px] rounded-[7px] px-[10px] font-sans text-[12px] font-semibold leading-[normal] has-[>svg]:px-[10px]",
+    {
+        variants: {
+            intent: {
+                ghost: "border border-transparent bg-transparent text-[var(--fg-secondary)] shadow-none hover:bg-[var(--bg-recessed)] hover:text-[var(--fg-primary)]",
+                outline: "text-foreground",
+                primary: "min-w-[46px]",
+            },
+        },
+        defaultVariants: {
+            intent: "ghost",
+        },
+    },
+);
+
+type SourceReportActionIntent = NonNullable<
+    VariantProps<typeof sourceReportActionButtonStyles>["intent"]
+>;
+
+function sourceReportButtonVariantForIntent(
+    intent: SourceReportActionIntent,
+): ButtonProps["variant"] {
+    switch (intent) {
+        case "ghost":
+            return "ghost";
+        case "outline":
+            return "outline";
+        case "primary":
+            return "default";
+    }
+}
+
 export function SourceReportActionButton({
     children,
     control,
@@ -433,9 +434,9 @@ export function SourceReportActionButton({
 }) {
     return (
         <Button
-            variant={sourceReportActionButtonVariants[intent]}
+            variant={sourceReportButtonVariantForIntent(intent)}
             size="xs"
-            className={sourceReportActionButtonClasses[intent]}
+            className={sourceReportActionButtonStyles({ intent })}
             data-sot-control={control}
             data-sot-state={state}
             {...props}
@@ -445,23 +446,42 @@ export function SourceReportActionButton({
     );
 }
 
+const sourceReportActionRowStyles = cva("flex flex-wrap items-center", {
+    variants: {
+        purpose: {
+            default: "mt-[4px] gap-[8px]",
+            empty: "mt-[8px] justify-center gap-[6px]",
+        },
+        align: {
+            center: "justify-center",
+            start: "",
+        },
+    },
+    defaultVariants: {
+        align: "start",
+        purpose: "default",
+    },
+});
+
+type SourceReportActionRowAlign = NonNullable<
+    VariantProps<typeof sourceReportActionRowStyles>["align"]
+>;
+type SourceReportActionRowPurpose = NonNullable<
+    VariantProps<typeof sourceReportActionRowStyles>["purpose"]
+>;
+
 export function SourceReportActionRow({
     align = "start",
     children,
     purpose = "default",
 }: {
-    align?: "center" | "start";
+    align?: SourceReportActionRowAlign;
     children: ReactNode;
-    purpose?: "default" | "empty";
+    purpose?: SourceReportActionRowPurpose;
 }) {
     return (
         <div
-            className={cn(
-                purpose === "empty"
-                    ? sourceReportEmptyActionRowBase
-                    : sourceReportActionRowBase,
-                align === "center" && "justify-center",
-            )}
+            className={sourceReportActionRowStyles({ align, purpose })}
             data-sot-source-report-actions={
                 purpose === "default" ? "" : undefined
             }
@@ -852,6 +872,21 @@ export function SourceReportSummaryLine({ children }: { children: ReactNode }) {
     );
 }
 
+const sourceReportEmptySurfaceStyles = cva(
+    "flex flex-col items-center gap-[4px] rounded-[10px] border border-dashed border-[var(--line-hairline)] bg-[var(--bg-recessed)] px-[18px] py-[28px] text-center shadow-none backdrop-blur-none",
+    {
+        variants: {
+            tone: {
+                danger: "border-[var(--alert-destructive-soft-border)] bg-[var(--alert-destructive-subtle-bg)] text-[var(--fg-primary)]",
+                neutral: "",
+            } satisfies Record<SourceReportSurfaceTone, string>,
+        },
+        defaultVariants: {
+            tone: "neutral",
+        },
+    },
+);
+
 export function SourceReportEmptySurface({
     children,
     kind = "empty",
@@ -867,7 +902,7 @@ export function SourceReportEmptySurface({
                 variant="statusError"
                 className={cn(
                     sourceReportErrorAlertBase,
-                    sourceReportEmptySurfaceClasses({ tone }),
+                    sourceReportEmptySurfaceStyles({ tone }),
                 )}
                 data-sot-source-report-empty
                 data-sot-tone={tone === "danger" ? "err" : "neutral"}
@@ -879,7 +914,7 @@ export function SourceReportEmptySurface({
 
     return (
         <Empty
-            className={sourceReportEmptySurfaceClasses({ tone })}
+            className={sourceReportEmptySurfaceStyles({ tone })}
             data-sot-source-report-empty
             data-sot-tone={tone === "danger" ? "err" : "neutral"}
         >
@@ -887,6 +922,21 @@ export function SourceReportEmptySurface({
         </Empty>
     );
 }
+
+const sourceReportEmptyIconStyles = cva(
+    "mb-[4px] inline-grid size-[40px] place-items-center rounded-full border border-[var(--line-hairline)] bg-[var(--bg-elevated)] text-[var(--fg-tertiary)] [&_svg]:fill-none [&_svg]:stroke-current [&_svg]:stroke-[1.8] [&_svg]:[stroke-linecap:round] [&_svg]:[stroke-linejoin:round] [&_svg:not([class*='size-'])]:size-[16px]",
+    {
+        variants: {
+            tone: {
+                danger: "border-[var(--alert-destructive-icon-soft-border)] bg-[var(--alert-destructive-icon-soft-bg)] text-[var(--signal-danger)]",
+                neutral: "",
+            } satisfies Record<SourceReportSurfaceTone, string>,
+        },
+        defaultVariants: {
+            tone: "neutral",
+        },
+    },
+);
 
 export function SourceReportEmptyIcon({
     children,
@@ -898,10 +948,7 @@ export function SourceReportEmptyIcon({
     return (
         <EmptyMedia
             variant="icon"
-            className={cn(
-                sourceReportEmptyIconBase,
-                tone === "danger" && sourceReportEmptyErrorIconTone,
-            )}
+            className={sourceReportEmptyIconStyles({ tone })}
             data-sot-source-report-empty-icon
             aria-hidden="true"
         >
