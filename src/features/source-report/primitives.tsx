@@ -71,7 +71,8 @@ const sourceReportSegmentSkeletonClasses = {
         "mt-[6px] inline-block h-[13px] w-[60%] align-middle rounded-[4px]",
     "line-wide":
         "mt-[6px] inline-block h-[13px] w-[88%] align-middle rounded-[4px]",
-    speaker: "ml-[5px] inline-block h-[12px] w-[54px] align-middle rounded-[4px]",
+    speaker:
+        "ml-[5px] inline-block h-[12px] w-[54px] align-middle rounded-[4px]",
     time: "inline-block h-[12px] w-[96px] align-middle rounded-[4px]",
 } as const satisfies Record<SourceReportSegmentSkeletonSize, string>;
 
@@ -394,7 +395,8 @@ const sourceReportActionButtonStyles = cva(
             intent: {
                 ghost: "border border-transparent bg-transparent text-[var(--fg-secondary)] shadow-none hover:bg-[var(--bg-recessed)] hover:text-[var(--fg-primary)]",
                 outline: "text-foreground",
-                primary: "min-w-[46px] border border-[var(--button-primary-border)] bg-[image:var(--button-primary-bg)] ![color:var(--button-primary-fg)] shadow-[var(--button-primary-shadow)] hover:bg-[image:var(--button-primary-hover-bg)] hover:![color:var(--button-primary-fg)]",
+                primary:
+                    "min-w-[46px] border border-[var(--button-primary-border)] bg-[image:var(--button-primary-bg)] ![color:var(--button-primary-fg)] shadow-[var(--button-primary-shadow)] hover:bg-[image:var(--button-primary-hover-bg)] hover:![color:var(--button-primary-fg)]",
             },
         },
         defaultVariants: {
