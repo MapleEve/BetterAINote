@@ -1662,7 +1662,7 @@ function SotSourceReportErrorIcon() {
         >
             <circle cx="12" cy="12" r="9" />
             <path d="M12 8v5" />
-            <line x1="12" y1="16" x2="12.01" y2="16" />
+            <circle cx="12" cy="16" r=".8" fill="currentColor" />
         </svg>
     );
 }

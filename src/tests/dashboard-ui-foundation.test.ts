@@ -135,7 +135,7 @@ const DASHBOARD_SIDEBAR_OWNER_FORBIDDEN_CLASS_PATTERN =
 const DASHBOARD_SIDEBAR_VISUAL_GLOBAL_DECLARATION_RE =
     /^\s*(?:-webkit-backdrop-filter|backdrop-filter|background|border(?:-(?:color|radius|right|style|width))?|box-shadow|display|flex-direction|padding|position)\s*:/m;
 const EXPECTED_SOURCE_REPORT_STATUS_BADGE_CLASS_NAME =
-    "h-[22px] justify-normal gap-[5px] overflow-visible px-[8px] py-0 font-sans text-[11px] font-semibold leading-[normal] shadow-none transition-none";
+    "h-[22px] justify-normal gap-[5px] overflow-visible rounded-[999px] px-[8px] py-0 font-sans text-[11px] font-semibold leading-[normal] shadow-none transition-none";
 const EXPECTED_DASHBOARD_RECORDING_PLAYER_CARD_CLASS_NAME =
     "block min-h-[114px] gap-0 overflow-visible rounded-2xl px-[18px] py-4 shadow-none backdrop-blur-none";
 const EXPECTED_DASHBOARD_RECORDING_PLAYER_META_CLASS_NAME =
@@ -1308,7 +1308,7 @@ const SOURCE_REPORT_SKELETON_SHARED_TOKENS = [
 ] as const;
 
 const EXPECTED_SOURCE_REPORT_METRIC_CARD_CLASS_NAME =
-    "gap-[6px] overflow-visible rounded-[10px] border border-[var(--line-hairline)] bg-[var(--bg-recessed)] px-[12px] py-[10px] shadow-none backdrop-blur-none [[data-theme=dark]_&]:border-[var(--glass-border-soft)] [[data-theme=dark]_&]:bg-[color-mix(in_srgb,var(--fg-primary)_3%,transparent)] [.dark_&]:border-[var(--glass-border-soft)] [.dark_&]:bg-[color-mix(in_srgb,var(--fg-primary)_3%,transparent)]";
+    "gap-[6px] overflow-visible rounded-[10px] border border-[var(--line-hairline)] bg-[var(--bg-recessed)] px-[12px] py-[10px] shadow-none backdrop-blur-none [[data-theme=dark]_&]:border-[var(--glass-border-soft)] [[data-theme=dark]_&]:bg-[var(--glass-tint-subtle)] [.dark_&]:border-[var(--glass-border-soft)] [.dark_&]:bg-[var(--glass-tint-subtle)]";
 const SOURCE_REPORT_METRIC_CARD_CLASS_TOKENS =
     EXPECTED_SOURCE_REPORT_METRIC_CARD_CLASS_NAME.split(" ");
 const SOURCE_REPORT_STYLE_OWNER_SNIPPETS = [
@@ -1326,8 +1326,6 @@ const SOURCE_REPORT_STYLE_OWNER_SNIPPETS = [
 ] as const;
 
 const SOURCE_REPORT_PRIMITIVE_OWNER_SNIPPETS = [
-    "const skeletonBase =",
-    "bg-[color-mix(in_srgb,var(--fg-primary)_10%,transparent)]",
     "const sourceReportCardSkeletonClasses =",
     "const sourceReportSegmentSkeletonClasses =",
     "const sourceReportPaneBase =",
@@ -1345,14 +1343,14 @@ const SOURCE_REPORT_PRIMITIVE_OWNER_SNIPPETS = [
     "block rounded-[10px] border-[var(--alert-warning-soft-strong-border)] bg-[var(--alert-warning-soft-strong-bg)] px-[12px] py-[10px] text-[12.5px] font-medium leading-[1.55] text-[var(--fg-secondary)]",
     "const sourceReportSegmentSpeakerText =",
     "font-sans text-[12px] font-semibold leading-[normal] text-[var(--fg-secondary)]",
-    "mt-[13px] grid grid-cols-2 gap-x-3.5 gap-y-1.5",
+    "mt-[15px] grid grid-cols-2 gap-x-[14px] gap-y-[6px]",
     "sourceReportMetaSpacingClasses",
-    'loose: "mb-[21px]"',
+    'loose: "mb-[15px]"',
     'roomy: "mb-[22px]"',
-    'primary: "min-w-[46px]"',
+    'primary: "min-w-[46px] border border-[var(--button-primary-border)] bg-[image:var(--button-primary-bg)] ![color:var(--button-primary-fg)] shadow-[var(--button-primary-shadow)] hover:bg-[image:var(--button-primary-hover-bg)] hover:![color:var(--button-primary-fg)]"',
     "min-w-[46px]",
     "const sourceReportSectionTitleText =",
-    "m-0 font-sans ![font-size:12.5px] font-semibold ![line-height:normal] !tracking-normal !text-foreground",
+    "m-0 font-sans ![font-size:12.5px] font-semibold ![line-height:normal] ![letter-spacing:var(--ls-h4)] !text-foreground",
     "const sourceReportSegmentBodyText =",
     "m-0 font-sans ![font-size:12.5px] font-medium ![line-height:1.55] !tracking-normal !text-foreground [text-wrap:pretty]",
     "const sourceReportSummaryLineText =",
@@ -1364,6 +1362,7 @@ const SOURCE_REPORT_PRIMITIVE_OWNER_SNIPPETS = [
     "[&[hidden]]:hidden",
     "const sourceReportErrorAlertBase =",
     "const sourceReportEmptySurfaceStyles = cva(",
+    "variant={null}",
     "border border-dashed border-[var(--line-hairline)] bg-[var(--bg-recessed)]",
     "const sourceReportEmptyIconStyles = cva(",
     "border border-[var(--line-hairline)] bg-[var(--bg-recessed)] text-[var(--fg-tertiary)]",
@@ -1371,9 +1370,10 @@ const SOURCE_REPORT_PRIMITIVE_OWNER_SNIPPETS = [
     "block max-w-[360px] font-sans text-[12px] font-medium leading-[1.5] tracking-normal text-muted-foreground",
     "const sourceReportStatusBadgeStyles = cva(",
     EXPECTED_SOURCE_REPORT_STATUS_BADGE_CLASS_NAME,
+    '"inline-block size-[5px] rounded-[50%] bg-current"',
     "text-[oklch(0.55_0.16_70)]",
     "[[data-theme=dark]_&]:border-[var(--glass-border-soft)] [.dark_&]:border-[var(--glass-border-soft)]",
-    "grid grid-cols-[80px_1fr] items-baseline gap-2 border-b border-dashed border-[var(--line-hairline)] py-1.5",
+    "grid grid-cols-[80px_1fr] items-baseline gap-[8px] border-b border-dashed border-[var(--line-hairline)] py-[6px]",
     "border-b border-dashed border-[var(--line-hairline)]",
 ] as const;
 
@@ -1424,21 +1424,22 @@ const DASHBOARD_SOURCE_REPORT_LOADED_METRIC_CARDS = [
     },
 ] as const;
 
-const SOURCE_REPORT_SKELETON_BASE_REFERENCE = "$" + "{skeletonBase}";
-
 const SOURCE_REPORT_SKELETON_OWNER_TOKENS = [
-    "const skeletonBase =",
     "const sourceReportCardSkeletonClasses =",
     "const sourceReportSegmentSkeletonClasses =",
-    `count: \`${SOURCE_REPORT_SKELETON_BASE_REFERENCE} inline-block h-[18px] w-[48px] align-middle rounded-[6px]\``,
-    `status: \`${SOURCE_REPORT_SKELETON_BASE_REFERENCE} inline-block h-[18px] w-[80px] align-middle rounded-[6px]\``,
-    `source: \`${SOURCE_REPORT_SKELETON_BASE_REFERENCE} inline-block h-[18px] w-[120px] align-middle rounded-[6px]\``,
-    `"line-long": \`${SOURCE_REPORT_SKELETON_BASE_REFERENCE} mt-1.5 inline-block h-[13px] w-[92%] align-middle rounded-[4px]\``,
-    `"line-medium": \`${SOURCE_REPORT_SKELETON_BASE_REFERENCE} mt-1.5 inline-block h-[13px] w-[76%] align-middle rounded-[4px]\``,
-    `"line-wide": \`${SOURCE_REPORT_SKELETON_BASE_REFERENCE} mt-1.5 inline-block h-[13px] w-[88%] align-middle rounded-[4px]\``,
-    `"line-short": \`${SOURCE_REPORT_SKELETON_BASE_REFERENCE} mt-1.5 inline-block h-[13px] w-[60%] align-middle rounded-[4px]\``,
-    `speaker: \`${SOURCE_REPORT_SKELETON_BASE_REFERENCE} ml-1 inline-block h-[12px] w-[54px] align-middle rounded-[4px]\``,
-    `time: \`${SOURCE_REPORT_SKELETON_BASE_REFERENCE} inline-block h-[12px] w-[96px] align-middle rounded-[4px]\``,
+    'count: "inline-block h-[18px] w-[48px] align-middle rounded-[6px]"',
+    'status: "inline-block h-[18px] w-[80px] align-middle rounded-[6px]"',
+    'source: "inline-block h-[18px] w-[120px] align-middle rounded-[6px]"',
+    '"line-long":',
+    '"mt-[6px] inline-block h-[13px] w-[92%] align-middle rounded-[4px]"',
+    '"line-medium":',
+    '"mt-[6px] inline-block h-[13px] w-[76%] align-middle rounded-[4px]"',
+    '"line-wide":',
+    '"mt-[6px] inline-block h-[13px] w-[88%] align-middle rounded-[4px]"',
+    '"line-short":',
+    '"mt-[6px] inline-block h-[13px] w-[60%] align-middle rounded-[4px]"',
+    'speaker: "ml-[5px] inline-block h-[12px] w-[54px] align-middle rounded-[4px]"',
+    'time: "inline-block h-[12px] w-[96px] align-middle rounded-[4px]"',
 ] as const;
 
 const DASHBOARD_SOURCE_REPORT_LOADED_SOT_HOOKS = [
@@ -5357,6 +5358,14 @@ describe("dashboard SOT foundation", () => {
         for (const snippet of SOURCE_REPORT_PRIMITIVE_OWNER_SNIPPETS) {
             expect(sourceReportPrimitives).toContain(snippet);
         }
+        expect(sourceReportPrimitives).not.toContain("const skeletonBase =");
+        expect(sourceReportPrimitives).not.toContain(
+            "bg-[color-mix(in_srgb,var(--fg-primary)_10%,transparent)]",
+        );
+        expect(sourceReportPrimitives).not.toContain(
+            "[font-feature-settings:normal]",
+        );
+        expect(sourceReportPrimitives).not.toContain("[text-rendering:auto]");
         expect(sourceReportStyles).not.toContain("my-[15px]");
         expect(sourceReportStyles).not.toContain("min-h-[30px]");
         expect(sourceReportStyles).not.toMatch(
@@ -5408,10 +5417,10 @@ describe("dashboard SOT foundation", () => {
         expect(sourceReportPrimitives).toContain('layout="inline"');
         expect(workstation).toContain("function SotSourceReportErrorIcon");
         expect(workstation).toContain(
-            '<line x1="12" y1="16" x2="12.01" y2="16" />',
+            '<circle cx="12" cy="16" r=".8" fill="currentColor" />',
         );
         expect(workstation).not.toContain(
-            '<circle cx="12" cy="16" r=".8" fill="currentColor" />',
+            '<line x1="12" y1="16" x2="12.01" y2="16" />',
         );
         expect(workstation).not.toContain("data-sot-missing-copy");
         expect(sourceReportStyles).not.toContain(
@@ -5486,6 +5495,15 @@ describe("dashboard SOT foundation", () => {
         for (const token of SOURCE_REPORT_SKELETON_SHARED_TOKENS) {
             expect(skeletonPrimitive).not.toContain(token);
         }
+        expect(skeletonPrimitive).toContain("shimmer:");
+        expect(skeletonPrimitive).toContain("--skeleton-shimmer-edge");
+        expect(skeletonPrimitive).toContain("--skeleton-shimmer-peak");
+        expect(skeletonPrimitive).toContain(
+            "animate-[skeleton-shimmer_1.6s_ease-in-out_infinite]",
+        );
+        expect(globals).toContain("--skeleton-shimmer-edge:");
+        expect(globals).toContain("--skeleton-shimmer-peak:");
+        expect(globals).toContain("@keyframes skeleton-shimmer");
         expect(workstation).not.toContain('variant="sourceReportMetric"');
         expect(workstation).toContain("function DashboardTranscriptSkeleton");
         for (const token of DASHBOARD_TRANSCRIPT_SKELETON_LOCAL_COMPOSITION_TOKENS) {
@@ -5521,7 +5539,7 @@ describe("dashboard SOT foundation", () => {
             "Skeleton",
         );
         expect(dashboardSourceReportCardSkeleton).toContain(
-            'variant="default"',
+            'variant="shimmer"',
         );
         expect(dashboardSourceReportCardSkeleton).toContain('size="default"');
         expect(dashboardSourceReportCardSkeleton).toContain(
@@ -5539,7 +5557,7 @@ describe("dashboard SOT foundation", () => {
             "Skeleton",
         );
         expect(dashboardSourceReportSegmentSkeleton).toContain(
-            'variant="default"',
+            'variant="shimmer"',
         );
         expect(dashboardSourceReportSegmentSkeleton).toContain(
             'size="default"',

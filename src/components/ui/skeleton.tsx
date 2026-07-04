@@ -3,6 +3,8 @@ import { cn } from "@/lib/utils";
 
 const skeletonVariants = {
     default: "animate-pulse rounded-md bg-accent",
+    shimmer:
+        "rounded-md bg-[linear-gradient(90deg,var(--skeleton-shimmer-edge)_0%,var(--skeleton-shimmer-peak)_50%,var(--skeleton-shimmer-edge)_100%)] bg-[length:220%_100%] animate-[skeleton-shimmer_1.6s_ease-in-out_infinite]",
 } as const;
 
 const skeletonSizes = {

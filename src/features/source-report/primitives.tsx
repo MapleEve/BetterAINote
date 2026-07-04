@@ -56,27 +56,28 @@ type SourceReportStatusDotPart =
 type SourceReportCopyKind = "source-report" | "source-transcript";
 type SourceReportEmptySurfaceKind = "alert" | "empty";
 
-const skeletonBase =
-    "bg-[color-mix(in_srgb,var(--fg-primary)_10%,transparent)]";
-
 const sourceReportCardSkeletonClasses = {
-    count: `${skeletonBase} inline-block h-[18px] w-[48px] align-middle rounded-[6px]`,
-    source: `${skeletonBase} inline-block h-[18px] w-[120px] align-middle rounded-[6px]`,
-    status: `${skeletonBase} inline-block h-[18px] w-[80px] align-middle rounded-[6px]`,
+    count: "inline-block h-[18px] w-[48px] align-middle rounded-[6px]",
+    source: "inline-block h-[18px] w-[120px] align-middle rounded-[6px]",
+    status: "inline-block h-[18px] w-[80px] align-middle rounded-[6px]",
 } as const satisfies Record<SourceReportCardSkeletonSize, string>;
 
 const sourceReportSegmentSkeletonClasses = {
-    "line-long": `${skeletonBase} mt-1.5 inline-block h-[13px] w-[92%] align-middle rounded-[4px]`,
-    "line-medium": `${skeletonBase} mt-1.5 inline-block h-[13px] w-[76%] align-middle rounded-[4px]`,
-    "line-short": `${skeletonBase} mt-1.5 inline-block h-[13px] w-[60%] align-middle rounded-[4px]`,
-    "line-wide": `${skeletonBase} mt-1.5 inline-block h-[13px] w-[88%] align-middle rounded-[4px]`,
-    speaker: `${skeletonBase} ml-1 inline-block h-[12px] w-[54px] align-middle rounded-[4px]`,
-    time: `${skeletonBase} inline-block h-[12px] w-[96px] align-middle rounded-[4px]`,
+    "line-long":
+        "mt-[6px] inline-block h-[13px] w-[92%] align-middle rounded-[4px]",
+    "line-medium":
+        "mt-[6px] inline-block h-[13px] w-[76%] align-middle rounded-[4px]",
+    "line-short":
+        "mt-[6px] inline-block h-[13px] w-[60%] align-middle rounded-[4px]",
+    "line-wide":
+        "mt-[6px] inline-block h-[13px] w-[88%] align-middle rounded-[4px]",
+    speaker: "ml-[5px] inline-block h-[12px] w-[54px] align-middle rounded-[4px]",
+    time: "inline-block h-[12px] w-[96px] align-middle rounded-[4px]",
 } as const satisfies Record<SourceReportSegmentSkeletonSize, string>;
 
 const sourceReportMetaSpacingClasses = {
     default: "mb-[13px]",
-    loose: "mb-[21px]",
+    loose: "mb-[15px]",
     roomy: "mb-[22px]",
 } as const satisfies Record<SourceReportMetaSpacing, string>;
 
@@ -84,8 +85,7 @@ const sourceReportPaneBase = "flex flex-col gap-3.5";
 const sourceReportDescriptionText =
     "font-sans text-[11.5px] font-medium leading-[normal] text-[var(--fg-tertiary)]";
 const sourceReportStateStackBase = "flex flex-col gap-3.5";
-const sourceReportStateBase =
-    "block [font-feature-settings:normal] [text-rendering:auto] [&[hidden]]:hidden";
+const sourceReportStateBase = "block [&[hidden]]:hidden";
 
 const sourceReportCopyIconBase =
     "stroke-current transition-[opacity,transform] duration-200 ease-out";
@@ -94,7 +94,7 @@ const sourceReportCopyLabelBase = "inline-flex min-w-0 items-center";
 const sourceReportMetricGridBase =
     "grid grid-cols-[repeat(4,1fr)] gap-[8px] max-[1200px]:grid-cols-[repeat(2,1fr)]";
 const sourceReportMetricCardBase =
-    "gap-[6px] overflow-visible rounded-[10px] border border-[var(--line-hairline)] bg-[var(--bg-recessed)] px-[12px] py-[10px] shadow-none backdrop-blur-none [[data-theme=dark]_&]:border-[var(--glass-border-soft)] [[data-theme=dark]_&]:bg-[color-mix(in_srgb,var(--fg-primary)_3%,transparent)] [.dark_&]:border-[var(--glass-border-soft)] [.dark_&]:bg-[color-mix(in_srgb,var(--fg-primary)_3%,transparent)]";
+    "gap-[6px] overflow-visible rounded-[10px] border border-[var(--line-hairline)] bg-[var(--bg-recessed)] px-[12px] py-[10px] shadow-none backdrop-blur-none [[data-theme=dark]_&]:border-[var(--glass-border-soft)] [[data-theme=dark]_&]:bg-[var(--glass-tint-subtle)] [.dark_&]:border-[var(--glass-border-soft)] [.dark_&]:bg-[var(--glass-tint-subtle)]";
 const sourceReportMetricLabelText =
     "font-sans text-[10.5px] font-semibold leading-[normal] tracking-[0.06em] text-[var(--fg-tertiary)] uppercase";
 const sourceReportMetricValueText =
@@ -112,16 +112,16 @@ const sourceReportSectionBase =
 const sourceReportSectionHeaderLayout = "flex items-baseline gap-[10px]";
 const sourceReportSectionSeparatorLayout = "hidden";
 const sourceReportSectionTitleText =
-    "m-0 font-sans ![font-size:12.5px] font-semibold ![line-height:normal] !tracking-normal !text-foreground";
+    "m-0 font-sans ![font-size:12.5px] font-semibold ![line-height:normal] ![letter-spacing:var(--ls-h4)] !text-foreground";
 const sourceReportMissingNoticeBase =
     "block rounded-[10px] border-[var(--alert-warning-soft-strong-border)] bg-[var(--alert-warning-soft-strong-bg)] px-[12px] py-[10px] text-[12.5px] font-medium leading-[1.55] text-[var(--fg-secondary)] shadow-none";
 const sourceReportMissingNoticeDescriptionText =
     "col-start-auto block gap-0 text-[12.5px] font-medium leading-[1.55] text-[var(--fg-secondary)]";
 
 const sourceReportMetaListBase =
-    "mt-[13px] grid grid-cols-2 gap-x-3.5 gap-y-1.5 max-[1200px]:grid-cols-1";
+    "mt-[15px] grid grid-cols-2 gap-x-[14px] gap-y-[6px] max-[1200px]:grid-cols-1";
 const sourceReportMetaRowBase =
-    "grid grid-cols-[80px_1fr] items-baseline gap-2 border-b border-dashed border-[var(--line-hairline)] py-1.5 [[data-theme=dark]_&]:border-[var(--glass-border-soft)] [.dark_&]:border-[var(--glass-border-soft)]";
+    "grid grid-cols-[80px_1fr] items-baseline gap-[8px] border-b border-dashed border-[var(--line-hairline)] py-[6px] [[data-theme=dark]_&]:border-[var(--glass-border-soft)] [.dark_&]:border-[var(--glass-border-soft)]";
 const sourceReportMetaLabelText =
     "m-0 font-sans text-[11px] font-semibold leading-[normal] text-[var(--fg-tertiary)]";
 const sourceReportMetaValueText =
@@ -148,10 +148,10 @@ const sourceReportErrorAlertBase =
 const sourceReportEmptyTitleText =
     "m-0 block min-h-0 overflow-visible font-sans text-[13px] font-semibold leading-[1.35] tracking-normal text-foreground";
 const sourceReportEmptyDescriptionText =
-    "block max-w-[360px] font-sans text-[12px] font-medium leading-[1.5] tracking-normal text-muted-foreground";
+    "block max-w-[360px] font-sans text-[12px] font-medium leading-[1.5] tracking-normal text-muted-foreground ![color:var(--fg-tertiary)]";
 
 const sourceReportStatusDotBase =
-    "inline-block size-[5px] rounded-full bg-current";
+    "inline-block size-[5px] rounded-[50%] bg-current";
 
 function sourceReportMetaClasses({
     spacing = "default",
@@ -264,7 +264,7 @@ export function DashboardSourceReportStatusDot() {
 }
 
 const sourceReportStatusBadgeStyles = cva(
-    "h-[22px] justify-normal gap-[5px] overflow-visible px-[8px] py-0 font-sans text-[11px] font-semibold leading-[normal] shadow-none transition-none",
+    "h-[22px] justify-normal gap-[5px] overflow-visible rounded-[999px] px-[8px] py-0 font-sans text-[11px] font-semibold leading-[normal] shadow-none transition-none",
     {
         variants: {
             tone: {
@@ -394,7 +394,7 @@ const sourceReportActionButtonStyles = cva(
             intent: {
                 ghost: "border border-transparent bg-transparent text-[var(--fg-secondary)] shadow-none hover:bg-[var(--bg-recessed)] hover:text-[var(--fg-primary)]",
                 outline: "text-foreground",
-                primary: "min-w-[46px]",
+                primary: "min-w-[46px] border border-[var(--button-primary-border)] bg-[image:var(--button-primary-bg)] ![color:var(--button-primary-fg)] shadow-[var(--button-primary-shadow)] hover:bg-[image:var(--button-primary-hover-bg)] hover:![color:var(--button-primary-fg)]",
             },
         },
         defaultVariants: {
@@ -586,7 +586,7 @@ export function SourceReportCardSkeleton({
 }) {
     return (
         <Skeleton
-            variant="default"
+            variant="shimmer"
             size="default"
             className={sourceReportCardSkeletonClasses[size]}
             aria-hidden="true"
@@ -603,7 +603,7 @@ export function SourceReportSegmentSkeleton({
 }) {
     return (
         <Skeleton
-            variant="default"
+            variant="shimmer"
             size="default"
             className={sourceReportSegmentSkeletonClasses[size]}
             aria-hidden="true"
@@ -914,6 +914,7 @@ export function SourceReportEmptySurface({
 
     return (
         <Empty
+            variant={null}
             className={sourceReportEmptySurfaceStyles({ tone })}
             data-sot-source-report-empty
             data-sot-tone={tone === "danger" ? "err" : "neutral"}

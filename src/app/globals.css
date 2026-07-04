@@ -169,6 +169,16 @@
     --fg-tertiary: var(--graphite-500);
     --fg-disabled: var(--graphite-400);
     --fg-on-accent: var(--graphite-50);
+    --skeleton-shimmer-edge: color-mix(
+        in srgb,
+        var(--fg-primary) 5%,
+        transparent
+    );
+    --skeleton-shimmer-peak: color-mix(
+        in srgb,
+        var(--fg-primary) 10%,
+        transparent
+    );
 
     --line-hairline: rgb(213 219 223 / 0.56);
     --line-hairline: color-mix(in srgb, var(--graphite-300) 56%, transparent);
@@ -519,6 +529,8 @@
     --fg-disabled: oklch(0.395 0.006 250);
     --fg-on-accent: rgb(250 251 252);
     --fg-on-accent: oklch(0.985 0.003 250);
+    --skeleton-shimmer-edge: rgb(255 255 255 / 0.05);
+    --skeleton-shimmer-peak: rgb(255 255 255 / 0.12);
 
     --line-hairline: rgb(255 255 255 / 0.07);
     --line-strong: rgb(255 255 255 / 0.13);
@@ -708,6 +720,14 @@ button:not([data-slot]) {
     }
     50% {
         opacity: 0.45;
+    }
+}
+@keyframes skeleton-shimmer {
+    0% {
+        background-position: 200% 50%;
+    }
+    100% {
+        background-position: -100% 50%;
     }
 }
 [data-sot-panel="system-banner"] + [data-sot-panel="system-banner"] {
