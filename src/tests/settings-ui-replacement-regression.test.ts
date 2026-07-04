@@ -699,11 +699,13 @@ describe("settings SOT interaction regressions", () => {
                 "h-[min(94svh,980px)]",
                 "max-h-[calc(100svh_-_1rem)]",
                 "w-[920px]",
-                "max-w-[calc(100vw_-_2rem)]",
+                "max-w-[calc(100vw_-_40px)]",
                 "sm:max-w-[920px]",
                 "flex-col",
                 "gap-0",
                 "overflow-hidden",
+                "rounded-[16px]",
+                "bg-card",
                 "p-0",
             ],
         );
@@ -714,7 +716,7 @@ describe("settings SOT interaction regressions", () => {
         expect(settingsShellSurfaceClass).not.toContain("[box-shadow");
         findStringConstInitializerContaining(dialog, [
             "const SETTINGS_SHELL_SURFACE_CLASS =",
-            "max-w-[calc(100vw_-_2rem)]",
+            "max-w-[calc(100vw_-_40px)]",
             "sm:max-w-[920px]",
         ]);
         for (const [pattern, label] of LEGACY_SETTINGS_SHELL_CSS_SELECTORS) {
@@ -1037,11 +1039,13 @@ describe("settings SOT interaction regressions", () => {
             "h-[min(94svh,980px)]",
             "max-h-[calc(100svh_-_1rem)]",
             "w-[920px]",
-            "max-w-[calc(100vw_-_2rem)]",
+            "max-w-[calc(100vw_-_40px)]",
             "sm:max-w-[920px]",
             "flex-col",
             "gap-0",
             "overflow-hidden",
+            "rounded-[16px]",
+            "bg-card",
             "p-0",
         ]);
         expect(shellSurfaceClass).not.toContain("z-[");

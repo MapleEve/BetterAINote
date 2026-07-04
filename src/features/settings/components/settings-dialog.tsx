@@ -126,7 +126,7 @@ const orderedSettingsNav = settingsNavGroups.flatMap((group) => group.items);
 const SETTINGS_CLOSE_BUTTON_CLASS = "shrink-0 size-[32px]";
 
 const SETTINGS_SHELL_SURFACE_CLASS =
-    "box-border flex h-[min(94svh,980px)] max-h-[calc(100svh_-_1rem)] w-[920px] max-w-[calc(100vw_-_2rem)] flex-col gap-0 overflow-hidden p-0 sm:max-w-[920px]";
+    "box-border flex h-[min(94svh,980px)] max-h-[calc(100svh_-_1rem)] w-[920px] max-w-[calc(100vw_-_40px)] flex-col gap-0 overflow-hidden rounded-[16px] bg-card p-0 sm:max-w-[920px]";
 
 const SETTINGS_HEADER_CLASS =
     "flex flex-none items-center border-b border-border px-5 py-[18px] max-[720px]:flex-wrap max-[720px]:items-start max-[720px]:gap-3";
