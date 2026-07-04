@@ -2997,7 +2997,8 @@ const SOURCE_REPORT_PRIMITIVE_OWNER_SNIPPETS = [
     "sourceReportMetaSpacingClasses",
     'loose: "mb-[15px]"',
     'roomy: "mb-[22px]"',
-    'primary: "min-w-[46px] border border-[var(--button-primary-border)] bg-[image:var(--button-primary-bg)] ![color:var(--button-primary-fg)] shadow-[var(--button-primary-shadow)] hover:bg-[image:var(--button-primary-hover-bg)] hover:![color:var(--button-primary-fg)]"',
+    "primary:",
+    "min-w-[46px] border border-[var(--button-primary-border)] bg-[image:var(--button-primary-bg)] ![color:var(--button-primary-fg)] shadow-[var(--button-primary-shadow)] hover:bg-[image:var(--button-primary-hover-bg)] hover:![color:var(--button-primary-fg)]",
     "min-w-[46px]",
     "const sourceReportSectionTitleText =",
     "m-0 font-sans ![font-size:12.5px] font-semibold ![line-height:normal] ![letter-spacing:var(--ls-h4)] !text-foreground",
@@ -3137,7 +3138,8 @@ const SOURCE_REPORT_SKELETON_OWNER_TOKENS = [
     '"mt-[6px] inline-block h-[13px] w-[88%] align-middle rounded-[4px]"',
     '"line-short":',
     '"mt-[6px] inline-block h-[13px] w-[60%] align-middle rounded-[4px]"',
-    'speaker: "ml-[5px] inline-block h-[12px] w-[54px] align-middle rounded-[4px]"',
+    "speaker:",
+    "ml-[5px] inline-block h-[12px] w-[54px] align-middle rounded-[4px]",
     'time: "inline-block h-[12px] w-[96px] align-middle rounded-[4px]"',
 ] as const;
 
@@ -10031,7 +10033,7 @@ describe("full UI replacement regression coverage", () => {
         expect(sourceReportPrimitives).toContain('case "ghost":');
         expect(sourceReportPrimitives).toContain('size="xs"');
         expect(sourceReportPrimitives).toContain(
-            'primary: "min-w-[46px] border border-[var(--button-primary-border)] bg-[image:var(--button-primary-bg)] ![color:var(--button-primary-fg)] shadow-[var(--button-primary-shadow)] hover:bg-[image:var(--button-primary-hover-bg)] hover:![color:var(--button-primary-fg)]"',
+            "min-w-[46px] border border-[var(--button-primary-border)] bg-[image:var(--button-primary-bg)] ![color:var(--button-primary-fg)] shadow-[var(--button-primary-shadow)] hover:bg-[image:var(--button-primary-hover-bg)] hover:![color:var(--button-primary-fg)]",
         );
         expect(sourceReportPrimitives).toContain(
             'ghost: "border border-transparent bg-transparent text-[var(--fg-secondary)] shadow-none hover:bg-[var(--bg-recessed)] hover:text-[var(--fg-primary)]"',
