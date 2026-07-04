@@ -263,6 +263,7 @@ export function SourceReportMissingNotice({
             data-sot-source-report-missing-notice
             data-sot-missing={state}
             density="compact"
+            layout="inline"
         >
             <AlertDescription
                 className={sourceReportClassNames.missingNoticeDescription}

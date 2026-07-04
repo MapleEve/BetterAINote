@@ -13,21 +13,21 @@ export type SourceReportSegmentSkeletonSize =
     | "time";
 
 const skeletonBaseClassName =
-    "bg-[color-mix(in_srgb,var(--fg-tertiary)_14%,transparent)]";
+    "bg-[color-mix(in_srgb,var(--fg-primary)_10%,transparent)]";
 
 const cardSkeletonClassNames = {
-    count: `${skeletonBaseClassName} inline-block h-[18px] w-[48px] align-middle rounded-md`,
-    source: `${skeletonBaseClassName} inline-block h-[18px] w-[120px] align-middle rounded-md`,
-    status: `${skeletonBaseClassName} inline-block h-[18px] w-[80px] align-middle rounded-md`,
+    count: `${skeletonBaseClassName} inline-block h-[18px] w-[48px] align-middle rounded-[6px]`,
+    source: `${skeletonBaseClassName} inline-block h-[18px] w-[120px] align-middle rounded-[6px]`,
+    status: `${skeletonBaseClassName} inline-block h-[18px] w-[80px] align-middle rounded-[6px]`,
 } as const satisfies Record<SourceReportCardSkeletonSize, string>;
 
 const segmentSkeletonClassNames = {
-    "line-long": `${skeletonBaseClassName} mt-1.5 inline-block h-[13px] w-[92%] align-middle rounded-sm`,
-    "line-medium": `${skeletonBaseClassName} mt-1.5 inline-block h-[13px] w-[76%] align-middle rounded-sm`,
-    "line-short": `${skeletonBaseClassName} mt-1.5 inline-block h-[13px] w-3/5 align-middle rounded-sm`,
-    "line-wide": `${skeletonBaseClassName} mt-1.5 inline-block h-[13px] w-[88%] align-middle rounded-sm`,
-    speaker: `${skeletonBaseClassName} ml-1 inline-block h-3 w-14 align-middle rounded-sm`,
-    time: `${skeletonBaseClassName} inline-block h-3 w-24 align-middle rounded-sm`,
+    "line-long": `${skeletonBaseClassName} mt-1.5 inline-block h-[13px] w-[92%] align-middle rounded-[4px]`,
+    "line-medium": `${skeletonBaseClassName} mt-1.5 inline-block h-[13px] w-[76%] align-middle rounded-[4px]`,
+    "line-short": `${skeletonBaseClassName} mt-1.5 inline-block h-[13px] w-[60%] align-middle rounded-[4px]`,
+    "line-wide": `${skeletonBaseClassName} mt-1.5 inline-block h-[13px] w-[88%] align-middle rounded-[4px]`,
+    speaker: `${skeletonBaseClassName} ml-1 inline-block h-[12px] w-[54px] align-middle rounded-[4px]`,
+    time: `${skeletonBaseClassName} inline-block h-[12px] w-[96px] align-middle rounded-[4px]`,
 } as const satisfies Record<SourceReportSegmentSkeletonSize, string>;
 
 export const sourceReportCopyButtonVariant =
@@ -55,7 +55,7 @@ export const sourceReportClassNames = {
         "stroke-current transition-[opacity,transform] duration-200 ease-out",
     copyLabel: "inline-flex min-w-0 items-center",
     description:
-        "font-sans text-[11.5px] font-medium leading-[normal] text-[var(--fg-secondary)]",
+        "font-sans text-[11.5px] font-medium leading-[normal] text-[var(--fg-tertiary)]",
     emptyActionRow:
         "mt-[8px] flex flex-wrap items-center justify-center gap-[6px]",
     emptyDescription:
@@ -77,11 +77,11 @@ export const sourceReportClassNames = {
         "m-0 font-sans text-[11px] font-semibold leading-[normal] text-[var(--fg-tertiary)]",
     metaMonoValue: "font-mono",
     metaRow:
-        "grid grid-cols-[80px_1fr] items-baseline gap-2 border-b border-dashed border-[var(--line-hairline)] py-1.5",
+        "grid grid-cols-[80px_1fr] items-baseline gap-2 border-b border-dashed border-[var(--line-hairline)] py-1.5 [[data-theme=dark]_&]:border-[var(--glass-border-soft)] [.dark_&]:border-[var(--glass-border-soft)]",
     metaValue:
         "m-0 break-words font-sans text-[12px] font-medium leading-[normal] text-foreground",
     metricCard:
-        "gap-[6px] overflow-visible rounded-[10px] border-[var(--card-elevated-border)] bg-[var(--card-elevated-bg)] px-[12px] py-[10px] shadow-none backdrop-blur-none",
+        "gap-[6px] overflow-visible rounded-[10px] border border-[var(--line-hairline)] bg-[var(--bg-recessed)] px-[12px] py-[10px] shadow-none backdrop-blur-none [[data-theme=dark]_&]:border-[var(--glass-border-soft)] [[data-theme=dark]_&]:bg-[color-mix(in_srgb,var(--fg-primary)_3%,transparent)] [.dark_&]:border-[var(--glass-border-soft)] [.dark_&]:bg-[color-mix(in_srgb,var(--fg-primary)_3%,transparent)]",
     metricCards:
         "grid grid-cols-[repeat(4,1fr)] gap-[8px] max-[1200px]:grid-cols-[repeat(2,1fr)]",
     missingNotice:
@@ -92,7 +92,7 @@ export const sourceReportClassNames = {
     primaryActionButton:
         "h-[26px] min-w-[46px] gap-[7px] rounded-[7px] px-[10px] font-sans text-[12px] font-semibold leading-[normal] has-[>svg]:px-[10px]",
     section:
-        "flex flex-col gap-[8px] border-t border-[var(--line-hairline)] pt-[8px]",
+        "flex flex-col gap-[8px] border-t border-[var(--line-hairline)] pt-[8px] [[data-theme=dark]_&]:border-[var(--glass-border-soft)] [.dark_&]:border-[var(--glass-border-soft)]",
     sectionHeader: "flex items-baseline gap-[10px]",
     sectionSeparator: "hidden",
     sectionTitle:
@@ -112,7 +112,7 @@ export const sourceReportClassNames = {
     state: "block [font-feature-settings:normal] [text-rendering:auto] [&[hidden]]:hidden",
     stateStack: "flex flex-col gap-3.5",
     statusBadge:
-        "h-[22px] justify-normal gap-[5px] overflow-visible px-[8px] py-0 font-sans text-[11px] font-semibold leading-[normal] shadow-none transition-none data-[sot-tone=err]:border-[var(--alert-destructive-soft-border)] data-[sot-tone=err]:bg-[var(--alert-destructive-soft-bg)] data-[sot-tone=err]:text-[var(--signal-danger)] data-[sot-tone=neu]:border-[var(--line-hairline)] data-[sot-tone=neu]:bg-[var(--bg-recessed)] data-[sot-tone=neu]:text-[var(--fg-secondary)] data-[sot-tone=ok]:border-[color-mix(in_srgb,var(--signal-success)_36%,transparent)] data-[sot-tone=ok]:bg-[color-mix(in_srgb,var(--signal-success)_10%,transparent)] data-[sot-tone=ok]:text-[var(--signal-success)] data-[sot-tone=warn]:border-[var(--alert-warning-soft-strong-border)] data-[sot-tone=warn]:bg-[var(--alert-warning-soft-strong-bg)] data-[sot-tone=warn]:text-[var(--signal-warning)]",
+        "h-[22px] justify-normal gap-[5px] overflow-visible px-[8px] py-0 font-sans text-[11px] font-semibold leading-[normal] shadow-none transition-none data-[sot-tone=err]:border-[color-mix(in_srgb,var(--signal-danger)_30%,transparent)] data-[sot-tone=err]:bg-[color-mix(in_srgb,var(--signal-danger)_14%,transparent)] data-[sot-tone=err]:text-[var(--signal-danger)] data-[sot-tone=neu]:border-[var(--line-hairline)] data-[sot-tone=neu]:bg-[var(--bg-recessed)] data-[sot-tone=neu]:text-[var(--fg-secondary)] data-[sot-tone=ok]:border-[color-mix(in_srgb,var(--signal-success)_30%,transparent)] data-[sot-tone=ok]:bg-[color-mix(in_srgb,var(--signal-success)_14%,transparent)] data-[sot-tone=ok]:text-[var(--signal-success)] data-[sot-tone=warn]:border-[color-mix(in_srgb,var(--signal-warning)_32%,transparent)] data-[sot-tone=warn]:bg-[color-mix(in_srgb,var(--signal-warning)_18%,transparent)] data-[sot-tone=warn]:text-[var(--signal-warning-deep)]",
     statusDot: "inline-block size-[5px] rounded-full bg-current",
     summaryBody: "flex flex-col gap-1.5",
     summaryMissingSection: "",
