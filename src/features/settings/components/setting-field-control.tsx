@@ -42,7 +42,8 @@ export const SOURCE_PROVIDER_DETAIL_CREDENTIAL_FIELD_CONTENT_CLASS = "min-w-0";
 
 export const SOURCE_PROVIDER_DETAIL_FIELD_CONTROL_CLASS = "justify-end";
 
-export const SOURCE_PROVIDER_DETAIL_INPUT_CLASS = "w-full max-w-64 font-mono";
+export const SOURCE_PROVIDER_DETAIL_INPUT_CLASS =
+    "w-full max-w-[15rem] bg-background font-mono shadow-none";
 
 export const SOURCE_PROVIDER_DETAIL_SWITCH_CLASS = "";
 

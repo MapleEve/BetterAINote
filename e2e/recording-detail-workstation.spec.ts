@@ -6537,6 +6537,38 @@ test("Workspace standalone error boundary runtime visual row 96", async ({
             frame.controls.backToDashboard.isVisible,
             `${frame.frame} back to dashboard`,
         ).toBe(true);
+
+        expect(
+            frame.screenshot.path,
+            `${frame.frame} screenshot evidence path`,
+        ).toBe(
+            repoRelativeEvidencePath(
+                path.join(
+                    WORKSPACE_STANDALONE_ERROR_RUNTIME_DIR,
+                    `${frame.frame}-standalone-error-runtime.png`,
+                ),
+            ),
+        );
+        expect(
+            frame.screenshot.dimensions,
+            `${frame.frame} screenshot dimensions match viewport`,
+        ).toEqual(frame.viewport);
+        expect(
+            frame.screenshot.imageBytes,
+            `${frame.frame} screenshot has image bytes`,
+        ).toBeGreaterThan(24);
+
+        const screenshot = await readFile(
+            path.resolve(process.cwd(), frame.screenshot.path),
+        );
+        expect(
+            readWorkspacePngDimensions(screenshot),
+            `${frame.frame} screenshot file is readable PNG`,
+        ).toEqual(frame.screenshot.dimensions);
+        expect(
+            screenshot.byteLength,
+            `${frame.frame} screenshot byte count matches file`,
+        ).toBe(frame.screenshot.imageBytes);
     }
 
     const evidence: WorkspaceStandaloneErrorRuntimeEvidence = {

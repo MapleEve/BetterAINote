@@ -4350,11 +4350,13 @@ describe("full UI replacement regression coverage", () => {
                 "h-[min(94svh,980px)]",
                 "max-h-[calc(100svh_-_1rem)]",
                 "w-[920px]",
-                "max-w-[calc(100vw_-_2rem)]",
+                "max-w-[calc(100vw_-_40px)]",
                 "sm:max-w-[920px]",
                 "flex-col",
                 "gap-0",
                 "overflow-hidden",
+                "rounded-[16px]",
+                "bg-card",
                 "p-0",
             ],
         );
@@ -11589,7 +11591,7 @@ describe("full UI replacement regression coverage", () => {
         );
         for (const providerDetailInputOwnerToken of [
             "w-full",
-            "max-w-64",
+            "max-w-[15rem]",
             "font-mono",
         ]) {
             expect(providerDetailInputOwnerClass).toContain(

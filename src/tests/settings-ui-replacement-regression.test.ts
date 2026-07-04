@@ -1972,7 +1972,7 @@ describe("settings SOT interaction regressions", () => {
         );
         for (const providerDetailInputOwnerToken of [
             "w-full",
-            "max-w-64",
+            "max-w-[15rem]",
             "font-mono",
         ]) {
             expect(providerDetailInputOwnerClass).toContain(
