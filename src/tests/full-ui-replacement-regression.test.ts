@@ -3046,8 +3046,21 @@ const SOURCE_REPORT_STYLE_OWNER_SNIPPETS = [
 
 const SOURCE_REPORT_PRIMITIVE_OWNER_SNIPPETS = [
     "const sourceReportPaneBase =",
-    "const sourceReportActionButtonStyles = cva(",
+    "const sourceReportCopyButtonVariant = {",
+    'idle: "ghost"',
+    'ok: "secondary"',
+    'err: "destructive"',
+    "function sourceReportCopyButtonVariantForState(",
+    "variant={sourceReportCopyButtonVariantForState(",
+    'feedbackState ?? "idle"',
+    'type SourceReportActionIntent = "ghost" | "outline" | "primary"',
+    "const sourceReportActionButtonVariant = {",
+    'ghost: "ghost"',
+    'outline: "outline"',
+    'primary: "default"',
     "function sourceReportButtonVariantForIntent(",
+    "variant={sourceReportButtonVariantForIntent(intent)}",
+    'className={cn(intent === "primary" && "min-w-[46px]")}',
     `const sourceReportPaneBase = "flex flex-col gap-3.5"`,
     "const sourceReportMetricCardBase =",
     "const sourceReportMetricLabelText =",
@@ -3062,8 +3075,6 @@ const SOURCE_REPORT_PRIMITIVE_OWNER_SNIPPETS = [
     "sourceReportMetaSpacingClasses",
     'loose: "mb-[15px]"',
     'roomy: "mb-[22px]"',
-    "primary:",
-    "min-w-[46px] border border-[var(--button-primary-border)] bg-[image:var(--button-primary-bg)] ![color:var(--button-primary-fg)] shadow-[var(--button-primary-shadow)] hover:bg-[image:var(--button-primary-hover-bg)] hover:![color:var(--button-primary-fg)]",
     "min-w-[46px]",
     "const sourceReportSectionTitleText =",
     "m-0 font-sans ![font-size:12.5px] font-semibold ![line-height:normal] ![letter-spacing:var(--ls-h4)] !text-foreground",
@@ -3071,13 +3082,6 @@ const SOURCE_REPORT_PRIMITIVE_OWNER_SNIPPETS = [
     "m-0 font-sans ![font-size:12.5px] font-medium ![line-height:1.55] !tracking-normal !text-foreground [text-wrap:pretty]",
     "const sourceReportSummaryLineText =",
     "m-0 whitespace-pre-wrap font-sans ![font-size:12.5px] font-medium ![line-height:1.55] !tracking-normal !text-foreground [text-wrap:pretty]",
-    'ghost: "border border-transparent bg-transparent text-[var(--fg-secondary)] shadow-none hover:bg-[var(--bg-recessed)] hover:text-[var(--fg-primary)]"',
-    "border border-transparent bg-transparent text-[var(--fg-secondary)] shadow-none",
-    "text-[var(--fg-secondary)] shadow-none",
-    "hover:bg-[var(--bg-recessed)] hover:text-[var(--fg-primary)]",
-    "const sourceReportCopyButtonStyles = cva(",
-    "h-[26px] gap-[6px]",
-    "[&[hidden]]:hidden",
     "const sourceReportEmptySurfaceStyles = cva(",
     "variant={null}",
     "border border-dashed border-[var(--line-hairline)] bg-[var(--bg-recessed)]",
@@ -3093,6 +3097,14 @@ const SOURCE_REPORT_PRIMITIVE_OWNER_SNIPPETS = [
     "[[data-theme=dark]_&]:border-[var(--glass-border-soft)] [.dark_&]:border-[var(--glass-border-soft)]",
     "grid grid-cols-[80px_1fr] items-baseline gap-[8px] border-b border-dashed border-[var(--line-hairline)] py-[6px]",
     "border-b border-dashed border-[var(--line-hairline)]",
+] as const;
+const SOURCE_REPORT_BUTTON_LOCAL_CVA_FORBIDDEN_SNIPPETS = [
+    "sourceReportActionButtonStyles",
+    "sourceReportCopyButtonStyles",
+    "min-w-[46px] border border-[var(--button-primary-border)]",
+    'ghost: "border border-transparent bg-transparent text-[var(--fg-secondary)] shadow-none hover:bg-[var(--bg-recessed)] hover:text-[var(--fg-primary)]"',
+    "h-[26px] gap-[6px]",
+    "border-[color-mix(in_srgb,var(--signal-success)_36%,transparent)]",
 ] as const;
 const SOURCE_REPORT_GEOMETRY_FORBIDDEN_SNIPPETS = [
     "my-[15px]",
@@ -9017,9 +9029,18 @@ describe("full UI replacement regression coverage", () => {
             /copy:\s*"[^"]*\[&\[hidden\]\]:hidden[^"]*"/,
         );
         expect(sourceReportPrimitives).toContain(
+            "const sourceReportCopyButtonVariant = {",
+        );
+        expect(sourceReportPrimitives).toContain(
+            "variant={sourceReportCopyButtonVariantForState(",
+        );
+        expect(sourceReportPrimitives).toContain("data-copy={copy}");
+        expect(sourceReportPrimitives).toContain(
+            "data-copy-state={feedbackState}",
+        );
+        expect(sourceReportPrimitives).not.toContain(
             "sourceReportCopyButtonStyles",
         );
-        expect(sourceReportPrimitives).toContain("[&[hidden]]:hidden");
         expect(workstation).not.toContain(
             ["SOURCE_REPORT_COPY_BUTTON_CLASS_NAME", "const SOT_"]
                 .reverse()
@@ -10151,6 +10172,12 @@ describe("full UI replacement regression coverage", () => {
             );
         }
         expect(sourceReportPrimitives).toContain(
+            "const sourceReportActionButtonVariant = {",
+        );
+        expect(sourceReportPrimitives).toContain('ghost: "ghost"');
+        expect(sourceReportPrimitives).toContain('outline: "outline"');
+        expect(sourceReportPrimitives).toContain('primary: "default"');
+        expect(sourceReportPrimitives).not.toContain(
             "sourceReportActionButtonStyles",
         );
         expect(sourceReportPanel).not.toContain(
@@ -10163,6 +10190,9 @@ describe("full UI replacement regression coverage", () => {
             "sourceReportButtonVariantForIntent",
         );
         expect(sourceReportPrimitives).toContain(
+            "const sourceReportCopyButtonVariant = {",
+        );
+        expect(sourceReportPrimitives).not.toContain(
             "sourceReportCopyButtonStyles",
         );
         expect(sourceReportActions).not.toContain('variant="outline"');
@@ -10206,13 +10236,17 @@ describe("full UI replacement regression coverage", () => {
         expect(sourceReportPrimitives).toContain(
             "function sourceReportButtonVariantForIntent",
         );
-        expect(sourceReportPrimitives).toContain('case "primary":');
-        expect(sourceReportPrimitives).toContain('case "ghost":');
+        expect(sourceReportPrimitives).toContain(
+            "return sourceReportActionButtonVariant[intent]",
+        );
         expect(sourceReportPrimitives).toContain('size="xs"');
         expect(sourceReportPrimitives).toContain(
-            "min-w-[46px] border border-[var(--button-primary-border)] bg-[image:var(--button-primary-bg)] ![color:var(--button-primary-fg)] shadow-[var(--button-primary-shadow)] hover:bg-[image:var(--button-primary-hover-bg)] hover:![color:var(--button-primary-fg)]",
+            'className={cn(intent === "primary" && "min-w-[46px]")}',
         );
-        expect(sourceReportPrimitives).toContain(
+        expect(sourceReportPrimitives).not.toContain(
+            "min-w-[46px] border border-[var(--button-primary-border)]",
+        );
+        expect(sourceReportPrimitives).not.toContain(
             'ghost: "border border-transparent bg-transparent text-[var(--fg-secondary)] shadow-none hover:bg-[var(--bg-recessed)] hover:text-[var(--fg-primary)]"',
         );
         expect(sourceReportEmptyActions).not.toContain(
@@ -10280,6 +10314,9 @@ describe("full UI replacement regression coverage", () => {
         }
         for (const snippet of SOURCE_REPORT_PRIMITIVE_OWNER_SNIPPETS) {
             expect(sourceReportPrimitives).toContain(snippet);
+        }
+        for (const snippet of SOURCE_REPORT_BUTTON_LOCAL_CVA_FORBIDDEN_SNIPPETS) {
+            expect(sourceReportPrimitives).not.toContain(snippet);
         }
         expect(sourceReportPrimitives).not.toContain("const skeletonBase =");
         expect(sourceReportPrimitives).not.toContain(
@@ -14744,6 +14781,9 @@ describe("full UI replacement regression coverage", () => {
         for (const snippet of SOURCE_REPORT_PRIMITIVE_OWNER_SNIPPETS) {
             expect(sourceReportPrimitives).toContain(snippet);
         }
+        for (const snippet of SOURCE_REPORT_BUTTON_LOCAL_CVA_FORBIDDEN_SNIPPETS) {
+            expect(sourceReportPrimitives).not.toContain(snippet);
+        }
         expect(sourceReportPrimitives).not.toContain("const skeletonBase =");
         expect(sourceReportPrimitives).not.toContain(
             "bg-[color-mix(in_srgb,var(--fg-primary)_10%,transparent)]",
@@ -15087,9 +15127,15 @@ describe("full UI replacement regression coverage", () => {
         expect(emptyPrimitive).not.toContain(
             "SOURCE_REPORT_ERROR_ICON_CLASS_NAME",
         );
-        expect(sourceReportPrimitives).toContain('case "ghost":');
+        expect(sourceReportPrimitives).toContain(
+            "const sourceReportActionButtonVariant = {",
+        );
+        expect(sourceReportPrimitives).toContain('ghost: "ghost"');
         expect(sourceReportPrimitives).toContain('size="xs"');
         expect(sourceReportPrimitives).toContain(
+            "const sourceReportCopyButtonVariant = {",
+        );
+        expect(sourceReportPrimitives).not.toContain(
             "sourceReportCopyButtonStyles",
         );
         for (const token of SOURCE_REPORT_SKELETON_SHARED_TOKENS) {

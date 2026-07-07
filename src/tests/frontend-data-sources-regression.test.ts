@@ -340,7 +340,7 @@ describe("frontend data-source routing regression", () => {
             "export function SourceReportCopyButton",
         );
         const sourceReportCopyButtonEnd = sourceReportPrimitives.indexOf(
-            "const sourceReportActionButtonStyles",
+            "type SourceReportActionIntent",
             sourceReportCopyButtonStart,
         );
         expect(sourceReportCopyButtonStart).toBeGreaterThanOrEqual(0);
@@ -357,6 +357,22 @@ describe("frontend data-source routing regression", () => {
         expect(sourceReportCopyButton).toContain(': "copy-source-transcript"');
         expect(sourceReportCopyButton).toContain("data-sot-state={copyState}");
         expect(sourceReportCopyButton).toContain("data-tab-scope={tabScope}");
+        expect(sourceReportCopyButton).toContain(
+            "variant={sourceReportCopyButtonVariantForState(",
+        );
+        expect(sourceReportCopyButton).toContain('size="xs"');
+        expect(sourceReportPrimitives).toContain(
+            "const sourceReportCopyButtonVariant = {",
+        );
+        expect(sourceReportPrimitives).toContain('idle: "ghost"');
+        expect(sourceReportPrimitives).toContain('ok: "secondary"');
+        expect(sourceReportPrimitives).toContain('err: "destructive"');
+        expect(sourceReportPrimitives).not.toContain(
+            "sourceReportCopyButtonStyles",
+        );
+        expect(sourceReportPrimitives).not.toContain(
+            "sourceReportActionButtonStyles",
+        );
 
         expect(sourceReportPanel).not.toContain('sourceProvider === "plaud"');
         expect(sourceReportPanel).not.toContain(

@@ -331,21 +331,22 @@ export function SourceReportCopyLabel({
     );
 }
 
-const sourceReportCopyButtonStyles = cva(
-    "h-[26px] gap-[6px] rounded-[7px] border border-transparent px-[10px] font-sans text-[12px] font-semibold leading-[normal] shadow-none has-[>svg]:px-[10px] [&[hidden]]:hidden",
-    {
-        variants: {
-            feedback: {
-                idle: "",
-                err: "border-[var(--alert-destructive-soft-border)] text-[var(--signal-danger)] hover:bg-transparent hover:text-[var(--signal-danger)]",
-                ok: "border-[color-mix(in_srgb,var(--signal-success)_36%,transparent)] bg-[color-mix(in_srgb,var(--signal-success)_10%,transparent)] text-[var(--signal-success)] hover:bg-[color-mix(in_srgb,var(--signal-success)_10%,transparent)] hover:text-[var(--signal-success)]",
-            },
-        },
-        defaultVariants: {
-            feedback: "idle",
-        },
-    },
-);
+type SourceReportCopyFeedbackState = "err" | "idle" | "ok";
+
+const sourceReportCopyButtonVariant = {
+    err: "destructive",
+    idle: "ghost",
+    ok: "secondary",
+} as const satisfies Record<
+    SourceReportCopyFeedbackState,
+    ButtonProps["variant"]
+>;
+
+function sourceReportCopyButtonVariantForState(
+    feedbackState: SourceReportCopyFeedbackState,
+): ButtonProps["variant"] {
+    return sourceReportCopyButtonVariant[feedbackState];
+}
 
 export function SourceReportCopyButton({
     children,
@@ -363,11 +364,10 @@ export function SourceReportCopyButton({
 }) {
     return (
         <Button
-            variant="ghost"
+            variant={sourceReportCopyButtonVariantForState(
+                feedbackState ?? "idle",
+            )}
             size="xs"
-            className={sourceReportCopyButtonStyles({
-                feedback: feedbackState ?? "idle",
-            })}
             data-copy={copy}
             data-copy-state={feedbackState}
             data-sot-control={
@@ -384,38 +384,18 @@ export function SourceReportCopyButton({
     );
 }
 
-const sourceReportActionButtonStyles = cva(
-    "h-[26px] gap-[7px] rounded-[7px] px-[10px] font-sans text-[12px] font-semibold leading-[normal] has-[>svg]:px-[10px]",
-    {
-        variants: {
-            intent: {
-                ghost: "border border-transparent bg-transparent text-[var(--fg-secondary)] shadow-none hover:bg-[var(--bg-recessed)] hover:text-[var(--fg-primary)]",
-                outline: "text-foreground",
-                primary:
-                    "min-w-[46px] border border-[var(--button-primary-border)] bg-[image:var(--button-primary-bg)] ![color:var(--button-primary-fg)] shadow-[var(--button-primary-shadow)] hover:bg-[image:var(--button-primary-hover-bg)] hover:![color:var(--button-primary-fg)]",
-            },
-        },
-        defaultVariants: {
-            intent: "ghost",
-        },
-    },
-);
+type SourceReportActionIntent = "ghost" | "outline" | "primary";
 
-type SourceReportActionIntent = NonNullable<
-    VariantProps<typeof sourceReportActionButtonStyles>["intent"]
->;
+const sourceReportActionButtonVariant = {
+    ghost: "ghost",
+    outline: "outline",
+    primary: "default",
+} as const satisfies Record<SourceReportActionIntent, ButtonProps["variant"]>;
 
 function sourceReportButtonVariantForIntent(
     intent: SourceReportActionIntent,
 ): ButtonProps["variant"] {
-    switch (intent) {
-        case "ghost":
-            return "ghost";
-        case "outline":
-            return "outline";
-        case "primary":
-            return "default";
-    }
+    return sourceReportActionButtonVariant[intent];
 }
 
 export function SourceReportActionButton({
@@ -434,7 +414,7 @@ export function SourceReportActionButton({
         <Button
             variant={sourceReportButtonVariantForIntent(intent)}
             size="xs"
-            className={sourceReportActionButtonStyles({ intent })}
+            className={cn(intent === "primary" && "min-w-[46px]")}
             data-sot-control={control}
             data-sot-state={state}
             {...props}
