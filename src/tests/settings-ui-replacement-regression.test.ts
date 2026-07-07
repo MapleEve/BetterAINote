@@ -3407,7 +3407,7 @@ describe("settings SOT interaction regressions", () => {
         const speakerStateBadges = speakers.match(/<Badge\b[^>]*>/g) ?? [];
         const speakerRowFields =
             speakers.match(
-                /<Field(?!Content|Description|Label|Title)\b[^>]*>/g,
+                /<Field(?!Content|Control|Description|Label|Title)\b[^>]*>/g,
             ) ?? [];
         const speakerStateBadgeOpenings = speakerStateBadges.filter((badge) =>
             badge.includes('data-sot-badge="speaker-state"'),
@@ -3424,6 +3424,22 @@ describe("settings SOT interaction regressions", () => {
             speakers.match(
                 /const speakerRowItemClassName\s*=\s*"[^"]*";/,
             )?.[0] ?? "";
+        const speakerProfilesPanelClass = findStringConstInitializerContaining(
+            speakers,
+            ["speakerProfilesPanelClassName", "relative flex flex-col gap-2"],
+        );
+        const speakerProfileNameField =
+            collectElementSlices(
+                speakers,
+                'data-sot-part="speaker-profile-row-meta"',
+                "Field",
+            )[0] ?? "";
+        const speakerVoiceprintNameField =
+            collectElementSlices(
+                speakers,
+                'data-sot-part="speaker-voiceprint-row-meta"',
+                "Field",
+            )[0] ?? "";
         const speakerButtons =
             speakers.match(/<Button\b[\s\S]*?<\/Button>/g) ?? [];
         const speakerProfileEmptyState = collectElementSlices(
@@ -3491,8 +3507,9 @@ describe("settings SOT interaction regressions", () => {
         );
         expect(speakers).toContain('from "@/components/ui/empty";');
         expect(speakers).toMatch(
-            /import\s*\{[\s\S]*Field,[\s\S]*FieldContent,[\s\S]*FieldDescription,[\s\S]*FieldLabel,[\s\S]*FieldTitle[\s\S]*\}\s*from "@\/components\/ui\/field";/,
+            /import\s*\{[\s\S]*Field,[\s\S]*FieldContent,[\s\S]*FieldControl,[\s\S]*FieldDescription,[\s\S]*FieldLabel,[\s\S]*FieldTitle[\s\S]*\}\s*from "@\/components\/ui\/field";/,
         );
+        expect(speakers).not.toContain('from "@/components/ui/label";');
         for (const primitiveSource of [
             avatarPrimitive,
             badgePrimitive,
@@ -3546,7 +3563,7 @@ describe("settings SOT interaction regressions", () => {
         }
         expectFeatureOwnedSnippets("speaker profile row layout", [
             "speakerProfilesPanelClassName",
-            "relative flex flex-col gap-2 !mb-3.5",
+            "relative flex flex-col gap-2",
             "speakerSectionGroupClassName",
             "relative mb-[22px]",
             "speakerRowsListClassName",
@@ -3558,6 +3575,7 @@ describe("settings SOT interaction regressions", () => {
             "speakerRowSubClassName",
             "flex min-w-0 flex-wrap items-center gap-1.5",
         ]);
+        expect(speakerProfilesPanelClass).not.toMatch(/!mb-3\.5/);
         expect(speakerRowItemClass).toContain(
             "grid min-w-0 grid-cols-[36px_minmax(0,1fr)_auto_auto]",
         );
@@ -3592,7 +3610,34 @@ describe("settings SOT interaction regressions", () => {
         expect(speakers).toContain("<FieldContent");
         expect(speakers).toContain("<FieldTitle>");
         expect(speakers).toContain("<FieldLabel");
+        expect(speakers).toContain("<FieldControl");
         expect(speakers).toContain("<FieldDescription>");
+        for (const [field, control, disabledState] of [
+            [
+                speakerProfileNameField,
+                "speaker-profile-name",
+                "isProfileSaving",
+            ],
+            [
+                speakerVoiceprintNameField,
+                "speaker-voiceprint-name",
+                "isVoiceprintSaving",
+            ],
+        ] as const) {
+            expect(field).toContain("<Field");
+            expect(field).toContain("<FieldLabel");
+            expect(field).toContain("<FieldControl");
+            expect(field).toContain("<Input");
+            expect(field).toContain("<FieldDescription");
+            expect(field).toContain(`data-sot-control="${control}"`);
+            expect(field).toMatch(
+                new RegExp(
+                    `data-disabled=\\{\\s*${disabledState}\\s*\\?\\s*"true"\\s*:\\s*undefined\\s*\\}`,
+                ),
+            );
+            expect(field).toContain(`disabled={${disabledState}}`);
+            expect(field).not.toContain("<Label");
+        }
         expect(panelNotice).toContain("<Alert");
         expect(panelNotice).toContain('density="comfortable"');
         expect(panelNotice).toContain('layout="default"');

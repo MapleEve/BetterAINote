@@ -19,12 +19,12 @@ import {
 import {
     Field,
     FieldContent,
+    FieldControl,
     FieldDescription,
     FieldLabel,
     FieldTitle,
 } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
 import { SettingsListSkeleton } from "@/features/settings/components/settings-skeletons";
 import { formatDateTime } from "@/lib/format-date";
 
@@ -73,7 +73,7 @@ const speakerStateBadgeVariantByTone = {
 
 const speakerSettingsRowClassName = "border-b border-border py-3";
 
-const speakerProfilesPanelClassName = "relative flex flex-col gap-2 !mb-3.5";
+const speakerProfilesPanelClassName = "relative flex flex-col gap-2";
 
 const speakerSectionGroupClassName = "relative mb-[22px]";
 
@@ -682,46 +682,52 @@ export function SpeakerProfilesPanel() {
                                                 .toUpperCase() || "#"}
                                         </AvatarFallback>
                                     </Avatar>
-                                    <div
+                                    <Field
                                         className={speakerRowMetaClassName}
+                                        data-disabled={
+                                            isProfileSaving ? "true" : undefined
+                                        }
                                         data-sot-part="speaker-profile-row-meta"
                                     >
-                                        <Label
+                                        <FieldLabel
                                             className="sr-only"
                                             htmlFor={profileNameInputId}
                                         >
                                             {isZh
                                                 ? `说话人名称：${profile.displayName || profile.id}`
                                                 : `Speaker profile name: ${profile.displayName || profile.id}`}
-                                        </Label>
-                                        <Input
-                                            data-sot-control="speaker-profile-name"
-                                            data-sot-speaker-profile-id={
-                                                profile.id
-                                            }
-                                            id={profileNameInputId}
-                                            value={profile.displayName}
-                                            onChange={(event) =>
-                                                setProfiles((prev) =>
-                                                    prev.map((item) =>
-                                                        item.id === profile.id
-                                                            ? {
-                                                                  ...item,
-                                                                  displayName:
-                                                                      event
-                                                                          .target
-                                                                          .value,
-                                                              }
-                                                            : item,
-                                                    ),
-                                                )
-                                            }
-                                            disabled={isProfileSaving}
-                                            aria-describedby={
-                                                profileNameDescriptionId
-                                            }
-                                        />
-                                        <div
+                                        </FieldLabel>
+                                        <FieldControl className="w-full">
+                                            <Input
+                                                data-sot-control="speaker-profile-name"
+                                                data-sot-speaker-profile-id={
+                                                    profile.id
+                                                }
+                                                id={profileNameInputId}
+                                                value={profile.displayName}
+                                                onChange={(event) =>
+                                                    setProfiles((prev) =>
+                                                        prev.map((item) =>
+                                                            item.id ===
+                                                            profile.id
+                                                                ? {
+                                                                      ...item,
+                                                                      displayName:
+                                                                          event
+                                                                              .target
+                                                                              .value,
+                                                                  }
+                                                                : item,
+                                                        ),
+                                                    )
+                                                }
+                                                disabled={isProfileSaving}
+                                                aria-describedby={
+                                                    profileNameDescriptionId
+                                                }
+                                            />
+                                        </FieldControl>
+                                        <FieldDescription
                                             className={speakerRowSubClassName}
                                             id={profileNameDescriptionId}
                                             data-sot-part="speaker-profile-row-sub"
@@ -760,8 +766,8 @@ export function SpeakerProfilesPanel() {
                                                     )}
                                                 </span>
                                             ) : null}
-                                        </div>
-                                    </div>
+                                        </FieldDescription>
+                                    </Field>
                                     <Button
                                         type="button"
                                         size="sm"
@@ -931,47 +937,54 @@ export function SpeakerProfilesPanel() {
                                         </AvatarFallback>
                                     </Avatar>
 
-                                    <div
+                                    <Field
                                         className={speakerRowMetaClassName}
+                                        data-disabled={
+                                            isVoiceprintSaving
+                                                ? "true"
+                                                : undefined
+                                        }
                                         data-sot-part="speaker-voiceprint-row-meta"
                                     >
-                                        <Label
+                                        <FieldLabel
                                             className="sr-only"
                                             htmlFor={voiceprintNameInputId}
                                         >
                                             {isZh
                                                 ? `声纹名称：${voiceprint.displayName || voiceprint.id}`
                                                 : `Voiceprint name: ${voiceprint.displayName || voiceprint.id}`}
-                                        </Label>
-                                        <Input
-                                            data-sot-control="speaker-voiceprint-name"
-                                            data-sot-voiceprint-id={
-                                                voiceprint.id
-                                            }
-                                            id={voiceprintNameInputId}
-                                            value={voiceprint.displayName}
-                                            onChange={(event) =>
-                                                setVoiceprints((prev) =>
-                                                    prev.map((item) =>
-                                                        item.id ===
-                                                        voiceprint.id
-                                                            ? {
-                                                                  ...item,
-                                                                  displayName:
-                                                                      event
-                                                                          .target
-                                                                          .value,
-                                                              }
-                                                            : item,
-                                                    ),
-                                                )
-                                            }
-                                            disabled={isVoiceprintSaving}
-                                            aria-describedby={
-                                                voiceprintNameDescriptionId
-                                            }
-                                        />
-                                        <div
+                                        </FieldLabel>
+                                        <FieldControl className="w-full">
+                                            <Input
+                                                data-sot-control="speaker-voiceprint-name"
+                                                data-sot-voiceprint-id={
+                                                    voiceprint.id
+                                                }
+                                                id={voiceprintNameInputId}
+                                                value={voiceprint.displayName}
+                                                onChange={(event) =>
+                                                    setVoiceprints((prev) =>
+                                                        prev.map((item) =>
+                                                            item.id ===
+                                                            voiceprint.id
+                                                                ? {
+                                                                      ...item,
+                                                                      displayName:
+                                                                          event
+                                                                              .target
+                                                                              .value,
+                                                                  }
+                                                                : item,
+                                                        ),
+                                                    )
+                                                }
+                                                disabled={isVoiceprintSaving}
+                                                aria-describedby={
+                                                    voiceprintNameDescriptionId
+                                                }
+                                            />
+                                        </FieldControl>
+                                        <FieldDescription
                                             className={speakerRowSubClassName}
                                             id={voiceprintNameDescriptionId}
                                             data-sot-part="speaker-voiceprint-row-sub"
@@ -1007,8 +1020,8 @@ export function SpeakerProfilesPanel() {
                                                     )}
                                                 </span>
                                             ) : null}
-                                        </div>
-                                    </div>
+                                        </FieldDescription>
+                                    </Field>
 
                                     <Button
                                         type="button"
