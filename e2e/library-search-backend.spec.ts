@@ -11,6 +11,10 @@ const SEARCH_TARGET_RECORDING_ID = "e2e-library-search-backend-target";
 const SEARCH_OTHER_RECORDING_ID = "e2e-library-search-backend-other";
 const SEARCH_TRANSCRIPT_ENTITY_ID =
     "e2e-library-search-backend-transcript-segment";
+const SEARCH_INDEXING_JOB_ID = "e2e-library-search-backend-indexing-job";
+const SEARCH_INDEXING_ENTITY_ID = "e2e-library-search-backend-indexing";
+const SEARCH_INDEXING_QUERY = "indexinggateproof";
+const SEARCH_INDEXING_TIMESTAMP_MS = 1_800_000_000_000;
 const SEARCH_QUERY = "backendrouteproof";
 const SEARCH_TARGET_TITLE = "E2E backend search target";
 const SEARCH_BODY =
@@ -292,6 +296,77 @@ async function seedSearchReadModel(userId: string) {
     }
 }
 
+async function seedActiveSearchIndexJob(userId: string) {
+    const search = createClient({ url: databaseUrl(SEARCH_DB) });
+    try {
+        await search.execute({
+            sql: `
+                DELETE FROM search_index_jobs
+                WHERE user_id = ? AND id = ?
+            `,
+            args: [userId, SEARCH_INDEXING_JOB_ID],
+        });
+        await search.execute({
+            sql: `
+                INSERT INTO search_index_jobs (
+                    id, user_id, entity_type, entity_id, action, status,
+                    attempts, last_error, scheduled_at, started_at,
+                    completed_at, created_at, updated_at
+                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+            `,
+            args: [
+                SEARCH_INDEXING_JOB_ID,
+                userId,
+                "recording",
+                SEARCH_INDEXING_ENTITY_ID,
+                "rebuild",
+                "indexing",
+                0,
+                null,
+                SEARCH_INDEXING_TIMESTAMP_MS,
+                SEARCH_INDEXING_TIMESTAMP_MS,
+                null,
+                SEARCH_INDEXING_TIMESTAMP_MS,
+                SEARCH_INDEXING_TIMESTAMP_MS,
+            ],
+        });
+    } finally {
+        await search.close();
+    }
+}
+
+async function cleanupActiveSearchIndexJob(userId: string) {
+    const search = createClient({ url: databaseUrl(SEARCH_DB) });
+    try {
+        await search.execute({
+            sql: `
+                DELETE FROM search_index_jobs
+                WHERE user_id = ? AND id = ?
+            `,
+            args: [userId, SEARCH_INDEXING_JOB_ID],
+        });
+    } finally {
+        await search.close();
+    }
+}
+
+async function countActiveSearchIndexJob(userId: string) {
+    const search = createClient({ url: databaseUrl(SEARCH_DB) });
+    try {
+        const result = await search.execute({
+            sql: `
+                SELECT count(*) AS count
+                FROM search_index_jobs
+                WHERE user_id = ? AND id = ?
+            `,
+            args: [userId, SEARCH_INDEXING_JOB_ID],
+        });
+        return Number(result.rows[0]?.count ?? 0);
+    } finally {
+        await search.close();
+    }
+}
+
 async function openLibrarySearch(page: Page) {
     const trigger = sotControl(page, "dashboard-search").first();
     const panel = sotPanel(page, "library-search");
@@ -424,4 +499,88 @@ test("library search uses the real /api/search route against the seeded local re
     await expect(panel).toBeHidden();
     await expect(targetRecording).toHaveAttribute("data-sot-state", "selected");
     await expect(otherRecording).toHaveAttribute("data-sot-state", "idle");
+});
+
+test("library search shows the real backend indexing state while search index jobs are active", async ({
+    page,
+}) => {
+    test.setTimeout(180_000);
+
+    await ensureSignedIn(page);
+    const userId = await getPlaywrightUserId();
+    await seedDashboardRecordings(userId);
+    await seedActiveSearchIndexJob(userId);
+
+    try {
+        const searchResponse = await page.request.get("/api/search", {
+            params: {
+                q: SEARCH_INDEXING_QUERY,
+                type: "transcript",
+                limit: "8",
+            },
+        });
+        const searchPayload = (await searchResponse.json()) as {
+            results?: unknown[];
+            indexing?: {
+                active?: boolean;
+                pendingJobs?: number;
+                indexingJobs?: number;
+                completedJobs?: number;
+                totalJobs?: number;
+            };
+        };
+
+        expect(searchResponse.ok()).toBe(true);
+        expect(searchPayload.results).toEqual([]);
+        expect(searchPayload.indexing).toEqual({
+            active: true,
+            pendingJobs: 0,
+            indexingJobs: 1,
+            completedJobs: 0,
+            totalJobs: 1,
+        });
+
+        await page.goto("/dashboard", { waitUntil: "domcontentloaded" });
+
+        const panel = await openLibrarySearch(page);
+        const input = panel.locator('[data-sot-control="library-search-input"]');
+
+        await input.fill(SEARCH_INDEXING_QUERY);
+        await expect(panel).toHaveAttribute("data-state", "indexing");
+        await expect(panel).toHaveAttribute("data-sot-state", "indexing");
+        await expect(input).toHaveAttribute("data-sot-state", "indexing");
+        await expect(input).toHaveAttribute("aria-disabled", "true");
+        await expect(input).toHaveJSProperty("readOnly", true);
+
+        const indexingState = panel.locator(
+            '[data-sot-part="library-search-indexing"][data-sot-state="indexing"]',
+        );
+        await expect(indexingState).toBeVisible();
+        await expect(indexingState).toContainText("正在重建本地搜索索引");
+        await expect(indexingState).toContainText("0 / 1");
+        await expect(
+            panel.locator('[data-sot-part="library-search-state-skeleton"]'),
+        ).toBeVisible();
+
+        const scopeControls = panel.locator(
+            '[data-sot-control="library-search-scope"]',
+        );
+        await expect(scopeControls).toHaveCount(5);
+        for (const scope of [
+            "all",
+            "recording",
+            "transcript",
+            "speaker",
+            "tag",
+        ]) {
+            await expect(
+                panel.locator(
+                    `[data-sot-control="library-search-scope"][data-sot-scope="${scope}"]`,
+                ),
+            ).toBeDisabled();
+        }
+    } finally {
+        await cleanupActiveSearchIndexJob(userId);
+        expect(await countActiveSearchIndexJob(userId)).toBe(0);
+    }
 });
