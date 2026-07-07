@@ -632,28 +632,25 @@ const dashboardSearchActivityClassNames = {
         "relative inline-flex size-[32px] items-center justify-center p-0",
     dashboardActivityAnchor:
         "relative inline-flex size-[32px] items-center justify-center p-0",
-    dashboardSearchTrigger:
-        "relative size-[32px] rounded-md border border-transparent bg-transparent p-0 text-muted-foreground shadow-none hover:bg-accent hover:text-accent-foreground data-[sot-state=open]:border-border data-[sot-state=open]:bg-accent data-[sot-state=open]:text-accent-foreground",
+    dashboardSearchTrigger: "relative",
     librarySearchPanel:
-        "pointer-events-none absolute right-0 top-[calc(100%+8px)] z-[var(--z-dropdown)] flex max-h-[540px] w-[460px] max-w-[calc(100vw-32px)] flex-col gap-0 overflow-hidden rounded-[12px] border-border bg-popover font-sans text-popover-foreground opacity-0 shadow-lg backdrop-blur-none transition-[opacity,transform] duration-[180ms] ease-[var(--ease-out)] [transform:translateY(-4px)_scale(0.99)] data-[open=true]:pointer-events-auto data-[open=true]:opacity-100 data-[open=true]:[transform:translateY(0)_scale(1)] min-[641px]:max-[860px]:fixed min-[641px]:max-[860px]:left-3 min-[641px]:max-[860px]:right-auto min-[641px]:max-[860px]:top-[72px] min-[641px]:max-[860px]:box-border min-[641px]:max-[860px]:max-h-[calc(100dvh-96px)] min-[641px]:max-[860px]:w-[min(460px,calc(100vw-24px))] min-[641px]:max-[860px]:max-w-[calc(100vw-24px)] max-[640px]:fixed max-[640px]:left-3 max-[640px]:right-3 max-[640px]:top-[72px] max-[640px]:box-border max-[640px]:max-h-[calc(100dvh-96px)] max-[640px]:w-[calc(100vw-24px)] max-[640px]:min-w-0 max-[640px]:max-w-none",
+        "absolute right-0 top-[calc(100%+8px)] z-50 flex max-h-[540px] w-[460px] max-w-[calc(100vw-32px)] flex-col gap-0 min-[641px]:max-[860px]:fixed min-[641px]:max-[860px]:left-3 min-[641px]:max-[860px]:right-auto min-[641px]:max-[860px]:top-[72px] min-[641px]:max-[860px]:box-border min-[641px]:max-[860px]:max-h-[calc(100dvh-96px)] min-[641px]:max-[860px]:w-[min(460px,calc(100vw-24px))] min-[641px]:max-[860px]:max-w-[calc(100vw-24px)] max-[640px]:fixed max-[640px]:left-3 max-[640px]:right-3 max-[640px]:top-[72px] max-[640px]:box-border max-[640px]:max-h-[calc(100dvh-96px)] max-[640px]:w-[calc(100vw-24px)] max-[640px]:min-w-0 max-[640px]:max-w-none",
     librarySearchInputRow:
-        "h-[49px] min-h-[49px] gap-[8px] rounded-none border-x-0 border-t-0 border-b border-border bg-transparent px-[12px] py-[8px] shadow-none focus-within:border-border focus-within:ring-0",
+        "h-[49px] min-h-[49px] gap-[8px] rounded-none border-x-0 border-t-0 border-b border-border px-[12px] py-[8px]",
     librarySearchInputAddon:
         "p-0 text-muted-foreground group-data-[disabled=true]/input-group:opacity-100 has-[>button]:m-0",
     librarySearchInput:
-        "h-[32px] min-w-0 px-[4px] py-0 [font:500_13.5px/1.35_var(--font-sans)] text-foreground placeholder:text-muted-foreground md:text-[13.5px]",
-    librarySearchClear:
-        "size-6 rounded-[calc(var(--radius-md)-5px)] border border-transparent bg-transparent p-0 text-muted-foreground shadow-none hover:bg-transparent hover:text-foreground has-[>svg]:p-0",
+        "h-8 min-w-0 px-1 py-0 text-sm md:text-sm",
+    librarySearchClear: "size-6",
     librarySearchScope:
         "min-h-[39px] w-full flex-wrap gap-[6px] rounded-none border-b border-border bg-muted px-[12px] py-[8px]",
     librarySearchScopeItem:
-        "h-[22px] gap-[4px] rounded-full border border-transparent bg-transparent px-[10px] [font:500_11.5px/1_var(--font-sans)] text-muted-foreground shadow-none hover:bg-card hover:text-foreground data-[state=on]:border-primary/30 data-[state=on]:bg-primary/10 data-[state=on]:text-primary disabled:pointer-events-none disabled:opacity-[.45]",
+        "h-6 rounded-full px-2.5 text-xs disabled:pointer-events-none disabled:opacity-50",
     librarySearchError:
-        "flex w-full flex-col items-center gap-2 rounded-none border-0 bg-transparent px-4 py-4 text-center text-sm text-destructive shadow-none *:data-[slot=alert-description]:text-destructive [&>svg]:text-current",
+        "flex w-full flex-col items-center gap-2 rounded-none px-4 py-4 text-center text-sm text-destructive *:data-[slot=alert-description]:text-destructive [&>svg]:text-current",
     librarySearchErrorTitle:
         "line-clamp-none min-h-0 text-center text-sm font-medium tracking-normal",
-    librarySearchRetry:
-        "h-6 gap-1 rounded-md border border-input bg-background px-2 text-xs text-foreground shadow-xs hover:bg-accent hover:text-accent-foreground has-[>svg]:px-1.5",
+    librarySearchRetry: "h-6 px-2 text-xs",
     librarySearchScroll:
         "min-h-0 flex-1 overflow-y-auto px-[6px] pt-[6px] pb-[8px]",
     librarySearchState: "block text-muted-foreground",
@@ -662,32 +659,31 @@ const dashboardSearchActivityClassNames = {
     librarySearchStateSkeleton:
         "relative inline-flex h-1 w-auto min-w-0 flex-1 overflow-hidden rounded-full bg-primary/10 animate-none after:absolute after:inset-y-0 after:left-0 after:w-[36%] after:rounded-[inherit] after:bg-primary/50 after:animate-[sbn-sweep_1.4s_linear_infinite] after:content-['']",
     librarySearchStateCopy:
-        "px-[16px] py-[22px] text-center [font:500_12.5px/1.55_var(--font-sans)] text-muted-foreground [&_span]:font-semibold [&_span]:text-foreground",
+        "px-4 py-5 text-center text-sm text-muted-foreground [&_span]:font-semibold [&_span]:text-foreground",
     librarySearchResults: "flex flex-col",
     librarySearchResultGroup:
         "flex flex-col gap-[2px] px-[4px] py-[6px] [&+&]:mt-[4px] [&+&]:border-t [&+&]:border-border [&+&]:pt-[8px]",
     librarySearchGroupLabel:
-        "px-[6px] py-[4px] [font:600_10.5px/1_var(--font-mono)] uppercase tracking-[0.08em] text-muted-foreground",
+        "px-1.5 py-1 font-mono text-xs font-semibold uppercase tracking-wide text-muted-foreground",
     librarySearchResult:
-        "h-auto w-full flex-col items-start justify-start gap-[2px] rounded-[var(--radius-sm)] border-0 bg-transparent px-[10px] py-[8px] text-left text-foreground whitespace-normal shadow-none hover:bg-muted focus-visible:bg-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/50",
-    librarySearchResultTitle:
-        "[font:600_13px/1.4_var(--font-sans)] text-foreground",
+        "h-auto w-full flex-col items-start justify-start gap-0.5 px-2.5 py-2 text-left whitespace-normal",
+    librarySearchResultTitle: "text-sm font-semibold text-foreground",
     librarySearchResultMeta:
-        "font-mono text-[11.5px] font-medium leading-[1.4] tracking-[0.02em] text-muted-foreground",
+        "font-mono text-xs font-medium leading-snug text-muted-foreground",
     librarySearchHighlight: "rounded-[3px] bg-primary/10 px-[2px] text-primary",
     librarySearchTag:
-        "h-[22px] w-fit justify-normal gap-[5px] overflow-visible rounded-[6px] border border-primary/20 bg-primary/10 py-0 pr-[9px] pl-[7px] [font:600_11.5px_var(--font-sans)] text-primary whitespace-normal shadow-xs [a&]:hover:bg-primary/10",
-    dashboardActivityTrigger:
-        "relative size-[32px] rounded-md border border-transparent bg-transparent p-0 text-muted-foreground shadow-none hover:bg-accent hover:text-accent-foreground data-[sot-state=open]:border-border data-[sot-state=open]:bg-accent data-[sot-state=open]:text-accent-foreground data-[unread=0]:[&_[data-sot-part=dashboard-activity-badge]]:hidden [&_[data-sot-part=dashboard-activity-badge]]:pointer-events-none [&_[data-sot-part=dashboard-activity-badge]]:absolute [&_[data-sot-part=dashboard-activity-badge]]:right-0.5 [&_[data-sot-part=dashboard-activity-badge]]:top-0.5 [&_[data-sot-part=dashboard-activity-badge]]:inline-flex [&_[data-sot-part=dashboard-activity-badge]]:h-4 [&_[data-sot-part=dashboard-activity-badge]]:min-w-4 [&_[data-sot-part=dashboard-activity-badge]]:items-center [&_[data-sot-part=dashboard-activity-badge]]:justify-center [&_[data-sot-part=dashboard-activity-badge]]:rounded-full [&_[data-sot-part=dashboard-activity-badge]]:bg-destructive [&_[data-sot-part=dashboard-activity-badge]]:px-1 [&_[data-sot-part=dashboard-activity-badge]]:font-sans [&_[data-sot-part=dashboard-activity-badge]]:text-[9.5px] [&_[data-sot-part=dashboard-activity-badge]]:font-bold [&_[data-sot-part=dashboard-activity-badge]]:text-destructive-foreground [&_[data-sot-part=dashboard-activity-badge]]:ring-2 [&_[data-sot-part=dashboard-activity-badge]]:ring-card",
+        "h-6 w-fit justify-normal gap-1 overflow-visible whitespace-normal px-2 py-0",
+    dashboardActivityTrigger: "relative",
+    dashboardActivityBadge:
+        "pointer-events-none absolute right-0.5 top-0.5 min-w-4 px-1 text-[9.5px]",
     dashboardActivityPanel:
-        "pointer-events-none absolute right-0 top-[calc(100%+8px)] z-[var(--z-dropdown)] flex max-h-[520px] w-[380px] max-w-[calc(100vw-32px)] flex-col gap-0 overflow-hidden rounded-[12px] border-border bg-popover text-popover-foreground opacity-0 shadow-lg backdrop-blur-none transition-[opacity,transform] duration-[180ms] ease-[var(--ease-out)] [transform:translateY(-4px)_scale(0.99)] data-[open=true]:pointer-events-auto data-[open=true]:opacity-100 data-[open=true]:[transform:translateY(0)_scale(1)] min-[641px]:max-[860px]:fixed min-[641px]:max-[860px]:left-3 min-[641px]:max-[860px]:right-auto min-[641px]:max-[860px]:top-[72px] min-[641px]:max-[860px]:box-border min-[641px]:max-[860px]:max-h-[calc(100dvh-96px)] min-[641px]:max-[860px]:w-[min(380px,calc(100vw-24px))] min-[641px]:max-[860px]:max-w-[calc(100vw-24px)] max-[640px]:fixed max-[640px]:left-3 max-[640px]:right-3 max-[640px]:top-[72px] max-[640px]:box-border max-[640px]:max-h-[calc(100dvh-96px)] max-[640px]:w-[calc(100vw-24px)] max-[640px]:min-w-0 max-[640px]:max-w-none",
+        "absolute right-0 top-[calc(100%+8px)] z-50 flex max-h-[520px] w-[380px] max-w-[calc(100vw-32px)] flex-col gap-0 min-[641px]:max-[860px]:fixed min-[641px]:max-[860px]:left-3 min-[641px]:max-[860px]:right-auto min-[641px]:max-[860px]:top-[72px] min-[641px]:max-[860px]:box-border min-[641px]:max-[860px]:max-h-[calc(100dvh-96px)] min-[641px]:max-[860px]:w-[min(380px,calc(100vw-24px))] min-[641px]:max-[860px]:max-w-[calc(100vw-24px)] max-[640px]:fixed max-[640px]:left-3 max-[640px]:right-3 max-[640px]:top-[72px] max-[640px]:box-border max-[640px]:max-h-[calc(100dvh-96px)] max-[640px]:w-[calc(100vw-24px)] max-[640px]:min-w-0 max-[640px]:max-w-none",
     dashboardActivityHeader: "flex items-center gap-2.5 px-3.5 py-3",
     dashboardActivityHeading: "flex flex-1 flex-col gap-0.5",
-    dashboardActivityTitle: "[font:600_13px_var(--font-sans)] text-foreground",
+    dashboardActivityTitle: "text-sm font-semibold text-foreground",
     dashboardActivityCount:
-        "justify-normal border-0 bg-transparent p-0 font-mono text-[11px] font-medium text-muted-foreground [a&]:hover:bg-transparent",
-    dashboardActivityClose:
-        "size-[26px] rounded-[7px] border border-transparent bg-transparent p-0 text-muted-foreground shadow-none hover:bg-accent hover:text-accent-foreground",
+        "justify-normal p-0 font-mono text-xs font-medium text-muted-foreground",
+    dashboardActivityClose: "size-6",
     dashboardActivityContent: "flex min-h-0 flex-1 flex-col p-0",
     dashboardActivityStatus:
         "flex items-center gap-2.5 bg-muted px-3.5 py-2.5 data-[state=error]:[&_[data-sot-part=dashboard-activity-status-indicator]]:bg-destructive data-[state=running]:[&_[data-sot-part=dashboard-activity-status-indicator]]:animate-[bpulse_1.4s_ease-in-out_infinite] data-[state=running]:[&_[data-sot-part=dashboard-activity-status-indicator]]:bg-primary data-[state=syncing]:[&_[data-sot-part=dashboard-activity-status-indicator]]:animate-[bpulse_1.4s_ease-in-out_infinite] data-[state=syncing]:[&_[data-sot-part=dashboard-activity-status-indicator]]:bg-primary",
@@ -695,11 +691,11 @@ const dashboardSearchActivityClassNames = {
         "size-2 flex-none rounded-full bg-primary",
     dashboardActivityStatusCopy: "flex min-w-0 flex-1 flex-col gap-0.5",
     dashboardActivityStatusLine:
-        "[font:600_12px_var(--font-sans)] text-foreground",
+        "text-xs font-semibold text-foreground",
     dashboardActivityStatusSub:
-        "[font:500_11px_var(--font-mono)] text-muted-foreground",
+        "font-mono text-xs font-medium text-muted-foreground",
     dashboardActivitySync:
-        "h-[26px] gap-[7px] rounded-[7px] border border-transparent bg-transparent px-[10px] text-[12px] font-semibold leading-normal text-muted-foreground shadow-none hover:bg-accent hover:text-accent-foreground data-[action-state=error]:text-destructive disabled:cursor-not-allowed has-[>svg]:px-[10px]",
+        "h-7 px-2.5 data-[action-state=error]:text-destructive disabled:cursor-not-allowed",
     dashboardActivityItems:
         "m-0 max-h-[340px] flex-1 list-none overflow-y-auto p-1 empty:hidden",
     dashboardActivityItem:
@@ -708,16 +704,15 @@ const dashboardSearchActivityClassNames = {
         "inline-flex size-[26px] flex-none items-center justify-center rounded-[7px] border border-border bg-muted text-muted-foreground",
     dashboardActivityItemCopy: "flex min-w-0 flex-col gap-[3px]",
     dashboardActivityItemTitle:
-        "[font:600_12.5px/1.35_var(--font-sans)] [margin:0] text-foreground",
+        "m-0 text-sm font-semibold leading-snug text-foreground",
     dashboardActivityItemBody:
-        "[font:500_12px/1.5_var(--font-sans)] [margin:2px_0_0] text-muted-foreground",
+        "mt-0.5 mb-0 text-xs font-medium leading-normal text-muted-foreground",
     dashboardActivityItemMeta:
-        "mt-1 [font:500_11px/1.4_var(--font-mono)] tracking-[0.02em] text-muted-foreground",
+        "mt-1 font-mono text-xs font-medium leading-snug text-muted-foreground",
     dashboardActivityItemActions: "mt-1.5 flex items-center gap-1.5",
     dashboardActivityAction:
-        "h-[26px] gap-[7px] rounded-[7px] border border-transparent bg-transparent px-[10px] text-[12px] font-semibold leading-normal text-muted-foreground shadow-none hover:bg-accent hover:text-accent-foreground data-[action-state=error]:text-destructive disabled:cursor-not-allowed has-[>svg]:px-[10px]",
-    dashboardActivityDismiss:
-        "size-[22px] rounded-[6px] border border-transparent bg-transparent p-px text-muted-foreground shadow-none hover:bg-accent hover:text-accent-foreground focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring has-[>svg]:p-0",
+        "h-7 px-2.5 data-[action-state=error]:text-destructive disabled:cursor-not-allowed",
+    dashboardActivityDismiss: "size-6 p-0",
     dashboardActivityEmpty: "p-7 md:p-7 [&[hidden]]:hidden",
 } as const;
 
@@ -729,35 +724,32 @@ const dashboardButtonClassNames = {
         "relative hidden max-[860px]:inline-flex group-data-[source-filter-active=true]/dashboard-workstation:[&_[data-sot-part=dashboard-drawer-active-dot]]:inline-block",
     sidebarCollapse: "max-[860px]:hidden",
     settingsAvatar: "rounded-full text-xs font-semibold",
-    listPagination:
-        "h-8 gap-1.5 rounded-md bg-transparent px-3 text-muted-foreground shadow-none hover:bg-accent hover:text-accent-foreground has-[>svg]:px-2.5",
-    headerIconButton:
-        "size-[32px] border border-transparent bg-transparent p-0 text-muted-foreground shadow-none hover:bg-accent hover:text-accent-foreground",
-    headerActionButton:
-        "h-8 min-w-[103px] gap-[7px] rounded-[9px] border border-border bg-card px-3 font-sans text-[12.5px] font-semibold leading-normal text-foreground shadow-xs hover:bg-accent hover:text-accent-foreground has-[>svg]:px-3",
+    listPagination: "text-muted-foreground",
+    headerIconButton: "text-muted-foreground",
+    headerActionButton: "min-w-[103px]",
 } as const;
 
 const dashboardSourceErrorClassName =
     "px-[10px] py-1.5 font-sans text-[11.5px] font-medium text-destructive";
 
 const dashboardSourceClassNames = {
-    root: "group/source-provider relative h-auto w-full justify-start gap-2.5 rounded-[9px] border border-transparent bg-transparent px-2.5 py-[7px] text-left text-[13px] font-medium text-muted-foreground shadow-none hover:bg-accent hover:text-foreground focus-visible:text-foreground focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring disabled:cursor-not-allowed disabled:opacity-50 data-[sot-state=selected]:border-border data-[sot-state=selected]:bg-card data-[sot-state=selected]:text-foreground data-[sot-state=selected]:shadow-xs data-[sot-state=connected-active]:border-border data-[sot-state=connected-active]:bg-card data-[sot-state=connected-active]:text-foreground data-[sot-state=connected-active]:shadow-xs data-[sot-state=connected-idle]:text-muted-foreground data-[sot-state=syncing]:text-muted-foreground data-[sot-state=expired]:text-muted-foreground data-[sot-state=sync-error]:text-foreground data-[sot-state=no-results]:text-muted-foreground data-[sot-state=needs-setup]:text-muted-foreground data-[sot-state=disabled]:text-muted-foreground data-[sot-state=disabled]:opacity-[0.55] has-[>svg]:px-2.5 [&_[data-sot-part=source-provider-mark]]:inline-flex [&_[data-sot-part=source-provider-mark]]:size-[18px] [&_[data-sot-part=source-provider-mark]]:flex-none [&_[data-sot-part=source-provider-mark]]:items-center [&_[data-sot-part=source-provider-mark]]:justify-center [&_[data-sot-part=source-provider-mark]]:overflow-hidden [&_[data-sot-part=source-provider-mark]]:rounded-[4px] [&_[data-sot-part=source-provider-mark]]:border [&_[data-sot-part=source-provider-mark]]:border-border [&_[data-sot-part=source-provider-mark]]:bg-background data-[sot-state=no-results]:[&_[data-sot-part=source-provider-mark]]:opacity-[0.65] data-[sot-state=needs-setup]:[&_[data-sot-part=source-provider-mark]]:opacity-60 data-[sot-state=needs-setup]:[&_[data-sot-part=source-provider-mark]]:grayscale data-[sot-state=disabled]:[&_[data-sot-part=source-provider-mark]]:grayscale-[0.7] [&_[data-sot-part=source-provider-mark][data-sot-variant=letter]]:[font:700_9px_var(--font-sans)] [&_[data-sot-part=source-provider-mark][data-sot-variant=letter]]:text-muted-foreground [&_[data-sot-part=source-provider-mark][data-sot-variant=letter]]:bg-muted [&_[data-sot-part=source-provider-mark]_img]:block [&_[data-sot-part=source-provider-mark]_img]:size-[18px] [&_[data-sot-part=source-provider-mark]_img]:max-w-none [&_[data-sot-part=source-provider-mark]_img]:object-contain [&_[data-sot-part=source-provider-mark]_img]:align-baseline [&_[data-sot-part=source-provider-mark][data-sot-provider-cover=true]_img]:object-cover",
-    clear: "h-[22px] w-fit gap-1 rounded-full border border-transparent bg-transparent px-[9px] text-[11px] font-semibold leading-normal text-muted-foreground shadow-none hover:bg-accent hover:text-accent-foreground has-[>svg]:px-[9px]",
-    action: "ml-[6px] h-[22px] flex-none cursor-pointer gap-1 rounded-full border border-border bg-card px-[9px] font-sans text-[11px] font-semibold leading-none text-muted-foreground whitespace-nowrap shadow-none hover:bg-accent hover:text-accent-foreground focus-visible:border-transparent focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring focus-visible:ring-0 disabled:cursor-not-allowed disabled:opacity-50 data-[sot-action=retry]:hidden data-[sot-action=retry]:border-destructive/30 data-[sot-action=retry]:bg-destructive/10 data-[sot-action=retry]:text-destructive data-[sot-action=retry]:hover:bg-destructive/10 data-[sot-action=connect]:border-primary/30 data-[sot-action=connect]:bg-primary/10 data-[sot-action=connect]:text-primary group-hover/source-provider:data-[sot-action=retry]:inline-flex group-focus-within/source-provider:data-[sot-action=retry]:inline-flex group-data-[sidebar-collapsed=true]/dashboard-workstation:hidden has-[>svg]:px-[9px]",
-    status: "ml-0.5 size-1.5 min-w-1.5 self-center rounded-full border-0 bg-transparent p-0 data-[sot-effect=ring]:ring-2 data-[sot-effect=ring]:ring-secondary data-[sot-tone=disabled]:bg-muted-foreground/40 data-[sot-tone=err]:bg-destructive data-[sot-tone=err]:ring-2 data-[sot-tone=err]:ring-destructive/15 data-[sot-tone=ok]:bg-primary data-[sot-tone=syncing]:animate-[bpulse_1.2s_ease-in-out_infinite] data-[sot-tone=syncing]:bg-primary data-[sot-tone=syncing]:ring-2 data-[sot-tone=syncing]:ring-primary/15 data-[sot-tone=warn]:bg-secondary-foreground",
-    count: "min-w-[22px] rounded-[5px] border border-transparent bg-muted px-[6px] py-px text-center font-mono text-[11px] font-medium leading-[1.45] text-muted-foreground data-[sot-tone=active]:border-border data-[sot-tone=active]:bg-card data-[sot-tone=active]:text-foreground data-[sot-tone=empty]:border-border data-[sot-tone=empty]:bg-transparent data-[sot-tone=empty]:text-muted-foreground data-[sot-tone=empty]:line-through data-[sot-tone=err]:border-destructive/30 data-[sot-tone=err]:bg-destructive/10 data-[sot-tone=err]:text-destructive",
+    root: "group/source-provider relative h-auto w-full justify-start gap-2.5 px-2.5 py-2 text-left text-sm text-muted-foreground data-[sot-state=selected]:text-foreground data-[sot-state=connected-active]:text-foreground data-[sot-state=sync-error]:text-foreground data-[sot-state=disabled]:opacity-50 [&_[data-sot-part=source-provider-mark]]:inline-flex [&_[data-sot-part=source-provider-mark]]:size-[18px] [&_[data-sot-part=source-provider-mark]]:flex-none [&_[data-sot-part=source-provider-mark]]:items-center [&_[data-sot-part=source-provider-mark]]:justify-center [&_[data-sot-part=source-provider-mark]]:overflow-hidden [&_[data-sot-part=source-provider-mark]]:rounded-sm data-[sot-state=no-results]:[&_[data-sot-part=source-provider-mark]]:opacity-60 data-[sot-state=needs-setup]:[&_[data-sot-part=source-provider-mark]]:opacity-60 data-[sot-state=needs-setup]:[&_[data-sot-part=source-provider-mark]]:grayscale data-[sot-state=disabled]:[&_[data-sot-part=source-provider-mark]]:grayscale [&_[data-sot-part=source-provider-mark][data-sot-variant=letter]]:text-xs [&_[data-sot-part=source-provider-mark][data-sot-variant=letter]]:font-bold [&_[data-sot-part=source-provider-mark][data-sot-variant=letter]]:text-muted-foreground [&_[data-sot-part=source-provider-mark]_img]:block [&_[data-sot-part=source-provider-mark]_img]:size-[18px] [&_[data-sot-part=source-provider-mark]_img]:max-w-none [&_[data-sot-part=source-provider-mark]_img]:object-contain [&_[data-sot-part=source-provider-mark]_img]:align-baseline [&_[data-sot-part=source-provider-mark][data-sot-provider-cover=true]_img]:object-cover",
+    clear: "h-6 w-fit gap-1 rounded-full px-2 text-xs",
+    action: "ml-1.5 h-6 flex-none cursor-pointer rounded-full px-2 text-xs whitespace-nowrap data-[sot-action=retry]:hidden data-[sot-action=retry]:text-destructive data-[sot-action=connect]:text-primary group-hover/source-provider:data-[sot-action=retry]:inline-flex group-focus-within/source-provider:data-[sot-action=retry]:inline-flex group-data-[sidebar-collapsed=true]/dashboard-workstation:hidden",
+    status: "ml-0.5 size-1.5 min-w-1.5 self-center rounded-full border-0 p-0 data-[sot-effect=ring]:ring-2 data-[sot-effect=ring]:ring-secondary data-[sot-tone=disabled]:bg-muted-foreground/40 data-[sot-tone=err]:bg-destructive data-[sot-tone=err]:ring-2 data-[sot-tone=err]:ring-destructive/15 data-[sot-tone=ok]:bg-primary data-[sot-tone=syncing]:animate-[bpulse_1.2s_ease-in-out_infinite] data-[sot-tone=syncing]:bg-primary data-[sot-tone=syncing]:ring-2 data-[sot-tone=syncing]:ring-primary/15 data-[sot-tone=warn]:bg-secondary-foreground",
+    count: "min-w-[22px] px-1.5 text-center font-mono text-xs data-[sot-tone=active]:text-foreground data-[sot-tone=empty]:line-through data-[sot-tone=err]:text-destructive",
 } as const;
 
 const sourceFilterClassNames = {
     clear: "size-4 p-0 text-muted-foreground",
     librarySearchFilterClear:
         "size-4 p-0 text-muted-foreground",
-    action: "ml-1.5 h-6 flex-none cursor-pointer rounded-full px-2 text-xs whitespace-nowrap data-[sot-action=open-settings]:border-primary/30 data-[sot-action=open-settings]:bg-primary/10 data-[sot-action=open-settings]:text-primary data-[sot-action=retry]:border-destructive/30 data-[sot-action=retry]:bg-destructive/10 data-[sot-action=retry]:text-destructive data-[sot-action=widen]:border-primary/30 data-[sot-action=widen]:bg-primary/10 data-[sot-action=widen]:text-primary",
+    action: "ml-1.5 h-6 flex-none cursor-pointer rounded-full px-2 text-xs whitespace-nowrap data-[sot-action=open-settings]:text-primary data-[sot-action=retry]:text-destructive data-[sot-action=widen]:text-primary",
     clearAll: "h-6 px-2 text-sm",
 } as const;
 
 const sourceFilterStackClassNames = {
-    root: "flex min-w-0 flex-row flex-wrap items-center gap-x-2 gap-y-1.5 border-b border-border bg-muted px-3 py-2 font-sans text-xs font-medium text-muted-foreground",
+    root: "flex min-w-0 flex-row flex-wrap items-center gap-x-2 gap-y-1.5 border-b border-border px-3 py-2 text-xs font-medium text-muted-foreground",
     from: "inline-flex min-w-0 max-w-full flex-[0_1_auto] items-baseline truncate leading-6 [&_b]:whitespace-nowrap [&_b]:font-semibold [&_b]:text-foreground",
     separator:
         "inline-flex h-6 w-2.5 flex-none select-none items-center justify-center text-sm leading-none text-muted-foreground/60",
@@ -797,12 +789,12 @@ const dashboardRecordingRowStyles = {
     title: "truncate font-sans text-[13.5px] font-semibold tracking-[-0.005em] text-foreground",
     meta: "flex flex-wrap items-center gap-2",
     sourceMark:
-        "inline-flex size-3.5 flex-none items-center justify-center overflow-hidden rounded-[3px] opacity-60",
+        "inline-flex size-3.5 flex-none items-center justify-center overflow-hidden rounded-sm opacity-70",
     sourceMarkImage:
-        "block size-3.5 max-w-none object-contain align-baseline opacity-80 grayscale",
+        "block size-3.5 max-w-none object-contain align-baseline opacity-80",
     sourceMarkImageCover: "object-cover",
     sourceMarkLetter:
-        "border border-border bg-muted [font:700_9px_var(--font-sans)] text-muted-foreground",
+        "text-xs font-bold text-muted-foreground",
     duration:
         "font-mono text-[11.5px] font-medium tracking-[0.02em] text-muted-foreground",
     secondary:
@@ -5228,11 +5220,18 @@ export function Workstation({
                                 }}
                             >
                                 <Bell data-icon="inline-start" />
-                                <span data-sot-part="dashboard-activity-badge">
+                                <Badge
+                                    variant="destructive"
+                                    className={cn(
+                                        dashboardSearchActivityClassNames.dashboardActivityBadge,
+                                        activityBadgeCount === 0 && "hidden",
+                                    )}
+                                    data-sot-part="dashboard-activity-badge"
+                                >
                                     {activityBadgeCount > 99
                                         ? "99+"
                                         : activityBadgeCount}
-                                </span>
+                                </Badge>
                             </Button>
                             {activityOpen ? (
                                 <Card

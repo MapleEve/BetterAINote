@@ -213,54 +213,33 @@ const DASHBOARD_SEARCH_ACTIVITY_FEATURE_OWNER_CLASS_SNIPPETS = [
     },
     {
         propertyName: "dashboardSearchTrigger",
-        snippets: [
-            "relative size-[32px]",
-            "data-[sot-state=open]:border-border",
-            "data-[sot-state=open]:bg-accent",
-            "data-[sot-state=open]:text-accent-foreground",
-        ],
+        snippets: ["relative"],
     },
     {
         propertyName: "dashboardActivityTrigger",
+        snippets: ["relative"],
+    },
+    {
+        propertyName: "dashboardActivityBadge",
         snippets: [
-            "relative size-[32px]",
-            "data-[sot-state=open]:border-border",
-            "data-[sot-state=open]:bg-accent",
-            "data-[sot-state=open]:text-accent-foreground",
-            "[&_[data-sot-part=dashboard-activity-badge]]:absolute",
-            "[&_[data-sot-part=dashboard-activity-badge]]:right-0.5",
-            "[&_[data-sot-part=dashboard-activity-badge]]:top-0.5",
-            "[&_[data-sot-part=dashboard-activity-badge]]:h-4",
-            "[&_[data-sot-part=dashboard-activity-badge]]:min-w-4",
-            "[&_[data-sot-part=dashboard-activity-badge]]:bg-destructive",
-            "[&_[data-sot-part=dashboard-activity-badge]]:text-destructive-foreground",
-            "[&_[data-sot-part=dashboard-activity-badge]]:ring-2",
-            "[&_[data-sot-part=dashboard-activity-badge]]:ring-card",
+            "pointer-events-none",
+            "absolute",
+            "right-0.5",
+            "top-0.5",
+            "min-w-4",
         ],
     },
     {
         propertyName: "librarySearchPanel",
         snippets: [
             "absolute right-0 top-[calc(100%+8px)]",
-            "z-[var(--z-dropdown)]",
             "w-[460px]",
-            "data-[open=true]:pointer-events-auto",
-            "border-border",
-            "bg-popover",
-            "font-sans",
-            "text-popover-foreground",
-            "shadow-lg",
             "max-[640px]:fixed",
         ],
     },
     {
         propertyName: "dashboardActivityPanel",
-        snippets: [
-            "border-border",
-            "bg-popover",
-            "text-popover-foreground",
-            "shadow-lg",
-        ],
+        snippets: ["absolute right-0 top-[calc(100%+8px)]", "w-[380px]"],
     },
     {
         propertyName: "librarySearchInputRow",
@@ -268,19 +247,11 @@ const DASHBOARD_SEARCH_ACTIVITY_FEATURE_OWNER_CLASS_SNIPPETS = [
             "h-[49px] min-h-[49px]",
             "gap-[8px]",
             "px-[12px] py-[8px]",
-            "bg-transparent",
-            "focus-within:ring-0",
         ],
     },
     {
         propertyName: "librarySearchInput",
-        snippets: [
-            "h-[32px]",
-            "px-[4px] py-0",
-            "[font:500_13.5px/1.35_var(--font-sans)]",
-            "text-foreground",
-            "placeholder:text-muted-foreground",
-        ],
+        snippets: ["h-8", "px-1 py-0", "text-sm"],
     },
     {
         propertyName: "librarySearchScope",
@@ -294,17 +265,7 @@ const DASHBOARD_SEARCH_ACTIVITY_FEATURE_OWNER_CLASS_SNIPPETS = [
     },
     {
         propertyName: "librarySearchScopeItem",
-        snippets: [
-            "gap-[4px]",
-            "border-transparent bg-transparent",
-            "px-[10px]",
-            "[font:500_11.5px/1_var(--font-sans)]",
-            "text-muted-foreground shadow-none",
-            "hover:bg-card hover:text-foreground",
-            "data-[state=on]:border-primary/30",
-            "data-[state=on]:bg-primary/10",
-            "data-[state=on]:text-primary",
-        ],
+        snippets: ["h-6", "rounded-full", "px-2.5", "text-xs"],
     },
     {
         propertyName: "librarySearchError",
@@ -325,46 +286,33 @@ const DASHBOARD_SEARCH_ACTIVITY_FEATURE_OWNER_CLASS_SNIPPETS = [
             "h-auto",
             "w-full",
             "flex-col items-start",
-            "border-0 bg-transparent",
-            "px-[10px] py-[8px]",
-            "text-foreground",
-            "hover:bg-muted",
-            "focus-visible:bg-muted",
-            "focus-visible:outline-none",
-            "focus-visible:ring-2",
-            "focus-visible:ring-ring/50",
+            "px-2.5 py-2",
+            "whitespace-normal",
         ],
     },
     {
         propertyName: "librarySearchResultTitle",
-        snippets: ["[font:600_13px/1.4_var(--font-sans)]", "text-foreground"],
+        snippets: ["text-sm", "font-semibold", "text-foreground"],
     },
     {
         propertyName: "librarySearchResultMeta",
-        snippets: ["font-mono", "text-[11.5px]", "text-muted-foreground"],
+        snippets: ["font-mono", "text-xs", "text-muted-foreground"],
     },
     {
         propertyName: "librarySearchTag",
-        snippets: [
-            "h-[22px] w-fit justify-normal gap-[5px]",
-            "rounded-[6px]",
-            "border-primary/20",
-            "bg-primary/10",
-            "text-primary",
-            "shadow-xs",
-        ],
+        snippets: ["h-6", "w-fit", "justify-normal", "px-2"],
     },
     {
         propertyName: "dashboardActivityCount",
-        snippets: ["border-0 bg-transparent p-0", "font-mono text-[11px]"],
+        snippets: ["p-0", "font-mono text-xs"],
     },
     {
         propertyName: "librarySearchClear",
-        snippets: ["size-6", "hover:bg-transparent", "hover:text-foreground"],
+        snippets: ["size-6"],
     },
     {
         propertyName: "librarySearchRetry",
-        snippets: ["h-6 gap-1", "hover:bg-accent hover:text-accent-foreground"],
+        snippets: ["h-6", "px-2", "text-xs"],
     },
     {
         propertyName: "librarySearchScroll",
@@ -386,10 +334,7 @@ const DASHBOARD_SEARCH_ACTIVITY_FEATURE_OWNER_CLASS_SNIPPETS = [
     },
     {
         propertyName: "librarySearchStateCopy",
-        snippets: [
-            "[font:500_12.5px/1.55_var(--font-sans)]",
-            "[&_span]:font-semibold",
-        ],
+        snippets: ["text-sm", "[&_span]:font-semibold"],
     },
     {
         propertyName: "librarySearchResults",
@@ -406,12 +351,7 @@ const DASHBOARD_SEARCH_ACTIVITY_FEATURE_OWNER_CLASS_SNIPPETS = [
     },
     {
         propertyName: "librarySearchGroupLabel",
-        snippets: [
-            "px-[6px] py-[4px]",
-            "[font:600_10.5px/1_var(--font-mono)]",
-            "uppercase",
-            "tracking-[0.08em]",
-        ],
+        snippets: ["px-1.5 py-1", "font-mono", "uppercase", "tracking-wide"],
     },
     {
         propertyName: "librarySearchHighlight",
@@ -419,27 +359,15 @@ const DASHBOARD_SEARCH_ACTIVITY_FEATURE_OWNER_CLASS_SNIPPETS = [
     },
     {
         propertyName: "dashboardActivityClose",
-        snippets: [
-            "size-[26px]",
-            "hover:bg-accent hover:text-accent-foreground",
-        ],
+        snippets: ["size-6"],
     },
     {
         propertyName: "dashboardActivitySync",
         snippets: [
+            "h-7",
+            "px-2.5",
             "data-[action-state=error]:text-destructive",
             "disabled:cursor-not-allowed",
-            "has-[>svg]:px-[10px]",
-        ],
-    },
-    {
-        propertyName: "dashboardActivityPanel",
-        snippets: [
-            "absolute right-0 top-[calc(100%+8px)]",
-            "z-[var(--z-dropdown)]",
-            "w-[380px]",
-            "data-[open=true]:pointer-events-auto",
-            "max-[640px]:fixed",
         ],
     },
     {
@@ -484,33 +412,24 @@ const DASHBOARD_SEARCH_ACTIVITY_FEATURE_OWNER_CLASS_SNIPPETS = [
     },
     {
         propertyName: "dashboardActivityItemTitle",
-        snippets: [
-            "[font:600_12.5px/1.35_var(--font-sans)]",
-            "text-foreground",
-        ],
+        snippets: ["text-sm", "font-semibold", "text-foreground"],
     },
     {
         propertyName: "dashboardActivityItemMeta",
-        snippets: ["[font:500_11px/1.4_var(--font-mono)]", "tracking-[0.02em]"],
+        snippets: ["font-mono", "text-xs", "text-muted-foreground"],
     },
     {
         propertyName: "dashboardActivityAction",
         snippets: [
+            "h-7",
+            "px-2.5",
             "data-[action-state=error]:text-destructive",
             "disabled:cursor-not-allowed",
-            "has-[>svg]:px-[10px]",
         ],
     },
     {
         propertyName: "dashboardActivityDismiss",
-        snippets: [
-            "size-[22px]",
-            "p-px",
-            "hover:bg-accent hover:text-accent-foreground",
-            "focus-visible:outline-2",
-            "focus-visible:outline-ring",
-            "has-[>svg]:p-0",
-        ],
+        snippets: ["size-6", "p-0"],
     },
     {
         propertyName: "dashboardActivityEmpty",
@@ -537,6 +456,17 @@ const DASHBOARD_SEARCH_ACTIVITY_SOT_BODY_FORBIDDEN_CLASS_SNIPPETS = [
             "data-[sot-state=active]:bg-",
         ],
     },
+] as const;
+
+const DASHBOARD_SEARCH_ACTIVITY_OWNER_FORBIDDEN_CLASS_SNIPPETS = [
+    "z-[var(--z-dropdown)]",
+    "backdrop-blur-none",
+    "shadow-lg",
+    "[font:",
+    "hover:bg-card",
+    "data-[sot-state=open]:bg-accent",
+    "[&_[data-sot-part=dashboard-activity-badge]]:bg-destructive",
+    "border border-transparent bg-transparent",
 ] as const;
 
 const DASHBOARD_SEARCH_ACTIVITY_FEATURE_OWNER_SOURCE_SNIPPETS = [
@@ -959,6 +889,10 @@ describe("dashboard SOT search and activity interactions", () => {
             for (const snippet of snippets) {
                 expect(property).not.toContain(snippet);
             }
+        }
+
+        for (const snippet of DASHBOARD_SEARCH_ACTIVITY_OWNER_FORBIDDEN_CLASS_SNIPPETS) {
+            expect(classNames).not.toContain(snippet);
         }
 
         for (const snippet of DASHBOARD_SEARCH_ACTIVITY_FEATURE_OWNER_SOURCE_SNIPPETS) {
