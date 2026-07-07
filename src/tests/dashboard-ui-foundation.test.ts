@@ -1323,7 +1323,7 @@ const DASHBOARD_DETAIL_PANE_SOT_HOOKS = [
     'data-sot-part="dashboard-speaker-name"',
     'data-sot-part="dashboard-speaker-sub"',
     'data-sot-part="dashboard-speaker-bar"',
-    'data-sot-part="dashboard-speaker-bar-fill"',
+    '"dashboard-speaker-bar-fill"',
 ];
 
 const DASHBOARD_TRANSCRIPT_TURN_EMPTY_SOT_HOOKS = [
@@ -1378,27 +1378,35 @@ const DASHBOARD_TRANSCRIPT_OWNER_CLASS_TOKENS = [
 const DASHBOARD_SPEAKER_PANE_OWNER_CLASS_TOKENS = [
     'head: "flex items-center gap-2.5 px-4 pt-3 pb-2"',
     "headTitle:",
-    '"flex-1 font-sans text-[12.5px] font-semibold text-[var(--fg-secondary)]"',
-    'rows: "m-0 flex list-none flex-col gap-0.5 px-2 pb-3.5"',
-    "grid-cols-[28px_1fr_120px_auto]",
-    "hover:bg-[var(--bg-recessed)]",
+    '"flex-1 text-sm font-medium text-muted-foreground"',
+    'rows: "m-0 flex list-none flex-col gap-1 px-2 pb-3.5"',
+    "grid-cols-[auto_minmax(0,1fr)_minmax(72px,120px)_auto]",
+    "hover:bg-accent",
     'rowMeta: "flex min-w-0 flex-col gap-0.5"',
-    'name: "truncate font-sans text-[13px] font-semibold text-[var(--fg-primary)]"',
-    'sub: "font-mono text-[11.5px] font-medium text-[var(--fg-tertiary)]"',
-    'bar: "block h-1 w-full overflow-hidden rounded-full bg-[var(--bg-recessed)]"',
-    'barFill: "block h-full rounded-full bg-[var(--accent)]"',
+    'name: "truncate text-sm font-medium text-foreground"',
+    'sub: "w-fit justify-center font-mono tabular-nums"',
+    'avatar: "size-7 flex-none p-0 tabular-nums"',
+    'bar: "h-1 bg-muted"',
+    'barFill: "bg-primary"',
+    'empty: "border-0 py-4 md:py-4"',
 ] as const;
 
-const DASHBOARD_SPEAKER_SHARE_CLASS_TOKENS = [
+const DASHBOARD_SPEAKER_PANE_FORBIDDEN_RECONSTRUCTION_TOKENS = [
     "DASHBOARD_SPEAKER_SHARE_CLASS_NAMES",
-    '"w-[24%]"',
-    '"w-[36%]"',
-    '"w-[48%]"',
-    '"w-[60%]"',
-    '"w-[72%]"',
-    '"w-[84%]"',
-    '"w-[96%]"',
-    '"w-full"',
+    "getDashboardSpeakerShareClassName",
+    "grid-cols-[28px_1fr_120px_auto]",
+    "hover:bg-[var(--bg-recessed)]",
+    "text-[var(--fg-",
+    "bg-[var(--",
+    "border-[var(--",
+    "dark:",
+    "[font:",
+] as const;
+
+const DASHBOARD_SPEAKER_SHARE_VALUE_TOKENS = [
+    "DASHBOARD_SPEAKER_SHARE_VALUES",
+    "24, 36, 48, 60, 72, 84, 96, 100",
+    "getDashboardSpeakerShareValue",
 ] as const;
 
 const SOURCE_REPORT_SKELETON_SHARED_TOKENS = [
@@ -5160,7 +5168,7 @@ describe("dashboard SOT foundation", () => {
         const dashboardSpeakerAvatar = extractOpeningElement(
             workstation,
             'data-sot-part="dashboard-speaker-avatar"',
-            "span",
+            "Badge",
         );
         const dashboardSpeakerRowMeta = extractOpeningElement(
             workstation,
@@ -5175,24 +5183,29 @@ describe("dashboard SOT foundation", () => {
         const dashboardSpeakerSub = extractOpeningElement(
             workstation,
             'data-sot-part="dashboard-speaker-sub"',
-            "div",
+            "Badge",
         );
         const dashboardSpeakerBar = extractOpeningElement(
             workstation,
             'data-sot-part="dashboard-speaker-bar"',
-            "span",
+            "Progress",
         );
-        const dashboardSpeakerBarFill = extractOpeningElement(
+        const dashboardSpeakerEmpty = extractElementSlice(
             workstation,
-            'data-sot-part="dashboard-speaker-bar-fill"',
-            "span",
+            'data-sot-state="empty"',
+            "li",
         );
 
         expect(workstation).not.toContain("const dashboardTranscriptClassNames");
         for (const token of DASHBOARD_SPEAKER_PANE_OWNER_CLASS_TOKENS) {
             expect(dashboardSpeakerPaneClassNames).toContain(token);
         }
-        for (const token of DASHBOARD_SPEAKER_SHARE_CLASS_TOKENS) {
+        for (const token of DASHBOARD_SPEAKER_PANE_FORBIDDEN_RECONSTRUCTION_TOKENS) {
+            expect(dashboardSpeakerPaneClassNames).not.toContain(token);
+        }
+        expect(workstation).not.toContain("DASHBOARD_SPEAKER_SHARE_CLASS_NAMES");
+        expect(workstation).not.toContain("getDashboardSpeakerShareClassName");
+        for (const token of DASHBOARD_SPEAKER_SHARE_VALUE_TOKENS) {
             expect(workstation).toContain(token);
         }
         expect(dashboardTranscriptLoadingTurn).toContain(
@@ -5247,6 +5260,7 @@ describe("dashboard SOT foundation", () => {
             dashboardSpeakerAvatar,
             "dashboardSpeakerPaneClassNames.avatar",
         );
+        expect(dashboardSpeakerAvatar).toContain('variant="secondary"');
         expectClassNameConstReference(
             dashboardSpeakerRowMeta,
             "dashboardSpeakerPaneClassNames.rowMeta",
@@ -5259,15 +5273,25 @@ describe("dashboard SOT foundation", () => {
             dashboardSpeakerSub,
             "dashboardSpeakerPaneClassNames.sub",
         );
+        expect(dashboardSpeakerSub).toContain('variant="outline"');
         expectClassNameConstReference(
             dashboardSpeakerBar,
             "dashboardSpeakerPaneClassNames.bar",
         );
-        expectCnClassNameReferences(dashboardSpeakerBarFill, [
+        expect(dashboardSpeakerBar).toContain("value={shareValue}");
+        expect(dashboardSpeakerBar).toContain("max={100}");
+        expect(dashboardSpeakerBar).toContain("indicatorClassName={");
+        expect(dashboardSpeakerBar).toContain(
             "dashboardSpeakerPaneClassNames.barFill",
-            "getDashboardSpeakerShareClassName",
-        ]);
-        expect(dashboardSpeakerBar).not.toContain("style=");
+        );
+        expect(dashboardSpeakerBar).toContain('"data-sot-part":');
+        expect(dashboardSpeakerBar).toContain('"dashboard-speaker-bar-fill"');
+        expect(dashboardSpeakerEmpty).toContain("<Empty");
+        expect(dashboardSpeakerEmpty).toContain('variant="compact"');
+        expect(dashboardSpeakerEmpty).toContain("<EmptyHeader");
+        expect(dashboardSpeakerEmpty).toContain("<EmptyMedia");
+        expect(dashboardSpeakerEmpty).toContain("<EmptyTitle");
+        expect(dashboardSpeakerEmpty).toContain("<EmptyDescription");
         expect(workstation).not.toContain(
             ["--dashboard", "speaker-share"].join("-"),
         );

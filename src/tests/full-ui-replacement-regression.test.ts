@@ -2908,7 +2908,7 @@ const DASHBOARD_DETAIL_PANE_SOT_HOOKS = [
     'data-sot-part="dashboard-speaker-name"',
     'data-sot-part="dashboard-speaker-sub"',
     'data-sot-part="dashboard-speaker-bar"',
-    'data-sot-part="dashboard-speaker-bar-fill"',
+    '"dashboard-speaker-bar-fill"',
 ];
 
 const DASHBOARD_TRANSCRIPT_TURN_EMPTY_SOT_HOOKS = [
@@ -11014,6 +11014,81 @@ describe("full UI replacement regression coverage", () => {
         expect(dashboardSpeakersMerge).not.toContain(
             'size="dashboardSpeakersMerge"',
         );
+        const dashboardSpeakerPaneClassNames = extractBoundedSlice(
+            workstation,
+            "const dashboardSpeakerPaneClassNames = {",
+            "} as const;",
+        );
+        const dashboardSpeakerAvatar = extractOpeningElement(
+            workstation,
+            'data-sot-part="dashboard-speaker-avatar"',
+            "Badge",
+        );
+        const dashboardSpeakerSub = extractOpeningElement(
+            workstation,
+            'data-sot-part="dashboard-speaker-sub"',
+            "Badge",
+        );
+        const dashboardSpeakerBar = extractOpeningElement(
+            workstation,
+            'data-sot-part="dashboard-speaker-bar"',
+            "Progress",
+        );
+        const dashboardSpeakerEmpty = extractElementSlice(
+            workstation,
+            'data-sot-state="empty"',
+            "li",
+        );
+        expect(dashboardSpeakerPaneClassNames).toContain(
+            'headTitle: "flex-1 text-sm font-medium text-muted-foreground"',
+        );
+        expect(dashboardSpeakerPaneClassNames).toContain("hover:bg-accent");
+        expect(dashboardSpeakerPaneClassNames).toContain(
+            'bar: "h-1 bg-muted"',
+        );
+        expect(dashboardSpeakerPaneClassNames).toContain(
+            'barFill: "bg-primary"',
+        );
+        for (const forbiddenSpeakerPaneToken of [
+            "DASHBOARD_SPEAKER_SHARE_CLASS_NAMES",
+            "getDashboardSpeakerShareClassName",
+            "grid-cols-[28px_1fr_120px_auto]",
+            "hover:bg-[var(--bg-recessed)]",
+            "text-[var(--fg-",
+            "bg-[var(--",
+            "border-[var(--",
+            "dark:",
+            "[font:",
+        ]) {
+            expect(dashboardSpeakerPaneClassNames).not.toContain(
+                forbiddenSpeakerPaneToken,
+            );
+        }
+        expect(workstation).not.toContain("DASHBOARD_SPEAKER_SHARE_CLASS_NAMES");
+        expect(workstation).not.toContain("getDashboardSpeakerShareClassName");
+        expect(workstation).toContain("DASHBOARD_SPEAKER_SHARE_VALUES");
+        expect(workstation).toContain("getDashboardSpeakerShareValue");
+        expect(dashboardSpeakerAvatar).toContain('variant="secondary"');
+        expect(dashboardSpeakerAvatar).toContain(
+            "dashboardSpeakerPaneClassNames.avatar",
+        );
+        expect(dashboardSpeakerSub).toContain('variant="outline"');
+        expect(dashboardSpeakerSub).toContain(
+            "dashboardSpeakerPaneClassNames.sub",
+        );
+        expect(dashboardSpeakerBar).toContain("value={shareValue}");
+        expect(dashboardSpeakerBar).toContain(
+            "dashboardSpeakerPaneClassNames.bar",
+        );
+        expect(dashboardSpeakerBar).toContain(
+            "dashboardSpeakerPaneClassNames.barFill",
+        );
+        expect(dashboardSpeakerBar).toContain('"dashboard-speaker-bar-fill"');
+        expect(dashboardSpeakerEmpty).toContain("<Empty");
+        expect(dashboardSpeakerEmpty).toContain('variant="compact"');
+        expect(dashboardSpeakerEmpty).toContain("<EmptyMedia");
+        expect(dashboardSpeakerEmpty).toContain("<EmptyTitle");
+        expect(dashboardSpeakerEmpty).toContain("<EmptyDescription");
         for (const hook of DASHBOARD_TRANSCRIPT_TURN_EMPTY_SOT_HOOKS) {
             expect(workstation).toContain(hook);
         }

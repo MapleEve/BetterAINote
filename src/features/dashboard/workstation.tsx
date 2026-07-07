@@ -78,6 +78,7 @@ import {
     InputGroupButton,
     InputGroupInput,
 } from "@/components/ui/input-group";
+import { Progress } from "@/components/ui/progress";
 import {
     type SegmentedTabItem,
     SegmentedTabs,
@@ -414,32 +415,27 @@ const dashboardTranscriptSkeletonClassNames = {
 
 const dashboardSpeakerPaneClassNames = {
     head: "flex items-center gap-2.5 px-4 pt-3 pb-2",
-    headTitle:
-        "flex-1 font-sans text-[12.5px] font-semibold text-[var(--fg-secondary)]",
-    rows: "m-0 flex list-none flex-col gap-0.5 px-2 pb-3.5",
-    row: "grid grid-cols-[28px_1fr_120px_auto] items-center gap-2.5 rounded-lg px-2.5 py-2 hover:bg-[var(--bg-recessed)]",
+    headTitle: "flex-1 text-sm font-medium text-muted-foreground",
+    rows: "m-0 flex list-none flex-col gap-1 px-2 pb-3.5",
+    row: "grid grid-cols-[auto_minmax(0,1fr)_minmax(72px,120px)_auto] items-center gap-2.5 rounded-lg px-2.5 py-2 hover:bg-accent",
     rowMeta: "flex min-w-0 flex-col gap-0.5",
-    name: "truncate font-sans text-[13px] font-semibold text-[var(--fg-primary)]",
-    sub: "font-mono text-[11.5px] font-medium text-[var(--fg-tertiary)]",
-    avatar: "inline-grid size-7 flex-none place-items-center rounded-full bg-[var(--accent-soft)] text-center [font:600_12px/1_var(--font-sans)] tracking-normal text-[var(--steel-700)]",
-    bar: "block h-1 w-full overflow-hidden rounded-full bg-[var(--bg-recessed)]",
-    barFill: "block h-full rounded-full bg-[var(--accent)]",
+    name: "truncate text-sm font-medium text-foreground",
+    sub: "w-fit justify-center font-mono tabular-nums",
+    avatar: "size-7 flex-none p-0 tabular-nums",
+    bar: "h-1 bg-muted",
+    barFill: "bg-primary",
+    empty: "border-0 py-4 md:py-4",
+    emptyHeader: "max-w-none",
+    emptyIcon: "size-8",
 } as const;
 
-const DASHBOARD_SPEAKER_SHARE_CLASS_NAMES = [
-    "w-[24%]",
-    "w-[36%]",
-    "w-[48%]",
-    "w-[60%]",
-    "w-[72%]",
-    "w-[84%]",
-    "w-[96%]",
-    "w-full",
+const DASHBOARD_SPEAKER_SHARE_VALUES = [
+    24, 36, 48, 60, 72, 84, 96, 100,
 ] as const;
 
-function getDashboardSpeakerShareClassName(index: number) {
-    return DASHBOARD_SPEAKER_SHARE_CLASS_NAMES[
-        Math.min(index, DASHBOARD_SPEAKER_SHARE_CLASS_NAMES.length - 1)
+function getDashboardSpeakerShareValue(index: number) {
+    return DASHBOARD_SPEAKER_SHARE_VALUES[
+        Math.min(index, DASHBOARD_SPEAKER_SHARE_VALUES.length - 1)
     ];
 }
 
@@ -728,8 +724,7 @@ const dashboardSearchActivityClassNames = {
 const dashboardButtonClassNames = {
     nav: "w-full justify-start gap-2.5 px-2.5 text-muted-foreground data-[sot-state=selected]:bg-sidebar-accent data-[sot-state=selected]:text-sidebar-accent-foreground",
     sync: "text-muted-foreground",
-    speakersMerge:
-        "h-[26px] gap-[7px] rounded-[7px] border border-transparent bg-transparent px-[10px] text-[12px] font-semibold text-muted-foreground shadow-none hover:bg-accent hover:text-accent-foreground has-[>svg]:px-[10px]",
+    speakersMerge: "shrink-0",
     drawerTrigger:
         "relative hidden max-[860px]:inline-flex group-data-[source-filter-active=true]/dashboard-workstation:[&_[data-sot-part=dashboard-drawer-active-dot]]:inline-block",
     sidebarCollapse: "max-[860px]:hidden",
@@ -8352,75 +8347,122 @@ export function Workstation({
                                         }
                                         data-sot-list="dashboard-speaker-rows"
                                     >
-                                        {(turns.length
-                                            ? turns
-                                            : [
-                                                  {
-                                                      text: "转写完成后可查看说话人信息",
-                                                      speakerName: null,
-                                                  },
-                                              ]
-                                        ).map((turn, index) => {
-                                            return (
-                                                <li
-                                                    className={
-                                                        dashboardSpeakerPaneClassNames.row
-                                                    }
-                                                    data-sot-item="dashboard-speaker-row"
-                                                    key={`${selectedRecording?.id}:speaker:${index}`}
-                                                >
-                                                    <span
+                                        {turns.length ? (
+                                            turns.map((turn, index) => {
+                                                const shareValue =
+                                                    getDashboardSpeakerShareValue(
+                                                        index,
+                                                    );
+
+                                                return (
+                                                    <li
                                                         className={
-                                                            dashboardSpeakerPaneClassNames.avatar
+                                                            dashboardSpeakerPaneClassNames.row
                                                         }
-                                                        data-sot-part="dashboard-speaker-avatar"
+                                                        data-sot-item="dashboard-speaker-row"
+                                                        key={`${selectedRecording?.id}:speaker:${index}`}
                                                     >
-                                                        {index + 1}
-                                                    </span>
-                                                    <div
-                                                        className={
-                                                            dashboardSpeakerPaneClassNames.rowMeta
-                                                        }
-                                                        data-sot-part="dashboard-speaker-row-meta"
-                                                    >
+                                                        <Badge
+                                                            variant="secondary"
+                                                            className={
+                                                                dashboardSpeakerPaneClassNames.avatar
+                                                            }
+                                                            data-sot-part="dashboard-speaker-avatar"
+                                                        >
+                                                            {index + 1}
+                                                        </Badge>
                                                         <div
                                                             className={
-                                                                dashboardSpeakerPaneClassNames.name
+                                                                dashboardSpeakerPaneClassNames.rowMeta
                                                             }
+                                                            data-sot-part="dashboard-speaker-row-meta"
+                                                        >
+                                                            <div
+                                                                className={
+                                                                    dashboardSpeakerPaneClassNames.name
+                                                                }
+                                                                data-sot-part="dashboard-speaker-name"
+                                                            >
+                                                                {turn.speakerName ||
+                                                                    `说话人 ${index + 1}`}
+                                                            </div>
+                                                            <Badge
+                                                                variant="outline"
+                                                                className={
+                                                                    dashboardSpeakerPaneClassNames.sub
+                                                                }
+                                                                data-sot-part="dashboard-speaker-sub"
+                                                            >
+                                                                {turn.text
+                                                                    .length}{" "}
+                                                                字
+                                                            </Badge>
+                                                        </div>
+                                                        <Progress
+                                                            value={shareValue}
+                                                            max={100}
+                                                            className={
+                                                                dashboardSpeakerPaneClassNames.bar
+                                                            }
+                                                            indicatorClassName={
+                                                                dashboardSpeakerPaneClassNames.barFill
+                                                            }
+                                                            indicatorProps={{
+                                                                "data-sot-part":
+                                                                    "dashboard-speaker-bar-fill",
+                                                            }}
+                                                            data-sot-part="dashboard-speaker-bar"
+                                                            getValueLabel={(
+                                                                value,
+                                                            ) =>
+                                                                `${value}%`
+                                                            }
+                                                        />
+                                                    </li>
+                                                );
+                                            })
+                                        ) : (
+                                            <li
+                                                className="px-2.5"
+                                                data-sot-item="dashboard-speaker-row"
+                                                data-sot-state="empty"
+                                            >
+                                                <Empty
+                                                    variant="compact"
+                                                    className={
+                                                        dashboardSpeakerPaneClassNames.empty
+                                                    }
+                                                >
+                                                    <EmptyHeader
+                                                        className={
+                                                            dashboardSpeakerPaneClassNames.emptyHeader
+                                                        }
+                                                    >
+                                                        <EmptyMedia
+                                                            variant="icon"
+                                                            className={
+                                                                dashboardSpeakerPaneClassNames.emptyIcon
+                                                            }
+                                                            data-sot-part="dashboard-speaker-avatar"
+                                                        >
+                                                            <MessageSquareText />
+                                                        </EmptyMedia>
+                                                        <EmptyTitle
+                                                            variant="compact"
                                                             data-sot-part="dashboard-speaker-name"
                                                         >
-                                                            {turn.speakerName ||
-                                                                `说话人 ${index + 1}`}
-                                                        </div>
-                                                        <div
-                                                            className={
-                                                                dashboardSpeakerPaneClassNames.sub
-                                                            }
+                                                            转写完成后可查看说话人信息
+                                                        </EmptyTitle>
+                                                        <EmptyDescription
+                                                            variant="compact"
                                                             data-sot-part="dashboard-speaker-sub"
                                                         >
-                                                            {turn.text.length}{" "}
-                                                            字
-                                                        </div>
-                                                    </div>
-                                                    <span
-                                                        className={
-                                                            dashboardSpeakerPaneClassNames.bar
-                                                        }
-                                                        data-sot-part="dashboard-speaker-bar"
-                                                    >
-                                                        <span
-                                                            className={cn(
-                                                                dashboardSpeakerPaneClassNames.barFill,
-                                                                getDashboardSpeakerShareClassName(
-                                                                    index,
-                                                                ),
-                                                            )}
-                                                            data-sot-part="dashboard-speaker-bar-fill"
-                                                        />
-                                                    </span>
-                                                </li>
-                                            );
-                                        })}
+                                                            暂无说话人片段
+                                                        </EmptyDescription>
+                                                    </EmptyHeader>
+                                                </Empty>
+                                            </li>
+                                        )}
                                     </ul>
                                 </div>
                             </CardContent>
