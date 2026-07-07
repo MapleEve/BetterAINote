@@ -10310,12 +10310,17 @@ describe("full UI replacement regression coverage", () => {
         );
         expect(sourceReportPrimitives).toContain('layout="inline"');
         expect(workstation).toContain("function SotSourceReportErrorIcon");
-        expect(workstation).toContain(
-            '<circle cx="12" cy="16" r=".8" fill="currentColor" />',
+        const sourceReportErrorIcon = extractBoundedSlice(
+            workstation,
+            "function SotSourceReportErrorIcon() {",
+            "function SotSourceReportEmptyIcon()",
         );
-        expect(workstation).not.toContain(
-            '<line x1="12" y1="16" x2="12.01" y2="16" />',
+        expect(sourceReportErrorIcon).toContain(
+            '<CircleAlert aria-hidden="true" focusable="false" />',
         );
+        expect(sourceReportErrorIcon).not.toContain("<svg");
+        expect(sourceReportErrorIcon).not.toContain("<circle");
+        expect(sourceReportErrorIcon).not.toContain("<path");
         expect(workstation).not.toContain("data-sot-missing-copy");
         expect(sourceReportStyles).not.toContain(
             "content-[attr(data-sot-missing-copy)]",
