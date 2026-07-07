@@ -170,14 +170,14 @@ function SelectTrigger({
             data-slot="select-trigger"
             data-size={size}
             className={cn(
-                "flex h-9 w-full items-center justify-between gap-2 rounded-md border border-input bg-background px-3 py-2 text-sm shadow-xs outline-none transition-[color,box-shadow] data-[placeholder]:text-muted-foreground focus-visible:border-ring focus-visible:ring-[3px] focus-visible:ring-ring/50 disabled:cursor-not-allowed disabled:opacity-50 aria-invalid:border-destructive aria-invalid:ring-destructive/20 data-[size=sm]:h-8 [&>span]:truncate [&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*='size-'])]:size-4",
+                "flex h-9 w-full items-center justify-between gap-2 rounded-md border border-input bg-background px-3 py-2 text-sm shadow-xs outline-none transition-[color,box-shadow] data-[placeholder]:text-muted-foreground focus-visible:border-ring focus-visible:ring-[3px] focus-visible:ring-ring/50 disabled:cursor-not-allowed disabled:opacity-50 aria-invalid:border-destructive aria-invalid:ring-destructive/20 data-[size=sm]:h-8 [&>span]:truncate [&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg]:[height:1rem] [&_svg]:[width:1rem]",
                 className,
             )}
             {...props}
         >
             {children}
             <SelectPrimitive.Icon asChild>
-                <ChevronDownIcon className="size-4 opacity-50" />
+                <ChevronDownIcon className="opacity-50" />
             </SelectPrimitive.Icon>
         </SelectPrimitive.Trigger>
     );
@@ -259,14 +259,14 @@ function SelectItem({
         <SelectPrimitive.Item
             data-slot="select-item"
             className={cn(
-                "relative flex w-full cursor-default select-none items-center gap-2 rounded-sm py-1.5 pr-8 pl-2 text-sm outline-none data-[disabled]:pointer-events-none data-[disabled]:opacity-50 data-[highlighted]:bg-accent data-[highlighted]:text-accent-foreground [&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*='size-'])]:size-4",
+                "relative flex w-full cursor-default select-none items-center gap-2 rounded-sm py-1.5 pr-8 pl-2 text-sm outline-none data-[disabled]:pointer-events-none data-[disabled]:opacity-50 data-[highlighted]:bg-accent data-[highlighted]:text-accent-foreground [&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg]:[height:1rem] [&_svg]:[width:1rem]",
                 className,
             )}
             {...props}
         >
             <span className="absolute right-2 flex size-3.5 items-center justify-center">
                 <SelectPrimitive.ItemIndicator>
-                    <CheckIcon className="size-4" />
+                    <CheckIcon />
                 </SelectPrimitive.ItemIndicator>
             </span>
             <SelectPrimitive.ItemText>{children}</SelectPrimitive.ItemText>
@@ -295,12 +295,12 @@ function SelectScrollUpButton({
         <SelectPrimitive.ScrollUpButton
             data-slot="select-scroll-up-button"
             className={cn(
-                "flex cursor-default items-center justify-center py-1",
+                "flex cursor-default items-center justify-center py-1 [&_svg]:[height:1rem] [&_svg]:[width:1rem]",
                 className,
             )}
             {...props}
         >
-            <ChevronUpIcon className="size-4" />
+            <ChevronUpIcon />
         </SelectPrimitive.ScrollUpButton>
     );
 }
@@ -313,12 +313,12 @@ function SelectScrollDownButton({
         <SelectPrimitive.ScrollDownButton
             data-slot="select-scroll-down-button"
             className={cn(
-                "flex cursor-default items-center justify-center py-1",
+                "flex cursor-default items-center justify-center py-1 [&_svg]:[height:1rem] [&_svg]:[width:1rem]",
                 className,
             )}
             {...props}
         >
-            <ChevronDownIcon className="size-4" />
+            <ChevronDownIcon />
         </SelectPrimitive.ScrollDownButton>
     );
 }
