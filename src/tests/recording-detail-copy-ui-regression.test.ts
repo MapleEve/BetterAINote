@@ -1380,6 +1380,22 @@ describe("recording detail copy and title action UI regressions", () => {
         }
         expect(globals).not.toContain("\n[data-sot-banner] {\n");
         expect(globals).not.toContain("\n[data-sot-banner-icon] {\n");
+        const alertPrimitive = readSource("components/ui/alert.tsx");
+        const transcriptionSection = readSource(
+            "features/recordings/components/transcription-section.tsx",
+        );
+        expect(alertPrimitive).toContain("[&>[data-slot=spinner]]:size-4");
+        expect(alertPrimitive).toContain(
+            "has-[>[data-slot=spinner]]:grid-cols-[1rem_1fr]",
+        );
+        expect(transcriptionSection).toContain(
+            'import { Spinner } from "@/components/ui/spinner";',
+        );
+        expect(transcriptionSection).toContain("<Spinner");
+        expect(transcriptionSection).toContain("data-sot-banner-spinner");
+        expect(transcriptionSection).not.toContain(
+            '<RefreshCw\n                            className="animate-spin"',
+        );
         for (const legacyClass of [
             'className="transcript t-pane"',
             'className="transcript-head"',

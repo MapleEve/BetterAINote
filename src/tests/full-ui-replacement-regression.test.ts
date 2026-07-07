@@ -6669,6 +6669,9 @@ describe("full UI replacement regression coverage", () => {
             'import { Button } from "@/components/ui/button";',
         );
         expect(login).toContain("<Button");
+        expect(login).toContain(
+            'import { Spinner } from "@/components/ui/spinner";',
+        );
         expect(login).toContain('data-sot-control="send-login-link"');
         expect(login).toContain('data-sot-control="auth-email"');
         expect(login).toContain('data-sot-control="local-only"');
@@ -6818,6 +6821,24 @@ describe("full UI replacement regression coverage", () => {
             'data-sot-control="send-login-link"',
         );
         expect(authLocalButton).toContain('data-sot-control="local-only"');
+        const authSubmitLoadingBranch = extractBoundedSlice(
+            login,
+            "{isLoading ? (",
+            "发送登录链接",
+        );
+        expect(authSubmitLoadingBranch).toContain(
+            '<Spinner\n                                                data-icon="inline-start"\n                                                aria-hidden="true"\n                                            />',
+        );
+        expect(authSubmitLoadingBranch).toContain("发送中...");
+        const authLocalLoadingBranch = extractBoundedSlice(
+            login,
+            "{isLocalLoading ? (",
+            "仅本地使用",
+        );
+        expect(authLocalLoadingBranch).toContain(
+            '<Spinner\n                                                    data-icon="inline-start"\n                                                    aria-hidden="true"\n                                                />',
+        );
+        expect(authLocalLoadingBranch).toContain("启动中...");
         expect(authEmailInput).not.toContain('variant="accent"');
         expect(authEmailInput).not.toContain('controlSize="compact"');
         expect(authSubmitButton).toContain('variant="default"');
@@ -12767,6 +12788,10 @@ describe("full UI replacement regression coverage", () => {
         expect(transcriptionSection).toContain("<AlertTitle");
         expect(transcriptionSection).toContain("<Button");
         expect(transcriptionSection).toContain(
+            'import { Spinner } from "@/components/ui/spinner";',
+        );
+        expect(transcriptionSection).toContain("<Spinner");
+        expect(transcriptionSection).toContain(
             'data-sot-section="recording-transcription-output"',
         );
         expect(transcriptionSection).toContain(
@@ -13010,6 +13035,46 @@ describe("full UI replacement regression coverage", () => {
         );
         expect(transcriptionSection).toContain(
             'data-sot-control="start-local-transcription"',
+        );
+        const transcriptionJobProcessingAlert = extractOpeningElement(
+            transcriptionSection,
+            'data-sot-state="processing"',
+            "Alert",
+        );
+        expect(transcriptionJobProcessingAlert).toContain(
+            'data-sot-banner="transcription-job"',
+        );
+        expect(transcriptionJobProcessingAlert).toContain(
+            'data-sot-tone="info"',
+        );
+        const transcriptionJobProcessingBanner = extractElementSlice(
+            transcriptionSection,
+            'data-sot-state="processing"',
+            "Alert",
+        );
+        expect(transcriptionJobProcessingBanner).toContain("<Spinner");
+        expect(transcriptionJobProcessingBanner).toContain(
+            "data-sot-banner-icon",
+        );
+        expect(transcriptionJobProcessingBanner).toContain(
+            "data-sot-banner-spinner",
+        );
+        expect(transcriptionJobProcessingBanner).toContain(
+            'aria-hidden="true"',
+        );
+        expect(transcriptionJobProcessingBanner).toContain(
+            "data-sot-banner-title",
+        );
+        expect(transcriptionJobProcessingBanner).toContain(
+            "data-sot-banner-body",
+        );
+        expect(transcriptionJobProcessingBanner).not.toContain("<RefreshCw");
+        expect(transcriptionJobProcessingBanner).not.toContain(
+            'className="animate-spin"',
+        );
+        expect(alertPrimitive).toContain("[&>[data-slot=spinner]]:size-4");
+        expect(alertPrimitive).toContain(
+            "has-[>[data-slot=spinner]]:grid-cols-[1rem_1fr]",
         );
         const transcriptionJobErrorAlert = extractOpeningElement(
             transcriptionSection,

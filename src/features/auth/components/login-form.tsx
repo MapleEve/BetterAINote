@@ -19,6 +19,7 @@ import {
     FieldLabel,
 } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
+import { Spinner } from "@/components/ui/spinner";
 import { signIn } from "@/lib/auth-client";
 import {
     navigateAndRefreshBrowserRoute,
@@ -262,7 +263,17 @@ export function LoginForm({
                                     className={authLoginClassNames.submitButton}
                                     data-sot-control="send-login-link"
                                 >
-                                    {isLoading ? "发送中..." : "发送登录链接"}
+                                    {isLoading ? (
+                                        <>
+                                            <Spinner
+                                                data-icon="inline-start"
+                                                aria-hidden="true"
+                                            />
+                                            发送中...
+                                        </>
+                                    ) : (
+                                        "发送登录链接"
+                                    )}
                                 </Button>
                                 <FieldDescription
                                     className={authLoginClassNames.footer}
@@ -283,9 +294,17 @@ export function LoginForm({
                                         }
                                         onClick={() => void handleLocalUse()}
                                     >
-                                        {isLocalLoading
-                                            ? "启动中..."
-                                            : "仅本地使用"}
+                                        {isLocalLoading ? (
+                                            <>
+                                                <Spinner
+                                                    data-icon="inline-start"
+                                                    aria-hidden="true"
+                                                />
+                                                启动中...
+                                            </>
+                                        ) : (
+                                            "仅本地使用"
+                                        )}
                                     </Button>
                                 </FieldDescription>
                             </Field>

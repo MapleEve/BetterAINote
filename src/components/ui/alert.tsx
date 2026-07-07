@@ -27,17 +27,17 @@ const alertVariantClassNames: Record<AlertVariant, string> = {
 
 const alertDensityClassNames: Record<AlertDensity, string> = {
     default:
-        "rounded-lg px-4 py-3 text-sm has-[>svg]:grid-cols-[1rem_1fr] has-[>svg]:gap-x-3 [&>svg]:size-4 [&>svg]:translate-y-0.5",
+        "rounded-lg px-4 py-3 text-sm has-[>svg]:grid-cols-[1rem_1fr] has-[>svg]:gap-x-3 has-[>[data-slot=spinner]]:grid-cols-[1rem_1fr] has-[>[data-slot=spinner]]:gap-x-3 [&>svg]:size-4 [&>svg]:translate-y-0.5 [&>[data-slot=spinner]]:size-4 [&>[data-slot=spinner]]:translate-y-0.5",
     compact:
-        "rounded-[var(--radius-sm)] px-[10px] py-[8px] text-[12px] leading-[1.4] font-medium has-[>svg]:grid-cols-[14px_1fr] has-[>svg]:gap-x-[8px] [&>svg]:size-[14px] [&>svg]:[stroke-linecap:butt] [&>svg]:[stroke-linejoin:miter]",
+        "rounded-[var(--radius-sm)] px-[10px] py-[8px] text-[12px] leading-[1.4] font-medium has-[>svg]:grid-cols-[14px_1fr] has-[>svg]:gap-x-[8px] has-[>[data-slot=spinner]]:grid-cols-[14px_1fr] has-[>[data-slot=spinner]]:gap-x-[8px] [&>svg]:size-[14px] [&>svg]:[stroke-linecap:butt] [&>svg]:[stroke-linejoin:miter] [&>[data-slot=spinner]]:size-[14px]",
     comfortable:
-        "rounded-[var(--radius-md)] px-[12px] py-[10px] text-[13px] has-[>svg]:grid-cols-[14px_1fr] has-[>svg]:gap-x-[8px] [&>svg]:size-[14px] [&>svg]:[stroke-linecap:butt] [&>svg]:[stroke-linejoin:miter]",
+        "rounded-[var(--radius-md)] px-[12px] py-[10px] text-[13px] has-[>svg]:grid-cols-[14px_1fr] has-[>svg]:gap-x-[8px] has-[>[data-slot=spinner]]:grid-cols-[14px_1fr] has-[>[data-slot=spinner]]:gap-x-[8px] [&>svg]:size-[14px] [&>svg]:[stroke-linecap:butt] [&>svg]:[stroke-linejoin:miter] [&>[data-slot=spinner]]:size-[14px]",
 };
 
 const alertLayoutClassNames: Record<AlertLayout, string> = {
     default:
-        "grid w-full grid-cols-[0_1fr] items-start gap-y-0.5 [&>svg]:text-current",
-    inline: "flex w-full items-center gap-[8px] [&>svg]:text-current",
+        "grid w-full grid-cols-[0_1fr] items-start gap-y-0.5 [&>svg]:text-current [&>[data-slot=spinner]]:text-current",
+    inline: "flex w-full items-center gap-[8px] [&>svg]:text-current [&>[data-slot=spinner]]:text-current",
 };
 
 const alertTitleDensityClassNames: Record<AlertTitleDensity, string> = {

@@ -52,6 +52,7 @@ import { Input } from "@/components/ui/input";
 import { Select } from "@/components/ui/select";
 import { Separator } from "@/components/ui/separator";
 import { Slider } from "@/components/ui/slider";
+import { Spinner } from "@/components/ui/spinner";
 import { Switch } from "@/components/ui/switch";
 import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
 import { DataSourceFieldControl } from "@/features/data-sources/data-source-field-control";
@@ -1964,10 +1965,9 @@ function DataSourcesSettingsPanel({
                                     }
                                 >
                                     {actionState === "testing" ? (
-                                        <LoaderCircle
+                                        <Spinner
                                             data-icon="inline-start"
                                             aria-hidden="true"
-                                            className="animate-spin"
                                         />
                                     ) : null}
                                     {actionState === "testing"
@@ -1996,10 +1996,9 @@ function DataSourcesSettingsPanel({
                                     }
                                 >
                                     {actionState === "saving" ? (
-                                        <LoaderCircle
+                                        <Spinner
                                             data-icon="inline-start"
                                             aria-hidden="true"
-                                            className="animate-spin"
                                         />
                                     ) : null}
                                     {actionState === "saving"
@@ -2564,11 +2563,7 @@ function SaveActions({
                 onClick={onSave}
             >
                 {saveState === "saving" ? (
-                    <LoaderCircle
-                        data-icon="inline-start"
-                        aria-hidden="true"
-                        className="animate-spin"
-                    />
+                    <Spinner data-icon="inline-start" aria-hidden="true" />
                 ) : null}
                 {saveState === "saving"
                     ? isZh
@@ -3695,10 +3690,9 @@ function VoScriptSettingsPanel({
                         onClick={() => void testConnection()}
                     >
                         {isTestingConnection ? (
-                            <LoaderCircle
+                            <Spinner
                                 data-icon="inline-start"
                                 aria-hidden="true"
-                                className="animate-spin"
                             />
                         ) : null}
                         {isTestingConnection

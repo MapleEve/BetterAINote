@@ -37,6 +37,7 @@ import {
     EmptyTitle,
 } from "@/components/ui/empty";
 import { FieldDescription } from "@/components/ui/field";
+import { Spinner } from "@/components/ui/spinner";
 import { SpeakerLabelEditor } from "@/features/recordings/components/speaker-label-editor";
 import {
     startBrowserInterval,
@@ -403,8 +404,7 @@ export function TranscriptionSection({
                         data-sot-state="processing"
                         data-sot-tone="info"
                     >
-                        <RefreshCw
-                            className="animate-spin"
+                        <Spinner
                             data-sot-banner-icon
                             data-sot-banner-spinner
                             aria-hidden="true"

@@ -1901,8 +1901,16 @@ describe("settings SOT interaction regressions", () => {
         expect(sourceActionArea).toContain("<SourceActionButton");
         expect(sourceTestAction).toContain('tone="neutral"');
         expect(sourceTestAction).toContain('data-sot-action="test"');
+        expect(sourceTestAction).toContain("<Spinner");
+        expect(sourceTestAction).toContain('data-icon="inline-start"');
+        expect(sourceTestAction).not.toContain("<LoaderCircle");
+        expect(sourceTestAction).not.toContain('className="animate-spin"');
         expect(sourceSaveAction).toContain('tone="primary"');
         expect(sourceSaveAction).toContain('data-sot-action="save"');
+        expect(sourceSaveAction).toContain("<Spinner");
+        expect(sourceSaveAction).toContain('data-icon="inline-start"');
+        expect(sourceSaveAction).not.toContain("<LoaderCircle");
+        expect(sourceSaveAction).not.toContain('className="animate-spin"');
         expect(sourceReconnectAction).toContain('tone="neutral"');
         expect(sourceDisconnectAction).toContain('tone="danger"');
         expect(sourceActionArea).not.toContain("sourceProviderAction");
@@ -2048,6 +2056,10 @@ describe("settings SOT interaction regressions", () => {
         const saveActionsClass =
             content.match(/const SETTINGS_SAVE_ACTIONS_CLASS[\s\S]*?;/)?.[0] ??
             "";
+        const providerStateBannerBlock =
+            content.match(
+                /function ProviderStateBanner[\s\S]*?function DataSourcesSettingsPanel/,
+            )?.[0] ?? "";
         const shortcutsGridClass =
             content.match(
                 /const SETTINGS_SHORTCUTS_GRID_CLASS[\s\S]*?;/,
@@ -2111,8 +2123,13 @@ describe("settings SOT interaction regressions", () => {
         expect(content).toContain("SOURCE_PROVIDER_DETAIL_INPUT_CLASS");
         expect(content).toContain('data-sot-panel="source-actions"');
         expect(content).toContain('data-sot-panel="settings-save-actions"');
+        expect(content).toContain(
+            'import { Spinner } from "@/components/ui/spinner";',
+        );
         expect(content).toContain('data-icon="inline-start"');
-        expect(content).toContain('className="animate-spin"');
+        expect(providerStateBannerBlock).toContain(
+            'className={tone === "syncing" ? "animate-spin" : undefined}',
+        );
         for (const source of [
             content,
             settingFieldControl,
@@ -2731,6 +2748,11 @@ describe("settings SOT interaction regressions", () => {
         const saveActions = content.match(
             /function SaveActions[\s\S]*?function useResettingSaveState/,
         )?.[0];
+        const settingsSaveAction = collectElementSlices(
+            saveActions ?? "",
+            'data-sot-control="settings-save"',
+            "Button",
+        )[0];
         const sectionTitleClass =
             content.match(
                 /const SETTINGS_SECTION_TITLE_CLASS\s*=\s*"[^"]*";/,
@@ -2841,6 +2863,10 @@ describe("settings SOT interaction regressions", () => {
         expect(saveActions).toContain('variant="default"');
         expect(saveActions).not.toContain('variant="settingsSave"');
         expect(saveActions).not.toContain('size="settingsSave"');
+        expect(settingsSaveAction).toContain("<Spinner");
+        expect(settingsSaveAction).toContain('data-icon="inline-start"');
+        expect(settingsSaveAction).not.toContain("<LoaderCircle");
+        expect(settingsSaveAction).not.toContain('className="animate-spin"');
         for (const directControl of [
             "title-generation-enabled",
             "title-generation-base-url",
@@ -2894,6 +2920,10 @@ describe("settings SOT interaction regressions", () => {
             'variant="settingsTestAction"',
         );
         expect(voscriptTestAction).not.toContain('size="settingsTestAction"');
+        expect(voscriptTestAction).toContain("<Spinner");
+        expect(voscriptTestAction).toContain('data-icon="inline-start"');
+        expect(voscriptTestAction).not.toContain("<LoaderCircle");
+        expect(voscriptTestAction).not.toContain('className="animate-spin"');
         for (const legacySaveHook of [
             "data-save-actions",
             "data-save-id",
