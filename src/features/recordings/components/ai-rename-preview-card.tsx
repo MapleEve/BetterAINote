@@ -45,55 +45,45 @@ interface AiRenamePreviewCardProps {
 
 const aiRenamePreviewClassNames = {
     card: {
-        root: "w-[min(360px,calc(100vw-32px))] gap-0 rounded-[var(--radius-lg)] border-[var(--card-popover-border)] bg-[var(--card-popover-bg)] p-0 font-sans shadow-[var(--card-popover-shadow)] backdrop-blur-none transition-none data-[open=true]:pointer-events-auto [&_[data-sot-part=state][hidden]]:!hidden",
-        header: "h-[55px] grid-cols-[1fr_auto] items-start gap-x-2.5 gap-y-0.5 border-b border-[var(--card-popover-divider)] px-[14px] pt-3 pb-2 [&_[data-slot=card-head-copy]]:min-w-0",
-        title: "break-words font-sans text-[11px] font-semibold leading-normal tracking-[0.02em] text-[var(--fg-secondary)]",
-        content: "flex flex-col p-[14px]",
-        loadingContent: "h-[78px]",
-        errorContent: "h-[88px]",
-        unavailableContent: "h-[130px]",
-        footer: "h-[48px] gap-1.5 bg-[var(--card-popover-footer-bg)] px-[14px] py-0",
-        description:
-            "break-words font-sans text-[11px] font-medium leading-normal text-[var(--fg-tertiary)]",
+        root: "w-[min(360px,calc(100vw-32px))] gap-0 overflow-hidden p-0 data-[open=true]:pointer-events-auto [&_[data-sot-part=state][hidden]]:!hidden",
+        header: "min-h-14 grid-cols-[1fr_auto] items-start gap-x-2.5 gap-y-1 border-b px-3.5 py-3 [&_[data-slot=card-head-copy]]:min-w-0",
+        title: "break-words text-xs text-muted-foreground uppercase tracking-wide",
+        content: "flex flex-col px-3.5 py-3",
+        loadingContent: "min-h-20",
+        errorContent: "min-h-22",
+        unavailableContent: "min-h-32",
+        footer: "min-h-12 gap-1.5 border-t px-3.5 py-2",
+        description: "break-words text-xs",
         action: "shrink-0",
     },
     state: {
         root: "flex flex-col items-stretch gap-2",
-        label: "font-mono text-[10.5px] font-semibold leading-none text-[var(--fg-tertiary)] uppercase tracking-[0.08em]",
+        label: "font-mono text-xs font-semibold leading-none text-muted-foreground uppercase tracking-wide",
         message:
-            "m-0 break-words font-sans text-[12.5px] font-medium leading-[1.5] text-[var(--fg-secondary)]",
-        hint: "m-0 max-w-full break-words font-sans text-[11.5px] font-medium leading-[1.5] text-[var(--fg-tertiary)] [text-wrap:pretty]",
+            "m-0 break-words text-sm font-medium leading-relaxed text-muted-foreground",
+        hint: "m-0 max-w-full break-words text-xs font-medium leading-relaxed text-muted-foreground [text-wrap:pretty]",
         reviewHint:
-            "m-0 max-w-full whitespace-nowrap font-sans text-[10px] font-medium leading-[1.5] text-[var(--fg-tertiary)]",
+            "m-0 max-w-full whitespace-nowrap text-xs font-medium leading-relaxed text-muted-foreground",
         previewTitle:
-            "min-w-0 rounded-lg border border-border bg-[var(--bg-recessed)] px-2.5 py-2 font-display text-[15px] font-semibold leading-[1.4] text-[var(--fg-primary)]",
+            "min-w-0 rounded-lg border bg-muted px-2.5 py-2 text-sm font-semibold leading-relaxed text-foreground",
         reviewRow: "my-1.5 flex flex-col gap-1.5",
         reviewLine:
-            "flex min-w-0 items-baseline gap-2 rounded-[8px] border border-border bg-[var(--bg-recessed)] px-2.5 py-2",
+            "flex min-w-0 items-baseline gap-2 rounded-lg border bg-muted px-2.5 py-2",
         reviewValue:
-            "min-w-0 break-words font-sans text-[13px] font-semibold leading-[1.4]",
+            "min-w-0 break-words text-sm font-semibold leading-relaxed",
         reviewOld:
-            "text-[var(--fg-secondary)] line-through decoration-muted-foreground",
-        reviewNew: "text-[var(--fg-primary)]",
-        spinner: "mx-auto mb-1.5 size-4 border-2 text-primary",
+            "text-muted-foreground line-through decoration-muted-foreground",
+        reviewNew: "text-foreground",
+        spinner: "text-primary",
     },
     button: {
-        close: "size-6 rounded-md border border-transparent bg-transparent p-0 text-[var(--fg-secondary)] shadow-none hover:bg-accent hover:text-accent-foreground [&_svg:not([class*='size-'])]:size-3",
-        action: "h-[26px] shrink-0 gap-[7px] rounded-[7px] border border-transparent bg-transparent px-[10px] font-sans text-[12px] font-semibold leading-normal text-[var(--fg-secondary)] shadow-none hover:bg-[var(--bg-recessed)] hover:text-[var(--fg-primary)] disabled:opacity-[0.55] has-[>svg]:px-[10px] [&_svg:not([class*='size-'])]:size-[11px]",
-        primaryAction:
-            "h-[26px] shrink-0 gap-[7px] rounded-[7px] border border-border bg-[var(--glass-tint-base)] px-[10px] font-sans text-[12px] font-semibold leading-normal text-[var(--fg-primary)] shadow-xs backdrop-blur-[14px] backdrop-saturate-[140%] hover:bg-[var(--glass-tint-base)] hover:text-[var(--fg-primary)] disabled:opacity-[0.55] has-[>svg]:px-[10px] [&_svg:not([class*='size-'])]:size-[11px]",
+        action: "shrink-0",
     },
     badge: {
-        oldTag: "h-auto min-w-[56px] justify-start rounded-none border-transparent bg-transparent px-0 py-0 font-sans text-[10.5px] font-semibold text-[var(--fg-tertiary)] uppercase tracking-[0.04em] shadow-none [a&]:hover:bg-transparent [a&]:hover:text-[var(--fg-tertiary)]",
-        newTag: "h-auto min-w-[56px] justify-start rounded-none border-transparent bg-transparent px-0 py-0 font-sans text-[10.5px] font-semibold text-[var(--accent)] uppercase tracking-[0.04em] shadow-none [a&]:hover:bg-transparent [a&]:hover:text-[var(--accent)]",
+        tag: "min-w-14 justify-start",
     },
     alert: {
-        root: "flex w-full items-start gap-3 px-1 py-2 font-sans text-sm [&_[data-slot=alert-icon]]:flex [&_[data-slot=alert-icon]]:size-7 [&_[data-slot=alert-icon]]:shrink-0 [&_[data-slot=alert-icon]]:items-center [&_[data-slot=alert-icon]]:justify-center [&_[data-slot=alert-icon]]:rounded-full [&_[data-slot=alert-icon]_svg]:size-[14px]",
-        error: "flex-col items-center border-0 bg-transparent text-center text-[var(--fg-primary)] shadow-none *:data-[slot=alert-description]:text-[var(--fg-primary)] [&_[data-slot=alert-icon]]:bg-destructive/10 [&_[data-slot=alert-icon]]:text-destructive",
-        unavailable:
-            "flex-col items-center border-0 bg-transparent text-center text-[var(--fg-secondary)] shadow-none *:data-[slot=alert-description]:text-[var(--fg-secondary)] [&_[data-slot=alert-icon]]:bg-secondary [&_[data-slot=alert-icon]]:text-secondary-foreground",
-        description:
-            "grid min-w-0 gap-1 text-center [&_[data-slot=alert-message]]:m-0 [&_[data-slot=alert-message]]:break-words [&_[data-slot=alert-message]]:font-sans [&_[data-slot=alert-message]]:text-[12.5px] [&_[data-slot=alert-message]]:font-medium [&_[data-slot=alert-message]]:leading-[1.5] [&_[data-slot=alert-message]]:text-[var(--fg-secondary)] [&_[data-slot=alert-hint]]:m-0 [&_[data-slot=alert-hint]]:break-words [&_[data-slot=alert-hint]]:font-sans [&_[data-slot=alert-hint]]:text-[11.5px] [&_[data-slot=alert-hint]]:font-medium [&_[data-slot=alert-hint]]:leading-[1.5] [&_[data-slot=alert-hint]]:text-[var(--fg-tertiary)]",
+        description: "grid min-w-0 justify-items-center gap-1",
     },
 } as const;
 
@@ -184,7 +174,7 @@ export function AiRenamePreviewCard({
                                 variant="ghost"
                                 size="icon-xs"
                                 className={
-                                    aiRenamePreviewClassNames.button.close
+                                    aiRenamePreviewClassNames.button.action
                                 }
                                 onClick={onCancel}
                                 disabled={isApplying}
@@ -241,25 +231,21 @@ export function AiRenamePreviewCard({
                         </div>
                     ) : isErrorState ? (
                         <Alert
-                            className={cn(
-                                aiRenamePreviewClassNames.alert.root,
-                                state === "error"
-                                    ? aiRenamePreviewClassNames.alert.error
-                                    : aiRenamePreviewClassNames.alert
-                                          .unavailable,
-                            )}
+                            variant={
+                                state === "error" ? "destructive" : "default"
+                            }
+                            density="spacious"
+                            layout="centered"
                             data-sot-part="state"
                             data-sot-state={state}
                         >
-                            <span
-                                data-slot="alert-icon"
+                            <ErrorIcon
                                 data-sot-part="error-icon"
                                 aria-hidden="true"
-                            >
-                                <ErrorIcon aria-hidden="true" />
-                            </span>
+                            />
                             <AlertTitle className="sr-only">{title}</AlertTitle>
                             <AlertDescription
+                                density="comfortable"
                                 className={
                                     aiRenamePreviewClassNames.alert.description
                                 }
@@ -324,7 +310,7 @@ export function AiRenamePreviewCard({
                                             variant="outline"
                                             className={
                                                 aiRenamePreviewClassNames.badge
-                                                    .oldTag
+                                                    .tag
                                             }
                                             data-sot-part="review-tag"
                                             data-sot-review-field="old"
@@ -358,7 +344,7 @@ export function AiRenamePreviewCard({
                                             variant="secondary"
                                             className={
                                                 aiRenamePreviewClassNames.badge
-                                                    .newTag
+                                                    .tag
                                             }
                                             data-sot-part="review-tag"
                                             data-sot-review-field="new"
@@ -414,7 +400,7 @@ export function AiRenamePreviewCard({
 
                 {showRegenerate || showCancel || showApply ? (
                     <>
-                        <Separator className="bg-[var(--card-popover-divider)]" />
+                        <Separator />
                         <CardFooter
                             className={aiRenamePreviewClassNames.card.footer}
                             data-sot-part="actions"
@@ -474,10 +460,10 @@ export function AiRenamePreviewCard({
                             {showApply ? (
                                 <Button
                                     type="button"
+                                    variant="default"
                                     size="xs"
                                     className={
-                                        aiRenamePreviewClassNames.button
-                                            .primaryAction
+                                        aiRenamePreviewClassNames.button.action
                                     }
                                     onClick={onApply}
                                     disabled={isBusy || !canAct}

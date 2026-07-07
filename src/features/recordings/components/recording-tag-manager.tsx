@@ -90,7 +90,7 @@ const QUICK_RECORDING_TAG_COLORS = RECORDING_TAG_COLORS.filter(
 
 const SOT_TAG_MANAGER_ERROR_TEXT = "保存失败 · 请稍后再试";
 const RECORDING_TAG_SWATCH_ITEM_CLASS_NAME =
-    "tagm-swatch !grid !size-[18px] min-w-0 place-items-center rounded-full border-2 border-transparent !p-0 text-[13px] leading-none !text-foreground shadow-none transition-transform duration-[var(--duration-fast)] ease-[var(--ease-out)] hover:scale-110 data-[state=on]:!border-foreground data-[state=on]:shadow-[inset_0_0_0_2px_var(--background)]";
+    "tagm-swatch grid size-[18px] min-w-0 place-items-center rounded-full border-2 border-transparent p-0 text-foreground shadow-none transition-transform duration-[var(--duration-fast)] ease-[var(--ease-out)] hover:scale-110 data-[state=on]:border-foreground";
 
 const RECORDING_TAG_MANAGER_PANEL_CLASS_NAME =
     "tagm-panel max-h-[460px] w-[320px] max-w-[calc(100vw-2rem)] gap-0 overflow-hidden rounded-xl border-border bg-popover p-0 text-popover-foreground shadow-md backdrop-blur-none data-[sot-state=create]:h-[342px] data-[sot-state=create]:overflow-hidden max-md:w-[calc(100vw-24px)] max-md:max-w-none";
@@ -105,21 +105,21 @@ const RECORDING_TAG_MANAGER_TOGGLE_NOTE_CLASS_NAME =
 const RECORDING_TAG_MANAGER_CONTENT_CLASS_NAME =
     "flex flex-col gap-[14px] overflow-auto px-3.5 pb-3.5 pt-3";
 const RECORDING_TAG_MANAGER_TAG_TOGGLE_CLASS_NAME =
-    "tagm-opt relative inline-flex h-6 justify-normal gap-1 rounded-full border border-border px-2 py-0 text-[11.5px] font-semibold leading-none disabled:opacity-70";
+    "tagm-opt relative justify-normal gap-1 rounded-full border-border disabled:opacity-70";
 const RECORDING_TAG_MANAGER_SELECTED_BADGE_CLASS_NAME =
-    "tagm-sel-chip h-[22px] justify-normal gap-1 rounded-full border-border bg-muted py-0 pl-2 pr-1 text-[11px] font-semibold leading-none";
+    "tagm-sel-chip justify-normal gap-1 rounded-full border-border pr-1";
 const RECORDING_TAG_MANAGER_CHIP_REMOVE_BUTTON_CLASS_NAME =
-    "x size-4 shrink-0 rounded-full p-0 text-muted-foreground hover:bg-muted hover:text-foreground";
+    "x shrink-0 rounded-full text-muted-foreground hover:bg-muted hover:text-foreground";
 const RECORDING_TAG_MANAGER_CHECK_BADGE_CLASS_NAME =
-    "tagm-opt-check ml-0.5 inline-grid size-3.5 place-items-center rounded-full border-0 bg-primary/70 p-0 text-[11px] font-semibold leading-none text-primary-foreground";
+    "tagm-opt-check ml-0.5 inline-grid place-items-center rounded-full border-0";
 const RECORDING_TAG_MANAGER_CLOSE_BUTTON_CLASS_NAME =
-    "tagm-close size-5 shrink-0 text-muted-foreground hover:bg-muted hover:text-foreground";
+    "tagm-close shrink-0 text-muted-foreground hover:bg-muted hover:text-foreground";
 const RECORDING_TAG_MANAGER_PICKER_FRAME_CLASS_NAME =
     "tagm-picker flex flex-col gap-2.5 rounded-md border border-border bg-muted px-3 py-2.5";
 const RECORDING_TAG_MANAGER_PICKER_LABEL_CLASS_NAME =
     "tagm-picker-label m-0 p-0 font-mono text-[11px] font-semibold leading-none uppercase tracking-wide text-muted-foreground";
 const RECORDING_TAG_MANAGER_ICON_OPTION_CLASS_NAME =
-    "tg-pick !size-7 min-w-0 shrink-0 rounded-md border-border bg-background !p-0 text-muted-foreground shadow-none hover:border-border hover:bg-muted hover:text-foreground data-[state=on]:border-primary/50 data-[state=on]:bg-primary/15 data-[state=on]:text-primary";
+    "tg-pick min-w-0 shrink-0 rounded-md border-border bg-background text-muted-foreground shadow-none hover:border-border hover:bg-muted hover:text-foreground data-[state=on]:border-primary/50 data-[state=on]:bg-primary/15 data-[state=on]:text-primary";
 
 type RecordingTagManagerContentVariant =
     | "compact"
@@ -255,6 +255,7 @@ function RecordingTagManagerBadge({
 }) {
     return (
         <Badge
+            variant={appearance === "pill" ? "secondary" : "default"}
             className={cn(
                 recordingTagManagerBadgeClassName(appearance),
                 className,

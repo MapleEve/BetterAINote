@@ -46,12 +46,12 @@ export const recordingTagSwatchColorClassName: Record<
     RecordingTag["color"],
     string
 > = {
-    blue: "!bg-chart-1",
-    green: "!bg-chart-3",
-    orange: "!bg-chart-4",
-    purple: "!bg-chart-5",
-    red: "!bg-destructive",
-    slate: "!bg-muted-foreground",
+    blue: "bg-chart-1",
+    green: "bg-chart-3",
+    orange: "bg-chart-4",
+    purple: "bg-chart-5",
+    red: "bg-destructive",
+    slate: "bg-muted-foreground",
 };
 
 const recordingTagIconComponents = {
@@ -79,7 +79,7 @@ const recordingTagManagerIconComponents: Partial<
 };
 
 const recordingTagChipClassName =
-    "h-[22px] w-fit justify-normal gap-[5px] rounded-[6px] border-border bg-muted py-0 pl-[7px] pr-[9px] [font:600_11.5px_var(--font-sans)] shadow-[var(--shadow-xs)] transition-none";
+    "h-[22px] w-fit justify-normal gap-[5px] rounded-[6px] border-border bg-muted py-0 pl-[7px] pr-[9px] [font:600_11.5px_var(--font-sans)] shadow-xs transition-none";
 
 export function RecordingTagIconGlyph({
     icon,

@@ -4131,65 +4131,63 @@ const AI_RENAME_PREVIEW_FEATURE_OWNER_CLASS_SNIPPETS = [
     {
         label: "header",
         snippets: [
-            "h-[55px]",
+            "min-h-14",
             "grid-cols-[1fr_auto]",
-            "border-b border-[var(--card-popover-divider)]",
-            "px-[14px] pt-3 pb-2",
+            "border-b px-3.5 py-3",
             "[&_[data-slot=card-head-copy]]:min-w-0",
         ],
     },
     {
         label: "body",
         snippets: [
-            "p-[14px]",
-            'loadingContent: "h-[78px]"',
-            "font-display text-[15px] font-semibold leading-[1.4]",
+            "px-3.5 py-3",
+            'loadingContent: "min-h-20"',
+            "text-sm font-semibold leading-relaxed",
         ],
     },
     {
         label: "state",
         snippets: [
-            "font-mono text-[10.5px] font-semibold leading-none",
-            "m-0 break-words font-sans text-[12.5px] font-medium leading-[1.5]",
-            "m-0 max-w-full break-words font-sans text-[11.5px] font-medium leading-[1.5]",
+            "font-mono text-xs font-semibold leading-none",
+            "m-0 break-words text-sm font-medium leading-relaxed",
+            "m-0 max-w-full break-words text-xs font-medium leading-relaxed",
         ],
     },
     {
         label: "review",
         snippets: [
             "my-1.5 flex flex-col gap-1.5",
-            "rounded-[8px] border border-border bg-[var(--bg-recessed)]",
-            "text-[var(--fg-secondary)] line-through",
-            "text-[var(--fg-primary)]",
+            "rounded-lg border bg-muted",
+            "text-muted-foreground line-through",
+            "text-foreground",
         ],
     },
     {
         label: "actions",
         snippets: [
-            "h-[48px] gap-1.5 bg-[var(--card-popover-footer-bg)] px-[14px] py-0",
-            "bg-[var(--glass-tint-base)]",
+            "min-h-12 gap-1.5 border-t px-3.5 py-2",
+            'variant="default"',
         ],
     },
     {
         label: "alert",
         snippets: [
-            "border-0 bg-transparent text-center",
-            "[&_[data-slot=alert-icon]]:size-7",
-            "[&_[data-slot=alert-message]]:break-words",
+            'density="spacious"',
+            'layout="centered"',
+            'density="comfortable"',
         ],
     },
     {
         label: "badge",
-        snippets: ["min-w-[56px]", "uppercase tracking-[0.04em]"],
+        snippets: ["min-w-14", "justify-start"],
     },
     {
         label: "button",
         snippets: [
-            "size-6 rounded-md",
-            "p-0",
-            "h-[26px] shrink-0 gap-[7px]",
-            "bg-[var(--glass-tint-base)]",
-            "text-[var(--fg-primary)]",
+            'size="icon-xs"',
+            'size="xs"',
+            'data-icon="inline-start"',
+            'action: "shrink-0"',
         ],
     },
 ] as const;
@@ -4420,17 +4418,18 @@ describe("full UI replacement regression coverage", () => {
         expect(tagManager).not.toContain(
             "recordingTagManagerSwatchToneClassNames",
         );
-        expect(tagManager).toContain("!grid");
+        expect(tagManager).toContain("tagm-swatch grid size-[18px]");
         expect(tagManager).toContain("place-items-center");
         expect(tagManager).toContain("rounded-full");
-        expect(tagManager).toContain("text-[13px]");
-        expect(tagManager).toContain("leading-none");
-        expect(tagManager).toContain("!text-foreground");
-        expect(tagManager).toContain("data-[state=on]:!border-foreground");
-        expect(tagManager).toContain(
-            "data-[state=on]:shadow-[inset_0_0_0_2px_var(--background)]",
+        expect(tagManager).toContain("text-foreground");
+        expect(tagManager).toContain("data-[state=on]:border-foreground");
+        expect(tagManager).not.toContain(
+            [
+                "data-[state=on]:shadow",
+                "[inset_0_0_0_2px_var(--background)]",
+            ].join("-"),
         );
-        expect(tagManager).not.toContain("!bg-[var(--recording-tag-accent)]");
+        expect(tagManager).not.toContain("bg-[var(--recording-tag-accent)]");
         expect(tagManager).toContain("data-sot-tag-color={item}");
         expect(tagManager).toContain("data-sot-tag-color={tag.color}");
         expect(
@@ -5012,10 +5011,10 @@ describe("full UI replacement regression coverage", () => {
         );
         expect(tagManager).toContain('size="icon-xs"');
         expect(tagManager).toContain(
-            "x size-4 shrink-0 rounded-full p-0 text-muted-foreground hover:bg-muted hover:text-foreground",
+            "x shrink-0 rounded-full text-muted-foreground hover:bg-muted hover:text-foreground",
         );
         expect(tagManager).toContain(
-            "tagm-close size-5 shrink-0 text-muted-foreground hover:bg-muted hover:text-foreground",
+            "tagm-close shrink-0 text-muted-foreground hover:bg-muted hover:text-foreground",
         );
         expect(tagManager).not.toContain("size-[var(--icon-chip-size)]");
         expect(tagManager).not.toContain("size-[var(--icon-compact-size)]");
@@ -11323,7 +11322,7 @@ describe("full UI replacement regression coverage", () => {
         expect(aiRenamePreview).toContain('data-slot="card-review-value"');
         expect(aiRenamePreview).toContain('data-review-tone="old"');
         expect(aiRenamePreview).toContain('data-review-tone="new"');
-        expect(aiRenamePreview).toContain('data-slot="alert-icon"');
+        expect(aiRenamePreview).toContain('data-sot-part="error-icon"');
         expect(aiRenamePreview).toContain("onClick={onCancel}");
         expect(aiRenamePreview).toContain("onClick={onRegenerate}");
         expect(aiRenamePreview).toContain("onClick={onApply}");
@@ -14473,7 +14472,7 @@ describe("full UI replacement regression coverage", () => {
         );
         expect(tagManagerColorPicker).toContain('variant="default"');
         expect(tagManagerColorPicker).toContain('size="sm"');
-        expect(tagManagerColorPicker).toContain("className={cn(");
+        expect(tagManagerColorPicker).toContain("className={");
         expect(tagManagerColorPicker).toContain(
             '"tagm-swatches flex-wrap rounded-none"',
         );
@@ -14624,9 +14623,13 @@ describe("full UI replacement regression coverage", () => {
             "recordingTagManagerToggleGroupClassNames",
             "recordingTagManagerSotColorClassName",
             "recordingTagManagerSwatchToneClassNames",
+            ["recordingTagManager", "ClassName("].join(""),
         ]) {
             expect(tagManager).not.toContain(removedOwnerMap);
         }
+        expect(recordingTagVisuals).not.toContain(
+            ["recordingTagVisual", "ClassName("].join(""),
+        );
         expect(tagManager).toContain('"create"');
         expect(tagManager).toContain('"delete"');
         expect(tagManager).toContain('"default"');
@@ -14709,20 +14712,27 @@ describe("full UI replacement regression coverage", () => {
         expect(tagManager).not.toContain(
             "RECORDING_TAG_COLOR_TOKEN_CLASS_NAME",
         );
-        expect(tagManager).toContain("h-[22px] justify-normal gap-1");
-        expect(tagManager).toContain("bg-muted");
+        expect(tagManager).toContain(
+            "tagm-sel-chip justify-normal gap-1 rounded-full border-border pr-1",
+        );
+        expect(tagManager).toContain(
+            'variant={appearance === "pill" ? "secondary" : "default"}',
+        );
         expect(tagManager).not.toContain("text-[var(--recording-tag-accent)]");
         expect(tagManager).not.toContain("--recording-tag-accent");
         expect(tagManager).not.toContain("--badge-pill-height");
         expect(tagManager).not.toContain("--badge-check-bg");
         expect(globals).not.toContain("--badge-pill-height");
         expect(globals).not.toContain("--badge-check-bg");
-        expect(tagManager).toContain("!size-[18px]");
-        expect(tagManager).toContain("!p-0");
+        expect(tagManager).toContain("size-[18px]");
+        expect(tagManager).toContain("p-0");
         expect(tagManager).toContain("hover:scale-110");
-        expect(tagManager).toContain("data-[state=on]:!border-foreground");
-        expect(tagManager).toContain(
-            "data-[state=on]:shadow-[inset_0_0_0_2px_var(--background)]",
+        expect(tagManager).toContain("data-[state=on]:border-foreground");
+        expect(tagManager).not.toContain(
+            [
+                "data-[state=on]:shadow",
+                "[inset_0_0_0_2px_var(--background)]",
+            ].join("-"),
         );
         expect(tagManager).toContain('size="icon-compact"');
         expect(tagManager).toContain('placement="inlineStart"');
@@ -14734,7 +14744,7 @@ describe("full UI replacement regression coverage", () => {
         expect(tagManager).toContain('appearance="checkDot"');
         expect(tagManager).toContain('data-icon="inline-start"');
         expect(tagManager).toContain('data-icon="inline-end"');
-        expect(tagManager).not.toContain("!size-2.5");
+        expect(tagManager).not.toContain(["!", "size-2.5"].join(""));
         expect(tagManager).not.toContain("stroke-[3]");
         expect(tagManager).not.toContain("[stroke-linecap:butt]");
         expect(tagManager).not.toContain("[stroke-linejoin:miter]");
@@ -14744,6 +14754,16 @@ describe("full UI replacement regression coverage", () => {
         expect(tagManager).not.toContain("--recording-tag-swatch-color");
         expect(tagManager).not.toContain("--toggle-swatch-color");
         expect(tagManager).not.toContain("bg-white");
+        expect(tagManager).not.toMatch(/\bshadow-\[[^\]]+\]/);
+        expect(tagManager).not.toMatch(
+            /\b(?:bg|text|border|ring|fill|stroke)-\[var\([^\]]+\)\]/,
+        );
+        expect(recordingTagVisuals).not.toMatch(/\bshadow-\[[^\]]+\]/);
+        expect(recordingTagVisuals).not.toMatch(
+            /\b(?:bg|text|border|ring|fill|stroke)-\[var\([^\]]+\)\]/,
+        );
+        expect(tagManager).not.toMatch(/!(?:size|p-|text-|bg-)/);
+        expect(recordingTagVisuals).not.toMatch(/!(?:size|p-|text-|bg-)/);
         expectSourceToExcludeForbiddenSubstrings(
             cardPrimitive,
             CARD_PRIMITIVE_FORBIDDEN_BUSINESS_TOKENS,
@@ -15637,6 +15657,9 @@ describe("full UI replacement regression coverage", () => {
             "recordingTagChipVariablesClassName",
         );
         expect(recordingTagVisuals).not.toContain("recordingTagIconPaths");
+        expect(recordingTagVisuals).not.toContain(
+            ["recordingTagVisual", "ClassName("].join(""),
+        );
         expect(recordingTagVisuals).not.toContain("<svg");
         expect(sharedRecordingTagChip).toContain(
             "data-sot-tag-color={tag.color}",
