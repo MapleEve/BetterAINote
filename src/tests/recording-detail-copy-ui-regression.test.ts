@@ -15,7 +15,7 @@ const EXPECTED_DASHBOARD_TRANSCRIPT_BODY_BASE_CLASS_NAME =
 const EXPECTED_DASHBOARD_TRANSCRIPT_ACTIONS_CLASS_NAME =
     "ml-auto inline-flex max-w-full flex-[0_1_auto] flex-wrap items-center gap-2";
 const EXPECTED_DASHBOARD_TRANSCRIPT_SHELL_CARD_CLASS_NAME =
-    "min-h-0 flex-1 gap-0 rounded-2xl backdrop-blur-none";
+    "min-h-0 flex-1 gap-0 rounded-2xl";
 const EXPECTED_DASHBOARD_WORKSPACE_CLASS_NAME =
     "grid flex-1 min-h-0 grid-cols-[380px_1fr] gap-4 px-5 pt-4 pb-5 max-[860px]:min-w-0 max-[860px]:max-w-full max-[860px]:box-border max-[860px]:grid-cols-[380px_0px] max-[860px]:[&>[data-sot-panel=dashboard-detail]]:hidden";
 const EXPECTED_RECORDING_WORKSTATION_WORKSPACE_CLASS_NAME =
@@ -47,16 +47,13 @@ const DASHBOARD_SIDEBAR_REQUIRED_CLASS_TOKENS = [
     "flex",
     "flex-col",
     "rounded-none",
-    "border",
-    "border-[var(--glass-border)]",
-    "border-r-[var(--line-hairline)]",
-    "bg-[var(--glass-tint-strong)]",
+    "border-r",
+    "border-sidebar-border",
+    "bg-sidebar",
     "px-3",
     "pt-4",
     "pb-3",
-    "shadow-[var(--glass-shadow-cast),var(--shadow-inset)]",
-    "backdrop-blur-[var(--glass-blur)]",
-    "backdrop-saturate-[var(--glass-saturate)]",
+    "text-sidebar-foreground",
 ] as const;
 const DASHBOARD_SIDEBAR_VISUAL_GLOBAL_SELECTORS = [
     '[data-sot-panel="dashboard-sidebar"]',
@@ -177,7 +174,6 @@ const DASHBOARD_MAIN_REQUIRED_CLASS_TOKENS = [
 ] as const;
 const DASHBOARD_TOPBAR_REQUIRED_CLASS_TOKENS = [
     "relative",
-    "z-[var(--z-topbar)]",
     "flex",
     "h-14",
     "flex-none",
@@ -189,9 +185,6 @@ const DASHBOARD_TOPBAR_REQUIRED_CLASS_TOKENS = [
     "bg-background/80",
     "px-5",
     "py-3",
-    "shadow-none",
-    "backdrop-blur-[20px]",
-    "backdrop-saturate-[140%]",
     "supports-[backdrop-filter]:bg-background/60",
     "max-[860px]:min-w-0",
     "max-[860px]:max-w-full",
@@ -199,7 +192,6 @@ const DASHBOARD_TOPBAR_REQUIRED_CLASS_TOKENS = [
 ] as const;
 const RECORDING_WORKSTATION_TOPBAR_REQUIRED_CLASS_TOKENS = [
     "relative",
-    "z-[var(--z-topbar)]",
     "flex",
     "h-14",
     "flex-none",
@@ -296,7 +288,7 @@ const SOURCE_REPORT_SKELETON_OWNER_TOKENS = [
 ] as const;
 
 const EXPECTED_SOURCE_REPORT_METRIC_CARD_CLASS_NAME =
-    "gap-1.5 overflow-visible rounded-lg shadow-none backdrop-blur-none";
+    "gap-1.5 overflow-visible rounded-lg shadow-none";
 const SOURCE_REPORT_METRIC_CARD_CLASS_TOKENS =
     EXPECTED_SOURCE_REPORT_METRIC_CARD_CLASS_NAME.split(" ");
 const EXPECTED_SOURCE_REPORT_METRIC_HEADER_CLASS_NAME =
@@ -449,10 +441,10 @@ const RECORDING_SOURCE_REPORT_LOADED_METRIC_CARDS = [
     },
 ] as const;
 
-const ROUTE_LOADING_SURFACE_CLASS_VALUE =
-    "min-h-0 gap-0 overflow-hidden rounded-2xl border-border bg-card shadow-sm backdrop-blur-none";
 const ROUTE_LOADING_SURFACE_CLASS_TOKENS =
-    ROUTE_LOADING_SURFACE_CLASS_VALUE.split(" ");
+    "min-h-0 gap-0 overflow-hidden rounded-2xl border-border bg-card shadow-sm".split(
+        " ",
+    );
 const ROUTE_FALLBACK_CHROME_SHELL_CLASS_VALUE =
     "grid h-screen min-h-[720px] grid-cols-[264px_1fr] bg-background text-foreground transition-[grid-template-columns] duration-300 ease-out max-[860px]:grid-cols-[0px_1fr]";
 const RECORDING_ROUTE_FALLBACK_REMOVED_GLOBAL_SELECTORS = [
@@ -981,8 +973,7 @@ const RECORDING_WORKSTATION_NAV_OWNER_CLASS_INITIALIZERS = [
 const RECORDING_WORKSTATION_TOPBAR_OWNER_CLASS_INITIALIZERS = [
     {
         property: "topbar",
-        expected:
-            "relative z-[var(--z-topbar)] flex h-14 flex-none flex-row items-center gap-3.5 border-b border-border bg-background/80 px-5 py-3 shadow-none backdrop-blur-[20px] backdrop-saturate-[140%] supports-[backdrop-filter]:bg-background/60 max-[860px]:min-w-0 max-[860px]:max-w-full max-[860px]:box-border",
+        expectedTokens: RECORDING_WORKSTATION_TOPBAR_REQUIRED_CLASS_TOKENS,
     },
     {
         property: "crumbs",
@@ -1005,25 +996,23 @@ const RECORDING_WORKSTATION_TOPBAR_OWNER_CLASS_INITIALIZERS = [
 const DASHBOARD_TOPBAR_OWNER_CLASS_INITIALIZERS = [
     {
         property: "topbar",
-        expected:
-            "relative z-[var(--z-topbar)] flex h-14 flex-none flex-row items-center gap-3.5 border-b border-border bg-background/80 px-5 py-3 shadow-none backdrop-blur-[20px] backdrop-saturate-[140%] supports-[backdrop-filter]:bg-background/60 max-[860px]:min-w-0 max-[860px]:max-w-full max-[860px]:box-border",
+        expectedTokens: DASHBOARD_TOPBAR_REQUIRED_CLASS_TOKENS,
     },
     {
         property: "crumbs",
-        expected:
-            "flex items-center gap-2 font-sans text-[13px] font-medium text-[var(--fg-tertiary)]",
+        expected: "flex items-center gap-2 text-sm font-medium text-muted-foreground",
     },
     {
         property: "crumb",
-        expected: "text-[var(--fg-tertiary)]",
+        expected: "text-muted-foreground",
     },
     {
         property: "separator",
-        expected: "text-[var(--fg-tertiary)] opacity-60 max-[860px]:hidden",
+        expected: "text-muted-foreground/60 max-[860px]:hidden",
     },
     {
         property: "current",
-        expected: "font-semibold text-[var(--fg-primary)] max-[860px]:hidden",
+        expected: "font-semibold text-foreground max-[860px]:hidden",
     },
 ] as const;
 
@@ -2348,19 +2337,24 @@ describe("recording detail copy and title action UI regressions", () => {
             "const recordingWorkstationTopbarClassNames = {",
             "} as const;",
         );
-        for (const {
-            expected,
-            property,
-        } of RECORDING_WORKSTATION_TOPBAR_OWNER_CLASS_INITIALIZERS) {
+        for (const item of RECORDING_WORKSTATION_TOPBAR_OWNER_CLASS_INITIALIZERS) {
             expect(recordingWorkstationTopbarClassNames).toContain(
-                `${property}:`,
+                `${item.property}:`,
             );
-            expect(recordingWorkstationTopbarClassNames).toContain(
-                `"${expected}"`,
-            );
+            if ("expected" in item) {
+                expect(recordingWorkstationTopbarClassNames).toContain(
+                    `"${item.expected}"`,
+                );
+            } else {
+                for (const token of item.expectedTokens) {
+                    expect(recordingWorkstationTopbarClassNames).toContain(
+                        token,
+                    );
+                }
+            }
             expect(detailWorkstation).toMatch(
                 new RegExp(
-                    `className=\\{\\s*recordingWorkstationTopbarClassNames\\.${property}\\s*\\}`,
+                    `className=\\{\\s*recordingWorkstationTopbarClassNames\\.${item.property}\\s*\\}`,
                 ),
             );
         }
@@ -2606,14 +2600,19 @@ describe("recording detail copy and title action UI regressions", () => {
             "const dashboardTopbarClassNames = {",
             "} as const;",
         );
-        for (const {
-            expected,
-            property,
-        } of DASHBOARD_TOPBAR_OWNER_CLASS_INITIALIZERS) {
-            expect(dashboardTopbarClassNames).toContain(`${property}:`);
-            expect(dashboardTopbarClassNames).toContain(`"${expected}"`);
+        for (const item of DASHBOARD_TOPBAR_OWNER_CLASS_INITIALIZERS) {
+            expect(dashboardTopbarClassNames).toContain(`${item.property}:`);
+            if ("expected" in item) {
+                expect(dashboardTopbarClassNames).toContain(
+                    `"${item.expected}"`,
+                );
+            } else {
+                for (const token of item.expectedTokens) {
+                    expect(dashboardTopbarClassNames).toContain(token);
+                }
+            }
             expect(dashboardWorkstation).toContain(
-                `className={dashboardTopbarClassNames.${property}}`,
+                `className={dashboardTopbarClassNames.${item.property}}`,
             );
         }
         for (const classToken of DASHBOARD_TOPBAR_REQUIRED_CLASS_TOKENS) {
@@ -3805,9 +3804,6 @@ describe("recording detail copy and title action UI regressions", () => {
             'import { Skeleton } from "@/components/ui/skeleton";',
         );
         expect(loading).toContain("<Card");
-        expect(routeFallbackSurfaceClassName).toContain(
-            `"${ROUTE_LOADING_SURFACE_CLASS_VALUE}"`,
-        );
         for (const token of ROUTE_LOADING_SURFACE_CLASS_TOKENS) {
             expect(routeFallbackSurfaceClassName).toContain(token);
         }

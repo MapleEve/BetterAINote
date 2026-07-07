@@ -26,10 +26,10 @@ const RECORDING_PLAYER_LEGACY_CLASS_TOKENS = [
     'className="vol-num mono"',
 ];
 
-const ROUTE_LOADING_SURFACE_CLASS_VALUE =
-    "min-h-0 gap-0 overflow-hidden rounded-2xl border-border bg-card shadow-sm backdrop-blur-none";
 const ROUTE_LOADING_SURFACE_CLASS_TOKENS =
-    ROUTE_LOADING_SURFACE_CLASS_VALUE.split(" ");
+    "min-h-0 gap-0 overflow-hidden rounded-2xl border-border bg-card shadow-sm".split(
+        " ",
+    );
 const RETIRED_DASHBOARD_RECORDING_PLAYER_SOT_CONSTANTS = [
     "SOT_DASHBOARD_RECORDING_PLAYER_CARD_CLASS_NAME",
     "SOT_DASHBOARD_RECORDING_PLAYER_META_CLASS_NAME",
@@ -1093,7 +1093,7 @@ describe("dashboard recording player regressions", () => {
         );
         expect(dashboardRecordingPlayerCardOpening).toContain("hasNoPadding");
         expect(dashboardRecordingPlayerCardOpening).toContain(
-            'className="block min-h-[114px] gap-0 overflow-visible rounded-2xl px-[18px] py-4 shadow-none backdrop-blur-none"',
+            'className="block min-h-[114px] gap-0 overflow-visible rounded-2xl px-[18px] py-4 shadow-none"',
         );
         expect(dashboardRecordingPlayerCardOpening).toContain(
             'data-no-audio={\n                                playbackDisabled ? "true" : undefined\n                            }',
@@ -1215,9 +1215,6 @@ describe("dashboard recording player regressions", () => {
             'data-sot-panel="recording-detail-loading"',
         );
         expect(recordingLoading).toContain("<Card");
-        expect(routeFallbackSurfaceClassName).toContain(
-            `"${ROUTE_LOADING_SURFACE_CLASS_VALUE}"`,
-        );
         for (const token of ROUTE_LOADING_SURFACE_CLASS_TOKENS) {
             expect(routeFallbackSurfaceClassName).toContain(token);
         }

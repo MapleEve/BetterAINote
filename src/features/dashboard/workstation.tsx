@@ -346,7 +346,7 @@ const DASHBOARD_RECORDING_LIST_CONTENT_CLASS_NAME = "flex min-h-0 flex-col p-0";
 const DASHBOARD_DETAIL_EMPTY_STATE_CLASS_NAME = "min-h-[280px] p-9 md:p-9";
 
 const dashboardDrawerClassNames = {
-    scrim: "pointer-events-none fixed inset-0 z-[var(--z-drawer-scrim)] hidden max-[860px]:block max-[860px]:group-data-[drawer-state=open]/dashboard-workstation:pointer-events-auto",
+    scrim: "pointer-events-none fixed inset-0 z-40 hidden max-[860px]:block max-[860px]:group-data-[drawer-state=open]/dashboard-workstation:pointer-events-auto",
     activeDot:
         "absolute top-1.5 right-1.5 hidden size-1.5 rounded-full bg-primary",
 } as const;
@@ -361,7 +361,7 @@ const dashboardTopbarClassNames = {
 
 const dashboardSidebarCollapseClassNames = {
     sidebar:
-        "relative flex flex-col rounded-none border-r border-sidebar-border bg-sidebar px-3 pt-4 pb-3 text-sidebar-foreground group-data-[sidebar-collapsed=true]/dashboard-workstation:px-1.5 group-data-[sidebar-collapsed=true]/dashboard-workstation:pt-4 group-data-[sidebar-collapsed=true]/dashboard-workstation:pb-3 max-[860px]:hidden max-[860px]:group-data-[drawer-state=open]/dashboard-workstation:fixed max-[860px]:group-data-[drawer-state=open]/dashboard-workstation:top-0 max-[860px]:group-data-[drawer-state=open]/dashboard-workstation:bottom-0 max-[860px]:group-data-[drawer-state=open]/dashboard-workstation:left-0 max-[860px]:group-data-[drawer-state=open]/dashboard-workstation:z-[var(--z-drawer)] max-[860px]:group-data-[drawer-state=open]/dashboard-workstation:flex max-[860px]:group-data-[drawer-state=open]/dashboard-workstation:max-w-[min(320px,calc(100vw-32px))]",
+        "relative flex flex-col rounded-none border-r border-sidebar-border bg-sidebar px-3 pt-4 pb-3 text-sidebar-foreground group-data-[sidebar-collapsed=true]/dashboard-workstation:px-1.5 group-data-[sidebar-collapsed=true]/dashboard-workstation:pt-4 group-data-[sidebar-collapsed=true]/dashboard-workstation:pb-3 max-[860px]:hidden max-[860px]:group-data-[drawer-state=open]/dashboard-workstation:fixed max-[860px]:group-data-[drawer-state=open]/dashboard-workstation:top-0 max-[860px]:group-data-[drawer-state=open]/dashboard-workstation:bottom-0 max-[860px]:group-data-[drawer-state=open]/dashboard-workstation:left-0 max-[860px]:group-data-[drawer-state=open]/dashboard-workstation:z-50 max-[860px]:group-data-[drawer-state=open]/dashboard-workstation:flex max-[860px]:group-data-[drawer-state=open]/dashboard-workstation:max-w-[min(320px,calc(100vw-32px))]",
     hidden: "group-data-[sidebar-collapsed=true]/dashboard-workstation:hidden",
     brand: "group-data-[sidebar-collapsed=true]/dashboard-workstation:justify-center group-data-[sidebar-collapsed=true]/dashboard-workstation:px-0 group-data-[sidebar-collapsed=true]/dashboard-workstation:pt-1 group-data-[sidebar-collapsed=true]/dashboard-workstation:pb-4",
     favorite:
@@ -567,7 +567,7 @@ const dashboardRecordingTagFilterStyles = {
     label: "min-w-0 flex-1 truncate",
     count: "font-mono text-[11px] font-medium text-muted-foreground",
     caret: "shrink-0 text-muted-foreground",
-    list: "absolute left-0 right-0 top-[calc(100%+6px)] z-[var(--z-popover-inline)] max-h-[260px] overflow-y-auto rounded-lg border border-border bg-popover p-1 text-popover-foreground shadow-lg",
+    list: "absolute left-0 right-0 top-[calc(100%+6px)] z-50 max-h-[260px] overflow-y-auto rounded-lg border border-border bg-popover p-1 text-popover-foreground shadow-md",
     option: "w-full justify-start border border-transparent bg-transparent text-muted-foreground shadow-none hover:bg-accent hover:text-accent-foreground data-[sot-state=selected]:bg-secondary data-[sot-state=selected]:text-secondary-foreground data-[sot-state=selected]:hover:bg-secondary/80",
     optionLabel: "min-w-0 flex-1 truncate",
     optionCount: "font-mono text-[11px] font-medium text-muted-foreground",
@@ -7200,7 +7200,7 @@ export function Workstation({
 
                         <Card
                             hasNoPadding
-                            className="block min-h-[114px] gap-0 overflow-visible rounded-2xl px-[18px] py-4 shadow-none backdrop-blur-none"
+                            className="block min-h-[114px] gap-0 overflow-visible rounded-2xl px-[18px] py-4 shadow-none"
                             data-no-audio={
                                 playbackDisabled ? "true" : undefined
                             }
@@ -7305,7 +7305,7 @@ export function Workstation({
 
                         <Card
                             hasNoPadding
-                            className="min-h-0 flex-1 gap-0 rounded-2xl backdrop-blur-none"
+                            className="min-h-0 flex-1 gap-0 rounded-2xl"
                             data-sot-panel="dashboard-transcript-shell"
                         >
                             <CardHeader

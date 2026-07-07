@@ -1014,7 +1014,7 @@ describe("dashboard SOT search and activity interactions", () => {
         expect(transcriptShell).toContain("<Card");
         expect(transcriptShell).toContain("hasNoPadding");
         expect(transcriptShell).toContain(
-            'className="min-h-0 flex-1 gap-0 rounded-2xl backdrop-blur-none"',
+            'className="min-h-0 flex-1 gap-0 rounded-2xl"',
         );
         expect(transcriptHeader).toContain("<CardHeader");
         expect(transcriptHeader).toContain(
@@ -1049,6 +1049,10 @@ describe("dashboard SOT search and activity interactions", () => {
         for (const inlineClass of [
             'className="min-h-[280px] p-9 md:p-9"',
             'className="pointer-events-none fixed inset-0 z-[var(--z-drawer-scrim)]',
+            "max-[860px]:group-data-[drawer-state=open]/dashboard-workstation:z-[var(--z-drawer)]",
+            "z-[var(--z-popover-inline)]",
+            "backdrop-blur-none",
+            "shadow-lg",
             'className="absolute top-1.5 right-1.5 hidden size-1.5',
             'className="flex min-h-0 flex-col p-0"',
         ]) {

@@ -51,7 +51,7 @@ const EXPECTED_DASHBOARD_TRANSCRIPT_LANGUAGE_BADGE_CLASS_NAME = "gap-1.5";
 const EXPECTED_DASHBOARD_TRANSCRIPT_ACTIONS_CLASS_NAME =
     "ml-auto inline-flex max-w-full flex-[0_1_auto] flex-wrap items-center gap-2";
 const EXPECTED_DASHBOARD_TRANSCRIPT_SHELL_CARD_CLASS_NAME =
-    "min-h-0 flex-1 gap-0 rounded-2xl backdrop-blur-none";
+    "min-h-0 flex-1 gap-0 rounded-2xl";
 const EXPECTED_DASHBOARD_RECORDING_LIST_HEADER_CLASS_NAME =
     "border-b border-border px-3 pt-3 pb-2.5";
 const EXPECTED_DASHBOARD_SIDEBAR_FOOTER_CLASS_NAME =
@@ -216,7 +216,7 @@ const SOURCE_REPORT_EMPTY_ALERT_FORBIDDEN_OWNER_SNIPPETS = [
     "block max-w-[360px] font-sans text-[12px] font-medium leading-[1.5] tracking-normal text-muted-foreground",
 ] as const;
 const EXPECTED_DASHBOARD_RECORDING_PLAYER_CARD_CLASS_NAME =
-    "block min-h-[114px] gap-0 overflow-visible rounded-2xl px-[18px] py-4 shadow-none backdrop-blur-none";
+    "block min-h-[114px] gap-0 overflow-visible rounded-2xl px-[18px] py-4 shadow-none";
 const EXPECTED_DASHBOARD_RECORDING_PLAYER_META_CLASS_NAME =
     "mb-3 flex flex-row flex-wrap items-center gap-2.5 p-0";
 const EXPECTED_DASHBOARD_RECORDING_PLAYER_DATE_CLASS_NAME =
@@ -838,11 +838,11 @@ const DASHBOARD_RECORDING_TAG_FILTER_FEATURE_OWNER_CLASS_SNIPPETS = [
     "shrink-0 text-muted-foreground",
     "list:",
     "top-[calc(100%+6px)]",
-    "z-[var(--z-popover-inline)]",
+    "z-50",
     "border border-border",
     "bg-popover",
     "text-popover-foreground",
-    "shadow-lg",
+    "shadow-md",
     "option:",
     "border border-transparent",
     "bg-transparent",
@@ -852,6 +852,14 @@ const DASHBOARD_RECORDING_TAG_FILTER_FEATURE_OWNER_CLASS_SNIPPETS = [
     "data-[sot-state=selected]:text-secondary-foreground",
     "optionLabel:",
     "optionCount:",
+] as const;
+
+const DASHBOARD_TAIL_RESIDUE_FORBIDDEN_SNIPPETS = [
+    "z-[var(--z-drawer-scrim)]",
+    "z-[var(--z-drawer)]",
+    "z-[var(--z-popover-inline)]",
+    "backdrop-blur-none",
+    "shadow-lg",
 ] as const;
 
 const DASHBOARD_RECORDING_TAG_FILTER_MIGRATED_GLOBAL_SELECTORS = [
@@ -1339,7 +1347,7 @@ const SOURCE_REPORT_SKELETON_SHARED_TOKENS = [
 ] as const;
 
 const EXPECTED_SOURCE_REPORT_METRIC_CARD_CLASS_NAME =
-    "gap-1.5 overflow-visible rounded-lg shadow-none backdrop-blur-none";
+    "gap-1.5 overflow-visible rounded-lg shadow-none";
 const SOURCE_REPORT_METRIC_CARD_CLASS_TOKENS =
     EXPECTED_SOURCE_REPORT_METRIC_CARD_CLASS_NAME.split(" ");
 const EXPECTED_SOURCE_REPORT_METRIC_HEADER_CLASS_NAME =
@@ -1847,10 +1855,10 @@ const DASHBOARD_TRANSCRIPT_DETAIL_PRIMITIVE_SELECTORS = [
 const DASHBOARD_TRANSCRIPT_DETAIL_PRIMITIVE_REPAINT_DECLARATION_RE =
     /^\s*(?:background(?:-clip)?|border(?:-(?:color|radius|style|width))?|box-shadow|color|font(?:-[\w-]+)?|height|line-height|padding|transition|width)\s*:|\b(?:color-mix|linear-gradient|oklch)\(/m;
 
-const ROUTE_LOADING_SURFACE_CLASS_VALUE =
-    "min-h-0 gap-0 overflow-hidden rounded-2xl border-border bg-card shadow-sm backdrop-blur-none";
 const ROUTE_LOADING_SURFACE_CLASS_TOKENS =
-    ROUTE_LOADING_SURFACE_CLASS_VALUE.split(" ");
+    "min-h-0 gap-0 overflow-hidden rounded-2xl border-border bg-card shadow-sm".split(
+        " ",
+    );
 const ROUTE_FALLBACK_CHROME_SHELL_CLASS_VALUE =
     "grid h-screen min-h-[720px] grid-cols-[264px_1fr] bg-background text-foreground transition-[grid-template-columns] duration-300 ease-out max-[860px]:grid-cols-[0px_1fr]";
 const DASHBOARD_ROUTE_LOADING_DETAIL_CLASS_VALUE =
@@ -2016,9 +2024,6 @@ describe("dashboard SOT foundation", () => {
         );
         expect(loading).toContain("aria-busy={true}");
         expect(loading).toContain("<Card");
-        expect(routeFallbackSurfaceClassName).toContain(
-            `"${ROUTE_LOADING_SURFACE_CLASS_VALUE}"`,
-        );
         for (const token of ROUTE_LOADING_SURFACE_CLASS_TOKENS) {
             expect(routeFallbackSurfaceClassName).toContain(token);
         }
@@ -4278,6 +4283,9 @@ describe("dashboard SOT foundation", () => {
         );
         for (const snippet of DASHBOARD_RECORDING_TAG_FILTER_FEATURE_OWNER_CLASS_SNIPPETS) {
             expect(tagFilterStyles).toContain(snippet);
+        }
+        for (const residue of DASHBOARD_TAIL_RESIDUE_FORBIDDEN_SNIPPETS) {
+            expect(workstation).not.toContain(residue);
         }
         expect(workstation).toMatch(
             /<div\s+className=\{\s*dashboardRecordingTagFilterStyles\.root\s*\}[\s\S]*data-list-filter-row="tags"[\s\S]*data-sot-panel="recording-list-tag-filter"[\s\S]*hidden=\{listMode !== "tags"\}[\s\S]*ref=\{tagFilterRef\}/,
