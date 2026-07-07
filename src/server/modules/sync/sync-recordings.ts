@@ -938,6 +938,7 @@ export async function getUserSyncSchedules(): Promise<SyncSchedule[]> {
             .select({
                 userId: syncWorkerState.userId,
                 isRunning: syncWorkerState.isRunning,
+                lastHeartbeatAt: syncWorkerState.lastHeartbeatAt,
                 lastStartedAt: syncWorkerState.lastStartedAt,
                 lastFinishedAt: syncWorkerState.lastFinishedAt,
                 manualTriggerRequestedAt:

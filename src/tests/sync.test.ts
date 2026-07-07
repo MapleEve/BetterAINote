@@ -193,6 +193,94 @@ describe("Sync", () => {
         });
     });
 
+    it("does not keep a sync schedule running after the worker heartbeat is stale", async () => {
+        (db.select as Mock)
+            .mockReturnValueOnce(
+                mockWhereSelect([
+                    {
+                        userId: mockUserId,
+                        provider: "plaud",
+                        authMode: "bearer",
+                        lastSync: new Date("2026-04-18T10:00:00.000Z"),
+                    },
+                ]),
+            )
+            .mockReturnValueOnce(
+                mockWhereSelect([
+                    {
+                        userId: mockUserId,
+                        syncInterval: 300000,
+                        autoSyncEnabled: true,
+                    },
+                ]),
+            )
+            .mockReturnValueOnce(
+                mockWhereSelect([
+                    {
+                        userId: mockUserId,
+                        isRunning: true,
+                        lastHeartbeatAt: new Date("2026-04-18T08:00:00.000Z"),
+                        lastStartedAt: new Date("2026-04-18T08:00:00.000Z"),
+                        lastFinishedAt: null,
+                        manualTriggerRequestedAt: null,
+                    },
+                ]),
+            );
+
+        const [schedule] = await getUserSyncSchedules();
+
+        expect(schedule).toMatchObject({
+            userId: mockUserId,
+            isRunning: false,
+            autoSyncEnabled: true,
+            syncInterval: 300000,
+        });
+    });
+
+    it("keeps a sync schedule running while the worker heartbeat is fresh", async () => {
+        (db.select as Mock)
+            .mockReturnValueOnce(
+                mockWhereSelect([
+                    {
+                        userId: mockUserId,
+                        provider: "plaud",
+                        authMode: "bearer",
+                        lastSync: new Date("2026-04-18T10:00:00.000Z"),
+                    },
+                ]),
+            )
+            .mockReturnValueOnce(
+                mockWhereSelect([
+                    {
+                        userId: mockUserId,
+                        syncInterval: 300000,
+                        autoSyncEnabled: true,
+                    },
+                ]),
+            )
+            .mockReturnValueOnce(
+                mockWhereSelect([
+                    {
+                        userId: mockUserId,
+                        isRunning: true,
+                        lastHeartbeatAt: new Date(),
+                        lastStartedAt: new Date("2026-04-18T10:00:00.000Z"),
+                        lastFinishedAt: null,
+                        manualTriggerRequestedAt: null,
+                    },
+                ]),
+            );
+
+        const [schedule] = await getUserSyncSchedules();
+
+        expect(schedule).toMatchObject({
+            userId: mockUserId,
+            isRunning: true,
+            autoSyncEnabled: true,
+            syncInterval: 300000,
+        });
+    });
+
     it("skips already synced recordings with the same source version", async () => {
         (db.select as Mock)
             .mockReturnValueOnce({
