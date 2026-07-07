@@ -38,13 +38,11 @@ const RETIRED_DASHBOARD_RECORDING_PLAYER_SOT_CONSTANTS = [
 const DASHBOARD_PLAYER_CONTROLS_CLASS_INITIALIZERS = [
     {
         constName: "DASHBOARD_PLAYER_TIME_CLASS_NAME",
-        expected:
-            "min-w-11 text-center font-mono text-xs font-medium tracking-[0.03em] text-[var(--fg-tertiary)]",
+        expected: "min-w-11 text-center tabular-nums text-muted-foreground",
     },
     {
         constName: "DASHBOARD_PLAYER_DURATION_CLASS_NAME",
-        expected:
-            "min-w-11 text-center font-mono text-xs font-medium tracking-[0.03em] text-[var(--fg-tertiary)]",
+        expected: "min-w-11 text-center tabular-nums text-muted-foreground",
     },
     {
         constName: "DASHBOARD_PLAYER_DISABLED_CLASS_NAME",
@@ -68,8 +66,7 @@ const RECORDING_PLAYER_CLASS_INITIALIZERS = [
     },
     {
         constName: "RECORDING_PLAYER_DATE_CLASS_NAME",
-        expected:
-            "[font:500_11.5px_var(--font-mono)] tracking-[0.02em] text-[var(--fg-tertiary)]",
+        expected: "tabular-nums text-muted-foreground",
     },
     {
         constName: "RECORDING_PLAYER_TAG_MANAGER_SLOT_CLASS_NAME",
@@ -81,8 +78,7 @@ const RECORDING_PLAYER_CLASS_INITIALIZERS = [
     },
     {
         constName: "RECORDING_PLAYER_TIME_CLASS_NAME",
-        expected:
-            "min-w-11 text-center [font:500_12px_var(--font-mono)] tracking-[0.03em] text-[var(--fg-tertiary)]",
+        expected: "min-w-11 text-center tabular-nums text-muted-foreground",
     },
     {
         constName: "RECORDING_PLAYER_DISABLED_CLASS_NAME",

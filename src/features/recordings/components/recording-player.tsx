@@ -44,8 +44,7 @@ interface RecordingPlayerProps {
 
 const RECORDING_PLAYER_META_CLASS_NAME = "flex flex-wrap items-center gap-2.5";
 
-const RECORDING_PLAYER_DATE_CLASS_NAME =
-    "[font:500_11.5px_var(--font-mono)] tracking-[0.02em] text-[var(--fg-tertiary)]";
+const RECORDING_PLAYER_DATE_CLASS_NAME = "tabular-nums text-muted-foreground";
 
 const RECORDING_PLAYER_TAG_MANAGER_SLOT_CLASS_NAME = "mb-3";
 
@@ -53,7 +52,7 @@ const RECORDING_PLAYER_CONTROLS_CLASS_NAME =
     "flex min-w-0 items-center gap-3 overflow-visible";
 
 const RECORDING_PLAYER_TIME_CLASS_NAME =
-    "min-w-11 text-center [font:500_12px_var(--font-mono)] tracking-[0.03em] text-[var(--fg-tertiary)]";
+    "min-w-11 text-center tabular-nums text-muted-foreground";
 
 const RECORDING_PLAYER_DISABLED_CLASS_NAME =
     "pointer-events-none opacity-[0.42] data-[disabled]:opacity-[0.42]";
@@ -476,7 +475,7 @@ export function RecordingPlayer({
                                     }
                                 />
                                 <span
-                                    className="min-w-11 text-center font-mono text-xs font-medium tracking-[0.03em] tabular-nums"
+                                    className="min-w-11 text-center tabular-nums text-muted-foreground"
                                     data-sot-part="recording-player-volume-value"
                                 >
                                     {volume}

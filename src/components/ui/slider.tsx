@@ -44,7 +44,7 @@ const SLIDER_RANGE_VARIANT_CLASS: Record<SliderVariant, string> = {
 const SLIDER_THUMB_CLASS =
     "block shrink-0 rounded-full ring-ring/50 transition-[color,box-shadow] hover:ring-4 focus-visible:ring-4 focus-visible:outline-hidden disabled:pointer-events-none disabled:opacity-50";
 const SLIDER_THUMB_VARIANT_CLASS: Record<SliderVariant, string> = {
-    default: "size-4 border border-primary bg-white shadow-sm",
+    default: "size-4 border border-primary bg-background shadow-sm",
 };
 
 function Slider({

@@ -12,43 +12,52 @@ import {
 import { Skeleton } from "@/components/ui/skeleton";
 import { cn } from "@/lib/utils";
 
-const routeFallbackChromeClassNames = {
-    shell: "grid h-screen min-h-[720px] grid-cols-[264px_1fr] bg-background text-foreground transition-[grid-template-columns] duration-300 ease-out max-[860px]:grid-cols-[0px_1fr]",
-    sidebar:
-        "relative flex min-w-0 flex-col overflow-hidden rounded-none border-r border-border bg-card px-3 pb-3 pt-4 text-card-foreground shadow-sm max-[860px]:pointer-events-none max-[860px]:opacity-0",
-    brand: "flex items-center gap-2.5 px-2 pb-4 pt-1",
-    brandImage: "size-9 rounded-lg",
-    brandText: "min-w-0",
-    brandName: "truncate text-sm font-semibold text-foreground",
-    brandSubtitle:
-        "mt-0.5 truncate text-[11px] font-medium text-muted-foreground",
-    main: "flex h-screen min-w-0 flex-col bg-background",
-    topbar: "relative flex h-14 flex-none items-center gap-3.5 border-b border-border bg-background/80 px-5 py-3 shadow-none backdrop-blur-[20px] backdrop-saturate-[140%] supports-[backdrop-filter]:bg-background/60 max-[860px]:min-w-0 max-[860px]:max-w-full max-[860px]:box-border",
-    crumbs: "flex min-w-0 items-center gap-2 text-sm font-medium text-muted-foreground",
-    crumbCurrent: "truncate font-semibold text-foreground",
-    workspace:
-        "grid min-h-0 flex-1 grid-cols-[380px_1fr] gap-4 px-5 pb-5 pt-4 max-[860px]:min-w-0 max-[860px]:max-w-full max-[860px]:box-border max-[860px]:grid-cols-[minmax(0,1fr)]",
-    workspaceSingle:
-        "flex min-h-0 flex-1 flex-col px-5 pb-5 pt-4 max-[860px]:min-w-0 max-[860px]:max-w-full max-[860px]:box-border",
-} as const;
+const routeFallbackShellClassName =
+    "flex h-screen min-h-screen bg-background text-foreground transition-all duration-300 ease-out";
+const routeFallbackSidebarClassName =
+    "relative flex w-64 shrink-0 min-w-0 flex-col overflow-hidden rounded-none border-r border-border bg-card px-3 pb-3 pt-4 text-card-foreground shadow-sm max-lg:pointer-events-none max-lg:w-0 max-lg:border-r-0 max-lg:px-0 max-lg:opacity-0";
+const routeFallbackBrandClassName = "flex items-center gap-2.5 px-2 pb-4 pt-1";
+const routeFallbackBrandImageClassName = "size-9 rounded-lg";
+const routeFallbackBrandTextClassName = "min-w-0";
+const routeFallbackBrandNameClassName =
+    "truncate text-sm font-semibold text-foreground";
+const routeFallbackBrandSubtitleClassName =
+    "mt-0.5 truncate text-xs font-medium text-muted-foreground";
+const routeFallbackMainClassName =
+    "flex h-screen min-w-0 flex-1 flex-col bg-background";
+const routeFallbackTopbarClassName =
+    "relative flex h-14 flex-none items-center gap-3.5 border-b border-border bg-background/80 px-5 py-3 shadow-none backdrop-blur-xl backdrop-saturate-150 max-lg:box-border max-lg:min-w-0 max-lg:max-w-full";
+const routeFallbackCrumbsClassName =
+    "flex min-w-0 items-center gap-2 text-sm font-medium text-muted-foreground";
+const routeFallbackCrumbCurrentClassName =
+    "truncate font-semibold text-foreground";
+const routeFallbackWorkspaceClassName =
+    "flex min-h-0 flex-1 gap-4 px-5 pb-5 pt-4 max-lg:box-border max-lg:min-w-0 max-lg:max-w-full max-lg:flex-col";
+const routeFallbackWorkspaceSingleClassName =
+    "flex min-h-0 flex-1 flex-col px-5 pb-5 pt-4 max-lg:box-border max-lg:min-w-0 max-lg:max-w-full";
 
 const routeFallbackSurfaceClassName =
     "min-h-0 gap-0 overflow-hidden rounded-2xl border-border bg-card shadow-sm backdrop-blur-none";
 
 const recordingDetailLoadingSkeletonClassNames = {
     recordingDetailLoadingAvatar: "size-8 rounded-full",
-    recordingDetailLoadingBar: "h-2 w-20 rounded-[4px]",
-    recordingDetailLoadingBar60: "h-2 w-3/5 rounded-[4px]",
-    recordingDetailLoadingBar90: "h-2 w-[90%] rounded-[4px]",
+    recordingDetailLoadingBar: "h-2 w-20 rounded",
+    recordingDetailLoadingBar60: "h-2 w-3/5 rounded",
+    recordingDetailLoadingBar90: "h-2 w-11/12 rounded",
 } as const;
 
-const routeFallbackEmptyClassNames = {
-    detail: cn(routeFallbackSurfaceClassName, "flex min-w-0 flex-col gap-4"),
-    panel: "min-h-[280px] flex-1 border-0 bg-transparent px-6 py-9 shadow-none md:px-6 md:py-9",
-    icon: "mb-1 size-12 rounded-full border border-border bg-muted text-muted-foreground",
-    title: "text-sm font-semibold tracking-normal text-foreground",
-    description: "max-w-xs text-sm text-muted-foreground",
-} as const;
+const routeFallbackEmptyDetailClassName = cn(
+    routeFallbackSurfaceClassName,
+    "flex min-w-0 flex-col gap-4",
+);
+const routeFallbackEmptyPanelClassName =
+    "min-h-72 flex-1 border-0 bg-transparent px-6 py-9 shadow-none md:px-6 md:py-9";
+const routeFallbackEmptyIconClassName =
+    "mb-1 size-12 rounded-full border border-border bg-muted text-muted-foreground";
+const routeFallbackEmptyTitleClassName =
+    "text-sm font-semibold tracking-normal text-foreground";
+const routeFallbackEmptyDescriptionClassName =
+    "max-w-xs text-sm text-muted-foreground";
 
 type RouteFallbackChromeProps = {
     "aria-busy"?: boolean;
@@ -73,38 +82,36 @@ function RouteFallbackChrome({
         <div
             data-sot-shell={dataSotShell}
             aria-busy={ariaBusy}
-            className={cn(routeFallbackChromeClassNames.shell, className)}
+            className={cn(routeFallbackShellClassName, className)}
         >
             <aside
                 data-sot-panel="route-sidebar"
-                className={routeFallbackChromeClassNames.sidebar}
+                className={routeFallbackSidebarClassName}
             >
                 <div
                     data-sot-part="route-brand"
-                    className={routeFallbackChromeClassNames.brand}
+                    className={routeFallbackBrandClassName}
                 >
                     <Image
                         src="/assets/logo-mark-steel.svg"
                         alt=""
                         width={36}
                         height={36}
-                        className={routeFallbackChromeClassNames.brandImage}
+                        className={routeFallbackBrandImageClassName}
                     />
                     <div
                         data-sot-part="route-brand-text"
-                        className={routeFallbackChromeClassNames.brandText}
+                        className={routeFallbackBrandTextClassName}
                     >
                         <div
                             data-sot-part="route-brand-name"
-                            className={routeFallbackChromeClassNames.brandName}
+                            className={routeFallbackBrandNameClassName}
                         >
                             BetterAINote
                         </div>
                         <div
                             data-sot-part="route-brand-subtitle"
-                            className={
-                                routeFallbackChromeClassNames.brandSubtitle
-                            }
+                            className={routeFallbackBrandSubtitleClassName}
                         >
                             私人工作空间
                         </div>
@@ -113,21 +120,19 @@ function RouteFallbackChrome({
             </aside>
             <main
                 data-sot-panel="route-main"
-                className={routeFallbackChromeClassNames.main}
+                className={routeFallbackMainClassName}
             >
                 <header
                     data-sot-panel="route-topbar"
-                    className={routeFallbackChromeClassNames.topbar}
+                    className={routeFallbackTopbarClassName}
                 >
                     <div
                         data-sot-part="route-crumbs"
-                        className={routeFallbackChromeClassNames.crumbs}
+                        className={routeFallbackCrumbsClassName}
                     >
                         <span
                             data-sot-part="route-crumb-current"
-                            className={
-                                routeFallbackChromeClassNames.crumbCurrent
-                            }
+                            className={routeFallbackCrumbCurrentClassName}
                         >
                             {current}
                         </span>
@@ -137,8 +142,8 @@ function RouteFallbackChrome({
                     data-sot-panel="route-workspace"
                     className={cn(
                         workspaceVariant === "single"
-                            ? routeFallbackChromeClassNames.workspaceSingle
-                            : routeFallbackChromeClassNames.workspace,
+                            ? routeFallbackWorkspaceSingleClassName
+                            : routeFallbackWorkspaceClassName,
                         workspaceClassName,
                     )}
                 >
@@ -168,31 +173,31 @@ function RouteFallbackEmptyState({
             data-empty="true"
             variant="default"
             hasNoPadding
-            className={routeFallbackEmptyClassNames.detail}
+            className={routeFallbackEmptyDetailClassName}
         >
             <Empty
                 data-sot-panel="recording-route-empty"
                 variant="default"
-                className={routeFallbackEmptyClassNames.panel}
+                className={routeFallbackEmptyPanelClassName}
             >
                 <EmptyHeader>
                     <EmptyMedia
                         data-sot-part="recording-route-empty-icon"
                         aria-hidden="true"
                         variant="icon"
-                        className={routeFallbackEmptyClassNames.icon}
+                        className={routeFallbackEmptyIconClassName}
                     >
                         {icon}
                     </EmptyMedia>
                     <EmptyTitle
                         data-sot-part="recording-route-empty-title"
-                        className={routeFallbackEmptyClassNames.title}
+                        className={routeFallbackEmptyTitleClassName}
                     >
                         {title}
                     </EmptyTitle>
                     <EmptyDescription
                         data-sot-part="recording-route-empty-description"
-                        className={routeFallbackEmptyClassNames.description}
+                        className={routeFallbackEmptyDescriptionClassName}
                     >
                         {description}
                     </EmptyDescription>
@@ -220,6 +225,7 @@ function RouteFallbackDetailLoadingSkeleton({
             className={cn(
                 routeFallbackSurfaceClassName,
                 "flex min-h-0 min-w-0 flex-col gap-4",
+                "flex-1",
             )}
         >
             <div
@@ -306,6 +312,5 @@ export {
     RouteFallbackChrome,
     RouteFallbackDetailLoadingSkeleton,
     RouteFallbackEmptyState,
-    routeFallbackChromeClassNames,
     routeFallbackSurfaceClassName,
 };

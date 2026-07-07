@@ -440,7 +440,7 @@ const ROUTE_LOADING_SURFACE_CLASS_TOKENS =
         " ",
     );
 const ROUTE_FALLBACK_CHROME_SHELL_CLASS_VALUE =
-    "grid h-screen min-h-[720px] grid-cols-[264px_1fr] bg-background text-foreground transition-[grid-template-columns] duration-300 ease-out max-[860px]:grid-cols-[0px_1fr]";
+    "flex h-screen min-h-screen bg-background text-foreground transition-all duration-300 ease-out";
 const RECORDING_ROUTE_FALLBACK_REMOVED_GLOBAL_SELECTORS = [
     '[data-sot-shell="recording-route-loading"]',
     '[data-sot-shell="recording-route-empty"]',
@@ -3772,15 +3772,15 @@ describe("recording detail copy and title action UI regressions", () => {
             "const routeFallbackSurfaceClassName =",
             ";",
         );
-        const routeFallbackChromeClassNames = extractBoundedSlice(
+        const routeFallbackShellClassName = extractBoundedSlice(
             routeChrome,
-            "const routeFallbackChromeClassNames =",
-            "} as const;",
+            "const routeFallbackShellClassName =",
+            ";",
         );
         const routeFallbackEmptyClassNames = extractBoundedSlice(
             routeChrome,
-            "const routeFallbackEmptyClassNames =",
-            "} as const;",
+            "const routeFallbackEmptyDetailClassName =",
+            "type RouteFallbackChromeProps",
         );
         const recordingDetailLoadingSkeletonClassNames = extractBoundedSlice(
             routeChrome,
@@ -3894,8 +3894,8 @@ describe("recording detail copy and title action UI regressions", () => {
         for (const token of ROUTE_LOADING_SURFACE_CLASS_TOKENS) {
             expect(routeFallbackSurfaceClassName).toContain(token);
         }
-        expect(routeFallbackChromeClassNames).toContain(
-            `shell: "${ROUTE_FALLBACK_CHROME_SHELL_CLASS_VALUE}"`,
+        expect(routeFallbackShellClassName).toContain(
+            `"${ROUTE_FALLBACK_CHROME_SHELL_CLASS_VALUE}"`,
         );
         expect(loading).toContain('dataSotShell="recording-route-loading"');
         expect(loading).toContain('workspaceVariant="single"');

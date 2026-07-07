@@ -542,7 +542,7 @@ const ROUTE_LOADING_SURFACE_CLASS_VALUE =
 const ROUTE_LOADING_SURFACE_CLASS_TOKENS =
     ROUTE_LOADING_SURFACE_CLASS_VALUE.split(" ");
 const ROUTE_FALLBACK_CHROME_SHELL_CLASS_VALUE =
-    "grid h-screen min-h-[720px] grid-cols-[264px_1fr] bg-background text-foreground transition-[grid-template-columns] duration-300 ease-out max-[860px]:grid-cols-[0px_1fr]";
+    "flex h-screen min-h-screen bg-background text-foreground transition-all duration-300 ease-out";
 const DASHBOARD_ROUTE_LOADING_DETAIL_CLASS_VALUE =
     "flex min-h-0 min-w-0 flex-col gap-4";
 const EXPECTED_DASHBOARD_RECORDING_PLAYER_CARD_CLASS_NAME =
@@ -554,13 +554,11 @@ const EXPECTED_DASHBOARD_RECORDING_PLAYER_DATE_CLASS_NAME =
 const DASHBOARD_RECORDING_PLAYER_CONTROLS_CLASS_INITIALIZERS = [
     {
         constName: "DASHBOARD_PLAYER_TIME_CLASS_NAME",
-        expected:
-            "min-w-11 text-center font-mono text-xs font-medium tracking-[0.03em] text-[var(--fg-tertiary)]",
+        expected: "min-w-11 text-center tabular-nums text-muted-foreground",
     },
     {
         constName: "DASHBOARD_PLAYER_DURATION_CLASS_NAME",
-        expected:
-            "min-w-11 text-center font-mono text-xs font-medium tracking-[0.03em] text-[var(--fg-tertiary)]",
+        expected: "min-w-11 text-center tabular-nums text-muted-foreground",
     },
     {
         constName: "DASHBOARD_PLAYER_DISABLED_CLASS_NAME",
@@ -584,8 +582,7 @@ const RECORDING_PLAYER_CLASS_INITIALIZERS = [
     },
     {
         constName: "RECORDING_PLAYER_DATE_CLASS_NAME",
-        expected:
-            "[font:500_11.5px_var(--font-mono)] tracking-[0.02em] text-[var(--fg-tertiary)]",
+        expected: "tabular-nums text-muted-foreground",
     },
     {
         constName: "RECORDING_PLAYER_TAG_MANAGER_SLOT_CLASS_NAME",
@@ -597,8 +594,7 @@ const RECORDING_PLAYER_CLASS_INITIALIZERS = [
     },
     {
         constName: "RECORDING_PLAYER_TIME_CLASS_NAME",
-        expected:
-            "min-w-11 text-center [font:500_12px_var(--font-mono)] tracking-[0.03em] text-[var(--fg-tertiary)]",
+        expected: "min-w-11 text-center tabular-nums text-muted-foreground",
     },
     {
         constName: "RECORDING_PLAYER_DISABLED_CLASS_NAME",
@@ -4081,6 +4077,7 @@ describe("full UI replacement regression coverage", () => {
         const popover = readSource("components/ui/popover.tsx");
         const select = readSource("components/ui/select.tsx");
         const sidebar = readSource("components/ui/sidebar.tsx");
+        const slider = readSource("components/ui/slider.tsx");
         const switchPrimitive = readSource("components/ui/switch.tsx");
         const textarea = readSource("components/ui/textarea.tsx");
         const toggleGroup = readSource("components/ui/toggle-group.tsx");
@@ -4818,7 +4815,11 @@ describe("full UI replacement regression coverage", () => {
             expect(dialog).toContain(`data-slot="${slot}"`);
         }
         expect(dialog).toContain("function DialogPortal(");
+        expect(dialog).toContain("bg-[var(--modal-scrim-bg)]");
+        expect(dialog).not.toContain("bg-black");
         expect(dialog).not.toContain("DialogContext");
+        expect(slider).toContain("bg-background");
+        expect(slider).not.toContain("bg-white");
         expect(popover).toContain(
             'import * as PopoverPrimitive from "@radix-ui/react-popover";',
         );
@@ -5098,8 +5099,8 @@ describe("full UI replacement regression coverage", () => {
         const routeChrome = readSource("app/(app)/route-chrome.tsx");
         const routeFallbackEmptyClassNames = extractBoundedSlice(
             routeChrome,
-            "const routeFallbackEmptyClassNames =",
-            "} as const;",
+            "const routeFallbackEmptyDetailClassName =",
+            "type RouteFallbackChromeProps",
         );
         const routeFallbackSurfaceClassName = extractBoundedSlice(
             routeChrome,
@@ -5187,14 +5188,14 @@ describe("full UI replacement regression coverage", () => {
         const routeChromeModule = readSource(
             "app/(app)/route-chrome.module.css",
         );
-        const recordingListLoadingSizeTokens = [
-            "recordingListLoadingDayLabel",
-            "recordingListLoadingTitle",
-            "recordingListLoadingTitle80",
-            "recordingListLoadingMetaTime",
-            "recordingListLoadingMetaTag",
-            "recordingListLoadingMetaPill",
-            "recordingListLoadingTag",
+        const recordingListLoadingClassNameTokens = [
+            "recordingListLoadingDayLabelClassName",
+            "recordingListLoadingTitleClassName",
+            "recordingListLoadingTitle80ClassName",
+            "recordingListLoadingMetaTimeClassName",
+            "recordingListLoadingMetaTagClassName",
+            "recordingListLoadingMetaPillClassName",
+            "recordingListLoadingTagClassName",
         ];
         const recordingDetailLoadingSizeTokens = [
             "recordingDetailLoadingAvatar",
@@ -5203,7 +5204,7 @@ describe("full UI replacement regression coverage", () => {
             "recordingDetailLoadingBar90",
         ];
         const routeLoadingSizeTokens = [
-            ...recordingListLoadingSizeTokens,
+            ...recordingListLoadingClassNameTokens,
             ...recordingDetailLoadingSizeTokens,
         ];
         const routeFallbackSurfaceClassName = extractBoundedSlice(
@@ -5211,10 +5212,10 @@ describe("full UI replacement regression coverage", () => {
             "const routeFallbackSurfaceClassName =",
             ";",
         );
-        const routeFallbackChromeClassNames = extractBoundedSlice(
+        const routeFallbackShellClassName = extractBoundedSlice(
             routeChrome,
-            "const routeFallbackChromeClassNames =",
-            "} as const;",
+            "const routeFallbackShellClassName =",
+            ";",
         );
         const dashboardRouteLoadingListClassName = extractBoundedSlice(
             dashboardLoading,
@@ -5266,8 +5267,8 @@ describe("full UI replacement regression coverage", () => {
         for (const token of ROUTE_LOADING_SURFACE_CLASS_TOKENS) {
             expect(routeFallbackSurfaceClassName).toContain(token);
         }
-        expect(routeFallbackChromeClassNames).toContain(
-            `shell: "${ROUTE_FALLBACK_CHROME_SHELL_CLASS_VALUE}"`,
+        expect(routeFallbackShellClassName).toContain(
+            `"${ROUTE_FALLBACK_CHROME_SHELL_CLASS_VALUE}"`,
         );
         expect(dashboardRouteLoadingListClassName).toContain(
             "routeFallbackSurfaceClassName",
@@ -5368,15 +5369,16 @@ describe("full UI replacement regression coverage", () => {
         expect(dashboardLoading).toContain(
             'data-sot-panel="recording-list-loading"',
         );
-        expect(dashboardLoading).toContain(
+        expect(dashboardLoading).not.toContain(
             "const recordingListLoadingSkeletonClassNames",
         );
-        for (const sizeToken of recordingListLoadingSizeTokens) {
-            expect(dashboardLoading).toContain(`${sizeToken}:`);
-            expect(dashboardLoading).toContain(
-                `recordingListLoadingSkeletonClassNames.${sizeToken}`,
-            );
-            expect(dashboardLoading).not.toContain(`size="${sizeToken}"`);
+        for (const classNameToken of recordingListLoadingClassNameTokens) {
+            expect(dashboardLoading).toContain(`const ${classNameToken} =`);
+            expect(
+                (dashboardLoading.match(new RegExp(classNameToken, "g")) ?? [])
+                    .length,
+            ).toBeGreaterThanOrEqual(2);
+            expect(dashboardLoading).not.toContain(`size="${classNameToken}"`);
         }
         expect(recordingLoading).toContain(
             'data-sot-panel="recording-route-loading-detail"',
@@ -6094,6 +6096,10 @@ describe("full UI replacement regression coverage", () => {
         for (const primitivePattern of MORE_ACTIONS_MENU_PRIMITIVE_FORBIDDEN_PATTERNS) {
             expect(dropdownMenu).not.toMatch(primitivePattern);
         }
+        expect(dropdownMenu).toContain(
+            "data-[variant=destructive]:[&_svg:not([class*='text-'])]:text-destructive",
+        );
+        expect(dropdownMenu).not.toContain("text-destructive!");
         for (const compositionToken of MORE_ACTIONS_MENU_COMPOSITION_TOKENS) {
             expect(dashboardWorkstation).toContain(compositionToken);
             expect(recordingDetailWorkstation).toContain(compositionToken);
@@ -9203,7 +9209,7 @@ describe("full UI replacement regression coverage", () => {
             'className="relative inline-flex"',
         );
         expect(dashboardPlayerVolumeValue).toContain(
-            'className="min-w-11 text-center font-mono text-xs font-medium tracking-[0.03em] tabular-nums"',
+            'className="min-w-11 text-center tabular-nums text-muted-foreground"',
         );
         expect(dashboardPlayerCurrentTime).toContain("playbackDisabled &&");
         expect(dashboardPlayerCurrentTime).toContain(

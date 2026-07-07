@@ -225,13 +225,11 @@ const EXPECTED_DASHBOARD_RECORDING_PLAYER_DATE_CLASS_NAME =
 const DASHBOARD_RECORDING_PLAYER_CONTROLS_CLASS_INITIALIZERS = [
     {
         constName: "DASHBOARD_PLAYER_TIME_CLASS_NAME",
-        expected:
-            "min-w-11 text-center font-mono text-xs font-medium tracking-[0.03em] text-[var(--fg-tertiary)]",
+        expected: "min-w-11 text-center tabular-nums text-muted-foreground",
     },
     {
         constName: "DASHBOARD_PLAYER_DURATION_CLASS_NAME",
-        expected:
-            "min-w-11 text-center font-mono text-xs font-medium tracking-[0.03em] text-[var(--fg-tertiary)]",
+        expected: "min-w-11 text-center tabular-nums text-muted-foreground",
     },
     {
         constName: "DASHBOARD_PLAYER_DISABLED_CLASS_NAME",
@@ -1782,7 +1780,7 @@ const ROUTE_LOADING_SURFACE_CLASS_TOKENS =
         " ",
     );
 const ROUTE_FALLBACK_CHROME_SHELL_CLASS_VALUE =
-    "grid h-screen min-h-[720px] grid-cols-[264px_1fr] bg-background text-foreground transition-[grid-template-columns] duration-300 ease-out max-[860px]:grid-cols-[0px_1fr]";
+    "flex h-screen min-h-screen bg-background text-foreground transition-all duration-300 ease-out";
 const DASHBOARD_ROUTE_LOADING_DETAIL_CLASS_VALUE =
     "flex min-h-0 min-w-0 flex-col gap-4";
 const DASHBOARD_LOADING_REMOVED_GLOBAL_SELECTORS = [
@@ -1897,10 +1895,10 @@ describe("dashboard SOT foundation", () => {
             "const routeFallbackSurfaceClassName =",
             ";",
         );
-        const routeFallbackChromeClassNames = extractBoundedSlice(
+        const routeFallbackShellClassName = extractBoundedSlice(
             routeChrome,
-            "const routeFallbackChromeClassNames =",
-            "} as const;",
+            "const routeFallbackShellClassName =",
+            ";",
         );
         const dashboardRouteLoadingListClassName = extractBoundedSlice(
             loading,
@@ -1954,8 +1952,8 @@ describe("dashboard SOT foundation", () => {
         for (const token of ROUTE_LOADING_SURFACE_CLASS_TOKENS) {
             expect(routeFallbackSurfaceClassName).toContain(token);
         }
-        expect(routeFallbackChromeClassNames).toContain(
-            `shell: "${ROUTE_FALLBACK_CHROME_SHELL_CLASS_VALUE}"`,
+        expect(routeFallbackShellClassName).toContain(
+            `"${ROUTE_FALLBACK_CHROME_SHELL_CLASS_VALUE}"`,
         );
         expect(dashboardRouteLoadingListClassName).toContain(
             "routeFallbackSurfaceClassName",
@@ -1997,18 +1995,18 @@ describe("dashboard SOT foundation", () => {
         );
         expect(loading).not.toContain('variant="routeLoadingSurface"');
         expect(cardPrimitive).not.toContain("routeLoadingSurface");
-        for (const loadingSkeletonSize of [
-            "recordingListLoadingDayLabel",
-            "recordingListLoadingTitle",
-            "recordingListLoadingTitle80",
-            "recordingListLoadingMetaTime",
-            "recordingListLoadingMetaTag",
-            "recordingListLoadingMetaPill",
-            "recordingListLoadingTag",
+        for (const loadingSkeletonClassName of [
+            "recordingListLoadingDayLabelClassName",
+            "recordingListLoadingTitleClassName",
+            "recordingListLoadingTitle80ClassName",
+            "recordingListLoadingMetaTimeClassName",
+            "recordingListLoadingMetaTagClassName",
+            "recordingListLoadingMetaPillClassName",
+            "recordingListLoadingTagClassName",
         ]) {
-            expect(skeletonPrimitive).not.toContain(loadingSkeletonSize);
-            expect(loading).toContain(`${loadingSkeletonSize}:`);
-            expect(loading).not.toContain(`size="${loadingSkeletonSize}"`);
+            expect(skeletonPrimitive).not.toContain(loadingSkeletonClassName);
+            expect(loading).toContain(`const ${loadingSkeletonClassName} =`);
+            expect(loading).not.toContain(`size="${loadingSkeletonClassName}"`);
         }
         for (const loadingSkeletonSize of [
             "recordingDetailLoadingAvatar",
@@ -2028,7 +2026,7 @@ describe("dashboard SOT foundation", () => {
         expect(routeChrome).toContain("<Skeleton");
         expect(loading).toContain('aria-hidden="true"');
         expect(routeChrome).toContain('aria-hidden="true"');
-        expect(loading).toContain(
+        expect(loading).not.toContain(
             "const recordingListLoadingSkeletonClassNames",
         );
         expect(routeChrome).toContain(
@@ -2566,7 +2564,7 @@ describe("dashboard SOT foundation", () => {
             'className="relative inline-flex"',
         );
         expect(playerVolumeValue).toContain(
-            'className="min-w-11 text-center font-mono text-xs font-medium tracking-[0.03em] tabular-nums"',
+            'className="min-w-11 text-center tabular-nums text-muted-foreground"',
         );
         expect(playerCurrentTime).toContain("playbackDisabled &&");
         expect(playerCurrentTime).toContain(

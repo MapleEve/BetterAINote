@@ -22,10 +22,10 @@ import {
 import { cn } from "@/lib/utils";
 
 const DASHBOARD_PLAYER_TIME_CLASS_NAME =
-    "min-w-11 text-center font-mono text-xs font-medium tracking-[0.03em] text-[var(--fg-tertiary)]";
+    "min-w-11 text-center tabular-nums text-muted-foreground";
 
 const DASHBOARD_PLAYER_DURATION_CLASS_NAME =
-    "min-w-11 text-center font-mono text-xs font-medium tracking-[0.03em] text-[var(--fg-tertiary)]";
+    "min-w-11 text-center tabular-nums text-muted-foreground";
 
 const DASHBOARD_PLAYER_DISABLED_CLASS_NAME =
     "pointer-events-none opacity-[0.42] data-[disabled]:opacity-[0.42]";
@@ -362,7 +362,7 @@ export function DashboardRecordingPlayerControls({
                                 }
                             />
                             <span
-                                className="min-w-11 text-center font-mono text-xs font-medium tracking-[0.03em] tabular-nums"
+                                className="min-w-11 text-center tabular-nums text-muted-foreground"
                                 data-sot-part="dashboard-player-volume-value"
                             >
                                 {volume}

@@ -1,22 +1,24 @@
 import { Card } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
+import { cn } from "@/lib/utils";
 import {
     RouteFallbackChrome,
     RouteFallbackDetailLoadingSkeleton,
     routeFallbackSurfaceClassName,
 } from "../route-chrome";
 
-const dashboardRouteLoadingListClassName = routeFallbackSurfaceClassName;
+const dashboardRouteLoadingListClassName = cn(
+    routeFallbackSurfaceClassName,
+    "shrink-0 basis-96 max-lg:basis-auto",
+);
 
-const recordingListLoadingSkeletonClassNames = {
-    recordingListLoadingDayLabel: "h-[11px] w-[100px]",
-    recordingListLoadingMetaPill: "h-[18px] w-16 rounded-full",
-    recordingListLoadingMetaTag: "h-[18px] w-16 rounded-[6px]",
-    recordingListLoadingMetaTime: "h-[11px] w-20",
-    recordingListLoadingTag: "h-[22px] w-20 rounded-[6px]",
-    recordingListLoadingTitle: "h-[13px] w-full",
-    recordingListLoadingTitle80: "h-[13px] w-4/5",
-} as const;
+const recordingListLoadingDayLabelClassName = "h-3 w-24";
+const recordingListLoadingMetaPillClassName = "h-5 w-16 rounded-full";
+const recordingListLoadingMetaTagClassName = "h-5 w-16 rounded-md";
+const recordingListLoadingMetaTimeClassName = "h-3 w-20";
+const recordingListLoadingTagClassName = "h-6 w-20 rounded-md";
+const recordingListLoadingTitleClassName = "h-3.5 w-full";
+const recordingListLoadingTitle80ClassName = "h-3.5 w-4/5";
 
 export default function DashboardLoading() {
     return (
@@ -44,9 +46,7 @@ export default function DashboardLoading() {
                             data-sot-part="skeleton-day-label"
                             variant="default"
                             size="default"
-                            className={
-                                recordingListLoadingSkeletonClassNames.recordingListLoadingDayLabel
-                            }
+                            className={recordingListLoadingDayLabelClassName}
                         />
                         <span
                             data-sot-part="skeleton-day-line"
@@ -55,19 +55,17 @@ export default function DashboardLoading() {
                     </div>
                     <div
                         data-sot-part="skeleton-row"
-                        className="grid grid-cols-[1fr_auto] items-center gap-3.5 px-3 py-[11px]"
+                        className="flex items-center gap-3.5 px-3 py-3"
                     >
                         <div
                             data-sot-part="skeleton-row-body"
-                            className="flex min-w-0 flex-col gap-1.5"
+                            className="flex min-w-0 flex-1 flex-col gap-1.5"
                         >
                             <Skeleton
                                 data-sot-part="skeleton-title"
                                 variant="default"
                                 size="default"
-                                className={
-                                    recordingListLoadingSkeletonClassNames.recordingListLoadingTitle
-                                }
+                                className={recordingListLoadingTitleClassName}
                             />
                             <div
                                 data-sot-part="skeleton-meta"
@@ -78,7 +76,7 @@ export default function DashboardLoading() {
                                     variant="default"
                                     size="default"
                                     className={
-                                        recordingListLoadingSkeletonClassNames.recordingListLoadingMetaTime
+                                        recordingListLoadingMetaTimeClassName
                                     }
                                 />
                                 <Skeleton
@@ -86,38 +84,37 @@ export default function DashboardLoading() {
                                     variant="default"
                                     size="default"
                                     className={
-                                        recordingListLoadingSkeletonClassNames.recordingListLoadingMetaTag
+                                        recordingListLoadingMetaTagClassName
                                     }
                                 />
                             </div>
                         </div>
-                        <div data-sot-part="skeleton-row-tail">
+                        <div
+                            data-sot-part="skeleton-row-tail"
+                            className="shrink-0"
+                        >
                             <Skeleton
                                 data-sot-part="skeleton-tag"
                                 variant="default"
                                 size="default"
-                                className={
-                                    recordingListLoadingSkeletonClassNames.recordingListLoadingTag
-                                }
+                                className={recordingListLoadingTagClassName}
                             />
                         </div>
                     </div>
                     <div
                         data-sot-part="skeleton-row"
-                        className="grid grid-cols-[1fr_auto] items-center gap-3.5 px-3 py-[11px]"
+                        className="flex items-center gap-3.5 px-3 py-3"
                     >
                         <div
                             data-sot-part="skeleton-row-body"
-                            className="flex min-w-0 flex-col gap-1.5"
+                            className="flex min-w-0 flex-1 flex-col gap-1.5"
                         >
                             <Skeleton
                                 data-sot-part="skeleton-title"
                                 data-sot-size="80"
                                 variant="default"
                                 size="default"
-                                className={
-                                    recordingListLoadingSkeletonClassNames.recordingListLoadingTitle80
-                                }
+                                className={recordingListLoadingTitle80ClassName}
                             />
                             <div
                                 data-sot-part="skeleton-meta"
@@ -128,7 +125,7 @@ export default function DashboardLoading() {
                                     variant="default"
                                     size="default"
                                     className={
-                                        recordingListLoadingSkeletonClassNames.recordingListLoadingMetaTime
+                                        recordingListLoadingMetaTimeClassName
                                     }
                                 />
                                 <Skeleton
@@ -136,7 +133,7 @@ export default function DashboardLoading() {
                                     variant="default"
                                     size="default"
                                     className={
-                                        recordingListLoadingSkeletonClassNames.recordingListLoadingMetaTag
+                                        recordingListLoadingMetaTagClassName
                                     }
                                 />
                                 <Skeleton
@@ -144,7 +141,7 @@ export default function DashboardLoading() {
                                     variant="default"
                                     size="default"
                                     className={
-                                        recordingListLoadingSkeletonClassNames.recordingListLoadingMetaPill
+                                        recordingListLoadingMetaPillClassName
                                     }
                                 />
                             </div>
