@@ -265,6 +265,19 @@ describe("frontend data-source routing regression", () => {
             ),
             "utf8",
         );
+        const sourceReportPrimitiveForbiddenShadcnResiduals = [
+            "[[data-theme=dark]_&]",
+            "[.dark_&]",
+            "dark:",
+            "text-[var(",
+            "bg-[var(",
+            "border-[var(",
+            "![font-size:",
+            "![line-height:",
+            "![letter-spacing:",
+            "!tracking-normal",
+            "!text-foreground",
+        ] as const;
 
         expect(recordingWorkstation).not.toContain(
             'sourceProvider === "plaud"',
@@ -282,6 +295,9 @@ describe("frontend data-source routing regression", () => {
         expect(sourceReportPrimitives).not.toContain(
             'sourceProvider === "plaud"',
         );
+        for (const residual of sourceReportPrimitiveForbiddenShadcnResiduals) {
+            expect(sourceReportPrimitives).not.toContain(residual);
+        }
         expect(dashboardWorkstation).toContain('value: "source"');
         expect(dashboardWorkstation).toContain('label: "来源详情"');
         expect(dashboardWorkstation).toContain('tabKey: "source-report"');

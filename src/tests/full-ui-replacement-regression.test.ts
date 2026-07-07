@@ -3111,7 +3111,7 @@ const SOURCE_REPORT_SKELETON_SHARED_TOKENS = [
 ] as const;
 
 const EXPECTED_SOURCE_REPORT_METRIC_CARD_CLASS_NAME =
-    "gap-[6px] overflow-visible rounded-[10px] border border-[var(--line-hairline)] bg-[var(--bg-recessed)] shadow-none backdrop-blur-none [[data-theme=dark]_&]:border-[var(--glass-border-soft)] [[data-theme=dark]_&]:bg-[var(--glass-tint-subtle)] [.dark_&]:border-[var(--glass-border-soft)] [.dark_&]:bg-[var(--glass-tint-subtle)]";
+    "gap-1.5 overflow-visible rounded-lg shadow-none backdrop-blur-none";
 const SOURCE_REPORT_METRIC_CARD_CLASS_TOKENS =
     EXPECTED_SOURCE_REPORT_METRIC_CARD_CLASS_NAME.split(" ");
 const EXPECTED_SOURCE_REPORT_METRIC_HEADER_CLASS_NAME =
@@ -3156,28 +3156,40 @@ const SOURCE_REPORT_PRIMITIVE_OWNER_SNIPPETS = [
     `const sourceReportPaneBase = "flex flex-col gap-3.5"`,
     "const sourceReportMetricCardBase =",
     "text-foreground",
-    "font-sans text-[11.5px] font-medium leading-[normal] text-[var(--fg-tertiary)]",
+    "font-medium text-muted-foreground",
     "const sourceReportSegmentSpeakerText =",
-    "font-sans text-[12px] font-semibold leading-[normal] text-[var(--fg-secondary)]",
+    "font-semibold text-muted-foreground",
     "mt-[15px] grid grid-cols-2 gap-x-[14px] gap-y-[6px]",
     "sourceReportMetaSpacingClasses",
     'loose: "mb-[15px]"',
     'roomy: "mb-[22px]"',
     "min-w-[46px]",
     "const sourceReportSectionTitleText =",
-    "m-0 font-sans ![font-size:12.5px] font-semibold ![line-height:normal] ![letter-spacing:var(--ls-h4)] !text-foreground",
+    "m-0 font-semibold text-foreground",
     "const sourceReportSegmentBodyText =",
-    "m-0 font-sans ![font-size:12.5px] font-medium ![line-height:1.55] !tracking-normal !text-foreground [text-wrap:pretty]",
+    "m-0 font-medium text-foreground [text-wrap:pretty]",
     "const sourceReportSummaryLineText =",
-    "m-0 whitespace-pre-wrap font-sans ![font-size:12.5px] font-medium ![line-height:1.55] !tracking-normal !text-foreground [text-wrap:pretty]",
+    "m-0 whitespace-pre-wrap font-medium text-foreground [text-wrap:pretty]",
     "const SOURCE_REPORT_STATUS_VARIANT = {",
     'err: "destructive"',
     'neu: "secondary"',
     'ok: "default"',
     'warn: "outline"',
-    "[[data-theme=dark]_&]:border-[var(--glass-border-soft)] [.dark_&]:border-[var(--glass-border-soft)]",
-    "grid grid-cols-[80px_1fr] items-baseline gap-[8px] border-b border-dashed border-[var(--line-hairline)] py-[6px]",
-    "border-b border-dashed border-[var(--line-hairline)]",
+    "grid grid-cols-[80px_1fr] items-baseline gap-2 border-b border-dashed border-border py-1.5",
+    "flex flex-col gap-2 border-t border-border pt-2",
+] as const;
+const SOURCE_REPORT_PRIMITIVE_FORBIDDEN_SHADCN_RESIDUALS = [
+    "[[data-theme=dark]_&]",
+    "[.dark_&]",
+    "dark:",
+    "text-[var(",
+    "bg-[var(",
+    "border-[var(",
+    "![font-size:",
+    "![line-height:",
+    "![letter-spacing:",
+    "!tracking-normal",
+    "!text-foreground",
 ] as const;
 const SOURCE_REPORT_BUTTON_LOCAL_CVA_FORBIDDEN_SNIPPETS = [
     "sourceReportActionButtonStyles",
@@ -10465,6 +10477,9 @@ describe("full UI replacement regression coverage", () => {
         for (const snippet of SOURCE_REPORT_PRIMITIVE_OWNER_SNIPPETS) {
             expect(sourceReportPrimitives).toContain(snippet);
         }
+        for (const residual of SOURCE_REPORT_PRIMITIVE_FORBIDDEN_SHADCN_RESIDUALS) {
+            expect(sourceReportPrimitives).not.toContain(residual);
+        }
         for (const snippet of SOURCE_REPORT_BUTTON_LOCAL_CVA_FORBIDDEN_SNIPPETS) {
             expect(sourceReportPrimitives).not.toContain(snippet);
         }
@@ -15001,6 +15016,9 @@ describe("full UI replacement regression coverage", () => {
         }
         for (const snippet of SOURCE_REPORT_PRIMITIVE_OWNER_SNIPPETS) {
             expect(sourceReportPrimitives).toContain(snippet);
+        }
+        for (const residual of SOURCE_REPORT_PRIMITIVE_FORBIDDEN_SHADCN_RESIDUALS) {
+            expect(sourceReportPrimitives).not.toContain(residual);
         }
         for (const snippet of SOURCE_REPORT_BUTTON_LOCAL_CVA_FORBIDDEN_SNIPPETS) {
             expect(sourceReportPrimitives).not.toContain(snippet);

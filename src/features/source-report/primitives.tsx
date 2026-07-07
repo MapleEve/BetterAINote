@@ -87,7 +87,7 @@ const sourceReportMetaSpacingClasses = {
 
 const sourceReportPaneBase = "flex flex-col gap-3.5";
 const sourceReportDescriptionText =
-    "font-sans text-[11.5px] font-medium leading-[normal] text-[var(--fg-tertiary)]";
+    "font-medium text-muted-foreground";
 const sourceReportStateStackBase = "flex flex-col gap-3.5";
 const sourceReportStateBase = "block [&[hidden]]:hidden";
 
@@ -98,7 +98,7 @@ const sourceReportCopyLabelBase = "inline-flex min-w-0 items-center";
 const sourceReportMetricGridBase =
     "grid grid-cols-[repeat(4,1fr)] gap-[8px] max-[1200px]:grid-cols-[repeat(2,1fr)]";
 const sourceReportMetricCardBase =
-    "gap-[6px] overflow-visible rounded-[10px] border border-[var(--line-hairline)] bg-[var(--bg-recessed)] shadow-none backdrop-blur-none [[data-theme=dark]_&]:border-[var(--glass-border-soft)] [[data-theme=dark]_&]:bg-[var(--glass-tint-subtle)] [.dark_&]:border-[var(--glass-border-soft)] [.dark_&]:bg-[var(--glass-tint-subtle)]";
+    "gap-1.5 overflow-visible rounded-lg shadow-none backdrop-blur-none";
 const sourceReportMetricHeaderLayout = "px-[12px] pt-[10px] pb-0";
 const sourceReportMetricContentLayout = "min-w-0 px-[12px] pb-[10px]";
 const sourceReportSourceValueLayout = "flex items-center gap-[6px]";
@@ -108,19 +108,19 @@ const sourceReportSourceFallbackText =
     "text-[11px] font-bold text-muted-foreground";
 
 const sourceReportSectionBase =
-    "flex flex-col gap-[8px] border-t border-[var(--line-hairline)] pt-[8px] [[data-theme=dark]_&]:border-[var(--glass-border-soft)] [.dark_&]:border-[var(--glass-border-soft)]";
+    "flex flex-col gap-2 border-t border-border pt-2";
 const sourceReportSectionHeaderLayout = "flex items-baseline gap-[10px]";
 const sourceReportSectionSeparatorLayout = "hidden";
 const sourceReportSectionTitleText =
-    "m-0 font-sans ![font-size:12.5px] font-semibold ![line-height:normal] ![letter-spacing:var(--ls-h4)] !text-foreground";
+    "m-0 font-semibold text-foreground";
 const sourceReportMetaListBase =
     "mt-[15px] grid grid-cols-2 gap-x-[14px] gap-y-[6px] max-[1200px]:grid-cols-1";
 const sourceReportMetaRowBase =
-    "grid grid-cols-[80px_1fr] items-baseline gap-[8px] border-b border-dashed border-[var(--line-hairline)] py-[6px] [[data-theme=dark]_&]:border-[var(--glass-border-soft)] [.dark_&]:border-[var(--glass-border-soft)]";
+    "grid grid-cols-[80px_1fr] items-baseline gap-2 border-b border-dashed border-border py-1.5";
 const sourceReportMetaLabelText =
-    "m-0 font-sans text-[11px] font-semibold leading-[normal] text-[var(--fg-tertiary)]";
+    "m-0 font-semibold text-muted-foreground";
 const sourceReportMetaValueText =
-    "m-0 break-words font-sans text-[12px] font-medium leading-[normal] text-foreground";
+    "m-0 break-words font-medium text-foreground";
 
 const sourceReportSegmentsListBase =
     "m-0 flex list-none flex-col gap-[2px] p-0";
@@ -129,14 +129,14 @@ const sourceReportSegmentBase =
 const sourceReportSegmentSkeletonBase =
     "block rounded-[6px] bg-transparent px-[10px] py-[8px]";
 const sourceReportSegmentTimeText =
-    "font-mono text-[11.5px] font-medium leading-[normal] text-[var(--fg-tertiary)]";
+    "font-mono font-medium text-muted-foreground";
 const sourceReportSegmentSpeakerText =
-    "font-sans text-[12px] font-semibold leading-[normal] text-[var(--fg-secondary)]";
+    "font-semibold text-muted-foreground";
 const sourceReportSegmentBodyText =
-    "m-0 font-sans ![font-size:12.5px] font-medium ![line-height:1.55] !tracking-normal !text-foreground [text-wrap:pretty]";
+    "m-0 font-medium text-foreground [text-wrap:pretty]";
 const sourceReportSummaryStack = "flex flex-col gap-1.5";
 const sourceReportSummaryLineText =
-    "m-0 whitespace-pre-wrap font-sans ![font-size:12.5px] font-medium ![line-height:1.55] !tracking-normal !text-foreground [text-wrap:pretty]";
+    "m-0 whitespace-pre-wrap font-medium text-foreground [text-wrap:pretty]";
 
 function sourceReportMetaClasses({
     spacing = "default",
