@@ -411,10 +411,7 @@ function readSource(relativePath: string) {
 }
 
 function extractNamedImportBlock(source: string, modulePath: string) {
-    const escapedModulePath = modulePath.replace(
-        /[.*+?^${}()|[\]\\]/g,
-        "\\$&",
-    );
+    const escapedModulePath = modulePath.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
     const match = new RegExp(
         `import\\s*\\{[\\s\\S]*?\\}\\s*from\\s*"${escapedModulePath}";`,
     ).exec(source);
