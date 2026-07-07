@@ -95,6 +95,59 @@ const SOURCE_REPORT_STATUS_BADGE_FORBIDDEN_STYLING_SNIPPETS = [
     "--signal-danger",
     "--signal-warning",
 ] as const;
+const SOURCE_REPORT_EMPTY_ALERT_COMPOSITION_CHECKS = [
+    {
+        pattern:
+            /<Alert\b[\s\S]*?data-sot-source-report-missing-notice[\s\S]*?>/,
+        snippets: [
+            'variant="warningSoft"',
+            'density="compact"',
+            'layout="inline"',
+        ],
+    },
+    {
+        pattern: /<Alert\b[\s\S]*?data-sot-source-report-empty[\s\S]*?>/,
+        snippets: [
+            'variant={tone === "danger" ? "statusError" : "default"}',
+            'density="spacious"',
+            'layout="centered"',
+        ],
+    },
+    {
+        pattern: /<Empty\b[\s\S]*?data-sot-source-report-empty[\s\S]*?>/,
+        snippets: ['variant="subtle"'],
+    },
+    {
+        pattern:
+            /<EmptyMedia\b[\s\S]*?data-sot-source-report-empty-icon[\s\S]*?>/,
+        snippets: ['variant={tone === "danger" ? "dangerIcon" : "subtleIcon"}'],
+    },
+    {
+        pattern:
+            /<EmptyTitle\b[\s\S]*?data-sot-source-report-empty-title[\s\S]*?>/,
+        snippets: ['variant="compact"'],
+    },
+    {
+        pattern:
+            /<EmptyDescription\b[\s\S]*?data-sot-source-report-empty-description[\s\S]*?>/,
+        snippets: ['variant="compact"'],
+    },
+] as const;
+const SOURCE_REPORT_EMPTY_ALERT_FORBIDDEN_OWNER_SNIPPETS = [
+    "const sourceReportMissingNoticeBase =",
+    "sourceReportMissingNoticeDescriptionText",
+    "const sourceReportErrorAlertBase =",
+    "const sourceReportEmptySurfaceStyles = cva(",
+    "sourceReportEmptySurfaceStyles({ tone })",
+    "variant={null}",
+    "const sourceReportEmptyIconStyles = cva(",
+    "sourceReportEmptyIconStyles({ tone })",
+    "sourceReportEmptyTitleText",
+    "sourceReportEmptyDescriptionText",
+    "border border-dashed border-[var(--line-hairline)] bg-[var(--bg-recessed)]",
+    "border-[var(--alert-destructive-icon-soft-border)] bg-[var(--alert-destructive-icon-soft-bg)] text-[var(--signal-danger)]",
+    "block max-w-[360px] font-sans text-[12px] font-medium leading-[1.5] tracking-normal text-muted-foreground",
+] as const;
 const DASHBOARD_MAIN_REQUIRED_CLASS_TOKENS = [
     "flex",
     "h-screen",
@@ -264,8 +317,6 @@ const SOURCE_REPORT_PRIMITIVE_OWNER_SNIPPETS = [
     "const sourceReportMetricLabelText =",
     "font-sans text-[10.5px] font-semibold leading-[normal] tracking-[0.06em] text-[var(--fg-tertiary)] uppercase",
     "font-sans text-[11.5px] font-medium leading-[normal] text-[var(--fg-tertiary)]",
-    "const sourceReportMissingNoticeBase =",
-    "block rounded-[10px] border-[var(--alert-warning-soft-strong-border)] bg-[var(--alert-warning-soft-strong-bg)] px-[12px] py-[10px] text-[12.5px] font-medium leading-[1.55] text-[var(--fg-secondary)]",
     "const sourceReportSegmentSpeakerText =",
     "font-sans text-[12px] font-semibold leading-[normal] text-[var(--fg-secondary)]",
     "mt-[15px] grid grid-cols-2 gap-x-[14px] gap-y-[6px]",
@@ -279,11 +330,6 @@ const SOURCE_REPORT_PRIMITIVE_OWNER_SNIPPETS = [
     "m-0 font-sans ![font-size:12.5px] font-medium ![line-height:1.55] !tracking-normal !text-foreground [text-wrap:pretty]",
     "const sourceReportSummaryLineText =",
     "m-0 whitespace-pre-wrap font-sans ![font-size:12.5px] font-medium ![line-height:1.55] !tracking-normal !text-foreground [text-wrap:pretty]",
-    "const sourceReportEmptySurfaceStyles = cva(",
-    "variant={null}",
-    "border border-dashed border-[var(--line-hairline)] bg-[var(--bg-recessed)]",
-    "const sourceReportEmptyIconStyles = cva(",
-    "border-[var(--alert-destructive-icon-soft-border)] bg-[var(--alert-destructive-icon-soft-bg)] text-[var(--signal-danger)]",
     "const SOURCE_REPORT_STATUS_VARIANT = {",
     'err: "destructive"',
     'neu: "secondary"',
@@ -578,6 +624,21 @@ function expectClassNameConstReference(
         new RegExp(`className=\\{\\s*${escapedConstName}\\s*\\}`),
     );
     expect(openingElement).not.toContain('className="');
+}
+
+function expectSourceReportEmptyAlertComposition(source: string) {
+    expect(source).toContain("<EmptyHeader>");
+
+    for (const {
+        pattern,
+        snippets,
+    } of SOURCE_REPORT_EMPTY_ALERT_COMPOSITION_CHECKS) {
+        const openingElement = source.match(pattern)?.[0] ?? "";
+        expect(openingElement).not.toBe("");
+        for (const snippet of snippets) {
+            expect(openingElement).toContain(snippet);
+        }
+    }
 }
 
 function expectSourceReportMetricCallsites(
@@ -1539,10 +1600,18 @@ describe("recording detail copy and title action UI regressions", () => {
         expect(sourceReportPrimitives).toContain(
             "data-sot-source-report-missing-notice",
         );
-        expect(sourceReportPrimitives).toContain(
-            "sourceReportMissingNoticeBase",
-        );
         expect(sourceReportPrimitives).toContain('layout="inline"');
+        expect(alertPrimitive).toContain("warningSoft:");
+        expect(alertPrimitive).toContain("spacious:");
+        expect(alertPrimitive).toContain("centered:");
+        expect(emptyPrimitive).toContain("subtle:");
+        expect(emptyPrimitive).toContain("dangerIcon:");
+        expect(alertPrimitive).not.toContain("sourceReport");
+        expect(emptyPrimitive).not.toContain("sourceReport");
+        expectSourceReportEmptyAlertComposition(sourceReportPrimitives);
+        for (const snippet of SOURCE_REPORT_EMPTY_ALERT_FORBIDDEN_OWNER_SNIPPETS) {
+            expect(sourceReportPrimitives).not.toContain(snippet);
+        }
         expect(sourceReport).not.toContain("data-sot-missing-copy");
         expect(sourceReport).not.toContain(
             "content-[attr(data-sot-missing-copy)]",
@@ -1653,7 +1722,6 @@ describe("recording detail copy and title action UI regressions", () => {
         expect(sourceReportPrimitives).toContain(
             'import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";',
         );
-        expect(sourceReportPrimitives).toContain('variant="statusError"');
         expect(sourceReport).not.toContain("{error}</AlertDescription>");
         expect(sourceReportPrimitives).toContain(
             'import { Skeleton } from "@/components/ui/skeleton";',
@@ -1711,27 +1779,6 @@ describe("recording detail copy and title action UI regressions", () => {
             '<SourceReportState sotState="error" state="error" error={error}>',
             "</SourceReportState>",
         );
-        for (const sourceReportEmptyIconStyleSnippet of [
-            "mb-[4px]",
-            "inline-grid",
-            "size-[40px]",
-            "place-items-center",
-            "border-[var(--line-hairline)]",
-            "bg-[var(--bg-recessed)]",
-            "text-[var(--fg-tertiary)]",
-            "[&_svg]:stroke-current",
-            "[&_svg]:stroke-[1.8]",
-            "border-[var(--alert-destructive-icon-soft-border)]",
-            "bg-[var(--alert-destructive-icon-soft-bg)]",
-            "text-[var(--signal-danger)]",
-            "border-[var(--alert-destructive-soft-border)]",
-            "bg-[var(--alert-destructive-subtle-bg)]",
-            "text-[var(--fg-primary)]",
-        ] as const) {
-            expect(sourceReportPrimitives).toContain(
-                sourceReportEmptyIconStyleSnippet,
-            );
-        }
         expect(sourceReport).not.toContain(
             "SOURCE_REPORT_ERROR_ICON_CLASS_NAME",
         );
@@ -1746,20 +1793,8 @@ describe("recording detail copy and title action UI regressions", () => {
         expect(sourceReportPrimitives).toContain("<AlertTitle");
         expect(sourceReportPrimitives).toContain("<AlertDescription");
         expect(sourceReportPrimitives).toContain("<EmptyMedia");
-        expect(sourceReportPrimitives).toContain('variant="statusError"');
         expect(sourceReportErrorState).toContain('kind="alert"');
         expect(sourceReportErrorState).toContain('tone="danger"');
-        expect(sourceReportPrimitives).toContain("sourceReportErrorAlertBase");
-        expect(sourceReportPrimitives).toContain(
-            "sourceReportEmptySurfaceStyles",
-        );
-        expect(sourceReportPrimitives).toContain("sourceReportEmptyIconStyles");
-        expect(sourceReportPrimitives).toContain(
-            "className={sourceReportEmptyTitleText}",
-        );
-        expect(sourceReportPrimitives).toContain(
-            "sourceReportEmptyDescriptionText",
-        );
         expect(sourceReport).not.toContain('variant="sourceReportError"');
         expect(sourceReport).not.toContain('density="sourceReportError"');
         expect(sourceReport).not.toContain('layout="sourceReportError"');

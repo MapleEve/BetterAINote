@@ -7,9 +7,10 @@ type AlertVariant =
     | "destructive"
     | "destructiveSoft"
     | "destructiveSoftNeutral"
-    | "statusError";
-type AlertDensity = "default" | "compact" | "comfortable";
-type AlertLayout = "default" | "inline";
+    | "statusError"
+    | "warningSoft";
+type AlertDensity = "default" | "compact" | "comfortable" | "spacious";
+type AlertLayout = "default" | "centered" | "inline";
 type AlertTitleDensity = "default";
 type AlertDescriptionDensity = "default" | "compact" | "comfortable";
 
@@ -23,6 +24,8 @@ const alertVariantClassNames: Record<AlertVariant, string> = {
         "border-[var(--alert-destructive-soft-strong-border)] bg-[var(--alert-destructive-soft-strong-bg)] text-[var(--fg-primary)] *:data-[slot=alert-description]:text-[var(--fg-primary)] [&>svg]:text-current",
     statusError:
         "border-[var(--alert-destructive-soft-border)] bg-[var(--alert-destructive-soft-bg)] text-[var(--signal-danger)] *:data-[slot=alert-description]:text-[var(--signal-danger)] [&>svg]:text-current",
+    warningSoft:
+        "border-[var(--alert-warning-soft-strong-border)] bg-[var(--alert-warning-soft-strong-bg)] text-[var(--fg-secondary)] *:data-[slot=alert-description]:text-[var(--fg-secondary)] [&>svg]:text-current",
 };
 
 const alertDensityClassNames: Record<AlertDensity, string> = {
@@ -32,9 +35,13 @@ const alertDensityClassNames: Record<AlertDensity, string> = {
         "rounded-[var(--radius-sm)] px-[10px] py-[8px] text-[12px] leading-[1.4] font-medium has-[>svg]:grid-cols-[14px_1fr] has-[>svg]:gap-x-[8px] has-[>[data-slot=spinner]]:grid-cols-[14px_1fr] has-[>[data-slot=spinner]]:gap-x-[8px] [&>svg]:size-[14px] [&>svg]:[stroke-linecap:butt] [&>svg]:[stroke-linejoin:miter] [&>[data-slot=spinner]]:size-[14px]",
     comfortable:
         "rounded-[var(--radius-md)] px-[12px] py-[10px] text-[13px] has-[>svg]:grid-cols-[14px_1fr] has-[>svg]:gap-x-[8px] has-[>[data-slot=spinner]]:grid-cols-[14px_1fr] has-[>[data-slot=spinner]]:gap-x-[8px] [&>svg]:size-[14px] [&>svg]:[stroke-linecap:butt] [&>svg]:[stroke-linejoin:miter] [&>[data-slot=spinner]]:size-[14px]",
+    spacious:
+        "rounded-[10px] px-[18px] py-[28px] text-sm [&>svg]:size-4 [&>[data-slot=spinner]]:size-4",
 };
 
 const alertLayoutClassNames: Record<AlertLayout, string> = {
+    centered:
+        "flex w-full flex-col items-center gap-[4px] text-center [&>svg]:text-current [&>[data-slot=spinner]]:text-current",
     default:
         "grid w-full grid-cols-[0_1fr] items-start gap-y-0.5 [&>svg]:text-current [&>[data-slot=spinner]]:text-current",
     inline: "flex w-full items-center gap-[8px] [&>svg]:text-current [&>[data-slot=spinner]]:text-current",

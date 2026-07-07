@@ -78,6 +78,59 @@ const SOURCE_REPORT_STATUS_BADGE_FORBIDDEN_STYLING_SNIPPETS = [
     "--signal-danger",
     "--signal-warning",
 ] as const;
+const SOURCE_REPORT_EMPTY_ALERT_COMPOSITION_CHECKS = [
+    {
+        pattern:
+            /<Alert\b[\s\S]*?data-sot-source-report-missing-notice[\s\S]*?>/,
+        snippets: [
+            'variant="warningSoft"',
+            'density="compact"',
+            'layout="inline"',
+        ],
+    },
+    {
+        pattern: /<Alert\b[\s\S]*?data-sot-source-report-empty[\s\S]*?>/,
+        snippets: [
+            'variant={tone === "danger" ? "statusError" : "default"}',
+            'density="spacious"',
+            'layout="centered"',
+        ],
+    },
+    {
+        pattern: /<Empty\b[\s\S]*?data-sot-source-report-empty[\s\S]*?>/,
+        snippets: ['variant="subtle"'],
+    },
+    {
+        pattern:
+            /<EmptyMedia\b[\s\S]*?data-sot-source-report-empty-icon[\s\S]*?>/,
+        snippets: ['variant={tone === "danger" ? "dangerIcon" : "subtleIcon"}'],
+    },
+    {
+        pattern:
+            /<EmptyTitle\b[\s\S]*?data-sot-source-report-empty-title[\s\S]*?>/,
+        snippets: ['variant="compact"'],
+    },
+    {
+        pattern:
+            /<EmptyDescription\b[\s\S]*?data-sot-source-report-empty-description[\s\S]*?>/,
+        snippets: ['variant="compact"'],
+    },
+] as const;
+const SOURCE_REPORT_EMPTY_ALERT_FORBIDDEN_OWNER_SNIPPETS = [
+    "const sourceReportMissingNoticeBase =",
+    "sourceReportMissingNoticeDescriptionText",
+    "const sourceReportErrorAlertBase =",
+    "const sourceReportEmptySurfaceStyles = cva(",
+    "sourceReportEmptySurfaceStyles({ tone })",
+    "variant={null}",
+    "const sourceReportEmptyIconStyles = cva(",
+    "sourceReportEmptyIconStyles({ tone })",
+    "sourceReportEmptyTitleText",
+    "sourceReportEmptyDescriptionText",
+    "border border-dashed border-[var(--line-hairline)] bg-[var(--bg-recessed)]",
+    "border-[var(--alert-destructive-icon-soft-border)] bg-[var(--alert-destructive-icon-soft-bg)] text-[var(--signal-danger)]",
+    "block max-w-[360px] font-sans text-[12px] font-medium leading-[1.5] tracking-normal text-muted-foreground",
+] as const;
 const DASHBOARD_TOPBAR_REQUIRED_CLASS_TOKENS = [
     "relative",
     "z-[var(--z-topbar)]",
@@ -919,6 +972,21 @@ function collectSearchActivityPrimitiveBusinessTokens() {
 
 function hasExactBusinessToken(source: string, token: string) {
     return new RegExp(`\\b${escapeRegExp(token)}(?![A-Za-z0-9_])`).test(source);
+}
+
+function expectSourceReportEmptyAlertComposition(source: string) {
+    expect(source).toContain("<EmptyHeader>");
+
+    for (const {
+        pattern,
+        snippets,
+    } of SOURCE_REPORT_EMPTY_ALERT_COMPOSITION_CHECKS) {
+        const openingElement = source.match(pattern)?.[0] ?? "";
+        expect(openingElement).not.toBe("");
+        for (const snippet of snippets) {
+            expect(openingElement).toContain(snippet);
+        }
+    }
 }
 
 function collectAiRenamePrimitiveBusinessTokens() {
@@ -3067,8 +3135,6 @@ const SOURCE_REPORT_PRIMITIVE_OWNER_SNIPPETS = [
     "font-sans text-[10.5px] font-semibold leading-[normal] tracking-[0.06em] text-[var(--fg-tertiary)] uppercase",
     "text-foreground",
     "font-sans text-[11.5px] font-medium leading-[normal] text-[var(--fg-tertiary)]",
-    "const sourceReportMissingNoticeBase =",
-    "block rounded-[10px] border-[var(--alert-warning-soft-strong-border)] bg-[var(--alert-warning-soft-strong-bg)] px-[12px] py-[10px] text-[12.5px] font-medium leading-[1.55] text-[var(--fg-secondary)]",
     "const sourceReportSegmentSpeakerText =",
     "font-sans text-[12px] font-semibold leading-[normal] text-[var(--fg-secondary)]",
     "mt-[15px] grid grid-cols-2 gap-x-[14px] gap-y-[6px]",
@@ -3082,11 +3148,6 @@ const SOURCE_REPORT_PRIMITIVE_OWNER_SNIPPETS = [
     "m-0 font-sans ![font-size:12.5px] font-medium ![line-height:1.55] !tracking-normal !text-foreground [text-wrap:pretty]",
     "const sourceReportSummaryLineText =",
     "m-0 whitespace-pre-wrap font-sans ![font-size:12.5px] font-medium ![line-height:1.55] !tracking-normal !text-foreground [text-wrap:pretty]",
-    "const sourceReportEmptySurfaceStyles = cva(",
-    "variant={null}",
-    "border border-dashed border-[var(--line-hairline)] bg-[var(--bg-recessed)]",
-    "const sourceReportEmptyIconStyles = cva(",
-    "border-[var(--alert-destructive-icon-soft-border)] bg-[var(--alert-destructive-icon-soft-bg)] text-[var(--signal-danger)]",
     "const SOURCE_REPORT_STATUS_VARIANT = {",
     'err: "destructive"',
     'neu: "secondary"',
@@ -7364,6 +7425,7 @@ describe("full UI replacement regression coverage", () => {
             "features/dashboard/components/dashboard-recording-player-controls.tsx",
         );
         const alertPrimitive = readSource("components/ui/alert.tsx");
+        const emptyPrimitive = readSource("components/ui/empty.tsx");
         const button = readSource("components/ui/button.tsx");
         const sourceReportPanel = readSource(
             "features/recordings/components/source-report-panel.tsx",
@@ -9923,7 +9985,7 @@ describe("full UI replacement regression coverage", () => {
             'import {\n    Empty,\n    EmptyDescription,\n    EmptyMedia,\n    EmptyTitle,\n} from "@/components/ui/empty";',
         );
         expect(sourceReportPrimitives).toContain(
-            'import {\n    Empty,\n    EmptyDescription,\n    EmptyMedia,\n    EmptyTitle,\n} from "@/components/ui/empty";',
+            'import {\n    Empty,\n    EmptyDescription,\n    EmptyHeader,\n    EmptyMedia,\n    EmptyTitle,\n} from "@/components/ui/empty";',
         );
 
         const sourceReportEmptyLegacySelectorLines = globals
@@ -9972,20 +10034,25 @@ describe("full UI replacement regression coverage", () => {
             "data-sot-source-report-empty-header",
         );
         expect(sourceReportNoSourceEmpty).toContain("<SourceReportEmptyIcon");
-        expect(sourceReportPrimitives).toContain('variant="icon"');
-        expect(sourceReportPrimitives).toContain("sourceReportEmptyIconStyles");
+        expect(alertPrimitive).toContain("warningSoft:");
+        expect(alertPrimitive).toContain("spacious:");
+        expect(alertPrimitive).toContain("centered:");
+        expect(emptyPrimitive).toContain("subtle:");
+        expect(emptyPrimitive).toContain("dangerIcon:");
+        expect(alertPrimitive).not.toContain("sourceReport");
+        expect(emptyPrimitive).not.toContain("sourceReport");
+        expectSourceReportEmptyAlertComposition(sourceReportPrimitives);
+        for (const snippet of SOURCE_REPORT_EMPTY_ALERT_FORBIDDEN_OWNER_SNIPPETS) {
+            expect(sourceReportPrimitives).not.toContain(snippet);
+        }
         expect(sourceReportPrimitives).toContain(
             "data-sot-source-report-empty-icon",
         );
         expect(sourceReportPrimitives).toContain(
             "data-sot-source-report-empty-title",
         );
-        expect(sourceReportPrimitives).toContain("sourceReportEmptyTitleText");
         expect(sourceReportPrimitives).toContain(
             "data-sot-source-report-empty-description",
-        );
-        expect(sourceReportPrimitives).toContain(
-            "sourceReportEmptyDescriptionText",
         );
         expect(sourceReportNoSourceEmpty).not.toContain("<Alert");
         expect(sourceReportNoSourceEmpty).not.toContain("<AlertTitle");
@@ -14829,12 +14896,20 @@ describe("full UI replacement regression coverage", () => {
         expect(sourceReport).not.toContain("@/features/source-report/styles");
         expect(sourceReport).toContain("SourceReportMissingNotice");
         expect(sourceReportPrimitives).toContain(
-            "sourceReportMissingNoticeBase",
-        );
-        expect(sourceReportPrimitives).toContain(
             "data-sot-source-report-missing-notice",
         );
         expect(sourceReportPrimitives).toContain('layout="inline"');
+        expect(alertPrimitive).toContain("warningSoft:");
+        expect(alertPrimitive).toContain("spacious:");
+        expect(alertPrimitive).toContain("centered:");
+        expect(emptyPrimitive).toContain("subtle:");
+        expect(emptyPrimitive).toContain("dangerIcon:");
+        expect(alertPrimitive).not.toContain("sourceReport");
+        expect(emptyPrimitive).not.toContain("sourceReport");
+        expectSourceReportEmptyAlertComposition(sourceReportPrimitives);
+        for (const snippet of SOURCE_REPORT_EMPTY_ALERT_FORBIDDEN_OWNER_SNIPPETS) {
+            expect(sourceReportPrimitives).not.toContain(snippet);
+        }
         expect(sourceReport).not.toContain("data-sot-missing-copy");
         expect(sourceReport).not.toContain(
             "content-[attr(data-sot-missing-copy)]",
@@ -14996,35 +15071,6 @@ describe("full UI replacement regression coverage", () => {
             '<SourceReportState sotState="error" state="error" error={error}>',
             "</SourceReportState>",
         );
-        for (const sourceReportErrorIconOwnerClassSnippet of [
-            "sourceReportEmptyIconStyles",
-            "border-[var(--alert-destructive-icon-soft-border)] bg-[var(--alert-destructive-icon-soft-bg)] text-[var(--signal-danger)]",
-        ] as const) {
-            expect(sourceReportPrimitives).toContain(
-                sourceReportErrorIconOwnerClassSnippet,
-            );
-        }
-        for (const sourceReportEmptyIconStyleSnippet of [
-            "mb-[4px]",
-            "inline-grid",
-            "size-[40px]",
-            "place-items-center",
-            "border-[var(--line-hairline)]",
-            "bg-[var(--bg-recessed)]",
-            "text-[var(--fg-tertiary)]",
-            "[&_svg]:stroke-current",
-            "[&_svg]:stroke-[1.8]",
-            "border-[var(--alert-destructive-icon-soft-border)]",
-            "bg-[var(--alert-destructive-icon-soft-bg)]",
-            "text-[var(--signal-danger)]",
-            "border-[var(--alert-destructive-soft-border)]",
-            "bg-[var(--alert-destructive-subtle-bg)]",
-            "text-[var(--fg-primary)]",
-        ] as const) {
-            expect(sourceReportPrimitives).toContain(
-                sourceReportEmptyIconStyleSnippet,
-            );
-        }
         expect(sourceReport).not.toContain(
             "SOURCE_REPORT_ERROR_ICON_CLASS_NAME",
         );
@@ -15036,7 +15082,6 @@ describe("full UI replacement regression coverage", () => {
             "<SourceReportEmptyDescription",
         );
         expect(sourceReportErrorState).toContain("<SourceReportEmptyIcon");
-        expect(sourceReportPrimitives).toContain('variant="statusError"');
         expect(sourceReportErrorState).not.toMatch(
             /<div[\s\S]{0,240}\brole="alert"/,
         );

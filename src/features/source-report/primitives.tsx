@@ -10,6 +10,7 @@ import { Card, CardContent, CardDescription } from "@/components/ui/card";
 import {
     Empty,
     EmptyDescription,
+    EmptyHeader,
     EmptyMedia,
     EmptyTitle,
 } from "@/components/ui/empty";
@@ -114,11 +115,6 @@ const sourceReportSectionHeaderLayout = "flex items-baseline gap-[10px]";
 const sourceReportSectionSeparatorLayout = "hidden";
 const sourceReportSectionTitleText =
     "m-0 font-sans ![font-size:12.5px] font-semibold ![line-height:normal] ![letter-spacing:var(--ls-h4)] !text-foreground";
-const sourceReportMissingNoticeBase =
-    "block rounded-[10px] border-[var(--alert-warning-soft-strong-border)] bg-[var(--alert-warning-soft-strong-bg)] px-[12px] py-[10px] text-[12.5px] font-medium leading-[1.55] text-[var(--fg-secondary)] shadow-none";
-const sourceReportMissingNoticeDescriptionText =
-    "col-start-auto block gap-0 text-[12.5px] font-medium leading-[1.55] text-[var(--fg-secondary)]";
-
 const sourceReportMetaListBase =
     "mt-[15px] grid grid-cols-2 gap-x-[14px] gap-y-[6px] max-[1200px]:grid-cols-1";
 const sourceReportMetaRowBase =
@@ -143,13 +139,6 @@ const sourceReportSegmentBodyText =
 const sourceReportSummaryStack = "flex flex-col gap-1.5";
 const sourceReportSummaryLineText =
     "m-0 whitespace-pre-wrap font-sans ![font-size:12.5px] font-medium ![line-height:1.55] !tracking-normal !text-foreground [text-wrap:pretty]";
-
-const sourceReportErrorAlertBase =
-    "flex w-full flex-col items-center gap-[4px] rounded-[10px] px-[18px] py-[28px]";
-const sourceReportEmptyTitleText =
-    "m-0 block min-h-0 overflow-visible font-sans text-[13px] font-semibold leading-[1.35] tracking-normal text-foreground";
-const sourceReportEmptyDescriptionText =
-    "block max-w-[360px] font-sans text-[12px] font-medium leading-[1.5] tracking-normal text-muted-foreground ![color:var(--fg-tertiary)]";
 
 const sourceReportStatusDotBase =
     "inline-block size-[5px] rounded-[50%] bg-current";
@@ -705,20 +694,14 @@ export function SourceReportMissingNotice({
 }) {
     return (
         <Alert
-            className={cn(
-                sourceReportMissingNoticeBase,
-                state === "summary-missing" ? "mb-2" : "mt-2",
-            )}
+            className={state === "summary-missing" ? "mb-2" : "mt-2"}
             data-sot-source-report-missing-notice
             data-sot-missing={state}
             density="compact"
             layout="inline"
+            variant="warningSoft"
         >
-            <AlertDescription
-                className={sourceReportMissingNoticeDescriptionText}
-            >
-                {children}
-            </AlertDescription>
+            <AlertDescription density="compact">{children}</AlertDescription>
         </Alert>
     );
 }
@@ -850,21 +833,6 @@ export function SourceReportSummaryLine({ children }: { children: ReactNode }) {
     );
 }
 
-const sourceReportEmptySurfaceStyles = cva(
-    "flex flex-col items-center gap-[4px] rounded-[10px] border border-dashed border-[var(--line-hairline)] bg-[var(--bg-recessed)] px-[18px] py-[28px] text-center shadow-none backdrop-blur-none",
-    {
-        variants: {
-            tone: {
-                danger: "border-[var(--alert-destructive-soft-border)] bg-[var(--alert-destructive-subtle-bg)] text-[var(--fg-primary)]",
-                neutral: "",
-            } satisfies Record<SourceReportSurfaceTone, string>,
-        },
-        defaultVariants: {
-            tone: "neutral",
-        },
-    },
-);
-
 export function SourceReportEmptySurface({
     children,
     kind = "empty",
@@ -877,11 +845,9 @@ export function SourceReportEmptySurface({
     if (kind === "alert") {
         return (
             <Alert
-                variant="statusError"
-                className={cn(
-                    sourceReportErrorAlertBase,
-                    sourceReportEmptySurfaceStyles({ tone }),
-                )}
+                variant={tone === "danger" ? "statusError" : "default"}
+                density="spacious"
+                layout="centered"
                 data-sot-source-report-empty
                 data-sot-tone={tone === "danger" ? "err" : "neutral"}
             >
@@ -892,30 +858,14 @@ export function SourceReportEmptySurface({
 
     return (
         <Empty
-            variant={null}
-            className={sourceReportEmptySurfaceStyles({ tone })}
+            variant="subtle"
             data-sot-source-report-empty
             data-sot-tone={tone === "danger" ? "err" : "neutral"}
         >
-            {children}
+            <EmptyHeader>{children}</EmptyHeader>
         </Empty>
     );
 }
-
-const sourceReportEmptyIconStyles = cva(
-    "mb-[4px] inline-grid size-[40px] place-items-center rounded-full border border-[var(--line-hairline)] bg-[var(--bg-recessed)] text-[var(--fg-tertiary)] [&_svg]:fill-none [&_svg]:stroke-current [&_svg]:stroke-[1.8] [&_svg]:[stroke-linecap:round] [&_svg]:[stroke-linejoin:round] [&_svg:not([class*='size-'])]:size-[16px]",
-    {
-        variants: {
-            tone: {
-                danger: "border-[var(--alert-destructive-icon-soft-border)] bg-[var(--alert-destructive-icon-soft-bg)] text-[var(--signal-danger)]",
-                neutral: "",
-            } satisfies Record<SourceReportSurfaceTone, string>,
-        },
-        defaultVariants: {
-            tone: "neutral",
-        },
-    },
-);
 
 export function SourceReportEmptyIcon({
     children,
@@ -926,8 +876,7 @@ export function SourceReportEmptyIcon({
 }) {
     return (
         <EmptyMedia
-            variant="icon"
-            className={sourceReportEmptyIconStyles({ tone })}
+            variant={tone === "danger" ? "dangerIcon" : "subtleIcon"}
             data-sot-source-report-empty-icon
             aria-hidden="true"
         >
@@ -945,20 +894,14 @@ export function SourceReportEmptyTitle({
 }) {
     if (kind === "alert") {
         return (
-            <AlertTitle
-                className={sourceReportEmptyTitleText}
-                data-sot-source-report-empty-title
-            >
+            <AlertTitle data-sot-source-report-empty-title>
                 {children}
             </AlertTitle>
         );
     }
 
     return (
-        <EmptyTitle
-            className={sourceReportEmptyTitleText}
-            data-sot-source-report-empty-title
-        >
+        <EmptyTitle variant="compact" data-sot-source-report-empty-title>
             {children}
         </EmptyTitle>
     );
@@ -974,7 +917,8 @@ export function SourceReportEmptyDescription({
     if (kind === "alert") {
         return (
             <AlertDescription
-                className={sourceReportEmptyDescriptionText}
+                density="comfortable"
+                className="max-w-[360px]"
                 data-sot-source-report-empty-description
             >
                 {children}
@@ -984,7 +928,7 @@ export function SourceReportEmptyDescription({
 
     return (
         <EmptyDescription
-            className={sourceReportEmptyDescriptionText}
+            variant="compact"
             data-sot-source-report-empty-description
         >
             {children}

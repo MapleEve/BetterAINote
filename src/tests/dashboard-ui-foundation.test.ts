@@ -153,6 +153,60 @@ const SOURCE_REPORT_STATUS_BADGE_FORBIDDEN_STYLING_SNIPPETS = [
     "--signal-danger",
     "--signal-warning",
 ] as const;
+const SOURCE_REPORT_EMPTY_ALERT_COMPOSITION_CHECKS = [
+    {
+        pattern:
+            /<Alert\b[\s\S]*?data-sot-source-report-missing-notice[\s\S]*?>/,
+        snippets: [
+            'variant="warningSoft"',
+            'density="compact"',
+            'layout="inline"',
+        ],
+    },
+    {
+        pattern: /<Alert\b[\s\S]*?data-sot-source-report-empty[\s\S]*?>/,
+        snippets: [
+            'variant={tone === "danger" ? "statusError" : "default"}',
+            'density="spacious"',
+            'layout="centered"',
+        ],
+    },
+    {
+        pattern: /<Empty\b[\s\S]*?data-sot-source-report-empty[\s\S]*?>/,
+        snippets: ['variant="subtle"'],
+    },
+    {
+        pattern:
+            /<EmptyMedia\b[\s\S]*?data-sot-source-report-empty-icon[\s\S]*?>/,
+        snippets: ['variant={tone === "danger" ? "dangerIcon" : "subtleIcon"}'],
+    },
+    {
+        pattern:
+            /<EmptyTitle\b[\s\S]*?data-sot-source-report-empty-title[\s\S]*?>/,
+        snippets: ['variant="compact"'],
+    },
+    {
+        pattern:
+            /<EmptyDescription\b[\s\S]*?data-sot-source-report-empty-description[\s\S]*?>/,
+        snippets: ['variant="compact"'],
+    },
+] as const;
+const SOURCE_REPORT_EMPTY_ALERT_FORBIDDEN_OWNER_SNIPPETS = [
+    "const sourceReportMissingNoticeBase =",
+    "sourceReportMissingNoticeDescriptionText",
+    "const sourceReportErrorAlertBase =",
+    "const sourceReportEmptySurfaceStyles = cva(",
+    "sourceReportEmptySurfaceStyles({ tone })",
+    "variant={null}",
+    "const sourceReportEmptyIconStyles = cva(",
+    "sourceReportEmptyIconStyles({ tone })",
+    "sourceReportEmptyTitleText",
+    "sourceReportEmptyDescriptionText",
+    "border border-dashed border-[var(--line-hairline)] bg-[var(--bg-recessed)]",
+    "border border-[var(--line-hairline)] bg-[var(--bg-recessed)] text-[var(--fg-tertiary)]",
+    "border-[var(--alert-destructive-icon-soft-border)] bg-[var(--alert-destructive-icon-soft-bg)] text-[var(--signal-danger)]",
+    "block max-w-[360px] font-sans text-[12px] font-medium leading-[1.5] tracking-normal text-muted-foreground",
+] as const;
 const EXPECTED_DASHBOARD_RECORDING_PLAYER_CARD_CLASS_NAME =
     "block min-h-[114px] gap-0 overflow-visible rounded-2xl px-[18px] py-4 shadow-none backdrop-blur-none";
 const EXPECTED_DASHBOARD_RECORDING_PLAYER_META_CLASS_NAME =
@@ -236,6 +290,21 @@ function readSource(relativePath: string) {
 
 function staticJsxClassName(className: string) {
     return `className="${className}"`;
+}
+
+function expectSourceReportEmptyAlertComposition(source: string) {
+    expect(source).toContain("<EmptyHeader>");
+
+    for (const {
+        pattern,
+        snippets,
+    } of SOURCE_REPORT_EMPTY_ALERT_COMPOSITION_CHECKS) {
+        const openingElement = source.match(pattern)?.[0] ?? "";
+        expect(openingElement).not.toBe("");
+        for (const snippet of snippets) {
+            expect(openingElement).toContain(snippet);
+        }
+    }
 }
 
 function extractBoundedSlice(
@@ -1368,8 +1437,6 @@ const SOURCE_REPORT_PRIMITIVE_OWNER_SNIPPETS = [
     "font-sans text-[10.5px] font-semibold leading-[normal] tracking-[0.06em] text-[var(--fg-tertiary)] uppercase",
     "text-foreground",
     "font-sans text-[11.5px] font-medium leading-[normal] text-[var(--fg-tertiary)]",
-    "const sourceReportMissingNoticeBase =",
-    "block rounded-[10px] border-[var(--alert-warning-soft-strong-border)] bg-[var(--alert-warning-soft-strong-bg)] px-[12px] py-[10px] text-[12.5px] font-medium leading-[1.55] text-[var(--fg-secondary)]",
     "const sourceReportSegmentSpeakerText =",
     "font-sans text-[12px] font-semibold leading-[normal] text-[var(--fg-secondary)]",
     "mt-[15px] grid grid-cols-2 gap-x-[14px] gap-y-[6px]",
@@ -1383,14 +1450,6 @@ const SOURCE_REPORT_PRIMITIVE_OWNER_SNIPPETS = [
     "m-0 font-sans ![font-size:12.5px] font-medium ![line-height:1.55] !tracking-normal !text-foreground [text-wrap:pretty]",
     "const sourceReportSummaryLineText =",
     "m-0 whitespace-pre-wrap font-sans ![font-size:12.5px] font-medium ![line-height:1.55] !tracking-normal !text-foreground [text-wrap:pretty]",
-    "const sourceReportErrorAlertBase =",
-    "const sourceReportEmptySurfaceStyles = cva(",
-    "variant={null}",
-    "border border-dashed border-[var(--line-hairline)] bg-[var(--bg-recessed)]",
-    "const sourceReportEmptyIconStyles = cva(",
-    "border border-[var(--line-hairline)] bg-[var(--bg-recessed)] text-[var(--fg-tertiary)]",
-    "border-[var(--alert-destructive-icon-soft-border)] bg-[var(--alert-destructive-icon-soft-bg)] text-[var(--signal-danger)]",
-    "block max-w-[360px] font-sans text-[12px] font-medium leading-[1.5] tracking-normal text-muted-foreground",
     "const SOURCE_REPORT_STATUS_VARIANT = {",
     'err: "destructive"',
     'neu: "secondary"',
@@ -3660,6 +3719,8 @@ describe("dashboard SOT foundation", () => {
         const cardPrimitive = readSource("components/ui/card.tsx");
         const globals = readSource("app/globals.css");
         const skeletonPrimitive = readSource("components/ui/skeleton.tsx");
+        const alertPrimitive = readSource("components/ui/alert.tsx");
+        const emptyPrimitive = readSource("components/ui/empty.tsx");
         const sourceReportStyles = readSource(
             "features/source-report/styles.ts",
         );
@@ -5604,10 +5665,18 @@ describe("dashboard SOT foundation", () => {
         expect(sourceReportPrimitives).toContain(
             "data-sot-source-report-missing-notice",
         );
-        expect(sourceReportPrimitives).toContain(
-            "sourceReportMissingNoticeBase",
-        );
         expect(sourceReportPrimitives).toContain('layout="inline"');
+        expect(alertPrimitive).toContain("warningSoft:");
+        expect(alertPrimitive).toContain("spacious:");
+        expect(alertPrimitive).toContain("centered:");
+        expect(emptyPrimitive).toContain("subtle:");
+        expect(emptyPrimitive).toContain("dangerIcon:");
+        expect(alertPrimitive).not.toContain("sourceReport");
+        expect(emptyPrimitive).not.toContain("sourceReport");
+        expectSourceReportEmptyAlertComposition(sourceReportPrimitives);
+        for (const snippet of SOURCE_REPORT_EMPTY_ALERT_FORBIDDEN_OWNER_SNIPPETS) {
+            expect(sourceReportPrimitives).not.toContain(snippet);
+        }
         expect(workstation).toContain("function SotSourceReportErrorIcon");
         const sourceReportErrorIcon = extractBoundedSlice(
             workstation,

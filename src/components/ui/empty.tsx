@@ -14,6 +14,7 @@ const emptyVariants = cva(
                     "flex flex-none flex-col items-center justify-center gap-0 rounded-none px-[16px] pb-[20.5px] pt-[22px] md:px-[16px] md:pb-[20.5px] md:pt-[22px]",
                 popover:
                     "rounded-none px-[10px] pb-[4px] pt-[14px] md:px-[10px] md:pb-[4px] md:pt-[14px]",
+                subtle: "flex flex-none flex-col items-center justify-center gap-[4px] rounded-[10px] border border-dashed border-[var(--line-hairline)] bg-[var(--bg-recessed)] px-[18px] py-[28px] shadow-none backdrop-blur-none",
             },
         },
         defaultVariants: {
@@ -70,6 +71,8 @@ const emptyMediaVariants = cva(
             variant: {
                 default: "bg-transparent",
                 icon: "flex size-10 shrink-0 items-center justify-center rounded-lg bg-muted text-foreground [&_svg:not([class*='size-'])]:size-6",
+                dangerIcon:
+                    "mb-[6px] flex size-[32px] shrink-0 items-center justify-center rounded-full border border-[var(--alert-destructive-icon-soft-border)] bg-[var(--alert-destructive-icon-soft-bg)] text-[var(--signal-danger)] [&_svg:not([class*='size-'])]:size-[14px]",
                 subtleIcon:
                     "mb-[6px] flex size-[32px] shrink-0 items-center justify-center rounded-full border border-[var(--line-hairline)] bg-[var(--bg-recessed)] text-muted-foreground [&_svg:not([class*='size-'])]:size-[14px]",
             },
