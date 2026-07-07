@@ -227,9 +227,6 @@ const SETTINGS_SHORTCUT_ROW_CLASS =
 const SETTINGS_SHORTCUT_KEY_CLASS =
     "rounded-md border border-border bg-muted px-1.5 py-0.5 font-mono text-xs font-semibold text-muted-foreground";
 
-const SETTINGS_KEY_STATUS_CLASS =
-    "inline-flex items-center gap-1 text-xs font-medium text-muted-foreground";
-
 const SETTINGS_SOURCE_AUTH_MODE_GROUP_CLASS =
     "mb-4 grid w-full grid-cols-1 items-stretch sm:grid-cols-2";
 
@@ -3025,16 +3022,17 @@ function TitleGenerationSettingsPanel({
                     }
                 >
                     {draft.titleGenerationApiKeySet ? (
-                        <span
-                            className={SETTINGS_KEY_STATUS_CLASS}
+                        <Badge
+                            variant="secondary"
                             data-sot-key-status
                             data-sot-state="stored"
                         >
-                            <span aria-hidden="true" className="text-primary">
-                                ✓
-                            </span>
+                            <CheckCircle2
+                                aria-hidden="true"
+                                data-icon="inline-start"
+                            />
                             {isZh ? "已存储" : "Stored"}
-                        </span>
+                        </Badge>
                     ) : null}
                     <Input
                         className={SETTINGS_INPUT_CLASS}
@@ -3606,16 +3604,17 @@ function VoScriptSettingsPanel({
                     }
                 >
                     {draft.privateTranscriptionApiKeySet ? (
-                        <span
-                            className={SETTINGS_KEY_STATUS_CLASS}
+                        <Badge
+                            variant="secondary"
                             data-sot-key-status
                             data-sot-state="stored"
                         >
-                            <span aria-hidden="true" className="text-primary">
-                                ✓
-                            </span>
+                            <CheckCircle2
+                                aria-hidden="true"
+                                data-icon="inline-start"
+                            />
                             {isZh ? "已存储" : "Stored"}
-                        </span>
+                        </Badge>
                     ) : null}
                     <Input
                         className={SETTINGS_INPUT_CLASS}

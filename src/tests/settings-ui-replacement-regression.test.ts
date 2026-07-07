@@ -2058,9 +2058,6 @@ describe("settings SOT interaction regressions", () => {
         const shortcutKeyClass =
             content.match(/const SETTINGS_SHORTCUT_KEY_CLASS[\s\S]*?;/)?.[0] ??
             "";
-        const keyStatusClass =
-            content.match(/const SETTINGS_KEY_STATUS_CLASS[\s\S]*?;/)?.[0] ??
-            "";
         const providerDetailInputOwnerClass =
             settingFieldControl.match(
                 /const SOURCE_PROVIDER_DETAIL_INPUT_CLASS\s*=\s*"[^"]*";/,
@@ -2082,6 +2079,11 @@ describe("settings SOT interaction regressions", () => {
             settingFieldControl.match(
                 /const sourceProviderControlClassName[\s\S]*?;/,
             )?.[0] ?? "";
+        const keyStatusBadges = collectElementSlices(
+            content,
+            "data-sot-key-status",
+            "Badge",
+        );
 
         expect(content).toContain("SETTINGS_FIELD_ROW_CLASS");
         expect(content).toContain("SETTINGS_FIELD_CONTENT_CLASS");
@@ -2278,17 +2280,25 @@ describe("settings SOT interaction regressions", () => {
         expect(shortcutKeyClass).toContain("bg-muted");
         expect(shortcutKeyClass).toContain("text-muted-foreground");
         expect(shortcutKeyClass).not.toContain("var(--");
-        expect(keyStatusClass).toContain("SETTINGS_KEY_STATUS_CLASS");
-        expect(keyStatusClass).toContain("inline-flex items-center gap-1");
-        expect(keyStatusClass).not.toContain("data-[sot-state=");
-        expect(keyStatusClass).toContain("text-muted-foreground");
-        expect(keyStatusClass).not.toContain("var(--");
         expect(content).toContain("className={SETTINGS_SHORTCUTS_GRID_CLASS}");
         expect(content).toContain("className={SETTINGS_SHORTCUT_ROW_CLASS}");
         expect(content).toContain("className={SETTINGS_SHORTCUT_KEY_CLASS}");
-        expect(content).toContain("className={SETTINGS_KEY_STATUS_CLASS}");
-        expect(content).toContain("data-sot-key-status");
-        expect(content).toContain('className="text-primary"');
+        expect(content).not.toContain("SETTINGS_KEY_STATUS_CLASS");
+        expect(content).not.toContain("className={SETTINGS_KEY_STATUS_CLASS}");
+        expect(content).not.toContain('className="text-primary"');
+        expect(keyStatusBadges).toHaveLength(2);
+        for (const keyStatusBadge of keyStatusBadges) {
+            expect(keyStatusBadge).toContain("<Badge");
+            expect(keyStatusBadge).toContain('variant="secondary"');
+            expect(keyStatusBadge).toContain("data-sot-key-status");
+            expect(keyStatusBadge).toContain('data-sot-state="stored"');
+            expect(keyStatusBadge).toContain("<CheckCircle2");
+            expect(keyStatusBadge).toContain('aria-hidden="true"');
+            expect(keyStatusBadge).toContain('data-icon="inline-start"');
+            expect(keyStatusBadge).toContain('{isZh ? "已存储" : "Stored"}');
+            expect(keyStatusBadge).not.toContain("SETTINGS_KEY_STATUS_CLASS");
+            expect(keyStatusBadge).not.toContain('className="text-primary"');
+        }
         expect(content).not.toContain('data-state="valid"');
         expect(content).not.toContain('data-state="invalid"');
         for (const selector of REMOVED_SETTINGS_SHORTCUTS_KEY_STATUS_VISUAL_SELECTORS) {
