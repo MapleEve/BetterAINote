@@ -28,7 +28,6 @@ import {
 } from "lucide-react";
 import Image from "next/image";
 import {
-    type ComponentProps,
     Fragment,
     type KeyboardEvent as ReactKeyboardEvent,
     type ReactNode,
@@ -40,7 +39,11 @@ import {
 } from "react";
 import { toast } from "sonner";
 import { useLanguage } from "@/components/language-provider";
-import { Alert, AlertTitle } from "@/components/ui/alert";
+import {
+    Alert,
+    AlertDescription,
+    AlertTitle,
+} from "@/components/ui/alert";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
@@ -423,25 +426,6 @@ const dashboardTranscriptSkeletonClassNames = {
     time: "h-[11px] w-20 flex-none",
 } as const satisfies Record<DashboardTranscriptSkeletonSize, string>;
 
-const dashboardTranscriptClassNames = {
-    turn: "border-b border-dashed border-[var(--line-hairline)] py-[10px] pb-4 last:border-b-0",
-    speakerRow: "mb-1.5 flex items-center gap-2.5",
-    avatar: "inline-grid size-7 flex-none place-items-center rounded-full bg-[var(--accent-soft)] text-center [font:600_12px/1_var(--font-sans)] tracking-normal text-[var(--steel-700)] data-[sot-tone=info]:bg-[var(--accent-soft)] data-[sot-tone=info]:text-[var(--signal-info)] data-[sot-tone=steel]:bg-[var(--accent-soft)] data-[sot-tone=steel]:text-[var(--steel-700)] data-[sot-tone=success]:bg-[var(--button-copy-success-bg)] data-[sot-tone=success]:text-[var(--signal-success)]",
-    speakerName: "[font:600_12.5px_var(--font-sans)] text-[var(--fg-primary)]",
-    speakerTime:
-        "ml-1 font-mono text-[11px] font-medium text-[var(--fg-tertiary)]",
-    paragraph:
-        "m-0 ![font:400_14.5px/1.65_var(--font-sans)] ![color:var(--fg-primary)] [text-wrap:pretty]",
-    empty: "block min-w-0 flex-none rounded-none border-0 bg-transparent px-[18px] py-[26px] text-center shadow-none",
-    emptyHeader: "block max-w-none",
-    emptyIcon:
-        "mx-auto mb-2 inline-grid size-11 place-items-center rounded-full border border-[var(--line-hairline)] bg-[var(--bg-recessed)] text-[var(--fg-tertiary)] [&_svg]:size-[22px] [&_svg]:fill-none [&_svg]:stroke-current [&_svg]:stroke-[1.6] [&_svg]:[stroke-linecap:round] [&_svg]:[stroke-linejoin:round]",
-    emptyMessage:
-        "mb-1 mt-0 font-sans text-[13px] font-semibold leading-[1.35] text-[var(--fg-primary)]",
-    emptySub:
-        "m-0 font-sans text-xs font-medium leading-[1.55] text-[var(--fg-tertiary)]",
-} as const;
-
 const dashboardSpeakerPaneClassNames = {
     head: "flex items-center gap-2.5 px-4 pt-3 pb-2",
     headTitle:
@@ -596,11 +580,6 @@ const DASHBOARD_RECORDING_LIST_STATE_ICON_CLASS_NAME =
     "size-[15px] fill-none stroke-current stroke-[1.8]";
 const DASHBOARD_ACTIVITY_ITEM_ICON_CLASS_NAME =
     "size-3 fill-none stroke-current stroke-2";
-const DASHBOARD_RETRANSCRIPTION_ICON_CLASS_NAME =
-    "size-[13px] fill-none stroke-current stroke-2";
-const DASHBOARD_RETRANSCRIPTION_CLOSE_ICON_CLASS_NAME =
-    "size-4 fill-none stroke-current stroke-[1.8]";
-
 const DASHBOARD_SIDEBAR_FOOTER_CLASS_NAME = "border-t border-border pt-2.5";
 
 const dashboardRecordingTimeFilterStyles = {
@@ -631,13 +610,8 @@ const dashboardRecordingListTitlebarStyles = {
     count: "ml-auto font-mono text-[11.5px] font-medium text-muted-foreground",
 } as const;
 
-const dashboardScrollbarClassName =
-    "[scrollbar-width:thin] [scrollbar-color:var(--muted-foreground)_transparent] [&::-webkit-scrollbar]:size-[10px] [&::-webkit-scrollbar-track]:bg-transparent [&::-webkit-scrollbar-thumb]:rounded-full [&::-webkit-scrollbar-thumb]:border-2 [&::-webkit-scrollbar-thumb]:border-transparent [&::-webkit-scrollbar-thumb]:bg-muted-foreground/35 [&::-webkit-scrollbar-thumb]:bg-clip-padding [&::-webkit-scrollbar-thumb:hover]:bg-muted-foreground/55 [&::-webkit-scrollbar-thumb:hover]:bg-clip-padding";
-
-const dashboardRecordingListScrollClassName = cn(
-    "flex-1 overflow-y-auto p-1",
-    dashboardScrollbarClassName,
-);
+const dashboardRecordingListScrollClassName =
+    "flex-1 overflow-y-auto p-1 [scrollbar-width:thin] [scrollbar-color:var(--muted-foreground)_transparent] [&::-webkit-scrollbar]:size-[10px] [&::-webkit-scrollbar-track]:bg-transparent [&::-webkit-scrollbar-thumb]:rounded-full [&::-webkit-scrollbar-thumb]:border-2 [&::-webkit-scrollbar-thumb]:border-transparent [&::-webkit-scrollbar-thumb]:bg-muted-foreground/35 [&::-webkit-scrollbar-thumb]:bg-clip-padding [&::-webkit-scrollbar-thumb:hover]:bg-muted-foreground/55 [&::-webkit-scrollbar-thumb:hover]:bg-clip-padding";
 
 const dashboardRecordingListModeStyles = {
     root: "mt-2 flex items-center gap-2.5",
@@ -778,9 +752,6 @@ const dashboardSearchActivityClassNames = {
 const dashboardButtonClassNames = {
     nav: "relative h-auto w-full justify-start gap-2.5 rounded-[9px] border border-transparent bg-transparent px-2.5 py-[7px] text-left text-[13px] font-medium text-muted-foreground shadow-none hover:bg-accent hover:text-foreground focus-visible:text-foreground disabled:cursor-not-allowed disabled:opacity-50 data-[sot-state=selected]:border-border data-[sot-state=selected]:bg-card data-[sot-state=selected]:text-foreground data-[sot-state=selected]:shadow-xs has-[>svg]:px-2.5",
     sync: "size-[32px] bg-transparent text-muted-foreground shadow-none hover:bg-accent hover:text-foreground",
-    copy: "h-[26px] gap-[6px] rounded-[7px] border border-transparent bg-transparent px-[10px] text-[12px] font-semibold leading-normal text-muted-foreground shadow-none hover:bg-accent hover:text-accent-foreground data-[copy-state=ok]:border-primary/30 data-[copy-state=ok]:bg-primary/10 data-[copy-state=ok]:text-primary data-[copy-state=ok]:hover:bg-primary/10 data-[copy-state=ok]:hover:text-primary data-[copy-state=err]:border-destructive/30 data-[copy-state=err]:text-destructive data-[copy-state=err]:hover:bg-transparent data-[copy-state=err]:hover:text-destructive has-[>svg]:px-[10px] [&[hidden]]:hidden",
-    compactAction:
-        "h-[26px] gap-[7px] rounded-[7px] border border-transparent bg-transparent px-[10px] text-[12px] font-semibold text-muted-foreground shadow-none hover:bg-accent hover:text-accent-foreground has-[>svg]:px-[10px]",
     speakersMerge:
         "h-[26px] gap-[7px] rounded-[7px] border border-transparent bg-transparent px-[10px] text-[12px] font-semibold text-muted-foreground shadow-none hover:bg-accent hover:text-accent-foreground has-[>svg]:px-[10px]",
     drawerTrigger:
@@ -795,24 +766,6 @@ const dashboardButtonClassNames = {
         "size-[32px] border border-transparent bg-transparent p-0 text-muted-foreground shadow-none hover:bg-accent hover:text-accent-foreground",
     headerActionButton:
         "h-8 min-w-[103px] gap-[7px] rounded-[9px] border border-border bg-card px-3 font-sans text-[12.5px] font-semibold leading-normal text-foreground shadow-xs hover:bg-accent hover:text-accent-foreground has-[>svg]:px-3",
-} as const;
-
-const dashboardRetranscriptionThemeClassName = "text-foreground";
-
-const dashboardRetranscriptionClassNames = {
-    disabledHint:
-        "block rounded-[4px] border border-border bg-muted px-[6px] py-[2px] [font:500_11px_var(--font-sans)] text-muted-foreground [&[hidden]]:hidden",
-    banner: "group/retx flex items-center gap-[10px] border-b border-border bg-muted px-[14px] py-[10px] data-[retx-state=completed]:border-primary/30 data-[retx-state=completed]:bg-primary/10 data-[retx-state=failed]:border-destructive/30 data-[retx-state=failed]:bg-destructive/10 data-[retx-state=idle]:hidden data-[retx-state=queued]:border-primary/30 data-[retx-state=queued]:bg-primary/10 data-[retx-state=running]:border-primary/30 data-[retx-state=running]:bg-primary/10 [&[hidden]]:hidden",
-    icon: "inline-flex size-[28px] flex-none items-center justify-center rounded-[50%] border border-border bg-card text-muted-foreground group-data-[retx-state=completed]/retx:border-primary/30 group-data-[retx-state=completed]/retx:text-primary group-data-[retx-state=failed]/retx:border-destructive/30 group-data-[retx-state=failed]/retx:text-destructive group-data-[retx-state=queued]/retx:border-primary/30 group-data-[retx-state=queued]/retx:text-primary group-data-[retx-state=running]/retx:border-primary/30 group-data-[retx-state=running]/retx:text-primary",
-    spinner:
-        "h-[12px] w-[12px] rounded-[50%] border-[1.6px] border-primary border-t-transparent border-r-primary animate-[spin_700ms_linear_infinite]",
-    body: "flex min-w-0 flex-1 flex-col gap-[2px]",
-    title: "[font:600_12.5px_var(--font-sans)] text-foreground",
-    sub: "[font:500_11.5px_var(--font-sans)] text-muted-foreground",
-    actions: "flex flex-none items-center gap-[6px]",
-    closeButton: "p-0",
-    refreshMarker:
-        "inline-flex items-center gap-[4px] rounded-full bg-primary/10 px-[6px] py-px font-mono ![font-size:10.5px] font-medium ![line-height:normal] text-primary [margin:0] [&[hidden]]:hidden",
 } as const;
 
 const dashboardSourceErrorClassName =
@@ -1288,85 +1241,19 @@ function getRecordingListStatus(
     };
 }
 
-const dashboardRecordingStatusBadgeClassName =
-    "h-5 justify-normal gap-[5px] overflow-visible rounded-full px-2 py-0 font-sans text-[11px] font-semibold leading-normal tracking-[0.005em] shadow-none";
-
 const dashboardRecordingStatusBadgeVariants = {
-    err: "outline",
+    err: "destructive",
     info: "secondary",
     neu: "outline",
     ok: "secondary",
     warn: "secondary",
-} as const satisfies Record<
-    SotPlayerStatusTone,
-    ComponentProps<typeof Badge>["variant"]
->;
-
-const dashboardRecordingStatusBadgeToneClassNames = {
-    err: "border-destructive/30 bg-destructive/10 text-destructive",
-    info: "border-primary/30 bg-primary/10 text-primary",
-    neu: "border-border bg-muted text-muted-foreground",
-    ok: "border-primary/30 bg-primary/10 text-primary",
-    warn: "border-border bg-secondary text-secondary-foreground",
 } as const satisfies Record<SotPlayerStatusTone, string>;
-
-const dashboardRecordingStatusDotClassName =
-    "size-[5px] rounded-full bg-current";
-
-const dashboardRecordingStatusDotToneClassNames = {
-    err: "",
-    info: "",
-    neu: "bg-muted-foreground",
-    ok: "",
-    warn: "animate-[bpulse_1.4s_ease-in-out_infinite]",
-} as const satisfies Record<SotPlayerStatusTone, string>;
-
-const dashboardLocalCopyClassNames = {
-    icon: "stroke-current transition-[opacity,transform] duration-200 ease-out",
-    label: "inline-flex min-w-0 items-center",
-} as const;
-
-function DashboardRecordingStatusBadge({
-    className,
-    label,
-    tone,
-}: {
-    className?: string;
-    label: string;
-    tone: SotPlayerStatusTone;
-}) {
-    return (
-        <Badge
-            variant={dashboardRecordingStatusBadgeVariants[tone]}
-            className={cn(
-                dashboardRecordingStatusBadgeClassName,
-                dashboardRecordingStatusBadgeToneClassNames[tone],
-                className,
-            )}
-            data-sot-part="dashboard-recording-status"
-            data-sot-tone={tone}
-        >
-            <span
-                className={cn(
-                    dashboardRecordingStatusDotClassName,
-                    dashboardRecordingStatusDotToneClassNames[tone],
-                )}
-                data-sot-part="dashboard-recording-status-dot"
-                aria-hidden="true"
-            />
-            <span data-sot-part="dashboard-recording-status-label">
-                {label}
-            </span>
-        </Badge>
-    );
-}
 
 function DashboardCopyIcon({ state }: { state?: DashboardCopyFeedbackState }) {
     const Icon = state === "ok" ? Check : state === "err" ? X : Copy;
 
     return (
         <Icon
-            className={dashboardLocalCopyClassNames.icon}
             data-icon="inline-start"
             data-sot-part="dashboard-copy-icon"
             aria-hidden="true"
@@ -1376,10 +1263,7 @@ function DashboardCopyIcon({ state }: { state?: DashboardCopyFeedbackState }) {
 
 function DashboardCopyLabel({ children }: { children: ReactNode }) {
     return (
-        <span
-            className={dashboardLocalCopyClassNames.label}
-            data-sot-part="dashboard-copy-label"
-        >
+        <span data-sot-part="dashboard-copy-label">
             {children}
         </span>
     );
@@ -1579,7 +1463,6 @@ function searchResultFilterLabel(result: SearchResult) {
 function RetxWarnIcon() {
     return (
         <CircleAlert
-            className={DASHBOARD_RETRANSCRIPTION_ICON_CLASS_NAME}
             data-sot-part="dashboard-retranscription-icon-warn"
             aria-hidden="true"
         />
@@ -1589,7 +1472,6 @@ function RetxWarnIcon() {
 function RetxOkIcon() {
     return (
         <Check
-            className={DASHBOARD_RETRANSCRIPTION_ICON_CLASS_NAME}
             data-sot-part="dashboard-retranscription-icon-ok"
             aria-hidden="true"
         />
@@ -1599,7 +1481,6 @@ function RetxOkIcon() {
 function RetxCloseIcon() {
     return (
         <X
-            className={DASHBOARD_RETRANSCRIPTION_CLOSE_ICON_CLASS_NAME}
             aria-hidden="true"
             focusable="false"
         />
@@ -6689,14 +6570,24 @@ export function Workstation({
                                                                             }
                                                                             data-sot-part="dashboard-recording-row-actions"
                                                                         >
-                                                                            <DashboardRecordingStatusBadge
-                                                                                label={
-                                                                                    rowStatus.label
+                                                                            <Badge
+                                                                                variant={
+                                                                                    dashboardRecordingStatusBadgeVariants[
+                                                                                        rowStatus
+                                                                                            .tone
+                                                                                    ]
                                                                                 }
-                                                                                tone={
+                                                                                data-sot-part="dashboard-recording-status"
+                                                                                data-sot-tone={
                                                                                     rowStatus.tone
                                                                                 }
-                                                                            />
+                                                                            >
+                                                                                <span data-sot-part="dashboard-recording-status-label">
+                                                                                    {
+                                                                                        rowStatus.label
+                                                                                    }
+                                                                                </span>
+                                                                            </Badge>
                                                                             {primaryTag ? (
                                                                                 <SotPlayerTagChip
                                                                                     tag={
@@ -7543,9 +7434,6 @@ export function Workstation({
                                     <Button
                                         variant="ghost"
                                         size="sm"
-                                        className={
-                                            dashboardButtonClassNames.copy
-                                        }
                                         type="button"
                                         data-copy="transcript"
                                         data-copy-state={
@@ -7739,25 +7627,21 @@ export function Workstation({
                                                 : t("sourceReport.refresh")}
                                         </SotSourceReportActionButton>
                                     ) : null}
-                                    <span
+                                    <Badge
+                                        variant="outline"
                                         data-sot-part="dashboard-retranscription-disabled-hint"
-                                        className={
-                                            dashboardRetranscriptionClassNames.disabledHint
-                                        }
+                                        className="[&[hidden]]:hidden"
                                         hidden={
                                             detailTab !== "transcript" ||
                                             dashboardRetxState !== "unavailable"
                                         }
                                     >
                                         当前来源不支持私有重转写
-                                    </span>
+                                    </Badge>
                                     <Button
                                         id="retx-btn"
-                                        variant="ghost"
+                                        variant="outline"
                                         size="sm"
-                                        className={
-                                            dashboardButtonClassNames.compactAction
-                                        }
                                         type="button"
                                         data-sot-control="retranscribe-recording"
                                         data-sot-state={dashboardRetxState}
@@ -7783,18 +7667,19 @@ export function Workstation({
                                 </div>
                             </CardHeader>
                             <CardContent
-                                className={cn(
-                                    "min-h-0 flex-1 overflow-y-auto px-5 pt-4 pb-5",
-                                    dashboardScrollbarClassName,
-                                    dashboardRetranscriptionThemeClassName,
-                                )}
+                                className="min-h-0 flex-1 overflow-y-auto px-5 pt-4 pb-5"
                                 data-sot-part="dashboard-transcript-body"
                             >
-                                <div
-                                    data-sot-panel="dashboard-retranscription"
-                                    className={
-                                        dashboardRetranscriptionClassNames.banner
+                                <Alert
+                                    variant={
+                                        dashboardRetxState === "failed"
+                                            ? "statusError"
+                                            : "default"
                                     }
+                                    density="comfortable"
+                                    layout="inline"
+                                    className="rounded-none border-x-0 border-t-0 [&[hidden]]:hidden"
+                                    data-sot-panel="dashboard-retranscription"
                                     data-sot-state={dashboardRetxState}
                                     data-retx-state={dashboardRetxState}
                                     hidden={
@@ -7804,17 +7689,11 @@ export function Workstation({
                                 >
                                     <span
                                         data-sot-part="dashboard-retranscription-icon"
-                                        className={
-                                            dashboardRetranscriptionClassNames.icon
-                                        }
                                         aria-hidden="true"
                                     >
                                         {dashboardRetxState === "queued" ||
                                         dashboardRetxState === "running" ? (
                                             <Spinner
-                                                className={
-                                                    dashboardRetranscriptionClassNames.spinner
-                                                }
                                                 data-sot-part="dashboard-retranscription-spinner"
                                                 size="xs"
                                             />
@@ -7827,45 +7706,30 @@ export function Workstation({
                                           "unavailable" ? (
                                             <RetxWarnIcon />
                                         ) : (
-                                            <RefreshCw />
+                                            <RefreshCw aria-hidden="true" />
                                         )}
                                     </span>
-                                    <div
-                                        data-sot-part="dashboard-retranscription-body"
-                                        className={
-                                            dashboardRetranscriptionClassNames.body
-                                        }
-                                    >
-                                        <div
+                                    <div data-sot-part="dashboard-retranscription-body">
+                                        <AlertTitle
                                             data-sot-part="dashboard-retranscription-title"
-                                            className={
-                                                dashboardRetranscriptionClassNames.title
-                                            }
                                         >
                                             {dashboardRetxTitle}
-                                        </div>
-                                        <div
+                                        </AlertTitle>
+                                        <AlertDescription
+                                            density="comfortable"
                                             data-sot-part="dashboard-retranscription-sub"
-                                            className={
-                                                dashboardRetranscriptionClassNames.sub
-                                            }
                                         >
                                             {dashboardRetxSub}
-                                        </div>
+                                        </AlertDescription>
                                     </div>
                                     {dashboardRetxState === "failed" ? (
                                         <div
                                             data-sot-part="dashboard-retranscription-actions"
-                                            className={
-                                                dashboardRetranscriptionClassNames.actions
-                                            }
+                                            className="flex flex-none items-center gap-2"
                                         >
                                             <Button
-                                                variant="ghost"
+                                                variant="outline"
                                                 size="sm"
-                                                className={
-                                                    dashboardButtonClassNames.compactAction
-                                                }
                                                 type="button"
                                                 data-retx-retry=""
                                                 data-sot-control="retry-retranscription"
@@ -7877,11 +7741,7 @@ export function Workstation({
                                             </Button>
                                             <Button
                                                 variant="ghost"
-                                                size="sm"
-                                                className={cn(
-                                                    dashboardButtonClassNames.compactAction,
-                                                    dashboardRetranscriptionClassNames.closeButton,
-                                                )}
+                                                size="icon-sm"
                                                 type="button"
                                                 aria-label="收起"
                                                 data-retx-dismiss=""
@@ -7897,17 +7757,11 @@ export function Workstation({
                                       selectedRecording ? (
                                         <div
                                             data-sot-part="dashboard-retranscription-actions"
-                                            className={
-                                                dashboardRetranscriptionClassNames.actions
-                                            }
+                                            className="flex flex-none items-center gap-2"
                                         >
                                             <Button
                                                 variant="ghost"
-                                                size="sm"
-                                                className={cn(
-                                                    dashboardButtonClassNames.compactAction,
-                                                    dashboardRetranscriptionClassNames.closeButton,
-                                                )}
+                                                size="icon-sm"
                                                 type="button"
                                                 aria-label="收起"
                                                 data-retx-dismiss=""
@@ -7927,16 +7781,15 @@ export function Workstation({
                                             </Button>
                                         </div>
                                     ) : null}
-                                </div>
-                                <p
+                                </Alert>
+                                <Badge
+                                    variant="secondary"
                                     data-sot-part="dashboard-retranscription-refresh-marker"
-                                    className={
-                                        dashboardRetranscriptionClassNames.refreshMarker
-                                    }
+                                    className="[&[hidden]]:hidden"
                                     hidden={dashboardRetxState !== "completed"}
                                 >
                                     刚刷新 · 1 秒前
-                                </p>
+                                </Badge>
                                 <div
                                     className={dashboardTabPaneHiddenClassName}
                                     data-sot-panel="dashboard-transcript-pane"
@@ -7948,17 +7801,13 @@ export function Workstation({
                                         TRANSCRIPT_LOADING_SKELETON_ROWS.map(
                                             (item) => (
                                                 <div
-                                                    className={
-                                                        dashboardTranscriptClassNames.turn
-                                                    }
+                                                    className="border-b border-dashed py-3 last:border-b-0"
                                                     data-sot-item="dashboard-transcript-turn"
                                                     data-sot-state="loading"
                                                     key={`transcript-skeleton:${item.key}`}
                                                 >
                                                     <div
-                                                        className={
-                                                            dashboardTranscriptClassNames.speakerRow
-                                                        }
+                                                        className="mb-2 flex items-center gap-2"
                                                         data-sot-part="dashboard-transcript-speaker-row"
                                                         data-sot-state="loading"
                                                     >
@@ -8002,24 +7851,18 @@ export function Workstation({
 
                                             return (
                                                 <div
-                                                    className={
-                                                        dashboardTranscriptClassNames.turn
-                                                    }
+                                                    className="border-b border-dashed py-3 last:border-b-0"
                                                     data-sot-item="dashboard-transcript-turn"
                                                     data-sot-state="ready"
                                                     key={`${selectedRecording?.id}:${index}`}
                                                 >
                                                     <div
-                                                        className={
-                                                            dashboardTranscriptClassNames.speakerRow
-                                                        }
+                                                        className="mb-2 flex items-center gap-2"
                                                         data-sot-part="dashboard-transcript-speaker-row"
                                                         data-sot-state="ready"
                                                     >
                                                         <span
-                                                            className={
-                                                                dashboardTranscriptClassNames.avatar
-                                                            }
+                                                            className="inline-flex size-7 flex-none items-center justify-center rounded-full bg-muted text-xs font-medium text-muted-foreground"
                                                             data-sot-part="dashboard-transcript-avatar"
                                                             data-sot-tone={
                                                                 TRANSCRIPT_AVATAR_TONES[
@@ -8031,17 +7874,13 @@ export function Workstation({
                                                             {avatarLabel}
                                                         </span>
                                                         <span
-                                                            className={
-                                                                dashboardTranscriptClassNames.speakerName
-                                                            }
+                                                            className="text-sm font-medium text-foreground"
                                                             data-sot-part="dashboard-transcript-speaker-name"
                                                         >
                                                             {speakerName}
                                                         </span>
                                                         <span
-                                                            className={
-                                                                dashboardTranscriptClassNames.speakerTime
-                                                            }
+                                                            className="ml-1 font-mono text-xs text-muted-foreground"
                                                             data-sot-format="mono"
                                                             data-sot-part="dashboard-transcript-speaker-time"
                                                         >
@@ -8049,9 +7888,7 @@ export function Workstation({
                                                         </span>
                                                     </div>
                                                     <p
-                                                        className={
-                                                            dashboardTranscriptClassNames.paragraph
-                                                        }
+                                                        className="m-0 text-sm/relaxed text-foreground"
                                                     >
                                                         {turn.text}
                                                     </p>
@@ -8061,37 +7898,24 @@ export function Workstation({
                                     ) : (
                                         <Empty
                                             data-sot-panel="dashboard-transcript-empty"
-                                            className={
-                                                dashboardTranscriptClassNames.empty
-                                            }
+                                            variant="compact"
                                         >
-                                            <EmptyHeader
-                                                className={
-                                                    dashboardTranscriptClassNames.emptyHeader
-                                                }
-                                            >
+                                            <EmptyHeader>
                                                 <EmptyMedia
                                                     aria-hidden="true"
-                                                    className={
-                                                        dashboardTranscriptClassNames.emptyIcon
-                                                    }
                                                     data-sot-part="dashboard-transcript-empty-icon"
                                                     variant="icon"
                                                 >
                                                     <SotTranscriptEmptyIcon />
                                                 </EmptyMedia>
                                                 <EmptyTitle
-                                                    className={
-                                                        dashboardTranscriptClassNames.emptyMessage
-                                                    }
+                                                    variant="compact"
                                                     data-sot-part="dashboard-transcript-empty-message"
                                                 >
                                                     还没有逐字稿
                                                 </EmptyTitle>
                                                 <EmptyDescription
-                                                    className={
-                                                        dashboardTranscriptClassNames.emptySub
-                                                    }
+                                                    variant="compact"
                                                     data-sot-part="dashboard-transcript-empty-sub"
                                                 >
                                                     来源已就绪，转写任务还在排队中。

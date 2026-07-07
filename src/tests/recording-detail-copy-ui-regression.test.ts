@@ -3456,17 +3456,13 @@ describe("recording detail copy and title action UI regressions", () => {
         expect(dashboardTranscriptSegmentedTabs).toContain(
             `className="${EXPECTED_DASHBOARD_TRANSCRIPT_SEGMENTED_TABS_CLASS_NAME}"`,
         );
-        expect(dashboardTranscriptBody).toMatch(/className=\{\s*cn\(/);
         expect(dashboardTranscriptBody).toContain(
-            `"${EXPECTED_DASHBOARD_TRANSCRIPT_BODY_BASE_CLASS_NAME}"`,
+            `className="${EXPECTED_DASHBOARD_TRANSCRIPT_BODY_BASE_CLASS_NAME}"`,
         );
-        expect(dashboardTranscriptBody).toContain(
-            "dashboardScrollbarClassName",
-        );
-        expect(dashboardTranscriptBody).toContain(
+        expect(dashboardTranscriptBody).not.toContain("dashboardScrollbarClassName");
+        expect(dashboardTranscriptBody).not.toContain(
             "dashboardRetranscriptionThemeClassName",
         );
-        expect(dashboardTranscriptBody).not.toContain('className="');
         for (const className of [
             EXPECTED_DASHBOARD_TRANSCRIPT_SHELL_CARD_CLASS_NAME,
             EXPECTED_DASHBOARD_TRANSCRIPT_HEADER_CLASS_NAME,
@@ -3529,9 +3525,7 @@ describe("recording detail copy and title action UI regressions", () => {
         expect(dashboardCopyIcon).toContain(
             'data-sot-part="dashboard-copy-icon"',
         );
-        expect(dashboardCopyIcon).toContain(
-            "dashboardLocalCopyClassNames.icon",
-        );
+        expect(dashboardCopyIcon).not.toContain("dashboardLocalCopyClassNames");
         const dashboardCopyLabel = extractBoundedSlice(
             dashboardTranscript,
             "function DashboardCopyLabel",
@@ -3540,9 +3534,7 @@ describe("recording detail copy and title action UI regressions", () => {
         expect(dashboardCopyLabel).toContain(
             'data-sot-part="dashboard-copy-label"',
         );
-        expect(dashboardCopyLabel).toContain(
-            "dashboardLocalCopyClassNames.label",
-        );
+        expect(dashboardCopyLabel).not.toContain("dashboardLocalCopyClassNames");
         const sourceReportCopyButton = extractElementSlice(
             dashboardTranscript,
             'copy="source-transcript"',
@@ -3559,9 +3551,7 @@ describe("recording detail copy and title action UI regressions", () => {
             "const dashboardButtonClassNames = {",
             "} as const;",
         );
-        expect(dashboardButtonClassNames).toMatch(
-            /copy:\s*"[^"]*\[&\[hidden\]\]:hidden[^"]*"/,
-        );
+        expect(dashboardButtonClassNames).not.toContain("copy:");
         expect(sourceReportPrimitives).toContain(
             "const sourceReportCopyButtonVariant = {",
         );
@@ -3683,7 +3673,7 @@ describe("recording detail copy and title action UI regressions", () => {
         );
         expect(dashboardTranscript).not.toContain("<Copy />");
         expect(dashboardTranscriptShell).not.toMatch(
-            /\bbg-(background|card|muted)\b/,
+            /dashboardRetranscriptionClassNames|dashboardTranscriptClassNames|dashboardScrollbarClassName/,
         );
         expect(dashboardTranscript).not.toMatch(
             DASHBOARD_WORKSTATION_LEGACY_CONTROL_RE,
@@ -4185,7 +4175,7 @@ describe("recording detail copy and title action UI regressions", () => {
             "新任务会保持当前转写可见，完成后替换结果。",
         );
         expect(dashboardTranscriptShell).not.toMatch(
-            /\bbg-(background|card|muted)\b/,
+            /dashboardRetranscriptionClassNames|dashboardTranscriptClassNames|dashboardScrollbarClassName/,
         );
         expect(dashboardTranscript).not.toMatch(
             DASHBOARD_WORKSTATION_LEGACY_CONTROL_RE,

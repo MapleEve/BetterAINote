@@ -4,7 +4,7 @@ import { describe, expect, it } from "vitest";
 
 const ROOT = path.join(process.cwd(), "src");
 const SPEAKER_REVIEW_MERGE_POPOVER_PLACEMENT =
-    "w-[320px] min-w-[280px] gap-0 overflow-hidden rounded-[12px]";
+    "w-80 min-w-72 gap-0 overflow-hidden p-0";
 const RECORDING_WORKSTATION_MAIN_REQUIRED_CLASS_TOKENS = [
     "flex",
     "h-screen",
@@ -256,71 +256,65 @@ const SPEAKER_REVIEW_RESIDUAL_OWNER_CLASS_TOKENS = [
         tokens: [
             "min-w-0",
             "truncate",
-            "font-sans",
-            "text-[11.5px]",
+            "text-xs",
             "font-medium",
             "leading-normal",
-            "text-[var(--fg-tertiary)]",
+            "text-muted-foreground",
         ],
     },
     {
         constName: "SPEAKER_REVIEW_SECTION_DESCRIPTION_CLASS_NAME",
         tokens: [
             "m-0",
-            "font-sans",
-            "![font-size:11.5px]",
+            "text-xs",
             "font-medium",
-            "![line-height:normal]",
-            "![color:var(--fg-tertiary)]",
+            "leading-normal",
+            "text-muted-foreground",
             "max-[860px]:whitespace-normal",
-            "max-[860px]:[overflow-wrap:anywhere]",
+            "max-[860px]:break-words",
         ],
     },
     {
         constName: "SPEAKER_REVIEW_SEGMENT_TITLE_CLASS_NAME",
         tokens: [
             "m-0",
-            "font-sans",
-            "![font-size:12px]",
+            "text-xs",
             "font-semibold",
-            "![line-height:normal]",
-            "![color:var(--fg-secondary)]",
+            "leading-normal",
+            "text-muted-foreground",
         ],
     },
     {
         constName: "SPEAKER_REVIEW_SEGMENT_TEXT_CLASS_NAME",
         tokens: [
             "m-0",
-            "font-sans",
-            "![font-size:12.5px]",
+            "text-sm",
             "font-medium",
-            "![line-height:1.55]",
-            "![color:var(--fg-primary)]",
-            "[text-wrap:pretty]",
+            "leading-relaxed",
+            "text-pretty",
+            "text-foreground",
             "max-[860px]:whitespace-normal",
-            "max-[860px]:[overflow-wrap:anywhere]",
+            "max-[860px]:break-words",
         ],
     },
     {
         constName: "SPEAKER_REVIEW_ROW_NAME_CLASS_NAME",
         tokens: [
             "m-0",
-            "font-sans",
-            "![font-size:13px]",
+            "text-sm",
             "font-semibold",
-            "![line-height:1.35]",
-            "![color:var(--fg-primary)]",
+            "leading-snug",
+            "text-foreground",
         ],
     },
     {
         constName: "SPEAKER_REVIEW_SECTION_TITLE_CLASS_NAME",
         tokens: [
             "m-0",
-            "font-sans",
-            "![font-size:13px]",
+            "text-sm",
             "font-semibold",
-            "![line-height:1.35]",
-            "![color:var(--fg-primary)]",
+            "leading-snug",
+            "text-foreground",
         ],
     },
     {
@@ -328,15 +322,14 @@ const SPEAKER_REVIEW_RESIDUAL_OWNER_CLASS_TOKENS = [
         tokens: [
             "m-0",
             "font-mono",
-            "![font-size:11.5px]",
+            "text-xs",
             "font-medium",
-            "![line-height:1.4]",
-            "tracking-[0.02em]",
-            "![color:var(--fg-tertiary)]",
-            "data-[sot-tone=danger]:text-[var(--signal-danger)]",
-            "data-[sot-tone=danger]:![color:var(--signal-danger)]",
+            "leading-snug",
+            "tracking-wide",
+            "text-muted-foreground",
+            "data-[sot-tone=danger]:text-destructive",
             "max-[860px]:whitespace-normal",
-            "max-[860px]:[overflow-wrap:anywhere]",
+            "max-[860px]:break-words",
         ],
     },
 ] as const;
@@ -1901,7 +1894,6 @@ const DASHBOARD_RECORDING_LIST_RESIDUAL_OWNER_CLASS_REFS = [
     "dashboardRecordingListTitlebarStyles.root",
     "dashboardRecordingListTitlebarStyles.title",
     "dashboardRecordingListTitlebarStyles.count",
-    "dashboardScrollbarClassName",
     "dashboardRecordingListScrollClassName",
     "dashboardRecordingListModeStyles.root",
     "dashboardRecordingListModeStyles.label",
@@ -2126,14 +2118,8 @@ const DASHBOARD_RECORDING_LIST_BUTTON_PRIMITIVE_FORBIDDEN_TOKENS = [
 
 const RECORDING_LIST_CHIP_CLEAR_FEATURE_OWNER_CLASS_SNIPPETS = [
     "size-4",
-    "rounded-full",
-    "border border-transparent",
-    "bg-transparent",
     "p-0",
     "text-muted-foreground",
-    "shadow-none",
-    "hover:bg-accent",
-    "hover:text-accent-foreground",
 ] as const;
 
 const DASHBOARD_SOURCE_FILTER_BUTTON_PRIMITIVE_FORBIDDEN_TOKENS = [
@@ -2350,7 +2336,7 @@ const DASHBOARD_SOURCE_FILTER_FEATURE_OWNER_CLASS_SNIPPETS = [
     "text-muted-foreground",
     "from:",
     "flex-[0_1_auto]",
-    "[&_b]:font-bold",
+    "[&_b]:font-semibold",
     "separator:",
     "w-2.5",
     "select-none",
@@ -4919,7 +4905,7 @@ describe("full UI replacement regression coverage", () => {
             "data-[copy-state=err]:hover:bg-transparent",
         ]) {
             expect(button).not.toContain(dashboardTranscriptActionClass);
-            expect(workstation).toContain(dashboardTranscriptActionClass);
+            expect(workstation).not.toContain(dashboardTranscriptActionClass);
         }
         expect(button).toContain(
             "hover:bg-accent hover:text-accent-foreground",
@@ -6291,7 +6277,7 @@ describe("full UI replacement regression coverage", () => {
         for (const selector of SOT_SCROLLBAR_MIGRATED_GLOBAL_SELECTORS) {
             expect(collectCssRuleBlocks(globals, selector)).toEqual([]);
         }
-        expect(workstation).toContain("const dashboardScrollbarClassName =");
+        expect(workstation).not.toContain("const dashboardScrollbarClassName =");
         expect(workstation).toContain("[scrollbar-width:thin]");
         expect(workstation).toContain("dashboardRecordingListScrollClassName");
         expect(workstation).toContain(
@@ -6300,7 +6286,7 @@ describe("full UI replacement regression coverage", () => {
         expect(workstation).toContain(
             'data-sot-part="dashboard-transcript-body"',
         );
-        expect(workstation).toContain("dashboardScrollbarClassName,");
+        expect(workstation).not.toContain("dashboardScrollbarClassName,");
         expect(globals).not.toContain(
             '[data-sot-panel="settings-body"]::-webkit-scrollbar',
         );
@@ -6564,34 +6550,22 @@ describe("full UI replacement regression coverage", () => {
         expect(transcriptEmpty).toContain(
             'data-sot-panel="dashboard-transcript-empty"',
         );
-        expect(transcriptEmpty).toContain(
-            "dashboardTranscriptClassNames.empty",
-        );
+        expect(transcriptEmpty).toContain('variant="compact"');
         expect(transcriptEmpty).toContain("<EmptyHeader");
-        expect(transcriptEmpty).toContain(
-            "dashboardTranscriptClassNames.emptyHeader",
-        );
         expect(transcriptEmpty).toContain("<EmptyMedia");
         expect(transcriptEmpty).toContain('variant="icon"');
         expect(transcriptEmpty).toContain(
             'data-sot-part="dashboard-transcript-empty-icon"',
         );
-        expect(transcriptEmpty).toContain(
-            "dashboardTranscriptClassNames.emptyIcon",
-        );
         expect(transcriptEmpty).toContain("<SotTranscriptEmptyIcon />");
         expect(transcriptEmpty).toContain(
             'data-sot-part="dashboard-transcript-empty-message"',
         );
-        expect(transcriptEmpty).toContain(
-            "dashboardTranscriptClassNames.emptyMessage",
-        );
+        expect(transcriptEmpty).toContain('variant="compact"');
         expect(transcriptEmpty).toContain(
             'data-sot-part="dashboard-transcript-empty-sub"',
         );
-        expect(transcriptEmpty).toContain(
-            "dashboardTranscriptClassNames.emptySub",
-        );
+        expect(transcriptEmpty).not.toContain("dashboardTranscriptClassNames");
         expect(transcriptEmpty).not.toContain("<div");
         expect(transcriptEmpty).not.toContain("<p");
 
@@ -8020,7 +7994,7 @@ describe("full UI replacement regression coverage", () => {
             /className=\{\s*sourceFilterStackClassNames\.chip\s*\}/,
         );
         expect(librarySearchFilterClearButton).toContain('variant="ghost"');
-        expect(librarySearchFilterClearButton).toContain('size="icon"');
+        expect(librarySearchFilterClearButton).toContain('size="icon-xs"');
         expect(librarySearchFilterClearButton).toContain('type="button"');
         expect(librarySearchFilterClearButton).not.toContain(
             "recordingListChipClear",
@@ -8315,19 +8289,20 @@ describe("full UI replacement regression coverage", () => {
             expect(dashboardRecordingRowStyleHelper).toContain(rowStyleSlot);
         }
         for (const rowStateToken of [
-            "data-[sot-state=selected]:",
             "[&.is-hover-demo]:",
             "[&.is-focus-demo]:",
         ]) {
             expect(dashboardRecordingRowStyleHelper).toContain(rowStateToken);
         }
         for (const rowSemanticToken of [
-            "hover:!bg-muted",
-            "hover:text-foreground",
-            "focus:!border-ring",
-            "focus:!ring-ring/50",
-            "data-[sot-state=selected]:!border-primary/30",
-            "data-[sot-state=selected]:bg-primary/10",
+            "grid h-auto w-full",
+            "grid-cols-[minmax(0,1fr)_auto]",
+            "rounded-lg",
+            "px-3 py-2.5",
+            "[&.is-hover-demo]:bg-accent",
+            "[&.is-hover-demo]:text-accent-foreground",
+            "[&.is-focus-demo]:ring-[3px]",
+            "[&.is-focus-demo]:ring-ring/50",
         ]) {
             expect(dashboardRecordingRowStyleHelper).toContain(
                 rowSemanticToken,
@@ -8363,7 +8338,7 @@ describe("full UI replacement regression coverage", () => {
         expect(dashboardRecordingListDivider).toContain(
             "dashboardRecordingRowStyles.groupDivider",
         );
-        expect(workstation).toContain("function DashboardRecordingStatusBadge");
+        expect(workstation).not.toContain("function DashboardRecordingStatusBadge");
         expect(workstation).not.toContain(
             "SOT_DASHBOARD_RECORDING_STATUS_BADGE_CLASS",
         );
@@ -8376,29 +8351,19 @@ describe("full UI replacement regression coverage", () => {
             "Badge",
         );
         expect(dashboardRecordingStatusBadge).toContain(
-            "variant={dashboardRecordingStatusBadgeVariants[tone]}",
-        );
-        expect(dashboardRecordingStatusBadge).toMatch(/className=\{\s*cn\(/);
-        expect(dashboardRecordingStatusBadge).toContain("className,");
-        expect(dashboardRecordingStatusBadge).toContain(
-            "dashboardRecordingStatusBadgeClassName",
-        );
-        expect(dashboardRecordingStatusBadge).toContain(
-            "dashboardRecordingStatusBadgeToneClassNames[tone]",
+            "dashboardRecordingStatusBadgeVariants",
         );
         expect(dashboardRecordingStatusBadge).toContain(
             'data-sot-part="dashboard-recording-status"',
         );
-        expect(dashboardRecordingStatusBadge).toContain("data-sot-tone={tone}");
-        expect(workstation).toMatch(
-            /data-sot-part="dashboard-recording-status-dot"[\s\S]*aria-hidden="true"/,
+        expect(dashboardRecordingStatusBadge).toContain("data-sot-tone={");
+        expect(workstation).not.toContain(
+            'data-sot-part="dashboard-recording-status-dot"',
         );
         expect(workstation).toContain(
             'data-sot-part="dashboard-recording-status-label"',
         );
-        expect(workstation).toMatch(
-            /<DashboardRecordingStatusBadge[\s\S]*label=\{\s*rowStatus\.label\s*\}[\s\S]*tone=\{\s*rowStatus\.tone\s*\}/,
-        );
+        expect(workstation).not.toContain("<DashboardRecordingStatusBadge");
         expect(workstation).toContain(
             'data-sot-part="dashboard-recording-status"',
         );
@@ -8419,19 +8384,21 @@ describe("full UI replacement regression coverage", () => {
         );
         for (const dashboardStatusToken of [
             "const dashboardRecordingStatusBadgeVariants = {",
-            "const dashboardRecordingStatusBadgeToneClassNames = {",
-            'ok: "border-primary/30 bg-primary/10 text-primary"',
-            'warn: "border-border bg-secondary text-secondary-foreground"',
-            'err: "border-destructive/30 bg-destructive/10 text-destructive"',
-            'info: "border-primary/30 bg-primary/10 text-primary"',
-            'neu: "border-border bg-muted text-muted-foreground"',
-            "const dashboardRecordingStatusDotClassName =",
-            '"size-[5px] rounded-full bg-current"',
-            "const dashboardRecordingStatusDotToneClassNames = {",
-            'neu: "bg-muted-foreground"',
-            'warn: "animate-[bpulse_1.4s_ease-in-out_infinite]"',
+            'err: "destructive"',
+            'info: "secondary"',
+            'neu: "outline"',
+            'ok: "secondary"',
+            'warn: "secondary"',
         ]) {
             expect(workstation).toContain(dashboardStatusToken);
+        }
+        for (const retiredDashboardStatusToken of [
+            "const dashboardRecordingStatusBadgeToneClassNames = {",
+            "const dashboardRecordingStatusDotClassName =",
+            "const dashboardRecordingStatusDotToneClassNames = {",
+            '"size-[5px] rounded-full bg-current"',
+        ]) {
+            expect(workstation).not.toContain(retiredDashboardStatusToken);
         }
         expect(dashboardRecordingStatusBadge).not.toContain("--system-banner-");
         expect(
@@ -8479,7 +8446,7 @@ describe("full UI replacement regression coverage", () => {
             "group-data-[time-style=abs]/dashboard-workstation:inline",
             "group-data-[time-style=abs]/dashboard-workstation:hidden",
             "grayscale",
-            "contrast-[0.85]",
+            "opacity-80",
             "object-cover",
             "opacity-60",
             "border border-border",
@@ -8772,8 +8739,8 @@ describe("full UI replacement regression coverage", () => {
         expect(globals).not.toContain(
             '[data-sot-panel="recording-list-tag-filter"][hidden]',
         );
-        expect(workstation).not.toMatch(
-            /variant=\{\s*active\s*\?\s*"secondary"\s*:\s*"ghost"\s*\}/,
+        expect(workstation).toMatch(
+            /variant=\{\s*active\s*\?\s*"secondary"\s*:\s*"ghost"\s*\}[\s\S]*data-sot-control="dashboard-recording-row"/,
         );
         const recordingListEmptyState = extractElementSlice(
             workstation,
@@ -9012,9 +8979,7 @@ describe("full UI replacement regression coverage", () => {
         expect(dashboardCopyIcon).toContain(
             'data-sot-part="dashboard-copy-icon"',
         );
-        expect(dashboardCopyIcon).toContain(
-            "dashboardLocalCopyClassNames.icon",
-        );
+        expect(dashboardCopyIcon).not.toContain("dashboardLocalCopyClassNames");
         expect(dashboardCopyIcon).toContain('state === "ok" ? Check');
         expect(dashboardCopyIcon).toContain('state === "err" ? X : Copy');
         const dashboardCopyLabel = extractBoundedSlice(
@@ -9025,9 +8990,7 @@ describe("full UI replacement regression coverage", () => {
         expect(dashboardCopyLabel).toContain(
             'data-sot-part="dashboard-copy-label"',
         );
-        expect(dashboardCopyLabel).toContain(
-            "dashboardLocalCopyClassNames.label",
-        );
+        expect(dashboardCopyLabel).not.toContain("dashboardLocalCopyClassNames");
         const sourceReportCopyButton = extractElementSlice(
             workstation,
             'copy="source-transcript"',
@@ -9039,14 +9002,7 @@ describe("full UI replacement regression coverage", () => {
         expect(sourceReportCopyButton).toContain('part="dashboard-copy-label"');
         expect(sourceReportPrimitives).toContain("sourceReportCopyLabelBase");
         expect(sourceReportPrimitives).toContain("sourceReportCopyIconBase");
-        const dashboardButtonClassNames = extractBoundedSlice(
-            workstation,
-            "const dashboardButtonClassNames = {",
-            "} as const;",
-        );
-        expect(dashboardButtonClassNames).toMatch(
-            /copy:\s*"[^"]*\[&\[hidden\]\]:hidden[^"]*"/,
-        );
+        expect(workstation).not.toContain("dashboardButtonClassNames.copy");
         expect(sourceReportPrimitives).toContain(
             "const sourceReportCopyButtonVariant = {",
         );
@@ -9073,10 +9029,7 @@ describe("full UI replacement regression coverage", () => {
             );
             expect(buttonOpening).toContain('variant="ghost"');
             expect(buttonOpening).toContain('size="sm"');
-            expectClassNameConstReference(
-                buttonOpening,
-                "dashboardButtonClassNames.copy",
-            );
+            expect(buttonOpening).not.toContain("dashboardButtonClassNames.copy");
         }
         for (const control of DASHBOARD_TRANSCRIPT_COPY_CONTROLS) {
             const copyKind =
@@ -9103,10 +9056,9 @@ describe("full UI replacement regression coverage", () => {
                 `data-sot-control="${control}"`,
                 "Button",
             );
-            expect(buttonOpening).toContain('variant="ghost"');
+            expect(buttonOpening).toContain('variant="outline"');
             expect(buttonOpening).toContain('size="sm"');
-            expectClassNameConstReference(
-                buttonOpening,
+            expect(buttonOpening).not.toContain(
                 "dashboardButtonClassNames.compactAction",
             );
         }
@@ -9117,11 +9069,13 @@ describe("full UI replacement regression coverage", () => {
                 "Button",
             );
             expect(buttonOpening).toContain('variant="ghost"');
-            expect(buttonOpening).toContain('size="sm"');
-            expectExactCnClassNameConstReferences(buttonOpening, [
+            expect(buttonOpening).toContain('size="icon-sm"');
+            expect(buttonOpening).not.toContain(
                 "dashboardButtonClassNames.compactAction",
+            );
+            expect(buttonOpening).not.toContain(
                 "dashboardRetranscriptionClassNames.closeButton",
-            ]);
+            );
         }
         for (const control of DASHBOARD_TRANSCRIPT_COMPACT_ACTION_CONTROLS) {
             const buttonOpening = extractOpeningElement(
@@ -9145,7 +9099,13 @@ describe("full UI replacement regression coverage", () => {
             expect(workstation).not.toContain(removed);
         }
         expect(workstation).toContain(
-            'import { Alert, AlertTitle } from "@/components/ui/alert";',
+            'AlertDescription,',
+        );
+        expect(workstation).toContain(
+            'AlertTitle,',
+        );
+        expect(workstation).toContain(
+            'from "@/components/ui/alert";',
         );
         expect(workstation).toContain(
             'import { Separator } from "@/components/ui/separator";',
@@ -10849,30 +10809,16 @@ describe("full UI replacement regression coverage", () => {
         expect(workstation).not.toContain(
             '<span data-sot-part="dashboard-retranscription-spinner" />',
         );
-        const dashboardRetranscriptionClassNames = extractBoundedSlice(
-            workstation,
-            "const dashboardRetranscriptionClassNames = {",
-            "} as const;",
-        );
-        const dashboardRetranscriptionThemeClassName = extractBoundedSlice(
-            workstation,
-            "const dashboardRetranscriptionThemeClassName =",
-            ";",
-        );
-        for (const snippet of DASHBOARD_RETRANSCRIPTION_OWNER_CLASS_SNIPPETS) {
-            expect(dashboardRetranscriptionClassNames).toContain(snippet);
-        }
-        for (const snippet of DASHBOARD_RETRANSCRIPTION_THEME_CLASS_SNIPPETS) {
-            expect(dashboardRetranscriptionThemeClassName).toContain(snippet);
-        }
         const dashboardRetranscriptionDisabledHint = extractOpeningElement(
             workstation,
             'data-sot-part="dashboard-retranscription-disabled-hint"',
-            "span",
+            "Badge",
         );
-        expectClassNameConstReference(
-            dashboardRetranscriptionDisabledHint,
-            "dashboardRetranscriptionClassNames.disabledHint",
+        expect(dashboardRetranscriptionDisabledHint).toContain(
+            'variant="outline"',
+        );
+        expect(dashboardRetranscriptionDisabledHint).toContain(
+            'className="[&[hidden]]:hidden"',
         );
         expect(dashboardRetranscriptionDisabledHint).toMatch(
             /hidden=\{\s*detailTab !== "transcript"\s*\|\|\s*dashboardRetxState !== "unavailable"\s*\}/,
@@ -10880,11 +10826,15 @@ describe("full UI replacement regression coverage", () => {
         const dashboardRetranscriptionBanner = extractOpeningElement(
             workstation,
             'data-sot-panel="dashboard-retranscription"',
-            "div",
+            "Alert",
         );
-        expectClassNameConstReference(
-            dashboardRetranscriptionBanner,
-            "dashboardRetranscriptionClassNames.banner",
+        expect(dashboardRetranscriptionBanner).toContain("<Alert");
+        expect(dashboardRetranscriptionBanner).toContain(
+            'density="comfortable"',
+        );
+        expect(dashboardRetranscriptionBanner).toContain('layout="inline"');
+        expect(dashboardRetranscriptionBanner).toContain(
+            'className="rounded-none border-x-0 border-t-0 [&[hidden]]:hidden"',
         );
         expect(dashboardRetranscriptionBanner).toContain(
             "data-retx-state={dashboardRetxState}",
@@ -10892,30 +10842,43 @@ describe("full UI replacement regression coverage", () => {
         expect(dashboardRetranscriptionBanner).toMatch(
             /hidden=\{\s*dashboardRetxState === "idle"\s*\|\|\s*dashboardRetxState === "unavailable"\s*\}/,
         );
-        expectClassNameConstReference(
-            extractOpeningElement(
-                workstation,
-                'data-sot-part="dashboard-retranscription-icon"',
-                "span",
-            ),
-            "dashboardRetranscriptionClassNames.icon",
+        const dashboardRetranscriptionIcon = extractOpeningElement(
+            workstation,
+            'data-sot-part="dashboard-retranscription-icon"',
+            "span",
         );
-        expectClassNameConstReference(
+        expect(dashboardRetranscriptionIcon).not.toContain("className=");
+        expect(
             extractOpeningElement(
                 workstation,
                 'data-sot-part="dashboard-retranscription-body"',
                 "div",
             ),
-            "dashboardRetranscriptionClassNames.body",
-        );
+        ).not.toContain("className=");
+        expect(
+            extractOpeningElement(
+                workstation,
+                'data-sot-part="dashboard-retranscription-title"',
+                "AlertTitle",
+            ),
+        ).toContain("<AlertTitle");
+        expect(
+            extractOpeningElement(
+                workstation,
+                'data-sot-part="dashboard-retranscription-sub"',
+                "AlertDescription",
+            ),
+        ).toContain('density="comfortable"');
         const dashboardRetranscriptionRefreshMarker = extractOpeningElement(
             workstation,
             'data-sot-part="dashboard-retranscription-refresh-marker"',
-            "p",
+            "Badge",
         );
-        expectClassNameConstReference(
-            dashboardRetranscriptionRefreshMarker,
-            "dashboardRetranscriptionClassNames.refreshMarker",
+        expect(dashboardRetranscriptionRefreshMarker).toContain(
+            'variant="secondary"',
+        );
+        expect(dashboardRetranscriptionRefreshMarker).toContain(
+            'className="[&[hidden]]:hidden"',
         );
         expect(dashboardRetranscriptionRefreshMarker).toContain(
             'hidden={dashboardRetxState !== "completed"}',
@@ -10927,11 +10890,10 @@ describe("full UI replacement regression coverage", () => {
         expect(globals).not.toMatch(
             DASHBOARD_RETRANSCRIPTION_GLOBAL_TOKEN_DEFINITION_RE,
         );
-        expect(dashboardRetranscriptionClassNames).not.toMatch(
-            DASHBOARD_RETRANSCRIPTION_OWNER_DIRECT_COLOR_RE,
-        );
+        expect(workstation).not.toContain("const dashboardRetranscriptionClassNames");
+        expect(workstation).not.toContain("dashboardRetranscriptionThemeClassName");
         for (const usage of DASHBOARD_RETRANSCRIPTION_OWNER_CLASS_USAGES) {
-            expect(workstation).toContain(usage);
+            expect(workstation).not.toContain(usage);
         }
         const retxGlobalRepaintBlocks =
             DASHBOARD_RETRANSCRIPTION_REPAINT_CSS_SELECTORS.flatMap(
@@ -10998,12 +10960,11 @@ describe("full UI replacement regression coverage", () => {
             'data-sot-part="dashboard-transcript-body"',
             "CardContent",
         );
-        expectCnClassNameReferences(dashboardTranscriptBody, [
-            `"${EXPECTED_DASHBOARD_TRANSCRIPT_BODY_BASE_CLASS_NAME}"`,
-            "dashboardScrollbarClassName",
-            "dashboardRetranscriptionThemeClassName",
-        ]);
-        expect(dashboardTranscriptShell).toContain(
+        expect(dashboardTranscriptBody).toContain(
+            `className="${EXPECTED_DASHBOARD_TRANSCRIPT_BODY_BASE_CLASS_NAME}"`,
+        );
+        expect(dashboardTranscriptBody).not.toContain("dashboardScrollbarClassName");
+        expect(dashboardTranscriptShell).not.toContain(
             "dashboardRetranscriptionThemeClassName",
         );
         expect(dashboardTranscriptShell).toContain(
@@ -12809,9 +12770,7 @@ describe("full UI replacement regression coverage", () => {
         );
         expect(speakerReviewMergeEmpty).toContain("<EmptyMedia");
         expect(speakerReviewMergeEmpty).toContain('variant="subtleIcon"');
-        expect(speakerReviewMergeEmpty).toContain(
-            "<Check strokeWidth={1.8} />",
-        );
+        expect(speakerReviewMergeEmpty).toContain("<Check />");
         expect(speakerReviewMergeEmpty).toMatch(
             /<EmptyTitle\b[^>]*\bvariant="compact"[^>]*\bdata-sot-part="speaker-review-merge-empty-title"[^>]*>/,
         );

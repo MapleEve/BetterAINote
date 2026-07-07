@@ -568,16 +568,23 @@ const RETIRED_DASHBOARD_SOT_CONSTANTS = [
 
 const DASHBOARD_STATIC_OWNER_DEFERRED_TOKEN_AREAS = [
     "dashboardSearchActivityClassNames",
-    "dashboardRetranscriptionThemeClassName",
     "dashboardSourceClassNames",
     "sourceFilterStackClassNames",
     "dashboardRecordingRowStyles",
-    "dashboardScrollbarClassName",
     "dashboardSyncClassNames",
     "dashboardButtonClassNames",
+] as const;
+
+const DASHBOARD_DETAIL_TRANSCRIPT_RETX_CLEANED_OWNER_RESIDUES = [
+    "dashboardRetranscriptionThemeClassName",
+    "dashboardScrollbarClassName",
     "dashboardTranscriptClassNames",
     "DashboardRecordingStatusBadge",
     "dashboardRetranscriptionClassNames",
+    "dashboardLocalCopyClassNames",
+    "dashboardRecordingStatusBadgeClassName",
+    "dashboardRecordingStatusBadgeToneClassNames",
+    "dashboardRecordingStatusDotClassName",
 ] as const;
 
 describe("dashboard SOT search and activity interactions", () => {
@@ -1019,10 +1026,10 @@ describe("dashboard SOT search and activity interactions", () => {
             'data-sot-part="dashboard-transcript-body"',
             "CardContent",
         );
-        const recordingStatusBadge = extractBoundedSlice(
+        const recordingStatusBadge = extractOpeningElement(
             workstation,
-            "function DashboardRecordingStatusBadge",
-            "function getRetxStateFromActiveJob",
+            'data-sot-part="dashboard-recording-status"',
+            "Badge",
         );
 
         expect(workstation).not.toContain("text-white");
@@ -1090,38 +1097,24 @@ describe("dashboard SOT search and activity interactions", () => {
         expect(transcriptLanguageBadge).toContain('variant="outline"');
         expect(transcriptCopyButton).toContain("<Button");
         expect(transcriptCopyButton).toContain('variant="ghost"');
-        expect(transcriptCopyButton).toContain(
-            "dashboardButtonClassNames.copy",
-        );
         expect(transcriptBody).toContain("<CardContent");
         expect(transcriptBody).toContain(
-            '"min-h-0 flex-1 overflow-y-auto px-5 pt-4 pb-5"',
+            'className="min-h-0 flex-1 overflow-y-auto px-5 pt-4 pb-5"',
         );
-        expect(transcriptBody).toContain("dashboardScrollbarClassName");
-        expect(transcriptBody).toContain(
-            "dashboardRetranscriptionThemeClassName",
-        );
-        expect(workstation).toContain("dashboardTranscriptClassNames.turn");
-        expect(workstation).toContain("dashboardTranscriptClassNames.empty");
-        expect(workstation).toContain("function DashboardRecordingStatusBadge");
         expect(recordingStatusBadge).toContain("<Badge");
         expect(recordingStatusBadge).toContain(
-            "variant={dashboardRecordingStatusBadgeVariants[tone]}",
-        );
-        expect(recordingStatusBadge).toContain("className={cn(");
-        expect(recordingStatusBadge).toContain(
-            "dashboardRecordingStatusBadgeClassName",
-        );
-        expect(recordingStatusBadge).toContain(
-            "dashboardRecordingStatusBadgeToneClassNames[tone]",
+            "dashboardRecordingStatusBadgeVariants",
         );
         expect(recordingStatusBadge).toContain(
             'data-sot-part="dashboard-recording-status"',
         );
-        expect(recordingStatusBadge).toContain("data-sot-tone={tone}");
-        expect(recordingStatusBadge).toContain(
-            'data-sot-part="dashboard-recording-status-dot"',
+        expect(recordingStatusBadge).toContain("data-sot-tone={");
+        expect(workstation).toContain(
+            'data-sot-part="dashboard-recording-status-label"',
         );
+        for (const residue of DASHBOARD_DETAIL_TRANSCRIPT_RETX_CLEANED_OWNER_RESIDUES) {
+            expect(workstation).not.toContain(residue);
+        }
         for (const inlineClass of [
             'className="min-h-[280px] p-9 md:p-9"',
             'className="pointer-events-none fixed inset-0 z-[var(--z-drawer-scrim)]',
@@ -1164,7 +1157,7 @@ describe("dashboard SOT search and activity interactions", () => {
         const recordingRowsSlice = extractBoundedSlice(
             workstation,
             "group.entries.map(",
-            "<DashboardRecordingStatusBadge",
+            'data-sot-part="dashboard-recording-status"',
         );
 
         expect(favoritesDefinition).not.toContain("label:");
