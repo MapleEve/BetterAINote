@@ -1322,8 +1322,32 @@ describe("settings SOT interaction regressions", () => {
         expect(settingsEmptyHints.join("\n")).toContain(
             '? "请稍后重试，或检查服务端数据源接口。"',
         );
-        expect(content).toContain('data-sot-list="source-fields"');
-        expect(content).toContain('data-sot-panel="source-provider-fields"');
+        const sourceProviderFieldsListClass =
+            content.match(
+                /const SOURCE_PROVIDER_FIELDS_LIST_CLASS\s*=\s*"([^"]*)";/,
+            )?.[1] ?? "";
+        const sourceProviderFieldsWrapper =
+            content.match(
+                /<div\b(?=[^>]*data-sot-list="source-fields")(?=[^>]*data-sot-panel="source-provider-fields")[^>]*>/,
+            )?.[0] ?? "";
+        expect(sourceProviderFieldsListClass.split(/\s+/)).toEqual(
+            expect.arrayContaining(["flex", "flex-col", "gap-0"]),
+        );
+        expect(sourceProviderFieldsWrapper).toContain("<div");
+        expect(sourceProviderFieldsWrapper).toContain(
+            "className={SOURCE_PROVIDER_FIELDS_LIST_CLASS}",
+        );
+        expect(sourceProviderFieldsWrapper).toContain(
+            'data-sot-list="source-fields"',
+        );
+        expect(sourceProviderFieldsWrapper).toContain(
+            'data-sot-panel="source-provider-fields"',
+        );
+        expect(content).not.toMatch(
+            /<FieldGroup\b(?=[^>]*data-sot-list="source-fields")(?=[^>]*data-sot-panel="source-provider-fields")[^>]*>/,
+        );
+        expect(content).toContain("SOURCE_PROVIDER_DETAIL_FIELD_CLASS");
+        expect(content).toContain('variant="sourceProviderDetail"');
         expect(globals).not.toContain(
             '[data-sot-panel="source-provider-detail"] [data-sot-part="field-empty"]',
         );
@@ -2043,6 +2067,12 @@ describe("settings SOT interaction regressions", () => {
             settingFieldControl.match(
                 /const SOURCE_PROVIDER_DETAIL_INPUT_CLASS\s*=\s*"[^"]*";/,
             )?.[0] ?? "";
+        const providerDetailFieldOwnerClass =
+            settingFieldControl.match(
+                /const SOURCE_PROVIDER_DETAIL_FIELD_CLASS\s*=\s*"([^"]*)";/,
+            )?.[1] ?? "";
+        const providerDetailFieldOwnerClassTokens =
+            providerDetailFieldOwnerClass.split(/\s+/);
         const providerDetailInputOwnerClassName =
             providerDetailInputOwnerClass.match(/const\s+([A-Z0-9_]+)/)?.[1] ??
             "";
@@ -2122,6 +2152,8 @@ describe("settings SOT interaction regressions", () => {
         expect(settingFieldControl).not.toContain("variant={controlVariant}");
         expect(settingFieldControl).not.toContain("controlSize={controlSize}");
         expect(settingFieldControl).not.toContain("size={controlSize}");
+        expect(providerDetailFieldOwnerClassTokens).toContain("py-3");
+        expect(providerDetailFieldOwnerClassTokens).not.toContain("py-2");
         expect(providerDetailInputOwnerClassName).toBe(
             "SOURCE_PROVIDER_DETAIL_INPUT_CLASS",
         );
@@ -2144,11 +2176,16 @@ describe("settings SOT interaction regressions", () => {
             "shadow-none",
             "text-[12px]",
             "leading-[normal]",
+            "w-60",
+            "max-w-full",
         ]) {
             expect(providerDetailInputOwnerClass).not.toContain(
                 removedProviderDetailInputSkin,
             );
         }
+        expect(providerDetailInputOwnerClass).not.toMatch(
+            /(?:^|[\s"'])w-60(?:[\s"';]|$)/,
+        );
         expect(providerDetailInputOwnerClass).not.toContain(
             "focus-visible:ring-0",
         );
@@ -2281,6 +2318,21 @@ describe("settings SOT interaction regressions", () => {
         expect(inputPrimitive).not.toContain("data-sot");
         expect(inputPrimitive).not.toContain("detail:");
         expect(inputPrimitive).not.toContain("max-w-[15rem]");
+        for (const providerDetailPrimitiveSource of [
+            fieldPrimitive,
+            inputPrimitive,
+            switchPrimitive,
+        ]) {
+            expect(providerDetailPrimitiveSource).not.toContain(
+                "SOURCE_PROVIDER_DETAIL_INPUT_CLASS",
+            );
+            expect(providerDetailPrimitiveSource).not.toContain(
+                "w-full max-w-[15rem]",
+            );
+            expect(providerDetailPrimitiveSource).not.toContain(
+                "max-w-[15rem]",
+            );
+        }
         expect(inputPrimitive).not.toContain("font-mono");
         expect(switchPrimitive).toContain('type SwitchVariant = "default"');
         expect(switchPrimitive).toContain('type SwitchSize = "sm" | "default"');

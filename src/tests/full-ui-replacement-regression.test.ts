@@ -11306,11 +11306,41 @@ describe("full UI replacement regression coverage", () => {
         const sourceActionsIndex = settingsProviderDetail.indexOf(
             'data-sot-panel="source-actions"',
         );
+        const sourceProviderFieldsListClass =
+            settings.match(
+                /const SOURCE_PROVIDER_FIELDS_LIST_CLASS\s*=\s*"([^"]*)";/,
+            )?.[1] ?? "";
+        const sourceProviderFieldsWrapper =
+            settingsProviderDetail.match(
+                /<div\b(?=[^>]*data-sot-list="source-fields")(?=[^>]*data-sot-panel="source-provider-fields")[^>]*>/,
+            )?.[0] ?? "";
         const providerDetailDividers = [
             ...settingsProviderDetail.matchAll(
                 /<(?:div|Separator)[\s\S]*?data-sot-section-divider[\s\S]*?\/>/g,
             ),
         ].map((match) => match[0]);
+        expect(sourceProviderFieldsListClass.split(/\s+/)).toEqual(
+            expect.arrayContaining(["flex", "flex-col", "gap-0"]),
+        );
+        expect(sourceProviderFieldsWrapper).toContain("<div");
+        expect(sourceProviderFieldsWrapper).toContain(
+            "className={SOURCE_PROVIDER_FIELDS_LIST_CLASS}",
+        );
+        expect(sourceProviderFieldsWrapper).toContain(
+            'data-sot-list="source-fields"',
+        );
+        expect(sourceProviderFieldsWrapper).toContain(
+            'data-sot-panel="source-provider-fields"',
+        );
+        expect(settingsProviderDetail).not.toMatch(
+            /<FieldGroup\b(?=[^>]*data-sot-list="source-fields")(?=[^>]*data-sot-panel="source-provider-fields")[^>]*>/,
+        );
+        expect(settingsProviderDetail).toContain(
+            "SOURCE_PROVIDER_DETAIL_FIELD_CLASS",
+        );
+        expect(settingsProviderDetail).toContain(
+            'variant="sourceProviderDetail"',
+        );
         expect(settingsProviderDetail).not.toContain("data-sot-section-group");
         expect(settingsProviderDetail).toContain(
             "SOURCE_PROVIDER_DETAIL_PANEL_CLASS",
@@ -11779,6 +11809,12 @@ describe("full UI replacement regression coverage", () => {
             settingFieldControl.match(
                 /const SOURCE_PROVIDER_DETAIL_INPUT_CLASS\s*=\s*"[^"]*";/,
             )?.[0] ?? "";
+        const providerDetailFieldOwnerClass =
+            settingFieldControl.match(
+                /const SOURCE_PROVIDER_DETAIL_FIELD_CLASS\s*=\s*"([^"]*)";/,
+            )?.[1] ?? "";
+        const providerDetailFieldOwnerClassTokens =
+            providerDetailFieldOwnerClass.split(/\s+/);
         const providerDetailInputOwnerClassName =
             providerDetailInputOwnerClass.match(/const\s+([A-Z0-9_]+)/)?.[1] ??
             "";
@@ -11808,6 +11844,8 @@ describe("full UI replacement regression coverage", () => {
         expect(settingFieldControl).not.toMatch(/export const .*_CLASS/);
         expect(settingFieldControl).not.toContain("fieldLabelClassName");
         expect(settingFieldControl).not.toContain("fieldDescriptionClassName");
+        expect(providerDetailFieldOwnerClassTokens).toContain("py-3");
+        expect(providerDetailFieldOwnerClassTokens).not.toContain("py-2");
         expect(providerDetailInputOwnerClassName).toBe(
             "SOURCE_PROVIDER_DETAIL_INPUT_CLASS",
         );
@@ -11830,11 +11868,16 @@ describe("full UI replacement regression coverage", () => {
             "shadow-none",
             "text-[12px]",
             "leading-[normal]",
+            "w-60",
+            "max-w-full",
         ]) {
             expect(providerDetailInputOwnerClass).not.toContain(
                 retiredProviderDetailInputOwnerToken,
             );
         }
+        expect(providerDetailInputOwnerClass).not.toMatch(
+            /(?:^|[\s"'])w-60(?:[\s"';]|$)/,
+        );
         for (const inputPrimitiveToken of [
             "h-9 px-3 py-1 text-base md:text-sm",
             "rounded-md border-input",
@@ -11895,6 +11938,21 @@ describe("full UI replacement regression coverage", () => {
         expect(inputPrimitive).not.toMatch(/\bsettings\b/i);
         expect(inputPrimitive).not.toMatch(/\bsourceProvider\b/);
         expect(inputPrimitive).not.toContain("data-sot");
+        for (const providerDetailPrimitiveSource of [
+            fieldPrimitive,
+            inputPrimitive,
+            switchPrimitive,
+        ]) {
+            expect(providerDetailPrimitiveSource).not.toContain(
+                "SOURCE_PROVIDER_DETAIL_INPUT_CLASS",
+            );
+            expect(providerDetailPrimitiveSource).not.toContain(
+                "w-full max-w-[15rem]",
+            );
+            expect(providerDetailPrimitiveSource).not.toContain(
+                "max-w-[15rem]",
+            );
+        }
         expect(switchPrimitive).not.toContain("sourceProviderDetail");
         expect(switchPrimitive).not.toContain("settingsDetail");
         expect(switchPrimitive).not.toMatch(/\bsettings\b/i);

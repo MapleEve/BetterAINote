@@ -269,7 +269,7 @@ const SOURCE_PROVIDER_DETAIL_FIELD_CONTROL_CLASS = "justify-end";
 
 const SOURCE_PROVIDER_DETAIL_INPUT_CLASS = "w-full max-w-[15rem]";
 
-const SOURCE_PROVIDER_FIELDS_LIST_CLASS = "flex flex-col";
+const SOURCE_PROVIDER_FIELDS_LIST_CLASS = "flex flex-col gap-0";
 
 const SOURCE_PROVIDER_SECTION_DIVIDER_CLASS = "my-3";
 
