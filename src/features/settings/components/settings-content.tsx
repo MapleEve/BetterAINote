@@ -5,7 +5,6 @@ import {
     CheckCircle2,
     Database,
     Info,
-    LoaderCircle,
     type LucideIcon,
     PauseCircle,
     Radio,
@@ -896,18 +895,7 @@ function ProviderStateBanner({
     title: string;
     tone: ProviderTone;
 }) {
-    const Icon =
-        tone === "ok"
-            ? CheckCircle2
-            : tone === "warn"
-              ? AlertCircle
-              : tone === "err"
-                ? XCircle
-                : tone === "syncing"
-                  ? LoaderCircle
-                  : tone === "neu"
-                    ? PauseCircle
-                    : Info;
+    const Icon = getProviderStatusIcon(tone);
 
     return (
         <Alert
@@ -919,10 +907,11 @@ function ProviderStateBanner({
             data-sot-tone={tone}
             className={SETTINGS_BANNER_BASE_CLASS}
         >
-            <Icon
-                aria-hidden="true"
-                className={tone === "syncing" ? "animate-spin" : undefined}
-            />
+            {tone === "syncing" ? (
+                <Spinner aria-hidden="true" />
+            ) : (
+                <Icon aria-hidden="true" />
+            )}
             <AlertTitle
                 className={SETTINGS_BANNER_TITLE_CLASS}
                 data-sot-banner-title

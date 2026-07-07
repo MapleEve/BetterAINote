@@ -1848,7 +1848,10 @@ describe("settings SOT interaction regressions", () => {
         expect(content).not.toContain("SETTINGS_BANNER_TONE_CLASS");
         expect(bannerIconSlotClass).toBe("");
         expect(providerStateBannerBlock).not.toContain("data-sot-banner-icon");
+        expect(providerStateBannerBlock).toContain("<Spinner");
         expect(providerStateBannerBlock).toContain("<Icon");
+        expect(providerStateBannerBlock).not.toContain("LoaderCircle");
+        expect(providerStateBannerBlock).not.toContain("animate-spin");
         expect(providerStateBanner).not.toContain('density="settingsBanner"');
         expect(providerStateBanner).not.toContain(
             "border-destructive/30 bg-destructive/10",
@@ -2144,9 +2147,10 @@ describe("settings SOT interaction regressions", () => {
             'import { Spinner } from "@/components/ui/spinner";',
         );
         expect(content).toContain('data-icon="inline-start"');
-        expect(providerStateBannerBlock).toContain(
-            'className={tone === "syncing" ? "animate-spin" : undefined}',
-        );
+        expect(providerStateBannerBlock).toContain("<Spinner");
+        expect(providerStateBannerBlock).toContain("<Icon");
+        expect(providerStateBannerBlock).not.toContain("LoaderCircle");
+        expect(providerStateBannerBlock).not.toContain("animate-spin");
         for (const source of [
             content,
             settingFieldControl,

@@ -1645,6 +1645,10 @@ const DASHBOARD_RECORDING_LIST_BATCH_SOT_HOOKS = [
     'data-sot-part="recording-list-state-icon"',
     'data-sot-part="recording-list-state-title"',
     'data-sot-part="recording-list-state-description"',
+    'data-sot-control="recording-list-open-data-sources"',
+    'data-sot-control="recording-list-clear-filters"',
+    'data-sot-control="recording-list-clear-timeline"',
+    'data-sot-control="recording-list-clear-tag"',
     'data-sot-part="recording-list-page-divider"',
     'data-sot-part="recording-list-page-nav"',
     'data-sot-part="recording-list-page-number"',
@@ -1695,9 +1699,7 @@ const DASHBOARD_RECORDING_LIST_RESIDUAL_OWNER_CLASS_REFS = [
     "dashboardRecordingListModeStyles.count",
     "dashboardRecordingListModeStyles.segmented",
     "dashboardRecordingListStateStyles.root",
-    "dashboardRecordingListStateStyles.icon",
-    "dashboardRecordingListStateStyles.title",
-    "dashboardRecordingListStateStyles.description",
+    "dashboardRecordingListStateStyles.content",
     "dashboardRecordingListPaginationStyles.root",
     "dashboardRecordingListPaginationStyles.divider",
     "dashboardRecordingListPaginationStyles.status",
@@ -4257,11 +4259,125 @@ describe("dashboard SOT foundation", () => {
             "const dashboardRecordingListTitlebarStyles = {",
             "const dashboardSearchActivityClassNames = {",
         );
+        const dashboardRecordingListStateStyles = extractBoundedSlice(
+            workstation,
+            "const dashboardRecordingListStateStyles = {",
+            "} as const;",
+        );
+        const dashboardRecordingListEmptyState = extractElementSlice(
+            workstation,
+            'data-sot-part="recording-list-state"',
+            "Empty",
+        );
+        const dashboardRecordingListEmptyOpening = extractOpeningElement(
+            workstation,
+            'data-sot-part="recording-list-state"',
+            "Empty",
+        );
+        const dashboardRecordingListEmptyMedia = extractOpeningElement(
+            dashboardRecordingListEmptyState,
+            'data-sot-part="recording-list-state-icon"',
+            "EmptyMedia",
+        );
+        const dashboardRecordingListEmptyTitle = extractOpeningElement(
+            dashboardRecordingListEmptyState,
+            'data-sot-part="recording-list-state-title"',
+            "EmptyTitle",
+        );
+        const dashboardRecordingListEmptyDescription = extractOpeningElement(
+            dashboardRecordingListEmptyState,
+            'data-sot-part="recording-list-state-description"',
+            "EmptyDescription",
+        );
         for (const migratedSelector of DASHBOARD_RECORDING_LIST_RESIDUAL_MIGRATED_GLOBAL_SELECTORS) {
             expect(collectCssRuleBlocks(globals, migratedSelector)).toEqual([]);
         }
         for (const ownerClassRef of DASHBOARD_RECORDING_LIST_RESIDUAL_OWNER_CLASS_REFS) {
             expect(workstation).toContain(ownerClassRef);
+        }
+        expect(dashboardRecordingListStateStyles).toContain('root: "m-2"');
+        expect(dashboardRecordingListStateStyles).toContain('content: "mt-2"');
+        for (const removedStateStyleSlot of [
+            "icon:",
+            "title:",
+            "description:",
+            "border-dashed",
+            "bg-muted",
+            "text-muted-foreground",
+        ]) {
+            expect(dashboardRecordingListStateStyles).not.toContain(
+                removedStateStyleSlot,
+            );
+        }
+        expect(dashboardRecordingListEmptyOpening).toContain(
+            'variant="compact"',
+        );
+        expect(dashboardRecordingListEmptyOpening).toContain(
+            "data-list-state-block={listState}",
+        );
+        expect(dashboardRecordingListEmptyOpening).toContain(
+            "data-sot-state={listState}",
+        );
+        expectClassNameConstReference(
+            dashboardRecordingListEmptyOpening,
+            "dashboardRecordingListStateStyles.root",
+        );
+        expect(dashboardRecordingListEmptyState).toContain("<EmptyHeader>");
+        expect(dashboardRecordingListEmptyState).toContain("<EmptyContent");
+        expect(dashboardRecordingListEmptyState).toContain("<FileText />");
+        expect(dashboardRecordingListEmptyState).toMatch(
+            /<EmptyContent\s+className=\{\s*dashboardRecordingListStateStyles\.content\s*\}/,
+        );
+        expect(dashboardRecordingListEmptyMedia).toContain(
+            'variant="subtleIcon"',
+        );
+        expect(dashboardRecordingListEmptyTitle).toContain('variant="compact"');
+        expect(dashboardRecordingListEmptyDescription).toContain(
+            'variant="compact"',
+        );
+        for (const removedRawStateClassRef of [
+            "dashboardRecordingListStateStyles.icon",
+            "dashboardRecordingListStateStyles.title",
+            "dashboardRecordingListStateStyles.description",
+        ]) {
+            expect(dashboardRecordingListEmptyState).not.toContain(
+                removedRawStateClassRef,
+            );
+        }
+        expect(workstation).not.toContain("listStatePrimary:");
+        expect(workstation).not.toContain("listStateAction:");
+        expect(workstation).not.toContain(
+            "dashboardButtonClassNames.listStatePrimary",
+        );
+        expect(workstation).not.toContain(
+            "dashboardButtonClassNames.listStateAction",
+        );
+        for (const { control, variant } of [
+            {
+                control: "recording-list-open-data-sources",
+                variant: "default",
+            },
+            {
+                control: "recording-list-clear-filters",
+                variant: "ghost",
+            },
+            {
+                control: "recording-list-clear-timeline",
+                variant: "ghost",
+            },
+            {
+                control: "recording-list-clear-tag",
+                variant: "ghost",
+            },
+        ] as const) {
+            const buttonOpening = extractOpeningElement(
+                dashboardRecordingListEmptyState,
+                `data-sot-control="${control}"`,
+                "Button",
+            );
+            expect(buttonOpening).toContain(`variant="${variant}"`);
+            expect(buttonOpening).toContain('size="sm"');
+            expect(buttonOpening).not.toContain("className=");
         }
         for (const ownerClassToken of [
             "flex items-center gap-2.5",
@@ -4270,7 +4386,6 @@ describe("dashboard SOT foundation", () => {
             "[scrollbar-width:thin]",
             "[&::-webkit-scrollbar-thumb:hover]:bg-muted-foreground/55",
             "flex-1 overflow-y-auto p-1",
-            "m-2 flex flex-col items-center gap-1.5",
             "relative mt-1.5 mb-[14px] h-px",
         ]) {
             expect(dashboardRecordingListResidualClassSource).toContain(

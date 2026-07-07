@@ -1782,9 +1782,7 @@ const DASHBOARD_RECORDING_LIST_RESIDUAL_OWNER_CLASS_REFS = [
     "dashboardRecordingListModeStyles.count",
     "dashboardRecordingListModeStyles.segmented",
     "dashboardRecordingListStateStyles.root",
-    "dashboardRecordingListStateStyles.icon",
-    "dashboardRecordingListStateStyles.title",
-    "dashboardRecordingListStateStyles.description",
+    "dashboardRecordingListStateStyles.content",
     "dashboardRecordingListPaginationStyles.root",
     "dashboardRecordingListPaginationStyles.divider",
     "dashboardRecordingListPaginationStyles.status",
@@ -5724,7 +5722,8 @@ describe("full UI replacement regression coverage", () => {
             "[scrollbar-width:thin]",
             "[&::-webkit-scrollbar-thumb:hover]:bg-muted-foreground/55",
             "flex-1 overflow-y-auto p-1",
-            "m-2 flex flex-col items-center gap-1.5",
+            'root: "m-2"',
+            'content: "mt-2"',
             "relative mt-1.5 mb-[14px] h-px",
         ]) {
             expect(featureOwnerClassSource).toContain(ownerClassToken);
@@ -8725,19 +8724,88 @@ describe("full UI replacement regression coverage", () => {
         expect(workstation).not.toMatch(
             /variant=\{\s*active\s*\?\s*"secondary"\s*:\s*"ghost"\s*\}/,
         );
-        expect(workstation).toMatch(
-            /<Button\s+variant="default"\s+size="sm"\s+className=\{\s*dashboardButtonClassNames\.listStatePrimary\s*\}[\s\S]*data-sot-control="recording-list-open-data-sources"/,
+        const recordingListEmptyState = extractElementSlice(
+            workstation,
+            'data-sot-part="recording-list-state"',
+            "Empty",
         );
-        for (const control of [
-            "recording-list-clear-filters",
-            "recording-list-clear-timeline",
-            "recording-list-clear-tag",
+        const recordingListEmptyOpening = extractOpeningElement(
+            workstation,
+            'data-sot-part="recording-list-state"',
+            "Empty",
+        );
+        const recordingListEmptyMedia = extractOpeningElement(
+            recordingListEmptyState,
+            'data-sot-part="recording-list-state-icon"',
+            "EmptyMedia",
+        );
+        const recordingListEmptyTitle = extractOpeningElement(
+            recordingListEmptyState,
+            'data-sot-part="recording-list-state-title"',
+            "EmptyTitle",
+        );
+        const recordingListEmptyDescription = extractOpeningElement(
+            recordingListEmptyState,
+            'data-sot-part="recording-list-state-description"',
+            "EmptyDescription",
+        );
+        expect(recordingListEmptyOpening).toContain('variant="compact"');
+        expect(recordingListEmptyOpening).toContain(
+            "data-list-state-block={listState}",
+        );
+        expect(recordingListEmptyOpening).toContain(
+            "data-sot-state={listState}",
+        );
+        expectClassNameConstReference(
+            recordingListEmptyOpening,
+            "dashboardRecordingListStateStyles.root",
+        );
+        expect(recordingListEmptyState).toContain("<EmptyHeader>");
+        expect(recordingListEmptyState).toContain("<EmptyContent");
+        expect(recordingListEmptyState).toContain("<FileText />");
+        expect(recordingListEmptyState).toMatch(
+            /<EmptyContent\s+className=\{\s*dashboardRecordingListStateStyles\.content\s*\}/,
+        );
+        expect(recordingListEmptyMedia).toContain('variant="subtleIcon"');
+        expect(recordingListEmptyTitle).toContain('variant="compact"');
+        expect(recordingListEmptyDescription).toContain('variant="compact"');
+        for (const removedStateClassRef of [
+            "dashboardRecordingListStateStyles.icon",
+            "dashboardRecordingListStateStyles.title",
+            "dashboardRecordingListStateStyles.description",
+            "dashboardButtonClassNames.listStatePrimary",
+            "dashboardButtonClassNames.listStateAction",
         ]) {
-            expect(workstation).toMatch(
-                new RegExp(
-                    `<Button\\s+variant="ghost"\\s+size="sm"\\s+className=\\{\\s*dashboardButtonClassNames\\.listStateAction\\s*\\}[\\s\\S]*data-sot-control="${control}"`,
-                ),
+            expect(recordingListEmptyState).not.toContain(removedStateClassRef);
+        }
+        expect(workstation).not.toContain("listStatePrimary:");
+        expect(workstation).not.toContain("listStateAction:");
+        for (const { control, variant } of [
+            {
+                control: "recording-list-open-data-sources",
+                variant: "default",
+            },
+            {
+                control: "recording-list-clear-filters",
+                variant: "ghost",
+            },
+            {
+                control: "recording-list-clear-timeline",
+                variant: "ghost",
+            },
+            {
+                control: "recording-list-clear-tag",
+                variant: "ghost",
+            },
+        ] as const) {
+            const listStateButton = extractOpeningElement(
+                recordingListEmptyState,
+                `data-sot-control="${control}"`,
+                "Button",
             );
+            expect(listStateButton).toContain(`variant="${variant}"`);
+            expect(listStateButton).toContain('size="sm"');
+            expect(listStateButton).not.toContain("className=");
         }
         for (const control of [
             "recording-list-prev-page",
@@ -11818,10 +11886,18 @@ describe("full UI replacement regression coverage", () => {
         );
         expect(sourceActionStatusWrapper).not.toContain('variant="ghost"');
         expect(sourceActionStatusWrapper).toContain(
-            'data-sot-part="source-action-status-indicator"',
+            "<SourceActionStatusIndicator state={state} />",
         );
+        expect(sourceActionStatusWrapper).not.toContain(
+            "SOURCE_ACTION_STATUS_INDICATOR_CLASS",
+        );
+        expect(sourceActionStatusWrapper).not.toContain("animate-pulse");
         expect(sourceActionStatusWrapper).toContain("className={cn(");
         expect(sourceActionStatusWrapper).not.toContain("showIndicator");
+        expect(settings).toContain("function SourceActionStatusIndicator");
+        expect(settings).toContain(
+            'data-sot-part="source-action-status-indicator"',
+        );
         const settingsRow =
             settings.match(
                 /function SettingsRow[\s\S]*?function SelectControl/,
@@ -12065,7 +12141,15 @@ describe("full UI replacement regression coverage", () => {
         expect(settings).toContain("const statusVariant: BadgeVariant =");
         expect(settings).toContain("const statusClassName = cn(");
         expect(settings).toContain('saveState === "idle" && "hidden"');
-        expect(settings).toContain("const indicatorClassName = cn(");
+        expect(settings).not.toContain("const indicatorClassName = cn(");
+        expect(settingsSaveStatus).toContain("<Spinner");
+        expect(settingsSaveStatus).toContain("<CheckCircle2");
+        expect(settingsSaveStatus).toContain("<XCircle");
+        expect(settingsSaveStatus).toContain(
+            'data-sot-part="settings-save-status-indicator"',
+        );
+        expect(settingsSaveStatus).not.toContain("animate-pulse");
+        expect(settingsSaveStatus).not.toContain("rounded-full bg-current");
         expect(settingsSaveStatus).not.toContain(
             'variant="settingsSaveStatus"',
         );
@@ -13089,24 +13173,17 @@ describe("full UI replacement regression coverage", () => {
             {
                 control: 'data-sot-control="copy-local-transcript"',
                 variant: 'variant="outline"',
-                className: "recordingTranscriptionButtonClassNames.action",
             },
             {
                 control: 'data-sot-control="retranscribe-local"',
                 variant: 'variant="destructive"',
-                className: "recordingTranscriptionButtonClassNames.danger",
             },
             {
                 control: 'data-sot-control="start-local-transcription"',
                 variant: 'variant="default"',
-                className: "recordingTranscriptionButtonClassNames.primary",
             },
         ];
-        for (const {
-            control,
-            variant,
-            className,
-        } of transcriptionActionExpectations) {
+        for (const { control, variant } of transcriptionActionExpectations) {
             const actionOpening = extractOpeningElement(
                 transcriptionSection,
                 control,
@@ -13114,12 +13191,14 @@ describe("full UI replacement regression coverage", () => {
             );
             expect(actionOpening).toContain(variant);
             expect(actionOpening).toContain('size="sm"');
-            expect(actionOpening).toContain(className);
             for (const removedActionToken of [
                 'variant="transcriptionAction"',
                 'variant="transcriptionDangerAction"',
                 'variant="transcriptionPrimaryAction"',
                 'size="transcriptionAction"',
+                "recordingTranscriptionButtonClassNames.action",
+                "recordingTranscriptionButtonClassNames.danger",
+                "recordingTranscriptionButtonClassNames.primary",
             ]) {
                 expect(actionOpening).not.toContain(removedActionToken);
             }

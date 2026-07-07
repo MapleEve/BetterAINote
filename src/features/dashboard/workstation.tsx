@@ -62,6 +62,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import {
     Empty,
+    EmptyContent,
     EmptyDescription,
     EmptyHeader,
     EmptyMedia,
@@ -647,11 +648,8 @@ const dashboardRecordingListModeStyles = {
 } as const;
 
 const dashboardRecordingListStateStyles = {
-    root: "m-2 flex flex-col items-center gap-1.5 rounded-[10px] border border-dashed border-border bg-muted px-[18px] py-[26px] text-center",
-    icon: "mb-0.5 inline-flex size-[34px] items-center justify-center rounded-full border border-border bg-card text-muted-foreground",
-    title: "font-sans text-[13px] font-semibold text-foreground",
-    description:
-        "max-w-[300px] font-sans text-[12px] font-medium leading-[1.5] text-muted-foreground",
+    root: "m-2",
+    content: "mt-2",
 } as const;
 
 const dashboardRecordingListLoadingSkeletonClassNames = {
@@ -792,10 +790,6 @@ const dashboardButtonClassNames = {
         "size-[22px] rounded-full border border-border bg-card text-muted-foreground shadow-sm hover:bg-accent hover:text-foreground max-[860px]:hidden",
     settingsAvatar:
         "size-[30px] rounded-full border-0 bg-primary text-xs font-semibold text-primary-foreground shadow-xs hover:scale-[1.04] hover:bg-primary/90 hover:text-primary-foreground",
-    listStatePrimary:
-        "h-8 gap-1.5 rounded-md bg-primary px-3 text-primary-foreground shadow-xs hover:bg-primary/90 has-[>svg]:px-2.5",
-    listStateAction:
-        "h-8 gap-1.5 rounded-md bg-transparent px-3 text-muted-foreground shadow-none hover:bg-accent hover:text-accent-foreground has-[>svg]:px-2.5",
     listPagination:
         "h-8 gap-1.5 rounded-md bg-transparent px-3 text-muted-foreground shadow-none hover:bg-accent hover:text-accent-foreground has-[>svg]:px-2.5",
     headerIconButton:
@@ -6725,7 +6719,8 @@ export function Workstation({
                                         )}
                                     </div>
                                 ) : (
-                                    <div
+                                    <Empty
+                                        variant="compact"
                                         className={
                                             dashboardRecordingListStateStyles.root
                                         }
@@ -6733,134 +6728,140 @@ export function Workstation({
                                         data-sot-part="recording-list-state"
                                         data-sot-state={listState}
                                     >
-                                        <span
-                                            className={
-                                                dashboardRecordingListStateStyles.icon
-                                            }
-                                            data-sot-part="recording-list-state-icon"
-                                        >
-                                            <FileText />
-                                        </span>
-                                        <div
-                                            className={
-                                                dashboardRecordingListStateStyles.title
-                                            }
-                                            data-sot-part="recording-list-state-title"
-                                        >
-                                            {listState === "empty"
-                                                ? t("recordingList.emptyTitle")
-                                                : listState === "timeline-empty"
-                                                  ? t(
-                                                        "recordingList.timelineEmptyTitle",
-                                                    )
-                                                  : listState === "tag-empty"
+                                        <EmptyHeader>
+                                            <EmptyMedia
+                                                variant="subtleIcon"
+                                                data-sot-part="recording-list-state-icon"
+                                            >
+                                                <FileText />
+                                            </EmptyMedia>
+                                            <EmptyTitle
+                                                variant="compact"
+                                                data-sot-part="recording-list-state-title"
+                                            >
+                                                {listState === "empty"
                                                     ? t(
-                                                          "recordingList.tagEmptyTitle",
+                                                          "recordingList.emptyTitle",
                                                       )
-                                                    : t(
-                                                          "recordingList.noMatchTitle",
-                                                      )}
-                                        </div>
-                                        <div
-                                            className={
-                                                dashboardRecordingListStateStyles.description
-                                            }
-                                            data-sot-part="recording-list-state-description"
-                                        >
-                                            {listState === "empty"
-                                                ? t(
-                                                      "recordingList.emptyDescription",
-                                                  )
-                                                : listState === "timeline-empty"
-                                                  ? t(
-                                                        "recordingList.timelineEmptyDescription",
-                                                    )
-                                                  : listState === "tag-empty"
+                                                    : listState ===
+                                                        "timeline-empty"
+                                                      ? t(
+                                                            "recordingList.timelineEmptyTitle",
+                                                        )
+                                                      : listState ===
+                                                          "tag-empty"
+                                                        ? t(
+                                                              "recordingList.tagEmptyTitle",
+                                                          )
+                                                        : t(
+                                                              "recordingList.noMatchTitle",
+                                                          )}
+                                            </EmptyTitle>
+                                            <EmptyDescription
+                                                variant="compact"
+                                                data-sot-part="recording-list-state-description"
+                                            >
+                                                {listState === "empty"
                                                     ? t(
-                                                          "recordingList.tagEmptyDescription",
+                                                          "recordingList.emptyDescription",
                                                       )
-                                                    : t(
-                                                          "recordingList.noMatchDescription",
-                                                      )}
-                                        </div>
-                                        {listState === "empty" ? (
-                                            <Button
-                                                variant="default"
-                                                size="sm"
-                                                className={
-                                                    dashboardButtonClassNames.listStatePrimary
-                                                }
-                                                type="button"
-                                                data-sot-control="recording-list-open-data-sources"
-                                                onClick={() =>
-                                                    openSettings("data-sources")
-                                                }
-                                            >
-                                                {t(
-                                                    "recordingList.openDataSources",
-                                                )}
-                                            </Button>
-                                        ) : null}
-                                        {listState === "no-match" ? (
-                                            <Button
-                                                variant="ghost"
-                                                size="sm"
-                                                className={
-                                                    dashboardButtonClassNames.listStateAction
-                                                }
-                                                type="button"
-                                                data-sot-control="recording-list-clear-filters"
-                                                onClick={() => {
-                                                    setFavorite("all");
-                                                    setSource("all");
-                                                    setQuery("");
-                                                    setLibrarySearchFilter(
-                                                        null,
-                                                    );
-                                                    setTimelineFilter("all");
-                                                    setSelectedTagFilter("all");
-                                                }}
-                                            >
-                                                {t(
-                                                    "recordingList.clearFilters",
-                                                )}
-                                            </Button>
-                                        ) : null}
-                                        {listState === "timeline-empty" ? (
-                                            <Button
-                                                variant="ghost"
-                                                size="sm"
-                                                className={
-                                                    dashboardButtonClassNames.listStateAction
-                                                }
-                                                type="button"
-                                                data-sot-control="recording-list-clear-timeline"
-                                                onClick={() =>
-                                                    setTimelineFilter("all")
-                                                }
-                                            >
-                                                {t(
-                                                    "recordingList.clearTimeline",
-                                                )}
-                                            </Button>
-                                        ) : null}
-                                        {listState === "tag-empty" ? (
-                                            <Button
-                                                variant="ghost"
-                                                size="sm"
-                                                className={
-                                                    dashboardButtonClassNames.listStateAction
-                                                }
-                                                type="button"
-                                                data-sot-control="recording-list-clear-tag"
-                                                onClick={() =>
-                                                    setSelectedTagFilter("all")
-                                                }
-                                            >
-                                                {t("recordingList.clearTag")}
-                                            </Button>
-                                        ) : null}
-                                    </div>
+                                                    : listState ===
+                                                        "timeline-empty"
+                                                      ? t(
+                                                            "recordingList.timelineEmptyDescription",
+                                                        )
+                                                      : listState ===
+                                                          "tag-empty"
+                                                        ? t(
+                                                              "recordingList.tagEmptyDescription",
+                                                          )
+                                                        : t(
+                                                              "recordingList.noMatchDescription",
+                                                          )}
+                                            </EmptyDescription>
+                                        </EmptyHeader>
+                                        <EmptyContent
+                                            className={
+                                                dashboardRecordingListStateStyles.content
+                                            }
+                                        >
+                                            {listState === "empty" ? (
+                                                <Button
+                                                    variant="default"
+                                                    size="sm"
+                                                    type="button"
+                                                    data-sot-control="recording-list-open-data-sources"
+                                                    onClick={() =>
+                                                        openSettings(
+                                                            "data-sources",
+                                                        )
+                                                    }
+                                                >
+                                                    {t(
+                                                        "recordingList.openDataSources",
+                                                    )}
+                                                </Button>
+                                            ) : null}
+                                            {listState === "no-match" ? (
+                                                <Button
+                                                    variant="ghost"
+                                                    size="sm"
+                                                    type="button"
+                                                    data-sot-control="recording-list-clear-filters"
+                                                    onClick={() => {
+                                                        setFavorite("all");
+                                                        setSource("all");
+                                                        setQuery("");
+                                                        setLibrarySearchFilter(
+                                                            null,
+                                                        );
+                                                        setTimelineFilter(
+                                                            "all",
+                                                        );
+                                                        setSelectedTagFilter(
+                                                            "all",
+                                                        );
+                                                    }}
+                                                >
+                                                    {t(
+                                                        "recordingList.clearFilters",
+                                                    )}
+                                                </Button>
+                                            ) : null}
+                                            {listState === "timeline-empty" ? (
+                                                <Button
+                                                    variant="ghost"
+                                                    size="sm"
+                                                    type="button"
+                                                    data-sot-control="recording-list-clear-timeline"
+                                                    onClick={() =>
+                                                        setTimelineFilter("all")
+                                                    }
+                                                >
+                                                    {t(
+                                                        "recordingList.clearTimeline",
+                                                    )}
+                                                </Button>
+                                            ) : null}
+                                            {listState === "tag-empty" ? (
+                                                <Button
+                                                    variant="ghost"
+                                                    size="sm"
+                                                    type="button"
+                                                    data-sot-control="recording-list-clear-tag"
+                                                    onClick={() =>
+                                                        setSelectedTagFilter(
+                                                            "all",
+                                                        )
+                                                    }
+                                                >
+                                                    {t(
+                                                        "recordingList.clearTag",
+                                                    )}
+                                                </Button>
+                                            ) : null}
+                                        </EmptyContent>
+                                    </Empty>
                                 )}
                                 {listState === "ready" && listTotalPages > 1 ? (
                                     <div
