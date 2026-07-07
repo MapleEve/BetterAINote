@@ -29,17 +29,13 @@ const RECORDING_WORKSTATION_SIDEBAR_REQUIRED_CLASS_TOKENS = [
     "relative",
     "flex",
     "flex-col",
-    "rounded-none",
-    "border",
+    "border-r",
     "border-border",
     "bg-card",
     "px-3",
     "pt-4",
     "pb-3",
-    "shadow-sm",
-    "supports-[backdrop-filter]:bg-card/90",
-    "supports-[backdrop-filter]:backdrop-blur-[22px]",
-    "supports-[backdrop-filter]:backdrop-saturate-[140%]",
+    "text-card-foreground",
     "max-[860px]:hidden",
 ] as const;
 const DASHBOARD_SIDEBAR_REQUIRED_CLASS_TOKENS = [
@@ -204,8 +200,6 @@ const RECORDING_WORKSTATION_TOPBAR_REQUIRED_CLASS_TOKENS = [
     "px-5",
     "py-3",
     "shadow-none",
-    "backdrop-blur-[20px]",
-    "backdrop-saturate-[140%]",
     "supports-[backdrop-filter]:bg-background/60",
     "max-[860px]:min-w-0",
     "max-[860px]:max-w-full",
@@ -969,7 +963,7 @@ const RECORDING_WORKSTATION_NAV_OWNER_CLASS_INITIALIZERS = [
     {
         property: "label",
         expected:
-            "px-2.5 pb-1.5 pt-3.5 font-sans text-[10px] font-semibold uppercase tracking-[0.08em] text-[var(--fg-tertiary)]",
+            "px-2.5 pb-1.5 pt-3.5 text-xs font-semibold uppercase tracking-wide text-muted-foreground",
     },
 ] as const;
 const RECORDING_WORKSTATION_TOPBAR_OWNER_CLASS_INITIALIZERS = [
@@ -980,19 +974,19 @@ const RECORDING_WORKSTATION_TOPBAR_OWNER_CLASS_INITIALIZERS = [
     {
         property: "crumbs",
         expected:
-            "flex items-center gap-2 font-sans text-[13px] font-medium text-[var(--fg-tertiary)]",
+            "flex items-center gap-2 text-sm font-medium text-muted-foreground",
     },
     {
         property: "crumb",
-        expected: "text-[var(--fg-tertiary)]",
+        expected: "text-muted-foreground",
     },
     {
         property: "separator",
-        expected: "text-[var(--fg-tertiary)] opacity-60",
+        expected: "text-muted-foreground/60",
     },
     {
         property: "current",
-        expected: "font-semibold text-[var(--fg-primary)]",
+        expected: "font-semibold text-foreground",
     },
 ] as const;
 const DASHBOARD_TOPBAR_OWNER_CLASS_INITIALIZERS = [
@@ -1053,20 +1047,20 @@ const RECORDING_DETAIL_LIST_OWNER_CLASS_INITIALIZERS = [
     {
         constName: "RECORDING_DETAIL_LIST_ROW_CLASS_NAME",
         expected:
-            "grid w-full cursor-pointer grid-cols-[1fr_auto] items-center gap-[14px] rounded-[10px] border border-transparent bg-transparent px-3 py-[11px] text-left font-sans text-[13.3333px] font-normal transition-colors duration-[var(--duration-fast)] ease-[var(--ease-out)] hover:bg-[var(--bg-recessed)] data-[sot-state=selected]:border-primary/40 data-[sot-state=selected]:bg-[var(--accent-soft)]",
+            "grid w-full grid-cols-[1fr_auto] items-center gap-3 rounded-md border border-border bg-secondary px-3 py-2 text-left transition-colors",
         marker: 'data-sot-item="recording-detail-list-row"',
         tagName: "div",
     },
     {
         constName: "RECORDING_DETAIL_LIST_ROW_BODY_CLASS_NAME",
-        expected: "flex min-w-0 flex-col gap-[5px]",
+        expected: "flex min-w-0 flex-col gap-1",
         marker: 'data-sot-part="recording-detail-list-row-body"',
         tagName: "div",
     },
     {
         constName: "RECORDING_DETAIL_LIST_ROW_TITLE_CLASS_NAME",
         expected:
-            "truncate font-sans text-[13.5px] font-semibold tracking-normal text-[var(--fg-primary)]",
+            "truncate text-sm font-semibold text-foreground",
         marker: 'data-sot-part="recording-detail-list-row-title"',
         tagName: "div",
     },
@@ -1079,7 +1073,7 @@ const RECORDING_DETAIL_LIST_OWNER_CLASS_INITIALIZERS = [
     {
         constName: "RECORDING_DETAIL_LIST_ROW_DURATION_CLASS_NAME",
         expected:
-            "font-mono text-[11.5px] font-medium tracking-[0.02em] text-[var(--fg-secondary)]",
+            "font-mono text-xs font-medium text-muted-foreground",
         marker: 'data-sot-part="recording-detail-list-row-duration"',
         tagName: "span",
     },
@@ -2428,14 +2422,14 @@ describe("recording detail copy and title action UI regressions", () => {
             "const recordingWorkstationBrandClassNames = {",
         );
         expect(detailWorkstation).toContain(
-            'wrapper: "flex items-center gap-[10px] px-2 pt-1 pb-4"',
+            'wrapper: "flex items-center gap-2.5 px-2 pt-1 pb-4"',
         );
-        expect(detailWorkstation).toContain('image: "size-9 rounded-[9px]"');
+        expect(detailWorkstation).toContain('image: "size-9 rounded-md"');
         expect(detailWorkstation).toContain(
-            'name: "[font:600_15px_var(--font-sans)] tracking-[-0.012em] text-[var(--fg-primary)]"',
+            'name: "text-sm font-semibold text-foreground"',
         );
         expect(detailWorkstation).toMatch(
-            /subtitle:\s*"mt-px \[font:500_11px_var\(--font-sans\)\] text-\[var\(--fg-tertiary\)\]"/,
+            /subtitle:\s*"mt-px text-xs font-medium text-muted-foreground"/,
         );
         expect(detailWorkstation).toContain(
             "className={recordingWorkstationBrandClassNames.wrapper}",
@@ -2484,7 +2478,7 @@ describe("recording detail copy and title action UI regressions", () => {
         expect(detailBackControlStart).toBeGreaterThanOrEqual(0);
         expect(detailBackControlEnd).toBeGreaterThan(detailBackControlStart);
         expect(button).not.toContain("recordingDetailBack:");
-        expect(detailBackControl).toContain('variant="ghost"');
+        expect(detailBackControl).toContain('variant="secondary"');
         expect(detailBackControl).toContain('size="default"');
         expect(detailBackControl).toContain(
             "recordingWorkstationButtonClassNames.detailBack",
@@ -2504,8 +2498,13 @@ describe("recording detail copy and title action UI regressions", () => {
             'variant="recordingDetailBack"',
         );
         expect(detailWorkstation).toContain("[&_span]:truncate");
-        expect(detailWorkstation).toContain("[&_svg]:stroke-[1.7]");
-        expect(detailWorkstation).toContain("[&_svg]:opacity-[0.85]");
+        expect(detailWorkstation).not.toContain("[&_svg]:stroke-[");
+        expect(detailWorkstation).not.toContain("[&_svg]:opacity-[");
+        expect(detailWorkstation).not.toContain("[&_svg]:[stroke-linecap");
+        expect(detailWorkstation).not.toContain("[&_svg]:[stroke-linejoin");
+        expect(detailWorkstation).not.toContain("data-[sot-state=selected]:bg-[");
+        expect(detailWorkstation).not.toContain("data-[sot-state=selected]:border-[");
+        expect(detailWorkstation).not.toContain("data-[sot-state=selected]:text-[");
         expect(detailWorkstation).not.toContain(
             'className="flex flex-1 flex-col gap-0.5 overflow-y-auto pb-3"',
         );
@@ -2786,15 +2785,12 @@ describe("recording detail copy and title action UI regressions", () => {
 
             expect(openingElement).toContain(marker);
             expectClassNameConstReference(openingElement, constName);
-            if (constName === "RECORDING_DETAIL_LIST_ROW_CLASS_NAME") {
-                expect(ownerClassName).not.toMatch(
-                    /\b(?:rgb|rgba|hsl|hsla|oklch|color-mix)\(|#[0-9A-Fa-f]{3,8}\b|\bdark:/,
-                );
-            } else {
-                expect(ownerClassName).not.toMatch(
-                    OWNER_WORKSPACE_FORBIDDEN_CLASS_PATTERN,
-                );
-            }
+            expect(ownerClassName).not.toMatch(
+                OWNER_WORKSPACE_FORBIDDEN_CLASS_PATTERN,
+            );
+            expect(ownerClassName).not.toMatch(
+                /(?:text|bg|border)-\[var\(|duration-\[|ease-\[|gap-\[|rounded-\[|py-\[|text-\[|tracking-\[/,
+            );
         }
         expect(listPanel).toContain("<SotPlayerSourceTag");
         expect(listPanel).toContain("<SotPlayerStatusBadge");

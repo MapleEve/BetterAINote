@@ -113,7 +113,7 @@ const RECORDING_DETAIL_HEADER_LOCAL_BADGE_CLASS_NAME =
 const RECORDING_DETAIL_HEADER_STATUS_BADGE_CLASS_NAME =
     "ml-1 shrink-0";
 const RECORDING_WORKSTATION_SHELL_CLASS_NAME =
-    "grid h-screen min-h-[720px] grid-cols-[264px_1fr] transition-[grid-template-columns] duration-[320ms] ease-[var(--ease-out)] max-[860px]:h-auto max-[860px]:min-h-[100svh] max-[860px]:grid-cols-[minmax(0,1fr)] max-[860px]:overflow-x-clip";
+    "grid h-screen min-h-[720px] grid-cols-[264px_1fr] transition-[grid-template-columns] duration-300 ease-out max-[860px]:h-auto max-[860px]:min-h-[100svh] max-[860px]:grid-cols-[minmax(0,1fr)] max-[860px]:overflow-x-clip";
 const RECORDING_WORKSTATION_MAIN_CLASS_NAME =
     "flex h-screen min-w-0 flex-col max-[860px]:min-w-0 max-[860px]:max-w-full max-[860px]:box-border";
 const RECORDING_WORKSTATION_WORKSPACE_CLASS_NAME =
@@ -123,7 +123,7 @@ const RECORDING_WORKSTATION_DETAIL_PANEL_CLASS_NAME =
 const RECORDING_WORKSTATION_DETAIL_BODY_CLASS_NAME =
     "flex min-h-0 min-w-0 flex-col gap-4";
 const RECORDING_WORKSTATION_SIDEBAR_CLASS_NAME =
-    "relative flex flex-col rounded-none border border-border bg-card px-3 pt-4 pb-3 shadow-sm supports-[backdrop-filter]:bg-card/90 supports-[backdrop-filter]:backdrop-blur-[22px] supports-[backdrop-filter]:backdrop-saturate-[140%] max-[860px]:hidden";
+    "relative flex flex-col border-r border-border bg-card px-3 pt-4 pb-3 text-card-foreground max-[860px]:hidden";
 const RECORDING_DETAIL_LIST_CARD_CLASS_NAME =
     "min-h-0 gap-0 max-[860px]:min-w-0 max-[860px]:max-w-full max-[860px]:box-border";
 const RECORDING_DETAIL_LIST_HEADER_CLASS_NAME = "gap-0 border-b px-3 py-3";
@@ -131,15 +131,15 @@ const RECORDING_DETAIL_LIST_TITLE_CLASS_NAME = "text-sm";
 const RECORDING_DETAIL_LIST_CONTENT_CLASS_NAME = "flex min-h-0 flex-col px-0";
 const RECORDING_DETAIL_LIST_ROWS_CLASS_NAME = "flex flex-col gap-0.5 p-1";
 const RECORDING_DETAIL_LIST_ROW_CLASS_NAME =
-    "grid w-full cursor-pointer grid-cols-[1fr_auto] items-center gap-[14px] rounded-[10px] border border-transparent bg-transparent px-3 py-[11px] text-left font-sans text-[13.3333px] font-normal transition-colors duration-[var(--duration-fast)] ease-[var(--ease-out)] hover:bg-[var(--bg-recessed)] data-[sot-state=selected]:border-primary/40 data-[sot-state=selected]:bg-[var(--accent-soft)]";
+    "grid w-full grid-cols-[1fr_auto] items-center gap-3 rounded-md border border-border bg-secondary px-3 py-2 text-left transition-colors";
 const RECORDING_DETAIL_LIST_ROW_BODY_CLASS_NAME =
-    "flex min-w-0 flex-col gap-[5px]";
+    "flex min-w-0 flex-col gap-1";
 const RECORDING_DETAIL_LIST_ROW_TITLE_CLASS_NAME =
-    "truncate font-sans text-[13.5px] font-semibold tracking-normal text-[var(--fg-primary)]";
+    "truncate text-sm font-semibold text-foreground";
 const RECORDING_DETAIL_LIST_ROW_META_CLASS_NAME =
     "flex flex-wrap items-center gap-2";
 const RECORDING_DETAIL_LIST_ROW_DURATION_CLASS_NAME =
-    "font-mono text-[11.5px] font-medium tracking-[0.02em] text-[var(--fg-secondary)]";
+    "font-mono text-xs font-medium text-muted-foreground";
 const RECORDING_DETAIL_METADATA_CARD_CLASS_NAME = "min-h-0 gap-0";
 const RECORDING_DETAIL_METADATA_HEADER_CLASS_NAME =
     "flex items-center gap-3 border-b px-4 py-3";
@@ -162,26 +162,26 @@ const RECORDING_SOURCE_RECORD_HINT_CLASS_NAME = "m-0";
 const RECORDING_SOURCE_RECORD_PANE_CLASS_NAME = "min-h-0";
 const RECORDING_SOURCE_RECORD_EMPTY_CLASS_NAME = "min-h-[280px] flex-1";
 const recordingWorkstationTopbarClassNames = {
-    topbar: "relative z-[var(--z-topbar)] flex h-14 flex-none flex-row items-center gap-3.5 border-b border-border bg-background/80 px-5 py-3 shadow-none backdrop-blur-[20px] backdrop-saturate-[140%] supports-[backdrop-filter]:bg-background/60 max-[860px]:min-w-0 max-[860px]:max-w-full max-[860px]:box-border",
-    crumbs: "flex items-center gap-2 font-sans text-[13px] font-medium text-[var(--fg-tertiary)]",
-    crumb: "text-[var(--fg-tertiary)]",
-    separator: "text-[var(--fg-tertiary)] opacity-60",
-    current: "font-semibold text-[var(--fg-primary)]",
+    topbar: "relative z-[var(--z-topbar)] flex h-14 flex-none flex-row items-center gap-3.5 border-b border-border bg-background/80 px-5 py-3 shadow-none supports-[backdrop-filter]:bg-background/60 max-[860px]:min-w-0 max-[860px]:max-w-full max-[860px]:box-border",
+    crumbs: "flex items-center gap-2 text-sm font-medium text-muted-foreground",
+    crumb: "text-muted-foreground",
+    separator: "text-muted-foreground/60",
+    current: "font-semibold text-foreground",
 } as const;
 const recordingWorkstationBrandClassNames = {
-    wrapper: "flex items-center gap-[10px] px-2 pt-1 pb-4",
-    image: "size-9 rounded-[9px]",
-    name: "[font:600_15px_var(--font-sans)] tracking-[-0.012em] text-[var(--fg-primary)]",
+    wrapper: "flex items-center gap-2.5 px-2 pt-1 pb-4",
+    image: "size-9 rounded-md",
+    name: "text-sm font-semibold text-foreground",
     subtitle:
-        "mt-px [font:500_11px_var(--font-sans)] text-[var(--fg-tertiary)]",
+        "mt-px text-xs font-medium text-muted-foreground",
 } as const;
 const recordingWorkstationNavClassNames = {
     list: "flex flex-1 flex-col gap-0.5 overflow-y-auto pb-3",
-    label: "px-2.5 pb-1.5 pt-3.5 font-sans text-[10px] font-semibold uppercase tracking-[0.08em] text-[var(--fg-tertiary)]",
+    label: "px-2.5 pb-1.5 pt-3.5 text-xs font-semibold uppercase tracking-wide text-muted-foreground",
 } as const;
 const recordingWorkstationButtonClassNames = {
     detailBack:
-        "relative h-auto w-full justify-start gap-2.5 rounded-[9px] border border-transparent bg-transparent px-2.5 py-[7px] text-left text-[13px] font-medium text-[var(--fg-secondary)] shadow-none hover:bg-accent hover:text-[var(--fg-primary)] focus-visible:text-[var(--fg-primary)] disabled:cursor-not-allowed disabled:opacity-50 data-[sot-state=selected]:border-[var(--line-hairline)] data-[sot-state=selected]:bg-[var(--bg-elevated)] data-[sot-state=selected]:text-[var(--fg-primary)] data-[sot-state=selected]:shadow-xs has-[>svg]:px-2.5 [&_span]:min-w-0 [&_span]:flex-1 [&_span]:truncate [&_svg]:flex-none [&_svg]:fill-none [&_svg]:stroke-current [&_svg]:stroke-[1.7] [&_svg]:opacity-[0.85] [&_svg]:[stroke-linecap:round] [&_svg]:[stroke-linejoin:round]",
+        "w-full justify-start [&_span]:min-w-0 [&_span]:flex-1 [&_span]:truncate",
     headerIconButton:
         "text-muted-foreground",
     headerActionButton:
@@ -968,7 +968,7 @@ export function RecordingWorkstation({
                         录音
                     </div>
                     <Button
-                        variant="ghost"
+                        variant="secondary"
                         size="default"
                         className={
                             recordingWorkstationButtonClassNames.detailBack
