@@ -5651,7 +5651,11 @@ type SourceReportRow107MatrixCaseName =
     | "retry"
     | "refresh-in-flight"
     | "open-source availability"
+    | "open-source popup"
     | "repull availability"
+    | "repull-in-flight"
+    | "repull-success"
+    | "repull-fault-injection"
     | "copy availability";
 
 type SourceReportRow107MatrixCaseEvidence = {
@@ -5674,6 +5678,7 @@ type SourceReportRow107MatrixCaseEvidence = {
         sectionCount: number;
         sectionHeadings: string[];
         segmentCount: number;
+        syncRequestCount: number | null;
         visibleStates: string[];
     };
     requestCount: number;
@@ -5731,6 +5736,7 @@ async function readSourceReportRow107MatrixCase(
     caseName: SourceReportRow107MatrixCaseName,
     requestCount: number,
     expectations: string[],
+    syncRequestCount: number | null = null,
 ): Promise<SourceReportRow107MatrixCaseEvidence> {
     const root = sourceReportState(page);
     const loaded = sourceReportInnerState(page, "loaded");
@@ -5812,6 +5818,7 @@ async function readSourceReportRow107MatrixCase(
                           .locator("[data-sot-source-report-segment]")
                           .count()
                     : 0,
+            syncRequestCount,
             visibleStates: await sourceReportRow107VisibleStates(page),
         },
         requestCount,
@@ -5839,7 +5846,7 @@ function sourceReportRow107MatrixMarkdown(
     evidence: SourceReportRow107MatrixEvidence,
 ) {
     const caseLines = evidence.cases.flatMap((matrixCase) => [
-        `- ${matrixCase.case}: state=${matrixCase.markers.dataState}; subState=${matrixCase.markers.dataSubState ?? "n/a"}; visible=${matrixCase.markers.visibleStates.join(",") || "none"}; requests=${matrixCase.requestCount}`,
+        `- ${matrixCase.case}: state=${matrixCase.markers.dataState}; subState=${matrixCase.markers.dataSubState ?? "n/a"}; visible=${matrixCase.markers.visibleStates.join(",") || "none"}; requests=${matrixCase.requestCount}; syncRequests=${matrixCase.markers.syncRequestCount ?? "n/a"}`,
         `  - controls: transcript=${sourceReportRow107ControlSummary(matrixCase.controls.copyTranscript)}; report=${sourceReportRow107ControlSummary(matrixCase.controls.copyReport)}; open=${sourceReportRow107ControlSummary(matrixCase.controls.openSource)}; repull=${sourceReportRow107ControlSummary(matrixCase.controls.repull)}; refresh=${sourceReportRow107ControlSummary(matrixCase.controls.refresh, { preferText: true })}; retry=${sourceReportRow107ControlSummary(matrixCase.controls.retry, { preferText: true })}`,
         `  - expectations: ${matrixCase.expectations.join("; ")}`,
     ]);
@@ -7488,12 +7495,21 @@ test("recording detail source report row107 state-action matrix consolidation", 
         gate?: Promise<void>;
         status?: number;
     };
+    type MatrixDataSourcesSync = {
+        body: Record<string, unknown>;
+        gate?: Promise<void>;
+        status?: number;
+    };
 
     let releaseLoadingReport: () => void = () => {};
     let releaseRefreshReport: () => void = () => {};
+    let releaseRepullSuccess: () => void = () => {};
+    let releaseRepullFailure: () => void = () => {};
     let reportQueue: MatrixSourceReport[] = [];
+    let syncQueue: MatrixDataSourcesSync[] = [];
     let fallbackReport: MatrixSourceReport | null = null;
     let sourceReportRequests = 0;
+    let dataSourcesSyncRequests = 0;
     let userId = "";
     const sourceReportRoute = `**/api/recordings/${DETAIL_RECORDING_ID}/source-report`;
     const title = "Row107 source report matrix";
@@ -7597,12 +7613,17 @@ test("recording detail source report row107 state-action matrix consolidation", 
         "empty",
         "retry",
         "refresh-in-flight",
+        "open-source popup",
+        "repull-in-flight",
+        "repull-success",
+        "repull-fault-injection",
     ];
 
     const addMatrixCase = async (
         caseName: SourceReportRow107MatrixCaseName,
         requestStart: number,
         expectations: string[],
+        syncRequestStart: number | null = null,
     ) => {
         matrixCases.push(
             await readSourceReportRow107MatrixCase(
@@ -7610,6 +7631,9 @@ test("recording detail source report row107 state-action matrix consolidation", 
                 caseName,
                 sourceReportRequests - requestStart,
                 expectations,
+                syncRequestStart == null
+                    ? null
+                    : dataSourcesSyncRequests - syncRequestStart,
             ),
         );
     };
@@ -7655,6 +7679,36 @@ test("recording detail source report row107 state-action matrix consolidation", 
             body: JSON.stringify(nextReport.body),
         });
     });
+    await page.route("**/api/data-sources/sync", async (route) => {
+        if (route.request().method() !== "POST") {
+            await route.continue();
+            return;
+        }
+
+        dataSourcesSyncRequests += 1;
+        const nextSync = syncQueue.shift();
+
+        if (!nextSync) {
+            await route.fulfill({
+                contentType: "application/json",
+                status: 500,
+                body: JSON.stringify({
+                    error: "unexpected row107 matrix source sync request",
+                }),
+            });
+            return;
+        }
+
+        if (nextSync.gate) {
+            await nextSync.gate;
+        }
+
+        await route.fulfill({
+            contentType: "application/json",
+            status: nextSync.status ?? 200,
+            body: JSON.stringify(nextSync.body),
+        });
+    });
 
     try {
         await ensureSignedIn(page);
@@ -7683,9 +7737,25 @@ test("recording detail source report row107 state-action matrix consolidation", 
             "ready",
         );
         await expect(sourceReportLoadButton(page)).toBeEnabled();
+        const copiedTextStart = (await readCopiedTexts(page)).length;
         await detailSourceReportCopyButton(page).click();
+        await expect
+            .poll(async () => (await readCopiedTexts(page)).length)
+            .toBe(copiedTextStart + 1);
+        await expect
+            .poll(async () => (await readCopiedTexts(page)).at(-1) ?? "")
+            .toContain("Row107 来源报告摘要");
+        await expect(detailSourceReportCopyButton(page)).toHaveAttribute(
+            "data-sot-state",
+            "ready",
+        );
         await detailSourceTranscriptCopyButton(page).click();
-        await expect.poll(async () => (await readCopiedTexts(page)).length).toBe(2);
+        await expect
+            .poll(async () => (await readCopiedTexts(page)).length)
+            .toBe(copiedTextStart + 2);
+        await expect
+            .poll(async () => (await readCopiedTexts(page)).at(-1) ?? "")
+            .toContain("来源逐字稿完整内容");
         const copiedTexts = (await readCopiedTexts(page)).join("\n");
         expect(copiedTexts).toContain("Row107 来源报告摘要");
         expect(copiedTexts).toContain("来源逐字稿完整内容");
@@ -7885,6 +7955,123 @@ test("recording detail source report row107 state-action matrix consolidation", 
         await refreshResponse;
         await expect(refreshButton).toBeEnabled();
         await expect(refreshButton).toContainText("刷新");
+        requestStart = sourceReportRequests;
+        await expectSourcePopupUrl(
+            page,
+            sourceReportOpenSourceControl(page),
+            "https://source.example.test/recording/row107",
+        );
+        await addMatrixCase("open-source popup", requestStart, [
+            "open-source click opens a safely routed popup URL",
+            "mocked source.example.test route prevents external provider access",
+        ]);
+
+        const repullSuccessGate = new Promise<void>((resolve) => {
+            releaseRepullSuccess = resolve;
+        });
+        requestStart = sourceReportRequests;
+        let syncRequestStart = dataSourcesSyncRequests;
+        syncQueue.push({
+            body: {
+                errorCount: 0,
+                newRecordings: 0,
+                queued: false,
+                removedRecordings: 0,
+                success: true,
+                updatedRecordings: 1,
+            },
+            gate: repullSuccessGate,
+        });
+        const repullSuccessResponse = page.waitForResponse(
+            (response) =>
+                response.url().includes("/api/data-sources/sync") &&
+                response.request().method() === "POST" &&
+                response.ok(),
+        );
+        const repullRefreshResponse = page.waitForResponse(
+            (response) =>
+                response
+                    .url()
+                    .includes(
+                        `/api/recordings/${DETAIL_RECORDING_ID}/source-report`,
+                    ) &&
+                response.request().method() === "GET" &&
+                response.ok(),
+        );
+        await sourceReportRepullButton(page).click();
+        await expect(sourceReportRepullButton(page)).toHaveAttribute(
+            "data-sot-state",
+            "loading",
+        );
+        await addMatrixCase(
+            "repull-in-flight",
+            requestStart,
+            [
+                "repull POST is in-flight",
+                "repull control enters loading state",
+                "loaded source-report content remains visible while repull is pending",
+            ],
+            syncRequestStart,
+        );
+        releaseRepullSuccess();
+        await repullSuccessResponse;
+        await repullRefreshResponse;
+        await expect(sourceReportRepullButton(page)).toHaveAttribute(
+            "data-sot-state",
+            "ready",
+        );
+        await addMatrixCase(
+            "repull-success",
+            requestStart,
+            [
+                "repull POST succeeds through a mocked sync response",
+                "successful repull reloads source report detail",
+                "repull control returns to ready state",
+            ],
+            syncRequestStart,
+        );
+
+        const repullFailureGate = new Promise<void>((resolve) => {
+            releaseRepullFailure = resolve;
+        });
+        requestStart = sourceReportRequests;
+        syncRequestStart = dataSourcesSyncRequests;
+        syncQueue.push({
+            body: {
+                error: "Row107 repull fault injection",
+                success: false,
+            },
+            gate: repullFailureGate,
+            status: 503,
+        });
+        const repullFailureResponse = page.waitForResponse(
+            (response) =>
+                response.url().includes("/api/data-sources/sync") &&
+                response.request().method() === "POST" &&
+                response.status() === 503,
+        );
+        await sourceReportRepullButton(page).click();
+        await expect(sourceReportRepullButton(page)).toHaveAttribute(
+            "data-sot-state",
+            "loading",
+        );
+        releaseRepullFailure();
+        await repullFailureResponse;
+        await expect(sourceReportState(page, "loaded")).toBeVisible();
+        await expect(sourceReportRepullButton(page)).toHaveAttribute(
+            "data-sot-state",
+            "error",
+        );
+        await addMatrixCase(
+            "repull-fault-injection",
+            requestStart,
+            [
+                "repull POST fault is injected through the sync API route",
+                "failed repull leaves loaded source-report content visible",
+                "repull control exposes error state without issuing a source-report refresh",
+            ],
+            syncRequestStart,
+        );
 
         expect(matrixCases.map((matrixCase) => matrixCase.case)).toEqual(
             expectedCaseNames,
@@ -7916,8 +8103,9 @@ test("recording detail source report row107 state-action matrix consolidation", 
             nonClaims: [
                 "Row 107 remains PARTIAL.",
                 "This focused E2E consolidation does not prove broader all-control/manual gate acceptance.",
-                "No product code, fixtures, thresholds, pixel helpers, or matrix markdown files were changed.",
-                "Open-source and repull entries assert availability/state only; no external provider workflow is claimed.",
+                "This grep does not change product code, fixtures, thresholds, pixel helpers, or matrix markdown files.",
+                "Open-source popup evidence uses a mocked source.example.test route; no external provider workflow is claimed.",
+                "Repull success/error evidence uses mocked sync API responses; no destructive source sync claim is made.",
             ],
             residualBoundaries: [
                 "This is a recording-detail Source report state/action matrix consolidation only.",
@@ -7942,9 +8130,13 @@ test("recording detail source report row107 state-action matrix consolidation", 
     } finally {
         releaseLoadingReport();
         releaseRefreshReport();
+        releaseRepullSuccess();
+        releaseRepullFailure();
         reportQueue = [];
+        syncQueue = [];
         fallbackReport = null;
         await page.unroute(sourceReportRoute).catch(() => null);
+        await page.unroute("**/api/data-sources/sync").catch(() => null);
         await cleanupRecordingDetailSeed();
     }
 });

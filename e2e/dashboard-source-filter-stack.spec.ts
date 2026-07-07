@@ -3745,6 +3745,20 @@ test("dashboard source filter stack retries sync errors and restores active stat
             "data-sot-status",
             "sync-error",
         );
+        await iflyrecRow.hover();
+        const sourceRowRetryAction = iflyrecRow.locator(
+            '[data-sot-part="source-provider-action"]',
+        );
+        await expect(sourceRowRetryAction).toBeVisible();
+        await expect(sourceRowRetryAction).toHaveAttribute("role", "button");
+        await expect(sourceRowRetryAction).toHaveAttribute(
+            "data-sot-action",
+            "retry",
+        );
+        await expect(sourceRowRetryAction).toHaveAttribute(
+            "data-action",
+            "retry-sync",
+        );
         await iflyrecRow.click();
 
         const stack = sourceFilterStack(page);
@@ -3803,6 +3817,29 @@ test("dashboard source filter stack widens no-result favorite filters", async ({
         await expect(stack).toBeVisible();
         await expect(stack).toHaveAttribute("data-sot-state", "no-results");
         await expect(stack).toContainText(/在当前筛选下没有匹配项|no matches/i);
+        await expect(iflyrecRow).toHaveAttribute("data-sot-state", "no-results");
+
+        await page.setViewportSize({ width: 390, height: 844 });
+        await expectResponsiveFrame(page, "mobile-closed");
+        const drawerTrigger = page.locator("#drawer-trigger");
+        await expect(drawerTrigger).toBeVisible();
+        await expect(
+            drawerTrigger.locator(
+                '[data-sot-part="dashboard-drawer-active-dot"]',
+            ),
+        ).toBeVisible();
+        await drawerTrigger.click();
+        await expectDashboardDrawerState(page, "open");
+        await expect(
+            page.locator('[data-sot-panel="dashboard-sidebar"]'),
+        ).toBeVisible();
+        await expect(iflyrecRow).toBeVisible();
+        await expect(iflyrecRow).toHaveAttribute("data-active", "true");
+        await expect(iflyrecRow).toHaveAttribute("data-sot-state", "no-results");
+        await page.keyboard.press("Escape");
+        await expectDashboardDrawerState(page, "closed");
+        await expectResponsiveFrame(page, "mobile-closed");
+        await expect(drawerTrigger).toBeFocused();
 
         const widenAction = sourceFilterAction(page, "source-filter-widen");
         await expectSourceFilterStackActionSurface(widenAction);
@@ -3811,6 +3848,21 @@ test("dashboard source filter stack widens no-result favorite filters", async ({
         await expect(favoriteControl(page, "all")).toHaveAttribute(
             "data-sot-state",
             "selected",
+        );
+        await expect(iflyrecRow).toHaveAttribute(
+            "data-sot-state",
+            "connected-active",
+        );
+        await drawerTrigger.click();
+        await expectDashboardDrawerState(page, "open");
+        await expect(
+            page.locator('[data-sot-panel="dashboard-sidebar"]'),
+        ).toBeVisible();
+        await expect(iflyrecRow).toBeVisible();
+        await expect(iflyrecRow).toHaveAttribute("data-active", "true");
+        await expect(iflyrecRow).toHaveAttribute(
+            "data-sot-state",
+            "connected-active",
         );
     } finally {
         await cleanupStackSeeds(userId);

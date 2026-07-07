@@ -3410,6 +3410,7 @@ function VoScriptSettingsPanel({
         saveLaneName: VoScriptSettingsSaveLane,
         updates: VoScriptSettingsUpdate,
         onSaved?: () => void,
+        onError?: () => void,
     ) => {
         pendingSaveLaneRef.current = saveLaneName;
         saveLane.setSaveState("saving");
@@ -3419,6 +3420,7 @@ function VoScriptSettingsPanel({
             onSaved?.();
             saveLane.setSaveState("saved");
         } catch (error) {
+            onError?.();
             saveLane.setSaveError(
                 getErrorMessage(error, "Failed to update VoScript settings"),
             );
@@ -3429,6 +3431,7 @@ function VoScriptSettingsPanel({
     };
 
     const saveConnectionSettings = async () => {
+        const draftBeforeSave = { ...draft };
         const updates: VoScriptSettingsUpdate = {
             privateTranscriptionBaseUrl: nullableText(
                 draft.privateTranscriptionBaseUrl ?? "",
@@ -3449,6 +3452,7 @@ function VoScriptSettingsPanel({
                 setApiKeyDraft("");
                 setApiKeyMode(VOSCRIPT_API_KEY_KEEP);
             },
+            () => setDraft(draftBeforeSave),
         );
     };
 
@@ -3465,6 +3469,7 @@ function VoScriptSettingsPanel({
             return;
         }
 
+        const draftBeforeSave = { ...draft };
         const updates: VoScriptSettingsUpdate = {
             privateTranscriptionMinSpeakers: clampInteger(
                 draft.privateTranscriptionMinSpeakers,
@@ -3492,7 +3497,13 @@ function VoScriptSettingsPanel({
             ),
         };
 
-        await persistVoScriptSettingsLane(paramsSave, "params", updates);
+        await persistVoScriptSettingsLane(
+            paramsSave,
+            "params",
+            updates,
+            undefined,
+            () => setDraft(draftBeforeSave),
+        );
     };
 
     const testConnection = async () => {
