@@ -39,11 +39,7 @@ import {
 } from "react";
 import { toast } from "sonner";
 import { useLanguage } from "@/components/language-provider";
-import {
-    Alert,
-    AlertDescription,
-    AlertTitle,
-} from "@/components/ui/alert";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
@@ -639,8 +635,7 @@ const dashboardSearchActivityClassNames = {
         "h-[49px] min-h-[49px] gap-[8px] rounded-none border-x-0 border-t-0 border-b border-border px-[12px] py-[8px]",
     librarySearchInputAddon:
         "p-0 text-muted-foreground group-data-[disabled=true]/input-group:opacity-100 has-[>button]:m-0",
-    librarySearchInput:
-        "h-8 min-w-0 px-1 py-0 text-sm md:text-sm",
+    librarySearchInput: "h-8 min-w-0 px-1 py-0 text-sm md:text-sm",
     librarySearchClear: "size-6",
     librarySearchScope:
         "min-h-[39px] w-full flex-wrap gap-[6px] rounded-none border-b border-border bg-muted px-[12px] py-[8px]",
@@ -690,8 +685,7 @@ const dashboardSearchActivityClassNames = {
     dashboardActivityStatusIndicator:
         "size-2 flex-none rounded-full bg-primary",
     dashboardActivityStatusCopy: "flex min-w-0 flex-1 flex-col gap-0.5",
-    dashboardActivityStatusLine:
-        "text-xs font-semibold text-foreground",
+    dashboardActivityStatusLine: "text-xs font-semibold text-foreground",
     dashboardActivityStatusSub:
         "font-mono text-xs font-medium text-muted-foreground",
     dashboardActivitySync:
@@ -742,8 +736,7 @@ const dashboardSourceClassNames = {
 
 const sourceFilterClassNames = {
     clear: "size-4 p-0 text-muted-foreground",
-    librarySearchFilterClear:
-        "size-4 p-0 text-muted-foreground",
+    librarySearchFilterClear: "size-4 p-0 text-muted-foreground",
     action: "ml-1.5 h-6 flex-none cursor-pointer rounded-full px-2 text-xs whitespace-nowrap data-[sot-action=open-settings]:text-primary data-[sot-action=retry]:text-destructive data-[sot-action=widen]:text-primary",
     clearAll: "h-6 px-2 text-sm",
 } as const;
@@ -793,8 +786,7 @@ const dashboardRecordingRowStyles = {
     sourceMarkImage:
         "block size-3.5 max-w-none object-contain align-baseline opacity-80",
     sourceMarkImageCover: "object-cover",
-    sourceMarkLetter:
-        "text-xs font-bold text-muted-foreground",
+    sourceMarkLetter: "text-xs font-bold text-muted-foreground",
     duration:
         "font-mono text-[11.5px] font-medium tracking-[0.02em] text-muted-foreground",
     secondary:
@@ -1049,12 +1041,7 @@ function formatLibrarySearchTimestamp(valueMs: number | null | undefined) {
 }
 
 function LibrarySearchTagIcon() {
-    return (
-        <Tags
-            data-icon="inline-start"
-            aria-hidden="true"
-        />
-    );
+    return <Tags data-icon="inline-start" aria-hidden="true" />;
 }
 
 function buildSourceTranscriptCopyText(report: SourceReportData | null) {
@@ -1222,11 +1209,7 @@ function DashboardCopyIcon({ state }: { state?: DashboardCopyFeedbackState }) {
 }
 
 function DashboardCopyLabel({ children }: { children: ReactNode }) {
-    return (
-        <span data-sot-part="dashboard-copy-label">
-            {children}
-        </span>
-    );
+    return <span data-sot-part="dashboard-copy-label">{children}</span>;
 }
 
 function getRetxStateFromActiveJob(
@@ -1439,12 +1422,7 @@ function RetxOkIcon() {
 }
 
 function RetxCloseIcon() {
-    return (
-        <X
-            aria-hidden="true"
-            focusable="false"
-        />
-    );
+    return <X aria-hidden="true" focusable="false" />;
 }
 
 function SotTranscriptEmptyIcon() {
@@ -5505,18 +5483,12 @@ export function Workstation({
                                                             >
                                                                 {item.tone ===
                                                                 "success" ? (
-                                                                    <CheckCircle
-                                                                        aria-hidden="true"
-                                                                    />
+                                                                    <CheckCircle aria-hidden="true" />
                                                                 ) : item.tone ===
                                                                   "info" ? (
-                                                                    <Bell
-                                                                        aria-hidden="true"
-                                                                    />
+                                                                    <Bell aria-hidden="true" />
                                                                 ) : (
-                                                                    <AlertCircle
-                                                                        aria-hidden="true"
-                                                                    />
+                                                                    <AlertCircle aria-hidden="true" />
                                                                 )}
                                                             </span>
                                                             <div
@@ -5631,9 +5603,7 @@ export function Workstation({
                                                                         )
                                                                     }
                                                                 >
-                                                                    <X
-                                                                        data-icon="inline-start"
-                                                                    />
+                                                                    <X data-icon="inline-start" />
                                                                 </Button>
                                                             </div>
                                                         </li>
@@ -7636,9 +7606,7 @@ export function Workstation({
                                         )}
                                     </span>
                                     <div data-sot-part="dashboard-retranscription-body">
-                                        <AlertTitle
-                                            data-sot-part="dashboard-retranscription-title"
-                                        >
+                                        <AlertTitle data-sot-part="dashboard-retranscription-title">
                                             {dashboardRetxTitle}
                                         </AlertTitle>
                                         <AlertDescription
@@ -7813,9 +7781,7 @@ export function Workstation({
                                                             {timeLabel ?? "--"}
                                                         </span>
                                                     </div>
-                                                    <p
-                                                        className="m-0 text-sm/relaxed text-foreground"
-                                                    >
+                                                    <p className="m-0 text-sm/relaxed text-foreground">
                                                         {turn.text}
                                                     </p>
                                                 </div>
@@ -8392,8 +8358,10 @@ export function Workstation({
                                                                 }
                                                                 data-sot-part="dashboard-speaker-sub"
                                                             >
-                                                                {turn.text
-                                                                    .length}{" "}
+                                                                {
+                                                                    turn.text
+                                                                        .length
+                                                                }{" "}
                                                                 字
                                                             </Badge>
                                                         </div>
@@ -8413,9 +8381,7 @@ export function Workstation({
                                                             data-sot-part="dashboard-speaker-bar"
                                                             getValueLabel={(
                                                                 value,
-                                                            ) =>
-                                                                `${value}%`
-                                                            }
+                                                            ) => `${value}%`}
                                                         />
                                                     </li>
                                                 );

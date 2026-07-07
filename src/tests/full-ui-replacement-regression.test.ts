@@ -46,8 +46,6 @@ const EXPECTED_DASHBOARD_DETAIL_EMPTY_STATE_CLASS_NAME =
     "min-h-[280px] p-9 md:p-9";
 const EXPECTED_DASHBOARD_DRAWER_SCRIM_CLASS_NAME =
     "pointer-events-none fixed inset-0 z-40 hidden max-[860px]:block max-[860px]:group-data-[drawer-state=open]/dashboard-workstation:pointer-events-auto";
-const EXPECTED_DASHBOARD_DRAWER_MENU_ICON_CLASS_NAME =
-    "";
 const EXPECTED_DASHBOARD_DRAWER_ACTIVE_DOT_CLASS_NAME =
     "absolute top-1.5 right-1.5 hidden size-1.5 rounded-full bg-primary";
 const EXPECTED_RECORDING_WORKSTATION_WORKSPACE_CLASS_NAME =
@@ -708,11 +706,7 @@ const DASHBOARD_SEARCH_ACTIVITY_FEATURE_OWNER_CLASS_SNIPPETS = [
     },
     {
         propertyName: "librarySearchInputRow",
-        snippets: [
-            "h-[49px] min-h-[49px]",
-            "gap-[8px]",
-            "px-[12px] py-[8px]",
-        ],
+        snippets: ["h-[49px] min-h-[49px]", "gap-[8px]", "px-[12px] py-[8px]"],
     },
     {
         propertyName: "librarySearchInput",
@@ -1264,22 +1258,6 @@ function expectCnClassNameReferences(
     expect(openingElement).not.toContain('className="');
 }
 
-function expectExactCnClassNameConstReferences(
-    openingElement: string,
-    constNames: readonly string[],
-) {
-    const classNameMatch = /className=\{\s*cn\(([\s\S]*?)\)\s*\}/.exec(
-        openingElement,
-    );
-    expect(classNameMatch).not.toBeNull();
-    const actualConstNames = (classNameMatch?.[1] ?? "")
-        .split(",")
-        .map((className) => className.trim())
-        .filter(Boolean);
-    expect(actualConstNames).toEqual(constNames);
-    expect(openingElement).not.toContain('className="');
-}
-
 function expectSotPlayerNoAudioPrimitiveBindings(source: string) {
     const noAudioAlert = extractOpeningElement(
         source,
@@ -1424,16 +1402,6 @@ function collectOpeningElements(source: string, tagName: string) {
     }
 
     return openings;
-}
-
-function expectOpeningElementUsesFeatureOwnedClassName(
-    openingElement: string,
-    label: string,
-) {
-    expect(
-        openingElement,
-        `${label} should use a feature-owned class helper through className`,
-    ).toMatch(/className=\{[\s\S]*(?:ClassName|ClassNames|Classes|Styles)\b/);
 }
 
 function collectSourceFiles(directory: string): string[] {
@@ -1685,6 +1653,24 @@ const MIGRATED_CONFIRM_DIALOG_GLOBAL_SELECTORS = [
     '[data-sot-part="confirm-foot"]',
     '[data-sot-item="confirm-dialog-detail"]',
     '[data-sot-part="confirm-warning"]',
+] as const;
+
+const CONFIRM_DIALOG_PRIMITIVE_RESIDUAL_SNIPPETS = [
+    "bg-[var(",
+    "border-[var(",
+    "text-[var(",
+    "shadow-[var(",
+    "!border",
+    "!bg",
+    "!text",
+    "![box-shadow:none]",
+    "!shadow",
+    "CONFIRM_DIALOG_PANEL_CLASS",
+    "CONFIRM_DIALOG_OVERLAY_CLASS",
+    "CONFIRM_DIALOG_FOOTER_CLASS",
+    "CONFIRM_DIALOG_ACTION_BUTTON_CLASS",
+    "CONFIRM_DIALOG_CANCEL_BUTTON_CLASS",
+    "CONFIRM_DIALOG_DESTRUCTIVE_BUTTON_CLASS",
 ] as const;
 
 const CONFIRM_DIALOG_BUTTON_PRIMITIVE_REPAINT_DECLARATION_RE =
@@ -3377,50 +3363,6 @@ const DASHBOARD_RETRANSCRIPTION_LEGACY_CLASS_NAMES = [
     "retx-ico-ok",
 ];
 
-const DASHBOARD_RETRANSCRIPTION_OWNER_CLASS_SNIPPETS = [
-    "disabledHint:",
-    "banner:",
-    "icon:",
-    "body:",
-    "title:",
-    "sub:",
-    "actions:",
-    "refreshMarker:",
-    "group/retx flex items-center gap-[10px]",
-    "border-b border-border bg-muted",
-    "data-[retx-state=idle]:hidden",
-    "data-[retx-state=queued]:border-primary/30",
-    "data-[retx-state=queued]:bg-primary/10",
-    "data-[retx-state=running]:border-primary/30",
-    "data-[retx-state=running]:bg-primary/10",
-    "data-[retx-state=failed]:border-destructive/30",
-    "data-[retx-state=failed]:bg-destructive/10",
-    "data-[retx-state=completed]:border-primary/30",
-    "data-[retx-state=completed]:bg-primary/10",
-    "[&[hidden]]:hidden",
-    "inline-flex size-[28px] flex-none",
-    "border border-border bg-card text-muted-foreground",
-    'body: "flex min-w-0 flex-1 flex-col gap-[2px]"',
-    'actions: "flex flex-none items-center gap-[6px]"',
-    "inline-flex items-center gap-[4px]",
-    "font-mono ![font-size:10.5px] font-medium ![line-height:normal]",
-    "[margin:0]",
-    "group-data-[retx-state=running]/retx:text-primary",
-    "group-data-[retx-state=running]/retx:border-primary/30",
-    "group-data-[retx-state=failed]/retx:text-destructive",
-    "group-data-[retx-state=failed]/retx:border-destructive/30",
-    "group-data-[retx-state=completed]/retx:text-primary",
-    "group-data-[retx-state=completed]/retx:border-primary/30",
-    "[font:600_12.5px_var(--font-sans)] text-foreground",
-    "[font:500_11.5px_var(--font-sans)] text-muted-foreground",
-    "bg-primary/10",
-    "text-primary",
-] as const;
-
-const DASHBOARD_RETRANSCRIPTION_THEME_CLASS_SNIPPETS = [
-    "text-foreground",
-] as const;
-
 const DASHBOARD_RETRANSCRIPTION_GLOBAL_TOKEN_DEFINITION_RE =
     /--dashboard-retx-[\w-]+:/;
 
@@ -3449,9 +3391,6 @@ const DASHBOARD_RETRANSCRIPTION_REPAINT_CSS_SELECTORS = [
 
 const DASHBOARD_RETRANSCRIPTION_GLOBAL_REPAINT_DECLARATION_RE =
     /^\s*(?:align-items|justify-content|gap|padding(?:-[\w-]+)?|border(?:-(?:bottom|color|radius|style|width))?|background(?:-clip)?|box-shadow|color|font(?:-[\w-]+)?|width|height|border-radius|flex(?:-(?:basis|direction|grow|shrink|wrap))?|min-width)\s*:|\b(?:color-mix|linear-gradient|oklch)\(/m;
-
-const DASHBOARD_RETRANSCRIPTION_OWNER_DIRECT_COLOR_RE =
-    /#[\da-f]{3,8}\b|\b(?:color-mix|oklch|rgba?)\(/i;
 
 const DASHBOARD_TRANSCRIPT_SOURCE_REPORT_RETX_ACTIVITY_LEGACY_CSS_SELECTOR_RE =
     /(^|[^\w-])\.(?:activity-pixel-stage|notif-panel|notif-empty|turn|transcript|transcript-head|transcript-body|speaker|speaker-name|sr-pane|list-empty|empty-state|empty-ico|empty-msg|empty-sub|retx-banner|retx-banner-ico|retx-spinner|retx-disabled-hint|retx-refresh-marker|retx-banner-body|retx-banner-title|retx-banner-sub|retx-banner-actions|retx-ico-warn|retx-ico-ok|t-actions)(?![\w-])/;
@@ -3693,7 +3632,8 @@ const DASHBOARD_TOPBAR_OWNER_CLASS_INITIALIZERS = [
     },
     {
         property: "crumbs",
-        expected: "flex items-center gap-2 text-sm font-medium text-muted-foreground",
+        expected:
+            "flex items-center gap-2 text-sm font-medium text-muted-foreground",
     },
     {
         property: "crumb",
@@ -3756,8 +3696,7 @@ const RECORDING_DETAIL_LIST_OWNER_CLASS_INITIALIZERS = [
     },
     {
         constName: "RECORDING_DETAIL_LIST_ROW_TITLE_CLASS_NAME",
-        expected:
-            "truncate text-sm font-semibold text-foreground",
+        expected: "truncate text-sm font-semibold text-foreground",
         marker: 'data-sot-part="recording-detail-list-row-title"',
         tagName: "div",
     },
@@ -3769,8 +3708,7 @@ const RECORDING_DETAIL_LIST_OWNER_CLASS_INITIALIZERS = [
     },
     {
         constName: "RECORDING_DETAIL_LIST_ROW_DURATION_CLASS_NAME",
-        expected:
-            "font-mono text-xs font-medium text-muted-foreground",
+        expected: "font-mono text-xs font-medium text-muted-foreground",
         marker: 'data-sot-part="recording-detail-list-row-duration"',
         tagName: "span",
     },
@@ -4432,20 +4370,13 @@ describe("full UI replacement regression coverage", () => {
                 CONFIRM_DIALOG_BUTTON_PRIMITIVE_REPAINT_DECLARATION_RE,
             );
         }
-        expectExactStringConstInitializer(
-            confirmDialog,
-            "CONFIRM_DIALOG_PANEL_CLASS",
-            "z-[calc(var(--z-modal)+2)]",
-        );
-        expectExactStringConstInitializer(
-            confirmDialog,
-            "CONFIRM_DIALOG_OVERLAY_CLASS",
-            "m-0 h-auto max-h-none w-auto max-w-none border-0 bg-[var(--modal-scrim-bg)] p-0 backdrop-blur-[6px] backdrop-saturate-[120%] transition-opacity duration-[220ms] ease-[var(--ease-out)] data-[state=closed]:pointer-events-none data-[state=closed]:opacity-0 data-[state=open]:pointer-events-auto data-[state=open]:opacity-100",
-        );
+        for (const snippet of CONFIRM_DIALOG_PRIMITIVE_RESIDUAL_SNIPPETS) {
+            expect(confirmDialog).not.toContain(snippet);
+        }
         expectExactStringConstInitializer(
             confirmDialog,
             "CONFIRM_DIALOG_CONTENT_CLASS",
-            "m-[12px_auto] block w-full max-w-[460px] gap-0 overflow-hidden rounded-lg border border-[var(--card-popover-border)] bg-[var(--card-popover-bg)] p-0 font-sans text-[var(--fg-primary)] shadow-[var(--card-popover-shadow)] data-[state=closed]:opacity-0 sm:max-w-[460px]",
+            "sm:max-w-[460px]",
         );
         expect(confirmDialog).not.toContain("color(srgb");
         expect(confirmDialog).not.toContain("CONFIRM_DIALOG_CONTENT_STYLE");
@@ -4453,7 +4384,7 @@ describe("full UI replacement regression coverage", () => {
         expectExactStringConstInitializer(
             confirmDialog,
             "CONFIRM_DIALOG_BODY_CLASS",
-            "block px-[20px] pt-[8px] pb-[4px] font-sans text-[13px] leading-[1.55] font-medium text-[var(--fg-secondary)]",
+            "flex flex-col gap-3",
         );
         expectExactStringConstInitializer(
             confirmDialog,
@@ -4463,22 +4394,13 @@ describe("full UI replacement regression coverage", () => {
         expectExactStringConstInitializer(
             confirmDialog,
             "CONFIRM_DIALOG_DETAILS_LIST_CLASS",
-            "mt-[4px] mb-[8px] flex list-disc flex-col gap-[4px] pl-[18px]",
+            "flex list-disc flex-col gap-1 pl-5",
         );
-        expectExactStringConstInitializer(
-            confirmDialog,
-            "CONFIRM_DIALOG_DETAIL_ITEM_CLASS",
-            "flex items-center [gap:6px] font-sans text-[12.5px] leading-[1.55] font-medium text-[var(--fg-secondary)]",
+        expect(confirmDialog).toMatch(
+            /<li[\s\S]*\{\.\.\.detailItemSlotProps\}[\s\S]*className=\{[\s\S]*detailItemSlotProps\?\.className[\s\S]*\}/,
         );
-        expectExactStringConstInitializer(
-            confirmDialog,
-            "CONFIRM_DIALOG_WARNING_CLASS",
-            "rounded-md border border-[var(--alert-destructive-soft-border)] bg-[var(--alert-destructive-soft-bg)] px-3 py-2 text-[var(--signal-danger)]",
-        );
-        expectExactStringConstInitializer(
-            confirmDialog,
-            "CONFIRM_DIALOG_FOOTER_CLASS",
-            "flex justify-end border-t border-[var(--card-popover-divider)] bg-[var(--card-popover-footer-bg)] px-[16px] pt-[12px] pb-[16px]",
+        expect(confirmDialog).toMatch(
+            /<p[\s\S]*\{\.\.\.warningSlotProps\}[\s\S]*className=\{warningSlotProps\?\.className\}/,
         );
         expect(confirmDialog).not.toContain("oklch(");
 
@@ -5129,13 +5051,13 @@ describe("full UI replacement regression coverage", () => {
             /<DialogHeader[\s\S]*\{\.\.\.headerSlotProps\}[\s\S]*className=\{cn\(\s*"gap-2 text-left"/,
         );
         expect(confirmDialog).toMatch(
-            /<DialogTitle[\s\S]*\{\.\.\.titleSlotProps\}[\s\S]*"m-0 text-base leading-snug font-semibold tracking-normal"/,
+            /<DialogTitle[\s\S]*\{\.\.\.titleSlotProps\}[\s\S]*className=\{titleSlotProps\?\.className\}/,
         );
         expect(confirmDialog).toMatch(
-            /<DialogDescription[\s\S]*\{\.\.\.descriptionSlotProps\}[\s\S]*"m-0 text-sm leading-relaxed text-muted-foreground"/,
+            /<DialogDescription[\s\S]*\{\.\.\.descriptionSlotProps\}[\s\S]*className=\{descriptionSlotProps\?\.className\}/,
         );
         expect(confirmDialog).toMatch(
-            /<DialogFooter[\s\S]*\{\.\.\.footerSlotProps\}[\s\S]*"gap-\[8px\] sm:justify-end"/,
+            /<DialogFooter[\s\S]*\{\.\.\.footerSlotProps\}[\s\S]*"gap-2 sm:justify-end"/,
         );
         expect(confirmDialog).not.toContain("dark:[background:");
         expect(confirmDialog).toContain(
@@ -5869,7 +5791,9 @@ describe("full UI replacement regression coverage", () => {
         );
         expect(drawerTrigger).toContain("<Menu");
         expect(drawerTrigger).toContain('data-icon="inline-start"');
-        expect(drawerTrigger).not.toContain("dashboardDrawerClassNames.menuIcon");
+        expect(drawerTrigger).not.toContain(
+            "dashboardDrawerClassNames.menuIcon",
+        );
         expectClassNameConstReference(
             drawerActiveDot,
             "dashboardDrawerClassNames.activeDot",
@@ -6173,7 +6097,9 @@ describe("full UI replacement regression coverage", () => {
         for (const selector of SOT_SCROLLBAR_MIGRATED_GLOBAL_SELECTORS) {
             expect(collectCssRuleBlocks(globals, selector)).toEqual([]);
         }
-        expect(workstation).not.toContain("const dashboardScrollbarClassName =");
+        expect(workstation).not.toContain(
+            "const dashboardScrollbarClassName =",
+        );
         expect(workstation).toContain("[scrollbar-width:thin]");
         expect(workstation).toContain("dashboardRecordingListScrollClassName");
         expect(workstation).toContain(
@@ -6725,9 +6651,10 @@ describe("full UI replacement regression coverage", () => {
                 ...AUTH_INPUT_PRIMITIVE_FORBIDDEN_TOKENS,
             ]);
             for (const pattern of AUTH_LOGIN_PRIMITIVE_REPAINT_FORBIDDEN_PATTERNS) {
-                expect(openingElement, `${label} should not repaint shadcn primitives`).not.toMatch(
-                    pattern,
-                );
+                expect(
+                    openingElement,
+                    `${label} should not repaint shadcn primitives`,
+                ).not.toMatch(pattern);
             }
         }
         expect(authCard).toContain('data-sot-card="auth"');
@@ -7498,7 +7425,9 @@ describe("full UI replacement regression coverage", () => {
         expect(workstation).not.toContain(
             "DASHBOARD_ACTIVITY_ITEM_ICON_CLASS_NAME",
         );
-        expect(dashboardFavoriteNavButton).not.toContain("className={DASHBOARD");
+        expect(dashboardFavoriteNavButton).not.toContain(
+            "className={DASHBOARD",
+        );
         expect(dashboardNavButtonClassNames).toContain(
             "data-[sot-state=selected]:text-sidebar-accent-foreground",
         );
@@ -8270,7 +8199,9 @@ describe("full UI replacement regression coverage", () => {
         expect(dashboardRecordingListDivider).toContain(
             "dashboardRecordingRowStyles.groupDivider",
         );
-        expect(workstation).not.toContain("function DashboardRecordingStatusBadge");
+        expect(workstation).not.toContain(
+            "function DashboardRecordingStatusBadge",
+        );
         expect(workstation).not.toContain(
             "SOT_DASHBOARD_RECORDING_STATUS_BADGE_CLASS",
         );
@@ -8921,7 +8852,9 @@ describe("full UI replacement regression coverage", () => {
         expect(dashboardCopyLabel).toContain(
             'data-sot-part="dashboard-copy-label"',
         );
-        expect(dashboardCopyLabel).not.toContain("dashboardLocalCopyClassNames");
+        expect(dashboardCopyLabel).not.toContain(
+            "dashboardLocalCopyClassNames",
+        );
         const sourceReportCopyButton = extractElementSlice(
             workstation,
             'copy="source-transcript"',
@@ -8960,7 +8893,9 @@ describe("full UI replacement regression coverage", () => {
             );
             expect(buttonOpening).toContain('variant="ghost"');
             expect(buttonOpening).toContain('size="sm"');
-            expect(buttonOpening).not.toContain("dashboardButtonClassNames.copy");
+            expect(buttonOpening).not.toContain(
+                "dashboardButtonClassNames.copy",
+            );
         }
         for (const control of DASHBOARD_TRANSCRIPT_COPY_CONTROLS) {
             const copyKind =
@@ -9030,13 +8965,7 @@ describe("full UI replacement regression coverage", () => {
             expect(workstation).not.toContain(removed);
         }
         expect(workstation).toContain(
-            'AlertDescription,',
-        );
-        expect(workstation).toContain(
-            'AlertTitle,',
-        );
-        expect(workstation).toContain(
-            'from "@/components/ui/alert";',
+            'import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";',
         );
         expect(workstation).toContain(
             'import { Separator } from "@/components/ui/separator";',
@@ -10541,7 +10470,9 @@ describe("full UI replacement regression coverage", () => {
         expect(button).not.toContain("detailHeaderAction:");
         expect(workstation).toContain("headerIconButton:");
         expect(workstation).toContain("headerActionButton:");
-        expect(workstation).toContain('headerIconButton: "text-muted-foreground"');
+        expect(workstation).toContain(
+            'headerIconButton: "text-muted-foreground"',
+        );
         expect(workstation).toContain('headerActionButton: "min-w-[103px]"');
         const dashboardButtonClassNames = extractBoundedSlice(
             workstation,
@@ -10831,8 +10762,12 @@ describe("full UI replacement regression coverage", () => {
         expect(globals).not.toMatch(
             DASHBOARD_RETRANSCRIPTION_GLOBAL_TOKEN_DEFINITION_RE,
         );
-        expect(workstation).not.toContain("const dashboardRetranscriptionClassNames");
-        expect(workstation).not.toContain("dashboardRetranscriptionThemeClassName");
+        expect(workstation).not.toContain(
+            "const dashboardRetranscriptionClassNames",
+        );
+        expect(workstation).not.toContain(
+            "dashboardRetranscriptionThemeClassName",
+        );
         for (const usage of DASHBOARD_RETRANSCRIPTION_OWNER_CLASS_USAGES) {
             expect(workstation).not.toContain(usage);
         }
@@ -10905,7 +10840,9 @@ describe("full UI replacement regression coverage", () => {
         expect(dashboardTranscriptBody).toContain(
             `className="${EXPECTED_DASHBOARD_TRANSCRIPT_BODY_BASE_CLASS_NAME}"`,
         );
-        expect(dashboardTranscriptBody).not.toContain("dashboardScrollbarClassName");
+        expect(dashboardTranscriptBody).not.toContain(
+            "dashboardScrollbarClassName",
+        );
         expect(dashboardTranscriptShell).not.toContain(
             "dashboardRetranscriptionThemeClassName",
         );
@@ -10966,9 +10903,7 @@ describe("full UI replacement regression coverage", () => {
             'headTitle: "flex-1 text-sm font-medium text-muted-foreground"',
         );
         expect(dashboardSpeakerPaneClassNames).toContain("hover:bg-accent");
-        expect(dashboardSpeakerPaneClassNames).toContain(
-            'bar: "h-1 bg-muted"',
-        );
+        expect(dashboardSpeakerPaneClassNames).toContain('bar: "h-1 bg-muted"');
         expect(dashboardSpeakerPaneClassNames).toContain(
             'barFill: "bg-primary"',
         );
@@ -10987,7 +10922,9 @@ describe("full UI replacement regression coverage", () => {
                 forbiddenSpeakerPaneToken,
             );
         }
-        expect(workstation).not.toContain("DASHBOARD_SPEAKER_SHARE_CLASS_NAMES");
+        expect(workstation).not.toContain(
+            "DASHBOARD_SPEAKER_SHARE_CLASS_NAMES",
+        );
         expect(workstation).not.toContain("getDashboardSpeakerShareClassName");
         expect(workstation).toContain("DASHBOARD_SPEAKER_SHARE_VALUES");
         expect(workstation).toContain("getDashboardSpeakerShareValue");
@@ -13760,10 +13697,10 @@ describe("full UI replacement regression coverage", () => {
             "} as const;",
         );
         expect(recordingHeaderButtonClassNames).toContain(
-            'headerIconButton:\n        "text-muted-foreground"',
+            'headerIconButton: "text-muted-foreground"',
         );
         expect(recordingHeaderButtonClassNames).toContain(
-            'headerActionButton:\n        "min-w-[103px]"',
+            'headerActionButton: "min-w-[103px]"',
         );
         const recordingHeaderButtonResidualPattern =
             /header(?:Icon|Action)Button:[\s\S]*?(?:\[_svg|stroke-\[|stroke-line(?:cap|join)|\[_svg:not|!border|!bg|\[var\(--(?:fg|bg|line|glass|shadow)|font-sans|text-\[|rounded-\[|gap-\[|px-\[|backdrop-)/;

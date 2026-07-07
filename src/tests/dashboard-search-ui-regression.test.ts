@@ -243,11 +243,7 @@ const DASHBOARD_SEARCH_ACTIVITY_FEATURE_OWNER_CLASS_SNIPPETS = [
     },
     {
         propertyName: "librarySearchInputRow",
-        snippets: [
-            "h-[49px] min-h-[49px]",
-            "gap-[8px]",
-            "px-[12px] py-[8px]",
-        ],
+        snippets: ["h-[49px] min-h-[49px]", "gap-[8px]", "px-[12px] py-[8px]"],
     },
     {
         propertyName: "librarySearchInput",
@@ -973,9 +969,7 @@ describe("dashboard SOT search and activity interactions", () => {
         expect(workstation).toContain(
             "className={dashboardDrawerClassNames.scrim}",
         );
-        expect(workstation).not.toContain(
-            "dashboardDrawerClassNames.menuIcon",
-        );
+        expect(workstation).not.toContain("dashboardDrawerClassNames.menuIcon");
         expect(workstation).toContain(
             "className={dashboardDrawerClassNames.activeDot}",
         );

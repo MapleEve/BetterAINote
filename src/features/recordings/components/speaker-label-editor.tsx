@@ -100,8 +100,7 @@ interface SpeakerSaveError {
 const SPEAKER_REVIEW_CARD_CLASS_NAMES = {
     transcript: "gap-0",
     row: "grid items-center gap-2.5 overflow-visible p-3",
-    mergePopover:
-        "w-80 min-w-72 gap-0 overflow-hidden p-0",
+    mergePopover: "w-80 min-w-72 gap-0 overflow-hidden p-0",
     confirm:
         "flex-row items-center gap-2.5 overflow-visible border-destructive/30 bg-destructive/5 p-3 text-sm [&_[data-sot-confirm-message]]:min-w-0 [&_[data-sot-confirm-message]]:flex-1 [&_[data-sot-confirm-subject]]:not-italic [&_[data-sot-confirm-subject]]:font-semibold",
 } as const;

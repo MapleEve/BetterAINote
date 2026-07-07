@@ -996,7 +996,8 @@ const DASHBOARD_TOPBAR_OWNER_CLASS_INITIALIZERS = [
     },
     {
         property: "crumbs",
-        expected: "flex items-center gap-2 text-sm font-medium text-muted-foreground",
+        expected:
+            "flex items-center gap-2 text-sm font-medium text-muted-foreground",
     },
     {
         property: "crumb",
@@ -1059,8 +1060,7 @@ const RECORDING_DETAIL_LIST_OWNER_CLASS_INITIALIZERS = [
     },
     {
         constName: "RECORDING_DETAIL_LIST_ROW_TITLE_CLASS_NAME",
-        expected:
-            "truncate text-sm font-semibold text-foreground",
+        expected: "truncate text-sm font-semibold text-foreground",
         marker: 'data-sot-part="recording-detail-list-row-title"',
         tagName: "div",
     },
@@ -1072,8 +1072,7 @@ const RECORDING_DETAIL_LIST_OWNER_CLASS_INITIALIZERS = [
     },
     {
         constName: "RECORDING_DETAIL_LIST_ROW_DURATION_CLASS_NAME",
-        expected:
-            "font-mono text-xs font-medium text-muted-foreground",
+        expected: "font-mono text-xs font-medium text-muted-foreground",
         marker: 'data-sot-part="recording-detail-list-row-duration"',
         tagName: "span",
     },
@@ -1291,9 +1290,7 @@ describe("recording detail copy and title action UI regressions", () => {
             expect(recordingTranscriptionClassNamesBlock).not.toContain(
                 forbiddenLocalPanelResidual,
             );
-            expect(detailTranscript).not.toContain(
-                forbiddenLocalPanelResidual,
-            );
+            expect(detailTranscript).not.toContain(forbiddenLocalPanelResidual);
         }
         expect(detailTranscript).not.toContain("dark:");
         expect(detailTranscript).not.toMatch(
@@ -2502,9 +2499,15 @@ describe("recording detail copy and title action UI regressions", () => {
         expect(detailWorkstation).not.toContain("[&_svg]:opacity-[");
         expect(detailWorkstation).not.toContain("[&_svg]:[stroke-linecap");
         expect(detailWorkstation).not.toContain("[&_svg]:[stroke-linejoin");
-        expect(detailWorkstation).not.toContain("data-[sot-state=selected]:bg-[");
-        expect(detailWorkstation).not.toContain("data-[sot-state=selected]:border-[");
-        expect(detailWorkstation).not.toContain("data-[sot-state=selected]:text-[");
+        expect(detailWorkstation).not.toContain(
+            "data-[sot-state=selected]:bg-[",
+        );
+        expect(detailWorkstation).not.toContain(
+            "data-[sot-state=selected]:border-[",
+        );
+        expect(detailWorkstation).not.toContain(
+            "data-[sot-state=selected]:text-[",
+        );
         expect(detailWorkstation).not.toContain(
             'className="flex flex-1 flex-col gap-0.5 overflow-y-auto pb-3"',
         );
@@ -2939,10 +2942,10 @@ describe("recording detail copy and title action UI regressions", () => {
             "} as const;",
         );
         expect(recordingHeaderButtonClassNames).toContain(
-            'headerIconButton:\n        "text-muted-foreground"',
+            'headerIconButton: "text-muted-foreground"',
         );
         expect(recordingHeaderButtonClassNames).toContain(
-            'headerActionButton:\n        "min-w-[103px]"',
+            'headerActionButton: "min-w-[103px]"',
         );
         const headerButtonClassResidualPattern =
             /header(?:Icon|Action)Button:[\s\S]*?(?:\[_svg|stroke-\[|stroke-line(?:cap|join)|\[_svg:not|!border|!bg|\[var\(--(?:fg|bg|line|glass|shadow)|font-sans|text-\[|rounded-\[|gap-\[|px-\[|backdrop-)/;
@@ -3528,7 +3531,9 @@ describe("recording detail copy and title action UI regressions", () => {
         expect(dashboardTranscriptBody).toContain(
             `className="${EXPECTED_DASHBOARD_TRANSCRIPT_BODY_BASE_CLASS_NAME}"`,
         );
-        expect(dashboardTranscriptBody).not.toContain("dashboardScrollbarClassName");
+        expect(dashboardTranscriptBody).not.toContain(
+            "dashboardScrollbarClassName",
+        );
         expect(dashboardTranscriptBody).not.toContain(
             "dashboardRetranscriptionThemeClassName",
         );
@@ -3603,7 +3608,9 @@ describe("recording detail copy and title action UI regressions", () => {
         expect(dashboardCopyLabel).toContain(
             'data-sot-part="dashboard-copy-label"',
         );
-        expect(dashboardCopyLabel).not.toContain("dashboardLocalCopyClassNames");
+        expect(dashboardCopyLabel).not.toContain(
+            "dashboardLocalCopyClassNames",
+        );
         const sourceReportCopyButton = extractElementSlice(
             dashboardTranscript,
             'copy="source-transcript"',

@@ -391,6 +391,24 @@ const MIGRATED_CONFIRM_DIALOG_GLOBAL_SELECTORS = [
     '[data-sot-part="confirm-warning"]',
 ] as const;
 
+const CONFIRM_DIALOG_PRIMITIVE_RESIDUAL_SNIPPETS = [
+    "bg-[var(",
+    "border-[var(",
+    "text-[var(",
+    "shadow-[var(",
+    "!border",
+    "!bg",
+    "!text",
+    "![box-shadow:none]",
+    "!shadow",
+    "CONFIRM_DIALOG_PANEL_CLASS",
+    "CONFIRM_DIALOG_OVERLAY_CLASS",
+    "CONFIRM_DIALOG_FOOTER_CLASS",
+    "CONFIRM_DIALOG_ACTION_BUTTON_CLASS",
+    "CONFIRM_DIALOG_CANCEL_BUTTON_CLASS",
+    "CONFIRM_DIALOG_DESTRUCTIVE_BUTTON_CLASS",
+] as const;
+
 const REMOVED_MODAL_SHELL_DEAD_DATA_SOT_CSS_SELECTORS = [
     '[data-sot-part="dialog-icon"]',
 ] as const;
@@ -819,14 +837,18 @@ describe("settings SOT interaction regressions", () => {
             );
         }
         expect(confirmDialog).toContain("ConfirmDialogSlotProps");
+        for (const snippet of CONFIRM_DIALOG_PRIMITIVE_RESIDUAL_SNIPPETS) {
+            expect(confirmDialog).not.toContain(snippet);
+        }
         expect(confirmDialog).toContain(
-            'const CONFIRM_DIALOG_PANEL_CLASS = "z-[calc(var(--z-modal)+2)]";',
+            'const CONFIRM_DIALOG_CONTENT_CLASS = "sm:max-w-[460px]";',
         );
         expect(confirmDialog).toContain(
-            "data-[state=closed]:pointer-events-none data-[state=closed]:opacity-0 data-[state=open]:pointer-events-auto data-[state=open]:opacity-100",
+            'const CONFIRM_DIALOG_BODY_CLASS = "flex flex-col gap-3";',
         );
+        expect(confirmDialog).toContain("overlayProps={overlaySlotProps}");
         expect(confirmDialog).toContain(
-            "rounded-md border border-[var(--alert-destructive-soft-border)] bg-[var(--alert-destructive-soft-bg)] px-3 py-2 text-[var(--signal-danger)]",
+            "portalWrapperProps={portalWrapperSlotProps}",
         );
         expect(globals).not.toContain("--confirm-dialog-warning-bg:");
         expect(globals).not.toContain("--confirm-dialog-warning-border:");
@@ -836,18 +858,20 @@ describe("settings SOT interaction regressions", () => {
             /<DialogHeader[\s\S]*\{\.\.\.headerSlotProps\}[\s\S]*className=\{cn\(\s*"gap-2 text-left"/,
         );
         expect(confirmDialog).toMatch(
-            /<DialogTitle[\s\S]*\{\.\.\.titleSlotProps\}[\s\S]*"m-0 text-base leading-snug font-semibold tracking-normal"/,
+            /<DialogTitle[\s\S]*\{\.\.\.titleSlotProps\}[\s\S]*className=\{titleSlotProps\?\.className\}/,
         );
         expect(confirmDialog).toMatch(
-            /<DialogDescription[\s\S]*\{\.\.\.descriptionSlotProps\}[\s\S]*"m-0 text-sm leading-relaxed text-muted-foreground"/,
+            /<DialogDescription[\s\S]*\{\.\.\.descriptionSlotProps\}[\s\S]*className=\{descriptionSlotProps\?\.className\}/,
         );
         expect(confirmDialog).toMatch(
-            /<DialogFooter[\s\S]*\{\.\.\.footerSlotProps\}[\s\S]*"gap-\[8px\] sm:justify-end"/,
+            /<DialogFooter[\s\S]*\{\.\.\.footerSlotProps\}[\s\S]*"gap-2 sm:justify-end"/,
         );
         expect(confirmDialog).toContain(
             'confirmVariant?: "default" | "destructive"',
         );
         expect(confirmDialog).toContain("variant={confirmButtonVariant}");
+        expect(confirmDialog).toContain('variant="outline"');
+        expect(confirmDialog).toContain('size="sm"');
         expectNoComponentLibraryShowcaseGlobals(globals);
     });
 

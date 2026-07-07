@@ -86,8 +86,7 @@ const sourceReportMetaSpacingClasses = {
 } as const satisfies Record<SourceReportMetaSpacing, string>;
 
 const sourceReportPaneBase = "flex flex-col gap-3.5";
-const sourceReportDescriptionText =
-    "font-medium text-muted-foreground";
+const sourceReportDescriptionText = "font-medium text-muted-foreground";
 const sourceReportStateStackBase = "flex flex-col gap-3.5";
 const sourceReportStateBase = "block [&[hidden]]:hidden";
 
@@ -111,16 +110,13 @@ const sourceReportSectionBase =
     "flex flex-col gap-2 border-t border-border pt-2";
 const sourceReportSectionHeaderLayout = "flex items-baseline gap-[10px]";
 const sourceReportSectionSeparatorLayout = "hidden";
-const sourceReportSectionTitleText =
-    "m-0 font-semibold text-foreground";
+const sourceReportSectionTitleText = "m-0 font-semibold text-foreground";
 const sourceReportMetaListBase =
     "mt-[15px] grid grid-cols-2 gap-x-[14px] gap-y-[6px] max-[1200px]:grid-cols-1";
 const sourceReportMetaRowBase =
     "grid grid-cols-[80px_1fr] items-baseline gap-2 border-b border-dashed border-border py-1.5";
-const sourceReportMetaLabelText =
-    "m-0 font-semibold text-muted-foreground";
-const sourceReportMetaValueText =
-    "m-0 break-words font-medium text-foreground";
+const sourceReportMetaLabelText = "m-0 font-semibold text-muted-foreground";
+const sourceReportMetaValueText = "m-0 break-words font-medium text-foreground";
 
 const sourceReportSegmentsListBase =
     "m-0 flex list-none flex-col gap-[2px] p-0";
@@ -130,8 +126,7 @@ const sourceReportSegmentSkeletonBase =
     "block rounded-[6px] bg-transparent px-[10px] py-[8px]";
 const sourceReportSegmentTimeText =
     "font-mono font-medium text-muted-foreground";
-const sourceReportSegmentSpeakerText =
-    "font-semibold text-muted-foreground";
+const sourceReportSegmentSpeakerText = "font-semibold text-muted-foreground";
 const sourceReportSegmentBodyText =
     "m-0 font-medium text-foreground [text-wrap:pretty]";
 const sourceReportSummaryStack = "flex flex-col gap-1.5";

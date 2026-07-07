@@ -106,12 +106,9 @@ const RECORDING_DETAIL_HEADER_CLASS_NAME =
     "flex flex-row items-center gap-2.5 px-1 pt-1 pb-0 data-[sot-state=saving]:pb-px";
 const RECORDING_DETAIL_HEADER_TITLE_CLASS_NAME =
     "min-w-0 flex-1 truncate text-xl text-foreground";
-const RECORDING_DETAIL_HEADER_TITLE_INPUT_CLASS_NAME =
-    "h-8 min-w-0 flex-1";
-const RECORDING_DETAIL_HEADER_LOCAL_BADGE_CLASS_NAME =
-    "ml-1 shrink-0";
-const RECORDING_DETAIL_HEADER_STATUS_BADGE_CLASS_NAME =
-    "ml-1 shrink-0";
+const RECORDING_DETAIL_HEADER_TITLE_INPUT_CLASS_NAME = "h-8 min-w-0 flex-1";
+const RECORDING_DETAIL_HEADER_LOCAL_BADGE_CLASS_NAME = "ml-1 shrink-0";
+const RECORDING_DETAIL_HEADER_STATUS_BADGE_CLASS_NAME = "ml-1 shrink-0";
 const RECORDING_WORKSTATION_SHELL_CLASS_NAME =
     "grid h-screen min-h-[720px] grid-cols-[264px_1fr] transition-[grid-template-columns] duration-300 ease-out max-[860px]:h-auto max-[860px]:min-h-[100svh] max-[860px]:grid-cols-[minmax(0,1fr)] max-[860px]:overflow-x-clip";
 const RECORDING_WORKSTATION_MAIN_CLASS_NAME =
@@ -132,8 +129,7 @@ const RECORDING_DETAIL_LIST_CONTENT_CLASS_NAME = "flex min-h-0 flex-col px-0";
 const RECORDING_DETAIL_LIST_ROWS_CLASS_NAME = "flex flex-col gap-0.5 p-1";
 const RECORDING_DETAIL_LIST_ROW_CLASS_NAME =
     "grid w-full grid-cols-[1fr_auto] items-center gap-3 rounded-md border border-border bg-secondary px-3 py-2 text-left transition-colors";
-const RECORDING_DETAIL_LIST_ROW_BODY_CLASS_NAME =
-    "flex min-w-0 flex-col gap-1";
+const RECORDING_DETAIL_LIST_ROW_BODY_CLASS_NAME = "flex min-w-0 flex-col gap-1";
 const RECORDING_DETAIL_LIST_ROW_TITLE_CLASS_NAME =
     "truncate text-sm font-semibold text-foreground";
 const RECORDING_DETAIL_LIST_ROW_META_CLASS_NAME =
@@ -143,16 +139,14 @@ const RECORDING_DETAIL_LIST_ROW_DURATION_CLASS_NAME =
 const RECORDING_DETAIL_METADATA_CARD_CLASS_NAME = "min-h-0 gap-0";
 const RECORDING_DETAIL_METADATA_HEADER_CLASS_NAME =
     "flex items-center gap-3 border-b px-4 py-3";
-const RECORDING_DETAIL_METADATA_TITLE_CLASS_NAME =
-    "min-w-0 flex-1 truncate";
+const RECORDING_DETAIL_METADATA_TITLE_CLASS_NAME = "min-w-0 flex-1 truncate";
 const RECORDING_DETAIL_METADATA_BODY_CLASS_NAME =
     "flex min-h-0 flex-1 flex-col gap-3.5 overflow-y-auto px-5 pt-4 pb-6";
 const RECORDING_SOURCE_RECORD_SHELL_CLASS_NAME = "flex min-h-0 flex-col gap-4";
 const RECORDING_SOURCE_RECORD_CARD_CLASS_NAME = "min-h-0 gap-0";
 const RECORDING_SOURCE_RECORD_HEADER_CLASS_NAME =
     "flex items-center gap-3 border-b px-4 py-3";
-const RECORDING_SOURCE_RECORD_TITLE_CLASS_NAME =
-    "min-w-0 flex-1 truncate";
+const RECORDING_SOURCE_RECORD_TITLE_CLASS_NAME = "min-w-0 flex-1 truncate";
 const RECORDING_SOURCE_RECORD_ACTIONS_CLASS_NAME =
     "ml-auto flex max-w-full grow-0 shrink basis-auto flex-wrap items-center gap-2";
 const RECORDING_SOURCE_RECORD_BODY_CLASS_NAME =
@@ -172,8 +166,7 @@ const recordingWorkstationBrandClassNames = {
     wrapper: "flex items-center gap-2.5 px-2 pt-1 pb-4",
     image: "size-9 rounded-md",
     name: "text-sm font-semibold text-foreground",
-    subtitle:
-        "mt-px text-xs font-medium text-muted-foreground",
+    subtitle: "mt-px text-xs font-medium text-muted-foreground",
 } as const;
 const recordingWorkstationNavClassNames = {
     list: "flex flex-1 flex-col gap-0.5 overflow-y-auto pb-3",
@@ -182,10 +175,8 @@ const recordingWorkstationNavClassNames = {
 const recordingWorkstationButtonClassNames = {
     detailBack:
         "w-full justify-start [&_span]:min-w-0 [&_span]:flex-1 [&_span]:truncate",
-    headerIconButton:
-        "text-muted-foreground",
-    headerActionButton:
-        "min-w-[103px]",
+    headerIconButton: "text-muted-foreground",
+    headerActionButton: "min-w-[103px]",
 } as const;
 
 function RecordingDetailCardHeader({

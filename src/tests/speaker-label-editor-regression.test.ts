@@ -10,7 +10,7 @@ const SPEAKER_REVIEW_RAW_REPAINT_RE =
 const SPEAKER_REVIEW_FORCED_UTILITY_RE =
     /(?:^|\s)!(?:\[|bg-|border-|text-|font-|leading-|tracking-|shadow-|ring-|outline-|rounded-)/;
 const SPEAKER_REVIEW_LOCAL_ICON_OVERRIDE_RE =
-    /(?:strokeWidth=|\[\&[^\]]*svg[^\]]*\]:(?:size|stroke)-|<(?:Check|Copy|FileText|Play|RefreshCw|Volume2|X)\b[^>]*\bclassName=)/;
+    /(?:strokeWidth=|\[&[^\]]*svg[^\]]*\]:(?:size|stroke)-|<(?:Check|Copy|FileText|Play|RefreshCw|Volume2|X)\b[^>]*\bclassName=)/;
 const SPEAKER_REVIEW_RESIDUAL_GLOBAL_SELECTORS = [
     '[data-sot-list="speaker-review-meta"] > span',
     '[data-sot-part="speaker-review-section-description"]',

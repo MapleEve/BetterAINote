@@ -509,9 +509,7 @@ function SystemBannerItem({
                 className={systemBannerAlertClassNames.body}
                 data-sot-part="system-banner-body"
             >
-                <AlertTitle
-                    data-sot-part="system-banner-title"
-                >
+                <AlertTitle data-sot-part="system-banner-title">
                     {banner.title ?? defaultCopy.title}
                 </AlertTitle>
                 <AlertDescription
