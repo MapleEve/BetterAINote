@@ -410,6 +410,32 @@ function readSource(relativePath: string) {
     return readFileSync(path.join(ROOT, relativePath), "utf8");
 }
 
+function extractNamedImportBlock(source: string, modulePath: string) {
+    const escapedModulePath = modulePath.replace(
+        /[.*+?^${}()|[\]\\]/g,
+        "\\$&",
+    );
+    const match = new RegExp(
+        `import\\s*\\{[\\s\\S]*?\\}\\s*from\\s*"${escapedModulePath}";`,
+    ).exec(source);
+
+    expect(match).not.toBeNull();
+    return match?.[0] ?? "";
+}
+
+function expectNamedImportSymbols(
+    source: string,
+    modulePath: string,
+    symbols: readonly string[],
+) {
+    const importBlock = extractNamedImportBlock(source, modulePath);
+
+    for (const symbol of symbols) {
+        const escapedSymbol = symbol.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+        expect(importBlock).toMatch(new RegExp(`\\b${escapedSymbol}\\b`));
+    }
+}
+
 function findStringConstInitializerContaining(
     source: string,
     snippets: readonly string[],
@@ -6630,9 +6656,13 @@ describe("full UI replacement regression coverage", () => {
             'import { Input } from "@/components/ui/input";',
         );
         expect(login).toContain("<Input");
-        expect(login).toMatch(
-            /import\s*\{[\s\S]*Field,[\s\S]*FieldDescription,[\s\S]*FieldError,[\s\S]*FieldGroup,[\s\S]*FieldLabel[\s\S]*\}\s*from "@\/components\/ui\/field";/,
-        );
+        expectNamedImportSymbols(login, "@/components/ui/field", [
+            "Field",
+            "FieldDescription",
+            "FieldError",
+            "FieldGroup",
+            "FieldLabel",
+        ]);
         expect(login).toContain("<FieldGroup");
         expect(login).toContain("<Field");
         expect(login).toContain("<FieldLabel");
@@ -11312,7 +11342,7 @@ describe("full UI replacement regression coverage", () => {
             )?.[1] ?? "";
         const sourceProviderFieldsWrapper =
             settingsProviderDetail.match(
-                /<div\b(?=[^>]*data-sot-list="source-fields")(?=[^>]*data-sot-panel="source-provider-fields")[^>]*>/,
+                /<FieldGroup\b(?=[^>]*data-sot-list="source-fields")(?=[^>]*data-sot-panel="source-provider-fields")[^>]*>/,
             )?.[0] ?? "";
         const providerDetailDividers = [
             ...settingsProviderDetail.matchAll(
@@ -11322,19 +11352,27 @@ describe("full UI replacement regression coverage", () => {
         expect(sourceProviderFieldsListClass.split(/\s+/)).toEqual(
             expect.arrayContaining(["flex", "flex-col", "gap-0"]),
         );
-        expect(sourceProviderFieldsWrapper).toContain("<div");
+        expect(sourceProviderFieldsWrapper).toContain("<FieldGroup");
         expect(sourceProviderFieldsWrapper).toContain(
             "className={SOURCE_PROVIDER_FIELDS_LIST_CLASS}",
         );
+        expect(sourceProviderFieldsWrapper).toContain("unstyled");
         expect(sourceProviderFieldsWrapper).toContain(
             'data-sot-list="source-fields"',
         );
         expect(sourceProviderFieldsWrapper).toContain(
             'data-sot-panel="source-provider-fields"',
         );
-        expect(settingsProviderDetail).not.toMatch(
-            /<FieldGroup\b(?=[^>]*data-sot-list="source-fields")(?=[^>]*data-sot-panel="source-provider-fields")[^>]*>/,
-        );
+        expectNamedImportSymbols(settings, "@/components/ui/field", [
+            "Field",
+            "FieldContent",
+            "FieldControl",
+            "FieldDescription",
+            "FieldError",
+            "FieldGroup",
+            "FieldLabel",
+            "FieldTitle",
+        ]);
         expect(settingsProviderDetail).toContain(
             "SOURCE_PROVIDER_DETAIL_FIELD_CLASS",
         );

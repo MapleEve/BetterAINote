@@ -44,6 +44,7 @@ import {
     FieldControl,
     FieldDescription,
     FieldError,
+    FieldGroup,
     FieldLabel,
     FieldTitle,
 } from "@/components/ui/field";
@@ -1603,10 +1604,11 @@ function DataSourcesSettingsPanel({
                                 </Field>
                             ) : null}
 
-                            <div
+                            <FieldGroup
                                 className={SOURCE_PROVIDER_FIELDS_LIST_CLASS}
                                 data-sot-list="source-fields"
                                 data-sot-panel="source-provider-fields"
+                                unstyled
                             >
                                 {displayedServiceAddress &&
                                 !providerUsesCustomServerSelector(
@@ -1737,7 +1739,7 @@ function DataSourcesSettingsPanel({
                                         ))}
                                     </>
                                 ) : null}
-                            </div>
+                            </FieldGroup>
 
                             <Separator
                                 className={

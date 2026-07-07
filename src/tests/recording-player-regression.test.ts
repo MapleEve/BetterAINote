@@ -718,11 +718,24 @@ describe("dashboard recording player regressions", () => {
         ]) {
             expect(sliderSource).not.toContain(primitiveResidue);
         }
-        expect(popoverSource).toContain(
+        const popoverContentClass =
+            popoverSource.match(
+                /const POPOVER_CONTENT_CLASS\s*=\s*"([^"]*)";/,
+            )?.[1] ?? "";
+        expect(popoverContentClass).not.toBe("");
+        expect(popoverContentClass.split(/\s+/)).toEqual(
+            expect.arrayContaining([
+                "w-72",
+                "p-4",
+                "bg-popover",
+                "text-popover-foreground",
+            ]),
+        );
+        expect(popoverSource).not.toContain(
             'type PopoverContentVariant = "default";',
         );
-        expect(popoverSource).toContain("POPOVER_CONTENT_VARIANT_CLASS");
-        expect(popoverSource).toContain("data-variant={variant}");
+        expect(popoverSource).not.toContain("POPOVER_CONTENT_VARIANT_CLASS");
+        expect(popoverSource).not.toContain("data-variant={variant}");
         for (const primitiveResidue of [
             "playerVolume",
             "recording-player",

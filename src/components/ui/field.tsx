@@ -58,9 +58,13 @@ function FieldLegend({
 
 function FieldGroup({
     className,
+    container = true,
+    unstyled = false,
     variant = "default",
     ...props
 }: React.ComponentProps<"div"> & {
+    container?: boolean;
+    unstyled?: boolean;
     variant?: FieldGroupVariant;
 }) {
     return (
@@ -68,8 +72,10 @@ function FieldGroup({
             data-slot="field-group"
             data-variant={variant}
             className={cn(
-                "group/field-group @container/field-group flex w-full flex-col gap-7 data-[slot=checkbox-group]:gap-3 [&>[data-slot=field-group]]:gap-4",
-                fieldGroupVariantClassNames[variant],
+                !unstyled &&
+                    "group/field-group flex w-full flex-col gap-7 data-[slot=checkbox-group]:gap-3 [&>[data-slot=field-group]]:gap-4",
+                !unstyled && container && "@container/field-group",
+                !unstyled && fieldGroupVariantClassNames[variant],
                 className,
             )}
             {...props}

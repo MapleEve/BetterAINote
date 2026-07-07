@@ -1328,23 +1328,21 @@ describe("settings SOT interaction regressions", () => {
             )?.[1] ?? "";
         const sourceProviderFieldsWrapper =
             content.match(
-                /<div\b(?=[^>]*data-sot-list="source-fields")(?=[^>]*data-sot-panel="source-provider-fields")[^>]*>/,
+                /<FieldGroup\b(?=[^>]*data-sot-list="source-fields")(?=[^>]*data-sot-panel="source-provider-fields")[^>]*>/,
             )?.[0] ?? "";
         expect(sourceProviderFieldsListClass.split(/\s+/)).toEqual(
             expect.arrayContaining(["flex", "flex-col", "gap-0"]),
         );
-        expect(sourceProviderFieldsWrapper).toContain("<div");
+        expect(sourceProviderFieldsWrapper).toContain("<FieldGroup");
         expect(sourceProviderFieldsWrapper).toContain(
             "className={SOURCE_PROVIDER_FIELDS_LIST_CLASS}",
         );
+        expect(sourceProviderFieldsWrapper).toContain("unstyled");
         expect(sourceProviderFieldsWrapper).toContain(
             'data-sot-list="source-fields"',
         );
         expect(sourceProviderFieldsWrapper).toContain(
             'data-sot-panel="source-provider-fields"',
-        );
-        expect(content).not.toMatch(
-            /<FieldGroup\b(?=[^>]*data-sot-list="source-fields")(?=[^>]*data-sot-panel="source-provider-fields")[^>]*>/,
         );
         expect(content).toContain("SOURCE_PROVIDER_DETAIL_FIELD_CLASS");
         expect(content).toContain('variant="sourceProviderDetail"');
