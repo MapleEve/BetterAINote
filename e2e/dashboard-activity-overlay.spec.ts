@@ -39,6 +39,7 @@ type ActivityTriggerSotState = (typeof ACTIVITY_TRIGGER_SOT_STATES)[number];
 type ActivityPanelSotState = (typeof ACTIVITY_PANEL_SOT_STATES)[number];
 type ActivitySotFixtureKind = "panel" | "trigger";
 type ActivityResponsiveViewportName = "desktop" | "mobile" | "tablet";
+type ActivityRuntimeResponsiveState = "partial-failed" | "worker-down";
 
 type ActivityEvidenceFrame = {
     blocker: string | null;
@@ -1024,7 +1025,7 @@ async function captureActivityRuntimeResponsiveFrame(
     frame: {
         height: number;
         name: ActivityResponsiveViewportName;
-        state: "worker-down";
+        state: ActivityRuntimeResponsiveState;
         width: number;
     },
 ): Promise<ActivityEvidenceFrame> {
@@ -1039,8 +1040,43 @@ async function captureActivityRuntimeResponsiveFrame(
     const trigger = sotControl(page, "dashboard-activity");
     await expect(trigger).toHaveAttribute("data-unread", "1");
     await expect(panel).toHaveAttribute("data-sot-state", "error");
-    await expect(panel.locator('[data-sot-activity-id="worker-unavailable"]'))
-        .toHaveAttribute("data-kind", "worker-down");
+    const status = panel.locator(
+        '[data-sot-part="dashboard-activity-status"]',
+    );
+    await expect(status).toHaveAttribute("data-sot-state", "error");
+    if (frame.state === "worker-down") {
+        await expect(
+            panel.locator('[data-sot-activity-id="worker-unavailable"]'),
+        ).toHaveAttribute("data-kind", "worker-down");
+    } else {
+        await expect(
+            status.locator(
+                '[data-sot-part="dashboard-activity-status-line"]',
+            ),
+        ).toHaveText("部分来源更新失败");
+        await expect(
+            status.locator('[data-sot-part="dashboard-activity-status-sub"]'),
+        ).toContainText("2 个来源更新失败，稍后可重试。");
+        const partialSummaryItem = panel.locator(
+            '[data-sot-activity-id="source-sync-summary"][data-kind="partial-failed"][data-sot-state="warn"]',
+        );
+        await expect(partialSummaryItem).toBeVisible();
+        await expect(
+            partialSummaryItem.locator(
+                '[data-sot-part="dashboard-activity-item-title"]',
+            ),
+        ).toContainText("部分来源更新失败");
+        await expect(
+            partialSummaryItem.locator(
+                '[data-sot-part="dashboard-activity-item-body"]',
+            ),
+        ).toContainText("新增 3，更新 5，移除 1，失败 2。");
+        await expect(
+            partialSummaryItem.locator(
+                '[data-sot-control="dashboard-activity-action"]',
+            ),
+        ).toHaveText("重试");
+    }
 
     const metrics = await panel.evaluate((node) => {
         const rect = node.getBoundingClientRect();
@@ -1172,10 +1208,10 @@ async function captureActivityRuntimeResponsiveFrame(
     }
 
     const screenshotPath = activityEvidencePath(
-        `activity-responsive-runtime-${frame.name}-worker-down-viewport.png`,
+        `activity-responsive-runtime-${frame.name}-${frame.state}-viewport.png`,
     );
     const panelScreenshotPath = activityEvidencePath(
-        `activity-responsive-runtime-${frame.name}-worker-down-panel.png`,
+        `activity-responsive-runtime-${frame.name}-${frame.state}-panel.png`,
     );
     await page.screenshot({
         animations: "disabled",
@@ -1189,9 +1225,12 @@ async function captureActivityRuntimeResponsiveFrame(
 
     return {
         blocker: blockers.length > 0 ? blockers.join("; ") : null,
-        frame: `runtime-${frame.name}-worker-down`,
+        frame: `runtime-${frame.name}-${frame.state}`,
         metrics,
-        note: "Product runtime worker-down state. Structural responsive geometry only; not pixel parity.",
+        note:
+            frame.state === "worker-down"
+                ? "Product runtime worker-down state. Structural responsive geometry only; not pixel parity."
+                : "Product runtime partial-failed UI state driven by a mocked sync-status route for screenshot evidence only; backend-seeded real partial-failed status is covered by the sibling Activity E2E.",
         panelScreenshot: relativeEvidencePath(panelScreenshotPath),
         parityType: "structural",
         screenshot: relativeEvidencePath(screenshotPath),
@@ -1328,6 +1367,11 @@ async function writeActivityResponsiveEvidence(frames: ActivityEvidenceFrame[]) 
     const desktopPanelFrame = frames.find(
         (frame) => frame.frame === "sot-desktop-panel-worker-down",
     );
+    const partialFailedFrames = frames.filter(
+        (frame) =>
+            frame.parityType === "structural" &&
+            frame.state === "partial-failed",
+    );
     const evidence = {
         generatedAt: new Date().toISOString(),
         matrixRow: 99,
@@ -1353,14 +1397,15 @@ async function writeActivityResponsiveEvidence(frames: ActivityEvidenceFrame[]) 
         },
         runtimeBoundary: {
             independentPartialFailedKindHandledThisRound: true,
-            note: "Current product runtime emits source-sync-summary as data-kind=\"partial-failed\" when workerStatus.lastSummary.errorCount > 0. This responsive matrix still focuses worker-down frames; the sibling Activity E2E covers the partial-failed runtime branch.",
+            partialFailedResponsiveScreenshotsHandledThisRound: true,
+            note: "Current product runtime emits source-sync-summary as data-kind=\"partial-failed\" when workerStatus.lastSummary.errorCount > 0. This responsive matrix now records mocked-route partial-failed screenshot/runtime frames for mobile, tablet, and desktop. The sibling Activity E2E remains the backend-seeded real worker-state coverage.",
         },
         frames,
         result: {
             status: "partial",
             remainingGaps: [
                 "This is row 99 focused responsive/mobile evidence only, not global all-page/all-control acceptance.",
-                "Partial-failed runtime kind is covered by the sibling Activity E2E, but this responsive matrix does not add separate partial-failed mobile/tablet/desktop screenshots.",
+                "The partial-failed responsive frames are screenshot evidence driven by the Playwright sync-status route; do not treat them as live provider credential success or a real backend failure.",
             ],
         },
     };
@@ -1380,6 +1425,12 @@ async function writeActivityResponsiveEvidence(frames: ActivityEvidenceFrame[]) 
         tabletMetrics
             ? `- Tablet runtime worker-down overflow fixed: panel left=${tabletMetrics.panel.left}px; right=${tabletMetrics.panel.right}px; documentOverflowX=${tabletMetrics.documentOverflowX}px; blocker=${tabletFrame?.blocker ?? "none"}.`
             : "- Tablet runtime worker-down overflow read-back missing.",
+        `- Partial-failed responsive screenshot frames added: ${partialFailedFrames
+            .map(
+                (frame) =>
+                    `${frame.viewport?.name ?? "unknown"} blocker=${frame.blocker ?? "none"}`,
+            )
+            .join("; ")}. These frames use the Playwright sync-status route for UI screenshot evidence only; backend-seeded real partial-failed coverage stays in the sibling Activity E2E.`,
         `- Desktop SOT trigger pixel parity preserved: ${desktopTriggerDiffs}.`,
         `- Desktop SOT panel pixel parity preserved: worker-down differingPixels=${desktopPanelFrame?.pixelDiff?.differingPixels ?? "n/a"}/maxChannelDelta=${desktopPanelFrame?.pixelDiff?.maxChannelDelta ?? "n/a"}.`,
         "",
@@ -1406,7 +1457,7 @@ async function writeActivityResponsiveEvidence(frames: ActivityEvidenceFrame[]) 
         "",
         "## Remaining Gaps",
         "",
-        "- Runtime independent `partial-failed` is covered by the sibling Activity E2E through `source-sync-summary[data-kind=\"partial-failed\"]`; this responsive matrix does not add separate partial-failed mobile/tablet/desktop screenshots.",
+        "- The new `partial-failed` responsive frames are mocked-route screenshot evidence, not live provider credential success and not a real backend failure claim.",
         "- This evidence is row 99 local补证 only and does not close full all-page/all-control acceptance.",
         "",
     ];
@@ -1836,7 +1887,11 @@ function healthyWorkerStatus(
     };
 }
 
-async function mockSyncEndpoint(page: Page, releasePost: Promise<void>) {
+async function mockSyncEndpoint(
+    page: Page,
+    releasePost: Promise<void>,
+    getStatusResponse: () => unknown = unhealthyWorkerStatus,
+) {
     await page.route("**/api/data-sources/sync", async (route) => {
         if (route.request().method() === "POST") {
             await releasePost;
@@ -1854,7 +1909,7 @@ async function mockSyncEndpoint(page: Page, releasePost: Promise<void>) {
         if (route.request().method() === "GET") {
             await route.fulfill({
                 contentType: "application/json",
-                body: JSON.stringify(unhealthyWorkerStatus()),
+                body: JSON.stringify(getStatusResponse()),
             });
             return;
         }
@@ -2056,17 +2111,32 @@ test("Activity responsive matrix records row 99 mobile tablet desktop evidence",
 }) => {
     test.setTimeout(180_000);
     await resetActivityResponsiveEvidenceDir();
-    await mockSyncEndpoint(page, Promise.resolve());
+    let responsiveRuntimeState: ActivityRuntimeResponsiveState = "worker-down";
+    await mockSyncEndpoint(page, Promise.resolve(), () =>
+        responsiveRuntimeState === "partial-failed"
+            ? healthyWorkerStatus({
+                  errorCount: 2,
+                  newRecordings: 3,
+                  removedRecordings: 1,
+                  updatedRecordings: 5,
+              })
+            : unhealthyWorkerStatus(),
+    );
 
     await ensureSignedIn(page);
     await resetDisplaySettings(page, { theme: "light", uiLanguage: "zh-CN" });
 
     const frames: ActivityEvidenceFrame[] = [];
-    for (const frame of [
+    const runtimeResponsiveFrames = [
         { height: 844, name: "mobile" as const, state: "worker-down" as const, width: 390 },
         { height: 900, name: "tablet" as const, state: "worker-down" as const, width: 768 },
         { height: 760, name: "desktop" as const, state: "worker-down" as const, width: 1280 },
-    ]) {
+        { height: 844, name: "mobile" as const, state: "partial-failed" as const, width: 390 },
+        { height: 900, name: "tablet" as const, state: "partial-failed" as const, width: 768 },
+        { height: 760, name: "desktop" as const, state: "partial-failed" as const, width: 1280 },
+    ];
+    for (const frame of runtimeResponsiveFrames) {
+        responsiveRuntimeState = frame.state;
         frames.push(await captureActivityRuntimeResponsiveFrame(page, frame));
     }
 
@@ -2110,6 +2180,34 @@ test("Activity responsive matrix records row 99 mobile tablet desktop evidence",
         .toBe(true);
     expect(evidence.frames.some((frame) => frame.viewport?.name === "desktop"))
         .toBe(true);
+
+    for (const state of ["worker-down", "partial-failed"] as const) {
+        for (const viewportName of ["mobile", "tablet", "desktop"] as const) {
+            const runtimeFrame = evidence.frames.find(
+                (frame) =>
+                    frame.frame === `runtime-${viewportName}-${state}`,
+            );
+            expect(
+                runtimeFrame,
+                `runtime-${viewportName}-${state} evidence frame`,
+            ).toBeDefined();
+            if (!runtimeFrame) {
+                throw new Error(
+                    `Missing runtime-${viewportName}-${state} evidence frame`,
+                );
+            }
+            expect(runtimeFrame.blocker, runtimeFrame.frame).toBeNull();
+            expect(runtimeFrame.parityType, runtimeFrame.frame).toBe(
+                "structural",
+            );
+            expect(runtimeFrame.screenshot, runtimeFrame.frame).toContain(
+                `${state}-viewport.png`,
+            );
+            expect(runtimeFrame.panelScreenshot, runtimeFrame.frame).toContain(
+                `${state}-panel.png`,
+            );
+        }
+    }
 
     const tabletFrame = evidence.frames.find(
         (frame) => frame.frame === "runtime-tablet-worker-down",
