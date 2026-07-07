@@ -1583,6 +1583,22 @@ describe("recording detail copy and title action UI regressions", () => {
         expect(sourceReport).toContain(
             'aria-busy={copyingKey === "source-report"}',
         );
+        expect(sourceReport).toContain(
+            'import { Spinner } from "@/components/ui/spinner";',
+        );
+        const sourceReportRefreshAction = extractElementSlice(
+            sourceReport,
+            'control="refresh-source-report"',
+            "SourceReportActionButton",
+        );
+        expect(sourceReportRefreshAction).toContain("<Spinner");
+        expect(sourceReportRefreshAction).toContain('data-icon="inline-start"');
+        expect(sourceReportRefreshAction).toContain('aria-hidden="true"');
+        expect(sourceReportRefreshAction).toContain(
+            't("sourceReport.loadingDetail")',
+        );
+        expect(sourceReportRefreshAction).not.toContain("<LoaderCircle");
+        expect(sourceReport).not.toContain("LoaderCircle");
         expect(sourceReport).toContain("activeReportRequestRef");
         expect(sourceReport).toContain("AbortController");
         expect(sourceReport).toContain("reportRequestIdRef");

@@ -1,15 +1,11 @@
 "use client";
 
-import {
-    CircleAlert,
-    CloudDownload,
-    FileText,
-    LoaderCircle,
-} from "lucide-react";
+import { CircleAlert, CloudDownload, FileText } from "lucide-react";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
 import { useLanguage } from "@/components/language-provider";
 import { CardAction, CardHeader, CardTitle } from "@/components/ui/card";
+import { Spinner } from "@/components/ui/spinner";
 import {
     SourceReportActionButton,
     SourceReportActionRow,
@@ -986,7 +982,7 @@ export function SourceReportPanel({
                 >
                     {isLoading ? (
                         <>
-                            <LoaderCircle
+                            <Spinner
                                 data-icon="inline-start"
                                 aria-hidden="true"
                             />

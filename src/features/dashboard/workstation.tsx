@@ -1643,22 +1643,7 @@ function DashboardDetailEmptyState() {
 }
 
 function SotSourceReportErrorIcon() {
-    return (
-        <svg
-            aria-hidden="true"
-            fill="none"
-            focusable="false"
-            stroke="currentColor"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            strokeWidth="1.8"
-            viewBox="0 0 24 24"
-        >
-            <circle cx="12" cy="12" r="9" />
-            <path d="M12 8v5" />
-            <circle cx="12" cy="16" r=".8" fill="currentColor" />
-        </svg>
-    );
+    return <CircleAlert aria-hidden="true" focusable="false" />;
 }
 
 function SotSourceReportEmptyIcon() {
