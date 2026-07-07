@@ -134,8 +134,18 @@ const DASHBOARD_SIDEBAR_OWNER_FORBIDDEN_CLASS_PATTERN =
     /\bspace-[xy]-|\b(?:rgb|rgba|hsl|hsla|oklch|color-mix)\(|#[0-9A-Fa-f]{3,8}\b|\bdark:|(?:^|\s)(?:bg|border|text|shadow|ring|fill|stroke|from|via|to)-(?:white|black|transparent|slate|gray|zinc|neutral|stone|red|orange|amber|yellow|lime|green|emerald|teal|cyan|sky|blue|indigo|violet|purple|fuchsia|pink|rose)(?:[/-]\d+)?\b/;
 const DASHBOARD_SIDEBAR_VISUAL_GLOBAL_DECLARATION_RE =
     /^\s*(?:-webkit-backdrop-filter|backdrop-filter|background|border(?:-(?:color|radius|right|style|width))?|box-shadow|display|flex-direction|padding|position)\s*:/m;
-const EXPECTED_SOURCE_REPORT_STATUS_BADGE_CLASS_NAME =
-    "h-[22px] justify-normal gap-[5px] overflow-visible px-[8px] py-0";
+const SOURCE_REPORT_STATUS_BADGE_FORBIDDEN_OWNER_SNIPPETS = [
+    "h-[22px] justify-normal gap-[5px] overflow-visible px-[8px] py-0",
+    "h-[22px]",
+    "gap-[5px]",
+    "px-[8px]",
+    "SourceReportStatusDot",
+    "sourceReportStatusDotBase",
+    '"inline-block size-[5px] rounded-[50%] bg-current"',
+    "data-sot-part={part}",
+    'part = "source-report-status-dot"',
+    'part="dashboard-source-report-status-dot"',
+] as const;
 const SOURCE_REPORT_STATUS_VARIANT_SNIPPETS = [
     "const SOURCE_REPORT_STATUS_VARIANT = {",
     'err: "destructive"',
@@ -146,6 +156,7 @@ const SOURCE_REPORT_STATUS_VARIANT_SNIPPETS = [
     "variant={SOURCE_REPORT_STATUS_VARIANT[tone]}",
 ] as const;
 const SOURCE_REPORT_STATUS_BADGE_FORBIDDEN_STYLING_SNIPPETS = [
+    ...SOURCE_REPORT_STATUS_BADGE_FORBIDDEN_OWNER_SNIPPETS,
     "sourceReportStatusBadgeStyles",
     "color-mix(",
     "oklch(",
@@ -1461,8 +1472,6 @@ const SOURCE_REPORT_PRIMITIVE_OWNER_SNIPPETS = [
     'neu: "secondary"',
     'ok: "default"',
     'warn: "outline"',
-    EXPECTED_SOURCE_REPORT_STATUS_BADGE_CLASS_NAME,
-    '"inline-block size-[5px] rounded-[50%] bg-current"',
     "[[data-theme=dark]_&]:border-[var(--glass-border-soft)] [.dark_&]:border-[var(--glass-border-soft)]",
     "grid grid-cols-[80px_1fr] items-baseline gap-[8px] border-b border-dashed border-[var(--line-hairline)] py-[6px]",
     "border-b border-dashed border-[var(--line-hairline)]",
@@ -1543,7 +1552,6 @@ const SOURCE_REPORT_SKELETON_OWNER_TOKENS = [
 ] as const;
 
 const DASHBOARD_SOURCE_REPORT_LOADED_SOT_HOOKS = [
-    "SotSourceReportStatusDot",
     "data-sot-source-report-segment-time",
     'data-sot-format="mono"',
     'valueFormat="mono"',
@@ -5472,9 +5480,6 @@ describe("dashboard SOT foundation", () => {
             'control="open-source-record"',
         );
         expect(sourceReportLoadedActions).toContain('control="repull-source"');
-        expect(sourceReportPrimitives).toContain(
-            EXPECTED_SOURCE_REPORT_STATUS_BADGE_CLASS_NAME,
-        );
         for (const snippet of SOURCE_REPORT_STATUS_VARIANT_SNIPPETS) {
             expect(sourceReportPrimitives).toContain(snippet);
         }
@@ -5489,12 +5494,6 @@ describe("dashboard SOT foundation", () => {
                 "NAME",
             ].join("_"),
         );
-        expect(sourceReportPrimitives).toContain(
-            "export function DashboardSourceReportStatusDot",
-        );
-        expect(sourceReportPrimitives).toContain(
-            'part="dashboard-source-report-status-dot"',
-        );
         const sourceReportStatusBadge = extractOpeningElement(
             sourceReportPrimitives,
             'data-sot-badge="source-report-status"',
@@ -5503,11 +5502,16 @@ describe("dashboard SOT foundation", () => {
         expect(sourceReportStatusBadge).toContain(
             "variant={SOURCE_REPORT_STATUS_VARIANT[tone]}",
         );
-        expect(sourceReportStatusBadge).toContain("className={cn(");
+        expect(sourceReportStatusBadge).toContain("className={className}");
         expect(sourceReportStatusBadge).toContain(
             'data-sot-badge="source-report-status"',
         );
         expect(sourceReportStatusBadge).toContain("data-sot-tone={tone}");
+        for (const forbiddenStatusBadgeOwnerSnippet of SOURCE_REPORT_STATUS_BADGE_FORBIDDEN_OWNER_SNIPPETS) {
+            expect(sourceReportStatusBadge).not.toContain(
+                forbiddenStatusBadgeOwnerSnippet,
+            );
+        }
         const sourceReportStatusBadgePrimitive = extractBoundedSlice(
             sourceReportPrimitives,
             "const SOURCE_REPORT_STATUS_VARIANT = {",

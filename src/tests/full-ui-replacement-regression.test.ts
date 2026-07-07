@@ -59,8 +59,20 @@ const EXPECTED_RECORDING_DETAIL_LIST_CARD_CLASS_NAME =
     "min-h-0 gap-0 max-[860px]:min-w-0 max-[860px]:max-w-full max-[860px]:box-border";
 const OWNER_WORKSPACE_FORBIDDEN_CLASS_PATTERN =
     /\bspace-[xy]-|\b(?:rgb|rgba|hsl|hsla|oklch|color-mix)\(|#[0-9A-Fa-f]{3,8}\b|\bdark:|(?:^|\s)(?:bg|border|text|shadow|ring|fill|stroke|from|via|to)-(?:white|black|transparent|slate|gray|zinc|neutral|stone|red|orange|amber|yellow|lime|green|emerald|teal|cyan|sky|blue|indigo|violet|purple|fuchsia|pink|rose)(?:[/-]\d+)?\b/;
-const EXPECTED_SOURCE_REPORT_STATUS_BADGE_CLASS_NAME =
-    "h-[22px] justify-normal gap-[5px] overflow-visible px-[8px] py-0";
+const SOURCE_REPORT_STATUS_DOT_STYLING_FORBIDDEN_SNIPPETS = [
+    "sourceReportStatusDotBase",
+    '"inline-block size-[5px] rounded-[50%] bg-current"',
+    'part = "source-report-status-dot"',
+    'part="dashboard-source-report-status-dot"',
+] as const;
+const SOURCE_REPORT_STATUS_BADGE_FORBIDDEN_OWNER_SNIPPETS = [
+    "h-[22px] justify-normal gap-[5px] overflow-visible px-[8px] py-0",
+    "h-[22px]",
+    "gap-[5px]",
+    "px-[8px]",
+    "SourceReportStatusDot",
+    ...SOURCE_REPORT_STATUS_DOT_STYLING_FORBIDDEN_SNIPPETS,
+] as const;
 const SOURCE_REPORT_STATUS_VARIANT_SNIPPETS = [
     "const SOURCE_REPORT_STATUS_VARIANT = {",
     'err: "destructive"',
@@ -71,6 +83,7 @@ const SOURCE_REPORT_STATUS_VARIANT_SNIPPETS = [
     "variant={SOURCE_REPORT_STATUS_VARIANT[tone]}",
 ] as const;
 const SOURCE_REPORT_STATUS_BADGE_FORBIDDEN_STYLING_SNIPPETS = [
+    ...SOURCE_REPORT_STATUS_BADGE_FORBIDDEN_OWNER_SNIPPETS,
     "sourceReportStatusBadgeStyles",
     "color-mix(",
     "oklch(",
@@ -3159,8 +3172,6 @@ const SOURCE_REPORT_PRIMITIVE_OWNER_SNIPPETS = [
     'neu: "secondary"',
     'ok: "default"',
     'warn: "outline"',
-    EXPECTED_SOURCE_REPORT_STATUS_BADGE_CLASS_NAME,
-    '"inline-block size-[5px] rounded-[50%] bg-current"',
     "[[data-theme=dark]_&]:border-[var(--glass-border-soft)] [.dark_&]:border-[var(--glass-border-soft)]",
     "grid grid-cols-[80px_1fr] items-baseline gap-[8px] border-b border-dashed border-[var(--line-hairline)] py-[6px]",
     "border-b border-dashed border-[var(--line-hairline)]",
@@ -3327,8 +3338,6 @@ const SOURCE_REPORT_METRIC_REMOVED_CARD_SELECTORS = [
 
 const SOURCE_REPORT_METRIC_GLOBAL_REPAINT_SELECTOR_FRAGMENTS = [
     '[data-sot-badge="source-report-status"]',
-    '[data-sot-part="source-report-status-dot"]',
-    '[data-sot-part="dashboard-source-report-status-dot"]',
 ];
 
 const SOURCE_REPORT_METRIC_REMOVED_PRIMITIVE_SELECTORS = [
@@ -3336,8 +3345,6 @@ const SOURCE_REPORT_METRIC_REMOVED_PRIMITIVE_SELECTORS = [
     '[data-sot-badge="source-report-status"][data-sot-tone="ok"]',
     '[data-sot-badge="source-report-status"][data-sot-tone="warn"]',
     '[data-sot-badge="source-report-status"][data-sot-tone="err"]',
-    '[data-sot-badge="source-report-status"][data-sot-tone]\n    [data-sot-part="source-report-status-dot"]',
-    '[data-sot-badge="source-report-status"][data-sot-tone]\n    [data-sot-part="dashboard-source-report-status-dot"]',
 ];
 
 const SOURCE_REPORT_SECTION_LEGACY_CSS_SELECTOR_RE =
@@ -10409,10 +10416,11 @@ describe("full UI replacement regression coverage", () => {
         expect(dashboardSourceReportLoadedActions).toContain(
             'control="repull-source"',
         );
-        expect(sourceReportPrimitives).toContain(
-            '"dashboard-source-report-status-dot"',
-        );
-        expect(sourceReportPrimitives).toContain("data-sot-part={part}");
+        for (const forbiddenStatusDotStylingSnippet of SOURCE_REPORT_STATUS_DOT_STYLING_FORBIDDEN_SNIPPETS) {
+            expect(sourceReportPrimitives).not.toContain(
+                forbiddenStatusDotStylingSnippet,
+            );
+        }
         for (const snippet of SOURCE_REPORT_STATUS_VARIANT_SNIPPETS) {
             expect(sourceReportPrimitives).toContain(snippet);
         }
@@ -10542,7 +10550,9 @@ describe("full UI replacement regression coverage", () => {
         expect(dashboardSourceReportStatusBadge).toContain(
             "variant={SOURCE_REPORT_STATUS_VARIANT[tone]}",
         );
-        expect(dashboardSourceReportStatusBadge).toContain("className={cn(");
+        expect(dashboardSourceReportStatusBadge).toContain(
+            "className={className}",
+        );
         expect(dashboardSourceReportStatusBadge).toContain(
             'data-sot-badge="source-report-status"',
         );
@@ -10550,6 +10560,11 @@ describe("full UI replacement regression coverage", () => {
             "data-sot-tone={tone}",
         );
         expect(dashboardSourceReportStatusBadge).toContain("className");
+        for (const forbiddenStatusBadgeOwnerSnippet of SOURCE_REPORT_STATUS_BADGE_FORBIDDEN_OWNER_SNIPPETS) {
+            expect(dashboardSourceReportStatusBadge).not.toContain(
+                forbiddenStatusBadgeOwnerSnippet,
+            );
+        }
         const dashboardSourceReportStatusBadgePrimitive = extractBoundedSlice(
             sourceReportPrimitives,
             "const SOURCE_REPORT_STATUS_VARIANT = {",
@@ -15215,9 +15230,6 @@ describe("full UI replacement regression coverage", () => {
         for (const snippet of SOURCE_REPORT_STATUS_VARIANT_SNIPPETS) {
             expect(sourceReportPrimitives).toContain(snippet);
         }
-        expect(sourceReportPrimitives).toContain(
-            EXPECTED_SOURCE_REPORT_STATUS_BADGE_CLASS_NAME,
-        );
         const sourceReportStatusBadge = extractOpeningElement(
             sourceReportPrimitives,
             'data-sot-badge="source-report-status"',
@@ -15226,11 +15238,16 @@ describe("full UI replacement regression coverage", () => {
         expect(sourceReportStatusBadge).toContain(
             "variant={SOURCE_REPORT_STATUS_VARIANT[tone]}",
         );
-        expect(sourceReportStatusBadge).toContain("className={cn(");
+        expect(sourceReportStatusBadge).toContain("className={className}");
         expect(sourceReportStatusBadge).toContain(
             'data-sot-badge="source-report-status"',
         );
         expect(sourceReportStatusBadge).toContain("data-sot-tone={tone}");
+        for (const forbiddenStatusBadgeOwnerSnippet of SOURCE_REPORT_STATUS_BADGE_FORBIDDEN_OWNER_SNIPPETS) {
+            expect(sourceReportStatusBadge).not.toContain(
+                forbiddenStatusBadgeOwnerSnippet,
+            );
+        }
         const sourceReportStatusBadgePrimitive = extractBoundedSlice(
             sourceReportPrimitives,
             "const SOURCE_REPORT_STATUS_VARIANT = {",
@@ -15342,10 +15359,11 @@ describe("full UI replacement regression coverage", () => {
         expect(sourceReportPrimitives).toContain(
             'part = "source-report-copy-label"',
         );
-        expect(sourceReportPrimitives).toContain(
-            'part = "source-report-status-dot"',
-        );
-        expect(sourceReportPrimitives).toContain("data-sot-part={part}");
+        for (const forbiddenStatusDotStylingSnippet of SOURCE_REPORT_STATUS_DOT_STYLING_FORBIDDEN_SNIPPETS) {
+            expect(sourceReportPrimitives).not.toContain(
+                forbiddenStatusDotStylingSnippet,
+            );
+        }
         expect(sourceReportPrimitives).toContain(
             "data-sot-source-report-segment-time",
         );
@@ -15360,7 +15378,6 @@ describe("full UI replacement regression coverage", () => {
                 '[data-sot-part="source-report-copy-label"]',
             ),
         ).toEqual([]);
-        expect(sourceReportPrimitives).toContain("sourceReportStatusDotBase");
         for (const selector of SOURCE_REPORT_METRIC_GLOBAL_REPAINT_SELECTOR_FRAGMENTS) {
             expect(collectCssRuleBlocks(globals, selector)).toEqual([]);
         }

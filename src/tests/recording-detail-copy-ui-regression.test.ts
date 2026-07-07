@@ -76,8 +76,20 @@ const RECORDING_WORKSTATION_MAIN_REQUIRED_CLASS_TOKENS = [
     "max-[860px]:max-w-full",
     "max-[860px]:box-border",
 ] as const;
-const EXPECTED_SOURCE_REPORT_STATUS_BADGE_CLASS_NAME =
-    "h-[22px] justify-normal gap-[5px] overflow-visible px-[8px] py-0";
+const SOURCE_REPORT_STATUS_DOT_STYLING_FORBIDDEN_SNIPPETS = [
+    "sourceReportStatusDotBase",
+    '"inline-block size-[5px] rounded-[50%] bg-current"',
+    'part = "source-report-status-dot"',
+    'part="dashboard-source-report-status-dot"',
+] as const;
+const SOURCE_REPORT_STATUS_BADGE_FORBIDDEN_OWNER_SNIPPETS = [
+    "h-[22px] justify-normal gap-[5px] overflow-visible px-[8px] py-0",
+    "h-[22px]",
+    "gap-[5px]",
+    "px-[8px]",
+    "SourceReportStatusDot",
+    ...SOURCE_REPORT_STATUS_DOT_STYLING_FORBIDDEN_SNIPPETS,
+] as const;
 const SOURCE_REPORT_STATUS_VARIANT_SNIPPETS = [
     "const SOURCE_REPORT_STATUS_VARIANT = {",
     'err: "destructive"',
@@ -88,6 +100,7 @@ const SOURCE_REPORT_STATUS_VARIANT_SNIPPETS = [
     "variant={SOURCE_REPORT_STATUS_VARIANT[tone]}",
 ] as const;
 const SOURCE_REPORT_STATUS_BADGE_FORBIDDEN_STYLING_SNIPPETS = [
+    ...SOURCE_REPORT_STATUS_BADGE_FORBIDDEN_OWNER_SNIPPETS,
     "sourceReportStatusBadgeStyles",
     "color-mix(",
     "oklch(",
@@ -341,8 +354,6 @@ const SOURCE_REPORT_PRIMITIVE_OWNER_SNIPPETS = [
     'neu: "secondary"',
     'ok: "default"',
     'warn: "outline"',
-    EXPECTED_SOURCE_REPORT_STATUS_BADGE_CLASS_NAME,
-    '"inline-block size-[5px] rounded-[50%] bg-current"',
     "[[data-theme=dark]_&]:border-[var(--glass-border-soft)] [.dark_&]:border-[var(--glass-border-soft)]",
     "grid grid-cols-[80px_1fr] items-baseline gap-[8px] border-b border-dashed border-[var(--line-hairline)] py-[6px]",
     "border-b border-dashed border-[var(--line-hairline)]",
@@ -1868,9 +1879,6 @@ describe("recording detail copy and title action UI regressions", () => {
         for (const snippet of SOURCE_REPORT_STATUS_VARIANT_SNIPPETS) {
             expect(sourceReportPrimitives).toContain(snippet);
         }
-        expect(sourceReportPrimitives).toContain(
-            EXPECTED_SOURCE_REPORT_STATUS_BADGE_CLASS_NAME,
-        );
         const sourceReportStatusBadge = extractOpeningElement(
             sourceReportPrimitives,
             'data-sot-badge="source-report-status"',
@@ -1879,11 +1887,16 @@ describe("recording detail copy and title action UI regressions", () => {
         expect(sourceReportStatusBadge).toContain(
             "variant={SOURCE_REPORT_STATUS_VARIANT[tone]}",
         );
-        expect(sourceReportStatusBadge).toContain("className={cn(");
+        expect(sourceReportStatusBadge).toContain("className={className}");
         expect(sourceReportStatusBadge).toContain(
             'data-sot-badge="source-report-status"',
         );
         expect(sourceReportStatusBadge).toContain("data-sot-tone={tone}");
+        for (const forbiddenStatusBadgeOwnerSnippet of SOURCE_REPORT_STATUS_BADGE_FORBIDDEN_OWNER_SNIPPETS) {
+            expect(sourceReportStatusBadge).not.toContain(
+                forbiddenStatusBadgeOwnerSnippet,
+            );
+        }
         const sourceReportStatusBadgePrimitive = extractBoundedSlice(
             sourceReportPrimitives,
             "const SOURCE_REPORT_STATUS_VARIANT = {",
@@ -2021,10 +2034,11 @@ describe("recording detail copy and title action UI regressions", () => {
         expect(sourceReportPrimitives).toContain(
             'part = "source-report-copy-label"',
         );
-        expect(sourceReportPrimitives).toContain(
-            'part = "source-report-status-dot"',
-        );
-        expect(sourceReportPrimitives).toContain("data-sot-part={part}");
+        for (const forbiddenStatusBadgeOwnerSnippet of SOURCE_REPORT_STATUS_DOT_STYLING_FORBIDDEN_SNIPPETS) {
+            expect(sourceReportPrimitives).not.toContain(
+                forbiddenStatusBadgeOwnerSnippet,
+            );
+        }
         expect(sourceReportPrimitives).toContain(
             "data-sot-source-report-segment-time",
         );
@@ -2040,10 +2054,6 @@ describe("recording detail copy and title action UI regressions", () => {
                 '[data-sot-part="source-report-copy-label"]',
             ),
         ).toEqual([]);
-        expect(sourceReportPrimitives).toContain("sourceReportStatusDotBase");
-        expect(sourceReportPrimitives).toContain(
-            '"inline-block size-[5px] rounded-[50%] bg-current"',
-        );
         for (const removedSourceReportStatusGlobalSelector of [
             '[data-sot-badge="source-report-status"]',
             '[data-sot-part="source-report-status-dot"]',

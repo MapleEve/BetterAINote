@@ -56,10 +56,6 @@ type SourceReportMetricName =
     | "summary-status"
     | "transcript-status";
 
-type SourceReportStatusDotPart =
-    | "dashboard-source-report-status-dot"
-    | "source-report-status-dot";
-
 type SourceReportCopyKind = "source-report" | "source-transcript";
 type SourceReportEmptySurfaceKind = "alert" | "empty";
 
@@ -141,9 +137,6 @@ const sourceReportSegmentBodyText =
 const sourceReportSummaryStack = "flex flex-col gap-1.5";
 const sourceReportSummaryLineText =
     "m-0 whitespace-pre-wrap font-sans ![font-size:12.5px] font-medium ![line-height:1.55] !tracking-normal !text-foreground [text-wrap:pretty]";
-
-const sourceReportStatusDotBase =
-    "inline-block size-[5px] rounded-[50%] bg-current";
 
 function sourceReportMetaClasses({
     spacing = "default",
@@ -237,23 +230,12 @@ export function SourceReportStateStack({ children }: { children: ReactNode }) {
     );
 }
 
-export function SourceReportStatusDot({
-    part = "source-report-status-dot",
-}: {
-    part?: SourceReportStatusDotPart;
-}) {
-    return (
-        <span
-            className={sourceReportStatusDotBase}
-            data-sot-part={part}
-            aria-hidden="true"
-        />
-    );
+function SourceReportRemovedStatusAdornment() {
+    return null;
 }
 
-export function DashboardSourceReportStatusDot() {
-    return <SourceReportStatusDot part="dashboard-source-report-status-dot" />;
-}
+export { SourceReportRemovedStatusAdornment as DashboardSourceReportStatusDot };
+export { SourceReportRemovedStatusAdornment as SourceReportStatusDot };
 
 const SOURCE_REPORT_STATUS_VARIANT = {
     err: "destructive",
@@ -277,10 +259,7 @@ export function SourceReportStatusBadge({
     return (
         <Badge
             variant={SOURCE_REPORT_STATUS_VARIANT[tone]}
-            className={cn(
-                "h-[22px] justify-normal gap-[5px] overflow-visible px-[8px] py-0",
-                className,
-            )}
+            className={className}
             data-sot-badge="source-report-status"
             data-sot-tone={tone}
         >
