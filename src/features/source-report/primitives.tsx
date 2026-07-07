@@ -6,7 +6,13 @@ import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Badge } from "@/components/ui/badge";
 import type { ButtonProps } from "@/components/ui/button";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription } from "@/components/ui/card";
+import {
+    Card,
+    CardContent,
+    CardDescription,
+    CardHeader,
+    CardTitle,
+} from "@/components/ui/card";
 import {
     Empty,
     EmptyDescription,
@@ -96,13 +102,9 @@ const sourceReportCopyLabelBase = "inline-flex min-w-0 items-center";
 const sourceReportMetricGridBase =
     "grid grid-cols-[repeat(4,1fr)] gap-[8px] max-[1200px]:grid-cols-[repeat(2,1fr)]";
 const sourceReportMetricCardBase =
-    "gap-[6px] overflow-visible rounded-[10px] border border-[var(--line-hairline)] bg-[var(--bg-recessed)] px-[12px] py-[10px] shadow-none backdrop-blur-none [[data-theme=dark]_&]:border-[var(--glass-border-soft)] [[data-theme=dark]_&]:bg-[var(--glass-tint-subtle)] [.dark_&]:border-[var(--glass-border-soft)] [.dark_&]:bg-[var(--glass-tint-subtle)]";
-const sourceReportMetricLabelText =
-    "font-sans text-[10.5px] font-semibold leading-[normal] tracking-[0.06em] text-[var(--fg-tertiary)] uppercase";
-const sourceReportMetricValueText =
-    "font-sans text-[13px] font-semibold leading-[normal] text-foreground";
-const sourceReportMetricNumberText =
-    "font-mono text-[16px] font-semibold leading-[normal] text-foreground";
+    "gap-[6px] overflow-visible rounded-[10px] border border-[var(--line-hairline)] bg-[var(--bg-recessed)] shadow-none backdrop-blur-none [[data-theme=dark]_&]:border-[var(--glass-border-soft)] [[data-theme=dark]_&]:bg-[var(--glass-tint-subtle)] [.dark_&]:border-[var(--glass-border-soft)] [.dark_&]:bg-[var(--glass-tint-subtle)]";
+const sourceReportMetricHeaderLayout = "px-[12px] pt-[10px] pb-0";
+const sourceReportMetricContentLayout = "min-w-0 px-[12px] pb-[10px]";
 const sourceReportSourceValueLayout = "flex items-center gap-[6px]";
 const sourceReportSourceIconMedia =
     "size-[14px] flex-none rounded-[3px] object-contain";
@@ -474,10 +476,12 @@ export function SourceReportMetricCards({ children }: { children: ReactNode }) {
 
 export function SourceReportMetricCard({
     children,
+    className,
     label,
     metric,
     value,
-}: {
+    ...props
+}: Omit<React.ComponentProps<"div">, "children"> & {
     children: ReactNode;
     label: string;
     metric: SourceReportMetricName;
@@ -486,31 +490,38 @@ export function SourceReportMetricCard({
     return (
         <Card
             hasNoPadding
-            className={sourceReportMetricCardBase}
+            className={cn(sourceReportMetricCardBase, className)}
+            {...props}
             data-sot-card="source-report-metric"
             data-sot-metric={metric}
         >
-            <div
-                className={sourceReportMetricLabelText}
-                data-sot-part="source-report-card-label"
+            <CardHeader
+                className={sourceReportMetricHeaderLayout}
+                data-sot-part="source-report-card-header"
             >
-                {label}
-            </div>
-            {value === "skeleton" ? (
-                children
-            ) : (
-                <div
-                    className={cn(
-                        sourceReportMetricValueText,
-                        value === "source" && sourceReportSourceValueLayout,
-                        value === "number" && sourceReportMetricNumberText,
-                    )}
-                    data-sot-part="source-report-card-value"
-                    data-sot-value={value}
-                >
-                    {children}
-                </div>
-            )}
+                <CardDescription data-sot-part="source-report-card-label">
+                    {label}
+                </CardDescription>
+            </CardHeader>
+            <CardContent
+                className={sourceReportMetricContentLayout}
+                data-sot-part="source-report-card-content"
+            >
+                {value === "skeleton" ? (
+                    children
+                ) : (
+                    <CardTitle
+                        className={cn(
+                            "min-w-0",
+                            value === "source" && sourceReportSourceValueLayout,
+                        )}
+                        data-sot-part="source-report-card-value"
+                        data-sot-value={value}
+                    >
+                        {children}
+                    </CardTitle>
+                )}
+            </CardContent>
         </Card>
     );
 }

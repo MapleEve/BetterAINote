@@ -1394,9 +1394,17 @@ const SOURCE_REPORT_SKELETON_SHARED_TOKENS = [
 ] as const;
 
 const EXPECTED_SOURCE_REPORT_METRIC_CARD_CLASS_NAME =
-    "gap-[6px] overflow-visible rounded-[10px] border border-[var(--line-hairline)] bg-[var(--bg-recessed)] px-[12px] py-[10px] shadow-none backdrop-blur-none [[data-theme=dark]_&]:border-[var(--glass-border-soft)] [[data-theme=dark]_&]:bg-[var(--glass-tint-subtle)] [.dark_&]:border-[var(--glass-border-soft)] [.dark_&]:bg-[var(--glass-tint-subtle)]";
+    "gap-[6px] overflow-visible rounded-[10px] border border-[var(--line-hairline)] bg-[var(--bg-recessed)] shadow-none backdrop-blur-none [[data-theme=dark]_&]:border-[var(--glass-border-soft)] [[data-theme=dark]_&]:bg-[var(--glass-tint-subtle)] [.dark_&]:border-[var(--glass-border-soft)] [.dark_&]:bg-[var(--glass-tint-subtle)]";
 const SOURCE_REPORT_METRIC_CARD_CLASS_TOKENS =
     EXPECTED_SOURCE_REPORT_METRIC_CARD_CLASS_NAME.split(" ");
+const EXPECTED_SOURCE_REPORT_METRIC_HEADER_CLASS_NAME =
+    "px-[12px] pt-[10px] pb-0";
+const SOURCE_REPORT_METRIC_HEADER_CLASS_TOKENS =
+    EXPECTED_SOURCE_REPORT_METRIC_HEADER_CLASS_NAME.split(" ");
+const EXPECTED_SOURCE_REPORT_METRIC_CONTENT_CLASS_NAME =
+    "min-w-0 px-[12px] pb-[10px]";
+const SOURCE_REPORT_METRIC_CONTENT_CLASS_TOKENS =
+    EXPECTED_SOURCE_REPORT_METRIC_CONTENT_CLASS_NAME.split(" ");
 const SOURCE_REPORT_STYLE_OWNER_SNIPPETS = [
     "export type SourceReportTone =",
     "export type SourceReportCardSkeletonSize =",
@@ -1433,8 +1441,6 @@ const SOURCE_REPORT_PRIMITIVE_OWNER_SNIPPETS = [
     `const sourceReportPaneBase = "flex flex-col gap-3.5"`,
     "const sourceReportStateBase =",
     "const sourceReportMetricCardBase =",
-    "const sourceReportMetricLabelText =",
-    "font-sans text-[10.5px] font-semibold leading-[normal] tracking-[0.06em] text-[var(--fg-tertiary)] uppercase",
     "text-foreground",
     "font-sans text-[11.5px] font-medium leading-[normal] text-[var(--fg-tertiary)]",
     "const sourceReportSegmentSpeakerText =",
@@ -5739,7 +5745,7 @@ describe("dashboard SOT foundation", () => {
         );
         expect(sourceReportMetricCard).toContain("hasNoPadding");
         expect(sourceReportMetricCard).toContain(
-            "className={sourceReportMetricCardBase}",
+            "className={cn(sourceReportMetricCardBase, className)}",
         );
         expect(sourceReportMetricCard).toContain(
             'data-sot-card="source-report-metric"',
@@ -5748,7 +5754,42 @@ describe("dashboard SOT foundation", () => {
         expect(sourceReportMetricCardBlock).not.toContain(
             'variant="sourceReportMetric"',
         );
+        expect(sourceReportMetricCardBlock).toContain("<CardHeader");
+        expect(sourceReportMetricCardBlock).toContain(
+            "className={sourceReportMetricHeaderLayout}",
+        );
+        expect(sourceReportMetricCardBlock).toContain("<CardDescription");
+        expect(sourceReportMetricCardBlock).toContain(
+            'data-sot-part="source-report-card-label"',
+        );
+        expect(sourceReportMetricCardBlock).toContain("<CardContent");
+        expect(sourceReportMetricCardBlock).toContain(
+            "className={sourceReportMetricContentLayout}",
+        );
+        expect(sourceReportMetricCardBlock).toContain("<CardTitle");
+        expect(sourceReportMetricCardBlock).toContain(
+            'data-sot-part="source-report-card-value"',
+        );
+        expect(sourceReportMetricCardBlock).toContain("data-sot-value={value}");
+        expect(sourceReportMetricCardBlock).toContain(
+            "sourceReportSourceValueLayout",
+        );
+        expect(sourceReportPrimitives).not.toContain(
+            "sourceReportMetricLabelText",
+        );
+        expect(sourceReportPrimitives).not.toContain(
+            "sourceReportMetricValueText",
+        );
+        expect(sourceReportPrimitives).not.toContain(
+            "sourceReportMetricNumberText",
+        );
         for (const token of SOURCE_REPORT_METRIC_CARD_CLASS_TOKENS) {
+            expect(sourceReportPrimitives).toContain(token);
+        }
+        for (const token of SOURCE_REPORT_METRIC_HEADER_CLASS_TOKENS) {
+            expect(sourceReportPrimitives).toContain(token);
+        }
+        for (const token of SOURCE_REPORT_METRIC_CONTENT_CLASS_TOKENS) {
             expect(sourceReportPrimitives).toContain(token);
         }
         expectSourceReportMetricCallsites(
