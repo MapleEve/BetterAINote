@@ -153,6 +153,32 @@ function expectNoDataSotDrivenTailwindSelectors(source: string) {
 
 const OLD_UI_RE = /uikit-|glass-surface|glass-control/;
 
+const SOURCE_PROVIDER_STATUS_BADGE_OWNER_OVERRIDE_PATTERNS = [
+    /(?:^|[\s"':])!?(?:size|(?:min-|max-)?[hw])-\[[^\]\s]+\](?=$|[\s"';])/,
+    /(?:^|[\s"':])!?(?:size|(?:min-|max-)?[hw])-(?:\d+(?:\.\d+)?|px|auto|full|fit|min|max|screen|dvw|svw|lvw|dvh|svh|lvh)(?=$|[\s"';])/,
+    /(?:^|[\s"':])!?p[trblxy]?-\[[^\]\s]+\](?=$|[\s"';])/,
+    /(?:^|[\s"':])!?p[trblxy]?-(?:\d+(?:\.\d+)?|px)(?=$|[\s"';])/,
+    /(?:^|[\s"':])!?text-\[[^\]\s]+\](?:\/[^\s"';]+)?(?=$|[\s"';])/,
+    /(?:^|[\s"':])!?text-(?:xs|sm|base|lg|xl|[2-9]xl)(?:\/[^\s"';]+)?(?=$|[\s"';])/,
+    /(?:^|[\s"':])!?leading-(?:\[[^\]\s]+\]|none|tight|snug|normal|relaxed|loose|\d+(?:\.\d+)?)(?=$|[\s"';])/,
+    /(?:^|[\s"':])!?font-(?:\[[^\]\s]+\]|sans|serif|mono|thin|extralight|light|normal|medium|semibold|bold|extrabold|black)(?=$|[\s"';])/,
+    /(?:^|[\s"':])!?\[(?:min-|max-)?(?:height|width|inline-size|block-size):[^\]\s]+\](?=$|[\s"';])/,
+    /(?:^|[\s"':])!?\[padding(?:-(?:block|inline|top|right|bottom|left))?:[^\]\s]+\](?=$|[\s"';])/,
+    /(?:^|[\s"':])!?\[(?:font-size|font-weight|line-height|letter-spacing):[^\]\s]+\](?=$|[\s"';])/,
+] as const;
+
+function expectSourceProviderStatusBadgeClassIsLayoutOnly(
+    statusBadgeClass: string,
+) {
+    expect(statusBadgeClass).toMatch(
+        /const SOURCE_PROVIDER_STATUS_BADGE_CLASS\s*=\s*"justify-self-end";/,
+    );
+
+    for (const pattern of SOURCE_PROVIDER_STATUS_BADGE_OWNER_OVERRIDE_PATTERNS) {
+        expect(statusBadgeClass).not.toMatch(pattern);
+    }
+}
+
 const TARGET_SETTINGS_MIGRATION_PATHS = [
     "features/settings/components/settings-content.tsx",
     "features/settings/components/setting-field-control.tsx",
@@ -1915,6 +1941,7 @@ describe("settings SOT interaction regressions", () => {
             expect(statusClass).not.toContain("var(--");
             expect(statusClass).not.toContain("SOURCE_STATUS_BADGE_CLASS");
         }
+        expectSourceProviderStatusBadgeClassIsLayoutOnly(statusBadgeClass);
         expect(content).not.toContain("SOURCE_STATUS_BADGE_CLASS");
         for (const featureStatusPillToken of [
             "h-[18px]",
@@ -1935,7 +1962,6 @@ describe("settings SOT interaction regressions", () => {
                 expect(badge).not.toContain(featureStatusPillToken);
             }
         }
-        expect(statusBadgeClass).toContain("justify-self-end");
         expect(detailStatusBadgeClass).toContain("shrink-0");
         expect(providerTile).not.toContain('size="statusPill"');
         expect(providerTile).toContain('"size-1 rounded-full bg-current"');

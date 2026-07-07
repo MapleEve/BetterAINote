@@ -198,16 +198,18 @@ type BadgeVariant = NonNullable<ComponentProps<typeof Badge>["variant"]>;
 const SOURCE_PROVIDER_THEME_CLASS = "";
 
 const SOURCE_PROVIDER_TILE_BUTTON_CLASS =
-    "grid h-auto w-full grid-cols-[1.75rem_minmax(0,1fr)_auto] items-center justify-start gap-2.5 p-2.5 text-left whitespace-normal";
+    "grid h-auto w-full grid-cols-[28px_minmax(0,1fr)_auto] items-center justify-start gap-2.5 p-2.5 text-left whitespace-normal";
 
 const SOURCE_PROVIDER_MARK_CLASS =
-    "flex size-7 shrink-0 items-center justify-center overflow-hidden rounded-md border border-border bg-background";
+    "flex size-7 shrink-0 items-center justify-center overflow-hidden rounded-[7px] border border-border bg-background";
 
 const SOURCE_PROVIDER_META_CLASS = "flex min-w-0 flex-col gap-0.5";
 
-const SOURCE_PROVIDER_NAME_CLASS = "truncate text-sm font-medium";
+const SOURCE_PROVIDER_NAME_CLASS =
+    "truncate font-sans text-[13px] leading-4 font-semibold";
 
-const SOURCE_PROVIDER_HINT_CLASS = "truncate text-xs text-muted-foreground";
+const SOURCE_PROVIDER_HINT_CLASS =
+    "truncate font-mono text-[11.5px] leading-4 font-medium text-muted-foreground";
 
 const SETTINGS_BANNER_BASE_CLASS = "mb-4";
 

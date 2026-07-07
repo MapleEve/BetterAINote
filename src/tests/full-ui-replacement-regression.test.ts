@@ -14,6 +14,19 @@ const RECORDING_WORKSTATION_MAIN_REQUIRED_CLASS_TOKENS = [
     "max-[860px]:max-w-full",
     "max-[860px]:box-border",
 ] as const;
+const SOURCE_PROVIDER_STATUS_BADGE_OWNER_OVERRIDE_PATTERNS = [
+    /(?:^|[\s"':])!?(?:size|(?:min-|max-)?[hw])-\[[^\]\s]+\](?=$|[\s"';])/,
+    /(?:^|[\s"':])!?(?:size|(?:min-|max-)?[hw])-(?:\d+(?:\.\d+)?|px|auto|full|fit|min|max|screen|dvw|svw|lvw|dvh|svh|lvh)(?=$|[\s"';])/,
+    /(?:^|[\s"':])!?p[trblxy]?-\[[^\]\s]+\](?=$|[\s"';])/,
+    /(?:^|[\s"':])!?p[trblxy]?-(?:\d+(?:\.\d+)?|px)(?=$|[\s"';])/,
+    /(?:^|[\s"':])!?text-\[[^\]\s]+\](?:\/[^\s"';]+)?(?=$|[\s"';])/,
+    /(?:^|[\s"':])!?text-(?:xs|sm|base|lg|xl|[2-9]xl)(?:\/[^\s"';]+)?(?=$|[\s"';])/,
+    /(?:^|[\s"':])!?leading-(?:\[[^\]\s]+\]|none|tight|snug|normal|relaxed|loose|\d+(?:\.\d+)?)(?=$|[\s"';])/,
+    /(?:^|[\s"':])!?font-(?:\[[^\]\s]+\]|sans|serif|mono|thin|extralight|light|normal|medium|semibold|bold|extrabold|black)(?=$|[\s"';])/,
+    /(?:^|[\s"':])!?\[(?:min-|max-)?(?:height|width|inline-size|block-size):[^\]\s]+\](?=$|[\s"';])/,
+    /(?:^|[\s"':])!?\[padding(?:-(?:block|inline|top|right|bottom|left))?:[^\]\s]+\](?=$|[\s"';])/,
+    /(?:^|[\s"':])!?\[(?:font-size|font-weight|line-height|letter-spacing):[^\]\s]+\](?=$|[\s"';])/,
+] as const;
 const DASHBOARD_MAIN_REQUIRED_CLASS_TOKENS = [
     "flex",
     "h-screen",
@@ -1017,6 +1030,18 @@ function extractElementSlice(source: string, marker: string, tagName: string) {
     expect(start).toBeGreaterThanOrEqual(0);
     expect(end).toBeGreaterThan(start);
     return source.slice(start, end + tagName.length + 3);
+}
+
+function expectSourceProviderStatusBadgeClassIsLayoutOnly(
+    statusBadgeClass: string,
+) {
+    expect(statusBadgeClass).toMatch(
+        /const SOURCE_PROVIDER_STATUS_BADGE_CLASS\s*=\s*"justify-self-end";/,
+    );
+
+    for (const pattern of SOURCE_PROVIDER_STATUS_BADGE_OWNER_OVERRIDE_PATTERNS) {
+        expect(statusBadgeClass).not.toMatch(pattern);
+    }
 }
 
 function expectSourceReportMetricCallsites(
@@ -11514,6 +11539,10 @@ describe("full UI replacement regression coverage", () => {
             settings.match(
                 /<Badge[\s\S]*?className=\{SOURCE_DETAIL_STATUS_BADGE_CLASS\}[\s\S]*?>/,
             )?.[0] ?? "";
+        const settingsProviderStatusBadgeClass =
+            settings.match(
+                /const SOURCE_PROVIDER_STATUS_BADGE_CLASS[\s\S]*?;/,
+            )?.[0] ?? "";
         const settingsProviderTileClass =
             settings.match(
                 /const SOURCE_PROVIDER_TILE_BUTTON_CLASS[\s\S]*?;/,
@@ -11583,6 +11612,9 @@ describe("full UI replacement regression coverage", () => {
             'size="statusPill"',
         );
         expect(settings).not.toContain("SOURCE_STATUS_BADGE_CLASS");
+        expectSourceProviderStatusBadgeClassIsLayoutOnly(
+            settingsProviderStatusBadgeClass,
+        );
         for (const featureStatusPillToken of [
             "h-[18px]",
             "gap-[4px]",
