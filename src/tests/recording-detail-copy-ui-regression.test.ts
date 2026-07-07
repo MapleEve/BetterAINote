@@ -577,6 +577,27 @@ function readSource(relativePath: string) {
     return readFileSync(path.join(ROOT, relativePath), "utf8");
 }
 
+function expectAlertEmptyPrimitiveCleanup(
+    alertPrimitive: string,
+    emptyPrimitive: string,
+) {
+    const combinedPrimitiveSource = `${alertPrimitive}\n${emptyPrimitive}`;
+
+    expect(combinedPrimitiveSource).not.toMatch(
+        /\b(?:bg|text|border|ring|fill|stroke)-\[var\(/,
+    );
+    for (const residual of [
+        "dark:",
+        "[stroke-linecap:",
+        "[stroke-linejoin:",
+        "size-[14px]",
+        "size-[32px]",
+        "rounded-[var(--radius",
+    ]) {
+        expect(combinedPrimitiveSource).not.toContain(residual);
+    }
+}
+
 function escapeRegExp(value: string) {
     return value.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
 }
@@ -895,6 +916,14 @@ const MORE_ACTIONS_MENU_COMPOSITION_TOKENS = [
     'variant="destructive"',
     "<DropdownMenuShortcut",
     'variant="hint"',
+] as const;
+
+const MORE_ACTIONS_MENU_PRIMITIVE_FORBIDDEN_PATTERNS = [
+    /\b(?:text|bg|border|shadow)-\[var\([^\]]+\)\]/,
+    /\[&_svg\]:\[(?:height|width):[^\]]+\]/,
+    /\[&_svg\]:stroke-\[/,
+    /\[stroke-line(?:cap|join):/,
+    /<(?:CheckIcon|ChevronRightIcon|CircleIcon)\b(?=[^>]*\bclassName=["'][^"']*(?:size-|[wh]-|stroke-|\[(?:height|width|stroke)))/,
 ] as const;
 
 const RECORDING_DETAIL_CARD_PRIMITIVE_SELECTORS = [
@@ -1640,6 +1669,7 @@ describe("recording detail copy and title action UI regressions", () => {
         expect(emptyPrimitive).toContain("dangerIcon:");
         expect(alertPrimitive).not.toContain("sourceReport");
         expect(emptyPrimitive).not.toContain("sourceReport");
+        expectAlertEmptyPrimitiveCleanup(alertPrimitive, emptyPrimitive);
         expectSourceReportEmptyAlertComposition(sourceReportPrimitives);
         for (const snippet of SOURCE_REPORT_EMPTY_ALERT_FORBIDDEN_OWNER_SNIPPETS) {
             expect(sourceReportPrimitives).not.toContain(snippet);
@@ -3152,9 +3182,9 @@ describe("recording detail copy and title action UI regressions", () => {
         for (const compositionToken of MORE_ACTIONS_MENU_COMPOSITION_TOKENS) {
             expect(detailWorkstation).toContain(compositionToken);
         }
-        expect(dropdownMenuPrimitive).toContain("dropdownMenuContentVariants");
-        expect(dropdownMenuPrimitive).toContain("dropdownMenuItemDensities");
-        expect(dropdownMenuPrimitive).toContain("dropdownMenuShortcutVariants");
+        for (const primitivePattern of MORE_ACTIONS_MENU_PRIMITIVE_FORBIDDEN_PATTERNS) {
+            expect(dropdownMenuPrimitive).not.toMatch(primitivePattern);
+        }
         expect(detailWorkstation).not.toContain('className="more-menu"');
         expect(detailWorkstation).not.toContain('className="more-menu-item"');
         expect(detailWorkstation).not.toContain('className="more-menu-sep"');

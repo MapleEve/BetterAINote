@@ -28,7 +28,7 @@ const inputGroupVariantClassNames: Record<InputGroupVariant, string> = {
 const inputGroupInputVariantClassNames: Record<InputGroupVariant, string> = {
     default: "",
     compact:
-        "h-[30px] rounded-[7px] border border-[var(--input-compact-border)] bg-[var(--input-compact-bg)] px-[10px] py-0 font-mono text-[12px] font-medium text-[var(--fg-primary)] placeholder:text-[var(--fg-tertiary)] md:text-[12px] dark:bg-[var(--input-compact-bg)]",
+        "h-[30px] rounded-[7px] border border-border bg-muted px-[10px] py-0 font-mono text-[12px] font-medium text-foreground placeholder:text-muted-foreground md:text-[12px]",
 };
 
 function InputGroup({
@@ -58,7 +58,7 @@ function inputGroupAddonClassName({
     className?: string;
 }) {
     return cn(
-        "flex h-auto cursor-text items-center justify-center gap-2 py-1.5 text-sm font-medium text-muted-foreground select-none group-data-[disabled=true]/input-group:opacity-50 [&>kbd]:rounded-[calc(var(--radius-md)-5px)] [&>svg:not([class*='size-'])]:size-4",
+        "flex h-auto cursor-text items-center justify-center gap-2 py-1.5 text-sm font-medium text-muted-foreground select-none group-data-[disabled=true]/input-group:opacity-50 [&>kbd]:rounded-[calc(var(--radius-md)-5px)] [&>svg]:size-4",
         align === "inline-start" &&
             "order-first pl-3 has-[>button]:ml-[-0.45rem] has-[>kbd]:ml-[-0.35rem] group-data-[variant=compact]/input-group:pl-0 group-data-[variant=compact]/input-group:has-[>button]:ml-0 group-data-[variant=compact]/input-group:has-[>kbd]:ml-0",
         align === "inline-end" &&
@@ -96,13 +96,13 @@ function inputGroupButtonClassName({
     return cn(
         "flex items-center gap-2 text-sm shadow-none",
         size === "xs" &&
-            "h-6 gap-1 rounded-[calc(var(--radius-md)-5px)] px-2 has-[>svg]:px-2 [&>svg:not([class*='size-'])]:size-3.5",
+            "h-6 gap-1 rounded-[calc(var(--radius-md)-5px)] px-2 has-[>svg]:px-2 [&>svg]:size-3.5",
         size === "sm" && "h-8 gap-1.5 rounded-md px-2.5 has-[>svg]:px-2.5",
         size === "icon-xs" &&
             "size-6 rounded-[calc(var(--radius-md)-5px)] p-0 has-[>svg]:p-0",
         size === "icon-sm" && "size-8 p-0 has-[>svg]:p-0",
         size === "icon-compact" &&
-            "size-[30px] rounded-[6px] p-0 text-[14px] leading-[0] font-semibold has-[>svg]:p-0 [&>svg:not([class*='size-'])]:size-[14px]",
+            "size-[30px] rounded-[6px] p-0 text-[14px] leading-[0] font-semibold has-[>svg]:p-0 [&>svg]:size-[14px]",
         className,
     );
 }
@@ -136,7 +136,7 @@ function InputGroupText({ className, ...props }: React.ComponentProps<"span">) {
     return (
         <span
             className={cn(
-                "flex items-center gap-2 text-sm text-muted-foreground [&_svg]:pointer-events-none [&_svg:not([class*='size-'])]:size-4",
+                "flex items-center gap-2 text-sm text-muted-foreground [&_svg]:pointer-events-none [&_svg]:size-4",
                 className,
             )}
             {...props}

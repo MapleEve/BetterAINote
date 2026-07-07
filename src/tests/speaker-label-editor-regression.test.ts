@@ -521,6 +521,12 @@ describe("dashboard speaker label editor regressions", () => {
                 SPEAKER_REVIEW_PRIMITIVE_BUSINESS_RE,
             );
         }
+        expect(inputGroupPrimitiveSource).not.toMatch(
+            /\bdark:bg-\[var\(--[^)]+\)\]/,
+        );
+        expect(inputGroupPrimitiveSource).not.toContain(
+            "svg:not([class*='size-'])",
+        );
         for (const token of [
             "const SPEAKER_REVIEW_CARD_CLASS_NAMES =",
             "const SPEAKER_REVIEW_CARD_HEADER_CLASS_NAMES =",

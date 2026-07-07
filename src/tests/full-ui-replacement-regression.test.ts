@@ -500,6 +500,27 @@ function readSource(relativePath: string) {
     return readFileSync(path.join(ROOT, relativePath), "utf8");
 }
 
+function expectAlertEmptyPrimitiveCleanup(
+    alertPrimitive: string,
+    emptyPrimitive: string,
+) {
+    const combinedPrimitiveSource = `${alertPrimitive}\n${emptyPrimitive}`;
+
+    expect(combinedPrimitiveSource).not.toMatch(
+        /\b(?:bg|text|border|ring|fill|stroke)-\[var\(/,
+    );
+    for (const residual of [
+        "dark:",
+        "[stroke-linecap:",
+        "[stroke-linejoin:",
+        "size-[14px]",
+        "size-[32px]",
+        "rounded-[var(--radius",
+    ]) {
+        expect(combinedPrimitiveSource).not.toContain(residual);
+    }
+}
+
 function extractNamedImportBlock(source: string, modulePath: string) {
     const escapedModulePath = modulePath.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
     const match = new RegExp(
@@ -2611,16 +2632,13 @@ const MORE_ACTIONS_MENU_RETIRED_DATA_SOT_CSS_SELECTORS = [
     "[data-sot-menu-label]",
 ];
 
-const MORE_ACTIONS_MENU_PRIMITIVE_TOKENS = [
-    "dropdownMenuContentVariants",
-    "glass:",
-    "dropdownMenuItemDensities",
-    "compact:",
-    "dropdownMenuSeparatorDensities",
-    "dropdownMenuShortcutVariants",
-    "hint:",
-    "data-[variant=destructive]",
-];
+const MORE_ACTIONS_MENU_PRIMITIVE_FORBIDDEN_PATTERNS = [
+    /\b(?:text|bg|border|shadow)-\[var\([^\]]+\)\]/,
+    /\[&_svg\]:\[(?:height|width):[^\]]+\]/,
+    /\[&_svg\]:stroke-\[/,
+    /\[stroke-line(?:cap|join):/,
+    /<(?:CheckIcon|ChevronRightIcon|CircleIcon)\b(?=[^>]*\bclassName=["'][^"']*(?:size-|[wh]-|stroke-|\[(?:height|width|stroke)))/,
+] as const;
 
 const MORE_ACTIONS_MENU_COMPOSITION_TOKENS = [
     'variant="glass"',
@@ -6354,8 +6372,8 @@ describe("full UI replacement regression coverage", () => {
         for (const selector of MORE_ACTIONS_MENU_RETIRED_DATA_SOT_CSS_SELECTORS) {
             expect(globals).not.toContain(selector);
         }
-        for (const primitiveToken of MORE_ACTIONS_MENU_PRIMITIVE_TOKENS) {
-            expect(dropdownMenu).toContain(primitiveToken);
+        for (const primitivePattern of MORE_ACTIONS_MENU_PRIMITIVE_FORBIDDEN_PATTERNS) {
+            expect(dropdownMenu).not.toMatch(primitivePattern);
         }
         for (const compositionToken of MORE_ACTIONS_MENU_COMPOSITION_TOKENS) {
             expect(dashboardWorkstation).toContain(compositionToken);
@@ -10096,6 +10114,7 @@ describe("full UI replacement regression coverage", () => {
         expect(emptyPrimitive).toContain("dangerIcon:");
         expect(alertPrimitive).not.toContain("sourceReport");
         expect(emptyPrimitive).not.toContain("sourceReport");
+        expectAlertEmptyPrimitiveCleanup(alertPrimitive, emptyPrimitive);
         expectSourceReportEmptyAlertComposition(sourceReportPrimitives);
         for (const snippet of SOURCE_REPORT_EMPTY_ALERT_FORBIDDEN_OWNER_SNIPPETS) {
             expect(sourceReportPrimitives).not.toContain(snippet);

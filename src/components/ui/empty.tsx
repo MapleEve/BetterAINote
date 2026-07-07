@@ -11,10 +11,10 @@ const emptyVariants = cva(
                 default:
                     "flex flex-1 flex-col items-center justify-center gap-6 p-6 md:p-12",
                 compact:
-                    "flex flex-none flex-col items-center justify-center gap-0 rounded-none px-[16px] pb-[20.5px] pt-[22px] md:px-[16px] md:pb-[20.5px] md:pt-[22px]",
+                    "flex flex-none flex-col items-center justify-center gap-0 rounded-none px-4 pb-5 pt-5 md:px-4 md:pb-5 md:pt-5",
                 popover:
-                    "rounded-none px-[10px] pb-[4px] pt-[14px] md:px-[10px] md:pb-[4px] md:pt-[14px]",
-                subtle: "flex flex-none flex-col items-center justify-center gap-[4px] rounded-[10px] border border-dashed border-[var(--line-hairline)] bg-[var(--bg-recessed)] px-[18px] py-[28px] shadow-none backdrop-blur-none",
+                    "rounded-none px-2.5 pb-1 pt-3.5 md:px-2.5 md:pb-1 md:pt-3.5",
+                subtle: "flex flex-none flex-col items-center justify-center gap-1 rounded-lg border bg-muted/40 px-5 py-7 shadow-none",
             },
         },
         defaultVariants: {
@@ -70,11 +70,11 @@ const emptyMediaVariants = cva(
         variants: {
             variant: {
                 default: "bg-transparent",
-                icon: "flex size-10 shrink-0 items-center justify-center rounded-lg bg-muted text-foreground [&_svg:not([class*='size-'])]:size-6",
+                icon: "flex size-10 shrink-0 items-center justify-center rounded-lg bg-muted text-foreground [&_svg]:size-6",
                 dangerIcon:
-                    "mb-[6px] flex size-[32px] shrink-0 items-center justify-center rounded-full border border-[var(--alert-destructive-icon-soft-border)] bg-[var(--alert-destructive-icon-soft-bg)] text-[var(--signal-danger)] [&_svg:not([class*='size-'])]:size-[14px]",
+                    "mb-1.5 flex size-8 shrink-0 items-center justify-center rounded-full border border-destructive/30 bg-destructive/10 text-destructive",
                 subtleIcon:
-                    "mb-[6px] flex size-[32px] shrink-0 items-center justify-center rounded-full border border-[var(--line-hairline)] bg-[var(--bg-recessed)] text-muted-foreground [&_svg:not([class*='size-'])]:size-[14px]",
+                    "mb-1.5 flex size-8 shrink-0 items-center justify-center rounded-full border bg-muted text-muted-foreground",
             },
         },
         defaultVariants: {
@@ -90,7 +90,7 @@ const emptyTitleVariants = cva("", {
             compact:
                 "mb-[1px] text-[12px] leading-normal font-semibold tracking-normal",
             popover:
-                "m-0 mb-[4px] text-[13px] leading-[1.35] font-semibold tracking-normal text-[var(--fg-primary)]",
+                "m-0 mb-1 text-[13px] leading-[1.35] font-semibold tracking-normal text-foreground",
         },
     },
     defaultVariants: {
@@ -106,7 +106,7 @@ const emptyDescriptionVariants = cva("", {
             compact:
                 "m-0 text-[11.5px] leading-normal font-medium text-muted-foreground [&>a]:underline [&>a]:underline-offset-4 [&>a:hover]:text-primary",
             popover:
-                "m-0 text-[12px] leading-[1.5] font-medium text-[var(--fg-tertiary)] [&>a]:underline [&>a]:underline-offset-4 [&>a:hover]:text-primary",
+                "m-0 text-xs leading-6 font-medium text-muted-foreground [&>a]:underline [&>a]:underline-offset-4 [&>a:hover]:text-primary",
         },
     },
     defaultVariants: {
@@ -147,7 +147,8 @@ function EmptyDescription({
     className,
     variant = "default",
     ...props
-}: React.ComponentProps<"p"> & VariantProps<typeof emptyDescriptionVariants>) {
+}: React.ComponentProps<"div"> &
+    VariantProps<typeof emptyDescriptionVariants>) {
     return (
         <div
             data-slot="empty-description"

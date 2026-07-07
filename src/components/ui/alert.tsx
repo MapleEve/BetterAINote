@@ -19,24 +19,24 @@ const alertVariantClassNames: Record<AlertVariant, string> = {
     destructive:
         "bg-card text-destructive *:data-[slot=alert-description]:text-destructive/90 [&>svg]:text-current",
     destructiveSoft:
-        "border-[var(--alert-destructive-soft-border)] bg-[var(--alert-destructive-soft-bg)] text-[var(--signal-danger)] *:data-[slot=alert-description]:text-[var(--signal-danger)] [&>svg]:text-current",
+        "border-destructive/30 bg-destructive/10 text-destructive *:data-[slot=alert-description]:text-destructive/90 [&>svg]:text-current",
     destructiveSoftNeutral:
-        "border-[var(--alert-destructive-soft-strong-border)] bg-[var(--alert-destructive-soft-strong-bg)] text-[var(--fg-primary)] *:data-[slot=alert-description]:text-[var(--fg-primary)] [&>svg]:text-current",
+        "border-destructive/30 bg-muted text-foreground *:data-[slot=alert-description]:text-muted-foreground [&>svg]:text-current",
     statusError:
-        "border-[var(--alert-destructive-soft-border)] bg-[var(--alert-destructive-soft-bg)] text-[var(--signal-danger)] *:data-[slot=alert-description]:text-[var(--signal-danger)] [&>svg]:text-current",
+        "border-destructive/30 bg-destructive/10 text-destructive *:data-[slot=alert-description]:text-destructive/90 [&>svg]:text-current",
     warningSoft:
-        "border-[var(--alert-warning-soft-strong-border)] bg-[var(--alert-warning-soft-strong-bg)] text-[var(--fg-secondary)] *:data-[slot=alert-description]:text-[var(--fg-secondary)] [&>svg]:text-current",
+        "border-border bg-muted text-foreground *:data-[slot=alert-description]:text-muted-foreground [&>svg]:text-current",
 };
 
 const alertDensityClassNames: Record<AlertDensity, string> = {
     default:
         "rounded-lg px-4 py-3 text-sm has-[>svg]:grid-cols-[1rem_1fr] has-[>svg]:gap-x-3 has-[>[data-slot=spinner]]:grid-cols-[1rem_1fr] has-[>[data-slot=spinner]]:gap-x-3 [&>svg]:size-4 [&>svg]:translate-y-0.5 [&>[data-slot=spinner]]:size-4 [&>[data-slot=spinner]]:translate-y-0.5",
     compact:
-        "rounded-[var(--radius-sm)] px-[10px] py-[8px] text-[12px] leading-[1.4] font-medium has-[>svg]:grid-cols-[14px_1fr] has-[>svg]:gap-x-[8px] has-[>[data-slot=spinner]]:grid-cols-[14px_1fr] has-[>[data-slot=spinner]]:gap-x-[8px] [&>svg]:size-[14px] [&>svg]:[stroke-linecap:butt] [&>svg]:[stroke-linejoin:miter] [&>[data-slot=spinner]]:size-[14px]",
+        "rounded-md px-3 py-2 text-xs font-medium has-[>svg]:grid-cols-[1rem_1fr] has-[>svg]:gap-x-2 has-[>[data-slot=spinner]]:grid-cols-[1rem_1fr] has-[>[data-slot=spinner]]:gap-x-2 [&>svg]:size-4 [&>[data-slot=spinner]]:size-4",
     comfortable:
-        "rounded-[var(--radius-md)] px-[12px] py-[10px] text-[13px] has-[>svg]:grid-cols-[14px_1fr] has-[>svg]:gap-x-[8px] has-[>[data-slot=spinner]]:grid-cols-[14px_1fr] has-[>[data-slot=spinner]]:gap-x-[8px] [&>svg]:size-[14px] [&>svg]:[stroke-linecap:butt] [&>svg]:[stroke-linejoin:miter] [&>[data-slot=spinner]]:size-[14px]",
+        "rounded-md px-3 py-2.5 text-sm has-[>svg]:grid-cols-[1rem_1fr] has-[>svg]:gap-x-2 has-[>[data-slot=spinner]]:grid-cols-[1rem_1fr] has-[>[data-slot=spinner]]:gap-x-2 [&>svg]:size-4 [&>[data-slot=spinner]]:size-4",
     spacious:
-        "rounded-[10px] px-[18px] py-[28px] text-sm [&>svg]:size-4 [&>[data-slot=spinner]]:size-4",
+        "rounded-lg px-5 py-7 text-sm [&>svg]:size-4 [&>[data-slot=spinner]]:size-4",
 };
 
 const alertLayoutClassNames: Record<AlertLayout, string> = {

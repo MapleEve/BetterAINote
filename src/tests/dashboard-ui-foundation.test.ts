@@ -304,6 +304,27 @@ function readSource(relativePath: string) {
     return readFileSync(path.join(ROOT, relativePath), "utf8");
 }
 
+function expectAlertEmptyPrimitiveCleanup(
+    alertPrimitive: string,
+    emptyPrimitive: string,
+) {
+    const combinedPrimitiveSource = `${alertPrimitive}\n${emptyPrimitive}`;
+
+    expect(combinedPrimitiveSource).not.toMatch(
+        /\b(?:bg|text|border|ring|fill|stroke)-\[var\(/,
+    );
+    for (const residual of [
+        "dark:",
+        "[stroke-linecap:",
+        "[stroke-linejoin:",
+        "size-[14px]",
+        "size-[32px]",
+        "rounded-[var(--radius",
+    ]) {
+        expect(combinedPrimitiveSource).not.toContain(residual);
+    }
+}
+
 function staticJsxClassName(className: string) {
     return `className="${className}"`;
 }
@@ -5706,6 +5727,7 @@ describe("dashboard SOT foundation", () => {
         expect(emptyPrimitive).toContain("dangerIcon:");
         expect(alertPrimitive).not.toContain("sourceReport");
         expect(emptyPrimitive).not.toContain("sourceReport");
+        expectAlertEmptyPrimitiveCleanup(alertPrimitive, emptyPrimitive);
         expectSourceReportEmptyAlertComposition(sourceReportPrimitives);
         for (const snippet of SOURCE_REPORT_EMPTY_ALERT_FORBIDDEN_OWNER_SNIPPETS) {
             expect(sourceReportPrimitives).not.toContain(snippet);
