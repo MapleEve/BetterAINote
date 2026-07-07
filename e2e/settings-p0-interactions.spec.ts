@@ -658,6 +658,112 @@ test("transcription settings save auto-transcribe and language changes through S
     );
 });
 
+test("misc settings load failure exposes retry-only SOT state", async ({
+    page,
+}) => {
+    await ensureSignedIn(page);
+
+    let releaseInitialSyncLoad: (() => void) | null = null;
+    const initialSyncLoadBlocked = new Promise<void>((resolve) => {
+        releaseInitialSyncLoad = resolve;
+    });
+    let failedInitialSyncLoad = false;
+    await page.route("**/*", async (route) => {
+        const requestUrl = new URL(route.request().url());
+        if (
+            requestUrl.pathname !== "/api/settings/sync" ||
+            route.request().method() !== "GET" ||
+            failedInitialSyncLoad
+        ) {
+            await route.continue();
+            return;
+        }
+
+        failedInitialSyncLoad = true;
+        await initialSyncLoadBlocked;
+        await route.fulfill({
+            contentType: "application/json",
+            status: 503,
+            body: JSON.stringify({ error: "Sync settings unavailable" }),
+        });
+    });
+
+    await resetCoreSettings(page);
+
+    await page.goto("/settings#misc", { waitUntil: "domcontentloaded" });
+
+    const section = settingsSection(page, "misc");
+    await expect(settingsShell(page)).toHaveAttribute("data-sot-section", "misc");
+    await expect(section).toBeVisible();
+    await expect(section).toHaveAttribute("data-sot-state", "loading");
+    await expect(section).toHaveAttribute("aria-busy", "true");
+    const skeleton = page.locator(
+        '[data-sot-panel="settings-section-skeleton"][data-sot-section="misc"]',
+    );
+    await expect(skeleton).toBeVisible();
+    await expect(skeleton).toHaveAttribute("data-sot-state", "loading");
+
+    releaseInitialSyncLoad?.();
+    await expect(section).toHaveAttribute("data-sot-state", "error");
+    const loadError = section.locator(
+        '[data-sot-panel="settings-section-load-error"][data-sot-section="misc"]',
+    );
+    await expect(loadError).toBeVisible();
+    await expect(section.getByText("加载失败")).toBeVisible();
+    await expect(section.getByText("Sync settings unavailable")).toBeVisible();
+    await expect(sectionSotControl(section, "sync-auto-enabled")).toHaveCount(
+        0,
+    );
+    await expect(
+        sectionSotControl(section, "sync-interval-seconds"),
+    ).toHaveCount(0);
+    await expect(sectionSotControl(section, "playback-speed")).toHaveCount(0);
+    await expect(sectionSotControl(section, "playback-volume")).toHaveCount(0);
+    await expect(sectionSotControl(section, "playback-auto-next")).toHaveCount(
+        0,
+    );
+    await expect(sectionSaveButton(section)).toHaveCount(0);
+    await expect(section.locator('[data-sot-action="save"]')).toHaveCount(0);
+    await expect(section.locator("[data-save-action]")).toHaveCount(0);
+    const retry = section.locator(
+        '[data-sot-control="settings-section-load-retry"][data-sot-section="misc"]',
+    );
+    await expect(retry).toBeVisible();
+
+    const retryResponse = page.waitForResponse(
+        (response) =>
+            response.url().includes("/api/settings/sync") &&
+            response.request().method() === "GET" &&
+            response.ok(),
+    );
+    await retry.click();
+    await retryResponse;
+
+    await expectSectionReady(page, "misc");
+    const autoSyncSwitch = sectionSotControl(section, "sync-auto-enabled");
+    await expectSotSwitchState(autoSyncSwitch, true);
+    const syncIntervalInput = sectionSotControl(
+        section,
+        "sync-interval-seconds",
+    );
+    await expect(syncIntervalInput).toHaveAttribute("data-sot-state", "ready");
+    await expect(syncIntervalInput).toHaveValue("300");
+    const playbackSpeed = sectionSotControl(section, "playback-speed");
+    await expect(playbackSpeed).toBeVisible();
+    await expect(playbackSpeed).toHaveAttribute("data-sot-state", "ready");
+    const playbackVolume = sectionSotControl(section, "playback-volume");
+    await expect(playbackVolume).toBeVisible();
+    await expect(playbackVolume).toHaveAttribute("data-sot-state", "ready");
+    const playbackAutoNext = sectionSotControl(section, "playback-auto-next");
+    await expect(playbackAutoNext).toBeVisible();
+    await expect(playbackAutoNext).toHaveAttribute("role", "switch");
+    await expect(playbackAutoNext).toHaveAttribute(
+        "data-sot-state",
+        /^(checked|unchecked)$/,
+    );
+    await expect(sectionSaveButton(section)).toHaveCount(0);
+});
+
 test("VoScript speaker profiles restore SOT states and backend actions", async ({
     page,
 }) => {
