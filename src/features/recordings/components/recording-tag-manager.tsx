@@ -611,7 +611,11 @@ export function RecordingTagManager({
                     aria-hidden="true"
                 />
             ) : showIcon ? (
-                <RecordingTagIconGlyph icon={tag.icon} variant="manager" />
+                <RecordingTagIconGlyph
+                    data-icon="inline-start"
+                    icon={tag.icon}
+                    variant="manager"
+                />
             ) : null}
             {tag.name}
             {showCheck ? (
@@ -620,7 +624,7 @@ export function RecordingTagManager({
                     data-sot-part="tag-check"
                     aria-hidden="true"
                 >
-                    <Check className="!size-2.5 stroke-[3] [stroke-linecap:butt] [stroke-linejoin:miter]" />
+                    <Check data-icon="inline-end" aria-hidden="true" />
                 </RecordingTagManagerBadge>
             ) : null}
         </Button>
@@ -819,7 +823,10 @@ export function RecordingTagManager({
                                 icon === item && "is-selected",
                             )}
                         >
-                            <RecordingTagIconGlyph icon={item} />
+                            <RecordingTagIconGlyph
+                                data-icon="inline-start"
+                                icon={item}
+                            />
                         </ToggleGroupItem>
                     ))}
                 </ToggleGroup>
@@ -1085,13 +1092,17 @@ export function RecordingTagManager({
                     </Empty>
                 ) : (
                     <>
-                        <div className="tagm-sec" data-sot-part="section">
-                            <div
-                                className="tagm-sec-label"
+                        <FieldSet
+                            className="tagm-sec gap-2"
+                            data-sot-part="section"
+                        >
+                            <FieldLegend
+                                variant="label"
+                                className="tagm-sec-label mb-0"
                                 data-sot-part="section-label"
                             >
                                 已选 · {selectedTags.length}
-                            </div>
+                            </FieldLegend>
                             <div
                                 className="tagm-chips flex flex-wrap gap-1"
                                 data-sot-list="recording-selected-tags"
@@ -1121,6 +1132,7 @@ export function RecordingTagManager({
                                             data-sot-tag-name={tag.name}
                                         >
                                             <RecordingTagIconGlyph
+                                                data-icon="inline-start"
                                                 icon={tag.icon}
                                                 variant="manager"
                                             />
@@ -1149,6 +1161,7 @@ export function RecordingTagManager({
                                                 }}
                                             >
                                                 <X
+                                                    data-icon="inline-start"
                                                     aria-hidden="true"
                                                     className="invisible"
                                                 />
@@ -1157,15 +1170,19 @@ export function RecordingTagManager({
                                     );
                                 })}
                             </div>
-                        </div>
+                        </FieldSet>
 
-                        <div className="tagm-sec" data-sot-part="section">
-                            <div
-                                className="tagm-sec-label"
+                        <FieldSet
+                            className="tagm-sec gap-2"
+                            data-sot-part="section"
+                        >
+                            <FieldLegend
+                                variant="label"
+                                className="tagm-sec-label mb-0"
                                 data-sot-part="section-label"
                             >
                                 全部标签
-                            </div>
+                            </FieldLegend>
                             <div
                                 className="tagm-opts"
                                 data-sot-list="recording-available-tags"
@@ -1188,7 +1205,7 @@ export function RecordingTagManager({
                                     </Fragment>
                                 ))}
                             </div>
-                        </div>
+                        </FieldSet>
                     </>
                 )}
 
@@ -1277,7 +1294,10 @@ export function RecordingTagManager({
                                 data-sot-state="idle"
                                 onClick={() => onClose?.()}
                             >
-                                <X aria-hidden="true" />
+                                <X
+                                    data-icon="inline-start"
+                                    aria-hidden="true"
+                                />
                             </Button>
                         </CardAction>
                     ) : null}

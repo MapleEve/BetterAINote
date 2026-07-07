@@ -14635,8 +14635,11 @@ describe("full UI replacement regression coverage", () => {
         expect(tagManager).toContain('variant="destructive"');
         expect(tagManager).not.toContain('variant="pickerFrame"');
         expect(tagManager).not.toContain('variant="picker"');
-        expect(tagManager).toContain('className="tagm-sec"');
-        expect(tagManager).toContain('className="tagm-sec-label"');
+        expect(tagManager).toContain('className="tagm-sec gap-2"');
+        expect(tagManager).toContain('className="tagm-sec-label mb-0"');
+        expect(tagManager).toMatch(
+            /<FieldSet[\s\S]*className="tagm-sec gap-2"[\s\S]*data-sot-part="section"[\s\S]*<FieldLegend[\s\S]*variant="label"[\s\S]*className="tagm-sec-label mb-0"/,
+        );
         expect(tagManager).toContain('appearance="pill"');
         expect(tagManager).not.toContain('variant="swatch"');
         expect(tagManager).toContain('variant="statusError"');
@@ -14682,6 +14685,12 @@ describe("full UI replacement regression coverage", () => {
         );
         expect(tagManager).toContain("<Spinner");
         expect(tagManager).toContain('appearance="checkDot"');
+        expect(tagManager).toContain('data-icon="inline-start"');
+        expect(tagManager).toContain('data-icon="inline-end"');
+        expect(tagManager).not.toContain("!size-2.5");
+        expect(tagManager).not.toContain("stroke-[3]");
+        expect(tagManager).not.toContain("[stroke-linecap:butt]");
+        expect(tagManager).not.toContain("[stroke-linejoin:miter]");
         expect(tagManager).not.toContain("<LoaderCircle");
         expect(tagManager).not.toContain('className="animate-spin"');
         expect(tagManager).not.toContain("recordingTagSwatchStyle");
@@ -15561,6 +15570,9 @@ describe("full UI replacement regression coverage", () => {
         );
         expect(sharedRecordingTagChip).toContain("className={cn(");
         expect(sharedRecordingTagChip).toContain("recordingTagChipClassName,");
+        expect(recordingTagVisuals).toContain('data-icon="inline-start"');
+        expect(recordingTagVisuals).not.toContain("[&>svg]:size-[11px]");
+        expect(recordingTagVisuals).not.toContain("[&>svg]:stroke-2");
         expect(recordingTagVisuals).toContain(
             "recordingTagTextColorClassName[tag.color]",
         );

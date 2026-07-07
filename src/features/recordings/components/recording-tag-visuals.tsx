@@ -9,6 +9,7 @@ import {
     Heart,
     Lightbulb,
     type LucideIcon,
+    type LucideProps,
     MessageSquare,
     Mic,
     Star,
@@ -78,22 +79,23 @@ const recordingTagManagerIconComponents: Partial<
 };
 
 const recordingTagChipClassName =
-    "h-[22px] w-fit justify-normal gap-[5px] rounded-[6px] border-border bg-muted py-0 pl-[7px] pr-[9px] [font:600_11.5px_var(--font-sans)] shadow-[var(--shadow-xs)] transition-none [&>svg]:size-[11px] [&>svg]:stroke-2";
+    "h-[22px] w-fit justify-normal gap-[5px] rounded-[6px] border-border bg-muted py-0 pl-[7px] pr-[9px] [font:600_11.5px_var(--font-sans)] shadow-[var(--shadow-xs)] transition-none";
 
 export function RecordingTagIconGlyph({
     icon,
     variant = "full",
+    ...props
 }: {
     icon: RecordingTagIcon;
     variant?: "full" | "manager";
-}) {
+} & LucideProps) {
     const Icon =
         variant === "manager"
             ? (recordingTagManagerIconComponents[icon] ??
               recordingTagIconComponents[icon])
             : recordingTagIconComponents[icon];
 
-    return <Icon aria-hidden="true" focusable="false" />;
+    return <Icon aria-hidden="true" focusable="false" {...props} />;
 }
 
 export function RecordingTagChip({ tag }: { tag: RecordingTag }) {
@@ -107,7 +109,7 @@ export function RecordingTagChip({ tag }: { tag: RecordingTag }) {
             data-sot-tag-color={tag.color}
             data-sot-tag-icon={tag.icon}
         >
-            <RecordingTagIconGlyph icon={tag.icon} />
+            <RecordingTagIconGlyph data-icon="inline-start" icon={tag.icon} />
             <span>{tag.name}</span>
         </Badge>
     );

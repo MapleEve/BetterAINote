@@ -4228,6 +4228,12 @@ describe("recording detail copy and title action UI regressions", () => {
         expect(tagManager).toContain(
             "recordingTagTextColorClassName[tag.color]",
         );
+        expect(tagManager).toContain('data-icon="inline-start"');
+        expect(tagManager).toContain('data-icon="inline-end"');
+        expect(tagManager).not.toContain("!size-2.5");
+        expect(tagManager).not.toContain("stroke-[3]");
+        expect(tagManager).not.toContain("[stroke-linecap:butt]");
+        expect(tagManager).not.toContain("[stroke-linejoin:miter]");
         expect(tagManager).toContain("recordingTagSwatchColorClassName[item]");
         expect(tagManager).not.toContain("--recording-tag-accent");
         expect(tagManager).not.toContain("text-[var(--recording-tag-accent)]");
@@ -4249,6 +4255,9 @@ describe("recording detail copy and title action UI regressions", () => {
         expect(tagVisuals).toContain("const recordingTagChipClassName");
         expect(tagVisuals).toContain("className={cn(");
         expect(tagVisuals).toContain("recordingTagChipClassName,");
+        expect(tagVisuals).toContain('data-icon="inline-start"');
+        expect(tagVisuals).not.toContain("[&>svg]:size-[11px]");
+        expect(tagVisuals).not.toContain("[&>svg]:stroke-2");
         expect(tagVisuals).toContain(
             "recordingTagTextColorClassName[tag.color]",
         );
