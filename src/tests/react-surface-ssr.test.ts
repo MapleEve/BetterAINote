@@ -25,6 +25,7 @@ import {
     TranscriptReviewSkeleton,
 } from "@/features/recordings/components/transcription-skeletons";
 import { RecordingWorkstation } from "@/features/recordings/workstation";
+import { SettingFieldControl } from "@/features/settings/components/setting-field-control";
 import { SettingsContent } from "@/features/settings/components/settings-content";
 import { SettingsDialog } from "@/features/settings/components/settings-dialog";
 import { SettingsPageContent } from "@/features/settings/components/settings-page-content";
@@ -374,11 +375,25 @@ describe("React surface SSR coverage", () => {
         }
     });
 
-    it("keeps non-sensitive textareas visible while payload-like textarea fields use password inputs", () => {
+    it("keeps non-sensitive textareas visible while credential textarea fields use password inputs", () => {
         const html = render(
             React.createElement(
                 "section",
                 null,
+                React.createElement(SettingFieldControl, {
+                    field: {
+                        id: "settings-login-material",
+                        kind: "textarea",
+                        label: "登录信息",
+                        value: "",
+                        sensitive: true,
+                        sensitiveTextareaPasswordFallback: true,
+                        rows: 3,
+                    },
+                    fieldId: "settings-login-material",
+                    onValueChange: vi.fn(),
+                    variant: "settings",
+                }),
                 React.createElement(DataSourceFieldControl, {
                     field: {
                         id: "source-notes",
@@ -396,19 +411,33 @@ describe("React surface SSR coverage", () => {
                 }),
                 React.createElement(DataSourceFieldControl, {
                     field: {
-                        id: "source-login-material",
-                        key: "connectionPayload",
-                        label: "连接信息",
-                        description: "粘贴当前登录状态对应的连接信息。",
-                        placeholder: "粘贴连接信息",
+                        id: "source-web-cookie",
+                        key: "webCookie",
+                        label: "网页登录信息",
+                        description: "粘贴当前登录状态对应的网页登录信息。",
+                        placeholder: "粘贴登录信息",
                         value: "",
-                        target: "config",
+                        target: "secret",
                         kind: "textarea",
                         rows: 3,
                     },
-                    fieldId: "field-login-material",
+                    fieldId: "field-web-cookie",
                     onValueChange: vi.fn(),
                     variant: "settings",
+                }),
+                React.createElement(DataSourceFieldControl, {
+                    field: {
+                        id: "source-secret",
+                        key: "deviceCredential",
+                        label: "设备标识",
+                        value: "",
+                        target: "secret",
+                        kind: "textarea",
+                        rows: 3,
+                    },
+                    fieldId: "field-device-secret",
+                    onValueChange: vi.fn(),
+                    variant: "default",
                 }),
             ),
         );
@@ -416,12 +445,24 @@ describe("React surface SSR coverage", () => {
         expect(html).toMatch(/<textarea(?=[^>]*id="field-notes")/);
         expect(html).toContain('data-slot="textarea"');
         expect(html).toContain("可选备注");
-        expect(html).toMatch(
-            /<input(?=[^>]*id="field-login-material")(?=[^>]*type="password")/,
-        );
-        expect(html).toContain(
-            'data-sot-privacy-boundary="sensitive-textarea-password-input"',
-        );
-        expect(html).not.toMatch(/<textarea(?=[^>]*id="field-login-material")/);
+        for (const fieldId of [
+            "settings-login-material",
+            "field-web-cookie",
+            "field-device-secret",
+        ]) {
+            expect(html).toMatch(
+                new RegExp(
+                    `<input(?=[^>]*id="${fieldId}")(?=[^>]*type="password")(?=[^>]*data-sot-privacy-boundary="sensitive-textarea-password-input")`,
+                ),
+            );
+            expect(html).not.toMatch(
+                new RegExp(`<textarea(?=[^>]*id="${fieldId}")`),
+            );
+        }
+        expect(
+            html.match(
+                /data-sot-privacy-boundary="sensitive-textarea-password-input"/g,
+            ),
+        ).toHaveLength(3);
     });
 });

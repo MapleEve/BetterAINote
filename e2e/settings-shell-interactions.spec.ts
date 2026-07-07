@@ -1,4 +1,4 @@
-import { mkdir, writeFile } from "node:fs/promises";
+import { mkdir, readFile, writeFile } from "node:fs/promises";
 import path from "node:path";
 import { expect, type Locator, type Page, test } from "@playwright/test";
 import { ensureSignedIn, putJsonWithRetry } from "./helpers/auth";
@@ -299,6 +299,431 @@ type LoadErrorRetryEvidence = {
     section: "title-generation";
     states: string[];
 };
+
+type Row117DataSourcesCredentialSafeTestSuccessEvidence = {
+    busyAndUnlockReadback: string[];
+    coverageSource: {
+        file: string;
+        tests: {
+            name: string;
+            readback: string[];
+        }[];
+    };
+    credentialPolicy: {
+        fakeCredentialOnly: true;
+        realCredentialsUsed: false;
+        row117EvidenceStoresSecretValues: false;
+    };
+    nonClaims: string[];
+    payloadShapeReadback: {
+        authMode: string;
+        configKeys: string[];
+        provider: string;
+        savedByTestSuccess: false;
+        secretKeys: string[];
+    }[];
+    routeMockedSuccess: {
+        endpoint: "/api/data-sources/test";
+        responseShape: { success: true };
+    };
+    successStateReadback: string[];
+    trackedSourceVerification?: Row117DataSourcesTrackedSourceVerification;
+};
+
+type Row117DataSourcesTrackedSourceVerification = {
+    blockedSecretLiteralCount: number;
+    file: string;
+    liveCredentialBackedProviderSuccessClaimed: false;
+    tests: {
+        contractChecks: string[];
+        name: string;
+    }[];
+};
+
+const row117DataSourcesCredentialSafeTestSuccessEvidence: Row117DataSourcesCredentialSafeTestSuccessEvidence =
+    {
+        busyAndUnlockReadback: [
+            "During the TicNote route-mocked test request, the Data Sources detail exposes data-sot-action-state=testing, source-test data-sot-state=testing, aria-busy=true, shell data-sot-busy=true, provider switching/settings nav/close/inputs disabled.",
+            "After the mocked success response resolves, the same flow reads data-sot-action-state=test-success, source-test data-sot-state=success, aria-busy=false, source-save data-sot-state=idle, shell data-sot-busy=false, provider switching/settings nav/close/inputs enabled.",
+        ],
+        coverageSource: {
+            file: "e2e/data-sources-settings.spec.ts",
+            tests: [
+                {
+                    name: "data sources settings tests missing details then saves a provider through the real form",
+                    readback: [
+                        "Exercises incomplete-detail error, route-mocked /api/data-sources/test success, busy lock/unlock, test payload shape, and savePayload=null before explicit save.",
+                        "Separately exercises explicit save after test success so test-success is not conflated with credential persistence.",
+                    ],
+                },
+                {
+                    name: "data sources settings masks sensitive fields and preserves pasted sign-in details",
+                    readback: [
+                        "Asserts credential inputs render as password fields while pasted fake sign-in details are preserved locally.",
+                        "Reads back route-mocked TicNote and Feishu test-success payload shapes without saving the test result.",
+                    ],
+                },
+                {
+                    name: "data sources settings switches Feishu sign-in methods without saving test payloads",
+                    readback: [
+                        "Reads back oauth-device-flow and web-reverse payload shapes for Feishu test-success.",
+                        "Asserts savePayload remains null across both route-mocked test-success requests.",
+                    ],
+                },
+            ],
+        },
+        credentialPolicy: {
+            fakeCredentialOnly: true,
+            realCredentialsUsed: false,
+            row117EvidenceStoresSecretValues: false,
+        },
+        nonClaims: [
+            "Credential-backed live-provider Data Sources test-success is not claimed by row 117 six-section acceptance.",
+            "This contract only claims route-mocked test-success and credential-safe readback from the tracked Playwright tests listed above.",
+        ],
+        payloadShapeReadback: [
+            {
+                authMode: "bearer",
+                configKeys: ["region"],
+                provider: "ticnote",
+                savedByTestSuccess: false,
+                secretKeys: ["bearerToken"],
+            },
+            {
+                authMode: "oauth-device-flow",
+                configKeys: ["appId"],
+                provider: "feishu-minutes",
+                savedByTestSuccess: false,
+                secretKeys: ["userAccessToken"],
+            },
+            {
+                authMode: "web-reverse",
+                configKeys: ["spaceName"],
+                provider: "feishu-minutes",
+                savedByTestSuccess: false,
+                secretKeys: ["webCookie", "webToken"],
+            },
+        ],
+        routeMockedSuccess: {
+            endpoint: "/api/data-sources/test",
+            responseShape: { success: true },
+        },
+        successStateReadback: [
+            "Provider detail reaches data-sot-action-state=test-success.",
+            "Provider rail reaches data-sot-status=test-success where the route-mocked TicNote flow reads provider-level state.",
+            "State banner uses data-sot-tone=ok and action status includes the localized success copy.",
+            "source-test returns to aria-busy=false and source-save remains idle until explicit save.",
+        ],
+    };
+
+const row117DataSourcesSecretLiteralsBlockedFromEvidence = [
+    "fake-ticnote-token",
+    "pasted-data-source-token",
+    "minutes_csrf_token=e2e; session=e2e",
+    "x-minutes-pasted-token",
+    "u-e2e-open-platform-token",
+    "x-minutes-e2e-token",
+] as const;
+
+function row117DataSourcesContractSourcePath() {
+    return path.resolve(process.cwd(), "e2e/data-sources-settings.spec.ts");
+}
+
+function extractPlaywrightTestBlock(source: string, testName: string) {
+    const startToken = `test(${JSON.stringify(testName)},`;
+    const start = source.indexOf(startToken);
+    if (start < 0) {
+        throw new Error(`Missing Row117 tracked source test: ${testName}`);
+    }
+
+    const nextTestStart = source.indexOf("\ntest(", start + startToken.length);
+    const block =
+        nextTestStart < 0
+            ? source.slice(start)
+            : source.slice(start, nextTestStart);
+    if (!block.includes("\n});")) {
+        throw new Error(`Could not extract Row117 tracked source test: ${testName}`);
+    }
+
+    return block;
+}
+
+function expectSourceContains(
+    block: string,
+    contractChecks: string[],
+    label: string,
+    needle: string,
+) {
+    if (!block.includes(needle)) {
+        throw new Error(`Missing Row117 tracked source contract: ${label}`);
+    }
+    contractChecks.push(label);
+}
+
+function expectSourceOccurrences(
+    block: string,
+    contractChecks: string[],
+    label: string,
+    needle: string,
+    minimumOccurrences: number,
+) {
+    const occurrences = block.split(needle).length - 1;
+    if (occurrences < minimumOccurrences) {
+        throw new Error(
+            `Missing Row117 tracked source contract: ${label}; found ${occurrences}`,
+        );
+    }
+    contractChecks.push(label);
+}
+
+function expectSourceInOrder(
+    block: string,
+    contractChecks: string[],
+    label: string,
+    needles: string[],
+) {
+    let lastIndex = -1;
+    for (const needle of needles) {
+        const nextIndex = block.indexOf(needle, lastIndex + 1);
+        if (nextIndex < 0) {
+            throw new Error(`Missing Row117 tracked source contract: ${label}`);
+        }
+        lastIndex = nextIndex;
+    }
+    contractChecks.push(label);
+}
+
+function verifyMissingDetailsTestBlock(block: string) {
+    const contractChecks: string[] = [];
+    expectSourceContains(
+        block,
+        contractChecks,
+        "route-mocked data source test endpoint",
+        'page.route("**/api/data-sources/test"',
+    );
+    expectSourceContains(
+        block,
+        contractChecks,
+        "route mock returns success true JSON",
+        "JSON.stringify({ success: true })",
+    );
+    expectSourceContains(
+        block,
+        contractChecks,
+        "testing state readback",
+        '"data-sot-action-state",\n        "testing"',
+    );
+    expectSourceContains(
+        block,
+        contractChecks,
+        "test-success state readback",
+        '"data-sot-action-state",\n        "test-success"',
+    );
+    expectSourceContains(
+        block,
+        contractChecks,
+        "source-test aria-busy true readback",
+        'expect(sourceTest).toHaveAttribute("aria-busy", "true")',
+    );
+    expectSourceOccurrences(
+        block,
+        contractChecks,
+        "source-test aria-busy false readbacks",
+        'expect(sourceTest).toHaveAttribute("aria-busy", "false")',
+        2,
+    );
+    for (const state of ["idle", "disabled", "saving"] as const) {
+        expectSourceContains(
+            block,
+            contractChecks,
+            `source-save ${state} readback`,
+            `expect(sourceSave).toHaveAttribute("data-sot-state", "${state}")`,
+        );
+    }
+    expectSourceContains(
+        block,
+        contractChecks,
+        "test-success leaves save payload null",
+        "expect(savePayload).toBeNull();",
+    );
+    expectSourceContains(
+        block,
+        contractChecks,
+        "TicNote test payload shape readback",
+        "expect(testPayload).toMatchObject({",
+    );
+    for (const needle of [
+        'authMode: "bearer"',
+        'provider: "ticnote"',
+        "secrets: { bearerToken:",
+        "expect(testPayload?.config).toMatchObject({",
+        'region: "cn"',
+    ]) {
+        expectSourceContains(
+            block,
+            contractChecks,
+            `TicNote payload contains ${needle}`,
+            needle,
+        );
+    }
+    expectSourceInOrder(
+        block,
+        contractChecks,
+        "explicit save payload is separate from test-success",
+        [
+            "expect(savePayload).toBeNull();",
+            "await sourceSave.click();",
+            "expect(savePayload).toMatchObject({",
+        ],
+    );
+
+    return contractChecks;
+}
+
+function verifySensitiveFieldsTestBlock(block: string) {
+    const contractChecks: string[] = [];
+    expectSourceOccurrences(
+        block,
+        contractChecks,
+        "credential inputs remain password inputs",
+        'toHaveAttribute("type", "password")',
+        3,
+    );
+    for (const needle of [
+        "pasteTextIntoInput(ticnoteSecret",
+        "pasteTextIntoInput(\n        webCookieInput",
+        "pasteTextIntoInput(webTokenInput",
+    ]) {
+        expectSourceContains(
+            block,
+            contractChecks,
+            `paste fake credential flow includes ${needle}`,
+            needle,
+        );
+    }
+    expectSourceOccurrences(
+        block,
+        contractChecks,
+        "TicNote and Feishu test-success readback",
+        '"test-success"',
+        2,
+    );
+    expectSourceOccurrences(
+        block,
+        contractChecks,
+        "payload shape readback after each test-success",
+        "expect(testPayloads.at(-1)).toMatchObject({",
+        2,
+    );
+    for (const needle of [
+        'provider: "ticnote"',
+        "secrets: { bearerToken:",
+        'authMode: "web-reverse"',
+        'provider: "feishu-minutes"',
+        "webCookie:",
+        "webToken:",
+    ]) {
+        expectSourceContains(
+            block,
+            contractChecks,
+            `payload shape includes ${needle}`,
+            needle,
+        );
+    }
+
+    return contractChecks;
+}
+
+function verifyFeishuSignInMethodsTestBlock(block: string) {
+    const contractChecks: string[] = [];
+    expectSourceContains(
+        block,
+        contractChecks,
+        "route-mocked Feishu test-success endpoint",
+        'page.route("**/api/data-sources/test"',
+    );
+    expectSourceContains(
+        block,
+        contractChecks,
+        "route mock returns success true JSON",
+        "JSON.stringify({ success: true })",
+    );
+    expectSourceContains(
+        block,
+        contractChecks,
+        "oauth-device-flow test-success payload readback",
+        'authMode: "oauth-device-flow"',
+    );
+    expectSourceContains(
+        block,
+        contractChecks,
+        "web-reverse test-success payload readback",
+        'authMode: "web-reverse"',
+    );
+    expectSourceOccurrences(
+        block,
+        contractChecks,
+        "save payload remains null for both mocked test-success requests",
+        "expect(savePayload).toBeNull();",
+        2,
+    );
+    expectSourceInOrder(
+        block,
+        contractChecks,
+        "oauth-device-flow and web-reverse test-success requests stay unsaved",
+        [
+            "await detail.locator(\"[data-sot-control=\\\"source-test\\\"]\").click();",
+            "expect(testPayloads[0]).toMatchObject({",
+            'authMode: "oauth-device-flow"',
+            "expect(savePayload).toBeNull();",
+            "await webReverseModeButton.click();",
+            "await detail.locator(\"[data-sot-control=\\\"source-test\\\"]\").click();",
+            "expect(testPayloads[1]).toMatchObject({",
+            'authMode: "web-reverse"',
+            "expect(savePayload).toBeNull();",
+        ],
+    );
+
+    return contractChecks;
+}
+
+async function verifyRow117DataSourcesTrackedSourceContract(): Promise<Row117DataSourcesTrackedSourceVerification> {
+    const source = await readFile(row117DataSourcesContractSourcePath(), "utf8");
+    const sourceTests =
+        row117DataSourcesCredentialSafeTestSuccessEvidence.coverageSource.tests;
+    const [missingDetailsTest, sensitiveFieldsTest, feishuSignInMethodsTest] =
+        sourceTests;
+    if (!missingDetailsTest || !sensitiveFieldsTest || !feishuSignInMethodsTest) {
+        throw new Error("Row117 tracked source test list is incomplete");
+    }
+
+    return {
+        blockedSecretLiteralCount:
+            row117DataSourcesSecretLiteralsBlockedFromEvidence.length,
+        file: row117DataSourcesCredentialSafeTestSuccessEvidence.coverageSource.file,
+        liveCredentialBackedProviderSuccessClaimed: false,
+        tests: [
+            {
+                contractChecks: verifyMissingDetailsTestBlock(
+                    extractPlaywrightTestBlock(source, missingDetailsTest.name),
+                ),
+                name: missingDetailsTest.name,
+            },
+            {
+                contractChecks: verifySensitiveFieldsTestBlock(
+                    extractPlaywrightTestBlock(source, sensitiveFieldsTest.name),
+                ),
+                name: sensitiveFieldsTest.name,
+            },
+            {
+                contractChecks: verifyFeishuSignInMethodsTestBlock(
+                    extractPlaywrightTestBlock(source, feishuSignInMethodsTest.name),
+                ),
+                name: feishuSignInMethodsTest.name,
+            },
+        ],
+    };
+}
 
 const sectionAcceptanceTargets: Record<
     CanonicalSettingsSection,
@@ -1923,6 +2348,7 @@ async function readSectionAcceptanceEvidence(
 
 function settingsSixSectionAcceptanceMarkdown(evidence: {
     acceptanceBoundaries: string[];
+    dataSourcesCredentialSafeTestSuccess: Row117DataSourcesCredentialSafeTestSuccessEvidence;
     generatedAt: string;
     loadErrorRetry: LoadErrorRetryEvidence;
     sections: SectionAcceptanceEvidence[];
@@ -1962,6 +2388,62 @@ function settingsSixSectionAcceptanceMarkdown(evidence: {
         `- Error panel visible: ${evidence.loadErrorRetry.errorPanelVisible}`,
         `- Normal title-generation controls in error: ${evidence.loadErrorRetry.normalControlCountInError}`,
         `- Retry returned ready: ${evidence.loadErrorRetry.retryReturnedReady}`,
+        "",
+        "## Data Sources Credential-Safe Test Success",
+        "",
+        `- Coverage source: ${evidence.dataSourcesCredentialSafeTestSuccess.coverageSource.file}`,
+        `- Route mock: ${evidence.dataSourcesCredentialSafeTestSuccess.routeMockedSuccess.endpoint} -> success=${evidence.dataSourcesCredentialSafeTestSuccess.routeMockedSuccess.responseShape.success}`,
+        `- Fake credential only: ${evidence.dataSourcesCredentialSafeTestSuccess.credentialPolicy.fakeCredentialOnly}`,
+        `- Real credentials used: ${evidence.dataSourcesCredentialSafeTestSuccess.credentialPolicy.realCredentialsUsed}`,
+        `- Row117 evidence stores secret values: ${evidence.dataSourcesCredentialSafeTestSuccess.credentialPolicy.row117EvidenceStoresSecretValues}`,
+        "",
+        "### Source Tests",
+        "",
+        ...evidence.dataSourcesCredentialSafeTestSuccess.coverageSource.tests.map(
+            (sourceTest) =>
+                `- ${sourceTest.name}: ${sourceTest.readback.join(" ")}`,
+        ),
+        "",
+        "### Tracked Source Verification",
+        "",
+        `- File: ${evidence.dataSourcesCredentialSafeTestSuccess.trackedSourceVerification?.file ?? "not verified"}`,
+        `- Blocked fake secret literals checked: ${evidence.dataSourcesCredentialSafeTestSuccess.trackedSourceVerification?.blockedSecretLiteralCount ?? 0}`,
+        `- Live credential-backed provider success claimed: ${evidence.dataSourcesCredentialSafeTestSuccess.trackedSourceVerification?.liveCredentialBackedProviderSuccessClaimed ?? false}`,
+        "",
+        ...(
+            evidence.dataSourcesCredentialSafeTestSuccess
+                .trackedSourceVerification?.tests ?? []
+        ).map(
+            (sourceTest) =>
+                `- ${sourceTest.name}: ${sourceTest.contractChecks.join("; ")}`,
+        ),
+        "",
+        "### Success State Readback",
+        "",
+        ...evidence.dataSourcesCredentialSafeTestSuccess.successStateReadback.map(
+            (readback) => `- ${readback}`,
+        ),
+        "",
+        "### Busy / Unlock Readback",
+        "",
+        ...evidence.dataSourcesCredentialSafeTestSuccess.busyAndUnlockReadback.map(
+            (readback) => `- ${readback}`,
+        ),
+        "",
+        "### Payload Shape Readback",
+        "",
+        "| Provider | Auth mode | Config keys | Secret keys | Saved by test-success |",
+        "| --- | --- | --- | --- | --- |",
+        ...evidence.dataSourcesCredentialSafeTestSuccess.payloadShapeReadback.map(
+            (payload) =>
+                `| ${payload.provider} | ${payload.authMode} | ${payload.configKeys.join(", ")} | ${payload.secretKeys.join(", ")} | ${payload.savedByTestSuccess} |`,
+        ),
+        "",
+        "### Non-Claims",
+        "",
+        ...evidence.dataSourcesCredentialSafeTestSuccess.nonClaims.map(
+            (nonClaim) => `- ${nonClaim}`,
+        ),
         "",
         "## Acceptance Boundaries",
         "",
@@ -2598,13 +3080,19 @@ test("settings shell six canonical sections meet SOT acceptance evidence", async
         section: "title-generation",
         states: ["loading", "error", "ready"],
     };
+    const trackedSourceVerification =
+        await verifyRow117DataSourcesTrackedSourceContract();
 
     const evidence = {
         acceptanceBoundaries: [
             "Load-error/retry coverage is structural because the handoff SOT shell has no dedicated load-error/retry pixel fixture.",
-            "Data Sources real-provider test-success is covered by integration validation, not by this six-section visual acceptance artifact.",
+            "Data Sources live provider credential-backed test-success remains a non-claim; row 117 only claims route-mocked credential-safe test-success evidence.",
             "Repository-level all-page/all-control validation is tracked by the full Playwright suite outside this row 117 artifact.",
         ],
+        dataSourcesCredentialSafeTestSuccess: {
+            ...row117DataSourcesCredentialSafeTestSuccessEvidence,
+            trackedSourceVerification,
+        },
         generatedAt: new Date().toISOString(),
         loadErrorRetry,
         row: 117,
@@ -2612,13 +3100,61 @@ test("settings shell six canonical sections meet SOT acceptance evidence", async
         sections,
     };
 
+    const evidenceJson = JSON.stringify(evidence, null, 2);
+    const evidenceMarkdown = settingsSixSectionAcceptanceMarkdown(evidence);
+    expect(
+        evidence.dataSourcesCredentialSafeTestSuccess.routeMockedSuccess
+            .responseShape.success,
+    ).toBe(true);
+    expect(
+        evidence.dataSourcesCredentialSafeTestSuccess.credentialPolicy
+            .realCredentialsUsed,
+    ).toBe(false);
+    expect(
+        evidence.dataSourcesCredentialSafeTestSuccess.credentialPolicy
+            .row117EvidenceStoresSecretValues,
+    ).toBe(false);
+    expect(
+        evidence.dataSourcesCredentialSafeTestSuccess.trackedSourceVerification
+            .liveCredentialBackedProviderSuccessClaimed,
+    ).toBe(false);
+    expect(
+        evidence.dataSourcesCredentialSafeTestSuccess.payloadShapeReadback.map(
+            (payload) => ({
+                authMode: payload.authMode,
+                provider: payload.provider,
+                savedByTestSuccess: payload.savedByTestSuccess,
+            }),
+        ),
+    ).toEqual([
+        {
+            authMode: "bearer",
+            provider: "ticnote",
+            savedByTestSuccess: false,
+        },
+        {
+            authMode: "oauth-device-flow",
+            provider: "feishu-minutes",
+            savedByTestSuccess: false,
+        },
+        {
+            authMode: "web-reverse",
+            provider: "feishu-minutes",
+            savedByTestSuccess: false,
+        },
+    ]);
+    for (const secretLiteral of row117DataSourcesSecretLiteralsBlockedFromEvidence) {
+        expect(evidenceJson).not.toContain(secretLiteral);
+        expect(evidenceMarkdown).not.toContain(secretLiteral);
+    }
+
     await writeFile(
         path.join(ROW_117_EVIDENCE_DIR, "settings-shell-six-section-acceptance.json"),
-        JSON.stringify(evidence, null, 2),
+        evidenceJson,
     );
     await writeFile(
         path.join(ROW_117_EVIDENCE_DIR, "settings-shell-six-section-acceptance.md"),
-        settingsSixSectionAcceptanceMarkdown(evidence),
+        evidenceMarkdown,
     );
 });
 

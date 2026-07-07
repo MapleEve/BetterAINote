@@ -199,9 +199,20 @@ describe("frontend data-source routing regression", () => {
             ),
             "utf8",
         );
+        const textareaPrimitive = readFileSync(
+            path.join(ROOT, "components/ui/textarea.tsx"),
+            "utf8",
+        );
 
+        expect(textareaPrimitive).toContain("export function Textarea");
+        expect(textareaPrimitive).toContain('React.ComponentProps<"textarea">');
+        expect(textareaPrimitive).toContain('data-slot="textarea"');
+        expect(textareaPrimitive).not.toContain("data-sot-privacy-boundary");
         expect(fieldControl).toContain("isSensitiveProviderField");
         expect(fieldControl).toContain("shouldRenderTextareaAsPasswordInput");
+        expect(fieldControl).toContain(
+            'field.kind === "textarea" && !renderedField.sensitive',
+        );
         expect(fieldControl).toContain('field.target === "secret"');
         expect(fieldControl).toContain("header");
         expect(fieldControl).toContain("payload");
@@ -215,6 +226,9 @@ describe("frontend data-source routing regression", () => {
         expect(settingFieldControl).toContain("masked?: boolean");
         expect(settingFieldControl).toContain(
             "sensitiveTextareaPasswordFallback?: boolean",
+        );
+        expect(settingFieldControl).toContain(
+            'field.kind === "textarea" && !field.sensitive',
         );
         expect(settingFieldControl).toContain("data-sot-mask={field.masked");
         expect(settingFieldControl).toContain("data-sot-privacy-boundary={");

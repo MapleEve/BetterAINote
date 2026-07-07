@@ -4998,7 +4998,10 @@ describe("full UI replacement regression coverage", () => {
         }
         expect(input).not.toContain("field-input");
         expect(textarea).toContain('React.ComponentProps<"textarea">');
+        expect(textarea).toContain("export function Textarea");
+        expect(textarea).toContain("<textarea");
         expect(textarea).toContain('data-slot="textarea"');
+        expect(textarea).not.toContain("data-sot-privacy-boundary");
         for (const className of [
             "border-input",
             "focus-visible:ring-ring/50",

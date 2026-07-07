@@ -33,6 +33,17 @@ function readSource(relativePath: string) {
     return readFileSync(path.join(process.cwd(), "src", relativePath), "utf8");
 }
 
+function readProviderFieldBuilderBlock(source: string, keySnippet: string) {
+    const keyIndex = source.indexOf(keySnippet);
+    expect(keyIndex).toBeGreaterThanOrEqual(0);
+    const start = source.lastIndexOf("buildTextareaField({", keyIndex);
+    expect(start).toBeGreaterThanOrEqual(0);
+    const end = source.indexOf("}),", keyIndex);
+    expect(end).toBeGreaterThan(keyIndex);
+
+    return source.slice(start, end);
+}
+
 describe("data-sources presentation helpers", () => {
     it("keeps common queue and workflow copy user-facing", () => {
         const zhCopy = JSON.stringify(translations["zh-CN"]);
@@ -805,6 +816,100 @@ describe("data-sources presentation helpers", () => {
         expect(fields[2]?.description).toBe(
             "只有连接测试提示需要额外校验信息时才填写；没有就留空。",
         );
+    });
+
+    it("keeps provider textarea credential fields marked as privacy-boundary secrets", () => {
+        const dingtalkFields = getProviderFormFields(
+            {
+                provider: "dingtalk-a1",
+                authMode: "device-signin",
+                baseUrl: "https://meeting-ai-tingji.dingtalk.com",
+                config: {},
+                enabled: false,
+                secretsConfigured: {},
+            },
+            {
+                "dingtalk-a1": {
+                    deviceCredential: "",
+                },
+            },
+            "zh-CN",
+            "settings",
+        );
+        const feishuTokenFields = getProviderFormFields(
+            {
+                provider: "feishu-minutes",
+                enabled: true,
+                authMode: "oauth-device-flow",
+                baseUrl: "https://open.feishu.cn",
+                config: {
+                    appId: "",
+                },
+                secretsConfigured: {},
+            },
+            {
+                "feishu-minutes": {
+                    userAccessToken: "",
+                },
+            },
+            "zh-CN",
+            "settings",
+        );
+        const feishuWebFields = getProviderFormFields(
+            {
+                provider: "feishu-minutes",
+                enabled: true,
+                authMode: "web-reverse",
+                baseUrl: "https://meetings.feishu.cn",
+                config: {
+                    spaceName: "cn",
+                },
+                secretsConfigured: {},
+            },
+            {
+                "feishu-minutes": {
+                    webCookie: "",
+                    webToken: "",
+                },
+            },
+            "zh-CN",
+            "settings",
+        );
+
+        for (const [fields, key] of [
+            [dingtalkFields, "deviceCredential"],
+            [feishuTokenFields, "userAccessToken"],
+            [feishuWebFields, "webCookie"],
+            [feishuWebFields, "webToken"],
+        ] as const) {
+            expect(fields.find((field) => field.key === key)).toMatchObject({
+                key,
+                kind: "textarea",
+                target: "secret",
+            });
+        }
+        expect(
+            feishuWebFields.find((field) => field.key === "spaceName"),
+        ).toMatchObject({
+            kind: "text",
+        });
+
+        const dingtalkPresentation = readSource(
+            "lib/data-sources/providers/dingtalk-a1/presentation.ts",
+        );
+        const feishuPresentation = readSource(
+            "lib/data-sources/providers/feishu-minutes/presentation.ts",
+        );
+        for (const [source, keySnippet] of [
+            [dingtalkPresentation, "key: DINGTALK_DEVICE_CREDENTIAL_KEY"],
+            [feishuPresentation, 'key: "userAccessToken"'],
+            [feishuPresentation, 'key: "webCookie"'],
+            [feishuPresentation, 'key: "webToken"'],
+        ] as const) {
+            expect(readProviderFieldBuilderBlock(source, keySnippet)).toContain(
+                'target: "secret"',
+            );
+        }
     });
 
     it("labels Plaud sign-in inputs with user-facing credential copy", () => {
