@@ -144,7 +144,7 @@ const RECORDING_DETAIL_METADATA_CARD_CLASS_NAME = "min-h-0 gap-0";
 const RECORDING_DETAIL_METADATA_HEADER_CLASS_NAME =
     "flex items-center gap-3 border-b px-4 py-3";
 const RECORDING_DETAIL_METADATA_TITLE_CLASS_NAME =
-    "min-w-0 flex-1 truncate text-xl";
+    "min-w-0 flex-1 truncate";
 const RECORDING_DETAIL_METADATA_BODY_CLASS_NAME =
     "flex min-h-0 flex-1 flex-col gap-3.5 overflow-y-auto px-5 pt-4 pb-6";
 const RECORDING_SOURCE_RECORD_SHELL_CLASS_NAME = "flex min-h-0 flex-col gap-4";
@@ -152,7 +152,7 @@ const RECORDING_SOURCE_RECORD_CARD_CLASS_NAME = "min-h-0 gap-0";
 const RECORDING_SOURCE_RECORD_HEADER_CLASS_NAME =
     "flex items-center gap-3 border-b px-4 py-3";
 const RECORDING_SOURCE_RECORD_TITLE_CLASS_NAME =
-    "min-w-0 flex-1 truncate text-xl";
+    "min-w-0 flex-1 truncate";
 const RECORDING_SOURCE_RECORD_ACTIONS_CLASS_NAME =
     "ml-auto flex max-w-full grow-0 shrink basis-auto flex-wrap items-center gap-2";
 const RECORDING_SOURCE_RECORD_BODY_CLASS_NAME =

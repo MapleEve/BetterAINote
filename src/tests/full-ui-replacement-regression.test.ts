@@ -3633,6 +3633,8 @@ const RECORDING_DETAIL_CARD_PRIMITIVE_SELECTORS = [
 
 const RECORDING_DETAIL_PRIMITIVE_REPAINT_DECLARATION_RE =
     /^\s*(?:background(?:-clip)?|border(?:-(?:color|radius|style|width))?|box-shadow|color|font(?:-[\w-]+)?|height|line-height|padding|transition|width)\s*:|\b(?:color-mix|linear-gradient|oklch)\(/m;
+const RECORDING_DETAIL_CARD_OWNER_FORBIDDEN_CLASS_PATTERN =
+    /(?:^|\s)!\S+|\bdark:|\b(?:text|bg|border|shadow|ring|fill|stroke)-\[var\(|\[(?:font|font-size|line-height|letter-spacing):[^\]]+\]|(?:^|\s)(?:text-(?:xs|sm|base|lg|xl|[2-9]xl)|font-(?:sans|serif|mono|thin|extralight|light|normal|medium|semibold|bold|extrabold|black)|leading-(?:none|tight|snug|normal|relaxed|loose|\[[^\]]+\]|\d+(?:\.\d+)?)|tracking-(?:normal|tight|wide|wider|widest|\[[^\]]+\]))(?=$|\s)/;
 
 const RECORDING_DETAIL_NAV_BACK_REMOVED_GLOBAL_SELECTORS = [
     '[data-sot-list="recording-detail-nav"]',
@@ -3792,7 +3794,7 @@ const RECORDING_DETAIL_METADATA_OWNER_CLASS_INITIALIZERS = [
     },
     {
         constName: "RECORDING_DETAIL_METADATA_TITLE_CLASS_NAME",
-        expected: "min-w-0 flex-1 truncate text-xl",
+        expected: "min-w-0 flex-1 truncate",
         marker: 'data-sot-part="recording-detail-metadata-title"',
         tagName: "CardTitle",
     },
@@ -3825,7 +3827,7 @@ const RECORDING_SOURCE_RECORD_OWNER_CLASS_INITIALIZERS = [
     },
     {
         constName: "RECORDING_SOURCE_RECORD_TITLE_CLASS_NAME",
-        expected: "min-w-0 flex-1 truncate text-xl",
+        expected: "min-w-0 flex-1 truncate",
         marker: 'data-sot-part="recording-source-record-title"',
         tagName: "CardTitle",
     },
@@ -13930,7 +13932,14 @@ describe("full UI replacement regression coverage", () => {
             expect(ownerClassName).not.toMatch(
                 OWNER_WORKSPACE_FORBIDDEN_CLASS_PATTERN,
             );
+            expect(ownerClassName).not.toMatch(
+                RECORDING_DETAIL_CARD_OWNER_FORBIDDEN_CLASS_PATTERN,
+            );
         }
+        expect(metadataPanel.match(/<Field\b/g)).toHaveLength(5);
+        expect(metadataPanel.match(/<FieldContent\b/g)).toHaveLength(5);
+        expect(metadataPanel.match(/<FieldTitle\b/g)).toHaveLength(5);
+        expect(metadataPanel.match(/<FieldDescription\b/g)).toHaveLength(5);
         expect(sourceRecordPanelIndex).toBeGreaterThanOrEqual(0);
         expect(sourceRecordStart).toBeGreaterThanOrEqual(0);
         expect(sourceRecordEnd).toBeGreaterThan(sourceRecordStart);
@@ -13963,7 +13972,14 @@ describe("full UI replacement regression coverage", () => {
             expect(ownerClassName).not.toMatch(
                 OWNER_WORKSPACE_FORBIDDEN_CLASS_PATTERN,
             );
+            expect(ownerClassName).not.toMatch(
+                RECORDING_DETAIL_CARD_OWNER_FORBIDDEN_CLASS_PATTERN,
+            );
         }
+        expect(sourceRecordPanel.match(/<Field\b/g)).toHaveLength(2);
+        expect(sourceRecordPanel.match(/<FieldContent\b/g)).toHaveLength(2);
+        expect(sourceRecordPanel.match(/<FieldTitle\b/g)).toHaveLength(2);
+        expect(sourceRecordPanel.match(/<FieldDescription\b/g)).toHaveLength(3);
         for (const part of [
             "recording-source-record-header",
             "recording-source-record-title",
@@ -13981,6 +13997,12 @@ describe("full UI replacement regression coverage", () => {
         expect(sourceRecordPanel).toContain("handleCopyRawTranscript");
         expect(sourceRecordPanel).toContain("!localTranscriptCopyText.trim()");
         expect(sourceRecordPanel).toContain("!transcription?.text?.trim()");
+        expect(sourceRecordPanel).toMatch(
+            /disabled=\{\s*copyingAction === "local"\s*\|\|\s*!localTranscriptCopyText\.trim\(\)\s*\}/,
+        );
+        expect(sourceRecordPanel).toMatch(
+            /disabled=\{\s*copyingAction ===\s*"raw-transcript"\s*\|\|\s*!transcription\?\.text\?\.trim\(\)\s*\}/,
+        );
         expect(sourceRecordPanel).toContain('t("common.copying")');
         expect(sourceRecordPanel).toMatch(
             /t\(\s*"transcription\.copyTranscript",?\s*\)/,
