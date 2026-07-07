@@ -45,7 +45,7 @@ const EXPECTED_DASHBOARD_RECORDING_LIST_CONTENT_CLASS_NAME =
 const EXPECTED_DASHBOARD_DETAIL_EMPTY_STATE_CLASS_NAME =
     "min-h-[280px] p-9 md:p-9";
 const EXPECTED_DASHBOARD_DRAWER_SCRIM_CLASS_NAME =
-    "pointer-events-none fixed inset-0 z-[var(--z-drawer-scrim)] hidden max-[860px]:block max-[860px]:group-data-[drawer-state=open]/dashboard-workstation:pointer-events-auto";
+    "pointer-events-none fixed inset-0 z-40 hidden max-[860px]:block max-[860px]:group-data-[drawer-state=open]/dashboard-workstation:pointer-events-auto";
 const EXPECTED_DASHBOARD_DRAWER_MENU_ICON_CLASS_NAME =
     "";
 const EXPECTED_DASHBOARD_DRAWER_ACTIVE_DOT_CLASS_NAME =
@@ -552,7 +552,7 @@ const ROUTE_FALLBACK_CHROME_SHELL_CLASS_VALUE =
 const DASHBOARD_ROUTE_LOADING_DETAIL_CLASS_VALUE =
     "flex min-h-0 min-w-0 flex-col gap-4";
 const EXPECTED_DASHBOARD_RECORDING_PLAYER_CARD_CLASS_NAME =
-    "block min-h-[114px] gap-0 overflow-visible rounded-2xl px-[18px] py-4 shadow-none backdrop-blur-none";
+    "block min-h-[114px] gap-0 overflow-visible rounded-2xl px-[18px] py-4 shadow-none";
 const EXPECTED_DASHBOARD_RECORDING_PLAYER_META_CLASS_NAME =
     "mb-3 flex flex-row flex-wrap items-center gap-2.5 p-0";
 const EXPECTED_DASHBOARD_RECORDING_PLAYER_DATE_CLASS_NAME =
@@ -2105,7 +2105,7 @@ const EXPECTED_DASHBOARD_TRANSCRIPT_ACTIONS_CLASS_NAME =
 const EXPECTED_DASHBOARD_TRANSCRIPT_BODY_BASE_CLASS_NAME =
     "min-h-0 flex-1 overflow-y-auto px-5 pt-4 pb-5";
 const EXPECTED_DASHBOARD_TRANSCRIPT_SHELL_CARD_CLASS_NAME =
-    "min-h-0 flex-1 gap-0 rounded-2xl backdrop-blur-none";
+    "min-h-0 flex-1 gap-0 rounded-2xl";
 
 const CARD_PRIMITIVE_FORBIDDEN_BUSINESS_TOKENS = [
     "onboarding",
@@ -2175,11 +2175,12 @@ const DASHBOARD_RECORDING_TAG_FILTER_FEATURE_OWNER_CLASS_SNIPPETS = [
     "shrink-0 text-muted-foreground",
     "list:",
     "top-[calc(100%+6px)]",
-    "z-[var(--z-popover-inline)]",
+    "z-50",
+    "max-h-[260px]",
     "border border-border",
     "bg-popover",
     "text-popover-foreground",
-    "shadow-lg",
+    "shadow-md",
     "option:",
     "border border-transparent",
     "bg-transparent",
@@ -5857,6 +5858,9 @@ describe("full UI replacement regression coverage", () => {
         expect(
             extractObjectStringProperty(dashboardDrawerClassNames, "scrim"),
         ).toContain(`"${EXPECTED_DASHBOARD_DRAWER_SCRIM_CLASS_NAME}"`);
+        expect(
+            extractObjectStringProperty(dashboardDrawerClassNames, "scrim"),
+        ).not.toContain("z-[var(--z-drawer-scrim)]");
         expect(dashboardDrawerClassNames).not.toContain("menuIcon");
         expect(
             extractObjectStringProperty(dashboardDrawerClassNames, "activeDot"),
@@ -8629,6 +8633,8 @@ describe("full UI replacement regression coverage", () => {
         for (const snippet of DASHBOARD_RECORDING_TAG_FILTER_FEATURE_OWNER_CLASS_SNIPPETS) {
             expect(tagFilterStyles).toContain(snippet);
         }
+        expect(tagFilterStyles).not.toContain("z-[var(--z-popover-inline)]");
+        expect(tagFilterStyles).not.toContain("shadow-lg");
         expect(workstation).toMatch(
             /<div\s+className=\{\s*dashboardRecordingTagFilterStyles\.root\s*\}[\s\S]*data-list-filter-row="tags"[\s\S]*data-sot-panel="recording-list-tag-filter"[\s\S]*hidden=\{listMode !== "tags"\}[\s\S]*ref=\{tagFilterRef\}/,
         );
@@ -9168,6 +9174,7 @@ describe("full UI replacement regression coverage", () => {
         expect(dashboardPlayerCardOpening).toContain(
             `className="${EXPECTED_DASHBOARD_RECORDING_PLAYER_CARD_CLASS_NAME}"`,
         );
+        expect(dashboardPlayerCardOpening).not.toContain("backdrop-blur-none");
         expect(dashboardPlayerCardOpening).toContain(
             'data-sot-surface="dashboard-recording-player"',
         );
@@ -10860,6 +10867,7 @@ describe("full UI replacement regression coverage", () => {
         expect(dashboardTranscriptShell).toContain(
             `className="${EXPECTED_DASHBOARD_TRANSCRIPT_SHELL_CARD_CLASS_NAME}"`,
         );
+        expect(dashboardTranscriptShell).not.toContain("backdrop-blur-none");
         expect(dashboardTranscriptShell).toContain(
             'data-sot-panel="dashboard-transcript-shell"',
         );
@@ -13708,8 +13716,63 @@ describe("full UI replacement regression coverage", () => {
         expect(detail).toContain(
             "RECORDING_DETAIL_HEADER_TITLE_INPUT_CLASS_NAME",
         );
-        expect(detail).toContain(
-            '"rec-h2-input !h-8 min-w-0 flex-1 rounded-[var(--radius-sm)] !border !border-[var(--line-hairline)] !bg-[var(--bg-recessed)] px-[10px] py-0 [font:600_16px/1.35_var(--font-display)] text-[var(--fg-primary)] shadow-none focus-visible:!border-ring focus-visible:!ring-[3px] focus-visible:!ring-ring/50"',
+        const detailHeaderClassName = expectExactStringConstInitializer(
+            detail,
+            "RECORDING_DETAIL_HEADER_CLASS_NAME",
+            "flex flex-row items-center gap-2.5 px-1 pt-1 pb-0 data-[sot-state=saving]:pb-px",
+        );
+        const detailHeaderTitleClassName = expectExactStringConstInitializer(
+            detail,
+            "RECORDING_DETAIL_HEADER_TITLE_CLASS_NAME",
+            "min-w-0 flex-1 truncate text-xl text-foreground",
+        );
+        const detailHeaderTitleInputClassName =
+            expectExactStringConstInitializer(
+                detail,
+                "RECORDING_DETAIL_HEADER_TITLE_INPUT_CLASS_NAME",
+                "h-8 min-w-0 flex-1",
+            );
+        const detailHeaderLocalBadgeClassName =
+            expectExactStringConstInitializer(
+                detail,
+                "RECORDING_DETAIL_HEADER_LOCAL_BADGE_CLASS_NAME",
+                "ml-1 shrink-0",
+            );
+        const detailHeaderStatusBadgeClassName =
+            expectExactStringConstInitializer(
+                detail,
+                "RECORDING_DETAIL_HEADER_STATUS_BADGE_CLASS_NAME",
+                "ml-1 shrink-0",
+            );
+        for (const headerClassName of [
+            detailHeaderClassName,
+            detailHeaderTitleClassName,
+            detailHeaderTitleInputClassName,
+            detailHeaderLocalBadgeClassName,
+            detailHeaderStatusBadgeClassName,
+        ]) {
+            expect(headerClassName).not.toMatch(
+                /\b(?:rec-head|rec-h2|rec-h2-local|rec-h2-input|rec-h2-status)\b/,
+            );
+            expect(headerClassName).not.toMatch(
+                /!\b(?:border|bg)|\[font:|text-\[var\(--|bg-\[var\(--|border-\[var\(--|tracking-\[/,
+            );
+        }
+        const recordingHeaderButtonClassNames = extractBoundedSlice(
+            detail,
+            "const recordingWorkstationButtonClassNames = {",
+            "} as const;",
+        );
+        expect(recordingHeaderButtonClassNames).toContain(
+            'headerIconButton:\n        "text-muted-foreground"',
+        );
+        expect(recordingHeaderButtonClassNames).toContain(
+            'headerActionButton:\n        "min-w-[103px]"',
+        );
+        const recordingHeaderButtonResidualPattern =
+            /header(?:Icon|Action)Button:[\s\S]*?(?:\[_svg|stroke-\[|stroke-line(?:cap|join)|\[_svg:not|!border|!bg|\[var\(--(?:fg|bg|line|glass|shadow)|font-sans|text-\[|rounded-\[|gap-\[|px-\[|backdrop-)/;
+        expect(recordingHeaderButtonClassNames).not.toMatch(
+            recordingHeaderButtonResidualPattern,
         );
         expect(detail).toContain(
             "RECORDING_DETAIL_HEADER_LOCAL_BADGE_CLASS_NAME",
@@ -13744,6 +13807,7 @@ describe("full UI replacement regression coverage", () => {
                 removedRecordingDetailCardBadgeVariant,
             );
         }
+        expect(detailHeader).toContain('variant="secondary"');
         expect(detailHeader).toContain('variant="outline"');
         expect(detailHeader).toContain('variant="ghost"');
         expect(detailHeader).toContain('size="icon-sm"');

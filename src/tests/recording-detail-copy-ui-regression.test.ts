@@ -2867,6 +2867,9 @@ describe("recording detail copy and title action UI regressions", () => {
             "const RECORDING_DETAIL_HEADER_TITLE_CLASS_NAME",
         );
         expect(detailWorkstation).toContain(
+            "const RECORDING_DETAIL_HEADER_TITLE_INPUT_CLASS_NAME",
+        );
+        expect(detailWorkstation).toContain(
             "const RECORDING_DETAIL_HEADER_LOCAL_BADGE_CLASS_NAME",
         );
         expect(detailWorkstation).toContain(
@@ -2890,15 +2893,63 @@ describe("recording detail copy and title action UI regressions", () => {
         expect(detailHeader).toContain(
             "RECORDING_DETAIL_HEADER_STATUS_BADGE_CLASS_NAME",
         );
-        const detailHeaderLocalBadgeClass = extractBoundedSlice(
+        const detailHeaderClassName = expectExactStringConstInitializer(
             detailWorkstation,
-            "const RECORDING_DETAIL_HEADER_LOCAL_BADGE_CLASS_NAME =",
-            ";",
+            "RECORDING_DETAIL_HEADER_CLASS_NAME",
+            "flex flex-row items-center gap-2.5 px-1 pt-1 pb-0 data-[sot-state=saving]:pb-px",
         );
-        expect(detailHeaderLocalBadgeClass).not.toContain("--system-banner-");
-        expect(detailHeaderLocalBadgeClass).toContain("bg-secondary");
-        expect(detailHeaderLocalBadgeClass).toContain(
-            "text-secondary-foreground",
+        const detailHeaderTitleClassName = expectExactStringConstInitializer(
+            detailWorkstation,
+            "RECORDING_DETAIL_HEADER_TITLE_CLASS_NAME",
+            "min-w-0 flex-1 truncate text-xl text-foreground",
+        );
+        const detailHeaderTitleInputClassName =
+            expectExactStringConstInitializer(
+                detailWorkstation,
+                "RECORDING_DETAIL_HEADER_TITLE_INPUT_CLASS_NAME",
+                "h-8 min-w-0 flex-1",
+            );
+        const detailHeaderLocalBadgeClassName =
+            expectExactStringConstInitializer(
+                detailWorkstation,
+                "RECORDING_DETAIL_HEADER_LOCAL_BADGE_CLASS_NAME",
+                "ml-1 shrink-0",
+            );
+        const detailHeaderStatusBadgeClassName =
+            expectExactStringConstInitializer(
+                detailWorkstation,
+                "RECORDING_DETAIL_HEADER_STATUS_BADGE_CLASS_NAME",
+                "ml-1 shrink-0",
+            );
+        for (const headerClassName of [
+            detailHeaderClassName,
+            detailHeaderTitleClassName,
+            detailHeaderTitleInputClassName,
+            detailHeaderLocalBadgeClassName,
+            detailHeaderStatusBadgeClassName,
+        ]) {
+            expect(headerClassName).not.toMatch(
+                /\b(?:rec-head|rec-h2|rec-h2-local|rec-h2-input|rec-h2-status)\b/,
+            );
+            expect(headerClassName).not.toMatch(
+                /!\b(?:border|bg)|\[font:|text-\[var\(--|bg-\[var\(--|border-\[var\(--|tracking-\[/,
+            );
+        }
+        const recordingHeaderButtonClassNames = extractBoundedSlice(
+            detailWorkstation,
+            "const recordingWorkstationButtonClassNames = {",
+            "} as const;",
+        );
+        expect(recordingHeaderButtonClassNames).toContain(
+            'headerIconButton:\n        "text-muted-foreground"',
+        );
+        expect(recordingHeaderButtonClassNames).toContain(
+            'headerActionButton:\n        "min-w-[103px]"',
+        );
+        const headerButtonClassResidualPattern =
+            /header(?:Icon|Action)Button:[\s\S]*?(?:\[_svg|stroke-\[|stroke-line(?:cap|join)|\[_svg:not|!border|!bg|\[var\(--(?:fg|bg|line|glass|shadow)|font-sans|text-\[|rounded-\[|gap-\[|px-\[|backdrop-)/;
+        expect(recordingHeaderButtonClassNames).not.toMatch(
+            headerButtonClassResidualPattern,
         );
         for (const removedRecordingDetailVariant of [
             "detailHeader",
@@ -2912,6 +2963,7 @@ describe("recording detail copy and title action UI regressions", () => {
         }
         expect(detailHeader).toContain('variant="ghost"');
         expect(detailHeader).toContain('size="icon-sm"');
+        expect(detailHeader).toContain('variant="secondary"');
         expect(detailHeader).toContain('variant="outline"');
         expect(detailHeader).toContain('size="sm"');
         expect(detailHeader).toContain(

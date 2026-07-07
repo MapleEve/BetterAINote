@@ -103,15 +103,15 @@ interface TranscriptionJob {
 }
 
 const RECORDING_DETAIL_HEADER_CLASS_NAME =
-    "rec-head relative flex flex-row items-center gap-[10px] px-1 pt-1 pb-0 data-[sot-state=saving]:pb-px";
+    "flex flex-row items-center gap-2.5 px-1 pt-1 pb-0 data-[sot-state=saving]:pb-px";
 const RECORDING_DETAIL_HEADER_TITLE_CLASS_NAME =
-    "rec-h2 m-0 min-w-0 flex-1 truncate [font:600_22px_var(--font-display)] [line-height:normal] tracking-[-0.014em] text-[var(--fg-primary)]";
+    "min-w-0 flex-1 truncate text-xl text-foreground";
 const RECORDING_DETAIL_HEADER_TITLE_INPUT_CLASS_NAME =
-    "rec-h2-input !h-8 min-w-0 flex-1 rounded-[var(--radius-sm)] !border !border-[var(--line-hairline)] !bg-[var(--bg-recessed)] px-[10px] py-0 [font:600_16px/1.35_var(--font-display)] text-[var(--fg-primary)] shadow-none focus-visible:!border-ring focus-visible:!ring-[3px] focus-visible:!ring-ring/50";
+    "h-8 min-w-0 flex-1";
 const RECORDING_DETAIL_HEADER_LOCAL_BADGE_CLASS_NAME =
-    "rec-h2-local ml-1 inline-flex h-[22px] shrink-0 items-center rounded-full border border-border bg-secondary px-[8px] py-0 [font:600_11px/1_var(--font-sans)] text-secondary-foreground shadow-none";
+    "ml-1 shrink-0";
 const RECORDING_DETAIL_HEADER_STATUS_BADGE_CLASS_NAME =
-    "rec-h2-status ml-1 shrink-0 rounded-none border-0 bg-transparent px-0 py-0 [font:500_11.5px/1.4_var(--font-mono)] text-[var(--fg-tertiary)] shadow-none";
+    "ml-1 shrink-0";
 const RECORDING_WORKSTATION_SHELL_CLASS_NAME =
     "grid h-screen min-h-[720px] grid-cols-[264px_1fr] transition-[grid-template-columns] duration-[320ms] ease-[var(--ease-out)] max-[860px]:h-auto max-[860px]:min-h-[100svh] max-[860px]:grid-cols-[minmax(0,1fr)] max-[860px]:overflow-x-clip";
 const RECORDING_WORKSTATION_MAIN_CLASS_NAME =
@@ -183,9 +183,9 @@ const recordingWorkstationButtonClassNames = {
     detailBack:
         "relative h-auto w-full justify-start gap-2.5 rounded-[9px] border border-transparent bg-transparent px-2.5 py-[7px] text-left text-[13px] font-medium text-[var(--fg-secondary)] shadow-none hover:bg-accent hover:text-[var(--fg-primary)] focus-visible:text-[var(--fg-primary)] disabled:cursor-not-allowed disabled:opacity-50 data-[sot-state=selected]:border-[var(--line-hairline)] data-[sot-state=selected]:bg-[var(--bg-elevated)] data-[sot-state=selected]:text-[var(--fg-primary)] data-[sot-state=selected]:shadow-xs has-[>svg]:px-2.5 [&_span]:min-w-0 [&_span]:flex-1 [&_span]:truncate [&_svg]:flex-none [&_svg]:fill-none [&_svg]:stroke-current [&_svg]:stroke-[1.7] [&_svg]:opacity-[0.85] [&_svg]:[stroke-linecap:round] [&_svg]:[stroke-linejoin:round]",
     headerIconButton:
-        "size-[32px] rounded-[8px] border border-transparent bg-transparent p-0 text-[var(--fg-secondary)] shadow-none hover:bg-[var(--bg-recessed)] hover:text-[var(--fg-primary)] [&_svg]:fill-none [&_svg]:stroke-current [&_svg]:stroke-[1.8] [&_svg]:[stroke-linecap:round] [&_svg]:[stroke-linejoin:round]",
+        "text-muted-foreground",
     headerActionButton:
-        "h-8 gap-[7px] rounded-[9px] !border-[var(--line-hairline)] !bg-[var(--glass-tint-base)] px-3 font-sans text-[12.5px] font-semibold leading-normal text-[var(--fg-primary)] shadow-[var(--shadow-xs)] backdrop-blur-[14px] backdrop-saturate-[140%] hover:!bg-[var(--glass-tint-base)] hover:text-[var(--fg-primary)] has-[>svg]:px-3 [&_svg]:fill-none [&_svg]:stroke-current [&_svg]:stroke-[1.8] [&_svg]:[stroke-linecap:round] [&_svg]:[stroke-linejoin:round] [&_svg:not([class*='size-'])]:size-4",
+        "min-w-[103px]",
 } as const;
 
 function RecordingDetailCardHeader({
@@ -1133,7 +1133,7 @@ export function RecordingWorkstation({
                             {recordingDetailHeaderState === "normal" &&
                             localDeleteAvailable ? (
                                 <Badge
-                                    variant="outline"
+                                    variant="secondary"
                                     className={
                                         RECORDING_DETAIL_HEADER_LOCAL_BADGE_CLASS_NAME
                                     }
@@ -1171,7 +1171,7 @@ export function RecordingWorkstation({
                             ) : null}
                             {recordingDetailHeaderState === "saving" ? (
                                 <Badge
-                                    variant="ghost"
+                                    variant="secondary"
                                     className={
                                         RECORDING_DETAIL_HEADER_STATUS_BADGE_CLASS_NAME
                                     }
