@@ -2357,6 +2357,16 @@ describe("dashboard SOT foundation", () => {
             "selectedPlayerStatus.label",
             "SotPlayerStatusBadge",
         );
+        const statusVariantBlock = extractBoundedSlice(
+            sotPlayerPrimitives,
+            "const PLAYER_STATUS_VARIANT",
+            "export function SotPlayerStatusBadge",
+        );
+        const playerStatusPrimitiveBadge = extractOpeningElement(
+            sotPlayerPrimitives,
+            'data-sot-control="player-status"',
+            "Badge",
+        );
         const noAudioAlert = extractOpeningElement(
             player,
             'part="dashboard-recording-player-no-audio"',
@@ -2695,22 +2705,31 @@ describe("dashboard SOT foundation", () => {
         expect(badge).not.toContain("[&_[data-sot-part=status-dot]]");
         expect(badge).not.toContain("[&_[data-sot-part=status-label]]");
         expect(sotPlayerPrimitives).toContain("const PLAYER_STATUS_VARIANT");
-        expect(sotPlayerPrimitives).toContain(
+        expect(statusVariantBlock).toContain(
             'React.ComponentProps<typeof Badge>["variant"]',
         );
-        expect(sotPlayerPrimitives).toContain("const PLAYER_STATUS_TONE_CLASS");
-        expect(sotPlayerPrimitives).toContain(
-            'className={cn("gap-1.5", PLAYER_STATUS_TONE_CLASS[tone], className)}',
-        );
-        expect(sotPlayerPrimitives).toContain(
+        for (const expectedStatusVariant of [
+            'err: "destructive"',
+            'info: "secondary"',
+            'neu: "outline"',
+            'ok: "secondary"',
+            'warn: "secondary"',
+        ]) {
+            expect(statusVariantBlock).toContain(expectedStatusVariant);
+        }
+        expect(sotPlayerPrimitives).not.toContain("PLAYER_STATUS_TONE_CLASS");
+        expect(playerStatusPrimitiveBadge).toContain(
             "variant={PLAYER_STATUS_VARIANT[tone]}",
         );
-        expect(sotPlayerPrimitives).toContain(
+        expect(playerStatusPrimitiveBadge).toContain("className={className}");
+        expect(playerStatusPrimitiveBadge).toContain(
+            'data-sot-control="player-status"',
+        );
+        expect(playerStatusPrimitiveBadge).toContain("data-sot-tone={tone}");
+        expect(sotPlayerPrimitives).not.toContain(
             '"size-1.5 rounded-full bg-current"',
         );
-        expect(sotPlayerPrimitives).toMatch(
-            /tone === "warn" &&\s*"animate-\[bpulse_1\.4s_ease-in-out_infinite\]"/,
-        );
+        expect(sotPlayerPrimitives).not.toContain("animate-[bpulse");
         expect(sotPlayerPrimitives).not.toContain("--source-provider-status");
         expect(badge).not.toContain("playerTagChip:");
         expect(badge).not.toContain("playerTagOverflow:");
@@ -2723,14 +2742,11 @@ describe("dashboard SOT foundation", () => {
         expect(sotPlayerPrimitives).not.toContain(
             "SOT_PLAYER_STATUS_BADGE_CLASS",
         );
-        expect(sotPlayerPrimitives).toContain(
-            "variant={PLAYER_STATUS_VARIANT[tone]}",
+        expect(sotPlayerPrimitives).toContain("className?: string;");
+        expect(sotPlayerPrimitives).not.toContain(
+            "[&_[data-sot-part=status-dot]]",
         );
-        expect(sotPlayerPrimitives).toContain(
-            'data-sot-control="player-status"',
-        );
-        expect(sotPlayerPrimitives).toContain("data-sot-tone={tone}");
-        expect(sotPlayerPrimitives).toContain('data-sot-part="status-dot"');
+        expect(sotPlayerPrimitives).not.toContain('data-sot-part="status-dot"');
         expect(sotPlayerPrimitives).toContain('data-sot-part="status-label"');
         expectSotPlayerSourcePrimitiveBindings(sotPlayerPrimitives);
         for (const sotPlayerTagClassConstant of [

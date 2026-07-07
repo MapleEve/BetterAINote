@@ -9430,11 +9430,13 @@ describe("full UI replacement regression coverage", () => {
         expect(sotPlayerPrimitives).toContain(
             "variant={PLAYER_STATUS_VARIANT[tone]}",
         );
+        expect(sotPlayerPrimitives).toContain("className={className}");
+        expect(sotPlayerPrimitives).not.toContain("PLAYER_STATUS_TONE_CLASS");
         expect(sotPlayerPrimitives).toContain(
             'data-sot-control="player-status"',
         );
         expect(sotPlayerPrimitives).toContain("data-sot-tone={tone}");
-        expect(sotPlayerPrimitives).toContain('data-sot-part="status-dot"');
+        expect(sotPlayerPrimitives).not.toContain('data-sot-part="status-dot"');
         expect(sotPlayerPrimitives).toContain('data-sot-part="status-label"');
         for (const playerButtonPrimitiveToken of [
             "export function SotPlayerControlButton",
@@ -12190,19 +12192,18 @@ describe("full UI replacement regression coverage", () => {
         expect(badge).not.toContain("[&_[data-sot-part=status-dot]]");
         expect(badge).not.toContain("[&_[data-sot-part=status-label]]");
         expect(sotPlayerPrimitives).toContain("const PLAYER_STATUS_VARIANT");
-        expect(sotPlayerPrimitives).toContain("const PLAYER_STATUS_TONE_CLASS");
+        expect(sotPlayerPrimitives).toContain(
+            'React.ComponentProps<typeof Badge>["variant"]',
+        );
         expect(sotPlayerPrimitives).toContain(
             "variant={PLAYER_STATUS_VARIANT[tone]}",
         );
-        expect(sotPlayerPrimitives).toContain(
-            'className={cn("gap-1.5", PLAYER_STATUS_TONE_CLASS[tone], className)}',
-        );
-        expect(sotPlayerPrimitives).toContain(
+        expect(sotPlayerPrimitives).toContain("className={className}");
+        expect(sotPlayerPrimitives).not.toContain("PLAYER_STATUS_TONE_CLASS");
+        expect(sotPlayerPrimitives).not.toContain(
             '"size-1.5 rounded-full bg-current"',
         );
-        expect(sotPlayerPrimitives).toMatch(
-            /tone === "warn" &&\s*"animate-\[bpulse_1\.4s_ease-in-out_infinite\]"/,
-        );
+        expect(sotPlayerPrimitives).not.toContain("animate-[bpulse");
         expect(sotPlayerPrimitives).not.toContain("--source-provider-status");
         expect(badge).not.toContain("playerTagChip:");
         expect(badge).not.toContain("playerTagOverflow:");
@@ -15342,7 +15343,10 @@ describe("full UI replacement regression coverage", () => {
             "SOT_PLAYER_STATUS_BADGE_CLASS",
         );
         expect(sotPlayerPrimitives).toContain("const PLAYER_STATUS_VARIANT");
-        expect(sotPlayerPrimitives).toContain("const PLAYER_STATUS_TONE_CLASS");
+        expect(sotPlayerPrimitives).toContain(
+            'React.ComponentProps<typeof Badge>["variant"]',
+        );
+        expect(sotPlayerPrimitives).not.toContain("PLAYER_STATUS_TONE_CLASS");
         expect(sotPlayerPrimitives).not.toContain(
             legacyPlayerSourceVariantUsage,
         );
@@ -15353,15 +15357,17 @@ describe("full UI replacement regression coverage", () => {
         expect(sharedPlayerStatusBadge).toContain(
             "variant={PLAYER_STATUS_VARIANT[tone]}",
         );
-        expect(sharedPlayerStatusBadge).toContain(
-            'className={cn("gap-1.5", PLAYER_STATUS_TONE_CLASS[tone], className)}',
-        );
+        expect(sharedPlayerStatusBadge).toContain("className={className}");
         expect(sharedPlayerStatusBadge).toContain(
             'data-sot-control="player-status"',
         );
         expect(sharedPlayerStatusBadge).toContain("data-sot-tone={tone}");
         expect(sotPlayerPrimitives).toContain("className?: string;");
-        expect(sotPlayerPrimitives).toContain('data-sot-part="status-dot"');
+        expect(sotPlayerPrimitives).not.toContain('data-sot-part="status-dot"');
+        expect(sotPlayerPrimitives).not.toContain(
+            '"size-1.5 rounded-full bg-current"',
+        );
+        expect(sotPlayerPrimitives).not.toContain("animate-[bpulse");
         expect(sotPlayerPrimitives).toContain(
             '<span data-sot-part="status-label">{label}</span>',
         );

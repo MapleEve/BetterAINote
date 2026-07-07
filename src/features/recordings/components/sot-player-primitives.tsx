@@ -264,14 +264,6 @@ const PLAYER_STATUS_VARIANT: Record<
     warn: "secondary",
 };
 
-const PLAYER_STATUS_TONE_CLASS: Record<SotPlayerStatusTone, string> = {
-    err: "text-destructive",
-    info: "text-chart-2",
-    neu: "text-muted-foreground",
-    ok: "text-chart-3",
-    warn: "text-chart-4",
-};
-
 export function SotPlayerStatusBadge({
     className,
     label = "已更新",
@@ -284,18 +276,10 @@ export function SotPlayerStatusBadge({
     return (
         <Badge
             variant={PLAYER_STATUS_VARIANT[tone]}
-            className={cn("gap-1.5", PLAYER_STATUS_TONE_CLASS[tone], className)}
+            className={className}
             data-sot-control="player-status"
             data-sot-tone={tone}
         >
-            <span
-                className={cn(
-                    "size-1.5 rounded-full bg-current",
-                    tone === "warn" &&
-                        "animate-[bpulse_1.4s_ease-in-out_infinite]",
-                )}
-                data-sot-part="status-dot"
-            />
             <span data-sot-part="status-label">{label}</span>
         </Badge>
     );

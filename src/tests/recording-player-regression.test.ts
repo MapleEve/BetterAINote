@@ -448,6 +448,11 @@ describe("dashboard recording player regressions", () => {
             'data-sot-control="player-status"',
             "Badge",
         );
+        const statusVariantBlock = extractBoundedSlice(
+            sotPlayerPrimitives,
+            "const PLAYER_STATUS_VARIANT",
+            "export function SotPlayerStatusBadge",
+        );
         const tagChipPrimitive = extractBoundedSlice(
             sotPlayerPrimitives,
             "export function SotPlayerTagChip",
@@ -490,15 +495,32 @@ describe("dashboard recording player regressions", () => {
             legacyPlayerSourceVariantUsage,
         );
         expect(sotPlayerPrimitives).toContain("PLAYER_STATUS_VARIANT");
-        expect(sotPlayerPrimitives).toContain("PLAYER_STATUS_TONE_CLASS");
-        expect(statusBadge).toContain("variant={PLAYER_STATUS_VARIANT[tone]}");
-        expect(statusBadge).toContain(
-            'className={cn("gap-1.5", PLAYER_STATUS_TONE_CLASS[tone], className)}',
+        expect(statusVariantBlock).toContain(
+            'React.ComponentProps<typeof Badge>["variant"]',
         );
+        for (const expectedStatusVariant of [
+            'err: "destructive"',
+            'info: "secondary"',
+            'neu: "outline"',
+            'ok: "secondary"',
+            'warn: "secondary"',
+        ]) {
+            expect(statusVariantBlock).toContain(expectedStatusVariant);
+        }
+        expect(sotPlayerPrimitives).not.toContain("PLAYER_STATUS_TONE_CLASS");
+        expect(statusBadge).toContain("variant={PLAYER_STATUS_VARIANT[tone]}");
+        expect(statusBadge).toContain("className={className}");
         expect(statusBadge).toContain('data-sot-control="player-status"');
         expect(statusBadge).toContain("data-sot-tone={tone}");
         expect(sotPlayerPrimitives).toContain("className?: string;");
-        expect(sotPlayerPrimitives).toContain('data-sot-part="status-dot"');
+        expect(sotPlayerPrimitives).not.toContain('data-sot-part="status-dot"');
+        expect(sotPlayerPrimitives).not.toContain(
+            '"size-1.5 rounded-full bg-current"',
+        );
+        expect(sotPlayerPrimitives).not.toContain("animate-[bpulse");
+        expect(statusBadge).not.toContain("text-chart-");
+        expect(statusBadge).not.toContain("text-destructive");
+        expect(statusBadge).not.toContain("text-muted-foreground");
         expect(sotPlayerPrimitives).toContain(
             '<span data-sot-part="status-label">{label}</span>',
         );
