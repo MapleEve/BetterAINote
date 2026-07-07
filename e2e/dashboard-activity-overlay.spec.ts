@@ -614,11 +614,56 @@ function deriveSiblingDatabasePath(databasePath: string, suffix: string) {
 }
 
 function databaseUrl(filePath: string) {
+    assertE2EDatabasePath(filePath);
     return pathToFileURL(filePath).href;
 }
 
 const CORE_DB = resolveDatabasePath();
 const LIBRARY_DB = deriveSiblingDatabasePath(CORE_DB, "library");
+
+function assertE2EDatabasePath(filePath: string) {
+    const e2eRoot = path.resolve(
+        process.env.PLAYWRIGHT_E2E_ROOT ??
+            path.join(process.cwd(), "tmp/e2e"),
+    );
+    const resolvedPath = path.resolve(filePath);
+
+    if (
+        resolvedPath !== e2eRoot &&
+        !resolvedPath.startsWith(`${e2eRoot}${path.sep}`)
+    ) {
+        throw new Error(
+            `Refusing to touch non-E2E database path: ${resolvedPath}`,
+        );
+    }
+}
+
+async function executeWithBusyRetry<T>(
+    operation: () => Promise<T>,
+    attempts = 5,
+): Promise<T> {
+    let lastError: unknown;
+
+    for (let attempt = 0; attempt < attempts; attempt += 1) {
+        try {
+            return await operation();
+        } catch (error) {
+            lastError = error;
+            if (
+                !(error instanceof Error) ||
+                !error.message.includes("SQLITE_BUSY") ||
+                attempt === attempts - 1
+            ) {
+                throw error;
+            }
+            await new Promise((resolve) =>
+                setTimeout(resolve, 75 * (attempt + 1)),
+            );
+        }
+    }
+
+    throw lastError;
+}
 
 async function openSotComponentLibrary(page: Page) {
     await page.goto(SOT_COMPONENT_LIBRARY_URL, { waitUntil: "load" });
@@ -1388,6 +1433,223 @@ async function getPlaywrightUserId() {
     }
 }
 
+type SyncWorkerStateSnapshot = {
+    createdAt: number;
+    id: string;
+    isRunning: number;
+    lastError: string | null;
+    lastFinishedAt: number | null;
+    lastHeartbeatAt: number | null;
+    lastStartedAt: number | null;
+    lastSummary: string | null;
+    manualTriggerRequestedAt: number | null;
+    nextRunAt: number | null;
+    updatedAt: number;
+    userId: string;
+};
+
+const PARTIAL_FAILED_SYNC_WORKER_STATE_ID =
+    "e2e-activity-partial-failed-worker-state";
+
+function requiredString(value: unknown, label: string) {
+    if (typeof value !== "string") {
+        throw new Error(`Expected ${label} to be a string`);
+    }
+    return value;
+}
+
+function requiredNumber(value: unknown, label: string) {
+    if (typeof value !== "number") {
+        throw new Error(`Expected ${label} to be a number`);
+    }
+    return value;
+}
+
+function optionalNumber(value: unknown) {
+    return typeof value === "number" ? value : null;
+}
+
+function optionalString(value: unknown) {
+    return typeof value === "string" ? value : null;
+}
+
+async function readSyncWorkerStateForUser(userId: string) {
+    const client = createClient({ url: databaseUrl(CORE_DB) });
+    try {
+        const result = await executeWithBusyRetry(() =>
+            client.execute({
+                sql: `
+                    SELECT
+                        id,
+                        user_id,
+                        last_heartbeat_at,
+                        last_started_at,
+                        last_finished_at,
+                        next_run_at,
+                        manual_trigger_requested_at,
+                        is_running,
+                        last_error,
+                        last_summary,
+                        created_at,
+                        updated_at
+                    FROM sync_worker_state
+                    WHERE user_id = ?
+                    LIMIT 1
+                `,
+                args: [userId],
+            }),
+        );
+        const row = result.rows[0];
+        if (!row) {
+            return null;
+        }
+
+        return {
+            createdAt: requiredNumber(row.created_at, "created_at"),
+            id: requiredString(row.id, "id"),
+            isRunning: requiredNumber(row.is_running, "is_running"),
+            lastError: optionalString(row.last_error),
+            lastFinishedAt: optionalNumber(row.last_finished_at),
+            lastHeartbeatAt: optionalNumber(row.last_heartbeat_at),
+            lastStartedAt: optionalNumber(row.last_started_at),
+            lastSummary: optionalString(row.last_summary),
+            manualTriggerRequestedAt: optionalNumber(
+                row.manual_trigger_requested_at,
+            ),
+            nextRunAt: optionalNumber(row.next_run_at),
+            updatedAt: requiredNumber(row.updated_at, "updated_at"),
+            userId: requiredString(row.user_id, "user_id"),
+        } satisfies SyncWorkerStateSnapshot;
+    } finally {
+        await client.close();
+    }
+}
+
+async function seedPartialFailedSyncWorkerState(userId: string) {
+    const now = Date.now();
+    const lastStartedAt = now - 15_000;
+    const lastSummary = JSON.stringify({
+        errorCount: 2,
+        newRecordings: 3,
+        removedRecordings: 1,
+        updatedRecordings: 5,
+    });
+    const client = createClient({ url: databaseUrl(CORE_DB) });
+
+    try {
+        await executeWithBusyRetry(() =>
+            client.execute({
+                sql: `
+                    INSERT INTO sync_worker_state (
+                        id,
+                        user_id,
+                        last_heartbeat_at,
+                        last_started_at,
+                        last_finished_at,
+                        next_run_at,
+                        manual_trigger_requested_at,
+                        is_running,
+                        last_error,
+                        last_summary,
+                        created_at,
+                        updated_at
+                    ) VALUES (?, ?, ?, ?, ?, ?, NULL, 0, NULL, ?, ?, ?)
+                    ON CONFLICT(user_id) DO UPDATE SET
+                        last_heartbeat_at = excluded.last_heartbeat_at,
+                        last_started_at = excluded.last_started_at,
+                        last_finished_at = excluded.last_finished_at,
+                        next_run_at = excluded.next_run_at,
+                        manual_trigger_requested_at = NULL,
+                        is_running = 0,
+                        last_error = NULL,
+                        last_summary = excluded.last_summary,
+                        updated_at = excluded.updated_at
+                `,
+                args: [
+                    PARTIAL_FAILED_SYNC_WORKER_STATE_ID,
+                    userId,
+                    now,
+                    lastStartedAt,
+                    now,
+                    now + 30 * 60 * 1000,
+                    lastSummary,
+                    now,
+                    now,
+                ],
+            }),
+        );
+    } finally {
+        await client.close();
+    }
+}
+
+async function restoreSyncWorkerStateForUser(
+    userId: string,
+    snapshot: SyncWorkerStateSnapshot | null,
+) {
+    const client = createClient({ url: databaseUrl(CORE_DB) });
+    try {
+        if (!snapshot) {
+            await executeWithBusyRetry(() =>
+                client.execute({
+                    sql: "DELETE FROM sync_worker_state WHERE user_id = ?",
+                    args: [userId],
+                }),
+            );
+            return;
+        }
+
+        await executeWithBusyRetry(() =>
+            client.execute({
+                sql: `
+                    INSERT INTO sync_worker_state (
+                        id,
+                        user_id,
+                        last_heartbeat_at,
+                        last_started_at,
+                        last_finished_at,
+                        next_run_at,
+                        manual_trigger_requested_at,
+                        is_running,
+                        last_error,
+                        last_summary,
+                        created_at,
+                        updated_at
+                    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                    ON CONFLICT(user_id) DO UPDATE SET
+                        id = excluded.id,
+                        last_heartbeat_at = excluded.last_heartbeat_at,
+                        last_started_at = excluded.last_started_at,
+                        last_finished_at = excluded.last_finished_at,
+                        next_run_at = excluded.next_run_at,
+                        manual_trigger_requested_at = excluded.manual_trigger_requested_at,
+                        is_running = excluded.is_running,
+                        last_error = excluded.last_error,
+                        last_summary = excluded.last_summary,
+                        created_at = excluded.created_at,
+                        updated_at = excluded.updated_at
+                `,
+                args: [
+                    snapshot.id,
+                    snapshot.userId,
+                    snapshot.lastHeartbeatAt,
+                    snapshot.lastStartedAt,
+                    snapshot.lastFinishedAt,
+                    snapshot.nextRunAt,
+                    snapshot.manualTriggerRequestedAt,
+                    snapshot.isRunning,
+                    snapshot.lastError,
+                    snapshot.lastSummary,
+                    snapshot.createdAt,
+                    snapshot.updatedAt,
+                ],
+            }),
+        );
+    } finally {
+        await client.close();
+    }
+}
+
 async function cleanupActivityRecording() {
     const library = createClient({ url: databaseUrl(LIBRARY_DB) });
     try {
@@ -2139,6 +2401,102 @@ test("activity overlay exposes default summary and syncing states without layout
     await page.goto("/dashboard", { waitUntil: "domcontentloaded" });
     await openActivityOverlay(page);
     await expectActivityMobileLayout(page);
+});
+
+test("activity overlay shows partial-failed real sync worker status", async ({
+    page,
+}) => {
+    await ensureSignedIn(page);
+    const userId = await getPlaywrightUserId();
+    const originalWorkerState = await readSyncWorkerStateForUser(userId);
+
+    try {
+        await seedPartialFailedSyncWorkerState(userId);
+
+        const syncStatusResponsePromise = page.waitForResponse(
+            (response) =>
+                response.url().includes("/api/data-sources/sync") &&
+                response.request().method() === "GET" &&
+                response.status() === 200,
+        );
+        await page.goto("/dashboard", { waitUntil: "domcontentloaded" });
+
+        const syncStatusResponse = await syncStatusResponsePromise;
+        const syncStatus = (await syncStatusResponse.json()) as {
+            workerStatus?: {
+                isRunning?: boolean;
+                lastSummary?: {
+                    errorCount?: number;
+                    newRecordings?: number;
+                    removedRecordings?: number;
+                    updatedRecordings?: number;
+                } | null;
+            } | null;
+        };
+        expect(syncStatus.workerStatus?.isRunning).toBe(false);
+        expect(syncStatus.workerStatus?.lastSummary).toEqual(
+            expect.objectContaining({
+                errorCount: 2,
+                newRecordings: 3,
+                removedRecordings: 1,
+                updatedRecordings: 5,
+            }),
+        );
+        expect(
+            syncStatus.workerStatus?.lastSummary?.errorCount ?? 0,
+        ).toBeGreaterThan(0);
+
+        const panel = await openActivityOverlay(page);
+        await expect(
+            page
+                .locator(
+                    '[data-sot-panel="activity-popover"], [data-sot-panel="dashboard-activity"]',
+                )
+                .first(),
+        ).toBeVisible();
+        await expect(panel).toHaveAttribute("data-sot-state", "error");
+        await expect(
+            panel.locator('[data-sot-part="dashboard-activity-status"]'),
+        ).toHaveAttribute("data-sot-state", "error");
+        await expect(
+            panel.locator(
+                '[data-sot-part="dashboard-activity-status-line"]',
+            ),
+        ).toHaveText("部分来源更新失败");
+        await expect(
+            panel.locator('[data-sot-part="dashboard-activity-status-sub"]'),
+        ).toContainText("2 个来源更新失败，稍后可重试。");
+
+        const partialSummaryItem = panel.locator(
+            '[data-sot-activity-id="source-sync-summary"]',
+        );
+        await expect(partialSummaryItem).toBeVisible();
+        await expect(partialSummaryItem).toHaveAttribute(
+            "data-kind",
+            "partial-failed",
+        );
+        await expect(partialSummaryItem).toHaveAttribute(
+            "data-sot-state",
+            "warn",
+        );
+        await expect(
+            partialSummaryItem.locator(
+                '[data-sot-part="dashboard-activity-item-title"]',
+            ),
+        ).toContainText("部分来源更新失败");
+        await expect(
+            partialSummaryItem.locator(
+                '[data-sot-part="dashboard-activity-item-body"]',
+            ),
+        ).toContainText("新增 3，更新 5，移除 1，失败 2。");
+        await expect(
+            partialSummaryItem.locator(
+                '[data-sot-control="dashboard-activity-action"]',
+            ),
+        ).toHaveText("重试");
+    } finally {
+        await restoreSyncWorkerStateForUser(userId, originalWorkerState);
+    }
 });
 
 test("activity overlay opens transcription items and runs the status sync action", async ({
