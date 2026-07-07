@@ -4,9 +4,13 @@ import { describe, expect, it } from "vitest";
 
 const OLD_UI_CONTRACT_RE =
     /uikit-|glass-surface|glass-control|bg-muted|text-muted-foreground|<LibrarySearch[\s/>]|<SourceFilterStackStrip[\s/>]|\.\/components\/library-search|\.\/components\/source-filter-stack-strip/;
-const SPEAKER_REVIEW_MERGE_POPOVER_PLACEMENT =
-    "w-[320px] min-w-[280px] gap-0 overflow-hidden rounded-[12px]";
 const SPEAKER_REVIEW_PRIMITIVE_BUSINESS_RE = /\bspeakerReview[A-Za-z0-9_]*\b/;
+const SPEAKER_REVIEW_RAW_REPAINT_RE =
+    /\b(?:bg|border|shadow|text|decoration|ring|outline|rounded|fill|stroke)-\[[^\]]*var\(--[^)]*\)[^\]]*\]/;
+const SPEAKER_REVIEW_FORCED_UTILITY_RE =
+    /(?:^|\s)!(?:\[|bg-|border-|text-|font-|leading-|tracking-|shadow-|ring-|outline-|rounded-)/;
+const SPEAKER_REVIEW_LOCAL_ICON_OVERRIDE_RE =
+    /(?:strokeWidth=|\[\&[^\]]*svg[^\]]*\]:(?:size|stroke)-|<(?:Check|Copy|FileText|Play|RefreshCw|Volume2|X)\b[^>]*\bclassName=)/;
 const SPEAKER_REVIEW_RESIDUAL_GLOBAL_SELECTORS = [
     '[data-sot-list="speaker-review-meta"] > span',
     '[data-sot-part="speaker-review-section-description"]',
@@ -16,96 +20,6 @@ const SPEAKER_REVIEW_RESIDUAL_GLOBAL_SELECTORS = [
     '[data-sot-part="speaker-review-section-title"]',
     '[data-sot-part="speaker-review-row-sub"]',
     '[data-sot-part="speaker-review-row-sub"][data-sot-tone="danger"]',
-] as const;
-const SPEAKER_REVIEW_RESIDUAL_OWNER_CLASS_TOKENS = [
-    {
-        constName: "SPEAKER_REVIEW_META_ITEM_CLASS_NAME",
-        tokens: [
-            "min-w-0",
-            "truncate",
-            "font-sans",
-            "text-[11.5px]",
-            "font-medium",
-            "leading-normal",
-            "text-[var(--fg-tertiary)]",
-        ],
-    },
-    {
-        constName: "SPEAKER_REVIEW_SECTION_DESCRIPTION_CLASS_NAME",
-        tokens: [
-            "m-0",
-            "font-sans",
-            "![font-size:11.5px]",
-            "font-medium",
-            "![line-height:normal]",
-            "![color:var(--fg-tertiary)]",
-            "max-[860px]:whitespace-normal",
-            "max-[860px]:[overflow-wrap:anywhere]",
-        ],
-    },
-    {
-        constName: "SPEAKER_REVIEW_SEGMENT_TITLE_CLASS_NAME",
-        tokens: [
-            "m-0",
-            "font-sans",
-            "![font-size:12px]",
-            "font-semibold",
-            "![line-height:normal]",
-            "![color:var(--fg-secondary)]",
-        ],
-    },
-    {
-        constName: "SPEAKER_REVIEW_SEGMENT_TEXT_CLASS_NAME",
-        tokens: [
-            "m-0",
-            "font-sans",
-            "![font-size:12.5px]",
-            "font-medium",
-            "![line-height:1.55]",
-            "![color:var(--fg-primary)]",
-            "[text-wrap:pretty]",
-            "max-[860px]:whitespace-normal",
-            "max-[860px]:[overflow-wrap:anywhere]",
-        ],
-    },
-    {
-        constName: "SPEAKER_REVIEW_ROW_NAME_CLASS_NAME",
-        tokens: [
-            "m-0",
-            "font-sans",
-            "![font-size:13px]",
-            "font-semibold",
-            "![line-height:1.35]",
-            "![color:var(--fg-primary)]",
-        ],
-    },
-    {
-        constName: "SPEAKER_REVIEW_SECTION_TITLE_CLASS_NAME",
-        tokens: [
-            "m-0",
-            "font-sans",
-            "![font-size:13px]",
-            "font-semibold",
-            "![line-height:1.35]",
-            "![color:var(--fg-primary)]",
-        ],
-    },
-    {
-        constName: "SPEAKER_REVIEW_ROW_SUB_CLASS_NAME",
-        tokens: [
-            "m-0",
-            "font-mono",
-            "![font-size:11.5px]",
-            "font-medium",
-            "![line-height:1.4]",
-            "tracking-[0.02em]",
-            "![color:var(--fg-tertiary)]",
-            "data-[sot-tone=danger]:text-[var(--signal-danger)]",
-            "data-[sot-tone=danger]:![color:var(--signal-danger)]",
-            "max-[860px]:whitespace-normal",
-            "max-[860px]:[overflow-wrap:anywhere]",
-        ],
-    },
 ] as const;
 
 describe("dashboard speaker label editor regressions", () => {
@@ -457,7 +371,7 @@ describe("dashboard speaker label editor regressions", () => {
         );
     });
 
-    it("uses shadcn speaker review composition instead of globals repaint", () => {
+    it("uses shadcn speaker review composition without local repaint residue", () => {
         expect(source).toContain('from "@/components/ui/button";');
         expect(source).toContain('from "@/components/ui/badge";');
         expect(source).toContain('from "@/components/ui/card";');
@@ -527,6 +441,15 @@ describe("dashboard speaker label editor regressions", () => {
         expect(inputGroupPrimitiveSource).not.toContain(
             "svg:not([class*='size-'])",
         );
+        expect(source).not.toContain("var(--");
+        expect(source).not.toMatch(SPEAKER_REVIEW_RAW_REPAINT_RE);
+        expect(source).not.toMatch(SPEAKER_REVIEW_FORCED_UTILITY_RE);
+        expect(source).not.toMatch(/\bdark:/);
+        expect(source).not.toMatch(SPEAKER_REVIEW_LOCAL_ICON_OVERRIDE_RE);
+        expect(source).not.toContain("svg:not([class*='size-'])");
+        expect(source).not.toContain("[&_svg]:stroke");
+        expect(source).not.toContain("[&>svg]:stroke");
+        expect(source).not.toContain("[&>svg]:size-[");
         for (const token of [
             "const SPEAKER_REVIEW_CARD_CLASS_NAMES =",
             "const SPEAKER_REVIEW_CARD_HEADER_CLASS_NAMES =",
@@ -576,14 +499,20 @@ describe("dashboard speaker label editor regressions", () => {
         expect(source).not.toContain("data-[sot-tone=selected]");
         expect(source).not.toContain("[&>svg]:size-[11px]");
         expect(source).not.toContain("[&>svg]:stroke-2");
-        for (const {
-            constName,
-            tokens,
-        } of SPEAKER_REVIEW_RESIDUAL_OWNER_CLASS_TOKENS) {
+        for (const constName of [
+            "SPEAKER_REVIEW_META_ITEM_CLASS_NAME",
+            "SPEAKER_REVIEW_SECTION_DESCRIPTION_CLASS_NAME",
+            "SPEAKER_REVIEW_SEGMENT_TITLE_CLASS_NAME",
+            "SPEAKER_REVIEW_SEGMENT_TEXT_CLASS_NAME",
+            "SPEAKER_REVIEW_ROW_NAME_CLASS_NAME",
+            "SPEAKER_REVIEW_SECTION_TITLE_CLASS_NAME",
+            "SPEAKER_REVIEW_ROW_SUB_CLASS_NAME",
+        ]) {
             const ownerClass = extractSpeakerReviewConst(constName);
-            for (const token of tokens) {
-                expect(ownerClass).toContain(token);
-            }
+            expect(ownerClass).not.toContain("var(--");
+            expect(ownerClass).not.toMatch(SPEAKER_REVIEW_RAW_REPAINT_RE);
+            expect(ownerClass).not.toMatch(SPEAKER_REVIEW_FORCED_UTILITY_RE);
+            expect(ownerClass).not.toMatch(/\bdark:/);
         }
         for (const legacyVariant of [
             "speakerReviewAction",
@@ -721,12 +650,9 @@ describe("dashboard speaker label editor regressions", () => {
         expect(mergePopoverOpening).not.toContain(
             "hidden={!isMergePopoverOpen}",
         );
-        expect(mergePopoverOpening).not.toContain(
-            `className="${SPEAKER_REVIEW_MERGE_POPOVER_PLACEMENT}"`,
-        );
-        expect(source).toContain(SPEAKER_REVIEW_MERGE_POPOVER_PLACEMENT);
-        expect(source).not.toContain(
-            `className="${SPEAKER_REVIEW_MERGE_POPOVER_PLACEMENT}"`,
+        expect(mergePopoverOpening).not.toMatch(SPEAKER_REVIEW_RAW_REPAINT_RE);
+        expect(mergePopoverOpening).not.toMatch(
+            SPEAKER_REVIEW_FORCED_UTILITY_RE,
         );
 
         expect(source).toContain("onOpenChange={setIsMergePopoverOpen}");
@@ -760,16 +686,9 @@ describe("dashboard speaker label editor regressions", () => {
         )) {
             expect(opening).not.toContain('variant="elevated"');
             expect(opening).not.toContain('variant="popover"');
+            expect(opening).not.toMatch(SPEAKER_REVIEW_RAW_REPAINT_RE);
+            expect(opening).not.toMatch(SPEAKER_REVIEW_FORCED_UTILITY_RE);
         }
-        expect(source).not.toContain(
-            'className="grid items-center gap-[10px] overflow-visible p-[10px_12px]"',
-        );
-        expect(source).not.toContain(
-            'className="grid h-auto min-h-8 w-full grid-cols-[minmax(0,1fr)_auto] justify-stretch px-2 py-1.5 text-left"',
-        );
-        expect(source).not.toContain(
-            'className="h-auto min-h-8 w-full justify-start px-2 py-1.5"',
-        );
 
         const alertOpenings = collectOpeningElements("Alert").filter(
             (opening) =>
@@ -930,7 +849,8 @@ describe("dashboard speaker label editor regressions", () => {
         expect(mergeEmpty).toContain('<EmptyHeader variant="popover">');
         expect(mergeEmpty).toContain("<EmptyMedia");
         expect(mergeEmpty).toContain('variant="subtleIcon"');
-        expect(mergeEmpty).toContain("<Check strokeWidth={1.8} />");
+        expect(mergeEmpty).toContain("<Check />");
+        expect(mergeEmpty).not.toMatch(SPEAKER_REVIEW_LOCAL_ICON_OVERRIDE_RE);
         expect(mergeEmpty).toContain(
             'data-sot-part="speaker-review-merge-empty-icon"',
         );

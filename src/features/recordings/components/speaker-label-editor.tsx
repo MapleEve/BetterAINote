@@ -99,24 +99,23 @@ interface SpeakerSaveError {
 
 const SPEAKER_REVIEW_CARD_CLASS_NAMES = {
     transcript: "gap-0",
-    row: "grid items-center gap-[10px] overflow-visible rounded-[var(--radius-md)] border-[var(--card-elevated-border)] bg-[var(--card-elevated-bg)] p-[10px_12px]",
+    row: "grid items-center gap-2.5 overflow-visible p-3",
     mergePopover:
-        "w-[320px] min-w-[280px] gap-0 overflow-hidden rounded-[12px] border-[var(--card-popover-border)] bg-[var(--card-popover-bg)] p-0 shadow-[var(--card-popover-shadow)] backdrop-blur-none [&_[data-sot-part=speaker-review-merge-empty-icon]]:text-[var(--fg-tertiary)] [&_[data-sot-part=speaker-review-merge-empty-title]]:text-[var(--fg-primary)] [&_[data-sot-part=speaker-review-merge-empty-description]]:text-[var(--fg-tertiary)]",
+        "w-80 min-w-72 gap-0 overflow-hidden p-0",
     confirm:
-        "flex-row items-center gap-[10px] overflow-visible rounded-[var(--radius-md)] border border-[var(--alert-destructive-soft-border)] bg-[var(--alert-destructive-soft-bg)] p-[10px_12px] text-[length:var(--text-body-sm)] text-[var(--fg-primary)] shadow-none backdrop-blur-none [&_[data-sot-confirm-message]]:min-w-0 [&_[data-sot-confirm-message]]:flex-1 [&_[data-sot-confirm-subject]]:not-italic [&_[data-sot-confirm-subject]]:[font-weight:var(--weight-semibold)] [&_[data-sot-confirm-subject]]:text-[var(--fg-primary)]",
+        "flex-row items-center gap-2.5 overflow-visible border-destructive/30 bg-destructive/5 p-3 text-sm [&_[data-sot-confirm-message]]:min-w-0 [&_[data-sot-confirm-message]]:flex-1 [&_[data-sot-confirm-subject]]:not-italic [&_[data-sot-confirm-subject]]:font-semibold",
 } as const;
 
 const SPEAKER_REVIEW_CARD_HEADER_CLASS_NAMES = {
     transcript:
-        "flex items-center justify-between gap-[10px] px-[16px] pt-[12px] pb-[8px] max-[860px]:flex-col max-[860px]:items-stretch [&_[data-sot-part=speaker-review-header-copy]]:flex [&_[data-sot-part=speaker-review-header-copy]]:min-w-0 [&_[data-sot-part=speaker-review-header-copy]]:items-center [&_[data-sot-part=speaker-review-header-copy]]:gap-2.5",
+        "flex items-center justify-between gap-2.5 px-4 pt-3 pb-2 max-[860px]:flex-col max-[860px]:items-stretch [&_[data-sot-part=speaker-review-header-copy]]:flex [&_[data-sot-part=speaker-review-header-copy]]:min-w-0 [&_[data-sot-part=speaker-review-header-copy]]:items-center [&_[data-sot-part=speaker-review-header-copy]]:gap-2.5",
     mergePopover:
-        "flex flex-row items-center justify-between gap-[10px] border-b-[1px] border-[var(--card-popover-divider)] px-[12px] py-[10px]",
+        "flex flex-row items-center justify-between gap-2.5 border-b px-3 py-2.5",
 } as const;
 
 const SPEAKER_REVIEW_CARD_TITLE_CLASS_NAMES = {
     title: "leading-none font-semibold",
-    mergeTitle:
-        "relative top-px text-[12px] font-semibold leading-normal text-[var(--fg-primary)]",
+    mergeTitle: "relative top-px text-xs font-semibold leading-normal",
 } as const;
 
 const SPEAKER_REVIEW_CARD_CONTENT_CLASS_NAMES = {
@@ -129,43 +128,40 @@ const SPEAKER_REVIEW_CARD_DESCRIPTION_CLASS_NAME =
     "text-sm text-muted-foreground";
 
 const SPEAKER_REVIEW_CARD_ACTION_CLASS_NAME =
-    "flex min-w-0 flex-wrap items-center justify-end gap-[6px] max-[860px]:justify-start";
+    "flex min-w-0 flex-wrap items-center justify-end gap-1.5 max-[860px]:justify-start";
 const SPEAKER_REVIEW_MERGE_CARD_ACTION_CLASS_NAME =
     "self-auto justify-self-auto leading-none";
 
-const SPEAKER_REVIEW_ACTION_BUTTON_CLASS_NAME = "text-[var(--fg-primary)]";
-const SPEAKER_REVIEW_PRIMARY_BUTTON_CLASS_NAME = "shadow-xs";
-const SPEAKER_REVIEW_GHOST_BUTTON_CLASS_NAME =
-    "border border-transparent bg-transparent text-[var(--fg-secondary)] shadow-none hover:bg-[var(--bg-recessed)] hover:text-[var(--fg-primary)]";
-const SPEAKER_REVIEW_DANGER_BUTTON_CLASS_NAME = "shadow-xs";
+const SPEAKER_REVIEW_ACTION_BUTTON_CLASS_NAME = "min-w-0";
+const SPEAKER_REVIEW_PRIMARY_BUTTON_CLASS_NAME = "min-w-0";
+const SPEAKER_REVIEW_GHOST_BUTTON_CLASS_NAME = "min-w-0";
+const SPEAKER_REVIEW_DANGER_BUTTON_CLASS_NAME = "min-w-0";
 const SPEAKER_REVIEW_SUGGESTION_BUTTON_CLASS_NAME =
-    "grid h-auto min-h-8 w-full grid-cols-[minmax(0,1fr)_auto] justify-stretch gap-2 whitespace-normal px-2 py-1.5 text-left text-[var(--fg-primary)] has-[>svg]:px-2 data-[sot-state=create]:text-[var(--fg-secondary)]";
-const SPEAKER_REVIEW_ICON_BUTTON_CLASS_NAME =
-    "rounded-[8px] border border-transparent bg-transparent p-0 text-[var(--fg-secondary)] shadow-none hover:bg-[var(--bg-recessed)] hover:text-[var(--fg-primary)] [&_svg]:stroke-[1.8]";
+    "grid h-auto min-h-8 w-full grid-cols-[minmax(0,1fr)_auto] justify-stretch gap-2 whitespace-normal px-2 py-1.5 text-left has-[>svg]:px-2 data-[sot-state=create]:grid-cols-1";
+const SPEAKER_REVIEW_ICON_BUTTON_CLASS_NAME = "shrink-0";
 const SPEAKER_REVIEW_MODE_ITEM_CLASS_NAME = "px-2.5";
 const SPEAKER_REVIEW_ERROR_ALERT_CLASS_NAME =
-    "grid w-full gap-2 rounded-[var(--radius-md)] px-[12px] py-[10px] text-[13px] leading-normal [&_[data-slot=button]]:w-fit";
+    "grid w-full gap-2 px-3 py-2.5 text-sm leading-normal [&_[data-slot=button]]:w-fit";
 const SPEAKER_REVIEW_ERROR_TITLE_CLASS_NAME =
     "min-h-0 font-medium leading-normal tracking-normal";
 const SPEAKER_REVIEW_ERROR_DESCRIPTION_CLASS_NAME =
-    "flex items-center gap-2 text-[12px] leading-normal text-current [&_p]:leading-normal";
+    "flex items-center gap-2 text-xs leading-normal text-current [&_p]:leading-normal";
 const SPEAKER_REVIEW_INLINE_EMPTY_CLASS_NAME = "px-6 py-4 md:p-4";
-const SPEAKER_REVIEW_MAPPING_CLEAR_BUTTON_CLASS_NAME =
-    "text-[var(--fg-secondary)] hover:bg-[var(--bg-recessed)] hover:text-[var(--fg-primary)] [&>svg:not([class*='size-'])]:size-3";
+const SPEAKER_REVIEW_MAPPING_CLEAR_BUTTON_CLASS_NAME = "shrink-0";
 const SPEAKER_REVIEW_META_ITEM_CLASS_NAME =
-    "min-w-0 truncate font-sans text-[11.5px] font-medium leading-normal text-[var(--fg-tertiary)]";
+    "min-w-0 truncate text-xs font-medium leading-normal text-muted-foreground";
 const SPEAKER_REVIEW_SECTION_DESCRIPTION_CLASS_NAME =
-    "m-0 font-sans ![font-size:11.5px] font-medium ![line-height:normal] ![color:var(--fg-tertiary)] max-[860px]:whitespace-normal max-[860px]:[overflow-wrap:anywhere]";
+    "m-0 text-xs font-medium leading-normal text-muted-foreground max-[860px]:whitespace-normal max-[860px]:break-words";
 const SPEAKER_REVIEW_SEGMENT_TITLE_CLASS_NAME =
-    "m-0 font-sans ![font-size:12px] font-semibold ![line-height:normal] ![color:var(--fg-secondary)]";
+    "m-0 text-xs font-semibold leading-normal text-muted-foreground";
 const SPEAKER_REVIEW_SEGMENT_TEXT_CLASS_NAME =
-    "m-0 font-sans ![font-size:12.5px] font-medium ![line-height:1.55] ![color:var(--fg-primary)] [text-wrap:pretty] max-[860px]:whitespace-normal max-[860px]:[overflow-wrap:anywhere]";
+    "m-0 text-sm font-medium leading-relaxed text-pretty text-foreground max-[860px]:whitespace-normal max-[860px]:break-words";
 const SPEAKER_REVIEW_ROW_NAME_CLASS_NAME =
-    "m-0 font-sans ![font-size:13px] font-semibold ![line-height:1.35] ![color:var(--fg-primary)]";
+    "m-0 text-sm font-semibold leading-snug text-foreground";
 const SPEAKER_REVIEW_SECTION_TITLE_CLASS_NAME =
-    "m-0 font-sans ![font-size:13px] font-semibold ![line-height:1.35] ![color:var(--fg-primary)]";
+    "m-0 text-sm font-semibold leading-snug text-foreground";
 const SPEAKER_REVIEW_ROW_SUB_CLASS_NAME =
-    "m-0 font-mono ![font-size:11.5px] font-medium ![line-height:1.4] tracking-[0.02em] ![color:var(--fg-tertiary)] data-[sot-tone=danger]:text-[var(--signal-danger)] data-[sot-tone=danger]:![color:var(--signal-danger)] max-[860px]:whitespace-normal max-[860px]:[overflow-wrap:anywhere]";
+    "m-0 font-mono text-xs font-medium leading-snug tracking-wide text-muted-foreground data-[sot-tone=danger]:text-destructive max-[860px]:whitespace-normal max-[860px]:break-words";
 
 type ClassNameProp = {
     className?: string;
@@ -908,10 +904,7 @@ export function SpeakerLabelEditor({
                     data-sot-part="speaker-review-header"
                 >
                     <div data-sot-part="speaker-review-header-copy">
-                        <FileText
-                            className="size-4 shrink-0"
-                            aria-hidden="true"
-                        />
+                        <FileText aria-hidden="true" />
                         <div className="min-w-0">
                             <SpeakerReviewCardTitle
                                 surface="title"
@@ -1068,10 +1061,9 @@ export function SpeakerLabelEditor({
                                         <EmptyHeader variant="popover">
                                             <EmptyMedia
                                                 variant="subtleIcon"
-                                                className="text-[var(--fg-tertiary)]"
                                                 data-sot-part="speaker-review-merge-empty-icon"
                                             >
-                                                <Check strokeWidth={1.8} />
+                                                <Check />
                                             </EmptyMedia>
                                             <EmptyTitle
                                                 variant="compact"

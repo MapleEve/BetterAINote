@@ -814,14 +814,8 @@ const DASHBOARD_RECORDING_LIST_BUTTON_PRIMITIVE_FORBIDDEN_TOKENS = [
 
 const RECORDING_LIST_CHIP_CLEAR_FEATURE_OWNER_CLASS_SNIPPETS = [
     "size-4",
-    "rounded-full",
-    "border border-transparent",
-    "bg-transparent",
     "p-0",
     "text-muted-foreground",
-    "shadow-none",
-    "hover:bg-accent",
-    "hover:text-accent-foreground",
 ] as const;
 
 const DASHBOARD_SOURCE_FILTER_BUTTON_PRIMITIVE_FORBIDDEN_TOKENS = [
@@ -925,7 +919,6 @@ const DASHBOARD_SOURCE_FILTER_FEATURE_OWNER_CLASS_SNIPPETS = [
     "font-sans",
     "clearAll:",
     "h-6",
-    "rounded-md",
     "px-2",
     "sourceFilterStackClassNames",
     "root:",
@@ -933,19 +926,19 @@ const DASHBOARD_SOURCE_FILTER_FEATURE_OWNER_CLASS_SNIPPETS = [
     "border-b border-border",
     "bg-muted",
     "text-muted-foreground",
+    "text-xs",
     "from:",
     "flex-[0_1_auto]",
-    "[&_b]:font-bold",
+    "truncate",
+    "[&_b]:font-semibold",
     "separator:",
     "w-2.5",
     "select-none",
     "chip:",
-    "h-[22px]",
+    "h-6",
     "gap-1.5",
-    "border border-border",
-    "bg-card",
+    "max-w-full",
     "label:",
-    "whitespace-nowrap",
     "info:",
     "[&_b]:mx-0.5",
     "libraryRoot:",
@@ -4107,7 +4100,7 @@ describe("dashboard SOT foundation", () => {
         const sourceFilterChip = extractOpeningElement(
             sourceFilterStack,
             'data-sot-part="source-filter-chip"',
-            "span",
+            "Badge",
         );
         const sourceFilterInfo = extractOpeningElement(
             sourceFilterStack,
@@ -4139,9 +4132,31 @@ describe("dashboard SOT foundation", () => {
         expect(sourceFilterChip).toMatch(
             /className=\{\s*sourceFilterStackClassNames\.chip\s*\}/,
         );
+        expect(sourceFilterChip).toContain('variant="secondary"');
         expect(sourceFilterInfo).toMatch(
             /className=\{\s*sourceFilterStackClassNames\.info\s*\}/,
         );
+        const sourceFilterStackClassSource = extractBoundedSlice(
+            workstation,
+            "const sourceFilterStackClassNames = {",
+            "} as const;",
+        );
+        const sourceFilterStackChipClass = extractObjectStringProperty(
+            sourceFilterStackClassSource,
+            "chip",
+        );
+        expect(sourceFilterStackClassSource).not.toContain(
+            "overflow-hidden text-ellipsis whitespace-nowrap",
+        );
+        expect(sourceFilterStackClassSource).not.toContain("dark:");
+        for (const rebuiltChipToken of [
+            "rounded-full",
+            "border border-border",
+            "bg-card",
+            "text-foreground",
+        ]) {
+            expect(sourceFilterStackChipClass).not.toContain(rebuiltChipToken);
+        }
         for (const removedListHeaderClass of [
             'className="list-header"',
             'className="lh-titlebar"',
@@ -4187,7 +4202,7 @@ describe("dashboard SOT foundation", () => {
         const librarySearchFilterChip = extractOpeningElement(
             workstation,
             'data-sot-part="library-search-filter-chip"',
-            "span",
+            "Badge",
         );
         const librarySearchFilterClearClassHelper =
             extractFeatureClassHelperSource(
@@ -4203,8 +4218,9 @@ describe("dashboard SOT foundation", () => {
         expect(librarySearchFilterChip).toMatch(
             /className=\{\s*sourceFilterStackClassNames\.chip\s*\}/,
         );
+        expect(librarySearchFilterChip).toContain('variant="secondary"');
         expect(librarySearchFilterClearButton).toContain('variant="ghost"');
-        expect(librarySearchFilterClearButton).toContain('size="icon"');
+        expect(librarySearchFilterClearButton).toContain('size="icon-xs"');
         expect(librarySearchFilterClearButton).toContain('type="button"');
         expect(librarySearchFilterClearButton).not.toContain(
             "recordingListChipClear",
@@ -4408,7 +4424,12 @@ describe("dashboard SOT foundation", () => {
         expect(globals).not.toContain(
             '[data-sot-panel="recording-list-tag-filter"][hidden]',
         );
-        expect(workstation).not.toMatch(
+        const recordingListTagFilterBlock = extractBoundedSlice(
+            workstation,
+            'data-sot-panel="recording-list-tag-filter"',
+            'data-sot-list="dashboard-recording-list-scroll"',
+        );
+        expect(recordingListTagFilterBlock).not.toMatch(
             /variant=\{\s*active\s*\?\s*"secondary"\s*:\s*"ghost"\s*\}/,
         );
         for (const hook of DASHBOARD_RECORDING_LIST_BATCH_SOT_HOOKS) {
@@ -4716,6 +4737,11 @@ describe("dashboard SOT foundation", () => {
             'data-sot-part="dashboard-recording-row-actions"',
             "div",
         );
+        const dashboardRecordingRowButton = extractOpeningElement(
+            workstation,
+            'data-sot-control="dashboard-recording-row"',
+            "Button",
+        );
 
         const dashboardRecordingRowStyleHelper = extractBoundedSlice(
             workstation,
@@ -4748,11 +4774,25 @@ describe("dashboard SOT foundation", () => {
             expect(dashboardRecordingRowStyleHelper).toContain(rowStyleSlot);
         }
         for (const rowStateToken of [
-            "data-[sot-state=selected]:",
             "[&.is-hover-demo]:",
             "[&.is-focus-demo]:",
         ]) {
             expect(dashboardRecordingRowStyleHelper).toContain(rowStateToken);
+        }
+        for (const forcedOrThemeOverrideToken of [
+            "!border",
+            "!bg",
+            "!shadow",
+            "!ring",
+            "!outline",
+            "focus:!",
+            "focus-visible:!",
+            "dark:",
+            "overflow-hidden text-ellipsis whitespace-nowrap",
+        ]) {
+            expect(dashboardRecordingRowStyleHelper).not.toContain(
+                forcedOrThemeOverrideToken,
+            );
         }
         expect(dashboardRecordingRows).toContain(
             "dashboardRecordingRowStyles.rows",
@@ -4814,8 +4854,14 @@ describe("dashboard SOT foundation", () => {
         expect(dashboardRecordingRowActions).toContain(
             "dashboardRecordingRowStyles.actions",
         );
-        expect(workstation).toMatch(
-            /<Button\s+variant="ghost"\s+size="default"[\s\S]*className=\{\s*dashboardRecordingRowStyles\.row\s*\}[\s\S]*data-sot-control="dashboard-recording-row"/,
+        expect(dashboardRecordingRowButton).toMatch(
+            /variant=\{\s*active\s*\?\s*"secondary"\s*:\s*"ghost"\s*\}/,
+        );
+        expect(dashboardRecordingRowButton).toMatch(
+            /className=\{\s*dashboardRecordingRowStyles\.row\s*\}/,
+        );
+        expect(dashboardRecordingRowButton).toContain(
+            'data-sot-control="dashboard-recording-row"',
         );
         for (const rowPrimitiveLeak of [
             "dashboardRecordingRow",
@@ -4861,7 +4907,7 @@ describe("dashboard SOT foundation", () => {
             "group-data-[time-style=abs]/dashboard-workstation:inline",
             "group-data-[time-style=abs]/dashboard-workstation:hidden",
             "grayscale",
-            "contrast-[0.85]",
+            "opacity-80",
             "object-cover",
             "opacity-60",
             "border border-border",

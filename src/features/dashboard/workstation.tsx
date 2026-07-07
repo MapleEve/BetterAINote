@@ -827,24 +827,23 @@ const dashboardSourceClassNames = {
 } as const;
 
 const sourceFilterClassNames = {
-    clear: "size-4 rounded-full border border-transparent bg-transparent p-0 text-muted-foreground shadow-none hover:bg-accent hover:text-accent-foreground",
+    clear: "size-4 p-0 text-muted-foreground",
     librarySearchFilterClear:
-        "size-4 rounded-full border border-transparent bg-transparent p-0 text-muted-foreground shadow-none hover:bg-accent hover:text-accent-foreground",
-    action: "ml-[6px] h-[22px] flex-none cursor-pointer gap-1 rounded-full border border-border bg-card px-[9px] font-sans text-[11px] font-semibold leading-none text-muted-foreground whitespace-nowrap shadow-none hover:bg-accent hover:text-accent-foreground focus-visible:border-transparent focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring focus-visible:ring-0 disabled:cursor-not-allowed disabled:opacity-50 data-[sot-action=open-settings]:border-primary/30 data-[sot-action=open-settings]:bg-primary/10 data-[sot-action=open-settings]:text-primary data-[sot-action=retry]:border-destructive/30 data-[sot-action=retry]:bg-destructive/10 data-[sot-action=retry]:text-destructive data-[sot-action=retry]:hover:bg-destructive/10 data-[sot-action=widen]:border-primary/30 data-[sot-action=widen]:bg-primary/10 data-[sot-action=widen]:text-primary has-[>svg]:px-[9px]",
-    clearAll:
-        "h-6 rounded-md bg-transparent px-2 text-sm text-primary underline-offset-4 shadow-none hover:bg-transparent hover:text-primary hover:underline has-[>svg]:px-2",
+        "size-4 p-0 text-muted-foreground",
+    action: "ml-1.5 h-6 flex-none cursor-pointer rounded-full px-2 text-xs whitespace-nowrap data-[sot-action=open-settings]:border-primary/30 data-[sot-action=open-settings]:bg-primary/10 data-[sot-action=open-settings]:text-primary data-[sot-action=retry]:border-destructive/30 data-[sot-action=retry]:bg-destructive/10 data-[sot-action=retry]:text-destructive data-[sot-action=widen]:border-primary/30 data-[sot-action=widen]:bg-primary/10 data-[sot-action=widen]:text-primary",
+    clearAll: "h-6 px-2 text-sm",
 } as const;
 
 const sourceFilterStackClassNames = {
-    root: "flex min-w-0 flex-row flex-wrap items-center gap-x-2 gap-y-1.5 border-b border-border bg-muted px-3 py-2 font-sans text-[11.5px] font-medium text-muted-foreground",
-    from: "inline-flex min-w-0 max-w-full flex-[0_1_auto] items-baseline overflow-hidden text-ellipsis whitespace-nowrap leading-[22px] [&_b]:whitespace-nowrap [&_b]:font-bold [&_b]:text-foreground",
+    root: "flex min-w-0 flex-row flex-wrap items-center gap-x-2 gap-y-1.5 border-b border-border bg-muted px-3 py-2 font-sans text-xs font-medium text-muted-foreground",
+    from: "inline-flex min-w-0 max-w-full flex-[0_1_auto] items-baseline truncate leading-6 [&_b]:whitespace-nowrap [&_b]:font-semibold [&_b]:text-foreground",
     separator:
-        "inline-flex h-[22px] w-2.5 flex-none select-none items-center justify-center text-[13px] leading-none text-muted-foreground/60",
-    chip: "inline-flex h-[22px] flex-none items-center gap-1.5 whitespace-nowrap rounded-full border border-border bg-card py-0 pl-1.5 pr-1 font-sans text-[11.5px] font-semibold leading-none text-foreground",
-    label: "whitespace-nowrap",
-    info: "inline-flex min-w-0 flex-[0_1_auto] items-center overflow-hidden text-ellipsis whitespace-nowrap leading-[22px] text-muted-foreground [&_b]:mx-0.5 [&_b]:font-bold [&_b]:text-foreground",
+        "inline-flex h-6 w-2.5 flex-none select-none items-center justify-center text-sm leading-none text-muted-foreground/60",
+    chip: "h-6 max-w-full gap-1.5 pl-2 pr-1",
+    label: "truncate",
+    info: "inline-flex min-w-0 flex-[0_1_auto] items-center truncate leading-6 text-muted-foreground [&_b]:mx-0.5 [&_b]:font-semibold [&_b]:text-foreground",
     libraryRoot:
-        "mt-1.5 flex items-center gap-1.5 font-sans text-[11.5px] font-medium text-muted-foreground",
+        "mt-1.5 flex items-center gap-1.5 font-sans text-xs font-medium text-muted-foreground",
     libraryLabel: "truncate",
 } as const;
 
@@ -871,14 +870,14 @@ const dashboardRecordingRowStyles = {
         "font-mono text-[11px] font-semibold uppercase tracking-[0.06em] text-muted-foreground",
     groupCount: "font-mono text-[11px] font-medium text-muted-foreground/70",
     groupDivider: "ml-1 min-w-0 flex-1",
-    row: "grid h-auto w-full grid-cols-[minmax(0,1fr)_auto] items-center justify-normal gap-[14px] whitespace-normal rounded-[10px] border !border-transparent bg-transparent px-[12px] py-[11px] text-left text-[13.3333px] font-normal leading-normal !shadow-none hover:!bg-muted hover:text-foreground focus:!border-ring focus:!outline-none focus:![outline-width:0px] focus:!ring-[3px] focus:!ring-ring/50 focus-visible:!border-ring focus-visible:!outline-none focus-visible:![outline-width:0px] focus-visible:!ring-[3px] focus-visible:!ring-ring/50 data-[sot-state=selected]:!border-primary/30 data-[sot-state=selected]:bg-primary/10 [&.is-hover-demo]:!bg-muted [&.is-hover-demo]:text-foreground [&.is-focus-demo]:!border-ring [&.is-focus-demo]:!outline-none [&.is-focus-demo]:![outline-width:0px] [&.is-focus-demo]:!ring-[3px] [&.is-focus-demo]:!ring-ring/50",
+    row: "grid h-auto w-full grid-cols-[minmax(0,1fr)_auto] items-center justify-normal gap-3.5 whitespace-normal rounded-lg px-3 py-2.5 text-left font-normal [&.is-hover-demo]:bg-accent [&.is-hover-demo]:text-accent-foreground [&.is-focus-demo]:ring-[3px] [&.is-focus-demo]:ring-ring/50",
     body: "flex min-w-0 flex-col gap-[5px]",
     title: "truncate font-sans text-[13.5px] font-semibold tracking-[-0.005em] text-foreground",
     meta: "flex flex-wrap items-center gap-2",
     sourceMark:
-        "inline-flex size-[14px] flex-none items-center justify-center overflow-hidden rounded-[3px] opacity-[0.55] dark:opacity-60",
+        "inline-flex size-3.5 flex-none items-center justify-center overflow-hidden rounded-[3px] opacity-60",
     sourceMarkImage:
-        "block size-[14px] max-w-none object-contain align-baseline grayscale contrast-[0.85] dark:brightness-[1.4]",
+        "block size-3.5 max-w-none object-contain align-baseline opacity-80 grayscale",
     sourceMarkImageCover: "object-cover",
     sourceMarkLetter:
         "border border-border bg-muted [font:700_9px_var(--font-sans)] text-muted-foreground",
@@ -5981,7 +5980,8 @@ export function Workstation({
                                         >
                                             ›
                                         </span>
-                                        <span
+                                        <Badge
+                                            variant="secondary"
                                             className={
                                                 sourceFilterStackClassNames.chip
                                             }
@@ -6000,7 +6000,7 @@ export function Workstation({
                                             </span>
                                             <Button
                                                 variant="ghost"
-                                                size="icon"
+                                                size="icon-xs"
                                                 type="button"
                                                 className={
                                                     sourceFilterClassNames.clear
@@ -6013,7 +6013,7 @@ export function Workstation({
                                             >
                                                 <X data-icon="inline-start" />
                                             </Button>
-                                        </span>
+                                        </Badge>
                                         <span
                                             className={
                                                 sourceFilterStackClassNames.info
@@ -6149,16 +6149,24 @@ export function Workstation({
                                                       "dashboardFavorites.speakerFilter",
                                                   )}
                                         </span>
-                                        <span
+                                        <Badge
+                                            variant="secondary"
                                             className={
                                                 sourceFilterStackClassNames.chip
                                             }
                                             data-sot-part="library-search-filter-chip"
                                         >
-                                            {librarySearchFilter.label}
+                                            <span
+                                                className={
+                                                    sourceFilterStackClassNames.label
+                                                }
+                                                data-stack-label
+                                            >
+                                                {librarySearchFilter.label}
+                                            </span>
                                             <Button
                                                 variant="ghost"
-                                                size="icon"
+                                                size="icon-xs"
                                                 type="button"
                                                 className={
                                                     sourceFilterClassNames.librarySearchFilterClear
@@ -6173,7 +6181,7 @@ export function Workstation({
                                             >
                                                 <X data-icon="inline-start" />
                                             </Button>
-                                        </span>
+                                        </Badge>
                                     </output>
                                 ) : null}
                                 <div
@@ -6515,7 +6523,11 @@ export function Workstation({
                                                                         .tags[0];
                                                                 return (
                                                                     <Button
-                                                                        variant="ghost"
+                                                                        variant={
+                                                                            active
+                                                                                ? "secondary"
+                                                                                : "ghost"
+                                                                        }
                                                                         size="default"
                                                                         className={
                                                                             dashboardRecordingRowStyles.row
