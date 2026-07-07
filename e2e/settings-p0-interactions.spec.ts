@@ -276,6 +276,97 @@ test("title generation settings save model provider fields through the SOT secti
     ).toHaveAttribute("placeholder", /输入新 key 可替换/);
 });
 
+test("title generation settings show real backend save error", async ({
+    page,
+}) => {
+    await ensureSignedIn(page);
+    await resetCoreSettings(page);
+
+    const invalidBaseUrl = "https://example.com/v1?bad=1";
+    const restoredBaseUrl = "https://example.com/v1";
+
+    try {
+        await page.goto("/settings#title-generation", {
+            waitUntil: "domcontentloaded",
+        });
+
+        const section = settingsSection(page, "title-generation");
+        const saveButton = sectionSaveButton(section, "title-generation");
+        const saveActions = section.locator(
+            '[data-sot-panel="settings-save-actions"][data-sot-save-id="title-generation"]',
+        );
+        const saveStatus = saveActions.locator(
+            '[data-sot-part="settings-save-status"]',
+        );
+        const baseUrlInput = sectionSotControl(
+            section,
+            "title-generation-base-url",
+        );
+
+        await expectSectionReady(page, "title-generation");
+        await expect(saveButton).toHaveAttribute("data-sot-state", "idle");
+        await expect(saveStatus).toHaveAttribute("data-sot-state", "idle");
+
+        await baseUrlInput.fill(invalidBaseUrl);
+
+        const rejectedSaveResponsePromise = page.waitForResponse((response) => {
+            if (
+                !response.url().includes("/api/settings/title-generation") ||
+                response.request().method() !== "PUT"
+            ) {
+                return false;
+            }
+
+            const payload = response.request().postDataJSON();
+            return payload?.titleGenerationBaseUrl === invalidBaseUrl;
+        });
+
+        await saveButton.click();
+
+        const rejectedSaveResponse = await rejectedSaveResponsePromise;
+        expect(rejectedSaveResponse.status()).toBe(400);
+        const rejectedSaveBody = (await rejectedSaveResponse.json()) as {
+            error?: unknown;
+        };
+        expect(rejectedSaveBody).toEqual({
+            error: "titleGenerationBaseUrl must not include query parameters or fragments",
+        });
+        if (typeof rejectedSaveBody.error !== "string") {
+            throw new Error("Expected title generation save error response");
+        }
+
+        await expect(saveButton).toHaveAttribute("data-sot-state", "error");
+        await expect(saveButton).toHaveAttribute("aria-busy", "false");
+        await expect(saveStatus).toBeVisible();
+        await expect(saveStatus).toHaveAttribute("data-sot-state", "error");
+        await expect(saveStatus).toContainText(rejectedSaveBody.error);
+        await expect(section.getByText(rejectedSaveBody.error)).toBeVisible();
+
+        await baseUrlInput.fill(restoredBaseUrl);
+
+        const restoredSaveResponsePromise = page.waitForResponse((response) => {
+            if (
+                !response.url().includes("/api/settings/title-generation") ||
+                response.request().method() !== "PUT"
+            ) {
+                return false;
+            }
+
+            const payload = response.request().postDataJSON();
+            return payload?.titleGenerationBaseUrl === restoredBaseUrl;
+        });
+
+        await saveButton.click();
+
+        const restoredSaveResponse = await restoredSaveResponsePromise;
+        expect(restoredSaveResponse.status()).toBe(200);
+        await expect(saveButton).toHaveAttribute("data-sot-state", "saved");
+        await expect(saveStatus).toHaveAttribute("data-sot-state", "saved");
+    } finally {
+        await resetTitleGeneration(page);
+    }
+});
+
 test("title generation settings load failure exposes retry-only SOT state", async ({
     page,
 }) => {
