@@ -2250,6 +2250,9 @@ describe("dashboard SOT foundation", () => {
         for (const forbiddenVariantProp of DASHBOARD_OWNER_LOCAL_FORBIDDEN_VARIANT_PROPS) {
             expect(workstation).not.toContain(forbiddenVariantProp);
         }
+        expect(workstation).not.toContain(['className="', "!"].join(""));
+        expect(workstation).not.toContain(["!", "[right:1px]"].join(""));
+        expect(workstation).toContain('className="right-px"');
         expect(workstation).not.toContain(["SOT", "DASHBOARD", ""].join("_"));
         const detailHeader = extractOpeningElement(
             workstation,

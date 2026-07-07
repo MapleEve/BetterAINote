@@ -7107,7 +7107,7 @@ export function Workstation({
                                     </Button>
                                     {aiOpen && selectedRecording ? (
                                         <AiRenamePreview
-                                            className="![right:1px]"
+                                            className="right-px"
                                             applyLabel="应用"
                                             bodyLabel="建议标题"
                                             cancelLabel="取消"
