@@ -966,14 +966,19 @@ describe("dashboard recording player regressions", () => {
             ";",
         );
         const recordingRouteLoadingDetailCard = extractElementSlice(
-            recordingLoading,
-            'data-sot-panel="recording-route-loading-detail"',
+            routeChrome,
+            "data-sot-panel={dataSotPanel}",
             "Card",
         );
         const recordingRouteLoadingDetailCardOpening = extractOpeningElement(
+            routeChrome,
+            "data-sot-panel={dataSotPanel}",
+            "Card",
+        );
+        const recordingRouteLoadingDetailFallback = extractSelfClosingElement(
             recordingLoading,
             'data-sot-panel="recording-route-loading-detail"',
-            "Card",
+            "RouteFallbackDetailLoadingSkeleton",
         );
         const dashboardRecordingPlayerCard = extractElementSlice(
             dashboardWorkstation,
@@ -1211,10 +1216,16 @@ describe("dashboard recording player regressions", () => {
         expect(globals).not.toContain(
             '[data-sot-panel="recording-detail-loading"]',
         );
-        expect(recordingLoading).toContain(
+        expect(routeChrome).toContain(
             'data-sot-panel="recording-detail-loading"',
         );
-        expect(recordingLoading).toContain("<Card");
+        expect(routeChrome).toContain(
+            "function RouteFallbackDetailLoadingSkeleton",
+        );
+        expect(recordingLoading).toContain(
+            "<RouteFallbackDetailLoadingSkeleton",
+        );
+        expect(recordingLoading).not.toContain("<Card");
         for (const token of ROUTE_LOADING_SURFACE_CLASS_TOKENS) {
             expect(routeFallbackSurfaceClassName).toContain(token);
         }
@@ -1230,28 +1241,32 @@ describe("dashboard recording player regressions", () => {
             "routeFallbackSurfaceClassName,",
         );
         expect(recordingRouteLoadingDetailCardOpening).toContain(
-            '"flex min-h-0 flex-col gap-4"',
+            '"flex min-h-0 min-w-0 flex-col gap-4"',
         );
-        expect(recordingLoading).toContain('aria-hidden="true"');
+        expect(recordingRouteLoadingDetailFallback).toContain(
+            'data-sot-panel="recording-route-loading-detail"',
+        );
+        expect(routeChrome).toContain('aria-hidden="true"');
         expect(recordingLoading).not.toContain('variant="routeLoadingSurface"');
-        expect(recordingLoading).toContain(
+        expect(routeChrome).toContain(
             "const recordingDetailLoadingSkeletonClassNames",
         );
-        expect(recordingLoading).toContain("recordingDetailLoadingAvatar:");
-        expect(recordingLoading).toContain("recordingDetailLoadingBar:");
-        expect(recordingLoading).toContain(
+        expect(routeChrome).toContain("recordingDetailLoadingAvatar:");
+        expect(routeChrome).toContain("recordingDetailLoadingBar:");
+        expect(routeChrome).toContain(
             "recordingDetailLoadingSkeletonClassNames.recordingDetailLoadingAvatar",
         );
-        expect(recordingLoading).toContain(
+        expect(routeChrome).toContain(
             "recordingDetailLoadingSkeletonClassNames.recordingDetailLoadingBar",
         );
-        expect(recordingLoading).toContain('variant="default"');
-        expect(recordingLoading).toContain('size="default"');
-        expect(recordingLoading).not.toContain(
+        expect(routeChrome).toContain('variant="default"');
+        expect(routeChrome).toContain('size="default"');
+        expect(routeChrome).not.toContain(
             'size="recordingDetailLoadingAvatar"',
         );
+        expect(routeChrome).not.toContain('size="recordingDetailLoadingBar"');
         expect(recordingLoading).not.toContain(
-            'size="recordingDetailLoadingBar"',
+            "const recordingDetailLoadingSkeletonClassNames",
         );
         for (const [surface, selector] of [
             [

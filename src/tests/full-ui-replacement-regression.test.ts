@@ -5221,10 +5221,10 @@ describe("full UI replacement regression coverage", () => {
             "const dashboardRouteLoadingListClassName =",
             ";",
         );
-        const dashboardRouteLoadingDetailClassName = extractBoundedSlice(
-            dashboardLoading,
-            "const dashboardRouteLoadingDetailClassName =",
-            ";",
+        const recordingDetailLoadingSkeletonClassNames = extractBoundedSlice(
+            routeChrome,
+            "const recordingDetailLoadingSkeletonClassNames =",
+            "} as const;",
         );
         const dashboardLoadingShellOpening = extractOpeningElement(
             dashboardLoading,
@@ -5240,23 +5240,24 @@ describe("full UI replacement regression coverage", () => {
             'data-sot-panel="dashboard-loading-list"',
             "Card",
         );
-        const dashboardLoadingDetailCard = extractCardSlice(
-            dashboardLoading,
-            'data-sot-panel="dashboard-loading-detail"',
+        const routeFallbackDetailLoadingCard = extractCardSlice(
+            routeChrome,
+            "data-sot-panel={dataSotPanel}",
         );
-        const dashboardLoadingDetailCardOpening = extractOpeningElement(
-            dashboardLoading,
-            'data-sot-panel="dashboard-loading-detail"',
+        const routeFallbackDetailLoadingCardOpening = extractOpeningElement(
+            routeChrome,
+            "data-sot-panel={dataSotPanel}",
             "Card",
         );
-        const recordingRouteLoadingDetailCard = extractCardSlice(
-            recordingLoading,
-            'data-sot-panel="recording-route-loading-detail"',
+        const dashboardLoadingDetailFallback = extractSelfClosingElement(
+            dashboardLoading,
+            'data-sot-panel="dashboard-loading-detail"',
+            "RouteFallbackDetailLoadingSkeleton",
         );
-        const recordingRouteLoadingDetailCardOpening = extractOpeningElement(
+        const recordingRouteLoadingDetailFallback = extractSelfClosingElement(
             recordingLoading,
             'data-sot-panel="recording-route-loading-detail"',
-            "Card",
+            "RouteFallbackDetailLoadingSkeleton",
         );
 
         expect(routeFallbackSurfaceClassName).toContain(
@@ -5271,11 +5272,14 @@ describe("full UI replacement regression coverage", () => {
         expect(dashboardRouteLoadingListClassName).toContain(
             "routeFallbackSurfaceClassName",
         );
-        expect(dashboardRouteLoadingDetailClassName).toContain(
-            "routeFallbackSurfaceClassName",
+        expect(routeChrome).toContain(
+            "function RouteFallbackDetailLoadingSkeleton",
         );
-        expect(dashboardRouteLoadingDetailClassName).toContain(
-            `"${DASHBOARD_ROUTE_LOADING_DETAIL_CLASS_VALUE}"`,
+        expect(recordingDetailLoadingSkeletonClassNames).toContain(
+            "recordingDetailLoadingAvatar:",
+        );
+        expect(recordingDetailLoadingSkeletonClassNames).toContain(
+            "recordingDetailLoadingBar:",
         );
         expect(dashboardLoadingShellOpening).toContain(
             'dataSotShell="dashboard-loading"',
@@ -5286,8 +5290,8 @@ describe("full UI replacement regression coverage", () => {
         expect(recordingLoading).toContain('workspaceVariant="single"');
         for (const [label, card] of [
             ["dashboard-loading-list", dashboardLoadingListCard],
-            ["dashboard-loading-detail", dashboardLoadingDetailCard],
-            ["recording-route-loading-detail", recordingRouteLoadingDetailCard],
+            ["dashboard-loading-detail", routeFallbackDetailLoadingCard],
+            ["recording-route-loading-detail", routeFallbackDetailLoadingCard],
         ] as const) {
             expect(card, label).toContain('variant="default"');
             expect(card, label).toContain("hasNoPadding");
@@ -5296,56 +5300,70 @@ describe("full UI replacement regression coverage", () => {
         expect(dashboardLoadingListCardOpening).toContain(
             "className={dashboardRouteLoadingListClassName}",
         );
-        expect(dashboardLoadingDetailCardOpening).toContain(
-            "className={dashboardRouteLoadingDetailClassName}",
-        );
-        expect(recordingRouteLoadingDetailCardOpening).toContain(
+        expect(routeFallbackDetailLoadingCardOpening).toContain(
             "className={cn(",
         );
-        expect(recordingRouteLoadingDetailCardOpening).toContain(
+        expect(routeFallbackDetailLoadingCardOpening).toContain(
             "routeFallbackSurfaceClassName,",
         );
-        expect(recordingRouteLoadingDetailCardOpening).toContain(
-            '"flex min-h-0 flex-col gap-4"',
+        expect(routeFallbackDetailLoadingCardOpening).toContain(
+            `"${DASHBOARD_ROUTE_LOADING_DETAIL_CLASS_VALUE}"`,
+        );
+        expect(dashboardLoadingDetailFallback).toContain(
+            'data-sot-panel="dashboard-loading-detail"',
+        );
+        expect(recordingRouteLoadingDetailFallback).toContain(
+            'data-sot-panel="recording-route-loading-detail"',
         );
 
         for (const loading of [dashboardLoading, recordingLoading]) {
-            expect(loading).toContain(
-                'import { Card } from "@/components/ui/card";',
-            );
-            expect(loading).toContain(
-                'import { Skeleton } from "@/components/ui/skeleton";',
-            );
-            expect(loading).toContain('aria-hidden="true"');
             expect(loading).not.toContain('variant="routeLoadingSurface"');
-            expect(loading).toContain("<Skeleton");
-            expect(loading).toContain(
-                'data-sot-panel="recording-detail-loading"',
-            );
-            expect(loading).toContain('data-sot-part="detail-player-meta"');
-            expect(loading).toContain('data-sot-part="detail-player-controls"');
-            expect(loading).toContain('data-sot-part="detail-transcript-head"');
-            expect(loading).toContain('data-sot-part="detail-transcript"');
-            expect(loading).toContain(
-                "const recordingDetailLoadingSkeletonClassNames",
-            );
+            expect(loading).toContain("<RouteFallbackDetailLoadingSkeleton");
             for (const sizeToken of recordingDetailLoadingSizeTokens) {
-                expect(loading).toContain(`${sizeToken}:`);
-                expect(loading).toContain(
-                    `recordingDetailLoadingSkeletonClassNames.${sizeToken}`,
-                );
                 expect(loading).not.toContain(`size="${sizeToken}"`);
+                expect(loading).not.toContain(`${sizeToken}:`);
             }
-            const skeletonOpenings = collectOpeningElements(
-                loading,
-                "Skeleton",
+        }
+        expect(dashboardLoading).toContain(
+            'import { Card } from "@/components/ui/card";',
+        );
+        expect(dashboardLoading).toContain(
+            'import { Skeleton } from "@/components/ui/skeleton";',
+        );
+        expect(recordingLoading).not.toContain(
+            'import { Card } from "@/components/ui/card";',
+        );
+        expect(recordingLoading).not.toContain(
+            'import { Skeleton } from "@/components/ui/skeleton";',
+        );
+        expect(routeChrome).toContain('aria-hidden="true"');
+        expect(routeChrome).toContain("<Skeleton");
+        expect(routeChrome).toContain(
+            'data-sot-panel="recording-detail-loading"',
+        );
+        expect(routeChrome).toContain('data-sot-part="detail-player-meta"');
+        expect(routeChrome).toContain('data-sot-part="detail-player-controls"');
+        expect(routeChrome).toContain('data-sot-part="detail-transcript-head"');
+        expect(routeChrome).toContain('data-sot-part="detail-transcript"');
+        expect(routeChrome).toContain(
+            "const recordingDetailLoadingSkeletonClassNames",
+        );
+        for (const sizeToken of recordingDetailLoadingSizeTokens) {
+            expect(routeChrome).toContain(`${sizeToken}:`);
+            expect(routeChrome).toContain(
+                `recordingDetailLoadingSkeletonClassNames.${sizeToken}`,
             );
-            expect(skeletonOpenings.length).toBeGreaterThan(0);
-            for (const skeletonOpening of skeletonOpenings) {
-                expect(skeletonOpening).toContain('variant="default"');
-                expect(skeletonOpening).toContain('size="default"');
-                expect(skeletonOpening).toContain("className={");
-            }
+            expect(routeChrome).not.toContain(`size="${sizeToken}"`);
+        }
+        const routeChromeSkeletonOpenings = collectOpeningElements(
+            routeChrome,
+            "Skeleton",
+        );
+        expect(routeChromeSkeletonOpenings.length).toBeGreaterThan(0);
+        for (const skeletonOpening of routeChromeSkeletonOpenings) {
+            expect(skeletonOpening).toContain('variant="default"');
+            expect(skeletonOpening).toContain('size="default"');
+            expect(skeletonOpening).toContain("className={");
         }
         expect(dashboardLoading).toContain(
             'data-sot-panel="recording-list-loading"',
@@ -5370,10 +5388,12 @@ describe("full UI replacement regression coverage", () => {
         expect(dashboardLoading).toContain('from "../route-chrome";');
         for (const routeSource of [dashboardLoading, recordingLoading]) {
             expect(routeSource).toContain("RouteFallbackChrome");
-            expect(routeSource).toContain("routeFallbackSurfaceClassName");
+            expect(routeSource).toContain("RouteFallbackDetailLoadingSkeleton");
             expect(routeSource).not.toContain("routeChromeStyles");
             expect(routeSource).not.toContain("route-chrome.module.css");
         }
+        expect(dashboardLoading).toContain("routeFallbackSurfaceClassName");
+        expect(recordingLoading).not.toContain("routeFallbackSurfaceClassName");
         expect(routeChrome).toContain('data-sot-panel="route-workspace"');
         expect(routeChrome).toContain('data-sot-panel="route-sidebar"');
         expect(routeChrome).toContain('data-sot-panel="route-main"');

@@ -1,16 +1,12 @@
 import { Card } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
-import { cn } from "@/lib/utils";
 import {
     RouteFallbackChrome,
+    RouteFallbackDetailLoadingSkeleton,
     routeFallbackSurfaceClassName,
 } from "../route-chrome";
 
 const dashboardRouteLoadingListClassName = routeFallbackSurfaceClassName;
-const dashboardRouteLoadingDetailClassName = cn(
-    routeFallbackSurfaceClassName,
-    "flex min-h-0 min-w-0 flex-col gap-4",
-);
 
 const recordingListLoadingSkeletonClassNames = {
     recordingListLoadingDayLabel: "h-[11px] w-[100px]",
@@ -20,13 +16,6 @@ const recordingListLoadingSkeletonClassNames = {
     recordingListLoadingTag: "h-[22px] w-20 rounded-[6px]",
     recordingListLoadingTitle: "h-[13px] w-full",
     recordingListLoadingTitle80: "h-[13px] w-4/5",
-} as const;
-
-const recordingDetailLoadingSkeletonClassNames = {
-    recordingDetailLoadingAvatar: "size-8 rounded-full",
-    recordingDetailLoadingBar: "h-2 w-20 rounded-[4px]",
-    recordingDetailLoadingBar60: "h-2 w-3/5 rounded-[4px]",
-    recordingDetailLoadingBar90: "h-2 w-[90%] rounded-[4px]",
 } as const;
 
 export default function DashboardLoading() {
@@ -164,89 +153,7 @@ export default function DashboardLoading() {
                     </div>
                 </div>
             </Card>
-            <Card
-                data-sot-panel="dashboard-loading-detail"
-                variant="default"
-                hasNoPadding
-                className={dashboardRouteLoadingDetailClassName}
-            >
-                <div
-                    data-sot-panel="recording-detail-loading"
-                    aria-hidden="true"
-                    className="flex min-h-0 flex-1 flex-col gap-3.5"
-                >
-                    <div
-                        data-sot-part="detail-player-meta"
-                        className="mb-3 flex items-center gap-2.5"
-                    >
-                        <Skeleton
-                            data-sot-part="detail-avatar"
-                            variant="default"
-                            size="default"
-                            className={
-                                recordingDetailLoadingSkeletonClassNames.recordingDetailLoadingAvatar
-                            }
-                        />
-                        <Skeleton
-                            data-sot-part="detail-bar"
-                            variant="default"
-                            size="default"
-                            className={
-                                recordingDetailLoadingSkeletonClassNames.recordingDetailLoadingBar
-                            }
-                        />
-                    </div>
-                    <div
-                        data-sot-part="detail-player-controls"
-                        className="flex items-center gap-3"
-                    >
-                        <Skeleton
-                            data-sot-part="detail-bar"
-                            variant="default"
-                            size="default"
-                            className={
-                                recordingDetailLoadingSkeletonClassNames.recordingDetailLoadingBar
-                            }
-                        />
-                        <Skeleton
-                            data-sot-part="detail-bar"
-                            data-sot-size="60"
-                            variant="default"
-                            size="default"
-                            className={
-                                recordingDetailLoadingSkeletonClassNames.recordingDetailLoadingBar60
-                            }
-                        />
-                    </div>
-                    <div
-                        data-sot-part="detail-transcript-head"
-                        className="flex items-center border-b border-border px-3.5 py-3"
-                    >
-                        <Skeleton
-                            data-sot-part="detail-bar"
-                            variant="default"
-                            size="default"
-                            className={
-                                recordingDetailLoadingSkeletonClassNames.recordingDetailLoadingBar
-                            }
-                        />
-                    </div>
-                    <div
-                        data-sot-part="detail-transcript"
-                        className="min-h-0 flex-1"
-                    >
-                        <Skeleton
-                            data-sot-part="detail-bar"
-                            data-sot-size="90"
-                            variant="default"
-                            size="default"
-                            className={
-                                recordingDetailLoadingSkeletonClassNames.recordingDetailLoadingBar90
-                            }
-                        />
-                    </div>
-                </div>
-            </Card>
+            <RouteFallbackDetailLoadingSkeleton data-sot-panel="dashboard-loading-detail" />
         </RouteFallbackChrome>
     );
 }

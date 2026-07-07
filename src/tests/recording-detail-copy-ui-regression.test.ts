@@ -3782,14 +3782,24 @@ describe("recording detail copy and title action UI regressions", () => {
             "const routeFallbackEmptyClassNames =",
             "} as const;",
         );
-        const recordingRouteLoadingDetailCard = extractCardSlice(
-            loading,
-            'data-sot-panel="recording-route-loading-detail"',
+        const recordingDetailLoadingSkeletonClassNames = extractBoundedSlice(
+            routeChrome,
+            "const recordingDetailLoadingSkeletonClassNames =",
+            "} as const;",
         );
-        const recordingRouteLoadingDetailCardOpening = extractOpeningElement(
+        const routeFallbackDetailLoadingCard = extractCardSlice(
+            routeChrome,
+            "data-sot-panel={dataSotPanel}",
+        );
+        const routeFallbackDetailLoadingCardOpening = extractOpeningElement(
+            routeChrome,
+            "data-sot-panel={dataSotPanel}",
+            "Card",
+        );
+        const recordingRouteLoadingDetailFallback = extractOpeningElement(
             loading,
             'data-sot-panel="recording-route-loading-detail"',
-            "Card",
+            "RouteFallbackDetailLoadingSkeleton",
         );
 
         for (const source of [loading, notFound, error]) {
@@ -3874,13 +3884,13 @@ describe("recording detail copy and title action UI regressions", () => {
         expect(error).toContain("onClick={reset}");
         expect(error).toContain("重试");
         expect(loading).toContain("aria-busy={true}");
-        expect(loading).toContain(
+        expect(loading).not.toContain(
             'import { Card } from "@/components/ui/card";',
         );
-        expect(loading).toContain(
+        expect(loading).not.toContain(
             'import { Skeleton } from "@/components/ui/skeleton";',
         );
-        expect(loading).toContain("<Card");
+        expect(loading).not.toContain("<Card");
         for (const token of ROUTE_LOADING_SURFACE_CLASS_TOKENS) {
             expect(routeFallbackSurfaceClassName).toContain(token);
         }
@@ -3889,19 +3899,22 @@ describe("recording detail copy and title action UI regressions", () => {
         );
         expect(loading).toContain('dataSotShell="recording-route-loading"');
         expect(loading).toContain('workspaceVariant="single"');
-        expect(recordingRouteLoadingDetailCard).toContain('variant="default"');
-        expect(recordingRouteLoadingDetailCard).toContain("hasNoPadding");
-        expect(recordingRouteLoadingDetailCard).not.toContain(
+        expect(routeFallbackDetailLoadingCard).toContain('variant="default"');
+        expect(routeFallbackDetailLoadingCard).toContain("hasNoPadding");
+        expect(routeFallbackDetailLoadingCard).not.toContain(
             'variant="routeLoadingSurface"',
         );
-        expect(recordingRouteLoadingDetailCardOpening).toContain(
+        expect(routeFallbackDetailLoadingCardOpening).toContain(
             "className={cn(",
         );
-        expect(recordingRouteLoadingDetailCardOpening).toContain(
+        expect(routeFallbackDetailLoadingCardOpening).toContain(
             "routeFallbackSurfaceClassName,",
         );
-        expect(recordingRouteLoadingDetailCardOpening).toContain(
-            '"flex min-h-0 flex-col gap-4"',
+        expect(routeFallbackDetailLoadingCardOpening).toContain(
+            '"flex min-h-0 min-w-0 flex-col gap-4"',
+        );
+        expect(recordingRouteLoadingDetailFallback).toContain(
+            'data-sot-panel="recording-route-loading-detail"',
         );
         expect(loading).not.toContain('variant="routeLoadingSurface"');
         expect(cardPrimitive).not.toContain("routeLoadingSurface");
@@ -3912,25 +3925,32 @@ describe("recording detail copy and title action UI regressions", () => {
             "recordingDetailLoadingBar90",
         ]) {
             expect(skeletonPrimitive).not.toContain(detailLoadingSize);
-            expect(loading).toContain(`${detailLoadingSize}:`);
-            expect(loading).toContain(
+            expect(routeChrome).toContain(`${detailLoadingSize}:`);
+            expect(recordingDetailLoadingSkeletonClassNames).toContain(
+                `${detailLoadingSize}:`,
+            );
+            expect(routeChrome).toContain(
                 `recordingDetailLoadingSkeletonClassNames.${detailLoadingSize}`,
             );
-            expect(loading).not.toContain(`size="${detailLoadingSize}"`);
+            expect(routeChrome).not.toContain(`size="${detailLoadingSize}"`);
+            expect(loading).not.toContain(`${detailLoadingSize}:`);
         }
-        expect(loading).toContain("<Skeleton");
-        expect(loading).toContain('aria-hidden="true"');
-        expect(loading).toContain(
+        expect(routeChrome).toContain("<Skeleton");
+        expect(routeChrome).toContain('aria-hidden="true"');
+        expect(routeChrome).toContain(
             "const recordingDetailLoadingSkeletonClassNames",
         );
-        expect(loading).toContain('variant="default"');
-        expect(loading).toContain('size="default"');
-        expect(loading).toContain("className={");
+        expect(routeChrome).toContain('variant="default"');
+        expect(routeChrome).toContain('size="default"');
+        expect(routeChrome).toContain("className={");
         expect(loading).toContain('dataSotShell="recording-route-loading"');
         expect(loading).toContain(
             'data-sot-panel="recording-route-loading-detail"',
         );
-        expect(loading).toContain('data-sot-panel="recording-detail-loading"');
+        expect(loading).toContain("RouteFallbackDetailLoadingSkeleton");
+        expect(routeChrome).toContain(
+            'data-sot-panel="recording-detail-loading"',
+        );
         expect(notFound).toContain('dataSotShell="recording-route-empty"');
         expect(error).toContain('dataSotShell="recording-route-error"');
         expect(routeFallbackEmptyClassNames).toContain(

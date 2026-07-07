@@ -1907,10 +1907,10 @@ describe("dashboard SOT foundation", () => {
             "const dashboardRouteLoadingListClassName =",
             ";",
         );
-        const dashboardRouteLoadingDetailClassName = extractBoundedSlice(
-            loading,
-            "const dashboardRouteLoadingDetailClassName =",
-            ";",
+        const recordingDetailLoadingSkeletonClassNames = extractBoundedSlice(
+            routeChrome,
+            "const recordingDetailLoadingSkeletonClassNames =",
+            "} as const;",
         );
         const dashboardLoadingShellOpening = extractOpeningElement(
             loading,
@@ -1927,15 +1927,20 @@ describe("dashboard SOT foundation", () => {
             'data-sot-panel="dashboard-loading-list"',
             "Card",
         );
-        const dashboardLoadingDetailCard = extractElementSlice(
-            loading,
-            'data-sot-panel="dashboard-loading-detail"',
+        const routeFallbackDetailLoadingCard = extractElementSlice(
+            routeChrome,
+            "data-sot-panel={dataSotPanel}",
             "Card",
         );
-        const dashboardLoadingDetailCardOpening = extractOpeningElement(
+        const routeFallbackDetailLoadingCardOpening = extractOpeningElement(
+            routeChrome,
+            "data-sot-panel={dataSotPanel}",
+            "Card",
+        );
+        const dashboardLoadingDetailFallback = extractSelfClosingElement(
             loading,
             'data-sot-panel="dashboard-loading-detail"',
-            "Card",
+            "RouteFallbackDetailLoadingSkeleton",
         );
 
         expect(loading).toContain(
@@ -1955,18 +1960,21 @@ describe("dashboard SOT foundation", () => {
         expect(dashboardRouteLoadingListClassName).toContain(
             "routeFallbackSurfaceClassName",
         );
-        expect(dashboardRouteLoadingDetailClassName).toContain(
-            "routeFallbackSurfaceClassName",
+        expect(recordingDetailLoadingSkeletonClassNames).toContain(
+            "recordingDetailLoadingAvatar:",
         );
-        expect(dashboardRouteLoadingDetailClassName).toContain(
-            `"${DASHBOARD_ROUTE_LOADING_DETAIL_CLASS_VALUE}"`,
+        expect(recordingDetailLoadingSkeletonClassNames).toContain(
+            "recordingDetailLoadingBar:",
+        );
+        expect(routeChrome).toContain(
+            "function RouteFallbackDetailLoadingSkeleton",
         );
         expect(dashboardLoadingShellOpening).toContain(
             'dataSotShell="dashboard-loading"',
         );
         for (const [label, card] of [
             ["dashboard-loading-list", dashboardLoadingListCard],
-            ["dashboard-loading-detail", dashboardLoadingDetailCard],
+            ["dashboard-loading-detail", routeFallbackDetailLoadingCard],
         ] as const) {
             expect(card, label).toContain('variant="default"');
             expect(card, label).toContain("hasNoPadding");
@@ -1975,8 +1983,17 @@ describe("dashboard SOT foundation", () => {
         expect(dashboardLoadingListCardOpening).toContain(
             "className={dashboardRouteLoadingListClassName}",
         );
-        expect(dashboardLoadingDetailCardOpening).toContain(
-            "className={dashboardRouteLoadingDetailClassName}",
+        expect(routeFallbackDetailLoadingCardOpening).toContain(
+            "className={cn(",
+        );
+        expect(routeFallbackDetailLoadingCardOpening).toContain(
+            "routeFallbackSurfaceClassName,",
+        );
+        expect(routeFallbackDetailLoadingCardOpening).toContain(
+            `"${DASHBOARD_ROUTE_LOADING_DETAIL_CLASS_VALUE}"`,
+        );
+        expect(dashboardLoadingDetailFallback).toContain(
+            'data-sot-panel="dashboard-loading-detail"',
         );
         expect(loading).not.toContain('variant="routeLoadingSurface"');
         expect(cardPrimitive).not.toContain("routeLoadingSurface");
@@ -1988,25 +2005,39 @@ describe("dashboard SOT foundation", () => {
             "recordingListLoadingMetaTag",
             "recordingListLoadingMetaPill",
             "recordingListLoadingTag",
+        ]) {
+            expect(skeletonPrimitive).not.toContain(loadingSkeletonSize);
+            expect(loading).toContain(`${loadingSkeletonSize}:`);
+            expect(loading).not.toContain(`size="${loadingSkeletonSize}"`);
+        }
+        for (const loadingSkeletonSize of [
             "recordingDetailLoadingAvatar",
             "recordingDetailLoadingBar",
             "recordingDetailLoadingBar60",
             "recordingDetailLoadingBar90",
         ]) {
             expect(skeletonPrimitive).not.toContain(loadingSkeletonSize);
-            expect(loading).toContain(`${loadingSkeletonSize}:`);
-            expect(loading).not.toContain(`size="${loadingSkeletonSize}"`);
+            expect(routeChrome).toContain(`${loadingSkeletonSize}:`);
+            expect(routeChrome).toContain(
+                `recordingDetailLoadingSkeletonClassNames.${loadingSkeletonSize}`,
+            );
+            expect(routeChrome).not.toContain(`size="${loadingSkeletonSize}"`);
+            expect(loading).not.toContain(`${loadingSkeletonSize}:`);
         }
         expect(loading).toContain("<Skeleton");
+        expect(routeChrome).toContain("<Skeleton");
         expect(loading).toContain('aria-hidden="true"');
+        expect(routeChrome).toContain('aria-hidden="true"');
         expect(loading).toContain(
             "const recordingListLoadingSkeletonClassNames",
         );
-        expect(loading).toContain(
+        expect(routeChrome).toContain(
             "const recordingDetailLoadingSkeletonClassNames",
         );
         expect(loading).toContain('variant="default"');
+        expect(routeChrome).toContain('variant="default"');
         expect(loading).toContain('size="default"');
+        expect(routeChrome).toContain('size="default"');
         expect(loading).toContain("className={");
         expect(loading).toContain('dataSotShell="dashboard-loading"');
         expect(routeChrome).toContain('data-sot-panel="route-sidebar"');
@@ -2021,9 +2052,12 @@ describe("dashboard SOT foundation", () => {
         expect(loading).toContain('data-sot-panel="dashboard-loading-list"');
         expect(loading).toContain('data-sot-panel="dashboard-loading-detail"');
         expect(loading).toContain('data-sot-panel="recording-list-loading"');
-        expect(loading).toContain('data-sot-panel="recording-detail-loading"');
+        expect(routeChrome).toContain(
+            'data-sot-panel="recording-detail-loading"',
+        );
         expect(loading).toContain('from "../route-chrome";');
         expect(loading).toContain("RouteFallbackChrome");
+        expect(loading).toContain("RouteFallbackDetailLoadingSkeleton");
         expect(loading).toContain("routeFallbackSurfaceClassName");
         expect(loading).not.toContain("routeChromeStyles");
         expect(loading).not.toContain("route-chrome.module.css");
