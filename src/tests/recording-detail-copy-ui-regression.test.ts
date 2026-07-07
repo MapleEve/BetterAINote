@@ -1246,9 +1246,19 @@ describe("recording detail copy and title action UI regressions", () => {
         expect(detailTranscript).toContain(
             'import { Badge } from "@/components/ui/badge";',
         );
-        expect(detailTranscript).toContain("<Badge");
         expect(detailTranscript).toContain(
-            "const RECORDING_TRANSCRIPTION_META_BADGE_CLASS_NAME",
+            'import { Separator } from "@/components/ui/separator";',
+        );
+        expect(detailTranscript).toContain("<Badge");
+        expect(detailTranscript).toContain("<Separator");
+        expect(detailTranscript).toContain(
+            "const RECORDING_TRANSCRIPTION_META_BADGE_VARIANT = {",
+        );
+        expect(detailTranscript).toContain(
+            "variant={RECORDING_TRANSCRIPTION_META_BADGE_VARIANT[tone]}",
+        );
+        expect(detailTranscript).not.toContain(
+            "RECORDING_TRANSCRIPTION_META_BADGE_CLASS_NAME",
         );
         expect(detailTranscript).toContain(
             "const recordingTranscriptionClassNames = {",
@@ -1266,25 +1276,38 @@ describe("recording detail copy and title action UI regressions", () => {
         );
         for (const ownerClassSnippet of [
             'card: "min-h-0 flex-1 gap-0"',
-            'header: "flex flex-row items-center gap-3 border-b px-3.5 py-3"',
+            'header: "flex flex-row items-center gap-3 px-3.5 py-3"',
             'heading: "flex min-w-0 items-center gap-3"',
             'icon: "size-4 flex-none text-muted-foreground"',
             'headerCopy: "flex min-w-0 flex-col gap-[3px]"',
-            'body: "min-h-0 flex-1 overflow-y-auto px-5 pt-4 pb-6',
-            "[scrollbar-width:thin]",
-            "[&::-webkit-scrollbar]:size-[10px]",
-            "[&::-webkit-scrollbar-thumb]:bg-muted-foreground/35",
-            "[&::-webkit-scrollbar-thumb:hover]:bg-muted-foreground/55",
-            'speakerReviewSection: "flex flex-col gap-2 border-t border-border pt-2"',
+            'body: "min-h-0 flex-1 overflow-y-auto px-5 pt-4 pb-6"',
+            'speakerReviewSection: "flex flex-col gap-2"',
             'sectionHead: "flex items-start justify-between gap-3 max-[860px]:flex-col"',
             'sectionTitle: "m-0 font-sans text-[12.5px] font-semibold text-foreground"',
             'sectionDescription:\n        "mt-0.5 mb-0 font-sans text-[11.5px] font-medium leading-[1.45] text-muted-foreground max-[860px]:[overflow-wrap:anywhere]"',
             'actions:\n        "inline-flex min-w-0 flex-wrap items-center justify-end gap-2 max-[860px]:justify-start"',
-            'turn: "border-b border-dashed border-border pt-[10px] pb-4"',
-            'metaList: "mb-1.5 flex flex-wrap items-center gap-2.5"',
+            'turn: "pt-[10px]"',
+            'metaList: "mb-1.5 flex flex-wrap items-center gap-2.5 pt-2"',
         ]) {
             expect(recordingTranscriptionClassNamesBlock).toContain(
                 ownerClassSnippet,
+            );
+        }
+        for (const forbiddenLocalPanelResidual of [
+            "[scrollbar-color:",
+            "[scrollbar-width:",
+            "[&::-webkit-scrollbar",
+            "border-t border-border",
+            "border-b border-dashed",
+            "[&>svg]:size-",
+            "data-[sot-tone=attribute]:",
+            "data-[sot-tone=measure]:",
+        ]) {
+            expect(recordingTranscriptionClassNamesBlock).not.toContain(
+                forbiddenLocalPanelResidual,
+            );
+            expect(detailTranscript).not.toContain(
+                forbiddenLocalPanelResidual,
             );
         }
         expect(detailTranscript).not.toContain("dark:");
@@ -1298,7 +1321,7 @@ describe("recording detail copy and title action UI regressions", () => {
             /#[0-9a-fA-F]{3,8}\b/,
         );
         expect(detailTranscript).toContain(
-            'outputSection: "flex flex-col gap-2 border-t border-border pt-2"',
+            'outputSection: "flex flex-col gap-2"',
         );
         expect(detailTranscript).toContain(
             'outputText:\n        "m-0 font-sans text-[14.5px] leading-[1.65] text-foreground [text-wrap:pretty] max-[860px]:[overflow-wrap:anywhere]"',

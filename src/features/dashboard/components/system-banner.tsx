@@ -10,13 +10,17 @@ import {
     WifiOff,
     X,
 } from "lucide-react";
-import { type ReactNode, useEffect, useState } from "react";
+import {
+    type ComponentProps,
+    type ReactNode,
+    useEffect,
+    useState,
+} from "react";
 import { useLanguage } from "@/components/language-provider";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Button, type ButtonProps } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
 import { hasBrowserWindow } from "@/lib/platform/runtime";
-import { cn } from "@/lib/utils";
 
 type SystemBannerState =
     | "offline"
@@ -79,6 +83,7 @@ type SystemBannerButtonProps = Omit<ButtonProps, "size" | "variant"> & {
 type SystemBannerAlertVariant = NonNullable<
     Parameters<typeof Alert>[0]["variant"]
 >;
+type SystemBannerIconProps = Omit<ComponentProps<typeof WifiOff>, "children">;
 
 interface SystemBannerProgressProps {
     indeterminate: boolean | undefined;
@@ -98,39 +103,13 @@ const systemBannerAlertVariantByState: Record<
 } as const;
 
 const systemBannerAlertClassNames = {
-    root: "flex w-full items-center gap-3 rounded-[var(--radius-md)] border border-border bg-card px-3.5 py-2.5 text-[length:var(--text-body-sm)] leading-[var(--lh-body-sm)] text-card-foreground shadow-[var(--shadow-xs)]",
-    icon: "inline-grid size-7 flex-none place-items-center rounded-[var(--radius-sm)] bg-muted text-muted-foreground [&_svg]:size-[14px] [&_svg]:fill-none [&_svg]:stroke-current [&_svg]:stroke-2 [&_svg]:[stroke-linecap:round] [&_svg]:[stroke-linejoin:round]",
     body: "flex min-w-0 flex-1 flex-col gap-0.5",
-    title: "block [min-height:auto] overflow-visible [-webkit-line-clamp:unset] [-webkit-box-orient:horizontal] font-semibold tracking-normal text-card-foreground",
-    description:
-        "block [justify-items:normal] [gap:normal] font-sans text-[12px] leading-[1.45] font-medium text-muted-foreground data-[sot-format=mono]:font-mono",
     actions: "flex flex-none gap-1.5",
 } as const;
 
-const systemBannerAlertStateClassNames: Record<SystemBannerState, string> = {
-    "db-locked": "",
-    "export-progress": "border-primary/30 bg-primary/10",
-    "import-progress": "border-primary/30 bg-primary/10",
-    offline: "border-border bg-secondary text-secondary-foreground",
-    "permission-denied": "",
-    "update-available": "border-primary/30 bg-primary/10",
-} as const;
-
-const systemBannerIconStateClassNames: Record<SystemBannerState, string> = {
-    "db-locked": "bg-destructive/10 text-destructive",
-    "export-progress": "bg-primary/10 text-primary",
-    "import-progress": "bg-primary/10 text-primary",
-    offline: "bg-secondary text-secondary-foreground",
-    "permission-denied": "bg-destructive/10 text-destructive",
-    "update-available": "bg-primary/10 text-primary",
-} as const;
-
 const systemBannerProgressClassNames = {
-    root: "relative h-[6px] min-w-[120px] flex-1 overflow-hidden rounded-[999px] bg-primary/10 data-[sot-state=indeterminate]:bg-primary/10",
-    indicator:
-        "h-full w-full flex-1 rounded-[inherit] bg-primary transition-transform duration-[var(--duration-base)] ease-[var(--ease-out)]",
-    indeterminateIndicator:
-        "w-[32%] animate-[sbn-sweep_1.4s_linear_infinite] bg-primary/50",
+    root: "min-w-[120px] flex-1",
+    indeterminateIndicator: "w-[32%] animate-[sbn-sweep_1.4s_linear_infinite]",
 } as const;
 
 function getDefaultCopy(state: SystemBannerState, isZh: boolean) {
@@ -285,27 +264,28 @@ function getDefaultActions(
 function SystemBannerIcon({
     indeterminate,
     state,
+    ...props
 }: {
     indeterminate: boolean | undefined;
     state: SystemBannerState;
-}) {
+} & SystemBannerIconProps) {
     if (state === "import-progress" && indeterminate) {
-        return <Search aria-hidden="true" />;
+        return <Search {...props} />;
     }
 
     switch (state) {
         case "offline":
-            return <WifiOff aria-hidden="true" />;
+            return <WifiOff {...props} />;
         case "permission-denied":
-            return <ShieldX aria-hidden="true" />;
+            return <ShieldX {...props} />;
         case "db-locked":
-            return <LockKeyhole aria-hidden="true" />;
+            return <LockKeyhole {...props} />;
         case "update-available":
-            return <Package aria-hidden="true" />;
+            return <Package {...props} />;
         case "import-progress":
-            return <Upload aria-hidden="true" />;
+            return <Upload {...props} />;
         case "export-progress":
-            return <Download aria-hidden="true" />;
+            return <Download {...props} />;
     }
 }
 
@@ -320,13 +300,11 @@ function SystemBannerAlert({
     return (
         <Alert
             aria-live={a11y["aria-live"]}
+            density="comfortable"
+            layout="inline"
             role={a11y.role}
             variant={systemBannerAlertVariantByState[banner.state]}
-            className={cn(
-                systemBannerAlertClassNames.root,
-                systemBannerAlertStateClassNames[banner.state],
-                className,
-            )}
+            className={className}
             data-sot-panel="system-banner"
             data-kind={banner.state}
             data-layout={isStacked ? "stacked" : "single"}
@@ -362,12 +340,11 @@ function SystemBannerProgress({
             className={systemBannerProgressClassNames.root}
             data-sot-part="system-banner-progress"
             data-sot-state={indeterminate ? "indeterminate" : "ready"}
-            indicatorClassName={cn(
-                systemBannerProgressClassNames.indicator,
+            indicatorClassName={
                 indeterminate
                     ? systemBannerProgressClassNames.indeterminateIndicator
-                    : null,
-            )}
+                    : undefined
+            }
             indicatorProps={{
                 "data-sot-part": "system-banner-progress-bar",
             }}
@@ -522,31 +499,22 @@ function SystemBannerItem({
             isStacked={isStacked}
             progress={progress}
         >
-            <span
-                className={cn(
-                    systemBannerAlertClassNames.icon,
-                    systemBannerIconStateClassNames[banner.state],
-                )}
+            <SystemBannerIcon
+                indeterminate={banner.indeterminate}
+                state={banner.state}
                 data-sot-part="system-banner-icon"
                 aria-hidden="true"
-            >
-                <SystemBannerIcon
-                    indeterminate={banner.indeterminate}
-                    state={banner.state}
-                />
-            </span>
+            />
             <div
                 className={systemBannerAlertClassNames.body}
                 data-sot-part="system-banner-body"
             >
                 <AlertTitle
-                    className={systemBannerAlertClassNames.title}
                     data-sot-part="system-banner-title"
                 >
                     {banner.title ?? defaultCopy.title}
                 </AlertTitle>
                 <AlertDescription
-                    className={systemBannerAlertClassNames.description}
                     data-sot-part="system-banner-description"
                     data-sot-format={hasProgress ? "mono" : undefined}
                 >

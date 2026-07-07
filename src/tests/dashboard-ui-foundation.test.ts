@@ -6110,8 +6110,8 @@ describe("dashboard SOT foundation", () => {
         );
         expect(banner).toContain("const systemBannerAlertVariantByState");
         expect(banner).toContain("const systemBannerAlertClassNames");
-        expect(banner).toContain("const systemBannerAlertStateClassNames");
-        expect(banner).toContain("const systemBannerIconStateClassNames");
+        expect(banner).not.toContain("const systemBannerAlertStateClassNames");
+        expect(banner).not.toContain("const systemBannerIconStateClassNames");
         expect(banner).not.toContain("const systemBannerButtonClassNames");
         expect(banner).toContain("const systemBannerProgressClassNames");
         expect(banner).toContain('} from "lucide-react";');
@@ -6137,30 +6137,26 @@ describe("dashboard SOT foundation", () => {
             "biome-ignore lint/a11y/noSvgWithoutTitle",
         );
         expect(banner).toContain(
-            'offline: "border-border bg-secondary text-secondary-foreground"',
-        );
-        expect(banner).toContain(
-            '"permission-denied": "destructiveSoftNeutral"',
-        );
-        expect(banner).toContain(
-            '"update-available": "border-primary/30 bg-primary/10"',
-        );
-        expect(banner).toContain(
-            '"permission-denied": "bg-destructive/10 text-destructive"',
-        );
-        expect(banner).toContain(
             "variant={systemBannerAlertVariantByState[banner.state]}",
         );
-        expect(banner).toContain(
+        expect(banner).toContain('density="comfortable"');
+        expect(banner).toContain('layout="inline"');
+        for (const localVisualRebuildToken of [
             "systemBannerAlertStateClassNames[banner.state]",
-        );
-        expect(banner).toContain(
             "systemBannerIconStateClassNames[banner.state]",
-        );
-        expect(banner).toContain(
+            'offline: "border-border bg-secondary text-secondary-foreground"',
+            '"update-available": "border-primary/30 bg-primary/10"',
+            '"permission-denied": "bg-destructive/10 text-destructive"',
             "bg-primary/10 data-[sot-state=indeterminate]:bg-primary/10",
-        );
-        expect(banner).toContain("bg-primary transition-transform");
+            "bg-primary transition-transform",
+            "[&_svg]:size",
+            "[&_svg]:stroke",
+            "stroke-linecap",
+            "stroke-linejoin",
+            "dark:",
+        ]) {
+            expect(banner).not.toContain(localVisualRebuildToken);
+        }
         expect(banner).not.toContain(
             "bg-[image:var(--system-banner-progress-indeterminate-bg)]",
         );

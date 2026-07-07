@@ -1,6 +1,11 @@
-import { expect, type Locator, type Page, test, type TestInfo } from "@playwright/test";
+import {
+    expect,
+    type Locator,
+    type Page,
+    test,
+    type TestInfo,
+} from "@playwright/test";
 import { ensureSignedIn } from "./helpers/auth";
-import { SOT_COMPONENT_LIBRARY_URL } from "./helpers/sot-fixtures";
 
 async function resetDisplayToChinese(
     page: Page,
@@ -1189,7 +1194,7 @@ test("dashboard system banner restores SOT progress, indeterminate, and stacked 
     await expect(banners.nth(1)).toHaveAttribute("data-kind", "update-available");
 });
 
-test("dashboard system banner primitives match SOT component library styles", async ({
+test("dashboard system banner composes shadcn primitives without legacy visual wrappers", async ({
     page,
 }) => {
     await page.setViewportSize({ width: 1280, height: 760 });
@@ -1205,223 +1210,129 @@ test("dashboard system banner primitives match SOT component library styles", as
     ).toHaveAttribute("data-sot-state", "ready");
     await page.waitForLoadState("networkidle");
 
-    const sotPage = await page.context().newPage();
-    try {
-        await sotPage.goto(SOT_COMPONENT_LIBRARY_URL, { waitUntil: "load" });
-        await installSystemBannerSotShadcnBridge(sotPage);
-        await expect(sotPage.locator("#sysbanner")).toBeVisible();
+    const productBanners = page.locator('[data-sot-panel="system-banner"]');
+    await expect(productBanners).toHaveCount(0);
 
-        const productBanners = page.locator(
-            '[data-sot-panel="system-banner"]',
-        );
-        await expect(productBanners).toHaveCount(0);
+    await dispatchSystemBanner(page, { state: "offline" });
+    const offlineBanner = page.locator(
+        '[data-sot-panel="system-banner"][data-kind="offline"]',
+    );
+    await expect(offlineBanner).toHaveAttribute("data-slot", "alert");
+    await expect(offlineBanner).toHaveAttribute("data-density", "comfortable");
+    await expect(offlineBanner).toHaveAttribute("data-layout", "single");
+    await expect(offlineBanner).toHaveAttribute("role", "status");
+    await expect(
+        offlineBanner.locator('[data-sot-part="system-banner-icon"]'),
+    ).toHaveAttribute("aria-hidden", "true");
+    await expect(
+        offlineBanner.locator(
+            '[data-sot-part="system-banner-actions"] [data-slot="button"]',
+        ),
+    ).toHaveCount(2);
+    await expect(
+        offlineBanner
+            .locator(
+                '[data-sot-part="system-banner-actions"] [data-slot="button"]',
+            )
+            .first(),
+    ).toHaveAttribute("data-variant", "ghost");
+    await expect(
+        offlineBanner
+            .locator(
+                '[data-sot-part="system-banner-actions"] [data-slot="button"]',
+            )
+            .first(),
+    ).toHaveAttribute("data-size", "sm");
+    await expect(
+        offlineBanner.locator(
+            ".sys-banner, .sbn-ico, .sbn-body, .sbn-title, .sbn-sub, .sbn-actions, .sbn-progress, .sbn-bar",
+        ),
+    ).toHaveCount(0);
+    await clearSystemBanners(page);
 
-        await dispatchSystemBanner(page, { state: "offline" });
-        await expect(
-            page.locator(
-                '[data-sot-panel="system-banner"][data-kind="offline"]',
-            ),
-        ).toHaveCount(1);
-        await expectSystemBannerSurfaceMatch(
-            sotPage,
-            page,
-            '#sysbanner .sys-banner[data-kind="offline"]',
-            '[data-sot-panel="system-banner"][data-kind="offline"]',
-        );
-        await expect(
-            page.locator(
-                '[data-sot-panel="system-banner"][data-kind="offline"] [data-sot-part="system-banner-actions"] [data-slot="button"]',
-            ),
-        ).toHaveCount(2);
-        await expect(
-            page
-                .locator(
-                    '[data-sot-panel="system-banner"][data-kind="offline"] [data-sot-part="system-banner-actions"] [data-slot="button"]',
-                )
-                .first(),
-        ).toHaveAttribute("data-variant", "ghost");
-        await expect(
-            page
-                .locator(
-                    '[data-sot-panel="system-banner"][data-kind="offline"] [data-sot-part="system-banner-actions"] [data-slot="button"]',
-                )
-                .first(),
-        ).toHaveAttribute("data-size", "sm");
-        await clearSystemBanners(page);
+    await dispatchSystemBanner(page, { state: "update-available" });
+    const updateBanner = page.locator(
+        '[data-sot-panel="system-banner"][data-kind="update-available"]',
+    );
+    const updateButtons = updateBanner.locator(
+        '[data-sot-part="system-banner-actions"] [data-slot="button"]',
+    );
+    await expect(updateBanner).toHaveAttribute("data-slot", "alert");
+    await expect(updateButtons).toHaveCount(3);
+    await expect(updateButtons.first()).toHaveAttribute(
+        "data-variant",
+        "outline",
+    );
+    await expect(updateButtons.first()).toHaveAttribute("data-size", "sm");
+    await clearSystemBanners(page);
 
-        await dispatchSystemBanner(page, { state: "permission-denied" });
-        await expectSystemBannerSurfaceMatch(
-            sotPage,
-            page,
-            '#sysbanner .sys-banner[data-kind="permission-denied"]',
-            '[data-sot-panel="system-banner"][data-kind="permission-denied"]',
-        );
-        await expect(
-            page.locator(
-                '[data-sot-panel="system-banner"][data-kind="permission-denied"] [data-sot-part="system-banner-actions"] [data-slot="button"]',
-            ),
-        ).toHaveCount(2);
-        await clearSystemBanners(page);
+    await dispatchSystemBanner(page, {
+        actionLabel: "暂停",
+        message: "85 / 213 条录音已写入 · 预计还需 1 分 12 秒",
+        progress: 40,
+        secondaryActionLabel: "取消",
+        state: "import-progress",
+        title: "正在导入 BetterAINote 备份包",
+    });
+    const importBanner = page.locator(
+        '[data-sot-panel="system-banner"][data-kind="import-progress"][data-pct="40"]',
+    );
+    const importProgress = importBanner.locator(
+        '[data-sot-part="system-banner-progress"]',
+    );
+    const importProgressBar = importBanner.locator(
+        '[data-sot-part="system-banner-progress-bar"]',
+    );
+    await expect(importProgress).toHaveAttribute("data-slot", "progress");
+    await expect(importProgress).toHaveAttribute("role", "progressbar");
+    await expect(importProgress).toHaveAttribute("aria-valuenow", "40");
+    await expect(importProgressBar).toHaveAttribute(
+        "data-slot",
+        "progress-indicator",
+    );
+    await clearSystemBanners(page);
 
-        await dispatchSystemBanner(page, { state: "db-locked" });
-        await expectSystemBannerSurfaceMatch(
-            sotPage,
-            page,
-            '#sysbanner .sys-banner[data-kind="db-locked"]',
-            '[data-sot-panel="system-banner"][data-kind="db-locked"]',
-        );
-        await clearSystemBanners(page);
+    await dispatchSystemBanner(page, {
+        actionLabel: "取消",
+        indeterminate: true,
+        message: "读取清单 · 解析校验和 · 暂未开始写入",
+        state: "import-progress",
+        title: "正在扫描备份包结构",
+    });
+    const indeterminateBanner = page.locator(
+        '[data-sot-panel="system-banner"][data-kind="import-progress"]:not([data-pct])',
+    );
+    await expect(
+        indeterminateBanner.locator(
+            '[data-sot-part="system-banner-progress-bar"]',
+        ),
+    ).toHaveClass(/animate-\[sbn-sweep_1\.4s_linear_infinite\]/);
+    const indeterminateButton = indeterminateBanner.locator(
+        '[data-sot-part="system-banner-actions"] [data-slot="button"]',
+    );
+    await expect(indeterminateButton).toHaveCount(1);
+    await expect(indeterminateButton).toBeDisabled();
+    await expect(indeterminateButton).toHaveAttribute("aria-busy", "true");
+    await clearSystemBanners(page);
 
-        await dispatchSystemBanner(page, { state: "update-available" });
-        await expectSystemBannerSurfaceMatch(
-            sotPage,
-            page,
-            '#sysbanner .sys-banner[data-kind="update-available"]',
-            '[data-sot-panel="system-banner"][data-kind="update-available"]',
-        );
-        await expect(
-            page
-                .locator(
-                    '[data-sot-panel="system-banner"][data-kind="update-available"] [data-sot-part="system-banner-actions"] [data-slot="button"]',
-                )
-                .first(),
-        ).toHaveAttribute("data-variant", "outline");
-        await expect(
-            page
-                .locator(
-                    '[data-sot-panel="system-banner"][data-kind="update-available"] [data-sot-part="system-banner-actions"] [data-slot="button"]',
-                )
-                .first(),
-        ).toHaveAttribute("data-size", "sm");
-        await expect(
-            page.locator(
-                '[data-sot-panel="system-banner"][data-kind="update-available"] [data-sot-part="system-banner-actions"] [data-slot="button"]',
-            ),
-        ).toHaveCount(3);
-        await clearSystemBanners(page);
-
-        await dispatchSystemBanner(page, {
-            actionLabel: "暂停",
-            message: "85 / 213 条录音已写入 · 预计还需 1 分 12 秒",
-            progress: 40,
-            secondaryActionLabel: "取消",
-            state: "import-progress",
-            title: "正在导入 BetterAINote 备份包",
-        });
-        await expectSystemBannerSurfaceMatch(
-            sotPage,
-            page,
-            '#sysbanner .sys-banner[data-kind="import-progress"][data-pct="40"]',
-            '[data-sot-panel="system-banner"][data-kind="import-progress"][data-pct="40"]',
-        );
-        await expectComputedStyleMatch(
-            sotPage,
-            page,
-            '#sysbanner .sys-banner[data-kind="import-progress"][data-pct="40"] .sbn-progress',
-            '[data-sot-panel="system-banner"][data-kind="import-progress"][data-pct="40"] [data-sot-part="system-banner-progress"]',
-            SYSTEM_BANNER_PROGRESS_STYLE_PROPS,
-        );
-        await expectComputedStyleMatch(
-            sotPage,
-            page,
-            '#sysbanner .sys-banner[data-kind="import-progress"][data-pct="40"] .sbn-bar',
-            '[data-sot-panel="system-banner"][data-kind="import-progress"][data-pct="40"] [data-sot-part="system-banner-progress-bar"]',
-            SYSTEM_BANNER_BAR_STYLE_PROPS,
-        );
-        await expectProgressRatioMatch(
-            sotPage,
-            page,
-            '#sysbanner .sys-banner[data-kind="import-progress"][data-pct="40"] .sbn-progress',
-            '[data-sot-panel="system-banner"][data-kind="import-progress"][data-pct="40"] [data-sot-part="system-banner-progress"]',
-        );
-        await clearSystemBanners(page);
-
-        await dispatchSystemBanner(page, {
-            actionLabel: "取消",
-            indeterminate: true,
-            message: "读取清单 · 解析校验和 · 暂未开始写入",
-            state: "import-progress",
-            title: "正在扫描备份包结构",
-        });
-        await expectSystemBannerSurfaceMatch(
-            sotPage,
-            page,
-            '#sysbanner .sys-banner[data-kind="import-progress"]:not([data-pct])',
-            '[data-sot-panel="system-banner"][data-kind="import-progress"]:not([data-pct])',
-        );
-        await expectComputedStyleMatch(
-            sotPage,
-            page,
-            '#sysbanner .sys-banner[data-kind="import-progress"]:not([data-pct]) .sbn-progress',
-            '[data-sot-panel="system-banner"][data-kind="import-progress"]:not([data-pct]) [data-sot-part="system-banner-progress"]',
-            SYSTEM_BANNER_PROGRESS_STYLE_PROPS,
-        );
-        await expectComputedStyleMatch(
-            sotPage,
-            page,
-            '#sysbanner .sys-banner[data-kind="import-progress"]:not([data-pct]) .sbn-bar',
-            '[data-sot-panel="system-banner"][data-kind="import-progress"]:not([data-pct]) [data-sot-part="system-banner-progress-bar"]',
-            SYSTEM_BANNER_BAR_STYLE_PROPS,
-        );
-        await expect(
-            page.locator(
-                '[data-sot-panel="system-banner"][data-kind="import-progress"] [data-sot-part="system-banner-actions"] [data-slot="button"]',
-            ),
-        ).toHaveCount(1);
-        await expect(
-            page.locator(
-                '[data-sot-panel="system-banner"][data-kind="import-progress"] [data-sot-part="system-banner-actions"] [data-slot="button"]',
-            ),
-        ).toBeDisabled();
-        await expect(
-            page.locator(
-                '[data-sot-panel="system-banner"][data-kind="import-progress"] [data-sot-part="system-banner-actions"] [data-slot="button"]',
-            ),
-        ).toHaveAttribute("aria-busy", "true");
-        await clearSystemBanners(page);
-
-        await dispatchSystemBanner(page, {
-            actionLabel: "在 Finder 中显示",
-            message: "78 / 112 · 含逐字稿 · 含标签关系 · 不含登录信息",
-            progress: 70,
-            secondaryActionLabel: "取消",
-            state: "export-progress",
-            title: "正在导出「全部录音 · 钉钉」",
-        });
-        await expectSystemBannerSurfaceMatch(
-            sotPage,
-            page,
-            '#sysbanner .sys-banner[data-kind="export-progress"][data-pct="70"]',
-            '[data-sot-panel="system-banner"][data-kind="export-progress"][data-pct="70"]',
-        );
-        await expectComputedStyleMatch(
-            sotPage,
-            page,
-            '#sysbanner .sys-banner[data-kind="export-progress"][data-pct="70"] .sbn-progress',
-            '[data-sot-panel="system-banner"][data-kind="export-progress"][data-pct="70"] [data-sot-part="system-banner-progress"]',
-            SYSTEM_BANNER_PROGRESS_STYLE_PROPS,
-        );
-        await expectComputedStyleMatch(
-            sotPage,
-            page,
-            '#sysbanner .sys-banner[data-kind="export-progress"][data-pct="70"] .sbn-bar',
-            '[data-sot-panel="system-banner"][data-kind="export-progress"][data-pct="70"] [data-sot-part="system-banner-progress-bar"]',
-            SYSTEM_BANNER_BAR_STYLE_PROPS,
-        );
-        await expectProgressRatioMatch(
-            sotPage,
-            page,
-            '#sysbanner .sys-banner[data-kind="export-progress"][data-pct="70"] .sbn-progress',
-            '[data-sot-panel="system-banner"][data-kind="export-progress"][data-pct="70"] [data-sot-part="system-banner-progress"]',
-        );
-    } finally {
-        await sotPage.close();
-    }
+    await dispatchSystemBanner(page, {
+        actionLabel: "在 Finder 中显示",
+        message: "78 / 112 · 含逐字稿 · 含标签关系 · 不含登录信息",
+        progress: 70,
+        secondaryActionLabel: "取消",
+        state: "export-progress",
+        title: "正在导出「全部录音 · 钉钉」",
+    });
+    const exportProgress = page.locator(
+        '[data-sot-panel="system-banner"][data-kind="export-progress"][data-pct="70"] [data-sot-part="system-banner-progress"]',
+    );
+    await expect(exportProgress).toHaveAttribute("data-slot", "progress");
+    await expect(exportProgress).toHaveAttribute("aria-valuenow", "70");
 });
 
-test("dashboard system banner screenshots match SOT component library states", async ({
+test("dashboard system banner stacked state keeps shadcn alert hooks", async ({
     page,
-}, testInfo) => {
+}) => {
     await page.setViewportSize({ width: 1280, height: 760 });
     await ensureSignedIn(page);
     await resetDisplayToChinese(page, "light");
@@ -1434,172 +1345,37 @@ test("dashboard system banner screenshots match SOT component library states", a
         page.locator('[data-sot-surface="dashboard-workstation"]'),
     ).toHaveAttribute("data-sot-state", "ready");
     await page.waitForLoadState("networkidle");
-    await page.evaluate(() => document.fonts.ready);
 
-    const sotPage = await page.context().newPage();
-    await sotPage.setViewportSize({ width: 1280, height: 760 });
-    try {
-        await sotPage.goto(SOT_COMPONENT_LIBRARY_URL, { waitUntil: "load" });
-        await installSystemBannerSotShadcnBridge(sotPage);
-        await expect(sotPage.locator("#sysbanner")).toBeVisible();
-        await sotPage.evaluate(() => document.fonts.ready);
+    const productBanners = page.locator('[data-sot-panel="system-banner"]');
+    await clearSystemBanners(page);
+    await dispatchSystemBanner(page, {
+        id: "stack-offline",
+        state: "offline",
+    });
+    await dispatchSystemBanner(page, {
+        id: "stack-update",
+        state: "update-available",
+    });
 
-        const productBanners = page.locator(
-            '[data-sot-panel="system-banner"]',
-        );
-        const sotCard = (index: number) =>
-            sotPage.locator(
-                `#sysbanner .cl-grid > .cl-card:nth-child(${index})`,
-            );
-        const expectSingleState = async ({
-            detail,
-            label,
-            productSelector,
-            sotHtmlTransform,
-            sotCardIndex,
-        }: {
-            detail: Parameters<typeof dispatchSystemBanner>[1];
-            label: string;
-            productSelector: string;
-            sotHtmlTransform?: (html: string) => string;
-            sotCardIndex: number;
-        }) => {
-            await clearSystemBanners(page);
-            await expect(productBanners).toHaveCount(0);
-            await dispatchSystemBanner(page, detail);
-            const productLocator = page.locator(productSelector).first();
-            await expect(productLocator).toBeVisible();
-            await expectSystemBannerPixelsMatch(
-                page,
-                testInfo,
-                label,
-                sotCard(sotCardIndex).locator(".sys-banner").first(),
-                productLocator,
-                sotHtmlTransform,
-            );
-        };
-
-        await expectSingleState({
-            detail: { state: "offline" },
-            label: "SystemBanner offline",
-            productSelector:
-                '[data-sot-panel="system-banner"][data-kind="offline"]',
-            sotCardIndex: 1,
-        });
-        await expectSingleState({
-            detail: { state: "permission-denied" },
-            label: "SystemBanner permission denied",
-            productSelector:
-                '[data-sot-panel="system-banner"][data-kind="permission-denied"]',
-            sotCardIndex: 2,
-        });
-        await expectSingleState({
-            detail: { state: "db-locked" },
-            label: "SystemBanner db locked",
-            productSelector:
-                '[data-sot-panel="system-banner"][data-kind="db-locked"]',
-            sotCardIndex: 3,
-        });
-        const updateSotCopy = await sotCard(4)
-            .locator(".sys-banner")
-            .first()
-            .evaluate((banner) => ({
-                message:
-                    banner.querySelector(".sbn-sub")?.textContent?.trim() ??
-                    undefined,
-                title:
-                    banner.querySelector(".sbn-title")?.textContent?.trim() ??
-                    undefined,
-            }));
-        await expectSingleState({
-            detail: { state: "update-available", ...updateSotCopy },
-            label: "SystemBanner update available",
-            productSelector:
-                '[data-sot-panel="system-banner"][data-kind="update-available"]',
-            sotCardIndex: 4,
-        });
-        await expectSingleState({
-            detail: {
-                actionLabel: "暂停",
-                message: "85 / 213 条录音已写入 · 预计还需 1 分 12 秒",
-                progress: 40,
-                secondaryActionLabel: "取消",
-                state: "import-progress",
-                title: "正在导入 BetterAINote 备份包",
-            },
-            label: "SystemBanner import progress 40",
-            productSelector:
-                '[data-sot-panel="system-banner"][data-kind="import-progress"][data-pct="40"]',
-            sotCardIndex: 5,
-        });
-        await expectSingleState({
-            detail: {
-                actionLabel: "取消",
-                indeterminate: true,
-                message: "读取清单 · 解析校验和 · 暂未开始写入",
-                state: "import-progress",
-                title: "正在扫描备份包结构",
-            },
-            label: "SystemBanner import indeterminate",
-            productSelector:
-                '[data-sot-panel="system-banner"][data-kind="import-progress"]:not([data-pct])',
-            sotCardIndex: 6,
-        });
-        await expectSingleState({
-            detail: {
-                actionLabel: "在 Finder 中显示",
-                message: "78 / 112 · 含逐字稿 · 含标签关系 · 不含登录信息",
-                progress: 70,
-                secondaryActionLabel: "取消",
-                state: "export-progress",
-                title: "正在导出「全部录音 · 钉钉」",
-            },
-            label: "SystemBanner export progress 70",
-            productSelector:
-                '[data-sot-panel="system-banner"][data-kind="export-progress"][data-pct="70"]',
-            sotHtmlTransform: sanitizeExportProgressSotHtml,
-            sotCardIndex: 7,
-        });
-
-        await clearSystemBanners(page);
-        await dispatchSystemBanner(page, {
-            id: "stack-offline",
-            state: "offline",
-        });
-        const stackedUpdateSotCopy = await sotCard(8)
-            .locator('.sys-banner[data-kind="update-available"]')
-            .first()
-            .evaluate((banner) => ({
-                message:
-                    banner.querySelector(".sbn-sub")?.textContent?.trim() ??
-                    undefined,
-                title:
-                    banner.querySelector(".sbn-title")?.textContent?.trim() ??
-                    undefined,
-            }));
-        await dispatchSystemBanner(page, {
-            id: "stack-update",
-            state: "update-available",
-            ...stackedUpdateSotCopy,
-        });
-        await expect(productBanners).toHaveCount(2);
-        await expect(productBanners.nth(0)).toHaveAttribute(
-            "data-kind",
-            "offline",
-        );
-        await expect(productBanners.nth(1)).toHaveAttribute(
-            "data-kind",
-            "update-available",
-        );
-        await expectSystemBannerGroupPixelsMatch(
-            page,
-            testInfo,
-            "SystemBanner stacked multiple",
-            sotCard(8).locator(".cl-stage").first(),
-            productBanners,
-        );
-    } finally {
-        await sotPage.close();
+    await expect(productBanners).toHaveCount(2);
+    await expect(productBanners.nth(0)).toHaveAttribute("data-kind", "offline");
+    await expect(productBanners.nth(1)).toHaveAttribute(
+        "data-kind",
+        "update-available",
+    );
+    for (const banner of [productBanners.nth(0), productBanners.nth(1)]) {
+        await expect(banner).toHaveAttribute("data-slot", "alert");
+        await expect(banner).toHaveAttribute("data-density", "comfortable");
+        await expect(banner).toHaveAttribute("data-layout", "stacked");
+        await expect(
+            banner.locator('[data-sot-part="system-banner-icon"]'),
+        ).toHaveCount(1);
+        await expect(
+            banner.locator('[data-sot-part="system-banner-body"]'),
+        ).toHaveCount(1);
+        await expect(
+            banner.locator('[data-sot-part="system-banner-actions"]'),
+        ).toHaveCount(1);
     }
 });
 

@@ -37,6 +37,7 @@ import {
     EmptyTitle,
 } from "@/components/ui/empty";
 import { FieldDescription } from "@/components/ui/field";
+import { Separator } from "@/components/ui/separator";
 import { Spinner } from "@/components/ui/spinner";
 import { SpeakerLabelEditor } from "@/features/recordings/components/speaker-label-editor";
 import {
@@ -48,7 +49,6 @@ import {
     getTranscriptionJobDisplayState,
     isActiveTranscriptionJob,
 } from "@/lib/transcription/job-display";
-import { cn } from "@/lib/utils";
 
 interface TranscriptionSectionProps {
     recordingId: string;
@@ -64,39 +64,48 @@ interface TranscriptionSectionProps {
     showSpeakerReview?: boolean;
 }
 
-const RECORDING_TRANSCRIPTION_META_BADGE_CLASS_NAME =
-    "h-[22px] justify-normal gap-[5px] rounded-full border px-[8px] py-0 text-[11px] font-semibold leading-normal data-[sot-tone=attribute]:border-border data-[sot-tone=attribute]:bg-background data-[sot-tone=attribute]:text-foreground data-[sot-tone=measure]:border-transparent data-[sot-tone=measure]:bg-secondary data-[sot-tone=measure]:text-secondary-foreground [&>svg]:size-3";
+type RecordingTranscriptionMetaTone = "attribute" | "measure";
+
+const RECORDING_TRANSCRIPTION_META_BADGE_VARIANT = {
+    attribute: "outline",
+    measure: "secondary",
+} satisfies Record<
+    RecordingTranscriptionMetaTone,
+    ComponentProps<typeof Badge>["variant"]
+>;
+
 const recordingTranscriptionClassNames = {
     card: "min-h-0 flex-1 gap-0",
-    header: "flex flex-row items-center gap-3 border-b px-3.5 py-3",
+    header: "flex flex-row items-center gap-3 px-3.5 py-3",
     heading: "flex min-w-0 items-center gap-3",
     icon: "size-4 flex-none text-muted-foreground",
     headerCopy: "flex min-w-0 flex-col gap-[3px]",
-    body: "min-h-0 flex-1 overflow-y-auto px-5 pt-4 pb-6 [scrollbar-color:var(--color-muted-foreground)_transparent] [scrollbar-width:thin] [&::-webkit-scrollbar]:size-[10px] [&::-webkit-scrollbar-thumb]:rounded-full [&::-webkit-scrollbar-thumb]:border-2 [&::-webkit-scrollbar-thumb]:border-transparent [&::-webkit-scrollbar-thumb]:bg-muted-foreground/35 [&::-webkit-scrollbar-thumb]:bg-clip-padding [&::-webkit-scrollbar-thumb:hover]:bg-muted-foreground/55 [&::-webkit-scrollbar-thumb:hover]:bg-clip-padding [&::-webkit-scrollbar-track]:bg-transparent",
-    outputSection: "flex flex-col gap-2 border-t border-border pt-2",
-    speakerReviewSection: "flex flex-col gap-2 border-t border-border pt-2",
+    body: "min-h-0 flex-1 overflow-y-auto px-5 pt-4 pb-6",
+    outputSection: "flex flex-col gap-2",
+    speakerReviewSection: "flex flex-col gap-2",
     sectionHead: "flex items-start justify-between gap-3 max-[860px]:flex-col",
     sectionTitle: "m-0 font-sans text-[12.5px] font-semibold text-foreground",
     sectionDescription:
         "mt-0.5 mb-0 font-sans text-[11.5px] font-medium leading-[1.45] text-muted-foreground max-[860px]:[overflow-wrap:anywhere]",
     actions:
         "inline-flex min-w-0 flex-wrap items-center justify-end gap-2 max-[860px]:justify-start",
-    turn: "border-b border-dashed border-border pt-[10px] pb-4",
-    metaList: "mb-1.5 flex flex-wrap items-center gap-2.5",
+    turn: "pt-[10px]",
+    metaList: "mb-1.5 flex flex-wrap items-center gap-2.5 pt-2",
     outputText:
         "m-0 font-sans text-[14.5px] leading-[1.65] text-foreground [text-wrap:pretty] max-[860px]:[overflow-wrap:anywhere]",
 } as const;
 function RecordingTranscriptionMetaBadge({
     className,
+    "data-sot-tone": tone,
     ...props
-}: Omit<ComponentProps<typeof Badge>, "variant">) {
+}: Omit<ComponentProps<typeof Badge>, "variant" | "data-sot-tone"> & {
+    "data-sot-tone": RecordingTranscriptionMetaTone;
+}) {
     return (
         <Badge
-            variant="outline"
-            className={cn(
-                RECORDING_TRANSCRIPTION_META_BADGE_CLASS_NAME,
-                className,
-            )}
+            variant={RECORDING_TRANSCRIPTION_META_BADGE_VARIANT[tone]}
+            className={className}
+            data-sot-tone={tone}
             {...props}
         />
     );
@@ -387,6 +396,7 @@ export function TranscriptionSection({
                     </div>
                 </div>
             </CardHeader>
+            <Separator />
             <CardContent
                 className={recordingTranscriptionClassNames.body}
                 data-sot-part="recording-transcription-body"
@@ -540,6 +550,7 @@ export function TranscriptionSection({
                                     {displayText}
                                 </p>
                             </div>
+                            <Separator />
                             <div
                                 className={
                                     recordingTranscriptionClassNames.metaList
@@ -586,43 +597,46 @@ export function TranscriptionSection({
                             </div>
                         </section>
                         {showSpeakerReview ? (
-                            <section
-                                className={
-                                    recordingTranscriptionClassNames.speakerReviewSection
-                                }
-                                data-sot-section="recording-transcription-speaker-review"
-                            >
-                                <header
+                            <>
+                                <Separator className="my-2" />
+                                <section
                                     className={
-                                        recordingTranscriptionClassNames.sectionHead
+                                        recordingTranscriptionClassNames.speakerReviewSection
                                     }
-                                    data-sot-part="recording-transcription-section-head"
+                                    data-sot-section="recording-transcription-speaker-review"
                                 >
-                                    <div>
-                                        <h3
-                                            className={
-                                                recordingTranscriptionClassNames.sectionTitle
-                                            }
-                                            data-sot-part="recording-transcription-section-title"
-                                        >
-                                            {t("speakerReview.title")}
-                                        </h3>
-                                        <p
-                                            className={
-                                                recordingTranscriptionClassNames.sectionDescription
-                                            }
-                                            data-sot-part="recording-transcription-section-description"
-                                        >
-                                            {t("speakerReview.description")}
-                                        </p>
-                                    </div>
-                                </header>
-                                <SpeakerLabelEditor
-                                    recordingId={recordingId}
-                                    speakerMap={liveSpeakerMap}
-                                    onSpeakerMapChanged={setLiveSpeakerMap}
-                                />
-                            </section>
+                                    <header
+                                        className={
+                                            recordingTranscriptionClassNames.sectionHead
+                                        }
+                                        data-sot-part="recording-transcription-section-head"
+                                    >
+                                        <div>
+                                            <h3
+                                                className={
+                                                    recordingTranscriptionClassNames.sectionTitle
+                                                }
+                                                data-sot-part="recording-transcription-section-title"
+                                            >
+                                                {t("speakerReview.title")}
+                                            </h3>
+                                            <p
+                                                className={
+                                                    recordingTranscriptionClassNames.sectionDescription
+                                                }
+                                                data-sot-part="recording-transcription-section-description"
+                                            >
+                                                {t("speakerReview.description")}
+                                            </p>
+                                        </div>
+                                    </header>
+                                    <SpeakerLabelEditor
+                                        recordingId={recordingId}
+                                        speakerMap={liveSpeakerMap}
+                                        onSpeakerMapChanged={setLiveSpeakerMap}
+                                    />
+                                </section>
+                            </>
                         ) : null}
                     </>
                 ) : (

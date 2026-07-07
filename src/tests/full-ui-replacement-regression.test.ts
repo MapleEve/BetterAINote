@@ -2209,160 +2209,37 @@ const CARD_PRIMITIVE_FORBIDDEN_BUSINESS_TOKENS = [
     "elevated",
 ] as const;
 
-const AUTH_LOGIN_FEATURE_OWNER_CLASS_SNIPPETS = [
-    {
-        label: "layout",
-        snippets: [
-            "min-h-[100svh]",
-            "place-items-center",
-            "bg-[var(--bg-canvas)]",
-            "text-[var(--fg-primary)]",
-            "px-[32px]",
-            "pb-[80px]",
-            "pt-[28px]",
-        ],
-    },
-    {
-        label: "surface",
-        snippets: [
-            "w-[min(420px,100%)]",
-            "min-h-[389px]",
-            "rounded-[14px]",
-            "border-[var(--line-hairline)]",
-            "bg-[var(--bg-elevated)]",
-            "text-[var(--fg-primary)]",
-            "p-[18px]",
-        ],
-    },
-    {
-        label: "header",
-        snippets: ["grid auto-rows-min", "gap-0", "p-0"],
-    },
-    {
-        label: "title",
-        snippets: [
-            "mb-1",
-            "font-sans",
-            "text-[13px]",
-            "font-semibold",
-            "text-[var(--fg-primary)]",
-        ],
-    },
-    {
-        label: "description",
-        snippets: [
-            "mb-[14px]",
-            "font-sans",
-            "text-[12px]",
-            "leading-[1.5]",
-            "text-[var(--fg-tertiary)]",
-        ],
-    },
-    {
-        label: "frame",
-        snippets: [
-            "overflow-hidden",
-            "[border-radius:12px]",
-            "border-[var(--line-hairline)]",
-            "bg-[var(--bg-canvas)]",
-            "!p-[28px]",
-            "text-center",
-        ],
-    },
-    {
-        label: "logo mark",
-        snippets: [
-            "inline",
-            "[height:36px]",
-            "[width:36px]",
-            "mb-[14px]",
-            "align-baseline",
-        ],
-    },
-    {
-        label: "frame title",
-        snippets: [
-            "[font:600_18px_var(--font-display)]",
-            "[margin-bottom:4px]",
-            "leading-[normal]",
-            "text-[var(--fg-primary)]",
-        ],
-    },
-    {
-        label: "frame description",
-        snippets: [
-            "font-sans",
-            "text-[12px]",
-            "text-[var(--fg-tertiary)]",
-            "mb-[18px]",
-        ],
-    },
-    {
-        label: "content",
-        snippets: ["mx-auto", "max-w-[280px]", "gap-[10px]"],
-    },
-    {
-        label: "footer",
-        snippets: [
-            "!mt-[14px]",
-            "[font:12px_var(--font-sans)]",
-            "!text-[var(--fg-disabled)]",
-        ],
-    },
-    {
-        label: "field",
-        snippets: ["flex flex-col", "gap-0", "[&>*]:w-full"],
-    },
-    {
-        label: "email",
-        snippets: [
-            "h-[36px]",
-            "rounded-[9px]",
-            "border-[var(--line-hairline)]",
-            "bg-[var(--bg-elevated)]",
-            "text-[var(--fg-primary)]",
-            "focus-visible:!border-ring",
-            "focus-visible:ring-[3px]",
-            "focus-visible:ring-ring/50",
-            "aria-invalid:border-destructive",
-            "aria-invalid:ring-destructive/20",
-        ],
-    },
-    {
-        label: "form message",
-        snippets: [
-            "mx-auto",
-            "max-w-[280px]",
-            "text-left",
-            "text-[12px]",
-            "text-muted-foreground",
-            "data-[sot-state=error]:text-destructive",
-            "data-[sot-state=success]:text-primary",
-        ],
-    },
-    {
-        label: "submit",
-        snippets: [
-            "h-[38px]",
-            "w-full",
-            "rounded-[8px]",
-            "font-semibold",
-            "text-[var(--button-primary-fg)]",
-            "shadow-none",
-            "focus-visible:ring-0",
-        ],
-    },
-    {
-        label: "inline link",
-        snippets: [
-            "h-auto",
-            "min-h-0",
-            "rounded-none",
-            "p-0",
-            "text-primary",
-            "underline",
-        ],
-    },
+const AUTH_LOGIN_REPAINT_FORBIDDEN_SNIPPETS = [
+    "headerTitle:",
+    "headerDescription:",
+    "frameTitle:",
+    "frameDescription:",
+    "emailInput:",
+    "submitButton:",
+    "inlineLink:",
+    "min-h-[389px]",
+    "rounded-[14px]",
+    "border-[var(--line-hairline)]",
+    "bg-[var(--bg-elevated)]",
+    "text-[var(--fg-primary)]",
+    "[font:600_18px_var(--font-display)]",
+    "[font:500_13px_var(--font-sans)]",
+    "text-[var(--button-primary-fg)]",
+    "focus-visible:!border-ring",
+    "focus-visible:ring-[3px]",
+    "h-auto min-h-0 rounded-none p-0",
+] as const;
+
+const AUTH_LOGIN_PRIMITIVE_REPAINT_FORBIDDEN_PATTERNS = [
+    /(?:^|[\s"'`])!?h-\[[^\]]+\]/,
+    /(?:^|[\s"'`])!?min-h-\[[^\]]+\]/,
+    /(?:^|[\s"'`])!?w-\[[^\]]+\]/,
+    /(?:^|[\s"'`])!?rounded-\[[^\]]+\]/,
+    /(?:^|[\s"'`])!?p[trblxy]?-\[[^\]]+\]/,
+    /(?:^|[\s"'`])!?text-\[var\([^\]]+\)\]/,
+    /(?:^|[\s"'`])!?(?:bg|border|shadow)-\[var\([^\]]+\)\]/,
+    /\[(?:font|display|align-items|border-radius|height|width|margin-bottom):[^\]]+\]/,
+    /focus-visible:!/,
 ] as const;
 
 const AUTH_LOGIN_COPY_STRINGS = [
@@ -2598,19 +2475,36 @@ const SYSTEM_BANNER_FEATURE_LOCAL_TOKENS = [
     '} from "lucide-react";',
     "const systemBannerAlertVariantByState",
     "const systemBannerAlertClassNames",
-    "const systemBannerAlertStateClassNames",
-    "const systemBannerIconStateClassNames",
     "const systemBannerProgressClassNames",
     "function SystemBannerAlert",
     "function SystemBannerButton",
     "function SystemBannerProgress",
-    "systemBannerAlertClassNames.root",
+    'density="comfortable"',
+    'layout="inline"',
     "systemBannerProgressClassNames.indeterminateIndicator",
     'data-sot-panel="system-banner"',
     'data-sot-part="system-banner-progress"',
     '"data-sot-part": "system-banner-progress-bar"',
     "animate-[sbn-sweep_1.4s_linear_infinite]",
 ];
+
+const SYSTEM_BANNER_FEATURE_LOCAL_VISUAL_REBUILD_TOKENS = [
+    "const systemBannerAlertStateClassNames",
+    "const systemBannerIconStateClassNames",
+    "systemBannerAlertClassNames.root",
+    "systemBannerAlertStateClassNames[banner.state]",
+    "systemBannerIconStateClassNames[banner.state]",
+    'offline: "border-border bg-secondary text-secondary-foreground"',
+    '"update-available": "border-primary/30 bg-primary/10"',
+    '"permission-denied": "bg-destructive/10 text-destructive"',
+    "bg-primary/10 data-[sot-state=indeterminate]:bg-primary/10",
+    "bg-primary transition-transform",
+    "[&_svg]:size",
+    "[&_svg]:stroke",
+    "stroke-linecap",
+    "stroke-linejoin",
+    "dark:",
+] as const;
 
 const MORE_ACTIONS_MENU_LEGACY_PRODUCT_CSS_SELECTOR_RE =
     /\.(?:more-anchor|more-head|more-action(?:-[\w-]+)?|more-menu(?:-(?:item(?:-shortcut)?|sep|label|hint))?)(?![\w-])/;
@@ -6227,6 +6121,9 @@ describe("full UI replacement regression coverage", () => {
         for (const token of SYSTEM_BANNER_FEATURE_LOCAL_TOKENS) {
             expect(banner).toContain(token);
         }
+        for (const token of SYSTEM_BANNER_FEATURE_LOCAL_VISUAL_REBUILD_TOKENS) {
+            expect(banner).not.toContain(token);
+        }
         for (const localProgressContract of [
             'data-slot="progress"',
             'role="progressbar"',
@@ -6287,15 +6184,11 @@ describe("full UI replacement regression coverage", () => {
         expect(banner).toContain(
             "variant={systemBannerAlertVariantByState[banner.state]}",
         );
-        expect(banner).toContain(
-            "systemBannerAlertStateClassNames[banner.state]",
-        );
-        expect(banner).toContain(
-            "systemBannerIconStateClassNames[banner.state]",
-        );
-        expect(banner).toContain(
-            "bg-primary/10 data-[sot-state=indeterminate]:bg-primary/10",
-        );
+        expect(banner).toContain('density="comfortable"');
+        expect(banner).toContain('layout="inline"');
+        for (const token of SYSTEM_BANNER_FEATURE_LOCAL_VISUAL_REBUILD_TOKENS) {
+            expect(banner).not.toContain(token);
+        }
         expect(banner).toMatch(/<Alert[\s\S]*data-sot-panel="system-banner"/);
         expect(banner).not.toContain('variant="systemBanner"');
         expect(banner).not.toContain('density="systemBanner"');
@@ -6784,8 +6677,6 @@ describe("full UI replacement regression coverage", () => {
         );
         const globals = readSource("app/globals.css");
         const fieldPrimitive = readSource("components/ui/field.tsx");
-        const authFeatureOwnerClassSource =
-            collectFeatureOwnerClassSource(login);
 
         expect(login).toContain('data-sot-layout="auth-workstation"');
         expect(login).toMatch(
@@ -6840,17 +6731,8 @@ describe("full UI replacement regression coverage", () => {
         expect(login).toContain('data-sot-control="send-login-link"');
         expect(login).toContain('data-sot-control="auth-email"');
         expect(login).toContain('data-sot-control="local-only"');
-        expect(authFeatureOwnerClassSource.trim()).not.toBe("");
-        for (const {
-            label,
-            snippets,
-        } of AUTH_LOGIN_FEATURE_OWNER_CLASS_SNIPPETS) {
-            for (const snippet of snippets) {
-                expect(
-                    authFeatureOwnerClassSource,
-                    `login ${label} helper should contain ${snippet}`,
-                ).toContain(snippet);
-            }
+        for (const snippet of AUTH_LOGIN_REPAINT_FORBIDDEN_SNIPPETS) {
+            expect(login).not.toContain(snippet);
         }
         expectPrimitiveToExcludeBusinessTokens(login, [
             ...AUTH_CARD_PRIMITIVE_FORBIDDEN_TOKENS,
@@ -6967,18 +6849,20 @@ describe("full UI replacement regression coverage", () => {
             ["footer", authLocalChoice],
             ["inline link", authLocalButton],
         ] as const) {
-            expectOpeningElementUsesFeatureOwnedClassName(
-                openingElement,
-                label,
-            );
             expectPrimitiveToExcludeBusinessTokens(openingElement, [
                 ...AUTH_CARD_PRIMITIVE_FORBIDDEN_TOKENS,
                 ...AUTH_BUTTON_PRIMITIVE_FORBIDDEN_TOKENS,
                 ...AUTH_INPUT_PRIMITIVE_FORBIDDEN_TOKENS,
             ]);
+            for (const pattern of AUTH_LOGIN_PRIMITIVE_REPAINT_FORBIDDEN_PATTERNS) {
+                expect(openingElement, `${label} should not repaint shadcn primitives`).not.toMatch(
+                    pattern,
+                );
+            }
         }
         expect(authCard).toContain('data-sot-card="auth"');
         expect(authCard).toContain("data-sot-state={surfaceState}");
+        expect(authCard).not.toContain("hasNoPadding");
         expect(authFrame).toContain('data-sot-frame="auth"');
         expect(authEmailInput).toContain('data-sot-control="auth-email"');
         expect(authEmailInput).toContain("data-sot-state={");
@@ -13178,7 +13062,11 @@ describe("full UI replacement regression coverage", () => {
         expect(transcriptionSection).toContain(
             'import { Spinner } from "@/components/ui/spinner";',
         );
+        expect(transcriptionSection).toContain(
+            'import { Separator } from "@/components/ui/separator";',
+        );
         expect(transcriptionSection).toContain("<Spinner");
+        expect(transcriptionSection).toContain("<Separator");
         expect(transcriptionSection).toContain(
             'data-sot-section="recording-transcription-output"',
         );
@@ -13192,25 +13080,38 @@ describe("full UI replacement regression coverage", () => {
         );
         for (const ownerClassSnippet of [
             'card: "min-h-0 flex-1 gap-0"',
-            'header: "flex flex-row items-center gap-3 border-b px-3.5 py-3"',
+            'header: "flex flex-row items-center gap-3 px-3.5 py-3"',
             'heading: "flex min-w-0 items-center gap-3"',
             'icon: "size-4 flex-none text-muted-foreground"',
             'headerCopy: "flex min-w-0 flex-col gap-[3px]"',
-            'body: "min-h-0 flex-1 overflow-y-auto px-5 pt-4 pb-6',
-            "[scrollbar-width:thin]",
-            "[&::-webkit-scrollbar]:size-[10px]",
-            "[&::-webkit-scrollbar-thumb]:bg-muted-foreground/35",
-            "[&::-webkit-scrollbar-thumb:hover]:bg-muted-foreground/55",
-            'speakerReviewSection: "flex flex-col gap-2 border-t border-border pt-2"',
+            'body: "min-h-0 flex-1 overflow-y-auto px-5 pt-4 pb-6"',
+            'speakerReviewSection: "flex flex-col gap-2"',
             'sectionHead: "flex items-start justify-between gap-3 max-[860px]:flex-col"',
             'sectionTitle: "m-0 font-sans text-[12.5px] font-semibold text-foreground"',
             'sectionDescription:\n        "mt-0.5 mb-0 font-sans text-[11.5px] font-medium leading-[1.45] text-muted-foreground max-[860px]:[overflow-wrap:anywhere]"',
             'actions:\n        "inline-flex min-w-0 flex-wrap items-center justify-end gap-2 max-[860px]:justify-start"',
-            'turn: "border-b border-dashed border-border pt-[10px] pb-4"',
-            'metaList: "mb-1.5 flex flex-wrap items-center gap-2.5"',
+            'turn: "pt-[10px]"',
+            'metaList: "mb-1.5 flex flex-wrap items-center gap-2.5 pt-2"',
         ]) {
             expect(recordingTranscriptionClassNamesBlock).toContain(
                 ownerClassSnippet,
+            );
+        }
+        for (const forbiddenLocalPanelResidual of [
+            "[scrollbar-color:",
+            "[scrollbar-width:",
+            "[&::-webkit-scrollbar",
+            "border-t border-border",
+            "border-b border-dashed",
+            "[&>svg]:size-",
+            "data-[sot-tone=attribute]:",
+            "data-[sot-tone=measure]:",
+        ]) {
+            expect(recordingTranscriptionClassNamesBlock).not.toContain(
+                forbiddenLocalPanelResidual,
+            );
+            expect(transcriptionSection).not.toContain(
+                forbiddenLocalPanelResidual,
             );
         }
         expect(transcriptionSection).not.toContain("dark:");
@@ -13224,7 +13125,7 @@ describe("full UI replacement regression coverage", () => {
             /#[0-9a-fA-F]{3,8}\b/,
         );
         expect(recordingTranscriptionClassNamesBlock).toContain(
-            'outputSection: "flex flex-col gap-2 border-t border-border pt-2"',
+            'outputSection: "flex flex-col gap-2"',
         );
         expect(recordingTranscriptionClassNamesBlock).toContain(
             'outputText:\n        "m-0 font-sans text-[14.5px] leading-[1.65] text-foreground [text-wrap:pretty] max-[860px]:[overflow-wrap:anywhere]"',
@@ -13523,6 +13424,12 @@ describe("full UI replacement regression coverage", () => {
             expect(metaOpening).not.toContain('variant="secondary"');
         }
         expect(transcriptionSection).toContain(
+            "const RECORDING_TRANSCRIPTION_META_BADGE_VARIANT = {",
+        );
+        expect(transcriptionSection).toContain(
+            "variant={RECORDING_TRANSCRIPTION_META_BADGE_VARIANT[tone]}",
+        );
+        expect(transcriptionSection).not.toContain(
             "RECORDING_TRANSCRIPTION_META_BADGE_CLASS_NAME",
         );
         expect(transcriptionSection).toContain('variant="outline"');
