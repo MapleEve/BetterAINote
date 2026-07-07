@@ -4325,6 +4325,7 @@ describe("full UI replacement regression coverage", () => {
         const globals = readSource("app/globals.css");
         const panel = readSource("components/panel.tsx");
         const breadcrumb = readSource("components/ui/breadcrumb.tsx");
+        const badge = readSource("components/ui/badge.tsx");
         const card = readSource("components/ui/card.tsx");
         const button = readSource("components/ui/button.tsx");
         const dialog = readSource("components/ui/dialog.tsx");
@@ -4382,6 +4383,18 @@ describe("full UI replacement regression coverage", () => {
         expect(globals).not.toContain(
             '[data-slot="toggle-group-item"][data-variant="swatch"]',
         );
+        for (const shadcnPrimitive of [
+            button,
+            badge,
+            input,
+            switchPrimitive,
+            textarea,
+        ]) {
+            expect(shadcnPrimitive).not.toContain("dark:");
+            expect(shadcnPrimitive).not.toMatch(
+                /\[_svg:not\(\[class\*=['"]size-/,
+            );
+        }
         expect(globals).not.toContain("--toggle-swatch-");
         expect(globals).not.toContain("--swatch-selection-dot-bg");
         expect(globals).not.toContain(".toggle-group-swatch");
@@ -4857,7 +4870,7 @@ describe("full UI replacement regression coverage", () => {
             'default:\n                    "bg-primary text-primary-foreground hover:bg-primary/90"',
         );
         expect(button).toContain(
-            'destructive:\n                    "bg-destructive text-destructive-foreground hover:bg-destructive/90 focus-visible:ring-destructive/20 dark:focus-visible:ring-destructive/40"',
+            'destructive:\n                    "bg-destructive text-destructive-foreground hover:bg-destructive/90 focus-visible:ring-destructive/20"',
         );
         for (const actionButtonClass of [
             "border-[var(--button-primary-border)]",
@@ -4986,7 +4999,7 @@ describe("full UI replacement regression coverage", () => {
             expect(workstation).toContain(dashboardTranscriptActionClass);
         }
         expect(button).toContain(
-            "hover:bg-accent hover:text-accent-foreground dark:hover:bg-accent/50",
+            "hover:bg-accent hover:text-accent-foreground",
         );
         expect(button).not.toContain("size-[36px] rounded-[50%]");
         expect(button).not.toContain("size-[30px] rounded-[50%]");

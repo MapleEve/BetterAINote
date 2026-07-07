@@ -10,7 +10,7 @@ type SwitchSize = "sm" | "default";
 
 const switchVariantClassNames: Record<SwitchVariant, string> = {
     default:
-        "border-transparent shadow-xs focus-visible:border-ring focus-visible:ring-[3px] focus-visible:ring-ring/50 data-[state=checked]:bg-primary data-[state=unchecked]:bg-input dark:data-[state=unchecked]:bg-input/80",
+        "border-transparent shadow-xs focus-visible:border-ring focus-visible:ring-[3px] focus-visible:ring-ring/50 data-[state=checked]:bg-primary data-[state=unchecked]:bg-input",
 };
 
 const switchSizeClassNames: Record<SwitchSize, string> = {
@@ -19,8 +19,7 @@ const switchSizeClassNames: Record<SwitchSize, string> = {
 };
 
 const switchThumbVariantClassNames: Record<SwitchVariant, string> = {
-    default:
-        "bg-background dark:data-[state=checked]:bg-primary-foreground dark:data-[state=unchecked]:bg-foreground",
+    default: "bg-background",
 };
 
 const switchThumbSizeClassNames: Record<SwitchSize, string> = {
