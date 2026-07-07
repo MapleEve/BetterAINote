@@ -47,9 +47,9 @@ const EXPECTED_DASHBOARD_DETAIL_EMPTY_STATE_CLASS_NAME =
 const EXPECTED_DASHBOARD_DRAWER_SCRIM_CLASS_NAME =
     "pointer-events-none fixed inset-0 z-[var(--z-drawer-scrim)] hidden max-[860px]:block max-[860px]:group-data-[drawer-state=open]/dashboard-workstation:pointer-events-auto";
 const EXPECTED_DASHBOARD_DRAWER_MENU_ICON_CLASS_NAME =
-    "pointer-events-none absolute top-1/2 left-1/2 size-4 -translate-x-1/2 -translate-y-1/2";
+    "";
 const EXPECTED_DASHBOARD_DRAWER_ACTIVE_DOT_CLASS_NAME =
-    "absolute top-1.5 right-1.5 hidden size-1.5 rounded-full bg-[var(--accent)]";
+    "absolute top-1.5 right-1.5 hidden size-1.5 rounded-full bg-primary";
 const EXPECTED_RECORDING_WORKSTATION_WORKSPACE_CLASS_NAME =
     "grid flex-1 min-h-0 grid-cols-[380px_1fr] gap-4 px-5 pt-4 pb-5 max-[860px]:min-w-0 max-[860px]:max-w-full max-[860px]:box-border max-[860px]:grid-cols-[minmax(0,1fr)]";
 const EXPECTED_DETAIL_PANEL_CLASS_NAME = "flex min-h-0 min-w-0 flex-col gap-4";
@@ -151,7 +151,6 @@ const SOURCE_REPORT_EMPTY_ALERT_FORBIDDEN_OWNER_SNIPPETS = [
 ] as const;
 const DASHBOARD_TOPBAR_REQUIRED_CLASS_TOKENS = [
     "relative",
-    "z-[var(--z-topbar)]",
     "flex",
     "h-14",
     "flex-none",
@@ -163,9 +162,6 @@ const DASHBOARD_TOPBAR_REQUIRED_CLASS_TOKENS = [
     "bg-background/80",
     "px-5",
     "py-3",
-    "shadow-none",
-    "backdrop-blur-[20px]",
-    "backdrop-saturate-[140%]",
     "supports-[backdrop-filter]:bg-background/60",
     "max-[860px]:min-w-0",
     "max-[860px]:max-w-full",
@@ -176,16 +172,13 @@ const DASHBOARD_SIDEBAR_OWNER_CLASS_TOKENS = [
     "flex",
     "flex-col",
     "rounded-none",
-    "border",
-    "border-[var(--glass-border)]",
-    "border-r-[var(--line-hairline)]",
-    "bg-[var(--glass-tint-strong)]",
+    "border-r",
+    "border-sidebar-border",
+    "bg-sidebar",
     "px-3",
     "pt-4",
     "pb-3",
-    "shadow-[var(--glass-shadow-cast),var(--shadow-inset)]",
-    "backdrop-blur-[var(--glass-blur)]",
-    "backdrop-saturate-[var(--glass-saturate)]",
+    "text-sidebar-foreground",
 ] as const;
 const DASHBOARD_SIDEBAR_VISUAL_GLOBAL_SELECTORS = [
     '[data-sot-panel="dashboard-sidebar"]',
@@ -406,21 +399,19 @@ const DASHBOARD_SYNC_VISUAL_GLOBAL_DECLARATION_RE =
 const DASHBOARD_BRAND_OWNER_CLASS_INITIALIZERS = [
     {
         property: "wrapper",
-        expected: "flex items-center gap-[10px] px-2 pt-1 pb-4",
+        expected: "flex items-center gap-2 px-2 pt-1 pb-4",
     },
     {
         property: "image",
-        expected: "size-9 rounded-[9px]",
+        expected: "size-9 rounded-md",
     },
     {
         property: "name",
-        expected:
-            "[font:600_15px_var(--font-sans)] tracking-[-0.012em] text-[var(--fg-primary)]",
+        expected: "text-sm font-semibold text-sidebar-foreground",
     },
     {
         property: "subtitle",
-        expected:
-            "mt-px [font:500_11px_var(--font-sans)] text-[var(--fg-tertiary)]",
+        expected: "mt-px text-xs font-medium text-muted-foreground",
     },
 ] as const;
 const RECORDING_WORKSTATION_BRAND_OWNER_CLASS_INITIALIZERS = [
@@ -3787,24 +3778,23 @@ const DASHBOARD_TOPBAR_OWNER_CLASS_INITIALIZERS = [
     {
         property: "topbar",
         expected:
-            "relative z-[var(--z-topbar)] flex h-14 flex-none flex-row items-center gap-3.5 border-b border-border bg-background/80 px-5 py-3 shadow-none backdrop-blur-[20px] backdrop-saturate-[140%] supports-[backdrop-filter]:bg-background/60 max-[860px]:min-w-0 max-[860px]:max-w-full max-[860px]:box-border",
+            "relative flex h-14 flex-none flex-row items-center gap-3.5 border-b border-border bg-background/80 px-5 py-3 supports-[backdrop-filter]:bg-background/60 max-[860px]:min-w-0 max-[860px]:max-w-full max-[860px]:box-border",
     },
     {
         property: "crumbs",
-        expected:
-            "flex items-center gap-2 font-sans text-[13px] font-medium text-[var(--fg-tertiary)]",
+        expected: "flex items-center gap-2 text-sm font-medium text-muted-foreground",
     },
     {
         property: "crumb",
-        expected: "text-[var(--fg-tertiary)]",
+        expected: "text-muted-foreground",
     },
     {
         property: "separator",
-        expected: "text-[var(--fg-tertiary)] opacity-60 max-[860px]:hidden",
+        expected: "text-muted-foreground/60 max-[860px]:hidden",
     },
     {
         property: "current",
-        expected: "font-semibold text-[var(--fg-primary)] max-[860px]:hidden",
+        expected: "font-semibold text-foreground max-[860px]:hidden",
     },
 ] as const;
 
@@ -5894,7 +5884,7 @@ describe("full UI replacement regression coverage", () => {
             "} as const;",
         );
         for (const ownerClassSnippet of [
-            "group-data-[sidebar-collapsed=true]/dashboard-workstation:px-[6px]",
+            "group-data-[sidebar-collapsed=true]/dashboard-workstation:px-1.5",
             "group-data-[sidebar-collapsed=true]/dashboard-workstation:hidden",
             "group-data-[sidebar-collapsed=true]/dashboard-workstation:justify-center",
             "group-data-[sidebar-collapsed=true]/dashboard-workstation:gap-0",
@@ -5941,11 +5931,6 @@ describe("full UI replacement regression coverage", () => {
             'data-sot-control="dashboard-drawer-trigger"',
             "Button",
         );
-        const drawerMenuIcon = extractOpeningElement(
-            drawerTrigger,
-            'data-icon="inline-start"',
-            "Menu",
-        );
         const dashboardDrawerClassNames = extractBoundedSlice(
             workstation,
             "const dashboardDrawerClassNames = {",
@@ -5960,9 +5945,7 @@ describe("full UI replacement regression coverage", () => {
         expect(
             extractObjectStringProperty(dashboardDrawerClassNames, "scrim"),
         ).toContain(`"${EXPECTED_DASHBOARD_DRAWER_SCRIM_CLASS_NAME}"`);
-        expect(
-            extractObjectStringProperty(dashboardDrawerClassNames, "menuIcon"),
-        ).toContain(`"${EXPECTED_DASHBOARD_DRAWER_MENU_ICON_CLASS_NAME}"`);
+        expect(dashboardDrawerClassNames).not.toContain("menuIcon");
         expect(
             extractObjectStringProperty(dashboardDrawerClassNames, "activeDot"),
         ).toContain(`"${EXPECTED_DASHBOARD_DRAWER_ACTIVE_DOT_CLASS_NAME}"`);
@@ -5970,10 +5953,9 @@ describe("full UI replacement regression coverage", () => {
             drawerScrim,
             "dashboardDrawerClassNames.scrim",
         );
-        expectClassNameConstReference(
-            drawerMenuIcon,
-            "dashboardDrawerClassNames.menuIcon",
-        );
+        expect(drawerTrigger).toContain("<Menu");
+        expect(drawerTrigger).toContain('data-icon="inline-start"');
+        expect(drawerTrigger).not.toContain("dashboardDrawerClassNames.menuIcon");
         expectClassNameConstReference(
             drawerActiveDot,
             "dashboardDrawerClassNames.activeDot",
@@ -5990,7 +5972,7 @@ describe("full UI replacement regression coverage", () => {
         expect(workstation).toContain(
             "dashboardSidebarCollapseClassNames.favorite",
         );
-        expect(workstation).toContain("dashboardSyncClassNames.panel");
+        expect(workstation).not.toContain("dashboardSyncClassNames");
         expect(productCss).not.toContain(
             'Desktop sidebar-collapsed — bridge body[data-sidebar="collapsed"]',
         );
@@ -7423,13 +7405,13 @@ describe("full UI replacement regression coverage", () => {
         ).toBe('root: "flex flex-1 flex-col gap-0.5 overflow-y-auto pb-3"');
         expect(
             extractObjectStringProperty(dashboardNavClassNames, "sectionLabel"),
-        ).toContain("tracking-[0.08em]");
+        ).toContain("tracking-wide");
         expect(
             extractObjectStringProperty(
                 dashboardNavClassNames,
                 "favoriteCount",
             ),
-        ).toContain("data-[sot-state=selected]:bg-[var(--bg-elevated)]");
+        ).toContain("min-w-6");
         expect(
             extractObjectStringProperty(
                 dashboardNavClassNames,
@@ -7532,7 +7514,7 @@ describe("full UI replacement regression coverage", () => {
             'data-sot-control="dashboard-drawer-trigger"',
         );
         expect(workstation).toMatch(
-            /<Button\s+variant="ghost"\s+size="default"\s+className=\{dashboardButtonClassNames\.drawerTrigger\}[\s\S]*data-sot-control="dashboard-drawer-trigger"[\s\S]*<Menu[\s\S]*data-icon="inline-start"/,
+            /<Button\s+variant="ghost"\s+size="icon-sm"\s+className=\{dashboardButtonClassNames\.drawerTrigger\}[\s\S]*data-sot-control="dashboard-drawer-trigger"[\s\S]*<Menu[\s\S]*data-icon="inline-start"/,
         );
         expect(workstation).not.toMatch(
             /<button[\s\S]{0,240}data-sot-control="dashboard-drawer-trigger"/,
@@ -7593,20 +7575,23 @@ describe("full UI replacement regression coverage", () => {
             ),
             "nav",
         );
-        expect(workstation).toContain("const DASHBOARD_ICON_CLASS_NAME =");
-        expect(workstation).toContain(
-            "size-4 flex-none fill-none stroke-current stroke-[1.8]",
+        expect(workstation).not.toContain("const DASHBOARD_ICON_CLASS_NAME =");
+        expect(workstation).not.toContain("DASHBOARD_TINY_ICON_CLASS_NAME");
+        expect(workstation).not.toContain("DASHBOARD_MICRO_ICON_CLASS_NAME");
+        expect(workstation).not.toContain(
+            "DASHBOARD_RECORDING_LIST_STATE_ICON_CLASS_NAME",
         );
-        expect(dashboardFavoriteNavButton).toContain(
-            "className={DASHBOARD_ICON_CLASS_NAME}",
+        expect(workstation).not.toContain(
+            "DASHBOARD_ACTIVITY_ITEM_ICON_CLASS_NAME",
         );
+        expect(dashboardFavoriteNavButton).not.toContain("className={DASHBOARD");
         expect(dashboardNavButtonClassNames).toContain(
-            "data-[sot-state=selected]:text-foreground",
+            "data-[sot-state=selected]:text-sidebar-accent-foreground",
         );
         const dashboardFavoriteCount = extractOpeningElement(
             workstation,
             'data-sot-part="dashboard-favorite-count"',
-            "span",
+            "Badge",
         );
         expect(dashboardFavoriteCount).toContain(
             "dashboardNavClassNames.favoriteCount",
@@ -7644,22 +7629,55 @@ describe("full UI replacement regression coverage", () => {
                 ),
             ).toEqual([]);
         }
-        expect(workstation).toContain("const dashboardSyncClassNames = {");
+        expect(workstation).not.toContain("dashboardSyncClassNames");
         expect(workstation).toContain("if (syncButtonBusy) return;");
         expect(workstation).toContain("data-sync-state={syncButtonState}");
         expect(workstation).toContain("aria-busy={syncButtonBusy}");
         expect(workstation).toContain("disabled={syncButtonBusy}");
         expect(workstation).toContain("onClick={() => void runManualSync()}");
-        expect(workstation).toContain("dashboardSyncClassNames.panel");
-        expect(workstation).toContain("dashboardSyncClassNames.indicator");
-        expect(workstation).toContain("dashboardSyncClassNames.text");
-        expect(workstation).toContain("dashboardSyncClassNames.title");
-        expect(workstation).toContain("dashboardSyncClassNames.subtitle");
-        expect(workstation).toContain("var(--signal-success)");
-        expect(workstation).toContain("var(--signal-danger)");
-        expect(workstation).toContain("var(--signal-info)");
-        expect(workstation).toContain("var(--fg-tertiary)");
-        expect(workstation).toContain("bpulse_1.4s_ease-in-out_infinite");
+        const dashboardSyncPanel = extractElementSlice(
+            workstation,
+            'data-sot-panel="dashboard-sync"',
+            "div",
+        );
+        const dashboardSyncIndicator = extractOpeningElement(
+            workstation,
+            'data-sot-part="dashboard-sync-indicator"',
+            "span",
+        );
+        const dashboardSyncText = extractOpeningElement(
+            workstation,
+            'data-sot-part="dashboard-sync-text"',
+            "div",
+        );
+        const dashboardSyncTitle = extractOpeningElement(
+            workstation,
+            'data-sot-part="dashboard-sync-title"',
+            "div",
+        );
+        const dashboardSyncSubtitle = extractOpeningElement(
+            workstation,
+            'data-sot-part="dashboard-sync-subtitle"',
+            "div",
+        );
+        expect(dashboardSyncPanel).toContain("group/dashboard-sync");
+        expect(dashboardSyncPanel).toContain("border-sidebar-border");
+        expect(dashboardSyncPanel).toContain("bg-sidebar-accent");
+        expect(dashboardSyncPanel).toContain("text-sidebar-accent-foreground");
+        expect(dashboardSyncIndicator).toContain("bg-primary");
+        expect(dashboardSyncIndicator).toContain("bg-destructive");
+        expect(dashboardSyncIndicator).toContain(
+            "bpulse_1.4s_ease-in-out_infinite",
+        );
+        expect(dashboardSyncText).toContain(
+            "dashboardSidebarCollapseClassNames.hidden",
+        );
+        expect(dashboardSyncTitle).toContain("text-sidebar-foreground");
+        expect(dashboardSyncSubtitle).toContain("text-muted-foreground");
+        expect(dashboardSyncPanel).not.toContain("var(--signal-success)");
+        expect(dashboardSyncPanel).not.toContain("var(--signal-danger)");
+        expect(dashboardSyncPanel).not.toContain("var(--signal-info)");
+        expect(dashboardSyncPanel).not.toContain("var(--fg-tertiary)");
         expect(workstation).not.toContain(
             "dashboardSidebarCollapseClassNames.syncPanel",
         );
@@ -8105,7 +8123,7 @@ describe("full UI replacement regression coverage", () => {
         const dashboardActivitySlice = extractBoundedSlice(
             workstation,
             'data-sot-part="dashboard-activity-anchor"',
-            '<Button\n                            asChild\n                            variant="ghost"',
+            'data-sot-control="dashboard-settings"',
         );
         for (const featureHook of [
             'data-sot-control="dashboard-activity"',
@@ -8168,7 +8186,7 @@ describe("full UI replacement regression coverage", () => {
         expect(workstation).toContain('data-sot-control="dashboard-settings"');
         expect(workstation).toContain('data-sot-part="dashboard-user-avatar"');
         expect(workstation).toMatch(
-            /<Button\s+asChild\s+variant="ghost"\s+size="icon"\s+className=\{dashboardButtonClassNames\.settingsAvatar\}[\s\S]*>\s*<button[\s\S]*data-sot-control="dashboard-settings"[\s\S]*data-sot-part="dashboard-user-avatar"/,
+            /<Button\s+asChild\s+variant="default"\s+size="icon"\s+className=\{dashboardButtonClassNames\.settingsAvatar\}[\s\S]*>\s*<button[\s\S]*data-sot-control="dashboard-settings"[\s\S]*data-sot-part="dashboard-user-avatar"/,
         );
         expect(globals).not.toContain(
             '[data-sot-control="dashboard-settings"][data-sot-part="dashboard-user-avatar"]',
@@ -9753,9 +9771,7 @@ describe("full UI replacement regression coverage", () => {
             'data-sot-control="dashboard-favorite"',
             "Button",
         );
-        expect(dashboardFavoriteButton).toContain(
-            "className={DASHBOARD_ICON_CLASS_NAME}",
-        );
+        expect(dashboardFavoriteButton).not.toContain("className={DASHBOARD");
         const dashboardActivityDismissButton = extractElementSlice(
             workstation,
             'data-sot-control="dashboard-activity-dismiss"',
@@ -9767,8 +9783,11 @@ describe("full UI replacement regression coverage", () => {
         expect(dashboardActivityDismissButton).toContain(
             "dashboardSearchActivityClassNames.dashboardActivityDismiss",
         );
-        expect(dashboardActivityDismissButton).toMatch(
-            /className=\{\s*DASHBOARD_MICRO_ICON_CLASS_NAME\s*\}/,
+        expect(dashboardActivityDismissButton).toContain(
+            'data-icon="inline-start"',
+        );
+        expect(dashboardActivityDismissButton).not.toContain(
+            "DASHBOARD_MICRO_ICON_CLASS_NAME",
         );
         expect(workstation).toContain(
             'data-sot-part="dashboard-sync-indicator"',

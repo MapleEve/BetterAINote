@@ -554,9 +554,7 @@ const DASHBOARD_STATIC_OWNER_STRING_CONSTANTS = [
     "DASHBOARD_DETAIL_EMPTY_STATE_CLASS_NAME",
 ] as const;
 
-const DASHBOARD_STATIC_OWNER_OBJECT_CONSTANTS = [
-    "dashboardDrawerClassNames",
-] as const;
+const DASHBOARD_STATIC_OWNER_OBJECT_CONSTANTS = [] as const;
 
 const RETIRED_DASHBOARD_SOT_CONSTANTS = [
     "SOT_DASHBOARD_DETAIL_HEADER_ACTION_ANCHOR_CLASS_NAME",
@@ -571,7 +569,6 @@ const DASHBOARD_STATIC_OWNER_DEFERRED_TOKEN_AREAS = [
     "dashboardSourceClassNames",
     "sourceFilterStackClassNames",
     "dashboardRecordingRowStyles",
-    "dashboardSyncClassNames",
     "dashboardButtonClassNames",
 ] as const;
 
@@ -835,7 +832,7 @@ describe("dashboard SOT search and activity interactions", () => {
         const activitySlice = extractBoundedSlice(
             workstation,
             'data-sot-part="dashboard-activity-anchor"',
-            '<Button\n                            asChild\n                            variant="ghost"',
+            'data-sot-control="dashboard-settings"',
         );
 
         expect(workstation).toContain("const [activityOpen, setActivityOpen]");
@@ -1042,8 +1039,8 @@ describe("dashboard SOT search and activity interactions", () => {
         expect(workstation).toContain(
             "className={dashboardDrawerClassNames.scrim}",
         );
-        expect(workstation).toContain(
-            "className={dashboardDrawerClassNames.menuIcon}",
+        expect(workstation).not.toContain(
+            "dashboardDrawerClassNames.menuIcon",
         );
         expect(workstation).toContain(
             "className={dashboardDrawerClassNames.activeDot}",
@@ -1118,7 +1115,6 @@ describe("dashboard SOT search and activity interactions", () => {
         for (const inlineClass of [
             'className="min-h-[280px] p-9 md:p-9"',
             'className="pointer-events-none fixed inset-0 z-[var(--z-drawer-scrim)]',
-            'className="pointer-events-none absolute top-1/2 left-1/2 size-4',
             'className="absolute top-1.5 right-1.5 hidden size-1.5',
             'className="flex min-h-0 flex-col p-0"',
         ]) {

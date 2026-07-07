@@ -65,7 +65,6 @@ const EXPECTED_DASHBOARD_RECORDING_LIST_CARD_CLASS_NAME =
 const EXPECTED_DETAIL_PANEL_CLASS_NAME = "flex min-h-0 min-w-0 flex-col gap-4";
 const DASHBOARD_TOPBAR_REQUIRED_CLASS_TOKENS = [
     "relative",
-    "z-[var(--z-topbar)]",
     "flex",
     "h-14",
     "flex-none",
@@ -77,9 +76,6 @@ const DASHBOARD_TOPBAR_REQUIRED_CLASS_TOKENS = [
     "bg-background/80",
     "px-5",
     "py-3",
-    "shadow-none",
-    "backdrop-blur-[20px]",
-    "backdrop-saturate-[140%]",
     "supports-[backdrop-filter]:bg-background/60",
     "max-[860px]:min-w-0",
     "max-[860px]:max-w-full",
@@ -89,24 +85,23 @@ const DASHBOARD_TOPBAR_OWNER_CLASS_INITIALIZERS = [
     {
         property: "topbar",
         expected:
-            "relative z-[var(--z-topbar)] flex h-14 flex-none flex-row items-center gap-3.5 border-b border-border bg-background/80 px-5 py-3 shadow-none backdrop-blur-[20px] backdrop-saturate-[140%] supports-[backdrop-filter]:bg-background/60 max-[860px]:min-w-0 max-[860px]:max-w-full max-[860px]:box-border",
+            "relative flex h-14 flex-none flex-row items-center gap-3.5 border-b border-border bg-background/80 px-5 py-3 supports-[backdrop-filter]:bg-background/60 max-[860px]:min-w-0 max-[860px]:max-w-full max-[860px]:box-border",
     },
     {
         property: "crumbs",
-        expected:
-            "flex items-center gap-2 font-sans text-[13px] font-medium text-[var(--fg-tertiary)]",
+        expected: "flex items-center gap-2 text-sm font-medium text-muted-foreground",
     },
     {
         property: "crumb",
-        expected: "text-[var(--fg-tertiary)]",
+        expected: "text-muted-foreground",
     },
     {
         property: "separator",
-        expected: "text-[var(--fg-tertiary)] opacity-60 max-[860px]:hidden",
+        expected: "text-muted-foreground/60 max-[860px]:hidden",
     },
     {
         property: "current",
-        expected: "font-semibold text-[var(--fg-primary)] max-[860px]:hidden",
+        expected: "font-semibold text-foreground max-[860px]:hidden",
     },
 ] as const;
 const DASHBOARD_SIDEBAR_OWNER_CLASS_TOKENS = [
@@ -114,16 +109,13 @@ const DASHBOARD_SIDEBAR_OWNER_CLASS_TOKENS = [
     "flex",
     "flex-col",
     "rounded-none",
-    "border",
-    "border-[var(--glass-border)]",
-    "border-r-[var(--line-hairline)]",
-    "bg-[var(--glass-tint-strong)]",
+    "border-r",
+    "border-sidebar-border",
+    "bg-sidebar",
     "px-3",
     "pt-4",
     "pb-3",
-    "shadow-[var(--glass-shadow-cast),var(--shadow-inset)]",
-    "backdrop-blur-[var(--glass-blur)]",
-    "backdrop-saturate-[var(--glass-saturate)]",
+    "text-sidebar-foreground",
 ] as const;
 const DASHBOARD_SIDEBAR_VISUAL_GLOBAL_SELECTORS = [
     '[data-sot-panel="dashboard-sidebar"]',
@@ -1829,7 +1821,6 @@ const DASHBOARD_RECORDING_LIST_RESIDUAL_OWNER_CLASS_REFS = [
     "dashboardRecordingListTitlebarStyles.root",
     "dashboardRecordingListTitlebarStyles.title",
     "dashboardRecordingListTitlebarStyles.count",
-    "dashboardScrollbarClassName",
     "dashboardRecordingListScrollClassName",
     "dashboardRecordingListModeStyles.root",
     "dashboardRecordingListModeStyles.label",
@@ -1977,21 +1968,19 @@ const REMOVED_WORKSTATION_BRAND_GLOBAL_SELECTORS = [
 const DASHBOARD_BRAND_OWNER_CLASS_INITIALIZERS = [
     {
         property: "wrapper",
-        expected: "flex items-center gap-[10px] px-2 pt-1 pb-4",
+        expected: "flex items-center gap-2 px-2 pt-1 pb-4",
     },
     {
         property: "image",
-        expected: "size-9 rounded-[9px]",
+        expected: "size-9 rounded-md",
     },
     {
         property: "name",
-        expected:
-            "[font:600_15px_var(--font-sans)] tracking-[-0.012em] text-[var(--fg-primary)]",
+        expected: "text-sm font-semibold text-sidebar-foreground",
     },
     {
         property: "subtitle",
-        expected:
-            "mt-px [font:500_11px_var(--font-sans)] text-[var(--fg-tertiary)]",
+        expected: "mt-px text-xs font-medium text-muted-foreground",
     },
 ] as const;
 
@@ -3142,7 +3131,7 @@ describe("dashboard SOT foundation", () => {
             "data-[copy-state=err]:hover:bg-transparent",
         ]) {
             expect(buttonVariantBlock).not.toContain(copyStateClass);
-            expect(workstation).toContain(copyStateClass);
+            expect(workstation).not.toContain(copyStateClass);
         }
         for (const removedConstant of DASHBOARD_SHELL_SOURCE_BUTTON_CONSTANTS) {
             expect(workstation).not.toContain(removedConstant);
@@ -3228,13 +3217,13 @@ describe("dashboard SOT foundation", () => {
         ).toBe('root: "flex flex-1 flex-col gap-0.5 overflow-y-auto pb-3"');
         expect(
             extractObjectStringProperty(dashboardNavClassNames, "sectionLabel"),
-        ).toContain("tracking-[0.08em]");
+        ).toContain("tracking-wide");
         expect(
             extractObjectStringProperty(
                 dashboardNavClassNames,
                 "favoriteCount",
             ),
-        ).toContain("data-[sot-state=selected]:bg-[var(--bg-elevated)]");
+        ).toContain("min-w-6");
         expect(
             extractObjectStringProperty(
                 dashboardNavClassNames,
@@ -3451,7 +3440,7 @@ describe("dashboard SOT foundation", () => {
         const dashboardActivitySlice = extractBoundedSlice(
             workstation,
             'data-sot-part="dashboard-activity-anchor"',
-            '<Button\n                            asChild\n                            variant="ghost"',
+            'data-sot-control="dashboard-settings"',
         );
         for (const featureHook of [
             'data-sot-control="dashboard-activity"',
@@ -3532,18 +3521,22 @@ describe("dashboard SOT foundation", () => {
             dashboardButtonClassNames,
             "nav",
         );
-        expect(workstation).toContain("const DASHBOARD_ICON_CLASS_NAME =");
-        expect(workstation).toContain(
-            "size-4 flex-none fill-none stroke-current stroke-[1.8]",
+        expect(workstation).not.toContain("const DASHBOARD_ICON_CLASS_NAME =");
+        expect(workstation).not.toContain("DASHBOARD_TINY_ICON_CLASS_NAME");
+        expect(workstation).not.toContain("DASHBOARD_MICRO_ICON_CLASS_NAME");
+        expect(workstation).not.toContain(
+            "DASHBOARD_RECORDING_LIST_STATE_ICON_CLASS_NAME",
         );
-        expect(workstation).toContain("className={DASHBOARD_ICON_CLASS_NAME}");
+        expect(workstation).not.toContain(
+            "DASHBOARD_ACTIVITY_ITEM_ICON_CLASS_NAME",
+        );
         expect(dashboardNavButtonClassName).toContain(
-            "data-[sot-state=selected]:text-foreground",
+            "data-[sot-state=selected]:text-sidebar-accent-foreground",
         );
         const dashboardFavoriteCount = extractOpeningElement(
             workstation,
             'data-sot-part="dashboard-favorite-count"',
-            "span",
+            "Badge",
         );
         expect(dashboardFavoriteCount).toContain(
             "dashboardNavClassNames.favoriteCount",
@@ -3559,16 +3552,17 @@ describe("dashboard SOT foundation", () => {
         expect(dashboardNavSectionLabel).toContain(
             "dashboardNavClassNames.sectionLabel",
         );
-        expect(dashboardFavoriteButton).toContain(
-            "className={DASHBOARD_ICON_CLASS_NAME}",
-        );
+        expect(dashboardFavoriteButton).not.toContain("className={DASHBOARD");
         const dashboardActivityDismissButton = extractBoundedSlice(
             workstation,
             'data-sot-control="dashboard-activity-dismiss"',
             "</Button>",
         );
-        expect(dashboardActivityDismissButton).toMatch(
-            /className=\{\s*DASHBOARD_MICRO_ICON_CLASS_NAME\s*\}/,
+        expect(dashboardActivityDismissButton).toContain(
+            'data-icon="inline-start"',
+        );
+        expect(dashboardActivityDismissButton).not.toContain(
+            "DASHBOARD_MICRO_ICON_CLASS_NAME",
         );
         const dashboardActivityStatusSub = extractOpeningElement(
             workstation,
@@ -3591,7 +3585,7 @@ describe("dashboard SOT foundation", () => {
         expect(workstation).toContain('data-sot-control="dashboard-settings"');
         expect(workstation).toContain('data-sot-part="dashboard-user-avatar"');
         expect(workstation).toMatch(
-            /<Button\s+asChild\s+variant="ghost"\s+size="icon"\s+className=\{dashboardButtonClassNames\.settingsAvatar\}[\s\S]*>\s*<button[\s\S]*data-sot-control="dashboard-settings"[\s\S]*data-sot-part="dashboard-user-avatar"/,
+            /<Button\s+asChild\s+variant="default"\s+size="icon"\s+className=\{dashboardButtonClassNames\.settingsAvatar\}[\s\S]*>\s*<button[\s\S]*data-sot-control="dashboard-settings"[\s\S]*data-sot-part="dashboard-user-avatar"/,
         );
         expect(globals).not.toContain(
             '[data-sot-control="dashboard-settings"][data-sot-part="dashboard-user-avatar"]',
@@ -3629,30 +3623,10 @@ describe("dashboard SOT foundation", () => {
                 '[data-sot-part="dashboard-retranscription-spinner"]',
             ),
         ).toEqual([]);
-        const dashboardRetranscriptionClassNames = extractBoundedSlice(
-            workstation,
-            "const dashboardRetranscriptionClassNames = {",
-            "} as const;",
-        );
-        const dashboardRetranscriptionThemeClassName = extractBoundedSlice(
-            workstation,
-            "const dashboardRetranscriptionThemeClassName =",
-            ";",
-        );
-        for (const snippet of DASHBOARD_RETRANSCRIPTION_OWNER_CLASS_SNIPPETS) {
-            expect(dashboardRetranscriptionClassNames).toContain(snippet);
-        }
-        for (const snippet of DASHBOARD_RETRANSCRIPTION_THEME_CLASS_SNIPPETS) {
-            expect(dashboardRetranscriptionThemeClassName).toContain(snippet);
-        }
         const dashboardRetranscriptionDisabledHint = extractOpeningElement(
             workstation,
             'data-sot-part="dashboard-retranscription-disabled-hint"',
             "span",
-        );
-        expectClassNameConstReference(
-            dashboardRetranscriptionDisabledHint,
-            "dashboardRetranscriptionClassNames.disabledHint",
         );
         expect(dashboardRetranscriptionDisabledHint).toMatch(
             /hidden=\{\s*detailTab !== "transcript"\s*\|\|\s*dashboardRetxState !== "unavailable"\s*\}/,
@@ -3662,40 +3636,22 @@ describe("dashboard SOT foundation", () => {
             'data-sot-panel="dashboard-retranscription"',
             "div",
         );
-        expectClassNameConstReference(
-            dashboardRetranscriptionBanner,
-            "dashboardRetranscriptionClassNames.banner",
-        );
         expect(dashboardRetranscriptionBanner).toContain(
             "data-retx-state={dashboardRetxState}",
         );
         expect(dashboardRetranscriptionBanner).toMatch(
             /hidden=\{\s*dashboardRetxState === "idle"\s*\|\|\s*dashboardRetxState === "unavailable"\s*\}/,
         );
-        expectClassNameConstReference(
-            extractOpeningElement(
-                workstation,
-                'data-sot-part="dashboard-retranscription-icon"',
-                "span",
-            ),
-            "dashboardRetranscriptionClassNames.icon",
+        expect(workstation).toContain(
+            'data-sot-part="dashboard-retranscription-icon"',
         );
-        expectClassNameConstReference(
-            extractOpeningElement(
-                workstation,
-                'data-sot-part="dashboard-retranscription-body"',
-                "div",
-            ),
-            "dashboardRetranscriptionClassNames.body",
+        expect(workstation).toContain(
+            'data-sot-part="dashboard-retranscription-body"',
         );
         const dashboardRetranscriptionRefreshMarker = extractOpeningElement(
             workstation,
             'data-sot-part="dashboard-retranscription-refresh-marker"',
-            "p",
-        );
-        expectClassNameConstReference(
-            dashboardRetranscriptionRefreshMarker,
-            "dashboardRetranscriptionClassNames.refreshMarker",
+            "Badge",
         );
         expect(dashboardRetranscriptionRefreshMarker).toContain(
             'hidden={dashboardRetxState !== "completed"}',
@@ -3707,11 +3663,14 @@ describe("dashboard SOT foundation", () => {
         expect(globals).not.toMatch(
             DASHBOARD_RETRANSCRIPTION_GLOBAL_TOKEN_DEFINITION_RE,
         );
-        expect(dashboardRetranscriptionClassNames).not.toMatch(
-            DASHBOARD_RETRANSCRIPTION_OWNER_DIRECT_COLOR_RE,
+        expect(workstation).not.toContain(
+            "const dashboardRetranscriptionClassNames",
+        );
+        expect(workstation).not.toContain(
+            "dashboardRetranscriptionThemeClassName",
         );
         for (const usage of DASHBOARD_RETRANSCRIPTION_OWNER_CLASS_USAGES) {
-            expect(workstation).toContain(usage);
+            expect(workstation).not.toContain(usage);
         }
         const retxGlobalRepaintBlocks =
             DASHBOARD_RETRANSCRIPTION_REPAINT_CSS_SELECTORS.flatMap(
@@ -4071,6 +4030,8 @@ describe("dashboard SOT foundation", () => {
         expect(drawerActiveDotClassNames).toContain(
             "absolute top-1.5 right-1.5 hidden",
         );
+        expect(drawerActiveDotClassNames).toContain("bg-primary");
+        expect(drawerClassNames).not.toContain("menuIcon");
         expect(drawerScrim).toContain(
             "className={dashboardDrawerClassNames.scrim}",
         );
@@ -4590,9 +4551,7 @@ describe("dashboard SOT foundation", () => {
         expect(workstation).toMatch(
             /className=\{\s*dashboardRecordingListTitlebarStyles\.count\s*\}[\s\S]*data-sot-part="dashboard-recording-list-count"/,
         );
-        expect(workstation).toMatch(
-            /dashboardScrollbarClassName[\s\S]*data-sot-part="dashboard-transcript-body"/,
-        );
+        expect(workstation).not.toContain("dashboardScrollbarClassName");
         expect(workstation).toContain("tagFilterValue(tag.id)");
         expect(workstation).toContain('"untagged"');
         expect(workstation).toContain("displayTag?: RecordingTag");
@@ -4918,33 +4877,32 @@ describe("dashboard SOT foundation", () => {
                 rowMetaOwnershipToken,
             );
         }
-        expect(workstation).toContain("function DashboardRecordingStatusBadge");
+        expect(workstation).not.toContain("function DashboardRecordingStatusBadge");
+        expect(workstation).not.toContain(
+            "SOT_DASHBOARD_RECORDING_STATUS_BADGE_CLASS",
+        );
+        expect(workstation).not.toContain(
+            "function SotDashboardRecordingStatusBadge",
+        );
         const dashboardRecordingStatusBadge = extractOpeningElement(
             workstation,
             'data-sot-part="dashboard-recording-status"',
             "Badge",
         );
         expect(dashboardRecordingStatusBadge).toContain(
-            "variant={dashboardRecordingStatusBadgeVariants[tone]}",
+            "dashboardRecordingStatusBadgeVariants",
         );
-        expectCnClassNameReferences(dashboardRecordingStatusBadge, [
-            "dashboardRecordingStatusBadgeClassName",
-            "dashboardRecordingStatusBadgeToneClassNames[tone]",
-            "className",
-        ]);
         expect(dashboardRecordingStatusBadge).toContain(
             'data-sot-part="dashboard-recording-status"',
         );
-        expect(dashboardRecordingStatusBadge).toContain("data-sot-tone={tone}");
-        expect(workstation).toMatch(
-            /data-sot-part="dashboard-recording-status-dot"[\s\S]*aria-hidden="true"/,
+        expect(dashboardRecordingStatusBadge).toContain("data-sot-tone={");
+        expect(workstation).not.toContain(
+            'data-sot-part="dashboard-recording-status-dot"',
         );
         expect(workstation).toContain(
             'data-sot-part="dashboard-recording-status-label"',
         );
-        expect(workstation).toMatch(
-            /<DashboardRecordingStatusBadge[\s\S]*label=\{\s*rowStatus\.label\s*\}[\s\S]*tone=\{\s*rowStatus\.tone\s*\}/,
-        );
+        expect(workstation).not.toContain("<DashboardRecordingStatusBadge");
         expect(workstation).toContain(
             'data-sot-part="dashboard-recording-status"',
         );
@@ -4959,19 +4917,21 @@ describe("dashboard SOT foundation", () => {
         expect(badgePrimitive).not.toContain("dashboard-recording-status-dot");
         for (const dashboardStatusToken of [
             "const dashboardRecordingStatusBadgeVariants = {",
+            'err: "destructive"',
+            'info: "secondary"',
+            'neu: "outline"',
+            'ok: "secondary"',
+            'warn: "secondary"',
+        ]) {
+            expect(workstation).toContain(dashboardStatusToken);
+        }
+        for (const retiredDashboardStatusToken of [
             "const dashboardRecordingStatusBadgeToneClassNames = {",
-            'ok: "border-primary/30 bg-primary/10 text-primary"',
-            'warn: "border-border bg-secondary text-secondary-foreground"',
-            'err: "border-destructive/30 bg-destructive/10 text-destructive"',
-            'info: "border-primary/30 bg-primary/10 text-primary"',
-            'neu: "border-border bg-muted text-muted-foreground"',
             "const dashboardRecordingStatusDotClassName =",
             '"size-[5px] rounded-full bg-current"',
             "const dashboardRecordingStatusDotToneClassNames = {",
-            'neu: "bg-muted-foreground"',
-            'warn: "animate-[bpulse_1.4s_ease-in-out_infinite]"',
         ]) {
-            expect(workstation).toContain(dashboardStatusToken);
+            expect(workstation).not.toContain(retiredDashboardStatusToken);
         }
         expect(
             collectCssRuleBlocks(
@@ -5084,13 +5044,10 @@ describe("dashboard SOT foundation", () => {
             'data-sot-part="dashboard-transcript-body"',
             "CardContent",
         );
-        expectCnClassNameReferences(dashboardTranscriptBody, [
-            '"min-h-0 flex-1 overflow-y-auto px-5 pt-4 pb-5"',
-            "dashboardRetranscriptionThemeClassName",
-        ]);
-        expect(workstation).toContain(
-            "const dashboardRetranscriptionThemeClassName =",
+        expect(dashboardTranscriptBody).toContain(
+            'className="min-h-0 flex-1 overflow-y-auto px-5 pt-4 pb-5"',
         );
+        expect(workstation).not.toContain("dashboardRetranscriptionThemeClassName");
         for (const hook of DASHBOARD_DETAIL_PANE_SOT_HOOKS) {
             expect(workstation).toContain(hook);
         }
@@ -5115,11 +5072,6 @@ describe("dashboard SOT foundation", () => {
         for (const hook of DASHBOARD_TRANSCRIPT_TURN_EMPTY_SOT_HOOKS) {
             expect(workstation).toContain(hook);
         }
-        const dashboardTranscriptClassNames = extractBoundedSlice(
-            workstation,
-            "const dashboardTranscriptClassNames = {",
-            "} as const;",
-        );
         const dashboardSpeakerPaneClassNames = extractBoundedSlice(
             workstation,
             "const dashboardSpeakerPaneClassNames = {",
@@ -5236,65 +5188,44 @@ describe("dashboard SOT foundation", () => {
             "span",
         );
 
-        for (const token of DASHBOARD_TRANSCRIPT_OWNER_CLASS_TOKENS) {
-            expect(dashboardTranscriptClassNames).toContain(token);
-        }
+        expect(workstation).not.toContain("const dashboardTranscriptClassNames");
         for (const token of DASHBOARD_SPEAKER_PANE_OWNER_CLASS_TOKENS) {
             expect(dashboardSpeakerPaneClassNames).toContain(token);
         }
         for (const token of DASHBOARD_SPEAKER_SHARE_CLASS_TOKENS) {
             expect(workstation).toContain(token);
         }
-        expectClassNameConstReference(
-            dashboardTranscriptLoadingTurn,
-            "dashboardTranscriptClassNames.turn",
+        expect(dashboardTranscriptLoadingTurn).toContain(
+            'className="border-b border-dashed py-3 last:border-b-0"',
         );
-        expectClassNameConstReference(
-            dashboardTranscriptLoadingSpeakerRow,
-            "dashboardTranscriptClassNames.speakerRow",
+        expect(dashboardTranscriptLoadingSpeakerRow).toContain(
+            'className="mb-2 flex items-center gap-2"',
         );
-        expectClassNameConstReference(
-            dashboardTranscriptReadyTurn,
-            "dashboardTranscriptClassNames.turn",
+        expect(dashboardTranscriptReadyTurn).toContain(
+            'className="border-b border-dashed py-3 last:border-b-0"',
         );
-        expectClassNameConstReference(
-            dashboardTranscriptAvatar,
-            "dashboardTranscriptClassNames.avatar",
+        expect(dashboardTranscriptAvatar).toContain(
+            'className="inline-flex size-7 flex-none items-center justify-center rounded-full bg-muted text-xs font-medium text-muted-foreground"',
         );
         expect(dashboardTranscriptAvatar).toContain("data-sot-tone=");
-        expectClassNameConstReference(
-            dashboardTranscriptSpeakerName,
-            "dashboardTranscriptClassNames.speakerName",
+        expect(dashboardTranscriptSpeakerName).toContain(
+            'className="text-sm font-medium text-foreground"',
         );
-        expectClassNameConstReference(
-            dashboardTranscriptSpeakerTime,
-            "dashboardTranscriptClassNames.speakerTime",
+        expect(dashboardTranscriptSpeakerTime).toContain(
+            'className="ml-1 font-mono text-xs text-muted-foreground"',
         );
         expect(dashboardTranscriptSpeakerTime).toContain(
             'data-sot-format="mono"',
         );
         expect(dashboardTranscriptReadySlice).toContain(
-            "dashboardTranscriptClassNames.paragraph",
+            'className="m-0 text-sm/relaxed text-foreground"',
         );
-        expectClassNameConstReference(
-            dashboardTranscriptEmptyOpening,
-            "dashboardTranscriptClassNames.empty",
-        );
+        expect(dashboardTranscriptEmptyOpening).toContain("<Empty");
         expect(dashboardTranscriptEmpty).toContain("<EmptyHeader");
-        expect(dashboardTranscriptEmpty).toContain(
-            "dashboardTranscriptClassNames.emptyHeader",
-        );
-        expectClassNameConstReference(
-            dashboardTranscriptEmptyIcon,
-            "dashboardTranscriptClassNames.emptyIcon",
-        );
-        expectClassNameConstReference(
-            dashboardTranscriptEmptyTitle,
-            "dashboardTranscriptClassNames.emptyMessage",
-        );
-        expectClassNameConstReference(
-            dashboardTranscriptEmptyDescription,
-            "dashboardTranscriptClassNames.emptySub",
+        expect(dashboardTranscriptEmptyIcon).toContain('variant="icon"');
+        expect(dashboardTranscriptEmptyTitle).toContain('variant="compact"');
+        expect(dashboardTranscriptEmptyDescription).toContain(
+            'variant="compact"',
         );
         expectClassNameConstReference(
             dashboardSpeakersHead,
@@ -5377,9 +5308,7 @@ describe("dashboard SOT foundation", () => {
         expect(dashboardCopyIcon).toContain(
             'data-sot-part="dashboard-copy-icon"',
         );
-        expect(dashboardCopyIcon).toContain(
-            "dashboardLocalCopyClassNames.icon",
-        );
+        expect(dashboardCopyIcon).not.toContain("dashboardLocalCopyClassNames");
         expect(dashboardCopyIcon).toContain('state === "ok" ? Check');
         expect(dashboardCopyIcon).toContain('state === "err" ? X : Copy');
         const dashboardCopyLabel = extractBoundedSlice(
@@ -5390,9 +5319,7 @@ describe("dashboard SOT foundation", () => {
         expect(dashboardCopyLabel).toContain(
             'data-sot-part="dashboard-copy-label"',
         );
-        expect(dashboardCopyLabel).toContain(
-            "dashboardLocalCopyClassNames.label",
-        );
+        expect(dashboardCopyLabel).not.toContain("dashboardLocalCopyClassNames");
         const sourceReportCopyButton = extractElementSlice(
             workstation,
             'copy="source-transcript"',
@@ -5407,9 +5334,7 @@ describe("dashboard SOT foundation", () => {
             "const dashboardButtonClassNames = {",
             "} as const;",
         );
-        expect(dashboardButtonClassNames).toMatch(
-            /copy:\s*"[^"]*\[&\[hidden\]\]:hidden[^"]*"/,
-        );
+        expect(dashboardButtonClassNames).not.toContain("copy:");
         expect(sourceReportPrimitives).toContain("sourceReportCopyIconBase");
         expect(sourceReportPrimitives).toContain("sourceReportCopyLabelBase");
         expect(sourceReportPrimitives).toContain(
@@ -5466,10 +5391,7 @@ describe("dashboard SOT foundation", () => {
             );
             expect(buttonOpening).toContain('variant="ghost"');
             expect(buttonOpening).toContain('size="sm"');
-            expectClassNameConstReference(
-                buttonOpening,
-                "dashboardButtonClassNames.copy",
-            );
+            expect(buttonOpening).not.toContain("dashboardButtonClassNames.copy");
         }
         for (const control of DASHBOARD_TRANSCRIPT_COPY_CONTROLS) {
             const copyKind =
@@ -5496,10 +5418,9 @@ describe("dashboard SOT foundation", () => {
                 `data-sot-control="${control}"`,
                 "Button",
             );
-            expect(buttonOpening).toContain('variant="ghost"');
+            expect(buttonOpening).toContain('variant="outline"');
             expect(buttonOpening).toContain('size="sm"');
-            expectClassNameConstReference(
-                buttonOpening,
+            expect(buttonOpening).not.toContain(
                 "dashboardButtonClassNames.compactAction",
             );
         }
@@ -5510,11 +5431,13 @@ describe("dashboard SOT foundation", () => {
                 "Button",
             );
             expect(buttonOpening).toContain('variant="ghost"');
-            expect(buttonOpening).toContain('size="sm"');
-            expectExactCnClassNameConstReferences(buttonOpening, [
+            expect(buttonOpening).toContain('size="icon-sm"');
+            expect(buttonOpening).not.toContain(
                 "dashboardButtonClassNames.compactAction",
+            );
+            expect(buttonOpening).not.toContain(
                 "dashboardRetranscriptionClassNames.closeButton",
-            ]);
+            );
         }
         for (const control of DASHBOARD_TRANSCRIPT_COMPACT_ACTION_CONTROLS) {
             const buttonOpening = extractOpeningElement(
@@ -6016,21 +5939,54 @@ describe("dashboard SOT foundation", () => {
             "await Promise.all([refreshStatus(), loadDataSources()])",
         );
         expect(workstation).toContain("refreshBrowserRoute(router)");
-        expect(workstation).toContain("const dashboardSyncClassNames = {");
+        expect(workstation).not.toContain("dashboardSyncClassNames");
         expect(workstation).toContain('data-sot-panel="dashboard-sync"');
         expect(workstation).toContain(
             'data-sot-part="dashboard-sync-indicator"',
         );
-        expect(workstation).toContain("dashboardSyncClassNames.panel");
-        expect(workstation).toContain("dashboardSyncClassNames.indicator");
-        expect(workstation).toContain("dashboardSyncClassNames.text");
-        expect(workstation).toContain("dashboardSyncClassNames.title");
-        expect(workstation).toContain("dashboardSyncClassNames.subtitle");
-        expect(workstation).toContain("var(--signal-success)");
-        expect(workstation).toContain("var(--signal-danger)");
-        expect(workstation).toContain("var(--signal-info)");
-        expect(workstation).toContain("var(--fg-tertiary)");
-        expect(workstation).toContain("bpulse_1.4s_ease-in-out_infinite");
+        const dashboardSyncPanel = extractElementSlice(
+            workstation,
+            'data-sot-panel="dashboard-sync"',
+            "div",
+        );
+        const dashboardSyncIndicator = extractOpeningElement(
+            workstation,
+            'data-sot-part="dashboard-sync-indicator"',
+            "span",
+        );
+        const dashboardSyncText = extractOpeningElement(
+            workstation,
+            'data-sot-part="dashboard-sync-text"',
+            "div",
+        );
+        const dashboardSyncTitle = extractOpeningElement(
+            workstation,
+            'data-sot-part="dashboard-sync-title"',
+            "div",
+        );
+        const dashboardSyncSubtitle = extractOpeningElement(
+            workstation,
+            'data-sot-part="dashboard-sync-subtitle"',
+            "div",
+        );
+        expect(dashboardSyncPanel).toContain("group/dashboard-sync");
+        expect(dashboardSyncPanel).toContain("border-sidebar-border");
+        expect(dashboardSyncPanel).toContain("bg-sidebar-accent");
+        expect(dashboardSyncPanel).toContain("text-sidebar-accent-foreground");
+        expect(dashboardSyncIndicator).toContain("bg-primary");
+        expect(dashboardSyncIndicator).toContain("bg-destructive");
+        expect(dashboardSyncIndicator).toContain(
+            "bpulse_1.4s_ease-in-out_infinite",
+        );
+        expect(dashboardSyncText).toContain(
+            "dashboardSidebarCollapseClassNames.hidden",
+        );
+        expect(dashboardSyncTitle).toContain("text-sidebar-foreground");
+        expect(dashboardSyncSubtitle).toContain("text-muted-foreground");
+        expect(dashboardSyncPanel).not.toContain("var(--signal-success)");
+        expect(dashboardSyncPanel).not.toContain("var(--signal-danger)");
+        expect(dashboardSyncPanel).not.toContain("var(--signal-info)");
+        expect(dashboardSyncPanel).not.toContain("var(--fg-tertiary)");
         expect(workstation).toContain('data-sot-control="dashboard-sync"');
         expect(workstation).toContain('variant="ghost"');
         expect(workstation).toContain('size="icon-sm"');

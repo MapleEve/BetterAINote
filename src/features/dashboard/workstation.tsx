@@ -346,53 +346,39 @@ const DASHBOARD_DETAIL_EMPTY_STATE_CLASS_NAME = "min-h-[280px] p-9 md:p-9";
 
 const dashboardDrawerClassNames = {
     scrim: "pointer-events-none fixed inset-0 z-[var(--z-drawer-scrim)] hidden max-[860px]:block max-[860px]:group-data-[drawer-state=open]/dashboard-workstation:pointer-events-auto",
-    menuIcon:
-        "pointer-events-none absolute top-1/2 left-1/2 size-4 -translate-x-1/2 -translate-y-1/2",
     activeDot:
-        "absolute top-1.5 right-1.5 hidden size-1.5 rounded-full bg-[var(--accent)]",
+        "absolute top-1.5 right-1.5 hidden size-1.5 rounded-full bg-primary",
 } as const;
 
 const dashboardTopbarClassNames = {
-    topbar: "relative z-[var(--z-topbar)] flex h-14 flex-none flex-row items-center gap-3.5 border-b border-border bg-background/80 px-5 py-3 shadow-none backdrop-blur-[20px] backdrop-saturate-[140%] supports-[backdrop-filter]:bg-background/60 max-[860px]:min-w-0 max-[860px]:max-w-full max-[860px]:box-border",
-    crumbs: "flex items-center gap-2 font-sans text-[13px] font-medium text-[var(--fg-tertiary)]",
-    crumb: "text-[var(--fg-tertiary)]",
-    separator: "text-[var(--fg-tertiary)] opacity-60 max-[860px]:hidden",
-    current: "font-semibold text-[var(--fg-primary)] max-[860px]:hidden",
+    topbar: "relative flex h-14 flex-none flex-row items-center gap-3.5 border-b border-border bg-background/80 px-5 py-3 supports-[backdrop-filter]:bg-background/60 max-[860px]:min-w-0 max-[860px]:max-w-full max-[860px]:box-border",
+    crumbs: "flex items-center gap-2 text-sm font-medium text-muted-foreground",
+    crumb: "text-muted-foreground",
+    separator: "text-muted-foreground/60 max-[860px]:hidden",
+    current: "font-semibold text-foreground max-[860px]:hidden",
 } as const;
 
 const dashboardSidebarCollapseClassNames = {
     sidebar:
-        "relative flex flex-col rounded-none border border-[var(--glass-border)] border-r-[var(--line-hairline)] bg-[var(--glass-tint-strong)] px-3 pt-4 pb-3 shadow-[var(--glass-shadow-cast),var(--shadow-inset)] backdrop-blur-[var(--glass-blur)] backdrop-saturate-[var(--glass-saturate)] group-data-[sidebar-collapsed=true]/dashboard-workstation:px-[6px] group-data-[sidebar-collapsed=true]/dashboard-workstation:pt-4 group-data-[sidebar-collapsed=true]/dashboard-workstation:pb-3 max-[860px]:hidden max-[860px]:group-data-[drawer-state=open]/dashboard-workstation:fixed max-[860px]:group-data-[drawer-state=open]/dashboard-workstation:top-0 max-[860px]:group-data-[drawer-state=open]/dashboard-workstation:bottom-0 max-[860px]:group-data-[drawer-state=open]/dashboard-workstation:left-0 max-[860px]:group-data-[drawer-state=open]/dashboard-workstation:z-[var(--z-drawer)] max-[860px]:group-data-[drawer-state=open]/dashboard-workstation:flex max-[860px]:group-data-[drawer-state=open]/dashboard-workstation:max-w-[min(320px,calc(100vw-32px))]",
+        "relative flex flex-col rounded-none border-r border-sidebar-border bg-sidebar px-3 pt-4 pb-3 text-sidebar-foreground group-data-[sidebar-collapsed=true]/dashboard-workstation:px-1.5 group-data-[sidebar-collapsed=true]/dashboard-workstation:pt-4 group-data-[sidebar-collapsed=true]/dashboard-workstation:pb-3 max-[860px]:hidden max-[860px]:group-data-[drawer-state=open]/dashboard-workstation:fixed max-[860px]:group-data-[drawer-state=open]/dashboard-workstation:top-0 max-[860px]:group-data-[drawer-state=open]/dashboard-workstation:bottom-0 max-[860px]:group-data-[drawer-state=open]/dashboard-workstation:left-0 max-[860px]:group-data-[drawer-state=open]/dashboard-workstation:z-[var(--z-drawer)] max-[860px]:group-data-[drawer-state=open]/dashboard-workstation:flex max-[860px]:group-data-[drawer-state=open]/dashboard-workstation:max-w-[min(320px,calc(100vw-32px))]",
     hidden: "group-data-[sidebar-collapsed=true]/dashboard-workstation:hidden",
     brand: "group-data-[sidebar-collapsed=true]/dashboard-workstation:justify-center group-data-[sidebar-collapsed=true]/dashboard-workstation:px-0 group-data-[sidebar-collapsed=true]/dashboard-workstation:pt-1 group-data-[sidebar-collapsed=true]/dashboard-workstation:pb-4",
     favorite:
         "group-data-[sidebar-collapsed=true]/dashboard-workstation:justify-center group-data-[sidebar-collapsed=true]/dashboard-workstation:gap-0 group-data-[sidebar-collapsed=true]/dashboard-workstation:px-0 group-data-[sidebar-collapsed=true]/dashboard-workstation:py-2",
 } as const;
 
-const dashboardSyncClassNames = {
-    panel: "group/dashboard-sync flex items-center gap-[10px] rounded-xl border border-[var(--glass-border)] bg-[var(--glass-tint-subtle)] px-[10px] py-2 group-data-[sidebar-collapsed=true]/dashboard-workstation:justify-center group-data-[sidebar-collapsed=true]/dashboard-workstation:p-2",
-    indicator:
-        "size-2 rounded-full bg-[var(--signal-success)] shadow-[0_0_0_3px_var(--button-copy-success-bg)] group-data-[sot-state=error]/dashboard-sync:bg-[var(--signal-danger)] group-data-[sot-state=error]/dashboard-sync:shadow-[0_0_0_3px_var(--alert-destructive-soft-bg)] group-data-[sot-state=queued]/dashboard-sync:animate-[bpulse_1.4s_ease-in-out_infinite] group-data-[sot-state=queued]/dashboard-sync:bg-[var(--signal-info)] group-data-[sot-state=queued]/dashboard-sync:shadow-[0_0_0_3px_var(--accent-soft)] group-data-[sot-state=running]/dashboard-sync:animate-[bpulse_1.4s_ease-in-out_infinite] group-data-[sot-state=running]/dashboard-sync:bg-[var(--signal-info)] group-data-[sot-state=running]/dashboard-sync:shadow-[0_0_0_3px_var(--accent-soft)]",
-    text: "min-w-0 flex-1",
-    title: "font-sans text-xs font-semibold text-[var(--fg-primary)]",
-    subtitle:
-        "mt-px font-mono text-[11px] font-medium text-[var(--fg-tertiary)]",
-} as const;
-
 const dashboardBrandClassNames = {
-    wrapper: "flex items-center gap-[10px] px-2 pt-1 pb-4",
-    image: "size-9 rounded-[9px]",
-    name: "[font:600_15px_var(--font-sans)] tracking-[-0.012em] text-[var(--fg-primary)]",
-    subtitle:
-        "mt-px [font:500_11px_var(--font-sans)] text-[var(--fg-tertiary)]",
+    wrapper: "flex items-center gap-2 px-2 pt-1 pb-4",
+    image: "size-9 rounded-md",
+    name: "text-sm font-semibold text-sidebar-foreground",
+    subtitle: "mt-px text-xs font-medium text-muted-foreground",
 } as const;
 
 const dashboardNavClassNames = {
     root: "flex flex-1 flex-col gap-0.5 overflow-y-auto pb-3",
     sectionLabel:
-        "px-2.5 pt-3.5 pb-1.5 font-sans text-[10px] font-semibold uppercase tracking-[0.08em] text-[var(--fg-tertiary)]",
-    favoriteCount:
-        "min-w-[22px] rounded-[5px] border border-transparent bg-[var(--bg-recessed)] px-1.5 py-px text-center font-mono text-[11px] font-medium leading-[1.45] text-[var(--fg-tertiary)] data-[sot-state=selected]:border-[var(--line-hairline)] data-[sot-state=selected]:bg-[var(--bg-elevated)] data-[sot-state=selected]:text-[var(--fg-primary)]",
+        "px-2.5 pt-3.5 pb-1.5 text-xs font-semibold uppercase tracking-wide text-muted-foreground",
+    favoriteCount: "min-w-6 justify-center px-1.5 font-mono",
 } as const;
 
 type DashboardTranscriptSkeletonSize =
@@ -570,16 +556,6 @@ const TIMELINE_FILTERS: {
 
 const dashboardTabPaneHiddenClassName = "[&[hidden]]:hidden";
 
-const DASHBOARD_ICON_CLASS_NAME =
-    "size-4 flex-none fill-none stroke-current stroke-[1.8]";
-const DASHBOARD_TINY_ICON_CLASS_NAME =
-    "size-3 flex-none fill-none stroke-current stroke-[1.8]";
-const DASHBOARD_MICRO_ICON_CLASS_NAME =
-    "size-[11px] flex-none fill-none stroke-current stroke-2";
-const DASHBOARD_RECORDING_LIST_STATE_ICON_CLASS_NAME =
-    "size-[15px] fill-none stroke-current stroke-[1.8]";
-const DASHBOARD_ACTIVITY_ITEM_ICON_CLASS_NAME =
-    "size-3 fill-none stroke-current stroke-2";
 const DASHBOARD_SIDEBAR_FOOTER_CLASS_NAME = "border-t border-border pt-2.5";
 
 const dashboardRecordingTimeFilterStyles = {
@@ -750,16 +726,14 @@ const dashboardSearchActivityClassNames = {
 } as const;
 
 const dashboardButtonClassNames = {
-    nav: "relative h-auto w-full justify-start gap-2.5 rounded-[9px] border border-transparent bg-transparent px-2.5 py-[7px] text-left text-[13px] font-medium text-muted-foreground shadow-none hover:bg-accent hover:text-foreground focus-visible:text-foreground disabled:cursor-not-allowed disabled:opacity-50 data-[sot-state=selected]:border-border data-[sot-state=selected]:bg-card data-[sot-state=selected]:text-foreground data-[sot-state=selected]:shadow-xs has-[>svg]:px-2.5",
-    sync: "size-[32px] bg-transparent text-muted-foreground shadow-none hover:bg-accent hover:text-foreground",
+    nav: "w-full justify-start gap-2.5 px-2.5 text-muted-foreground data-[sot-state=selected]:bg-sidebar-accent data-[sot-state=selected]:text-sidebar-accent-foreground",
+    sync: "text-muted-foreground",
     speakersMerge:
         "h-[26px] gap-[7px] rounded-[7px] border border-transparent bg-transparent px-[10px] text-[12px] font-semibold text-muted-foreground shadow-none hover:bg-accent hover:text-accent-foreground has-[>svg]:px-[10px]",
     drawerTrigger:
-        "relative hidden h-auto w-auto rounded-md bg-transparent px-[6px] py-px text-foreground shadow-none hover:bg-accent hover:text-foreground max-[860px]:inline-flex group-data-[source-filter-active=true]/dashboard-workstation:[&_[data-sot-part=dashboard-drawer-active-dot]]:inline-block",
-    sidebarCollapse:
-        "size-[22px] rounded-full border border-border bg-card text-muted-foreground shadow-sm hover:bg-accent hover:text-foreground max-[860px]:hidden",
-    settingsAvatar:
-        "size-[30px] rounded-full border-0 bg-primary text-xs font-semibold text-primary-foreground shadow-xs hover:scale-[1.04] hover:bg-primary/90 hover:text-primary-foreground",
+        "relative hidden max-[860px]:inline-flex group-data-[source-filter-active=true]/dashboard-workstation:[&_[data-sot-part=dashboard-drawer-active-dot]]:inline-block",
+    sidebarCollapse: "max-[860px]:hidden",
+    settingsAvatar: "rounded-full text-xs font-semibold",
     listPagination:
         "h-8 gap-1.5 rounded-md bg-transparent px-3 text-muted-foreground shadow-none hover:bg-accent hover:text-accent-foreground has-[>svg]:px-2.5",
     headerIconButton:
@@ -1090,7 +1064,6 @@ function formatLibrarySearchTimestamp(valueMs: number | null | undefined) {
 function LibrarySearchTagIcon() {
     return (
         <Tags
-            className={DASHBOARD_MICRO_ICON_CLASS_NAME}
             data-icon="inline-start"
             aria-hidden="true"
         />
@@ -4296,10 +4269,7 @@ export function Workstation({
                                     );
                                 }}
                             >
-                                <Icon
-                                    className={DASHBOARD_ICON_CLASS_NAME}
-                                    data-icon="inline-start"
-                                />
+                                <Icon data-icon="inline-start" />
                                 <span
                                     className={cn(
                                         "min-w-0 flex-1 truncate",
@@ -4309,7 +4279,12 @@ export function Workstation({
                                 >
                                     {getFavoriteLabel(item.value, t)}
                                 </span>
-                                <span
+                                <Badge
+                                    variant={
+                                        favorite === item.value
+                                            ? "secondary"
+                                            : "outline"
+                                    }
                                     className={cn(
                                         dashboardNavClassNames.favoriteCount,
                                         dashboardSidebarCollapseClassNames.hidden,
@@ -4322,7 +4297,7 @@ export function Workstation({
                                     }
                                 >
                                     {count}
-                                </span>
+                                </Badge>
                             </Button>
                         );
                     })}
@@ -4562,19 +4537,9 @@ export function Workstation({
                                             >
                                                 {actionKind === "retry" ||
                                                 actionKind === "reauth" ? (
-                                                    <RefreshCw
-                                                        className={
-                                                            DASHBOARD_MICRO_ICON_CLASS_NAME
-                                                        }
-                                                        data-icon="inline-start"
-                                                    />
+                                                    <RefreshCw data-icon="inline-start" />
                                                 ) : (
-                                                    <Plus
-                                                        className={
-                                                            DASHBOARD_MICRO_ICON_CLASS_NAME
-                                                        }
-                                                        data-icon="inline-start"
-                                                    />
+                                                    <Plus data-icon="inline-start" />
                                                 )}
                                                 {actionLabel}
                                             </span>
@@ -4605,31 +4570,31 @@ export function Workstation({
                     data-sot-part="dashboard-sidebar-footer"
                 >
                     <div
-                        className={dashboardSyncClassNames.panel}
+                        className="group/dashboard-sync flex items-center gap-2.5 rounded-lg border border-sidebar-border bg-sidebar-accent px-2.5 py-2 text-sidebar-accent-foreground group-data-[sidebar-collapsed=true]/dashboard-workstation:justify-center group-data-[sidebar-collapsed=true]/dashboard-workstation:p-2"
                         data-sot-panel="dashboard-sync"
                         data-sot-state={syncButtonState}
                         data-sync-state={syncButtonState}
                     >
                         <span
-                            className={dashboardSyncClassNames.indicator}
+                            className="size-2 rounded-full bg-primary group-data-[sot-state=error]/dashboard-sync:bg-destructive group-data-[sot-state=queued]/dashboard-sync:animate-[bpulse_1.4s_ease-in-out_infinite] group-data-[sot-state=running]/dashboard-sync:animate-[bpulse_1.4s_ease-in-out_infinite]"
                             data-sot-part="dashboard-sync-indicator"
                         />
                         <div
                             className={cn(
-                                dashboardSyncClassNames.text,
+                                "min-w-0 flex-1",
                                 dashboardSidebarCollapseClassNames.hidden,
                             )}
                             data-sot-part="dashboard-sync-text"
                         >
                             <div
-                                className={dashboardSyncClassNames.title}
+                                className="text-xs font-semibold text-sidebar-foreground"
                                 data-sot-part="dashboard-sync-title"
                             >
                                 {syncStateLabel(syncButtonState, t)} ·
                                 BetterAINote
                             </div>
                             <div
-                                className={dashboardSyncClassNames.subtitle}
+                                className="mt-px font-mono text-xs font-medium text-muted-foreground"
                                 data-sot-part="dashboard-sync-subtitle"
                             >
                                 {syncSummary}
@@ -4673,7 +4638,7 @@ export function Workstation({
                 >
                     <Button
                         variant="ghost"
-                        size="default"
+                        size="icon-sm"
                         className={dashboardButtonClassNames.drawerTrigger}
                         data-sot-control="dashboard-drawer-trigger"
                         id="drawer-trigger"
@@ -4686,10 +4651,7 @@ export function Workstation({
                             setDrawerOpen(true);
                         }}
                     >
-                        <Menu
-                            className={dashboardDrawerClassNames.menuIcon}
-                            data-icon="inline-start"
-                        />
+                        <Menu data-icon="inline-start" />
                         <span
                             className={dashboardDrawerClassNames.activeDot}
                             data-sot-part="dashboard-drawer-active-dot"
@@ -4774,10 +4736,7 @@ export function Workstation({
                                     setSearchOpen((open) => !open);
                                 }}
                             >
-                                <Search
-                                    className={DASHBOARD_ICON_CLASS_NAME}
-                                    data-icon="inline-start"
-                                />
+                                <Search data-icon="inline-start" />
                             </Button>
                             {searchOpen ? (
                                 <Card
@@ -4814,12 +4773,7 @@ export function Workstation({
                                                 dashboardSearchActivityClassNames.librarySearchInputAddon
                                             }
                                         >
-                                            <Search
-                                                className={
-                                                    DASHBOARD_RECORDING_LIST_STATE_ICON_CLASS_NAME
-                                                }
-                                                data-icon="inline-start"
-                                            />
+                                            <Search data-icon="inline-start" />
                                         </InputGroupAddon>
                                         <InputGroupInput
                                             variant="default"
@@ -4878,12 +4832,7 @@ export function Workstation({
                                                     }, 0);
                                                 }}
                                             >
-                                                <X
-                                                    className={
-                                                        DASHBOARD_TINY_ICON_CLASS_NAME
-                                                    }
-                                                    data-icon="inline-start"
-                                                />
+                                                <X data-icon="inline-start" />
                                             </InputGroupButton>
                                         ) : null}
                                     </InputGroup>
@@ -5283,10 +5232,7 @@ export function Workstation({
                                     setActivityOpen((open) => !open);
                                 }}
                             >
-                                <Bell
-                                    className={DASHBOARD_ICON_CLASS_NAME}
-                                    data-icon="inline-start"
-                                />
+                                <Bell data-icon="inline-start" />
                                 <span data-sot-part="dashboard-activity-badge">
                                     {activityBadgeCount > 99
                                         ? "99+"
@@ -5363,12 +5309,7 @@ export function Workstation({
                                                     })
                                                 }
                                             >
-                                                <X
-                                                    className={
-                                                        DASHBOARD_TINY_ICON_CLASS_NAME
-                                                    }
-                                                    data-icon="inline-start"
-                                                />
+                                                <X data-icon="inline-start" />
                                             </Button>
                                         </CardAction>
                                     </CardHeader>
@@ -5571,22 +5512,16 @@ export function Workstation({
                                                                 {item.tone ===
                                                                 "success" ? (
                                                                     <CheckCircle
-                                                                        className={
-                                                                            DASHBOARD_ACTIVITY_ITEM_ICON_CLASS_NAME
-                                                                        }
+                                                                        aria-hidden="true"
                                                                     />
                                                                 ) : item.tone ===
                                                                   "info" ? (
                                                                     <Bell
-                                                                        className={
-                                                                            DASHBOARD_ACTIVITY_ITEM_ICON_CLASS_NAME
-                                                                        }
+                                                                        aria-hidden="true"
                                                                     />
                                                                 ) : (
                                                                     <AlertCircle
-                                                                        className={
-                                                                            DASHBOARD_ACTIVITY_ITEM_ICON_CLASS_NAME
-                                                                        }
+                                                                        aria-hidden="true"
                                                                     />
                                                                 )}
                                                             </span>
@@ -5703,9 +5638,6 @@ export function Workstation({
                                                                     }
                                                                 >
                                                                     <X
-                                                                        className={
-                                                                            DASHBOARD_MICRO_ICON_CLASS_NAME
-                                                                        }
                                                                         data-icon="inline-start"
                                                                     />
                                                                 </Button>
@@ -5748,7 +5680,7 @@ export function Workstation({
                         </div>
                         <Button
                             asChild
-                            variant="ghost"
+                            variant="default"
                             size="icon"
                             className={dashboardButtonClassNames.settingsAvatar}
                         >
