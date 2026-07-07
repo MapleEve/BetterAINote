@@ -135,7 +135,24 @@ const DASHBOARD_SIDEBAR_OWNER_FORBIDDEN_CLASS_PATTERN =
 const DASHBOARD_SIDEBAR_VISUAL_GLOBAL_DECLARATION_RE =
     /^\s*(?:-webkit-backdrop-filter|backdrop-filter|background|border(?:-(?:color|radius|right|style|width))?|box-shadow|display|flex-direction|padding|position)\s*:/m;
 const EXPECTED_SOURCE_REPORT_STATUS_BADGE_CLASS_NAME =
-    "h-[22px] justify-normal gap-[5px] overflow-visible rounded-[999px] px-[8px] py-0 font-sans text-[11px] font-semibold leading-[normal] shadow-none transition-none";
+    "h-[22px] justify-normal gap-[5px] overflow-visible px-[8px] py-0";
+const SOURCE_REPORT_STATUS_VARIANT_SNIPPETS = [
+    "const SOURCE_REPORT_STATUS_VARIANT = {",
+    'err: "destructive"',
+    'neu: "secondary"',
+    'ok: "default"',
+    'warn: "outline"',
+    'React.ComponentProps<typeof Badge>["variant"]',
+    "variant={SOURCE_REPORT_STATUS_VARIANT[tone]}",
+] as const;
+const SOURCE_REPORT_STATUS_BADGE_FORBIDDEN_STYLING_SNIPPETS = [
+    "sourceReportStatusBadgeStyles",
+    "color-mix(",
+    "oklch(",
+    "--signal-success",
+    "--signal-danger",
+    "--signal-warning",
+] as const;
 const EXPECTED_DASHBOARD_RECORDING_PLAYER_CARD_CLASS_NAME =
     "block min-h-[114px] gap-0 overflow-visible rounded-2xl px-[18px] py-4 shadow-none backdrop-blur-none";
 const EXPECTED_DASHBOARD_RECORDING_PLAYER_META_CLASS_NAME =
@@ -1369,10 +1386,13 @@ const SOURCE_REPORT_PRIMITIVE_OWNER_SNIPPETS = [
     "border border-[var(--line-hairline)] bg-[var(--bg-recessed)] text-[var(--fg-tertiary)]",
     "border-[var(--alert-destructive-icon-soft-border)] bg-[var(--alert-destructive-icon-soft-bg)] text-[var(--signal-danger)]",
     "block max-w-[360px] font-sans text-[12px] font-medium leading-[1.5] tracking-normal text-muted-foreground",
-    "const sourceReportStatusBadgeStyles = cva(",
+    "const SOURCE_REPORT_STATUS_VARIANT = {",
+    'err: "destructive"',
+    'neu: "secondary"',
+    'ok: "default"',
+    'warn: "outline"',
     EXPECTED_SOURCE_REPORT_STATUS_BADGE_CLASS_NAME,
     '"inline-block size-[5px] rounded-[50%] bg-current"',
-    "text-[oklch(0.55_0.16_70)]",
     "[[data-theme=dark]_&]:border-[var(--glass-border-soft)] [.dark_&]:border-[var(--glass-border-soft)]",
     "grid grid-cols-[80px_1fr] items-baseline gap-[8px] border-b border-dashed border-[var(--line-hairline)] py-[6px]",
     "border-b border-dashed border-[var(--line-hairline)]",
@@ -5363,11 +5383,11 @@ describe("dashboard SOT foundation", () => {
         );
         expect(sourceReportLoadedActions).toContain('control="repull-source"');
         expect(sourceReportPrimitives).toContain(
-            "sourceReportStatusBadgeStyles",
-        );
-        expect(sourceReportPrimitives).toContain(
             EXPECTED_SOURCE_REPORT_STATUS_BADGE_CLASS_NAME,
         );
+        for (const snippet of SOURCE_REPORT_STATUS_VARIANT_SNIPPETS) {
+            expect(sourceReportPrimitives).toContain(snippet);
+        }
         expect(workstation).not.toContain(
             [
                 "SOT",
@@ -5390,10 +5410,24 @@ describe("dashboard SOT foundation", () => {
             'data-sot-badge="source-report-status"',
             "Badge",
         );
-        expect(sourceReportStatusBadge).toContain('variant="outline"');
         expect(sourceReportStatusBadge).toContain(
-            "sourceReportStatusBadgeStyles({ tone, className })",
+            "variant={SOURCE_REPORT_STATUS_VARIANT[tone]}",
         );
+        expect(sourceReportStatusBadge).toContain("className={cn(");
+        expect(sourceReportStatusBadge).toContain(
+            'data-sot-badge="source-report-status"',
+        );
+        expect(sourceReportStatusBadge).toContain("data-sot-tone={tone}");
+        const sourceReportStatusBadgePrimitive = extractBoundedSlice(
+            sourceReportPrimitives,
+            "const SOURCE_REPORT_STATUS_VARIANT = {",
+            "export function SourceReportCopyIcon",
+        );
+        for (const forbiddenStatusBadgeStyling of SOURCE_REPORT_STATUS_BADGE_FORBIDDEN_STYLING_SNIPPETS) {
+            expect(sourceReportStatusBadgePrimitive).not.toContain(
+                forbiddenStatusBadgeStyling,
+            );
+        }
         const sourceReportLoadedStatusBadge = extractOpeningElement(
             sourceReportLoaded,
             'tone="warn"',

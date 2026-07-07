@@ -76,6 +76,25 @@ const RECORDING_WORKSTATION_MAIN_REQUIRED_CLASS_TOKENS = [
     "max-[860px]:max-w-full",
     "max-[860px]:box-border",
 ] as const;
+const EXPECTED_SOURCE_REPORT_STATUS_BADGE_CLASS_NAME =
+    "h-[22px] justify-normal gap-[5px] overflow-visible px-[8px] py-0";
+const SOURCE_REPORT_STATUS_VARIANT_SNIPPETS = [
+    "const SOURCE_REPORT_STATUS_VARIANT = {",
+    'err: "destructive"',
+    'neu: "secondary"',
+    'ok: "default"',
+    'warn: "outline"',
+    'React.ComponentProps<typeof Badge>["variant"]',
+    "variant={SOURCE_REPORT_STATUS_VARIANT[tone]}",
+] as const;
+const SOURCE_REPORT_STATUS_BADGE_FORBIDDEN_STYLING_SNIPPETS = [
+    "sourceReportStatusBadgeStyles",
+    "color-mix(",
+    "oklch(",
+    "--signal-success",
+    "--signal-danger",
+    "--signal-warning",
+] as const;
 const DASHBOARD_MAIN_REQUIRED_CLASS_TOKENS = [
     "flex",
     "h-screen",
@@ -259,12 +278,13 @@ const SOURCE_REPORT_PRIMITIVE_OWNER_SNIPPETS = [
     "border border-dashed border-[var(--line-hairline)] bg-[var(--bg-recessed)]",
     "const sourceReportEmptyIconStyles = cva(",
     "border-[var(--alert-destructive-icon-soft-border)] bg-[var(--alert-destructive-icon-soft-bg)] text-[var(--signal-danger)]",
-    "const sourceReportStatusBadgeStyles = cva(",
-    "sourceReportStatusBadgeStyles({ tone, className })",
-    "rounded-[999px]",
+    "const SOURCE_REPORT_STATUS_VARIANT = {",
+    'err: "destructive"',
+    'neu: "secondary"',
+    'ok: "default"',
+    'warn: "outline"',
+    EXPECTED_SOURCE_REPORT_STATUS_BADGE_CLASS_NAME,
     '"inline-block size-[5px] rounded-[50%] bg-current"',
-    "text-[oklch(0.55_0.16_70)]",
-    "text-[var(--signal-danger)]",
     "[[data-theme=dark]_&]:border-[var(--glass-border-soft)] [.dark_&]:border-[var(--glass-border-soft)]",
     "grid grid-cols-[80px_1fr] items-baseline gap-[8px] border-b border-dashed border-[var(--line-hairline)] py-[6px]",
     "border-b border-dashed border-[var(--line-hairline)]",
@@ -1555,7 +1575,7 @@ describe("recording detail copy and title action UI regressions", () => {
             /\bSOURCE_REPORT_(?:SKELETON|CARD_SKELETON|SEGMENT_SKELETON|METRIC_CARD|STATUS_BADGE|COPY_BUTTON|STYLE_VARIABLES)[A-Z0-9_]*\b/,
         );
         expect(sourceReportPrimitives).not.toMatch(
-            /\bSOURCE_REPORT_[A-Z0-9_]*\b/,
+            /\bSOURCE_REPORT_(?:SKELETON|CARD_SKELETON|SEGMENT_SKELETON|METRIC_CARD|STATUS_BADGE|COPY_BUTTON|STYLE_VARIABLES)[A-Z0-9_]*\b/,
         );
         expect(sourceReport).not.toContain("SOURCE_REPORT_STYLE_VARIABLES");
         expect(
@@ -1752,19 +1772,35 @@ describe("recording detail copy and title action UI regressions", () => {
         expect(sourceReport).not.toContain(
             'className="flex size-10 items-center justify-center rounded-full border border-border bg-background text-muted-foreground"',
         );
+        for (const snippet of SOURCE_REPORT_STATUS_VARIANT_SNIPPETS) {
+            expect(sourceReportPrimitives).toContain(snippet);
+        }
         expect(sourceReportPrimitives).toContain(
-            "const sourceReportStatusBadgeStyles = cva(",
+            EXPECTED_SOURCE_REPORT_STATUS_BADGE_CLASS_NAME,
         );
         const sourceReportStatusBadge = extractOpeningElement(
             sourceReportPrimitives,
             'data-sot-badge="source-report-status"',
             "Badge",
         );
-        expect(sourceReportStatusBadge).toContain('variant="outline"');
         expect(sourceReportStatusBadge).toContain(
-            "sourceReportStatusBadgeStyles({ tone, className })",
+            "variant={SOURCE_REPORT_STATUS_VARIANT[tone]}",
+        );
+        expect(sourceReportStatusBadge).toContain("className={cn(");
+        expect(sourceReportStatusBadge).toContain(
+            'data-sot-badge="source-report-status"',
         );
         expect(sourceReportStatusBadge).toContain("data-sot-tone={tone}");
+        const sourceReportStatusBadgePrimitive = extractBoundedSlice(
+            sourceReportPrimitives,
+            "const SOURCE_REPORT_STATUS_VARIANT = {",
+            "export function SourceReportCopyIcon",
+        );
+        for (const forbiddenStatusBadgeStyling of SOURCE_REPORT_STATUS_BADGE_FORBIDDEN_STYLING_SNIPPETS) {
+            expect(sourceReportStatusBadgePrimitive).not.toContain(
+                forbiddenStatusBadgeStyling,
+            );
+        }
         expect(sourceReport).not.toContain(variantAttr("sourceReportStatus"));
         for (const primitiveSource of sourceReportPrimitiveSources) {
             expect(primitiveSource).not.toMatch(

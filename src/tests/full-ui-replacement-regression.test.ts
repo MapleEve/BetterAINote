@@ -59,6 +59,25 @@ const EXPECTED_RECORDING_DETAIL_LIST_CARD_CLASS_NAME =
     "min-h-0 gap-0 max-[860px]:min-w-0 max-[860px]:max-w-full max-[860px]:box-border";
 const OWNER_WORKSPACE_FORBIDDEN_CLASS_PATTERN =
     /\bspace-[xy]-|\b(?:rgb|rgba|hsl|hsla|oklch|color-mix)\(|#[0-9A-Fa-f]{3,8}\b|\bdark:|(?:^|\s)(?:bg|border|text|shadow|ring|fill|stroke|from|via|to)-(?:white|black|transparent|slate|gray|zinc|neutral|stone|red|orange|amber|yellow|lime|green|emerald|teal|cyan|sky|blue|indigo|violet|purple|fuchsia|pink|rose)(?:[/-]\d+)?\b/;
+const EXPECTED_SOURCE_REPORT_STATUS_BADGE_CLASS_NAME =
+    "h-[22px] justify-normal gap-[5px] overflow-visible px-[8px] py-0";
+const SOURCE_REPORT_STATUS_VARIANT_SNIPPETS = [
+    "const SOURCE_REPORT_STATUS_VARIANT = {",
+    'err: "destructive"',
+    'neu: "secondary"',
+    'ok: "default"',
+    'warn: "outline"',
+    'React.ComponentProps<typeof Badge>["variant"]',
+    "variant={SOURCE_REPORT_STATUS_VARIANT[tone]}",
+] as const;
+const SOURCE_REPORT_STATUS_BADGE_FORBIDDEN_STYLING_SNIPPETS = [
+    "sourceReportStatusBadgeStyles",
+    "color-mix(",
+    "oklch(",
+    "--signal-success",
+    "--signal-danger",
+    "--signal-warning",
+] as const;
 const DASHBOARD_TOPBAR_REQUIRED_CLASS_TOKENS = [
     "relative",
     "z-[var(--z-topbar)]",
@@ -3064,12 +3083,13 @@ const SOURCE_REPORT_PRIMITIVE_OWNER_SNIPPETS = [
     "border border-dashed border-[var(--line-hairline)] bg-[var(--bg-recessed)]",
     "const sourceReportEmptyIconStyles = cva(",
     "border-[var(--alert-destructive-icon-soft-border)] bg-[var(--alert-destructive-icon-soft-bg)] text-[var(--signal-danger)]",
-    "const sourceReportStatusBadgeStyles = cva(",
-    "sourceReportStatusBadgeStyles({ tone, className })",
-    "rounded-[999px]",
+    "const SOURCE_REPORT_STATUS_VARIANT = {",
+    'err: "destructive"',
+    'neu: "secondary"',
+    'ok: "default"',
+    'warn: "outline"',
+    EXPECTED_SOURCE_REPORT_STATUS_BADGE_CLASS_NAME,
     '"inline-block size-[5px] rounded-[50%] bg-current"',
-    "text-[oklch(0.55_0.16_70)]",
-    "text-[var(--signal-danger)]",
     "[[data-theme=dark]_&]:border-[var(--glass-border-soft)] [.dark_&]:border-[var(--glass-border-soft)]",
     "grid grid-cols-[80px_1fr] items-baseline gap-[8px] border-b border-dashed border-[var(--line-hairline)] py-[6px]",
     "border-b border-dashed border-[var(--line-hairline)]",
@@ -10247,9 +10267,9 @@ describe("full UI replacement regression coverage", () => {
             '"dashboard-source-report-status-dot"',
         );
         expect(sourceReportPrimitives).toContain("data-sot-part={part}");
-        expect(sourceReportPrimitives).toContain(
-            "sourceReportStatusBadgeStyles",
-        );
+        for (const snippet of SOURCE_REPORT_STATUS_VARIANT_SNIPPETS) {
+            expect(sourceReportPrimitives).toContain(snippet);
+        }
         expect(workstation).not.toContain(
             ["SOURCE_REPORT_STATUS_CLASS_NAME", "SOT_DASHBOARD_"]
                 .reverse()
@@ -10370,11 +10390,27 @@ describe("full UI replacement regression coverage", () => {
             'data-sot-badge="source-report-status"',
             "Badge",
         );
-        expect(dashboardSourceReportStatusBadge).toContain('variant="outline"');
         expect(dashboardSourceReportStatusBadge).toContain(
-            "sourceReportStatusBadgeStyles({ tone, className })",
+            "variant={SOURCE_REPORT_STATUS_VARIANT[tone]}",
+        );
+        expect(dashboardSourceReportStatusBadge).toContain("className={cn(");
+        expect(dashboardSourceReportStatusBadge).toContain(
+            'data-sot-badge="source-report-status"',
+        );
+        expect(dashboardSourceReportStatusBadge).toContain(
+            "data-sot-tone={tone}",
         );
         expect(dashboardSourceReportStatusBadge).toContain("className");
+        const dashboardSourceReportStatusBadgePrimitive = extractBoundedSlice(
+            sourceReportPrimitives,
+            "const SOURCE_REPORT_STATUS_VARIANT = {",
+            "export function SourceReportCopyIcon",
+        );
+        for (const forbiddenStatusBadgeStyling of SOURCE_REPORT_STATUS_BADGE_FORBIDDEN_STYLING_SNIPPETS) {
+            expect(dashboardSourceReportStatusBadgePrimitive).not.toContain(
+                forbiddenStatusBadgeStyling,
+            );
+        }
         expect(dashboardSourceReportLoaded).not.toContain(
             'variant="sourceReportStatus"',
         );
@@ -15011,10 +15047,35 @@ describe("full UI replacement regression coverage", () => {
         expect(sourceReportPrimitives).toContain(
             "function SourceReportStatusBadge",
         );
+        for (const snippet of SOURCE_REPORT_STATUS_VARIANT_SNIPPETS) {
+            expect(sourceReportPrimitives).toContain(snippet);
+        }
         expect(sourceReportPrimitives).toContain(
-            "sourceReportStatusBadgeStyles",
+            EXPECTED_SOURCE_REPORT_STATUS_BADGE_CLASS_NAME,
         );
-        expect(sourceReportPrimitives).toContain('variant="outline"');
+        const sourceReportStatusBadge = extractOpeningElement(
+            sourceReportPrimitives,
+            'data-sot-badge="source-report-status"',
+            "Badge",
+        );
+        expect(sourceReportStatusBadge).toContain(
+            "variant={SOURCE_REPORT_STATUS_VARIANT[tone]}",
+        );
+        expect(sourceReportStatusBadge).toContain("className={cn(");
+        expect(sourceReportStatusBadge).toContain(
+            'data-sot-badge="source-report-status"',
+        );
+        expect(sourceReportStatusBadge).toContain("data-sot-tone={tone}");
+        const sourceReportStatusBadgePrimitive = extractBoundedSlice(
+            sourceReportPrimitives,
+            "const SOURCE_REPORT_STATUS_VARIANT = {",
+            "export function SourceReportCopyIcon",
+        );
+        for (const forbiddenStatusBadgeStyling of SOURCE_REPORT_STATUS_BADGE_FORBIDDEN_STYLING_SNIPPETS) {
+            expect(sourceReportStatusBadgePrimitive).not.toContain(
+                forbiddenStatusBadgeStyling,
+            );
+        }
         expectSourceToExcludeForbiddenSubstrings(
             badge,
             BADGE_PRIMITIVE_FORBIDDEN_BUSINESS_TOKENS,

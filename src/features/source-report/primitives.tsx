@@ -264,22 +264,15 @@ export function DashboardSourceReportStatusDot() {
     return <SourceReportStatusDot part="dashboard-source-report-status-dot" />;
 }
 
-const sourceReportStatusBadgeStyles = cva(
-    "h-[22px] justify-normal gap-[5px] overflow-visible rounded-[999px] px-[8px] py-0 font-sans text-[11px] font-semibold leading-[normal] shadow-none transition-none",
-    {
-        variants: {
-            tone: {
-                err: "border-[color-mix(in_srgb,var(--signal-danger)_30%,transparent)] bg-[color-mix(in_srgb,var(--signal-danger)_14%,transparent)] text-[var(--signal-danger)]",
-                neu: "border-[var(--line-hairline)] bg-[var(--bg-recessed)] text-[var(--fg-secondary)]",
-                ok: "border-[color-mix(in_srgb,var(--signal-success)_30%,transparent)] bg-[color-mix(in_srgb,var(--signal-success)_14%,transparent)] text-[var(--signal-success)]",
-                warn: "border-[color-mix(in_srgb,var(--signal-warning)_32%,transparent)] bg-[color-mix(in_srgb,var(--signal-warning)_18%,transparent)] text-[oklch(0.55_0.16_70)]",
-            } satisfies Record<SourceReportTone, string>,
-        },
-        defaultVariants: {
-            tone: "neu",
-        },
-    },
-);
+const SOURCE_REPORT_STATUS_VARIANT = {
+    err: "destructive",
+    neu: "secondary",
+    ok: "default",
+    warn: "outline",
+} as const satisfies Record<
+    SourceReportTone,
+    React.ComponentProps<typeof Badge>["variant"]
+>;
 
 export function SourceReportStatusBadge({
     children,
@@ -292,8 +285,11 @@ export function SourceReportStatusBadge({
 }) {
     return (
         <Badge
-            variant="outline"
-            className={sourceReportStatusBadgeStyles({ tone, className })}
+            variant={SOURCE_REPORT_STATUS_VARIANT[tone]}
+            className={cn(
+                "h-[22px] justify-normal gap-[5px] overflow-visible px-[8px] py-0",
+                className,
+            )}
             data-sot-badge="source-report-status"
             data-sot-tone={tone}
         >
