@@ -459,6 +459,105 @@ test("title generation settings load failure exposes retry-only SOT state", asyn
     ).toBeVisible();
 });
 
+test("transcription settings load failure exposes retry-only SOT state", async ({
+    page,
+}) => {
+    await ensureSignedIn(page);
+    await resetCoreSettings(page);
+
+    let releaseInitialLoad: (() => void) | null = null;
+    const initialLoadBlocked = new Promise<void>((resolve) => {
+        releaseInitialLoad = resolve;
+    });
+    let failedInitialLoad = false;
+    await page.route("**/*", async (route) => {
+        const requestUrl = new URL(route.request().url());
+        if (
+            requestUrl.pathname !== "/api/settings/transcription" ||
+            route.request().method() !== "GET" ||
+            failedInitialLoad
+        ) {
+            await route.continue();
+            return;
+        }
+
+        failedInitialLoad = true;
+        await initialLoadBlocked;
+        await route.fulfill({
+            contentType: "application/json",
+            status: 503,
+            body: JSON.stringify({
+                error: "Transcription settings unavailable",
+            }),
+        });
+    });
+
+    await page.goto("/settings#transcription", {
+        waitUntil: "domcontentloaded",
+    });
+
+    const section = settingsSection(page, "transcription");
+    await expect(section).toBeVisible();
+    await expect(section).toHaveAttribute("data-sot-state", "loading");
+    await expect(section).toHaveAttribute("aria-busy", "true");
+    const skeleton = page.locator(
+        '[data-sot-panel="settings-section-skeleton"][data-sot-section="transcription"]',
+    );
+    await expect(skeleton).toBeVisible();
+    await expect(skeleton).toHaveAttribute("data-sot-state", "loading");
+    await expect(
+        skeleton.locator('[data-sot-part="settings-skeleton-row"]'),
+    ).toHaveCount(4);
+    await expect(
+        skeleton.locator('[data-sot-panel="settings-card-skeleton"]'),
+    ).toHaveCount(2);
+
+    releaseInitialLoad?.();
+    await expect(section).toHaveAttribute("data-sot-state", "error");
+    const loadError = section.locator(
+        '[data-sot-panel="settings-section-load-error"][data-sot-section="transcription"]',
+    );
+    await expect(loadError).toBeVisible();
+    await expect(section.getByText("加载失败")).toBeVisible();
+    await expect(
+        section.getByText("Transcription settings unavailable"),
+    ).toBeVisible();
+    await expect(
+        sectionSotControl(section, "transcription-auto-transcribe"),
+    ).toHaveCount(0);
+    await expect(
+        sectionSotControl(section, "transcription-language"),
+    ).toHaveCount(0);
+    await expect(sectionSaveButton(section)).toHaveCount(0);
+    await expect(section.locator('[data-sot-action="save"]')).toHaveCount(0);
+    await expect(section.locator("[data-save-action]")).toHaveCount(0);
+    const retry = section.locator(
+        '[data-sot-control="settings-section-load-retry"][data-sot-section="transcription"]',
+    );
+    await expect(retry).toBeVisible();
+
+    const retryResponse = page.waitForResponse(
+        (response) =>
+            response.url().includes("/api/settings/transcription") &&
+            response.request().method() === "GET" &&
+            response.ok(),
+    );
+    await retry.click();
+    await retryResponse;
+
+    await expectSectionReady(page, "transcription");
+    await expectSotSwitchState(
+        sectionSotControl(section, "transcription-auto-transcribe"),
+        true,
+    );
+    const languageSelect = sectionSotControl(section, "transcription-language");
+    await expect(languageSelect).toHaveAttribute("data-sot-state", "ready");
+    await expectShadcnSelectTrigger(languageSelect, {
+        label: "默认转录语言",
+        text: "自动检测",
+    });
+});
+
 test("transcription settings save auto-transcribe and language changes through SOT controls", async ({
     page,
 }) => {
