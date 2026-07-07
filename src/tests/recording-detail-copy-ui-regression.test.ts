@@ -1097,6 +1097,12 @@ describe("recording detail copy and title action UI regressions", () => {
         expect(detailTranscript).toContain(
             "const recordingTranscriptionClassNames = {",
         );
+        expect(detailTranscript).not.toContain(
+            "const recordingTranscriptionButtonClassNames",
+        );
+        expect(detailTranscript).not.toContain(
+            "recordingTranscriptionButtonClassNames.",
+        );
         const recordingTranscriptionClassNamesBlock = extractBoundedSlice(
             detailTranscript,
             "const recordingTranscriptionClassNames = {",
@@ -1314,21 +1320,15 @@ describe("recording detail copy and title action UI regressions", () => {
         );
         expect(copyControl).toContain('variant="outline"');
         expect(copyControl).toContain('size="sm"');
-        expect(copyControl).toContain(
-            "recordingTranscriptionButtonClassNames.action",
-        );
+        expect(copyControl).not.toContain("className=");
         expect(copyControl).toContain("isCopyingTranscript");
         expect(copyControl).toContain("!displayText.trim()");
         expect(retranscribeControl).toContain('variant="destructive"');
         expect(retranscribeControl).toContain('size="sm"');
-        expect(retranscribeControl).toContain(
-            "recordingTranscriptionButtonClassNames.danger",
-        );
+        expect(retranscribeControl).not.toContain("className=");
         expect(startControl).toContain('variant="default"');
         expect(startControl).toContain('size="sm"');
-        expect(startControl).toContain(
-            "recordingTranscriptionButtonClassNames.primary",
-        );
+        expect(startControl).not.toContain("className=");
         expect(jobErrorBanner).toContain("<Alert");
         expect(jobErrorBanner).toContain('variant="statusError"');
         expect(metaList).toContain("<RecordingTranscriptionMetaBadge");
@@ -1340,6 +1340,15 @@ describe("recording detail copy and title action UI regressions", () => {
             'variant="transcriptionDangerAction"',
             'variant="transcriptionPrimaryAction"',
             'size="transcriptionAction"',
+            "recordingTranscriptionButtonClassNames.action",
+            "recordingTranscriptionButtonClassNames.danger",
+            "recordingTranscriptionButtonClassNames.primary",
+            "h-8",
+            "gap-1.5",
+            "rounded-md",
+            "px-3",
+            "shadow-xs",
+            "has-[>svg]:px-2.5",
         ]) {
             expect(copyControl).not.toContain(removedActionToken);
             expect(retranscribeControl).not.toContain(removedActionToken);

@@ -1925,10 +1925,19 @@ describe("settings SOT interaction regressions", () => {
             "variant={getSourceActionStatusBadgeVariant(state)}",
         );
         expect(sourceActionStatusWrapper).toContain(
+            "<SourceActionStatusIndicator state={state} />",
+        );
+        expect(sourceActionStatusWrapper).not.toContain(
+            "SOURCE_ACTION_STATUS_INDICATOR_CLASS",
+        );
+        expect(sourceActionStatusWrapper).not.toContain("animate-pulse");
+        expect(sourceActionStatusWrapper).not.toContain("showIndicator");
+        expect(content).toContain("function SourceActionStatusIndicator");
+        expect(content).toContain(
             'data-sot-part="source-action-status-indicator"',
         );
-        expect(sourceActionStatusWrapper).toContain("className={cn(");
-        expect(sourceActionStatusWrapper).not.toContain("showIndicator");
+        expect(content).toContain("<Spinner");
+        expect(content).toContain("getSourceActionStatusIcon");
         expect(badge).not.toContain("statusPill:");
         expect(badge).not.toContain("h-[18px]");
         expect(badge).not.toContain("gap-[4px]");
@@ -1994,8 +2003,12 @@ describe("settings SOT interaction regressions", () => {
         }
         expect(detailStatusBadgeClass).toContain("shrink-0");
         expect(providerTile).not.toContain('size="statusPill"');
-        expect(providerTile).toContain('"size-1 rounded-full bg-current"');
-        expect(providerTile).toContain('status.tone === "syncing"');
+        expect(providerTile).not.toContain('"size-1 rounded-full bg-current"');
+        expect(providerTile).toContain("<ProviderStatusIndicator");
+        expect(providerTile).toContain("providerStatusDot");
+        expect(content).toContain('tone === "syncing"');
+        expect(content).toContain("data-sot-provider-status-dot");
+        expect(content).toContain("data-sot-provider-status-icon");
         expect(content).not.toContain("getSourceActionStatusBadgeClassName");
         expect(content).not.toContain("getSourceActionStatusDotClassName");
         expect(statusBadgeClass).not.toContain(
@@ -2056,6 +2069,10 @@ describe("settings SOT interaction regressions", () => {
         const saveActionsClass =
             content.match(/const SETTINGS_SAVE_ACTIONS_CLASS[\s\S]*?;/)?.[0] ??
             "";
+        const saveStatus =
+            content.match(
+                /function SaveStatus[\s\S]*?function SectionShell/,
+            )?.[0] ?? "";
         const providerStateBannerBlock =
             content.match(
                 /function ProviderStateBanner[\s\S]*?function DataSourcesSettingsPanel/,
@@ -2280,7 +2297,15 @@ describe("settings SOT interaction regressions", () => {
         expect(content).toContain("const statusVariant: BadgeVariant =");
         expect(content).toContain("const statusClassName = cn(");
         expect(content).toContain('saveState === "idle" && "hidden"');
-        expect(content).toContain("const indicatorClassName = cn(");
+        expect(content).not.toContain("const indicatorClassName = cn(");
+        expect(saveStatus).toContain("<Spinner");
+        expect(saveStatus).toContain("<CheckCircle2");
+        expect(saveStatus).toContain("<XCircle");
+        expect(saveStatus).toContain(
+            'data-sot-part="settings-save-status-indicator"',
+        );
+        expect(saveStatus).not.toContain("animate-pulse");
+        expect(saveStatus).not.toContain("rounded-full bg-current");
         expect(saveActionsClass).toContain("SETTINGS_SAVE_ACTIONS_CLASS");
         expect(saveActionsClass).toContain(
             "flex flex-row-reverse items-center gap-2",

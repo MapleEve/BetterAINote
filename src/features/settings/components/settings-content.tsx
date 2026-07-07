@@ -286,8 +286,6 @@ const SOURCE_ACTION_BUTTON_PRIMITIVE_VARIANT_BY_TONE: Record<
 
 const SOURCE_ACTION_STATUS_BADGE_CLASS = "gap-1.5";
 
-const SOURCE_ACTION_STATUS_INDICATOR_CLASS = "size-2 rounded-full bg-current";
-
 const SOURCE_AUTH_MODE_BADGE_CLASS = "px-1.5";
 
 const SOURCE_PROVIDER_STATUS_BADGE_CLASS = "justify-self-end";
@@ -337,6 +335,52 @@ function getProviderStatusBadgeVariant(tone: ProviderTone): BadgeVariant {
     return "default";
 }
 
+function getProviderStatusIcon(tone: ProviderTone): LucideIcon {
+    if (tone === "ok") return CheckCircle2;
+    if (tone === "warn") return AlertCircle;
+    if (tone === "err") return XCircle;
+    if (tone === "neu") return PauseCircle;
+    return Info;
+}
+
+function ProviderStatusIndicator({
+    providerStatusDot = false,
+    statusDot = false,
+    tone,
+}: {
+    providerStatusDot?: boolean;
+    statusDot?: boolean;
+    tone: ProviderTone;
+}) {
+    const providerStatusIconHook = providerStatusDot ? "" : undefined;
+    const statusIconHook = statusDot ? "" : undefined;
+
+    if (tone === "syncing") {
+        return (
+            <Spinner
+                size="2xs"
+                aria-hidden="true"
+                data-sot-provider-status-dot={providerStatusIconHook}
+                data-sot-provider-status-icon={providerStatusIconHook}
+                data-sot-status-dot={statusIconHook}
+                data-sot-status-icon={statusIconHook}
+            />
+        );
+    }
+
+    const Icon = getProviderStatusIcon(tone);
+
+    return (
+        <Icon
+            aria-hidden="true"
+            data-sot-provider-status-dot={providerStatusIconHook}
+            data-sot-provider-status-icon={providerStatusIconHook}
+            data-sot-status-dot={statusIconHook}
+            data-sot-status-icon={statusIconHook}
+        />
+    );
+}
+
 function getSourceActionStatusBadgeVariant(
     state: ProviderActionState,
 ): BadgeVariant {
@@ -360,6 +404,44 @@ function isSourceActionStateBusy(state: ProviderActionState) {
     );
 }
 
+function getSourceActionStatusIcon(state: ProviderActionState): LucideIcon {
+    if (state.endsWith("error")) return XCircle;
+    if (
+        state === "saved" ||
+        state === "reconnected" ||
+        state === "test-success"
+    ) {
+        return CheckCircle2;
+    }
+    if (state === "disconnected") return AlertCircle;
+    return Info;
+}
+
+function SourceActionStatusIndicator({
+    state,
+}: {
+    state: ProviderActionState;
+}) {
+    if (isSourceActionStateBusy(state)) {
+        return (
+            <Spinner
+                size="2xs"
+                aria-hidden="true"
+                data-sot-part="source-action-status-indicator"
+            />
+        );
+    }
+
+    const Icon = getSourceActionStatusIcon(state);
+
+    return (
+        <Icon
+            aria-hidden="true"
+            data-sot-part="source-action-status-indicator"
+        />
+    );
+}
+
 function SourceActionStatusBadge({
     className,
     children,
@@ -372,14 +454,7 @@ function SourceActionStatusBadge({
             className={cn(SOURCE_ACTION_STATUS_BADGE_CLASS, className)}
             {...props}
         >
-            <span
-                aria-hidden="true"
-                data-sot-part="source-action-status-indicator"
-                className={cn(
-                    SOURCE_ACTION_STATUS_INDICATOR_CLASS,
-                    isSourceActionStateBusy(state) && "animate-pulse",
-                )}
-            />
+            <SourceActionStatusIndicator state={state} />
             {children}
         </Badge>
     );
@@ -805,13 +880,7 @@ function DataSourceProviderTile({
                 data-sot-tone={status.tone}
                 data-state={status.state}
             >
-                <span
-                    className={cn(
-                        "size-1 rounded-full bg-current",
-                        status.tone === "syncing" && "animate-pulse",
-                    )}
-                    data-sot-provider-status-dot=""
-                />
+                <ProviderStatusIndicator tone={status.tone} providerStatusDot />
                 {status.label}
             </Badge>
         </Button>
@@ -1450,13 +1519,9 @@ function DataSourcesSettingsPanel({
                                     data-sot-status={status.state}
                                     data-sot-tone={status.tone}
                                 >
-                                    <span
-                                        className={cn(
-                                            "size-1 rounded-full bg-current",
-                                            status.tone === "syncing" &&
-                                                "animate-pulse",
-                                        )}
-                                        data-sot-status-dot
+                                    <ProviderStatusIndicator
+                                        tone={status.tone}
+                                        statusDot
                                     />
                                     {status.label}
                                 </Badge>
@@ -2215,10 +2280,6 @@ function SaveStatus({
               ? "default"
               : "secondary";
     const statusClassName = cn("gap-1.5", saveState === "idle" && "hidden");
-    const indicatorClassName = cn(
-        "size-2 rounded-full bg-current",
-        saveState === "saving" && "animate-pulse",
-    );
 
     return (
         <Badge
@@ -2227,13 +2288,23 @@ function SaveStatus({
             data-sot-part="settings-save-status"
             data-sot-state={saveState}
         >
-            {saveState === "idle" ? null : (
-                <span
+            {saveState === "saving" ? (
+                <Spinner
+                    size="2xs"
                     aria-hidden="true"
                     data-sot-part="settings-save-status-indicator"
-                    className={indicatorClassName}
                 />
-            )}
+            ) : saveState === "saved" ? (
+                <CheckCircle2
+                    aria-hidden="true"
+                    data-sot-part="settings-save-status-indicator"
+                />
+            ) : saveState === "error" ? (
+                <XCircle
+                    aria-hidden="true"
+                    data-sot-part="settings-save-status-indicator"
+                />
+            ) : null}
             {label}
         </Badge>
     );

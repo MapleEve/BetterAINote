@@ -86,12 +86,6 @@ const recordingTranscriptionClassNames = {
     outputText:
         "m-0 font-sans text-[14.5px] leading-[1.65] text-foreground [text-wrap:pretty] max-[860px]:[overflow-wrap:anywhere]",
 } as const;
-const recordingTranscriptionButtonClassNames = {
-    action: "h-8 gap-1.5 rounded-md px-3 text-foreground shadow-xs has-[>svg]:px-2.5",
-    primary: "h-8 gap-1.5 rounded-md px-3 shadow-xs has-[>svg]:px-2.5",
-    danger: "h-8 gap-1.5 rounded-md px-3 shadow-xs has-[>svg]:px-2.5",
-} as const;
-
 function RecordingTranscriptionMetaBadge({
     className,
     ...props
@@ -491,9 +485,6 @@ export function TranscriptionSection({
                                         onClick={handleCopyTranscript}
                                         size="sm"
                                         variant="outline"
-                                        className={
-                                            recordingTranscriptionButtonClassNames.action
-                                        }
                                         data-sot-control="copy-local-transcript"
                                         disabled={
                                             isCopyingTranscript ||
@@ -513,9 +504,6 @@ export function TranscriptionSection({
                                         onClick={handleConfirmRetranscribe}
                                         size="sm"
                                         variant="destructive"
-                                        className={
-                                            recordingTranscriptionButtonClassNames.danger
-                                        }
                                         data-sot-control="retranscribe-local"
                                         disabled={
                                             !canTranscribe || isTranscribing
@@ -662,9 +650,6 @@ export function TranscriptionSection({
                                 onClick={() => handleTranscribe(false)}
                                 size="sm"
                                 variant="default"
-                                className={
-                                    recordingTranscriptionButtonClassNames.primary
-                                }
                                 data-sot-control="start-local-transcription"
                                 disabled={!canTranscribe || isTranscribing}
                                 title={
