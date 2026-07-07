@@ -12598,7 +12598,7 @@ describe("full UI replacement regression coverage", () => {
             "SPEAKER_REVIEW_CARD_CONTENT_CLASS_NAMES",
             "SPEAKER_REVIEW_CARD_DESCRIPTION_CLASS_NAME",
             "SPEAKER_REVIEW_CARD_ACTION_CLASS_NAME",
-            "SPEAKER_REVIEW_VOICEPRINT_BADGE_CLASS_NAME",
+            "SPEAKER_REVIEW_VOICEPRINT_BADGE_VARIANTS",
             "SPEAKER_REVIEW_ACTION_BUTTON_CLASS_NAME",
             "SPEAKER_REVIEW_PRIMARY_BUTTON_CLASS_NAME",
             "SPEAKER_REVIEW_GHOST_BUTTON_CLASS_NAME",
@@ -12640,21 +12640,31 @@ describe("full UI replacement regression coverage", () => {
         ]) {
             expect(emptyPrimitive).not.toContain(speakerReviewEmptyVariant);
         }
-        const speakerReviewVoiceprintBadgeClass = extractBoundedSlice(
+        const speakerReviewVoiceprintBadgeVariants = extractBoundedSlice(
             speakerReview,
-            "const SPEAKER_REVIEW_VOICEPRINT_BADGE_CLASS_NAME =",
+            "const SPEAKER_REVIEW_VOICEPRINT_BADGE_VARIANTS =",
             ";",
         );
-        expect(speakerReviewVoiceprintBadgeClass).toContain("h-[22px]");
-        expect(speakerReviewVoiceprintBadgeClass).not.toContain(
+        expect(speakerReviewVoiceprintBadgeVariants).toContain(
+            'missing: "secondary"',
+        );
+        expect(speakerReviewVoiceprintBadgeVariants).toContain(
+            'ready: "outline"',
+        );
+        expect(speakerReviewVoiceprintBadgeVariants).toContain(
+            'selected: "default"',
+        );
+        expect(speakerReviewVoiceprintBadgeVariants).not.toContain(
             "--source-provider-status-",
         );
-        expect(speakerReviewVoiceprintBadgeClass).toContain(
-            "data-[sot-tone=missing]:bg-secondary",
+        expect(speakerReview).not.toContain(
+            "SPEAKER_REVIEW_VOICEPRINT_BADGE_CLASS_NAME",
         );
-        expect(speakerReviewVoiceprintBadgeClass).toContain(
-            "data-[sot-tone=ready]:bg-primary/10",
-        );
+        expect(speakerReview).not.toContain("data-[sot-tone=missing]");
+        expect(speakerReview).not.toContain("data-[sot-tone=ready]");
+        expect(speakerReview).not.toContain("data-[sot-tone=selected]");
+        expect(speakerReview).not.toContain("[&>svg]:size-[11px]");
+        expect(speakerReview).not.toContain("[&>svg]:stroke-2");
         for (const selector of SPEAKER_REVIEW_RESIDUAL_GLOBAL_SELECTORS) {
             expect(globals).not.toContain(selector);
         }
@@ -12949,6 +12959,18 @@ describe("full UI replacement regression coverage", () => {
             expect(opening).not.toContain('variant="speakerReview');
             expect(opening).not.toContain('size="speakerReview');
         }
+        const speakerReviewMergeClose = extractElementSlice(
+            speakerReview,
+            "data-spk-merge-close",
+            "Button",
+        );
+        expect(speakerReviewMergeClose).toContain('size="icon-sm"');
+        expect(speakerReviewMergeClose).toMatch(
+            /<X\s+data-icon="inline-start"\s+aria-hidden="true"\s+focusable="false"\s*\/>/,
+        );
+        expect(speakerReviewMergeClose).not.toContain("size-[17px]");
+        expect(speakerReviewMergeClose).not.toContain("translate-x");
+        expect(speakerReviewMergeClose).not.toContain("translate-y");
         expect(speakerReview).toContain('variant="outline"');
         expect(speakerReview).toContain('variant="default"');
         expect(speakerReview).toContain('variant="ghost"');
@@ -13039,6 +13061,18 @@ describe("full UI replacement regression coverage", () => {
             expect(opening).not.toContain('variant="speakerReviewVoiceprint"');
             expect(opening).not.toContain('variant="outline"');
         }
+        const speakerReviewVoiceprintBadgeHelper = extractBoundedSlice(
+            speakerReview,
+            "function SpeakerReviewVoiceprintBadge(",
+            "function formatSegmentWindow",
+        );
+        expect(speakerReviewVoiceprintBadgeHelper).toContain(
+            "variant={SPEAKER_REVIEW_VOICEPRINT_BADGE_VARIANTS[tone]}",
+        );
+        expect(speakerReviewVoiceprintBadgeHelper).toContain(
+            "data-sot-tone={tone}",
+        );
+        expect(speakerReviewVoiceprintBadgeHelper).not.toContain("className=");
         expect(speakerReview).not.toContain("hidden={!isMergePopoverOpen}");
         expect(speakerReview).toContain(
             "data-open={String(isMergePopoverOpen)}",

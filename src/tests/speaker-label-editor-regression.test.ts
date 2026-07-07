@@ -528,7 +528,7 @@ describe("dashboard speaker label editor regressions", () => {
             "const SPEAKER_REVIEW_CARD_CONTENT_CLASS_NAMES =",
             "const SPEAKER_REVIEW_CARD_DESCRIPTION_CLASS_NAME =",
             "const SPEAKER_REVIEW_CARD_ACTION_CLASS_NAME =",
-            "const SPEAKER_REVIEW_VOICEPRINT_BADGE_CLASS_NAME =",
+            "const SPEAKER_REVIEW_VOICEPRINT_BADGE_VARIANTS =",
             "const SPEAKER_REVIEW_ACTION_BUTTON_CLASS_NAME =",
             "const SPEAKER_REVIEW_PRIMARY_BUTTON_CLASS_NAME =",
             "const SPEAKER_REVIEW_GHOST_BUTTON_CLASS_NAME =",
@@ -553,12 +553,23 @@ describe("dashboard speaker label editor regressions", () => {
             "function SpeakerReviewCardAction(",
             "function SpeakerReviewCardContent(",
             "function SpeakerReviewVoiceprintBadge(",
-            "data-[sot-tone=ready]",
-            "data-[sot-tone=missing]",
-            "data-[sot-tone=selected]",
         ]) {
             expect(source).toContain(token);
         }
+        const voiceprintVariantConst = extractSpeakerReviewConst(
+            "SPEAKER_REVIEW_VOICEPRINT_BADGE_VARIANTS",
+        );
+        expect(voiceprintVariantConst).toContain('missing: "secondary"');
+        expect(voiceprintVariantConst).toContain('ready: "outline"');
+        expect(voiceprintVariantConst).toContain('selected: "default"');
+        expect(source).not.toContain(
+            "SPEAKER_REVIEW_VOICEPRINT_BADGE_CLASS_NAME",
+        );
+        expect(source).not.toContain("data-[sot-tone=ready]");
+        expect(source).not.toContain("data-[sot-tone=missing]");
+        expect(source).not.toContain("data-[sot-tone=selected]");
+        expect(source).not.toContain("[&>svg]:size-[11px]");
+        expect(source).not.toContain("[&>svg]:stroke-2");
         for (const {
             constName,
             tokens,
@@ -722,6 +733,17 @@ describe("dashboard speaker label editor regressions", () => {
         expect(mergeTriggerOpening).toContain(
             "aria-expanded={isMergePopoverOpen}",
         );
+        const mergeCloseSlice = extractElementSlice(
+            "data-spk-merge-close",
+            "Button",
+        );
+        expect(mergeCloseSlice).toContain('size="icon-sm"');
+        expect(mergeCloseSlice).toMatch(
+            /<X\s+data-icon="inline-start"\s+aria-hidden="true"\s+focusable="false"\s*\/>/,
+        );
+        expect(mergeCloseSlice).not.toContain("size-[17px]");
+        expect(mergeCloseSlice).not.toContain("translate-x");
+        expect(mergeCloseSlice).not.toContain("translate-y");
         expect(
             cardOpenings.find((opening) =>
                 opening.includes('data-sot-confirm="speaker-unlink"'),
@@ -768,6 +790,26 @@ describe("dashboard speaker label editor regressions", () => {
             expect(opening).not.toContain("variant=");
             expect(opening).not.toContain('variant="speakerReviewVoiceprint"');
         }
+        const voiceprintBadgeHelperStart = source.indexOf(
+            "function SpeakerReviewVoiceprintBadge(",
+        );
+        expect(voiceprintBadgeHelperStart).toBeGreaterThanOrEqual(0);
+        const voiceprintBadgeHelperEnd = source.indexOf(
+            "function formatSegmentWindow",
+            voiceprintBadgeHelperStart,
+        );
+        expect(voiceprintBadgeHelperEnd).toBeGreaterThan(
+            voiceprintBadgeHelperStart,
+        );
+        const voiceprintBadgeHelper = source.slice(
+            voiceprintBadgeHelperStart,
+            voiceprintBadgeHelperEnd,
+        );
+        expect(voiceprintBadgeHelper).toContain(
+            "variant={SPEAKER_REVIEW_VOICEPRINT_BADGE_VARIANTS[tone]}",
+        );
+        expect(voiceprintBadgeHelper).toContain("data-sot-tone={tone}");
+        expect(voiceprintBadgeHelper).not.toContain("className=");
         expect(source).toContain('data-sot-tone="missing"');
         expect(source).toContain('? "selected"');
         expect(source).toContain('? "ready"');

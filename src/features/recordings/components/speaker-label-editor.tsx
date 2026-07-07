@@ -133,8 +133,6 @@ const SPEAKER_REVIEW_CARD_ACTION_CLASS_NAME =
 const SPEAKER_REVIEW_MERGE_CARD_ACTION_CLASS_NAME =
     "self-auto justify-self-auto leading-none";
 
-const SPEAKER_REVIEW_VOICEPRINT_BADGE_CLASS_NAME =
-    "h-[22px] justify-normal gap-[5px] overflow-visible rounded-full border px-[8px] py-0 text-[11px] font-semibold shadow-none data-[sot-tone=missing]:border-border data-[sot-tone=missing]:bg-secondary data-[sot-tone=missing]:text-secondary-foreground data-[sot-tone=ready]:border-primary/30 data-[sot-tone=ready]:bg-primary/10 data-[sot-tone=ready]:text-primary data-[sot-tone=selected]:border-primary/30 data-[sot-tone=selected]:bg-primary/10 data-[sot-tone=selected]:text-primary [&>svg]:size-[11px] [&>svg]:stroke-2";
 const SPEAKER_REVIEW_ACTION_BUTTON_CLASS_NAME = "text-[var(--fg-primary)]";
 const SPEAKER_REVIEW_PRIMARY_BUTTON_CLASS_NAME = "shadow-xs";
 const SPEAKER_REVIEW_GHOST_BUTTON_CLASS_NAME =
@@ -172,6 +170,21 @@ const SPEAKER_REVIEW_ROW_SUB_CLASS_NAME =
 type ClassNameProp = {
     className?: string;
 };
+
+type SpeakerReviewVoiceprintTone = "missing" | "ready" | "selected";
+
+type SpeakerReviewVoiceprintBadgeVariant = NonNullable<
+    ComponentProps<typeof Badge>["variant"]
+>;
+
+const SPEAKER_REVIEW_VOICEPRINT_BADGE_VARIANTS = {
+    missing: "secondary",
+    ready: "outline",
+    selected: "default",
+} satisfies Record<
+    SpeakerReviewVoiceprintTone,
+    SpeakerReviewVoiceprintBadgeVariant
+>;
 
 function SpeakerReviewCard({
     className,
@@ -276,17 +289,18 @@ function SpeakerReviewCardContent({
 }
 
 function SpeakerReviewVoiceprintBadge({
-    className,
+    "data-sot-tone": tone,
     ...props
-}: Omit<ComponentProps<typeof Badge>, "className" | "variant"> &
-    ClassNameProp) {
+}: Omit<
+    ComponentProps<typeof Badge>,
+    "className" | "data-sot-tone" | "variant"
+> & {
+    "data-sot-tone": SpeakerReviewVoiceprintTone;
+}) {
     return (
         <Badge
-            variant="ghost"
-            className={cn(
-                SPEAKER_REVIEW_VOICEPRINT_BADGE_CLASS_NAME,
-                className,
-            )}
+            variant={SPEAKER_REVIEW_VOICEPRINT_BADGE_VARIANTS[tone]}
+            data-sot-tone={tone}
             {...props}
         />
     );
@@ -1039,7 +1053,7 @@ export function SpeakerLabelEditor({
                                             }
                                         >
                                             <X
-                                                className="size-[17px] translate-x-[-0.5px] translate-y-[-0.5px]"
+                                                data-icon="inline-start"
                                                 aria-hidden="true"
                                                 focusable="false"
                                             />
