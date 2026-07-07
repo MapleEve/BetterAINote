@@ -230,13 +230,6 @@ export function SourceReportStateStack({ children }: { children: ReactNode }) {
     );
 }
 
-function SourceReportRemovedStatusAdornment() {
-    return null;
-}
-
-export { SourceReportRemovedStatusAdornment as DashboardSourceReportStatusDot };
-export { SourceReportRemovedStatusAdornment as SourceReportStatusDot };
-
 const SOURCE_REPORT_STATUS_VARIANT = {
     err: "destructive",
     neu: "secondary",

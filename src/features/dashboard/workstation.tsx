@@ -121,7 +121,6 @@ import {
     SourceReportSourceIdentity as SotSourceReportSourceIdentity,
     DashboardSourceReportState as SotSourceReportState,
     SourceReportStatusBadge as SotSourceReportStatusBadge,
-    DashboardSourceReportStatusDot as SotSourceReportStatusDot,
     SourceReportSummaryBody as SotSourceReportSummaryBody,
     SourceReportSummaryLine as SotSourceReportSummaryLine,
     SourceReportCopyIcon,
@@ -8221,7 +8220,6 @@ export function Workstation({
                                         >
                                             {!selectedRecording?.hasAudio ? (
                                                 <SotSourceReportStatusBadge tone="warn">
-                                                    <SotSourceReportStatusDot />
                                                     {t(
                                                         "sourceReport.sourceOnlyNoAudio",
                                                     )}
@@ -8256,7 +8254,6 @@ export function Workstation({
                                                             sourceTranscriptStatusLabel,
                                                         )}
                                                     >
-                                                        <SotSourceReportStatusDot />
                                                         {
                                                             sourceTranscriptStatusLabel
                                                         }
@@ -8271,7 +8268,6 @@ export function Workstation({
                                                             sourceSummaryStatusLabel,
                                                         )}
                                                     >
-                                                        <SotSourceReportStatusDot />
                                                         {
                                                             sourceSummaryStatusLabel
                                                         }
@@ -8427,7 +8423,6 @@ export function Workstation({
                                                                 sourceReportSyncStatusLabel,
                                                             )}
                                                         >
-                                                            <SotSourceReportStatusDot />
                                                             {
                                                                 sourceReportSyncStatusLabel
                                                             }

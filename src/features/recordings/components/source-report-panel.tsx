@@ -33,7 +33,6 @@ import {
     SourceReportState,
     SourceReportStateStack,
     SourceReportStatusBadge,
-    SourceReportStatusDot,
     SourceReportSummaryBody,
     SourceReportSummaryLine,
     type SourceReportTone,
@@ -1109,7 +1108,6 @@ export function SourceReportPanel({
                 >
                     {!hasAudio ? (
                         <SourceReportStatusBadge tone="warn">
-                            <SourceReportStatusDot />
                             <span>{t("sourceReport.sourceOnlyNoAudio")}</span>
                         </SourceReportStatusBadge>
                     ) : null}
@@ -1135,7 +1133,6 @@ export function SourceReportPanel({
                                     sourceTranscriptStatusLabel,
                                 )}
                             >
-                                <SourceReportStatusDot />
                                 {sourceTranscriptStatusLabel}
                             </SourceReportStatusBadge>
                         </SourceReportMetricCard>
@@ -1148,7 +1145,6 @@ export function SourceReportPanel({
                                     sourceSummaryStatusLabel,
                                 )}
                             >
-                                <SourceReportStatusDot />
                                 {sourceSummaryStatusLabel}
                             </SourceReportStatusBadge>
                         </SourceReportMetricCard>
@@ -1251,7 +1247,6 @@ export function SourceReportPanel({
                                         sourceReportStatusLabel,
                                     )}
                                 >
-                                    <SourceReportStatusDot />
                                     {sourceReportStatusLabel}
                                 </SourceReportStatusBadge>
                             </SourceReportMetaRow>

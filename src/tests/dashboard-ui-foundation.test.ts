@@ -134,17 +134,22 @@ const DASHBOARD_SIDEBAR_OWNER_FORBIDDEN_CLASS_PATTERN =
     /\bspace-[xy]-|\b(?:rgb|rgba|hsl|hsla|oklch|color-mix)\(|#[0-9A-Fa-f]{3,8}\b|\bdark:|(?:^|\s)(?:bg|border|text|shadow|ring|fill|stroke|from|via|to)-(?:white|black|transparent|slate|gray|zinc|neutral|stone|red|orange|amber|yellow|lime|green|emerald|teal|cyan|sky|blue|indigo|violet|purple|fuchsia|pink|rose)(?:[/-]\d+)?\b/;
 const DASHBOARD_SIDEBAR_VISUAL_GLOBAL_DECLARATION_RE =
     /^\s*(?:-webkit-backdrop-filter|backdrop-filter|background|border(?:-(?:color|radius|right|style|width))?|box-shadow|display|flex-direction|padding|position)\s*:/m;
+const REMOVED_SOURCE_REPORT_DOT_HOOKS = [
+    ["SourceReport", "StatusDot"].join(""),
+    ["DashboardSourceReport", "StatusDot"].join(""),
+    ["sourceReportStatus", "DotBase"].join(""),
+    ["data-sot-source-report-status", "dot"].join("-"),
+] as const;
 const SOURCE_REPORT_STATUS_BADGE_FORBIDDEN_OWNER_SNIPPETS = [
     "h-[22px] justify-normal gap-[5px] overflow-visible px-[8px] py-0",
     "h-[22px]",
     "gap-[5px]",
     "px-[8px]",
-    "SourceReportStatusDot",
-    "sourceReportStatusDotBase",
+    ...REMOVED_SOURCE_REPORT_DOT_HOOKS,
     '"inline-block size-[5px] rounded-[50%] bg-current"',
     "data-sot-part={part}",
-    'part = "source-report-status-dot"',
-    'part="dashboard-source-report-status-dot"',
+    ['part = "source-report-status', 'dot"'].join("-"),
+    ['part="dashboard-source-report-status', 'dot"'].join("-"),
 ] as const;
 const SOURCE_REPORT_STATUS_VARIANT_SNIPPETS = [
     "const SOURCE_REPORT_STATUS_VARIANT = {",

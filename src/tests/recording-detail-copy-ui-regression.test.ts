@@ -76,18 +76,23 @@ const RECORDING_WORKSTATION_MAIN_REQUIRED_CLASS_TOKENS = [
     "max-[860px]:max-w-full",
     "max-[860px]:box-border",
 ] as const;
+const REMOVED_SOURCE_REPORT_DOT_HOOKS = [
+    ["SourceReport", "StatusDot"].join(""),
+    ["DashboardSourceReport", "StatusDot"].join(""),
+    ["sourceReportStatus", "DotBase"].join(""),
+    ["data-sot-source-report-status", "dot"].join("-"),
+] as const;
 const SOURCE_REPORT_STATUS_DOT_STYLING_FORBIDDEN_SNIPPETS = [
-    "sourceReportStatusDotBase",
+    ...REMOVED_SOURCE_REPORT_DOT_HOOKS,
     '"inline-block size-[5px] rounded-[50%] bg-current"',
-    'part = "source-report-status-dot"',
-    'part="dashboard-source-report-status-dot"',
+    ['part = "source-report-status', 'dot"'].join("-"),
+    ['part="dashboard-source-report-status', 'dot"'].join("-"),
 ] as const;
 const SOURCE_REPORT_STATUS_BADGE_FORBIDDEN_OWNER_SNIPPETS = [
     "h-[22px] justify-normal gap-[5px] overflow-visible px-[8px] py-0",
     "h-[22px]",
     "gap-[5px]",
     "px-[8px]",
-    "SourceReportStatusDot",
     ...SOURCE_REPORT_STATUS_DOT_STYLING_FORBIDDEN_SNIPPETS,
 ] as const;
 const SOURCE_REPORT_STATUS_VARIANT_SNIPPETS = [
