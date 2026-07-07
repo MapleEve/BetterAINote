@@ -5677,6 +5677,18 @@ describe("dashboard SOT foundation", () => {
         expect(globals).toContain("--color-foreground: var(--foreground);");
         expect(globals).not.toContain("--color-background: var(--bg-canvas);");
         expect(globals).not.toContain("--color-foreground: var(--fg-primary);");
+        const darkGlobalTokens = extractCssBlock(
+            globals,
+            '.dark,\n[data-theme="dark"]',
+        );
+        expect(globals).toContain("--graphite-950: rgb(11 16 22);");
+        expect(globals).toContain(
+            "--graphite-950: oklch(0.11 0.01 258); /* obsidian */",
+        );
+        expect(darkGlobalTokens).toMatch(
+            /--bg-canvas:\s*rgb\(11 16 22\);\s*--bg-canvas:\s*oklch\(0\.11 0\.01 258\);/,
+        );
+        expect(darkGlobalTokens).not.toContain("oklch(0.185 0.004 250)");
 
         expect(segmentedTabs).not.toContain(
             'data-sot-control="segmented-tabs"',

@@ -21,7 +21,6 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { SettingsListSkeleton } from "@/features/settings/components/settings-skeletons";
 import { formatDateTime } from "@/lib/format-date";
-import { cn } from "@/lib/utils";
 
 interface SpeakerProfile {
     id: string;
@@ -59,36 +58,14 @@ function formatTimestamp(value: string | null, locale: string) {
 const speakerAvatarFallbackClassName =
     "bg-accent text-[11px] font-bold text-primary";
 
-const speakerStateBadgeClassName =
-    "h-5 gap-1 rounded-full border px-2 py-0 text-[10.5px] font-semibold data-[sot-tone=success]:border-primary/30 data-[sot-tone=success]:bg-primary/10 data-[sot-tone=success]:text-primary data-[sot-tone=warning]:border-border data-[sot-tone=warning]:bg-secondary data-[sot-tone=warning]:text-secondary-foreground data-[sot-tone=danger]:border-destructive/30 data-[sot-tone=danger]:bg-destructive/10 data-[sot-tone=danger]:text-destructive data-[sot-tone=neutral]:border-border data-[sot-tone=neutral]:bg-secondary data-[sot-tone=neutral]:text-muted-foreground";
+const speakerStateBadgeVariantByTone = {
+    danger: "destructive",
+    neutral: "secondary",
+    success: "default",
+    warning: "outline",
+} as const;
 
 const speakerSettingsRowClassName = "border-b border-border py-3";
-
-const speakerSettingsBannerIconClassName =
-    "inline-flex size-6 flex-none items-center justify-center rounded-md border [&_svg]:size-3.5";
-
-const speakerSettingsBannerInfoIconClassName =
-    "border-border bg-card text-[var(--signal-info)]";
-
-const speakerSettingsBannerErrorIconClassName =
-    "border-[var(--alert-destructive-soft-border)] bg-[var(--alert-destructive-soft-strong-bg)] text-[var(--signal-danger)]";
-
-const speakerSettingsBannerBaseClassName =
-    "mb-4 w-full rounded-lg border px-3.5 py-3 text-sm text-[var(--fg-primary)]";
-
-const speakerSettingsBannerLayoutClassName =
-    "grid grid-cols-[auto_1fr] items-start gap-3";
-
-const speakerSettingsBannerActionLayoutClassName =
-    "grid grid-cols-[auto_1fr] items-start gap-3";
-
-const speakerSettingsBannerBodyClassName =
-    "min-w-0 text-[var(--fg-primary)] [&_p]:leading-normal";
-
-const speakerSettingsBannerInfoClassName = "border-border bg-card";
-
-const speakerSettingsBannerErrorClassName =
-    "border-[var(--alert-destructive-soft-border)] bg-[var(--alert-destructive-soft-bg)]";
 
 const speakerProfilesPanelClassName = "relative flex flex-col gap-2 !mb-3.5";
 
@@ -97,12 +74,11 @@ const speakerSectionGroupClassName = "relative mb-[22px]";
 const speakerRowsListClassName = "m-0 flex list-none flex-col gap-1.5 p-0";
 
 const speakerRowItemClassName =
-    "grid min-w-0 grid-cols-[36px_minmax(0,1fr)_auto_auto] items-center gap-2.5 rounded-md border border-[var(--card-elevated-border)] bg-[var(--bg-elevated)] px-3 py-2.5 hover:bg-[var(--bg-recessed)]";
+    "grid min-w-0 grid-cols-[36px_minmax(0,1fr)_auto_auto] items-center gap-2.5 px-3 py-2.5";
 
 const speakerRowMetaClassName = "flex min-w-0 flex-col gap-0.5";
 
-const speakerRowSubClassName =
-    "flex min-w-0 flex-wrap items-center gap-1.5 font-mono text-[11.5px] font-medium leading-[1.4] tracking-normal text-[var(--fg-tertiary)]";
+const speakerRowSubClassName = "flex min-w-0 flex-wrap items-center gap-1.5";
 
 function StatePill({
     children,
@@ -113,7 +89,7 @@ function StatePill({
 }) {
     return (
         <Badge
-            className={speakerStateBadgeClassName}
+            variant={speakerStateBadgeVariantByTone[tone]}
             data-sot-badge="speaker-state"
             data-sot-tone={tone}
         >
@@ -140,35 +116,17 @@ function PanelNotice({
 
     return (
         <Alert
-            className={cn(
-                speakerSettingsBannerBaseClassName,
-                action
-                    ? speakerSettingsBannerActionLayoutClassName
-                    : speakerSettingsBannerLayoutClassName,
-                tone === "danger"
-                    ? speakerSettingsBannerErrorClassName
-                    : speakerSettingsBannerInfoClassName,
-            )}
+            className="mb-4"
+            density="comfortable"
+            layout="default"
+            variant={tone === "danger" ? "destructiveSoft" : "default"}
             data-sot-banner="speaker-profiles-notice"
             data-sot-panel={panel}
             data-sot-state={state}
             data-sot-tone={bannerTone}
         >
-            <span
-                className={cn(
-                    speakerSettingsBannerIconClassName,
-                    tone === "danger"
-                        ? speakerSettingsBannerErrorIconClassName
-                        : speakerSettingsBannerInfoIconClassName,
-                )}
-                data-sot-banner-icon
-            >
-                <Icon aria-hidden="true" />
-            </span>
-            <AlertDescription
-                className={speakerSettingsBannerBodyClassName}
-                data-sot-banner-body
-            >
+            <Icon aria-hidden="true" data-sot-banner-icon />
+            <AlertDescription density="comfortable" data-sot-banner-body>
                 <p data-sot-banner-sub>{children}</p>
                 {action ? (
                     <div className="mt-2 flex items-center gap-2">{action}</div>

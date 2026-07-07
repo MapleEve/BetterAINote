@@ -29,8 +29,7 @@ const SOURCE_PROVIDER_DETAIL_FIELD_CONTENT_CLASS = "min-w-0";
 
 const SOURCE_PROVIDER_DETAIL_FIELD_CONTROL_CLASS = "justify-end";
 
-const SOURCE_PROVIDER_DETAIL_INPUT_CLASS =
-    "w-full max-w-[15rem] bg-background font-mono shadow-none";
+const SOURCE_PROVIDER_DETAIL_INPUT_CLASS = "w-full max-w-[15rem]";
 
 export interface SettingFieldOption {
     value: string;

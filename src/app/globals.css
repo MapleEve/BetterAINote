@@ -445,8 +445,8 @@
    =========================================================== */
 .dark,
 [data-theme="dark"] {
-    --bg-canvas: rgb(24 29 35);
-    --bg-canvas: oklch(0.185 0.004 250); /* near-black, faintly cool */
+    --bg-canvas: rgb(11 16 22);
+    --bg-canvas: oklch(0.11 0.01 258); /* obsidian body canvas */
     --bg-elevated: rgb(31 36 42);
     --bg-elevated: oklch(0.215 0.004 250); /* one step up — sidebars/panels */
     --card-elevated-bg: rgb(31 36 42 / 0.7);
@@ -870,7 +870,7 @@ select::-ms-expand {
         --graphite-700: rgb(48 55 65);
         --graphite-800: rgb(32 38 47);
         --graphite-900: rgb(21 25 32);
-        --graphite-950: rgb(13 16 21);
+        --graphite-950: rgb(11 16 22);
         --steel-50: rgb(239 247 252);
         --steel-100: rgb(221 237 248);
         --steel-200: rgb(194 219 236);
@@ -894,7 +894,7 @@ select::-ms-expand {
     }
     .dark,
     [data-theme="dark"] {
-        --bg-canvas: rgb(28 30 34);
+        --bg-canvas: rgb(11 16 22);
         --bg-elevated: rgb(34 36 41);
         --bg-recessed: rgb(23 25 29);
         --bg-overlay: rgba(34, 36, 41, 0.74);

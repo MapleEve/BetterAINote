@@ -4678,8 +4678,19 @@ describe("full UI replacement regression coverage", () => {
         }
         expect(button).not.toContain("settingsClose:");
         expect(button).not.toContain("settingsNav:");
+        expect(button).not.toContain("sourceProviderTile:");
+        expect(button).not.toContain("rail:");
+        expect(button).not.toContain("sr-item");
+        expect(button).not.toContain("buttonStateClassName");
+        expect(button).not.toContain('variant === "rail"');
+        expect(button).not.toContain("oklch(");
+        expect(button).not.toContain("data-sot");
+        expect(button).not.toMatch(/\bsourceProvider\b/);
+        expect(button).not.toMatch(/\bsettings\b/i);
         expect(buttonSizeBlock).not.toContain("settingsClose:");
         expect(buttonSizeBlock).not.toContain("settingsNav:");
+        expect(buttonSizeBlock).not.toContain("navigationItem:");
+        expect(buttonSizeBlock).not.toContain("surfaceItem:");
         for (const size of DASHBOARD_RECORDING_LIST_BUTTON_SIZES) {
             expect(buttonSizeBlock).not.toContain(`${size}:`);
         }
@@ -11077,17 +11088,10 @@ describe("full UI replacement regression coverage", () => {
             'data-sot-control="settings-nav"\n',
             "Button",
         );
-        const settingsNavButtonClass = findStringConstInitializerContaining(
-            settingsDialog,
-            [
-                "const SETTINGS_NAV_BUTTON_CLASS =",
-                "w-full",
-                "min-w-0",
-                "justify-start",
-                "truncate",
-                "text-left",
-            ],
-        );
+        const settingsNavButtonClass =
+            settingsDialog.match(
+                /const SETTINGS_NAV_BUTTON_CLASS\s*=\s*"[^"]*";/,
+            )?.[0] ?? "";
         const settingsSectionTitleClass =
             settings.match(
                 /const SETTINGS_SECTION_TITLE_CLASS\s*=\s*"[^"]*";/,
@@ -11145,13 +11149,17 @@ describe("full UI replacement regression coverage", () => {
         expect(settingsNavButton).toMatch(
             /variant=\{\s*isActive\s*\?\s*"secondary"\s*:\s*"ghost"\s*\}/,
         );
-        expect(settingsNavButton).toContain('size="sm"');
+        expect(settingsNavButton).not.toContain('variant="navigationItem"');
+        expect(settingsNavButton).not.toContain('size="navigationItem"');
+        expect(settingsDialog).toContain("const SETTINGS_NAV_BUTTON_CLASS =");
         expect(settingsNavButton).toContain("SETTINGS_NAV_BUTTON_CLASS");
-        expect(settingsNavButton).toMatch(/className=\{\s*[A-Za-z0-9_]+\s*\}/);
         expect(settingsNavButton).toContain('data-icon="inline-start"');
         expect(settingsNavButton).toContain('className="min-w-0 truncate"');
         expect(settingsNavButton).not.toContain('variant="settingsNav"');
         expect(settingsNavButton).not.toContain('size="settingsNav"');
+        expect(settingsNavButtonClass).toContain("w-full");
+        expect(settingsNavButtonClass).toContain("min-w-0");
+        expect(settingsNavButtonClass).toContain("justify-start");
         for (const removedNavButtonOverride of [
             "[box-shadow",
             "shadow-none",
@@ -11165,7 +11173,15 @@ describe("full UI replacement regression coverage", () => {
             "tracking-normal",
             "[&_svg",
             "stroke-[",
+            "var(--",
+            "hover:",
+            "rounded-[",
+            "font-",
+            "text-[",
+            "tracking-",
+            "leading-[",
         ]) {
+            expect(settingsNavButton).not.toContain(removedNavButtonOverride);
             expect(settingsNavButtonClass).not.toContain(
                 removedNavButtonOverride,
             );
@@ -11185,6 +11201,34 @@ describe("full UI replacement regression coverage", () => {
         expect(settingsAvatarClass).not.toContain("size-4");
         expect(button).not.toContain("settingsNav:");
         expect(button).not.toContain("settingsClose:");
+        for (const forbiddenButtonPrimitiveSkin of [
+            "navigationItem:",
+            "surfaceItem:",
+            "h-8 w-full min-w-0",
+            "text-[13.125px]",
+            "gap-[5.625px]",
+            "px-[9.375px]",
+            "data-[state=active]:bg-[var(--bg-recessed)]",
+            "[box-shadow:none]",
+            "data-[state=active]:[box-shadow:none]",
+            "data-[state=active]:text-[var(--fg-primary)]",
+            "data-[state=selected]:bg-[var(--bg-elevated)]",
+            "data-[state=selected]:shadow-xs",
+            "data-[muted=true]:border-transparent",
+            "data-[muted=true]:bg-transparent",
+            "data-[muted=true]:opacity-[0.55]",
+            "data-[muted=true]:[box-shadow:none]",
+        ]) {
+            expect(button).not.toContain(forbiddenButtonPrimitiveSkin);
+        }
+        expect(button).not.toContain("rail:");
+        expect(button).not.toContain("sr-item");
+        expect(button).not.toContain("buttonStateClassName");
+        expect(button).not.toContain('variant === "rail"');
+        expect(button).not.toContain("oklch(");
+        expect(button).not.toContain("data-sot");
+        expect(button).not.toMatch(/\bsourceProvider\b/);
+        expect(button).not.toMatch(/\bsettings\b/i);
         expect(avatarPrimitive).not.toMatch(/-space-[xy]-/);
         expect(avatarPrimitive).toContain("[&>*+*]:-ml-2");
         for (const selector of REMOVED_SETTINGS_NAV_GLOBAL_REPAINT_SELECTORS) {
@@ -11209,6 +11253,10 @@ describe("full UI replacement regression coverage", () => {
         const settingsProviderDetail =
             settings.match(
                 /<section[\s\S]*?data-sot-panel="source-provider-detail"[\s\S]*?<\/section>/,
+            )?.[0] ?? "";
+        const sourceProviderDetailPanelClass =
+            settings.match(
+                /const SOURCE_PROVIDER_DETAIL_PANEL_CLASS\s*=\s*"[^"]*";/,
             )?.[0] ?? "";
         const providerFieldsIndex = settingsProviderDetail.indexOf(
             'data-sot-panel="source-provider-fields"',
@@ -11236,6 +11284,12 @@ describe("full UI replacement regression coverage", () => {
             ),
         ].map((match) => match[0]);
         expect(settingsProviderDetail).not.toContain("data-sot-section-group");
+        expect(settingsProviderDetail).toContain(
+            "SOURCE_PROVIDER_DETAIL_PANEL_CLASS",
+        );
+        expect(sourceProviderDetailPanelClass).toContain("px-[26px]");
+        expect(sourceProviderDetailPanelClass).toContain("py-[22px]");
+        expect(sourceProviderDetailPanelClass).not.toContain("p-6");
         expect(settings).toContain(
             "const SOURCE_PROVIDER_SECTION_DIVIDER_CLASS =",
         );
@@ -11443,6 +11497,64 @@ describe("full UI replacement regression coverage", () => {
         expect(detail).not.toContain('className="sidebar glass glass-strong"');
         expect(detail).not.toContain('className="workspace"');
         expect(detail).not.toContain('className="detail"');
+        const settingsProviderTileButton = extractOpeningElement(
+            settings,
+            'data-sot-control="source-provider"',
+            "Button",
+        );
+        const settingsProviderStatusBadge = extractElementSlice(
+            settings,
+            'data-sot-provider-status=""',
+            "Badge",
+        );
+        const settingsProviderDetailStatusBadge =
+            settings.match(
+                /<Badge[\s\S]*?className=\{SOURCE_DETAIL_STATUS_BADGE_CLASS\}[\s\S]*?>/,
+            )?.[0] ?? "";
+        const settingsProviderTileClass =
+            settings.match(
+                /const SOURCE_PROVIDER_TILE_BUTTON_CLASS[\s\S]*?;/,
+            )?.[0] ?? "";
+        const settingsStatusBadgeConstants = [
+            ...settings.matchAll(
+                /const\s+[A-Z0-9_]*STATUS[A-Z0-9_]*BADGE_CLASS\s*=[\s\S]*?;/g,
+            ),
+        ]
+            .map((match) => match[0])
+            .join("\n");
+        expect(settingsProviderTileButton).toMatch(
+            /variant=\{\s*isSelected\s*\?\s*"secondary"\s*:\s*"ghost"\s*\}/,
+        );
+        expect(settingsProviderTileButton).not.toContain(
+            'variant="surfaceItem"',
+        );
+        expect(settingsProviderTileButton).not.toContain('size="surfaceItem"');
+        expect(settingsProviderTileButton).toContain(
+            "SOURCE_PROVIDER_TILE_BUTTON_CLASS",
+        );
+        expect(settingsProviderTileButton).not.toContain("isDimmed &&");
+        expect(settingsProviderTileButton).not.toContain("opacity-");
+        expect(settingsProviderTileButton).not.toContain("data-muted=");
+        expect(settingsProviderTileButton).toContain(
+            'data-sot-dimmed={isDimmed ? "true" : "false"}',
+        );
+        expect(settings).toContain("SOURCE_PROVIDER_TILE_BUTTON_CLASS");
+        expect(settings).not.toContain('variant="sourceProviderTile"');
+        expect(settings).not.toContain('size="sourceProviderTile"');
+        for (const removedProviderTileSkinToken of [
+            "border-[var(",
+            "text-[var(",
+            "[box-shadow",
+            "hover:bg-[",
+            "hover:text-[",
+            "data-[muted=true]",
+            "data-[state=selected]",
+            "shadow-xs",
+        ]) {
+            expect(settingsProviderTileClass).not.toContain(
+                removedProviderTileSkinToken,
+            );
+        }
         expect(settings).toContain("data-sot-provider-card");
         expect(settings).toContain("data-sot-provider-icon");
         expect(settings).toContain("data-sot-provider-meta");
@@ -11451,6 +11563,42 @@ describe("full UI replacement regression coverage", () => {
         expect(settings).not.toContain("sp-ico");
         expect(settings).not.toContain("sp-meta");
         expect(settings).not.toContain("sp-status");
+        expect(settingsProviderStatusBadge).toContain(
+            "variant={getProviderStatusBadgeVariant(status.tone)}",
+        );
+        expect(settingsProviderStatusBadge).not.toContain('size="statusPill"');
+        expect(settingsProviderStatusBadge).toContain(
+            "className={SOURCE_PROVIDER_STATUS_BADGE_CLASS}",
+        );
+        expect(settingsProviderDetailStatusBadge).toContain(
+            "variant={getProviderStatusBadgeVariant",
+        );
+        expect(settingsProviderDetailStatusBadge).toContain(
+            "className={SOURCE_DETAIL_STATUS_BADGE_CLASS}",
+        );
+        expect(settingsProviderDetailStatusBadge).not.toContain(
+            'size="statusPill"',
+        );
+        expect(settings).not.toContain("SOURCE_STATUS_BADGE_CLASS");
+        for (const featureStatusPillToken of [
+            "h-[18px]",
+            "gap-[4px]",
+            "rounded-[999px]",
+            "px-[7px]",
+            "py-0",
+            "text-[10.5px]",
+            "font-semibold",
+            "border-solid",
+        ]) {
+            expect(settingsStatusBadgeConstants).not.toContain(
+                featureStatusPillToken,
+            );
+            if (featureStatusPillToken === "py-0") {
+                expect(badge).not.toMatch(/(?:^|[\s"'])py-0(?:[\s"'])/);
+            } else {
+                expect(badge).not.toContain(featureStatusPillToken);
+            }
+        }
         for (const hook of SOURCE_AUTH_MODE_DATA_SOT_ORIGIN_HOOKS) {
             expect(settings).toContain(hook);
         }
@@ -11561,15 +11709,13 @@ describe("full UI replacement regression coverage", () => {
             settings.match(
                 /function SegmentControl[\s\S]*?function SaveActions/,
             )?.[0] ?? "";
+        const settingsSegmentItems =
+            settingsSegmentControl.match(/<ToggleGroupItem\b[^>]*>/g) ?? [];
         const settingsSaveStatus = extractElementSlice(
             settings,
             'data-sot-part="settings-save-status"',
             "Badge",
         );
-        const settingsSaveStatusClass =
-            settings.match(
-                /const SETTINGS_SAVE_STATUS_BADGE_CLASS[\s\S]*?;/,
-            )?.[0] ?? "";
         const settingsSaveAction = extractElementSlice(
             settings,
             'data-sot-control="settings-save"',
@@ -11633,7 +11779,6 @@ describe("full UI replacement regression coverage", () => {
         for (const providerDetailInputOwnerToken of [
             "w-full",
             "max-w-[15rem]",
-            "font-mono",
         ]) {
             expect(providerDetailInputOwnerClass).toContain(
                 providerDetailInputOwnerToken,
@@ -11645,6 +11790,9 @@ describe("full UI replacement regression coverage", () => {
             "min-w-[240px]",
             "max-w-[240px]",
             "rounded-[7px]",
+            "bg-background",
+            "font-mono",
+            "shadow-none",
             "text-[12px]",
             "leading-[normal]",
         ]) {
@@ -11692,20 +11840,31 @@ describe("full UI replacement regression coverage", () => {
             "sourceProviderSwitchClassName",
         );
         expect(settings).not.toContain("SOURCE_PROVIDER_DETAIL_SWITCH_CLASS");
+        expect(settings).not.toContain("settingsDetail");
         expect(settings).toContain('data-sot-control="source-auto-update"');
         expect(settings).toContain('data-sot-control="source-enable-sync"');
         expect(settings).toContain("data-sot-state=");
         expect(switchPrimitive).toContain('type SwitchVariant = "default"');
+        expect(switchPrimitive).not.toContain('| "detail"');
+        expect(switchPrimitive).not.toContain("detail:");
         expect(switchPrimitive).toContain('type SwitchSize = "sm" | "default"');
         for (const inputPrimitiveBusinessToken of [
             "sourceProviderDetail",
             "SOURCE_PROVIDER_DETAIL",
             "source-provider-detail",
+            "settingsDetail",
         ]) {
             expect(inputPrimitive).not.toContain(inputPrimitiveBusinessToken);
             expect(globals).not.toContain(inputPrimitiveBusinessToken);
         }
+        expect(inputPrimitive).not.toMatch(/\bsettings\b/i);
+        expect(inputPrimitive).not.toMatch(/\bsourceProvider\b/);
+        expect(inputPrimitive).not.toContain("data-sot");
         expect(switchPrimitive).not.toContain("sourceProviderDetail");
+        expect(switchPrimitive).not.toContain("settingsDetail");
+        expect(switchPrimitive).not.toMatch(/\bsettings\b/i);
+        expect(switchPrimitive).not.toMatch(/\bsourceProvider\b/);
+        expect(switchPrimitive).not.toContain("data-sot");
         expect(globals).not.toContain("sourceProviderSwitchClassName");
         expect(globals).not.toContain("SOURCE_PROVIDER_DETAIL_SWITCH_CLASS");
         expect(settingsSourceActions).toContain(
@@ -11728,21 +11887,33 @@ describe("full UI replacement regression coverage", () => {
         expect(settingsSegmentControl).toContain('variant="outline"');
         expect(settingsSegmentControl).toContain('size="sm"');
         expect(settingsSegmentControl).toContain("spacing={1}");
-        expect(settingsSegmentControl).toContain(
-            "className={SETTINGS_SEGMENT_OPTION_CLASS}",
-        );
+        expect(settings).not.toContain("SETTINGS_SEGMENT_OPTION_CLASS");
+        expect(settingsSegmentItems).toHaveLength(1);
+        for (const segmentItem of settingsSegmentItems) {
+            expect(segmentItem).toContain("data-sot-control={control}");
+            expect(segmentItem).toContain(
+                "data-sot-display-value={option.sotValue ?? option.value}",
+            );
+            expect(segmentItem).toContain(
+                'data-sot-state={active ? "selected" : "idle"}',
+            );
+            expect(segmentItem).toContain("data-sot-value={option.value}");
+            expect(segmentItem).toContain("value={option.value}");
+            expect(segmentItem).not.toContain("className=");
+            expect(segmentItem).not.toMatch(/\bvariant=/);
+            expect(segmentItem).not.toMatch(/\bsize=/);
+            expect(segmentItem).not.toContain("settingsSegment");
+        }
         expect(settingsSegmentControl).not.toContain(
             'layout="settingsSegment"',
         );
         expect(settingsSegmentControl).not.toContain(
             'variant="settingsSegmentOption"',
         );
-        expect(settingsSaveStatus).toContain('variant="ghost"');
-        expect(settingsSaveStatusClass).toContain(
-            "SETTINGS_SAVE_STATUS_BADGE_CLASS",
-        );
-        expect(settingsSaveStatusClass).not.toContain("data-[sot-state=");
-        expect(settingsSaveStatusClass).not.toContain("[&_[data-sot-part");
+        expect(settingsSaveStatus).toContain("variant={statusVariant}");
+        expect(settingsSaveStatus).not.toContain('variant="ghost"');
+        expect(settings).not.toContain("SETTINGS_SAVE_STATUS_BADGE_CLASS");
+        expect(settings).toContain("const statusVariant: BadgeVariant =");
         expect(settings).toContain("const statusClassName = cn(");
         expect(settings).toContain('saveState === "idle" && "hidden"');
         expect(settings).toContain("const indicatorClassName = cn(");
@@ -11761,6 +11932,15 @@ describe("full UI replacement regression coverage", () => {
         );
         expect(badge).toContain('data-slot="badge"');
         expect(badge).toContain("data-variant={variant}");
+        expect(badge).not.toContain("statusPill:");
+        expect(badge).not.toContain("h-[18px]");
+        expect(badge).not.toContain("gap-[4px]");
+        expect(badge).not.toContain("rounded-[999px]");
+        expect(badge).not.toContain("border border-solid");
+        expect(badge).not.toContain("px-[7px]");
+        expect(badge).not.toMatch(/(?:^|[\s"'])py-0(?:[\s"'])/);
+        expect(badge).not.toContain("text-[10.5px]");
+        expect(badge).not.toContain("font-semibold");
         expectSourceToExcludeForbiddenSubstrings(
             badge,
             BADGE_PRIMITIVE_FORBIDDEN_BUSINESS_TOKENS,
@@ -11812,6 +11992,13 @@ describe("full UI replacement regression coverage", () => {
         expect(fieldPrimitive).not.toContain("settingsRow");
         expect(fieldPrimitive).not.toContain("settingsContent");
         expect(fieldPrimitive).not.toContain("settingsControl");
+        expect(fieldPrimitive).not.toContain("settingsDetail");
+        expect(fieldPrimitive).not.toMatch(/\bsettings\b/i);
+        expect(fieldPrimitive).not.toMatch(/\bsourceProvider\b/);
+        expect(fieldPrimitive).not.toContain("data-sot");
+        expect(fieldPrimitive).toContain('type FieldVariant = "default";');
+        expect(fieldPrimitive).not.toContain('| "detail"');
+        expect(fieldPrimitive).not.toContain("detail:");
         expect(button).not.toContain("settingsSave:");
         expect(button).not.toContain("settingsTestAction:");
         expect(button).not.toContain("settingsSourceRetry:");
@@ -14959,6 +15146,18 @@ describe("full UI replacement regression coverage", () => {
             (stateBadge) =>
                 stateBadge.includes('data-sot-badge="speaker-state"'),
         );
+        const speakerStatePill =
+            speakerProfiles.match(
+                /function StatePill[\s\S]*?function PanelNotice/,
+            )?.[0] ?? "";
+        const speakerPanelNotice =
+            speakerProfiles.match(
+                /function PanelNotice[\s\S]*?export function SpeakerProfilesPanel/,
+            )?.[0] ?? "";
+        const speakerRowItemClass =
+            speakerProfiles.match(
+                /const speakerRowItemClassName\s*=\s*"[^"]*";/,
+            )?.[0] ?? "";
         const expectSpeakerFeatureOwnedSnippets = (
             label: string,
             snippets: readonly string[],
@@ -15003,20 +15202,17 @@ describe("full UI replacement regression coverage", () => {
         expect(speakerProfiles).toContain("<Badge");
         expect(speakerProfiles).toContain('data-sot-badge="speaker-state"');
         expect(speakerProfiles).toContain("data-sot-tone={tone}");
-        expectSpeakerFeatureOwnedSnippets("speaker state badge", [
-            "h-5",
-            "gap-1",
-            "rounded-full",
-            "border",
-            "text-[10.5px]",
-            "font-semibold",
-            "data-[sot-tone=success]",
-            "data-[sot-tone=warning]",
-            "data-[sot-tone=neutral]",
-        ]);
+        expect(speakerStatePill).toContain("<Badge");
+        expect(speakerStatePill).toMatch(
+            /variant=\{(?:badgeVariant|speakerStateBadgeVariantByTone\[tone\])\}/,
+        );
+        expect(speakerStatePill).not.toContain("className=");
         expect(speakerStateBadgeOpenings).toHaveLength(1);
         for (const stateBadge of speakerStateBadgeOpenings) {
-            expect(stateBadge).toContain("className=");
+            expect(stateBadge).toMatch(
+                /variant=\{(?:badgeVariant|speakerStateBadgeVariantByTone\[tone\])\}/,
+            );
+            expect(stateBadge).not.toContain("className=");
             expect(stateBadge).not.toContain('variant="speakerState"');
         }
         expectSpeakerFeatureOwnedSnippets("speaker settings rows", [
@@ -15028,6 +15224,36 @@ describe("full UI replacement regression coverage", () => {
             "speakerSectionGroupClassName",
             "relative mb-[22px]",
         ]);
+        expectSpeakerFeatureOwnedSnippets("speaker row layout", [
+            "speakerRowsListClassName",
+            "m-0 flex list-none flex-col gap-1.5 p-0",
+            "speakerRowItemClassName",
+            "grid min-w-0 grid-cols-[36px_minmax(0,1fr)_auto_auto]",
+            "speakerRowMetaClassName",
+            "flex min-w-0 flex-col gap-0.5",
+            "speakerRowSubClassName",
+            "flex min-w-0 flex-wrap items-center gap-1.5",
+        ]);
+        expect(speakerRowItemClass).toContain(
+            "grid min-w-0 grid-cols-[36px_minmax(0,1fr)_auto_auto]",
+        );
+        for (const forbiddenSpeakerLocalSkin of [
+            "speakerStateBadgeClassName",
+            "speakerSettingsBanner",
+            "data-[sot-tone=",
+            "var(--card-elevated",
+            "var(--bg-elevated",
+            "var(--bg-recessed",
+            "alert-destructive-soft",
+            "signal-info",
+            "signal-danger",
+            "border-[var(--card-elevated-border)]",
+            "bg-[var(--bg-elevated)]",
+            "hover:bg-[var(--bg-recessed)]",
+            "text-[var(--fg-tertiary)]",
+        ]) {
+            expect(speakerProfiles).not.toContain(forbiddenSpeakerLocalSkin);
+        }
         expect(speakerProfilesPanelOpening).toContain(
             "className={speakerProfilesPanelClassName}",
         );
@@ -15050,6 +15276,16 @@ describe("full UI replacement regression coverage", () => {
             expect(field).toContain("className=");
             expect(field).not.toContain('variant="speakerSettingsRow"');
         }
+        expect(speakerPanelNotice).toContain("<Alert");
+        expect(speakerPanelNotice).toContain('density="comfortable"');
+        expect(speakerPanelNotice).toContain('layout="default"');
+        expect(speakerPanelNotice).toContain(
+            'variant={tone === "danger" ? "destructiveSoft" : "default"}',
+        );
+        expect(speakerProfiles).not.toContain('density="settingsBanner"');
+        expect(speakerProfiles).not.toContain('"settingsBannerError"');
+        expect(alertPrimitive).not.toContain("settingsBanner:");
+        expect(alertPrimitive).not.toContain("settingsBannerError:");
         for (const control of [
             "speaker-profiles-refresh",
             "speaker-profile-create",

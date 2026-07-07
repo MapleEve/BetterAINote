@@ -235,16 +235,14 @@ const SETTINGS_SOURCE_AUTH_MODE_OPTION_CLASS =
 
 const SETTINGS_SEGMENT_GROUP_CLASS = "flex-wrap";
 
-const SETTINGS_SEGMENT_OPTION_CLASS =
-    "data-[state=on]:border-primary/30 data-[state=on]:bg-primary/10 data-[state=on]:text-primary";
-
 const SOURCE_PROVIDERS_LIST_CLASS =
     "flex flex-col gap-1.5 overflow-y-auto border-r border-border bg-secondary/30 px-3.5 py-4";
 
 const SOURCE_PROVIDERS_TITLE_CLASS =
     "px-2 pt-1 pb-2 text-xs font-medium text-muted-foreground uppercase";
 
-const SOURCE_PROVIDER_DETAIL_PANEL_CLASS = "min-h-0 overflow-y-auto p-6";
+const SOURCE_PROVIDER_DETAIL_PANEL_CLASS =
+    "min-h-0 overflow-y-auto px-[26px] py-[22px]";
 
 const SOURCE_PROVIDER_DETAIL_CARD_CLASS = "gap-0";
 
@@ -267,8 +265,7 @@ const SOURCE_PROVIDER_DETAIL_FIELD_CONTENT_CLASS = "min-w-0";
 
 const SOURCE_PROVIDER_DETAIL_FIELD_CONTROL_CLASS = "justify-end";
 
-const SOURCE_PROVIDER_DETAIL_INPUT_CLASS =
-    "w-full max-w-[15rem] bg-background font-mono shadow-none";
+const SOURCE_PROVIDER_DETAIL_INPUT_CLASS = "w-full max-w-[15rem]";
 
 const SOURCE_PROVIDER_FIELDS_LIST_CLASS = "flex flex-col";
 
@@ -295,9 +292,6 @@ const SOURCE_AUTH_MODE_BADGE_CLASS = "px-1.5";
 const SOURCE_PROVIDER_STATUS_BADGE_CLASS = "justify-self-end";
 
 const SOURCE_DETAIL_STATUS_BADGE_CLASS = "shrink-0";
-
-const SETTINGS_SAVE_STATUS_BADGE_CLASS =
-    "h-auto gap-1.5 border-0 bg-transparent p-0 text-muted-foreground";
 
 const SETTINGS_SCROLL_BODY_CLASS =
     "min-h-0 overflow-y-auto px-[26px] py-[22px] [overscroll-behavior:contain]";
@@ -743,11 +737,9 @@ function DataSourceProviderTile({
         <Button
             type="button"
             variant={isSelected ? "secondary" : "ghost"}
+            size="default"
+            className={SOURCE_PROVIDER_TILE_BUTTON_CLASS}
             aria-pressed={isSelected}
-            className={cn(
-                SOURCE_PROVIDER_TILE_BUTTON_CLASS,
-                isDimmed && "opacity-60",
-            )}
             data-state={isSelected ? "selected" : "idle"}
             data-sot-provider-card=""
             data-sot-control="source-provider"
@@ -805,10 +797,7 @@ function DataSourceProviderTile({
             </span>
             <Badge
                 variant={getProviderStatusBadgeVariant(status.tone)}
-                className={cn(
-                    SOURCE_PROVIDER_STATUS_BADGE_CLASS,
-                    "justify-self-end",
-                )}
+                className={SOURCE_PROVIDER_STATUS_BADGE_CLASS}
                 data-sot-provider-status=""
                 data-sot-state={status.state}
                 data-sot-status={status.state}
@@ -1657,10 +1646,10 @@ function DataSourcesSettingsPanel({
                                             }
                                         >
                                             <Input
+                                                id={`${selectedSource.provider}-base-url`}
                                                 className={
                                                     SOURCE_PROVIDER_DETAIL_INPUT_CLASS
                                                 }
-                                                id={`${selectedSource.provider}-base-url`}
                                                 value={
                                                     displayedServiceAddress.value
                                                 }
@@ -2219,22 +2208,21 @@ function SaveStatus({
               : saveState === "error"
                 ? (error ?? (isZh ? "保存失败" : "Save failed"))
                 : "";
-    const statusClassName = cn(
-        SETTINGS_SAVE_STATUS_BADGE_CLASS,
-        saveState === "idle" && "hidden",
-        (saveState === "saved" || saveState === "saving") && "text-primary",
-        saveState === "error" && "text-destructive",
-    );
+    const statusVariant: BadgeVariant =
+        saveState === "error"
+            ? "destructive"
+            : saveState === "saved" || saveState === "saving"
+              ? "default"
+              : "secondary";
+    const statusClassName = cn("gap-1.5", saveState === "idle" && "hidden");
     const indicatorClassName = cn(
-        "size-2 rounded-full bg-secondary-foreground/45",
-        (saveState === "saved" || saveState === "saving") && "bg-primary",
+        "size-2 rounded-full bg-current",
         saveState === "saving" && "animate-pulse",
-        saveState === "error" && "bg-destructive",
     );
 
     return (
         <Badge
-            variant="ghost"
+            variant={statusVariant}
             className={statusClassName}
             data-sot-part="settings-save-status"
             data-sot-state={saveState}
@@ -2523,7 +2511,6 @@ function SegmentControl<Value extends string>({
                         data-sot-state={active ? "selected" : "idle"}
                         data-sot-value={option.value}
                         disabled={disabled}
-                        className={SETTINGS_SEGMENT_OPTION_CLASS}
                         value={option.value}
                     >
                         {option.label}
