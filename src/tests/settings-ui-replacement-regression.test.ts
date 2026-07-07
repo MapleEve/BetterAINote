@@ -548,7 +548,7 @@ describe("settings SOT interaction regressions", () => {
         );
         expect(settingsNavButton).toContain('data-sot-control="settings-nav"');
         expect(settingsNavButton).toMatch(
-            /variant=\{\s*isActive\s*\?\s*"secondary"\s*:\s*"ghost"\s*\}/,
+            /variant=\{\s*isActive\s*\?\s*"outline"\s*:\s*"ghost"\s*\}/,
         );
         expect(settingsNavButton).not.toContain('variant="navigationItem"');
         expect(settingsNavButton).not.toContain('size="navigationItem"');

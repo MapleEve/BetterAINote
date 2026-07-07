@@ -123,13 +123,13 @@ const settingsNavGroups: SettingsNavGroup[] = [
 
 const orderedSettingsNav = settingsNavGroups.flatMap((group) => group.items);
 
-const SETTINGS_CLOSE_BUTTON_CLASS = "shrink-0";
+const SETTINGS_CLOSE_BUTTON_CLASS = "size-[30px] shrink-0";
 
 const SETTINGS_SHELL_SURFACE_CLASS =
     "box-border flex h-[min(94svh,980px)] max-h-[calc(100svh_-_1rem)] w-[920px] max-w-[calc(100vw_-_40px)] flex-col gap-0 overflow-hidden bg-card p-0 sm:max-w-[920px]";
 
 const SETTINGS_HEADER_CLASS =
-    "flex flex-none items-center border-b border-border px-5 py-[18px] max-[720px]:flex-wrap max-[720px]:items-start max-[720px]:gap-3";
+    "flex flex-none items-center gap-3 border-b border-border px-5 py-[18px] max-[720px]:flex-wrap max-[720px]:items-start max-[720px]:gap-3";
 
 const SETTINGS_USER_SUMMARY_CLASS =
     "flex min-w-0 flex-1 items-center gap-3 max-[720px]:basis-[calc(100%_-_42px)]";
@@ -157,7 +157,7 @@ const SETTINGS_NAV_GROUP_LABEL_CLASS =
     "block w-full truncate px-[10px] pt-[10px] pb-[4px] font-sans text-[10px] font-semibold leading-[normal] tracking-[0.08em] text-muted-foreground uppercase";
 
 const SETTINGS_NAV_BUTTON_CLASS =
-    "w-full min-w-0 justify-start truncate text-left";
+    "w-full min-w-0 justify-start gap-2.5 truncate text-left";
 
 const SETTINGS_NAV_CONTROL_SELECTOR = "[data-settings-nav-control]";
 const SETTINGS_INNER_SCROLL_SELECTOR = "[data-settings-inner-scroll]";
@@ -698,18 +698,18 @@ export function SettingsDialog(props: SettingsDialogProps) {
                                 <Monitor />
                             </span>
                             <div className={SETTINGS_USER_SUMMARY_TEXT_CLASS}>
-                                <h2
+                                <div
                                     className={SETTINGS_USER_NAME_CLASS}
                                     data-sot-part="settings-user-name"
                                 >
                                     {settingsUserName}
-                                </h2>
-                                <p
+                                </div>
+                                <div
                                     className={SETTINGS_USER_SUBTITLE_CLASS}
                                     data-sot-part="settings-user-subtitle"
                                 >
                                     {settingsUserSubtitle}
-                                </p>
+                                </div>
                             </div>
                         </div>
 
@@ -781,7 +781,7 @@ export function SettingsDialog(props: SettingsDialogProps) {
                                                 }
                                                 variant={
                                                     isActive
-                                                        ? "secondary"
+                                                        ? "outline"
                                                         : "ghost"
                                                 }
                                                 size="sm"
