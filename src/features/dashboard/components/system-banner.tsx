@@ -125,18 +125,6 @@ const systemBannerIconStateClassNames: Record<SystemBannerState, string> = {
     "update-available": "bg-primary/10 text-primary",
 } as const;
 
-const systemBannerButtonClassNames = {
-    action: "cursor-pointer border border-transparent bg-transparent text-muted-foreground shadow-none hover:bg-muted hover:text-foreground",
-    primaryAction:
-        "cursor-pointer border border-border bg-background text-foreground shadow-[var(--shadow-xs)] backdrop-blur-[14px] backdrop-saturate-[140%] hover:bg-muted hover:text-foreground",
-    dismissAction:
-        "cursor-pointer border border-transparent bg-transparent text-muted-foreground shadow-none hover:bg-muted hover:text-foreground",
-    actionSize:
-        "box-border h-[26px] w-auto gap-[7px] rounded-[7px] px-[10px] py-[7.5px] text-[12px] font-semibold leading-normal has-[>svg]:px-[10px] [&_svg:not([class*='size-'])]:size-4 [&_svg]:stroke-[1.8]",
-    dismissSize:
-        "box-border h-[26px] w-auto gap-[7px] rounded-[7px] px-[10px] py-[7.5px] text-[12px] font-semibold leading-normal has-[>svg]:px-[10px] [&_svg:not([class*='size-'])]:size-4 [&_svg]:stroke-[1.8]",
-} as const;
-
 const systemBannerProgressClassNames = {
     root: "relative h-[6px] min-w-[120px] flex-1 overflow-hidden rounded-[999px] bg-primary/10 data-[sot-state=indeterminate]:bg-primary/10",
     indicator:
@@ -358,17 +346,7 @@ function SystemBannerButton({
         <Button
             size="sm"
             variant={tone === "primary" ? "outline" : "ghost"}
-            className={cn(
-                tone === "primary"
-                    ? systemBannerButtonClassNames.primaryAction
-                    : tone === "dismiss"
-                      ? systemBannerButtonClassNames.dismissAction
-                      : systemBannerButtonClassNames.action,
-                tone === "dismiss"
-                    ? systemBannerButtonClassNames.dismissSize
-                    : systemBannerButtonClassNames.actionSize,
-                className,
-            )}
+            className={className}
             {...props}
         />
     );

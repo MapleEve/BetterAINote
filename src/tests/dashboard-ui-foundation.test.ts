@@ -6072,7 +6072,7 @@ describe("dashboard SOT foundation", () => {
         expect(banner).toContain("const systemBannerAlertClassNames");
         expect(banner).toContain("const systemBannerAlertStateClassNames");
         expect(banner).toContain("const systemBannerIconStateClassNames");
-        expect(banner).toContain("const systemBannerButtonClassNames");
+        expect(banner).not.toContain("const systemBannerButtonClassNames");
         expect(banner).toContain("const systemBannerProgressClassNames");
         expect(banner).toContain('} from "lucide-react";');
         for (const systemBannerIcon of [
@@ -6124,7 +6124,7 @@ describe("dashboard SOT foundation", () => {
         expect(banner).not.toContain(
             "bg-[image:var(--system-banner-progress-indeterminate-bg)]",
         );
-        expect(banner).toContain("bg-transparent");
+        expect(banner).not.toContain("bg-transparent");
         expect(banner).not.toContain("CSSProperties");
         expect(banner).not.toContain("systemBannerAlertStyle");
         expect(banner).not.toContain("style={systemBannerAlertStyle}");
@@ -6187,8 +6187,23 @@ describe("dashboard SOT foundation", () => {
         expect(banner).toContain(
             'variant={tone === "primary" ? "outline" : "ghost"}',
         );
-        expect(banner).toContain("systemBannerButtonClassNames.actionSize");
-        expect(banner).toContain("systemBannerButtonClassNames.dismissSize");
+        expect(banner).toContain("className={className}");
+        for (const buttonOwnerClass of [
+            "systemBannerButtonClassNames",
+            "border border-transparent",
+            "shadow-none",
+            "hover:bg-muted",
+            "hover:text-foreground",
+            "h-[26px]",
+            "gap-[7px]",
+            "px-[10px]",
+            "py-[7.5px]",
+            "has-[>svg]:px-[10px]",
+            "[&_svg:not([class*='size-'])]:size-4",
+            "[&_svg]:stroke-[1.8]",
+        ]) {
+            expect(banner).not.toContain(buttonOwnerClass);
+        }
         expect(banner).toMatch(
             /data-sot-control="system-banner-dismiss-action"[\s\S]*<X\s+data-icon="inline-start"\s+aria-hidden="true"\s*\/>/,
         );

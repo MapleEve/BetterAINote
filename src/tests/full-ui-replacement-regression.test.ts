@@ -2579,13 +2579,11 @@ const SYSTEM_BANNER_FEATURE_LOCAL_TOKENS = [
     "const systemBannerAlertClassNames",
     "const systemBannerAlertStateClassNames",
     "const systemBannerIconStateClassNames",
-    "const systemBannerButtonClassNames",
     "const systemBannerProgressClassNames",
     "function SystemBannerAlert",
     "function SystemBannerButton",
     "function SystemBannerProgress",
     "systemBannerAlertClassNames.root",
-    "systemBannerButtonClassNames.primaryAction",
     "systemBannerProgressClassNames.indeterminateIndicator",
     'data-sot-panel="system-banner"',
     'data-sot-part="system-banner-progress"',
@@ -6277,8 +6275,23 @@ describe("full UI replacement regression coverage", () => {
         expect(banner).toContain(
             'variant={tone === "primary" ? "outline" : "ghost"}',
         );
-        expect(banner).toContain("systemBannerButtonClassNames.actionSize");
-        expect(banner).toContain("systemBannerButtonClassNames.dismissSize");
+        expect(banner).toContain("className={className}");
+        for (const buttonOwnerClass of [
+            "systemBannerButtonClassNames",
+            "border border-transparent",
+            "shadow-none",
+            "hover:bg-muted",
+            "hover:text-foreground",
+            "h-[26px]",
+            "gap-[7px]",
+            "px-[10px]",
+            "py-[7.5px]",
+            "has-[>svg]:px-[10px]",
+            "[&_svg:not([class*='size-'])]:size-4",
+            "[&_svg]:stroke-[1.8]",
+        ]) {
+            expect(banner).not.toContain(buttonOwnerClass);
+        }
         expect(banner).not.toMatch(
             /<div[\s\S]*data-sot-part="system-banner-progress"/,
         );
