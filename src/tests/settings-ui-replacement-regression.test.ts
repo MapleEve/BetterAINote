@@ -3162,10 +3162,10 @@ describe("settings SOT interaction regressions", () => {
         expect(saveFunction).toContain("noRepeatNgramMessage");
         expect(saveFunction).toContain("return;");
         expect(saveFunction).toMatch(
-            /if \(noRepeatNgramInvalid\)[\s\S]*?return;[\s\S]*?const updates: VoScriptSettingsUpdate/,
+            /if \(noRepeatNgramInvalid\)[\s\S]*?return;[\s\S]*?const draftBeforeSave = \{ \.\.\.draft \};[\s\S]*?const updates: VoScriptSettingsUpdate/,
         );
-        expect(saveFunction).toContain(
-            'await persistVoScriptSettingsLane(paramsSave, "params", updates)',
+        expect(saveFunction).toMatch(
+            /await persistVoScriptSettingsLane\(\s*paramsSave,\s*"params",\s*updates,/,
         );
     });
 
@@ -3246,7 +3246,7 @@ describe("settings SOT interaction regressions", () => {
             "paramsSave.setSaveError(resolvedSpeakerBoundsMessage)",
         );
         expect(saveFunction).toMatch(
-            /if \(resolvedSpeakerBoundsMessage\)[\s\S]*?return;[\s\S]*?const updates: VoScriptSettingsUpdate[\s\S]*?await persistVoScriptSettingsLane\(paramsSave, "params", updates\)/,
+            /if \(resolvedSpeakerBoundsMessage\)[\s\S]*?return;[\s\S]*?const draftBeforeSave = \{ \.\.\.draft \};[\s\S]*?const updates: VoScriptSettingsUpdate[\s\S]*?await persistVoScriptSettingsLane\(\s*paramsSave,\s*"params",\s*updates,/,
         );
     });
 
