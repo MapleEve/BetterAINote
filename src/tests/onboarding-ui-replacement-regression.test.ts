@@ -400,6 +400,9 @@ describe("onboarding UI replacement regression", () => {
         expect(source).toContain(
             'import { Button } from "@/components/ui/button";',
         );
+        expect(source).toContain(
+            'import { Alert, AlertDescription } from "@/components/ui/alert";',
+        );
         expect(source).toContain('import { cn } from "@/lib/utils";');
         expect(source).toContain(
             "className={onboardingCardClassNames.sourceAuthModeGroup}",
@@ -525,6 +528,19 @@ describe("onboarding UI replacement regression", () => {
         expect(onboardingStepButton).not.toContain('data-slot="button"');
         expect(source).not.toMatch(
             /<button[\s\S]*data-sot-control="onboarding-step"/,
+        );
+        const onboardingErrorAlert = extractOpeningElement(
+            source,
+            'data-sot-part="onboarding-error"',
+            "Alert",
+        );
+        expect(onboardingErrorAlert).toContain('density="compact"');
+        expect(onboardingErrorAlert).toContain('variant="statusError"');
+        expect(onboardingErrorAlert).toContain('data-sot-state="error"');
+        expect(onboardingErrorAlert).toContain('role="alert"');
+        expect(source).toContain("<AlertDescription");
+        expect(source).not.toMatch(
+            /<div\b[^>]*data-sot-part="onboarding-error"/,
         );
         const onboardingSkipButton = extractOpeningElement(
             source,

@@ -3342,6 +3342,7 @@ describe("settings SOT interaction regressions", () => {
         const buttonPrimitive = readSource("components/ui/button.tsx");
         const fieldPrimitive = readSource("components/ui/field.tsx");
         const alertPrimitive = readSource("components/ui/alert.tsx");
+        const emptyPrimitive = readSource("components/ui/empty.tsx");
         const avatarFallbacks =
             speakers.match(/<AvatarFallback\b[^>]*>/g) ?? [];
         const speakerStateBadges = speakers.match(/<Badge\b[^>]*>/g) ?? [];
@@ -3366,6 +3367,16 @@ describe("settings SOT interaction regressions", () => {
             )?.[0] ?? "";
         const speakerButtons =
             speakers.match(/<Button\b[\s\S]*?<\/Button>/g) ?? [];
+        const speakerProfileEmptyState = collectElementSlices(
+            speakers,
+            'data-sot-part="speaker-profiles-empty"',
+            "Empty",
+        );
+        const speakerVoiceprintsEmptyState = collectElementSlices(
+            speakers,
+            'data-sot-part="speaker-voiceprints-empty"',
+            "Empty",
+        );
         const findButtonByControl = (control: string) =>
             speakerButtons.find((button) =>
                 button.includes(`data-sot-control="${control}"`),
@@ -3419,6 +3430,7 @@ describe("settings SOT interaction regressions", () => {
         expect(speakers).toContain(
             'import { Avatar, AvatarFallback } from "@/components/ui/avatar";',
         );
+        expect(speakers).toContain('from "@/components/ui/empty";');
         expect(speakers).toMatch(
             /import\s*\{[\s\S]*Field,[\s\S]*FieldContent,[\s\S]*FieldDescription,[\s\S]*FieldLabel,[\s\S]*FieldTitle[\s\S]*\}\s*from "@\/components\/ui\/field";/,
         );
@@ -3427,6 +3439,7 @@ describe("settings SOT interaction regressions", () => {
             badgePrimitive,
             buttonPrimitive,
             fieldPrimitive,
+            emptyPrimitive,
         ]) {
             expectPrimitiveToExcludeBusinessTokens(
                 primitiveSource,
@@ -3527,6 +3540,52 @@ describe("settings SOT interaction regressions", () => {
         expect(panelNotice).toContain(
             'variant={tone === "danger" ? "destructiveSoft" : "default"}',
         );
+        expect(speakerProfileEmptyState).toHaveLength(1);
+        expect(speakerVoiceprintsEmptyState).toHaveLength(1);
+        for (const emptyState of [
+            speakerProfileEmptyState[0],
+            speakerVoiceprintsEmptyState[0],
+        ]) {
+            expect(emptyState).toContain("<Empty");
+            expect(emptyState).toContain('data-sot-state="empty"');
+            expect(emptyState).toContain("<EmptyHeader>");
+            expect(emptyState).toContain("<EmptyTitle");
+            expect(emptyState).toContain("<EmptyDescription");
+        }
+        expect(speakerProfileEmptyState[0]).toContain(
+            'data-sot-panel="speaker-profiles-notice"',
+        );
+        expect(speakerProfileEmptyState[0]).toContain(
+            'data-sot-part="speaker-profiles-empty"',
+        );
+        expect(speakerProfileEmptyState[0]).toContain(
+            'data-sot-part="speaker-profiles-empty-title"',
+        );
+        expect(speakerProfileEmptyState[0]).toContain(
+            'data-sot-part="speaker-profiles-empty-description"',
+        );
+        expect(speakerVoiceprintsEmptyState[0]).toContain(
+            'data-sot-panel="speaker-voiceprints-notice"',
+        );
+        expect(speakerVoiceprintsEmptyState[0]).toContain(
+            'data-sot-part="speaker-voiceprints-empty"',
+        );
+        expect(speakerVoiceprintsEmptyState[0]).toContain(
+            'data-sot-part="speaker-voiceprints-empty-title"',
+        );
+        expect(speakerVoiceprintsEmptyState[0]).toContain(
+            'data-sot-part="speaker-voiceprints-empty-description"',
+        );
+        expect(speakers).not.toContain(
+            '<PanelNotice panel="speaker-profiles-notice" state="empty"',
+        );
+        expect(speakers).not.toContain(
+            'panel="speaker-voiceprints-notice"\n                        state="empty"',
+        );
+        expect(speakers).toContain('panel="speaker-profiles-notice"');
+        expect(speakers).toContain('panel="speaker-voiceprints-notice"');
+        expect(speakers).toContain('state="error"');
+        expect(speakers).toContain('state="disabled"');
         expect(speakers).not.toContain('density="settingsBanner"');
         expect(speakers).not.toContain('"settingsBannerError"');
         expect(alertPrimitive).not.toContain("settingsBanner:");

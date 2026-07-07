@@ -11,6 +11,12 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { useConfirmDialog } from "@/components/ui/confirm-dialog";
 import {
+    Empty,
+    EmptyDescription,
+    EmptyHeader,
+    EmptyTitle,
+} from "@/components/ui/empty";
+import {
     Field,
     FieldContent,
     FieldDescription,
@@ -621,11 +627,24 @@ export function SpeakerProfilesPanel() {
                         {profilesError}
                     </PanelNotice>
                 ) : profiles.length === 0 ? (
-                    <PanelNotice panel="speaker-profiles-notice" state="empty">
-                        {isZh
-                            ? "还没有已保存的说话人。"
-                            : "No saved speakers yet."}
-                    </PanelNotice>
+                    <Empty
+                        data-sot-panel="speaker-profiles-notice"
+                        data-sot-part="speaker-profiles-empty"
+                        data-sot-state="empty"
+                    >
+                        <EmptyHeader>
+                            <EmptyTitle data-sot-part="speaker-profiles-empty-title">
+                                {isZh
+                                    ? "还没有已保存的说话人"
+                                    : "No saved speakers yet"}
+                            </EmptyTitle>
+                            <EmptyDescription data-sot-part="speaker-profiles-empty-description">
+                                {isZh
+                                    ? "添加常用说话人后，可在录音整理时复用这些名称。"
+                                    : "Add reusable speakers to keep names consistent while organizing recordings."}
+                            </EmptyDescription>
+                        </EmptyHeader>
+                    </Empty>
                 ) : (
                     <div
                         className={speakerRowsListClassName}
@@ -856,14 +875,24 @@ export function SpeakerProfilesPanel() {
                                 : "Save a working VoScript connection first.")}
                     </PanelNotice>
                 ) : voiceprints.length === 0 ? (
-                    <PanelNotice
-                        panel="speaker-voiceprints-notice"
-                        state="empty"
+                    <Empty
+                        data-sot-panel="speaker-voiceprints-notice"
+                        data-sot-part="speaker-voiceprints-empty"
+                        data-sot-state="empty"
                     >
-                        {isZh
-                            ? "没有找到远端声纹。"
-                            : "No remote voiceprints found."}
-                    </PanelNotice>
+                        <EmptyHeader>
+                            <EmptyTitle data-sot-part="speaker-voiceprints-empty-title">
+                                {isZh
+                                    ? "没有找到远端声纹"
+                                    : "No remote voiceprints found"}
+                            </EmptyTitle>
+                            <EmptyDescription data-sot-part="speaker-voiceprints-empty-description">
+                                {isZh
+                                    ? "完成一次带声纹的转录后，远端声纹会显示在这里。"
+                                    : "Remote voiceprints will appear here after a voiceprint-enabled transcription."}
+                            </EmptyDescription>
+                        </EmptyHeader>
+                    </Empty>
                 ) : (
                     <div
                         className={speakerRowsListClassName}

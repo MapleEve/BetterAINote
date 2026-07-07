@@ -15286,6 +15286,16 @@ describe("full UI replacement regression coverage", () => {
             speakerProfiles.match(
                 /const speakerRowItemClassName\s*=\s*"[^"]*";/,
             )?.[0] ?? "";
+        const speakerProfileEmptyState = extractElementSlice(
+            speakerProfiles,
+            'data-sot-part="speaker-profiles-empty"',
+            "Empty",
+        );
+        const speakerVoiceprintsEmptyState = extractElementSlice(
+            speakerProfiles,
+            'data-sot-part="speaker-voiceprints-empty"',
+            "Empty",
+        );
         const expectSpeakerFeatureOwnedSnippets = (
             label: string,
             snippets: readonly string[],
@@ -15300,11 +15310,13 @@ describe("full UI replacement regression coverage", () => {
         expect(speakerProfiles).toContain(
             'import { Avatar, AvatarFallback } from "@/components/ui/avatar";',
         );
+        expect(speakerProfiles).toContain('from "@/components/ui/empty";');
         for (const primitiveSource of [
             avatarPrimitive,
             badge,
             button,
             fieldPrimitive,
+            emptyPrimitive,
         ]) {
             expectPrimitiveToExcludeBusinessTokens(
                 primitiveSource,
@@ -15410,6 +15422,50 @@ describe("full UI replacement regression coverage", () => {
         expect(speakerPanelNotice).toContain(
             'variant={tone === "danger" ? "destructiveSoft" : "default"}',
         );
+        for (const speakerEmptyState of [
+            speakerProfileEmptyState,
+            speakerVoiceprintsEmptyState,
+        ]) {
+            expect(speakerEmptyState).toContain("<Empty");
+            expect(speakerEmptyState).toContain('data-sot-state="empty"');
+            expect(speakerEmptyState).toContain("<EmptyHeader>");
+            expect(speakerEmptyState).toContain("<EmptyTitle");
+            expect(speakerEmptyState).toContain("<EmptyDescription");
+        }
+        expect(speakerProfileEmptyState).toContain(
+            'data-sot-panel="speaker-profiles-notice"',
+        );
+        expect(speakerProfileEmptyState).toContain(
+            'data-sot-part="speaker-profiles-empty"',
+        );
+        expect(speakerProfileEmptyState).toContain(
+            'data-sot-part="speaker-profiles-empty-title"',
+        );
+        expect(speakerProfileEmptyState).toContain(
+            'data-sot-part="speaker-profiles-empty-description"',
+        );
+        expect(speakerVoiceprintsEmptyState).toContain(
+            'data-sot-panel="speaker-voiceprints-notice"',
+        );
+        expect(speakerVoiceprintsEmptyState).toContain(
+            'data-sot-part="speaker-voiceprints-empty"',
+        );
+        expect(speakerVoiceprintsEmptyState).toContain(
+            'data-sot-part="speaker-voiceprints-empty-title"',
+        );
+        expect(speakerVoiceprintsEmptyState).toContain(
+            'data-sot-part="speaker-voiceprints-empty-description"',
+        );
+        expect(speakerProfiles).not.toContain(
+            '<PanelNotice panel="speaker-profiles-notice" state="empty"',
+        );
+        expect(speakerProfiles).not.toContain(
+            'panel="speaker-voiceprints-notice"\n                        state="empty"',
+        );
+        expect(speakerProfiles).toContain('panel="speaker-profiles-notice"');
+        expect(speakerProfiles).toContain('panel="speaker-voiceprints-notice"');
+        expect(speakerProfiles).toContain('state="error"');
+        expect(speakerProfiles).toContain('state="disabled"');
         expect(speakerProfiles).not.toContain('density="settingsBanner"');
         expect(speakerProfiles).not.toContain('"settingsBannerError"');
         expect(alertPrimitive).not.toContain("settingsBanner:");

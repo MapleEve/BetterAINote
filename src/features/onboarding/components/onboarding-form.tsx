@@ -14,6 +14,7 @@ import {
 import Image from "next/image";
 import { type ReactNode, useEffect, useState } from "react";
 import { useLanguage } from "@/components/language-provider";
+import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
 import {
     Card,
@@ -438,17 +439,17 @@ export function OnboardingForm({ onConnected }: OnboardingFormProps) {
                         data-sot-part="onboarding-step-body"
                     >
                         {finishError ? (
-                            <div
-                                className={cn(
-                                    onboardingCardClassNames.errorMessage,
-                                    "text-destructive",
-                                )}
+                            <Alert
+                                density="compact"
+                                variant="statusError"
                                 data-sot-part="onboarding-error"
                                 data-sot-state="error"
                                 role="alert"
                             >
-                                {finishError}
-                            </div>
+                                <AlertDescription density="compact">
+                                    {finishError}
+                                </AlertDescription>
+                            </Alert>
                         ) : null}
 
                         {visibleStep === "source" ? (
