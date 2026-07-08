@@ -4419,7 +4419,20 @@ describe("recording detail copy and title action UI regressions", () => {
             "recordingTagTextColorClassName[tag.color]",
         );
         expect(tagVisuals).toContain(
-            "satisfies Record<RecordingTagIcon, LucideIcon>",
+            "function defineRecordingTagIconOptions<",
+        );
+        expect(tagVisuals).toContain(
+            'Exclude<RecordingTagIcon, Options[number]["value"]>',
+        );
+        expect(tagVisuals).toContain(
+            "const recordingTagIconOptions = defineRecordingTagIconOptions([",
+        );
+        expect(tagVisuals).toContain(
+            '{ value: "grid", icon: Grid2X2, managerIcon: Grid2X2 }',
+        );
+        expect(tagVisuals).toContain('{ value: "tag", icon: Tag }');
+        expect(tagVisuals).not.toMatch(
+            /\b(?:satisfies\s+)?Record<RecordingTagIcon,\s*LucideIcon>/,
         );
         for (const recordingTagChipToken of [
             "--sot-player-tag-chip-bg",
