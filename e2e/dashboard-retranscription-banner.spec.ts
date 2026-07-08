@@ -1123,6 +1123,7 @@ type RetxPixelTolerance = {
 
 type RetxHtmlTransform = (html: string) => string;
 type RetxHtmlTransforms = {
+    background?: string;
     product?: RetxHtmlTransform;
     sot?: RetxHtmlTransform;
 };
@@ -1578,9 +1579,15 @@ async function captureRetxLocatorFixture(
     locator: Locator,
     width: number,
     transformHtml?: RetxHtmlTransform,
+    background = "var(--bg-canvas)",
 ) {
     const html = await locator.evaluate((element) => element.outerHTML);
-    return captureRetxHtmlFixture(page, transformHtml ? transformHtml(html) : html, width);
+    return captureRetxHtmlFixture(
+        page,
+        transformHtml ? transformHtml(html) : html,
+        width,
+        background,
+    );
 }
 
 async function captureRetxGroupFixture(
@@ -1597,6 +1604,22 @@ async function captureRetxGroupFixture(
 
 async function readRetxBackground(locator: Locator) {
     return locator.evaluate((element) => getComputedStyle(element).backgroundColor);
+}
+
+async function resolveRetxBackground(page: Page, background: string) {
+    return page.evaluate((value) => {
+        const probe = document.createElement("div");
+        probe.style.background = value;
+        probe.style.height = "1px";
+        probe.style.left = "-9999px";
+        probe.style.position = "fixed";
+        probe.style.top = "-9999px";
+        probe.style.width = "1px";
+        document.body.appendChild(probe);
+        const resolved = getComputedStyle(probe).backgroundColor;
+        probe.remove();
+        return resolved;
+    }, background);
 }
 
 async function compareRetxPixels(
@@ -1699,14 +1722,22 @@ async function expectRetxPixelsMatch(
     transforms: RetxHtmlTransforms = {},
 ) {
     const width = await readRetxFixtureWidth(sotLocator);
+    const background = transforms.background ?? "var(--bg-canvas)";
     const [sotCapture, productCapture] = await Promise.all([
         captureRetxLocatorFixture(
             sotLocator.page(),
             sotLocator,
             width,
             transforms.sot,
+            background,
         ),
-        captureRetxLocatorFixture(page, productLocator, width, transforms.product),
+        captureRetxLocatorFixture(
+            page,
+            productLocator,
+            width,
+            transforms.product,
+            background,
+        ),
     ]);
     const diff = await compareRetxPixels(
         page,
@@ -4676,6 +4707,10 @@ test("dashboard source report loaded state matches SOT pixels", async (
 
         const sourceReportSummaryFixture =
             withSotSourceReportSummarySection("来源原始报告。");
+        const sourceReportCaptureBackground = await resolveRetxBackground(
+            sotPage,
+            "var(--bg-canvas)",
+        );
 
         await expectRetxPixelsMatch(
             page,
@@ -4684,7 +4719,10 @@ test("dashboard source report loaded state matches SOT pixels", async (
             sotLoaded,
             productLoaded,
             SOURCE_REPORT_LOADED_RASTER_TOLERANCE,
-            { sot: sourceReportSummaryFixture },
+            {
+                background: sourceReportCaptureBackground,
+                sot: sourceReportSummaryFixture,
+            },
         );
         await expectRetxResponsivePixelsMatch(
             page,
@@ -4692,7 +4730,7 @@ test("dashboard source report loaded state matches SOT pixels", async (
             "Dashboard source report loaded responsive frame",
             sotLoaded,
             productLoaded,
-            "var(--bg-canvas)",
+            sourceReportCaptureBackground,
             SOURCE_REPORT_PIXEL_FRAMES,
             (html) => html,
             SOURCE_REPORT_LOADED_RASTER_TOLERANCE,
