@@ -4418,9 +4418,7 @@ describe("recording detail copy and title action UI regressions", () => {
         expect(tagVisuals).toContain(
             "recordingTagTextColorClassName[tag.color]",
         );
-        expect(tagVisuals).toContain(
-            "function defineRecordingTagIconOptions<",
-        );
+        expect(tagVisuals).toContain("function defineRecordingTagIconOptions<");
         expect(tagVisuals).toContain(
             'Exclude<RecordingTagIcon, Options[number]["value"]>',
         );
