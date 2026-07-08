@@ -4124,6 +4124,11 @@ describe("full UI replacement regression coverage", () => {
             .split("\n")
             .filter((line) => line.includes('[data-slot="'));
         expect(globalSlotSelectors).toEqual([]);
+        for (const overlayPrimitive of [dialog, popover, select]) {
+            expect(overlayPrimitive).not.toMatch(
+                /(?:^|\s)z-(?:50|\[calc\(var\(--z-modal\)[^\]]*\])(?:\s|")/,
+            );
+        }
         expect(globals).not.toContain(
             '[data-slot="toggle-group-item"][data-variant="swatch"]',
         );
@@ -15601,7 +15606,19 @@ describe("full UI replacement regression coverage", () => {
             "recordingTagTextColorClassName[tag.color]",
         );
         expect(recordingTagVisuals).toContain(
+            "recordingTagIconComponentFor(tag.icon)",
+        );
+        expect(recordingTagVisuals).toContain(
+            '<RecordingTagIconGlyph data-icon="inline-start" icon={Icon} />',
+        );
+        expect(recordingTagVisuals).not.toContain(
             "satisfies Record<RecordingTagIcon, LucideIcon>",
+        );
+        expect(recordingTagVisuals).not.toContain(
+            "recordingTagIconComponents[",
+        );
+        expect(recordingTagVisuals).not.toContain(
+            "recordingTagManagerIconComponents[",
         );
         for (const recordingTagChipToken of [
             "--sot-player-tag-chip-bg",

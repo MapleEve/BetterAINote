@@ -752,7 +752,7 @@ describe("settings SOT interaction regressions", () => {
         expect(globals).toContain("--z-modal");
         expect(globals).toContain("--ease-sine");
         expect(globals).toContain("--z-modal");
-        expect(baseDialog).toContain("z-50");
+        expect(baseDialog).not.toContain("z-50");
         expect(baseDialog).not.toContain("z-[var(--z-modal)]");
         expect(globals).not.toContain(".ui-select-content");
         expect(globals).not.toContain("z-index: 650");

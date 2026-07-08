@@ -54,29 +54,62 @@ export const recordingTagSwatchColorClassName: Record<
     slate: "bg-muted-foreground",
 };
 
-const recordingTagIconComponents = {
-    book: BookOpen,
-    bulb: Lightbulb,
-    clock: Clock3,
-    dialog: MessageSquare,
-    file: FileText,
-    flag: Flag,
-    grid: Grid2X2,
-    heart: Heart,
-    mic: Mic,
-    star: Star,
-    tag: Tag,
-    user: User,
-} satisfies Record<RecordingTagIcon, LucideIcon>;
+type RecordingTagIconVariant = "full" | "manager";
 
-const recordingTagManagerIconComponents: Partial<
-    Record<RecordingTagIcon, LucideIcon>
-> = {
-    clock: Clock3,
-    grid: Grid2X2,
-    heart: Heart,
-    user: User,
+type RecordingTagIconOption = {
+    icon: LucideIcon;
+    managerIcon?: LucideIcon;
+    value: RecordingTagIcon;
 };
+
+function defineRecordingTagIconOptions<
+    const Options extends readonly RecordingTagIconOption[],
+>(
+    options: Options &
+        (Exclude<RecordingTagIcon, Options[number]["value"]> extends never
+            ? unknown
+            : [
+                  "Missing recording tag icons",
+                  Exclude<RecordingTagIcon, Options[number]["value"]>,
+              ]),
+) {
+    return options;
+}
+
+const recordingTagIconOptions = defineRecordingTagIconOptions([
+    { value: "grid", icon: Grid2X2, managerIcon: Grid2X2 },
+    { value: "user", icon: User, managerIcon: User },
+    { value: "heart", icon: Heart, managerIcon: Heart },
+    { value: "clock", icon: Clock3, managerIcon: Clock3 },
+    { value: "tag", icon: Tag },
+    { value: "star", icon: Star },
+    { value: "dialog", icon: MessageSquare },
+    { value: "flag", icon: Flag },
+    { value: "book", icon: BookOpen },
+    { value: "bulb", icon: Lightbulb },
+    { value: "file", icon: FileText },
+    { value: "mic", icon: Mic },
+]);
+
+function recordingTagIconOptionFor(
+    icon: RecordingTagIcon,
+): RecordingTagIconOption {
+    return (
+        recordingTagIconOptions.find((option) => option.value === icon) ??
+        recordingTagIconOptions.find((option) => option.value === "tag")!
+    );
+}
+
+export function recordingTagIconComponentFor(
+    icon: RecordingTagIcon,
+    variant: RecordingTagIconVariant = "full",
+) {
+    const option = recordingTagIconOptionFor(icon);
+
+    return variant === "manager"
+        ? (option.managerIcon ?? option.icon)
+        : option.icon;
+}
 
 const recordingTagChipClassName =
     "h-[22px] w-fit justify-normal gap-[5px] rounded-[6px] border-border bg-muted py-0 pl-[7px] pr-[9px] [font:600_11.5px_var(--font-sans)] shadow-xs transition-none";
@@ -86,19 +119,20 @@ export function RecordingTagIconGlyph({
     variant = "full",
     ...props
 }: {
-    icon: RecordingTagIcon;
-    variant?: "full" | "manager";
+    icon: LucideIcon | RecordingTagIcon;
+    variant?: RecordingTagIconVariant;
 } & LucideProps) {
     const Icon =
-        variant === "manager"
-            ? (recordingTagManagerIconComponents[icon] ??
-              recordingTagIconComponents[icon])
-            : recordingTagIconComponents[icon];
+        typeof icon === "string"
+            ? recordingTagIconComponentFor(icon, variant)
+            : icon;
 
     return <Icon aria-hidden="true" focusable="false" {...props} />;
 }
 
 export function RecordingTagChip({ tag }: { tag: RecordingTag }) {
+    const Icon = recordingTagIconComponentFor(tag.icon);
+
     return (
         <Badge
             className={cn(
@@ -109,7 +143,7 @@ export function RecordingTagChip({ tag }: { tag: RecordingTag }) {
             data-sot-tag-color={tag.color}
             data-sot-tag-icon={tag.icon}
         >
-            <RecordingTagIconGlyph data-icon="inline-start" icon={tag.icon} />
+            <RecordingTagIconGlyph data-icon="inline-start" icon={Icon} />
             <span>{tag.name}</span>
         </Badge>
     );
