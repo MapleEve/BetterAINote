@@ -300,6 +300,19 @@
     --glass-shadow-lift:
         0 22px 56px rgb(20 22 28 / 0.14), 0 4px 10px rgb(20 22 28 / 0.08);
 
+    /* ======== Overlay layer system ========================================
+       Single source of truth for stacking. Dropdowns from the topbar always
+       sit above the workspace list/detail/player; the settings scrim sits
+       above the dropdowns. Tokens are exposed as CSS custom properties so
+       any future popover can opt in without rediscovering the order. */
+    --z-popover-inline: 60; /* in-row anchored popovers (AI rename, vol, tag-filter) */
+    --z-topbar: 200; /* the topbar bar itself */
+    --z-dropdown: 220; /* topbar dropdowns (search, notifications) */
+    --z-drawer-scrim: 300; /* mobile drawer scrim */
+    --z-drawer: 310; /* mobile drawer sidebar */
+    --z-modal: 600; /* settings modal scrim — above every dropdown */
+    --z-toast: 700; /* toasts above everything */
+
     /* -----------------------------------------------------------
        ELEVATION
        ----------------------------------------------------------- */
@@ -662,21 +675,6 @@ body {
 
 button:not([data-slot]) {
     font-family: inherit;
-}
-
-/* ======== Overlay layer system ========================================
-   Single source of truth for stacking. Dropdowns from the topbar always
-   sit above the workspace list/detail/player; the settings scrim sits
-   above the dropdowns. Tokens are exposed as CSS custom properties so
-   any future popover can opt in without rediscovering the order. */
-:root {
-    --z-popover-inline: 60; /* in-row anchored popovers (AI rename, vol, tag-filter) */
-    --z-topbar: 200; /* the topbar bar itself */
-    --z-dropdown: 220; /* topbar dropdowns (search, notifications) */
-    --z-drawer-scrim: 300; /* mobile drawer scrim */
-    --z-drawer: 310; /* mobile drawer sidebar */
-    --z-modal: 600; /* settings modal scrim — above every dropdown */
-    --z-toast: 700; /* toasts above everything */
 }
 
 /* ====================================================================

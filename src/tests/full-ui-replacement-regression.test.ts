@@ -4227,6 +4227,9 @@ describe("full UI replacement regression coverage", () => {
         const settingsContent = readSource(
             "features/settings/components/settings-content.tsx",
         );
+        const dataSources = readSource(
+            "features/settings/components/sections/data-sources-section.tsx",
+        );
         expect(productCss).not.toMatch(LEGACY_MONO_PRODUCT_CSS_SELECTOR_RE);
         expect(productCss).not.toMatch(
             LEGACY_DESIGN_TWEAKS_PRODUCT_CSS_SELECTOR_RE,
@@ -4318,14 +4321,26 @@ describe("full UI replacement regression coverage", () => {
             "py-[22px]",
             "[overscroll-behavior:contain]",
         ]);
-        findStringConstInitializerContaining(settingsContent, [
-            "const SETTINGS_THREE_PANE_SCROLL_BODY_CLASS =",
-            "grid",
-            "min-h-0",
-            "grid-cols-[280px_1fr]",
-            "overflow-hidden",
-            "p-0",
-        ]);
+        expectExactStringConstInitializer(
+            dataSources,
+            "SETTINGS_THREE_PANE_SCROLL_BODY_CLASS",
+            "grid min-h-0 grid-cols-[280px_1fr] overflow-hidden p-0",
+        );
+        const dataSourcesThreePane = extractOpeningElement(
+            dataSources,
+            'data-sot-layout="three-pane"',
+            "div",
+        );
+        expect(dataSourcesThreePane).toContain(
+            "SETTINGS_THREE_PANE_SCROLL_BODY_CLASS",
+        );
+        expect(dataSourcesThreePane).not.toContain('className="');
+        expect(settingsContent).not.toContain(
+            "SETTINGS_THREE_PANE_SCROLL_BODY_CLASS",
+        );
+        expect(settingsContent).not.toContain(
+            "grid min-h-0 grid-cols-[280px_1fr] overflow-hidden p-0",
+        );
         findStringConstInitializerContaining(settingsContent, [
             "const SETTINGS_SECTION_GROUP_CLASS =",
             "relative",
@@ -11274,6 +11289,9 @@ describe("full UI replacement regression coverage", () => {
         const settings = readSource(
             "features/settings/components/settings-content.tsx",
         );
+        const dataSources = readSource(
+            "features/settings/components/sections/data-sources-section.tsx",
+        );
         const settingFieldControl = readSource(
             "features/settings/components/setting-field-control.tsx",
         );
@@ -11342,7 +11360,23 @@ describe("full UI replacement regression coverage", () => {
                 /const SETTINGS_SECTION_TITLE_CLASS\s*=\s*"[^"]*";/,
             )?.[0] ?? "";
 
-        expect(settings).toContain('data-sot-surface="settings-data-sources"');
+        expect(settings).toContain(
+            'import { DataSourcesSection } from "./sections/data-sources-section";',
+        );
+        expect(settings).toContain('case "data-sources"');
+        expect(settings).toContain(
+            "return <DataSourcesSection scrollRef={scrollRef} />;",
+        );
+        expect(settings).not.toContain("function DataSourcesSettingsPanel");
+        expect(settings).not.toContain("useDataSourcesSettings");
+        expect(settings).not.toContain(
+            'data-sot-surface="settings-data-sources"',
+        );
+        expect(dataSources).toContain("export function DataSourcesSection");
+        expect(dataSources).toContain("useDataSourcesSettings(language)");
+        expect(dataSources).toContain(
+            'data-sot-surface="settings-data-sources"',
+        );
         expect(settingsSectionTitleClass).toContain(
             "SETTINGS_SECTION_TITLE_CLASS",
         );
@@ -11494,13 +11528,15 @@ describe("full UI replacement regression coverage", () => {
             'data-sot-control="recording-detail-back"',
             "Button",
         );
-        expect(settings).toContain('data-sot-panel="source-provider-detail"');
+        expect(dataSources).toContain(
+            'data-sot-panel="source-provider-detail"',
+        );
         const settingsProviderDetail =
-            settings.match(
+            dataSources.match(
                 /<section[\s\S]*?data-sot-panel="source-provider-detail"[\s\S]*?<\/section>/,
             )?.[0] ?? "";
         const sourceProviderDetailPanelClass =
-            settings.match(
+            dataSources.match(
                 /const SOURCE_PROVIDER_DETAIL_PANEL_CLASS\s*=\s*"[^"]*";/,
             )?.[0] ?? "";
         const providerFieldsIndex = settingsProviderDetail.indexOf(
@@ -11524,7 +11560,7 @@ describe("full UI replacement regression coverage", () => {
             'data-sot-panel="source-actions"',
         );
         const sourceProviderFieldsListClass =
-            settings.match(
+            dataSources.match(
                 /const SOURCE_PROVIDER_FIELDS_LIST_CLASS\s*=\s*"([^"]*)";/,
             )?.[1] ?? "";
         const sourceProviderFieldsWrapper =
@@ -11550,15 +11586,17 @@ describe("full UI replacement regression coverage", () => {
         expect(sourceProviderFieldsWrapper).toContain(
             'data-sot-panel="source-provider-fields"',
         );
-        expectNamedImportSymbols(settings, "@/components/ui/field", [
+        expectNamedImportSymbols(dataSources, "@/components/ui/field", [
             "Field",
             "FieldContent",
             "FieldControl",
             "FieldDescription",
-            "FieldError",
             "FieldGroup",
             "FieldLabel",
             "FieldTitle",
+        ]);
+        expectNamedImportSymbols(settings, "@/components/ui/field", [
+            "FieldError",
         ]);
         expect(settingsProviderDetail).toContain(
             "SOURCE_PROVIDER_DETAIL_FIELD_CLASS",
@@ -11573,10 +11611,10 @@ describe("full UI replacement regression coverage", () => {
         expect(sourceProviderDetailPanelClass).toContain("px-[26px]");
         expect(sourceProviderDetailPanelClass).toContain("py-[22px]");
         expect(sourceProviderDetailPanelClass).not.toContain("p-6");
-        expect(settings).toContain(
+        expect(dataSources).toContain(
             "const SOURCE_PROVIDER_SECTION_DIVIDER_CLASS =",
         );
-        expect(settings).toContain(
+        expect(dataSources).toContain(
             "const SOURCE_PROVIDER_ACTION_CLUSTER_DIVIDER_CLASS =\n    SOURCE_PROVIDER_SECTION_DIVIDER_CLASS;",
         );
         expect(
@@ -11782,29 +11820,29 @@ describe("full UI replacement regression coverage", () => {
         expect(detail).not.toContain('className="workspace"');
         expect(detail).not.toContain('className="detail"');
         const settingsProviderTileButton = extractOpeningElement(
-            settings,
+            dataSources,
             'data-sot-control="source-provider"',
             "Button",
         );
         const settingsProviderStatusBadge = extractElementSlice(
-            settings,
+            dataSources,
             'data-sot-provider-status=""',
             "Badge",
         );
         const settingsProviderDetailStatusBadge =
-            settings.match(
+            dataSources.match(
                 /<Badge[\s\S]*?className=\{SOURCE_DETAIL_STATUS_BADGE_CLASS\}[\s\S]*?>/,
             )?.[0] ?? "";
         const settingsProviderStatusBadgeClass =
-            settings.match(
+            dataSources.match(
                 /const SOURCE_PROVIDER_STATUS_BADGE_CLASS[\s\S]*?;/,
             )?.[0] ?? "";
         const settingsProviderTileClass =
-            settings.match(
+            dataSources.match(
                 /const SOURCE_PROVIDER_TILE_BUTTON_CLASS[\s\S]*?;/,
             )?.[0] ?? "";
         const settingsStatusBadgeConstants = [
-            ...settings.matchAll(
+            ...dataSources.matchAll(
                 /const\s+[A-Z0-9_]*STATUS[A-Z0-9_]*BADGE_CLASS\s*=[\s\S]*?;/g,
             ),
         ]
@@ -11826,9 +11864,9 @@ describe("full UI replacement regression coverage", () => {
         expect(settingsProviderTileButton).toContain(
             'data-sot-dimmed={isDimmed ? "true" : "false"}',
         );
-        expect(settings).toContain("SOURCE_PROVIDER_TILE_BUTTON_CLASS");
-        expect(settings).not.toContain('variant="sourceProviderTile"');
-        expect(settings).not.toContain('size="sourceProviderTile"');
+        expect(dataSources).toContain("SOURCE_PROVIDER_TILE_BUTTON_CLASS");
+        expect(dataSources).not.toContain('variant="sourceProviderTile"');
+        expect(dataSources).not.toContain('size="sourceProviderTile"');
         for (const removedProviderTileSkinToken of [
             "border-[var(",
             "text-[var(",
@@ -11843,14 +11881,14 @@ describe("full UI replacement regression coverage", () => {
                 removedProviderTileSkinToken,
             );
         }
-        expect(settings).toContain("data-sot-provider-card");
-        expect(settings).toContain("data-sot-provider-icon");
-        expect(settings).toContain("data-sot-provider-meta");
-        expect(settings).toContain("data-sot-provider-status");
-        expect(settings).not.toContain("sp-card");
-        expect(settings).not.toContain("sp-ico");
-        expect(settings).not.toContain("sp-meta");
-        expect(settings).not.toContain("sp-status");
+        expect(dataSources).toContain("data-sot-provider-card");
+        expect(dataSources).toContain("data-sot-provider-icon");
+        expect(dataSources).toContain("data-sot-provider-meta");
+        expect(dataSources).toContain("data-sot-provider-status");
+        expect(dataSources).not.toContain("sp-card");
+        expect(dataSources).not.toContain("sp-ico");
+        expect(dataSources).not.toContain("sp-meta");
+        expect(dataSources).not.toContain("sp-status");
         expect(settingsProviderStatusBadge).toContain(
             "variant={getProviderStatusBadgeVariant(status.tone)}",
         );
@@ -11867,7 +11905,7 @@ describe("full UI replacement regression coverage", () => {
         expect(settingsProviderDetailStatusBadge).not.toContain(
             'size="statusPill"',
         );
-        expect(settings).not.toContain("SOURCE_STATUS_BADGE_CLASS");
+        expect(dataSources).not.toContain("SOURCE_STATUS_BADGE_CLASS");
         expectSourceProviderStatusBadgeClassIsLayoutOnly(
             settingsProviderStatusBadgeClass,
         );
@@ -11891,14 +11929,14 @@ describe("full UI replacement regression coverage", () => {
             }
         }
         for (const hook of SOURCE_AUTH_MODE_DATA_SOT_ORIGIN_HOOKS) {
-            expect(settings).toContain(hook);
+            expect(dataSources).toContain(hook);
         }
-        expect(settings).toContain('tone: "personal"');
-        expect(settings).toContain("<ToggleGroup");
-        expect(settings).toContain("<ToggleGroupItem");
-        expect(settings).toContain("<Badge");
+        expect(dataSources).toContain('tone: "personal"');
+        expect(dataSources).toContain("<ToggleGroup");
+        expect(dataSources).toContain("<ToggleGroupItem");
+        expect(dataSources).toContain("<Badge");
         const settingsSourceAuthModeControl = extractElementSlice(
-            settings,
+            dataSources,
             'data-sot-list="source-auth-modes"',
             "ToggleGroup",
         );
@@ -11930,12 +11968,12 @@ describe("full UI replacement regression coverage", () => {
         expect(settingsSourceAuthModeControl).not.toContain(
             'className="h-auto flex-col items-start justify-start whitespace-normal px-3.5 py-3 text-left"',
         );
-        expect(settings).toMatch(/data-sot-tone=\{\s*modeBadge\.tone\s*\}/);
-        expect(settings).toMatch(
+        expect(dataSources).toMatch(/data-sot-tone=\{\s*modeBadge\.tone\s*\}/);
+        expect(dataSources).toMatch(
             /getSourceAuthModeDisplayLabel\(\s*mode,\s*language,\s*\)/,
         );
         const sourceAuthModeBadge = extractElementSlice(
-            settings,
+            dataSources,
             'data-sot-badge="source-auth-mode"',
             "Badge",
         );
@@ -11947,16 +11985,16 @@ describe("full UI replacement regression coverage", () => {
             'variant="sourceAuthModeBadge"',
         );
         const settingsSourceActionStatus = extractElementSlice(
-            settings,
+            dataSources,
             'data-sot-part="source-action-status"',
             "SourceActionStatusBadge",
         );
         const sourceActionButtonWrapper =
-            settings.match(
+            dataSources.match(
                 /function SourceActionButton[\s\S]*?function SourceActionStatusBadge/,
             )?.[0] ?? "";
         const sourceActionStatusWrapper =
-            settings.match(
+            dataSources.match(
                 /function SourceActionStatusBadge[\s\S]*?function hasSavedSetup/,
             )?.[0] ?? "";
         expect(settingsSourceActionStatus).toContain(
@@ -11996,8 +12034,8 @@ describe("full UI replacement regression coverage", () => {
         expect(sourceActionStatusWrapper).not.toContain("animate-pulse");
         expect(sourceActionStatusWrapper).toContain("className={cn(");
         expect(sourceActionStatusWrapper).not.toContain("showIndicator");
-        expect(settings).toContain("function SourceActionStatusIndicator");
-        expect(settings).toContain(
+        expect(dataSources).toContain("function SourceActionStatusIndicator");
+        expect(dataSources).toContain(
             'data-sot-part="source-action-status-indicator"',
         );
         const settingsRow =
@@ -12026,7 +12064,7 @@ describe("full UI replacement regression coverage", () => {
             "Button",
         );
         const settingsSourceActions = extractElementSlice(
-            settings,
+            dataSources,
             'data-sot-panel="source-actions"',
             "footer",
         );
@@ -12151,11 +12189,13 @@ describe("full UI replacement regression coverage", () => {
         expect(settingFieldControl).not.toContain(
             "sourceProviderSwitchClassName",
         );
-        expect(settings).not.toContain("SOURCE_PROVIDER_DETAIL_SWITCH_CLASS");
-        expect(settings).not.toContain("settingsDetail");
-        expect(settings).toContain('data-sot-control="source-auto-update"');
-        expect(settings).toContain('data-sot-control="source-enable-sync"');
-        expect(settings).toContain("data-sot-state=");
+        expect(dataSources).not.toContain(
+            "SOURCE_PROVIDER_DETAIL_SWITCH_CLASS",
+        );
+        expect(dataSources).not.toContain("settingsDetail");
+        expect(dataSources).toContain('data-sot-control="source-auto-update"');
+        expect(dataSources).toContain('data-sot-control="source-enable-sync"');
+        expect(dataSources).toContain("data-sot-state=");
         expect(switchPrimitive).toContain('type SwitchVariant = "default"');
         expect(switchPrimitive).not.toContain('| "detail"');
         expect(switchPrimitive).not.toContain("detail:");
@@ -12341,12 +12381,12 @@ describe("full UI replacement regression coverage", () => {
         expect(toggleGroupPrimitive).not.toContain("settingsSegmentOption:");
         expect(toggleGroupPrimitive).not.toContain("settingsSegmentSpacing");
         const settingsSourceStateAlert = extractOpeningElement(
-            settings,
+            dataSources,
             'data-sot-banner="source-state"',
             "Alert",
         );
         const settingsSourceLoadErrorAlert = extractOpeningElement(
-            settings,
+            dataSources,
             'data-sot-banner="source-load-error"',
             "Alert",
         );
@@ -12356,7 +12396,7 @@ describe("full UI replacement regression coverage", () => {
             "Alert",
         );
         const settingsSourceLoadRetry = extractElementSlice(
-            settings,
+            dataSources,
             'data-sot-control="source-load-retry"',
             "Button",
         );
@@ -12597,10 +12637,10 @@ describe("full UI replacement regression coverage", () => {
                 `${target.label} should keep source-provider styles in feature classes`,
             ).toEqual([]);
         }
-        expect(settings).not.toContain("path-card");
-        expect(settings).not.toContain("pc-badge");
-        expect(settings).toContain('data-sot-control="source-test"');
-        expect(settings).toContain('data-sot-control="source-save"');
+        expect(dataSources).not.toContain("path-card");
+        expect(dataSources).not.toContain("pc-badge");
+        expect(dataSources).toContain('data-sot-control="source-test"');
+        expect(dataSources).toContain('data-sot-control="source-save"');
         const sourceAuthModeLegacySelectorLines = globals
             .split("\n")
             .map((text, index) => ({ line: index + 1, text }))

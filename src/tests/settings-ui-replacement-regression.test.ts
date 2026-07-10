@@ -181,6 +181,7 @@ function expectSourceProviderStatusBadgeClassIsLayoutOnly(
 
 const TARGET_SETTINGS_MIGRATION_PATHS = [
     "features/settings/components/settings-content.tsx",
+    "features/settings/components/sections/data-sources-section.tsx",
     "features/settings/components/setting-field-control.tsx",
     "features/settings/components/settings-skeletons.tsx",
     "features/data-sources/data-source-field-control.tsx",
@@ -940,6 +941,9 @@ describe("settings SOT interaction regressions", () => {
         const content = readSource(
             "features/settings/components/settings-content.tsx",
         );
+        const dataSources = readSource(
+            "features/settings/components/sections/data-sources-section.tsx",
+        );
 
         for (const [pattern, label] of LEGACY_SETTINGS_SHELL_CSS_SELECTORS) {
             expect(globals, `globals should not use ${label}`).not.toMatch(
@@ -966,7 +970,7 @@ describe("settings SOT interaction regressions", () => {
             "py-[22px]",
             "[overscroll-behavior:contain]",
         ]);
-        findStringConstInitializerContaining(content, [
+        findStringConstInitializerContaining(dataSources, [
             "const SETTINGS_THREE_PANE_SCROLL_BODY_CLASS =",
             "grid",
             "min-h-0",
@@ -990,6 +994,9 @@ describe("settings SOT interaction regressions", () => {
         const content = readSource(
             "features/settings/components/settings-content.tsx",
         );
+        const dataSources = readSource(
+            "features/settings/components/sections/data-sources-section.tsx",
+        );
         const settingFieldControl = readSource(
             "features/settings/components/setting-field-control.tsx",
         );
@@ -1011,6 +1018,8 @@ describe("settings SOT interaction regressions", () => {
 
         expectNoLegacySettingsFieldPatterns({
             "features/settings/components/settings-content.tsx": content,
+            "features/settings/components/sections/data-sources-section.tsx":
+                dataSources,
             "features/settings/components/setting-field-control.tsx":
                 settingFieldControl,
             "features/settings/components/settings-skeletons.tsx":
@@ -1022,7 +1031,10 @@ describe("settings SOT interaction regressions", () => {
         });
 
         expect(content).toMatch(
-            /import\s*\{[\s\S]*Field,[\s\S]*FieldContent,[\s\S]*FieldDescription,[\s\S]*FieldError,[\s\S]*FieldLabel,[\s\S]*FieldTitle[\s\S]*\}\s*from "@\/components\/ui\/field";/,
+            /import\s*\{[\s\S]*Field,[\s\S]*FieldContent,[\s\S]*FieldDescription,[\s\S]*FieldError,[\s\S]*FieldTitle[\s\S]*\}\s*from "@\/components\/ui\/field";/,
+        );
+        expect(dataSources).toMatch(
+            /import\s*\{[\s\S]*Field,[\s\S]*FieldContent,[\s\S]*FieldControl,[\s\S]*FieldDescription,[\s\S]*FieldGroup,[\s\S]*FieldLabel,[\s\S]*FieldTitle[\s\S]*\}\s*from "@\/components\/ui\/field";/,
         );
         expect(settingFieldControl).toContain('from "@/components/ui/field";');
         expect(dataSourceFieldControl).toContain(
@@ -1232,11 +1244,11 @@ describe("settings SOT interaction regressions", () => {
 
     it("keeps the data-source three-pane shell from stacking on mobile", () => {
         const globals = readSource("app/globals.css");
-        const content = readSource(
-            "features/settings/components/settings-content.tsx",
+        const dataSources = readSource(
+            "features/settings/components/sections/data-sources-section.tsx",
         );
 
-        findStringConstInitializerContaining(content, [
+        findStringConstInitializerContaining(dataSources, [
             "const SETTINGS_THREE_PANE_SCROLL_BODY_CLASS =",
             "grid",
             "min-h-0",
@@ -1244,8 +1256,8 @@ describe("settings SOT interaction regressions", () => {
             "overflow-hidden",
             "p-0",
         ]);
-        expect(content).not.toContain("max-[720px]:grid-cols");
-        expect(content).not.toContain("max-[720px]:grid-rows");
+        expect(dataSources).not.toContain("max-[720px]:grid-cols");
+        expect(dataSources).not.toContain("max-[720px]:grid-rows");
         expect(globals).not.toMatch(
             /\.settings-main\.three-pane\s*{[^}]*grid-template-columns:\s*minmax\(0,\s*1fr\)/,
         );
@@ -1263,6 +1275,9 @@ describe("settings SOT interaction regressions", () => {
     it("keeps data-source settings wired to provider rows, detail states, save, and no-persist test", () => {
         const content = readSource(
             "features/settings/components/settings-content.tsx",
+        );
+        const dataSources = readSource(
+            "features/settings/components/sections/data-sources-section.tsx",
         );
         const settingFieldControl = readSource(
             "features/settings/components/setting-field-control.tsx",
@@ -1286,25 +1301,45 @@ describe("settings SOT interaction regressions", () => {
             "iflyrec",
         ]) {
             expect(providerTypes).toContain(provider);
-            expect(content).toContain(provider);
+            expect(dataSources).toContain(provider);
         }
 
-        expect(content).toContain("function DataSourcesSettingsPanel");
-        expect(content).toContain("data-sot-load-state");
-        expect(content).toContain('data-sot-surface="settings-data-sources"');
-        expect(content).toContain('data-sot-layout="three-pane"');
         expect(content).toContain(
+            'import { DataSourcesSection } from "./sections/data-sources-section";',
+        );
+        expect(content).toContain('case "data-sources"');
+        expect(content).toContain(
+            "return <DataSourcesSection scrollRef={scrollRef} />;",
+        );
+        expect(content).not.toContain("function DataSourcesSettingsPanel");
+        expect(content).not.toContain("useDataSourcesSettings");
+        expect(content).not.toContain(
+            'data-sot-surface="settings-data-sources"',
+        );
+        expect(dataSources).toContain("export function DataSourcesSection");
+        expect(dataSources).toContain(
+            'import { useDataSourcesSettings } from "@/features/data-sources/use-data-sources-settings";',
+        );
+        expect(dataSources).toContain("useDataSourcesSettings(language)");
+        expect(dataSources).toContain("data-sot-load-state");
+        expect(dataSources).toContain(
+            'data-sot-surface="settings-data-sources"',
+        );
+        expect(dataSources).toContain('data-sot-layout="three-pane"');
+        expect(dataSources).toContain(
             'import {\n    Empty,\n    EmptyDescription,\n    EmptyHeader,\n    EmptyTitle,\n} from "@/components/ui/empty";',
         );
-        expect(content).toContain('data-sot-panel="settings-empty-hint"');
-        expect(content).toContain('data-sot-section="data-sources"');
-        expect(content).toContain('data-sot-state="loading"');
-        expect(content).toContain('data-sot-state="advanced"');
-        expect(content).toContain('data-sot-state="empty"');
-        expect(content).toContain('data-sot-part="settings-empty-title"');
-        expect(content).toContain('data-sot-part="settings-empty-description"');
+        expect(dataSources).toContain('data-sot-panel="settings-empty-hint"');
+        expect(dataSources).toContain('data-sot-section="data-sources"');
+        expect(dataSources).toContain('data-sot-state="loading"');
+        expect(dataSources).toContain('data-sot-state="advanced"');
+        expect(dataSources).toContain('data-sot-state="empty"');
+        expect(dataSources).toContain('data-sot-part="settings-empty-title"');
+        expect(dataSources).toContain(
+            'data-sot-part="settings-empty-description"',
+        );
         const settingsEmptyHints = collectElementSlices(
-            content,
+            dataSources,
             'data-sot-panel="settings-empty-hint"',
             "Empty",
         );
@@ -1347,11 +1382,11 @@ describe("settings SOT interaction regressions", () => {
             '? "请稍后重试，或检查服务端数据源接口。"',
         );
         const sourceProviderFieldsListClass =
-            content.match(
+            dataSources.match(
                 /const SOURCE_PROVIDER_FIELDS_LIST_CLASS\s*=\s*"([^"]*)";/,
             )?.[1] ?? "";
         const sourceProviderFieldsWrapper =
-            content.match(
+            dataSources.match(
                 /<FieldGroup\b(?=[^>]*data-sot-list="source-fields")(?=[^>]*data-sot-panel="source-provider-fields")[^>]*>/,
             )?.[0] ?? "";
         expect(sourceProviderFieldsListClass.split(/\s+/)).toEqual(
@@ -1368,8 +1403,8 @@ describe("settings SOT interaction regressions", () => {
         expect(sourceProviderFieldsWrapper).toContain(
             'data-sot-panel="source-provider-fields"',
         );
-        expect(content).toContain("SOURCE_PROVIDER_DETAIL_FIELD_CLASS");
-        expect(content).toContain('variant="sourceProviderDetail"');
+        expect(dataSources).toContain("SOURCE_PROVIDER_DETAIL_FIELD_CLASS");
+        expect(dataSources).toContain('variant="sourceProviderDetail"');
         expect(globals).not.toContain(
             '[data-sot-panel="source-provider-detail"] [data-sot-part="field-empty"]',
         );
@@ -1383,48 +1418,49 @@ describe("settings SOT interaction regressions", () => {
         expect(
             collectCssRuleBlocks(globals, "settings-empty-description"),
         ).toHaveLength(0);
-        expect(content).not.toContain('className="settings-main three-pane"');
-        expect(content).not.toContain('className="empty-hint"');
-        expect(content).not.toContain('className="eh-t"');
-        expect(content).not.toContain('className="eh-h"');
-        expect(content).not.toContain('className="ds-fields"');
-        const providersTitle = content.match(
+        expect(dataSources).not.toContain(
+            'className="settings-main three-pane"',
+        );
+        expect(dataSources).not.toContain('className="empty-hint"');
+        expect(dataSources).not.toContain('className="eh-t"');
+        expect(dataSources).not.toContain('className="eh-h"');
+        expect(dataSources).not.toContain('className="ds-fields"');
+        const providersTitle = dataSources.match(
             /<div[\s\S]*?data-sot-part="source-providers-title"[\s\S]*?<\/div>/,
         )?.[0];
         expect(providersTitle).toContain('{isZh ? "来源" : "Data Sources"}');
         expect(providersTitle).not.toContain('"数据源"');
         expect(content).toContain('data-sot-control="settings-save"');
-        expect(content).toContain("data-sot-panel");
-        expect(content).toContain("data-sot-provider=");
-        expect(content).toContain("data-sot-state");
-        expect(content).toContain("data-sot-panel");
-        expect(content).toContain("data-sot-status");
-        expect(content).toContain("data-sot-action-state");
-        expect(content).toContain("data-sot-interaction-disabled");
-        expect(content).toContain("ProviderActionMessage");
-        expect(content).toContain('"testing"');
-        expect(content).toContain('"test-success"');
-        expect(content).toContain('"save-error"');
-        expect(content).toContain("source.syncStatus");
-        expect(content).toContain("source.lastSyncError");
-        expect(content).toContain('"syncing"');
-        expect(content).toContain('"同步中"');
-        expect(content).toContain('"同步失败"');
-        expect(content).toContain("来源更新失败，请检查登录信息后重试。");
-        expect(content).toContain("connectionStatus");
-        expect(content).toContain('"expired"');
-        expect(content).toContain("useSettingsSectionBusy");
-        expect(content).toContain("isDataSourcesBusy");
-        expect(content).toContain('data-sot-list="source-auth-modes"');
+        expect(dataSources).toContain("data-sot-panel");
+        expect(dataSources).toContain("data-sot-provider=");
+        expect(dataSources).toContain("data-sot-state");
+        expect(dataSources).toContain("data-sot-status");
+        expect(dataSources).toContain("data-sot-action-state");
+        expect(dataSources).toContain("data-sot-interaction-disabled");
+        expect(dataSources).toContain("ProviderActionMessage");
+        expect(dataSources).toContain('"testing"');
+        expect(dataSources).toContain('"test-success"');
+        expect(dataSources).toContain('"save-error"');
+        expect(dataSources).toContain("source.syncStatus");
+        expect(dataSources).toContain("source.lastSyncError");
+        expect(dataSources).toContain('"syncing"');
+        expect(dataSources).toContain('"同步中"');
+        expect(dataSources).toContain('"同步失败"');
+        expect(dataSources).toContain("来源更新失败，请检查登录信息后重试。");
+        expect(dataSources).toContain("connectionStatus");
+        expect(dataSources).toContain('"expired"');
+        expect(dataSources).toContain("useSettingsSectionBusy");
+        expect(dataSources).toContain("isDataSourcesBusy");
+        expect(dataSources).toContain('data-sot-list="source-auth-modes"');
         const sourceAuthModeControl = collectElementSlices(
-            content,
+            dataSources,
             'data-sot-list="source-auth-modes"',
             "ToggleGroup",
         )[0];
-        expect(content).toContain("<ToggleGroup");
-        expect(content).toContain("<ToggleGroupItem");
-        expect(content).toContain('type="single"');
-        expect(content).toContain("value={selectedSource.authMode}");
+        expect(dataSources).toContain("<ToggleGroup");
+        expect(dataSources).toContain("<ToggleGroupItem");
+        expect(dataSources).toContain('type="single"');
+        expect(dataSources).toContain("value={selectedSource.authMode}");
         expect(sourceAuthModeControl).toContain('variant="outline"');
         expect(sourceAuthModeControl).toContain("spacing={2}");
         expect(sourceAuthModeControl).toContain("className=");
@@ -1448,18 +1484,18 @@ describe("settings SOT interaction regressions", () => {
         expect(sourceAuthModeControl).toContain(
             'data-sot-control="source-auth-mode"',
         );
-        expect(content).toContain("data-sot-auth-mode={mode}");
-        expect(content).toContain("data-sot-state={");
-        expect(content).toContain('data-sot-part="source-auth-mode-title"');
-        expect(content).toContain(
+        expect(dataSources).toContain("data-sot-auth-mode={mode}");
+        expect(dataSources).toContain("data-sot-state={");
+        expect(dataSources).toContain('data-sot-part="source-auth-mode-title"');
+        expect(dataSources).toContain(
             'data-sot-part="source-auth-mode-description"',
         );
-        expect(content).toContain('data-sot-badge="source-auth-mode"');
-        expect(content).toMatch(/data-sot-tone=\{\s*modeBadge\.tone\s*\}/);
-        expect(content).toContain("{modeBadge.label}");
-        expect(content).toContain('tone: "recommended"');
-        expect(content).toContain('tone: "personal"');
-        expect(content).toMatch(
+        expect(dataSources).toContain('data-sot-badge="source-auth-mode"');
+        expect(dataSources).toMatch(/data-sot-tone=\{\s*modeBadge\.tone\s*\}/);
+        expect(dataSources).toContain("{modeBadge.label}");
+        expect(dataSources).toContain('tone: "recommended"');
+        expect(dataSources).toContain('tone: "personal"');
+        expect(dataSources).toMatch(
             /getSourceAuthModeDisplayLabel\(\s*mode,\s*language,\s*\)/,
         );
         const settingsGroup =
@@ -1467,7 +1503,7 @@ describe("settings SOT interaction regressions", () => {
                 /function SettingsGroup[\s\S]*?function SettingsRow/,
             )?.[0] ?? "";
         const [sourceAuthModeBadge] = collectElementSlices(
-            content,
+            dataSources,
             'data-sot-badge="source-auth-mode"',
             "Badge",
         );
@@ -1478,43 +1514,48 @@ describe("settings SOT interaction regressions", () => {
         expect(sourceAuthModeBadge).not.toContain(
             'variant="sourceAuthModeBadge"',
         );
-        expect(content).toContain("<Badge");
-        expect(content).toContain("authMode: mode");
-        expect(content).not.toContain('className="path-picker"');
-        expect(content).not.toContain("path-card");
-        expect(content).not.toContain("pc-badge");
-        expect(content).toContain("SETTINGS_DATA_SOURCE_PROVIDER_STORAGE_KEY");
-        expect(content).toContain('data-sot-part="source-provider-mark"');
-        expect(content).toContain("getSourceProviderSettingsLabel");
-        expect(content).toContain("handleTestSource");
-        expect(content).toContain("testSourceSettings(source)");
-        expect(content).toContain("handleSaveSource");
-        expect(content).toContain("handleReconnectSource");
-        expect(content).toContain("handleDisconnectSource");
-        expect(content).toContain("reconnectSourceSettings(");
-        expect(content).toContain("disconnectSourceSettings(");
-        expect(content).toContain("DataSourceFieldControl");
-        expect(content).toContain("updateField(");
-        expect(content).toContain("secretDrafts");
-        expect(content).toContain("Switch");
-        expect(content).toContain("onCheckedChange");
-        expect(content).toContain("enabled: checked");
-        expect(content).toContain('data-sot-part="source-provider-header"');
-        expect(content).toContain('data-sot-part="source-provider-title"');
-        expect(content).toContain('data-sot-part="source-provider-subtitle"');
-        expect(content).toContain('data-sot-surface="settings-data-sources"');
-        expect(content).toContain("data-sot-status={status.state}");
-        expect(content).toContain("DataSourceFieldControl");
+        expect(dataSources).toContain("<Badge");
+        expect(dataSources).toContain("authMode: mode");
+        expect(dataSources).not.toContain('className="path-picker"');
+        expect(dataSources).not.toContain("path-card");
+        expect(dataSources).not.toContain("pc-badge");
+        expect(dataSources).toContain(
+            "SETTINGS_DATA_SOURCE_PROVIDER_STORAGE_KEY",
+        );
+        expect(dataSources).toContain('data-sot-part="source-provider-mark"');
+        expect(dataSources).toContain("getSourceProviderSettingsLabel");
+        expect(dataSources).toContain("handleTestSource");
+        expect(dataSources).toContain("testSourceSettings(source)");
+        expect(dataSources).toContain("handleSaveSource");
+        expect(dataSources).toContain("handleReconnectSource");
+        expect(dataSources).toContain("handleDisconnectSource");
+        expect(dataSources).toContain("reconnectSourceSettings(");
+        expect(dataSources).toContain("disconnectSourceSettings(");
+        expect(dataSources).toContain("DataSourceFieldControl");
+        expect(dataSources).toContain("updateField(");
+        expect(dataSources).toContain("secretDrafts");
+        expect(dataSources).toContain("Switch");
+        expect(dataSources).toContain("onCheckedChange");
+        expect(dataSources).toContain("enabled: checked");
+        expect(dataSources).toContain('data-sot-part="source-provider-header"');
+        expect(dataSources).toContain('data-sot-part="source-provider-title"');
+        expect(dataSources).toContain(
+            'data-sot-part="source-provider-subtitle"',
+        );
+        expect(dataSources).toContain(
+            'data-sot-surface="settings-data-sources"',
+        );
+        expect(dataSources).toContain("data-sot-status={status.state}");
         expect(settingsGroup).toContain("data-sot-section-group");
         expect(settingsGroup).toContain(
             "className={SETTINGS_SECTION_GROUP_CLASS}",
         );
-        expect(content).toContain('from "@/components/ui/field";');
-        expect(content).toContain("<Field");
-        expect(content).toContain("<FieldContent");
-        expect(content).toContain("<FieldLabel");
-        expect(content).toContain("<FieldTitle>");
-        expect(content).toContain("<FieldDescription>");
+        expect(dataSources).toContain('from "@/components/ui/field";');
+        expect(dataSources).toContain("<Field");
+        expect(dataSources).toContain("<FieldContent");
+        expect(dataSources).toContain("<FieldLabel");
+        expect(dataSources).toContain("<FieldTitle>");
+        expect(dataSources).toContain("<FieldDescription>");
         expect(settingFieldControl).toContain("readOnly?: boolean");
         expect(settingFieldControl).toContain("readOnly={field.readOnly}");
         expect(settingFieldControl).toContain("masked?: boolean");
@@ -1546,28 +1587,29 @@ describe("settings SOT interaction regressions", () => {
         }
         expect(inputPrimitive).not.toContain("field-input");
         expect(content).toContain('data-sot-panel="settings-save-actions"');
-        expect(content).toContain('data-sot-panel="source-actions"');
-        expect(content).toContain('data-sot-part="source-action-status"');
-        expect(content).toContain('data-sot-control="source-test"');
-        expect(content).toContain('data-sot-control="source-save"');
-        expect(content).toContain('data-sot-control="source-reconnect"');
-        expect(content).toContain('data-sot-control="source-disconnect"');
-        expect(content).toContain('"重新连接"');
-        expect(content).toContain('"断开连接"');
-        expect(content).toContain('data-sot-panel="source-state-banner"');
-        expect(content).toContain("getSourceProviderStatusHint");
-        expect(content).toContain("getSourceProviderDetailSubtitle");
-        expect(content).toContain("shouldShowProviderStateBanner");
-        expect(content).not.toContain('className="sm-detail-head"');
-        expect(content).not.toContain("className={`sm-detail-icon");
-        expect(content).not.toContain('className="sm-detail-title"');
-        expect(content).not.toContain('className="sm-detail-sub"');
-        expect(content).not.toContain('className="modal-foot"');
-        expect(content).not.toContain('className="sm-actions-spacer"');
-        expect(content).not.toContain('className="sm-section"');
-        expect(content).not.toContain("sm-actions-state");
-        expect(content).not.toContain("sd-pill");
+        expect(dataSources).toContain('data-sot-panel="source-actions"');
+        expect(dataSources).toContain('data-sot-part="source-action-status"');
+        expect(dataSources).toContain('data-sot-control="source-test"');
+        expect(dataSources).toContain('data-sot-control="source-save"');
+        expect(dataSources).toContain('data-sot-control="source-reconnect"');
+        expect(dataSources).toContain('data-sot-control="source-disconnect"');
+        expect(dataSources).toContain('"重新连接"');
+        expect(dataSources).toContain('"断开连接"');
+        expect(dataSources).toContain('data-sot-panel="source-state-banner"');
+        expect(dataSources).toContain("getSourceProviderStatusHint");
+        expect(dataSources).toContain("getSourceProviderDetailSubtitle");
+        expect(dataSources).toContain("shouldShowProviderStateBanner");
+        expect(dataSources).not.toContain('className="sm-detail-head"');
+        expect(dataSources).not.toContain("className={`sm-detail-icon");
+        expect(dataSources).not.toContain('className="sm-detail-title"');
+        expect(dataSources).not.toContain('className="sm-detail-sub"');
+        expect(dataSources).not.toContain('className="modal-foot"');
+        expect(dataSources).not.toContain('className="sm-actions-spacer"');
+        expect(dataSources).not.toContain('className="sm-section"');
+        expect(dataSources).not.toContain("sm-actions-state");
+        expect(dataSources).not.toContain("sd-pill");
         expect(content).not.toMatch(OLD_UI_RE);
+        expect(dataSources).not.toMatch(OLD_UI_RE);
 
         expect(service).toContain("DATA_SOURCES_TEST_API_PATH");
         expect(service).toContain('"/api/data-sources/test"');
@@ -1612,10 +1654,10 @@ describe("settings SOT interaction regressions", () => {
     });
 
     it("keeps data-source load retry on a stable SOT control hook", () => {
-        const content = readSource(
-            "features/settings/components/settings-content.tsx",
+        const dataSources = readSource(
+            "features/settings/components/sections/data-sources-section.tsx",
         );
-        const sourceLoadError = content.match(
+        const sourceLoadError = dataSources.match(
             /<Alert\s[^>]*data-sot-banner="source-load-error"[^>]*>[\s\S]*?<\/Alert>/,
         )?.[0];
         const sourceLoadErrorOpening =
@@ -1656,10 +1698,10 @@ describe("settings SOT interaction regressions", () => {
     });
 
     it("keeps provider enable sync switch on stable SOT hooks and state contracts", () => {
-        const content = readSource(
-            "features/settings/components/settings-content.tsx",
+        const dataSources = readSource(
+            "features/settings/components/sections/data-sources-section.tsx",
         );
-        const enableSwitch = content.match(
+        const enableSwitch = dataSources.match(
             /<Switch[\s\S]*?data-sot-control="source-enable-sync"[\s\S]*?\/>/,
         )?.[0];
 
@@ -1680,31 +1722,31 @@ describe("settings SOT interaction regressions", () => {
     });
 
     it("keeps provider tile and detail runtime hooks on SOT attributes only", () => {
-        const content = readSource(
-            "features/settings/components/settings-content.tsx",
+        const dataSources = readSource(
+            "features/settings/components/sections/data-sources-section.tsx",
         );
         const providerTile =
-            content.match(
-                /function DataSourceProviderTile[\s\S]*?function DataSourcesSettingsPanel/,
+            dataSources.match(
+                /function DataSourceProviderTile[\s\S]*?function ProviderStateBanner/,
             )?.[0] ?? "";
         const detailRoot =
-            content.match(
+            dataSources.match(
                 /<section[\s\S]*?data-sot-panel="source-provider-detail"[\s\S]*?>/,
             )?.[0] ?? "";
         const detailHeader =
-            content.match(
+            dataSources.match(
                 /<CardHeader[\s\S]*?data-sot-part="source-provider-header"[\s\S]*?>/,
             )?.[0] ?? "";
         const detailPanelClass =
-            content.match(
+            dataSources.match(
                 /const SOURCE_PROVIDER_DETAIL_PANEL_CLASS\s*=\s*"[^"]*";/,
             )?.[0] ?? "";
         const providerTileClass =
-            content.match(
+            dataSources.match(
                 /const SOURCE_PROVIDER_TILE_BUTTON_CLASS[\s\S]*?;/,
             )?.[0] ?? "";
 
-        expect(content).not.toMatch(
+        expect(dataSources).not.toMatch(
             /data-provider=|data-selected=|data-dimmed=|data-provider-detail=|data-ds-state=/,
         );
         expect(providerTile).toContain('data-sot-control="source-provider"');
@@ -1766,7 +1808,7 @@ describe("settings SOT interaction regressions", () => {
 
     it("keeps provider buttons and badges on shadcn variants without local skins", () => {
         const content = readSource(
-            "features/settings/components/settings-content.tsx",
+            "features/settings/components/sections/data-sources-section.tsx",
         );
         const button = readSource("components/ui/button.tsx");
         const badge = readSource("components/ui/badge.tsx");
@@ -1782,7 +1824,7 @@ describe("settings SOT interaction regressions", () => {
             )?.[0] ?? "";
         const providerStateBannerBlock =
             content.match(
-                /function ProviderStateBanner[\s\S]*?function DataSourcesSettingsPanel/,
+                /function ProviderStateBanner[\s\S]*?export function DataSourcesSection/,
             )?.[0] ?? "";
         const bannerIconSlotClass =
             content.match(
@@ -2072,6 +2114,9 @@ describe("settings SOT interaction regressions", () => {
         const content = readSource(
             "features/settings/components/settings-content.tsx",
         );
+        const dataSources = readSource(
+            "features/settings/components/sections/data-sources-section.tsx",
+        );
         const settingFieldControl = readSource(
             "features/settings/components/setting-field-control.tsx",
         );
@@ -2101,8 +2146,8 @@ describe("settings SOT interaction regressions", () => {
                 /function SaveStatus[\s\S]*?function SectionShell/,
             )?.[0] ?? "";
         const providerStateBannerBlock =
-            content.match(
-                /function ProviderStateBanner[\s\S]*?function DataSourcesSettingsPanel/,
+            dataSources.match(
+                /function ProviderStateBanner[\s\S]*?export function DataSourcesSection/,
             )?.[0] ?? "";
         const shortcutsGridClass =
             content.match(
@@ -2155,17 +2200,21 @@ describe("settings SOT interaction regressions", () => {
         ]) {
             expect(alertPrimitive).not.toContain(settingsAlertPrimitiveToken);
         }
-        expect(content).toContain('variant="sourceProviderDetail"');
-        expect(content).not.toContain('variant="detail"');
-        expect(content).not.toContain("settingsDetail");
-        expect(content).toContain("<FieldControl");
-        expect(content).not.toContain('controlSize="sourceProviderDetail"');
-        expect(content).not.toContain('size="sourceProviderDetail"');
-        expect(content).toContain("SOURCE_PROVIDER_DETAIL_FIELD_CLASS");
-        expect(content).toContain("SOURCE_PROVIDER_DETAIL_FIELD_CONTENT_CLASS");
-        expect(content).toContain("SOURCE_PROVIDER_DETAIL_FIELD_CONTROL_CLASS");
-        expect(content).toContain("SOURCE_PROVIDER_DETAIL_INPUT_CLASS");
-        expect(content).toContain('data-sot-panel="source-actions"');
+        expect(dataSources).toContain('variant="sourceProviderDetail"');
+        expect(dataSources).not.toContain('variant="detail"');
+        expect(dataSources).not.toContain("settingsDetail");
+        expect(dataSources).toContain("<FieldControl");
+        expect(dataSources).not.toContain('controlSize="sourceProviderDetail"');
+        expect(dataSources).not.toContain('size="sourceProviderDetail"');
+        expect(dataSources).toContain("SOURCE_PROVIDER_DETAIL_FIELD_CLASS");
+        expect(dataSources).toContain(
+            "SOURCE_PROVIDER_DETAIL_FIELD_CONTENT_CLASS",
+        );
+        expect(dataSources).toContain(
+            "SOURCE_PROVIDER_DETAIL_FIELD_CONTROL_CLASS",
+        );
+        expect(dataSources).toContain("SOURCE_PROVIDER_DETAIL_INPUT_CLASS");
+        expect(dataSources).toContain('data-sot-panel="source-actions"');
         expect(content).toContain('data-sot-panel="settings-save-actions"');
         expect(content).toContain(
             'import { Spinner } from "@/components/ui/spinner";',
@@ -2177,6 +2226,7 @@ describe("settings SOT interaction regressions", () => {
         expect(providerStateBannerBlock).not.toContain("animate-spin");
         for (const source of [
             content,
+            dataSources,
             settingFieldControl,
             dataSourceFieldControl,
             switchPrimitive,
@@ -2429,10 +2479,12 @@ describe("settings SOT interaction regressions", () => {
         expect(settingFieldControl).not.toContain(
             "sourceProviderSwitchClassName",
         );
-        expect(content).not.toContain("SOURCE_PROVIDER_DETAIL_SWITCH_CLASS");
-        expect(content).toContain('data-sot-control="source-auto-update"');
-        expect(content).toContain('data-sot-control="source-enable-sync"');
-        expect(content).toContain("data-sot-state=");
+        expect(dataSources).not.toContain(
+            "SOURCE_PROVIDER_DETAIL_SWITCH_CLASS",
+        );
+        expect(dataSources).toContain('data-sot-control="source-auto-update"');
+        expect(dataSources).toContain('data-sot-control="source-enable-sync"');
+        expect(dataSources).toContain("data-sot-state=");
         expect(inputPrimitive).not.toContain("data-sot-mask");
         expect(inputPrimitive).not.toContain("sourceProviderDetail");
         expect(switchPrimitive).not.toContain("sourceProviderDetail");
@@ -2450,13 +2502,12 @@ describe("settings SOT interaction regressions", () => {
     });
 
     it("keeps data-source P0 detail rows explicit, safe, and wired to real actions", () => {
-        const content = readSource(
+        const settingsContent = readSource(
             "features/settings/components/settings-content.tsx",
         );
-        const dataSourcesPanel =
-            content.match(
-                /function DataSourcesSettingsPanel[\s\S]*?type SectionSaveState/,
-            )?.[0] ?? "";
+        const dataSourcesPanel = readSource(
+            "features/settings/components/sections/data-sources-section.tsx",
+        );
         const presentation = readSource("lib/data-sources/presentation.ts");
 
         expect(dataSourcesPanel).toContain("自动更新");
@@ -2469,7 +2520,7 @@ describe("settings SOT interaction regressions", () => {
         expect(dataSourcesPanel).toContain('label: "base URL"');
         expect(dataSourcesPanel).toContain('"钉钉 API 域名"');
         expect(dataSourcesPanel).toContain('"https://alidocs.dingtalk.com"');
-        expect(content).toContain('"m@example.com · 浏览器授权登录"');
+        expect(dataSourcesPanel).toContain('"m@example.com · 浏览器授权登录"');
         expect(presentation).toContain('"最近更新 · 12 分钟前 · 112 条录音"');
         expect(presentation).toContain('"正在同步 · 已读取 12 / 48"');
         expect(presentation).toContain('"上次同步失败 · 2 小时前"');
@@ -2638,13 +2689,13 @@ describe("settings SOT interaction regressions", () => {
             'data-sot-panel="source-provider-detail"',
         );
         expect(providerDetail).not.toContain("data-sot-section-group");
-        expect(content).toContain(
+        expect(dataSourcesPanel).toContain(
             "const SOURCE_PROVIDER_SECTION_DIVIDER_CLASS =",
         );
-        expect(content).toContain(
+        expect(dataSourcesPanel).toContain(
             "const SOURCE_PROVIDER_ACTION_CLUSTER_DIVIDER_CLASS =",
         );
-        expect(content).not.toContain(
+        expect(dataSourcesPanel).not.toContain(
             "const SOURCE_PROVIDER_ACTION_CLUSTER_DIVIDER_CLASS = cn(",
         );
         expect(providerDetail).toContain("<Card");
@@ -2704,7 +2755,7 @@ describe("settings SOT interaction regressions", () => {
         expect(sourceActionStatus).not.toContain('variant="secondary"');
         expect(sourceActionStatus).not.toContain("className=");
         expect(sourceActionStatus).not.toContain("showIndicator");
-        expect(content).toContain(
+        expect(dataSourcesPanel).toContain(
             'data-sot-part="source-action-status-indicator"',
         );
         expect(actionFooter).not.toContain("data-save-actions");
@@ -2720,7 +2771,7 @@ describe("settings SOT interaction regressions", () => {
                 /\{shouldShowProviderStateBanner[\s\S]*?<ProviderStateBanner[\s\S]*?\/>\s*\)\s*:\s*null\}/,
             )?.[0] ?? "";
         const stateBannerHelper =
-            content.match(
+            dataSourcesPanel.match(
                 /function shouldShowProviderStateBanner[\s\S]*?function getMissingConnectionFields/,
             )?.[0] ?? "";
 
@@ -2738,29 +2789,29 @@ describe("settings SOT interaction regressions", () => {
         for (const selector of REMOVED_SETTINGS_SAVE_ACTION_GLOBAL_SELECTORS) {
             expect(globals).not.toContain(selector);
         }
-        expect(content).toContain("SETTINGS_SAVE_ACTIONS_CLASS");
-        expect(content).not.toContain("SETTINGS_SAVE_STATUS_BADGE_CLASS");
+        expect(settingsContent).toContain("SETTINGS_SAVE_ACTIONS_CLASS");
+        expect(settingsContent).not.toContain(
+            "SETTINGS_SAVE_STATUS_BADGE_CLASS",
+        );
         expect(globals).not.toContain('data-sot-actions="source-actions"');
     });
 
     it("scopes the settings raw copy scan to user-visible data-source copy", () => {
-        const content = readSource(
-            "features/settings/components/settings-content.tsx",
+        const dataSourcesPanel = readSource(
+            "features/settings/components/sections/data-sources-section.tsx",
         );
-        const dataSourcesPanel =
-            content.match(
-                /function DataSourcesSettingsPanel[\s\S]*?type SectionSaveState/,
-            )?.[0] ?? "";
 
-        expect(content).toContain("const safeDescription = isZh");
-        expect(content).toContain('["h", "ar"].join("")');
-        expect(content).toContain("const SOURCE_WEB_SIGN_IN_AUTH_MODE =");
-        expect(content).toMatch(
+        expect(dataSourcesPanel).toContain("const safeDescription = isZh");
+        expect(dataSourcesPanel).toContain('["h", "ar"].join("")');
+        expect(dataSourcesPanel).toContain(
+            "const SOURCE_WEB_SIGN_IN_AUTH_MODE =",
+        );
+        expect(dataSourcesPanel).toMatch(
             /const SOURCE_WEB_SIGN_IN_AUTH_MODE = \["web", "reverse"\]\.join\(\s*"-",\s*\) as SourceAuthMode;/,
         );
-        expect(content).not.toMatch(/\bfallback\b/);
-        expect(content).not.toContain('["har"].join("")');
-        expect(content).not.toContain('"web-reverse"');
+        expect(dataSourcesPanel).not.toMatch(/\bfallback\b/);
+        expect(dataSourcesPanel).not.toContain('["har"].join("")');
+        expect(dataSourcesPanel).not.toContain('"web-reverse"');
 
         for (const blocker of SETTINGS_PUBLIC_RAW_COPY_BLOCKERS) {
             expect(dataSourcesPanel).not.toContain(blocker);
@@ -2770,6 +2821,9 @@ describe("settings SOT interaction regressions", () => {
     it("keeps non-source settings panels connected to stores and save state boundaries", () => {
         const content = readSource(
             "features/settings/components/settings-content.tsx",
+        );
+        const dataSourcesPanel = readSource(
+            "features/settings/components/sections/data-sources-section.tsx",
         );
         const displayPanel = content.match(
             /function DisplaySettingsPanel[\s\S]*?function TitleGenerationSettingsPanel/,
@@ -2791,9 +2845,6 @@ describe("settings SOT interaction regressions", () => {
         )?.[0];
         const playbackSettingsRows = content.match(
             /function PlaybackSettingsRows[\s\S]*?function MiscSettingsPanel/,
-        )?.[0];
-        const dataSourcesPanel = content.match(
-            /function DataSourcesSettingsPanel[\s\S]*?type SectionSaveState/,
         )?.[0];
         const saveStatus = content.match(
             /function SaveStatus[\s\S]*?function SectionShell/,
