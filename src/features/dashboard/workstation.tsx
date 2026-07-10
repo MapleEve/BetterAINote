@@ -135,6 +135,10 @@ import {
     refreshBrowserRoute,
     useBrowserRouteController,
 } from "@/lib/platform/browser-router";
+import {
+    readBrowserStorage,
+    writeBrowserStorage,
+} from "@/lib/platform/browser-shell";
 import { writeBrowserClipboardText } from "@/lib/platform/clipboard";
 import type { RecordingTag } from "@/lib/recording-tags";
 import {
@@ -297,6 +301,7 @@ type Translator = (
 
 const SETTINGS_DATA_SOURCE_PROVIDER_STORAGE_KEY =
     "settings-data-source-provider";
+const DASHBOARD_SIDEBAR_COLLAPSED_STORAGE_KEY = "dashboard-sidebar-collapsed";
 const SOURCE_DRAWER_FOCUSABLE_SELECTOR =
     'button:not([disabled]),a[href],input:not([disabled]),select:not([disabled]),textarea:not([disabled]),[tabindex]:not([tabindex="-1"])';
 const DASHBOARD_WORKSTATION_SHELL_CLASS_NAME =
@@ -313,7 +318,7 @@ const DASHBOARD_RECORDING_LIST_CONTENT_CLASS_NAME = "flex min-h-0 flex-col p-0";
 const DASHBOARD_DETAIL_EMPTY_STATE_CLASS_NAME = "min-h-[280px] p-9 md:p-9";
 
 const dashboardDrawerClassNames = {
-    scrim: "pointer-events-none fixed inset-0 z-40 hidden max-[860px]:block max-[860px]:group-data-[drawer-state=open]/dashboard-workstation:pointer-events-auto",
+    scrim: "pointer-events-none fixed inset-0 z-[300] hidden max-[860px]:block max-[860px]:group-data-[drawer-state=open]/dashboard-workstation:pointer-events-auto",
     activeDot:
         "absolute top-1.5 right-1.5 hidden size-1.5 rounded-full bg-primary",
 } as const;
@@ -328,7 +333,7 @@ const dashboardTopbarClassNames = {
 
 const dashboardSidebarCollapseClassNames = {
     sidebar:
-        "relative flex flex-col rounded-none border-r border-sidebar-border bg-sidebar px-3 pt-4 pb-3 text-sidebar-foreground group-data-[sidebar-collapsed=true]/dashboard-workstation:px-1.5 group-data-[sidebar-collapsed=true]/dashboard-workstation:pt-4 group-data-[sidebar-collapsed=true]/dashboard-workstation:pb-3 max-[860px]:hidden max-[860px]:group-data-[drawer-state=open]/dashboard-workstation:fixed max-[860px]:group-data-[drawer-state=open]/dashboard-workstation:top-0 max-[860px]:group-data-[drawer-state=open]/dashboard-workstation:bottom-0 max-[860px]:group-data-[drawer-state=open]/dashboard-workstation:left-0 max-[860px]:group-data-[drawer-state=open]/dashboard-workstation:z-50 max-[860px]:group-data-[drawer-state=open]/dashboard-workstation:flex max-[860px]:group-data-[drawer-state=open]/dashboard-workstation:max-w-[min(320px,calc(100vw-32px))]",
+        "relative flex flex-col rounded-none border-r border-sidebar-border bg-sidebar px-3 pt-4 pb-3 text-sidebar-foreground group-data-[sidebar-collapsed=true]/dashboard-workstation:px-1.5 group-data-[sidebar-collapsed=true]/dashboard-workstation:pt-4 group-data-[sidebar-collapsed=true]/dashboard-workstation:pb-3 max-[860px]:hidden max-[860px]:group-data-[drawer-state=open]/dashboard-workstation:fixed max-[860px]:group-data-[drawer-state=open]/dashboard-workstation:top-0 max-[860px]:group-data-[drawer-state=open]/dashboard-workstation:bottom-0 max-[860px]:group-data-[drawer-state=open]/dashboard-workstation:left-0 max-[860px]:group-data-[drawer-state=open]/dashboard-workstation:z-[310] max-[860px]:group-data-[drawer-state=open]/dashboard-workstation:flex max-[860px]:group-data-[drawer-state=open]/dashboard-workstation:max-w-[min(320px,calc(100vw-32px))]",
     hidden: "group-data-[sidebar-collapsed=true]/dashboard-workstation:hidden",
     brand: "group-data-[sidebar-collapsed=true]/dashboard-workstation:justify-center group-data-[sidebar-collapsed=true]/dashboard-workstation:px-0 group-data-[sidebar-collapsed=true]/dashboard-workstation:pt-1 group-data-[sidebar-collapsed=true]/dashboard-workstation:pb-4",
     favorite:
@@ -1824,6 +1829,10 @@ export function Workstation({
 
     useEffect(() => {
         setHydrated(true);
+        setCollapsed(
+            readBrowserStorage(DASHBOARD_SIDEBAR_COLLAPSED_STORAGE_KEY) ===
+                "true",
+        );
     }, []);
 
     useEffect(
@@ -4310,7 +4319,14 @@ export function Workstation({
                         aria-label="折叠 / 展开侧边栏"
                         data-sot-control="sidebar-collapse"
                         data-sot-state={collapsed ? "collapsed" : "expanded"}
-                        onClick={() => setCollapsed((value) => !value)}
+                        onClick={() => {
+                            const nextCollapsed = !collapsed;
+                            setCollapsed(nextCollapsed);
+                            writeBrowserStorage(
+                                DASHBOARD_SIDEBAR_COLLAPSED_STORAGE_KEY,
+                                String(nextCollapsed),
+                            );
+                        }}
                     >
                         <PanelLeft
                             className={cn(
