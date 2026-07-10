@@ -657,6 +657,52 @@ const SEARCH_ACTIVITY_PRIMITIVE_FILES = [
 const SEARCH_ACTIVITY_BUSINESS_TOKEN_RE =
     /\b(?:dashboardSearch|librarySearch|dashboardActivity)[A-Za-z0-9_]*/g;
 
+const LIBRARY_SEARCH_CLASS_PROPERTY_BY_OLD_OWNER_PROPERTY = {
+    dashboardSearchTrigger: "trigger",
+    librarySearchAnchor: "anchor",
+    librarySearchClear: "clear",
+    librarySearchError: "error",
+    librarySearchErrorTitle: "errorTitle",
+    librarySearchGroupLabel: "groupLabel",
+    librarySearchHighlight: "highlight",
+    librarySearchInput: "input",
+    librarySearchInputRow: "inputRow",
+    librarySearchPanel: "panel",
+    librarySearchResult: "result",
+    librarySearchResultGroup: "resultGroup",
+    librarySearchResultMeta: "resultMeta",
+    librarySearchResultTitle: "resultTitle",
+    librarySearchRetry: "retry",
+    librarySearchScope: "scope",
+    librarySearchScopeItem: "scopeItem",
+    librarySearchScroll: "scroll",
+    librarySearchStateCopy: "stateCopy",
+    librarySearchStateSkeleton: "stateSkeleton",
+    librarySearchTag: "tag",
+} as const;
+
+function extractSearchActivityOwnerClassProperty({
+    activityClassNames,
+    librarySearchClassNames,
+    propertyName,
+}: {
+    activityClassNames: string;
+    librarySearchClassNames: string;
+    propertyName: string;
+}) {
+    const librarySearchPropertyName =
+        LIBRARY_SEARCH_CLASS_PROPERTY_BY_OLD_OWNER_PROPERTY[
+            propertyName as keyof typeof LIBRARY_SEARCH_CLASS_PROPERTY_BY_OLD_OWNER_PROPERTY
+        ];
+
+    return extractObjectStringProperty(
+        librarySearchPropertyName
+            ? librarySearchClassNames
+            : activityClassNames,
+        librarySearchPropertyName ?? propertyName,
+    );
+}
+
 const DASHBOARD_SEARCH_ACTIVITY_FEATURE_OWNER_CLASS_SNIPPETS = [
     {
         propertyName: "dashboardTopbarActions",
@@ -893,13 +939,27 @@ const DASHBOARD_SEARCH_ACTIVITY_SOT_BODY_FORBIDDEN_CLASS_SNIPPETS = [
     },
 ] as const;
 
-const DASHBOARD_SEARCH_ACTIVITY_FEATURE_OWNER_SOURCE_SNIPPETS = [
-    "aria-expanded={searchOpen}",
-    "aria-expanded={activityOpen}",
-    'data-sot-state={searchOpen ? "open" : "idle"}',
-    'data-sot-state={activityOpen ? "open" : "idle"}',
+const LIBRARY_SEARCH_FEATURE_OWNER_SOURCE_SNIPPETS = [
+    "aria-expanded={open}",
+    'data-sot-state={open ? "open" : "idle"}',
     "placeholder={t(",
     '"librarySearch.shortPlaceholder"',
+] as const;
+
+const DASHBOARD_SEARCH_CONTAINER_SOURCE_SNIPPETS = [
+    'from "@/features/dashboard/components/library-search";',
+    "<LibrarySearch",
+    "open={searchOpen}",
+    "query={query}",
+    "onApplyFilter={applyLibrarySearchFilter}",
+    "onOpenChange={handleLibrarySearchOpenChange}",
+    "onOpenRecording={selectRecording}",
+    "onQueryChange={setQuery}",
+] as const;
+
+const DASHBOARD_ACTIVITY_FEATURE_OWNER_SOURCE_SNIPPETS = [
+    "aria-expanded={activityOpen}",
+    'data-sot-state={activityOpen ? "open" : "idle"}',
 ] as const;
 
 function collectSearchActivityPrimitiveBusinessTokens() {
@@ -962,6 +1022,15 @@ function extractBoundedSlice(
 
 function extractDashboardSearchActivityClassNames(source: string) {
     const marker = "const dashboardSearchActivityClassNames = {";
+    const start = source.indexOf(marker);
+    expect(start).toBeGreaterThanOrEqual(0);
+    const end = source.indexOf("} as const;", start);
+    expect(end).toBeGreaterThan(start);
+    return source.slice(start, end + "} as const;".length);
+}
+
+function extractLibrarySearchClassNames(source: string) {
+    const marker = "const librarySearchClassNames = {";
     const start = source.indexOf(marker);
     expect(start).toBeGreaterThanOrEqual(0);
     const end = source.indexOf("} as const;", start);
@@ -2776,7 +2845,7 @@ function collectInlineModernColorFindings() {
 }
 
 const OLD_UI_CONTRACT_RE =
-    /uikit-|glass-surface|glass-control|<LibrarySearch[\s/>]|<SourceFilterStackStrip[\s/>]|\.\/components\/library-search|\.\/components\/source-filter-stack-strip/;
+    /uikit-|glass-surface|glass-control|<SourceFilterStackStrip[\s/>]|\.\/components\/source-filter-stack-strip/;
 
 const SOURCE_REPORT_LEGACY_SURFACE_RE =
     /uikit-|glass-surface|glass-control|<LibrarySearch[\s/>]|<SourceFilterStackStrip[\s/>]|\.\/components\/library-search|\.\/components\/source-filter-stack-strip/;
@@ -7221,6 +7290,9 @@ describe("full UI replacement regression coverage", () => {
 
     it("keeps dashboard source, search, activity, list, and settings SOT entries", () => {
         const workstation = readSource("features/dashboard/workstation.tsx");
+        const librarySearch = readSource(
+            "features/dashboard/components/library-search.tsx",
+        );
         const dashboardRecordingPlayerControls = readSource(
             "features/dashboard/components/dashboard-recording-player-controls.tsx",
         );
@@ -7949,17 +8021,15 @@ describe("full UI replacement regression coverage", () => {
                 '[data-sot-part="source-filter-action"]',
             ),
         ).toEqual([]);
-        expect(workstation).toContain('data-sot-control="dashboard-search"');
-        expect(workstation).toContain('data-sot-panel="library-search"');
-        expect(workstation).toContain('data-sot-list="library-search-results"');
-        expect(workstation).toContain("groupedSearchResults.map");
-        expect(workstation).toContain("group.results.map");
-        expect(collectSearchActivityPrimitiveBusinessTokens()).toEqual([]);
-        const dashboardSearchSlice = extractBoundedSlice(
-            workstation,
-            'data-sot-part="library-search-anchor"',
-            'data-sot-part="dashboard-activity-anchor"',
+        expect(librarySearch).toContain('data-sot-control="dashboard-search"');
+        expect(librarySearch).toContain('data-sot-panel="library-search"');
+        expect(librarySearch).toContain(
+            'data-sot-list="library-search-results"',
         );
+        expect(librarySearch).toContain("groupedSearchResults.map");
+        expect(librarySearch).toContain("group.results.map");
+        expect(collectSearchActivityPrimitiveBusinessTokens()).toEqual([]);
+        const dashboardSearchSlice = librarySearch;
         for (const featureHook of [
             'data-sot-control="dashboard-search"',
             'data-sot-panel="library-search"',
@@ -7988,6 +8058,8 @@ describe("full UI replacement regression coverage", () => {
         }
         const dashboardSearchActivityClassNames =
             extractDashboardSearchActivityClassNames(workstation);
+        const librarySearchClassNames =
+            extractLibrarySearchClassNames(librarySearch);
         expect(workstation).toContain('data-sot-control="dashboard-activity"');
         expect(workstation).toContain('data-sot-panel="dashboard-activity"');
         const dashboardActivityStatusSub = extractOpeningElement(
@@ -8041,10 +8113,11 @@ describe("full UI replacement regression coverage", () => {
             propertyName,
             snippets,
         } of DASHBOARD_SEARCH_ACTIVITY_FEATURE_OWNER_CLASS_SNIPPETS) {
-            const property = extractObjectStringProperty(
-                dashboardSearchActivityClassNames,
+            const property = extractSearchActivityOwnerClassProperty({
+                activityClassNames: dashboardSearchActivityClassNames,
+                librarySearchClassNames,
                 propertyName,
-            );
+            });
 
             for (const snippet of snippets) {
                 expect(property).toContain(snippet);
@@ -8054,18 +8127,64 @@ describe("full UI replacement regression coverage", () => {
             propertyName,
             snippets,
         } of DASHBOARD_SEARCH_ACTIVITY_SOT_BODY_FORBIDDEN_CLASS_SNIPPETS) {
-            const property = extractObjectStringProperty(
-                dashboardSearchActivityClassNames,
+            const property = extractSearchActivityOwnerClassProperty({
+                activityClassNames: dashboardSearchActivityClassNames,
+                librarySearchClassNames,
                 propertyName,
-            );
+            });
 
             for (const snippet of snippets) {
                 expect(property).not.toContain(snippet);
             }
         }
-        for (const snippet of DASHBOARD_SEARCH_ACTIVITY_FEATURE_OWNER_SOURCE_SNIPPETS) {
+        for (const snippet of LIBRARY_SEARCH_FEATURE_OWNER_SOURCE_SNIPPETS) {
+            expect(librarySearch).toContain(snippet);
+        }
+        for (const snippet of DASHBOARD_SEARCH_CONTAINER_SOURCE_SNIPPETS) {
             expect(workstation).toContain(snippet);
         }
+        const searchOpenChangeCallback = extractBoundedSlice(
+            workstation,
+            "function handleLibrarySearchOpenChange(open: boolean) {",
+            "function applyLibrarySearchFilter(filter: LibrarySearchFilter) {",
+        );
+        expect(searchOpenChangeCallback).toContain("if (open) {");
+        for (const closeCompetingOverlay of [
+            "setActivityOpen(false);",
+            "setMoreOpen(false);",
+            "setTagOpen(false);",
+            "setAiOpen(false);",
+        ]) {
+            expect(searchOpenChangeCallback).toContain(closeCompetingOverlay);
+        }
+        expect(searchOpenChangeCallback).toContain("setSearchOpen(open);");
+        const searchFilterCallback = extractBoundedSlice(
+            workstation,
+            "function applyLibrarySearchFilter(filter: LibrarySearchFilter) {",
+            "async function runActivityAction(item: ActivityItem) {",
+        );
+        expect(searchFilterCallback).toContain(
+            "setLibrarySearchFilter(filter);",
+        );
+        expect(searchFilterCallback).toContain('setFavorite("all");');
+        expect(searchFilterCallback).toContain(
+            'applyListMode("timeline", { fromFavorite: true });',
+        );
+        for (const snippet of DASHBOARD_ACTIVITY_FEATURE_OWNER_SOURCE_SNIPPETS) {
+            expect(workstation).toContain(snippet);
+        }
+        expect(workstation).not.toContain("const SEARCH_SCOPES");
+        expect(workstation).not.toContain("const searchPanelState");
+        expect(workstation).not.toContain('data-sot-panel="library-search"');
+        expect(librarySearch).toContain(
+            `fetch(\`/api/search?\${params.toString()}\`)`,
+        );
+        expect(librarySearch).toContain("}, 180);");
+        expect(librarySearch).toContain("setSearchRetry((value) => value + 1)");
+        expect(librarySearch).toContain("searchIndexing?.active");
+        expect(librarySearch).toContain("handleLibrarySearchKeyDown");
+        expect(librarySearch).toContain("searchInputRef.current?.focus({");
+        expect(librarySearch).toContain("searchTriggerRef.current?.focus({");
         for (const selector of MIGRATED_LIBRARY_SEARCH_DATA_SOT_CSS_SELECTORS) {
             expect(productCss).not.toContain(selector);
         }
@@ -8762,10 +8881,8 @@ describe("full UI replacement regression coverage", () => {
             expect(globals).not.toContain(migratedSelectorFragment);
         }
         expect(workstation).toContain("<Button");
-        expect(workstation).toContain('data-sot-control="dashboard-search"');
-        expect(workstation).toContain(
-            "dashboardSearchActivityClassNames.dashboardSearchTrigger",
-        );
+        expect(librarySearch).toContain('data-sot-control="dashboard-search"');
+        expect(librarySearch).toContain("librarySearchClassNames.trigger");
         expect(workstation).toContain('data-sot-control="dashboard-activity"');
         expect(workstation).toContain(
             "dashboardSearchActivityClassNames.dashboardActivityTrigger",

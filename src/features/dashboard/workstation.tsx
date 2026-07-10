@@ -20,7 +20,6 @@ import {
     Pencil,
     Plus,
     RefreshCw,
-    Search,
     Sparkle,
     Tags,
     Trash2,
@@ -68,12 +67,6 @@ import {
     EmptyTitle,
 } from "@/components/ui/empty";
 import { Input } from "@/components/ui/input";
-import {
-    InputGroup,
-    InputGroupAddon,
-    InputGroupButton,
-    InputGroupInput,
-} from "@/components/ui/input-group";
 import { Progress } from "@/components/ui/progress";
 import {
     type SegmentedTabItem,
@@ -84,6 +77,10 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { Spinner } from "@/components/ui/spinner";
 import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
 import { DashboardRecordingPlayerControls } from "@/features/dashboard/components/dashboard-recording-player-controls";
+import {
+    LibrarySearch,
+    type LibrarySearchFilter,
+} from "@/features/dashboard/components/library-search";
 import { SystemBanner } from "@/features/dashboard/components/system-banner";
 import { AiRenamePreviewCard as AiRenamePreview } from "@/features/recordings/components/ai-rename-preview-card";
 import { RecordingTagManager } from "@/features/recordings/components/recording-tag-manager";
@@ -178,27 +175,6 @@ type TranscriptionJobData = {
     lastError?: string | null;
 };
 
-type SearchResultType = "recording" | "transcript" | "speaker" | "tag";
-type SearchResult = {
-    entityType: SearchResultType;
-    entityId: string;
-    recordingId: string | null;
-    title: string | null;
-    body: string;
-    speaker: string | null;
-    source: string | null;
-    tags?: string[];
-    startMs?: number | null;
-    endMs?: number | null;
-};
-type SearchIndexingProgress = {
-    active: boolean;
-    pendingJobs: number;
-    indexingJobs: number;
-    completedJobs: number;
-    totalJobs: number;
-};
-
 type WorkstationProps = {
     recordings: Recording[];
     transcriptions: Map<string, TranscriptionData>;
@@ -221,11 +197,6 @@ type RecordingListState =
     | "no-match"
     | "timeline-empty"
     | "tag-empty";
-type SearchScope = "all" | SearchResultType;
-type LibrarySearchFilter = {
-    type: "speaker" | "tag";
-    label: string;
-};
 type AiRenameState = "loading" | "review" | "error" | "unavailable";
 type RetxState =
     | "idle"
@@ -517,20 +488,6 @@ const SOURCE_ORDER = [
     },
 ] as const;
 
-const SEARCH_SCOPES: { value: SearchScope; label: string }[] = [
-    { value: "all", label: "全部" },
-    { value: "recording", label: "录音" },
-    { value: "transcript", label: "逐字稿" },
-    { value: "speaker", label: "说话人" },
-    { value: "tag", label: "标签" },
-];
-const SEARCH_RESULT_TYPES: SearchResultType[] = [
-    "recording",
-    "transcript",
-    "speaker",
-    "tag",
-];
-
 const FAVORITES: { value: Favorite; icon: typeof Mic }[] = [
     { value: "all", icon: Mic },
     { value: "transcribed", icon: FileText },
@@ -624,50 +581,8 @@ const dashboardRecordingListPaginationStyles = {
 
 const dashboardSearchActivityClassNames = {
     dashboardTopbarActions: "ml-auto flex items-center gap-2",
-    librarySearchAnchor:
-        "relative inline-flex size-[32px] items-center justify-center p-0",
     dashboardActivityAnchor:
         "relative inline-flex size-[32px] items-center justify-center p-0",
-    dashboardSearchTrigger: "relative",
-    librarySearchPanel:
-        "absolute right-0 top-[calc(100%+8px)] z-50 flex max-h-[540px] w-[460px] max-w-[calc(100vw-32px)] flex-col gap-0 min-[641px]:max-[860px]:fixed min-[641px]:max-[860px]:left-3 min-[641px]:max-[860px]:right-auto min-[641px]:max-[860px]:top-[72px] min-[641px]:max-[860px]:box-border min-[641px]:max-[860px]:max-h-[calc(100dvh-96px)] min-[641px]:max-[860px]:w-[min(460px,calc(100vw-24px))] min-[641px]:max-[860px]:max-w-[calc(100vw-24px)] max-[640px]:fixed max-[640px]:left-3 max-[640px]:right-3 max-[640px]:top-[72px] max-[640px]:box-border max-[640px]:max-h-[calc(100dvh-96px)] max-[640px]:w-[calc(100vw-24px)] max-[640px]:min-w-0 max-[640px]:max-w-none",
-    librarySearchInputRow:
-        "h-[49px] min-h-[49px] gap-[8px] rounded-none border-x-0 border-t-0 border-b border-border px-[12px] py-[8px]",
-    librarySearchInputAddon:
-        "p-0 text-muted-foreground group-data-[disabled=true]/input-group:opacity-100 has-[>button]:m-0",
-    librarySearchInput: "h-8 min-w-0 px-1 py-0 text-sm md:text-sm",
-    librarySearchClear: "size-6",
-    librarySearchScope:
-        "min-h-[39px] w-full flex-wrap gap-[6px] rounded-none border-b border-border bg-muted px-[12px] py-[8px]",
-    librarySearchScopeItem:
-        "h-6 rounded-full px-2.5 text-xs disabled:pointer-events-none disabled:opacity-50",
-    librarySearchError:
-        "flex w-full flex-col items-center gap-2 rounded-none px-4 py-4 text-center text-sm text-destructive *:data-[slot=alert-description]:text-destructive [&>svg]:text-current",
-    librarySearchErrorTitle:
-        "line-clamp-none min-h-0 text-center text-sm font-medium tracking-normal",
-    librarySearchRetry: "h-6 px-2 text-xs",
-    librarySearchScroll:
-        "min-h-0 flex-1 overflow-y-auto px-[6px] pt-[6px] pb-[8px]",
-    librarySearchState: "block text-muted-foreground",
-    librarySearchIndexing:
-        "flex items-center gap-[10px] px-[16px] py-[14px] text-[length:var(--text-body-sm)] text-muted-foreground",
-    librarySearchStateSkeleton:
-        "relative inline-flex h-1 w-auto min-w-0 flex-1 overflow-hidden rounded-full bg-primary/10 animate-none after:absolute after:inset-y-0 after:left-0 after:w-[36%] after:rounded-[inherit] after:bg-primary/50 after:animate-[sbn-sweep_1.4s_linear_infinite] after:content-['']",
-    librarySearchStateCopy:
-        "px-4 py-5 text-center text-sm text-muted-foreground [&_span]:font-semibold [&_span]:text-foreground",
-    librarySearchResults: "flex flex-col",
-    librarySearchResultGroup:
-        "flex flex-col gap-[2px] px-[4px] py-[6px] [&+&]:mt-[4px] [&+&]:border-t [&+&]:border-border [&+&]:pt-[8px]",
-    librarySearchGroupLabel:
-        "px-1.5 py-1 font-mono text-xs font-semibold uppercase tracking-wide text-muted-foreground",
-    librarySearchResult:
-        "h-auto w-full flex-col items-start justify-start gap-0.5 px-2.5 py-2 text-left whitespace-normal",
-    librarySearchResultTitle: "text-sm font-semibold text-foreground",
-    librarySearchResultMeta:
-        "font-mono text-xs font-medium leading-snug text-muted-foreground",
-    librarySearchHighlight: "rounded-[3px] bg-primary/10 px-[2px] text-primary",
-    librarySearchTag:
-        "h-6 w-fit justify-normal gap-1 overflow-visible whitespace-normal px-2 py-0",
     dashboardActivityTrigger: "relative",
     dashboardActivityBadge:
         "pointer-events-none absolute right-0.5 top-0.5 min-w-4 px-1 text-[9.5px]",
@@ -1030,20 +945,6 @@ function formatTranscriptAvatarLabel(speakerName: string, index: number) {
     return Array.from(trimmed)[0] ?? `${index + 1}`;
 }
 
-function formatLibrarySearchTimestamp(valueMs: number | null | undefined) {
-    const timestamp = formatSourceTimestamp(valueMs);
-    if (!timestamp) return "--";
-    const parts = timestamp.split(":");
-    if (parts.length === 2) {
-        return `${parts[0].padStart(2, "0")}:${parts[1]}`;
-    }
-    return timestamp;
-}
-
-function LibrarySearchTagIcon() {
-    return <Tags data-icon="inline-start" aria-hidden="true" />;
-}
-
 function buildSourceTranscriptCopyText(report: SourceReportData | null) {
     const transcript = report?.transcript;
     if (!transcript) {
@@ -1387,20 +1288,6 @@ function activityItemKind(item: ActivityItem) {
     if (item.id.startsWith("transcription-failed-")) return "sync-error";
     if (item.action === "settings") return "setup";
     return item.tone;
-}
-
-function searchResultAction(result: SearchResult) {
-    if (result.entityType === "tag" || result.entityType === "speaker") {
-        return "filter";
-    }
-    return result.recordingId ? "open" : "disabled";
-}
-
-function searchResultFilterLabel(result: SearchResult) {
-    if (result.entityType === "speaker") {
-        return result.speaker || result.title || result.body;
-    }
-    return result.title || result.tags?.[0] || result.body;
 }
 
 function RetxWarnIcon() {
@@ -1752,62 +1639,6 @@ function SotRecordingListSkeleton() {
     );
 }
 
-function searchResultTitle(result: SearchResult, t: Translator) {
-    if (result.entityType === "transcript") {
-        return (
-            result.body || result.title || t("librarySearch.types.transcript")
-        );
-    }
-
-    return (
-        result.title ||
-        result.body ||
-        result.speaker ||
-        result.tags?.[0] ||
-        t("librarySearch.untitledResult")
-    );
-}
-
-function searchResultMeta(result: SearchResult, t: Translator) {
-    if (result.entityType === "transcript") {
-        const timestamp = formatLibrarySearchTimestamp(result.startMs);
-        return `${result.title || t("librarySearch.types.transcript")} · ${timestamp}`;
-    }
-    if (result.entityType === "tag") {
-        return result.body || result.tags?.[0] || t("librarySearch.types.tag");
-    }
-    if (result.entityType === "speaker") {
-        return (
-            result.body || result.speaker || t("librarySearch.types.speaker")
-        );
-    }
-    return result.source || result.body || t("librarySearch.types.recording");
-}
-
-function highlightSearchText(value: string, query: string) {
-    const needle = query.trim();
-    if (!needle) return value;
-    const lowerValue = value.toLocaleLowerCase();
-    const lowerNeedle = needle.toLocaleLowerCase();
-    const index = lowerValue.indexOf(lowerNeedle);
-    if (index < 0) return value;
-
-    return (
-        <>
-            {value.slice(0, index)}
-            <mark
-                className={
-                    dashboardSearchActivityClassNames.librarySearchHighlight
-                }
-                data-sot-part="library-search-highlight"
-            >
-                {value.slice(index, index + needle.length)}
-            </mark>
-            {value.slice(index + needle.length)}
-        </>
-    );
-}
-
 async function readResponseError(response: Response, fallback: string) {
     try {
         const data = (await response.json()) as { error?: unknown };
@@ -1856,13 +1687,6 @@ export function Workstation({
     const [listPage, setListPage] = useState(1);
     const [detailTab, setDetailTab] = useState<DetailTab>("transcript");
     const [query, setQuery] = useState("");
-    const [searchScope, setSearchScope] = useState<SearchScope>("all");
-    const [searchLoading, setSearchLoading] = useState(false);
-    const [searchError, setSearchError] = useState("");
-    const [searchResults, setSearchResults] = useState<SearchResult[]>([]);
-    const [searchIndexing, setSearchIndexing] =
-        useState<SearchIndexingProgress | null>(null);
-    const [activeSearchIndex, setActiveSearchIndex] = useState(0);
     const [librarySearchFilter, setLibrarySearchFilter] =
         useState<LibrarySearchFilter | null>(null);
     const [volumeOpen, setVolumeOpen] = useState(false);
@@ -1909,17 +1733,13 @@ export function Workstation({
     const [activitySyncActionState, setActivitySyncActionState] = useState<
         "idle" | "busy" | "done" | "error"
     >("idle");
-    const [searchRetry, setSearchRetry] = useState(0);
     const sourceDrawerRef = useRef<HTMLElement | null>(null);
     const drawerTriggerRef = useRef<HTMLButtonElement | null>(null);
-    const searchTriggerRef = useRef<HTMLButtonElement | null>(null);
     const activityTriggerRef = useRef<HTMLButtonElement | null>(null);
     const settingsTriggerRef = useRef<HTMLButtonElement | null>(null);
     const moreTriggerRef = useRef<HTMLButtonElement | null>(null);
-    const searchOverlayRef = useRef<HTMLDivElement | null>(null);
     const activityOverlayRef = useRef<HTMLDivElement | null>(null);
     const tagFilterRef = useRef<HTMLDivElement | null>(null);
-    const searchInputRef = useRef<HTMLInputElement | null>(null);
     const restoreActivityFocusRef = useRef(false);
     const activityFocusRestoreTimerRefs = useRef<number[]>([]);
     const copyFeedbackTimerRef = useRef<number | null>(null);
@@ -3028,30 +2848,6 @@ export function Workstation({
     const activityBadgeCount = visibleActivityItems.filter(
         (item) => item.tone === "error" || item.tone === "warn" || item.action,
     ).length;
-    const searchPanelState = searchIndexing?.active
-        ? "indexing"
-        : searchError
-          ? "error"
-          : searchLoading
-            ? "loading"
-            : query.trim()
-              ? searchResults.length
-                  ? "results"
-                  : "no-results"
-              : "no-query";
-    const groupedSearchResults = useMemo(() => {
-        let index = 0;
-        return SEARCH_RESULT_TYPES.map((type) => {
-            const results = searchResults
-                .filter((result) => result.entityType === type)
-                .map((result) => ({ index: index++, result }));
-
-            return { type, results };
-        }).filter((group) => group.results.length > 0);
-    }, [searchResults]);
-    const flatSearchResults = groupedSearchResults.flatMap(
-        (group) => group.results,
-    );
     const activityPanelState = visibleActivityItems.some(
         (item) => item.tone === "loading",
     )
@@ -3438,7 +3234,7 @@ export function Workstation({
     }, [activityOpen]);
 
     useEffect(() => {
-        if (!drawerOpen && !searchOpen && !activityOpen) return;
+        if (!drawerOpen && !activityOpen) return;
 
         const handleKeyDown = (event: KeyboardEvent) => {
             if (drawerOpen && event.key === "Tab") {
@@ -3479,12 +3275,6 @@ export function Workstation({
             if (activityOpen) {
                 closeActivityOverlay({ restoreFocus: true });
             }
-            if (searchOpen) {
-                setSearchOpen(false);
-                window.setTimeout(() => {
-                    searchTriggerRef.current?.focus({ preventScroll: true });
-                }, 0);
-            }
             if (drawerOpen) {
                 setDrawerOpen(false);
                 window.setTimeout(() => {
@@ -3496,13 +3286,6 @@ export function Workstation({
         const handlePointerDown = (event: PointerEvent) => {
             const target = event.target;
             if (!(target instanceof Node)) return;
-            if (
-                searchOpen &&
-                searchOverlayRef.current &&
-                !searchOverlayRef.current.contains(target)
-            ) {
-                setSearchOpen(false);
-            }
             if (
                 activityOpen &&
                 activityOverlayRef.current &&
@@ -3526,7 +3309,7 @@ export function Workstation({
             document.removeEventListener("keydown", handleKeyDown);
             document.removeEventListener("pointerdown", handlePointerDown);
         };
-    }, [activityOpen, closeActivityOverlay, drawerOpen, searchOpen]);
+    }, [activityOpen, closeActivityOverlay, drawerOpen]);
 
     useEffect(() => {
         if (!drawerOpen) return;
@@ -3634,74 +3417,6 @@ export function Workstation({
         };
     }, [tagOpen]);
 
-    useEffect(() => {
-        if (!searchOpen || query.trim().length === 0) {
-            setSearchResults([]);
-            setSearchError("");
-            setSearchIndexing(null);
-            return;
-        }
-        const timer = window.setTimeout(() => {
-            setSearchLoading(true);
-            setSearchError("");
-            setSearchIndexing(null);
-            const params = new URLSearchParams({
-                q: query,
-                limit: "8",
-            });
-            if (searchRetry > 0) {
-                params.set("_retry", String(searchRetry));
-            }
-            if (searchScope !== "all") {
-                params.set("type", searchScope);
-            }
-            fetch(`/api/search?${params.toString()}`)
-                .then((response) => {
-                    if (!response.ok) throw new Error("Search failed");
-                    return response.json();
-                })
-                .then(
-                    (data: {
-                        results?: SearchResult[];
-                        indexing?: SearchIndexingProgress;
-                    }) => {
-                        if (data.indexing?.active) {
-                            setSearchIndexing(data.indexing);
-                            setSearchResults([]);
-                            return;
-                        }
-                        setSearchIndexing(null);
-                        setSearchResults(data.results ?? []);
-                    },
-                )
-                .catch(() => {
-                    setSearchResults([]);
-                    setSearchIndexing(null);
-                    setSearchError("搜索暂时不可用");
-                })
-                .finally(() => setSearchLoading(false));
-        }, 180);
-        return () => window.clearTimeout(timer);
-    }, [query, searchOpen, searchRetry, searchScope]);
-
-    useEffect(() => {
-        if (!searchOpen) return;
-        window.setTimeout(() => {
-            searchInputRef.current?.focus({ preventScroll: true });
-        }, 0);
-    }, [searchOpen]);
-
-    useEffect(() => {
-        if (!searchOpen || flatSearchResults.length === 0) return;
-        window.setTimeout(() => {
-            document
-                .querySelector<HTMLElement>(
-                    `[data-sot-control="library-search-result"][data-sot-result-index="${activeSearchIndex}"]`,
-                )
-                ?.scrollIntoView({ block: "nearest" });
-        }, 0);
-    }, [activeSearchIndex, flatSearchResults.length, searchOpen]);
-
     function openSettings(section: CanonicalSettingsSection) {
         setSearchOpen(false);
         setActivityOpen(false);
@@ -3764,56 +3479,20 @@ export function Workstation({
         setActivitySyncActionState("error");
     }
 
-    function applyLibrarySearchResult(result: SearchResult) {
-        const action = searchResultAction(result);
-        if (action === "filter") {
-            const label = searchResultFilterLabel(result);
-            setLibrarySearchFilter({
-                label,
-                type: result.entityType === "speaker" ? "speaker" : "tag",
-            });
-            setFavorite("all");
-            applyListMode("timeline", { fromFavorite: true });
-            setQuery("");
-            setSearchResults([]);
-            setSearchOpen(false);
-            return;
+    function handleLibrarySearchOpenChange(open: boolean) {
+        if (open) {
+            setActivityOpen(false);
+            setMoreOpen(false);
+            setTagOpen(false);
+            setAiOpen(false);
         }
-        if (result.recordingId) {
-            selectRecording(result.recordingId);
-            setQuery("");
-            setSearchResults([]);
-            setSearchOpen(false);
-        }
+        setSearchOpen(open);
     }
 
-    function handleLibrarySearchKeyDown(event: ReactKeyboardEvent) {
-        if (event.key === "Escape") {
-            event.preventDefault();
-            setSearchOpen(false);
-            window.setTimeout(() => {
-                searchTriggerRef.current?.focus({ preventScroll: true });
-            }, 0);
-            return;
-        }
-        if (flatSearchResults.length === 0) return;
-        if (event.key === "ArrowDown") {
-            event.preventDefault();
-            setActiveSearchIndex((value) =>
-                Math.min(value + 1, flatSearchResults.length - 1),
-            );
-            return;
-        }
-        if (event.key === "ArrowUp") {
-            event.preventDefault();
-            setActiveSearchIndex((value) => Math.max(value - 1, 0));
-            return;
-        }
-        if (event.key === "Enter") {
-            event.preventDefault();
-            const activeResult = flatSearchResults[activeSearchIndex]?.result;
-            if (activeResult) applyLibrarySearchResult(activeResult);
-        }
+    function applyLibrarySearchFilter(filter: LibrarySearchFilter) {
+        setLibrarySearchFilter(filter);
+        setFavorite("all");
+        applyListMode("timeline", { fromFavorite: true });
     }
 
     async function runActivityAction(item: ActivityItem) {
@@ -4674,496 +4353,14 @@ export function Workstation({
                         }
                         data-sot-part="dashboard-topbar-actions"
                     >
-                        <div
-                            className={
-                                dashboardSearchActivityClassNames.librarySearchAnchor
-                            }
-                            data-sot-part="library-search-anchor"
-                            ref={searchOverlayRef}
-                        >
-                            <Button
-                                ref={searchTriggerRef}
-                                variant="ghost"
-                                size="icon-sm"
-                                className={
-                                    dashboardSearchActivityClassNames.dashboardSearchTrigger
-                                }
-                                type="button"
-                                aria-label={t("librarySearch.openSearch")}
-                                aria-expanded={searchOpen}
-                                data-sot-control="dashboard-search"
-                                data-sot-state={searchOpen ? "open" : "idle"}
-                                onClick={() => {
-                                    setActivityOpen(false);
-                                    setMoreOpen(false);
-                                    setTagOpen(false);
-                                    setAiOpen(false);
-                                    setSearchOpen((open) => !open);
-                                }}
-                            >
-                                <Search data-icon="inline-start" />
-                            </Button>
-                            {searchOpen ? (
-                                <Card
-                                    hasNoPadding
-                                    variant="default"
-                                    className={
-                                        dashboardSearchActivityClassNames.librarySearchPanel
-                                    }
-                                    data-open="true"
-                                    data-state={searchPanelState}
-                                    data-sot-panel="library-search"
-                                    data-sot-state={searchPanelState}
-                                    data-sot-result-count={String(
-                                        flatSearchResults.length,
-                                    )}
-                                    role="dialog"
-                                    aria-label={t("librarySearch.dialogLabel")}
-                                    onKeyDown={handleLibrarySearchKeyDown}
-                                >
-                                    <InputGroup
-                                        variant="default"
-                                        className={
-                                            dashboardSearchActivityClassNames.librarySearchInputRow
-                                        }
-                                        data-sot-part="library-search-input-row"
-                                        data-state={searchPanelState}
-                                        data-disabled={String(
-                                            searchPanelState === "indexing",
-                                        )}
-                                    >
-                                        <InputGroupAddon
-                                            align="inline-start"
-                                            className={
-                                                dashboardSearchActivityClassNames.librarySearchInputAddon
-                                            }
-                                        >
-                                            <Search data-icon="inline-start" />
-                                        </InputGroupAddon>
-                                        <InputGroupInput
-                                            variant="default"
-                                            className={
-                                                dashboardSearchActivityClassNames.librarySearchInput
-                                            }
-                                            ref={searchInputRef}
-                                            value={query}
-                                            aria-disabled={
-                                                searchPanelState === "indexing"
-                                            }
-                                            aria-label={t(
-                                                "librarySearch.placeholder",
-                                            )}
-                                            autoComplete="off"
-                                            onChange={(event) => {
-                                                setQuery(event.target.value);
-                                                setActiveSearchIndex(0);
-                                            }}
-                                            placeholder={t(
-                                                searchPanelState === "no-query"
-                                                    ? "librarySearch.placeholder"
-                                                    : "librarySearch.shortPlaceholder",
-                                            )}
-                                            readOnly={
-                                                searchPanelState === "indexing"
-                                            }
-                                            data-sot-control="library-search-input"
-                                            data-sot-state={searchPanelState}
-                                        />
-                                        {query.trim() &&
-                                        searchPanelState !== "indexing" &&
-                                        searchPanelState !== "error" ? (
-                                            <InputGroupButton
-                                                variant="ghost"
-                                                size="icon-xs"
-                                                className={
-                                                    dashboardSearchActivityClassNames.librarySearchClear
-                                                }
-                                                aria-label={t(
-                                                    "librarySearch.clearSearch",
-                                                )}
-                                                data-sot-control="library-search-clear"
-                                                data-sot-state="clear"
-                                                onClick={() => {
-                                                    setQuery("");
-                                                    setSearchResults([]);
-                                                    setSearchError("");
-                                                    setSearchIndexing(null);
-                                                    window.setTimeout(() => {
-                                                        searchInputRef.current?.focus(
-                                                            {
-                                                                preventScroll: true,
-                                                            },
-                                                        );
-                                                    }, 0);
-                                                }}
-                                            >
-                                                <X data-icon="inline-start" />
-                                            </InputGroupButton>
-                                        ) : null}
-                                    </InputGroup>
-                                    <ToggleGroup
-                                        type="single"
-                                        layout="default"
-                                        variant="outline"
-                                        size="sm"
-                                        className={
-                                            dashboardSearchActivityClassNames.librarySearchScope
-                                        }
-                                        value={searchScope}
-                                        spacing={1.6}
-                                        aria-label={t(
-                                            "librarySearch.scopeLegend",
-                                        )}
-                                        data-sot-canonical="web-index-runtime"
-                                        data-sot-part="library-search-scope"
-                                        data-sot-scope-count={String(
-                                            SEARCH_SCOPES.length,
-                                        )}
-                                        onValueChange={(value) => {
-                                            if (!value) return;
-                                            setSearchScope(
-                                                value as SearchScope,
-                                            );
-                                            setActiveSearchIndex(0);
-                                            window.setTimeout(() => {
-                                                searchInputRef.current?.focus({
-                                                    preventScroll: true,
-                                                });
-                                            }, 0);
-                                        }}
-                                    >
-                                        {SEARCH_SCOPES.map((item) => (
-                                            <ToggleGroupItem
-                                                key={item.value}
-                                                value={item.value}
-                                                aria-pressed={
-                                                    item.value === searchScope
-                                                }
-                                                data-sot-control="library-search-scope"
-                                                data-sot-scope={item.value}
-                                                data-sot-state={
-                                                    item.value === searchScope
-                                                        ? "selected"
-                                                        : "idle"
-                                                }
-                                                data-sot-result-mode={
-                                                    item.value
-                                                }
-                                                data-search-scope={item.value}
-                                                className={
-                                                    dashboardSearchActivityClassNames.librarySearchScopeItem
-                                                }
-                                                disabled={
-                                                    searchPanelState ===
-                                                    "indexing"
-                                                }
-                                            >
-                                                {item.value === "all"
-                                                    ? t(
-                                                          "librarySearch.scopes.all",
-                                                      )
-                                                    : t(
-                                                          `librarySearch.types.${item.value}`,
-                                                      )}
-                                            </ToggleGroupItem>
-                                        ))}
-                                    </ToggleGroup>
-                                    <CardContent
-                                        className={
-                                            dashboardSearchActivityClassNames.librarySearchScroll
-                                        }
-                                        data-sot-region="library-search-scroll"
-                                    >
-                                        {searchPanelState === "indexing" ? (
-                                            <div
-                                                className={
-                                                    dashboardSearchActivityClassNames.librarySearchIndexing
-                                                }
-                                                data-sot-part="library-search-indexing"
-                                                data-sot-state="indexing"
-                                            >
-                                                <Skeleton
-                                                    className={
-                                                        dashboardSearchActivityClassNames.librarySearchStateSkeleton
-                                                    }
-                                                    data-sot-part="library-search-state-skeleton"
-                                                />
-                                                <div
-                                                    className={
-                                                        dashboardSearchActivityClassNames.librarySearchStateCopy
-                                                    }
-                                                    data-sot-part="library-search-state-copy"
-                                                >
-                                                    {t(
-                                                        "librarySearch.indexing",
-                                                        {
-                                                            completed:
-                                                                searchIndexing?.completedJobs ??
-                                                                0,
-                                                            total:
-                                                                searchIndexing?.totalJobs ??
-                                                                0,
-                                                        },
-                                                    )}
-                                                </div>
-                                            </div>
-                                        ) : searchLoading ? (
-                                            <div
-                                                className={
-                                                    dashboardSearchActivityClassNames.librarySearchState
-                                                }
-                                                data-sot-part="library-search-loading"
-                                                data-sot-state="loading"
-                                            >
-                                                <div
-                                                    className={
-                                                        dashboardSearchActivityClassNames.librarySearchStateCopy
-                                                    }
-                                                    data-sot-part="library-search-state-copy"
-                                                >
-                                                    {t("librarySearch.loading")}
-                                                </div>
-                                            </div>
-                                        ) : searchError ? (
-                                            <Alert
-                                                variant="default"
-                                                density="default"
-                                                layout="default"
-                                                className={
-                                                    dashboardSearchActivityClassNames.librarySearchError
-                                                }
-                                                data-sot-part="library-search-error"
-                                                data-sot-state="error"
-                                            >
-                                                <AlertTitle
-                                                    density="default"
-                                                    className={
-                                                        dashboardSearchActivityClassNames.librarySearchErrorTitle
-                                                    }
-                                                    data-sot-part="library-search-state-title"
-                                                >
-                                                    {t("librarySearch.error")}
-                                                </AlertTitle>
-                                                <Button
-                                                    variant="outline"
-                                                    size="xs"
-                                                    className={
-                                                        dashboardSearchActivityClassNames.librarySearchRetry
-                                                    }
-                                                    type="button"
-                                                    data-sot-control="library-search-retry"
-                                                    onClick={() => {
-                                                        setSearchRetry(
-                                                            (value) =>
-                                                                value + 1,
-                                                        );
-                                                        window.setTimeout(
-                                                            () => {
-                                                                searchInputRef.current?.focus(
-                                                                    {
-                                                                        preventScroll: true,
-                                                                    },
-                                                                );
-                                                            },
-                                                            0,
-                                                        );
-                                                    }}
-                                                >
-                                                    {t("librarySearch.retry")}
-                                                </Button>
-                                            </Alert>
-                                        ) : flatSearchResults.length > 0 ? (
-                                            <div
-                                                className={
-                                                    dashboardSearchActivityClassNames.librarySearchResults
-                                                }
-                                                data-sot-list="library-search-results"
-                                                data-sot-state="results"
-                                            >
-                                                {groupedSearchResults.map(
-                                                    (group) => (
-                                                        <div
-                                                            className={
-                                                                dashboardSearchActivityClassNames.librarySearchResultGroup
-                                                            }
-                                                            key={group.type}
-                                                            data-sot-group="library-search-results"
-                                                            data-sot-result-type={
-                                                                group.type
-                                                            }
-                                                        >
-                                                            <div
-                                                                className={
-                                                                    dashboardSearchActivityClassNames.librarySearchGroupLabel
-                                                                }
-                                                                data-sot-part="library-search-group-label"
-                                                            >
-                                                                {t(
-                                                                    `librarySearch.types.${group.type}`,
-                                                                )}
-                                                            </div>
-                                                            {group.results.map(
-                                                                ({
-                                                                    index,
-                                                                    result,
-                                                                }) => {
-                                                                    const title =
-                                                                        searchResultTitle(
-                                                                            result,
-                                                                            t,
-                                                                        );
-                                                                    const meta =
-                                                                        searchResultMeta(
-                                                                            result,
-                                                                            t,
-                                                                        );
-                                                                    const action =
-                                                                        searchResultAction(
-                                                                            result,
-                                                                        );
-                                                                    return (
-                                                                        <Button
-                                                                            variant="ghost"
-                                                                            size="default"
-                                                                            className={
-                                                                                dashboardSearchActivityClassNames.librarySearchResult
-                                                                            }
-                                                                            type="button"
-                                                                            key={`${result.entityType}:${result.entityId}`}
-                                                                            data-active={
-                                                                                index ===
-                                                                                activeSearchIndex
-                                                                                    ? "true"
-                                                                                    : "false"
-                                                                            }
-                                                                            data-sot-result-mode={
-                                                                                action
-                                                                            }
-                                                                            data-result-type={
-                                                                                result.entityType
-                                                                            }
-                                                                            data-sot-control="library-search-result"
-                                                                            data-sot-result-index={String(
-                                                                                index,
-                                                                            )}
-                                                                            data-sot-result-type={
-                                                                                result.entityType
-                                                                            }
-                                                                            data-sot-state={
-                                                                                index ===
-                                                                                activeSearchIndex
-                                                                                    ? "active"
-                                                                                    : "idle"
-                                                                            }
-                                                                            onClick={() =>
-                                                                                applyLibrarySearchResult(
-                                                                                    result,
-                                                                                )
-                                                                            }
-                                                                        >
-                                                                            {result.entityType ===
-                                                                            "tag" ? (
-                                                                                <Badge
-                                                                                    variant="secondary"
-                                                                                    className={
-                                                                                        dashboardSearchActivityClassNames.librarySearchTag
-                                                                                    }
-                                                                                    data-sot-part="library-search-tag-chip"
-                                                                                >
-                                                                                    <LibrarySearchTagIcon />
-                                                                                    {highlightSearchText(
-                                                                                        title,
-                                                                                        query,
-                                                                                    )}
-                                                                                </Badge>
-                                                                            ) : (
-                                                                                <span
-                                                                                    className={
-                                                                                        dashboardSearchActivityClassNames.librarySearchResultTitle
-                                                                                    }
-                                                                                    data-sot-part="library-search-result-title"
-                                                                                >
-                                                                                    {highlightSearchText(
-                                                                                        title,
-                                                                                        query,
-                                                                                    )}
-                                                                                </span>
-                                                                            )}
-                                                                            <span
-                                                                                className={
-                                                                                    dashboardSearchActivityClassNames.librarySearchResultMeta
-                                                                                }
-                                                                                data-sot-part="library-search-result-meta"
-                                                                            >
-                                                                                {
-                                                                                    meta
-                                                                                }
-                                                                            </span>
-                                                                        </Button>
-                                                                    );
-                                                                },
-                                                            )}
-                                                        </div>
-                                                    ),
-                                                )}
-                                            </div>
-                                        ) : (
-                                            <div
-                                                className={
-                                                    dashboardSearchActivityClassNames.librarySearchState
-                                                }
-                                                data-sot-part="library-search-empty"
-                                                data-sot-state={
-                                                    query.trim()
-                                                        ? "no-results"
-                                                        : "no-query"
-                                                }
-                                            >
-                                                {query.trim() ? (
-                                                    <div
-                                                        className={
-                                                            dashboardSearchActivityClassNames.librarySearchStateCopy
-                                                        }
-                                                        data-sot-part="library-search-state-copy"
-                                                    >
-                                                        {language === "en" ? (
-                                                            <>
-                                                                {
-                                                                    'No content found for "'
-                                                                }
-                                                                <span>
-                                                                    {query.trim()}
-                                                                </span>
-                                                                {'"'}
-                                                            </>
-                                                        ) : (
-                                                            <>
-                                                                {"没有找到与「"}
-                                                                <span>
-                                                                    {query.trim()}
-                                                                </span>
-                                                                {"」相关的内容"}
-                                                            </>
-                                                        )}
-                                                    </div>
-                                                ) : (
-                                                    <div
-                                                        className={
-                                                            dashboardSearchActivityClassNames.librarySearchStateCopy
-                                                        }
-                                                        data-sot-part="library-search-state-copy"
-                                                    >
-                                                        {t(
-                                                            "librarySearch.noQuery",
-                                                        )}
-                                                    </div>
-                                                )}
-                                            </div>
-                                        )}
-                                    </CardContent>
-                                </Card>
-                            ) : null}
-                        </div>
+                        <LibrarySearch
+                            open={searchOpen}
+                            query={query}
+                            onApplyFilter={applyLibrarySearchFilter}
+                            onOpenChange={handleLibrarySearchOpenChange}
+                            onOpenRecording={selectRecording}
+                            onQueryChange={setQuery}
+                        />
                         <div
                             className={
                                 dashboardSearchActivityClassNames.dashboardActivityAnchor

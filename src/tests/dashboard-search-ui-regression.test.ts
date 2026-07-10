@@ -52,6 +52,15 @@ function extractDashboardSearchActivityClassNames(source: string) {
     return source.slice(start, end + "} as const;".length);
 }
 
+function extractLibrarySearchClassNames(source: string) {
+    const marker = "const librarySearchClassNames = {";
+    const start = source.indexOf(marker);
+    expect(start).toBeGreaterThanOrEqual(0);
+    const end = source.indexOf("} as const;", start);
+    expect(end).toBeGreaterThan(start);
+    return source.slice(start, end + "} as const;".length);
+}
+
 function extractConstString(source: string, constName: string) {
     const marker = `const ${constName} =`;
     const markerIndex = source.indexOf(marker);
@@ -94,7 +103,7 @@ function extractObjectStringProperty(source: string, propertyName: string) {
 }
 
 const OLD_UI_RE =
-    /<LibrarySearch[\s/>]|<ActivityOverlay[\s/>]|<TopbarOverlayPortal[\s/>]|\.\/components\/library-search|\.\/components\/activity-overlay|\.\/components\/topbar-overlay-portal|uikit-|glass-surface|glass-control/;
+    /<ActivityOverlay[\s/>]|<TopbarOverlayPortal[\s/>]|\.\/components\/activity-overlay|\.\/components\/topbar-overlay-portal|uikit-|glass-surface|glass-control/;
 
 const LIBRARY_SEARCH_INDEXING_LEGACY_CSS_SELECTOR_RE =
     /\.(?:inline-progress|ls-state-indexing)(?![\w-])/;
@@ -187,6 +196,54 @@ const SEARCH_ACTIVITY_PRIMITIVE_FILES = [
 
 const SEARCH_ACTIVITY_BUSINESS_TOKEN_RE =
     /\b(?:dashboardSearch|librarySearch|dashboardActivity)[A-Za-z0-9_]*/g;
+
+const LIBRARY_SEARCH_CLASS_PROPERTY_BY_OLD_OWNER_PROPERTY = {
+    dashboardSearchTrigger: "trigger",
+    librarySearchAnchor: "anchor",
+    librarySearchClear: "clear",
+    librarySearchError: "error",
+    librarySearchErrorTitle: "errorTitle",
+    librarySearchGroupLabel: "groupLabel",
+    librarySearchHighlight: "highlight",
+    librarySearchIndexing: "indexing",
+    librarySearchInput: "input",
+    librarySearchInputRow: "inputRow",
+    librarySearchPanel: "panel",
+    librarySearchResult: "result",
+    librarySearchResultGroup: "resultGroup",
+    librarySearchResultMeta: "resultMeta",
+    librarySearchResultTitle: "resultTitle",
+    librarySearchResults: "results",
+    librarySearchRetry: "retry",
+    librarySearchScope: "scope",
+    librarySearchScopeItem: "scopeItem",
+    librarySearchScroll: "scroll",
+    librarySearchStateCopy: "stateCopy",
+    librarySearchStateSkeleton: "stateSkeleton",
+    librarySearchTag: "tag",
+} as const;
+
+function extractSearchActivityOwnerClassProperty({
+    activityClassNames,
+    librarySearchClassNames,
+    propertyName,
+}: {
+    activityClassNames: string;
+    librarySearchClassNames: string;
+    propertyName: string;
+}) {
+    const librarySearchPropertyName =
+        LIBRARY_SEARCH_CLASS_PROPERTY_BY_OLD_OWNER_PROPERTY[
+            propertyName as keyof typeof LIBRARY_SEARCH_CLASS_PROPERTY_BY_OLD_OWNER_PROPERTY
+        ];
+
+    return extractObjectStringProperty(
+        librarySearchPropertyName
+            ? librarySearchClassNames
+            : activityClassNames,
+        librarySearchPropertyName ?? propertyName,
+    );
+}
 
 const DASHBOARD_SEARCH_ACTIVITY_FEATURE_OWNER_CLASS_SNIPPETS = [
     {
@@ -465,14 +522,28 @@ const DASHBOARD_SEARCH_ACTIVITY_OWNER_FORBIDDEN_CLASS_SNIPPETS = [
     "border border-transparent bg-transparent",
 ] as const;
 
-const DASHBOARD_SEARCH_ACTIVITY_FEATURE_OWNER_SOURCE_SNIPPETS = [
-    "aria-expanded={searchOpen}",
-    "aria-expanded={activityOpen}",
-    'data-sot-state={searchOpen ? "open" : "idle"}',
-    'data-sot-state={activityOpen ? "open" : "idle"}',
+const LIBRARY_SEARCH_FEATURE_OWNER_SOURCE_SNIPPETS = [
+    "aria-expanded={open}",
+    'data-sot-state={open ? "open" : "idle"}',
     "placeholder={t(",
     '"librarySearch.shortPlaceholder"',
-    "dashboardSearchActivityClassNames.librarySearchInput",
+    "className={librarySearchClassNames.input}",
+] as const;
+
+const DASHBOARD_SEARCH_CONTAINER_SOURCE_SNIPPETS = [
+    'from "@/features/dashboard/components/library-search";',
+    "<LibrarySearch",
+    "open={searchOpen}",
+    "query={query}",
+    "onApplyFilter={applyLibrarySearchFilter}",
+    "onOpenChange={handleLibrarySearchOpenChange}",
+    "onOpenRecording={selectRecording}",
+    "onQueryChange={setQuery}",
+] as const;
+
+const DASHBOARD_ACTIVITY_FEATURE_OWNER_SOURCE_SNIPPETS = [
+    "aria-expanded={activityOpen}",
+    'data-sot-state={activityOpen ? "open" : "idle"}',
 ] as const;
 
 const DASHBOARD_STATIC_OWNER_STRING_CONSTANTS = [
@@ -513,43 +584,42 @@ const DASHBOARD_DETAIL_TRANSCRIPT_RETX_CLEANED_OWNER_RESIDUES = [
 describe("dashboard SOT search and activity interactions", () => {
     it("keeps search inline in the SOT topbar with feature-owned hooks and all query states", () => {
         const workstation = readSource("features/dashboard/workstation.tsx");
-        const searchSlice = extractBoundedSlice(
-            workstation,
-            'data-sot-part="library-search-anchor"',
-            'data-sot-part="dashboard-activity-anchor"',
+        const librarySearch = readSource(
+            "features/dashboard/components/library-search.tsx",
         );
+        const searchSlice = librarySearch;
 
         expect(workstation).not.toMatch(OLD_UI_RE);
         expect(workstation).toContain("const [searchOpen, setSearchOpen]");
         expect(workstation).toContain("const [query, setQuery]");
-        expect(workstation).toContain("const [searchScope, setSearchScope]");
-        expect(workstation).toContain(
+        expect(librarySearch).toContain("const [searchScope, setSearchScope]");
+        expect(librarySearch).toContain(
             "const [searchLoading, setSearchLoading]",
         );
-        expect(workstation).toContain("const [searchError, setSearchError]");
-        expect(workstation).toContain('data-sot-control="dashboard-search"');
-        expect(workstation).toContain('data-sot-panel="library-search"');
-        expect(workstation).toContain('role="dialog"');
-        expect(workstation).toContain(
+        expect(librarySearch).toContain("const [searchError, setSearchError]");
+        expect(librarySearch).toContain('data-sot-control="dashboard-search"');
+        expect(librarySearch).toContain('data-sot-panel="library-search"');
+        expect(librarySearch).toContain('role="dialog"');
+        expect(librarySearch).toContain(
             'aria-label={t("librarySearch.dialogLabel")}',
         );
-        expect(workstation).toContain("data-sot-state={");
-        expect(workstation).toContain('"no-query"');
-        expect(workstation).toContain('"loading"');
-        expect(workstation).toContain('"results"');
-        expect(workstation).toContain('"no-results"');
-        expect(workstation).toContain('"error"');
-        expect(workstation).toContain(
+        expect(librarySearch).toContain("data-sot-state={");
+        expect(librarySearch).toContain('"no-query"');
+        expect(librarySearch).toContain('"loading"');
+        expect(librarySearch).toContain('"results"');
+        expect(librarySearch).toContain('"no-results"');
+        expect(librarySearch).toContain('"error"');
+        expect(librarySearch).toContain(
             'data-sot-control="library-search-input"',
         );
-        expect(workstation).toContain(
+        expect(librarySearch).toContain(
             'data-sot-control="library-search-clear"',
         );
-        expect(workstation).toContain("<InputGroup");
-        expect(workstation).toContain("<InputGroupInput");
-        expect(workstation).toContain("<InputGroupButton");
-        expect(workstation).toContain("<ToggleGroup");
-        expect(workstation).toContain("<ToggleGroupItem");
+        expect(librarySearch).toContain("<InputGroup");
+        expect(librarySearch).toContain("<InputGroupInput");
+        expect(librarySearch).toContain("<InputGroupButton");
+        expect(librarySearch).toContain("<ToggleGroup");
+        expect(librarySearch).toContain("<ToggleGroupItem");
         for (const compositionToken of [
             "<Button",
             "<Card",
@@ -566,51 +636,93 @@ describe("dashboard SOT search and activity interactions", () => {
         ]) {
             expect(searchSlice).toContain(compositionToken);
         }
-        expect(workstation).toContain('data-sot-panel="library-search"');
-        expect(workstation).toContain(
+        expect(librarySearch).toContain('data-sot-panel="library-search"');
+        expect(librarySearch).toContain(
             'data-sot-part="library-search-input-row"',
         );
-        expect(workstation).toContain('data-sot-part="library-search-scope"');
-        expect(workstation).toContain('data-sot-part="library-search-loading"');
-        expect(workstation).toContain('data-sot-part="library-search-error"');
-        expect(workstation).toContain('data-sot-state="loading"');
-        expect(workstation).toContain('data-sot-state="results"');
-        expect(workstation).toContain('data-sot-state="indexing"');
-        expect(workstation).toContain('data-sot-state="error"');
-        expect(workstation).toContain("data-sot-state={");
-        expect(workstation).toContain('data-sot-canonical="web-index-runtime"');
-        expect(workstation).toContain("data-sot-scope-count={String(");
-        expect(workstation).toContain("SEARCH_SCOPES.length");
-        expect(workstation).toContain('{ value: "all", label: "全部" }');
-        expect(workstation).toContain('{ value: "recording", label: "录音" }');
-        expect(workstation).toContain(
+        expect(librarySearch).toContain('data-sot-part="library-search-scope"');
+        expect(librarySearch).toContain(
+            'data-sot-part="library-search-loading"',
+        );
+        expect(librarySearch).toContain('data-sot-part="library-search-error"');
+        expect(librarySearch).toContain('data-sot-state="loading"');
+        expect(librarySearch).toContain('data-sot-state="results"');
+        expect(librarySearch).toContain('data-sot-state="indexing"');
+        expect(librarySearch).toContain('data-sot-state="error"');
+        expect(librarySearch).toContain("data-sot-state={");
+        expect(librarySearch).toContain(
+            'data-sot-canonical="web-index-runtime"',
+        );
+        expect(librarySearch).toContain("data-sot-scope-count={String(");
+        expect(librarySearch).toContain("SEARCH_SCOPES.length");
+        expect(librarySearch).toContain('{ value: "all", label: "全部" }');
+        expect(librarySearch).toContain(
+            '{ value: "recording", label: "录音" }',
+        );
+        expect(librarySearch).toContain(
             '{ value: "transcript", label: "逐字稿" }',
         );
-        expect(workstation).toContain('{ value: "speaker", label: "说话人" }');
-        expect(workstation).toContain('{ value: "tag", label: "标签" }');
-        expect(workstation).not.toContain("SEARCH_SCOPES.filter");
-        expect(workstation).not.toContain("SEARCH_SCOPES.slice");
-        expect(workstation).toContain(
+        expect(librarySearch).toContain(
+            '{ value: "speaker", label: "说话人" }',
+        );
+        expect(librarySearch).toContain('{ value: "tag", label: "标签" }');
+        expect(librarySearch).not.toContain("SEARCH_SCOPES.filter");
+        expect(librarySearch).not.toContain("SEARCH_SCOPES.slice");
+        expect(librarySearch).toContain(
             'data-sot-control="library-search-retry"',
         );
-        expect(workstation).toContain('data-sot-part="library-search-empty"');
-        expect(workstation).toContain(
+        expect(librarySearch).toContain('data-sot-part="library-search-empty"');
+        expect(librarySearch).toContain(
             'data-sot-part="library-search-state-copy"',
         );
-        expect(workstation).toContain('No content found for "');
-        expect(workstation).toContain("没有找到与「");
-        expect(workstation).toContain("<span>");
-        expect(workstation).toContain("librarySearch.noQuery");
-        expect(workstation).not.toContain("ls-state ls-state-");
-        expect(workstation).not.toContain('className="ls-scope"');
-        expect(workstation).not.toContain("data-ls-retry");
+        expect(librarySearch).toContain('No content found for "');
+        expect(librarySearch).toContain("没有找到与「");
+        expect(librarySearch).toContain("<span>");
+        expect(librarySearch).toContain("librarySearch.noQuery");
+        expect(librarySearch).not.toContain("ls-state ls-state-");
+        expect(librarySearch).not.toContain('className="ls-scope"');
+        expect(librarySearch).not.toContain("data-ls-retry");
+        for (const snippet of DASHBOARD_SEARCH_CONTAINER_SOURCE_SNIPPETS) {
+            expect(workstation).toContain(snippet);
+        }
+        const searchOpenChangeCallback = extractBoundedSlice(
+            workstation,
+            "function handleLibrarySearchOpenChange(open: boolean) {",
+            "function applyLibrarySearchFilter(filter: LibrarySearchFilter) {",
+        );
+        expect(searchOpenChangeCallback).toContain("if (open) {");
+        for (const closeCompetingOverlay of [
+            "setActivityOpen(false);",
+            "setMoreOpen(false);",
+            "setTagOpen(false);",
+            "setAiOpen(false);",
+        ]) {
+            expect(searchOpenChangeCallback).toContain(closeCompetingOverlay);
+        }
+        expect(searchOpenChangeCallback).toContain("setSearchOpen(open);");
+        const searchFilterCallback = extractBoundedSlice(
+            workstation,
+            "function applyLibrarySearchFilter(filter: LibrarySearchFilter) {",
+            "async function runActivityAction(item: ActivityItem) {",
+        );
+        expect(searchFilterCallback).toContain(
+            "setLibrarySearchFilter(filter);",
+        );
+        expect(searchFilterCallback).toContain('setFavorite("all");');
+        expect(searchFilterCallback).toContain(
+            'applyListMode("timeline", { fromFavorite: true });',
+        );
+        expect(workstation).not.toContain("const SEARCH_SCOPES");
+        expect(workstation).not.toContain("const searchPanelState");
+        expect(workstation).not.toContain('data-sot-panel="library-search"');
     });
 
     it("keeps search indexing progress CSS feature-owned without legacy selectors", () => {
         const productGlobals = readProductGlobals();
-        const workstation = readSource("features/dashboard/workstation.tsx");
-        const classNames =
-            extractDashboardSearchActivityClassNames(workstation);
+        const librarySearch = readSource(
+            "features/dashboard/components/library-search.tsx",
+        );
+        const classNames = extractLibrarySearchClassNames(librarySearch);
         const legacySelectorLines = productGlobals
             .split("\n")
             .map((text, index) => ({ line: index + 1, text }))
@@ -624,10 +736,7 @@ describe("dashboard SOT search and activity interactions", () => {
             expect(productGlobals).not.toContain(selector);
         }
         expect(
-            extractObjectStringProperty(
-                classNames,
-                "librarySearchStateSkeleton",
-            ),
+            extractObjectStringProperty(classNames, "stateSkeleton"),
         ).toContain("after:animate-[sbn-sweep_1.4s_linear_infinite]");
     });
 
@@ -679,32 +788,35 @@ describe("dashboard SOT search and activity interactions", () => {
 
     it("keeps search scoped to backend search and applies result navigation", () => {
         const workstation = readSource("features/dashboard/workstation.tsx");
+        const librarySearch = readSource(
+            "features/dashboard/components/library-search.tsx",
+        );
 
-        expect(workstation).toContain(
+        expect(librarySearch).toContain(
             `fetch(\`/api/search?\${params.toString()}\`)`,
         );
-        expect(workstation).toContain('params.set("type", searchScope)');
-        expect(workstation).toContain("SEARCH_SCOPES.map");
-        expect(workstation).toContain("data-search-scope={item.value}");
-        expect(workstation).toContain("setSearchScope(");
-        expect(workstation).toContain("value as SearchScope");
-        expect(workstation).toContain("groupedSearchResults.map");
-        expect(workstation).toContain("group.results.map");
-        expect(workstation).toContain("data-result-type=");
-        expect(workstation).toContain(
+        expect(librarySearch).toContain('params.set("type", searchScope)');
+        expect(librarySearch).toContain("SEARCH_SCOPES.map");
+        expect(librarySearch).toContain("data-search-scope={item.value}");
+        expect(librarySearch).toContain("setSearchScope(");
+        expect(librarySearch).toContain("value as SearchScope");
+        expect(librarySearch).toContain("groupedSearchResults.map");
+        expect(librarySearch).toContain("group.results.map");
+        expect(librarySearch).toContain("data-result-type=");
+        expect(librarySearch).toContain(
             'data-sot-control="library-search-result"',
         );
-        expect(workstation).toContain(
+        expect(librarySearch).toContain(
             'data-sot-part="library-search-result-title"',
         );
-        expect(workstation).toContain(
+        expect(librarySearch).toContain(
             'data-sot-part="library-search-result-meta"',
         );
-        expect(workstation).toContain(
+        expect(librarySearch).toContain(
             'data-sot-part="library-search-tag-chip"',
         );
         const searchResultSlice = extractBoundedSlice(
-            workstation,
+            librarySearch,
             'data-sot-control="library-search-result"',
             'data-sot-part="library-search-result-meta"',
         );
@@ -712,41 +824,74 @@ describe("dashboard SOT search and activity interactions", () => {
             /result\.entityType ===\s*"tag"\s*\?\s*\(\s*<Badge[\s\S]*data-sot-part="library-search-tag-chip"/,
         );
         expect(searchResultSlice).toMatch(
-            /\)\s*:\s*\(\s*<span[\s\S]*className=\{\s*dashboardSearchActivityClassNames\.librarySearchResultTitle\s*\}[\s\S]*data-sot-part="library-search-result-title"/,
+            /\)\s*:\s*\(\s*<span[\s\S]*className=\{\s*librarySearchClassNames\.resultTitle\s*\}[\s\S]*data-sot-part="library-search-result-title"/,
         );
         expect(searchResultSlice).not.toMatch(
             /<span[\s\S]*data-sot-part="library-search-result-title"[\s\S]*<Badge[\s\S]*data-sot-part="library-search-tag-chip"[\s\S]*<\/span>/,
         );
-        expect(workstation).not.toContain('className="ls-item"');
-        expect(workstation).not.toContain('className="ls-item-title"');
-        expect(workstation).not.toContain('className="ls-item-meta"');
-        expect(workstation).not.toContain('className="utag c-violet"');
-        expect(workstation).not.toContain('className="ls-result"');
-        expect(workstation).not.toContain('className="ls-section"');
-        expect(workstation).not.toContain('className="ls-tail"');
-        expect(workstation).toContain("data-sot-result-index={String(");
-        expect(workstation).toContain("data-sot-result-type=");
-        expect(workstation).toContain("selectRecording(");
-        expect(workstation).toContain("setSearchOpen(");
+        expect(librarySearch).not.toContain('className="ls-item"');
+        expect(librarySearch).not.toContain('className="ls-item-title"');
+        expect(librarySearch).not.toContain('className="ls-item-meta"');
+        expect(librarySearch).not.toContain('className="utag c-violet"');
+        expect(librarySearch).not.toContain('className="ls-result"');
+        expect(librarySearch).not.toContain('className="ls-section"');
+        expect(librarySearch).not.toContain('className="ls-tail"');
+        expect(librarySearch).toContain("data-sot-result-index={String(");
+        expect(librarySearch).toContain("data-sot-result-type=");
+        expect(librarySearch).toContain("onOpenRecording(result.recordingId)");
+        expect(librarySearch).toContain("onOpenChange(false)");
+        expect(librarySearch).toContain("}, 180);");
+        expect(librarySearch).toContain("window.clearTimeout(timer)");
+        expect(librarySearch).toContain("const [searchRetry, setSearchRetry]");
+        expect(librarySearch).toContain(
+            'params.set("_retry", String(searchRetry))',
+        );
+        expect(librarySearch).toContain("setSearchRetry((value) => value + 1)");
+        expect(librarySearch).toContain("searchIndexing?.active");
+        expect(librarySearch).toContain(
+            'data-sot-part="library-search-indexing"',
+        );
+        expect(librarySearch).toContain("handleLibrarySearchKeyDown");
+        for (const key of ["ArrowDown", "ArrowUp", "Enter", "Escape"]) {
+            expect(librarySearch).toContain(`event.key === "${key}"`);
+        }
+        expect(librarySearch).toContain("searchInputRef.current?.focus({");
+        expect(librarySearch).toContain("searchTriggerRef.current?.focus({");
+        expect(workstation).toContain("onOpenRecording={selectRecording}");
+        expect(workstation).toContain(
+            "onOpenChange={handleLibrarySearchOpenChange}",
+        );
     });
 
     it("keeps Escape and outside-click dismissal shared across drawer, search, and activity overlays", () => {
         const workstation = readSource("features/dashboard/workstation.tsx");
+        const librarySearch = readSource(
+            "features/dashboard/components/library-search.tsx",
+        );
 
+        expect(librarySearch).toContain('event.key !== "Escape"');
+        expect(librarySearch).toContain('event.key === "Escape"');
+        expect(librarySearch).toContain("onOpenChange(false)");
+        expect(librarySearch).toContain(
+            "!searchOverlayRef.current?.contains(target)",
+        );
+        expect(librarySearch).toContain(
+            'document.addEventListener("keydown", handleKeyDown)',
+        );
+        expect(librarySearch).toContain(
+            'document.addEventListener("pointerdown", handlePointerDown)',
+        );
         expect(workstation).toContain('event.key !== "Escape"');
         expect(workstation).toContain("if (activityOpen) {");
-        expect(workstation).toContain("setActivityOpen(false);");
-        expect(workstation).toContain("if (searchOpen) {");
-        expect(workstation).toContain("setSearchOpen(false);");
+        expect(workstation).toContain(
+            "closeActivityOverlay({ restoreFocus: true })",
+        );
         expect(workstation).toContain("if (drawerOpen) {");
         expect(workstation).toContain(
             'document.addEventListener("keydown", handleKeyDown)',
         );
         expect(workstation).toContain(
             'document.addEventListener("pointerdown", handlePointerDown)',
-        );
-        expect(workstation).toContain(
-            "!searchOverlayRef.current.contains(target)",
         );
         expect(workstation).toContain(
             "!activityOverlayRef.current.contains(target)",
@@ -855,19 +1000,25 @@ describe("dashboard SOT search and activity interactions", () => {
         expect(workstation).toContain("selectRecording(item.recordingId)");
     });
 
-    it("keeps migrated search and activity visual state snippets owned by the workstation", () => {
+    it("keeps migrated search and activity visual state snippets with their feature owners", () => {
         const workstation = readSource("features/dashboard/workstation.tsx");
-        const classNames =
+        const librarySearch = readSource(
+            "features/dashboard/components/library-search.tsx",
+        );
+        const activityClassNames =
             extractDashboardSearchActivityClassNames(workstation);
+        const librarySearchClassNames =
+            extractLibrarySearchClassNames(librarySearch);
 
         for (const {
             propertyName,
             snippets,
         } of DASHBOARD_SEARCH_ACTIVITY_FEATURE_OWNER_CLASS_SNIPPETS) {
-            const property = extractObjectStringProperty(
-                classNames,
+            const property = extractSearchActivityOwnerClassProperty({
+                activityClassNames,
+                librarySearchClassNames,
                 propertyName,
-            );
+            });
 
             for (const snippet of snippets) {
                 expect(property).toContain(snippet);
@@ -877,10 +1028,11 @@ describe("dashboard SOT search and activity interactions", () => {
             propertyName,
             snippets,
         } of DASHBOARD_SEARCH_ACTIVITY_SOT_BODY_FORBIDDEN_CLASS_SNIPPETS) {
-            const property = extractObjectStringProperty(
-                classNames,
+            const property = extractSearchActivityOwnerClassProperty({
+                activityClassNames,
+                librarySearchClassNames,
                 propertyName,
-            );
+            });
 
             for (const snippet of snippets) {
                 expect(property).not.toContain(snippet);
@@ -888,10 +1040,17 @@ describe("dashboard SOT search and activity interactions", () => {
         }
 
         for (const snippet of DASHBOARD_SEARCH_ACTIVITY_OWNER_FORBIDDEN_CLASS_SNIPPETS) {
-            expect(classNames).not.toContain(snippet);
+            expect(activityClassNames).not.toContain(snippet);
+            expect(librarySearchClassNames).not.toContain(snippet);
         }
 
-        for (const snippet of DASHBOARD_SEARCH_ACTIVITY_FEATURE_OWNER_SOURCE_SNIPPETS) {
+        for (const snippet of LIBRARY_SEARCH_FEATURE_OWNER_SOURCE_SNIPPETS) {
+            expect(librarySearch).toContain(snippet);
+        }
+        for (const snippet of DASHBOARD_SEARCH_CONTAINER_SOURCE_SNIPPETS) {
+            expect(workstation).toContain(snippet);
+        }
+        for (const snippet of DASHBOARD_ACTIVITY_FEATURE_OWNER_SOURCE_SNIPPETS) {
             expect(workstation).toContain(snippet);
         }
     });
