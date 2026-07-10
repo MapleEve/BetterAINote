@@ -1,2 +1,2 @@
 [test]
-pathIgnorePatterns = ["**/tmp/e2e-debug/**"]
+pathIgnorePatterns = ["**/tmp/**", "**/tmp/e2e-debug/**"]

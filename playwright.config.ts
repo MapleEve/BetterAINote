@@ -1,3 +1,4 @@
+import { createHash } from "node:crypto";
 import path from "node:path";
 import { defineConfig, devices } from "@playwright/test";
 
@@ -41,11 +42,22 @@ const e2eStorageDir = path.join(e2eRootDir, "storage");
 const e2eDatabasePath = path.join(e2eDataDir, "betterainote-e2e.db");
 const e2eWordsDatabasePath = path.join(e2eDataDir, "betterainote-e2e-words.db");
 const useIsolatedFallback = !configuredBaseUrl;
+const shouldManageWebServer = process.env.PLAYWRIGHT_SKIP_WEBSERVER !== "1";
+
+if (useIsolatedFallback && shouldManageWebServer) {
+    process.env.NODE_ENV ??= "development";
+    process.env.PLAYWRIGHT_E2E_DATA_SOURCES_FALLBACK ??= "1";
+
+    if (process.env.NODE_ENV !== "production") {
+        process.env.BETTER_AUTH_SECRET ??= createHash("sha256")
+            .update(e2eRootDir)
+            .digest("hex");
+    }
+}
+
 const e2eEnv = {
     ...process.env,
     APP_URL: baseURL,
-    BETTER_AUTH_SECRET:
-        "playwright-better-auth-secret-0123456789abcdef-playwright",
     DATABASE_PATH: e2eDatabasePath,
     ENCRYPTION_KEY:
         "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef",
@@ -63,7 +75,6 @@ const e2eEnv = {
     PORT: appUrl.port || "3101",
     TRANSCRIPT_WORDS_DATABASE_PATH: e2eWordsDatabasePath,
 };
-const shouldManageWebServer = process.env.PLAYWRIGHT_SKIP_WEBSERVER !== "1";
 
 export default defineConfig({
     testDir: "./e2e",
