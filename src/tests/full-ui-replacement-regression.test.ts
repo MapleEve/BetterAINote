@@ -11406,6 +11406,9 @@ describe("full UI replacement regression coverage", () => {
         const settings = readSource(
             "features/settings/components/settings-content.tsx",
         );
+        const voscriptSection = readSource(
+            "features/settings/components/sections/voscript-section.tsx",
+        );
         const dataSources = readSource(
             "features/settings/components/sections/data-sources-section.tsx",
         );
@@ -11494,6 +11497,25 @@ describe("full UI replacement regression coverage", () => {
         expect(dataSources).toContain(
             'data-sot-surface="settings-data-sources"',
         );
+        expect(settings).toContain(
+            'import { VoScriptSection } from "./sections/voscript-section";',
+        );
+        expect(settings).toContain('case "voscript"');
+        expect(settings).toContain(
+            "return <VoScriptSection scrollRef={scrollRef} />;",
+        );
+        expect(voscriptSection).toContain("export function VoScriptSection");
+        for (const inlinedVoScriptToken of [
+            "function VoScriptSettingsPanel",
+            "function VoScriptSpeakerRows",
+            "useVoScriptSettingsStore",
+            "testVoScriptConnection",
+            'data-sot-control="voscript-test"',
+            'data-sot-banner="voscript-unavailable"',
+            "<SpeakerProfilesPanel />",
+        ]) {
+            expect(settings).not.toContain(inlinedVoScriptToken);
+        }
         expect(settingsSectionTitleClass).toContain(
             "SETTINGS_SECTION_TITLE_CLASS",
         );
@@ -12176,7 +12198,7 @@ describe("full UI replacement regression coverage", () => {
             "Button",
         );
         const settingsVoScriptTestAction = extractElementSlice(
-            settings,
+            voscriptSection,
             'data-sot-control="voscript-test"',
             "Button",
         );
@@ -12523,7 +12545,7 @@ describe("full UI replacement regression coverage", () => {
             "Button",
         );
         const settingsVoScriptUnavailableAlert = extractOpeningElement(
-            settings,
+            voscriptSection,
             'data-sot-banner="voscript-unavailable"',
             "Alert",
         );

@@ -182,6 +182,7 @@ function expectSourceProviderStatusBadgeClassIsLayoutOnly(
 const TARGET_SETTINGS_MIGRATION_PATHS = [
     "features/settings/components/settings-content.tsx",
     "features/settings/components/sections/data-sources-section.tsx",
+    "features/settings/components/sections/voscript-section.tsx",
     "features/settings/components/setting-field-control.tsx",
     "features/settings/components/settings-skeletons.tsx",
     "features/data-sources/data-source-field-control.tsx",
@@ -997,6 +998,9 @@ describe("settings SOT interaction regressions", () => {
         const dataSources = readSource(
             "features/settings/components/sections/data-sources-section.tsx",
         );
+        const voscriptSection = readSource(
+            "features/settings/components/sections/voscript-section.tsx",
+        );
         const settingFieldControl = readSource(
             "features/settings/components/setting-field-control.tsx",
         );
@@ -1020,6 +1024,8 @@ describe("settings SOT interaction regressions", () => {
             "features/settings/components/settings-content.tsx": content,
             "features/settings/components/sections/data-sources-section.tsx":
                 dataSources,
+            "features/settings/components/sections/voscript-section.tsx":
+                voscriptSection,
             "features/settings/components/setting-field-control.tsx":
                 settingFieldControl,
             "features/settings/components/settings-skeletons.tsx":
@@ -2114,6 +2120,9 @@ describe("settings SOT interaction regressions", () => {
         const content = readSource(
             "features/settings/components/settings-content.tsx",
         );
+        const voscript = readSource(
+            "features/settings/components/sections/voscript-section.tsx",
+        );
         const dataSources = readSource(
             "features/settings/components/sections/data-sources-section.tsx",
         );
@@ -2180,10 +2189,8 @@ describe("settings SOT interaction regressions", () => {
             settingFieldControl.match(
                 /const sourceProviderControlClassName[\s\S]*?;/,
             )?.[0] ?? "";
-        const keyStatusBadges = collectElementSlices(
-            content,
-            "data-sot-key-status",
-            "Badge",
+        const keyStatusBadges = [content, voscript].flatMap((source) =>
+            collectElementSlices(source, "data-sot-key-status", "Badge"),
         );
 
         expect(content).toContain("SETTINGS_FIELD_ROW_CLASS");
@@ -2226,6 +2233,7 @@ describe("settings SOT interaction regressions", () => {
         expect(providerStateBannerBlock).not.toContain("animate-spin");
         for (const source of [
             content,
+            voscript,
             dataSources,
             settingFieldControl,
             dataSourceFieldControl,
@@ -2403,9 +2411,15 @@ describe("settings SOT interaction regressions", () => {
         expect(content).toContain("className={SETTINGS_SHORTCUTS_GRID_CLASS}");
         expect(content).toContain("className={SETTINGS_SHORTCUT_ROW_CLASS}");
         expect(content).toContain("className={SETTINGS_SHORTCUT_KEY_CLASS}");
-        expect(content).not.toContain("SETTINGS_KEY_STATUS_CLASS");
-        expect(content).not.toContain("className={SETTINGS_KEY_STATUS_CLASS}");
-        expect(content).not.toContain('className="text-primary"');
+        for (const source of [content, voscript]) {
+            expect(source).not.toContain("SETTINGS_KEY_STATUS_CLASS");
+            expect(source).not.toContain(
+                "className={SETTINGS_KEY_STATUS_CLASS}",
+            );
+            expect(source).not.toContain('className="text-primary"');
+            expect(source).not.toContain('data-state="valid"');
+            expect(source).not.toContain('data-state="invalid"');
+        }
         expect(keyStatusBadges).toHaveLength(2);
         for (const keyStatusBadge of keyStatusBadges) {
             expect(keyStatusBadge).toContain("<Badge");
@@ -2419,8 +2433,6 @@ describe("settings SOT interaction regressions", () => {
             expect(keyStatusBadge).not.toContain("SETTINGS_KEY_STATUS_CLASS");
             expect(keyStatusBadge).not.toContain('className="text-primary"');
         }
-        expect(content).not.toContain('data-state="valid"');
-        expect(content).not.toContain('data-state="invalid"');
         for (const selector of REMOVED_SETTINGS_SHORTCUTS_KEY_STATUS_VISUAL_SELECTORS) {
             expect(collectExactCssRuleBlocks(globals, selector)).toEqual([]);
         }
@@ -2822,6 +2834,9 @@ describe("settings SOT interaction regressions", () => {
         const content = readSource(
             "features/settings/components/settings-content.tsx",
         );
+        const voscriptPanel = readSource(
+            "features/settings/components/sections/voscript-section.tsx",
+        );
         const dataSourcesPanel = readSource(
             "features/settings/components/sections/data-sources-section.tsx",
         );
@@ -2829,10 +2844,7 @@ describe("settings SOT interaction regressions", () => {
             /function DisplaySettingsPanel[\s\S]*?function TitleGenerationSettingsPanel/,
         )?.[0];
         const titleGenerationPanel = content.match(
-            /function TitleGenerationSettingsPanel[\s\S]*?function VoScriptSettingsPanel/,
-        )?.[0];
-        const voscriptPanel = content.match(
-            /function VoScriptSettingsPanel[\s\S]*?function TranscriptionSettingsPanel/,
+            /function TitleGenerationSettingsPanel[\s\S]*?function TranscriptionSettingsPanel/,
         )?.[0];
         const denoiseOptions = voscriptPanel?.match(
             /const denoiseOptions:[\s\S]*?\];/,
@@ -2870,12 +2882,31 @@ describe("settings SOT interaction regressions", () => {
         for (const section of [
             "appearance",
             "title-generation",
-            "voscript",
             "transcription",
             "misc",
         ]) {
             expect(content).toContain(`section="${section}"`);
             expect(content).toContain(`case "${section}"`);
+        }
+        expect(content).toContain(
+            'import { VoScriptSection } from "./sections/voscript-section";',
+        );
+        expect(content).toContain('case "voscript"');
+        expect(content).toContain(
+            "return <VoScriptSection scrollRef={scrollRef} />;",
+        );
+        expect(voscriptPanel).toContain("export function VoScriptSection");
+        expect(voscriptPanel).toContain('section="voscript"');
+        for (const inlinedVoScriptToken of [
+            "function VoScriptSettingsPanel",
+            "function VoScriptSpeakerRows",
+            "useVoScriptSettingsStore",
+            "testVoScriptConnection",
+            'data-sot-control="voscript-base-url"',
+            'data-sot-panel="voscript-unavailable-banner"',
+            "<SpeakerProfilesPanel />",
+        ]) {
+            expect(content).not.toContain(inlinedVoScriptToken);
         }
         expect(content).not.toContain('case "display"');
         expect(content).not.toContain('case "sync"');
@@ -2887,7 +2918,7 @@ describe("settings SOT interaction regressions", () => {
         expect(content).toContain('data-sot-layout="section"');
         expect(content).toContain("data-sot-section={section}");
         expect(content).toContain("data-sot-state=");
-        expect(content).toContain(
+        expect(voscriptPanel).toContain(
             "data-sot-availability={voscriptAvailability}",
         );
         expect(content).not.toContain('className="settings-main"');
@@ -2977,6 +3008,10 @@ describe("settings SOT interaction regressions", () => {
             "title-generation-model",
             "title-generation-api-key",
             "transcription-auto-transcribe",
+        ]) {
+            expect(content).toContain(`data-sot-control="${directControl}"`);
+        }
+        for (const directControl of [
             "voscript-min-speakers",
             "voscript-max-speakers",
             "voscript-base-url",
@@ -2985,14 +3020,16 @@ describe("settings SOT interaction regressions", () => {
             "voscript-no-repeat-ngram",
             "voscript-max-inflight-jobs",
         ]) {
-            expect(content).toContain(`data-sot-control="${directControl}"`);
+            expect(voscriptPanel).toContain(
+                `data-sot-control="${directControl}"`,
+            );
         }
+        expect(content).toContain('control="transcription-language"');
         for (const selectControl of [
-            "transcription-language",
             "voscript-api-key-mode",
             "voscript-denoise-model",
         ]) {
-            expect(content).toContain(`control="${selectControl}"`);
+            expect(voscriptPanel).toContain(`control="${selectControl}"`);
         }
         expect(titleGenerationPanel).toMatch(
             /draft\.autoGenerateTitle\s*\?\s*"checked"\s*:\s*"unchecked"/,
@@ -3005,17 +3042,18 @@ describe("settings SOT interaction regressions", () => {
         );
         expect(voscriptPanel).toContain("draft.privateTranscriptionApiKeySet");
         expect(content).toContain('data-sot-state="stored"');
-        expect(content).toContain('data-sot-state="invalid"');
-        expect(content).toContain("noRepeatNgramInvalid");
-        expect(content).toContain("minSpeakersInvalid");
-        expect(content).toContain("maxSpeakersInvalid");
+        expect(voscriptPanel).toContain('data-sot-state="stored"');
+        expect(voscriptPanel).toContain('data-sot-state="invalid"');
+        expect(voscriptPanel).toContain("noRepeatNgramInvalid");
+        expect(voscriptPanel).toContain("minSpeakersInvalid");
+        expect(voscriptPanel).toContain("maxSpeakersInvalid");
         expect(content).toContain('control="density"');
-        expect(content).toContain('saveId="voscript-connection"');
-        expect(content).toContain('data-sot-action="test"');
-        expect(content).toContain('data-sot-control="voscript-test"');
-        expect(content).toContain('saveId="voscript-params"');
+        expect(voscriptPanel).toContain('saveId="voscript-connection"');
+        expect(voscriptPanel).toContain('data-sot-action="test"');
+        expect(voscriptPanel).toContain('data-sot-control="voscript-test"');
+        expect(voscriptPanel).toContain('saveId="voscript-params"');
         const voscriptTestAction = collectElementSlices(
-            content,
+            voscriptPanel,
             'data-sot-control="voscript-test"',
             "Button",
         )[0];
@@ -3037,9 +3075,12 @@ describe("settings SOT interaction regressions", () => {
             "data-save-test",
         ]) {
             expect(content).not.toContain(legacySaveHook);
+            expect(voscriptPanel).not.toContain(legacySaveHook);
         }
-        expect(content).toContain('data-sot-banner="voscript-unavailable"');
-        expect(content).toContain(
+        expect(voscriptPanel).toContain(
+            'data-sot-banner="voscript-unavailable"',
+        );
+        expect(voscriptPanel).toContain(
             'data-sot-panel="voscript-unavailable-banner"',
         );
         const voscriptUnavailableBanner =
@@ -3073,30 +3114,56 @@ describe("settings SOT interaction regressions", () => {
             "data-voscript-availability",
             "data-voscript-unavail",
         ]) {
-            expect(content).not.toContain(legacyVoScriptHook);
+            expect(voscriptPanel).not.toContain(legacyVoScriptHook);
             expect(globals).not.toContain(legacyVoScriptHook);
         }
-        expect(content).toContain('sotField="no-repeat-ngram"');
+        expect(voscriptPanel).toContain('sotField="no-repeat-ngram"');
         expect(content).not.toContain("data-field=");
         expect(content).not.toContain("data-field-state");
         expect(content).not.toContain("data-field-msg");
-        expect(content).toContain("isVoScriptNoRepeatNgramInvalid");
-        expect(content).toContain("testVoScriptConnection");
+        expect(voscriptPanel).not.toContain("data-field=");
+        expect(voscriptPanel).not.toContain("data-field-state");
+        expect(voscriptPanel).not.toContain("data-field-msg");
+        expect(voscriptPanel).toContain("isVoScriptNoRepeatNgramInvalid");
+        expect(voscriptPanel).toContain("testVoScriptConnection");
         expect(content).toContain("useDisplaySettingsStore");
         expect(content).toContain("useTitleGenerationSettingsStore");
-        expect(content).toContain("useVoScriptSettingsStore");
+        expect(voscriptPanel).toContain("useVoScriptSettingsStore");
         expect(content).toContain("useTranscriptionSettingsStore");
         expect(content).toContain("useSyncSettingsStore");
         expect(content).toContain("usePlaybackSettingsStore");
         expect(content).toContain("updateDisplaySettings");
         expect(content).toContain("updateTitleGenerationSettings");
-        expect(content).toContain("updateVoScriptSettings");
+        expect(voscriptPanel).toContain("updateVoScriptSettings");
+        for (const ownerBehaviorToken of [
+            "useState<VoScriptSettings>(settings)",
+            'useState<VoScriptConnectionTestState>("idle")',
+            "const connectionSave = useResettingSaveState()",
+            "const paramsSave = useResettingSaveState()",
+            "const pendingSaveLaneRef = useRef<VoScriptSettingsSaveLane | null>(null)",
+            'useSettingsSectionBusy("voscript", busy)',
+            "const persistVoScriptSettingsLane = async",
+            "const saveConnectionSettings = async",
+            "const saveRuntimeParams = async",
+            "await updateVoScriptSettings(updates)",
+            "const testConnection = async",
+            "await testVoScriptConnection({",
+            "result.available && result.success",
+            "result.voiceprintCount > 0",
+            "const showUnavailableBanner =",
+            "!hasConnectionBaseUrl",
+            "!hasConnectionApiKey",
+            'connectionTestState === "test-error"',
+        ]) {
+            expect(voscriptPanel).toContain(ownerBehaviorToken);
+        }
         expect(content).toContain("updateTranscriptionSettings");
         expect(content).toContain("updateSyncSettings");
         expect(content).toContain("updatePlaybackSettings");
         expect(content).toContain("MIN_SYNC_INTERVAL_SECONDS");
         expect(content).toContain("PLAYBACK_SPEED_OPTIONS");
         expect(content).not.toMatch(OLD_UI_RE);
+        expect(voscriptPanel).not.toMatch(OLD_UI_RE);
 
         expect(displayPanel).not.toContain("<SaveActions");
         expect(displayPanel).not.toContain('saveId="appearance"');
@@ -3105,6 +3172,10 @@ describe("settings SOT interaction regressions", () => {
         expect(titleGenerationPanel).toContain("<SaveActions");
         expect(titleGenerationPanel).toContain('saveId="title-generation"');
         expect(voscriptPanel).toContain("<SaveActions");
+        expect(voscriptPanel).toContain(
+            'import { SpeakerProfilesPanel } from "@/features/settings/components/sections/speaker-profiles-panel";',
+        );
+        expect(voscriptPanel).toContain("<SpeakerProfilesPanel />");
         expect(denoiseOptions).toMatch(/label:\s*"不降噪",\s*value:\s*"none"/);
         expect(denoiseOptions).toMatch(
             /label:\s*"DeepFilterNet",\s*value:\s*"deepfilternet"/,
@@ -3162,17 +3233,14 @@ describe("settings SOT interaction regressions", () => {
         expect(transcriptionPanel).not.toContain("sm-actions-state");
     });
 
-    it("keeps VoScript no-repeat n-gram validation inline before persistence", () => {
-        const content = readSource(
-            "features/settings/components/settings-content.tsx",
+    it("keeps VoScript no-repeat n-gram validation in its owner before persistence", () => {
+        const voscriptPanel = readSource(
+            "features/settings/components/sections/voscript-section.tsx",
         );
-        const voscriptPanel = content.match(
-            /function VoScriptSettingsPanel[\s\S]*?function TranscriptionSettingsPanel/,
-        )?.[0];
         const saveFunction = voscriptPanel?.match(
             /const saveRuntimeParams = async[\s\S]*?const testConnection = async/,
         )?.[0];
-        const settingsRow = content.match(
+        const settingsRow = voscriptPanel.match(
             /function SettingsRow[\s\S]*?function SelectControl/,
         )?.[0];
         const noRepeatRow = voscriptPanel?.match(
@@ -3220,20 +3288,17 @@ describe("settings SOT interaction regressions", () => {
         );
     });
 
-    it("keeps VoScript speaker bounds validation inline before persistence", () => {
-        const content = readSource(
-            "features/settings/components/settings-content.tsx",
+    it("keeps VoScript speaker bounds validation in its owner before persistence", () => {
+        const voscriptPanel = readSource(
+            "features/settings/components/sections/voscript-section.tsx",
         );
-        const voscriptPanel = content.match(
-            /function VoScriptSettingsPanel[\s\S]*?function TranscriptionSettingsPanel/,
-        )?.[0];
-        const speakerRows = content.match(
-            /function VoScriptSpeakerRows[\s\S]*?function VoScriptSettingsPanel/,
+        const speakerRows = voscriptPanel.match(
+            /function VoScriptSpeakerRows[\s\S]*?export function VoScriptSection/,
         )?.[0];
         const saveFunction = voscriptPanel?.match(
             /const saveRuntimeParams = async[\s\S]*?const testConnection = async/,
         )?.[0];
-        const settingsRow = content.match(
+        const settingsRow = voscriptPanel.match(
             /function SettingsRow[\s\S]*?function SelectControl/,
         )?.[0];
         const minSpeakersRow = speakerRows?.match(
@@ -3404,10 +3469,10 @@ describe("settings SOT interaction regressions", () => {
     });
 
     it("keeps VoScript max inflight save payload aligned with unlimited zero semantics", () => {
-        const content = readSource(
-            "features/settings/components/settings-content.tsx",
+        const voscript = readSource(
+            "features/settings/components/sections/voscript-section.tsx",
         );
-        const maxInflightClamp = content.match(
+        const maxInflightClamp = voscript.match(
             /privateTranscriptionMaxInflightJobs:\s*clampInteger\(\s*draft\.privateTranscriptionMaxInflightJobs,\s*(\d+),\s*(\d+),\s*\)/,
         );
 
