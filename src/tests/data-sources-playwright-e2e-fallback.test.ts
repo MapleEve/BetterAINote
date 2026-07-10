@@ -30,11 +30,7 @@ const originalEnvironment = new Map(
     environmentKeys.map((key) => [key, process.env[key]]),
 );
 const e2eRoot = path.resolve("/tmp/betterainote-playwright-fallback-test");
-const e2eDatabasePath = path.join(
-    e2eRoot,
-    "data",
-    "betterainote-e2e.db",
-);
+const e2eDatabasePath = path.join(e2eRoot, "data", "betterainote-e2e.db");
 const providerResult = {
     enabled: false,
     authMode: "bearer" as const,

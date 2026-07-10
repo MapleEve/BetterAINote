@@ -63,6 +63,13 @@ describe("frontend data-source routing regression", () => {
             ),
             "utf8",
         );
+        const dataSourcesSection = readFileSync(
+            path.join(
+                ROOT,
+                "features/settings/components/sections/data-sources-section.tsx",
+            ),
+            "utf8",
+        );
 
         expect(service).toContain("DATA_SOURCES_TEST_API_PATH");
         expect(service).toContain('"/api/data-sources/test"');
@@ -71,8 +78,9 @@ describe("frontend data-source routing regression", () => {
         expect(hook).toContain("testSourceSettings");
         expect(hook).not.toContain("@/server");
         expect(hook).not.toContain("@/db");
-        expect(settingsContent).toContain("testSourceSettings(source)");
-        expect(settingsContent).toContain('data-sot-control="source-test"');
+        expect(settingsContent).toContain("<DataSourcesSection");
+        expect(dataSourcesSection).toContain("testSourceSettings(source)");
+        expect(dataSourcesSection).toContain('data-sot-control="source-test"');
         expect(settingsContent).not.toContain(
             "Connection details look complete",
         );
@@ -142,6 +150,13 @@ describe("frontend data-source routing regression", () => {
             ),
             "utf8",
         );
+        const dataSourcesSection = readFileSync(
+            path.join(
+                ROOT,
+                "features/settings/components/sections/data-sources-section.tsx",
+            ),
+            "utf8",
+        );
         const workstation = readFileSync(
             path.join(ROOT, "features/dashboard/workstation.tsx"),
             "utf8",
@@ -167,10 +182,17 @@ describe("frontend data-source routing regression", () => {
             "<MiscSettingsPanel scrollRef={scrollRef} />",
         );
         expect(settingsContent).toContain(
-            "<DataSourcesSettingsPanel scrollRef={scrollRef} />",
+            "<DataSourcesSection scrollRef={scrollRef} />",
         );
-        expect(settingsContent).toContain("selectedProvider");
-        expect(settingsContent).toContain("DataSourcesSettingsPanel");
+        expect(settingsContent).not.toContain("DataSourcesSettingsPanel");
+        expect(settingsContent).not.toContain("testSourceSettings");
+        expect(dataSourcesSection).toContain(
+            "const [selectedProvider, setSelectedProvider]",
+        );
+        expect(dataSourcesSection).toContain("testSourceSettings(source)");
+        expect(dataSourcesSection).toContain(
+            'data-sot-panel="source-provider-detail"',
+        );
         expect(settingsContent).not.toContain(
             "getSupportedSourceCapabilityDisplayItems",
         );
