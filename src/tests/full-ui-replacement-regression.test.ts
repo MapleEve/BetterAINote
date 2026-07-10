@@ -45,7 +45,7 @@ const EXPECTED_DASHBOARD_RECORDING_LIST_CONTENT_CLASS_NAME =
 const EXPECTED_DASHBOARD_DETAIL_EMPTY_STATE_CLASS_NAME =
     "min-h-[280px] p-9 md:p-9";
 const EXPECTED_DASHBOARD_DRAWER_SCRIM_CLASS_NAME =
-    "pointer-events-none fixed inset-0 z-40 hidden max-[860px]:block max-[860px]:group-data-[drawer-state=open]/dashboard-workstation:pointer-events-auto";
+    "pointer-events-none fixed inset-0 z-[300] hidden max-[860px]:block max-[860px]:group-data-[drawer-state=open]/dashboard-workstation:pointer-events-auto";
 const EXPECTED_DASHBOARD_DRAWER_ACTIVE_DOT_CLASS_NAME =
     "absolute top-1.5 right-1.5 hidden size-1.5 rounded-full bg-primary";
 const EXPECTED_RECORDING_WORKSTATION_WORKSPACE_CLASS_NAME =
