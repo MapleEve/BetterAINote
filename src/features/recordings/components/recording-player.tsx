@@ -1,10 +1,10 @@
 "use client";
 
 import {
-    FastForward,
     Pause,
     Play,
-    Rewind,
+    SkipBack,
+    SkipForward,
     Volume2,
     VolumeX,
 } from "lucide-react";
@@ -163,13 +163,13 @@ export function RecordingPlayer({
                 </span>
                 {recording.sourceProvider === "dingtalk-a1" ? (
                     <Badge
-                        variant="outline"
+                        variant="secondary"
                         className="gap-1.5 pl-1"
                         data-sot-control="player-source-tag"
                         data-sot-provider="dingtalk-a1"
                     >
                         <span
-                            className="inline-flex size-4 flex-none shrink-0 items-center justify-center overflow-hidden rounded-sm border border-border bg-background"
+                            className="inline-flex size-4 flex-none shrink-0 items-center justify-center overflow-hidden rounded-sm border border-border bg-white"
                             data-sot-cover="false"
                             data-sot-part="source-icon"
                             data-sot-source-icon="image"
@@ -225,7 +225,7 @@ export function RecordingPlayer({
                     disabled={playbackDisabled}
                     onClick={() => seekBySeconds(-5)}
                 >
-                    <Rewind
+                    <SkipBack
                         data-icon="inline-start"
                         data-sot-part="recording-player-control-icon"
                     />
@@ -281,7 +281,7 @@ export function RecordingPlayer({
                     disabled={playbackDisabled}
                     onClick={() => seekBySeconds(5)}
                 >
-                    <FastForward
+                    <SkipForward
                         data-icon="inline-start"
                         data-sot-part="recording-player-control-icon"
                     />
@@ -307,6 +307,7 @@ export function RecordingPlayer({
                               )
                             : "min-w-0 flex-1"
                     }
+                    inputClassName="[&_[data-slot=slider-thumb]]:size-[14px] [&_[data-slot=slider-thumb]]:border-0 [&_[data-slot=slider-thumb]]:bg-white [&_[data-slot=slider-thumb]]:shadow-[0_1px_4px_rgb(0_0_0_/_0.15),0_0_0_1px_var(--line-hairline)]"
                     disabled={playbackDisabled}
                     data-pct={playerProgressPct}
                     data-sot-control="recording-player-seek"
@@ -352,7 +353,6 @@ export function RecordingPlayer({
                     tabIndex={playbackDisabled ? -1 : 0}
                     step={1}
                     thumbProps={{
-                        className: "size-[14px]",
                         "data-pct": playerProgressPct,
                     }}
                     value={[progress]}
