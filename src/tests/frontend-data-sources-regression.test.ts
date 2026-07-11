@@ -325,13 +325,11 @@ describe("frontend data-source routing regression", () => {
         expect(dashboardWorkstation).toContain('tabKey: "source-report"');
         expect(dashboardWorkstation).toContain('detailTab === "source"');
         expect(dashboardWorkstation).toContain(
-            "SourceReportPane as SotSourceReportPane",
+            'from "@/features/source-report/primitives"',
         );
-        expect(dashboardWorkstation).toContain(
-            "SourceReportCopyButton as SotSourceReportCopyButton",
-        );
-        expect(dashboardWorkstation).toContain("<SotSourceReportPane");
-        expect(dashboardWorkstation).toContain("<SotSourceReportCopyButton");
+        expect(dashboardWorkstation).toContain("<SourceReportPane");
+        expect(dashboardWorkstation).toContain("<SourceReportCopyButton");
+        expect(dashboardWorkstation).not.toContain("SotSourceReport");
         expect(dashboardWorkstation).toContain('surface="dashboard"');
         expect(dashboardWorkstation).toContain(
             'hidden={detailTab !== "source"}',
@@ -342,43 +340,49 @@ describe("frontend data-source routing regression", () => {
         expect(dashboardWorkstation).toContain("formatAbsoluteDate(");
         expect(dashboardWorkstation).toContain('copy="source-transcript"');
         expect(dashboardWorkstation).toContain('copy="source-report"');
+        expect(dashboardWorkstation).toContain(
+            'sourceTranscriptCopyState !== "ready"',
+        );
+        expect(dashboardWorkstation).toContain(
+            'sourceReportCopyState !== "ready"',
+        );
+        expect(dashboardWorkstation).toContain(
+            "disabled={sourceTranscriptCopyDisabled}",
+        );
+        expect(dashboardWorkstation).toContain(
+            "disabled={sourceReportCopyDisabled}",
+        );
+        expect(
+            existsSync(path.join(ROOT, "features/source-report/styles.ts")),
+        ).toBe(false);
 
-        const dashboardSourceReportPaneStart = sourceReportPrimitives.indexOf(
-            'if (surface === "dashboard")',
+        const sourceReportPaneStart = sourceReportPrimitives.indexOf(
+            "export function SourceReportPane",
         );
-        const recordingSourceReportPaneStart = sourceReportPrimitives.indexOf(
-            'data-sot-panel="recording-source-report"',
-            dashboardSourceReportPaneStart,
+        const sourceReportPaneEnd = sourceReportPrimitives.indexOf(
+            "export function SourceReportDescription",
+            sourceReportPaneStart,
         );
-        expect(dashboardSourceReportPaneStart).toBeGreaterThanOrEqual(0);
-        expect(recordingSourceReportPaneStart).toBeGreaterThan(
-            dashboardSourceReportPaneStart,
-        );
-        const dashboardSourceReportPane = sourceReportPrimitives.slice(
-            dashboardSourceReportPaneStart,
-            recordingSourceReportPaneStart,
+        expect(sourceReportPaneStart).toBeGreaterThanOrEqual(0);
+        expect(sourceReportPaneEnd).toBeGreaterThan(sourceReportPaneStart);
+        const sourceReportPane = sourceReportPrimitives.slice(
+            sourceReportPaneStart,
+            sourceReportPaneEnd,
         );
 
-        expect(dashboardSourceReportPane).toContain(
-            "data-sot-source-report-pane",
-        );
-        expect(dashboardSourceReportPane).toContain(
-            'data-sot-panel="dashboard-source-report"',
-        );
-        expect(dashboardSourceReportPane).toContain(
-            'data-sot-tab-pane="source-report"',
-        );
-        expect(dashboardSourceReportPane).toContain("data-sot-state={state}");
-        expect(dashboardSourceReportPane).toContain(
-            'data-tab-pane="source-report"',
-        );
-        expect(dashboardSourceReportPane).toContain("hidden={hidden}");
+        expect(sourceReportPane).toContain('surface === "dashboard"');
+        expect(sourceReportPane).toContain('"dashboard-source-report"');
+        expect(sourceReportPane).toContain('"recording-source-report"');
+        expect(sourceReportPane).toContain("data-testid={testId}");
+        expect(sourceReportPane).toContain("data-state={state}");
+        expect(sourceReportPane).toContain('aria-busy={state === "loading"}');
+        expect(sourceReportPane).toContain("hidden={hidden}");
 
         const sourceReportCopyButtonStart = sourceReportPrimitives.indexOf(
             "export function SourceReportCopyButton",
         );
         const sourceReportCopyButtonEnd = sourceReportPrimitives.indexOf(
-            "type SourceReportActionIntent",
+            "export function SourceReportActionButton",
             sourceReportCopyButtonStart,
         );
         expect(sourceReportCopyButtonStart).toBeGreaterThanOrEqual(0);
@@ -390,21 +394,17 @@ describe("frontend data-source routing regression", () => {
             sourceReportCopyButtonEnd,
         );
 
-        expect(sourceReportCopyButton).toContain("data-sot-control={");
-        expect(sourceReportCopyButton).toContain('? "copy-source-report"');
-        expect(sourceReportCopyButton).toContain(': "copy-source-transcript"');
-        expect(sourceReportCopyButton).toContain("data-sot-state={copyState}");
-        expect(sourceReportCopyButton).toContain("data-tab-scope={tabScope}");
         expect(sourceReportCopyButton).toContain(
-            "variant={sourceReportCopyButtonVariantForState(",
+            "data-testid={`source-report-copy-${copy}`}",
         );
+        expect(sourceReportCopyButton).toContain(
+            "data-state={feedbackState ?? copyState}",
+        );
+        expect(sourceReportCopyButton).toContain("data-tab-scope={tabScope}");
+        expect(sourceReportCopyButton).toContain('state === "err"');
+        expect(sourceReportCopyButton).toContain('state === "ok"');
+        expect(sourceReportCopyButton).toContain("variant={variant}");
         expect(sourceReportCopyButton).toContain('size="xs"');
-        expect(sourceReportPrimitives).toContain(
-            "const sourceReportCopyButtonVariant = {",
-        );
-        expect(sourceReportPrimitives).toContain('idle: "ghost"');
-        expect(sourceReportPrimitives).toContain('ok: "secondary"');
-        expect(sourceReportPrimitives).toContain('err: "destructive"');
         expect(sourceReportPrimitives).not.toContain(
             "sourceReportCopyButtonStyles",
         );

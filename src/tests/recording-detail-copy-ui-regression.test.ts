@@ -1606,605 +1606,154 @@ describe("recording detail copy and title action UI regressions", () => {
         const sourceReportPrimitives = readSource(
             "features/source-report/primitives.tsx",
         );
-        const transcriptionSkeletons = readSource(
-            "features/recordings/components/transcription-skeletons.tsx",
+        const dashboardWorkstation = readSource(
+            "features/dashboard/workstation.tsx",
         );
-        const alertPrimitive = readSource("components/ui/alert.tsx");
-        const buttonPrimitive = readSource("components/ui/button.tsx");
-        const cardPrimitive = readSource("components/ui/card.tsx");
-        const emptyPrimitive = readSource("components/ui/empty.tsx");
-        const skeletonPrimitive = readSource("components/ui/skeleton.tsx");
-        const globals = readSource("app/globals.css");
-        const sourceReportStyles = readSource(
-            "features/source-report/styles.ts",
+        const recordingWorkstation = readSource(
+            "features/recordings/workstation.tsx",
         );
-        const sourceReportButtonControls = [
-            'copy="source-transcript"',
-            'copy="source-report"',
-            'control="open-source-record"',
-            'control="repull-source"',
-        ];
-        const sourceReportCopyControls = [
-            'copy="source-transcript"',
-            'copy="source-report"',
-        ];
-        const sourceReportPrimitiveSources = [
-            alertPrimitive,
-            buttonPrimitive,
-            cardPrimitive,
-            emptyPrimitive,
-            skeletonPrimitive,
-        ];
+        const sourceReportPane = extractBoundedSlice(
+            sourceReportPrimitives,
+            "export function SourceReportPane",
+            "export function SourceReportDescription",
+        );
+        const sourceReportCopyButton = extractBoundedSlice(
+            sourceReportPrimitives,
+            "export function SourceReportCopyButton",
+            "export function SourceReportActionButton",
+        );
 
         expect(sourceReport).toContain("handleCopySourceTranscript");
         expect(sourceReport).toContain("handleCopySourceReport");
-        expect(sourceReport).toContain("sourceReport.copySourceTranscript");
-        expect(sourceReport).toContain("sourceReport.copySourceReport");
-        expect(sourceReport).toContain("sourceReport.missingSourceTranscript");
-        expect(sourceReport).toContain("sourceReport.missingSourceReport");
-        expect(sourceReport).toContain("buildSourceTranscriptCopyText");
         expect(sourceReport).toContain("SourceReportAvailabilitySnapshot");
-        expect(sourceReport).toContain("onAvailabilityChange");
-        expect(sourceReport).toContain("transcriptAvailable");
-        expect(sourceReport).toContain("reportAvailable");
-        expect(sourceReportPrimitives).toContain(
-            'data-sot-panel="recording-source-report"',
-        );
-        expect(sourceReport).toContain("<SourceReportPane");
-        expect(sourceReport).toContain("@/features/source-report/primitives");
-        expect(sourceReport).not.toContain("@/features/source-report/styles");
-        expect(sourceReport).toContain("SourceReportMissingNotice");
+        expect(sourceReport).toContain("onAvailabilityChange?.({");
+        expect(sourceReport).toContain("transcriptAvailable,");
+        expect(sourceReport).toContain("reportAvailable,");
+        expect(sourceReport).toContain("const sourceTranscriptCopyState =");
+        expect(sourceReport).toContain("const sourceReportCopyState =");
         expect(sourceReport).toContain(
-            '<SourceReportMissingNotice state="transcript-missing">',
+            'copyingKey === "source-transcript" || !transcriptAvailable;',
         );
         expect(sourceReport).toContain(
-            '<SourceReportMissingNotice state="summary-missing">',
+            'copyingKey === "source-report" || !reportAvailable;',
         );
-        expect(sourceReportPrimitives).toContain(
-            "export function SourceReportMissingNotice",
+
+        const sourceTranscriptCopy = extractOpeningElement(
+            sourceReport,
+            'copy="source-transcript"',
+            "SourceReportCopyButton",
         );
-        expect(sourceReportPrimitives).toContain(
-            "data-sot-source-report-missing-notice",
+        expect(sourceTranscriptCopy).toContain(
+            "copyState={sourceTranscriptCopyState}",
         );
-        expect(sourceReportPrimitives).toContain('layout="inline"');
-        expect(alertPrimitive).toContain("warningSoft:");
-        expect(alertPrimitive).toContain("spacious:");
-        expect(alertPrimitive).toContain("centered:");
-        expect(emptyPrimitive).toContain("subtle:");
-        expect(emptyPrimitive).toContain("dangerIcon:");
-        expect(alertPrimitive).not.toContain("sourceReport");
-        expect(emptyPrimitive).not.toContain("sourceReport");
-        expectAlertEmptyPrimitiveCleanup(alertPrimitive, emptyPrimitive);
-        expectSourceReportEmptyAlertComposition(sourceReportPrimitives);
-        for (const snippet of SOURCE_REPORT_EMPTY_ALERT_FORBIDDEN_OWNER_SNIPPETS) {
-            expect(sourceReportPrimitives).not.toContain(snippet);
-        }
-        expect(sourceReport).not.toContain("data-sot-missing-copy");
-        expect(sourceReport).not.toContain(
-            "content-[attr(data-sot-missing-copy)]",
+        expect(sourceTranscriptCopy).toContain(
+            "disabled={sourceTranscriptCopyDisabled}",
         );
-        for (const snippet of SOURCE_REPORT_STYLE_OWNER_SNIPPETS) {
-            expect(sourceReportStyles).toContain(snippet);
-        }
-        for (const snippet of SOURCE_REPORT_PRIMITIVE_OWNER_SNIPPETS) {
-            expect(sourceReportPrimitives).toContain(snippet);
-        }
-        for (const residual of SOURCE_REPORT_PRIMITIVE_FORBIDDEN_SHADCN_RESIDUALS) {
-            expect(sourceReportPrimitives).not.toContain(residual);
-        }
-        for (const snippet of SOURCE_REPORT_BUTTON_LOCAL_CVA_FORBIDDEN_SNIPPETS) {
-            expect(sourceReportPrimitives).not.toContain(snippet);
-        }
-        expect(sourceReportPrimitives).not.toContain("const skeletonBase =");
-        expect(sourceReportPrimitives).not.toContain(
-            "bg-[color-mix(in_srgb,var(--fg-primary)_10%,transparent)]",
-        );
-        expect(sourceReportPrimitives).not.toContain(
-            "[font-feature-settings:normal]",
-        );
-        expect(sourceReportPrimitives).not.toContain("[text-rendering:auto]");
-        for (const snippet of SOURCE_REPORT_STYLE_FORBIDDEN_SNIPPETS) {
-            expect(sourceReportStyles).not.toContain(snippet);
-        }
-        expect(sourceReportStyles).not.toMatch(
-            /\bSOURCE_REPORT_[A-Z0-9_]*CLASS_NAME\b/,
-        );
-        expect(sourceReportStyles).not.toMatch(
-            /\b(?:rgb|rgba|hsl|hsla|oklch)\(|#[0-9A-Fa-f]{3,8}\b/,
-        );
-        expect(globals).not.toMatch(new RegExp("--source" + "-report-[a-z-]+"));
-        expect(
-            collectExactCssRuleBlocks(
-                globals,
-                "[data-sot-source-report-state]",
-            ),
-        ).toEqual([]);
-        expect(sourceReportPrimitives).toContain("sourceReportStateBase");
-        expect(sourceReportPrimitives).toContain(
-            'panel = "recording-source-report-state"',
-        );
-        expect(sourceReportPrimitives).toContain(
-            "className={sourceReportStateBase}",
-        );
-        expect(sourceReport).not.toContain("SOURCE_REPORT_STYLE_VARIABLES");
-        expect(sourceReport).not.toMatch(
-            /\bSOURCE_REPORT_(?:SKELETON|CARD_SKELETON|SEGMENT_SKELETON|METRIC_CARD|STATUS_BADGE|COPY_BUTTON|STYLE_VARIABLES)[A-Z0-9_]*\b/,
-        );
-        expect(sourceReportPrimitives).not.toMatch(
-            /\bSOURCE_REPORT_(?:SKELETON|CARD_SKELETON|SEGMENT_SKELETON|METRIC_CARD|STATUS_BADGE|COPY_BUTTON|STYLE_VARIABLES)[A-Z0-9_]*\b/,
-        );
-        expect(sourceReport).not.toContain("SOURCE_REPORT_STYLE_VARIABLES");
-        expect(
-            sourceReport.match(/style=\{SOURCE_REPORT_STYLE_VARIABLES\}/g) ??
-                [],
-        ).toHaveLength(0);
-        expect(sourceReportPrimitives).toContain(
-            'panel = "recording-source-report-state"',
-        );
-        expect(sourceReportPrimitives).toContain("data-sot-panel={panel}");
-        expect(sourceReport).toContain('sotState="loading"');
-        expect(sourceReport).toContain('state="loaded"');
-        expect(sourceReport).toContain("subState={sourceReportSubState}");
-        expect(sourceReportPrimitives).toContain(
-            "data-sot-source-report-section-title",
-        );
-        expect(sourceReport).toContain('title="来源转写"');
-        expect(sourceReport).toContain('title="来源原始报告"');
-        expect(sourceReport).toContain('title="来源信息"');
-        expect(sourceReport).toContain('copy="source-transcript"');
-        expect(sourceReport).toContain('copy="source-report"');
-        expect(sourceReport).toContain(
+        expect(sourceTranscriptCopy).toContain(
             'aria-busy={copyingKey === "source-transcript"}',
         );
-        expect(sourceReport).toContain(
+        const sourceReportCopy = extractOpeningElement(
+            sourceReport,
+            'copy="source-report"',
+            "SourceReportCopyButton",
+        );
+        expect(sourceReportCopy).toContain("copyState={sourceReportCopyState}");
+        expect(sourceReportCopy).toContain(
+            "disabled={sourceReportCopyDisabled}",
+        );
+        expect(sourceReportCopy).toContain(
             'aria-busy={copyingKey === "source-report"}',
         );
+        expect(sourceReport).toContain('testId="source-report-refresh"');
+        expect(sourceReport).toContain('testId="source-report-open-source"');
+        expect(sourceReport).toContain('testId="source-report-repull"');
+        expect(sourceReport).toContain("<SourceReportPane");
         expect(sourceReport).toContain(
-            'import { Spinner } from "@/components/ui/spinner";',
+            "<SourceReportPane className={className} state={sourceReportState}>",
         );
-        const sourceReportRefreshAction = extractElementSlice(
-            sourceReport,
-            'control="refresh-source-report"',
-            "SourceReportActionButton",
-        );
-        expect(sourceReportRefreshAction).toContain("<Spinner");
-        expect(sourceReportRefreshAction).toContain('data-icon="inline-start"');
-        expect(sourceReportRefreshAction).toContain('aria-hidden="true"');
-        expect(sourceReportRefreshAction).toContain(
-            't("sourceReport.loadingDetail")',
-        );
-        expect(sourceReportRefreshAction).not.toContain("<LoaderCircle");
-        expect(sourceReport).not.toContain("LoaderCircle");
-        expect(sourceReport).toContain("activeReportRequestRef");
-        expect(sourceReport).toContain("AbortController");
-        expect(sourceReport).toContain("reportRequestIdRef");
-        expect(sourceReport).toContain("sourceReportDetailText");
-        expect(sourceReport).toContain("sourceReportDisplaySegments");
-        expect(sourceReport).not.toContain(
-            'import { Button } from "@/components/ui/button";',
-        );
-        expect(sourceReportPrimitives).toContain(
-            'import { Button } from "@/components/ui/button";',
-        );
-        expect(sourceReport).not.toContain(
-            'import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";',
-        );
-        expect(sourceReportPrimitives).toContain(
-            'import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";',
-        );
-        expect(sourceReport).not.toContain("{error}</AlertDescription>");
-        expect(sourceReportPrimitives).toContain(
-            'import { Skeleton } from "@/components/ui/skeleton";',
-        );
-        expect(sourceReport).not.toContain(
-            'import { Skeleton } from "@/components/ui/skeleton";',
-        );
-        const sourceReportLoadingMetrics = extractBoundedSlice(
-            sourceReport,
-            "isLoading && !data && !error ? (",
-            "</SourceReportMetricCards>\n                    <SourceReportSection",
-        );
-        expectSourceReportMetricCallsites(
-            sourceReportLoadingMetrics,
-            "SourceReportMetricCard",
-            RECORDING_SOURCE_REPORT_LOADING_METRIC_CARDS,
-        );
-        const sourceReportLoadedMetrics = extractBoundedSlice(
-            sourceReport,
-            "{data && (",
-            "</SourceReportMetricCards>\n\n                    <SourceReportSection",
-        );
-        expectSourceReportMetricCallsites(
-            sourceReportLoadedMetrics,
-            "SourceReportMetricCard",
-            RECORDING_SOURCE_REPORT_LOADED_METRIC_CARDS,
-        );
-        expect(cardPrimitive).not.toContain("sourceReportMetric:");
-        const sourceReportMetricCard = extractOpeningElement(
-            sourceReportPrimitives,
-            'data-sot-card="source-report-metric"',
-            "Card",
-        );
-        const sourceReportMetricCardBlock = extractCardSlice(
-            sourceReportPrimitives,
-            'data-sot-card="source-report-metric"',
-        );
-        expect(sourceReportMetricCard).toContain("hasNoPadding");
-        expect(sourceReportMetricCard).toContain(
-            "className={cn(sourceReportMetricCardBase, className)}",
-        );
-        expect(sourceReportMetricCard).toContain(
-            'data-sot-card="source-report-metric"',
-        );
-        expect(sourceReportMetricCard).toContain("data-sot-metric={metric}");
-        expect(sourceReportMetricCardBlock).not.toContain(
-            'variant="sourceReportMetric"',
-        );
-        expect(sourceReportMetricCardBlock).toContain("<CardHeader");
-        expect(sourceReportMetricCardBlock).toContain(
-            "className={sourceReportMetricHeaderLayout}",
-        );
-        expect(sourceReportMetricCardBlock).toContain("<CardDescription");
-        expect(sourceReportMetricCardBlock).toContain(
-            'data-sot-part="source-report-card-label"',
-        );
-        expect(sourceReportMetricCardBlock).toContain("<CardContent");
-        expect(sourceReportMetricCardBlock).toContain(
-            "className={sourceReportMetricContentLayout}",
-        );
-        expect(sourceReportMetricCardBlock).toContain("<CardTitle");
-        expect(sourceReportMetricCardBlock).toContain(
-            'data-sot-part="source-report-card-value"',
-        );
-        expect(sourceReportMetricCardBlock).toContain("data-sot-value={value}");
-        expect(sourceReportMetricCardBlock).toContain(
-            "sourceReportSourceValueLayout",
-        );
-        expect(sourceReportPrimitives).not.toContain(
-            "sourceReportMetricLabelText",
-        );
-        expect(sourceReportPrimitives).not.toContain(
-            "sourceReportMetricValueText",
-        );
-        expect(sourceReportPrimitives).not.toContain(
-            "sourceReportMetricNumberText",
-        );
-        for (const token of SOURCE_REPORT_METRIC_CARD_CLASS_TOKENS) {
-            expect(sourceReportPrimitives).toContain(token);
-        }
-        for (const token of SOURCE_REPORT_METRIC_HEADER_CLASS_TOKENS) {
-            expect(sourceReportPrimitives).toContain(token);
-        }
-        for (const token of SOURCE_REPORT_METRIC_CONTENT_CLASS_TOKENS) {
-            expect(sourceReportPrimitives).toContain(token);
-        }
-        expect(sourceReport).not.toContain('variant="sourceReportMetric"');
-        const sourceReportErrorState = extractBoundedSlice(
-            sourceReport,
-            '<SourceReportState sotState="error" state="error" error={error}>',
-            "</SourceReportState>",
-        );
-        expect(sourceReport).not.toContain(
-            "SOURCE_REPORT_ERROR_ICON_CLASS_NAME",
-        );
-        expect(sourceReport).not.toContain('variant="sourceReportErrorIcon"');
-        expect(sourceReportErrorState).toContain("<SourceReportEmptySurface");
-        expect(sourceReportErrorState).toContain("<SourceReportEmptyTitle");
-        expect(sourceReportErrorState).toContain(
-            "<SourceReportEmptyDescription",
-        );
-        expect(sourceReportErrorState).toContain("<SourceReportEmptyIcon");
-        expect(sourceReportPrimitives).toContain("<Alert");
-        expect(sourceReportPrimitives).toContain("<AlertTitle");
-        expect(sourceReportPrimitives).toContain("<AlertDescription");
-        expect(sourceReportPrimitives).toContain("<EmptyMedia");
-        expect(sourceReportErrorState).toContain('kind="alert"');
-        expect(sourceReportErrorState).toContain('tone="danger"');
-        expect(sourceReport).not.toContain('variant="sourceReportError"');
-        expect(sourceReport).not.toContain('density="sourceReportError"');
-        expect(sourceReport).not.toContain('layout="sourceReportError"');
-        expect(sourceReportPrimitives).toContain(
-            "data-sot-source-report-empty",
-        );
-        expect(sourceReportPrimitives).toContain(
-            'data-sot-tone={tone === "danger" ? "err" : "neutral"}',
-        );
-        expect(sourceReportPrimitives).toContain(
-            "data-sot-source-report-empty-icon",
-        );
-        expect(sourceReportPrimitives).toContain('aria-hidden="true"');
-        expect(sourceReportErrorState).toContain(
-            '<CircleAlert aria-hidden="true" />',
-        );
-        expect(sourceReportErrorState).toContain("无法读取来源详情");
-        expect(sourceReportErrorState).toContain("sourceProviderSentenceName");
-        expect(sourceReportErrorState).toContain(
-            "返回了一个错误，可能是网络抖动或来源临时不可用。",
-        );
-        expect(sourceReportErrorState).toContain("重试");
-        expect(sourceReportErrorState).toContain("查看同步日志");
-        expect(sourceReport).not.toContain(
-            'className="flex flex-col items-center gap-2 px-4 py-8 text-center"',
-        );
-        expect(sourceReport).not.toContain(
-            'className="flex size-10 items-center justify-center rounded-full border border-border bg-background text-muted-foreground"',
-        );
-        for (const snippet of SOURCE_REPORT_STATUS_VARIANT_SNIPPETS) {
-            expect(sourceReportPrimitives).toContain(snippet);
-        }
-        const sourceReportStatusBadge = extractOpeningElement(
-            sourceReportPrimitives,
-            'data-sot-badge="source-report-status"',
-            "Badge",
-        );
-        expect(sourceReportStatusBadge).toContain(
-            "variant={SOURCE_REPORT_STATUS_VARIANT[tone]}",
-        );
-        expect(sourceReportStatusBadge).toContain("className={className}");
-        expect(sourceReportStatusBadge).toContain(
-            'data-sot-badge="source-report-status"',
-        );
-        expect(sourceReportStatusBadge).toContain("data-sot-tone={tone}");
-        for (const forbiddenStatusBadgeOwnerSnippet of SOURCE_REPORT_STATUS_BADGE_FORBIDDEN_OWNER_SNIPPETS) {
-            expect(sourceReportStatusBadge).not.toContain(
-                forbiddenStatusBadgeOwnerSnippet,
-            );
-        }
-        const sourceReportStatusBadgePrimitive = extractBoundedSlice(
-            sourceReportPrimitives,
-            "const SOURCE_REPORT_STATUS_VARIANT = {",
-            "export function SourceReportCopyIcon",
-        );
-        for (const forbiddenStatusBadgeStyling of SOURCE_REPORT_STATUS_BADGE_FORBIDDEN_STYLING_SNIPPETS) {
-            expect(sourceReportStatusBadgePrimitive).not.toContain(
-                forbiddenStatusBadgeStyling,
-            );
-        }
-        expect(sourceReport).not.toContain(variantAttr("sourceReportStatus"));
-        for (const primitiveSource of sourceReportPrimitiveSources) {
-            expect(primitiveSource).not.toMatch(
-                /\bsourceReport[A-Za-z0-9_]*\b/,
-            );
-        }
-        expect(emptyPrimitive).not.toContain("sourceReportErrorIcon");
-        expect(emptyPrimitive).not.toContain(
-            "SOURCE_REPORT_ERROR_ICON_CLASS_NAME",
-        );
-        expect(sourceReportPrimitives).toContain(
-            "const sourceReportActionButtonVariant = {",
-        );
-        expect(sourceReportPrimitives).toContain('ghost: "ghost"');
-        expect(sourceReportPrimitives).toContain('size="xs"');
-        for (const token of SOURCE_REPORT_SKELETON_SHARED_TOKENS) {
-            expect(skeletonPrimitive).not.toContain(token);
-        }
-        expect(skeletonPrimitive).toContain("shimmer:");
-        expect(skeletonPrimitive).toContain("--skeleton-shimmer-edge");
-        expect(skeletonPrimitive).toContain("--skeleton-shimmer-peak");
-        expect(skeletonPrimitive).toContain(
-            "animate-[skeleton-shimmer_1.6s_ease-in-out_infinite]",
-        );
-        expect(globals).toContain("--skeleton-shimmer-edge:");
-        expect(globals).toContain("--skeleton-shimmer-peak:");
-        expect(globals).toContain("@keyframes skeleton-shimmer");
-        for (const token of SOURCE_REPORT_SKELETON_OWNER_TOKENS) {
-            expect(sourceReportPrimitives).toContain(token);
-        }
-        expect(sourceReport).not.toContain(
-            "const sourceReportCardSkeletonClasses",
-        );
-        expect(sourceReport).not.toContain(
-            "const sourceReportSegmentSkeletonClasses",
-        );
-        const sourceReportCardSkeleton = extractOpeningElement(
-            sourceReportPrimitives,
-            'data-sot-part="source-report-card-skeleton"',
-            "Skeleton",
-        );
-        expect(sourceReportCardSkeleton).toContain('variant="shimmer"');
-        expect(sourceReportCardSkeleton).toContain('size="default"');
-        expect(sourceReportCardSkeleton).toContain(
-            "className={sourceReportCardSkeletonClasses[size]}",
-        );
-        expect(sourceReportCardSkeleton).toContain('aria-hidden="true"');
-        expect(sourceReportCardSkeleton).toContain("data-sot-size={size}");
-        const sourceReportSegmentSkeleton = extractOpeningElement(
-            sourceReportPrimitives,
-            'data-sot-part="source-report-segment-skeleton"',
-            "Skeleton",
-        );
-        expect(sourceReportSegmentSkeleton).toContain('variant="shimmer"');
-        expect(sourceReportSegmentSkeleton).toContain('size="default"');
-        expect(sourceReportSegmentSkeleton).toContain(
-            "className={sourceReportSegmentSkeletonClasses[size]}",
-        );
-        expect(sourceReportSegmentSkeleton).toContain('aria-hidden="true"');
-        expect(sourceReportSegmentSkeleton).toContain("data-sot-size={size}");
-        expect(sourceReport).not.toContain('variant="sourceReportCard"');
-        expect(sourceReport).not.toContain('variant="sourceReportSegment"');
-        expect(sourceReport).not.toContain("sourceReportCardSkeletonSize");
-        expect(sourceReport).not.toContain("sourceReportSegmentSkeletonSize");
-        expect(sourceReport).not.toContain("SOURCE_REPORT_STATUS_BADGE_STYLE");
-        expect(transcriptionSkeletons).toContain('variant="default"');
-        expect(transcriptionSkeletons).toContain('size="default"');
-        expect(transcriptionSkeletons).toContain(
-            "className={transcriptionSkeletonClassNames[size]}",
-        );
-        expect(transcriptionSkeletons).toContain(
-            "const transcriptionSkeletonClassNames",
-        );
-        expect(transcriptionSkeletons).toContain('action: "h-[26px] w-[72px]"');
-        expect(transcriptionSkeletons).toContain(
-            'description: "h-[13px] w-full max-w-[220px]"',
-        );
-        expect(transcriptionSkeletons).toContain(
-            '"line-long": "h-[13px] w-[92%]"',
-        );
-        expect(transcriptionSkeletons).toContain(
-            '"field-control": "h-[13px] w-[132px]"',
-        );
-        expect(skeletonPrimitive).toContain(
-            '"animate-pulse rounded-md bg-accent"',
-        );
-        for (const removedRecordingTranscriptionPrimitiveToken of [
-            "recordingTranscription:",
-            "recordingTranscriptionAction",
-            "recordingTranscriptionDescription",
-            "recordingTranscriptionFieldControl",
-            "recordingTranscriptionFieldLabel",
-            "recordingTranscriptionLineLong",
-            "recordingTranscriptionLineMedium",
-            "recordingTranscriptionLineShort",
-            "recordingTranscriptionSpeaker",
-            "recordingTranscriptionStatus",
-            "recordingTranscriptionTime",
-            "recordingTranscriptionTitle",
+        expect(sourceReport).toContain('<SourceReportState state="loading">');
+        expect(sourceReport).toContain("subState={sourceReportSubState}");
+        expect(sourceReport).not.toContain("@/features/source-report/styles");
+        expect(sourceReport).not.toContain("JSON.stringify(data.detail");
+        expect(sourceReport).not.toContain("data-sot-missing-copy");
+
+        for (const moduleName of [
+            "alert",
+            "badge",
+            "button",
+            "card",
+            "empty",
+            "separator",
+            "skeleton",
         ]) {
-            expect(skeletonPrimitive).not.toContain(
-                removedRecordingTranscriptionPrimitiveToken,
+            expect(sourceReportPrimitives).toContain(
+                `@/components/ui/${moduleName}`,
             );
         }
-        expect(transcriptionSkeletons).not.toContain("type SkeletonLineSize");
-        expect(transcriptionSkeletons).not.toContain(
-            "const skeletonLineClassNames",
+        expect(sourceReportPane).toContain('surface === "dashboard"');
+        expect(sourceReportPane).toContain('"dashboard-source-report"');
+        expect(sourceReportPane).toContain('"recording-source-report"');
+        expect(sourceReportPane).toContain("data-testid={testId}");
+        expect(sourceReportPane).toContain("data-state={state}");
+        expect(sourceReportPane).toContain('aria-busy={state === "loading"}');
+        expect(sourceReportPane).toContain("hidden={hidden}");
+        expect(sourceReportCopyButton).toContain(
+            "data-testid={`source-report-copy-${copy}`}",
         );
-        expect(transcriptionSkeletons).not.toContain(
-            "className={skeletonLineClassNames[size]}",
+        expect(sourceReportCopyButton).toContain(
+            "data-state={feedbackState ?? copyState}",
+        );
+        expect(sourceReportCopyButton).toContain("data-tab-scope={tabScope}");
+        expect(sourceReportCopyButton).toContain("variant={variant}");
+        expect(sourceReportCopyButton).toContain('size="xs"');
+        expect(sourceReportPrimitives).toContain(
+            'testId = "recording-source-report-state"',
         );
         expect(sourceReportPrimitives).toContain(
-            'data-sot-part="source-report-segment-skeleton"',
+            'testId="dashboard-source-report-state"',
         );
-        for (const copyKind of ["source-transcript", "source-report"]) {
-            const sourceReportCopyCallsite = extractElementSlice(
-                sourceReport,
+        expect(sourceReportPrimitives).toContain("data-substate={subState}");
+        expect(sourceReportPrimitives).toContain(
+            "data-testid={`source-report-missing-${state}`}",
+        );
+        expect(sourceReportPrimitives).toContain(
+            'data-testid="source-report-empty-surface"',
+        );
+        expect(sourceReportPrimitives).not.toMatch(
+            /SotSourceReport|data-sot-source-report|sourceReportSotStyles|SourceReportStyleVariables/,
+        );
+
+        const dashboardPane = extractOpeningElement(
+            dashboardWorkstation,
+            'surface="dashboard"',
+            "SourceReportPane",
+        );
+        expect(dashboardPane).toContain('hidden={detailTab !== "source"}');
+        expect(dashboardPane).toContain("state={sourceReportVisualState}");
+        for (const [copyKind, copyState, copyDisabled] of [
+            [
+                "source-transcript",
+                "sourceTranscriptCopyState",
+                "sourceTranscriptCopyDisabled",
+            ],
+            [
+                "source-report",
+                "sourceReportCopyState",
+                "sourceReportCopyDisabled",
+            ],
+        ] as const) {
+            const dashboardCopy = extractOpeningElement(
+                dashboardWorkstation,
                 `copy="${copyKind}"`,
                 "SourceReportCopyButton",
             );
-            expect(sourceReportCopyCallsite).toContain(
-                "<SourceReportCopyLabel>",
-            );
+            expect(dashboardCopy).toContain(`copy="${copyKind}"`);
+            expect(dashboardCopy).toContain(`copyState={${copyState}}`);
+            expect(dashboardCopy).toContain(`disabled={${copyDisabled}}`);
         }
-        expect(sourceReportPrimitives).toContain(
-            'part = "source-report-copy-label"',
-        );
-        for (const forbiddenStatusBadgeOwnerSnippet of SOURCE_REPORT_STATUS_DOT_STYLING_FORBIDDEN_SNIPPETS) {
-            expect(sourceReportPrimitives).not.toContain(
-                forbiddenStatusBadgeOwnerSnippet,
-            );
-        }
-        expect(sourceReportPrimitives).toContain(
-            "data-sot-source-report-segment-time",
-        );
-        expect(sourceReport).toContain('valueFormat="mono"');
-        expect(sourceReportPrimitives).toContain('data-sot-format="mono"');
-        expect(sourceReportPrimitives).toContain(
-            "data-sot-source-report-meta-value",
-        );
-        expect(sourceReportPrimitives).toContain("sourceReportCopyLabelBase");
-        expect(
-            collectCssRuleBlocks(
-                globals,
-                '[data-sot-part="source-report-copy-label"]',
-            ),
-        ).toEqual([]);
-        for (const removedSourceReportStatusGlobalSelector of [
-            '[data-sot-badge="source-report-status"]',
-            '[data-sot-part="source-report-status-dot"]',
-            '[data-sot-part="dashboard-source-report-status-dot"]',
-        ]) {
-            expect(
-                collectCssRuleBlocks(
-                    globals,
-                    removedSourceReportStatusGlobalSelector,
-                ),
-            ).toEqual([]);
-        }
-        expect(sourceReportPrimitives).toContain("sourceReportSegmentTimeText");
-        expect(sourceReportPrimitives).toContain("sourceReportMetaValueText");
-        expect(sourceReportPrimitives).toContain(
-            "data-sot-source-report-state",
-        );
-        expect(sourceReportPrimitives).toContain(
-            "data-sot-source-report-empty",
-        );
-        expect(sourceReportPrimitives).toContain(
-            "data-sot-source-report-section",
-        );
-        expect(sourceReportPrimitives).toContain(
-            "data-sot-source-report-segment",
-        );
-        expect(sourceReportPrimitives).toContain("data-sot-source-report-meta");
-        expect(sourceReport).not.toContain('className="sr-state"');
-        expect(sourceReport).not.toContain('className="sr-empty"');
-        expect(sourceReport).not.toContain('className="sr-section"');
-        expect(sourceReport).not.toContain('className="sr-seg"');
-        expect(sourceReport).not.toContain('className="sr-meta"');
-        expect(sourceReport).not.toContain('className="copy-label"');
-        expect(sourceReport).not.toContain('className="dot"');
-        expect(sourceReport).not.toContain('className="mono"');
-        expect(sourceReport).not.toContain('data-sot-panel="source-actions"');
-        expect(sourceReport).not.toMatch(/\bSOURCE_REPORT_METRIC_CARD_CLASS\b/);
-        for (const legacySourceReportPrimitiveClass of [
-            "SOURCE_REPORT_STATUS_BADGE_TONE_CLASS",
-            "sourceReportStatusBadgeVariant",
-        ]) {
-            expect(sourceReport).not.toContain(
-                legacySourceReportPrimitiveClass,
-            );
-        }
-        expect(sourceReport).not.toMatch(
-            /\bSOURCE_REPORT_STATUS_BADGE_CLASS\s*=/,
-        );
-        for (const control of sourceReportButtonControls) {
-            const controlIndex = sourceReport.indexOf(control);
-            expect(controlIndex).toBeGreaterThanOrEqual(0);
-            const controlSource = sourceReport.slice(
-                Math.max(0, controlIndex - 900),
-                controlIndex + 320,
-            );
-            expect(controlSource).toMatch(/<SourceReport(?:Action|Copy)Button/);
-            if (sourceReportCopyControls.includes(control)) {
-                expect(controlSource).toContain("copyState=");
-                expect(controlSource).not.toContain('variant="ghost"');
-                expect(controlSource).not.toContain('variant="secondary"');
-                expect(controlSource).not.toContain('variant="destructive"');
-                expect(controlSource).not.toContain('size="sm"');
-            } else {
-                expect(controlSource).toMatch(/intent="(?:outline|ghost)"/);
-                expect(controlSource).not.toMatch(
-                    /variant="sourceReport(?:Ghost)?Action"/,
-                );
-                expect(controlSource).not.toContain(
-                    'size="sourceReportAction"',
-                );
-            }
-            expect(controlSource).toMatch(/\b(?:copy|control)=/);
-            expect(controlSource).not.toContain("copy-btn");
-        }
-        for (const control of sourceReportCopyControls) {
-            const controlIndex = sourceReport.indexOf(control);
-            expect(controlIndex).toBeGreaterThanOrEqual(0);
-            const controlSource = sourceReport.slice(
-                Math.max(0, controlIndex - 320),
-                controlIndex + 320,
-            );
-            expect(controlSource).toContain("copy=");
-            expect(controlSource).toContain("copyState=");
-        }
-        expect(sourceReportPrimitives).toContain("data-copy={copy}");
-        expect(sourceReportPrimitives).toContain(
-            "data-copy-state={feedbackState}",
-        );
-        expect(sourceReport).not.toContain('className="btn ghost btn-sm"');
-        expect(sourceReport).not.toContain(
-            'className="btn ghost btn-sm copy-btn"',
-        );
-        expect(sourceReport).not.toContain('className="copy-btn"');
-        expect(sourceReport).toContain('data-icon="inline-start"');
-        expect(sourceReport).not.toMatch(
-            /\bCSSProperties\b|SOURCE_REPORT_STYLE_VARIABLES|SOURCE_REPORT_LOADING_SKELETON_STYLES|style=\{|sk _is|_is-/,
-        );
-        expect(sourceReport).not.toContain("JSON.stringify(data.detail");
+        expect(recordingWorkstation).toContain("<SourceReportPanel");
+        expect(recordingWorkstation).toContain("onAvailabilityChange=");
+        expect(recordingWorkstation).not.toContain("SotSourceReport");
     });
 
     it("keeps standalone recording detail on the SOT shell with panel-scoped copy actions", () => {
@@ -3614,38 +3163,27 @@ describe("recording detail copy and title action UI regressions", () => {
         const sourceReportCopyButton = extractElementSlice(
             dashboardTranscript,
             'copy="source-transcript"',
-            "SotSourceReportCopyButton",
+            "SourceReportCopyButton",
         );
         expect(sourceReportCopyButton).toContain("<SourceReportCopyIcon");
-        expect(sourceReportCopyButton).toContain('part="dashboard-copy-icon"');
         expect(sourceReportCopyButton).toContain("<SourceReportCopyLabel");
-        expect(sourceReportCopyButton).toContain('part="dashboard-copy-label"');
-        expect(sourceReportPrimitives).toContain("sourceReportCopyLabelBase");
-        expect(sourceReportPrimitives).toContain("sourceReportCopyIconBase");
-        const dashboardButtonClassNames = extractBoundedSlice(
-            dashboardTranscript,
-            "const dashboardButtonClassNames = {",
-            "} as const;",
-        );
-        expect(dashboardButtonClassNames).not.toContain("copy:");
         expect(sourceReportPrimitives).toContain(
-            "const sourceReportCopyButtonVariant = {",
+            'data-testid="source-report-copy-icon"',
         );
         expect(sourceReportPrimitives).toContain(
-            "variant={sourceReportCopyButtonVariantForState(",
+            'data-testid="source-report-copy-label"',
         );
-        expect(sourceReportPrimitives).toContain("data-copy={copy}");
         expect(sourceReportPrimitives).toContain(
-            "data-copy-state={feedbackState}",
+            "data-testid={`source-report-copy-${copy}`}",
+        );
+        expect(sourceReportPrimitives).toContain(
+            "data-state={feedbackState ?? copyState}",
         );
         expect(sourceReportPrimitives).not.toContain(
             "sourceReportCopyButtonStyles",
         );
-        expect(dashboardTranscript).not.toContain(
-            ["SOURCE_REPORT_COPY_BUTTON_CLASS_NAME", "const SOT_"]
-                .reverse()
-                .join(""),
-        );
+        expect(dashboardTranscript).not.toContain("SotSourceReport");
+        expect(dashboardTranscript).not.toContain("data-copy={copy}");
         for (const selector of DASHBOARD_COPY_ACTION_REMOVED_GLOBAL_SELECTORS) {
             expect(collectCssRuleBlocks(globals, selector)).toEqual([]);
         }
@@ -3653,32 +3191,47 @@ describe("recording detail copy and title action UI regressions", () => {
         expect(dashboardTranscript).not.toContain("copy-ico-default");
         expect(dashboardTranscript).not.toContain("copy-ico-ok");
         expect(dashboardTranscript).toContain('data-copy="transcript"');
-        expect(sourceReportPrimitives).toContain("data-copy={copy}");
-        for (const copyKind of ["source-transcript", "source-report"]) {
-            const sourceReportCopyButton = extractOpeningElement(
+        for (const [copyKind, copyState, copyDisabled] of [
+            [
+                "source-transcript",
+                "sourceTranscriptCopyState",
+                "sourceTranscriptCopyDisabled",
+            ],
+            [
+                "source-report",
+                "sourceReportCopyState",
+                "sourceReportCopyDisabled",
+            ],
+        ] as const) {
+            const dashboardCopy = extractOpeningElement(
                 dashboardTranscript,
                 `copy="${copyKind}"`,
-                "SotSourceReportCopyButton",
+                "SourceReportCopyButton",
             );
-            expect(sourceReportCopyButton).toContain(`copy="${copyKind}"`);
-            expect(sourceReportCopyButton).toContain("copyState=");
+            expect(dashboardCopy).toContain(`copy="${copyKind}"`);
+            expect(dashboardCopy).toContain(`copyState={${copyState}}`);
+            expect(dashboardCopy).toContain(`disabled={${copyDisabled}}`);
         }
-        expect(dashboardTranscript).toContain('control="open-source-record"');
-        expect(dashboardTranscript).toContain('control="repull-source"');
+        expect(dashboardTranscript).toContain(
+            'testId="source-report-open-source"',
+        );
+        expect(dashboardTranscript).toContain('testId="source-report-repull"');
         expect(dashboardTranscript).toContain('data-tab-pane="transcript"');
         expect(dashboardTranscript).toContain('data-tab-pane="speakers"');
         const dashboardSourceReportPane = extractOpeningElement(
             dashboardTranscript,
             'surface="dashboard"',
-            "SotSourceReportPane",
+            "SourceReportPane",
         );
         expect(dashboardSourceReportPane).toContain('surface="dashboard"');
         expect(dashboardSourceReportPane).toContain(
             'hidden={detailTab !== "source"}',
         );
-        expect(sourceReportPrimitives).toContain(
-            'data-tab-pane="source-report"',
+        expect(dashboardSourceReportPane).toContain(
+            "state={sourceReportVisualState}",
         );
+        expect(sourceReportPrimitives).toContain("data-testid={testId}");
+        expect(sourceReportPrimitives).toContain("data-state={state}");
         expect(dashboardTranscriptLoadingTurn).toContain(
             'data-sot-item="dashboard-transcript-turn"',
         );
