@@ -1,4 +1,3 @@
-import { cva, type VariantProps } from "class-variance-authority";
 import { Check, Copy } from "lucide-react";
 import type * as React from "react";
 import type { ReactNode } from "react";
@@ -23,134 +22,41 @@ import {
 import { Separator } from "@/components/ui/separator";
 import { Skeleton } from "@/components/ui/skeleton";
 import { cn } from "@/lib/utils";
-import {
-    type SourceReportCardSkeletonSize,
-    type SourceReportMetaSpacing,
-    type SourceReportMetaSurface,
-    type SourceReportSegmentSkeletonSize,
-    type SourceReportSubState,
-    type SourceReportSurfaceTone,
-    type SourceReportTone,
-    sourceReportMetaSpacingForState,
-} from "./styles";
 
-export type {
-    SourceReportCardSkeletonSize,
-    SourceReportMetaSpacing,
-    SourceReportMetaSurface,
-    SourceReportSegmentSkeletonSize,
-    SourceReportSubState,
-    SourceReportSurfaceTone,
-    SourceReportTone,
-};
+export type SourceReportTone = "err" | "neu" | "ok" | "warn";
+export type SourceReportCardSkeletonSize = "count" | "source" | "status";
+export type SourceReportSegmentSkeletonSize =
+    | "line-long"
+    | "line-medium"
+    | "line-short"
+    | "line-wide"
+    | "speaker"
+    | "time";
+export type SourceReportMetaSurface = "dashboard" | "recording";
+export type SourceReportMetaSpacing = "default" | "loose" | "roomy";
+export type SourceReportSubState =
+    | "both-missing"
+    | "complete"
+    | "summary-missing"
+    | "transcript-missing";
+export type SourceReportSurfaceTone = "danger" | "neutral";
 
 type SourceReportStateName = "empty" | "error" | "loaded" | "loading";
-type SourceReportStatePanel =
+type SourceReportStateTestId =
     | "dashboard-source-report-state"
     | "recording-source-report-state";
-
 type SourceReportSectionName = "metadata" | "summary" | "transcript";
 type SourceReportMetricName =
     | "segment-count"
     | "source"
     | "summary-status"
     | "transcript-status";
-
 type SourceReportCopyKind = "source-report" | "source-transcript";
 type SourceReportEmptySurfaceKind = "alert" | "empty";
-
-const sourceReportCardSkeletonClasses = {
-    count: "inline-block h-[18px] w-[48px] align-middle rounded-[6px]",
-    source: "inline-block h-[18px] w-[120px] align-middle rounded-[6px]",
-    status: "inline-block h-[18px] w-[80px] align-middle rounded-[6px]",
-} as const satisfies Record<SourceReportCardSkeletonSize, string>;
-
-const sourceReportSegmentSkeletonClasses = {
-    "line-long":
-        "mt-[6px] inline-block h-[13px] w-[92%] align-middle rounded-[4px]",
-    "line-medium":
-        "mt-[6px] inline-block h-[13px] w-[76%] align-middle rounded-[4px]",
-    "line-short":
-        "mt-[6px] inline-block h-[13px] w-[60%] align-middle rounded-[4px]",
-    "line-wide":
-        "mt-[6px] inline-block h-[13px] w-[88%] align-middle rounded-[4px]",
-    speaker:
-        "ml-[5px] inline-block h-[12px] w-[54px] align-middle rounded-[4px]",
-    time: "inline-block h-[12px] w-[96px] align-middle rounded-[4px]",
-} as const satisfies Record<SourceReportSegmentSkeletonSize, string>;
-
-const sourceReportMetaSpacingClasses = {
-    default: "mb-[13px]",
-    loose: "mb-[15px]",
-    roomy: "mb-[22px]",
-} as const satisfies Record<SourceReportMetaSpacing, string>;
-
-const sourceReportPaneBase = "flex flex-col gap-3.5";
-const sourceReportDescriptionText = "font-medium text-muted-foreground";
-const sourceReportStateStackBase = "flex flex-col gap-3.5";
-const sourceReportStateBase = "block [&[hidden]]:hidden";
-
-const sourceReportCopyIconBase =
-    "stroke-current transition-[opacity,transform] duration-200 ease-out";
-const sourceReportCopyLabelBase = "inline-flex min-w-0 items-center";
-
-const sourceReportMetricGridBase =
-    "grid grid-cols-[repeat(4,1fr)] gap-[8px] max-[1200px]:grid-cols-[repeat(2,1fr)]";
-const sourceReportMetricCardBase =
-    "gap-1.5 overflow-visible rounded-lg shadow-none backdrop-blur-none";
-const sourceReportMetricHeaderLayout = "px-[12px] pt-[10px] pb-0";
-const sourceReportMetricContentLayout = "min-w-0 px-[12px] pb-[10px]";
-const sourceReportSourceValueLayout = "flex items-center gap-[6px]";
-const sourceReportSourceIconMedia =
-    "size-[14px] flex-none rounded-[3px] object-contain";
-const sourceReportSourceFallbackText =
-    "text-[11px] font-bold text-muted-foreground";
-
-const sourceReportSectionBase =
-    "flex flex-col gap-2 border-t border-border pt-2";
-const sourceReportSectionHeaderLayout = "flex items-baseline gap-[10px]";
-const sourceReportSectionSeparatorLayout = "hidden";
-const sourceReportSectionTitleText = "m-0 font-semibold text-foreground";
-const sourceReportMetaListBase =
-    "mt-[15px] grid grid-cols-2 gap-x-[14px] gap-y-[6px] max-[1200px]:grid-cols-1";
-const sourceReportMetaRowBase =
-    "grid grid-cols-[80px_1fr] items-baseline gap-2 border-b border-dashed border-border py-1.5";
-const sourceReportMetaLabelText = "m-0 font-semibold text-muted-foreground";
-const sourceReportMetaValueText = "m-0 break-words font-medium text-foreground";
-
-const sourceReportSegmentsListBase =
-    "m-0 flex list-none flex-col gap-[2px] p-0";
-const sourceReportSegmentBase =
-    "grid grid-cols-[96px_56px_1fr] items-start gap-[10px] rounded-[6px] bg-transparent px-[10px] py-[8px]";
-const sourceReportSegmentSkeletonBase =
-    "block rounded-[6px] bg-transparent px-[10px] py-[8px]";
-const sourceReportSegmentTimeText =
-    "font-mono font-medium text-muted-foreground";
-const sourceReportSegmentSpeakerText = "font-semibold text-muted-foreground";
-const sourceReportSegmentBodyText =
-    "m-0 font-medium text-foreground [text-wrap:pretty]";
-const sourceReportSummaryStack = "flex flex-col gap-1.5";
-const sourceReportSummaryLineText =
-    "m-0 whitespace-pre-wrap font-medium text-foreground [text-wrap:pretty]";
-
-function sourceReportMetaClasses({
-    spacing = "default",
-    subState,
-    surface,
-}: {
-    spacing?: SourceReportMetaSpacing;
-    subState?: SourceReportSubState;
-    surface?: SourceReportMetaSurface;
-}) {
-    return cn(
-        sourceReportMetaListBase,
-        sourceReportMetaSpacingClasses[
-            surface
-                ? sourceReportMetaSpacingForState({ surface, subState })
-                : spacing
-        ],
-    );
-}
+type SourceReportCopyFeedbackState = "err" | "idle" | "ok";
+type SourceReportActionIntent = "ghost" | "outline" | "primary";
+type SourceReportActionRowAlign = "center" | "start";
+type SourceReportActionRowPurpose = "default" | "empty";
 
 export function SourceReportPane({
     children,
@@ -166,15 +72,24 @@ export function SourceReportPane({
     surface?: "dashboard" | "recording";
     variant?: "card" | "embedded";
 }) {
+    const testId =
+        surface === "dashboard"
+            ? "dashboard-source-report"
+            : "recording-source-report";
+    const commonClassName = cn(
+        "flex min-w-0 flex-col gap-4",
+        variant === "embedded" &&
+            "rounded-none border-0 bg-transparent p-0 shadow-none",
+        className,
+    );
+
     if (surface === "dashboard") {
         return (
             <div
-                className={cn(sourceReportPaneBase, className)}
-                data-sot-source-report-pane
-                data-sot-panel="dashboard-source-report"
-                data-sot-tab-pane="source-report"
-                data-sot-state={state}
-                data-tab-pane="source-report"
+                className={commonClassName}
+                data-testid={testId}
+                data-state={state}
+                aria-busy={state === "loading"}
                 hidden={hidden}
                 {...props}
             >
@@ -187,14 +102,12 @@ export function SourceReportPane({
         <Card
             hasNoPadding
             className={cn(
-                sourceReportPaneBase,
-                "min-h-0 overflow-hidden px-5 pt-4 pb-6",
-                className,
+                "min-h-0 overflow-hidden rounded-lg p-4 shadow-none",
+                commonClassName,
             )}
-            data-sot-source-report-pane
-            data-sot-panel="recording-source-report"
-            data-sot-state={state}
-            data-sot-variant={variant}
+            data-testid={testId}
+            data-state={state}
+            aria-busy={state === "loading"}
             hidden={hidden}
             {...props}
         >
@@ -206,8 +119,8 @@ export function SourceReportPane({
 export function SourceReportDescription({ children }: { children: ReactNode }) {
     return (
         <CardDescription
-            className={sourceReportDescriptionText}
-            data-sot-source-report-description
+            className="break-words font-medium text-muted-foreground"
+            data-testid="source-report-description"
         >
             {children}
         </CardDescription>
@@ -217,23 +130,13 @@ export function SourceReportDescription({ children }: { children: ReactNode }) {
 export function SourceReportStateStack({ children }: { children: ReactNode }) {
     return (
         <CardContent
-            className={cn("px-0", sourceReportStateStackBase)}
-            data-sot-source-report-state-stack
+            className="flex min-w-0 flex-col gap-4 px-0"
+            data-testid="source-report-state-stack"
         >
             {children}
         </CardContent>
     );
 }
-
-const SOURCE_REPORT_STATUS_VARIANT = {
-    err: "destructive",
-    neu: "secondary",
-    ok: "default",
-    warn: "outline",
-} as const satisfies Record<
-    SourceReportTone,
-    React.ComponentProps<typeof Badge>["variant"]
->;
 
 export function SourceReportStatusBadge({
     children,
@@ -244,66 +147,55 @@ export function SourceReportStatusBadge({
     className?: string;
     tone: SourceReportTone;
 }) {
+    const variant =
+        tone === "err"
+            ? "destructive"
+            : tone === "ok"
+              ? "default"
+              : tone === "warn"
+                ? "outline"
+                : "secondary";
+
     return (
         <Badge
-            variant={SOURCE_REPORT_STATUS_VARIANT[tone]}
-            className={className}
-            data-sot-badge="source-report-status"
-            data-sot-tone={tone}
+            variant={variant}
+            className={cn("max-w-full", className)}
+            data-testid="source-report-status"
+            data-state={tone}
         >
-            {children}
+            <span
+                className="size-1.5 shrink-0 rounded-full bg-current"
+                aria-hidden="true"
+            />
+            <span className="min-w-0 break-words whitespace-normal">
+                {children}
+            </span>
         </Badge>
     );
 }
 
-export function SourceReportCopyIcon({
-    part = "source-report-copy-icon",
-    state,
-}: {
-    part?: string;
-    state?: "err" | "ok";
-}) {
+export function SourceReportCopyIcon({ state }: { state?: "err" | "ok" }) {
     const Icon = state === "ok" ? Check : Copy;
 
     return (
         <Icon
-            className={sourceReportCopyIconBase}
+            className="stroke-current transition-opacity duration-200 ease-out"
             data-icon="inline-start"
-            data-sot-part={part}
+            data-testid="source-report-copy-icon"
             aria-hidden="true"
         />
     );
 }
 
-export function SourceReportCopyLabel({
-    children,
-    part = "source-report-copy-label",
-}: {
-    children: ReactNode;
-    part?: string;
-}) {
+export function SourceReportCopyLabel({ children }: { children: ReactNode }) {
     return (
-        <span className={sourceReportCopyLabelBase} data-sot-part={part}>
+        <span
+            className="inline-flex min-w-0 items-center"
+            data-testid="source-report-copy-label"
+        >
             {children}
         </span>
     );
-}
-
-type SourceReportCopyFeedbackState = "err" | "idle" | "ok";
-
-const sourceReportCopyButtonVariant = {
-    err: "destructive",
-    idle: "ghost",
-    ok: "secondary",
-} as const satisfies Record<
-    SourceReportCopyFeedbackState,
-    ButtonProps["variant"]
->;
-
-function sourceReportCopyButtonVariantForState(
-    feedbackState: SourceReportCopyFeedbackState,
-): ButtonProps["variant"] {
-    return sourceReportCopyButtonVariant[feedbackState];
 }
 
 export function SourceReportCopyButton({
@@ -320,20 +212,20 @@ export function SourceReportCopyButton({
     feedbackState?: "err" | "ok";
     tabScope?: string;
 }) {
+    const state: SourceReportCopyFeedbackState = feedbackState ?? "idle";
+    const variant =
+        state === "err"
+            ? "destructive"
+            : state === "ok"
+              ? "secondary"
+              : "ghost";
+
     return (
         <Button
-            variant={sourceReportCopyButtonVariantForState(
-                feedbackState ?? "idle",
-            )}
+            variant={variant}
             size="xs"
-            data-copy={copy}
-            data-copy-state={feedbackState}
-            data-sot-control={
-                copy === "source-report"
-                    ? "copy-source-report"
-                    : "copy-source-transcript"
-            }
-            data-sot-state={copyState}
+            data-testid={`source-report-copy-${copy}`}
+            data-state={feedbackState ?? copyState}
             data-tab-scope={tabScope}
             {...props}
         >
@@ -342,69 +234,33 @@ export function SourceReportCopyButton({
     );
 }
 
-type SourceReportActionIntent = "ghost" | "outline" | "primary";
-
-const sourceReportActionButtonVariant = {
-    ghost: "ghost",
-    outline: "outline",
-    primary: "default",
-} as const satisfies Record<SourceReportActionIntent, ButtonProps["variant"]>;
-
-function sourceReportButtonVariantForIntent(
-    intent: SourceReportActionIntent,
-): ButtonProps["variant"] {
-    return sourceReportActionButtonVariant[intent];
-}
-
 export function SourceReportActionButton({
     children,
-    control,
     intent = "ghost",
     state,
+    testId,
     ...props
 }: Omit<ButtonProps, "className" | "size" | "variant"> & {
     children: ReactNode;
-    control?: string;
     intent?: SourceReportActionIntent;
     state?: string;
+    testId?: string;
 }) {
+    const variant = intent === "primary" ? "default" : intent;
+
     return (
         <Button
-            variant={sourceReportButtonVariantForIntent(intent)}
+            variant={variant}
             size="xs"
-            className={cn(intent === "primary" && "min-w-[46px]")}
-            data-sot-control={control}
-            data-sot-state={state}
+            className={intent === "primary" ? "min-w-12" : undefined}
+            data-testid={testId}
+            data-state={state}
             {...props}
         >
             {children}
         </Button>
     );
 }
-
-const sourceReportActionRowStyles = cva("flex flex-wrap items-center", {
-    variants: {
-        purpose: {
-            default: "mt-[4px] gap-[8px]",
-            empty: "mt-[8px] justify-center gap-[6px]",
-        },
-        align: {
-            center: "justify-center",
-            start: "",
-        },
-    },
-    defaultVariants: {
-        align: "start",
-        purpose: "default",
-    },
-});
-
-type SourceReportActionRowAlign = NonNullable<
-    VariantProps<typeof sourceReportActionRowStyles>["align"]
->;
-type SourceReportActionRowPurpose = NonNullable<
-    VariantProps<typeof sourceReportActionRowStyles>["purpose"]
->;
 
 export function SourceReportActionRow({
     align = "start",
@@ -417,12 +273,15 @@ export function SourceReportActionRow({
 }) {
     return (
         <div
-            className={sourceReportActionRowStyles({ align, purpose })}
-            data-sot-source-report-actions={
-                purpose === "default" ? "" : undefined
-            }
-            data-sot-source-report-empty-actions={
-                purpose === "empty" ? "" : undefined
+            className={cn(
+                "flex flex-wrap items-center",
+                purpose === "empty" ? "mt-2 gap-1.5" : "mt-1 gap-2",
+                (align === "center" || purpose === "empty") && "justify-center",
+            )}
+            data-testid={
+                purpose === "empty"
+                    ? "source-report-empty-actions"
+                    : "source-report-actions"
             }
         >
             {children}
@@ -433,8 +292,8 @@ export function SourceReportActionRow({
 export function SourceReportMetricCards({ children }: { children: ReactNode }) {
     return (
         <div
-            className={sourceReportMetricGridBase}
-            data-sot-list="source-report-cards"
+            className="grid min-w-0 grid-cols-2 gap-2 xl:grid-cols-4"
+            data-testid="source-report-metrics"
         >
             {children}
         </div>
@@ -457,33 +316,29 @@ export function SourceReportMetricCard({
     return (
         <Card
             hasNoPadding
-            className={cn(sourceReportMetricCardBase, className)}
+            className={cn(
+                "min-w-0 gap-1.5 overflow-hidden rounded-lg bg-muted/40 p-3 shadow-none backdrop-blur-none",
+                className,
+            )}
+            data-testid={`source-report-metric-${metric}`}
+            data-state={value}
             {...props}
-            data-sot-card="source-report-metric"
-            data-sot-metric={metric}
         >
-            <CardHeader
-                className={sourceReportMetricHeaderLayout}
-                data-sot-part="source-report-card-header"
-            >
-                <CardDescription data-sot-part="source-report-card-label">
+            <CardHeader className="p-0">
+                <CardDescription className="text-xs font-semibold text-muted-foreground">
                     {label}
                 </CardDescription>
             </CardHeader>
-            <CardContent
-                className={sourceReportMetricContentLayout}
-                data-sot-part="source-report-card-content"
-            >
+            <CardContent className="min-w-0 p-0">
                 {value === "skeleton" ? (
                     children
                 ) : (
                     <CardTitle
                         className={cn(
-                            "min-w-0",
-                            value === "source" && sourceReportSourceValueLayout,
+                            "min-w-0 break-words text-sm",
+                            value === "source" && "flex items-center gap-1.5",
+                            value === "number" && "font-mono text-base",
                         )}
-                        data-sot-part="source-report-card-value"
-                        data-sot-value={value}
                     >
                         {children}
                     </CardTitle>
@@ -505,21 +360,23 @@ export function SourceReportSourceIdentity({
     return (
         <>
             {icon ? (
-                // biome-ignore lint/performance/noImgElement: source cards render provider asset nodes directly.
+                // biome-ignore lint/performance/noImgElement: provider assets are static public files.
                 <img
-                    className={sourceReportSourceIconMedia}
+                    className="size-3.5 shrink-0 rounded-sm object-contain"
                     src={icon}
+                    width={14}
+                    height={14}
                     alt=""
                 />
             ) : (
                 <span
-                    className={sourceReportSourceFallbackText}
-                    data-sot-part="source-report-card-source-fallback"
+                    className="shrink-0 text-xs font-bold text-muted-foreground"
+                    aria-hidden="true"
                 >
                     {fallback}
                 </span>
             )}
-            <span>{label}</span>
+            <span className="min-w-0 break-words">{label}</span>
         </>
     );
 }
@@ -533,10 +390,15 @@ export function SourceReportCardSkeleton({
         <Skeleton
             variant="shimmer"
             size="default"
-            className={sourceReportCardSkeletonClasses[size]}
+            className={cn(
+                "inline-block h-4 align-middle",
+                size === "count" && "w-12",
+                size === "source" && "w-28",
+                size === "status" && "w-20",
+            )}
             aria-hidden="true"
-            data-sot-part="source-report-card-skeleton"
-            data-sot-size={size}
+            data-testid="source-report-card-skeleton"
+            data-state={size}
         />
     );
 }
@@ -550,10 +412,19 @@ export function SourceReportSegmentSkeleton({
         <Skeleton
             variant="shimmer"
             size="default"
-            className={sourceReportSegmentSkeletonClasses[size]}
+            className={cn(
+                "inline-block h-3 align-middle",
+                size.startsWith("line-") && "mt-1.5",
+                size === "line-long" && "w-11/12",
+                size === "line-medium" && "w-3/4",
+                size === "line-short" && "w-3/5",
+                size === "line-wide" && "w-5/6",
+                size === "speaker" && "ml-1 w-14",
+                size === "time" && "w-24",
+            )}
             aria-hidden="true"
-            data-sot-part="source-report-segment-skeleton"
-            data-sot-size={size}
+            data-testid="source-report-segment-skeleton"
+            data-state={size}
         />
     );
 }
@@ -565,9 +436,9 @@ export function SourceReportSegmentSkeletonBlock({
 }) {
     return (
         <div
-            className={sourceReportSegmentSkeletonBase}
-            data-sot-source-report-segment
-            data-sot-state="skeleton"
+            className="block min-w-0 rounded-md px-2.5 py-2"
+            data-testid="source-report-segment-skeleton-block"
+            data-state="loading"
         >
             {children}
         </div>
@@ -576,28 +447,22 @@ export function SourceReportSegmentSkeletonBlock({
 
 export function SourceReportState({
     children,
-    error,
-    panel = "recording-source-report-state",
-    sotState,
     state,
     subState,
+    testId = "recording-source-report-state",
 }: {
     children: ReactNode;
-    error?: string;
-    panel?: SourceReportStatePanel;
-    sotState?: string;
     state: SourceReportStateName;
     subState?: string;
+    testId?: SourceReportStateTestId;
 }) {
     return (
         <div
-            data-sot-source-report-state
-            data-sot-panel={panel}
-            data-sot-state={sotState ?? state}
+            className="block min-w-0 space-y-4"
+            data-testid={testId}
             data-state={state}
-            data-sub-state={subState}
-            data-sot-error={error}
-            className={sourceReportStateBase}
+            data-substate={subState}
+            aria-live={state === "error" ? "assertive" : "polite"}
         >
             {children}
         </div>
@@ -605,10 +470,10 @@ export function SourceReportState({
 }
 
 export function DashboardSourceReportState(
-    props: Omit<Parameters<typeof SourceReportState>[0], "panel">,
+    props: Omit<Parameters<typeof SourceReportState>[0], "testId">,
 ) {
     return (
-        <SourceReportState panel="dashboard-source-report-state" {...props} />
+        <SourceReportState testId="dashboard-source-report-state" {...props} />
     );
 }
 
@@ -631,29 +496,19 @@ export function SourceReportSection({
 }) {
     return (
         <section
-            className={cn(sourceReportSectionBase, className)}
-            data-sot-source-report-section
-            data-sot-section={section}
+            className={cn("min-w-0 space-y-2 pt-2", className)}
+            data-testid={`source-report-section-${section}`}
         >
-            <Separator
-                className={sourceReportSectionSeparatorLayout}
-                data-sot-source-report-section-separator
-            />
+            <Separator />
             {noticeBefore}
-            <header
-                className={sourceReportSectionHeaderLayout}
-                data-sot-source-report-section-header
-            >
+            <header className="flex min-w-0 flex-col gap-1 sm:flex-row sm:items-baseline sm:gap-2.5">
                 <h4
-                    className={sourceReportSectionTitleText}
-                    data-sot-source-report-section-title
+                    className="m-0 shrink-0 text-sm font-semibold text-foreground"
+                    data-testid="source-report-section-title"
                 >
                     {title}
                 </h4>
-                <span
-                    className={sourceReportDescriptionText}
-                    data-sot-source-report-section-description
-                >
+                <span className="min-w-0 break-words text-xs font-medium text-muted-foreground">
                     {description}
                 </span>
             </header>
@@ -673,8 +528,8 @@ export function SourceReportMissingNotice({
     return (
         <Alert
             className={state === "summary-missing" ? "mb-2" : "mt-2"}
-            data-sot-source-report-missing-notice
-            data-sot-missing={state}
+            data-testid={`source-report-missing-${state}`}
+            data-state={state}
             density="compact"
             layout="inline"
             variant="warningSoft"
@@ -688,7 +543,6 @@ export function SourceReportMetaList({
     children,
     spacing = "default",
     subState,
-    surface,
 }: {
     children: ReactNode;
     spacing?: SourceReportMetaSpacing;
@@ -697,8 +551,14 @@ export function SourceReportMetaList({
 }) {
     return (
         <dl
-            className={sourceReportMetaClasses({ spacing, subState, surface })}
-            data-sot-source-report-meta
+            className={cn(
+                "mt-4 grid min-w-0 grid-cols-1 gap-x-4 gap-y-1 xl:grid-cols-2",
+                spacing === "default" && "mb-3",
+                spacing === "loose" && "mb-4",
+                spacing === "roomy" && "mb-6",
+            )}
+            data-testid="source-report-meta"
+            data-state={subState}
         >
             {children}
         </dl>
@@ -716,22 +576,17 @@ export function SourceReportMetaRow({
 }) {
     return (
         <div
-            className={sourceReportMetaRowBase}
-            data-sot-source-report-meta-row
+            className="grid min-w-0 grid-cols-1 gap-1 border-b border-dashed border-border py-2 sm:grid-cols-3 sm:items-baseline sm:gap-2"
+            data-testid="source-report-meta-row"
         >
-            <dt className={sourceReportMetaLabelText}>{label}</dt>
-            <dd className={sourceReportMetaValueText}>
-                {valueFormat ? (
-                    <span
-                        className={"font-mono"}
-                        data-sot-source-report-meta-value
-                        data-sot-format={valueFormat}
-                    >
-                        {children}
-                    </span>
-                ) : (
-                    children
+            <dt className="m-0 font-semibold text-muted-foreground">{label}</dt>
+            <dd
+                className={cn(
+                    "m-0 min-w-0 break-all font-medium text-foreground sm:col-span-2",
+                    valueFormat === "mono" && "font-mono",
                 )}
+            >
+                {children}
             </dd>
         </div>
     );
@@ -746,8 +601,8 @@ export function SourceReportSegments({
 }) {
     return (
         <ol
-            className={sourceReportSegmentsListBase}
-            data-sot-source-report-segments
+            className="m-0 flex min-w-0 list-none flex-col gap-0.5 p-0"
+            data-testid="source-report-segments"
             hidden={hidden}
         >
             {children}
@@ -765,24 +620,17 @@ export function SourceReportSegment({
     time: ReactNode;
 }) {
     return (
-        <li className={sourceReportSegmentBase} data-sot-source-report-segment>
-            <span
-                className={sourceReportSegmentTimeText}
-                data-sot-source-report-segment-time
-                data-sot-format="mono"
-            >
+        <li
+            className="grid min-w-0 grid-cols-1 gap-1 rounded-md px-2.5 py-2 hover:bg-muted/50 sm:grid-cols-12 sm:gap-2.5"
+            data-testid="source-report-segment"
+        >
+            <span className="min-w-0 break-words font-mono font-medium text-muted-foreground sm:col-span-3">
                 {time}
             </span>
-            <span
-                className={sourceReportSegmentSpeakerText}
-                data-sot-source-report-segment-speaker
-            >
+            <span className="min-w-0 break-words font-semibold text-muted-foreground sm:col-span-2">
                 {speaker}
             </span>
-            <p
-                className={sourceReportSegmentBodyText}
-                data-sot-source-report-segment-text
-            >
+            <p className="m-0 min-w-0 break-words font-medium text-foreground sm:col-span-7">
                 {children}
             </p>
         </li>
@@ -792,8 +640,8 @@ export function SourceReportSegment({
 export function SourceReportSummaryBody({ children }: { children: ReactNode }) {
     return (
         <div
-            className={sourceReportSummaryStack}
-            data-sot-source-report-summary-body
+            className="flex min-w-0 flex-col gap-1.5"
+            data-testid="source-report-summary"
         >
             {children}
         </div>
@@ -802,10 +650,7 @@ export function SourceReportSummaryBody({ children }: { children: ReactNode }) {
 
 export function SourceReportSummaryLine({ children }: { children: ReactNode }) {
     return (
-        <p
-            className={sourceReportSummaryLineText}
-            data-sot-source-report-segment-text
-        >
+        <p className="m-0 min-w-0 whitespace-pre-wrap break-words font-medium text-foreground">
             {children}
         </p>
     );
@@ -826,8 +671,8 @@ export function SourceReportEmptySurface({
                 variant={tone === "danger" ? "statusError" : "default"}
                 density="spacious"
                 layout="centered"
-                data-sot-source-report-empty
-                data-sot-tone={tone === "danger" ? "err" : "neutral"}
+                data-testid="source-report-empty-surface"
+                data-state={tone}
             >
                 {children}
             </Alert>
@@ -837,8 +682,8 @@ export function SourceReportEmptySurface({
     return (
         <Empty
             variant="subtle"
-            data-sot-source-report-empty
-            data-sot-tone={tone === "danger" ? "err" : "neutral"}
+            data-testid="source-report-empty-surface"
+            data-state={tone}
         >
             <EmptyHeader>{children}</EmptyHeader>
         </Empty>
@@ -855,7 +700,8 @@ export function SourceReportEmptyIcon({
     return (
         <EmptyMedia
             variant={tone === "danger" ? "dangerIcon" : "subtleIcon"}
-            data-sot-source-report-empty-icon
+            data-testid="source-report-empty-icon"
+            data-state={tone}
             aria-hidden="true"
         >
             {children}
@@ -872,14 +718,14 @@ export function SourceReportEmptyTitle({
 }) {
     if (kind === "alert") {
         return (
-            <AlertTitle data-sot-source-report-empty-title>
+            <AlertTitle data-testid="source-report-empty-title">
                 {children}
             </AlertTitle>
         );
     }
 
     return (
-        <EmptyTitle variant="compact" data-sot-source-report-empty-title>
+        <EmptyTitle variant="compact" data-testid="source-report-empty-title">
             {children}
         </EmptyTitle>
     );
@@ -896,8 +742,8 @@ export function SourceReportEmptyDescription({
         return (
             <AlertDescription
                 density="comfortable"
-                className="max-w-[360px]"
-                data-sot-source-report-empty-description
+                className="max-w-sm break-words"
+                data-testid="source-report-empty-description"
             >
                 {children}
             </AlertDescription>
@@ -907,7 +753,7 @@ export function SourceReportEmptyDescription({
     return (
         <EmptyDescription
             variant="compact"
-            data-sot-source-report-empty-description
+            data-testid="source-report-empty-description"
         >
             {children}
         </EmptyDescription>

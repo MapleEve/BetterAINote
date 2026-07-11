@@ -96,32 +96,32 @@ import { SettingsDialog } from "@/features/settings/components/settings-dialog";
 import { useDisplaySettingsStore } from "@/features/settings/display-settings-store";
 import { usePlaybackSettingsStore } from "@/features/settings/playback-settings-store";
 import {
-    SourceReportActionButton as SotSourceReportActionButton,
-    SourceReportActionRow as SotSourceReportActionRow,
-    SourceReportCardSkeleton as SotSourceReportCardSkeleton,
-    SourceReportCopyButton as SotSourceReportCopyButton,
-    SourceReportEmptyDescription as SotSourceReportEmptyDescription,
-    SourceReportEmptyIcon as SotSourceReportEmptyMedia,
-    SourceReportEmptySurface as SotSourceReportEmptySurface,
-    SourceReportEmptyTitle as SotSourceReportEmptyTitle,
-    SourceReportMetaList as SotSourceReportMetaList,
-    SourceReportMetaRow as SotSourceReportMetaRow,
-    SourceReportMetricCard as SotSourceReportMetricCard,
-    SourceReportMetricCards as SotSourceReportMetricCards,
-    SourceReportMissingNotice as SotSourceReportMissingNotice,
-    SourceReportPane as SotSourceReportPane,
-    SourceReportSection as SotSourceReportSection,
-    SourceReportSegment as SotSourceReportSegment,
-    SourceReportSegmentSkeleton as SotSourceReportSegmentSkeleton,
-    SourceReportSegmentSkeletonBlock as SotSourceReportSegmentSkeletonBlock,
-    SourceReportSegments as SotSourceReportSegments,
-    SourceReportSourceIdentity as SotSourceReportSourceIdentity,
-    DashboardSourceReportState as SotSourceReportState,
-    SourceReportStatusBadge as SotSourceReportStatusBadge,
-    SourceReportSummaryBody as SotSourceReportSummaryBody,
-    SourceReportSummaryLine as SotSourceReportSummaryLine,
+    DashboardSourceReportState,
+    SourceReportActionButton,
+    SourceReportActionRow,
+    SourceReportCardSkeleton,
+    SourceReportCopyButton,
     SourceReportCopyIcon,
     SourceReportCopyLabel,
+    SourceReportEmptyDescription,
+    SourceReportEmptyIcon,
+    SourceReportEmptySurface,
+    SourceReportEmptyTitle,
+    SourceReportMetaList,
+    SourceReportMetaRow,
+    SourceReportMetricCard,
+    SourceReportMetricCards,
+    SourceReportMissingNotice,
+    SourceReportPane,
+    SourceReportSection,
+    SourceReportSegment,
+    SourceReportSegmentSkeleton,
+    SourceReportSegmentSkeletonBlock,
+    SourceReportSegments,
+    SourceReportSourceIdentity,
+    SourceReportStatusBadge,
+    SourceReportSummaryBody,
+    SourceReportSummaryLine,
     type SourceReportTone,
 } from "@/features/source-report/primitives";
 import { useAutoSync } from "@/hooks/use-auto-sync";
@@ -222,7 +222,7 @@ type DashboardCopyFeedbackState = Exclude<DashboardCopyFeedback, null>["state"];
 type SourceReportViewState = "idle" | "loading" | "loaded" | "error";
 type SourceReportCopyState = "ready" | "missing" | "loading" | "error";
 type SourceRepullState = "idle" | "loading" | "success" | "error";
-type SourceReportSegment = {
+type SourceReportSegmentData = {
     speaker?: string | null;
     startMs?: number | null;
     endMs?: number | null;
@@ -243,7 +243,7 @@ type SourceReportData = {
     transcript?: {
         text?: string | null;
         segmentCount?: number | null;
-        segments?: SourceReportSegment[];
+        segments?: SourceReportSegmentData[];
     } | null;
     summaryMarkdown?: string | null;
     detail?: Record<string, unknown> | null;
@@ -1351,11 +1351,11 @@ function DashboardDetailEmptyState() {
     );
 }
 
-function SotSourceReportErrorIcon() {
+function SourceReportErrorGlyph() {
     return <CircleAlert aria-hidden="true" focusable="false" />;
 }
 
-function SotSourceReportEmptyIcon() {
+function SourceReportEmptyGlyph() {
     return <FileText aria-hidden="true" focusable="false" />;
 }
 
@@ -2479,10 +2479,6 @@ export function Workstation({
         sourceReport.recordingId === selectedRecordingId
             ? sourceReport.data
             : null;
-    const sourceReportError =
-        sourceReport.recordingId === selectedRecordingId
-            ? sourceReport.error
-            : "";
     const sourceTranscriptCopyText =
         buildSourceTranscriptCopyText(sourceReportData);
     const sourceTranscriptAvailable = Boolean(sourceTranscriptCopyText.trim());
@@ -2623,7 +2619,7 @@ export function Workstation({
         sourceReportData?.transcript?.segments ?? [];
     const sourceReportTranscriptText =
         sourceReportData?.transcript?.text?.trim() ?? "";
-    const sourceReportDisplaySegments: SourceReportSegment[] =
+    const sourceReportDisplaySegments: SourceReportSegmentData[] =
         sourceReportRawSegments.length > 0
             ? sourceReportRawSegments
             : sourceReportTranscriptText
@@ -6600,7 +6596,7 @@ export function Workstation({
                                                   )}
                                         </DashboardCopyLabel>
                                     </Button>
-                                    <SotSourceReportCopyButton
+                                    <SourceReportCopyButton
                                         type="button"
                                         copy="source-transcript"
                                         copyState={sourceTranscriptCopyState}
@@ -6637,7 +6633,6 @@ export function Workstation({
                                         }
                                     >
                                         <SourceReportCopyIcon
-                                            part="dashboard-copy-icon"
                                             state={
                                                 copyFeedback?.action ===
                                                 "source-transcript"
@@ -6645,7 +6640,7 @@ export function Workstation({
                                                     : undefined
                                             }
                                         />
-                                        <SourceReportCopyLabel part="dashboard-copy-label">
+                                        <SourceReportCopyLabel>
                                             {copyFeedback?.action ===
                                             "source-transcript"
                                                 ? copyFeedback.state === "ok"
@@ -6657,8 +6652,8 @@ export function Workstation({
                                                       "sourceReport.copySourceTranscript",
                                                   )}
                                         </SourceReportCopyLabel>
-                                    </SotSourceReportCopyButton>
-                                    <SotSourceReportCopyButton
+                                    </SourceReportCopyButton>
+                                    <SourceReportCopyButton
                                         type="button"
                                         copy="source-report"
                                         copyState={sourceReportCopyState}
@@ -6694,7 +6689,6 @@ export function Workstation({
                                         }
                                     >
                                         <SourceReportCopyIcon
-                                            part="dashboard-copy-icon"
                                             state={
                                                 copyFeedback?.action ===
                                                 "source-report"
@@ -6702,7 +6696,7 @@ export function Workstation({
                                                     : undefined
                                             }
                                         />
-                                        <SourceReportCopyLabel part="dashboard-copy-label">
+                                        <SourceReportCopyLabel>
                                             {copyFeedback?.action ===
                                             "source-report"
                                                 ? copyFeedback.state === "ok"
@@ -6714,12 +6708,12 @@ export function Workstation({
                                                       "sourceReport.copySourceReport",
                                                   )}
                                         </SourceReportCopyLabel>
-                                    </SotSourceReportCopyButton>
+                                    </SourceReportCopyButton>
                                     {detailTab === "source" ? (
-                                        <SotSourceReportActionButton
+                                        <SourceReportActionButton
                                             intent="outline"
                                             type="button"
-                                            control="refresh-source-report"
+                                            testId="source-report-refresh"
                                             state={sourceReportState}
                                             disabled={
                                                 sourceReportState === "loading"
@@ -6734,7 +6728,7 @@ export function Workstation({
                                                       "sourceReport.loadingDetail",
                                                   )
                                                 : t("sourceReport.refresh")}
-                                        </SotSourceReportActionButton>
+                                        </SourceReportActionButton>
                                     ) : null}
                                     <Badge
                                         variant="outline"
@@ -7029,45 +7023,45 @@ export function Workstation({
                                         </Empty>
                                     )}
                                 </div>
-                                <SotSourceReportPane
+                                <SourceReportPane
                                     surface="dashboard"
                                     className={dashboardTabPaneHiddenClassName}
                                     state={sourceReportVisualState}
                                     hidden={detailTab !== "source"}
                                 >
                                     {sourceReportState === "loading" ? (
-                                        <SotSourceReportState state="loading">
-                                            <SotSourceReportMetricCards>
-                                                <SotSourceReportMetricCard
+                                        <DashboardSourceReportState state="loading">
+                                            <SourceReportMetricCards>
+                                                <SourceReportMetricCard
                                                     label="来源"
                                                     metric="source"
                                                     value="skeleton"
                                                 >
-                                                    <SotSourceReportCardSkeleton size="source" />
-                                                </SotSourceReportMetricCard>
-                                                <SotSourceReportMetricCard
+                                                    <SourceReportCardSkeleton size="source" />
+                                                </SourceReportMetricCard>
+                                                <SourceReportMetricCard
                                                     label="转写状态"
                                                     metric="transcript-status"
                                                     value="skeleton"
                                                 >
-                                                    <SotSourceReportCardSkeleton size="status" />
-                                                </SotSourceReportMetricCard>
-                                                <SotSourceReportMetricCard
+                                                    <SourceReportCardSkeleton size="status" />
+                                                </SourceReportMetricCard>
+                                                <SourceReportMetricCard
                                                     label="摘要状态"
                                                     metric="summary-status"
                                                     value="skeleton"
                                                 >
-                                                    <SotSourceReportCardSkeleton size="status" />
-                                                </SotSourceReportMetricCard>
-                                                <SotSourceReportMetricCard
+                                                    <SourceReportCardSkeleton size="status" />
+                                                </SourceReportMetricCard>
+                                                <SourceReportMetricCard
                                                     label="分段数"
                                                     metric="segment-count"
                                                     value="skeleton"
                                                 >
-                                                    <SotSourceReportCardSkeleton size="count" />
-                                                </SotSourceReportMetricCard>
-                                            </SotSourceReportMetricCards>
-                                            <SotSourceReportSection
+                                                    <SourceReportCardSkeleton size="count" />
+                                                </SourceReportMetricCard>
+                                            </SourceReportMetricCards>
+                                            <SourceReportSection
                                                 section="transcript"
                                                 title="来源转写"
                                                 description={
@@ -7080,62 +7074,57 @@ export function Workstation({
                                                     </>
                                                 }
                                             >
-                                                <SotSourceReportSegmentSkeletonBlock>
-                                                    <SotSourceReportSegmentSkeleton size="time" />
-                                                    <SotSourceReportSegmentSkeleton size="speaker" />
-                                                    <SotSourceReportSegmentSkeleton size="line-long" />
-                                                    <SotSourceReportSegmentSkeleton size="line-medium" />
-                                                </SotSourceReportSegmentSkeletonBlock>
-                                                <SotSourceReportSegmentSkeletonBlock>
-                                                    <SotSourceReportSegmentSkeleton size="time" />
-                                                    <SotSourceReportSegmentSkeleton size="speaker" />
-                                                    <SotSourceReportSegmentSkeleton size="line-wide" />
-                                                    <SotSourceReportSegmentSkeleton size="line-short" />
-                                                </SotSourceReportSegmentSkeletonBlock>
-                                            </SotSourceReportSection>
-                                        </SotSourceReportState>
+                                                <SourceReportSegmentSkeletonBlock>
+                                                    <SourceReportSegmentSkeleton size="time" />
+                                                    <SourceReportSegmentSkeleton size="speaker" />
+                                                    <SourceReportSegmentSkeleton size="line-long" />
+                                                    <SourceReportSegmentSkeleton size="line-medium" />
+                                                </SourceReportSegmentSkeletonBlock>
+                                                <SourceReportSegmentSkeletonBlock>
+                                                    <SourceReportSegmentSkeleton size="time" />
+                                                    <SourceReportSegmentSkeleton size="speaker" />
+                                                    <SourceReportSegmentSkeleton size="line-wide" />
+                                                    <SourceReportSegmentSkeleton size="line-short" />
+                                                </SourceReportSegmentSkeletonBlock>
+                                            </SourceReportSection>
+                                        </DashboardSourceReportState>
                                     ) : sourceReportState === "error" ? (
-                                        <SotSourceReportState
-                                            state="error"
-                                            error={
-                                                sourceReportError || undefined
-                                            }
-                                        >
-                                            <SotSourceReportEmptySurface
+                                        <DashboardSourceReportState state="error">
+                                            <SourceReportEmptySurface
                                                 kind="alert"
                                                 tone="danger"
                                             >
-                                                <SotSourceReportEmptyMedia tone="danger">
-                                                    <SotSourceReportErrorIcon />
-                                                </SotSourceReportEmptyMedia>
-                                                <SotSourceReportEmptyTitle kind="alert">
+                                                <SourceReportEmptyIcon tone="danger">
+                                                    <SourceReportErrorGlyph />
+                                                </SourceReportEmptyIcon>
+                                                <SourceReportEmptyTitle kind="alert">
                                                     无法读取来源详情
-                                                </SotSourceReportEmptyTitle>
-                                                <SotSourceReportEmptyDescription kind="alert">
+                                                </SourceReportEmptyTitle>
+                                                <SourceReportEmptyDescription kind="alert">
                                                     {
                                                         sourceReportProviderSentenceName
                                                     }
                                                     返回了一个错误，可能是网络抖动或来源临时不可用。
-                                                </SotSourceReportEmptyDescription>
-                                                <SotSourceReportActionRow
+                                                </SourceReportEmptyDescription>
+                                                <SourceReportActionRow
                                                     purpose="empty"
                                                     align="center"
                                                 >
-                                                    <SotSourceReportActionButton
+                                                    <SourceReportActionButton
                                                         intent="primary"
                                                         type="button"
-                                                        control="refresh-source-report"
+                                                        testId="source-report-refresh"
                                                         state="error"
                                                         onClick={() =>
                                                             void loadSourceReport()
                                                         }
                                                     >
                                                         重试
-                                                    </SotSourceReportActionButton>
-                                                    <SotSourceReportActionButton
+                                                    </SourceReportActionButton>
+                                                    <SourceReportActionButton
                                                         intent="ghost"
                                                         type="button"
-                                                        control="source-report-activity-log"
+                                                        testId="source-report-activity-log"
                                                         state="error"
                                                         onClick={() => {
                                                             setSearchOpen(
@@ -7150,31 +7139,31 @@ export function Workstation({
                                                         }}
                                                     >
                                                         查看同步日志
-                                                    </SotSourceReportActionButton>
-                                                </SotSourceReportActionRow>
-                                            </SotSourceReportEmptySurface>
-                                        </SotSourceReportState>
+                                                    </SourceReportActionButton>
+                                                </SourceReportActionRow>
+                                            </SourceReportEmptySurface>
+                                        </DashboardSourceReportState>
                                     ) : sourceReportData ? (
-                                        <SotSourceReportState
+                                        <DashboardSourceReportState
                                             state="loaded"
                                             subState={sourceReportSubState}
                                         >
                                             {!selectedRecording?.hasAudio ? (
-                                                <SotSourceReportStatusBadge tone="warn">
+                                                <SourceReportStatusBadge tone="warn">
                                                     {t(
                                                         "sourceReport.sourceOnlyNoAudio",
                                                     )}
-                                                </SotSourceReportStatusBadge>
+                                                </SourceReportStatusBadge>
                                             ) : null}
-                                            <SotSourceReportMetricCards>
-                                                <SotSourceReportMetricCard
+                                            <SourceReportMetricCards>
+                                                <SourceReportMetricCard
                                                     label={t(
                                                         "recording.source",
                                                     )}
                                                     metric="source"
                                                     value="source"
                                                 >
-                                                    <SotSourceReportSourceIdentity
+                                                    <SourceReportSourceIdentity
                                                         fallback={sourceReportProviderName.charAt(
                                                             0,
                                                         )}
@@ -7185,12 +7174,12 @@ export function Workstation({
                                                             sourceReportProviderName
                                                         }
                                                     />
-                                                </SotSourceReportMetricCard>
-                                                <SotSourceReportMetricCard
+                                                </SourceReportMetricCard>
+                                                <SourceReportMetricCard
                                                     label="转写状态"
                                                     metric="transcript-status"
                                                 >
-                                                    <SotSourceReportStatusBadge
+                                                    <SourceReportStatusBadge
                                                         tone={sourceReportReadinessTone(
                                                             sourceTranscriptStatusLabel,
                                                         )}
@@ -7198,13 +7187,13 @@ export function Workstation({
                                                         {
                                                             sourceTranscriptStatusLabel
                                                         }
-                                                    </SotSourceReportStatusBadge>
-                                                </SotSourceReportMetricCard>
-                                                <SotSourceReportMetricCard
+                                                    </SourceReportStatusBadge>
+                                                </SourceReportMetricCard>
+                                                <SourceReportMetricCard
                                                     label="摘要状态"
                                                     metric="summary-status"
                                                 >
-                                                    <SotSourceReportStatusBadge
+                                                    <SourceReportStatusBadge
                                                         tone={sourceReportReadinessTone(
                                                             sourceSummaryStatusLabel,
                                                         )}
@@ -7212,25 +7201,25 @@ export function Workstation({
                                                         {
                                                             sourceSummaryStatusLabel
                                                         }
-                                                    </SotSourceReportStatusBadge>
-                                                </SotSourceReportMetricCard>
-                                                <SotSourceReportMetricCard
+                                                    </SourceReportStatusBadge>
+                                                </SourceReportMetricCard>
+                                                <SourceReportMetricCard
                                                     label="分段数"
                                                     metric="segment-count"
                                                     value="number"
                                                 >
                                                     {sourceReportSegmentCount}
-                                                </SotSourceReportMetricCard>
-                                            </SotSourceReportMetricCards>
+                                                </SourceReportMetricCard>
+                                            </SourceReportMetricCards>
 
-                                            <SotSourceReportSection
+                                            <SourceReportSection
                                                 section="transcript"
                                                 title="来源转写"
                                                 noticeAfter={
                                                     sourceTranscriptAvailable ? null : (
-                                                        <SotSourceReportMissingNotice state="transcript-missing">
+                                                        <SourceReportMissingNotice state="transcript-missing">
                                                             来源未提供逐字稿。可以稍后再来，或运行私有转写。
-                                                        </SotSourceReportMissingNotice>
+                                                        </SourceReportMissingNotice>
                                                     )
                                                 }
                                                 description={
@@ -7253,14 +7242,14 @@ export function Workstation({
                                                     </>
                                                 }
                                             >
-                                                <SotSourceReportSegments
+                                                <SourceReportSegments
                                                     hidden={
                                                         !sourceTranscriptAvailable
                                                     }
                                                 >
                                                     {sourceReportDisplaySegments.map(
                                                         (segment, index) => (
-                                                            <SotSourceReportSegment
+                                                            <SourceReportSegment
                                                                 key={[
                                                                     selectedRecordingId,
                                                                     "source",
@@ -7293,14 +7282,14 @@ export function Workstation({
                                                                 }
                                                             >
                                                                 {segment.text}
-                                                            </SotSourceReportSegment>
+                                                            </SourceReportSegment>
                                                         ),
                                                     )}
-                                                </SotSourceReportSegments>
-                                            </SotSourceReportSection>
+                                                </SourceReportSegments>
+                                            </SourceReportSection>
 
                                             {sourceSummaryLines.length > 0 ? (
-                                                <SotSourceReportSection
+                                                <SourceReportSection
                                                     section="summary"
                                                     title="来源原始报告"
                                                     description={
@@ -7313,28 +7302,28 @@ export function Workstation({
                                                         </>
                                                     }
                                                 >
-                                                    <SotSourceReportSummaryBody>
+                                                    <SourceReportSummaryBody>
                                                         {sourceSummaryLines.map(
                                                             (line, index) => (
-                                                                <SotSourceReportSummaryLine
+                                                                <SourceReportSummaryLine
                                                                     key={`${index}:${line}`}
                                                                 >
                                                                     {line}
-                                                                </SotSourceReportSummaryLine>
+                                                                </SourceReportSummaryLine>
                                                             ),
                                                         )}
-                                                    </SotSourceReportSummaryBody>
-                                                </SotSourceReportSection>
+                                                    </SourceReportSummaryBody>
+                                                </SourceReportSection>
                                             ) : null}
 
-                                            <SotSourceReportSection
+                                            <SourceReportSection
                                                 section="metadata"
                                                 title="来源信息"
                                                 noticeBefore={
                                                     sourceSummaryAvailable ? null : (
-                                                        <SotSourceReportMissingNotice state="summary-missing">
+                                                        <SourceReportMissingNotice state="summary-missing">
                                                             来源未提供官方摘要。
-                                                        </SotSourceReportMissingNotice>
+                                                        </SourceReportMissingNotice>
                                                     )
                                                 }
                                                 description={
@@ -7347,19 +7336,19 @@ export function Workstation({
                                                     </>
                                                 }
                                             >
-                                                <SotSourceReportMetaList
+                                                <SourceReportMetaList
                                                     surface="dashboard"
                                                     subState={
                                                         sourceReportSubState
                                                     }
                                                 >
-                                                    <SotSourceReportMetaRow label="来源">
+                                                    <SourceReportMetaRow label="来源">
                                                         {
                                                             sourceReportProviderName
                                                         }
-                                                    </SotSourceReportMetaRow>
-                                                    <SotSourceReportMetaRow label="状态">
-                                                        <SotSourceReportStatusBadge
+                                                    </SourceReportMetaRow>
+                                                    <SourceReportMetaRow label="状态">
+                                                        <SourceReportStatusBadge
                                                             tone={sourceReportSyncTone(
                                                                 sourceReportSyncStatusLabel,
                                                             )}
@@ -7367,34 +7356,34 @@ export function Workstation({
                                                             {
                                                                 sourceReportSyncStatusLabel
                                                             }
-                                                        </SotSourceReportStatusBadge>
-                                                    </SotSourceReportMetaRow>
-                                                    <SotSourceReportMetaRow
+                                                        </SourceReportStatusBadge>
+                                                    </SourceReportMetaRow>
+                                                    <SourceReportMetaRow
                                                         label="录制于"
                                                         valueFormat="mono"
                                                     >
                                                         {formatSourceReportDate(
                                                             sourceReportRecordedAt,
                                                         )}
-                                                    </SotSourceReportMetaRow>
-                                                    <SotSourceReportMetaRow
+                                                    </SourceReportMetaRow>
+                                                    <SourceReportMetaRow
                                                         label="最近更新"
                                                         valueFormat="mono"
                                                     >
                                                         {formatSourceReportDate(
                                                             sourceReportUpdatedAt,
                                                         )}
-                                                    </SotSourceReportMetaRow>
-                                                    <SotSourceReportMetaRow label="可读内容">
+                                                    </SourceReportMetaRow>
+                                                    <SourceReportMetaRow label="可读内容">
                                                         {sourceReportReadable}
-                                                    </SotSourceReportMetaRow>
-                                                    <SotSourceReportMetaRow label="来源标题">
+                                                    </SourceReportMetaRow>
+                                                    <SourceReportMetaRow label="来源标题">
                                                         {sourceReportTitle}
-                                                    </SotSourceReportMetaRow>
-                                                    <SotSourceReportMetaRow label="语种">
+                                                    </SourceReportMetaRow>
+                                                    <SourceReportMetaRow label="语种">
                                                         {sourceReportLanguage}
-                                                    </SotSourceReportMetaRow>
-                                                    <SotSourceReportMetaRow
+                                                    </SourceReportMetaRow>
+                                                    <SourceReportMetaRow
                                                         label="时长"
                                                         valueFormat="mono"
                                                     >
@@ -7403,10 +7392,10 @@ export function Workstation({
                                                                   selectedRecording.duration,
                                                               )
                                                             : "--"}
-                                                    </SotSourceReportMetaRow>
-                                                </SotSourceReportMetaList>
-                                                <SotSourceReportActionRow>
-                                                    <SotSourceReportActionButton
+                                                    </SourceReportMetaRow>
+                                                </SourceReportMetaList>
+                                                <SourceReportActionRow>
+                                                    <SourceReportActionButton
                                                         intent="ghost"
                                                         type="button"
                                                         disabled={
@@ -7419,7 +7408,7 @@ export function Workstation({
                                                                       "sourceReport.openSourceUnavailable",
                                                                   )
                                                         }
-                                                        control="open-source-record"
+                                                        testId="source-report-open-source"
                                                         state={
                                                             sourceOpenControlState
                                                         }
@@ -7432,8 +7421,8 @@ export function Workstation({
                                                                 selectedRecording?.sourceProvider,
                                                             language,
                                                         )}
-                                                    </SotSourceReportActionButton>
-                                                    <SotSourceReportActionButton
+                                                    </SourceReportActionButton>
+                                                    <SourceReportActionButton
                                                         intent="ghost"
                                                         type="button"
                                                         disabled={
@@ -7450,7 +7439,7 @@ export function Workstation({
                                                                       "sourceReport.repullUnavailable",
                                                                   )
                                                         }
-                                                        control="repull-source"
+                                                        testId="source-report-repull"
                                                         state={
                                                             sourceRepullControlState
                                                         }
@@ -7466,26 +7455,26 @@ export function Workstation({
                                                             : t(
                                                                   "sourceReport.repullSource",
                                                               )}
-                                                    </SotSourceReportActionButton>
-                                                </SotSourceReportActionRow>
-                                            </SotSourceReportSection>
-                                        </SotSourceReportState>
+                                                    </SourceReportActionButton>
+                                                </SourceReportActionRow>
+                                            </SourceReportSection>
+                                        </DashboardSourceReportState>
                                     ) : (
-                                        <SotSourceReportState state="empty">
-                                            <SotSourceReportEmptySurface>
-                                                <SotSourceReportEmptyMedia>
-                                                    <SotSourceReportEmptyIcon />
-                                                </SotSourceReportEmptyMedia>
-                                                <SotSourceReportEmptyTitle>
+                                        <DashboardSourceReportState state="empty">
+                                            <SourceReportEmptySurface>
+                                                <SourceReportEmptyIcon>
+                                                    <SourceReportEmptyGlyph />
+                                                </SourceReportEmptyIcon>
+                                                <SourceReportEmptyTitle>
                                                     这条录音没有关联来源
-                                                </SotSourceReportEmptyTitle>
-                                                <SotSourceReportEmptyDescription>
+                                                </SourceReportEmptyTitle>
+                                                <SourceReportEmptyDescription>
                                                     本地导入或离线录制的录音不会有来源详情。
-                                                </SotSourceReportEmptyDescription>
-                                            </SotSourceReportEmptySurface>
-                                        </SotSourceReportState>
+                                                </SourceReportEmptyDescription>
+                                            </SourceReportEmptySurface>
+                                        </DashboardSourceReportState>
                                     )}
-                                </SotSourceReportPane>
+                                </SourceReportPane>
                                 <div
                                     className={dashboardTabPaneHiddenClassName}
                                     data-sot-panel="dashboard-speakers-pane"

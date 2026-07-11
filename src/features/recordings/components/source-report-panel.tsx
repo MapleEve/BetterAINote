@@ -120,7 +120,6 @@ interface SourceReportPanelProps {
     onAvailabilityChange?: (
         availability: SourceReportAvailabilitySnapshot,
     ) => void;
-    variant?: "card" | "embedded";
 }
 
 export interface SourceReportAvailabilitySnapshot {
@@ -184,14 +183,14 @@ function getOpenSourceLabel(provider: string, language: UiLanguage) {
     return isZh(language) ? `在${label}中打开` : `Open in ${label}`;
 }
 
-function formatSotSourceReportDate(value: string | null | undefined) {
+function formatSourceReportDate(value: string | null | undefined) {
     if (!value) return "--";
     const date = new Date(value);
     if (Number.isNaN(date.getTime())) return value;
     return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, "0")}-${String(date.getDate()).padStart(2, "0")} ${String(date.getHours()).padStart(2, "0")}:${String(date.getMinutes()).padStart(2, "0")}`;
 }
 
-function formatSotSourceReportDuration(valueMs: number | null | undefined) {
+function formatSourceReportDuration(valueMs: number | null | undefined) {
     if (valueMs == null || !Number.isFinite(valueMs) || valueMs <= 0) {
         return "--";
     }
@@ -363,10 +362,6 @@ function sourceSummaryDisplayText(markdown: string) {
         .join("\n");
 }
 
-function sourceSummaryHasDisplayHeading(markdown: string) {
-    return /^#{1,6}\s+\S/m.test(markdown);
-}
-
 function sourceReportReadinessLabel(
     readiness: boolean | string | null | undefined,
     hasReadableContent: boolean,
@@ -438,7 +433,6 @@ export function SourceReportPanel({
     onAvailabilityChange,
     recordingId,
     sourceProvider,
-    variant = "card",
 }: SourceReportPanelProps) {
     const { language, t } = useLanguage();
     const [isLoading, setIsLoading] = useState(false);
@@ -563,9 +557,7 @@ export function SourceReportPanel({
     );
     const sourceReportCopyText = data?.summaryMarkdown ?? "";
     const sourceSummaryText = sourceSummaryDisplayText(sourceReportCopyText);
-    const sourceSummaryVisible =
-        sourceSummaryText &&
-        sourceSummaryHasDisplayHeading(sourceReportCopyText);
+    const sourceSummaryVisible = Boolean(sourceSummaryText);
     const transcriptAvailable = Boolean(sourceTranscriptCopyText.trim());
     const reportAvailable = Boolean(sourceReportCopyText.trim());
     const sourceReportState: SourceReportAvailabilitySnapshot["state"] = data
@@ -727,7 +719,7 @@ export function SourceReportPanel({
             0,
             ...sourceReportDisplaySegments.map((segment) => segment.endMs ?? 0),
         );
-    const sourceReportDurationLabel = formatSotSourceReportDuration(
+    const sourceReportDurationLabel = formatSourceReportDuration(
         sourceReportDurationMs,
     );
 
@@ -841,7 +833,7 @@ export function SourceReportPanel({
                         ? undefined
                         : t("sourceReport.openSourceUnavailable")
                 }
-                control="open-source-record"
+                testId="source-report-open-source"
                 state={openSourceControlState}
                 onClick={handleOpenSourceRecord}
             >
@@ -857,7 +849,7 @@ export function SourceReportPanel({
                         ? undefined
                         : t("sourceReport.repullUnavailable")
                 }
-                control="repull-source"
+                testId="source-report-repull"
                 state={repullControlState}
                 onClick={() => void handleRepullSource()}
             >
@@ -871,15 +863,15 @@ export function SourceReportPanel({
     const header = (
         <CardHeader
             className="flex flex-col gap-3 px-0 sm:flex-row sm:items-start sm:justify-between"
-            data-sot-source-report-header
+            data-testid="source-report-header"
         >
             <div
                 className="flex min-w-0 flex-col gap-1"
-                data-sot-source-report-heading
+                data-testid="source-report-heading"
             >
                 <CardTitle
                     className="inline-flex min-w-0 items-center gap-1.5"
-                    data-sot-source-report-title
+                    data-testid="source-report-title"
                 >
                     <CloudDownload
                         data-icon="inline-start"
@@ -893,7 +885,7 @@ export function SourceReportPanel({
             </div>
             <CardAction
                 className="static col-auto row-auto flex max-w-full flex-wrap items-center justify-end gap-2 self-auto justify-self-auto sm:ml-auto"
-                data-sot-source-report-header-actions
+                data-testid="source-report-header-actions"
             >
                 {data ? (
                     <>
@@ -978,7 +970,7 @@ export function SourceReportPanel({
                     intent="outline"
                     onClick={loadReport}
                     disabled={isLoading}
-                    control="refresh-source-report"
+                    testId="source-report-refresh"
                     state={sourceReportState}
                 >
                     {isLoading ? (
@@ -1008,7 +1000,7 @@ export function SourceReportPanel({
     const content = (
         <SourceReportStateStack>
             {error && (
-                <SourceReportState sotState="error" state="error" error={error}>
+                <SourceReportState state="error">
                     <SourceReportEmptySurface kind="alert" tone="danger">
                         <SourceReportEmptyIcon tone="danger">
                             <CircleAlert aria-hidden="true" />
@@ -1026,7 +1018,7 @@ export function SourceReportPanel({
                                 intent="primary"
                                 onClick={loadReport}
                                 disabled={isLoading}
-                                control="refresh-source-report"
+                                testId="source-report-refresh"
                                 state="error"
                             >
                                 重试
@@ -1034,6 +1026,7 @@ export function SourceReportPanel({
                             <SourceReportActionButton
                                 type="button"
                                 intent="ghost"
+                                testId="source-report-activity-log"
                                 onClick={() => {
                                     window.location.assign(
                                         "/dashboard#activity",
@@ -1048,7 +1041,7 @@ export function SourceReportPanel({
             )}
 
             {isLoading && !data && !error ? (
-                <SourceReportState sotState="loading" state="loading">
+                <SourceReportState state="loading">
                     <SourceReportMetricCards>
                         <SourceReportMetricCard
                             label="来源"
@@ -1104,7 +1097,6 @@ export function SourceReportPanel({
 
             {data && (
                 <SourceReportState
-                    sotState={sourceReportState}
                     state="loaded"
                     subState={sourceReportSubState}
                 >
@@ -1256,17 +1248,13 @@ export function SourceReportPanel({
                                 label="录制于"
                                 valueFormat="mono"
                             >
-                                {formatSotSourceReportDate(
-                                    sourceReportRecordedAt,
-                                )}
+                                {formatSourceReportDate(sourceReportRecordedAt)}
                             </SourceReportMetaRow>
                             <SourceReportMetaRow
                                 label="最近更新"
                                 valueFormat="mono"
                             >
-                                {formatSotSourceReportDate(
-                                    sourceReportUpdatedAt,
-                                )}
+                                {formatSourceReportDate(sourceReportUpdatedAt)}
                             </SourceReportMetaRow>
                             <SourceReportMetaRow label="可读内容">
                                 {sourceReportReadable}
@@ -1290,7 +1278,7 @@ export function SourceReportPanel({
             )}
 
             {!data && !error && !isLoading && (
-                <SourceReportState sotState="empty" state="empty">
+                <SourceReportState state="empty">
                     <SourceReportEmptySurface>
                         <SourceReportEmptyIcon>
                             <FileText aria-hidden="true" />
@@ -1307,25 +1295,8 @@ export function SourceReportPanel({
         </SourceReportStateStack>
     );
 
-    if (variant === "embedded") {
-        return (
-            <SourceReportPane
-                className={className}
-                state={sourceReportState}
-                variant="embedded"
-            >
-                {header}
-                {content}
-            </SourceReportPane>
-        );
-    }
-
     return (
-        <SourceReportPane
-            className={className}
-            state={sourceReportState}
-            variant="card"
-        >
+        <SourceReportPane className={className} state={sourceReportState}>
             {header}
             {content}
         </SourceReportPane>

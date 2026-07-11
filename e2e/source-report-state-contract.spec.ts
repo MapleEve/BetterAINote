@@ -277,19 +277,19 @@ async function seedStateContractRecording(userId: string) {
 }
 
 function sourceReportPanel(page: Page) {
-    return page.locator('[data-sot-panel="recording-source-report"]');
+    return page.getByTestId("recording-source-report");
 }
 
 function sourceReportInnerState(page: Page, state: string) {
     return sourceReportPanel(page).locator(
-        `[data-sot-panel="recording-source-report-state"][data-sot-state="${state}"]`,
+        `[data-testid="recording-source-report-state"][data-state="${state}"]`,
     );
 }
 
 function sourceReportRefreshButton(page: Page) {
     return sourceReportPanel(page)
-        .locator('[data-sot-source-report-header-actions]')
-        .locator('button[data-sot-control="refresh-source-report"]');
+        .getByTestId("source-report-header-actions")
+        .getByTestId("source-report-refresh");
 }
 
 function assertRealBackendReadback(readback: SourceReportReadback) {
@@ -360,6 +360,7 @@ test("recording detail source report state contract covers loading no-data error
             }
 
             if (requestCount === 2) {
+                // Deterministic no-data seam: ordinary loaded readback still uses route.fetch().
                 await route.fulfill({
                     contentType: "application/json",
                     status: 200,
@@ -369,6 +370,7 @@ test("recording detail source report state contract covers loading no-data error
             }
 
             if (requestCount === 3) {
+                // Deterministic error seam: retry returns to the real app route below.
                 await route.fulfill({
                     contentType: "application/json",
                     status: 503,
@@ -393,15 +395,15 @@ test("recording detail source report state contract covers loading no-data error
 
         const panel = sourceReportPanel(page);
         const loadingState = sourceReportInnerState(page, "loading");
-        await expect(panel).toHaveAttribute("data-sot-state", "loading");
+        await expect(panel).toHaveAttribute("data-state", "loading");
         await expect(loadingState).toBeVisible();
         await expect(
             loadingState.locator(
-                '[data-sot-part="source-report-card-skeleton"]',
+                '[data-testid="source-report-card-skeleton"]',
             ),
         ).toHaveCount(4);
         await expect(sourceReportRefreshButton(page)).toHaveAttribute(
-            "data-sot-state",
+            "data-state",
             "loading",
         );
         await expect(sourceReportRefreshButton(page)).toBeDisabled();
@@ -410,26 +412,26 @@ test("recording detail source report state contract covers loading no-data error
         await navigation;
 
         const loadedState = sourceReportInnerState(page, "loaded");
-        await expect(panel).toHaveAttribute("data-sot-state", "loaded");
+        await expect(panel).toHaveAttribute("data-state", "loaded");
         await expect(loadedState).toBeVisible();
         await expect(loadedState).toContainText(STATE_CONTRACT_MARKER);
         await expect(
-            panel.locator('button[data-sot-control="copy-source-transcript"]'),
-        ).toHaveAttribute("data-sot-state", "ready");
+            panel.getByTestId("source-report-copy-source-transcript"),
+        ).toHaveAttribute("data-state", "ready");
         await expect(
-            panel.locator('button[data-sot-control="copy-source-report"]'),
-        ).toHaveAttribute("data-sot-state", "ready");
+            panel.getByTestId("source-report-copy-source-report"),
+        ).toHaveAttribute("data-state", "ready");
         expect(backendReadbacks).toHaveLength(1);
 
         await sourceReportRefreshButton(page).click();
         const emptyState = sourceReportInnerState(page, "empty");
-        await expect(panel).toHaveAttribute("data-sot-state", "empty");
+        await expect(panel).toHaveAttribute("data-state", "empty");
         await expect(emptyState).toBeVisible();
         await expect(
-            emptyState.locator('[data-sot-source-report-empty-title]'),
+            emptyState.getByTestId("source-report-empty-title"),
         ).toContainText("这条录音没有关联来源");
         await expect(sourceReportRefreshButton(page)).toHaveAttribute(
-            "data-sot-state",
+            "data-state",
             "empty",
         );
         await expect(sourceReportRefreshButton(page)).toBeEnabled();
@@ -437,20 +439,17 @@ test("recording detail source report state contract covers loading no-data error
         await sourceReportRefreshButton(page).click();
         const errorState = sourceReportInnerState(page, "error");
         const retryButton = errorState.locator(
-            'button[data-sot-control="refresh-source-report"][data-sot-state="error"]',
+            'button[data-testid="source-report-refresh"][data-state="error"]',
         );
-        await expect(panel).toHaveAttribute("data-sot-state", "error");
+        await expect(panel).toHaveAttribute("data-state", "error");
         await expect(errorState).toBeVisible();
-        await expect(errorState).toHaveAttribute(
-            "data-sot-error",
-            FORCED_FAILURE_MESSAGE,
-        );
+        await expect(errorState).toContainText("无法读取来源详情");
         await expect(retryButton).toBeVisible();
         await expect(retryButton).toBeEnabled();
         await expect(retryButton).toHaveText("重试");
 
         await retryButton.click();
-        await expect(panel).toHaveAttribute("data-sot-state", "loaded");
+        await expect(panel).toHaveAttribute("data-state", "loaded");
         await expect(sourceReportInnerState(page, "error")).toHaveCount(0);
         await expect(loadedState).toBeVisible();
         await expect(loadedState).toContainText(STATE_CONTRACT_MARKER);

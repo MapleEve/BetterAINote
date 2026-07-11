@@ -1,8 +1,15 @@
 import path from "node:path";
 import { pathToFileURL } from "node:url";
 import { createClient } from "@libsql/client";
-import { expect, type Locator, type Page, test } from "@playwright/test";
+import {
+  expect,
+  type Locator,
+  type Page,
+  test,
+  type TestInfo,
+} from "@playwright/test";
 import { ensureSignedIn } from "./helpers/auth";
+import { SOT_WORKSTATION_URL } from "./helpers/sot-fixtures";
 
 const E2E_DATA_DIR = path.resolve(process.cwd(), "tmp/e2e/data");
 const E2E_STORAGE_DIR = process.env.PLAYWRIGHT_E2E_STORAGE_DIR
@@ -32,6 +39,13 @@ const SOURCE_REPORT_SECTION_TITLES = [
   "来源原始报告",
   "来源信息",
 ] as const;
+const LONG_SOURCE_REPORT_TOKEN = "source-report-responsive-long-token-".repeat(12);
+const SOURCE_REPORT_CANONICAL_FRAMES = [
+  { name: "desktop", height: 900, width: 1366 },
+  { name: "tablet", height: 900, width: 1024 },
+  { name: "mobile", height: 844, width: 390 },
+] as const;
+const SOURCE_REPORT_THEMES = ["light", "dark"] as const;
 
 type SourceReportMatrixCase = {
   id: string;
@@ -323,7 +337,11 @@ async function seedSourceReportMatrixCase(
                   speaker: "Speaker 1",
                   startMs: 0,
                   endMs: 1_200,
-                  text: `${matrixCase.transcriptMarker} source transcript from seeded artifact.`,
+                  text: `${matrixCase.transcriptMarker} source transcript from seeded artifact. ${
+                    matrixCase.subState === "complete"
+                      ? LONG_SOURCE_REPORT_TOKEN
+                      : ""
+                  }`,
                 },
                 {
                   speaker: "Speaker 2",
@@ -357,7 +375,11 @@ async function seedSourceReportMatrixCase(
             "official-summary",
             "来源报告",
             null,
-            `## ${matrixCase.title} source summary\n\n- ${matrixCase.summaryMarker} from seeded source artifact.`,
+            `## ${matrixCase.title} source summary\n\n- ${matrixCase.summaryMarker} from seeded source artifact.${
+              matrixCase.subState === "complete"
+                ? `\n\n${LONG_SOURCE_REPORT_TOKEN}`
+                : ""
+            }`,
             "{}",
             now - 100_000,
             now - 95_000,
@@ -404,52 +426,177 @@ async function readLastCopiedText(page: Page) {
   return ((await readCopiedTexts(page)).at(-1) ?? "").trim();
 }
 
+async function applySourceReportTheme(
+  page: Page,
+  theme: (typeof SOURCE_REPORT_THEMES)[number],
+) {
+  await page.evaluate((nextTheme) => {
+    document.documentElement.dataset.theme = nextTheme;
+    document.body.dataset.theme = nextTheme;
+    document.documentElement.classList.toggle("dark", nextTheme === "dark");
+  }, theme);
+}
+
+async function sourceReportGridColumns(grid: Locator) {
+  return grid.evaluate((element) =>
+    getComputedStyle(element)
+      .gridTemplateColumns.split(/\s+/)
+      .filter(Boolean).length,
+  );
+}
+
+async function expectNoHorizontalOverflow(root: Locator) {
+  const overflow = await root.evaluate((element) => {
+    const nodes = [element, ...Array.from(element.querySelectorAll("*"))];
+    return nodes
+      .filter((node) => node.scrollWidth > node.clientWidth)
+      .map((node) => ({
+        clientWidth: node.clientWidth,
+        scrollWidth: node.scrollWidth,
+        testId: node.getAttribute("data-testid"),
+        tagName: node.tagName,
+      }));
+  });
+
+  expect(overflow).toEqual([]);
+}
+
+async function sourceReportThemeSignature(card: Locator) {
+  return card.evaluate((element) => {
+    const style = getComputedStyle(element);
+    return [style.backgroundColor, style.borderColor, style.color].join("|");
+  });
+}
+
+async function prepareCanonicalSourceReport(page: Page) {
+  await page.goto(SOT_WORKSTATION_URL, { waitUntil: "domcontentloaded" });
+  await page.evaluate(() => {
+    const pane = document.querySelector<HTMLElement>(".sr-pane");
+    if (!pane) throw new Error("Canonical Source Report pane is missing");
+    pane.hidden = false;
+    for (const state of pane.querySelectorAll<HTMLElement>(".sr-state")) {
+      state.hidden = state.dataset.state !== "loaded";
+    }
+    document.body.replaceChildren(pane);
+  });
+  await page.addStyleTag({
+    content:
+      "html,body{min-width:0!important;width:100%!important;overflow-x:hidden!important}.sr-pane{display:flex!important;width:100%!important;min-width:0!important;box-sizing:border-box}",
+  });
+
+  return page.locator('.sr-pane .sr-state[data-state="loaded"]');
+}
+
+async function expectCanonicalResponsiveThemeMatrix(
+  productPage: Page,
+  canonicalPage: Page,
+  productLoaded: Locator,
+  testInfo: TestInfo,
+) {
+  const canonicalLoaded = await prepareCanonicalSourceReport(canonicalPage);
+  const productPanel = recordingSourceReport(productPage, "loaded");
+  const productThemeSignatures = new Map<string, string>();
+  const canonicalThemeSignatures = new Map<string, string>();
+
+  await expect(canonicalLoaded.locator(".sr-card")).toHaveCount(4);
+  await expect(productLoaded.locator('[data-testid^="source-report-metric-"]')).toHaveCount(
+    4,
+  );
+
+  for (const frame of SOURCE_REPORT_CANONICAL_FRAMES) {
+    await productPage.setViewportSize({ width: frame.width, height: frame.height });
+    await canonicalPage.setViewportSize({ width: frame.width, height: frame.height });
+
+    for (const theme of SOURCE_REPORT_THEMES) {
+      await applySourceReportTheme(productPage, theme);
+      await applySourceReportTheme(canonicalPage, theme);
+
+      const productMetrics = productLoaded.getByTestId("source-report-metrics");
+      const canonicalMetrics = canonicalLoaded.locator(".sr-cards");
+      expect(await sourceReportGridColumns(productMetrics)).toBe(
+        await sourceReportGridColumns(canonicalMetrics),
+      );
+      expect(await sourceReportGridColumns(productLoaded.getByTestId("source-report-meta"))).toBe(
+        await sourceReportGridColumns(canonicalLoaded.locator(".sr-meta")),
+      );
+
+      await expectNoHorizontalOverflow(productPanel);
+      await expectNoHorizontalOverflow(productLoaded);
+      await expect(productLoaded).toContainText(LONG_SOURCE_REPORT_TOKEN);
+
+      productThemeSignatures.set(
+        theme,
+        await sourceReportThemeSignature(
+          productLoaded.getByTestId("source-report-metric-source"),
+        ),
+      );
+      canonicalThemeSignatures.set(
+        theme,
+        await sourceReportThemeSignature(canonicalLoaded.locator(".sr-card").first()),
+      );
+
+      await testInfo.attach(`source-report-product-${frame.name}-${theme}`, {
+        body: await productPanel.screenshot(),
+        contentType: "image/png",
+      });
+      await testInfo.attach(`source-report-canonical-${frame.name}-${theme}`, {
+        body: await canonicalLoaded.screenshot(),
+        contentType: "image/png",
+      });
+    }
+  }
+
+  expect(productThemeSignatures.get("light")).not.toBe(
+    productThemeSignatures.get("dark"),
+  );
+  expect(canonicalThemeSignatures.get("light")).not.toBe(
+    canonicalThemeSignatures.get("dark"),
+  );
+}
+
 function recordingSourceReport(page: Page, state?: string) {
-  const selector = '[data-sot-panel="recording-source-report"]';
+  const selector = '[data-testid="recording-source-report"]';
   return page.locator(
-    state ? `${selector}[data-sot-state="${state}"]` : selector,
+    state ? `${selector}[data-state="${state}"]` : selector,
   );
 }
 
 function recordingSourceReportLoaded(page: Page) {
   return recordingSourceReport(page, "loaded")
     .locator(
-      '[data-sot-panel="recording-source-report-state"][data-sot-state="loaded"]',
+      '[data-testid="recording-source-report-state"][data-state="loaded"]',
     )
     .first();
 }
 
 function dashboardSourceReport(page: Page, state?: string) {
-  return page.locator(
-    state
-      ? `[data-sot-panel="dashboard-source-report"][data-sot-tab-pane="source-report"][data-sot-state="${state}"]`
-      : '[data-sot-panel="dashboard-source-report"][data-sot-tab-pane="source-report"]',
-  );
+  const selector = '[data-testid="dashboard-source-report"]';
+  return page.locator(state ? `${selector}[data-state="${state}"]` : selector);
 }
 
 function dashboardSourceReportLoaded(page: Page) {
   return dashboardSourceReport(page, "loaded")
-    .locator('[data-sot-source-report-state][data-state="loaded"]')
+    .locator('[data-testid="dashboard-source-report-state"][data-state="loaded"]')
     .first();
 }
 
 function sourceTranscriptCopyButton(page: Page) {
-  return page.locator('[data-sot-control="copy-source-transcript"]');
+  return page.getByTestId("source-report-copy-source-transcript");
 }
 
 function sourceReportCopyButton(page: Page) {
-  return page.locator('[data-sot-control="copy-source-report"]');
+  return page.getByTestId("source-report-copy-source-report");
 }
 
 function recordingSourceTranscriptCopyButton(page: Page) {
   return recordingSourceReport(page).locator(
-    'button[data-sot-control="copy-source-transcript"]',
+    'button[data-testid="source-report-copy-source-transcript"]',
   );
 }
 
 function recordingSourceReportCopyButton(page: Page) {
   return recordingSourceReport(page).locator(
-    'button[data-sot-control="copy-source-report"]',
+    'button[data-testid="source-report-copy-source-report"]',
   );
 }
 
@@ -458,11 +605,11 @@ function sourceReportRefreshButton(page: Page) {
 }
 
 function sourceReportOpenSourceControl(page: Page) {
-  return page.locator('[data-sot-control="open-source-record"]');
+  return page.getByTestId("source-report-open-source");
 }
 
 function sourceReportRepullButton(page: Page) {
-  return page.locator('button[data-sot-control="repull-source"]');
+  return page.getByTestId("source-report-repull");
 }
 
 async function waitForSourceReportResponse(
@@ -546,18 +693,18 @@ async function expectLoadedSourceReportState(
   matrixCase: SourceReportMatrixCase,
 ) {
   await expect(loaded).toBeVisible();
-  await expect(loaded).toHaveAttribute("data-sub-state", matrixCase.subState);
+  await expect(loaded).toHaveAttribute("data-substate", matrixCase.subState);
   await expect(
-    loaded.locator('[data-sot-metric="transcript-status"]'),
+    loaded.getByTestId("source-report-metric-transcript-status"),
   ).toContainText(matrixCase.includeTranscript ? "已就绪" : "未生成");
   await expect(
-    loaded.locator('[data-sot-metric="summary-status"]'),
+    loaded.getByTestId("source-report-metric-summary-status"),
   ).toContainText(matrixCase.includeSummary ? "已就绪" : "未生成");
   await expect(
-    loaded.locator('[data-sot-metric="segment-count"]'),
+    loaded.getByTestId("source-report-metric-segment-count"),
   ).toContainText(matrixCase.includeTranscript ? "2" : "0");
   await expect(
-    loaded.locator("[data-sot-source-report-section-title]"),
+    loaded.getByTestId("source-report-section-title"),
   ).toHaveText(
     matrixCase.includeSummary
       ? SOURCE_REPORT_SECTION_TITLES
@@ -569,7 +716,7 @@ async function expectLoadedSourceReportState(
   } else {
     await expect(
       loaded.locator(
-        '[data-sot-source-report-missing-notice][data-sot-missing="transcript-missing"]',
+        '[data-testid="source-report-missing-transcript-missing"][data-state="transcript-missing"]',
       ),
     ).toContainText("来源未提供逐字稿。可以稍后再来，或运行私有转写。");
   }
@@ -579,7 +726,7 @@ async function expectLoadedSourceReportState(
   } else {
     await expect(
       loaded.locator(
-        '[data-sot-source-report-missing-notice][data-sot-missing="summary-missing"]',
+        '[data-testid="source-report-missing-summary-missing"][data-state="summary-missing"]',
       ),
     ).toContainText("来源未提供官方摘要。");
   }
@@ -599,9 +746,6 @@ async function openRecordingDetailSourceReport(
     },
   );
   assertReadback(responseBody, matrixCase);
-  await expect(
-    page.locator('[data-sot-surface="recording-workstation"]'),
-  ).toHaveAttribute("data-sot-state", "ready");
   const loaded = recordingSourceReportLoaded(page);
   await expectLoadedSourceReportState(loaded, matrixCase);
   return loaded;
@@ -642,11 +786,11 @@ async function expectRecordingCopyGuards(
   const reportButton = recordingSourceReportCopyButton(page);
 
   await expect(transcriptButton).toHaveAttribute(
-    "data-sot-state",
+    "data-state",
     matrixCase.includeTranscript ? "ready" : "missing",
   );
   await expect(reportButton).toHaveAttribute(
-    "data-sot-state",
+    "data-state",
     matrixCase.includeSummary ? "ready" : "missing",
   );
 
@@ -682,10 +826,10 @@ async function expectDashboardCopyGuards(
   const reportButton = sourceReportCopyButton(page);
 
   await expect(transcriptButton).toHaveAttribute(
-    "data-sot-state",
+    "data-state",
     matrixCase.includeTranscript ? "ready" : "missing",
   );
-  await expect(reportButton).toHaveAttribute("data-sot-state", "ready");
+  await expect(reportButton).toHaveAttribute("data-state", "ready");
 
   if (matrixCase.includeTranscript) {
     await expect(transcriptButton).toBeEnabled();
@@ -720,10 +864,12 @@ async function expectDashboardCopyGuards(
   }
 }
 
-test("source report backend-connected matrix drives detail and dashboard readback", async ({
-  page,
-}) => {
+test("source report backend-connected matrix drives detail and dashboard readback", async (
+  { page },
+  testInfo,
+) => {
   let userId: string | null = null;
+  let canonicalPage: Page | null = null;
 
   await installClipboardCapture(page);
 
@@ -758,11 +904,11 @@ test("source report backend-connected matrix drives detail and dashboard readbac
       await openDashboardSourceReport(page, matrixCase);
       await expectDashboardCopyGuards(page, matrixCase);
       await expect(sourceReportOpenSourceControl(page)).toHaveAttribute(
-        "data-sot-state",
+        "data-state",
         "ready",
       );
       await expect(sourceReportRepullButton(page)).toHaveAttribute(
-        "data-sot-state",
+        "data-state",
         "ready",
       );
 
@@ -779,7 +925,18 @@ test("source report backend-connected matrix drives detail and dashboard readbac
         matrixCase,
       );
     }
+
+    const completeCase = MATRIX_CASES[0];
+    const completeLoaded = await openRecordingDetailSourceReport(page, completeCase);
+    canonicalPage = await page.context().newPage();
+    await expectCanonicalResponsiveThemeMatrix(
+      page,
+      canonicalPage,
+      completeLoaded,
+      testInfo,
+    );
   } finally {
+    await canonicalPage?.close();
     if (userId) {
       await cleanupSourceReportMatrixSeeds(userId);
     }

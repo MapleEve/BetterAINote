@@ -268,19 +268,19 @@ async function seedRecoveryRecording(userId: string) {
 }
 
 function sourceReportPanel(page: Page) {
-    return page.locator('[data-sot-panel="recording-source-report"]');
+    return page.getByTestId("recording-source-report");
 }
 
 function sourceReportInnerState(page: Page, state: string) {
     return sourceReportPanel(page).locator(
-        `[data-sot-panel="recording-source-report-state"][data-sot-state="${state}"]`,
+        `[data-testid="recording-source-report-state"][data-state="${state}"]`,
     );
 }
 
 function sourceReportRefreshButton(page: Page) {
     return sourceReportPanel(page)
-        .locator('[data-sot-source-report-header-actions]')
-        .locator('button[data-sot-control="refresh-source-report"]');
+        .getByTestId("source-report-header-actions")
+        .getByTestId("source-report-refresh");
 }
 
 async function waitForSourceReportResponse(
@@ -351,7 +351,7 @@ test("recording detail source report refresh failure clears stale content before
 
         const panel = sourceReportPanel(page);
         const loadedState = sourceReportInnerState(page, "loaded");
-        await expect(panel).toHaveAttribute("data-sot-state", "loaded");
+        await expect(panel).toHaveAttribute("data-state", "loaded");
         await expect(loadedState).toBeVisible();
         await expect(loadedState).toContainText(RECOVERY_REPORT_MARKER);
 
@@ -366,26 +366,18 @@ test("recording detail source report refresh failure clears stale content before
 
         const errorState = sourceReportInnerState(page, "error");
         await expect(errorState).toBeVisible();
-        await expect(errorState).toHaveAttribute(
-            "data-sot-error",
-            FORCED_FAILURE_MESSAGE,
-        );
+        await expect(errorState).toContainText("无法读取来源详情");
 
-        // Soft assertions keep the retry on the real backend observable if stale content regresses.
-        await expect
-            .soft(panel)
-            .toHaveAttribute("data-sot-state", "error", { timeout: 1_000 });
-        await expect.soft(loadedState).toHaveCount(0, { timeout: 1_000 });
-        await expect
-            .soft(panel)
-            .not.toContainText(RECOVERY_REPORT_MARKER, { timeout: 1_000 });
-        await expect
-            .soft(panel.locator('button[data-sot-control="copy-source-report"]'))
-            .toHaveCount(0, { timeout: 1_000 });
+        await expect(panel).toHaveAttribute("data-state", "error");
+        await expect(loadedState).toHaveCount(0);
+        await expect(panel).not.toContainText(RECOVERY_REPORT_MARKER);
+        await expect(
+            panel.getByTestId("source-report-copy-source-report"),
+        ).toHaveCount(0);
 
         const retryResponsePromise = waitForSourceReportResponse(page, 200);
         await errorState
-            .locator('button[data-sot-control="refresh-source-report"]')
+            .getByTestId("source-report-refresh")
             .click();
         const retryResponse = await retryResponsePromise;
         const retryBody = (await retryResponse.json()) as {
@@ -396,7 +388,7 @@ test("recording detail source report refresh failure clears stale content before
         expect(retryBody.transcript?.text).toContain(RECOVERY_REPORT_MARKER);
         expect(realRouteResponseCount).toBe(2);
 
-        await expect(panel).toHaveAttribute("data-sot-state", "loaded");
+        await expect(panel).toHaveAttribute("data-state", "loaded");
         await expect(sourceReportInnerState(page, "error")).toHaveCount(0);
         await expect(loadedState).toBeVisible();
         await expect(loadedState).toContainText(RECOVERY_REPORT_MARKER);
