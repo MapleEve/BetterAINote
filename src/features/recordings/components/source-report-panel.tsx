@@ -490,6 +490,7 @@ export function SourceReportPanel({
             }
 
             if (!response.ok) {
+                setData(null);
                 setError(payload.error ?? t("sourceReport.failedFetch"));
                 return;
             }
@@ -511,6 +512,7 @@ export function SourceReportPanel({
             }
 
             const nextError = t("sourceReport.failedFetch");
+            setData(null);
             setError(nextError);
             toast.error(nextError);
         } finally {
