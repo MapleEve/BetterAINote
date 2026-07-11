@@ -3594,11 +3594,49 @@ describe("dashboard SOT foundation", () => {
         expect(globals).not.toContain(
             '[data-sot-part="dashboard-activity-status-sub"]',
         );
-        expect(workstation).toContain('data-sot-control="dashboard-settings"');
-        expect(workstation).toContain('data-sot-part="dashboard-user-avatar"');
-        expect(workstation).toMatch(
-            /<Button\s+asChild\s+variant="default"\s+size="icon"\s+className=\{dashboardButtonClassNames\.settingsAvatar\}[\s\S]*>\s*<button[\s\S]*data-sot-control="dashboard-settings"[\s\S]*data-sot-part="dashboard-user-avatar"/,
+        const dashboardSettingsDialog = extractSelfClosingElement(
+            workstation,
+            'data-sot-control="dashboard-settings"',
+            "SettingsDialog",
         );
+        const dashboardSettingsTrigger = extractElementSlice(
+            dashboardSettingsDialog,
+            'data-sot-control="dashboard-settings"',
+            "Button",
+        );
+        const openSettings = extractBoundedSlice(
+            workstation,
+            "function openSettings(section: CanonicalSettingsSection) {",
+            "\n    function applyListMode(",
+        );
+
+        expect(dashboardSettingsDialog).toMatch(
+            /<SettingsDialog\s+open=\{settingsOpen\}\s+user=\{user\}\s+onOpenChange=\{setSettingsOpen\}\s+trigger=\{\s*<Button/,
+        );
+        expect(dashboardSettingsTrigger).toMatch(
+            /<Button\s+ref=\{settingsTriggerRef\}\s+type="button"\s+variant="default"\s+size="icon"\s+className=\{\s*dashboardButtonClassNames\.settingsAvatar\s*\}\s+aria-label="打开设置"\s+data-sot-control="dashboard-settings"\s+data-sot-part="dashboard-user-avatar"\s+data-sot-state=\{\s*settingsOpen\s*\?\s*"open"\s*:\s*"idle"\s*\}\s+onClick=\{\(\)\s*=>\s*openSettings\("data-sources"\)\}/,
+        );
+        expect(button).toContain('const Comp = asChild ? Slot : "button";');
+        const canonicalSettingsRouteUpdate = [
+            'window.history.replaceState(null, "", `/dashboard#',
+            "$",
+            "{section}`);",
+        ].join("");
+        expect(openSettings).toContain(canonicalSettingsRouteUpdate);
+        expect(openSettings.indexOf(canonicalSettingsRouteUpdate)).toBeLessThan(
+            openSettings.indexOf("setSettingsOpen(true);"),
+        );
+        for (const manuallyManagedDialogProp of [
+            "asChild",
+            "aria-controls",
+            "aria-expanded",
+            "aria-haspopup",
+            "<button",
+        ]) {
+            expect(dashboardSettingsTrigger).not.toContain(
+                manuallyManagedDialogProp,
+            );
+        }
         expect(globals).not.toContain(
             '[data-sot-control="dashboard-settings"][data-sot-part="dashboard-user-avatar"]',
         );

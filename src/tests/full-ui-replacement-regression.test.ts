@@ -4133,7 +4133,7 @@ describe("full UI replacement regression coverage", () => {
         );
     });
 
-    it("keeps global SOT tokens, foundation primitives, and OKLCH fallbacks", () => {
+    it("keeps semantic global primitives and a Radix settings shell without global SOT visual overrides", () => {
         const globals = readSource("app/globals.css");
         const panel = readSource("components/panel.tsx");
         const breadcrumb = readSource("components/ui/breadcrumb.tsx");
@@ -4267,6 +4267,7 @@ describe("full UI replacement regression coverage", () => {
             new Set(["--skeleton-shimmer-edge", "--skeleton-shimmer-peak"]),
         );
         expectTokenOklchFallbackOrder(globals, '.dark,\n[data-theme="dark"]');
+        expect(globals).not.toMatch(/--sot-[A-Za-z0-9-]+\s*:/);
         expect(
             extractCssBlock(globals, "@supports not (color: oklch("),
         ).not.toMatch(/\b(oklch|color-mix)\(/);
@@ -4298,6 +4299,11 @@ describe("full UI replacement regression coverage", () => {
         );
         const dataSources = readSource(
             "features/settings/components/sections/data-sources-section.tsx",
+        );
+        const settingsOpenFocus = extractBoundedSlice(
+            settingsDialog,
+            "const handleOpenAutoFocus =",
+            "const handleNavKeyDown =",
         );
         expect(productCss).not.toMatch(LEGACY_MONO_PRODUCT_CSS_SELECTOR_RE);
         expect(productCss).not.toMatch(
@@ -4334,6 +4340,41 @@ describe("full UI replacement regression coverage", () => {
         expect(settingsDialog).not.toContain("overlayClassName");
         expect(settingsDialog).not.toContain("bg-[var(--modal-scrim-bg)]");
         expect(settingsDialog).not.toContain("backdrop-blur");
+        expect(settingsDialog).toContain(
+            "<DialogTrigger asChild>{props.trigger}</DialogTrigger>",
+        );
+        expect(settingsDialog).toContain(
+            "onOpenAutoFocus={handleOpenAutoFocus}",
+        );
+        for (const primitive of [
+            "Root",
+            "Trigger",
+            "Content",
+            "Title",
+            "Description",
+            "Close",
+        ]) {
+            expect(dialog).toContain(`DialogPrimitive.${primitive}`);
+        }
+        expect(settingsOpenFocus).toMatch(
+            /event\.preventDefault\(\);\s*const initialSection = resolveInitialSettingsSection\(\);\s*shouldFocusNavOnOpenRef\.current = true;\s*applyActiveSettingsSection\(initialSection\);/,
+        );
+        expect(settingsOpenFocus).toContain(
+            "navButtonRefs.current[\n                getSettingsSectionIndex(initialSection)\n            ]?.focus({ preventScroll: true });",
+        );
+        for (const handManagedLifecycle of [
+            "returnFocusRef",
+            "startBrowserTimeout",
+            "stopBrowserTimeout",
+            "onCloseAutoFocus",
+            'addBrowserWindowEventListener("keydown"',
+            "documentElement.style.overflow",
+            "body.style.overflow",
+            "setTimeout(",
+            "key={activeSection}",
+        ]) {
+            expect(settingsDialog).not.toContain(handManagedLifecycle);
+        }
         const settingsShellSurfaceClass = findStringConstInitializerContaining(
             settingsDialog,
             [
@@ -4344,7 +4385,7 @@ describe("full UI replacement regression coverage", () => {
                 "max-h-[calc(100svh_-_1rem)]",
                 "w-[920px]",
                 "max-w-[calc(100vw_-_40px)]",
-                "sm:max-w-[920px]",
+                "sm:max-w-[min(920px,calc(100vw_-_40px))]",
                 "flex-col",
                 "gap-0",
                 "overflow-hidden",
@@ -4372,13 +4413,14 @@ describe("full UI replacement regression coverage", () => {
             "grid",
             "min-h-0",
             "flex-1",
-            "grid-cols-[200px_1fr]",
+            "grid-cols-[200px_minmax(0,1fr)]",
         ]);
         findStringConstInitializerContaining(settingsDialog, [
             "const SETTINGS_RAIL_CLASS =",
             "flex",
             "min-h-0",
             "flex-col",
+            "overflow-x-hidden",
             "overflow-y-auto",
             "[overscroll-behavior:contain]",
         ]);
@@ -8192,11 +8234,35 @@ describe("full UI replacement regression coverage", () => {
         for (const selector of MIGRATED_DASHBOARD_ACTIVITY_DATA_SOT_CSS_SELECTORS) {
             expect(productCss).not.toContain(selector);
         }
-        expect(workstation).toContain('data-sot-control="dashboard-settings"');
-        expect(workstation).toContain('data-sot-part="dashboard-user-avatar"');
-        expect(workstation).toMatch(
-            /<Button\s+asChild\s+variant="default"\s+size="icon"\s+className=\{dashboardButtonClassNames\.settingsAvatar\}[\s\S]*>\s*<button[\s\S]*data-sot-control="dashboard-settings"[\s\S]*data-sot-part="dashboard-user-avatar"/,
+        const dashboardSettingsDialog = extractSelfClosingElement(
+            workstation,
+            'data-sot-control="dashboard-settings"',
+            "SettingsDialog",
         );
+        const dashboardSettingsTrigger = extractElementSlice(
+            dashboardSettingsDialog,
+            'data-sot-control="dashboard-settings"',
+            "Button",
+        );
+
+        expect(dashboardSettingsDialog).toMatch(
+            /<SettingsDialog\s+open=\{settingsOpen\}\s+user=\{user\}\s+onOpenChange=\{setSettingsOpen\}\s+trigger=\{\s*<Button/,
+        );
+        expect(dashboardSettingsTrigger).toMatch(
+            /<Button\s+ref=\{settingsTriggerRef\}\s+type="button"\s+variant="default"\s+size="icon"\s+className=\{\s*dashboardButtonClassNames\.settingsAvatar\s*\}\s+aria-label="打开设置"\s+data-sot-control="dashboard-settings"\s+data-sot-part="dashboard-user-avatar"\s+data-sot-state=\{\s*settingsOpen\s*\?\s*"open"\s*:\s*"idle"\s*\}\s+onClick=\{\(\)\s*=>\s*openSettings\("data-sources"\)\}/,
+        );
+        expect(button).toContain('const Comp = asChild ? Slot : "button";');
+        for (const manuallyManagedDialogProp of [
+            "asChild",
+            "aria-controls",
+            "aria-expanded",
+            "aria-haspopup",
+            "<button",
+        ]) {
+            expect(dashboardSettingsTrigger).not.toContain(
+                manuallyManagedDialogProp,
+            );
+        }
         expect(globals).not.toContain(
             '[data-sot-control="dashboard-settings"][data-sot-part="dashboard-user-avatar"]',
         );
