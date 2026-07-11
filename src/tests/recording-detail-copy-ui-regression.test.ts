@@ -4382,8 +4382,8 @@ describe("recording detail copy and title action UI regressions", () => {
         expect(tagManager).toContain(
             'variant={appearance === "pill" ? "secondary" : "default"}',
         );
-        expect(tagManager).toContain(
-            "recordingTagTextColorClassName[tag.color]",
+        expect(tagManager).toMatch(
+            /recordingTagTextColorClassName\s*\[\s*tag\.color\s*\]/,
         );
         expect(tagManager).toContain('data-icon="inline-start"');
         expect(tagManager).toContain('data-icon="inline-end"');
@@ -4446,10 +4446,25 @@ describe("recording detail copy and title action UI regressions", () => {
         );
         expect(tagVisuals).not.toContain("<svg");
         expect(tagVisuals).not.toContain(variantAttr("recordingTagChip"));
-        expect(tagManager).not.toMatch(/\bshadow-\[[^\]]+\]/);
+        expect(tagManager).toContain("shadow-[var(--card-popover-shadow)]");
         expect(tagManager).not.toMatch(
-            /\b(?:bg|text|border|ring|fill|stroke)-\[var\([^\]]+\)\]/,
+            /\bshadow-\[(?!var\(--card-popover-shadow\)\])[^]]+\]/,
         );
+        expect(
+            tagManager.match(
+                /\b(?:bg|text|border|ring|fill|stroke)-\[var\([^\]]+\)\]/g,
+            ),
+        ).toEqual([
+            "border-[var(--card-popover-border)]",
+            "bg-[var(--card-popover-bg)]",
+            "border-[var(--card-popover-divider)]",
+            "bg-[var(--card-popover-footer-bg)]",
+            "border-[var(--line-hairline)]",
+            "bg-[var(--bg-recessed)]",
+            "text-[var(--fg-secondary)]",
+            "bg-[var(--bg-elevated)]",
+            "text-[var(--fg-primary)]",
+        ]);
         expect(tagVisuals).not.toMatch(/\bshadow-\[[^\]]+\]/);
         expect(tagVisuals).not.toMatch(
             /\b(?:bg|text|border|ring|fill|stroke)-\[var\([^\]]+\)\]/,

@@ -4227,8 +4227,8 @@ describe("full UI replacement regression coverage", () => {
         expect(toggleGroup).not.toContain("tone:");
         expect(toggleGroup).not.toContain("data-tone=");
         expect(tagManager).toContain("RECORDING_TAG_SWATCH_ITEM_CLASS_NAME");
-        expect(tagManager).toContain(
-            "recordingTagTextColorClassName[tag.color]",
+        expect(tagManager).toMatch(
+            /recordingTagTextColorClassName\s*\[\s*tag\.color\s*\]/,
         );
         expect(tagManager).toContain("recordingTagSwatchColorClassName[item]");
         expect(tagManager).not.toContain(
@@ -14843,8 +14843,8 @@ describe("full UI replacement regression coverage", () => {
         expect(tagManager).toContain('size="icon-compact"');
         expect(tagManager).not.toContain('size="swatch"');
         expect(tagManager).toContain("RECORDING_TAG_SWATCH_ITEM_CLASS_NAME");
-        expect(tagManager).toContain(
-            "recordingTagTextColorClassName[tag.color]",
+        expect(tagManager).toMatch(
+            /recordingTagTextColorClassName\s*\[\s*tag\.color\s*\]/,
         );
         expect(tagManager).toContain("recordingTagSwatchColorClassName[item]");
         expect(tagManager).not.toContain(
@@ -14875,8 +14875,13 @@ describe("full UI replacement regression coverage", () => {
         expect(tagManager).toContain('size="icon-compact"');
         expect(tagManager).toContain('placement="inlineStart"');
         expect(tagManager).toContain('"relative whitespace-nowrap"');
+        expect(tagManager).toMatch(
+            /\(saving \|\| !interactive\) &&\s*"pointer-events-none disabled:opacity-100"/,
+        );
+        expect(tagManager).toContain('saving && "before:hidden"');
+        expect(tagManager).toContain("disabled={saving || !interactive || busy}");
         expect(tagManager).toContain(
-            'saving && "pointer-events-none before:hidden"',
+            'aria-disabled={saving || !interactive || busy ? "true" : undefined}',
         );
         expect(tagManager).toContain("<Spinner");
         expect(tagManager).toContain('appearance="checkDot"');
@@ -14892,10 +14897,25 @@ describe("full UI replacement regression coverage", () => {
         expect(tagManager).not.toContain("--recording-tag-swatch-color");
         expect(tagManager).not.toContain("--toggle-swatch-color");
         expect(tagManager).not.toContain("bg-white");
-        expect(tagManager).not.toMatch(/\bshadow-\[[^\]]+\]/);
+        expect(tagManager).toContain("shadow-[var(--card-popover-shadow)]");
         expect(tagManager).not.toMatch(
-            /\b(?:bg|text|border|ring|fill|stroke)-\[var\([^\]]+\)\]/,
+            /\bshadow-\[(?!var\(--card-popover-shadow\)\])[^]]+\]/,
         );
+        expect(
+            tagManager.match(
+                /\b(?:bg|text|border|ring|fill|stroke)-\[var\([^\]]+\)\]/g,
+            ),
+        ).toEqual([
+            "border-[var(--card-popover-border)]",
+            "bg-[var(--card-popover-bg)]",
+            "border-[var(--card-popover-divider)]",
+            "bg-[var(--card-popover-footer-bg)]",
+            "border-[var(--line-hairline)]",
+            "bg-[var(--bg-recessed)]",
+            "text-[var(--fg-secondary)]",
+            "bg-[var(--bg-elevated)]",
+            "text-[var(--fg-primary)]",
+        ]);
         expect(recordingTagVisuals).not.toMatch(/\bshadow-\[[^\]]+\]/);
         expect(recordingTagVisuals).not.toMatch(
             /\b(?:bg|text|border|ring|fill|stroke)-\[var\([^\]]+\)\]/,

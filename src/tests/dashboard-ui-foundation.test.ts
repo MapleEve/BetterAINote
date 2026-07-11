@@ -6083,9 +6083,9 @@ describe("dashboard SOT foundation", () => {
             "--graphite-950: oklch(0.11 0.01 258); /* obsidian */",
         );
         expect(darkGlobalTokens).toMatch(
-            /--bg-canvas:\s*rgb\(11 16 22\);\s*--bg-canvas:\s*oklch\(0\.11 0\.01 258\);/,
+            /--bg-canvas:\s*rgb\(17 18 19\);\s*--bg-canvas:\s*oklch\(0\.185 0\.004 250\);/,
         );
-        expect(darkGlobalTokens).not.toContain("oklch(0.185 0.004 250)");
+        expect(darkGlobalTokens).not.toContain("--bg-canvas: rgb(11 16 22);");
 
         expect(segmentedTabs).not.toContain(
             'data-sot-control="segmented-tabs"',
