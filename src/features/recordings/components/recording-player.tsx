@@ -11,6 +11,7 @@ import {
 import type { ReactNode } from "react";
 import { useEffect, useState } from "react";
 import { useLanguage } from "@/components/language-provider";
+import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import {
@@ -160,7 +161,34 @@ export function RecordingPlayer({
                 >
                     {formatSotPlayerDate(recording.startTime)}
                 </span>
-                <SotPlayerSourceTag provider={recording.sourceProvider} />
+                {recording.sourceProvider === "dingtalk-a1" ? (
+                    <Badge
+                        variant="outline"
+                        className="gap-1.5 pl-1"
+                        data-sot-control="player-source-tag"
+                        data-sot-provider="dingtalk-a1"
+                    >
+                        <span
+                            className="inline-flex size-4 flex-none shrink-0 items-center justify-center overflow-hidden rounded-sm border border-border bg-background"
+                            data-sot-cover="false"
+                            data-sot-part="source-icon"
+                            data-sot-source-icon="image"
+                            aria-hidden="true"
+                        >
+                            <img
+                                alt=""
+                                className="block size-4 max-w-none object-contain"
+                                height={16}
+                                loading="eager"
+                                src="/assets/sources/dingtalk.svg"
+                                width={16}
+                            />
+                        </span>
+                        钉钉
+                    </Badge>
+                ) : (
+                    <SotPlayerSourceTag provider={recording.sourceProvider} />
+                )}
                 <SotPlayerTagChip
                     count={tags.length}
                     onClick={onToggleTagManager}
@@ -324,6 +352,7 @@ export function RecordingPlayer({
                     tabIndex={playbackDisabled ? -1 : 0}
                     step={1}
                     thumbProps={{
+                        className: "size-[14px]",
                         "data-pct": playerProgressPct,
                     }}
                     value={[progress]}
