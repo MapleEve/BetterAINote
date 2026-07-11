@@ -280,6 +280,10 @@ export function SotPlayerStatusBadge({
             data-sot-control="player-status"
             data-sot-tone={tone}
         >
+            <span
+                className="size-[5px] shrink-0 rounded-full bg-current"
+                aria-hidden="true"
+            />
             <span data-sot-part="status-label">{label}</span>
         </Badge>
     );
