@@ -4448,7 +4448,7 @@ describe("recording detail copy and title action UI regressions", () => {
         expect(tagVisuals).not.toContain(variantAttr("recordingTagChip"));
         expect(tagManager).toContain("shadow-[var(--card-popover-shadow)]");
         expect(tagManager).not.toMatch(
-            /\bshadow-\[(?!var\(--card-popover-shadow\)\])[^]]+\]/,
+            /\bshadow-\[(?!var\(--card-popover-shadow\)\])[^\]]+\]/,
         );
         expect(
             tagManager.match(

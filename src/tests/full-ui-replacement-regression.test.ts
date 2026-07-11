@@ -14879,7 +14879,9 @@ describe("full UI replacement regression coverage", () => {
             /\(saving \|\| !interactive\) &&\s*"pointer-events-none disabled:opacity-100"/,
         );
         expect(tagManager).toContain('saving && "before:hidden"');
-        expect(tagManager).toContain("disabled={saving || !interactive || busy}");
+        expect(tagManager).toContain(
+            "disabled={saving || !interactive || busy}",
+        );
         expect(tagManager).toContain(
             'aria-disabled={saving || !interactive || busy ? "true" : undefined}',
         );
@@ -14899,7 +14901,7 @@ describe("full UI replacement regression coverage", () => {
         expect(tagManager).not.toContain("bg-white");
         expect(tagManager).toContain("shadow-[var(--card-popover-shadow)]");
         expect(tagManager).not.toMatch(
-            /\bshadow-\[(?!var\(--card-popover-shadow\)\])[^]]+\]/,
+            /\bshadow-\[(?!var\(--card-popover-shadow\)\])[^\]]+\]/,
         );
         expect(
             tagManager.match(
