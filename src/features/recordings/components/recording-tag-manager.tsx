@@ -93,19 +93,19 @@ const RECORDING_TAG_SWATCH_ITEM_CLASS_NAME =
     "tagm-swatch grid size-[18px] min-w-0 place-items-center rounded-full border-2 border-transparent p-0 text-foreground shadow-none transition-transform duration-[var(--duration-fast)] ease-[var(--ease-out)] hover:scale-110 data-[state=on]:border-foreground";
 
 const RECORDING_TAG_MANAGER_PANEL_CLASS_NAME =
-    "tagm-panel max-h-[460px] w-[320px] max-w-[calc(100vw-2rem)] gap-0 overflow-hidden rounded-xl border-border bg-popover p-0 text-popover-foreground shadow-md backdrop-blur-none data-[sot-state=create]:h-[342px] data-[sot-state=create]:overflow-hidden max-md:w-[calc(100vw-24px)] max-md:max-w-none";
+    "tagm-panel max-h-[460px] w-[320px] max-w-[calc(100vw-2rem)] gap-0 overflow-hidden rounded-[12px] border-[var(--card-popover-border)] bg-[var(--card-popover-bg)] p-0 text-popover-foreground shadow-[var(--card-popover-shadow)] backdrop-blur-none data-[sot-state=create]:h-[342px] data-[sot-state=create]:overflow-hidden max-md:w-[calc(100vw-24px)] max-md:max-w-none";
 const RECORDING_TAG_MANAGER_HEADER_CLASS_NAME =
-    "tagm-head flex flex-row items-center justify-between gap-2 border-b border-border px-3 py-2.5 [&>[data-slot=card-action]]:self-center";
+    "tagm-head flex flex-row items-center justify-between gap-[normal] [border-bottom:1px_solid_var(--card-popover-divider)] px-[12px] py-[10px] [&>[data-slot=card-action]]:self-center";
 const RECORDING_TAG_MANAGER_TITLE_CLASS_NAME =
     "tagm-title text-xs font-semibold leading-tight text-foreground";
 const RECORDING_TAG_MANAGER_FOOTER_CLASS_NAME =
-    "min-h-[47px] gap-1.5 border-t border-border bg-muted px-3.5 py-2.5";
+    "min-h-[47px] gap-1.5 border-t border-[var(--card-popover-divider)] bg-[var(--card-popover-footer-bg)] px-3.5 py-2.5";
 const RECORDING_TAG_MANAGER_TOGGLE_NOTE_CLASS_NAME =
     "tagm-note m-0 pb-3.5 text-xs leading-normal text-muted-foreground";
 const RECORDING_TAG_MANAGER_CONTENT_CLASS_NAME =
     "flex flex-col gap-[14px] overflow-auto px-3.5 pb-3.5 pt-3";
 const RECORDING_TAG_MANAGER_TAG_TOGGLE_CLASS_NAME =
-    "tagm-opt relative justify-normal gap-1 rounded-full border-border disabled:opacity-70";
+    "tagm-opt relative h-6 justify-normal gap-[5px] rounded-[var(--radius-pill)] border border-[var(--line-hairline)] bg-[var(--bg-recessed)] px-2.5 [font:600_11.5px_var(--font-sans)] text-[var(--fg-secondary)] shadow-none transition-none hover:bg-[var(--bg-elevated)] hover:text-[var(--fg-primary)] has-[>svg]:px-2.5 disabled:opacity-70";
 const RECORDING_TAG_MANAGER_SELECTED_BADGE_CLASS_NAME =
     "tagm-sel-chip justify-normal gap-1 rounded-full border-border pr-1";
 const RECORDING_TAG_MANAGER_CHIP_REMOVE_BUTTON_CLASS_NAME =
@@ -581,17 +581,19 @@ export function RecordingTagManager({
         <Button
             key={tag.id}
             type="button"
-            variant={selected ? "secondary" : "outline"}
+            variant="outline"
             size="xs"
             className={cn(
                 RECORDING_TAG_MANAGER_TAG_TOGGLE_CLASS_NAME,
-                recordingTagTextColorClassName[tag.color],
                 "relative whitespace-nowrap",
-                saving && "pointer-events-none before:hidden",
+                (saving || !interactive) &&
+                    "pointer-events-none disabled:opacity-100",
+                saving && "before:hidden",
             )}
             onClick={interactive ? () => void handleToggleTag(tag) : undefined}
-            disabled={interactive ? busy : undefined}
+            disabled={saving || !interactive || busy}
             aria-pressed={selected}
+            aria-disabled={saving || !interactive || busy ? "true" : undefined}
             aria-busy={saving ? "true" : undefined}
             data-busy={saving ? "true" : "false"}
             data-sot-control="recording-tag-toggle"

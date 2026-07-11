@@ -576,6 +576,54 @@ async function getPlaywrightUserId() {
     }
 }
 
+async function readRecordingTagAssignmentIds(
+    userId: string,
+    recordingId: string,
+) {
+    const library = createClient({ url: databaseUrl(LIBRARY_DB) });
+
+    try {
+        const result = await executeWithBusyRetry(() =>
+            library.execute({
+                sql: `
+                    SELECT tag_id
+                    FROM recording_tag_assignments
+                    WHERE user_id = ? AND recording_id = ?
+                    ORDER BY tag_id
+                `,
+                args: [userId, recordingId],
+            }),
+        );
+
+        return result.rows.map((row) => String(row.tag_id));
+    } finally {
+        await library.close();
+    }
+}
+
+async function throttleTagManagerRequest(page: Page) {
+    const session = await page.context().newCDPSession(page);
+    await session.send("Network.enable");
+    await session.send("Network.emulateNetworkConditions", {
+        offline: false,
+        latency: 8_000,
+        downloadThroughput: -1,
+        uploadThroughput: -1,
+    });
+
+    return async () => {
+        await session
+            .send("Network.emulateNetworkConditions", {
+                offline: false,
+                latency: 0,
+                downloadThroughput: -1,
+                uploadThroughput: -1,
+            })
+            .catch(() => null);
+        await session.detach().catch(() => null);
+    };
+}
+
 async function cleanupRecordingDetailSeed() {
     const library = createClient({ url: databaseUrl(LIBRARY_DB) });
     const transcripts = createClient({ url: databaseUrl(TRANSCRIPTS_DB) });
@@ -10702,41 +10750,13 @@ test("recording detail tag manager saving state matches SOT pixels", async ({
     page,
 }, testInfo) => {
     let sotPage: Page | null = null;
-    let releaseTagsUpdate = () => {};
+    let restoreNetwork = async () => {};
     try {
         await ensureSignedIn(page);
         const userId = await getPlaywrightUserId();
         const recordingId = await seedRecordingDetail(userId, {
             includeSotTagManagerFixture: "default",
         });
-        const tagsUpdateGate = new Promise<void>((resolve) => {
-            releaseTagsUpdate = resolve;
-        });
-        await page.route(
-            `**/api/recordings/${recordingId}/tags`,
-            async (route) => {
-                if (route.request().method() !== "PUT") {
-                    await route.fallback();
-                    return;
-                }
-
-                await tagsUpdateGate;
-                await route.fulfill({
-                    contentType: "application/json",
-                    status: 200,
-                    body: JSON.stringify({
-                        tags: [
-                            {
-                                color: "blue",
-                                icon: "user",
-                                id: SOT_DETAIL_SECOND_TAG_ID,
-                                name: SOT_DETAIL_SECOND_TAG_NAME,
-                            },
-                        ],
-                    }),
-                });
-            },
-        );
 
         await page.goto(`/recordings/${recordingId}`, {
             waitUntil: "domcontentloaded",
@@ -10748,13 +10768,22 @@ test("recording detail tag manager saving state matches SOT pixels", async ({
         await playerTagManagerTrigger(page).click();
         const tagsPanel = tagManager(page);
         await expect(tagsPanel).toHaveAttribute("data-sot-state", "ready");
-        await tagsPanel
+        restoreNetwork = await throttleTagManagerRequest(page);
+        const tagsUpdateResponse = page.waitForResponse(
+            (response) =>
+                response.url().includes(`/api/recordings/${recordingId}/tags`) &&
+                response.request().method() === "PUT" &&
+                response.ok(),
+        );
+        const savingToggle = tagsPanel
             .locator(
                 `[data-sot-control="recording-tag-toggle"][data-sot-tag-name="${SOT_DETAIL_TAG_NAME}"]`,
-            )
-            .click();
+            );
+        await savingToggle.click();
         await expect(tagsPanel).toHaveAttribute("data-sot-state", "saving");
         await expect(tagsPanel).toHaveAttribute("aria-busy", "true");
+        await expect(savingToggle).toBeDisabled();
+        await expect(savingToggle).toHaveAttribute("aria-disabled", "true");
         await expect(tagsPanel.locator('[data-sot-part="selected-chip"]')).toHaveCount(0);
         await expect(tagsPanel.locator('[data-sot-part="create"]')).toHaveCount(0);
         await expect(
@@ -10792,8 +10821,15 @@ test("recording detail tag manager saving state matches SOT pixels", async ({
             sotSavingPanel,
             tagsPanel,
         );
+        await restoreNetwork();
+        restoreNetwork = async () => {};
+        await tagsUpdateResponse;
+        await expect(tagsPanel).toHaveAttribute("data-sot-state", "toggle");
+        await expect.poll(() =>
+            readRecordingTagAssignmentIds(userId, recordingId),
+        ).toEqual([SOT_DETAIL_SECOND_TAG_ID]);
     } finally {
-        releaseTagsUpdate();
+        await restoreNetwork();
         await sotPage?.close();
         await cleanupRecordingDetailSeed();
     }

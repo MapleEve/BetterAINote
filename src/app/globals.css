@@ -458,8 +458,8 @@
    =========================================================== */
 .dark,
 [data-theme="dark"] {
-    --bg-canvas: rgb(11 16 22);
-    --bg-canvas: oklch(0.11 0.01 258); /* obsidian body canvas */
+    --bg-canvas: rgb(17 18 19);
+    --bg-canvas: oklch(0.185 0.004 250); /* canonical dark canvas */
     --bg-elevated: rgb(31 36 42);
     --bg-elevated: oklch(0.215 0.004 250); /* one step up — sidebars/panels */
     --card-elevated-bg: rgb(31 36 42 / 0.7);
@@ -595,6 +595,14 @@
     box-sizing: border-box;
 }
 
+html {
+    font-size: 16px;
+}
+
+body {
+    font-size: var(--text-body);
+}
+
 html,
 body {
     margin: 0;
@@ -602,7 +610,6 @@ body {
     background: var(--background);
     color: var(--foreground);
     font-family: var(--font-sans);
-    font-size: var(--text-body);
     line-height: var(--lh-body);
     letter-spacing: var(--ls-body);
     -webkit-font-smoothing: antialiased;
