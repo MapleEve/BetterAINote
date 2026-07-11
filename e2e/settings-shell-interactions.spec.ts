@@ -222,6 +222,12 @@ async function windowScrollY(page: Page) {
     return page.evaluate(() => window.scrollY);
 }
 
+async function settingsFocusIsContained(page: Page) {
+    return settingsShell(page).evaluate((shell) =>
+        shell.contains(document.activeElement),
+    );
+}
+
 async function elementCanScroll(locator: ReturnType<Page["locator"]>) {
     return locator.evaluate((node) => node.scrollHeight > node.clientHeight + 1);
 }
@@ -2477,6 +2483,54 @@ async function expectShellFitsViewport(page: Page) {
     expect(metrics.right).toBeLessThanOrEqual(metrics.viewportWidth);
 }
 
+async function settingsShellLayoutMetrics(page: Page) {
+    return settingsShell(page).evaluate((shell) => {
+        const header = shell.querySelector<HTMLElement>(
+            '[data-sot-panel="settings-header"]',
+        );
+        const body = shell.querySelector<HTMLElement>(
+            '[data-sot-panel="settings-body"]',
+        );
+        const rail = shell.querySelector<HTMLElement>(
+            '[data-sot-panel="settings-rail"]',
+        );
+        const activeSection = shell.querySelector<HTMLElement>(
+            '[data-sot-surface="settings-section"], [data-sot-surface="settings-data-sources"]',
+        );
+
+        if (!header || !body || !rail || !activeSection) {
+            throw new Error("Settings shell layout regions are incomplete.");
+        }
+
+        const shellRect = shell.getBoundingClientRect();
+        const headerRect = header.getBoundingClientRect();
+        const bodyRect = body.getBoundingClientRect();
+        const railRect = rail.getBoundingClientRect();
+        const activeRect = activeSection.getBoundingClientRect();
+
+        return {
+            activeLeft: activeRect.left,
+            activeRight: activeRect.right,
+            activeWidth: activeRect.width,
+            bodyBottom: bodyRect.bottom,
+            bodyLeft: bodyRect.left,
+            bodyRight: bodyRect.right,
+            bodyTop: bodyRect.top,
+            headerBottom: headerRect.bottom,
+            headerLeft: headerRect.left,
+            headerRight: headerRect.right,
+            railBottom: railRect.bottom,
+            railLeft: railRect.left,
+            railRight: railRect.right,
+            railTop: railRect.top,
+            shellBottom: shellRect.bottom,
+            shellLeft: shellRect.left,
+            shellRight: shellRect.right,
+            shellTop: shellRect.top,
+        };
+    });
+}
+
 test("settings shell closes sibling overlays, locks height, bounds wheel scroll, and returns focus", async ({
     page,
 }) => {
@@ -2506,6 +2560,10 @@ test("settings shell closes sibling overlays, locks height, bounds wheel scroll,
     const shell = settingsShell(page);
     await expect(activityPanel).toBeHidden();
     await expect(shell).toBeVisible();
+    await settingsTrigger.focus();
+    await expect
+        .poll(() => settingsFocusIsContained(page))
+        .toBe(true);
     await expectSettingsHeaderSotCopy(shell);
     await expect(page.locator('[data-sot-part="dashboard-user-avatar"]')).toHaveText(
         "P",
@@ -2525,6 +2583,15 @@ test("settings shell closes sibling overlays, locks height, bounds wheel scroll,
     expect(baselineHeight).toBeLessThanOrEqual(
         baselineMetrics.viewportHeight,
     );
+    const expectedHeight = Math.min(
+        baselineMetrics.viewportHeight * 0.94,
+        980,
+        baselineMetrics.viewportHeight - 16,
+    );
+    await expect
+        .poll(() => settingsShellHeight(page))
+        .toBeCloseTo(expectedHeight, 0);
+    const settledBaselineHeight = await settingsShellHeight(page);
     await expect(settingsShell(page)).toHaveAttribute(
         "data-sot-section",
         "data-sources",
@@ -2534,7 +2601,7 @@ test("settings shell closes sibling overlays, locks height, bounds wheel scroll,
     );
 
     await settingsNav(page, "voscript").click();
-    await expectShellHeightStable(page, baselineHeight);
+    await expectShellHeightStable(page, settledBaselineHeight);
     await expect(settingsShell(page)).toHaveAttribute(
         "data-sot-section",
         "voscript",
@@ -2546,12 +2613,12 @@ test("settings shell closes sibling overlays, locks height, bounds wheel scroll,
         .toBe(0);
 
     await settingsNav(page, "appearance").click();
-    await expectShellHeightStable(page, baselineHeight);
+    await expectShellHeightStable(page, settledBaselineHeight);
     await expect.poll(() => elementScrollTop(settingsScrollBody)).toBe(0);
     await expect(page.locator('[data-sot-surface="settings-data-sources"]')).toBeHidden();
 
     await settingsNav(page, "data-sources").click();
-    await expectShellHeightStable(page, baselineHeight);
+    await expectShellHeightStable(page, settledBaselineHeight);
     await expect(settingsShell(page)).toHaveAttribute(
         "data-sot-section",
         "data-sources",
@@ -2563,7 +2630,7 @@ test("settings shell closes sibling overlays, locks height, bounds wheel scroll,
     await expect
         .poll(() => page.evaluate(() => window.scrollY))
         .toBe(0);
-    await expectShellHeightStable(page, baselineHeight);
+    await expectShellHeightStable(page, settledBaselineHeight);
     await expect(settingsShell(page)).toHaveAttribute(
         "data-sot-section",
         "data-sources",
@@ -2578,12 +2645,27 @@ test("settings shell closes sibling overlays, locks height, bounds wheel scroll,
             ),
         )
         .toBe(0);
-    await expectShellHeightStable(page, baselineHeight);
+    await expectShellHeightStable(page, settledBaselineHeight);
 
-    await sotControl(page, "settings-close").focus();
-    await page.keyboard.press("Space");
-    await expect(settingsShell(page)).toBeHidden();
+    await sotControl(page, "settings-close").click();
+    await expect(settingsShell(page)).toHaveCount(0);
     await expect(settingsTrigger).toBeFocused();
+    await expect(page.locator('[data-aria-hidden="true"]')).toHaveCount(0);
+
+    await settingsTrigger.click();
+    await expect(settingsShell(page)).toBeVisible();
+    await page.keyboard.press("Escape");
+    await expect(settingsShell(page)).toHaveCount(0);
+    await expect(settingsTrigger).toBeFocused();
+
+    await settingsTrigger.click();
+    await expect(settingsShell(page)).toBeVisible();
+    await page
+        .locator('[data-sot-overlay="settings-shell"]')
+        .click({ position: { x: 4, y: 4 } });
+    await expect(settingsShell(page)).toHaveCount(0);
+    await expect(settingsTrigger).toBeFocused();
+    await expect(page.locator('[data-aria-hidden="true"]')).toHaveCount(0);
 });
 
 test("settings data source nested scroll containers reset without freezing", async ({
@@ -2686,7 +2768,7 @@ test("settings dialog locks a pre-scrolled page while preserving internal scroll
     await expect.poll(() => windowScrollY(page)).toBeGreaterThan(lockedScrollY);
 });
 
-test("settings shell locks navigation and close while display immediate save is pending", async ({
+test("settings shell holds a delayed real display PUT through GET readback and reload", async ({
     page,
 }) => {
     await page.setViewportSize({ width: 1280, height: 640 });
@@ -2703,61 +2785,116 @@ test("settings shell locks navigation and close while display immediate save is 
         releaseSave = resolve;
     });
 
-    await page.route("**/api/settings/display", async (route) => {
+    const displayRoute = "**/api/settings/display";
+    await page.route(displayRoute, async (route) => {
         if (route.request().method() !== "PUT") {
+            await route.continue();
+            return;
+        }
+
+        const payload = route.request().postDataJSON();
+        if (payload?.itemsPerPage !== 42) {
             await route.continue();
             return;
         }
 
         notifySaveStarted();
         await pendingSave;
-        await route.fulfill({
-            contentType: "application/json",
-            body: JSON.stringify({ success: true }),
-        });
+        const response = await route.fetch();
+        await route.fulfill({ response });
     });
 
-    await page.goto("/settings#appearance", { waitUntil: "domcontentloaded" });
-    const shell = settingsShell(page);
-    await expect(shell).toBeVisible();
-    await expect(shell).toHaveAttribute(
-        "data-sot-section",
-        "appearance",
-    );
-    const itemsPerPageInput = page.locator("#display-items-per-page");
-    await expect(itemsPerPageInput).toHaveValue("50");
-    await expect(
-        page.locator(
-            '[data-sot-surface="settings-section"][data-sot-section="appearance"] [data-sot-control="settings-save"]',
-        ),
-    ).toHaveCount(0);
-    await expect(
-        page.locator(
-            '[data-sot-surface="settings-section"][data-sot-section="appearance"] [data-sot-panel="settings-save-actions"]',
-        ),
-    ).toHaveCount(0);
+    try {
+        await page.goto("/settings#appearance", {
+            waitUntil: "domcontentloaded",
+        });
+        const shell = settingsShell(page);
+        await expect(shell).toBeVisible();
+        await expect(shell).toHaveAttribute(
+            "data-sot-section",
+            "appearance",
+        );
+        const itemsPerPageInput = page.locator("#display-items-per-page");
+        await expect(itemsPerPageInput).toHaveValue("50");
+        await expect(
+            page.locator(
+                '[data-sot-surface="settings-section"][data-sot-section="appearance"] [data-sot-control="settings-save"]',
+            ),
+        ).toHaveCount(0);
+        await expect(
+            page.locator(
+                '[data-sot-surface="settings-section"][data-sot-section="appearance"] [data-sot-panel="settings-save-actions"]',
+            ),
+        ).toHaveCount(0);
 
-    await itemsPerPageInput.fill("42");
-    await saveStarted;
-    await expect(shell).toHaveAttribute("data-sot-state", "busy");
-    await expect(settingsNav(page, "misc")).toBeDisabled();
-    await expect(sotControl(page, "settings-close")).toBeDisabled();
-    await page.keyboard.press("Escape");
-    await expect(shell).toBeVisible();
-    await settingsNav(page, "misc").evaluate(
-        (node) => (node as HTMLButtonElement).click(),
-    );
-    await expect(shell).toHaveAttribute(
-        "data-sot-section",
-        "appearance",
-    );
+        const realPutResponse = page.waitForResponse(
+            (response) =>
+                response.url().includes("/api/settings/display") &&
+                response.request().method() === "PUT" &&
+                response.request().postDataJSON()?.itemsPerPage === 42,
+        );
+        await itemsPerPageInput.fill("42");
+        await saveStarted;
+        await expect(shell).toHaveAttribute("data-sot-state", "busy");
+        await expect(settingsNav(page, "misc")).toBeDisabled();
+        await expect(sotControl(page, "settings-close")).toBeDisabled();
+        await page.keyboard.press("Escape");
+        await expect(shell).toBeVisible();
+        await settingsNav(page, "misc").evaluate(
+            (node) => (node as HTMLButtonElement).click(),
+        );
+        await expect(shell).toHaveAttribute(
+            "data-sot-section",
+            "appearance",
+        );
+        await expect(itemsPerPageInput).toBeDisabled();
 
-    await expect(itemsPerPageInput).toBeDisabled();
-    releaseSave();
-    await expect(shell).toHaveAttribute("data-sot-state", "idle");
-    await expect(itemsPerPageInput).toBeEnabled();
-    await expect(settingsNav(page, "misc")).toBeEnabled();
-    await expect(sotControl(page, "settings-close")).toBeEnabled();
+        releaseSave();
+        expect((await realPutResponse).ok()).toBe(true);
+        await expect(shell).toHaveAttribute("data-sot-state", "idle");
+        await expect(itemsPerPageInput).toBeEnabled();
+        await expect(settingsNav(page, "misc")).toBeEnabled();
+        await expect(sotControl(page, "settings-close")).toBeEnabled();
+
+        const readbackResponse = await page.request.get(
+            "/api/settings/display",
+        );
+        expect(readbackResponse.ok()).toBe(true);
+        expect(await readbackResponse.json()).toMatchObject({
+            itemsPerPage: 42,
+        });
+
+        const reloadGetResponse = page.waitForResponse(
+            (response) =>
+                response.url().includes("/api/settings/display") &&
+                response.request().method() === "GET" &&
+                response.ok(),
+        );
+        await page.reload({ waitUntil: "domcontentloaded" });
+        await reloadGetResponse;
+        await expect(itemsPerPageInput).toHaveValue("42");
+        await expect(settingsShell(page)).toHaveAttribute(
+            "data-sot-section",
+            "appearance",
+        );
+    } finally {
+        releaseSave();
+        await page.unroute(displayRoute);
+        const restoreResponse = await page.request.put(
+            "/api/settings/display",
+            {
+                data: { itemsPerPage: 50 },
+            },
+        );
+        expect(restoreResponse.ok()).toBe(true);
+        const restoredReadback = await page.request.get(
+            "/api/settings/display",
+        );
+        expect(restoredReadback.ok()).toBe(true);
+        expect(await restoredReadback.json()).toMatchObject({
+            itemsPerPage: 50,
+        });
+    }
 });
 
 test("settings shell keeps every desktop section fixed while wheel scrolling", async ({
@@ -2801,6 +2938,144 @@ test("settings shell keeps every desktop section fixed while wheel scrolling", a
         "transcription",
     );
     await expectShellHeightStable(page, baselineHeight);
+});
+
+test("settings shell keeps six sections coherent in light and dark desktop tablet mobile frames", async ({
+    page,
+}) => {
+    await ensureSignedIn(page);
+    await clearSettingsPersistence(page);
+
+    const frames = [
+        {
+            mode: "desktop",
+            viewport: { width: 1280, height: 720 },
+        },
+        {
+            mode: "tablet",
+            viewport: { width: 768, height: 900 },
+        },
+        {
+            mode: "mobile",
+            viewport: { width: 390, height: 844 },
+        },
+    ] as const;
+
+    try {
+        for (const theme of ["light", "dark"] as const) {
+            const themeResponse = await page.request.put(
+                "/api/settings/display",
+                {
+                    data: {
+                        dateTimeFormat: "relative",
+                        itemsPerPage: 50,
+                        recordingListSortOrder: "newest",
+                        theme,
+                        uiLanguage: "zh-CN",
+                    },
+                },
+            );
+            expect(themeResponse.ok()).toBe(true);
+            const themeReadback = await page.request.get(
+                "/api/settings/display",
+            );
+            expect(themeReadback.ok()).toBe(true);
+            expect(await themeReadback.json()).toMatchObject({ theme });
+
+            for (const frame of frames) {
+                await test.step(`${theme} ${frame.mode}`, async () => {
+                    await page.setViewportSize(frame.viewport);
+                    await page.goto("about:blank");
+                    await page.goto("/settings#transcription", {
+                        waitUntil: "domcontentloaded",
+                    });
+                    await expect(page.locator("html")).toHaveAttribute(
+                        "data-theme",
+                        theme,
+                    );
+
+                    const shell = settingsShell(page);
+                    await expect(shell).toBeVisible();
+                    const expectedHeight = Math.min(
+                        frame.viewport.height * 0.94,
+                        980,
+                        frame.viewport.height - 16,
+                    );
+                    await expect
+                        .poll(() => settingsShellHeight(page))
+                        .toBeCloseTo(expectedHeight, 0);
+                    await expectShellFitsViewport(page);
+                    const baselineHeight = await settingsShellHeight(page);
+
+                    for (const section of desktopSettingsSections) {
+                        await selectDesktopSettingsSection(page, section);
+                        await expectActiveSettingsSectionReady(page, section);
+                        await expect(
+                            shell.locator(
+                                '[data-sot-surface="settings-section"], [data-sot-surface="settings-data-sources"]',
+                            ),
+                        ).toHaveCount(1);
+                        await expect(
+                            shell.locator(
+                                '[data-sot-surface="settings-section"][aria-hidden="true"], [data-sot-surface="settings-section"][inert], [data-sot-surface="settings-data-sources"][aria-hidden="true"], [data-sot-surface="settings-data-sources"][inert]',
+                            ),
+                        ).toHaveCount(0);
+                        await expect(
+                            shell.locator(
+                                '[data-sot-surface="settings-data-sources"]',
+                            ),
+                        ).toHaveCount(section === "data-sources" ? 1 : 0);
+                        await expectShellHeightStable(page, baselineHeight);
+                        await expectShellFitsViewport(page);
+
+                        const metrics = await settingsShellLayoutMetrics(page);
+                        expect(metrics.headerLeft).toBeGreaterThanOrEqual(
+                            metrics.shellLeft - 1,
+                        );
+                        expect(metrics.headerRight).toBeLessThanOrEqual(
+                            metrics.shellRight + 1,
+                        );
+                        expect(metrics.headerBottom).toBeLessThanOrEqual(
+                            metrics.bodyTop + 1,
+                        );
+                        expect(metrics.bodyLeft).toBeGreaterThanOrEqual(
+                            metrics.shellLeft - 1,
+                        );
+                        expect(metrics.bodyRight).toBeLessThanOrEqual(
+                            metrics.shellRight + 1,
+                        );
+                        expect(metrics.bodyBottom).toBeLessThanOrEqual(
+                            metrics.shellBottom + 1,
+                        );
+                        expect(metrics.railTop).toBeGreaterThanOrEqual(
+                            metrics.bodyTop - 1,
+                        );
+                        expect(metrics.railBottom).toBeLessThanOrEqual(
+                            metrics.bodyBottom + 1,
+                        );
+                        expect(metrics.railLeft).toBeGreaterThanOrEqual(
+                            metrics.bodyLeft - 1,
+                        );
+                        expect(metrics.activeLeft).toBeGreaterThanOrEqual(
+                            metrics.railRight - 1,
+                        );
+                        expect(metrics.activeRight).toBeLessThanOrEqual(
+                            metrics.bodyRight + 1,
+                        );
+                        expect(metrics.activeWidth).toBeGreaterThan(0);
+                        expect(metrics.shellTop).toBeGreaterThanOrEqual(0);
+                    }
+
+                    const screenshot = await shell.screenshot({
+                        animations: "disabled",
+                    });
+                    expect(screenshot.byteLength).toBeGreaterThan(5_000);
+                });
+            }
+        }
+    } finally {
+        await resetDisplayToChinese(page);
+    }
 });
 
 test("settings canonical route and mobile rail keep the shell fixed", async ({
@@ -2918,17 +3193,38 @@ test("settings shell restores the last section and supports keyboard section sel
         "data-sot-section",
         "title-generation",
     );
-    await expect(settingsNav(page, "title-generation")).toHaveAttribute(
+    const titleGenerationNav = settingsNav(page, "title-generation");
+    await expect(titleGenerationNav).toHaveAttribute(
         "data-keyboard-selected",
         "true",
     );
+    await expect(titleGenerationNav).toHaveAttribute("aria-current", "page");
+    await expect(titleGenerationNav).toHaveAttribute("tabindex", "0");
+    await expect(titleGenerationNav).toBeFocused();
     await expect(shell).toHaveAttribute("data-sot-state", "idle");
 
+    await page.keyboard.press("End");
+    await expect(settingsNav(page, "misc")).toBeFocused();
+    await expect(shell).toHaveAttribute(
+        "data-sot-section",
+        "title-generation",
+    );
+
+    await page.keyboard.press("Home");
+    await expect(settingsNav(page, "transcription")).toBeFocused();
+    await page.keyboard.press("ArrowRight");
+    await expect(titleGenerationNav).toBeFocused();
+    await page.keyboard.press("ArrowLeft");
+    await expect(settingsNav(page, "transcription")).toBeFocused();
+
+    await page.keyboard.press("ArrowDown");
+    await expect(titleGenerationNav).toBeFocused();
     await page.keyboard.press("ArrowDown");
     await expect(settingsNav(page, "voscript")).toHaveAttribute(
         "data-keyboard-selected",
         "true",
     );
+    await expect(settingsNav(page, "voscript")).toBeFocused();
     await expect(shell).toHaveAttribute(
         "data-sot-section",
         "title-generation",
@@ -2938,6 +3234,10 @@ test("settings shell restores the last section and supports keyboard section sel
     await expect(shell).toHaveAttribute(
         "data-sot-section",
         "voscript",
+    );
+    await expect(settingsNav(page, "voscript")).toHaveAttribute(
+        "aria-current",
+        "page",
     );
     await expect
         .poll(() =>
@@ -2963,6 +3263,7 @@ test("settings shell restores the last section and supports keyboard section sel
         "data-keyboard-selected",
         "true",
     );
+    await expect(settingsNav(page, "voscript")).toBeFocused();
     await page.keyboard.press("Enter");
     await expect(shell).toHaveAttribute(
         "data-sot-section",

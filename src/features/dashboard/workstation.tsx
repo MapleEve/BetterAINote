@@ -4851,26 +4851,31 @@ export function Workstation({
                                 </Card>
                             ) : null}
                         </div>
-                        <Button
-                            asChild
-                            variant="default"
-                            size="icon"
-                            className={dashboardButtonClassNames.settingsAvatar}
-                        >
-                            <button
-                                ref={settingsTriggerRef}
-                                type="button"
-                                aria-label="打开设置"
-                                aria-expanded={settingsOpen}
-                                aria-haspopup="dialog"
-                                data-sot-control="dashboard-settings"
-                                data-sot-part="dashboard-user-avatar"
-                                data-sot-state={settingsOpen ? "open" : "idle"}
-                                onClick={() => openSettings("data-sources")}
-                            >
-                                {Array.from(getUserDisplayName(user))[0]}
-                            </button>
-                        </Button>
+                        <SettingsDialog
+                            open={settingsOpen}
+                            user={user}
+                            onOpenChange={setSettingsOpen}
+                            trigger={
+                                <Button
+                                    ref={settingsTriggerRef}
+                                    type="button"
+                                    variant="default"
+                                    size="icon"
+                                    className={
+                                        dashboardButtonClassNames.settingsAvatar
+                                    }
+                                    aria-label="打开设置"
+                                    data-sot-control="dashboard-settings"
+                                    data-sot-part="dashboard-user-avatar"
+                                    data-sot-state={
+                                        settingsOpen ? "open" : "idle"
+                                    }
+                                    onClick={() => openSettings("data-sources")}
+                                >
+                                    {Array.from(getUserDisplayName(user))[0]}
+                                </Button>
+                            }
+                        />
                     </div>
                 </header>
 
@@ -7640,13 +7645,6 @@ export function Workstation({
                     </section>
                 </div>
             </main>
-
-            <SettingsDialog
-                open={settingsOpen}
-                returnFocusRef={settingsTriggerRef}
-                user={user}
-                onOpenChange={setSettingsOpen}
-            />
         </div>
     );
 }

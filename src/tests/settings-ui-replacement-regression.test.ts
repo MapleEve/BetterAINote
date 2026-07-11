@@ -483,6 +483,7 @@ describe("settings SOT interaction regressions", () => {
         const dialog = readSource(
             "features/settings/components/settings-dialog.tsx",
         );
+        const workstation = readSource("features/dashboard/workstation.tsx");
         const i18n = readSource("lib/i18n.ts");
         const baseDialog = readSource("components/ui/dialog.tsx");
         const buttonPrimitive = readSource("components/ui/button.tsx");
@@ -512,15 +513,15 @@ describe("settings SOT interaction regressions", () => {
         expect(dialog).toContain('data-sot-panel="settings-header"');
         expect(dialog).toContain('data-sot-panel="settings-body"');
         expect(dialog).toContain('data-sot-panel="settings-rail"');
-        expect(dialog).toContain("<aside");
+        expect(dialog).toContain("<nav");
         expect(dialog).toContain('data-sot-control="settings-nav"');
         expect(dialog).toContain('data-sot-control="settings-close"');
         expectNoDataSotDrivenTailwindSelectors(dialog);
-        expect(dialog).toContain("SETTINGS_NAV_CONTROL_SELECTOR");
-        expect(dialog).toContain("SETTINGS_INNER_SCROLL_SELECTOR");
-        expect(dialog).toContain("settingsShellRef");
-        expect(dialog).toContain("firstNavButtonRef");
-        expect(settingsNavButton).toContain("data-settings-nav-control");
+        expect(dialog).not.toContain("SETTINGS_NAV_CONTROL_SELECTOR");
+        expect(dialog).not.toContain("SETTINGS_INNER_SCROLL_SELECTOR");
+        expect(dialog).not.toContain("settingsShellRef");
+        expect(dialog).not.toContain("firstNavButtonRef");
+        expect(settingsNavButton).not.toContain("data-settings-nav-control");
         expect(dialog).not.toMatch(
             /closest\(\s*["']\[data-sot-control="settings-nav"\]/,
         );
@@ -655,43 +656,50 @@ describe("settings SOT interaction regressions", () => {
         expect(dialog).not.toContain("@/components/ui/select");
         expect(dialog).toContain("SettingsBusyProvider");
         expect(dialog).toContain("isSettingsBusy");
-        expect(dialog).toContain("returnFocusRef");
-        expect(dialog).toContain(
-            "const keyboardSelectedIndexRef = React.useRef<number>(0);",
-        );
-        expect(dialog).toContain(
-            "keyboardSelectedIndexRef.current = nextIndex;",
-        );
-        expect(dialog).toContain("const focusSettingsNavItem =");
-        expect(dialog).toContain("const activateKeyboardSelectedSection =");
-        expect(dialog).toContain("focusSettingsNavItem(selectedItem.id);");
-        expect(dialog).toContain("function isSettingsActivationKey(");
-        expect(dialog).toContain('event.key === "Space"');
-        expect(dialog).toContain('event.code === "Space"');
-        expect(dialog).toContain("isSettingsActivationKey(event)");
+        expect(dialog).not.toContain("returnFocusRef");
+        expect(dialog).toContain("const navButtonRefs = React.useRef");
+        expect(dialog).toContain("const focusSettingsNavIndex =");
+        expect(dialog).toContain("normalizeRovingIndex(index)");
         expect(dialog).toContain("const handleNavKeyDown =");
-        expect(dialog).toContain("const handleNavKeyUp =");
-        expect(settingsNavButton).toContain("onKeyDown={handleNavKeyDown}");
-        expect(settingsNavButton).toContain("onKeyUp={handleNavKeyUp}");
+        for (const key of [
+            "ArrowDown",
+            "ArrowRight",
+            "ArrowUp",
+            "ArrowLeft",
+            "Home",
+            "End",
+        ]) {
+            expect(dialog).toContain(`case "${key}":`);
+        }
+        expect(settingsNavButton).toContain("handleNavKeyDown(");
+        expect(settingsNavButton).toContain("onFocus={() =>");
+        expect(settingsNavButton).toContain("tabIndex={");
         expect(settingsNavButton).toContain("data-keyboard-selected={");
-        expect(settingsNavButton).toMatch(
-            /keyboardSelectedIndex ===\s*itemIndex/,
-        );
-        expect(settingsNavButton).not.toContain(
-            "!isSettingsBusy &&\n                                                    keyboardSelectedIndex",
-        );
+        expect(settingsNavButton).toMatch(/rovingIndex ===\s*itemIndex/);
         expect(settingsNavButton).toMatch(
             /applyActiveSettingsSection\(\s*item\.id,?\s*\)/,
         );
         expect(settingsNavButton).not.toContain("setActiveSection(item.id)");
-        expect(dialog).not.toContain(
-            "orderedSettingsNav[keyboardSelectedIndex].id",
-        );
         expect(dialog).toContain("focus({ preventScroll: true })");
+        expect(dialog).toContain("onOpenAutoFocus={handleOpenAutoFocus}");
         expect(dialog).toContain("onInteractOutside");
+        expect(dialog).toContain("onEscapeKeyDown");
         expect(dialog).toContain("normalizeSettingsSection");
-        expect(dialog).toContain('documentElement.style.overflow = "hidden"');
-        expect(dialog).toContain('body.style.overflow = "hidden"');
+        expect(dialog).toContain("DialogTrigger");
+        expect(dialog).toContain("<DialogTrigger asChild>");
+        expect(dialog).toContain("<DialogClose asChild>");
+        expect(dialog).not.toContain("startBrowserTimeout");
+        expect(dialog).not.toContain("stopBrowserTimeout");
+        expect(dialog).not.toContain('addBrowserWindowEventListener("keydown"');
+        expect(dialog).not.toContain("documentElement.style.overflow");
+        expect(dialog).not.toContain("body.style.overflow");
+        expect(dialog).not.toContain("setTimeout(");
+        expect(dialog).not.toContain("key={activeSection}");
+        expect(workstation).toContain("trigger={");
+        expect(workstation).toContain("ref={settingsTriggerRef}");
+        expect(workstation).not.toContain(
+            "returnFocusRef={settingsTriggerRef}",
+        );
         expect(dialog).toContain('aria-label={t("settingsDialog.title")}');
         expect(dialog).not.toContain("DialogTitle hidden");
         expect(dialog).not.toContain("DialogDescription hidden");
@@ -779,7 +787,7 @@ describe("settings SOT interaction regressions", () => {
                 "max-h-[calc(100svh_-_1rem)]",
                 "w-[920px]",
                 "max-w-[calc(100vw_-_40px)]",
-                "sm:max-w-[920px]",
+                "sm:max-w-[min(920px,calc(100vw_-_40px))]",
                 "flex-col",
                 "gap-0",
                 "overflow-hidden",
@@ -796,7 +804,7 @@ describe("settings SOT interaction regressions", () => {
         findStringConstInitializerContaining(dialog, [
             "const SETTINGS_SHELL_SURFACE_CLASS =",
             "max-w-[calc(100vw_-_40px)]",
-            "sm:max-w-[920px]",
+            "sm:max-w-[min(920px,calc(100vw_-_40px))]",
         ]);
         for (const [pattern, label] of LEGACY_SETTINGS_SHELL_CSS_SELECTORS) {
             expect(globals, `globals should not use ${label}`).not.toMatch(
@@ -1141,7 +1149,7 @@ describe("settings SOT interaction regressions", () => {
             "max-h-[calc(100svh_-_1rem)]",
             "w-[920px]",
             "max-w-[calc(100vw_-_40px)]",
-            "sm:max-w-[920px]",
+            "sm:max-w-[min(920px,calc(100vw_-_40px))]",
             "flex-col",
             "gap-0",
             "overflow-hidden",
@@ -1199,7 +1207,7 @@ describe("settings SOT interaction regressions", () => {
             "grid",
             "min-h-0",
             "flex-1",
-            "grid-cols-[200px_1fr]",
+            "grid-cols-[200px_minmax(0,1fr)]",
         ]);
         findStringConstInitializerContaining(dialog, [
             "const SETTINGS_RAIL_CLASS =",
