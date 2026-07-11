@@ -635,7 +635,7 @@ const dashboardButtonClassNames = {
     sync: "text-muted-foreground",
     speakersMerge: "shrink-0",
     drawerTrigger:
-        "relative hidden max-[860px]:inline-flex group-data-[source-filter-active=true]/dashboard-workstation:[&_[data-sot-part=dashboard-drawer-active-dot]]:inline-block",
+        "relative hidden h-[2px] w-[22.5px] px-[11.25px] py-px after:absolute after:-inset-[21px] after:content-[''] max-[860px]:inline-flex group-data-[source-filter-active=true]/dashboard-workstation:[&_[data-sot-part=dashboard-drawer-active-dot]]:inline-block",
     sidebarCollapse: "max-[860px]:hidden",
     settingsAvatar: "rounded-full text-xs font-semibold",
     listPagination: "text-muted-foreground",
