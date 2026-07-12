@@ -94,31 +94,20 @@ function StatePill({
     tone?: "success" | "neutral" | "warning" | "danger";
 }) {
     return (
-        <Badge
-            variant={speakerStateBadgeVariantByTone[tone]}
-            data-sot-badge="speaker-state"
-            data-sot-tone={tone}
-        >
-            {children}
-        </Badge>
+        <Badge variant={speakerStateBadgeVariantByTone[tone]}>{children}</Badge>
     );
 }
 
 function PanelNotice({
     action,
     children,
-    panel,
-    state,
     tone = "neutral",
 }: {
     action?: ReactNode;
     children: ReactNode;
-    panel?: string;
-    state?: string;
     tone?: "danger" | "neutral";
 }) {
     const Icon = tone === "danger" ? AlertCircle : CheckCircle2;
-    const bannerTone = tone === "danger" ? "err" : "info";
 
     return (
         <Alert
@@ -126,14 +115,10 @@ function PanelNotice({
             density="comfortable"
             layout="default"
             variant={tone === "danger" ? "destructiveSoft" : "default"}
-            data-sot-banner="speaker-profiles-notice"
-            data-sot-panel={panel}
-            data-sot-state={state}
-            data-sot-tone={bannerTone}
         >
-            <Icon aria-hidden="true" data-sot-banner-icon />
-            <AlertDescription density="comfortable" data-sot-banner-body>
-                <p data-sot-banner-sub>{children}</p>
+            <Icon aria-hidden="true" />
+            <AlertDescription density="comfortable">
+                <p>{children}</p>
                 {action ? (
                     <div className="mt-2 flex items-center gap-2">{action}</div>
                 ) : null}
@@ -489,47 +474,27 @@ export function SpeakerProfilesPanel() {
         [confirm, isZh, refreshVoiceprints],
     );
 
-    const profilesState = isProfilesLoading
-        ? "loading"
-        : profilesError
-          ? "error"
-          : profiles.length === 0
-            ? "empty"
-            : "ready";
-    const voiceprintsState = isVoiceprintsLoading
-        ? "loading"
-        : voiceprintsError
-          ? "error"
-          : !voiceprintsAvailable
-            ? "disabled"
-            : voiceprints.length === 0
-              ? "empty"
-              : "ready";
     const isCreatingSpeakerProfile = localSavingId === "new";
     const isNewSpeakerNameBlank = newName.trim().length === 0;
     const isCreateSpeakerDisabled =
         isCreatingSpeakerProfile || isNewSpeakerNameBlank;
 
     return (
-        <div
+        <section
             className={speakerProfilesPanelClassName}
-            data-sot-panel="speaker-profiles"
-            data-sot-section-group
-            data-sot-state={profilesState}
-            data-sot-voiceprints-state={voiceprintsState}
+            aria-label={isZh ? "说话人设置" : "Speaker settings"}
         >
-            <div
+            <section
                 className={speakerSectionGroupClassName}
-                data-sot-panel="speaker-profiles-local"
-                data-sot-section-group
-                data-sot-state={profilesState}
+                aria-busy={isProfilesLoading}
+                aria-labelledby="saved-speakers-heading"
             >
                 <Field
                     orientation="horizontal"
                     className={speakerSettingsRowClassName}
                 >
                     <FieldContent>
-                        <FieldTitle>
+                        <FieldTitle id="saved-speakers-heading">
                             {isZh ? "已保存的说话人" : "Saved Speakers"}
                         </FieldTitle>
                         <FieldDescription>
@@ -545,10 +510,9 @@ export function SpeakerProfilesPanel() {
                         onClick={() => void refreshProfiles()}
                         disabled={isProfilesLoading}
                         aria-busy={isProfilesLoading}
-                        data-sot-control="speaker-profiles-refresh"
-                        data-sot-state={isProfilesLoading ? "loading" : "idle"}
                     >
                         <RefreshCw
+                            aria-hidden="true"
                             data-icon="inline-start"
                             data-icon-state={
                                 isProfilesLoading ? "loading" : undefined
@@ -567,7 +531,6 @@ export function SpeakerProfilesPanel() {
                             {isZh ? "说话人名称" : "Speaker name"}
                         </FieldLabel>
                         <Input
-                            data-sot-control="speaker-profile-new-name"
                             id="new-speaker-name"
                             value={newName}
                             onChange={(event) => setNewName(event.target.value)}
@@ -591,14 +554,6 @@ export function SpeakerProfilesPanel() {
                         disabled={isCreateSpeakerDisabled}
                         aria-busy={isCreatingSpeakerProfile}
                         aria-describedby="new-speaker-create-description"
-                        data-sot-control="speaker-profile-create"
-                        data-sot-state={
-                            isCreatingSpeakerProfile
-                                ? "saving"
-                                : isNewSpeakerNameBlank
-                                  ? "disabled"
-                                  : "idle"
-                        }
                     >
                         {isZh ? "添加说话人" : "Add Speaker"}
                     </Button>
@@ -608,8 +563,6 @@ export function SpeakerProfilesPanel() {
                     <SettingsListSkeleton rows={2} />
                 ) : profilesError ? (
                     <PanelNotice
-                        panel="speaker-profiles-notice"
-                        state="error"
                         tone="danger"
                         action={
                             <Button
@@ -617,8 +570,6 @@ export function SpeakerProfilesPanel() {
                                 size="sm"
                                 variant="outline"
                                 onClick={() => void refreshProfiles()}
-                                data-sot-control="speaker-profiles-retry"
-                                data-sot-state="idle"
                             >
                                 {isZh ? "重试" : "Retry"}
                             </Button>
@@ -627,18 +578,14 @@ export function SpeakerProfilesPanel() {
                         {profilesError}
                     </PanelNotice>
                 ) : profiles.length === 0 ? (
-                    <Empty
-                        data-sot-panel="speaker-profiles-notice"
-                        data-sot-part="speaker-profiles-empty"
-                        data-sot-state="empty"
-                    >
+                    <Empty role="status">
                         <EmptyHeader>
-                            <EmptyTitle data-sot-part="speaker-profiles-empty-title">
+                            <EmptyTitle>
                                 {isZh
                                     ? "还没有已保存的说话人"
                                     : "No saved speakers yet"}
                             </EmptyTitle>
-                            <EmptyDescription data-sot-part="speaker-profiles-empty-description">
+                            <EmptyDescription>
                                 {isZh
                                     ? "添加常用说话人后，可在录音整理时复用这些名称。"
                                     : "Add reusable speakers to keep names consistent while organizing recordings."}
@@ -646,9 +593,9 @@ export function SpeakerProfilesPanel() {
                         </EmptyHeader>
                     </Empty>
                 ) : (
-                    <div
+                    <ul
                         className={speakerRowsListClassName}
-                        data-sot-list="speaker-profile-rows"
+                        aria-label={isZh ? "已保存的说话人" : "Saved speakers"}
                     >
                         {profiles.map((profile) => {
                             const isProfileSaving =
@@ -657,20 +604,12 @@ export function SpeakerProfilesPanel() {
                             const profileNameDescriptionId = `speaker-profile-${profile.id}-description`;
 
                             return (
-                                <div
+                                <li
                                     className={speakerRowItemClassName}
                                     key={profile.id}
-                                    data-sot-item="speaker-profile-row"
-                                    data-sot-speaker-profile-row=""
-                                    data-sot-speaker-profile-busy={
-                                        isProfileSaving ? "true" : "false"
-                                    }
-                                    data-sot-speaker-profile-id={profile.id}
-                                    data-sot-state={
-                                        isProfileSaving ? "saving" : "ready"
-                                    }
+                                    aria-busy={isProfileSaving}
                                 >
-                                    <Avatar data-sot-part="speaker-profile-avatar">
+                                    <Avatar aria-hidden="true">
                                         <AvatarFallback
                                             className={
                                                 speakerAvatarFallbackClassName
@@ -687,7 +626,6 @@ export function SpeakerProfilesPanel() {
                                         data-disabled={
                                             isProfileSaving ? "true" : undefined
                                         }
-                                        data-sot-part="speaker-profile-row-meta"
                                     >
                                         <FieldLabel
                                             className="sr-only"
@@ -699,10 +637,6 @@ export function SpeakerProfilesPanel() {
                                         </FieldLabel>
                                         <FieldControl className="w-full">
                                             <Input
-                                                data-sot-control="speaker-profile-name"
-                                                data-sot-speaker-profile-id={
-                                                    profile.id
-                                                }
                                                 id={profileNameInputId}
                                                 value={profile.displayName}
                                                 onChange={(event) =>
@@ -730,7 +664,6 @@ export function SpeakerProfilesPanel() {
                                         <FieldDescription
                                             className={speakerRowSubClassName}
                                             id={profileNameDescriptionId}
-                                            data-sot-part="speaker-profile-row-sub"
                                         >
                                             <span>
                                                 {isZh
@@ -775,11 +708,6 @@ export function SpeakerProfilesPanel() {
                                         onClick={() => handleUpdate(profile)}
                                         disabled={isProfileSaving}
                                         aria-busy={isProfileSaving}
-                                        data-sot-control="speaker-profile-save"
-                                        data-sot-speaker-profile-id={profile.id}
-                                        data-sot-state={
-                                            isProfileSaving ? "saving" : "idle"
-                                        }
                                     >
                                         {isZh ? "保存" : "Save"}
                                     </Button>
@@ -789,35 +717,27 @@ export function SpeakerProfilesPanel() {
                                         variant="destructive"
                                         onClick={() => handleDelete(profile)}
                                         disabled={isProfileSaving}
-                                        data-sot-control="speaker-profile-delete"
-                                        data-sot-speaker-profile-id={profile.id}
-                                        data-sot-state={
-                                            isProfileSaving
-                                                ? "disabled"
-                                                : "idle"
-                                        }
                                     >
                                         {isZh ? "删除" : "Delete"}
                                     </Button>
-                                </div>
+                                </li>
                             );
                         })}
-                    </div>
+                    </ul>
                 )}
-            </div>
+            </section>
 
-            <div
+            <section
                 className={speakerSectionGroupClassName}
-                data-sot-panel="speaker-voiceprints"
-                data-sot-section-group
-                data-sot-state={voiceprintsState}
+                aria-busy={isVoiceprintsLoading}
+                aria-labelledby="voiceprints-heading"
             >
                 <Field
                     orientation="horizontal"
                     className={speakerSettingsRowClassName}
                 >
                     <FieldContent>
-                        <FieldTitle>
+                        <FieldTitle id="voiceprints-heading">
                             {isZh ? "声纹库" : "Voiceprints"}
                         </FieldTitle>
                         <FieldDescription>
@@ -833,12 +753,9 @@ export function SpeakerProfilesPanel() {
                         onClick={() => void refreshVoiceprints()}
                         disabled={isVoiceprintsLoading}
                         aria-busy={isVoiceprintsLoading}
-                        data-sot-control="speaker-voiceprints-refresh"
-                        data-sot-state={
-                            isVoiceprintsLoading ? "loading" : "idle"
-                        }
                     >
                         <RefreshCw
+                            aria-hidden="true"
                             data-icon="inline-start"
                             data-icon-state={
                                 isVoiceprintsLoading ? "loading" : undefined
@@ -852,8 +769,6 @@ export function SpeakerProfilesPanel() {
                     <SettingsListSkeleton rows={2} />
                 ) : voiceprintsError ? (
                     <PanelNotice
-                        panel="speaker-voiceprints-notice"
-                        state="error"
                         tone="danger"
                         action={
                             <Button
@@ -861,8 +776,6 @@ export function SpeakerProfilesPanel() {
                                 size="sm"
                                 variant="outline"
                                 onClick={() => void refreshVoiceprints()}
-                                data-sot-control="speaker-voiceprints-retry"
-                                data-sot-state="idle"
                             >
                                 {isZh ? "重试" : "Retry"}
                             </Button>
@@ -871,28 +784,21 @@ export function SpeakerProfilesPanel() {
                         {voiceprintsError}
                     </PanelNotice>
                 ) : !voiceprintsAvailable ? (
-                    <PanelNotice
-                        panel="speaker-voiceprints-notice"
-                        state="disabled"
-                    >
+                    <PanelNotice>
                         {voiceprintsReason ||
                             (isZh
                                 ? "请先在 VoScript 保存可用的服务连接。"
                                 : "Save a working VoScript connection first.")}
                     </PanelNotice>
                 ) : voiceprints.length === 0 ? (
-                    <Empty
-                        data-sot-panel="speaker-voiceprints-notice"
-                        data-sot-part="speaker-voiceprints-empty"
-                        data-sot-state="empty"
-                    >
+                    <Empty role="status">
                         <EmptyHeader>
-                            <EmptyTitle data-sot-part="speaker-voiceprints-empty-title">
+                            <EmptyTitle>
                                 {isZh
                                     ? "没有找到远端声纹"
                                     : "No remote voiceprints found"}
                             </EmptyTitle>
-                            <EmptyDescription data-sot-part="speaker-voiceprints-empty-description">
+                            <EmptyDescription>
                                 {isZh
                                     ? "完成一次带声纹的转录后，远端声纹会显示在这里。"
                                     : "Remote voiceprints will appear here after a voiceprint-enabled transcription."}
@@ -900,9 +806,9 @@ export function SpeakerProfilesPanel() {
                         </EmptyHeader>
                     </Empty>
                 ) : (
-                    <div
+                    <ul
                         className={speakerRowsListClassName}
-                        data-sot-list="speaker-voiceprint-rows"
+                        aria-label={isZh ? "远端声纹" : "Remote voiceprints"}
                     >
                         {voiceprints.map((voiceprint) => {
                             const isVoiceprintSaving =
@@ -911,20 +817,12 @@ export function SpeakerProfilesPanel() {
                             const voiceprintNameDescriptionId = `voiceprint-${voiceprint.id}-description`;
 
                             return (
-                                <div
+                                <li
                                     className={speakerRowItemClassName}
                                     key={voiceprint.id}
-                                    data-sot-item="speaker-voiceprint-row"
-                                    data-sot-state={
-                                        isVoiceprintSaving ? "saving" : "ready"
-                                    }
-                                    data-sot-voiceprint-busy={
-                                        isVoiceprintSaving ? "true" : "false"
-                                    }
-                                    data-sot-voiceprint-id={voiceprint.id}
-                                    data-sot-voiceprint-row=""
+                                    aria-busy={isVoiceprintSaving}
                                 >
-                                    <Avatar data-sot-part="speaker-voiceprint-avatar">
+                                    <Avatar aria-hidden="true">
                                         <AvatarFallback
                                             className={
                                                 speakerAvatarFallbackClassName
@@ -944,7 +842,6 @@ export function SpeakerProfilesPanel() {
                                                 ? "true"
                                                 : undefined
                                         }
-                                        data-sot-part="speaker-voiceprint-row-meta"
                                     >
                                         <FieldLabel
                                             className="sr-only"
@@ -956,10 +853,6 @@ export function SpeakerProfilesPanel() {
                                         </FieldLabel>
                                         <FieldControl className="w-full">
                                             <Input
-                                                data-sot-control="speaker-voiceprint-name"
-                                                data-sot-voiceprint-id={
-                                                    voiceprint.id
-                                                }
                                                 id={voiceprintNameInputId}
                                                 value={voiceprint.displayName}
                                                 onChange={(event) =>
@@ -987,7 +880,6 @@ export function SpeakerProfilesPanel() {
                                         <FieldDescription
                                             className={speakerRowSubClassName}
                                             id={voiceprintNameDescriptionId}
-                                            data-sot-part="speaker-voiceprint-row-sub"
                                         >
                                             <StatePill tone="success">
                                                 {isZh ? "远端声纹" : "Remote"}
@@ -1037,13 +929,6 @@ export function SpeakerProfilesPanel() {
                                                 ? `重命名声纹 ${voiceprint.displayName || voiceprint.id}`
                                                 : `Rename voiceprint ${voiceprint.displayName || voiceprint.id}`
                                         }
-                                        data-sot-control="speaker-voiceprint-rename"
-                                        data-sot-state={
-                                            isVoiceprintSaving
-                                                ? "saving"
-                                                : "idle"
-                                        }
-                                        data-sot-voiceprint-id={voiceprint.id}
                                     >
                                         {isZh ? "重命名" : "Rename"}
                                     </Button>
@@ -1060,22 +945,15 @@ export function SpeakerProfilesPanel() {
                                                 ? `删除声纹 ${voiceprint.displayName || voiceprint.id}`
                                                 : `Delete voiceprint ${voiceprint.displayName || voiceprint.id}`
                                         }
-                                        data-sot-control="speaker-voiceprint-delete"
-                                        data-sot-state={
-                                            isVoiceprintSaving
-                                                ? "disabled"
-                                                : "idle"
-                                        }
-                                        data-sot-voiceprint-id={voiceprint.id}
                                     >
                                         {isZh ? "删除" : "Delete"}
                                     </Button>
-                                </div>
+                                </li>
                             );
                         })}
-                    </div>
+                    </ul>
                 )}
-            </div>
-        </div>
+            </section>
+        </section>
     );
 }

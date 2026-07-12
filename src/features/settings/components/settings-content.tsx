@@ -106,7 +106,6 @@ type SectionSaveState = "idle" | "saving" | "saved" | "error";
 
 interface Option<Value extends string | number = string> {
     label: string;
-    sotValue?: string;
     value: Value;
 }
 
@@ -203,7 +202,6 @@ function SectionShell({
     loading,
     onRetry,
     scrollRef,
-    section,
     subtitle,
     title,
 }: {
@@ -213,7 +211,6 @@ function SectionShell({
     loading: boolean;
     onRetry: () => void;
     scrollRef?: Ref<HTMLDivElement>;
-    section: string;
     subtitle?: string;
     title: string;
 }) {
@@ -231,32 +228,19 @@ function SectionShell({
             <div
                 ref={scrollRef}
                 aria-busy={busy}
-                data-sot-layout="section"
-                data-sot-panel="settings-scroll-body"
-                data-sot-section={section}
-                data-sot-state="error"
-                data-sot-surface="settings-section"
                 className={SETTINGS_SCROLL_BODY_CLASS}
             >
                 <Alert
                     variant="destructiveSoft"
                     density="comfortable"
-                    data-sot-banner="settings-section-load-error"
-                    data-sot-panel="settings-section-load-error"
-                    data-sot-section={section}
-                    data-sot-tone="err"
                     className={SETTINGS_BANNER_BASE_CLASS}
                 >
                     <AlertCircle aria-hidden="true" />
-                    <AlertTitle
-                        className={SETTINGS_BANNER_TITLE_CLASS}
-                        data-sot-banner-title
-                    >
+                    <AlertTitle className={SETTINGS_BANNER_TITLE_CLASS}>
                         {isZh ? "加载失败" : "Load failed"}
                     </AlertTitle>
                     <AlertDescription
                         className={SETTINGS_BANNER_DESCRIPTION_CLASS}
-                        data-sot-banner-sub
                     >
                         <span>{loadError}</span>
                         <Button
@@ -265,8 +249,6 @@ function SectionShell({
                             size="sm"
                             className="mt-3"
                             onClick={onRetry}
-                            data-sot-control="settings-section-load-retry"
-                            data-sot-section={section}
                         >
                             <RotateCw
                                 data-icon="inline-start"
@@ -284,16 +266,9 @@ function SectionShell({
         <div
             ref={scrollRef}
             aria-busy={busy}
-            data-sot-layout="section"
-            data-sot-panel="settings-scroll-body"
-            data-sot-section={section}
-            data-sot-state={busy ? "busy" : "ready"}
-            data-sot-surface="settings-section"
             className={SETTINGS_SCROLL_BODY_CLASS}
         >
-            <h3 className={SETTINGS_SECTION_TITLE_CLASS} data-sot-title>
-                {title}
-            </h3>
+            <h3 className={SETTINGS_SECTION_TITLE_CLASS}>{title}</h3>
             {subtitle ? (
                 <FieldDescription className="max-w-2xl">
                     {subtitle}
@@ -314,14 +289,8 @@ function SettingsGroup({
     title: string;
 }) {
     return (
-        <section
-            className={SETTINGS_SECTION_GROUP_CLASS}
-            data-sot-section-group
-        >
-            <header
-                className={SETTINGS_SECTION_HEAD_CLASS}
-                data-sot-section-head
-            >
+        <section className={SETTINGS_SECTION_GROUP_CLASS}>
+            <header className={SETTINGS_SECTION_HEAD_CLASS}>
                 <h4 className={SETTINGS_SECTION_HEAD_TITLE_CLASS}>{title}</h4>
                 {subtitle ? (
                     <p className={SETTINGS_SECTION_HEAD_DESCRIPTION_CLASS}>
@@ -340,20 +309,16 @@ function SettingsRow({
     fieldMessage,
     fieldState,
     label,
-    sotField,
 }: {
     children?: React.ReactNode;
     description?: string;
     fieldMessage?: string;
     fieldState?: "invalid";
     label: string;
-    sotField?: string;
 }) {
     return (
         <Field
             data-invalid={fieldState === "invalid" ? "true" : undefined}
-            data-sot-field={sotField}
-            data-sot-state={fieldState ?? "ready"}
             orientation="horizontal"
             className={SETTINGS_FIELD_ROW_CLASS}
         >
@@ -362,15 +327,7 @@ function SettingsRow({
                 {description ? (
                     <FieldDescription>{description}</FieldDescription>
                 ) : null}
-                {fieldMessage ? (
-                    <FieldError
-                        data-sot-field={sotField}
-                        data-sot-part="settings-field-message"
-                        data-sot-state="invalid"
-                    >
-                        {fieldMessage}
-                    </FieldError>
-                ) : null}
+                {fieldMessage ? <FieldError>{fieldMessage}</FieldError> : null}
             </FieldContent>
             {children ? (
                 <FieldControl className={SETTINGS_FIELD_CONTROL_CLASS}>
@@ -382,7 +339,6 @@ function SettingsRow({
 }
 
 function SelectControl<Value extends string | number>({
-    control,
     disabled,
     id,
     label,
@@ -390,7 +346,6 @@ function SelectControl<Value extends string | number>({
     options,
     value,
 }: {
-    control?: string;
     disabled?: boolean;
     id: string;
     label: string;
@@ -401,8 +356,6 @@ function SelectControl<Value extends string | number>({
     return (
         <Select
             aria-label={label}
-            data-sot-control={control}
-            data-sot-state={disabled ? "disabled" : "ready"}
             disabled={disabled}
             id={id}
             onValueChange={onChange}
@@ -416,14 +369,12 @@ function SelectControl<Value extends string | number>({
 }
 
 function SegmentControl<Value extends string>({
-    control,
     disabled,
     label,
     onChange,
     options,
     value,
 }: {
-    control: string;
     disabled?: boolean;
     label: string;
     onChange: (value: Value) => void;
@@ -434,8 +385,6 @@ function SegmentControl<Value extends string>({
         <ToggleGroup
             aria-disabled={disabled ? "true" : "false"}
             aria-label={label}
-            data-sot-control={control}
-            data-sot-panel="settings-segment-control"
             disabled={disabled}
             className={SETTINGS_SEGMENT_GROUP_CLASS}
             size="sm"
@@ -450,15 +399,9 @@ function SegmentControl<Value extends string>({
             }}
         >
             {options.map((option) => {
-                const active = option.value === value;
-
                 return (
                     <ToggleGroupItem
                         key={option.value}
-                        data-sot-control={control}
-                        data-sot-display-value={option.sotValue ?? option.value}
-                        data-sot-state={active ? "selected" : "idle"}
-                        data-sot-value={option.value}
                         disabled={disabled}
                         value={option.value}
                     >
@@ -591,7 +534,6 @@ function DisplaySettingsPanel({
         {
             label: isZh ? "自动" : "Auto",
             value: "system",
-            sotValue: "auto",
         },
         { label: isZh ? "浅色" : "Light", value: "light" },
         { label: isZh ? "深色" : "Dark", value: "dark" },
@@ -604,12 +546,10 @@ function DisplaySettingsPanel({
         {
             label: isZh ? "2 小时前" : "2 hours ago",
             value: "relative",
-            sotValue: "rel",
         },
         {
             label: "14:00",
             value: "absolute",
-            sotValue: "abs",
         },
     ];
     const densityOptions: Option<DisplayDensity>[] = [
@@ -629,7 +569,6 @@ function DisplaySettingsPanel({
             loading={isLoading && !hasLoaded}
             onRetry={() => void ensureDisplaySettingsLoaded().catch(() => {})}
             scrollRef={scrollRef}
-            section="appearance"
             title={isZh ? "显示设置" : "Display Settings"}
         >
             <SettingsGroup
@@ -649,7 +588,6 @@ function DisplaySettingsPanel({
                     }
                 >
                     <SegmentControl
-                        control="theme"
                         label={isZh ? "主题" : "Theme"}
                         options={themeOptions}
                         value={draft.theme}
@@ -699,7 +637,6 @@ function DisplaySettingsPanel({
                     }
                 >
                     <SegmentControl
-                        control="density"
                         label={isZh ? "信息密度" : "Information density"}
                         options={densityOptions}
                         value={draft.displayDensity}
@@ -718,7 +655,6 @@ function DisplaySettingsPanel({
                     }
                 >
                     <SegmentControl
-                        control="time-style"
                         label={isZh ? "时间显示" : "Time display"}
                         options={dateTimeOptions}
                         value={
@@ -865,7 +801,6 @@ function TitleGenerationSettingsPanel({
                 void ensureTitleGenerationSettingsLoaded().catch(() => {})
             }
             scrollRef={scrollRef}
-            section="title-generation"
             title={isZh ? "AI 重命名服务" : "AI Rename Service"}
         >
             <SettingsGroup
@@ -1049,7 +984,6 @@ function TranscriptionSettingsPanel({
                     .catch(() => {});
             }}
             scrollRef={scrollRef}
-            section="transcription"
             title={isZh ? "转录设置" : "Transcription Settings"}
         >
             <SettingsGroup
@@ -1074,10 +1008,6 @@ function TranscriptionSettingsPanel({
                 >
                     <Switch
                         id="transcription-auto-transcribe"
-                        data-sot-control="transcription-auto-transcribe"
-                        data-sot-state={
-                            draft.autoTranscribe ? "checked" : "unchecked"
-                        }
                         checked={draft.autoTranscribe}
                         disabled={busy}
                         onCheckedChange={(checked) => {
@@ -1105,7 +1035,6 @@ function TranscriptionSettingsPanel({
                 >
                     <SelectControl
                         id="transcription-language"
-                        control="transcription-language"
                         label={
                             isZh
                                 ? "默认转录语言"
@@ -1185,10 +1114,6 @@ function SyncSettingsRows({
                 }
             >
                 <Switch
-                    data-sot-control="sync-auto-enabled"
-                    data-sot-state={
-                        draft.autoSyncEnabled ? "checked" : "unchecked"
-                    }
                     id="sync-auto-enabled"
                     checked={draft.autoSyncEnabled}
                     disabled={busy}
@@ -1205,8 +1130,6 @@ function SyncSettingsRows({
             >
                 <Input
                     className={SETTINGS_NUMBER_INPUT_CLASS}
-                    data-sot-control="sync-interval-seconds"
-                    data-sot-state={busy ? "disabled" : "ready"}
                     id="sync-interval-seconds"
                     type="number"
                     min={MIN_SYNC_INTERVAL_SECONDS}
@@ -1258,7 +1181,6 @@ function PlaybackSettingsRows({
                 }
             >
                 <SelectControl
-                    control="playback-speed"
                     id="playback-speed"
                     label={isZh ? "默认速度" : "Default speed"}
                     options={speedOptions}
@@ -1275,8 +1197,6 @@ function PlaybackSettingsRows({
             >
                 <Slider
                     className={SETTINGS_INPUT_CLASS}
-                    data-sot-control="playback-volume"
-                    data-sot-state={busy ? "disabled" : "ready"}
                     id="playback-volume"
                     min={0}
                     max={100}
@@ -1297,10 +1217,6 @@ function PlaybackSettingsRows({
                 }
             >
                 <Switch
-                    data-sot-control="playback-auto-next"
-                    data-sot-state={
-                        draft.autoPlayNext ? "checked" : "unchecked"
-                    }
                     id="playback-auto-next"
                     checked={draft.autoPlayNext}
                     disabled={busy}
@@ -1315,10 +1231,7 @@ function PlaybackSettingsRows({
                         : "Supported while the player is focused"
                 }
             >
-                <div
-                    className={SETTINGS_SHORTCUTS_GRID_CLASS}
-                    data-sot-shortcuts
-                >
+                <div className={SETTINGS_SHORTCUTS_GRID_CLASS}>
                     <div className={SETTINGS_SHORTCUT_ROW_CLASS}>
                         <kbd className={SETTINGS_SHORTCUT_KEY_CLASS}>Space</kbd>
                         <span>{isZh ? "播放 / 暂停" : "Play / pause"}</span>
@@ -1471,7 +1384,6 @@ function MiscSettingsPanel({ scrollRef }: { scrollRef?: Ref<HTMLDivElement> }) {
                     .catch(() => {});
             }}
             scrollRef={scrollRef}
-            section="misc"
             title={isZh ? "杂项" : "Misc"}
             subtitle={
                 isZh

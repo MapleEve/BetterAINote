@@ -10216,7 +10216,7 @@ describe("full UI replacement regression coverage", () => {
             );
         }
         expect(settings).toMatch(
-            /<h3\s+className=\{SETTINGS_SECTION_TITLE_CLASS\}\s+data-sot-title>\s*\{title\}\s*<\/h3>/,
+            /<h3\s+className=\{SETTINGS_SECTION_TITLE_CLASS\}>\s*\{title\}\s*<\/h3>/,
         );
         expect(settings).not.toContain("<h3 data-sot-title>{title}</h3>");
         for (const selector of [
@@ -11096,21 +11096,21 @@ describe("full UI replacement regression coverage", () => {
         expect(settingsSegmentControl).toContain(
             "className={SETTINGS_SEGMENT_GROUP_CLASS}",
         );
+        expect(settingsSegmentControl).toContain(
+            'aria-disabled={disabled ? "true" : "false"}',
+        );
+        expect(settingsSegmentControl).toContain("aria-label={label}");
+        expect(settingsSegmentControl).toContain("disabled={disabled}");
         expect(settingsSegmentControl).toContain('variant="outline"');
         expect(settingsSegmentControl).toContain('size="sm"');
         expect(settingsSegmentControl).toContain("spacing={1}");
+        expect(settingsSegmentControl).not.toContain("data-sot-");
         expect(settings).not.toContain("SETTINGS_SEGMENT_OPTION_CLASS");
         expect(settingsSegmentItems).toHaveLength(1);
         for (const segmentItem of settingsSegmentItems) {
-            expect(segmentItem).toContain("data-sot-control={control}");
-            expect(segmentItem).toContain(
-                "data-sot-display-value={option.sotValue ?? option.value}",
-            );
-            expect(segmentItem).toContain(
-                'data-sot-state={active ? "selected" : "idle"}',
-            );
-            expect(segmentItem).toContain("data-sot-value={option.value}");
+            expect(segmentItem).toContain("disabled={disabled}");
             expect(segmentItem).toContain("value={option.value}");
+            expect(segmentItem).not.toContain("data-sot-");
             expect(segmentItem).not.toContain("className=");
             expect(segmentItem).not.toMatch(/\bvariant=/);
             expect(segmentItem).not.toMatch(/\bsize=/);
@@ -11265,7 +11265,7 @@ describe("full UI replacement regression coverage", () => {
         );
         const settingsSectionLoadErrorAlert = extractOpeningElement(
             settings,
-            'data-sot-banner="settings-section-load-error"',
+            'variant="destructiveSoft"',
             "Alert",
         );
         const settingsSourceLoadRetry = extractElementSlice(
@@ -11275,7 +11275,7 @@ describe("full UI replacement regression coverage", () => {
         );
         const settingsSectionLoadRetry = extractElementSlice(
             settings,
-            'data-sot-control="settings-section-load-retry"',
+            "onClick={onRetry}",
             "Button",
         );
         const settingsVoScriptUnavailableAlert = extractOpeningElement(
@@ -11333,7 +11333,7 @@ describe("full UI replacement regression coverage", () => {
                 'variant="destructiveSoft"',
             );
             expect(settingsLoadErrorAlert).toContain('density="comfortable"');
-            expect(settingsLoadErrorAlert).toContain('data-sot-tone="err"');
+            expect(settingsLoadErrorAlert).not.toContain("data-sot-");
             expect(settingsLoadErrorAlert).not.toContain(
                 "SETTINGS_BANNER_ACTION_LAYOUT_CLASS",
             );
@@ -11351,10 +11351,11 @@ describe("full UI replacement regression coverage", () => {
         );
         expect(settingsSourceLoadRetry).not.toContain("data-sot-");
         expect(settingsSectionLoadRetry).toContain('variant="default"');
+        expect(settingsSectionLoadRetry).toContain('type="button"');
+        expect(settingsSectionLoadRetry).toContain('size="sm"');
         expect(settingsSectionLoadRetry).toContain("onClick={onRetry}");
-        expect(settingsSectionLoadRetry).toContain(
-            "data-sot-section={section}",
-        );
+        expect(settingsSectionLoadRetry).not.toContain("data-sot-");
+        expect(settings).toContain("aria-busy={busy}");
         expect(settingsVoScriptUnavailableAlert).toContain(
             'density="comfortable"',
         );
@@ -14273,10 +14274,9 @@ describe("full UI replacement regression coverage", () => {
         );
         const speakerProfileButtons =
             speakerProfiles.match(/<Button\b[\s\S]*?<\/Button>/g) ?? [];
-        const findSpeakerProfileButton = (control: string) =>
-            speakerProfileButtons.find((button) =>
-                button.includes(`data-sot-control="${control}"`),
-            ) ?? "";
+        const findSpeakerProfileButton = (snippet: string) =>
+            speakerProfileButtons.find((button) => button.includes(snippet)) ??
+            "";
         const speakerAvatarFallbacks =
             speakerProfiles.match(/<AvatarFallback\b[^>]*>/g) ?? [];
         const speakerStateBadges =
@@ -14287,22 +14287,22 @@ describe("full UI replacement regression coverage", () => {
             ) ?? [];
         const speakerProfilesPanelOpening = extractOpeningElement(
             speakerProfiles,
-            'data-sot-panel="speaker-profiles"',
-            "div",
+            'aria-label={isZh ? "说话人设置" : "Speaker settings"}',
+            "section",
         );
         const speakerProfilesLocalOpening = extractOpeningElement(
             speakerProfiles,
-            'data-sot-panel="speaker-profiles-local"',
-            "div",
+            'aria-labelledby="saved-speakers-heading"',
+            "section",
         );
         const speakerVoiceprintsOpening = extractOpeningElement(
             speakerProfiles,
-            'data-sot-panel="speaker-voiceprints"',
-            "div",
+            'aria-labelledby="voiceprints-heading"',
+            "section",
         );
         const speakerStateBadgeOpenings = speakerStateBadges.filter(
             (stateBadge) =>
-                stateBadge.includes('data-sot-badge="speaker-state"'),
+                stateBadge.includes("speakerStateBadgeVariantByTone[tone]"),
         );
         const speakerStatePill =
             speakerProfiles.match(
@@ -14322,24 +14322,71 @@ describe("full UI replacement regression coverage", () => {
         );
         const speakerProfileNameField = extractElementSlice(
             speakerProfiles,
-            'data-sot-part="speaker-profile-row-meta"',
+            'isProfileSaving ? "true" : undefined',
             "Field",
         );
         const speakerVoiceprintNameField = extractElementSlice(
             speakerProfiles,
-            'data-sot-part="speaker-voiceprint-row-meta"',
+            'isVoiceprintSaving\n                                                ? "true"',
             "Field",
         );
-        const speakerProfileEmptyState = extractElementSlice(
+        const speakerEmptyStates =
+            speakerProfiles.match(/<Empty role="status">[\s\S]*?<\/Empty>/g) ??
+            [];
+        const speakerProfileEmptyState = speakerEmptyStates[0] ?? "";
+        const speakerVoiceprintsEmptyState = speakerEmptyStates[1] ?? "";
+        const speakerProfilesList = extractElementSlice(
             speakerProfiles,
-            'data-sot-part="speaker-profiles-empty"',
-            "Empty",
+            'aria-label={isZh ? "已保存的说话人" : "Saved speakers"}',
+            "ul",
         );
-        const speakerVoiceprintsEmptyState = extractElementSlice(
+        const speakerVoiceprintsList = extractElementSlice(
             speakerProfiles,
-            'data-sot-part="speaker-voiceprints-empty"',
-            "Empty",
+            'aria-label={isZh ? "远端声纹" : "Remote voiceprints"}',
+            "ul",
         );
+        const speakerProfilesRefreshButton = findSpeakerProfileButton(
+            "onClick={() => void refreshProfiles()}",
+        );
+        const speakerProfilesRetryButton =
+            speakerProfileButtons.find(
+                (button) =>
+                    button.includes("onClick={() => void refreshProfiles()}") &&
+                    button.includes('"重试"'),
+            ) ?? "";
+        const speakerProfileCreateButton = findSpeakerProfileButton(
+            "onClick={handleCreate}",
+        );
+        const speakerProfileSaveButton = findSpeakerProfileButton(
+            "onClick={() => handleUpdate(profile)}",
+        );
+        const speakerProfileDeleteButton = findSpeakerProfileButton(
+            "onClick={() => handleDelete(profile)}",
+        );
+        const speakerVoiceprintsRefreshButton = findSpeakerProfileButton(
+            "onClick={() => void refreshVoiceprints()}",
+        );
+        const speakerVoiceprintsRetryButton =
+            speakerProfileButtons.find(
+                (button) =>
+                    button.includes(
+                        "onClick={() => void refreshVoiceprints()}",
+                    ) && button.includes('"重试"'),
+            ) ?? "";
+        const speakerVoiceprintRenameButton = findSpeakerProfileButton(
+            "handleRenameVoiceprint(voiceprint)",
+        );
+        const speakerVoiceprintDeleteButton = findSpeakerProfileButton(
+            "handleDeleteVoiceprint(voiceprint)",
+        );
+        const speakerProfileDeleteHandler =
+            speakerProfiles.match(
+                /const handleDelete = useCallback\([\s\S]*?const handleRenameVoiceprint/,
+            )?.[0] ?? "";
+        const speakerVoiceprintDeleteHandler =
+            speakerProfiles.match(
+                /const handleDeleteVoiceprint = useCallback\([\s\S]*?const isCreatingSpeakerProfile/,
+            )?.[0] ?? "";
         const expectSpeakerFeatureOwnedSnippets = (
             label: string,
             snippets: readonly string[],
@@ -14388,8 +14435,7 @@ describe("full UI replacement regression coverage", () => {
             'import { Badge } from "@/components/ui/badge";',
         );
         expect(speakerProfiles).toContain("<Badge");
-        expect(speakerProfiles).toContain('data-sot-badge="speaker-state"');
-        expect(speakerProfiles).toContain("data-sot-tone={tone}");
+        expect(speakerProfiles).not.toContain("data-sot-");
         expect(speakerStatePill).toContain("<Badge");
         expect(speakerStatePill).toMatch(
             /variant=\{(?:badgeVariant|speakerStateBadgeVariantByTone\[tone\])\}/,
@@ -14446,15 +14492,30 @@ describe("full UI replacement regression coverage", () => {
         expect(speakerProfilesPanelOpening).toContain(
             "className={speakerProfilesPanelClassName}",
         );
-        expect(speakerProfilesPanelOpening).toContain("data-sot-section-group");
+        expect(speakerProfilesPanelOpening).toContain("<section");
+        expect(speakerProfilesPanelOpening).toContain(
+            'aria-label={isZh ? "说话人设置" : "Speaker settings"}',
+        );
         expect(speakerProfilesLocalOpening).toContain(
             "className={speakerSectionGroupClassName}",
         );
-        expect(speakerProfilesLocalOpening).toContain("data-sot-section-group");
+        expect(speakerProfilesLocalOpening).toContain("<section");
+        expect(speakerProfilesLocalOpening).toContain(
+            'aria-labelledby="saved-speakers-heading"',
+        );
+        expect(speakerProfilesLocalOpening).toContain(
+            "aria-busy={isProfilesLoading}",
+        );
         expect(speakerVoiceprintsOpening).toContain(
             "className={speakerSectionGroupClassName}",
         );
-        expect(speakerVoiceprintsOpening).toContain("data-sot-section-group");
+        expect(speakerVoiceprintsOpening).toContain("<section");
+        expect(speakerVoiceprintsOpening).toContain(
+            'aria-labelledby="voiceprints-heading"',
+        );
+        expect(speakerVoiceprintsOpening).toContain(
+            "aria-busy={isVoiceprintsLoading}",
+        );
         expect(
             speakerProfiles.match(
                 /className=\{speakerSectionGroupClassName\}/g,
@@ -14466,15 +14527,17 @@ describe("full UI replacement regression coverage", () => {
             expect(field).not.toContain('variant="speakerSettingsRow"');
         }
         expect(speakerProfiles).toContain("<FieldControl");
-        for (const [field, control, disabledState] of [
+        for (const [field, inputId, descriptionId, disabledState] of [
             [
                 speakerProfileNameField,
-                "speaker-profile-name",
+                "profileNameInputId",
+                "profileNameDescriptionId",
                 "isProfileSaving",
             ],
             [
                 speakerVoiceprintNameField,
-                "speaker-voiceprint-name",
+                "voiceprintNameInputId",
+                "voiceprintNameDescriptionId",
                 "isVoiceprintSaving",
             ],
         ] as const) {
@@ -14483,13 +14546,19 @@ describe("full UI replacement regression coverage", () => {
             expect(field).toContain("<FieldControl");
             expect(field).toContain("<Input");
             expect(field).toContain("<FieldDescription");
-            expect(field).toContain(`data-sot-control="${control}"`);
+            expect(field).toContain(`htmlFor={${inputId}}`);
+            expect(field).toContain(`id={${inputId}}`);
+            expect(field).toContain(
+                `aria-describedby={\n                                                    ${descriptionId}`,
+            );
+            expect(field).toContain(`id={${descriptionId}}`);
             expect(field).toMatch(
                 new RegExp(
                     `data-disabled=\\{\\s*${disabledState}\\s*\\?\\s*"true"\\s*:\\s*undefined\\s*\\}`,
                 ),
             );
             expect(field).toContain(`disabled={${disabledState}}`);
+            expect(field).not.toContain("data-sot-");
             expect(field).not.toContain("<Label");
         }
         expect(speakerPanelNotice).toContain("<Alert");
@@ -14498,88 +14567,196 @@ describe("full UI replacement regression coverage", () => {
         expect(speakerPanelNotice).toContain(
             'variant={tone === "danger" ? "destructiveSoft" : "default"}',
         );
+        expect(speakerPanelNotice).toContain('<Icon aria-hidden="true" />');
+        expect(speakerPanelNotice).toContain(
+            '<AlertDescription density="comfortable">',
+        );
+        expect(speakerPanelNotice).toContain("<p>{children}</p>");
+        expect(speakerPanelNotice).not.toContain("data-sot-");
+        expect(alertPrimitive).toContain('role="alert"');
+        expect(speakerEmptyStates).toHaveLength(2);
         for (const speakerEmptyState of [
             speakerProfileEmptyState,
             speakerVoiceprintsEmptyState,
         ]) {
             expect(speakerEmptyState).toContain("<Empty");
-            expect(speakerEmptyState).toContain('data-sot-state="empty"');
+            expect(speakerEmptyState).toContain('role="status"');
             expect(speakerEmptyState).toContain("<EmptyHeader>");
             expect(speakerEmptyState).toContain("<EmptyTitle");
             expect(speakerEmptyState).toContain("<EmptyDescription");
+            expect(speakerEmptyState).not.toContain("data-sot-");
         }
-        expect(speakerProfileEmptyState).toContain(
-            'data-sot-panel="speaker-profiles-notice"',
-        );
-        expect(speakerProfileEmptyState).toContain(
-            'data-sot-part="speaker-profiles-empty"',
-        );
-        expect(speakerProfileEmptyState).toContain(
-            'data-sot-part="speaker-profiles-empty-title"',
-        );
-        expect(speakerProfileEmptyState).toContain(
-            'data-sot-part="speaker-profiles-empty-description"',
-        );
+        expect(speakerProfileEmptyState).toContain("No saved speakers yet");
         expect(speakerVoiceprintsEmptyState).toContain(
-            'data-sot-panel="speaker-voiceprints-notice"',
+            "No remote voiceprints found",
         );
-        expect(speakerVoiceprintsEmptyState).toContain(
-            'data-sot-part="speaker-voiceprints-empty"',
-        );
-        expect(speakerVoiceprintsEmptyState).toContain(
-            'data-sot-part="speaker-voiceprints-empty-title"',
-        );
-        expect(speakerVoiceprintsEmptyState).toContain(
-            'data-sot-part="speaker-voiceprints-empty-description"',
-        );
-        expect(speakerProfiles).not.toContain(
-            '<PanelNotice panel="speaker-profiles-notice" state="empty"',
-        );
-        expect(speakerProfiles).not.toContain(
-            'panel="speaker-voiceprints-notice"\n                        state="empty"',
-        );
-        expect(speakerProfiles).toContain('panel="speaker-profiles-notice"');
-        expect(speakerProfiles).toContain('panel="speaker-voiceprints-notice"');
-        expect(speakerProfiles).toContain('state="error"');
-        expect(speakerProfiles).toContain('state="disabled"');
+        expect(speakerProfiles).not.toContain("panel?: string;");
+        expect(speakerProfiles).not.toContain("state?: string;");
         expect(speakerProfiles).not.toContain('density="settingsBanner"');
         expect(speakerProfiles).not.toContain('"settingsBannerError"');
         expect(alertPrimitive).not.toContain("settingsBanner:");
         expect(alertPrimitive).not.toContain("settingsBannerError:");
-        for (const control of [
-            "speaker-profiles-refresh",
-            "speaker-profile-create",
-            "speaker-profiles-retry",
-            "speaker-profile-save",
-            "speaker-voiceprints-refresh",
-            "speaker-voiceprints-retry",
-            "speaker-voiceprint-rename",
-        ]) {
-            const opening = findSpeakerProfileButton(control);
-
-            expect(opening).toContain(`data-sot-control="${control}"`);
-            expect(opening).toContain('variant="outline"');
-            expect(opening).toContain('size="sm"');
-            expect(opening).not.toContain('variant="speakerSettingsAction"');
-            expect(opening).not.toContain(
-                'variant="speakerSettingsDangerAction"',
-            );
-            expect(opening).not.toContain('size="speakerSettingsAction"');
+        for (const [list, ariaLabel, savingState] of [
+            [
+                speakerProfilesList,
+                'aria-label={isZh ? "已保存的说话人" : "Saved speakers"}',
+                "isProfileSaving",
+            ],
+            [
+                speakerVoiceprintsList,
+                'aria-label={isZh ? "远端声纹" : "Remote voiceprints"}',
+                "isVoiceprintSaving",
+            ],
+        ] as const) {
+            expect(list).toContain("<ul");
+            expect(list).toContain("className={speakerRowsListClassName}");
+            expect(list).toContain(ariaLabel);
+            expect(list).toContain("<li");
+            expect(list).toContain(`aria-busy={${savingState}}`);
+            expect(list).not.toContain("data-sot-");
         }
-        for (const control of [
-            "speaker-profile-delete",
-            "speaker-voiceprint-delete",
+        expect(speakerProfiles).toContain('htmlFor="new-speaker-name"');
+        expect(speakerProfiles).toContain('id="new-speaker-name"');
+        expect(speakerProfiles).toContain(
+            'aria-describedby="new-speaker-create-description"',
+        );
+        expect(speakerProfiles).toContain(
+            'id="new-speaker-create-description"',
+        );
+        for (const button of [
+            speakerProfilesRefreshButton,
+            speakerProfileCreateButton,
+            speakerProfileSaveButton,
+            speakerVoiceprintsRefreshButton,
+            speakerVoiceprintRenameButton,
         ]) {
-            const opening = findSpeakerProfileButton(control);
-
-            expect(opening).toContain(`data-sot-control="${control}"`);
-            expect(opening).toContain('variant="destructive"');
-            expect(opening).toContain('size="sm"');
-            expect(opening).not.toContain('variant="speakerSettingsAction"');
-            expect(opening).not.toContain(
+            expect(button).toContain('type="button"');
+            expect(button).toContain('variant="outline"');
+            expect(button).toContain('size="sm"');
+            expect(button).not.toContain("data-sot-");
+            expect(button).not.toContain('variant="speakerSettingsAction"');
+            expect(button).not.toContain('size="speakerSettingsAction"');
+        }
+        expect(speakerProfilesRefreshButton).toContain(
+            "onClick={() => void refreshProfiles()}",
+        );
+        expect(speakerProfilesRefreshButton).toContain(
+            "disabled={isProfilesLoading}",
+        );
+        expect(speakerProfilesRefreshButton).toContain(
+            "aria-busy={isProfilesLoading}",
+        );
+        expect(speakerProfileCreateButton).toContain("onClick={handleCreate}");
+        expect(speakerProfileCreateButton).toContain(
+            "disabled={isCreateSpeakerDisabled}",
+        );
+        expect(speakerProfileCreateButton).toContain(
+            "aria-busy={isCreatingSpeakerProfile}",
+        );
+        expect(speakerProfileCreateButton).toContain(
+            'aria-describedby="new-speaker-create-description"',
+        );
+        expect(speakerProfileSaveButton).toContain(
+            "onClick={() => handleUpdate(profile)}",
+        );
+        expect(speakerProfileSaveButton).toContain(
+            "disabled={isProfileSaving}",
+        );
+        expect(speakerProfileSaveButton).toContain(
+            "aria-busy={isProfileSaving}",
+        );
+        expect(speakerVoiceprintsRefreshButton).toContain(
+            "onClick={() => void refreshVoiceprints()}",
+        );
+        expect(speakerVoiceprintsRefreshButton).toContain(
+            "disabled={isVoiceprintsLoading}",
+        );
+        expect(speakerVoiceprintsRefreshButton).toContain(
+            "aria-busy={isVoiceprintsLoading}",
+        );
+        expect(speakerVoiceprintRenameButton).toContain(
+            "handleRenameVoiceprint(voiceprint)",
+        );
+        expect(speakerVoiceprintRenameButton).toContain(
+            "disabled={isVoiceprintSaving}",
+        );
+        expect(speakerVoiceprintRenameButton).toContain(
+            "aria-busy={isVoiceprintSaving}",
+        );
+        expect(speakerVoiceprintRenameButton).toContain("aria-label={");
+        for (const retryButton of [
+            speakerProfilesRetryButton,
+            speakerVoiceprintsRetryButton,
+        ]) {
+            expect(retryButton).toContain('type="button"');
+            expect(retryButton).toContain('variant="outline"');
+            expect(retryButton).toContain('size="sm"');
+            expect(retryButton).not.toContain("data-sot-");
+        }
+        expect(speakerProfilesRetryButton).toContain(
+            "onClick={() => void refreshProfiles()}",
+        );
+        expect(speakerVoiceprintsRetryButton).toContain(
+            "onClick={() => void refreshVoiceprints()}",
+        );
+        for (const [button, handler, disabledState] of [
+            [
+                speakerProfileDeleteButton,
+                "onClick={() => handleDelete(profile)}",
+                "isProfileSaving",
+            ],
+            [
+                speakerVoiceprintDeleteButton,
+                "handleDeleteVoiceprint(voiceprint)",
+                "isVoiceprintSaving",
+            ],
+        ] as const) {
+            expect(button).toContain('type="button"');
+            expect(button).toContain('variant="destructive"');
+            expect(button).toContain('size="sm"');
+            expect(button).toContain(handler);
+            expect(button).toContain(`disabled={${disabledState}}`);
+            expect(button).not.toContain("data-sot-");
+            expect(button).not.toContain('variant="speakerSettingsAction"');
+            expect(button).not.toContain(
                 'variant="speakerSettingsDangerAction"',
             );
-            expect(opening).not.toContain('size="speakerSettingsAction"');
+            expect(button).not.toContain('size="speakerSettingsAction"');
+        }
+        expect(speakerVoiceprintDeleteButton).toContain("aria-label={");
+        expect(speakerProfiles).toContain(
+            "const confirm = useConfirmDialog();",
+        );
+        for (const [handler, savingStart, endpoint, refresh, savingEnd] of [
+            [
+                speakerProfileDeleteHandler,
+                "setLocalSavingId(profile.id)",
+                `/api/speakers/profiles/\${profile.id}`,
+                "refreshProfiles",
+                "setLocalSavingId(null)",
+            ],
+            [
+                speakerVoiceprintDeleteHandler,
+                "setVoiceprintSavingId(voiceprint.id)",
+                `/api/voiceprints/\${voiceprint.id}`,
+                "refreshVoiceprints",
+                "setVoiceprintSavingId(null)",
+            ],
+        ] as const) {
+            expect(handler).toContain("const confirmed = await confirm({");
+            expect(handler).toContain(
+                'confirmLabel: isZh ? "确认" : "Confirm"',
+            );
+            expect(handler).toContain('cancelLabel: isZh ? "取消" : "Cancel"');
+            expect(handler).toContain("if (!confirmed) {");
+            expect(handler).toContain(savingStart);
+            expect(handler).toContain(endpoint);
+            expect(handler).toContain('method: "DELETE"');
+            expect(handler).toContain(`await ${refresh}();`);
+            expect(handler).toContain(savingEnd);
+            expect(handler.indexOf("if (!confirmed)")).toBeLessThan(
+                handler.indexOf(savingStart),
+            );
         }
         expect(speakerProfiles).not.toContain("sot-speaker-pill");
         expect(globals).not.toContain(

@@ -965,9 +965,7 @@ describe("settings SOT interaction regressions", () => {
             'import { Slider } from "@/components/ui/slider";',
         );
         expect(playbackSettingsRows).toContain("<Slider");
-        expect(playbackSettingsRows).toContain(
-            'data-sot-control="playback-volume"',
-        );
+        expect(playbackSettingsRows).toContain('id="playback-volume"');
         expect(playbackSettingsRows).toContain("value={[draft.defaultVolume]}");
         expect(playbackSettingsRows).toContain("onValueChange={(values) =>");
         for (const slot of [
@@ -1398,10 +1396,11 @@ describe("settings SOT interaction regressions", () => {
         expect(dataSources).toContain("<CardTitle>");
         expect(dataSources).toContain("<CardDescription>");
         expect(dataSources).toContain("<h3 id={providerDetailTitleId}>");
-        expect(settingsGroup).toContain("data-sot-section-group");
         expect(settingsGroup).toContain(
             "className={SETTINGS_SECTION_GROUP_CLASS}",
         );
+        expect(settingsGroup).toContain("<section");
+        expect(settingsGroup).toContain("<header");
         expect(dataSources).toContain('from "@/components/ui/field";');
         expect(dataSources).toContain("<Field");
         expect(dataSources).toContain("<FieldContent");
@@ -2646,8 +2645,8 @@ describe("settings SOT interaction regressions", () => {
             "transcription",
             "misc",
         ]) {
-            expect(content).toContain(`section="${section}"`);
             expect(content).toContain(`case "${section}"`);
+            expect(content).toContain(`useSettingsSectionBusy("${section}"`);
         }
         expect(content).toContain(
             'import { VoScriptSection } from "./sections/voscript-section";',
@@ -2682,11 +2681,7 @@ describe("settings SOT interaction regressions", () => {
         expect(content).not.toContain('case "playback"');
 
         expect(content).toContain("function SectionShell");
-        expect(content).toContain('data-sot-surface="settings-section"');
-        expect(content).toContain('data-sot-panel="settings-scroll-body"');
-        expect(content).toContain('data-sot-layout="section"');
-        expect(content).toContain("data-sot-section={section}");
-        expect(content).toContain("data-sot-state=");
+        expect(content).toContain("aria-busy={busy}");
         expect(voscriptPanel).toContain('id="voscript-connection-status"');
         expect(voscriptPanel).toMatch(
             /connectionTestState === "test-error"[\s\S]*?"alert"[\s\S]*?"status"/,
@@ -2715,14 +2710,12 @@ describe("settings SOT interaction regressions", () => {
             expect(sectionTitleClass).not.toContain(removedOwnerClassToken);
         }
         expect(content).toContain("className={SETTINGS_SECTION_TITLE_CLASS}");
-        expect(content).toMatch(
-            /<h3\s+className=\{SETTINGS_SECTION_TITLE_CLASS\}\s+data-sot-title>\s*\{title\}\s*<\/h3>/,
+        expect(content).toContain(
+            "<h3 className={SETTINGS_SECTION_TITLE_CLASS}>{title}</h3>",
         );
-        expect(content).not.toContain("<h3 data-sot-title>{title}</h3>");
         for (const selector of REMOVED_SETTINGS_TITLE_DIVIDER_VISUAL_DATA_SOT_CSS_SELECTORS) {
             expect(collectExactCssRuleBlocks(globals, selector)).toEqual([]);
         }
-        expect(content).toContain("data-sot-section-head");
         expect(content).toContain('from "@/components/ui/field";');
         expect(content).toContain("function SettingsRow");
         expect(content).toContain("<Field");
@@ -2731,12 +2724,10 @@ describe("settings SOT interaction regressions", () => {
         expect(content).toContain(
             "<FieldDescription>{description}</FieldDescription>",
         );
-        expect(content).toContain("sotField?: string");
-        expect(content).toContain("data-sot-field={sotField}");
-        expect(content).toContain('data-sot-state={fieldState ?? "ready"}');
-        expect(settingsRow).toContain("{fieldMessage ? (");
+        expect(content).not.toContain("sotField");
+        expect(content).not.toContain("data-sot-");
+        expect(settingsRow).toContain("{fieldMessage ? <FieldError>");
         expect(settingsRow).toContain("<FieldError");
-        expect(settingsRow).toContain('data-sot-part="settings-field-message"');
         expect(settingsRow).toContain("className={SETTINGS_FIELD_ROW_CLASS}");
         expect(settingsRow).toContain(
             "className={SETTINGS_FIELD_CONTENT_CLASS}",
@@ -2746,7 +2737,6 @@ describe("settings SOT interaction regressions", () => {
         );
         expect(settingsRow).not.toContain('variant="settingsRow"');
         expect(settingsRow).not.toContain('variant="settingsControl"');
-        expect(content).toContain('data-sot-state="invalid"');
         expect(content).toContain(
             'data-invalid={fieldState === "invalid" ? "true" : undefined}',
         );
@@ -2788,9 +2778,7 @@ describe("settings SOT interaction regressions", () => {
         expect(settingsSaveAction).toContain('data-icon="inline-start"');
         expect(settingsSaveAction).not.toContain("<LoaderCircle");
         expect(settingsSaveAction).not.toContain('className="animate-spin"');
-        expect(content).toContain(
-            'data-sot-control="transcription-auto-transcribe"',
-        );
+        expect(content).toContain('id="transcription-auto-transcribe"');
         for (const directControl of [
             "voscript-min-speakers",
             "voscript-max-speakers",
@@ -2806,7 +2794,7 @@ describe("settings SOT interaction regressions", () => {
             "aria-describedby={getFieldDescribedBy(",
         );
         expect(voscriptPanel).toContain("disabled={busy}");
-        expect(content).toContain('control="transcription-language"');
+        expect(content).toContain('id="transcription-language"');
         for (const selectControl of [
             "voscript-api-key-mode",
             "voscript-denoise-model",
@@ -2854,9 +2842,8 @@ describe("settings SOT interaction regressions", () => {
         expect(titleGenerationPanel).toContain(
             '<Badge variant="secondary" role="status">',
         );
-        expect(transcriptionPanel).toMatch(
-            /draft\.autoTranscribe\s*\?\s*"checked"\s*:\s*"unchecked"/,
-        );
+        expect(transcriptionPanel).toContain("checked={draft.autoTranscribe}");
+        expect(transcriptionPanel).toContain("disabled={busy}");
         expect(titleGenerationPanel).toContain(
             "draft.titleGenerationApiKeySet",
         );
@@ -2867,7 +2854,7 @@ describe("settings SOT interaction regressions", () => {
         expect(voscriptPanel).toContain("noRepeatNgramInvalid");
         expect(voscriptPanel).toContain("minSpeakersInvalid");
         expect(voscriptPanel).toContain("maxSpeakersInvalid");
-        expect(content).toContain('control="density"');
+        expect(content).toContain('id="display-items-per-page"');
         expect(voscriptPanel).toContain(
             'statusId="voscript-connection-save-status"',
         );
@@ -3259,13 +3246,12 @@ describe("settings SOT interaction regressions", () => {
             /const densityOptions:[\s\S]*?const sortOptions:/,
         )?.[0];
 
-        expect(content).toContain("sotValue?: string");
         expect(content).not.toContain("data-seg=");
         expect(content).not.toContain("data-v=");
         expect(segmentControl).toContain(
-            'data-sot-panel="settings-segment-control"',
+            'aria-disabled={disabled ? "true" : "false"}',
         );
-        expect(segmentControl).toContain("data-sot-control={control}");
+        expect(segmentControl).toContain("aria-label={label}");
         expect(segmentControl).toContain(
             "className={SETTINGS_SEGMENT_GROUP_CLASS}",
         );
@@ -3275,45 +3261,27 @@ describe("settings SOT interaction regressions", () => {
         expect(content).not.toContain("SETTINGS_SEGMENT_OPTION_CLASS");
         expect(segmentItems).toHaveLength(1);
         for (const segmentItem of segmentItems) {
-            expect(segmentItem).toContain("data-sot-control={control}");
-            expect(segmentItem).toContain(
-                "data-sot-display-value={option.sotValue ?? option.value}",
-            );
-            expect(segmentItem).toContain(
-                'data-sot-state={active ? "selected" : "idle"}',
-            );
-            expect(segmentItem).toContain("data-sot-value={option.value}");
             expect(segmentItem).toContain("value={option.value}");
+            expect(segmentItem).toContain("disabled={disabled}");
             expect(segmentItem).not.toContain("className=");
             expect(segmentItem).not.toMatch(/\bvariant=/);
             expect(segmentItem).not.toMatch(/\bsize=/);
             expect(segmentItem).not.toContain("settingsSegment");
         }
-        expect(segmentControl).not.toContain('layout="settingsSegment"');
-        expect(segmentControl).not.toContain('variant="settingsSegmentOption"');
-        expect(segmentControl).not.toContain('size="settingsSegmentOption"');
-        expect(segmentControl).not.toContain(
-            'spacing="settingsSegmentSpacing"',
-        );
-        expect(segmentControl).toContain("data-sot-value={option.value}");
-        expect(segmentControl).toContain(
-            "data-sot-display-value={option.sotValue ?? option.value}",
-        );
         expect(segmentControl).toContain("value={option.value}");
         expect(themeOptions).toMatch(
-            /label:\s*isZh \? "自动" : "Auto",\s*value:\s*"system",\s*sotValue:\s*"auto"/,
+            /label:\s*isZh \? "自动" : "Auto",\s*value:\s*"system"/,
         );
         expect(themeOptions).toContain('value: "light"');
         expect(themeOptions).toContain('value: "dark"');
         expect(dateTimeOptions).toMatch(
-            /label:\s*isZh \? "2 小时前" : "2 hours ago",\s*value:\s*"relative",\s*sotValue:\s*"rel"/,
+            /label:\s*isZh \? "2 小时前" : "2 hours ago",\s*value:\s*"relative"/,
         );
         expect(dateTimeOptions).toMatch(
-            /label:\s*"14:00",\s*value:\s*"absolute",\s*sotValue:\s*"abs"/,
+            /label:\s*"14:00",\s*value:\s*"absolute"/,
         );
         expect(densityOptions).toContain('value: "comfy"');
         expect(densityOptions).toContain('value: "compact"');
-        expect(densityOptions).not.toContain("sotValue");
         expect(content).toContain('persistDisplaySetting("theme", value)');
         expect(content).toContain(
             'persistDisplaySetting("dateTimeFormat", value)',
@@ -3350,19 +3318,25 @@ describe("settings SOT interaction regressions", () => {
         const sectionLoadErrorBanner = content.match(
             /<Alert\s[^>]*data-sot-banner="settings-section-load-error"[^>]*data-sot-panel="settings-section-load-error"[^>]*data-sot-section=\{section\}[^>]*>/,
         )?.[0];
-        const sectionLoadRetryButton = content.match(
-            /<Button[\s\S]*?data-sot-control="settings-section-load-retry"[\s\S]*?<\/Button>/,
-        )?.[0];
 
-        expect(sectionLoadErrorBanner).toBeDefined();
-        expect(sectionLoadErrorBanner ?? "").toContain(
+        expect(sectionLoadErrorBanner).toBeUndefined();
+        const semanticSectionLoadErrorBanner = content.match(
+            /<Alert\s+variant="destructiveSoft"[\s\S]*?<\/Alert>/,
+        )?.[0];
+        const semanticSectionLoadRetryButton =
+            semanticSectionLoadErrorBanner?.match(
+                /<Button[\s\S]*?onClick=\{onRetry\}[\s\S]*?<\/Button>/,
+            )?.[0];
+        expect(semanticSectionLoadErrorBanner ?? "").toContain(
             'variant="destructiveSoft"',
         );
-        expect(sectionLoadErrorBanner ?? "").toContain('density="comfortable"');
-        expect(sectionLoadErrorBanner ?? "").toContain(
+        expect(semanticSectionLoadErrorBanner ?? "").toContain(
+            'density="comfortable"',
+        );
+        expect(semanticSectionLoadErrorBanner ?? "").toContain(
             "className={SETTINGS_BANNER_BASE_CLASS}",
         );
-        expect(sectionLoadErrorBanner ?? "").not.toContain(
+        expect(semanticSectionLoadErrorBanner ?? "").not.toContain(
             "SETTINGS_BANNER_ACTION_LAYOUT_CLASS",
         );
         expect(sectionLoadErrorBanner ?? "").not.toContain(
@@ -3381,18 +3355,10 @@ describe("settings SOT interaction regressions", () => {
             "border-destructive/30 bg-destructive/10",
         );
         expect(sectionLoadErrorBanner ?? "").not.toMatch(/\srole=/);
-        expect(sectionLoadRetryButton).toContain(
-            'data-sot-control="settings-section-load-retry"',
-        );
-        expect(sectionLoadRetryButton).toContain('variant="default"');
-        expect(sectionLoadRetryButton).toContain("onClick={onRetry}");
-        expect(sectionLoadRetryButton).toContain("data-sot-section={section}");
-        expect(sectionLoadRetryButton).not.toContain(
-            'variant="settingsSectionRetry"',
-        );
-        expect(sectionLoadRetryButton).not.toContain(
-            'size="settingsSectionRetry"',
-        );
+        expect(semanticSectionLoadRetryButton).toContain('variant="default"');
+        expect(semanticSectionLoadRetryButton).toContain("onClick={onRetry}");
+        expect(content).not.toContain('variant="settingsSectionRetry"');
+        expect(content).not.toContain('size="settingsSectionRetry"');
     });
 
     it("keeps speaker profile and voiceprint management live without old UI surfaces", () => {
@@ -3413,9 +3379,7 @@ describe("settings SOT interaction regressions", () => {
             speakers.match(
                 /<Field(?!Content|Control|Description|Label|Title)\b[^>]*>/g,
             ) ?? [];
-        const speakerStateBadgeOpenings = speakerStateBadges.filter((badge) =>
-            badge.includes('data-sot-badge="speaker-state"'),
-        );
+        const speakerStateBadgeOpenings = speakerStateBadges;
         const statePill =
             speakers.match(
                 /function StatePill[\s\S]*?function PanelNotice/,
@@ -3433,33 +3397,46 @@ describe("settings SOT interaction regressions", () => {
             ["speakerProfilesPanelClassName", "relative flex flex-col gap-2"],
         );
         const speakerProfileNameField =
-            collectElementSlices(
-                speakers,
-                'data-sot-part="speaker-profile-row-meta"',
-                "Field",
-            )[0] ?? "";
+            collectElementSlices(speakers, "profileNameInputId", "Field")[0] ??
+            "";
         const speakerVoiceprintNameField =
             collectElementSlices(
                 speakers,
-                'data-sot-part="speaker-voiceprint-row-meta"',
+                "voiceprintNameInputId",
                 "Field",
             )[0] ?? "";
         const speakerButtons =
             speakers.match(/<Button\b[\s\S]*?<\/Button>/g) ?? [];
         const speakerProfileEmptyState = collectElementSlices(
             speakers,
-            'data-sot-part="speaker-profiles-empty"',
+            'role="status"',
             "Empty",
-        );
+        ).slice(0, 1);
         const speakerVoiceprintsEmptyState = collectElementSlices(
             speakers,
-            'data-sot-part="speaker-voiceprints-empty"',
+            'role="status"',
             "Empty",
-        );
-        const findButtonByControl = (control: string) =>
-            speakerButtons.find((button) =>
-                button.includes(`data-sot-control="${control}"`),
-            ) ?? "";
+        ).slice(1);
+        const findButtonByControl = (control: string) => {
+            const snippets: Record<string, string> = {
+                "speaker-profiles-refresh": "refreshProfiles",
+                "speaker-profile-create": "handleCreate",
+                "speaker-profiles-retry": "refreshProfiles",
+                "speaker-profile-save": "handleUpdate(profile)",
+                "speaker-voiceprints-refresh": "refreshVoiceprints",
+                "speaker-voiceprints-retry": "refreshVoiceprints",
+                "speaker-voiceprint-rename":
+                    "handleRenameVoiceprint(voiceprint)",
+                "speaker-profile-delete": "handleDelete(profile)",
+                "speaker-voiceprint-delete":
+                    "handleDeleteVoiceprint(voiceprint)",
+            };
+            return (
+                speakerButtons.find((button) =>
+                    button.includes(snippets[control] ?? ""),
+                ) ?? ""
+            );
+        };
         const expectFeatureOwnedSnippets = (
             label: string,
             snippets: readonly string[],
@@ -3474,7 +3451,6 @@ describe("settings SOT interaction regressions", () => {
         const expectNeutralButtonContract = (control: string) => {
             const button = findButtonByControl(control);
 
-            expect(button).toContain(`data-sot-control="${control}"`);
             expect(button).toContain('variant="outline"');
             expect(button).toContain('size="sm"');
             expect(button).not.toContain('variant="speakerSettingsAction"');
@@ -3488,7 +3464,6 @@ describe("settings SOT interaction regressions", () => {
         const expectDangerButtonContract = (control: string) => {
             const button = findButtonByControl(control);
 
-            expect(button).toContain(`data-sot-control="${control}"`);
             expect(button).toContain('variant="destructive"');
             expect(button).toContain('size="sm"');
             expect(button).not.toContain('variant="speakerSettingsAction"');
@@ -3541,14 +3516,12 @@ describe("settings SOT interaction regressions", () => {
         }
         expect(speakers).toContain("<Button");
         expect(speakers).toContain("<Badge");
-        expect(speakers).toContain('data-sot-badge="speaker-state"');
-        expect(speakers).toContain("data-sot-tone={tone}");
         expect(statePill).toContain("<Badge");
         expect(statePill).toMatch(
             /variant=\{(?:badgeVariant|speakerStateBadgeVariantByTone\[tone\])\}/,
         );
         expect(statePill).not.toContain("className=");
-        expect(speakerStateBadgeOpenings).toHaveLength(1);
+        expect(speakerStateBadgeOpenings.length).toBeGreaterThanOrEqual(1);
         for (const badge of speakerStateBadgeOpenings) {
             expect(badge).toMatch(
                 /variant=\{(?:badgeVariant|speakerStateBadgeVariantByTone\[tone\])\}/,
@@ -3612,11 +3585,11 @@ describe("settings SOT interaction regressions", () => {
         expect(speakers).toContain("className={speakerRowMetaClassName}");
         expect(speakers).toContain("className={speakerRowSubClassName}");
         expect(speakers).toContain("<FieldContent");
-        expect(speakers).toContain("<FieldTitle>");
+        expect(speakers).toContain("<FieldTitle");
         expect(speakers).toContain("<FieldLabel");
         expect(speakers).toContain("<FieldControl");
         expect(speakers).toContain("<FieldDescription>");
-        for (const [field, control, disabledState] of [
+        for (const [field, _control, disabledState] of [
             [
                 speakerProfileNameField,
                 "speaker-profile-name",
@@ -3633,7 +3606,6 @@ describe("settings SOT interaction regressions", () => {
             expect(field).toContain("<FieldControl");
             expect(field).toContain("<Input");
             expect(field).toContain("<FieldDescription");
-            expect(field).toContain(`data-sot-control="${control}"`);
             expect(field).toMatch(
                 new RegExp(
                     `data-disabled=\\{\\s*${disabledState}\\s*\\?\\s*"true"\\s*:\\s*undefined\\s*\\}`,
@@ -3655,45 +3627,14 @@ describe("settings SOT interaction regressions", () => {
             speakerVoiceprintsEmptyState[0],
         ]) {
             expect(emptyState).toContain("<Empty");
-            expect(emptyState).toContain('data-sot-state="empty"');
+            expect(emptyState).toContain('role="status"');
             expect(emptyState).toContain("<EmptyHeader>");
             expect(emptyState).toContain("<EmptyTitle");
             expect(emptyState).toContain("<EmptyDescription");
         }
-        expect(speakerProfileEmptyState[0]).toContain(
-            'data-sot-panel="speaker-profiles-notice"',
-        );
-        expect(speakerProfileEmptyState[0]).toContain(
-            'data-sot-part="speaker-profiles-empty"',
-        );
-        expect(speakerProfileEmptyState[0]).toContain(
-            'data-sot-part="speaker-profiles-empty-title"',
-        );
-        expect(speakerProfileEmptyState[0]).toContain(
-            'data-sot-part="speaker-profiles-empty-description"',
-        );
-        expect(speakerVoiceprintsEmptyState[0]).toContain(
-            'data-sot-panel="speaker-voiceprints-notice"',
-        );
-        expect(speakerVoiceprintsEmptyState[0]).toContain(
-            'data-sot-part="speaker-voiceprints-empty"',
-        );
-        expect(speakerVoiceprintsEmptyState[0]).toContain(
-            'data-sot-part="speaker-voiceprints-empty-title"',
-        );
-        expect(speakerVoiceprintsEmptyState[0]).toContain(
-            'data-sot-part="speaker-voiceprints-empty-description"',
-        );
-        expect(speakers).not.toContain(
-            '<PanelNotice panel="speaker-profiles-notice" state="empty"',
-        );
-        expect(speakers).not.toContain(
-            'panel="speaker-voiceprints-notice"\n                        state="empty"',
-        );
-        expect(speakers).toContain('panel="speaker-profiles-notice"');
-        expect(speakers).toContain('panel="speaker-voiceprints-notice"');
-        expect(speakers).toContain('state="error"');
-        expect(speakers).toContain('state="disabled"');
+        expect(speakers).toContain('aria-labelledby="saved-speakers-heading"');
+        expect(speakers).toContain('aria-labelledby="voiceprints-heading"');
+        expect(speakers).toContain('tone="danger"');
         expect(speakers).not.toContain('density="settingsBanner"');
         expect(speakers).not.toContain('"settingsBannerError"');
         expect(alertPrimitive).not.toContain("settingsBanner:");
@@ -3704,32 +3645,14 @@ describe("settings SOT interaction regressions", () => {
         });
         expect(speakers).not.toContain('className="btn"');
         expect(speakers).not.toContain('className="btn danger"');
-        expect(speakers).toContain("data-sot-state={profilesState}");
         expect(speakers).toContain(
-            "data-sot-voiceprints-state={voiceprintsState}",
-        );
-        expect(speakers).toMatch(
-            /<div\s+className=\{speakerSectionGroupClassName\}\s+data-sot-panel="speaker-profiles-local"\s+data-sot-section-group\s+data-sot-state=\{profilesState\}/,
-        );
-        expect(speakers).toContain('data-sot-panel="speaker-voiceprints"');
-        expect(speakers).toMatch(
-            /<div\s+className=\{speakerSectionGroupClassName\}\s+data-sot-panel="speaker-voiceprints"\s+data-sot-section-group\s+data-sot-state=\{voiceprintsState\}/,
-        );
-        expect(speakers).toContain("data-sot-speaker-profile-row");
-        expect(speakers).toContain("data-sot-voiceprint-row");
-        expect(speakers).toContain('data-sot-list="speaker-profile-rows"');
-        expect(speakers).toContain('data-sot-item="speaker-profile-row"');
-        expect(speakers).toContain('data-sot-part="speaker-profile-avatar"');
-        expect(speakers).toContain('data-sot-part="speaker-profile-row-meta"');
-        expect(speakers).toContain('data-sot-part="speaker-profile-row-sub"');
-        expect(speakers).toContain('data-sot-list="speaker-voiceprint-rows"');
-        expect(speakers).toContain('data-sot-item="speaker-voiceprint-row"');
-        expect(speakers).toContain('data-sot-part="speaker-voiceprint-avatar"');
-        expect(speakers).toContain(
-            'data-sot-part="speaker-voiceprint-row-meta"',
+            'aria-label={isZh ? "说话人设置" : "Speaker settings"}',
         );
         expect(speakers).toContain(
-            'data-sot-part="speaker-voiceprint-row-sub"',
+            'aria-label={isZh ? "已保存的说话人" : "Saved speakers"}',
+        );
+        expect(speakers).toContain(
+            'aria-label={isZh ? "远端声纹" : "Remote voiceprints"}',
         );
         for (const oldClassHook of [
             'className="sot-speaker-profiles"',
@@ -3765,9 +3688,7 @@ describe("settings SOT interaction regressions", () => {
         ]) {
             expect(collectCssRuleBlocks(globals, migratedSelector)).toEqual([]);
         }
-        expect(
-            collectCssRuleBlocks(globals, '[data-sot-badge="speaker-state"]'),
-        ).toEqual([]);
+        expect(speakers).not.toContain("data-sot-");
         expect(speakers).not.toContain("data-profiles-state");
         expect(speakers).not.toContain("data-vs-state");
         expect(speakers).not.toMatch(/\bvs-profile/);
