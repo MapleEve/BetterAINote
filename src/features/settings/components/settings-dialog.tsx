@@ -381,7 +381,7 @@ export function SettingsDialog(props: SettingsDialogProps) {
         if (!props.open || !hasResolvedInitialSection) return;
 
         const scrollBody = scrollBodyRef.current;
-        if (scrollBody?.dataset.sotSection !== activeSection) return;
+        if (!scrollBody) return;
         scrollBody.scrollTo({ top: 0, left: 0 });
     }, [activeSection, hasResolvedInitialSection, props.open]);
 
@@ -391,15 +391,8 @@ export function SettingsDialog(props: SettingsDialogProps) {
                 <DialogTrigger asChild>{props.trigger}</DialogTrigger>
             ) : null}
             <DialogContent
-                data-sot-busy={isSettingsBusy ? "true" : "false"}
-                data-sot-section={activeSection}
-                data-sot-state={isSettingsBusy ? "busy" : "idle"}
-                data-sot-surface="settings-shell"
                 aria-label={t("settingsDialog.title")}
                 aria-busy={isSettingsBusy}
-                overlayProps={{
-                    "data-sot-overlay": "settings-shell",
-                }}
                 className={SETTINGS_SHELL_SURFACE_CLASS}
                 onOpenAutoFocus={handleOpenAutoFocus}
                 onEscapeKeyDown={(event) => {
@@ -408,14 +401,7 @@ export function SettingsDialog(props: SettingsDialogProps) {
                     }
                 }}
                 onInteractOutside={(event) => {
-                    const target = event.target;
-                    if (
-                        (target instanceof Element &&
-                            target.closest(
-                                '[data-sot-panel="confirm-dialog"]',
-                            )) ||
-                        isSettingsBusy
-                    ) {
+                    if (isSettingsBusy) {
                         event.preventDefault();
                     }
                 }}
@@ -428,32 +414,19 @@ export function SettingsDialog(props: SettingsDialogProps) {
                     {settingsUserSubtitle}
                 </DialogDescription>
                 <SettingsBusyProvider value={busyContextValue}>
-                    <header
-                        className={SETTINGS_HEADER_CLASS}
-                        data-sot-panel="settings-header"
-                    >
-                        <div
-                            className={SETTINGS_USER_SUMMARY_CLASS}
-                            data-sot-part="settings-user-summary"
-                        >
+                    <header className={SETTINGS_HEADER_CLASS}>
+                        <div className={SETTINGS_USER_SUMMARY_CLASS}>
                             <span
                                 aria-hidden="true"
                                 className={SETTINGS_USER_AVATAR_CLASS}
-                                data-sot-part="settings-user-avatar"
                             >
                                 <Monitor />
                             </span>
                             <div className={SETTINGS_USER_SUMMARY_TEXT_CLASS}>
-                                <div
-                                    className={SETTINGS_USER_NAME_CLASS}
-                                    data-sot-part="settings-user-name"
-                                >
+                                <div className={SETTINGS_USER_NAME_CLASS}>
                                     {settingsUserName}
                                 </div>
-                                <div
-                                    className={SETTINGS_USER_SUBTITLE_CLASS}
-                                    data-sot-part="settings-user-subtitle"
-                                >
+                                <div className={SETTINGS_USER_SUBTITLE_CLASS}>
                                     {settingsUserSubtitle}
                                 </div>
                             </div>
@@ -465,11 +438,6 @@ export function SettingsDialog(props: SettingsDialogProps) {
                                 size="icon-sm"
                                 aria-label={t("settingsDialog.close")}
                                 className={SETTINGS_CLOSE_BUTTON_CLASS}
-                                data-sot-control="settings-close"
-                                data-sot-state={
-                                    isSettingsBusy ? "busy" : "idle"
-                                }
-                                data-state={isSettingsBusy ? "busy" : "idle"}
                                 disabled={isSettingsBusy}
                                 type="button"
                             >
@@ -481,30 +449,21 @@ export function SettingsDialog(props: SettingsDialogProps) {
                         </DialogClose>
                     </header>
 
-                    <div
-                        className={SETTINGS_BODY_CLASS}
-                        data-sot-panel="settings-body"
-                    >
+                    <div className={SETTINGS_BODY_CLASS}>
                         <nav
                             className={SETTINGS_RAIL_CLASS}
-                            data-sot-panel="settings-rail"
                             aria-label={t("settingsDialog.title")}
                         >
-                            {settingsNavGroups.map((group, groupIndex) => {
-                                const groupLabelId = `settings-nav-group-${groupIndex}`;
-
+                            {settingsNavGroups.map((group) => {
                                 return (
                                     <fieldset
                                         key={group.labelKey}
                                         className={SETTINGS_NAV_GROUP_CLASS}
-                                        data-sot-list="settings-nav-group"
                                     >
                                         <legend
-                                            id={groupLabelId}
                                             className={
                                                 SETTINGS_NAV_GROUP_LABEL_CLASS
                                             }
-                                            data-sot-part="settings-nav-group-label"
                                         >
                                             {t(group.labelKey)}
                                         </legend>
@@ -533,22 +492,6 @@ export function SettingsDialog(props: SettingsDialogProps) {
                                                     size="sm"
                                                     className={
                                                         SETTINGS_NAV_BUTTON_CLASS
-                                                    }
-                                                    data-sot-control="settings-nav"
-                                                    data-sot-section={item.id}
-                                                    data-state={
-                                                        isActive
-                                                            ? "active"
-                                                            : "inactive"
-                                                    }
-                                                    data-sot-state={
-                                                        isActive
-                                                            ? "selected"
-                                                            : "idle"
-                                                    }
-                                                    data-keyboard-selected={
-                                                        rovingIndex ===
-                                                        itemIndex
                                                     }
                                                     onClick={() => {
                                                         if (!isSettingsBusy) {

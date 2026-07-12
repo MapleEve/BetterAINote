@@ -3,6 +3,7 @@
 import type { Ref } from "react";
 import { Field, FieldContent } from "@/components/ui/field";
 import { Skeleton } from "@/components/ui/skeleton";
+import { Spinner } from "@/components/ui/spinner";
 import { cn } from "@/lib/utils";
 
 const makeSkeletonKeys = (prefix: string, count: number) =>
@@ -92,6 +93,16 @@ export function SettingsSectionSkeleton({
             data-sot-state="loading"
             data-sot-surface={surface}
         >
+            <div
+                aria-label="正在加载设置"
+                aria-live="polite"
+                className="mb-4 flex items-center gap-2 text-sm text-muted-foreground"
+                role="status"
+            >
+                <Spinner aria-hidden="true" size="sm" />
+                <span>正在加载设置</span>
+            </div>
+
             <div data-sot-panel="settings-empty-hint">
                 <Skeleton data-sot-part="settings-empty-title" />
                 <Skeleton data-sot-part="settings-empty-description" />

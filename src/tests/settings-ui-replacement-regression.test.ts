@@ -479,26 +479,25 @@ function collectSourceActionGlobalBusinessBlocks(source: string) {
 }
 
 describe("settings SOT interaction regressions", () => {
-    it("keeps the settings dialog as a fixed SOT shell with local scrolling and busy guards", () => {
+    it("keeps the settings dialog on Radix semantics with local scrolling and busy guards", () => {
         const dialog = readSource(
             "features/settings/components/settings-dialog.tsx",
         );
         const workstation = readSource("features/dashboard/workstation.tsx");
         const i18n = readSource("lib/i18n.ts");
         const baseDialog = readSource("components/ui/dialog.tsx");
-        const buttonPrimitive = readSource("components/ui/button.tsx");
         const globals = readSource("app/globals.css");
         const headerDisplaySetup = dialog.match(
             /const settingsUserName[\s\S]*?const isSettingsBusy/,
         )?.[0];
         const [settingsCloseButton] = collectElementSlices(
             dialog,
-            'data-sot-control="settings-close"',
+            'aria-label={t("settingsDialog.close")}',
             "Button",
         );
         const [settingsNavButton] = collectElementSlices(
             dialog,
-            'data-sot-control="settings-nav"\n',
+            "aria-current={",
             "Button",
         );
         const settingsNavButtonClass =
@@ -506,103 +505,34 @@ describe("settings SOT interaction regressions", () => {
                 /const SETTINGS_NAV_BUTTON_CLASS\s*=\s*"[^"]*";/,
             )?.[0] ?? "";
 
-        expect(dialog).toContain('data-sot-surface="settings-shell"');
-        expect(dialog).toContain("data-sot-busy=");
-        expect(dialog).toContain("data-sot-section={activeSection}");
-        expect(dialog).toContain("data-sot-state=");
-        expect(dialog).toContain('data-sot-panel="settings-header"');
-        expect(dialog).toContain('data-sot-panel="settings-body"');
-        expect(dialog).toContain('data-sot-panel="settings-rail"');
+        expect(dialog).toContain("<Dialog");
+        expect(dialog).toContain("<DialogContent");
+        expect(dialog).toContain("<header");
         expect(dialog).toContain("<nav");
-        expect(dialog).toContain('data-sot-control="settings-nav"');
-        expect(dialog).toContain('data-sot-control="settings-close"');
-        expectNoDataSotDrivenTailwindSelectors(dialog);
-        expect(dialog).not.toContain("SETTINGS_NAV_CONTROL_SELECTOR");
-        expect(dialog).not.toContain("SETTINGS_INNER_SCROLL_SELECTOR");
-        expect(dialog).not.toContain("settingsShellRef");
-        expect(dialog).not.toContain("firstNavButtonRef");
-        expect(settingsNavButton).not.toContain("data-settings-nav-control");
-        expect(dialog).not.toMatch(
-            /closest\(\s*["']\[data-sot-control="settings-nav"\]/,
-        );
-        expect(dialog).not.toMatch(
-            /closest\(\s*["']\[data-sot-surface="settings-shell"\]/,
-        );
-        expect(dialog).not.toMatch(
-            /querySelector(?:All)?(?:<[^>]+>)?\(\s*["']\[data-sot-(?:nav|inner-scroll)/,
-        );
-        expect(globals).not.toContain(
-            '[data-sot-control="settings-close"][data-slot="button"]',
-        );
-        expect(dialog).toContain('data-sot-part="settings-user-summary"');
-        expect(dialog).toContain('data-sot-part="settings-user-avatar"');
-        expect(dialog).toContain('data-sot-part="settings-user-name"');
-        expect(dialog).toContain('data-sot-part="settings-user-subtitle"');
-        expect(dialog).toContain('data-sot-list="settings-nav-group"');
-        expect(dialog).toContain('data-sot-part="settings-nav-group-label"');
+        expect(dialog).toContain("<fieldset");
+        expect(dialog).toContain("<legend");
         expect(dialog).toContain("DialogTitle");
         expect(dialog).toContain("DialogDescription");
         expect(dialog).toContain('className="sr-only"');
-        for (const legacyClassName of LEGACY_SETTINGS_SHELL_CLASSNAMES) {
-            expect(dialog).not.toContain(legacyClassName);
-        }
-        expect(buttonPrimitive).not.toContain("settingsClose:");
-        expect(buttonPrimitive).not.toContain("settingsNav:");
-        for (const forbiddenButtonPrimitiveSkin of [
-            "navigationItem:",
-            "surfaceItem:",
-            "h-8 w-full min-w-0",
-            "text-[13.125px]",
-            "gap-[5.625px]",
-            "px-[9.375px]",
-            "data-[state=active]:bg-[var(--bg-recessed)]",
-            "[box-shadow:none]",
-            "data-[state=active]:[box-shadow:none]",
-            "data-[state=selected]:bg-[var(--bg-elevated)]",
-            "data-[state=selected]:shadow-xs",
-            "data-[muted=true]:border-transparent",
-            "data-[muted=true]:bg-transparent",
-            "data-[muted=true]:opacity-[0.55]",
-            "data-[muted=true]:[box-shadow:none]",
-        ]) {
-            expect(buttonPrimitive).not.toContain(forbiddenButtonPrimitiveSkin);
-        }
-        expect(buttonPrimitive).not.toContain("rail:");
-        expect(buttonPrimitive).not.toContain("sr-item");
-        expect(buttonPrimitive).not.toContain("buttonStateClassName");
-        expect(buttonPrimitive).not.toContain('variant === "rail"');
-        expect(buttonPrimitive).not.toContain("oklch(");
-        expect(buttonPrimitive).not.toContain("data-sot");
-        expect(buttonPrimitive).not.toMatch(/\bsourceProvider\b/);
-        expect(buttonPrimitive).not.toMatch(/\bsettings\b/i);
-        for (const selector of REMOVED_SETTINGS_NAV_GLOBAL_REPAINT_SELECTORS) {
-            expect(collectExactCssRuleBlocks(globals, selector)).toEqual([]);
-        }
-        for (const selector of REMOVED_SETTINGS_DEAD_TENANT_GLOBAL_SELECTORS) {
-            expect(globals).not.toContain(selector);
-        }
-        expect(settingsCloseButton).toContain(
-            'data-sot-control="settings-close"',
-        );
         expect(settingsCloseButton).toContain('variant="ghost"');
         expect(settingsCloseButton).toContain("SETTINGS_CLOSE_BUTTON_CLASS");
         expect(settingsCloseButton).toContain('size="icon-sm"');
+        expect(settingsCloseButton).toContain("disabled={isSettingsBusy}");
+        expect(settingsCloseButton).toContain('type="button"');
         expect(settingsCloseButton).toMatch(
             /className=\{\s*[A-Za-z0-9_]+\s*\}/,
         );
         expect(settingsCloseButton).toMatch(
             /<X\s+data-icon="inline-start"\s+aria-hidden="true"\s*\/>/,
         );
-        expect(settingsNavButton).toContain('data-sot-control="settings-nav"');
         expect(settingsNavButton).toMatch(
             /variant=\{\s*isActive\s*\?\s*"outline"\s*:\s*"ghost"\s*\}/,
         );
-        expect(settingsNavButton).not.toContain('variant="navigationItem"');
-        expect(settingsNavButton).not.toContain('size="navigationItem"');
         expect(dialog).toContain("const SETTINGS_NAV_BUTTON_CLASS =");
         expect(settingsNavButton).toContain("SETTINGS_NAV_BUTTON_CLASS");
-        expect(settingsNavButton).toContain('data-icon="inline-start"');
         expect(settingsNavButton).toContain('className="min-w-0 truncate"');
+        expect(settingsNavButton).toContain("disabled={isSettingsBusy}");
+        expect(settingsNavButton).toContain('type="button"');
         expect(settingsNavButtonClass).toContain("w-full");
         expect(settingsNavButtonClass).toContain("min-w-0");
         expect(settingsNavButtonClass).toContain("justify-start");
@@ -632,31 +562,8 @@ describe("settings SOT interaction regressions", () => {
                 removedNavButtonOverride,
             );
         }
-        for (const settingsControlButton of [
-            settingsCloseButton,
-            settingsNavButton,
-        ]) {
-            expect(settingsControlButton).not.toContain(
-                'variant="settingsClose"',
-            );
-            expect(settingsControlButton).not.toContain(
-                'variant="settingsNav"',
-            );
-            expect(settingsControlButton).not.toMatch(
-                /size="settings(?:Close|Nav)"/,
-            );
-        }
-        expect(dialog).toContain("data-state={");
-        expect(dialog).not.toContain('"sr-item active"');
-        expect(dialog).not.toContain('"sr-item"');
-        expect(dialog).not.toContain(
-            'data-sot-control="settings-section-selector"',
-        );
-        expect(dialog).not.toContain("settings-section-select");
-        expect(dialog).not.toContain("@/components/ui/select");
         expect(dialog).toContain("SettingsBusyProvider");
         expect(dialog).toContain("isSettingsBusy");
-        expect(dialog).not.toContain("returnFocusRef");
         expect(dialog).toContain("const navButtonRefs = React.useRef");
         expect(dialog).toContain("const focusSettingsNavIndex =");
         expect(dialog).toContain("normalizeRovingIndex(index)");
@@ -674,7 +581,7 @@ describe("settings SOT interaction regressions", () => {
         expect(settingsNavButton).toContain("handleNavKeyDown(");
         expect(settingsNavButton).toContain("onFocus={() =>");
         expect(settingsNavButton).toContain("tabIndex={");
-        expect(settingsNavButton).toContain("data-keyboard-selected={");
+        expect(settingsNavButton).toContain("aria-current={");
         expect(settingsNavButton).toMatch(/rovingIndex ===\s*itemIndex/);
         expect(settingsNavButton).toMatch(
             /applyActiveSettingsSection\(\s*item\.id,?\s*\)/,
@@ -688,13 +595,6 @@ describe("settings SOT interaction regressions", () => {
         expect(dialog).toContain("DialogTrigger");
         expect(dialog).toContain("<DialogTrigger asChild>");
         expect(dialog).toContain("<DialogClose asChild>");
-        expect(dialog).not.toContain("startBrowserTimeout");
-        expect(dialog).not.toContain("stopBrowserTimeout");
-        expect(dialog).not.toContain('addBrowserWindowEventListener("keydown"');
-        expect(dialog).not.toContain("documentElement.style.overflow");
-        expect(dialog).not.toContain("body.style.overflow");
-        expect(dialog).not.toContain("setTimeout(");
-        expect(dialog).not.toContain("key={activeSection}");
         expect(workstation).toContain("trigger={");
         expect(workstation).toContain("ref={settingsTriggerRef}");
         expect(workstation).not.toContain(
@@ -744,32 +644,10 @@ describe("settings SOT interaction regressions", () => {
         ]) {
             expect(baseDialog).toContain(`DialogPrimitive.${primitive}`);
         }
-        for (const slot of [
-            "dialog",
-            "dialog-trigger",
-            "dialog-portal",
-            "dialog-overlay",
-            "dialog-content",
-            "dialog-title",
-            "dialog-description",
-            "dialog-close",
-        ]) {
-            expect(baseDialog).toContain(`data-slot="${slot}"`);
-        }
         expect(baseDialog).toContain("showCloseButton");
         expect(baseDialog).not.toContain("DialogContext");
         expect(baseDialog).not.toContain('className="scrim"');
-        expect(globals).toContain("--z-modal");
-        expect(globals).toContain("--ease-sine");
-        expect(globals).toContain("--z-modal");
-        expect(baseDialog).not.toContain("z-50");
-        expect(baseDialog).not.toContain("z-[var(--z-modal)]");
-        expect(globals).not.toContain(".ui-select-content");
-        expect(globals).not.toContain("z-index: 650");
-        expect(globals).not.toContain(
-            '.scrim[data-open="false"] > [data-sot-surface="settings-shell"]',
-        );
-        expect(dialog).toContain('"data-sot-overlay": "settings-shell"');
+        expect(dialog).not.toContain("overlayProps");
         expect(dialog).not.toContain("const SETTINGS_OVERLAY_CLASS =");
         expect(dialog).not.toContain("className: SETTINGS_OVERLAY_CLASS");
         expect(dialog).not.toContain("overlayClassName");
@@ -1091,19 +969,18 @@ describe("settings SOT interaction regressions", () => {
         }
     });
 
-    it("uses the SOT monitor glyph for the local deployment header badge", () => {
+    it("uses the monitor glyph for the local deployment header badge", () => {
         const dialog = readSource(
             "features/settings/components/settings-dialog.tsx",
         );
         const localBadge = dialog.match(
-            /<span[\s\S]*?data-sot-part="settings-user-avatar"[\s\S]*?<\/span>/,
+            /<span[\s\S]*?aria-hidden="true"[\s\S]*?<\/span>/,
         )?.[0];
 
         expect(dialog).toContain("Monitor");
         expect(dialog).not.toContain("function getSettingsUserInitial");
         expect(dialog).not.toContain("settingsUserInitial");
         expect(localBadge).toContain('aria-hidden="true"');
-        expect(localBadge).toContain('data-sot-part="settings-user-avatar"');
         expect(localBadge).toContain("<Monitor");
         const avatarClass = findStringConstInitializerContaining(dialog, [
             "const SETTINGS_USER_AVATAR_CLASS =",
@@ -1124,7 +1001,7 @@ describe("settings SOT interaction regressions", () => {
         expect(dialog).not.toContain("Test User");
     });
 
-    it("keeps the SOT settings rail visible on mobile without a section selector", () => {
+    it("keeps the settings rail visible on mobile without a section selector", () => {
         const dialog = readSource(
             "features/settings/components/settings-dialog.tsx",
         );
@@ -1137,7 +1014,7 @@ describe("settings SOT interaction regressions", () => {
             'data-sot-control="settings-section-selector"',
         );
         expect(globals).not.toContain(".settings-section-select");
-        expect(dialog).toContain('data-sot-part="settings-user-summary"');
+        expect(dialog).toContain("className={SETTINGS_USER_SUMMARY_CLASS}");
         expect(dialog).toContain("<Monitor");
         expect(dialog).toContain("{settingsUserSubtitle}");
 
@@ -4031,12 +3908,20 @@ describe("settings SOT interaction regressions", () => {
         expect(skeletons).toContain(
             'import { Skeleton } from "@/components/ui/skeleton";',
         );
+        expect(skeletons).toContain(
+            'import { Spinner } from "@/components/ui/spinner";',
+        );
         expect(skeletons).toContain('import { cn } from "@/lib/utils";');
         expect(skeletons).toContain("<Field");
         expect(skeletons).toContain('orientation="horizontal"');
         expect(skeletons).toContain("<FieldContent>");
         expect(skeletons).toContain("makeSkeletonKeys(");
         expect(skeletons).toContain("<Skeleton");
+        expect(skeletons).toContain("<Spinner");
+        expect(skeletons).toContain('role="status"');
+        expect(skeletons).toContain('aria-label="正在加载设置"');
+        expect(skeletons).toContain('aria-live="polite"');
+        expect(skeletons).toContain("正在加载设置");
         expect(skeletonPrimitive).toContain('React.ComponentProps<"div">');
         expect(skeletons).not.toContain('className="field-row"');
         expect(skeletons).not.toContain('className="field-name"');

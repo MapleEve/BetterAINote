@@ -1,6 +1,29 @@
 import { expect, type Locator, type Page, test } from "@playwright/test";
 import { ensureSignedIn } from "./helpers/auth";
 
+const SETTINGS_SECTIONS = {
+    "title-generation": {
+        heading: "AI 重命名服务",
+        navigation: "AI 重命名服务",
+    },
+    transcription: {
+        heading: "转录设置",
+        navigation: "转录设置",
+    },
+    misc: {
+        heading: "杂项",
+        navigation: "杂项",
+    },
+    voscript: {
+        heading: "VoScript 服务",
+        navigation: "VoScript 服务",
+    },
+} as const;
+
+type SettingsSection = keyof typeof SETTINGS_SECTIONS;
+
+const SAVE_BUTTON_NAME = /^(保存|保存中|已保存)$/;
+
 async function putSettingsWithRetry(
     page: Page,
     path: string,
@@ -55,6 +78,14 @@ async function resetSync(page: Page) {
     });
 }
 
+async function resetPlayback(page: Page) {
+    await putSettingsWithRetry(page, "/api/settings/playback", {
+        autoPlayNext: true,
+        defaultPlaybackSpeed: 1,
+        defaultVolume: 75,
+    });
+}
+
 async function resetVoScript(page: Page) {
     await putSettingsWithRetry(page, "/api/settings/voscript", {
         privateTranscriptionApiKey: null,
@@ -76,95 +107,131 @@ async function resetCoreSettings(page: Page) {
     await resetVoScript(page);
 }
 
-async function expectSotSwitchState(locator: Locator, checked: boolean) {
-    const expectedState = checked ? "checked" : "unchecked";
-
-    await expect(locator).toHaveAttribute("role", "switch");
-    await expect(locator).toHaveAttribute(
-        "aria-checked",
-        checked ? "true" : "false",
-    );
-    await expect(locator).toHaveAttribute("data-slot", "switch");
-    await expect(locator).toHaveAttribute("data-state", expectedState);
-    if ((await locator.getAttribute("data-sot-state")) !== null) {
-        await expect(locator).toHaveAttribute("data-sot-state", expectedState);
-    }
-    const thumb = locator.locator('[data-slot="switch-thumb"]');
-    await expect(thumb).toBeVisible();
-    await expect(thumb).toHaveAttribute("data-state", expectedState);
+function settingsDialog(page: Page) {
+    return page.getByRole("dialog", { name: "设置", exact: true });
 }
 
-async function chooseShadcnSelectOption(
+function settingsHeading(page: Page, section: SettingsSection) {
+    return settingsDialog(page).getByRole("heading", {
+        name: SETTINGS_SECTIONS[section].heading,
+        exact: true,
+        level: 3,
+    });
+}
+
+function settingsPanel(page: Page, section: SettingsSection) {
+    return settingsHeading(page, section).locator("..");
+}
+
+function settingsGroup(panel: Locator, title: string) {
+    return panel
+        .getByRole("heading", { name: title, exact: true, level: 4 })
+        .locator("xpath=ancestor::section[1]");
+}
+
+function saveButton(scope: Locator) {
+    return scope.getByRole("button", { name: SAVE_BUTTON_NAME });
+}
+
+function control(scope: Locator, id: string) {
+    return scope.locator("#" + id);
+}
+
+function actionRow(input: Locator) {
+    return input.locator(
+        'xpath=ancestor::div[.//button[@type="button"]][1]',
+    );
+}
+
+async function expectSwitchState(locator: Locator, checked: boolean) {
+    await expect(locator).toBeVisible();
+    await expect(locator).toHaveAttribute("role", "switch");
+    await expect(locator).toHaveAttribute("aria-checked", String(checked));
+}
+
+async function chooseSelectOption(
     page: Page,
     trigger: Locator,
     optionName: string,
 ) {
     await expect(trigger).toHaveAttribute("role", "combobox");
-    await expect(trigger).toHaveAttribute("data-slot", "select-trigger");
+    await expect(trigger).toHaveAttribute("aria-expanded", "false");
     await trigger.click();
-    await page.getByRole("option", { name: optionName, exact: true }).click();
+
+    const listbox = page.getByRole("listbox");
+    await expect(listbox).toBeVisible();
+    const option = listbox.getByRole("option", {
+        name: optionName,
+        exact: true,
+    });
+    await expect(option).toBeVisible();
+    await option.click();
 }
 
-async function expectShadcnSelectTrigger(
+async function expectSelectTrigger(
     trigger: Locator,
     {
         label,
         text,
     }: {
         label: string;
-        text: string;
+        text?: string;
     },
 ) {
+    await expect(trigger).toBeVisible();
     await expect(trigger).toHaveAttribute("role", "combobox");
-    await expect(trigger).toHaveAttribute("data-slot", "select-trigger");
     await expect(trigger).toHaveAttribute("aria-label", label);
-    await expect(trigger).toContainText(text);
-}
-
-function settingsShell(page: Page) {
-    return page.locator('[data-sot-surface="settings-shell"]');
-}
-
-function settingsSection(page: Page, section: string) {
-    return page.locator(
-        `[data-sot-surface="settings-section"][data-sot-section="${section}"]`,
-    );
-}
-
-function sectionSaveButton(section: Locator, saveId?: string) {
-    if (saveId) {
-        return section.locator(
-            `[data-sot-panel="settings-save-actions"][data-sot-save-id="${saveId}"] [data-sot-control="settings-save"]`,
-        );
+    await expect(trigger).toHaveAttribute("aria-expanded", "false");
+    if (text) {
+        await expect(trigger).toContainText(text);
     }
-
-    return section.locator('[data-sot-control="settings-save"]');
 }
 
-function sectionSotControl(section: Locator, control: string) {
-    return section.locator(`[data-sot-control="${control}"]`);
+async function expectSectionReady(page: Page, section: SettingsSection) {
+    const dialog = settingsDialog(page);
+    await expect(dialog).toBeVisible();
+    await expect(dialog).toHaveAttribute("aria-busy", "false");
+    await expect(
+        dialog.getByRole("button", {
+            name: SETTINGS_SECTIONS[section].navigation,
+            exact: true,
+        }),
+    ).toHaveAttribute("aria-current", "page");
+    await expect(settingsHeading(page, section)).toBeVisible();
 }
 
-function speakerProfilesPanel(page: Page) {
-    return page.locator('[data-sot-panel="speaker-profiles"]');
+async function expectSectionBusy(page: Page, section: SettingsSection) {
+    const dialog = settingsDialog(page);
+    await expect(dialog).toHaveAttribute("aria-busy", "true");
+    await expect(
+        dialog.getByRole("button", {
+            name: SETTINGS_SECTIONS[section].navigation,
+            exact: true,
+        }),
+    ).toBeDisabled();
 }
 
-function speakerProfilesLocal(page: Page) {
-    return page.locator('[data-sot-panel="speaker-profiles-local"]');
+async function expectVisibleSectionLoading(dialog: Locator) {
+    const loadingSection = dialog.locator('[aria-busy="true"]');
+    await expect(loadingSection).toHaveCount(1);
+    await expect(loadingSection).toBeVisible();
+
+    const loadingStatus = loadingSection.getByRole("status", {
+        name: "正在加载设置",
+        exact: true,
+    });
+    await expect(loadingStatus).toBeVisible();
+    await expect(loadingStatus).toHaveAttribute("aria-live", "polite");
+    await expect(loadingStatus.locator('[data-slot="spinner"]')).toBeVisible();
 }
 
-function speakerVoiceprints(page: Page) {
-    return page.locator('[data-sot-panel="speaker-voiceprints"]');
+async function dismissByBackdrop(dialog: Locator) {
+    const backdrop = dialog.locator("xpath=preceding-sibling::*[1]");
+    await expect(backdrop).toBeVisible();
+    await backdrop.click({ position: { x: 8, y: 8 } });
 }
 
-async function expectSectionReady(page: Page, sectionName: string) {
-    const section = settingsSection(page, sectionName);
-    await expect(section).toBeVisible();
-    await expect(section).toHaveAttribute("data-sot-state", "ready");
-    await expect(section).toHaveAttribute("aria-busy", "false");
-}
-
-test("title generation settings save model provider fields through the SOT section", async ({
+test("title generation settings save model provider fields", async ({
     page,
 }) => {
     await ensureSignedIn(page);
@@ -194,41 +261,37 @@ test("title generation settings save model provider fields through the SOT secti
     await page.goto("/settings#title-generation", {
         waitUntil: "domcontentloaded",
     });
-
-    const section = settingsSection(page, "title-generation");
-    const saveButton = sectionSaveButton(section);
-    await expect(settingsShell(page)).toHaveAttribute(
-        "data-sot-section",
-        "title-generation",
-    );
     await expectSectionReady(page, "title-generation");
+
+    const section = settingsPanel(page, "title-generation");
+    const titleGenerationGroup = settingsGroup(section, "标题生成服务");
+    const save = saveButton(titleGenerationGroup);
+    const enabledSwitch = control(section, "title-generation-enabled");
+    const baseUrlInput = control(section, "title-generation-base-url");
+    const modelInput = control(section, "title-generation-model");
+    const apiKeyInput = control(section, "title-generation-api-key");
+
     await expect(
-        section.getByRole("heading", {
-            name: "AI 重命名服务",
-            exact: true,
-        }),
+        section.getByText("基于逐字稿自动重命名", { exact: true }),
     ).toBeVisible();
-    const enabledSwitch = sectionSotControl(
-        section,
-        "title-generation-enabled",
+    await expect(
+        section.getByText("重命名服务地址", { exact: true }),
+    ).toBeVisible();
+    await expectSwitchState(enabledSwitch, true);
+    await expect(baseUrlInput).toBeEnabled();
+    await expect(baseUrlInput).toHaveAttribute(
+        "placeholder",
+        "https://api.openai.com/v1",
     );
-    const baseUrlInput = sectionSotControl(
-        section,
-        "title-generation-base-url",
-    );
-    const modelInput = sectionSotControl(section, "title-generation-model");
-    const apiKeyInput = sectionSotControl(
-        section,
-        "title-generation-api-key",
-    );
-    await expectSotSwitchState(enabledSwitch, true);
-    await expect(baseUrlInput).toHaveAttribute("data-sot-state", "ready");
-    await expect(modelInput).toHaveAttribute("data-sot-state", "ready");
-    await expect(apiKeyInput).toHaveAttribute("data-sot-state", "ready");
-    await expect(saveButton).toHaveAttribute("data-sot-state", "idle");
+    await expect(modelInput).toBeEnabled();
+    await expect(modelInput).toHaveAttribute("placeholder", "gpt-4.1-mini");
+    await expect(apiKeyInput).toBeEnabled();
+    await expect(save).toBeEnabled();
+    await expect(save).toHaveAttribute("aria-busy", "false");
+    await expect(save).toHaveAccessibleName("保存");
 
     await enabledSwitch.click();
-    await expectSotSwitchState(enabledSwitch, false);
+    await expectSwitchState(enabledSwitch, false);
     await baseUrlInput.fill("https://example.com/v1");
     await modelInput.fill("e2e-title-model");
     await apiKeyInput.fill("e2e-title-value");
@@ -241,11 +304,11 @@ test("title generation settings save model provider fields through the SOT secti
             response.request().postDataJSON()?.titleGenerationModel ===
                 "e2e-title-model",
     );
-    await Promise.all([titleGenerationSaveStarted, saveButton.click()]);
-    await expect(section).toHaveAttribute("data-sot-state", "busy");
-    await expect(saveButton).toHaveAttribute("data-sot-state", "saving");
-    await expect(saveButton).toHaveAttribute("aria-busy", "true");
-    await expect(saveButton).toContainText("保存中");
+    await Promise.all([titleGenerationSaveStarted, save.click()]);
+    await expectSectionBusy(page, "title-generation");
+    await expect(save).toBeDisabled();
+    await expect(save).toHaveAttribute("aria-busy", "true");
+    await expect(save).toHaveAccessibleName("保存中");
 
     releaseTitleGenerationSave?.();
     await saveResponse;
@@ -255,24 +318,27 @@ test("title generation settings save model provider fields through the SOT secti
         titleGenerationBaseUrl: "https://example.com/v1",
         titleGenerationModel: "e2e-title-model",
     });
-    await expect(section).toHaveAttribute("data-sot-state", "ready");
-    await expect(saveButton).toHaveAttribute("data-sot-state", "saved");
+    await expectSectionReady(page, "title-generation");
+    await expect(save).toBeEnabled();
+    await expect(save).toHaveAccessibleName("已保存");
     await expect(apiKeyInput).toHaveValue("");
-    await expect(apiKeyInput).toHaveAttribute("data-sot-state", "stored");
+    await expect(
+        titleGenerationGroup.getByText("已存储", { exact: true }),
+    ).toBeVisible();
 
     await page.reload({ waitUntil: "domcontentloaded" });
-    await expect(settingsSection(page, "title-generation")).toHaveAttribute(
-        "data-sot-state",
-        "ready",
-    );
+    await expectSectionReady(page, "title-generation");
+    const reloadedSection = settingsPanel(page, "title-generation");
     await expect(
-        page.locator('[data-sot-control="title-generation-model"]'),
+        control(reloadedSection, "title-generation-model"),
     ).toHaveValue("e2e-title-model");
     await expect(
-        page.locator('[data-sot-control="title-generation-api-key"]'),
-    ).toHaveAttribute("data-sot-state", "stored");
+        settingsGroup(reloadedSection, "标题生成服务").getByText("已存储", {
+            exact: true,
+        }),
+    ).toBeVisible();
     await expect(
-        page.locator('[data-sot-control="title-generation-api-key"]'),
+        control(reloadedSection, "title-generation-api-key"),
     ).toHaveAttribute("placeholder", /输入新 key 可替换/);
 });
 
@@ -289,24 +355,14 @@ test("title generation settings show real backend save error", async ({
         await page.goto("/settings#title-generation", {
             waitUntil: "domcontentloaded",
         });
-
-        const section = settingsSection(page, "title-generation");
-        const saveButton = sectionSaveButton(section, "title-generation");
-        const saveActions = section.locator(
-            '[data-sot-panel="settings-save-actions"][data-sot-save-id="title-generation"]',
-        );
-        const saveStatus = saveActions.locator(
-            '[data-sot-part="settings-save-status"]',
-        );
-        const baseUrlInput = sectionSotControl(
-            section,
-            "title-generation-base-url",
-        );
-
         await expectSectionReady(page, "title-generation");
-        await expect(saveButton).toHaveAttribute("data-sot-state", "idle");
-        await expect(saveStatus).toHaveAttribute("data-sot-state", "idle");
 
+        const section = settingsPanel(page, "title-generation");
+        const save = saveButton(settingsGroup(section, "标题生成服务"));
+        const baseUrlInput = control(section, "title-generation-base-url");
+
+        await expect(save).toBeEnabled();
+        await expect(save).toHaveAttribute("aria-busy", "false");
         await baseUrlInput.fill(invalidBaseUrl);
 
         const rejectedSaveResponsePromise = page.waitForResponse((response) => {
@@ -321,7 +377,7 @@ test("title generation settings show real backend save error", async ({
             return payload?.titleGenerationBaseUrl === invalidBaseUrl;
         });
 
-        await saveButton.click();
+        await save.click();
 
         const rejectedSaveResponse = await rejectedSaveResponsePromise;
         expect(rejectedSaveResponse.status()).toBe(400);
@@ -335,12 +391,11 @@ test("title generation settings show real backend save error", async ({
             throw new Error("Expected title generation save error response");
         }
 
-        await expect(saveButton).toHaveAttribute("data-sot-state", "error");
-        await expect(saveButton).toHaveAttribute("aria-busy", "false");
-        await expect(saveStatus).toBeVisible();
-        await expect(saveStatus).toHaveAttribute("data-sot-state", "error");
-        await expect(saveStatus).toContainText(rejectedSaveBody.error);
-        await expect(section.getByText(rejectedSaveBody.error)).toBeVisible();
+        const saveError = rejectedSaveBody.error;
+        await expect(settingsDialog(page)).toHaveAttribute("aria-busy", "false");
+        await expect(save).toBeEnabled();
+        await expect(save).toHaveAttribute("aria-busy", "false");
+        await expect(section.getByText(saveError, { exact: true })).toBeVisible();
 
         await baseUrlInput.fill(restoredBaseUrl);
 
@@ -356,18 +411,17 @@ test("title generation settings show real backend save error", async ({
             return payload?.titleGenerationBaseUrl === restoredBaseUrl;
         });
 
-        await saveButton.click();
+        await save.click();
 
         const restoredSaveResponse = await restoredSaveResponsePromise;
         expect(restoredSaveResponse.status()).toBe(200);
-        await expect(saveButton).toHaveAttribute("data-sot-state", "saved");
-        await expect(saveStatus).toHaveAttribute("data-sot-state", "saved");
+        await expect(save).toHaveAccessibleName("已保存");
     } finally {
         await resetTitleGeneration(page);
     }
 });
 
-test("title generation settings load failure exposes retry-only SOT state", async ({
+test("title generation settings load failure exposes retry-only state", async ({
     page,
 }) => {
     await ensureSignedIn(page);
@@ -402,43 +456,30 @@ test("title generation settings load failure exposes retry-only SOT state", asyn
         waitUntil: "domcontentloaded",
     });
 
-    const section = settingsSection(page, "title-generation");
-    await expect(section).toBeVisible();
-    await expect(section).toHaveAttribute("data-sot-state", "loading");
-    const skeleton = page.locator(
-        '[data-sot-panel="settings-section-skeleton"][data-sot-section="title-generation"]',
-    );
-    await expect(skeleton).toBeVisible();
-    await expect(skeleton).toHaveAttribute("data-sot-state", "loading");
+    const dialog = settingsDialog(page);
+    await expectSectionBusy(page, "title-generation");
+    await expectVisibleSectionLoading(dialog);
+    await expect(settingsHeading(page, "title-generation")).toHaveCount(0);
+    await expect(control(dialog, "title-generation-enabled")).toHaveCount(0);
+    await expect(control(dialog, "title-generation-model")).toHaveCount(0);
     await expect(
-        skeleton.locator('[data-sot-part="settings-skeleton-row"]'),
-    ).toHaveCount(4);
-    await expect(
-        skeleton.locator('[data-sot-panel="settings-card-skeleton"]'),
-    ).toHaveCount(2);
-    await expect(
-        skeleton.locator('[data-sot-panel="settings-card-skeleton"]').first(),
-    ).toHaveAttribute("data-sot-state", "loading");
+        dialog.getByRole("button", { name: SAVE_BUTTON_NAME }),
+    ).toHaveCount(0);
 
     releaseInitialLoad?.();
-    await expect(section).toHaveAttribute("data-sot-state", "error");
-    const loadError = section.locator(
-        '[data-sot-panel="settings-section-load-error"][data-sot-section="title-generation"]',
-    );
+    const loadError = dialog
+        .getByRole("alert")
+        .filter({ hasText: "Title generation unavailable" });
     await expect(loadError).toBeVisible();
-    await expect(section.getByText("加载失败")).toBeVisible();
-    await expect(section.getByText("Title generation unavailable")).toBeVisible();
-    await expect(
-        section.locator('[data-sot-control="title-generation-enabled"]'),
-    ).toHaveCount(0);
-    await expect(
-        section.locator('[data-sot-control="title-generation-model"]'),
-    ).toHaveCount(0);
-    await expect(sectionSaveButton(section)).toHaveCount(0);
-    const retry = section.locator(
-        '[data-sot-control="settings-section-load-retry"][data-sot-section="title-generation"]',
-    );
-    await expect(retry).toBeVisible();
+    await expect(loadError).toContainText("加载失败");
+    await expect(loadError).toContainText("Title generation unavailable");
+    await expect(control(dialog, "title-generation-enabled")).toHaveCount(0);
+    await expect(control(dialog, "title-generation-model")).toHaveCount(0);
+    const retry = loadError.getByRole("button", {
+        name: "重试",
+        exact: true,
+    });
+    await expect(retry).toBeEnabled();
 
     const retryResponse = page.waitForResponse(
         (response) =>
@@ -450,16 +491,12 @@ test("title generation settings load failure exposes retry-only SOT state", asyn
     await retryResponse;
 
     await expectSectionReady(page, "title-generation");
-    await expectSotSwitchState(
-        section.locator('[data-sot-control="title-generation-enabled"]'),
-        true,
-    );
-    await expect(
-        section.locator('[data-sot-control="title-generation-model"]'),
-    ).toBeVisible();
+    const section = settingsPanel(page, "title-generation");
+    await expectSwitchState(control(section, "title-generation-enabled"), true);
+    await expect(control(section, "title-generation-model")).toBeVisible();
 });
 
-test("transcription settings load failure exposes retry-only SOT state", async ({
+test("transcription settings load failure exposes retry-only state", async ({
     page,
 }) => {
     await ensureSignedIn(page);
@@ -496,45 +533,34 @@ test("transcription settings load failure exposes retry-only SOT state", async (
         waitUntil: "domcontentloaded",
     });
 
-    const section = settingsSection(page, "transcription");
-    await expect(section).toBeVisible();
-    await expect(section).toHaveAttribute("data-sot-state", "loading");
-    await expect(section).toHaveAttribute("aria-busy", "true");
-    const skeleton = page.locator(
-        '[data-sot-panel="settings-section-skeleton"][data-sot-section="transcription"]',
-    );
-    await expect(skeleton).toBeVisible();
-    await expect(skeleton).toHaveAttribute("data-sot-state", "loading");
+    const dialog = settingsDialog(page);
+    await expectSectionBusy(page, "transcription");
+    await expectVisibleSectionLoading(dialog);
+    await expect(settingsHeading(page, "transcription")).toHaveCount(0);
     await expect(
-        skeleton.locator('[data-sot-part="settings-skeleton-row"]'),
-    ).toHaveCount(4);
+        control(dialog, "transcription-auto-transcribe"),
+    ).toHaveCount(0);
+    await expect(control(dialog, "transcription-language")).toHaveCount(0);
     await expect(
-        skeleton.locator('[data-sot-panel="settings-card-skeleton"]'),
-    ).toHaveCount(2);
+        dialog.getByRole("button", { name: SAVE_BUTTON_NAME }),
+    ).toHaveCount(0);
 
     releaseInitialLoad?.();
-    await expect(section).toHaveAttribute("data-sot-state", "error");
-    const loadError = section.locator(
-        '[data-sot-panel="settings-section-load-error"][data-sot-section="transcription"]',
-    );
+    const loadError = dialog
+        .getByRole("alert")
+        .filter({ hasText: "Transcription settings unavailable" });
     await expect(loadError).toBeVisible();
-    await expect(section.getByText("加载失败")).toBeVisible();
+    await expect(loadError).toContainText("加载失败");
+    await expect(loadError).toContainText("Transcription settings unavailable");
     await expect(
-        section.getByText("Transcription settings unavailable"),
-    ).toBeVisible();
-    await expect(
-        sectionSotControl(section, "transcription-auto-transcribe"),
+        control(dialog, "transcription-auto-transcribe"),
     ).toHaveCount(0);
-    await expect(
-        sectionSotControl(section, "transcription-language"),
-    ).toHaveCount(0);
-    await expect(sectionSaveButton(section)).toHaveCount(0);
-    await expect(section.locator('[data-sot-action="save"]')).toHaveCount(0);
-    await expect(section.locator("[data-save-action]")).toHaveCount(0);
-    const retry = section.locator(
-        '[data-sot-control="settings-section-load-retry"][data-sot-section="transcription"]',
-    );
-    await expect(retry).toBeVisible();
+    await expect(control(dialog, "transcription-language")).toHaveCount(0);
+    const retry = loadError.getByRole("button", {
+        name: "重试",
+        exact: true,
+    });
+    await expect(retry).toBeEnabled();
 
     const retryResponse = page.waitForResponse(
         (response) =>
@@ -546,19 +572,18 @@ test("transcription settings load failure exposes retry-only SOT state", async (
     await retryResponse;
 
     await expectSectionReady(page, "transcription");
-    await expectSotSwitchState(
-        sectionSotControl(section, "transcription-auto-transcribe"),
+    const section = settingsPanel(page, "transcription");
+    await expectSwitchState(
+        control(section, "transcription-auto-transcribe"),
         true,
     );
-    const languageSelect = sectionSotControl(section, "transcription-language");
-    await expect(languageSelect).toHaveAttribute("data-sot-state", "ready");
-    await expectShadcnSelectTrigger(languageSelect, {
+    await expectSelectTrigger(control(section, "transcription-language"), {
         label: "默认转录语言",
         text: "自动检测",
     });
 });
 
-test("transcription settings save auto-transcribe and language changes through SOT controls", async ({
+test("transcription settings save auto-transcribe and language changes", async ({
     page,
 }) => {
     await ensureSignedIn(page);
@@ -587,17 +612,20 @@ test("transcription settings save auto-transcribe and language changes through S
     await page.goto("/settings#transcription", {
         waitUntil: "domcontentloaded",
     });
-
-    const section = settingsSection(page, "transcription");
     await expectSectionReady(page, "transcription");
-    await expect(sectionSaveButton(section)).toHaveCount(0);
-    await expect(section.locator("[data-save-actions]")).toHaveCount(0);
-    await expect(section.locator("[data-save-action]")).toHaveCount(0);
-    const autoTranscribeSwitch = sectionSotControl(
+
+    const section = settingsPanel(page, "transcription");
+    await expect(
+        section.getByRole("button", { name: SAVE_BUTTON_NAME }),
+    ).toHaveCount(0);
+    const autoTranscribeSwitch = control(
         section,
         "transcription-auto-transcribe",
     );
-    await expectSotSwitchState(autoTranscribeSwitch, true);
+    await expect(
+        section.getByText("自动转录新录音", { exact: true }),
+    ).toBeVisible();
+    await expectSwitchState(autoTranscribeSwitch, true);
 
     const autoTranscribeOffResponse = page.waitForResponse(
         (response) =>
@@ -608,7 +636,7 @@ test("transcription settings save auto-transcribe and language changes through S
     );
     await autoTranscribeSwitch.click();
     await transcriptionSaveStarted;
-    await expect(section).toHaveAttribute("data-sot-state", "busy");
+    await expectSectionBusy(page, "transcription");
     await expect(autoTranscribeSwitch).toBeDisabled();
     releaseTranscriptionSave?.();
     await autoTranscribeOffResponse;
@@ -616,12 +644,15 @@ test("transcription settings save auto-transcribe and language changes through S
     expect(transcriptionPayloads.at(-1)).toEqual({
         autoTranscribe: false,
     });
-    await expect(section).toHaveAttribute("data-sot-state", "ready");
-    await expectSotSwitchState(autoTranscribeSwitch, false);
+    await expectSectionReady(page, "transcription");
+    await expect(autoTranscribeSwitch).toBeEnabled();
+    await expectSwitchState(autoTranscribeSwitch, false);
 
-    const languageSelect = sectionSotControl(section, "transcription-language");
-    await expect(languageSelect).toHaveAttribute("data-sot-state", "ready");
-    await expectShadcnSelectTrigger(languageSelect, {
+    const languageSelect = page.getByRole("combobox", {
+        name: "默认转录语言",
+        exact: true,
+    });
+    await expectSelectTrigger(languageSelect, {
         label: "默认转录语言",
         text: "自动检测",
     });
@@ -635,22 +666,29 @@ test("transcription settings save auto-transcribe and language changes through S
     );
     await Promise.all([
         languageResponse,
-        chooseShadcnSelectOption(page, languageSelect, "中文"),
+        chooseSelectOption(page, languageSelect, "中文"),
     ]);
 
     expect(transcriptionPayloads.at(-1)).toEqual({
         defaultTranscriptionLanguage: "zh",
     });
-    await expect(section).toHaveAttribute("data-sot-state", "ready");
-    await expect(sectionSaveButton(section)).toHaveCount(0);
+    await expectSectionReady(page, "transcription");
+    await expect(
+        section.getByRole("button", { name: SAVE_BUTTON_NAME }),
+    ).toHaveCount(0);
 
     await page.reload({ waitUntil: "domcontentloaded" });
-    const reloadedAutoTranscribeSwitch = page.locator(
-        '[data-sot-control="transcription-auto-transcribe"]',
+    await expectSectionReady(page, "transcription");
+    const reloadedSection = settingsPanel(page, "transcription");
+    await expectSwitchState(
+        control(reloadedSection, "transcription-auto-transcribe"),
+        false,
     );
-    await expectSotSwitchState(reloadedAutoTranscribeSwitch, false);
-    await expectShadcnSelectTrigger(
-        page.locator('[data-sot-control="transcription-language"]'),
+    await expectSelectTrigger(
+        page.getByRole("combobox", {
+            name: "默认转录语言",
+            exact: true,
+        }),
         {
             label: "默认转录语言",
             text: "中文",
@@ -658,9 +696,7 @@ test("transcription settings save auto-transcribe and language changes through S
     );
 });
 
-test("misc settings load failure exposes retry-only SOT state", async ({
-    page,
-}) => {
+test("misc settings load failure exposes retry-only state", async ({ page }) => {
     await ensureSignedIn(page);
 
     let releaseInitialSyncLoad: (() => void) | null = null;
@@ -689,46 +725,36 @@ test("misc settings load failure exposes retry-only SOT state", async ({
     });
 
     await resetCoreSettings(page);
-
+    await resetPlayback(page);
     await page.goto("/settings#misc", { waitUntil: "domcontentloaded" });
 
-    const section = settingsSection(page, "misc");
-    await expect(settingsShell(page)).toHaveAttribute("data-sot-section", "misc");
-    await expect(section).toBeVisible();
-    await expect(section).toHaveAttribute("data-sot-state", "loading");
-    await expect(section).toHaveAttribute("aria-busy", "true");
-    const skeleton = page.locator(
-        '[data-sot-panel="settings-section-skeleton"][data-sot-section="misc"]',
-    );
-    await expect(skeleton).toBeVisible();
-    await expect(skeleton).toHaveAttribute("data-sot-state", "loading");
+    const dialog = settingsDialog(page);
+    await expectSectionBusy(page, "misc");
+    await expectVisibleSectionLoading(dialog);
+    await expect(settingsHeading(page, "misc")).toHaveCount(0);
+    await expect(control(dialog, "sync-auto-enabled")).toHaveCount(0);
+    await expect(control(dialog, "sync-interval-seconds")).toHaveCount(0);
+    await expect(control(dialog, "playback-speed")).toHaveCount(0);
+    await expect(control(dialog, "playback-volume")).toHaveCount(0);
+    await expect(control(dialog, "playback-auto-next")).toHaveCount(0);
 
     releaseInitialSyncLoad?.();
-    await expect(section).toHaveAttribute("data-sot-state", "error");
-    const loadError = section.locator(
-        '[data-sot-panel="settings-section-load-error"][data-sot-section="misc"]',
-    );
+    const loadError = dialog
+        .getByRole("alert")
+        .filter({ hasText: "Sync settings unavailable" });
     await expect(loadError).toBeVisible();
-    await expect(section.getByText("加载失败")).toBeVisible();
-    await expect(section.getByText("Sync settings unavailable")).toBeVisible();
-    await expect(sectionSotControl(section, "sync-auto-enabled")).toHaveCount(
-        0,
-    );
-    await expect(
-        sectionSotControl(section, "sync-interval-seconds"),
-    ).toHaveCount(0);
-    await expect(sectionSotControl(section, "playback-speed")).toHaveCount(0);
-    await expect(sectionSotControl(section, "playback-volume")).toHaveCount(0);
-    await expect(sectionSotControl(section, "playback-auto-next")).toHaveCount(
-        0,
-    );
-    await expect(sectionSaveButton(section)).toHaveCount(0);
-    await expect(section.locator('[data-sot-action="save"]')).toHaveCount(0);
-    await expect(section.locator("[data-save-action]")).toHaveCount(0);
-    const retry = section.locator(
-        '[data-sot-control="settings-section-load-retry"][data-sot-section="misc"]',
-    );
-    await expect(retry).toBeVisible();
+    await expect(loadError).toContainText("加载失败");
+    await expect(loadError).toContainText("Sync settings unavailable");
+    await expect(control(dialog, "sync-auto-enabled")).toHaveCount(0);
+    await expect(control(dialog, "sync-interval-seconds")).toHaveCount(0);
+    await expect(control(dialog, "playback-speed")).toHaveCount(0);
+    await expect(control(dialog, "playback-volume")).toHaveCount(0);
+    await expect(control(dialog, "playback-auto-next")).toHaveCount(0);
+    const retry = loadError.getByRole("button", {
+        name: "重试",
+        exact: true,
+    });
+    await expect(retry).toBeEnabled();
 
     const retryResponse = page.waitForResponse(
         (response) =>
@@ -740,31 +766,34 @@ test("misc settings load failure exposes retry-only SOT state", async ({
     await retryResponse;
 
     await expectSectionReady(page, "misc");
-    const autoSyncSwitch = sectionSotControl(section, "sync-auto-enabled");
-    await expectSotSwitchState(autoSyncSwitch, true);
-    const syncIntervalInput = sectionSotControl(
-        section,
-        "sync-interval-seconds",
+    const section = settingsPanel(page, "misc");
+    const autoSyncSwitch = control(section, "sync-auto-enabled");
+    const syncIntervalInput = control(section, "sync-interval-seconds");
+    const playbackSpeed = page.getByRole("combobox", {
+        name: "默认速度",
+        exact: true,
+    });
+    const playbackVolume = control(section, "playback-volume").getByRole(
+        "slider",
     );
-    await expect(syncIntervalInput).toHaveAttribute("data-sot-state", "ready");
+    const playbackAutoNext = control(section, "playback-auto-next");
+
+    await expectSwitchState(autoSyncSwitch, true);
+    await expect(syncIntervalInput).toBeEnabled();
     await expect(syncIntervalInput).toHaveValue("300");
-    const playbackSpeed = sectionSotControl(section, "playback-speed");
-    await expect(playbackSpeed).toBeVisible();
-    await expect(playbackSpeed).toHaveAttribute("data-sot-state", "ready");
-    const playbackVolume = sectionSotControl(section, "playback-volume");
+    await expectSelectTrigger(playbackSpeed, {
+        label: "默认速度",
+    });
     await expect(playbackVolume).toBeVisible();
-    await expect(playbackVolume).toHaveAttribute("data-sot-state", "ready");
-    const playbackAutoNext = sectionSotControl(section, "playback-auto-next");
-    await expect(playbackAutoNext).toBeVisible();
-    await expect(playbackAutoNext).toHaveAttribute("role", "switch");
-    await expect(playbackAutoNext).toHaveAttribute(
-        "data-sot-state",
-        /^(checked|unchecked)$/,
-    );
-    await expect(sectionSaveButton(section)).toHaveCount(0);
+    await expect(playbackVolume).toHaveAttribute("aria-valuemin", "0");
+    await expect(playbackVolume).toHaveAttribute("aria-valuemax", "100");
+    await expectSwitchState(playbackAutoNext, true);
+    await expect(
+        section.getByRole("button", { name: SAVE_BUTTON_NAME }),
+    ).toHaveCount(0);
 });
 
-test("VoScript speaker profiles restore SOT states and backend actions", async ({
+test("VoScript speaker profiles restore backend actions and accessible states", async ({
     page,
 }) => {
     await ensureSignedIn(page);
@@ -974,47 +1003,52 @@ test("VoScript speaker profiles restore SOT states and backend actions", async (
     });
     await expectSectionReady(page, "voscript");
 
-    const panel = speakerProfilesPanel(page);
-    const local = speakerProfilesLocal(page);
-    const voiceprintsPanel = speakerVoiceprints(page);
-    const profilesRefresh = local.locator(
-        '[data-sot-control="speaker-profiles-refresh"]',
-    );
-    const voiceprintsRefresh = voiceprintsPanel.locator(
-        '[data-sot-control="speaker-voiceprints-refresh"]',
-    );
-    await expect(panel).toBeVisible();
-    await expect(profilesRefresh).toHaveAttribute("data-sot-state", "loading");
-    await expect(local).toHaveAttribute("data-sot-state", "loading");
+    const section = settingsPanel(page, "voscript");
+    const refreshButtons = section.getByRole("button", {
+        name: "刷新",
+        exact: true,
+    });
+    await expect(refreshButtons).toHaveCount(2);
+    const profilesRefresh = refreshButtons.first();
+    const voiceprintsRefresh = refreshButtons.last();
+
     await expect(
-        local.locator('[data-sot-panel="settings-list-skeleton"]'),
+        section.getByText("已保存的说话人", { exact: true }),
+    ).toBeVisible();
+    await expect(profilesRefresh).toBeDisabled();
+    await expect(profilesRefresh).toHaveAttribute("aria-busy", "true");
+    await expect(
+        section
+            .getByRole("alert")
+            .filter({ hasText: "请先在 VoScript 保存可用的服务连接。" }),
     ).toBeVisible();
 
     initialProfileLoadRelease?.();
-    await expect(local).toHaveAttribute("data-sot-state", "error");
-    await expect(
-        local.locator('[data-sot-panel="speaker-profiles-notice"]'),
-    ).toHaveAttribute("data-sot-state", "error");
-    await expect(local.getByText("说话人档案服务暂不可用")).toBeVisible();
-    await expect(voiceprintsPanel).toHaveAttribute("data-sot-state", "disabled");
+    const profileLoadError = section
+        .getByRole("alert")
+        .filter({ hasText: "说话人档案服务暂不可用" });
+    await expect(profileLoadError).toBeVisible();
+    await expect(profilesRefresh).toBeEnabled();
+    await expect(profilesRefresh).toHaveAttribute("aria-busy", "false");
 
     failProfileLoads = false;
-    await local
-        .locator('[data-sot-control="speaker-profiles-retry"]')
-        .click();
-    await expect(local).toHaveAttribute("data-sot-state", "empty");
+    const profilesRetry = profileLoadError.getByRole("button", {
+        name: "重试",
+        exact: true,
+    });
+    await profilesRetry.click();
     await expect(
-        local.locator('[data-sot-panel="speaker-profiles-notice"]'),
-    ).toHaveAttribute("data-sot-state", "empty");
+        section.getByText("还没有已保存的说话人", { exact: true }),
+    ).toBeVisible();
 
-    const createName = local.locator(
-        '[data-sot-control="speaker-profile-new-name"]',
-    );
-    const createButton = local.locator(
-        '[data-sot-control="speaker-profile-create"]',
-    );
+    const createName = section.getByLabel("说话人名称", { exact: true });
+    const createButton = section.getByRole("button", {
+        name: "添加说话人",
+        exact: true,
+    });
     await createName.fill("E2E Speaker Alpha");
-    await expect(createButton).toHaveAttribute("data-sot-state", "idle");
+    await expect(createButton).toBeEnabled();
+    await expect(createButton).toHaveAttribute("aria-busy", "false");
     await Promise.all([
         page.waitForResponse(
             (response) =>
@@ -1025,39 +1059,50 @@ test("VoScript speaker profiles restore SOT states and backend actions", async (
         createButton.click(),
     ]);
 
-    const speakerRow = local.locator(
-        '[data-sot-speaker-profile-row][data-sot-speaker-profile-id="speaker-alpha"]',
+    let speakerNameInput = section.getByLabel(
+        "说话人名称：E2E Speaker Alpha",
+        { exact: true },
     );
-    await expect(local).toHaveAttribute("data-sot-state", "ready");
-    await expect(speakerRow).toHaveAttribute("data-sot-state", "ready");
-    const speakerNameInput = speakerRow.locator(
-        '[data-sot-control="speaker-profile-name"]',
-    );
+    await expect(speakerNameInput).toBeEnabled();
     await speakerNameInput.fill("E2E Speaker Renamed");
-    await speakerRow.locator('[data-sot-control="speaker-profile-save"]').click();
-    await expect(speakerRow).toHaveAttribute("data-sot-state", "saving");
+    speakerNameInput = section.getByLabel("说话人名称：E2E Speaker Renamed", {
+        exact: true,
+    });
+    const speakerRow = actionRow(speakerNameInput);
+    const speakerSaveButton = speakerRow.getByRole("button", {
+        name: "保存",
+        exact: true,
+    });
+    const speakerDeleteButton = speakerRow.getByRole("button", {
+        name: "删除",
+        exact: true,
+    });
+    await expect(speakerSaveButton).toBeEnabled();
+    await expect(speakerDeleteButton).toBeEnabled();
+    await speakerSaveButton.click();
+    await expect(speakerNameInput).toBeDisabled();
+    await expect(speakerSaveButton).toBeDisabled();
+    await expect(speakerSaveButton).toHaveAttribute("aria-busy", "true");
     profilePatchRelease?.();
     await expect(speakerNameInput).toHaveValue("E2E Speaker Renamed");
-    await expect(speakerRow).toHaveAttribute("data-sot-state", "ready");
+    await expect(speakerNameInput).toBeEnabled();
+    await expect(speakerSaveButton).toBeEnabled();
 
-    const speakerDeleteButton = speakerRow.locator(
-        '[data-sot-control="speaker-profile-delete"]',
-    );
     await speakerDeleteButton.click();
     const speakerCancelDialog = page.getByRole("dialog", {
         name: "确认操作",
         exact: true,
     });
-    await expect(
-        speakerCancelDialog.getByRole("button", { name: "取消", exact: true }),
-    ).toBeFocused();
-    await speakerCancelDialog
-        .getByRole("button", { name: "取消", exact: true })
-        .click();
+    const speakerCancelButton = speakerCancelDialog.getByRole("button", {
+        name: "取消",
+        exact: true,
+    });
+    await expect(speakerCancelButton).toBeFocused();
+    await speakerCancelButton.click();
     await expect(speakerCancelDialog).not.toBeVisible();
     await expect(speakerDeleteButton).toBeFocused();
     expect(profileDeleteAttempts).toBe(0);
-    await expect(speakerRow).toHaveCount(1);
+    await expect(speakerNameInput).toHaveCount(1);
 
     await speakerDeleteButton.click();
     const speakerEscapeDialog = page.getByRole("dialog", {
@@ -1069,7 +1114,7 @@ test("VoScript speaker profiles restore SOT states and backend actions", async (
     await expect(speakerEscapeDialog).not.toBeVisible();
     await expect(speakerDeleteButton).toBeFocused();
     expect(profileDeleteAttempts).toBe(0);
-    await expect(speakerRow).toHaveCount(1);
+    await expect(speakerNameInput).toHaveCount(1);
 
     await speakerDeleteButton.click();
     const speakerBackdropDialog = page.getByRole("dialog", {
@@ -1077,13 +1122,11 @@ test("VoScript speaker profiles restore SOT states and backend actions", async (
         exact: true,
     });
     await expect(speakerBackdropDialog).toBeVisible();
-    await page
-        .locator('[data-sot-panel="confirm-dialog"]')
-        .click({ position: { x: 8, y: 8 } });
+    await dismissByBackdrop(speakerBackdropDialog);
     await expect(speakerBackdropDialog).not.toBeVisible();
     await expect(speakerDeleteButton).toBeFocused();
     expect(profileDeleteAttempts).toBe(0);
-    await expect(speakerRow).toHaveCount(1);
+    await expect(speakerNameInput).toHaveCount(1);
 
     await speakerDeleteButton.click();
     await page
@@ -1091,50 +1134,60 @@ test("VoScript speaker profiles restore SOT states and backend actions", async (
         .getByRole("button", { name: "确认", exact: true })
         .click();
     expect(profileDeleteAttempts).toBe(1);
-    await expect(speakerRow).toHaveCount(0);
-    await expect(local).toHaveAttribute("data-sot-state", "empty");
+    await expect(speakerNameInput).toHaveCount(0);
+    await expect(
+        section.getByText("还没有已保存的说话人", { exact: true }),
+    ).toBeVisible();
 
     voiceprintMode = "empty";
-    await expect(voiceprintsRefresh).toHaveAttribute("data-sot-state", "idle");
+    await expect(voiceprintsRefresh).toBeEnabled();
+    await expect(voiceprintsRefresh).toHaveAttribute("aria-busy", "false");
     await voiceprintsRefresh.click();
-    await expect(voiceprintsPanel).toHaveAttribute("data-sot-state", "empty");
     await expect(
-        voiceprintsPanel.locator('[data-sot-panel="speaker-voiceprints-notice"]'),
-    ).toHaveAttribute("data-sot-state", "empty");
+        section.getByText("没有找到远端声纹", { exact: true }),
+    ).toBeVisible();
 
     failVoiceprintLoads = true;
     await voiceprintsRefresh.click();
-    await expect(voiceprintsPanel).toHaveAttribute("data-sot-state", "error");
-    await expect(
-        voiceprintsPanel.locator('[data-sot-panel="speaker-voiceprints-notice"]'),
-    ).toHaveAttribute("data-sot-state", "error");
-    await expect(voiceprintsPanel.getByText("声纹服务暂不可用")).toBeVisible();
+    const voiceprintLoadError = section
+        .getByRole("alert")
+        .filter({ hasText: "声纹服务暂不可用" });
+    await expect(voiceprintLoadError).toBeVisible();
 
     voiceprintMode = "ready";
     failVoiceprintLoads = false;
-    await voiceprintsPanel
-        .locator('[data-sot-control="speaker-voiceprints-retry"]')
+    await voiceprintLoadError
+        .getByRole("button", { name: "重试", exact: true })
         .click();
-    await expect(voiceprintsPanel).toHaveAttribute("data-sot-state", "ready");
-    const voiceprintRow = voiceprintsPanel.locator(
-        '[data-sot-voiceprint-row][data-sot-voiceprint-id="vp-alpha"]',
+    let voiceprintNameInput = section.getByLabel(
+        "声纹名称：Remote Voiceprint Alpha",
+        { exact: true },
     );
-    await expect(voiceprintRow).toHaveAttribute("data-sot-state", "ready");
-    const voiceprintNameInput = voiceprintRow.locator(
-        '[data-sot-control="speaker-voiceprint-name"]',
-    );
+    await expect(voiceprintNameInput).toBeEnabled();
     await voiceprintNameInput.fill("Remote Voiceprint Renamed");
-    await voiceprintRow
-        .locator('[data-sot-control="speaker-voiceprint-rename"]')
-        .click();
-    await expect(voiceprintRow).toHaveAttribute("data-sot-state", "saving");
+    voiceprintNameInput = section.getByLabel(
+        "声纹名称：Remote Voiceprint Renamed",
+        { exact: true },
+    );
+    const voiceprintRow = actionRow(voiceprintNameInput);
+    const voiceprintRenameButton = voiceprintRow.getByRole("button", {
+        name: "重命名声纹 Remote Voiceprint Renamed",
+        exact: true,
+    });
+    await expect(voiceprintRenameButton).toBeEnabled();
+    await voiceprintRenameButton.click();
+    await expect(voiceprintNameInput).toBeDisabled();
+    await expect(voiceprintRenameButton).toBeDisabled();
+    await expect(voiceprintRenameButton).toHaveAttribute("aria-busy", "true");
     voiceprintPatchRelease?.();
     await expect(voiceprintNameInput).toHaveValue("Remote Voiceprint Renamed");
-    await expect(voiceprintRow).toHaveAttribute("data-sot-state", "ready");
+    await expect(voiceprintNameInput).toBeEnabled();
+    await expect(voiceprintRenameButton).toBeEnabled();
 
-    const voiceprintDeleteButton = voiceprintRow.locator(
-        '[data-sot-control="speaker-voiceprint-delete"]',
-    );
+    const voiceprintDeleteButton = voiceprintRow.getByRole("button", {
+        name: "删除声纹 Remote Voiceprint Renamed",
+        exact: true,
+    });
     await voiceprintDeleteButton.click();
     const voiceprintEscapeDialog = page.getByRole("dialog", {
         name: "确认操作",
@@ -1145,7 +1198,7 @@ test("VoScript speaker profiles restore SOT states and backend actions", async (
     await expect(voiceprintEscapeDialog).not.toBeVisible();
     await expect(voiceprintDeleteButton).toBeFocused();
     expect(voiceprintDeleteAttempts).toBe(0);
-    await expect(voiceprintRow).toHaveCount(1);
+    await expect(voiceprintNameInput).toHaveCount(1);
 
     await voiceprintDeleteButton.click();
     const voiceprintBackdropDialog = page.getByRole("dialog", {
@@ -1153,13 +1206,11 @@ test("VoScript speaker profiles restore SOT states and backend actions", async (
         exact: true,
     });
     await expect(voiceprintBackdropDialog).toBeVisible();
-    await page
-        .locator('[data-sot-panel="confirm-dialog"]')
-        .click({ position: { x: 8, y: 8 } });
+    await dismissByBackdrop(voiceprintBackdropDialog);
     await expect(voiceprintBackdropDialog).not.toBeVisible();
     await expect(voiceprintDeleteButton).toBeFocused();
     expect(voiceprintDeleteAttempts).toBe(0);
-    await expect(voiceprintRow).toHaveCount(1);
+    await expect(voiceprintNameInput).toHaveCount(1);
 
     await voiceprintDeleteButton.click();
     await page
@@ -1167,11 +1218,13 @@ test("VoScript speaker profiles restore SOT states and backend actions", async (
         .getByRole("button", { name: "确认", exact: true })
         .click();
     expect(voiceprintDeleteAttempts).toBe(1);
-    await expect(voiceprintRow).toHaveCount(0);
-    await expect(voiceprintsPanel).toHaveAttribute("data-sot-state", "empty");
+    await expect(voiceprintNameInput).toHaveCount(0);
+    await expect(
+        section.getByText("没有找到远端声纹", { exact: true }),
+    ).toBeVisible();
 });
 
-test("sync settings save toggles and normalize short intervals through the SOT section", async ({
+test("sync settings save toggles and normalize short intervals", async ({
     page,
 }) => {
     await ensureSignedIn(page);
@@ -1198,26 +1251,20 @@ test("sync settings save toggles and normalize short intervals through the SOT s
     });
 
     await page.goto("/settings#misc", { waitUntil: "domcontentloaded" });
-
-    const section = settingsSection(page, "misc");
-    await expect(settingsShell(page)).toHaveAttribute("data-sot-section", "misc");
     await expectSectionReady(page, "misc");
-    await expect(sectionSaveButton(section)).toHaveCount(0);
+
+    const section = settingsPanel(page, "misc");
     await expect(
-        section.getByRole("heading", { name: "同步设置" }),
+        section.getByRole("heading", { name: "同步设置", exact: true }),
     ).toBeVisible();
-    const autoSyncSwitch = section.locator(
-        '[data-sot-control="sync-auto-enabled"]',
-    );
-    const syncIntervalInput = section.locator(
-        '[data-sot-control="sync-interval-seconds"]',
-    );
-    await expect(autoSyncSwitch).toHaveAttribute(
-        "data-sot-state",
-        "checked",
-    );
+    await expect(
+        section.getByRole("button", { name: SAVE_BUTTON_NAME }),
+    ).toHaveCount(0);
+    const autoSyncSwitch = control(section, "sync-auto-enabled");
+    const syncIntervalInput = control(section, "sync-interval-seconds");
+    await expectSwitchState(autoSyncSwitch, true);
+    await expect(syncIntervalInput).toBeEnabled();
     await expect(syncIntervalInput).toHaveValue("300");
-    await expect(syncIntervalInput).toHaveAttribute("data-sot-state", "ready");
 
     const autoSyncOffResponse = page.waitForResponse(
         (response) =>
@@ -1226,19 +1273,18 @@ test("sync settings save toggles and normalize short intervals through the SOT s
             response.ok() &&
             response.request().postDataJSON()?.autoSyncEnabled === false,
     );
-    await Promise.all([firstSyncSaveStarted, autoSyncSwitch.click()]);
-    await expect(section).toHaveAttribute("data-sot-state", "busy");
+    await autoSyncSwitch.click();
+    await firstSyncSaveStarted;
+    await expectSectionBusy(page, "misc");
     await expect(autoSyncSwitch).toBeDisabled();
+    await expect(syncIntervalInput).toBeDisabled();
     releaseFirstSyncSave?.();
     await autoSyncOffResponse;
     expect(syncPayloads.at(-1)).toEqual({
         autoSyncEnabled: false,
     });
-    await expect(section).toHaveAttribute("data-sot-state", "ready");
-    await expect(autoSyncSwitch).toHaveAttribute(
-        "data-sot-state",
-        "unchecked",
-    );
+    await expectSectionReady(page, "misc");
+    await expectSwitchState(autoSyncSwitch, false);
     await expect(syncIntervalInput).toHaveValue("300");
 
     const autoSyncOnResponse = page.waitForResponse(
@@ -1253,7 +1299,7 @@ test("sync settings save toggles and normalize short intervals through the SOT s
     expect(syncPayloads.at(-1)).toEqual({
         autoSyncEnabled: true,
     });
-    await expect(autoSyncSwitch).toHaveAttribute("data-sot-state", "checked");
+    await expectSwitchState(autoSyncSwitch, true);
 
     const normalizedIntervalResponse = page.waitForResponse(
         (response) =>
@@ -1268,22 +1314,19 @@ test("sync settings save toggles and normalize short intervals through the SOT s
     expect(syncPayloads.at(-1)).toEqual({
         syncIntervalSeconds: 60,
     });
-    await expect(section).toHaveAttribute("data-sot-state", "ready");
+    await expectSectionReady(page, "misc");
     await expect(syncIntervalInput).toHaveValue("60");
 
     await page.reload({ waitUntil: "domcontentloaded" });
+    await expectSectionReady(page, "misc");
+    const reloadedSection = settingsPanel(page, "misc");
+    await expectSwitchState(control(reloadedSection, "sync-auto-enabled"), true);
     await expect(
-        page.locator('[data-sot-control="sync-auto-enabled"]'),
-    ).toHaveAttribute(
-        "data-sot-state",
-        "checked",
-    );
-    await expect(
-        page.locator('[data-sot-control="sync-interval-seconds"]'),
+        control(reloadedSection, "sync-interval-seconds"),
     ).toHaveValue("60");
 });
 
-test("VoScript settings save current SOT controls without testing connection", async ({
+test("VoScript settings save current controls without testing connection", async ({
     page,
 }) => {
     await ensureSignedIn(page);
@@ -1315,47 +1358,25 @@ test("VoScript settings save current SOT controls without testing connection", a
     });
 
     await page.goto("/settings#voscript", { waitUntil: "domcontentloaded" });
-
-    const section = settingsSection(page, "voscript");
-    const connectionSaveButton = sectionSaveButton(
-        section,
-        "voscript-connection",
-    );
-    const paramsSaveButton = sectionSaveButton(section, "voscript-params");
     await expectSectionReady(page, "voscript");
-    await expect(
-        section.getByRole("heading", {
-            name: "VoScript 服务",
-            exact: true,
-        }),
-    ).toBeVisible();
 
-    const baseUrlInput = sectionSotControl(section, "voscript-base-url");
-    const apiKeyInput = sectionSotControl(section, "voscript-api-key");
-    const minSpeakersInput = sectionSotControl(
-        section,
-        "voscript-min-speakers",
-    );
-    const maxSpeakersInput = sectionSotControl(
-        section,
-        "voscript-max-speakers",
-    );
-    const noRepeatNgramInput = sectionSotControl(
-        section,
-        "voscript-no-repeat-ngram",
-    );
-    const snrThresholdInput = sectionSotControl(
-        section,
-        "voscript-snr-threshold",
-    );
-    const maxInflightJobsInput = sectionSotControl(
-        section,
-        "voscript-max-inflight-jobs",
-    );
-    const denoiseModelSelect = sectionSotControl(
-        section,
-        "voscript-denoise-model",
-    );
+    const section = settingsPanel(page, "voscript");
+    const connectionGroup = settingsGroup(section, "服务连接");
+    const parametersGroup = settingsGroup(section, "转录运行参数");
+    const connectionSaveButton = saveButton(connectionGroup);
+    const paramsSaveButton = saveButton(parametersGroup);
+    const baseUrlInput = control(section, "voscript-base-url");
+    const apiKeyInput = control(section, "voscript-api-key");
+    const minSpeakersInput = control(section, "voscript-min-speakers");
+    const maxSpeakersInput = control(section, "voscript-max-speakers");
+    const noRepeatNgramInput = control(section, "voscript-no-repeat-ngram");
+    const snrThresholdInput = control(section, "voscript-snr-threshold");
+    const maxInflightJobsInput = control(section, "voscript-max-inflight-jobs");
+    const denoiseModelSelect = page.getByRole("combobox", {
+        name: "降噪模型",
+        exact: true,
+    });
+
     for (const readyControl of [
         baseUrlInput,
         apiKeyInput,
@@ -1364,10 +1385,17 @@ test("VoScript settings save current SOT controls without testing connection", a
         noRepeatNgramInput,
         snrThresholdInput,
         maxInflightJobsInput,
-        denoiseModelSelect,
     ]) {
-        await expect(readyControl).toHaveAttribute("data-sot-state", "ready");
+        await expect(readyControl).toBeVisible();
+        await expect(readyControl).toBeEnabled();
     }
+    await expectSelectTrigger(denoiseModelSelect, {
+        label: "降噪模型",
+        text: "不降噪",
+    });
+    await expect(
+        section.getByRole("heading", { name: "VoScript 服务", exact: true }),
+    ).toBeVisible();
 
     await baseUrlInput.fill("https://voscript.example.com");
     await apiKeyInput.fill("e2e-vs-value");
@@ -1376,11 +1404,7 @@ test("VoScript settings save current SOT controls without testing connection", a
     await noRepeatNgramInput.fill("4");
     await snrThresholdInput.fill("12.5");
     await maxInflightJobsInput.fill("2");
-    await chooseShadcnSelectOption(
-        page,
-        denoiseModelSelect,
-        "DeepFilterNet",
-    );
+    await chooseSelectOption(page, denoiseModelSelect, "DeepFilterNet");
 
     await Promise.all([
         page.waitForResponse(
@@ -1399,12 +1423,11 @@ test("VoScript settings save current SOT controls without testing connection", a
         privateTranscriptionApiKey: "e2e-vs-value",
         privateTranscriptionBaseUrl: "https://voscript.example.com",
     });
-    await expect(connectionSaveButton).toHaveAttribute(
-        "data-sot-state",
-        "saved",
-    );
+    await expect(connectionSaveButton).toHaveAccessibleName("已保存");
     await expect(apiKeyInput).toHaveValue("");
-    await expect(apiKeyInput).toHaveAttribute("data-sot-state", "stored");
+    await expect(
+        connectionGroup.getByText("已存储", { exact: true }),
+    ).toBeVisible();
     await expect(minSpeakersInput).toHaveValue("3");
     await expect(maxSpeakersInput).toHaveValue("4");
     await expect(noRepeatNgramInput).toHaveValue("4");
@@ -1431,24 +1454,30 @@ test("VoScript settings save current SOT controls without testing connection", a
         privateTranscriptionNoRepeatNgramSize: 4,
         privateTranscriptionSnrThreshold: 12.5,
     });
-    await expect(paramsSaveButton).toHaveAttribute("data-sot-state", "saved");
+    await expect(paramsSaveButton).toHaveAccessibleName("已保存");
     await expect(apiKeyInput).toHaveValue("");
-    await expect(apiKeyInput).toHaveAttribute("data-sot-state", "stored");
+    await expect(
+        connectionGroup.getByText("已存储", { exact: true }),
+    ).toBeVisible();
 
     await page.reload({ waitUntil: "domcontentloaded" });
-    await expect(page.locator('[data-sot-control="voscript-api-key"]')).toHaveValue(
-        "",
+    await expectSectionReady(page, "voscript");
+    const reloadedSection = settingsPanel(page, "voscript");
+    const reloadedConnectionGroup = settingsGroup(
+        reloadedSection,
+        "服务连接",
     );
+    await expect(control(reloadedSection, "voscript-api-key")).toHaveValue("");
     await expect(
-        page.locator('[data-sot-control="voscript-api-key"]'),
-    ).toHaveAttribute("data-sot-state", "stored");
+        reloadedConnectionGroup.getByText("已存储", { exact: true }),
+    ).toBeVisible();
     await expect(
-        page.locator('[data-sot-control="voscript-min-speakers"]'),
+        control(reloadedSection, "voscript-min-speakers"),
     ).toHaveValue("3");
     await expect(
-        page.locator('[data-sot-control="voscript-max-speakers"]'),
+        control(reloadedSection, "voscript-max-speakers"),
     ).toHaveValue("4");
     await expect(
-        page.locator('[data-sot-control="voscript-no-repeat-ngram"]'),
+        control(reloadedSection, "voscript-no-repeat-ngram"),
     ).toHaveValue("4");
 });

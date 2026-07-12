@@ -4330,9 +4330,7 @@ describe("full UI replacement regression coverage", () => {
         for (const selector of REMOVED_SETTINGS_SHELL_GLOBAL_SELECTORS) {
             expect(collectExactCssRuleBlocks(productCss, selector)).toEqual([]);
         }
-        expect(settingsDialog).toContain(
-            '"data-sot-overlay": "settings-shell"',
-        );
+        expect(settingsDialog).not.toContain("overlayProps");
         expect(settingsDialog).not.toContain("const SETTINGS_OVERLAY_CLASS =");
         expect(settingsDialog).not.toContain(
             "className: SETTINGS_OVERLAY_CLASS",
@@ -10131,12 +10129,12 @@ describe("full UI replacement regression coverage", () => {
         const globals = readSource("app/globals.css");
         const settingsCloseButton = extractElementSlice(
             settingsDialog,
-            'data-sot-control="settings-close"',
+            'aria-label={t("settingsDialog.close")}',
             "Button",
         );
         const settingsNavButton = extractElementSlice(
             settingsDialog,
-            'data-sot-control="settings-nav"\n',
+            "aria-current={",
             "Button",
         );
         const settingsNavButtonClass =
@@ -10218,11 +10216,12 @@ describe("full UI replacement regression coverage", () => {
         ]) {
             expect(collectExactCssRuleBlocks(globals, selector)).toEqual([]);
         }
-        expect(settingsCloseButton).toContain(
-            'data-sot-control="settings-close"',
-        );
         expect(settingsCloseButton).toContain('variant="ghost"');
         expect(settingsCloseButton).toContain("SETTINGS_CLOSE_BUTTON_CLASS");
+        expect(settingsCloseButton).toContain(
+            'aria-label={t("settingsDialog.close")}',
+        );
+        expect(settingsCloseButton).toContain("disabled={isSettingsBusy}");
         expect(settingsCloseButton).toMatch(
             /className=\{\s*[A-Za-z0-9_]+\s*\}/,
         );
@@ -10231,10 +10230,12 @@ describe("full UI replacement regression coverage", () => {
         );
         expect(settingsCloseButton).not.toContain('variant="settingsClose"');
         expect(settingsCloseButton).not.toContain('size="settingsClose"');
-        expect(settingsNavButton).toContain('data-sot-control="settings-nav"');
         expect(settingsNavButton).toMatch(
             /variant=\{\s*isActive\s*\?\s*"outline"\s*:\s*"ghost"\s*\}/,
         );
+        expect(settingsNavButton).toContain("aria-current={");
+        expect(settingsNavButton).toContain("tabIndex={");
+        expect(settingsNavButton).toContain("disabled={isSettingsBusy}");
         expect(settingsNavButton).not.toContain('variant="navigationItem"');
         expect(settingsNavButton).not.toContain('size="navigationItem"');
         expect(settingsDialog).toContain("const SETTINGS_NAV_BUTTON_CLASS =");

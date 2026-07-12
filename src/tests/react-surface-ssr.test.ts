@@ -203,6 +203,11 @@ describe("React surface SSR coverage", () => {
         expect(html).not.toContain('data-sot-part="liquid-tabs-indicator"');
         expect(html).not.toContain('class="liquid-tabs');
         expect(html).not.toContain('class="lt-tab');
+        expect(html).toContain('role="status"');
+        expect(html).toContain('aria-label="正在加载设置"');
+        expect(html).toContain('aria-live="polite"');
+        expect(html).toContain('data-slot="spinner"');
+        expect(html).toContain("正在加载设置");
         expect(html).not.toContain("card-content");
         expect(html).not.toContain("uikit-");
     });
