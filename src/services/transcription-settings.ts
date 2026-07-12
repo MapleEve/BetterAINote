@@ -1,7 +1,7 @@
 const TRANSCRIPTION_SETTINGS_ENDPOINT = "/api/settings/transcription";
 
 const DEFAULT_TRANSCRIPTION_SETTINGS = {
-    autoTranscribe: false,
+    autoTranscribe: true,
     defaultTranscriptionLanguage: null,
 } as const;
 

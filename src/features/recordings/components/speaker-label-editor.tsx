@@ -1,18 +1,57 @@
 "use client";
 
-import { FileText, Play, RefreshCw, Volume2, X } from "lucide-react";
+import {
+    Check,
+    Copy,
+    FileText,
+    Play,
+    RefreshCw,
+    Volume2,
+    X,
+} from "lucide-react";
+import type { ComponentProps } from "react";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { toast } from "sonner";
 import { useLanguage } from "@/components/language-provider";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import {
+    Card,
+    CardAction,
+    CardContent,
+    CardDescription,
+    CardHeader,
+    CardTitle,
+} from "@/components/ui/card";
+import {
+    Empty,
+    EmptyDescription,
+    EmptyHeader,
+    EmptyMedia,
+    EmptyTitle,
+} from "@/components/ui/empty";
+import { Field, FieldContent, FieldLabel } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
+import {
+    InputGroup,
+    InputGroupAddon,
+    InputGroupButton,
+    InputGroupInput,
+} from "@/components/ui/input-group";
+import {
+    Popover,
+    PopoverContent,
+    PopoverTrigger,
+} from "@/components/ui/popover";
+import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
 import {
     SpeakerReviewSkeleton,
     TranscriptReviewSkeleton,
 } from "@/features/recordings/components/transcription-skeletons";
 import { formatDateTime } from "@/lib/format-date";
 import { startBrowserTimeout } from "@/lib/platform/browser-shell";
+import { writeBrowserClipboardText } from "@/lib/platform/clipboard";
 import { cn } from "@/lib/utils";
 
 interface SpeakerProfile {
@@ -51,6 +90,216 @@ interface TranscriptReview {
 }
 
 type TranscriptReviewMode = "speaker" | "raw";
+
+interface SpeakerSaveError {
+    rawLabel: string;
+    profileId: string | null;
+    profileName: string | undefined;
+}
+
+const SPEAKER_REVIEW_CARD_CLASS_NAMES = {
+    transcript: "gap-0",
+    row: "grid items-center gap-2.5 overflow-visible p-3",
+    mergePopover: "w-80 min-w-72 gap-0 overflow-hidden p-0",
+    confirm:
+        "flex-row items-center gap-2.5 overflow-visible border-destructive/30 bg-destructive/5 p-3 text-sm [&_[data-sot-confirm-message]]:min-w-0 [&_[data-sot-confirm-message]]:flex-1 [&_[data-sot-confirm-subject]]:not-italic [&_[data-sot-confirm-subject]]:font-semibold",
+} as const;
+
+const SPEAKER_REVIEW_CARD_HEADER_CLASS_NAMES = {
+    transcript:
+        "flex items-center justify-between gap-2.5 px-4 pt-3 pb-2 max-[860px]:flex-col max-[860px]:items-stretch [&_[data-sot-part=speaker-review-header-copy]]:flex [&_[data-sot-part=speaker-review-header-copy]]:min-w-0 [&_[data-sot-part=speaker-review-header-copy]]:items-center [&_[data-sot-part=speaker-review-header-copy]]:gap-2.5",
+    mergePopover:
+        "flex flex-row items-center justify-between gap-2.5 border-b px-3 py-2.5",
+} as const;
+
+const SPEAKER_REVIEW_CARD_TITLE_CLASS_NAMES = {
+    title: "leading-none font-semibold",
+    mergeTitle: "relative top-px text-xs font-semibold leading-normal",
+} as const;
+
+const SPEAKER_REVIEW_CARD_CONTENT_CLASS_NAMES = {
+    transcript:
+        "px-4 pb-4 [&_[data-sot-list=speaker-review-meta]]:my-4 [&_[data-sot-list=speaker-review-meta]]:grid [&_[data-sot-list=speaker-review-meta]]:grid-cols-2 [&_[data-sot-list=speaker-review-meta]]:gap-x-3.5 [&_[data-sot-list=speaker-review-meta]]:gap-y-1.5 max-[640px]:[&_[data-sot-list=speaker-review-meta]]:grid-cols-1 [&_[data-sot-part=speaker-review-transcript-section]]:flex [&_[data-sot-part=speaker-review-transcript-section]]:flex-col [&_[data-sot-part=speaker-review-transcript-section]]:gap-2 [&_[data-sot-part=speaker-review-transcript-section]]:border-t [&_[data-sot-part=speaker-review-transcript-section]]:pt-2",
+    mergePopover: "p-0",
+} as const;
+
+const SPEAKER_REVIEW_CARD_DESCRIPTION_CLASS_NAME =
+    "text-sm text-muted-foreground";
+
+const SPEAKER_REVIEW_CARD_ACTION_CLASS_NAME =
+    "flex min-w-0 flex-wrap items-center justify-end gap-1.5 max-[860px]:justify-start";
+const SPEAKER_REVIEW_MERGE_CARD_ACTION_CLASS_NAME =
+    "self-auto justify-self-auto leading-none";
+
+const SPEAKER_REVIEW_ACTION_BUTTON_CLASS_NAME = "min-w-0";
+const SPEAKER_REVIEW_PRIMARY_BUTTON_CLASS_NAME = "min-w-0";
+const SPEAKER_REVIEW_GHOST_BUTTON_CLASS_NAME = "min-w-0";
+const SPEAKER_REVIEW_DANGER_BUTTON_CLASS_NAME = "min-w-0";
+const SPEAKER_REVIEW_SUGGESTION_BUTTON_CLASS_NAME =
+    "grid h-auto min-h-8 w-full grid-cols-[minmax(0,1fr)_auto] justify-stretch gap-2 whitespace-normal px-2 py-1.5 text-left has-[>svg]:px-2 data-[sot-state=create]:grid-cols-1";
+const SPEAKER_REVIEW_ICON_BUTTON_CLASS_NAME = "shrink-0";
+const SPEAKER_REVIEW_MODE_ITEM_CLASS_NAME = "px-2.5";
+const SPEAKER_REVIEW_ERROR_ALERT_CLASS_NAME =
+    "grid w-full gap-2 px-3 py-2.5 text-sm leading-normal [&_[data-slot=button]]:w-fit";
+const SPEAKER_REVIEW_ERROR_TITLE_CLASS_NAME =
+    "min-h-0 font-medium leading-normal tracking-normal";
+const SPEAKER_REVIEW_ERROR_DESCRIPTION_CLASS_NAME =
+    "flex items-center gap-2 text-xs leading-normal text-current [&_p]:leading-normal";
+const SPEAKER_REVIEW_INLINE_EMPTY_CLASS_NAME = "px-6 py-4 md:p-4";
+const SPEAKER_REVIEW_MAPPING_CLEAR_BUTTON_CLASS_NAME = "shrink-0";
+const SPEAKER_REVIEW_META_ITEM_CLASS_NAME =
+    "min-w-0 truncate text-xs font-medium leading-normal text-muted-foreground";
+const SPEAKER_REVIEW_SECTION_DESCRIPTION_CLASS_NAME =
+    "m-0 text-xs font-medium leading-normal text-muted-foreground max-[860px]:whitespace-normal max-[860px]:break-words";
+const SPEAKER_REVIEW_SEGMENT_TITLE_CLASS_NAME =
+    "m-0 text-xs font-semibold leading-normal text-muted-foreground";
+const SPEAKER_REVIEW_SEGMENT_TEXT_CLASS_NAME =
+    "m-0 text-sm font-medium leading-relaxed text-pretty text-foreground max-[860px]:whitespace-normal max-[860px]:break-words";
+const SPEAKER_REVIEW_ROW_NAME_CLASS_NAME =
+    "m-0 text-sm font-semibold leading-snug text-foreground";
+const SPEAKER_REVIEW_SECTION_TITLE_CLASS_NAME =
+    "m-0 text-sm font-semibold leading-snug text-foreground";
+const SPEAKER_REVIEW_ROW_SUB_CLASS_NAME =
+    "m-0 font-mono text-xs font-medium leading-snug tracking-wide text-muted-foreground data-[sot-tone=danger]:text-destructive max-[860px]:whitespace-normal max-[860px]:break-words";
+
+type ClassNameProp = {
+    className?: string;
+};
+
+type SpeakerReviewVoiceprintTone = "missing" | "ready" | "selected";
+
+type SpeakerReviewVoiceprintBadgeVariant = NonNullable<
+    ComponentProps<typeof Badge>["variant"]
+>;
+
+const SPEAKER_REVIEW_VOICEPRINT_BADGE_VARIANTS = {
+    missing: "secondary",
+    ready: "outline",
+    selected: "default",
+} satisfies Record<
+    SpeakerReviewVoiceprintTone,
+    SpeakerReviewVoiceprintBadgeVariant
+>;
+
+function SpeakerReviewCard({
+    className,
+    surface,
+    ...props
+}: Omit<ComponentProps<typeof Card>, "className" | "variant"> &
+    ClassNameProp & {
+        surface: keyof typeof SPEAKER_REVIEW_CARD_CLASS_NAMES;
+    }) {
+    return (
+        <Card
+            className={cn(SPEAKER_REVIEW_CARD_CLASS_NAMES[surface], className)}
+            {...props}
+        />
+    );
+}
+
+function SpeakerReviewCardHeader({
+    className,
+    surface,
+    ...props
+}: Omit<ComponentProps<typeof CardHeader>, "className" | "variant"> &
+    ClassNameProp & {
+        surface: keyof typeof SPEAKER_REVIEW_CARD_HEADER_CLASS_NAMES;
+    }) {
+    return (
+        <CardHeader
+            className={cn(
+                SPEAKER_REVIEW_CARD_HEADER_CLASS_NAMES[surface],
+                className,
+            )}
+            {...props}
+        />
+    );
+}
+
+function SpeakerReviewCardTitle({
+    className,
+    surface,
+    ...props
+}: Omit<ComponentProps<typeof CardTitle>, "className" | "variant"> &
+    ClassNameProp & {
+        surface: keyof typeof SPEAKER_REVIEW_CARD_TITLE_CLASS_NAMES;
+    }) {
+    return (
+        <CardTitle
+            className={cn(
+                SPEAKER_REVIEW_CARD_TITLE_CLASS_NAMES[surface],
+                className,
+            )}
+            {...props}
+        />
+    );
+}
+
+function SpeakerReviewCardDescription({
+    className,
+    ...props
+}: Omit<ComponentProps<typeof CardDescription>, "className" | "variant"> &
+    ClassNameProp) {
+    return (
+        <CardDescription
+            className={cn(
+                SPEAKER_REVIEW_CARD_DESCRIPTION_CLASS_NAME,
+                className,
+            )}
+            {...props}
+        />
+    );
+}
+
+function SpeakerReviewCardAction({
+    className,
+    ...props
+}: Omit<ComponentProps<typeof CardAction>, "className" | "variant"> &
+    ClassNameProp) {
+    return (
+        <CardAction
+            className={cn(SPEAKER_REVIEW_CARD_ACTION_CLASS_NAME, className)}
+            {...props}
+        />
+    );
+}
+
+function SpeakerReviewCardContent({
+    className,
+    surface,
+    ...props
+}: Omit<ComponentProps<typeof CardContent>, "className" | "variant"> &
+    ClassNameProp & {
+        surface: keyof typeof SPEAKER_REVIEW_CARD_CONTENT_CLASS_NAMES;
+    }) {
+    return (
+        <CardContent
+            className={cn(
+                SPEAKER_REVIEW_CARD_CONTENT_CLASS_NAMES[surface],
+                className,
+            )}
+            {...props}
+        />
+    );
+}
+
+function SpeakerReviewVoiceprintBadge({
+    "data-sot-tone": tone,
+    ...props
+}: Omit<
+    ComponentProps<typeof Badge>,
+    "className" | "data-sot-tone" | "variant"
+> & {
+    "data-sot-tone": SpeakerReviewVoiceprintTone;
+}) {
+    return (
+        <Badge
+            variant={SPEAKER_REVIEW_VOICEPRINT_BADGE_VARIANTS[tone]}
+            data-sot-tone={tone}
+            {...props}
+        />
+    );
+}
 
 function formatSegmentWindow(startMs: number | null, endMs: number | null) {
     if (startMs == null || endMs == null) {
@@ -121,6 +370,10 @@ function formatProviderName(value: string | null | undefined) {
     return value;
 }
 
+function getSpeakerMappingInputId(recordingId: string, rawLabel: string) {
+    return `speaker-mapping-${encodeURIComponent(recordingId)}-${encodeURIComponent(rawLabel)}`;
+}
+
 interface SpeakerLabelEditorProps {
     recordingId: string;
     speakerMap?: Record<string, string> | null;
@@ -135,15 +388,31 @@ export function SpeakerLabelEditor({
     const { language, t } = useLanguage();
     const [isLoading, setIsLoading] = useState(true);
     const [isSaving, setIsSaving] = useState<string | null>(null);
+    const [speakerLoadError, setSpeakerLoadError] = useState<string | null>(
+        null,
+    );
     const [speakers, setSpeakers] = useState<RecordingSpeaker[]>([]);
     const [profiles, setProfiles] = useState<SpeakerProfile[]>([]);
     const [searchQueries, setSearchQueries] = useState<Record<string, string>>(
         {},
     );
     const [openPickerFor, setOpenPickerFor] = useState<string | null>(null);
+    const [confirmUnlinkFor, setConfirmUnlinkFor] = useState<string | null>(
+        null,
+    );
+    const [speakerSaveErrors, setSpeakerSaveErrors] = useState<
+        Record<string, SpeakerSaveError>
+    >({});
+    const [editingSpeakerFor, setEditingSpeakerFor] = useState<string | null>(
+        null,
+    );
+    const [speakerNameDrafts, setSpeakerNameDrafts] = useState<
+        Record<string, string>
+    >({});
     const [playingKey, setPlayingKey] = useState<string | null>(null);
     const [reviewMode, setReviewMode] =
         useState<TranscriptReviewMode>("speaker");
+    const [isMergePopoverOpen, setIsMergePopoverOpen] = useState(false);
     const [isReviewLoading, setIsReviewLoading] = useState(true);
     const [reviewError, setReviewError] = useState<string | null>(null);
     const [rawTranscript, setRawTranscript] = useState<TranscriptReview | null>(
@@ -151,6 +420,7 @@ export function SpeakerLabelEditor({
     );
     const [speakerTranscript, setSpeakerTranscript] =
         useState<TranscriptReview | null>(null);
+    const [isCopyingRawTranscript, setIsCopyingRawTranscript] = useState(false);
     const audioRef = useRef<HTMLAudioElement | null>(null);
     const speakerMapRef = useRef<Record<string, string>>(speakerMap ?? {});
 
@@ -164,9 +434,54 @@ export function SpeakerLabelEditor({
     const activeReview =
         reviewMode === "speaker" ? speakerTranscript : rawTranscript;
 
+    const canCopyRawTranscript = Boolean(rawTranscript?.text.trim());
+    const mergePopoverId = `speaker-review-merge-popover-${recordingId}`;
+
     useEffect(() => {
         speakerMapRef.current = speakerMap ?? {};
     }, [speakerMap]);
+
+    const clearSpeakerSaveError = useCallback((rawLabel: string) => {
+        setSpeakerSaveErrors((prev) => {
+            if (!prev[rawLabel]) {
+                return prev;
+            }
+
+            const next = { ...prev };
+            delete next[rawLabel];
+            return next;
+        });
+    }, []);
+
+    const closeInlineRename = useCallback((rawLabel: string) => {
+        setEditingSpeakerFor((current) =>
+            current === rawLabel ? null : current,
+        );
+        setSpeakerNameDrafts((prev) => {
+            if (!(rawLabel in prev)) {
+                return prev;
+            }
+
+            const next = { ...prev };
+            delete next[rawLabel];
+            return next;
+        });
+    }, []);
+
+    const openInlineRename = useCallback(
+        (speaker: RecordingSpeaker) => {
+            const initialName = speaker.matchedProfileName ?? speaker.rawLabel;
+            setOpenPickerFor(null);
+            setConfirmUnlinkFor(null);
+            clearSpeakerSaveError(speaker.rawLabel);
+            setSpeakerNameDrafts((prev) => ({
+                ...prev,
+                [speaker.rawLabel]: initialName,
+            }));
+            setEditingSpeakerFor(speaker.rawLabel);
+        },
+        [clearSpeakerSaveError],
+    );
 
     const stopPlayback = useCallback(() => {
         const audio = audioRef.current;
@@ -181,6 +496,8 @@ export function SpeakerLabelEditor({
 
     const refreshSpeakers = useCallback(async () => {
         setIsLoading(true);
+        setSpeakerLoadError(null);
+        setSpeakerSaveErrors({});
         try {
             const response = await fetch(
                 `/api/recordings/${recordingId}/speakers`,
@@ -190,14 +507,20 @@ export function SpeakerLabelEditor({
             );
             const data = await response.json();
             if (!response.ok) {
-                toast.error(
-                    data.error || t("speakerReview.failedToLoadSpeakers"),
-                );
+                const message =
+                    data.error || t("speakerReview.failedToLoadSpeakers");
+                setSpeakers([]);
+                setProfiles([]);
+                setSearchQueries({});
+                setSpeakerLoadError(message);
+                toast.error(message);
                 return;
             }
 
+            setSpeakerLoadError(null);
             setSpeakers(data.speakers ?? []);
             setProfiles(data.profiles ?? []);
+            setConfirmUnlinkFor(null);
             const nextSpeakers = data.speakers ?? [];
             setSearchQueries(
                 Object.fromEntries(
@@ -208,10 +531,12 @@ export function SpeakerLabelEditor({
                 ),
             );
         } catch {
+            const message = t("speakerReview.failedToLoadSpeakers");
             setSpeakers([]);
             setProfiles([]);
             setSearchQueries({});
-            toast.error(t("speakerReview.failedToLoadSpeakers"));
+            setSpeakerLoadError(message);
+            toast.error(message);
         } finally {
             setIsLoading(false);
         }
@@ -220,6 +545,8 @@ export function SpeakerLabelEditor({
     const refreshTranscriptReview = useCallback(async () => {
         setIsReviewLoading(true);
         setReviewError(null);
+        setSpeakerSaveErrors({});
+        setConfirmUnlinkFor(null);
         setRawTranscript(null);
         setSpeakerTranscript(null);
 
@@ -350,7 +677,26 @@ export function SpeakerLabelEditor({
             profileId: string | null,
             profileName?: string,
         ) => {
+            const failedPayload: SpeakerSaveError = {
+                rawLabel,
+                profileId,
+                profileName,
+            };
+            const markSaveError = () => {
+                setSpeakerSaveErrors((prev) => ({
+                    ...prev,
+                    [rawLabel]: failedPayload,
+                }));
+                setOpenPickerFor((current) =>
+                    current === rawLabel ? null : current,
+                );
+                setConfirmUnlinkFor((current) =>
+                    current === rawLabel ? null : current,
+                );
+            };
+
             setIsSaving(rawLabel);
+            clearSpeakerSaveError(rawLabel);
             try {
                 const response = await fetch(
                     `/api/recordings/${recordingId}/speakers`,
@@ -364,14 +710,22 @@ export function SpeakerLabelEditor({
                         }),
                     },
                 );
-                const data = await response.json();
+                let data: { error?: string; profileId?: string | null } = {};
+                try {
+                    data = await response.json();
+                } catch {
+                    data = {};
+                }
+
                 if (!response.ok) {
+                    markSaveError();
                     toast.error(
                         data.error || t("speakerReview.failedToUpdateSpeaker"),
                     );
                     return;
                 }
 
+                clearSpeakerSaveError(rawLabel);
                 const resolvedName =
                     profileName ||
                     (data.profileId ? profileNameById[data.profileId] : null) ||
@@ -381,11 +735,18 @@ export function SpeakerLabelEditor({
                     refreshSpeakers(),
                     refreshTranscriptReview(),
                 ]);
+                setConfirmUnlinkFor((current) =>
+                    current === rawLabel ? null : current,
+                );
                 setOpenPickerFor((current) =>
+                    current === rawLabel ? null : current,
+                );
+                setEditingSpeakerFor((current) =>
                     current === rawLabel ? null : current,
                 );
                 toast.success(t("speakerReview.speakerUpdated"));
             } catch {
+                markSaveError();
                 toast.error(t("speakerReview.failedToUpdateSpeaker"));
             } finally {
                 setIsSaving(null);
@@ -393,6 +754,7 @@ export function SpeakerLabelEditor({
         },
         [
             applyLocalMap,
+            clearSpeakerSaveError,
             profileNameById,
             recordingId,
             refreshSpeakers,
@@ -401,78 +763,364 @@ export function SpeakerLabelEditor({
         ],
     );
 
+    const handleSaveInlineRename = useCallback(
+        async (speaker: RecordingSpeaker) => {
+            const draft =
+                speakerNameDrafts[speaker.rawLabel]?.trim() ??
+                speaker.matchedProfileName ??
+                speaker.rawLabel;
+            const nextName = draft || speaker.rawLabel;
+            const exactProfile = profiles.find(
+                (profile) =>
+                    profile.displayName.toLocaleLowerCase(language) ===
+                    nextName.toLocaleLowerCase(language),
+            );
+            const nextProfileId =
+                exactProfile?.id ??
+                (nextName === speaker.matchedProfileName
+                    ? speaker.matchedProfileId
+                    : null);
+
+            await handleAssignProfile(
+                speaker.rawLabel,
+                nextProfileId,
+                nextName,
+            );
+            closeInlineRename(speaker.rawLabel);
+        },
+        [
+            closeInlineRename,
+            handleAssignProfile,
+            language,
+            profiles,
+            speakerNameDrafts,
+        ],
+    );
+
+    const handleCopyRawTranscript = useCallback(async () => {
+        const copyText = rawTranscript?.text ?? "";
+        if (!copyText.trim()) {
+            toast.error(t("speakerReview.failedToLoadTranscriptReview"));
+            return;
+        }
+
+        setIsCopyingRawTranscript(true);
+        try {
+            await writeBrowserClipboardText(copyText);
+            toast.success(t("speakerReview.rawTranscriptCopied"));
+        } catch {
+            toast.error(t("speakerReview.copyRawTranscriptFailed"));
+        } finally {
+            setIsCopyingRawTranscript(false);
+        }
+    }, [rawTranscript?.text, t]);
+
+    const panelLabel = t("speakerReview.title");
+    const getSpeakerRowState = useCallback(
+        (speaker: RecordingSpeaker) => {
+            if (speakerSaveErrors[speaker.rawLabel]) {
+                return "error";
+            }
+
+            if (isSaving === speaker.rawLabel) {
+                return "saving";
+            }
+
+            if (editingSpeakerFor === speaker.rawLabel) {
+                return "editing";
+            }
+
+            if (confirmUnlinkFor === speaker.rawLabel) {
+                return "confirm-unlink";
+            }
+
+            const normalizedQuery = (
+                searchQueries[speaker.rawLabel] ?? ""
+            ).trim();
+            const normalizedQueryForMatch =
+                normalizedQuery.toLocaleLowerCase(language);
+            const hasLiveNoMatch =
+                openPickerFor === speaker.rawLabel &&
+                !speaker.matchedProfileId &&
+                normalizedQuery.length > 0 &&
+                profiles.length > 0 &&
+                !profiles.some((profile) =>
+                    profile.displayName
+                        .toLocaleLowerCase(language)
+                        .includes(normalizedQueryForMatch),
+                );
+
+            return hasLiveNoMatch ? "no-match" : undefined;
+        },
+        [
+            confirmUnlinkFor,
+            editingSpeakerFor,
+            isSaving,
+            language,
+            openPickerFor,
+            profiles,
+            searchQueries,
+            speakerSaveErrors,
+        ],
+    );
+
     if (isLoading) {
-        return <SpeakerReviewSkeleton />;
+        return (
+            <section
+                aria-label={panelLabel}
+                data-sot-panel="speaker-review"
+                data-sot-state="loading"
+            >
+                <SpeakerReviewSkeleton />
+            </section>
+        );
     }
 
     return (
-        <div className="space-y-4 border-t pt-4">
-            <div className="space-y-3">
-                <div className="flex flex-col gap-3 md:flex-row md:items-start md:justify-between">
-                    <div className="flex items-center gap-2">
-                        <FileText className="h-4 w-4 text-muted-foreground" />
-                        <div>
-                            <p className="text-sm font-medium">
+        <section
+            aria-label={panelLabel}
+            data-tab-pane="speakers"
+            data-sot-panel="speaker-review"
+            data-sot-state={
+                isReviewLoading
+                    ? "refreshing"
+                    : reviewError
+                      ? "error"
+                      : activeReview
+                        ? speakers.length === 0
+                            ? "empty"
+                            : "ready"
+                        : "empty"
+            }
+        >
+            <SpeakerReviewCard
+                hasNoPadding
+                surface="transcript"
+                data-sot-part="speaker-review-transcript-card"
+            >
+                <SpeakerReviewCardHeader
+                    surface="transcript"
+                    data-sot-part="speaker-review-header"
+                >
+                    <div data-sot-part="speaker-review-header-copy">
+                        <FileText aria-hidden="true" />
+                        <div className="min-w-0">
+                            <SpeakerReviewCardTitle
+                                surface="title"
+                                data-sot-part="speaker-review-title"
+                            >
                                 {t("speakerReview.transcriptReviewTitle")}
-                            </p>
-                            <p className="text-xs text-muted-foreground">
+                            </SpeakerReviewCardTitle>
+                            <SpeakerReviewCardDescription data-sot-part="speaker-review-description">
                                 {t("speakerReview.transcriptReviewDescription")}
-                            </p>
+                            </SpeakerReviewCardDescription>
                         </div>
                     </div>
-                    <div className="flex flex-wrap items-center gap-2">
+                    <SpeakerReviewCardAction data-sot-part="speaker-review-actions">
+                        <ToggleGroup
+                            type="single"
+                            value={reviewMode}
+                            variant="default"
+                            size="sm"
+                            className="flex-nowrap"
+                            spacing={1}
+                            aria-label={t("speakerReview.title")}
+                            data-sot-control="speaker-review-mode"
+                            onValueChange={(value) => {
+                                if (value === "speaker" || value === "raw") {
+                                    setReviewMode(value);
+                                }
+                            }}
+                        >
+                            <ToggleGroupItem
+                                value="speaker"
+                                className={SPEAKER_REVIEW_MODE_ITEM_CLASS_NAME}
+                                data-sot-control="speaker-review-mode-option"
+                            >
+                                {t("speakerReview.speakerNamesMode")}
+                            </ToggleGroupItem>
+                            <ToggleGroupItem
+                                value="raw"
+                                className={SPEAKER_REVIEW_MODE_ITEM_CLASS_NAME}
+                                data-sot-control="speaker-review-mode-option"
+                            >
+                                {t("speakerReview.rawLabelsMode")}
+                            </ToggleGroupItem>
+                        </ToggleGroup>
                         <Button
                             type="button"
+                            variant="default"
                             size="sm"
-                            variant={
-                                reviewMode === "speaker" ? "default" : "outline"
+                            className={SPEAKER_REVIEW_PRIMARY_BUTTON_CLASS_NAME}
+                            onClick={handleCopyRawTranscript}
+                            disabled={
+                                isCopyingRawTranscript ||
+                                isReviewLoading ||
+                                !canCopyRawTranscript
                             }
-                            onClick={() => setReviewMode("speaker")}
+                            aria-busy={isCopyingRawTranscript}
+                            data-sot-control="speaker-review-copy-raw"
                         >
-                            {t("speakerReview.speakerNamesMode")}
+                            <Copy data-icon="inline-start" />
+                            {isCopyingRawTranscript
+                                ? t("common.copying")
+                                : t("speakerReview.copyRawTranscript")}
                         </Button>
                         <Button
                             type="button"
-                            size="sm"
-                            variant={
-                                reviewMode === "raw" ? "default" : "outline"
-                            }
-                            onClick={() => setReviewMode("raw")}
-                        >
-                            {t("speakerReview.rawLabelsMode")}
-                        </Button>
-                        <Button
-                            type="button"
-                            size="sm"
                             variant="ghost"
+                            size="sm"
+                            className={SPEAKER_REVIEW_GHOST_BUTTON_CLASS_NAME}
                             onClick={() => void refreshTranscriptReview()}
                             disabled={isReviewLoading}
+                            data-sot-control="speaker-review-refresh"
                         >
-                            <RefreshCw
-                                className={`mr-2 h-3.5 w-3.5 ${isReviewLoading ? "animate-spin" : ""}`}
-                            />
+                            <RefreshCw data-icon="inline-start" />
                             {t("speakerReview.refresh")}
                         </Button>
-                    </div>
-                </div>
+                        <Popover
+                            open={isMergePopoverOpen}
+                            onOpenChange={setIsMergePopoverOpen}
+                            modal={false}
+                        >
+                            <PopoverTrigger asChild>
+                                <Button
+                                    type="button"
+                                    variant="ghost"
+                                    size="sm"
+                                    className={
+                                        SPEAKER_REVIEW_GHOST_BUTTON_CLASS_NAME
+                                    }
+                                    data-spk-merge
+                                    data-sot-control="speaker-review-merge"
+                                    aria-controls={mergePopoverId}
+                                    aria-expanded={isMergePopoverOpen}
+                                >
+                                    合并相似…
+                                </Button>
+                            </PopoverTrigger>
+                            <PopoverContent
+                                align="end"
+                                side="bottom"
+                                sideOffset={8}
+                                avoidCollisions={false}
+                                onOpenAutoFocus={(event) =>
+                                    event.preventDefault()
+                                }
+                                className={
+                                    SPEAKER_REVIEW_CARD_CLASS_NAMES.mergePopover
+                                }
+                                id={mergePopoverId}
+                                data-sot-panel="speaker-review-merge"
+                                data-spk-merge-pop
+                                data-open={String(isMergePopoverOpen)}
+                                aria-label="合并相似说话人"
+                            >
+                                <SpeakerReviewCardHeader
+                                    surface="mergePopover"
+                                    data-sot-part="speaker-review-merge-header"
+                                >
+                                    <SpeakerReviewCardTitle
+                                        surface="mergeTitle"
+                                        data-sot-part="speaker-review-merge-title"
+                                    >
+                                        合并相似说话人
+                                    </SpeakerReviewCardTitle>
+                                    <CardAction
+                                        className={
+                                            SPEAKER_REVIEW_MERGE_CARD_ACTION_CLASS_NAME
+                                        }
+                                    >
+                                        <Button
+                                            variant="ghost"
+                                            size="icon-sm"
+                                            className={
+                                                SPEAKER_REVIEW_ICON_BUTTON_CLASS_NAME
+                                            }
+                                            data-spk-merge-close
+                                            type="button"
+                                            aria-label="关闭"
+                                            onClick={() =>
+                                                setIsMergePopoverOpen(false)
+                                            }
+                                        >
+                                            <X
+                                                data-icon="inline-start"
+                                                aria-hidden="true"
+                                                focusable="false"
+                                            />
+                                        </Button>
+                                    </CardAction>
+                                </SpeakerReviewCardHeader>
+                                <SpeakerReviewCardContent surface="mergePopover">
+                                    <Empty
+                                        variant="compact"
+                                        data-sot-part="speaker-review-merge-empty"
+                                    >
+                                        <EmptyHeader variant="popover">
+                                            <EmptyMedia
+                                                variant="subtleIcon"
+                                                data-sot-part="speaker-review-merge-empty-icon"
+                                            >
+                                                <Check />
+                                            </EmptyMedia>
+                                            <EmptyTitle
+                                                variant="compact"
+                                                data-sot-part="speaker-review-merge-empty-title"
+                                            >
+                                                当前没有可合并的相似说话人
+                                            </EmptyTitle>
+                                            <EmptyDescription
+                                                variant="compact"
+                                                data-sot-part="speaker-review-merge-empty-description"
+                                            >
+                                                如果两位说话人声纹接近，会出现在这里供你确认。
+                                            </EmptyDescription>
+                                        </EmptyHeader>
+                                    </Empty>
+                                </SpeakerReviewCardContent>
+                            </PopoverContent>
+                        </Popover>
+                    </SpeakerReviewCardAction>
+                </SpeakerReviewCardHeader>
 
                 {isReviewLoading ? (
                     <TranscriptReviewSkeleton />
                 ) : reviewError ? (
-                    <div className="rounded-lg border border-dashed px-4 py-3 text-sm text-muted-foreground">
-                        {reviewError}
-                    </div>
+                    <Alert
+                        variant="statusError"
+                        className={SPEAKER_REVIEW_ERROR_ALERT_CLASS_NAME}
+                        data-sot-part="speaker-review-state"
+                        data-sot-state="error"
+                    >
+                        <AlertTitle
+                            className={SPEAKER_REVIEW_ERROR_TITLE_CLASS_NAME}
+                        >
+                            {reviewError}
+                        </AlertTitle>
+                    </Alert>
                 ) : activeReview ? (
-                    <>
-                        <div className="flex flex-wrap gap-3 text-xs text-muted-foreground">
+                    <SpeakerReviewCardContent
+                        surface="transcript"
+                        data-sot-part="speaker-review-transcript-content"
+                    >
+                        <div data-sot-list="speaker-review-meta">
                             {activeReview.detectedLanguage ? (
-                                <span>
+                                <span
+                                    className={
+                                        SPEAKER_REVIEW_META_ITEM_CLASS_NAME
+                                    }
+                                >
                                     {t("speakerReview.languageLabel")}:{" "}
                                     {activeReview.detectedLanguage}
                                 </span>
                             ) : null}
                             {activeReview.transcriptionType ? (
-                                <span>
+                                <span
+                                    className={
+                                        SPEAKER_REVIEW_META_ITEM_CLASS_NAME
+                                    }
+                                >
                                     {t("speakerReview.sourceLabel")}:{" "}
                                     {formatTranscriptionType(
                                         activeReview.transcriptionType,
@@ -481,13 +1129,21 @@ export function SpeakerLabelEditor({
                                 </span>
                             ) : null}
                             {activeReview.provider ? (
-                                <span>
+                                <span
+                                    className={
+                                        SPEAKER_REVIEW_META_ITEM_CLASS_NAME
+                                    }
+                                >
                                     {t("speakerReview.providerLabel")}:{" "}
                                     {formatProviderName(activeReview.provider)}
                                 </span>
                             ) : null}
                             {activeReview.model ? (
-                                <span>
+                                <span
+                                    className={
+                                        SPEAKER_REVIEW_META_ITEM_CLASS_NAME
+                                    }
+                                >
                                     {t("speakerReview.modelLabel")}:{" "}
                                     {activeReview.model}
                                 </span>
@@ -496,7 +1152,11 @@ export function SpeakerLabelEditor({
                                 activeReview.createdAt,
                                 language,
                             ) ? (
-                                <span>
+                                <span
+                                    className={
+                                        SPEAKER_REVIEW_META_ITEM_CLASS_NAME
+                                    }
+                                >
                                     {t("speakerReview.capturedAt", {
                                         time:
                                             formatReviewTimestamp(
@@ -506,41 +1166,106 @@ export function SpeakerLabelEditor({
                                     })}
                                 </span>
                             ) : null}
-                            <span>
+                            <span
+                                className={SPEAKER_REVIEW_META_ITEM_CLASS_NAME}
+                            >
                                 {t("speakerReview.wordCount", {
                                     count: activeReview.wordCount,
                                 })}
                             </span>
-                            <span>
+                            <span
+                                className={SPEAKER_REVIEW_META_ITEM_CLASS_NAME}
+                            >
                                 {t("speakerReview.characterCount", {
                                     count: activeReview.characterCount,
                                 })}
                             </span>
-                            <span>
+                            <span
+                                className={SPEAKER_REVIEW_META_ITEM_CLASS_NAME}
+                            >
                                 {t("speakerReview.mappedNamesCount", {
                                     count: activeReview.mappedSpeakerCount,
                                 })}
                             </span>
                         </div>
-                        <div className="max-h-72 overflow-y-auto rounded-xl bg-background/50 p-3">
-                            <p className="whitespace-pre-wrap text-sm leading-relaxed">
+                        <div data-sot-part="speaker-review-transcript-section">
+                            <p
+                                className={
+                                    SPEAKER_REVIEW_SEGMENT_TEXT_CLASS_NAME
+                                }
+                                data-sot-part="speaker-review-segment-text"
+                            >
                                 {activeReview.text}
                             </p>
                         </div>
-                    </>
+                    </SpeakerReviewCardContent>
                 ) : null}
-            </div>
+            </SpeakerReviewCard>
 
-            {speakers.length === 0 ? (
-                <div className="rounded-xl border border-dashed px-4 py-3 text-sm text-muted-foreground">
-                    {t("speakerReview.noDetectedSpeakers")}
-                </div>
+            {speakerLoadError ? (
+                <Alert
+                    variant="statusError"
+                    className={SPEAKER_REVIEW_ERROR_ALERT_CLASS_NAME}
+                    data-sot-part="speaker-review-state"
+                    data-sot-state="speaker-load-error"
+                >
+                    <AlertTitle
+                        className={SPEAKER_REVIEW_ERROR_TITLE_CLASS_NAME}
+                    >
+                        {speakerLoadError}
+                    </AlertTitle>
+                    <AlertDescription
+                        className={SPEAKER_REVIEW_ERROR_DESCRIPTION_CLASS_NAME}
+                    >
+                        <Button
+                            type="button"
+                            variant="outline"
+                            size="sm"
+                            className={SPEAKER_REVIEW_ACTION_BUTTON_CLASS_NAME}
+                            onClick={() => void refreshSpeakers()}
+                            disabled={isLoading}
+                            data-sot-control="speaker-review-refresh-speakers"
+                        >
+                            <RefreshCw data-icon="inline-start" />
+                            {t("speakerReview.refresh")}
+                        </Button>
+                    </AlertDescription>
+                </Alert>
+            ) : speakers.length === 0 ? (
+                <Empty
+                    variant="default"
+                    data-sot-part="speaker-review-empty"
+                    data-sot-state="no-detected-speakers"
+                >
+                    <EmptyHeader variant="default">
+                        <EmptyTitle variant="default">
+                            {t("speakerReview.noDetectedSpeakers")}
+                        </EmptyTitle>
+                    </EmptyHeader>
+                </Empty>
             ) : (
-                <div className="space-y-4">
+                <div
+                    className="flex flex-col gap-[6px]"
+                    data-sot-list="speaker-review-rows"
+                    data-sot-variant="review"
+                >
                     {speakers.map((speaker) => (
-                        <div
+                        <SpeakerReviewCard
                             key={speaker.rawLabel}
-                            className="space-y-4 rounded-2xl border bg-background/35 p-4"
+                            hasNoPadding
+                            surface="row"
+                            data-sot-item="speaker-review-row"
+                            data-sot-speaker-has-playable-sample={String(
+                                speaker.hasPlayableSample,
+                            )}
+                            data-sot-speaker-has-voiceprint={String(
+                                speaker.hasVoiceprint,
+                            )}
+                            data-sot-speaker-label={speaker.rawLabel}
+                            data-sot-speaker-mapped={String(
+                                Boolean(speaker.matchedProfileId),
+                            )}
+                            data-state={getSpeakerRowState(speaker)}
                         >
                             {(() => {
                                 const searchQuery =
@@ -560,6 +1285,13 @@ export function SpeakerLabelEditor({
                                             ),
                                 );
                                 const normalizedQuery = searchQuery.trim();
+                                const matchedName =
+                                    speaker.matchedProfileName ??
+                                    t("speakerReview.savedSpeaker");
+                                const inlineRenameDraft =
+                                    speakerNameDrafts[speaker.rawLabel] ??
+                                    speaker.matchedProfileName ??
+                                    speaker.rawLabel;
                                 const hasExactMatch = profiles.some(
                                     (profile) =>
                                         profile.displayName.toLocaleLowerCase(
@@ -569,88 +1301,350 @@ export function SpeakerLabelEditor({
                                             language,
                                         ),
                                 );
+                                const isSpeakerSaving =
+                                    isSaving === speaker.rawLabel;
+                                const isInlineEditing =
+                                    editingSpeakerFor === speaker.rawLabel;
+                                const saveError =
+                                    speakerSaveErrors[speaker.rawLabel];
+                                const isConfirmingUnlink =
+                                    confirmUnlinkFor === speaker.rawLabel;
+                                const hasLiveNoMatch =
+                                    isPickerOpen &&
+                                    !speaker.matchedProfileId &&
+                                    normalizedQuery.length > 0 &&
+                                    profiles.length > 0 &&
+                                    filteredProfiles.length === 0;
+                                const mappingInputId = getSpeakerMappingInputId(
+                                    recordingId,
+                                    speaker.rawLabel,
+                                );
+                                const inlineRenameInputId = `${mappingInputId}-inline-name`;
+
+                                if (isInlineEditing) {
+                                    return (
+                                        <>
+                                            <Field
+                                                className="min-w-0"
+                                                data-sot-part="speaker-review-row-meta"
+                                                data-disabled={
+                                                    isSpeakerSaving
+                                                        ? true
+                                                        : undefined
+                                                }
+                                            >
+                                                <FieldLabel
+                                                    className="sr-only"
+                                                    htmlFor={
+                                                        inlineRenameInputId
+                                                    }
+                                                >
+                                                    {`${speaker.rawLabel} 重命名`}
+                                                </FieldLabel>
+                                                <FieldContent>
+                                                    <Input
+                                                        id={inlineRenameInputId}
+                                                        className="h-8 min-w-60"
+                                                        value={
+                                                            inlineRenameDraft
+                                                        }
+                                                        data-spk-input
+                                                        data-sot-control="speaker-review-inline-name"
+                                                        autoComplete="off"
+                                                        autoFocus
+                                                        aria-label={`${speaker.rawLabel} 重命名`}
+                                                        aria-busy={
+                                                            isSpeakerSaving
+                                                        }
+                                                        disabled={
+                                                            isSpeakerSaving
+                                                        }
+                                                        onChange={(event) => {
+                                                            const value =
+                                                                event.target
+                                                                    .value;
+                                                            setSpeakerNameDrafts(
+                                                                (prev) => ({
+                                                                    ...prev,
+                                                                    [speaker.rawLabel]:
+                                                                        value,
+                                                                }),
+                                                            );
+                                                        }}
+                                                        onKeyDown={(event) => {
+                                                            if (
+                                                                event.key ===
+                                                                "Escape"
+                                                            ) {
+                                                                event.preventDefault();
+                                                                closeInlineRename(
+                                                                    speaker.rawLabel,
+                                                                );
+                                                                return;
+                                                            }
+
+                                                            if (
+                                                                event.key ===
+                                                                "Enter"
+                                                            ) {
+                                                                event.preventDefault();
+                                                                if (
+                                                                    !inlineRenameDraft.trim() ||
+                                                                    isSpeakerSaving
+                                                                ) {
+                                                                    return;
+                                                                }
+
+                                                                void handleSaveInlineRename(
+                                                                    speaker,
+                                                                );
+                                                            }
+                                                        }}
+                                                    />
+                                                </FieldContent>
+                                            </Field>
+                                            <div
+                                                className="inline-flex min-w-0 flex-wrap items-center justify-end gap-1.5 max-[860px]:justify-start"
+                                                data-sot-part="speaker-review-actions"
+                                            >
+                                                <Button
+                                                    type="button"
+                                                    variant="ghost"
+                                                    size="sm"
+                                                    className={
+                                                        SPEAKER_REVIEW_GHOST_BUTTON_CLASS_NAME
+                                                    }
+                                                    data-spk-cancel
+                                                    data-sot-control="speaker-review-inline-cancel"
+                                                    disabled={isSpeakerSaving}
+                                                    onClick={() =>
+                                                        closeInlineRename(
+                                                            speaker.rawLabel,
+                                                        )
+                                                    }
+                                                >
+                                                    {t("common.cancel")}
+                                                </Button>
+                                                <Button
+                                                    type="button"
+                                                    variant="default"
+                                                    size="sm"
+                                                    className={
+                                                        SPEAKER_REVIEW_PRIMARY_BUTTON_CLASS_NAME
+                                                    }
+                                                    data-spk-save
+                                                    data-sot-control="speaker-review-inline-save"
+                                                    disabled={
+                                                        isSpeakerSaving ||
+                                                        !inlineRenameDraft.trim()
+                                                    }
+                                                    aria-busy={isSpeakerSaving}
+                                                    onClick={() =>
+                                                        void handleSaveInlineRename(
+                                                            speaker,
+                                                        )
+                                                    }
+                                                >
+                                                    {isSpeakerSaving
+                                                        ? t("common.saving")
+                                                        : t("common.save")}
+                                                </Button>
+                                            </div>
+                                        </>
+                                    );
+                                }
 
                                 return (
                                     <>
-                                        <div className="flex items-start justify-between gap-3">
-                                            <div className="space-y-1">
-                                                <p className="text-sm font-medium">
+                                        <div
+                                            className="flex min-w-0 flex-col gap-[2px]"
+                                            data-sot-part="speaker-review-row-meta"
+                                        >
+                                            <div>
+                                                <p
+                                                    className={
+                                                        SPEAKER_REVIEW_ROW_NAME_CLASS_NAME
+                                                    }
+                                                    data-sot-part="speaker-review-row-name"
+                                                >
                                                     {speaker.rawLabel}
                                                 </p>
-                                                <div className="flex flex-wrap items-center gap-2 text-xs text-muted-foreground">
-                                                    <span>
-                                                        {speaker.matchedProfileId
-                                                            ? t(
-                                                                  "speakerReview.mappedTo",
-                                                                  {
-                                                                      name:
-                                                                          speaker.matchedProfileName ??
-                                                                          t(
-                                                                              "speakerReview.savedSpeaker",
-                                                                          ),
-                                                                  },
-                                                              )
-                                                            : t(
-                                                                  "speakerReview.notMappedYet",
-                                                              )}
-                                                    </span>
-                                                    {speaker.segmentCount >
-                                                    0 ? (
+                                                {saveError ? (
+                                                    <div
+                                                        className={
+                                                            SPEAKER_REVIEW_ROW_SUB_CLASS_NAME
+                                                        }
+                                                        data-sot-part="speaker-review-row-sub"
+                                                        data-sot-tone="danger"
+                                                    >
+                                                        {t(
+                                                            "speakerReview.saveFailedRetry",
+                                                        )}
+                                                    </div>
+                                                ) : (
+                                                    <div
+                                                        className={
+                                                            SPEAKER_REVIEW_ROW_SUB_CLASS_NAME
+                                                        }
+                                                        data-sot-part="speaker-review-row-sub"
+                                                    >
                                                         <span>
-                                                            {t(
-                                                                "speakerReview.detectedTurns",
-                                                                {
-                                                                    count: speaker.segmentCount,
-                                                                },
-                                                            )}
-                                                        </span>
-                                                    ) : null}
-                                                    {speaker.matchedProfileId ? (
-                                                        <span>
-                                                            {speaker.hasVoiceprint
+                                                            {hasLiveNoMatch
                                                                 ? t(
-                                                                      "speakerReview.voiceprintReady",
+                                                                      "speakerReview.noMatchingSpeakers",
                                                                   )
-                                                                : t(
-                                                                      "speakerReview.voiceprintMissing",
-                                                                  )}
+                                                                : speaker.matchedProfileId
+                                                                  ? t(
+                                                                        "speakerReview.mappedTo",
+                                                                        {
+                                                                            name:
+                                                                                speaker.matchedProfileName ??
+                                                                                t(
+                                                                                    "speakerReview.savedSpeaker",
+                                                                                ),
+                                                                        },
+                                                                    )
+                                                                  : t(
+                                                                        "speakerReview.notMappedYet",
+                                                                    )}
                                                         </span>
-                                                    ) : null}
-                                                </div>
+                                                        {speaker.segmentCount >
+                                                        0 ? (
+                                                            <span>
+                                                                {t(
+                                                                    "speakerReview.detectedTurns",
+                                                                    {
+                                                                        count: speaker.segmentCount,
+                                                                    },
+                                                                )}
+                                                            </span>
+                                                        ) : null}
+                                                        {speaker.matchedProfileId ? (
+                                                            <span>
+                                                                {speaker.hasVoiceprint
+                                                                    ? t(
+                                                                          "speakerReview.voiceprintReady",
+                                                                      )
+                                                                    : t(
+                                                                          "speakerReview.voiceprintMissing",
+                                                                      )}
+                                                            </span>
+                                                        ) : null}
+                                                    </div>
+                                                )}
                                             </div>
-                                            {speaker.hasPlayableSample ? null : (
-                                                <span className="inline-flex items-center gap-1 text-xs text-muted-foreground">
-                                                    <Volume2 className="h-3.5 w-3.5" />
-                                                    {t(
-                                                        "speakerReview.noTimedSamples",
+                                            {saveError ? (
+                                                <Button
+                                                    type="button"
+                                                    variant="ghost"
+                                                    size="sm"
+                                                    className={
+                                                        SPEAKER_REVIEW_GHOST_BUTTON_CLASS_NAME
+                                                    }
+                                                    data-sot-control="speaker-review-save-retry"
+                                                    disabled={isSpeakerSaving}
+                                                    onClick={() =>
+                                                        void handleAssignProfile(
+                                                            saveError.rawLabel,
+                                                            saveError.profileId,
+                                                            saveError.profileName,
+                                                        )
+                                                    }
+                                                >
+                                                    {t("common.retry")}
+                                                </Button>
+                                            ) : (
+                                                <div
+                                                    className="inline-flex min-w-0 flex-wrap items-center justify-end gap-1.5 max-[860px]:justify-start"
+                                                    data-sot-part="speaker-review-actions"
+                                                >
+                                                    <Button
+                                                        type="button"
+                                                        variant="ghost"
+                                                        size="sm"
+                                                        className={
+                                                            SPEAKER_REVIEW_GHOST_BUTTON_CLASS_NAME
+                                                        }
+                                                        data-spk-rename
+                                                        data-sot-control="speaker-review-rename"
+                                                        disabled={
+                                                            isSpeakerSaving ||
+                                                            isConfirmingUnlink
+                                                        }
+                                                        onClick={() =>
+                                                            openInlineRename(
+                                                                speaker,
+                                                            )
+                                                        }
+                                                    >
+                                                        重命名
+                                                    </Button>
+                                                    {speaker.hasPlayableSample ? null : (
+                                                        <SpeakerReviewVoiceprintBadge
+                                                            data-sot-part="speaker-review-voiceprint-pill"
+                                                            data-sot-tone="missing"
+                                                        >
+                                                            <Volume2 data-icon="inline-start" />
+                                                            {t(
+                                                                "speakerReview.noTimedSamples",
+                                                            )}
+                                                        </SpeakerReviewVoiceprintBadge>
                                                     )}
-                                                </span>
+                                                </div>
                                             )}
                                         </div>
 
-                                        <div className="space-y-3 rounded-xl bg-muted/20 p-3">
-                                            <div className="flex items-center justify-between gap-3">
-                                                <p className="text-xs font-medium text-muted-foreground">
+                                        <div
+                                            className="flex flex-col gap-2 border-t pt-2"
+                                            data-sot-part="speaker-review-samples"
+                                        >
+                                            <div
+                                                className="flex items-baseline gap-2.5"
+                                                data-sot-part="speaker-review-section-head"
+                                            >
+                                                <p
+                                                    className={
+                                                        SPEAKER_REVIEW_SECTION_TITLE_CLASS_NAME
+                                                    }
+                                                    data-sot-part="speaker-review-section-title"
+                                                >
                                                     {t(
                                                         "speakerReview.samplesTitle",
                                                     )}
                                                 </p>
-                                                <p className="text-xs text-muted-foreground">
+                                                <p
+                                                    className={
+                                                        SPEAKER_REVIEW_SECTION_DESCRIPTION_CLASS_NAME
+                                                    }
+                                                    data-sot-part="speaker-review-section-description"
+                                                >
                                                     {t(
                                                         "speakerReview.samplesDescription",
                                                     )}
                                                 </p>
                                             </div>
                                             {speaker.sampleCount > 0 ? (
-                                                <div className="grid gap-2 md:grid-cols-3">
+                                                <div
+                                                    className="flex flex-col gap-0.5"
+                                                    data-sot-list="speaker-review-sample-segments"
+                                                >
                                                     {speaker.sampleSegments.map(
                                                         (segment, index) => (
                                                             <div
                                                                 key={`${speaker.rawLabel}-preview-${segment.startMs ?? index}`}
-                                                                className="space-y-3 rounded-xl border bg-background/60 p-3"
+                                                                className="grid grid-cols-[96px_56px_minmax(0,1fr)] items-start gap-2.5 rounded-md p-2.5 max-[860px]:grid-cols-1"
+                                                                data-sot-item="speaker-review-sample-segment"
                                                             >
-                                                                <div className="flex items-start justify-between gap-3">
-                                                                    <p className="text-xs font-medium text-muted-foreground">
+                                                                <div
+                                                                    className="flex min-w-0 flex-col gap-0.5"
+                                                                    data-sot-part="speaker-review-segment-meta"
+                                                                >
+                                                                    <p
+                                                                        className={
+                                                                            SPEAKER_REVIEW_SEGMENT_TITLE_CLASS_NAME
+                                                                        }
+                                                                        data-sot-part="speaker-review-segment-title"
+                                                                    >
                                                                         {t(
                                                                             "speakerReview.sample",
                                                                             {
@@ -671,9 +1665,12 @@ export function SpeakerLabelEditor({
                                                                     </p>
                                                                     <Button
                                                                         type="button"
-                                                                        size="sm"
                                                                         variant="outline"
-                                                                        className="shrink-0"
+                                                                        size="sm"
+                                                                        className={
+                                                                            SPEAKER_REVIEW_ACTION_BUTTON_CLASS_NAME
+                                                                        }
+                                                                        data-sot-control="speaker-review-play-sample"
                                                                         onClick={() =>
                                                                             handlePlaySample(
                                                                                 speaker.rawLabel,
@@ -681,7 +1678,7 @@ export function SpeakerLabelEditor({
                                                                             )
                                                                         }
                                                                     >
-                                                                        <Play className="h-3.5 w-3.5" />
+                                                                        <Play data-icon="inline-start" />
                                                                         {playingKey ===
                                                                         `${speaker.rawLabel}:${index}`
                                                                             ? t(
@@ -692,7 +1689,12 @@ export function SpeakerLabelEditor({
                                                                               )}
                                                                     </Button>
                                                                 </div>
-                                                                <p className="text-xs leading-relaxed text-muted-foreground">
+                                                                <p
+                                                                    className={
+                                                                        SPEAKER_REVIEW_SEGMENT_TEXT_CLASS_NAME
+                                                                    }
+                                                                    data-sot-part="speaker-review-segment-text"
+                                                                >
                                                                     {segment.text?.trim() ||
                                                                         t(
                                                                             "speakerReview.noSampleSnippet",
@@ -703,165 +1705,361 @@ export function SpeakerLabelEditor({
                                                     )}
                                                 </div>
                                             ) : (
-                                                <div className="text-xs text-muted-foreground">
-                                                    {t(
-                                                        "speakerReview.noTimedSamples",
-                                                    )}
-                                                </div>
+                                                <Empty
+                                                    variant="default"
+                                                    className={
+                                                        SPEAKER_REVIEW_INLINE_EMPTY_CLASS_NAME
+                                                    }
+                                                    data-sot-part="speaker-review-empty"
+                                                    data-sot-state="no-samples"
+                                                >
+                                                    <EmptyHeader variant="default">
+                                                        <EmptyTitle variant="default">
+                                                            {t(
+                                                                "speakerReview.noTimedSamples",
+                                                            )}
+                                                        </EmptyTitle>
+                                                    </EmptyHeader>
+                                                </Empty>
                                             )}
                                         </div>
 
-                                        <div className="grid gap-3 border-t pt-4 md:grid-cols-[180px_1fr] md:items-center">
-                                            <Label className="text-sm font-medium">
+                                        <Field
+                                            className="gap-2"
+                                            data-sot-part="speaker-review-mapping-field"
+                                            data-disabled={
+                                                isSpeakerSaving
+                                                    ? true
+                                                    : undefined
+                                            }
+                                        >
+                                            <FieldLabel
+                                                htmlFor={mappingInputId}
+                                            >
                                                 {t(
                                                     "speakerReview.mappingTitle",
                                                 )}
-                                            </Label>
-                                            <div className="relative">
-                                                <Input
-                                                    value={searchQuery}
-                                                    onFocus={() =>
-                                                        setOpenPickerFor(
-                                                            speaker.rawLabel,
-                                                        )
-                                                    }
-                                                    onBlur={() => {
-                                                        startBrowserTimeout(
-                                                            () => {
-                                                                setOpenPickerFor(
-                                                                    (
-                                                                        current,
-                                                                    ) =>
-                                                                        current ===
-                                                                        speaker.rawLabel
-                                                                            ? null
-                                                                            : current,
-                                                                );
-                                                            },
-                                                            120,
-                                                        );
-                                                    }}
-                                                    onChange={(event) => {
-                                                        const value =
-                                                            event.target.value;
-                                                        setSearchQueries(
-                                                            (prev) => ({
-                                                                ...prev,
-                                                                [speaker.rawLabel]:
-                                                                    value,
-                                                            }),
-                                                        );
-                                                        setOpenPickerFor(
-                                                            speaker.rawLabel,
-                                                        );
-                                                    }}
-                                                    placeholder={t(
-                                                        "speakerReview.searchOrCreateSpeakerPlaceholder",
-                                                    )}
-                                                    className={
-                                                        searchQuery.trim()
-                                                            ? "pr-10"
+                                            </FieldLabel>
+                                            <FieldContent>
+                                                <InputGroup
+                                                    className="h-9 min-w-0"
+                                                    data-disabled={
+                                                        isSpeakerSaving
+                                                            ? true
                                                             : undefined
                                                     }
-                                                />
-                                                {searchQuery.trim() ? (
-                                                    <Button
-                                                        type="button"
-                                                        size="icon"
-                                                        variant="ghost"
-                                                        className="absolute right-1 top-1 size-8"
-                                                        aria-label={t(
-                                                            "speakerReview.clearSelectedSpeaker",
-                                                        )}
-                                                        disabled={
-                                                            isSaving ===
-                                                            speaker.rawLabel
+                                                >
+                                                    <InputGroupInput
+                                                        id={mappingInputId}
+                                                        value={searchQuery}
+                                                        data-sot-control="speaker-review-mapping-input"
+                                                        aria-busy={
+                                                            isSpeakerSaving
                                                         }
-                                                        onMouseDown={(event) =>
-                                                            event.preventDefault()
-                                                        }
-                                                        onClick={() => {
-                                                            setSearchQueries(
-                                                                (prev) => ({
-                                                                    ...prev,
-                                                                    [speaker.rawLabel]:
-                                                                        "",
-                                                                }),
+                                                        onFocus={() => {
+                                                            if (
+                                                                isSpeakerSaving ||
+                                                                isConfirmingUnlink
+                                                            ) {
+                                                                return;
+                                                            }
+
+                                                            setConfirmUnlinkFor(
+                                                                null,
+                                                            );
+                                                            clearSpeakerSaveError(
+                                                                speaker.rawLabel,
                                                             );
                                                             setOpenPickerFor(
                                                                 speaker.rawLabel,
                                                             );
                                                         }}
-                                                    >
-                                                        <X className="h-3.5 w-3.5" />
-                                                    </Button>
-                                                ) : null}
-                                            </div>
-                                            {speaker.matchedProfileId ? (
-                                                <div className="flex flex-wrap items-center gap-2 md:col-start-2">
-                                                    <Button
-                                                        type="button"
-                                                        size="sm"
-                                                        variant="outline"
-                                                        disabled={
-                                                            isSaving ===
-                                                            speaker.rawLabel
-                                                        }
-                                                        onClick={() =>
-                                                            void handleAssignProfile(
-                                                                speaker.rawLabel,
+                                                        onBlur={() => {
+                                                            startBrowserTimeout(
+                                                                () => {
+                                                                    setOpenPickerFor(
+                                                                        (
+                                                                            current,
+                                                                        ) =>
+                                                                            current ===
+                                                                            speaker.rawLabel
+                                                                                ? null
+                                                                                : current,
+                                                                    );
+                                                                },
+                                                                120,
+                                                            );
+                                                        }}
+                                                        onChange={(event) => {
+                                                            if (
+                                                                isSpeakerSaving
+                                                            ) {
+                                                                return;
+                                                            }
+
+                                                            const value =
+                                                                event.target
+                                                                    .value;
+                                                            setSearchQueries(
+                                                                (prev) => ({
+                                                                    ...prev,
+                                                                    [speaker.rawLabel]:
+                                                                        value,
+                                                                }),
+                                                            );
+                                                            setConfirmUnlinkFor(
                                                                 null,
-                                                            )
+                                                            );
+                                                            clearSpeakerSaveError(
+                                                                speaker.rawLabel,
+                                                            );
+                                                            setOpenPickerFor(
+                                                                speaker.rawLabel,
+                                                            );
+                                                        }}
+                                                        placeholder={t(
+                                                            "speakerReview.searchOrCreateSpeakerPlaceholder",
+                                                        )}
+                                                        disabled={
+                                                            isSpeakerSaving
+                                                        }
+                                                    />
+                                                    {searchQuery.trim() ? (
+                                                        <InputGroupAddon align="inline-end">
+                                                            <InputGroupButton
+                                                                type="button"
+                                                                size="icon-xs"
+                                                                variant="ghost"
+                                                                className={
+                                                                    SPEAKER_REVIEW_MAPPING_CLEAR_BUTTON_CLASS_NAME
+                                                                }
+                                                                aria-label={t(
+                                                                    "speakerReview.clearSelectedSpeaker",
+                                                                )}
+                                                                disabled={
+                                                                    isSpeakerSaving
+                                                                }
+                                                                data-sot-control="speaker-review-mapping-clear"
+                                                                onMouseDown={(
+                                                                    event,
+                                                                ) =>
+                                                                    event.preventDefault()
+                                                                }
+                                                                onClick={() => {
+                                                                    if (
+                                                                        isSpeakerSaving
+                                                                    ) {
+                                                                        return;
+                                                                    }
+
+                                                                    setSearchQueries(
+                                                                        (
+                                                                            prev,
+                                                                        ) => ({
+                                                                            ...prev,
+                                                                            [speaker.rawLabel]:
+                                                                                "",
+                                                                        }),
+                                                                    );
+                                                                    setConfirmUnlinkFor(
+                                                                        null,
+                                                                    );
+                                                                    clearSpeakerSaveError(
+                                                                        speaker.rawLabel,
+                                                                    );
+                                                                    setOpenPickerFor(
+                                                                        speaker.rawLabel,
+                                                                    );
+                                                                }}
+                                                            >
+                                                                <X data-icon="inline-start" />
+                                                            </InputGroupButton>
+                                                        </InputGroupAddon>
+                                                    ) : null}
+                                                </InputGroup>
+                                            </FieldContent>
+                                            {speaker.matchedProfileId ? (
+                                                isConfirmingUnlink ? (
+                                                    <SpeakerReviewCard
+                                                        hasNoPadding
+                                                        surface="confirm"
+                                                        data-sot-confirm="speaker-unlink"
+                                                        data-sot-confirm-state={
+                                                            isSpeakerSaving
+                                                                ? "saving"
+                                                                : "idle"
+                                                        }
+                                                        aria-busy={
+                                                            isSpeakerSaving
                                                         }
                                                     >
-                                                        {t(
-                                                            "speakerReview.unlink",
-                                                        )}
-                                                    </Button>
-                                                    <p className="text-xs text-muted-foreground">
-                                                        {t(
-                                                            "speakerReview.currentAssignment",
-                                                            {
-                                                                name:
-                                                                    speaker.matchedProfileName ??
-                                                                    t(
-                                                                        "speakerReview.savedSpeaker",
-                                                                    ),
-                                                            },
-                                                        )}
-                                                    </p>
-                                                </div>
+                                                        <p
+                                                            data-sot-confirm-message
+                                                        >
+                                                            {t(
+                                                                "speakerReview.confirmUnlinkMessagePrefix",
+                                                            )}
+                                                            <em
+                                                                data-sot-confirm-subject
+                                                            >
+                                                                {matchedName}
+                                                            </em>
+                                                            {t(
+                                                                "speakerReview.confirmUnlinkMessageSuffix",
+                                                            )}
+                                                        </p>
+                                                        <Button
+                                                            type="button"
+                                                            variant="ghost"
+                                                            size="sm"
+                                                            className={
+                                                                SPEAKER_REVIEW_GHOST_BUTTON_CLASS_NAME
+                                                            }
+                                                            data-sot-confirm-action="cancel"
+                                                            disabled={
+                                                                isSpeakerSaving
+                                                            }
+                                                            onClick={() =>
+                                                                setConfirmUnlinkFor(
+                                                                    null,
+                                                                )
+                                                            }
+                                                        >
+                                                            {t("common.cancel")}
+                                                        </Button>
+                                                        <Button
+                                                            type="button"
+                                                            variant="destructive"
+                                                            size="sm"
+                                                            className={
+                                                                SPEAKER_REVIEW_DANGER_BUTTON_CLASS_NAME
+                                                            }
+                                                            data-sot-confirm-action="confirm"
+                                                            disabled={
+                                                                isSpeakerSaving
+                                                            }
+                                                            onClick={() =>
+                                                                void handleAssignProfile(
+                                                                    speaker.rawLabel,
+                                                                    null,
+                                                                )
+                                                            }
+                                                        >
+                                                            {t(
+                                                                "speakerReview.unlink",
+                                                            )}
+                                                        </Button>
+                                                    </SpeakerReviewCard>
+                                                ) : (
+                                                    <div
+                                                        className="inline-flex min-w-0 flex-wrap items-center gap-1.5"
+                                                        data-sot-part="speaker-review-actions"
+                                                    >
+                                                        <Button
+                                                            type="button"
+                                                            variant="destructive"
+                                                            size="sm"
+                                                            className={
+                                                                SPEAKER_REVIEW_DANGER_BUTTON_CLASS_NAME
+                                                            }
+                                                            data-sot-control="speaker-review-unlink"
+                                                            disabled={
+                                                                isSpeakerSaving
+                                                            }
+                                                            onClick={() => {
+                                                                if (
+                                                                    isSpeakerSaving
+                                                                ) {
+                                                                    return;
+                                                                }
+                                                                setOpenPickerFor(
+                                                                    null,
+                                                                );
+                                                                clearSpeakerSaveError(
+                                                                    speaker.rawLabel,
+                                                                );
+                                                                setConfirmUnlinkFor(
+                                                                    speaker.rawLabel,
+                                                                );
+                                                            }}
+                                                        >
+                                                            {t(
+                                                                "speakerReview.unlink",
+                                                            )}
+                                                        </Button>
+                                                        <p
+                                                            className={
+                                                                SPEAKER_REVIEW_ROW_SUB_CLASS_NAME
+                                                            }
+                                                            data-sot-part="speaker-review-row-sub"
+                                                        >
+                                                            {t(
+                                                                "speakerReview.currentAssignment",
+                                                                {
+                                                                    name: matchedName,
+                                                                },
+                                                            )}
+                                                        </p>
+                                                    </div>
+                                                )
                                             ) : null}
 
                                             {isPickerOpen ? (
                                                 profiles.length === 0 &&
                                                 !normalizedQuery ? (
-                                                    <div className="rounded-lg border bg-background px-3 py-2 text-sm text-muted-foreground md:col-start-2">
-                                                        {t(
-                                                            "speakerReview.noSavedSpeakers",
-                                                        )}
-                                                    </div>
+                                                    <Empty
+                                                        variant="default"
+                                                        className={
+                                                            SPEAKER_REVIEW_INLINE_EMPTY_CLASS_NAME
+                                                        }
+                                                        data-sot-part="speaker-review-empty"
+                                                        data-sot-state="no-saved-speakers"
+                                                    >
+                                                        <EmptyHeader variant="default">
+                                                            <EmptyTitle variant="default">
+                                                                {t(
+                                                                    "speakerReview.noSavedSpeakers",
+                                                                )}
+                                                            </EmptyTitle>
+                                                        </EmptyHeader>
+                                                    </Empty>
                                                 ) : (
-                                                    <div className="max-h-52 overflow-y-auto rounded-lg border bg-background md:col-start-2">
+                                                    <div
+                                                        className="flex flex-col gap-1.5"
+                                                        data-sot-list="speaker-review-suggestions"
+                                                    >
                                                         {filteredProfiles.map(
                                                             (profile) => (
-                                                                <button
+                                                                <Button
                                                                     key={
                                                                         profile.id
                                                                     }
                                                                     type="button"
-                                                                    className={cn(
-                                                                        "flex w-full items-center justify-between border-b px-3 py-2 text-left text-sm last:border-b-0 hover:bg-muted/60",
+                                                                    variant="outline"
+                                                                    size="default"
+                                                                    className={
+                                                                        SPEAKER_REVIEW_SUGGESTION_BUTTON_CLASS_NAME
+                                                                    }
+                                                                    data-sot-control="speaker-review-suggestion"
+                                                                    disabled={
+                                                                        isSpeakerSaving ||
                                                                         speaker.matchedProfileId ===
-                                                                            profile.id &&
-                                                                            "bg-muted",
-                                                                    )}
+                                                                            profile.id
+                                                                    }
                                                                     onMouseDown={(
                                                                         event,
                                                                     ) =>
                                                                         event.preventDefault()
                                                                     }
                                                                     onClick={() => {
+                                                                        if (
+                                                                            isSpeakerSaving ||
+                                                                            speaker.matchedProfileId ===
+                                                                                profile.id
+                                                                        ) {
+                                                                            return;
+                                                                        }
+
                                                                         setSearchQueries(
                                                                             (
                                                                                 prev,
@@ -877,12 +2075,22 @@ export function SpeakerLabelEditor({
                                                                         );
                                                                     }}
                                                                 >
-                                                                    <span>
+                                                                    <span className="truncate text-left">
                                                                         {
                                                                             profile.displayName
                                                                         }
                                                                     </span>
-                                                                    <span className="text-xs text-muted-foreground">
+                                                                    <SpeakerReviewVoiceprintBadge
+                                                                        data-sot-part="speaker-review-voiceprint-pill"
+                                                                        data-sot-tone={
+                                                                            speaker.matchedProfileId ===
+                                                                            profile.id
+                                                                                ? "selected"
+                                                                                : profile.hasVoiceprint
+                                                                                  ? "ready"
+                                                                                  : "missing"
+                                                                        }
+                                                                    >
                                                                         {speaker.matchedProfileId ===
                                                                         profile.id
                                                                             ? t(
@@ -895,21 +2103,36 @@ export function SpeakerLabelEditor({
                                                                               : t(
                                                                                     "speakerReview.voiceprintMissing",
                                                                                 )}
-                                                                    </span>
-                                                                </button>
+                                                                    </SpeakerReviewVoiceprintBadge>
+                                                                </Button>
                                                             ),
                                                         )}
                                                         {normalizedQuery &&
                                                         !hasExactMatch ? (
-                                                            <button
+                                                            <Button
                                                                 type="button"
-                                                                className="flex w-full items-center justify-between px-3 py-2 text-left text-sm hover:bg-muted/60"
+                                                                variant="outline"
+                                                                size="default"
+                                                                className={
+                                                                    SPEAKER_REVIEW_SUGGESTION_BUTTON_CLASS_NAME
+                                                                }
+                                                                data-sot-control="speaker-review-suggestion"
+                                                                data-sot-state="create"
+                                                                disabled={
+                                                                    isSpeakerSaving
+                                                                }
                                                                 onMouseDown={(
                                                                     event,
                                                                 ) =>
                                                                     event.preventDefault()
                                                                 }
                                                                 onClick={() => {
+                                                                    if (
+                                                                        isSpeakerSaving
+                                                                    ) {
+                                                                        return;
+                                                                    }
+
                                                                     setSearchQueries(
                                                                         (
                                                                             prev,
@@ -926,7 +2149,7 @@ export function SpeakerLabelEditor({
                                                                     );
                                                                 }}
                                                             >
-                                                                <span>
+                                                                <span className="truncate text-left">
                                                                     {t(
                                                                         "speakerReview.createSpeakerOption",
                                                                         {
@@ -934,38 +2157,60 @@ export function SpeakerLabelEditor({
                                                                         },
                                                                     )}
                                                                 </span>
-                                                            </button>
+                                                            </Button>
                                                         ) : null}
                                                         {filteredProfiles.length ===
                                                             0 &&
                                                         !normalizedQuery ? (
-                                                            <div className="px-3 py-2 text-sm text-muted-foreground">
-                                                                {t(
-                                                                    "speakerReview.noSavedSpeakers",
-                                                                )}
-                                                            </div>
+                                                            <Empty
+                                                                variant="default"
+                                                                className={
+                                                                    SPEAKER_REVIEW_INLINE_EMPTY_CLASS_NAME
+                                                                }
+                                                                data-sot-part="speaker-review-empty"
+                                                                data-sot-state="no-saved-speakers"
+                                                            >
+                                                                <EmptyHeader variant="default">
+                                                                    <EmptyTitle variant="default">
+                                                                        {t(
+                                                                            "speakerReview.noSavedSpeakers",
+                                                                        )}
+                                                                    </EmptyTitle>
+                                                                </EmptyHeader>
+                                                            </Empty>
                                                         ) : null}
                                                         {filteredProfiles.length ===
                                                             0 &&
                                                         normalizedQuery &&
-                                                        hasExactMatch ? (
-                                                            <div className="px-3 py-2 text-sm text-muted-foreground">
-                                                                {t(
-                                                                    "speakerReview.noMatchingSpeakers",
-                                                                )}
-                                                            </div>
+                                                        hasLiveNoMatch ? (
+                                                            <Empty
+                                                                variant="default"
+                                                                className={
+                                                                    SPEAKER_REVIEW_INLINE_EMPTY_CLASS_NAME
+                                                                }
+                                                                data-sot-part="speaker-review-empty"
+                                                                data-sot-state="no-matching-speakers"
+                                                            >
+                                                                <EmptyHeader variant="default">
+                                                                    <EmptyTitle variant="default">
+                                                                        {t(
+                                                                            "speakerReview.noMatchingSpeakers",
+                                                                        )}
+                                                                    </EmptyTitle>
+                                                                </EmptyHeader>
+                                                            </Empty>
                                                         ) : null}
                                                     </div>
                                                 )
                                             ) : null}
-                                        </div>
+                                        </Field>
                                     </>
                                 );
                             })()}
-                        </div>
+                        </SpeakerReviewCard>
                     ))}
                 </div>
             )}
-        </div>
+        </section>
     );
 }

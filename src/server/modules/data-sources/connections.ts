@@ -8,7 +8,10 @@ import {
 } from "@/lib/data-sources/catalog";
 import { getSourceProviderDefinition } from "@/lib/data-sources/providers";
 import { normalizeDingTalkAuthMode } from "@/lib/data-sources/providers/dingtalk-a1/constants";
-import type { ResolvedSourceConnection } from "@/lib/data-sources/types";
+import type {
+    ResolvedSourceConnection,
+    SourceSyncStatus,
+} from "@/lib/data-sources/types";
 import { decrypt } from "@/lib/encryption";
 
 type SourceConfigRecord = Record<string, unknown>;
@@ -75,6 +78,14 @@ function resolveSourceAuthMode(
     return supported[0];
 }
 
+function resolveSourceSyncStatus(status: string | null): SourceSyncStatus {
+    if (status === "syncing" || status === "error") {
+        return status;
+    }
+
+    return "idle";
+}
+
 export async function getResolvedSourceConnectionForUser(
     userId: string,
     provider: SourceProvider,
@@ -110,6 +121,10 @@ export async function getResolvedSourceConnectionForUser(
         ),
         secrets: parseSourceSecretConfig(sourceConnection.secretConfig),
         lastSync: sourceConnection.lastSync,
+        syncStatus: resolveSourceSyncStatus(sourceConnection.syncStatus),
+        lastSyncError: sourceConnection.lastSyncError,
+        lastSyncStartedAt: sourceConnection.lastSyncStartedAt,
+        lastSyncFinishedAt: sourceConnection.lastSyncFinishedAt,
     };
 }
 

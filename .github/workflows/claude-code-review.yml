@@ -75,7 +75,7 @@ jobs:
             Use Bun as the package/runtime baseline. Flag pnpm, npm, Yarn,
             package-lock, or pnpm-lock regressions.
             Watch for leaked tokens, cookies, HAR files, private recordings,
-            private transcripts, provider identifiers, local private paths, and
+            private transcripts, provider identifiers, machine-specific paths, and
             implementation-only provider wording.
             Treat missing tests, broken provider contracts, unsafe
             database/search migrations, and UI regressions as high-signal findings.

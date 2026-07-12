@@ -16,6 +16,7 @@ interface TranscriptionSettingsStoreState {
     hasLoaded: boolean;
     isLoading: boolean;
     isSaving: boolean;
+    loadError: string | null;
 }
 
 const listeners = new Set<Listener>();
@@ -26,6 +27,7 @@ function createInitialState(): TranscriptionSettingsStoreState {
         hasLoaded: false,
         isLoading: true,
         isSaving: false,
+        loadError: null,
     };
 }
 
@@ -116,6 +118,7 @@ export function ensureTranscriptionSettingsLoaded() {
         setStoreState((currentState) => ({
             ...currentState,
             isLoading: true,
+            loadError: null,
         }));
     }
 
@@ -126,13 +129,19 @@ export function ensureTranscriptionSettingsLoaded() {
                 settings,
                 hasLoaded: true,
                 isLoading: false,
+                loadError: null,
             }));
             return settings;
         })
         .catch((error) => {
+            const message =
+                error instanceof Error && error.message.trim()
+                    ? error.message
+                    : "Failed to fetch transcription settings";
             setStoreState((currentState) => ({
                 ...currentState,
                 isLoading: false,
+                loadError: message,
             }));
             throw error;
         })
@@ -168,6 +177,7 @@ export async function saveTranscriptionSettings(
             setStoreState((currentState) => ({
                 ...currentState,
                 hasLoaded: true,
+                loadError: null,
             }));
         }
     } catch (error) {

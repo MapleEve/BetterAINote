@@ -18,6 +18,15 @@ interface UseRecordingPlaybackOptions {
     onEnded?: () => void;
 }
 
+function isPlaybackAbort(error: unknown) {
+    return (
+        typeof error === "object" &&
+        error !== null &&
+        "name" in error &&
+        error.name === "AbortError"
+    );
+}
+
 export function useRecordingPlayback({
     audioUrl,
     onEnded,
@@ -136,14 +145,27 @@ export function useRecordingPlayback({
 
         if (isPlaying) {
             audio.pause();
+            setIsPlaying(false);
+            return;
         } else {
             audio.playbackRate = playbackSpeed;
-            audio.play().catch((error) => {
-                console.error("Error playing audio:", error);
-                toast.error("Failed to play audio");
-            });
+            audio
+                .play()
+                .then(() => {
+                    setIsPlaying(true);
+                })
+                .catch((error) => {
+                    if (isPlaybackAbort(error)) {
+                        return;
+                    }
+                    setIsPlaying(false);
+                    console.error("Error playing audio:", error);
+                    toast.error("Failed to play audio", {
+                        duration: 10_000,
+                        id: "recording-player-playback-error",
+                    });
+                });
         }
-        setIsPlaying(!isPlaying);
     }, [audioSrc, isPlaying, playbackSpeed]);
 
     const seekToSliderValue = useCallback((value: number[]) => {
@@ -236,7 +258,11 @@ export function useRecordingPlayback({
     }, [currentTime, duration, togglePlayPause]);
 
     const progress = duration > 0 ? (currentTime / duration) * 100 : 0;
-    const playbackSpeedLabel = `${playbackSpeed}x`.replace(".0x", "x");
+    const playbackSpeedLabel = `${
+        Number.isInteger(playbackSpeed)
+            ? playbackSpeed.toFixed(1)
+            : playbackSpeed
+    }×`;
 
     return {
         audioRef,

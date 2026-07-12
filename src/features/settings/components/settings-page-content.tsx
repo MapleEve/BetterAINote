@@ -7,7 +7,14 @@ import {
 } from "@/lib/platform/browser-router";
 import { SettingsDialog } from "./settings-dialog";
 
-export function SettingsPageContent() {
+interface SettingsPageContentProps {
+    user?: {
+        email?: string | null;
+        name?: string | null;
+    };
+}
+
+export function SettingsPageContent({ user }: SettingsPageContentProps) {
     const router = useBrowserRouteController();
     const [open, setOpen] = useState(true);
 
@@ -18,5 +25,11 @@ export function SettingsPageContent() {
         }
     };
 
-    return <SettingsDialog open={open} onOpenChange={handleOpenChange} />;
+    return (
+        <SettingsDialog
+            open={open}
+            onOpenChange={handleOpenChange}
+            user={user}
+        />
+    );
 }

@@ -33,7 +33,11 @@ function formatTitleGenerationMetadata(
     };
 }
 
-export async function autoRenameRecording(userId: string, recordingId: string) {
+export async function autoRenameRecording(
+    userId: string,
+    recordingId: string,
+    options: { apply?: boolean } = {},
+) {
     const recording = await findOwnedRecordingForRename(userId, recordingId);
 
     if (!recording) {
@@ -67,13 +71,17 @@ export async function autoRenameRecording(userId: string, recordingId: string) {
         throw new RecordingRenameError("Failed to generate filename", 500);
     }
 
-    await applyRecordingRename({
-        userId,
-        recording,
-        title,
-    });
+    const shouldApply = options.apply ?? true;
+    if (shouldApply) {
+        await applyRecordingRename({
+            userId,
+            recording,
+            title,
+        });
+    }
 
     return {
         filename: title,
+        applied: shouldApply,
     };
 }

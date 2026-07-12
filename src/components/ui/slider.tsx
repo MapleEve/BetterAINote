@@ -5,55 +5,161 @@ import * as React from "react";
 
 import { cn } from "@/lib/utils";
 
+type SliderDataAttributes = {
+    [key: `data-${string}`]: string | number | boolean | undefined;
+};
+
+type SliderRootProps = React.ComponentProps<typeof SliderPrimitive.Root> &
+    SliderDataAttributes;
+type SliderRangeProps = React.ComponentProps<typeof SliderPrimitive.Range> &
+    SliderDataAttributes;
+type SliderThumbProps = React.ComponentProps<typeof SliderPrimitive.Thumb> &
+    SliderDataAttributes;
+type SliderVariant = "default";
+
+type SliderProps = SliderRootProps & {
+    inputClassName?: string;
+    rangeProps?: SliderRangeProps;
+    renderTrack?: boolean;
+    rootProps?: SliderRootProps;
+    thumbProps?: SliderThumbProps;
+    variant?: SliderVariant;
+};
+
+const SLIDER_ROOT_CLASS =
+    "relative flex touch-none items-center select-none data-[disabled]:opacity-50 data-[orientation=vertical]:h-full data-[orientation=vertical]:min-h-44 data-[orientation=vertical]:w-auto data-[orientation=vertical]:flex-col";
+const SLIDER_ROOT_VARIANT_CLASS: Record<SliderVariant, string> = {
+    default: "w-full",
+};
+const SLIDER_TRACK_CLASS =
+    "relative grow overflow-hidden rounded-full data-[orientation=horizontal]:h-1.5 data-[orientation=horizontal]:w-full data-[orientation=vertical]:h-full data-[orientation=vertical]:w-1.5";
+const SLIDER_TRACK_VARIANT_CLASS: Record<SliderVariant, string> = {
+    default: "bg-muted",
+};
+const SLIDER_RANGE_CLASS =
+    "absolute data-[orientation=horizontal]:h-full data-[orientation=vertical]:w-full";
+const SLIDER_RANGE_VARIANT_CLASS: Record<SliderVariant, string> = {
+    default: "bg-primary",
+};
+const SLIDER_THUMB_CLASS =
+    "block shrink-0 rounded-full ring-ring/50 transition-[color,box-shadow] hover:ring-4 focus-visible:ring-4 focus-visible:outline-hidden disabled:pointer-events-none disabled:opacity-50";
+const SLIDER_THUMB_VARIANT_CLASS: Record<SliderVariant, string> = {
+    default: "size-4 border border-primary bg-background shadow-sm",
+};
+
 function Slider({
     className,
     defaultValue,
-    value,
-    min = 0,
+    disabled,
+    inputClassName,
     max = 100,
+    min = 0,
+    onValueChange,
+    onValueCommit,
+    orientation = "horizontal",
+    rangeProps,
+    renderTrack = true,
+    rootProps,
+    step = 1,
+    thumbProps,
+    value,
+    variant = "default",
     ...props
-}: React.ComponentProps<typeof SliderPrimitive.Root>) {
-    const _values = React.useMemo(
+}: SliderProps) {
+    const {
+        "aria-hidden": _legacyInputAriaHidden,
+        style: _legacyInputStyle,
+        tabIndex: _legacyInputTabIndex,
+        ...sliderRootProps
+    } = props;
+    const {
+        className: rootClassName,
+        style: rootStyle,
+        ...rootPrimitiveProps
+    } = rootProps ?? {};
+    const { className: rangeClassName, ...rangePrimitiveProps } =
+        rangeProps ?? {};
+    const { className: thumbClassName, ...thumbPrimitiveProps } =
+        thumbProps ?? {};
+    const sliderValues = React.useMemo(
         () =>
             Array.isArray(value)
                 ? value
                 : Array.isArray(defaultValue)
                   ? defaultValue
-                  : [min, max],
-        [value, defaultValue, min, max],
+                  : [min],
+        [defaultValue, min, value],
     );
+    const thumbId = React.useId();
+    const thumbKeys = React.useMemo(() => {
+        let nextKey = 0;
+
+        return Array.from({ length: sliderValues.length }, () => {
+            const key = `${thumbId}-${nextKey}`;
+            nextKey += 1;
+
+            return key;
+        });
+    }, [sliderValues.length, thumbId]);
+    const thumbAriaLabel =
+        thumbPrimitiveProps["aria-label"] ??
+        rootPrimitiveProps["aria-label"] ??
+        sliderRootProps["aria-label"];
 
     return (
         <SliderPrimitive.Root
+            {...sliderRootProps}
+            {...rootPrimitiveProps}
             data-slot="slider"
-            defaultValue={defaultValue}
-            value={value}
-            min={min}
+            data-variant={variant}
+            defaultValue={value === undefined ? sliderValues : defaultValue}
+            disabled={disabled}
             max={max}
+            min={min}
+            onValueChange={onValueChange}
+            onValueCommit={onValueCommit}
+            orientation={orientation}
+            step={step}
+            style={rootStyle}
+            value={value}
             className={cn(
-                "relative flex w-full touch-none items-center select-none data-[disabled]:opacity-50 data-[orientation=vertical]:h-full data-[orientation=vertical]:min-h-44 data-[orientation=vertical]:w-auto data-[orientation=vertical]:flex-col",
+                SLIDER_ROOT_CLASS,
+                SLIDER_ROOT_VARIANT_CLASS[variant],
                 className,
+                inputClassName,
+                rootClassName,
             )}
-            {...props}
         >
             <SliderPrimitive.Track
                 data-slot="slider-track"
                 className={cn(
-                    "bg-muted relative grow overflow-hidden rounded-full data-[orientation=horizontal]:h-1.5 data-[orientation=horizontal]:w-full data-[orientation=vertical]:h-full data-[orientation=vertical]:w-1.5",
+                    SLIDER_TRACK_CLASS,
+                    SLIDER_TRACK_VARIANT_CLASS[variant],
+                    !renderTrack && "opacity-0",
                 )}
             >
                 <SliderPrimitive.Range
+                    {...rangePrimitiveProps}
                     data-slot="slider-range"
                     className={cn(
-                        "bg-primary absolute data-[orientation=horizontal]:h-full data-[orientation=vertical]:w-full",
+                        SLIDER_RANGE_CLASS,
+                        SLIDER_RANGE_VARIANT_CLASS[variant],
+                        !renderTrack && "opacity-0",
+                        rangeClassName,
                     )}
                 />
             </SliderPrimitive.Track>
-            {Array.from({ length: _values.length }, (_, index) => (
+            {thumbKeys.map((thumbKey) => (
                 <SliderPrimitive.Thumb
+                    {...thumbPrimitiveProps}
+                    aria-label={thumbAriaLabel}
                     data-slot="slider-thumb"
-                    key={`${_values[index]}-${index}`}
-                    className="border-primary ring-ring/50 block size-4 shrink-0 rounded-full border bg-white shadow-sm transition-[color,box-shadow] hover:ring-4 focus-visible:ring-4 focus-visible:outline-hidden disabled:pointer-events-none disabled:opacity-50"
+                    key={thumbKey}
+                    className={cn(
+                        SLIDER_THUMB_CLASS,
+                        SLIDER_THUMB_VARIANT_CLASS[variant],
+                        thumbClassName,
+                    )}
                 />
             ))}
         </SliderPrimitive.Root>

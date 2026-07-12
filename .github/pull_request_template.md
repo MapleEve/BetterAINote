@@ -8,7 +8,7 @@
 
 ## 当前边界
 
-<!-- BetterAINote 当前是 preview、自托管优先；0.6.2-preview 是当前预发布版本，0.6.0-preview 是架构、数据库和 E2E baseline；不发布 npm 包或公开镜像。若本 PR 改变这些边界，请说明原因。 -->
+<!-- BetterAINote 当前是 0.6.2-preview、自托管优先；不发布 npm 包，公开镜像和正式发布需要维护者明确批准。若本 PR 改变这些边界，请说明原因。 -->
 
 ## 变更类型
 
@@ -67,13 +67,13 @@ Relates to #
 - [ ] 已补充有效测试
 - [ ] 本地测试通过（`bun run test`）
 - [ ] 类型检查通过（`bun run type-check`）
-- [ ] 日志、截图、fixture、文档和示例均已脱敏，不包含凭据、录音内容、完整环境文件、网络抓包文件或本地私有路径
+- [ ] 日志、截图、fixture、文档和示例均已脱敏，不包含凭据、录音内容、完整环境文件、未脱敏请求记录或本机路径
 
 ## 数据库变更
 
-<!-- 如果涉及 split SQLite schema / baseline / migrations，请补全下面内容 -->
+<!-- 如果涉及 SQLite schema 或 migrations，请补全下面内容 -->
 
-- [ ] 已更新对应 schema / baseline / migration
+- [ ] 已更新对应 schema / migration
 - [ ] 已本地验证 `bun run db:migrate`
 - [ ] 已提供必要的回滚说明
 

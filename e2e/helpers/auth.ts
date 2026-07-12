@@ -1,4 +1,4 @@
-import { expect, type Locator, type Page } from "@playwright/test";
+import { expect, type APIResponse, type Page } from "@playwright/test";
 
 const PLAYWRIGHT_ACCOUNT = {
     email: "playwright-admin@example.com",
@@ -6,43 +6,84 @@ const PLAYWRIGHT_ACCOUNT = {
     password: "PlaywrightPassword123!",
 };
 
-async function login(page: Page) {
-    await fillControlledInput(page.locator("#email"), PLAYWRIGHT_ACCOUNT.email);
-    await fillControlledInput(
-        page.locator("#password"),
-        PLAYWRIGHT_ACCOUNT.password,
+const E2E_REQUEST_RETRY_DELAYS_MS = [
+    250, 500, 1_000, 1_500, 2_500, 5_000, 7_500, 10_000,
+];
+const AUTH_REQUEST_RETRY_DELAYS_MS = E2E_REQUEST_RETRY_DELAYS_MS;
+
+function isRetryableRequestError(error: unknown) {
+    const message = error instanceof Error ? error.message : String(error);
+    return /ECONNRESET|ECONNREFUSED|EPIPE|socket hang up|fetch failed/i.test(
+        message,
     );
-    await page.getByRole("button", { name: "登录" }).click();
-    await page.waitForURL("**/dashboard", { waitUntil: "commit" });
+}
+
+async function postAuthSetupRequest(
+    page: Page,
+    path: string,
+    data: Record<string, string>,
+): Promise<APIResponse> {
+    for (let attempt = 0; ; attempt += 1) {
+        try {
+            return await page.request.post(path, { data });
+        } catch (error) {
+            const delayMs = AUTH_REQUEST_RETRY_DELAYS_MS[attempt];
+            if (delayMs == null || !isRetryableRequestError(error)) {
+                throw error;
+            }
+            await new Promise((resolve) => setTimeout(resolve, delayMs));
+        }
+    }
+}
+
+export async function putJsonWithRetry(
+    page: Page,
+    path: string,
+    data: Record<string, unknown>,
+): Promise<APIResponse> {
+    for (let attempt = 0; ; attempt += 1) {
+        try {
+            return await page.request.put(path, { data });
+        } catch (error) {
+            const delayMs = E2E_REQUEST_RETRY_DELAYS_MS[attempt];
+            if (delayMs == null || !isRetryableRequestError(error)) {
+                throw error;
+            }
+            await page.waitForTimeout(delayMs);
+        }
+    }
 }
 
 export async function ensureSignedIn(page: Page) {
-    await page.goto("/register", { waitUntil: "domcontentloaded" });
+    const signUpResponse = await postAuthSetupRequest(
+        page,
+        "/api/auth/sign-up/email",
+        PLAYWRIGHT_ACCOUNT,
+    );
 
-    if (page.url().includes("/login")) {
-        await login(page);
-        return;
+    if (!signUpResponse.ok() && signUpResponse.status() !== 403) {
+        throw new Error(
+            `Failed to create E2E session: ${signUpResponse.status()}`,
+        );
     }
 
-    await fillControlledInput(page.locator("#name"), PLAYWRIGHT_ACCOUNT.name);
-    await fillControlledInput(page.locator("#email"), PLAYWRIGHT_ACCOUNT.email);
-    await fillControlledInput(
-        page.locator("#password"),
-        PLAYWRIGHT_ACCOUNT.password,
-    );
-    await page.getByRole("button", { name: "创建账号" }).click();
+    if (signUpResponse.status() === 403) {
+        const signInResponse = await postAuthSetupRequest(
+            page,
+            "/api/auth/sign-in/email",
+            {
+                email: PLAYWRIGHT_ACCOUNT.email,
+                password: PLAYWRIGHT_ACCOUNT.password,
+            },
+        );
 
-    await page.waitForURL("**/dashboard", { waitUntil: "commit" });
-}
+        if (!signInResponse.ok()) {
+            throw new Error(
+                `Failed to sign in E2E session: ${signInResponse.status()}`,
+            );
+        }
+    }
 
-async function fillControlledInput(
-    locator: Locator,
-    value: string,
-) {
-    await expect(locator).toBeEditable();
-    await locator.click();
-    await locator.press(process.platform === "darwin" ? "Meta+A" : "Control+A");
-    await locator.press("Backspace");
-    await locator.pressSequentially(value);
-    await expect(locator).toHaveValue(value);
+    await page.goto("/dashboard", { waitUntil: "domcontentloaded" });
+    await expect(page).toHaveURL(/\/dashboard/);
 }

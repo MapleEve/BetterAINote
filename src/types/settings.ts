@@ -10,6 +10,4 @@ export type CanonicalSettingsSection =
     | "appearance"
     | "misc";
 
-export type LegacySettingsSection = "sync" | "playback" | "display";
-
-export type SettingsSection = CanonicalSettingsSection | LegacySettingsSection;
+export type SettingsSection = CanonicalSettingsSection;

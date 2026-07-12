@@ -12,6 +12,10 @@ export default async function DashboardPage() {
             recordings={recordings}
             transcriptions={transcriptions}
             transcriptionJobs={transcriptionJobs}
+            user={{
+                email: session.user.email,
+                name: session.user.name,
+            }}
         />
     );
 }

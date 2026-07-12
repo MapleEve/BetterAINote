@@ -1,13 +1,17 @@
 "use client";
 
 import {
+    type ComponentPropsWithoutRef,
     createContext,
+    type ReactNode,
     useCallback,
     useContext,
+    useEffect,
     useMemo,
     useRef,
     useState,
 } from "react";
+
 import { Button } from "@/components/ui/button";
 import {
     Dialog,
@@ -17,65 +21,155 @@ import {
     DialogHeader,
     DialogTitle,
 } from "@/components/ui/dialog";
-
-type ConfirmVariant = "default" | "destructive";
+import { cn } from "@/lib/utils";
 
 interface ConfirmDialogOptions {
     title: string;
     description: string;
     confirmLabel: string;
     cancelLabel: string;
-    variant?: ConfirmVariant;
+    confirmVariant?: "default" | "destructive";
+    details?: string[];
+    warning?: string;
 }
 
-type ConfirmDialogState = ConfirmDialogOptions & {
-    resolve: (confirmed: boolean) => void;
+type DataAttributes = {
+    [key: `data-${string}`]: string | number | boolean | undefined;
 };
 
-interface ConfirmDialogContextValue {
-    confirm: (options: ConfirmDialogOptions) => Promise<boolean>;
+type SlotProps<T> = T & DataAttributes;
+
+export interface ConfirmDialogSlotProps {
+    content?: SlotProps<
+        Omit<
+            ComponentPropsWithoutRef<typeof DialogContent>,
+            | "children"
+            | "overlayProps"
+            | "portalWrapperProps"
+            | "showCloseButton"
+        >
+    >;
+    overlay?: SlotProps<
+        NonNullable<
+            ComponentPropsWithoutRef<typeof DialogContent>["overlayProps"]
+        >
+    >;
+    portalWrapper?: SlotProps<
+        NonNullable<
+            ComponentPropsWithoutRef<typeof DialogContent>["portalWrapperProps"]
+        >
+    >;
+    header?: SlotProps<ComponentPropsWithoutRef<typeof DialogHeader>>;
+    title?: SlotProps<ComponentPropsWithoutRef<typeof DialogTitle>>;
+    body?: SlotProps<ComponentPropsWithoutRef<"div">>;
+    description?: SlotProps<ComponentPropsWithoutRef<typeof DialogDescription>>;
+    extra?: SlotProps<ComponentPropsWithoutRef<"div">>;
+    detailsList?: SlotProps<ComponentPropsWithoutRef<"ul">>;
+    detailItem?: SlotProps<ComponentPropsWithoutRef<"li">>;
+    warning?: SlotProps<ComponentPropsWithoutRef<"p">>;
+    footer?: SlotProps<ComponentPropsWithoutRef<typeof DialogFooter>>;
+    cancelButton?: SlotProps<ComponentPropsWithoutRef<typeof Button>>;
+    confirmButton?: SlotProps<ComponentPropsWithoutRef<typeof Button>>;
 }
 
-const ConfirmDialogContext = createContext<ConfirmDialogContextValue | null>(
-    null,
-);
+const ConfirmDialogContext = createContext<{
+    confirm: (options: ConfirmDialogOptions) => Promise<boolean>;
+} | null>(null);
+
+const CONFIRM_DIALOG_CONTENT_CLASS = "sm:max-w-[460px]";
+
+const CONFIRM_DIALOG_HEADER_CLASS = "text-left";
+
+const CONFIRM_DIALOG_BODY_CLASS = "flex flex-col gap-3";
+
+const CONFIRM_DIALOG_EXTRA_CLASS = "flex flex-col gap-3";
+
+const CONFIRM_DIALOG_DETAILS_LIST_CLASS = "flex list-disc flex-col gap-1 pl-5";
 
 export function ConfirmDialogProvider({
     children,
+    slotProps,
 }: {
-    children: React.ReactNode;
+    children: ReactNode;
+    slotProps?: ConfirmDialogSlotProps;
 }) {
-    const [state, setState] = useState<ConfirmDialogState | null>(null);
-    const resolvingRef = useRef(false);
-
-    const close = useCallback(
-        (confirmed: boolean) => {
-            if (!state || resolvingRef.current) return;
-
-            resolvingRef.current = true;
-            state.resolve(confirmed);
-            setState(null);
-            window.setTimeout(() => {
-                resolvingRef.current = false;
-            }, 0);
-        },
-        [state],
+    const [state, setState] = useState<ConfirmDialogOptions | null>(null);
+    const pendingResolveRef = useRef<((confirmed: boolean) => void) | null>(
+        null,
     );
+    const returnFocusRef = useRef<HTMLElement | null>(null);
+
+    const close = useCallback((confirmed: boolean) => {
+        const resolve = pendingResolveRef.current;
+        if (!resolve) return;
+        pendingResolveRef.current = null;
+        setState(null);
+        resolve(confirmed);
+        const returnFocusTarget = returnFocusRef.current;
+        returnFocusRef.current = null;
+        if (!returnFocusTarget) return;
+
+        const restoreFocus = () => {
+            if (
+                document.contains(returnFocusTarget) &&
+                !returnFocusTarget.hasAttribute("disabled") &&
+                returnFocusTarget.getAttribute("aria-disabled") !== "true"
+            ) {
+                returnFocusTarget.focus({ preventScroll: true });
+            }
+        };
+        window.requestAnimationFrame(restoreFocus);
+        window.setTimeout(restoreFocus, 50);
+        window.setTimeout(restoreFocus, 250);
+    }, []);
 
     const confirm = useCallback((options: ConfirmDialogOptions) => {
         return new Promise<boolean>((resolve) => {
-            setState((current) => {
-                current?.resolve(false);
-                return {
-                    ...options,
-                    resolve,
-                };
-            });
+            pendingResolveRef.current?.(false);
+            pendingResolveRef.current = resolve;
+            returnFocusRef.current =
+                document.activeElement instanceof HTMLElement
+                    ? document.activeElement
+                    : null;
+            setState(options);
         });
     }, []);
 
     const value = useMemo(() => ({ confirm }), [confirm]);
-    const variant = state?.variant ?? "default";
+    const confirmButtonVariant = state?.confirmVariant ?? "destructive";
+    const contentSlotProps = slotProps?.content;
+    const overlaySlotProps = slotProps?.overlay;
+    const portalWrapperSlotProps = slotProps?.portalWrapper;
+    const headerSlotProps = slotProps?.header;
+    const titleSlotProps = slotProps?.title;
+    const bodySlotProps = slotProps?.body;
+    const descriptionSlotProps = slotProps?.description;
+    const extraSlotProps = slotProps?.extra;
+    const detailsListSlotProps = slotProps?.detailsList;
+    const detailItemSlotProps = slotProps?.detailItem;
+    const warningSlotProps = slotProps?.warning;
+    const footerSlotProps = slotProps?.footer;
+    const cancelButtonSlotProps = slotProps?.cancelButton;
+    const confirmButtonSlotProps = slotProps?.confirmButton;
+
+    useEffect(() => {
+        if (!state) return;
+
+        const handleEscape = (event: KeyboardEvent) => {
+            if (event.key !== "Escape") return;
+
+            event.preventDefault();
+            event.stopPropagation();
+            event.stopImmediatePropagation();
+            close(false);
+        };
+
+        window.addEventListener("keydown", handleEscape, true);
+
+        return () => {
+            window.removeEventListener("keydown", handleEscape, true);
+        };
+    }, [close, state]);
 
     return (
         <ConfirmDialogContext.Provider value={value}>
@@ -83,43 +177,117 @@ export function ConfirmDialogProvider({
             <Dialog
                 open={Boolean(state)}
                 onOpenChange={(open) => {
-                    if (!open) close(false);
+                    if (!open) {
+                        close(false);
+                    }
                 }}
             >
                 <DialogContent
-                    className="max-w-[min(92vw,28rem)] gap-5"
+                    {...contentSlotProps}
+                    overlayProps={overlaySlotProps}
+                    portalWrapperProps={portalWrapperSlotProps}
+                    className={cn(
+                        CONFIRM_DIALOG_CONTENT_CLASS,
+                        contentSlotProps?.className,
+                    )}
                     showCloseButton={false}
                 >
-                    {state ? (
-                        <>
-                            <DialogHeader className="gap-3">
-                                <DialogTitle>{state.title}</DialogTitle>
-                                <DialogDescription className="text-base leading-7 text-foreground/78">
-                                    {state.description}
-                                </DialogDescription>
-                            </DialogHeader>
-                            <DialogFooter>
-                                <Button
-                                    type="button"
-                                    variant="secondary"
-                                    onClick={() => close(false)}
-                                >
-                                    {state.cancelLabel}
-                                </Button>
-                                <Button
-                                    type="button"
-                                    variant={
-                                        variant === "destructive"
-                                            ? "destructive"
-                                            : "default"
-                                    }
-                                    onClick={() => close(true)}
-                                >
-                                    {state.confirmLabel}
-                                </Button>
-                            </DialogFooter>
-                        </>
-                    ) : null}
+                    <DialogHeader
+                        {...headerSlotProps}
+                        className={cn(
+                            "gap-2 text-left",
+                            CONFIRM_DIALOG_HEADER_CLASS,
+                            headerSlotProps?.className,
+                        )}
+                    >
+                        <DialogTitle
+                            {...titleSlotProps}
+                            className={titleSlotProps?.className}
+                        >
+                            {state?.title}
+                        </DialogTitle>
+                    </DialogHeader>
+                    <div
+                        {...bodySlotProps}
+                        className={cn(
+                            CONFIRM_DIALOG_BODY_CLASS,
+                            bodySlotProps?.className,
+                        )}
+                    >
+                        <DialogDescription
+                            {...descriptionSlotProps}
+                            className={descriptionSlotProps?.className}
+                        >
+                            {state?.description}
+                        </DialogDescription>
+                        {state?.details?.length || state?.warning ? (
+                            <div
+                                {...extraSlotProps}
+                                className={cn(
+                                    CONFIRM_DIALOG_EXTRA_CLASS,
+                                    extraSlotProps?.className,
+                                )}
+                            >
+                                {state.details?.length ? (
+                                    <ul
+                                        {...detailsListSlotProps}
+                                        className={cn(
+                                            CONFIRM_DIALOG_DETAILS_LIST_CLASS,
+                                            detailsListSlotProps?.className,
+                                        )}
+                                    >
+                                        {state.details.map((item) => (
+                                            <li
+                                                {...detailItemSlotProps}
+                                                className={
+                                                    detailItemSlotProps?.className
+                                                }
+                                                key={item}
+                                            >
+                                                {item}
+                                            </li>
+                                        ))}
+                                    </ul>
+                                ) : null}
+                                {state.warning ? (
+                                    <p
+                                        {...warningSlotProps}
+                                        className={warningSlotProps?.className}
+                                    >
+                                        {state.warning}
+                                    </p>
+                                ) : null}
+                            </div>
+                        ) : null}
+                    </div>
+                    <DialogFooter
+                        {...footerSlotProps}
+                        className={cn(
+                            "gap-2 sm:justify-end",
+                            footerSlotProps?.className,
+                        )}
+                    >
+                        <Button
+                            {...cancelButtonSlotProps}
+                            type="button"
+                            variant="outline"
+                            size="sm"
+                            onClick={() => close(false)}
+                            className={cancelButtonSlotProps?.className}
+                        >
+                            {state?.cancelLabel}
+                        </Button>
+                        <Button
+                            {...confirmButtonSlotProps}
+                            type="button"
+                            variant={confirmButtonVariant}
+                            size="sm"
+                            onClick={() => close(true)}
+                            className={confirmButtonSlotProps?.className}
+                        >
+                            {state?.confirmLabel}
+                        </Button>
+                    </DialogFooter>
                 </DialogContent>
             </Dialog>
         </ConfirmDialogContext.Provider>
@@ -128,12 +296,10 @@ export function ConfirmDialogProvider({
 
 export function useConfirmDialog() {
     const context = useContext(ConfirmDialogContext);
-
     if (!context) {
         throw new Error(
             "useConfirmDialog must be used inside ConfirmDialogProvider",
         );
     }
-
     return context.confirm;
 }

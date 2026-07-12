@@ -1,3 +1,4 @@
+import { createHash } from "node:crypto";
 import path from "node:path";
 import { defineConfig, devices } from "@playwright/test";
 
@@ -10,6 +11,7 @@ function resolveConfiguredBaseUrl() {
 const configuredBaseUrl = resolveConfiguredBaseUrl();
 const baseURL = configuredBaseUrl || "http://127.0.0.1:3201";
 const appUrl = new URL(baseURL);
+const useSystemChrome = process.env.PLAYWRIGHT_USE_SYSTEM_CHROME === "1";
 const isLoopbackHost = ["127.0.0.1", "localhost", "::1"].includes(
     appUrl.hostname,
 );
@@ -40,11 +42,22 @@ const e2eStorageDir = path.join(e2eRootDir, "storage");
 const e2eDatabasePath = path.join(e2eDataDir, "betterainote-e2e.db");
 const e2eWordsDatabasePath = path.join(e2eDataDir, "betterainote-e2e-words.db");
 const useIsolatedFallback = !configuredBaseUrl;
+const shouldManageWebServer = process.env.PLAYWRIGHT_SKIP_WEBSERVER !== "1";
+
+if (useIsolatedFallback && shouldManageWebServer) {
+    process.env.NODE_ENV ??= "development";
+    process.env.PLAYWRIGHT_E2E_DATA_SOURCES_FALLBACK ??= "1";
+
+    if (process.env.NODE_ENV !== "production") {
+        process.env.BETTER_AUTH_SECRET ??= createHash("sha256")
+            .update(e2eRootDir)
+            .digest("hex");
+    }
+}
+
 const e2eEnv = {
     ...process.env,
     APP_URL: baseURL,
-    BETTER_AUTH_SECRET:
-        "playwright-better-auth-secret-0123456789abcdef-playwright",
     DATABASE_PATH: e2eDatabasePath,
     ENCRYPTION_KEY:
         "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef",
@@ -62,7 +75,6 @@ const e2eEnv = {
     PORT: appUrl.port || "3101",
     TRANSCRIPT_WORDS_DATABASE_PATH: e2eWordsDatabasePath,
 };
-const shouldManageWebServer = process.env.PLAYWRIGHT_SKIP_WEBSERVER !== "1";
 
 export default defineConfig({
     testDir: "./e2e",
@@ -79,12 +91,13 @@ export default defineConfig({
     use: {
         ...devices["Desktop Chrome"],
         baseURL,
+        ...(useSystemChrome ? { channel: "chrome" as const } : {}),
         trace: "retain-on-failure",
         screenshot: "only-on-failure",
     },
     webServer: shouldManageWebServer
         ? {
-              command: `node scripts/e2e-setup.mjs && bunx next dev --hostname ${appUrl.hostname} --port ${appUrl.port || "3101"}`,
+              command: `node scripts/e2e-setup.mjs && cd ${e2eAppDir} && bunx next dev --webpack --hostname ${appUrl.hostname} --port ${appUrl.port || "3101"}`,
               cwd: __dirname,
               env: e2eEnv,
               reuseExistingServer: true,

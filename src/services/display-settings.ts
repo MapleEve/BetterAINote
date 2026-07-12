@@ -5,17 +5,20 @@ const DISPLAY_SETTINGS_ENDPOINT = "/api/settings/display";
 const UI_LANGUAGES = ["zh-CN", "en"] as const;
 const DATE_TIME_FORMATS = ["relative", "absolute"] as const;
 const RECORDING_LIST_SORT_ORDERS = ["newest", "oldest", "name"] as const;
+const DISPLAY_DENSITIES = ["comfy", "compact"] as const;
 const THEMES = ["system", "light", "dark"] as const;
 const DEFAULT_DISPLAY_SETTINGS = {
     uiLanguage: "zh-CN" as const,
     dateTimeFormat: "relative" as const,
     recordingListSortOrder: "newest" as const,
     itemsPerPage: 50,
-    theme: "system" as const,
+    displayDensity: "comfy" as const,
+    theme: "dark" as const,
 };
 
 export type RecordingListSortOrder =
     (typeof RECORDING_LIST_SORT_ORDERS)[number];
+export type DisplayDensity = (typeof DISPLAY_DENSITIES)[number];
 export type ThemeMode = (typeof THEMES)[number];
 
 export interface DisplaySettings {
@@ -23,6 +26,7 @@ export interface DisplaySettings {
     dateTimeFormat: DateTimeFormat;
     recordingListSortOrder: RecordingListSortOrder;
     itemsPerPage: number;
+    displayDensity: DisplayDensity;
     theme: ThemeMode;
 }
 
@@ -43,7 +47,7 @@ function parseItemsPerPage(value: unknown) {
         Number.isFinite(value) &&
         Number.isInteger(value) &&
         value >= 10 &&
-        value <= 100
+        value <= 200
         ? value
         : DEFAULT_DISPLAY_SETTINGS.itemsPerPage;
 }
@@ -76,6 +80,9 @@ function normalizeDisplaySettingsResponse(payload: unknown): DisplaySettings {
             ? data.recordingListSortOrder
             : DEFAULT_DISPLAY_SETTINGS.recordingListSortOrder,
         itemsPerPage: parseItemsPerPage(data.itemsPerPage),
+        displayDensity: isEnumValue(data.displayDensity, DISPLAY_DENSITIES)
+            ? data.displayDensity
+            : DEFAULT_DISPLAY_SETTINGS.displayDensity,
         theme: isEnumValue(data.theme, THEMES)
             ? data.theme
             : DEFAULT_DISPLAY_SETTINGS.theme,

@@ -39,7 +39,12 @@ import {
     parseSourceSecretConfig,
     resolveSourceConnectionConfig,
 } from "@/server/modules/data-sources/connections";
-import { getDataSources, saveDataSource } from "@/services/data-sources";
+import {
+    getDataSources,
+    saveDataSource,
+    testDataSource,
+} from "@/services/data-sources";
+import { testVoScriptConnection } from "@/services/voscript-settings";
 
 describe("data source utility coverage", () => {
     afterEach(() => {
@@ -276,6 +281,11 @@ describe("data source service and connection coverage", () => {
                 )
                 .mockResolvedValueOnce(Response.json({}, { status: 200 }))
                 .mockResolvedValueOnce(Response.json({ ok: true }))
+                .mockResolvedValueOnce(new Response("{bad", { status: 500 }))
+                .mockResolvedValueOnce(Response.json({ success: true }))
+                .mockResolvedValueOnce(
+                    Response.json({ error: "test failed" }, { status: 502 }),
+                )
                 .mockResolvedValueOnce(new Response("{bad", { status: 500 })),
         );
 
@@ -305,6 +315,45 @@ describe("data source service and connection coverage", () => {
                 { endpoint: "/data", fallbackMessage: "save failed" },
             ),
         ).rejects.toThrow("save failed");
+        await expect(
+            testDataSource(
+                {
+                    provider: "ticnote",
+                    enabled: true,
+                    authMode: "bearer",
+                    config: {},
+                    secrets: {},
+                },
+                { endpoint: "/data/test" },
+            ),
+        ).resolves.toEqual({ success: true });
+        await expect(
+            testDataSource(
+                {
+                    provider: "ticnote",
+                    enabled: true,
+                    authMode: "bearer",
+                    config: {},
+                    secrets: {},
+                },
+                { endpoint: "/data/test" },
+            ),
+        ).rejects.toThrow("test failed");
+        await expect(
+            testDataSource(
+                {
+                    provider: "ticnote",
+                    enabled: true,
+                    authMode: "bearer",
+                    config: {},
+                    secrets: {},
+                },
+                {
+                    endpoint: "/data/test",
+                    fallbackMessage: "test fallback",
+                },
+            ),
+        ).rejects.toThrow("test fallback");
     });
 
     it("parses source connection secrets and provider config defaults", () => {
@@ -338,5 +387,68 @@ describe("data source service and connection coverage", () => {
             timezone: "Asia/Shanghai",
             syncTitleToSource: false,
         });
+    });
+});
+
+describe("VoScript service connection coverage", () => {
+    afterEach(() => {
+        vi.unstubAllGlobals();
+    });
+
+    it("posts connection tests to the no-persist VoScript endpoint", async () => {
+        vi.stubGlobal(
+            "fetch",
+            vi
+                .fn()
+                .mockResolvedValueOnce(
+                    Response.json(
+                        {
+                            available: true,
+                            providerName: "voice-transcribe",
+                            success: true,
+                            voiceprintCount: 2,
+                        },
+                        { status: 200 },
+                    ),
+                )
+                .mockResolvedValueOnce(
+                    Response.json(
+                        { error: "connection failed" },
+                        { status: 502 },
+                    ),
+                )
+                .mockResolvedValueOnce(new Response("{bad", { status: 500 })),
+        );
+
+        await expect(
+            testVoScriptConnection({
+                privateTranscriptionApiKey: "key",
+                privateTranscriptionBaseUrl: "https://voscript.test",
+            }),
+        ).resolves.toEqual({
+            available: true,
+            providerName: "voice-transcribe",
+            success: true,
+            voiceprintCount: 2,
+        });
+        expect(fetch).toHaveBeenCalledWith("/api/settings/voscript/test", {
+            body: JSON.stringify({
+                privateTranscriptionApiKey: "key",
+                privateTranscriptionBaseUrl: "https://voscript.test",
+            }),
+            headers: { "Content-Type": "application/json" },
+            method: "POST",
+        });
+
+        await expect(
+            testVoScriptConnection({
+                privateTranscriptionBaseUrl: "https://voscript.test",
+            }),
+        ).rejects.toThrow("connection failed");
+        await expect(
+            testVoScriptConnection({
+                privateTranscriptionBaseUrl: "https://voscript.test",
+            }),
+        ).rejects.toThrow("Failed to test VoScript connection");
     });
 });

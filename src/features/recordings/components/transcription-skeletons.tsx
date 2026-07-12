@@ -1,26 +1,76 @@
 "use client";
 
+import {
+    Card,
+    CardAction,
+    CardContent,
+    CardDescription,
+    CardHeader,
+    CardTitle,
+} from "@/components/ui/card";
+import { Field, FieldContent, FieldTitle } from "@/components/ui/field";
 import { Skeleton } from "@/components/ui/skeleton";
-import { cn } from "@/lib/utils";
 
-function SkeletonLineGroup({
-    className,
-    lines = 3,
+type TranscriptionPlaceholderSize =
+    | "action"
+    | "description"
+    | "field-control"
+    | "field-label"
+    | "line-long"
+    | "line-medium"
+    | "line-short"
+    | "speaker"
+    | "status"
+    | "time"
+    | "title";
+
+const transcriptionSkeletonClassNames = {
+    action: "h-[26px] w-[72px]",
+    description: "h-[13px] w-full max-w-[220px]",
+    "field-control": "h-[13px] w-[132px]",
+    "field-label": "h-[13px] w-24",
+    "line-long": "h-[13px] w-[92%]",
+    "line-medium": "h-[13px] w-3/4",
+    "line-short": "h-[13px] w-3/5",
+    speaker: "h-[13px] w-24",
+    status: "h-[13px] w-[76px]",
+    time: "h-[13px] w-16",
+    title: "h-4 w-32",
+} satisfies Record<TranscriptionPlaceholderSize, string>;
+
+function SkeletonLine({
+    size = "line-medium",
 }: {
-    className?: string;
-    lines?: number;
+    size?: TranscriptionPlaceholderSize;
 }) {
     return (
-        <div className={cn("space-y-2", className)}>
+        <Skeleton
+            data-sot-part="recording-transcription-skeleton-line"
+            data-sot-size={size}
+            className={transcriptionSkeletonClassNames[size]}
+            size="default"
+            variant="default"
+        />
+    );
+}
+
+function SkeletonLineGroup({ lines = 3 }: { lines?: number }) {
+    return (
+        <div
+            className="flex flex-col gap-[7px]"
+            data-sot-list="recording-transcription-skeleton-lines"
+        >
             {Array.from({ length: lines }, (_, index) => `line-${index}`).map(
                 (lineId, index) => (
-                    <Skeleton
+                    <SkeletonLine
                         key={lineId}
-                        className={cn(
-                            "h-3",
-                            index === 0 && "w-2/3",
-                            index === lines - 1 && "w-4/5",
-                        )}
+                        size={
+                            index % 3 === 0
+                                ? "line-long"
+                                : index % 3 === 1
+                                  ? "line-medium"
+                                  : "line-short"
+                        }
                     />
                 ),
             )}
@@ -28,119 +78,168 @@ function SkeletonLineGroup({
     );
 }
 
-function TranscriptTurnSkeleton({ className }: { className?: string }) {
+function TranscriptTurnSkeleton() {
     return (
-        <div className={cn("rounded-2xl bg-muted/35 p-4", className)}>
-            <div className="mb-3 flex items-center gap-2">
-                <Skeleton className="h-3 w-20 rounded-full" />
-                <Skeleton className="h-3 w-24 rounded-full" />
+        <section
+            className="flex flex-col gap-[7px] border-b border-dashed py-2.5 pb-4 last:border-b-0"
+            data-sot-item="recording-transcription-skeleton-turn"
+        >
+            <div
+                className="flex min-w-0 flex-wrap items-center gap-2"
+                data-sot-list="recording-transcription-skeleton-meta"
+            >
+                <SkeletonLine size="speaker" />
+                <SkeletonLine size="time" />
             </div>
             <SkeletonLineGroup lines={2} />
-        </div>
+        </section>
     );
 }
 
-export function TranscriptOutputSkeleton({
-    className,
-}: {
-    className?: string;
-}) {
+export function TranscriptOutputSkeleton() {
     return (
-        <div
-            className={cn(
-                "rounded-2xl border border-white/10 bg-background/25 p-4",
-                className,
-            )}
+        <Card
+            className="min-h-0 flex-1 gap-0"
+            data-sot-panel="recording-transcription-skeleton"
+            data-sot-section="recording-transcription-output-skeleton"
+            hasNoPadding
         >
-            <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
-                <div className="space-y-2">
-                    <Skeleton className="h-4 w-24" />
-                    <Skeleton className="h-3 w-52 max-w-full" />
+            <CardHeader
+                className="grid-cols-[minmax(0,1fr)_auto] items-start gap-3 max-[860px]:grid-cols-1"
+                data-sot-part="recording-transcription-skeleton-header"
+            >
+                <div
+                    className="flex min-w-0 flex-col gap-1.5"
+                    data-sot-part="recording-transcription-skeleton-heading"
+                >
+                    <CardTitle>
+                        <SkeletonLine size="title" />
+                    </CardTitle>
+                    <CardDescription>
+                        <SkeletonLine size="description" />
+                    </CardDescription>
                 </div>
-                <Skeleton className="h-9 w-24 rounded-full" />
-            </div>
-            <Skeleton className="mt-4 h-12 rounded-xl" />
-            <div className="mt-4 space-y-3">
+                <CardAction
+                    className="flex min-w-0 items-center justify-end max-[860px]:justify-start"
+                    data-sot-part="recording-transcription-skeleton-action"
+                >
+                    <SkeletonLine size="action" />
+                </CardAction>
+            </CardHeader>
+            <CardContent
+                className="flex flex-col gap-2.5"
+                data-sot-part="recording-transcription-skeleton-body"
+            >
                 <TranscriptTurnSkeleton />
                 <TranscriptTurnSkeleton />
-                <TranscriptTurnSkeleton className="hidden sm:block" />
-            </div>
-            <div className="mt-4 flex gap-3 border-t pt-3">
-                <Skeleton className="h-3 w-16 rounded-full" />
-                <Skeleton className="h-3 w-16 rounded-full" />
-                <Skeleton className="h-3 w-16 rounded-full" />
-            </div>
-        </div>
+                <TranscriptTurnSkeleton />
+            </CardContent>
+        </Card>
     );
 }
 
-export function TranscriptReviewSkeleton({
-    className,
-}: {
-    className?: string;
-}) {
+export function TranscriptReviewSkeleton() {
     return (
-        <div className={cn("space-y-3", className)}>
-            <div className="flex flex-wrap gap-3">
-                <Skeleton className="h-3 w-24 rounded-full" />
-                <Skeleton className="h-3 w-20 rounded-full" />
-                <Skeleton className="h-3 w-32 rounded-full" />
-                <Skeleton className="h-3 w-16 rounded-full" />
+        <section
+            className="flex flex-col gap-2.5 border-t pt-3 pb-1"
+            data-sot-panel="recording-transcription-review-skeleton"
+        >
+            <div
+                className="flex min-w-0 flex-wrap items-center gap-2"
+                data-sot-list="recording-transcription-skeleton-meta"
+            >
+                <SkeletonLine size="speaker" />
+                <SkeletonLine size="time" />
+                <SkeletonLine size="status" />
             </div>
-            <div className="max-h-72 rounded-2xl bg-background/45 p-4">
-                <SkeletonLineGroup lines={6} />
-            </div>
-        </div>
+            <SkeletonLineGroup lines={6} />
+        </section>
     );
 }
 
 function SpeakerCardSkeleton() {
     return (
-        <div className="space-y-4 rounded-2xl border border-border/55 bg-background/35 p-4">
-            <div className="flex items-start justify-between gap-3">
-                <div className="space-y-2">
-                    <Skeleton className="h-4 w-24" />
-                    <Skeleton className="h-3 w-36" />
-                </div>
-                <Skeleton className="h-6 w-20 rounded-full" />
+        <section
+            className="flex flex-col gap-[11px] p-3.5"
+            data-sot-item="recording-transcription-speaker-card-skeleton"
+        >
+            <div
+                className="flex min-w-0 flex-wrap items-center gap-2"
+                data-sot-list="recording-transcription-speaker-card-meta"
+            >
+                <SkeletonLine size="speaker" />
             </div>
-            <div className="grid gap-2 md:grid-cols-3">
+            <div
+                className="flex min-w-0 flex-wrap items-center gap-2"
+                data-sot-list="recording-transcription-speaker-card-meta"
+            >
+                <SkeletonLine size="status" />
+                <SkeletonLine size="time" />
+            </div>
+            <div
+                className="flex flex-col gap-[7px]"
+                data-sot-list="recording-transcription-speaker-card-turns"
+            >
                 <TranscriptTurnSkeleton />
                 <TranscriptTurnSkeleton />
-                <TranscriptTurnSkeleton className="hidden md:block" />
             </div>
-            <div className="grid gap-3 border-t pt-4 md:grid-cols-[180px_1fr] md:items-center">
-                <Skeleton className="h-4 w-24" />
-                <Skeleton className="h-10 rounded-xl" />
-            </div>
-        </div>
+            <Field
+                className="gap-2"
+                data-sot-part="recording-transcription-speaker-card-field"
+            >
+                <FieldContent>
+                    <FieldTitle>
+                        <SkeletonLine size="field-label" />
+                    </FieldTitle>
+                    <SkeletonLine size="field-control" />
+                </FieldContent>
+            </Field>
+        </section>
     );
 }
 
-export function SpeakerReviewSkeleton({ className }: { className?: string }) {
+export function SpeakerReviewSkeleton() {
     return (
-        <div className={cn("space-y-4 border-t pt-4", className)}>
-            <div className="space-y-3">
-                <div className="flex flex-col gap-3 md:flex-row md:items-start md:justify-between">
-                    <div className="flex items-center gap-3">
-                        <Skeleton className="h-9 w-9 rounded-2xl" />
-                        <div className="space-y-2">
-                            <Skeleton className="h-4 w-28" />
-                            <Skeleton className="h-3 w-56 max-w-full" />
-                        </div>
-                    </div>
-                    <div className="flex flex-wrap items-center gap-2">
-                        <Skeleton className="h-9 w-24 rounded-full" />
-                        <Skeleton className="h-9 w-20 rounded-full" />
-                        <Skeleton className="h-9 w-16 rounded-full" />
-                    </div>
+        <Card
+            className="min-h-0 flex-1 gap-0"
+            data-sot-panel="recording-transcription-speaker-review-skeleton"
+            hasNoPadding
+        >
+            <CardHeader
+                className="grid-cols-[minmax(0,1fr)_auto] items-start gap-3 max-[860px]:grid-cols-1"
+                data-sot-part="recording-transcription-skeleton-header"
+            >
+                <div
+                    className="flex min-w-0 flex-col gap-1.5"
+                    data-sot-part="recording-transcription-skeleton-heading"
+                >
+                    <CardTitle>
+                        <SkeletonLine size="title" />
+                    </CardTitle>
+                    <CardDescription>
+                        <SkeletonLine size="description" />
+                    </CardDescription>
                 </div>
+                <CardAction
+                    className="flex min-w-0 items-center justify-end max-[860px]:justify-start"
+                    data-sot-part="recording-transcription-skeleton-action"
+                >
+                    <SkeletonLine size="action" />
+                </CardAction>
+            </CardHeader>
+            <CardContent
+                className="flex flex-col gap-2.5"
+                data-sot-part="recording-transcription-skeleton-body"
+            >
                 <TranscriptReviewSkeleton />
-            </div>
-            <div className="space-y-4">
+            </CardContent>
+            <CardContent
+                className="flex flex-col gap-2.5"
+                data-sot-list="recording-transcription-speaker-cards"
+            >
                 <SpeakerCardSkeleton />
                 <SpeakerCardSkeleton />
-            </div>
-        </div>
+            </CardContent>
+        </Card>
     );
 }

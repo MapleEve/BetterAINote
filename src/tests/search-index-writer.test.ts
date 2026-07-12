@@ -118,7 +118,7 @@ describe("search index writer", () => {
                 body: "Alice",
                 speaker: "Alice",
                 tags: null,
-                source: "plaud-internal-id",
+                source: "plaud-example-id",
             }),
         ).toEqual({
             rowid: 7,

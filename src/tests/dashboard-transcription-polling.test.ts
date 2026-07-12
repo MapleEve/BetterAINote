@@ -1,9 +1,17 @@
+import { readFileSync } from "node:fs";
+import path from "node:path";
 import { describe, expect, it } from "vitest";
 
 import {
     getDashboardTranscriptionPollingKey,
     resolveDashboardTranscriptionPoll,
 } from "@/features/dashboard/transcription-polling";
+
+const ROOT = path.join(process.cwd(), "src");
+
+function readSource(relativePath: string) {
+    return readFileSync(path.join(ROOT, relativePath), "utf8");
+}
 
 describe("dashboard transcription polling", () => {
     it("does not treat an existing transcript as complete while the job is still active", () => {
@@ -73,5 +81,17 @@ describe("dashboard transcription polling", () => {
                 remoteStatus: null,
             }),
         ).toBeNull();
+    });
+
+    it("keeps lazy transcript loading state updates idempotent", () => {
+        const workstation = readSource("features/dashboard/workstation.tsx");
+
+        expect(workstation).toContain("loadingTranscriptIdsRef");
+        expect(workstation).toContain("const isTranscriptLoading");
+        expect(workstation).toContain("if (previous.has(recordingId))");
+        expect(workstation).toContain("if (!previous.has(recordingId))");
+        expect(workstation).toContain("hasTranscriptContent");
+        expect(workstation).toContain("segments?.some");
+        expect(workstation).toContain("return previous;");
     });
 });

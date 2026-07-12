@@ -4,21 +4,29 @@
 基础 UI 原语，服务所有页面，必须保持无业务语义。
 
 ## 真实文件
+- `alert.tsx`
+- `badge.tsx`
 - `breadcrumb.tsx`
 - `button.tsx`
 - `card.tsx`
 - `confirm-dialog.tsx`
 - `dialog.tsx`
+- `empty.tsx`
+- `field.tsx`
+- `input-group.tsx`
 - `input.tsx`
 - `label.tsx`
 - `segmented-tabs.tsx`
 - `select.tsx`
+- `separator.tsx`
 - `sidebar.tsx`
 - `skeleton.tsx`
 - `slider.tsx`
 - `sonner.tsx`
+- `spinner.tsx`
 - `switch.tsx`
 - `textarea.tsx`
+- `toggle-group.tsx`
 
 ## 下级入口
 - 本层没有更深的已跟踪源码目录。
@@ -29,8 +37,8 @@
 - 新增文件时优先放在最具体的叶子目录，并补充对应 AGENTS.md 指针或规则。
 
 ## 禁止事项
-- 禁止提交真实 token、Cookie、HAR、私有录音、私有转写、数据库内容和 provider 私有标识。
-- 禁止把内部研究、抓包过程、调试证据或本地路径写入公开 UI、公开文档、测试快照或注释。
+- 禁止提交真实 token、Cookie、HAR、私有录音、私有转写、数据库内容和未脱敏来源标识。
+- 禁止把敏感或未脱敏材料写入公开 UI、公开文档、测试快照或注释。
 - 禁止绕过认证、归属校验、公开错误映射和 provider 中立文案。
 
 ## 依赖方向

@@ -160,7 +160,7 @@ BetterAINote 可能包含录音标题、来源记录、转写文本、说话人�
 - 本地 SQLite 和 `LOCAL_STORAGE_PATH` 可能包含敏感录音与转写数据。
 - Provider 凭据、VoScript 凭据、AI 标题服务密钥和会话状态只应存在于你的私有部署里。
 - 日志、Issue、PR、截图和录屏必须先脱敏。
-- 不要公开 cookie、bearer token、组织 / 用户 / 录音 ID、会议内容、抓包文件、完整环境文件或本地私有路径。
+- 不要公开 cookie、bearer token、组织 / 用户 / 录音 ID、会议内容、未脱敏请求记录、完整环境文件或本机路径。
 
 更多说明见 [隐私文档](./docs/PRIVACY.md) 和 [安全策略](./SECURITY.md)。
 
@@ -174,7 +174,6 @@ BetterAINote 可能包含录音标题、来源记录、转写文本、说话人�
 | AI 安装部署 | [docs/AI_INSTALL_DEPLOYMENT.md](./docs/AI_INSTALL_DEPLOYMENT.md) |
 | API 与公开边界 | [docs/API.md](./docs/API.md) |
 | 数据源成熟度 | [docs/DATA_SOURCES.md](./docs/DATA_SOURCES.md) |
-| GitHub 项目设置 | [docs/GITHUB_PROJECT_SETTINGS.md](./docs/GITHUB_PROJECT_SETTINGS.md) |
 | 部署 | [docs/DEPLOYMENT.md](./docs/DEPLOYMENT.md) |
 | 隐私 | [docs/PRIVACY.md](./docs/PRIVACY.md) |
 | 更新日志 | [CHANGELOG.md](./CHANGELOG.md) |

@@ -1,4 +1,8 @@
 export {
+    getSearchIndexingProgress,
+    type SearchIndexingProgress,
+} from "./indexer";
+export {
     createSearchIndexJobProcessor,
     processPendingSearchIndexJobs,
 } from "./job-processor";

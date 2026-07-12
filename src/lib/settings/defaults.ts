@@ -10,7 +10,8 @@ export const DEFAULT_DISPLAY_SETTINGS = {
     dateTimeFormat: "relative" as const,
     recordingListSortOrder: "newest" as const,
     itemsPerPage: 50,
-    theme: "system" as const,
+    displayDensity: "comfy" as const,
+    theme: "dark" as const,
 };
 
 function normalizeDateTimeFormat(value: string | null | undefined) {
@@ -23,7 +24,7 @@ function normalizeDateTimeFormat(value: string | null | undefined) {
 
 export const DEFAULT_PLAYBACK_SETTINGS = {
     defaultPlaybackSpeed: 1.0,
-    defaultVolume: 75,
+    defaultVolume: 80,
     autoPlayNext: false,
 };
 
@@ -34,7 +35,7 @@ export const DEFAULT_SYNC_SETTINGS = {
 };
 
 export const DEFAULT_TRANSCRIPTION_SETTINGS = {
-    autoTranscribe: false,
+    autoTranscribe: true,
     defaultTranscriptionLanguage: null as string | null,
 };
 
@@ -111,6 +112,8 @@ export function getDisplaySettingsResponse(settings: UserSettingsRow) {
             DEFAULT_DISPLAY_SETTINGS.recordingListSortOrder,
         itemsPerPage:
             settings?.itemsPerPage ?? DEFAULT_DISPLAY_SETTINGS.itemsPerPage,
+        displayDensity:
+            settings?.displayDensity ?? DEFAULT_DISPLAY_SETTINGS.displayDensity,
         theme: settings?.theme ?? DEFAULT_DISPLAY_SETTINGS.theme,
     };
 }

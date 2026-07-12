@@ -1,30 +1,34 @@
 import type { Metadata } from "next";
-import { Geist, Geist_Mono } from "next/font/google";
-import { ThemeProvider } from "@/components/theme-provider";
-import { ConfirmDialogProvider } from "@/components/ui/confirm-dialog";
+import {
+    ConfirmDialogProvider,
+    type ConfirmDialogSlotProps,
+} from "@/components/ui/confirm-dialog";
 import { Toaster } from "@/components/ui/sonner";
+import { DisplayPreferencesProvider } from "@/features/settings/components/display-preferences-provider";
 import "./globals.css";
 
-const geistSans = Geist({
-    variable: "--font-geist-sans",
-    subsets: ["latin"],
-});
-
-const geistMono = Geist_Mono({
-    variable: "--font-geist-mono",
-    subsets: ["latin"],
-});
-
 export const metadata: Metadata = {
-    title: "BetterAINote - Private Audio Workspace",
+    title: "BetterAINote",
     description:
-        "Single-user private audio workspace with source sync, transcription, speaker review, and AI rename",
-    icons: {
-        icon: "/icon.svg",
-        shortcut: "/icon.svg",
-        apple: "/icon.svg",
-    },
+        "Private self-hosted workspace for multi-platform voice record aggregation and unified management",
 };
+
+const confirmDialogSotSlotProps = {
+    content: { "data-sot-content": "confirm-dialog" },
+    overlay: { "data-sot-overlay": "confirm-dialog" },
+    portalWrapper: { "data-sot-panel": "confirm-dialog" },
+    header: { "data-sot-part": "confirm-head" },
+    title: { "data-sot-part": "confirm-title" },
+    body: { "data-sot-part": "confirm-body" },
+    description: { "data-sot-part": "confirm-description" },
+    extra: { "data-sot-part": "confirm-extra" },
+    detailsList: { "data-sot-list": "confirm-dialog-details" },
+    detailItem: { "data-sot-item": "confirm-dialog-detail" },
+    warning: { "data-sot-part": "confirm-warning" },
+    footer: { "data-sot-part": "confirm-foot" },
+    cancelButton: { "data-sot-control": "confirm-dialog-cancel" },
+    confirmButton: { "data-sot-control": "confirm-dialog-confirm" },
+} satisfies ConfirmDialogSlotProps;
 
 export default function RootLayout({
     children,
@@ -33,18 +37,21 @@ export default function RootLayout({
 }>) {
     return (
         <html lang="zh-CN" suppressHydrationWarning>
-            <body
-                className={`${geistSans.variable} ${geistMono.variable} antialiased`}
-            >
-                <ThemeProvider
-                    attribute="class"
-                    defaultTheme="system"
+            <body suppressHydrationWarning>
+                <DisplayPreferencesProvider
+                    attribute="data-theme"
+                    defaultTheme="dark"
+                    enableColorScheme={false}
                     enableSystem
                     disableTransitionOnChange
                 >
-                    <ConfirmDialogProvider>{children}</ConfirmDialogProvider>
-                    <Toaster />
-                </ThemeProvider>
+                    <ConfirmDialogProvider
+                        slotProps={confirmDialogSotSlotProps}
+                    >
+                        {children}
+                        <Toaster />
+                    </ConfirmDialogProvider>
+                </DisplayPreferencesProvider>
             </body>
         </html>
     );

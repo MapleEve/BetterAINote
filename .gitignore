@@ -60,32 +60,35 @@ next-env.d.ts
 # Pi coding agent
 .pi/
 
-# local audit / debug artifacts
 /tmp/
 /remotion/
 
-# local planning / research materials
 /plans/
+/plan/
 /meeting-notes/
+/meetings/
+/meeting-records/
 /specs/
+/spec/
 /roadmaps/
+/roadmap/
 /prd/
 /research/
-
-# 中文命名的本地规划 / 研究资料
+/tasks/
+/task/
 /计划/
 /会议纪要/
+/会议记录/
 /规格/
 /路线图/
 /需求/
 /研究/
-
-# local planning / internal continuity notes
+/任务/
+/功能切片/
 /todo.md
 /docs/.DS_Store
 /.github/.DS_Store
 
-# local sqlite databases and E2E artifacts
 database.db
 database.db-*
 *.db-wal
@@ -113,15 +116,14 @@ yarn-debug.log*
 yarn-error.log*
 pnpm-debug.log*
 
-# local network capture / trace artifacts
 *.har
 *.har.gz
 *.trace.zip
 
-# local-only environment overrides
 .env.*.local
 .env.local
-CLAUDE.local.md
+*.local.md
+LOCAL-*.md
 *.key
 
 # editors / local workspace state

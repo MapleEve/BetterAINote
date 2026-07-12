@@ -1,41 +1,39 @@
 import type * as React from "react";
-
 import { cn } from "@/lib/utils";
 
-function Skeleton({ className, ...props }: React.ComponentProps<"div">) {
+const skeletonVariants = {
+    default: "animate-pulse rounded-md bg-accent",
+    shimmer:
+        "rounded-md bg-[linear-gradient(90deg,var(--skeleton-shimmer-edge)_0%,var(--skeleton-shimmer-peak)_50%,var(--skeleton-shimmer-edge)_100%)] bg-[length:220%_100%] animate-[skeleton-shimmer_1.6s_ease-in-out_infinite]",
+} as const;
+
+const skeletonSizes = {
+    default: "",
+} as const;
+
+export type SkeletonVariant = keyof typeof skeletonVariants;
+export type SkeletonSize = keyof typeof skeletonSizes;
+
+export function Skeleton({
+    className,
+    size = "default",
+    variant = "default",
+    ...props
+}: React.ComponentProps<"div"> & {
+    size?: SkeletonSize;
+    variant?: SkeletonVariant;
+}) {
     return (
         <div
             data-slot="skeleton"
-            className={cn("skeleton-shimmer rounded-xl", className)}
+            data-size={size}
+            data-variant={variant}
+            className={cn(
+                skeletonVariants[variant],
+                skeletonSizes[size],
+                className,
+            )}
             {...props}
         />
     );
 }
-
-function CardSkeleton({
-    className,
-    lines = 3,
-    ...props
-}: React.ComponentProps<"div"> & { lines?: number }) {
-    return (
-        <div
-            className={cn(
-                "glass-surface flex flex-col gap-4 rounded-[1.1rem] p-6",
-                className,
-            )}
-            {...props}
-        >
-            <Skeleton className="h-5 w-1/3" />
-            {Array.from({ length: lines }, (_, index) => `line-${index}`).map(
-                (lineId, index) => (
-                    <Skeleton
-                        key={lineId}
-                        className={cn("h-4", index === lines - 1 && "w-2/3")}
-                    />
-                ),
-            )}
-        </div>
-    );
-}
-
-export { CardSkeleton, Skeleton };

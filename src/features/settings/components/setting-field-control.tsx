@@ -1,17 +1,35 @@
 "use client";
 
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
 import {
-    Select,
-    SelectContent,
-    SelectGroup,
-    SelectItem,
-    SelectTrigger,
-    SelectValue,
-} from "@/components/ui/select";
+    Field,
+    FieldContent,
+    FieldControl,
+    FieldDescription,
+    FieldGroup,
+    FieldLabel,
+} from "@/components/ui/field";
+import { Input } from "@/components/ui/input";
+import { Select } from "@/components/ui/select";
 import { Switch } from "@/components/ui/switch";
 import { Textarea } from "@/components/ui/textarea";
+import { cn } from "@/lib/utils";
+
+const SETTINGS_FIELD_ROW_CLASS =
+    "border-b border-border py-3 last:border-b-0 @md/field-group:gap-4";
+
+const SETTINGS_FIELD_CONTENT_CLASS = "min-w-0 gap-1";
+
+const SETTINGS_FIELD_CONTROL_CLASS =
+    "flex min-w-0 flex-wrap items-center justify-end gap-2 @md/field-group:justify-end";
+
+const SOURCE_PROVIDER_DETAIL_FIELD_CLASS =
+    "border-b border-border py-3 last:border-b-0";
+
+const SOURCE_PROVIDER_DETAIL_FIELD_CONTENT_CLASS = "min-w-0";
+
+const SOURCE_PROVIDER_DETAIL_FIELD_CONTROL_CLASS = "justify-end";
+
+const SOURCE_PROVIDER_DETAIL_INPUT_CLASS = "w-full max-w-[15rem]";
 
 export interface SettingFieldOption {
     value: string;
@@ -31,6 +49,9 @@ export interface SettingFieldDefinition {
     options?: SettingFieldOption[];
     inputType?: "text" | "password" | "number";
     sensitive?: boolean;
+    sensitiveTextareaPasswordFallback?: boolean;
+    readOnly?: boolean;
+    masked?: boolean;
 }
 
 interface SettingFieldControlProps {
@@ -41,8 +62,7 @@ interface SettingFieldControlProps {
         field: SettingFieldDefinition,
         value: string | boolean,
     ) => void;
-    selectContentClassName?: string;
-    variant?: "default" | "settings";
+    variant?: "default" | "settings" | "sourceProviderDetail";
 }
 
 export function SettingFieldControl({
@@ -50,114 +70,133 @@ export function SettingFieldControl({
     field,
     fieldId,
     onValueChange,
-    selectContentClassName,
     variant = "default",
 }: SettingFieldControlProps) {
-    if (field.kind === "switch") {
-        return (
-            <div
-                className={
-                    variant === "settings"
-                        ? "flex items-center justify-between rounded-2xl border bg-muted/35 px-4 py-3"
-                        : "flex items-center justify-between gap-4 rounded-xl border bg-muted/20 px-4 py-3"
-                }
-            >
-                <div className="flex flex-col gap-1">
-                    <Label htmlFor={fieldId} className="text-base">
-                        {field.label}
-                    </Label>
-                    {field.description ? (
-                        <p className="text-sm text-muted-foreground">
-                            {field.description}
-                        </p>
-                    ) : null}
-                </div>
-                <Switch
-                    id={fieldId}
-                    checked={Boolean(field.value)}
-                    onCheckedChange={(checked) => onValueChange(field, checked)}
-                    disabled={disabled}
-                />
-            </div>
-        );
+    const handleTextValueChange = (
+        event:
+            | React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
+            | React.FormEvent<HTMLInputElement>,
+    ) => {
+        onValueChange(field, event.currentTarget.value);
+    };
+
+    const isSettingsVariant = variant === "settings";
+    const isSourceProviderDetailVariant = variant === "sourceProviderDetail";
+    const fieldOrientation = isSettingsVariant ? "responsive" : "horizontal";
+    const fieldClassName = isSourceProviderDetailVariant
+        ? SOURCE_PROVIDER_DETAIL_FIELD_CLASS
+        : isSettingsVariant
+          ? SETTINGS_FIELD_ROW_CLASS
+          : "gap-[18px] py-2";
+    const fieldContentClassName = isSourceProviderDetailVariant
+        ? SOURCE_PROVIDER_DETAIL_FIELD_CONTENT_CLASS
+        : isSettingsVariant
+          ? SETTINGS_FIELD_CONTENT_CLASS
+          : undefined;
+    const fieldControlClassName = isSourceProviderDetailVariant
+        ? SOURCE_PROVIDER_DETAIL_FIELD_CONTROL_CLASS
+        : isSettingsVariant
+          ? SETTINGS_FIELD_CONTROL_CLASS
+          : undefined;
+    const sourceProviderControlClassName = isSourceProviderDetailVariant
+        ? SOURCE_PROVIDER_DETAIL_INPUT_CLASS
+        : undefined;
+    const inputClassName = cn(
+        isSettingsVariant && "min-w-60 max-w-full",
+        sourceProviderControlClassName,
+        field.masked && "tracking-widest",
+        field.className,
+    );
+
+    const renderedField = (
+        <Field
+            data-field-id={field.id}
+            data-disabled={disabled ? "true" : undefined}
+            orientation={fieldOrientation}
+            className={fieldClassName}
+        >
+            <FieldContent className={fieldContentClassName}>
+                <FieldLabel htmlFor={fieldId}>{field.label}</FieldLabel>
+                {field.description ? (
+                    <FieldDescription>{field.description}</FieldDescription>
+                ) : null}
+            </FieldContent>
+            <FieldControl className={fieldControlClassName}>
+                {field.kind === "switch" ? (
+                    <Switch
+                        id={fieldId}
+                        checked={Boolean(field.value)}
+                        onCheckedChange={(checked) =>
+                            onValueChange(field, checked)
+                        }
+                        disabled={disabled}
+                    />
+                ) : field.kind === "select" ? (
+                    <Select
+                        id={fieldId}
+                        aria-label={field.label}
+                        value={String(field.value)}
+                        onValueChange={(value) => onValueChange(field, value)}
+                        disabled={disabled}
+                        className={inputClassName}
+                        options={field.options ?? []}
+                    />
+                ) : field.kind === "textarea" && !field.sensitive ? (
+                    <Textarea
+                        id={fieldId}
+                        rows={field.rows ?? 3}
+                        spellCheck={field.spellCheck}
+                        className={inputClassName}
+                        value={String(field.value)}
+                        onChange={handleTextValueChange}
+                        placeholder={field.placeholder}
+                        disabled={disabled}
+                        readOnly={field.readOnly}
+                    />
+                ) : (
+                    <Input
+                        id={fieldId}
+                        type={
+                            field.sensitive
+                                ? "password"
+                                : (field.inputType ?? "text")
+                        }
+                        value={String(field.value)}
+                        onChange={handleTextValueChange}
+                        onInput={handleTextValueChange}
+                        onPaste={
+                            field.sensitive
+                                ? (event) => {
+                                      const clipboardText =
+                                          event.clipboardData.getData("text");
+
+                                      if (!clipboardText) {
+                                          return;
+                                      }
+
+                                      event.preventDefault();
+                                      onValueChange(field, clipboardText);
+                                  }
+                                : undefined
+                        }
+                        placeholder={field.placeholder}
+                        disabled={disabled}
+                        readOnly={field.readOnly}
+                        spellCheck={field.spellCheck}
+                        className={inputClassName}
+                    />
+                )}
+            </FieldControl>
+        </Field>
+    );
+
+    if (isSourceProviderDetailVariant) {
+        return renderedField;
     }
 
     return (
-        <div className="flex flex-col gap-2">
-            <Label htmlFor={fieldId}>{field.label}</Label>
-            {field.description ? (
-                <p className="text-xs text-muted-foreground">
-                    {field.description}
-                </p>
-            ) : null}
-            {field.kind === "select" ? (
-                <Select
-                    value={String(field.value)}
-                    onValueChange={(value) => onValueChange(field, value)}
-                    disabled={disabled}
-                >
-                    <SelectTrigger id={fieldId}>
-                        <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent className={selectContentClassName}>
-                        <SelectGroup>
-                            {(field.options ?? []).map((option) => (
-                                <SelectItem
-                                    key={option.value}
-                                    value={option.value}
-                                >
-                                    {option.label}
-                                </SelectItem>
-                            ))}
-                        </SelectGroup>
-                    </SelectContent>
-                </Select>
-            ) : field.kind === "textarea" && !field.sensitive ? (
-                <Textarea
-                    id={fieldId}
-                    rows={field.rows ?? 3}
-                    spellCheck={field.spellCheck}
-                    className={field.className}
-                    value={String(field.value)}
-                    onChange={(event) =>
-                        onValueChange(field, event.target.value)
-                    }
-                    placeholder={field.placeholder}
-                    disabled={disabled}
-                />
-            ) : (
-                <Input
-                    id={fieldId}
-                    type={
-                        field.sensitive
-                            ? "password"
-                            : (field.inputType ?? "text")
-                    }
-                    value={String(field.value)}
-                    onChange={(event) =>
-                        onValueChange(field, event.target.value)
-                    }
-                    onPaste={
-                        field.sensitive
-                            ? (event) => {
-                                  const rawText =
-                                      event.clipboardData.getData("text");
-
-                                  if (!rawText) {
-                                      return;
-                                  }
-
-                                  event.preventDefault();
-                                  onValueChange(field, rawText);
-                              }
-                            : undefined
-                    }
-                    placeholder={field.placeholder}
-                    disabled={disabled}
-                    spellCheck={field.spellCheck}
-                    className={field.className}
-                />
-            )}
-        </div>
+        <FieldGroup className="gap-0" data-field-id={field.id}>
+            {renderedField}
+        </FieldGroup>
     );
 }

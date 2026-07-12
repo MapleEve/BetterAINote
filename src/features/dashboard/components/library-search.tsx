@@ -1,327 +1,786 @@
 "use client";
 
-import { Loader2, Search, X } from "lucide-react";
-import { useEffect, useMemo, useRef, useState } from "react";
+import { Search, Tags, X } from "lucide-react";
+import {
+    type KeyboardEvent as ReactKeyboardEvent,
+    useEffect,
+    useMemo,
+    useRef,
+    useState,
+} from "react";
 import { useLanguage } from "@/components/language-provider";
+import { Alert, AlertTitle } from "@/components/ui/alert";
+import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { cn } from "@/lib/utils";
+import { Card, CardContent } from "@/components/ui/card";
+import {
+    InputGroup,
+    InputGroupAddon,
+    InputGroupButton,
+    InputGroupInput,
+} from "@/components/ui/input-group";
+import { Skeleton } from "@/components/ui/skeleton";
+import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
 
-type SearchEntityType = "recording" | "transcript" | "speaker" | "tag";
-
+type SearchResultType = "recording" | "transcript" | "speaker" | "tag";
+type SearchScope = "all" | SearchResultType;
 type SearchResult = {
-    entityType: SearchEntityType;
+    entityType: SearchResultType;
     entityId: string;
     recordingId: string | null;
     title: string | null;
     body: string;
     speaker: string | null;
-    tags: string[];
     source: string | null;
-    startMs: number | null;
-    endMs: number | null;
+    tags?: string[];
+    startMs?: number | null;
+    endMs?: number | null;
+};
+type SearchIndexingProgress = {
+    active: boolean;
+    pendingJobs: number;
+    indexingJobs: number;
+    completedJobs: number;
+    totalJobs: number;
+};
+type Translator = (
+    key: string,
+    replacements?: Record<string, string | number>,
+) => string;
+
+export type LibrarySearchFilter = {
+    type: "speaker" | "tag";
+    label: string;
 };
 
-interface LibrarySearchProps {
+type LibrarySearchProps = {
+    open: boolean;
+    query: string;
+    onApplyFilter: (filter: LibrarySearchFilter) => void;
+    onOpenChange: (open: boolean) => void;
     onOpenRecording: (recordingId: string) => void;
-}
+    onQueryChange: (query: string) => void;
+};
 
-const SEARCH_SCOPES: Array<{
-    value: "all" | SearchEntityType;
-    labelZh: string;
-    labelEn: string;
-}> = [
-    { value: "all", labelZh: "全部", labelEn: "All" },
-    { value: "recording", labelZh: "录音", labelEn: "Recordings" },
-    { value: "transcript", labelZh: "逐字稿", labelEn: "Transcripts" },
-    { value: "speaker", labelZh: "说话人", labelEn: "Speakers" },
-    { value: "tag", labelZh: "标签", labelEn: "Tags" },
+const SEARCH_SCOPES: { value: SearchScope; label: string }[] = [
+    { value: "all", label: "全部" },
+    { value: "recording", label: "录音" },
+    { value: "transcript", label: "逐字稿" },
+    { value: "speaker", label: "说话人" },
+    { value: "tag", label: "标签" },
+];
+const SEARCH_RESULT_TYPES: SearchResultType[] = [
+    "recording",
+    "transcript",
+    "speaker",
+    "tag",
 ];
 
-function formatTime(ms: number | null) {
-    if (ms === null || !Number.isFinite(ms)) {
-        return null;
+const librarySearchClassNames = {
+    anchor: "relative inline-flex size-[32px] items-center justify-center p-0",
+    trigger: "relative",
+    panel: "absolute right-0 top-[calc(100%+8px)] z-50 flex max-h-[540px] w-[460px] max-w-[calc(100vw-32px)] flex-col gap-0 min-[641px]:max-[860px]:fixed min-[641px]:max-[860px]:left-3 min-[641px]:max-[860px]:right-auto min-[641px]:max-[860px]:top-[72px] min-[641px]:max-[860px]:box-border min-[641px]:max-[860px]:max-h-[calc(100dvh-96px)] min-[641px]:max-[860px]:w-[min(460px,calc(100vw-24px))] min-[641px]:max-[860px]:max-w-[calc(100vw-24px)] max-[640px]:fixed max-[640px]:left-3 max-[640px]:right-3 max-[640px]:top-[72px] max-[640px]:box-border max-[640px]:max-h-[calc(100dvh-96px)] max-[640px]:w-[calc(100vw-24px)] max-[640px]:min-w-0 max-[640px]:max-w-none",
+    inputRow:
+        "h-[49px] min-h-[49px] gap-[8px] rounded-none border-x-0 border-t-0 border-b border-border px-[12px] py-[8px]",
+    inputAddon:
+        "p-0 text-muted-foreground group-data-[disabled=true]/input-group:opacity-100 has-[>button]:m-0",
+    input: "h-8 min-w-0 px-1 py-0 text-sm md:text-sm",
+    clear: "size-6",
+    scope: "min-h-[39px] w-full flex-wrap gap-[6px] rounded-none border-b border-border bg-muted px-[12px] py-[8px]",
+    scopeItem:
+        "h-6 rounded-full px-2.5 text-xs disabled:pointer-events-none disabled:opacity-50",
+    error: "flex w-full flex-col items-center gap-2 rounded-none px-4 py-4 text-center text-sm text-destructive *:data-[slot=alert-description]:text-destructive [&>svg]:text-current",
+    errorTitle:
+        "line-clamp-none min-h-0 text-center text-sm font-medium tracking-normal",
+    retry: "h-6 px-2 text-xs",
+    scroll: "min-h-0 flex-1 overflow-y-auto px-[6px] pt-[6px] pb-[8px]",
+    state: "block text-muted-foreground",
+    indexing:
+        "flex items-center gap-[10px] px-[16px] py-[14px] text-[length:var(--text-body-sm)] text-muted-foreground",
+    stateSkeleton:
+        "relative inline-flex h-1 w-auto min-w-0 flex-1 overflow-hidden rounded-full bg-primary/10 animate-none after:absolute after:inset-y-0 after:left-0 after:w-[36%] after:rounded-[inherit] after:bg-primary/50 after:animate-[sbn-sweep_1.4s_linear_infinite] after:content-['']",
+    stateCopy:
+        "px-4 py-5 text-center text-sm text-muted-foreground [&_span]:font-semibold [&_span]:text-foreground",
+    results: "flex flex-col",
+    resultGroup:
+        "flex flex-col gap-[2px] px-[4px] py-[6px] [&+&]:mt-[4px] [&+&]:border-t [&+&]:border-border [&+&]:pt-[8px]",
+    groupLabel:
+        "px-1.5 py-1 font-mono text-xs font-semibold uppercase tracking-wide text-muted-foreground",
+    result: "h-auto w-full flex-col items-start justify-start gap-0.5 px-2.5 py-2 text-left whitespace-normal",
+    resultTitle: "text-sm font-semibold text-foreground",
+    resultMeta:
+        "font-mono text-xs font-medium leading-snug text-muted-foreground",
+    highlight: "rounded-[3px] bg-primary/10 px-[2px] text-primary",
+    tag: "h-6 w-fit justify-normal gap-1 overflow-visible whitespace-normal px-2 py-0",
+} as const;
+
+function formatLibrarySearchTimestamp(valueMs: number | null | undefined) {
+    if (valueMs == null || !Number.isFinite(valueMs)) {
+        return "--";
     }
 
-    const totalSeconds = Math.max(0, Math.floor(ms / 1000));
-    const minutes = Math.floor(totalSeconds / 60);
+    const totalSeconds = Math.max(0, Math.floor(valueMs / 1000));
+    const hours = Math.floor(totalSeconds / 3600);
+    const minutes = Math.floor((totalSeconds % 3600) / 60);
     const seconds = totalSeconds % 60;
-    return `${minutes}:${seconds.toString().padStart(2, "0")}`;
-}
-
-function getTypeLabel(type: SearchEntityType, isZh: boolean) {
-    switch (type) {
-        case "recording":
-            return isZh ? "录音" : "Recording";
-        case "transcript":
-            return isZh ? "逐字稿" : "Transcript";
-        case "speaker":
-            return isZh ? "说话人" : "Speaker";
-        case "tag":
-            return isZh ? "标签" : "Tag";
+    if (hours > 0) {
+        return `${hours}:${minutes.toString().padStart(2, "0")}:${seconds
+            .toString()
+            .padStart(2, "0")}`;
     }
+    return `${minutes.toString().padStart(2, "0")}:${seconds
+        .toString()
+        .padStart(2, "0")}`;
 }
 
-export function LibrarySearch({ onOpenRecording }: LibrarySearchProps) {
-    const { language } = useLanguage();
-    const isZh = language === "zh-CN";
-    const inputRef = useRef<HTMLInputElement>(null);
-    const [isOpen, setIsOpen] = useState(false);
-    const [query, setQuery] = useState("");
-    const [scope, setScope] = useState<"all" | SearchEntityType>("all");
-    const [results, setResults] = useState<SearchResult[]>([]);
-    const [loading, setLoading] = useState(false);
-    const [error, setError] = useState<string | null>(null);
+function LibrarySearchTagIcon() {
+    return <Tags data-icon="inline-start" aria-hidden="true" />;
+}
 
-    const trimmedQuery = query.trim();
-    const placeholder = isZh
-        ? "搜索录音、逐字稿、说话人、标签"
-        : "Search recordings, transcripts, speakers, tags";
+function searchResultAction(result: SearchResult) {
+    if (result.entityType === "tag" || result.entityType === "speaker") {
+        return "filter";
+    }
+    return result.recordingId ? "open" : "disabled";
+}
 
-    useEffect(() => {
-        if (isOpen) {
-            inputRef.current?.focus();
-        }
-    }, [isOpen]);
+function searchResultFilterLabel(result: SearchResult) {
+    if (result.entityType === "speaker") {
+        return result.speaker || result.title || result.body;
+    }
+    return result.title || result.tags?.[0] || result.body;
+}
 
-    const resultCountLabel = useMemo(() => {
-        if (!trimmedQuery) {
-            return isZh ? "输入关键词开始搜索" : "Type to search";
-        }
-
-        if (loading) {
-            return isZh ? "搜索中" : "Searching";
-        }
-
-        return isZh
-            ? `${results.length} 个结果`
-            : `${results.length} result${results.length === 1 ? "" : "s"}`;
-    }, [isZh, loading, results.length, trimmedQuery]);
-
-    useEffect(() => {
-        if (!trimmedQuery) {
-            setResults([]);
-            setError(null);
-            setLoading(false);
-            return;
-        }
-
-        setResults([]);
-        setError(null);
-        setLoading(true);
-
-        const controller = new AbortController();
-        const timeoutId = setTimeout(() => {
-            const params = new URLSearchParams({
-                q: trimmedQuery,
-                limit: "12",
-            });
-            if (scope !== "all") {
-                params.set("type", scope);
-            }
-
-            fetch(`/api/search?${params.toString()}`, {
-                cache: "no-store",
-                signal: controller.signal,
-            })
-                .then(async (response) => {
-                    const data = await response.json();
-                    if (!response.ok) {
-                        throw new Error(data.error || "Search failed");
-                    }
-                    setResults(Array.isArray(data.results) ? data.results : []);
-                })
-                .catch((searchError) => {
-                    if (controller.signal.aborted) {
-                        return;
-                    }
-                    setResults([]);
-                    setError(
-                        searchError instanceof Error
-                            ? searchError.message
-                            : "Search failed",
-                    );
-                })
-                .finally(() => {
-                    if (!controller.signal.aborted) {
-                        setLoading(false);
-                    }
-                });
-        }, 250);
-
-        return () => {
-            clearTimeout(timeoutId);
-            controller.abort();
-        };
-    }, [scope, trimmedQuery]);
+function searchResultTitle(result: SearchResult, t: Translator) {
+    if (result.entityType === "transcript") {
+        return (
+            result.body || result.title || t("librarySearch.types.transcript")
+        );
+    }
 
     return (
-        <search
-            aria-label={isZh ? "资料搜索" : "Library search"}
-            className="relative shrink-0"
-            data-testid="library-search"
+        result.title ||
+        result.body ||
+        result.speaker ||
+        result.tags?.[0] ||
+        t("librarySearch.untitledResult")
+    );
+}
+
+function searchResultMeta(result: SearchResult, t: Translator) {
+    if (result.entityType === "transcript") {
+        const timestamp = formatLibrarySearchTimestamp(result.startMs);
+        return `${result.title || t("librarySearch.types.transcript")} · ${timestamp}`;
+    }
+    if (result.entityType === "tag") {
+        return result.body || result.tags?.[0] || t("librarySearch.types.tag");
+    }
+    if (result.entityType === "speaker") {
+        return (
+            result.body || result.speaker || t("librarySearch.types.speaker")
+        );
+    }
+    return result.source || result.body || t("librarySearch.types.recording");
+}
+
+function highlightSearchText(value: string, query: string) {
+    const needle = query.trim();
+    if (!needle) return value;
+    const lowerValue = value.toLocaleLowerCase();
+    const lowerNeedle = needle.toLocaleLowerCase();
+    const index = lowerValue.indexOf(lowerNeedle);
+    if (index < 0) return value;
+
+    return (
+        <>
+            {value.slice(0, index)}
+            <mark
+                className={librarySearchClassNames.highlight}
+                data-sot-part="library-search-highlight"
+            >
+                {value.slice(index, index + needle.length)}
+            </mark>
+            {value.slice(index + needle.length)}
+        </>
+    );
+}
+
+export function LibrarySearch({
+    open,
+    query,
+    onApplyFilter,
+    onOpenChange,
+    onOpenRecording,
+    onQueryChange,
+}: LibrarySearchProps) {
+    const { language, t } = useLanguage();
+    const [searchScope, setSearchScope] = useState<SearchScope>("all");
+    const [searchLoading, setSearchLoading] = useState(false);
+    const [searchError, setSearchError] = useState("");
+    const [searchResults, setSearchResults] = useState<SearchResult[]>([]);
+    const [searchIndexing, setSearchIndexing] =
+        useState<SearchIndexingProgress | null>(null);
+    const [activeSearchIndex, setActiveSearchIndex] = useState(0);
+    const [searchRetry, setSearchRetry] = useState(0);
+    const searchTriggerRef = useRef<HTMLButtonElement | null>(null);
+    const searchOverlayRef = useRef<HTMLDivElement | null>(null);
+    const searchInputRef = useRef<HTMLInputElement | null>(null);
+
+    const searchPanelState = searchIndexing?.active
+        ? "indexing"
+        : searchError
+          ? "error"
+          : searchLoading
+            ? "loading"
+            : query.trim()
+              ? searchResults.length
+                  ? "results"
+                  : "no-results"
+              : "no-query";
+    const groupedSearchResults = useMemo(() => {
+        let index = 0;
+        return SEARCH_RESULT_TYPES.map((type) => {
+            const results = searchResults
+                .filter((result) => result.entityType === type)
+                .map((result) => ({ index: index++, result }));
+
+            return { type, results };
+        }).filter((group) => group.results.length > 0);
+    }, [searchResults]);
+    const flatSearchResults = groupedSearchResults.flatMap(
+        (group) => group.results,
+    );
+
+    useEffect(() => {
+        if (!open || query.trim().length === 0) {
+            setSearchResults([]);
+            setSearchError("");
+            setSearchIndexing(null);
+            return;
+        }
+        const timer = window.setTimeout(() => {
+            setSearchLoading(true);
+            setSearchError("");
+            setSearchIndexing(null);
+            const params = new URLSearchParams({
+                q: query,
+                limit: "8",
+            });
+            if (searchRetry > 0) {
+                params.set("_retry", String(searchRetry));
+            }
+            if (searchScope !== "all") {
+                params.set("type", searchScope);
+            }
+            fetch(`/api/search?${params.toString()}`)
+                .then((response) => {
+                    if (!response.ok) throw new Error("Search failed");
+                    return response.json();
+                })
+                .then(
+                    (data: {
+                        results?: SearchResult[];
+                        indexing?: SearchIndexingProgress;
+                    }) => {
+                        if (data.indexing?.active) {
+                            setSearchIndexing(data.indexing);
+                            setSearchResults([]);
+                            return;
+                        }
+                        setSearchIndexing(null);
+                        setSearchResults(data.results ?? []);
+                    },
+                )
+                .catch(() => {
+                    setSearchResults([]);
+                    setSearchIndexing(null);
+                    setSearchError("搜索暂时不可用");
+                })
+                .finally(() => setSearchLoading(false));
+        }, 180);
+        return () => window.clearTimeout(timer);
+    }, [open, query, searchRetry, searchScope]);
+
+    useEffect(() => {
+        if (!open) return;
+        window.setTimeout(() => {
+            searchInputRef.current?.focus({ preventScroll: true });
+        }, 0);
+    }, [open]);
+
+    useEffect(() => {
+        if (!open || flatSearchResults.length === 0) return;
+        window.setTimeout(() => {
+            document
+                .querySelector<HTMLElement>(
+                    `[data-sot-control="library-search-result"][data-sot-result-index="${activeSearchIndex}"]`,
+                )
+                ?.scrollIntoView({ block: "nearest" });
+        }, 0);
+    }, [activeSearchIndex, flatSearchResults.length, open]);
+
+    useEffect(() => {
+        if (!open) return;
+
+        const handleKeyDown = (event: KeyboardEvent) => {
+            if (event.key !== "Escape") return;
+            event.preventDefault();
+            onOpenChange(false);
+            window.setTimeout(() => {
+                searchTriggerRef.current?.focus({ preventScroll: true });
+            }, 0);
+        };
+
+        const handlePointerDown = (event: PointerEvent) => {
+            const target = event.target;
+            if (!(target instanceof Node)) return;
+            if (!searchOverlayRef.current?.contains(target)) {
+                onOpenChange(false);
+            }
+        };
+
+        document.addEventListener("keydown", handleKeyDown);
+        document.addEventListener("pointerdown", handlePointerDown);
+        return () => {
+            document.removeEventListener("keydown", handleKeyDown);
+            document.removeEventListener("pointerdown", handlePointerDown);
+        };
+    }, [onOpenChange, open]);
+
+    function applyLibrarySearchResult(result: SearchResult) {
+        const action = searchResultAction(result);
+        if (action === "filter") {
+            const label = searchResultFilterLabel(result);
+            onApplyFilter({
+                label,
+                type: result.entityType === "speaker" ? "speaker" : "tag",
+            });
+            onQueryChange("");
+            setSearchResults([]);
+            onOpenChange(false);
+            return;
+        }
+        if (result.recordingId) {
+            onOpenRecording(result.recordingId);
+            onQueryChange("");
+            setSearchResults([]);
+            onOpenChange(false);
+        }
+    }
+
+    function handleLibrarySearchKeyDown(event: ReactKeyboardEvent) {
+        if (event.key === "Escape") {
+            event.preventDefault();
+            onOpenChange(false);
+            window.setTimeout(() => {
+                searchTriggerRef.current?.focus({ preventScroll: true });
+            }, 0);
+            return;
+        }
+        if (flatSearchResults.length === 0) return;
+        if (event.key === "ArrowDown") {
+            event.preventDefault();
+            setActiveSearchIndex((value) =>
+                Math.min(value + 1, flatSearchResults.length - 1),
+            );
+            return;
+        }
+        if (event.key === "ArrowUp") {
+            event.preventDefault();
+            setActiveSearchIndex((value) => Math.max(value - 1, 0));
+            return;
+        }
+        if (event.key === "Enter") {
+            event.preventDefault();
+            const activeResult = flatSearchResults[activeSearchIndex]?.result;
+            if (activeResult) applyLibrarySearchResult(activeResult);
+        }
+    }
+
+    return (
+        <div
+            className={librarySearchClassNames.anchor}
+            data-sot-part="library-search-anchor"
+            ref={searchOverlayRef}
         >
             <Button
+                ref={searchTriggerRef}
+                variant="ghost"
+                size="icon-sm"
+                className={librarySearchClassNames.trigger}
                 type="button"
-                variant="outline"
-                size="icon"
-                aria-expanded={isOpen}
-                aria-label={isZh ? "打开搜索" : "Open search"}
-                className="h-9 w-9"
-                data-testid="library-search-trigger"
-                onClick={() => setIsOpen((previous) => !previous)}
+                aria-label={t("librarySearch.openSearch")}
+                aria-expanded={open}
+                data-sot-control="dashboard-search"
+                data-sot-state={open ? "open" : "idle"}
+                onClick={() => onOpenChange(!open)}
             >
-                <Search className="h-4 w-4" />
+                <Search data-icon="inline-start" />
             </Button>
-
-            {isOpen ? (
-                <section className="absolute top-11 right-0 z-50 w-[min(calc(100vw-2rem),42rem)] rounded-lg border border-border/70 bg-card/95 p-3 shadow-lg backdrop-blur">
-                    <div className="flex flex-col gap-3 lg:flex-row lg:items-center">
-                        <div className="relative min-w-0 flex-1">
-                            <Search className="-translate-y-1/2 pointer-events-none absolute top-1/2 left-3 h-4 w-4 text-muted-foreground" />
-                            <Input
-                                ref={inputRef}
-                                value={query}
-                                onChange={(event) =>
-                                    setQuery(event.target.value)
+            {open ? (
+                <Card
+                    hasNoPadding
+                    variant="default"
+                    className={librarySearchClassNames.panel}
+                    data-open="true"
+                    data-state={searchPanelState}
+                    data-sot-panel="library-search"
+                    data-sot-state={searchPanelState}
+                    data-sot-result-count={String(flatSearchResults.length)}
+                    role="dialog"
+                    aria-label={t("librarySearch.dialogLabel")}
+                    onKeyDown={handleLibrarySearchKeyDown}
+                >
+                    <InputGroup
+                        variant="default"
+                        className={librarySearchClassNames.inputRow}
+                        data-sot-part="library-search-input-row"
+                        data-state={searchPanelState}
+                        data-disabled={String(searchPanelState === "indexing")}
+                    >
+                        <InputGroupAddon
+                            align="inline-start"
+                            className={librarySearchClassNames.inputAddon}
+                        >
+                            <Search data-icon="inline-start" />
+                        </InputGroupAddon>
+                        <InputGroupInput
+                            variant="default"
+                            className={librarySearchClassNames.input}
+                            ref={searchInputRef}
+                            value={query}
+                            aria-disabled={searchPanelState === "indexing"}
+                            aria-label={t("librarySearch.placeholder")}
+                            autoComplete="off"
+                            onChange={(event) => {
+                                onQueryChange(event.target.value);
+                                setActiveSearchIndex(0);
+                            }}
+                            placeholder={t(
+                                searchPanelState === "no-query"
+                                    ? "librarySearch.placeholder"
+                                    : "librarySearch.shortPlaceholder",
+                            )}
+                            readOnly={searchPanelState === "indexing"}
+                            data-sot-control="library-search-input"
+                            data-sot-state={searchPanelState}
+                        />
+                        {query.trim() &&
+                        searchPanelState !== "indexing" &&
+                        searchPanelState !== "error" ? (
+                            <InputGroupButton
+                                variant="ghost"
+                                size="icon-xs"
+                                className={librarySearchClassNames.clear}
+                                aria-label={t("librarySearch.clearSearch")}
+                                data-sot-control="library-search-clear"
+                                data-sot-state="clear"
+                                onClick={() => {
+                                    onQueryChange("");
+                                    setSearchResults([]);
+                                    setSearchError("");
+                                    setSearchIndexing(null);
+                                    window.setTimeout(() => {
+                                        searchInputRef.current?.focus({
+                                            preventScroll: true,
+                                        });
+                                    }, 0);
+                                }}
+                            >
+                                <X data-icon="inline-start" />
+                            </InputGroupButton>
+                        ) : null}
+                    </InputGroup>
+                    <ToggleGroup
+                        type="single"
+                        layout="default"
+                        variant="outline"
+                        size="sm"
+                        className={librarySearchClassNames.scope}
+                        value={searchScope}
+                        spacing={1.6}
+                        aria-label={t("librarySearch.scopeLegend")}
+                        data-sot-canonical="web-index-runtime"
+                        data-sot-part="library-search-scope"
+                        data-sot-scope-count={String(SEARCH_SCOPES.length)}
+                        onValueChange={(value) => {
+                            if (!value) return;
+                            setSearchScope(value as SearchScope);
+                            setActiveSearchIndex(0);
+                            window.setTimeout(() => {
+                                searchInputRef.current?.focus({
+                                    preventScroll: true,
+                                });
+                            }, 0);
+                        }}
+                    >
+                        {SEARCH_SCOPES.map((item) => (
+                            <ToggleGroupItem
+                                key={item.value}
+                                value={item.value}
+                                aria-pressed={item.value === searchScope}
+                                data-sot-control="library-search-scope"
+                                data-sot-scope={item.value}
+                                data-sot-state={
+                                    item.value === searchScope
+                                        ? "selected"
+                                        : "idle"
                                 }
-                                placeholder={placeholder}
-                                className="h-10 pr-10 pl-9"
-                                aria-label={placeholder}
-                            />
-                            {query ? (
-                                <Button
-                                    type="button"
-                                    variant="ghost"
-                                    size="icon"
-                                    className="-translate-y-1/2 absolute top-1/2 right-1 h-8 w-8"
-                                    aria-label={
-                                        isZh ? "清空搜索" : "Clear search"
+                                data-sot-result-mode={item.value}
+                                data-search-scope={item.value}
+                                className={librarySearchClassNames.scopeItem}
+                                disabled={searchPanelState === "indexing"}
+                            >
+                                {item.value === "all"
+                                    ? t("librarySearch.scopes.all")
+                                    : t(`librarySearch.types.${item.value}`)}
+                            </ToggleGroupItem>
+                        ))}
+                    </ToggleGroup>
+                    <CardContent
+                        className={librarySearchClassNames.scroll}
+                        data-sot-region="library-search-scroll"
+                    >
+                        {searchPanelState === "indexing" ? (
+                            <div
+                                className={librarySearchClassNames.indexing}
+                                data-sot-part="library-search-indexing"
+                                data-sot-state="indexing"
+                            >
+                                <Skeleton
+                                    className={
+                                        librarySearchClassNames.stateSkeleton
                                     }
-                                    onClick={() => setQuery("")}
-                                >
-                                    <X className="h-4 w-4" />
-                                </Button>
-                            ) : null}
-                        </div>
-
-                        <div className="flex shrink-0 flex-wrap gap-1 rounded-md border border-border/70 bg-background/40 p-1">
-                            {SEARCH_SCOPES.map((item) => (
-                                <Button
-                                    key={item.value}
-                                    type="button"
-                                    variant={
-                                        scope === item.value
-                                            ? "secondary"
-                                            : "ghost"
+                                    data-sot-part="library-search-state-skeleton"
+                                />
+                                <div
+                                    className={
+                                        librarySearchClassNames.stateCopy
                                     }
-                                    size="sm"
-                                    className="h-8 px-3 text-xs"
-                                    onClick={() => setScope(item.value)}
+                                    data-sot-part="library-search-state-copy"
                                 >
-                                    {isZh ? item.labelZh : item.labelEn}
-                                </Button>
-                            ))}
-                        </div>
-                    </div>
-
-                    {trimmedQuery ? (
-                        <div className="mt-3 rounded-md border border-border/60 bg-background/45">
-                            <div className="flex items-center justify-between border-b px-3 py-2 text-xs text-muted-foreground">
-                                <span>{resultCountLabel}</span>
-                                {loading ? (
-                                    <span className="inline-flex items-center gap-1">
-                                        <Loader2 className="h-3 w-3 animate-spin" />
-                                        {isZh ? "搜索中" : "Searching"}
-                                    </span>
-                                ) : null}
-                            </div>
-                            {error ? (
-                                <p className="px-3 py-3 text-sm text-destructive">
-                                    {isZh
-                                        ? "搜索失败，请稍后重试。"
-                                        : "Search failed. Try again later."}
-                                </p>
-                            ) : results.length > 0 ? (
-                                <div className="max-h-72 overflow-y-auto">
-                                    {results.map((result) => {
-                                        const start = formatTime(
-                                            result.startMs,
-                                        );
-                                        const end = formatTime(result.endMs);
-                                        const timeRange =
-                                            start && end
-                                                ? `${start} - ${end}`
-                                                : null;
-                                        const targetRecordingId =
-                                            result.recordingId ??
-                                            (result.entityType === "recording"
-                                                ? result.entityId
-                                                : null);
-
-                                        return (
-                                            <button
-                                                key={`${result.entityType}-${result.entityId}-${result.startMs ?? 0}`}
-                                                type="button"
-                                                className={cn(
-                                                    "block w-full border-b px-3 py-2 text-left transition-colors last:border-b-0",
-                                                    targetRecordingId
-                                                        ? "hover:bg-accent/45"
-                                                        : "cursor-default",
-                                                )}
-                                                onClick={() => {
-                                                    if (targetRecordingId) {
-                                                        onOpenRecording(
-                                                            targetRecordingId,
-                                                        );
-                                                    }
-                                                }}
-                                            >
-                                                <div className="mb-1 flex items-center gap-2 text-xs text-muted-foreground">
-                                                    <span className="rounded border border-border/70 px-1.5 py-0.5">
-                                                        {getTypeLabel(
-                                                            result.entityType,
-                                                            isZh,
-                                                        )}
-                                                    </span>
-                                                    {timeRange ? (
-                                                        <span>{timeRange}</span>
-                                                    ) : null}
-                                                    {result.speaker ? (
-                                                        <span>
-                                                            {result.speaker}
-                                                        </span>
-                                                    ) : null}
-                                                    {result.source ? (
-                                                        <span>
-                                                            {result.source}
-                                                        </span>
-                                                    ) : null}
-                                                </div>
-                                                <p className="truncate text-sm font-medium">
-                                                    {result.title ||
-                                                        (isZh
-                                                            ? "未命名结果"
-                                                            : "Untitled result")}
-                                                </p>
-                                                <p className="mt-1 line-clamp-2 text-xs leading-5 text-muted-foreground">
-                                                    {result.body}
-                                                </p>
-                                            </button>
-                                        );
+                                    {t("librarySearch.indexing", {
+                                        completed:
+                                            searchIndexing?.completedJobs ?? 0,
+                                        total: searchIndexing?.totalJobs ?? 0,
                                     })}
                                 </div>
-                            ) : !loading ? (
-                                <p className="px-3 py-3 text-sm text-muted-foreground">
-                                    {isZh
-                                        ? "没有匹配结果。"
-                                        : "No matching results."}
-                                </p>
-                            ) : null}
-                        </div>
-                    ) : null}
-                </section>
+                            </div>
+                        ) : searchLoading ? (
+                            <div
+                                className={librarySearchClassNames.state}
+                                data-sot-part="library-search-loading"
+                                data-sot-state="loading"
+                            >
+                                <div
+                                    className={
+                                        librarySearchClassNames.stateCopy
+                                    }
+                                    data-sot-part="library-search-state-copy"
+                                >
+                                    {t("librarySearch.loading")}
+                                </div>
+                            </div>
+                        ) : searchError ? (
+                            <Alert
+                                variant="default"
+                                density="default"
+                                layout="default"
+                                className={librarySearchClassNames.error}
+                                data-sot-part="library-search-error"
+                                data-sot-state="error"
+                            >
+                                <AlertTitle
+                                    density="default"
+                                    className={
+                                        librarySearchClassNames.errorTitle
+                                    }
+                                    data-sot-part="library-search-state-title"
+                                >
+                                    {t("librarySearch.error")}
+                                </AlertTitle>
+                                <Button
+                                    variant="outline"
+                                    size="xs"
+                                    className={librarySearchClassNames.retry}
+                                    type="button"
+                                    data-sot-control="library-search-retry"
+                                    onClick={() => {
+                                        setSearchRetry((value) => value + 1);
+                                        window.setTimeout(() => {
+                                            searchInputRef.current?.focus({
+                                                preventScroll: true,
+                                            });
+                                        }, 0);
+                                    }}
+                                >
+                                    {t("librarySearch.retry")}
+                                </Button>
+                            </Alert>
+                        ) : flatSearchResults.length > 0 ? (
+                            <div
+                                className={librarySearchClassNames.results}
+                                data-sot-list="library-search-results"
+                                data-sot-state="results"
+                            >
+                                {groupedSearchResults.map((group) => (
+                                    <div
+                                        className={
+                                            librarySearchClassNames.resultGroup
+                                        }
+                                        key={group.type}
+                                        data-sot-group="library-search-results"
+                                        data-sot-result-type={group.type}
+                                    >
+                                        <div
+                                            className={
+                                                librarySearchClassNames.groupLabel
+                                            }
+                                            data-sot-part="library-search-group-label"
+                                        >
+                                            {t(
+                                                `librarySearch.types.${group.type}`,
+                                            )}
+                                        </div>
+                                        {group.results.map(
+                                            ({ index, result }) => {
+                                                const title = searchResultTitle(
+                                                    result,
+                                                    t,
+                                                );
+                                                const meta = searchResultMeta(
+                                                    result,
+                                                    t,
+                                                );
+                                                const action =
+                                                    searchResultAction(result);
+                                                return (
+                                                    <Button
+                                                        variant="ghost"
+                                                        size="default"
+                                                        className={
+                                                            librarySearchClassNames.result
+                                                        }
+                                                        type="button"
+                                                        key={`${result.entityType}:${result.entityId}`}
+                                                        data-active={
+                                                            index ===
+                                                            activeSearchIndex
+                                                                ? "true"
+                                                                : "false"
+                                                        }
+                                                        data-sot-result-mode={
+                                                            action
+                                                        }
+                                                        data-result-type={
+                                                            result.entityType
+                                                        }
+                                                        data-sot-control="library-search-result"
+                                                        data-sot-result-index={String(
+                                                            index,
+                                                        )}
+                                                        data-sot-result-type={
+                                                            result.entityType
+                                                        }
+                                                        data-sot-state={
+                                                            index ===
+                                                            activeSearchIndex
+                                                                ? "active"
+                                                                : "idle"
+                                                        }
+                                                        onClick={() =>
+                                                            applyLibrarySearchResult(
+                                                                result,
+                                                            )
+                                                        }
+                                                    >
+                                                        {result.entityType ===
+                                                        "tag" ? (
+                                                            <Badge
+                                                                variant="secondary"
+                                                                className={
+                                                                    librarySearchClassNames.tag
+                                                                }
+                                                                data-sot-part="library-search-tag-chip"
+                                                            >
+                                                                <LibrarySearchTagIcon />
+                                                                {highlightSearchText(
+                                                                    title,
+                                                                    query,
+                                                                )}
+                                                            </Badge>
+                                                        ) : (
+                                                            <span
+                                                                className={
+                                                                    librarySearchClassNames.resultTitle
+                                                                }
+                                                                data-sot-part="library-search-result-title"
+                                                            >
+                                                                {highlightSearchText(
+                                                                    title,
+                                                                    query,
+                                                                )}
+                                                            </span>
+                                                        )}
+                                                        <span
+                                                            className={
+                                                                librarySearchClassNames.resultMeta
+                                                            }
+                                                            data-sot-part="library-search-result-meta"
+                                                        >
+                                                            {meta}
+                                                        </span>
+                                                    </Button>
+                                                );
+                                            },
+                                        )}
+                                    </div>
+                                ))}
+                            </div>
+                        ) : (
+                            <div
+                                className={librarySearchClassNames.state}
+                                data-sot-part="library-search-empty"
+                                data-sot-state={
+                                    query.trim() ? "no-results" : "no-query"
+                                }
+                            >
+                                {query.trim() ? (
+                                    <div
+                                        className={
+                                            librarySearchClassNames.stateCopy
+                                        }
+                                        data-sot-part="library-search-state-copy"
+                                    >
+                                        {language === "en" ? (
+                                            <>
+                                                {'No content found for "'}
+                                                <span>{query.trim()}</span>
+                                                {'"'}
+                                            </>
+                                        ) : (
+                                            <>
+                                                {"没有找到与「"}
+                                                <span>{query.trim()}</span>
+                                                {"」相关的内容"}
+                                            </>
+                                        )}
+                                    </div>
+                                ) : (
+                                    <div
+                                        className={
+                                            librarySearchClassNames.stateCopy
+                                        }
+                                        data-sot-part="library-search-state-copy"
+                                    >
+                                        {t("librarySearch.noQuery")}
+                                    </div>
+                                )}
+                            </div>
+                        )}
+                    </CardContent>
+                </Card>
             ) : null}
-        </search>
+        </div>
     );
 }

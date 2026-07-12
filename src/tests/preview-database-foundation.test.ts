@@ -62,9 +62,29 @@ describe("preview database foundation", () => {
             "0000_search_baseline.sql",
         ]);
 
-        expect(
-            readProjectFile("db/migrations/core/0000_core_baseline.sql"),
-        ).toContain("`private_transcription_no_repeat_ngram_size` integer");
+        const coreBaseline = readProjectFile(
+            "db/migrations/core/0000_core_baseline.sql",
+        );
+        const coreSchema = readProjectFile("db/schema/core.ts");
+
+        expect(coreBaseline).toContain(
+            "`private_transcription_no_repeat_ngram_size` integer",
+        );
+        expect(coreBaseline).toContain(
+            "`display_density` text DEFAULT 'comfy' NOT NULL",
+        );
+        expect(coreBaseline).toContain(
+            "`default_volume` integer DEFAULT 80 NOT NULL",
+        );
+        expect(coreBaseline).toContain(
+            "`auto_transcribe` integer DEFAULT 1 NOT NULL",
+        );
+        expect(coreSchema).toContain(
+            'defaultVolume: integer("default_volume").notNull().default(80)',
+        );
+        expect(coreSchema).toContain(
+            'autoTranscribe: bool("auto_transcribe").notNull().default(true)',
+        );
         expect(
             readProjectFile("db/migrations/library/0000_library_baseline.sql"),
         ).toContain("CREATE TABLE `recording_tags`");

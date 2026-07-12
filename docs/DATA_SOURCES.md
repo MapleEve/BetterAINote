@@ -23,7 +23,7 @@ BetterAINote 当前是 `preview`，数据源能力按“账号可见内容 + 来
 数据源设置通常会涉及账号凭据或会话信息。请遵守：
 
 - 只在自己的 BetterAINote 部署里保存凭据。
-- 不要在 Issue、PR、截图、日志或文档里贴 cookie、bearer、刷新凭据、组织 / 用户 / 录音 ID、完整来源详情、网络抓包文件或环境文件。
+- 不要在 Issue、PR、截图、日志或文档里贴 cookie、bearer、刷新凭据、组织 / 用户 / 录音 ID、完整来源详情、未脱敏请求记录或环境文件。
 - 反馈问题时只提供来源名称、站点模式、可见错误码、脱敏字段名和最小复现步骤。
 - 一旦怀疑凭据离开了私有部署，请在对应来源平台轮换或撤销。
 
@@ -44,10 +44,7 @@ BetterAINote 当前是 `preview`，数据源能力按“账号可见内容 + 来
 
 ## TicNote
 
-TicNote 支持两个站点模式：
-
-- 中国区：`https://voice-api.ticnote.cn`
-- 国际区：`https://prd-backend-api.ticnote.com/api`
+TicNote 支持中国区和国际区两个站点模式。用户只需要在设置页选择账号所属站点，不需要手动填写后端地址。
 
 设置建议：
 

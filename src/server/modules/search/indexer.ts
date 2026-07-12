@@ -1,4 +1,4 @@
-import { and, eq } from "drizzle-orm";
+import { and, eq, inArray } from "drizzle-orm";
 import { db } from "@/db";
 import { searchIndexJobs, searchTombstones } from "@/db/schema/search";
 import {
@@ -13,6 +13,13 @@ import {
 
 type SearchEntityType = "recording" | "transcript" | "speaker" | "tag";
 type SearchIndexAction = "upsert" | "delete" | "rebuild";
+export type SearchIndexingProgress = {
+    active: boolean;
+    pendingJobs: number;
+    indexingJobs: number;
+    completedJobs: number;
+    totalJobs: number;
+};
 const SQLITE_BUSY_RETRIES = 5;
 const SQLITE_BUSY_RETRY_DELAY_MS = 50;
 
@@ -104,6 +111,36 @@ export async function enqueueSearchDeleteJob(params: {
         ...params,
         action: "delete",
     });
+}
+
+export async function getSearchIndexingProgress(params: {
+    userId: string;
+}): Promise<SearchIndexingProgress> {
+    const activeJobs = await db
+        .select({ status: searchIndexJobs.status })
+        .from(searchIndexJobs)
+        .where(
+            and(
+                eq(searchIndexJobs.userId, params.userId),
+                inArray(searchIndexJobs.status, ["pending", "indexing"]),
+            ),
+        );
+
+    const pendingJobs = activeJobs.filter(
+        (job) => job.status === "pending",
+    ).length;
+    const indexingJobs = activeJobs.filter(
+        (job) => job.status === "indexing",
+    ).length;
+    const totalJobs = pendingJobs + indexingJobs;
+
+    return {
+        active: totalJobs > 0,
+        pendingJobs,
+        indexingJobs,
+        completedJobs: 0,
+        totalJobs,
+    };
 }
 
 export async function replaceTranscriptSegmentsForTranscription(params: {

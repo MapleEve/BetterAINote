@@ -1,18 +1,38 @@
 "use client";
 
-import { Pause, Play, Tag, Volume2 } from "lucide-react";
+import {
+    Pause,
+    Play,
+    SkipBack,
+    SkipForward,
+    Volume2,
+    VolumeX,
+} from "lucide-react";
 import type { ReactNode } from "react";
+import { useEffect, useState } from "react";
 import { useLanguage } from "@/components/language-provider";
-import { MetalButton } from "@/components/metal-button";
+import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent } from "@/components/ui/card";
+import { Card, CardContent, CardHeader } from "@/components/ui/card";
+import {
+    Popover,
+    PopoverContent,
+    PopoverTrigger,
+} from "@/components/ui/popover";
 import { Slider } from "@/components/ui/slider";
 import { useRecordingPlayback } from "@/hooks/use-recording-playback";
-import { formatDateTime } from "@/lib/format-date";
 import type { RecordingTag } from "@/lib/recording-tags";
 import { cn } from "@/lib/utils";
 import type { Recording } from "@/types/recording";
-import { RecordingTagChip } from "./recording-tag-visuals";
+import {
+    formatSotPlayerDate,
+    formatSotPlayerTime,
+    SotPlayerNoAudioAlert,
+    SotPlayerSourceTag,
+    SotPlayerStatusBadge,
+    SotPlayerTagChip,
+    sotPlayerVolumeLevel,
+} from "./sot-player-primitives";
 
 interface RecordingPlayerProps {
     recording: Recording;
@@ -23,6 +43,26 @@ interface RecordingPlayerProps {
     onEnded?: () => void;
 }
 
+const RECORDING_PLAYER_META_CLASS_NAME = "flex flex-wrap items-center gap-2.5";
+
+const RECORDING_PLAYER_DATE_CLASS_NAME = "tabular-nums text-muted-foreground";
+
+const RECORDING_PLAYER_TAG_MANAGER_SLOT_CLASS_NAME = "mb-3";
+
+const RECORDING_PLAYER_CONTROLS_CLASS_NAME =
+    "flex min-w-0 items-center gap-3 overflow-visible";
+
+const RECORDING_PLAYER_TIME_CLASS_NAME =
+    "min-w-11 text-center tabular-nums text-muted-foreground";
+
+const RECORDING_PLAYER_DISABLED_CLASS_NAME =
+    "pointer-events-none opacity-[0.42] data-[disabled]:opacity-[0.42]";
+
+const RECORDING_PLAYER_SPEED_CLASS_NAME =
+    "max-[640px]:w-[50.75px] max-[640px]:min-w-[50.75px] max-[640px]:basis-[50.75px] max-[640px]:grow-0 max-[640px]:shrink-0";
+
+const RECORDING_PLAYER_VOLUME_ANCHOR_CLASS_NAME = "relative inline-flex";
+
 export function RecordingPlayer({
     recording,
     tags = [],
@@ -32,6 +72,7 @@ export function RecordingPlayer({
     onEnded,
 }: RecordingPlayerProps) {
     const { language } = useLanguage();
+    const [volumeOpen, setVolumeOpen] = useState(false);
     const {
         audioRef,
         audioSrc,
@@ -50,143 +91,438 @@ export function RecordingPlayer({
         onEnded,
     });
 
-    const formatTime = (seconds: number) => {
-        if (!seconds || Number.isNaN(seconds)) return "0:00";
-        const mins = Math.floor(seconds / 60);
-        const secs = Math.floor(seconds % 60);
-        return `${mins}:${secs.toString().padStart(2, "0")}`;
+    const playbackDisabled = !recording.hasAudio || !audioSrc;
+    const volumeMuted = volume === 0;
+    const volumePopoverOpen = volumeOpen && !playbackDisabled;
+    const controlsState = playbackDisabled
+        ? "disabled"
+        : volumeMuted
+          ? "muted"
+          : isPlaying
+            ? "playing"
+            : "ready";
+    const controlState = playbackDisabled ? "disabled" : "ready";
+    const primaryTag = tags[0];
+    const playerProgressPct = Math.max(0, Math.min(100, Math.round(progress)));
+    const playerDurationValue = duration > 0 ? duration : recording.duration;
+
+    useEffect(() => {
+        if (playbackDisabled) {
+            setVolumeOpen(false);
+        }
+    }, [playbackDisabled]);
+
+    const seekBySeconds = (seconds: number) => {
+        const audio = audioRef.current;
+        if (!audio || playbackDisabled || !duration || Number.isNaN(duration)) {
+            return;
+        }
+
+        const nextTime = Math.min(
+            duration,
+            Math.max(0, audio.currentTime + seconds),
+        );
+        audio.currentTime = nextTime;
+        seekToSliderValue([(nextTime / duration) * 100]);
+    };
+
+    const seekToPercent = (percent: number) => {
+        if (playbackDisabled || !duration || Number.isNaN(duration)) {
+            return;
+        }
+        seekToSliderValue([Math.min(100, Math.max(0, percent))]);
     };
 
     return (
         <Card
-            className={cn(
-                "overflow-visible",
-                isTagManagerOpen && "relative z-[80]",
-            )}
+            hasNoPadding
+            data-no-audio={playbackDisabled ? "true" : undefined}
+            data-playing={isPlaying ? "true" : undefined}
+            data-sot-state={playbackDisabled ? "disabled" : "ready"}
+            data-sot-surface="recording-player"
         >
-            <CardContent className="relative p-5">
-                <div className="mb-4 flex items-center justify-between gap-3">
-                    <span
-                        className="inline-flex h-7 items-center rounded-xl border border-border/45 bg-background/20 px-2.5 font-mono text-[11px] font-medium tracking-wide text-muted-foreground/75 tabular-nums backdrop-blur-xl"
-                        suppressHydrationWarning
-                    >
-                        {formatDateTime(
-                            recording.startTime,
-                            "absolute",
-                            language,
-                        )}
-                    </span>
-                    {onToggleTagManager ? (
-                        <Button
-                            type="button"
-                            variant="outline"
-                            size="sm"
-                            onClick={onToggleTagManager}
-                            aria-expanded={isTagManagerOpen}
-                            className={cn(
-                                "h-7 max-w-[14rem] rounded-xl border-border/55 bg-background/20 px-2.5 text-xs shadow-none backdrop-blur-xl transition-[background-color,border-color] duration-300 ease-[var(--ease-sine)] hover:bg-background/35",
-                                isTagManagerOpen &&
-                                    "border-primary/35 bg-primary/12 text-foreground",
-                            )}
-                        >
-                            <Tag className="h-3.5 w-3.5" />
-                            {tags.length > 0 ? (
-                                <RecordingTagChip
-                                    tag={tags[0]}
-                                    className="max-w-24 border-0 bg-transparent px-0 py-0"
-                                />
-                            ) : (
-                                <span>
-                                    {language === "zh-CN" ? "标签" : "Tags"}
-                                </span>
-                            )}
-                            {tags.length > 1 ? (
-                                <span className="rounded-full border border-border/60 px-1.5 text-[10px] text-muted-foreground">
-                                    +{tags.length - 1}
-                                </span>
-                            ) : null}
-                        </Button>
-                    ) : null}
-                </div>
+            <SotPlayerNoAudioAlert
+                part="recording-player-no-audio"
+                iconPart="recording-player-no-audio-icon"
+                textPart="recording-player-no-audio-text"
+                titlePart="recording-player-no-audio-title"
+                descriptionPart="recording-player-no-audio-description"
+                playbackDisabled={playbackDisabled}
+            />
 
-                {isTagManagerOpen && tagManagerPanel ? (
-                    <div className="animate-in fade-in-0 zoom-in-95 absolute top-12 right-5 z-[1000] max-h-[min(28rem,calc(100vh-12rem))] w-[min(28rem,calc(100vw-2rem))] overflow-y-auto rounded-2xl border border-border/65 bg-popover/95 p-3 shadow-[0_10px_28px_rgba(0,0,0,0.18)] backdrop-blur-2xl duration-200">
-                        {tagManagerPanel}
-                    </div>
-                ) : null}
-
-                {!recording.hasAudio && (
-                    <div className="mb-4 rounded-lg border border-white/10 bg-white/5 px-4 py-3 text-sm text-muted-foreground">
-                        {language === "zh-CN"
-                            ? "这个数据源当前只同步来源逐字稿或报告，没有可供本地播放或私有转录的音频文件。"
-                            : "This source currently syncs source transcripts or reports only. No local audio is available for playback or private transcription."}
-                    </div>
-                )}
-
-                <div className="grid items-center gap-4 rounded-2xl border border-border/40 bg-background/14 px-4 py-4 backdrop-blur-xl md:grid-cols-[4rem_minmax(0,1fr)_12.5rem]">
-                    <Button
-                        onClick={togglePlayPause}
-                        size="lg"
-                        className="h-12 w-12 rounded-full shadow-none"
-                        disabled={!recording.hasAudio}
-                    >
-                        {isPlaying ? (
-                            <Pause className="h-5 w-5" />
-                        ) : (
-                            <Play className="h-5 w-5" />
-                        )}
-                    </Button>
-
-                    <div className="min-w-0 space-y-3">
-                        <div className="flex justify-between font-mono text-[11px] font-medium text-muted-foreground/75 tabular-nums">
-                            <span>{formatTime(currentTime)}</span>
-                            <span>{formatTime(duration)}</span>
-                        </div>
-                        <Slider
-                            value={[progress]}
-                            onValueChange={seekToSliderValue}
-                            onValueCommit={seekToSliderValue}
-                            max={100}
-                            step={0.1}
-                            className="w-full"
-                            disabled={!duration || duration === 0}
-                        />
-                    </div>
-
-                    <div className="flex items-center justify-end gap-3">
-                        <MetalButton
-                            onClick={cyclePlaybackSpeed}
-                            variant="default"
-                            size="sm"
-                            className="h-8 w-12 rounded-xl px-2 font-mono text-[11px] shadow-none"
-                            title="Click to cycle playback speed"
-                        >
-                            {playbackSpeedLabel}
-                        </MetalButton>
-
-                        <div className="flex w-28 items-center gap-2">
-                            <Volume2 className="h-3.5 w-3.5 flex-shrink-0 text-muted-foreground/75" />
-                            <Slider
-                                value={[volume]}
-                                onValueChange={(value) =>
-                                    setVolume(value[0] ?? 75)
-                                }
-                                max={100}
-                                className="flex-1"
-                            />
-                        </div>
-                    </div>
-                </div>
-
-                <audio
-                    ref={audioRef}
-                    src={audioSrc || undefined}
-                    preload="metadata"
-                    className="hidden"
+            <CardHeader
+                className={RECORDING_PLAYER_META_CLASS_NAME}
+                data-sot-part="recording-player-meta"
+            >
+                <span
+                    className={RECORDING_PLAYER_DATE_CLASS_NAME}
+                    data-sot-part="recording-player-date"
+                    suppressHydrationWarning
                 >
-                    <track kind="captions" />
-                </audio>
+                    {formatSotPlayerDate(recording.startTime)}
+                </span>
+                {recording.sourceProvider === "dingtalk-a1" ? (
+                    <Badge
+                        variant="secondary"
+                        className="gap-1.5 pl-1"
+                        data-sot-control="player-source-tag"
+                        data-sot-provider="dingtalk-a1"
+                    >
+                        <span
+                            className="inline-flex size-4 flex-none shrink-0 items-center justify-center overflow-hidden rounded-sm border border-border bg-white"
+                            data-sot-cover="false"
+                            data-sot-part="source-icon"
+                            data-sot-source-icon="image"
+                            aria-hidden="true"
+                        >
+                            <img
+                                alt=""
+                                className="block size-4 max-w-none object-contain"
+                                height={16}
+                                loading="eager"
+                                src="/assets/sources/dingtalk.svg"
+                                width={16}
+                            />
+                        </span>
+                        钉钉
+                    </Badge>
+                ) : (
+                    <SotPlayerSourceTag provider={recording.sourceProvider} />
+                )}
+                <SotPlayerTagChip
+                    count={tags.length}
+                    onClick={onToggleTagManager}
+                    tag={primaryTag ?? null}
+                    trigger={Boolean(onToggleTagManager)}
+                />
+                <SotPlayerStatusBadge />
+            </CardHeader>
+
+            {isTagManagerOpen && tagManagerPanel ? (
+                <div
+                    className={RECORDING_PLAYER_TAG_MANAGER_SLOT_CLASS_NAME}
+                    data-sot-panel="recording-player-tag-manager-slot"
+                >
+                    {tagManagerPanel}
+                </div>
+            ) : null}
+
+            <CardContent
+                className={RECORDING_PLAYER_CONTROLS_CLASS_NAME}
+                aria-disabled={playbackDisabled ? "true" : undefined}
+                data-sot-panel="recording-player-controls"
+                data-sot-state={controlsState}
+            >
+                <Button
+                    variant="ghost"
+                    size="icon"
+                    type="button"
+                    aria-label={
+                        language === "zh-CN" ? "后退 5 秒" : "Back 5 seconds"
+                    }
+                    data-sot-control="recording-player-back"
+                    data-sot-state={controlState}
+                    disabled={playbackDisabled}
+                    onClick={() => seekBySeconds(-5)}
+                >
+                    <SkipBack
+                        data-icon="inline-start"
+                        data-sot-part="recording-player-control-icon"
+                    />
+                </Button>
+
+                <Button
+                    variant="default"
+                    size="icon-lg"
+                    type="button"
+                    onClick={togglePlayPause}
+                    data-sot-control="recording-player-play"
+                    data-sot-state={
+                        playbackDisabled
+                            ? "disabled"
+                            : isPlaying
+                              ? "playing"
+                              : "paused"
+                    }
+                    data-playing={isPlaying ? "true" : "false"}
+                    disabled={playbackDisabled}
+                    aria-label={
+                        isPlaying
+                            ? language === "zh-CN"
+                                ? "暂停"
+                                : "Pause"
+                            : language === "zh-CN"
+                              ? "播放"
+                              : "Play"
+                    }
+                >
+                    {isPlaying ? (
+                        <Pause
+                            data-icon="inline-start"
+                            data-sot-part="recording-player-control-icon"
+                        />
+                    ) : (
+                        <Play
+                            data-icon="inline-start"
+                            data-sot-part="recording-player-control-icon"
+                        />
+                    )}
+                </Button>
+
+                <Button
+                    variant="ghost"
+                    size="icon"
+                    type="button"
+                    aria-label={
+                        language === "zh-CN" ? "前进 5 秒" : "Forward 5 seconds"
+                    }
+                    data-sot-control="recording-player-forward"
+                    data-sot-state={controlState}
+                    disabled={playbackDisabled}
+                    onClick={() => seekBySeconds(5)}
+                >
+                    <SkipForward
+                        data-icon="inline-start"
+                        data-sot-part="recording-player-control-icon"
+                    />
+                </Button>
+
+                <span
+                    className={cn(
+                        RECORDING_PLAYER_TIME_CLASS_NAME,
+                        playbackDisabled &&
+                            RECORDING_PLAYER_DISABLED_CLASS_NAME,
+                    )}
+                    data-sot-part="recording-player-current-time"
+                >
+                    {formatSotPlayerTime(currentTime)}
+                </span>
+
+                <Slider
+                    className={
+                        playbackDisabled
+                            ? cn(
+                                  "min-w-0 flex-1",
+                                  RECORDING_PLAYER_DISABLED_CLASS_NAME,
+                              )
+                            : "min-w-0 flex-1"
+                    }
+                    inputClassName="[&_[data-slot=slider-thumb]]:size-[14px] [&_[data-slot=slider-thumb]]:border-0 [&_[data-slot=slider-thumb]]:bg-white [&_[data-slot=slider-thumb]]:shadow-[0_1px_4px_rgb(0_0_0_/_0.15),0_0_0_1px_var(--line-hairline)]"
+                    disabled={playbackDisabled}
+                    data-pct={playerProgressPct}
+                    data-sot-control="recording-player-seek"
+                    data-sot-state={controlState}
+                    max={100}
+                    min={0}
+                    onValueChange={seekToSliderValue}
+                    onValueCommit={seekToSliderValue}
+                    rangeProps={{
+                        "data-pct": playerProgressPct,
+                    }}
+                    aria-disabled={playbackDisabled ? "true" : undefined}
+                    aria-label={
+                        language === "zh-CN" ? "播放进度" : "Playback progress"
+                    }
+                    aria-valuemax={100}
+                    aria-valuemin={0}
+                    aria-valuenow={Math.round(progress)}
+                    onClick={(event) => {
+                        const rect =
+                            event.currentTarget.getBoundingClientRect();
+                        if (rect.width <= 0) {
+                            return;
+                        }
+                        seekToPercent(
+                            ((event.clientX - rect.left) / rect.width) * 100,
+                        );
+                    }}
+                    onKeyDown={(event) => {
+                        if (event.key === "ArrowLeft") {
+                            seekToPercent(progress - 5);
+                        }
+                        if (event.key === "ArrowRight") {
+                            seekToPercent(progress + 5);
+                        }
+                        if (event.key === "Home") {
+                            seekToPercent(0);
+                        }
+                        if (event.key === "End") {
+                            seekToPercent(100);
+                        }
+                    }}
+                    tabIndex={playbackDisabled ? -1 : 0}
+                    step={1}
+                    thumbProps={{
+                        "data-pct": playerProgressPct,
+                    }}
+                    value={[progress]}
+                />
+
+                <span
+                    className={cn(
+                        RECORDING_PLAYER_TIME_CLASS_NAME,
+                        playbackDisabled &&
+                            RECORDING_PLAYER_DISABLED_CLASS_NAME,
+                    )}
+                    data-sot-part="recording-player-duration"
+                >
+                    {formatSotPlayerTime(playerDurationValue)}
+                </span>
+
+                <Button
+                    variant="ghost"
+                    size="sm"
+                    type="button"
+                    onClick={cyclePlaybackSpeed}
+                    title="Click to cycle playback speed"
+                    className={RECORDING_PLAYER_SPEED_CLASS_NAME}
+                    data-sot-control="recording-player-speed"
+                    data-sot-state={controlState}
+                    disabled={playbackDisabled}
+                    aria-label={
+                        language === "zh-CN"
+                            ? "切换播放倍速"
+                            : "Cycle playback speed"
+                    }
+                >
+                    {playbackSpeedLabel}
+                </Button>
+
+                <Popover
+                    open={volumePopoverOpen}
+                    onOpenChange={(open) => setVolumeOpen(open)}
+                >
+                    <div
+                        className={RECORDING_PLAYER_VOLUME_ANCHOR_CLASS_NAME}
+                        data-sot-part="recording-player-volume-anchor"
+                    >
+                        <PopoverTrigger asChild>
+                            <Button
+                                variant="ghost"
+                                size="icon-sm"
+                                type="button"
+                                aria-label={
+                                    language === "zh-CN"
+                                        ? `音量 ${volume}`
+                                        : `Volume ${volume}`
+                                }
+                                aria-expanded={volumePopoverOpen}
+                                title={
+                                    language === "zh-CN"
+                                        ? `音量 ${volume}`
+                                        : `Volume ${volume}`
+                                }
+                                data-level={sotPlayerVolumeLevel(volume)}
+                                data-sot-control="recording-player-volume"
+                                data-sot-state={
+                                    playbackDisabled
+                                        ? "disabled"
+                                        : volumePopoverOpen
+                                          ? "open"
+                                          : "closed"
+                                }
+                                data-sot-volume-state={
+                                    volumeMuted ? "muted" : "audible"
+                                }
+                                disabled={playbackDisabled}
+                            >
+                                {volumeMuted ? (
+                                    <VolumeX
+                                        data-icon="inline-start"
+                                        data-sot-part="recording-player-control-icon"
+                                    />
+                                ) : (
+                                    <Volume2
+                                        data-icon="inline-start"
+                                        data-sot-part="recording-player-control-icon"
+                                    />
+                                )}
+                            </Button>
+                        </PopoverTrigger>
+                        <PopoverContent
+                            align="end"
+                            className="w-56"
+                            side="top"
+                            sideOffset={8}
+                            data-open={volumePopoverOpen ? "true" : "false"}
+                            data-sot-panel="recording-player-volume-popover"
+                            data-sot-state={
+                                volumePopoverOpen ? "open" : "closed"
+                            }
+                            aria-label={
+                                language === "zh-CN" ? "音量" : "Volume"
+                            }
+                        >
+                            <div
+                                className="flex items-center gap-2"
+                                data-sot-part="recording-player-volume-row"
+                            >
+                                <Button
+                                    variant="ghost"
+                                    size="icon-sm"
+                                    type="button"
+                                    aria-label={
+                                        language === "zh-CN"
+                                            ? "静音切换"
+                                            : "Toggle mute"
+                                    }
+                                    data-sot-control="recording-player-volume-mute"
+                                    data-sot-state={
+                                        volumeMuted ? "muted" : "audible"
+                                    }
+                                    disabled={playbackDisabled}
+                                    onClick={() =>
+                                        setVolume(volumeMuted ? 70 : 0)
+                                    }
+                                >
+                                    {volumeMuted ? (
+                                        <VolumeX
+                                            data-icon="inline-start"
+                                            data-sot-part="recording-player-volume-icon"
+                                        />
+                                    ) : (
+                                        <Volume2
+                                            data-icon="inline-start"
+                                            data-sot-part="recording-player-volume-icon"
+                                        />
+                                    )}
+                                </Button>
+                                <Slider
+                                    className="min-w-[110px] flex-1"
+                                    min={0}
+                                    max={100}
+                                    step={1}
+                                    value={[volume]}
+                                    disabled={playbackDisabled}
+                                    data-sot-control="recording-player-volume-slider"
+                                    data-sot-state={controlState}
+                                    aria-label={
+                                        language === "zh-CN" ? "音量" : "Volume"
+                                    }
+                                    onValueChange={(nextValue) =>
+                                        setVolume(nextValue[0] ?? volume)
+                                    }
+                                />
+                                <span
+                                    className="min-w-11 text-center tabular-nums text-muted-foreground"
+                                    data-sot-part="recording-player-volume-value"
+                                >
+                                    {volume}
+                                </span>
+                            </div>
+                        </PopoverContent>
+                    </div>
+                </Popover>
             </CardContent>
+
+            <audio
+                ref={audioRef}
+                src={audioSrc || undefined}
+                preload="metadata"
+                hidden
+            >
+                <track kind="captions" />
+            </audio>
         </Card>
     );
 }

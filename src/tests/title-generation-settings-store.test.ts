@@ -22,7 +22,7 @@ describe("title generation settings store", () => {
             new Response(
                 JSON.stringify({
                     autoGenerateTitle: false,
-                    titleGenerationBaseUrl: "https://llm.internal/v1",
+                    titleGenerationBaseUrl: "https://llm.example.test/v1",
                     titleGenerationModel: "gpt-4.1-mini",
                     titleGenerationApiKeySet: true,
                     titleGenerationPrompt: "Rename this transcript",
@@ -42,7 +42,7 @@ describe("title generation settings store", () => {
 
         await expect(firstLoad).resolves.toEqual({
             autoGenerateTitle: false,
-            titleGenerationBaseUrl: "https://llm.internal/v1",
+            titleGenerationBaseUrl: "https://llm.example.test/v1",
             titleGenerationModel: "gpt-4.1-mini",
             titleGenerationApiKeySet: true,
             titleGenerationPrompt: "Rename this transcript",
@@ -55,7 +55,7 @@ describe("title generation settings store", () => {
             isSaving: false,
             settings: {
                 autoGenerateTitle: false,
-                titleGenerationBaseUrl: "https://llm.internal/v1",
+                titleGenerationBaseUrl: "https://llm.example.test/v1",
                 titleGenerationModel: "gpt-4.1-mini",
                 titleGenerationApiKeySet: true,
                 titleGenerationPrompt: "Rename this transcript",
@@ -70,7 +70,7 @@ describe("title generation settings store", () => {
                 new Response(
                     JSON.stringify({
                         autoGenerateTitle: true,
-                        titleGenerationBaseUrl: "https://llm.internal/v1",
+                        titleGenerationBaseUrl: "https://llm.example.test/v1",
                         titleGenerationModel: "gpt-4.1-mini",
                         titleGenerationApiKeySet: false,
                         titleGenerationPrompt: null,
@@ -151,6 +151,7 @@ describe("title generation settings store", () => {
             hasLoaded: false,
             isLoading: false,
             isSaving: false,
+            loadError: "Failed to fetch title generation settings",
             settings: {
                 autoGenerateTitle: true,
                 titleGenerationBaseUrl: null,
@@ -162,7 +163,7 @@ describe("title generation settings store", () => {
 
         await expect(
             saveTitleGenerationSettings({
-                titleGenerationBaseUrl: "https://llm.internal/v1",
+                titleGenerationBaseUrl: "https://llm.example.test/v1",
                 titleGenerationModel: "gpt-4.1-mini",
                 titleGenerationApiKey: "tg-secret-key",
             }),
@@ -172,9 +173,10 @@ describe("title generation settings store", () => {
             hasLoaded: true,
             isLoading: false,
             isSaving: false,
+            loadError: null,
             settings: {
                 autoGenerateTitle: true,
-                titleGenerationBaseUrl: "https://llm.internal/v1",
+                titleGenerationBaseUrl: "https://llm.example.test/v1",
                 titleGenerationModel: "gpt-4.1-mini",
                 titleGenerationApiKeySet: true,
                 titleGenerationPrompt: null,
@@ -183,7 +185,7 @@ describe("title generation settings store", () => {
 
         await expect(ensureTitleGenerationSettingsLoaded()).resolves.toEqual({
             autoGenerateTitle: true,
-            titleGenerationBaseUrl: "https://llm.internal/v1",
+            titleGenerationBaseUrl: "https://llm.example.test/v1",
             titleGenerationModel: "gpt-4.1-mini",
             titleGenerationApiKeySet: true,
             titleGenerationPrompt: null,

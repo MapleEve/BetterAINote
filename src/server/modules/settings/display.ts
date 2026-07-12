@@ -5,6 +5,7 @@ import { normalizeEnumSetting } from "@/lib/settings/value-normalization";
 const UI_LANGUAGES = ["zh-CN", "en"] as const;
 const DATE_TIME_FORMATS = ["relative", "absolute"] as const;
 const RECORDING_LIST_SORT_ORDERS = ["newest", "oldest", "name"] as const;
+const DISPLAY_DENSITIES = ["comfy", "compact"] as const;
 const THEMES = ["system", "light", "dark"] as const;
 
 async function loadUserSettingsOps() {
@@ -56,7 +57,15 @@ export async function saveDisplaySettingsForUser(
             "itemsPerPage",
             body.itemsPerPage,
             10,
-            100,
+            200,
+        );
+    }
+
+    if (body.displayDensity !== undefined) {
+        updates.displayDensity = normalizeEnumSetting(
+            "displayDensity",
+            body.displayDensity,
+            DISPLAY_DENSITIES,
         );
     }
 

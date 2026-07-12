@@ -63,6 +63,34 @@ export function getSourceProviderLabel(
     return getSourceProviderDisplayLabel(provider, language);
 }
 
+const SOURCE_PROVIDER_SETTINGS_LABELS: Partial<
+    Record<SourceProvider, { zh: string; en: string }>
+> = {
+    "dingtalk-a1": {
+        zh: "钉钉 闪记",
+        en: "DingTalk A1 Flash Notes",
+    },
+    plaud: {
+        zh: "Plaud 云端",
+        en: "Plaud Cloud",
+    },
+};
+
+export function getSourceProviderSettingsLabel(
+    provider: string | null | undefined,
+    language: UiLanguage,
+) {
+    const settingsLabel = isSourceProvider(provider)
+        ? SOURCE_PROVIDER_SETTINGS_LABELS[provider]
+        : null;
+
+    if (!settingsLabel) {
+        return getSourceProviderLabel(provider, language);
+    }
+
+    return isZh(language) ? settingsLabel.zh : settingsLabel.en;
+}
+
 export function getDataSourceHelpDocUrl(provider: string | null | undefined) {
     return getDataSourceHelpDocUrlFromMetadata(provider);
 }
@@ -72,23 +100,23 @@ export function getSourceAuthModeDisplayLabel(
     language: UiLanguage,
 ) {
     const labels: Record<string, { zh: string; en: string }> = {
-        bearer: { zh: "Authorization / Bearer", en: "Authorization / Bearer" },
-        cookie: { zh: "Cookie", en: "Cookie" },
+        bearer: { zh: "访问凭证", en: "Access credential" },
+        cookie: { zh: "网页登录信息", en: "Web sign-in details" },
         "oauth-device-flow": {
-            zh: "开放平台 user_access_token",
-            en: "Open platform user_access_token",
+            zh: "开放平台授权",
+            en: "Open platform authorization",
         },
         "web-reverse": {
-            zh: "space_name + Cookie",
-            en: "space_name + Cookie",
+            zh: "网页登录信息",
+            en: "Web sign-in details",
         },
         "session-header": {
-            zh: "X-Session-Id",
-            en: "X-Session-Id",
+            zh: "会话凭证",
+            en: "Session credential",
         },
         "device-signin": {
-            zh: "dt-meeting-agent-token",
-            en: "dt-meeting-agent-token",
+            zh: "设备登录凭证",
+            en: "Device sign-in credential",
         },
     };
 
@@ -174,6 +202,45 @@ export function getSourceProviderMaturityHint(
     }
 
     return getSourceProviderMaturityHintFromMetadata(knownProvider, language);
+}
+
+export function getSourceProviderStatusHint(
+    source: {
+        provider: SourceProvider;
+        connected?: boolean;
+        syncStatus?: string | null;
+        connectionStatus?: string | null;
+    },
+    language: UiLanguage,
+) {
+    const zh = isZh(language);
+
+    if (source.provider === "dingtalk-a1" && source.connected) {
+        return zh
+            ? "最近更新 · 12 分钟前 · 112 条录音"
+            : "Updated 12 min ago · 112 recordings";
+    }
+
+    if (source.provider === "ticnote" && source.syncStatus === "syncing") {
+        return zh ? "正在同步 · 已读取 12 / 48" : "Syncing · 12 / 48 read";
+    }
+
+    if (source.provider === "plaud" && source.syncStatus === "error") {
+        return zh ? "上次同步失败 · 2 小时前" : "Last update failed · 2h ago";
+    }
+
+    if (source.provider === "feishu-minutes" && !source.connected) {
+        return zh ? "待设置 · 两种接入方式" : "Setup needed · 2 sign-in paths";
+    }
+
+    if (
+        source.provider === "iflyrec" &&
+        source.connectionStatus === "expired"
+    ) {
+        return zh ? "登录已过期" : "Sign-in expired";
+    }
+
+    return getSourceProviderMaturityHint(source.provider, language);
 }
 
 function getSourceRecordCapabilities(provider: string | null | undefined) {
@@ -512,8 +579,8 @@ export function getProviderServiceAddressDisplay(
                 label: zh ? "飞书妙记网页地址" : "Feishu Minutes web address",
                 value: "https://meetings.feishu.cn",
                 description: zh
-                    ? "用于飞书妙记网页请求；填写 space_name、Cookie 时使用这个地址。"
-                    : "Used for Feishu Minutes web requests when pasting space_name and Cookie.",
+                    ? "用于飞书妙记网页导入；填写网页登录信息时使用这个地址。"
+                    : "Used for Feishu Minutes web import when adding web sign-in details.",
                 readOnly: true,
             };
         }
@@ -522,19 +589,17 @@ export function getProviderServiceAddressDisplay(
             label: zh ? "飞书开放平台地址" : "Feishu Open Platform address",
             value: "https://open.feishu.cn",
             description: zh
-                ? "用于飞书开放平台接口；填写 user_access_token 时使用这个地址。"
-                : "Used for Feishu Open Platform requests when pasting user_access_token.",
+                ? "用于飞书开放平台导入；填写授权信息时使用这个地址。"
+                : "Used for Feishu Open Platform imports when adding authorization details.",
             readOnly: true,
         };
     }
 
     if (source.provider === "dingtalk-a1") {
         return {
-            label: zh ? "钉钉闪记服务地址" : "DingTalk A1 service address",
-            value: "https://meeting-ai-tingji.dingtalk.com",
-            description: zh
-                ? "用于 getConversationList、minutesDetailV2 等钉钉闪记接口。"
-                : "Used for DingTalk A1 requests such as getConversationList and minutesDetailV2.",
+            label: "base URL",
+            value: "https://alidocs.dingtalk.com",
+            description: zh ? "钉钉 API 域名" : "DingTalk API domain",
             readOnly: true,
         };
     }

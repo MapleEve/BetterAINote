@@ -61,7 +61,7 @@ describe("generateTitleFromTranscription", () => {
                         limit: vi.fn().mockResolvedValue([
                             {
                                 titleGenerationBaseUrl:
-                                    "https://llm.internal/v1",
+                                    "https://llm.example.test/v1",
                                 titleGenerationModel: "gpt-4.1-mini",
                             },
                         ]),
@@ -105,7 +105,7 @@ describe("generateTitleFromTranscription", () => {
 
         expect(openAIConfigMock).toHaveBeenCalledWith({
             apiKey: "decrypted:encrypted:key-1",
-            baseURL: "https://llm.internal/v1",
+            baseURL: "https://llm.example.test/v1",
         });
         expect(createCompletionMock).toHaveBeenCalledWith(
             expect.objectContaining({

@@ -16,9 +16,30 @@ coverage/
 # production
 /build
 
-# local data and private artifacts
 /tmp/
 tmp/
+/plans/
+/plan/
+/meeting-notes/
+/meetings/
+/meeting-records/
+/specs/
+/spec/
+/roadmaps/
+/roadmap/
+/prd/
+/research/
+/tasks/
+/task/
+/计划/
+/会议纪要/
+/会议记录/
+/规格/
+/路线图/
+/需求/
+/研究/
+/任务/
+/功能切片/
 /.full-review/
 .full-review/
 /.full-review-archive/
@@ -56,11 +77,11 @@ yarn-debug.log*
 yarn-error.log*
 pnpm-debug.log*
 
-# local env files
 .env
 .env.*
 !.env.example
-CLAUDE.local.md
+*.local.md
+LOCAL-*.md
 
 # vercel
 .vercel

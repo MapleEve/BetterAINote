@@ -49,6 +49,14 @@ function makeRequest() {
     });
 }
 
+function makePreviewRequest() {
+    return new Request("http://localhost/api/recordings/rec-1/rename/auto", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ mode: "preview" }),
+    });
+}
+
 function makeParams(id: string) {
     return { params: Promise.resolve({ id }) };
 }
@@ -155,6 +163,7 @@ describe("AI rename route", () => {
         });
         await expect(response.json()).resolves.toEqual({
             filename: "2026-04-18 1000 Sync LaunchChecklist",
+            applied: true,
         });
     });
 
@@ -212,6 +221,52 @@ describe("AI rename route", () => {
         });
         await expect(response.json()).resolves.toEqual({
             filename: "2026-04-18 1000 Sync LaunchChecklist",
+            applied: true,
+        });
+    });
+
+    it("can generate a preview without writing local or upstream titles", async () => {
+        (db.select as Mock)
+            .mockReturnValueOnce({
+                from: vi.fn().mockReturnValue({
+                    where: vi.fn().mockReturnValue({
+                        limit: vi.fn().mockResolvedValue([
+                            {
+                                id: "rec-1",
+                                userId: "user-1",
+                                filename: "Call",
+                                sourceProvider: "plaud",
+                                sourceRecordingId: "plaud-rec-1",
+                                startTime: new Date("2026-04-18T10:00:00.000Z"),
+                            },
+                        ]),
+                    }),
+                }),
+            })
+            .mockReturnValueOnce({
+                from: vi.fn().mockReturnValue({
+                    where: vi.fn().mockReturnValue({
+                        limit: vi.fn().mockResolvedValue([
+                            {
+                                text: "Speaker 1: Discuss launch checklist",
+                            },
+                        ]),
+                    }),
+                }),
+            });
+
+        (generateTitleFromTranscription as Mock).mockResolvedValue(
+            "2026-04-18 1000 Sync LaunchChecklist",
+        );
+
+        const response = await POST(makePreviewRequest(), makeParams("rec-1"));
+
+        expect(response.status).toBe(200);
+        expect(db.update).not.toHaveBeenCalled();
+        expect(writeRecordingTitleToSourceOrThrow).not.toHaveBeenCalled();
+        await expect(response.json()).resolves.toEqual({
+            filename: "2026-04-18 1000 Sync LaunchChecklist",
+            applied: false,
         });
     });
 

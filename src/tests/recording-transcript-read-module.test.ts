@@ -235,4 +235,39 @@ describe("recording transcript read module", () => {
             },
         });
     });
+
+    it("keeps speaker transcript readable when provider payload has no segments", async () => {
+        (getRecordingDetailReadModel as Mock).mockResolvedValue({
+            recording: baseRecording,
+            transcription: {
+                ...baseTranscription,
+                providerPayload: {},
+            },
+            transcriptionJob: {
+                ...baseJob,
+                status: "processing",
+                remoteStatus: "transcribing",
+            },
+        });
+
+        const result = await getRecordingSpeakerTranscriptReadResponse(
+            "user-1",
+            "rec-1",
+        );
+
+        expect(result.status).toBe(200);
+        expect(result.body).toMatchObject({
+            transcript: {
+                rawText: "SPEAKER_01: Hello there",
+                displayText: "Alex: Hello there",
+                providerPayload: {},
+                segments: null,
+            },
+            speakerMap: { SPEAKER_01: "Alex" },
+            job: {
+                status: "processing",
+                lastError: null,
+            },
+        });
+    });
 });

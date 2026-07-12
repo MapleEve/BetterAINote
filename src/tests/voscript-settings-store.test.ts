@@ -21,7 +21,8 @@ describe("voscript settings store", () => {
         const fetchMock = vi.fn<typeof fetch>().mockResolvedValueOnce(
             new Response(
                 JSON.stringify({
-                    privateTranscriptionBaseUrl: " https://voscript.internal ",
+                    privateTranscriptionBaseUrl:
+                        " https://voscript.example.test ",
                     privateTranscriptionApiKeySet: true,
                     privateTranscriptionMinSpeakers: 2,
                     privateTranscriptionMaxSpeakers: 4,
@@ -44,7 +45,7 @@ describe("voscript settings store", () => {
         expect(firstLoad).toBe(secondLoad);
 
         await expect(firstLoad).resolves.toEqual({
-            privateTranscriptionBaseUrl: "https://voscript.internal",
+            privateTranscriptionBaseUrl: "https://voscript.example.test",
             privateTranscriptionApiKeySet: true,
             privateTranscriptionMinSpeakers: 2,
             privateTranscriptionMaxSpeakers: 4,
@@ -60,7 +61,7 @@ describe("voscript settings store", () => {
             isLoading: false,
             isSaving: false,
             settings: {
-                privateTranscriptionBaseUrl: "https://voscript.internal",
+                privateTranscriptionBaseUrl: "https://voscript.example.test",
                 privateTranscriptionApiKeySet: true,
                 privateTranscriptionMinSpeakers: 2,
                 privateTranscriptionMaxSpeakers: 4,
@@ -79,7 +80,7 @@ describe("voscript settings store", () => {
                 new Response(
                     JSON.stringify({
                         privateTranscriptionBaseUrl:
-                            "https://voscript.internal",
+                            "https://voscript.example.test",
                         privateTranscriptionApiKeySet: false,
                         privateTranscriptionMinSpeakers: 0,
                         privateTranscriptionMaxSpeakers: 0,
@@ -110,7 +111,7 @@ describe("voscript settings store", () => {
         await ensureVoScriptSettingsLoaded();
 
         const savePromise = saveVoScriptSettings({
-            privateTranscriptionBaseUrl: "https://next.internal",
+            privateTranscriptionBaseUrl: "https://next.example.test",
             privateTranscriptionApiKey: "vt-secret-key",
             privateTranscriptionMinSpeakers: 1,
             privateTranscriptionMaxSpeakers: 4,
@@ -123,7 +124,7 @@ describe("voscript settings store", () => {
         expect(getVoScriptSettingsStoreSnapshot()).toMatchObject({
             isSaving: true,
             settings: {
-                privateTranscriptionBaseUrl: "https://next.internal",
+                privateTranscriptionBaseUrl: "https://next.example.test",
                 privateTranscriptionApiKeySet: true,
                 privateTranscriptionMinSpeakers: 1,
                 privateTranscriptionMaxSpeakers: 4,
@@ -142,7 +143,7 @@ describe("voscript settings store", () => {
             hasLoaded: true,
             isSaving: false,
             settings: {
-                privateTranscriptionBaseUrl: "https://voscript.internal",
+                privateTranscriptionBaseUrl: "https://voscript.example.test",
                 privateTranscriptionApiKeySet: false,
                 privateTranscriptionMinSpeakers: 0,
                 privateTranscriptionMaxSpeakers: 0,
@@ -179,6 +180,7 @@ describe("voscript settings store", () => {
             hasLoaded: false,
             isLoading: false,
             isSaving: false,
+            loadError: "Failed to fetch VoScript settings",
             settings: {
                 privateTranscriptionBaseUrl: null,
                 privateTranscriptionApiKeySet: false,
@@ -193,7 +195,7 @@ describe("voscript settings store", () => {
 
         await expect(
             saveVoScriptSettings({
-                privateTranscriptionBaseUrl: "https://voscript.internal",
+                privateTranscriptionBaseUrl: "https://voscript.example.test",
                 privateTranscriptionApiKey: "vt-secret-key",
                 privateTranscriptionMinSpeakers: 2,
                 privateTranscriptionMaxSpeakers: 4,
@@ -205,7 +207,7 @@ describe("voscript settings store", () => {
             isLoading: false,
             isSaving: false,
             settings: {
-                privateTranscriptionBaseUrl: "https://voscript.internal",
+                privateTranscriptionBaseUrl: "https://voscript.example.test",
                 privateTranscriptionApiKeySet: true,
                 privateTranscriptionMinSpeakers: 2,
                 privateTranscriptionMaxSpeakers: 4,
@@ -217,7 +219,7 @@ describe("voscript settings store", () => {
         });
 
         await expect(ensureVoScriptSettingsLoaded()).resolves.toEqual({
-            privateTranscriptionBaseUrl: "https://voscript.internal",
+            privateTranscriptionBaseUrl: "https://voscript.example.test",
             privateTranscriptionApiKeySet: true,
             privateTranscriptionMinSpeakers: 2,
             privateTranscriptionMaxSpeakers: 4,
@@ -227,5 +229,184 @@ describe("voscript settings store", () => {
             privateTranscriptionMaxInflightJobs: 1,
         });
         expect(fetchMock).toHaveBeenCalledTimes(2);
+    });
+
+    it("clears the stored api key marker when save explicitly sends null", async () => {
+        const fetchMock = vi
+            .fn<typeof fetch>()
+            .mockResolvedValueOnce(
+                new Response(
+                    JSON.stringify({
+                        privateTranscriptionBaseUrl:
+                            "https://voscript.example.test",
+                        privateTranscriptionApiKeySet: true,
+                        privateTranscriptionMinSpeakers: 2,
+                        privateTranscriptionMaxSpeakers: 4,
+                        privateTranscriptionDenoiseModel: "none",
+                        privateTranscriptionSnrThreshold: null,
+                        privateTranscriptionNoRepeatNgramSize: 4,
+                        privateTranscriptionMaxInflightJobs: 2,
+                    }),
+                    {
+                        status: 200,
+                        headers: { "Content-Type": "application/json" },
+                    },
+                ),
+            )
+            .mockResolvedValueOnce(new Response(null, { status: 200 }));
+        vi.stubGlobal("fetch", fetchMock);
+
+        await ensureVoScriptSettingsLoaded();
+        await expect(
+            saveVoScriptSettings({
+                privateTranscriptionApiKey: null,
+                privateTranscriptionBaseUrl: null,
+            }),
+        ).resolves.toBeUndefined();
+
+        expect(fetchMock).toHaveBeenLastCalledWith(
+            "/api/settings/voscript",
+            expect.objectContaining({
+                body: JSON.stringify({
+                    privateTranscriptionApiKey: null,
+                    privateTranscriptionBaseUrl: null,
+                }),
+                method: "PUT",
+            }),
+        );
+        expect(getVoScriptSettingsStoreSnapshot()).toMatchObject({
+            hasLoaded: true,
+            isSaving: false,
+            settings: {
+                privateTranscriptionApiKeySet: false,
+                privateTranscriptionBaseUrl: null,
+            },
+        });
+    });
+
+    it("saves connection updates without overwriting runtime params", async () => {
+        const fetchMock = vi
+            .fn<typeof fetch>()
+            .mockResolvedValueOnce(
+                new Response(
+                    JSON.stringify({
+                        privateTranscriptionBaseUrl:
+                            "https://voscript.example.test",
+                        privateTranscriptionApiKeySet: false,
+                        privateTranscriptionMinSpeakers: 2,
+                        privateTranscriptionMaxSpeakers: 4,
+                        privateTranscriptionDenoiseModel: "deepfilternet",
+                        privateTranscriptionSnrThreshold: 9.5,
+                        privateTranscriptionNoRepeatNgramSize: 4,
+                        privateTranscriptionMaxInflightJobs: 3,
+                    }),
+                    {
+                        status: 200,
+                        headers: { "Content-Type": "application/json" },
+                    },
+                ),
+            )
+            .mockResolvedValueOnce(new Response(null, { status: 200 }));
+        vi.stubGlobal("fetch", fetchMock);
+
+        await ensureVoScriptSettingsLoaded();
+        await expect(
+            saveVoScriptSettings({
+                privateTranscriptionBaseUrl: "https://next.example.test",
+                privateTranscriptionApiKey: "vt-secret-key",
+            }),
+        ).resolves.toBeUndefined();
+
+        expect(fetchMock).toHaveBeenLastCalledWith(
+            "/api/settings/voscript",
+            expect.objectContaining({
+                body: JSON.stringify({
+                    privateTranscriptionBaseUrl: "https://next.example.test",
+                    privateTranscriptionApiKey: "vt-secret-key",
+                }),
+                method: "PUT",
+            }),
+        );
+        expect(getVoScriptSettingsStoreSnapshot()).toMatchObject({
+            hasLoaded: true,
+            isSaving: false,
+            settings: {
+                privateTranscriptionBaseUrl: "https://next.example.test",
+                privateTranscriptionApiKeySet: true,
+                privateTranscriptionMinSpeakers: 2,
+                privateTranscriptionMaxSpeakers: 4,
+                privateTranscriptionDenoiseModel: "deepfilternet",
+                privateTranscriptionSnrThreshold: 9.5,
+                privateTranscriptionNoRepeatNgramSize: 4,
+                privateTranscriptionMaxInflightJobs: 3,
+            },
+        });
+    });
+
+    it("saves runtime params without changing connection fields or api key marker", async () => {
+        const fetchMock = vi
+            .fn<typeof fetch>()
+            .mockResolvedValueOnce(
+                new Response(
+                    JSON.stringify({
+                        privateTranscriptionBaseUrl:
+                            "https://voscript.example.test",
+                        privateTranscriptionApiKeySet: true,
+                        privateTranscriptionMinSpeakers: 1,
+                        privateTranscriptionMaxSpeakers: 2,
+                        privateTranscriptionDenoiseModel: "none",
+                        privateTranscriptionSnrThreshold: null,
+                        privateTranscriptionNoRepeatNgramSize: 0,
+                        privateTranscriptionMaxInflightJobs: 1,
+                    }),
+                    {
+                        status: 200,
+                        headers: { "Content-Type": "application/json" },
+                    },
+                ),
+            )
+            .mockResolvedValueOnce(new Response(null, { status: 200 }));
+        vi.stubGlobal("fetch", fetchMock);
+
+        await ensureVoScriptSettingsLoaded();
+        await expect(
+            saveVoScriptSettings({
+                privateTranscriptionMinSpeakers: 2,
+                privateTranscriptionMaxSpeakers: 5,
+                privateTranscriptionDenoiseModel: "noisereduce",
+                privateTranscriptionSnrThreshold: 11.5,
+                privateTranscriptionNoRepeatNgramSize: 4,
+                privateTranscriptionMaxInflightJobs: 3,
+            }),
+        ).resolves.toBeUndefined();
+
+        expect(fetchMock).toHaveBeenLastCalledWith(
+            "/api/settings/voscript",
+            expect.objectContaining({
+                body: JSON.stringify({
+                    privateTranscriptionMinSpeakers: 2,
+                    privateTranscriptionMaxSpeakers: 5,
+                    privateTranscriptionDenoiseModel: "noisereduce",
+                    privateTranscriptionSnrThreshold: 11.5,
+                    privateTranscriptionNoRepeatNgramSize: 4,
+                    privateTranscriptionMaxInflightJobs: 3,
+                }),
+                method: "PUT",
+            }),
+        );
+        expect(getVoScriptSettingsStoreSnapshot()).toMatchObject({
+            hasLoaded: true,
+            isSaving: false,
+            settings: {
+                privateTranscriptionBaseUrl: "https://voscript.example.test",
+                privateTranscriptionApiKeySet: true,
+                privateTranscriptionMinSpeakers: 2,
+                privateTranscriptionMaxSpeakers: 5,
+                privateTranscriptionDenoiseModel: "noisereduce",
+                privateTranscriptionSnrThreshold: 11.5,
+                privateTranscriptionNoRepeatNgramSize: 4,
+                privateTranscriptionMaxInflightJobs: 3,
+            },
+        });
     });
 });
