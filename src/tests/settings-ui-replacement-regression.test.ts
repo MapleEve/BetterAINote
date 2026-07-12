@@ -487,6 +487,17 @@ describe("settings SOT interaction regressions", () => {
         const i18n = readSource("lib/i18n.ts");
         const baseDialog = readSource("components/ui/dialog.tsx");
         const globals = readSource("app/globals.css");
+        for (const legacyClassName of LEGACY_SETTINGS_SHELL_CLASSNAMES) {
+            expect(dialog).not.toContain(legacyClassName);
+        }
+        expectNoDataSotDrivenTailwindSelectors(dialog);
+        for (const selector of [
+            ...REMOVED_SETTINGS_NAV_GLOBAL_REPAINT_SELECTORS,
+            ...REMOVED_SETTINGS_DEAD_TENANT_GLOBAL_SELECTORS,
+        ]) {
+            expect(globals).not.toContain(selector);
+            expect(collectExactCssRuleBlocks(globals, selector)).toEqual([]);
+        }
         const headerDisplaySetup = dialog.match(
             /const settingsUserName[\s\S]*?const isSettingsBusy/,
         )?.[0];
@@ -1212,64 +1223,27 @@ describe("settings SOT interaction regressions", () => {
             'import { useDataSourcesSettings } from "@/features/data-sources/use-data-sources-settings";',
         );
         expect(dataSources).toContain("useDataSourcesSettings(language)");
-        expect(dataSources).toContain("data-sot-load-state");
-        expect(dataSources).toContain(
-            'data-sot-surface="settings-data-sources"',
-        );
-        expect(dataSources).toContain('data-sot-layout="three-pane"');
+        expect(dataSources).toContain("aria-busy={isLoading}");
+        expect(dataSources).not.toContain("data-sot-");
+        expect(dataSources).not.toContain("data-slot=");
         expect(dataSources).toContain(
             'import {\n    Empty,\n    EmptyDescription,\n    EmptyHeader,\n    EmptyTitle,\n} from "@/components/ui/empty";',
         );
-        expect(dataSources).toContain('data-sot-panel="settings-empty-hint"');
-        expect(dataSources).toContain('data-sot-section="data-sources"');
-        expect(dataSources).toContain('data-sot-state="loading"');
-        expect(dataSources).toContain('data-sot-state="advanced"');
-        expect(dataSources).toContain('data-sot-state="empty"');
-        expect(dataSources).toContain('data-sot-part="settings-empty-title"');
+        expect(dataSources).toContain("<EmptyHeader>");
+        expect(dataSources).toContain("<EmptyTitle>");
+        expect(dataSources).toContain("<EmptyDescription");
         expect(dataSources).toContain(
-            'data-sot-part="settings-empty-description"',
-        );
-        const settingsEmptyHints = collectElementSlices(
-            dataSources,
-            'data-sot-panel="settings-empty-hint"',
-            "Empty",
-        );
-        expect(settingsEmptyHints).toHaveLength(3);
-        for (const state of ["loading", "advanced", "empty"]) {
-            const emptyHint = settingsEmptyHints.find((slice) =>
-                slice.includes(`data-sot-state="${state}"`),
-            );
-            expect(emptyHint).toBeDefined();
-            const emptyHintSlice = emptyHint ?? "";
-            expect(emptyHintSlice).toContain("<Empty");
-            expect(emptyHintSlice).toContain('className="mt-4 flex-none"');
-            expect(emptyHintSlice).toContain(
-                'data-sot-panel="settings-empty-hint"',
-            );
-            expect(emptyHintSlice).toContain('data-sot-section="data-sources"');
-            expect(emptyHintSlice).toContain("<EmptyHeader>");
-            expect(emptyHintSlice).toContain(
-                '<EmptyTitle data-sot-part="settings-empty-title">',
-            );
-            expect(emptyHintSlice).toContain(
-                '<EmptyDescription data-sot-part="settings-empty-description">',
-            );
-            expect(emptyHintSlice).not.toContain("<div");
-        }
-        expect(settingsEmptyHints.join("\n")).toContain(
             '{isZh ? "正在读取来源" : "Loading sources"}',
         );
-        expect(settingsEmptyHints.join("\n")).toContain(
+        expect(dataSources).toContain(
             '? "请稍候，正在读取已保存的数据源状态。"',
         );
-        expect(settingsEmptyHints.join("\n")).toContain('? "高级选项（可选）"');
-        expect(settingsEmptyHints.join("\n")).toContain(
-            '? "仅在来源要求额外组织信息时填写。"',
-        );
-        expect(settingsEmptyHints.join("\n")).toContain(
+        expect(dataSources).toContain('? "高级选项（可选）"');
+        expect(dataSources).toContain('? "仅在来源要求额外组织信息时填写。"');
+        expect(dataSources).toContain(
             '{isZh ? "没有可用数据源" : "No data sources"}',
         );
-        expect(settingsEmptyHints.join("\n")).toContain(
+        expect(dataSources).toContain(
             '? "请稍后重试，或检查服务端数据源接口。"',
         );
         const sourceProviderFieldsListClass =
@@ -1278,7 +1252,7 @@ describe("settings SOT interaction regressions", () => {
             )?.[1] ?? "";
         const sourceProviderFieldsWrapper =
             dataSources.match(
-                /<FieldGroup\b(?=[^>]*data-sot-list="source-fields")(?=[^>]*data-sot-panel="source-provider-fields")[^>]*>/,
+                /<FieldGroup\s+className=\{SOURCE_PROVIDER_FIELDS_LIST_CLASS\}\s+unstyled/,
             )?.[0] ?? "";
         expect(sourceProviderFieldsListClass.split(/\s+/)).toEqual(
             expect.arrayContaining(["flex", "flex-col", "gap-0"]),
@@ -1288,12 +1262,6 @@ describe("settings SOT interaction regressions", () => {
             "className={SOURCE_PROVIDER_FIELDS_LIST_CLASS}",
         );
         expect(sourceProviderFieldsWrapper).toContain("unstyled");
-        expect(sourceProviderFieldsWrapper).toContain(
-            'data-sot-list="source-fields"',
-        );
-        expect(sourceProviderFieldsWrapper).toContain(
-            'data-sot-panel="source-provider-fields"',
-        );
         expect(dataSources).toContain("SOURCE_PROVIDER_DETAIL_FIELD_CLASS");
         expect(dataSources).toContain('variant="sourceProviderDetail"');
         expect(globals).not.toContain(
@@ -1317,17 +1285,23 @@ describe("settings SOT interaction regressions", () => {
         expect(dataSources).not.toContain('className="eh-h"');
         expect(dataSources).not.toContain('className="ds-fields"');
         const providersTitle = dataSources.match(
-            /<div[\s\S]*?data-sot-part="source-providers-title"[\s\S]*?<\/div>/,
+            /<h2\s+className=\{SOURCE_PROVIDERS_TITLE_CLASS\}>[\s\S]*?<\/h2>/,
         )?.[0];
         expect(providersTitle).toContain('{isZh ? "来源" : "Data Sources"}');
         expect(providersTitle).not.toContain('"数据源"');
-        expect(content).toContain('data-sot-control="settings-save"');
-        expect(dataSources).toContain("data-sot-panel");
-        expect(dataSources).toContain("data-sot-provider=");
-        expect(dataSources).toContain("data-sot-state");
-        expect(dataSources).toContain("data-sot-status");
-        expect(dataSources).toContain("data-sot-action-state");
-        expect(dataSources).toContain("data-sot-interaction-disabled");
+        expect(content).toContain("onClick={onSave}");
+        expect(content).toContain(
+            'aria-describedby={saveState === "idle" ? undefined : statusId}',
+        );
+        expect(dataSources).not.toContain("data-sot-");
+        expect(dataSources).toContain(
+            "aria-controls={SOURCE_PROVIDER_DETAIL_ID}",
+        );
+        expect(dataSources).toContain("aria-pressed={isSelected}");
+        expect(dataSources).toContain("disabled={interactionDisabled}");
+        expect(dataSources).toContain(
+            "aria-busy={isSourceActionStateBusy(actionState)}",
+        );
         expect(dataSources).toContain("ProviderActionMessage");
         expect(dataSources).toContain('"testing"');
         expect(dataSources).toContain('"test-success"');
@@ -1342,10 +1316,9 @@ describe("settings SOT interaction regressions", () => {
         expect(dataSources).toContain('"expired"');
         expect(dataSources).toContain("useSettingsSectionBusy");
         expect(dataSources).toContain("isDataSourcesBusy");
-        expect(dataSources).toContain('data-sot-list="source-auth-modes"');
         const sourceAuthModeControl = collectElementSlices(
             dataSources,
-            'data-sot-list="source-auth-modes"',
+            'type="single"',
             "ToggleGroup",
         )[0];
         expect(dataSources).toContain("<ToggleGroup");
@@ -1373,16 +1346,11 @@ describe("settings SOT interaction regressions", () => {
         expect(sourceAuthModeControl).not.toContain('variant="secondary"');
         expect(sourceAuthModeControl).not.toContain('size="lg"');
         expect(sourceAuthModeControl).toContain(
-            'data-sot-control="source-auth-mode"',
+            "disabled={interactionDisabled}",
         );
-        expect(dataSources).toContain("data-sot-auth-mode={mode}");
-        expect(dataSources).toContain("data-sot-state={");
-        expect(dataSources).toContain('data-sot-part="source-auth-mode-title"');
-        expect(dataSources).toContain(
-            'data-sot-part="source-auth-mode-description"',
+        expect(sourceAuthModeControl).toContain(
+            "value={selectedSource.authMode}",
         );
-        expect(dataSources).toContain('data-sot-badge="source-auth-mode"');
-        expect(dataSources).toMatch(/data-sot-tone=\{\s*modeBadge\.tone\s*\}/);
         expect(dataSources).toContain("{modeBadge.label}");
         expect(dataSources).toContain('tone: "recommended"');
         expect(dataSources).toContain('tone: "personal"');
@@ -1395,11 +1363,10 @@ describe("settings SOT interaction regressions", () => {
             )?.[0] ?? "";
         const [sourceAuthModeBadge] = collectElementSlices(
             dataSources,
-            'data-sot-badge="source-auth-mode"',
+            "{modeBadge.label}",
             "Badge",
         );
         expect(sourceAuthModeBadge).toContain("<Badge");
-        expect(sourceAuthModeBadge).toContain("data-sot-tone=");
         expect(sourceAuthModeBadge).toContain("modeBadge.tone");
         expect(sourceAuthModeBadge).toContain("{modeBadge.label}");
         expect(sourceAuthModeBadge).not.toContain(
@@ -1413,7 +1380,6 @@ describe("settings SOT interaction regressions", () => {
         expect(dataSources).toContain(
             "SETTINGS_DATA_SOURCE_PROVIDER_STORAGE_KEY",
         );
-        expect(dataSources).toContain('data-sot-part="source-provider-mark"');
         expect(dataSources).toContain("getSourceProviderSettingsLabel");
         expect(dataSources).toContain("handleTestSource");
         expect(dataSources).toContain("testSourceSettings(source)");
@@ -1428,15 +1394,10 @@ describe("settings SOT interaction regressions", () => {
         expect(dataSources).toContain("Switch");
         expect(dataSources).toContain("onCheckedChange");
         expect(dataSources).toContain("enabled: checked");
-        expect(dataSources).toContain('data-sot-part="source-provider-header"');
-        expect(dataSources).toContain('data-sot-part="source-provider-title"');
-        expect(dataSources).toContain(
-            'data-sot-part="source-provider-subtitle"',
-        );
-        expect(dataSources).toContain(
-            'data-sot-surface="settings-data-sources"',
-        );
-        expect(dataSources).toContain("data-sot-status={status.state}");
+        expect(dataSources).toContain("<CardHeader");
+        expect(dataSources).toContain("<CardTitle>");
+        expect(dataSources).toContain("<CardDescription>");
+        expect(dataSources).toContain("<h3 id={providerDetailTitleId}>");
         expect(settingsGroup).toContain("data-sot-section-group");
         expect(settingsGroup).toContain(
             "className={SETTINGS_SECTION_GROUP_CLASS}",
@@ -1450,7 +1411,16 @@ describe("settings SOT interaction regressions", () => {
         expect(settingFieldControl).toContain("readOnly?: boolean");
         expect(settingFieldControl).toContain("readOnly={field.readOnly}");
         expect(settingFieldControl).toContain("masked?: boolean");
-        expect(settingFieldControl).toContain("data-sot-mask={field.masked");
+        expect(settingFieldControl).toContain("<FieldLabel htmlFor={fieldId}>");
+        expect(settingFieldControl).toMatch(
+            /type=\{\s*field\.sensitive\s*\?\s*"password"/,
+        );
+        expect(settingFieldControl).toContain("disabled={disabled}");
+        expect(settingFieldControl).toContain(
+            'field.masked && "tracking-widest"',
+        );
+        expect(settingFieldControl).not.toContain("data-sot-mask");
+        expect(settingFieldControl).not.toContain("data-sot-privacy-boundary");
         expect(settingFieldControl).toContain("<FieldGroup");
         expect(settingFieldControl).toContain("<Field");
         expect(settingFieldControl).toContain("<FieldContent");
@@ -1477,16 +1447,18 @@ describe("settings SOT interaction regressions", () => {
             expect(inputPrimitive).toContain(className);
         }
         expect(inputPrimitive).not.toContain("field-input");
-        expect(content).toContain('data-sot-panel="settings-save-actions"');
-        expect(dataSources).toContain('data-sot-panel="source-actions"');
-        expect(dataSources).toContain('data-sot-part="source-action-status"');
-        expect(dataSources).toContain('data-sot-control="source-test"');
-        expect(dataSources).toContain('data-sot-control="source-save"');
-        expect(dataSources).toContain('data-sot-control="source-reconnect"');
-        expect(dataSources).toContain('data-sot-control="source-disconnect"');
+        expect(content).toContain(
+            `const statusId = \`\${saveId ?? section}-save-status\`;`,
+        );
+        expect(dataSources).toContain("handleTestSource(selectedSource)");
+        expect(dataSources).toContain("handleSaveSource(selectedSource)");
+        expect(dataSources).toContain("handleReconnectSource(");
+        expect(dataSources).toContain("handleDisconnectSource(");
         expect(dataSources).toContain('"重新连接"');
         expect(dataSources).toContain('"断开连接"');
-        expect(dataSources).toContain('data-sot-panel="source-state-banner"');
+        expect(dataSources).toContain(
+            'role={tone === "err" ? "alert" : "status"}',
+        );
         expect(dataSources).toContain("getSourceProviderStatusHint");
         expect(dataSources).toContain("getSourceProviderDetailSubtitle");
         expect(dataSources).toContain("shouldShowProviderStateBanner");
@@ -1544,12 +1516,12 @@ describe("settings SOT interaction regressions", () => {
         expect(hook).not.toContain("@/db");
     });
 
-    it("keeps data-source load retry on a stable SOT control hook", () => {
+    it("keeps data-source load retry on semantic alert and button behavior", () => {
         const dataSources = readSource(
             "features/settings/components/sections/data-sources-section.tsx",
         );
         const sourceLoadError = dataSources.match(
-            /<Alert\s[^>]*data-sot-banner="source-load-error"[^>]*>[\s\S]*?<\/Alert>/,
+            /<Alert\s+variant="destructiveSoft"[\s\S]*?<\/Alert>/,
         )?.[0];
         const sourceLoadErrorOpening =
             sourceLoadError?.match(/<Alert\s[^>]*>/)?.[0];
@@ -1557,7 +1529,7 @@ describe("settings SOT interaction regressions", () => {
             /<Button[\s\S]*?<\/Button>/,
         )?.[0];
 
-        expect(sourceLoadError).toContain('data-sot-panel="source-load-error"');
+        expect(sourceLoadError).toContain('role="alert"');
         expect(sourceLoadErrorOpening).toContain('variant="destructiveSoft"');
         expect(sourceLoadErrorOpening).toContain('density="comfortable"');
         expect(sourceLoadErrorOpening).toContain(
@@ -1581,38 +1553,27 @@ describe("settings SOT interaction regressions", () => {
         );
         expect(sourceLoadError).toContain("<AlertTitle");
         expect(sourceLoadError).toContain("<AlertDescription");
-        expect(retryButton).toContain('data-sot-control="source-load-retry"');
         expect(retryButton).toContain('variant="default"');
         expect(retryButton).not.toContain('variant="settingsSourceRetry"');
         expect(retryButton).not.toContain('size="settingsSourceRetry"');
         expect(retryButton).toContain("onClick={() => void refreshSources()}");
     });
 
-    it("keeps provider enable sync switch on stable SOT hooks and state contracts", () => {
+    it("keeps provider enable sync on native switch state", () => {
         const dataSources = readSource(
             "features/settings/components/sections/data-sources-section.tsx",
         );
         const enableSwitch = dataSources.match(
-            /<Switch[\s\S]*?data-sot-control="source-enable-sync"[\s\S]*?\/>/,
+            /<Switch\s+id=\{`\$\{selectedSource\.provider\}-enabled`\}[\s\S]*?\/>/,
         )?.[0];
 
-        expect(enableSwitch).not.toContain("data-ds-enable");
-        expect(enableSwitch).toContain('data-sot-control="source-enable-sync"');
-        expect(enableSwitch).toMatch(
-            /data-sot-state=\{\s*selectedSource\.enabled\s*\?\s*"checked"\s*:\s*"unchecked"\s*\}/,
-        );
-        expect(enableSwitch).toMatch(
-            /data-sot-enabled=\{\s*selectedSource\.enabled\s*\?\s*"true"\s*:\s*"false"\s*\}/,
-        );
-        expect(enableSwitch).toMatch(
-            /data-sot-disabled=\{\s*interactionDisabled\s*\?\s*"true"\s*:\s*"false"\s*\}/,
-        );
+        expect(enableSwitch).not.toContain("data-");
         expect(enableSwitch).toContain("checked={selectedSource.enabled}");
         expect(enableSwitch).toContain("disabled={interactionDisabled}");
         expect(enableSwitch).toContain("onCheckedChange={(checked) =>");
     });
 
-    it("keeps provider tile and detail runtime hooks on SOT attributes only", () => {
+    it("links provider tiles to a labeled, busy-aware detail region", () => {
         const dataSources = readSource(
             "features/settings/components/sections/data-sources-section.tsx",
         );
@@ -1622,11 +1583,7 @@ describe("settings SOT interaction regressions", () => {
             )?.[0] ?? "";
         const detailRoot =
             dataSources.match(
-                /<section[\s\S]*?data-sot-panel="source-provider-detail"[\s\S]*?>/,
-            )?.[0] ?? "";
-        const detailHeader =
-            dataSources.match(
-                /<CardHeader[\s\S]*?data-sot-part="source-provider-header"[\s\S]*?>/,
+                /<section[\s\S]*?id=\{SOURCE_PROVIDER_DETAIL_ID\}[\s\S]*?>/,
             )?.[0] ?? "";
         const detailPanelClass =
             dataSources.match(
@@ -1640,25 +1597,20 @@ describe("settings SOT interaction regressions", () => {
         expect(dataSources).not.toMatch(
             /data-provider=|data-selected=|data-dimmed=|data-provider-detail=|data-ds-state=/,
         );
-        expect(providerTile).toContain('data-sot-control="source-provider"');
+        expect(providerTile).not.toContain("data-sot-");
         expect(providerTile).toMatch(
             /variant=\{\s*isSelected\s*\?\s*"secondary"\s*:\s*"ghost"\s*\}/,
         );
         expect(providerTile).not.toContain('variant="surfaceItem"');
         expect(providerTile).not.toContain('size="surfaceItem"');
         expect(providerTile).not.toContain("data-muted=");
-        expect(providerTile).toContain(
-            'data-sot-dimmed={isDimmed ? "true" : "false"}',
-        );
         expect(providerTile).toContain("SOURCE_PROVIDER_TILE_BUTTON_CLASS");
         expect(providerTile).not.toContain('variant="sourceProviderTile"');
         expect(providerTile).not.toContain('size="sourceProviderTile"');
         expect(providerTile).toContain("aria-pressed={isSelected}");
-        expect(providerTile).toContain("data-sot-provider={source.provider}");
         expect(providerTile).toContain(
-            'data-sot-state={isSelected ? "selected" : "idle"}',
+            "aria-controls={SOURCE_PROVIDER_DETAIL_ID}",
         );
-        expect(providerTile).toContain("data-sot-status={status.state}");
         for (const removedProviderTileSkinToken of [
             "border-[var(",
             "text-[var(",
@@ -1674,27 +1626,21 @@ describe("settings SOT interaction regressions", () => {
             );
         }
         expect(providerTile).toContain("SOURCE_PROVIDER_STATUS_BADGE_CLASS");
-        expect(providerTile).toContain("data-sot-tone={status.tone}");
         expect(providerTile).toContain(
             "variant={getProviderStatusBadgeVariant(status.tone)}",
         );
+        expect(providerTile).toContain('role="status"');
         expect(providerTile).not.toContain('size="statusPill"');
-        expect(detailRoot).toContain('data-sot-panel="source-provider-detail"');
         expect(detailRoot).toContain("className=");
         expect(detailRoot).toContain("SOURCE_PROVIDER_DETAIL_PANEL_CLASS");
         expect(detailPanelClass).toContain("px-[26px]");
         expect(detailPanelClass).toContain("py-[22px]");
         expect(detailPanelClass).not.toContain("p-6");
+        expect(detailRoot).toContain("aria-labelledby={providerDetailTitleId}");
         expect(detailRoot).toContain(
-            'data-sot-provider={selectedSource?.provider ?? "none"}',
+            "aria-busy={isSourceActionStateBusy(actionState)}",
         );
-        expect(detailRoot).toContain(
-            'data-sot-status={status?.state ?? "empty"}',
-        );
-        expect(detailHeader).toContain(
-            'data-sot-part="source-provider-header"',
-        );
-        expect(detailHeader).toContain("data-sot-state={status.state}");
+        expect(dataSources).toContain("<h3 id={providerDetailTitleId}>");
     });
 
     it("keeps provider buttons and badges on shadcn variants without local skins", () => {
@@ -1711,7 +1657,7 @@ describe("settings SOT interaction regressions", () => {
             )?.[0] ?? "";
         const providerStateBanner =
             content.match(
-                /<Alert\s[^>]*data-sot-banner="source-state"[^>]*>/,
+                /<Alert[\s\S]*?variant=\{tone === "err" \? "destructiveSoft" : "default"\}[\s\S]*?>/,
             )?.[0] ?? "";
         const providerStateBannerBlock =
             content.match(
@@ -1722,13 +1668,8 @@ describe("settings SOT interaction regressions", () => {
                 /const SETTINGS_BANNER_ICON_SLOT_CLASS[\s\S]*?;/,
             )?.[0] ?? "";
         const providerTileButton =
-            providerTile.match(
-                /<Button[\s\S]*?data-sot-control="source-provider"[\s\S]*?>/,
-            )?.[0] ?? "";
-        const sourceActionArea =
-            content.match(
-                /<footer[\s\S]*?data-sot-panel="source-actions"[\s\S]*?data-sot-part="source-disconnect-row"[\s\S]*?<\/Field>/,
-            )?.[0] ?? "";
+            providerTile.match(/<Button[\s\S]*?>/)?.[0] ?? "";
+        const sourceActionArea = content;
         const sourceActionButtonWrapper =
             content.match(
                 /function SourceActionButton[\s\S]*?function SourceActionStatusBadge/,
@@ -1758,22 +1699,22 @@ describe("settings SOT interaction regressions", () => {
             )?.[0] ?? "";
         const sourceTestAction = collectElementSlices(
             sourceActionArea,
-            'data-sot-control="source-test"',
+            'aria-busy={actionState === "testing"}',
             "SourceActionButton",
         )[0];
         const sourceSaveAction = collectElementSlices(
             sourceActionArea,
-            'data-sot-control="source-save"',
+            'aria-busy={actionState === "saving"}',
             "SourceActionButton",
         )[0];
         const sourceReconnectAction = collectElementSlices(
             sourceActionArea,
-            'data-sot-control="source-reconnect"',
+            "handleReconnectSource(",
             "SourceActionButton",
         )[0];
         const sourceDisconnectAction = collectElementSlices(
             sourceActionArea,
-            'data-sot-control="source-disconnect"',
+            "handleDisconnectSource(",
             "SourceActionButton",
         )[0];
 
@@ -1853,20 +1794,21 @@ describe("settings SOT interaction regressions", () => {
         expect(providerTile).not.toContain(
             '"size-[4px] rounded-full bg-current"',
         );
-        expect(providerTile).toContain('data-sot-part="source-provider-mark"');
-        expect(providerTile).toContain('data-sot-part="source-provider-meta"');
-        expect(providerTile).toContain("data-sot-provider-name");
-        expect(providerTile).toContain("data-sot-provider-hint");
+        expect(providerTile).not.toContain("data-sot-");
         expect(sourceActionArea).toContain("<SourceActionStatusBadge");
         expect(sourceActionArea).toContain("<SourceActionButton");
         expect(sourceTestAction).toContain('tone="neutral"');
-        expect(sourceTestAction).toContain('data-sot-action="test"');
+        expect(sourceTestAction).toContain(
+            'aria-busy={actionState === "testing"}',
+        );
         expect(sourceTestAction).toContain("<Spinner");
         expect(sourceTestAction).toContain('data-icon="inline-start"');
         expect(sourceTestAction).not.toContain("<LoaderCircle");
         expect(sourceTestAction).not.toContain('className="animate-spin"');
         expect(sourceSaveAction).toContain('tone="primary"');
-        expect(sourceSaveAction).toContain('data-sot-action="save"');
+        expect(sourceSaveAction).toContain(
+            'aria-busy={actionState === "saving"}',
+        );
         expect(sourceSaveAction).toContain("<Spinner");
         expect(sourceSaveAction).toContain('data-icon="inline-start"');
         expect(sourceSaveAction).not.toContain("<LoaderCircle");
@@ -1893,8 +1835,11 @@ describe("settings SOT interaction regressions", () => {
         expect(sourceActionStatusWrapper).not.toContain("animate-pulse");
         expect(sourceActionStatusWrapper).not.toContain("showIndicator");
         expect(content).toContain("function SourceActionStatusIndicator");
-        expect(content).toContain(
-            'data-sot-part="source-action-status-indicator"',
+        expect(sourceActionStatusWrapper).toContain(
+            'role={state.endsWith("error") ? "alert" : "status"}',
+        );
+        expect(sourceActionStatusWrapper).toContain(
+            'aria-live={state.endsWith("error") ? "assertive" : "polite"}',
         );
         expect(content).toContain("<Spinner");
         expect(content).toContain("getSourceActionStatusIcon");
@@ -1965,10 +1910,8 @@ describe("settings SOT interaction regressions", () => {
         expect(providerTile).not.toContain('size="statusPill"');
         expect(providerTile).not.toContain('"size-1 rounded-full bg-current"');
         expect(providerTile).toContain("<ProviderStatusIndicator");
-        expect(providerTile).toContain("providerStatusDot");
         expect(content).toContain('tone === "syncing"');
-        expect(content).toContain("data-sot-provider-status-dot");
-        expect(content).toContain("data-sot-provider-status-icon");
+        expect(content).not.toContain("data-sot-");
         expect(content).not.toContain("getSourceActionStatusBadgeClassName");
         expect(content).not.toContain("getSourceActionStatusDotClassName");
         expect(statusBadgeClass).not.toContain(
@@ -2074,8 +2017,19 @@ describe("settings SOT interaction regressions", () => {
             settingFieldControl.match(
                 /const sourceProviderControlClassName[\s\S]*?;/,
             )?.[0] ?? "";
-        const keyStatusBadges = [content, voscript].flatMap((source) =>
-            collectElementSlices(source, "data-sot-key-status", "Badge"),
+        const titleGenerationPanel =
+            content.match(
+                /function TitleGenerationSettingsPanel[\s\S]*?function TranscriptionSettingsPanel/,
+            )?.[0] ?? "";
+        const titleGenerationStatusBadges = collectElementSlices(
+            titleGenerationPanel,
+            'role="status"',
+            "Badge",
+        );
+        const voscriptKeyStatusBadges = collectElementSlices(
+            voscript,
+            'id="voscript-api-key-status"',
+            "Badge",
         );
 
         expect(content).toContain("SETTINGS_FIELD_ROW_CLASS");
@@ -2106,8 +2060,12 @@ describe("settings SOT interaction regressions", () => {
             "SOURCE_PROVIDER_DETAIL_FIELD_CONTROL_CLASS",
         );
         expect(dataSources).toContain("SOURCE_PROVIDER_DETAIL_INPUT_CLASS");
-        expect(dataSources).toContain('data-sot-panel="source-actions"');
-        expect(content).toContain('data-sot-panel="settings-save-actions"');
+        expect(dataSources).toContain(
+            '<footer className="flex items-center justify-start gap-2">',
+        );
+        expect(content).toContain(
+            "<div className={SETTINGS_SAVE_ACTIONS_CLASS}>",
+        );
         expect(content).toContain(
             'import { Spinner } from "@/components/ui/spinner";',
         );
@@ -2210,9 +2168,17 @@ describe("settings SOT interaction regressions", () => {
         expect(inputClassNameBlock).toContain("sourceProviderControlClassName");
         expect(inputClassNameBlock).toContain("field.masked &&");
         expect(inputClassNameBlock).toContain("field.className");
-        expect(settingFieldControl).toContain(
-            'data-sot-mask={field.masked ? "true" : undefined}',
+        expect(settingFieldControl).toContain("<FieldLabel htmlFor={fieldId}>");
+        expect(settingFieldControl).toMatch(
+            /type=\{\s*field\.sensitive\s*\?\s*"password"/,
         );
+        expect(settingFieldControl).toContain("disabled={disabled}");
+        expect(settingFieldControl).toContain("readOnly={field.readOnly}");
+        expect(settingFieldControl).toContain(
+            'field.masked && "tracking-widest"',
+        );
+        expect(settingFieldControl).not.toContain("data-sot-mask");
+        expect(settingFieldControl).not.toContain("data-sot-privacy-boundary");
         expect(settingFieldControl).toContain("className={inputClassName}");
         expect(settingFieldControl).toContain("fieldContentClassName");
         expect(settingFieldControl).toContain("fieldControlClassName");
@@ -2267,13 +2233,19 @@ describe("settings SOT interaction regressions", () => {
         expect(content).not.toContain("SETTINGS_SAVE_STATUS_BADGE_CLASS");
         expect(content).toContain("const statusVariant: BadgeVariant =");
         expect(content).toContain("const statusClassName = cn(");
-        expect(content).toContain('saveState === "idle" && "hidden"');
+        expect(saveStatus).toContain('const isIdle = saveState === "idle";');
+        expect(saveStatus).toContain(
+            'const statusClassName = cn("gap-1.5", isIdle && "hidden");',
+        );
         expect(content).not.toContain("const indicatorClassName = cn(");
         expect(saveStatus).toContain("<Spinner");
         expect(saveStatus).toContain("<CheckCircle2");
         expect(saveStatus).toContain("<XCircle");
+        expect(saveStatus).toContain("id={statusId}");
+        expect(saveStatus).toContain("role={statusRole}");
+        expect(saveStatus).toContain("aria-live={statusLive}");
         expect(saveStatus).toContain(
-            'data-sot-part="settings-save-status-indicator"',
+            'aria-atomic={isIdle ? undefined : "true"}',
         );
         expect(saveStatus).not.toContain("animate-pulse");
         expect(saveStatus).not.toContain("rounded-full bg-current");
@@ -2305,19 +2277,43 @@ describe("settings SOT interaction regressions", () => {
             expect(source).not.toContain('data-state="valid"');
             expect(source).not.toContain('data-state="invalid"');
         }
-        expect(keyStatusBadges).toHaveLength(2);
-        for (const keyStatusBadge of keyStatusBadges) {
+        expect(titleGenerationStatusBadges).toHaveLength(1);
+        expect(titleGenerationStatusBadges[0]).toContain("<Badge");
+        expect(titleGenerationStatusBadges[0]).toContain('variant="secondary"');
+        expect(titleGenerationStatusBadges[0]).toContain('role="status"');
+        expect(titleGenerationStatusBadges[0]).toContain("<CheckCircle2");
+        expect(titleGenerationStatusBadges[0]).toContain('aria-hidden="true"');
+        expect(titleGenerationStatusBadges[0]).toContain(
+            'data-icon="inline-start"',
+        );
+        expect(titleGenerationStatusBadges[0]).toContain(
+            '{isZh ? "已存储" : "Stored"}',
+        );
+        expect(titleGenerationStatusBadges[0]).not.toContain("data-sot-");
+        expect(voscriptKeyStatusBadges).toHaveLength(1);
+        for (const keyStatusBadge of voscriptKeyStatusBadges) {
             expect(keyStatusBadge).toContain("<Badge");
+            expect(keyStatusBadge).toContain('id="voscript-api-key-status"');
             expect(keyStatusBadge).toContain('variant="secondary"');
-            expect(keyStatusBadge).toContain("data-sot-key-status");
-            expect(keyStatusBadge).toContain('data-sot-state="stored"');
+            expect(keyStatusBadge).toContain('role="status"');
+            expect(keyStatusBadge).toContain('aria-live="polite"');
             expect(keyStatusBadge).toContain("<CheckCircle2");
             expect(keyStatusBadge).toContain('aria-hidden="true"');
             expect(keyStatusBadge).toContain('data-icon="inline-start"');
             expect(keyStatusBadge).toContain('{isZh ? "已存储" : "Stored"}');
+            expect(keyStatusBadge).not.toContain("data-sot-");
             expect(keyStatusBadge).not.toContain("SETTINGS_KEY_STATUS_CLASS");
             expect(keyStatusBadge).not.toContain('className="text-primary"');
         }
+        expect(voscript).toContain('id="voscript-api-key"');
+        expect(voscript).toContain('type="password"');
+        expect(voscript).toContain("value={apiKeyDraft}");
+        expect(voscript).not.toContain(
+            "value={draft.privateTranscriptionApiKey}",
+        );
+        expect(voscript).toContain('"voscript-api-key-status"');
+        expect(voscript).not.toContain("data-sot-");
+        expect(voscript).not.toContain("data-slot=");
         for (const selector of REMOVED_SETTINGS_SHORTCUTS_KEY_STATUS_VISUAL_SELECTORS) {
             expect(collectExactCssRuleBlocks(globals, selector)).toEqual([]);
         }
@@ -2379,9 +2375,9 @@ describe("settings SOT interaction regressions", () => {
         expect(dataSources).not.toContain(
             "SOURCE_PROVIDER_DETAIL_SWITCH_CLASS",
         );
-        expect(dataSources).toContain('data-sot-control="source-auto-update"');
-        expect(dataSources).toContain('data-sot-control="source-enable-sync"');
-        expect(dataSources).toContain("data-sot-state=");
+        expect(dataSources).toContain("checked={selectedSource.enabled}");
+        expect(dataSources).toContain("disabled={interactionDisabled}");
+        expect(dataSources).not.toContain("data-sot-");
         expect(inputPrimitive).not.toContain("data-sot-mask");
         expect(inputPrimitive).not.toContain("sourceProviderDetail");
         expect(switchPrimitive).not.toContain("sourceProviderDetail");
@@ -2409,9 +2405,8 @@ describe("settings SOT interaction regressions", () => {
 
         expect(dataSourcesPanel).toContain("自动更新");
         expect(dataSourcesPanel).toContain("每 15 分钟读取一次新录音");
-        expect(dataSourcesPanel).toContain(
-            'data-sot-control="source-auto-update"',
-        );
+        expect(dataSourcesPanel).not.toContain("data-sot-");
+        expect(dataSourcesPanel).not.toContain("data-slot=");
         expect(dataSourcesPanel).toContain("标题更新回来源");
         expect(dataSourcesPanel).toContain("关闭后不再从此来源读取任何新录音");
         expect(dataSourcesPanel).toContain('label: "base URL"');
@@ -2426,33 +2421,17 @@ describe("settings SOT interaction regressions", () => {
         expect(dataSourcesPanel).toContain(
             'selectedSource.provider !== "dingtalk-a1"',
         );
+        expect(dataSourcesPanel).toContain("checked={selectedSource.enabled}");
+        expect(dataSourcesPanel).toContain("disabled={interactionDisabled}");
+        expect(dataSourcesPanel).toContain("handleTestSource(selectedSource)");
+        expect(dataSourcesPanel).toContain("handleSaveSource(selectedSource)");
+        expect(dataSourcesPanel).toContain("handleReconnectSource(");
+        expect(dataSourcesPanel).toContain("handleDisconnectSource(");
         expect(dataSourcesPanel).toContain(
-            'data-sot-control="source-enable-sync"',
-        );
-        expect(dataSourcesPanel).not.toContain("data-ds-enable");
-        expect(dataSourcesPanel).toContain('data-sot-panel="source-actions"');
-        expect(dataSourcesPanel).toContain(
-            "data-sot-provider={selectedSource.provider}",
-        );
-        expect(dataSourcesPanel).toContain("data-sot-state={sourceSaveState}");
-        expect(dataSourcesPanel).toContain(
-            'data-sot-part="source-action-status"',
-        );
-        expect(dataSourcesPanel).toContain('data-sot-control="source-test"');
-        expect(dataSourcesPanel).toContain('data-sot-action="test"');
-        expect(dataSourcesPanel).toContain('data-sot-control="source-save"');
-        expect(dataSourcesPanel).toContain('data-sot-action="save"');
-        expect(dataSourcesPanel).not.toContain('data-save-actions=""');
-        expect(dataSourcesPanel).not.toMatch(
-            /data-save-id=\{`ds-\$\{selectedSource\.provider\}`\}/,
-        );
-        expect(dataSourcesPanel).not.toContain('data-save-test=""');
-        expect(dataSourcesPanel).not.toContain('data-save-action=""');
-        expect(dataSourcesPanel).toContain(
-            'data-sot-control="source-reconnect"',
+            'aria-busy={actionState === "testing"}',
         );
         expect(dataSourcesPanel).toContain(
-            'data-sot-control="source-disconnect"',
+            'aria-busy={actionState === "saving"}',
         );
         expect(dataSourcesPanel).toContain('"重新连接"');
         expect(dataSourcesPanel).toContain('"断开连接"');
@@ -2461,9 +2440,7 @@ describe("settings SOT interaction regressions", () => {
             expect(dataSourcesPanel).not.toContain(bannedTerm);
         }
 
-        const authModeIndex = dataSourcesPanel.indexOf(
-            'data-sot-list="source-auth-modes"',
-        );
+        const authModeIndex = dataSourcesPanel.indexOf("<ToggleGroup");
         const serviceAddressIndex = dataSourcesPanel.indexOf(
             "displayedServiceAddress &&",
         );
@@ -2477,16 +2454,14 @@ describe("settings SOT interaction regressions", () => {
             "titleWritebackFields.map",
         );
         const enableSyncIndex = dataSourcesPanel.indexOf(
-            'data-sot-control="source-enable-sync"',
+            "htmlFor={" + "`$" + "{selectedSource.provider}-enabled`}",
         );
-        const footerIndex = dataSourcesPanel.indexOf(
-            'data-sot-control="source-test"',
-        );
+        const footerIndex = dataSourcesPanel.indexOf("<footer");
         const reconnectRowIndex = dataSourcesPanel.indexOf(
-            'data-sot-part="source-reconnect-row"',
+            'aria-busy={\n                                            actionState === "reconnecting"',
         );
         const disconnectRowIndex = dataSourcesPanel.indexOf(
-            'data-sot-part="source-disconnect-row"',
+            'aria-busy={\n                                            actionState === "disconnecting"',
         );
 
         expect(authModeIndex).toBeGreaterThanOrEqual(0);
@@ -2500,92 +2475,23 @@ describe("settings SOT interaction regressions", () => {
         expect(reconnectRowIndex).toBeGreaterThan(footerIndex);
         expect(disconnectRowIndex).toBeGreaterThan(reconnectRowIndex);
 
-        const reconnectRow =
-            dataSourcesPanel.match(
-                /<Field\s+data-sot-part="source-reconnect-row"[\s\S]*?<\/Field>/,
-            )?.[0] ?? "";
-        const disconnectRow =
-            dataSourcesPanel.match(
-                /<Field\s+data-sot-part="source-disconnect-row"[\s\S]*?<\/Field>/,
-            )?.[0] ?? "";
-
-        expect(reconnectRow).toContain('orientation="horizontal"');
-        expect(reconnectRow).toContain("<FieldContent");
-        expect(reconnectRow).toContain("<FieldTitle");
-        expect(reconnectRow).toContain("<FieldDescription");
-        expect(reconnectRow).toContain('"重新连接"');
-        expect(reconnectRow).toContain('data-sot-control="source-reconnect"');
-        expect(reconnectRow).toMatch(
-            /handleReconnectSource\(\s*selectedSource,\s*\)/,
-        );
-        expect(reconnectRow).toMatch(
-            /aria-busy=\{\s*actionState === "reconnecting"\s*\}/,
-        );
-        expect(disconnectRow).toContain('orientation="horizontal"');
-        expect(disconnectRow).toContain("<FieldContent");
-        expect(disconnectRow).toContain("<FieldTitle");
-        expect(disconnectRow).toContain("<FieldDescription");
-        expect(disconnectRow).toContain('"断开连接"');
-        expect(disconnectRow).toContain('data-sot-control="source-disconnect"');
-        expect(disconnectRow).toMatch(
-            /handleDisconnectSource\(\s*selectedSource,\s*\)/,
-        );
-        expect(disconnectRow).toMatch(
-            /aria-busy=\{\s*actionState === "disconnecting"\s*\}/,
-        );
-
         const actionFooter =
-            dataSourcesPanel.match(
-                /<footer[\s\S]*?data-sot-panel="source-actions"[\s\S]*?<\/footer>/,
-            )?.[0] ?? "";
+            dataSourcesPanel.match(/<footer[\s\S]*?<\/footer>/)?.[0] ?? "";
         const providerDetail =
             dataSourcesPanel.match(
-                /<section[\s\S]*?data-sot-panel="source-provider-detail"[\s\S]*?<\/section>/,
+                /<section[\s\S]*?id=\{SOURCE_PROVIDER_DETAIL_ID\}[\s\S]*?<\/section>/,
             )?.[0] ?? "";
-        const providerFieldsIndex = providerDetail.indexOf(
-            'data-sot-panel="source-provider-fields"',
-        );
-        const firstProviderDividerIndex = providerDetail.indexOf(
-            "data-sot-section-divider",
-            providerFieldsIndex,
-        );
-        const autoUpdateDetailIndex = providerDetail.indexOf(
-            'data-sot-part="source-auto-update-row"',
-        );
-        const enableSyncDetailIndex = providerDetail.indexOf(
-            'data-sot-control="source-enable-sync"',
-        );
-        const actionClusterDividerIndex = providerDetail.indexOf(
-            "data-sot-section-divider",
-            enableSyncDetailIndex,
-        );
-        const sourceActionsDetailIndex = providerDetail.indexOf(
-            'data-sot-panel="source-actions"',
-        );
         const providerDetailDividers = [
             ...providerDetail.matchAll(
-                /<Separator[\s\S]*?data-sot-section-divider[\s\S]*?\/>/g,
+                /<Separator[\s\S]*?className=\{[\s\S]*?SOURCE_PROVIDER_[A-Z_]+_DIVIDER_CLASS[\s\S]*?\/>/g,
             ),
         ].map((match) => match[0]);
-        const actionOrder = [
-            ...actionFooter.matchAll(
-                /data-sot-control="(source-test|source-save|source-reconnect|source-disconnect)"/g,
-            ),
-        ].map((match) => match[1]);
-        const statusIndex = actionFooter.indexOf(
-            'data-sot-part="source-action-status"',
-        );
-        const sourceTestIndex = actionFooter.indexOf(
-            'data-sot-control="source-test"',
-        );
-        const sourceSaveIndex = actionFooter.indexOf(
-            'data-sot-control="source-save"',
-        );
-
         expect(providerDetail).toContain(
-            'data-sot-panel="source-provider-detail"',
+            "aria-labelledby={providerDetailTitleId}",
         );
-        expect(providerDetail).not.toContain("data-sot-section-group");
+        expect(providerDetail).toContain(
+            "aria-busy={isSourceActionStateBusy(actionState)}",
+        );
         expect(dataSourcesPanel).toContain(
             "const SOURCE_PROVIDER_SECTION_DIVIDER_CLASS =",
         );
@@ -2613,55 +2519,25 @@ describe("settings SOT interaction regressions", () => {
                 ),
             ),
         ).toBe(true);
-        expect(providerFieldsIndex).toBeGreaterThanOrEqual(0);
-        expect(firstProviderDividerIndex).toBeGreaterThan(providerFieldsIndex);
-        expect(autoUpdateDetailIndex).toBeGreaterThan(
-            firstProviderDividerIndex,
-        );
-        expect(enableSyncDetailIndex).toBeGreaterThan(autoUpdateDetailIndex);
-        expect(actionClusterDividerIndex).toBeGreaterThan(
-            enableSyncDetailIndex,
-        );
-        expect(sourceActionsDetailIndex).toBeGreaterThan(
-            actionClusterDividerIndex,
-        );
-        expect(actionFooter).toContain('data-sot-panel="source-actions"');
-        expect(actionFooter).toContain(
-            "data-sot-provider={selectedSource.provider}",
-        );
-        expect(actionFooter).toContain("data-sot-state={sourceSaveState}");
         expect(actionFooter).toContain("actionMessage?.title ? (");
         expect(actionFooter).toContain("{actionMessage.title}");
-        expect(statusIndex).toBeGreaterThanOrEqual(0);
-        expect(sourceTestIndex).toBeGreaterThan(statusIndex);
-        expect(sourceSaveIndex).toBeGreaterThan(sourceTestIndex);
         const sourceActionStatus = collectElementSlices(
             actionFooter,
-            'data-sot-part="source-action-status"',
+            "state={actionMessage.state}",
             "SourceActionStatusBadge",
         )[0];
         expect(sourceActionStatus).toContain("<SourceActionStatusBadge");
-        expect(sourceActionStatus).toContain(
-            "data-sot-state={actionMessage.state}",
-        );
         expect(sourceActionStatus).toContain("state={actionMessage.state}");
-        expect(sourceActionStatus).not.toContain(
-            "data-sot-state={sourceSaveState}",
-        );
         expect(sourceActionStatus).not.toContain("sourceActionStatus");
         expect(sourceActionStatus).not.toContain('variant="secondary"');
         expect(sourceActionStatus).not.toContain("className=");
         expect(sourceActionStatus).not.toContain("showIndicator");
-        expect(dataSourcesPanel).toContain(
-            'data-sot-part="source-action-status-indicator"',
-        );
         expect(actionFooter).not.toContain("data-save-actions");
         expect(actionFooter).not.toContain("data-save-id");
         expect(actionFooter).not.toContain("data-save-state");
         expect(actionFooter).not.toContain("data-save-status");
         expect(actionFooter).not.toContain("data-save-test");
         expect(actionFooter).not.toContain("data-save-action");
-        expect(actionOrder).toEqual(["source-test", "source-save"]);
 
         const stateBannerBlock =
             dataSourcesPanel.match(
@@ -2751,7 +2627,7 @@ describe("settings SOT interaction regressions", () => {
         )?.[0];
         const settingsSaveAction = collectElementSlices(
             saveActions ?? "",
-            'data-sot-control="settings-save"',
+            "onClick={onSave}",
             "Button",
         )[0];
         const sectionTitleClass =
@@ -2781,7 +2657,15 @@ describe("settings SOT interaction regressions", () => {
             "return <VoScriptSection scrollRef={scrollRef} />;",
         );
         expect(voscriptPanel).toContain("export function VoScriptSection");
-        expect(voscriptPanel).toContain('section="voscript"');
+        expect(voscriptPanel).toContain("<SectionShell");
+        expect(voscriptPanel).toContain("busy={busy}");
+        expect(voscriptPanel).toContain(
+            'title={isZh ? "VoScript 服务" : "VoScript Service"}',
+        );
+        expect(voscriptPanel).toContain("aria-label={title}");
+        expect(voscriptPanel).toContain("aria-busy={busy}");
+        expect(voscriptPanel).not.toContain("data-sot-");
+        expect(voscriptPanel).not.toContain("data-slot=");
         for (const inlinedVoScriptToken of [
             "function VoScriptSettingsPanel",
             "function VoScriptSpeakerRows",
@@ -2803,8 +2687,12 @@ describe("settings SOT interaction regressions", () => {
         expect(content).toContain('data-sot-layout="section"');
         expect(content).toContain("data-sot-section={section}");
         expect(content).toContain("data-sot-state=");
-        expect(voscriptPanel).toContain(
-            "data-sot-availability={voscriptAvailability}",
+        expect(voscriptPanel).toContain('id="voscript-connection-status"');
+        expect(voscriptPanel).toMatch(
+            /connectionTestState === "test-error"[\s\S]*?"alert"[\s\S]*?"status"/,
+        );
+        expect(voscriptPanel).toMatch(
+            /connectionTestState === "test-error"[\s\S]*?"assertive"[\s\S]*?"polite"/,
         );
         expect(content).not.toContain('className="settings-main"');
         expect(sectionTitleClass).toContain("SETTINGS_SECTION_TITLE_CLASS");
@@ -2865,21 +2753,34 @@ describe("settings SOT interaction regressions", () => {
         expect(content).not.toContain("sm-section-title");
         expect(content).not.toContain("sm-row-name");
         expect(content).toContain("function SaveActions");
-        expect(saveStatus).toContain('data-sot-part="settings-save-status"');
+        expect(saveStatus).toContain("id={statusId}");
         expect(saveStatus).toContain("variant={statusVariant}");
         expect(saveStatus).not.toContain('variant="ghost"');
         expect(saveStatus).not.toContain("SETTINGS_SAVE_STATUS_BADGE_CLASS");
-        expect(saveStatus).toContain("data-sot-state={saveState}");
-        expect(content).toContain('data-sot-panel="settings-save-actions"');
+        expect(saveStatus).toContain("role={statusRole}");
+        expect(saveStatus).toContain("aria-live={statusLive}");
+        expect(saveStatus).toContain(
+            'aria-atomic={isIdle ? undefined : "true"}',
+        );
+        expect(saveStatus).not.toContain("data-sot-");
+        expect(saveActions).toContain(
+            "<div className={SETTINGS_SAVE_ACTIONS_CLASS}>",
+        );
         expect(saveActions).toContain(
             "className={SETTINGS_SAVE_ACTIONS_CLASS}",
         );
-        expect(content).toContain("data-sot-save-id={saveId ?? section}");
-        expect(content).toContain("data-sot-section={section}");
-        expect(content).toContain("data-sot-state={saveState}");
-        expect(content).toContain('aria-busy={saveState === "saving"}');
-        expect(content).toContain('data-sot-action="save"');
-        expect(content).toContain('data-sot-control="settings-save"');
+        expect(saveActions).toContain(
+            `const statusId = \`\${saveId ?? section}-save-status\`;`,
+        );
+        expect(saveActions).toContain("statusId={statusId}");
+        expect(saveActions).toContain("disabled={disabled}");
+        expect(saveActions).toContain('aria-busy={saveState === "saving"}');
+        expect(saveActions).toContain(
+            'aria-describedby={saveState === "idle" ? undefined : statusId}',
+        );
+        expect(saveActions).toContain("aria-label={saveButtonLabel}");
+        expect(saveActions).toContain("onClick={onSave}");
+        expect(saveActions).not.toContain("data-sot-");
         expect(saveActions).toContain('variant="default"');
         expect(saveActions).not.toContain('variant="settingsSave"');
         expect(saveActions).not.toContain('size="settingsSave"');
@@ -2887,15 +2788,9 @@ describe("settings SOT interaction regressions", () => {
         expect(settingsSaveAction).toContain('data-icon="inline-start"');
         expect(settingsSaveAction).not.toContain("<LoaderCircle");
         expect(settingsSaveAction).not.toContain('className="animate-spin"');
-        for (const directControl of [
-            "title-generation-enabled",
-            "title-generation-base-url",
-            "title-generation-model",
-            "title-generation-api-key",
-            "transcription-auto-transcribe",
-        ]) {
-            expect(content).toContain(`data-sot-control="${directControl}"`);
-        }
+        expect(content).toContain(
+            'data-sot-control="transcription-auto-transcribe"',
+        );
         for (const directControl of [
             "voscript-min-speakers",
             "voscript-max-speakers",
@@ -2905,19 +2800,59 @@ describe("settings SOT interaction regressions", () => {
             "voscript-no-repeat-ngram",
             "voscript-max-inflight-jobs",
         ]) {
-            expect(voscriptPanel).toContain(
-                `data-sot-control="${directControl}"`,
-            );
+            expect(voscriptPanel).toContain(`id="${directControl}"`);
         }
+        expect(voscriptPanel).toContain(
+            "aria-describedby={getFieldDescribedBy(",
+        );
+        expect(voscriptPanel).toContain("disabled={busy}");
         expect(content).toContain('control="transcription-language"');
         for (const selectControl of [
             "voscript-api-key-mode",
             "voscript-denoise-model",
         ]) {
-            expect(voscriptPanel).toContain(`control="${selectControl}"`);
+            expect(voscriptPanel).toContain(`id="${selectControl}"`);
         }
-        expect(titleGenerationPanel).toMatch(
-            /draft\.autoGenerateTitle\s*\?\s*"checked"\s*:\s*"unchecked"/,
+        expect(voscriptPanel).toContain("describedBy={getFieldDescribedBy(");
+        expect(titleGenerationPanel).not.toContain("data-sot-");
+        expect(titleGenerationPanel).toContain("<Switch");
+        expect(titleGenerationPanel).toContain('id="title-generation-enabled"');
+        expect(titleGenerationPanel).toContain(
+            "aria-label={\n                            isZh",
+        );
+        expect(titleGenerationPanel).toContain(
+            'isZh ? "重命名服务地址" : "Rename service URL"',
+        );
+        expect(titleGenerationPanel).toContain(
+            '? "基于逐字稿自动重命名"\n                                : "Automatically rename from transcripts"',
+        );
+        expect(titleGenerationPanel).toContain(
+            "checked={draft.autoGenerateTitle}",
+        );
+        expect(titleGenerationPanel).toContain("disabled={busy}");
+        expect(titleGenerationPanel).toContain("onCheckedChange={(checked)");
+        for (const inputId of [
+            "title-generation-base-url",
+            "title-generation-model",
+            "title-generation-api-key",
+        ]) {
+            expect(titleGenerationPanel).toContain(`id="${inputId}"`);
+        }
+        expect(titleGenerationPanel).toContain(
+            'aria-label={isZh ? "重命名模型" : "Rename model"}',
+        );
+        expect(titleGenerationPanel).toContain(': "Rename service API key"');
+        expect(titleGenerationPanel).toContain('type="password"');
+        expect(titleGenerationPanel).toContain("value={apiKeyDraft}");
+        expect(titleGenerationPanel).not.toContain(
+            "value={draft.titleGenerationApiKey}",
+        );
+        expect(titleGenerationPanel).toContain(
+            'const [apiKeyDraft, setApiKeyDraft] = useState("")',
+        );
+        expect(titleGenerationPanel).toContain('setApiKeyDraft("")');
+        expect(titleGenerationPanel).toContain(
+            '<Badge variant="secondary" role="status">',
         );
         expect(transcriptionPanel).toMatch(
             /draft\.autoTranscribe\s*\?\s*"checked"\s*:\s*"unchecked"/,
@@ -2926,20 +2861,23 @@ describe("settings SOT interaction regressions", () => {
             "draft.titleGenerationApiKeySet",
         );
         expect(voscriptPanel).toContain("draft.privateTranscriptionApiKeySet");
-        expect(content).toContain('data-sot-state="stored"');
-        expect(voscriptPanel).toContain('data-sot-state="stored"');
-        expect(voscriptPanel).toContain('data-sot-state="invalid"');
+        expect(voscriptPanel).toContain('id="voscript-api-key-status"');
+        expect(voscriptPanel).toContain('role="status"');
+        expect(voscriptPanel).toContain('aria-live="polite"');
         expect(voscriptPanel).toContain("noRepeatNgramInvalid");
         expect(voscriptPanel).toContain("minSpeakersInvalid");
         expect(voscriptPanel).toContain("maxSpeakersInvalid");
         expect(content).toContain('control="density"');
-        expect(voscriptPanel).toContain('saveId="voscript-connection"');
-        expect(voscriptPanel).toContain('data-sot-action="test"');
-        expect(voscriptPanel).toContain('data-sot-control="voscript-test"');
-        expect(voscriptPanel).toContain('saveId="voscript-params"');
+        expect(voscriptPanel).toContain(
+            'statusId="voscript-connection-save-status"',
+        );
+        expect(voscriptPanel).toContain(
+            'statusId="voscript-params-save-status"',
+        );
+        expect(voscriptPanel).toContain("saveTarget={");
         const voscriptTestAction = collectElementSlices(
             voscriptPanel,
-            'data-sot-control="voscript-test"',
+            "onClick={() => void testConnection()}",
             "Button",
         )[0];
         expect(voscriptTestAction).toContain('variant="ghost"');
@@ -2949,6 +2887,10 @@ describe("settings SOT interaction regressions", () => {
         expect(voscriptTestAction).not.toContain('size="settingsTestAction"');
         expect(voscriptTestAction).toContain("<Spinner");
         expect(voscriptTestAction).toContain('data-icon="inline-start"');
+        expect(voscriptTestAction).toContain("aria-busy={isTestingConnection}");
+        expect(voscriptTestAction).toContain("aria-describedby={");
+        expect(voscriptTestAction).toContain("aria-label={");
+        expect(voscriptTestAction).toContain("disabled={busy}");
         expect(voscriptTestAction).not.toContain("<LoaderCircle");
         expect(voscriptTestAction).not.toContain('className="animate-spin"');
         for (const legacySaveHook of [
@@ -2962,16 +2904,13 @@ describe("settings SOT interaction regressions", () => {
             expect(content).not.toContain(legacySaveHook);
             expect(voscriptPanel).not.toContain(legacySaveHook);
         }
-        expect(voscriptPanel).toContain(
-            'data-sot-banner="voscript-unavailable"',
-        );
-        expect(voscriptPanel).toContain(
-            'data-sot-panel="voscript-unavailable-banner"',
-        );
         const voscriptUnavailableBanner =
             voscriptPanel?.match(
-                /<Alert\s[^>]*data-sot-banner="voscript-unavailable"[^>]*>/,
+                /<Alert\s+id="voscript-connection-status"[\s\S]*?>/,
             )?.[0] ?? "";
+        expect(voscriptUnavailableBanner).toContain(
+            'id="voscript-connection-status"',
+        );
         expect(voscriptUnavailableBanner).toContain('density="comfortable"');
         expect(voscriptUnavailableBanner).toContain("variant={");
         expect(voscriptUnavailableBanner).toContain(
@@ -2981,6 +2920,8 @@ describe("settings SOT interaction regressions", () => {
         expect(voscriptUnavailableBanner).toContain(
             'connectionTestState === "test-error"',
         );
+        expect(voscriptUnavailableBanner).toContain("role={");
+        expect(voscriptUnavailableBanner).toContain("aria-live={");
         expect(content).not.toContain("SETTINGS_BANNER_WARNING_CLASS");
         expect(voscriptUnavailableBanner).not.toContain(
             'variant="settingsVoScriptWarning"',
@@ -2991,10 +2932,6 @@ describe("settings SOT interaction regressions", () => {
         expect(voscriptUnavailableBanner).not.toContain(
             "border-destructive/30 bg-destructive/10",
         );
-        expect(globals).toContain('[data-sot-availability="unavailable"]');
-        expect(globals).toContain(
-            '[data-sot-panel="voscript-unavailable-banner"]',
-        );
         for (const legacyVoScriptHook of [
             "data-voscript-availability",
             "data-voscript-unavail",
@@ -3002,7 +2939,7 @@ describe("settings SOT interaction regressions", () => {
             expect(voscriptPanel).not.toContain(legacyVoScriptHook);
             expect(globals).not.toContain(legacyVoScriptHook);
         }
-        expect(voscriptPanel).toContain('sotField="no-repeat-ngram"');
+        expect(voscriptPanel).toContain('id="voscript-no-repeat-ngram"');
         expect(content).not.toContain("data-field=");
         expect(content).not.toContain("data-field-state");
         expect(content).not.toContain("data-field-msg");
@@ -3070,14 +3007,26 @@ describe("settings SOT interaction regressions", () => {
         );
         expect(denoiseOptions).not.toContain('"关闭"');
         expect(denoiseOptions).not.toContain('"Noisereduce"');
-        expect(dataSourcesPanel).toContain('data-sot-panel="source-actions"');
         expect(dataSourcesPanel).toContain(
-            'data-sot-part="source-action-status"',
+            '<footer className="flex items-center justify-start gap-2">',
         );
-        expect(dataSourcesPanel).toContain('data-sot-control="source-test"');
-        expect(dataSourcesPanel).toContain('data-sot-control="source-save"');
-        expect(dataSourcesPanel).toContain('data-sot-action="test"');
-        expect(dataSourcesPanel).toContain('data-sot-action="save"');
+        expect(dataSourcesPanel).toContain(
+            'role={state.endsWith("error") ? "alert" : "status"}',
+        );
+        expect(dataSourcesPanel).toContain(
+            'aria-live={state.endsWith("error") ? "assertive" : "polite"}',
+        );
+        expect(dataSourcesPanel).toContain('tone="neutral"');
+        expect(dataSourcesPanel).toContain('tone="primary"');
+        expect(dataSourcesPanel).toContain(
+            'aria-busy={actionState === "testing"}',
+        );
+        expect(dataSourcesPanel).toContain(
+            'aria-busy={actionState === "saving"}',
+        );
+        expect(dataSourcesPanel).toContain("handleTestSource(selectedSource)");
+        expect(dataSourcesPanel).toContain("handleSaveSource(selectedSource)");
+        expect(dataSourcesPanel).not.toContain("data-sot-");
         expect(dataSourcesPanel).not.toContain("data-ds-enable");
         expect(dataSourcesPanel).not.toContain('data-save-actions=""');
         expect(dataSourcesPanel).not.toMatch(
@@ -3125,12 +3074,16 @@ describe("settings SOT interaction regressions", () => {
         const saveFunction = voscriptPanel?.match(
             /const saveRuntimeParams = async[\s\S]*?const testConnection = async/,
         )?.[0];
-        const settingsRow = voscriptPanel.match(
-            /function SettingsRow[\s\S]*?function SelectControl/,
-        )?.[0];
-        const noRepeatRow = voscriptPanel?.match(
-            /<SettingsRow[\s\S]*?sotField="no-repeat-ngram"[\s\S]*?<SaveActions/,
-        )?.[0];
+        const settingsRow =
+            voscriptPanel.match(
+                /function SettingsRow[\s\S]*?function SelectControl/,
+            )?.[0] ?? "";
+        const noRepeatRow =
+            collectElementSlices(
+                voscriptPanel,
+                'id="voscript-no-repeat-ngram"',
+                "SettingsRow",
+            )[0] ?? "";
 
         expect(voscriptPanel).toContain(
             "function isVoScriptNoRepeatNgramInvalid",
@@ -3145,19 +3098,24 @@ describe("settings SOT interaction regressions", () => {
         expect(voscriptPanel).toContain(
             'const noRepeatNgramMessage = "只支持 0 或 ≥ 3"',
         );
-        expect(noRepeatRow).toContain('sotField="no-repeat-ngram"');
+        expect(noRepeatRow).toContain('id="voscript-no-repeat-ngram"');
         expect(noRepeatRow).toContain(
             'fieldState={noRepeatNgramInvalid ? "invalid" : undefined}',
         );
         expect(noRepeatRow).toContain("aria-invalid={noRepeatNgramInvalid}");
         expect(noRepeatRow).toContain("fieldMessage={");
         expect(noRepeatRow).toContain("noRepeatNgramMessage");
-        expect(settingsRow).toContain("data-sot-field={sotField}");
-        expect(settingsRow).toContain('data-sot-part="settings-field-message"');
-        expect(settingsRow).toContain('data-sot-state="invalid"');
+        expect(noRepeatRow).toContain("aria-describedby={getFieldDescribedBy(");
+        expect(noRepeatRow).toContain("disabled={busy}");
+        expect(settingsRow).toContain(
+            "<FieldLabel htmlFor={id}>{label}</FieldLabel>",
+        );
+        expect(settingsRow).toMatch(/id=\{`\$\{id\}-description`\}/);
+        expect(settingsRow).toMatch(/id=\{`\$\{id\}-error`\}/);
         expect(settingsRow).toContain(
             'data-invalid={fieldState === "invalid" ? "true" : undefined}',
         );
+        expect(settingsRow).not.toContain("data-sot-");
         expect(settingsRow).toContain("{fieldMessage}");
         expect(noRepeatRow).toContain('placeholder={isZh ? "0 或 ≥ 3"');
         expect(saveFunction).toContain("if (noRepeatNgramInvalid)");
@@ -3183,15 +3141,22 @@ describe("settings SOT interaction regressions", () => {
         const saveFunction = voscriptPanel?.match(
             /const saveRuntimeParams = async[\s\S]*?const testConnection = async/,
         )?.[0];
-        const settingsRow = voscriptPanel.match(
-            /function SettingsRow[\s\S]*?function SelectControl/,
-        )?.[0];
-        const minSpeakersRow = speakerRows?.match(
-            /<SettingsRow[\s\S]*?sotField="min-speakers"[\s\S]*?<\/SettingsRow>/,
-        )?.[0];
-        const maxSpeakersRow = speakerRows?.match(
-            /<SettingsRow[\s\S]*?sotField="max-speakers"[\s\S]*?<\/SettingsRow>/,
-        )?.[0];
+        const settingsRow =
+            voscriptPanel.match(
+                /function SettingsRow[\s\S]*?function SelectControl/,
+            )?.[0] ?? "";
+        const minSpeakersRow =
+            collectElementSlices(
+                speakerRows ?? "",
+                'id="voscript-min-speakers"',
+                "SettingsRow",
+            )[0] ?? "";
+        const maxSpeakersRow =
+            collectElementSlices(
+                speakerRows ?? "",
+                'id="voscript-max-speakers"',
+                "SettingsRow",
+            )[0] ?? "";
         const speakerBoundsGuard = saveFunction?.match(
             /if \(resolvedSpeakerBoundsMessage\)[\s\S]*?return;/,
         )?.[0];
@@ -3225,21 +3190,35 @@ describe("settings SOT interaction regressions", () => {
         expect(voscriptPanel).toMatch(
             /const resolvedSpeakerBoundsMessage\s*=\s*minSpeakersMessage\s*\?\?\s*maxSpeakersMessage/,
         );
-        expect(minSpeakersRow).toContain('sotField="min-speakers"');
+        expect(minSpeakersRow).toContain('id="voscript-min-speakers"');
         expect(minSpeakersRow).toContain(
             'fieldState={minSpeakersInvalid ? "invalid" : undefined}',
         );
         expect(minSpeakersRow).toContain("fieldMessage={minSpeakersMessage}");
         expect(minSpeakersRow).toContain("aria-invalid={minSpeakersInvalid}");
-        expect(maxSpeakersRow).toContain('sotField="max-speakers"');
+        expect(minSpeakersRow).toContain(
+            "aria-describedby={getFieldDescribedBy(",
+        );
+        expect(minSpeakersRow).toContain("disabled={busy}");
+        expect(maxSpeakersRow).toContain('id="voscript-max-speakers"');
         expect(maxSpeakersRow).toContain(
             'fieldState={maxSpeakersInvalid ? "invalid" : undefined}',
         );
         expect(maxSpeakersRow).toContain("fieldMessage={maxSpeakersMessage}");
         expect(maxSpeakersRow).toContain("aria-invalid={maxSpeakersInvalid}");
-        expect(settingsRow).toContain("data-sot-field={sotField}");
-        expect(settingsRow).toContain('data-sot-part="settings-field-message"');
-        expect(settingsRow).toContain('data-sot-state="invalid"');
+        expect(maxSpeakersRow).toContain(
+            "aria-describedby={getFieldDescribedBy(",
+        );
+        expect(maxSpeakersRow).toContain("disabled={busy}");
+        expect(settingsRow).toContain(
+            "<FieldLabel htmlFor={id}>{label}</FieldLabel>",
+        );
+        expect(settingsRow).toMatch(/id=\{`\$\{id\}-description`\}/);
+        expect(settingsRow).toMatch(/id=\{`\$\{id\}-error`\}/);
+        expect(settingsRow).toContain(
+            'data-invalid={fieldState === "invalid" ? "true" : undefined}',
+        );
+        expect(settingsRow).not.toContain("data-sot-");
         expect(speakerBoundsGuard).toContain(
             'paramsSave.setSaveState("error")',
         );
@@ -3854,18 +3833,19 @@ describe("settings SOT interaction regressions", () => {
         expect(speakers).not.toMatch(OLD_UI_RE);
     });
 
-    it("keeps settings skeletons on SOT loading primitives", () => {
+    it("keeps settings skeletons on semantic loading primitives", () => {
         const skeletons = readSource(
             "features/settings/components/settings-skeletons.tsx",
         );
         const skeletonPrimitive = readSource("components/ui/skeleton.tsx");
         const globals = readSource("app/globals.css");
 
-        expect(skeletons).toContain('data-sot-panel="settings-card-skeleton"');
-        expect(skeletons).toContain(
-            'data-sot-panel="settings-section-skeleton"',
-        );
-        expect(skeletons).toContain('data-sot-panel="settings-list-skeleton"');
+        expect(skeletons).not.toContain("data-sot-");
+        expect(skeletons).not.toMatch(/\b(?:section|surface)\?: string;/);
+        expect(skeletons).toContain("type SettingsSectionSkeletonProps = {");
+        expect(skeletons).not.toContain("Partial<");
+        expect(skeletons).not.toContain("Record<");
+        expect(skeletons).not.toContain('"section" | "surface"');
         expect(skeletons).toContain("SETTINGS_SKELETON_PANEL_CLASS");
         expect(skeletons).toContain(
             '"min-h-0 overflow-y-auto [overscroll-behavior:contain] px-[26px] py-[22px]"',
@@ -3880,28 +3860,12 @@ describe("settings SOT interaction regressions", () => {
             "cn(SETTINGS_SECTION_SKELETON_CLASS, className)",
         );
         expect(skeletons).toContain("className={SETTINGS_LIST_SKELETON_CLASS}");
-        expect(skeletons).toContain('data-sot-part="settings-skeleton-row"');
-        expect(skeletons).toContain('data-sot-panel="settings-empty-hint"');
-        expect(skeletons).toContain('data-sot-part="settings-empty-title"');
-        expect(skeletons).toContain(
-            'data-sot-part="settings-empty-description"',
-        );
-        expect(skeletons).toContain(
-            'data-sot-part="settings-skeleton-sync-dot"',
-        );
         expect(skeletons).toContain("SKELETON_SYNC_DOT_CLASS");
         expect(skeletons).toContain("size-2 rounded-full");
         expect(skeletons).toContain("bg-primary");
         expect(skeletons).toContain("ring-4 ring-primary/20");
         expect(skeletons).not.toContain("color-mix(");
         expect(skeletons).not.toContain("bg-[var(--signal-success)]");
-        expect(globals).not.toContain(
-            '[data-sot-part="settings-skeleton-sync-dot"]',
-        );
-        for (const selector of REMOVED_SETTINGS_SKELETON_GLOBAL_SELECTORS) {
-            expect(globals).not.toContain(selector);
-            expect(collectExactCssRuleBlocks(globals, selector)).toEqual([]);
-        }
         expect(skeletons).toContain(
             'import { Field, FieldContent } from "@/components/ui/field";',
         );
@@ -3911,6 +3875,9 @@ describe("settings SOT interaction regressions", () => {
         expect(skeletons).toContain(
             'import { Spinner } from "@/components/ui/spinner";',
         );
+        expect(skeletons).toContain(
+            'import { useLanguage } from "@/components/language-provider";',
+        );
         expect(skeletons).toContain('import { cn } from "@/lib/utils";');
         expect(skeletons).toContain("<Field");
         expect(skeletons).toContain('orientation="horizontal"');
@@ -3918,10 +3885,16 @@ describe("settings SOT interaction regressions", () => {
         expect(skeletons).toContain("makeSkeletonKeys(");
         expect(skeletons).toContain("<Skeleton");
         expect(skeletons).toContain("<Spinner");
-        expect(skeletons).toContain('role="status"');
-        expect(skeletons).toContain('aria-label="正在加载设置"');
+        expect(skeletons).toContain('aria-busy="true"');
+        expect(skeletons).toContain("<output");
+        expect(skeletons).toContain("const { t } = useLanguage();");
+        expect(skeletons).toContain(
+            'const loadingLabel = t("settingsDialog.loading");',
+        );
+        expect(skeletons).toContain("aria-label={loadingLabel}");
         expect(skeletons).toContain('aria-live="polite"');
-        expect(skeletons).toContain("正在加载设置");
+        expect(skeletons).not.toContain('role="status"');
+        expect(skeletons).toContain("<span>{loadingLabel}</span>");
         expect(skeletonPrimitive).toContain('React.ComponentProps<"div">');
         expect(skeletons).not.toContain('className="field-row"');
         expect(skeletons).not.toContain('className="field-name"');
@@ -3934,5 +3907,12 @@ describe("settings SOT interaction regressions", () => {
         expect(skeletons).not.toMatch(OLD_UI_RE);
         expect(skeletons).not.toContain("animate-pulse");
         expect(skeletons).not.toMatch(/\bspace-y-/);
+        expect(globals).not.toContain(
+            '[data-sot-part="settings-skeleton-sync-dot"]',
+        );
+        for (const selector of REMOVED_SETTINGS_SKELETON_GLOBAL_SELECTORS) {
+            expect(globals).not.toContain(selector);
+            expect(collectExactCssRuleBlocks(globals, selector)).toEqual([]);
+        }
     });
 });

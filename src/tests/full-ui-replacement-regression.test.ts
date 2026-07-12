@@ -4437,7 +4437,7 @@ describe("full UI replacement regression coverage", () => {
         );
         const dataSourcesThreePane = extractOpeningElement(
             dataSources,
-            'data-sot-layout="three-pane"',
+            "aria-busy={isLoading}",
             "div",
         );
         expect(dataSourcesThreePane).toContain(
@@ -10160,9 +10160,19 @@ describe("full UI replacement regression coverage", () => {
         );
         expect(dataSources).toContain("export function DataSourcesSection");
         expect(dataSources).toContain("useDataSourcesSettings(language)");
+        expect(dataSources).toContain("aria-busy={isLoading}");
         expect(dataSources).toContain(
-            'data-sot-surface="settings-data-sources"',
+            "aria-controls={SOURCE_PROVIDER_DETAIL_ID}",
         );
+        expect(dataSources).toContain("aria-pressed={isSelected}");
+        expect(dataSources).toContain(
+            "aria-labelledby={providerDetailTitleId}",
+        );
+        expect(dataSources).toContain(
+            "aria-busy={isSourceActionStateBusy(actionState)}",
+        );
+        expect(dataSources).not.toContain("data-sot-");
+        expect(dataSources).not.toContain("data-slot=");
         expect(settings).toContain(
             'import { VoScriptSection } from "./sections/voscript-section";',
         );
@@ -10336,48 +10346,42 @@ describe("full UI replacement regression coverage", () => {
             'data-sot-control="recording-detail-back"',
             "Button",
         );
-        expect(dataSources).toContain(
-            'data-sot-panel="source-provider-detail"',
-        );
         const settingsProviderDetail =
             dataSources.match(
-                /<section[\s\S]*?data-sot-panel="source-provider-detail"[\s\S]*?<\/section>/,
+                /<section[\s\S]*?id=\{SOURCE_PROVIDER_DETAIL_ID\}[\s\S]*?<\/section>/,
             )?.[0] ?? "";
         const sourceProviderDetailPanelClass =
             dataSources.match(
                 /const SOURCE_PROVIDER_DETAIL_PANEL_CLASS\s*=\s*"[^"]*";/,
             )?.[0] ?? "";
-        const providerFieldsIndex = settingsProviderDetail.indexOf(
-            'data-sot-panel="source-provider-fields"',
-        );
+        const providerFieldsIndex =
+            settingsProviderDetail.indexOf("<FieldGroup");
         const firstProviderDividerIndex = settingsProviderDetail.indexOf(
-            "data-sot-section-divider",
+            "SOURCE_PROVIDER_SECTION_DIVIDER_CLASS",
             providerFieldsIndex,
         );
         const autoUpdateIndex = settingsProviderDetail.indexOf(
-            'data-sot-part="source-auto-update-row"',
+            "automaticUpdatesFieldId",
         );
-        const enableSyncIndex = settingsProviderDetail.indexOf(
-            'data-sot-control="source-enable-sync"',
+        const enableSyncIndex = settingsProviderDetail.search(
+            /htmlFor=\{`\$\{selectedSource\.provider\}-enabled`\}/,
         );
         const actionClusterDividerIndex = settingsProviderDetail.indexOf(
-            "data-sot-section-divider",
+            "SOURCE_PROVIDER_ACTION_CLUSTER_DIVIDER_CLASS",
             enableSyncIndex,
         );
-        const sourceActionsIndex = settingsProviderDetail.indexOf(
-            'data-sot-panel="source-actions"',
-        );
+        const sourceActionsIndex = settingsProviderDetail.indexOf("<footer");
         const sourceProviderFieldsListClass =
             dataSources.match(
                 /const SOURCE_PROVIDER_FIELDS_LIST_CLASS\s*=\s*"([^"]*)";/,
             )?.[1] ?? "";
         const sourceProviderFieldsWrapper =
             settingsProviderDetail.match(
-                /<FieldGroup\b(?=[^>]*data-sot-list="source-fields")(?=[^>]*data-sot-panel="source-provider-fields")[^>]*>/,
+                /<FieldGroup\s+className=\{SOURCE_PROVIDER_FIELDS_LIST_CLASS\}\s+unstyled/,
             )?.[0] ?? "";
         const providerDetailDividers = [
             ...settingsProviderDetail.matchAll(
-                /<(?:div|Separator)[\s\S]*?data-sot-section-divider[\s\S]*?\/>/g,
+                /<Separator[\s\S]*?SOURCE_PROVIDER_[A-Z_]+_DIVIDER_CLASS[\s\S]*?\/>/g,
             ),
         ].map((match) => match[0]);
         expect(sourceProviderFieldsListClass.split(/\s+/)).toEqual(
@@ -10388,12 +10392,6 @@ describe("full UI replacement regression coverage", () => {
             "className={SOURCE_PROVIDER_FIELDS_LIST_CLASS}",
         );
         expect(sourceProviderFieldsWrapper).toContain("unstyled");
-        expect(sourceProviderFieldsWrapper).toContain(
-            'data-sot-list="source-fields"',
-        );
-        expect(sourceProviderFieldsWrapper).toContain(
-            'data-sot-panel="source-provider-fields"',
-        );
         expectNamedImportSymbols(dataSources, "@/components/ui/field", [
             "Field",
             "FieldContent",
@@ -10412,7 +10410,12 @@ describe("full UI replacement regression coverage", () => {
         expect(settingsProviderDetail).toContain(
             'variant="sourceProviderDetail"',
         );
-        expect(settingsProviderDetail).not.toContain("data-sot-section-group");
+        expect(settingsProviderDetail).toContain(
+            "aria-labelledby={providerDetailTitleId}",
+        );
+        expect(settingsProviderDetail).toContain(
+            "aria-busy={isSourceActionStateBusy(actionState)}",
+        );
         expect(settingsProviderDetail).toContain(
             "SOURCE_PROVIDER_DETAIL_PANEL_CLASS",
         );
@@ -10629,12 +10632,12 @@ describe("full UI replacement regression coverage", () => {
         expect(detail).not.toContain('className="detail"');
         const settingsProviderTileButton = extractOpeningElement(
             dataSources,
-            'data-sot-control="source-provider"',
+            "aria-controls={SOURCE_PROVIDER_DETAIL_ID}",
             "Button",
         );
         const settingsProviderStatusBadge = extractElementSlice(
             dataSources,
-            'data-sot-provider-status=""',
+            "className={SOURCE_PROVIDER_STATUS_BADGE_CLASS}",
             "Badge",
         );
         const settingsProviderDetailStatusBadge =
@@ -10670,8 +10673,9 @@ describe("full UI replacement regression coverage", () => {
         expect(settingsProviderTileButton).not.toContain("opacity-");
         expect(settingsProviderTileButton).not.toContain("data-muted=");
         expect(settingsProviderTileButton).toContain(
-            'data-sot-dimmed={isDimmed ? "true" : "false"}',
+            "aria-pressed={isSelected}",
         );
+        expect(settingsProviderTileButton).toContain("disabled={disabled}");
         expect(dataSources).toContain("SOURCE_PROVIDER_TILE_BUTTON_CLASS");
         expect(dataSources).not.toContain('variant="sourceProviderTile"');
         expect(dataSources).not.toContain('size="sourceProviderTile"');
@@ -10689,10 +10693,7 @@ describe("full UI replacement regression coverage", () => {
                 removedProviderTileSkinToken,
             );
         }
-        expect(dataSources).toContain("data-sot-provider-card");
-        expect(dataSources).toContain("data-sot-provider-icon");
-        expect(dataSources).toContain("data-sot-provider-meta");
-        expect(dataSources).toContain("data-sot-provider-status");
+        expect(dataSources).not.toContain("data-sot-");
         expect(dataSources).not.toContain("sp-card");
         expect(dataSources).not.toContain("sp-ico");
         expect(dataSources).not.toContain("sp-meta");
@@ -10703,6 +10704,10 @@ describe("full UI replacement regression coverage", () => {
         expect(settingsProviderStatusBadge).not.toContain('size="statusPill"');
         expect(settingsProviderStatusBadge).toContain(
             "className={SOURCE_PROVIDER_STATUS_BADGE_CLASS}",
+        );
+        expect(settingsProviderStatusBadge).toContain('role="status"');
+        expect(settingsProviderStatusBadge).toContain(
+            "aria-label={`${displayName}:",
         );
         expect(settingsProviderDetailStatusBadge).toContain(
             "variant={getProviderStatusBadgeVariant",
@@ -10736,16 +10741,13 @@ describe("full UI replacement regression coverage", () => {
                 expect(badge).not.toContain(featureStatusPillToken);
             }
         }
-        for (const hook of SOURCE_AUTH_MODE_DATA_SOT_ORIGIN_HOOKS) {
-            expect(dataSources).toContain(hook);
-        }
         expect(dataSources).toContain('tone: "personal"');
         expect(dataSources).toContain("<ToggleGroup");
         expect(dataSources).toContain("<ToggleGroupItem");
         expect(dataSources).toContain("<Badge");
         const settingsSourceAuthModeControl = extractElementSlice(
             dataSources,
-            'data-sot-list="source-auth-modes"',
+            'type="single"',
             "ToggleGroup",
         );
         expect(settingsSourceAuthModeControl).toContain('variant="outline"');
@@ -10776,25 +10778,29 @@ describe("full UI replacement regression coverage", () => {
         expect(settingsSourceAuthModeControl).not.toContain(
             'className="h-auto flex-col items-start justify-start whitespace-normal px-3.5 py-3 text-left"',
         );
-        expect(dataSources).toMatch(/data-sot-tone=\{\s*modeBadge\.tone\s*\}/);
+        expect(settingsSourceAuthModeControl).toContain(
+            "disabled={interactionDisabled}",
+        );
+        expect(settingsSourceAuthModeControl).toContain(
+            "value={selectedSource.authMode}",
+        );
         expect(dataSources).toMatch(
             /getSourceAuthModeDisplayLabel\(\s*mode,\s*language,\s*\)/,
         );
         const sourceAuthModeBadge = extractElementSlice(
             dataSources,
-            'data-sot-badge="source-auth-mode"',
+            "{modeBadge.label}",
             "Badge",
         );
         expect(sourceAuthModeBadge).toContain("<Badge");
-        expect(sourceAuthModeBadge).toContain("data-sot-tone=");
         expect(sourceAuthModeBadge).toContain("modeBadge.tone");
         expect(sourceAuthModeBadge).toContain("{modeBadge.label}");
         expect(sourceAuthModeBadge).not.toContain(
             'variant="sourceAuthModeBadge"',
         );
-        const settingsSourceActionStatus = extractElementSlice(
+        const settingsSourceActionStatusInvocation = extractElementSlice(
             dataSources,
-            'data-sot-part="source-action-status"',
+            "state={actionMessage.state}",
             "SourceActionStatusBadge",
         );
         const sourceActionButtonWrapper =
@@ -10805,19 +10811,27 @@ describe("full UI replacement regression coverage", () => {
             dataSources.match(
                 /function SourceActionStatusBadge[\s\S]*?function hasSavedSetup/,
             )?.[0] ?? "";
-        expect(settingsSourceActionStatus).toContain(
+        expect(settingsSourceActionStatusInvocation).toContain(
             "<SourceActionStatusBadge",
         );
-        expect(settingsSourceActionStatus).toContain(
-            "data-sot-state={actionMessage.state}",
+        expect(settingsSourceActionStatusInvocation).toContain(
+            "state={actionMessage.state}",
         );
-        expect(settingsSourceActionStatus).not.toContain(
-            "data-sot-state={sourceSaveState}",
+        expect(settingsSourceActionStatusInvocation).not.toContain(
+            "sourceSaveState",
         );
-        expect(settingsSourceActionStatus).not.toContain("sourceActionStatus");
-        expect(settingsSourceActionStatus).not.toContain('variant="secondary"');
-        expect(settingsSourceActionStatus).not.toContain("className=");
-        expect(settingsSourceActionStatus).not.toContain("showIndicator");
+        expect(settingsSourceActionStatusInvocation).not.toContain(
+            "sourceActionStatus",
+        );
+        expect(settingsSourceActionStatusInvocation).not.toContain(
+            'variant="secondary"',
+        );
+        expect(settingsSourceActionStatusInvocation).not.toContain(
+            "className=",
+        );
+        expect(settingsSourceActionStatusInvocation).not.toContain(
+            "showIndicator",
+        );
         expect(sourceActionButtonWrapper).toContain("<Button");
         expect(sourceActionButtonWrapper).toContain(
             "variant={SOURCE_ACTION_BUTTON_PRIMITIVE_VARIANT_BY_TONE[tone]}",
@@ -10842,10 +10856,14 @@ describe("full UI replacement regression coverage", () => {
         expect(sourceActionStatusWrapper).not.toContain("animate-pulse");
         expect(sourceActionStatusWrapper).toContain("className={cn(");
         expect(sourceActionStatusWrapper).not.toContain("showIndicator");
-        expect(dataSources).toContain("function SourceActionStatusIndicator");
-        expect(dataSources).toContain(
-            'data-sot-part="source-action-status-indicator"',
+        expect(sourceActionStatusWrapper).toContain(
+            'role={state.endsWith("error") ? "alert" : "status"}',
         );
+        expect(sourceActionStatusWrapper).toContain(
+            'aria-live={state.endsWith("error") ? "assertive" : "polite"}',
+        );
+        expect(dataSources).toContain("function SourceActionStatusIndicator");
+        expect(dataSources).not.toContain("data-sot-");
         const settingsRow =
             settings.match(
                 /function SettingsRow[\s\S]*?function SelectControl/,
@@ -10856,34 +10874,40 @@ describe("full UI replacement regression coverage", () => {
             )?.[0] ?? "";
         const settingsSegmentItems =
             settingsSegmentControl.match(/<ToggleGroupItem\b[^>]*>/g) ?? [];
-        const settingsSaveStatus = extractElementSlice(
-            settings,
-            'data-sot-part="settings-save-status"',
-            "Badge",
-        );
+        const settingsSaveStatus =
+            settings.match(
+                /function SaveStatus[\s\S]*?function SectionShell/,
+            )?.[0] ?? "";
+        const settingsSaveActions =
+            settings.match(
+                /function SaveActions[\s\S]*?function useResettingSaveState/,
+            )?.[0] ?? "";
         const settingsSaveAction = extractElementSlice(
-            settings,
-            'data-sot-control="settings-save"',
+            settingsSaveActions,
+            'aria-describedby={saveState === "idle" ? undefined : statusId}',
             "Button",
         );
         const settingsVoScriptTestAction = extractElementSlice(
             voscriptSection,
-            'data-sot-control="voscript-test"',
+            "void testConnection()",
             "Button",
         );
-        const settingsSourceActions = extractElementSlice(
-            dataSources,
-            'data-sot-panel="source-actions"',
-            "footer",
+        const settingsSourceActions =
+            dataSources.match(/<footer[\s\S]*?<\/footer>/)?.[0] ?? "";
+        const settingsSourceActionStatusInFooter = extractElementSlice(
+            settingsSourceActions,
+            "state={actionMessage.state}",
+            "SourceActionStatusBadge",
         );
-        const sourceActionStatusIndex = settingsSourceActions.indexOf(
-            'data-sot-part="source-action-status"',
+        const settingsSourceTestAction = extractElementSlice(
+            settingsSourceActions,
+            "void handleTestSource(selectedSource)",
+            "SourceActionButton",
         );
-        const sourceTestIndex = settingsSourceActions.indexOf(
-            'data-sot-control="source-test"',
-        );
-        const sourceSaveIndex = settingsSourceActions.indexOf(
-            'data-sot-control="source-save"',
+        const settingsSourceSaveAction = extractElementSlice(
+            settingsSourceActions,
+            "void handleSaveSource(selectedSource)",
+            "SourceActionButton",
         );
         const providerDetailInputOwnerClass =
             settingFieldControl.match(
@@ -11001,9 +11025,9 @@ describe("full UI replacement regression coverage", () => {
             "SOURCE_PROVIDER_DETAIL_SWITCH_CLASS",
         );
         expect(dataSources).not.toContain("settingsDetail");
-        expect(dataSources).toContain('data-sot-control="source-auto-update"');
-        expect(dataSources).toContain('data-sot-control="source-enable-sync"');
-        expect(dataSources).toContain("data-sot-state=");
+        expect(dataSources).toContain("automaticUpdatesFieldId");
+        expect(dataSources).toContain("checked={selectedSource.enabled}");
+        expect(dataSources).toContain("disabled={interactionDisabled}");
         expect(switchPrimitive).toContain('type SwitchVariant = "default"');
         expect(switchPrimitive).not.toContain('| "detail"');
         expect(switchPrimitive).not.toContain("detail:");
@@ -11042,17 +11066,30 @@ describe("full UI replacement regression coverage", () => {
         expect(switchPrimitive).not.toContain("data-sot");
         expect(globals).not.toContain("sourceProviderSwitchClassName");
         expect(globals).not.toContain("SOURCE_PROVIDER_DETAIL_SWITCH_CLASS");
-        expect(settingsSourceActions).toContain(
-            'data-sot-panel="source-actions"',
-        );
+        expect(settingsSourceActions).toContain("<footer");
         expect(settingsSourceActions).toContain("actionMessage?.title ? (");
         expect(settingsSourceActions).toContain("{actionMessage.title}");
-        expect(settingsSourceActions).toContain(
-            "data-sot-state={actionMessage.state}",
+        expect(settingsSourceActionStatusInFooter).toContain(
+            "state={actionMessage.state}",
         );
-        expect(sourceActionStatusIndex).toBeGreaterThanOrEqual(0);
-        expect(sourceTestIndex).toBeGreaterThan(sourceActionStatusIndex);
-        expect(sourceSaveIndex).toBeGreaterThan(sourceTestIndex);
+        expect(sourceActionStatusWrapper).toContain(
+            'role={state.endsWith("error") ? "alert" : "status"}',
+        );
+        expect(sourceActionStatusWrapper).toContain(
+            'aria-live={state.endsWith("error") ? "assertive" : "polite"}',
+        );
+        expect(settingsSourceTestAction).toContain(
+            'aria-busy={actionState === "testing"}',
+        );
+        expect(settingsSourceTestAction).toContain(
+            "void handleTestSource(selectedSource)",
+        );
+        expect(settingsSourceSaveAction).toContain(
+            'aria-busy={actionState === "saving"}',
+        );
+        expect(settingsSourceSaveAction).toContain(
+            "void handleSaveSource(selectedSource)",
+        );
         expect(
             collectProviderDetailActionGlobalBusinessBlocks(globals),
         ).toEqual([]);
@@ -11087,26 +11124,54 @@ describe("full UI replacement regression coverage", () => {
         );
         expect(settingsSaveStatus).toContain("variant={statusVariant}");
         expect(settingsSaveStatus).not.toContain('variant="ghost"');
+        expect(settingsSaveStatus).toContain(
+            'const isIdle = saveState === "idle";',
+        );
+        expect(settingsSaveStatus).toContain(
+            'const statusClassName = cn("gap-1.5", isIdle && "hidden");',
+        );
+        expect(settingsSaveStatus).toMatch(
+            /const statusRole = isIdle\s+\? undefined\s+: saveState === "error"\s+\? "alert"\s+: "status";/,
+        );
+        expect(settingsSaveStatus).toMatch(
+            /const statusLive = isIdle\s+\? undefined\s+: saveState === "error"\s+\? "assertive"\s+: "polite";/,
+        );
+        expect(settingsSaveStatus).toContain("id={statusId}");
+        expect(settingsSaveStatus).toContain("role={statusRole}");
+        expect(settingsSaveStatus).toContain("aria-live={statusLive}");
+        expect(settingsSaveStatus).toContain(
+            'aria-atomic={isIdle ? undefined : "true"}',
+        );
         expect(settings).not.toContain("SETTINGS_SAVE_STATUS_BADGE_CLASS");
         expect(settings).toContain("const statusVariant: BadgeVariant =");
         expect(settings).toContain("const statusClassName = cn(");
-        expect(settings).toContain('saveState === "idle" && "hidden"');
+        expect(settings).toContain('isIdle && "hidden"');
         expect(settings).not.toContain("const indicatorClassName = cn(");
         expect(settingsSaveStatus).toContain("<Spinner");
         expect(settingsSaveStatus).toContain("<CheckCircle2");
         expect(settingsSaveStatus).toContain("<XCircle");
-        expect(settingsSaveStatus).toContain(
-            'data-sot-part="settings-save-status-indicator"',
-        );
+        expect(settingsSaveStatus).not.toContain("data-sot-");
         expect(settingsSaveStatus).not.toContain("animate-pulse");
         expect(settingsSaveStatus).not.toContain("rounded-full bg-current");
         expect(settingsSaveStatus).not.toContain(
             'variant="settingsSaveStatus"',
         );
         expect(settingsSaveAction).toContain('variant="default"');
+        expect(settingsSaveAction).toContain(
+            'aria-busy={saveState === "saving"}',
+        );
+        expect(settingsSaveAction).toContain(
+            'aria-describedby={saveState === "idle" ? undefined : statusId}',
+        );
         expect(settingsSaveAction).not.toContain('variant="settingsSave"');
         expect(settingsSaveAction).not.toContain('size="settingsSave"');
         expect(settingsVoScriptTestAction).toContain('variant="ghost"');
+        expect(settingsVoScriptTestAction).toContain(
+            "onClick={() => void testConnection()}",
+        );
+        expect(settingsVoScriptTestAction).toContain(
+            "aria-busy={isTestingConnection}",
+        );
         expect(settingsVoScriptTestAction).not.toContain(
             'variant="settingsTestAction"',
         );
@@ -11190,12 +11255,12 @@ describe("full UI replacement regression coverage", () => {
         expect(toggleGroupPrimitive).not.toContain("settingsSegmentSpacing");
         const settingsSourceStateAlert = extractOpeningElement(
             dataSources,
-            'data-sot-banner="source-state"',
+            'role={tone === "err" ? "alert" : "status"}',
             "Alert",
         );
         const settingsSourceLoadErrorAlert = extractOpeningElement(
             dataSources,
-            'data-sot-banner="source-load-error"',
+            'role="alert"',
             "Alert",
         );
         const settingsSectionLoadErrorAlert = extractOpeningElement(
@@ -11205,7 +11270,7 @@ describe("full UI replacement regression coverage", () => {
         );
         const settingsSourceLoadRetry = extractElementSlice(
             dataSources,
-            'data-sot-control="source-load-retry"',
+            "onClick={() => void refreshSources()}",
             "Button",
         );
         const settingsSectionLoadRetry = extractElementSlice(
@@ -11215,7 +11280,7 @@ describe("full UI replacement regression coverage", () => {
         );
         const settingsVoScriptUnavailableAlert = extractOpeningElement(
             voscriptSection,
-            'data-sot-banner="voscript-unavailable"',
+            'id="voscript-connection-status"',
             "Alert",
         );
         expect(settingsSourceStateAlert).toContain(
@@ -11226,9 +11291,12 @@ describe("full UI replacement regression coverage", () => {
         );
         expect(settingsSourceStateAlert).toContain('density="comfortable"');
         expect(settingsSourceStateAlert).toContain(
-            "data-sot-state={getBannerTone(tone)}",
+            'role={tone === "err" ? "alert" : "status"}',
         );
-        expect(settingsSourceStateAlert).toContain("data-sot-tone={tone}");
+        expect(settingsSourceStateAlert).toContain(
+            'aria-live={tone === "err" ? "assertive" : "polite"}',
+        );
+        expect(settingsSourceStateAlert).not.toContain("data-sot-");
         expect(settingsSourceStateAlert).not.toContain(
             "SETTINGS_BANNER_LAYOUT_CLASS",
         );
@@ -11238,10 +11306,26 @@ describe("full UI replacement regression coverage", () => {
         expect(settingsSourceStateAlert).not.toContain(
             "SETTINGS_BANNER_TONE_CLASS",
         );
-        for (const settingsLoadErrorAlert of [
-            settingsSourceLoadErrorAlert,
-            settingsSectionLoadErrorAlert,
-        ]) {
+        expect(dataSources).toContain("aria-busy={isLoading}");
+        expect(settingsSourceLoadErrorAlert).toContain(
+            "SETTINGS_BANNER_BASE_CLASS",
+        );
+        expect(settingsSourceLoadErrorAlert).toContain(
+            'variant="destructiveSoft"',
+        );
+        expect(settingsSourceLoadErrorAlert).toContain('density="comfortable"');
+        expect(settingsSourceLoadErrorAlert).toContain('role="alert"');
+        expect(settingsSourceLoadErrorAlert).not.toContain("data-sot-");
+        expect(settingsSourceLoadErrorAlert).not.toContain(
+            "SETTINGS_BANNER_ACTION_LAYOUT_CLASS",
+        );
+        expect(settingsSourceLoadErrorAlert).not.toContain(
+            "SETTINGS_BANNER_ERROR_CLASS",
+        );
+        expect(settingsSourceLoadErrorAlert).not.toContain(
+            'variant="settingsLoadError"',
+        );
+        for (const settingsLoadErrorAlert of [settingsSectionLoadErrorAlert]) {
             expect(settingsLoadErrorAlert).toContain(
                 "SETTINGS_BANNER_BASE_CLASS",
             );
@@ -11261,9 +11345,11 @@ describe("full UI replacement regression coverage", () => {
             );
         }
         expect(settingsSourceLoadRetry).toContain('variant="default"');
+        expect(settingsSourceLoadRetry).toContain('type="button"');
         expect(settingsSourceLoadRetry).toContain(
             "onClick={() => void refreshSources()}",
         );
+        expect(settingsSourceLoadRetry).not.toContain("data-sot-");
         expect(settingsSectionLoadRetry).toContain('variant="default"');
         expect(settingsSectionLoadRetry).toContain("onClick={onRetry}");
         expect(settingsSectionLoadRetry).toContain(
@@ -11273,7 +11359,13 @@ describe("full UI replacement regression coverage", () => {
             'density="comfortable"',
         );
         expect(settingsVoScriptUnavailableAlert).toContain(
-            'data-sot-tone="warn"',
+            'id="voscript-connection-status"',
+        );
+        expect(settingsVoScriptUnavailableAlert).toContain(
+            'role={\n                        connectionTestState === "test-error"\n                            ? "alert"\n                            : "status"\n                    }',
+        );
+        expect(settingsVoScriptUnavailableAlert).toContain(
+            'aria-live={\n                        connectionTestState === "test-error"\n                            ? "assertive"\n                            : "polite"\n                    }',
         );
         expect(settingsVoScriptUnavailableAlert).toContain(
             "SETTINGS_BANNER_BASE_CLASS",
@@ -11287,6 +11379,7 @@ describe("full UI replacement regression coverage", () => {
         expect(settingsVoScriptUnavailableAlert).not.toContain(
             'variant="settingsVoScriptWarning"',
         );
+        expect(settingsVoScriptUnavailableAlert).not.toContain("data-sot-");
         for (const settingsBannerAlert of [
             settingsSourceStateAlert,
             settingsSourceLoadErrorAlert,
@@ -11447,8 +11540,8 @@ describe("full UI replacement regression coverage", () => {
         }
         expect(dataSources).not.toContain("path-card");
         expect(dataSources).not.toContain("pc-badge");
-        expect(dataSources).toContain('data-sot-control="source-test"');
-        expect(dataSources).toContain('data-sot-control="source-save"');
+        expect(dataSources).toContain("void handleTestSource(selectedSource)");
+        expect(dataSources).toContain("void handleSaveSource(selectedSource)");
         const sourceAuthModeLegacySelectorLines = globals
             .split("\n")
             .map((text, index) => ({ line: index + 1, text }))

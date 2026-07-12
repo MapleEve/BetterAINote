@@ -377,13 +377,27 @@ export function SettingsDialog(props: SettingsDialogProps) {
         }
     }, [isSettingsBusy, props.open]);
 
+    const resetSettingsScroll = React.useCallback(
+        (section: CanonicalSettingsSection) => {
+            if (section !== activeSection) return;
+
+            const scrollBody = scrollBodyRef.current;
+            if (!scrollBody) return;
+            scrollBody.scrollTo({ top: 0, left: 0 });
+        },
+        [activeSection],
+    );
+
     React.useLayoutEffect(() => {
         if (!props.open || !hasResolvedInitialSection) return;
 
-        const scrollBody = scrollBodyRef.current;
-        if (!scrollBody) return;
-        scrollBody.scrollTo({ top: 0, left: 0 });
-    }, [activeSection, hasResolvedInitialSection, props.open]);
+        resetSettingsScroll(activeSection);
+    }, [
+        activeSection,
+        hasResolvedInitialSection,
+        props.open,
+        resetSettingsScroll,
+    ]);
 
     return (
         <Dialog open={props.open} onOpenChange={handleDialogOpenChange}>

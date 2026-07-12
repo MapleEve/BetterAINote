@@ -77,6 +77,7 @@ import { cn } from "@/lib/utils";
 
 const SETTINGS_DATA_SOURCE_PROVIDER_STORAGE_KEY =
     "settings-data-source-provider";
+const SOURCE_PROVIDER_DETAIL_ID = "data-source-provider-detail";
 const SOURCE_OPEN_PLATFORM_AUTH_MODE =
     "oauth-device-flow" satisfies SourceAuthMode;
 const SOURCE_WEB_SIGN_IN_AUTH_MODE = ["web", "reverse"].join(
@@ -256,42 +257,14 @@ function getProviderStatusIcon(tone: ProviderTone): LucideIcon {
     return Info;
 }
 
-function ProviderStatusIndicator({
-    providerStatusDot = false,
-    statusDot = false,
-    tone,
-}: {
-    providerStatusDot?: boolean;
-    statusDot?: boolean;
-    tone: ProviderTone;
-}) {
-    const providerStatusIconHook = providerStatusDot ? "" : undefined;
-    const statusIconHook = statusDot ? "" : undefined;
-
+function ProviderStatusIndicator({ tone }: { tone: ProviderTone }) {
     if (tone === "syncing") {
-        return (
-            <Spinner
-                size="2xs"
-                aria-hidden="true"
-                data-sot-provider-status-dot={providerStatusIconHook}
-                data-sot-provider-status-icon={providerStatusIconHook}
-                data-sot-status-dot={statusIconHook}
-                data-sot-status-icon={statusIconHook}
-            />
-        );
+        return <Spinner size="2xs" aria-hidden="true" />;
     }
 
     const Icon = getProviderStatusIcon(tone);
 
-    return (
-        <Icon
-            aria-hidden="true"
-            data-sot-provider-status-dot={providerStatusIconHook}
-            data-sot-provider-status-icon={providerStatusIconHook}
-            data-sot-status-dot={statusIconHook}
-            data-sot-status-icon={statusIconHook}
-        />
-    );
+    return <Icon aria-hidden="true" />;
 }
 
 function getSourceActionStatusBadgeVariant(
@@ -336,23 +309,12 @@ function SourceActionStatusIndicator({
     state: ProviderActionState;
 }) {
     if (isSourceActionStateBusy(state)) {
-        return (
-            <Spinner
-                size="2xs"
-                aria-hidden="true"
-                data-sot-part="source-action-status-indicator"
-            />
-        );
+        return <Spinner size="2xs" aria-hidden="true" />;
     }
 
     const Icon = getSourceActionStatusIcon(state);
 
-    return (
-        <Icon
-            aria-hidden="true"
-            data-sot-part="source-action-status-indicator"
-        />
-    );
+    return <Icon aria-hidden="true" />;
 }
 
 function SourceActionStatusBadge({
@@ -365,6 +327,8 @@ function SourceActionStatusBadge({
         <Badge
             variant={getSourceActionStatusBadgeVariant(state)}
             className={cn(SOURCE_ACTION_STATUS_BADGE_CLASS, className)}
+            role={state.endsWith("error") ? "alert" : "status"}
+            aria-live={state.endsWith("error") ? "assertive" : "polite"}
             {...props}
         >
             <SourceActionStatusIndicator state={state} />
@@ -624,13 +588,6 @@ function getProviderStatus(
     };
 }
 
-function getBannerTone(tone: ProviderTone) {
-    if (tone === "ok") return "info";
-    if (tone === "err") return "err";
-    if (tone === "warn") return "warn";
-    return "info";
-}
-
 function getSourceAuthModeBadge(mode: string, isZh: boolean) {
     if (mode === SOURCE_OPEN_PLATFORM_AUTH_MODE) {
         return {
@@ -717,36 +674,18 @@ function DataSourceProviderTile({
     const status = getProviderStatus(source, isZh, actionState);
     const Icon = PROVIDER_ICONS[source.provider];
     const assetPath = PROVIDER_ASSET_PATHS[source.provider];
-    const isDimmed =
-        status.state === "planned" ||
-        status.state === "needs-setup" ||
-        status.state === "expired";
-
     return (
         <Button
             type="button"
             variant={isSelected ? "secondary" : "ghost"}
             size="default"
             className={SOURCE_PROVIDER_TILE_BUTTON_CLASS}
+            aria-controls={SOURCE_PROVIDER_DETAIL_ID}
             aria-pressed={isSelected}
-            data-state={isSelected ? "selected" : "idle"}
-            data-sot-provider-card=""
-            data-sot-control="source-provider"
-            data-sot-dimmed={isDimmed ? "true" : "false"}
-            data-sot-provider={source.provider}
-            data-sot-state={isSelected ? "selected" : "idle"}
-            data-sot-status={status.state}
             disabled={disabled}
             onClick={onSelect}
         >
-            <span
-                className={SOURCE_PROVIDER_MARK_CLASS}
-                data-sot-provider-icon=""
-                data-sot-cover={
-                    source.provider === "feishu-minutes" ? "true" : undefined
-                }
-                data-sot-part="source-provider-mark"
-            >
+            <span className={SOURCE_PROVIDER_MARK_CLASS}>
                 {source.provider === "iflyrec" ? (
                     <span aria-hidden="true">讯</span>
                 ) : assetPath ? (
@@ -765,21 +704,11 @@ function DataSourceProviderTile({
                     <Icon aria-hidden="true" />
                 )}
             </span>
-            <span
-                className={SOURCE_PROVIDER_META_CLASS}
-                data-sot-provider-meta=""
-                data-sot-part="source-provider-meta"
-            >
-                <span
-                    className={SOURCE_PROVIDER_NAME_CLASS}
-                    data-sot-provider-name=""
-                >
+            <span className={SOURCE_PROVIDER_META_CLASS}>
+                <span className={SOURCE_PROVIDER_NAME_CLASS}>
                     {displayName}
                 </span>
-                <span
-                    className={SOURCE_PROVIDER_HINT_CLASS}
-                    data-sot-provider-hint=""
-                >
+                <span className={SOURCE_PROVIDER_HINT_CLASS}>
                     {getSourceProviderStatusHint(source, language) ??
                         (isZh ? "录音来源" : "Recording source")}
                 </span>
@@ -787,13 +716,10 @@ function DataSourceProviderTile({
             <Badge
                 variant={getProviderStatusBadgeVariant(status.tone)}
                 className={SOURCE_PROVIDER_STATUS_BADGE_CLASS}
-                data-sot-provider-status=""
-                data-sot-state={status.state}
-                data-sot-status={status.state}
-                data-sot-tone={status.tone}
-                data-state={status.state}
+                role="status"
+                aria-label={`${displayName}: ${status.label}`}
             >
-                <ProviderStatusIndicator tone={status.tone} providerStatusDot />
+                <ProviderStatusIndicator tone={status.tone} />
                 {status.label}
             </Badge>
         </Button>
@@ -815,10 +741,8 @@ function ProviderStateBanner({
         <Alert
             variant={tone === "err" ? "destructiveSoft" : "default"}
             density="comfortable"
-            data-sot-banner="source-state"
-            data-sot-panel="source-state-banner"
-            data-sot-state={getBannerTone(tone)}
-            data-sot-tone={tone}
+            role={tone === "err" ? "alert" : "status"}
+            aria-live={tone === "err" ? "assertive" : "polite"}
             className={SETTINGS_BANNER_BASE_CLASS}
         >
             {tone === "syncing" ? (
@@ -826,16 +750,10 @@ function ProviderStateBanner({
             ) : (
                 <Icon aria-hidden="true" />
             )}
-            <AlertTitle
-                className={SETTINGS_BANNER_TITLE_CLASS}
-                data-sot-banner-title
-            >
+            <AlertTitle className={SETTINGS_BANNER_TITLE_CLASS}>
                 {title}
             </AlertTitle>
-            <AlertDescription
-                className={SETTINGS_BANNER_DESCRIPTION_CLASS}
-                data-sot-banner-sub
-            >
+            <AlertDescription className={SETTINGS_BANNER_DESCRIPTION_CLASS}>
                 {description}
             </AlertDescription>
         </Alert>
@@ -1211,46 +1129,6 @@ export function DataSourcesSection({
         actionState === "saving" ||
         actionState === "reconnecting" ||
         actionState === "disconnecting";
-    const sourceTestState =
-        actionState === "testing"
-            ? "testing"
-            : actionState === "test-success"
-              ? "success"
-              : actionState === "test-error"
-                ? "error"
-                : interactionDisabled
-                  ? "disabled"
-                  : "idle";
-    const sourceSaveState =
-        actionState === "saving"
-            ? "saving"
-            : actionState === "saved"
-              ? "saved"
-              : actionState === "save-error"
-                ? "error"
-                : interactionDisabled
-                  ? "disabled"
-                  : "idle";
-    const sourceReconnectState =
-        actionState === "reconnecting"
-            ? "reconnecting"
-            : actionState === "reconnected"
-              ? "reconnected"
-              : actionState === "reconnect-error"
-                ? "error"
-                : interactionDisabled
-                  ? "disabled"
-                  : "idle";
-    const sourceDisconnectState =
-        actionState === "disconnecting"
-            ? "disconnecting"
-            : actionState === "disconnected"
-              ? "disconnected"
-              : actionState === "disconnect-error"
-                ? "error"
-                : interactionDisabled
-                  ? "disabled"
-                  : "idle";
     const serviceAddress = selectedSource
         ? getProviderServiceAddressDisplay(selectedSource, language)
         : null;
@@ -1263,16 +1141,18 @@ export function DataSourcesSection({
                   description: isZh ? "钉钉 API 域名" : "DingTalk API domain",
               }
             : serviceAddress;
+    const providerDetailTitleId = selectedSource
+        ? `data-source-${selectedSource.provider}-title`
+        : undefined;
+    const automaticUpdatesFieldId = selectedSource
+        ? `${selectedSource.provider}-automatic-updates`
+        : undefined;
+    const automaticUpdatesDescriptionId = automaticUpdatesFieldId
+        ? `${automaticUpdatesFieldId}-description`
+        : undefined;
     return (
         <div
             ref={scrollRef}
-            data-sot-layout="three-pane"
-            data-sot-panel="settings-scroll-body"
-            data-sot-load-state={
-                loadError ? "error" : isLoading ? "loading" : "ready"
-            }
-            data-sot-selected-provider={selectedSource?.provider ?? "none"}
-            data-sot-surface="settings-data-sources"
             aria-busy={isLoading}
             className={cn(
                 SOURCE_PROVIDER_THEME_CLASS,
@@ -1281,35 +1161,26 @@ export function DataSourcesSection({
         >
             <aside
                 className={SOURCE_PROVIDERS_LIST_CLASS}
-                data-sot-list="source-providers"
+                aria-label={isZh ? "数据源列表" : "Data source list"}
             >
-                <div
-                    className={SOURCE_PROVIDERS_TITLE_CLASS}
-                    data-sot-part="source-providers-title"
-                >
+                <h2 className={SOURCE_PROVIDERS_TITLE_CLASS}>
                     {isZh ? "来源" : "Data Sources"} ·{" "}
                     {isLoading ? "..." : orderedSources.length}
-                </div>
+                </h2>
 
                 {loadError ? (
                     <Alert
                         variant="destructiveSoft"
                         density="comfortable"
-                        data-sot-banner="source-load-error"
-                        data-sot-panel="source-load-error"
-                        data-sot-tone="err"
+                        role="alert"
                         className={SETTINGS_BANNER_BASE_CLASS}
                     >
                         <AlertCircle aria-hidden="true" />
-                        <AlertTitle
-                            className={SETTINGS_BANNER_TITLE_CLASS}
-                            data-sot-banner-title
-                        >
+                        <AlertTitle className={SETTINGS_BANNER_TITLE_CLASS}>
                             {isZh ? "加载失败" : "Load failed"}
                         </AlertTitle>
                         <AlertDescription
                             className={SETTINGS_BANNER_DESCRIPTION_CLASS}
-                            data-sot-banner-sub
                         >
                             <span>{loadError}</span>
                             <Button
@@ -1317,7 +1188,6 @@ export function DataSourcesSection({
                                 variant="default"
                                 size="sm"
                                 className="mt-3"
-                                data-sot-control="source-load-retry"
                                 onClick={() => void refreshSources()}
                             >
                                 <RotateCw
@@ -1331,17 +1201,12 @@ export function DataSourcesSection({
                 ) : null}
 
                 {isLoading && orderedSources.length === 0 ? (
-                    <Empty
-                        className="mt-4 flex-none"
-                        data-sot-panel="settings-empty-hint"
-                        data-sot-section="data-sources"
-                        data-sot-state="loading"
-                    >
+                    <Empty className="mt-4 flex-none">
                         <EmptyHeader>
-                            <EmptyTitle data-sot-part="settings-empty-title">
+                            <EmptyTitle>
                                 {isZh ? "正在读取来源" : "Loading sources"}
                             </EmptyTitle>
-                            <EmptyDescription data-sot-part="settings-empty-description">
+                            <EmptyDescription aria-live="polite">
                                 {isZh
                                     ? "请稍候，正在读取已保存的数据源状态。"
                                     : "Reading saved data source status."}
@@ -1376,37 +1241,32 @@ export function DataSourcesSection({
 
             <section
                 ref={providerDetailRef}
+                id={SOURCE_PROVIDER_DETAIL_ID}
+                aria-labelledby={providerDetailTitleId}
                 className={cn(
                     SOURCE_PROVIDER_THEME_CLASS,
                     SOURCE_PROVIDER_DETAIL_PANEL_CLASS,
                 )}
-                data-sot-action-state={actionState}
-                data-sot-interaction-disabled={
-                    interactionDisabled ? "true" : "false"
-                }
-                data-sot-panel="source-provider-detail"
-                data-sot-provider={selectedSource?.provider ?? "none"}
-                data-sot-status={status?.state ?? "empty"}
+                aria-busy={isSourceActionStateBusy(actionState)}
             >
                 {selectedSource && status ? (
                     <Card
                         hasNoPadding
                         className={SOURCE_PROVIDER_DETAIL_CARD_CLASS}
-                        data-sot-card="source-provider-detail"
                     >
                         <CardHeader
                             className={SOURCE_PROVIDER_DETAIL_HEADER_CLASS}
-                            data-sot-part="source-provider-header"
-                            data-sot-state={status.state}
                         >
                             <div>
-                                <CardTitle data-sot-part="source-provider-title">
-                                    {getSourceProviderSettingsLabel(
-                                        selectedSource.provider,
-                                        language,
-                                    )}
+                                <CardTitle>
+                                    <h3 id={providerDetailTitleId}>
+                                        {getSourceProviderSettingsLabel(
+                                            selectedSource.provider,
+                                            language,
+                                        )}
+                                    </h3>
                                 </CardTitle>
-                                <CardDescription data-sot-part="source-provider-subtitle">
+                                <CardDescription>
                                     {getSourceProviderDetailSubtitle(
                                         selectedSource,
                                         isZh,
@@ -1419,12 +1279,11 @@ export function DataSourcesSection({
                                         status.tone,
                                     )}
                                     className={SOURCE_DETAIL_STATUS_BADGE_CLASS}
-                                    data-sot-status={status.state}
-                                    data-sot-tone={status.tone}
+                                    role="status"
+                                    aria-live="polite"
                                 >
                                     <ProviderStatusIndicator
                                         tone={status.tone}
-                                        statusDot
                                     />
                                     {status.label}
                                 </Badge>
@@ -1456,7 +1315,6 @@ export function DataSourcesSection({
                                             : "Select auth mode"
                                     }
                                     disabled={interactionDisabled}
-                                    data-sot-list="source-auth-modes"
                                     onValueChange={(mode) => {
                                         if (!mode) {
                                             return;
@@ -1478,40 +1336,25 @@ export function DataSourcesSection({
                                     variant="outline"
                                 >
                                     {selectedSource.authModes.map((mode) => {
-                                        const active =
-                                            selectedSource.authMode === mode;
                                         const modeBadge =
                                             getSourceAuthModeBadge(mode, isZh);
 
                                         return (
                                             <ToggleGroupItem
                                                 key={mode}
-                                                aria-pressed={active}
-                                                data-sot-auth-mode={mode}
-                                                data-sot-control="source-auth-mode"
-                                                data-sot-state={
-                                                    active ? "selected" : "idle"
-                                                }
                                                 disabled={interactionDisabled}
                                                 className={
                                                     SETTINGS_SOURCE_AUTH_MODE_OPTION_CLASS
                                                 }
                                                 value={mode}
                                             >
-                                                <span
-                                                    className="flex items-center gap-2"
-                                                    data-sot-part="source-auth-mode-title"
-                                                >
+                                                <span className="flex items-center gap-2">
                                                     {getSourceAuthModeDisplayLabel(
                                                         mode,
                                                         language,
                                                     )}
                                                     {modeBadge ? (
                                                         <Badge
-                                                            data-sot-badge="source-auth-mode"
-                                                            data-sot-tone={
-                                                                modeBadge.tone
-                                                            }
                                                             variant={
                                                                 modeBadge.tone ===
                                                                 "recommended"
@@ -1526,10 +1369,7 @@ export function DataSourcesSection({
                                                         </Badge>
                                                     ) : null}
                                                 </span>
-                                                <span
-                                                    className="text-left"
-                                                    data-sot-part="source-auth-mode-description"
-                                                >
+                                                <span className="text-left">
                                                     {mode ===
                                                     SOURCE_WEB_SIGN_IN_AUTH_MODE
                                                         ? isZh
@@ -1572,8 +1412,6 @@ export function DataSourcesSection({
 
                             <FieldGroup
                                 className={SOURCE_PROVIDER_FIELDS_LIST_CLASS}
-                                data-sot-list="source-fields"
-                                data-sot-panel="source-provider-fields"
                                 unstyled
                             >
                                 {displayedServiceAddress &&
@@ -1665,19 +1503,14 @@ export function DataSourcesSection({
 
                                 {advancedFields.length > 0 ? (
                                     <>
-                                        <Empty
-                                            className="mt-4 flex-none"
-                                            data-sot-panel="settings-empty-hint"
-                                            data-sot-section="data-sources"
-                                            data-sot-state="advanced"
-                                        >
+                                        <Empty className="mt-4 flex-none">
                                             <EmptyHeader>
-                                                <EmptyTitle data-sot-part="settings-empty-title">
+                                                <EmptyTitle>
                                                     {isZh
                                                         ? "高级选项（可选）"
                                                         : "Advanced options"}
                                                 </EmptyTitle>
-                                                <EmptyDescription data-sot-part="settings-empty-description">
+                                                <EmptyDescription>
                                                     {isZh
                                                         ? "仅在来源要求额外组织信息时填写。"
                                                         : "Fill these only when the source requires extra workspace details."}
@@ -1711,11 +1544,9 @@ export function DataSourcesSection({
                                 className={
                                     SOURCE_PROVIDER_SECTION_DIVIDER_CLASS
                                 }
-                                data-sot-section-divider
                             />
 
                             <Field
-                                data-sot-part="source-auto-update-row"
                                 data-disabled={
                                     interactionDisabled ? "true" : undefined
                                 }
@@ -1727,12 +1558,16 @@ export function DataSourcesSection({
                                         SOURCE_PROVIDER_DETAIL_FIELD_CONTENT_CLASS
                                     }
                                 >
-                                    <FieldTitle>
+                                    <FieldLabel
+                                        htmlFor={automaticUpdatesFieldId}
+                                    >
                                         {isZh
                                             ? "自动更新"
                                             : "Automatic updates"}
-                                    </FieldTitle>
-                                    <FieldDescription>
+                                    </FieldLabel>
+                                    <FieldDescription
+                                        id={automaticUpdatesDescriptionId}
+                                    >
                                         {isZh
                                             ? "每 15 分钟读取一次新录音"
                                             : "Read new recordings every 15 minutes"}
@@ -1744,14 +1579,9 @@ export function DataSourcesSection({
                                     }
                                 >
                                     <Switch
-                                        data-sot-control="source-auto-update"
-                                        data-sot-provider={
-                                            selectedSource.provider
-                                        }
-                                        data-sot-state={
-                                            selectedSource.enabled
-                                                ? "checked"
-                                                : "unchecked"
+                                        id={automaticUpdatesFieldId}
+                                        aria-describedby={
+                                            automaticUpdatesDescriptionId
                                         }
                                         checked={selectedSource.enabled}
                                         disabled={interactionDisabled}
@@ -1863,25 +1693,6 @@ export function DataSourcesSection({
                                 >
                                     <Switch
                                         id={`${selectedSource.provider}-enabled`}
-                                        data-sot-control="source-enable-sync"
-                                        data-sot-provider={
-                                            selectedSource.provider
-                                        }
-                                        data-sot-state={
-                                            selectedSource.enabled
-                                                ? "checked"
-                                                : "unchecked"
-                                        }
-                                        data-sot-enabled={
-                                            selectedSource.enabled
-                                                ? "true"
-                                                : "false"
-                                        }
-                                        data-sot-disabled={
-                                            interactionDisabled
-                                                ? "true"
-                                                : "false"
-                                        }
                                         checked={selectedSource.enabled}
                                         disabled={interactionDisabled}
                                         onCheckedChange={(checked) =>
@@ -1901,20 +1712,12 @@ export function DataSourcesSection({
                                 className={
                                     SOURCE_PROVIDER_ACTION_CLUSTER_DIVIDER_CLASS
                                 }
-                                data-sot-section-divider
                             />
 
-                            <footer
-                                className="flex items-center justify-start gap-2"
-                                data-sot-panel="source-actions"
-                                data-sot-provider={selectedSource.provider}
-                                data-sot-state={sourceSaveState}
-                            >
+                            <footer className="flex items-center justify-start gap-2">
                                 {actionMessage?.title ? (
                                     <SourceActionStatusBadge
                                         state={actionMessage.state}
-                                        data-sot-part="source-action-status"
-                                        data-sot-state={actionMessage.state}
                                     >
                                         {actionMessage.title}
                                     </SourceActionStatusBadge>
@@ -1922,10 +1725,6 @@ export function DataSourcesSection({
                                 <SourceActionButton
                                     type="button"
                                     tone="neutral"
-                                    data-sot-action="test"
-                                    data-sot-control="source-test"
-                                    data-sot-provider={selectedSource.provider}
-                                    data-sot-state={sourceTestState}
                                     disabled={interactionDisabled}
                                     aria-busy={actionState === "testing"}
                                     onClick={() =>
@@ -1953,10 +1752,6 @@ export function DataSourcesSection({
                                 <SourceActionButton
                                     type="button"
                                     tone="primary"
-                                    data-sot-action="save"
-                                    data-sot-control="source-save"
-                                    data-sot-provider={selectedSource.provider}
-                                    data-sot-state={sourceSaveState}
                                     disabled={interactionDisabled}
                                     aria-busy={actionState === "saving"}
                                     onClick={() =>
@@ -1984,7 +1779,6 @@ export function DataSourcesSection({
                             </footer>
 
                             <Field
-                                data-sot-part="source-reconnect-row"
                                 data-disabled={
                                     interactionDisabled ? "true" : undefined
                                 }
@@ -2013,8 +1807,6 @@ export function DataSourcesSection({
                                     <SourceActionButton
                                         type="button"
                                         tone="neutral"
-                                        data-sot-control="source-reconnect"
-                                        data-sot-state={sourceReconnectState}
                                         disabled={interactionDisabled}
                                         aria-busy={
                                             actionState === "reconnecting"
@@ -2041,7 +1833,6 @@ export function DataSourcesSection({
                             </Field>
 
                             <Field
-                                data-sot-part="source-disconnect-row"
                                 data-disabled={
                                     interactionDisabled ? "true" : undefined
                                 }
@@ -2070,8 +1861,6 @@ export function DataSourcesSection({
                                     <SourceActionButton
                                         type="button"
                                         tone="danger"
-                                        data-sot-control="source-disconnect"
-                                        data-sot-state={sourceDisconnectState}
                                         disabled={interactionDisabled}
                                         aria-busy={
                                             actionState === "disconnecting"
@@ -2099,17 +1888,12 @@ export function DataSourcesSection({
                         </CardContent>
                     </Card>
                 ) : (
-                    <Empty
-                        className="mt-4 flex-none"
-                        data-sot-panel="settings-empty-hint"
-                        data-sot-section="data-sources"
-                        data-sot-state="empty"
-                    >
+                    <Empty className="mt-4 flex-none">
                         <EmptyHeader>
-                            <EmptyTitle data-sot-part="settings-empty-title">
+                            <EmptyTitle>
                                 {isZh ? "没有可用数据源" : "No data sources"}
                             </EmptyTitle>
-                            <EmptyDescription data-sot-part="settings-empty-description">
+                            <EmptyDescription>
                                 {isZh
                                     ? "请稍后重试，或检查服务端数据源接口。"
                                     : "Try again later or check the data source API."}

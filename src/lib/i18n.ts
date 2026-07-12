@@ -48,6 +48,7 @@ export const translations: Record<UiLanguage, TranslationTree> = {
         settingsDialog: {
             title: "设置",
             close: "关闭设置",
+            loading: "正在加载设置",
             description:
                 "在这里调整系统设置。可用方向键切换分组，回车或空格选择，Esc 关闭。",
             localDeployment: "本地部署",
@@ -587,6 +588,7 @@ export const translations: Record<UiLanguage, TranslationTree> = {
         settingsDialog: {
             title: "Settings",
             close: "Close settings",
+            loading: "Loading settings",
             description:
                 "Customize your settings here. Use arrow keys to navigate sections, Enter or Space to select, and Escape to close.",
             localDeployment: "Local deployment",

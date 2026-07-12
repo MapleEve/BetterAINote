@@ -31,6 +31,7 @@ import { SettingsDialog } from "@/features/settings/components/settings-dialog";
 import { SettingsPageContent } from "@/features/settings/components/settings-page-content";
 import {
     SettingsCardSkeleton,
+    SettingsListSkeleton,
     SettingsSectionSkeleton,
 } from "@/features/settings/components/settings-skeletons";
 import type { RecordingTag } from "@/lib/recording-tags";
@@ -84,11 +85,14 @@ const transcript = {
     ],
 };
 
-function render(element: React.ReactElement) {
+function render(
+    element: React.ReactElement,
+    language: "zh-CN" | "en" = "zh-CN",
+) {
     return renderToStaticMarkup(
         React.createElement(
             LanguageProvider,
-            null,
+            { language } as React.ComponentProps<typeof LanguageProvider>,
             React.createElement(ConfirmDialogProvider, null, element),
         ),
     );
@@ -164,6 +168,7 @@ describe("React surface SSR coverage", () => {
                     onValueChange: vi.fn(),
                 }),
                 React.createElement(SettingsCardSkeleton, { fields: 2 }),
+                React.createElement(SettingsListSkeleton, { rows: 2 }),
                 React.createElement(SettingsSectionSkeleton, {
                     cards: 2,
                     fieldsPerCard: 2,
@@ -203,11 +208,24 @@ describe("React surface SSR coverage", () => {
         expect(html).not.toContain('data-sot-part="liquid-tabs-indicator"');
         expect(html).not.toContain('class="liquid-tabs');
         expect(html).not.toContain('class="lt-tab');
-        expect(html).toContain('role="status"');
+        expect(html).toContain('aria-busy="true"');
+        expect(html).toContain("<output");
         expect(html).toContain('aria-label="正在加载设置"');
         expect(html).toContain('aria-live="polite"');
-        expect(html).toContain('data-slot="spinner"');
+        expect(html).not.toContain('role="status"');
         expect(html).toContain("正在加载设置");
+        expect(html).toContain('data-slot="spinner"');
+        const englishHtml = render(
+            React.createElement(SettingsSectionSkeleton),
+            "en",
+        );
+        expect(englishHtml).toContain('aria-busy="true"');
+        expect(englishHtml).toContain("<output");
+        expect(englishHtml).toContain('aria-label="Loading settings"');
+        expect(englishHtml).toContain('aria-live="polite"');
+        expect(englishHtml).not.toContain('role="status"');
+        expect(englishHtml).toContain("Loading settings");
+        expect(englishHtml).toContain('data-slot="spinner"');
         expect(html).not.toContain("card-content");
         expect(html).not.toContain("uikit-");
     });
@@ -250,6 +268,11 @@ describe("React surface SSR coverage", () => {
     });
 
     it("renders settings sections and dialogs on the current fixed shell", () => {
+        const dataSourcesHtml = render(
+            React.createElement(SettingsContent, {
+                activeSection: "data-sources",
+            }),
+        );
         const html = render(
             React.createElement(
                 "section",
@@ -268,11 +291,24 @@ describe("React surface SSR coverage", () => {
             ),
         );
 
-        expect(html).toContain('data-sot-panel="settings-scroll-body"');
         expect(html).toContain("数据源");
-        expect(html).toContain('data-sot-surface="settings-data-sources"');
-        expect(html).toContain('data-sot-panel="source-provider-detail"');
-        expect(html).toContain('data-sot-panel="settings-section-skeleton"');
+        expect(html).toContain('aria-busy="true"');
+        expect(html).toContain("<output");
+        expect(html).toContain('aria-label="正在加载设置"');
+        expect(html).toContain('aria-live="polite"');
+        expect(html).not.toContain('role="status"');
+        expect(html).toContain("正在加载设置");
+
+        expect(dataSourcesHtml).toContain('aria-busy="true"');
+        expect(dataSourcesHtml).toContain('aria-label="数据源列表"');
+        expect(dataSourcesHtml).toMatch(
+            /<section(?=[^>]*id="data-source-provider-detail")(?=[^>]*aria-busy="false")/,
+        );
+        expect(dataSourcesHtml.match(/data-slot="empty"/g)).toHaveLength(2);
+        expect(dataSourcesHtml).toContain("正在读取来源");
+        expect(dataSourcesHtml).toContain("没有可用数据源");
+        expect(dataSourcesHtml).toContain('aria-live="polite"');
+        expect(dataSourcesHtml).not.toContain("data-sot-");
     });
 
     it("renders dashboard and recording workstations with transcript data", () => {
@@ -380,7 +416,7 @@ describe("React surface SSR coverage", () => {
         }
     });
 
-    it("keeps non-sensitive textareas visible while credential textarea fields use password inputs", () => {
+    it("uses standard password inputs for sensitive settings textareas without bespoke DOM markers", () => {
         const html = render(
             React.createElement(
                 "section",
@@ -392,10 +428,25 @@ describe("React surface SSR coverage", () => {
                         label: "登录信息",
                         value: "",
                         sensitive: true,
-                        sensitiveTextareaPasswordFallback: true,
                         rows: 3,
                     },
                     fieldId: "settings-login-material",
+                    onValueChange: vi.fn(),
+                    variant: "settings",
+                }),
+                React.createElement(SettingFieldControl, {
+                    disabled: true,
+                    field: {
+                        id: "settings-visible-note",
+                        kind: "textarea",
+                        label: "设置备注",
+                        description: "用于记录此设备的设置说明。",
+                        value: "只读备注",
+                        masked: true,
+                        readOnly: true,
+                        rows: 3,
+                    },
+                    fieldId: "settings-visible-note",
                     onValueChange: vi.fn(),
                     variant: "settings",
                 }),
@@ -432,7 +483,21 @@ describe("React surface SSR coverage", () => {
                 }),
                 React.createElement(DataSourceFieldControl, {
                     field: {
-                        id: "source-secret",
+                        id: "source-api-token",
+                        key: "apiToken",
+                        label: "API 令牌",
+                        value: "",
+                        target: "secret",
+                        kind: "textarea",
+                        rows: 3,
+                    },
+                    fieldId: "field-api-token",
+                    onValueChange: vi.fn(),
+                    variant: "settings",
+                }),
+                React.createElement(DataSourceFieldControl, {
+                    field: {
+                        id: "source-device-secret",
                         key: "deviceCredential",
                         label: "设备标识",
                         value: "",
@@ -442,32 +507,47 @@ describe("React surface SSR coverage", () => {
                     },
                     fieldId: "field-device-secret",
                     onValueChange: vi.fn(),
-                    variant: "default",
+                    variant: "settings",
                 }),
             ),
         );
 
+        expect(html).toMatch(/<textarea(?=[^>]*id="settings-visible-note")/);
         expect(html).toMatch(/<textarea(?=[^>]*id="field-notes")/);
         expect(html).toContain('data-slot="textarea"');
-        expect(html).toContain("可选备注");
-        for (const fieldId of [
-            "settings-login-material",
-            "field-web-cookie",
-            "field-device-secret",
-        ]) {
+        expect(html).toContain("只读备注");
+        expect(html).toContain("用于记录此设备的设置说明。");
+        expect(html).toMatch(
+            /<label(?=[^>]*for="settings-visible-note")[^>]*>设置备注<\/label>/,
+        );
+        const settingsTextarea =
+            html.match(
+                /<textarea(?=[^>]*id="settings-visible-note")[^>]*>/,
+            )?.[0] ?? "";
+        expect(settingsTextarea).toContain("tracking-widest");
+        expect(settingsTextarea).not.toContain("data-sot-mask");
+        expect(settingsTextarea).not.toContain("data-sot-privacy-boundary");
+        expect(settingsTextarea).toMatch(/\sdisabled(?:=|(?=\s|>))/i);
+        expect(settingsTextarea).toMatch(/\sreadonly(?:=|(?=\s|>))/i);
+        for (const [fieldId, label] of [
+            ["settings-login-material", "登录信息"],
+            ["field-web-cookie", "网页登录信息"],
+            ["field-api-token", "API 令牌"],
+            ["field-device-secret", "设备标识"],
+        ] as const) {
             expect(html).toMatch(
                 new RegExp(
-                    `<input(?=[^>]*id="${fieldId}")(?=[^>]*type="password")(?=[^>]*data-sot-privacy-boundary="sensitive-textarea-password-input")`,
+                    `<label(?=[^>]*for="${fieldId}")[^>]*>${label}</label>`,
+                ),
+            );
+            expect(html).toMatch(
+                new RegExp(
+                    `<input(?=[^>]*id="${fieldId}")(?=[^>]*type="password")(?![^>]*data-sot-mask)(?![^>]*data-sot-privacy-boundary)`,
                 ),
             );
             expect(html).not.toMatch(
                 new RegExp(`<textarea(?=[^>]*id="${fieldId}")`),
             );
         }
-        expect(
-            html.match(
-                /data-sot-privacy-boundary="sensitive-textarea-password-input"/g,
-            ),
-        ).toHaveLength(3);
     });
 });

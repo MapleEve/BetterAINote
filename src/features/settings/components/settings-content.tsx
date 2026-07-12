@@ -137,10 +137,12 @@ function SaveStatus({
     error,
     isZh,
     saveState,
+    statusId,
 }: {
     error: string | null;
     isZh: boolean;
     saveState: SectionSaveState;
+    statusId: string;
 }) {
     const label =
         saveState === "saving"
@@ -160,31 +162,34 @@ function SaveStatus({
             : saveState === "saved" || saveState === "saving"
               ? "default"
               : "secondary";
-    const statusClassName = cn("gap-1.5", saveState === "idle" && "hidden");
+    const isIdle = saveState === "idle";
+    const statusClassName = cn("gap-1.5", isIdle && "hidden");
+    const statusRole = isIdle
+        ? undefined
+        : saveState === "error"
+          ? "alert"
+          : "status";
+    const statusLive = isIdle
+        ? undefined
+        : saveState === "error"
+          ? "assertive"
+          : "polite";
 
     return (
         <Badge
+            id={statusId}
             variant={statusVariant}
             className={statusClassName}
-            data-sot-part="settings-save-status"
-            data-sot-state={saveState}
+            role={statusRole}
+            aria-live={statusLive}
+            aria-atomic={isIdle ? undefined : "true"}
         >
             {saveState === "saving" ? (
-                <Spinner
-                    size="2xs"
-                    aria-hidden="true"
-                    data-sot-part="settings-save-status-indicator"
-                />
+                <Spinner size="2xs" aria-hidden="true" />
             ) : saveState === "saved" ? (
-                <CheckCircle2
-                    aria-hidden="true"
-                    data-sot-part="settings-save-status-indicator"
-                />
+                <CheckCircle2 aria-hidden="true" />
             ) : saveState === "error" ? (
-                <XCircle
-                    aria-hidden="true"
-                    data-sot-part="settings-save-status-indicator"
-                />
+                <XCircle aria-hidden="true" />
             ) : null}
             {label}
         </Badge>
@@ -217,12 +222,7 @@ function SectionShell({
 
     if (loading) {
         return (
-            <SettingsSectionSkeleton
-                fieldsPerCard={2}
-                scrollRef={scrollRef}
-                section={section}
-                surface="settings-section"
-            />
+            <SettingsSectionSkeleton fieldsPerCard={2} scrollRef={scrollRef} />
         );
     }
 
@@ -489,15 +489,28 @@ function SaveActions({
     saveState: SectionSaveState;
     section: string;
 }) {
+    const statusId = `${saveId ?? section}-save-status`;
+    const saveButtonLabel =
+        saveState === "saving"
+            ? isZh
+                ? "保存中"
+                : "Saving"
+            : saveState === "saved"
+              ? isZh
+                  ? "已保存"
+                  : "Saved"
+              : isZh
+                ? "保存"
+                : "Save";
+
     return (
-        <div
-            className={SETTINGS_SAVE_ACTIONS_CLASS}
-            data-sot-panel="settings-save-actions"
-            data-sot-save-id={saveId ?? section}
-            data-sot-section={section}
-            data-sot-state={saveState}
-        >
-            <SaveStatus error={error} isZh={isZh} saveState={saveState} />
+        <div className={SETTINGS_SAVE_ACTIONS_CLASS}>
+            <SaveStatus
+                error={error}
+                isZh={isZh}
+                saveState={saveState}
+                statusId={statusId}
+            />
             {children}
             <Button
                 type="button"
@@ -505,26 +518,14 @@ function SaveActions({
                 size="sm"
                 disabled={disabled}
                 aria-busy={saveState === "saving"}
-                data-sot-action="save"
-                data-sot-control="settings-save"
-                data-sot-section={section}
-                data-sot-state={saveState}
+                aria-describedby={saveState === "idle" ? undefined : statusId}
+                aria-label={saveButtonLabel}
                 onClick={onSave}
             >
                 {saveState === "saving" ? (
                     <Spinner data-icon="inline-start" aria-hidden="true" />
                 ) : null}
-                {saveState === "saving"
-                    ? isZh
-                        ? "保存中"
-                        : "Saving"
-                    : saveState === "saved"
-                      ? isZh
-                          ? "已保存"
-                          : "Saved"
-                      : isZh
-                        ? "保存"
-                        : "Save"}
+                {saveButtonLabel}
             </Button>
         </div>
     );
@@ -889,9 +890,10 @@ function TitleGenerationSettingsPanel({
                 >
                     <Switch
                         id="title-generation-enabled"
-                        data-sot-control="title-generation-enabled"
-                        data-sot-state={
-                            draft.autoGenerateTitle ? "checked" : "unchecked"
+                        aria-label={
+                            isZh
+                                ? "基于逐字稿自动重命名"
+                                : "Automatically rename from transcripts"
                         }
                         checked={draft.autoGenerateTitle}
                         disabled={busy}
@@ -914,8 +916,9 @@ function TitleGenerationSettingsPanel({
                     <Input
                         className={SETTINGS_INPUT_CLASS}
                         id="title-generation-base-url"
-                        data-sot-control="title-generation-base-url"
-                        data-sot-state={busy ? "disabled" : "ready"}
+                        aria-label={
+                            isZh ? "重命名服务地址" : "Rename service URL"
+                        }
                         value={draft.titleGenerationBaseUrl ?? ""}
                         disabled={busy}
                         placeholder="https://api.openai.com/v1"
@@ -938,8 +941,7 @@ function TitleGenerationSettingsPanel({
                     <Input
                         className={SETTINGS_INPUT_CLASS}
                         id="title-generation-model"
-                        data-sot-control="title-generation-model"
-                        data-sot-state={busy ? "disabled" : "ready"}
+                        aria-label={isZh ? "重命名模型" : "Rename model"}
                         value={draft.titleGenerationModel ?? ""}
                         disabled={busy}
                         placeholder="gpt-4.1-mini"
@@ -966,11 +968,7 @@ function TitleGenerationSettingsPanel({
                     }
                 >
                     {draft.titleGenerationApiKeySet ? (
-                        <Badge
-                            variant="secondary"
-                            data-sot-key-status
-                            data-sot-state="stored"
-                        >
+                        <Badge variant="secondary" role="status">
                             <CheckCircle2
                                 aria-hidden="true"
                                 data-icon="inline-start"
@@ -981,13 +979,10 @@ function TitleGenerationSettingsPanel({
                     <Input
                         className={SETTINGS_INPUT_CLASS}
                         id="title-generation-api-key"
-                        data-sot-control="title-generation-api-key"
-                        data-sot-state={
-                            busy
-                                ? "disabled"
-                                : draft.titleGenerationApiKeySet
-                                  ? "stored"
-                                  : "ready"
+                        aria-label={
+                            isZh
+                                ? "重命名服务 API Key"
+                                : "Rename service API key"
                         }
                         type="password"
                         value={apiKeyDraft}

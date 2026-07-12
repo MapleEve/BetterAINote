@@ -112,11 +112,13 @@ function sotPanel(page: Page, panel: string) {
 }
 
 function settingsShell(page: Page) {
-    return page.locator('[data-sot-surface="settings-shell"]');
+    return page.getByRole("dialog", {
+        name: /^(设置|Settings)$/,
+    });
 }
 
 async function expectSettingsHeaderSotCopy(shell: Locator) {
-    const summary = shell.locator('[data-sot-part="settings-user-summary"]');
+    const summary = shell.getByRole("banner");
     await expect(summary).toContainText(SETTINGS_SOT_HEADER_TITLE_ZH);
     await expect(summary).toContainText(SETTINGS_SOT_HEADER_SUBTITLE_ZH);
     await expect(summary).not.toContainText(SETTINGS_TEST_EMAIL);
@@ -124,8 +126,23 @@ async function expectSettingsHeaderSotCopy(shell: Locator) {
 }
 
 function settingsNav(page: Page, section: string) {
-    return page.locator(
-        `[data-sot-control="settings-nav"][data-sot-section="${section}"]`,
+    return settingsShell(page).getByRole("button", {
+        exact: true,
+        name: settingsSectionLabels[section] ?? section,
+    });
+}
+
+function activeSettingsContentScrollContainer(
+    page: Page,
+    section: CanonicalSettingsSection,
+) {
+    const shell = settingsShell(page);
+    const activeNav = settingsNav(page, section).and(
+        shell.locator('[aria-current="page"]'),
+    );
+
+    return activeNav.locator(
+        "xpath=ancestor::nav[1]/following-sibling::*[1]",
     );
 }
 
@@ -260,6 +277,15 @@ const desktopSettingsSections = [
 
 type CanonicalSettingsSection = (typeof desktopSettingsSections)[number];
 
+const settingsSectionLabels: Record<string, RegExp> = {
+    appearance: /^(显示设置|Display Settings)$/,
+    "data-sources": /^(数据源|Data Sources)$/,
+    misc: /^(杂项|Misc)$/,
+    "title-generation": /^(AI 重命名服务|AI Rename Service)$/,
+    transcription: /^(转录设置|Transcription Settings)$/,
+    voscript: /^(VoScript 服务|VoScript Service)$/,
+};
+
 const settingsLegacySelectors = [
     ".sm-section-title",
     ".sm-row-name",
@@ -269,6 +295,8 @@ const settingsLegacySelectors = [
 ] as const;
 
 type SectionRepresentativeTarget = {
+    assertSemantics?: (surface: Locator, locator: Locator) => Promise<void>;
+    getLocator: (surface: Locator) => Locator;
     minCount?: number;
     name: string;
     selector: string;
@@ -296,6 +324,110 @@ type SectionAcceptanceEvidence = {
     shellState: string | null;
     surface: "settings-section" | "settings-data-sources";
 };
+
+function controlIdTarget(id: string) {
+    return {
+        getLocator: (surface: Locator) => surface.locator(`#${id}`),
+        selector: `#${id}`,
+    };
+}
+
+function headingTarget(name: RegExp) {
+    return {
+        getLocator: (surface: Locator) =>
+            surface.getByRole("heading", { level: 3, name }),
+        selector: `heading[level=3][name=${name.source}]`,
+    };
+}
+
+function buttonTarget(name: RegExp) {
+    return {
+        getLocator: (surface: Locator) =>
+            surface.getByRole("button", { exact: true, name }),
+        selector: `button[name=${name.source}]`,
+    };
+}
+
+function radioGroupOptionsTarget(name: RegExp) {
+    return {
+        assertSemantics: async (surface: Locator) => {
+            const group = surface.getByRole("radiogroup", {
+                exact: true,
+                name,
+            });
+            await expect(group).toHaveCount(1);
+
+            const radios = group.getByRole("radio");
+            const checkedStates = await radios.evaluateAll((nodes) =>
+                nodes.map((node) => node.getAttribute("aria-checked")),
+            );
+            expect(
+                checkedStates.every((state) =>
+                    /^(true|false)$/.test(state ?? ""),
+                ),
+            ).toBe(true);
+            await expect(
+                group.locator('[role="radio"][aria-checked="true"]'),
+            ).toHaveCount(1);
+        },
+        getLocator: (surface: Locator) =>
+            surface
+                .getByRole("radiogroup", { exact: true, name })
+                .getByRole("radio"),
+        selector: `radiogroup[name=${name.source}] radio`,
+    };
+}
+
+const dataSourceProviderName =
+    /^(钉钉 闪记|DingTalk A1 Flash Notes|Plaud 云端|Plaud Cloud|TicNote|飞书妙记|Feishu Minutes|讯飞听见|iFLYTEK iflyrec)$/;
+
+function dataSourceDetailPanelTarget() {
+    return {
+        assertSemantics: async (surface: Locator, detail: Locator) => {
+            const selectedProvider = surface
+                .getByRole("complementary")
+                .getByRole("button", { pressed: true });
+            await expect(selectedProvider).toHaveCount(1);
+
+            const detailHeading = detail.getByRole("heading", { level: 3 });
+            await expect(detailHeading).toHaveCount(1);
+            const detailName = (await detailHeading.textContent())?.trim();
+            expect(detailName).toBeTruthy();
+            await expect(selectedProvider).toHaveAccessibleName(
+                new RegExp(
+                    (detailName ?? "").replace(/[.*+?^${}()|[\]\\]/g, "\\$&"),
+                ),
+            );
+
+            const labelledBy = await detail.getAttribute("aria-labelledby");
+            expect(labelledBy).toBeTruthy();
+            await expect(detailHeading).toHaveAttribute("id", labelledBy ?? "");
+            await expect(detail).toHaveAccessibleName(detailName ?? "");
+        },
+        getLocator: (surface: Locator) =>
+            surface.getByRole("region", {
+                exact: true,
+                name: dataSourceProviderName,
+            }),
+        selector: `region[name=${dataSourceProviderName.source}]`,
+    };
+}
+
+function providerRailTarget() {
+    return {
+        getLocator: (surface: Locator) =>
+            surface.getByRole("complementary").getByRole("button"),
+        selector: "complementary button",
+    };
+}
+
+function speakerProfilesTarget() {
+    return {
+        getLocator: (surface: Locator) =>
+            surface.getByText("已保存的说话人", { exact: true }),
+        selector: "text=已保存的说话人",
+    };
+}
 
 type LoadErrorRetryEvidence = {
     errorPanelVisible: boolean;
@@ -740,15 +872,15 @@ const sectionAcceptanceTargets: Record<
         representativeTargets: [
             {
                 name: "section title",
-                selector: "h3[data-sot-title]",
+                ...headingTarget(settingsSectionLabels.transcription),
             },
             {
                 name: "auto transcription switch",
-                selector: '[data-sot-control="transcription-auto-transcribe"]',
+                ...controlIdTarget("transcription-auto-transcribe"),
             },
             {
                 name: "transcription language select",
-                selector: '[data-sot-control="transcription-language"]',
+                ...controlIdTarget("transcription-language"),
             },
         ],
     },
@@ -757,19 +889,19 @@ const sectionAcceptanceTargets: Record<
         representativeTargets: [
             {
                 name: "section title",
-                selector: "h3[data-sot-title]",
+                ...headingTarget(settingsSectionLabels["title-generation"]),
             },
             {
                 name: "auto title switch",
-                selector: '[data-sot-control="title-generation-enabled"]',
+                ...controlIdTarget("title-generation-enabled"),
             },
             {
                 name: "title model input",
-                selector: '[data-sot-control="title-generation-model"]',
+                ...controlIdTarget("title-generation-model"),
             },
             {
                 name: "section save action",
-                selector: '[data-sot-control="settings-save"]',
+                ...buttonTarget(/^(保存|Save)$/),
             },
         ],
     },
@@ -778,19 +910,19 @@ const sectionAcceptanceTargets: Record<
         representativeTargets: [
             {
                 name: "section title",
-                selector: "h3[data-sot-title]",
+                ...headingTarget(settingsSectionLabels.voscript),
             },
             {
                 name: "voscript base url input",
-                selector: '[data-sot-control="voscript-base-url"]',
+                ...controlIdTarget("voscript-base-url"),
             },
             {
                 name: "voscript test action",
-                selector: '[data-sot-control="voscript-test"]',
+                ...buttonTarget(/^(测试连接|Test)$/),
             },
             {
                 name: "speaker profiles panel",
-                selector: '[data-sot-panel="speaker-profiles"]',
+                ...speakerProfilesTarget(),
             },
         ],
     },
@@ -800,23 +932,23 @@ const sectionAcceptanceTargets: Record<
             {
                 minCount: 5,
                 name: "provider rail cards",
-                selector: '[data-sot-control="source-provider"]',
+                ...providerRailTarget(),
             },
             {
                 name: "provider detail panel",
-                selector: '[data-sot-panel="source-provider-detail"]',
+                ...dataSourceDetailPanelTarget(),
             },
             {
                 name: "provider detail header",
-                selector: '[data-sot-part="source-provider-header"]',
+                ...headingTarget(/.*/),
             },
             {
                 name: "provider save action",
-                selector: '[data-sot-control="source-save"]',
+                ...buttonTarget(/^(保存|Save)$/),
             },
             {
                 name: "provider test action",
-                selector: '[data-sot-control="source-test"]',
+                ...buttonTarget(/^(测试连接|Test)$/),
             },
         ],
     },
@@ -826,16 +958,16 @@ const sectionAcceptanceTargets: Record<
             {
                 minCount: 3,
                 name: "theme segmented control",
-                selector: '[data-sot-control="theme"]',
+                ...radioGroupOptionsTarget(/^(主题|Theme)$/),
             },
             {
                 minCount: 2,
                 name: "density segmented control",
-                selector: '[data-sot-control="density"]',
+                ...radioGroupOptionsTarget(/^(信息密度|Information density)$/),
             },
             {
                 name: "time style segmented control",
-                selector: '[data-sot-control="time-style"]',
+                ...radioGroupOptionsTarget(/^(时间显示|Time display)$/),
             },
         ],
     },
@@ -844,23 +976,23 @@ const sectionAcceptanceTargets: Record<
         representativeTargets: [
             {
                 name: "sync enabled switch",
-                selector: '[data-sot-control="sync-auto-enabled"]',
+                ...controlIdTarget("sync-auto-enabled"),
             },
             {
                 name: "sync interval input",
-                selector: '[data-sot-control="sync-interval-seconds"]',
+                ...controlIdTarget("sync-interval-seconds"),
             },
             {
                 name: "playback speed select",
-                selector: '[data-sot-control="playback-speed"]',
+                ...controlIdTarget("playback-speed"),
             },
             {
                 name: "playback volume range",
-                selector: '[data-sot-control="playback-volume"]',
+                ...controlIdTarget("playback-volume"),
             },
             {
                 name: "playback auto next switch",
-                selector: '[data-sot-control="playback-auto-next"]',
+                ...controlIdTarget("playback-auto-next"),
             },
         ],
     },
@@ -1158,10 +1290,8 @@ async function readShellMetrics(locator: Locator) {
             '[data-sot-panel="settings-section-load-error"], [data-sot-banner][data-sot-tone="err"]',
         );
         const userSummaryText =
-            element
-                .querySelector('[data-sot-part="settings-user-summary"]')
-                ?.textContent?.replace(/\s+/g, " ")
-                .trim() ?? null;
+            element.querySelector("header")?.textContent?.replace(/\s+/g, " ").trim() ??
+            null;
         const providerNormalization: Record<string, string> = {};
         const expectedActionLabelOrder = [
             "测试连接",
@@ -1879,7 +2009,16 @@ async function openProductSettingsSection(
     await page.goto(`/settings#${section}`, { waitUntil: "domcontentloaded" });
     const shell = settingsShell(page);
     await expect(shell).toBeVisible();
-    await expect(shell).toHaveAttribute("data-sot-section", section);
+    await expect(settingsNav(page, section)).toHaveAttribute(
+        "aria-current",
+        "page",
+    );
+    const sectionSurface = settingsSectionSurface(
+        page,
+        section as CanonicalSettingsSection,
+    );
+    await expect(sectionSurface).toBeVisible();
+    await expect(sectionSurface).toHaveAttribute("aria-busy", "false");
     await expectShellFitsViewport(page);
     return shell;
 }
@@ -1924,27 +2063,35 @@ async function selectDesktopSettingsSection(page: Page, section: string) {
     const nav = settingsNav(page, section);
 
     for (let attempt = 0; attempt < 5; attempt += 1) {
-        await expect(shell).toHaveAttribute("data-sot-state", "idle");
+        await expect(shell).toHaveAttribute("aria-busy", "false");
         await expect(nav).toBeEnabled();
         await nav.click();
 
-        if ((await shell.getAttribute("data-sot-section")) === section) {
+        if ((await nav.getAttribute("aria-current")) === "page") {
             return;
         }
 
         await page.waitForTimeout(250);
     }
 
-    await expect(shell).toHaveAttribute("data-sot-section", section);
+    await expect(nav).toHaveAttribute("aria-current", "page");
 }
 
 function settingsSectionSurface(page: Page, section: CanonicalSettingsSection) {
     if (section === "data-sources") {
-        return page.locator('[data-sot-surface="settings-data-sources"]');
+        return settingsShell(page).getByRole("complementary").locator("..");
     }
 
-    return page.locator(
-        `[data-sot-surface="settings-section"][data-sot-section="${section}"]`,
+    const shell = settingsShell(page);
+    const headingSurface = shell
+        .getByRole("heading", {
+            level: 3,
+            name: settingsSectionLabels[section],
+        })
+        .locator("..");
+
+    return headingSurface.or(
+        activeSettingsContentScrollContainer(page, section),
     );
 }
 
@@ -1953,23 +2100,9 @@ async function expectActiveSettingsSectionReady(
     section: CanonicalSettingsSection,
 ) {
     const surface = settingsSectionSurface(page, section);
-    await expect(settingsShell(page)).toHaveAttribute(
-        "data-sot-section",
-        section,
-    );
-    await expect(settingsNav(page, section)).toHaveAttribute(
-        "data-sot-state",
-        "selected",
-    );
+    await expect(settingsNav(page, section)).toHaveAttribute("aria-current", "page");
     await expect(surface).toBeVisible();
     await expect(surface).toHaveAttribute("aria-busy", "false");
-
-    if (section === "data-sources") {
-        await expect(surface).toHaveAttribute("data-sot-load-state", "ready");
-        return surface;
-    }
-
-    await expect(surface).toHaveAttribute("data-sot-state", "ready");
     return surface;
 }
 
@@ -2301,13 +2434,14 @@ async function readRepresentativeTargetEvidence(
     surface: Locator,
     target: SectionRepresentativeTarget,
 ): Promise<RepresentativeTargetEvidence> {
-    const locator = surface.locator(target.selector);
+    const locator = target.getLocator(surface);
     const count = await locator.count();
     expect(
         count,
         `${target.name} should exist for ${target.selector}`,
     ).toBeGreaterThanOrEqual(target.minCount ?? 1);
     await expect(locator.first()).toBeVisible();
+    await target.assertSemantics?.(surface, locator);
 
     const tagName = await locator
         .first()
@@ -2339,15 +2473,18 @@ async function readSectionAcceptanceEvidence(
 
     return {
         navigationMode,
-        navState: await settingsNav(page, section).getAttribute("data-sot-state"),
+        navState: await settingsNav(page, section).getAttribute("aria-current"),
         oldSelectorCounts: await countSettingsLegacySelectors(surface),
         representativeTargets,
         section,
         sectionState:
-            section === "data-sources"
-                ? await surface.getAttribute("data-sot-load-state")
-                : await surface.getAttribute("data-sot-state"),
-        shellState: await settingsShell(page).getAttribute("data-sot-state"),
+            (await surface.getAttribute("aria-busy")) === "true"
+                ? "busy"
+                : "ready",
+        shellState:
+            (await settingsShell(page).getAttribute("aria-busy")) === "true"
+                ? "busy"
+                : "idle",
         surface: target.surface,
     };
 }
@@ -2483,52 +2620,47 @@ async function expectShellFitsViewport(page: Page) {
     expect(metrics.right).toBeLessThanOrEqual(metrics.viewportWidth);
 }
 
-async function settingsShellLayoutMetrics(page: Page) {
-    return settingsShell(page).evaluate((shell) => {
-        const header = shell.querySelector<HTMLElement>(
-            '[data-sot-panel="settings-header"]',
-        );
-        const body = shell.querySelector<HTMLElement>(
-            '[data-sot-panel="settings-body"]',
-        );
-        const rail = shell.querySelector<HTMLElement>(
-            '[data-sot-panel="settings-rail"]',
-        );
-        const activeSection = shell.querySelector<HTMLElement>(
-            '[data-sot-surface="settings-section"], [data-sot-surface="settings-data-sources"]',
-        );
-
-        if (!header || !body || !rail || !activeSection) {
-            throw new Error("Settings shell layout regions are incomplete.");
-        }
-
-        const shellRect = shell.getBoundingClientRect();
-        const headerRect = header.getBoundingClientRect();
-        const bodyRect = body.getBoundingClientRect();
-        const railRect = rail.getBoundingClientRect();
-        const activeRect = activeSection.getBoundingClientRect();
-
-        return {
-            activeLeft: activeRect.left,
-            activeRight: activeRect.right,
-            activeWidth: activeRect.width,
-            bodyBottom: bodyRect.bottom,
-            bodyLeft: bodyRect.left,
-            bodyRight: bodyRect.right,
-            bodyTop: bodyRect.top,
-            headerBottom: headerRect.bottom,
-            headerLeft: headerRect.left,
-            headerRight: headerRect.right,
-            railBottom: railRect.bottom,
-            railLeft: railRect.left,
-            railRight: railRect.right,
-            railTop: railRect.top,
-            shellBottom: shellRect.bottom,
-            shellLeft: shellRect.left,
-            shellRight: shellRect.right,
-            shellTop: shellRect.top,
-        };
+async function settingsShellLayoutMetrics(
+    page: Page,
+    section: CanonicalSettingsSection,
+) {
+    const shell = settingsShell(page);
+    const rail = shell.getByRole("navigation", {
+        name: /^(设置|Settings)$/,
     });
+    const [shellRect, headerRect, bodyRect, railRect, activeRect] =
+        await Promise.all([
+            shell.boundingBox(),
+            shell.getByRole("banner").boundingBox(),
+            rail.locator("..").boundingBox(),
+            rail.boundingBox(),
+            settingsSectionSurface(page, section).boundingBox(),
+        ]);
+
+    if (!shellRect || !headerRect || !bodyRect || !railRect || !activeRect) {
+        throw new Error("Settings shell layout regions are incomplete.");
+    }
+
+    return {
+        activeLeft: activeRect.x,
+        activeRight: activeRect.x + activeRect.width,
+        activeWidth: activeRect.width,
+        bodyBottom: bodyRect.y + bodyRect.height,
+        bodyLeft: bodyRect.x,
+        bodyRight: bodyRect.x + bodyRect.width,
+        bodyTop: bodyRect.y,
+        headerBottom: headerRect.y + headerRect.height,
+        headerLeft: headerRect.x,
+        headerRight: headerRect.x + headerRect.width,
+        railBottom: railRect.y + railRect.height,
+        railLeft: railRect.x,
+        railRight: railRect.x + railRect.width,
+        railTop: railRect.y,
+        shellBottom: shellRect.y + shellRect.height,
+        shellLeft: shellRect.x,
+        shellRight: shellRect.x + shellRect.width,
+        shellTop: shellRect.y,
+    };
 }
 
 test("settings shell closes sibling overlays, locks height, bounds wheel scroll, and returns focus", async ({
@@ -2542,12 +2674,23 @@ test("settings shell closes sibling overlays, locks height, bounds wheel scroll,
     await dashboardHydrated;
     await clearSettingsPersistence(page);
 
-    const searchTrigger = sotControl(page, "dashboard-search").first();
-    const activityTrigger = sotControl(page, "dashboard-activity");
-    const settingsTrigger = sotControl(page, "dashboard-settings");
+    const searchTrigger = page
+        .getByRole("button", { name: /^(搜索|Search)$/ })
+        .first();
+    const activityTrigger = page.getByRole("button", {
+        name: /^(通知|Notifications)$/,
+    });
+    const settingsTrigger = page.getByRole("button", {
+        includeHidden: true,
+        name: /^(打开设置|Open settings)$/,
+    });
 
-    const searchPanel = sotPanel(page, "library-search");
-    const activityPanel = sotPanel(page, "dashboard-activity");
+    const searchPanel = page.getByRole("dialog", {
+        name: /^(搜索库|Search library)$/,
+    });
+    const activityPanel = page.getByRole("dialog", {
+        name: /^(最近动态|Recent activity)$/,
+    });
 
     await openPanelWithRetry(searchTrigger, searchPanel);
     await expect(searchPanel).toBeVisible();
@@ -2565,9 +2708,7 @@ test("settings shell closes sibling overlays, locks height, bounds wheel scroll,
         .poll(() => settingsFocusIsContained(page))
         .toBe(true);
     await expectSettingsHeaderSotCopy(shell);
-    await expect(page.locator('[data-sot-part="dashboard-user-avatar"]')).toHaveText(
-        "P",
-    );
+    await expect(settingsTrigger).toHaveText("P");
 
     await expect
         .poll(async () => {
@@ -2592,62 +2733,70 @@ test("settings shell closes sibling overlays, locks height, bounds wheel scroll,
         .poll(() => settingsShellHeight(page))
         .toBeCloseTo(expectedHeight, 0);
     const settledBaselineHeight = await settingsShellHeight(page);
-    await expect(settingsShell(page)).toHaveAttribute(
-        "data-sot-section",
-        "data-sources",
-    );
-    await expect(sotControl(page, "settings-close")).toHaveAccessibleName(
-        /^(关闭设置|Close settings)$/,
-    );
+    await expectActiveSettingsSectionReady(page, "data-sources");
+    const closeButton = shell.getByRole("button", {
+        name: /^(关闭设置|Close settings)$/,
+    });
+    await expect(closeButton).toBeEnabled();
 
     await settingsNav(page, "voscript").click();
-    await expectShellHeightStable(page, settledBaselineHeight);
-    await expect(settingsShell(page)).toHaveAttribute(
-        "data-sot-section",
+    const voscriptSurface = await expectActiveSettingsSectionReady(
+        page,
         "voscript",
     );
-    const settingsScrollBody = sotPanel(page, "settings-scroll-body");
-    await scrollIfScrollable(settingsScrollBody);
+    await expectShellHeightStable(page, settledBaselineHeight);
+    await scrollIfScrollable(voscriptSurface);
     await expect
         .poll(() => page.evaluate(() => window.scrollY))
         .toBe(0);
 
     await settingsNav(page, "appearance").click();
+    const appearanceSurface = await expectActiveSettingsSectionReady(
+        page,
+        "appearance",
+    );
     await expectShellHeightStable(page, settledBaselineHeight);
-    await expect.poll(() => elementScrollTop(settingsScrollBody)).toBe(0);
-    await expect(page.locator('[data-sot-surface="settings-data-sources"]')).toBeHidden();
+    await expect.poll(() => elementScrollTop(appearanceSurface)).toBe(0);
+    await expect(settingsSectionSurface(page, "data-sources")).toBeHidden();
 
     await settingsNav(page, "data-sources").click();
-    await expectShellHeightStable(page, settledBaselineHeight);
-    await expect(settingsShell(page)).toHaveAttribute(
-        "data-sot-section",
+    const dataSourcesSurface = await expectActiveSettingsSectionReady(
+        page,
         "data-sources",
     );
-    const dataSourceDetailScroll = page.locator(
-        '[data-sot-panel="source-provider-detail"]',
-    );
+    await expectShellHeightStable(page, settledBaselineHeight);
+    const dataSourceDetailScroll = dataSourcesSurface.getByRole("region", {
+        name: dataSourceProviderName,
+    });
     await scrollIfScrollable(dataSourceDetailScroll);
     await expect
         .poll(() => page.evaluate(() => window.scrollY))
         .toBe(0);
     await expectShellHeightStable(page, settledBaselineHeight);
-    await expect(settingsShell(page)).toHaveAttribute(
-        "data-sot-section",
-        "data-sources",
+    await expect(settingsNav(page, "data-sources")).toHaveAttribute(
+        "aria-current",
+        "page",
     );
 
     await settingsNav(page, "appearance").click();
+    await expectActiveSettingsSectionReady(page, "appearance");
     await settingsNav(page, "data-sources").click();
+    const resetDataSourcesSurface = await expectActiveSettingsSectionReady(
+        page,
+        "data-sources",
+    );
     await expect
         .poll(() =>
             elementScrollTop(
-                page.locator('[data-sot-panel="source-provider-detail"]'),
+                resetDataSourcesSurface.getByRole("region", {
+                    name: dataSourceProviderName,
+                }),
             ),
         )
         .toBe(0);
     await expectShellHeightStable(page, settledBaselineHeight);
 
-    await sotControl(page, "settings-close").click();
+    await closeButton.click();
     await expect(settingsShell(page)).toHaveCount(0);
     await expect(settingsTrigger).toBeFocused();
     await expect(page.locator('[data-aria-hidden="true"]')).toHaveCount(0);
@@ -2660,9 +2809,7 @@ test("settings shell closes sibling overlays, locks height, bounds wheel scroll,
 
     await settingsTrigger.click();
     await expect(settingsShell(page)).toBeVisible();
-    await page
-        .locator('[data-sot-overlay="settings-shell"]')
-        .click({ position: { x: 4, y: 4 } });
+    await page.mouse.click(4, 4);
     await expect(settingsShell(page)).toHaveCount(0);
     await expect(settingsTrigger).toBeFocused();
     await expect(page.locator('[data-aria-hidden="true"]')).toHaveCount(0);
@@ -2679,38 +2826,35 @@ test("settings data source nested scroll containers reset without freezing", asy
     await page.goto("/settings#data-sources", { waitUntil: "domcontentloaded" });
 
     const shell = settingsShell(page);
-    const section = page.locator('[data-sot-surface="settings-data-sources"]');
+    const section = settingsSectionSurface(page, "data-sources");
     await expect(shell).toBeVisible();
-    await expect(shell).toHaveAttribute(
-        "data-sot-section",
-        "data-sources",
-    );
-    await expect(section).toBeVisible();
+    await expectActiveSettingsSectionReady(page, "data-sources");
     const baselineHeight = await settingsShellHeight(page);
 
-    const providerListScroll = section.locator(
-        '[data-sot-list="source-providers"]',
-    );
+    const providerListScroll = section.getByRole("complementary");
     const providerListScrolled = await scrollIfScrollable(providerListScroll);
 
-    const providerDetailScroll = section.locator(
-        '[data-sot-panel="source-provider-detail"]',
-    );
+    const providerDetailScroll = section.getByRole("region", {
+        name: dataSourceProviderName,
+    });
     const providerDetailScrolled =
         await scrollIfScrollable(providerDetailScroll);
 
-    const selectedProvider = await section.getAttribute(
-        "data-sot-selected-provider",
-    );
-    const nextProvider = selectedProvider === "ticnote" ? "plaud" : "ticnote";
-    await section
-        .locator(
-            `[data-sot-control="source-provider"][data-sot-provider="${nextProvider}"]`,
-        )
-        .click();
-    await expect(section).toHaveAttribute(
-        "data-sot-selected-provider",
-        nextProvider,
+    const providerButtons = providerListScroll.getByRole("button");
+    expect(await providerButtons.count()).toBeGreaterThan(1);
+    await expect(
+        providerListScroll.getByRole("button", { pressed: true }),
+    ).toHaveCount(1);
+    const nextProvider = providerListScroll
+        .getByRole("button", { pressed: false })
+        .first();
+    await nextProvider.click();
+    await expect(nextProvider).toHaveAttribute("aria-pressed", "true");
+    await expect(
+        providerListScroll.getByRole("button", { pressed: true }),
+    ).toHaveCount(1);
+    await expect(providerDetailScroll).toHaveAccessibleName(
+        dataSourceProviderName,
     );
     if (providerDetailScrolled) {
         await expect.poll(() => elementScrollTop(providerDetailScroll)).toBe(0);
@@ -2739,7 +2883,6 @@ test("settings dialog locks a pre-scrolled page while preserving internal scroll
 
     await page.evaluate(() => {
         const spacer = document.createElement("div");
-        spacer.dataset.sotProbe = "settings-scroll-lock-spacer";
         spacer.style.height = "1800px";
         spacer.style.pointerEvents = "none";
         document.body.append(spacer);
@@ -2747,8 +2890,11 @@ test("settings dialog locks a pre-scrolled page while preserving internal scroll
     });
     await expect.poll(() => windowScrollY(page)).toBeGreaterThan(250);
 
-    await openSettingsWithRetry(page);
     const shell = settingsShell(page);
+    const settingsTrigger = page.getByRole("button", {
+        name: /^(打开设置|Open settings)$/,
+    });
+    await openPanelWithRetry(settingsTrigger, shell);
     await expect(shell).toBeVisible();
 
     const lockedScrollY = await windowScrollY(page);
@@ -2757,11 +2903,16 @@ test("settings dialog locks a pre-scrolled page while preserving internal scroll
     await expect.poll(() => windowScrollY(page)).toBe(lockedScrollY);
 
     await settingsNav(page, "voscript").click();
-    const settingsScrollBody = sotPanel(page, "settings-scroll-body");
+    const settingsScrollBody = await expectActiveSettingsSectionReady(
+        page,
+        "voscript",
+    );
     await scrollIfScrollable(settingsScrollBody);
     await expect.poll(() => windowScrollY(page)).toBe(lockedScrollY);
 
-    await sotControl(page, "settings-close").click();
+    await shell
+        .getByRole("button", { name: /^(关闭设置|Close settings)$/ })
+        .click();
     await expect(shell).toBeHidden();
     await page.mouse.move(20, 20);
     await page.mouse.wheel(0, 900);
@@ -2810,22 +2961,22 @@ test("settings shell holds a delayed real display PUT through GET readback and r
         });
         const shell = settingsShell(page);
         await expect(shell).toBeVisible();
-        await expect(shell).toHaveAttribute(
-            "data-sot-section",
+        const appearanceSurface = await expectActiveSettingsSectionReady(
+            page,
             "appearance",
         );
         const itemsPerPageInput = page.locator("#display-items-per-page");
         await expect(itemsPerPageInput).toHaveValue("50");
         await expect(
-            page.locator(
-                '[data-sot-surface="settings-section"][data-sot-section="appearance"] [data-sot-control="settings-save"]',
-            ),
+            appearanceSurface.getByRole("button", {
+                name: /^(保存|Save)$/,
+            }),
         ).toHaveCount(0);
         await expect(
-            page.locator(
-                '[data-sot-surface="settings-section"][data-sot-section="appearance"] [data-sot-panel="settings-save-actions"]',
+            appearanceSurface.getByText(
+                /^(保存中|Saving|已保存|Saved|保存失败|Save failed)$/,
             ),
-        ).toHaveCount(0);
+        ).toBeHidden();
 
         const realPutResponse = page.waitForResponse(
             (response) =>
@@ -2835,26 +2986,43 @@ test("settings shell holds a delayed real display PUT through GET readback and r
         );
         await itemsPerPageInput.fill("42");
         await saveStarted;
-        await expect(shell).toHaveAttribute("data-sot-state", "busy");
+        await expect(shell).toHaveAttribute("aria-busy", "true");
+        await expect(appearanceSurface).toHaveAttribute("aria-busy", "true");
         await expect(settingsNav(page, "misc")).toBeDisabled();
-        await expect(sotControl(page, "settings-close")).toBeDisabled();
+        await expect(
+            shell.getByRole("button", {
+                name: /^(关闭设置|Close settings)$/,
+            }),
+        ).toBeDisabled();
+        await expect(
+            appearanceSurface.getByText(/^(保存中|Saving)$/),
+        ).toBeVisible();
         await page.keyboard.press("Escape");
         await expect(shell).toBeVisible();
         await settingsNav(page, "misc").evaluate(
             (node) => (node as HTMLButtonElement).click(),
         );
-        await expect(shell).toHaveAttribute(
-            "data-sot-section",
-            "appearance",
+        await expect(settingsNav(page, "appearance")).toHaveAttribute(
+            "aria-current",
+            "page",
         );
+        await expect(appearanceSurface).toBeVisible();
         await expect(itemsPerPageInput).toBeDisabled();
 
         releaseSave();
         expect((await realPutResponse).ok()).toBe(true);
-        await expect(shell).toHaveAttribute("data-sot-state", "idle");
+        await expect(shell).toHaveAttribute("aria-busy", "false");
+        await expect(appearanceSurface).toHaveAttribute("aria-busy", "false");
+        await expect(
+            appearanceSurface.getByText(/^(已保存|Saved)$/),
+        ).toBeVisible();
         await expect(itemsPerPageInput).toBeEnabled();
         await expect(settingsNav(page, "misc")).toBeEnabled();
-        await expect(sotControl(page, "settings-close")).toBeEnabled();
+        await expect(
+            shell.getByRole("button", {
+                name: /^(关闭设置|Close settings)$/,
+            }),
+        ).toBeEnabled();
 
         const readbackResponse = await page.request.get(
             "/api/settings/display",
@@ -2873,10 +3041,7 @@ test("settings shell holds a delayed real display PUT through GET readback and r
         await page.reload({ waitUntil: "domcontentloaded" });
         await reloadGetResponse;
         await expect(itemsPerPageInput).toHaveValue("42");
-        await expect(settingsShell(page)).toHaveAttribute(
-            "data-sot-section",
-            "appearance",
-        );
+        await expectActiveSettingsSectionReady(page, "appearance");
     } finally {
         releaseSave();
         await page.unroute(displayRoute);
@@ -2897,6 +3062,143 @@ test("settings shell holds a delayed real display PUT through GET readback and r
     }
 });
 
+test("Title Generation saves a semantic form payload while controls stay busy", async ({
+    page,
+}) => {
+    await page.setViewportSize({ width: 1280, height: 720 });
+    await ensureSignedIn(page);
+    await resetDisplayToChinese(page);
+    await clearSettingsPersistence(page);
+
+    const titleGenerationRoute = "**/api/settings/title-generation";
+    let releaseSave = () => {};
+    let notifySaveStarted = () => {};
+    let capturedPayload: Record<string, unknown> | null = null;
+    const saveStarted = new Promise<void>((resolve) => {
+        notifySaveStarted = resolve;
+    });
+    const pendingSave = new Promise<void>((resolve) => {
+        releaseSave = resolve;
+    });
+
+    await page.route(titleGenerationRoute, async (route) => {
+        if (route.request().method() !== "PUT") {
+            await route.continue();
+            return;
+        }
+
+        capturedPayload = route.request().postDataJSON() as Record<
+            string,
+            unknown
+        >;
+        notifySaveStarted();
+        await pendingSave;
+        await route.fulfill({
+            body: JSON.stringify({ success: true }),
+            contentType: "application/json",
+            status: 200,
+        });
+    });
+
+    try {
+        await page.goto("/settings#transcription", {
+            waitUntil: "domcontentloaded",
+        });
+        await expectActiveSettingsSectionReady(page, "transcription");
+
+        const titleGenerationLoad = page.waitForResponse(
+            (response) =>
+                response.url().includes("/api/settings/title-generation") &&
+                response.request().method() === "GET" &&
+                response.ok(),
+        );
+        await settingsNav(page, "title-generation").click();
+        await titleGenerationLoad;
+
+        const titleSection = await expectActiveSettingsSectionReady(
+            page,
+            "title-generation",
+        );
+        const automaticRename = titleSection.getByRole("switch", {
+            name: /^(基于逐字稿自动重命名|Automatically rename from transcripts)$/,
+        });
+        const serviceUrl = titleSection.getByRole("textbox", {
+            name: /^(重命名服务地址|Rename service URL)$/,
+        });
+        const model = titleSection.getByRole("textbox", {
+            name: /^(重命名模型|Rename model)$/,
+        });
+        const apiKey = titleSection.getByLabel(
+            /^(重命名服务 API Key|Rename service API key)$/,
+        );
+        const saveAction = titleSection.getByRole("button", {
+            name: /^(保存|Save|保存中|Saving|已保存|Saved)$/,
+        });
+
+        const autoRenameWasEnabled =
+            (await automaticRename.getAttribute("aria-checked")) === "true";
+        await automaticRename.click();
+        await expect(automaticRename).toHaveAttribute(
+            "aria-checked",
+            autoRenameWasEnabled ? "false" : "true",
+        );
+        await serviceUrl.fill("https://title-generation.example.test/v1");
+        await model.fill("e2e-title-generation-model");
+        await expect(apiKey).toHaveAttribute("type", "password");
+        await apiKey.fill("e2e-title-generation-new-key");
+
+        const saveResponse = page.waitForResponse(
+            (response) =>
+                response.url().includes("/api/settings/title-generation") &&
+                response.request().method() === "PUT",
+        );
+        await saveAction.click();
+        await saveStarted;
+
+        expect(capturedPayload).toMatchObject({
+            autoGenerateTitle: !autoRenameWasEnabled,
+            titleGenerationBaseUrl: "https://title-generation.example.test/v1",
+            titleGenerationModel: "e2e-title-generation-model",
+        });
+        expect(
+            Object.hasOwn(capturedPayload ?? {}, "titleGenerationApiKey"),
+        ).toBe(true);
+        expect(typeof capturedPayload?.titleGenerationApiKey).toBe("string");
+        expect(
+            (capturedPayload?.titleGenerationApiKey as string).length,
+        ).toBeGreaterThan(0);
+
+        await expect(titleSection).toHaveAttribute("aria-busy", "true");
+        await expect(automaticRename).toBeDisabled();
+        await expect(serviceUrl).toBeDisabled();
+        await expect(model).toBeDisabled();
+        await expect(apiKey).toBeDisabled();
+        await expect(settingsNav(page, "voscript")).toBeDisabled();
+        await expect(saveAction).toBeDisabled();
+        await expect(saveAction).toHaveAttribute("aria-busy", "true");
+        await expect(saveAction).toHaveAccessibleName(/^(保存中|Saving)$/);
+
+        releaseSave();
+        expect((await saveResponse).ok()).toBe(true);
+        await expect(titleSection).toHaveAttribute("aria-busy", "false");
+        await expect(automaticRename).toBeEnabled();
+        await expect(serviceUrl).toBeEnabled();
+        await expect(model).toBeEnabled();
+        await expect(apiKey).toBeEnabled();
+        await expect(apiKey).toHaveValue("");
+        await expect(saveAction).toHaveAccessibleName(/^(已保存|Saved)$/);
+        const storedKeyStatus = apiKey
+            .locator("xpath=..")
+            .getByRole("status")
+            .filter({ hasText: /^(已存储|Stored)$/ });
+        await expect(storedKeyStatus).toBeVisible();
+        await expect(storedKeyStatus).toHaveText(/^(已存储|Stored)$/);
+    } finally {
+        releaseSave();
+        await page.unroute(titleGenerationRoute);
+    }
+});
+
 test("settings shell keeps every desktop section fixed while wheel scrolling", async ({
     page,
 }) => {
@@ -2907,16 +3209,17 @@ test("settings shell keeps every desktop section fixed while wheel scrolling", a
     await page.goto("/settings#transcription", { waitUntil: "domcontentloaded" });
 
     const shell = settingsShell(page);
-    const settingsScrollBody = sotPanel(page, "settings-scroll-body");
     await expect(shell).toBeVisible();
     const baselineHeight = await settingsShellHeight(page);
 
     for (const section of desktopSettingsSections) {
         await selectDesktopSettingsSection(page, section);
-        await expect(shell).toHaveAttribute(
-            "data-sot-section",
+        await expectActiveSettingsSectionReady(page, section);
+        const settingsScrollBody = activeSettingsContentScrollContainer(
+            page,
             section,
         );
+        await expect(settingsScrollBody).toBeVisible();
         await expectShellHeightStable(page, baselineHeight);
         await expectShellFitsViewport(page);
 
@@ -2925,18 +3228,19 @@ test("settings shell keeps every desktop section fixed while wheel scrolling", a
         await expect
             .poll(() => page.evaluate(() => window.scrollY))
             .toBe(0);
-        await expect(shell).toHaveAttribute(
-            "data-sot-section",
-            section,
+        await expect(settingsNav(page, section)).toHaveAttribute(
+            "aria-current",
+            "page",
         );
     }
 
     await expect(settingsNav(page, "transcription")).toBeVisible();
     await selectDesktopSettingsSection(page, "transcription");
-    await expect(shell).toHaveAttribute(
-        "data-sot-section",
-        "transcription",
+    await expect(settingsNav(page, "transcription")).toHaveAttribute(
+        "aria-current",
+        "page",
     );
+    await expectActiveSettingsSectionReady(page, "transcription");
     await expectShellHeightStable(page, baselineHeight);
 });
 
@@ -3009,26 +3313,28 @@ test("settings shell keeps six sections coherent in light and dark desktop table
 
                     for (const section of desktopSettingsSections) {
                         await selectDesktopSettingsSection(page, section);
-                        await expectActiveSettingsSectionReady(page, section);
-                        await expect(
-                            shell.locator(
-                                '[data-sot-surface="settings-section"], [data-sot-surface="settings-data-sources"]',
-                            ),
-                        ).toHaveCount(1);
-                        await expect(
-                            shell.locator(
-                                '[data-sot-surface="settings-section"][aria-hidden="true"], [data-sot-surface="settings-section"][inert], [data-sot-surface="settings-data-sources"][aria-hidden="true"], [data-sot-surface="settings-data-sources"][inert]',
-                            ),
-                        ).toHaveCount(0);
-                        await expect(
-                            shell.locator(
-                                '[data-sot-surface="settings-data-sources"]',
-                            ),
-                        ).toHaveCount(section === "data-sources" ? 1 : 0);
+                        const activeSurface =
+                            await expectActiveSettingsSectionReady(
+                                page,
+                                section,
+                            );
+                        await expect(activeSurface).toBeVisible();
+                        for (const candidate of desktopSettingsSections) {
+                            if (candidate === section) continue;
+                            await expect(
+                                settingsSectionSurface(page, candidate),
+                            ).toBeHidden();
+                            await expect(
+                                settingsNav(page, candidate),
+                            ).not.toHaveAttribute("aria-current", "page");
+                        }
                         await expectShellHeightStable(page, baselineHeight);
                         await expectShellFitsViewport(page);
 
-                        const metrics = await settingsShellLayoutMetrics(page);
+                        const metrics = await settingsShellLayoutMetrics(
+                            page,
+                            section,
+                        );
                         expect(metrics.headerLeft).toBeGreaterThanOrEqual(
                             metrics.shellLeft - 1,
                         );
@@ -3088,7 +3394,7 @@ test("settings canonical route and mobile rail keep the shell fixed", async ({
 
     const shell = settingsShell(page);
     await expect(shell).toBeVisible();
-    await expect(shell).toHaveAttribute("data-sot-section", "misc");
+    await expectActiveSettingsSectionReady(page, "misc");
     await expect(page).toHaveURL(/\/settings#misc$/);
 
     const baselineHeight = await settingsShellHeight(page);
@@ -3096,18 +3402,20 @@ test("settings canonical route and mobile rail keep the shell fixed", async ({
     expect(baselineHeight).toBeLessThanOrEqual(844);
     await expectShellFitsViewport(page);
 
-    const rail = shell.locator('[data-sot-panel="settings-rail"]');
-    await expect(
-        shell.locator('[data-sot-control="settings-section-selector"]'),
-    ).toHaveCount(0);
+    const rail = shell.getByRole("navigation", {
+        name: /^(设置|Settings)$/,
+    });
     await expect(rail).toBeVisible();
+    await expect(rail.getByRole("button")).toHaveCount(
+        desktopSettingsSections.length,
+    );
     await expect(settingsNav(page, "misc")).toBeVisible();
 
     await settingsNav(page, "voscript").click();
-    await expect(shell).toHaveAttribute("data-sot-section", "voscript");
+    await expectActiveSettingsSectionReady(page, "voscript");
     await expect(settingsNav(page, "voscript")).toHaveAttribute(
-        "data-sot-state",
-        "selected",
+        "aria-current",
+        "page",
     );
     await expectShellHeightStable(page, baselineHeight);
 
@@ -3115,20 +3423,17 @@ test("settings canonical route and mobile rail keep the shell fixed", async ({
     await expectShellHeightStable(page, baselineHeight);
 
     await settingsNav(page, "data-sources").click();
-    await expect(shell).toHaveAttribute(
-        "data-sot-section",
-        "data-sources",
-    );
+    await expectActiveSettingsSectionReady(page, "data-sources");
     await expect(settingsNav(page, "data-sources")).toHaveAttribute(
-        "data-sot-state",
-        "selected",
+        "aria-current",
+        "page",
     );
-    await expect(
-        page.locator('[data-sot-surface="settings-data-sources"]'),
-    ).toBeVisible();
+    await expect(settingsSectionSurface(page, "data-sources")).toBeVisible();
     await expectShellHeightStable(page, baselineHeight);
 
-    await sotControl(page, "settings-close").click();
+    await shell
+        .getByRole("button", { name: /^(关闭设置|Close settings)$/ })
+        .click();
     await expect(shell).toBeHidden();
     await expect(page).toHaveURL(/\/dashboard$/);
 });
@@ -3145,33 +3450,22 @@ test("settings shell follows same-page hash section changes", async ({
     });
 
     const shell = settingsShell(page);
-    await expect(shell).toHaveAttribute("data-sot-section", "transcription");
+    await expectActiveSettingsSectionReady(page, "transcription");
 
     await page.evaluate(() => {
         window.location.hash = "appearance";
     });
-    await expect(shell).toHaveAttribute("data-sot-section", "appearance");
-    await expect(
-        page.locator(
-            '[data-sot-surface="settings-section"][data-sot-section="appearance"]',
-        ),
-    ).toBeVisible();
+    await expectActiveSettingsSectionReady(page, "appearance");
 
     await page.evaluate(() => {
         window.location.hash = "misc";
     });
-    await expect(shell).toHaveAttribute("data-sot-section", "misc");
-    await expect(
-        page.locator(
-            '[data-sot-surface="settings-section"][data-sot-section="misc"]',
-        ),
-    ).toBeVisible();
+    await expectActiveSettingsSectionReady(page, "misc");
 
     await page.evaluate(() => {
         window.location.hash = "data-sources";
     });
-    await expect(shell).toHaveAttribute("data-sot-section", "data-sources");
-    await expect(page.locator('[data-sot-surface="settings-data-sources"]')).toBeVisible();
+    await expectActiveSettingsSectionReady(page, "data-sources");
 });
 
 test("settings shell restores the last section and supports keyboard section selection", async ({
@@ -3189,26 +3483,23 @@ test("settings shell restores the last section and supports keyboard section sel
 
     const shell = settingsShell(page);
     await expect(shell).toBeVisible();
-    await expect(shell).toHaveAttribute(
-        "data-sot-section",
+    await expectActiveSettingsSectionReady(
+        page,
         "title-generation",
     );
     const titleGenerationNav = settingsNav(page, "title-generation");
-    await expect(titleGenerationNav).toHaveAttribute(
-        "data-keyboard-selected",
-        "true",
-    );
     await expect(titleGenerationNav).toHaveAttribute("aria-current", "page");
     await expect(titleGenerationNav).toHaveAttribute("tabindex", "0");
     await expect(titleGenerationNav).toBeFocused();
-    await expect(shell).toHaveAttribute("data-sot-state", "idle");
+    await expect(shell).toHaveAttribute("aria-busy", "false");
 
     await page.keyboard.press("End");
     await expect(settingsNav(page, "misc")).toBeFocused();
-    await expect(shell).toHaveAttribute(
-        "data-sot-section",
-        "title-generation",
+    await expect(titleGenerationNav).toHaveAttribute(
+        "aria-current",
+        "page",
     );
+    await expect(settingsSectionSurface(page, "title-generation")).toBeVisible();
 
     await page.keyboard.press("Home");
     await expect(settingsNav(page, "transcription")).toBeFocused();
@@ -3220,21 +3511,18 @@ test("settings shell restores the last section and supports keyboard section sel
     await page.keyboard.press("ArrowDown");
     await expect(titleGenerationNav).toBeFocused();
     await page.keyboard.press("ArrowDown");
-    await expect(settingsNav(page, "voscript")).toHaveAttribute(
-        "data-keyboard-selected",
-        "true",
-    );
     await expect(settingsNav(page, "voscript")).toBeFocused();
-    await expect(shell).toHaveAttribute(
-        "data-sot-section",
-        "title-generation",
+    await expect(settingsNav(page, "voscript")).toHaveAttribute(
+        "tabindex",
+        "0",
+    );
+    await expect(titleGenerationNav).toHaveAttribute(
+        "aria-current",
+        "page",
     );
 
     await page.keyboard.press("Enter");
-    await expect(shell).toHaveAttribute(
-        "data-sot-section",
-        "voscript",
-    );
+    await expectActiveSettingsSectionReady(page, "voscript");
     await expect(settingsNav(page, "voscript")).toHaveAttribute(
         "aria-current",
         "page",
@@ -3244,32 +3532,35 @@ test("settings shell restores the last section and supports keyboard section sel
             page.evaluate(() => localStorage.getItem("settings-last-section")),
         )
         .toBe("voscript");
-    await expect(shell).toHaveAttribute("data-sot-state", "idle");
+    await expect(shell).toHaveAttribute("aria-busy", "false");
 
     await page.keyboard.press("ArrowDown");
+    await expect(settingsNav(page, "data-sources")).toBeFocused();
     await expect(settingsNav(page, "data-sources")).toHaveAttribute(
-        "data-keyboard-selected",
-        "true",
+        "tabindex",
+        "0",
+    );
+    await expect(settingsNav(page, "voscript")).toHaveAttribute(
+        "aria-current",
+        "page",
     );
     await page.keyboard.press("Space");
-    await expect(shell).toHaveAttribute(
-        "data-sot-section",
-        "data-sources",
-    );
-    await expect(shell).toHaveAttribute("data-sot-state", "idle");
+    await expectActiveSettingsSectionReady(page, "data-sources");
+    await expect(shell).toHaveAttribute("aria-busy", "false");
 
     await page.keyboard.press("ArrowUp");
-    await expect(settingsNav(page, "voscript")).toHaveAttribute(
-        "data-keyboard-selected",
-        "true",
-    );
     await expect(settingsNav(page, "voscript")).toBeFocused();
-    await page.keyboard.press("Enter");
-    await expect(shell).toHaveAttribute(
-        "data-sot-section",
-        "voscript",
+    await expect(settingsNav(page, "voscript")).toHaveAttribute(
+        "tabindex",
+        "0",
     );
-    await expect(shell).toHaveAttribute("data-sot-state", "idle");
+    await expect(settingsNav(page, "data-sources")).toHaveAttribute(
+        "aria-current",
+        "page",
+    );
+    await page.keyboard.press("Enter");
+    await expectActiveSettingsSectionReady(page, "voscript");
+    await expect(shell).toHaveAttribute("aria-busy", "false");
 
     await page.keyboard.press("Escape");
     await expect(shell).toBeHidden();
@@ -3291,7 +3582,7 @@ test("settings shell six canonical sections meet SOT acceptance evidence", async
     const sections: SectionAcceptanceEvidence[] = [];
     const shell = settingsShell(page);
     await expect(shell).toBeVisible();
-    await expect(shell).toHaveAttribute("data-sot-state", "idle");
+    await expect(shell).toHaveAttribute("aria-busy", "false");
     await expectShellFitsViewport(page);
 
     for (const [index, section] of desktopSettingsSections.entries()) {
@@ -3334,32 +3625,35 @@ test("settings shell six canonical sections meet SOT acceptance evidence", async
     await page.goto("/settings?six-section-error-evidence=1#title-generation", {
         waitUntil: "domcontentloaded",
     });
-    await expect(shell).toHaveAttribute("data-sot-section", "title-generation");
-    const skeleton = page.locator(
-        '[data-sot-panel="settings-section-skeleton"][data-sot-section="title-generation"]',
+    await expect(settingsNav(page, "title-generation")).toHaveAttribute(
+        "aria-current",
+        "page",
     );
-    await expect(skeleton).toHaveAttribute("data-sot-state", "loading");
+    const loadingStatus = page.getByRole("status", {
+        name: "正在加载设置",
+        exact: true,
+    });
+    const loadingSection = loadingStatus.locator("..");
+    await expect(loadingSection).toHaveAttribute("aria-busy", "true");
+    await expect(loadingSection).toBeVisible();
+    await expect(loadingStatus).toBeVisible();
+    await expect(loadingStatus).toHaveAttribute("aria-live", "polite");
     releaseInitialLoad?.();
 
-    const errorSection = page.locator(
-        '[data-sot-surface="settings-section"][data-sot-section="title-generation"]',
-    );
-    await expect(errorSection).toHaveAttribute("data-sot-state", "error");
-    const errorPanel = errorSection.locator(
-        '[data-sot-panel="settings-section-load-error"][data-sot-section="title-generation"]',
-    );
+    const errorPanel = settingsShell(page).getByRole("alert");
+    const errorSection = errorPanel.locator("..");
+    await expect(errorSection).toHaveAttribute("aria-busy", "false");
     await expect(errorPanel).toBeVisible();
-    const retry = errorSection.locator(
-        '[data-sot-control="settings-section-load-retry"][data-sot-section="title-generation"]',
-    );
+    const retry = errorPanel.getByRole("button", {
+        exact: true,
+        name: /^(重试|Retry)$/,
+    });
     await expect(retry).toBeVisible();
-    await expect(
-        errorSection.locator('[data-sot-control="title-generation-model"]'),
-    ).toHaveCount(0);
+    await expect(errorSection.locator("#title-generation-model")).toHaveCount(0);
     const errorPanelWasVisible = await errorPanel.isVisible();
     const retryWasVisible = await retry.isVisible();
     const normalControlCountInError = await errorSection
-        .locator('[data-sot-control="title-generation-model"]')
+        .locator("#title-generation-model")
         .count();
 
     const retryResponse = page.waitForResponse(
@@ -3370,13 +3664,20 @@ test("settings shell six canonical sections meet SOT acceptance evidence", async
     );
     await retry.click();
     await retryResponse;
-    await expect(errorSection).toHaveAttribute("data-sot-state", "ready");
+    const readySection = settingsSectionSurface(page, "title-generation");
+    await expect(readySection).toHaveAttribute("aria-busy", "false");
+    await expect(
+        readySection.getByRole("heading", {
+            level: 3,
+            name: settingsSectionLabels["title-generation"],
+        }),
+    ).toBeVisible();
 
     const loadErrorRetry: LoadErrorRetryEvidence = {
         errorPanelVisible: errorPanelWasVisible,
         normalControlCountInError,
         retryReturnedReady:
-            (await errorSection.getAttribute("data-sot-state")) === "ready",
+            (await readySection.getAttribute("aria-busy")) === "false",
         retryVisible: retryWasVisible,
         section: "title-generation",
         states: ["loading", "error", "ready"],
@@ -3480,38 +3781,26 @@ test("settings shell row 117 captures responsive visual matrix", async ({
             waitUntil: "domcontentloaded",
         });
         const desktopShell = settingsShell(page);
-        await expect(desktopShell).toHaveAttribute(
-            "data-sot-section",
-            "transcription",
-        );
+        await expectActiveSettingsSectionReady(page, "transcription");
         await expectSettingsHeaderSotCopy(desktopShell);
         await page.evaluate(() => {
             window.location.hash = "appearance";
         });
-        await expect(desktopShell).toHaveAttribute(
-            "data-sot-section",
-            desktop.section,
-        );
-        await expect(settingsNav(page, desktop.section)).toHaveAttribute(
-            "data-sot-state",
-            "selected",
-        );
+        await expectActiveSettingsSectionReady(page, desktop.section);
         await expectShellFitsViewport(page);
         const desktopFocusEvidence = await page.evaluate(() => {
-            const navSelector =
-                '[data-sot-panel="settings-rail"] [data-sot-control="settings-nav"]';
-            const transcriptionNavSelector =
-                `${navSelector}[data-sot-section="transcription"]`;
+            const navSelector = "nav[aria-label] button";
+            const activeNavSelector = `${navSelector}[aria-current="page"]`;
 
             function summarizeActiveElement() {
                 const active = document.activeElement as HTMLElement | null;
 
                 return {
-                    control: active?.getAttribute("data-sot-control") ?? null,
+                    control: active?.getAttribute("aria-current") ?? null,
                     isSettingsNav: active?.matches(navSelector) ?? false,
                     isTranscriptionNav:
-                        active?.matches(transcriptionNavSelector) ?? false,
-                    section: active?.getAttribute("data-sot-section") ?? null,
+                        active?.matches(activeNavSelector) ?? false,
+                    section: active?.getAttribute("aria-current") ?? null,
                     tagName: active?.tagName.toLowerCase() ?? null,
                 };
             }
@@ -3583,26 +3872,14 @@ test("settings shell row 117 captures responsive visual matrix", async ({
             mobile.viewport,
         );
         await expectSettingsHeaderSotCopy(mobileShell);
-        await expect(
-            mobileShell.locator(
-                '[data-sot-control="settings-section-selector"]',
-            ),
-        ).toHaveCount(0);
-        await expect(
-            mobileShell.locator('[data-sot-panel="settings-rail"]'),
-        ).toBeVisible();
         await expect(settingsNav(page, "misc")).toBeVisible();
         await settingsNav(page, mobile.section).click();
-        await expect(mobileShell).toHaveAttribute(
-            "data-sot-section",
-            mobile.section,
-        );
         await expect(settingsNav(page, mobile.section)).toHaveAttribute(
-            "data-sot-state",
-            "selected",
+            "aria-current",
+            "page",
         );
         await expect(
-            page.locator('[data-sot-surface="settings-data-sources"]'),
+            settingsSectionSurface(page, mobile.section),
         ).toBeVisible();
         await expectShellFitsViewport(page);
 
@@ -3685,26 +3962,25 @@ test("settings shell row 117 captures responsive visual matrix", async ({
         );
         await expectSettingsHeaderSotCopy(savingShell);
         const itemsPerPageInput = page.locator("#display-items-per-page");
-        const appearanceSection = page.locator(
-            '[data-sot-surface="settings-section"][data-sot-section="appearance"]',
-        );
-        const appearanceSaveControls = appearanceSection.locator(
-            '[data-sot-control="settings-save"]',
-        );
-        const appearanceFooter = appearanceSection.locator(
-            '[data-sot-panel="settings-save-actions"]',
-        );
+        const appearanceSection = settingsSectionSurface(page, "appearance");
+        const appearanceSaveControls = appearanceSection.getByRole("button", {
+            exact: true,
+            name: /^(保存|Save)$/,
+        });
         await expect(itemsPerPageInput).toHaveValue("50");
         await itemsPerPageInput.fill("42");
         await saveStarted;
-        await expect(savingShell).toHaveAttribute("data-sot-state", "busy");
-        await expect(appearanceSection).toHaveAttribute("data-sot-state", "busy");
+        await expect(savingShell).toHaveAttribute("aria-busy", "true");
         await expect(appearanceSection).toHaveAttribute("aria-busy", "true");
         await expect(appearanceSaveControls).toHaveCount(0);
-        await expect(appearanceFooter).toHaveCount(0);
         await expect(itemsPerPageInput).toBeDisabled();
         await expect(settingsNav(page, "misc")).toBeDisabled();
-        await expect(sotControl(page, "settings-close")).toBeDisabled();
+        await expect(
+            settingsShell(page).getByRole("button", {
+                exact: true,
+                name: /^(关闭设置|Close settings)$/,
+            }),
+        ).toBeDisabled();
 
         frameName = sanitizeEvidenceName(saving.frame);
         productPath = path.join(
@@ -3715,7 +3991,7 @@ test("settings shell row 117 captures responsive visual matrix", async ({
         frames.push({
             assertions: [
                 "display items-per-page change is held pending",
-                "settings shell data-sot-state=busy",
+                "settings shell aria-busy=true",
                 "appearance has no footer save action",
                 "nav and close controls disabled while saving",
             ],
@@ -3739,7 +4015,8 @@ test("settings shell row 117 captures responsive visual matrix", async ({
             viewport: saving.viewport,
         });
         releaseSave();
-        await expect(savingShell).toHaveAttribute("data-sot-state", "idle");
+        await expect(savingShell).toHaveAttribute("aria-busy", "false");
+        await expect(appearanceSection).toHaveAttribute("aria-busy", "false");
         await seedRow117AppearanceReadyState(page);
 
         let failTitleGenerationLoad = true;
@@ -3768,18 +4045,16 @@ test("settings shell row 117 captures responsive visual matrix", async ({
             waitUntil: "domcontentloaded",
         });
         const errorShell = settingsShell(page);
-        await expect(errorShell).toHaveAttribute(
-            "data-sot-section",
-            "title-generation",
-        );
         await expectSettingsHeaderSotCopy(errorShell);
-        const errorSection = page.locator(
-            '[data-sot-surface="settings-section"][data-sot-section="title-generation"]',
-        );
-        await expect(errorSection).toHaveAttribute("data-sot-state", "error");
-        const retry = page.locator(
-            '[data-sot-control="settings-section-load-retry"][data-sot-section="title-generation"]',
-        );
+        const errorSection = settingsSectionSurface(page, "title-generation");
+        await expect(errorSection).toBeVisible();
+        await expect(errorSection).toHaveAttribute("aria-busy", "false");
+        const errorPanel = errorShell.getByRole("alert");
+        await expect(errorPanel).toBeVisible();
+        const retry = errorPanel.getByRole("button", {
+            exact: true,
+            name: /^(重试|Retry)$/,
+        });
         await expect(retry).toBeVisible();
 
         frameName = "desktop-title-generation-load-error-retry";
@@ -3821,7 +4096,8 @@ test("settings shell row 117 captures responsive visual matrix", async ({
         );
         await retry.click();
         await retryResponse;
-        await expect(errorSection).toHaveAttribute("data-sot-state", "ready");
+        await expectActiveSettingsSectionReady(page, "title-generation");
+        await expect(errorShell.getByRole("alert")).toHaveCount(0);
 
         const readyFrameViewports = [
             {
@@ -3853,16 +4129,16 @@ test("settings shell row 117 captures responsive visual matrix", async ({
                 await expectActiveSettingsSectionReady(page, section);
 
                 if (readyFrameViewport.mode === "mobile") {
+                    const settingsNavigation = productShell.getByRole(
+                        "navigation",
+                        {
+                            name: /^(设置|Settings)$/,
+                        },
+                    );
                     await expect(
-                        productShell.locator(
-                            '[data-sot-control="settings-section-selector"]',
-                        ),
+                        settingsNavigation.getByRole("combobox"),
                     ).toHaveCount(0);
-                    await expect(
-                        productShell.locator(
-                            '[data-sot-panel="settings-rail"]',
-                        ),
-                    ).toBeVisible();
+                    await expect(settingsNavigation).toBeVisible();
                     await expect(settingsNav(page, section)).toBeVisible();
                 }
 

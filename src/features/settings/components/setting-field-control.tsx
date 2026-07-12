@@ -152,7 +152,6 @@ export function SettingFieldControl({
                         placeholder={field.placeholder}
                         disabled={disabled}
                         readOnly={field.readOnly}
-                        data-sot-mask={field.masked ? "true" : undefined}
                     />
                 ) : (
                     <Input
@@ -185,12 +184,6 @@ export function SettingFieldControl({
                         readOnly={field.readOnly}
                         spellCheck={field.spellCheck}
                         className={inputClassName}
-                        data-sot-mask={field.masked ? "true" : undefined}
-                        data-sot-privacy-boundary={
-                            field.sensitiveTextareaPasswordFallback
-                                ? "sensitive-textarea-password-input"
-                                : undefined
-                        }
                     />
                 )}
             </FieldControl>

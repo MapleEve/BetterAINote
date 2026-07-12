@@ -18,7 +18,7 @@ import {
     FieldControl,
     FieldDescription,
     FieldError,
-    FieldTitle,
+    FieldLabel,
 } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
 import { Select } from "@/components/ui/select";
@@ -46,7 +46,6 @@ type SectionSaveState = "idle" | "saving" | "saved" | "error";
 
 interface Option<Value extends string | number = string> {
     label: string;
-    sotValue?: string;
     value: Value;
 }
 
@@ -104,14 +103,30 @@ function clampInteger(value: number, min: number, max: number) {
     return Math.max(min, Math.min(max, Math.floor(value)));
 }
 
+function getFieldDescribedBy(
+    id: string,
+    hasError = false,
+    additionalId?: string,
+) {
+    return [
+        `${id}-description`,
+        hasError ? `${id}-error` : undefined,
+        additionalId,
+    ]
+        .filter((value): value is string => Boolean(value))
+        .join(" ");
+}
+
 function SaveStatus({
     error,
     isZh,
     saveState,
+    statusId,
 }: {
     error: string | null;
     isZh: boolean;
     saveState: SectionSaveState;
+    statusId: string;
 }) {
     const label =
         saveState === "saving"
@@ -135,27 +150,19 @@ function SaveStatus({
 
     return (
         <Badge
+            id={statusId}
             variant={statusVariant}
             className={statusClassName}
-            data-sot-part="settings-save-status"
-            data-sot-state={saveState}
+            role={saveState === "error" ? "alert" : "status"}
+            aria-live={saveState === "error" ? "assertive" : "polite"}
+            aria-atomic="true"
         >
             {saveState === "saving" ? (
-                <Spinner
-                    size="2xs"
-                    aria-hidden="true"
-                    data-sot-part="settings-save-status-indicator"
-                />
+                <Spinner size="2xs" aria-hidden="true" />
             ) : saveState === "saved" ? (
-                <CheckCircle2
-                    aria-hidden="true"
-                    data-sot-part="settings-save-status-indicator"
-                />
+                <CheckCircle2 aria-hidden="true" />
             ) : saveState === "error" ? (
-                <XCircle
-                    aria-hidden="true"
-                    data-sot-part="settings-save-status-indicator"
-                />
+                <XCircle aria-hidden="true" />
             ) : null}
             {label}
         </Badge>
@@ -169,10 +176,8 @@ function SectionShell({
     loading,
     onRetry,
     scrollRef,
-    section,
     subtitle,
     title,
-    voscriptAvailability,
 }: {
     busy: boolean;
     children: React.ReactNode;
@@ -180,56 +185,38 @@ function SectionShell({
     loading: boolean;
     onRetry: () => void;
     scrollRef?: Ref<HTMLDivElement>;
-    section: string;
     subtitle?: string;
     title: string;
-    voscriptAvailability?: "ready" | "unavailable";
 }) {
     const { language } = useLanguage();
     const isZh = language === "zh-CN";
 
     if (loading) {
         return (
-            <SettingsSectionSkeleton
-                fieldsPerCard={2}
-                scrollRef={scrollRef}
-                section={section}
-                surface="settings-section"
-            />
+            <SettingsSectionSkeleton fieldsPerCard={2} scrollRef={scrollRef} />
         );
     }
 
     if (loadError) {
         return (
-            <div
+            <section
                 ref={scrollRef}
+                aria-label={title}
                 aria-busy={busy}
-                data-sot-layout="section"
-                data-sot-panel="settings-scroll-body"
-                data-sot-section={section}
-                data-sot-state="error"
-                data-sot-surface="settings-section"
                 className={SETTINGS_SCROLL_BODY_CLASS}
             >
                 <Alert
                     variant="destructiveSoft"
                     density="comfortable"
-                    data-sot-banner="settings-section-load-error"
-                    data-sot-panel="settings-section-load-error"
-                    data-sot-section={section}
-                    data-sot-tone="err"
+                    aria-live="assertive"
                     className={SETTINGS_BANNER_BASE_CLASS}
                 >
                     <AlertCircle aria-hidden="true" />
-                    <AlertTitle
-                        className={SETTINGS_BANNER_TITLE_CLASS}
-                        data-sot-banner-title
-                    >
+                    <AlertTitle className={SETTINGS_BANNER_TITLE_CLASS}>
                         {isZh ? "加载失败" : "Load failed"}
                     </AlertTitle>
                     <AlertDescription
                         className={SETTINGS_BANNER_DESCRIPTION_CLASS}
-                        data-sot-banner-sub
                     >
                         <span>{loadError}</span>
                         <Button
@@ -237,9 +224,9 @@ function SectionShell({
                             variant="default"
                             size="sm"
                             className="mt-3"
+                            disabled={busy}
+                            aria-busy={busy}
                             onClick={onRetry}
-                            data-sot-control="settings-section-load-retry"
-                            data-sot-section={section}
                         >
                             <RotateCw
                                 data-icon="inline-start"
@@ -249,32 +236,25 @@ function SectionShell({
                         </Button>
                     </AlertDescription>
                 </Alert>
-            </div>
+            </section>
         );
     }
 
     return (
-        <div
+        <section
             ref={scrollRef}
+            aria-label={title}
             aria-busy={busy}
-            data-sot-layout="section"
-            data-sot-panel="settings-scroll-body"
-            data-sot-section={section}
-            data-sot-state={busy ? "busy" : "ready"}
-            data-sot-surface="settings-section"
-            data-sot-availability={voscriptAvailability}
             className={SETTINGS_SCROLL_BODY_CLASS}
         >
-            <h3 className={SETTINGS_SECTION_TITLE_CLASS} data-sot-title>
-                {title}
-            </h3>
+            <h3 className={SETTINGS_SECTION_TITLE_CLASS}>{title}</h3>
             {subtitle ? (
                 <FieldDescription className="max-w-2xl">
                     {subtitle}
                 </FieldDescription>
             ) : null}
             {children}
-        </div>
+        </section>
     );
 }
 
@@ -288,14 +268,8 @@ function SettingsGroup({
     title: string;
 }) {
     return (
-        <section
-            className={SETTINGS_SECTION_GROUP_CLASS}
-            data-sot-section-group
-        >
-            <header
-                className={SETTINGS_SECTION_HEAD_CLASS}
-                data-sot-section-head
-            >
+        <section className={SETTINGS_SECTION_GROUP_CLASS} aria-label={title}>
+            <header className={SETTINGS_SECTION_HEAD_CLASS}>
                 <h4 className={SETTINGS_SECTION_HEAD_TITLE_CLASS}>{title}</h4>
                 {subtitle ? (
                     <p className={SETTINGS_SECTION_HEAD_DESCRIPTION_CLASS}>
@@ -313,37 +287,31 @@ function SettingsRow({
     description,
     fieldMessage,
     fieldState,
+    id,
     label,
-    sotField,
 }: {
     children?: React.ReactNode;
     description?: string;
     fieldMessage?: string;
     fieldState?: "invalid";
+    id: string;
     label: string;
-    sotField?: string;
 }) {
     return (
         <Field
             data-invalid={fieldState === "invalid" ? "true" : undefined}
-            data-sot-field={sotField}
-            data-sot-state={fieldState ?? "ready"}
             orientation="horizontal"
             className={SETTINGS_FIELD_ROW_CLASS}
         >
             <FieldContent className={SETTINGS_FIELD_CONTENT_CLASS}>
-                <FieldTitle>{label}</FieldTitle>
+                <FieldLabel htmlFor={id}>{label}</FieldLabel>
                 {description ? (
-                    <FieldDescription>{description}</FieldDescription>
+                    <FieldDescription id={`${id}-description`}>
+                        {description}
+                    </FieldDescription>
                 ) : null}
                 {fieldMessage ? (
-                    <FieldError
-                        data-sot-field={sotField}
-                        data-sot-part="settings-field-message"
-                        data-sot-state="invalid"
-                    >
-                        {fieldMessage}
-                    </FieldError>
+                    <FieldError id={`${id}-error`}>{fieldMessage}</FieldError>
                 ) : null}
             </FieldContent>
             {children ? (
@@ -356,7 +324,7 @@ function SettingsRow({
 }
 
 function SelectControl<Value extends string | number>({
-    control,
+    describedBy,
     disabled,
     id,
     label,
@@ -364,7 +332,7 @@ function SelectControl<Value extends string | number>({
     options,
     value,
 }: {
-    control?: string;
+    describedBy?: string;
     disabled?: boolean;
     id: string;
     label: string;
@@ -375,8 +343,7 @@ function SelectControl<Value extends string | number>({
     return (
         <Select
             aria-label={label}
-            data-sot-control={control}
-            data-sot-state={disabled ? "disabled" : "ready"}
+            aria-describedby={describedBy}
             disabled={disabled}
             id={id}
             onValueChange={onChange}
@@ -394,9 +361,9 @@ function SaveActions({
     error,
     isZh,
     onSave,
-    saveId,
+    saveTarget,
     saveState,
-    section,
+    statusId,
     children,
 }: {
     children?: React.ReactNode;
@@ -404,19 +371,34 @@ function SaveActions({
     error: string | null;
     isZh: boolean;
     onSave: () => void;
-    saveId?: string;
+    saveTarget: string;
     saveState: SectionSaveState;
-    section: string;
+    statusId: string;
 }) {
+    const saveButtonLabel =
+        saveState === "saving"
+            ? isZh
+                ? `${saveTarget}保存中`
+                : `Saving ${saveTarget}`
+            : saveState === "saved"
+              ? isZh
+                  ? `${saveTarget}已保存`
+                  : `${saveTarget} saved`
+              : isZh
+                ? `保存${saveTarget}`
+                : `Save ${saveTarget}`;
+
     return (
-        <div
-            className={SETTINGS_SAVE_ACTIONS_CLASS}
-            data-sot-panel="settings-save-actions"
-            data-sot-save-id={saveId ?? section}
-            data-sot-section={section}
-            data-sot-state={saveState}
-        >
-            <SaveStatus error={error} isZh={isZh} saveState={saveState} />
+        <fieldset className={SETTINGS_SAVE_ACTIONS_CLASS}>
+            <legend className="sr-only">
+                {isZh ? `${saveTarget}操作` : `${saveTarget} actions`}
+            </legend>
+            <SaveStatus
+                error={error}
+                isZh={isZh}
+                saveState={saveState}
+                statusId={statusId}
+            />
             {children}
             <Button
                 type="button"
@@ -424,10 +406,8 @@ function SaveActions({
                 size="sm"
                 disabled={disabled}
                 aria-busy={saveState === "saving"}
-                data-sot-action="save"
-                data-sot-control="settings-save"
-                data-sot-section={section}
-                data-sot-state={saveState}
+                aria-describedby={saveState === "idle" ? undefined : statusId}
+                aria-label={saveButtonLabel}
                 onClick={onSave}
             >
                 {saveState === "saving" ? (
@@ -445,7 +425,7 @@ function SaveActions({
                         ? "保存"
                         : "Save"}
             </Button>
-        </div>
+        </fieldset>
     );
 }
 
@@ -525,23 +505,19 @@ function VoScriptSpeakerRows({
             <SettingsRow
                 fieldMessage={minSpeakersMessage}
                 fieldState={minSpeakersInvalid ? "invalid" : undefined}
+                id="voscript-min-speakers"
                 label={isZh ? "最少说话人数" : "Minimum speakers"}
-                sotField="min-speakers"
                 description={isZh ? "0 为自动" : "0 means automatic"}
             >
                 <Input
                     className={SETTINGS_NUMBER_INPUT_CLASS}
                     id="voscript-min-speakers"
-                    data-sot-control="voscript-min-speakers"
-                    data-sot-state={
-                        minSpeakersInvalid
-                            ? "invalid"
-                            : busy
-                              ? "disabled"
-                              : "ready"
-                    }
                     type="number"
                     min={0}
+                    aria-describedby={getFieldDescribedBy(
+                        "voscript-min-speakers",
+                        minSpeakersInvalid,
+                    )}
                     aria-invalid={minSpeakersInvalid}
                     value={draft.privateTranscriptionMinSpeakers}
                     disabled={busy}
@@ -559,8 +535,8 @@ function VoScriptSpeakerRows({
             <SettingsRow
                 fieldMessage={maxSpeakersMessage}
                 fieldState={maxSpeakersInvalid ? "invalid" : undefined}
+                id="voscript-max-speakers"
                 label={isZh ? "最多说话人数" : "Maximum speakers"}
-                sotField="max-speakers"
                 description={
                     isZh
                         ? "0 为自动 · 必须 ≥ 最少说话人数"
@@ -570,16 +546,12 @@ function VoScriptSpeakerRows({
                 <Input
                     className={SETTINGS_NUMBER_INPUT_CLASS}
                     id="voscript-max-speakers"
-                    data-sot-control="voscript-max-speakers"
-                    data-sot-state={
-                        maxSpeakersInvalid
-                            ? "invalid"
-                            : busy
-                              ? "disabled"
-                              : "ready"
-                    }
                     type="number"
                     min={0}
+                    aria-describedby={getFieldDescribedBy(
+                        "voscript-max-speakers",
+                        maxSpeakersInvalid,
+                    )}
                     aria-invalid={maxSpeakersInvalid}
                     value={draft.privateTranscriptionMaxSpeakers}
                     disabled={busy}
@@ -914,42 +886,37 @@ export function VoScriptSection({
             loading={isLoading && !hasLoaded}
             onRetry={() => void ensureVoScriptSettingsLoaded().catch(() => {})}
             scrollRef={scrollRef}
-            section="voscript"
             title={isZh ? "VoScript 服务" : "VoScript Service"}
-            voscriptAvailability={
-                showUnavailableBanner ? "unavailable" : "ready"
-            }
         >
             {showUnavailableBanner ? (
                 <Alert
+                    id="voscript-connection-status"
                     variant={
                         connectionTestState === "test-error"
                             ? "destructiveSoft"
                             : "default"
                     }
                     density="comfortable"
-                    data-sot-banner="voscript-unavailable"
-                    data-sot-panel="voscript-unavailable-banner"
-                    data-sot-state={
+                    role={
                         connectionTestState === "test-error"
-                            ? "test-error"
-                            : "missing-connection"
+                            ? "alert"
+                            : "status"
                     }
-                    data-sot-tone="warn"
+                    aria-live={
+                        connectionTestState === "test-error"
+                            ? "assertive"
+                            : "polite"
+                    }
                     className={SETTINGS_BANNER_BASE_CLASS}
                 >
                     <AlertCircle aria-hidden="true" />
-                    <AlertTitle
-                        className={SETTINGS_BANNER_TITLE_CLASS}
-                        data-sot-banner-title
-                    >
+                    <AlertTitle className={SETTINGS_BANNER_TITLE_CLASS}>
                         {isZh
                             ? "VoScript 当前不可用"
                             : "VoScript is unavailable"}
                     </AlertTitle>
                     <AlertDescription
                         className={SETTINGS_BANNER_DESCRIPTION_CLASS}
-                        data-sot-banner-hint
                     >
                         {connectionTestState === "test-error" &&
                         connectionTestMessage
@@ -969,6 +936,7 @@ export function VoScriptSection({
                 }
             >
                 <SettingsRow
+                    id="voscript-base-url"
                     label={isZh ? "VoScript 服务地址" : "VoScript service URL"}
                     description={
                         isZh
@@ -979,8 +947,13 @@ export function VoScriptSection({
                     <Input
                         className={SETTINGS_INPUT_CLASS}
                         id="voscript-base-url"
-                        data-sot-control="voscript-base-url"
-                        data-sot-state={busy ? "disabled" : "ready"}
+                        aria-describedby={getFieldDescribedBy(
+                            "voscript-base-url",
+                            false,
+                            showUnavailableBanner
+                                ? "voscript-connection-status"
+                                : undefined,
+                        )}
                         value={draft.privateTranscriptionBaseUrl ?? ""}
                         disabled={busy}
                         placeholder="https://voscript.example.com"
@@ -993,6 +966,7 @@ export function VoScriptSection({
                     />
                 </SettingsRow>
                 <SettingsRow
+                    id="voscript-api-key"
                     label={isZh ? "VoScript API Key" : "VoScript API key"}
                     description={
                         draft.privateTranscriptionApiKeySet
@@ -1006,9 +980,10 @@ export function VoScriptSection({
                 >
                     {draft.privateTranscriptionApiKeySet ? (
                         <Badge
+                            id="voscript-api-key-status"
                             variant="secondary"
-                            data-sot-key-status
-                            data-sot-state="stored"
+                            role="status"
+                            aria-live="polite"
                         >
                             <CheckCircle2
                                 aria-hidden="true"
@@ -1020,14 +995,13 @@ export function VoScriptSection({
                     <Input
                         className={SETTINGS_INPUT_CLASS}
                         id="voscript-api-key"
-                        data-sot-control="voscript-api-key"
-                        data-sot-state={
-                            busy || apiKeyMode === VOSCRIPT_API_KEY_CLEAR
-                                ? "disabled"
-                                : draft.privateTranscriptionApiKeySet
-                                  ? "stored"
-                                  : "ready"
-                        }
+                        aria-describedby={getFieldDescribedBy(
+                            "voscript-api-key",
+                            false,
+                            draft.privateTranscriptionApiKeySet
+                                ? "voscript-api-key-status"
+                                : undefined,
+                        )}
                         type="password"
                         value={apiKeyDraft}
                         disabled={busy || apiKeyMode === VOSCRIPT_API_KEY_CLEAR}
@@ -1043,6 +1017,7 @@ export function VoScriptSection({
                 </SettingsRow>
                 {draft.privateTranscriptionApiKeySet ? (
                     <SettingsRow
+                        id="voscript-api-key-mode"
                         label={isZh ? "密钥操作" : "Key action"}
                         description={
                             isZh
@@ -1051,8 +1026,10 @@ export function VoScriptSection({
                         }
                     >
                         <SelectControl
+                            describedBy={getFieldDescribedBy(
+                                "voscript-api-key-mode",
+                            )}
                             id="voscript-api-key-mode"
-                            control="voscript-api-key-mode"
                             label={isZh ? "密钥操作" : "Key action"}
                             value={apiKeyMode}
                             disabled={busy}
@@ -1079,19 +1056,33 @@ export function VoScriptSection({
                     error={connectionSave.saveError}
                     isZh={isZh}
                     onSave={() => void saveConnectionSettings()}
-                    saveId="voscript-connection"
+                    saveTarget={isZh ? "服务连接" : "service connection"}
                     saveState={connectionSave.saveState}
-                    section="voscript"
+                    statusId="voscript-connection-save-status"
                 >
                     <Button
                         type="button"
                         variant="ghost"
                         size="sm"
                         aria-busy={isTestingConnection}
-                        data-sot-action="test"
-                        data-sot-control="voscript-test"
-                        data-sot-section="voscript"
-                        data-sot-state={connectionTestState}
+                        aria-describedby={
+                            showUnavailableBanner
+                                ? "voscript-connection-status"
+                                : undefined
+                        }
+                        aria-label={
+                            isTestingConnection
+                                ? isZh
+                                    ? "正在测试 VoScript 连接"
+                                    : "Testing VoScript connection"
+                                : connectionTestState === "test-success"
+                                  ? isZh
+                                      ? "VoScript 连接正常"
+                                      : "VoScript connection ready"
+                                  : isZh
+                                    ? "测试 VoScript 连接"
+                                    : "Test VoScript connection"
+                        }
                         disabled={busy}
                         onClick={() => void testConnection()}
                     >
@@ -1136,6 +1127,7 @@ export function VoScriptSection({
                     setDraft={setDraft}
                 />
                 <SettingsRow
+                    id="voscript-denoise-model"
                     label={isZh ? "降噪模型" : "Denoise model"}
                     description={
                         isZh
@@ -1144,8 +1136,10 @@ export function VoScriptSection({
                     }
                 >
                     <SelectControl
+                        describedBy={getFieldDescribedBy(
+                            "voscript-denoise-model",
+                        )}
                         id="voscript-denoise-model"
-                        control="voscript-denoise-model"
                         label={isZh ? "降噪模型" : "Denoise model"}
                         options={denoiseOptions}
                         value={draft.privateTranscriptionDenoiseModel}
@@ -1160,6 +1154,7 @@ export function VoScriptSection({
                     />
                 </SettingsRow>
                 <SettingsRow
+                    id="voscript-snr-threshold"
                     label={isZh ? "SNR 阈值" : "SNR threshold"}
                     description={
                         isZh
@@ -1170,8 +1165,9 @@ export function VoScriptSection({
                     <Input
                         className={SETTINGS_NUMBER_INPUT_CLASS}
                         id="voscript-snr-threshold"
-                        data-sot-control="voscript-snr-threshold"
-                        data-sot-state={busy ? "disabled" : "ready"}
+                        aria-describedby={getFieldDescribedBy(
+                            "voscript-snr-threshold",
+                        )}
                         type="number"
                         value={draft.privateTranscriptionSnrThreshold ?? ""}
                         disabled={busy}
@@ -1192,8 +1188,8 @@ export function VoScriptSection({
                         noRepeatNgramInvalid ? noRepeatNgramMessage : undefined
                     }
                     fieldState={noRepeatNgramInvalid ? "invalid" : undefined}
+                    id="voscript-no-repeat-ngram"
                     label={isZh ? "重复抑制 n-gram" : "No-repeat n-gram"}
-                    sotField="no-repeat-ngram"
                     description={
                         isZh
                             ? "0 表示关闭；只有 3 及以上的值才会发送给服务"
@@ -1203,16 +1199,12 @@ export function VoScriptSection({
                     <Input
                         className={SETTINGS_NUMBER_INPUT_CLASS}
                         id="voscript-no-repeat-ngram"
-                        data-sot-control="voscript-no-repeat-ngram"
-                        data-sot-state={
-                            noRepeatNgramInvalid
-                                ? "invalid"
-                                : busy
-                                  ? "disabled"
-                                  : "ready"
-                        }
                         type="number"
                         min={0}
+                        aria-describedby={getFieldDescribedBy(
+                            "voscript-no-repeat-ngram",
+                            noRepeatNgramInvalid,
+                        )}
                         aria-invalid={noRepeatNgramInvalid}
                         value={draft.privateTranscriptionNoRepeatNgramSize}
                         disabled={busy}
@@ -1228,6 +1220,7 @@ export function VoScriptSection({
                     />
                 </SettingsRow>
                 <SettingsRow
+                    id="voscript-max-inflight-jobs"
                     label={
                         isZh ? "本地调度活跃任务上限" : "Local active job limit"
                     }
@@ -1240,8 +1233,9 @@ export function VoScriptSection({
                     <Input
                         className={SETTINGS_NUMBER_INPUT_CLASS}
                         id="voscript-max-inflight-jobs"
-                        data-sot-control="voscript-max-inflight-jobs"
-                        data-sot-state={busy ? "disabled" : "ready"}
+                        aria-describedby={getFieldDescribedBy(
+                            "voscript-max-inflight-jobs",
+                        )}
                         type="number"
                         min={0}
                         value={draft.privateTranscriptionMaxInflightJobs}
@@ -1262,9 +1256,13 @@ export function VoScriptSection({
                     error={paramsSave.saveError}
                     isZh={isZh}
                     onSave={() => void saveRuntimeParams()}
-                    saveId="voscript-params"
+                    saveTarget={
+                        isZh
+                            ? "转录运行参数"
+                            : "transcription runtime parameters"
+                    }
                     saveState={paramsSave.saveState}
-                    section="voscript"
+                    statusId="voscript-params-save-status"
                 />
             </SettingsGroup>
             <SpeakerProfilesPanel />

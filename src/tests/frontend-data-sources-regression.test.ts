@@ -80,7 +80,9 @@ describe("frontend data-source routing regression", () => {
         expect(hook).not.toContain("@/db");
         expect(settingsContent).toContain("<DataSourcesSection");
         expect(dataSourcesSection).toContain("testSourceSettings(source)");
-        expect(dataSourcesSection).toContain('data-sot-control="source-test"');
+        expect(dataSourcesSection).toMatch(
+            /aria-busy=\{actionState === "testing"\}[\s\S]*?handleTestSource\(selectedSource\)/,
+        );
         expect(settingsContent).not.toContain(
             "Connection details look complete",
         );
@@ -191,7 +193,7 @@ describe("frontend data-source routing regression", () => {
         );
         expect(dataSourcesSection).toContain("testSourceSettings(source)");
         expect(dataSourcesSection).toContain(
-            'data-sot-panel="source-provider-detail"',
+            "aria-labelledby={providerDetailTitleId}",
         );
         expect(settingsContent).not.toContain(
             "getSupportedSourceCapabilityDisplayItems",
@@ -204,6 +206,76 @@ describe("frontend data-source routing regression", () => {
         expect(workstation).toContain("refreshBrowserRoute(router)");
         expect(workstation).toContain("await manualSync()");
         expect(workstation).toContain("await Promise.all([");
+    });
+
+    it("keeps provider tiles linked to the labeled detail region", () => {
+        const dataSourcesSection = readFileSync(
+            path.join(
+                ROOT,
+                "features/settings/components/sections/data-sources-section.tsx",
+            ),
+            "utf8",
+        );
+
+        expect(dataSourcesSection).toContain(
+            'const SOURCE_PROVIDER_DETAIL_ID = "data-source-provider-detail"',
+        );
+        expect(dataSourcesSection).toContain(
+            "aria-controls={SOURCE_PROVIDER_DETAIL_ID}",
+        );
+        expect(dataSourcesSection).toContain("aria-pressed={isSelected}");
+        expect(dataSourcesSection).toContain("id={SOURCE_PROVIDER_DETAIL_ID}");
+        expect(dataSourcesSection).toContain(
+            "aria-labelledby={providerDetailTitleId}",
+        );
+        expect(dataSourcesSection).toContain("<h3 id={providerDetailTitleId}>");
+        expect(dataSourcesSection).toContain(
+            "aria-busy={isSourceActionStateBusy(actionState)}",
+        );
+        expect(dataSourcesSection).toContain('role="status"');
+        expect(dataSourcesSection).toContain('aria-live="polite"');
+        expect(dataSourcesSection).toContain("disabled={interactionDisabled}");
+        expect(dataSourcesSection).not.toContain("data-sot-");
+        expect(dataSourcesSection).not.toContain("data-slot=");
+    });
+
+    it("keeps automatic updates labeled and bound to the selected provider", () => {
+        const dataSourcesSection = readFileSync(
+            path.join(
+                ROOT,
+                "features/settings/components/sections/data-sources-section.tsx",
+            ),
+            "utf8",
+        );
+        const automaticUpdatesSwitch =
+            dataSourcesSection.match(
+                /<Switch\s+id=\{automaticUpdatesFieldId\}[\s\S]*?\/>/,
+            )?.[0] ?? "";
+
+        expect(dataSourcesSection).toMatch(
+            /const automaticUpdatesFieldId = selectedSource[\s\S]*?selectedSource\.provider\}-automatic-updates/,
+        );
+        expect(dataSourcesSection).toContain(
+            "const automaticUpdatesDescriptionId = automaticUpdatesFieldId",
+        );
+        expect(dataSourcesSection).toMatch(
+            /<FieldLabel\s+htmlFor=\{automaticUpdatesFieldId\}[\s\S]*?Automatic updates/,
+        );
+        expect(dataSourcesSection).toContain(
+            "id={automaticUpdatesDescriptionId}",
+        );
+        expect(automaticUpdatesSwitch).toMatch(
+            /aria-describedby=\{\s*automaticUpdatesDescriptionId\s*\}/,
+        );
+        expect(automaticUpdatesSwitch).toContain(
+            "checked={selectedSource.enabled}",
+        );
+        expect(automaticUpdatesSwitch).toContain(
+            "disabled={interactionDisabled}",
+        );
+        expect(automaticUpdatesSwitch).toMatch(
+            /onCheckedChange=\{\(checked\) =>\s*updateSource\(\s*selectedSource\.provider,\s*\(current\) => \(\{\s*\.\.\.current,\s*enabled: checked,/,
+        );
     });
 
     it("hides sensitive provider secret replacement inputs in settings", () => {
@@ -243,7 +315,6 @@ describe("frontend data-source routing regression", () => {
         expect(fieldControl).toContain("sensitiveTextareaPasswordFallback");
         expect(fieldControl).toContain("sensitive-textarea-password-input");
         expect(fieldControl).toContain("masked: readOnlyMaskedDisplay");
-        expect(fieldControl).toContain("data-sot-mask={");
         expect(fieldControl).not.toContain('"mask"');
         expect(settingFieldControl).toContain("masked?: boolean");
         expect(settingFieldControl).toContain(
@@ -252,8 +323,17 @@ describe("frontend data-source routing regression", () => {
         expect(settingFieldControl).toContain(
             'field.kind === "textarea" && !field.sensitive',
         );
-        expect(settingFieldControl).toContain("data-sot-mask={field.masked");
-        expect(settingFieldControl).toContain("data-sot-privacy-boundary={");
+        expect(settingFieldControl).toContain("<FieldLabel htmlFor={fieldId}>");
+        expect(settingFieldControl).toMatch(
+            /type=\{\s*field\.sensitive\s*\?\s*"password"/,
+        );
+        expect(settingFieldControl).toContain("disabled={disabled}");
+        expect(settingFieldControl).toContain("readOnly={field.readOnly}");
+        expect(settingFieldControl).toContain(
+            'field.masked && "tracking-widest"',
+        );
+        expect(settingFieldControl).not.toContain("data-sot-mask");
+        expect(settingFieldControl).not.toContain("data-sot-privacy-boundary");
         expect(settingFieldControl).toContain("onPaste");
         expect(settingFieldControl).toContain("clipboardData.getData");
         expect(settingFieldControl).toContain('"text"');
@@ -395,7 +475,7 @@ describe("frontend data-source routing regression", () => {
         );
 
         expect(sourceReportCopyButton).toContain(
-            "data-testid={`source-report-copy-${copy}`}",
+            "data-testid={`source-report-copy-" + "$" + "{copy}`}",
         );
         expect(sourceReportCopyButton).toContain(
             "data-state={feedbackState ?? copyState}",
