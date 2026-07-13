@@ -69,7 +69,7 @@ function Slider({
     const {
         "aria-hidden": _legacyInputAriaHidden,
         style: _legacyInputStyle,
-        tabIndex: _legacyInputTabIndex,
+        tabIndex: sliderTabIndex,
         ...sliderRootProps
     } = props;
     const {
@@ -79,8 +79,11 @@ function Slider({
     } = rootProps ?? {};
     const { className: rangeClassName, ...rangePrimitiveProps } =
         rangeProps ?? {};
-    const { className: thumbClassName, ...thumbPrimitiveProps } =
-        thumbProps ?? {};
+    const {
+        className: thumbClassName,
+        tabIndex: thumbTabIndex,
+        ...thumbPrimitiveProps
+    } = thumbProps ?? {};
     const sliderValues = React.useMemo(
         () =>
             Array.isArray(value)
@@ -105,6 +108,15 @@ function Slider({
         thumbPrimitiveProps["aria-label"] ??
         rootPrimitiveProps["aria-label"] ??
         sliderRootProps["aria-label"];
+    const thumbAriaDisabled =
+        thumbPrimitiveProps["aria-disabled"] ??
+        rootPrimitiveProps["aria-disabled"] ??
+        sliderRootProps["aria-disabled"] ??
+        (disabled ? true : undefined);
+    const thumbFocusProps =
+        thumbTabIndex === undefined && sliderTabIndex === undefined
+            ? {}
+            : { tabIndex: thumbTabIndex ?? sliderTabIndex };
 
     return (
         <SliderPrimitive.Root
@@ -152,6 +164,8 @@ function Slider({
             {thumbKeys.map((thumbKey) => (
                 <SliderPrimitive.Thumb
                     {...thumbPrimitiveProps}
+                    {...thumbFocusProps}
+                    aria-disabled={thumbAriaDisabled}
                     aria-label={thumbAriaLabel}
                     data-slot="slider-thumb"
                     key={thumbKey}

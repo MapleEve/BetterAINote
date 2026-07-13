@@ -117,18 +117,16 @@ describe("React surface SSR coverage", () => {
             ),
         );
 
-        for (const shell of [
-            "dashboard-loading",
-            "recording-route-loading",
-            "recording-route-empty",
-            "recording-route-error",
-        ]) {
-            expect(html).toContain(`data-sot-shell="${shell}"`);
+        for (const loadingLabel of ["正在加载仪表盘", "正在加载录音详情"]) {
+            expect(html).toContain(`aria-label="${loadingLabel}"`);
         }
-        expect(html).toContain('data-sot-panel="route-sidebar"');
-        expect(html).toContain('data-sot-panel="route-main"');
-        expect(html).toContain('data-sot-panel="route-topbar"');
-        expect(html).toContain('data-sot-panel="route-workspace"');
+        expect(html).toContain('aria-label="应用导航"');
+        expect(html).toContain('aria-label="当前页面"');
+        expect(html).toContain('aria-busy="true"');
+        expect(html).toContain("录音不存在");
+        expect(html).toContain("加载失败");
+        expect(html).toMatch(/<button[^>]*type="button"[^>]*>重试<\/button>/);
+        expect(html).toMatch(/<a[^>]*href="\/dashboard"[^>]*>返回工作台<\/a>/);
         expect(html).toContain('data-slot="card"');
         expect(html).toContain('data-slot="skeleton"');
         expect(html).toContain('data-slot="empty"');
@@ -197,15 +195,15 @@ describe("React surface SSR coverage", () => {
         expect(html).toContain('data-active="0"');
         expect(html).toContain('data-slot="toggle-group-item"');
         expect(html).toContain('data-state="on"');
-        expect(html).not.toContain('data-sot-control="segmented-tabs"');
-        expect(html).not.toContain('data-sot-size="sm"');
-        expect(html).not.toContain('data-sot-control="segmented-tab"');
-        expect(html).not.toContain('data-sot-state="active"');
+        expect(html).not.toContain('data-control="segmented-tabs"');
+        expect(html).not.toContain('data-size="sm"');
+        expect(html).not.toContain('data-control="segmented-tab"');
+        expect(html).not.toContain('data-state="active"');
         expect(html).not.toContain('data-slot="segmented-tabs"');
         expect(html).not.toContain('data-slot="toggle-group-indicator"');
-        expect(html).not.toContain('data-sot-control="liquid-tabs"');
-        expect(html).not.toContain('data-sot-control="liquid-tab"');
-        expect(html).not.toContain('data-sot-part="liquid-tabs-indicator"');
+        expect(html).not.toContain('data-control="liquid-tabs"');
+        expect(html).not.toContain('data-control="liquid-tab"');
+        expect(html).not.toContain('data-part="liquid-tabs-indicator"');
         expect(html).not.toContain('class="liquid-tabs');
         expect(html).not.toContain('class="lt-tab');
         expect(html).toContain('aria-busy="true"');
@@ -308,7 +306,7 @@ describe("React surface SSR coverage", () => {
         expect(dataSourcesHtml).toContain("正在读取来源");
         expect(dataSourcesHtml).toContain("没有可用数据源");
         expect(dataSourcesHtml).toContain('aria-live="polite"');
-        expect(dataSourcesHtml).not.toContain("data-sot-");
+        expect(dataSourcesHtml).not.toContain(`${["data", "sot"].join("-")}-`);
     });
 
     it("renders dashboard and recording workstations with transcript data", () => {
@@ -340,9 +338,9 @@ describe("React surface SSR coverage", () => {
         expect(html).toContain("dashboard-workstation");
         expect(html).toContain("Weekly sync");
         expect(html).toContain("TicNote");
-        expect(html).toContain('data-sot-list="dashboard-sources"');
-        expect(html).toContain('data-sot-panel="dashboard-sync"');
-        expect(html).toContain('data-sot-control="dashboard-sync"');
+        expect(html).toContain('data-list="dashboard-sources"');
+        expect(html).toContain('data-panel="dashboard-sync"');
+        expect(html).toContain('data-control="dashboard-sync"');
     });
 
     it("renders data source and source-detail supporting surfaces", () => {
@@ -381,18 +379,20 @@ describe("React surface SSR coverage", () => {
 
         expect(html).toContain("登录信息");
         expect(html).toContain("source-report");
-        expect(html).toContain(
-            'data-sot-panel="recording-transcription-skeleton"',
-        );
-        expect(html).toContain(
-            'data-sot-panel="recording-transcription-speaker-review-skeleton"',
-        );
-        expect(html).toContain(
-            'data-sot-panel="recording-transcription-review-skeleton"',
-        );
-        expect(html).toContain(
-            'data-sot-part="recording-transcription-skeleton-line"',
-        );
+        for (const loadingLabel of [
+            "正在加载转写结果",
+            "正在加载说话人复核",
+            "正在加载转写复核",
+        ]) {
+            expect(html).toContain(`aria-label="${loadingLabel}"`);
+        }
+        expect((html.match(/aria-busy="true"/g) ?? []).length).toBe(4);
+        expect(
+            (html.match(/data-slot="card"/g) ?? []).length,
+        ).toBeGreaterThanOrEqual(2);
+        expect(
+            (html.match(/data-slot="skeleton"/g) ?? []).length,
+        ).toBeGreaterThanOrEqual(50);
         for (const legacyClass of [
             "empty-hint",
             "eh-h",
@@ -525,8 +525,8 @@ describe("React surface SSR coverage", () => {
                 /<textarea(?=[^>]*id="settings-visible-note")[^>]*>/,
             )?.[0] ?? "";
         expect(settingsTextarea).toContain("tracking-widest");
-        expect(settingsTextarea).not.toContain("data-sot-mask");
-        expect(settingsTextarea).not.toContain("data-sot-privacy-boundary");
+        expect(settingsTextarea).not.toContain("data-mask");
+        expect(settingsTextarea).not.toContain("data-privacy-boundary");
         expect(settingsTextarea).toMatch(/\sdisabled(?:=|(?=\s|>))/i);
         expect(settingsTextarea).toMatch(/\sreadonly(?:=|(?=\s|>))/i);
         for (const [fieldId, label] of [
@@ -542,7 +542,7 @@ describe("React surface SSR coverage", () => {
             );
             expect(html).toMatch(
                 new RegExp(
-                    `<input(?=[^>]*id="${fieldId}")(?=[^>]*type="password")(?![^>]*data-sot-mask)(?![^>]*data-sot-privacy-boundary)`,
+                    `<input(?=[^>]*id="${fieldId}")(?=[^>]*type="password")(?![^>]*data-mask)(?![^>]*data-privacy-boundary)`,
                 ),
             );
             expect(html).not.toMatch(

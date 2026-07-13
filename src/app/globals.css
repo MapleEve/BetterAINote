@@ -88,7 +88,9 @@
        SEMANTIC TOKENS — Light mode (default, "Pro" graphite)
        ----------------------------------------------------------- */
     --bg-canvas: var(--graphite-100);
+    --source-report-mobile-canvas: var(--bg-canvas);
     --bg-elevated: var(--graphite-50);
+    --bg-elevated-subtle: var(--bg-recessed);
     --card-elevated-bg: var(--bg-elevated);
     --card-elevated-border: var(--line-hairline);
     --card-popover-bg: var(--bg-elevated);
@@ -458,10 +460,16 @@
    =========================================================== */
 .dark,
 [data-theme="dark"] {
-    --bg-canvas: rgb(17 18 19);
-    --bg-canvas: oklch(0.185 0.004 250); /* canonical dark canvas */
+    --bg-canvas: rgb(17 19 20);
+    --bg-canvas: oklch(0.185 0.004 229); /* canonical dark canvas */
+    --source-report-mobile-canvas: rgb(17 19 20);
+    --source-report-mobile-canvas: oklch(0.185 0.004 250);
     --bg-elevated: rgb(31 36 42);
     --bg-elevated: oklch(0.215 0.004 250); /* one step up — sidebars/panels */
+    --bg-elevated-subtle: rgb(30 32 33);
+    --bg-elevated-subtle: oklch(
+        0.242 0.0035 229
+    ); /* nested elevated surfaces */
     --card-elevated-bg: rgb(31 36 42 / 0.7);
     --card-elevated-bg: color-mix(in srgb, var(--bg-elevated) 70%, transparent);
     --card-elevated-border: var(--glass-border-soft);
@@ -684,37 +692,6 @@ button:not([data-slot]) {
     font-family: inherit;
 }
 
-/* ====================================================================
-   Runtime data-attribute compatibility hooks.
-   Kept properties: display/position/top/right/bottom/left/inset/
-   visibility/z-index/overflow/pointer-events. No visual styling.
-   ==================================================================== */
-[data-sot-panel="dashboard-sidebar"]
-    [data-sot-panel="dashboard-sync"]
-    [data-sot-control="dashboard-sync"][disabled] {
-    pointer-events: none;
-}
-[data-sot-panel="settings-scroll-body"][hidden] {
-    display: none;
-}
-[data-sot-panel="settings-scroll-body"][data-sot-availability="unavailable"]
-    [data-sot-panel="voscript-unavailable-banner"] {
-    display: grid;
-}
-[data-detail-empty] {
-    display: none;
-}
-[data-detail-empty][hidden] {
-    display: none;
-}
-[data-sot-panel="dashboard-detail"][data-empty="true"]
-    [data-sot-panel="dashboard-detail-header"] {
-    display: none;
-}
-[data-sot-panel="dashboard-detail"][data-empty="true"] [data-detail-empty] {
-    display: flex;
-}
-
 /* ============================================================
    Shared keyframes used by component-owned animation classes.
    ============================================================ */
@@ -734,9 +711,6 @@ button:not([data-slot]) {
     100% {
         background-position: -100% 50%;
     }
-}
-[data-sot-panel="system-banner"] + [data-sot-panel="system-banner"] {
-    margin-top: 8px;
 }
 @keyframes sbn-sweep {
     0% {
@@ -901,6 +875,7 @@ select::-ms-expand {
     [data-theme="dark"] {
         --bg-canvas: rgb(11 16 22);
         --bg-elevated: rgb(34 36 41);
+        --bg-elevated-subtle: rgb(30 32 33);
         --bg-recessed: rgb(23 25 29);
         --bg-overlay: rgba(34, 36, 41, 0.74);
         --fg-primary: rgb(244 246 248);
@@ -918,10 +893,3 @@ select::-ms-expand {
         --alert-warning-soft-strong-border: rgb(188 137 22 / 0.28);
     }
 }
-
-/* ============================================================
-   BetterAINote · Component Library
-   ------------------------------------------------------------
-   Marker retained for tests that slice product globals before
-   removed showcase-only component-library CSS.
-   ============================================================ */

@@ -28,6 +28,11 @@ vi.mock("@/server/modules/api-credentials/private-transcription", () => ({
     upsertStoredPrivateTranscriptionCredential: vi.fn(),
 }));
 
+vi.mock("@/server/modules/data-sources", () => ({
+    getResolvedSourceConnectionForUser: vi.fn(),
+    hasConfiguredSourceSecrets: vi.fn(),
+}));
+
 vi.mock("@/lib/settings/number-normalization", async (importOriginal) => {
     const actual =
         await importOriginal<
@@ -108,6 +113,10 @@ import {
     hasStoredTitleGenerationCredential,
     upsertStoredTitleGenerationCredential,
 } from "@/server/modules/api-credentials/title-generation";
+import {
+    getResolvedSourceConnectionForUser,
+    hasConfiguredSourceSecrets,
+} from "@/server/modules/data-sources";
 
 function makePutRequest(url: string, body: Record<string, unknown>) {
     return new Request(url, {
@@ -136,6 +145,8 @@ describe("settings section routes", () => {
         (upsertStoredPrivateTranscriptionCredential as Mock).mockResolvedValue(
             undefined,
         );
+        (getResolvedSourceConnectionForUser as Mock).mockResolvedValue(null);
+        (hasConfiguredSourceSecrets as Mock).mockReturnValue(false);
     });
 
     it("stores uiLanguage through the display route", async () => {
@@ -349,6 +360,7 @@ describe("settings section routes", () => {
         await expect(response.json()).resolves.toEqual({
             autoTranscribe: true,
             defaultTranscriptionLanguage: null,
+            defaultTranscriptionProvider: null,
         });
     });
 
@@ -356,6 +368,7 @@ describe("settings section routes", () => {
         (getUserSettingsRow as Mock).mockResolvedValue({
             autoTranscribe: false,
             defaultTranscriptionLanguage: null,
+            defaultTranscriptionProvider: "ticnote",
         });
 
         const response = await getTranscription(
@@ -366,7 +379,150 @@ describe("settings section routes", () => {
         await expect(response.json()).resolves.toEqual({
             autoTranscribe: false,
             defaultTranscriptionLanguage: null,
+            defaultTranscriptionProvider: "ticnote",
         });
+    });
+
+    it("stores and reads back a default transcription provider for the current user's configured connection", async () => {
+        (getResolvedSourceConnectionForUser as Mock).mockResolvedValue({
+            enabled: true,
+            authMode: "bearer",
+            secrets: { bearerToken: "configured-test-token" },
+        });
+        (hasConfiguredSourceSecrets as Mock).mockReturnValue(true);
+
+        const saveResponse = await putTranscription(
+            makePutRequest("http://localhost/api/settings/transcription", {
+                defaultTranscriptionProvider: "ticnote",
+            }),
+        );
+
+        expect(saveResponse.status).toBe(200);
+        expect(getResolvedSourceConnectionForUser).toHaveBeenCalledWith(
+            "user-1",
+            "ticnote",
+        );
+        expect(upsertUserSettings).toHaveBeenCalledWith("user-1", {
+            defaultTranscriptionProvider: "ticnote",
+        });
+
+        (getUserSettingsRow as Mock).mockResolvedValue({
+            autoTranscribe: true,
+            defaultTranscriptionLanguage: null,
+            defaultTranscriptionProvider: "ticnote",
+        });
+        const readResponse = await getTranscription(
+            new Request("http://localhost/api/settings/transcription"),
+        );
+
+        expect(readResponse.status).toBe(200);
+        await expect(readResponse.json()).resolves.toEqual({
+            autoTranscribe: true,
+            defaultTranscriptionLanguage: null,
+            defaultTranscriptionProvider: "ticnote",
+        });
+    });
+
+    it("clears the default transcription provider without resolving a source connection", async () => {
+        const response = await putTranscription(
+            makePutRequest("http://localhost/api/settings/transcription", {
+                defaultTranscriptionProvider: null,
+            }),
+        );
+
+        expect(response.status).toBe(200);
+        expect(getResolvedSourceConnectionForUser).not.toHaveBeenCalled();
+        expect(upsertUserSettings).toHaveBeenCalledWith("user-1", {
+            defaultTranscriptionProvider: null,
+        });
+    });
+
+    it("leaves the default transcription provider unchanged when the field is omitted", async () => {
+        const response = await putTranscription(
+            makePutRequest("http://localhost/api/settings/transcription", {
+                autoTranscribe: false,
+            }),
+        );
+
+        expect(response.status).toBe(200);
+        expect(getResolvedSourceConnectionForUser).not.toHaveBeenCalled();
+        expect(upsertUserSettings).toHaveBeenCalledWith("user-1", {
+            autoTranscribe: false,
+        });
+    });
+
+    it("requires authentication before writing transcription settings", async () => {
+        (getAuthenticatedUserId as Mock).mockResolvedValue(null);
+
+        const response = await putTranscription(
+            makePutRequest("http://localhost/api/settings/transcription", {
+                defaultTranscriptionProvider: null,
+            }),
+        );
+
+        expect(response.status).toBe(401);
+        expect(getResolvedSourceConnectionForUser).not.toHaveBeenCalled();
+        expect(upsertUserSettings).not.toHaveBeenCalled();
+    });
+
+    it("rejects invalid, disconnected, credentialless, and other-user default transcription providers without writing", async () => {
+        const cases: Array<{
+            connection: Record<string, unknown> | null;
+            hasSecrets?: boolean;
+            name: string;
+            provider: string;
+        }> = [
+            {
+                name: "unknown provider",
+                connection: null,
+                provider: "unknown-provider",
+            },
+            {
+                name: "disconnected source",
+                connection: {
+                    enabled: false,
+                    authMode: "bearer",
+                    secrets: { bearerToken: "configured-test-token" },
+                },
+                hasSecrets: true,
+                provider: "ticnote",
+            },
+            {
+                name: "source without credentials",
+                connection: {
+                    enabled: true,
+                    authMode: "bearer",
+                    secrets: {},
+                },
+                hasSecrets: false,
+                provider: "ticnote",
+            },
+            {
+                name: "other user's source",
+                connection: null,
+                provider: "feishu-minutes",
+            },
+        ];
+
+        for (const testCase of cases) {
+            vi.clearAllMocks();
+            (getAuthenticatedUserId as Mock).mockResolvedValue("user-1");
+            (getResolvedSourceConnectionForUser as Mock).mockResolvedValue(
+                testCase.connection,
+            );
+            (hasConfiguredSourceSecrets as Mock).mockReturnValue(
+                testCase.hasSecrets ?? false,
+            );
+
+            const response = await putTranscription(
+                makePutRequest("http://localhost/api/settings/transcription", {
+                    defaultTranscriptionProvider: testCase.provider,
+                }),
+            );
+
+            expect(response.status, testCase.name).toBe(400);
+            expect(upsertUserSettings).not.toHaveBeenCalled();
+        }
     });
 
     it("keeps shared diarization fields out of transcription updates", async () => {

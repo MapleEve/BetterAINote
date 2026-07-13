@@ -24,6 +24,7 @@ describe("transcription settings store", () => {
             settings: {
                 autoTranscribe: true,
                 defaultTranscriptionLanguage: null,
+                defaultTranscriptionProvider: null,
             },
         });
     });
@@ -45,6 +46,30 @@ describe("transcription settings store", () => {
         await expect(ensureTranscriptionSettingsLoaded()).resolves.toEqual({
             autoTranscribe: true,
             defaultTranscriptionLanguage: null,
+            defaultTranscriptionProvider: null,
+        });
+    });
+
+    it("normalizes an unknown default transcription provider to null", async () => {
+        const fetchMock = vi.fn<typeof fetch>().mockResolvedValueOnce(
+            new Response(
+                JSON.stringify({
+                    autoTranscribe: true,
+                    defaultTranscriptionLanguage: "zh",
+                    defaultTranscriptionProvider: "unknown-provider",
+                }),
+                {
+                    status: 200,
+                    headers: { "Content-Type": "application/json" },
+                },
+            ),
+        );
+        vi.stubGlobal("fetch", fetchMock);
+
+        await expect(ensureTranscriptionSettingsLoaded()).resolves.toEqual({
+            autoTranscribe: true,
+            defaultTranscriptionLanguage: "zh",
+            defaultTranscriptionProvider: null,
         });
     });
 
@@ -54,6 +79,7 @@ describe("transcription settings store", () => {
                 JSON.stringify({
                     autoTranscribe: true,
                     defaultTranscriptionLanguage: "en",
+                    defaultTranscriptionProvider: "ticnote",
                 }),
                 {
                     status: 200,
@@ -71,6 +97,7 @@ describe("transcription settings store", () => {
         await expect(firstLoad).resolves.toEqual({
             autoTranscribe: true,
             defaultTranscriptionLanguage: "en",
+            defaultTranscriptionProvider: "ticnote",
         });
 
         expect(fetchMock).toHaveBeenCalledTimes(1);
@@ -81,6 +108,7 @@ describe("transcription settings store", () => {
             settings: {
                 autoTranscribe: true,
                 defaultTranscriptionLanguage: "en",
+                defaultTranscriptionProvider: "ticnote",
             },
         });
     });
@@ -93,6 +121,7 @@ describe("transcription settings store", () => {
                     JSON.stringify({
                         autoTranscribe: false,
                         defaultTranscriptionLanguage: null,
+                        defaultTranscriptionProvider: "ticnote",
                     }),
                     {
                         status: 200,
@@ -118,6 +147,7 @@ describe("transcription settings store", () => {
         const savePromise = saveTranscriptionSettings({
             autoTranscribe: true,
             defaultTranscriptionLanguage: "zh",
+            defaultTranscriptionProvider: "feishu-minutes",
         });
 
         expect(getTranscriptionSettingsStoreSnapshot()).toMatchObject({
@@ -125,6 +155,7 @@ describe("transcription settings store", () => {
             settings: {
                 autoTranscribe: true,
                 defaultTranscriptionLanguage: "zh",
+                defaultTranscriptionProvider: "feishu-minutes",
             },
         });
 
@@ -138,6 +169,7 @@ describe("transcription settings store", () => {
             settings: {
                 autoTranscribe: false,
                 defaultTranscriptionLanguage: null,
+                defaultTranscriptionProvider: "ticnote",
             },
         });
     });
@@ -171,6 +203,7 @@ describe("transcription settings store", () => {
             settings: {
                 autoTranscribe: true,
                 defaultTranscriptionLanguage: null,
+                defaultTranscriptionProvider: null,
             },
         });
 
@@ -188,12 +221,14 @@ describe("transcription settings store", () => {
             settings: {
                 autoTranscribe: true,
                 defaultTranscriptionLanguage: null,
+                defaultTranscriptionProvider: null,
             },
         });
 
         await expect(ensureTranscriptionSettingsLoaded()).resolves.toEqual({
             autoTranscribe: true,
             defaultTranscriptionLanguage: null,
+            defaultTranscriptionProvider: null,
         });
         expect(fetchMock).toHaveBeenCalledTimes(2);
     });

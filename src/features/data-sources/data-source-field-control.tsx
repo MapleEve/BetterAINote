@@ -21,10 +21,11 @@ const SENSITIVE_FIELD_PATTERN =
 
 const ONBOARDING_SOURCE_FIELD_GROUP_CLASS_NAME = "gap-0";
 const ONBOARDING_SOURCE_FIELD_CLASS_NAME =
-    "flex flex-col gap-3 border-b border-border py-3 last:border-b-0 @md/field-group:flex-row @md/field-group:items-center @md/field-group:gap-4 [&>*]:w-full @md/field-group:[&>*]:w-auto [&>.sr-only]:w-auto @md/field-group:[&>[data-slot=field-label]]:flex-auto";
-const ONBOARDING_SOURCE_FIELD_CONTENT_CLASS_NAME = "min-w-0 gap-1";
+    "flex flex-col gap-3 border-b border-border py-3 last:border-b-0 @md/field-group:flex-row @md/field-group:items-center @md/field-group:gap-4";
+const ONBOARDING_SOURCE_FIELD_CONTENT_CLASS_NAME =
+    "w-full min-w-0 gap-1 @md/field-group:w-auto @md/field-group:flex-auto";
 const ONBOARDING_SOURCE_FIELD_CONTROL_CLASS_NAME =
-    "flex min-w-0 flex-none items-center gap-2 @md/field-group:justify-end";
+    "flex w-full min-w-0 flex-none items-center gap-2 @md/field-group:w-auto @md/field-group:justify-end";
 
 function isSensitiveProviderField(field: DataSourceFormField) {
     return (
@@ -33,10 +34,6 @@ function isSensitiveProviderField(field: DataSourceFormField) {
         SENSITIVE_FIELD_PATTERN.test(field.id) ||
         SENSITIVE_FIELD_PATTERN.test(field.label)
     );
-}
-
-function shouldRenderTextareaAsPasswordInput(field: DataSourceFormField) {
-    return field.kind === "textarea" && isSensitiveProviderField(field);
 }
 
 interface DataSourceFieldControlProps {
@@ -63,18 +60,18 @@ export function DataSourceFieldControl({
         field.value.includes("•");
     const sensitiveTextField =
         !field.readOnly && isSensitiveProviderField(field);
-    const sensitiveTextareaPasswordFallback =
-        !field.readOnly && shouldRenderTextareaAsPasswordInput(field);
     const renderedField = {
         ...field,
         masked: readOnlyMaskedDisplay,
         sensitive: sensitiveTextField,
-        sensitiveTextareaPasswordFallback,
     };
     const controlInputClassName = cn(
         renderedField.masked && "tracking-[0.15em]",
         renderedField.className,
     );
+    const fieldDescriptionId = field.description
+        ? `${fieldId}-description`
+        : undefined;
     const isOnboardingVariant = variant === "onboarding";
 
     if (variant === "settings" || variant === "sourceProviderDetail") {
@@ -119,7 +116,9 @@ export function DataSourceFieldControl({
             >
                 <FieldLabel htmlFor={fieldId}>{field.label}</FieldLabel>
                 {field.description ? (
-                    <FieldDescription>{field.description}</FieldDescription>
+                    <FieldDescription id={fieldDescriptionId}>
+                        {field.description}
+                    </FieldDescription>
                 ) : null}
             </FieldContent>
             <FieldControl
@@ -132,6 +131,7 @@ export function DataSourceFieldControl({
                 {field.kind === "switch" ? (
                     <Switch
                         id={fieldId}
+                        aria-describedby={fieldDescriptionId}
                         checked={Boolean(field.value)}
                         onCheckedChange={(checked) =>
                             onValueChange(field, checked)
@@ -142,6 +142,7 @@ export function DataSourceFieldControl({
                     <Select
                         id={fieldId}
                         aria-label={field.label}
+                        aria-describedby={fieldDescriptionId}
                         value={String(field.value)}
                         onValueChange={(value) => onValueChange(field, value)}
                         disabled={disabled}
@@ -151,6 +152,7 @@ export function DataSourceFieldControl({
                 ) : field.kind === "textarea" && !renderedField.sensitive ? (
                     <Textarea
                         id={fieldId}
+                        aria-describedby={fieldDescriptionId}
                         rows={field.rows ?? 3}
                         spellCheck={field.spellCheck}
                         className={controlInputClassName}
@@ -159,13 +161,11 @@ export function DataSourceFieldControl({
                         placeholder={field.placeholder}
                         disabled={disabled}
                         readOnly={field.readOnly}
-                        data-sot-mask={
-                            renderedField.masked ? "true" : undefined
-                        }
                     />
                 ) : (
                     <Input
                         id={fieldId}
+                        aria-describedby={fieldDescriptionId}
                         type={renderedField.sensitive ? "password" : "text"}
                         value={String(field.value)}
                         onChange={handleTextValueChange}
@@ -190,14 +190,6 @@ export function DataSourceFieldControl({
                         readOnly={field.readOnly}
                         spellCheck={field.spellCheck}
                         className={controlInputClassName}
-                        data-sot-mask={
-                            renderedField.masked ? "true" : undefined
-                        }
-                        data-sot-privacy-boundary={
-                            renderedField.sensitiveTextareaPasswordFallback
-                                ? "sensitive-textarea-password-input"
-                                : undefined
-                        }
                     />
                 )}
             </FieldControl>

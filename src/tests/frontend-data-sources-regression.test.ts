@@ -303,7 +303,9 @@ describe("frontend data-source routing regression", () => {
         expect(textareaPrimitive).toContain('data-slot="textarea"');
         expect(textareaPrimitive).not.toContain("data-sot-privacy-boundary");
         expect(fieldControl).toContain("isSensitiveProviderField");
-        expect(fieldControl).toContain("shouldRenderTextareaAsPasswordInput");
+        expect(fieldControl).toMatch(
+            /type=\{\s*renderedField\.sensitive\s*\?\s*"password"\s*:\s*"text"/,
+        );
         expect(fieldControl).toContain(
             'field.kind === "textarea" && !renderedField.sensitive',
         );
@@ -312,8 +314,8 @@ describe("frontend data-source routing regression", () => {
         expect(fieldControl).toContain("payload");
         expect(fieldControl).toContain("password");
         expect(fieldControl).toContain("sensitive: sensitiveTextField");
-        expect(fieldControl).toContain("sensitiveTextareaPasswordFallback");
-        expect(fieldControl).toContain("sensitive-textarea-password-input");
+        expect(fieldControl).toContain("onPaste={");
+        expect(fieldControl).toContain('event.clipboardData.getData("text")');
         expect(fieldControl).toContain("masked: readOnlyMaskedDisplay");
         expect(fieldControl).not.toContain('"mask"');
         expect(settingFieldControl).toContain("masked?: boolean");
@@ -426,11 +428,11 @@ describe("frontend data-source routing regression", () => {
         expect(dashboardWorkstation).toContain(
             'sourceReportCopyState !== "ready"',
         );
-        expect(dashboardWorkstation).toContain(
-            "disabled={sourceTranscriptCopyDisabled}",
+        expect(dashboardWorkstation).toMatch(
+            /<SourceReportCopyButton\s+type="button"\s+copy="source-transcript"[\s\S]*?aria-busy=\{\s*copyingAction ===\s*"source-transcript"\s*\}[\s\S]*?aria-disabled=\{\s*sourceTranscriptCopyDisabled\s*\?\s*"true"\s*:\s*"false"\s*\}[\s\S]*?disabled=\{\s*sourceTranscriptCopyDisabled\s*\}[\s\S]*?onClick=\{\(\) =>\s*void handleCopySourceMaterial\(\s*"source-transcript",?\s*\)\s*\}/,
         );
-        expect(dashboardWorkstation).toContain(
-            "disabled={sourceReportCopyDisabled}",
+        expect(dashboardWorkstation).toMatch(
+            /<SourceReportCopyButton\s+type="button"\s+copy="source-report"[\s\S]*?aria-busy=\{\s*copyingAction ===\s*"source-report"\s*\}[\s\S]*?aria-disabled=\{\s*sourceReportCopyDisabled\s*\?\s*"true"\s*:\s*"false"\s*\}[\s\S]*?disabled=\{\s*sourceReportCopyDisabled\s*\}[\s\S]*?onClick=\{\(\) =>\s*void handleCopySourceMaterial\(\s*"source-report",?\s*\)\s*\}/,
         );
         expect(
             existsSync(path.join(ROOT, "features/source-report/styles.ts")),

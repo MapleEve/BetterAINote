@@ -4,7 +4,7 @@ import { pathToFileURL } from "node:url";
 import { createClient } from "@libsql/client";
 import { expect, test } from "@playwright/test";
 import type { Locator, Page, Route, TestInfo } from "@playwright/test";
-import { ensureSignedIn } from "./helpers/auth";
+import { ensureSignedIn, waitForLoginPageReady } from "./helpers/auth";
 import {
     SOT_COMPONENT_LIBRARY_URL,
     SOT_WORKSTATION_URL,
@@ -1264,9 +1264,17 @@ async function openSpeakerReviewPanel(page: Page) {
         exact: true,
     });
 
+    await expect(tab).toBeEnabled();
     for (let attempt = 0; attempt < 3; attempt += 1) {
-        await tab.click();
-        await expect(tab).toHaveAttribute("aria-selected", "true");
+        if ((await tab.getAttribute("aria-selected")) !== "true") {
+            await tab.click();
+            await expect
+                .poll(() => tab.getAttribute("aria-selected"), {
+                    timeout: 2_000,
+                })
+                .toBe("true")
+                .catch(() => undefined);
+        }
         if (
             await panel
                 .isVisible({ timeout: 1_000 })
@@ -1278,6 +1286,46 @@ async function openSpeakerReviewPanel(page: Page) {
     }
 
     await expect(panel).toBeVisible();
+    return panel;
+}
+
+async function expectSeededSpeakerReviewApi(page: Page, recordingId: string) {
+    const response = await page.request.get(
+        `/api/recordings/${recordingId}/speakers`,
+    );
+    const payload = (await response.json()) as {
+        error?: string;
+        profiles?: Array<{ displayName?: string }>;
+        speakers?: Array<{ rawLabel?: string }>;
+    };
+    expect(response.ok(), payload.error ?? "speaker API request failed").toBe(
+        true,
+    );
+    expect(
+        (payload.speakers ?? [])
+            .map((speaker) => speaker.rawLabel)
+            .filter((label): label is string => Boolean(label))
+            .sort(),
+    ).toEqual(["SPEAKER_ALPHA_00", "SPEAKER_BETA_01"]);
+    expect(
+        (payload.profiles ?? []).map((profile) => profile.displayName),
+    ).toEqual(
+        expect.arrayContaining([
+            SPEAKER_REVIEW_PROFILE_ZH_NAME,
+            SPEAKER_REVIEW_PROFILE_LATIN_NAME,
+        ]),
+    );
+}
+
+async function gotoSeededSpeakerReview(page: Page, recordingId: string) {
+    await expectSeededSpeakerReviewApi(page, recordingId);
+    await page.goto(`/recordings/${recordingId}`, {
+        waitUntil: "domcontentloaded",
+    });
+    await waitForRecordingDetailShellReady(page);
+    const panel = await openSpeakerReviewPanel(page);
+    await expect(speakerReviewCard(panel, "SPEAKER_ALPHA_00")).toBeVisible();
+    await expect(speakerReviewCard(panel, "SPEAKER_BETA_01")).toBeVisible();
     return panel;
 }
 
@@ -1293,23 +1341,23 @@ async function readCopiedTexts(page: Page) {
 }
 
 function recordingWorkstation(page: Page) {
-    return page.locator('[data-sot-surface="recording-workstation"]');
+    return page.locator('[data-surface="recording-workstation"]');
 }
 
 function recordingHeader(page: Page) {
     return recordingWorkstation(page).locator(
-        '[data-sot-panel="recording-detail-header"]',
+        '[data-panel="recording-detail-header"]',
     );
 }
 
 function sourceReportState(page: Page, state?: string) {
-    const selector = '[data-sot-panel="recording-source-report"]';
-    return page.locator(state ? `${selector}[data-sot-state="${state}"]` : selector);
+    const selector = '[data-testid="recording-source-report"]';
+    return page.locator(state ? `${selector}[data-state="${state}"]` : selector);
 }
 
 function sourceReportInnerState(page: Page, state: string) {
     return sourceReportState(page).locator(
-        `[data-sot-panel="recording-source-report-state"][data-sot-state="${state}"]`,
+        `[data-testid="recording-source-report-state"][data-state="${state}"]`,
     );
 }
 
@@ -1327,15 +1375,11 @@ function rawTranscriptCopyButton(page: Page) {
 }
 
 function detailSourceTranscriptCopyButton(page: Page) {
-    return sourceReportState(page).locator(
-        'button[data-sot-control="copy-source-transcript"]',
-    );
+    return sourceReportTranscriptCopyButton(page);
 }
 
 function detailSourceReportCopyButton(page: Page) {
-    return sourceReportState(page).locator(
-        'button[data-sot-control="copy-source-report"]',
-    );
+    return sourceReportReportCopyButton(page);
 }
 
 function sourceReportTranscriptCopyButton(page: Page) {
@@ -1353,15 +1397,11 @@ function sourceReportReportCopyButton(page: Page) {
 }
 
 function sourceReportOpenSourceControl(page: Page) {
-    return sourceReportState(page).locator(
-        '[data-sot-control="open-source-record"]',
-    );
+    return sourceReportState(page).getByTestId("source-report-open-source");
 }
 
 function sourceReportRepullButton(page: Page) {
-    return sourceReportState(page).locator(
-        'button[data-sot-control="repull-source"]',
-    );
+    return sourceReportState(page).getByTestId("source-report-repull");
 }
 
 async function expectSourcePopupUrl(
@@ -1437,73 +1477,66 @@ async function mockTitleGenerationSettings(page: Page, configured = true) {
 }
 
 function playerShell(page: Page) {
-    return page.locator('[data-sot-surface="recording-player"]').first();
+    return page.locator("audio").first().locator("..");
 }
 
 function playerControlsPanel(page: Page) {
-    return page.locator('[data-sot-panel="recording-player-controls"]').first();
+    return playerShell(page).locator('[data-slot="card-content"]').first();
 }
 
 function playerMetaPanel(page: Page) {
-    return playerShell(page)
-        .locator('[data-sot-part="recording-player-meta"]')
-        .first();
+    return playerShell(page).locator('[data-slot="card-header"]').first();
 }
 
 function playerNoAudioBanner(page: Page) {
-    return playerShell(page)
-        .locator('[data-sot-part="recording-player-no-audio"]')
-        .first();
+    return playerShell(page).getByRole("status").first();
 }
 
 function playerBackButton(page: Page) {
-    return page
-        .locator('[data-slot="button"][data-sot-control="recording-player-back"]')
-        .first();
+    return playerShell(page).getByRole("button", {
+        name: "后退 5 秒",
+        exact: true,
+    });
 }
 
-function playerToggleButton(page: Page, _name: string | RegExp = /播放|暂停/) {
-    return page
-        .locator('[data-slot="button"][data-sot-control="recording-player-play"]')
-        .first();
+function playerToggleButton(page: Page, name: string | RegExp = /^(播放|暂停)$/) {
+    return playerShell(page).getByRole("button", { name, exact: typeof name === "string" });
 }
 
 function playerForwardButton(page: Page) {
-    return page
-        .locator(
-            '[data-slot="button"][data-sot-control="recording-player-forward"]',
-        )
-        .first();
+    return playerShell(page).getByRole("button", {
+        name: "前进 5 秒",
+        exact: true,
+    });
 }
 
 function playerSpeedButton(page: Page) {
-    return page
-        .locator(
-            '[data-slot="button"][data-sot-control="recording-player-speed"]',
-        )
-        .first();
+    return playerShell(page).getByRole("button", {
+        name: "切换播放倍速",
+        exact: true,
+    });
 }
 
 function playerSeekSlider(page: Page) {
-    return page
-        .locator('[data-slot="slider"][data-sot-control="recording-player-seek"]')
-        .first();
+    return playerShell(page).getByRole("slider", {
+        name: "播放进度",
+        exact: true,
+    });
+}
+
+function playerSeekThumb(page: Page) {
+    return playerSeekSlider(page);
 }
 
 async function clickPlayerSeekSliderPercent(page: Page, percent: number) {
     const seek = playerSeekSlider(page);
     await expect(seek).toBeVisible();
-    const box = await seek.boundingBox();
-    if (!box) {
-        throw new Error("recording player seek slider box is unavailable");
-    }
-
-    await seek.click({
-        position: {
-            x: Math.max(1, Math.min(box.width - 1, (box.width * percent) / 100)),
-            y: Math.max(1, box.height / 2),
-        },
-    });
+    await seek.focus();
+    await seek.press(percent >= 50 ? "End" : "Home");
+    await expect(seek).toHaveAttribute(
+        "aria-valuenow",
+        percent >= 50 ? "100" : "0",
+    );
 }
 
 function playerVolumeSlider(page: Page) {
@@ -1525,9 +1558,7 @@ async function setPlayerVolumeSlider(page: Page, value: number) {
 }
 
 function playerVolumeButton(page: Page) {
-    return page
-        .locator('[data-sot-control="recording-player-volume"]')
-        .first();
+    return playerShell(page).getByRole("button", { name: /^音量 \d+$/ });
 }
 
 function playerAudio(page: Page) {
@@ -1536,24 +1567,29 @@ function playerAudio(page: Page) {
 
 function playerTagManagerTrigger(page: Page) {
     return recordingWorkstation(page)
-        .locator(
-            '[data-sot-part="recording-player-meta"] [data-sot-control="recording-tag-manager"]',
-        )
+        .locator('[data-control="recording-tag-manager"]')
         .first();
 }
 
 function speakerReviewCard(panel: Locator, label: string) {
-    return panel.locator(`[data-sot-speaker-label="${label}"]`);
+    return panel.locator(`[data-speaker-label="${label}"]`);
 }
 
 function speakerReviewMappingInput(card: Locator) {
-    return card
-        .locator('[data-sot-control="speaker-review-mapping-input"]')
-        .first();
+    return card.getByRole("textbox", {
+        name: "映射到本地人物",
+        exact: true,
+    });
 }
 
 function speakerReviewMappingField(card: Locator) {
-    return card.locator('[data-sot-part="speaker-review-mapping-field"]').first();
+    return speakerReviewMappingInput(card).locator(
+        "xpath=ancestor::*[@data-slot='field'][1]",
+    );
+}
+
+function speakerReviewRowMeta(card: Locator) {
+    return card.locator(":scope > div").first();
 }
 
 function speakerReviewProfileOption(card: Locator, name: string) {
@@ -1580,7 +1616,9 @@ function speakerReviewUnlinkButton(card: Locator) {
 }
 
 function speakerReviewConfirmUnlink(card: Locator) {
-    return card.locator('[data-sot-confirm="speaker-unlink"]');
+    return card
+        .getByRole("button", { name: "取消", exact: true })
+        .locator("xpath=ancestor::*[@data-slot='card'][1]");
 }
 
 function speakerReviewCancelUnlinkButton(card: Locator) {
@@ -1612,27 +1650,28 @@ function speakerReviewRefreshButton(panel: Locator) {
 }
 
 function speakerReviewMergeButton(panel: Locator) {
-    return panel.locator("[data-spk-merge]");
+    return panel.getByRole("button", { name: "合并相似…", exact: true });
 }
 
 function speakerReviewMergePopover(panel: Locator) {
-    return panel.page().locator("[data-spk-merge-pop]");
+    return panel.page().getByRole("dialog", {
+        name: "合并相似说话人",
+        exact: true,
+    });
 }
 
 function speakerReviewRenameButton(card: Locator) {
-    return card.locator("[data-spk-rename]").first();
+    return card.getByRole("button", { name: "重命名", exact: true });
 }
 
 function speakerReviewInlineRenameInput(card: Locator) {
-    return card
-        .locator(
-            '[data-sot-control="speaker-review-inline-name"][data-spk-input]',
-        )
-        .first();
+    return card.getByRole("textbox", { name: /重命名$/ });
 }
 
 function speakerReviewInlineRenameActions(card: Locator) {
-    return card.locator('[data-sot-part="speaker-review-actions"]').first();
+    return card
+        .getByRole("button", { name: "取消", exact: true })
+        .locator("..");
 }
 
 function speakerReviewInlineCancelButton(card: Locator) {
@@ -1669,19 +1708,42 @@ async function readSotSpeakerStyle(
     );
 }
 
+async function readSpeakerLocatorStyle(
+    locator: Locator,
+    props: readonly SotSpeakerStyleProp[] = SOT_SPEAKER_STYLE_PROPS,
+) {
+    return locator.evaluate((element, propNames) => {
+        const style = window.getComputedStyle(element);
+        const entries = Object.fromEntries(
+            propNames.map((prop) => [prop, style[prop]]),
+        );
+        if (entries.borderTopWidth === "0px") {
+            entries.borderTopStyle = "none";
+        }
+        return entries;
+    }, props);
+}
+
 async function expectSotSpeakerStyleMatch(
     sotPage: Page,
     productPage: Page,
     sotSelector: string,
-    productSelector: string,
+    productSelector: string | Locator,
     props: readonly SotSpeakerStyleProp[] = SOT_SPEAKER_STYLE_PROPS,
 ) {
     const [sot, product] = await Promise.all([
         readSotSpeakerStyle(sotPage, sotSelector, props),
-        readSotSpeakerStyle(productPage, productSelector, props),
+        typeof productSelector === "string"
+            ? readSotSpeakerStyle(productPage, productSelector, props)
+            : readSpeakerLocatorStyle(productSelector, props),
     ]);
 
-    expect(product, productSelector).toEqual(sot);
+    expect(
+        product,
+        typeof productSelector === "string"
+            ? productSelector
+            : "semantic product speaker locator",
+    ).toEqual(sot);
 }
 
 async function readSotConfirmStyle(
@@ -1815,20 +1877,21 @@ function tagManagerShellStyleChecks(
         {
             label: "tag manager panel/card",
             sotSelector: sotPanelSelector,
-            productSelector: '[data-sot-panel="recording-tag-manager"]',
+            productSelector:
+                '[data-slot="popover-content"][aria-label="管理标签"]',
             props: SOT_TAG_MANAGER_PANEL_STYLE_PROPS,
         },
         {
             label: "tag manager head/header",
             sotSelector: `${sotPanelSelector} .tagm-head`,
             productSelector:
-                '[data-sot-panel="recording-tag-manager"] [data-sot-part="head"]',
+                '[data-slot="popover-content"][aria-label="管理标签"] > [data-slot="card-header"]',
         },
         {
             label: "tag manager body/content",
             sotSelector: `${sotPanelSelector} .tagm-body`,
             productSelector:
-                '[data-sot-panel="recording-tag-manager"] [data-sot-part="body"]',
+                '[data-slot="popover-content"][aria-label="管理标签"] > [data-slot="card-content"]',
         },
     ];
 }
@@ -1841,13 +1904,13 @@ function tagManagerCreateRowStyleChecks(
             label: "tag manager create input group",
             sotSelector: `${sotPanelSelector} .tagm-create-row`,
             productSelector:
-                '[data-sot-panel="recording-tag-manager"] [data-sot-part="create-row"]',
+                '[data-slot="popover-content"][aria-label="管理标签"] .tagm-create-row',
         },
         {
             label: "tag manager create input",
             sotSelector: `${sotPanelSelector} .tagm-create-row .field-input`,
             productSelector:
-                '[data-sot-panel="recording-tag-manager"] [data-sot-control="recording-tag-name"]',
+                '[data-slot="popover-content"][aria-label="管理标签"] #recording-tag-name-input',
         },
     ];
 }
@@ -1861,13 +1924,13 @@ function tagManagerDefaultStyleChecks(
             label: "tag manager selected chip",
             sotSelector: `${sotPanelSelector} .tagm-sel-chip`,
             productSelector:
-                '[data-sot-panel="recording-tag-manager"] [data-sot-part="selected-chip"]',
+                '[data-slot="popover-content"][aria-label="管理标签"] .tagm-sel-chip',
         },
         {
             label: "tag manager tag toggle option",
             sotSelector: `${sotPanelSelector} .tagm-opt`,
             productSelector:
-                '[data-sot-panel="recording-tag-manager"] [data-sot-control="recording-tag-toggle"]',
+                '[data-slot="popover-content"][aria-label="管理标签"] .tagm-opt',
             props: SOT_TAG_MANAGER_TAG_TOGGLE_STYLE_PROPS,
         },
         ...tagManagerCreateRowStyleChecks(sotPanelSelector),
@@ -1875,14 +1938,14 @@ function tagManagerDefaultStyleChecks(
             label: "tag manager inline add button",
             sotSelector: `${sotPanelSelector} .tagm-add-btn`,
             productSelector:
-                '[data-sot-panel="recording-tag-manager"] [data-sot-part="create-row"] [data-sot-control="recording-tag-create"]',
+                '[data-slot="popover-content"][aria-label="管理标签"] .tagm-add-btn',
             props: SOT_TAG_MANAGER_ICON_BUTTON_STYLE_PROPS,
         },
         {
             label: "tag manager quick color swatch",
             sotSelector: `${sotPanelSelector} .tagm-meta-row .tagm-swatch.c-violet`,
             productSelector:
-                '[data-sot-panel="recording-tag-manager"] [data-sot-part="create-meta"] [data-sot-control="recording-tag-color"][data-sot-tag-color="purple"]',
+                '[data-slot="popover-content"][aria-label="管理标签"] [role="radio"][aria-label="紫"]',
             props: SOT_TAG_MANAGER_ICON_BUTTON_STYLE_PROPS,
         },
     ];
@@ -1897,14 +1960,14 @@ function tagManagerEmptyStyleChecks(
             label: "tag manager empty panel",
             sotSelector: `${sotPanelSelector} .tagm-empty`,
             productSelector:
-                '[data-sot-panel="recording-tag-manager"] [data-sot-panel="recording-tag-empty"]',
+                '[data-slot="popover-content"][aria-label="管理标签"] [data-slot="empty"]',
         },
         ...tagManagerCreateRowStyleChecks(sotPanelSelector),
         {
             label: "tag manager empty inline add button",
             sotSelector: `${sotPanelSelector} .tagm-add-btn`,
             productSelector:
-                '[data-sot-panel="recording-tag-manager"] [data-sot-part="create-row"] [data-sot-control="recording-tag-create"]',
+                '[data-slot="popover-content"][aria-label="管理标签"] .tagm-add-btn',
             props: SOT_TAG_MANAGER_ICON_BUTTON_STYLE_PROPS,
         },
     ];
@@ -1920,57 +1983,57 @@ function tagManagerCreateStyleChecks(
             label: "tag manager color picker frame",
             sotSelector: `${sotPanelSelector} .tagm-picker:has(.tagm-swatches)`,
             productSelector:
-                '[data-sot-panel="recording-tag-manager"] [data-sot-part="picker-frame"][data-sot-picker="color"]',
+                '[data-slot="popover-content"][aria-label="管理标签"] fieldset.tagm-picker:has([role="radiogroup"][aria-label="颜色"])',
         },
         {
             label: "tag manager color swatches",
             sotSelector: `${sotPanelSelector} .tagm-swatches`,
             productSelector:
-                '[data-sot-panel="recording-tag-manager"] [data-sot-part="color-swatches"][data-sot-picker="full"]',
+                '[data-slot="popover-content"][aria-label="管理标签"] [role="radiogroup"][aria-label="颜色"]',
         },
         {
             label: "tag manager selected color swatch",
             sotSelector: `${sotPanelSelector} .tagm-swatch.c-blue.is-selected`,
             productSelector:
-                '[data-sot-panel="recording-tag-manager"] [data-sot-control="recording-tag-color"][data-sot-tag-color="blue"]',
+                '[data-slot="popover-content"][aria-label="管理标签"] [role="radio"][aria-label="蓝"]',
             props: SOT_TAG_MANAGER_ICON_BUTTON_STYLE_PROPS,
         },
         {
             label: "tag manager icon picker frame",
             sotSelector: `${sotPanelSelector} .tagm-picker:has(.tagm-icon-grid)`,
             productSelector:
-                '[data-sot-panel="recording-tag-manager"] [data-sot-part="picker-frame"][data-sot-picker="icon"]',
+                '[data-slot="popover-content"][aria-label="管理标签"] fieldset.tagm-picker:has([role="radiogroup"][aria-label="图标"])',
         },
         {
             label: "tag manager icon grid",
             sotSelector: `${sotPanelSelector} .tagm-icon-grid`,
             productSelector:
-                '[data-sot-panel="recording-tag-manager"] [data-sot-part="icon-grid"]',
+                '[data-slot="popover-content"][aria-label="管理标签"] [role="radiogroup"][aria-label="图标"]',
         },
         {
             label: "tag manager selected icon option",
             sotSelector: `${sotPanelSelector} .tagm-icon-grid .tg-pick.is-selected`,
             productSelector:
-                '[data-sot-panel="recording-tag-manager"] [data-sot-control="recording-tag-icon"][data-sot-state="selected"]',
+                '[data-slot="popover-content"][aria-label="管理标签"] [role="radio"][aria-checked="true"][aria-label^="选择图标 "]',
             props: SOT_TAG_MANAGER_TOKEN_ICON_OPTION_STYLE_PROPS,
         },
         {
             label: "tag manager create footer",
             sotSelector: `${sotPanelSelector} .airp-actions`,
             productSelector:
-                '[data-sot-panel="recording-tag-manager"] [data-sot-part="footer"]',
+                '[data-slot="popover-content"][aria-label="管理标签"] > [data-slot="card-footer"]',
         },
         {
             label: "tag manager create cancel button",
             sotSelector: `${sotPanelSelector} .airp-actions .btn.ghost`,
             productSelector:
-                '[data-sot-panel="recording-tag-manager"] [data-sot-control="recording-tag-create-cancel"]',
+                '[data-slot="popover-content"][aria-label="管理标签"] > [data-slot="card-footer"] button[data-variant="ghost"]',
         },
         {
             label: "tag manager create button",
             sotSelector: `${sotPanelSelector} .airp-actions .btn.primary`,
             productSelector:
-                '[data-sot-panel="recording-tag-manager"] [data-sot-control="recording-tag-create"]',
+                '[data-slot="popover-content"][aria-label="管理标签"] > [data-slot="card-footer"] button[data-variant="default"]',
         },
     ];
 }
@@ -1984,14 +2047,14 @@ function tagManagerSavingStyleChecks(
             label: "tag manager busy option",
             sotSelector: `${sotPanelSelector} .tagm-opt[aria-busy="true"]`,
             productSelector:
-                '[data-sot-panel="recording-tag-manager"] [data-sot-control="recording-tag-toggle"][data-busy="true"]',
+                '[data-slot="popover-content"][aria-label="管理标签"] .tagm-opt[aria-busy="true"]',
             props: SOT_TAG_MANAGER_TAG_TOGGLE_STYLE_PROPS,
         },
         {
             label: "tag manager saving spinner",
             sotSelector: `${sotPanelSelector} .tagm-opt[aria-busy="true"] .btn-spinner`,
             productSelector:
-                '[data-sot-panel="recording-tag-manager"] [data-sot-control="recording-tag-toggle"][data-busy="true"] [data-sot-part="tag-loading-icon"]',
+                '[data-slot="popover-content"][aria-label="管理标签"] .tagm-opt[aria-busy="true"] .btn-spinner',
             props: SOT_TAG_MANAGER_SPINNER_STYLE_PROPS,
         },
     ];
@@ -2006,19 +2069,19 @@ function tagManagerErrorStyleChecks(
             label: "tag manager error alert",
             sotSelector: `${sotPanelSelector} .tagm-error`,
             productSelector:
-                '[data-sot-panel="recording-tag-manager"] [data-sot-panel="recording-tag-error"]',
+                '[data-slot="popover-content"][aria-label="管理标签"] [data-slot="alert"]',
         },
         {
             label: "tag manager retry button",
             sotSelector: `${sotPanelSelector} .tagm-error .btn`,
             productSelector:
-                '[data-sot-panel="recording-tag-manager"] [data-sot-control="recording-tag-error-retry"]',
+                '[data-slot="popover-content"][aria-label="管理标签"] [data-slot="alert"] button',
         },
         {
             label: "tag manager error option",
             sotSelector: `${sotPanelSelector} .tagm-opt`,
             productSelector:
-                '[data-sot-panel="recording-tag-manager"] [data-sot-control="recording-tag-toggle"]',
+                '[data-slot="popover-content"][aria-label="管理标签"] .tagm-opt',
             props: SOT_TAG_MANAGER_TAG_TOGGLE_STYLE_PROPS,
         },
     ];
@@ -2033,14 +2096,14 @@ function tagManagerToggleStyleChecks(
             label: "tag manager toggle option",
             sotSelector: `${sotPanelSelector} .tagm-opt`,
             productSelector:
-                '[data-sot-panel="recording-tag-manager"] [data-sot-control="recording-tag-toggle"]',
+                '[data-slot="popover-content"][aria-label="管理标签"] .tagm-opt',
             props: SOT_TAG_MANAGER_TAG_TOGGLE_STYLE_PROPS,
         },
         {
             label: "tag manager check badge",
             sotSelector: `${sotPanelSelector} .tagm-opt-check`,
             productSelector:
-                '[data-sot-panel="recording-tag-manager"] [data-sot-part="tag-check"]',
+                '[data-slot="popover-content"][aria-label="管理标签"] .tagm-opt-check',
             props: SOT_TAG_MANAGER_TOKEN_CHECK_BADGE_STYLE_PROPS,
         },
     ];
@@ -2055,25 +2118,25 @@ function tagManagerDeleteConfirmStyleChecks(
             label: "tag manager delete confirm panel",
             sotSelector: `${sotPanelSelector} .tagm-delete-confirm`,
             productSelector:
-                '[data-sot-panel="recording-tag-manager"] [data-sot-panel="recording-tag-delete-confirm"]',
+                '[data-slot="popover-content"][aria-label="管理标签"] .tagm-delete-confirm',
         },
         {
             label: "tag manager delete footer",
             sotSelector: `${sotPanelSelector} .airp-actions`,
             productSelector:
-                '[data-sot-panel="recording-tag-manager"] [data-sot-part="footer"]',
+                '[data-slot="popover-content"][aria-label="管理标签"] > [data-slot="card-footer"]',
         },
         {
             label: "tag manager delete cancel button",
             sotSelector: `${sotPanelSelector} .airp-actions .btn.ghost`,
             productSelector:
-                '[data-sot-panel="recording-tag-manager"] [data-sot-control="recording-tag-delete-cancel"]',
+                '[data-slot="popover-content"][aria-label="管理标签"] > [data-slot="card-footer"] button[data-variant="ghost"]',
         },
         {
             label: "tag manager delete destructive button",
             sotSelector: `${sotPanelSelector} .airp-actions .btn.danger`,
             productSelector:
-                '[data-sot-panel="recording-tag-manager"] [data-sot-control="recording-tag-delete-confirm"]',
+                '[data-slot="popover-content"][aria-label="管理标签"] > [data-slot="card-footer"] button[data-variant="destructive"]',
         },
     ];
 }
@@ -2284,15 +2347,18 @@ async function captureSotHtmlFixture(
             stage
                 .querySelectorAll<HTMLElement>(".track-thumb")
                 .forEach((thumb) => {
+                    if (!thumb.hasAttribute("data-orientation")) {
+                        return;
+                    }
                     const pct = thumb.dataset.pct ?? "0";
-                    const left = thumb.hasAttribute("data-orientation")
-                        ? `calc(${pct}% - 7px)`
-                        : `${pct}%`;
-                    thumb.style.setProperty("left", left, "important");
-                    thumb.style.setProperty("top", "3px", "important");
-                    thumb.style.setProperty(
+                    const wrapper = thumb.parentElement;
+                    if (!wrapper) {
+                        return;
+                    }
+                    wrapper.style.setProperty("left", `${pct}%`, "important");
+                    wrapper.style.setProperty(
                         "transform",
-                        "translate(-50%, -50%)",
+                        "translateX(-50%)",
                         "important",
                     );
                 });
@@ -2394,19 +2460,65 @@ async function captureSotHeaderPlacementFixture(
     html: string,
     width: number,
     background = "var(--bg-canvas)",
+    portal?: {
+        align?: "center" | "end" | "start";
+        contentHtml?: string;
+        contentSelector: string;
+        sideOffset?: number;
+        triggerSelector: string;
+    },
 ) {
     const fixtureId = `sot-header-placement-${Date.now()}-${Math.random()
         .toString(16)
         .slice(2)}`;
 
     await page.evaluate(
-        ({ fixtureBackground, fixtureHtml, fixtureId: id, fixtureWidth }) => {
+        ({
+            fixtureBackground,
+            fixtureHtml,
+            fixtureId: id,
+            fixturePortal,
+            fixtureWidth,
+        }) => {
             document.getElementById(id)?.remove();
             document.documentElement.dataset.theme = "dark";
             document.body.dataset.theme = "dark";
             document.querySelectorAll("nextjs-portal").forEach((element) => {
                 element.remove();
             });
+
+            const liveTriggerRect = fixturePortal
+                ? document
+                      .querySelector<HTMLElement>(
+                          fixturePortal.triggerSelector,
+                      )
+                      ?.getBoundingClientRect()
+                : null;
+            const liveContent = fixturePortal
+                ? document.querySelector<HTMLElement>(
+                      fixturePortal.contentSelector,
+                  )
+                : null;
+            const liveContentRect = liveContent?.getBoundingClientRect() ?? null;
+            const liveContentCustomProperties = liveContent
+                ? (() => {
+                      const computedStyle = getComputedStyle(liveContent);
+                      const propertyNames = new Set(["--card-popover-bg"]);
+                      for (let index = 0; index < computedStyle.length; index += 1) {
+                          const propertyName = computedStyle.item(index);
+                          if (propertyName.startsWith("--card-popover-")) {
+                              propertyNames.add(propertyName);
+                          }
+                      }
+
+                      return Array.from(propertyNames)
+                          .map((propertyName) => [
+                              propertyName,
+                              computedStyle.getPropertyValue(propertyName).trim(),
+                          ])
+                          .filter((entry) => entry[1]);
+                  })()
+                : [];
 
             const backdrop = document.createElement("div");
             backdrop.id = `${id}-backdrop`;
@@ -2444,11 +2556,82 @@ async function captureSotHeaderPlacementFixture(
 
             host.appendChild(stage);
             document.body.appendChild(host);
+
+            if (fixturePortal) {
+                const trigger = stage.querySelector<HTMLElement>(
+                    fixturePortal.triggerSelector,
+                );
+                const contentRoot = fixturePortal.contentHtml
+                    ? document.createElement("div")
+                    : stage;
+                if (fixturePortal.contentHtml) {
+                    contentRoot.innerHTML = fixturePortal.contentHtml;
+                }
+                const content = contentRoot.querySelector<HTMLElement>(
+                    fixturePortal.contentSelector,
+                );
+                if (!trigger || !content) {
+                    throw new Error(
+                        `Header placement portal bridge missing ${
+                            !trigger ? "trigger" : "content"
+                        }`,
+                    );
+                }
+
+                for (const [propertyName, value] of liveContentCustomProperties) {
+                    content.style.setProperty(propertyName, value);
+                }
+                host.appendChild(content);
+                const triggerRect = trigger.getBoundingClientRect();
+                const contentRect = content.getBoundingClientRect();
+                const align = fixturePortal.align ?? "end";
+                const left =
+                    align === "start"
+                        ? triggerRect.left +
+                          (liveTriggerRect && liveContentRect
+                              ? liveContentRect.left - liveTriggerRect.left
+                              : 0)
+                        : align === "center"
+                          ? triggerRect.left +
+                            (triggerRect.width - contentRect.width) / 2 +
+                            (liveTriggerRect && liveContentRect
+                                ? liveContentRect.left +
+                                  liveContentRect.width / 2 -
+                                  (liveTriggerRect.left +
+                                      liveTriggerRect.width / 2)
+                                : 0)
+                          : triggerRect.right -
+                            contentRect.width +
+                            (liveTriggerRect && liveContentRect
+                                ? liveContentRect.right - liveTriggerRect.right
+                                : 0);
+                const top =
+                    triggerRect.bottom +
+                    (liveTriggerRect && liveContentRect
+                        ? liveContentRect.top - liveTriggerRect.bottom
+                        : (fixturePortal.sideOffset ?? 0));
+
+                content.style.setProperty("position", "fixed", "important");
+                content.style.setProperty(
+                    "left",
+                    `${Math.round(left)}px`,
+                    "important",
+                );
+                content.style.setProperty(
+                    "top",
+                    `${Math.round(top)}px`,
+                    "important",
+                );
+                content.style.setProperty("right", "auto", "important");
+                content.style.setProperty("bottom", "auto", "important");
+                content.style.setProperty("margin", "0", "important");
+            }
         },
         {
             fixtureBackground: background,
             fixtureHtml: html,
             fixtureId,
+            fixturePortal: portal ?? null,
             fixtureWidth: width,
         },
     );
@@ -2576,10 +2759,10 @@ async function readSotFixtureOuterHtml(
         const head =
             clone instanceof HTMLElement &&
             (clone.matches(".rec-head") ||
-                clone.matches('[data-sot-panel="recording-detail-header"]'))
+                clone.matches('[data-panel="recording-detail-header"]'))
                 ? clone
                 : clone.querySelector<HTMLElement>(
-                      '.rec-head, [data-sot-panel="recording-detail-header"]',
+                      '.rec-head, [data-panel="recording-detail-header"]',
                   );
 
         if (typeof readOptions.localOnly === "boolean") {
@@ -2813,7 +2996,7 @@ async function openSotDefaultNoAudioPlayer(page: Page) {
 }
 
 function stabilizeSkeletonAnimation(html: string) {
-    return `<style>.sk,[data-sot-part="source-report-card-skeleton"],[data-sot-part="source-report-segment-skeleton"]{animation:none!important;background-position:0 50%!important}</style>${html}`;
+    return `<style>.sk,[data-part="source-report-card-skeleton"],[data-part="source-report-segment-skeleton"]{animation:none!important;background-position:0 50%!important}</style>${html}`;
 }
 
 function tagManagerSotFixtureCss(scope: string) {
@@ -2902,8 +3085,8 @@ ${scope} .airp-actions .btn svg{width:11px;height:11px}
 
 function tagManagerViewportFrameCss(scope: string) {
     return `
-${scope} .tagm-panel,${scope} [data-sot-panel="recording-tag-manager"]{position:fixed;top:96px;right:28px;width:320px;max-width:calc(100vw - 32px);z-index:240}
-@media (max-width:768px){${scope} .tagm-panel,${scope} [data-sot-panel="recording-tag-manager"]{top:76px;right:12px;left:12px;width:auto;max-width:none}}
+${scope} .tagm-panel,${scope} [data-panel="recording-tag-manager"]{position:fixed;top:96px;right:28px;width:320px;max-width:calc(100vw - 32px);z-index:240}
+@media (max-width:768px){${scope} .tagm-panel,${scope} [data-panel="recording-tag-manager"]{top:76px;right:12px;left:12px;width:auto;max-width:none}}
 `;
 }
 
@@ -2921,11 +3104,11 @@ function normalizeTagManagerSotHtml(html: string) {
         nextHtml = nextHtml
             .replace(
                 /<div class="tagm-picker">\s*<div class="tagm-picker-label">颜色<\/div>\s*<div class="tagm-swatches">/,
-                '<fieldset class="tagm-picker" data-slot="field-set" data-sot-part="picker-frame" data-sot-picker="color"><legend class="tagm-picker-label" data-slot="field-legend" data-variant="label" data-sot-part="picker-label">颜色</legend><div data-sot-part="picker" data-sot-picker="color"><div class="tagm-swatches" data-sot-part="color-swatches" data-sot-picker="full">',
+                '<fieldset class="tagm-picker" data-slot="field-set" data-part="picker-frame" data-picker="color"><legend class="tagm-picker-label" data-slot="field-legend" data-variant="label" data-part="picker-label">颜色</legend><div data-part="picker" data-picker="color"><div class="tagm-swatches" data-part="color-swatches" data-picker="full">',
             )
             .replace(
                 /<\/div>\s*<\/div>\s*<div class="tagm-picker">\s*<div class="tagm-picker-label">图标<\/div>\s*<div class="tagm-icon-grid">/,
-                '</div></div></fieldset><fieldset class="tagm-picker" data-slot="field-set" data-sot-part="picker-frame" data-sot-picker="icon"><legend class="tagm-picker-label" data-slot="field-legend" data-variant="label" data-sot-part="picker-label">图标</legend><div data-sot-part="picker" data-sot-picker="icon"><div class="tagm-icon-grid" data-sot-part="icon-grid">',
+                '</div></div></fieldset><fieldset class="tagm-picker" data-slot="field-set" data-part="picker-frame" data-picker="icon"><legend class="tagm-picker-label" data-slot="field-legend" data-variant="label" data-part="picker-label">图标</legend><div data-part="picker" data-picker="icon"><div class="tagm-icon-grid" data-part="icon-grid">',
             )
             .replace(
                 /(<\/button>\s*)<\/div>\s*<\/div>\s*<\/div>\s*<footer class="airp-actions">/,
@@ -2939,34 +3122,10 @@ function normalizeTagManagerSotHtml(html: string) {
 function stabilizeTagManagerPopover(html: string) {
     const scope = ".sot-pixel-stage";
     return `<style>${tagManagerSotFixtureCss(scope)}
-	${scope} .tagm-panel,${scope} [data-sot-panel="recording-tag-manager"]{position:relative!important;left:auto!important;top:auto!important;right:auto!important;bottom:auto!important;pointer-events:auto!important}
-	${scope} .tagm-panel:has(.tagm-picker),${scope} [data-sot-panel="recording-tag-manager"][data-sot-state="create"]{height:342px!important;overflow:hidden!important}
-	${scope} .tagm-sel-chip>svg,${scope} .tagm-opt>svg,${scope} [data-sot-part="selected-chip"]>svg,${scope} [data-sot-control="recording-tag-toggle"]>svg{width:12px!important;height:12px!important;flex:none!important;stroke:currentColor!important;fill:none!important;stroke-width:2!important}
-${scope} .tagm-sel-chip .x svg,${scope} .tagm-close svg,${scope} [data-sot-control="recording-tag-delete-open"] svg,${scope} [data-sot-control="recording-tag-manager-close"] svg{width:11px!important;height:11px!important}</style>${normalizeTagManagerSotHtml(html)}`;
-}
-
-function inlineAiRenamePopoverContentForHeaderPlacement(
-    headerHtml: string,
-    panelHtml: string,
-) {
-    const anchorMarker = 'data-sot-part="ai-rename-anchor"';
-    const anchorIndex = headerHtml.indexOf(anchorMarker);
-    if (anchorIndex === -1) {
-        throw new Error("AI rename header anchor not found in product HTML");
-    }
-
-    const anchorCloseIndex = headerHtml.indexOf("</span>", anchorIndex);
-    if (anchorCloseIndex === -1) {
-        throw new Error("AI rename header anchor close tag not found");
-    }
-
-    const insertAt = anchorCloseIndex + "</span>".length;
-    const fixturePanelHtml = `<style>
-.sot-header-placement-stage [data-sot-part="detail-header-action-anchor"]{position:relative!important}
-.sot-header-placement-stage [data-sot-panel="ai-rename-preview"]{position:absolute!important;top:calc(100% + 8px)!important;right:0!important;left:auto!important;z-index:240!important;transform:none!important}
-</style>${panelHtml}`;
-
-    return `${headerHtml.slice(0, insertAt)}${fixturePanelHtml}${headerHtml.slice(insertAt)}`;
+	${scope} .tagm-panel,${scope} [data-panel="recording-tag-manager"]{position:relative!important;left:auto!important;top:auto!important;right:auto!important;bottom:auto!important;pointer-events:auto!important}
+	${scope} .tagm-panel:has(.tagm-picker),${scope} [data-panel="recording-tag-manager"][data-state="create"]{height:342px!important;overflow:hidden!important}
+	${scope} .tagm-sel-chip>svg,${scope} .tagm-opt>svg,${scope} [data-part="selected-chip"]>svg,${scope} [data-control="recording-tag-toggle"]>svg{width:12px!important;height:12px!important;flex:none!important;stroke:currentColor!important;fill:none!important;stroke-width:2!important}
+${scope} .tagm-sel-chip .x svg,${scope} .tagm-close svg,${scope} [data-control="recording-tag-delete-open"] svg,${scope} [data-control="recording-tag-manager-close"] svg{width:11px!important;height:11px!important}</style>${normalizeTagManagerSotHtml(html)}`;
 }
 
 function appendClassForDataHook(
@@ -3046,28 +3205,28 @@ function appendAttributeForClass(
 function bridgeSpeakerUnlinkConfirmSotContract(html: string) {
     let nextHtml = appendClassForDataHook(
         html,
-        'data-sot-confirm="speaker-unlink"',
+        'data-confirm="speaker-unlink"',
         "sp-confirm",
     );
     nextHtml = appendClassForDataHook(
         nextHtml,
-        "data-sot-confirm-message",
+        "data-confirm-message",
         "sp-confirm-msg",
     );
     nextHtml = appendAttributeForClass(
         nextHtml,
         "sp-confirm",
-        'data-sot-confirm="speaker-unlink"',
+        'data-confirm="speaker-unlink"',
     );
     nextHtml = appendAttributeForClass(
         nextHtml,
         "sp-confirm-msg",
-        "data-sot-confirm-message",
+        "data-confirm-message",
     );
 
     return nextHtml.replace(
-        /(<em)(?![^>]*data-sot-confirm-subject)([^>]*>)/,
-        "$1 data-sot-confirm-subject$2",
+        /(<em)(?![^>]*data-confirm-subject)([^>]*>)/,
+        "$1 data-confirm-subject$2",
     );
 }
 
@@ -3129,6 +3288,7 @@ async function expectTransformedSotPixelsMatch(
         maxChannelDelta?: number;
     } = {},
     productCapturePage?: Page,
+    persistArtifact = false,
 ) {
     const width = await readSotFixtureWidth(sotLocator);
     const productLocalOnly =
@@ -3166,11 +3326,12 @@ async function expectTransformedSotPixelsMatch(
         productCapture.dataUrl,
     );
 
-    if (
+    const hasPixelDifference =
         !diff.dimensionsMatch ||
         diff.differingPixels !== 0 ||
-        diff.maxChannelDelta !== 0
-    ) {
+        diff.maxChannelDelta !== 0;
+
+    if (persistArtifact || hasPixelDifference) {
         const attachmentName = label
             .replace(/[^a-z0-9]+/gi, "-")
             .replace(/^-|-$/g, "")
@@ -3187,30 +3348,32 @@ async function expectTransformedSotPixelsMatch(
             body: Buffer.from(JSON.stringify(diff, null, 2)),
             contentType: "application/json",
         });
-        const debugDir = path.resolve(process.cwd(), "tmp/sot-pixel-debug");
-        await mkdir(debugDir, { recursive: true });
-        await Promise.all([
-            writeFile(
-                path.join(debugDir, `${attachmentName}-sot.png`),
-                sotCapture.screenshot,
-            ),
-            writeFile(
-                path.join(debugDir, `${attachmentName}-product.png`),
-                productCapture.screenshot,
-            ),
-            writeFile(
-                path.join(debugDir, `${attachmentName}-diff.json`),
-                JSON.stringify(diff, null, 2),
-            ),
-            writeFile(
-                path.join(debugDir, `${attachmentName}-sot.html`),
-                sotHtml,
-            ),
-            writeFile(
-                path.join(debugDir, `${attachmentName}-product.html`),
-                productHtml,
-            ),
-        ]);
+        if (hasPixelDifference) {
+            const debugDir = path.resolve(process.cwd(), "tmp/sot-pixel-debug");
+            await mkdir(debugDir, { recursive: true });
+            await Promise.all([
+                writeFile(
+                    path.join(debugDir, `${attachmentName}-sot.png`),
+                    sotCapture.screenshot,
+                ),
+                writeFile(
+                    path.join(debugDir, `${attachmentName}-product.png`),
+                    productCapture.screenshot,
+                ),
+                writeFile(
+                    path.join(debugDir, `${attachmentName}-diff.json`),
+                    JSON.stringify(diff, null, 2),
+                ),
+                writeFile(
+                    path.join(debugDir, `${attachmentName}-sot.html`),
+                    sotHtml,
+                ),
+                writeFile(
+                    path.join(debugDir, `${attachmentName}-product.html`),
+                    productHtml,
+                ),
+            ]);
+        }
     }
 
     expect(diff.dimensionsMatch, label).toBe(true);
@@ -3571,24 +3734,24 @@ function normalizePlayerResponsiveHtml(html: string) {
 function bridgeRecordingPlayerDataSotToSotClassHtml(html: string) {
     let nextHtml = normalizePlayerResponsiveHtml(html);
     if (
-        !nextHtml.includes('data-sot-surface="recording-player"') &&
-        !nextHtml.includes('data-sot-part="recording-player-') &&
-        !nextHtml.includes('data-sot-control="recording-player-') &&
-        !nextHtml.includes('data-sot-panel="recording-player-')
+        !nextHtml.includes('data-surface="recording-player"') &&
+        !nextHtml.includes('data-part="recording-player-') &&
+        !nextHtml.includes('data-control="recording-player-') &&
+        !nextHtml.includes('data-panel="recording-player-')
     ) {
         return nextHtml;
     }
 
     const sliderHookPattern =
-        'data-sot-control="recording-player-seek"|data-slot="slider-(?:track|range|thumb)"';
+        'data-control="recording-player-seek"|data-slot="slider-(?:track|range|thumb)"';
 
     nextHtml = nextHtml
         .replace(
-            /<span[^>]*data-sot-part="recording-player-control-icon"[^>]*>\s*([\s\S]*?<\/svg>)\s*<\/span>/g,
+            /<span[^>]*data-part="recording-player-control-icon"[^>]*>\s*([\s\S]*?<\/svg>)\s*<\/span>/g,
             "$1",
         )
         .replace(
-            /(<[^>]*(?=[^>]*data-sot-control="recording-tag-manager")(?=[^>]*data-sot-part="recording-tag-chip")[^>]*>[\s\S]*?)<span[^>]*data-icon="[^"]+"[^>]*>\s*(<svg[\s\S]*?<\/svg>)\s*<\/span>/g,
+            /(<[^>]*(?=[^>]*data-control="recording-tag-manager")(?=[^>]*data-part="recording-tag-chip")[^>]*>[\s\S]*?)<span[^>]*data-icon="[^"]+"[^>]*>\s*(<svg[\s\S]*?<\/svg>)\s*<\/span>/g,
             "$1$2",
         )
         .replace(
@@ -3605,65 +3768,53 @@ function bridgeRecordingPlayerDataSotToSotClassHtml(html: string) {
         );
 
     for (const [dataHook, className] of [
-        ['data-sot-surface="recording-player"', "player"],
-        ['data-sot-part="recording-player-no-audio"', "no-audio-banner"],
-        ['data-sot-part="recording-player-no-audio-icon"', "no-audio-ico"],
-        ['data-sot-part="recording-player-no-audio-title"', "no-audio-title"],
+        ['data-surface="recording-player"', "player"],
+        ['data-part="recording-player-no-audio"', "no-audio-banner"],
+        ['data-part="recording-player-no-audio-icon"', "no-audio-ico"],
+        ['data-part="recording-player-no-audio-title"', "no-audio-title"],
         [
-            'data-sot-part="recording-player-no-audio-description"',
+            'data-part="recording-player-no-audio-description"',
             "no-audio-sub",
         ],
-        ['data-sot-part="recording-player-meta"', "player-meta"],
-        ['data-sot-part="recording-player-date"', "ts"],
-        ['data-sot-control="player-source-tag"', "src-tag"],
-        ['data-sot-part="source-icon"', "ico"],
-        ['data-sot-control="recording-tag-manager"', "utag c-violet _is-2"],
-        ['data-sot-control="player-status"', "b ok _is-3"],
-        ['data-sot-part="status-dot"', "dot"],
-        ['data-sot-panel="recording-player-controls"', "player-controls"],
-        ['data-sot-control="recording-player-back"', "round-btn"],
-        ['data-sot-control="recording-player-play"', "round-btn play"],
-        ['data-sot-control="recording-player-forward"', "round-btn"],
-        ['data-sot-part="recording-player-current-time"', "time mono"],
-        ['data-sot-control="recording-player-seek"', "track"],
+        ['data-part="recording-player-meta"', "player-meta"],
+        ['data-part="recording-player-date"', "ts"],
+        ['data-control="player-source-tag"', "src-tag"],
+        ['data-part="source-icon"', "ico"],
+        ['data-control="recording-tag-manager"', "utag c-violet _is-2"],
+        ['data-control="player-status"', "b ok _is-3"],
+        ['data-part="status-dot"', "dot"],
+        ['data-panel="recording-player-controls"', "player-controls"],
+        ['data-control="recording-player-back"', "round-btn"],
+        ['data-control="recording-player-play"', "round-btn play"],
+        ['data-control="recording-player-forward"', "round-btn"],
+        ['data-part="recording-player-current-time"', "time mono"],
+        ['data-control="recording-player-seek"', "track"],
         ['data-slot="slider-range"', "track-fill"],
         ['data-slot="slider-thumb"', "track-thumb"],
-        ['data-sot-part="recording-player-duration"', "time mono"],
-        ['data-sot-control="recording-player-speed"', "btn ghost speed"],
-        ['data-sot-part="recording-player-volume-anchor"', "vol-anchor"],
-        ['data-sot-control="recording-player-volume"', "round-btn small"],
-        ['data-sot-panel="recording-player-volume-popover"', "vol-pop"],
-        ['data-sot-part="recording-player-volume-row"', "vol-row"],
-        ['data-sot-control="recording-player-volume-mute"', "vol-mute"],
-        ['data-sot-part="recording-player-volume-icon"', "vol-ico"],
-        ['data-sot-control="recording-player-volume-slider"', "vol-range"],
-        ['data-sot-part="recording-player-volume-value"', "vol-num mono"],
+        ['data-part="recording-player-duration"', "time mono"],
+        ['data-control="recording-player-speed"', "btn ghost speed"],
+        ['data-part="recording-player-volume-anchor"', "vol-anchor"],
+        ['data-control="recording-player-volume"', "round-btn small"],
+        ['data-panel="recording-player-volume-popover"', "vol-pop"],
+        ['data-part="recording-player-volume-row"', "vol-row"],
+        ['data-control="recording-player-volume-mute"', "vol-mute"],
+        ['data-part="recording-player-volume-icon"', "vol-ico"],
+        ['data-control="recording-player-volume-slider"', "vol-range"],
+        ['data-part="recording-player-volume-value"', "vol-num mono"],
     ] as const) {
         nextHtml = setClassForDataHookAll(nextHtml, dataHook, className);
     }
 
     nextHtml = nextHtml.replace(
-        /<(?=[^>]*class="[^"]*\b(?:player-controls|track)\b)(?=[^>]*data-sot-state="disabled")[^>]*>/g,
+        /<(?=[^>]*class="[^"]*\b(?:player-controls|track)\b)(?=[^>]*data-state="disabled")[^>]*>/g,
         (match) =>
             match.includes("is-disabled")
                 ? match
                 : match.replace(/class="([^"]*)"/, 'class="$1 is-disabled"'),
     );
-    nextHtml = nextHtml.replace(
-        /<([^>]*class="track-thumb"[^>]*)>/g,
-        (match, attrs: string) => {
-            if (!attrs.includes('data-orientation="horizontal"')) {
-                return match;
-            }
-            const pct = attrs.match(/\bdata-pct="(\d+)"/)?.[1] ?? "0";
-            const nextAttrs = attrs.replace(/\sstyle="[^"]*"/g, "");
-            return `<${nextAttrs} style="left:calc(${pct}% - 7px);top:3px;transform:translate(-50%,-50%);">`;
-        },
-    );
-
     return nextHtml
         .replace(/src="\/assets\//g, 'src="../../assets/')
-        .replace(/\sdata-sot-[a-z-]+="[^"]*"/g, "")
+        .replace(/\sdata-(?!(?:orientation|pct)=)[a-z-]+="[^"]*"/g, "")
         .replace(/\sdata-slot="[^"]*"/g, "");
 }
 
@@ -3751,15 +3902,18 @@ async function capturePlayerResponsiveFrame(
             stage
                 .querySelectorAll<HTMLElement>(".track-thumb")
                 .forEach((thumb) => {
+                    if (!thumb.hasAttribute("data-orientation")) {
+                        return;
+                    }
                     const pct = thumb.dataset.pct ?? "0";
-                    const left = thumb.hasAttribute("data-orientation")
-                        ? `calc(${pct}% - 7px)`
-                        : `${pct}%`;
-                    thumb.style.setProperty("left", left, "important");
-                    thumb.style.setProperty("top", "3px", "important");
-                    thumb.style.setProperty(
+                    const wrapper = thumb.parentElement;
+                    if (!wrapper) {
+                        return;
+                    }
+                    wrapper.style.setProperty("left", `${pct}%`, "important");
+                    wrapper.style.setProperty(
                         "transform",
-                        "translate(-50%, -50%)",
+                        "translateX(-50%)",
                         "important",
                     );
                 });
@@ -3828,7 +3982,7 @@ async function capturePlayerResponsiveFrame(
             }
             return Array.from(
                 stageElement.querySelectorAll<HTMLElement>(
-                    '[data-sot-surface="recording-player"], .player, [data-sot-part="recording-player-no-audio"], .no-audio-banner, [data-sot-part="recording-player-meta"], .player-meta, [data-sot-panel="recording-player-controls"], .player-controls, [data-sot-control="recording-player-seek"], .track, [data-sot-control="recording-player-speed"], .speed, [data-sot-part="recording-player-volume-anchor"], .vol-anchor',
+                    '[data-surface="recording-player"], .player, [data-part="recording-player-no-audio"], .no-audio-banner, [data-part="recording-player-meta"], .player-meta, [data-panel="recording-player-controls"], .player-controls, [data-control="recording-player-seek"], .track, [data-control="recording-player-speed"], .speed, [data-part="recording-player-volume-anchor"], .vol-anchor',
                 ),
             )
                 .map((element) => {
@@ -3941,41 +4095,41 @@ async function capturePlayerResponsiveFrame(
                 document.documentElement.scrollHeight > window.innerHeight,
             elements: {
                 backButton: read(
-                    '[data-sot-control="recording-player-back"], .player-controls > .round-btn:nth-of-type(1)',
+                    '[data-control="recording-player-back"], .player-controls > .round-btn:nth-of-type(1)',
                 ),
                 currentTime: read(
-                    '[data-sot-part="recording-player-current-time"], .player-controls > .time:nth-of-type(1)',
+                    '[data-part="recording-player-current-time"], .player-controls > .time:nth-of-type(1)',
                 ),
                 durationTime: read(
-                    '[data-sot-part="recording-player-duration"], .player-controls > .time:nth-of-type(2)',
+                    '[data-part="recording-player-duration"], .player-controls > .time:nth-of-type(2)',
                 ),
                 forwardButton: read(
-                    '[data-sot-control="recording-player-forward"], .player-controls > .round-btn:nth-of-type(3)',
+                    '[data-control="recording-player-forward"], .player-controls > .round-btn:nth-of-type(3)',
                 ),
                 playButton: read(
-                    '[data-sot-control="recording-player-play"], .player-controls > .round-btn.play',
+                    '[data-control="recording-player-play"], .player-controls > .round-btn.play',
                 ),
-                player: read('[data-sot-surface="recording-player"], .player'),
+                player: read('[data-surface="recording-player"], .player'),
                 playerControls: read(
-                    '[data-sot-panel="recording-player-controls"], .player-controls',
+                    '[data-panel="recording-player-controls"], .player-controls',
                 ),
                 playerMeta: read(
-                    '[data-sot-part="recording-player-meta"], .player-meta',
+                    '[data-part="recording-player-meta"], .player-meta',
                 ),
                 speedControl: read(
-                    '[data-sot-control="recording-player-speed"], .speed',
+                    '[data-control="recording-player-speed"], .speed',
                 ),
                 stage: read(":scope"),
-                track: read('[data-sot-control="recording-player-seek"], .track'),
+                track: read('[data-control="recording-player-seek"], .track'),
                 trackThumb: read('[data-slot="slider-thumb"], .track-thumb'),
                 volumeAnchor: read(
-                    '[data-sot-part="recording-player-volume-anchor"], .vol-anchor',
+                    '[data-part="recording-player-volume-anchor"], .vol-anchor',
                 ),
                 volumePopover: read(
-                    '[data-sot-panel="recording-player-volume-popover"], .vol-pop',
+                    '[data-panel="recording-player-volume-popover"], .vol-pop',
                 ),
                 volumeTrigger: read(
-                    '[data-sot-control="recording-player-volume"], .vol-anchor > [data-sot-control="recording-player-volume"]',
+                    '[data-control="recording-player-volume"], .vol-anchor > [data-control="recording-player-volume"]',
                 ),
             },
             viewport: {
@@ -4116,7 +4270,7 @@ Status: ${evidence.status}. This is a focused recording-detail Player slice; the
 
 ## Scope
 
-- Surface: standalone recording-detail \`[data-sot-surface="recording-player"]\`.
+- Surface: standalone recording-detail \`[data-surface="recording-player"]\`.
 - States: ready and disabled/no-audio.
 - SOT targets: \`ui_kits/web/component-library.html#player\`, \`ui_kits/web/index.html .real-detail .player\`, and \`ui_kits/web/kit.css\`.
 - Fixed frames: desktop \`580x240\` stage under \`1366x900\` viewport; mobile \`390x240\` stage under \`390x844\` viewport.
@@ -4293,8 +4447,8 @@ async function captureTagManagerViewportFixture(
     const fixtureCss = `${tagManagerSotFixtureCss(
         fixtureScope,
     )}${tagManagerViewportFrameCss(fixtureScope)}
-${fixtureScope} .tagm-sel-chip>svg,${fixtureScope} .tagm-opt>svg,${fixtureScope} [data-sot-part="selected-chip"]>svg,${fixtureScope} [data-sot-control="recording-tag-toggle"]>svg{width:12px!important;height:12px!important;flex:none!important;stroke:currentColor!important;fill:none!important;stroke-width:2!important}
-${fixtureScope} .tagm-sel-chip .x svg,${fixtureScope} .tagm-close svg,${fixtureScope} [data-sot-control="recording-tag-delete-open"] svg,${fixtureScope} [data-sot-control="recording-tag-manager-close"] svg{width:11px!important;height:11px!important}
+${fixtureScope} .tagm-sel-chip>svg,${fixtureScope} .tagm-opt>svg,${fixtureScope} [data-part="selected-chip"]>svg,${fixtureScope} [data-control="recording-tag-toggle"]>svg{width:12px!important;height:12px!important;flex:none!important;stroke:currentColor!important;fill:none!important;stroke-width:2!important}
+${fixtureScope} .tagm-sel-chip .x svg,${fixtureScope} .tagm-close svg,${fixtureScope} [data-control="recording-tag-delete-open"] svg,${fixtureScope} [data-control="recording-tag-manager-close"] svg{width:11px!important;height:11px!important}
 ${scopedFixtureCss(fixtureScope)}`;
 
     await page.setViewportSize(viewport);
@@ -4349,7 +4503,7 @@ ${scopedFixtureCss(fixtureScope)}`;
 
     const panel = page
         .locator(
-            `#${fixtureId} > .tagm-panel, #${fixtureId} > [data-sot-panel="recording-tag-manager"]`,
+            `#${fixtureId} > .tagm-panel, #${fixtureId} > [data-panel="recording-tag-manager"]`,
         )
         .first();
     await expect(panel).toBeVisible();
@@ -4591,7 +4745,14 @@ async function expectHeaderPlacementSotPixelsMatch(
         differingPixels: 0,
         maxChannelDelta: 0,
     },
-    options: { productHtml?: string; sotHtml?: string } = {},
+    options: {
+        productHtml?: string;
+        productPortal?: Parameters<
+            typeof captureSotHeaderPlacementFixture
+        >[4];
+        sotHtml?: string;
+        sotPortal?: Parameters<typeof captureSotHeaderPlacementFixture>[4];
+    } = {},
 ) {
     const defaultWidth = await readSotFixtureWidth(sotLocator);
     const productLocalOnly =
@@ -4610,8 +4771,16 @@ async function expectHeaderPlacementSotPixelsMatch(
                 sotLocator.page(),
                 sotHtml,
                 width,
+                undefined,
+                options.sotPortal,
             ),
-            captureSotHeaderPlacementFixture(page, productHtml, width),
+            captureSotHeaderPlacementFixture(
+                page,
+                productHtml,
+                width,
+                undefined,
+                options.productPortal,
+            ),
         ]);
         const diff = await compareSotPixels(
             page,
@@ -4765,7 +4934,7 @@ async function expectRetranscribeConfirmDialogMatchesSot(
     productPage: Page,
 ) {
     const sotRoot = "#confirm .confirm-dialog";
-    const productRoot = '[data-sot-content="confirm-dialog"]';
+    const productRoot = '[role="dialog"][data-slot="dialog-content"]';
 
     await expect(productPage.locator(productRoot)).toBeVisible();
     await expectSotConfirmStyleMatch(
@@ -4779,56 +4948,56 @@ async function expectRetranscribeConfirmDialogMatchesSot(
         sotPage,
         productPage,
         `${sotRoot} .confirm-head`,
-        `${productRoot} [data-sot-part="confirm-head"]`,
+        `${productRoot} [data-slot="dialog-header"]`,
         SOT_CONFIRM_STACK_STYLE_PROPS,
     );
     await expectSotConfirmStyleMatch(
         sotPage,
         productPage,
         `${sotRoot} .confirm-head h3`,
-        `${productRoot} [data-sot-part="confirm-title"]`,
+        `${productRoot} [data-slot="dialog-title"]`,
         SOT_CONFIRM_STACK_STYLE_PROPS,
     );
     await expectSotConfirmStyleMatch(
         sotPage,
         productPage,
         `${sotRoot} .confirm-body`,
-        `${productRoot} [data-sot-part="confirm-body"]`,
+        `${productRoot} [data-slot="dialog-description"]`,
         SOT_CONFIRM_STACK_STYLE_PROPS,
     );
     await expectSotConfirmStyleMatch(
         sotPage,
         productPage,
         `${sotRoot} .retx-modal-list`,
-        `${productRoot} [data-sot-list="confirm-dialog-details"]`,
+        `${productRoot} ul`,
         SOT_CONFIRM_STACK_STYLE_PROPS,
     );
     await expectSotConfirmStyleMatch(
         sotPage,
         productPage,
         `${sotRoot} .retx-modal-list li`,
-        `${productRoot} [data-sot-item="confirm-dialog-detail"]`,
+        `${productRoot} ul > li`,
         SOT_CONFIRM_STACK_STYLE_PROPS,
     );
     await expectSotConfirmStyleMatch(
         sotPage,
         productPage,
         `${sotRoot} .confirm-foot`,
-        `${productRoot} [data-sot-part="confirm-foot"]`,
+        `${productRoot} [data-slot="dialog-footer"]`,
         SOT_CONFIRM_STACK_STYLE_PROPS,
     );
     await expectSotConfirmStyleMatch(
         sotPage,
         productPage,
         `${sotRoot} .confirm-foot button:nth-child(1)`,
-        `${productRoot} [data-sot-part="confirm-foot"] [data-slot="button"][data-variant="outline"]`,
+        `${productRoot} [data-slot="dialog-footer"] [data-slot="button"][data-variant="outline"]`,
         SOT_CONFIRM_BUTTON_STYLE_PROPS,
     );
     await expectSotConfirmStyleMatch(
         sotPage,
         productPage,
         `${sotRoot} .confirm-foot button:nth-child(2)`,
-        `${productRoot} [data-sot-part="confirm-foot"] [data-slot="button"][data-variant="destructive"]`,
+        `${productRoot} [data-slot="dialog-footer"] [data-slot="button"][data-variant="destructive"]`,
         SOT_CONFIRM_BUTTON_STYLE_PROPS,
     );
 }
@@ -4856,7 +5025,7 @@ async function prepareSotSpeakerReviewFixture(page: Page) {
         speakersPane.insertAdjacentHTML(
             "beforeend",
             `
-              <div data-sot-fixture="speaker-review">
+              <div data-fixture="speaker-review">
                 <div class="sp-head">
                   <div class="sp-row-meta">
                     <div>
@@ -4870,7 +5039,7 @@ async function prepareSotSpeakerReviewFixture(page: Page) {
                   </div>
                 </div>
                 <div class="sp-rows sp-rows-review">
-                  <div class="sp-row" data-sot-speaker-mapped="true">
+                  <div class="sp-row" data-speaker-mapped="true">
                     <div class="sp-row-meta">
                       <div>
                         <p class="sp-row-name">SPEAKER_ALPHA_00</p>
@@ -4904,11 +5073,83 @@ async function openSotSpeakerMergePopover(page: Page) {
 }
 
 function stabilizeSpeakerMergePopover(html: string) {
-    return `<style>.sot-pixel-stage .sp-merge-pop,.sot-pixel-stage [data-sot-panel="speaker-review-merge"]{position:relative!important;top:auto!important;right:auto!important;bottom:auto!important;left:auto!important;display:block!important;pointer-events:auto!important;opacity:1!important;transform:none!important}</style>${html}`;
+    return `<style>.sot-pixel-stage .sp-merge-pop,.sot-pixel-stage [data-panel="speaker-review-merge"]{position:relative!important;top:auto!important;right:auto!important;bottom:auto!important;left:auto!important;display:block!important;pointer-events:auto!important;opacity:1!important;transform:none!important}</style>${html}`;
 }
 
 function tagManager(page: Page) {
-    return page.locator('[data-sot-panel="recording-tag-manager"]');
+    return page.getByRole("dialog", { name: "管理标签", exact: true });
+}
+
+function tagManagerTitle(panel: Locator) {
+    return panel.locator('[data-slot="card-title"]');
+}
+
+function tagManagerSelectedGroup(panel: Locator) {
+    return panel.getByRole("group", { name: /^已选 · \d+$/ });
+}
+
+function tagManagerSelectedChips(panel: Locator) {
+    return tagManagerSelectedGroup(panel).locator(".tagm-sel-chip");
+}
+
+function tagManagerSelectedChip(panel: Locator, name: string) {
+    return tagManagerSelectedChips(panel).filter({ hasText: name });
+}
+
+function tagManagerAvailableGroup(panel: Locator) {
+    return panel.getByRole("group", { name: "全部标签", exact: true });
+}
+
+function tagManagerTagOptions(panel: Locator) {
+    return tagManagerAvailableGroup(panel).locator(".tagm-opt");
+}
+
+function tagManagerTagOption(panel: Locator, name: string) {
+    return panel.getByRole("button", {
+        name,
+        exact: true,
+    });
+}
+
+function tagManagerNameInput(panel: Locator) {
+    return panel.getByRole("textbox", { name: "标签名", exact: true });
+}
+
+function tagManagerColorOption(panel: Locator, label: string) {
+    return panel.getByRole("radio", { name: label, exact: true });
+}
+
+function tagManagerIconOption(panel: Locator, icon: string) {
+    return panel.getByRole("radio", {
+        name: `选择图标 ${icon}`,
+        exact: true,
+    });
+}
+
+function tagManagerEmptyState(panel: Locator) {
+    return panel.locator('[data-slot="empty"]');
+}
+
+function tagManagerErrorAlert(panel: Locator) {
+    return panel.locator('[data-slot="alert"]');
+}
+
+async function readRecordingTagCatalog(page: Page) {
+    const response = await page.request.get("/api/recording-tags");
+    const payload = (await response.json()) as {
+        error?: string;
+        tags?: Array<{
+            color: string;
+            icon: string;
+            id: string;
+            name: string;
+            recordingCount?: number;
+        }>;
+    };
+    expect(response.ok(), payload.error ?? "recording tag catalog request failed").toBe(
+        true,
+    );
+    return payload.tags ?? [];
 }
 
 function sourceReportLoadButton(page: Page) {
@@ -4918,14 +5159,33 @@ function sourceReportLoadButton(page: Page) {
 }
 
 async function waitForRecordingDetailShellReady(page: Page) {
+    await expect(page.getByRole("main")).toBeVisible();
+    await expect(
+        page.getByRole("region", { name: "当前录音", exact: true }),
+    ).toBeVisible();
     await expect(recordingWorkstation(page)).toHaveAttribute(
-        "data-sot-state",
-        "ready",
+        "data-hydrated",
+        "true",
     );
+    await expect(
+        page.getByRole("tab", { name: "说话人标签", exact: true }),
+    ).toBeVisible();
+}
+
+async function openSourceReportPanel(page: Page) {
+    const sourceTab = page.getByRole("tab", {
+        name: /来源原始记录$/,
+    });
+    await expect(sourceTab).toBeVisible();
+    if ((await sourceTab.getAttribute("aria-selected")) !== "true") {
+        await sourceTab.click();
+    }
+    await expect(sourceTab).toHaveAttribute("aria-selected", "true");
 }
 
 async function waitForRecordingDetailReady(page: Page) {
     await waitForRecordingDetailShellReady(page);
+    await openSourceReportPanel(page);
     await expect(sourceReportState(page, "loaded")).toBeVisible();
 }
 
@@ -5205,7 +5465,7 @@ async function readWorkspaceVisualMetrics(
         };
         const providerRows = Array.from(
             document.querySelectorAll<HTMLElement>(
-                '[data-sot-control="dashboard-source-provider"]',
+                '[data-control="dashboard-source-provider"]',
             ),
         );
         const zeroCountProviders = providerRows
@@ -5213,7 +5473,7 @@ async function readWorkspaceVisualMetrics(
                 const countText =
                     row
                         .querySelector<HTMLElement>(
-                            '[data-sot-part="source-provider-count"]',
+                            '[data-part="source-provider-count"]',
                         )
                         ?.textContent?.trim() ?? "0";
                 const count = Number.parseInt(countText, 10);
@@ -5232,7 +5492,7 @@ async function readWorkspaceVisualMetrics(
                 ),
                 listPanel: read(
                     nextSelectors.listPanel ??
-                        '.workspace .panel, [data-sot-surface="dashboard-recording-list"], [data-sot-panel="recording-detail-list"]',
+                        '.workspace .panel, [data-surface="dashboard-recording-list"], [data-panel="recording-detail-list"]',
                 ),
                 selectedRow: read(
                     nextSelectors.selectedRow ??
@@ -5252,9 +5512,9 @@ async function readWorkspaceVisualMetrics(
                     document
                         .querySelector<HTMLElement>(
                             nextSelectors.listPanel ??
-                                '[data-sot-surface="dashboard-recording-list"]',
+                                '[data-surface="dashboard-recording-list"]',
                         )
-                        ?.getAttribute("data-sot-state") ?? null,
+                        ?.getAttribute("data-state") ?? null,
                 rowCount: document.querySelectorAll(
                     nextSelectors.rowCollection ?? ".workspace .real-list .row",
                 ).length,
@@ -5462,7 +5722,7 @@ async function readSourceReportButtonEvidence(
         count,
         disabled: await first.isDisabled(),
         isVisible: await first.isVisible(),
-        state: await first.getAttribute("data-sot-state"),
+        state: await first.getAttribute("data-state"),
         tagName: await first.evaluate((element) =>
             element.tagName.toLowerCase(),
         ),
@@ -5475,30 +5735,30 @@ async function readSourceReportLoadedSubStateMarkers(
 ): Promise<SourceReportLoadedSubStateStateEvidence["markers"]> {
     const loaded = sourceReportInnerState(page, "loaded");
     return {
-        cardTexts: await loaded.locator('[data-sot-card="source-report-metric"]').evaluateAll((cards) =>
+        cardTexts: await loaded.locator('[data-testid^="source-report-metric-"]').evaluateAll((cards) =>
             cards.map((card) => (card.textContent ?? "").replace(/\s+/g, " ").trim()),
         ),
         dataState: await loaded.getAttribute("data-state"),
         dataSubState: await loaded.getAttribute("data-sub-state"),
         emptyFallbackCount: await loaded
-            .locator("[data-sot-source-report-empty]")
+            .locator('[data-testid="source-report-empty-surface"]')
             .count(),
         emptyStateCount: await sourceReportInnerState(page, "empty").count(),
         errorStateCount: await sourceReportInnerState(page, "error").count(),
         loadingStateCount: await sourceReportInnerState(page, "loading").count(),
         sectionHeadings: await loaded
-            .locator("[data-sot-source-report-section-title]")
+            .locator('[data-testid="source-report-section-title"]')
             .evaluateAll((headings) =>
                 headings.map((heading) =>
                     (heading.textContent ?? "").replace(/\s+/g, " ").trim(),
                 ),
             ),
         segmentCount: await loaded
-            .locator("[data-sot-source-report-segment]")
+            .locator('[data-testid="source-report-segment"]')
             .count(),
         summaryMissingNoticeTexts: await loaded
             .locator(
-                '[data-sot-source-report-section][data-sot-section="metadata"] [data-sot-source-report-missing-notice]',
+                '[data-testid="source-report-section-metadata"] [data-testid="source-report-missing-summary-missing"]',
             )
             .evaluateAll((notices) =>
                 notices.map((notice) =>
@@ -5507,7 +5767,7 @@ async function readSourceReportLoadedSubStateMarkers(
             ),
         transcriptMissingNoticeTexts: await loaded
             .locator(
-                '[data-sot-source-report-section][data-sot-section="transcript"] [data-sot-source-report-missing-notice]',
+                '[data-testid="source-report-section-transcript"] [data-testid="source-report-missing-transcript-missing"]',
             )
             .evaluateAll((notices) =>
                 notices.map((notice) =>
@@ -5825,11 +6085,11 @@ async function readSourceReportRow107MatrixCase(
             copiedTextCount,
             dataError:
                 errorCount > 0
-                    ? await error.first().getAttribute("data-sot-error")
+                    ? await error.first().getAttribute("data-error")
                     : null,
             dataState:
                 rootCount > 0
-                    ? await root.first().getAttribute("data-sot-state")
+                    ? await root.first().getAttribute("data-state")
                     : null,
             dataSubState:
                 loadedCount > 0
@@ -5845,13 +6105,13 @@ async function readSourceReportRow107MatrixCase(
             sectionCount:
                 loadedCount > 0
                     ? await loaded
-                          .locator("[data-sot-source-report-section]")
+                          .locator('section[data-testid^="source-report-section-"]')
                           .count()
                     : 0,
             sectionHeadings:
                 loadedCount > 0
                     ? await loaded
-                          .locator("[data-sot-source-report-section-title]")
+                          .locator('[data-testid="source-report-section-title"]')
                           .evaluateAll((headings) =>
                               headings.map((heading) =>
                                   (heading.textContent ?? "")
@@ -5863,7 +6123,7 @@ async function readSourceReportRow107MatrixCase(
             segmentCount:
                 loadedCount > 0
                     ? await loaded
-                          .locator("[data-sot-source-report-segment]")
+                          .locator('[data-testid="source-report-segment"]')
                           .count()
                     : 0,
             syncRequestCount,
@@ -5990,12 +6250,12 @@ async function collectWorkspaceStandaloneErrorRuntimeFrames(
 
             const metrics = await readWorkspaceVisualMetrics(page, {
                 detail:
-                    '[data-sot-panel="route-workspace"] [data-sot-panel="recording-route-empty-detail"][data-empty="true"]',
+                    '[data-panel="route-workspace"] [data-panel="recording-route-empty-detail"][data-empty="true"]',
                 emptyDetail:
-                    '[data-sot-panel="route-workspace"] [data-sot-panel="recording-route-empty-detail"][data-empty="true"] [data-sot-panel="recording-route-empty"]',
-                listPanel: '[data-sot-panel="recording-detail-list"]',
+                    '[data-panel="route-workspace"] [data-panel="recording-route-empty-detail"][data-empty="true"] [data-panel="recording-route-empty"]',
+                listPanel: '[data-panel="recording-detail-list"]',
                 selectedRow: ".workspace .real-list .row.active",
-                workspace: '[data-sot-panel="route-workspace"]',
+                workspace: '[data-panel="route-workspace"]',
             });
             const controls = await readStandaloneErrorControls(page);
             const screenshot = await page.screenshot({
@@ -6113,19 +6373,22 @@ async function selectDashboardZeroCountProvider(page: Page) {
     const provider = await page.evaluate(() => {
         const rows = Array.from(
             document.querySelectorAll<HTMLElement>(
-                '[data-sot-control="dashboard-source-provider"]',
+                '[data-control="dashboard-source-provider"]',
             ),
         );
         for (const row of rows) {
             const countText =
                 row
                     .querySelector<HTMLElement>(
-                        '[data-sot-part="source-provider-count"]',
+                        '[data-part="source-provider-count"]',
                     )
                     ?.textContent?.trim() ?? "0";
             const count = Number.parseInt(countText, 10);
-            if ((Number.isNaN(count) || count === 0) && row.dataset.sotProvider) {
-                return row.dataset.sotProvider;
+            if (
+                (Number.isNaN(count) || count === 0) &&
+                row.dataset.workspaceProvider
+            ) {
+                return row.dataset.workspaceProvider;
             }
         }
         return null;
@@ -6137,13 +6400,13 @@ async function selectDashboardZeroCountProvider(page: Page) {
 
     await page
         .locator(
-            `[data-sot-control="dashboard-source-provider"][data-sot-provider="${provider}"]`,
+            `[data-control="dashboard-source-provider"][data-provider="${provider}"]`,
         )
         .first()
         .click();
     await expect(
-        page.locator('[data-sot-surface="dashboard-recording-list"]').first(),
-    ).toHaveAttribute("data-sot-state", /^(ready|empty|no-match)$/, {
+        page.locator('[data-surface="dashboard-recording-list"]').first(),
+    ).toHaveAttribute("data-state", /^(ready|empty|no-match)$/, {
         timeout: 5_000,
     });
 
@@ -6155,13 +6418,13 @@ async function readStandaloneErrorSourceEvidence() {
     const absoluteFile = path.resolve(process.cwd(), relativeFile);
     const source = await readFile(absoluteFile, "utf8");
     const selectors = {
-        detail: 'data-sot-panel="recording-route-empty-detail"',
-        detailEmpty: 'data-sot-panel="recording-route-empty"',
-        detailEmptyIcon: 'data-sot-part="recording-route-empty-icon"',
-        detailEmptySub: 'data-sot-part="recording-route-empty-description"',
-        detailEmptyTitle: 'data-sot-part="recording-route-empty-title"',
-        routeShell: 'data-sot-shell="recording-route-error"',
-        workspace: 'data-sot-panel="route-workspace"',
+        detail: 'data-panel="recording-route-empty-detail"',
+        detailEmpty: 'data-panel="recording-route-empty"',
+        detailEmptyIcon: 'data-part="recording-route-empty-icon"',
+        detailEmptySub: 'data-part="recording-route-empty-description"',
+        detailEmptyTitle: 'data-part="recording-route-empty-title"',
+        routeShell: 'data-shell="recording-route-error"',
+        workspace: 'data-panel="route-workspace"',
     };
     const selectorsPresent = Object.fromEntries(
         Object.entries(selectors).map(([name, needle]) => [
@@ -6237,32 +6500,32 @@ test("Workspace visual matrix row 96 captures dashboard and standalone Workspace
 
         await page.goto("/dashboard", { waitUntil: "domcontentloaded" });
         await expect(
-            page.locator('[data-sot-surface="dashboard-workstation"]'),
-        ).toHaveAttribute("data-sot-state", "ready", { timeout: 30_000 });
+            page.locator('[data-surface="dashboard-workstation"]'),
+        ).toHaveAttribute("data-state", "ready", { timeout: 30_000 });
         const dashboardSeedRow = page
-            .locator(`[data-sot-recording-id="${recordingId}"]`)
+            .locator(`[data-recording-id="${recordingId}"]`)
             .first();
         await expect(dashboardSeedRow).toBeVisible({ timeout: 15_000 });
         await dashboardSeedRow.click();
         await expect(dashboardSeedRow).toHaveAttribute(
-            "data-sot-state",
+            "data-state",
             "selected",
         );
         await expect(
             page
                 .locator(
-                    '[data-sot-panel="dashboard-workspace"] [data-sot-panel="dashboard-detail"]',
+                    '[data-panel="dashboard-workspace"] [data-panel="dashboard-detail"]',
                 )
                 .first(),
         ).toHaveAttribute("data-empty", "false");
         const dashboardSelectedFrames = await collectWorkspaceVisualFrames(page, {
             detail:
-                '[data-sot-panel="dashboard-workspace"] [data-sot-panel="dashboard-detail"]',
+                '[data-panel="dashboard-workspace"] [data-panel="dashboard-detail"]',
             emptyDetail:
-                '[data-sot-panel="dashboard-workspace"] [data-detail-empty]',
-            listPanel: '[data-sot-surface="dashboard-recording-list"]',
-            selectedRow: `[data-sot-recording-id="${recordingId}"][data-sot-state="selected"]`,
-            workspace: '[data-sot-panel="dashboard-workspace"]',
+                '[data-panel="dashboard-workspace"] [data-detail-empty]',
+            listPanel: '[data-surface="dashboard-recording-list"]',
+            selectedRow: `[data-recording-id="${recordingId}"][data-state="selected"]`,
+            workspace: '[data-panel="dashboard-workspace"]',
         });
         const dashboardSelectedDesktop = dashboardSelectedFrames.find(
             (frame) => frame.frame === "desktop",
@@ -6277,13 +6540,13 @@ test("Workspace visual matrix row 96 captures dashboard and standalone Workspace
         const dashboardEmptyFrames = emptyProvider
             ? await collectWorkspaceVisualFrames(page, {
                   detail:
-                      '[data-sot-panel="dashboard-workspace"] [data-sot-panel="dashboard-detail"]',
+                      '[data-panel="dashboard-workspace"] [data-panel="dashboard-detail"]',
                   emptyDetail:
-                      '[data-sot-panel="dashboard-workspace"] [data-detail-empty]',
-                  listPanel: '[data-sot-surface="dashboard-recording-list"]',
+                      '[data-panel="dashboard-workspace"] [data-detail-empty]',
+                  listPanel: '[data-surface="dashboard-recording-list"]',
                   selectedRow:
-                      '[data-sot-control="dashboard-recording-row"][data-sot-state="selected"]',
-                  workspace: '[data-sot-panel="dashboard-workspace"]',
+                      '[data-control="dashboard-recording-row"][data-state="selected"]',
+                  workspace: '[data-panel="dashboard-workspace"]',
               })
             : [];
         const dashboardEmptyReached = dashboardEmptyFrames.some(
@@ -6363,13 +6626,13 @@ test("Workspace visual matrix row 96 captures dashboard and standalone Workspace
         await waitForRecordingDetailReady(page);
         const standaloneSelectedFrames = await collectWorkspaceVisualFrames(page, {
             detail:
-                '[data-sot-panel="workstation-workspace"] [data-sot-panel="recording-workstation-detail"]',
+                '[data-panel="workstation-workspace"] [data-panel="recording-workstation-detail"]',
             emptyDetail:
-                '[data-sot-panel="workstation-workspace"] [data-detail-empty]',
-            listPanel: '[data-sot-panel="recording-detail-list"]',
+                '[data-panel="workstation-workspace"] [data-detail-empty]',
+            listPanel: '[data-panel="recording-detail-list"]',
             selectedRow:
-                '[data-sot-panel="workstation-workspace"] [data-sot-item="recording-detail-list-row"][data-sot-state="selected"]',
-            workspace: '[data-sot-panel="workstation-workspace"]',
+                '[data-panel="workstation-workspace"] [data-item="recording-detail-list-row"][data-state="selected"]',
+            workspace: '[data-panel="workstation-workspace"]',
         });
         const standaloneSelectedDesktop = standaloneSelectedFrames.find(
             (frame) => frame.frame === "desktop",
@@ -6383,16 +6646,16 @@ test("Workspace visual matrix row 96 captures dashboard and standalone Workspace
             waitUntil: "domcontentloaded",
         });
         await expect(
-            page.locator('[data-sot-part="recording-route-empty-title"]'),
+            page.locator('[data-part="recording-route-empty-title"]'),
         ).toContainText("录音不存在");
         const standaloneNotFoundFrames = await collectWorkspaceVisualFrames(page, {
             detail:
-                '[data-sot-panel="route-workspace"] [data-sot-panel="recording-route-empty-detail"]',
+                '[data-panel="route-workspace"] [data-panel="recording-route-empty-detail"]',
             emptyDetail:
-                '[data-sot-panel="route-workspace"] [data-sot-panel="recording-route-empty"]',
-            listPanel: '[data-sot-panel="recording-detail-list"]',
+                '[data-panel="route-workspace"] [data-panel="recording-route-empty"]',
+            listPanel: '[data-panel="recording-detail-list"]',
             selectedRow: ".workspace .real-list .row.active",
-            workspace: '[data-sot-panel="route-workspace"]',
+            workspace: '[data-panel="route-workspace"]',
         });
         const standaloneNotFoundDesktop = standaloneNotFoundFrames.find(
             (frame) => frame.frame === "desktop",
@@ -6545,22 +6808,22 @@ test("Workspace standalone error boundary runtime visual row 96", async ({
     });
 
     await expect(
-        page.locator('[data-sot-panel="route-workspace"]').first(),
+        page.locator('[data-panel="route-workspace"]').first(),
     ).toBeVisible({
         timeout: 30_000,
     });
     await expect(
         page
             .locator(
-                '[data-sot-panel="recording-route-empty-detail"][data-empty="true"]',
+                '[data-panel="recording-route-empty-detail"][data-empty="true"]',
             )
             .first(),
     ).toBeVisible();
     await expect(
-        page.locator('[data-sot-panel="recording-route-empty"]').first(),
+        page.locator('[data-panel="recording-route-empty"]').first(),
     ).toBeVisible();
     await expect(
-        page.locator('[data-sot-part="recording-route-empty-title"]').first(),
+        page.locator('[data-part="recording-route-empty-title"]').first(),
     ).toContainText("加载失败");
     await expect(page.getByRole("button", { name: "重试" })).toBeVisible();
     await expect(page.getByRole("link", { name: "返回工作台" })).toBeVisible();
@@ -6713,10 +6976,10 @@ test("recording detail uses the new workstation shell and keeps all copy actions
         ).toContainText("00:00 – 00:15");
         await expect(
             detailSourceTranscriptCopyButton(page),
-        ).toHaveAttribute("data-sot-state", "ready");
+        ).toHaveAttribute("data-state", "ready");
         await expect(
             detailSourceReportCopyButton(page),
-        ).toHaveAttribute("data-sot-state", "ready");
+        ).toHaveAttribute("data-state", "ready");
 
         await localTranscriptCopyButton(page).click();
         await expect
@@ -6943,7 +7206,7 @@ test("recording detail source report loaded state matches SOT pixels", async (
         const productLoaded = sourceReportInnerState(page, "loaded");
         await expect(productLoaded).toHaveAttribute("data-state", "loaded");
         await expect(
-            productLoaded.locator("[data-sot-source-report-section-title]"),
+            productLoaded.locator('[data-testid="source-report-section-title"]'),
         ).toHaveText(["来源转写", "来源信息"]);
 
         await expectTransformedSotPixelsMatch(
@@ -7159,7 +7422,7 @@ test("recording detail source report loaded sub-states match SOT pixels", async 
 
             const productLoaded = sourceReportInnerState(page, "loaded");
             await expect(sourceReportState(page, "loaded")).toHaveAttribute(
-                "data-sot-state",
+                "data-state",
                 "loaded",
             );
             await expect(productLoaded).toHaveAttribute(
@@ -7170,31 +7433,31 @@ test("recording detail source report loaded sub-states match SOT pixels", async 
                 "data-sub-state",
                 subStateCase.state,
             );
-            await expect(productLoaded.locator('[data-sot-metric="transcript-status"]')).toContainText(
+            await expect(productLoaded.locator('[data-testid="source-report-metric-transcript-status"]')).toContainText(
                 subStateCase.transcriptLabel,
             );
-            await expect(productLoaded.locator('[data-sot-metric="summary-status"]')).toContainText(
+            await expect(productLoaded.locator('[data-testid="source-report-metric-summary-status"]')).toContainText(
                 subStateCase.summaryLabel,
             );
-            await expect(productLoaded.locator('[data-sot-metric="segment-count"]')).toContainText(
+            await expect(productLoaded.locator('[data-testid="source-report-metric-segment-count"]')).toContainText(
                 String(subStateCase.segmentCount),
             );
             await expect(
-                productLoaded.locator("[data-sot-source-report-section-title]"),
+                productLoaded.locator('[data-testid="source-report-section-title"]'),
             ).toHaveText(["来源转写", "来源信息"]);
             await expect(
-                productLoaded.locator("[data-sot-source-report-empty]"),
+                productLoaded.locator('[data-testid="source-report-empty-surface"]'),
             ).toHaveCount(0);
             await expect(sourceReportInnerState(page, "empty")).toHaveCount(0);
             await expect(sourceReportInnerState(page, "loading")).toHaveCount(0);
             await expect(sourceReportInnerState(page, "error")).toHaveCount(0);
 
             await expect(detailSourceTranscriptCopyButton(page)).toHaveAttribute(
-                "data-sot-state",
+                "data-state",
                 subStateCase.expectedCopyTranscript,
             );
             await expect(detailSourceReportCopyButton(page)).toHaveAttribute(
-                "data-sot-state",
+                "data-state",
                 subStateCase.expectedCopyReport,
             );
             if (subStateCase.expectedCopyTranscript === "ready") {
@@ -7208,11 +7471,11 @@ test("recording detail source report loaded sub-states match SOT pixels", async 
                 await expect(detailSourceReportCopyButton(page)).toBeDisabled();
             }
             await expect(sourceReportOpenSourceControl(page)).toHaveAttribute(
-                "data-sot-state",
+                "data-state",
                 subStateCase.actionState,
             );
             await expect(sourceReportRepullButton(page)).toHaveAttribute(
-                "data-sot-state",
+                "data-state",
                 subStateCase.actionState,
             );
             if (subStateCase.actionState === "ready") {
@@ -7229,7 +7492,7 @@ test("recording detail source report loaded sub-states match SOT pixels", async 
             ) {
                 await expect(
                     productLoaded.locator(
-                        '[data-sot-source-report-section][data-sot-section="transcript"] [data-sot-source-report-missing-notice]',
+                        '[data-testid="source-report-section-transcript"] [data-testid="source-report-missing-transcript-missing"]',
                     ),
                 ).toContainText(
                     "来源未提供逐字稿。可以稍后再来，或运行私有转写。",
@@ -7241,7 +7504,7 @@ test("recording detail source report loaded sub-states match SOT pixels", async 
             ) {
                 await expect(
                     productLoaded.locator(
-                        '[data-sot-source-report-section][data-sot-section="metadata"] [data-sot-source-report-missing-notice]',
+                        '[data-testid="source-report-section-metadata"] [data-testid="source-report-missing-summary-missing"]',
                     ),
                 ).toContainText("来源未提供官方摘要。");
             }
@@ -7440,7 +7703,7 @@ test("recording detail source report loading, error, and empty states match SOT 
         const productError = sourceReportInnerState(page, "error");
         await expect(productError).toBeVisible();
         await expect(productError).toHaveAttribute(
-            "data-sot-error",
+            "data-error",
             "Source report temporarily unavailable",
         );
         const productErrorAlert = productError.locator(
@@ -7455,9 +7718,9 @@ test("recording detail source report loading, error, and empty states match SOT 
         ).toContainText("钉钉返回了一个错误");
         await expect(
             productError.locator(
-                '[data-sot-source-report-empty-actions] [data-sot-control="refresh-source-report"]',
+                '[data-testid="source-report-empty-actions"] [data-testid="source-report-refresh"]',
             ),
-        ).toHaveAttribute("data-sot-state", "error");
+        ).toHaveAttribute("data-state", "error");
         const sotError = await openSotSourceReportState(sotPage, "error");
         await expectTransformedSotPixelsMatch(
             page,
@@ -7769,19 +8032,19 @@ test("recording detail source report row107 state-action matrix consolidation", 
             "complete",
         );
         await expect(detailSourceTranscriptCopyButton(page)).toHaveAttribute(
-            "data-sot-state",
+            "data-state",
             "ready",
         );
         await expect(detailSourceReportCopyButton(page)).toHaveAttribute(
-            "data-sot-state",
+            "data-state",
             "ready",
         );
         await expect(sourceReportOpenSourceControl(page)).toHaveAttribute(
-            "data-sot-state",
+            "data-state",
             "ready",
         );
         await expect(sourceReportRepullButton(page)).toHaveAttribute(
-            "data-sot-state",
+            "data-state",
             "ready",
         );
         await expect(sourceReportLoadButton(page)).toBeEnabled();
@@ -7794,7 +8057,7 @@ test("recording detail source report row107 state-action matrix consolidation", 
             .poll(async () => (await readCopiedTexts(page)).at(-1) ?? "")
             .toContain("Row107 来源报告摘要");
         await expect(detailSourceReportCopyButton(page)).toHaveAttribute(
-            "data-sot-state",
+            "data-state",
             "ready",
         );
         await detailSourceTranscriptCopyButton(page).click();
@@ -7857,11 +8120,11 @@ test("recording detail source report row107 state-action matrix consolidation", 
                 loadedSubStateCase.subState,
             );
             await expect(detailSourceTranscriptCopyButton(page)).toHaveAttribute(
-                "data-sot-state",
+                "data-state",
                 loadedSubStateCase.copyTranscriptState,
             );
             await expect(detailSourceReportCopyButton(page)).toHaveAttribute(
-                "data-sot-state",
+                "data-state",
                 loadedSubStateCase.copyReportState,
             );
             await addMatrixCase(loadedSubStateCase.caseName, requestStart, [
@@ -7897,7 +8160,7 @@ test("recording detail source report row107 state-action matrix consolidation", 
         await waitForRecordingDetailShellReady(page);
         await expect(sourceReportState(page, "error")).toBeVisible();
         await expect(sourceReportInnerState(page, "error")).toHaveAttribute(
-            "data-sot-error",
+            "data-error",
             "Source report temporarily unavailable",
         );
         await expect(
@@ -8048,7 +8311,7 @@ test("recording detail source report row107 state-action matrix consolidation", 
         );
         await sourceReportRepullButton(page).click();
         await expect(sourceReportRepullButton(page)).toHaveAttribute(
-            "data-sot-state",
+            "data-state",
             "loading",
         );
         await addMatrixCase(
@@ -8065,7 +8328,7 @@ test("recording detail source report row107 state-action matrix consolidation", 
         await repullSuccessResponse;
         await repullRefreshResponse;
         await expect(sourceReportRepullButton(page)).toHaveAttribute(
-            "data-sot-state",
+            "data-state",
             "ready",
         );
         await addMatrixCase(
@@ -8100,14 +8363,14 @@ test("recording detail source report row107 state-action matrix consolidation", 
         );
         await sourceReportRepullButton(page).click();
         await expect(sourceReportRepullButton(page)).toHaveAttribute(
-            "data-sot-state",
+            "data-state",
             "loading",
         );
         releaseRepullFailure();
         await repullFailureResponse;
         await expect(sourceReportState(page, "loaded")).toBeVisible();
         await expect(sourceReportRepullButton(page)).toHaveAttribute(
-            "data-sot-state",
+            "data-state",
             "error",
         );
         await addMatrixCase(
@@ -8256,7 +8519,7 @@ test("recording detail retranscribe confirmation restores SOT dialog and backend
         });
         await headerMoreButton.click();
         const headerMoreMenu = page.locator(
-            '[data-sot-menu="recording-more-actions"][data-more-menu]',
+            '[data-menu="recording-more-actions"][data-more-menu]',
         );
         await expect(headerMoreMenu).toHaveAttribute("data-open", "true");
         await expect(
@@ -8324,7 +8587,7 @@ test("recording detail retranscribe confirmation restores SOT dialog and backend
         });
         await expect(backdropDialog).toBeVisible();
         await page
-            .locator('[data-sot-panel="confirm-dialog"]')
+            .locator('[data-slot="dialog-overlay"]')
             .click({ position: { x: 8, y: 8 } });
         await expect(backdropDialog).not.toBeVisible();
         await expect(retranscribeButton).toBeFocused();
@@ -8391,7 +8654,7 @@ test("recording detail copy actions recover after clipboard write rejection", as
         await expect(sourceReportButton).toBeEnabled();
         await expect(sourceReportButton).toContainText("复制原始报告");
         await expect(sourceReportButton).toHaveAttribute(
-            "data-sot-state",
+            "data-state",
             "ready",
         );
         expect(await readCopiedTexts(page)).toEqual([]);
@@ -8423,26 +8686,24 @@ test("recording detail source copy strip mirrors partial artifact availability",
         });
 
         await expect(
-            page.locator('[data-sot-surface="recording-source-rail"]'),
+            page.locator('[data-surface="recording-source-rail"]'),
         ).toBeVisible();
         await expect(
-            page.locator('[data-sot-panel="recording-detail-list"]'),
+            page.locator('[data-panel="recording-detail-list"]'),
         ).toBeVisible();
         await expect(
             sourceReportState(page, "loaded"),
-        ).toHaveAttribute("data-sot-state", "loaded");
+        ).toHaveAttribute("data-state", "loaded");
         await expect(sourceReportInnerState(page, "loaded")).toBeVisible();
         await expect(
-            sourceReportInnerState(page, "loaded").locator(
-                "[data-sot-source-report-actions]",
-            ),
+            sourceReportState(page).getByTestId("source-report-header-actions"),
         ).toBeVisible();
         await expect(
             detailSourceTranscriptCopyButton(page),
-        ).toHaveAttribute("data-sot-state", "ready");
+        ).toHaveAttribute("data-state", "ready");
         await expect(
             detailSourceReportCopyButton(page),
-        ).toHaveAttribute("data-sot-state", "missing");
+        ).toHaveAttribute("data-state", "missing");
         await expect(
             detailSourceTranscriptCopyButton(page),
         ).toBeEnabled();
@@ -8464,13 +8725,13 @@ test("recording detail source copy strip mirrors partial artifact availability",
 
         await expect(
             sourceReportState(page, "loaded"),
-        ).toHaveAttribute("data-sot-state", "loaded");
+        ).toHaveAttribute("data-state", "loaded");
         await expect(
             detailSourceTranscriptCopyButton(page),
-        ).toHaveAttribute("data-sot-state", "missing");
+        ).toHaveAttribute("data-state", "missing");
         await expect(
             detailSourceReportCopyButton(page),
-        ).toHaveAttribute("data-sot-state", "ready");
+        ).toHaveAttribute("data-state", "ready");
         await expect(
             detailSourceTranscriptCopyButton(page),
         ).toBeDisabled();
@@ -8849,20 +9110,17 @@ test("recording detail AI rename header placement matches SOT pixels", async (
         await recordingHeader(page)
             .getByRole("button", { name: "AI 重命名", exact: true })
             .click();
-        const productPanel = page.locator('[data-sot-panel="ai-rename-preview"]');
+        const productPanel = page
+            .locator('[data-slot="popover-content"]')
+            .filter({ hasText: suggestedTitle });
         await expect(productPanel).toHaveCount(1);
-        await expect(productPanel).toHaveAttribute("data-sot-state", "review");
-        await expect(
-            productPanel.locator('[data-sot-part="review-old"]'),
-        ).toHaveText(originalTitle);
-        await expect(
-            productPanel.locator('[data-sot-part="review-new"]'),
-        ).toHaveText(suggestedTitle);
-        const productHeaderWithPanelHtml =
-            inlineAiRenamePopoverContentForHeaderPlacement(
-                await readSotFixtureOuterHtml(recordingHeader(page)),
-                await readSotFixtureOuterHtml(productPanel),
-            );
+        await expect(productPanel.getByText("复核确认", { exact: true })).toBeVisible();
+        await expect(productPanel.getByText(originalTitle, { exact: true })).toBeVisible();
+        await expect(productPanel.getByText(suggestedTitle, { exact: true })).toBeVisible();
+        const productHeaderHtml = await readSotFixtureOuterHtml(
+            recordingHeader(page),
+        );
+        const productPanelHtml = await readSotFixtureOuterHtml(productPanel);
 
         await expectHeaderPlacementSotPixelsMatch(
             page,
@@ -8872,7 +9130,22 @@ test("recording detail AI rename header placement matches SOT pixels", async (
             recordingHeader(page),
             [580, 390],
             AI_RENAME_HEADER_PIXEL_TOLERANCE,
-            { productHtml: productHeaderWithPanelHtml },
+            {
+                productHtml: productHeaderHtml,
+                productPortal: {
+                    align: "end",
+                    contentHtml: productPanelHtml,
+                    contentSelector: '[data-slot="popover-content"]',
+                    sideOffset: 8,
+                    triggerSelector: '[data-slot="popover-anchor"]',
+                },
+                sotPortal: {
+                    align: "end",
+                    contentSelector: "[data-rh-ai-panel]",
+                    sideOffset: 8,
+                    triggerSelector: "[data-rh-ai-trigger]",
+                },
+            },
         );
     } finally {
         await sotPage?.close();
@@ -8931,18 +9204,18 @@ test("recording detail keeps the player controls live with local audio", async (
         const forward = playerForwardButton(page);
         const speed = playerSpeedButton(page);
         const seek = playerSeekSlider(page);
+        const seekThumb = playerSeekThumb(page);
         const audio = playerAudio(page);
 
         await expect(player).toBeVisible();
-        await expect(player).toHaveAttribute("data-sot-state", "ready");
-        await expect(controls).toHaveAttribute("data-sot-state", "ready");
-        await expect(back).toHaveAttribute("data-sot-state", "ready");
+        await expect(audio).toHaveAttribute("preload", "metadata");
+        await expect(controls).not.toHaveAttribute("aria-disabled", "true");
+        await expect(back).toBeEnabled();
         await expect(toggle).toBeEnabled();
         await expect(toggle).toHaveAttribute("aria-label", "播放");
-        await expect(toggle).toHaveAttribute("data-sot-state", "paused");
-        await expect(forward).toHaveAttribute("data-sot-state", "ready");
+        await expect(forward).toBeEnabled();
         await expect(speed).toContainText("1.0×");
-        await expect(speed).toHaveAttribute("data-sot-state", "ready");
+        await expect(speed).toBeEnabled();
 
         await expect
             .poll(() =>
@@ -8950,7 +9223,9 @@ test("recording detail keeps the player controls live with local audio", async (
             )
             .toBeGreaterThan(1);
         await expect(seek).toBeEnabled();
-        await expect(seek).toHaveAttribute("data-sot-state", "ready");
+        await forward.focus();
+        await page.keyboard.press("Tab");
+        await expect(seekThumb).toBeFocused();
 
         await page.evaluate(() => {
             (
@@ -8966,8 +9241,7 @@ test("recording detail keeps the player controls live with local audio", async (
                 .filter({ hasText: "Failed to play audio" }),
         ).toBeVisible();
         await expect(toggle).toHaveAttribute("aria-label", "播放");
-        await expect(toggle).toHaveAttribute("data-sot-state", "paused");
-        await expect(controls).toHaveAttribute("data-sot-state", "ready");
+        await expect(controls).not.toHaveAttribute("aria-disabled", "true");
         await expect
             .poll(() =>
                 audio.evaluate((node) => (node as HTMLAudioElement).paused),
@@ -8983,31 +9257,31 @@ test("recording detail keeps the player controls live with local audio", async (
 
         await playerVolumeButton(page).click();
         await expect(playerVolumeButton(page)).toHaveAttribute(
-            "data-sot-state",
-            "open",
+            "aria-expanded",
+            "true",
         );
+        const volumeMuteButton = page.getByRole("button", {
+            name: "静音切换",
+            exact: true,
+        });
+        const volumeThumb = playerVolumeSlider(page);
+        await volumeMuteButton.focus();
+        await page.keyboard.press("Tab");
+        await expect(volumeThumb).toBeFocused();
         await setPlayerVolumeSlider(page, 0);
         await expect
             .poll(() =>
                 audio.evaluate((node) => (node as HTMLAudioElement).volume),
             )
             .toBeCloseTo(0, 1);
-        await expect(controls).toHaveAttribute("data-sot-state", "muted");
-        await expect(playerVolumeButton(page)).toHaveAttribute(
-            "data-sot-volume-state",
-            "muted",
-        );
+        await expect(playerVolumeButton(page)).toHaveAccessibleName("音量 0");
         await setPlayerVolumeSlider(page, 35);
         await expect
             .poll(() =>
                 audio.evaluate((node) => (node as HTMLAudioElement).volume),
             )
             .toBeCloseTo(0.35, 1);
-        await expect(controls).toHaveAttribute("data-sot-state", "ready");
-        await expect(playerVolumeButton(page)).toHaveAttribute(
-            "data-sot-volume-state",
-            "audible",
-        );
+        await expect(playerVolumeButton(page)).toHaveAccessibleName("音量 35");
 
         await speed.click();
         await expect(speed).toContainText("1.25×");
@@ -9021,12 +9295,14 @@ test("recording detail keeps the player controls live with local audio", async (
 
         await toggle.click();
         await expect(toggle).toHaveAttribute("aria-label", "暂停");
-        await expect(toggle).toHaveAttribute("data-sot-state", "playing");
-        await expect(controls).toHaveAttribute("data-sot-state", "playing");
+        await expect
+            .poll(() => audio.evaluate((node) => (node as HTMLAudioElement).paused))
+            .toBe(false);
         await toggle.click();
         await expect(toggle).toHaveAttribute("aria-label", "播放");
-        await expect(toggle).toHaveAttribute("data-sot-state", "paused");
-        await expect(controls).toHaveAttribute("data-sot-state", "ready");
+        await expect
+            .poll(() => audio.evaluate((node) => (node as HTMLAudioElement).paused))
+            .toBe(true);
     } finally {
         await removeAudioFixture();
         await cleanupRecordingDetailSeed();
@@ -9076,10 +9352,7 @@ test("recording detail ready player matches SOT pixels", async (
         await gotoSourceReportRecordingDetail(page, recordingId);
         await waitForRecordingDetailReady(page);
 
-        await expect(playerShell(page)).toHaveAttribute(
-            "data-sot-state",
-            "ready",
-        );
+        await expect(playerShell(page)).toBeVisible();
         await expect(playerMetaPanel(page)).toContainText(
             "2026-04-22 · 14:00",
         );
@@ -9104,6 +9377,7 @@ test("recording detail ready player matches SOT pixels", async (
             bridgeRecordingPlayerDataSotToSotClassHtml,
             RECORDING_PLAYER_READY_PIXEL_TOLERANCE,
             sotPage,
+            true,
         );
     } finally {
         await sotPage?.close();
@@ -9130,34 +9404,34 @@ test("recording detail disabled/no-audio player banner matches SOT pixels", asyn
         await gotoSourceReportRecordingDetail(page, recordingId);
         await waitForRecordingDetailReady(page);
 
-        await expect(playerShell(page)).toHaveAttribute(
-            "data-sot-state",
-            "disabled",
-        );
-        await expect(playerShell(page)).toHaveAttribute("data-no-audio", "true");
+        await expect(playerAudio(page)).not.toHaveAttribute("src");
         await expect(playerNoAudioBanner(page)).toBeVisible();
         await expect(playerControlsPanel(page)).toHaveAttribute(
-            "data-sot-state",
-            "disabled",
+            "aria-disabled",
+            "true",
         );
-        await expect(playerBackButton(page)).toHaveAttribute(
-            "data-sot-state",
-            "disabled",
-        );
-        await expect(playerForwardButton(page)).toHaveAttribute(
-            "data-sot-state",
-            "disabled",
-        );
+        await expect(playerBackButton(page)).toBeDisabled();
+        await expect(playerForwardButton(page)).toBeDisabled();
         await expect(playerToggleButton(page, "播放")).toBeDisabled();
         await expect(playerSpeedButton(page)).toBeDisabled();
-        await expect(playerSeekSlider(page)).toHaveAttribute(
-            "data-sot-state",
-            "disabled",
-        );
+        await expect(playerSeekSlider(page)).toBeDisabled();
+        const disabledSeekThumb = playerSeekThumb(page);
+        await expect(disabledSeekThumb).toBeDisabled();
+        await expect(disabledSeekThumb).toHaveAttribute("aria-disabled", "true");
+        await expect(disabledSeekThumb).toHaveAttribute("tabindex", "-1");
+        const playerFocusableButton = playerShell(page)
+            .locator("button:not(:disabled)")
+            .first();
+        await expect(playerFocusableButton).toBeVisible();
+        await playerFocusableButton.focus();
+        await page.keyboard.press("Tab");
+        await expect(disabledSeekThumb).not.toBeFocused();
         await expect(playerVolumeButton(page)).toBeDisabled();
-        await expect(
-            page.locator('[data-sot-control="recording-player-volume-slider"]'),
-        ).toHaveCount(0);
+        await expect(playerVolumeButton(page)).toHaveAttribute(
+            "aria-expanded",
+            "false",
+        );
+        await expect(playerVolumeSlider(page)).toHaveCount(0);
 
         sotPage = await page.context().newPage();
         const sotDisabledPlayer = await openSotDisabledNoAudioPlayer(sotPage);
@@ -9172,6 +9446,8 @@ test("recording detail disabled/no-audio player banner matches SOT pixels", asyn
             productBanner,
             bridgePlayerNoAudioBannerToSotClassHtml,
             RECORDING_PLAYER_NO_AUDIO_BANNER_PIXEL_TOLERANCE,
+            undefined,
+            true,
         );
         console.log(
             `recording detail disabled/no-audio player banner pixel diff ${JSON.stringify(
@@ -9226,10 +9502,7 @@ test("recording detail player ready and disabled states match SOT responsive fra
         });
         await gotoSourceReportRecordingDetail(page, readyRecordingId);
         await waitForRecordingDetailReady(page);
-        await expect(playerShell(page)).toHaveAttribute(
-            "data-sot-state",
-            "ready",
-        );
+        await expect(playerShell(page)).toBeVisible();
 
         sotPage = await page.context().newPage();
         await sotPage.goto(SOT_WORKSTATION_URL, { waitUntil: "load" });
@@ -9256,11 +9529,7 @@ test("recording detail player ready and disabled states match SOT responsive fra
         });
         await gotoSourceReportRecordingDetail(page, disabledRecordingId);
         await waitForRecordingDetailReady(page);
-        await expect(playerShell(page)).toHaveAttribute(
-            "data-sot-state",
-            "disabled",
-        );
-        await expect(playerShell(page)).toHaveAttribute("data-no-audio", "true");
+        await expect(playerAudio(page)).not.toHaveAttribute("src");
         const sotNoAudioPlayer = await openSotDefaultNoAudioPlayer(sotPage);
         responsiveFrames.push(
             ...(await collectPlayerResponsiveFrameResults(
@@ -9354,10 +9623,7 @@ test("SpeakerRow component-library states match product CSS pixels", async ({
     const sotPage = await page.context().newPage();
     try {
         await page.goto("/login", { waitUntil: "domcontentloaded" });
-        await expect(page.locator("[data-sot-ready]")).toHaveAttribute(
-            "data-sot-ready",
-            "true",
-        );
+        await waitForLoginPageReady(page);
         await page.evaluate(() => {
             document.documentElement.dataset.theme = "dark";
             document.body.dataset.theme = "dark";
@@ -9471,18 +9737,16 @@ test("live speaker review business states render with shadcn product CSS pixels"
             storagePath,
         });
 
-        await page.goto(`/recordings/${recordingId}`, {
-            waitUntil: "domcontentloaded",
-        });
-        await waitForRecordingDetailReady(page);
-        const panel = await openSpeakerReviewPanel(page);
+        const panel = await gotoSeededSpeakerReview(page, recordingId);
         const mappedCard = speakerReviewCard(panel, "SPEAKER_ALPHA_00");
         const unmappedCard = speakerReviewCard(panel, "SPEAKER_BETA_01");
 
-        await expect(mappedCard).toHaveAttribute(
-            "data-sot-speaker-mapped",
-            "true",
-        );
+        await expect(
+            mappedCard.getByText(
+                `已匹配到 ${SPEAKER_REVIEW_PROFILE_ZH_NAME}`,
+                { exact: true },
+            ),
+        ).toBeVisible();
         await expect(speakerReviewUnlinkButton(mappedCard)).toBeEnabled();
         await captureLiveSpeakerState(
             "live speaker review linked unlink action",
@@ -9495,10 +9759,11 @@ test("live speaker review business states render with shadcn product CSS pixels"
         );
         await expect(speakerReviewConfirmUnlink(mappedCard)).toBeVisible();
         await expect(
-            speakerReviewConfirmUnlink(mappedCard).locator(
-                "[data-sot-confirm-subject]",
+            speakerReviewConfirmUnlink(mappedCard).getByText(
+                SPEAKER_REVIEW_PROFILE_ZH_NAME,
+                { exact: true },
             ),
-        ).toHaveText(SPEAKER_REVIEW_PROFILE_ZH_NAME);
+        ).toBeVisible();
         await expect(speakerReviewCancelUnlinkButton(mappedCard)).toBeEnabled();
         await expect(speakerReviewConfirmUnlinkButton(mappedCard)).toBeEnabled();
         await captureLiveSpeakerState(
@@ -9544,9 +9809,10 @@ test("live speaker review business states render with shadcn product CSS pixels"
             SPEAKER_REVIEW_NO_MATCH_QUERY,
         );
         await expect(unmappedCard).toHaveAttribute("data-state", "no-match");
-        const noMatchRowSub = unmappedCard
-            .locator('[data-sot-part="speaker-review-row-sub"]')
-            .first();
+        const noMatchRowSub = unmappedCard.getByText(
+            "没有匹配的已保存说话人",
+            { exact: true },
+        );
         await expect(noMatchRowSub).toContainText(
             "没有匹配的已保存说话人",
         );
@@ -9558,7 +9824,7 @@ test("live speaker review business states render with shadcn product CSS pixels"
         ).toBeVisible();
         await captureLiveSpeakerState(
             "live speaker review no-match row metadata",
-            unmappedCard.locator('[data-sot-part="speaker-review-row-meta"]').first(),
+            speakerReviewRowMeta(unmappedCard),
         );
 
         await speakerReviewMappingInput(unmappedCard).fill("Long Latin");
@@ -9607,16 +9873,14 @@ test("live speaker review business states render with shadcn product CSS pixels"
 
         releasePatch?.();
         await expect(unmappedCard).toHaveAttribute("data-state", "error");
-        const errorRowSub = unmappedCard
-            .locator(
-                '[data-sot-part="speaker-review-row-sub"][data-sot-tone="danger"]',
-            )
-            .first();
+        const errorRowSub = unmappedCard.getByText("保存失败 · 请重试", {
+            exact: true,
+        });
         await expect(errorRowSub).toContainText("保存失败 · 请重试");
         await expect(speakerReviewRetryButton(unmappedCard)).toBeVisible();
         await captureLiveSpeakerState(
             "live speaker review error row metadata",
-            unmappedCard.locator('[data-sot-part="speaker-review-row-meta"]').first(),
+            speakerReviewRowMeta(unmappedCard),
         );
         await expect(speakerReviewMappingInput(unmappedCard)).toBeEnabled();
         await page.unroute(
@@ -9635,10 +9899,6 @@ test("live speaker review business states render with shadcn product CSS pixels"
             speakerReviewRetryButton(unmappedCard).click(),
         ]);
         await expect(unmappedCard).not.toHaveAttribute("data-state", "error");
-        await expect(unmappedCard).toHaveAttribute(
-            "data-sot-speaker-mapped",
-            "true",
-        );
         await expect(
             unmappedCard.getByText(
                 `已匹配到 ${SPEAKER_REVIEW_PROFILE_LATIN_NAME}`,
@@ -9736,22 +9996,14 @@ test("speaker review inline rename row", async ({ page }, testInfo) => {
             }
         });
 
-        await page.goto(`/recordings/${recordingId}`, {
-            waitUntil: "domcontentloaded",
-        });
-        await waitForRecordingDetailReady(page);
-        const panel = await openSpeakerReviewPanel(page);
+        const panel = await gotoSeededSpeakerReview(page, recordingId);
         const mappedCard = speakerReviewCard(panel, "SPEAKER_ALPHA_00");
         const unmappedCard = speakerReviewCard(panel, "SPEAKER_BETA_01");
 
         await expect(speakerReviewRenameButton(mappedCard)).toBeVisible();
         await speakerReviewRenameButton(mappedCard).click();
         await expect(mappedCard).toHaveAttribute("data-state", "editing");
-        await expect(
-            mappedCard.locator(
-                '[data-sot-control="speaker-review-inline-name"][data-spk-input]',
-            ),
-        ).toHaveCount(1);
+        await expect(speakerReviewInlineRenameInput(mappedCard)).toHaveCount(1);
         const cancelInput = speakerReviewInlineRenameInput(mappedCard);
         await expect(cancelInput).toHaveValue(SPEAKER_REVIEW_PROFILE_ZH_NAME);
         await expect(speakerReviewInlineRenameActions(mappedCard)).toBeVisible();
@@ -9805,16 +10057,8 @@ test("speaker review inline rename row", async ({ page }, testInfo) => {
         await expect(unmappedCard).toHaveAttribute("data-state", "editing");
         const enterInput = speakerReviewInlineRenameInput(unmappedCard);
         await expect(enterInput).toHaveValue("SPEAKER_BETA_01");
-        await expect(
-            unmappedCard
-                .locator('[data-sot-part="speaker-review-actions"]')
-                .getByText("取消"),
-        ).toBeVisible();
-        await expect(
-            unmappedCard
-                .locator('[data-sot-part="speaker-review-actions"]')
-                .getByText("保存"),
-        ).toBeVisible();
+        await expect(speakerReviewInlineCancelButton(unmappedCard)).toBeVisible();
+        await expect(speakerReviewInlineSaveButton(unmappedCard)).toBeVisible();
 
         sotPage = await page.context().newPage();
         await openSotComponentLibrary(sotPage);
@@ -9859,10 +10103,6 @@ test("speaker review inline rename row", async ({ page }, testInfo) => {
             enterInput.press("Enter"),
         ]);
         await expect(unmappedCard).not.toHaveAttribute("data-state", "editing");
-        await expect(unmappedCard).toHaveAttribute(
-            "data-sot-speaker-mapped",
-            "true",
-        );
         await expect(
             unmappedCard.getByText(`已匹配到 ${SPEAKER_REVIEW_INLINE_ENTER_NAME}`),
         ).toBeVisible();
@@ -9892,17 +10132,13 @@ test("recording detail speaker review maps labels and stays stable on narrow scr
         });
 
         await page.setViewportSize({ width: 768, height: 844 });
-        await page.goto(`/recordings/${recordingId}`, {
-            waitUntil: "domcontentloaded",
-        });
-
-        await expect(recordingWorkstation(page)).toBeVisible();
-        await expect(sourceReportState(page, "loaded")).toHaveAttribute(
-            "data-sot-state",
-            "loaded",
-        );
-        const panel = await openSpeakerReviewPanel(page);
-        await expect(panel.locator("[data-sot-speaker-label]")).toHaveCount(2);
+        const panel = await gotoSeededSpeakerReview(page, recordingId);
+        await expect(
+            panel.getByRole("textbox", {
+                name: "映射到本地人物",
+                exact: true,
+            }),
+        ).toHaveCount(2);
         await expect(panel.getByText("语言")).toBeVisible();
         const mappedCard = speakerReviewCard(panel, "SPEAKER_ALPHA_00");
         const unmappedCard = speakerReviewCard(panel, "SPEAKER_BETA_01");
@@ -9910,11 +10146,6 @@ test("recording detail speaker review maps labels and stays stable on narrow scr
             mappedCard.getByText(`已匹配到 ${SPEAKER_REVIEW_PROFILE_ZH_NAME}`),
         ).toBeVisible();
 
-        await expect(mappedCard).toHaveAttribute("data-sot-speaker-mapped", "true");
-        await expect(mappedCard).toHaveAttribute(
-            "data-sot-speaker-has-voiceprint",
-            "true",
-        );
         await expect(mappedCard.getByText("已关联声纹")).toBeVisible();
         await expect(
             mappedCard.getByText("示例 1 · 0:00 - 0:03", { exact: true }),
@@ -9927,10 +10158,7 @@ test("recording detail speaker review maps labels and stays stable on narrow scr
         await expect(playSampleButton).toHaveAccessibleName("播放");
         await playSampleButton.click();
         await expect(playSampleButton).toHaveAccessibleName("播放中");
-        await expect(unmappedCard).toHaveAttribute(
-            "data-sot-speaker-mapped",
-            "false",
-        );
+        await expect(unmappedCard.getByText("尚未匹配")).toBeVisible();
         await expect(unmappedCard.getByText("没有可播放的示例片段"))
             .toBeVisible();
 
@@ -10013,20 +10241,13 @@ test("recording detail speaker review maps labels and stays stable on narrow scr
                     | undefined
             )?.profileName,
         ).toBeUndefined();
-        await expect(unmappedCard).toHaveAttribute(
-            "data-sot-speaker-mapped",
-            "true",
-        );
         await expect(
             unmappedCard.getByText(
                 `已匹配到 ${SPEAKER_REVIEW_PROFILE_LATIN_NAME}`,
                 { exact: true },
             ),
         ).toBeVisible();
-        await expect(unmappedCard).toHaveAttribute(
-            "data-sot-speaker-has-voiceprint",
-            "false",
-        );
+        await expect(unmappedCard.getByText("未关联声纹")).toBeVisible();
 
         const patchCountBeforeUnlink = speakerPatchPayloads.length;
         await speakerReviewUnlinkButton(unmappedCard).click();
@@ -10036,10 +10257,11 @@ test("recording detail speaker review maps labels and stays stable on narrow scr
         );
         await expect(speakerReviewConfirmUnlink(unmappedCard)).toBeVisible();
         await expect(
-            speakerReviewConfirmUnlink(unmappedCard).locator(
-                "[data-sot-confirm-subject]",
+            speakerReviewConfirmUnlink(unmappedCard).getByText(
+                SPEAKER_REVIEW_PROFILE_LATIN_NAME,
+                { exact: true },
             ),
-        ).toHaveText(SPEAKER_REVIEW_PROFILE_LATIN_NAME);
+        ).toBeVisible();
         await expect(speakerReviewCancelUnlinkButton(unmappedCard)).toBeEnabled();
         await expect(speakerReviewConfirmUnlinkButton(unmappedCard)).toBeEnabled();
         expect(speakerPatchPayloads).toHaveLength(patchCountBeforeUnlink);
@@ -10060,10 +10282,7 @@ test("recording detail speaker review maps labels and stays stable on narrow scr
             ),
             speakerReviewConfirmUnlinkButton(unmappedCard).click(),
         ]);
-        await expect(unmappedCard).toHaveAttribute(
-            "data-sot-speaker-mapped",
-            "false",
-        );
+        await expect(unmappedCard.getByText("尚未匹配")).toBeVisible();
         await expect(speakerReviewConfirmUnlink(unmappedCard)).toBeHidden();
 
         await speakerReviewMappingInput(unmappedCard).fill(
@@ -10086,10 +10305,6 @@ test("recording detail speaker review maps labels and stays stable on narrow scr
                 SPEAKER_REVIEW_CREATED_NAME,
             ).click(),
         ]);
-        await expect(unmappedCard).toHaveAttribute(
-            "data-sot-speaker-mapped",
-            "true",
-        );
         await expect(
             unmappedCard.getByText(
                 `已匹配到 ${SPEAKER_REVIEW_CREATED_NAME}`,
@@ -10109,10 +10324,11 @@ test("recording detail speaker review maps labels and stays stable on narrow scr
         );
         await expect(speakerReviewConfirmUnlink(unmappedCard)).toBeVisible();
         await expect(
-            speakerReviewConfirmUnlink(unmappedCard).locator(
-                "[data-sot-confirm-subject]",
+            speakerReviewConfirmUnlink(unmappedCard).getByText(
+                SPEAKER_REVIEW_CREATED_NAME,
+                { exact: true },
             ),
-        ).toHaveText(SPEAKER_REVIEW_CREATED_NAME);
+        ).toBeVisible();
         expect(speakerPatchPayloads).toHaveLength(
             patchCountBeforeCreatedUnlink,
         );
@@ -10127,10 +10343,6 @@ test("recording detail speaker review maps labels and stays stable on narrow scr
             ),
             speakerReviewConfirmUnlinkButton(unmappedCard).click(),
         ]);
-        await expect(unmappedCard).toHaveAttribute(
-            "data-sot-speaker-mapped",
-            "false",
-        );
         await expect(speakerReviewConfirmUnlink(unmappedCard)).toBeHidden();
         await expect(unmappedCard.getByText("尚未匹配")).toBeVisible();
         expect(speakerPatchPayloads).toEqual([
@@ -10156,10 +10368,12 @@ test("recording detail speaker review maps labels and stays stable on narrow scr
         await expect(
             page.getByRole("tab", { name: "说话人标签", exact: true }),
         ).toHaveAttribute("aria-selected", "true");
-        await expect(mappedCard).toHaveAttribute(
-            "data-sot-speaker-mapped",
-            "true",
-        );
+        await expect(
+            mappedCard.getByText(
+                `已匹配到 ${SPEAKER_REVIEW_PROFILE_ZH_NAME}`,
+                { exact: true },
+            ),
+        ).toBeVisible();
         await expect(
             mappedCard.getByText("第一段中文说话人内容需要在窄屏保持可读。"),
         ).toBeVisible();
@@ -10190,57 +10404,73 @@ test("recording detail speaker review primitives match SOT computed styles", asy
             includeSpeakerReview: true,
         });
 
-        await page.goto(`/recordings/${recordingId}`, {
-            waitUntil: "domcontentloaded",
-        });
-        await waitForRecordingDetailReady(page);
-        await openSpeakerReviewPanel(page);
+        const panel = await gotoSeededSpeakerReview(page, recordingId);
 
         const sotPage = await page.context().newPage();
         try {
             await prepareSotSpeakerReviewFixture(sotPage);
+            const transcriptTitle = panel.getByText("逐字稿对照", {
+                exact: true,
+            });
+            const transcriptHeader = transcriptTitle.locator(
+                "xpath=ancestor::*[@data-slot='card-header'][1]",
+            );
+            const transcriptActions = transcriptHeader.locator(
+                '[data-slot="card-action"]',
+            );
+            const mappedCard = speakerReviewCard(panel, "SPEAKER_ALPHA_00");
+            const speakerRows = mappedCard.locator("..");
+            const mappedRowMeta = speakerReviewRowMeta(mappedCard);
+            const mappedRowName = mappedCard.getByText("SPEAKER_ALPHA_00", {
+                exact: true,
+            });
+            const mappedRowSub = mappedCard
+                .getByText(`已匹配到 ${SPEAKER_REVIEW_PROFILE_ZH_NAME}`, {
+                    exact: true,
+                })
+                .locator("..");
 
             await expectSotSpeakerStyleMatch(
                 sotPage,
                 page,
-                '[data-sot-fixture="speaker-review"] .sp-head',
-                '[data-sot-panel="speaker-review"] [data-sot-part="speaker-review-header"]',
+                '[data-fixture="speaker-review"] .sp-head',
+                transcriptHeader,
             );
             await expectSotSpeakerStyleMatch(
                 sotPage,
                 page,
-                '[data-sot-fixture="speaker-review"] .sp-edit-actions',
-                '[data-sot-panel="speaker-review"] [data-sot-part="speaker-review-actions"]',
+                '[data-fixture="speaker-review"] .sp-edit-actions',
+                transcriptActions,
             );
             await expectSotSpeakerStyleMatch(
                 sotPage,
                 page,
-                '[data-sot-fixture="speaker-review"] .sp-rows-review',
-                '[data-sot-panel="speaker-review"] [data-sot-list="speaker-review-rows"]',
+                '[data-fixture="speaker-review"] .sp-rows-review',
+                speakerRows,
             );
             await expectSotSpeakerStyleMatch(
                 sotPage,
                 page,
-                '[data-sot-fixture="speaker-review"] .sp-rows-review .sp-row',
-                '[data-sot-panel="speaker-review"] [data-sot-item="speaker-review-row"]',
+                '[data-fixture="speaker-review"] .sp-rows-review .sp-row',
+                mappedCard,
             );
             await expectSotSpeakerStyleMatch(
                 sotPage,
                 page,
-                '[data-sot-fixture="speaker-review"] .sp-rows-review .sp-row .sp-row-meta',
-                '[data-sot-panel="speaker-review"] [data-sot-item="speaker-review-row"] [data-sot-part="speaker-review-row-meta"]',
+                '[data-fixture="speaker-review"] .sp-rows-review .sp-row .sp-row-meta',
+                mappedRowMeta,
             );
             await expectSotSpeakerStyleMatch(
                 sotPage,
                 page,
-                '[data-sot-fixture="speaker-review"] .sp-rows-review .sp-row-name',
-                '[data-sot-panel="speaker-review"] [data-sot-part="speaker-review-row-name"]',
+                '[data-fixture="speaker-review"] .sp-rows-review .sp-row-name',
+                mappedRowName,
             );
             await expectSotSpeakerStyleMatch(
                 sotPage,
                 page,
-                '[data-sot-fixture="speaker-review"] .sp-rows-review .sp-row-sub',
-                '[data-sot-panel="speaker-review"] [data-sot-part="speaker-review-row-sub"]',
+                '[data-fixture="speaker-review"] .sp-rows-review .sp-row-sub',
+                mappedRowSub,
             );
         } finally {
             await sotPage.close();
@@ -10261,11 +10491,7 @@ test("recording detail speaker review merge popover empty state matches SOT pixe
             includeSpeakerReview: true,
         });
 
-        await page.goto(`/recordings/${recordingId}`, {
-            waitUntil: "domcontentloaded",
-        });
-        await waitForRecordingDetailReady(page);
-        const panel = await openSpeakerReviewPanel(page);
+        const panel = await gotoSeededSpeakerReview(page, recordingId);
         const mergeButton = speakerReviewMergeButton(panel);
         const mergePopover = speakerReviewMergePopover(panel);
 
@@ -10301,7 +10527,7 @@ test("recording detail speaker review merge popover empty state matches SOT pixe
             ),
         ).toBeVisible();
 
-        await mergePopover.locator("[data-spk-merge-close]").click();
+        await mergePopover.getByRole("button", { name: "关闭" }).click();
         await expect(mergeButton).toHaveAttribute("aria-expanded", "false");
         await expect(mergeButton).toHaveAttribute("data-state", "closed");
         await expect(mergePopover).toHaveCount(0);
@@ -10618,12 +10844,8 @@ test("recording detail tag manager default state matches SOT pixels", async ({
 
         await playerTagManagerTrigger(page).click();
         const tagsPanel = tagManager(page);
-        const selectedChips = tagsPanel.locator(
-            '[data-sot-part="selected-chip"]',
-        );
-        const tagOptions = tagsPanel.locator(
-            '[data-sot-control="recording-tag-toggle"]',
-        );
+        const selectedChips = tagManagerSelectedChips(tagsPanel);
+        const tagOptions = tagManagerTagOptions(tagsPanel);
         await expect(selectedChips).toHaveCount(2);
         await expect(tagOptions).toHaveCount(4);
         await expect(tagOptions.nth(0)).toContainText(SOT_DETAIL_TAG_NAME);
@@ -10636,6 +10858,16 @@ test("recording detail tag manager default state matches SOT pixels", async ({
         await expect(tagOptions.nth(3)).toContainText(
             SOT_DETAIL_FOLLOW_UP_TAG_NAME,
         );
+        await expect(tagManagerTagOption(tagsPanel, SOT_DETAIL_TAG_NAME)).toHaveAttribute(
+            "aria-pressed",
+            "true",
+        );
+        await expect(
+            tagManagerTagOption(tagsPanel, SOT_DETAIL_SECOND_TAG_NAME),
+        ).toHaveAttribute("aria-pressed", "true");
+        await expect
+            .poll(() => readRecordingTagAssignmentIds(userId, recordingId))
+            .toEqual([SOT_DETAIL_TAG_ID, SOT_DETAIL_SECOND_TAG_ID].sort());
 
         const sotDefaultPanel = sotPage
             .locator('#tagmgr .cl-card:has-text("Default") .tagm-panel')
@@ -10691,25 +10923,19 @@ test("recording detail tag manager delete-confirm state matches SOT pixels", asy
 
         await playerTagManagerTrigger(page).click();
         const tagsPanel = tagManager(page);
-        await expect(
-            tagsPanel.locator('[data-sot-control="recording-tag-toggle"]'),
-        ).toHaveCount(4);
-        const importantChip = tagsPanel.locator(
-            `[data-sot-part="selected-chip"][data-sot-tag-name="${SOT_DETAIL_IMPORTANT_TAG_NAME}"]`,
+        await expect(tagManagerTagOptions(tagsPanel)).toHaveCount(4);
+        const importantChip = tagManagerSelectedChip(
+            tagsPanel,
+            SOT_DETAIL_IMPORTANT_TAG_NAME,
         );
         await expect(importantChip).toBeVisible();
-        await importantChip
-            .locator('[data-sot-control="recording-tag-delete-open"]')
-            .click();
-        await expect(tagsPanel).toHaveAttribute(
-            "data-sot-state",
-            "delete-confirm",
+        await importantChip.getByRole("button", { name: "移除" }).click();
+        await expect(tagManagerTitle(tagsPanel)).toHaveText(
+            `删除标签 · ${SOT_DETAIL_IMPORTANT_TAG_NAME}`,
         );
-        await expect(
-            tagsPanel.locator(
-                '[data-sot-panel="recording-tag-delete-confirm"]',
-            ),
-        ).toContainText(`${SOT_DETAIL_IMPORTANT_TAG_NAME} 将从 7 条录音`);
+        await expect(tagsPanel.locator(".tagm-delete-confirm")).toContainText(
+            `${SOT_DETAIL_IMPORTANT_TAG_NAME} 将从 7 条录音`,
+        );
 
         const sotDeletePanel = sotPage
             .locator(
@@ -10767,7 +10993,7 @@ test("recording detail tag manager saving state matches SOT pixels", async ({
 
         await playerTagManagerTrigger(page).click();
         const tagsPanel = tagManager(page);
-        await expect(tagsPanel).toHaveAttribute("data-sot-state", "ready");
+        await expect(tagManagerTitle(tagsPanel)).toHaveText("管理标签");
         restoreNetwork = await throttleTagManagerRequest(page);
         const tagsUpdateResponse = page.waitForResponse(
             (response) =>
@@ -10775,24 +11001,16 @@ test("recording detail tag manager saving state matches SOT pixels", async ({
                 response.request().method() === "PUT" &&
                 response.ok(),
         );
-        const savingToggle = tagsPanel
-            .locator(
-                `[data-sot-control="recording-tag-toggle"][data-sot-tag-name="${SOT_DETAIL_TAG_NAME}"]`,
-            );
+        const savingToggle = tagManagerTagOption(tagsPanel, SOT_DETAIL_TAG_NAME);
         await savingToggle.click();
-        await expect(tagsPanel).toHaveAttribute("data-sot-state", "saving");
         await expect(tagsPanel).toHaveAttribute("aria-busy", "true");
         await expect(savingToggle).toBeDisabled();
         await expect(savingToggle).toHaveAttribute("aria-disabled", "true");
-        await expect(tagsPanel.locator('[data-sot-part="selected-chip"]')).toHaveCount(0);
-        await expect(tagsPanel.locator('[data-sot-part="create"]')).toHaveCount(0);
+        await expect(tagManagerSelectedGroup(tagsPanel)).toHaveCount(0);
+        await expect(tagManagerNameInput(tagsPanel)).toHaveCount(0);
+        await expect(tagsPanel.locator(".tagm-opt")).toHaveCount(2);
         await expect(
-            tagsPanel.locator('[data-sot-control="recording-tag-toggle"]'),
-        ).toHaveCount(2);
-        await expect(
-            tagsPanel.locator(
-                '[data-sot-control="recording-tag-toggle"][data-busy="true"]',
-            ),
+            tagsPanel.locator('.tagm-opt[aria-busy="true"]'),
         ).toHaveCount(1);
 
         const sotSavingPanel = sotPage
@@ -10824,7 +11042,9 @@ test("recording detail tag manager saving state matches SOT pixels", async ({
         await restoreNetwork();
         restoreNetwork = async () => {};
         await tagsUpdateResponse;
-        await expect(tagsPanel).toHaveAttribute("data-sot-state", "toggle");
+        await expect(tagManagerTitle(tagsPanel)).toHaveText(
+            "为这条录音切换标签",
+        );
         await expect.poll(() =>
             readRecordingTagAssignmentIds(userId, recordingId),
         ).toEqual([SOT_DETAIL_SECOND_TAG_ID]);
@@ -10867,11 +11087,7 @@ test("recording detail tag manager error state matches SOT pixels", async ({
                     return;
                 }
 
-                await route.fulfill({
-                    contentType: "application/json",
-                    status: 200,
-                    body: JSON.stringify({ tags: [] }),
-                });
+                await route.fallback();
             },
         );
 
@@ -10892,24 +11108,15 @@ test("recording detail tag manager error state matches SOT pixels", async ({
                 response.request().method() === "PUT" &&
                 response.status() === 503,
         );
-        await tagsPanel
-            .locator(
-                `[data-sot-control="recording-tag-toggle"][data-sot-tag-name="${SOT_DETAIL_TAG_NAME}"]`,
-            )
-            .click();
+        await tagManagerTagOption(tagsPanel, SOT_DETAIL_TAG_NAME).click();
         await failedTagsUpdate;
-        await expect(tagsPanel).toHaveAttribute("data-sot-state", "error");
-        await expect(tagsPanel).toHaveAttribute(
-            "data-sot-error-message",
+        await expect(tagManagerTitle(tagsPanel)).toHaveText("管理标签");
+        await expect(tagManagerErrorAlert(tagsPanel)).toContainText(
             "标签保存暂不可用",
         );
-        await expect(tagsPanel).toContainText("保存失败 · 请稍后再试");
-        await expect(tagsPanel.getByText("标签保存暂不可用")).toHaveCount(0);
-        await expect(tagsPanel.locator('[data-sot-part="selected-chip"]')).toHaveCount(0);
-        await expect(tagsPanel.locator('[data-sot-part="create"]')).toHaveCount(0);
-        await expect(
-            tagsPanel.locator('[data-sot-control="recording-tag-toggle"]'),
-        ).toHaveCount(1);
+        await expect(tagManagerSelectedGroup(tagsPanel)).toHaveCount(0);
+        await expect(tagManagerNameInput(tagsPanel)).toHaveCount(0);
+        await expect(tagsPanel.locator(".tagm-opt")).toHaveCount(1);
 
         const sotErrorPanel = sotPage
             .locator('#tagmgr .cl-card:has-text("Error") .tagm-panel')
@@ -10947,11 +11154,14 @@ test("recording detail tag manager error state matches SOT pixels", async ({
                     response.request().method() === "PUT" &&
                     response.ok(),
             ),
-            tagsPanel
-                .locator('[data-sot-control="recording-tag-error-retry"]')
+            tagManagerErrorAlert(tagsPanel)
+                .getByRole("button", { name: "重试", exact: true })
                 .click(),
         ]);
         expect(tagsUpdateAttempts).toBe(2);
+        await expect
+            .poll(() => readRecordingTagAssignmentIds(userId, recordingId))
+            .toEqual([SOT_DETAIL_SECOND_TAG_ID]);
     } finally {
         await sotPage?.close();
         await cleanupRecordingDetailSeed();
@@ -10969,37 +11179,6 @@ test("recording detail tag manager toggle state matches SOT pixels", async ({
         const recordingId = await seedRecordingDetail(userId, {
             includeSotTagManagerFixture: "default",
         });
-        await page.route(
-            `**/api/recordings/${recordingId}/tags`,
-            async (route) => {
-                if (route.request().method() !== "PUT") {
-                    await route.fallback();
-                    return;
-                }
-
-                await route.fulfill({
-                    contentType: "application/json",
-                    status: 200,
-                    body: JSON.stringify({
-                        tags: [
-                            {
-                                color: "purple",
-                                icon: "grid",
-                                id: SOT_DETAIL_TAG_ID,
-                                name: SOT_DETAIL_TAG_NAME,
-                            },
-                            {
-                                color: "blue",
-                                icon: "user",
-                                id: SOT_DETAIL_SECOND_TAG_ID,
-                                name: SOT_DETAIL_SECOND_TAG_NAME,
-                            },
-                        ],
-                    }),
-                });
-            },
-        );
-
         await page.goto(`/recordings/${recordingId}`, {
             waitUntil: "domcontentloaded",
         });
@@ -11018,22 +11197,25 @@ test("recording detail tag manager toggle state matches SOT pixels", async ({
                     response.request().method() === "PUT" &&
                     response.ok(),
             ),
-            tagsPanel
-                .locator(
-                    `[data-sot-control="recording-tag-toggle"][data-sot-tag-name="${SOT_DETAIL_IMPORTANT_TAG_NAME}"]`,
-                )
-                .click(),
+            tagManagerTagOption(tagsPanel, SOT_DETAIL_IMPORTANT_TAG_NAME).click(),
         ]);
-        await expect(tagsPanel).toHaveAttribute("data-sot-state", "toggle");
-        await expect(tagsPanel.locator('[data-sot-part="selected-chip"]')).toHaveCount(0);
-        await expect(tagsPanel.locator('[data-sot-part="create"]')).toHaveCount(0);
-        await expect(
-            tagsPanel.locator('[data-sot-control="recording-tag-toggle"]'),
-        ).toHaveCount(4);
-        await expect(tagsPanel.locator('[data-sot-part="tag-check"]')).toHaveCount(1);
-        await expect(
-            tagsPanel.locator('[data-sot-part="toggle-note"]'),
-        ).toContainText("标签已应用");
+        await expect(tagManagerTitle(tagsPanel)).toHaveText(
+            "为这条录音切换标签",
+        );
+        await expect(tagManagerSelectedGroup(tagsPanel)).toHaveCount(0);
+        await expect(tagManagerNameInput(tagsPanel)).toHaveCount(0);
+        await expect(tagsPanel.locator(".tagm-opt")).toHaveCount(4);
+        await expect(tagsPanel.locator(".tagm-opt-check")).toHaveCount(1);
+        await expect(tagsPanel).toContainText("标签已应用");
+        await expect
+            .poll(() => readRecordingTagAssignmentIds(userId, recordingId))
+            .toEqual(
+                [
+                    SOT_DETAIL_IMPORTANT_TAG_ID,
+                    SOT_DETAIL_SECOND_TAG_ID,
+                    SOT_DETAIL_TAG_ID,
+                ].sort(),
+            );
 
         await expectSotTagManagerPrimitiveStylesMatch(
             sotPage,
@@ -11086,10 +11268,10 @@ test("recording detail tag manager empty and create states match SOT responsive 
 
         await playerTagManagerTrigger(page).click();
         const tagsPanel = tagManager(page);
-        await expect(tagsPanel).toHaveAttribute("data-sot-state", "ready");
-        await expect(
-            tagsPanel.locator('[data-sot-panel="recording-tag-empty"]'),
-        ).toHaveAttribute("data-sot-state", "empty");
+        await expect(tagManagerTitle(tagsPanel)).toHaveText("管理标签");
+        await expect(tagManagerEmptyState(tagsPanel)).toContainText(
+            "还没有任何标签",
+        );
         const sotEmptyPanel = sotPage
             .locator('#tagmgr .cl-card:has-text("Empty") .tagm-panel')
             .first();
@@ -11108,19 +11290,12 @@ test("recording detail tag manager empty and create states match SOT responsive 
             tagsPanel,
         );
 
-        const tagCreateInput = tagsPanel.locator(
-            '[data-sot-control="recording-tag-name"]',
-        );
+        const tagCreateInput = tagManagerNameInput(tagsPanel);
         await tagCreateInput.fill(DETAIL_TAG_NAME);
-        await expect(tagsPanel).toHaveAttribute("data-sot-state", "create");
-        const blueTagColor = tagsPanel.locator(
-            '[data-sot-control="recording-tag-color"][data-sot-tag-color="blue"]',
-        );
+        await expect(tagManagerTitle(tagsPanel)).toHaveText("新建标签");
+        const blueTagColor = tagManagerColorOption(tagsPanel, "蓝");
         await blueTagColor.click();
-        await expect(blueTagColor).toHaveAttribute(
-            "data-sot-state",
-            "selected",
-        );
+        await expect(blueTagColor).toHaveAttribute("aria-checked", "true");
         const sotCreatePanel = sotPage
             .locator('#tagmgr .cl-card:has-text("Create") .tagm-panel')
             .first();
@@ -11168,23 +11343,21 @@ test("recording detail exposes the tag manager and persists tag toggles", async 
         await expect(trigger).toContainText("标签");
 
         await trigger.click();
-        await expect(
-            page.getByText("管理标签", { exact: true }),
-        ).toBeVisible();
         const tagsPanel = tagManager(page);
-        const selectedTags = tagsPanel.locator(
-            '[data-sot-list="recording-selected-tags"]',
-        );
-        await expect(tagsPanel).toHaveAttribute("data-sot-variant", "popover");
-        await expect(tagsPanel).toHaveAttribute("data-sot-state", "ready");
-        await expect(tagsPanel.locator('[data-sot-part="head"]')).toBeVisible();
-        await expect(tagsPanel.locator('[data-sot-part="body"]')).toBeVisible();
-        await expect(tagsPanel.locator('[data-sot-part="create"]')).toBeVisible();
-        await expect(tagsPanel.locator('[data-sot-part="picker"]')).toHaveCount(0);
-        await expect(selectedTags).toHaveCount(0);
+        await expect(tagsPanel).toHaveAttribute("data-state", "open");
+        await expect(tagManagerTitle(tagsPanel)).toHaveText("管理标签");
         await expect(
-            tagsPanel.locator('[data-sot-panel="recording-tag-empty"]'),
-        ).toHaveAttribute("data-sot-state", "empty");
+            tagsPanel.locator(':scope > [data-slot="card-header"]'),
+        ).toBeVisible();
+        await expect(
+            tagsPanel.locator(':scope > [data-slot="card-content"]'),
+        ).toBeVisible();
+        await expect(tagManagerNameInput(tagsPanel)).toBeVisible();
+        await expect(tagsPanel.locator(".tagm-picker")).toHaveCount(0);
+        await expect(tagManagerSelectedGroup(tagsPanel)).toHaveCount(0);
+        await expect(tagManagerEmptyState(tagsPanel)).toContainText(
+            "还没有任何标签",
+        );
         const sotEmptyPanel = sotPage
             .locator('#tagmgr .cl-card:has-text("Empty") .tagm-panel')
             .first();
@@ -11212,41 +11385,27 @@ test("recording detail exposes the tag manager and persists tag toggles", async 
             sotPage,
             page,
             '#tagmgr .cl-card:has-text("Empty") .tagm-empty',
-            '[data-sot-panel="recording-tag-empty"]',
+            '[data-slot="popover-content"][aria-label="管理标签"] [data-slot="empty"]',
         );
-        const tagCreateInput = tagsPanel.locator(
-            '[data-sot-control="recording-tag-name"]',
-        );
+        const tagCreateInput = tagManagerNameInput(tagsPanel);
         await expect(tagCreateInput).toHaveAttribute(
             "placeholder",
             "新建标签…",
         );
-        const tagCreateButton = tagsPanel.locator(
-            '[data-slot="button"][data-sot-control="recording-tag-create"]',
-        );
-        await expect(tagCreateButton).toHaveAttribute(
-            "data-sot-state",
-            "idle",
-        );
+        const tagAddButton = tagsPanel.getByRole("button", {
+            name: "添加",
+            exact: true,
+        });
+        await expect(tagAddButton).toBeDisabled();
 
         await tagCreateInput.fill(DETAIL_TAG_NAME);
-        await expect(tagsPanel).toHaveAttribute("data-sot-state", "create");
-        await expect(
-            tagsPanel.getByText("新建标签", { exact: true }),
-        ).toBeVisible();
+        await expect(tagManagerTitle(tagsPanel)).toHaveText("新建标签");
         await expect(tagCreateInput).toHaveAttribute("placeholder", "标签名");
-        await expect(tagsPanel.locator('[data-sot-part="picker"]')).toHaveCount(2);
-        const blueTagColor = tagsPanel.locator(
-            '[data-sot-control="recording-tag-color"][data-sot-tag-color="blue"]',
-        );
-        const starTagIcon = tagsPanel.locator(
-            '[data-sot-control="recording-tag-icon"][data-sot-tag-icon="star"]',
-        );
+        await expect(tagsPanel.locator(".tagm-picker")).toHaveCount(2);
+        const blueTagColor = tagManagerColorOption(tagsPanel, "蓝");
+        const starTagIcon = tagManagerIconOption(tagsPanel, "star");
         await blueTagColor.click();
-        await expect(blueTagColor).toHaveAttribute(
-            "data-sot-state",
-            "selected",
-        );
+        await expect(blueTagColor).toHaveAttribute("aria-checked", "true");
         const sotCreatePanel = sotPage
             .locator('#tagmgr .cl-card:has-text("Create") .tagm-panel')
             .first();
@@ -11274,32 +11433,20 @@ test("recording detail exposes the tag manager and persists tag toggles", async 
             sotPage,
             page,
             '#tagmgr .cl-card:has-text("Create") .tagm-picker',
-            '[data-sot-panel="recording-tag-manager"] [data-sot-part="picker-frame"]',
+            '[data-slot="popover-content"][aria-label="管理标签"] .tagm-picker',
         );
         await expectSotTagManagerStyleMatch(
             sotPage,
             page,
             '#tagmgr .cl-card:has-text("Create") .tagm-icon-grid .tg-pick',
-            '[data-sot-panel="recording-tag-manager"] [data-sot-part="icon-grid"] [data-sot-control="recording-tag-icon"]',
+            '[data-slot="popover-content"][aria-label="管理标签"] [role="radiogroup"][aria-label="图标"] [role="radio"]',
             SOT_TAG_MANAGER_TOKEN_ICON_OPTION_STYLE_PROPS,
         );
-        for (const color of [
-            "red",
-            "orange",
-            "green",
-            "blue",
-            "purple",
-            "slate",
-        ]) {
-            const colorButton = tagsPanel.locator(
-                `[data-sot-control="recording-tag-color"][data-sot-tag-color="${color}"]`,
-            );
+        for (const colorLabel of ["玫", "琥", "翠", "蓝", "紫", "石"]) {
+            const colorButton = tagManagerColorOption(tagsPanel, colorLabel);
             await expect(colorButton).toBeVisible();
             await colorButton.click();
-            await expect(colorButton).toHaveAttribute(
-                "data-sot-state",
-                "selected",
-            );
+            await expect(colorButton).toHaveAttribute("aria-checked", "true");
         }
         for (const icon of [
             "grid",
@@ -11315,30 +11462,17 @@ test("recording detail exposes the tag manager and persists tag toggles", async 
             "file",
             "mic",
         ]) {
-            const iconButton = tagsPanel.locator(
-                `[data-sot-control="recording-tag-icon"][data-sot-tag-icon="${icon}"]`,
-            );
+            const iconButton = tagManagerIconOption(tagsPanel, icon);
             await expect(iconButton).toBeVisible();
             await iconButton.click();
-            await expect(iconButton).toHaveAttribute(
-                "data-sot-state",
-                "selected",
-            );
+            await expect(iconButton).toHaveAttribute("aria-checked", "true");
         }
         await blueTagColor.click();
         await starTagIcon.click();
         await expect(blueTagColor).toHaveAttribute("aria-checked", "true");
         await expect(blueTagColor).toHaveAttribute("data-state", "on");
-        await expect(blueTagColor).toHaveAttribute(
-            "data-sot-state",
-            "selected",
-        );
         await expect(starTagIcon).toHaveAttribute("aria-checked", "true");
         await expect(starTagIcon).toHaveAttribute("data-state", "on");
-        await expect(starTagIcon).toHaveAttribute(
-            "data-sot-state",
-            "selected",
-        );
 
         const tagCreatePayloads: unknown[] = [];
         page.on("request", (request) => {
@@ -11377,7 +11511,11 @@ test("recording detail exposes the tag manager and persists tag toggles", async 
             await route.fallback();
         });
 
-        await expect(tagCreateButton).toHaveAttribute("data-sot-state", "idle");
+        const tagCreateButton = tagsPanel.getByRole("button", {
+            name: "创建",
+            exact: true,
+        });
+        await expect(tagCreateButton).toBeEnabled();
         const failedCreateResponse = page.waitForResponse(
             (response) =>
                 response.url().includes("/api/recording-tags") &&
@@ -11386,33 +11524,23 @@ test("recording detail exposes the tag manager and persists tag toggles", async 
         );
 
         await tagCreateButton.click();
-        await expect(tagsPanel).toHaveAttribute(
-            "data-sot-create-state",
-            "saving",
-        );
+        await expect(tagsPanel).toHaveAttribute("aria-busy", "true");
+        await expect(tagCreateButton).toHaveAttribute("aria-busy", "true");
+        await expect(tagCreateButton).toBeDisabled();
         resolveCreateFailure();
         await failedCreateResponse;
 
-        await expect(tagsPanel).toHaveAttribute(
-            "data-sot-create-state",
-            "idle",
-        );
-        await expect(tagsPanel).toHaveAttribute("data-sot-error", "true");
-        await expect(tagsPanel).toHaveAttribute("data-sot-state", "error");
-        await expect(tagsPanel).toHaveAttribute(
-            "data-sot-error-message",
+        await expect(tagsPanel).not.toHaveAttribute("aria-busy", "true");
+        await expect(tagCreateButton).toBeEnabled();
+        await expect(tagManagerErrorAlert(tagsPanel)).toContainText(
             "标签服务暂不可用",
         );
-        await expect(
-            tagsPanel.locator('[data-sot-panel="recording-tag-error"]'),
-        ).toContainText("保存失败 · 请稍后再试");
         await expectSotTagManagerStyleMatch(
             sotPage,
             page,
             '#tagmgr .cl-card:has-text("Error") .tagm-error',
-            '[data-sot-panel="recording-tag-error"]',
+            '[data-slot="popover-content"][aria-label="管理标签"] [data-slot="alert"]',
         );
-        await expect(tagsPanel.getByText("标签服务暂不可用")).toHaveCount(0);
         await expect(trigger).toContainText("标签");
 
         await Promise.all([
@@ -11428,45 +11556,35 @@ test("recording detail exposes the tag manager and persists tag toggles", async 
                     response.request().method() === "PUT" &&
                     response.ok(),
             ),
-            tagsPanel
-                .locator('[data-sot-control="recording-tag-error-retry"]')
+            tagManagerErrorAlert(tagsPanel)
+                .getByRole("button", { name: "重试", exact: true })
                 .click(),
         ]);
 
-        await expect(tagsPanel).toHaveAttribute("data-sot-error", "false");
         await expect(tagsPanel.getByText("标签服务暂不可用")).toHaveCount(0);
         await expect(trigger).toContainText(DETAIL_TAG_NAME);
-        await expect(trigger).toHaveAttribute("data-sot-tag-color", "blue");
-        await expect(trigger).toHaveAttribute("data-sot-tag-icon", "star");
+        await expect(trigger).toHaveAttribute("data-tag-color", "blue");
         await expect(tagCreateInput).toHaveValue("");
-        await expect(selectedTags).toHaveAttribute("data-sot-state", "ready");
-        const selectedChip = tagsPanel.locator(
-            `[data-sot-part="selected-chip"][data-sot-tag-name="${DETAIL_TAG_NAME}"]`,
+        await expect(tagManagerSelectedGroup(tagsPanel)).toHaveAccessibleName(
+            "已选 · 1",
         );
+        const selectedChip = tagManagerSelectedChip(tagsPanel, DETAIL_TAG_NAME);
         await expect(selectedChip).toBeVisible();
-        await expect(selectedChip).toHaveAttribute("data-sot-tag-color", "blue");
         await expectSotTagManagerStyleMatch(
             sotPage,
             page,
             '#tagmgr .cl-card:has-text("Default") .tagm-sel-chip',
-            `[data-sot-panel="recording-tag-manager"] [data-sot-part="selected-chip"][data-sot-tag-name="${DETAIL_TAG_NAME}"]`,
+            '[data-slot="popover-content"][aria-label="管理标签"] .tagm-sel-chip',
         );
-        await expect(
-            tagsPanel.locator('[data-sot-list="recording-available-tags"]'),
-        ).toHaveAttribute("data-sot-state", "ready");
-        const tagToggle = tagsPanel.locator(
-            `[data-sot-control="recording-tag-toggle"][data-sot-tag-name="${DETAIL_TAG_NAME}"]`,
-        );
+        const tagToggle = tagManagerTagOption(tagsPanel, DETAIL_TAG_NAME);
         await expect(tagToggle).toBeVisible();
-        await expect(tagToggle).toHaveAttribute("data-sot-state", "selected");
-        await expect(tagToggle).toHaveAttribute("data-sot-tag-color", "blue");
-        await expect(tagToggle).toHaveAttribute("data-sot-tag-icon", "star");
-        await expect(tagToggle.locator('[data-sot-part="tag-check"]')).toHaveCount(0);
+        await expect(tagToggle).toHaveAttribute("aria-pressed", "true");
+        await expect(tagToggle.locator(".tagm-opt-check")).toHaveCount(0);
         await expectSotTagManagerStyleMatch(
             sotPage,
             page,
             '#tagmgr .cl-card:has-text("Default") .tagm-opt',
-            `[data-sot-control="recording-tag-toggle"][data-sot-tag-name="${DETAIL_TAG_NAME}"]`,
+            '[data-slot="popover-content"][aria-label="管理标签"] .tagm-opt',
             SOT_TAG_MANAGER_TAG_TOGGLE_STYLE_PROPS,
         );
         expect(tagCreatePayloads).toEqual([
@@ -11482,12 +11600,15 @@ test("recording detail exposes the tag manager and persists tag toggles", async 
             },
         ]);
         expect(createAttempts).toBe(2);
-        const createdTagIdForToggle = await tagToggle.getAttribute(
-            "data-sot-tag-id",
-        );
+        const createdTagIdForToggle = (await readRecordingTagCatalog(page)).find(
+            (tag) => tag.name === DETAIL_TAG_NAME,
+        )?.id;
         if (!createdTagIdForToggle) {
-            throw new Error("Expected created tag id before toggle flow");
+            throw new Error("Expected created tag in the backend catalog");
         }
+        await expect
+            .poll(() => readRecordingTagAssignmentIds(userId!, recordingId))
+            .toEqual([createdTagIdForToggle]);
 
         let resolveToggleFailure = () => {};
         const toggleFailureGate = new Promise<void>((resolve) => {
@@ -11515,28 +11636,7 @@ test("recording detail exposes the tag manager and persists tag toggles", async 
                     return;
                 }
 
-                const payload = route.request().postDataJSON() as {
-                    tagIds?: string[];
-                };
-                const includesCreatedTag = payload.tagIds?.includes(
-                    createdTagIdForToggle,
-                );
-                await route.fulfill({
-                    contentType: "application/json",
-                    status: 200,
-                    body: JSON.stringify({
-                        tags: includesCreatedTag
-                            ? [
-                                  {
-                                      color: "blue",
-                                      icon: "star",
-                                      id: createdTagIdForToggle,
-                                      name: DETAIL_TAG_NAME,
-                                  },
-                              ]
-                            : [],
-                    }),
-                });
+                await route.fallback();
             },
         );
 
@@ -11550,25 +11650,15 @@ test("recording detail exposes the tag manager and persists tag toggles", async 
         );
 
         await tagToggle.click();
-        await expect(tagsPanel).toHaveAttribute(
-            "data-sot-toggle-state",
-            "saving",
-        );
+        await expect(tagsPanel).toHaveAttribute("aria-busy", "true");
+        await expect(tagToggle).toHaveAttribute("aria-busy", "true");
         resolveToggleFailure();
         await failedToggleResponse;
 
-        await expect(tagsPanel).toHaveAttribute(
-            "data-sot-toggle-state",
-            "idle",
-        );
-        await expect(tagsPanel).toHaveAttribute("data-sot-error", "true");
-        await expect(tagsPanel).toHaveAttribute("data-sot-state", "error");
-        await expect(tagsPanel).toHaveAttribute(
-            "data-sot-error-message",
+        await expect(tagsPanel).not.toHaveAttribute("aria-busy", "true");
+        await expect(tagManagerErrorAlert(tagsPanel)).toContainText(
             "标签保存暂不可用",
         );
-        await expect(tagsPanel).toContainText("保存失败 · 请稍后再试");
-        await expect(tagsPanel.getByText("标签保存暂不可用")).toHaveCount(0);
 
         await Promise.all([
             page.waitForResponse(
@@ -11577,18 +11667,21 @@ test("recording detail exposes the tag manager and persists tag toggles", async 
                     response.request().method() === "PUT" &&
                     response.ok(),
             ),
-            tagsPanel
-                .locator('[data-sot-control="recording-tag-error-retry"]')
+            tagManagerErrorAlert(tagsPanel)
+                .getByRole("button", { name: "重试", exact: true })
                 .click(),
         ]);
 
-        await expect(tagsPanel).toHaveAttribute("data-sot-error", "false");
         await expect(tagsPanel.getByText("标签保存暂不可用")).toHaveCount(0);
         expect(toggleAttempts).toBe(2);
-        await expect(tagsPanel).toHaveAttribute("data-sot-state", "toggle");
+        await expect(tagManagerTitle(tagsPanel)).toHaveText(
+            "为这条录音切换标签",
+        );
         await expect(trigger).toContainText("标签");
         await expect(tagToggle).toHaveAttribute("aria-pressed", "false");
-        await expect(tagToggle).toHaveAttribute("data-sot-state", "idle");
+        await expect
+            .poll(() => readRecordingTagAssignmentIds(userId!, recordingId))
+            .toEqual([]);
 
         await Promise.all([
             page.waitForResponse(
@@ -11602,60 +11695,61 @@ test("recording detail exposes the tag manager and persists tag toggles", async 
             tagToggle.click(),
         ]);
         expect(toggleAttempts).toBe(3);
-        await expect(tagsPanel).toHaveAttribute("data-sot-state", "toggle");
+        await expect(tagManagerTitle(tagsPanel)).toHaveText(
+            "为这条录音切换标签",
+        );
         await expect(trigger).toContainText(DETAIL_TAG_NAME);
         await expect(tagToggle).toHaveAttribute("aria-pressed", "true");
-        await expect(tagToggle).toHaveAttribute("data-sot-state", "selected");
+        await expect
+            .poll(() => readRecordingTagAssignmentIds(userId!, recordingId))
+            .toEqual([createdTagIdForToggle]);
 
-        // The open manager overlaps the chip center; use button keyboard semantics.
+        // Close through the visible trigger, then verify the server-backed selection reloads.
         await trigger.focus();
         await trigger.press("Enter");
         await expect(tagsPanel).toHaveCount(0);
-        await trigger.press("Enter");
-        await expect(tagsPanel).toHaveAttribute("data-sot-state", "ready");
+        await page.reload({ waitUntil: "domcontentloaded" });
+        await waitForRecordingDetailReady(page);
+        await expect(trigger).toContainText(DETAIL_TAG_NAME);
+        await trigger.click();
+        await expect(tagManagerTitle(tagsPanel)).toHaveText("管理标签");
+        await expect(tagManagerTagOption(tagsPanel, DETAIL_TAG_NAME)).toHaveAttribute(
+            "aria-pressed",
+            "true",
+        );
         await expect(selectedChip).toBeVisible();
 
         const tagId = createdTagIdForToggle;
-        const deleteOpenButton = selectedChip.locator(
-            '[data-sot-control="recording-tag-delete-open"]',
-        );
-        await expect(deleteOpenButton).toHaveAttribute(
-            "data-sot-state",
-            "idle",
-        );
+        const deleteOpenButton = selectedChip.getByRole("button", {
+            name: "移除",
+            exact: true,
+        });
+        await expect(deleteOpenButton).toBeEnabled();
         await deleteOpenButton.click();
-        await expect(tagsPanel).toHaveAttribute(
-            "data-sot-state",
-            "delete-confirm",
+        await expect(tagManagerTitle(tagsPanel)).toHaveText(
+            `删除标签 · ${DETAIL_TAG_NAME}`,
         );
-        await expect(
-            page.getByText(`删除标签 · ${DETAIL_TAG_NAME}`, { exact: true }),
-        ).toBeVisible();
-        await expect(
-            tagsPanel.locator(
-                '[data-sot-panel="recording-tag-delete-confirm"]',
-            ),
-        ).toContainText("无法撤销");
+        await expect(tagsPanel.locator(".tagm-delete-confirm")).toContainText(
+            "无法撤销",
+        );
         await expectSotTagManagerStyleMatch(
             sotPage,
             page,
             '#tagmgr .cl-card:has-text("delete-confirm") .tagm-delete-confirm',
-            '[data-sot-panel="recording-tag-delete-confirm"]',
+            '[data-slot="popover-content"][aria-label="管理标签"] .tagm-delete-confirm',
         );
-        const deleteCancelButton = tagsPanel.locator(
-            '[data-sot-control="recording-tag-delete-cancel"]',
-        );
-        await expect(deleteCancelButton).toHaveText("取消");
+        const deleteCancelButton = tagsPanel.getByRole("button", {
+            name: "取消",
+            exact: true,
+        });
         await deleteCancelButton.click();
-        await expect(tagsPanel).toHaveAttribute("data-sot-state", "ready");
+        await expect(tagManagerTitle(tagsPanel)).toHaveText("管理标签");
 
-        await selectedChip
-            .locator('[data-sot-control="recording-tag-delete-open"]')
-            .click();
-        const deleteConfirmButton = tagsPanel.locator(
-            '[data-sot-control="recording-tag-delete-confirm"]',
-        );
-        await expect(deleteConfirmButton).toHaveText("删除标签");
+        await selectedChip.getByRole("button", { name: "移除" }).click();
+        const deleteConfirmButton = tagsPanel.getByRole("button", {
+            name: "删除标签",
+            exact: true,
+        });
 
         let resolveDeleteFailure = () => {};
         const deleteFailureGate = new Promise<void>((resolve) => {
@@ -11691,21 +11785,19 @@ test("recording detail exposes the tag manager and persists tag toggles", async 
                 response.status() === 503,
         );
         await deleteConfirmButton.click();
-        await expect(tagsPanel).toHaveAttribute("data-sot-state", "deleting");
-        await expect(deleteConfirmButton).toHaveAttribute(
-            "data-sot-state",
-            "saving",
-        );
+        await expect(tagsPanel).toHaveAttribute("aria-busy", "true");
+        await expect(deleteConfirmButton).toHaveAttribute("aria-busy", "true");
+        await expect(deleteConfirmButton).toBeDisabled();
         resolveDeleteFailure();
         await failedDeleteResponse;
 
-        await expect(tagsPanel).toHaveAttribute("data-sot-error", "true");
-        await expect(tagsPanel.getByText("标签删除暂不可用")).toBeVisible();
-        await expect(
-            tagsPanel.locator(
-                '[data-sot-panel="recording-tag-delete-confirm"]',
-            ),
-        ).toContainText(DETAIL_TAG_NAME);
+        await expect(tagsPanel).not.toHaveAttribute("aria-busy", "true");
+        await expect(tagManagerErrorAlert(tagsPanel)).toContainText(
+            "标签删除暂不可用",
+        );
+        await expect(tagsPanel.locator(".tagm-delete-confirm")).toContainText(
+            DETAIL_TAG_NAME,
+        );
 
         await Promise.all([
             page.waitForResponse(
@@ -11714,22 +11806,32 @@ test("recording detail exposes the tag manager and persists tag toggles", async 
                     response.request().method() === "DELETE" &&
                     response.ok(),
             ),
-            deleteConfirmButton.click(),
+            tagManagerErrorAlert(tagsPanel)
+                .getByRole("button", { name: "重试", exact: true })
+                .click(),
         ]);
         expect(deleteAttempts).toBe(2);
-        await expect(tagsPanel).toHaveAttribute("data-sot-error", "false");
         await expect(trigger).toContainText("标签");
         await expect(trigger).not.toContainText(DETAIL_TAG_NAME);
         await expect(tagToggle).toHaveCount(0);
         await expect(selectedChip).toHaveCount(0);
-        await expect(
-            tagsPanel.locator('[data-sot-panel="recording-tag-empty"]'),
-        ).toHaveAttribute("data-sot-state", "empty");
-
-        const closeButton = tagsPanel.locator(
-            '[data-sot-control="recording-tag-manager-close"]',
+        await expect(tagManagerEmptyState(tagsPanel)).toContainText(
+            "还没有任何标签",
         );
-        await expect(closeButton).toHaveAttribute("data-sot-state", "idle");
+        expect(
+            (await readRecordingTagCatalog(page)).some(
+                (tag) => tag.id === createdTagIdForToggle,
+            ),
+        ).toBe(false);
+        await expect
+            .poll(() => readRecordingTagAssignmentIds(userId!, recordingId))
+            .toEqual([]);
+
+        const closeButton = tagsPanel.getByRole("button", {
+            name: "关闭",
+            exact: true,
+        });
+        await expect(closeButton).toBeEnabled();
         await closeButton.click();
         await expect(tagsPanel).toHaveCount(0);
     } finally {
@@ -11760,7 +11862,7 @@ test("recording detail source copy guards missing artifacts without writing empt
         });
 
         await expect(sourceReportState(page, "loaded")).toHaveAttribute(
-            "data-sot-state",
+            "data-state",
             "loaded",
         );
         await expect(sourceReportInnerState(page, "loaded")).toHaveAttribute(
@@ -11777,44 +11879,18 @@ test("recording detail source copy guards missing artifacts without writing empt
                 "这条录音没有本地音频，无法播放或运行私有重转写。",
             ),
         ).toBeVisible();
-        await expect(playerShell(page)).toHaveAttribute(
-            "data-sot-state",
-            "disabled",
-        );
+        await expect(playerAudio(page)).not.toHaveAttribute("src");
         await expect(playerControlsPanel(page)).toHaveAttribute(
-            "data-sot-state",
-            "disabled",
+            "aria-disabled",
+            "true",
         );
-        await expect(playerBackButton(page)).toHaveAttribute(
-            "data-sot-state",
-            "disabled",
-        );
-        await expect(playerForwardButton(page)).toHaveAttribute(
-            "data-sot-state",
-            "disabled",
-        );
+        await expect(playerBackButton(page)).toBeDisabled();
+        await expect(playerForwardButton(page)).toBeDisabled();
         await expect(playerToggleButton(page, "播放")).toBeDisabled();
-        await expect(playerToggleButton(page, "播放")).toHaveAttribute(
-            "data-sot-state",
-            "disabled",
-        );
         await expect(playerSpeedButton(page)).toBeDisabled();
-        await expect(playerSpeedButton(page)).toHaveAttribute(
-            "data-sot-state",
-            "disabled",
-        );
-        await expect(playerSeekSlider(page)).toHaveAttribute(
-            "data-sot-state",
-            "disabled",
-        );
+        await expect(playerSeekSlider(page)).toBeDisabled();
         await expect(playerVolumeButton(page)).toBeDisabled();
-        await expect(playerVolumeButton(page)).toHaveAttribute(
-            "data-sot-state",
-            "disabled",
-        );
-        await expect(
-            page.locator('[data-sot-control="recording-player-volume-slider"]'),
-        ).toHaveCount(0);
+        await expect(playerVolumeSlider(page)).toHaveCount(0);
         await expect(
             sourceReportState(page, "loaded").getByText("转写状态", {
                 exact: true,
@@ -11829,35 +11905,35 @@ test("recording detail source copy guards missing artifacts without writing empt
             .toHaveCount(2);
         await expect(
             sourceReportInnerState(page, "loaded")
-                .locator("[data-sot-source-report-section]")
+                .locator('[data-testid="source-report-section-transcript"]')
                 .filter({ hasText: "来源转写" }),
         ).toBeVisible();
         await expect(
             sourceReportInnerState(page, "loaded")
-                .locator("[data-sot-source-report-section]")
+                .locator('[data-testid="source-report-section-metadata"]')
                 .filter({ hasText: "来源信息" }),
         ).toBeVisible();
         await expect(sourceReportTranscriptCopyButton(page)).toBeDisabled();
         await expect(sourceReportReportCopyButton(page)).toBeDisabled();
         await expect(detailSourceTranscriptCopyButton(page)).toBeDisabled();
         await expect(detailSourceTranscriptCopyButton(page)).toHaveAttribute(
-            "data-sot-state",
+            "data-state",
             "missing",
         );
         await expect(detailSourceReportCopyButton(page)).toBeDisabled();
         await expect(detailSourceReportCopyButton(page)).toHaveAttribute(
-            "data-sot-state",
+            "data-state",
             "missing",
         );
         expect(await readCopiedTexts(page)).toEqual([]);
 
         await expect(sourceReportOpenSourceControl(page)).toHaveAttribute(
-            "data-sot-state",
+            "data-state",
             "unavailable",
         );
         await expect(sourceReportOpenSourceControl(page)).toBeDisabled();
         await expect(sourceReportRepullButton(page)).toHaveAttribute(
-            "data-sot-state",
+            "data-state",
             "ready",
         );
         await expect(sourceReportRepullButton(page)).toBeEnabled();
@@ -11916,7 +11992,7 @@ test("recording detail source report retries after first-load failure", async ({
         const errorState = sourceReportInnerState(page, "error");
         await expect(errorBanner).toBeVisible();
         await expect(errorState).toHaveAttribute(
-            "data-sot-error",
+            "data-error",
             "Source report temporarily unavailable",
         );
         await expect(errorBanner).toContainText("无法读取来源详情");
@@ -11943,15 +12019,15 @@ test("recording detail source report retries after first-load failure", async ({
         ]);
 
         await expect(sourceReportState(page, "loaded")).toHaveAttribute(
-            "data-sot-state",
+            "data-state",
             "loaded",
         );
         await expect(
             detailSourceTranscriptCopyButton(page),
-        ).toHaveAttribute("data-sot-state", "ready");
+        ).toHaveAttribute("data-state", "ready");
         await expect(
             detailSourceReportCopyButton(page),
-        ).toHaveAttribute("data-sot-state", "ready");
+        ).toHaveAttribute("data-state", "ready");
         await detailSourceReportCopyButton(page).click();
         await expect
             .poll(() =>
@@ -12078,20 +12154,20 @@ test("recording detail source report refresh keeps loaded actions stable", async
         await waitForRecordingDetailReady(page);
         await expect(
             sourceReportInnerState(page, "loaded")
-                .locator("[data-sot-source-report-section]")
+                .locator('[data-testid="source-report-section-transcript"]')
                 .filter({ hasText: "来源转写" }),
         ).toBeVisible();
         await expect(
             sourceReportInnerState(page, "loaded")
-                .locator("[data-sot-source-report-section]")
+                .locator('[data-testid="source-report-section-metadata"]')
                 .filter({ hasText: "来源信息" }),
         ).toBeVisible();
         await expect(
             detailSourceTranscriptCopyButton(page),
-        ).toHaveAttribute("data-sot-state", "ready");
+        ).toHaveAttribute("data-state", "ready");
         await expect(
             detailSourceReportCopyButton(page),
-        ).toHaveAttribute("data-sot-state", "ready");
+        ).toHaveAttribute("data-state", "ready");
 
         const refreshResponse = page.waitForResponse(
             (response) =>
@@ -12106,7 +12182,7 @@ test("recording detail source report refresh keeps loaded actions stable", async
         await expect(refreshButton).toBeDisabled();
         await expect(refreshButton).toContainText("加载中...");
         await expect(sourceReportState(page, "loaded")).toHaveAttribute(
-            "data-sot-state",
+            "data-state",
             "loaded",
         );
         await expect(sourceReportTranscriptCopyButton(page)).toBeEnabled();
@@ -12121,7 +12197,7 @@ test("recording detail source report refresh keeps loaded actions stable", async
         await expect(refreshButton).toBeEnabled();
         await expect(refreshButton).toContainText("刷新");
         await expect(sourceReportOpenSourceControl(page)).toHaveAttribute(
-            "data-sot-state",
+            "data-state",
             "ready",
         );
         expect(
@@ -12135,7 +12211,7 @@ test("recording detail source report refresh keeps loaded actions stable", async
             "https://source.example.test/recording/1",
         );
         await expect(sourceReportRepullButton(page)).toHaveAttribute(
-            "data-sot-state",
+            "data-state",
             "ready",
         );
 
@@ -12147,13 +12223,13 @@ test("recording detail source report refresh keeps loaded actions stable", async
         );
         await sourceReportRepullButton(page).click();
         await expect(sourceReportRepullButton(page)).toHaveAttribute(
-            "data-sot-state",
+            "data-state",
             "loading",
         );
         releaseSourceRepull();
         await repullResponse;
         await expect(sourceReportRepullButton(page)).toHaveAttribute(
-            "data-sot-state",
+            "data-state",
             "ready",
         );
         await expect

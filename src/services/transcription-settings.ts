@@ -1,13 +1,17 @@
+import type { DefaultTranscriptionProvider } from "@/lib/settings/transcription-settings-body";
+
 const TRANSCRIPTION_SETTINGS_ENDPOINT = "/api/settings/transcription";
 
 const DEFAULT_TRANSCRIPTION_SETTINGS = {
     autoTranscribe: true,
     defaultTranscriptionLanguage: null,
+    defaultTranscriptionProvider: null,
 } as const;
 
 export interface TranscriptionSettings {
     autoTranscribe: boolean;
     defaultTranscriptionLanguage: string | null;
+    defaultTranscriptionProvider: DefaultTranscriptionProvider | null;
 }
 
 export type TranscriptionSettingsUpdate = Partial<TranscriptionSettings>;
@@ -19,6 +23,20 @@ function normalizeNullableString(value: unknown): string | null {
 
     const trimmed = value.trim();
     return trimmed.length > 0 ? trimmed : null;
+}
+
+function normalizeDefaultTranscriptionProvider(
+    value: unknown,
+): DefaultTranscriptionProvider | null {
+    if (
+        value === "dingtalk-a1" ||
+        value === "ticnote" ||
+        value === "feishu-minutes"
+    ) {
+        return value;
+    }
+
+    return null;
 }
 
 function normalizeTranscriptionSettingsResponse(
@@ -36,6 +54,9 @@ function normalizeTranscriptionSettingsResponse(
                 : DEFAULT_TRANSCRIPTION_SETTINGS.autoTranscribe,
         defaultTranscriptionLanguage: normalizeNullableString(
             data.defaultTranscriptionLanguage,
+        ),
+        defaultTranscriptionProvider: normalizeDefaultTranscriptionProvider(
+            data.defaultTranscriptionProvider,
         ),
     };
 }

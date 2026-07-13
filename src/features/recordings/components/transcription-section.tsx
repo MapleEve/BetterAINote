@@ -8,13 +8,7 @@ import {
     RefreshCw,
     Sparkles,
 } from "lucide-react";
-import {
-    type ComponentProps,
-    useCallback,
-    useEffect,
-    useMemo,
-    useState,
-} from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { toast } from "sonner";
 import { useLanguage } from "@/components/language-provider";
 import { Alert, AlertTitle } from "@/components/ui/alert";
@@ -64,15 +58,10 @@ interface TranscriptionSectionProps {
     showSpeakerReview?: boolean;
 }
 
-type RecordingTranscriptionMetaTone = "attribute" | "measure";
-
 const RECORDING_TRANSCRIPTION_META_BADGE_VARIANT = {
     attribute: "outline",
     measure: "secondary",
-} satisfies Record<
-    RecordingTranscriptionMetaTone,
-    ComponentProps<typeof Badge>["variant"]
->;
+} as const;
 
 const recordingTranscriptionClassNames = {
     card: "min-h-0 flex-1 gap-0",
@@ -94,22 +83,6 @@ const recordingTranscriptionClassNames = {
     outputText:
         "m-0 font-sans text-[14.5px] leading-[1.65] text-foreground [text-wrap:pretty] max-[860px]:[overflow-wrap:anywhere]",
 } as const;
-function RecordingTranscriptionMetaBadge({
-    className,
-    "data-sot-tone": tone,
-    ...props
-}: Omit<ComponentProps<typeof Badge>, "variant" | "data-sot-tone"> & {
-    "data-sot-tone": RecordingTranscriptionMetaTone;
-}) {
-    return (
-        <Badge
-            variant={RECORDING_TRANSCRIPTION_META_BADGE_VARIANT[tone]}
-            className={className}
-            data-sot-tone={tone}
-            {...props}
-        />
-    );
-}
 
 function applySpeakerMap(
     text: string,
@@ -299,6 +272,7 @@ export function TranscriptionSection({
         const confirmed = await confirm({
             title: t("transcription.retranscribeConfirmTitle"),
             description: t("transcription.retranscribeConfirmDescription"),
+            surface: "recording-retranscribe",
             details: [
                 t("transcription.retranscribeConfirmDetailTranscript"),
                 t("transcription.retranscribeConfirmDetailSpeakers"),
@@ -346,29 +320,17 @@ export function TranscriptionSection({
             role="region"
             aria-labelledby="recording-transcription-title"
             className={recordingTranscriptionClassNames.card}
-            data-sot-panel="recording-transcription"
         >
-            <CardHeader
-                className={recordingTranscriptionClassNames.header}
-                data-sot-part="recording-transcription-header"
-            >
-                <div
-                    className={recordingTranscriptionClassNames.heading}
-                    data-sot-part="recording-transcription-heading"
-                >
+            <CardHeader className={recordingTranscriptionClassNames.header}>
+                <div className={recordingTranscriptionClassNames.heading}>
                     <FileText
                         className={recordingTranscriptionClassNames.icon}
                         aria-hidden="true"
-                        data-sot-part="recording-transcription-icon"
                     />
                     <div
                         className={recordingTranscriptionClassNames.headerCopy}
-                        data-sot-part="recording-transcription-header-copy"
                     >
-                        <CardTitle
-                            className="min-w-0"
-                            data-sot-part="recording-transcription-title"
-                        >
+                        <CardTitle className="min-w-0">
                             <h2
                                 id="recording-transcription-title"
                                 className="m-0 truncate text-xl"
@@ -376,17 +338,11 @@ export function TranscriptionSection({
                                 {t("transcription.localTitle")}
                             </h2>
                         </CardTitle>
-                        <CardDescription
-                            className="text-xs leading-normal font-medium"
-                            data-sot-part="recording-transcription-description"
-                        >
+                        <CardDescription className="text-xs leading-normal font-medium">
                             {t("transcription.localDescription")}
                         </CardDescription>
                         {!canTranscribe && (
-                            <FieldDescription
-                                className="text-xs leading-normal font-medium"
-                                data-sot-part="recording-transcription-unavailable"
-                            >
+                            <FieldDescription className="text-xs leading-normal font-medium">
                                 {transcribeUnavailableReason ??
                                     (uiLanguage === "zh-CN"
                                         ? "这个数据源没有可下载到本地的音频文件，当前只能查看来源逐字稿或报告。"
@@ -397,27 +353,12 @@ export function TranscriptionSection({
                 </div>
             </CardHeader>
             <Separator />
-            <CardContent
-                className={recordingTranscriptionClassNames.body}
-                data-sot-part="recording-transcription-body"
-            >
+            <CardContent className={recordingTranscriptionClassNames.body}>
                 {isTranscribing ? (
-                    <Alert
-                        className="mb-3"
-                        data-sot-banner="transcription-job"
-                        data-sot-state="processing"
-                        data-sot-tone="info"
-                    >
-                        <Spinner
-                            data-sot-banner-icon
-                            data-sot-banner-spinner
-                            aria-hidden="true"
-                        />
-                        <div data-sot-banner-body>
-                            <AlertTitle
-                                className="line-clamp-none overflow-visible"
-                                data-sot-banner-title
-                            >
+                    <Alert className="mb-3">
+                        <Spinner aria-hidden="true" />
+                        <div>
+                            <AlertTitle className="line-clamp-none overflow-visible">
                                 {jobDisplayState
                                     ? t(`transcription.${jobDisplayState}`)
                                     : t("transcription.processing")}
@@ -431,22 +372,10 @@ export function TranscriptionSection({
                         status: jobStatus,
                         remoteStatus: jobRemoteStatus,
                     }) && (
-                        <Alert
-                            variant="statusError"
-                            className="mb-3"
-                            data-sot-banner="transcription-job"
-                            data-sot-state="error"
-                            data-sot-tone="err"
-                        >
-                            <AlertCircle
-                                data-sot-banner-icon
-                                aria-hidden="true"
-                            />
-                            <div data-sot-banner-body>
-                                <AlertTitle
-                                    className="line-clamp-none overflow-visible"
-                                    data-sot-banner-title
-                                >
+                        <Alert variant="statusError" className="mb-3">
+                            <AlertCircle aria-hidden="true" />
+                            <div>
+                                <AlertTitle className="line-clamp-none overflow-visible">
                                     {jobError}
                                 </AlertTitle>
                             </div>
@@ -459,20 +388,17 @@ export function TranscriptionSection({
                             className={
                                 recordingTranscriptionClassNames.outputSection
                             }
-                            data-sot-section="recording-transcription-output"
                         >
                             <header
                                 className={
                                     recordingTranscriptionClassNames.sectionHead
                                 }
-                                data-sot-part="recording-transcription-section-head"
                             >
                                 <div>
                                     <h3
                                         className={
                                             recordingTranscriptionClassNames.sectionTitle
                                         }
-                                        data-sot-part="recording-transcription-section-title"
                                     >
                                         {t("transcription.outputTitle")}
                                     </h3>
@@ -480,7 +406,6 @@ export function TranscriptionSection({
                                         className={
                                             recordingTranscriptionClassNames.sectionDescription
                                         }
-                                        data-sot-part="recording-transcription-section-description"
                                     >
                                         {t("transcription.outputDescription")}
                                     </p>
@@ -489,13 +414,11 @@ export function TranscriptionSection({
                                     className={
                                         recordingTranscriptionClassNames.actions
                                     }
-                                    data-sot-part="recording-transcription-actions"
                                 >
                                     <Button
                                         onClick={handleCopyTranscript}
                                         size="sm"
                                         variant="outline"
-                                        data-sot-control="copy-local-transcript"
                                         disabled={
                                             isCopyingTranscript ||
                                             !displayText.trim()
@@ -514,10 +437,10 @@ export function TranscriptionSection({
                                         onClick={handleConfirmRetranscribe}
                                         size="sm"
                                         variant="destructive"
-                                        data-sot-control="retranscribe-local"
                                         disabled={
                                             !canTranscribe || isTranscribing
                                         }
+                                        aria-busy={isTranscribing}
                                         title={
                                             !canTranscribe
                                                 ? (transcribeUnavailableReason ??
@@ -539,13 +462,11 @@ export function TranscriptionSection({
                                 className={
                                     recordingTranscriptionClassNames.turn
                                 }
-                                data-sot-part="recording-transcription-turn"
                             >
                                 <p
                                     className={
                                         recordingTranscriptionClassNames.outputText
                                     }
-                                    data-sot-part="recording-transcription-text"
                                 >
                                     {displayText}
                                 </p>
@@ -555,45 +476,45 @@ export function TranscriptionSection({
                                 className={
                                     recordingTranscriptionClassNames.metaList
                                 }
-                                data-sot-list="recording-transcription-meta"
                             >
                                 {language ? (
-                                    <RecordingTranscriptionMetaBadge
-                                        data-sot-meta="language"
-                                        data-sot-tone="attribute"
+                                    <Badge
+                                        variant={
+                                            RECORDING_TRANSCRIPTION_META_BADGE_VARIANT.attribute
+                                        }
                                     >
-                                        <Languages
-                                            aria-hidden="true"
-                                            data-sot-part="recording-transcription-meta-icon"
-                                        />
+                                        <Languages aria-hidden="true" />
                                         <span>
                                             {t("transcription.languagePrefix")}:{" "}
                                             {language}
                                         </span>
-                                    </RecordingTranscriptionMetaBadge>
+                                    </Badge>
                                 ) : null}
                                 {transcriptionType ? (
-                                    <RecordingTranscriptionMetaBadge
-                                        data-sot-meta="source"
-                                        data-sot-tone="attribute"
+                                    <Badge
+                                        variant={
+                                            RECORDING_TRANSCRIPTION_META_BADGE_VARIANT.attribute
+                                        }
                                     >
                                         {t("transcription.sourcePrefix")}:{" "}
                                         {transcriptionType}
-                                    </RecordingTranscriptionMetaBadge>
+                                    </Badge>
                                 ) : null}
-                                <RecordingTranscriptionMetaBadge
-                                    data-sot-meta="words"
-                                    data-sot-tone="measure"
+                                <Badge
+                                    variant={
+                                        RECORDING_TRANSCRIPTION_META_BADGE_VARIANT.measure
+                                    }
                                 >
                                     {wordCount} {t("transcription.words")}
-                                </RecordingTranscriptionMetaBadge>
-                                <RecordingTranscriptionMetaBadge
-                                    data-sot-meta="characters"
-                                    data-sot-tone="measure"
+                                </Badge>
+                                <Badge
+                                    variant={
+                                        RECORDING_TRANSCRIPTION_META_BADGE_VARIANT.measure
+                                    }
                                 >
                                     {transcription.length}{" "}
                                     {t("transcription.characters")}
-                                </RecordingTranscriptionMetaBadge>
+                                </Badge>
                             </div>
                         </section>
                         {showSpeakerReview ? (
@@ -603,20 +524,17 @@ export function TranscriptionSection({
                                     className={
                                         recordingTranscriptionClassNames.speakerReviewSection
                                     }
-                                    data-sot-section="recording-transcription-speaker-review"
                                 >
                                     <header
                                         className={
                                             recordingTranscriptionClassNames.sectionHead
                                         }
-                                        data-sot-part="recording-transcription-section-head"
                                     >
                                         <div>
                                             <h3
                                                 className={
                                                     recordingTranscriptionClassNames.sectionTitle
                                                 }
-                                                data-sot-part="recording-transcription-section-title"
                                             >
                                                 {t("speakerReview.title")}
                                             </h3>
@@ -624,7 +542,6 @@ export function TranscriptionSection({
                                                 className={
                                                     recordingTranscriptionClassNames.sectionDescription
                                                 }
-                                                data-sot-part="recording-transcription-section-description"
                                             >
                                                 {t("speakerReview.description")}
                                             </p>
@@ -640,22 +557,15 @@ export function TranscriptionSection({
                         ) : null}
                     </>
                 ) : (
-                    <Empty
-                        className="mt-4"
-                        data-sot-part="recording-transcription-empty"
-                        data-sot-state="empty"
-                    >
+                    <Empty className="mt-4">
                         <EmptyHeader>
                             <EmptyMedia variant="icon">
-                                <FileText
-                                    aria-hidden="true"
-                                    data-sot-part="recording-transcription-empty-icon"
-                                />
+                                <FileText aria-hidden="true" />
                             </EmptyMedia>
-                            <EmptyTitle data-sot-part="recording-transcription-empty-title">
+                            <EmptyTitle>
                                 {t("transcription.noTranscript")}
                             </EmptyTitle>
-                            <EmptyDescription data-sot-part="recording-transcription-empty-description">
+                            <EmptyDescription>
                                 {t("transcription.noTranscriptDescription")}
                             </EmptyDescription>
                         </EmptyHeader>
@@ -664,7 +574,6 @@ export function TranscriptionSection({
                                 onClick={() => handleTranscribe(false)}
                                 size="sm"
                                 variant="default"
-                                data-sot-control="start-local-transcription"
                                 disabled={!canTranscribe || isTranscribing}
                                 title={
                                     !canTranscribe

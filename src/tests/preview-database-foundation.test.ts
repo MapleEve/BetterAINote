@@ -1,10 +1,20 @@
-import { existsSync, readdirSync, readFileSync } from "node:fs";
+import { execFileSync } from "node:child_process";
+import {
+    existsSync,
+    mkdtempSync,
+    readdirSync,
+    readFileSync,
+    rmSync,
+} from "node:fs";
+import os from "node:os";
 import path from "node:path";
-import { fileURLToPath } from "node:url";
+import { fileURLToPath, pathToFileURL } from "node:url";
+import { createClient } from "@libsql/client";
 import { describe, expect, it } from "vitest";
 import { getDatabaseLayout } from "@/db/paths";
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
+const PROJECT_ROOT = path.resolve(ROOT, "..");
 
 function readProjectFile(relativePath: string) {
     return readFileSync(path.join(ROOT, relativePath), "utf8");
@@ -14,6 +24,27 @@ function migrationSqlFiles(shard: string) {
     return readdirSync(path.join(ROOT, "db/migrations", shard))
         .filter((entry) => entry.endsWith(".sql"))
         .sort();
+}
+
+function runMigrate(databasePath: string) {
+    execFileSync("bun", ["./src/db/migrate.ts"], {
+        cwd: PROJECT_ROOT,
+        encoding: "utf8",
+        env: {
+            ...process.env,
+            DATABASE_PATH: databasePath,
+        },
+    });
+}
+
+async function readCoreColumnNames(databasePath: string) {
+    const client = createClient({ url: pathToFileURL(databasePath).href });
+    try {
+        const result = await client.execute("PRAGMA table_info(user_settings)");
+        return result.rows.map((row) => String(row.name));
+    } finally {
+        await client.close();
+    }
 }
 
 describe("preview database foundation", () => {
@@ -79,11 +110,15 @@ describe("preview database foundation", () => {
         expect(coreBaseline).toContain(
             "`auto_transcribe` integer DEFAULT 1 NOT NULL",
         );
+        expect(coreBaseline).toContain("`default_transcription_provider` text");
         expect(coreSchema).toContain(
             'defaultVolume: integer("default_volume").notNull().default(80)',
         );
         expect(coreSchema).toContain(
             'autoTranscribe: bool("auto_transcribe").notNull().default(true)',
+        );
+        expect(coreSchema).toContain(
+            'defaultTranscriptionProvider: text("default_transcription_provider")',
         );
         expect(
             readProjectFile("db/migrations/library/0000_library_baseline.sql"),
@@ -123,7 +158,42 @@ describe("preview database foundation", () => {
 
         expect(migrateScript).toContain("layout.search");
         expect(migrateScript).toContain("migrations/search");
+        expect(migrateScript).toContain("PRAGMA table_info(user_settings)");
+        expect(migrateScript).toContain(
+            "ALTER TABLE user_settings ADD COLUMN default_transcription_provider text",
+        );
         expect(e2eSetupScript).toContain("search:");
         expect(e2eSetupScript).toContain("migrations/search");
+    });
+
+    it("adds the default provider column to a legacy core database and remains idempotent", async () => {
+        const tempDir = mkdtempSync(
+            path.join(os.tmpdir(), "betterainote-migration-"),
+        );
+        const databasePath = path.join(tempDir, "legacy.db");
+
+        try {
+            runMigrate(databasePath);
+
+            const legacyClient = createClient({
+                url: pathToFileURL(databasePath).href,
+            });
+            try {
+                await legacyClient.execute(
+                    "ALTER TABLE user_settings DROP COLUMN default_transcription_provider",
+                );
+            } finally {
+                await legacyClient.close();
+            }
+
+            runMigrate(databasePath);
+            runMigrate(databasePath);
+
+            expect(await readCoreColumnNames(databasePath)).toContain(
+                "default_transcription_provider",
+            );
+        } finally {
+            rmSync(tempDir, { force: true, recursive: true });
+        }
     });
 });

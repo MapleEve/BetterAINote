@@ -59,10 +59,11 @@ const EXPECTED_DASHBOARD_SIDEBAR_FOOTER_CLASS_NAME =
 const EXPECTED_DASHBOARD_MAIN_CLASS_NAME =
     "flex h-screen min-w-0 flex-col max-[860px]:min-w-0 max-[860px]:max-w-full max-[860px]:box-border";
 const EXPECTED_DASHBOARD_WORKSPACE_CLASS_NAME =
-    "grid flex-1 min-h-0 grid-cols-[380px_1fr] gap-4 px-5 pt-4 pb-5 max-[860px]:min-w-0 max-[860px]:max-w-full max-[860px]:box-border max-[860px]:grid-cols-[380px_0px] max-[860px]:[&>[data-sot-panel=dashboard-detail]]:hidden";
+    "grid flex-1 min-h-0 grid-cols-[380px_1fr] gap-4 px-5 pt-4 pb-5 max-[860px]:min-w-0 max-[860px]:max-w-full max-[860px]:box-border max-[860px]:grid-cols-[380px_0px]";
 const EXPECTED_DASHBOARD_RECORDING_LIST_CARD_CLASS_NAME =
     "min-h-0 gap-0 rounded-2xl max-[860px]:min-w-0 max-[860px]:max-w-full max-[860px]:box-border";
-const EXPECTED_DETAIL_PANEL_CLASS_NAME = "flex min-h-0 min-w-0 flex-col gap-4";
+const EXPECTED_DETAIL_PANEL_CLASS_NAME =
+    "flex min-h-0 min-w-0 flex-col gap-4 max-[860px]:hidden";
 const DASHBOARD_TOPBAR_REQUIRED_CLASS_TOKENS = [
     "relative",
     "flex",
@@ -119,9 +120,9 @@ const DASHBOARD_SIDEBAR_OWNER_CLASS_TOKENS = [
     "text-sidebar-foreground",
 ] as const;
 const DASHBOARD_SIDEBAR_VISUAL_GLOBAL_SELECTORS = [
-    '[data-sot-panel="dashboard-sidebar"]',
-    '[data-theme="dark"] [data-sot-panel="dashboard-sidebar"]',
-    '.dark [data-sot-panel="dashboard-sidebar"]',
+    '[data-panel="dashboard-sidebar"]',
+    '[data-theme="dark"] [data-panel="dashboard-sidebar"]',
+    '.dark [data-panel="dashboard-sidebar"]',
 ] as const;
 const DASHBOARD_SIDEBAR_OWNER_FORBIDDEN_CLASS_PATTERN =
     /\bspace-[xy]-|\b(?:rgb|rgba|hsl|hsla|oklch|color-mix)\(|#[0-9A-Fa-f]{3,8}\b|\bdark:|(?:^|\s)(?:bg|border|text|shadow|ring|fill|stroke|from|via|to)-(?:white|black|transparent|slate|gray|zinc|neutral|stone|red|orange|amber|yellow|lime|green|emerald|teal|cyan|sky|blue|indigo|violet|purple|fuchsia|pink|rose)(?:[/-]\d+)?\b/;
@@ -131,7 +132,7 @@ const REMOVED_SOURCE_REPORT_DOT_HOOKS = [
     ["SourceReport", "StatusDot"].join(""),
     ["DashboardSourceReport", "StatusDot"].join(""),
     ["sourceReportStatus", "DotBase"].join(""),
-    ["data-sot-source-report-status", "dot"].join("-"),
+    ["data-source-report-status", "dot"].join("-"),
 ] as const;
 const SOURCE_REPORT_STATUS_BADGE_FORBIDDEN_OWNER_SNIPPETS = [
     "h-[22px] justify-normal gap-[5px] overflow-visible px-[8px] py-0",
@@ -140,7 +141,7 @@ const SOURCE_REPORT_STATUS_BADGE_FORBIDDEN_OWNER_SNIPPETS = [
     "px-[8px]",
     ...REMOVED_SOURCE_REPORT_DOT_HOOKS,
     '"inline-block size-[5px] rounded-[50%] bg-current"',
-    "data-sot-part={part}",
+    "data-part={part}",
     ['part = "source-report-status', 'dot"'].join("-"),
     ['part="dashboard-source-report-status', 'dot"'].join("-"),
 ] as const;
@@ -164,8 +165,7 @@ const SOURCE_REPORT_STATUS_BADGE_FORBIDDEN_STYLING_SNIPPETS = [
 ] as const;
 const SOURCE_REPORT_EMPTY_ALERT_COMPOSITION_CHECKS = [
     {
-        pattern:
-            /<Alert\b[\s\S]*?data-sot-source-report-missing-notice[\s\S]*?>/,
+        pattern: /<Alert\b[\s\S]*?data-source-report-missing-notice[\s\S]*?>/,
         snippets: [
             'variant="warningSoft"',
             'density="compact"',
@@ -173,7 +173,7 @@ const SOURCE_REPORT_EMPTY_ALERT_COMPOSITION_CHECKS = [
         ],
     },
     {
-        pattern: /<Alert\b[\s\S]*?data-sot-source-report-empty[\s\S]*?>/,
+        pattern: /<Alert\b[\s\S]*?data-source-report-empty[\s\S]*?>/,
         snippets: [
             'variant={tone === "danger" ? "statusError" : "default"}',
             'density="spacious"',
@@ -181,22 +181,20 @@ const SOURCE_REPORT_EMPTY_ALERT_COMPOSITION_CHECKS = [
         ],
     },
     {
-        pattern: /<Empty\b[\s\S]*?data-sot-source-report-empty[\s\S]*?>/,
+        pattern: /<Empty\b[\s\S]*?data-source-report-empty[\s\S]*?>/,
         snippets: ['variant="subtle"'],
     },
     {
-        pattern:
-            /<EmptyMedia\b[\s\S]*?data-sot-source-report-empty-icon[\s\S]*?>/,
+        pattern: /<EmptyMedia\b[\s\S]*?data-source-report-empty-icon[\s\S]*?>/,
         snippets: ['variant={tone === "danger" ? "dangerIcon" : "subtleIcon"}'],
     },
     {
-        pattern:
-            /<EmptyTitle\b[\s\S]*?data-sot-source-report-empty-title[\s\S]*?>/,
+        pattern: /<EmptyTitle\b[\s\S]*?data-source-report-empty-title[\s\S]*?>/,
         snippets: ['variant="compact"'],
     },
     {
         pattern:
-            /<EmptyDescription\b[\s\S]*?data-sot-source-report-empty-description[\s\S]*?>/,
+            /<EmptyDescription\b[\s\S]*?data-source-report-empty-description[\s\S]*?>/,
         snippets: ['variant="compact"'],
     },
 ] as const;
@@ -249,40 +247,40 @@ const DASHBOARD_RECORDING_PLAYER_CONTROLS_CLASS_INITIALIZERS = [
 const REMOVED_DASHBOARD_PLAYER_GLOBAL_SELECTOR_FRAGMENTS = [
     "dashboard-recording-player",
     "dashboard-player-control-icon",
-    'data-sot-control="dashboard-player-play"',
+    'data-control="dashboard-player-play"',
     "dashboard-player-current-time",
     "dashboard-player-duration",
-    'data-sot-control="dashboard-player-speed"',
-    '[data-sot-surface="dashboard-recording-player"][data-no-audio="true"]',
-    '[data-sot-part="dashboard-recording-player-meta"]',
+    'data-control="dashboard-player-speed"',
+    '[data-surface="dashboard-recording-player"][data-no-audio="true"]',
+    '[data-part="dashboard-recording-player-meta"]',
 ] as const;
 const REMOVED_DASHBOARD_NAV_FAVORITE_GLOBAL_SELECTORS = [
-    '[data-sot-list="dashboard-nav"]',
-    '[data-sot-part="dashboard-nav-section-label"]',
-    '[data-sot-control="dashboard-favorite"] svg',
-    '[data-sot-part="dashboard-favorite-count"]',
-    '[data-theme="dark"] [data-sot-part="dashboard-favorite-count"]',
-    '[data-sot-control="dashboard-favorite"][data-sot-state="selected"] svg',
-    '[data-sot-control="dashboard-favorite"][data-sot-state="selected"]\n    [data-sot-part="dashboard-favorite-count"]',
-    '[data-theme="dark"]\n    [data-sot-control="dashboard-favorite"][data-sot-state="selected"]\n    [data-sot-part="dashboard-favorite-count"]',
+    '[data-list="dashboard-nav"]',
+    '[data-part="dashboard-nav-section-label"]',
+    '[data-control="dashboard-favorite"] svg',
+    '[data-part="dashboard-favorite-count"]',
+    '[data-theme="dark"] [data-part="dashboard-favorite-count"]',
+    '[data-control="dashboard-favorite"][data-state="selected"] svg',
+    '[data-control="dashboard-favorite"][data-state="selected"]\n    [data-part="dashboard-favorite-count"]',
+    '[data-theme="dark"]\n    [data-control="dashboard-favorite"][data-state="selected"]\n    [data-part="dashboard-favorite-count"]',
 ] as const;
 const REMOVED_DASHBOARD_SYNC_GLOBAL_SELECTORS = [
-    '[data-sot-panel="dashboard-sync"]',
-    '[data-sot-panel="dashboard-sync"] [data-sot-part="dashboard-sync-indicator"]',
-    '[data-sot-part="dashboard-sync-text"]',
-    '[data-sot-part="dashboard-sync-title"]',
-    '[data-sot-part="dashboard-sync-subtitle"]',
-    '[data-sot-panel="dashboard-sync"][data-sot-state="queued"]',
-    '[data-sot-panel="dashboard-sync"][data-sot-state="running"]',
-    '[data-sot-panel="dashboard-sync"][data-sot-state="error"]',
+    '[data-panel="dashboard-sync"]',
+    '[data-panel="dashboard-sync"] [data-part="dashboard-sync-indicator"]',
+    '[data-part="dashboard-sync-text"]',
+    '[data-part="dashboard-sync-title"]',
+    '[data-part="dashboard-sync-subtitle"]',
+    '[data-panel="dashboard-sync"][data-state="queued"]',
+    '[data-panel="dashboard-sync"][data-state="running"]',
+    '[data-panel="dashboard-sync"][data-state="error"]',
 ] as const;
 const DASHBOARD_TOPBAR_CRUMB_REMOVED_GLOBAL_SELECTORS = [
-    '[data-sot-panel="dashboard-topbar"]',
-    '[data-theme="dark"] [data-sot-panel="dashboard-topbar"]',
-    '[data-sot-part="dashboard-crumbs"]',
-    '[data-sot-part="dashboard-crumb"]',
-    '[data-sot-part="dashboard-crumb-separator"]',
-    '[data-sot-part="dashboard-crumb-current"]',
+    '[data-panel="dashboard-topbar"]',
+    '[data-theme="dark"] [data-panel="dashboard-topbar"]',
+    '[data-part="dashboard-crumbs"]',
+    '[data-part="dashboard-crumb"]',
+    '[data-part="dashboard-crumb-separator"]',
+    '[data-part="dashboard-crumb-current"]',
 ] as const;
 const DASHBOARD_SYNC_VISUAL_GLOBAL_DECLARATION_RE =
     /\b(?:display|align-items|gap|padding|border-radius|background|border|width|height|box-shadow|animation|font|color|margin-top|flex|min-width)\s*:/;
@@ -613,15 +611,15 @@ function expectCnClassNameReferences(
     expect(openingElement).not.toContain('className="');
 }
 
-function expectSotPlayerNoAudioPrimitiveBindings(source: string) {
+function expectPlayerNoAudioPrimitiveBindings(source: string) {
     const noAudioAlert = extractOpeningElement(
         source,
-        "data-sot-state={playbackDisabled",
+        "data-state={playbackDisabled",
         "Alert",
     );
     const noAudioIcon = extractOpeningElement(
         source,
-        "data-sot-part={iconPart}",
+        "data-part={iconPart}",
         "VolumeX",
     );
     const noAudioText = extractOpeningElement(
@@ -631,12 +629,12 @@ function expectSotPlayerNoAudioPrimitiveBindings(source: string) {
     );
     const noAudioTitle = extractOpeningElement(
         source,
-        "data-sot-part={titlePart}",
+        "data-part={titlePart}",
         "AlertTitle",
     );
     const noAudioDescription = extractOpeningElement(
         source,
-        "data-sot-part={descriptionPart}",
+        "data-part={descriptionPart}",
         "AlertDescription",
     );
 
@@ -644,29 +642,29 @@ function expectSotPlayerNoAudioPrimitiveBindings(source: string) {
     expect(noAudioAlert).toContain('density="comfortable"');
     expect(noAudioAlert).toContain('layout="inline"');
     expect(noAudioAlert).toContain('className={cn("mb-3", className)}');
-    expect(noAudioAlert).toContain("data-sot-part={part}");
+    expect(noAudioAlert).toContain("data-part={part}");
     expect(noAudioAlert).toContain(
-        'data-sot-state={playbackDisabled ? "visible" : "hidden"}',
+        'data-state={playbackDisabled ? "visible" : "hidden"}',
     );
     expect(noAudioAlert).toContain("hidden={!playbackDisabled}");
     expect(noAudioAlert).toContain('role="status"');
-    expect(noAudioIcon).toContain("data-sot-part={iconPart}");
+    expect(noAudioIcon).toContain("data-part={iconPart}");
     expectClassNameConstReference(noAudioText, "PLAYER_NO_AUDIO_TEXT_CLASS");
     expect(noAudioText).toContain("data-player-no-audio-text");
-    expect(noAudioText).toContain("data-sot-part={textPart}");
+    expect(noAudioText).toContain("data-part={textPart}");
     expect(noAudioTitle).not.toContain("className=");
     expect(noAudioDescription).toContain('density="comfortable"');
 }
 
-function expectSotPlayerSourcePrimitiveBindings(source: string) {
+function expectPlayerSourcePrimitiveBindings(source: string) {
     const sourceBadge = extractOpeningElement(
         source,
-        'data-sot-control="player-source-tag"',
+        'data-control="player-source-tag"',
         "Badge",
     );
     const sourceIcon = extractOpeningElement(
         source,
-        'data-sot-part="source-icon"',
+        'data-part="source-icon"',
         "span",
     );
     const sourceIconImage = extractOpeningElement(
@@ -677,11 +675,11 @@ function expectSotPlayerSourcePrimitiveBindings(source: string) {
 
     expectClassNameConstReference(sourceBadge, "PLAYER_SOURCE_BADGE_CLASS");
     expect(sourceBadge).toContain('variant="outline"');
-    expect(sourceBadge).toContain('data-sot-control="player-source-tag"');
+    expect(sourceBadge).toContain('data-control="player-source-tag"');
     expectClassNameConstReference(sourceIcon, "PLAYER_SOURCE_ICON_CLASS");
-    expect(sourceIcon).toContain('data-sot-part="source-icon"');
+    expect(sourceIcon).toContain('data-part="source-icon"');
     expect(sourceIcon).toContain(
-        'data-sot-source-icon={hasImage ? "image" : "letter"}',
+        'data-source-icon={hasImage ? "image" : "letter"}',
     );
     expectClassNameConstReference(
         sourceIconImage,
@@ -840,8 +838,8 @@ const DASHBOARD_RECORDING_TAG_FILTER_FEATURE_OWNER_CLASS_SNIPPETS = [
     "bg-transparent",
     "text-muted-foreground",
     "hover:bg-accent hover:text-accent-foreground",
-    "data-[sot-state=selected]:bg-secondary",
-    "data-[sot-state=selected]:text-secondary-foreground",
+    "data-[state=selected]:bg-secondary",
+    "data-[state=selected]:text-secondary-foreground",
     "optionLabel:",
     "optionCount:",
 ] as const;
@@ -855,42 +853,46 @@ const DASHBOARD_TAIL_RESIDUE_FORBIDDEN_SNIPPETS = [
 ] as const;
 
 const DASHBOARD_RECORDING_TAG_FILTER_MIGRATED_GLOBAL_SELECTORS = [
-    '[data-sot-panel="recording-list-tag-filter"]',
-    '[data-sot-part="recording-list-tag-filter-label"]',
-    '[data-sot-part="recording-list-tag-filter-count"]',
-    '[data-sot-list="recording-list-tag-filter-list"]',
-    '[data-theme="dark"] [data-sot-list="recording-list-tag-filter-list"]',
-    '[data-sot-part="recording-list-tag-filter-option-label"]',
-    '[data-sot-part="recording-list-tag-filter-option-count"]',
+    '[data-panel="recording-list-tag-filter"]',
+    '[data-part="recording-list-tag-filter-label"]',
+    '[data-part="recording-list-tag-filter-count"]',
+    '[data-list="recording-list-tag-filter-list"]',
+    '[data-theme="dark"] [data-list="recording-list-tag-filter-list"]',
+    '[data-part="recording-list-tag-filter-option-label"]',
+    '[data-part="recording-list-tag-filter-option-count"]',
 ] as const;
 
 const DASHBOARD_SOURCE_FILTER_FEATURE_OWNER_CLASS_SNIPPETS = [
     "group/source-provider",
-    "data-[sot-state=connected-active]:text-foreground",
-    "data-[sot-state=sync-error]:text-foreground",
-    "data-[sot-state=disabled]:opacity-50",
-    "[&_[data-sot-part=source-provider-mark]]:size-[18px]",
-    "[&_[data-sot-part=source-provider-mark]]:rounded-sm",
-    "[&_[data-sot-part=source-provider-mark]_img]:object-contain",
-    "[&_[data-sot-part=source-provider-mark][data-sot-provider-cover=true]_img]:object-cover",
-    "data-[sot-state=no-results]:[&_[data-sot-part=source-provider-mark]]:opacity-60",
-    "data-[sot-state=disabled]:[&_[data-sot-part=source-provider-mark]]:grayscale",
+    "data-[state=connected-active]:text-foreground",
+    "data-[state=sync-error]:text-foreground",
+    "data-[state=disabled]:opacity-50",
+    "mark:",
+    "inline-flex size-[18px]",
+    "rounded-sm",
+    "data-[state=no-results]:opacity-60",
+    "data-[state=disabled]:grayscale",
+    "markImage:",
+    "object-contain",
+    "markImageCover:",
+    "object-cover",
+    "markLetter:",
     "size-1.5",
-    "data-[sot-tone=err]:bg-destructive",
-    "data-[sot-tone=syncing]:animate-[bpulse_1.2s_ease-in-out_infinite]",
+    "data-[tone=err]:bg-destructive",
+    "data-[tone=syncing]:animate-[bpulse_1.2s_ease-in-out_infinite]",
     "min-w-[22px]",
     "font-mono text-xs",
-    "data-[sot-tone=active]:text-foreground",
-    "data-[sot-tone=empty]:line-through",
-    "data-[sot-tone=err]:text-destructive",
+    "data-[tone=active]:text-foreground",
+    "data-[tone=empty]:line-through",
+    "data-[tone=err]:text-destructive",
     "ml-1.5",
     "h-6",
     "rounded-full",
-    "data-[sot-action=retry]:hidden",
-    "data-[sot-action=retry]:text-destructive",
-    "data-[sot-action=connect]:text-primary",
-    "group-hover/source-provider:data-[sot-action=retry]:inline-flex",
-    "group-focus-within/source-provider:data-[sot-action=retry]:inline-flex",
+    "data-[action=retry]:hidden",
+    "data-[action=retry]:text-destructive",
+    "data-[action=connect]:text-primary",
+    "group-hover/source-provider:data-[action=retry]:inline-flex",
+    "group-focus-within/source-provider:data-[action=retry]:inline-flex",
     "group-data-[sidebar-collapsed=true]/dashboard-workstation:hidden",
     "size-4",
     "cursor-pointer",
@@ -906,7 +908,8 @@ const DASHBOARD_SOURCE_FILTER_FEATURE_OWNER_CLASS_SNIPPETS = [
     "from:",
     "flex-[0_1_auto]",
     "truncate",
-    "[&_b]:font-semibold",
+    "strong:",
+    "whitespace-nowrap font-semibold text-foreground",
     "separator:",
     "w-2.5",
     "select-none",
@@ -916,7 +919,8 @@ const DASHBOARD_SOURCE_FILTER_FEATURE_OWNER_CLASS_SNIPPETS = [
     "max-w-full",
     "label:",
     "info:",
-    "[&_b]:mx-0.5",
+    "infoStrong:",
+    "mx-0.5 font-semibold text-foreground",
     "libraryRoot:",
     "mt-1.5 flex items-center",
     "libraryLabel:",
@@ -924,16 +928,16 @@ const DASHBOARD_SOURCE_FILTER_FEATURE_OWNER_CLASS_SNIPPETS = [
 ] as const;
 
 const DASHBOARD_SOURCE_FILTER_MIGRATED_GLOBAL_SELECTORS = [
-    '[data-sot-panel="dashboard-source-filter-stack"]',
-    '[data-theme="dark"] [data-sot-panel="dashboard-source-filter-stack"]',
-    '[data-sot-part="source-filter-from"] b',
-    '[data-sot-part="source-filter-separator"]',
-    '[data-sot-part="source-filter-chip"]',
+    '[data-panel="dashboard-source-filter-stack"]',
+    '[data-theme="dark"] [data-panel="dashboard-source-filter-stack"]',
+    '[data-part="source-filter-from"] b',
+    '[data-part="source-filter-separator"]',
+    '[data-part="source-filter-chip"]',
     "[data-stack-label]",
-    '[data-sot-part="source-filter-info"]',
-    '[data-sot-panel="dashboard-library-search-filter"]',
-    '[data-sot-part="library-search-filter-label"]',
-    '[data-sot-part="library-search-filter-chip"]',
+    '[data-part="source-filter-info"]',
+    '[data-panel="dashboard-library-search-filter"]',
+    '[data-part="library-search-filter-label"]',
+    '[data-part="library-search-filter-chip"]',
 ] as const;
 
 const DASHBOARD_TRANSCRIPT_COPY_CONTROLS = [
@@ -960,12 +964,12 @@ const DASHBOARD_TRANSCRIPT_RETRANSCRIPTION_DISMISS_CONTROLS = [
 ] as const;
 
 const DASHBOARD_COPY_ACTION_REMOVED_GLOBAL_SELECTORS = [
-    '[data-sot-part="dashboard-copy-label"]',
-    '[data-sot-part="dashboard-copy-icon"]',
-    '[data-sot-part="dashboard-transcript-actions"]',
-    '[data-sot-control="copy-local-transcript"][hidden]',
-    '[data-sot-control="copy-source-transcript"][hidden]',
-    '[data-sot-control="copy-source-report"][hidden]',
+    '[data-part="dashboard-copy-label"]',
+    '[data-part="dashboard-copy-icon"]',
+    '[data-part="dashboard-transcript-actions"]',
+    '[data-control="copy-local-transcript"][hidden]',
+    '[data-control="copy-source-transcript"][hidden]',
+    '[data-control="copy-source-report"][hidden]',
 ] as const;
 
 const OLD_UI_RE =
@@ -991,7 +995,9 @@ const LIBRARY_SEARCH_CLASS_PROPERTY_BY_OLD_OWNER_PROPERTY = {
     librarySearchScopeItem: "scopeItem",
     librarySearchScroll: "scroll",
     librarySearchStateCopy: "stateCopy",
-    librarySearchStateSkeleton: "stateSkeleton",
+    librarySearchStateCopyStrong: "stateCopyStrong",
+    librarySearchStateSkeleton: "indexingTrack",
+    librarySearchIndexingBar: "indexingBar",
     librarySearchTag: "tag",
 } as const;
 
@@ -1062,16 +1068,20 @@ const DASHBOARD_SEARCH_ACTIVITY_FEATURE_OWNER_CLASS_SNIPPETS = [
     },
     {
         propertyName: "librarySearchInputRow",
-        snippets: ["h-[49px] min-h-[49px]", "gap-[8px]", "px-[12px] py-[8px]"],
+        snippets: ["h-auto min-h-0", "gap-[8px]", "px-[12px] py-[8px]"],
     },
     {
         propertyName: "librarySearchInput",
-        snippets: ["h-8", "px-1 py-0", "text-sm"],
+        snippets: [
+            "h-8",
+            "px-1 py-0",
+            "text-[13.5px] leading-[1.35] font-medium",
+        ],
     },
     {
         propertyName: "librarySearchScope",
         snippets: [
-            "min-h-[39px]",
+            "w-full flex-wrap",
             "gap-[6px]",
             "px-[12px] py-[8px]",
             "border-b border-border",
@@ -1080,15 +1090,15 @@ const DASHBOARD_SEARCH_ACTIVITY_FEATURE_OWNER_CLASS_SNIPPETS = [
     },
     {
         propertyName: "librarySearchScopeItem",
-        snippets: ["h-6", "rounded-full", "px-2.5", "text-xs"],
+        snippets: ["h-[22px]", "rounded-full", "px-[10px]", "text-[11.5px]"],
     },
     {
         propertyName: "librarySearchError",
         snippets: [
-            "flex w-full flex-col items-center gap-2",
-            "px-4 py-4",
+            "w-full gap-[8px]",
+            "px-[16px] py-[18px]",
             "text-destructive",
-            "*:data-[slot=alert-description]:text-destructive",
+            "text-center text-[12.5px]",
         ],
     },
     {
@@ -1101,21 +1111,21 @@ const DASHBOARD_SEARCH_ACTIVITY_FEATURE_OWNER_CLASS_SNIPPETS = [
             "h-auto",
             "w-full",
             "flex-col items-start",
-            "px-2.5 py-2",
+            "px-[10px] py-[8px]",
             "whitespace-normal",
         ],
     },
     {
         propertyName: "librarySearchResultTitle",
-        snippets: ["text-sm", "font-semibold", "text-foreground"],
+        snippets: ["text-[13px]", "font-semibold", "text-foreground"],
     },
     {
         propertyName: "librarySearchResultMeta",
-        snippets: ["font-mono", "text-xs", "text-muted-foreground"],
+        snippets: ["font-mono", "text-[11.5px]", "text-muted-foreground"],
     },
     {
         propertyName: "librarySearchTag",
-        snippets: ["h-6", "w-fit", "justify-normal", "px-2"],
+        snippets: ["h-[22px]", "w-fit", "justify-normal", "pr-[9px] pl-[7px]"],
     },
     {
         propertyName: "dashboardActivityCount",
@@ -1127,7 +1137,7 @@ const DASHBOARD_SEARCH_ACTIVITY_FEATURE_OWNER_CLASS_SNIPPETS = [
     },
     {
         propertyName: "librarySearchRetry",
-        snippets: ["h-6", "px-2", "text-xs"],
+        snippets: ["h-[26px]", "px-[10px]", "text-[12px]"],
     },
     {
         propertyName: "librarySearchScroll",
@@ -1136,14 +1146,25 @@ const DASHBOARD_SEARCH_ACTIVITY_FEATURE_OWNER_CLASS_SNIPPETS = [
     {
         propertyName: "librarySearchStateSkeleton",
         snippets: [
-            "bg-primary/10",
-            "after:bg-primary/50",
-            "after:animate-[sbn-sweep_1.4s_linear_infinite]",
+            "bg-[color-mix(in_srgb,var(--signal-info)_16%,transparent)]",
+            "relative h-1 w-full overflow-hidden rounded-full",
+        ],
+    },
+    {
+        propertyName: "librarySearchIndexingBar",
+        snippets: [
+            "absolute inset-y-0 left-0 w-[36%]",
+            "bg-[linear-gradient(90deg,transparent,var(--signal-info)_50%,transparent)]",
+            "animate-[sbn-sweep_1.4s_linear_infinite]",
         ],
     },
     {
         propertyName: "librarySearchStateCopy",
-        snippets: ["text-sm", "[&_span]:font-semibold"],
+        snippets: ["text-[12.5px]", "text-muted-foreground"],
+    },
+    {
+        propertyName: "librarySearchStateCopyStrong",
+        snippets: ["font-semibold", "text-foreground"],
     },
     {
         propertyName: "librarySearchResultGroup",
@@ -1155,11 +1176,15 @@ const DASHBOARD_SEARCH_ACTIVITY_FEATURE_OWNER_CLASS_SNIPPETS = [
     },
     {
         propertyName: "librarySearchGroupLabel",
-        snippets: ["px-1.5 py-1", "font-mono", "tracking-wide"],
+        snippets: ["px-[6px] py-[4px]", "font-mono", "tracking-[0.84px]"],
     },
     {
         propertyName: "librarySearchHighlight",
-        snippets: ["bg-primary/10", "px-[2px]", "text-primary"],
+        snippets: [
+            "bg-[color-mix(in_srgb,var(--accent)_22%,transparent)]",
+            "px-[2px]",
+            "text-[var(--accent)]",
+        ],
     },
     {
         propertyName: "dashboardActivityClose",
@@ -1193,11 +1218,15 @@ const DASHBOARD_SEARCH_ACTIVITY_FEATURE_OWNER_CLASS_SNIPPETS = [
     },
     {
         propertyName: "dashboardActivityStatus",
+        snippets: ["flex items-center gap-2.5", "bg-muted"],
+    },
+    {
+        propertyName: "dashboardActivityStatusIndicator",
         snippets: [
-            "flex items-center gap-2.5",
-            "bg-muted",
-            "data-[state=running]:[&_[data-sot-part=dashboard-activity-status-indicator]]:animate-[bpulse_1.4s_ease-in-out_infinite]",
-            "data-[state=running]:[&_[data-sot-part=dashboard-activity-status-indicator]]:bg-primary",
+            "bg-primary",
+            "data-[state=error]:bg-destructive",
+            "data-[state=running]:animate-[bpulse_1.4s_ease-in-out_infinite]",
+            "data-[state=syncing]:animate-[bpulse_1.4s_ease-in-out_infinite]",
         ],
     },
     {
@@ -1206,12 +1235,15 @@ const DASHBOARD_SEARCH_ACTIVITY_FEATURE_OWNER_CLASS_SNIPPETS = [
     },
     {
         propertyName: "dashboardActivityItem",
+        snippets: ["grid grid-cols-[26px_1fr_auto]", "[&+&]:border-t"],
+    },
+    {
+        propertyName: "dashboardActivityItemIcon",
         snippets: [
-            "grid grid-cols-[26px_1fr_auto]",
-            "data-[kind=queued]:[&_[data-sot-part=dashboard-activity-item-icon]]:bg-muted",
-            "data-[kind=queued]:[&_[data-sot-part=dashboard-activity-item-icon]]:text-muted-foreground",
-            "data-[kind=partial-failed]:[&_[data-sot-part=dashboard-activity-item-icon]]:bg-secondary",
-            "data-[kind=partial-failed]:[&_[data-sot-part=dashboard-activity-item-icon]]:text-secondary-foreground",
+            "data-[kind=queued]:bg-muted",
+            "data-[kind=queued]:text-muted-foreground",
+            "data-[kind=partial-failed]:bg-secondary",
+            "data-[kind=partial-failed]:text-secondary-foreground",
         ],
     },
     {
@@ -1248,14 +1280,15 @@ const DASHBOARD_SEARCH_ACTIVITY_SOT_BODY_FORBIDDEN_CLASS_SNIPPETS = [
             "pt-[9.5px]",
             "pb-[6.5px]",
             "data-[active=true]:bg-",
-            "data-[sot-state=active]:bg-",
+            "data-[state=active]:bg-",
         ],
     },
 ] as const;
 
 const LIBRARY_SEARCH_FEATURE_OWNER_SOURCE_SNIPPETS = [
     "aria-expanded={open}",
-    'data-sot-state={open ? "open" : "idle"}',
+    'aria-haspopup="dialog"',
+    "aria-controls={open ? LIBRARY_SEARCH_DIALOG_ID : undefined}",
     "placeholder={t(",
     '"librarySearch.shortPlaceholder"',
 ] as const;
@@ -1273,40 +1306,40 @@ const DASHBOARD_SEARCH_CONTAINER_SOURCE_SNIPPETS = [
 
 const DASHBOARD_ACTIVITY_FEATURE_OWNER_SOURCE_SNIPPETS = [
     "aria-expanded={activityOpen}",
-    'data-sot-state={activityOpen ? "open" : "idle"}',
+    'data-state={activityOpen ? "open" : "idle"}',
 ] as const;
 
 const DASHBOARD_WORKSTATION_LEGACY_CONTROL_RE =
     /className=["']btn(?:\s+(?:ghost|primary|glass))?\b|track-fill|track-thumb|sk _is|_is-/;
 
 const DASHBOARD_DETAIL_PANE_SOT_HOOKS = [
-    'data-sot-panel="dashboard-transcript-pane"',
-    'data-sot-tab-pane="transcript"',
+    'data-panel="dashboard-transcript-pane"',
+    'data-tab-pane="transcript"',
     'surface="dashboard"',
-    'data-sot-tab-pane="speakers"',
-    'data-sot-part="dashboard-transcript-actions"',
+    'data-tab-pane="speakers"',
+    'data-part="dashboard-transcript-actions"',
     'part="dashboard-copy-label"',
-    'data-sot-part="dashboard-transcript-avatar"',
-    'data-sot-list="dashboard-speaker-rows"',
-    'data-sot-item="dashboard-speaker-row"',
-    'data-sot-part="dashboard-speaker-avatar"',
-    'data-sot-part="dashboard-speaker-row-meta"',
-    'data-sot-part="dashboard-speaker-name"',
-    'data-sot-part="dashboard-speaker-sub"',
-    'data-sot-part="dashboard-speaker-bar"',
+    'data-part="dashboard-transcript-avatar"',
+    'data-list="dashboard-speaker-rows"',
+    'data-item="dashboard-speaker-row"',
+    'data-part="dashboard-speaker-avatar"',
+    'data-part="dashboard-speaker-row-meta"',
+    'data-part="dashboard-speaker-name"',
+    'data-part="dashboard-speaker-sub"',
+    'data-part="dashboard-speaker-bar"',
     '"dashboard-speaker-bar-fill"',
 ];
 
 const DASHBOARD_TRANSCRIPT_TURN_EMPTY_SOT_HOOKS = [
-    'data-sot-item="dashboard-transcript-turn"',
-    'data-sot-state="loading"',
-    'data-sot-state="ready"',
-    'data-sot-part="dashboard-transcript-speaker-time"',
-    'data-sot-format="mono"',
-    'data-sot-panel="dashboard-transcript-empty"',
-    'data-sot-part="dashboard-transcript-empty-icon"',
-    'data-sot-part="dashboard-transcript-empty-message"',
-    'data-sot-part="dashboard-transcript-empty-sub"',
+    'data-item="dashboard-transcript-turn"',
+    'data-state="loading"',
+    'data-state="ready"',
+    'data-part="dashboard-transcript-speaker-time"',
+    'data-format="mono"',
+    'data-panel="dashboard-transcript-empty"',
+    'data-part="dashboard-transcript-empty-icon"',
+    'data-part="dashboard-transcript-empty-message"',
+    'data-part="dashboard-transcript-empty-sub"',
 ];
 
 const DASHBOARD_TRANSCRIPT_SKELETON_SHARED_TOKENS = [
@@ -1540,14 +1573,14 @@ const SOURCE_REPORT_SKELETON_OWNER_TOKENS = [
 ] as const;
 
 const DASHBOARD_SOURCE_REPORT_LOADED_SOT_HOOKS = [
-    "data-sot-source-report-segment-time",
-    'data-sot-format="mono"',
+    "data-source-report-segment-time",
+    'data-format="mono"',
     'valueFormat="mono"',
 ];
 
 const DASHBOARD_SOURCE_REPORT_META_VALUE_HELPER_HOOKS = [
-    "data-sot-source-report-meta-value",
-    "data-sot-format={valueFormat}",
+    "data-source-report-meta-value",
+    "data-format={valueFormat}",
 ];
 
 const DASHBOARD_SOURCE_REPORT_LOADED_LEGACY_CLASS_NAMES = [
@@ -1579,17 +1612,17 @@ const DASHBOARD_TRANSCRIPT_TURN_EMPTY_LEGACY_CLASS_NAMES = [
 ];
 
 const DASHBOARD_RETRANSCRIPTION_SOT_HOOKS = [
-    'data-sot-panel="dashboard-retranscription"',
-    'data-sot-part="dashboard-retranscription-disabled-hint"',
-    'data-sot-part="dashboard-retranscription-icon"',
-    'data-sot-part="dashboard-retranscription-spinner"',
-    'data-sot-part="dashboard-retranscription-icon-warn"',
-    'data-sot-part="dashboard-retranscription-icon-ok"',
-    'data-sot-part="dashboard-retranscription-body"',
-    'data-sot-part="dashboard-retranscription-title"',
-    'data-sot-part="dashboard-retranscription-sub"',
-    'data-sot-part="dashboard-retranscription-actions"',
-    'data-sot-part="dashboard-retranscription-refresh-marker"',
+    'data-panel="dashboard-retranscription"',
+    'data-part="dashboard-retranscription-disabled-hint"',
+    'data-part="dashboard-retranscription-icon"',
+    'data-part="dashboard-retranscription-spinner"',
+    'data-part="dashboard-retranscription-icon-warn"',
+    'data-part="dashboard-retranscription-icon-ok"',
+    'data-part="dashboard-retranscription-body"',
+    'data-part="dashboard-retranscription-title"',
+    'data-part="dashboard-retranscription-sub"',
+    'data-part="dashboard-retranscription-actions"',
+    'data-part="dashboard-retranscription-refresh-marker"',
 ];
 
 const DASHBOARD_RETRANSCRIPTION_LEGACY_CLASS_NAMES = [
@@ -1621,29 +1654,29 @@ const DASHBOARD_RETRANSCRIPTION_OWNER_CLASS_USAGES = [
 ] as const;
 
 const DASHBOARD_RETRANSCRIPTION_REPAINT_CSS_SELECTORS = [
-    '[data-sot-panel="dashboard-retranscription"]',
-    '[data-sot-part="dashboard-retranscription-icon"]',
-    '[data-sot-part="dashboard-retranscription-icon"] svg',
-    '[data-sot-part="dashboard-retranscription-body"]',
-    '[data-sot-part="dashboard-retranscription-title"]',
-    '[data-sot-part="dashboard-retranscription-sub"]',
-    '[data-sot-part="dashboard-retranscription-actions"]',
-    '[data-sot-part="dashboard-retranscription-disabled-hint"]',
-    '[data-sot-part="dashboard-retranscription-refresh-marker"]',
+    '[data-panel="dashboard-retranscription"]',
+    '[data-part="dashboard-retranscription-icon"]',
+    '[data-part="dashboard-retranscription-icon"] svg',
+    '[data-part="dashboard-retranscription-body"]',
+    '[data-part="dashboard-retranscription-title"]',
+    '[data-part="dashboard-retranscription-sub"]',
+    '[data-part="dashboard-retranscription-actions"]',
+    '[data-part="dashboard-retranscription-disabled-hint"]',
+    '[data-part="dashboard-retranscription-refresh-marker"]',
 ] as const;
 
 const DASHBOARD_RETRANSCRIPTION_REMOVED_GLOBAL_DISPLAY_SELECTORS = [
-    '[data-sot-panel="dashboard-retranscription"]',
-    '[data-sot-panel="dashboard-retranscription"][hidden]',
-    '[data-sot-panel="dashboard-retranscription"][data-retx-state="idle"]',
-    '[data-sot-part="dashboard-retranscription-icon"]',
-    '[data-sot-part="dashboard-retranscription-icon-warn"]',
-    '[data-sot-part="dashboard-retranscription-icon-ok"]',
-    '[data-sot-part="dashboard-retranscription-body"]',
-    '[data-sot-part="dashboard-retranscription-actions"]',
-    '[data-sot-part="dashboard-retranscription-refresh-marker"]',
-    '[data-sot-part="dashboard-retranscription-refresh-marker"][hidden]',
-    '[data-sot-part="dashboard-retranscription-disabled-hint"][hidden]',
+    '[data-panel="dashboard-retranscription"]',
+    '[data-panel="dashboard-retranscription"][hidden]',
+    '[data-panel="dashboard-retranscription"][data-retx-state="idle"]',
+    '[data-part="dashboard-retranscription-icon"]',
+    '[data-part="dashboard-retranscription-icon-warn"]',
+    '[data-part="dashboard-retranscription-icon-ok"]',
+    '[data-part="dashboard-retranscription-body"]',
+    '[data-part="dashboard-retranscription-actions"]',
+    '[data-part="dashboard-retranscription-refresh-marker"]',
+    '[data-part="dashboard-retranscription-refresh-marker"][hidden]',
+    '[data-part="dashboard-retranscription-disabled-hint"][hidden]',
     "[data-retx-retry]",
     "[data-retx-dismiss]",
 ] as const;
@@ -1678,61 +1711,61 @@ const DASHBOARD_RECORDING_LIST_BATCH_LEGACY_CLASS_NAMES = [
 ];
 
 const DASHBOARD_RECORDING_LIST_BATCH_SOT_HOOKS = [
-    'data-sot-control="recording-list-tag-filter-trigger"',
-    'data-sot-part="recording-list-tag-filter-label"',
-    'data-sot-part="recording-list-tag-filter-count"',
-    'data-sot-part="recording-list-tag-filter-caret"',
-    'data-sot-list="recording-list-tag-filter-list"',
-    'data-sot-part="recording-list-tag-filter-option-label"',
-    'data-sot-part="recording-list-tag-filter-option-count"',
-    'data-sot-list="dashboard-recording-list-scroll"',
-    'data-sot-part="dashboard-recording-list-group"',
-    'data-sot-part="dashboard-recording-list-group-heading"',
-    'data-sot-part="dashboard-recording-list-group-label"',
-    'data-sot-part="dashboard-recording-list-group-count"',
-    'data-sot-part="dashboard-recording-list-group-divider"',
-    'data-sot-part="recording-list-state-icon"',
-    'data-sot-part="recording-list-state-title"',
-    'data-sot-part="recording-list-state-description"',
-    'data-sot-control="recording-list-open-data-sources"',
-    'data-sot-control="recording-list-clear-filters"',
-    'data-sot-control="recording-list-clear-timeline"',
-    'data-sot-control="recording-list-clear-tag"',
-    'data-sot-part="recording-list-page-divider"',
-    'data-sot-part="recording-list-page-nav"',
-    'data-sot-part="recording-list-page-number"',
+    'data-control="recording-list-tag-filter-trigger"',
+    'data-part="recording-list-tag-filter-label"',
+    'data-part="recording-list-tag-filter-count"',
+    'data-part="recording-list-tag-filter-caret"',
+    'data-list="recording-list-tag-filter-list"',
+    'data-part="recording-list-tag-filter-option-label"',
+    'data-part="recording-list-tag-filter-option-count"',
+    'data-list="dashboard-recording-list-scroll"',
+    'data-part="dashboard-recording-list-group"',
+    'data-part="dashboard-recording-list-group-heading"',
+    'data-part="dashboard-recording-list-group-label"',
+    'data-part="dashboard-recording-list-group-count"',
+    'data-part="dashboard-recording-list-group-divider"',
+    'data-part="recording-list-state-icon"',
+    'data-part="recording-list-state-title"',
+    'data-part="recording-list-state-description"',
+    'data-control="recording-list-open-data-sources"',
+    'data-control="recording-list-clear-filters"',
+    'data-control="recording-list-clear-timeline"',
+    'data-control="recording-list-clear-tag"',
+    'data-part="recording-list-page-divider"',
+    'data-part="recording-list-page-nav"',
+    'data-part="recording-list-page-number"',
 ];
 
 const DASHBOARD_RECORDING_LIST_RESIDUAL_MIGRATED_GLOBAL_SELECTORS = [
-    '[data-sot-part="dashboard-recording-list-header"]',
-    '[data-theme="dark"] [data-sot-part="dashboard-recording-list-header"]',
-    '[data-sot-part="dashboard-recording-list-titlebar"]',
-    '[data-sot-part="dashboard-recording-list-title"]',
-    '[data-sot-part="dashboard-recording-list-count"]',
-    '[data-sot-list="dashboard-recording-list-scroll"]',
-    '[data-sot-list="dashboard-recording-list-scroll"]::-webkit-scrollbar',
-    '[data-sot-list="dashboard-recording-list-scroll"]::-webkit-scrollbar-track',
-    '[data-sot-list="dashboard-recording-list-scroll"]::-webkit-scrollbar-thumb',
-    '[data-sot-list="dashboard-recording-list-scroll"]::-webkit-scrollbar-thumb:hover',
-    '[data-sot-part="dashboard-transcript-body"]',
-    '[data-sot-part="dashboard-transcript-body"]::-webkit-scrollbar',
-    '[data-sot-part="dashboard-transcript-body"]::-webkit-scrollbar-track',
-    '[data-sot-part="dashboard-transcript-body"]::-webkit-scrollbar-thumb',
-    '[data-sot-part="dashboard-transcript-body"]::-webkit-scrollbar-thumb:hover',
-    '[data-sot-panel="dashboard-recording-list-mode"]',
-    '[data-sot-part="dashboard-recording-list-mode-label"]',
-    '[data-sot-part="dashboard-recording-list-mode-count"]',
-    '[data-sot-part="dashboard-recording-list-mode-segmented"]',
-    '[data-sot-part="recording-list-state"]',
-    '[data-sot-panel="recording-list-pagination"]',
-    '[data-sot-part="recording-list-state-icon"]',
-    '[data-sot-part="recording-list-state-icon"] svg',
-    '[data-sot-part="recording-list-state-title"]',
-    '[data-sot-part="recording-list-state-description"]',
-    '[data-sot-part="recording-list-page-divider"]',
-    '[data-sot-part="recording-list-page-status"]',
-    '[data-sot-part="recording-list-page-nav"]',
-    '[data-sot-part="recording-list-page-number"]',
+    '[data-part="dashboard-recording-list-header"]',
+    '[data-theme="dark"] [data-part="dashboard-recording-list-header"]',
+    '[data-part="dashboard-recording-list-titlebar"]',
+    '[data-part="dashboard-recording-list-title"]',
+    '[data-part="dashboard-recording-list-count"]',
+    '[data-list="dashboard-recording-list-scroll"]',
+    '[data-list="dashboard-recording-list-scroll"]::-webkit-scrollbar',
+    '[data-list="dashboard-recording-list-scroll"]::-webkit-scrollbar-track',
+    '[data-list="dashboard-recording-list-scroll"]::-webkit-scrollbar-thumb',
+    '[data-list="dashboard-recording-list-scroll"]::-webkit-scrollbar-thumb:hover',
+    '[data-part="dashboard-transcript-body"]',
+    '[data-part="dashboard-transcript-body"]::-webkit-scrollbar',
+    '[data-part="dashboard-transcript-body"]::-webkit-scrollbar-track',
+    '[data-part="dashboard-transcript-body"]::-webkit-scrollbar-thumb',
+    '[data-part="dashboard-transcript-body"]::-webkit-scrollbar-thumb:hover',
+    '[data-panel="dashboard-recording-list-mode"]',
+    '[data-part="dashboard-recording-list-mode-label"]',
+    '[data-part="dashboard-recording-list-mode-count"]',
+    '[data-part="dashboard-recording-list-mode-segmented"]',
+    '[data-part="recording-list-state"]',
+    '[data-panel="recording-list-pagination"]',
+    '[data-part="recording-list-state-icon"]',
+    '[data-part="recording-list-state-icon"] svg',
+    '[data-part="recording-list-state-title"]',
+    '[data-part="recording-list-state-description"]',
+    '[data-part="recording-list-page-divider"]',
+    '[data-part="recording-list-page-status"]',
+    '[data-part="recording-list-page-nav"]',
+    '[data-part="recording-list-page-number"]',
 ] as const;
 
 const DASHBOARD_RECORDING_LIST_RESIDUAL_OWNER_CLASS_REFS = [
@@ -1756,89 +1789,89 @@ const DASHBOARD_RECORDING_LIST_RESIDUAL_OWNER_CLASS_REFS = [
 ] as const;
 
 const DASHBOARD_WORKSPACE_MIGRATED_GLOBAL_SELECTORS = [
-    '[data-sot-panel="dashboard-workspace"]',
-    '[data-sot-panel="workstation-workspace"]',
+    '[data-panel="dashboard-workspace"]',
+    '[data-panel="workstation-workspace"]',
 ] as const;
 const MOBILE_OWNER_LAYOUT_MIGRATED_GLOBAL_SELECTORS = [
-    '[data-sot-shell="dashboard-workstation"]',
-    '[data-sot-shell="recording-workstation"]',
-    '[data-sot-panel="dashboard-main"]',
-    '[data-sot-surface="dashboard-recording-list"]',
-    '[data-sot-panel="recording-detail-list"]',
-    '[data-sot-panel="recording-workstation-detail"]',
-    '[data-sot-panel="workstation-sidebar"]',
+    '[data-shell="dashboard-workstation"]',
+    '[data-shell="recording-workstation"]',
+    '[data-panel="dashboard-main"]',
+    '[data-surface="dashboard-recording-list"]',
+    '[data-panel="recording-detail-list"]',
+    '[data-panel="recording-workstation-detail"]',
+    '[data-panel="workstation-sidebar"]',
 ] as const;
 
 const DASHBOARD_SIDEBAR_FOOTER_MIGRATED_GLOBAL_SELECTORS = [
-    '[data-sot-part="dashboard-sidebar-footer"]',
+    '[data-part="dashboard-sidebar-footer"]',
 ] as const;
 
 const DASHBOARD_RECORDING_LIST_HEADER_FORBIDDEN_CLASS_PATTERN =
     /\b(?:rgb|rgba|hsl|hsla|oklch|color-mix)\(|#[0-9A-Fa-f]{3,8}\b|\bdark:|(?:^|\s)(?:bg|border|text|shadow|ring|fill|stroke|from|via|to)-(?:white|black|slate|gray|zinc|neutral|stone|red|orange|amber|yellow|lime|green|emerald|teal|cyan|sky|blue|indigo|violet|purple|fuchsia|pink|rose)(?:[/-]\d+)?\b/;
 
 const DASHBOARD_RECORDING_LIST_PRIMITIVE_REPAINT_CSS_SELECTORS = [
-    '[data-sot-surface="dashboard-recording-list"][data-slot="card"]',
-    '[data-sot-part="dashboard-recording-list-content"][data-slot="card-content"]',
-    '[data-sot-control="source-filter-clear"][data-slot="button"]',
-    '[data-sot-part="source-filter-action"]',
-    '[data-sot-part="source-filter-action"]:focus-visible',
-    '[data-sot-part="source-filter-action"][disabled]',
-    '[data-sot-control="source-filter-clear-all"][data-slot="button"]',
-    '[data-sot-control="library-search-filter-clear"][data-slot="button"]',
-    '[data-sot-control="recording-list-tag-filter-trigger"][data-slot="button"]',
-    '[data-sot-control="recording-list-tag-filter"][data-slot="button"]',
-    '[data-sot-panel="recording-list-pagination"] [data-slot="button"]',
+    '[data-surface="dashboard-recording-list"][data-slot="card"]',
+    '[data-part="dashboard-recording-list-content"][data-slot="card-content"]',
+    '[data-control="source-filter-clear"][data-slot="button"]',
+    '[data-part="source-filter-action"]',
+    '[data-part="source-filter-action"]:focus-visible',
+    '[data-part="source-filter-action"][disabled]',
+    '[data-control="source-filter-clear-all"][data-slot="button"]',
+    '[data-control="library-search-filter-clear"][data-slot="button"]',
+    '[data-control="recording-list-tag-filter-trigger"][data-slot="button"]',
+    '[data-control="recording-list-tag-filter"][data-slot="button"]',
+    '[data-panel="recording-list-pagination"] [data-slot="button"]',
 ] as const;
 
 const DASHBOARD_RECORDING_LIST_PRIMITIVE_REPAINT_CSS_RE =
-    /\[data-sot-surface="dashboard-recording-list"\]\[data-slot="card"\]|\[data-sot-part="dashboard-recording-list-content"\]\[data-slot="card-content"\]|\[data-sot-part="source-filter-action"\]|\[data-sot-control="(?:source-filter-clear|source-filter-clear-all|library-search-filter-clear|recording-list-tag-filter-trigger|recording-list-tag-filter)"\]\[data-slot="button"\]|\[data-sot-panel="recording-list-pagination"\][\s\S]{0,80}\[data-slot="button"\]/;
+    /\[data-surface="dashboard-recording-list"\]\[data-slot="card"\]|\[data-part="dashboard-recording-list-content"\]\[data-slot="card-content"\]|\[data-part="source-filter-action"\]|\[data-control="(?:source-filter-clear|source-filter-clear-all|library-search-filter-clear|recording-list-tag-filter-trigger|recording-list-tag-filter)"\]\[data-slot="button"\]|\[data-panel="recording-list-pagination"\][\s\S]{0,80}\[data-slot="button"\]/;
 
 const DASHBOARD_RECORDING_ROW_MIGRATED_GLOBAL_SELECTORS = [
-    '[data-sot-list="dashboard-recording-rows"]',
-    '[data-sot-part="dashboard-recording-list-group"]',
-    '[data-sot-part="dashboard-recording-list-group-heading"]',
-    '[data-sot-part="dashboard-recording-list-group-label"]',
-    '[data-sot-part="dashboard-recording-list-group-count"]',
-    '[data-sot-part="dashboard-recording-list-group-divider"]',
-    '[data-sot-control="dashboard-recording-row"]',
-    '[data-sot-control="dashboard-recording-row"]:focus-visible',
-    '[data-sot-control="dashboard-recording-row"].is-hover-demo',
-    '[data-sot-control="dashboard-recording-row"].is-focus-demo',
-    '[data-sot-part="dashboard-recording-row-body"]',
-    '[data-sot-part="dashboard-recording-row-title"]',
-    '[data-sot-part="dashboard-recording-row-meta"]',
-    '[data-sot-part="dashboard-recording-row-secondary"]',
-    '[data-sot-part="dashboard-recording-row-actions"]',
+    '[data-list="dashboard-recording-rows"]',
+    '[data-part="dashboard-recording-list-group"]',
+    '[data-part="dashboard-recording-list-group-heading"]',
+    '[data-part="dashboard-recording-list-group-label"]',
+    '[data-part="dashboard-recording-list-group-count"]',
+    '[data-part="dashboard-recording-list-group-divider"]',
+    '[data-control="dashboard-recording-row"]',
+    '[data-control="dashboard-recording-row"]:focus-visible',
+    '[data-control="dashboard-recording-row"].is-hover-demo',
+    '[data-control="dashboard-recording-row"].is-focus-demo',
+    '[data-part="dashboard-recording-row-body"]',
+    '[data-part="dashboard-recording-row-title"]',
+    '[data-part="dashboard-recording-row-meta"]',
+    '[data-part="dashboard-recording-row-secondary"]',
+    '[data-part="dashboard-recording-row-actions"]',
 ] as const;
 
 const DASHBOARD_RECORDING_ROW_META_MIGRATED_GLOBAL_SELECTOR_FRAGMENTS = [
-    '[data-sot-part="dashboard-recording-duration"]',
-    '[data-sot-part="dashboard-recording-timestamp"]',
-    '[data-sot-part="dashboard-recording-timestamp-absolute"]',
-    '[data-sot-part="dashboard-recording-timestamp-relative"]',
+    '[data-part="dashboard-recording-duration"]',
+    '[data-part="dashboard-recording-timestamp"]',
+    '[data-part="dashboard-recording-timestamp-absolute"]',
+    '[data-part="dashboard-recording-timestamp-relative"]',
     'body[data-time-style="abs"]',
-    '[data-sot-part="dashboard-recording-source-mark"]',
-    '[data-sot-part="dashboard-recording-source-mark"] img',
-    '[data-sot-part="dashboard-recording-source-mark"][data-sot-provider-cover="true"]',
-    '[data-sot-part="dashboard-recording-source-mark"][data-sot-variant="letter"]',
-    '[data-theme="dark"] [data-sot-part="dashboard-recording-source-mark"]',
-    '[data-theme="dark"] [data-sot-part="dashboard-recording-source-mark"] img',
-    '[data-theme="dark"]\n    [data-sot-part="dashboard-recording-source-mark"][data-sot-variant="letter"]',
+    '[data-part="dashboard-recording-source-mark"]',
+    '[data-part="dashboard-recording-source-mark"] img',
+    '[data-part="dashboard-recording-source-mark"][data-provider-cover="true"]',
+    '[data-part="dashboard-recording-source-mark"][data-variant="letter"]',
+    '[data-theme="dark"] [data-part="dashboard-recording-source-mark"]',
+    '[data-theme="dark"] [data-part="dashboard-recording-source-mark"] img',
+    '[data-theme="dark"]\n    [data-part="dashboard-recording-source-mark"][data-variant="letter"]',
 ] as const;
 
 const DASHBOARD_TRANSCRIPT_DETAIL_PRIMITIVE_SELECTORS = [
-    '[data-sot-panel="dashboard-transcript-shell"][data-slot="card"]',
-    '[data-sot-part="dashboard-transcript-header"][data-slot="card-header"]',
-    '[data-sot-part="dashboard-transcript-language"][data-slot="badge"]',
-    '[data-sot-part="dashboard-transcript-body"][data-slot="card-content"]',
-    '[data-sot-control="copy-local-transcript"][data-slot="button"]',
-    '[data-sot-control="copy-source-transcript"][data-slot="button"]',
-    '[data-sot-control="copy-source-report"][data-slot="button"]',
-    '[data-sot-control="refresh-source-report"][data-slot="button"]',
-    '[data-sot-control="retranscribe-recording"][data-slot="button"]',
-    '[data-sot-control="retry-retranscription"][data-slot="button"]',
-    '[data-sot-control="dismiss-retranscription-failed"][data-slot="button"]',
-    '[data-sot-control="dismiss-retranscription-complete"][data-slot="button"]',
+    '[data-panel="dashboard-transcript-shell"][data-slot="card"]',
+    '[data-part="dashboard-transcript-header"][data-slot="card-header"]',
+    '[data-part="dashboard-transcript-language"][data-slot="badge"]',
+    '[data-part="dashboard-transcript-body"][data-slot="card-content"]',
+    '[data-control="copy-local-transcript"][data-slot="button"]',
+    '[data-control="copy-source-transcript"][data-slot="button"]',
+    '[data-control="copy-source-report"][data-slot="button"]',
+    '[data-control="refresh-source-report"][data-slot="button"]',
+    '[data-control="retranscribe-recording"][data-slot="button"]',
+    '[data-control="retry-retranscription"][data-slot="button"]',
+    '[data-control="dismiss-retranscription-failed"][data-slot="button"]',
+    '[data-control="dismiss-retranscription-complete"][data-slot="button"]',
 ] as const;
 
 const DASHBOARD_TRANSCRIPT_DETAIL_PRIMITIVE_REPAINT_DECLARATION_RE =
@@ -1853,37 +1886,37 @@ const ROUTE_FALLBACK_CHROME_SHELL_CLASS_VALUE =
 const DASHBOARD_ROUTE_LOADING_DETAIL_CLASS_VALUE =
     "flex min-h-0 min-w-0 flex-col gap-4";
 const DASHBOARD_LOADING_REMOVED_GLOBAL_SELECTORS = [
-    '[data-sot-shell="dashboard-loading"]',
-    '[data-sot-panel="dashboard-loading-list"]',
-    '[data-sot-panel="dashboard-loading-detail"]',
+    '[data-shell="dashboard-loading"]',
+    '[data-panel="dashboard-loading-list"]',
+    '[data-panel="dashboard-loading-detail"]',
 ] as const;
 const ROUTE_CHROME_REMOVED_GLOBAL_SELECTORS = [
-    '[data-sot-panel="route-sidebar"]',
-    '[data-sot-part="route-brand"]',
-    '[data-sot-part="route-brand"] img',
-    '[data-sot-part="route-brand-name"]',
-    '[data-sot-part="route-brand-subtitle"]',
-    '[data-sot-panel="route-main"]',
-    '[data-sot-panel="route-topbar"]',
-    '[data-sot-part="route-crumbs"]',
-    '[data-sot-part="route-crumb-current"]',
-    '[data-sot-panel="route-workspace"]',
+    '[data-panel="route-sidebar"]',
+    '[data-part="route-brand"]',
+    '[data-part="route-brand"] img',
+    '[data-part="route-brand-name"]',
+    '[data-part="route-brand-subtitle"]',
+    '[data-panel="route-main"]',
+    '[data-panel="route-topbar"]',
+    '[data-part="route-crumbs"]',
+    '[data-part="route-crumb-current"]',
+    '[data-panel="route-workspace"]',
 ] as const;
 const ROUTE_CHROME_FORBIDDEN_FRAMEWORK_RE =
     /var\(--glass|var\(--graphite|color-mix\(|backdrop-filter/;
 const GLOBALS_FRAMEWORK_MARKETING_RE =
     /Graphite Glass|SOT web kit|Liquid Glass|Apple-graphite|radial-gradient/;
 const REMOVED_DASHBOARD_BRAND_GLOBAL_SELECTORS = [
-    '[data-sot-part="dashboard-brand"]',
-    '[data-sot-part="dashboard-brand"] img',
-    '[data-sot-part="dashboard-brand-name"]',
-    '[data-sot-part="dashboard-brand-subtitle"]',
+    '[data-part="dashboard-brand"]',
+    '[data-part="dashboard-brand"] img',
+    '[data-part="dashboard-brand-name"]',
+    '[data-part="dashboard-brand-subtitle"]',
 ] as const;
 const REMOVED_WORKSTATION_BRAND_GLOBAL_SELECTORS = [
-    '[data-sot-part="workstation-brand"]',
-    '[data-sot-part="workstation-brand"] img',
-    '[data-sot-part="workstation-brand-name"]',
-    '[data-sot-part="workstation-brand-subtitle"]',
+    '[data-part="workstation-brand"]',
+    '[data-part="workstation-brand"] img',
+    '[data-part="workstation-brand-name"]',
+    '[data-part="workstation-brand-subtitle"]',
 ] as const;
 const DASHBOARD_BRAND_OWNER_CLASS_INITIALIZERS = [
     {
@@ -1905,6 +1938,12 @@ const DASHBOARD_BRAND_OWNER_CLASS_INITIALIZERS = [
 ] as const;
 
 describe("dashboard SOT foundation", () => {
+    it("keeps broad descendant variants out of the dashboard workstation", () => {
+        const workstation = readSource("features/dashboard/workstation.tsx");
+
+        expect(workstation).not.toMatch(/\[&(?:_|>)/);
+    });
+
     it("keeps dashboard brand visuals owner-local while workstation brand globals stay removed", () => {
         const globals = readSource("app/globals.css");
         const workstation = readSource("features/dashboard/workstation.tsx");
@@ -1942,9 +1981,9 @@ describe("dashboard SOT foundation", () => {
             "className={cn(\n                        dashboardBrandClassNames.wrapper,\n                        dashboardSidebarCollapseClassNames.brand,",
         );
         for (const dataSotPart of [
-            'data-sot-part="dashboard-brand"',
-            'data-sot-part="dashboard-brand-name"',
-            'data-sot-part="dashboard-brand-subtitle"',
+            'data-part="dashboard-brand"',
+            'data-part="dashboard-brand-name"',
+            'data-part="dashboard-brand-subtitle"',
         ]) {
             expect(workstation).toContain(dataSotPart);
         }
@@ -1981,33 +2020,33 @@ describe("dashboard SOT foundation", () => {
         );
         const dashboardLoadingShellOpening = extractOpeningElement(
             loading,
-            'dataSotShell="dashboard-loading"',
-            "RouteFallbackChrome",
+            'aria-label="正在加载仪表盘"',
+            "section",
         );
         const dashboardLoadingListCard = extractElementSlice(
             loading,
-            'data-sot-panel="dashboard-loading-list"',
+            "className={dashboardRouteLoadingListClassName}",
             "Card",
         );
         const dashboardLoadingListCardOpening = extractOpeningElement(
             loading,
-            'data-sot-panel="dashboard-loading-list"',
+            "className={dashboardRouteLoadingListClassName}",
             "Card",
         );
         const routeFallbackDetailLoadingCard = extractElementSlice(
             routeChrome,
-            "data-sot-panel={dataSotPanel}",
+            "recordingDetailLoadingSkeletonClassNames.recordingDetailLoadingAvatar",
             "Card",
         );
         const routeFallbackDetailLoadingCardOpening = extractOpeningElement(
             routeChrome,
-            "data-sot-panel={dataSotPanel}",
+            '"flex min-h-0 min-w-0 flex-col gap-4",',
             "Card",
         );
-        const dashboardLoadingDetailFallback = extractSelfClosingElement(
+        const dashboardLoadingDetailCard = extractElementSlice(
             loading,
-            'data-sot-panel="dashboard-loading-detail"',
-            "RouteFallbackDetailLoadingSkeleton",
+            '"flex min-h-0 min-w-0 flex-col gap-4 flex-1",',
+            "Card",
         );
 
         expect(loading).toContain(
@@ -2036,12 +2075,10 @@ describe("dashboard SOT foundation", () => {
         expect(routeChrome).toContain(
             "function RouteFallbackDetailLoadingSkeleton",
         );
-        expect(dashboardLoadingShellOpening).toContain(
-            'dataSotShell="dashboard-loading"',
-        );
+        expect(dashboardLoadingShellOpening).toContain("aria-busy={true}");
         for (const [label, card] of [
             ["dashboard-loading-list", dashboardLoadingListCard],
-            ["dashboard-loading-detail", routeFallbackDetailLoadingCard],
+            ["dashboard-loading-detail", dashboardLoadingDetailCard],
         ] as const) {
             expect(card, label).toContain('variant="default"');
             expect(card, label).toContain("hasNoPadding");
@@ -2059,9 +2096,7 @@ describe("dashboard SOT foundation", () => {
         expect(routeFallbackDetailLoadingCardOpening).toContain(
             `"${DASHBOARD_ROUTE_LOADING_DETAIL_CLASS_VALUE}"`,
         );
-        expect(dashboardLoadingDetailFallback).toContain(
-            'data-sot-panel="dashboard-loading-detail"',
-        );
+        expect(dashboardLoadingDetailCard).toContain("hasNoPadding");
         expect(loading).not.toContain('variant="routeLoadingSurface"');
         expect(cardPrimitive).not.toContain("routeLoadingSurface");
         for (const loadingSkeletonClassName of [
@@ -2106,25 +2141,17 @@ describe("dashboard SOT foundation", () => {
         expect(loading).toContain('size="default"');
         expect(routeChrome).toContain('size="default"');
         expect(loading).toContain("className={");
-        expect(loading).toContain('dataSotShell="dashboard-loading"');
-        expect(routeChrome).toContain('data-sot-panel="route-sidebar"');
-        expect(routeChrome).toContain('data-sot-panel="route-main"');
-        expect(routeChrome).toContain('data-sot-panel="route-topbar"');
-        expect(routeChrome).toContain('data-sot-panel="route-workspace"');
-        expect(routeChrome).toContain('data-sot-part="route-brand"');
-        expect(routeChrome).toContain('data-sot-part="route-brand-name"');
-        expect(routeChrome).toContain('data-sot-part="route-brand-subtitle"');
-        expect(routeChrome).toContain('data-sot-part="route-crumbs"');
-        expect(routeChrome).toContain('data-sot-part="route-crumb-current"');
-        expect(loading).toContain('data-sot-panel="dashboard-loading-list"');
-        expect(loading).toContain('data-sot-panel="dashboard-loading-detail"');
-        expect(loading).toContain('data-sot-panel="recording-list-loading"');
-        expect(routeChrome).toContain(
-            'data-sot-panel="recording-detail-loading"',
-        );
-        expect(loading).toContain('from "../route-chrome";');
-        expect(loading).toContain("RouteFallbackChrome");
-        expect(loading).toContain("RouteFallbackDetailLoadingSkeleton");
+        expect(loading).toContain('aria-label="正在加载仪表盘"');
+        expect(loading).toContain('aria-label="应用导航"');
+        expect(loading).toContain('aria-label="当前页面"');
+        for (const routeElement of ["<aside", "<main", "<header"]) {
+            expect(routeChrome).toContain(routeElement);
+        }
+        expect(routeChrome).not.toContain('data-panel="route-');
+        expect(loading).not.toContain('data-panel="dashboard-loading');
+        expect(loading).not.toContain('from "../route-chrome";');
+        expect(loading).not.toContain("RouteFallbackChrome");
+        expect(loading).not.toContain("RouteFallbackDetailLoadingSkeleton");
         expect(loading).toContain("routeFallbackSurfaceClassName");
         expect(loading).not.toContain("routeChromeStyles");
         expect(loading).not.toContain("route-chrome.module.css");
@@ -2143,9 +2170,9 @@ describe("dashboard SOT foundation", () => {
             ).toEqual([]);
         }
         for (const removedLoadingSelector of [
-            '[data-sot-panel="recording-route-loading-detail"]',
-            '[data-sot-panel="recording-list-loading"]',
-            '[data-sot-panel="recording-detail-loading"]',
+            '[data-panel="recording-route-loading-detail"]',
+            '[data-panel="recording-list-loading"]',
+            '[data-panel="recording-detail-loading"]',
         ]) {
             expect(globals).not.toContain(removedLoadingSelector);
         }
@@ -2222,27 +2249,27 @@ describe("dashboard SOT foundation", () => {
         expect(workstation).not.toContain(["SOT", "DASHBOARD", ""].join("_"));
         const detailHeader = extractOpeningElement(
             workstation,
-            'data-sot-panel="dashboard-detail-header"',
+            'data-panel="dashboard-detail-header"',
             "CardHeader",
         );
         const detailHeaderTitle = extractOpeningElement(
             workstation,
-            'data-sot-part="detail-header-title"',
+            'data-part="detail-header-title"',
             "CardTitle",
         );
         const detailHeaderTitleInput = extractOpeningElement(
             workstation,
-            'data-sot-part="detail-header-title-input"',
+            'data-part="detail-header-title-input"',
             "Input",
         );
         const detailHeaderLocalBadge = extractOpeningElement(
             workstation,
-            'data-sot-part="detail-header-local-badge"',
+            'data-part="detail-header-local-badge"',
             "Badge",
         );
         const detailHeaderStatusBadge = extractOpeningElement(
             workstation,
-            'data-sot-part="detail-header-title-status"',
+            'data-part="detail-header-title-status"',
             "Badge",
         );
         expect(detailHeader).toContain(
@@ -2296,22 +2323,22 @@ describe("dashboard SOT foundation", () => {
         );
         const moreActionsMenu = extractOpeningElement(
             workstation,
-            'data-sot-menu="recording-more-actions"',
+            'data-menu="recording-more-actions"',
             "DropdownMenuContent",
         );
         const renameMenuItem = extractOpeningElement(
             workstation,
-            'data-sot-menu-item="rename"',
+            'data-menu-item="rename"',
             "DropdownMenuItem",
         );
         const localDeleteMenuItem = extractOpeningElement(
             workstation,
-            'data-sot-menu-item="delete-local"',
+            'data-menu-item="delete-local"',
             "DropdownMenuItem",
         );
         const deleteSeparator = extractOpeningElement(
             workstation,
-            'data-sot-menu-separator="delete"',
+            'data-menu-separator="delete"',
             "DropdownMenuSeparator",
         );
         expect(moreActionsMenu).toContain('variant="glass"');
@@ -2324,24 +2351,24 @@ describe("dashboard SOT foundation", () => {
         expect(deleteSeparator).toContain('density="compact"');
         expect(deleteSeparator).not.toContain("className=");
         for (const selector of [
-            'data-sot-control="rename-recording-title"',
-            'data-sot-control="recording-more-actions"',
-            'data-sot-control="ai-rename"',
+            'data-control="rename-recording-title"',
+            'data-control="recording-more-actions"',
+            'data-control="ai-rename"',
         ]) {
             expect(globals).not.toContain(selector);
         }
         expect(
             collectCssRuleBlocks(
                 globals,
-                '[data-sot-panel="dashboard-detail-header"]',
+                '[data-panel="dashboard-detail-header"]',
             ).filter(
                 ({ prelude }) =>
                     !prelude.includes(
-                        '[data-sot-panel="dashboard-detail"][data-empty="true"]',
+                        '[data-panel="dashboard-detail"][data-empty="true"]',
                     ),
             ),
         ).toEqual([]);
-        expect(globals).not.toContain('[data-sot-part="detail-header-title"]');
+        expect(globals).not.toContain('[data-part="detail-header-title"]');
 
         for (const primitive of [
             "Breadcrumb",
@@ -2422,19 +2449,19 @@ describe("dashboard SOT foundation", () => {
         const badge = readSource("components/ui/badge.tsx");
         const button = readSource("components/ui/button.tsx");
         const card = readSource("components/ui/card.tsx");
-        const sotPlayerPrimitives = readSource(
-            "features/recordings/components/sot-player-primitives.tsx",
+        const playerPrimitives = readSource(
+            "features/recordings/components/player-primitives.tsx",
         );
         const globals = readSource("app/globals.css");
         const playerSurfaceIndex = workstation.indexOf(
-            'data-sot-surface="dashboard-recording-player"',
+            'data-surface="dashboard-recording-player"',
         );
         const playerStart = workstation.lastIndexOf(
             "<Card",
             playerSurfaceIndex,
         );
         const transcriptShellIndex = workstation.indexOf(
-            'data-sot-panel="dashboard-transcript-shell"',
+            'data-panel="dashboard-transcript-shell"',
             playerSurfaceIndex,
         );
         expect(playerSurfaceIndex).toBeGreaterThanOrEqual(0);
@@ -2445,26 +2472,26 @@ describe("dashboard SOT foundation", () => {
         const statusBadge = extractOpeningElement(
             player,
             "selectedPlayerStatus.label",
-            "SotPlayerStatusBadge",
+            "PlayerStatusBadge",
         );
         const statusVariantBlock = extractBoundedSlice(
-            sotPlayerPrimitives,
+            playerPrimitives,
             "const PLAYER_STATUS_VARIANT",
-            "export function SotPlayerStatusBadge",
+            "export function PlayerStatusBadge",
         );
         const playerStatusPrimitiveBadge = extractOpeningElement(
-            sotPlayerPrimitives,
-            'data-sot-control="player-status"',
+            playerPrimitives,
+            'data-control="player-status"',
             "Badge",
         );
         const noAudioAlert = extractOpeningElement(
             player,
             'part="dashboard-recording-player-no-audio"',
-            "SotPlayerNoAudioAlert",
+            "PlayerNoAudioAlert",
         );
         const playerMetaHeader = extractOpeningElement(
             player,
-            'data-sot-part="dashboard-recording-player-meta"',
+            'data-part="dashboard-recording-player-meta"',
             "CardHeader",
         );
         const playerControlsCallsite = extractSelfClosingElement(
@@ -2474,77 +2501,77 @@ describe("dashboard SOT foundation", () => {
         );
         const volumeMuteControl = extractOpeningElement(
             playerControls,
-            'data-sot-control="dashboard-player-volume-mute"',
+            'data-control="dashboard-player-volume-mute"',
             "Button",
         );
         const playerVolumeControl = extractOpeningElement(
             playerControls,
-            'data-sot-control="dashboard-player-volume"',
+            'data-control="dashboard-player-volume"',
             "Button",
         );
         const playerBackControl = extractOpeningElement(
             playerControls,
-            'data-sot-control="dashboard-player-back"',
+            'data-control="dashboard-player-back"',
             "Button",
         );
         const playerPlayControl = extractOpeningElement(
             playerControls,
-            'data-sot-control="dashboard-player-play"',
+            'data-control="dashboard-player-play"',
             "Button",
         );
         const playerForwardControl = extractOpeningElement(
             playerControls,
-            'data-sot-control="dashboard-player-forward"',
+            'data-control="dashboard-player-forward"',
             "Button",
         );
         const playerDate = extractOpeningElement(
             player,
-            'data-sot-part="dashboard-recording-player-date"',
+            'data-part="dashboard-recording-player-date"',
             "span",
         );
         const playerCurrentTime = extractOpeningElement(
             playerControls,
-            'data-sot-part="dashboard-player-current-time"',
+            'data-part="dashboard-player-current-time"',
             "span",
         );
         const playerDuration = extractOpeningElement(
             playerControls,
-            'data-sot-part="dashboard-player-duration"',
+            'data-part="dashboard-player-duration"',
             "span",
         );
         const playerSeekShell = extractOpeningElement(
             playerControls,
-            'data-sot-part="dashboard-player-seek-shell"',
+            'data-part="dashboard-player-seek-shell"',
             "span",
         );
         const playerSeekSlider = extractSelfClosingElement(
             playerControls,
-            'data-sot-control="dashboard-player-seek"',
+            'data-control="dashboard-player-seek"',
             "Slider",
         );
         const playerSpeed = extractOpeningElement(
             playerControls,
-            'data-sot-control="dashboard-player-speed"',
+            'data-control="dashboard-player-speed"',
             "Button",
         );
         const playerVolumeAnchor = extractOpeningElement(
             playerControls,
-            'data-sot-part="dashboard-player-volume-anchor"',
+            'data-part="dashboard-player-volume-anchor"',
             "div",
         );
         const playerVolumeValue = extractOpeningElement(
             playerControls,
-            'data-sot-part="dashboard-player-volume-value"',
+            'data-part="dashboard-player-volume-value"',
             "span",
         );
         const playerCardOpening = extractOpeningElement(
             player,
-            'data-sot-surface="dashboard-recording-player"',
+            'data-surface="dashboard-recording-player"',
             "Card",
         );
         const playerCardBlock = extractElementSlice(
             player,
-            'data-sot-surface="dashboard-recording-player"',
+            'data-surface="dashboard-recording-player"',
             "Card",
         );
         const hiddenAudio = extractElementSlice(
@@ -2559,11 +2586,11 @@ describe("dashboard SOT foundation", () => {
             `className="${EXPECTED_DASHBOARD_RECORDING_PLAYER_CARD_CLASS_NAME}"`,
         );
         expect(playerCardOpening).toContain(
-            'data-sot-surface="dashboard-recording-player"',
+            'data-surface="dashboard-recording-player"',
         );
         expect(playerCardOpening).toContain("data-no-audio={");
         expect(playerCardOpening).toContain("data-playing={");
-        expect(playerCardOpening).toContain("data-sot-state={");
+        expect(playerCardOpening).toContain("data-state={");
         expect(playerCardBlock).not.toContain(
             'variant="dashboardRecordingPlayer"',
         );
@@ -2601,7 +2628,7 @@ describe("dashboard SOT foundation", () => {
         );
         expect(playerControls).toContain('data-icon="inline-start"');
         expect(playerControls).toContain(
-            'data-sot-part="dashboard-player-control-icon"',
+            'data-part="dashboard-player-control-icon"',
         );
         expectCnClassNameReferences(playerCurrentTime, [
             "DASHBOARD_PLAYER_TIME_CLASS_NAME",
@@ -2646,52 +2673,54 @@ describe("dashboard SOT foundation", () => {
         expect(playerSpeed).toContain(
             "DASHBOARD_PLAYER_DISABLED_BUTTON_CLASS_NAME",
         );
-        expect(playerSpeed).toContain("data-sot-state={playerControlState}");
+        expect(playerSpeed).toContain("data-state={playerControlState}");
         expect(workstation).toContain(
             'import { DashboardRecordingPlayerControls } from "@/features/dashboard/components/dashboard-recording-player-controls";',
         );
-        for (const propRef of [
-            "currentTime={currentTime}",
-            "duration={playerDurationValue}",
-            "isPlaying={isPlaying}",
-            "onCyclePlaybackSpeed={cyclePlaybackSpeed}",
-            "onSeekBySeconds={seekDashboardPlayerBySeconds}",
-            "onSeekToPercent={seekDashboardPlayerToPercent}",
-            "onTogglePlayPause={togglePlayPause}",
-            "onVolumeChange={setVolume}",
-            "onVolumeOpenChange={setVolumeOpen}",
-            "playbackDisabled={playbackDisabled}",
-            "playbackSpeedLabel={playbackSpeedLabel}",
-            "progress={progress}",
-            "volume={volume}",
-            "volumePopoverOpen={volumePopoverOpen}",
+        for (const [prop, value] of [
+            ["currentTime", "currentTime"],
+            ["duration", "playerDurationValue"],
+            ["isPlaying", "isPlaying"],
+            ["onCyclePlaybackSpeed", "cyclePlaybackSpeed"],
+            ["onSeekBySeconds", "seekDashboardPlayerBySeconds"],
+            ["onSeekToPercent", "seekDashboardPlayerToPercent"],
+            ["onTogglePlayPause", "togglePlayPause"],
+            ["onVolumeChange", "setVolume"],
+            ["onVolumeOpenChange", "setVolumeOpen"],
+            ["playbackDisabled", "playbackDisabled"],
+            ["playbackSpeedLabel", "playbackSpeedLabel"],
+            ["progress", "progress"],
+            ["volume", "volume"],
+            ["volumePopoverOpen", "volumePopoverOpen"],
         ]) {
-            expect(playerControlsCallsite).toContain(propRef);
+            expect(playerControlsCallsite).toMatch(
+                new RegExp(`${prop}=\\{\\s*${value}\\s*\\}`),
+            );
         }
         for (const workstationDirectControlToken of [
-            "<SotPlayerControlButton",
-            "<SotPlayerPrimaryButton",
-            "<SotPlayerSpeedButton",
-            "<SotPlayerSeekSlider",
-            "<SotPlayerVolumeSlider",
-            'data-sot-control="dashboard-player-back"',
-            'data-sot-control="dashboard-player-play"',
-            'data-sot-control="dashboard-player-forward"',
-            'data-sot-control="dashboard-player-seek"',
-            'data-sot-control="dashboard-player-speed"',
-            'data-sot-control="dashboard-player-volume"',
-            'data-sot-control="dashboard-player-volume-mute"',
-            'data-sot-control="dashboard-player-volume-slider"',
-            'data-sot-part="dashboard-player-control-icon"',
-            'data-sot-part="dashboard-player-current-time"',
-            'data-sot-part="dashboard-player-duration"',
-            'data-sot-part="dashboard-player-seek-shell"',
-            'data-sot-part="dashboard-player-volume-anchor"',
-            'data-sot-part="dashboard-player-volume-value"',
+            "<PlayerControlButton",
+            "<PlayerPrimaryButton",
+            "<PlayerSpeedButton",
+            "<PlayerSeekSlider",
+            "<PlayerVolumeSlider",
+            'data-control="dashboard-player-back"',
+            'data-control="dashboard-player-play"',
+            'data-control="dashboard-player-forward"',
+            'data-control="dashboard-player-seek"',
+            'data-control="dashboard-player-speed"',
+            'data-control="dashboard-player-volume"',
+            'data-control="dashboard-player-volume-mute"',
+            'data-control="dashboard-player-volume-slider"',
+            'data-part="dashboard-player-control-icon"',
+            'data-part="dashboard-player-current-time"',
+            'data-part="dashboard-player-duration"',
+            'data-part="dashboard-player-seek-shell"',
+            'data-part="dashboard-player-volume-anchor"',
+            'data-part="dashboard-player-volume-value"',
         ]) {
             expect(workstation).not.toContain(workstationDirectControlToken);
         }
-        expect(player).toContain("<SotPlayerNoAudioAlert");
+        expect(player).toContain("<PlayerNoAudioAlert");
         expect(alert).not.toContain("playerNoAudio");
         expect(alert).not.toContain("data-player-no-audio-text");
         expect(noAudioAlert).toContain(
@@ -2714,11 +2743,11 @@ describe("dashboard SOT foundation", () => {
         expect(noAudioAlert).not.toContain("density=");
         expect(noAudioAlert).not.toContain("layout=");
         expect(noAudioAlert).not.toContain("className=");
-        expect(sotPlayerPrimitives).toContain("SotPlayerNoAudioAlert");
-        expectSotPlayerNoAudioPrimitiveBindings(sotPlayerPrimitives);
-        expect(sotPlayerPrimitives).not.toContain("<SotPlayerNoAudioIcon");
+        expect(playerPrimitives).toContain("PlayerNoAudioAlert");
+        expectPlayerNoAudioPrimitiveBindings(playerPrimitives);
+        expect(playerPrimitives).not.toContain("<PlayerNoAudioIcon");
         expect(player).not.toContain(
-            '<SotPlayerNoAudioIcon className="size-3.5" />',
+            '<PlayerNoAudioIcon className="size-3.5" />',
         );
         expect(player).toContain(
             'textPart="dashboard-recording-player-no-audio-text"',
@@ -2744,21 +2773,21 @@ describe("dashboard SOT foundation", () => {
             "SOT_PLAYER_PRIMARY_BUTTON_SIZE_CLASS",
             "SOT_PLAYER_SPEED_BUTTON_CLASS",
             "SOT_PLAYER_SPEED_BUTTON_SIZE_CLASS",
-            "type SotPlayerButtonProps",
-            "SotPlayerControlButton",
-            "SotPlayerPrimaryButton",
-            "SotPlayerSpeedButton",
+            "type PlayerButtonProps",
+            "PlayerControlButton",
+            "PlayerPrimaryButton",
+            "PlayerSpeedButton",
         ]) {
-            expect(sotPlayerPrimitives).not.toContain(
+            expect(playerPrimitives).not.toContain(
                 removedPlayerButtonPrimitiveToken,
             );
         }
         expect(button).not.toContain("dashboard-player-volume-icon");
         expect(button).not.toContain("recording-player-volume-icon");
         expect(playerControls).toContain("<Button");
-        expect(playerControls).not.toContain("<SotPlayerControlButton");
-        expect(playerControls).not.toContain("<SotPlayerPrimaryButton");
-        expect(playerControls).not.toContain("<SotPlayerSpeedButton");
+        expect(playerControls).not.toContain("<PlayerControlButton");
+        expect(playerControls).not.toContain("<PlayerPrimaryButton");
+        expect(playerControls).not.toContain("<PlayerSpeedButton");
         expect(playerControls).not.toContain('controlSize="sm"');
         for (const removedPlayerProp of [
             `variant="${"playerControl"}"`,
@@ -2792,9 +2821,9 @@ describe("dashboard SOT foundation", () => {
         expect(badge).not.toContain("playerSource:");
         expect(badge).not.toContain(`${"player"}Status:`);
         expect(badge).not.toContain("min-w-[65.171875px]");
-        expect(badge).not.toContain("[&_[data-sot-part=status-dot]]");
-        expect(badge).not.toContain("[&_[data-sot-part=status-label]]");
-        expect(sotPlayerPrimitives).toContain("const PLAYER_STATUS_VARIANT");
+        expect(badge).not.toContain("[&_[data-part=status-dot]]");
+        expect(badge).not.toContain("[&_[data-part=status-label]]");
+        expect(playerPrimitives).toContain("const PLAYER_STATUS_VARIANT");
         expect(statusVariantBlock).toContain(
             'React.ComponentProps<typeof Badge>["variant"]',
         );
@@ -2807,46 +2836,44 @@ describe("dashboard SOT foundation", () => {
         ]) {
             expect(statusVariantBlock).toContain(expectedStatusVariant);
         }
-        expect(sotPlayerPrimitives).not.toContain("PLAYER_STATUS_TONE_CLASS");
+        expect(playerPrimitives).not.toContain("PLAYER_STATUS_TONE_CLASS");
         expect(playerStatusPrimitiveBadge).toContain(
             "variant={PLAYER_STATUS_VARIANT[tone]}",
         );
         expect(playerStatusPrimitiveBadge).toContain("className={className}");
         expect(playerStatusPrimitiveBadge).toContain(
-            'data-sot-control="player-status"',
+            'data-control="player-status"',
         );
-        expect(playerStatusPrimitiveBadge).toContain("data-sot-tone={tone}");
-        expect(sotPlayerPrimitives).not.toContain(
+        expect(playerStatusPrimitiveBadge).toContain("data-tone={tone}");
+        expect(playerPrimitives).not.toContain(
             '"size-1.5 rounded-full bg-current"',
         );
-        expect(sotPlayerPrimitives).not.toContain("animate-[bpulse");
-        expect(sotPlayerPrimitives).not.toContain("--source-provider-status");
+        expect(playerPrimitives).not.toContain("animate-[bpulse");
+        expect(playerPrimitives).not.toContain("--source-provider-status");
         expect(badge).not.toContain("playerTagChip:");
         expect(badge).not.toContain("playerTagOverflow:");
-        expect(player).toContain("<SotPlayerStatusBadge");
-        expect(statusBadge).toContain("label={selectedPlayerStatus.label}");
+        expect(player).toContain("<PlayerStatusBadge");
+        expect(statusBadge).toMatch(
+            /label=\{\s*selectedPlayerStatus\.label\s*\}/,
+        );
         expect(statusBadge).toMatch(
             /tone=\{\s*selectedPlayerStatus\.tone\s*\}/,
         );
         expect(statusBadge).toContain('className="ml-auto"');
-        expect(sotPlayerPrimitives).not.toContain(
-            "SOT_PLAYER_STATUS_BADGE_CLASS",
-        );
-        expect(sotPlayerPrimitives).toContain("className?: string;");
-        expect(sotPlayerPrimitives).not.toContain(
-            "[&_[data-sot-part=status-dot]]",
-        );
-        expect(sotPlayerPrimitives).not.toContain('data-sot-part="status-dot"');
-        expect(sotPlayerPrimitives).toContain('data-sot-part="status-label"');
-        expectSotPlayerSourcePrimitiveBindings(sotPlayerPrimitives);
-        for (const sotPlayerTagClassConstant of [
+        expect(playerPrimitives).not.toContain("SOT_PLAYER_STATUS_BADGE_CLASS");
+        expect(playerPrimitives).toContain("className?: string;");
+        expect(playerPrimitives).not.toContain("[&_[data-part=status-dot]]");
+        expect(playerPrimitives).not.toContain('data-part="status-dot"');
+        expect(playerPrimitives).toContain('data-part="status-label"');
+        expectPlayerSourcePrimitiveBindings(playerPrimitives);
+        for (const playerTagClassConstant of [
             "PLAYER_TAG_COLOR_CLASS",
             "PLAYER_TAG_CHIP_CLASS",
             "PLAYER_TAG_OVERFLOW_CLASS",
         ]) {
-            expect(sotPlayerPrimitives).toContain(sotPlayerTagClassConstant);
+            expect(playerPrimitives).toContain(playerTagClassConstant);
         }
-        for (const removedSotPlayerTagClassConstant of [
+        for (const removedPlayerTagClassConstant of [
             "SOT_PLAYER_TAG_BADGE_CLASS",
             "SOT_PLAYER_TAG_OVERFLOW_BADGE_CLASS",
             "SOT_PLAYER_TAG_ADD_BUTTON_CLASS",
@@ -2855,11 +2882,11 @@ describe("dashboard SOT foundation", () => {
             "SOT_PLAYER_TAG_CHIP_VARIABLES_CLASS",
             "SOT_PLAYER_TAG_COLOR_TOKEN",
         ]) {
-            expect(sotPlayerPrimitives).not.toContain(
-                removedSotPlayerTagClassConstant,
+            expect(playerPrimitives).not.toContain(
+                removedPlayerTagClassConstant,
             );
         }
-        for (const sotPlayerTagChipToken of [
+        for (const playerTagChipToken of [
             "--sot-player-tag-chip-bg",
             "--sot-player-tag-chip-border",
             "--sot-player-tag-chip-fg",
@@ -2867,29 +2894,27 @@ describe("dashboard SOT foundation", () => {
             "--sot-player-tag-chip-blue-border",
             "--sot-player-tag-chip-blue-fg",
         ]) {
-            expect(globals).not.toContain(sotPlayerTagChipToken);
-            expect(sotPlayerPrimitives).not.toContain(sotPlayerTagChipToken);
+            expect(globals).not.toContain(playerTagChipToken);
+            expect(playerPrimitives).not.toContain(playerTagChipToken);
         }
-        expect(sotPlayerPrimitives).not.toContain("sotPlayerTagChipStyle");
-        expect(sotPlayerPrimitives).not.toContain(
+        expect(playerPrimitives).not.toContain("playerTagChipStyle");
+        expect(playerPrimitives).not.toContain(
             'background: "var(--sot-player-tag-chip-bg)"',
         );
-        expect(sotPlayerPrimitives).not.toContain(
+        expect(playerPrimitives).not.toContain(
             'borderColor: "var(--sot-player-tag-chip-border)"',
         );
-        expect(sotPlayerPrimitives).not.toContain(
+        expect(playerPrimitives).not.toContain(
             'color: "var(--sot-player-tag-chip-fg)"',
         );
         expect(globals).not.toContain("dashboard-recording-tag-chip");
         expect(badge).not.toContain("dashboard-recording-tag-chip");
-        expect(sotPlayerPrimitives).not.toContain(
-            "dashboard-recording-tag-chip",
+        expect(playerPrimitives).not.toContain("dashboard-recording-tag-chip");
+        expect(playerControls).toContain(
+            'data-panel="dashboard-recording-player-controls"',
         );
         expect(playerControls).toContain(
-            'data-sot-panel="dashboard-recording-player-controls"',
-        );
-        expect(playerControls).toContain(
-            'data-sot-control="dashboard-player-seek"',
+            'data-control="dashboard-player-seek"',
         );
         expect(playerControls).toContain("<Slider");
         expect(playerControls).toContain('"flex-none"');
@@ -2899,7 +2924,7 @@ describe("dashboard SOT foundation", () => {
         expect(playerSeekSlider).toContain(
             "aria-valuenow={Math.round(progress)}",
         );
-        expect(playerSeekSlider).toContain("data-sot-state={controlState}");
+        expect(playerSeekSlider).toContain("data-state={controlState}");
         expect(playerSeekSlider).toContain("onClick={(event) =>");
         expect(playerSeekSlider).toContain("onKeyDown={(event) =>");
         expect(playerSeekSlider).toContain('event.key === "ArrowLeft"');
@@ -2915,15 +2940,15 @@ describe("dashboard SOT foundation", () => {
         expect(playerControls).not.toContain("SOT_PLAYER_SEEK_RANGE_CLASS");
         expect(playerControls).not.toContain("SOT_PLAYER_SEEK_THUMB_CLASS");
         expect(playerControls).not.toContain("dashboardSeekSliderRootStyle");
-        expect(playerControls).not.toContain("sotPlayerSeekRangeStyle");
-        expect(playerControls).not.toContain("sotPlayerSeekThumbStyle");
+        expect(playerControls).not.toContain("playerSeekRangeStyle");
+        expect(playerControls).not.toContain("playerSeekThumbStyle");
         expect(playerControls).not.toContain("className: SOT_PLAYER");
-        expect(playerControls).not.toContain("style: sotPlayer");
+        expect(playerControls).not.toContain("style: player");
         expect(playerControls).not.toContain(
             "style: dashboardSeekSliderRootStyle",
         );
         expect(playerControls).toContain(
-            'data-sot-control="dashboard-player-volume"',
+            'data-control="dashboard-player-volume"',
         );
         expect(playerControls).toContain("<Popover");
         expect(playerControls).toContain("<PopoverTrigger asChild>");
@@ -2943,11 +2968,11 @@ describe("dashboard SOT foundation", () => {
             "SOT_PLAYER_SEEK_THUMB_CLASS",
             "SOT_PLAYER_VOLUME_SLIDER_CLASS",
             "SOT_PLAYER_VOLUME_POPOVER_CONTENT_CLASS",
-            "SotPlayerSeekSlider",
-            "SotPlayerVolumeSlider",
-            "SotPlayerVolumePopoverContent",
+            "PlayerSeekSlider",
+            "PlayerVolumeSlider",
+            "PlayerVolumePopoverContent",
         ]) {
-            expect(sotPlayerPrimitives).not.toContain(wrapperToken);
+            expect(playerPrimitives).not.toContain(wrapperToken);
         }
 
         for (const removedGlobalSelector of REMOVED_DASHBOARD_PLAYER_GLOBAL_SELECTOR_FRAGMENTS) {
@@ -2956,56 +2981,56 @@ describe("dashboard SOT foundation", () => {
             expect(badge).not.toContain(removedGlobalSelector);
             expect(button).not.toContain(removedGlobalSelector);
             expect(card).not.toContain(removedGlobalSelector);
-            expect(sotPlayerPrimitives).not.toContain(removedGlobalSelector);
+            expect(playerPrimitives).not.toContain(removedGlobalSelector);
         }
         expect(globals).not.toContain(
-            '[data-sot-surface="dashboard-recording-player"][data-slot="card"]',
+            '[data-surface="dashboard-recording-player"][data-slot="card"]',
         );
         expect(globals).not.toMatch(
-            /\[data-sot-surface="dashboard-recording-player"\]\s+\[data-sot-part="dashboard-recording-player-meta"\]\[data-slot="card-header"\]/,
+            /\[data-surface="dashboard-recording-player"\]\s+\[data-part="dashboard-recording-player-meta"\]\[data-slot="card-header"\]/,
         );
         expect(globals).not.toMatch(
-            /\[data-sot-surface="dashboard-recording-player"\]\s+\[data-sot-panel="dashboard-recording-player-controls"\]\[data-slot="card-content"\]/,
+            /\[data-surface="dashboard-recording-player"\]\s+\[data-panel="dashboard-recording-player-controls"\]\[data-slot="card-content"\]/,
         );
         expect(globals).not.toContain(
-            '[data-sot-control="player-status"][data-slot="badge"]',
+            '[data-control="player-status"][data-slot="badge"]',
         );
         expect(
-            collectCssRuleBlocks(globals, '[data-sot-control="player-status"]'),
+            collectCssRuleBlocks(globals, '[data-control="player-status"]'),
         ).toEqual([]);
         for (const selector of [
-            '[data-sot-part="dashboard-recording-player-no-audio"][data-slot="alert"]',
-            '[data-sot-part="dashboard-recording-player-no-audio-title"][data-slot="alert-title"]',
-            '[data-sot-part="dashboard-recording-player-no-audio-description"][data-slot="alert-description"]',
-            '[data-sot-panel="dashboard-player-volume-popover"][data-slot="popover-content"]',
-            '[data-sot-control="player-source-tag"][data-slot="badge"]',
+            '[data-part="dashboard-recording-player-no-audio"][data-slot="alert"]',
+            '[data-part="dashboard-recording-player-no-audio-title"][data-slot="alert-title"]',
+            '[data-part="dashboard-recording-player-no-audio-description"][data-slot="alert-description"]',
+            '[data-panel="dashboard-player-volume-popover"][data-slot="popover-content"]',
+            '[data-control="player-source-tag"][data-slot="badge"]',
         ]) {
             expect(globals).not.toContain(selector);
         }
         for (const [surface, selector] of [
             [
-                '[data-sot-surface="dashboard-recording-player"]',
-                '[data-sot-panel="dashboard-player-volume-popover"]',
+                '[data-surface="dashboard-recording-player"]',
+                '[data-panel="dashboard-player-volume-popover"]',
             ],
             [
-                '[data-sot-surface="dashboard-recording-player"]',
-                '[data-sot-panel="dashboard-player-volume-popover"][hidden]',
+                '[data-surface="dashboard-recording-player"]',
+                '[data-panel="dashboard-player-volume-popover"][hidden]',
             ],
             [
-                '[data-sot-surface="dashboard-recording-player"]',
-                '[data-sot-panel="dashboard-player-volume-popover"][data-open="true"]',
+                '[data-surface="dashboard-recording-player"]',
+                '[data-panel="dashboard-player-volume-popover"][data-open="true"]',
             ],
             [
-                '[data-sot-surface="dashboard-recording-player"]',
-                '[data-sot-part="dashboard-player-volume-row"]',
+                '[data-surface="dashboard-recording-player"]',
+                '[data-part="dashboard-player-volume-row"]',
             ],
             [
-                '[data-sot-surface="dashboard-recording-player"]',
-                '[data-sot-part="dashboard-player-volume-icon"]',
+                '[data-surface="dashboard-recording-player"]',
+                '[data-part="dashboard-player-volume-icon"]',
             ],
             [
-                '[data-sot-surface="dashboard-recording-player"]',
-                '[data-sot-part="dashboard-player-volume-value"]',
+                '[data-surface="dashboard-recording-player"]',
+                '[data-part="dashboard-player-volume-value"]',
             ],
         ] as const) {
             expect(
@@ -3015,14 +3040,14 @@ describe("dashboard SOT foundation", () => {
             ).toEqual([]);
         }
         for (const selector of [
-            '[data-sot-part="dashboard-player-seek-shell"]',
-            '[data-sot-part="dashboard-player-volume-anchor"]',
+            '[data-part="dashboard-player-seek-shell"]',
+            '[data-part="dashboard-player-volume-anchor"]',
         ]) {
             expect(playerControls).toContain(selector.replace(/\[|\]/g, ""));
             expect(collectCssRuleBlocks(globals, selector)).toEqual([]);
         }
         expect(playerControls).not.toContain(
-            'data-sot-part="dashboard-player-seek-thumb"',
+            'data-part="dashboard-player-seek-thumb"',
         );
         const dashboardPlayerSliderPrimitiveBlocks = [
             "dashboard-player-seek",
@@ -3034,7 +3059,7 @@ describe("dashboard SOT foundation", () => {
                         globals,
                         `[data-slot="${slot}"]`,
                     ).filter(({ prelude }) =>
-                        prelude.includes(`[data-sot-control="${control}"]`),
+                        prelude.includes(`[data-control="${control}"]`),
                     ),
             ),
         );
@@ -3143,13 +3168,11 @@ describe("dashboard SOT foundation", () => {
             'from "@/features/dashboard/components/library-search";',
         );
 
+        expect(workstation).toContain('data-surface="dashboard-workstation"');
         expect(workstation).toContain(
-            'data-sot-surface="dashboard-workstation"',
+            'data-state={hydrated ? "ready" : "loading"}',
         );
-        expect(workstation).toContain(
-            'data-sot-state={hydrated ? "ready" : "loading"}',
-        );
-        expect(workstation).toContain('data-sot-shell="dashboard-workstation"');
+        expect(workstation).toContain('data-shell="dashboard-workstation"');
         expect(workstation).toContain(
             'data-drawer-state={drawerOpen ? "open" : "closed"}',
         );
@@ -3169,8 +3192,8 @@ describe("dashboard SOT foundation", () => {
             "data-source-status={selectedSourceRow?.status ?? undefined}",
         );
         expect(workstation).toContain('data-time-style="rel"');
-        expect(workstation).toContain('data-sot-panel="dashboard-sidebar"');
-        expect(workstation).toContain('data-sot-list="dashboard-nav"');
+        expect(workstation).toContain('data-panel="dashboard-sidebar"');
+        expect(workstation).toContain('data-list="dashboard-nav"');
         for (const selector of REMOVED_DASHBOARD_NAV_FAVORITE_GLOBAL_SELECTORS) {
             expect(globals).not.toContain(selector);
         }
@@ -3196,19 +3219,19 @@ describe("dashboard SOT foundation", () => {
                 dashboardNavClassNames,
                 "favoriteCount",
             ),
-        ).not.toContain("dark:data-[sot-state=selected]");
+        ).not.toContain("dark:data-[state=selected]");
         const dashboardNav = extractOpeningElement(
             workstation,
-            'data-sot-list="dashboard-nav"',
+            'data-list="dashboard-nav"',
             "nav",
         );
         expect(dashboardNav).toContain(
             "className={dashboardNavClassNames.root}",
         );
-        expect(workstation).toContain('data-sot-panel="dashboard-main"');
+        expect(workstation).toContain('data-panel="dashboard-main"');
         const dashboardMain = extractOpeningElement(
             workstation,
-            'data-sot-panel="dashboard-main"',
+            'data-panel="dashboard-main"',
             "main",
         );
         const dashboardMainClassName = expectExactStringConstInitializer(
@@ -3224,20 +3247,20 @@ describe("dashboard SOT foundation", () => {
         );
         const dashboardMainGlobalBlocks = collectCssRuleBlocks(
             globals,
-            '[data-sot-panel="dashboard-main"]',
+            '[data-panel="dashboard-main"]',
         );
         expect(dashboardMainGlobalBlocks).toEqual([]);
         expect(globals).not.toContain(
-            '[data-sot-panel="dashboard-main"] {\n    display: flex;\n    flex-direction: column;\n    min-width: 0;\n    height: 100vh;\n}',
+            '[data-panel="dashboard-main"] {\n    display: flex;\n    flex-direction: column;\n    min-width: 0;\n    height: 100vh;\n}',
         );
         for (const selector of MOBILE_OWNER_LAYOUT_MIGRATED_GLOBAL_SELECTORS) {
             expect(globals).not.toContain(selector);
             expect(collectCssRuleBlocks(globals, selector)).toEqual([]);
         }
-        expect(workstation).toContain('data-sot-panel="dashboard-topbar"');
+        expect(workstation).toContain('data-panel="dashboard-topbar"');
         const dashboardTopbar = extractOpeningElement(
             workstation,
-            'data-sot-panel="dashboard-topbar"',
+            'data-panel="dashboard-topbar"',
             "header",
         );
         const dashboardTopbarClassNames = extractBoundedSlice(
@@ -3271,7 +3294,7 @@ describe("dashboard SOT foundation", () => {
         }
         const dashboardWorkspace = extractOpeningElement(
             workstation,
-            'data-sot-panel="dashboard-workspace"',
+            'data-panel="dashboard-workspace"',
             "div",
         );
         const dashboardWorkspaceClassName = expectExactStringConstInitializer(
@@ -3290,11 +3313,11 @@ describe("dashboard SOT foundation", () => {
             expect(collectCssRuleBlocks(globals, selector)).toEqual([]);
         }
         expect(globals).not.toContain(
-            '[data-sot-panel="dashboard-workspace"]\n        > [data-sot-panel="dashboard-detail"]',
+            '[data-panel="dashboard-workspace"]\n        > [data-panel="dashboard-detail"]',
         );
         const dashboardSidebar = extractOpeningElement(
             workstation,
-            'data-sot-panel="dashboard-sidebar"',
+            'data-panel="dashboard-sidebar"',
             "aside",
         );
         const dashboardSidebarClassNames = extractBoundedSlice(
@@ -3319,35 +3342,24 @@ describe("dashboard SOT foundation", () => {
             expect(collectExactCssRuleBlocks(globals, selector)).toEqual([]);
         }
         expect(globals).not.toContain(
-            '[data-theme="dark"] [data-sot-panel="dashboard-sidebar"],\n.dark [data-sot-panel="dashboard-sidebar"]',
+            '[data-theme="dark"] [data-panel="dashboard-sidebar"],\n.dark [data-panel="dashboard-sidebar"]',
         );
         const dashboardSidebarGlobalBlocks = collectCssRuleBlocks(
             globals,
-            '[data-sot-panel="dashboard-sidebar"]',
+            '[data-panel="dashboard-sidebar"]',
         );
-        expect(dashboardSidebarGlobalBlocks).toHaveLength(1);
-        expect(dashboardSidebarGlobalBlocks[0]?.prelude).toContain(
-            '[data-sot-panel="dashboard-sync"]',
+        expect(dashboardSidebarGlobalBlocks).toEqual([]);
+        expect(globals).not.toContain(
+            '[data-control="dashboard-sync"][disabled]',
         );
-        expect(dashboardSidebarGlobalBlocks[0]?.declarations).toContain(
-            "pointer-events: none;",
-        );
-        expect(dashboardSidebarGlobalBlocks[0]?.declarations).not.toMatch(
-            DASHBOARD_SIDEBAR_VISUAL_GLOBAL_DECLARATION_RE,
-        );
-        expect(globals).toContain(
-            '[data-sot-control="dashboard-sync"][disabled] {\n    pointer-events: none;',
-        );
-        expect(globals).toContain(
-            '[data-sot-panel="settings-scroll-body"][hidden] {\n    display: none;\n}',
-        );
-        expect(globals).toContain(
-            '[data-sot-panel="dashboard-detail"][data-empty="true"] [data-detail-empty] {\n    display: flex;',
-        );
-        expect(workstation).toContain('data-sot-panel="dashboard-workspace"');
+        expect(button).toContain("disabled:pointer-events-none");
+        expect(workstation).toContain("disabled={syncButtonBusy}");
+        expect(globals).not.toContain('[data-panel="settings-scroll-body"]');
+        expect(globals).not.toContain("[data-detail-empty]");
+        expect(workstation).toContain('data-panel="dashboard-workspace"');
         const dashboardDetailPanel = extractOpeningElement(
             workstation,
-            'data-sot-panel="dashboard-detail"',
+            'data-panel="dashboard-detail"',
             "section",
         );
         const dashboardDetailPanelClassName = expectExactStringConstInitializer(
@@ -3363,26 +3375,27 @@ describe("dashboard SOT foundation", () => {
             OWNER_WORKSPACE_FORBIDDEN_CLASS_RE,
         );
         expect(workstation).toContain(
-            'data-sot-control="dashboard-drawer-trigger"',
+            'data-control="dashboard-drawer-trigger"',
         );
         expect(workstation).toContain('id="drawer-scrim"');
         expect(workstation).toContain('id="drawer-trigger"');
         expect(workstation).not.toContain("data-drawer-open=");
         expect(workstation).not.toContain(
-            'data-sot-surface="dashboard-source-rail"',
+            'data-surface="dashboard-source-rail"',
         );
-        expect(librarySearch).toContain('data-sot-control="dashboard-search"');
-        expect(workstation).toContain('data-sot-control="dashboard-activity"');
+        expect(librarySearch).toContain('aria-haspopup="dialog"');
+        expect(workstation).toContain('data-control="dashboard-activity"');
         const dashboardSearchSlice = librarySearch;
         for (const featureHook of [
-            'data-sot-control="dashboard-search"',
-            'data-sot-panel="library-search"',
-            'data-sot-control="library-search-input"',
-            'data-sot-control="library-search-clear"',
-            'data-sot-part="library-search-scope"',
-            'data-sot-control="library-search-retry"',
-            'data-sot-control="library-search-result"',
-            'data-sot-part="library-search-tag-chip"',
+            "aria-expanded={open}",
+            "aria-controls={open ? LIBRARY_SEARCH_DIALOG_ID : undefined}",
+            'role="dialog"',
+            'aria-autocomplete="list"',
+            'role="combobox"',
+            'aria-label={t("librarySearch.clearSearch")}',
+            'aria-label={t("librarySearch.scopeLegend")}',
+            'role="listbox"',
+            'role="option"',
         ]) {
             expect(dashboardSearchSlice).toContain(featureHook);
         }
@@ -3402,18 +3415,18 @@ describe("dashboard SOT foundation", () => {
         }
         const dashboardActivitySlice = extractBoundedSlice(
             workstation,
-            'data-sot-part="dashboard-activity-anchor"',
-            'data-sot-control="dashboard-settings"',
+            'data-part="dashboard-activity-anchor"',
+            'data-control="dashboard-settings"',
         );
         for (const featureHook of [
-            'data-sot-control="dashboard-activity"',
-            'data-sot-panel="dashboard-activity"',
-            'data-sot-part="dashboard-activity-count"',
-            'data-sot-control="dashboard-activity-close"',
-            'data-sot-control="dashboard-activity-sync"',
-            'data-sot-control="dashboard-activity-action"',
-            'data-sot-control="dashboard-activity-dismiss"',
-            'data-sot-list="dashboard-activity-items"',
+            'data-control="dashboard-activity"',
+            'data-panel="dashboard-activity"',
+            'data-part="dashboard-activity-count"',
+            'data-control="dashboard-activity-close"',
+            'data-control="dashboard-activity-sync"',
+            'data-control="dashboard-activity-action"',
+            'data-control="dashboard-activity-dismiss"',
+            'data-list="dashboard-activity-items"',
         ]) {
             expect(dashboardActivitySlice).toContain(featureHook);
         }
@@ -3498,7 +3511,7 @@ describe("dashboard SOT foundation", () => {
         }
         expect(workstation).not.toContain("const SEARCH_SCOPES");
         expect(workstation).not.toContain("const searchPanelState");
-        expect(workstation).not.toContain('data-sot-panel="library-search"');
+        expect(workstation).not.toContain('data-panel="library-search"');
         expect(librarySearch).toContain(
             `fetch(\`/api/search?\${params.toString()}\`)`,
         );
@@ -3510,12 +3523,12 @@ describe("dashboard SOT foundation", () => {
         expect(librarySearch).toContain("searchTriggerRef.current?.focus({");
         const dashboardFavoriteButton = extractBoundedSlice(
             workstation,
-            'data-sot-control="dashboard-favorite"',
-            'data-sot-part="dashboard-favorite-label"',
+            'data-control="dashboard-favorite"',
+            'data-part="dashboard-favorite-label"',
         );
         const dashboardFavoriteButtonOpening = extractOpeningElement(
             workstation,
-            'data-sot-control="dashboard-favorite"',
+            'data-control="dashboard-favorite"',
             "Button",
         );
         expect(dashboardFavoriteButtonOpening).toContain('variant="ghost"');
@@ -3543,22 +3556,22 @@ describe("dashboard SOT foundation", () => {
             "DASHBOARD_ACTIVITY_ITEM_ICON_CLASS_NAME",
         );
         expect(dashboardNavButtonClassName).toContain(
-            "data-[sot-state=selected]:text-sidebar-accent-foreground",
+            "data-[state=selected]:text-sidebar-accent-foreground",
         );
         const dashboardFavoriteCount = extractOpeningElement(
             workstation,
-            'data-sot-part="dashboard-favorite-count"',
+            'data-part="dashboard-favorite-count"',
             "Badge",
         );
         expect(dashboardFavoriteCount).toContain(
             "dashboardNavClassNames.favoriteCount",
         );
         expect(dashboardFavoriteCount).toContain(
-            "data-sot-state={\n                                        favorite === item.value",
+            "data-state={\n                                        favorite === item.value",
         );
         const dashboardNavSectionLabel = extractOpeningElement(
             workstation,
-            'data-sot-part="dashboard-nav-section-label"',
+            'data-part="dashboard-nav-section-label"',
             "div",
         );
         expect(dashboardNavSectionLabel).toContain(
@@ -3567,7 +3580,7 @@ describe("dashboard SOT foundation", () => {
         expect(dashboardFavoriteButton).not.toContain("className={DASHBOARD");
         const dashboardActivityDismissButton = extractBoundedSlice(
             workstation,
-            'data-sot-control="dashboard-activity-dismiss"',
+            'data-control="dashboard-activity-dismiss"',
             "</Button>",
         );
         expect(dashboardActivityDismissButton).toContain(
@@ -3578,10 +3591,10 @@ describe("dashboard SOT foundation", () => {
         );
         const dashboardActivityStatusSub = extractOpeningElement(
             workstation,
-            'data-sot-part="dashboard-activity-status-sub"',
+            'data-part="dashboard-activity-status-sub"',
             "div",
         );
-        expect(dashboardActivityStatusSub).toContain('data-sot-format="mono"');
+        expect(dashboardActivityStatusSub).toContain('data-format="mono"');
         expect(dashboardActivityStatusSub).toContain(
             "dashboardSearchActivityClassNames.dashboardActivityStatusSub",
         );
@@ -3592,16 +3605,16 @@ describe("dashboard SOT foundation", () => {
             ),
         ).toContain("font-mono text-xs");
         expect(globals).not.toContain(
-            '[data-sot-part="dashboard-activity-status-sub"]',
+            '[data-part="dashboard-activity-status-sub"]',
         );
         const dashboardSettingsDialog = extractSelfClosingElement(
             workstation,
-            'data-sot-control="dashboard-settings"',
+            'data-control="dashboard-settings"',
             "SettingsDialog",
         );
         const dashboardSettingsTrigger = extractElementSlice(
             dashboardSettingsDialog,
-            'data-sot-control="dashboard-settings"',
+            'data-control="dashboard-settings"',
             "Button",
         );
         const openSettings = extractBoundedSlice(
@@ -3614,7 +3627,7 @@ describe("dashboard SOT foundation", () => {
             /<SettingsDialog\s+open=\{settingsOpen\}\s+user=\{user\}\s+onOpenChange=\{setSettingsOpen\}\s+trigger=\{\s*<Button/,
         );
         expect(dashboardSettingsTrigger).toMatch(
-            /<Button\s+ref=\{settingsTriggerRef\}\s+type="button"\s+variant="default"\s+size="icon"\s+className=\{\s*dashboardButtonClassNames\.settingsAvatar\s*\}\s+aria-label="打开设置"\s+data-sot-control="dashboard-settings"\s+data-sot-part="dashboard-user-avatar"\s+data-sot-state=\{\s*settingsOpen\s*\?\s*"open"\s*:\s*"idle"\s*\}\s+onClick=\{\(\)\s*=>\s*openSettings\("data-sources"\)\}/,
+            /<Button\s+ref=\{settingsTriggerRef\}\s+type="button"\s+variant="default"\s+size="icon"\s+className=\{\s*dashboardButtonClassNames\.settingsAvatar\s*\}\s+aria-label="打开设置"\s+data-control="dashboard-settings"\s+data-part="dashboard-user-avatar"\s+data-state=\{\s*settingsOpen\s*\?\s*"open"\s*:\s*"idle"\s*\}\s+onClick=\{\(\)\s*=>\s*openSettings\("data-sources"\)\}/,
         );
         expect(button).toContain('const Comp = asChild ? Slot : "button";');
         const canonicalSettingsRouteUpdate = [
@@ -3638,26 +3651,23 @@ describe("dashboard SOT foundation", () => {
             );
         }
         expect(globals).not.toContain(
-            '[data-sot-control="dashboard-settings"][data-sot-part="dashboard-user-avatar"]',
+            '[data-control="dashboard-settings"][data-part="dashboard-user-avatar"]',
         );
         for (const primitiveSelector of [
-            '[data-sot-control="sidebar-collapse"][data-slot="button"]',
-            '[data-sot-control="dashboard-favorite"][data-slot="button"]',
-            '[data-sot-control="dashboard-source-provider"][data-slot="button"]',
-            '[data-sot-control="dashboard-sync"][data-slot="button"]',
-            '[data-sot-control="dashboard-settings"][data-slot="button"]',
+            '[data-control="sidebar-collapse"][data-slot="button"]',
+            '[data-control="dashboard-favorite"][data-slot="button"]',
+            '[data-control="dashboard-source-provider"][data-slot="button"]',
+            '[data-control="dashboard-sync"][data-slot="button"]',
+            '[data-control="dashboard-settings"][data-slot="button"]',
         ]) {
             expect(globals).not.toContain(primitiveSelector);
         }
         expect(workstation).not.toMatch(
             /className\s*=\s*(?:["'](?:mono|avatar)["']|\{["'](?:mono|avatar)["']\})/,
         );
-        expect(workstation).toContain(
-            'data-empty={selectedRecording ? "false" : "true"}',
-        );
-        expect(workstation).toContain(
-            'data-sot-panel="dashboard-retranscription"',
-        );
+        expect(workstation).toContain("selectedRecording ? (");
+        expect(workstation).toContain("<DashboardDetailEmptyState />");
+        expect(workstation).toContain('data-panel="dashboard-retranscription"');
         expect(workstation).toContain("data-retx-state={dashboardRetxState}");
         expect(workstation).toContain(
             'import { Spinner } from "@/components/ui/spinner";',
@@ -3665,49 +3675,51 @@ describe("dashboard SOT foundation", () => {
         expect(workstation).toContain("<Spinner");
         expect(workstation).toContain('size="xs"');
         expect(workstation).not.toContain(
-            '<span data-sot-part="dashboard-retranscription-spinner" />',
+            '<span data-part="dashboard-retranscription-spinner" />',
         );
         expect(
             collectCssRuleBlocks(
                 globals,
-                '[data-sot-part="dashboard-retranscription-spinner"]',
+                '[data-part="dashboard-retranscription-spinner"]',
             ),
         ).toEqual([]);
         const dashboardRetranscriptionDisabledHint = extractOpeningElement(
             workstation,
-            'data-sot-part="dashboard-retranscription-disabled-hint"',
-            "span",
+            'data-part="dashboard-retranscription-disabled-hint"',
+            "Badge",
         );
         expect(dashboardRetranscriptionDisabledHint).toMatch(
-            /hidden=\{\s*detailTab !== "transcript"\s*\|\|\s*dashboardRetxState !== "unavailable"\s*\}/,
+            /hidden=\{\s*detailTab !==\s*"transcript"\s*\|\|\s*dashboardRetxState !==\s*"unavailable"\s*\}/,
         );
         const dashboardRetranscriptionBanner = extractOpeningElement(
             workstation,
-            'data-sot-panel="dashboard-retranscription"',
-            "div",
+            'data-panel="dashboard-retranscription"',
+            "Alert",
         );
         expect(dashboardRetranscriptionBanner).toContain(
             "data-retx-state={dashboardRetxState}",
         );
         expect(dashboardRetranscriptionBanner).toMatch(
-            /hidden=\{\s*dashboardRetxState === "idle"\s*\|\|\s*dashboardRetxState === "unavailable"\s*\}/,
+            /hidden=\{\s*dashboardRetxState ===\s*"idle"\s*\|\|\s*dashboardRetxState ===\s*"unavailable"\s*\}/,
         );
         expect(workstation).toContain(
-            'data-sot-part="dashboard-retranscription-icon"',
+            'data-part="dashboard-retranscription-icon"',
         );
         expect(workstation).toContain(
-            'data-sot-part="dashboard-retranscription-body"',
+            'data-part="dashboard-retranscription-body"',
         );
         const dashboardRetranscriptionRefreshMarker = extractOpeningElement(
             workstation,
-            'data-sot-part="dashboard-retranscription-refresh-marker"',
+            'data-part="dashboard-retranscription-refresh-marker"',
             "Badge",
         );
-        expect(dashboardRetranscriptionRefreshMarker).toContain(
-            'hidden={dashboardRetxState !== "completed"}',
+        expect(dashboardRetranscriptionRefreshMarker).toMatch(
+            /hidden=\{\s*dashboardRetxState !==\s*"completed"\s*\}/,
         );
         expect(workstation).toContain('dashboardRetxState === "failed" ? (');
-        expect(workstation).toContain('dashboardRetxState === "completed" &&');
+        expect(workstation).toMatch(
+            /dashboardRetxState ===\s*"completed"\s*&&/,
+        );
         expect(workstation).toContain('data-retx-retry=""');
         expect(workstation).toContain('data-retx-dismiss=""');
         expect(globals).not.toMatch(
@@ -3751,7 +3763,7 @@ describe("dashboard SOT foundation", () => {
             'aria-label={isPlaying ? "暂停" : "播放"}',
         );
         expect(dashboardRecordingPlayerControls).toContain(
-            'data-sot-control="dashboard-player-play"',
+            'data-control="dashboard-player-play"',
         );
         expect(workstation).toContain('part="dashboard-copy-label"');
         expect(workstation).not.toContain('className="copy-label"');
@@ -3769,8 +3781,8 @@ describe("dashboard SOT foundation", () => {
             "features/dashboard/components/dashboard-recording-player-controls.tsx",
         );
         const badgePrimitive = readSource("components/ui/badge.tsx");
-        const sotPlayerPrimitives = readSource(
-            "features/recordings/components/sot-player-primitives.tsx",
+        const playerPrimitives = readSource(
+            "features/recordings/components/player-primitives.tsx",
         );
         const buttonPrimitive = readSource("components/ui/button.tsx");
         const cardPrimitive = readSource("components/ui/card.tsx");
@@ -3799,7 +3811,7 @@ describe("dashboard SOT foundation", () => {
         const recordingListCard = extractBoundedSlice(
             workstation,
             "<Card\n                        hasNoPadding",
-            'data-sot-part="dashboard-recording-list-header"',
+            'data-part="dashboard-recording-list-header"',
         );
         const recordingListCardClassName = expectExactStringConstInitializer(
             workstation,
@@ -3813,18 +3825,18 @@ describe("dashboard SOT foundation", () => {
             OWNER_WORKSPACE_FORBIDDEN_CLASS_RE,
         );
         expect(recordingListCard).toContain(
-            'data-sot-surface="dashboard-recording-list"',
+            'data-surface="dashboard-recording-list"',
         );
         expectClassNameConstReference(
             recordingListCard,
             "DASHBOARD_RECORDING_LIST_CONTENT_CLASS_NAME",
         );
         expect(recordingListCard).toContain(
-            'data-sot-part="dashboard-recording-list-content"',
+            'data-part="dashboard-recording-list-content"',
         );
         const recordingListHeader = extractOpeningElement(
             workstation,
-            'data-sot-part="dashboard-recording-list-header"',
+            'data-part="dashboard-recording-list-header"',
             "div",
         );
         const recordingListHeaderClass = expectExactStringConstInitializer(
@@ -3844,7 +3856,7 @@ describe("dashboard SOT foundation", () => {
             expect(collectCssRuleBlocks(globals, selector)).toEqual([]);
         }
         expect(globals).not.toContain(
-            '[data-sot-panel="dashboard-detail"],\n[data-sot-panel="recording-workstation-detail"],\n[data-sot-panel="recording-workstation-detail-body"]',
+            '[data-panel="dashboard-detail"],\n[data-panel="recording-workstation-detail"],\n[data-panel="recording-workstation-detail-body"]',
         );
         expect(workstation).toContain(
             "const DASHBOARD_DETAIL_PANEL_CLASS_NAME =",
@@ -3855,7 +3867,7 @@ describe("dashboard SOT foundation", () => {
         }
         const dashboardSidebarFooter = extractOpeningElement(
             workstation,
-            'data-sot-part="dashboard-sidebar-footer"',
+            'data-part="dashboard-sidebar-footer"',
             "div",
         );
         const dashboardSidebarFooterClass = expectExactStringConstInitializer(
@@ -3876,7 +3888,7 @@ describe("dashboard SOT foundation", () => {
         for (const selector of DASHBOARD_RECORDING_LIST_PRIMITIVE_REPAINT_CSS_SELECTORS) {
             expect(globals).not.toContain(selector);
         }
-        expect(workstation).toContain('data-sot-list="dashboard-sources"');
+        expect(workstation).toContain('data-list="dashboard-sources"');
         expect(workstation).not.toContain("sourceProviderThemeClassName");
         expect(workstation).not.toMatch(
             /--source-provider-(?:status|primary)-/,
@@ -3885,23 +3897,21 @@ describe("dashboard SOT foundation", () => {
             'className={cn(\n                "group/dashboard-workstation"',
         );
         expect(workstation).toContain("dashboardSourceErrorClassName");
+        expect(workstation).toContain('data-control="dashboard-source-clear"');
         expect(workstation).toContain(
-            'data-sot-control="dashboard-source-clear"',
+            'data-control="dashboard-source-provider"',
         );
-        expect(workstation).toContain(
-            'data-sot-control="dashboard-source-provider"',
-        );
-        expect(workstation).toContain('data-sot-part="source-provider-label"');
-        expect(workstation).toContain('data-sot-part="source-provider-status"');
+        expect(workstation).toContain('data-part="source-provider-label"');
+        expect(workstation).toContain('data-part="source-provider-status"');
         const dashboardSourceClearButton = extractOpeningElement(
             workstation,
-            'data-sot-control="dashboard-source-clear"',
+            'data-control="dashboard-source-clear"',
             "Button",
         );
         const sourceProviderRows = extractBoundedSlice(
             workstation,
             "{sourceRows.map((item) => {",
-            'data-sot-panel="dashboard-sync"',
+            'data-panel="dashboard-sync"',
         );
         const featureOwnerClassSource =
             collectFeatureOwnerClassSource(workstation);
@@ -3912,23 +3922,33 @@ describe("dashboard SOT foundation", () => {
         );
         const sourceProviderStatusBadge = extractOpeningElement(
             sourceProviderRows,
-            'data-sot-part="source-provider-status"',
+            'data-part="source-provider-status"',
             "Badge",
         );
         const sourceProviderCountBadge = extractOpeningElement(
             sourceProviderRows,
-            'data-sot-part="source-provider-count"',
+            'data-part="source-provider-count"',
             "Badge",
         );
         const sourceProviderRowButton = extractOpeningElement(
             sourceProviderRows,
-            'data-sot-control="dashboard-source-provider"',
+            'data-control="dashboard-source-provider"',
             "Button",
         );
         const sourceProviderActionButton = extractOpeningElement(
             sourceProviderRows,
-            'data-sot-part="source-provider-action"',
+            'data-part="source-provider-action"',
             "Button",
+        );
+        const sourceProviderImageMark = extractOpeningElement(
+            sourceProviderRows,
+            'data-variant="image"',
+            "span",
+        );
+        const sourceProviderLetterMark = extractOpeningElement(
+            sourceProviderRows,
+            'data-variant="letter"',
+            "span",
         );
         expectPrimitiveToExcludeBusinessTokens(
             buttonPrimitive,
@@ -3958,6 +3978,24 @@ describe("dashboard SOT foundation", () => {
         );
         expect(sourceProviderRows).toContain("sourceProviderStatusTone(");
         expect(sourceProviderRows).toContain("sourceProviderCountTone(");
+        expect(sourceProviderImageMark).toContain(
+            "className={\n                                                dashboardSourceClassNames.mark",
+        );
+        expect(sourceProviderImageMark).toContain(
+            "data-state={sourceRowState}",
+        );
+        expect(sourceProviderLetterMark).toContain(
+            "dashboardSourceClassNames.markLetter",
+        );
+        expect(sourceProviderLetterMark).toContain(
+            "data-state={sourceRowState}",
+        );
+        expect(sourceProviderRows).toContain(
+            "dashboardSourceClassNames.markImage",
+        );
+        expect(sourceProviderRows).toContain(
+            "dashboardSourceClassNames.markImageCover",
+        );
         for (const mappingSnippet of [
             'case "connected-active":',
             'case "connected-idle":',
@@ -3980,16 +4018,16 @@ describe("dashboard SOT foundation", () => {
         );
         expect(sourceProviderRows).toContain('"absolute bottom-1 right-1"');
         expect(sourceProviderStatusBadge).toContain(
-            "data-sot-tone={sourceStatusTone}",
+            "data-tone={sourceStatusTone}",
         );
         expect(sourceProviderCountBadge).toContain(
-            "data-sot-tone={sourceCountTone}",
+            "data-tone={sourceCountTone}",
         );
         for (const migratedSourceProviderSelector of [
-            '[data-sot-control="dashboard-source-provider"][data-sot-state="sync-error"]',
-            '[data-sot-part="source-provider-mark"]',
-            '[data-sot-part="source-provider-status"]',
-            '[data-sot-part="source-provider-count"]',
+            '[data-control="dashboard-source-provider"][data-state="sync-error"]',
+            '[data-part="source-provider-mark"]',
+            '[data-part="source-provider-status"]',
+            '[data-part="source-provider-count"]',
         ]) {
             expect(
                 collectCssRuleBlocks(globals, migratedSourceProviderSelector),
@@ -3998,16 +4036,17 @@ describe("dashboard SOT foundation", () => {
         expect(workstation).toContain("sourceRowDisabled(");
         expect(workstation).toContain("sourceActionKind(");
         expect(workstation).toContain("disabled={disabledSourceRow}");
-        expect(workstation).toContain('data-sot-part="source-provider-action"');
-        expect(workstation).toContain("data-sot-action={actionKind}");
-        expect(workstation).toContain('? "retry-sync"');
+        expect(workstation).toContain('data-part="source-provider-action"');
+        expect(workstation).toMatch(
+            /data-action=\{\s*actionKind === "retry"\s*\? "retry-sync"\s*:\s*actionKind\s*\}/,
+        );
         expect(sourceProviderRows).toContain("aria-label={actionAriaLabel}");
         expect(sourceProviderRows).toContain("event.stopPropagation();");
         expect(sourceProviderRows).toContain("event.preventDefault();");
         expect(sourceProviderRows).toContain("void runManualSync();");
         expect(globals).not.toContain("source-provider-action");
         expect(workstation).not.toContain('className="src-action is-busy"');
-        expect(workstation).toContain("data-sot-status={item.status}");
+        expect(workstation).toContain("data-status={item.status}");
         expect(workstation).toContain("sourceNeedsSettings(");
         expect(workstation).toContain('openSettings("data-sources")');
         expect(workstation).toContain("const sourceFilterStackState =");
@@ -4061,12 +4100,10 @@ describe("dashboard SOT foundation", () => {
         );
         const drawerScrim = extractOpeningElement(
             workstation,
-            'data-sot-panel="dashboard-drawer-scrim"',
+            'data-panel="dashboard-drawer-scrim"',
             "div",
         );
-        expect(drawerTriggerClassNames).toContain(
-            "group-data-[source-filter-active=true]/dashboard-workstation:[&_[data-sot-part=dashboard-drawer-active-dot]]:inline-block",
-        );
+        expect(drawerTriggerClassNames).not.toContain("source-filter-active");
         expect(sidebarClassNames).toContain("max-[860px]:hidden");
         expect(sidebarClassNames).toContain(
             "max-[860px]:group-data-[drawer-state=open]/dashboard-workstation:flex",
@@ -4078,55 +4115,58 @@ describe("dashboard SOT foundation", () => {
             "absolute top-1.5 right-1.5 hidden",
         );
         expect(drawerActiveDotClassNames).toContain("bg-primary");
+        expect(drawerActiveDotClassNames).toContain(
+            "group-data-[source-filter-active=true]/dashboard-workstation:inline-block",
+        );
         expect(drawerClassNames).not.toContain("menuIcon");
         expect(drawerScrim).toContain(
             "className={dashboardDrawerClassNames.scrim}",
         );
         expect(workstation).toContain(
-            'data-sot-panel="dashboard-source-filter-stack"',
+            'data-panel="dashboard-source-filter-stack"',
         );
         const sourceFilterStack = extractBoundedSlice(
             workstation,
-            'data-sot-panel="dashboard-source-filter-stack"',
+            'data-panel="dashboard-source-filter-stack"',
             "</output>",
         );
         const sourceFilterStackOutput = extractOpeningElement(
             workstation,
-            'data-sot-panel="dashboard-source-filter-stack"',
+            'data-panel="dashboard-source-filter-stack"',
             "output",
         );
         const sourceFilterFrom = extractOpeningElement(
             sourceFilterStack,
-            'data-sot-part="source-filter-from"',
+            'data-part="source-filter-from"',
             "span",
         );
         const sourceFilterSeparator = extractOpeningElement(
             sourceFilterStack,
-            'data-sot-part="source-filter-separator"',
+            'data-part="source-filter-separator"',
             "span",
         );
         const sourceFilterChip = extractOpeningElement(
             sourceFilterStack,
-            'data-sot-part="source-filter-chip"',
+            'data-part="source-filter-chip"',
             "Badge",
         );
         const sourceFilterInfo = extractOpeningElement(
             sourceFilterStack,
-            'data-sot-part="source-filter-info"',
+            'data-part="source-filter-info"',
             "span",
         );
         const sourceFilterClearButton = extractOpeningElement(
             sourceFilterStack,
-            'data-sot-control="source-filter-clear"',
+            'data-control="source-filter-clear"',
             "Button",
         );
         const sourceFilterClearAllButton = extractOpeningElement(
             sourceFilterStack,
-            'data-sot-control="source-filter-clear-all"',
+            'data-control="source-filter-clear-all"',
             "Button",
         );
         expect(workstation).toMatch(
-            /<output\s+aria-live="polite"[\s\S]*data-sot-panel="dashboard-source-filter-stack"[\s\S]*data-state=\{sourceFilterStackState\}/,
+            /<output\s+aria-live="polite"[\s\S]*data-panel="dashboard-source-filter-stack"[\s\S]*data-state=\{sourceFilterStackState\}/,
         );
         expect(sourceFilterStackOutput).toMatch(
             /className=\{\s*sourceFilterStackClassNames\.root\s*\}/,
@@ -4143,6 +4183,12 @@ describe("dashboard SOT foundation", () => {
         expect(sourceFilterChip).toContain('variant="secondary"');
         expect(sourceFilterInfo).toMatch(
             /className=\{\s*sourceFilterStackClassNames\.info\s*\}/,
+        );
+        expect(sourceFilterStack).toContain(
+            "className={\n                                                    sourceFilterStackClassNames.strong",
+        );
+        expect(sourceFilterStack).toContain(
+            "sourceFilterStackClassNames.infoStrong",
         );
         const sourceFilterStackClassSource = extractBoundedSlice(
             workstation,
@@ -4177,39 +4223,39 @@ describe("dashboard SOT foundation", () => {
         ]) {
             expect(workstation).not.toContain(removedListHeaderClass);
         }
-        expect(workstation).toContain('data-sot-control="source-filter-widen"');
+        expect(workstation).toContain('data-control="source-filter-widen"');
         expect(workstation).toMatch(
-            /<Button[\s\S]*data-sot-control="dashboard-source-clear"[\s\S]*onClick=\{\(\) => setSource\("all"\)\}/,
+            /<Button[\s\S]*data-control="dashboard-source-clear"[\s\S]*onClick=\{\(\) => setSource\("all"\)\}/,
         );
         expect(workstation).toMatch(
-            /<Button[\s\S]*data-sot-control="source-filter-clear"[\s\S]*onClick=\{\(\) => setSource\("all"\)\}/,
+            /<Button[\s\S]*data-control="source-filter-clear"[\s\S]*onClick=\{\(\) => setSource\("all"\)\}/,
         );
         expect(sourceFilterClearButton).toMatch(
             /className=\{\s*sourceFilterClassNames\.clear\s*\}/,
         );
         const librarySearchFilterClearButton = extractOpeningElement(
             workstation,
-            'data-sot-control="library-search-filter-clear"',
+            'data-control="library-search-filter-clear"',
             "Button",
         );
         const librarySearchFilterClearElement = extractElementSlice(
             workstation,
-            'data-sot-control="library-search-filter-clear"',
+            'data-control="library-search-filter-clear"',
             "Button",
         );
         const librarySearchFilterOutput = extractOpeningElement(
             workstation,
-            'data-sot-panel="dashboard-library-search-filter"',
+            'data-panel="dashboard-library-search-filter"',
             "output",
         );
         const librarySearchFilterLabel = extractOpeningElement(
             workstation,
-            'data-sot-part="library-search-filter-label"',
+            'data-part="library-search-filter-label"',
             "span",
         );
         const librarySearchFilterChip = extractOpeningElement(
             workstation,
-            'data-sot-part="library-search-filter-chip"',
+            'data-part="library-search-filter-chip"',
             "Badge",
         );
         const librarySearchFilterClearClassHelper =
@@ -4237,7 +4283,7 @@ describe("dashboard SOT foundation", () => {
             /className=\{\s*[A-Za-z_$][\w$]*(?:\.[A-Za-z_$][\w$]*)?\s*\}/,
         );
         expect(librarySearchFilterClearButton).toContain(
-            'data-sot-control="library-search-filter-clear"',
+            'data-control="library-search-filter-clear"',
         );
         expect(librarySearchFilterClearButton).toMatch(
             /aria-label=\{t\([\s\S]*"dashboardChrome\.clear"[\s\S]*\)\}/,
@@ -4258,7 +4304,7 @@ describe("dashboard SOT foundation", () => {
         ]) {
             const sourceFilterActionButton = extractOpeningElement(
                 sourceFilterStack,
-                `data-sot-control="${control}"`,
+                `data-control="${control}"`,
                 "Button",
             );
             expect(sourceFilterActionButton).toMatch(
@@ -4266,27 +4312,22 @@ describe("dashboard SOT foundation", () => {
             );
             expect(workstation).toMatch(
                 new RegExp(
-                    `<Button[\\s\\S]*data-sot-control="${control}"[\\s\\S]*data-sot-part="source-filter-action"`,
+                    `<Button[\\s\\S]*data-control="${control}"[\\s\\S]*data-part="source-filter-action"`,
                 ),
             );
         }
-        expect(workstation).toContain('data-sot-action="retry"');
-        expect(workstation).toContain('data-sot-action="widen"');
-        expect(workstation).toContain('data-sot-action="open-settings"');
-        expect(globals).not.toContain(
-            '[data-sot-action="source-filter-action"]',
-        );
+        expect(workstation).toContain('data-action="retry"');
+        expect(workstation).toContain('data-action="widen"');
+        expect(workstation).toContain('data-action="open-settings"');
+        expect(globals).not.toContain('[data-action="source-filter-action"]');
         expect(
-            collectCssRuleBlocks(
-                globals,
-                '[data-sot-part="source-filter-action"]',
-            ),
+            collectCssRuleBlocks(globals, '[data-part="source-filter-action"]'),
         ).toEqual([]);
         for (const selector of DASHBOARD_SOURCE_FILTER_MIGRATED_GLOBAL_SELECTORS) {
             expect(collectCssRuleBlocks(globals, selector)).toEqual([]);
         }
         expect(workstation).toMatch(
-            /<Button[\s\S]*data-sot-control="source-filter-clear-all"[\s\S]*onClick=\{\(\) => setSource\("all"\)\}/,
+            /<Button[\s\S]*data-control="source-filter-clear-all"[\s\S]*onClick=\{\(\) => setSource\("all"\)\}/,
         );
         expect(sourceFilterClearAllButton).toMatch(
             /className=\{\s*sourceFilterClassNames\.clearAll\s*\}/,
@@ -4294,13 +4335,13 @@ describe("dashboard SOT foundation", () => {
         expect(workstation).toContain("<ToggleGroup");
         expect(workstation).toContain("<ToggleGroupItem");
         expect(workstation).toContain(
-            'data-sot-panel="dashboard-recording-time-filter"',
+            'data-panel="dashboard-recording-time-filter"',
         );
         expect(workstation).toContain(
-            'data-sot-control="dashboard-recording-time-filter"',
+            'data-control="dashboard-recording-time-filter"',
         );
         expect(workstation).toContain(
-            'data-sot-part="dashboard-recording-time-filter-count"',
+            'data-part="dashboard-recording-time-filter-count"',
         );
         expect(workstation).toContain(
             "const dashboardRecordingTimeFilterStyles = {",
@@ -4310,7 +4351,7 @@ describe("dashboard SOT foundation", () => {
         );
         const recordingTimeFilter = extractOpeningElement(
             workstation,
-            'data-sot-panel="dashboard-recording-time-filter"',
+            'data-panel="dashboard-recording-time-filter"',
             "ToggleGroup",
         );
         expect(recordingTimeFilter).toContain("value={timelineFilter}");
@@ -4341,23 +4382,21 @@ describe("dashboard SOT foundation", () => {
         );
         const recordingTimeFilterItem = extractOpeningElement(
             workstation,
-            'data-sot-control="dashboard-recording-time-filter"',
+            'data-control="dashboard-recording-time-filter"',
             "ToggleGroupItem",
         );
         expect(recordingTimeFilterItem).toContain("aria-pressed={active}");
         expect(recordingTimeFilterItem).toContain("data-tf={item.value}");
-        expect(recordingTimeFilterItem).toContain(
-            "data-sot-filter={item.value}",
-        );
+        expect(recordingTimeFilterItem).toContain("data-filter={item.value}");
         expect(recordingTimeFilterItem).toContain(
             "dashboardRecordingTimeFilterStyles.item",
         );
         expect(recordingTimeFilterItem).toContain(
-            'data-sot-state={\n                                                    active ? "selected" : "idle"',
+            'data-state={\n                                                    active ? "selected" : "idle"',
         );
         const recordingTimeFilterCount = extractOpeningElement(
             workstation,
-            'data-sot-part="dashboard-recording-time-filter-count"',
+            'data-part="dashboard-recording-time-filter-count"',
             "span",
         );
         expect(recordingTimeFilterCount).toContain(
@@ -4371,7 +4410,7 @@ describe("dashboard SOT foundation", () => {
             "dashboardRecordingTimeFilter",
         );
         expect(toggleGroupPrimitive).not.toContain(
-            "data-sot-part=dashboard-recording-time-filter-count",
+            "data-part=dashboard-recording-time-filter-count",
         );
         expect(toggleGroupPrimitive).not.toContain(
             "dashboard-recording-time-filter-count",
@@ -4383,7 +4422,7 @@ describe("dashboard SOT foundation", () => {
             "--dashboard-recording-time-filter-count-selected-bg",
         );
         expect(globals).not.toContain(
-            '[data-sot-panel="dashboard-recording-time-filter"][hidden]',
+            '[data-panel="dashboard-recording-time-filter"][hidden]',
         );
         expect(workstation).toContain("data-tag-filter-trigger");
         expect(workstation).toContain("data-tag-filter-list");
@@ -4399,25 +4438,25 @@ describe("dashboard SOT foundation", () => {
             expect(workstation).not.toContain(residue);
         }
         expect(workstation).toMatch(
-            /<div\s+className=\{\s*dashboardRecordingTagFilterStyles\.root\s*\}[\s\S]*data-list-filter-row="tags"[\s\S]*data-sot-panel="recording-list-tag-filter"[\s\S]*hidden=\{listMode !== "tags"\}[\s\S]*ref=\{tagFilterRef\}/,
+            /<div\s+className=\{\s*dashboardRecordingTagFilterStyles\.root\s*\}[\s\S]*data-list-filter-row="tags"[\s\S]*data-panel="recording-list-tag-filter"[\s\S]*hidden=\{listMode !== "tags"\}[\s\S]*ref=\{tagFilterRef\}/,
         );
         expect(workstation).toMatch(
-            /<div\s+className=\{\s*dashboardRecordingTagFilterStyles\.list\s*\}[\s\S]*role="listbox"[\s\S]*data-tag-filter-list=""[\s\S]*data-sot-list="recording-list-tag-filter-list"/,
+            /<div\s+className=\{\s*dashboardRecordingTagFilterStyles\.list\s*\}[\s\S]*role="listbox"[\s\S]*data-tag-filter-list=""[\s\S]*data-list="recording-list-tag-filter-list"/,
         );
         expect(workstation).toMatch(
-            /<Button\s+variant="outline"\s+size="sm"\s+className=\{\s*dashboardRecordingTagFilterStyles\.trigger\s*\}[\s\S]*type="button"[\s\S]*aria-haspopup="listbox"[\s\S]*aria-expanded=\{\s*tagFilterOpen\s*\}[\s\S]*data-tag-filter-trigger=""[\s\S]*data-sot-control="recording-list-tag-filter-trigger"[\s\S]*onClick=\{\(\) =>\s*setTagFilterOpen\(\(open\) => !open\)\s*\}/,
+            /<Button\s+variant="outline"\s+size="sm"\s+className=\{\s*dashboardRecordingTagFilterStyles\.trigger\s*\}[\s\S]*type="button"[\s\S]*aria-haspopup="listbox"[\s\S]*aria-expanded=\{\s*tagFilterOpen\s*\}[\s\S]*data-tag-filter-trigger=""[\s\S]*data-control="recording-list-tag-filter-trigger"[\s\S]*onClick=\{\(\) =>\s*setTagFilterOpen\(\(open\) => !open\)\s*\}/,
         );
         for (const [slot, hook] of [
-            ["label", 'data-sot-part="recording-list-tag-filter-label"'],
-            ["count", 'data-sot-part="recording-list-tag-filter-count"'],
-            ["caret", 'data-sot-part="recording-list-tag-filter-caret"'],
+            ["label", 'data-part="recording-list-tag-filter-label"'],
+            ["count", 'data-part="recording-list-tag-filter-count"'],
+            ["caret", 'data-part="recording-list-tag-filter-caret"'],
             [
                 "optionLabel",
-                'data-sot-part="recording-list-tag-filter-option-label"',
+                'data-part="recording-list-tag-filter-option-label"',
             ],
             [
                 "optionCount",
-                'data-sot-part="recording-list-tag-filter-option-count"',
+                'data-part="recording-list-tag-filter-option-count"',
             ],
         ] as const) {
             expect(workstation).toMatch(
@@ -4427,18 +4466,18 @@ describe("dashboard SOT foundation", () => {
             );
         }
         expect(workstation).toMatch(
-            /<Button\s+variant="ghost"\s+size="sm"\s+className=\{\s*dashboardRecordingTagFilterStyles\.option\s*\}[\s\S]*type="button"[\s\S]*role="option"[\s\S]*data-tag-value=\{\s*option\.value\s*\}[\s\S]*aria-selected=\{\s*active\s*\}[\s\S]*data-sot-control="recording-list-tag-filter"[\s\S]*data-sot-state=\{\s*active\s*\?\s*"selected"\s*:\s*"idle"\s*\}[\s\S]*onClick=\{\(\) => \{[\s\S]*setSelectedTagFilter\(\s*option\.value,?\s*\);[\s\S]*setTagFilterOpen\(false\);[\s\S]*\}\}/,
+            /<Button\s+variant="ghost"\s+size="sm"\s+className=\{\s*dashboardRecordingTagFilterStyles\.option\s*\}[\s\S]*type="button"[\s\S]*role="option"[\s\S]*data-tag-value=\{\s*option\.value\s*\}[\s\S]*aria-selected=\{\s*active\s*\}[\s\S]*data-control="recording-list-tag-filter"[\s\S]*data-state=\{\s*active\s*\?\s*"selected"\s*:\s*"idle"\s*\}[\s\S]*onClick=\{\(\) => \{[\s\S]*setSelectedTagFilter\(\s*option\.value,?\s*\);[\s\S]*setTagFilterOpen\(false\);[\s\S]*\}\}/,
         );
         for (const migratedSelector of DASHBOARD_RECORDING_TAG_FILTER_MIGRATED_GLOBAL_SELECTORS) {
             expect(collectCssRuleBlocks(globals, migratedSelector)).toEqual([]);
         }
         expect(globals).not.toContain(
-            '[data-sot-panel="recording-list-tag-filter"][hidden]',
+            '[data-panel="recording-list-tag-filter"][hidden]',
         );
         const recordingListTagFilterBlock = extractBoundedSlice(
             workstation,
-            'data-sot-panel="recording-list-tag-filter"',
-            'data-sot-list="dashboard-recording-list-scroll"',
+            'data-panel="recording-list-tag-filter"',
+            'data-list="dashboard-recording-list-scroll"',
         );
         expect(recordingListTagFilterBlock).not.toMatch(
             /variant=\{\s*active\s*\?\s*"secondary"\s*:\s*"ghost"\s*\}/,
@@ -4463,27 +4502,27 @@ describe("dashboard SOT foundation", () => {
         );
         const dashboardRecordingListEmptyState = extractElementSlice(
             workstation,
-            'data-sot-part="recording-list-state"',
+            'data-part="recording-list-state"',
             "Empty",
         );
         const dashboardRecordingListEmptyOpening = extractOpeningElement(
             workstation,
-            'data-sot-part="recording-list-state"',
+            'data-part="recording-list-state"',
             "Empty",
         );
         const dashboardRecordingListEmptyMedia = extractOpeningElement(
             dashboardRecordingListEmptyState,
-            'data-sot-part="recording-list-state-icon"',
+            'data-part="recording-list-state-icon"',
             "EmptyMedia",
         );
         const dashboardRecordingListEmptyTitle = extractOpeningElement(
             dashboardRecordingListEmptyState,
-            'data-sot-part="recording-list-state-title"',
+            'data-part="recording-list-state-title"',
             "EmptyTitle",
         );
         const dashboardRecordingListEmptyDescription = extractOpeningElement(
             dashboardRecordingListEmptyState,
-            'data-sot-part="recording-list-state-description"',
+            'data-part="recording-list-state-description"',
             "EmptyDescription",
         );
         for (const migratedSelector of DASHBOARD_RECORDING_LIST_RESIDUAL_MIGRATED_GLOBAL_SELECTORS) {
@@ -4513,7 +4552,7 @@ describe("dashboard SOT foundation", () => {
             "data-list-state-block={listState}",
         );
         expect(dashboardRecordingListEmptyOpening).toContain(
-            "data-sot-state={listState}",
+            "data-state={listState}",
         );
         expectClassNameConstReference(
             dashboardRecordingListEmptyOpening,
@@ -4569,7 +4608,7 @@ describe("dashboard SOT foundation", () => {
         ] as const) {
             const buttonOpening = extractOpeningElement(
                 dashboardRecordingListEmptyState,
-                `data-sot-control="${control}"`,
+                `data-control="${control}"`,
                 "Button",
             );
             expect(buttonOpening).toContain(`variant="${variant}"`);
@@ -4590,16 +4629,16 @@ describe("dashboard SOT foundation", () => {
             );
         }
         expect(workstation).toMatch(
-            /className=\{\s*dashboardRecordingListScrollClassName\s*\}[\s\S]*data-sot-list="dashboard-recording-list-scroll"/,
+            /className=\{\s*dashboardRecordingListScrollClassName\s*\}[\s\S]*data-list="dashboard-recording-list-scroll"/,
         );
         expect(workstation).toMatch(
-            /className=\{\s*dashboardRecordingListTitlebarStyles\.root\s*\}[\s\S]*data-sot-part="dashboard-recording-list-titlebar"/,
+            /className=\{\s*dashboardRecordingListTitlebarStyles\.root\s*\}[\s\S]*data-part="dashboard-recording-list-titlebar"/,
         );
         expect(workstation).toMatch(
-            /className=\{\s*dashboardRecordingListTitlebarStyles\.title\s*\}[\s\S]*data-sot-part="dashboard-recording-list-title"/,
+            /className=\{\s*dashboardRecordingListTitlebarStyles\.title\s*\}[\s\S]*data-part="dashboard-recording-list-title"/,
         );
         expect(workstation).toMatch(
-            /className=\{\s*dashboardRecordingListTitlebarStyles\.count\s*\}[\s\S]*data-sot-part="dashboard-recording-list-count"/,
+            /className=\{\s*dashboardRecordingListTitlebarStyles\.count\s*\}[\s\S]*data-part="dashboard-recording-list-count"/,
         );
         expect(workstation).not.toContain("dashboardScrollbarClassName");
         expect(workstation).toContain("tagFilterValue(tag.id)");
@@ -4607,17 +4646,17 @@ describe("dashboard SOT foundation", () => {
         expect(workstation).toContain("displayTag?: RecordingTag");
         expect(workstation).toContain("displayTag: tag");
         expect(workstation).toContain("entry.displayTag ??");
-        expect(workstation).toContain("<SotPlayerTagChip");
-        expect(sotPlayerPrimitives).toContain("data-recording-tag-chip");
+        expect(workstation).toContain("<PlayerTagChip");
+        expect(playerPrimitives).toContain("data-recording-tag-chip");
         const dashboardRecordingTagChip = extractOpeningElement(
             workstation,
-            "<SotPlayerTagChip",
-            "SotPlayerTagChip",
+            "<PlayerTagChip",
+            "PlayerTagChip",
         );
         expect(dashboardRecordingTagChip).toMatch(/tag=\{\s*primaryTag\s*\}/);
         expect(dashboardRecordingTagChip).not.toContain("variant=");
         expect(dashboardRecordingTagChip).not.toContain("className=");
-        expect(sotPlayerPrimitives).toContain("RecordingTagIconGlyph");
+        expect(playerPrimitives).toContain("RecordingTagIconGlyph");
         expect(badgePrimitive).not.toContain(
             DASHBOARD_OWNER_LOCAL_FORBIDDEN_VARIANT_PROPS[4],
         );
@@ -4630,13 +4669,13 @@ describe("dashboard SOT foundation", () => {
         expect(workstation).not.toContain("<RecordingTagIconGlyph");
         expect(workstation).toContain("data-rec={");
         expect(workstation).not.toContain("function tagClass(");
-        expect(workstation).toContain("function SotRecordingListSkeleton()");
-        expect(workstation).toContain("<Skeleton");
         expect(workstation).toContain(
-            'data-sot-panel="recording-list-loading"',
+            "function DashboardRecordingListSkeleton()",
         );
-        expect(workstation).toContain('data-sot-part="skeleton-row"');
-        expect(workstation).toContain('data-sot-part="skeleton-title"');
+        expect(workstation).toContain("<Skeleton");
+        expect(workstation).toContain('data-panel="recording-list-loading"');
+        expect(workstation).toContain('data-part="skeleton-row"');
+        expect(workstation).toContain('data-part="skeleton-title"');
         expect(workstation).not.toContain('className="skel-list"');
         expect(workstation).not.toContain('className="day skel-day"');
         expect(workstation).not.toContain('className="row skel-row"');
@@ -4654,25 +4693,23 @@ describe("dashboard SOT foundation", () => {
         expect(workstation).not.toContain('className="dur"');
         expect(workstation).not.toContain('className="right"');
         expect(workstation).toContain(
-            'data-sot-part="dashboard-recording-row-body"',
+            'data-part="dashboard-recording-row-body"',
         );
         expect(workstation).toContain(
-            'data-sot-part="dashboard-recording-row-title"',
+            'data-part="dashboard-recording-row-title"',
         );
         expect(workstation).toContain(
-            'data-sot-part="dashboard-recording-row-meta"',
+            'data-part="dashboard-recording-row-meta"',
         );
         expect(workstation).toContain(
-            'data-sot-part="dashboard-recording-duration"',
+            'data-part="dashboard-recording-duration"',
         );
         expect(workstation).toContain(
-            'data-sot-part="dashboard-recording-row-actions"',
+            'data-part="dashboard-recording-row-actions"',
         );
+        expect(workstation).toContain('data-panel="dashboard-detail-empty"');
         expect(workstation).toContain(
-            'data-sot-panel="dashboard-detail-empty"',
-        );
-        expect(workstation).toContain(
-            'data-sot-part="dashboard-detail-empty-title"',
+            'data-part="dashboard-detail-empty-title"',
         );
         expect(workstation).not.toContain('className="detail-empty"');
         expect(workstation).not.toContain('className="detail-empty-ico"');
@@ -4681,74 +4718,72 @@ describe("dashboard SOT foundation", () => {
         expect(workstation).toContain("aria-current={");
         expect(workstation).not.toContain("data-selected=");
         expect(workstation).toContain('listState === "loading"');
-        expect(workstation).toContain("<SotRecordingListSkeleton />");
+        expect(workstation).toContain("<DashboardRecordingListSkeleton />");
         expect(workstation).toContain("function getRecordingListStatus(");
-        expect(workstation).toContain(
-            'data-sot-list="dashboard-recording-rows"',
-        );
+        expect(workstation).toContain('data-list="dashboard-recording-rows"');
         const dashboardRecordingRows = extractOpeningElement(
             workstation,
-            'data-sot-list="dashboard-recording-rows"',
+            'data-list="dashboard-recording-rows"',
             "div",
         );
         const dashboardRecordingListGroup = extractOpeningElement(
             workstation,
-            'data-sot-part="dashboard-recording-list-group"',
+            'data-part="dashboard-recording-list-group"',
             "div",
         );
         const dashboardRecordingListGroupSeparator = extractOpeningElement(
             workstation,
-            'data-sot-part="dashboard-recording-list-group-separator"',
+            'data-part="dashboard-recording-list-group-separator"',
             "Separator",
         );
         const dashboardRecordingListHeading = extractOpeningElement(
             workstation,
-            'data-sot-part="dashboard-recording-list-group-heading"',
+            'data-part="dashboard-recording-list-group-heading"',
             "div",
         );
         const dashboardRecordingListLabel = extractOpeningElement(
             workstation,
-            'data-sot-part="dashboard-recording-list-group-label"',
+            'data-part="dashboard-recording-list-group-label"',
             "span",
         );
         const dashboardRecordingListCount = extractOpeningElement(
             workstation,
-            'data-sot-part="dashboard-recording-list-group-count"',
+            'data-part="dashboard-recording-list-group-count"',
             "span",
         );
         const dashboardRecordingListDivider = extractOpeningElement(
             workstation,
-            'data-sot-part="dashboard-recording-list-group-divider"',
+            'data-part="dashboard-recording-list-group-divider"',
             "Separator",
         );
         const dashboardRecordingRowBody = extractOpeningElement(
             workstation,
-            'data-sot-part="dashboard-recording-row-body"',
+            'data-part="dashboard-recording-row-body"',
             "div",
         );
         const dashboardRecordingRowTitle = extractOpeningElement(
             workstation,
-            'data-sot-part="dashboard-recording-row-title"',
+            'data-part="dashboard-recording-row-title"',
             "div",
         );
         const dashboardRecordingRowMeta = extractOpeningElement(
             workstation,
-            'data-sot-part="dashboard-recording-row-meta"',
+            'data-part="dashboard-recording-row-meta"',
             "div",
         );
         const dashboardRecordingRowSecondary = extractOpeningElement(
             workstation,
-            'data-sot-part="dashboard-recording-row-secondary"',
+            'data-part="dashboard-recording-row-secondary"',
             "div",
         );
         const dashboardRecordingRowActions = extractOpeningElement(
             workstation,
-            'data-sot-part="dashboard-recording-row-actions"',
+            'data-part="dashboard-recording-row-actions"',
             "div",
         );
         const dashboardRecordingRowButton = extractOpeningElement(
             workstation,
-            'data-sot-control="dashboard-recording-row"',
+            'data-control="dashboard-recording-row"',
             "Button",
         );
 
@@ -4870,7 +4905,7 @@ describe("dashboard SOT foundation", () => {
             /className=\{\s*dashboardRecordingRowStyles\.row\s*\}/,
         );
         expect(dashboardRecordingRowButton).toContain(
-            'data-sot-control="dashboard-recording-row"',
+            'data-control="dashboard-recording-row"',
         );
         for (const rowPrimitiveLeak of [
             "dashboardRecordingRow",
@@ -4895,16 +4930,16 @@ describe("dashboard SOT foundation", () => {
         }
         expect([
             ...DASHBOARD_RECORDING_ROW_MIGRATED_GLOBAL_SELECTORS,
-        ]).not.toContain('[data-sot-part="dashboard-recording-source-mark"]');
+        ]).not.toContain('[data-part="dashboard-recording-source-mark"]');
         for (const migratedSelectorFragment of DASHBOARD_RECORDING_ROW_META_MIGRATED_GLOBAL_SELECTOR_FRAGMENTS) {
             expect(globals).not.toContain(migratedSelectorFragment);
         }
         for (const migratedSelector of [
-            '[data-sot-part="dashboard-recording-duration"]',
-            '[data-sot-part="dashboard-recording-timestamp"]',
-            '[data-sot-part="dashboard-recording-timestamp-absolute"]',
-            '[data-sot-part="dashboard-recording-timestamp-relative"]',
-            '[data-sot-part="dashboard-recording-source-mark"]',
+            '[data-part="dashboard-recording-duration"]',
+            '[data-part="dashboard-recording-timestamp"]',
+            '[data-part="dashboard-recording-timestamp-absolute"]',
+            '[data-part="dashboard-recording-timestamp-relative"]',
+            '[data-part="dashboard-recording-source-mark"]',
         ]) {
             expect(collectCssRuleBlocks(globals, migratedSelector)).toEqual([]);
         }
@@ -4935,26 +4970,24 @@ describe("dashboard SOT foundation", () => {
         );
         const dashboardRecordingStatusBadge = extractOpeningElement(
             workstation,
-            'data-sot-part="dashboard-recording-status"',
+            'data-part="dashboard-recording-status"',
             "Badge",
         );
         expect(dashboardRecordingStatusBadge).toContain(
             "dashboardRecordingStatusBadgeVariants",
         );
         expect(dashboardRecordingStatusBadge).toContain(
-            'data-sot-part="dashboard-recording-status"',
+            'data-part="dashboard-recording-status"',
         );
-        expect(dashboardRecordingStatusBadge).toContain("data-sot-tone={");
+        expect(dashboardRecordingStatusBadge).toContain("data-tone={");
         expect(workstation).not.toContain(
-            'data-sot-part="dashboard-recording-status-dot"',
+            'data-part="dashboard-recording-status-dot"',
         );
         expect(workstation).toContain(
-            'data-sot-part="dashboard-recording-status-label"',
+            'data-part="dashboard-recording-status-label"',
         );
         expect(workstation).not.toContain("<DashboardRecordingStatusBadge");
-        expect(workstation).toContain(
-            'data-sot-part="dashboard-recording-status"',
-        );
+        expect(workstation).toContain('data-part="dashboard-recording-status"');
         expect(workstation).not.toContain(
             'variant="dashboardRecording' + 'Status"',
         );
@@ -4985,7 +5018,7 @@ describe("dashboard SOT foundation", () => {
         expect(
             collectCssRuleBlocks(
                 globals,
-                '[data-sot-part="dashboard-recording-status"]',
+                '[data-part="dashboard-recording-status"]',
             ),
         ).toEqual([]);
         expect(workstation).toContain('tone: "err"');
@@ -4999,21 +5032,21 @@ describe("dashboard SOT foundation", () => {
         expect(workstation).toContain("recordingList.status.pending");
         expect(workstation).not.toContain(
             `${staticJsxClassName("filter-row")}
-                                    data-sot-panel="recording-list-tag-filter"`,
+                                    data-panel="recording-list-tag-filter"`,
         );
         expect(workstation).toContain('aria-label="列表模式"');
         expect(workstation).toContain("<SegmentedTabs");
         const listModeSegmentedTabs = extractOpeningElement(
             workstation,
-            'data-sot-part="dashboard-recording-list-mode-segmented"',
+            'data-part="dashboard-recording-list-mode-segmented"',
             "SegmentedTabs",
         );
         expect(listModeSegmentedTabs).toContain('variant="segmented"');
         expect(listModeSegmentedTabs).toContain('size="segmentedSm"');
         expect(listModeSegmentedTabs).toContain(
-            'data-sot-control="segmented-tabs"',
+            'data-control="segmented-tabs"',
         );
-        expect(listModeSegmentedTabs).toContain('data-sot-size="sm"');
+        expect(listModeSegmentedTabs).toContain('data-size="sm"');
         expect(workstation).toContain('value: "timeline"');
         expect(workstation).toContain("recordingList.timeTab");
         expect(workstation).toContain('value: "tags"');
@@ -5032,10 +5065,8 @@ describe("dashboard SOT foundation", () => {
         );
         expect(detailSegmentedTabs).toContain('variant="segmented"');
         expect(detailSegmentedTabs).toContain('size="segmentedSm"');
-        expect(detailSegmentedTabs).toContain(
-            'data-sot-control="segmented-tabs"',
-        );
-        expect(detailSegmentedTabs).toContain('data-sot-size="sm"');
+        expect(detailSegmentedTabs).toContain('data-control="segmented-tabs"');
+        expect(detailSegmentedTabs).toContain('data-size="sm"');
         expect(detailSegmentedTabs).toContain('className="shrink-0"');
         expect(workstation).toContain('hidden={detailTab !== "transcript"}');
         expect(workstation).toContain(
@@ -5043,11 +5074,11 @@ describe("dashboard SOT foundation", () => {
         );
         const transcriptPane = extractOpeningElement(
             workstation,
-            'data-sot-panel="dashboard-transcript-pane"',
+            'data-panel="dashboard-transcript-pane"',
             "div",
         );
-        expect(transcriptPane).toContain(
-            "className={dashboardTabPaneHiddenClassName}",
+        expect(transcriptPane).toMatch(
+            /className=\{\s*dashboardTabPaneHiddenClassName\s*\}/,
         );
         const sourceReportHiddenPane = extractOpeningElement(
             sourceReportPrimitives,
@@ -5070,20 +5101,20 @@ describe("dashboard SOT foundation", () => {
         );
         const speakersPane = extractOpeningElement(
             workstation,
-            'data-sot-panel="dashboard-speakers-pane"',
+            'data-panel="dashboard-speakers-pane"',
             "div",
         );
-        expect(speakersPane).toContain(
-            "className={dashboardTabPaneHiddenClassName}",
+        expect(speakersPane).toMatch(
+            /className=\{\s*dashboardTabPaneHiddenClassName\s*\}/,
         );
         const dashboardTranscriptShell = extractOpeningElement(
             workstation,
-            'data-sot-panel="dashboard-transcript-shell"',
+            'data-panel="dashboard-transcript-shell"',
             "Card",
         );
         const dashboardTranscriptHeader = extractOpeningElement(
             workstation,
-            'data-sot-part="dashboard-transcript-header"',
+            'data-part="dashboard-transcript-header"',
             "CardHeader",
         );
         expect(dashboardTranscriptShell).toContain(
@@ -5094,7 +5125,7 @@ describe("dashboard SOT foundation", () => {
         );
         const dashboardTranscriptBody = extractOpeningElement(
             workstation,
-            'data-sot-part="dashboard-transcript-body"',
+            'data-part="dashboard-transcript-body"',
             "CardContent",
         );
         expect(dashboardTranscriptBody).toContain(
@@ -5108,7 +5139,7 @@ describe("dashboard SOT foundation", () => {
         }
         const dashboardSpeakersMerge = extractOpeningElement(
             workstation,
-            'data-sot-control="dashboard-speakers-merge"',
+            'data-control="dashboard-speakers-merge"',
             "Button",
         );
         expect(buttonPrimitive).not.toContain("dashboardSpeakersMerge:");
@@ -5139,12 +5170,12 @@ describe("dashboard SOT foundation", () => {
         );
         const dashboardTranscriptLoadingSpeakerRow = extractOpeningElement(
             workstation,
-            'data-sot-part="dashboard-transcript-speaker-row"',
+            'data-part="dashboard-transcript-speaker-row"',
             "div",
         );
         const dashboardTranscriptReadyTurn = extractOpeningElement(
             workstation,
-            'data-sot-state="ready"',
+            'data-state="ready"',
             "div",
         );
         const dashboardTranscriptReadySlice = extractBoundedSlice(
@@ -5154,92 +5185,92 @@ describe("dashboard SOT foundation", () => {
         );
         const dashboardTranscriptAvatar = extractOpeningElement(
             workstation,
-            'data-sot-part="dashboard-transcript-avatar"',
+            'data-part="dashboard-transcript-avatar"',
             "span",
         );
         const dashboardTranscriptSpeakerName = extractOpeningElement(
             workstation,
-            'data-sot-part="dashboard-transcript-speaker-name"',
+            'data-part="dashboard-transcript-speaker-name"',
             "span",
         );
         const dashboardTranscriptSpeakerTime = extractOpeningElement(
             workstation,
-            'data-sot-part="dashboard-transcript-speaker-time"',
+            'data-part="dashboard-transcript-speaker-time"',
             "span",
         );
         const dashboardTranscriptEmpty = extractElementSlice(
             workstation,
-            'data-sot-panel="dashboard-transcript-empty"',
+            'data-panel="dashboard-transcript-empty"',
             "Empty",
         );
         const dashboardTranscriptEmptyOpening = extractOpeningElement(
             workstation,
-            'data-sot-panel="dashboard-transcript-empty"',
+            'data-panel="dashboard-transcript-empty"',
             "Empty",
         );
         const dashboardTranscriptEmptyIcon = extractOpeningElement(
             workstation,
-            'data-sot-part="dashboard-transcript-empty-icon"',
+            'data-part="dashboard-transcript-empty-icon"',
             "EmptyMedia",
         );
         const dashboardTranscriptEmptyTitle = extractOpeningElement(
             workstation,
-            'data-sot-part="dashboard-transcript-empty-message"',
+            'data-part="dashboard-transcript-empty-message"',
             "EmptyTitle",
         );
         const dashboardTranscriptEmptyDescription = extractOpeningElement(
             workstation,
-            'data-sot-part="dashboard-transcript-empty-sub"',
+            'data-part="dashboard-transcript-empty-sub"',
             "EmptyDescription",
         );
         const dashboardSpeakersHead = extractOpeningElement(
             workstation,
-            'data-sot-part="dashboard-speakers-head"',
+            'data-part="dashboard-speakers-head"',
             "div",
         );
         const dashboardSpeakersHeadTitle = extractOpeningElement(
             workstation,
-            'data-sot-part="dashboard-speakers-head-title"',
+            'data-part="dashboard-speakers-head-title"',
             "div",
         );
         const dashboardSpeakerRows = extractOpeningElement(
             workstation,
-            'data-sot-list="dashboard-speaker-rows"',
+            'data-list="dashboard-speaker-rows"',
             "ul",
         );
         const dashboardSpeakerRow = extractOpeningElement(
             workstation,
-            'data-sot-item="dashboard-speaker-row"',
+            'data-item="dashboard-speaker-row"',
             "li",
         );
         const dashboardSpeakerAvatar = extractOpeningElement(
             workstation,
-            'data-sot-part="dashboard-speaker-avatar"',
+            'data-part="dashboard-speaker-avatar"',
             "Badge",
         );
         const dashboardSpeakerRowMeta = extractOpeningElement(
             workstation,
-            'data-sot-part="dashboard-speaker-row-meta"',
+            'data-part="dashboard-speaker-row-meta"',
             "div",
         );
         const dashboardSpeakerName = extractOpeningElement(
             workstation,
-            'data-sot-part="dashboard-speaker-name"',
+            'data-part="dashboard-speaker-name"',
             "div",
         );
         const dashboardSpeakerSub = extractOpeningElement(
             workstation,
-            'data-sot-part="dashboard-speaker-sub"',
+            'data-part="dashboard-speaker-sub"',
             "Badge",
         );
         const dashboardSpeakerBar = extractOpeningElement(
             workstation,
-            'data-sot-part="dashboard-speaker-bar"',
+            'data-part="dashboard-speaker-bar"',
             "Progress",
         );
         const dashboardSpeakerEmpty = extractElementSlice(
             workstation,
-            'data-sot-state="empty"',
+            'data-state="empty"',
             "li",
         );
 
@@ -5271,16 +5302,14 @@ describe("dashboard SOT foundation", () => {
         expect(dashboardTranscriptAvatar).toContain(
             'className="inline-flex size-7 flex-none items-center justify-center rounded-full bg-muted text-xs font-medium text-muted-foreground"',
         );
-        expect(dashboardTranscriptAvatar).toContain("data-sot-tone=");
+        expect(dashboardTranscriptAvatar).toContain("data-tone=");
         expect(dashboardTranscriptSpeakerName).toContain(
             'className="text-sm font-medium text-foreground"',
         );
         expect(dashboardTranscriptSpeakerTime).toContain(
             'className="ml-1 font-mono text-xs text-muted-foreground"',
         );
-        expect(dashboardTranscriptSpeakerTime).toContain(
-            'data-sot-format="mono"',
-        );
+        expect(dashboardTranscriptSpeakerTime).toContain('data-format="mono"');
         expect(dashboardTranscriptReadySlice).toContain(
             'className="m-0 text-sm/relaxed text-foreground"',
         );
@@ -5329,13 +5358,13 @@ describe("dashboard SOT foundation", () => {
             dashboardSpeakerBar,
             "dashboardSpeakerPaneClassNames.bar",
         );
-        expect(dashboardSpeakerBar).toContain("value={shareValue}");
+        expect(dashboardSpeakerBar).toMatch(/value=\{\s*shareValue\s*\}/);
         expect(dashboardSpeakerBar).toContain("max={100}");
         expect(dashboardSpeakerBar).toContain("indicatorClassName={");
         expect(dashboardSpeakerBar).toContain(
             "dashboardSpeakerPaneClassNames.barFill",
         );
-        expect(dashboardSpeakerBar).toContain('"data-sot-part":');
+        expect(dashboardSpeakerBar).toContain('"data-part":');
         expect(dashboardSpeakerBar).toContain('"dashboard-speaker-bar-fill"');
         expect(dashboardSpeakerEmpty).toContain("<Empty");
         expect(dashboardSpeakerEmpty).toContain('variant="compact"');
@@ -5348,7 +5377,7 @@ describe("dashboard SOT foundation", () => {
         );
         const transcriptLanguageBadge = extractOpeningElement(
             workstation,
-            'data-sot-part="dashboard-transcript-language"',
+            'data-part="dashboard-transcript-language"',
             "Badge",
         );
         expect(transcriptLanguageBadge).toContain('variant="outline"');
@@ -5360,7 +5389,7 @@ describe("dashboard SOT foundation", () => {
         );
         const dashboardTranscriptActions = extractOpeningElement(
             workstation,
-            'data-sot-part="dashboard-transcript-actions"',
+            'data-part="dashboard-transcript-actions"',
             "div",
         );
         expect(dashboardTranscriptActions).toContain(
@@ -5368,7 +5397,7 @@ describe("dashboard SOT foundation", () => {
         );
         const dashboardLocalCopyButton = extractElementSlice(
             workstation,
-            'data-sot-control="copy-local-transcript"',
+            'data-control="copy-local-transcript"',
             "Button",
         );
         expect(dashboardLocalCopyButton).toContain("<DashboardCopyIcon");
@@ -5380,9 +5409,7 @@ describe("dashboard SOT foundation", () => {
             "function DashboardCopyIcon",
             "function DashboardCopyLabel",
         );
-        expect(dashboardCopyIcon).toContain(
-            'data-sot-part="dashboard-copy-icon"',
-        );
+        expect(dashboardCopyIcon).toContain('data-part="dashboard-copy-icon"');
         expect(dashboardCopyIcon).not.toContain("dashboardLocalCopyClassNames");
         expect(dashboardCopyIcon).toContain('state === "ok" ? Check');
         expect(dashboardCopyIcon).toContain('state === "err" ? X : Copy');
@@ -5392,7 +5419,7 @@ describe("dashboard SOT foundation", () => {
             "function getRetxStateFromActiveJob",
         );
         expect(dashboardCopyLabel).toContain(
-            'data-sot-part="dashboard-copy-label"',
+            'data-part="dashboard-copy-label"',
         );
         expect(dashboardCopyLabel).not.toContain(
             "dashboardLocalCopyClassNames",
@@ -5448,7 +5475,7 @@ describe("dashboard SOT foundation", () => {
         expect(sourceReportCopyButton).toContain("data-tab-scope={tabScope}");
         expect(sourceReportCopyButton).toContain('size="xs"');
         expect(sourceReportPrimitives).not.toMatch(
-            /SotSourceReport|data-sot-source-report|sourceReportSotStyles|SourceReportStyleVariables/,
+            /SotSourceReport|data-source-report|sourceReportSotStyles|SourceReportStyleVariables/,
         );
 
         expect(workstation).toContain("<DashboardSourceReportState");
@@ -5458,7 +5485,7 @@ describe("dashboard SOT foundation", () => {
         expect(workstation).toContain(
             '<DashboardSourceReportState state="error">',
         );
-        expect(workstation).toContain("subState={sourceReportSubState}");
+        expect(workstation).toMatch(/subState=\{\s*sourceReportSubState\s*\}/);
         expect(workstation).toContain("<SourceReportMetricCards>");
         expect(workstation).toContain("<SourceReportSection");
         expect(workstation).toContain("<SourceReportSegments");
@@ -5487,16 +5514,20 @@ describe("dashboard SOT foundation", () => {
                 "SourceReportCopyButton",
             );
             expect(dashboardCopy).toContain(`copy="${copyKind}"`);
-            expect(dashboardCopy).toContain(`copyState={${copyState}}`);
-            expect(dashboardCopy).toContain(`disabled={${copyDisabled}}`);
+            expect(dashboardCopy).toMatch(
+                new RegExp(`copyState=\\{\\s*${copyState}\\s*\\}`),
+            );
+            expect(dashboardCopy).toMatch(
+                new RegExp(`disabled=\\{\\s*${copyDisabled}\\s*\\}`),
+            );
         }
         const dashboardSourceReportPane = extractOpeningElement(
             workstation,
             'surface="dashboard"',
             "SourceReportPane",
         );
-        expect(dashboardSourceReportPane).toContain(
-            "className={dashboardTabPaneHiddenClassName}",
+        expect(dashboardSourceReportPane).toMatch(
+            /className=\{\s*dashboardTabPaneHiddenClassName\s*\}/,
         );
         expect(dashboardSourceReportPane).toContain(
             "state={sourceReportVisualState}",
@@ -5528,33 +5559,31 @@ describe("dashboard SOT foundation", () => {
         );
         expect(workstation).toContain("refreshBrowserRoute(router)");
         expect(workstation).not.toContain("dashboardSyncClassNames");
-        expect(workstation).toContain('data-sot-panel="dashboard-sync"');
-        expect(workstation).toContain(
-            'data-sot-part="dashboard-sync-indicator"',
-        );
+        expect(workstation).toContain('data-panel="dashboard-sync"');
+        expect(workstation).toContain('data-part="dashboard-sync-indicator"');
         const dashboardSyncPanel = extractElementSlice(
             workstation,
-            'data-sot-panel="dashboard-sync"',
+            'data-panel="dashboard-sync"',
             "div",
         );
         const dashboardSyncIndicator = extractOpeningElement(
             workstation,
-            'data-sot-part="dashboard-sync-indicator"',
+            'data-part="dashboard-sync-indicator"',
             "span",
         );
         const dashboardSyncText = extractOpeningElement(
             workstation,
-            'data-sot-part="dashboard-sync-text"',
+            'data-part="dashboard-sync-text"',
             "div",
         );
         const dashboardSyncTitle = extractOpeningElement(
             workstation,
-            'data-sot-part="dashboard-sync-title"',
+            'data-part="dashboard-sync-title"',
             "div",
         );
         const dashboardSyncSubtitle = extractOpeningElement(
             workstation,
-            'data-sot-part="dashboard-sync-subtitle"',
+            'data-part="dashboard-sync-subtitle"',
             "div",
         );
         expect(dashboardSyncPanel).toContain("group/dashboard-sync");
@@ -5575,7 +5604,7 @@ describe("dashboard SOT foundation", () => {
         expect(dashboardSyncPanel).not.toContain("var(--signal-danger)");
         expect(dashboardSyncPanel).not.toContain("var(--signal-info)");
         expect(dashboardSyncPanel).not.toContain("var(--fg-tertiary)");
-        expect(workstation).toContain('data-sot-control="dashboard-sync"');
+        expect(workstation).toContain('data-control="dashboard-sync"');
         expect(workstation).toContain('variant="ghost"');
         expect(workstation).toContain('size="icon-sm"');
         expect(workstation).toContain("dashboardButtonClassNames.sync");
@@ -5587,9 +5616,7 @@ describe("dashboard SOT foundation", () => {
             "dashboardSidebarCollapseClassNames.syncPanel",
         );
         expect(workstation).not.toContain('className="sync-dot"');
-        expect(workstation).toContain(
-            'data-sot-control="dashboard-activity-sync"',
-        );
+        expect(workstation).toContain('data-control="dashboard-activity-sync"');
     });
 
     it("keeps SOT global tokens and system banner state semantics available", () => {
@@ -5631,19 +5658,17 @@ describe("dashboard SOT foundation", () => {
             "--graphite-950: oklch(0.11 0.01 258); /* obsidian */",
         );
         expect(darkGlobalTokens).toMatch(
-            /--bg-canvas:\s*rgb\(17 18 19\);\s*--bg-canvas:\s*oklch\(0\.185 0\.004 250\);/,
+            /--bg-canvas:\s*rgb\(17 19 20\);\s*--bg-canvas:\s*oklch\(0\.185 0\.004 229\);/,
         );
         expect(darkGlobalTokens).not.toContain("--bg-canvas: rgb(11 16 22);");
 
-        expect(segmentedTabs).not.toContain(
-            'data-sot-control="segmented-tabs"',
-        );
-        expect(segmentedTabs).not.toContain("data-sot-size={size}");
+        expect(segmentedTabs).not.toContain('data-control="segmented-tabs"');
+        expect(segmentedTabs).not.toContain("data-size={size}");
         expect(segmentedTabs).toContain("data-tabs={items.length}");
         expect(segmentedTabs).toContain("data-active={activeIndex}");
         expect(segmentedTabs).toContain("getItemProps");
-        expect(segmentedTabs).not.toContain('data-sot-control="segmented-tab"');
-        expect(segmentedTabs).not.toContain("data-sot-state={");
+        expect(segmentedTabs).not.toContain('data-control="segmented-tab"');
+        expect(segmentedTabs).not.toContain("data-state={");
         expect(segmentedTabs).toContain(
             'import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";',
         );
@@ -5681,10 +5706,10 @@ describe("dashboard SOT foundation", () => {
             'data-slot="toggle-group-indicator"',
         );
         expect(segmentedTabs).not.toContain(
-            'data-sot-part="liquid-tabs-indicator"',
+            'data-part="liquid-tabs-indicator"',
         );
-        expect(segmentedTabs).not.toContain('data-sot-control="liquid-tabs"');
-        expect(segmentedTabs).not.toContain('data-sot-control="liquid-tab"');
+        expect(segmentedTabs).not.toContain('data-control="liquid-tabs"');
+        expect(segmentedTabs).not.toContain('data-control="liquid-tab"');
         expect(segmentedTabs).not.toContain("data-idx");
         expect(segmentedTabs).not.toContain('className={cn("liquid-tabs"');
         expect(segmentedTabs).not.toContain('className="liquid-tabs"');
@@ -5737,7 +5762,7 @@ describe("dashboard SOT foundation", () => {
             'offline: "border-border bg-secondary text-secondary-foreground"',
             '"update-available": "border-primary/30 bg-primary/10"',
             '"permission-denied": "bg-destructive/10 text-destructive"',
-            "bg-primary/10 data-[sot-state=indeterminate]:bg-primary/10",
+            "bg-primary/10 data-[state=indeterminate]:bg-primary/10",
             "bg-primary transition-transform",
             "[&_svg]:size",
             "[&_svg]:stroke",
@@ -5767,25 +5792,20 @@ describe("dashboard SOT foundation", () => {
         expect(banner).toContain("<AlertDescription");
         expect(banner).toContain("</Alert>");
         expect(banner).not.toMatch(/<section[\s>]/);
-        expect(banner).toContain('data-sot-panel="system-banner"');
-        expect(banner).not.toContain('data-slot="system-banner"');
-        expect(banner).toContain('data-sot-part="system-banner-icon"');
-        expect(banner).toContain('data-sot-part="system-banner-body"');
-        expect(banner).toContain('data-sot-part="system-banner-title"');
-        expect(banner).toContain('data-sot-part="system-banner-description"');
-        expect(banner).toContain('"system-banner-progress"');
-        expect(banner).toContain('"system-banner-progress-bar"');
-        expect(banner).toContain('data-sot-part="system-banner-actions"');
-        expect(banner).toContain('data-sot-format={hasProgress ? "mono"');
+        expect(banner).not.toContain('data-panel="system-banner"');
+        expect(banner).toContain('aria-live={a11y["aria-live"]}');
+        expect(banner).toContain("role={a11y.role}");
+        expect(banner).toContain("<SystemBannerIcon");
+        expect(banner).toContain("systemBannerAlertClassNames.body");
+        expect(banner).toContain("systemBannerAlertClassNames.actions");
+        expect(banner).toContain("systemBannerProgressClassNames.root");
+        expect(banner).toContain(
+            "systemBannerProgressClassNames.indeterminateIndicator",
+        );
         expect(banner).toContain("<Progress");
         expect(banner).not.toContain('variant="systemBanner"');
         expect(banner).toContain("value={progress ?? 0}");
-        expect(banner).not.toMatch(
-            /<div[\s\S]*data-sot-part="system-banner-progress"/,
-        );
-        expect(banner).not.toContain(
-            '<span data-sot-part="system-banner-progress-bar" />',
-        );
+        expect(banner).toContain('aria-hidden="true"');
         expect(banner).not.toContain('className={cn("sys-banner", className)}');
         expect(banner).not.toContain('className="sys-banner"');
         expect(banner).not.toContain(
@@ -5796,8 +5816,9 @@ describe("dashboard SOT foundation", () => {
         expect(banner).toContain("animate-[sbn-sweep_1.4s_linear_infinite]");
         expect(banner).not.toContain('className="mono"');
         expect(banner).toContain("getBannerA11y(banner.state)");
-        expect(banner).toContain("data-kind={banner.state}");
-        expect(banner).toContain("data-pct={progress ?? undefined}");
+        expect(banner).toContain("getBannerA11y(banner.state)");
+        expect(banner).toContain('banner.state === "import-progress"');
+        expect(banner).toContain('banner.state === "export-progress"');
         expect(banner).toContain(
             'import { Button, type ButtonProps } from "@/components/ui/button";',
         );
@@ -5831,7 +5852,7 @@ describe("dashboard SOT foundation", () => {
             expect(banner).not.toContain(buttonOwnerClass);
         }
         expect(banner).toMatch(
-            /data-sot-control="system-banner-dismiss-action"[\s\S]*<X\s+data-icon="inline-start"\s+aria-hidden="true"\s*\/>/,
+            /<SystemBannerButton[\s\S]*aria-label=\{dismissLabel\}[\s\S]*<X\s+data-icon="inline-start"\s+aria-hidden="true"\s*\/>/,
         );
         expect(banner).not.toContain("btn ghost btn-sm");
         expect(banner).toContain("<SystemBannerIcon");
@@ -5844,13 +5865,13 @@ describe("dashboard SOT foundation", () => {
         expect(alertPrimitive).not.toContain('"systemBanner"');
         expect(alertPrimitive).not.toContain("data-[kind=offline]");
         expect(alertPrimitive).not.toContain(
-            "[&_[data-sot-part=system-banner-icon]]",
+            "[&_[data-part=system-banner-icon]]",
         );
         expect(alertPrimitive).not.toContain(
-            "[&_[data-sot-part=system-banner-body]]",
+            "[&_[data-part=system-banner-body]]",
         );
         expect(alertPrimitive).not.toContain(
-            "[&_[data-sot-part=system-banner-actions]]",
+            "[&_[data-part=system-banner-actions]]",
         );
         expect(buttonPrimitive).not.toContain("systemBannerAction");
         expect(buttonPrimitive).not.toContain("systemBannerPrimaryAction");

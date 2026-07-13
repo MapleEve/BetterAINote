@@ -58,12 +58,12 @@ import {
 } from "@/components/ui/segmented-tabs";
 import { SystemBanner } from "@/features/dashboard/components/system-banner";
 import { AiRenamePreviewCard as AiRenamePreview } from "@/features/recordings/components/ai-rename-preview-card";
+import {
+    PlayerSourceTag,
+    PlayerStatusBadge,
+} from "@/features/recordings/components/player-primitives";
 import { RecordingPlayer } from "@/features/recordings/components/recording-player";
 import { RecordingTagManager } from "@/features/recordings/components/recording-tag-manager";
-import {
-    SotPlayerSourceTag,
-    SotPlayerStatusBadge,
-} from "@/features/recordings/components/sot-player-primitives";
 import {
     type SourceReportAvailabilitySnapshot,
     SourceReportPanel,
@@ -103,12 +103,14 @@ interface TranscriptionJob {
 }
 
 const RECORDING_DETAIL_HEADER_CLASS_NAME =
-    "flex flex-row items-center gap-2.5 px-1 pt-1 pb-0 data-[sot-state=saving]:pb-px";
+    "flex flex-row items-center gap-2.5 px-1 pt-1 pb-0 data-[state=saving]:pb-px";
 const RECORDING_DETAIL_HEADER_TITLE_CLASS_NAME =
     "min-w-0 flex-1 truncate text-xl text-foreground";
 const RECORDING_DETAIL_HEADER_TITLE_INPUT_CLASS_NAME = "h-8 min-w-0 flex-1";
 const RECORDING_DETAIL_HEADER_LOCAL_BADGE_CLASS_NAME = "ml-1 shrink-0";
 const RECORDING_DETAIL_HEADER_STATUS_BADGE_CLASS_NAME = "ml-1 shrink-0";
+const RECORDING_DETAIL_AI_RENAME_PANEL_CLASS_NAME =
+    "[--card-popover-bg:color-mix(in_srgb,var(--bg-elevated)_92%,transparent)] [--card-popover-footer-bg:rgb(255_255_255_/_0.03)] [--card-popover-shadow:0_18px_44px_rgb(0_0_0_/_0.4)]";
 const RECORDING_WORKSTATION_SHELL_CLASS_NAME =
     "grid h-screen min-h-[720px] grid-cols-[264px_1fr] transition-[grid-template-columns] duration-300 ease-out max-[860px]:h-auto max-[860px]:min-h-[100svh] max-[860px]:grid-cols-[minmax(0,1fr)] max-[860px]:overflow-x-clip";
 const RECORDING_WORKSTATION_MAIN_CLASS_NAME =
@@ -173,10 +175,9 @@ const recordingWorkstationNavClassNames = {
     label: "px-2.5 pb-1.5 pt-3.5 text-xs font-semibold uppercase tracking-wide text-muted-foreground",
 } as const;
 const recordingWorkstationButtonClassNames = {
-    detailBack:
-        "w-full justify-start [&_span]:min-w-0 [&_span]:flex-1 [&_span]:truncate",
-    headerIconButton: "text-muted-foreground",
-    headerActionButton: "min-w-[103px]",
+    detailBack: "w-full justify-start",
+    headerIconButton: "rounded-[8px] text-[var(--fg-secondary)]",
+    headerActionButton: "w-[102.375px] min-w-[102.375px]",
 } as const;
 
 function RecordingDetailCardHeader({
@@ -218,13 +219,13 @@ interface RawTranscriptCopyPayload {
     error?: string;
 }
 
-function getSotSegmentedTabProps<T extends string>(
+function getSegmentedTabProps<T extends string>(
     _item: SegmentedTabItem<T>,
     state: { active: boolean; disabled: boolean },
 ) {
     return {
-        "data-sot-control": "segmented-tab",
-        "data-sot-state": state.disabled
+        "data-control": "segmented-tab",
+        "data-state": state.disabled
             ? "disabled"
             : state.active
               ? "active"
@@ -662,6 +663,7 @@ export function RecordingWorkstation({
         const confirmed = await confirm({
             title: t("transcription.retranscribeConfirmTitle"),
             description: t("transcription.retranscribeConfirmDescription"),
+            surface: "recording-retranscribe",
             details: [
                 t("transcription.retranscribeConfirmDetailTranscript"),
                 t("transcription.retranscribeConfirmDetailSpeakers"),
@@ -832,6 +834,7 @@ export function RecordingWorkstation({
                 applyLabel="应用"
                 bodyLabel={t("transcription.aiRenameSuggestedTitle")}
                 cancelLabel="取消"
+                className={RECORDING_DETAIL_AI_RENAME_PANEL_CLASS_NAME}
                 closeLabel={t("transcription.aiRenameClosePreview")}
                 isApplying={false}
                 isRegenerating={isAutoRenaming}
@@ -849,6 +852,7 @@ export function RecordingWorkstation({
                 applyLabel="应用"
                 bodyLabel={t("transcription.aiRenameSuggestedTitle")}
                 cancelLabel="取消"
+                className={RECORDING_DETAIL_AI_RENAME_PANEL_CLASS_NAME}
                 closeLabel={t("transcription.aiRenameClosePreview")}
                 isApplying={false}
                 isRegenerating={isAutoRenaming}
@@ -866,6 +870,7 @@ export function RecordingWorkstation({
                 applyLabel="应用"
                 bodyLabel={t("transcription.aiRenameSuggestedTitle")}
                 cancelLabel="取消"
+                className={RECORDING_DETAIL_AI_RENAME_PANEL_CLASS_NAME}
                 closeLabel={t("transcription.aiRenameClosePreview")}
                 filename={autoRenamePreview}
                 isApplying={isApplyingAutoRename}
@@ -883,6 +888,7 @@ export function RecordingWorkstation({
         ) : autoRenameUnavailableOpen && autoRenameDisabledReason ? (
             <AiRenamePreview
                 bodyLabel={t("transcription.aiRenameSuggestedTitle")}
+                className={RECORDING_DETAIL_AI_RENAME_PANEL_CLASS_NAME}
                 closeLabel={t("transcription.aiRenameClosePreview")}
                 hint={autoRenameUnavailableHint}
                 isApplying={false}
@@ -909,19 +915,19 @@ export function RecordingWorkstation({
     return (
         <div
             className={RECORDING_WORKSTATION_SHELL_CLASS_NAME}
-            data-sot-shell="recording-workstation"
+            data-shell="recording-workstation"
             data-hydrated={hydrated ? "true" : "false"}
-            data-sot-surface="recording-workstation"
-            data-sot-state={hydrated ? "ready" : "loading"}
+            data-surface="recording-workstation"
+            data-state={hydrated ? "ready" : "loading"}
         >
             <aside
                 className={RECORDING_WORKSTATION_SIDEBAR_CLASS_NAME}
-                data-sot-panel="workstation-sidebar"
-                data-sot-surface="recording-source-rail"
+                data-panel="workstation-sidebar"
+                data-surface="recording-source-rail"
             >
                 <div
                     className={recordingWorkstationBrandClassNames.wrapper}
-                    data-sot-part="workstation-brand"
+                    data-part="workstation-brand"
                 >
                     <Image
                         className={recordingWorkstationBrandClassNames.image}
@@ -930,10 +936,10 @@ export function RecordingWorkstation({
                         width={36}
                         height={36}
                     />
-                    <div data-sot-part="workstation-brand-text">
+                    <div data-part="workstation-brand-text">
                         <div
                             className={recordingWorkstationBrandClassNames.name}
-                            data-sot-part="workstation-brand-name"
+                            data-part="workstation-brand-name"
                         >
                             BetterAINote
                         </div>
@@ -941,7 +947,7 @@ export function RecordingWorkstation({
                             className={
                                 recordingWorkstationBrandClassNames.subtitle
                             }
-                            data-sot-part="workstation-brand-subtitle"
+                            data-part="workstation-brand-subtitle"
                         >
                             私人工作空间
                         </div>
@@ -949,12 +955,12 @@ export function RecordingWorkstation({
                 </div>
                 <nav
                     className={recordingWorkstationNavClassNames.list}
-                    data-sot-list="recording-detail-nav"
+                    data-list="recording-detail-nav"
                     aria-label="录音详情导航"
                 >
                     <div
                         className={recordingWorkstationNavClassNames.label}
-                        data-sot-part="recording-detail-nav-label"
+                        data-part="recording-detail-nav-label"
                     >
                         录音
                     </div>
@@ -964,35 +970,37 @@ export function RecordingWorkstation({
                         className={
                             recordingWorkstationButtonClassNames.detailBack
                         }
-                        data-sot-control="recording-detail-back"
-                        data-sot-state="selected"
+                        data-control="recording-detail-back"
+                        data-state="selected"
                         type="button"
                         onClick={() =>
                             navigateBrowserRoute(router, "/dashboard")
                         }
                     >
                         <ArrowLeft data-icon="inline-start" />
-                        <span>{t("recording.backToDashboard")}</span>
+                        <span className="min-w-0 flex-1 truncate">
+                            {t("recording.backToDashboard")}
+                        </span>
                     </Button>
                 </nav>
             </aside>
             <main
                 className={RECORDING_WORKSTATION_MAIN_CLASS_NAME}
-                data-sot-panel="workstation-main"
+                data-panel="workstation-main"
             >
                 <header
                     className={recordingWorkstationTopbarClassNames.topbar}
-                    data-sot-panel="workstation-topbar"
+                    data-panel="workstation-topbar"
                 >
                     <div
                         className={recordingWorkstationTopbarClassNames.crumbs}
-                        data-sot-part="workstation-crumbs"
+                        data-part="workstation-crumbs"
                     >
                         <span
                             className={
                                 recordingWorkstationTopbarClassNames.crumb
                             }
-                            data-sot-part="workstation-crumb"
+                            data-part="workstation-crumb"
                         >
                             录音
                         </span>
@@ -1000,7 +1008,7 @@ export function RecordingWorkstation({
                             className={
                                 recordingWorkstationTopbarClassNames.separator
                             }
-                            data-sot-part="workstation-crumb-separator"
+                            data-part="workstation-crumb-separator"
                         >
                             /
                         </span>
@@ -1008,7 +1016,7 @@ export function RecordingWorkstation({
                             className={
                                 recordingWorkstationTopbarClassNames.current
                             }
-                            data-sot-part="workstation-crumb-current"
+                            data-part="workstation-crumb-current"
                         >
                             {filename}
                         </span>
@@ -1016,56 +1024,56 @@ export function RecordingWorkstation({
                 </header>
                 <div
                     className={RECORDING_WORKSTATION_WORKSPACE_CLASS_NAME}
-                    data-sot-panel="workstation-workspace"
+                    data-panel="workstation-workspace"
                 >
                     <Card
                         hasNoPadding
                         className={RECORDING_DETAIL_LIST_CARD_CLASS_NAME}
-                        data-sot-panel="recording-detail-list"
+                        data-panel="recording-detail-list"
                         aria-label="当前录音"
                         role="region"
                     >
                         <CardHeader
                             className={RECORDING_DETAIL_LIST_HEADER_CLASS_NAME}
-                            data-sot-part="recording-detail-list-header"
+                            data-part="recording-detail-list-header"
                         >
                             <CardTitle
                                 className={
                                     RECORDING_DETAIL_LIST_TITLE_CLASS_NAME
                                 }
-                                data-sot-part="recording-detail-list-title"
+                                data-part="recording-detail-list-title"
                             >
                                 当前录音
                             </CardTitle>
                         </CardHeader>
                         <CardContent
                             className={RECORDING_DETAIL_LIST_CONTENT_CLASS_NAME}
-                            data-sot-part="recording-detail-list-content"
+                            data-part="recording-detail-list-content"
                         >
                             <div
                                 className={
                                     RECORDING_DETAIL_LIST_ROWS_CLASS_NAME
                                 }
-                                data-sot-list="recording-detail-list-rows"
+                                data-list="recording-detail-list-rows"
                             >
                                 <div
                                     className={
                                         RECORDING_DETAIL_LIST_ROW_CLASS_NAME
                                     }
-                                    data-sot-item="recording-detail-list-row"
-                                    data-sot-state="selected"
+                                    data-item="recording-detail-list-row"
+                                    data-state="selected"
                                 >
                                     <div
                                         className={
                                             RECORDING_DETAIL_LIST_ROW_BODY_CLASS_NAME
                                         }
-                                        data-sot-part="recording-detail-list-row-body"
+                                        data-part="recording-detail-list-row-body"
                                     >
                                         <div
                                             className={
                                                 RECORDING_DETAIL_LIST_ROW_TITLE_CLASS_NAME
                                             }
-                                            data-sot-part="recording-detail-list-row-title"
+                                            data-part="recording-detail-list-row-title"
                                         >
                                             {filename}
                                         </div>
@@ -1073,23 +1081,23 @@ export function RecordingWorkstation({
                                             className={
                                                 RECORDING_DETAIL_LIST_ROW_META_CLASS_NAME
                                             }
-                                            data-sot-part="recording-detail-list-row-meta"
+                                            data-part="recording-detail-list-row-meta"
                                         >
                                             <span
                                                 className={
                                                     RECORDING_DETAIL_LIST_ROW_DURATION_CLASS_NAME
                                                 }
-                                                data-sot-part="recording-detail-list-row-duration"
+                                                data-part="recording-detail-list-row-duration"
                                             >
                                                 {durationLabel}
                                             </span>
-                                            <SotPlayerSourceTag
+                                            <PlayerSourceTag
                                                 label={sourceLabel}
                                                 provider={
                                                     recording.sourceProvider
                                                 }
                                             />
-                                            <SotPlayerStatusBadge label="已打开" />
+                                            <PlayerStatusBadge label="已打开" />
                                         </div>
                                     </div>
                                 </div>
@@ -1100,12 +1108,13 @@ export function RecordingWorkstation({
                         className={
                             RECORDING_WORKSTATION_DETAIL_PANEL_CLASS_NAME
                         }
-                        data-sot-panel="recording-workstation-detail"
+                        data-panel="recording-workstation-detail"
                     >
                         <RecordingDetailCardHeader
-                            data-sot-panel="recording-detail-header"
-                            data-sot-mode={recordingDetailHeaderState}
-                            data-sot-state={recordingDetailHeaderState}
+                            className="data-[state=saving]:pb-0"
+                            data-panel="recording-detail-header"
+                            data-mode={recordingDetailHeaderState}
+                            data-state={recordingDetailHeaderState}
                             data-rename-mode={recordingDetailHeaderState}
                             data-local-only={
                                 localDeleteAvailable ? "true" : "false"
@@ -1113,7 +1122,8 @@ export function RecordingWorkstation({
                         >
                             {recordingDetailHeaderState === "normal" ? (
                                 <RecordingDetailCardTitle
-                                    data-sot-part="detail-header-title"
+                                    className="text-[22px] leading-[normal] font-semibold [font-family:var(--font-display)] [letter-spacing:-0.014em]"
+                                    data-part="detail-header-title"
                                     data-rh-title
                                     role="heading"
                                     aria-level={2}
@@ -1128,7 +1138,7 @@ export function RecordingWorkstation({
                                     className={
                                         RECORDING_DETAIL_HEADER_LOCAL_BADGE_CLASS_NAME
                                     }
-                                    data-sot-part="detail-header-local-badge"
+                                    data-part="detail-header-local-badge"
                                     data-rh-local
                                     aria-label={t("recording.localOnly")}
                                 >
@@ -1137,9 +1147,10 @@ export function RecordingWorkstation({
                             ) : null}
                             {recordingDetailHeaderState === "editing" ? (
                                 <Input
-                                    className={
-                                        RECORDING_DETAIL_HEADER_TITLE_INPUT_CLASS_NAME
-                                    }
+                                    className={cn(
+                                        RECORDING_DETAIL_HEADER_TITLE_INPUT_CLASS_NAME,
+                                        "rounded-[var(--radius-sm)] border-border bg-muted px-[10px] py-0 text-[16px] leading-[1.35] font-semibold shadow-none [font-family:var(--font-display)] md:text-[16px]",
+                                    )}
                                     value={renameValue}
                                     onChange={(event) =>
                                         setRenameValue(event.target.value)
@@ -1153,8 +1164,8 @@ export function RecordingWorkstation({
                                         }
                                     }}
                                     data-rh-input
-                                    data-sot-part="detail-header-title-input"
-                                    data-sot-state="editing"
+                                    data-part="detail-header-title-input"
+                                    data-state="editing"
                                     aria-label="录音标题"
                                     maxLength={120}
                                     autoFocus={isRenaming}
@@ -1163,11 +1174,12 @@ export function RecordingWorkstation({
                             {recordingDetailHeaderState === "saving" ? (
                                 <Badge
                                     variant="secondary"
-                                    className={
-                                        RECORDING_DETAIL_HEADER_STATUS_BADGE_CLASS_NAME
-                                    }
-                                    data-sot-part="detail-header-title-status"
-                                    data-sot-state="saving"
+                                    className={cn(
+                                        RECORDING_DETAIL_HEADER_STATUS_BADGE_CLASS_NAME,
+                                        "items-center gap-1 overflow-visible rounded-none border-0 bg-transparent p-0 text-[11.5px] leading-[1.4] font-medium text-muted-foreground shadow-none [font-family:var(--font-mono)]",
+                                    )}
+                                    data-part="detail-header-title-status"
+                                    data-state="saving"
                                     data-rh-status
                                     aria-busy={isSavingRename}
                                     aria-live="polite"
@@ -1188,11 +1200,15 @@ export function RecordingWorkstation({
                                     aria-label="重命名"
                                     title="重命名"
                                     data-rh-edit-start
-                                    data-sot-control="rename-recording-title"
-                                    data-sot-part="detail-header-action"
-                                    data-sot-mode="normal"
+                                    data-control="rename-recording-title"
+                                    data-part="detail-header-action"
+                                    data-mode="normal"
                                 >
-                                    <Pen data-icon="inline-start" />
+                                    <Pen
+                                        size={16}
+                                        data-icon="inline-start"
+                                        strokeWidth={1.8}
+                                    />
                                 </Button>
                             ) : null}
 
@@ -1200,15 +1216,17 @@ export function RecordingWorkstation({
                                 <div
                                     className="relative inline-flex items-center gap-1.5"
                                     data-rh-ai-anchor
-                                    data-sot-part="detail-header-action-anchor"
-                                    data-sot-mode="normal"
+                                    data-part="detail-header-action-anchor"
+                                    data-mode="normal"
                                 >
                                     <Button
                                         variant="outline"
                                         size="sm"
-                                        className={
-                                            recordingWorkstationButtonClassNames.headerActionButton
-                                        }
+                                        className={cn(
+                                            recordingWorkstationButtonClassNames.headerActionButton,
+                                            "gap-[7px] rounded-[9px] border-border bg-[var(--glass-tint-base)] px-3 text-[12.5px] leading-normal font-semibold shadow-xs backdrop-blur-[14px] backdrop-saturate-[1.4] [font-family:var(--font-sans)]",
+                                        )}
+                                        style={{ paddingInline: 12 }}
                                         onClick={handleAutoRename}
                                         disabled={
                                             isAutoRenaming ||
@@ -1222,10 +1240,10 @@ export function RecordingWorkstation({
                                             t("transcription.aiRename")
                                         }
                                         data-rh-ai-trigger
-                                        data-sot-control="ai-rename"
-                                        data-sot-part="detail-header-action"
-                                        data-sot-mode="normal"
-                                        data-sot-state={
+                                        data-control="ai-rename"
+                                        data-part="detail-header-action"
+                                        data-mode="normal"
+                                        data-state={
                                             autoRenameDisabledReason
                                                 ? "unavailable"
                                                 : autoRenamePanel
@@ -1233,7 +1251,11 @@ export function RecordingWorkstation({
                                                   : "idle"
                                         }
                                     >
-                                        <Sparkle data-icon="inline-start" />
+                                        <Sparkle
+                                            size={16}
+                                            data-icon="inline-start"
+                                            strokeWidth={1.8}
+                                        />
                                         {t("transcription.aiRename")}
                                     </Button>
                                     {autoRenamePanel}
@@ -1252,11 +1274,15 @@ export function RecordingWorkstation({
                                         aria-label="保存新标题"
                                         title="保存（Enter）"
                                         data-rh-edit-save
-                                        data-sot-control="save-recording-title"
-                                        data-sot-part="detail-header-action"
-                                        data-sot-mode="editing"
+                                        data-control="save-recording-title"
+                                        data-part="detail-header-action"
+                                        data-mode="editing"
                                     >
-                                        <Check data-icon="inline-start" />
+                                        <Check
+                                            size={16}
+                                            data-icon="inline-start"
+                                            strokeWidth={1.8}
+                                        />
                                     </Button>
                                     <Button
                                         variant="ghost"
@@ -1268,11 +1294,15 @@ export function RecordingWorkstation({
                                         aria-label={t("recording.cancelRename")}
                                         title="取消（Esc）"
                                         data-rh-edit-cancel
-                                        data-sot-control="cancel-recording-title"
-                                        data-sot-part="detail-header-action"
-                                        data-sot-mode="editing"
+                                        data-control="cancel-recording-title"
+                                        data-part="detail-header-action"
+                                        data-mode="editing"
                                     >
-                                        <X data-icon="inline-start" />
+                                        <X
+                                            size={16}
+                                            data-icon="inline-start"
+                                            strokeWidth={1.8}
+                                        />
                                     </Button>
                                 </>
                             ) : null}
@@ -1280,8 +1310,8 @@ export function RecordingWorkstation({
                                 <div
                                     className="relative inline-flex items-center gap-1.5"
                                     data-more-anchor
-                                    data-sot-part="detail-header-action-anchor"
-                                    data-sot-mode="normal"
+                                    data-part="detail-header-action-anchor"
+                                    data-mode="normal"
                                     ref={moreAnchorRef}
                                 >
                                     <DropdownMenu
@@ -1302,13 +1332,17 @@ export function RecordingWorkstation({
                                                 )}
                                                 aria-haspopup="menu"
                                                 aria-expanded={moreOpen}
-                                                data-sot-control="recording-more-actions"
-                                                data-sot-part="detail-header-action"
-                                                data-sot-mode="normal"
+                                                data-control="recording-more-actions"
+                                                data-part="detail-header-action"
+                                                data-mode="normal"
                                                 data-more-trigger
                                                 ref={moreTriggerRef}
                                             >
-                                                <EllipsisVertical data-icon="inline-start" />
+                                                <EllipsisVertical
+                                                    size={16}
+                                                    data-icon="inline-start"
+                                                    strokeWidth={1.8}
+                                                />
                                             </Button>
                                         </DropdownMenuTrigger>
                                         <DropdownMenuContent
@@ -1323,18 +1357,18 @@ export function RecordingWorkstation({
                                             data-open={
                                                 moreOpen ? "true" : "false"
                                             }
-                                            data-sot-menu="recording-more-actions"
-                                            data-sot-local-delete-available={
+                                            data-menu="recording-more-actions"
+                                            data-local-delete-available={
                                                 localDeleteAvailable
                                                     ? "true"
                                                     : "false"
                                             }
-                                            data-sot-state={moreActionsState}
+                                            data-state={moreActionsState}
                                         >
                                             <DropdownMenuGroup>
                                                 <DropdownMenuItem
                                                     density="compact"
-                                                    data-sot-menu-item="rename"
+                                                    data-menu-item="rename"
                                                     onSelect={handleMoreRename}
                                                 >
                                                     {moreActionsShowPrimaryIcons ? (
@@ -1347,7 +1381,7 @@ export function RecordingWorkstation({
                                                 </DropdownMenuItem>
                                                 <DropdownMenuItem
                                                     density="compact"
-                                                    data-sot-menu-item="ai-rename"
+                                                    data-menu-item="ai-rename"
                                                     onSelect={
                                                         handleMoreAutoRename
                                                     }
@@ -1365,7 +1399,7 @@ export function RecordingWorkstation({
                                                 {moreActionsShowRetranscribe ? (
                                                     <DropdownMenuItem
                                                         density="compact"
-                                                        data-sot-menu-item="retranscribe"
+                                                        data-menu-item="retranscribe"
                                                         onSelect={() =>
                                                             void handleMoreRetranscribe()
                                                         }
@@ -1384,14 +1418,14 @@ export function RecordingWorkstation({
                                                 {moreActionsShowSeparator ? (
                                                     <DropdownMenuSeparator
                                                         density="compact"
-                                                        data-sot-menu-separator="delete"
+                                                        data-menu-separator="delete"
                                                     />
                                                 ) : null}
                                                 <DropdownMenuItem
                                                     density="compact"
                                                     variant="destructive"
-                                                    data-sot-menu-item="delete-local"
-                                                    data-sot-tone="danger"
+                                                    data-menu-item="delete-local"
+                                                    data-tone="danger"
                                                     disabled={
                                                         !localDeleteAvailable
                                                     }
@@ -1420,7 +1454,7 @@ export function RecordingWorkstation({
                                                     {recording.sourceProvider ? (
                                                         <DropdownMenuShortcut
                                                             variant="hint"
-                                                            data-sot-menu-hint=""
+                                                            data-menu-hint=""
                                                         >
                                                             {recording.upstreamDeleted
                                                                 ? "上游已删除"
@@ -1437,12 +1471,12 @@ export function RecordingWorkstation({
 
                         <SystemBanner />
 
-                        <div data-sot-panel="recording-workstation-real-detail">
+                        <div data-panel="recording-workstation-real-detail">
                             <section
                                 className={
                                     RECORDING_WORKSTATION_DETAIL_BODY_CLASS_NAME
                                 }
-                                data-sot-panel="recording-workstation-detail-body"
+                                data-panel="recording-workstation-detail-body"
                             >
                                 <RecordingPlayer
                                     recording={taggedRecording}
@@ -1453,7 +1487,6 @@ export function RecordingWorkstation({
                                     }
                                     tagManagerPanel={
                                         <RecordingTagManager
-                                            variant="popover"
                                             recording={taggedRecording}
                                             availableTags={tagCatalog}
                                             onAvailableTagsChange={
@@ -1474,19 +1507,19 @@ export function RecordingWorkstation({
                                     className={
                                         RECORDING_DETAIL_METADATA_CARD_CLASS_NAME
                                     }
-                                    data-sot-panel="recording-detail-metadata"
+                                    data-panel="recording-detail-metadata"
                                 >
                                     <CardHeader
                                         className={
                                             RECORDING_DETAIL_METADATA_HEADER_CLASS_NAME
                                         }
-                                        data-sot-part="recording-detail-metadata-header"
+                                        data-part="recording-detail-metadata-header"
                                     >
                                         <CardTitle
                                             className={
                                                 RECORDING_DETAIL_METADATA_TITLE_CLASS_NAME
                                             }
-                                            data-sot-part="recording-detail-metadata-title"
+                                            data-part="recording-detail-metadata-title"
                                             role="heading"
                                             aria-level={2}
                                         >
@@ -1497,7 +1530,7 @@ export function RecordingWorkstation({
                                         className={
                                             RECORDING_DETAIL_METADATA_BODY_CLASS_NAME
                                         }
-                                        data-sot-part="recording-detail-metadata-body"
+                                        data-part="recording-detail-metadata-body"
                                     >
                                         <Field>
                                             <FieldContent>
@@ -1557,7 +1590,7 @@ export function RecordingWorkstation({
                                 className={
                                     RECORDING_SOURCE_RECORD_SHELL_CLASS_NAME
                                 }
-                                data-sot-part="recording-source-record-shell"
+                                data-part="recording-source-record-shell"
                                 aria-label={t("recording.sourceRecord")}
                             >
                                 <Card
@@ -1565,19 +1598,19 @@ export function RecordingWorkstation({
                                     className={
                                         RECORDING_SOURCE_RECORD_CARD_CLASS_NAME
                                     }
-                                    data-sot-panel="recording-source-record"
+                                    data-panel="recording-source-record"
                                 >
                                     <CardHeader
                                         className={
                                             RECORDING_SOURCE_RECORD_HEADER_CLASS_NAME
                                         }
-                                        data-sot-part="recording-source-record-header"
+                                        data-part="recording-source-record-header"
                                     >
                                         <CardTitle
                                             className={
                                                 RECORDING_SOURCE_RECORD_TITLE_CLASS_NAME
                                             }
-                                            data-sot-part="recording-source-record-title"
+                                            data-part="recording-source-record-title"
                                             role="heading"
                                             aria-level={2}
                                         >
@@ -1587,7 +1620,7 @@ export function RecordingWorkstation({
                                             className={
                                                 RECORDING_SOURCE_RECORD_ACTIONS_CLASS_NAME
                                             }
-                                            data-sot-part="recording-source-record-actions"
+                                            data-part="recording-source-record-actions"
                                         >
                                             <Button
                                                 type="button"
@@ -1642,7 +1675,7 @@ export function RecordingWorkstation({
                                         className={
                                             RECORDING_SOURCE_RECORD_BODY_CLASS_NAME
                                         }
-                                        data-sot-part="recording-source-record-body"
+                                        data-part="recording-source-record-body"
                                     >
                                         <Field>
                                             <FieldContent>
@@ -1676,15 +1709,15 @@ export function RecordingWorkstation({
                                             className={
                                                 RECORDING_SOURCE_RECORD_TABS_CLASS_NAME
                                             }
-                                            data-sot-part="recording-source-record-tabs"
+                                            data-part="recording-source-record-tabs"
                                         >
                                             <SegmentedTabs
                                                 variant="segmented"
                                                 size="segmentedSm"
-                                                data-sot-control="segmented-tabs"
-                                                data-sot-size="sm"
+                                                data-control="segmented-tabs"
+                                                data-size="sm"
                                                 getItemProps={
-                                                    getSotSegmentedTabProps
+                                                    getSegmentedTabProps
                                                 }
                                                 items={[
                                                     {
@@ -1721,7 +1754,7 @@ export function RecordingWorkstation({
                                             className={
                                                 RECORDING_SOURCE_RECORD_HINT_CLASS_NAME
                                             }
-                                            data-sot-part="recording-source-record-hint"
+                                            data-part="recording-source-record-hint"
                                         >
                                             {showLocalTranscriptTab
                                                 ? t(
@@ -1738,7 +1771,7 @@ export function RecordingWorkstation({
                                     className={
                                         RECORDING_SOURCE_RECORD_PANE_CLASS_NAME
                                     }
-                                    data-sot-part="recording-source-record-pane"
+                                    data-part="recording-source-record-pane"
                                 >
                                     {activeTranscriptTab === "source" ? (
                                         <SourceReportPanel
@@ -1781,7 +1814,7 @@ export function RecordingWorkstation({
                                             showSpeakerReview={false}
                                         />
                                     ) : transcription?.text?.trim() ? (
-                                        <div data-sot-part="recording-source-record-speakers-pane">
+                                        <div data-part="recording-source-record-speakers-pane">
                                             <SpeakerLabelEditor
                                                 recordingId={recording.id}
                                                 speakerMap={liveSpeakerMap}
@@ -1795,28 +1828,28 @@ export function RecordingWorkstation({
                                             className={
                                                 RECORDING_SOURCE_RECORD_EMPTY_CLASS_NAME
                                             }
-                                            data-sot-panel="recording-source-record-empty"
+                                            data-panel="recording-source-record-empty"
                                         >
                                             <EmptyHeader>
                                                 <EmptyMedia
                                                     aria-hidden="true"
-                                                    data-sot-part="recording-source-record-empty-icon"
+                                                    data-part="recording-source-record-empty-icon"
                                                     variant="icon"
                                                 >
                                                     <FileText />
                                                 </EmptyMedia>
-                                                <EmptyTitle data-sot-part="recording-source-record-empty-title">
+                                                <EmptyTitle data-part="recording-source-record-empty-title">
                                                     {t(
                                                         "transcription.noTranscriptAvailable",
                                                     )}
                                                 </EmptyTitle>
-                                                <EmptyDescription data-sot-part="recording-source-record-empty-description">
+                                                <EmptyDescription data-part="recording-source-record-empty-description">
                                                     {t(
                                                         "recording.localWorkflowDescription",
                                                     )}
                                                 </EmptyDescription>
                                             </EmptyHeader>
-                                            <EmptyContent data-sot-part="recording-source-record-empty-content">
+                                            <EmptyContent data-part="recording-source-record-empty-content">
                                                 {t(
                                                     "recording.transcriptTabsHint",
                                                 )}

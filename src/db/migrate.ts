@@ -42,13 +42,19 @@ async function ensureCoreCompatibilityColumns(databasePath: string) {
         const userSettingsColumns = await client.execute(
             "PRAGMA table_info(user_settings)",
         );
-        const hasDisplayDensityColumn = userSettingsColumns.rows.some(
-            (row) => row.name === "display_density",
+        const userSettingsColumnNames = new Set(
+            userSettingsColumns.rows.map((row) => row.name),
         );
 
-        if (!hasDisplayDensityColumn) {
+        if (!userSettingsColumnNames.has("display_density")) {
             await client.execute(
                 "ALTER TABLE user_settings ADD COLUMN display_density text DEFAULT 'comfy' NOT NULL",
+            );
+        }
+
+        if (!userSettingsColumnNames.has("default_transcription_provider")) {
+            await client.execute(
+                "ALTER TABLE user_settings ADD COLUMN default_transcription_provider text",
             );
         }
 

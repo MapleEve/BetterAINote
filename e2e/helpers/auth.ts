@@ -54,6 +54,20 @@ export async function putJsonWithRetry(
     }
 }
 
+export async function waitForLoginPageReady(page: Page) {
+    await expect(page).toHaveURL(/\/login/);
+    await expect(page.getByRole("main")).toBeVisible();
+    await expect(page.getByRole("textbox", { name: "邮箱" })).toBeEnabled();
+    await expect(
+        page.getByRole("button", { name: "发送登录链接", exact: true }),
+    ).toBeEnabled();
+}
+
+export async function waitForWorkspaceReady(page: Page) {
+    await expect(page).toHaveURL(/\/dashboard/);
+    await expect(page.getByRole("main")).toBeVisible();
+}
+
 export async function ensureSignedIn(page: Page) {
     const signUpResponse = await postAuthSetupRequest(
         page,
@@ -85,5 +99,5 @@ export async function ensureSignedIn(page: Page) {
     }
 
     await page.goto("/dashboard", { waitUntil: "domcontentloaded" });
-    await expect(page).toHaveURL(/\/dashboard/);
+    await waitForWorkspaceReady(page);
 }

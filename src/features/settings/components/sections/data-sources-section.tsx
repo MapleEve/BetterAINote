@@ -689,7 +689,7 @@ function DataSourceProviderTile({
                 {source.provider === "iflyrec" ? (
                     <span aria-hidden="true">讯</span>
                 ) : assetPath ? (
-                    // biome-ignore lint/performance/noImgElement: SOT source cards render fixed local provider marks directly.
+                    // biome-ignore lint/performance/noImgElement: Provider cards render fixed local marks directly.
                     <img
                         src={assetPath}
                         alt=""

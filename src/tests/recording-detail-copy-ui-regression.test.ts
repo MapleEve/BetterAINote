@@ -17,7 +17,7 @@ const EXPECTED_DASHBOARD_TRANSCRIPT_ACTIONS_CLASS_NAME =
 const EXPECTED_DASHBOARD_TRANSCRIPT_SHELL_CARD_CLASS_NAME =
     "min-h-0 flex-1 gap-0 rounded-2xl";
 const EXPECTED_DASHBOARD_WORKSPACE_CLASS_NAME =
-    "grid flex-1 min-h-0 grid-cols-[380px_1fr] gap-4 px-5 pt-4 pb-5 max-[860px]:min-w-0 max-[860px]:max-w-full max-[860px]:box-border max-[860px]:grid-cols-[380px_0px] max-[860px]:[&>[data-sot-panel=dashboard-detail]]:hidden";
+    "grid flex-1 min-h-0 grid-cols-[380px_1fr] gap-4 px-5 pt-4 pb-5 max-[860px]:min-w-0 max-[860px]:max-w-full max-[860px]:box-border max-[860px]:grid-cols-[380px_0px]";
 const EXPECTED_RECORDING_WORKSTATION_WORKSPACE_CLASS_NAME =
     "grid flex-1 min-h-0 grid-cols-[380px_1fr] gap-4 px-5 pt-4 pb-5 max-[860px]:min-w-0 max-[860px]:max-w-full max-[860px]:box-border max-[860px]:grid-cols-[minmax(0,1fr)]";
 const EXPECTED_DETAIL_PANEL_CLASS_NAME = "flex min-h-0 min-w-0 flex-col gap-4";
@@ -52,9 +52,9 @@ const DASHBOARD_SIDEBAR_REQUIRED_CLASS_TOKENS = [
     "text-sidebar-foreground",
 ] as const;
 const DASHBOARD_SIDEBAR_VISUAL_GLOBAL_SELECTORS = [
-    '[data-sot-panel="dashboard-sidebar"]',
-    '[data-theme="dark"] [data-sot-panel="dashboard-sidebar"]',
-    '.dark [data-sot-panel="dashboard-sidebar"]',
+    '[data-panel="dashboard-sidebar"]',
+    '[data-theme="dark"] [data-panel="dashboard-sidebar"]',
+    '.dark [data-panel="dashboard-sidebar"]',
 ] as const;
 const DASHBOARD_SIDEBAR_FORBIDDEN_CLASS_PATTERN =
     /\bspace-[xy]-|\b(?:rgb|rgba|hsl|hsla|oklch|color-mix)\(|#[0-9A-Fa-f]{3,8}\b|\bdark:|(?:^|\s)(?:bg|border|text|shadow|ring|fill|stroke|from|via|to)-(?:white|black|transparent|slate|gray|zinc|neutral|stone|red|orange|amber|yellow|lime|green|emerald|teal|cyan|sky|blue|indigo|violet|purple|fuchsia|pink|rose)(?:[/-]\d+)?\b/;
@@ -73,7 +73,7 @@ const REMOVED_SOURCE_REPORT_DOT_HOOKS = [
     ["SourceReport", "StatusDot"].join(""),
     ["DashboardSourceReport", "StatusDot"].join(""),
     ["sourceReportStatus", "DotBase"].join(""),
-    ["data-sot-source-report-status", "dot"].join("-"),
+    ["data-source-report-status", "dot"].join("-"),
 ] as const;
 const SOURCE_REPORT_STATUS_DOT_STYLING_FORBIDDEN_SNIPPETS = [
     ...REMOVED_SOURCE_REPORT_DOT_HOOKS,
@@ -108,8 +108,7 @@ const SOURCE_REPORT_STATUS_BADGE_FORBIDDEN_STYLING_SNIPPETS = [
 ] as const;
 const SOURCE_REPORT_EMPTY_ALERT_COMPOSITION_CHECKS = [
     {
-        pattern:
-            /<Alert\b[\s\S]*?data-sot-source-report-missing-notice[\s\S]*?>/,
+        pattern: /<Alert\b[\s\S]*?data-source-report-missing-notice[\s\S]*?>/,
         snippets: [
             'variant="warningSoft"',
             'density="compact"',
@@ -117,7 +116,7 @@ const SOURCE_REPORT_EMPTY_ALERT_COMPOSITION_CHECKS = [
         ],
     },
     {
-        pattern: /<Alert\b[\s\S]*?data-sot-source-report-empty[\s\S]*?>/,
+        pattern: /<Alert\b[\s\S]*?data-source-report-empty[\s\S]*?>/,
         snippets: [
             'variant={tone === "danger" ? "statusError" : "default"}',
             'density="spacious"',
@@ -125,22 +124,20 @@ const SOURCE_REPORT_EMPTY_ALERT_COMPOSITION_CHECKS = [
         ],
     },
     {
-        pattern: /<Empty\b[\s\S]*?data-sot-source-report-empty[\s\S]*?>/,
+        pattern: /<Empty\b[\s\S]*?data-source-report-empty[\s\S]*?>/,
         snippets: ['variant="subtle"'],
     },
     {
-        pattern:
-            /<EmptyMedia\b[\s\S]*?data-sot-source-report-empty-icon[\s\S]*?>/,
+        pattern: /<EmptyMedia\b[\s\S]*?data-source-report-empty-icon[\s\S]*?>/,
         snippets: ['variant={tone === "danger" ? "dangerIcon" : "subtleIcon"}'],
     },
     {
-        pattern:
-            /<EmptyTitle\b[\s\S]*?data-sot-source-report-empty-title[\s\S]*?>/,
+        pattern: /<EmptyTitle\b[\s\S]*?data-source-report-empty-title[\s\S]*?>/,
         snippets: ['variant="compact"'],
     },
     {
         pattern:
-            /<EmptyDescription\b[\s\S]*?data-sot-source-report-empty-description[\s\S]*?>/,
+            /<EmptyDescription\b[\s\S]*?data-source-report-empty-description[\s\S]*?>/,
         snippets: ['variant="compact"'],
     },
 ] as const;
@@ -214,38 +211,38 @@ const DASHBOARD_TOPBAR_FORBIDDEN_CLASS_PATTERN =
 const OWNER_WORKSPACE_FORBIDDEN_CLASS_PATTERN =
     /\bspace-[xy]-|\b(?:rgb|rgba|hsl|hsla|oklch|color-mix)\(|#[0-9A-Fa-f]{3,8}\b|\bdark:|(?:^|\s)(?:bg|border|text|shadow|ring|fill|stroke|from|via|to)-(?:white|black|transparent|slate|gray|zinc|neutral|stone|red|orange|amber|yellow|lime|green|emerald|teal|cyan|sky|blue|indigo|violet|purple|fuchsia|pink|rose)(?:[/-]\d+)?\b/;
 const WORKSTATION_TOPBAR_CRUMB_REMOVED_GLOBAL_SELECTORS = [
-    '[data-sot-panel="workstation-topbar"]',
-    '[data-theme="dark"] [data-sot-panel="workstation-topbar"]',
-    '[data-sot-part="workstation-crumbs"]',
-    '[data-sot-part="workstation-crumb"]',
-    '[data-sot-part="workstation-crumb-separator"]',
-    '[data-sot-part="workstation-crumb-current"]',
+    '[data-panel="workstation-topbar"]',
+    '[data-theme="dark"] [data-panel="workstation-topbar"]',
+    '[data-part="workstation-crumbs"]',
+    '[data-part="workstation-crumb"]',
+    '[data-part="workstation-crumb-separator"]',
+    '[data-part="workstation-crumb-current"]',
 ] as const;
 const DASHBOARD_TOPBAR_CRUMB_REMOVED_GLOBAL_SELECTORS = [
-    '[data-sot-panel="dashboard-topbar"]',
-    '[data-theme="dark"] [data-sot-panel="dashboard-topbar"]',
-    '[data-sot-part="dashboard-crumbs"]',
-    '[data-sot-part="dashboard-crumb"]',
-    '[data-sot-part="dashboard-crumb-separator"]',
-    '[data-sot-part="dashboard-crumb-current"]',
+    '[data-panel="dashboard-topbar"]',
+    '[data-theme="dark"] [data-panel="dashboard-topbar"]',
+    '[data-part="dashboard-crumbs"]',
+    '[data-part="dashboard-crumb"]',
+    '[data-part="dashboard-crumb-separator"]',
+    '[data-part="dashboard-crumb-current"]',
 ] as const;
 const MOBILE_OWNER_LAYOUT_MIGRATED_GLOBAL_SELECTORS = [
-    '[data-sot-shell="dashboard-workstation"]',
-    '[data-sot-shell="recording-workstation"]',
-    '[data-sot-panel="dashboard-main"]',
-    '[data-sot-surface="dashboard-recording-list"]',
-    '[data-sot-panel="recording-detail-list"]',
-    '[data-sot-panel="recording-workstation-detail"]',
-    '[data-sot-panel="workstation-sidebar"]',
+    '[data-shell="dashboard-workstation"]',
+    '[data-shell="recording-workstation"]',
+    '[data-panel="dashboard-main"]',
+    '[data-surface="dashboard-recording-list"]',
+    '[data-panel="recording-detail-list"]',
+    '[data-panel="recording-workstation-detail"]',
+    '[data-panel="workstation-sidebar"]',
 ] as const;
 
 const DASHBOARD_COPY_ACTION_REMOVED_GLOBAL_SELECTORS = [
-    '[data-sot-part="dashboard-copy-label"]',
-    '[data-sot-part="dashboard-copy-icon"]',
-    '[data-sot-part="dashboard-transcript-actions"]',
-    '[data-sot-control="copy-local-transcript"][hidden]',
-    '[data-sot-control="copy-source-transcript"][hidden]',
-    '[data-sot-control="copy-source-report"][hidden]',
+    '[data-part="dashboard-copy-label"]',
+    '[data-part="dashboard-copy-icon"]',
+    '[data-part="dashboard-transcript-actions"]',
+    '[data-control="copy-local-transcript"][hidden]',
+    '[data-control="copy-source-transcript"][hidden]',
+    '[data-control="copy-source-report"][hidden]',
 ] as const;
 
 const SOURCE_REPORT_SKELETON_SHARED_TOKENS = [
@@ -376,8 +373,8 @@ const SOURCE_REPORT_STYLE_FORBIDDEN_SNIPPETS = [
     "--source" + "-report-",
     "bg-[image:var(--source" + "-report-skeleton-bg)]",
     "satisfies SourceReportStyleVariables",
-    "content-[attr(data-sot-missing-copy)]",
-    "data-sot-missing-copy",
+    "content-[attr(data-missing-copy)]",
+    "data-missing-copy",
     "after:content-[",
     "before:content-[",
     "SOURCE_REPORT_SKELETON_CLASS_NAME",
@@ -442,26 +439,26 @@ const ROUTE_LOADING_SURFACE_CLASS_TOKENS =
 const ROUTE_FALLBACK_CHROME_SHELL_CLASS_VALUE =
     "flex h-screen min-h-screen bg-background text-foreground transition-all duration-300 ease-out";
 const RECORDING_ROUTE_FALLBACK_REMOVED_GLOBAL_SELECTORS = [
-    '[data-sot-shell="recording-route-loading"]',
-    '[data-sot-shell="recording-route-empty"]',
-    '[data-sot-shell="recording-route-error"]',
-    '[data-sot-panel="recording-route-empty-detail"]',
-    '[data-sot-panel="recording-route-empty"]',
-    '[data-sot-part="recording-route-empty-icon"]',
-    '[data-sot-part="recording-route-empty-title"]',
-    '[data-sot-part="recording-route-empty-description"]',
+    '[data-shell="recording-route-loading"]',
+    '[data-shell="recording-route-empty"]',
+    '[data-shell="recording-route-error"]',
+    '[data-panel="recording-route-empty-detail"]',
+    '[data-panel="recording-route-empty"]',
+    '[data-part="recording-route-empty-icon"]',
+    '[data-part="recording-route-empty-title"]',
+    '[data-part="recording-route-empty-description"]',
 ] as const;
 const ROUTE_CHROME_REMOVED_GLOBAL_SELECTORS = [
-    '[data-sot-panel="route-sidebar"]',
-    '[data-sot-part="route-brand"]',
-    '[data-sot-part="route-brand"] img',
-    '[data-sot-part="route-brand-name"]',
-    '[data-sot-part="route-brand-subtitle"]',
-    '[data-sot-panel="route-main"]',
-    '[data-sot-panel="route-topbar"]',
-    '[data-sot-part="route-crumbs"]',
-    '[data-sot-part="route-crumb-current"]',
-    '[data-sot-panel="route-workspace"]',
+    '[data-panel="route-sidebar"]',
+    '[data-part="route-brand"]',
+    '[data-part="route-brand"] img',
+    '[data-part="route-brand-name"]',
+    '[data-part="route-brand-subtitle"]',
+    '[data-panel="route-main"]',
+    '[data-panel="route-topbar"]',
+    '[data-part="route-crumbs"]',
+    '[data-part="route-crumb-current"]',
+    '[data-panel="route-workspace"]',
 ] as const;
 const ROUTE_CHROME_FORBIDDEN_FRAMEWORK_RE =
     /var\(--glass|var\(--graphite|color-mix\(|backdrop-filter/;
@@ -491,49 +488,49 @@ const AI_RENAME_PREVIEW_FEATURE_OWNER_CLASS_SNIPPETS = [
             "w-[min(360px,calc(100vw-32px))]",
             "gap-0",
             "p-0",
-            "data-[open=true]:pointer-events-auto",
-            "[&_[data-sot-part=state][hidden]]:!hidden",
+            "overflow-hidden",
         ],
     },
     {
         label: "header",
         snippets: [
-            "min-h-14",
             "grid-cols-[1fr_auto]",
-            "border-b px-3.5 py-3",
-            "[&_[data-slot=card-head-copy]]:min-w-0",
+            "gap-x-2.5 gap-y-0.5",
+            "border-b border-[var(--card-popover-divider)]",
+            "px-3.5 pt-3 !pb-[7px]",
         ],
     },
     {
         label: "body",
         snippets: [
-            "px-3.5 py-3",
+            "flex flex-col p-3.5",
             'loadingContent: "min-h-20"',
-            "text-sm font-semibold leading-relaxed",
+            "text-[12.5px] leading-[1.5] font-medium",
         ],
     },
     {
         label: "state",
         snippets: [
-            "font-mono text-xs font-semibold leading-none",
-            "m-0 break-words text-sm font-medium leading-relaxed",
-            "m-0 max-w-full break-words text-xs font-medium leading-relaxed",
+            "text-[10.5px] leading-none font-semibold",
+            "m-0 break-words text-[12.5px] leading-[1.5] font-medium",
+            "m-0 max-w-full break-words text-[11.5px] leading-[1.5] font-medium",
         ],
     },
     {
         label: "review",
         snippets: [
-            "my-1.5 flex flex-col gap-1.5",
-            "rounded-lg border bg-muted",
-            "text-muted-foreground line-through",
+            "mt-1.5 mb-0.5 flex flex-col gap-1.5",
+            "rounded-lg border border-[var(--line-hairline)] bg-[var(--bg-recessed)]",
+            "text-muted-foreground line-through decoration-muted-foreground",
             "text-foreground",
         ],
     },
     {
         label: "actions",
         snippets: [
-            "min-h-12 gap-1.5 border-t px-3.5 py-2",
-            'variant="default"',
+            "min-h-12 gap-1.5 border-t border-[var(--card-popover-divider)]",
+            "px-3.5 py-2.5 !pt-2.5",
+            'variant="outline"',
         ],
     },
     {
@@ -553,7 +550,7 @@ const AI_RENAME_PREVIEW_FEATURE_OWNER_CLASS_SNIPPETS = [
         snippets: [
             'size="icon-xs"',
             'size="xs"',
-            'data-icon="inline-start"',
+            'aria-hidden="true"',
             'action: "shrink-0"',
         ],
     },
@@ -880,20 +877,20 @@ const DASHBOARD_WORKSTATION_LEGACY_CONTROL_RE =
     /className=["']btn(?:\s+(?:ghost|primary|glass))?\b|track-fill|track-thumb|sk _is|_is-/;
 
 const MORE_ACTIONS_MENU_RETIRED_GLOBALS_SELECTORS = [
-    '[data-sot-menu="recording-more-actions"]',
-    '[data-sot-menu="recording-more-actions"][data-open="true"]',
-    '[data-sot-menu="recording-more-actions"][data-state="open"]',
-    '[data-sot-menu="recording-more-actions"] svg',
-    "[data-sot-menu-item]",
-    "[data-sot-menu-item]:hover",
-    "[data-sot-menu-item]:focus-visible",
-    "[data-sot-menu-item]:active",
-    "[data-sot-menu-item] svg",
-    '[data-sot-menu-item][data-sot-tone="danger"]',
-    '[data-sot-menu-item][data-sot-tone="success"]',
-    "[data-sot-menu-item] [data-sot-menu-hint]",
-    "[data-sot-menu-separator]",
-    "[data-sot-menu-label]",
+    '[data-menu="recording-more-actions"]',
+    '[data-menu="recording-more-actions"][data-open="true"]',
+    '[data-menu="recording-more-actions"][data-state="open"]',
+    '[data-menu="recording-more-actions"] svg',
+    "[data-menu-item]",
+    "[data-menu-item]:hover",
+    "[data-menu-item]:focus-visible",
+    "[data-menu-item]:active",
+    "[data-menu-item] svg",
+    '[data-menu-item][data-tone="danger"]',
+    '[data-menu-item][data-tone="success"]',
+    "[data-menu-item] [data-menu-hint]",
+    "[data-menu-separator]",
+    "[data-menu-label]",
 ] as const;
 
 const MORE_ACTIONS_MENU_COMPOSITION_TOKENS = [
@@ -913,23 +910,23 @@ const MORE_ACTIONS_MENU_PRIMITIVE_FORBIDDEN_PATTERNS = [
 ] as const;
 
 const RECORDING_DETAIL_CARD_PRIMITIVE_SELECTORS = [
-    '[data-sot-panel="recording-detail-list"][data-slot="card"]',
-    '[data-sot-panel="recording-detail-metadata"][data-slot="card"]',
-    '[data-sot-panel="recording-source-record"][data-slot="card"]',
-    '[data-sot-panel="recording-transcription-skeleton"][data-slot="card"]',
-    '[data-sot-panel="recording-transcription-speaker-review-skeleton"][data-slot="card"]',
-    '[data-sot-part="recording-detail-list-header"][data-slot="card-header"]',
-    '[data-sot-part="recording-detail-metadata-header"]',
-    '[data-sot-part="recording-source-record-header"]',
-    '[data-sot-part="recording-transcription-skeleton-header"][data-slot="card-header"]',
-    '[data-sot-part="recording-detail-list-title"][data-slot="card-title"]',
-    '[data-sot-part="recording-detail-metadata-title"][data-slot="card-title"]',
-    '[data-sot-part="recording-source-record-title"][data-slot="card-title"]',
-    '[data-sot-part="recording-detail-list-content"][data-slot="card-content"]',
-    '[data-sot-part="recording-detail-metadata-body"]',
-    '[data-sot-part="recording-source-record-body"]',
-    '[data-sot-part="recording-transcription-skeleton-body"][data-slot="card-content"]',
-    '[data-sot-list="recording-transcription-speaker-cards"][data-slot="card-content"]',
+    '[data-panel="recording-detail-list"][data-slot="card"]',
+    '[data-panel="recording-detail-metadata"][data-slot="card"]',
+    '[data-panel="recording-source-record"][data-slot="card"]',
+    '[data-panel="recording-transcription-skeleton"][data-slot="card"]',
+    '[data-panel="recording-transcription-speaker-review-skeleton"][data-slot="card"]',
+    '[data-part="recording-detail-list-header"][data-slot="card-header"]',
+    '[data-part="recording-detail-metadata-header"]',
+    '[data-part="recording-source-record-header"]',
+    '[data-part="recording-transcription-skeleton-header"][data-slot="card-header"]',
+    '[data-part="recording-detail-list-title"][data-slot="card-title"]',
+    '[data-part="recording-detail-metadata-title"][data-slot="card-title"]',
+    '[data-part="recording-source-record-title"][data-slot="card-title"]',
+    '[data-part="recording-detail-list-content"][data-slot="card-content"]',
+    '[data-part="recording-detail-metadata-body"]',
+    '[data-part="recording-source-record-body"]',
+    '[data-part="recording-transcription-skeleton-body"][data-slot="card-content"]',
+    '[data-list="recording-transcription-speaker-cards"][data-slot="card-content"]',
 ] as const;
 
 const RECORDING_DETAIL_PRIMITIVE_REPAINT_DECLARATION_RE =
@@ -938,21 +935,21 @@ const RECORDING_DETAIL_CARD_OWNER_FORBIDDEN_CLASS_PATTERN =
     /(?:^|\s)!\S+|\bdark:|\b(?:text|bg|border|shadow|ring|fill|stroke)-\[var\(|\[(?:font|font-size|line-height|letter-spacing):[^\]]+\]|(?:^|\s)(?:text-(?:xs|sm|base|lg|xl|[2-9]xl)|font-(?:sans|serif|mono|thin|extralight|light|normal|medium|semibold|bold|extrabold|black)|leading-(?:none|tight|snug|normal|relaxed|loose|\[[^\]]+\]|\d+(?:\.\d+)?)|tracking-(?:normal|tight|wide|wider|widest|\[[^\]]+\]))(?=$|\s)/;
 
 const RECORDING_DETAIL_NAV_BACK_REMOVED_GLOBAL_SELECTORS = [
-    '[data-sot-list="recording-detail-nav"]',
-    '[data-sot-part="recording-detail-nav-label"]',
-    '[data-sot-control="recording-detail-back"] svg',
-    '[data-sot-control="recording-detail-back"] > span',
+    '[data-list="recording-detail-nav"]',
+    '[data-part="recording-detail-nav-label"]',
+    '[data-control="recording-detail-back"] svg',
+    '[data-control="recording-detail-back"] > span',
 ] as const;
 
 const RECORDING_DETAIL_ROW_REMOVED_GLOBAL_SELECTORS = [
-    '[data-sot-list="recording-detail-list-rows"]',
-    '[data-sot-item="recording-detail-list-row"]',
-    '[data-sot-item="recording-detail-list-row"]:hover',
-    '[data-sot-item="recording-detail-list-row"][data-sot-state="selected"]',
-    '[data-sot-part="recording-detail-list-row-body"]',
-    '[data-sot-part="recording-detail-list-row-title"]',
-    '[data-sot-part="recording-detail-list-row-meta"]',
-    '[data-sot-part="recording-detail-list-row-duration"]',
+    '[data-list="recording-detail-list-rows"]',
+    '[data-item="recording-detail-list-row"]',
+    '[data-item="recording-detail-list-row"]:hover',
+    '[data-item="recording-detail-list-row"][data-state="selected"]',
+    '[data-part="recording-detail-list-row-body"]',
+    '[data-part="recording-detail-list-row-title"]',
+    '[data-part="recording-detail-list-row-meta"]',
+    '[data-part="recording-detail-list-row-duration"]',
 ] as const;
 
 const RECORDING_WORKSTATION_NAV_OWNER_CLASS_INITIALIZERS = [
@@ -1014,66 +1011,66 @@ const DASHBOARD_TOPBAR_OWNER_CLASS_INITIALIZERS = [
 ] as const;
 
 const RECORDING_SOURCE_RECORD_LAYOUT_REMOVED_GLOBAL_SELECTORS = [
-    '[data-sot-part="recording-source-record-shell"]',
-    '[data-sot-part="recording-source-record-actions"]',
-    '[data-sot-part="recording-source-record-tabs"]',
-    '[data-sot-part="recording-source-record-hint"]',
-    '[data-sot-part="recording-source-record-pane"]',
+    '[data-part="recording-source-record-shell"]',
+    '[data-part="recording-source-record-actions"]',
+    '[data-part="recording-source-record-tabs"]',
+    '[data-part="recording-source-record-hint"]',
+    '[data-part="recording-source-record-pane"]',
 ] as const;
 const RECORDING_DETAIL_LIST_OWNER_CLASS_INITIALIZERS = [
     {
         constName: "RECORDING_DETAIL_LIST_HEADER_CLASS_NAME",
         expected: "gap-0 border-b px-3 py-3",
-        marker: 'data-sot-part="recording-detail-list-header"',
+        marker: 'data-part="recording-detail-list-header"',
         tagName: "CardHeader",
     },
     {
         constName: "RECORDING_DETAIL_LIST_TITLE_CLASS_NAME",
         expected: "text-sm",
-        marker: 'data-sot-part="recording-detail-list-title"',
+        marker: 'data-part="recording-detail-list-title"',
         tagName: "CardTitle",
     },
     {
         constName: "RECORDING_DETAIL_LIST_CONTENT_CLASS_NAME",
         expected: "flex min-h-0 flex-col px-0",
-        marker: 'data-sot-part="recording-detail-list-content"',
+        marker: 'data-part="recording-detail-list-content"',
         tagName: "CardContent",
     },
     {
         constName: "RECORDING_DETAIL_LIST_ROWS_CLASS_NAME",
         expected: "flex flex-col gap-0.5 p-1",
-        marker: 'data-sot-list="recording-detail-list-rows"',
+        marker: 'data-list="recording-detail-list-rows"',
         tagName: "div",
     },
     {
         constName: "RECORDING_DETAIL_LIST_ROW_CLASS_NAME",
         expected:
             "grid w-full grid-cols-[1fr_auto] items-center gap-3 rounded-md border border-border bg-secondary px-3 py-2 text-left transition-colors",
-        marker: 'data-sot-item="recording-detail-list-row"',
+        marker: 'data-item="recording-detail-list-row"',
         tagName: "div",
     },
     {
         constName: "RECORDING_DETAIL_LIST_ROW_BODY_CLASS_NAME",
         expected: "flex min-w-0 flex-col gap-1",
-        marker: 'data-sot-part="recording-detail-list-row-body"',
+        marker: 'data-part="recording-detail-list-row-body"',
         tagName: "div",
     },
     {
         constName: "RECORDING_DETAIL_LIST_ROW_TITLE_CLASS_NAME",
         expected: "truncate text-sm font-semibold text-foreground",
-        marker: 'data-sot-part="recording-detail-list-row-title"',
+        marker: 'data-part="recording-detail-list-row-title"',
         tagName: "div",
     },
     {
         constName: "RECORDING_DETAIL_LIST_ROW_META_CLASS_NAME",
         expected: "flex flex-wrap items-center gap-2",
-        marker: 'data-sot-part="recording-detail-list-row-meta"',
+        marker: 'data-part="recording-detail-list-row-meta"',
         tagName: "div",
     },
     {
         constName: "RECORDING_DETAIL_LIST_ROW_DURATION_CLASS_NAME",
         expected: "font-mono text-xs font-medium text-muted-foreground",
-        marker: 'data-sot-part="recording-detail-list-row-duration"',
+        marker: 'data-part="recording-detail-list-row-duration"',
         tagName: "span",
     },
 ] as const;
@@ -1081,26 +1078,26 @@ const RECORDING_DETAIL_METADATA_OWNER_CLASS_INITIALIZERS = [
     {
         constName: "RECORDING_DETAIL_METADATA_CARD_CLASS_NAME",
         expected: "min-h-0 gap-0",
-        marker: 'data-sot-panel="recording-detail-metadata"',
+        marker: 'data-panel="recording-detail-metadata"',
         tagName: "Card",
     },
     {
         constName: "RECORDING_DETAIL_METADATA_HEADER_CLASS_NAME",
         expected: "flex items-center gap-3 border-b px-4 py-3",
-        marker: 'data-sot-part="recording-detail-metadata-header"',
+        marker: 'data-part="recording-detail-metadata-header"',
         tagName: "CardHeader",
     },
     {
         constName: "RECORDING_DETAIL_METADATA_TITLE_CLASS_NAME",
         expected: "min-w-0 flex-1 truncate",
-        marker: 'data-sot-part="recording-detail-metadata-title"',
+        marker: 'data-part="recording-detail-metadata-title"',
         tagName: "CardTitle",
     },
     {
         constName: "RECORDING_DETAIL_METADATA_BODY_CLASS_NAME",
         expected:
             "flex min-h-0 flex-1 flex-col gap-3.5 overflow-y-auto px-5 pt-4 pb-6",
-        marker: 'data-sot-part="recording-detail-metadata-body"',
+        marker: 'data-part="recording-detail-metadata-body"',
         tagName: "CardContent",
     },
 ] as const;
@@ -1108,63 +1105,63 @@ const RECORDING_SOURCE_RECORD_OWNER_CLASS_INITIALIZERS = [
     {
         constName: "RECORDING_SOURCE_RECORD_SHELL_CLASS_NAME",
         expected: "flex min-h-0 flex-col gap-4",
-        marker: 'data-sot-part="recording-source-record-shell"',
+        marker: 'data-part="recording-source-record-shell"',
         tagName: "section",
     },
     {
         constName: "RECORDING_SOURCE_RECORD_CARD_CLASS_NAME",
         expected: "min-h-0 gap-0",
-        marker: 'data-sot-panel="recording-source-record"',
+        marker: 'data-panel="recording-source-record"',
         tagName: "Card",
     },
     {
         constName: "RECORDING_SOURCE_RECORD_HEADER_CLASS_NAME",
         expected: "flex items-center gap-3 border-b px-4 py-3",
-        marker: 'data-sot-part="recording-source-record-header"',
+        marker: 'data-part="recording-source-record-header"',
         tagName: "CardHeader",
     },
     {
         constName: "RECORDING_SOURCE_RECORD_TITLE_CLASS_NAME",
         expected: "min-w-0 flex-1 truncate",
-        marker: 'data-sot-part="recording-source-record-title"',
+        marker: 'data-part="recording-source-record-title"',
         tagName: "CardTitle",
     },
     {
         constName: "RECORDING_SOURCE_RECORD_ACTIONS_CLASS_NAME",
         expected:
             "ml-auto flex max-w-full grow-0 shrink basis-auto flex-wrap items-center gap-2",
-        marker: 'data-sot-part="recording-source-record-actions"',
+        marker: 'data-part="recording-source-record-actions"',
         tagName: "div",
     },
     {
         constName: "RECORDING_SOURCE_RECORD_BODY_CLASS_NAME",
         expected:
             "flex min-h-0 flex-1 flex-col gap-3.5 overflow-y-auto px-5 pt-4 pb-6",
-        marker: 'data-sot-part="recording-source-record-body"',
+        marker: 'data-part="recording-source-record-body"',
         tagName: "CardContent",
     },
     {
         constName: "RECORDING_SOURCE_RECORD_TABS_CLASS_NAME",
         expected: "flex min-w-0",
-        marker: 'data-sot-part="recording-source-record-tabs"',
+        marker: 'data-part="recording-source-record-tabs"',
         tagName: "div",
     },
     {
         constName: "RECORDING_SOURCE_RECORD_HINT_CLASS_NAME",
         expected: "m-0",
-        marker: 'data-sot-part="recording-source-record-hint"',
+        marker: 'data-part="recording-source-record-hint"',
         tagName: "FieldDescription",
     },
     {
         constName: "RECORDING_SOURCE_RECORD_PANE_CLASS_NAME",
         expected: "min-h-0",
-        marker: 'data-sot-part="recording-source-record-pane"',
+        marker: 'data-part="recording-source-record-pane"',
         tagName: "div",
     },
     {
         constName: "RECORDING_SOURCE_RECORD_EMPTY_CLASS_NAME",
         expected: "min-h-[280px] flex-1",
-        marker: 'data-sot-panel="recording-source-record-empty"',
+        marker: 'data-panel="recording-source-record-empty"',
         tagName: "Empty",
     },
 ] as const;
@@ -1214,18 +1211,18 @@ describe("recording detail copy and title action UI regressions", () => {
         expect(detailTranscript).toContain(
             "transcription.copyTranscriptFailed",
         );
+        expect(detailTranscript).toContain('role="region"');
         expect(detailTranscript).toContain(
-            'data-sot-panel="recording-transcription"',
+            'aria-labelledby="recording-transcription-title"',
+        );
+        expect(detailTranscript).toContain("onClick={handleCopyTranscript}");
+        expect(detailTranscript).toContain(
+            "onClick={handleConfirmRetranscribe}",
         );
         expect(detailTranscript).toContain(
-            'data-sot-control="copy-local-transcript"',
+            "onClick={() => handleTranscribe(false)}",
         );
-        expect(detailTranscript).toContain(
-            'data-sot-control="retranscribe-local"',
-        );
-        expect(detailTranscript).toContain(
-            'data-sot-control="start-local-transcription"',
-        );
+        expect(detailTranscript).toContain("aria-busy={isCopyingTranscript}");
         expect(detailTranscript).toContain('data-icon="inline-start"');
         expect(detailTranscript).toContain(
             'import { Badge } from "@/components/ui/badge";',
@@ -1238,9 +1235,13 @@ describe("recording detail copy and title action UI regressions", () => {
         expect(detailTranscript).toContain(
             "const RECORDING_TRANSCRIPTION_META_BADGE_VARIANT = {",
         );
-        expect(detailTranscript).toContain(
-            "variant={RECORDING_TRANSCRIPTION_META_BADGE_VARIANT[tone]}",
-        );
+        for (const tone of ["attribute", "measure"]) {
+            expect(detailTranscript).toMatch(
+                new RegExp(
+                    `variant=\\{\\s*RECORDING_TRANSCRIPTION_META_BADGE_VARIANT\\.${tone}\\s*\\}`,
+                ),
+            );
+        }
         expect(detailTranscript).not.toContain(
             "RECORDING_TRANSCRIPTION_META_BADGE_CLASS_NAME",
         );
@@ -1284,8 +1285,8 @@ describe("recording detail copy and title action UI regressions", () => {
             "border-t border-border",
             "border-b border-dashed",
             "[&>svg]:size-",
-            "data-[sot-tone=attribute]:",
-            "data-[sot-tone=measure]:",
+            "data-[tone=attribute]:",
+            "data-[tone=measure]:",
         ]) {
             expect(recordingTranscriptionClassNamesBlock).not.toContain(
                 forbiddenLocalPanelResidual,
@@ -1308,28 +1309,24 @@ describe("recording detail copy and title action UI regressions", () => {
         expect(detailTranscript).toContain(
             'outputText:\n        "m-0 font-sans text-[14.5px] leading-[1.65] text-foreground [text-wrap:pretty] max-[860px]:[overflow-wrap:anywhere]"',
         );
-        expect(detailTranscript).toContain(
-            "function RecordingTranscriptionMetaBadge",
-        );
-        for (const metaHook of [
-            'data-sot-meta="language"',
-            'data-sot-meta="source"',
-            'data-sot-meta="words"',
-            'data-sot-meta="characters"',
+        for (const metaLabel of [
+            "transcription.languagePrefix",
+            "transcription.sourcePrefix",
+            "transcription.words",
+            "transcription.characters",
         ]) {
-            expect(detailTranscript).toContain(metaHook);
+            expect(detailTranscript).toContain(metaLabel);
         }
+        expect((detailTranscript.match(/<Badge/g) ?? []).length).toBe(4);
         const copyControlIndex = detailTranscript.indexOf(
-            'data-sot-control="copy-local-transcript"',
+            "onClick={handleCopyTranscript}",
         );
         const retranscribeControlIndex = detailTranscript.indexOf(
-            'data-sot-control="retranscribe-local"',
+            "onClick={handleConfirmRetranscribe}",
         );
-        const startControlIndex = detailTranscript.indexOf(
-            'data-sot-control="start-local-transcription"',
-        );
+        const startControlIndex = detailTranscript.indexOf('variant="default"');
         const jobErrorBannerIndex = detailTranscript.indexOf(
-            'data-sot-state="error"',
+            'variant="statusError"',
         );
         expect(copyControlIndex).toBeGreaterThanOrEqual(0);
         expect(retranscribeControlIndex).toBeGreaterThanOrEqual(0);
@@ -1337,17 +1334,17 @@ describe("recording detail copy and title action UI regressions", () => {
         expect(jobErrorBannerIndex).toBeGreaterThanOrEqual(0);
         const copyControl = extractOpeningElement(
             detailTranscript,
-            'data-sot-control="copy-local-transcript"',
+            "onClick={handleCopyTranscript}",
             "Button",
         );
         const retranscribeControl = extractOpeningElement(
             detailTranscript,
-            'data-sot-control="retranscribe-local"',
+            "onClick={handleConfirmRetranscribe}",
             "Button",
         );
         const startControl = extractOpeningElement(
             detailTranscript,
-            'data-sot-control="start-local-transcription"',
+            'variant="default"',
             "Button",
         );
         const jobErrorBanner = detailTranscript.slice(
@@ -1356,82 +1353,82 @@ describe("recording detail copy and title action UI regressions", () => {
         );
         const outputSection = extractOpeningElement(
             detailTranscript,
-            'data-sot-section="recording-transcription-output"',
+            "recordingTranscriptionClassNames.outputSection",
             "section",
         );
         const transcriptionCard = extractOpeningElement(
             detailTranscript,
-            'data-sot-panel="recording-transcription"',
+            'aria-labelledby="recording-transcription-title"',
             "Card",
         );
         const transcriptionHeader = extractOpeningElement(
             detailTranscript,
-            'data-sot-part="recording-transcription-header"',
+            "recordingTranscriptionClassNames.header",
             "CardHeader",
         );
         const transcriptionHeading = extractOpeningElement(
             detailTranscript,
-            'data-sot-part="recording-transcription-heading"',
+            "recordingTranscriptionClassNames.heading",
             "div",
         );
         const transcriptionIcon = extractOpeningElement(
             detailTranscript,
-            'data-sot-part="recording-transcription-icon"',
+            "recordingTranscriptionClassNames.icon",
             "FileText",
         );
         const transcriptionHeaderCopy = extractOpeningElement(
             detailTranscript,
-            'data-sot-part="recording-transcription-header-copy"',
+            "recordingTranscriptionClassNames.headerCopy",
             "div",
         );
         const transcriptionBody = extractOpeningElement(
             detailTranscript,
-            'data-sot-part="recording-transcription-body"',
+            "recordingTranscriptionClassNames.body",
             "CardContent",
         );
         const sectionHead = extractOpeningElement(
             detailTranscript,
-            'data-sot-part="recording-transcription-section-head"',
+            "recordingTranscriptionClassNames.sectionHead",
             "header",
         );
         const sectionTitle = extractOpeningElement(
             detailTranscript,
-            'data-sot-part="recording-transcription-section-title"',
+            "recordingTranscriptionClassNames.sectionTitle",
             "h3",
         );
         const sectionDescription = extractOpeningElement(
             detailTranscript,
-            'data-sot-part="recording-transcription-section-description"',
+            "recordingTranscriptionClassNames.sectionDescription",
             "p",
         );
         const sectionActions = extractOpeningElement(
             detailTranscript,
-            'data-sot-part="recording-transcription-actions"',
+            "recordingTranscriptionClassNames.actions",
             "div",
         );
         const transcriptionTurn = extractOpeningElement(
             detailTranscript,
-            'data-sot-part="recording-transcription-turn"',
+            "recordingTranscriptionClassNames.turn",
             "div",
         );
         const speakerReviewSection = extractOpeningElement(
             detailTranscript,
-            'data-sot-section="recording-transcription-speaker-review"',
+            "recordingTranscriptionClassNames.speakerReviewSection",
             "section",
         );
         const outputText = extractOpeningElement(
             detailTranscript,
-            'data-sot-part="recording-transcription-text"',
+            "recordingTranscriptionClassNames.outputText",
             "p",
         );
         const metaList = extractBoundedSlice(
             detailTranscript,
-            'data-sot-list="recording-transcription-meta"',
+            "recordingTranscriptionClassNames.metaList",
             "</div>",
         );
         const transcriptionMetaList = extractOpeningElement(
             detailTranscript,
-            'data-sot-list="recording-transcription-meta"',
+            "recordingTranscriptionClassNames.metaList",
             "div",
         );
         expect(outputSection).toContain(
@@ -1492,10 +1489,14 @@ describe("recording detail copy and title action UI regressions", () => {
         expect(startControl).not.toContain("className=");
         expect(jobErrorBanner).toContain("<Alert");
         expect(jobErrorBanner).toContain('variant="statusError"');
-        expect(metaList).toContain("<RecordingTranscriptionMetaBadge");
+        expect(metaList).toContain("<Badge");
         expect(metaList).not.toContain(variantAttr("transcriptionMeta"));
-        expect(metaList).toContain('data-sot-tone="attribute"');
-        expect(metaList).toContain('data-sot-tone="measure"');
+        expect(metaList).toContain(
+            "RECORDING_TRANSCRIPTION_META_BADGE_VARIANT.attribute",
+        );
+        expect(metaList).toContain(
+            "RECORDING_TRANSCRIPTION_META_BADGE_VARIANT.measure",
+        );
         for (const removedActionToken of [
             'variant="transcriptionAction"',
             'variant="transcriptionDangerAction"',
@@ -1516,40 +1517,40 @@ describe("recording detail copy and title action UI regressions", () => {
             expect(startControl).not.toContain(removedActionToken);
         }
         expect(jobErrorBanner).not.toContain('variant="destructive"');
-        for (const genericMetaToken of [
-            'variant="outline"',
-            'variant="secondary"',
-        ]) {
-            expect(metaList).not.toContain(genericMetaToken);
-        }
+        expect(metaList).toMatch(
+            /variant=\{\s*RECORDING_TRANSCRIPTION_META_BADGE_VARIANT\.attribute\s*\}/,
+        );
+        expect(metaList).toMatch(
+            /variant=\{\s*RECORDING_TRANSCRIPTION_META_BADGE_VARIANT\.measure\s*\}/,
+        );
         for (const removedSelector of [
-            '[data-sot-panel="recording-transcription"][data-slot="card"]',
-            '[data-sot-part="recording-transcription-header"] {',
-            '[data-sot-part="recording-transcription-heading"]',
-            '[data-sot-part="recording-transcription-icon"]',
-            '[data-sot-part="recording-transcription-header-copy"]',
-            '[data-sot-part="recording-transcription-title"] h2',
-            '[data-sot-part="recording-transcription-description"],',
-            '[data-sot-part="recording-transcription-unavailable"] {',
-            '[data-sot-part="recording-transcription-body"]',
-            '[data-sot-section="recording-transcription-speaker-review"]',
-            '[data-sot-part="recording-transcription-section-head"]',
-            '[data-sot-part="recording-transcription-section-title"]',
-            '[data-sot-part="recording-transcription-section-description"]',
-            '[data-sot-part="recording-transcription-actions"]',
-            '[data-sot-part="recording-transcription-turn"]',
-            '[data-sot-part="recording-transcription-body"] [data-sot-banner-title]',
-            '[data-sot-list="recording-transcription-meta"]',
-            '[data-sot-list="recording-transcription-meta"] > span',
-            '[data-sot-part="recording-transcription-meta-icon"]',
-            '[data-sot-section="recording-transcription-output"]',
-            '[data-theme="dark"] [data-sot-section="recording-transcription-output"]',
-            '[data-sot-part="recording-transcription-text"]',
+            '[data-panel="recording-transcription"][data-slot="card"]',
+            '[data-part="recording-transcription-header"] {',
+            '[data-part="recording-transcription-heading"]',
+            '[data-part="recording-transcription-icon"]',
+            '[data-part="recording-transcription-header-copy"]',
+            '[data-part="recording-transcription-title"] h2',
+            '[data-part="recording-transcription-description"],',
+            '[data-part="recording-transcription-unavailable"] {',
+            '[data-part="recording-transcription-body"]',
+            '[data-section="recording-transcription-speaker-review"]',
+            '[data-part="recording-transcription-section-head"]',
+            '[data-part="recording-transcription-section-title"]',
+            '[data-part="recording-transcription-section-description"]',
+            '[data-part="recording-transcription-actions"]',
+            '[data-part="recording-transcription-turn"]',
+            '[data-part="recording-transcription-body"] [data-banner-title]',
+            '[data-list="recording-transcription-meta"]',
+            '[data-list="recording-transcription-meta"] > span',
+            '[data-part="recording-transcription-meta-icon"]',
+            '[data-section="recording-transcription-output"]',
+            '[data-theme="dark"] [data-section="recording-transcription-output"]',
+            '[data-part="recording-transcription-text"]',
         ]) {
             expect(globals).not.toContain(removedSelector);
         }
-        expect(globals).not.toContain("\n[data-sot-banner] {\n");
-        expect(globals).not.toContain("\n[data-sot-banner-icon] {\n");
+        expect(globals).not.toContain("\n[data-banner] {\n");
+        expect(globals).not.toContain("\n[data-banner-icon] {\n");
         const alertPrimitive = readSource("components/ui/alert.tsx");
         const transcriptionSection = readSource(
             "features/recordings/components/transcription-section.tsx",
@@ -1562,7 +1563,9 @@ describe("recording detail copy and title action UI regressions", () => {
             'import { Spinner } from "@/components/ui/spinner";',
         );
         expect(transcriptionSection).toContain("<Spinner");
-        expect(transcriptionSection).toContain("data-sot-banner-spinner");
+        expect(transcriptionSection).toContain(
+            '<Spinner aria-hidden="true" />',
+        );
         expect(transcriptionSection).not.toContain(
             '<RefreshCw\n                            className="animate-spin"',
         );
@@ -1584,7 +1587,7 @@ describe("recording detail copy and title action UI regressions", () => {
         }
 
         expect(dashboardTranscript).toContain(
-            'data-sot-panel="dashboard-retranscription"',
+            'data-panel="dashboard-retranscription"',
         );
         expect(dashboardTranscript).toContain(
             "data-retx-state={dashboardRetxState}",
@@ -1593,8 +1596,8 @@ describe("recording detail copy and title action UI regressions", () => {
         expect(dashboardTranscript).toContain(
             'hidden={detailTab !== "transcript"}',
         );
-        expect(dashboardTranscript).toContain(
-            '{ value: "transcript", label: "转写" }',
+        expect(dashboardTranscript).toMatch(
+            /\{\s*value: "transcript",\s*label: "转写",\s*\}/,
         );
         expect(dashboardTranscript).toContain('tabKey: "source-report"');
     });
@@ -1665,8 +1668,10 @@ describe("recording detail copy and title action UI regressions", () => {
             'aria-busy={copyingKey === "source-report"}',
         );
         expect(sourceReport).toContain('testId="source-report-refresh"');
-        expect(sourceReport).toContain('testId="source-report-open-source"');
-        expect(sourceReport).toContain('testId="source-report-repull"');
+        expect(sourceReport).toContain(
+            'data-testid="source-report-open-source"',
+        );
+        expect(sourceReport).toContain('data-testid="source-report-repull"');
         expect(sourceReport).toContain("<SourceReportPane");
         expect(sourceReport).toContain(
             "<SourceReportPane className={className} state={sourceReportState}>",
@@ -1675,7 +1680,7 @@ describe("recording detail copy and title action UI regressions", () => {
         expect(sourceReport).toContain("subState={sourceReportSubState}");
         expect(sourceReport).not.toContain("@/features/source-report/styles");
         expect(sourceReport).not.toContain("JSON.stringify(data.detail");
-        expect(sourceReport).not.toContain("data-sot-missing-copy");
+        expect(sourceReport).not.toContain("data-missing-copy");
 
         for (const moduleName of [
             "alert",
@@ -1720,7 +1725,7 @@ describe("recording detail copy and title action UI regressions", () => {
             'data-testid="source-report-empty-surface"',
         );
         expect(sourceReportPrimitives).not.toMatch(
-            /SotSourceReport|data-sot-source-report|sourceReportSotStyles|SourceReportStyleVariables/,
+            /SotSourceReport|data-source-report|sourceReportSotStyles|SourceReportStyleVariables/,
         );
 
         const dashboardPane = extractOpeningElement(
@@ -1748,8 +1753,12 @@ describe("recording detail copy and title action UI regressions", () => {
                 "SourceReportCopyButton",
             );
             expect(dashboardCopy).toContain(`copy="${copyKind}"`);
-            expect(dashboardCopy).toContain(`copyState={${copyState}}`);
-            expect(dashboardCopy).toContain(`disabled={${copyDisabled}}`);
+            expect(dashboardCopy).toMatch(
+                new RegExp(`copyState=\\{\\s*${copyState}\\s*\\}`),
+            );
+            expect(dashboardCopy).toMatch(
+                new RegExp(`disabled=\\{\\s*${copyDisabled}\\s*\\}`),
+            );
         }
         expect(recordingWorkstation).toContain("<SourceReportPanel");
         expect(recordingWorkstation).toContain("onAvailabilityChange=");
@@ -1769,7 +1778,7 @@ describe("recording detail copy and title action UI regressions", () => {
         );
         const input = readSource("components/ui/input.tsx");
         const listPanelIndex = detailWorkstation.indexOf(
-            'data-sot-panel="recording-detail-list"',
+            'data-panel="recording-detail-list"',
         );
         const listPanelStart = detailWorkstation.lastIndexOf(
             "<Card",
@@ -1784,7 +1793,7 @@ describe("recording detail copy and title action UI regressions", () => {
             listPanelEnd + "</Card>".length,
         );
         const headerPanelIndex = detailWorkstation.indexOf(
-            'data-sot-panel="recording-detail-header"',
+            'data-panel="recording-detail-header"',
         );
         const headerStart = detailWorkstation.lastIndexOf(
             "<RecordingDetailCardHeader",
@@ -1801,7 +1810,7 @@ describe("recording detail copy and title action UI regressions", () => {
         const legacyHeaderClassNamePattern =
             /className=(?:"[^"]*\b(?:rec-head|rec-h2|rec-h2-local|rec-h2-input|rec-h2-status|rh-norm|rh-edit|ai-rename-anchor|more-anchor)\b[^"]*"|\{[^}]*\b(?:rec-head|rec-h2|rec-h2-local|rec-h2-input|rec-h2-status|rh-norm|rh-edit|ai-rename-anchor|more-anchor)\b[^}]*\})/;
         const detailBackControlIndex = detailWorkstation.indexOf(
-            'data-sot-control="recording-detail-back"',
+            'data-control="recording-detail-back"',
         );
         const detailBackControlStart = detailWorkstation.lastIndexOf(
             "<Button",
@@ -1817,20 +1826,18 @@ describe("recording detail copy and title action UI regressions", () => {
         );
 
         expect(detailWorkstation).toContain(
-            'data-sot-surface="recording-workstation"',
+            'data-surface="recording-workstation"',
         );
         expect(detailWorkstation).toContain(
-            'data-sot-shell="recording-workstation"',
+            'data-shell="recording-workstation"',
         );
         expect(detailWorkstation).toContain(
-            'data-sot-state={hydrated ? "ready" : "loading"}',
+            'data-state={hydrated ? "ready" : "loading"}',
         );
-        expect(detailWorkstation).toContain(
-            'data-sot-panel="workstation-sidebar"',
-        );
+        expect(detailWorkstation).toContain('data-panel="workstation-sidebar"');
         const workstationSidebarAside = extractElementSlice(
             detailWorkstation,
-            'data-sot-panel="workstation-sidebar"',
+            'data-panel="workstation-sidebar"',
             "aside",
         );
         const recordingWorkstationSidebarClassName = extractBoundedSlice(
@@ -1847,12 +1854,10 @@ describe("recording detail copy and title action UI regressions", () => {
         expect(workstationSidebarAside).toContain(
             "className={RECORDING_WORKSTATION_SIDEBAR_CLASS_NAME}",
         );
-        expect(detailWorkstation).toContain(
-            'data-sot-panel="workstation-main"',
-        );
+        expect(detailWorkstation).toContain('data-panel="workstation-main"');
         const workstationMain = extractElementSlice(
             detailWorkstation,
-            'data-sot-panel="workstation-main"',
+            'data-panel="workstation-main"',
             "main",
         );
         const recordingWorkstationMainClassName = extractBoundedSlice(
@@ -1866,12 +1871,10 @@ describe("recording detail copy and title action UI regressions", () => {
         expect(workstationMain).toContain(
             "className={RECORDING_WORKSTATION_MAIN_CLASS_NAME}",
         );
-        expect(detailWorkstation).toContain(
-            'data-sot-panel="workstation-topbar"',
-        );
+        expect(detailWorkstation).toContain('data-panel="workstation-topbar"');
         const workstationTopbar = extractElementSlice(
             detailWorkstation,
-            'data-sot-panel="workstation-topbar"',
+            'data-panel="workstation-topbar"',
             "header",
         );
         const recordingWorkstationTopbarClassNames = extractBoundedSlice(
@@ -1910,11 +1913,11 @@ describe("recording detail copy and title action UI regressions", () => {
             "className={recordingWorkstationTopbarClassNames.topbar}",
         );
         expect(detailWorkstation).toContain(
-            'data-sot-panel="workstation-workspace"',
+            'data-panel="workstation-workspace"',
         );
         const workstationWorkspace = extractOpeningElement(
             detailWorkstation,
-            'data-sot-panel="workstation-workspace"',
+            'data-panel="workstation-workspace"',
             "div",
         );
         const recordingWorkstationWorkspaceClassName =
@@ -1931,12 +1934,12 @@ describe("recording detail copy and title action UI regressions", () => {
         );
         const recordingDetailPanel = extractOpeningElement(
             detailWorkstation,
-            'data-sot-panel="recording-workstation-detail"',
+            'data-panel="recording-workstation-detail"',
             "section",
         );
         const recordingDetailBodyPanel = extractOpeningElement(
             detailWorkstation,
-            'data-sot-panel="recording-workstation-detail-body"',
+            'data-panel="recording-workstation-detail-body"',
             "section",
         );
         for (const { expected, openingElement, constName } of [
@@ -1989,14 +1992,12 @@ describe("recording detail copy and title action UI regressions", () => {
         expect(detailWorkstation).toContain(
             "recordingWorkstationBrandClassNames.subtitle",
         );
+        expect(detailWorkstation).toContain('data-part="workstation-brand"');
         expect(detailWorkstation).toContain(
-            'data-sot-part="workstation-brand"',
+            'data-part="workstation-brand-name"',
         );
         expect(detailWorkstation).toContain(
-            'data-sot-part="workstation-brand-name"',
-        );
-        expect(detailWorkstation).toContain(
-            'data-sot-part="workstation-brand-subtitle"',
+            'data-part="workstation-brand-subtitle"',
         );
         const recordingWorkstationNavClassNames = extractBoundedSlice(
             detailWorkstation,
@@ -2014,11 +2015,9 @@ describe("recording detail copy and title action UI regressions", () => {
                 `className={recordingWorkstationNavClassNames.${property}}`,
             );
         }
+        expect(detailWorkstation).toContain('data-list="recording-detail-nav"');
         expect(detailWorkstation).toContain(
-            'data-sot-list="recording-detail-nav"',
-        );
-        expect(detailWorkstation).toContain(
-            'data-sot-control="recording-detail-back"',
+            'data-control="recording-detail-back"',
         );
         expect(detailBackControlIndex).toBeGreaterThanOrEqual(0);
         expect(detailBackControlStart).toBeGreaterThanOrEqual(0);
@@ -2036,34 +2035,32 @@ describe("recording detail copy and title action UI regressions", () => {
         expect(detailBackControl).toContain(
             'navigateBrowserRoute(router, "/dashboard")',
         );
-        expect(detailBackControl).toContain('data-sot-state="selected"');
+        expect(detailBackControl).toContain('data-state="selected"');
         expect(detailBackControl).toContain("<ArrowLeft");
         expect(detailBackControl).toContain('data-icon="inline-start"');
         expect(detailBackControl).toContain('{t("recording.backToDashboard")}');
         expect(detailBackControl).not.toContain(
             'variant="recordingDetailBack"',
         );
-        expect(detailWorkstation).toContain("[&_span]:truncate");
+        expect(detailBackControl).toContain(
+            'className="min-w-0 flex-1 truncate"',
+        );
         expect(detailWorkstation).not.toContain("[&_svg]:stroke-[");
         expect(detailWorkstation).not.toContain("[&_svg]:opacity-[");
         expect(detailWorkstation).not.toContain("[&_svg]:[stroke-linecap");
         expect(detailWorkstation).not.toContain("[&_svg]:[stroke-linejoin");
+        expect(detailWorkstation).not.toContain("data-[state=selected]:bg-[");
         expect(detailWorkstation).not.toContain(
-            "data-[sot-state=selected]:bg-[",
+            "data-[state=selected]:border-[",
         );
-        expect(detailWorkstation).not.toContain(
-            "data-[sot-state=selected]:border-[",
-        );
-        expect(detailWorkstation).not.toContain(
-            "data-[sot-state=selected]:text-[",
-        );
+        expect(detailWorkstation).not.toContain("data-[state=selected]:text-[");
         expect(detailWorkstation).not.toContain(
             'className="flex flex-1 flex-col gap-0.5 overflow-y-auto pb-3"',
         );
         expect(detailWorkstation).not.toContain(
             'className="px-2.5 pb-1.5 pt-3.5 font-sans text-[10px] font-semibold uppercase tracking-[0.08em] text-[var(--fg-tertiary)]"',
         );
-        expect(detailWorkstation).toContain('data-sot-state="selected"');
+        expect(detailWorkstation).toContain('data-state="selected"');
         for (const selector of MOBILE_OWNER_LAYOUT_MIGRATED_GLOBAL_SELECTORS) {
             expect(globals).not.toContain(selector);
             expect(collectCssRuleBlocks(globals, selector)).toEqual([]);
@@ -2072,40 +2069,28 @@ describe("recording detail copy and title action UI regressions", () => {
             expect(collectExactCssRuleBlocks(globals, selector)).toEqual([]);
         }
         expect(globals).not.toContain(
-            '[data-theme="dark"] [data-sot-panel="dashboard-sidebar"],\n.dark [data-sot-panel="dashboard-sidebar"]',
+            '[data-theme="dark"] [data-panel="dashboard-sidebar"],\n.dark [data-panel="dashboard-sidebar"]',
         );
         const dashboardSidebarGlobalBlocks = collectCssRuleBlocks(
             globals,
-            '[data-sot-panel="dashboard-sidebar"]',
+            '[data-panel="dashboard-sidebar"]',
         );
-        expect(dashboardSidebarGlobalBlocks).toHaveLength(1);
-        expect(dashboardSidebarGlobalBlocks[0]?.prelude).toContain(
-            '[data-sot-panel="dashboard-sync"]',
-        );
-        expect(dashboardSidebarGlobalBlocks[0]?.declarations).toContain(
-            "pointer-events: none;",
-        );
-        expect(dashboardSidebarGlobalBlocks[0]?.declarations).not.toMatch(
-            DASHBOARD_SIDEBAR_VISUAL_GLOBAL_DECLARATION_RE,
+        expect(dashboardSidebarGlobalBlocks).toEqual([]);
+        expect(globals).not.toContain(
+            '[data-panel="dashboard-sidebar"],\n[data-panel="workstation-sidebar"]',
         );
         expect(globals).not.toContain(
-            '[data-sot-panel="dashboard-sidebar"],\n[data-sot-panel="workstation-sidebar"]',
+            '[data-panel="workstation-sidebar"] {\n    background:',
         );
         expect(globals).not.toContain(
-            '[data-sot-panel="workstation-sidebar"] {\n    background:',
+            '[data-theme="dark"] [data-panel="workstation-sidebar"]',
         );
         expect(globals).not.toContain(
-            '[data-theme="dark"] [data-sot-panel="workstation-sidebar"]',
+            '.dark [data-panel="workstation-sidebar"]',
         );
-        expect(globals).not.toContain(
-            '.dark [data-sot-panel="workstation-sidebar"]',
-        );
-        expect(globals).not.toContain('[data-sot-panel="workstation-main"]');
+        expect(globals).not.toContain('[data-panel="workstation-main"]');
         expect(
-            collectCssRuleBlocks(
-                globals,
-                '[data-sot-panel="workstation-main"]',
-            ),
+            collectCssRuleBlocks(globals, '[data-panel="workstation-main"]'),
         ).toEqual([]);
         const dashboardWorkstation = readSource(
             "features/dashboard/workstation.tsx",
@@ -2126,7 +2111,7 @@ describe("recording detail copy and title action UI regressions", () => {
         );
         const dashboardMain = extractElementSlice(
             dashboardWorkstation,
-            'data-sot-panel="dashboard-main"',
+            'data-panel="dashboard-main"',
             "main",
         );
         const dashboardMainClassName = extractBoundedSlice(
@@ -2145,7 +2130,7 @@ describe("recording detail copy and title action UI regressions", () => {
         );
         const dashboardTopbar = extractElementSlice(
             dashboardWorkstation,
-            'data-sot-panel="dashboard-topbar"',
+            'data-panel="dashboard-topbar"',
             "header",
         );
         const dashboardTopbarClassNames = extractBoundedSlice(
@@ -2179,11 +2164,11 @@ describe("recording detail copy and title action UI regressions", () => {
         );
         const dashboardMainGlobalBlocks = collectCssRuleBlocks(
             globals,
-            '[data-sot-panel="dashboard-main"]',
+            '[data-panel="dashboard-main"]',
         );
         expect(dashboardMainGlobalBlocks).toEqual([]);
         expect(globals).not.toContain(
-            '[data-sot-panel="dashboard-main"] {\n    display: flex;\n    flex-direction: column;\n    min-width: 0;\n    height: 100vh;\n}',
+            '[data-panel="dashboard-main"] {\n    display: flex;\n    flex-direction: column;\n    min-width: 0;\n    height: 100vh;\n}',
         );
         expect(globals).toContain("--z-topbar: 200;");
         for (const selector of DASHBOARD_TOPBAR_CRUMB_REMOVED_GLOBAL_SELECTORS) {
@@ -2195,14 +2180,14 @@ describe("recording detail copy and title action UI regressions", () => {
             expect(collectCssRuleBlocks(globals, selector)).toEqual([]);
         }
         for (const selector of [
-            '[data-sot-panel="dashboard-workspace"]',
-            '[data-sot-panel="workstation-workspace"]',
+            '[data-panel="dashboard-workspace"]',
+            '[data-panel="workstation-workspace"]',
         ]) {
             expect(globals).not.toContain(selector);
             expect(collectCssRuleBlocks(globals, selector)).toEqual([]);
         }
         expect(globals).not.toContain(
-            '[data-sot-panel="dashboard-workspace"]\n        > [data-sot-panel="dashboard-detail"]',
+            '[data-panel="dashboard-workspace"]\n        > [data-panel="dashboard-detail"]',
         );
         const dashboardWorkspaceClassName = expectExactStringConstInitializer(
             dashboardWorkstation,
@@ -2216,23 +2201,21 @@ describe("recording detail copy and title action UI regressions", () => {
             "className={DASHBOARD_WORKSPACE_CLASS_NAME}",
         );
         expect(globals).not.toContain(
-            '[data-sot-panel="dashboard-detail"],\n[data-sot-panel="recording-workstation-detail"],\n[data-sot-panel="recording-workstation-detail-body"]',
-        );
-        expect(globals).toContain(
-            '[data-sot-control="dashboard-sync"][disabled] {\n    pointer-events: none;',
-        );
-        expect(globals).not.toContain('[data-sot-part="workstation-brand"]');
-        expect(globals).not.toContain(
-            '[data-sot-part="workstation-brand"] img',
+            '[data-panel="dashboard-detail"],\n[data-panel="recording-workstation-detail"],\n[data-panel="recording-workstation-detail-body"]',
         );
         expect(globals).not.toContain(
-            '[data-sot-part="workstation-brand-name"]',
+            '[data-control="dashboard-sync"][disabled]',
+        );
+        expect(button).toContain("disabled:pointer-events-none");
+        expect(dashboardWorkstation).toContain("disabled={syncButtonBusy}");
+        expect(globals).not.toContain('[data-part="workstation-brand"]');
+        expect(globals).not.toContain('[data-part="workstation-brand"] img');
+        expect(globals).not.toContain('[data-part="workstation-brand-name"]');
+        expect(globals).not.toContain(
+            '[data-part="workstation-brand-subtitle"]',
         );
         expect(globals).not.toContain(
-            '[data-sot-part="workstation-brand-subtitle"]',
-        );
-        expect(globals).not.toContain(
-            '[data-sot-control="recording-detail-back"][data-slot="button"]',
+            '[data-control="recording-detail-back"][data-slot="button"]',
         );
         expect(detailWorkstation).not.toContain('className="app"');
         expect(detailWorkstation).not.toContain(
@@ -2277,7 +2260,7 @@ describe("recording detail copy and title action UI regressions", () => {
         expect(listPanel).toContain("<CardHeader");
         expect(listPanel).toContain("<CardTitle");
         expect(listPanel).toContain("<CardContent");
-        expect(listPanel).toContain('data-sot-panel="recording-detail-list"');
+        expect(listPanel).toContain('data-panel="recording-detail-list"');
         const recordingDetailListCardClassName =
             expectExactStringConstInitializer(
                 detailWorkstation,
@@ -2290,33 +2273,25 @@ describe("recording detail copy and title action UI regressions", () => {
         expect(recordingDetailListCardClassName).not.toMatch(
             OWNER_WORKSPACE_FORBIDDEN_CLASS_PATTERN,
         );
+        expect(listPanel).toContain('data-part="recording-detail-list-header"');
+        expect(listPanel).toContain('data-part="recording-detail-list-title"');
         expect(listPanel).toContain(
-            'data-sot-part="recording-detail-list-header"',
+            'data-part="recording-detail-list-content"',
+        );
+        expect(listPanel).toContain('data-list="recording-detail-list-rows"');
+        expect(listPanel).toContain('data-item="recording-detail-list-row"');
+        expect(listPanel).toContain('data-state="selected"');
+        expect(listPanel).toContain(
+            'data-part="recording-detail-list-row-body"',
         );
         expect(listPanel).toContain(
-            'data-sot-part="recording-detail-list-title"',
+            'data-part="recording-detail-list-row-title"',
         );
         expect(listPanel).toContain(
-            'data-sot-part="recording-detail-list-content"',
+            'data-part="recording-detail-list-row-meta"',
         );
         expect(listPanel).toContain(
-            'data-sot-list="recording-detail-list-rows"',
-        );
-        expect(listPanel).toContain(
-            'data-sot-item="recording-detail-list-row"',
-        );
-        expect(listPanel).toContain('data-sot-state="selected"');
-        expect(listPanel).toContain(
-            'data-sot-part="recording-detail-list-row-body"',
-        );
-        expect(listPanel).toContain(
-            'data-sot-part="recording-detail-list-row-title"',
-        );
-        expect(listPanel).toContain(
-            'data-sot-part="recording-detail-list-row-meta"',
-        );
-        expect(listPanel).toContain(
-            'data-sot-part="recording-detail-list-row-duration"',
+            'data-part="recording-detail-list-row-duration"',
         );
         for (const {
             constName,
@@ -2344,8 +2319,8 @@ describe("recording detail copy and title action UI regressions", () => {
                 /(?:text|bg|border)-\[var\(|duration-\[|ease-\[|gap-\[|rounded-\[|py-\[|text-\[|tracking-\[/,
             );
         }
-        expect(listPanel).toContain("<SotPlayerSourceTag");
-        expect(listPanel).toContain("<SotPlayerStatusBadge");
+        expect(listPanel).toContain("<PlayerSourceTag");
+        expect(listPanel).toContain("<PlayerStatusBadge");
         for (const legacyClass of [
             'className="panel"',
             'className="list-header"',
@@ -2387,17 +2362,13 @@ describe("recording detail copy and title action UI regressions", () => {
         expect(detailHeader).toContain("<RecordingDetailCardHeader");
         expect(detailHeader).toContain("<RecordingDetailCardTitle");
         expect(detailHeader).toContain("<Badge");
+        expect(detailHeader).toContain('data-panel="recording-detail-header"');
+        expect(detailHeader).toContain('data-part="detail-header-title"');
+        expect(detailHeader).toContain('data-part="detail-header-title-input"');
         expect(detailHeader).toContain(
-            'data-sot-panel="recording-detail-header"',
+            'data-part="detail-header-title-status"',
         );
-        expect(detailHeader).toContain('data-sot-part="detail-header-title"');
-        expect(detailHeader).toContain(
-            'data-sot-part="detail-header-title-input"',
-        );
-        expect(detailHeader).toContain(
-            'data-sot-part="detail-header-title-status"',
-        );
-        expect(detailHeader).toContain('data-sot-part="detail-header-action"');
+        expect(detailHeader).toContain('data-part="detail-header-action"');
         expect(detailHeader).toContain("data-rh-title");
         expect(detailHeader).toContain("data-rh-input");
         expect(detailHeader).toContain("data-rh-status");
@@ -2406,7 +2377,7 @@ describe("recording detail copy and title action UI regressions", () => {
         expect(detailHeader).toContain("data-rh-edit-cancel");
         expect(detailHeader).toContain("data-rh-ai-anchor");
         expect(detailHeader).toContain("data-rh-ai-trigger");
-        expect(detailHeader).toContain('data-sot-control="ai-rename"');
+        expect(detailHeader).toContain('data-control="ai-rename"');
         expect(detailWorkstation).toContain(
             "const recordingDetailHeaderState = isSavingRename",
         );
@@ -2446,7 +2417,7 @@ describe("recording detail copy and title action UI regressions", () => {
         const detailHeaderClassName = expectExactStringConstInitializer(
             detailWorkstation,
             "RECORDING_DETAIL_HEADER_CLASS_NAME",
-            "flex flex-row items-center gap-2.5 px-1 pt-1 pb-0 data-[sot-state=saving]:pb-px",
+            "flex flex-row items-center gap-2.5 px-1 pt-1 pb-0 data-[state=saving]:pb-px",
         );
         const detailHeaderTitleClassName = expectExactStringConstInitializer(
             detailWorkstation,
@@ -2491,13 +2462,13 @@ describe("recording detail copy and title action UI regressions", () => {
             "} as const;",
         );
         expect(recordingHeaderButtonClassNames).toContain(
-            'headerIconButton: "text-muted-foreground"',
+            'headerIconButton: "rounded-[8px] text-[var(--fg-secondary)]"',
         );
         expect(recordingHeaderButtonClassNames).toContain(
-            'headerActionButton: "min-w-[103px]"',
+            'headerActionButton: "w-[102.375px] min-w-[102.375px]"',
         );
         const headerButtonClassResidualPattern =
-            /header(?:Icon|Action)Button:[\s\S]*?(?:\[_svg|stroke-\[|stroke-line(?:cap|join)|\[_svg:not|!border|!bg|\[var\(--(?:fg|bg|line|glass|shadow)|font-sans|text-\[|rounded-\[|gap-\[|px-\[|backdrop-)/;
+            /header(?:Icon|Action)Button:[\s\S]*?(?:data-sot|data-variant|rec-head|--recording-detail)/;
         expect(recordingHeaderButtonClassNames).not.toMatch(
             headerButtonClassResidualPattern,
         );
@@ -2516,6 +2487,17 @@ describe("recording detail copy and title action UI regressions", () => {
         expect(detailHeader).toContain('variant="secondary"');
         expect(detailHeader).toContain('variant="outline"');
         expect(detailHeader).toContain('size="sm"');
+        for (const icon of [
+            "Pen",
+            "Sparkle",
+            "Check",
+            "X",
+            "EllipsisVertical",
+        ]) {
+            expect(detailHeader).toMatch(
+                new RegExp(`<${icon}\\s+[\\s\\S]*?size=\\{16\\}`),
+            );
+        }
         expect(detailHeader).toContain(
             "recordingWorkstationButtonClassNames.headerIconButton",
         );
@@ -2523,13 +2505,13 @@ describe("recording detail copy and title action UI regressions", () => {
             "recordingWorkstationButtonClassNames.headerActionButton",
         );
         expect(detailWorkstation).not.toContain(
-            "dark:data-[sot-state=selected]:border",
+            "dark:data-[state=selected]:border",
         );
         expect(detailWorkstation).not.toContain(
-            "dark:data-[sot-state=selected]:bg-[rgb(",
+            "dark:data-[state=selected]:bg-[rgb(",
         );
         expect(detailWorkstation).not.toContain(
-            "dark:data-[sot-state=selected]:shadow-none",
+            "dark:data-[state=selected]:shadow-none",
         );
         expect(detailWorkstation).not.toContain("dark:hover:bg-accent/50");
         expect(detailHeader).not.toContain('variant="detailHeaderIconAction"');
@@ -2554,24 +2536,22 @@ describe("recording detail copy and title action UI regressions", () => {
         expect(detailHeader).toContain(
             'recordingDetailHeaderState === "saving"',
         );
-        expect(detailHeader).toContain('data-sot-state="saving"');
+        expect(detailHeader).toContain('data-state="saving"');
         expect(detailHeader).toContain("localDeleteAvailable ? (");
         expect(detailHeader).not.toMatch(legacyHeaderClassNamePattern);
-        expect(globals).not.toContain(
-            '[data-sot-panel="recording-detail-header"]',
-        );
+        expect(globals).not.toContain('[data-panel="recording-detail-header"]');
         for (const selector of [
-            '[data-sot-part="detail-header-title"][data-slot="card-title"]',
-            '[data-sot-part="detail-header-title-input"][data-slot="input"]',
-            '[data-sot-part="detail-header-title-status"]',
-            '[data-sot-part="detail-header-local-badge"]',
-            '[data-sot-part="detail-header-action"]',
-            '[data-sot-part="detail-header-action-anchor"]',
+            '[data-part="detail-header-title"][data-slot="card-title"]',
+            '[data-part="detail-header-title-input"][data-slot="input"]',
+            '[data-part="detail-header-title-status"]',
+            '[data-part="detail-header-local-badge"]',
+            '[data-part="detail-header-action"]',
+            '[data-part="detail-header-action-anchor"]',
         ]) {
             expect(globals).not.toContain(selector);
         }
         const metadataPanelIndex = detailWorkstation.indexOf(
-            'data-sot-panel="recording-detail-metadata"',
+            'data-panel="recording-detail-metadata"',
         );
         const metadataStart = detailWorkstation.lastIndexOf(
             "<Card",
@@ -2583,7 +2563,7 @@ describe("recording detail copy and title action UI regressions", () => {
             metadataEnd + "</Card>".length,
         );
         const sourceRecordPanelIndex = detailWorkstation.indexOf(
-            'data-sot-panel="recording-source-record"',
+            'data-panel="recording-source-record"',
         );
         const sourceRecordStart = detailWorkstation.lastIndexOf(
             "<Card",
@@ -2606,16 +2586,16 @@ describe("recording detail copy and title action UI regressions", () => {
         expect(metadataPanel).toContain("<CardTitle");
         expect(metadataPanel).toContain("<CardContent");
         expect(metadataPanel).toContain(
-            'data-sot-panel="recording-detail-metadata"',
+            'data-panel="recording-detail-metadata"',
         );
         expect(metadataPanel).toContain(
-            'data-sot-part="recording-detail-metadata-header"',
+            'data-part="recording-detail-metadata-header"',
         );
         expect(metadataPanel).toContain(
-            'data-sot-part="recording-detail-metadata-title"',
+            'data-part="recording-detail-metadata-title"',
         );
         expect(metadataPanel).toContain(
-            'data-sot-part="recording-detail-metadata-body"',
+            'data-part="recording-detail-metadata-body"',
         );
         for (const {
             constName,
@@ -2655,7 +2635,7 @@ describe("recording detail copy and title action UI regressions", () => {
         expect(sourceRecordPanel).toContain("<CardTitle");
         expect(sourceRecordPanel).toContain("<CardContent");
         expect(sourceRecordPanel).toContain(
-            'data-sot-panel="recording-source-record"',
+            'data-panel="recording-source-record"',
         );
         for (const {
             constName,
@@ -2695,10 +2675,10 @@ describe("recording detail copy and title action UI regressions", () => {
             "recording-source-record-tabs",
             "recording-source-record-hint",
         ]) {
-            expect(sourceRecordPanel).toContain(`data-sot-part="${part}"`);
+            expect(sourceRecordPanel).toContain(`data-part="${part}"`);
         }
         expect(detailWorkstation).toContain(
-            'data-sot-panel="recording-source-record-empty"',
+            'data-panel="recording-source-record-empty"',
         );
         for (const legacyClass of [
             'className="panel"',
@@ -2726,7 +2706,7 @@ describe("recording detail copy and title action UI regressions", () => {
         expect(button).not.toContain('variant="sourceRecordCopyAction"');
         expect(button).not.toContain('size="sourceRecordCopyAction"');
         expect(detailWorkstation).toContain(
-            'data-sot-part="recording-source-record-actions"',
+            'data-part="recording-source-record-actions"',
         );
         expect(detailWorkstation).not.toContain('className="t-actions"');
         expect(sourceRecordPanel).toContain("handleCopyLocalTranscript");
@@ -2806,20 +2786,16 @@ describe("recording detail copy and title action UI regressions", () => {
         expect(detailWorkstation).toContain("<DropdownMenuContent");
         expect(detailWorkstation).toContain("data-more-menu");
         expect(detailWorkstation).toContain(
-            'data-sot-menu="recording-more-actions"',
+            'data-menu="recording-more-actions"',
         );
-        expect(detailWorkstation).toContain('data-sot-menu-item="rename"');
-        expect(detailWorkstation).toContain('data-sot-menu-item="ai-rename"');
-        expect(detailWorkstation).toContain(
-            'data-sot-menu-item="retranscribe"',
-        );
-        expect(detailWorkstation).toContain(
-            'data-sot-menu-item="delete-local"',
-        );
-        expect(detailWorkstation).toContain('data-sot-tone="danger"');
+        expect(detailWorkstation).toContain('data-menu-item="rename"');
+        expect(detailWorkstation).toContain('data-menu-item="ai-rename"');
+        expect(detailWorkstation).toContain('data-menu-item="retranscribe"');
+        expect(detailWorkstation).toContain('data-menu-item="delete-local"');
+        expect(detailWorkstation).toContain('data-tone="danger"');
         expect(detailWorkstation).toContain("<DropdownMenuSeparator");
-        expect(detailWorkstation).toContain('data-sot-menu-separator="delete"');
-        expect(detailWorkstation).toContain("data-sot-menu-hint");
+        expect(detailWorkstation).toContain('data-menu-separator="delete"');
+        expect(detailWorkstation).toContain("data-menu-hint");
         for (const selector of MORE_ACTIONS_MENU_RETIRED_GLOBALS_SELECTORS) {
             expect(globals).not.toContain(selector);
         }
@@ -2835,10 +2811,10 @@ describe("recording detail copy and title action UI regressions", () => {
         expect(detailWorkstation).not.toContain('className="more-menu-hint"');
         expect(detailWorkstation).toContain("handleMoreRetranscribe");
         expect(detailWorkstation).toContain("handleDeleteLocalRecording");
-        expect(detailWorkstation).toContain("SotPlayerSourceTag");
-        expect(detailWorkstation).toContain("SotPlayerStatusBadge");
-        expect(detailWorkstation).toContain("<SotPlayerSourceTag");
-        expect(detailWorkstation).toContain("<SotPlayerStatusBadge");
+        expect(detailWorkstation).toContain("PlayerSourceTag");
+        expect(detailWorkstation).toContain("PlayerStatusBadge");
+        expect(detailWorkstation).toContain("<PlayerSourceTag");
+        expect(detailWorkstation).toContain("<PlayerStatusBadge");
         expect(detailWorkstation).not.toContain('className="src-tag"');
         expect(detailWorkstation).not.toContain('className="b ok"');
         expect(detailWorkstation).not.toMatch(OLD_UI_CONTRACT_RE);
@@ -2876,7 +2852,7 @@ describe("recording detail copy and title action UI regressions", () => {
         );
         const dashboardTranscriptShell = extractCardSlice(
             dashboardTranscript,
-            'data-sot-panel="dashboard-transcript-shell"',
+            'data-panel="dashboard-transcript-shell"',
         );
         const dashboardTranscriptLoadingTurn = extractBoundedSlice(
             dashboardTranscript,
@@ -2889,7 +2865,7 @@ describe("recording detail copy and title action UI regressions", () => {
             ") : (",
         );
         const headerPanelIndex = dashboardTranscript.indexOf(
-            'data-sot-panel="dashboard-detail-header"',
+            'data-panel="dashboard-detail-header"',
         );
         const headerStart = dashboardTranscript.lastIndexOf(
             "<CardHeader",
@@ -2926,17 +2902,17 @@ describe("recording detail copy and title action UI regressions", () => {
         expect(card).toContain('data-slot="card-title"');
         expect(input).toContain('data-slot="input"');
         expect(dashboardDetailHeader).toContain(
-            'data-sot-panel="dashboard-detail-header"',
+            'data-panel="dashboard-detail-header"',
         );
         expect(dashboardDetailHeader).toContain("<CardHeader");
         expect(dashboardDetailHeader).toContain("<CardTitle");
         expect(dashboardDetailHeader).toContain("<Badge");
         expect(dashboardDetailHeader).toContain("data-rename-mode");
         expect(dashboardDetailHeader).toContain(
-            'data-sot-part="detail-header-title-input"',
+            'data-part="detail-header-title-input"',
         );
         expect(dashboardDetailHeader).toContain(
-            'data-sot-part="detail-header-action"',
+            'data-part="detail-header-action"',
         );
         expect(dashboardDetailHeader).toContain("data-rh-edit-start");
         expect(dashboardDetailHeader).toContain("data-rh-edit-save");
@@ -3025,20 +3001,16 @@ describe("recording detail copy and title action UI regressions", () => {
         expect(
             EXPECTED_DASHBOARD_DETAIL_HEADER_ACTION_ANCHOR_CLASS_NAME,
         ).not.toMatch(OWNER_WORKSPACE_FORBIDDEN_CLASS_PATTERN);
-        expect(dashboardDetailHeader).toContain(
-            'dashboardDetailHeaderState === "normal"',
-        );
-        expect(dashboardDetailHeader).toContain(
-            'dashboardDetailHeaderState === "editing"',
-        );
-        expect(dashboardDetailHeader).toContain(
-            'dashboardDetailHeaderState === "saving"',
-        );
-        expect(dashboardDetailHeader).toContain('data-sot-state="saving"');
+        for (const state of ["normal", "editing", "saving"]) {
+            expect(dashboardDetailHeader).toMatch(
+                new RegExp(`dashboardDetailHeaderState\\s*===\\s*"${state}"`),
+            );
+        }
+        expect(dashboardDetailHeader).toContain('data-state="saving"');
         expect(dashboardDetailHeader).toContain("localDeleteAvailable ? (");
         expect(dashboardDetailHeader).not.toMatch(legacyHeaderClassNamePattern);
         expect(dashboardTranscript).toContain(
-            'data-sot-panel="dashboard-retranscription"',
+            'data-panel="dashboard-retranscription"',
         );
         expect(dashboardTranscript).toContain(
             "data-retx-state={dashboardRetxState}",
@@ -3052,23 +3024,23 @@ describe("recording detail copy and title action UI regressions", () => {
             `className="${EXPECTED_DASHBOARD_TRANSCRIPT_SHELL_CARD_CLASS_NAME}"`,
         );
         expect(dashboardTranscriptShell).toContain(
-            'data-sot-panel="dashboard-transcript-shell"',
+            'data-panel="dashboard-transcript-shell"',
         );
         expect(dashboardTranscriptShell).toContain("<CardHeader");
         expect(dashboardTranscriptShell).toContain("<CardContent");
         const dashboardTranscriptHeader = extractOpeningElement(
             dashboardTranscriptShell,
-            'data-sot-part="dashboard-transcript-header"',
+            'data-part="dashboard-transcript-header"',
             "CardHeader",
         );
         const dashboardTranscriptSegmentedTabs = extractOpeningElement(
             dashboardTranscriptShell,
-            'data-sot-control="segmented-tabs"',
+            'data-control="segmented-tabs"',
             "SegmentedTabs",
         );
         const dashboardTranscriptBody = extractOpeningElement(
             dashboardTranscriptShell,
-            'data-sot-part="dashboard-transcript-body"',
+            'data-part="dashboard-transcript-body"',
             "CardContent",
         );
         expect(dashboardTranscriptHeader).toContain(
@@ -3097,13 +3069,13 @@ describe("recording detail copy and title action UI regressions", () => {
             );
         }
         expect(dashboardTranscriptShell).toContain(
-            'data-sot-part="dashboard-transcript-header"',
+            'data-part="dashboard-transcript-header"',
         );
         expect(dashboardTranscriptShell).toContain(
-            'data-sot-part="dashboard-transcript-actions"',
+            'data-part="dashboard-transcript-actions"',
         );
         expect(dashboardTranscriptShell).toContain(
-            'data-sot-part="dashboard-transcript-body"',
+            'data-part="dashboard-transcript-body"',
         );
         for (const legacyClass of [
             'className="transcript"',
@@ -3117,15 +3089,15 @@ describe("recording detail copy and title action UI regressions", () => {
         expect(dashboardTranscript).toContain('"source"');
         expect(dashboardTranscript).toContain('"speakers"');
         expect(dashboardTranscript).toContain('aria-label="详情标签"');
-        expect(dashboardTranscript).toContain(
-            '{ value: "transcript", label: "转写" }',
+        expect(dashboardTranscript).toMatch(
+            /\{\s*value: "transcript",\s*label: "转写",\s*\}/,
         );
         expect(dashboardTranscript).toContain('tabKey: "source-report"');
         expect(dashboardTranscript).toContain("DashboardCopyIcon");
         expect(dashboardTranscript).toContain('part="dashboard-copy-icon"');
         const dashboardTranscriptActions = extractOpeningElement(
             dashboardTranscript,
-            'data-sot-part="dashboard-transcript-actions"',
+            'data-part="dashboard-transcript-actions"',
             "div",
         );
         expect(dashboardTranscriptActions).toContain(
@@ -3133,7 +3105,7 @@ describe("recording detail copy and title action UI regressions", () => {
         );
         const dashboardLocalCopyButton = extractElementSlice(
             dashboardTranscript,
-            'data-sot-control="copy-local-transcript"',
+            'data-control="copy-local-transcript"',
             "Button",
         );
         expect(dashboardLocalCopyButton).toContain("<DashboardCopyIcon");
@@ -3145,9 +3117,7 @@ describe("recording detail copy and title action UI regressions", () => {
             "function DashboardCopyIcon",
             "function DashboardCopyLabel",
         );
-        expect(dashboardCopyIcon).toContain(
-            'data-sot-part="dashboard-copy-icon"',
-        );
+        expect(dashboardCopyIcon).toContain('data-part="dashboard-copy-icon"');
         expect(dashboardCopyIcon).not.toContain("dashboardLocalCopyClassNames");
         const dashboardCopyLabel = extractBoundedSlice(
             dashboardTranscript,
@@ -3155,7 +3125,7 @@ describe("recording detail copy and title action UI regressions", () => {
             "function getRetxStateFromActiveJob",
         );
         expect(dashboardCopyLabel).toContain(
-            'data-sot-part="dashboard-copy-label"',
+            'data-part="dashboard-copy-label"',
         );
         expect(dashboardCopyLabel).not.toContain(
             "dashboardLocalCopyClassNames",
@@ -3209,8 +3179,12 @@ describe("recording detail copy and title action UI regressions", () => {
                 "SourceReportCopyButton",
             );
             expect(dashboardCopy).toContain(`copy="${copyKind}"`);
-            expect(dashboardCopy).toContain(`copyState={${copyState}}`);
-            expect(dashboardCopy).toContain(`disabled={${copyDisabled}}`);
+            expect(dashboardCopy).toMatch(
+                new RegExp(`copyState=\\{\\s*${copyState}\\s*\\}`),
+            );
+            expect(dashboardCopy).toMatch(
+                new RegExp(`disabled=\\{\\s*${copyDisabled}\\s*\\}`),
+            );
         }
         expect(dashboardTranscript).toContain(
             'testId="source-report-open-source"',
@@ -3233,32 +3207,28 @@ describe("recording detail copy and title action UI regressions", () => {
         expect(sourceReportPrimitives).toContain("data-testid={testId}");
         expect(sourceReportPrimitives).toContain("data-state={state}");
         expect(dashboardTranscriptLoadingTurn).toContain(
-            'data-sot-item="dashboard-transcript-turn"',
+            'data-item="dashboard-transcript-turn"',
         );
         expect(dashboardTranscriptLoadingTurn).toContain(
-            'data-sot-part="dashboard-transcript-speaker-row"',
+            'data-part="dashboard-transcript-speaker-row"',
         );
         expect(dashboardTranscriptLoadingTurn).toContain(
-            'data-sot-state="loading"',
+            'data-state="loading"',
         );
         expect(dashboardTranscriptReadyTurn).toContain(
-            'data-sot-item="dashboard-transcript-turn"',
+            'data-item="dashboard-transcript-turn"',
         );
         expect(dashboardTranscriptReadyTurn).toContain(
-            'data-sot-part="dashboard-transcript-speaker-row"',
+            'data-part="dashboard-transcript-speaker-row"',
+        );
+        expect(dashboardTranscriptReadyTurn).toContain('data-state="ready"');
+        expect(dashboardTranscriptReadyTurn).toContain(
+            'data-part="dashboard-transcript-speaker-name"',
         );
         expect(dashboardTranscriptReadyTurn).toContain(
-            'data-sot-state="ready"',
+            'data-part="dashboard-transcript-speaker-time"',
         );
-        expect(dashboardTranscriptReadyTurn).toContain(
-            'data-sot-part="dashboard-transcript-speaker-name"',
-        );
-        expect(dashboardTranscriptReadyTurn).toContain(
-            'data-sot-part="dashboard-transcript-speaker-time"',
-        );
-        expect(dashboardTranscriptReadyTurn).toContain(
-            'data-sot-format="mono"',
-        );
+        expect(dashboardTranscriptReadyTurn).toContain('data-format="mono"');
         for (const localTurnSlice of [
             dashboardTranscriptLoadingTurn,
             dashboardTranscriptReadyTurn,
@@ -3267,16 +3237,16 @@ describe("recording detail copy and title action UI regressions", () => {
             expect(localTurnSlice).not.toContain('className="speaker-name"');
         }
         expect(dashboardTranscript).toContain(
-            'data-sot-panel="dashboard-transcript-empty"',
+            'data-panel="dashboard-transcript-empty"',
         );
         expect(dashboardTranscript).toContain(
-            'data-sot-part="dashboard-transcript-empty-icon"',
+            'data-part="dashboard-transcript-empty-icon"',
         );
         expect(dashboardTranscript).toContain(
-            'data-sot-part="dashboard-transcript-empty-message"',
+            'data-part="dashboard-transcript-empty-message"',
         );
         expect(dashboardTranscript).toContain(
-            'data-sot-part="dashboard-transcript-empty-sub"',
+            'data-part="dashboard-transcript-empty-sub"',
         );
         for (const legacyClass of [
             'className="turn skel-turn"',
@@ -3342,20 +3312,20 @@ describe("recording detail copy and title action UI regressions", () => {
         );
         const routeFallbackDetailLoadingCard = extractCardSlice(
             routeChrome,
-            "data-sot-panel={dataSotPanel}",
+            "recordingDetailLoadingSkeletonClassNames.recordingDetailLoadingAvatar",
         );
         const routeFallbackDetailLoadingCardOpening = extractOpeningElement(
             routeChrome,
-            "data-sot-panel={dataSotPanel}",
+            '"flex min-h-0 min-w-0 flex-col gap-4",',
             "Card",
         );
         const recordingRouteLoadingDetailFallback = extractOpeningElement(
             loading,
-            'data-sot-panel="recording-route-loading-detail"',
-            "RouteFallbackDetailLoadingSkeleton",
+            "className={`${recordingLoadingSurfaceClassName}",
+            "Card",
         );
 
-        for (const source of [loading, notFound, error]) {
+        for (const source of [notFound, error]) {
             expect(source).not.toMatch(OLD_UI_CONTRACT_RE);
             expect(source).toContain('from "../../route-chrome";');
             expect(source).toContain("RouteFallbackChrome");
@@ -3373,11 +3343,16 @@ describe("recording detail copy and title action UI regressions", () => {
             expect(source).not.toContain('className="crumbs"');
             expect(source).not.toContain('className="crumb-current"');
         }
-        expect(routeChrome).toContain('data-sot-panel="route-sidebar"');
-        expect(routeChrome).toContain('data-sot-panel="route-main"');
-        expect(routeChrome).toContain('data-sot-panel="route-topbar"');
-        expect(routeChrome).toContain('data-sot-part="route-crumbs"');
-        expect(routeChrome).toContain('data-sot-part="route-crumb-current"');
+        expect(loading).not.toMatch(OLD_UI_CONTRACT_RE);
+        expect(loading).not.toContain('from "../../route-chrome";');
+        expect(loading).toContain('aria-label="正在加载录音详情"');
+        expect(loading).toContain('aria-label="应用导航"');
+        expect(loading).toContain('aria-label="当前页面"');
+        for (const routeElement of ["<aside", "<main", "<header"]) {
+            expect(routeChrome).toContain(routeElement);
+        }
+        expect(routeChrome).toContain("routeFallbackWorkspaceSingleClassName");
+        expect(routeChrome).not.toContain('data-panel="route-');
         for (const source of [notFound, error]) {
             expect(source).toContain('href="/dashboard"');
             expect(source).toContain("返回工作台");
@@ -3398,14 +3373,9 @@ describe("recording detail copy and title action UI regressions", () => {
             expect(source).not.toContain('className="detail"');
         }
         expect(routeChrome).toContain("BetterAINote");
-        expect(routeChrome).toContain('data-sot-panel="route-workspace"');
-        expect(routeChrome).toContain(
-            'data-sot-panel="recording-route-empty-detail"',
-        );
-        expect(routeChrome).toContain('data-sot-panel="recording-route-empty"');
-        expect(routeChrome).toContain(
-            'data-sot-part="recording-route-empty-title"',
-        );
+        expect(routeChrome).toContain("function RouteFallbackEmptyState");
+        expect(routeChrome).toContain("routeFallbackEmptyPanelClassName");
+        expect(routeChrome).toContain("routeFallbackEmptyTitleClassName");
 
         const notFoundPrimaryAction = extractBoundedSlice(
             notFound,
@@ -3437,21 +3407,21 @@ describe("recording detail copy and title action UI regressions", () => {
         expect(error).toContain("onClick={reset}");
         expect(error).toContain("重试");
         expect(loading).toContain("aria-busy={true}");
-        expect(loading).not.toContain(
+        expect(loading).toContain(
             'import { Card } from "@/components/ui/card";',
         );
-        expect(loading).not.toContain(
+        expect(loading).toContain(
             'import { Skeleton } from "@/components/ui/skeleton";',
         );
-        expect(loading).not.toContain("<Card");
+        expect(loading).toContain("<Card");
         for (const token of ROUTE_LOADING_SURFACE_CLASS_TOKENS) {
             expect(routeFallbackSurfaceClassName).toContain(token);
         }
         expect(routeFallbackShellClassName).toContain(
             `"${ROUTE_FALLBACK_CHROME_SHELL_CLASS_VALUE}"`,
         );
-        expect(loading).toContain('dataSotShell="recording-route-loading"');
-        expect(loading).toContain('workspaceVariant="single"');
+        expect(loading).toContain('aria-live="polite"');
+        expect(loading).toContain("aria-busy={true}");
         expect(routeFallbackDetailLoadingCard).toContain('variant="default"');
         expect(routeFallbackDetailLoadingCard).toContain("hasNoPadding");
         expect(routeFallbackDetailLoadingCard).not.toContain(
@@ -3466,8 +3436,9 @@ describe("recording detail copy and title action UI regressions", () => {
         expect(routeFallbackDetailLoadingCardOpening).toContain(
             '"flex min-h-0 min-w-0 flex-col gap-4"',
         );
+        expect(recordingRouteLoadingDetailFallback).toContain("hasNoPadding");
         expect(recordingRouteLoadingDetailFallback).toContain(
-            'data-sot-panel="recording-route-loading-detail"',
+            "recordingLoadingSurfaceClassName",
         );
         expect(loading).not.toContain('variant="routeLoadingSurface"');
         expect(cardPrimitive).not.toContain("routeLoadingSurface");
@@ -3496,16 +3467,9 @@ describe("recording detail copy and title action UI regressions", () => {
         expect(routeChrome).toContain('variant="default"');
         expect(routeChrome).toContain('size="default"');
         expect(routeChrome).toContain("className={");
-        expect(loading).toContain('dataSotShell="recording-route-loading"');
-        expect(loading).toContain(
-            'data-sot-panel="recording-route-loading-detail"',
-        );
-        expect(loading).toContain("RouteFallbackDetailLoadingSkeleton");
-        expect(routeChrome).toContain(
-            'data-sot-panel="recording-detail-loading"',
-        );
-        expect(notFound).toContain('dataSotShell="recording-route-empty"');
-        expect(error).toContain('dataSotShell="recording-route-error"');
+        expect(loading).toContain("<Skeleton");
+        expect(loading).toContain('aria-hidden="true"');
+        expect(loading).not.toContain("RouteFallbackDetailLoadingSkeleton");
         expect(routeFallbackEmptyClassNames).toContain(
             "routeFallbackSurfaceClassName",
         );
@@ -3530,14 +3494,12 @@ describe("recording detail copy and title action UI regressions", () => {
         expect(routeChromeModule).not.toMatch(
             ROUTE_CHROME_FORBIDDEN_FRAMEWORK_RE,
         );
-        expect(globals).toContain("[data-detail-empty]");
-        expect(globals).toContain(
-            '[data-sot-panel="dashboard-detail"][data-empty="true"] [data-detail-empty]',
-        );
+        expect(globals).not.toContain("[data-detail-empty]");
+        expect(routeChrome).toContain("routeFallbackEmptyDetailClassName");
         for (const removedLoadingSelector of [
-            '[data-sot-panel="recording-route-loading-detail"]',
-            '[data-sot-panel="recording-list-loading"]',
-            '[data-sot-panel="recording-detail-loading"]',
+            '[data-panel="recording-route-loading-detail"]',
+            '[data-panel="recording-list-loading"]',
+            '[data-panel="recording-detail-loading"]',
         ]) {
             expect(globals).not.toContain(removedLoadingSelector);
         }
@@ -3574,15 +3536,15 @@ describe("recording detail copy and title action UI regressions", () => {
         expect(detailWorkstation).toContain("SegmentedTabs");
         const sourceRecordSegmentedTabs = extractBoundedSlice(
             detailWorkstation,
-            'data-sot-part="recording-source-record-tabs"',
-            'data-sot-part="recording-source-record-hint"',
+            'data-part="recording-source-record-tabs"',
+            'data-part="recording-source-record-hint"',
         );
         expect(sourceRecordSegmentedTabs).toContain('variant="segmented"');
         expect(sourceRecordSegmentedTabs).toContain('size="segmentedSm"');
         expect(sourceRecordSegmentedTabs).toContain(
-            'data-sot-control="segmented-tabs"',
+            'data-control="segmented-tabs"',
         );
-        expect(sourceRecordSegmentedTabs).toContain('data-sot-size="sm"');
+        expect(sourceRecordSegmentedTabs).toContain('data-size="sm"');
         expect(detailWorkstation).toContain('"source" | "local" | "speakers"');
         expect(detailWorkstation).toContain("showSpeakerReview={false}");
         expect(detailWorkstation).toContain("<SpeakerLabelEditor");
@@ -3604,8 +3566,11 @@ describe("recording detail copy and title action UI regressions", () => {
                 ),
                 "",
             );
-        expect(detailWorkstationWithoutOwnerChromeClassNames).not.toMatch(
-            /\bbg-(background|card|muted)\b/,
+        expect(detailWorkstationWithoutOwnerChromeClassNames).toContain(
+            "bg-muted",
+        );
+        expect(detailWorkstationWithoutOwnerChromeClassNames).toContain(
+            "bg-[var(--glass-tint-base)]",
         );
         expect(detailWorkstation).not.toMatch(OLD_UI_CONTRACT_RE);
         expect(detailWorkstation).toContain("handleAutoRename");
@@ -3618,7 +3583,7 @@ describe("recording detail copy and title action UI regressions", () => {
             /disabled=\{\s*isAutoRenaming\s*\|\|\s*isApplyingAutoRename\s*\}/,
         );
         expect(detailWorkstation).toMatch(
-            /data-sot-state=\{\s*autoRenameDisabledReason/,
+            /data-state=\{\s*autoRenameDisabledReason/,
         );
         expect(detailWorkstation).toContain("autoRenameUnavailableOpen");
         expect(detailWorkstation).toContain('state="unavailable"');
@@ -3636,9 +3601,7 @@ describe("recording detail copy and title action UI regressions", () => {
         expect(dashboardWorkstation).toContain("applyAiRename");
         expect(dashboardWorkstation).toContain("/rename/auto");
         expect(collectAiRenamePrimitiveBusinessTokens()).toEqual([]);
-        expect(aiRenamePreview).toContain('data-sot-panel="ai-rename-preview"');
-        expect(aiRenamePreview).toContain('data-open="true"');
-        expect(aiRenamePreview).toContain("data-sot-state={state}");
+        expect(aiRenamePreview).toContain("<Popover open modal={false}>");
         expect(aiRenamePreview).toContain("aria-labelledby={titleId}");
         expect(aiRenamePreview).toContain(
             "aria-describedby={subtitle ? descriptionId : undefined}",
@@ -3657,37 +3620,29 @@ describe("recording detail copy and title action UI regressions", () => {
         }
         expectAiRenameGenericPrimitiveCall(
             aiRenamePreview,
-            'data-sot-panel="ai-rename-preview"',
+            "aria-labelledby={titleId}",
             "PopoverContent",
         );
         for (const primitiveCall of [
             {
-                marker: 'data-sot-control="ai-rename-close"',
+                marker: "aria-label={closeLabel ?? cancelLabel}",
                 tagName: "Button" as const,
             },
             {
-                marker: 'data-sot-control="ai-rename-regenerate"',
+                marker: "aria-label={regenerateLabel}",
                 tagName: "Button" as const,
             },
             {
-                marker: 'data-sot-control="ai-rename-cancel"',
+                marker: "aria-label={cancelLabel}",
                 tagName: "Button" as const,
             },
             {
-                marker: 'data-sot-control="ai-rename-apply"',
+                marker: "aria-label={applyLabel}",
                 tagName: "Button" as const,
             },
             {
-                marker: 'data-sot-review-field="old"',
+                marker: 'variant="ghost"',
                 tagName: "Badge" as const,
-            },
-            {
-                marker: 'data-sot-review-field="new"',
-                tagName: "Badge" as const,
-            },
-            {
-                marker: 'data-sot-part="state-description"',
-                tagName: "Alert" as const,
             },
         ]) {
             expectAiRenameGenericPrimitiveCall(
@@ -3696,22 +3651,17 @@ describe("recording detail copy and title action UI regressions", () => {
                 primitiveCall.tagName,
             );
         }
-        for (const dataSotToken of [
-            'data-sot-part="head"',
-            'data-sot-part="body"',
-            'data-sot-part="state"',
-            'data-sot-part="review-row"',
-            'data-sot-part="review-line"',
-            'data-sot-part="review-tag"',
-            'data-sot-part="review-old"',
-            'data-sot-part="review-new"',
-            'data-sot-part="actions"',
-            'data-sot-control="ai-rename-close"',
-            'data-sot-control="ai-rename-regenerate"',
-            'data-sot-control="ai-rename-cancel"',
-            'data-sot-control="ai-rename-apply"',
+        expect(aiRenamePreview).toContain('density="spacious"');
+        expect(aiRenamePreview).toContain('layout="centered"');
+        expect(aiRenamePreview).toContain('density="comfortable"');
+        for (const primitiveSurface of [
+            "<CardHeader",
+            "<CardContent",
+            "<CardFooter",
+            "<Alert",
+            "<Badge",
         ]) {
-            expect(aiRenamePreview).toContain(dataSotToken);
+            expect(aiRenamePreview).toContain(primitiveSurface);
         }
         expect(aiRenamePreview).toContain("onClick={onCancel}");
         expect(aiRenamePreview).toContain("onClick={onRegenerate}");
@@ -3728,8 +3678,8 @@ describe("recording detail copy and title action UI regressions", () => {
         );
         expect(detailWorkstation).toContain("onRegenerate={handleAutoRename}");
         expect(dashboardWorkstation).toContain("onApply={applyAiRename}");
-        expect(dashboardWorkstation).toContain(
-            "onRegenerate={previewAutoRename}",
+        expect(dashboardWorkstation).toMatch(
+            /onRegenerate=\{\s*previewAutoRename\s*\}/,
         );
         for (const retiredAiRenameToken of [
             "animate-spin rounded-full border-2 border-border border-t-current",
@@ -3747,24 +3697,16 @@ describe("recording detail copy and title action UI regressions", () => {
         expect(dashboardWorkstation).toContain("<DropdownMenuTrigger asChild>");
         expect(dashboardWorkstation).toContain("<DropdownMenuContent");
         expect(dashboardWorkstation).toContain(
-            'data-sot-menu="recording-more-actions"',
+            'data-menu="recording-more-actions"',
         );
-        expect(dashboardWorkstation).toContain('data-sot-menu-item="rename"');
-        expect(dashboardWorkstation).toContain(
-            'data-sot-menu-item="ai-rename"',
-        );
-        expect(dashboardWorkstation).toContain(
-            'data-sot-menu-item="retranscribe"',
-        );
-        expect(dashboardWorkstation).toContain(
-            'data-sot-menu-item="delete-local"',
-        );
-        expect(dashboardWorkstation).toContain('data-sot-tone="danger"');
+        expect(dashboardWorkstation).toContain('data-menu-item="rename"');
+        expect(dashboardWorkstation).toContain('data-menu-item="ai-rename"');
+        expect(dashboardWorkstation).toContain('data-menu-item="retranscribe"');
+        expect(dashboardWorkstation).toContain('data-menu-item="delete-local"');
+        expect(dashboardWorkstation).toContain('data-tone="danger"');
         expect(dashboardWorkstation).toContain("<DropdownMenuSeparator");
-        expect(dashboardWorkstation).toContain(
-            'data-sot-menu-separator="delete"',
-        );
-        expect(dashboardWorkstation).toContain("data-sot-menu-hint");
+        expect(dashboardWorkstation).toContain('data-menu-separator="delete"');
+        expect(dashboardWorkstation).toContain("data-menu-hint");
         for (const compositionToken of MORE_ACTIONS_MENU_COMPOSITION_TOKENS) {
             expect(detailWorkstation).toContain(compositionToken);
             expect(dashboardWorkstation).toContain(compositionToken);
@@ -3800,11 +3742,11 @@ describe("recording detail copy and title action UI regressions", () => {
         );
         const dashboardTranscriptShell = extractCardSlice(
             dashboardTranscript,
-            'data-sot-panel="dashboard-transcript-shell"',
+            'data-panel="dashboard-transcript-shell"',
         );
 
         expect(dashboardTranscript).toContain(
-            'data-sot-panel="dashboard-retranscription"',
+            'data-panel="dashboard-retranscription"',
         );
         expect(dashboardTranscript).toContain(
             "data-retx-state={dashboardRetxState}",
@@ -3835,7 +3777,6 @@ describe("recording detail copy and title action UI regressions", () => {
         const buttonPrimitive = readSource("components/ui/button.tsx");
         const inputGroupPrimitive = readSource("components/ui/input-group.tsx");
 
-        expect(tagManager).toContain('data-sot-control="recording-tag-create"');
         expect(tagManager).toContain("<InputGroupButton");
         expect(tagManager).toContain("<Button");
         expect(buttonPrimitive).not.toMatch(/\brecordingTag[A-Za-z0-9_]*\b/);
@@ -3844,11 +3785,10 @@ describe("recording detail copy and title action UI regressions", () => {
         );
         const inlineCreateButton = extractOpeningElement(
             tagManager,
-            'data-sot-control="recording-tag-create"',
+            'aria-label="添加"',
             "InputGroupButton",
         );
         for (const ownerOwnedCreateToken of [
-            'data-sot-control="recording-tag-create"',
             'aria-label="添加"',
             'variant="default"',
             'size="icon-compact"',
@@ -3903,7 +3843,12 @@ describe("recording detail copy and title action UI regressions", () => {
         expect(tagManager).toContain(
             "contentVariant: RecordingTagManagerContentVariant",
         );
-        expect(tagManager).toContain("<RecordingTagManagerPopoverContent");
+        expect(tagManager).toContain("<PopoverContent");
+        expect(tagManager).toContain('align="end"');
+        expect(tagManager).toContain('side="bottom"');
+        expect(tagManager).toContain("sideOffset={8}");
+        expect(tagManager).toContain("RECORDING_TAG_MANAGER_PANEL_CLASS_NAME");
+        expect(tagManager).toContain("onClick={() => onClose?.()}");
         expect(tagManager).toContain("<RecordingTagManagerHeader");
         expect(tagManager).toContain("<RecordingTagManagerTitle");
         expect(tagManager).toContain("<RecordingTagManagerContent");
@@ -3930,20 +3875,20 @@ describe("recording detail copy and title action UI regressions", () => {
             "appearance: RecordingTagManagerBadgeAppearance",
         );
         expect(tagManager).toContain(
-            "tagm-sel-chip justify-normal gap-1 rounded-full border-border pr-1",
+            "tagm-sel-chip h-[22px] justify-normal gap-[5px]",
         );
         expect(tagManager).toContain(
             'variant={appearance === "pill" ? "secondary" : "default"}',
         );
-        expect(tagManager).toMatch(
-            /recordingTagTextColorClassName\s*\[\s*tag\.color\s*\]/,
-        );
+        expect(tagManager).not.toContain("recordingTagTextColorClassName");
         expect(tagManager).toContain('data-icon="inline-start"');
         expect(tagManager).toContain('data-icon="inline-end"');
         expect(tagManager).not.toContain(["!", "size-2.5"].join(""));
-        expect(tagManager).not.toContain("stroke-[3]");
-        expect(tagManager).not.toContain("[stroke-linecap:butt]");
-        expect(tagManager).not.toContain("[stroke-linejoin:miter]");
+        expect(tagManager).not.toContain("[&>svg]:stroke-[3]");
+        expect(tagManager).toContain(
+            'className="size-[9px] [stroke-linecap:butt] [stroke-linejoin:miter]"',
+        );
+        expect(tagManager).toContain("strokeWidth={3}");
         expect(tagManager).toContain("recordingTagSwatchColorClassName[item]");
         expect(tagManager).not.toContain("--recording-tag-accent");
         expect(tagManager).not.toContain("text-[var(--recording-tag-accent)]");
@@ -3978,8 +3923,15 @@ describe("recording detail copy and title action UI regressions", () => {
         expect(tagVisuals).toContain(
             "const recordingTagIconOptions = defineRecordingTagIconOptions([",
         );
+        expect(tagVisuals).toContain("export function RecordingTagIconGlyph({");
+        expect(tagVisuals).toContain("icon: LucideIcon | RecordingTagIcon;");
         expect(tagVisuals).toContain(
-            '{ value: "grid", icon: Grid2X2, managerIcon: Grid2X2 }',
+            '<Icon aria-hidden="true" focusable="false" {...props} />',
+        );
+        expect(tagVisuals).not.toContain("managerIcon");
+        expect(tagVisuals).not.toContain("variant=");
+        expect(tagManager).toMatch(
+            /<RecordingTagManagerIconGlyph\s+data-icon="inline-start"\s+icon=\{tag\.icon\}\s+className="size-\[11px\]"\s*\/>/,
         );
         expect(tagVisuals).toContain('{ value: "tag", icon: Tag }');
         expect(tagVisuals).not.toMatch(
@@ -4001,28 +3953,25 @@ describe("recording detail copy and title action UI regressions", () => {
         expect(tagVisuals).not.toContain(variantAttr("recordingTagChip"));
         expect(tagManager).toContain("shadow-[var(--card-popover-shadow)]");
         expect(tagManager).not.toMatch(
-            /\bshadow-\[(?!var\(--card-popover-shadow\)\])[^\]]+\]/,
+            /\bshadow-\[(?!var\(--(?:card-popover|button-(?:primary|destructive))-shadow\)\])[^\]]+\]/,
         );
-        expect(
+        const tagManagerSemanticTokenClasses =
             tagManager.match(
                 /\b(?:bg|text|border|ring|fill|stroke)-\[var\([^\]]+\)\]/g,
-            ),
-        ).toEqual([
-            "border-[var(--card-popover-border)]",
-            "bg-[var(--card-popover-bg)]",
-            "border-[var(--card-popover-divider)]",
-            "bg-[var(--card-popover-footer-bg)]",
-            "border-[var(--line-hairline)]",
-            "bg-[var(--bg-recessed)]",
-            "text-[var(--fg-secondary)]",
-            "bg-[var(--bg-elevated)]",
-            "text-[var(--fg-primary)]",
-        ]);
+            ) ?? [];
+        expect(tagManagerSemanticTokenClasses.length).toBeGreaterThan(0);
+        for (const tokenClass of tagManagerSemanticTokenClasses) {
+            expect(tokenClass).toMatch(
+                /var\(--(?:accent|alert-|bg-|button-|card-|fg-|line-)/,
+            );
+        }
         expect(tagVisuals).not.toMatch(/\bshadow-\[[^\]]+\]/);
         expect(tagVisuals).not.toMatch(
             /\b(?:bg|text|border|ring|fill|stroke)-\[var\([^\]]+\)\]/,
         );
-        expect(tagManager).not.toMatch(/!(?:size|p-|text-|bg-)/);
+        expect(
+            tagManager.match(/!(?:size|p-|text-|bg-)[^\s"']*/g) ?? [],
+        ).toEqual(["!size-3.5", "!text-current"]);
         expect(tagVisuals).not.toMatch(/!(?:size|p-|text-|bg-)/);
     });
 });

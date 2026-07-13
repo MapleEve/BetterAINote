@@ -10,7 +10,7 @@ import type { RecordingTag } from "@/lib/recording-tags";
 import { cn } from "@/lib/utils";
 import { RecordingTagIconGlyph } from "./recording-tag-visuals";
 
-const SOT_SOURCE_BADGES = {
+const PLAYER_SOURCE_BADGES = {
     "dingtalk-a1": {
         label: "钉钉",
         icon: "/assets/sources/dingtalk.svg",
@@ -52,13 +52,13 @@ function sourceFallbackLetter(provider: string, label: string) {
     return candidate?.toUpperCase() ?? "S";
 }
 
-export function formatSotPlayerDate(value: string) {
+export function formatPlayerDate(value: string) {
     const date = new Date(value);
     if (Number.isNaN(date.getTime())) return value;
     return `${date.getFullYear()}-${pad2(date.getMonth() + 1)}-${pad2(date.getDate())} · ${pad2(date.getHours())}:${pad2(date.getMinutes())}`;
 }
 
-export function formatSotPlayerTime(value: number) {
+export function formatPlayerTime(value: number) {
     const seconds =
         value > 10_000 ? Math.floor(value / 1000) : Math.floor(value);
     if (!Number.isFinite(seconds) || seconds <= 0) return "0:00";
@@ -67,14 +67,14 @@ export function formatSotPlayerTime(value: number) {
     return `${minutes}:${pad2(secs)}`;
 }
 
-export function formatSotPlaybackSpeed(value: number) {
+export function formatPlaybackSpeed(value: number) {
     return `${Number.isInteger(value) ? value.toFixed(1) : value}×`;
 }
 
 const PLAYER_SOURCE_BADGE_CLASS = "gap-1.5 pl-1";
 
 const PLAYER_SOURCE_ICON_CLASS =
-    "inline-flex size-4 flex-none shrink-0 items-center justify-center overflow-hidden rounded-sm border border-border bg-background data-[sot-source-icon=letter]:bg-muted data-[sot-source-icon=letter]:text-[9px] data-[sot-source-icon=letter]:font-bold data-[sot-source-icon=letter]:text-muted-foreground [&[data-sot-cover=true]_img]:object-cover";
+    "inline-flex size-4 flex-none shrink-0 items-center justify-center overflow-hidden rounded-sm border border-border bg-background data-[source-icon=letter]:bg-muted data-[source-icon=letter]:text-[9px] data-[source-icon=letter]:font-bold data-[source-icon=letter]:text-muted-foreground [&[data-cover=true]_img]:object-cover";
 
 const PLAYER_SOURCE_ICON_IMAGE_CLASS = "block size-4 max-w-none object-contain";
 
@@ -90,7 +90,7 @@ const PLAYER_TAG_COLOR_CLASS: Record<RecordingTag["color"], string> = {
 const PLAYER_TAG_CHIP_CLASS = "max-w-[160px] justify-start gap-1.5";
 const PLAYER_TAG_OVERFLOW_CLASS = "border-dashed";
 
-export function SotPlayerSourceTag({
+export function PlayerSourceTag({
     label,
     provider,
 }: {
@@ -98,7 +98,8 @@ export function SotPlayerSourceTag({
     provider: string;
 }) {
     const badge =
-        SOT_SOURCE_BADGES[provider as keyof typeof SOT_SOURCE_BADGES] ?? null;
+        PLAYER_SOURCE_BADGES[provider as keyof typeof PLAYER_SOURCE_BADGES] ??
+        null;
     const sourceLabel = label ?? badge?.label ?? provider;
     const hasImage = Boolean(badge?.icon);
 
@@ -106,14 +107,14 @@ export function SotPlayerSourceTag({
         <Badge
             variant="outline"
             className={PLAYER_SOURCE_BADGE_CLASS}
-            data-sot-control="player-source-tag"
-            data-sot-provider={provider}
+            data-control="player-source-tag"
+            data-provider={provider}
         >
             <span
                 className={PLAYER_SOURCE_ICON_CLASS}
-                data-sot-cover={badge?.cover ? "true" : "false"}
-                data-sot-part="source-icon"
-                data-sot-source-icon={hasImage ? "image" : "letter"}
+                data-cover={badge?.cover ? "true" : "false"}
+                data-part="source-icon"
+                data-source-icon={hasImage ? "image" : "letter"}
                 aria-hidden="true"
             >
                 {badge?.icon ? (
@@ -134,7 +135,7 @@ export function SotPlayerSourceTag({
     );
 }
 
-export function SotPlayerTagChip({
+export function PlayerTagChip({
     count = 1,
     onClick,
     state = "idle",
@@ -159,9 +160,9 @@ export function SotPlayerTagChip({
                 className="border-dashed"
                 aria-expanded={trigger ? state === "open" : undefined}
                 data-recording-tag-add=""
-                data-sot-control={trigger ? "recording-tag-manager" : undefined}
-                data-sot-part="recording-tag-add"
-                data-sot-state={trigger ? state : undefined}
+                data-control={trigger ? "recording-tag-manager" : undefined}
+                data-part="recording-tag-add"
+                data-state={trigger ? state : undefined}
                 onClick={onClick}
                 type="button"
             >
@@ -182,13 +183,11 @@ export function SotPlayerTagChip({
                     )}
                     data-recording-tag-chip=""
                     data-tag-id={tag.id}
-                    data-sot-tag-color={tag.color}
-                    data-sot-tag-icon={tag.icon}
-                    data-sot-part="recording-tag-chip"
-                    data-sot-control={
-                        trigger ? "recording-tag-manager" : undefined
-                    }
-                    data-sot-state={trigger ? state : undefined}
+                    data-tag-color={tag.color}
+                    data-tag-icon={tag.icon}
+                    data-part="recording-tag-chip"
+                    data-control={trigger ? "recording-tag-manager" : undefined}
+                    data-state={trigger ? state : undefined}
                 >
                     <RecordingTagIconGlyph icon={tag.icon} />
                     {tag.name}
@@ -198,7 +197,7 @@ export function SotPlayerTagChip({
                         variant="outline"
                         className={PLAYER_TAG_OVERFLOW_CLASS}
                         data-recording-tag-overflow=""
-                        data-sot-part="recording-tag-overflow"
+                        data-part="recording-tag-overflow"
                     >
                         +{count - 1}
                     </Badge>
@@ -220,11 +219,11 @@ export function SotPlayerTagChip({
                 type="button"
                 data-tag-id={tag.id}
                 data-recording-tag-chip=""
-                data-sot-tag-color={tag.color}
-                data-sot-tag-icon={tag.icon}
-                data-sot-part="recording-tag-chip"
-                data-sot-control={trigger ? "recording-tag-manager" : undefined}
-                data-sot-state={trigger ? state : undefined}
+                data-tag-color={tag.color}
+                data-tag-icon={tag.icon}
+                data-part="recording-tag-chip"
+                data-control={trigger ? "recording-tag-manager" : undefined}
+                data-state={trigger ? state : undefined}
                 onClick={onClick}
                 aria-expanded={trigger ? state === "open" : undefined}
             >
@@ -240,7 +239,7 @@ export function SotPlayerTagChip({
                     className={PLAYER_TAG_OVERFLOW_CLASS}
                     type="button"
                     data-recording-tag-overflow=""
-                    data-sot-part="recording-tag-overflow"
+                    data-part="recording-tag-overflow"
                     onClick={onClick}
                     aria-expanded={trigger ? state === "open" : undefined}
                 >
@@ -251,10 +250,10 @@ export function SotPlayerTagChip({
     );
 }
 
-export type SotPlayerStatusTone = "ok" | "warn" | "err" | "info" | "neu";
+export type PlayerStatusTone = "ok" | "warn" | "err" | "info" | "neu";
 
 const PLAYER_STATUS_VARIANT: Record<
-    SotPlayerStatusTone,
+    PlayerStatusTone,
     React.ComponentProps<typeof Badge>["variant"]
 > = {
     err: "destructive",
@@ -264,32 +263,32 @@ const PLAYER_STATUS_VARIANT: Record<
     warn: "secondary",
 };
 
-export function SotPlayerStatusBadge({
+export function PlayerStatusBadge({
     className,
     label = "已更新",
     tone = "ok",
 }: {
     className?: string;
     label?: string;
-    tone?: SotPlayerStatusTone;
+    tone?: PlayerStatusTone;
 }) {
     return (
         <Badge
             variant={PLAYER_STATUS_VARIANT[tone]}
             className={className}
-            data-sot-control="player-status"
-            data-sot-tone={tone}
+            data-control="player-status"
+            data-tone={tone}
         >
             <span
                 className="size-[5px] shrink-0 rounded-full bg-current"
                 aria-hidden="true"
             />
-            <span data-sot-part="status-label">{label}</span>
+            <span data-part="status-label">{label}</span>
         </Badge>
     );
 }
 
-export function sotPlayerVolumeLevel(volume: number) {
+export function playerVolumeLevel(volume: number) {
     return volume === 0
         ? "mute"
         : volume < 35
@@ -301,7 +300,7 @@ export function sotPlayerVolumeLevel(volume: number) {
 
 const PLAYER_NO_AUDIO_TEXT_CLASS = "flex min-w-0 flex-col gap-px";
 
-type SotPlayerNoAudioAlertProps = Omit<
+type PlayerNoAudioAlertProps = Omit<
     React.ComponentProps<typeof Alert>,
     "children" | "density" | "layout" | "style" | "variant"
 > & {
@@ -313,7 +312,7 @@ type SotPlayerNoAudioAlertProps = Omit<
     titlePart: string;
 };
 
-export function SotPlayerNoAudioAlert({
+export function PlayerNoAudioAlert({
     className,
     descriptionPart,
     iconPart,
@@ -322,7 +321,7 @@ export function SotPlayerNoAudioAlert({
     textPart,
     titlePart,
     ...props
-}: SotPlayerNoAudioAlertProps) {
+}: PlayerNoAudioAlertProps) {
     return (
         <Alert
             {...props}
@@ -330,23 +329,23 @@ export function SotPlayerNoAudioAlert({
             density="comfortable"
             layout="inline"
             className={cn("mb-3", className)}
-            data-sot-part={part}
-            data-sot-state={playbackDisabled ? "visible" : "hidden"}
+            data-part={part}
+            data-state={playbackDisabled ? "visible" : "hidden"}
             hidden={!playbackDisabled}
             role="status"
         >
-            <VolumeX data-icon="inline-start" data-sot-part={iconPart} />
+            <VolumeX data-icon="inline-start" data-part={iconPart} />
             <span
                 className={PLAYER_NO_AUDIO_TEXT_CLASS}
                 data-player-no-audio-text=""
-                data-sot-part={textPart}
+                data-part={textPart}
             >
-                <AlertTitle data-sot-part={titlePart}>
+                <AlertTitle data-part={titlePart}>
                     来源仅同步转写与报告
                 </AlertTitle>
                 <AlertDescription
                     density="comfortable"
-                    data-sot-part={descriptionPart}
+                    data-part={descriptionPart}
                 >
                     这条录音没有本地音频，无法播放或运行私有重转写。
                 </AlertDescription>

@@ -72,8 +72,6 @@ interface SystemBannerAlertProps {
     banner: VisibleSystemBanner;
     children: ReactNode;
     className?: string;
-    isStacked: boolean;
-    progress: number | null;
 }
 
 type SystemBannerButtonProps = Omit<ButtonProps, "size" | "variant"> & {
@@ -294,8 +292,6 @@ function SystemBannerAlert({
     banner,
     children,
     className,
-    isStacked,
-    progress,
 }: SystemBannerAlertProps) {
     return (
         <Alert
@@ -305,10 +301,6 @@ function SystemBannerAlert({
             role={a11y.role}
             variant={systemBannerAlertVariantByState[banner.state]}
             className={className}
-            data-sot-panel="system-banner"
-            data-kind={banner.state}
-            data-layout={isStacked ? "stacked" : "single"}
-            data-pct={progress ?? undefined}
         >
             {children}
         </Alert>
@@ -338,16 +330,11 @@ function SystemBannerProgress({
         <Progress
             aria-hidden="true"
             className={systemBannerProgressClassNames.root}
-            data-sot-part="system-banner-progress"
-            data-sot-state={indeterminate ? "indeterminate" : "ready"}
             indicatorClassName={
                 indeterminate
                     ? systemBannerProgressClassNames.indeterminateIndicator
                     : undefined
             }
-            indicatorProps={{
-                "data-sot-part": "system-banner-progress-bar",
-            }}
             value={value}
         />
     );
@@ -496,26 +483,15 @@ function SystemBannerItem({
             a11y={bannerA11y}
             banner={banner}
             className={className}
-            isStacked={isStacked}
-            progress={progress}
         >
             <SystemBannerIcon
                 indeterminate={banner.indeterminate}
                 state={banner.state}
-                data-sot-part="system-banner-icon"
                 aria-hidden="true"
             />
-            <div
-                className={systemBannerAlertClassNames.body}
-                data-sot-part="system-banner-body"
-            >
-                <AlertTitle data-sot-part="system-banner-title">
-                    {banner.title ?? defaultCopy.title}
-                </AlertTitle>
-                <AlertDescription
-                    data-sot-part="system-banner-description"
-                    data-sot-format={hasProgress ? "mono" : undefined}
-                >
+            <div className={systemBannerAlertClassNames.body}>
+                <AlertTitle>{banner.title ?? defaultCopy.title}</AlertTitle>
+                <AlertDescription>
                     {banner.message ?? defaultCopy.message}
                 </AlertDescription>
                 {hasProgress ? (
@@ -525,10 +501,7 @@ function SystemBannerItem({
                     />
                 ) : null}
             </div>
-            <div
-                className={systemBannerAlertClassNames.actions}
-                data-sot-part="system-banner-actions"
-            >
+            <div className={systemBannerAlertClassNames.actions}>
                 {primaryLabel ? (
                     <SystemBannerButton
                         aria-busy={
@@ -542,7 +515,6 @@ function SystemBannerItem({
                             banner.state === "import-progress"
                         }
                         onClick={() => handleAction(primaryRole)}
-                        data-sot-control="system-banner-primary-action"
                         tone={primaryActionTone}
                         type="button"
                     >
@@ -552,7 +524,6 @@ function SystemBannerItem({
                 {secondaryLabel ? (
                     <SystemBannerButton
                         onClick={() => handleAction("secondary")}
-                        data-sot-control="system-banner-secondary-action"
                         type="button"
                     >
                         {secondaryLabel}
@@ -562,7 +533,6 @@ function SystemBannerItem({
                     <SystemBannerButton
                         aria-label={dismissLabel}
                         onClick={() => onDismiss(banner)}
-                        data-sot-control="system-banner-dismiss-action"
                         tone="dismiss"
                         type="button"
                     >

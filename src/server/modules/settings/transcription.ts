@@ -6,6 +6,8 @@ import {
     getVoScriptSettingsResponse,
 } from "@/lib/settings/defaults";
 import { buildTranscriptionSettingsUpdates } from "@/lib/settings/transcription-settings";
+import type { DefaultTranscriptionProvider } from "@/lib/settings/transcription-settings-body";
+import { SettingsValidationError } from "@/lib/settings/validation";
 import {
     buildVoScriptApiKeyUpdate,
     buildVoScriptSettingsUpdates,
@@ -15,6 +17,10 @@ import {
     syncStoredPrivateTranscriptionBaseUrl,
     upsertStoredPrivateTranscriptionCredential,
 } from "@/server/modules/api-credentials/private-transcription";
+import {
+    getResolvedSourceConnectionForUser,
+    hasConfiguredSourceSecrets,
+} from "@/server/modules/data-sources";
 import type {
     TranscriptionRuntimeSettings,
     TranscriptionRuntimeSettingsRow,
@@ -41,6 +47,28 @@ const transcriptionRuntimeSettingsSelection = {
 
 async function loadUserSettingsOps() {
     return import("@/lib/settings/user-settings");
+}
+
+async function validateDefaultTranscriptionProviderForUser(
+    userId: string,
+    provider: DefaultTranscriptionProvider,
+) {
+    const connection = await getResolvedSourceConnectionForUser(
+        userId,
+        provider,
+    );
+
+    if (
+        !connection?.enabled ||
+        !hasConfiguredSourceSecrets({
+            authMode: connection?.authMode,
+            secrets: connection?.secrets ?? {},
+        })
+    ) {
+        throw new SettingsValidationError(
+            "defaultTranscriptionProvider must reference an enabled source connection with configured credentials",
+        );
+    }
 }
 
 export function getConfiguredPrivateTranscriptionBaseUrl(
@@ -92,6 +120,17 @@ export async function saveTranscriptionSettingsForUser(
 ) {
     const { upsertUserSettings } = await loadUserSettingsOps();
     const updates = buildTranscriptionSettingsUpdates(body);
+
+    if (
+        updates.defaultTranscriptionProvider !== undefined &&
+        updates.defaultTranscriptionProvider !== null
+    ) {
+        await validateDefaultTranscriptionProviderForUser(
+            userId,
+            updates.defaultTranscriptionProvider as DefaultTranscriptionProvider,
+        );
+    }
+
     await upsertUserSettings(userId, updates);
 }
 

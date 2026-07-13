@@ -91,6 +91,7 @@ CREATE TABLE `user_settings` (
 	`default_volume` integer DEFAULT 80 NOT NULL,
 	`auto_play_next` integer DEFAULT 0 NOT NULL,
 	`default_transcription_language` text,
+	`default_transcription_provider` text,
 	`speaker_diarization` integer DEFAULT 0 NOT NULL,
 	`diarization_speakers` integer,
 	`private_transcription_base_url` text,

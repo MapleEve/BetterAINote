@@ -1,5 +1,5 @@
 import Image from "next/image";
-import type { ReactNode } from "react";
+import type { ComponentProps, ReactElement, ReactNode } from "react";
 import { Card } from "@/components/ui/card";
 import {
     Empty,
@@ -61,37 +61,33 @@ const routeFallbackEmptyDescriptionClassName =
 
 type RouteFallbackChromeProps = {
     "aria-busy"?: boolean;
+    "data-panel"?: string;
+    "data-shell"?: string;
     children: ReactNode;
     className?: string;
     current: string;
-    dataSotShell: string;
     workspaceClassName?: string;
     workspaceVariant?: "split" | "single";
 };
 
 function RouteFallbackChrome({
     "aria-busy": ariaBusy,
+    "data-panel": workspacePanel,
+    "data-shell": dataShell,
     children,
     className,
     current,
-    dataSotShell,
     workspaceClassName,
     workspaceVariant = "split",
 }: RouteFallbackChromeProps) {
     return (
         <div
-            data-sot-shell={dataSotShell}
             aria-busy={ariaBusy}
             className={cn(routeFallbackShellClassName, className)}
+            data-shell={dataShell}
         >
-            <aside
-                data-sot-panel="route-sidebar"
-                className={routeFallbackSidebarClassName}
-            >
-                <div
-                    data-sot-part="route-brand"
-                    className={routeFallbackBrandClassName}
-                >
+            <aside className={routeFallbackSidebarClassName}>
+                <div className={routeFallbackBrandClassName}>
                     <Image
                         src="/assets/logo-mark-steel.svg"
                         alt=""
@@ -99,53 +95,32 @@ function RouteFallbackChrome({
                         height={36}
                         className={routeFallbackBrandImageClassName}
                     />
-                    <div
-                        data-sot-part="route-brand-text"
-                        className={routeFallbackBrandTextClassName}
-                    >
-                        <div
-                            data-sot-part="route-brand-name"
-                            className={routeFallbackBrandNameClassName}
-                        >
+                    <div className={routeFallbackBrandTextClassName}>
+                        <div className={routeFallbackBrandNameClassName}>
                             BetterAINote
                         </div>
-                        <div
-                            data-sot-part="route-brand-subtitle"
-                            className={routeFallbackBrandSubtitleClassName}
-                        >
+                        <div className={routeFallbackBrandSubtitleClassName}>
                             私人工作空间
                         </div>
                     </div>
                 </div>
             </aside>
-            <main
-                data-sot-panel="route-main"
-                className={routeFallbackMainClassName}
-            >
-                <header
-                    data-sot-panel="route-topbar"
-                    className={routeFallbackTopbarClassName}
-                >
-                    <div
-                        data-sot-part="route-crumbs"
-                        className={routeFallbackCrumbsClassName}
-                    >
-                        <span
-                            data-sot-part="route-crumb-current"
-                            className={routeFallbackCrumbCurrentClassName}
-                        >
+            <main className={routeFallbackMainClassName}>
+                <header className={routeFallbackTopbarClassName}>
+                    <div className={routeFallbackCrumbsClassName}>
+                        <span className={routeFallbackCrumbCurrentClassName}>
                             {current}
                         </span>
                     </div>
                 </header>
                 <div
-                    data-sot-panel="route-workspace"
                     className={cn(
                         workspaceVariant === "single"
                             ? routeFallbackWorkspaceSingleClassName
                             : routeFallbackWorkspaceClassName,
                         workspaceClassName,
                     )}
+                    data-panel={workspacePanel}
                 >
                     {children}
                 </div>
@@ -154,91 +129,90 @@ function RouteFallbackChrome({
     );
 }
 
-type RouteFallbackEmptyStateProps = {
+type RouteFallbackEmptyStateProps = Omit<
+    ComponentProps<typeof Card>,
+    "children" | "title"
+> & {
     actions: ReactNode;
-    description: string;
+    contentPanel?: ReactElement<ComponentProps<typeof Empty>>;
+    description: ReactNode;
     icon: ReactNode;
-    title: string;
+    title: ReactNode;
 };
 
 function RouteFallbackEmptyState({
     actions,
+    contentPanel,
     description,
     icon,
     title,
+    ...cardProps
 }: RouteFallbackEmptyStateProps) {
     return (
         <Card
-            data-sot-panel="recording-route-empty-detail"
-            data-empty="true"
+            {...cardProps}
             variant="default"
             hasNoPadding
-            className={routeFallbackEmptyDetailClassName}
+            className={cn(
+                routeFallbackEmptyDetailClassName,
+                cardProps.className,
+            )}
         >
             <Empty
-                data-sot-panel="recording-route-empty"
                 variant="default"
-                className={routeFallbackEmptyPanelClassName}
+                {...contentPanel?.props}
+                className={cn(
+                    routeFallbackEmptyPanelClassName,
+                    contentPanel?.props.className,
+                )}
             >
                 <EmptyHeader>
                     <EmptyMedia
-                        data-sot-part="recording-route-empty-icon"
                         aria-hidden="true"
                         variant="icon"
                         className={routeFallbackEmptyIconClassName}
                     >
                         {icon}
                     </EmptyMedia>
-                    <EmptyTitle
-                        data-sot-part="recording-route-empty-title"
-                        className={routeFallbackEmptyTitleClassName}
-                    >
+                    <EmptyTitle className={routeFallbackEmptyTitleClassName}>
                         {title}
                     </EmptyTitle>
                     <EmptyDescription
-                        data-sot-part="recording-route-empty-description"
                         className={routeFallbackEmptyDescriptionClassName}
                     >
                         {description}
                     </EmptyDescription>
                 </EmptyHeader>
-                <EmptyContent data-sot-actions="recording-error">
-                    {actions}
-                </EmptyContent>
+                <EmptyContent>{actions}</EmptyContent>
             </Empty>
         </Card>
     );
 }
 
 type RouteFallbackDetailLoadingSkeletonProps = {
-    "data-sot-panel": string;
-};
+    className?: string;
+} & Record<`data-${string}`, string | boolean | undefined>;
 
 function RouteFallbackDetailLoadingSkeleton({
-    "data-sot-panel": dataSotPanel,
+    className,
 }: RouteFallbackDetailLoadingSkeletonProps) {
     return (
         <Card
-            data-sot-panel={dataSotPanel}
             variant="default"
             hasNoPadding
             className={cn(
                 routeFallbackSurfaceClassName,
                 "flex min-h-0 min-w-0 flex-col gap-4",
                 "flex-1",
+                className,
             )}
         >
             <div
-                data-sot-panel="recording-detail-loading"
                 aria-hidden="true"
                 className="flex min-h-0 flex-1 flex-col gap-3.5"
             >
-                <div
-                    data-sot-part="detail-player-meta"
-                    className="mb-3 flex items-center gap-2.5"
-                >
+                <div className="mb-3 flex items-center gap-2.5">
                     <Skeleton
-                        data-sot-part="detail-avatar"
                         variant="default"
                         size="default"
                         className={
@@ -246,7 +220,6 @@ function RouteFallbackDetailLoadingSkeleton({
                         }
                     />
                     <Skeleton
-                        data-sot-part="detail-bar"
                         variant="default"
                         size="default"
                         className={
@@ -254,12 +227,8 @@ function RouteFallbackDetailLoadingSkeleton({
                         }
                     />
                 </div>
-                <div
-                    data-sot-part="detail-player-controls"
-                    className="flex items-center gap-3"
-                >
+                <div className="flex items-center gap-3">
                     <Skeleton
-                        data-sot-part="detail-bar"
                         variant="default"
                         size="default"
                         className={
@@ -267,8 +236,6 @@ function RouteFallbackDetailLoadingSkeleton({
                         }
                     />
                     <Skeleton
-                        data-sot-part="detail-bar"
-                        data-sot-size="60"
                         variant="default"
                         size="default"
                         className={
@@ -276,12 +243,8 @@ function RouteFallbackDetailLoadingSkeleton({
                         }
                     />
                 </div>
-                <div
-                    data-sot-part="detail-transcript-head"
-                    className="flex items-center border-b border-border px-3.5 py-3"
-                >
+                <div className="flex items-center border-b border-border px-3.5 py-3">
                     <Skeleton
-                        data-sot-part="detail-bar"
                         variant="default"
                         size="default"
                         className={
@@ -289,13 +252,8 @@ function RouteFallbackDetailLoadingSkeleton({
                         }
                     />
                 </div>
-                <div
-                    data-sot-part="detail-transcript"
-                    className="min-h-0 flex-1"
-                >
+                <div className="min-h-0 flex-1">
                     <Skeleton
-                        data-sot-part="detail-bar"
-                        data-sot-size="90"
                         variant="default"
                         size="default"
                         className={

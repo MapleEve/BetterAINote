@@ -16,9 +16,9 @@ import {
 } from "@/components/ui/popover";
 import { Slider } from "@/components/ui/slider";
 import {
-    formatSotPlayerTime,
-    sotPlayerVolumeLevel,
-} from "@/features/recordings/components/sot-player-primitives";
+    formatPlayerTime,
+    playerVolumeLevel,
+} from "@/features/recordings/components/player-primitives";
 import { cn } from "@/lib/utils";
 
 const DASHBOARD_PLAYER_TIME_CLASS_NAME =
@@ -69,7 +69,7 @@ function DashboardPlayerSeekSlider({
     return (
         <span
             className="relative block min-w-[168px] grow-0 shrink-0 basis-[168px]"
-            data-sot-part="dashboard-player-seek-shell"
+            data-part="dashboard-player-seek-shell"
         >
             <Slider
                 className={cn(
@@ -78,8 +78,8 @@ function DashboardPlayerSeekSlider({
                 )}
                 disabled={disabled}
                 data-pct={progressPct}
-                data-sot-control="dashboard-player-seek"
-                data-sot-state={controlState}
+                data-control="dashboard-player-seek"
+                data-state={controlState}
                 max={100}
                 min={0}
                 rangeProps={{
@@ -156,8 +156,8 @@ export function DashboardRecordingPlayerControls({
         <CardContent
             className="flex min-w-0 items-center gap-[12px] overflow-visible p-0"
             aria-disabled={playbackDisabled ? "true" : undefined}
-            data-sot-panel="dashboard-recording-player-controls"
-            data-sot-state={playerControlsState}
+            data-panel="dashboard-recording-player-controls"
+            data-state={playerControlsState}
         >
             <Button
                 variant="ghost"
@@ -165,14 +165,14 @@ export function DashboardRecordingPlayerControls({
                 type="button"
                 aria-label="后退 5 秒"
                 className={DASHBOARD_PLAYER_DISABLED_BUTTON_CLASS_NAME}
-                data-sot-control="dashboard-player-back"
-                data-sot-state={playerControlState}
+                data-control="dashboard-player-back"
+                data-state={playerControlState}
                 disabled={playbackDisabled}
                 onClick={() => onSeekBySeconds(-5)}
             >
                 <Rewind
                     data-icon="inline-start"
-                    data-sot-part="dashboard-player-control-icon"
+                    data-part="dashboard-player-control-icon"
                 />
             </Button>
             <Button
@@ -182,8 +182,8 @@ export function DashboardRecordingPlayerControls({
                 aria-label={isPlaying ? "暂停" : "播放"}
                 className={DASHBOARD_PLAYER_DISABLED_BUTTON_CLASS_NAME}
                 data-playing={isPlaying ? "true" : "false"}
-                data-sot-control="dashboard-player-play"
-                data-sot-state={
+                data-control="dashboard-player-play"
+                data-state={
                     playbackDisabled
                         ? "disabled"
                         : isPlaying
@@ -196,12 +196,12 @@ export function DashboardRecordingPlayerControls({
                 {isPlaying ? (
                     <Pause
                         data-icon="inline-start"
-                        data-sot-part="dashboard-player-control-icon"
+                        data-part="dashboard-player-control-icon"
                     />
                 ) : (
                     <Play
                         data-icon="inline-start"
-                        data-sot-part="dashboard-player-control-icon"
+                        data-part="dashboard-player-control-icon"
                     />
                 )}
             </Button>
@@ -211,14 +211,14 @@ export function DashboardRecordingPlayerControls({
                 type="button"
                 aria-label="前进 5 秒"
                 className={DASHBOARD_PLAYER_DISABLED_BUTTON_CLASS_NAME}
-                data-sot-control="dashboard-player-forward"
-                data-sot-state={playerControlState}
+                data-control="dashboard-player-forward"
+                data-state={playerControlState}
                 disabled={playbackDisabled}
                 onClick={() => onSeekBySeconds(5)}
             >
                 <FastForward
                     data-icon="inline-start"
-                    data-sot-part="dashboard-player-control-icon"
+                    data-part="dashboard-player-control-icon"
                 />
             </Button>
             <span
@@ -226,9 +226,9 @@ export function DashboardRecordingPlayerControls({
                     DASHBOARD_PLAYER_TIME_CLASS_NAME,
                     playbackDisabled && DASHBOARD_PLAYER_DISABLED_CLASS_NAME,
                 )}
-                data-sot-part="dashboard-player-current-time"
+                data-part="dashboard-player-current-time"
             >
-                {formatSotPlayerTime(currentTime)}
+                {formatPlayerTime(currentTime)}
             </span>
             <DashboardPlayerSeekSlider
                 disabled={playbackDisabled}
@@ -241,9 +241,9 @@ export function DashboardRecordingPlayerControls({
                     DASHBOARD_PLAYER_DURATION_CLASS_NAME,
                     playbackDisabled && DASHBOARD_PLAYER_DISABLED_CLASS_NAME,
                 )}
-                data-sot-part="dashboard-player-duration"
+                data-part="dashboard-player-duration"
             >
-                {formatSotPlayerTime(duration)}
+                {formatPlayerTime(duration)}
             </span>
             <Button
                 variant="ghost"
@@ -255,8 +255,8 @@ export function DashboardRecordingPlayerControls({
                     DASHBOARD_PLAYER_SPEED_CLASS_NAME,
                     DASHBOARD_PLAYER_DISABLED_BUTTON_CLASS_NAME,
                 )}
-                data-sot-control="dashboard-player-speed"
-                data-sot-state={playerControlState}
+                data-control="dashboard-player-speed"
+                data-state={playerControlState}
                 onClick={onCyclePlaybackSpeed}
             >
                 {playbackSpeedLabel}
@@ -267,7 +267,7 @@ export function DashboardRecordingPlayerControls({
             >
                 <div
                     className="relative inline-flex"
-                    data-sot-part="dashboard-player-volume-anchor"
+                    data-part="dashboard-player-volume-anchor"
                 >
                     <PopoverTrigger asChild>
                         <Button
@@ -280,16 +280,16 @@ export function DashboardRecordingPlayerControls({
                             }
                             aria-expanded={volumePopoverOpen}
                             title={`音量 ${volume}`}
-                            data-level={sotPlayerVolumeLevel(volume)}
-                            data-sot-control="dashboard-player-volume"
-                            data-sot-state={
+                            data-level={playerVolumeLevel(volume)}
+                            data-control="dashboard-player-volume"
+                            data-state={
                                 playbackDisabled
                                     ? "disabled"
                                     : volumePopoverOpen
                                       ? "open"
                                       : "closed"
                             }
-                            data-sot-volume-state={
+                            data-volume-state={
                                 volumeMuted ? "muted" : "audible"
                             }
                             disabled={playbackDisabled}
@@ -297,12 +297,12 @@ export function DashboardRecordingPlayerControls({
                             {volumeMuted ? (
                                 <VolumeX
                                     data-icon="inline-start"
-                                    data-sot-part="dashboard-player-control-icon"
+                                    data-part="dashboard-player-control-icon"
                                 />
                             ) : (
                                 <Volume2
                                     data-icon="inline-start"
-                                    data-sot-part="dashboard-player-control-icon"
+                                    data-part="dashboard-player-control-icon"
                                 />
                             )}
                         </Button>
@@ -313,23 +313,21 @@ export function DashboardRecordingPlayerControls({
                         side="top"
                         sideOffset={8}
                         data-open={volumePopoverOpen ? "true" : "false"}
-                        data-sot-panel="dashboard-player-volume-popover"
-                        data-sot-state={volumePopoverOpen ? "open" : "closed"}
+                        data-panel="dashboard-player-volume-popover"
+                        data-state={volumePopoverOpen ? "open" : "closed"}
                         aria-label="音量"
                     >
                         <div
                             className="flex items-center gap-2"
-                            data-sot-part="dashboard-player-volume-row"
+                            data-part="dashboard-player-volume-row"
                         >
                             <Button
                                 variant="ghost"
                                 size="icon-sm"
                                 type="button"
                                 aria-label="静音切换"
-                                data-sot-control="dashboard-player-volume-mute"
-                                data-sot-state={
-                                    volumeMuted ? "muted" : "audible"
-                                }
+                                data-control="dashboard-player-volume-mute"
+                                data-state={volumeMuted ? "muted" : "audible"}
                                 disabled={playbackDisabled}
                                 onClick={() =>
                                     onVolumeChange(volumeMuted ? 70 : 0)
@@ -338,12 +336,12 @@ export function DashboardRecordingPlayerControls({
                                 {volumeMuted ? (
                                     <VolumeX
                                         data-icon="inline-start"
-                                        data-sot-part="dashboard-player-volume-icon"
+                                        data-part="dashboard-player-volume-icon"
                                     />
                                 ) : (
                                     <Volume2
                                         data-icon="inline-start"
-                                        data-sot-part="dashboard-player-volume-icon"
+                                        data-part="dashboard-player-volume-icon"
                                     />
                                 )}
                             </Button>
@@ -354,8 +352,8 @@ export function DashboardRecordingPlayerControls({
                                 step={1}
                                 value={[volume]}
                                 disabled={playbackDisabled}
-                                data-sot-control="dashboard-player-volume-slider"
-                                data-sot-state={playerControlState}
+                                data-control="dashboard-player-volume-slider"
+                                data-state={playerControlState}
                                 aria-label="音量"
                                 onValueChange={(nextValue) =>
                                     onVolumeChange(nextValue[0] ?? volume)
@@ -363,7 +361,7 @@ export function DashboardRecordingPlayerControls({
                             />
                             <span
                                 className="min-w-11 text-center tabular-nums text-muted-foreground"
-                                data-sot-part="dashboard-player-volume-value"
+                                data-part="dashboard-player-volume-value"
                             >
                                 {volume}
                             </span>

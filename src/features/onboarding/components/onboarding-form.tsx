@@ -31,6 +31,7 @@ import {
     FieldLabel,
 } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
+import { Progress } from "@/components/ui/progress";
 import { Select } from "@/components/ui/select";
 import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
 import { DataSourceFieldControl } from "@/features/data-sources/data-source-field-control";
@@ -75,6 +76,36 @@ const ONBOARDING_STEPS = [
 type OnboardingStepId = (typeof ONBOARDING_STEPS)[number]["id"];
 type DefaultTranscriptionSource = "dingtalk-a1" | "ticnote" | "feishu-minutes";
 
+const DEFAULT_TRANSCRIPTION_SOURCE_OPTIONS = [
+    {
+        id: "dingtalk-a1",
+        label: "钉钉 闪记",
+        swatch: "accent",
+    },
+    {
+        id: "ticnote",
+        label: "TicNote",
+        swatch: "empty",
+    },
+    {
+        id: "feishu-minutes",
+        label: "飞书妙记",
+        swatch: "empty",
+    },
+] as const satisfies ReadonlyArray<{
+    id: DefaultTranscriptionSource;
+    label: string;
+    swatch: "accent" | "empty";
+}>;
+
+function isDefaultTranscriptionSource(
+    provider: SourceProvider,
+): provider is DefaultTranscriptionSource {
+    return DEFAULT_TRANSCRIPTION_SOURCE_OPTIONS.some(
+        (option) => option.id === provider,
+    );
+}
+
 const PROVIDER_ICONS: Record<SourceProvider, LucideIcon> = {
     "dingtalk-a1": Radio,
     ticnote: Mic2,
@@ -102,7 +133,7 @@ const onboardingCardClassNames = {
     providerList: "mb-5 flex w-full flex-col items-stretch gap-2",
     summaryList: "mb-5 flex flex-col gap-2",
     matrixRow:
-        "flex min-h-8 items-baseline gap-2 border-b border-dashed border-border py-1.5",
+        "m-0 flex min-h-8 items-baseline gap-2 border-b border-dashed border-border py-1.5",
     matrixLabel:
         "m-0 w-20 flex-none text-xs font-semibold text-muted-foreground",
     matrixValue:
@@ -191,7 +222,7 @@ export function OnboardingForm({ onConnected }: OnboardingFormProps) {
     const [isMounted, setIsMounted] = useState(false);
     const [activeStep, setActiveStep] = useState<OnboardingStepId>("source");
     const [defaultTranscriptionSource, setDefaultTranscriptionSource] =
-        useState<DefaultTranscriptionSource>("dingtalk-a1");
+        useState<DefaultTranscriptionSource | null>(null);
     const [speakerName, setSpeakerName] = useState("");
     const [speakerVoiceprint, setSpeakerVoiceprint] = useState("");
     const [speakerState, setSpeakerState] = useState<
@@ -202,6 +233,7 @@ export function OnboardingForm({ onConnected }: OnboardingFormProps) {
     const [transcriptionSaved, setTranscriptionSaved] = useState(false);
     const {
         connectedProvider,
+        connectedProviders,
         connectedSourceLabel,
         connectSource,
         currentDraft,
@@ -227,12 +259,7 @@ export function OnboardingForm({ onConnected }: OnboardingFormProps) {
 
     const visibleStep = connectedProvider ? "finish" : activeStep;
     const visibleStepIndex = getStepIndex(visibleStep);
-    const onboardingState = connectedProvider
-        ? "connected"
-        : isSaving
-          ? "saving"
-          : visibleStep;
-    const progressPct = ["25", "40", "75", "100"][visibleStepIndex] ?? "25";
+    const progressPct = [25, 40, 75, 100][visibleStepIndex] ?? 25;
     const selectedAuthModeLabel = getSourceAuthModeDisplayLabel(
         currentDraft.authMode,
         language,
@@ -242,6 +269,17 @@ export function OnboardingForm({ onConnected }: OnboardingFormProps) {
             ? "由来源登录方式决定"
             : "Handled by the source sign-in method"
         : currentDraft.baseUrl;
+    const currentDraftTranscriptionSource = isDefaultTranscriptionSource(
+        provider,
+    )
+        ? provider
+        : null;
+    const selectedDefaultTranscriptionSource =
+        defaultTranscriptionSource &&
+        (connectedProviders.includes(defaultTranscriptionSource) ||
+            currentDraftTranscriptionSource === defaultTranscriptionSource)
+            ? defaultTranscriptionSource
+            : null;
     const controlsLocked = !isMounted || isSaving || isFinishing;
     const visibleStepTitle = `第 ${visibleStepIndex + 1} 步 · ${
         ONBOARDING_STEPS[visibleStepIndex].title
@@ -267,18 +305,22 @@ export function OnboardingForm({ onConnected }: OnboardingFormProps) {
         goToStep(previousStep);
     };
 
-    const saveTranscriptionDefaults = async () => {
+    const saveTranscriptionDefaults = async (
+        defaultTranscriptionProvider: DefaultTranscriptionSource | null,
+    ) => {
         const response = await fetch("/api/settings/transcription", {
             method: "PUT",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({
-                autoTranscribe: defaultTranscriptionSource !== "feishu-minutes",
+                autoTranscribe:
+                    defaultTranscriptionProvider !== "feishu-minutes",
                 defaultTranscriptionLanguage:
-                    defaultTranscriptionSource === "feishu-minutes"
+                    defaultTranscriptionProvider === "feishu-minutes"
                         ? null
                         : language === "zh-CN"
                           ? "zh"
                           : "en",
+                defaultTranscriptionProvider,
             }),
         });
 
@@ -296,21 +338,27 @@ export function OnboardingForm({ onConnected }: OnboardingFormProps) {
         }
 
         setSpeakerState("saving");
-        const response = await fetch("/api/speakers/profiles", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({
-                displayName: trimmedName,
-                voiceprintRef: speakerVoiceprint.trim() || null,
-            }),
-        });
+        try {
+            const response = await fetch("/api/speakers/profiles", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({
+                    displayName: trimmedName,
+                    voiceprintRef: speakerVoiceprint.trim() || null,
+                }),
+            });
 
-        if (!response.ok) {
+            if (!response.ok) {
+                throw new Error("说话人档案保存失败");
+            }
+
+            setSpeakerState("saved");
+        } catch (error) {
             setSpeakerState("error");
-            throw new Error("说话人档案保存失败");
+            throw error instanceof Error
+                ? error
+                : new Error("说话人档案保存失败");
         }
-
-        setSpeakerState("saved");
     };
 
     const handleFinish = async () => {
@@ -320,14 +368,16 @@ export function OnboardingForm({ onConnected }: OnboardingFormProps) {
         setIsFinishing(true);
 
         try {
+            const defaultTranscriptionProvider =
+                selectedDefaultTranscriptionSource;
             const didConnect = connectedProvider ? true : await connectSource();
             if (!didConnect) {
                 setActiveStep("source");
-                setFinishError("请先补全来源授权");
+                setFinishError("来源连接失败，请检查授权信息后重试。");
                 return;
             }
 
-            await saveTranscriptionDefaults();
+            await saveTranscriptionDefaults(defaultTranscriptionProvider);
             await saveSpeakerProfile();
 
             if (onConnected) {
@@ -345,106 +395,92 @@ export function OnboardingForm({ onConnected }: OnboardingFormProps) {
 
     return (
         <main
+            aria-busy={isSaving || isFinishing}
+            aria-labelledby="onboarding-title"
             className={onboardingCardClassNames.layout}
-            data-sot-layout="onboarding-workstation"
-            data-sot-ready={isMounted ? "true" : "false"}
-            data-sot-surface="onboarding"
         >
-            <Card
-                hasNoPadding
-                className={onboardingCardClassNames.surface}
-                data-sot-card="onboarding"
-            >
-                <div
-                    className={onboardingCardClassNames.header}
-                    data-sot-part="onboarding-card-header"
-                >
-                    <div
+            <Card hasNoPadding className={onboardingCardClassNames.surface}>
+                <CardHeader className={onboardingCardClassNames.header}>
+                    <CardTitle
+                        aria-level={1}
                         className={onboardingCardClassNames.heading}
-                        data-sot-part="card-heading"
+                        id="onboarding-title"
+                        role="heading"
                     >
                         上手 / Onboarding · 4 步
-                    </div>
-                    <div
-                        className={onboardingCardClassNames.sub}
-                        data-sot-part="card-sub"
-                    >
+                    </CardTitle>
+                    <CardDescription className={onboardingCardClassNames.sub}>
                         连接来源 → 选默认转写 → 设置说话人档案 → 完成
-                    </div>
-                </div>
-                <div
+                    </CardDescription>
+                </CardHeader>
+                <section
+                    aria-busy={isSaving || isFinishing}
+                    aria-describedby="onboarding-step-description"
+                    aria-labelledby="onboarding-step-title"
                     className={onboardingCardClassNames.frame}
-                    data-pct={progressPct}
-                    data-sot-frame="onboarding"
-                    data-sot-panel="onboarding-current"
-                    data-sot-provider={provider}
-                    data-sot-state={isFinishing ? "saving" : onboardingState}
                 >
-                    <div
-                        className={onboardingCardClassNames.steps}
-                        data-sot-panel="onboarding-steps"
-                        data-sot-progress={visibleStep}
-                    >
-                        {ONBOARDING_STEPS.map((step, index) => {
-                            const isActive = step.id === visibleStep;
-                            const isDone =
-                                connectedProvider !== null ||
-                                index < visibleStepIndex;
-                            const status = isDone
-                                ? "complete"
-                                : isActive
-                                  ? "active"
-                                  : "idle";
+                    <Progress
+                        aria-label={`配置进度：${visibleStepTitle}`}
+                        className="mb-3.5"
+                        value={progressPct}
+                    />
+                    <nav aria-label="上手步骤">
+                        <ol
+                            className={cn(
+                                onboardingCardClassNames.steps,
+                                "list-none p-0",
+                            )}
+                        >
+                            {ONBOARDING_STEPS.map((step, index) => {
+                                const isActive = step.id === visibleStep;
+                                const isDone =
+                                    connectedProvider !== null ||
+                                    index < visibleStepIndex;
 
-                            return (
-                                <Button
-                                    aria-label={`第 ${index + 1} 步 · ${step.title}`}
-                                    className={cn(
-                                        onboardingCardClassNames.step,
-                                        status !== "idle" &&
-                                            "bg-primary hover:bg-primary/90",
-                                    )}
-                                    disabled={controlsLocked}
-                                    key={step.id}
-                                    onClick={() => goToStep(step.id)}
-                                    size="xs"
-                                    type="button"
-                                    variant="ghost"
-                                    data-sot-control="onboarding-step"
-                                    data-sot-step={step.id}
-                                    data-sot-state={status}
-                                />
-                            );
-                        })}
-                    </div>
-                    <div
-                        className={onboardingCardClassNames.stepHeader}
-                        data-sot-part="onboarding-step-header"
-                    >
-                        <div
+                                return (
+                                    <li key={step.id}>
+                                        <Button
+                                            aria-current={
+                                                isActive ? "step" : undefined
+                                            }
+                                            aria-label={`第 ${index + 1} 步 · ${step.title}`}
+                                            className={cn(
+                                                onboardingCardClassNames.step,
+                                                (isDone || isActive) &&
+                                                    "bg-primary hover:bg-primary/90",
+                                            )}
+                                            disabled={controlsLocked}
+                                            onClick={() => goToStep(step.id)}
+                                            size="xs"
+                                            type="button"
+                                            variant="ghost"
+                                        />
+                                    </li>
+                                );
+                            })}
+                        </ol>
+                    </nav>
+                    <header className={onboardingCardClassNames.stepHeader}>
+                        <h2
                             className={onboardingCardClassNames.stepTitle}
-                            data-sot-part="onboarding-step-title"
+                            id="onboarding-step-title"
                         >
                             {visibleStepTitle}
-                        </div>
-                        <div
+                        </h2>
+                        <p
                             className={onboardingCardClassNames.stepDescription}
-                            data-sot-part="onboarding-step-description"
+                            id="onboarding-step-description"
                         >
                             {ONBOARDING_STEPS[visibleStepIndex].hint}
-                        </div>
-                    </div>
-                    <CardContent
-                        className={onboardingCardClassNames.stepBody}
-                        data-sot-part="onboarding-step-body"
-                    >
+                        </p>
+                    </header>
+                    <CardContent className={onboardingCardClassNames.stepBody}>
                         {finishError ? (
                             <Alert
+                                aria-live="assertive"
                                 density="compact"
+                                id="onboarding-finish-error"
                                 variant="statusError"
-                                data-sot-part="onboarding-error"
-                                data-sot-state="error"
-                                role="alert"
                             >
                                 <AlertDescription density="compact">
                                     {finishError}
@@ -477,8 +513,12 @@ export function OnboardingForm({ onConnected }: OnboardingFormProps) {
 
                         {visibleStep === "transcription" ? (
                             <TranscriptionStep
+                                connectedProviders={connectedProviders}
+                                currentDraftTranscriptionSource={
+                                    currentDraftTranscriptionSource
+                                }
                                 defaultTranscriptionSource={
-                                    defaultTranscriptionSource
+                                    selectedDefaultTranscriptionSource
                                 }
                                 isSaving={controlsLocked}
                                 onNext={goNext}
@@ -505,8 +545,9 @@ export function OnboardingForm({ onConnected }: OnboardingFormProps) {
                             <FinishStep
                                 connectedSourceLabel={connectedSourceLabel}
                                 defaultTranscriptionSource={
-                                    defaultTranscriptionSource
+                                    selectedDefaultTranscriptionSource
                                 }
+                                finishError={finishError}
                                 isFinishing={isFinishing}
                                 isSaving={controlsLocked}
                                 onBack={goBack}
@@ -519,7 +560,7 @@ export function OnboardingForm({ onConnected }: OnboardingFormProps) {
                             />
                         ) : null}
                     </CardContent>
-                </div>
+                </section>
             </Card>
         </main>
     );
@@ -575,7 +616,6 @@ function SourceStep({
             >
                 <Select
                     aria-label="来源"
-                    data-sot-control="source-provider"
                     disabled={isSaving}
                     id="source-provider"
                     onValueChange={selectProvider}
@@ -590,7 +630,6 @@ function SourceStep({
             <ToggleGroup
                 aria-label="来源"
                 className={onboardingCardClassNames.providerList}
-                data-sot-list="provider-cards"
                 disabled={isSaving}
                 onValueChange={(value) => {
                     if (value) {
@@ -616,25 +655,12 @@ function SourceStep({
                             )}
                             disabled={isSaving}
                             key={item.provider}
-                            data-sot-control="provider-card"
-                            data-sot-cover={
-                                item.provider === "feishu-minutes"
-                                    ? "true"
-                                    : "false"
-                            }
-                            data-sot-provider={item.provider}
-                            data-sot-state={isActive ? "selected" : "idle"}
                             value={item.provider}
                         >
                             <span
+                                aria-hidden="true"
                                 className={
                                     onboardingCardClassNames.providerIcon
-                                }
-                                data-sot-part="provider-icon"
-                                data-sot-cover={
-                                    item.provider === "feishu-minutes"
-                                        ? "true"
-                                        : "false"
                                 }
                             >
                                 {asset ? (
@@ -651,20 +677,18 @@ function SourceStep({
                                         )}
                                     />
                                 ) : (
-                                    <ProviderIcon data-icon="inline-start" />
+                                    <ProviderIcon />
                                 )}
                             </span>
                             <span
                                 className={
                                     onboardingCardClassNames.providerMeta
                                 }
-                                data-sot-part="provider-meta"
                             >
                                 <span
                                     className={
                                         onboardingCardClassNames.providerName
                                     }
-                                    data-sot-part="provider-name"
                                 >
                                     {item.label}
                                 </span>
@@ -672,7 +696,6 @@ function SourceStep({
                                     className={
                                         onboardingCardClassNames.providerHint
                                     }
-                                    data-sot-part="provider-hint"
                                 >
                                     {isActive
                                         ? "将作为首次连接来源"
@@ -694,8 +717,6 @@ function SourceStep({
                     <ToggleGroup
                         aria-label="登录方式"
                         className={onboardingCardClassNames.sourceAuthModeGroup}
-                        data-sot-control="source-auth-mode"
-                        data-sot-list="source-auth-modes"
                         disabled={isSaving}
                         onValueChange={(mode) => {
                             if (!mode) {
@@ -714,11 +735,6 @@ function SourceStep({
                             return (
                                 <ToggleGroupItem
                                     aria-pressed={active}
-                                    data-sot-auth-mode={mode}
-                                    data-sot-control="source-auth-mode"
-                                    data-sot-state={
-                                        active ? "selected" : "idle"
-                                    }
                                     className={
                                         onboardingCardClassNames.sourceAuthModeOption
                                     }
@@ -726,16 +742,13 @@ function SourceStep({
                                     key={mode}
                                     value={mode}
                                 >
-                                    <span data-sot-part="source-auth-mode-title">
+                                    <span>
                                         {getSourceAuthModeDisplayLabel(
                                             mode,
                                             language,
                                         )}
                                     </span>
-                                    <span
-                                        className="text-left"
-                                        data-sot-part="source-auth-mode-description"
-                                    >
+                                    <span className="text-left">
                                         按来源支持的方式填写授权
                                     </span>
                                 </ToggleGroupItem>
@@ -744,11 +757,7 @@ function SourceStep({
                     </ToggleGroup>
                 </OnboardingFieldRow>
             ) : (
-                <MatrixRow
-                    label="登录方式"
-                    state="ready"
-                    value={selectedAuthModeLabel}
-                />
+                <MatrixRow label="登录方式" value={selectedAuthModeLabel} />
             )}
 
             {!usesCustomServerSelector ? (
@@ -759,7 +768,6 @@ function SourceStep({
                     label="服务地址"
                 >
                     <Input
-                        data-sot-control="source-base-url"
                         disabled={isSaving}
                         id="source-base-url"
                         onChange={(event) => setBaseUrl(event.target.value)}
@@ -767,11 +775,7 @@ function SourceStep({
                     />
                 </OnboardingFieldRow>
             ) : (
-                <MatrixRow
-                    label="服务地址"
-                    state="ready"
-                    value={sourceServiceLabel}
-                />
+                <MatrixRow label="服务地址" value={sourceServiceLabel} />
             )}
 
             <div className={onboardingCardClassNames.sourceProviderFields}>
@@ -792,59 +796,64 @@ function SourceStep({
                 onBack={onBack}
                 onNext={onNext}
             />
-            <MatrixRow label="当前来源" state="selected" value={sourceLabel} />
+            <MatrixRow label="当前来源" value={sourceLabel} />
         </>
     );
 }
 
 function TranscriptionStep({
+    connectedProviders,
+    currentDraftTranscriptionSource,
     defaultTranscriptionSource,
     isSaving,
     onNext,
     setDefaultTranscriptionSource,
 }: {
-    defaultTranscriptionSource: DefaultTranscriptionSource;
+    connectedProviders: SourceProvider[];
+    currentDraftTranscriptionSource: DefaultTranscriptionSource | null;
+    defaultTranscriptionSource: DefaultTranscriptionSource | null;
     isSaving: boolean;
     onNext: () => void;
-    setDefaultTranscriptionSource: (value: DefaultTranscriptionSource) => void;
+    setDefaultTranscriptionSource: (
+        value: DefaultTranscriptionSource | null,
+    ) => void;
 }) {
-    const options = [
-        {
-            id: "dingtalk-a1",
-            label: "钉钉 闪记 · 已连接",
-            connected: true,
-            swatch: "accent",
-        },
-        {
-            id: "ticnote",
-            label: "TicNote · 已连接",
-            connected: true,
-            swatch: "empty",
-        },
-        {
-            id: "feishu-minutes",
-            label: "飞书妙记 · 未连接",
-            connected: false,
-            swatch: "empty",
-        },
-    ] as const;
+    const options = DEFAULT_TRANSCRIPTION_SOURCE_OPTIONS.map((option) => ({
+        ...option,
+        connected: connectedProviders.includes(option.id),
+        isCurrentDraft: currentDraftTranscriptionSource === option.id,
+        selectable:
+            connectedProviders.includes(option.id) ||
+            currentDraftTranscriptionSource === option.id,
+        statusLabel: `${option.label} · ${
+            connectedProviders.includes(option.id)
+                ? "已连接"
+                : currentDraftTranscriptionSource === option.id
+                  ? "当前草稿（未连接）"
+                  : "未连接"
+        }`,
+    }));
 
     return (
-        <div data-sot-panel="onboarding-default-source-step">
+        <section aria-label="默认转写配置">
             <ToggleGroup
                 aria-label="默认转写来源"
                 className={onboardingCardClassNames.defaultSources}
-                data-sot-list="onboarding-default-sources"
                 disabled={isSaving}
                 onValueChange={(value) => {
-                    if (!value || isSaving) {
+                    if (isSaving) {
+                        return;
+                    }
+
+                    if (!value) {
+                        setDefaultTranscriptionSource(null);
                         return;
                     }
 
                     const selectedOption = options.find(
                         (option) => option.id === value,
                     );
-                    if (!selectedOption?.connected) {
+                    if (!selectedOption?.selectable) {
                         return;
                     }
 
@@ -854,7 +863,7 @@ function TranscriptionStep({
                 role="group"
                 spacing={2}
                 type="single"
-                value={defaultTranscriptionSource}
+                value={defaultTranscriptionSource ?? ""}
                 variant="outline"
             >
                 {options.map((option) => {
@@ -862,41 +871,32 @@ function TranscriptionStep({
 
                     return (
                         <ToggleGroupItem
-                            aria-label={option.label}
+                            aria-label={option.statusLabel}
+                            aria-disabled={isSaving || !option.selectable}
                             aria-pressed={isActive}
                             className={onboardingCardClassNames.defaultSource}
-                            data-sot-control="onboarding-default-source"
-                            data-sot-provider={option.id}
-                            data-sot-state={
-                                isActive
-                                    ? "selected"
-                                    : option.connected
-                                      ? "idle"
-                                      : "disabled"
-                            }
-                            disabled={isSaving || !option.connected}
+                            disabled={isSaving || !option.selectable}
                             key={option.id}
                             value={option.id}
                         >
                             <span
+                                aria-hidden="true"
                                 className={
                                     DEFAULT_SOURCE_SWATCH_CLASS_NAMES[
                                         option.swatch
                                     ]
                                 }
-                                data-sot-part="onboarding-default-source-swatch"
                             />
-                            {option.label}
+                            {option.statusLabel}
                         </ToggleGroupItem>
                     );
                 })}
             </ToggleGroup>
-            <div
+            <fieldset
+                aria-label="默认转写操作"
                 className={onboardingCardClassNames.actions}
-                data-sot-part="onboarding-actions"
             >
                 <Button
-                    data-sot-control="onboarding-skip"
                     disabled={isSaving}
                     onClick={onNext}
                     size="xs"
@@ -906,7 +906,6 @@ function TranscriptionStep({
                     跳过
                 </Button>
                 <Button
-                    data-sot-control="onboarding-next"
                     disabled={isSaving}
                     onClick={onNext}
                     size="xs"
@@ -915,8 +914,8 @@ function TranscriptionStep({
                 >
                     下一步
                 </Button>
-            </div>
-        </div>
+            </fieldset>
+        </section>
     );
 }
 
@@ -941,41 +940,39 @@ function SpeakersStep({
 }) {
     return (
         <>
-            <div
+            <section
+                aria-labelledby="speaker-profile-title"
                 className={onboardingCardClassNames.providerList}
-                data-sot-list="speaker-profiles"
             >
                 <Card
                     hasNoPadding
                     className={onboardingCardClassNames.speakerDraft}
-                    data-sot-control="speaker-profile-draft"
-                    data-sot-state={speakerState}
                 >
                     <span
+                        aria-hidden="true"
                         className={onboardingCardClassNames.providerIcon}
-                        data-sot-part="provider-icon"
                     >
                         <UserRound />
                     </span>
                     <CardHeader
                         className={onboardingCardClassNames.providerMeta}
-                        data-sot-part="provider-meta"
                     >
                         <CardTitle
+                            aria-level={3}
                             className={onboardingCardClassNames.providerName}
-                            data-sot-part="provider-name"
+                            id="speaker-profile-title"
+                            role="heading"
                         >
                             第一个说话人
                         </CardTitle>
                         <CardDescription
                             className={onboardingCardClassNames.providerHint}
-                            data-sot-part="provider-hint"
                         >
                             可先留空，工作台内继续校对
                         </CardDescription>
                     </CardHeader>
                 </Card>
-            </div>
+            </section>
             <OnboardingFieldRow
                 description="例如主持人、自己或常见会议成员"
                 disabled={isSaving || speakerState === "saving"}
@@ -987,7 +984,6 @@ function SpeakersStep({
                     id="speaker-name"
                     onChange={(event) => setSpeakerName(event.target.value)}
                     value={speakerName}
-                    data-sot-control="speaker-name"
                     placeholder="林梅"
                 />
             </OnboardingFieldRow>
@@ -1004,13 +1000,11 @@ function SpeakersStep({
                         setSpeakerVoiceprint(event.target.value)
                     }
                     value={speakerVoiceprint}
-                    data-sot-control="speaker-voiceprint"
                     placeholder="voiceprint-local-1"
                 />
             </OnboardingFieldRow>
             <MatrixRow
                 label="档案状态"
-                state={speakerState}
                 value={
                     speakerName.trim()
                         ? `${speakerName.trim()} · 保存时创建`
@@ -1029,6 +1023,7 @@ function SpeakersStep({
 function FinishStep({
     connectedSourceLabel,
     defaultTranscriptionSource,
+    finishError,
     isFinishing,
     isSaving,
     onBack,
@@ -1040,7 +1035,8 @@ function FinishStep({
     transcriptionSaved,
 }: {
     connectedSourceLabel: string | null;
-    defaultTranscriptionSource: DefaultTranscriptionSource;
+    defaultTranscriptionSource: DefaultTranscriptionSource | null;
+    finishError: string | null;
     isFinishing: boolean;
     isSaving: boolean;
     onBack: () => void;
@@ -1053,42 +1049,47 @@ function FinishStep({
 }) {
     return (
         <>
-            <div
+            <section
+                aria-label="配置摘要"
                 className={onboardingCardClassNames.summaryList}
-                data-sot-list="finish-summary"
             >
                 <MatrixRow
                     label="来源"
-                    state={connectedSourceLabel ? "connected" : "ready"}
                     value={connectedSourceLabel ?? sourceLabel}
                 />
-                <MatrixRow
-                    label="授权"
-                    state="ready"
-                    value={selectedAuthModeLabel}
-                />
+                <MatrixRow label="授权" value={selectedAuthModeLabel} />
                 <MatrixRow
                     label="默认转写"
-                    state={transcriptionSaved ? "saved" : "ready"}
+                    status={transcriptionSaved ? "已保存" : "待保存"}
                     value={
-                        defaultTranscriptionSource === "ticnote"
-                            ? "TicNote"
-                            : defaultTranscriptionSource === "feishu-minutes"
-                              ? "飞书妙记"
-                              : "钉钉 闪记"
+                        defaultTranscriptionSource === null
+                            ? "未选择"
+                            : defaultTranscriptionSource === "ticnote"
+                              ? "TicNote"
+                              : defaultTranscriptionSource === "feishu-minutes"
+                                ? "飞书妙记"
+                                : "钉钉 闪记"
                     }
                 />
                 <MatrixRow
                     label="说话人"
-                    state={speakerState}
+                    status={
+                        speakerState === "saved"
+                            ? "已保存"
+                            : speakerState === "saving"
+                              ? "保存中"
+                              : speakerState === "error"
+                                ? "保存失败"
+                                : "待保存"
+                    }
                     value={
                         speakerName.trim() ? speakerName.trim() : "暂不创建档案"
                     }
                 />
-            </div>
-            <div
+            </section>
+            <fieldset
+                aria-label="完成配置操作"
                 className={onboardingCardClassNames.actions}
-                data-sot-part="onboarding-actions"
             >
                 <Button
                     type="button"
@@ -1105,49 +1106,43 @@ function FinishStep({
                     size="xs"
                     disabled={isSaving || isFinishing}
                     aria-busy={isSaving || isFinishing}
-                    data-sot-control="save-enter"
+                    aria-describedby={
+                        finishError ? "onboarding-finish-error" : undefined
+                    }
                     onClick={onFinish}
                 >
                     {isSaving || isFinishing ? (
-                        <Loader2 data-icon="inline-start" />
+                        <Loader2 aria-hidden="true" />
                     ) : (
-                        <CheckCircle2 data-icon="inline-start" />
+                        <CheckCircle2 aria-hidden="true" />
                     )}
                     {isSaving || isFinishing ? "保存中..." : "保存并进入工作台"}
                 </Button>
-            </div>
+            </fieldset>
         </>
     );
 }
 
 function MatrixRow({
     label,
-    state,
+    status,
     value,
 }: {
     label: string;
-    state: string;
+    status?: string;
     value: string;
 }) {
     return (
-        <div
+        <dl
+            aria-live={status ? "polite" : undefined}
             className={onboardingCardClassNames.matrixRow}
-            data-sot-control="matrix-row"
-            data-sot-state={state}
         >
-            <span
-                className={onboardingCardClassNames.matrixLabel}
-                data-sot-part="matrix-label"
-            >
-                {label}
-            </span>
-            <strong
-                className={onboardingCardClassNames.matrixValue}
-                data-sot-part="matrix-value"
-            >
+            <dt className={onboardingCardClassNames.matrixLabel}>{label}</dt>
+            <dd className={onboardingCardClassNames.matrixValue}>
                 {value}
-            </strong>
-        </div>
+                {status ? <span className="sr-only">，{status}</span> : null}
+            </dd>
+        </dl>
     );
 }
 
@@ -1161,9 +1156,9 @@ function WizardActions({
     onNext: () => void;
 }) {
     return (
-        <div
+        <fieldset
+            aria-label="步骤操作"
             className={onboardingCardClassNames.actions}
-            data-sot-part="onboarding-actions"
         >
             {onBack ? (
                 <Button
@@ -1181,11 +1176,10 @@ function WizardActions({
                 variant="default"
                 size="xs"
                 disabled={isSaving}
-                data-sot-control="onboarding-next"
                 onClick={onNext}
             >
                 下一步
             </Button>
-        </div>
+        </fieldset>
     );
 }

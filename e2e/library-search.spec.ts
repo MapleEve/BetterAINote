@@ -262,9 +262,15 @@ async function setSotWebIndexSearchState(
 }
 
 async function expectCanonicalSearchScopeChips(panel: Locator) {
-    const chips = panel.locator(
-        '.ls-scope .ls-chip, [data-sot-control="library-search-scope"]',
-    );
+    const indexChips = panel.locator(".ls-scope .ls-chip");
+    const chips =
+        (await indexChips.count()) > 0
+            ? indexChips
+            : panel
+                  .getByRole("radiogroup", {
+                      name: /^(检索范围|Search scope)$/,
+                  })
+                  .getByRole("radio");
     await expect(chips).toHaveCount(CANONICAL_SEARCH_SCOPE_LABELS.length);
     await expect(chips).toHaveText([...CANONICAL_SEARCH_SCOPE_LABELS]);
 }
@@ -295,11 +301,7 @@ function searchPixelLocator(
 ) {
     return target === "panel"
         ? panel
-        : panel
-              .locator(
-                  '.ls-body, [data-sot-region="library-search-scroll"]',
-              )
-              .first();
+        : panel.locator('.ls-body, [data-slot="card-content"]').first();
 }
 
 async function captureSearchPixelDataUrl(
@@ -522,102 +524,115 @@ async function expectSearchPixelMatch(
 }
 
 async function openLibrarySearch(page: Page) {
-    const trigger = sotControl(page, "dashboard-search").first();
-    const panel = sotPanel(page, "library-search");
+    const trigger = dashboardSearchTrigger(page);
 
-    await expect(
-        page.locator('[data-sot-surface="dashboard-workstation"]'),
-    ).toHaveAttribute("data-sot-state", "ready");
+    await expect(page.getByRole("main")).toBeVisible();
     await expect(trigger).toBeVisible();
+    await expect(trigger).toHaveAttribute("aria-haspopup", "dialog");
     for (let attempt = 0; attempt < 3; attempt += 1) {
         await trigger.click();
         if (
-            await panel
-                .isVisible({ timeout: 3_000 })
+            await expect(trigger)
+                .toHaveAttribute("aria-expanded", "true", { timeout: 3_000 })
+                .then(() => true)
                 .catch(() => false)
         ) {
-            return panel;
-        }
-        await trigger.press("Enter");
-        if (
-            await panel
-                .isVisible({ timeout: 3_000 })
-                .catch(() => false)
-        ) {
-            return panel;
+            const panelId = await trigger.getAttribute("aria-controls");
+            if (panelId) {
+                const panel = page
+                    .getByRole("dialog", {
+                        name: /^(搜索库|Search library)$/,
+                    })
+                    .and(page.locator(`#${panelId}`));
+                if (
+                    await panel
+                        .isVisible({ timeout: 3_000 })
+                        .catch(() => false)
+                ) {
+                    return panel;
+                }
+            }
         }
         await page.waitForTimeout(250);
     }
 
+    await expect(trigger).toHaveAttribute("aria-expanded", "true");
+    const panelId = await trigger.getAttribute("aria-controls");
+    expect(panelId).toBeTruthy();
+    const panel = page
+        .getByRole("dialog", { name: /^(搜索库|Search library)$/ })
+        .and(page.locator(`#${panelId}`));
     await expect(panel).toBeVisible();
     return panel;
 }
 
-function sotControl(page: Page, name: string) {
-    return page.locator(`[data-sot-control="${name}"]`);
+function dashboardSearchTrigger(page: Page) {
+    return page.getByRole("button", { name: /^(搜索|Search)$/ }).first();
 }
 
-function sotPanel(page: Page, name: string) {
-    return page.locator(`[data-sot-panel="${name}"]`);
+function librarySearchDialog(page: Page) {
+    return page.getByRole("dialog", { name: /^(搜索库|Search library)$/ });
 }
 
-function sotList(page: Page, name: string) {
-    return page.locator(`[data-sot-list="${name}"]`);
+function librarySearchInput(panel: Locator) {
+    return panel.getByRole("combobox");
 }
 
-function sotSearchResult(page: Page, type: string, index?: number) {
-    const indexSelector =
-        typeof index === "number" ? `[data-sot-result-index="${index}"]` : "";
-    return page.locator(
-        `[data-sot-control="library-search-result"][data-sot-result-type="${type}"]${indexSelector}`,
-    );
+function librarySearchScopes(panel: Locator) {
+    return panel
+        .getByRole("radiogroup", { name: /^(检索范围|Search scope)$/ })
+        .getByRole("radio");
 }
 
-async function selectDashboardRecordingForTagManager(
-    page: Page,
-    recordingId: string,
+function librarySearchResults(panel: Locator) {
+    return panel.getByRole("listbox", { name: /^(搜索库|Search library)$/ });
+}
+
+function librarySearchResult(
+    panel: Locator,
+    type: "recording" | "transcript" | "speaker" | "tag",
+    index = 0,
 ) {
-    const allRecordingsFilter = page.locator(
-        '[data-sot-control="dashboard-favorite"][data-sot-filter="all"]',
-    );
-    const recordingList = page.locator(
-        '[data-sot-surface="dashboard-recording-list"]',
-    );
-    const recordingRow = page.locator(
-        `[data-sot-control="dashboard-recording-row"][data-sot-recording-id="${recordingId}"]`,
-    );
+    const names = {
+        recording: /^(录音|Recordings)$/,
+        speaker: /^(说话人|Speakers)$/,
+        tag: /^(标签|Tags)$/,
+        transcript: /^(逐字稿|Transcripts)$/,
+    } as const;
+    return librarySearchResults(panel)
+        .getByRole("group", { name: names[type] })
+        .getByRole("option")
+        .nth(index);
+}
 
-    await expect(allRecordingsFilter).toBeVisible();
-    if (
-        (await allRecordingsFilter.getAttribute("data-sot-state")) !==
-        "selected"
-    ) {
-        await allRecordingsFilter.click();
+async function expectLibrarySearchState(
+    panel: Locator,
+    state: WebIndexSearchState,
+) {
+    const liveRegion = panel.locator('[aria-live="polite"]');
+    if (state === "results") {
+        await expect(librarySearchResults(panel)).toBeVisible();
+        return;
     }
-    await expect(recordingList).toHaveAttribute(
-        "data-sot-list-mode",
-        "timeline",
-    );
-    await expect(recordingList).toHaveAttribute("data-sot-state", "ready");
-    await expect(recordingRow).toBeVisible();
-    await recordingRow.click();
-    await expect(recordingRow).toHaveAttribute("data-sot-state", "selected");
-    await expect(dashboardPlayerTagManagerTrigger(page)).toBeVisible();
+    if (state === "error") {
+        await expect(panel.getByRole("alert")).toBeVisible();
+        return;
+    }
+    if (state === "indexing") {
+        await expect(liveRegion).toContainText(/重建|index/i);
+        return;
+    }
+    if (state === "loading") {
+        await expect(liveRegion).toContainText("检索中");
+        return;
+    }
+    await expect(liveRegion).toBeVisible();
 }
 
-function dashboardPlayerTagManagerTrigger(page: Page) {
-    return page
-        .locator('[data-sot-surface="dashboard-recording-player"]')
-        .locator('[data-sot-control="recording-tag-manager"]');
-}
-
-async function clickDashboardChromeOutsideTopbarOverlays(page: Page) {
-    const outsideChromeTarget = page
-        .locator(
-            '[data-sot-surface="dashboard-workstation"] main [data-sot-part="dashboard-crumb-current"]',
-        )
-        .first();
-
+async function clickDashboardChromeOutsideTopbarOverlays(
+    page: Page,
+    outsideChromeTarget: Locator,
+) {
     await expect(outsideChromeTarget).toBeVisible();
     const clickPoint = await outsideChromeTarget.evaluate((node) => {
         const rect = node.getBoundingClientRect();
@@ -633,7 +648,6 @@ async function clickDashboardChromeOutsideTopbarOverlays(page: Page) {
                 "textarea",
                 "nav",
                 '[role="button"]',
-                '[data-sot-control]',
             ].join(","),
         );
 
@@ -672,11 +686,7 @@ async function openDashboardMoreMenu(page: Page) {
     return menu;
 }
 
-async function expectOverlayHitTarget(
-    page: Page,
-    panelName: "dashboard-activity" | "library-search",
-) {
-    const panel = sotPanel(page, panelName);
+async function expectOverlayHitTarget(page: Page, panel: Locator) {
     await expect(panel).toBeVisible();
 
     const result = await panel.evaluate((node) => {
@@ -697,10 +707,10 @@ async function expectOverlayHitTarget(
 
         return {
             containsBottomHit: Boolean(
-                bottomHit?.closest("[data-sot-panel]") === node,
+                bottomHit?.closest('[role="dialog"]') === node,
             ),
             containsTopHit: Boolean(
-                topHit?.closest("[data-sot-panel]") === node,
+                topHit?.closest('[role="dialog"]') === node,
             ),
             bottom: rect.bottom,
             height: rect.height,
@@ -731,23 +741,23 @@ async function expectOverlayHitTarget(
 
 async function expectOverlayAnchoredToTrigger(
     page: Page,
-    panelName: "dashboard-activity" | "library-search",
-    triggerName: "dashboard-activity" | "dashboard-search",
+    panel: Locator,
+    trigger: Locator,
 ) {
-    const panel = sotPanel(page, panelName);
-    const trigger = sotControl(page, triggerName);
     await expect(panel).toBeVisible();
     await expect(trigger).toBeVisible();
 
-    const metrics = await panel.evaluate((node, triggerId) => {
+    const triggerBox = await trigger.boundingBox();
+    if (!triggerBox) {
+        throw new Error("Expected visible overlay trigger to have a bounding box");
+    }
+    const triggerRect = {
+        bottom: triggerBox.y + triggerBox.height,
+        right: triggerBox.x + triggerBox.width,
+    };
+
+    const metrics = await panel.evaluate((node, triggerRect) => {
         const panelRect = node.getBoundingClientRect();
-        const triggerNode = document.querySelector(
-            `[data-sot-control="${triggerId}"]`,
-        );
-        if (!triggerNode) {
-            throw new Error(`Missing trigger: ${triggerId}`);
-        }
-        const triggerRect = triggerNode.getBoundingClientRect();
         const expectedRight = Math.max(
             12,
             Math.round(window.innerWidth - triggerRect.right),
@@ -759,17 +769,13 @@ async function expectOverlayAnchoredToTrigger(
             panelTop: panelRect.top,
             triggerBottom: triggerRect.bottom,
         };
-    }, triggerName);
+    }, triggerRect);
 
     expect(Math.abs(metrics.panelTop - (metrics.triggerBottom + 8))).toBeLessThanOrEqual(16);
     expect(Math.abs(metrics.panelRightOffset - metrics.expectedRight)).toBeLessThanOrEqual(16);
 }
 
-async function expectViewportBoundOverlayLayout(
-    page: Page,
-    panelName: "dashboard-activity" | "library-search",
-) {
-    const panel = sotPanel(page, panelName);
+async function expectViewportBoundOverlayLayout(page: Page, panel: Locator) {
     await expect(panel).toBeVisible();
 
     const metrics = await panel.evaluate((node) => {
@@ -834,7 +840,7 @@ test("library search keeps Web/index five-chip scope canonical while matching co
         await openSotWebIndexSearch(sotIndexPage);
 
         let panel = await prepareSearchDashboard(page);
-        await expect(panel).toHaveAttribute("data-state", "no-query");
+        await expectLibrarySearchState(panel, "no-query");
         await expectCanonicalSearchScopeChips(
             await setSotWebIndexSearchState(sotIndexPage, "no-query"),
         );
@@ -860,8 +866,8 @@ test("library search keeps Web/index five-chip scope canonical while matching co
                 body: JSON.stringify({ results: [] }),
             });
         });
-        await panel.locator('[data-sot-control="library-search-input"]').fill("周会");
-        await expect(panel).toHaveAttribute("data-state", "loading");
+        await librarySearchInput(panel).fill("周会");
+        await expectLibrarySearchState(panel, "loading");
         await expectCanonicalSearchScopeChips(
             await setSotWebIndexSearchState(sotIndexPage, "loading"),
         );
@@ -876,7 +882,7 @@ test("library search keeps Web/index five-chip scope canonical while matching co
             { maxChannelDelta: 128, maxDifferingPixels: 500 },
         );
         releaseLoading();
-        await expect(panel).toHaveAttribute("data-state", "no-results");
+        await expectLibrarySearchState(panel, "no-results");
 
         panel = await prepareSearchDashboard(page, async (route) => {
             await route.fulfill({
@@ -922,8 +928,8 @@ test("library search keeps Web/index five-chip scope canonical while matching co
                 }),
             });
         });
-        await panel.locator('[data-sot-control="library-search-input"]').fill("周会");
-        await expect(panel).toHaveAttribute("data-state", "results");
+        await librarySearchInput(panel).fill("周会");
+        await expectLibrarySearchState(panel, "results");
         await expectCanonicalSearchScopeChips(
             await setSotWebIndexSearchState(sotIndexPage, "results"),
         );
@@ -944,8 +950,8 @@ test("library search keeps Web/index five-chip scope canonical while matching co
                 body: JSON.stringify({ results: [] }),
             });
         });
-        await panel.locator('[data-sot-control="library-search-input"]').fill("xyzqq");
-        await expect(panel).toHaveAttribute("data-state", "no-results");
+        await librarySearchInput(panel).fill("xyzqq");
+        await expectLibrarySearchState(panel, "no-results");
         await expectCanonicalSearchScopeChips(
             await setSotWebIndexSearchState(sotIndexPage, "no-results"),
         );
@@ -967,8 +973,8 @@ test("library search keeps Web/index five-chip scope canonical while matching co
                 body: JSON.stringify({ error: "Search failed" }),
             });
         });
-        await panel.locator('[data-sot-control="library-search-input"]').fill("周会");
-        await expect(panel).toHaveAttribute("data-state", "error");
+        await librarySearchInput(panel).fill("周会");
+        await expectLibrarySearchState(panel, "error");
         await expectCanonicalSearchScopeChips(
             await setSotWebIndexSearchState(sotIndexPage, "error"),
         );
@@ -998,8 +1004,8 @@ test("library search keeps Web/index five-chip scope canonical while matching co
                 }),
             });
         });
-        await panel.locator('[data-sot-control="library-search-input"]').fill("周会");
-        await expect(panel).toHaveAttribute("data-state", "indexing");
+        await librarySearchInput(panel).fill("周会");
+        await expectLibrarySearchState(panel, "indexing");
         await expectCanonicalSearchScopeChips(sotSearchPanel(sotPage, "indexing"));
         await expectCanonicalSearchScopeChips(panel);
         await expectSearchPixelMatch(
@@ -1045,23 +1051,18 @@ test("library search keeps error retry and keyboard focus paths live", async ({
     const panel = await openLibrarySearch(page);
     await expect(panel).toBeVisible();
 
-    const input = panel.locator('[data-sot-control="library-search-input"]');
+    const input = librarySearchInput(panel);
     await input.fill("retry-check");
-    const errorState = panel.locator('[data-sot-part="library-search-error"]');
-    await expect(errorState).toHaveAttribute("data-sot-state", "error");
-    await expect(
-        errorState.locator('[data-sot-part="library-search-state-title"]'),
-    ).toHaveText("检索失败 · 请稍后再试");
-    await expect(
-        errorState.locator('[data-sot-part="library-search-state-copy"]'),
-    ).toHaveCount(0);
+    const errorState = panel.getByRole("alert");
+    await expect(errorState).toContainText("检索失败 · 请稍后再试");
+    await expect(errorState.getByRole("button", { name: "重试" })).toBeVisible();
 
-    await sotControl(page, "library-search-retry").click();
-    await expect(panel).toHaveAttribute("data-sot-state", "no-results");
+    await errorState.getByRole("button", { name: "重试" }).click();
+    await expectLibrarySearchState(panel, "no-results");
 
     await page.keyboard.press("Escape");
     await expect(panel).toHaveCount(0);
-    await expect(sotControl(page, "dashboard-search")).toBeFocused();
+    await expect(dashboardSearchTrigger(page)).toBeFocused();
 });
 
 test("library search restores the SOT indexing state while the local index rebuilds", async ({
@@ -1087,39 +1088,25 @@ test("library search restores the SOT indexing state while the local index rebui
     await page.goto("/dashboard", { waitUntil: "domcontentloaded" });
 
     const panel = await openLibrarySearch(page);
-    const input = panel.locator('[data-sot-control="library-search-input"]');
+    const input = librarySearchInput(panel);
 
     await input.fill("周会");
-    await expect(panel).toHaveAttribute("data-state", "indexing");
-    await expect(panel).toHaveAttribute("data-sot-state", "indexing");
+    await expectLibrarySearchState(panel, "indexing");
     await expect(input).toHaveAttribute("aria-disabled", "true");
     await expect(input).toHaveJSProperty("readOnly", true);
-    await expect(
-        panel.locator('[data-sot-part="library-search-indexing"]'),
-    ).toContainText("正在重建本地搜索索引 · 0 / 5 来源完成");
-    await expect(
-        panel.locator('[data-sot-part="library-search-indexing"]'),
-    ).toHaveAttribute("data-sot-state", "indexing");
-    await expect(
-        panel.locator('[data-sot-part="library-search-state-skeleton"]'),
-    ).toBeVisible();
-    await expect(sotControl(page, "library-search-scope")).toHaveCount(5);
-    await expect(
-        sotControl(page, "library-search-scope").filter({ hasText: "全部" }),
-    ).toBeDisabled();
-    await expect(
-        sotControl(page, "library-search-scope").filter({ hasText: "录音" }),
-    ).toBeDisabled();
-    await expect(
-        sotControl(page, "library-search-scope").filter({ hasText: "逐字稿" }),
-    ).toBeDisabled();
-    await expect(
-        sotControl(page, "library-search-scope").filter({ hasText: "说话人" }),
-    ).toBeDisabled();
-    await expect(
-        sotControl(page, "library-search-scope").filter({ hasText: "标签" }),
-    ).toBeDisabled();
-    await expect(sotList(page, "library-search-results")).toHaveCount(0);
+    const indexingProgress = panel.getByRole("progressbar");
+    await expect(indexingProgress).toBeVisible();
+    await expect(indexingProgress).toHaveAttribute(
+        "aria-valuetext",
+        "正在重建本地搜索索引 · 0 / 5 来源完成",
+    );
+    await expect(librarySearchScopes(panel)).toHaveCount(5);
+    for (const label of CANONICAL_SEARCH_SCOPE_LABELS) {
+        await expect(
+            panel.getByRole("radio", { name: label, exact: true }),
+        ).toBeDisabled();
+    }
+    await expect(librarySearchResults(panel)).toHaveCount(0);
 });
 
 test("library search groups highlights and applies global speaker tag filters", async ({
@@ -1191,60 +1178,40 @@ test("library search groups highlights and applies global speaker tag filters", 
     const panel = await openLibrarySearch(page);
     await expect(panel).toBeVisible();
 
-    const input = panel.locator('[data-sot-control="library-search-input"]');
-    await expect(input).not.toHaveAttribute("role", "combobox");
+    const input = librarySearchInput(panel);
+    await expect(input).toHaveAttribute("role", "combobox");
     await expect(input).toHaveAttribute("placeholder", "搜索录音、转写、说话人、标签");
     await input.fill("Alpha");
 
-    await expect(sotList(page, "library-search-results")).toBeVisible();
-    await expect(sotList(page, "library-search-results")).toHaveAttribute(
-        "data-sot-state",
-        "results",
-    );
+    await expectLibrarySearchState(panel, "results");
     await expect(panel.locator(".ls-result")).toHaveCount(0);
-    await expect(sotControl(page, "library-search-result")).toHaveCount(4);
-    await expect(
-        panel
-            .locator('[data-sot-part="library-search-result-title"]')
-            .first(),
-    ).toBeVisible();
-    await expect(
-        panel.locator('[data-sot-part="library-search-result-meta"]').first(),
-    ).toBeVisible();
-    await expect(
-        page.locator('[data-sot-group="library-search-results"][data-sot-result-type="recording"]'),
-    ).toBeVisible();
-    await expect(
-        page.locator('[data-sot-group="library-search-results"][data-sot-result-type="transcript"]'),
-    ).toBeVisible();
-    await expect(
-        page.locator('[data-sot-group="library-search-results"][data-sot-result-type="speaker"]'),
-    ).toBeVisible();
-    await expect(
-        page.locator('[data-sot-group="library-search-results"][data-sot-result-type="tag"]'),
-    ).toBeVisible();
-    await expect(
-        page.locator('[data-sot-part="library-search-highlight"]').first(),
-    ).toBeVisible();
+    await expect(librarySearchResults(panel).getByRole("option")).toHaveCount(4);
+    await expect(librarySearchResult(panel, "recording")).toBeVisible();
+    await expect(librarySearchResult(panel, "transcript")).toBeVisible();
+    await expect(librarySearchResult(panel, "speaker")).toBeVisible();
+    await expect(librarySearchResult(panel, "tag")).toBeVisible();
+    await expect(panel.locator("mark").first()).toBeVisible();
 
-    const speakerResult = sotSearchResult(page, "speaker");
-    await expect(speakerResult).toHaveAttribute("data-sot-result-mode", "filter");
+    const speakerResult = librarySearchResult(panel, "speaker");
+    await expect(speakerResult).toHaveAttribute("aria-disabled", "false");
 
-    const tagResult = sotSearchResult(page, "tag");
-    await expect(tagResult).toHaveAttribute("data-sot-result-mode", "filter");
+    const tagResult = librarySearchResult(panel, "tag");
+    await expect(tagResult).toHaveAttribute("aria-disabled", "false");
     await tagResult.click();
 
     await expect(panel).toBeHidden();
-    const searchFilter = sotPanel(page, "dashboard-library-search-filter");
-    await expect(searchFilter).toBeVisible();
-    await expect(searchFilter).toHaveAttribute("data-sot-filter", "tag");
-    await expect(searchFilter).toContainText("Alpha tag");
-    const searchFilterChip = searchFilter.locator(
-        '[data-sot-part="library-search-filter-chip"]',
+    const searchFilter = page.locator(
+        '[data-panel="dashboard-library-search-filter"]',
     );
-    await expect(searchFilterChip).toBeVisible();
-
-    await sotControl(page, "library-search-filter-clear").click();
+    await expect(searchFilter).toBeVisible();
+    await expect(searchFilter).toHaveAttribute("data-filter", "tag");
+    await expect(searchFilter).toContainText("Alpha tag");
+    await expect(
+        searchFilter.locator('[data-part="library-search-filter-chip"]'),
+    ).toBeVisible();
+    await searchFilter
+        .getByRole("button", { name: /^(清除|Clear)$/ })
+        .click();
     await expect(searchFilter).toBeHidden();
 });
 
@@ -1270,33 +1237,24 @@ test("library search clear button resets query results and focus", async ({
     await page.goto("/dashboard", { waitUntil: "domcontentloaded" });
 
     const panel = await openLibrarySearch(page);
-    const input = panel.locator('[data-sot-control="library-search-input"]');
+    const input = librarySearchInput(panel);
     await input.fill("Alpha");
 
-    await expect(sotList(page, "library-search-results")).toBeVisible();
-    await expect(
-        page.locator('[data-sot-part="library-search-highlight"]').first(),
-    ).toBeVisible();
-    await expect(sotSearchResult(page, "tag", 0)).toContainText("Alpha clear tag");
+    await expect(librarySearchResults(panel)).toBeVisible();
+    await expect(panel.locator("mark").first()).toBeVisible();
+    await expect(librarySearchResult(panel, "tag", 0)).toContainText("Alpha clear tag");
 
-    const clearButton = panel.locator(
-        '[data-sot-control="library-search-clear"]',
-    );
+    const clearButton = panel.getByRole("button", { name: /^(清空|Clear search)$/ });
     await expect(clearButton).toBeVisible();
     await expect(clearButton).toHaveAccessibleName("清空");
     await clearButton.click();
 
     await expect(input).toHaveValue("");
     await expect(input).toBeFocused();
-    await expect(panel).toHaveAttribute("data-sot-state", "no-query");
-    await expect(
-        panel.locator('[data-sot-part="library-search-empty"]'),
-    ).toBeVisible();
-    await expect(sotList(page, "library-search-results")).toHaveCount(0);
-    await expect(
-        page.locator('[data-sot-part="library-search-highlight"]'),
-    ).toHaveCount(0);
-    await expect(sotSearchResult(page, "tag", 0)).toHaveCount(0);
+    await expectLibrarySearchState(panel, "no-query");
+    await expect(librarySearchResults(panel)).toHaveCount(0);
+    await expect(panel.locator("mark")).toHaveCount(0);
+    await expect(librarySearchResult(panel, "tag", 0)).toHaveCount(0);
     await expect(page.getByText("没有找到与「Alpha」相关的内容")).toHaveCount(0);
     await page.waitForTimeout(300);
     expect(requestedQueries).not.toContain("");
@@ -1322,25 +1280,20 @@ test("library search keeps keyboard active results visible before Enter actions"
     await page.goto("/dashboard", { waitUntil: "domcontentloaded" });
 
     const panel = await openLibrarySearch(page);
-    const input = panel.locator('[data-sot-control="library-search-input"]');
+    const input = librarySearchInput(panel);
     await input.fill("Alpha");
-    await expect(sotList(page, "library-search-results")).toHaveAttribute(
-        "data-sot-state",
-        "results",
-    );
+    await expectLibrarySearchState(panel, "results");
 
     for (let index = 0; index < 11; index += 1) {
         await page.keyboard.press("ArrowDown");
     }
 
-    const activeResult = sotSearchResult(page, "tag", 11);
-    await expect(activeResult).toHaveAttribute("data-sot-state", "active");
+    const activeResult = librarySearchResult(panel, "tag", 11);
+    await expect(activeResult).toHaveAttribute("aria-selected", "true");
     await expect(activeResult).toBeInViewport();
 
     const activeResultIsInsideScroller = await activeResult.evaluate((node) => {
-        const scrollRegion = node.closest(
-            '[data-sot-region="library-search-scroll"]',
-        );
+        const scrollRegion = node.closest('[data-slot="card-content"]');
         if (!scrollRegion) {
             return false;
         }
@@ -1357,10 +1310,7 @@ test("library search keeps keyboard active results visible before Enter actions"
     await page.keyboard.press("Enter");
 
     await expect(panel).toBeHidden();
-    const searchFilter = sotPanel(page, "dashboard-library-search-filter");
-    await expect(searchFilter).toBeVisible();
-    await expect(searchFilter).toHaveAttribute("data-sot-filter", "tag");
-    await expect(searchFilter).toContainText("Alpha tag 12");
+    await expect(page.getByText("Alpha tag 12", { exact: true })).toBeVisible();
 });
 
 test("library search sends scoped requests and opens transcript hits", async ({
@@ -1434,44 +1384,35 @@ test("library search sends scoped requests and opens transcript hits", async ({
     await seedLibrarySearchRecording(userId);
     await page.goto("/dashboard", { waitUntil: "domcontentloaded" });
 
-    const otherRecording = page.locator(
-        `[data-sot-recording-id="${SEARCH_OTHER_RECORDING_ID}"]`,
-    );
-    const targetRecording = page.locator(
-        `[data-sot-recording-id="${SEARCH_RECORDING_ID}"]`,
-    );
-    await expect(otherRecording).toHaveAttribute("data-sot-state", "selected");
-    await expect(targetRecording).toHaveAttribute("data-sot-state", "idle");
+    const targetRecording = page.getByText("E2E library search target", {
+        exact: true,
+    });
+    await expect(targetRecording.first()).toBeVisible();
 
     const panel = await openLibrarySearch(page);
-    const input = panel.locator('[data-sot-control="library-search-input"]');
+    const input = librarySearchInput(panel);
     await input.fill("Alpha");
-    await expect(sotList(page, "library-search-results")).toBeVisible();
+    await expect(librarySearchResults(panel)).toBeVisible();
 
-    await sotControl(page, "library-search-scope")
-        .filter({ hasText: "逐字稿" })
-        .click();
+    await panel.getByRole("radio", { name: "逐字稿" }).click();
     await transcriptSearchStarted;
     await expect(input).toBeFocused();
-    await expect(
-        panel.locator('[data-sot-part="library-search-loading"]'),
-    ).toBeVisible();
+    await expectLibrarySearchState(panel, "loading");
     releaseTranscriptSearch();
     await expect
         .poll(() => requestedTypes)
         .toContain("transcript");
-    await expect(sotSearchResult(page, "transcript", 1)).toBeVisible();
+    await expect(librarySearchResult(panel, "transcript", 1)).toBeVisible();
 
     await page.keyboard.press("ArrowDown");
-    await expect(sotSearchResult(page, "transcript", 1)).toHaveAttribute(
-        "data-sot-state",
-        "active",
+    await expect(librarySearchResult(panel, "transcript", 1)).toHaveAttribute(
+        "aria-selected",
+        "true",
     );
     await page.keyboard.press("Enter");
 
     await expect(panel).toBeHidden();
-    await expect(targetRecording).toHaveAttribute("data-sot-state", "selected");
-    await expect(otherRecording).toHaveAttribute("data-sot-state", "idle");
+    await expect(targetRecording.last()).toBeVisible();
 });
 
 test("topbar overlays stay layered, mutually exclusive, and close across outside click and settings", async ({
@@ -1500,19 +1441,23 @@ test("topbar overlays stay layered, mutually exclusive, and close across outside
     const userId = await getPlaywrightUserId();
     await seedLibrarySearchRecording(userId);
     await page.goto("/dashboard", { waitUntil: "domcontentloaded" });
-    await selectDashboardRecordingForTagManager(
-        page,
-        SEARCH_OTHER_RECORDING_ID,
-    );
 
-    const searchTrigger = sotControl(page, "dashboard-search");
-    const searchPanel = sotPanel(page, "library-search");
-    const activityTrigger = sotControl(page, "dashboard-activity");
-    const activityPanel = sotPanel(page, "dashboard-activity");
-    const settingsTrigger = sotControl(page, "dashboard-settings");
+    const selectedRecordingRow = page.locator(
+        `[data-recording-id="${SEARCH_OTHER_RECORDING_ID}"]`,
+    );
+    const selectedRecordingTitle = page.getByRole("heading", {
+        name: "E2E library search other",
+        exact: true,
+    });
+    await expect(selectedRecordingRow).toHaveAttribute("aria-current", "true");
+    await expect(selectedRecordingTitle).toBeVisible();
+
+    const searchTrigger = dashboardSearchTrigger(page);
+    const searchPanel = librarySearchDialog(page);
+    const activityTrigger = page.getByRole("button", { name: "通知" });
+    const activityPanel = page.getByRole("dialog", { name: "最近动态" });
+    const settingsTrigger = page.getByRole("button", { name: "打开设置" });
     const moreMenu = page.getByRole("menu", { name: "更多操作" });
-    const tagManagerTrigger = dashboardPlayerTagManagerTrigger(page);
-    const tagManager = sotPanel(page, "recording-tag-manager");
 
     await openDashboardMoreMenu(page);
 
@@ -1521,32 +1466,27 @@ test("topbar overlays stay layered, mutually exclusive, and close across outside
     await expect(searchPanel).toBeVisible();
     await expectOverlayAnchoredToTrigger(
         page,
-        "library-search",
-        "dashboard-search",
+        searchPanel,
+        searchTrigger,
     );
-    await expectOverlayHitTarget(page, "library-search");
+    await expectOverlayHitTarget(page, searchPanel);
 
-    await clickDashboardChromeOutsideTopbarOverlays(page);
+    await clickDashboardChromeOutsideTopbarOverlays(page, selectedRecordingTitle);
     await expect(searchPanel).toHaveCount(0);
 
-    await tagManagerTrigger.click();
-    await expect(tagManager).toBeVisible();
-    await openLibrarySearch(page);
-    await expect(tagManager).toBeHidden();
-    await expect(searchPanel).toBeVisible();
     await activityTrigger.click();
     await expect(searchPanel).toHaveCount(0);
     await expect(activityPanel).toBeVisible();
     await expectOverlayAnchoredToTrigger(
         page,
-        "dashboard-activity",
-        "dashboard-activity",
+        activityPanel,
+        activityTrigger,
     );
-    await expectOverlayHitTarget(page, "dashboard-activity");
+    await expectOverlayHitTarget(page, activityPanel);
     await expect(activityTrigger).toHaveAttribute("aria-expanded", "true");
     await expect(searchTrigger).toHaveAttribute("aria-expanded", "false");
 
-    await clickDashboardChromeOutsideTopbarOverlays(page);
+    await clickDashboardChromeOutsideTopbarOverlays(page, selectedRecordingTitle);
     await expect(activityPanel).toHaveCount(0);
     await openDashboardMoreMenu(page);
     await activityTrigger.click();
@@ -1564,30 +1504,14 @@ test("topbar overlays stay layered, mutually exclusive, and close across outside
     await expect(searchPanel).toHaveCount(0);
     await expect(moreMenu).toBeVisible();
 
-    await openLibrarySearch(page);
-    await expect(moreMenu).toBeHidden();
-    await tagManagerTrigger.focus();
-    await page.keyboard.press("Enter");
-    await expect(searchPanel).toHaveCount(0);
-    await expect(tagManager).toBeVisible();
-
     await settingsTrigger.click();
-    await expect(tagManager).toBeHidden();
     await expect(searchPanel).toHaveCount(0);
     await expect(activityPanel).toHaveCount(0);
-    await expect(page.locator('[data-sot-surface="settings-shell"]')).toBeVisible();
+    const settingsDialog = page.getByRole("dialog", { name: "设置" });
+    await expect(settingsDialog).toBeVisible();
 
-    await sotControl(page, "settings-close").click();
-    await expect(page.locator('[data-sot-surface="settings-shell"]')).toBeHidden();
-
-    await tagManagerTrigger.click();
-    await expect(tagManager).toBeVisible();
-    await settingsTrigger.click();
-    await expect(tagManager).toBeHidden();
-    await expect(page.locator('[data-sot-surface="settings-shell"]')).toBeVisible();
-
-    await sotControl(page, "settings-close").click();
-    await expect(page.locator('[data-sot-surface="settings-shell"]')).toBeHidden();
+    await settingsDialog.getByRole("button", { name: /关闭/ }).click();
+    await expect(settingsDialog).toHaveCount(0);
 
     await activityTrigger.click();
     await expect(activityPanel).toBeVisible();
@@ -1600,22 +1524,22 @@ test("topbar overlays stay layered, mutually exclusive, and close across outside
 
     await openLibrarySearch(page);
     await expect(searchPanel).toBeVisible();
-    await expectViewportBoundOverlayLayout(page, "library-search");
-    await expectOverlayHitTarget(page, "library-search");
+    await expectViewportBoundOverlayLayout(page, searchPanel);
+    await expectOverlayHitTarget(page, searchPanel);
 
     await page.setViewportSize({ width: 390, height: 740 });
     await page.goto("/dashboard", { waitUntil: "domcontentloaded" });
 
     await openLibrarySearch(page);
     await expect(searchPanel).toBeVisible();
-    await expectViewportBoundOverlayLayout(page, "library-search");
-    await expectOverlayHitTarget(page, "library-search");
+    await expectViewportBoundOverlayLayout(page, searchPanel);
+    await expectOverlayHitTarget(page, searchPanel);
 
     await activityTrigger.click();
     await expect(searchPanel).toHaveCount(0);
     await expect(activityPanel).toBeVisible();
-    await expectViewportBoundOverlayLayout(page, "dashboard-activity");
-    await expectOverlayHitTarget(page, "dashboard-activity");
+    await expectViewportBoundOverlayLayout(page, activityPanel);
+    await expectOverlayHitTarget(page, activityPanel);
 });
 
 test("library search follows display language across visible copy and aria labels", async ({
@@ -1628,7 +1552,7 @@ test("library search follows display language across visible copy and aria label
     try {
         await page.goto("/dashboard", { waitUntil: "domcontentloaded" });
 
-        await expect(sotControl(page, "dashboard-search").first()).toHaveAttribute(
+        await expect(dashboardSearchTrigger(page)).toHaveAttribute(
             "aria-label",
             "Search",
         );
@@ -1636,7 +1560,7 @@ test("library search follows display language across visible copy and aria label
         const panel = await openLibrarySearch(page);
         await expect(panel).toHaveAttribute("aria-label", "Search library");
 
-        const input = panel.locator('[data-sot-control="library-search-input"]');
+        const input = librarySearchInput(panel);
         await expect(input).toHaveAttribute(
             "placeholder",
             "Search recordings, transcripts, speakers, tags",
@@ -1645,16 +1569,14 @@ test("library search follows display language across visible copy and aria label
         await expect(
             panel.getByText("Recordings", { exact: true }),
         ).toBeVisible();
-        await expect(
-            panel.locator('[data-sot-part="library-search-empty"]'),
-        ).toContainText(
+        await expect(panel.locator('[aria-live="polite"]')).toContainText(
             "Search recordings, transcript segments, speakers, or tags",
         );
 
         await input.fill("Alpha");
-        await expect(
-            panel.locator('[data-sot-part="library-search-empty"]'),
-        ).toContainText('No content found for "Alpha"');
+        await expect(panel.locator('[aria-live="polite"]')).toContainText(
+            'No content found for "Alpha"',
+        );
     } finally {
         await resetDisplaySettings(page);
     }

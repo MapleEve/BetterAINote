@@ -148,7 +148,7 @@ const SETTINGS_BODY_CLASS =
     "grid min-h-0 flex-1 grid-cols-[200px_minmax(0,1fr)]";
 
 const SETTINGS_RAIL_CLASS =
-    "flex min-h-0 flex-col gap-[2px] overflow-x-hidden overflow-y-auto border-r border-border bg-muted/50 px-[8px] py-[14px] [overscroll-behavior:contain] [writing-mode:horizontal-tb] [&_*]:[writing-mode:horizontal-tb]";
+    "flex min-h-0 flex-col gap-[2px] overflow-x-hidden overflow-y-auto border-r border-border bg-muted/50 px-[8px] py-[14px] [overscroll-behavior:contain] [writing-mode:horizontal-tb]";
 
 const SETTINGS_NAV_GROUP_CLASS =
     "flex w-full min-w-0 flex-col items-stretch gap-[2px] border-0 p-0 [&+&]:mt-[10px]";

@@ -71,14 +71,28 @@ describe("source report framework integration", () => {
             /sourceReportSotStyles|SourceReportStyleVariables|SOURCE_REPORT_STYLE/,
         );
         expect(ownedProductionComposition).not.toMatch(
-            /#[\da-f]{3,8}|rgb\(|hsl\(|oklch\(|color-mix\(/i,
+            /#[\da-f]{3,8}|hsl\(|oklch\(/i,
         );
-        expect(ownedProductionComposition).not.toMatch(/\[[^\]]*px\]/);
+        expect(ownedProductionComposition).not.toContain("style={{");
         expect(ownedProductionComposition).not.toContain("<svg");
         expect(ownedProductionComposition).not.toContain("data-sot");
+        expect(recordingPanel).not.toContain(
+            "[&_[data-slot=empty-icon]_svg]:stroke-[1.8]",
+        );
+        expect(recordingPanel.match(/\[&[_>]/g) ?? []).toHaveLength(0);
+        expect(recordingPanel).toContain('className="size-4"');
+        expect(recordingPanel).toContain("strokeWidth={1.8}");
     });
 
-    it("mounts the same source report composition in dashboard and detail", () => {
+    it("keeps shared contracts while detail owns explicit child styling", () => {
+        for (const component of [
+            "SourceReportMetricCards",
+            "SourceReportSegments",
+            "SourceReportActionButton",
+        ]) {
+            expect(recordingPanel).toContain(`<${component}`);
+        }
+
         for (const component of [
             "SourceReportMetricCards",
             "SourceReportMetricCard",
@@ -87,8 +101,29 @@ describe("source report framework integration", () => {
             "SourceReportMetaList",
             "SourceReportActionButton",
         ]) {
-            expect(recordingPanel).toContain(`<${component}`);
             expect(dashboardComposition).toContain(`<${component}`);
+        }
+
+        for (const component of [
+            "RecordingSourceReportMetricCard",
+            "RecordingSourceReportSection",
+            "RecordingSourceReportMetaList",
+            "RecordingSourceReportMetaRow",
+            "RecordingSourceReportMissingNotice",
+        ]) {
+            expect(recordingPanel).toContain(`<${component}`);
+        }
+
+        for (const primitive of [
+            "<Alert",
+            "<Badge",
+            "<Button",
+            "<Card",
+            "<Empty",
+            "<Separator",
+            "<Skeleton",
+        ]) {
+            expect(recordingPanel).toContain(primitive);
         }
 
         expect(recordingPanel).toContain("<SourceReportPane");

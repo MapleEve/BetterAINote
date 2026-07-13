@@ -1,5 +1,6 @@
 import type { userSettings } from "@/db/schema/core";
 import { getTitleGenerationProviderSettingsResponse } from "@/lib/ai/title-generation-config";
+import { isDefaultTranscriptionProvider } from "@/lib/settings/transcription-settings-body";
 
 type UserSettingsRow = typeof userSettings.$inferSelect | null;
 
@@ -37,6 +38,7 @@ export const DEFAULT_SYNC_SETTINGS = {
 export const DEFAULT_TRANSCRIPTION_SETTINGS = {
     autoTranscribe: true,
     defaultTranscriptionLanguage: null as string | null,
+    defaultTranscriptionProvider: null as string | null,
 };
 
 export const DEFAULT_TITLE_GENERATION_SETTINGS = {
@@ -153,6 +155,11 @@ export function getTranscriptionSettingsResponse(settings: UserSettingsRow) {
         defaultTranscriptionLanguage:
             settings?.defaultTranscriptionLanguage ??
             DEFAULT_TRANSCRIPTION_SETTINGS.defaultTranscriptionLanguage,
+        defaultTranscriptionProvider: isDefaultTranscriptionProvider(
+            settings?.defaultTranscriptionProvider,
+        )
+            ? settings.defaultTranscriptionProvider
+            : DEFAULT_TRANSCRIPTION_SETTINGS.defaultTranscriptionProvider,
     };
 }
 

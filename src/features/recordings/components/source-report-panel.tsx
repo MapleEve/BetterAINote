@@ -1,40 +1,50 @@
 "use client";
 
-import { CircleAlert, CloudDownload, FileText } from "lucide-react";
-import { useCallback, useEffect, useRef, useState } from "react";
+import { Briefcase, CircleAlert, CloudDownload } from "lucide-react";
+import {
+    type ReactNode,
+    useCallback,
+    useEffect,
+    useRef,
+    useState,
+} from "react";
 import { toast } from "sonner";
 import { useLanguage } from "@/components/language-provider";
-import { CardAction, CardHeader, CardTitle } from "@/components/ui/card";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import {
+    Card,
+    CardAction,
+    CardContent,
+    CardDescription,
+    CardHeader,
+    CardTitle,
+} from "@/components/ui/card";
+import {
+    Empty,
+    EmptyDescription,
+    EmptyHeader,
+    EmptyMedia,
+    EmptyTitle,
+} from "@/components/ui/empty";
+import { Separator } from "@/components/ui/separator";
+import { Skeleton } from "@/components/ui/skeleton";
 import { Spinner } from "@/components/ui/spinner";
 import {
     SourceReportActionButton,
-    SourceReportActionRow,
-    SourceReportCardSkeleton,
     SourceReportCopyButton,
     SourceReportCopyIcon,
     SourceReportCopyLabel,
     SourceReportDescription,
-    SourceReportEmptyDescription,
-    SourceReportEmptyIcon,
-    SourceReportEmptySurface,
-    SourceReportEmptyTitle,
-    SourceReportMetaList,
-    SourceReportMetaRow,
-    SourceReportMetricCard,
     SourceReportMetricCards,
-    SourceReportMissingNotice,
     SourceReportPane,
-    SourceReportSection,
-    SourceReportSegment,
-    SourceReportSegmentSkeleton,
     SourceReportSegmentSkeletonBlock,
     SourceReportSegments,
     SourceReportSourceIdentity,
     SourceReportState,
     SourceReportStateStack,
     SourceReportStatusBadge,
-    SourceReportSummaryBody,
-    SourceReportSummaryLine,
     type SourceReportTone,
 } from "@/features/source-report/primitives";
 import {
@@ -44,6 +54,7 @@ import {
 } from "@/lib/data-sources/presentation";
 import type { UiLanguage } from "@/lib/i18n";
 import { writeBrowserClipboardText } from "@/lib/platform/clipboard";
+import { cn } from "@/lib/utils";
 import { runDataSourcesSync } from "@/services/data-sources";
 
 type SourceActionAvailability = {
@@ -126,6 +137,296 @@ export interface SourceReportAvailabilitySnapshot {
     state: "idle" | "loading" | "loaded" | "missing" | "error" | "empty";
     transcriptAvailable: boolean;
     reportAvailable: boolean;
+}
+
+function RecordingSourceReportState({
+    children,
+    className,
+    error,
+    state,
+    subState,
+}: {
+    children: ReactNode;
+    className?: string;
+    error?: string | null;
+    state: "empty" | "error" | "loaded" | "loading";
+    subState?: string;
+}) {
+    return (
+        <div
+            className={`block min-w-0 max-[639px]:bg-[var(--source-report-mobile-canvas)] ${className ?? ""}`}
+            data-testid="recording-source-report-state"
+            data-state={state}
+            data-sub-state={subState}
+            data-error={error || undefined}
+            aria-live={state === "error" ? "assertive" : "polite"}
+        >
+            {children}
+        </div>
+    );
+}
+
+type RecordingSourceReportMetric =
+    | "segment-count"
+    | "source"
+    | "summary-status"
+    | "transcript-status";
+
+type RecordingSourceReportMetricValue = "number" | "skeleton" | "source";
+
+function RecordingSourceReportMetricCard({
+    children,
+    label,
+    metric,
+    value,
+}: {
+    children: ReactNode;
+    label: string;
+    metric: RecordingSourceReportMetric;
+    value?: RecordingSourceReportMetricValue;
+}) {
+    const loading = value === "skeleton";
+
+    return (
+        <Card
+            hasNoPadding
+            className={cn(
+                "min-w-0 gap-1.5 overflow-hidden rounded-[0.625rem] border-[var(--glass-border-soft)] bg-[rgb(255_255_255_/_0.03)] px-3 py-2.5 shadow-none backdrop-blur-none",
+                loading ? "h-[3.8125rem]" : "h-[4.09375rem]",
+            )}
+            data-testid={`source-report-metric-${metric}`}
+            data-state={value}
+        >
+            <CardHeader className="gap-0 p-0">
+                <CardDescription className="text-[0.65625rem] leading-[normal] font-semibold tracking-[0.06em] text-[var(--fg-tertiary)] uppercase">
+                    {label}
+                </CardDescription>
+            </CardHeader>
+            <CardContent
+                className={cn("min-w-0 p-0", loading && "leading-none")}
+            >
+                {loading ? (
+                    children
+                ) : (
+                    <CardTitle
+                        className={cn(
+                            "min-w-0 break-words",
+                            value !== "number" && "leading-[normal]!",
+                            value === "source" &&
+                                "flex items-center gap-1.5 text-[length:var(--text-body-sm)]",
+                            value === "number" &&
+                                "leading-[normal] font-mono text-base!",
+                            value == null &&
+                                "text-[length:var(--text-body-sm)]",
+                        )}
+                    >
+                        {children}
+                    </CardTitle>
+                )}
+            </CardContent>
+        </Card>
+    );
+}
+
+function RecordingSourceReportCardSkeleton({
+    size,
+}: {
+    size: "count" | "source" | "status";
+}) {
+    return (
+        <Skeleton
+            variant="shimmer"
+            size="default"
+            className={cn(
+                "inline-block h-[1.125rem] rounded-[0.375rem] align-middle",
+                size === "count" && "w-12",
+                size === "source" && "w-[7.5rem]",
+                size === "status" && "w-20",
+            )}
+            aria-hidden="true"
+            data-testid="source-report-card-skeleton"
+            data-state={size}
+        />
+    );
+}
+
+function RecordingSourceReportSection({
+    children,
+    description,
+    loading = false,
+    noticeBefore,
+    section,
+    title,
+}: {
+    children: ReactNode;
+    description: ReactNode;
+    loading?: boolean;
+    noticeBefore?: ReactNode;
+    section: "metadata" | "summary" | "transcript";
+    title: string;
+}) {
+    return (
+        <section
+            className="min-w-0 space-y-2 pt-0"
+            data-testid={`source-report-section-${section}`}
+        >
+            <Separator className="bg-[var(--glass-border-soft)]" />
+            {noticeBefore}
+            <header className="flex min-w-0 flex-row items-baseline gap-2.5">
+                <h4
+                    className={cn(
+                        "m-0 shrink-0 text-[0.78125rem]! leading-[normal]! font-semibold",
+                        loading
+                            ? "text-[var(--fg-primary)]!"
+                            : "text-foreground",
+                    )}
+                    data-testid="source-report-section-title"
+                >
+                    {title}
+                </h4>
+                <span
+                    className={cn(
+                        "min-w-0 break-words text-[0.71875rem] leading-[normal] font-medium",
+                        loading
+                            ? "text-[var(--fg-tertiary)]!"
+                            : "text-muted-foreground",
+                    )}
+                >
+                    {description}
+                </span>
+            </header>
+            {children}
+        </section>
+    );
+}
+
+function RecordingSourceReportMissingNotice({
+    children,
+    state,
+}: {
+    children: ReactNode;
+    state: "summary-missing" | "transcript-missing";
+}) {
+    return (
+        <Alert
+            className={cn(
+                "rounded-[0.625rem] border-[color:var(--alert-warning-soft-strong-border)]! bg-[var(--alert-warning-soft-strong-bg)]! py-2.5 text-[var(--fg-secondary)]!",
+                state === "summary-missing" ? "mb-4!" : "mt-2",
+            )}
+            data-testid={`source-report-missing-${state}`}
+            data-state={state}
+            density="compact"
+            layout="inline"
+            variant="warningSoft"
+        >
+            <AlertDescription
+                className="text-[0.78125rem] leading-[1.55]"
+                density="compact"
+            >
+                {children}
+            </AlertDescription>
+        </Alert>
+    );
+}
+
+function RecordingSourceReportSegmentSkeleton({
+    size,
+}: {
+    size:
+        | "line-long"
+        | "line-medium"
+        | "line-short"
+        | "line-wide"
+        | "speaker"
+        | "time";
+}) {
+    return (
+        <Skeleton
+            variant="shimmer"
+            size="default"
+            className={cn(
+                "inline-block h-3 rounded-[0.25rem] align-middle",
+                size.startsWith("line-") && "mt-1.5 h-[0.8125rem]",
+                size === "line-long" && "w-[92%]",
+                size === "line-medium" && "w-[76%]",
+                size === "line-short" && "w-[60%]",
+                size === "line-wide" && "w-[88%]",
+                size === "speaker" && "ml-[0.3125rem] w-[3.375rem]",
+                size === "time" && "w-24",
+            )}
+            aria-hidden="true"
+            data-testid="source-report-segment-skeleton"
+            data-state={size}
+        />
+    );
+}
+
+function RecordingSourceReportMetaList({
+    children,
+    subState,
+}: {
+    children: ReactNode;
+    subState: string;
+}) {
+    return (
+        <dl
+            className="mt-[1.4375rem]! mb-3 grid min-w-0 grid-cols-1 gap-x-[0.875rem] gap-y-1.5 xl:grid-cols-2"
+            data-testid="source-report-meta"
+            data-state={subState}
+        >
+            {children}
+        </dl>
+    );
+}
+
+function RecordingSourceReportMetaRow({
+    children,
+    index,
+    label,
+    valueFormat,
+}: {
+    children: ReactNode;
+    index: number;
+    label: string;
+    valueFormat?: "mono";
+}) {
+    return (
+        <div
+            className={cn(
+                "grid min-w-0 grid-cols-[5rem_minmax(0,1fr)] gap-1 border-b border-dashed border-[var(--glass-border-soft)] py-1.5 sm:items-baseline sm:gap-2 max-[639px]:gap-2",
+                index >= 2 && "h-[1.875rem]",
+                index === 0 && "max-[639px]:h-[1.875rem]",
+            )}
+            data-testid="source-report-meta-row"
+        >
+            <dt className="m-0 text-[length:var(--text-micro)] leading-normal font-semibold text-muted-foreground max-[639px]:relative max-[639px]:top-px">
+                {label}
+            </dt>
+            <dd
+                className={cn(
+                    "col-span-1! m-0 min-w-0 break-words! text-xs leading-normal font-medium text-foreground",
+                    valueFormat === "mono" && "font-mono",
+                )}
+            >
+                {children}
+            </dd>
+        </div>
+    );
+}
+
+function RecordingSourceReportSummaryBody({
+    children,
+}: {
+    children: ReactNode;
+}) {
+    return (
+        <div
+            className="flex min-w-0 flex-col gap-1.5"
+            data-testid="source-report-summary"
+        >
+            {children}
+        </div>
+    );
 }
 
 const SENSITIVE_SOURCE_DETAIL_FIELD_PATTERN =
@@ -391,6 +692,60 @@ function sourceReportReadinessTone(label: string): SourceReportTone {
         return "warn";
     }
     return "neu";
+}
+
+const SOURCE_REPORT_READINESS_BADGE_CLASSNAME =
+    "h-[1.375rem] w-[4.0625rem] justify-normal gap-[0.3125rem] px-2 py-0 text-[0.6875rem] font-semibold";
+
+function sourceReportReadinessBadgeClassName(tone: SourceReportTone) {
+    if (tone === "ok") {
+        return `${SOURCE_REPORT_READINESS_BADGE_CLASSNAME} !border-[color:color-mix(in_srgb,var(--signal-success)_30%,transparent)] !bg-[color:color-mix(in_srgb,var(--signal-success)_14%,transparent)] !text-[color:var(--signal-success)]`;
+    }
+    if (tone === "warn") {
+        return `${SOURCE_REPORT_READINESS_BADGE_CLASSNAME} !border-[color:color-mix(in_srgb,var(--signal-warning)_32%,transparent)] !bg-[color:color-mix(in_srgb,var(--signal-warning)_18%,transparent)] !text-[color:var(--signal-warning-strong)]`;
+    }
+    return SOURCE_REPORT_READINESS_BADGE_CLASSNAME;
+}
+
+function RecordingSourceReportCompactStatusBadge({
+    children,
+    sync = false,
+    tone,
+}: {
+    children: ReactNode;
+    sync?: boolean;
+    tone: SourceReportTone;
+}) {
+    const variant =
+        tone === "err"
+            ? "destructive"
+            : tone === "ok"
+              ? "default"
+              : tone === "warn"
+                ? "outline"
+                : "secondary";
+
+    return (
+        <Badge
+            variant={variant}
+            className={cn(
+                "max-w-full",
+                sync
+                    ? `${SOURCE_REPORT_READINESS_BADGE_CLASSNAME} !border-[color:color-mix(in_srgb,var(--signal-success)_30%,transparent)] !bg-[color:color-mix(in_srgb,var(--signal-success)_14%,transparent)] !text-[color:var(--signal-success)]`
+                    : sourceReportReadinessBadgeClassName(tone),
+            )}
+            data-testid="source-report-status"
+            data-state={tone}
+        >
+            <span
+                className="size-[0.3125rem]! shrink-0 rounded-full bg-current"
+                aria-hidden="true"
+            />
+            <span className="min-w-0 break-words whitespace-normal">
+                {children}
+            </span>
+        </Badge>
+    );
 }
 
 function sourceReportSyncTone(label: string): SourceReportTone {
@@ -823,9 +1178,14 @@ export function SourceReportPanel({
     }, [loadReport, repullAvailable, repullDisabled, t]);
 
     const sourceActionControls = data ? (
-        <SourceReportActionRow>
-            <SourceReportActionButton
-                intent="ghost"
+        <div
+            className="relative top-px mt-[1.625rem]! flex flex-wrap items-center gap-2"
+            data-testid="source-report-actions"
+        >
+            <Button
+                variant="ghost"
+                size="xs"
+                className="h-6.5 gap-[0.4375rem] rounded-[0.4375rem] border border-transparent px-2.5 text-xs leading-[normal] font-semibold text-[color:var(--fg-secondary)]"
                 type="button"
                 disabled={!openSourceUrl}
                 title={
@@ -833,14 +1193,16 @@ export function SourceReportPanel({
                         ? undefined
                         : t("sourceReport.openSourceUnavailable")
                 }
-                testId="source-report-open-source"
-                state={openSourceControlState}
+                data-testid="source-report-open-source"
+                data-state={openSourceControlState}
                 onClick={handleOpenSourceRecord}
             >
                 {getOpenSourceLabel(sourceProviderForReport, language)}
-            </SourceReportActionButton>
-            <SourceReportActionButton
-                intent="ghost"
+            </Button>
+            <Button
+                variant="ghost"
+                size="xs"
+                className="h-6.5 gap-[0.4375rem] rounded-[0.4375rem] border border-transparent px-2.5 text-xs leading-[normal] font-semibold text-[color:var(--fg-secondary)]"
                 type="button"
                 disabled={repullDisabled}
                 aria-busy={repullState === "loading"}
@@ -849,15 +1211,15 @@ export function SourceReportPanel({
                         ? undefined
                         : t("sourceReport.repullUnavailable")
                 }
-                testId="source-report-repull"
-                state={repullControlState}
+                data-testid="source-report-repull"
+                data-state={repullControlState}
                 onClick={() => void handleRepullSource()}
             >
                 {repullState === "loading"
                     ? t("sourceReport.repullingSource")
                     : t("sourceReport.repullSource")}
-            </SourceReportActionButton>
-        </SourceReportActionRow>
+            </Button>
+        </div>
     ) : null;
 
     const header = (
@@ -1000,33 +1362,63 @@ export function SourceReportPanel({
     const content = (
         <SourceReportStateStack>
             {error && (
-                <SourceReportState state="error">
-                    <SourceReportEmptySurface kind="alert" tone="danger">
-                        <SourceReportEmptyIcon tone="danger">
-                            <CircleAlert aria-hidden="true" />
-                        </SourceReportEmptyIcon>
-                        <SourceReportEmptyTitle kind="alert">
+                <RecordingSourceReportState state="error" error={error}>
+                    <Alert
+                        variant="statusError"
+                        density="spacious"
+                        layout="centered"
+                        className="gap-1 rounded-[0.625rem] border-dashed border-[color:color-mix(in_srgb,var(--signal-danger)_26%,transparent)]! bg-[color:color-mix(in_srgb,var(--signal-danger)_6%,transparent)]! px-[1.125rem] py-7"
+                        data-testid="source-report-empty-surface"
+                        data-state="danger"
+                    >
+                        <EmptyMedia
+                            variant="dangerIcon"
+                            className="mb-1 size-10 border-[color:color-mix(in_srgb,var(--signal-danger)_28%,transparent)] bg-[color:color-mix(in_srgb,var(--signal-danger)_14%,transparent)]"
+                            data-testid="source-report-empty-icon"
+                            data-state="danger"
+                            aria-hidden="true"
+                        >
+                            <CircleAlert
+                                className="size-4 scale-90"
+                                aria-hidden="true"
+                            />
+                        </EmptyMedia>
+                        <AlertTitle
+                            className="min-h-0 text-[0.8125rem] leading-[1.35] font-semibold tracking-normal text-[var(--fg-primary)]"
+                            data-testid="source-report-empty-title"
+                        >
                             无法读取来源详情
-                        </SourceReportEmptyTitle>
-                        <SourceReportEmptyDescription kind="alert">
+                        </AlertTitle>
+                        <AlertDescription
+                            density="comfortable"
+                            className="max-w-sm break-words text-xs leading-[1.5] font-medium text-[var(--fg-tertiary)]!"
+                            data-testid="source-report-empty-description"
+                        >
                             {sourceProviderSentenceName}
                             返回了一个错误，可能是网络抖动或来源临时不可用。
-                        </SourceReportEmptyDescription>
-                        <SourceReportActionRow purpose="empty" align="center">
-                            <SourceReportActionButton
+                        </AlertDescription>
+                        <div
+                            className="mt-2 flex flex-wrap items-center justify-center gap-1.5"
+                            data-testid="source-report-empty-actions"
+                        >
+                            <Button
+                                variant="default"
+                                size="xs"
+                                className="h-[1.625rem] min-w-0 rounded-[0.4375rem] border border-[color:color-mix(in_srgb,var(--accent)_60%,black_8%)] bg-[linear-gradient(180deg,color-mix(in_srgb,var(--accent)_92%,white_18%),var(--accent))] px-2.5 text-xs leading-[normal] font-semibold text-white shadow-[0_2px_6px_color-mix(in_srgb,var(--accent)_24%,transparent),inset_0_1px_0_rgb(255_255_255_/_0.22)]"
                                 type="button"
-                                intent="primary"
                                 onClick={loadReport}
                                 disabled={isLoading}
-                                testId="source-report-refresh"
-                                state="error"
+                                data-testid="source-report-refresh"
+                                data-state="error"
                             >
                                 重试
-                            </SourceReportActionButton>
-                            <SourceReportActionButton
+                            </Button>
+                            <Button
+                                variant="ghost"
+                                size="xs"
+                                className="h-[1.625rem] min-w-0 rounded-[0.4375rem] border border-transparent px-2.5 text-xs leading-[normal] font-semibold text-[var(--fg-secondary)]"
                                 type="button"
-                                intent="ghost"
-                                testId="source-report-activity-log"
+                                data-testid="source-report-activity-log"
                                 onClick={() => {
                                     window.location.assign(
                                         "/dashboard#activity",
@@ -1034,71 +1426,82 @@ export function SourceReportPanel({
                                 }}
                             >
                                 查看同步日志
-                            </SourceReportActionButton>
-                        </SourceReportActionRow>
-                    </SourceReportEmptySurface>
-                </SourceReportState>
+                            </Button>
+                        </div>
+                    </Alert>
+                </RecordingSourceReportState>
             )}
 
             {isLoading && !data && !error ? (
                 <SourceReportState state="loading">
-                    <SourceReportMetricCards>
-                        <SourceReportMetricCard
-                            label="来源"
-                            metric="source"
-                            value="skeleton"
+                    <div className="min-w-0">
+                        <div
+                            className="grid min-w-0 grid-cols-2 gap-2 xl:grid-cols-[9.125rem_repeat(3,minmax(0,1fr))]"
+                            data-testid="source-report-metrics"
                         >
-                            <SourceReportCardSkeleton size="source" />
-                        </SourceReportMetricCard>
-                        <SourceReportMetricCard
-                            label="转写状态"
-                            metric="transcript-status"
-                            value="skeleton"
+                            <RecordingSourceReportMetricCard
+                                label="来源"
+                                metric="source"
+                                value="skeleton"
+                            >
+                                <RecordingSourceReportCardSkeleton size="source" />
+                            </RecordingSourceReportMetricCard>
+                            <RecordingSourceReportMetricCard
+                                label="转写状态"
+                                metric="transcript-status"
+                                value="skeleton"
+                            >
+                                <RecordingSourceReportCardSkeleton size="status" />
+                            </RecordingSourceReportMetricCard>
+                            <RecordingSourceReportMetricCard
+                                label="摘要状态"
+                                metric="summary-status"
+                                value="skeleton"
+                            >
+                                <RecordingSourceReportCardSkeleton size="status" />
+                            </RecordingSourceReportMetricCard>
+                            <RecordingSourceReportMetricCard
+                                label="分段数"
+                                metric="segment-count"
+                                value="skeleton"
+                            >
+                                <RecordingSourceReportCardSkeleton size="count" />
+                            </RecordingSourceReportMetricCard>
+                        </div>
+                        <RecordingSourceReportSection
+                            loading
+                            section="transcript"
+                            title="来源转写"
+                            description={
+                                <>正在从{sourceProviderSentenceName}读取…</>
+                            }
                         >
-                            <SourceReportCardSkeleton size="status" />
-                        </SourceReportMetricCard>
-                        <SourceReportMetricCard
-                            label="摘要状态"
-                            metric="summary-status"
-                            value="skeleton"
-                        >
-                            <SourceReportCardSkeleton size="status" />
-                        </SourceReportMetricCard>
-                        <SourceReportMetricCard
-                            label="分段数"
-                            metric="segment-count"
-                            value="skeleton"
-                        >
-                            <SourceReportCardSkeleton size="count" />
-                        </SourceReportMetricCard>
-                    </SourceReportMetricCards>
-                    <SourceReportSection
-                        section="transcript"
-                        title="来源转写"
-                        description={
-                            <>正在从{sourceProviderSentenceName}读取…</>
-                        }
-                    >
-                        <SourceReportSegmentSkeletonBlock>
-                            <SourceReportSegmentSkeleton size="time" />
-                            <SourceReportSegmentSkeleton size="speaker" />
-                            <SourceReportSegmentSkeleton size="line-long" />
-                            <SourceReportSegmentSkeleton size="line-medium" />
-                        </SourceReportSegmentSkeletonBlock>
-                        <SourceReportSegmentSkeletonBlock>
-                            <SourceReportSegmentSkeleton size="time" />
-                            <SourceReportSegmentSkeleton size="speaker" />
-                            <SourceReportSegmentSkeleton size="line-wide" />
-                            <SourceReportSegmentSkeleton size="line-short" />
-                        </SourceReportSegmentSkeletonBlock>
-                    </SourceReportSection>
+                            <SourceReportSegmentSkeletonBlock>
+                                <RecordingSourceReportSegmentSkeleton size="time" />
+                                <RecordingSourceReportSegmentSkeleton size="speaker" />
+                                <RecordingSourceReportSegmentSkeleton size="line-long" />
+                                <RecordingSourceReportSegmentSkeleton size="line-medium" />
+                            </SourceReportSegmentSkeletonBlock>
+                            <SourceReportSegmentSkeletonBlock>
+                                <RecordingSourceReportSegmentSkeleton size="time" />
+                                <RecordingSourceReportSegmentSkeleton size="speaker" />
+                                <RecordingSourceReportSegmentSkeleton size="line-wide" />
+                                <RecordingSourceReportSegmentSkeleton size="line-short" />
+                            </SourceReportSegmentSkeletonBlock>
+                        </RecordingSourceReportSection>
+                    </div>
                 </SourceReportState>
             ) : null}
 
             {data && (
-                <SourceReportState
+                <RecordingSourceReportState
                     state="loaded"
                     subState={sourceReportSubState}
+                    className={
+                        sourceReportSubState === "both-missing"
+                            ? "pb-[0.09375rem]"
+                            : "pb-[0.03125rem]"
+                    }
                 >
                     {!hasAudio ? (
                         <SourceReportStatusBadge tone="warn">
@@ -1107,7 +1510,7 @@ export function SourceReportPanel({
                     ) : null}
 
                     <SourceReportMetricCards>
-                        <SourceReportMetricCard
+                        <RecordingSourceReportMetricCard
                             label="来源"
                             metric="source"
                             value="source"
@@ -1117,41 +1520,41 @@ export function SourceReportPanel({
                                 icon={sourceProviderIcon}
                                 label={sourceProviderLabel}
                             />
-                        </SourceReportMetricCard>
-                        <SourceReportMetricCard
+                        </RecordingSourceReportMetricCard>
+                        <RecordingSourceReportMetricCard
                             label="转写状态"
                             metric="transcript-status"
                         >
-                            <SourceReportStatusBadge
+                            <RecordingSourceReportCompactStatusBadge
                                 tone={sourceReportReadinessTone(
                                     sourceTranscriptStatusLabel,
                                 )}
                             >
                                 {sourceTranscriptStatusLabel}
-                            </SourceReportStatusBadge>
-                        </SourceReportMetricCard>
-                        <SourceReportMetricCard
+                            </RecordingSourceReportCompactStatusBadge>
+                        </RecordingSourceReportMetricCard>
+                        <RecordingSourceReportMetricCard
                             label="摘要状态"
                             metric="summary-status"
                         >
-                            <SourceReportStatusBadge
+                            <RecordingSourceReportCompactStatusBadge
                                 tone={sourceReportReadinessTone(
                                     sourceSummaryStatusLabel,
                                 )}
                             >
                                 {sourceSummaryStatusLabel}
-                            </SourceReportStatusBadge>
-                        </SourceReportMetricCard>
-                        <SourceReportMetricCard
+                            </RecordingSourceReportCompactStatusBadge>
+                        </RecordingSourceReportMetricCard>
+                        <RecordingSourceReportMetricCard
                             label="分段数"
                             metric="segment-count"
                             value="number"
                         >
                             {sourceReportSegmentCount}
-                        </SourceReportMetricCard>
+                        </RecordingSourceReportMetricCard>
                     </SourceReportMetricCards>
 
-                    <SourceReportSection
+                    <RecordingSourceReportSection
                         section="transcript"
                         title="来源转写"
                         description={
@@ -1163,9 +1566,9 @@ export function SourceReportPanel({
                         }
                     >
                         {!transcriptAvailable ? (
-                            <SourceReportMissingNotice state="transcript-missing">
+                            <RecordingSourceReportMissingNotice state="transcript-missing">
                                 来源未提供逐字稿。可以稍后再来，或运行私有转写。
-                            </SourceReportMissingNotice>
+                            </RecordingSourceReportMissingNotice>
                         ) : null}
                         <SourceReportSegments hidden={!transcriptAvailable}>
                             {sourceReportDisplaySegments.map(
@@ -1176,121 +1579,150 @@ export function SourceReportPanel({
                                     );
 
                                     return (
-                                        <SourceReportSegment
+                                        <li
                                             key={`${segment.startMs ?? "na"}-${segment.endMs ?? "na"}-${index}`}
-                                            time={timeRange || "--"}
-                                            speaker={
-                                                formatTranscriptSpeaker(
+                                            className="grid min-w-0 grid-cols-[6rem_3.5rem_minmax(0,1fr)] items-start gap-2.5 rounded-md px-2.5 py-2"
+                                            data-testid="source-report-segment"
+                                        >
+                                            <span className="min-w-0 break-words font-mono text-[0.71875rem] leading-[normal] font-medium text-muted-foreground">
+                                                {timeRange || "--"}
+                                            </span>
+                                            <span className="min-w-0 break-words text-xs leading-[normal] font-semibold text-[color:var(--fg-secondary)]">
+                                                {formatTranscriptSpeaker(
                                                     segment.speaker,
                                                     language,
-                                                ) || `说话人 ${index + 1}`
-                                            }
-                                        >
-                                            {segment.text}
-                                        </SourceReportSegment>
+                                                ) || `说话人 ${index + 1}`}
+                                            </span>
+                                            <p className="m-0 min-w-0 break-words text-pretty text-[0.78125rem]! leading-[1.55]! font-medium text-foreground!">
+                                                {segment.text}
+                                            </p>
+                                        </li>
                                     );
                                 },
                             )}
                         </SourceReportSegments>
-                    </SourceReportSection>
+                    </RecordingSourceReportSection>
 
-                    {sourceSummaryVisible ? (
-                        <SourceReportSection
-                            section="summary"
-                            title="来源原始报告"
-                            description={
-                                <>由{sourceProviderLabel}返回的只读摘要</>
-                            }
-                        >
-                            <SourceReportSummaryBody>
-                                {sourceSummaryText
-                                    .split("\n")
-                                    .map((line, index) => (
-                                        <SourceReportSummaryLine
-                                            key={`${index}:${line}`}
-                                        >
-                                            {line}
-                                        </SourceReportSummaryLine>
-                                    ))}
-                            </SourceReportSummaryBody>
-                        </SourceReportSection>
-                    ) : null}
-
-                    <SourceReportSection
+                    <RecordingSourceReportSection
                         section="metadata"
                         title="来源信息"
                         description={
                             <>由{sourceProviderLabel}返回的公开元数据</>
                         }
+                        noticeBefore={
+                            !reportAvailable ? (
+                                <RecordingSourceReportMissingNotice state="summary-missing">
+                                    来源未提供官方摘要。
+                                </RecordingSourceReportMissingNotice>
+                            ) : null
+                        }
                     >
-                        {!reportAvailable ? (
-                            <SourceReportMissingNotice state="summary-missing">
-                                来源未提供官方摘要。
-                            </SourceReportMissingNotice>
-                        ) : null}
-                        <SourceReportMetaList
-                            surface="recording"
+                        <RecordingSourceReportMetaList
                             subState={sourceReportSubState}
                         >
-                            <SourceReportMetaRow label="来源">
+                            <RecordingSourceReportMetaRow
+                                index={0}
+                                label="来源"
+                            >
                                 {sourceProviderLabel}
-                            </SourceReportMetaRow>
-                            <SourceReportMetaRow label="状态">
-                                <SourceReportStatusBadge
+                            </RecordingSourceReportMetaRow>
+                            <RecordingSourceReportMetaRow
+                                index={1}
+                                label="状态"
+                            >
+                                <RecordingSourceReportCompactStatusBadge
+                                    sync
                                     tone={sourceReportSyncTone(
                                         sourceReportStatusLabel,
                                     )}
                                 >
                                     {sourceReportStatusLabel}
-                                </SourceReportStatusBadge>
-                            </SourceReportMetaRow>
-                            <SourceReportMetaRow
+                                </RecordingSourceReportCompactStatusBadge>
+                            </RecordingSourceReportMetaRow>
+                            <RecordingSourceReportMetaRow
+                                index={2}
                                 label="录制于"
                                 valueFormat="mono"
                             >
                                 {formatSourceReportDate(sourceReportRecordedAt)}
-                            </SourceReportMetaRow>
-                            <SourceReportMetaRow
+                            </RecordingSourceReportMetaRow>
+                            <RecordingSourceReportMetaRow
+                                index={3}
                                 label="最近更新"
                                 valueFormat="mono"
                             >
                                 {formatSourceReportDate(sourceReportUpdatedAt)}
-                            </SourceReportMetaRow>
-                            <SourceReportMetaRow label="可读内容">
+                            </RecordingSourceReportMetaRow>
+                            <RecordingSourceReportMetaRow
+                                index={4}
+                                label="可读内容"
+                            >
                                 {sourceReportReadable}
-                            </SourceReportMetaRow>
-                            <SourceReportMetaRow label="来源标题">
+                            </RecordingSourceReportMetaRow>
+                            <RecordingSourceReportMetaRow
+                                index={5}
+                                label="来源标题"
+                            >
                                 {sourceReportTitle}
-                            </SourceReportMetaRow>
-                            <SourceReportMetaRow label="语种">
+                            </RecordingSourceReportMetaRow>
+                            <RecordingSourceReportMetaRow
+                                index={6}
+                                label="语种"
+                            >
                                 {sourceReportLanguage}
-                            </SourceReportMetaRow>
-                            <SourceReportMetaRow
+                            </RecordingSourceReportMetaRow>
+                            <RecordingSourceReportMetaRow
+                                index={7}
                                 label="时长"
                                 valueFormat="mono"
                             >
                                 {sourceReportDurationLabel}
-                            </SourceReportMetaRow>
-                        </SourceReportMetaList>
+                            </RecordingSourceReportMetaRow>
+                        </RecordingSourceReportMetaList>
                         {sourceActionControls}
-                    </SourceReportSection>
-                </SourceReportState>
+                    </RecordingSourceReportSection>
+                </RecordingSourceReportState>
             )}
 
             {!data && !error && !isLoading && (
-                <SourceReportState state="empty">
-                    <SourceReportEmptySurface>
-                        <SourceReportEmptyIcon>
-                            <FileText aria-hidden="true" />
-                        </SourceReportEmptyIcon>
-                        <SourceReportEmptyTitle>
-                            这条录音没有关联来源
-                        </SourceReportEmptyTitle>
-                        <SourceReportEmptyDescription>
-                            本地导入或离线录制的录音不会有来源详情。
-                        </SourceReportEmptyDescription>
-                    </SourceReportEmptySurface>
-                </SourceReportState>
+                <RecordingSourceReportState state="empty">
+                    <Empty
+                        variant="subtle"
+                        className="gap-1 rounded-[0.625rem] border-[var(--line-hairline)]! bg-[var(--bg-recessed)]! px-[1.125rem] py-7"
+                        data-testid="source-report-empty-surface"
+                        data-state="neutral"
+                    >
+                        <EmptyHeader className="gap-1">
+                            <EmptyMedia
+                                variant="subtleIcon"
+                                className="mb-1 size-10 border-[var(--line-hairline)] bg-[var(--bg-recessed)] text-[var(--fg-tertiary)]"
+                                data-testid="source-report-empty-icon"
+                                data-state="neutral"
+                                aria-hidden="true"
+                            >
+                                <Briefcase
+                                    className="size-4"
+                                    strokeWidth={1.8}
+                                    aria-hidden="true"
+                                />
+                            </EmptyMedia>
+                            <EmptyTitle
+                                variant="compact"
+                                className="mb-0 text-[0.8125rem] leading-[1.35] font-semibold tracking-normal text-[var(--fg-primary)]"
+                                data-testid="source-report-empty-title"
+                            >
+                                这条录音没有关联来源
+                            </EmptyTitle>
+                            <EmptyDescription
+                                variant="compact"
+                                className="text-xs leading-[1.5] font-medium text-[var(--fg-tertiary)]"
+                                data-testid="source-report-empty-description"
+                            >
+                                本地导入或离线录制的录音不会有来源详情。
+                            </EmptyDescription>
+                        </EmptyHeader>
+                    </Empty>
+                </RecordingSourceReportState>
             )}
         </SourceReportStateStack>
     );
@@ -1298,6 +1730,24 @@ export function SourceReportPanel({
     return (
         <SourceReportPane className={className} state={sourceReportState}>
             {header}
+            {sourceSummaryVisible ? (
+                <RecordingSourceReportSection
+                    section="summary"
+                    title="来源原始报告"
+                    description={<>由{sourceProviderLabel}返回的只读摘要</>}
+                >
+                    <RecordingSourceReportSummaryBody>
+                        {sourceSummaryText.split("\n").map((line, index) => (
+                            <p
+                                className="m-0 min-w-0 whitespace-pre-wrap break-words text-[0.78125rem] leading-[1.55] font-medium text-foreground"
+                                key={`${index}:${line}`}
+                            >
+                                {line}
+                            </p>
+                        ))}
+                    </RecordingSourceReportSummaryBody>
+                </RecordingSourceReportSection>
+            ) : null}
             {content}
         </SourceReportPane>
     );

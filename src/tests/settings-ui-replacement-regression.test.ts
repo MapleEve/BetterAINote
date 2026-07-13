@@ -319,7 +319,7 @@ const SPEAKER_PROFILE_PRIMITIVE_BUSINESS_TOKENS = [
     "speakerAvatarFallbackClassName",
 ] as const;
 
-const RETAINED_SETTINGS_MAIN_FUNCTIONAL_DATA_SOT_CSS_SELECTORS = [
+const REMOVED_SETTINGS_MAIN_FUNCTIONAL_DATA_SOT_CSS_SELECTORS = [
     '[data-sot-panel="settings-scroll-body"][hidden]',
     '[data-sot-panel="settings-scroll-body"][data-sot-availability="unavailable"]\n    [data-sot-panel="voscript-unavailable-banner"]',
 ] as const;
@@ -752,7 +752,7 @@ describe("settings SOT interaction regressions", () => {
         expect(globals).not.toContain("--confirm-dialog-warning-bg:");
         expect(globals).not.toContain("--confirm-dialog-warning-border:");
         expect(confirmDialog).not.toContain('data-sot-part="confirm-foot"');
-        expect(layout).toContain('"data-sot-part": "confirm-foot"');
+        expect(layout).not.toContain('"data-sot-part": "confirm-foot"');
         expect(confirmDialog).toMatch(
             /<DialogHeader[\s\S]*\{\.\.\.headerSlotProps\}[\s\S]*className=\{cn\(\s*"gap-2 text-left"/,
         );
@@ -848,8 +848,8 @@ describe("settings SOT interaction regressions", () => {
                 pattern,
             );
         }
-        for (const selector of RETAINED_SETTINGS_MAIN_FUNCTIONAL_DATA_SOT_CSS_SELECTORS) {
-            expect(globals).toContain(selector);
+        for (const selector of REMOVED_SETTINGS_MAIN_FUNCTIONAL_DATA_SOT_CSS_SELECTORS) {
+            expect(globals).not.toContain(selector);
         }
         for (const selector of REMOVED_SETTINGS_MAIN_VISUAL_DATA_SOT_CSS_SELECTORS) {
             expect(collectExactCssRuleBlocks(globals, selector)).toEqual([]);
@@ -1431,11 +1431,11 @@ describe("settings SOT interaction regressions", () => {
         expect(dataSourceFieldControl).toContain("<Field");
         expect(dataSourceFieldControl).toContain("<FieldContent");
         expect(dataSourceFieldControl).toContain("<FieldLabel");
-        expect(dataSourceFieldControl).toContain("<FieldDescription>");
+        expect(dataSourceFieldControl).toContain("<FieldDescription");
         expect(dataSourceFieldControl).toContain(
             "masked: readOnlyMaskedDisplay",
         );
-        expect(dataSourceFieldControl).toContain("data-sot-mask={");
+        expect(dataSourceFieldControl).not.toContain("data-sot-mask");
         expect(dataSourceFieldControl).not.toContain('"mask"');
         expect(inputPrimitive).toContain('data-slot="input"');
         for (const className of [

@@ -20,15 +20,14 @@ import { Badge } from "@/components/ui/badge";
 import type { RecordingTag, RecordingTagIcon } from "@/lib/recording-tags";
 import { cn } from "@/lib/utils";
 
-export const recordingTagSotColorLabel: Record<RecordingTag["color"], string> =
-    {
-        red: "玫",
-        orange: "琥",
-        green: "翠",
-        blue: "蓝",
-        purple: "紫",
-        slate: "石",
-    };
+export const recordingTagColorLabel: Record<RecordingTag["color"], string> = {
+    red: "玫",
+    orange: "琥",
+    green: "翠",
+    blue: "蓝",
+    purple: "紫",
+    slate: "石",
+};
 
 export const recordingTagTextColorClassName: Record<
     RecordingTag["color"],
@@ -46,19 +45,16 @@ export const recordingTagSwatchColorClassName: Record<
     RecordingTag["color"],
     string
 > = {
-    blue: "bg-chart-1",
-    green: "bg-chart-3",
-    orange: "bg-chart-4",
-    purple: "bg-chart-5",
-    red: "bg-destructive",
-    slate: "bg-muted-foreground",
+    blue: "[background-color:var(--tag-blue)]! data-[state=on]:[background-color:var(--tag-blue)]!",
+    green: "[background-color:var(--tag-green)]! data-[state=on]:[background-color:var(--tag-green)]!",
+    orange: "[background-color:var(--tag-amber)]! data-[state=on]:[background-color:var(--tag-amber)]!",
+    purple: "[background-color:var(--tag-violet)]! data-[state=on]:[background-color:var(--tag-violet)]!",
+    red: "[background-color:var(--tag-rose)]! data-[state=on]:[background-color:var(--tag-rose)]!",
+    slate: "[background-color:var(--tag-slate)]! data-[state=on]:[background-color:var(--tag-slate)]!",
 };
-
-type RecordingTagIconVariant = "full" | "manager";
 
 type RecordingTagIconOption = {
     icon: LucideIcon;
-    managerIcon?: LucideIcon;
     value: RecordingTagIcon;
 };
 
@@ -77,10 +73,10 @@ function defineRecordingTagIconOptions<
 }
 
 const recordingTagIconOptions = defineRecordingTagIconOptions([
-    { value: "grid", icon: Grid2X2, managerIcon: Grid2X2 },
-    { value: "user", icon: User, managerIcon: User },
-    { value: "heart", icon: Heart, managerIcon: Heart },
-    { value: "clock", icon: Clock3, managerIcon: Clock3 },
+    { value: "grid", icon: Grid2X2 },
+    { value: "user", icon: User },
+    { value: "heart", icon: Heart },
+    { value: "clock", icon: Clock3 },
     { value: "tag", icon: Tag },
     { value: "star", icon: Star },
     { value: "dialog", icon: MessageSquare },
@@ -100,15 +96,8 @@ function recordingTagIconOptionFor(
     );
 }
 
-export function recordingTagIconComponentFor(
-    icon: RecordingTagIcon,
-    variant: RecordingTagIconVariant = "full",
-) {
-    const option = recordingTagIconOptionFor(icon);
-
-    return variant === "manager"
-        ? (option.managerIcon ?? option.icon)
-        : option.icon;
+export function recordingTagIconComponentFor(icon: RecordingTagIcon) {
+    return recordingTagIconOptionFor(icon).icon;
 }
 
 const recordingTagChipClassName =
@@ -116,16 +105,12 @@ const recordingTagChipClassName =
 
 export function RecordingTagIconGlyph({
     icon,
-    variant = "full",
     ...props
 }: {
     icon: LucideIcon | RecordingTagIcon;
-    variant?: RecordingTagIconVariant;
 } & LucideProps) {
     const Icon =
-        typeof icon === "string"
-            ? recordingTagIconComponentFor(icon, variant)
-            : icon;
+        typeof icon === "string" ? recordingTagIconComponentFor(icon) : icon;
 
     return <Icon aria-hidden="true" focusable="false" {...props} />;
 }
@@ -140,8 +125,6 @@ export function RecordingTagChip({ tag }: { tag: RecordingTag }) {
                 recordingTagTextColorClassName[tag.color],
             )}
             data-recording-tag-chip=""
-            data-sot-tag-color={tag.color}
-            data-sot-tag-icon={tag.icon}
         >
             <RecordingTagIconGlyph data-icon="inline-start" icon={Icon} />
             <span>{tag.name}</span>

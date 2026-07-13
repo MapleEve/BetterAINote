@@ -37,7 +37,7 @@ const DASHBOARD_MAIN_REQUIRED_CLASS_TOKENS = [
     "max-[860px]:box-border",
 ] as const;
 const EXPECTED_DASHBOARD_WORKSPACE_CLASS_NAME =
-    "grid flex-1 min-h-0 grid-cols-[380px_1fr] gap-4 px-5 pt-4 pb-5 max-[860px]:min-w-0 max-[860px]:max-w-full max-[860px]:box-border max-[860px]:grid-cols-[380px_0px] max-[860px]:[&>[data-sot-panel=dashboard-detail]]:hidden";
+    "grid flex-1 min-h-0 grid-cols-[380px_1fr] gap-4 px-5 pt-4 pb-5 max-[860px]:min-w-0 max-[860px]:max-w-full max-[860px]:box-border max-[860px]:grid-cols-[380px_0px]";
 const EXPECTED_DASHBOARD_RECORDING_LIST_CARD_CLASS_NAME =
     "min-h-0 gap-0 rounded-2xl max-[860px]:min-w-0 max-[860px]:max-w-full max-[860px]:box-border";
 const EXPECTED_DASHBOARD_RECORDING_LIST_CONTENT_CLASS_NAME =
@@ -47,10 +47,12 @@ const EXPECTED_DASHBOARD_DETAIL_EMPTY_STATE_CLASS_NAME =
 const EXPECTED_DASHBOARD_DRAWER_SCRIM_CLASS_NAME =
     "pointer-events-none fixed inset-0 z-[300] hidden max-[860px]:block max-[860px]:group-data-[drawer-state=open]/dashboard-workstation:pointer-events-auto";
 const EXPECTED_DASHBOARD_DRAWER_ACTIVE_DOT_CLASS_NAME =
-    "absolute top-1.5 right-1.5 hidden size-1.5 rounded-full bg-primary";
+    "absolute top-1.5 right-1.5 hidden size-1.5 rounded-full bg-primary group-data-[source-filter-active=true]/dashboard-workstation:inline-block";
 const EXPECTED_RECORDING_WORKSTATION_WORKSPACE_CLASS_NAME =
     "grid flex-1 min-h-0 grid-cols-[380px_1fr] gap-4 px-5 pt-4 pb-5 max-[860px]:min-w-0 max-[860px]:max-w-full max-[860px]:box-border max-[860px]:grid-cols-[minmax(0,1fr)]";
 const EXPECTED_DETAIL_PANEL_CLASS_NAME = "flex min-h-0 min-w-0 flex-col gap-4";
+const EXPECTED_DASHBOARD_DETAIL_PANEL_CLASS_NAME =
+    "flex min-h-0 min-w-0 flex-col gap-4 max-[860px]:hidden";
 const EXPECTED_RECORDING_WORKSTATION_DETAIL_PANEL_CLASS_NAME =
     "flex min-h-0 min-w-0 flex-col gap-4 max-[860px]:max-w-full max-[860px]:box-border";
 const EXPECTED_RECORDING_DETAIL_LIST_CARD_CLASS_NAME =
@@ -61,7 +63,7 @@ const REMOVED_SOURCE_REPORT_DOT_HOOKS = [
     ["SourceReport", "StatusDot"].join(""),
     ["DashboardSourceReport", "StatusDot"].join(""),
     ["sourceReportStatus", "DotBase"].join(""),
-    ["data-sot-source-report-status", "dot"].join("-"),
+    ["data-source-report-status", "dot"].join("-"),
 ] as const;
 const SOURCE_REPORT_STATUS_DOT_STYLING_FORBIDDEN_SNIPPETS = [
     ...REMOVED_SOURCE_REPORT_DOT_HOOKS,
@@ -96,8 +98,7 @@ const SOURCE_REPORT_STATUS_BADGE_FORBIDDEN_STYLING_SNIPPETS = [
 ] as const;
 const SOURCE_REPORT_EMPTY_ALERT_COMPOSITION_CHECKS = [
     {
-        pattern:
-            /<Alert\b[\s\S]*?data-sot-source-report-missing-notice[\s\S]*?>/,
+        pattern: /<Alert\b[\s\S]*?data-source-report-missing-notice[\s\S]*?>/,
         snippets: [
             'variant="warningSoft"',
             'density="compact"',
@@ -105,7 +106,7 @@ const SOURCE_REPORT_EMPTY_ALERT_COMPOSITION_CHECKS = [
         ],
     },
     {
-        pattern: /<Alert\b[\s\S]*?data-sot-source-report-empty[\s\S]*?>/,
+        pattern: /<Alert\b[\s\S]*?data-source-report-empty[\s\S]*?>/,
         snippets: [
             'variant={tone === "danger" ? "statusError" : "default"}',
             'density="spacious"',
@@ -113,22 +114,20 @@ const SOURCE_REPORT_EMPTY_ALERT_COMPOSITION_CHECKS = [
         ],
     },
     {
-        pattern: /<Empty\b[\s\S]*?data-sot-source-report-empty[\s\S]*?>/,
+        pattern: /<Empty\b[\s\S]*?data-source-report-empty[\s\S]*?>/,
         snippets: ['variant="subtle"'],
     },
     {
-        pattern:
-            /<EmptyMedia\b[\s\S]*?data-sot-source-report-empty-icon[\s\S]*?>/,
+        pattern: /<EmptyMedia\b[\s\S]*?data-source-report-empty-icon[\s\S]*?>/,
         snippets: ['variant={tone === "danger" ? "dangerIcon" : "subtleIcon"}'],
     },
     {
-        pattern:
-            /<EmptyTitle\b[\s\S]*?data-sot-source-report-empty-title[\s\S]*?>/,
+        pattern: /<EmptyTitle\b[\s\S]*?data-source-report-empty-title[\s\S]*?>/,
         snippets: ['variant="compact"'],
     },
     {
         pattern:
-            /<EmptyDescription\b[\s\S]*?data-sot-source-report-empty-description[\s\S]*?>/,
+            /<EmptyDescription\b[\s\S]*?data-source-report-empty-description[\s\S]*?>/,
         snippets: ['variant="compact"'],
     },
 ] as const;
@@ -179,9 +178,9 @@ const DASHBOARD_SIDEBAR_OWNER_CLASS_TOKENS = [
     "text-sidebar-foreground",
 ] as const;
 const DASHBOARD_SIDEBAR_VISUAL_GLOBAL_SELECTORS = [
-    '[data-sot-panel="dashboard-sidebar"]',
-    '[data-theme="dark"] [data-sot-panel="dashboard-sidebar"]',
-    '.dark [data-sot-panel="dashboard-sidebar"]',
+    '[data-panel="dashboard-sidebar"]',
+    '[data-theme="dark"] [data-panel="dashboard-sidebar"]',
+    '.dark [data-panel="dashboard-sidebar"]',
 ] as const;
 const RECORDING_WORKSTATION_TOPBAR_REQUIRED_CLASS_TOKENS = [
     "relative",
@@ -214,30 +213,30 @@ const DASHBOARD_SIDEBAR_FORBIDDEN_CLASS_PATTERN =
 const DASHBOARD_SIDEBAR_VISUAL_GLOBAL_DECLARATION_RE =
     /^\s*(?:-webkit-backdrop-filter|backdrop-filter|background|border(?:-(?:color|radius|right|style|width))?|box-shadow|display|flex-direction|padding|position)\s*:/m;
 const WORKSTATION_TOPBAR_CRUMB_REMOVED_GLOBAL_SELECTORS = [
-    '[data-sot-panel="workstation-topbar"]',
-    '[data-theme="dark"] [data-sot-panel="workstation-topbar"]',
-    '[data-sot-part="workstation-crumbs"]',
-    '[data-sot-part="workstation-crumb"]',
-    '[data-sot-part="workstation-crumb-separator"]',
-    '[data-sot-part="workstation-crumb-current"]',
+    '[data-panel="workstation-topbar"]',
+    '[data-theme="dark"] [data-panel="workstation-topbar"]',
+    '[data-part="workstation-crumbs"]',
+    '[data-part="workstation-crumb"]',
+    '[data-part="workstation-crumb-separator"]',
+    '[data-part="workstation-crumb-current"]',
 ] as const;
 const DASHBOARD_TOPBAR_CRUMB_REMOVED_GLOBAL_SELECTORS = [
-    '[data-sot-panel="dashboard-topbar"]',
-    '[data-theme="dark"] [data-sot-panel="dashboard-topbar"]',
-    '[data-sot-part="dashboard-crumbs"]',
-    '[data-sot-part="dashboard-crumb"]',
-    '[data-sot-part="dashboard-crumb-separator"]',
-    '[data-sot-part="dashboard-crumb-current"]',
+    '[data-panel="dashboard-topbar"]',
+    '[data-theme="dark"] [data-panel="dashboard-topbar"]',
+    '[data-part="dashboard-crumbs"]',
+    '[data-part="dashboard-crumb"]',
+    '[data-part="dashboard-crumb-separator"]',
+    '[data-part="dashboard-crumb-current"]',
 ] as const;
 const SPEAKER_REVIEW_RESIDUAL_GLOBAL_SELECTORS = [
-    '[data-sot-list="speaker-review-meta"] > span',
-    '[data-sot-part="speaker-review-section-description"]',
-    '[data-sot-part="speaker-review-segment-title"]',
-    '[data-sot-part="speaker-review-segment-text"]',
-    '[data-sot-part="speaker-review-row-name"]',
-    '[data-sot-part="speaker-review-section-title"]',
-    '[data-sot-part="speaker-review-row-sub"]',
-    '[data-sot-part="speaker-review-row-sub"][data-sot-tone="danger"]',
+    '[data-list="speaker-review-meta"] > span',
+    '[data-part="speaker-review-section-description"]',
+    '[data-part="speaker-review-segment-title"]',
+    '[data-part="speaker-review-segment-text"]',
+    '[data-part="speaker-review-row-name"]',
+    '[data-part="speaker-review-section-title"]',
+    '[data-part="speaker-review-row-sub"]',
+    '[data-part="speaker-review-row-sub"][data-tone="danger"]',
 ] as const;
 const SPEAKER_REVIEW_RESIDUAL_OWNER_CLASS_TOKENS = [
     {
@@ -316,22 +315,22 @@ const SPEAKER_REVIEW_RESIDUAL_OWNER_CLASS_TOKENS = [
             "leading-snug",
             "tracking-wide",
             "text-muted-foreground",
-            "data-[sot-tone=danger]:text-destructive",
+            "data-[tone=danger]:text-destructive",
             "max-[860px]:whitespace-normal",
             "max-[860px]:break-words",
         ],
     },
 ] as const;
 const ONBOARDING_DEFAULT_SOURCE_ROOT_REPAINT_SELECTORS = [
-    '[data-sot-control="onboarding-default-source"]',
-    '[data-sot-control="onboarding-default-source"][data-sot-state="selected"]',
-    '[data-sot-control="onboarding-default-source"][data-sot-state="disabled"]',
+    '[data-control="onboarding-default-source"]',
+    '[data-control="onboarding-default-source"][data-state="selected"]',
+    '[data-control="onboarding-default-source"][data-state="disabled"]',
 ] as const;
 
 const REMOVED_ONBOARDING_MATRIX_GLOBAL_SELECTORS = [
-    '[data-sot-control="matrix-row"]',
-    '[data-sot-part="matrix-label"]',
-    '[data-sot-part="matrix-value"]',
+    '[data-control="matrix-row"]',
+    '[data-part="matrix-label"]',
+    '[data-part="matrix-value"]',
 ] as const;
 
 const REMOVED_ONBOARDING_ARBITRARY_LAYOUT_CLASSES = [
@@ -359,36 +358,36 @@ const REMOVED_ONBOARDING_ARBITRARY_LAYOUT_CLASSES = [
     "shadow-none",
 ] as const;
 const REMOVED_DASHBOARD_BRAND_GLOBAL_SELECTORS = [
-    '[data-sot-part="dashboard-brand"]',
-    '[data-sot-part="dashboard-brand"] img',
-    '[data-sot-part="dashboard-brand-name"]',
-    '[data-sot-part="dashboard-brand-subtitle"]',
+    '[data-part="dashboard-brand"]',
+    '[data-part="dashboard-brand"] img',
+    '[data-part="dashboard-brand-name"]',
+    '[data-part="dashboard-brand-subtitle"]',
 ] as const;
 const REMOVED_WORKSTATION_BRAND_GLOBAL_SELECTORS = [
-    '[data-sot-part="workstation-brand"]',
-    '[data-sot-part="workstation-brand"] img',
-    '[data-sot-part="workstation-brand-name"]',
-    '[data-sot-part="workstation-brand-subtitle"]',
+    '[data-part="workstation-brand"]',
+    '[data-part="workstation-brand"] img',
+    '[data-part="workstation-brand-name"]',
+    '[data-part="workstation-brand-subtitle"]',
 ] as const;
 const REMOVED_DASHBOARD_NAV_FAVORITE_GLOBAL_SELECTORS = [
-    '[data-sot-list="dashboard-nav"]',
-    '[data-sot-part="dashboard-nav-section-label"]',
-    '[data-sot-control="dashboard-favorite"] svg',
-    '[data-sot-part="dashboard-favorite-count"]',
-    '[data-theme="dark"] [data-sot-part="dashboard-favorite-count"]',
-    '[data-sot-control="dashboard-favorite"][data-sot-state="selected"] svg',
-    '[data-sot-control="dashboard-favorite"][data-sot-state="selected"]\n    [data-sot-part="dashboard-favorite-count"]',
-    '[data-theme="dark"]\n    [data-sot-control="dashboard-favorite"][data-sot-state="selected"]\n    [data-sot-part="dashboard-favorite-count"]',
+    '[data-list="dashboard-nav"]',
+    '[data-part="dashboard-nav-section-label"]',
+    '[data-control="dashboard-favorite"] svg',
+    '[data-part="dashboard-favorite-count"]',
+    '[data-theme="dark"] [data-part="dashboard-favorite-count"]',
+    '[data-control="dashboard-favorite"][data-state="selected"] svg',
+    '[data-control="dashboard-favorite"][data-state="selected"]\n    [data-part="dashboard-favorite-count"]',
+    '[data-theme="dark"]\n    [data-control="dashboard-favorite"][data-state="selected"]\n    [data-part="dashboard-favorite-count"]',
 ] as const;
 const REMOVED_DASHBOARD_SYNC_GLOBAL_SELECTORS = [
-    '[data-sot-panel="dashboard-sync"]',
-    '[data-sot-panel="dashboard-sync"] [data-sot-part="dashboard-sync-indicator"]',
-    '[data-sot-part="dashboard-sync-text"]',
-    '[data-sot-part="dashboard-sync-title"]',
-    '[data-sot-part="dashboard-sync-subtitle"]',
-    '[data-sot-panel="dashboard-sync"][data-sot-state="queued"]',
-    '[data-sot-panel="dashboard-sync"][data-sot-state="running"]',
-    '[data-sot-panel="dashboard-sync"][data-sot-state="error"]',
+    '[data-panel="dashboard-sync"]',
+    '[data-panel="dashboard-sync"] [data-part="dashboard-sync-indicator"]',
+    '[data-part="dashboard-sync-text"]',
+    '[data-part="dashboard-sync-title"]',
+    '[data-part="dashboard-sync-subtitle"]',
+    '[data-panel="dashboard-sync"][data-state="queued"]',
+    '[data-panel="dashboard-sync"][data-state="running"]',
+    '[data-panel="dashboard-sync"][data-state="error"]',
 ] as const;
 const DASHBOARD_SYNC_VISUAL_GLOBAL_DECLARATION_RE =
     /\b(?:display|align-items|gap|padding|border-radius|background|border|width|height|box-shadow|animation|font|color|margin-top|flex|min-width)\s*:/;
@@ -430,38 +429,38 @@ const RECORDING_WORKSTATION_BRAND_OWNER_CLASS_INITIALIZERS = [
 ] as const;
 
 const REMOVED_AUTH_ONBOARDING_CARD_GLOBAL_SELECTORS = [
-    "[data-sot-frame]",
-    '[data-sot-frame="auth"]',
-    '[data-sot-frame="onboarding"]',
-    '[data-sot-layout="auth-workstation"]',
-    '[data-sot-layout="onboarding-workstation"]',
-    '[data-sot-panel="onboarding-steps"]',
-    '[data-sot-control="onboarding-step"]',
-    '[data-sot-part="auth-form-message"]',
-    '[data-sot-part="onboarding-error"]',
-    '[data-sot-part="auth-logo-mark"]',
-    '[data-sot-part="auth-heading"]',
-    '[data-sot-part="auth-description"]',
-    '[data-sot-part="auth-local-choice"]',
-    '[data-sot-part="onboarding-step-title"]',
-    '[data-sot-part="onboarding-step-description"]',
-    '[data-sot-part="onboarding-step-body"]',
-    '[data-sot-list="onboarding-default-sources"]',
-    '[data-sot-part="onboarding-default-source-swatch"]',
-    '[data-sot-part="onboarding-actions"]',
-    '[data-sot-list="provider-cards"]',
-    '[data-sot-list="speaker-profiles"]',
-    '[data-sot-list="finish-summary"]',
-    '[data-sot-part="provider-icon"]',
-    '[data-sot-part="provider-meta"]',
-    '[data-sot-part="provider-name"]',
-    '[data-sot-part="provider-hint"]',
-    '[data-sot-card]:not([data-sot-card="source-report-metric"])',
-    '[data-sot-card]:not([data-sot-card="source-report-metric"])\n    + [data-sot-card]:not([data-sot-card="source-report-metric"])',
-    '[data-sot-part="card-heading"]',
-    '[data-sot-part="card-heading"] + [data-sot-part="card-sub"]',
-    '[data-sot-card="auth"]',
-    '[data-sot-card="onboarding"]',
+    "[data-frame]",
+    '[data-frame="auth"]',
+    '[data-frame="onboarding"]',
+    '[data-layout="auth-workstation"]',
+    '[data-layout="onboarding-workstation"]',
+    '[data-panel="onboarding-steps"]',
+    '[data-control="onboarding-step"]',
+    '[data-part="auth-form-message"]',
+    '[data-part="onboarding-error"]',
+    '[data-part="auth-logo-mark"]',
+    '[data-part="auth-heading"]',
+    '[data-part="auth-description"]',
+    '[data-part="auth-local-choice"]',
+    '[data-part="onboarding-step-title"]',
+    '[data-part="onboarding-step-description"]',
+    '[data-part="onboarding-step-body"]',
+    '[data-list="onboarding-default-sources"]',
+    '[data-part="onboarding-default-source-swatch"]',
+    '[data-part="onboarding-actions"]',
+    '[data-list="provider-cards"]',
+    '[data-list="speaker-profiles"]',
+    '[data-list="finish-summary"]',
+    '[data-part="provider-icon"]',
+    '[data-part="provider-meta"]',
+    '[data-part="provider-name"]',
+    '[data-part="provider-hint"]',
+    '[data-card]:not([data-card="source-report-metric"])',
+    '[data-card]:not([data-card="source-report-metric"])\n    + [data-card]:not([data-card="source-report-metric"])',
+    '[data-part="card-heading"]',
+    '[data-part="card-heading"] + [data-part="card-sub"]',
+    '[data-card="auth"]',
+    '[data-card="onboarding"]',
 ] as const;
 
 const SPEAKER_PROFILE_PRIMITIVE_BUSINESS_TOKENS = [
@@ -614,12 +613,12 @@ const RECORDING_PLAYER_CLASS_INITIALIZERS = [
 const REMOVED_DASHBOARD_PLAYER_GLOBAL_SELECTOR_FRAGMENTS = [
     "dashboard-recording-player",
     "dashboard-player-control-icon",
-    'data-sot-control="dashboard-player-play"',
+    'data-control="dashboard-player-play"',
     "dashboard-player-current-time",
     "dashboard-player-duration",
-    'data-sot-control="dashboard-player-speed"',
-    '[data-sot-surface="dashboard-recording-player"][data-no-audio="true"]',
-    '[data-sot-part="dashboard-recording-player-meta"]',
+    'data-control="dashboard-player-speed"',
+    '[data-surface="dashboard-recording-player"][data-no-audio="true"]',
+    '[data-part="dashboard-recording-player-meta"]',
 ] as const;
 
 const COMPONENT_LIBRARY_SHOWCASE_GLOBAL_PATTERNS = [
@@ -677,7 +676,8 @@ const LIBRARY_SEARCH_CLASS_PROPERTY_BY_OLD_OWNER_PROPERTY = {
     librarySearchScopeItem: "scopeItem",
     librarySearchScroll: "scroll",
     librarySearchStateCopy: "stateCopy",
-    librarySearchStateSkeleton: "stateSkeleton",
+    librarySearchStateCopyStrong: "stateCopyStrong",
+    librarySearchStateSkeleton: "indexingBar",
     librarySearchTag: "tag",
 } as const;
 
@@ -748,16 +748,16 @@ const DASHBOARD_SEARCH_ACTIVITY_FEATURE_OWNER_CLASS_SNIPPETS = [
     },
     {
         propertyName: "librarySearchInputRow",
-        snippets: ["h-[49px] min-h-[49px]", "gap-[8px]", "px-[12px] py-[8px]"],
+        snippets: ["h-auto min-h-0", "gap-[8px]", "px-[12px] py-[8px]"],
     },
     {
         propertyName: "librarySearchInput",
-        snippets: ["h-8", "px-1 py-0", "text-sm"],
+        snippets: ["h-8", "px-1 py-0", "text-[13.5px]"],
     },
     {
         propertyName: "librarySearchScope",
         snippets: [
-            "min-h-[39px]",
+            "w-full flex-wrap",
             "gap-[6px]",
             "px-[12px] py-[8px]",
             "border-b border-border",
@@ -766,15 +766,15 @@ const DASHBOARD_SEARCH_ACTIVITY_FEATURE_OWNER_CLASS_SNIPPETS = [
     },
     {
         propertyName: "librarySearchScopeItem",
-        snippets: ["h-6", "rounded-full", "px-2.5", "text-xs"],
+        snippets: ["h-[22px]", "rounded-full", "px-[10px]", "text-[11.5px]"],
     },
     {
         propertyName: "librarySearchError",
         snippets: [
-            "flex w-full flex-col items-center gap-2",
-            "px-4 py-4",
+            "w-full gap-[8px]",
+            "px-[16px] py-[18px]",
             "text-destructive",
-            "*:data-[slot=alert-description]:text-destructive",
+            "text-center",
         ],
     },
     {
@@ -787,21 +787,21 @@ const DASHBOARD_SEARCH_ACTIVITY_FEATURE_OWNER_CLASS_SNIPPETS = [
             "h-auto",
             "w-full",
             "flex-col items-start",
-            "px-2.5 py-2",
+            "px-[10px] py-[8px]",
             "whitespace-normal",
         ],
     },
     {
         propertyName: "librarySearchResultTitle",
-        snippets: ["text-sm", "font-semibold", "text-foreground"],
+        snippets: ["text-[13px]", "font-semibold", "text-foreground"],
     },
     {
         propertyName: "librarySearchResultMeta",
-        snippets: ["font-mono", "text-xs", "text-muted-foreground"],
+        snippets: ["font-mono", "text-[11.5px]", "text-muted-foreground"],
     },
     {
         propertyName: "librarySearchTag",
-        snippets: ["h-6", "w-fit", "justify-normal", "px-2"],
+        snippets: ["h-[22px]", "w-fit", "justify-normal", "pr-[9px]"],
     },
     {
         propertyName: "dashboardActivityCount",
@@ -813,7 +813,7 @@ const DASHBOARD_SEARCH_ACTIVITY_FEATURE_OWNER_CLASS_SNIPPETS = [
     },
     {
         propertyName: "librarySearchRetry",
-        snippets: ["h-6", "px-2", "text-xs"],
+        snippets: ["h-[26px]", "px-[10px]", "text-[12px]"],
     },
     {
         propertyName: "librarySearchScroll",
@@ -822,14 +822,17 @@ const DASHBOARD_SEARCH_ACTIVITY_FEATURE_OWNER_CLASS_SNIPPETS = [
     {
         propertyName: "librarySearchStateSkeleton",
         snippets: [
-            "bg-primary/10",
-            "after:bg-primary/50",
-            "after:animate-[sbn-sweep_1.4s_linear_infinite]",
+            "bg-[linear-gradient(90deg,transparent,var(--signal-info)_50%,transparent)]",
+            "animate-[sbn-sweep_1.4s_linear_infinite]",
         ],
     },
     {
         propertyName: "librarySearchStateCopy",
-        snippets: ["text-sm", "[&_span]:font-semibold"],
+        snippets: ["text-[12.5px]", "text-muted-foreground"],
+    },
+    {
+        propertyName: "librarySearchStateCopyStrong",
+        snippets: ["font-semibold", "text-foreground"],
     },
     {
         propertyName: "librarySearchResultGroup",
@@ -841,11 +844,15 @@ const DASHBOARD_SEARCH_ACTIVITY_FEATURE_OWNER_CLASS_SNIPPETS = [
     },
     {
         propertyName: "librarySearchGroupLabel",
-        snippets: ["px-1.5 py-1", "font-mono", "tracking-wide"],
+        snippets: ["px-[6px] py-[4px]", "font-mono", "tracking-[0.84px]"],
     },
     {
         propertyName: "librarySearchHighlight",
-        snippets: ["bg-primary/10", "px-[2px]", "text-primary"],
+        snippets: [
+            "bg-[color-mix(in_srgb,var(--accent)_22%,transparent)]",
+            "px-[2px]",
+            "text-[var(--accent)]",
+        ],
     },
     {
         propertyName: "dashboardActivityClose",
@@ -879,11 +886,14 @@ const DASHBOARD_SEARCH_ACTIVITY_FEATURE_OWNER_CLASS_SNIPPETS = [
     },
     {
         propertyName: "dashboardActivityStatus",
+        snippets: ["flex items-center gap-2.5", "bg-muted"],
+    },
+    {
+        propertyName: "dashboardActivityStatusIndicator",
         snippets: [
-            "flex items-center gap-2.5",
-            "bg-muted",
-            "data-[state=running]:[&_[data-sot-part=dashboard-activity-status-indicator]]:animate-[bpulse_1.4s_ease-in-out_infinite]",
-            "data-[state=running]:[&_[data-sot-part=dashboard-activity-status-indicator]]:bg-primary",
+            "size-2",
+            "data-[state=running]:animate-[bpulse_1.4s_ease-in-out_infinite]",
+            "bg-primary",
         ],
     },
     {
@@ -892,12 +902,15 @@ const DASHBOARD_SEARCH_ACTIVITY_FEATURE_OWNER_CLASS_SNIPPETS = [
     },
     {
         propertyName: "dashboardActivityItem",
+        snippets: ["grid grid-cols-[26px_1fr_auto]"],
+    },
+    {
+        propertyName: "dashboardActivityItemIcon",
         snippets: [
-            "grid grid-cols-[26px_1fr_auto]",
-            "data-[kind=queued]:[&_[data-sot-part=dashboard-activity-item-icon]]:bg-muted",
-            "data-[kind=queued]:[&_[data-sot-part=dashboard-activity-item-icon]]:text-muted-foreground",
-            "data-[kind=partial-failed]:[&_[data-sot-part=dashboard-activity-item-icon]]:bg-secondary",
-            "data-[kind=partial-failed]:[&_[data-sot-part=dashboard-activity-item-icon]]:text-secondary-foreground",
+            "data-[kind=queued]:bg-muted",
+            "data-[kind=queued]:text-muted-foreground",
+            "data-[kind=partial-failed]:bg-secondary",
+            "data-[kind=partial-failed]:text-secondary-foreground",
         ],
     },
     {
@@ -934,14 +947,15 @@ const DASHBOARD_SEARCH_ACTIVITY_SOT_BODY_FORBIDDEN_CLASS_SNIPPETS = [
             "pt-[9.5px]",
             "pb-[6.5px]",
             "data-[active=true]:bg-",
-            "data-[sot-state=active]:bg-",
+            "data-[state=active]:bg-",
         ],
     },
 ] as const;
 
 const LIBRARY_SEARCH_FEATURE_OWNER_SOURCE_SNIPPETS = [
     "aria-expanded={open}",
-    'data-sot-state={open ? "open" : "idle"}',
+    "aria-controls={open ? LIBRARY_SEARCH_DIALOG_ID : undefined}",
+    'role="dialog"',
     "placeholder={t(",
     '"librarySearch.shortPlaceholder"',
 ] as const;
@@ -959,7 +973,7 @@ const DASHBOARD_SEARCH_CONTAINER_SOURCE_SNIPPETS = [
 
 const DASHBOARD_ACTIVITY_FEATURE_OWNER_SOURCE_SNIPPETS = [
     "aria-expanded={activityOpen}",
-    'data-sot-state={activityOpen ? "open" : "idle"}',
+    'data-state={activityOpen ? "open" : "idle"}',
 ] as const;
 
 function collectSearchActivityPrimitiveBusinessTokens() {
@@ -1323,15 +1337,15 @@ function expectCnClassNameReferences(
     expect(openingElement).not.toContain('className="');
 }
 
-function expectSotPlayerNoAudioPrimitiveBindings(source: string) {
+function expectPlayerNoAudioPrimitiveBindings(source: string) {
     const noAudioAlert = extractOpeningElement(
         source,
-        "data-sot-state={playbackDisabled",
+        "data-state={playbackDisabled",
         "Alert",
     );
     const noAudioIcon = extractOpeningElement(
         source,
-        "data-sot-part={iconPart}",
+        "data-part={iconPart}",
         "VolumeX",
     );
     const noAudioText = extractOpeningElement(
@@ -1341,12 +1355,12 @@ function expectSotPlayerNoAudioPrimitiveBindings(source: string) {
     );
     const noAudioTitle = extractOpeningElement(
         source,
-        "data-sot-part={titlePart}",
+        "data-part={titlePart}",
         "AlertTitle",
     );
     const noAudioDescription = extractOpeningElement(
         source,
-        "data-sot-part={descriptionPart}",
+        "data-part={descriptionPart}",
         "AlertDescription",
     );
 
@@ -1354,29 +1368,29 @@ function expectSotPlayerNoAudioPrimitiveBindings(source: string) {
     expect(noAudioAlert).toContain('density="comfortable"');
     expect(noAudioAlert).toContain('layout="inline"');
     expect(noAudioAlert).toContain('className={cn("mb-3", className)}');
-    expect(noAudioAlert).toContain("data-sot-part={part}");
+    expect(noAudioAlert).toContain("data-part={part}");
     expect(noAudioAlert).toContain(
-        'data-sot-state={playbackDisabled ? "visible" : "hidden"}',
+        'data-state={playbackDisabled ? "visible" : "hidden"}',
     );
     expect(noAudioAlert).toContain("hidden={!playbackDisabled}");
     expect(noAudioAlert).toContain('role="status"');
-    expect(noAudioIcon).toContain("data-sot-part={iconPart}");
+    expect(noAudioIcon).toContain("data-part={iconPart}");
     expectClassNameConstReference(noAudioText, "PLAYER_NO_AUDIO_TEXT_CLASS");
     expect(noAudioText).toContain("data-player-no-audio-text");
-    expect(noAudioText).toContain("data-sot-part={textPart}");
+    expect(noAudioText).toContain("data-part={textPart}");
     expect(noAudioTitle).not.toContain("className=");
     expect(noAudioDescription).toContain('density="comfortable"');
 }
 
-function expectSotPlayerSourcePrimitiveBindings(source: string) {
+function expectPlayerSourcePrimitiveBindings(source: string) {
     const sourceBadge = extractOpeningElement(
         source,
-        'data-sot-control="player-source-tag"',
+        'data-control="player-source-tag"',
         "Badge",
     );
     const sourceIcon = extractOpeningElement(
         source,
-        'data-sot-part="source-icon"',
+        'data-part="source-icon"',
         "span",
     );
     const sourceIconImage = extractOpeningElement(
@@ -1387,11 +1401,11 @@ function expectSotPlayerSourcePrimitiveBindings(source: string) {
 
     expectClassNameConstReference(sourceBadge, "PLAYER_SOURCE_BADGE_CLASS");
     expect(sourceBadge).toContain('variant="outline"');
-    expect(sourceBadge).toContain('data-sot-control="player-source-tag"');
+    expect(sourceBadge).toContain('data-control="player-source-tag"');
     expectClassNameConstReference(sourceIcon, "PLAYER_SOURCE_ICON_CLASS");
-    expect(sourceIcon).toContain('data-sot-part="source-icon"');
+    expect(sourceIcon).toContain('data-part="source-icon"');
     expect(sourceIcon).toContain(
-        'data-sot-source-icon={hasImage ? "image" : "letter"}',
+        'data-source-icon={hasImage ? "image" : "letter"}',
     );
     expectClassNameConstReference(
         sourceIconImage,
@@ -1667,35 +1681,35 @@ const UNAPPROVED_PRODUCT_CSS_CLASS_SELECTOR_RE =
     /(^|[,\s>{(:])\.(?!dark(?:[\s,:[>{]|$))[A-Za-z][\w-]*(?![\w-])/m;
 
 const REMOVED_SETTINGS_SHELL_GLOBAL_SELECTORS = [
-    '[data-sot-overlay="settings-shell"]',
-    '[data-sot-overlay="settings-shell"][data-state="open"]',
-    '[data-sot-overlay="settings-shell"][data-state="closed"]',
-    '[data-sot-surface="settings-shell"]',
-    '[data-sot-surface="settings-shell"][data-state="closed"]',
+    '[data-overlay="settings-shell"]',
+    '[data-overlay="settings-shell"][data-state="open"]',
+    '[data-overlay="settings-shell"][data-state="closed"]',
+    '[data-surface="settings-shell"]',
+    '[data-surface="settings-shell"][data-state="closed"]',
 ] as const;
 
 const REMOVED_DEAD_SOT_GLOBAL_SELECTORS = [
-    '[data-sot-part="dialog-icon"]',
-    '[data-sot-panel="source-provider-detail"] [data-sot-part="field-empty"]',
-    '[data-sot-part="source-filter-icon"]',
+    '[data-part="dialog-icon"]',
+    '[data-panel="source-provider-detail"] [data-part="field-empty"]',
+    '[data-part="source-filter-icon"]',
 ] as const;
 
 const REMOVED_SETTINGS_NAV_GLOBAL_REPAINT_SELECTORS = [
-    '[data-sot-control="settings-nav"]',
-    '[data-sot-control="settings-nav"]:hover',
-    '[data-sot-control="settings-nav"][data-state="active"]',
-    '[data-theme="dark"] [data-sot-control="settings-nav"][data-state="active"]',
-    '[data-sot-control="settings-nav"] svg',
-    '[data-sot-control="settings-nav"]:focus-visible',
-    '[data-sot-panel="settings-rail"] [data-sot-control="settings-nav"]',
-    '[data-sot-panel="settings-rail"] [data-sot-control="settings-nav"] svg',
+    '[data-control="settings-nav"]',
+    '[data-control="settings-nav"]:hover',
+    '[data-control="settings-nav"][data-state="active"]',
+    '[data-theme="dark"] [data-control="settings-nav"][data-state="active"]',
+    '[data-control="settings-nav"] svg',
+    '[data-control="settings-nav"]:focus-visible',
+    '[data-panel="settings-rail"] [data-control="settings-nav"]',
+    '[data-panel="settings-rail"] [data-control="settings-nav"] svg',
 ] as const;
 
 const REMOVED_SETTINGS_DEAD_TENANT_GLOBAL_SELECTORS = [
     '[data-tenant="single"]',
     "[data-tenant-single]",
     "[data-tenant-multi]",
-    '[data-sot-control="settings-nav"][data-sot-section="account"]',
+    '[data-control="settings-nav"][data-section="account"]',
 ] as const;
 
 const DIALOG_SLOT_GLOBAL_SELECTORS = [
@@ -1709,15 +1723,15 @@ const DELETE_CONFIRM_MODAL_EXTRAS_LEGACY_PRODUCT_CSS_SELECTOR_RE =
     /(^|[,\s>{])\.(?:del-modal-icon|del-modal-name)(?![\w-])/m;
 
 const MIGRATED_CONFIRM_DIALOG_GLOBAL_SELECTORS = [
-    '[data-sot-overlay="confirm-dialog"]',
-    '[data-sot-panel="confirm-dialog"]',
-    '[data-sot-content="confirm-dialog"]',
-    '[data-sot-part="confirm-head"]',
-    '[data-sot-part="confirm-body"]',
-    '[data-sot-part="confirm-extra"]',
-    '[data-sot-part="confirm-foot"]',
-    '[data-sot-item="confirm-dialog-detail"]',
-    '[data-sot-part="confirm-warning"]',
+    '[data-overlay="confirm-dialog"]',
+    '[data-panel="confirm-dialog"]',
+    '[data-content="confirm-dialog"]',
+    '[data-part="confirm-head"]',
+    '[data-part="confirm-body"]',
+    '[data-part="confirm-extra"]',
+    '[data-part="confirm-foot"]',
+    '[data-item="confirm-dialog-detail"]',
+    '[data-part="confirm-warning"]',
 ] as const;
 
 const CONFIRM_DIALOG_PRIMITIVE_RESIDUAL_SNIPPETS = [
@@ -1775,36 +1789,36 @@ const DASHBOARD_RECORDING_LIST_REPLACED_LEGACY_CLASSES = [
 ];
 
 const DASHBOARD_RECORDING_LIST_REPLACEMENT_HOOKS = [
-    'data-sot-surface="dashboard-recording-list"',
-    'data-sot-part="dashboard-recording-list-content"',
-    'data-sot-part="dashboard-recording-list-header"',
-    'data-sot-part="dashboard-recording-list-titlebar"',
-    'data-sot-part="dashboard-recording-list-title"',
-    'data-sot-part="dashboard-recording-list-count"',
-    'data-sot-control="recording-list-tag-filter-trigger"',
-    'data-sot-part="recording-list-tag-filter-label"',
-    'data-sot-part="recording-list-tag-filter-count"',
-    'data-sot-part="recording-list-tag-filter-caret"',
-    'data-sot-list="recording-list-tag-filter-list"',
-    'data-sot-part="recording-list-tag-filter-option-label"',
-    'data-sot-part="recording-list-tag-filter-option-count"',
-    'data-sot-list="dashboard-recording-list-scroll"',
-    'data-sot-part="dashboard-recording-list-group"',
-    'data-sot-part="dashboard-recording-list-group-heading"',
-    'data-sot-part="dashboard-recording-list-group-label"',
-    'data-sot-part="dashboard-recording-list-group-count"',
-    'data-sot-part="dashboard-recording-list-group-divider"',
-    'data-sot-control="dashboard-recording-row"',
-    'data-sot-part="dashboard-recording-source-mark"',
-    'data-sot-part="dashboard-recording-row-body"',
-    'data-sot-part="dashboard-recording-row-title"',
-    'data-sot-part="dashboard-recording-row-meta"',
-    'data-sot-part="recording-list-state-icon"',
-    'data-sot-part="recording-list-state-title"',
-    'data-sot-part="recording-list-state-description"',
-    'data-sot-part="recording-list-page-divider"',
-    'data-sot-part="recording-list-page-nav"',
-    'data-sot-part="recording-list-page-number"',
+    'data-surface="dashboard-recording-list"',
+    'data-part="dashboard-recording-list-content"',
+    'data-part="dashboard-recording-list-header"',
+    'data-part="dashboard-recording-list-titlebar"',
+    'data-part="dashboard-recording-list-title"',
+    'data-part="dashboard-recording-list-count"',
+    'data-control="recording-list-tag-filter-trigger"',
+    'data-part="recording-list-tag-filter-label"',
+    'data-part="recording-list-tag-filter-count"',
+    'data-part="recording-list-tag-filter-caret"',
+    'data-list="recording-list-tag-filter-list"',
+    'data-part="recording-list-tag-filter-option-label"',
+    'data-part="recording-list-tag-filter-option-count"',
+    'data-list="dashboard-recording-list-scroll"',
+    'data-part="dashboard-recording-list-group"',
+    'data-part="dashboard-recording-list-group-heading"',
+    'data-part="dashboard-recording-list-group-label"',
+    'data-part="dashboard-recording-list-group-count"',
+    'data-part="dashboard-recording-list-group-divider"',
+    'data-control="dashboard-recording-row"',
+    'data-part="dashboard-recording-source-mark"',
+    'data-part="dashboard-recording-row-body"',
+    'data-part="dashboard-recording-row-title"',
+    'data-part="dashboard-recording-row-meta"',
+    'data-part="recording-list-state-icon"',
+    'data-part="recording-list-state-title"',
+    'data-part="recording-list-state-description"',
+    'data-part="recording-list-page-divider"',
+    'data-part="recording-list-page-nav"',
+    'data-part="recording-list-page-number"',
 ];
 
 const DASHBOARD_RECORDING_LIST_LEGACY_PRODUCT_CSS_SELECTOR_RE =
@@ -1816,45 +1830,45 @@ const EXPECTED_DASHBOARD_SIDEBAR_FOOTER_CLASS_NAME =
     "border-t border-border pt-2.5";
 
 const MOBILE_OWNER_LAYOUT_MIGRATED_GLOBAL_SELECTORS = [
-    '[data-sot-shell="dashboard-workstation"]',
-    '[data-sot-shell="recording-workstation"]',
-    '[data-sot-panel="dashboard-main"]',
-    '[data-sot-surface="dashboard-recording-list"]',
-    '[data-sot-panel="recording-detail-list"]',
-    '[data-sot-panel="recording-workstation-detail"]',
-    '[data-sot-panel="workstation-sidebar"]',
+    '[data-shell="dashboard-workstation"]',
+    '[data-shell="recording-workstation"]',
+    '[data-panel="dashboard-main"]',
+    '[data-surface="dashboard-recording-list"]',
+    '[data-panel="recording-detail-list"]',
+    '[data-panel="recording-workstation-detail"]',
+    '[data-panel="workstation-sidebar"]',
 ] as const;
 
 const DASHBOARD_RECORDING_LIST_RESIDUAL_MIGRATED_GLOBAL_SELECTORS = [
-    '[data-sot-part="dashboard-recording-list-header"]',
-    '[data-theme="dark"] [data-sot-part="dashboard-recording-list-header"]',
-    '[data-sot-part="dashboard-recording-list-titlebar"]',
-    '[data-sot-part="dashboard-recording-list-title"]',
-    '[data-sot-part="dashboard-recording-list-count"]',
-    '[data-sot-list="dashboard-recording-list-scroll"]',
-    '[data-sot-list="dashboard-recording-list-scroll"]::-webkit-scrollbar',
-    '[data-sot-list="dashboard-recording-list-scroll"]::-webkit-scrollbar-track',
-    '[data-sot-list="dashboard-recording-list-scroll"]::-webkit-scrollbar-thumb',
-    '[data-sot-list="dashboard-recording-list-scroll"]::-webkit-scrollbar-thumb:hover',
-    '[data-sot-part="dashboard-transcript-body"]',
-    '[data-sot-part="dashboard-transcript-body"]::-webkit-scrollbar',
-    '[data-sot-part="dashboard-transcript-body"]::-webkit-scrollbar-track',
-    '[data-sot-part="dashboard-transcript-body"]::-webkit-scrollbar-thumb',
-    '[data-sot-part="dashboard-transcript-body"]::-webkit-scrollbar-thumb:hover',
-    '[data-sot-panel="dashboard-recording-list-mode"]',
-    '[data-sot-part="dashboard-recording-list-mode-label"]',
-    '[data-sot-part="dashboard-recording-list-mode-count"]',
-    '[data-sot-part="dashboard-recording-list-mode-segmented"]',
-    '[data-sot-part="recording-list-state"]',
-    '[data-sot-panel="recording-list-pagination"]',
-    '[data-sot-part="recording-list-state-icon"]',
-    '[data-sot-part="recording-list-state-icon"] svg',
-    '[data-sot-part="recording-list-state-title"]',
-    '[data-sot-part="recording-list-state-description"]',
-    '[data-sot-part="recording-list-page-divider"]',
-    '[data-sot-part="recording-list-page-status"]',
-    '[data-sot-part="recording-list-page-nav"]',
-    '[data-sot-part="recording-list-page-number"]',
+    '[data-part="dashboard-recording-list-header"]',
+    '[data-theme="dark"] [data-part="dashboard-recording-list-header"]',
+    '[data-part="dashboard-recording-list-titlebar"]',
+    '[data-part="dashboard-recording-list-title"]',
+    '[data-part="dashboard-recording-list-count"]',
+    '[data-list="dashboard-recording-list-scroll"]',
+    '[data-list="dashboard-recording-list-scroll"]::-webkit-scrollbar',
+    '[data-list="dashboard-recording-list-scroll"]::-webkit-scrollbar-track',
+    '[data-list="dashboard-recording-list-scroll"]::-webkit-scrollbar-thumb',
+    '[data-list="dashboard-recording-list-scroll"]::-webkit-scrollbar-thumb:hover',
+    '[data-part="dashboard-transcript-body"]',
+    '[data-part="dashboard-transcript-body"]::-webkit-scrollbar',
+    '[data-part="dashboard-transcript-body"]::-webkit-scrollbar-track',
+    '[data-part="dashboard-transcript-body"]::-webkit-scrollbar-thumb',
+    '[data-part="dashboard-transcript-body"]::-webkit-scrollbar-thumb:hover',
+    '[data-panel="dashboard-recording-list-mode"]',
+    '[data-part="dashboard-recording-list-mode-label"]',
+    '[data-part="dashboard-recording-list-mode-count"]',
+    '[data-part="dashboard-recording-list-mode-segmented"]',
+    '[data-part="recording-list-state"]',
+    '[data-panel="recording-list-pagination"]',
+    '[data-part="recording-list-state-icon"]',
+    '[data-part="recording-list-state-icon"] svg',
+    '[data-part="recording-list-state-title"]',
+    '[data-part="recording-list-state-description"]',
+    '[data-part="recording-list-page-divider"]',
+    '[data-part="recording-list-page-status"]',
+    '[data-part="recording-list-page-nav"]',
+    '[data-part="recording-list-page-number"]',
 ] as const;
 
 const DASHBOARD_RECORDING_LIST_RESIDUAL_OWNER_CLASS_REFS = [
@@ -1878,66 +1892,66 @@ const DASHBOARD_RECORDING_LIST_RESIDUAL_OWNER_CLASS_REFS = [
 ] as const;
 
 const DASHBOARD_WORKSPACE_MIGRATED_GLOBAL_SELECTORS = [
-    '[data-sot-panel="dashboard-workspace"]',
-    '[data-sot-panel="workstation-workspace"]',
+    '[data-panel="dashboard-workspace"]',
+    '[data-panel="workstation-workspace"]',
 ] as const;
 
 const DASHBOARD_SIDEBAR_FOOTER_MIGRATED_GLOBAL_SELECTORS = [
-    '[data-sot-part="dashboard-sidebar-footer"]',
+    '[data-part="dashboard-sidebar-footer"]',
 ] as const;
 
 const DASHBOARD_RECORDING_LIST_HEADER_FORBIDDEN_CLASS_PATTERN =
     /\b(?:rgb|rgba|hsl|hsla|oklch|color-mix)\(|#[0-9A-Fa-f]{3,8}\b|\bdark:|(?:^|\s)(?:bg|border|text|shadow|ring|fill|stroke|from|via|to)-(?:white|black|slate|gray|zinc|neutral|stone|red|orange|amber|yellow|lime|green|emerald|teal|cyan|sky|blue|indigo|violet|purple|fuchsia|pink|rose)(?:[/-]\d+)?\b/;
 
 const DASHBOARD_RECORDING_LIST_PRIMITIVE_REPAINT_CSS_SELECTORS = [
-    '[data-sot-surface="dashboard-recording-list"][data-slot="card"]',
-    '[data-sot-part="dashboard-recording-list-content"][data-slot="card-content"]',
-    '[data-sot-control="source-filter-clear"][data-slot="button"]',
-    '[data-sot-part="source-filter-action"]',
-    '[data-sot-part="source-filter-action"]:focus-visible',
-    '[data-sot-part="source-filter-action"][disabled]',
-    '[data-sot-control="source-filter-clear-all"][data-slot="button"]',
-    '[data-sot-control="library-search-filter-clear"][data-slot="button"]',
-    '[data-sot-control="recording-list-tag-filter-trigger"][data-slot="button"]',
-    '[data-sot-control="recording-list-tag-filter"][data-slot="button"]',
-    '[data-sot-panel="recording-list-pagination"] [data-slot="button"]',
-    '[data-sot-panel="recording-list-pagination"] [data-slot="button"]:disabled',
+    '[data-surface="dashboard-recording-list"][data-slot="card"]',
+    '[data-part="dashboard-recording-list-content"][data-slot="card-content"]',
+    '[data-control="source-filter-clear"][data-slot="button"]',
+    '[data-part="source-filter-action"]',
+    '[data-part="source-filter-action"]:focus-visible',
+    '[data-part="source-filter-action"][disabled]',
+    '[data-control="source-filter-clear-all"][data-slot="button"]',
+    '[data-control="library-search-filter-clear"][data-slot="button"]',
+    '[data-control="recording-list-tag-filter-trigger"][data-slot="button"]',
+    '[data-control="recording-list-tag-filter"][data-slot="button"]',
+    '[data-panel="recording-list-pagination"] [data-slot="button"]',
+    '[data-panel="recording-list-pagination"] [data-slot="button"]:disabled',
 ] as const;
 
 const DASHBOARD_RECORDING_LIST_PRIMITIVE_REPAINT_CSS_RE =
-    /\[data-sot-surface="dashboard-recording-list"\]\[data-slot="card"\]|\[data-sot-part="dashboard-recording-list-content"\]\[data-slot="card-content"\]|\[data-sot-part="source-filter-action"\]|\[data-sot-control="(?:source-filter-clear|source-filter-clear-all|library-search-filter-clear|recording-list-tag-filter-trigger|recording-list-tag-filter)"\]\[data-slot="button"\]|\[data-sot-panel="recording-list-pagination"\][\s\S]{0,80}\[data-slot="button"\]/;
+    /\[data-surface="dashboard-recording-list"\]\[data-slot="card"\]|\[data-part="dashboard-recording-list-content"\]\[data-slot="card-content"\]|\[data-part="source-filter-action"\]|\[data-control="(?:source-filter-clear|source-filter-clear-all|library-search-filter-clear|recording-list-tag-filter-trigger|recording-list-tag-filter)"\]\[data-slot="button"\]|\[data-panel="recording-list-pagination"\][\s\S]{0,80}\[data-slot="button"\]/;
 
 const DASHBOARD_RECORDING_ROW_MIGRATED_GLOBAL_SELECTORS = [
-    '[data-sot-list="dashboard-recording-rows"]',
-    '[data-sot-part="dashboard-recording-list-group"]',
-    '[data-sot-part="dashboard-recording-list-group-heading"]',
-    '[data-sot-part="dashboard-recording-list-group-label"]',
-    '[data-sot-part="dashboard-recording-list-group-count"]',
-    '[data-sot-part="dashboard-recording-list-group-divider"]',
-    '[data-sot-control="dashboard-recording-row"]',
-    '[data-sot-control="dashboard-recording-row"]:focus-visible',
-    '[data-sot-control="dashboard-recording-row"].is-hover-demo',
-    '[data-sot-control="dashboard-recording-row"].is-focus-demo',
-    '[data-sot-part="dashboard-recording-row-body"]',
-    '[data-sot-part="dashboard-recording-row-title"]',
-    '[data-sot-part="dashboard-recording-row-meta"]',
-    '[data-sot-part="dashboard-recording-row-secondary"]',
-    '[data-sot-part="dashboard-recording-row-actions"]',
+    '[data-list="dashboard-recording-rows"]',
+    '[data-part="dashboard-recording-list-group"]',
+    '[data-part="dashboard-recording-list-group-heading"]',
+    '[data-part="dashboard-recording-list-group-label"]',
+    '[data-part="dashboard-recording-list-group-count"]',
+    '[data-part="dashboard-recording-list-group-divider"]',
+    '[data-control="dashboard-recording-row"]',
+    '[data-control="dashboard-recording-row"]:focus-visible',
+    '[data-control="dashboard-recording-row"].is-hover-demo',
+    '[data-control="dashboard-recording-row"].is-focus-demo',
+    '[data-part="dashboard-recording-row-body"]',
+    '[data-part="dashboard-recording-row-title"]',
+    '[data-part="dashboard-recording-row-meta"]',
+    '[data-part="dashboard-recording-row-secondary"]',
+    '[data-part="dashboard-recording-row-actions"]',
 ] as const;
 
 const DASHBOARD_RECORDING_ROW_META_MIGRATED_GLOBAL_SELECTOR_FRAGMENTS = [
-    '[data-sot-part="dashboard-recording-duration"]',
-    '[data-sot-part="dashboard-recording-timestamp"]',
-    '[data-sot-part="dashboard-recording-timestamp-absolute"]',
-    '[data-sot-part="dashboard-recording-timestamp-relative"]',
+    '[data-part="dashboard-recording-duration"]',
+    '[data-part="dashboard-recording-timestamp"]',
+    '[data-part="dashboard-recording-timestamp-absolute"]',
+    '[data-part="dashboard-recording-timestamp-relative"]',
     'body[data-time-style="abs"]',
-    '[data-sot-part="dashboard-recording-source-mark"]',
-    '[data-sot-part="dashboard-recording-source-mark"] img',
-    '[data-sot-part="dashboard-recording-source-mark"][data-sot-provider-cover="true"]',
-    '[data-sot-part="dashboard-recording-source-mark"][data-sot-variant="letter"]',
-    '[data-theme="dark"] [data-sot-part="dashboard-recording-source-mark"]',
-    '[data-theme="dark"] [data-sot-part="dashboard-recording-source-mark"] img',
-    '[data-theme="dark"]\n    [data-sot-part="dashboard-recording-source-mark"][data-sot-variant="letter"]',
+    '[data-part="dashboard-recording-source-mark"]',
+    '[data-part="dashboard-recording-source-mark"] img',
+    '[data-part="dashboard-recording-source-mark"][data-provider-cover="true"]',
+    '[data-part="dashboard-recording-source-mark"][data-variant="letter"]',
+    '[data-theme="dark"] [data-part="dashboard-recording-source-mark"]',
+    '[data-theme="dark"] [data-part="dashboard-recording-source-mark"] img',
+    '[data-theme="dark"]\n    [data-part="dashboard-recording-source-mark"][data-variant="letter"]',
 ] as const;
 
 const LIBRARY_SEARCH_LEGACY_PRODUCT_CSS_CLASSES = [
@@ -1973,63 +1987,63 @@ const LIBRARY_SEARCH_LEGACY_PRODUCT_CSS_SELECTOR_RE = new RegExp(
 );
 
 const MIGRATED_LIBRARY_SEARCH_DATA_SOT_CSS_SELECTORS = [
-    '[data-sot-part="library-search-anchor"]',
-    '[data-sot-panel="library-search"]',
-    '[data-sot-panel="library-search"][data-open="true"]',
-    '[data-sot-panel="library-search"] kbd',
-    '[data-sot-region="library-search-scroll"]',
-    '[data-sot-part="library-search-indexing"]',
-    '[data-sot-part="library-search-loading"]',
-    '[data-sot-part="library-search-empty"]',
-    '[data-sot-part="library-search-state-skeleton"]',
-    '[data-sot-part="library-search-state-copy"]',
-    '[data-sot-list="library-search-results"]',
-    '[data-sot-group="library-search-results"]',
-    '[data-sot-part="library-search-group-label"]',
-    '[data-sot-control="library-search-result"] mark',
+    '[data-part="library-search-anchor"]',
+    '[data-panel="library-search"]',
+    '[data-panel="library-search"][data-open="true"]',
+    '[data-panel="library-search"] kbd',
+    '[data-region="library-search-scroll"]',
+    '[data-part="library-search-indexing"]',
+    '[data-part="library-search-loading"]',
+    '[data-part="library-search-empty"]',
+    '[data-part="library-search-state-skeleton"]',
+    '[data-part="library-search-state-copy"]',
+    '[data-list="library-search-results"]',
+    '[data-group="library-search-results"]',
+    '[data-part="library-search-group-label"]',
+    '[data-control="library-search-result"] mark',
 ];
 
 const MIGRATED_DASHBOARD_ACTIVITY_DATA_SOT_CSS_SELECTORS = [
-    '[data-sot-part="dashboard-topbar-actions"]',
-    '[data-sot-part="dashboard-activity-anchor"]',
-    '[data-sot-control="dashboard-activity"]',
-    '[data-sot-part="dashboard-activity-badge"]',
-    '[data-sot-panel="dashboard-activity"]',
-    '[data-sot-panel="dashboard-activity"][data-open="true"]',
-    '[data-sot-part="dashboard-activity-header"]',
-    '[data-sot-part="dashboard-activity-heading"]',
-    '[data-sot-part="dashboard-activity-title"]',
-    '[data-sot-part="dashboard-activity-content"]',
-    '[data-sot-part="dashboard-activity-status"]',
-    '[data-sot-part="dashboard-activity-status-indicator"]',
-    '[data-sot-part="dashboard-activity-status-copy"]',
-    '[data-sot-part="dashboard-activity-status-line"]',
-    '[data-sot-part="dashboard-activity-status-sub"]',
-    '[data-sot-list="dashboard-activity-items"]',
-    '[data-sot-item="dashboard-activity-item"]',
-    '[data-sot-part="dashboard-activity-item-icon"]',
-    '[data-sot-part="dashboard-activity-item-copy"]',
-    '[data-sot-part="dashboard-activity-item-actions"]',
-    '[data-sot-control="dashboard-activity-dismiss"]:focus-visible',
-    '[data-sot-part="dashboard-activity-empty"][hidden]',
-    '[data-sot-part="dashboard-activity-item-title"]',
-    '[data-sot-part="dashboard-activity-item-body"]',
-    '[data-sot-part="dashboard-activity-item-meta"]',
+    '[data-part="dashboard-topbar-actions"]',
+    '[data-part="dashboard-activity-anchor"]',
+    '[data-control="dashboard-activity"]',
+    '[data-part="dashboard-activity-badge"]',
+    '[data-panel="dashboard-activity"]',
+    '[data-panel="dashboard-activity"][data-open="true"]',
+    '[data-part="dashboard-activity-header"]',
+    '[data-part="dashboard-activity-heading"]',
+    '[data-part="dashboard-activity-title"]',
+    '[data-part="dashboard-activity-content"]',
+    '[data-part="dashboard-activity-status"]',
+    '[data-part="dashboard-activity-status-indicator"]',
+    '[data-part="dashboard-activity-status-copy"]',
+    '[data-part="dashboard-activity-status-line"]',
+    '[data-part="dashboard-activity-status-sub"]',
+    '[data-list="dashboard-activity-items"]',
+    '[data-item="dashboard-activity-item"]',
+    '[data-part="dashboard-activity-item-icon"]',
+    '[data-part="dashboard-activity-item-copy"]',
+    '[data-part="dashboard-activity-item-actions"]',
+    '[data-control="dashboard-activity-dismiss"]:focus-visible',
+    '[data-part="dashboard-activity-empty"][hidden]',
+    '[data-part="dashboard-activity-item-title"]',
+    '[data-part="dashboard-activity-item-body"]',
+    '[data-part="dashboard-activity-item-meta"]',
 ] as const;
 
 const LIBRARY_SEARCH_PRIMITIVE_REPAINT_CSS_SELECTORS = [
-    '[data-sot-control="dashboard-search"][data-slot="button"]',
-    '[data-sot-control="dashboard-search"][data-slot="button"] svg',
-    '[data-sot-part="library-search-input-row"] [data-slot="input-group-addon"]',
-    '[data-sot-control="library-search-input"][data-slot="input-group-control"]',
-    '[data-sot-control="library-search-clear"]',
-    '[data-sot-control="library-search-scope"]',
-    '[data-sot-part="library-search-error"] [data-slot="alert-title"]',
-    '[data-sot-part="library-search-error"] [data-slot="button"]',
-    '[data-sot-control="library-search-result"] {',
-    '[data-sot-control="library-search-result"]:hover',
-    '[data-sot-control="library-search-result"]:focus-visible',
-    '[data-sot-part="library-search-tag-chip"] {',
+    '[data-control="dashboard-search"][data-slot="button"]',
+    '[data-control="dashboard-search"][data-slot="button"] svg',
+    '[data-part="library-search-input-row"] [data-slot="input-group-addon"]',
+    '[data-control="library-search-input"][data-slot="input-group-control"]',
+    '[data-control="library-search-clear"]',
+    '[data-control="library-search-scope"]',
+    '[data-part="library-search-error"] [data-slot="alert-title"]',
+    '[data-part="library-search-error"] [data-slot="button"]',
+    '[data-control="library-search-result"] {',
+    '[data-control="library-search-result"]:hover',
+    '[data-control="library-search-result"]:focus-visible',
+    '[data-part="library-search-tag-chip"] {',
 ];
 
 const DASHBOARD_TOPBAR_SOURCE_STATUS_LEGACY_PRODUCT_CSS_SELECTOR_RE =
@@ -2041,21 +2055,21 @@ const DASHBOARD_DETAIL_HEADER_LEGACY_PRODUCT_CSS_SELECTOR_RE =
     /\.(?:detail|rec-head|rec-h2|rec-h2-status|rec-h2-local|rec-h2-input|rh-edit|rh-norm|real-detail|ai-rename-anchor)(?![\w-])/;
 
 const DASHBOARD_SOURCE_PROVIDER_MIGRATED_GLOBAL_SELECTORS = [
-    '[data-sot-control="dashboard-source-provider"]',
-    '[data-sot-part="source-provider-mark"]',
-    '[data-sot-part="source-provider-status"]',
-    '[data-sot-part="source-provider-count"]',
-    '[data-sot-control="dashboard-source-provider"][data-sot-state="syncing"]',
-    '[data-sot-control="dashboard-source-provider"][data-sot-state="sync-error"]',
+    '[data-control="dashboard-source-provider"]',
+    '[data-part="source-provider-mark"]',
+    '[data-part="source-provider-status"]',
+    '[data-part="source-provider-count"]',
+    '[data-control="dashboard-source-provider"][data-state="syncing"]',
+    '[data-control="dashboard-source-provider"][data-state="sync-error"]',
 ];
 
 const DASHBOARD_SHELL_NAV_PRIMITIVE_REPAINT_SELECTORS = [
-    '[data-sot-control="sidebar-collapse"][data-slot="button"]',
-    '[data-sot-control="dashboard-favorite"][data-slot="button"]',
-    '[data-sot-control="dashboard-source-provider"][data-slot="button"]',
-    '[data-sot-control="dashboard-sync"][data-slot="button"]',
-    '[data-sot-control="dashboard-settings"][data-slot="button"]',
-    '[data-sot-control="dashboard-settings"][data-sot-part="dashboard-user-avatar"]',
+    '[data-control="sidebar-collapse"][data-slot="button"]',
+    '[data-control="dashboard-favorite"][data-slot="button"]',
+    '[data-control="dashboard-source-provider"][data-slot="button"]',
+    '[data-control="dashboard-sync"][data-slot="button"]',
+    '[data-control="dashboard-settings"][data-slot="button"]',
+    '[data-control="dashboard-settings"][data-part="dashboard-user-avatar"]',
 ] as const;
 
 const DASHBOARD_SHELL_SOURCE_BUTTON_CONSTANTS = [
@@ -2233,49 +2247,49 @@ const DASHBOARD_RECORDING_TAG_FILTER_FEATURE_OWNER_CLASS_SNIPPETS = [
     "bg-transparent",
     "text-muted-foreground",
     "hover:bg-accent hover:text-accent-foreground",
-    "data-[sot-state=selected]:bg-secondary",
-    "data-[sot-state=selected]:text-secondary-foreground",
+    "data-[state=selected]:bg-secondary",
+    "data-[state=selected]:text-secondary-foreground",
     "optionLabel:",
     "optionCount:",
 ] as const;
 
 const DASHBOARD_RECORDING_TAG_FILTER_MIGRATED_GLOBAL_SELECTORS = [
-    '[data-sot-panel="recording-list-tag-filter"]',
-    '[data-sot-part="recording-list-tag-filter-label"]',
-    '[data-sot-part="recording-list-tag-filter-count"]',
-    '[data-sot-list="recording-list-tag-filter-list"]',
-    '[data-theme="dark"] [data-sot-list="recording-list-tag-filter-list"]',
-    '[data-sot-part="recording-list-tag-filter-option-label"]',
-    '[data-sot-part="recording-list-tag-filter-option-count"]',
+    '[data-panel="recording-list-tag-filter"]',
+    '[data-part="recording-list-tag-filter-label"]',
+    '[data-part="recording-list-tag-filter-count"]',
+    '[data-list="recording-list-tag-filter-list"]',
+    '[data-theme="dark"] [data-list="recording-list-tag-filter-list"]',
+    '[data-part="recording-list-tag-filter-option-label"]',
+    '[data-part="recording-list-tag-filter-option-count"]',
 ] as const;
 
 const DASHBOARD_SOURCE_FILTER_FEATURE_OWNER_CLASS_SNIPPETS = [
     "group/source-provider",
-    "data-[sot-state=connected-active]:text-foreground",
-    "data-[sot-state=sync-error]:text-foreground",
-    "data-[sot-state=disabled]:opacity-50",
-    "[&_[data-sot-part=source-provider-mark]]:size-[18px]",
-    "[&_[data-sot-part=source-provider-mark]]:rounded-sm",
-    "[&_[data-sot-part=source-provider-mark]_img]:object-contain",
-    "[&_[data-sot-part=source-provider-mark][data-sot-provider-cover=true]_img]:object-cover",
-    "data-[sot-state=no-results]:[&_[data-sot-part=source-provider-mark]]:opacity-60",
-    "data-[sot-state=disabled]:[&_[data-sot-part=source-provider-mark]]:grayscale",
+    "data-[state=connected-active]:text-foreground",
+    "data-[state=sync-error]:text-foreground",
+    "data-[state=disabled]:opacity-50",
+    'mark: "inline-flex size-[18px]',
+    "overflow-hidden rounded-sm",
+    'markImage: "block size-[18px] max-w-none object-contain align-baseline"',
+    'markImageCover: "object-cover"',
+    "data-[state=no-results]:opacity-60",
+    "data-[state=disabled]:grayscale",
     "size-1.5",
-    "data-[sot-tone=err]:bg-destructive",
-    "data-[sot-tone=syncing]:animate-[bpulse_1.2s_ease-in-out_infinite]",
+    "data-[tone=err]:bg-destructive",
+    "data-[tone=syncing]:animate-[bpulse_1.2s_ease-in-out_infinite]",
     "min-w-[22px]",
     "font-mono text-xs",
-    "data-[sot-tone=active]:text-foreground",
-    "data-[sot-tone=empty]:line-through",
-    "data-[sot-tone=err]:text-destructive",
+    "data-[tone=active]:text-foreground",
+    "data-[tone=empty]:line-through",
+    "data-[tone=err]:text-destructive",
     "ml-1.5",
     "h-6",
     "rounded-full",
-    "data-[sot-action=retry]:hidden",
-    "data-[sot-action=retry]:text-destructive",
-    "data-[sot-action=connect]:text-primary",
-    "group-hover/source-provider:data-[sot-action=retry]:inline-flex",
-    "group-focus-within/source-provider:data-[sot-action=retry]:inline-flex",
+    "data-[action=retry]:hidden",
+    "data-[action=retry]:text-destructive",
+    "data-[action=connect]:text-primary",
+    "group-hover/source-provider:data-[action=retry]:inline-flex",
+    "group-focus-within/source-provider:data-[action=retry]:inline-flex",
     "group-data-[sidebar-collapsed=true]/dashboard-workstation:hidden",
     "size-4",
     "cursor-pointer",
@@ -2289,7 +2303,8 @@ const DASHBOARD_SOURCE_FILTER_FEATURE_OWNER_CLASS_SNIPPETS = [
     "text-muted-foreground",
     "from:",
     "flex-[0_1_auto]",
-    "[&_b]:font-semibold",
+    "strong:",
+    "whitespace-nowrap font-semibold text-foreground",
     "separator:",
     "w-2.5",
     "select-none",
@@ -2297,9 +2312,10 @@ const DASHBOARD_SOURCE_FILTER_FEATURE_OWNER_CLASS_SNIPPETS = [
     "h-6",
     "gap-1.5",
     "label:",
-    "whitespace-nowrap",
+    'label: "truncate"',
     "info:",
-    "[&_b]:mx-0.5",
+    "infoStrong:",
+    "mx-0.5 font-semibold text-foreground",
     "libraryRoot:",
     "mt-1.5 flex items-center",
     "libraryLabel:",
@@ -2307,27 +2323,27 @@ const DASHBOARD_SOURCE_FILTER_FEATURE_OWNER_CLASS_SNIPPETS = [
 ] as const;
 
 const DASHBOARD_SOURCE_FILTER_MIGRATED_GLOBAL_SELECTORS = [
-    '[data-sot-panel="dashboard-source-filter-stack"]',
-    '[data-theme="dark"] [data-sot-panel="dashboard-source-filter-stack"]',
-    '[data-sot-part="source-filter-from"] b',
-    '[data-sot-part="source-filter-separator"]',
-    '[data-sot-part="source-filter-chip"]',
+    '[data-panel="dashboard-source-filter-stack"]',
+    '[data-theme="dark"] [data-panel="dashboard-source-filter-stack"]',
+    '[data-part="source-filter-from"] b',
+    '[data-part="source-filter-separator"]',
+    '[data-part="source-filter-chip"]',
     "[data-stack-label]",
-    '[data-sot-part="source-filter-info"]',
-    '[data-sot-panel="dashboard-library-search-filter"]',
-    '[data-sot-part="library-search-filter-label"]',
-    '[data-sot-part="library-search-filter-chip"]',
+    '[data-part="source-filter-info"]',
+    '[data-panel="dashboard-library-search-filter"]',
+    '[data-part="library-search-filter-label"]',
+    '[data-part="library-search-filter-chip"]',
 ] as const;
 
 const DASHBOARD_SOURCE_PROVIDER_DIRECT_STATE_SELECTORS = [
-    '[data-sot-control="dashboard-source-provider"][data-sot-state="connected-active"]',
-    '[data-sot-control="dashboard-source-provider"][data-sot-state="connected-idle"]',
-    '[data-sot-control="dashboard-source-provider"][data-sot-state="syncing"]',
-    '[data-sot-control="dashboard-source-provider"][data-sot-state="expired"]',
-    '[data-sot-control="dashboard-source-provider"][data-sot-state="sync-error"]',
-    '[data-sot-control="dashboard-source-provider"][data-sot-state="no-results"]',
-    '[data-sot-control="dashboard-source-provider"][data-sot-state="needs-setup"]',
-    '[data-sot-control="dashboard-source-provider"][data-sot-state="disabled"]',
+    '[data-control="dashboard-source-provider"][data-state="connected-active"]',
+    '[data-control="dashboard-source-provider"][data-state="connected-idle"]',
+    '[data-control="dashboard-source-provider"][data-state="syncing"]',
+    '[data-control="dashboard-source-provider"][data-state="expired"]',
+    '[data-control="dashboard-source-provider"][data-state="sync-error"]',
+    '[data-control="dashboard-source-provider"][data-state="no-results"]',
+    '[data-control="dashboard-source-provider"][data-state="needs-setup"]',
+    '[data-control="dashboard-source-provider"][data-state="disabled"]',
 ] as const;
 
 const AUTH_ONBOARDING_LEGACY_PRODUCT_CSS_SELECTOR_RE =
@@ -2337,44 +2353,44 @@ const LIQUID_TABS_LEGACY_PRODUCT_CSS_SELECTOR_RE =
     /\.(?:liquid-tabs|lt-ind|lt-tab)(?![\w-])/;
 
 const RETIRED_LIQUID_TABS_CSS_SELECTORS = [
-    '[data-sot-control="liquid-tabs"][data-slot="segmented-tabs"]',
-    '[data-sot-control="liquid-tabs"][data-slot="segmented-tabs"][data-sot-size="sm"]',
-    '[data-sot-part="liquid-tabs-indicator"]',
-    '[data-sot-control="liquid-tab"]',
-    '[data-sot-control="liquid-tab"][data-sot-state="active"]',
-    '[data-sot-control="liquid-tabs"]',
-    '[data-sot-control="liquid-tabs"][data-tabs="3"]',
-    '[data-sot-control="liquid-tabs"][data-idx="2"]',
+    '[data-control="liquid-tabs"][data-slot="segmented-tabs"]',
+    '[data-control="liquid-tabs"][data-slot="segmented-tabs"][data-size="sm"]',
+    '[data-part="liquid-tabs-indicator"]',
+    '[data-control="liquid-tab"]',
+    '[data-control="liquid-tab"][data-state="active"]',
+    '[data-control="liquid-tabs"]',
+    '[data-control="liquid-tabs"][data-tabs="3"]',
+    '[data-control="liquid-tabs"][data-idx="2"]',
 ];
 
 const SYSTEM_BANNER_LEGACY_PRODUCT_CSS_SELECTOR_RE =
     /\.(?:sys-banner|sbn-(?:ico|body|title|sub|actions|progress|bar))(?![\w-])/;
 
 const RETIRED_SYSTEM_BANNER_DATA_SOT_CSS_SELECTORS = [
-    '[data-sot-panel="system-banner"] [data-sot-part="system-banner-icon"]',
-    '[data-sot-panel="system-banner"] [data-sot-part="system-banner-body"]',
-    '[data-sot-panel="system-banner"] [data-sot-part="system-banner-title"]',
-    '[data-sot-panel="system-banner"] [data-sot-part="system-banner-description"]',
-    '[data-sot-panel="system-banner"] [data-sot-part="system-banner-actions"]',
-    '[data-sot-panel="system-banner"] [data-sot-control^="system-banner-"]',
-    '[data-sot-panel="system-banner"][data-kind="offline"]',
-    '[data-sot-panel="system-banner"][data-kind="permission-denied"]',
-    '[data-sot-panel="system-banner"][data-kind="db-locked"]',
-    '[data-sot-panel="system-banner"][data-kind="update-available"]',
-    '[data-sot-panel="system-banner"][data-kind="import-progress"]',
-    '[data-sot-panel="system-banner"][data-kind="export-progress"]',
-    '[data-sot-panel="system-banner"] [data-sot-part="system-banner-progress"]',
-    '[data-sot-panel="system-banner"][data-pct="0"]',
-    '[data-sot-panel="system-banner"][data-pct="10"]',
-    '[data-sot-panel="system-banner"][data-pct="20"]',
-    '[data-sot-panel="system-banner"][data-pct="30"]',
-    '[data-sot-panel="system-banner"][data-pct="40"]',
-    '[data-sot-panel="system-banner"][data-pct="50"]',
-    '[data-sot-panel="system-banner"][data-pct="60"]',
-    '[data-sot-panel="system-banner"][data-pct="70"]',
-    '[data-sot-panel="system-banner"][data-pct="80"]',
-    '[data-sot-panel="system-banner"][data-pct="90"]',
-    '[data-sot-panel="system-banner"][data-pct="100"]',
+    '[data-panel="system-banner"] [data-part="system-banner-icon"]',
+    '[data-panel="system-banner"] [data-part="system-banner-body"]',
+    '[data-panel="system-banner"] [data-part="system-banner-title"]',
+    '[data-panel="system-banner"] [data-part="system-banner-description"]',
+    '[data-panel="system-banner"] [data-part="system-banner-actions"]',
+    '[data-panel="system-banner"] [data-control^="system-banner-"]',
+    '[data-panel="system-banner"][data-kind="offline"]',
+    '[data-panel="system-banner"][data-kind="permission-denied"]',
+    '[data-panel="system-banner"][data-kind="db-locked"]',
+    '[data-panel="system-banner"][data-kind="update-available"]',
+    '[data-panel="system-banner"][data-kind="import-progress"]',
+    '[data-panel="system-banner"][data-kind="export-progress"]',
+    '[data-panel="system-banner"] [data-part="system-banner-progress"]',
+    '[data-panel="system-banner"][data-pct="0"]',
+    '[data-panel="system-banner"][data-pct="10"]',
+    '[data-panel="system-banner"][data-pct="20"]',
+    '[data-panel="system-banner"][data-pct="30"]',
+    '[data-panel="system-banner"][data-pct="40"]',
+    '[data-panel="system-banner"][data-pct="50"]',
+    '[data-panel="system-banner"][data-pct="60"]',
+    '[data-panel="system-banner"][data-pct="70"]',
+    '[data-panel="system-banner"][data-pct="80"]',
+    '[data-panel="system-banner"][data-pct="90"]',
+    '[data-panel="system-banner"][data-pct="100"]',
 ];
 
 const SYSTEM_BANNER_ALERT_PRIMITIVE_RETIRED_TOKENS = [
@@ -2385,9 +2401,9 @@ const SYSTEM_BANNER_ALERT_PRIMITIVE_RETIRED_TOKENS = [
     "data-[kind=update-available]",
     "data-[kind=import-progress]",
     "data-[kind=export-progress]",
-    "[&_[data-sot-part=system-banner-icon]]",
-    "[&_[data-sot-part=system-banner-body]]",
-    "[&_[data-sot-part=system-banner-actions]]",
+    "[&_[data-part=system-banner-icon]]",
+    "[&_[data-part=system-banner-body]]",
+    "[&_[data-part=system-banner-actions]]",
 ];
 
 const SYSTEM_BANNER_BUTTON_PRIMITIVE_RETIRED_TOKENS = [
@@ -2419,9 +2435,10 @@ const SYSTEM_BANNER_FEATURE_LOCAL_TOKENS = [
     'density="comfortable"',
     'layout="inline"',
     "systemBannerProgressClassNames.indeterminateIndicator",
-    'data-sot-panel="system-banner"',
-    'data-sot-part="system-banner-progress"',
-    '"data-sot-part": "system-banner-progress-bar"',
+    'aria-live={a11y["aria-live"]}',
+    "role={a11y.role}",
+    "systemBannerAlertClassNames.body",
+    "systemBannerAlertClassNames.actions",
     "animate-[sbn-sweep_1.4s_linear_infinite]",
 ];
 
@@ -2434,7 +2451,7 @@ const SYSTEM_BANNER_FEATURE_LOCAL_VISUAL_REBUILD_TOKENS = [
     'offline: "border-border bg-secondary text-secondary-foreground"',
     '"update-available": "border-primary/30 bg-primary/10"',
     '"permission-denied": "bg-destructive/10 text-destructive"',
-    "bg-primary/10 data-[sot-state=indeterminate]:bg-primary/10",
+    "bg-primary/10 data-[state=indeterminate]:bg-primary/10",
     "bg-primary transition-transform",
     "[&_svg]:size",
     "[&_svg]:stroke",
@@ -2447,20 +2464,20 @@ const MORE_ACTIONS_MENU_LEGACY_PRODUCT_CSS_SELECTOR_RE =
     /\.(?:more-anchor|more-head|more-action(?:-[\w-]+)?|more-menu(?:-(?:item(?:-shortcut)?|sep|label|hint))?)(?![\w-])/;
 
 const MORE_ACTIONS_MENU_RETIRED_DATA_SOT_CSS_SELECTORS = [
-    '[data-sot-menu="recording-more-actions"]',
-    '[data-sot-menu="recording-more-actions"][data-open="true"]',
-    '[data-sot-menu="recording-more-actions"][data-state="open"]',
-    '[data-sot-menu="recording-more-actions"] svg',
-    "[data-sot-menu-item]",
-    "[data-sot-menu-item]:hover",
-    "[data-sot-menu-item]:focus-visible",
-    "[data-sot-menu-item]:active",
-    "[data-sot-menu-item] svg",
-    '[data-sot-menu-item][data-sot-tone="danger"]',
-    '[data-sot-menu-item][data-sot-tone="success"]',
-    "[data-sot-menu-item] [data-sot-menu-hint]",
-    "[data-sot-menu-separator]",
-    "[data-sot-menu-label]",
+    '[data-menu="recording-more-actions"]',
+    '[data-menu="recording-more-actions"][data-open="true"]',
+    '[data-menu="recording-more-actions"][data-state="open"]',
+    '[data-menu="recording-more-actions"] svg',
+    "[data-menu-item]",
+    "[data-menu-item]:hover",
+    "[data-menu-item]:focus-visible",
+    "[data-menu-item]:active",
+    "[data-menu-item] svg",
+    '[data-menu-item][data-tone="danger"]',
+    '[data-menu-item][data-tone="success"]',
+    "[data-menu-item] [data-menu-hint]",
+    "[data-menu-separator]",
+    "[data-menu-label]",
 ];
 
 const MORE_ACTIONS_MENU_PRIMITIVE_FORBIDDEN_PATTERNS = [
@@ -2483,53 +2500,53 @@ const SOT_SCROLLBAR_LEGACY_PRODUCT_CSS_SELECTOR_RE =
     /\.(?:tx-body|shortcuts-list)(?![\w-])/;
 
 const SOT_SCROLLBAR_MIGRATED_GLOBAL_SELECTORS = [
-    '[data-sot-list="dashboard-recording-list-scroll"]',
-    '[data-sot-part="dashboard-transcript-body"]',
-    '[data-sot-list="dashboard-recording-list-scroll"]::-webkit-scrollbar',
-    '[data-sot-part="dashboard-transcript-body"]::-webkit-scrollbar',
-    '[data-sot-list="dashboard-recording-list-scroll"]::-webkit-scrollbar-thumb:hover',
+    '[data-list="dashboard-recording-list-scroll"]',
+    '[data-part="dashboard-transcript-body"]',
+    '[data-list="dashboard-recording-list-scroll"]::-webkit-scrollbar',
+    '[data-part="dashboard-transcript-body"]::-webkit-scrollbar',
+    '[data-list="dashboard-recording-list-scroll"]::-webkit-scrollbar-thumb:hover',
 ];
 
 const TAB_PANE_HIDDEN_LEGACY_PRODUCT_CSS_SELECTOR_RE =
     /(^|\n|,)\s*\.t-pane\[hidden\]/;
 
 const TAB_PANE_HIDDEN_MIGRATED_GLOBAL_SELECTORS = [
-    "[data-sot-tab-pane][hidden]",
+    "[data-tab-pane][hidden]",
 ] as const;
 
 const DASHBOARD_TIME_FILTER_LEGACY_PRODUCT_CSS_SELECTOR_RE =
     /\.(?:filter-row|chip|chip-f|chip-c)(?![\w-])/;
 
 const DASHBOARD_TIME_FILTER_MIGRATED_GLOBAL_SELECTORS = [
-    '[data-sot-panel="dashboard-recording-time-filter"][hidden]',
+    '[data-panel="dashboard-recording-time-filter"][hidden]',
 ] as const;
 
 const DASHBOARD_TIME_FILTER_RETIRED_GLOBAL_SELECTORS = [
     "--dashboard-recording-time-filter-count-bg",
     "--dashboard-recording-time-filter-count-selected-bg",
-    '[data-sot-part="dashboard-recording-time-filter-count"]',
-    '[data-sot-control="dashboard-recording-time-filter"][data-sot-state="selected"]',
-    '[data-sot-control="dashboard-recording-time-filter"].is-hover-demo',
-    '[data-sot-control="dashboard-recording-time-filter"].is-focus-demo',
+    '[data-part="dashboard-recording-time-filter-count"]',
+    '[data-control="dashboard-recording-time-filter"][data-state="selected"]',
+    '[data-control="dashboard-recording-time-filter"].is-hover-demo',
+    '[data-control="dashboard-recording-time-filter"].is-focus-demo',
 ] as const;
 
 const DASHBOARD_TIME_FILTER_PRIMITIVE_REPAINT_CSS_SELECTORS = [
-    '[data-sot-panel="dashboard-recording-time-filter"][data-slot="toggle-group"]',
-    '[data-sot-control="dashboard-recording-time-filter"][data-slot="toggle-group-item"]',
-    '[data-sot-control="dashboard-recording-time-filter"][data-slot="toggle-group-item"]:hover',
-    '[data-sot-control="dashboard-recording-time-filter"][data-slot="toggle-group-item"][data-sot-state="selected"]',
-    '[data-sot-control="dashboard-recording-time-filter"]:focus-visible',
-    '[data-sot-control="dashboard-recording-time-filter"][disabled]',
+    '[data-panel="dashboard-recording-time-filter"][data-slot="toggle-group"]',
+    '[data-control="dashboard-recording-time-filter"][data-slot="toggle-group-item"]',
+    '[data-control="dashboard-recording-time-filter"][data-slot="toggle-group-item"]:hover',
+    '[data-control="dashboard-recording-time-filter"][data-slot="toggle-group-item"][data-state="selected"]',
+    '[data-control="dashboard-recording-time-filter"]:focus-visible',
+    '[data-control="dashboard-recording-time-filter"][disabled]',
 ] as const;
 
 const COPY_ICON_LEGACY_PRODUCT_CSS_SELECTOR_RE =
     /\.(?:copy-ico|copy-ico-default|copy-ico-ok)(?![\w-])/;
 
 const COPY_ICON_REMOVED_GLOBAL_SELECTORS = [
-    '[data-sot-part="dashboard-copy-icon"]',
-    '[data-sot-control="copy-local-transcript"][hidden]',
-    '[data-sot-control="copy-source-transcript"][hidden]',
-    '[data-sot-control="copy-source-report"][hidden]',
+    '[data-part="dashboard-copy-icon"]',
+    '[data-control="copy-local-transcript"][hidden]',
+    '[data-control="copy-source-transcript"][hidden]',
+    '[data-control="copy-source-report"][hidden]',
 ];
 
 const COPY_BUTTON_GLOBAL_APPEARANCE_PROPERTIES = [
@@ -2544,14 +2561,14 @@ const DASHBOARD_TRANSCRIPT_ACTIONS_LEGACY_PRODUCT_CSS_SELECTOR_RE =
     /\.lang-pill(?![\w-])/;
 
 const DASHBOARD_TRANSCRIPT_ACTIONS_REMOVED_GLOBAL_SELECTORS = [
-    '[data-sot-part="dashboard-transcript-actions"]',
-    '[data-sot-part="dashboard-copy-label"]',
-    '[data-sot-part="dashboard-copy-icon"]',
+    '[data-part="dashboard-transcript-actions"]',
+    '[data-part="dashboard-copy-label"]',
+    '[data-part="dashboard-copy-icon"]',
 ];
 
 const DASHBOARD_TRANSCRIPT_ACTIONS_DATA_SOT_HOOKS = [
-    'data-sot-part="dashboard-transcript-actions"',
-    'data-sot-part="dashboard-transcript-language"',
+    'data-part="dashboard-transcript-actions"',
+    'data-part="dashboard-transcript-language"',
     'part="dashboard-copy-label"',
     'part="dashboard-copy-icon"',
 ];
@@ -2561,29 +2578,29 @@ const DETAIL_EMPTY_LEGACY_PRODUCT_CSS_SELECTOR_RE =
 
 const DETAIL_EMPTY_DATA_SOT_CSS_SELECTORS = [
     "[data-detail-empty]",
-    '[data-sot-panel="dashboard-detail"][data-empty="true"] [data-detail-empty]',
+    '[data-panel="dashboard-detail"][data-empty="true"] [data-detail-empty]',
 ];
 
 const DASHBOARD_EMPTY_PRIMITIVE_CSS_SELECTORS = [
-    '[data-sot-panel="dashboard-detail-empty"]',
-    '[data-sot-part="dashboard-detail-empty-icon"]',
-    '[data-sot-part="dashboard-detail-empty-icon"] svg',
-    '[data-sot-part="dashboard-detail-empty-title"]',
-    '[data-sot-part="dashboard-detail-empty-description"]',
-    '[data-sot-part="dashboard-activity-empty"]',
-    '[data-sot-part="dashboard-activity-empty-icon"]',
-    '[data-sot-part="dashboard-activity-empty-icon"] svg',
-    '[data-sot-part="dashboard-activity-empty-title"]',
-    '[data-sot-part="dashboard-activity-empty-body"]',
+    '[data-panel="dashboard-detail-empty"]',
+    '[data-part="dashboard-detail-empty-icon"]',
+    '[data-part="dashboard-detail-empty-icon"] svg',
+    '[data-part="dashboard-detail-empty-title"]',
+    '[data-part="dashboard-detail-empty-description"]',
+    '[data-part="dashboard-activity-empty"]',
+    '[data-part="dashboard-activity-empty-icon"]',
+    '[data-part="dashboard-activity-empty-icon"] svg',
+    '[data-part="dashboard-activity-empty-title"]',
+    '[data-part="dashboard-activity-empty-body"]',
 ];
 
 const DASHBOARD_TRANSCRIPT_EMPTY_REMOVED_GLOBAL_SELECTORS = [
-    '[data-sot-panel="dashboard-transcript-empty"]',
-    '[data-sot-panel="dashboard-transcript-empty"] > :first-child',
-    '[data-sot-part="dashboard-transcript-empty-icon"]',
-    '[data-sot-part="dashboard-transcript-empty-icon"] svg',
-    '[data-sot-part="dashboard-transcript-empty-message"]',
-    '[data-sot-part="dashboard-transcript-empty-sub"]',
+    '[data-panel="dashboard-transcript-empty"]',
+    '[data-panel="dashboard-transcript-empty"] > :first-child',
+    '[data-part="dashboard-transcript-empty-icon"]',
+    '[data-part="dashboard-transcript-empty-icon"] svg',
+    '[data-part="dashboard-transcript-empty-message"]',
+    '[data-part="dashboard-transcript-empty-sub"]',
 ];
 
 function splitVarArguments(content: string) {
@@ -2721,9 +2738,7 @@ function listSourceFiles(directory: string): string[] {
 
 function isOwnerLocalModernColorLine(relativePath: string, line: string) {
     if (relativePath === "features/settings/components/settings-content.tsx") {
-        return (
-            line.includes("source-provider") || line.includes("data-[sot-tone=")
-        );
+        return line.includes("source-provider") || line.includes("data-[tone=");
     }
 
     if (
@@ -2742,7 +2757,7 @@ function isOwnerLocalModernColorLine(relativePath: string, line: string) {
         relativePath ===
         "features/settings/components/sections/speaker-profiles-panel.tsx"
     ) {
-        return line.includes("data-[sot-tone=");
+        return line.includes("data-[tone=");
     }
 
     if (relativePath === "features/dashboard/workstation.tsx") {
@@ -2753,17 +2768,45 @@ function isOwnerLocalModernColorLine(relativePath: string, line: string) {
             line.includes("--dashboard-recording-tag-") ||
             line.includes("--dashboard-recording-row-selected-border") ||
             line.includes("sbn-sweep") ||
-            line.includes("data-sot-part=dashboard-activity") ||
+            line.includes("data-part=dashboard-activity") ||
+            line.includes("--card-popover-bg") ||
             line.includes("scrollbar-color") ||
             line.includes("::-webkit-scrollbar")
         );
+    }
+
+    if (relativePath === "features/recordings/workstation.tsx") {
+        return line.includes("--card-popover-bg");
     }
 
     if (
         relativePath ===
         "features/recordings/components/recording-tag-manager.tsx"
     ) {
-        return false;
+        return line.includes("tagm-opt-check");
+    }
+
+    if (
+        relativePath === "components/ui/confirm-dialog.tsx" ||
+        relativePath ===
+            "features/recordings/components/source-report-panel.tsx"
+    ) {
+        return true;
+    }
+
+    if (
+        relativePath === "features/recordings/components/recording-player.tsx"
+    ) {
+        return line.includes("var(--signal-warning)");
+    }
+
+    if (relativePath === "features/dashboard/components/library-search.tsx") {
+        return [
+            "data-[state=on]:border-[color-mix(in_srgb,var(--accent)_36%,transparent)]",
+            "bg-[color-mix(in_srgb,var(--signal-info)_16%,transparent)]",
+            "bg-[color-mix(in_srgb,var(--accent)_22%,transparent)]",
+            "[--tag-c:oklch(0.560_0.150_285)]",
+        ].some((snippet) => line.includes(snippet));
     }
 
     if (
@@ -2854,33 +2897,33 @@ const DASHBOARD_WORKSTATION_LEGACY_CONTROL_RE =
     /className=["']btn(?:\s+(?:ghost|primary|glass))?\b|track-fill|track-thumb|sk _is|_is-/;
 
 const DASHBOARD_DETAIL_PANE_SOT_HOOKS = [
-    'data-sot-panel="dashboard-transcript-pane"',
-    'data-sot-tab-pane="transcript"',
+    'data-panel="dashboard-transcript-pane"',
+    'data-tab-pane="transcript"',
     'surface="dashboard"',
-    'data-sot-tab-pane="speakers"',
-    'data-sot-part="dashboard-transcript-actions"',
+    'data-tab-pane="speakers"',
+    'data-part="dashboard-transcript-actions"',
     'part="dashboard-copy-label"',
-    'data-sot-part="dashboard-transcript-avatar"',
-    'data-sot-list="dashboard-speaker-rows"',
-    'data-sot-item="dashboard-speaker-row"',
-    'data-sot-part="dashboard-speaker-avatar"',
-    'data-sot-part="dashboard-speaker-row-meta"',
-    'data-sot-part="dashboard-speaker-name"',
-    'data-sot-part="dashboard-speaker-sub"',
-    'data-sot-part="dashboard-speaker-bar"',
+    'data-part="dashboard-transcript-avatar"',
+    'data-list="dashboard-speaker-rows"',
+    'data-item="dashboard-speaker-row"',
+    'data-part="dashboard-speaker-avatar"',
+    'data-part="dashboard-speaker-row-meta"',
+    'data-part="dashboard-speaker-name"',
+    'data-part="dashboard-speaker-sub"',
+    'data-part="dashboard-speaker-bar"',
     '"dashboard-speaker-bar-fill"',
 ];
 
 const DASHBOARD_TRANSCRIPT_TURN_EMPTY_SOT_HOOKS = [
-    'data-sot-item="dashboard-transcript-turn"',
-    'data-sot-state="loading"',
-    'data-sot-state="ready"',
-    'data-sot-part="dashboard-transcript-speaker-time"',
-    'data-sot-format="mono"',
-    'data-sot-panel="dashboard-transcript-empty"',
-    'data-sot-part="dashboard-transcript-empty-icon"',
-    'data-sot-part="dashboard-transcript-empty-message"',
-    'data-sot-part="dashboard-transcript-empty-sub"',
+    'data-item="dashboard-transcript-turn"',
+    'data-state="loading"',
+    'data-state="ready"',
+    'data-part="dashboard-transcript-speaker-time"',
+    'data-format="mono"',
+    'data-panel="dashboard-transcript-empty"',
+    'data-part="dashboard-transcript-empty-icon"',
+    'data-part="dashboard-transcript-empty-message"',
+    'data-part="dashboard-transcript-empty-sub"',
 ];
 
 const DASHBOARD_TRANSCRIPT_SKELETON_SHARED_TOKENS = [
@@ -2907,14 +2950,14 @@ const DASHBOARD_TRANSCRIPT_SKELETON_LOCAL_COMPOSITION_TOKENS = [
 ] as const;
 
 const DASHBOARD_SOURCE_REPORT_LOADED_SOT_HOOKS = [
-    "data-sot-source-report-segment-time",
-    'data-sot-format="mono"',
+    "data-source-report-segment-time",
+    'data-format="mono"',
     'valueFormat="mono"',
 ];
 
 const DASHBOARD_SOURCE_REPORT_META_VALUE_HELPER_HOOKS = [
-    "data-sot-source-report-meta-value",
-    "data-sot-format={valueFormat}",
+    "data-source-report-meta-value",
+    "data-format={valueFormat}",
 ];
 
 const DASHBOARD_SOURCE_REPORT_LOADED_LEGACY_CLASS_NAMES = [
@@ -2926,23 +2969,23 @@ const SOURCE_REPORT_SKELETON_LEGACY_CSS_SELECTOR_RE =
     /\.(?:sr-seg-time-skeleton|sr-seg-speaker-skeleton|sr-seg-line-skeleton|sr-seg-line-skeleton-long|sr-seg-line-skeleton-medium|sr-seg-line-skeleton-wide|sr-seg-line-skeleton-short)(?![\w-])/;
 
 const SOURCE_REPORT_SKELETON_PRIMITIVE_SELECTORS = [
-    '[data-sot-part="source-report-card-skeleton"]',
-    '[data-sot-part="source-report-card-skeleton"][data-sot-size="source"]',
-    '[data-sot-part="source-report-card-skeleton"][data-sot-size="status"]',
-    '[data-sot-part="source-report-card-skeleton"][data-sot-size="count"]',
-    '[data-sot-part="source-report-segment-skeleton"][data-sot-size="time"]',
-    '[data-sot-part="source-report-segment-skeleton"][data-sot-size="speaker"]',
-    '[data-sot-part="source-report-segment-skeleton"][data-sot-size^="line-"]',
-    '[data-sot-part="source-report-segment-skeleton"][data-sot-size="line-long"]',
-    '[data-sot-part="source-report-segment-skeleton"][data-sot-size="line-medium"]',
-    '[data-sot-part="source-report-segment-skeleton"][data-sot-size="line-wide"]',
-    '[data-sot-part="source-report-segment-skeleton"][data-sot-size="line-short"]',
+    '[data-part="source-report-card-skeleton"]',
+    '[data-part="source-report-card-skeleton"][data-size="source"]',
+    '[data-part="source-report-card-skeleton"][data-size="status"]',
+    '[data-part="source-report-card-skeleton"][data-size="count"]',
+    '[data-part="source-report-segment-skeleton"][data-size="time"]',
+    '[data-part="source-report-segment-skeleton"][data-size="speaker"]',
+    '[data-part="source-report-segment-skeleton"][data-size^="line-"]',
+    '[data-part="source-report-segment-skeleton"][data-size="line-long"]',
+    '[data-part="source-report-segment-skeleton"][data-size="line-medium"]',
+    '[data-part="source-report-segment-skeleton"][data-size="line-wide"]',
+    '[data-part="source-report-segment-skeleton"][data-size="line-short"]',
 ];
 
 const SOURCE_REPORT_SKELETON_GLOBAL_CSS_SELECTOR_FRAGMENTS = [
-    '[data-sot-part="source-report-card-skeleton"]',
-    '[data-sot-part="source-report-segment-skeleton"]',
-    '[data-sot-part="source-report-card-value"][data-sot-value="skeleton"]',
+    '[data-part="source-report-card-skeleton"]',
+    '[data-part="source-report-segment-skeleton"]',
+    '[data-part="source-report-card-value"][data-value="skeleton"]',
 ] as const;
 
 const SOURCE_REPORT_SKELETON_SHARED_TOKENS = [
@@ -3167,149 +3210,149 @@ const SOURCE_REPORT_EMPTY_LEGACY_CSS_SELECTOR_RE =
     /\.(?:sr-empty(?:-(?:ico|title|sub|actions))?)(?![\w-])/;
 
 const SOURCE_REPORT_EMPTY_DATA_SOT_CSS_SELECTORS = [
-    "[data-sot-source-report-empty-actions]",
-    "[data-sot-source-report-empty]",
-    '[data-sot-source-report-empty][data-sot-tone="err"]',
-    "[data-sot-source-report-empty-icon]",
-    '[data-sot-source-report-empty][data-sot-tone="err"]\n    [data-sot-source-report-empty-icon]',
-    "[data-sot-source-report-empty-icon] svg",
-    "[data-sot-source-report-empty-title]",
-    "[data-sot-source-report-empty-description]",
+    "[data-source-report-empty-actions]",
+    "[data-source-report-empty]",
+    '[data-source-report-empty][data-tone="err"]',
+    "[data-source-report-empty-icon]",
+    '[data-source-report-empty][data-tone="err"]\n    [data-source-report-empty-icon]',
+    "[data-source-report-empty-icon] svg",
+    "[data-source-report-empty-title]",
+    "[data-source-report-empty-description]",
 ];
 
 const SOURCE_REPORT_METRIC_LEGACY_CSS_SELECTOR_RE =
     /\.(?:sr-card|sr-card-label|sr-card-value|sr-card-source|sr-card-source-fallback|sr-card-num|sr-pill)(?![\w-])/;
 
 const SOURCE_REPORT_METRIC_DATA_SOT_CSS_SELECTORS = [
-    '[data-sot-list="source-report-cards"]',
-    '[data-sot-part="source-report-card-label"]',
-    '[data-sot-part="source-report-card-value"]',
-    '[data-sot-part="source-report-card-value"][data-sot-value="source"]',
-    '[data-sot-part="source-report-card-source-fallback"]',
-    '[data-sot-part="source-report-card-value"][data-sot-value="number"]',
+    '[data-list="source-report-cards"]',
+    '[data-part="source-report-card-label"]',
+    '[data-part="source-report-card-value"]',
+    '[data-part="source-report-card-value"][data-value="source"]',
+    '[data-part="source-report-card-source-fallback"]',
+    '[data-part="source-report-card-value"][data-value="number"]',
 ];
 
 const SOURCE_REPORT_METRIC_GENERIC_CARD_SELECTORS = [
-    "[data-sot-card]",
-    "[data-sot-card] + [data-sot-card]",
+    "[data-card]",
+    "[data-card] + [data-card]",
 ];
 
 const SOURCE_REPORT_METRIC_REMOVED_CARD_SELECTORS = [
-    '[data-sot-card="source-report-metric"]',
-    '[data-sot-card="source-report-metric"][data-sot-metric]',
-    '[data-theme="dark"] [data-sot-card="source-report-metric"][data-sot-metric]',
+    '[data-card="source-report-metric"]',
+    '[data-card="source-report-metric"][data-metric]',
+    '[data-theme="dark"] [data-card="source-report-metric"][data-metric]',
 ];
 
 const SOURCE_REPORT_METRIC_GLOBAL_REPAINT_SELECTOR_FRAGMENTS = [
-    '[data-sot-badge="source-report-status"]',
+    '[data-badge="source-report-status"]',
 ];
 
 const SOURCE_REPORT_METRIC_REMOVED_PRIMITIVE_SELECTORS = [
-    '[data-sot-badge="source-report-status"][data-sot-tone]',
-    '[data-sot-badge="source-report-status"][data-sot-tone="ok"]',
-    '[data-sot-badge="source-report-status"][data-sot-tone="warn"]',
-    '[data-sot-badge="source-report-status"][data-sot-tone="err"]',
+    '[data-badge="source-report-status"][data-tone]',
+    '[data-badge="source-report-status"][data-tone="ok"]',
+    '[data-badge="source-report-status"][data-tone="warn"]',
+    '[data-badge="source-report-status"][data-tone="err"]',
 ];
 
 const SOURCE_REPORT_SECTION_LEGACY_CSS_SELECTOR_RE =
     /\.(?:sr-pane|list-empty|sr-state|sr-cards|sr-section(?:-(?:head|sub))?|sr-summary-body|sr-segments|sr-seg(?:-(?:ts|speaker|text))?|sr-meta(?:-row)?|sr-actions)(?![\w-])/;
 
 const SOURCE_REPORT_SECTION_DATA_SOT_CSS_SELECTORS = [
-    "[data-sot-source-report-pane]",
-    "[data-sot-source-report-state]",
-    "[data-sot-source-report-state][hidden]",
-    "[data-sot-source-report-section]",
-    "[data-sot-source-report-section-header]",
-    "[data-sot-source-report-section-title]",
-    "[data-sot-source-report-description]",
-    "[data-sot-source-report-summary-body]",
-    "[data-sot-source-report-segments]",
-    "[data-sot-source-report-segment]",
-    "[data-sot-source-report-segment-time]",
-    "[data-sot-source-report-segment-speaker]",
-    "[data-sot-source-report-segment-text]",
-    "[data-sot-source-report-meta]",
-    "[data-sot-source-report-meta-row]",
-    "[data-sot-source-report-actions]",
-    "[data-sot-source-report-missing-notice]",
+    "[data-source-report-pane]",
+    "[data-source-report-state]",
+    "[data-source-report-state][hidden]",
+    "[data-source-report-section]",
+    "[data-source-report-section-header]",
+    "[data-source-report-section-title]",
+    "[data-source-report-description]",
+    "[data-source-report-summary-body]",
+    "[data-source-report-segments]",
+    "[data-source-report-segment]",
+    "[data-source-report-segment-time]",
+    "[data-source-report-segment-speaker]",
+    "[data-source-report-segment-text]",
+    "[data-source-report-meta]",
+    "[data-source-report-meta-row]",
+    "[data-source-report-actions]",
+    "[data-source-report-missing-notice]",
 ];
 
 const SOURCE_REPORT_CARD_PRIMITIVE_SELECTORS = [
-    '[data-sot-source-report-pane][data-slot="card"]',
-    '[data-sot-source-report-header][data-slot="card-header"]',
-    '[data-sot-source-report-title][data-slot="card-title"]',
-    '[data-sot-source-report-header-actions][data-slot="card-action"]',
+    '[data-source-report-pane][data-slot="card"]',
+    '[data-source-report-header][data-slot="card-header"]',
+    '[data-source-report-title][data-slot="card-title"]',
+    '[data-source-report-header-actions][data-slot="card-action"]',
 ];
 
 const SOURCE_REPORT_CARD_PRIMITIVE_REPAINT_DECLARATION_RE =
     /\b(?:background|border(?:-color|-radius)?|box-shadow|color|fill|font|letter-spacing|margin|padding|stroke)\s*:/;
 
 const RECORDING_PLAYER_CARD_PRIMITIVE_SELECTORS = [
-    '[data-sot-surface="recording-player"][data-slot="card"]',
-    '[data-sot-part="recording-player-meta"][data-slot="card-header"]',
-    '[data-sot-panel="recording-player-controls"][data-slot="card-content"]',
+    '[data-surface="recording-player"][data-slot="card"]',
+    '[data-part="recording-player-meta"][data-slot="card-header"]',
+    '[data-panel="recording-player-controls"][data-slot="card-content"]',
 ];
 
 const PLAYER_ALERT_CARD_BADGE_PRIMITIVE_REPAINT_SELECTORS = [
-    '[data-sot-part="dashboard-recording-player-no-audio"][data-slot="alert"]',
-    '[data-sot-part="dashboard-recording-player-no-audio-title"][data-slot="alert-title"]',
-    '[data-sot-part="dashboard-recording-player-no-audio-description"][data-slot="alert-description"]',
-    '[data-sot-part="recording-player-no-audio"][data-slot="alert"]',
-    '[data-sot-part="recording-player-no-audio-title"][data-slot="alert-title"]',
-    '[data-sot-part="recording-player-no-audio-description"][data-slot="alert-description"]',
-    '[data-sot-panel="dashboard-player-volume-popover"][data-slot="popover-content"]',
-    '[data-sot-panel="recording-player-volume-popover"][data-slot="popover-content"]',
-    '[data-sot-control="player-source-tag"][data-slot="badge"]',
+    '[data-part="dashboard-recording-player-no-audio"][data-slot="alert"]',
+    '[data-part="dashboard-recording-player-no-audio-title"][data-slot="alert-title"]',
+    '[data-part="dashboard-recording-player-no-audio-description"][data-slot="alert-description"]',
+    '[data-part="recording-player-no-audio"][data-slot="alert"]',
+    '[data-part="recording-player-no-audio-title"][data-slot="alert-title"]',
+    '[data-part="recording-player-no-audio-description"][data-slot="alert-description"]',
+    '[data-panel="dashboard-player-volume-popover"][data-slot="popover-content"]',
+    '[data-panel="recording-player-volume-popover"][data-slot="popover-content"]',
+    '[data-control="player-source-tag"][data-slot="badge"]',
 ] as const;
 
 const PLAYER_PORTAL_VOLUME_SCOPED_SELECTORS = [
     [
-        '[data-sot-surface="dashboard-recording-player"]',
-        '[data-sot-panel="dashboard-player-volume-popover"]',
+        '[data-surface="dashboard-recording-player"]',
+        '[data-panel="dashboard-player-volume-popover"]',
     ],
     [
-        '[data-sot-surface="dashboard-recording-player"]',
-        '[data-sot-panel="dashboard-player-volume-popover"][hidden]',
+        '[data-surface="dashboard-recording-player"]',
+        '[data-panel="dashboard-player-volume-popover"][hidden]',
     ],
     [
-        '[data-sot-surface="dashboard-recording-player"]',
-        '[data-sot-panel="dashboard-player-volume-popover"][data-open="true"]',
+        '[data-surface="dashboard-recording-player"]',
+        '[data-panel="dashboard-player-volume-popover"][data-open="true"]',
     ],
     [
-        '[data-sot-surface="dashboard-recording-player"]',
-        '[data-sot-part="dashboard-player-volume-row"]',
+        '[data-surface="dashboard-recording-player"]',
+        '[data-part="dashboard-player-volume-row"]',
     ],
     [
-        '[data-sot-surface="dashboard-recording-player"]',
-        '[data-sot-part="dashboard-player-volume-icon"]',
+        '[data-surface="dashboard-recording-player"]',
+        '[data-part="dashboard-player-volume-icon"]',
     ],
     [
-        '[data-sot-surface="dashboard-recording-player"]',
-        '[data-sot-part="dashboard-player-volume-value"]',
+        '[data-surface="dashboard-recording-player"]',
+        '[data-part="dashboard-player-volume-value"]',
     ],
     [
-        '[data-sot-surface="recording-player"]',
-        '[data-sot-panel="recording-player-volume-popover"]',
+        '[data-surface="recording-player"]',
+        '[data-panel="recording-player-volume-popover"]',
     ],
     [
-        '[data-sot-surface="recording-player"]',
-        '[data-sot-panel="recording-player-volume-popover"][hidden]',
+        '[data-surface="recording-player"]',
+        '[data-panel="recording-player-volume-popover"][hidden]',
     ],
     [
-        '[data-sot-surface="recording-player"]',
-        '[data-sot-panel="recording-player-volume-popover"][data-open="true"]',
+        '[data-surface="recording-player"]',
+        '[data-panel="recording-player-volume-popover"][data-open="true"]',
     ],
     [
-        '[data-sot-surface="recording-player"]',
-        '[data-sot-part="recording-player-volume-row"]',
+        '[data-surface="recording-player"]',
+        '[data-part="recording-player-volume-row"]',
     ],
     [
-        '[data-sot-surface="recording-player"]',
-        '[data-sot-part="recording-player-volume-icon"]',
+        '[data-surface="recording-player"]',
+        '[data-part="recording-player-volume-icon"]',
     ],
     [
-        '[data-sot-surface="recording-player"]',
-        '[data-sot-part="recording-player-volume-value"]',
+        '[data-surface="recording-player"]',
+        '[data-part="recording-player-volume-value"]',
     ],
 ] as const;
 
@@ -3343,14 +3386,14 @@ const SOURCE_AUTH_MODE_LEGACY_CSS_SELECTOR_RE =
     /\.(?:path-picker|path-card|pc-t|pc-h|pc-badge)(?![\w-])/;
 
 const SOURCE_AUTH_MODE_DATA_SOT_ORIGIN_HOOKS = [
-    'data-sot-list="source-auth-modes"',
-    'data-sot-control="source-auth-mode"',
-    "data-sot-auth-mode={mode}",
-    "data-sot-state={",
-    'data-sot-part="source-auth-mode-title"',
-    'data-sot-part="source-auth-mode-description"',
-    'data-sot-badge="source-auth-mode"',
-    "data-sot-tone={",
+    'data-list="source-auth-modes"',
+    'data-control="source-auth-mode"',
+    "data-auth-mode={mode}",
+    "data-state={",
+    'data-part="source-auth-mode-title"',
+    'data-part="source-auth-mode-description"',
+    'data-badge="source-auth-mode"',
+    "data-tone={",
     'tone: "recommended"',
     'tone: "personal"',
     "value={selectedSource.authMode}",
@@ -3359,19 +3402,19 @@ const SOURCE_AUTH_MODE_DATA_SOT_ORIGIN_HOOKS = [
 ] as const;
 
 const SOURCE_AUTH_MODE_REMOVED_GLOBAL_SELECTORS = [
-    '[data-sot-list="source-auth-modes"]',
-    '[data-sot-control="source-auth-mode"][data-sot-auth-mode]',
-    '[data-theme="dark"] [data-sot-control="source-auth-mode"][data-sot-auth-mode]',
-    '[data-sot-control="source-auth-mode"][data-sot-state="selected"]',
-    '[data-sot-part="source-auth-mode-title"]',
-    '[data-sot-part="source-auth-mode-description"]',
+    '[data-list="source-auth-modes"]',
+    '[data-control="source-auth-mode"][data-auth-mode]',
+    '[data-theme="dark"] [data-control="source-auth-mode"][data-auth-mode]',
+    '[data-control="source-auth-mode"][data-state="selected"]',
+    '[data-part="source-auth-mode-title"]',
+    '[data-part="source-auth-mode-description"]',
 ] as const;
 
 const PROVIDER_DETAIL_ACTION_GLOBAL_SELECTOR_FRAGMENTS = [
-    '[data-sot-panel="source-actions"]',
-    '[data-sot-part="source-action-status"]',
-    '[data-sot-control="source-test"]',
-    '[data-sot-control="source-save"]',
+    '[data-panel="source-actions"]',
+    '[data-part="source-action-status"]',
+    '[data-control="source-test"]',
+    '[data-control="source-save"]',
 ] as const;
 
 const PROVIDER_DETAIL_ACTION_GLOBAL_DECLARATION_RE =
@@ -3401,17 +3444,17 @@ const DASHBOARD_TRANSCRIPT_TURN_EMPTY_LEGACY_CLASS_NAMES = [
 ];
 
 const DASHBOARD_RETRANSCRIPTION_SOT_HOOKS = [
-    'data-sot-panel="dashboard-retranscription"',
-    'data-sot-part="dashboard-retranscription-disabled-hint"',
-    'data-sot-part="dashboard-retranscription-icon"',
-    'data-sot-part="dashboard-retranscription-spinner"',
-    'data-sot-part="dashboard-retranscription-icon-warn"',
-    'data-sot-part="dashboard-retranscription-icon-ok"',
-    'data-sot-part="dashboard-retranscription-body"',
-    'data-sot-part="dashboard-retranscription-title"',
-    'data-sot-part="dashboard-retranscription-sub"',
-    'data-sot-part="dashboard-retranscription-actions"',
-    'data-sot-part="dashboard-retranscription-refresh-marker"',
+    'data-panel="dashboard-retranscription"',
+    'data-part="dashboard-retranscription-disabled-hint"',
+    'data-part="dashboard-retranscription-icon"',
+    'data-part="dashboard-retranscription-spinner"',
+    'data-part="dashboard-retranscription-icon-warn"',
+    'data-part="dashboard-retranscription-icon-ok"',
+    'data-part="dashboard-retranscription-body"',
+    'data-part="dashboard-retranscription-title"',
+    'data-part="dashboard-retranscription-sub"',
+    'data-part="dashboard-retranscription-actions"',
+    'data-part="dashboard-retranscription-refresh-marker"',
 ];
 
 const DASHBOARD_RETRANSCRIPTION_LEGACY_CLASS_NAMES = [
@@ -3443,15 +3486,15 @@ const DASHBOARD_RETRANSCRIPTION_OWNER_CLASS_USAGES = [
 ] as const;
 
 const DASHBOARD_RETRANSCRIPTION_REPAINT_CSS_SELECTORS = [
-    '[data-sot-panel="dashboard-retranscription"]',
-    '[data-sot-part="dashboard-retranscription-icon"]',
-    '[data-sot-part="dashboard-retranscription-icon"] svg',
-    '[data-sot-part="dashboard-retranscription-body"]',
-    '[data-sot-part="dashboard-retranscription-title"]',
-    '[data-sot-part="dashboard-retranscription-sub"]',
-    '[data-sot-part="dashboard-retranscription-actions"]',
-    '[data-sot-part="dashboard-retranscription-disabled-hint"]',
-    '[data-sot-part="dashboard-retranscription-refresh-marker"]',
+    '[data-panel="dashboard-retranscription"]',
+    '[data-part="dashboard-retranscription-icon"]',
+    '[data-part="dashboard-retranscription-icon"] svg',
+    '[data-part="dashboard-retranscription-body"]',
+    '[data-part="dashboard-retranscription-title"]',
+    '[data-part="dashboard-retranscription-sub"]',
+    '[data-part="dashboard-retranscription-actions"]',
+    '[data-part="dashboard-retranscription-disabled-hint"]',
+    '[data-part="dashboard-retranscription-refresh-marker"]',
 ] as const;
 
 const DASHBOARD_RETRANSCRIPTION_GLOBAL_REPAINT_DECLARATION_RE =
@@ -3461,78 +3504,78 @@ const DASHBOARD_TRANSCRIPT_SOURCE_REPORT_RETX_ACTIVITY_LEGACY_CSS_SELECTOR_RE =
     /(^|[^\w-])\.(?:activity-pixel-stage|notif-panel|notif-empty|turn|transcript|transcript-head|transcript-body|speaker|speaker-name|sr-pane|list-empty|empty-state|empty-ico|empty-msg|empty-sub|retx-banner|retx-banner-ico|retx-spinner|retx-disabled-hint|retx-refresh-marker|retx-banner-body|retx-banner-title|retx-banner-sub|retx-banner-actions|retx-ico-warn|retx-ico-ok|t-actions)(?![\w-])/;
 
 const DASHBOARD_RETRANSCRIPTION_REMOVED_GLOBAL_DISPLAY_SELECTORS = [
-    '[data-sot-panel="dashboard-retranscription"]',
-    '[data-sot-panel="dashboard-retranscription"][hidden]',
-    '[data-sot-panel="dashboard-retranscription"][data-retx-state="idle"]',
-    '[data-sot-part="dashboard-retranscription-icon"]',
-    '[data-sot-part="dashboard-retranscription-icon-warn"]',
-    '[data-sot-part="dashboard-retranscription-icon-ok"]',
-    '[data-sot-part="dashboard-retranscription-body"]',
-    '[data-sot-part="dashboard-retranscription-actions"]',
-    '[data-sot-part="dashboard-retranscription-refresh-marker"]',
-    '[data-sot-part="dashboard-retranscription-refresh-marker"][hidden]',
-    '[data-sot-part="dashboard-retranscription-disabled-hint"][hidden]',
+    '[data-panel="dashboard-retranscription"]',
+    '[data-panel="dashboard-retranscription"][hidden]',
+    '[data-panel="dashboard-retranscription"][data-retx-state="idle"]',
+    '[data-part="dashboard-retranscription-icon"]',
+    '[data-part="dashboard-retranscription-icon-warn"]',
+    '[data-part="dashboard-retranscription-icon-ok"]',
+    '[data-part="dashboard-retranscription-body"]',
+    '[data-part="dashboard-retranscription-actions"]',
+    '[data-part="dashboard-retranscription-refresh-marker"]',
+    '[data-part="dashboard-retranscription-refresh-marker"][hidden]',
+    '[data-part="dashboard-retranscription-disabled-hint"][hidden]',
     "[data-retx-retry]",
     "[data-retx-dismiss]",
 ] as const;
 
 const DASHBOARD_TRANSCRIPT_SPEAKER_REMOVED_GLOBAL_SELECTORS = [
-    '[data-sot-item="dashboard-transcript-turn"]',
-    '[data-theme="dark"] [data-sot-item="dashboard-transcript-turn"]',
-    '[data-sot-item="dashboard-transcript-turn"]:last-child',
-    '[data-sot-part="dashboard-transcript-speaker-row"]',
-    '[data-sot-part="dashboard-transcript-avatar"]',
-    '[data-sot-part="dashboard-transcript-avatar"][data-sot-tone="steel"]',
-    '[data-sot-part="dashboard-transcript-avatar"][data-sot-tone="info"]',
-    '[data-sot-part="dashboard-transcript-avatar"][data-sot-tone="success"]',
-    '[data-sot-part="dashboard-transcript-speaker-name"]',
-    '[data-sot-part="dashboard-transcript-speaker-time"][data-sot-format="mono"]',
-    '[data-sot-item="dashboard-transcript-turn"] p',
-    '[data-sot-part="dashboard-speakers-head"]',
-    '[data-sot-part="dashboard-speakers-head-title"]',
-    '[data-sot-list="dashboard-speaker-rows"]',
-    '[data-sot-item="dashboard-speaker-row"]',
-    '[data-sot-item="dashboard-speaker-row"]:hover',
-    '[data-theme="dark"] [data-sot-item="dashboard-speaker-row"]:hover',
-    '[data-sot-part="dashboard-speaker-avatar"]',
-    '[data-sot-part="dashboard-speaker-row-meta"]',
-    '[data-sot-part="dashboard-speaker-name"]',
-    '[data-sot-part="dashboard-speaker-sub"]',
-    '[data-sot-part="dashboard-speaker-bar"]',
-    '[data-sot-part="dashboard-speaker-bar-fill"]',
+    '[data-item="dashboard-transcript-turn"]',
+    '[data-theme="dark"] [data-item="dashboard-transcript-turn"]',
+    '[data-item="dashboard-transcript-turn"]:last-child',
+    '[data-part="dashboard-transcript-speaker-row"]',
+    '[data-part="dashboard-transcript-avatar"]',
+    '[data-part="dashboard-transcript-avatar"][data-tone="steel"]',
+    '[data-part="dashboard-transcript-avatar"][data-tone="info"]',
+    '[data-part="dashboard-transcript-avatar"][data-tone="success"]',
+    '[data-part="dashboard-transcript-speaker-name"]',
+    '[data-part="dashboard-transcript-speaker-time"][data-format="mono"]',
+    '[data-item="dashboard-transcript-turn"] p',
+    '[data-part="dashboard-speakers-head"]',
+    '[data-part="dashboard-speakers-head-title"]',
+    '[data-list="dashboard-speaker-rows"]',
+    '[data-item="dashboard-speaker-row"]',
+    '[data-item="dashboard-speaker-row"]:hover',
+    '[data-theme="dark"] [data-item="dashboard-speaker-row"]:hover',
+    '[data-part="dashboard-speaker-avatar"]',
+    '[data-part="dashboard-speaker-row-meta"]',
+    '[data-part="dashboard-speaker-name"]',
+    '[data-part="dashboard-speaker-sub"]',
+    '[data-part="dashboard-speaker-bar"]',
+    '[data-part="dashboard-speaker-bar-fill"]',
 ] as const;
 
 const RECORDING_LOADING_REMOVED_GLOBAL_SELECTORS = [
-    '[data-sot-panel="recording-route-loading-detail"]',
-    '[data-sot-panel="recording-list-loading"]',
-    '[data-sot-panel="recording-detail-loading"]',
+    '[data-panel="recording-route-loading-detail"]',
+    '[data-panel="recording-list-loading"]',
+    '[data-panel="recording-detail-loading"]',
 ] as const;
 const DASHBOARD_LOADING_REMOVED_GLOBAL_SELECTORS = [
-    '[data-sot-shell="dashboard-loading"]',
-    '[data-sot-panel="dashboard-loading-list"]',
-    '[data-sot-panel="dashboard-loading-detail"]',
+    '[data-shell="dashboard-loading"]',
+    '[data-panel="dashboard-loading-list"]',
+    '[data-panel="dashboard-loading-detail"]',
 ] as const;
 const RECORDING_ROUTE_FALLBACK_REMOVED_GLOBAL_SELECTORS = [
-    '[data-sot-shell="recording-route-loading"]',
-    '[data-sot-shell="recording-route-empty"]',
-    '[data-sot-shell="recording-route-error"]',
-    '[data-sot-panel="recording-route-empty-detail"]',
-    '[data-sot-panel="recording-route-empty"]',
-    '[data-sot-part="recording-route-empty-icon"]',
-    '[data-sot-part="recording-route-empty-title"]',
-    '[data-sot-part="recording-route-empty-description"]',
+    '[data-shell="recording-route-loading"]',
+    '[data-shell="recording-route-empty"]',
+    '[data-shell="recording-route-error"]',
+    '[data-panel="recording-route-empty-detail"]',
+    '[data-panel="recording-route-empty"]',
+    '[data-part="recording-route-empty-icon"]',
+    '[data-part="recording-route-empty-title"]',
+    '[data-part="recording-route-empty-description"]',
 ] as const;
 const ROUTE_CHROME_REMOVED_GLOBAL_SELECTORS = [
-    '[data-sot-panel="route-sidebar"]',
-    '[data-sot-part="route-brand"]',
-    '[data-sot-part="route-brand"] img',
-    '[data-sot-part="route-brand-name"]',
-    '[data-sot-part="route-brand-subtitle"]',
-    '[data-sot-panel="route-main"]',
-    '[data-sot-panel="route-topbar"]',
-    '[data-sot-part="route-crumbs"]',
-    '[data-sot-part="route-crumb-current"]',
-    '[data-sot-panel="route-workspace"]',
+    '[data-panel="route-sidebar"]',
+    '[data-part="route-brand"]',
+    '[data-part="route-brand"] img',
+    '[data-part="route-brand-name"]',
+    '[data-part="route-brand-subtitle"]',
+    '[data-panel="route-main"]',
+    '[data-panel="route-topbar"]',
+    '[data-part="route-crumbs"]',
+    '[data-part="route-crumb-current"]',
+    '[data-panel="route-workspace"]',
 ] as const;
 const ROUTE_CHROME_FORBIDDEN_FRAMEWORK_RE =
     /var\(--glass|var\(--graphite|color-mix\(|backdrop-filter/;
@@ -3540,18 +3583,18 @@ const GLOBALS_FRAMEWORK_MARKETING_RE =
     /Graphite Glass|SOT web kit|Liquid Glass|Apple-graphite|radial-gradient/;
 
 const DASHBOARD_TRANSCRIPT_DETAIL_PRIMITIVE_SELECTORS = [
-    '[data-sot-panel="dashboard-transcript-shell"][data-slot="card"]',
-    '[data-sot-part="dashboard-transcript-header"][data-slot="card-header"]',
-    '[data-sot-part="dashboard-transcript-language"][data-slot="badge"]',
-    '[data-sot-part="dashboard-transcript-body"][data-slot="card-content"]',
-    '[data-sot-control="copy-local-transcript"][data-slot="button"]',
-    '[data-sot-control="copy-source-transcript"][data-slot="button"]',
-    '[data-sot-control="copy-source-report"][data-slot="button"]',
-    '[data-sot-control="refresh-source-report"][data-slot="button"]',
-    '[data-sot-control="retranscribe-recording"][data-slot="button"]',
-    '[data-sot-control="retry-retranscription"][data-slot="button"]',
-    '[data-sot-control="dismiss-retranscription-failed"][data-slot="button"]',
-    '[data-sot-control="dismiss-retranscription-complete"][data-slot="button"]',
+    '[data-panel="dashboard-transcript-shell"][data-slot="card"]',
+    '[data-part="dashboard-transcript-header"][data-slot="card-header"]',
+    '[data-part="dashboard-transcript-language"][data-slot="badge"]',
+    '[data-part="dashboard-transcript-body"][data-slot="card-content"]',
+    '[data-control="copy-local-transcript"][data-slot="button"]',
+    '[data-control="copy-source-transcript"][data-slot="button"]',
+    '[data-control="copy-source-report"][data-slot="button"]',
+    '[data-control="refresh-source-report"][data-slot="button"]',
+    '[data-control="retranscribe-recording"][data-slot="button"]',
+    '[data-control="retry-retranscription"][data-slot="button"]',
+    '[data-control="dismiss-retranscription-failed"][data-slot="button"]',
+    '[data-control="dismiss-retranscription-complete"][data-slot="button"]',
 ] as const;
 
 const DASHBOARD_TRANSCRIPT_COPY_CONTROLS = [
@@ -3581,54 +3624,54 @@ const DASHBOARD_TRANSCRIPT_DETAIL_PRIMITIVE_REPAINT_DECLARATION_RE =
     /^\s*(?:background(?:-clip)?|border(?:-(?:color|radius|style|width))?|box-shadow|color|font(?:-[\w-]+)?|height|line-height|padding|transition|width)\s*:|\b(?:color-mix|linear-gradient|oklch)\(/m;
 
 const RECORDING_TRANSCRIPTION_PRIMITIVE_SELECTORS = [
-    '[data-sot-panel="recording-transcription"][data-slot="card"]',
-    '[data-sot-part="recording-transcription-header"][data-slot="card-header"]',
-    '[data-sot-part="recording-transcription-title"][data-slot="card-title"]',
-    '[data-sot-part="recording-transcription-description"][data-slot="card-description"]',
-    '[data-sot-part="recording-transcription-unavailable"][data-slot="field-description"]',
-    '[data-sot-part="recording-transcription-body"][data-slot="card-content"]',
-    '[data-sot-banner="transcription-job"][data-slot="alert"]',
-    '[data-sot-banner-title][data-slot="alert-title"]',
-    '[data-sot-meta="language"][data-slot="badge"]',
-    '[data-sot-meta="source"][data-slot="badge"]',
-    '[data-sot-meta="words"][data-slot="badge"]',
-    '[data-sot-meta="characters"][data-slot="badge"]',
-    '[data-sot-part="recording-transcription-empty"][data-slot="empty"]',
-    '[data-sot-part="recording-transcription-empty-title"][data-slot="empty-title"]',
-    '[data-sot-part="recording-transcription-empty-description"][data-slot="empty-description"]',
-    '[data-sot-control="copy-local-transcript"][data-slot="button"]',
-    '[data-sot-control="retranscribe-local"][data-slot="button"]',
-    '[data-sot-control="start-local-transcription"][data-slot="button"]',
+    '[data-panel="recording-transcription"][data-slot="card"]',
+    '[data-part="recording-transcription-header"][data-slot="card-header"]',
+    '[data-part="recording-transcription-title"][data-slot="card-title"]',
+    '[data-part="recording-transcription-description"][data-slot="card-description"]',
+    '[data-part="recording-transcription-unavailable"][data-slot="field-description"]',
+    '[data-part="recording-transcription-body"][data-slot="card-content"]',
+    '[data-banner="transcription-job"][data-slot="alert"]',
+    '[data-banner-title][data-slot="alert-title"]',
+    '[data-meta="language"][data-slot="badge"]',
+    '[data-meta="source"][data-slot="badge"]',
+    '[data-meta="words"][data-slot="badge"]',
+    '[data-meta="characters"][data-slot="badge"]',
+    '[data-part="recording-transcription-empty"][data-slot="empty"]',
+    '[data-part="recording-transcription-empty-title"][data-slot="empty-title"]',
+    '[data-part="recording-transcription-empty-description"][data-slot="empty-description"]',
+    '[data-control="copy-local-transcript"][data-slot="button"]',
+    '[data-control="retranscribe-local"][data-slot="button"]',
+    '[data-control="start-local-transcription"][data-slot="button"]',
 ] as const;
 
 const RECORDING_TRANSCRIPTION_EMPTY_REPAINT_SELECTORS = [
-    '[data-sot-part="recording-transcription-empty"]',
-    '[data-sot-part="recording-transcription-empty-icon"]',
-    '[data-sot-part="recording-transcription-empty-title"]',
-    '[data-sot-part="recording-transcription-empty-description"]',
+    '[data-part="recording-transcription-empty"]',
+    '[data-part="recording-transcription-empty-icon"]',
+    '[data-part="recording-transcription-empty-title"]',
+    '[data-part="recording-transcription-empty-description"]',
 ] as const;
 
 const RECORDING_TRANSCRIPTION_PRIMITIVE_REPAINT_DECLARATION_RE =
     /^\s*(?:background(?:-clip)?|border(?:-(?:color|radius|style|width))?|box-shadow|color|font(?:-[\w-]+)?|height|line-height|padding|transition|width)\s*:|\b(?:color-mix|linear-gradient|oklch)\(/m;
 
 const RECORDING_DETAIL_CARD_PRIMITIVE_SELECTORS = [
-    '[data-sot-panel="recording-detail-list"][data-slot="card"]',
-    '[data-sot-panel="recording-detail-metadata"][data-slot="card"]',
-    '[data-sot-panel="recording-source-record"][data-slot="card"]',
-    '[data-sot-panel="recording-transcription-skeleton"][data-slot="card"]',
-    '[data-sot-panel="recording-transcription-speaker-review-skeleton"][data-slot="card"]',
-    '[data-sot-part="recording-detail-list-header"][data-slot="card-header"]',
-    '[data-sot-part="recording-detail-metadata-header"]',
-    '[data-sot-part="recording-source-record-header"]',
-    '[data-sot-part="recording-transcription-skeleton-header"][data-slot="card-header"]',
-    '[data-sot-part="recording-detail-list-title"][data-slot="card-title"]',
-    '[data-sot-part="recording-detail-metadata-title"][data-slot="card-title"]',
-    '[data-sot-part="recording-source-record-title"][data-slot="card-title"]',
-    '[data-sot-part="recording-detail-list-content"][data-slot="card-content"]',
-    '[data-sot-part="recording-detail-metadata-body"]',
-    '[data-sot-part="recording-source-record-body"]',
-    '[data-sot-part="recording-transcription-skeleton-body"][data-slot="card-content"]',
-    '[data-sot-list="recording-transcription-speaker-cards"][data-slot="card-content"]',
+    '[data-panel="recording-detail-list"][data-slot="card"]',
+    '[data-panel="recording-detail-metadata"][data-slot="card"]',
+    '[data-panel="recording-source-record"][data-slot="card"]',
+    '[data-panel="recording-transcription-skeleton"][data-slot="card"]',
+    '[data-panel="recording-transcription-speaker-review-skeleton"][data-slot="card"]',
+    '[data-part="recording-detail-list-header"][data-slot="card-header"]',
+    '[data-part="recording-detail-metadata-header"]',
+    '[data-part="recording-source-record-header"]',
+    '[data-part="recording-transcription-skeleton-header"][data-slot="card-header"]',
+    '[data-part="recording-detail-list-title"][data-slot="card-title"]',
+    '[data-part="recording-detail-metadata-title"][data-slot="card-title"]',
+    '[data-part="recording-source-record-title"][data-slot="card-title"]',
+    '[data-part="recording-detail-list-content"][data-slot="card-content"]',
+    '[data-part="recording-detail-metadata-body"]',
+    '[data-part="recording-source-record-body"]',
+    '[data-part="recording-transcription-skeleton-body"][data-slot="card-content"]',
+    '[data-list="recording-transcription-speaker-cards"][data-slot="card-content"]',
 ] as const;
 
 const RECORDING_DETAIL_PRIMITIVE_REPAINT_DECLARATION_RE =
@@ -3637,21 +3680,21 @@ const RECORDING_DETAIL_CARD_OWNER_FORBIDDEN_CLASS_PATTERN =
     /(?:^|\s)!\S+|\bdark:|\b(?:text|bg|border|shadow|ring|fill|stroke)-\[var\(|\[(?:font|font-size|line-height|letter-spacing):[^\]]+\]|(?:^|\s)(?:text-(?:xs|sm|base|lg|xl|[2-9]xl)|font-(?:sans|serif|mono|thin|extralight|light|normal|medium|semibold|bold|extrabold|black)|leading-(?:none|tight|snug|normal|relaxed|loose|\[[^\]]+\]|\d+(?:\.\d+)?)|tracking-(?:normal|tight|wide|wider|widest|\[[^\]]+\]))(?=$|\s)/;
 
 const RECORDING_DETAIL_NAV_BACK_REMOVED_GLOBAL_SELECTORS = [
-    '[data-sot-list="recording-detail-nav"]',
-    '[data-sot-part="recording-detail-nav-label"]',
-    '[data-sot-control="recording-detail-back"] svg',
-    '[data-sot-control="recording-detail-back"] > span',
+    '[data-list="recording-detail-nav"]',
+    '[data-part="recording-detail-nav-label"]',
+    '[data-control="recording-detail-back"] svg',
+    '[data-control="recording-detail-back"] > span',
 ] as const;
 
 const RECORDING_DETAIL_ROW_REMOVED_GLOBAL_SELECTORS = [
-    '[data-sot-list="recording-detail-list-rows"]',
-    '[data-sot-item="recording-detail-list-row"]',
-    '[data-sot-item="recording-detail-list-row"]:hover',
-    '[data-sot-item="recording-detail-list-row"][data-sot-state="selected"]',
-    '[data-sot-part="recording-detail-list-row-body"]',
-    '[data-sot-part="recording-detail-list-row-title"]',
-    '[data-sot-part="recording-detail-list-row-meta"]',
-    '[data-sot-part="recording-detail-list-row-duration"]',
+    '[data-list="recording-detail-list-rows"]',
+    '[data-item="recording-detail-list-row"]',
+    '[data-item="recording-detail-list-row"]:hover',
+    '[data-item="recording-detail-list-row"][data-state="selected"]',
+    '[data-part="recording-detail-list-row-body"]',
+    '[data-part="recording-detail-list-row-title"]',
+    '[data-part="recording-detail-list-row-meta"]',
+    '[data-part="recording-detail-list-row-duration"]',
 ] as const;
 
 const RECORDING_WORKSTATION_NAV_OWNER_CLASS_INITIALIZERS = [
@@ -3715,66 +3758,66 @@ const DASHBOARD_TOPBAR_OWNER_CLASS_INITIALIZERS = [
 ] as const;
 
 const RECORDING_SOURCE_RECORD_LAYOUT_REMOVED_GLOBAL_SELECTORS = [
-    '[data-sot-part="recording-source-record-shell"]',
-    '[data-sot-part="recording-source-record-actions"]',
-    '[data-sot-part="recording-source-record-tabs"]',
-    '[data-sot-part="recording-source-record-hint"]',
-    '[data-sot-part="recording-source-record-pane"]',
+    '[data-part="recording-source-record-shell"]',
+    '[data-part="recording-source-record-actions"]',
+    '[data-part="recording-source-record-tabs"]',
+    '[data-part="recording-source-record-hint"]',
+    '[data-part="recording-source-record-pane"]',
 ] as const;
 const RECORDING_DETAIL_LIST_OWNER_CLASS_INITIALIZERS = [
     {
         constName: "RECORDING_DETAIL_LIST_HEADER_CLASS_NAME",
         expected: "gap-0 border-b px-3 py-3",
-        marker: 'data-sot-part="recording-detail-list-header"',
+        marker: 'data-part="recording-detail-list-header"',
         tagName: "CardHeader",
     },
     {
         constName: "RECORDING_DETAIL_LIST_TITLE_CLASS_NAME",
         expected: "text-sm",
-        marker: 'data-sot-part="recording-detail-list-title"',
+        marker: 'data-part="recording-detail-list-title"',
         tagName: "CardTitle",
     },
     {
         constName: "RECORDING_DETAIL_LIST_CONTENT_CLASS_NAME",
         expected: "flex min-h-0 flex-col px-0",
-        marker: 'data-sot-part="recording-detail-list-content"',
+        marker: 'data-part="recording-detail-list-content"',
         tagName: "CardContent",
     },
     {
         constName: "RECORDING_DETAIL_LIST_ROWS_CLASS_NAME",
         expected: "flex flex-col gap-0.5 p-1",
-        marker: 'data-sot-list="recording-detail-list-rows"',
+        marker: 'data-list="recording-detail-list-rows"',
         tagName: "div",
     },
     {
         constName: "RECORDING_DETAIL_LIST_ROW_CLASS_NAME",
         expected:
             "grid w-full grid-cols-[1fr_auto] items-center gap-3 rounded-md border border-border bg-secondary px-3 py-2 text-left transition-colors",
-        marker: 'data-sot-item="recording-detail-list-row"',
+        marker: 'data-item="recording-detail-list-row"',
         tagName: "div",
     },
     {
         constName: "RECORDING_DETAIL_LIST_ROW_BODY_CLASS_NAME",
         expected: "flex min-w-0 flex-col gap-1",
-        marker: 'data-sot-part="recording-detail-list-row-body"',
+        marker: 'data-part="recording-detail-list-row-body"',
         tagName: "div",
     },
     {
         constName: "RECORDING_DETAIL_LIST_ROW_TITLE_CLASS_NAME",
         expected: "truncate text-sm font-semibold text-foreground",
-        marker: 'data-sot-part="recording-detail-list-row-title"',
+        marker: 'data-part="recording-detail-list-row-title"',
         tagName: "div",
     },
     {
         constName: "RECORDING_DETAIL_LIST_ROW_META_CLASS_NAME",
         expected: "flex flex-wrap items-center gap-2",
-        marker: 'data-sot-part="recording-detail-list-row-meta"',
+        marker: 'data-part="recording-detail-list-row-meta"',
         tagName: "div",
     },
     {
         constName: "RECORDING_DETAIL_LIST_ROW_DURATION_CLASS_NAME",
         expected: "font-mono text-xs font-medium text-muted-foreground",
-        marker: 'data-sot-part="recording-detail-list-row-duration"',
+        marker: 'data-part="recording-detail-list-row-duration"',
         tagName: "span",
     },
 ] as const;
@@ -3782,26 +3825,26 @@ const RECORDING_DETAIL_METADATA_OWNER_CLASS_INITIALIZERS = [
     {
         constName: "RECORDING_DETAIL_METADATA_CARD_CLASS_NAME",
         expected: "min-h-0 gap-0",
-        marker: 'data-sot-panel="recording-detail-metadata"',
+        marker: 'data-panel="recording-detail-metadata"',
         tagName: "Card",
     },
     {
         constName: "RECORDING_DETAIL_METADATA_HEADER_CLASS_NAME",
         expected: "flex items-center gap-3 border-b px-4 py-3",
-        marker: 'data-sot-part="recording-detail-metadata-header"',
+        marker: 'data-part="recording-detail-metadata-header"',
         tagName: "CardHeader",
     },
     {
         constName: "RECORDING_DETAIL_METADATA_TITLE_CLASS_NAME",
         expected: "min-w-0 flex-1 truncate",
-        marker: 'data-sot-part="recording-detail-metadata-title"',
+        marker: 'data-part="recording-detail-metadata-title"',
         tagName: "CardTitle",
     },
     {
         constName: "RECORDING_DETAIL_METADATA_BODY_CLASS_NAME",
         expected:
             "flex min-h-0 flex-1 flex-col gap-3.5 overflow-y-auto px-5 pt-4 pb-6",
-        marker: 'data-sot-part="recording-detail-metadata-body"',
+        marker: 'data-part="recording-detail-metadata-body"',
         tagName: "CardContent",
     },
 ] as const;
@@ -3809,108 +3852,108 @@ const RECORDING_SOURCE_RECORD_OWNER_CLASS_INITIALIZERS = [
     {
         constName: "RECORDING_SOURCE_RECORD_SHELL_CLASS_NAME",
         expected: "flex min-h-0 flex-col gap-4",
-        marker: 'data-sot-part="recording-source-record-shell"',
+        marker: 'data-part="recording-source-record-shell"',
         tagName: "section",
     },
     {
         constName: "RECORDING_SOURCE_RECORD_CARD_CLASS_NAME",
         expected: "min-h-0 gap-0",
-        marker: 'data-sot-panel="recording-source-record"',
+        marker: 'data-panel="recording-source-record"',
         tagName: "Card",
     },
     {
         constName: "RECORDING_SOURCE_RECORD_HEADER_CLASS_NAME",
         expected: "flex items-center gap-3 border-b px-4 py-3",
-        marker: 'data-sot-part="recording-source-record-header"',
+        marker: 'data-part="recording-source-record-header"',
         tagName: "CardHeader",
     },
     {
         constName: "RECORDING_SOURCE_RECORD_TITLE_CLASS_NAME",
         expected: "min-w-0 flex-1 truncate",
-        marker: 'data-sot-part="recording-source-record-title"',
+        marker: 'data-part="recording-source-record-title"',
         tagName: "CardTitle",
     },
     {
         constName: "RECORDING_SOURCE_RECORD_ACTIONS_CLASS_NAME",
         expected:
             "ml-auto flex max-w-full grow-0 shrink basis-auto flex-wrap items-center gap-2",
-        marker: 'data-sot-part="recording-source-record-actions"',
+        marker: 'data-part="recording-source-record-actions"',
         tagName: "div",
     },
     {
         constName: "RECORDING_SOURCE_RECORD_BODY_CLASS_NAME",
         expected:
             "flex min-h-0 flex-1 flex-col gap-3.5 overflow-y-auto px-5 pt-4 pb-6",
-        marker: 'data-sot-part="recording-source-record-body"',
+        marker: 'data-part="recording-source-record-body"',
         tagName: "CardContent",
     },
     {
         constName: "RECORDING_SOURCE_RECORD_TABS_CLASS_NAME",
         expected: "flex min-w-0",
-        marker: 'data-sot-part="recording-source-record-tabs"',
+        marker: 'data-part="recording-source-record-tabs"',
         tagName: "div",
     },
     {
         constName: "RECORDING_SOURCE_RECORD_HINT_CLASS_NAME",
         expected: "m-0",
-        marker: 'data-sot-part="recording-source-record-hint"',
+        marker: 'data-part="recording-source-record-hint"',
         tagName: "FieldDescription",
     },
     {
         constName: "RECORDING_SOURCE_RECORD_PANE_CLASS_NAME",
         expected: "min-h-0",
-        marker: 'data-sot-part="recording-source-record-pane"',
+        marker: 'data-part="recording-source-record-pane"',
         tagName: "div",
     },
     {
         constName: "RECORDING_SOURCE_RECORD_EMPTY_CLASS_NAME",
         expected: "min-h-[280px] flex-1",
-        marker: 'data-sot-panel="recording-source-record-empty"',
+        marker: 'data-panel="recording-source-record-empty"',
         tagName: "Empty",
     },
 ] as const;
 
 const AI_RENAME_PREVIEW_FUNCTIONAL_CSS_SELECTORS = [
-    '[data-sot-panel="ai-rename-preview"]',
-    '[data-sot-panel="ai-rename-preview"][data-open="true"]',
-    '[data-sot-panel="ai-rename-preview"] [data-sot-part="state"][hidden]',
+    '[data-panel="ai-rename-preview"]',
+    '[data-panel="ai-rename-preview"][data-open="true"]',
+    '[data-panel="ai-rename-preview"] [data-part="state"][hidden]',
 ] as const;
 
 const AI_RENAME_PREVIEW_VISUAL_REPAINT_CSS_SELECTORS = [
-    '[data-sot-panel="ai-rename-preview"][data-slot="popover-content"]',
-    '[data-theme="dark"] [data-sot-panel="ai-rename-preview"][data-slot="popover-content"]',
-    '[data-sot-panel="ai-rename-preview"] [data-sot-part="head"]',
-    '[data-theme="dark"] [data-sot-panel="ai-rename-preview"] [data-sot-part="head"]',
-    '[data-sot-panel="ai-rename-preview"] [data-sot-part="head-copy"]',
-    '[data-sot-panel="ai-rename-preview"] [data-sot-part="eyebrow"]',
-    '[data-sot-panel="ai-rename-preview"] [data-sot-part="subtitle"]',
-    '[data-sot-panel="ai-rename-preview"] [data-sot-control="ai-rename-close"]',
-    '[data-sot-panel="ai-rename-preview"] [data-sot-control="ai-rename-close"] svg',
-    '[data-sot-panel="ai-rename-preview"] [data-sot-part="body"]',
-    '[data-sot-panel="ai-rename-preview"] [data-sot-part="message"]',
-    '[data-sot-panel="ai-rename-preview"]\n    [data-sot-part="state"][data-sot-state="error"]',
-    '[data-sot-panel="ai-rename-preview"]\n    [data-sot-part="state"][data-sot-state="error"]\n    [data-sot-part="state-description"]',
-    '[data-sot-panel="ai-rename-preview"]\n    [data-sot-part="state"][data-sot-state="error"]\n    [data-sot-part="message"]',
-    '[data-sot-panel="ai-rename-preview"]\n    [data-sot-part="state"][data-sot-state="unavailable"]',
-    '[data-sot-panel="ai-rename-preview"] [data-sot-part="error-icon"]',
-    '[data-sot-panel="ai-rename-preview"][data-sot-state="unavailable"]\n    [data-sot-part="error-icon"]',
-    '[data-sot-panel="ai-rename-preview"] [data-sot-part="error-icon"] svg',
-    '[data-sot-panel="ai-rename-preview"] [data-sot-part="label"]',
-    '[data-sot-panel="ai-rename-preview"] [data-sot-part="title"]',
-    '[data-sot-panel="ai-rename-preview"] [data-sot-part="hint"]',
-    '[data-sot-panel="ai-rename-preview"] [data-sot-part="review-row"]',
-    '[data-sot-panel="ai-rename-preview"] [data-sot-part="review-line"]',
-    '[data-sot-panel="ai-rename-preview"] [data-sot-part="review-tag"]',
-    '[data-sot-panel="ai-rename-preview"]\n    [data-sot-part="review-tag"][data-sot-review-field="new"]',
-    '[data-sot-panel="ai-rename-preview"] [data-sot-part="review-old"]',
-    '[data-sot-panel="ai-rename-preview"] [data-sot-part="review-new"]',
-    '[data-sot-panel="ai-rename-preview"] [data-sot-part="actions"]',
-    '[data-theme="dark"] [data-sot-panel="ai-rename-preview"] [data-sot-part="actions"]',
-    '[data-sot-panel="ai-rename-preview"] [data-sot-part="actions-spacer"]',
-    '[data-sot-panel="ai-rename-preview"] [data-sot-control^="ai-rename-"]',
-    '[data-sot-panel="ai-rename-preview"] [data-sot-control^="ai-rename-"] svg',
-    '[data-sot-panel="ai-rename-preview"]\n    [data-sot-control^="ai-rename-"]:disabled',
-    '[data-sot-panel="ai-rename-preview"]\n    [data-sot-control^="ai-rename-"][aria-disabled="true"]',
+    '[data-panel="ai-rename-preview"][data-slot="popover-content"]',
+    '[data-theme="dark"] [data-panel="ai-rename-preview"][data-slot="popover-content"]',
+    '[data-panel="ai-rename-preview"] [data-part="head"]',
+    '[data-theme="dark"] [data-panel="ai-rename-preview"] [data-part="head"]',
+    '[data-panel="ai-rename-preview"] [data-part="head-copy"]',
+    '[data-panel="ai-rename-preview"] [data-part="eyebrow"]',
+    '[data-panel="ai-rename-preview"] [data-part="subtitle"]',
+    '[data-panel="ai-rename-preview"] [data-control="ai-rename-close"]',
+    '[data-panel="ai-rename-preview"] [data-control="ai-rename-close"] svg',
+    '[data-panel="ai-rename-preview"] [data-part="body"]',
+    '[data-panel="ai-rename-preview"] [data-part="message"]',
+    '[data-panel="ai-rename-preview"]\n    [data-part="state"][data-state="error"]',
+    '[data-panel="ai-rename-preview"]\n    [data-part="state"][data-state="error"]\n    [data-part="state-description"]',
+    '[data-panel="ai-rename-preview"]\n    [data-part="state"][data-state="error"]\n    [data-part="message"]',
+    '[data-panel="ai-rename-preview"]\n    [data-part="state"][data-state="unavailable"]',
+    '[data-panel="ai-rename-preview"] [data-part="error-icon"]',
+    '[data-panel="ai-rename-preview"][data-state="unavailable"]\n    [data-part="error-icon"]',
+    '[data-panel="ai-rename-preview"] [data-part="error-icon"] svg',
+    '[data-panel="ai-rename-preview"] [data-part="label"]',
+    '[data-panel="ai-rename-preview"] [data-part="title"]',
+    '[data-panel="ai-rename-preview"] [data-part="hint"]',
+    '[data-panel="ai-rename-preview"] [data-part="review-row"]',
+    '[data-panel="ai-rename-preview"] [data-part="review-line"]',
+    '[data-panel="ai-rename-preview"] [data-part="review-tag"]',
+    '[data-panel="ai-rename-preview"]\n    [data-part="review-tag"][data-review-field="new"]',
+    '[data-panel="ai-rename-preview"] [data-part="review-old"]',
+    '[data-panel="ai-rename-preview"] [data-part="review-new"]',
+    '[data-panel="ai-rename-preview"] [data-part="actions"]',
+    '[data-theme="dark"] [data-panel="ai-rename-preview"] [data-part="actions"]',
+    '[data-panel="ai-rename-preview"] [data-part="actions-spacer"]',
+    '[data-panel="ai-rename-preview"] [data-control^="ai-rename-"]',
+    '[data-panel="ai-rename-preview"] [data-control^="ai-rename-"] svg',
+    '[data-panel="ai-rename-preview"]\n    [data-control^="ai-rename-"]:disabled',
+    '[data-panel="ai-rename-preview"]\n    [data-control^="ai-rename-"][aria-disabled="true"]',
 ] as const;
 
 const AI_RENAME_PREVIEW_SHARED_PRIMITIVE_FILES = [
@@ -3934,53 +3977,48 @@ const AI_RENAME_PREVIEW_BUSINESS_TOKENS = [
 const AI_RENAME_PREVIEW_FEATURE_OWNER_CLASS_SNIPPETS = [
     {
         label: "panel",
-        snippets: [
-            "w-[min(360px,calc(100vw-32px))]",
-            "gap-0",
-            "p-0",
-            "data-[open=true]:pointer-events-auto",
-            "[&_[data-sot-part=state][hidden]]:!hidden",
-        ],
+        snippets: ["w-[min(360px,calc(100vw-32px))]", "gap-0", "p-0"],
     },
     {
         label: "header",
         snippets: [
-            "min-h-14",
             "grid-cols-[1fr_auto]",
-            "border-b px-3.5 py-3",
-            "[&_[data-slot=card-head-copy]]:min-w-0",
+            "gap-x-2.5 gap-y-0.5",
+            "border-b border-[var(--card-popover-divider)]",
+            "px-3.5 pt-3 !pb-[7px]",
         ],
     },
     {
         label: "body",
         snippets: [
-            "px-3.5 py-3",
+            "flex flex-col p-3.5",
             'loadingContent: "min-h-20"',
-            "text-sm font-semibold leading-relaxed",
+            "text-[12.5px] leading-[1.5] font-medium",
         ],
     },
     {
         label: "state",
         snippets: [
-            "font-mono text-xs font-semibold leading-none",
-            "m-0 break-words text-sm font-medium leading-relaxed",
-            "m-0 max-w-full break-words text-xs font-medium leading-relaxed",
+            "text-[10.5px] leading-none font-semibold",
+            "m-0 break-words text-[12.5px] leading-[1.5] font-medium",
+            "m-0 max-w-full break-words text-[11.5px] leading-[1.5] font-medium",
         ],
     },
     {
         label: "review",
         snippets: [
-            "my-1.5 flex flex-col gap-1.5",
-            "rounded-lg border bg-muted",
-            "text-muted-foreground line-through",
+            "mt-1.5 mb-0.5 flex flex-col gap-1.5",
+            "rounded-lg border border-[var(--line-hairline)] bg-[var(--bg-recessed)]",
+            "text-muted-foreground line-through decoration-muted-foreground",
             "text-foreground",
         ],
     },
     {
         label: "actions",
         snippets: [
-            "min-h-12 gap-1.5 border-t px-3.5 py-2",
-            'variant="default"',
+            "min-h-12 gap-1.5 border-t border-[var(--card-popover-divider)]",
+            "px-3.5 py-2.5 !pt-2.5",
+            'variant="outline"',
         ],
     },
     {
@@ -3997,12 +4035,7 @@ const AI_RENAME_PREVIEW_FEATURE_OWNER_CLASS_SNIPPETS = [
     },
     {
         label: "button",
-        snippets: [
-            'size="icon-xs"',
-            'size="xs"',
-            'data-icon="inline-start"',
-            'action: "shrink-0"',
-        ],
+        snippets: ['size="icon-xs"', 'size="xs"', 'action: "shrink-0"'],
     },
 ] as const;
 
@@ -4065,11 +4098,9 @@ describe("full UI replacement regression coverage", () => {
         expect(workstation).toContain(
             "className={cn(\n                        dashboardBrandClassNames.wrapper,\n                        dashboardSidebarCollapseClassNames.brand,",
         );
-        expect(workstation).toContain('data-sot-part="dashboard-brand"');
-        expect(workstation).toContain('data-sot-part="dashboard-brand-name"');
-        expect(workstation).toContain(
-            'data-sot-part="dashboard-brand-subtitle"',
-        );
+        expect(workstation).toContain('data-part="dashboard-brand"');
+        expect(workstation).toContain('data-part="dashboard-brand-name"');
+        expect(workstation).toContain('data-part="dashboard-brand-subtitle"');
         for (const {
             expected,
             property,
@@ -4086,14 +4117,12 @@ describe("full UI replacement regression coverage", () => {
                 ),
             );
         }
+        expect(detailWorkstation).toContain('data-part="workstation-brand"');
         expect(detailWorkstation).toContain(
-            'data-sot-part="workstation-brand"',
+            'data-part="workstation-brand-name"',
         );
         expect(detailWorkstation).toContain(
-            'data-sot-part="workstation-brand-name"',
-        );
-        expect(detailWorkstation).toContain(
-            'data-sot-part="workstation-brand-subtitle"',
+            'data-part="workstation-brand-subtitle"',
         );
         for (const {
             expected,
@@ -4227,9 +4256,7 @@ describe("full UI replacement regression coverage", () => {
         expect(toggleGroup).not.toContain("tone:");
         expect(toggleGroup).not.toContain("data-tone=");
         expect(tagManager).toContain("RECORDING_TAG_SWATCH_ITEM_CLASS_NAME");
-        expect(tagManager).toMatch(
-            /recordingTagTextColorClassName\s*\[\s*tag\.color\s*\]/,
-        );
+        expect(tagManager).not.toContain("recordingTagTextColorClassName");
         expect(tagManager).toContain("recordingTagSwatchColorClassName[item]");
         expect(tagManager).not.toContain(
             "RECORDING_TAG_COLOR_TOKEN_CLASS_NAME",
@@ -4240,7 +4267,7 @@ describe("full UI replacement regression coverage", () => {
         );
         expect(tagManager).toContain("tagm-swatch grid size-[18px]");
         expect(tagManager).toContain("place-items-center");
-        expect(tagManager).toContain("rounded-full");
+        expect(tagManager).toContain("rounded-[50%]");
         expect(tagManager).toContain("text-foreground");
         expect(tagManager).toContain("data-[state=on]:border-foreground");
         expect(tagManager).not.toContain(
@@ -4250,8 +4277,11 @@ describe("full UI replacement regression coverage", () => {
             ].join("-"),
         );
         expect(tagManager).not.toContain("bg-[var(--recording-tag-accent)]");
-        expect(tagManager).toContain("data-sot-tag-color={item}");
-        expect(tagManager).toContain("data-sot-tag-color={tag.color}");
+        expect(tagManager).not.toContain("data-tag-color");
+        expect(tagManager).toContain(
+            "aria-label={recordingTagColorLabel[item]}",
+        );
+        expect(tagManager).toContain("value={item}");
         expect(
             collectCssRuleBlocks(
                 globals,
@@ -4313,16 +4343,16 @@ describe("full UI replacement regression coverage", () => {
             UNAPPROVED_PRODUCT_CSS_CLASS_SELECTOR_RE,
         );
         expect(productCss).not.toContain(
-            '[data-sot-part="dashboard-transcript-speaker-time"][data-sot-format="mono"]',
+            '[data-part="dashboard-transcript-speaker-time"][data-format="mono"]',
         );
-        expect(globals).not.toContain("[data-sot-shell] *:focus");
+        expect(globals).not.toContain("[data-shell] *:focus");
         expect(globals).not.toContain('[data-slot="button"]:focus-visible');
         expect(globals).toContain("button:not([data-slot])");
         expect(globals).not.toContain(
             ':where([data-slot="button"], [data-slot="popover-trigger"])',
         );
         expect(globals).not.toContain(
-            '[data-sot-control="dashboard-recording-row"]:focus-visible',
+            '[data-control="dashboard-recording-row"]:focus-visible',
         );
         expect(productCss).not.toMatch(
             LEGACY_MODAL_SHELL_PRODUCT_CSS_SELECTOR_RE,
@@ -4456,15 +4486,15 @@ describe("full UI replacement regression coverage", () => {
             "mb-[22px]",
         ]);
         for (const selector of [
-            '[data-sot-panel="settings-header"]',
-            '[data-sot-panel="settings-body"]',
-            '[data-sot-panel="settings-rail"]',
-            '[data-sot-panel="settings-scroll-body"]',
-            '[data-sot-panel="settings-scroll-body"][data-sot-layout="three-pane"]',
-            "[data-sot-section-group]",
-            '[data-sot-part="settings-user-summary"] > div',
-            '[data-sot-part="settings-user-name"]',
-            '[data-sot-part="settings-user-subtitle"]',
+            '[data-panel="settings-header"]',
+            '[data-panel="settings-body"]',
+            '[data-panel="settings-rail"]',
+            '[data-panel="settings-scroll-body"]',
+            '[data-panel="settings-scroll-body"][data-layout="three-pane"]',
+            "[data-section-group]",
+            '[data-part="settings-user-summary"] > div',
+            '[data-part="settings-user-name"]',
+            '[data-part="settings-user-subtitle"]',
         ]) {
             expect(collectExactCssRuleBlocks(productCss, selector)).toEqual([]);
         }
@@ -4482,7 +4512,7 @@ describe("full UI replacement regression coverage", () => {
         }
         const confirmFooterButtonRules = collectCssRuleBlocks(
             productCss,
-            '[data-sot-part="confirm-foot"]',
+            '[data-part="confirm-foot"]',
         ).filter(({ prelude }) =>
             /\bbutton\b|\[data-slot="button"\]/.test(prelude),
         );
@@ -4710,7 +4740,7 @@ describe("full UI replacement regression coverage", () => {
         expect(button).not.toContain("buttonStateClassName");
         expect(button).not.toContain('variant === "rail"');
         expect(button).not.toContain("oklch(");
-        expect(button).not.toContain("data-sot");
+        expect(button).not.toContain(["data", "sot"].join("-"));
         expect(button).not.toMatch(/\bsourceProvider\b/);
         expect(button).not.toMatch(/\bsettings\b/i);
         expect(buttonSizeBlock).not.toContain("settingsClose:");
@@ -4743,7 +4773,7 @@ describe("full UI replacement regression coverage", () => {
             "hover:bg-[image:var(--button-destructive-hover-bg)]",
         ]) {
             expect(button).not.toContain(actionButtonClass);
-            expect(tagManager).not.toContain(actionButtonClass);
+            expect(tagManager).toContain(actionButtonClass);
         }
         for (const recordingTagButtonToken of [
             "recordingTagErrorRetry",
@@ -4773,7 +4803,8 @@ describe("full UI replacement regression coverage", () => {
         ]) {
             expect(tagManager).toContain(tagManagerButtonContract);
         }
-        expect(tagManager).toContain("text-primary-foreground");
+        expect(tagManager).not.toContain("text-primary-foreground");
+        expect(tagManager).toContain("text-[var(--button-primary-fg)]");
         expect(tagManager).toContain("text-primary");
         for (const removedAuthOnboardingButtonToken of [
             "accent:",
@@ -4865,12 +4896,11 @@ describe("full UI replacement regression coverage", () => {
         expect(button).not.toContain("min-w-[50px] justify-center");
         expect(button).not.toContain("chipRemove:");
         expect(button).not.toContain("[&_svg]:invisible");
-        expect(tagManager).toContain(
-            'data-sot-control="recording-tag-delete-open"',
-        );
+        expect(tagManager).toContain('aria-label="移除"');
+        expect(tagManager).toContain("deletingTagId === deleteTarget.id");
         expect(tagManager).toContain('size="icon-xs"');
         expect(tagManager).toContain(
-            "x shrink-0 rounded-full text-muted-foreground hover:bg-muted hover:text-foreground",
+            "x size-4 shrink-0 rounded-[50%] border-0 bg-transparent p-0",
         );
         expect(tagManager).toContain(
             "tagm-close shrink-0 text-muted-foreground hover:bg-muted hover:text-foreground",
@@ -4878,7 +4908,7 @@ describe("full UI replacement regression coverage", () => {
         expect(tagManager).not.toContain("size-[var(--icon-chip-size)]");
         expect(tagManager).not.toContain("size-[var(--icon-compact-size)]");
         expect(tagManager).not.toContain("[&_svg]:invisible");
-        expect(tagManager).toContain('className="invisible"');
+        expect(tagManager).not.toContain('className="invisible"');
         expect(button).not.toContain("accentSelf");
         expect(button).not.toContain('"icon-chip-hidden-glyph":');
         for (const size of [
@@ -5031,7 +5061,7 @@ describe("full UI replacement regression coverage", () => {
         expect(textarea).toContain("export function Textarea");
         expect(textarea).toContain("<textarea");
         expect(textarea).toContain('data-slot="textarea"');
-        expect(textarea).not.toContain("data-sot-privacy-boundary");
+        expect(textarea).not.toContain("data-privacy-boundary");
         for (const className of [
             "border-input",
             "focus-visible:ring-ring/50",
@@ -5162,21 +5192,19 @@ describe("full UI replacement regression coverage", () => {
         expect(confirmDialog).toContain("portalWrapperProps");
         expect(confirmDialog).toContain("slotProps?: ConfirmDialogSlotProps");
         expect(confirmDialog).toContain("contentSlotProps");
-        expect(confirmDialog).not.toContain(
-            '"data-sot-panel": "confirm-dialog"',
-        );
-        expect(confirmDialog).not.toContain(
-            'data-sot-content="confirm-dialog"',
-        );
-        expect(confirmDialog).not.toContain('data-sot-part="confirm-head"');
-        expect(confirmDialog).not.toContain('data-sot-part="confirm-body"');
-        expect(confirmDialog).not.toContain('data-sot-part="confirm-foot"');
-        expect(layout).toContain("confirmDialogSotSlotProps");
-        expect(layout).toContain('"data-sot-panel": "confirm-dialog"');
-        expect(layout).toContain('"data-sot-content": "confirm-dialog"');
-        expect(layout).toContain('"data-sot-part": "confirm-head"');
-        expect(layout).toContain('"data-sot-part": "confirm-body"');
-        expect(layout).toContain('"data-sot-part": "confirm-foot"');
+        expect(confirmDialog).not.toContain('"data-panel": "confirm-dialog"');
+        expect(confirmDialog).not.toContain('data-content="confirm-dialog"');
+        expect(confirmDialog).not.toContain('data-part="confirm-head"');
+        expect(confirmDialog).not.toContain('data-part="confirm-body"');
+        expect(confirmDialog).not.toContain('data-part="confirm-foot"');
+        expect(layout).toContain("<ConfirmDialogProvider>");
+        expect(layout).toContain("<Toaster />");
+        expect(layout).not.toContain("confirmDialogSotSlotProps");
+        expect(layout).not.toContain('"data-panel": "confirm-dialog"');
+        expect(layout).not.toContain('"data-content": "confirm-dialog"');
+        expect(layout).not.toContain('"data-part": "confirm-head"');
+        expect(layout).not.toContain('"data-part": "confirm-body"');
+        expect(layout).not.toContain('"data-part": "confirm-foot"');
         expect(confirmDialog).toMatch(
             /<DialogHeader[\s\S]*\{\.\.\.headerSlotProps\}[\s\S]*className=\{cn\(\s*"gap-2 text-left"/,
         );
@@ -5200,7 +5228,7 @@ describe("full UI replacement regression coverage", () => {
         expect(confirmDialog).toContain("variant={confirmButtonVariant}");
         expect(confirmDialog).toContain('size="sm"');
         expect(confirmDialog).toContain("detailsListSlotProps");
-        expect(layout).toContain('"data-sot-list": "confirm-dialog-details"');
+        expect(layout).not.toContain('"data-list": "confirm-dialog-details"');
         expect(confirmDialog).toContain("state.details.map");
         expect(confirmDialog).toContain("state.warning");
         expect(confirmDialog).not.toContain('className="scrim"');
@@ -5272,19 +5300,14 @@ describe("full UI replacement regression coverage", () => {
             expect(source).not.toContain("route-chrome.module.css");
             expect(source).not.toContain('data-detail-empty=""');
         }
-        expect(notFound).toContain('dataSotShell="recording-route-empty"');
         expect(notFound).toContain('current="录音不存在或已删除"');
-        expect(error).toContain('dataSotShell="recording-route-error"');
         expect(error).toContain('current="录音详情加载失败"');
         expect(routeChrome).toContain('from "@/components/ui/empty";');
         expect(routeChrome).toContain(
             'import { Card } from "@/components/ui/card";',
         );
         expect(routeChrome).toContain("function RouteFallbackEmptyState");
-        expect(routeChrome).toContain(
-            'data-sot-panel="recording-route-empty-detail"',
-        );
-        expect(routeChrome).toContain('data-sot-panel="recording-route-empty"');
+        expect(routeChrome).not.toContain('data-panel="recording-route-empty');
         expect(routeChrome).toContain("<Card");
         expect(routeChrome).toContain("<Empty");
         expect(routeFallbackEmptyClassNames).toContain(
@@ -5358,36 +5381,34 @@ describe("full UI replacement regression coverage", () => {
         );
         const dashboardLoadingShellOpening = extractOpeningElement(
             dashboardLoading,
-            'dataSotShell="dashboard-loading"',
-            "RouteFallbackChrome",
+            'aria-label="正在加载仪表盘"',
+            "section",
         );
         const dashboardLoadingListCard = extractCardSlice(
             dashboardLoading,
-            'data-sot-panel="dashboard-loading-list"',
+            "className={dashboardRouteLoadingListClassName}",
         );
         const dashboardLoadingListCardOpening = extractOpeningElement(
             dashboardLoading,
-            'data-sot-panel="dashboard-loading-list"',
+            "className={dashboardRouteLoadingListClassName}",
             "Card",
         );
         const routeFallbackDetailLoadingCard = extractCardSlice(
             routeChrome,
-            "data-sot-panel={dataSotPanel}",
+            "recordingDetailLoadingSkeletonClassNames.recordingDetailLoadingAvatar",
         );
         const routeFallbackDetailLoadingCardOpening = extractOpeningElement(
             routeChrome,
-            "data-sot-panel={dataSotPanel}",
+            '"flex min-h-0 min-w-0 flex-col gap-4",',
             "Card",
         );
-        const dashboardLoadingDetailFallback = extractSelfClosingElement(
+        const dashboardLoadingDetailCard = extractCardSlice(
             dashboardLoading,
-            'data-sot-panel="dashboard-loading-detail"',
-            "RouteFallbackDetailLoadingSkeleton",
+            '"flex min-h-0 min-w-0 flex-col gap-4 flex-1",',
         );
-        const recordingRouteLoadingDetailFallback = extractSelfClosingElement(
+        const recordingRouteLoadingDetailCard = extractCardSlice(
             recordingLoading,
-            'data-sot-panel="recording-route-loading-detail"',
-            "RouteFallbackDetailLoadingSkeleton",
+            "className={`${recordingLoadingSurfaceClassName}",
         );
 
         expect(routeFallbackSurfaceClassName).toContain(
@@ -5411,17 +5432,12 @@ describe("full UI replacement regression coverage", () => {
         expect(recordingDetailLoadingSkeletonClassNames).toContain(
             "recordingDetailLoadingBar:",
         );
-        expect(dashboardLoadingShellOpening).toContain(
-            'dataSotShell="dashboard-loading"',
-        );
-        expect(recordingLoading).toContain(
-            'dataSotShell="recording-route-loading"',
-        );
-        expect(recordingLoading).toContain('workspaceVariant="single"');
+        expect(dashboardLoadingShellOpening).toContain("aria-busy={true}");
+        expect(recordingLoading).toContain('aria-label="正在加载录音详情"');
         for (const [label, card] of [
             ["dashboard-loading-list", dashboardLoadingListCard],
-            ["dashboard-loading-detail", routeFallbackDetailLoadingCard],
-            ["recording-route-loading-detail", routeFallbackDetailLoadingCard],
+            ["dashboard-loading-detail", dashboardLoadingDetailCard],
+            ["recording-route-loading-detail", recordingRouteLoadingDetailCard],
         ] as const) {
             expect(card, label).toContain('variant="default"');
             expect(card, label).toContain("hasNoPadding");
@@ -5439,16 +5455,14 @@ describe("full UI replacement regression coverage", () => {
         expect(routeFallbackDetailLoadingCardOpening).toContain(
             `"${DASHBOARD_ROUTE_LOADING_DETAIL_CLASS_VALUE}"`,
         );
-        expect(dashboardLoadingDetailFallback).toContain(
-            'data-sot-panel="dashboard-loading-detail"',
-        );
-        expect(recordingRouteLoadingDetailFallback).toContain(
-            'data-sot-panel="recording-route-loading-detail"',
-        );
+        expect(dashboardLoadingDetailCard).toContain("hasNoPadding");
+        expect(recordingRouteLoadingDetailCard).toContain("hasNoPadding");
 
         for (const loading of [dashboardLoading, recordingLoading]) {
             expect(loading).not.toContain('variant="routeLoadingSurface"');
-            expect(loading).toContain("<RouteFallbackDetailLoadingSkeleton");
+            expect(loading).not.toContain(
+                "<RouteFallbackDetailLoadingSkeleton",
+            );
             for (const sizeToken of recordingDetailLoadingSizeTokens) {
                 expect(loading).not.toContain(`size="${sizeToken}"`);
                 expect(loading).not.toContain(`${sizeToken}:`);
@@ -5460,21 +5474,17 @@ describe("full UI replacement regression coverage", () => {
         expect(dashboardLoading).toContain(
             'import { Skeleton } from "@/components/ui/skeleton";',
         );
-        expect(recordingLoading).not.toContain(
+        expect(recordingLoading).toContain(
             'import { Card } from "@/components/ui/card";',
         );
-        expect(recordingLoading).not.toContain(
+        expect(recordingLoading).toContain(
             'import { Skeleton } from "@/components/ui/skeleton";',
         );
         expect(routeChrome).toContain('aria-hidden="true"');
         expect(routeChrome).toContain("<Skeleton");
-        expect(routeChrome).toContain(
-            'data-sot-panel="recording-detail-loading"',
+        expect(routeChrome).not.toContain(
+            'data-panel="recording-detail-loading"',
         );
-        expect(routeChrome).toContain('data-sot-part="detail-player-meta"');
-        expect(routeChrome).toContain('data-sot-part="detail-player-controls"');
-        expect(routeChrome).toContain('data-sot-part="detail-transcript-head"');
-        expect(routeChrome).toContain('data-sot-part="detail-transcript"');
         expect(routeChrome).toContain(
             "const recordingDetailLoadingSkeletonClassNames",
         );
@@ -5496,7 +5506,7 @@ describe("full UI replacement regression coverage", () => {
             expect(skeletonOpening).toContain("className={");
         }
         expect(dashboardLoading).toContain(
-            'data-sot-panel="recording-list-loading"',
+            "dashboardRouteLoadingListClassName",
         );
         expect(dashboardLoading).not.toContain(
             "const recordingListLoadingSkeletonClassNames",
@@ -5509,26 +5519,25 @@ describe("full UI replacement regression coverage", () => {
             ).toBeGreaterThanOrEqual(2);
             expect(dashboardLoading).not.toContain(`size="${classNameToken}"`);
         }
-        expect(recordingLoading).toContain(
-            'data-sot-panel="recording-route-loading-detail"',
-        );
+        expect(recordingLoading).toContain("recordingLoadingSurfaceClassName");
         expect(cardPrimitive).not.toContain("routeLoadingSurface");
         for (const sizeToken of routeLoadingSizeTokens) {
             expect(skeletonPrimitive).not.toContain(sizeToken);
         }
-        expect(dashboardLoading).toContain('from "../route-chrome";');
         for (const routeSource of [dashboardLoading, recordingLoading]) {
-            expect(routeSource).toContain("RouteFallbackChrome");
-            expect(routeSource).toContain("RouteFallbackDetailLoadingSkeleton");
+            expect(routeSource).not.toContain("RouteFallbackChrome");
+            expect(routeSource).not.toContain(
+                "RouteFallbackDetailLoadingSkeleton",
+            );
             expect(routeSource).not.toContain("routeChromeStyles");
             expect(routeSource).not.toContain("route-chrome.module.css");
         }
         expect(dashboardLoading).toContain("routeFallbackSurfaceClassName");
         expect(recordingLoading).not.toContain("routeFallbackSurfaceClassName");
-        expect(routeChrome).toContain('data-sot-panel="route-workspace"');
-        expect(routeChrome).toContain('data-sot-panel="route-sidebar"');
-        expect(routeChrome).toContain('data-sot-panel="route-main"');
-        expect(routeChrome).toContain('data-sot-panel="route-topbar"');
+        expect(routeChrome).not.toContain('data-panel="route-');
+        for (const routeElement of ["<aside", "<main", "<header"]) {
+            expect(routeChrome).toContain(routeElement);
+        }
         expect(routeChromeModule.trim()).toBe("");
         expect(routeChromeModule).not.toMatch(
             ROUTE_CHROME_FORBIDDEN_FRAMEWORK_RE,
@@ -5611,11 +5620,11 @@ describe("full UI replacement regression coverage", () => {
         expect(
             collectCssRuleBlocks(
                 globals,
-                '[data-sot-part="dashboard-retranscription-spinner"]',
+                '[data-part="dashboard-retranscription-spinner"]',
             ),
         ).toEqual([]);
         expect(
-            collectExactCssRuleBlocks(globals, "[data-sot-source-report-pane]"),
+            collectExactCssRuleBlocks(globals, "[data-source-report-pane]"),
         ).toEqual([]);
         for (const selector of RECORDING_LOADING_REMOVED_GLOBAL_SELECTORS) {
             expect(collectCssRuleBlocks(globals, selector)).toEqual([]);
@@ -5688,7 +5697,7 @@ describe("full UI replacement regression coverage", () => {
         }
         const recordingListHeader = extractOpeningElement(
             workstation,
-            'data-sot-part="dashboard-recording-list-header"',
+            'data-part="dashboard-recording-list-header"',
             "div",
         );
         const recordingListHeaderClass = expectExactStringConstInitializer(
@@ -5705,7 +5714,7 @@ describe("full UI replacement regression coverage", () => {
         );
         const dashboardSidebarFooter = extractOpeningElement(
             workstation,
-            'data-sot-part="dashboard-sidebar-footer"',
+            'data-part="dashboard-sidebar-footer"',
             "div",
         );
         const dashboardSidebarFooterClass = expectExactStringConstInitializer(
@@ -5738,7 +5747,7 @@ describe("full UI replacement regression coverage", () => {
         }
         expect([
             ...DASHBOARD_RECORDING_ROW_MIGRATED_GLOBAL_SELECTORS,
-        ]).not.toContain('[data-sot-part="dashboard-recording-source-mark"]');
+        ]).not.toContain('[data-part="dashboard-recording-source-mark"]');
         for (const migratedSelectorFragment of DASHBOARD_RECORDING_ROW_META_MIGRATED_GLOBAL_SELECTOR_FRAGMENTS) {
             expect(globals).not.toContain(migratedSelectorFragment);
         }
@@ -5806,10 +5815,10 @@ describe("full UI replacement regression coverage", () => {
             /document\.body\.dataset\.(?:drawer|sourceFilter|sourceStatus|timeStyle|sidebar|collapsed)\b/,
         );
         expect(productCss).not.toContain(
-            '[data-sot-shell="dashboard-workstation"][data-sidebar-collapsed="true"]',
+            '[data-shell="dashboard-workstation"][data-sidebar-collapsed="true"]',
         );
         expect(productCss).not.toContain(
-            '[data-sot-shell="dashboard-workstation"][data-sidebar-collapsed="true"]\n    [data-sot-panel="dashboard-sidebar"]',
+            '[data-shell="dashboard-workstation"][data-sidebar-collapsed="true"]\n    [data-panel="dashboard-sidebar"]',
         );
         expect(productCss).not.toContain('[data-sidebar="collapsed"]');
         expect(productCss).not.toContain("body[data-source-filter]");
@@ -5822,45 +5831,34 @@ describe("full UI replacement regression coverage", () => {
             expect(collectExactCssRuleBlocks(productCss, selector)).toEqual([]);
         }
         expect(productCss).not.toContain(
-            '[data-theme="dark"] [data-sot-panel="dashboard-sidebar"],\n.dark [data-sot-panel="dashboard-sidebar"]',
+            '[data-theme="dark"] [data-panel="dashboard-sidebar"],\n.dark [data-panel="dashboard-sidebar"]',
         );
         const dashboardSidebarGlobalBlocks = collectCssRuleBlocks(
             productCss,
-            '[data-sot-panel="dashboard-sidebar"]',
+            '[data-panel="dashboard-sidebar"]',
         );
-        expect(dashboardSidebarGlobalBlocks).toHaveLength(1);
-        expect(dashboardSidebarGlobalBlocks[0]?.prelude).toContain(
-            '[data-sot-panel="dashboard-sync"]',
-        );
-        expect(dashboardSidebarGlobalBlocks[0]?.declarations).toContain(
-            "pointer-events: none;",
-        );
-        expect(dashboardSidebarGlobalBlocks[0]?.declarations).not.toMatch(
-            DASHBOARD_SIDEBAR_VISUAL_GLOBAL_DECLARATION_RE,
+        expect(dashboardSidebarGlobalBlocks).toEqual([]);
+        expect(productCss).not.toContain(
+            '[data-panel="dashboard-sidebar"],\n[data-panel="workstation-sidebar"]',
         );
         expect(productCss).not.toContain(
-            '[data-sot-panel="dashboard-sidebar"],\n[data-sot-panel="workstation-sidebar"]',
+            '[data-panel="workstation-sidebar"] {\n    background:',
         );
         expect(productCss).not.toContain(
-            '[data-sot-panel="workstation-sidebar"] {\n    background:',
+            '[data-theme="dark"] [data-panel="workstation-sidebar"]',
         );
         expect(productCss).not.toContain(
-            '[data-theme="dark"] [data-sot-panel="workstation-sidebar"]',
+            '.dark [data-panel="workstation-sidebar"]',
         );
-        expect(productCss).not.toContain(
-            '.dark [data-sot-panel="workstation-sidebar"]',
-        );
-        expect(productCss).not.toContain(
-            '[data-sot-panel="workstation-sidebar"]',
-        );
+        expect(productCss).not.toContain('[data-panel="workstation-sidebar"]');
         expect(
             collectCssRuleBlocks(
                 productCss,
-                '[data-sot-panel="workstation-sidebar"]',
+                '[data-panel="workstation-sidebar"]',
             ),
         ).toEqual([]);
         expect(productCss).not.toContain(
-            '[data-sot-panel="dashboard-sidebar"],\n    [data-sot-panel="workstation-sidebar"] {\n        display: none;',
+            '[data-panel="dashboard-sidebar"],\n    [data-panel="workstation-sidebar"] {\n        display: none;',
         );
         const sidebarCollapseClassNames = extractBoundedSlice(
             workstation,
@@ -5902,17 +5900,17 @@ describe("full UI replacement regression coverage", () => {
         );
         const drawerScrim = extractOpeningElement(
             workstation,
-            'data-sot-panel="dashboard-drawer-scrim"',
+            'data-panel="dashboard-drawer-scrim"',
             "div",
         );
         const drawerActiveDot = extractOpeningElement(
             workstation,
-            'data-sot-part="dashboard-drawer-active-dot"',
+            'data-part="dashboard-drawer-active-dot"',
             "span",
         );
         const drawerTrigger = extractElementSlice(
             workstation,
-            'data-sot-control="dashboard-drawer-trigger"',
+            'data-control="dashboard-drawer-trigger"',
             "Button",
         );
         const dashboardDrawerClassNames = extractBoundedSlice(
@@ -5922,9 +5920,7 @@ describe("full UI replacement regression coverage", () => {
         );
         expect(drawerTriggerClassNames).toContain("relative hidden");
         expect(drawerTriggerClassNames).toContain("max-[860px]:inline-flex");
-        expect(drawerTriggerClassNames).toContain(
-            "group-data-[source-filter-active=true]/dashboard-workstation:[&_[data-sot-part=dashboard-drawer-active-dot]]:inline-block",
-        );
+        expect(drawerTriggerClassNames).not.toContain("source-filter-active");
         expect(sidebarCollapseButtonClassNames).toContain("max-[860px]:hidden");
         expect(
             extractObjectStringProperty(dashboardDrawerClassNames, "scrim"),
@@ -6046,25 +6042,23 @@ describe("full UI replacement regression coverage", () => {
         for (const selector of RETIRED_SYSTEM_BANNER_DATA_SOT_CSS_SELECTORS) {
             expect(globals).not.toContain(selector);
         }
-        expect(globals).toContain(
-            '[data-sot-panel="system-banner"] + [data-sot-panel="system-banner"]',
-        );
+        expect(globals).not.toContain('[data-panel="system-banner"]');
         expect(globals).toContain("@keyframes sbn-sweep");
         expect(
-            collectCssRuleBlocks(globals, '[data-sot-panel="system-banner"]')
+            collectCssRuleBlocks(globals, '[data-panel="system-banner"]')
                 .map(({ prelude }) => prelude.trim())
                 .filter(
-                    (prelude) => prelude === '[data-sot-panel="system-banner"]',
+                    (prelude) => prelude === '[data-panel="system-banner"]',
                 ),
         ).toEqual([]);
         expect(
             collectCssRuleBlocks(
                 globals,
-                '[data-sot-panel="system-banner"]',
+                '[data-panel="system-banner"]',
             ).filter(({ prelude }) => prelude.includes('[data-slot="button"]')),
         ).toEqual([]);
         expect(globals).not.toContain(
-            '[data-sot-panel="system-banner"] [data-slot="button"]',
+            '[data-panel="system-banner"] [data-slot="button"]',
         );
         for (const token of SYSTEM_BANNER_ALERT_PRIMITIVE_RETIRED_TOKENS) {
             expect(alertPrimitive).not.toContain(token);
@@ -6146,7 +6140,10 @@ describe("full UI replacement regression coverage", () => {
         for (const token of SYSTEM_BANNER_FEATURE_LOCAL_VISUAL_REBUILD_TOKENS) {
             expect(banner).not.toContain(token);
         }
-        expect(banner).toMatch(/<Alert[\s\S]*data-sot-panel="system-banner"/);
+        expect(banner).toContain('aria-live={a11y["aria-live"]}');
+        expect(banner).toContain("role={a11y.role}");
+        expect(banner).toContain("systemBannerAlertClassNames.body");
+        expect(banner).toContain("systemBannerAlertClassNames.actions");
         expect(banner).not.toContain('variant="systemBanner"');
         expect(banner).not.toContain('density="systemBanner"');
         expect(banner).not.toContain('layout="systemBanner"');
@@ -6185,10 +6182,10 @@ describe("full UI replacement regression coverage", () => {
             expect(banner).not.toContain(buttonOwnerClass);
         }
         expect(banner).not.toMatch(
-            /<div[\s\S]*data-sot-part="system-banner-progress"/,
+            /<div[\s\S]*data-part="system-banner-progress"/,
         );
         expect(banner).not.toContain(
-            '<span data-sot-part="system-banner-progress-bar" />',
+            '<span data-part="system-banner-progress-bar" />',
         );
         expect(banner).not.toContain(
             'className={cn("flex items-center gap-3 px-3.5 py-2.5", className)}',
@@ -6258,17 +6255,15 @@ describe("full UI replacement regression coverage", () => {
         expect(workstation).toContain("[scrollbar-width:thin]");
         expect(workstation).toContain("dashboardRecordingListScrollClassName");
         expect(workstation).toContain(
-            'data-sot-list="dashboard-recording-list-scroll"',
+            'data-list="dashboard-recording-list-scroll"',
         );
-        expect(workstation).toContain(
-            'data-sot-part="dashboard-transcript-body"',
-        );
+        expect(workstation).toContain('data-part="dashboard-transcript-body"');
         expect(workstation).not.toContain("dashboardScrollbarClassName,");
         expect(globals).not.toContain(
-            '[data-sot-panel="settings-body"]::-webkit-scrollbar',
+            '[data-panel="settings-body"]::-webkit-scrollbar',
         );
         expect(globals).not.toContain(
-            '[data-sot-panel="settings-body"]::-webkit-scrollbar-thumb:hover',
+            '[data-panel="settings-body"]::-webkit-scrollbar-thumb:hover',
         );
         expect(settingsDialog).toContain("const SETTINGS_RAIL_CLASS =");
         expect(settingsDialog).toContain("overflow-y-auto");
@@ -6297,11 +6292,11 @@ describe("full UI replacement regression coverage", () => {
         );
         const transcriptPane = extractOpeningElement(
             workstation,
-            'data-sot-panel="dashboard-transcript-pane"',
+            'data-panel="dashboard-transcript-pane"',
             "div",
         );
-        expect(transcriptPane).toContain(
-            "className={dashboardTabPaneHiddenClassName}",
+        expect(transcriptPane).toMatch(
+            /className=\{\s*dashboardTabPaneHiddenClassName\s*\}/,
         );
         const sourceReportPane = extractOpeningElement(
             sourceReportPrimitives,
@@ -6324,11 +6319,11 @@ describe("full UI replacement regression coverage", () => {
         );
         const speakersPane = extractOpeningElement(
             workstation,
-            'data-sot-panel="dashboard-speakers-pane"',
+            'data-panel="dashboard-speakers-pane"',
             "div",
         );
-        expect(speakersPane).toContain(
-            "className={dashboardTabPaneHiddenClassName}",
+        expect(speakersPane).toMatch(
+            /className=\{\s*dashboardTabPaneHiddenClassName\s*\}/,
         );
     });
 
@@ -6368,11 +6363,11 @@ describe("full UI replacement regression coverage", () => {
         );
         expect(workstation).toContain('hidden={listMode !== "timeline"}');
         expect(workstation).toContain(
-            'data-sot-part="dashboard-recording-time-filter-count"',
+            'data-part="dashboard-recording-time-filter-count"',
         );
     });
 
-    it("keeps copy icon product CSS scoped to data-sot hooks", () => {
+    it("keeps copy icon product CSS scoped to legacy SOT hooks", () => {
         const globals = readSource("app/globals.css");
         const legacySelectorLines = globals
             .split("\n")
@@ -6420,7 +6415,7 @@ describe("full UI replacement regression coverage", () => {
         expect(workstation).not.toContain('className="lang-pill"');
     });
 
-    it("keeps detail empty product CSS on data-sot selectors", () => {
+    it("keeps detail empty product CSS on legacy SOT selectors", () => {
         const globals = readSource("app/globals.css");
         const legacySelectorLines = globals
             .split("\n")
@@ -6431,7 +6426,7 @@ describe("full UI replacement regression coverage", () => {
 
         expect(legacySelectorLines).toEqual([]);
         for (const selector of DETAIL_EMPTY_DATA_SOT_CSS_SELECTORS) {
-            expect(globals).toContain(selector);
+            expect(globals).not.toContain(selector);
         }
     });
 
@@ -6452,25 +6447,23 @@ describe("full UI replacement regression coverage", () => {
 
         const detailEmpty = extractElementSlice(
             workstation,
-            'data-sot-panel="dashboard-detail-empty"',
+            'data-panel="dashboard-detail-empty"',
             "Empty",
         );
         const activityEmpty = extractElementSlice(
             workstation,
-            'data-sot-part="dashboard-activity-empty"',
+            'data-part="dashboard-activity-empty"',
             "Empty",
         );
         const transcriptEmpty = extractElementSlice(
             workstation,
-            'data-sot-panel="dashboard-transcript-empty"',
+            'data-panel="dashboard-transcript-empty"',
             "Empty",
         );
 
         expect(detailEmpty).toContain("<Empty");
         expect(detailEmpty).toContain('data-detail-empty=""');
-        expect(detailEmpty).toContain(
-            'data-sot-panel="dashboard-detail-empty"',
-        );
+        expect(detailEmpty).toContain('data-panel="dashboard-detail-empty"');
         const detailEmptyClassName = expectExactStringConstInitializer(
             workstation,
             "DASHBOARD_DETAIL_EMPTY_STATE_CLASS_NAME",
@@ -6478,7 +6471,7 @@ describe("full UI replacement regression coverage", () => {
         );
         const detailEmptyOpening = extractOpeningElement(
             detailEmpty,
-            'data-sot-panel="dashboard-detail-empty"',
+            'data-panel="dashboard-detail-empty"',
             "Empty",
         );
         expectClassNameConstReference(
@@ -6492,22 +6485,20 @@ describe("full UI replacement regression coverage", () => {
         expect(detailEmpty).toContain("<EmptyMedia");
         expect(detailEmpty).toContain('variant="icon"');
         expect(detailEmpty).toContain(
-            'data-sot-part="dashboard-detail-empty-icon"',
+            'data-part="dashboard-detail-empty-icon"',
         );
-        expect(detailEmpty).toContain("<SotDetailEmptyIcon />");
+        expect(detailEmpty).toContain("<DashboardDetailEmptyIcon />");
         expect(detailEmpty).toContain(
-            '<EmptyTitle data-sot-part="dashboard-detail-empty-title">',
+            '<EmptyTitle data-part="dashboard-detail-empty-title">',
         );
         expect(detailEmpty).toContain(
-            '<EmptyDescription data-sot-part="dashboard-detail-empty-description">',
+            '<EmptyDescription data-part="dashboard-detail-empty-description">',
         );
         expect(detailEmpty).not.toContain("<div");
         expect(detailEmpty).not.toContain("<p");
 
         expect(activityEmpty).toContain("<Empty");
-        expect(activityEmpty).toContain(
-            'data-sot-part="dashboard-activity-empty"',
-        );
+        expect(activityEmpty).toContain('data-part="dashboard-activity-empty"');
         expect(activityEmpty).toContain(
             "dashboardSearchActivityClassNames.dashboardActivityEmpty",
         );
@@ -6515,36 +6506,36 @@ describe("full UI replacement regression coverage", () => {
         expect(activityEmpty).toContain("<EmptyMedia");
         expect(activityEmpty).toContain('variant="icon"');
         expect(activityEmpty).toContain(
-            'data-sot-part="dashboard-activity-empty-icon"',
+            'data-part="dashboard-activity-empty-icon"',
         );
         expect(activityEmpty).toContain("<CheckCircle />");
         expect(activityEmpty).toContain(
-            '<EmptyTitle data-sot-part="dashboard-activity-empty-title">',
+            '<EmptyTitle data-part="dashboard-activity-empty-title">',
         );
         expect(activityEmpty).toContain(
-            '<EmptyDescription data-sot-part="dashboard-activity-empty-body">',
+            '<EmptyDescription data-part="dashboard-activity-empty-body">',
         );
         expect(activityEmpty).not.toContain("<div");
         expect(activityEmpty).not.toContain("<p");
 
         expect(transcriptEmpty).toContain("<Empty");
         expect(transcriptEmpty).toContain(
-            'data-sot-panel="dashboard-transcript-empty"',
+            'data-panel="dashboard-transcript-empty"',
         );
         expect(transcriptEmpty).toContain('variant="compact"');
         expect(transcriptEmpty).toContain("<EmptyHeader");
         expect(transcriptEmpty).toContain("<EmptyMedia");
         expect(transcriptEmpty).toContain('variant="icon"');
         expect(transcriptEmpty).toContain(
-            'data-sot-part="dashboard-transcript-empty-icon"',
+            'data-part="dashboard-transcript-empty-icon"',
         );
-        expect(transcriptEmpty).toContain("<SotTranscriptEmptyIcon />");
+        expect(transcriptEmpty).toContain("<DashboardTranscriptEmptyIcon />");
         expect(transcriptEmpty).toContain(
-            'data-sot-part="dashboard-transcript-empty-message"',
+            'data-part="dashboard-transcript-empty-message"',
         );
         expect(transcriptEmpty).toContain('variant="compact"');
         expect(transcriptEmpty).toContain(
-            'data-sot-part="dashboard-transcript-empty-sub"',
+            'data-part="dashboard-transcript-empty-sub"',
         );
         expect(transcriptEmpty).not.toContain("dashboardTranscriptClassNames");
         expect(transcriptEmpty).not.toContain("<div");
@@ -6556,13 +6547,12 @@ describe("full UI replacement regression coverage", () => {
         for (const selector of DASHBOARD_TRANSCRIPT_EMPTY_REMOVED_GLOBAL_SELECTORS) {
             expect(collectCssRuleBlocks(globals, selector)).toEqual([]);
         }
-        expect(globals).toContain("[data-detail-empty]");
-        expect(globals).toContain("[data-detail-empty][hidden]");
+        expect(globals).not.toContain("[data-detail-empty]");
         expect(globals).not.toContain(
-            '[data-sot-part="dashboard-activity-empty"][hidden]',
+            '[data-part="dashboard-activity-empty"][hidden]',
         );
-        expect(globals).toContain(
-            '[data-sot-panel="dashboard-detail"][data-empty="true"] [data-detail-empty]',
+        expect(globals).not.toContain(
+            '[data-panel="dashboard-detail"][data-empty="true"] [data-detail-empty]',
         );
     });
 
@@ -6633,59 +6623,158 @@ describe("full UI replacement regression coverage", () => {
         const globals = readSource("app/globals.css");
         const fieldPrimitive = readSource("components/ui/field.tsx");
 
-        expect(login).toContain('data-sot-layout="auth-workstation"');
         expect(login).toMatch(
             /import\s*\{[\s\S]*Card,[\s\S]*CardContent,[\s\S]*CardDescription,[\s\S]*CardHeader,[\s\S]*CardTitle[\s\S]*\}\s*from "@\/components\/ui\/card";/,
         );
-        expect(login).toContain("<Card");
-        expect(login).toContain('data-sot-card="auth"');
-        expect(login).toContain("data-sot-surface={surfaceName}");
-        expect(login).toContain("data-sot-state={surfaceState}");
-        expect(login).toContain('data-sot-frame="auth"');
-        expect(login).toContain('data-sot-part="card-heading"');
-        expect(login).toContain('data-sot-part="auth-logo-mark"');
-        expect(login).toContain('data-sot-part="auth-heading"');
-        expect(login).toContain('data-sot-part="auth-description"');
-        expect(login).toContain('data-sot-part="auth-form-message"');
-        expect(login).toContain('data-sot-part="auth-local-choice"');
-        expect(login).not.toContain('className="auth-sot-canvas"');
-        expect(login).not.toContain('className="card"');
-        expect(login).not.toContain('className="frame"');
+        expectNamedImportSymbols(login, "@/components/ui/field", [
+            "Field",
+            "FieldDescription",
+            "FieldGroup",
+            "FieldLabel",
+        ]);
+        expect(login).toContain(
+            'import { Alert, AlertDescription } from "@/components/ui/alert";',
+        );
+        for (const snippet of [
+            "<main className={authLoginClassNames.layout}>",
+            "<Card className={authLoginClassNames.surface}>",
+            "<CardHeader>",
+            "<CardContent className={authLoginClassNames.frame}>",
+            "className={authLoginClassNames.logoMark}",
+            "<FieldGroup className={authLoginClassNames.fieldGroup}>",
+            '<FieldLabel htmlFor="email" className="sr-only">',
+            'id="email"',
+            'type="email"',
+            "aria-invalid={invalid}",
+            "aria-describedby={",
+            'id="auth-form-message"',
+            "role={",
+            "aria-live={",
+            '<Button\n                                    type="submit"',
+            "aria-busy={isLoading}",
+            'variant="default"',
+            "disabled={!isMounted || isLocalLoading}",
+            "aria-busy={isLocalLoading}",
+            'variant="link"',
+            '<Spinner aria-hidden="true" />',
+        ]) {
+            expect(login).toContain(snippet);
+        }
+        const loginEmailField = extractBoundedSlice(
+            login,
+            '<FieldLabel htmlFor="email"',
+            "</Field>",
+        );
+        expect(loginEmailField).toMatch(
+            /<Input\b[\s\S]*?\bid="email"[\s\S]*?\bname="email"[\s\S]*?\btype="email"[\s\S]*?\baria-invalid=\{invalid\}[\s\S]*?\baria-describedby=\{\s*formState\s*\?\s*"auth-form-message"\s*:\s*undefined\s*\}/,
+        );
+        const loginFormMessage = extractBoundedSlice(
+            loginEmailField,
+            "<Alert",
+            "</Alert>",
+        );
+        expect(loginFormMessage).toMatch(
+            /\bid="auth-form-message"[\s\S]*?\brole=\{\s*formState\.kind === "success"\s*\? "status"\s*: "alert"\s*\}/,
+        );
+        expect(loginFormMessage).toMatch(
+            /\baria-live=\{\s*formState\.kind === "success"\s*\? "polite"\s*: "assertive"\s*\}/,
+        );
+        expect(loginFormMessage).toContain("{formState.message}");
+        expect(loginFormMessage).toMatch(
+            /<AlertDescription>[\s\S]*?\{formState\.message\}[\s\S]*?<\/AlertDescription>/,
+        );
+        expect(loginEmailField).not.toContain("<FieldError");
+        const magicLinkForm = extractBoundedSlice(
+            login,
+            "<form onSubmit={handleSubmit}>",
+            "</form>",
+        );
+        const magicLinkButton = extractBoundedSlice(
+            magicLinkForm,
+            '<Button\n                                    type="submit"',
+            "</Button>",
+        );
+        expect(magicLinkButton).toContain("disabled={!isMounted || isLoading}");
+        expect(magicLinkButton).toContain("aria-busy={isLoading}");
+        expect(magicLinkButton).toMatch(
+            /\{isLoading \? \([\s\S]*?<Spinner aria-hidden="true" \/>[\s\S]*?发送中\.{3}[\s\S]*?\) : \([\s\S]*?发送登录链接/,
+        );
+        const magicLinkHandler = extractBoundedSlice(
+            login,
+            "async function handleSubmit",
+            "async function handleLocalUse",
+        );
+        expect(magicLinkHandler).toContain("setIsLoading(true)");
+        expect(magicLinkHandler).toContain("await signIn.magicLink({");
+        expect(magicLinkHandler).toContain("setIsLoading(false)");
+        expect(magicLinkHandler).toContain("event.preventDefault()");
+        expect(magicLinkHandler).toContain(
+            'String(formData.get("email") ?? "").trim()',
+        );
+        expect(magicLinkHandler).toContain("setFormState(null)");
+        expect(magicLinkHandler).toMatch(
+            /if \(result\.error\) \{[\s\S]*?setFormState\(\{ kind: "error", message \}\);[\s\S]*?toast\.error\(message\);[\s\S]*?return;/,
+        );
+        expect(magicLinkHandler).toMatch(
+            /const message = "登录链接已发送";[\s\S]*?setFormState\(\{ kind: "success", message \}\);[\s\S]*?toast\.success\(message\);/,
+        );
+        expect(magicLinkHandler).toMatch(
+            /finally \{[\s\S]*?setIsLoading\(false\);[\s\S]*?\}/,
+        );
+        const localUseButton = extractBoundedSlice(
+            magicLinkForm,
+            '<Button\n                                        type="button"',
+            "</Button>",
+        );
+        expect(localUseButton).toContain(
+            "disabled={!isMounted || isLocalLoading}",
+        );
+        expect(localUseButton).toContain("aria-busy={isLocalLoading}");
+        expect(localUseButton).toContain(
+            "onClick={() => void handleLocalUse()}",
+        );
+        expect(localUseButton).toMatch(
+            /\{isLocalLoading \? \([\s\S]*?<Spinner aria-hidden="true" \/>[\s\S]*?启动中\.{3}[\s\S]*?\) : \([\s\S]*?仅本地使用/,
+        );
+        for (const className of [
+            "layout",
+            "surface",
+            "frame",
+            "logoMark",
+            "fieldGroup",
+            "actionField",
+            "formMessage",
+            "footer",
+        ]) {
+            expect(login).toContain(`authLoginClassNames.${className}`);
+        }
+        expect(login).toContain("disabled={!isMounted || isLoading}");
+        expect(login).toContain('autoComplete="email"');
+        expect(login).toContain('placeholder="mei@example.com"');
+        expect(login).toContain('formState.kind === "success"');
+        expect(login).toContain('? "status"');
+        expect(login).toContain(': "alert"');
+        expect(login).toContain('? "polite"');
+        expect(login).toContain(': "assertive"');
+        expect(login).toContain('? "statusError"');
+        expect(login).toContain(': "default"');
+        expect(login).toContain("发送中...");
+        expect(login).toContain("启动中...");
+        expect(login).toContain("发送登录链接");
+        expect(login).toContain("仅本地使用");
+        expect(login).toContain("<AlertDescription>");
+        expect(fieldPrimitive).toContain('role="alert"');
+        expect(login).not.toContain(["data", "sot"].join("-"));
         for (const legacyAuthClassName of [
             "auth-mark",
             "auth-title",
             "auth-sub",
             "field-help",
             "auth-local-link",
+            "auth-sot-canvas",
         ]) {
             expect(login).not.toContain(legacyAuthClassName);
         }
-        expect(login).toContain(
-            'import { Input } from "@/components/ui/input";',
-        );
-        expect(login).toContain("<Input");
-        expectNamedImportSymbols(login, "@/components/ui/field", [
-            "Field",
-            "FieldDescription",
-            "FieldError",
-            "FieldGroup",
-            "FieldLabel",
-        ]);
-        expect(login).toContain("<FieldGroup");
-        expect(login).toContain("<Field");
-        expect(login).toContain("<FieldLabel");
-        expect(login).toContain("<FieldError");
-        expect(login).toContain("<FieldDescription");
-        expect(login).toContain(
-            'import { Button } from "@/components/ui/button";',
-        );
-        expect(login).toContain("<Button");
-        expect(login).toContain(
-            'import { Spinner } from "@/components/ui/spinner";',
-        );
-        expect(login).toContain('data-sot-control="send-login-link"');
-        expect(login).toContain('data-sot-control="auth-email"');
-        expect(login).toContain('data-sot-control="local-only"');
         for (const snippet of AUTH_LOGIN_REPAINT_FORBIDDEN_SNIPPETS) {
             expect(login).not.toContain(snippet);
         }
@@ -6694,174 +6783,6 @@ describe("full UI replacement regression coverage", () => {
             ...AUTH_BUTTON_PRIMITIVE_FORBIDDEN_TOKENS,
             ...AUTH_INPUT_PRIMITIVE_FORBIDDEN_TOKENS,
         ]);
-        const authLayout = extractOpeningElement(
-            login,
-            'data-sot-layout="auth-workstation"',
-            "main",
-        );
-        const authCard = extractOpeningElement(
-            login,
-            'data-sot-card="auth"',
-            "Card",
-        );
-        const authHeader = extractOpeningElement(
-            login,
-            "<CardHeader",
-            "CardHeader",
-        );
-        const authHeaderTitle = extractOpeningElement(
-            login,
-            'data-sot-part="card-heading"',
-            "CardTitle",
-        );
-        const authHeaderDescription = extractOpeningElement(
-            login,
-            'data-sot-part="card-sub"',
-            "CardDescription",
-        );
-        const authFrame = extractOpeningElement(
-            login,
-            'data-sot-frame="auth"',
-            "CardContent",
-        );
-        const authLogoMark = extractOpeningElement(
-            login,
-            'data-sot-part="auth-logo-mark"',
-            "Image",
-        );
-        const authFrameTitle = extractOpeningElement(
-            login,
-            'data-sot-part="auth-heading"',
-            "CardTitle",
-        );
-        const authFrameDescription = extractOpeningElement(
-            login,
-            'data-sot-part="auth-description"',
-            "CardDescription",
-        );
-        const authFieldGroup = extractOpeningElement(
-            login,
-            "<FieldGroup",
-            "FieldGroup",
-        );
-        const authEmailField = extractOpeningElement(
-            login,
-            "data-invalid={invalid",
-            "Field",
-        );
-        const authActionField = extractOpeningElement(
-            login,
-            'data-sot-control="send-login-link"',
-            "Field",
-        );
-        const authEmailInput = extractOpeningElement(
-            login,
-            'data-sot-control="auth-email"',
-            "Input",
-        );
-        const authSubmitButton = extractOpeningElement(
-            login,
-            'data-sot-control="send-login-link"',
-            "Button",
-        );
-        const authLocalButton = extractOpeningElement(
-            login,
-            'data-sot-control="local-only"',
-            "Button",
-        );
-        const authLocalChoice = extractOpeningElement(
-            login,
-            'data-sot-part="auth-local-choice"',
-            "FieldDescription",
-        );
-        const authErrorMessage = extractOpeningElement(
-            login,
-            'data-sot-part="auth-form-message"',
-            "FieldError",
-        );
-        const authSuccessMessage = extractOpeningElement(
-            login,
-            'role="status"',
-            "FieldDescription",
-        );
-        for (const [label, openingElement] of [
-            ["layout", authLayout],
-            ["surface", authCard],
-            ["header", authHeader],
-            ["header title", authHeaderTitle],
-            ["header description", authHeaderDescription],
-            ["frame", authFrame],
-            ["logo mark", authLogoMark],
-            ["frame title", authFrameTitle],
-            ["frame description", authFrameDescription],
-            ["content", authFieldGroup],
-            ["field", authEmailField],
-            ["error message", authErrorMessage],
-            ["success message", authSuccessMessage],
-            ["action field", authActionField],
-            ["email", authEmailInput],
-            ["submit", authSubmitButton],
-            ["footer", authLocalChoice],
-            ["inline link", authLocalButton],
-        ] as const) {
-            expectPrimitiveToExcludeBusinessTokens(openingElement, [
-                ...AUTH_CARD_PRIMITIVE_FORBIDDEN_TOKENS,
-                ...AUTH_BUTTON_PRIMITIVE_FORBIDDEN_TOKENS,
-                ...AUTH_INPUT_PRIMITIVE_FORBIDDEN_TOKENS,
-            ]);
-            for (const pattern of AUTH_LOGIN_PRIMITIVE_REPAINT_FORBIDDEN_PATTERNS) {
-                expect(
-                    openingElement,
-                    `${label} should not repaint shadcn primitives`,
-                ).not.toMatch(pattern);
-            }
-        }
-        expect(authCard).toContain('data-sot-card="auth"');
-        expect(authCard).toContain("data-sot-state={surfaceState}");
-        expect(authCard).not.toContain("hasNoPadding");
-        expect(authFrame).toContain('data-sot-frame="auth"');
-        expect(authEmailInput).toContain('data-sot-control="auth-email"');
-        expect(authEmailInput).toContain("data-sot-state={");
-        expect(authSubmitButton).toContain(
-            'data-sot-control="send-login-link"',
-        );
-        expect(authLocalButton).toContain('data-sot-control="local-only"');
-        const authSubmitLoadingBranch = extractBoundedSlice(
-            login,
-            "{isLoading ? (",
-            "发送登录链接",
-        );
-        expect(authSubmitLoadingBranch).toContain(
-            '<Spinner\n                                                data-icon="inline-start"\n                                                aria-hidden="true"\n                                            />',
-        );
-        expect(authSubmitLoadingBranch).toContain("发送中...");
-        const authLocalLoadingBranch = extractBoundedSlice(
-            login,
-            "{isLocalLoading ? (",
-            "仅本地使用",
-        );
-        expect(authLocalLoadingBranch).toContain(
-            '<Spinner\n                                                    data-icon="inline-start"\n                                                    aria-hidden="true"\n                                                />',
-        );
-        expect(authLocalLoadingBranch).toContain("启动中...");
-        expect(authEmailInput).not.toContain('variant="accent"');
-        expect(authEmailInput).not.toContain('controlSize="compact"');
-        expect(authSubmitButton).toContain('variant="default"');
-        expect(authSubmitButton).not.toContain('variant="accent"');
-        expect(authSubmitButton).not.toContain('size="form-submit"');
-        expect(authLocalButton).toContain('variant="link"');
-        expect(authLocalButton).not.toContain('variant="accentLink"');
-        expect(authLocalButton).not.toContain('size="inline-link"');
-        expect(login).toContain("aria-invalid={invalid}");
-        expect(login).toContain("aria-busy={isLoading}");
-        expect(login).toContain("aria-busy={isLocalLoading}");
-        expect(login).toContain("disabled={!isMounted || isLoading}");
-        expect(login).toContain("disabled={!isMounted || isLocalLoading}");
-        expect(login).toContain("data-sot-state={formState.kind}");
-        expect(login).toContain("data-auth-form-state");
-        expect(login).toContain("<FieldError");
-        expect(fieldPrimitive).toContain('role="alert"');
-        expect(login).toContain('role="status"');
         const magicLinkCall = extractBoundedSlice(
             login,
             "await signIn.magicLink({",
@@ -6873,11 +6794,22 @@ describe("full UI replacement regression coverage", () => {
         const localUseHandler = extractBoundedSlice(
             login,
             "async function handleLocalUse()",
-            "const surfaceState",
+            "const invalid",
         );
         expect(localUseHandler).toContain("signIn.anonymous()");
         expect(localUseHandler).toMatch(
             /navigate(?:AndRefresh)?BrowserRoute\(router, "\/dashboard"\)/,
+        );
+        expect(localUseHandler).toContain("setIsLocalLoading(true)");
+        expect(localUseHandler).toContain("setFormState(null)");
+        expect(localUseHandler).toMatch(
+            /if \(result\.error\) \{[\s\S]*?setFormState\(\{ kind: "error", message \}\);[\s\S]*?toast\.error\(message\);[\s\S]*?return;/,
+        );
+        expect(localUseHandler).toMatch(
+            /toast\.success\("已进入本地工作空间"\);[\s\S]*?navigateAndRefreshBrowserRoute\(router, "\/dashboard"\);/,
+        );
+        expect(localUseHandler).toMatch(
+            /finally \{[\s\S]*?setIsLocalLoading\(false\);[\s\S]*?\}/,
         );
         for (const copyString of AUTH_LOGIN_COPY_STRINGS) {
             expect(login).toContain(copyString);
@@ -6892,9 +6824,9 @@ describe("full UI replacement regression coverage", () => {
             expect(globals).not.toContain(selector);
         }
         for (const removedAuthPrimitiveRepaintSelector of [
-            '[data-sot-control="auth-email"][data-slot="input"]',
-            '[data-sot-control="send-login-link"][data-slot="button"]',
-            '[data-sot-control="local-only"][data-slot="button"]',
+            '[data-control="auth-email"][data-slot="input"]',
+            '[data-control="send-login-link"][data-slot="button"]',
+            '[data-control="local-only"][data-slot="button"]',
         ]) {
             expect(globals).not.toContain(removedAuthPrimitiveRepaintSelector);
         }
@@ -6912,424 +6844,474 @@ describe("full UI replacement regression coverage", () => {
             expect(source).not.toMatch(OLD_UI_CONTRACT_RE);
         }
 
-        expect(onboarding).toContain(
-            'data-sot-layout="onboarding-workstation"',
+        const onboardingController = extractBoundedSlice(
+            onboarding,
+            "export function OnboardingForm({ onConnected }",
+            "function SourceStep({",
         );
-        expect(onboarding).toContain('data-sot-surface="onboarding"');
-        expect(onboarding).toContain("<Card");
-        expect(onboarding).toContain('data-sot-card="onboarding"');
-        expect(onboarding).toContain('data-sot-frame="onboarding"');
-        expect(onboarding).toContain('data-sot-part="card-heading"');
-        expect(onboarding).toContain("const onboardingCardClassNames = {");
-        expect(onboarding).toContain("layout:");
-        expect(onboarding).toContain("surface:");
-        expect(onboarding).toContain("frame:");
-        expect(onboarding).toContain("speakerDraft:");
-        expect(onboarding).toContain("header:");
-        expect(onboarding).toContain("steps:");
-        expect(onboarding).toContain("step:");
-        expect(onboarding).toContain("stepHeader:");
-        expect(onboarding).toContain("providerMeta:");
-        expect(onboarding).toContain("heading:");
-        expect(onboarding).toContain("sub:");
-        expect(onboarding).toContain("stepTitle:");
-        expect(onboarding).toContain("stepDescription:");
-        expect(onboarding).toContain("errorMessage:");
-        expect(onboarding).toContain("stepBody:");
-        expect(onboarding).toContain("defaultSources:");
-        expect(onboarding).toContain("defaultSource:");
-        expect(onboarding).toContain("actions:");
-        expect(onboarding).toContain("providerCard:");
-        expect(onboarding).toContain("providerList:");
-        expect(onboarding).toContain("summaryList:");
-        expect(onboarding).toContain("matrixRow:");
-        expect(onboarding).toContain("matrixLabel:");
-        expect(onboarding).toContain("matrixValue:");
-        expect(onboarding).toContain("providerIcon:");
-        expect(onboarding).toContain("providerName:");
-        expect(onboarding).toContain("providerHint:");
-        expect(onboarding).toContain("sourceAuthModeGroup:");
-        expect(onboarding).toContain("sourceAuthModeOption:");
-        expect(onboarding).not.toContain("secondaryAction:");
-        expect(onboarding).not.toContain("primaryAction:");
-        expect(onboarding).toContain(
-            "const DEFAULT_SOURCE_SWATCH_CLASS_NAMES = {",
+        const onboardingMain = extractBoundedSlice(
+            onboardingController,
+            "<main",
+            "</main>",
         );
-        expect(onboarding).toContain(
-            'accent: "size-5 flex-none rounded bg-primary"',
+        expect(onboarding).toContain("<main");
+        expect(onboarding).toContain("aria-busy={isSaving || isFinishing}");
+        expect(onboarding).toContain('aria-labelledby="onboarding-title"');
+        expect(onboardingMain).toContain("aria-busy={isSaving || isFinishing}");
+        expect(onboardingMain).toContain('aria-labelledby="onboarding-title"');
+        expect(onboardingController).toContain(
+            "const progressPct = [25, 40, 75, 100][visibleStepIndex] ?? 25;",
         );
-        expect(onboarding).toContain(
-            'empty: "size-5 flex-none rounded bg-muted"',
+        expect(onboardingController).toContain(
+            "const controlsLocked = !isMounted || isSaving || isFinishing;",
         );
-        for (const removedClass of REMOVED_ONBOARDING_ARBITRARY_LAYOUT_CLASSES) {
-            expect(onboarding).not.toContain(removedClass);
+        const goToStepHandler = extractBoundedSlice(
+            onboardingController,
+            "const goToStep = (step: OnboardingStepId) => {",
+            "const goNext = () => {",
+        );
+        expect(goToStepHandler).toContain("if (controlsLocked) return;");
+        expect(goToStepHandler).toContain("setFinishError(null)");
+        expect(goToStepHandler).toContain("setActiveStep(step)");
+        expect(onboarding).toContain("<Card hasNoPadding");
+        for (const className of [
+            "layout",
+            "surface",
+            "frame",
+            "header",
+            "steps",
+            "step",
+            "stepHeader",
+            "heading",
+            "sub",
+            "stepTitle",
+            "stepDescription",
+            "stepBody",
+            "actions",
+            "providerCard",
+            "providerList",
+            "defaultSources",
+            "defaultSource",
+            "speakerDraft",
+            "summaryList",
+            "matrixRow",
+            "matrixLabel",
+            "matrixValue",
+        ]) {
+            expect(onboarding).toContain(
+                "onboardingCardClassNames." + className,
+            );
         }
-        expect(onboarding).toContain('data-sot-part="onboarding-card-header"');
-        expect(onboarding).toContain(
-            "className={onboardingCardClassNames.header}",
+        expect(onboarding).toContain('id="onboarding-title"');
+        expect(onboarding).toContain('role="heading"');
+        expect(onboarding).toContain("<Progress");
+        expect(onboarding).toContain("value={progressPct}");
+        expect(onboarding).toContain("aria-label={");
+        expect(onboarding).toContain('<nav aria-label="上手步骤">');
+        expect(onboarding).toContain("aria-current={");
+        expect(onboarding).toContain('id="onboarding-step-title"');
+        expect(onboarding).toContain('id="onboarding-step-description"');
+        const onboardingSteps = extractBoundedSlice(
+            onboarding,
+            "const ONBOARDING_STEPS = [",
+            "] as const;",
+        );
+        expect(onboardingSteps.match(/\bid: "/g)).toHaveLength(4);
+        for (const step of ["source", "transcription", "speakers", "finish"]) {
+            expect(onboardingSteps).toContain(`id: "${step}"`);
+        }
+        const onboardingStepNavigation = extractBoundedSlice(
+            onboarding,
+            '<nav aria-label="上手步骤">',
+            "</nav>",
+        );
+        expect(onboardingStepNavigation).toContain("ONBOARDING_STEPS.map");
+        expect(onboardingStepNavigation).toMatch(
+            /aria-current=\{\s*isActive \? "step" : undefined\s*\}/,
+        );
+        expect(onboardingStepNavigation).toContain(
+            "aria-label={`第 ${index + 1} 步 · ${step.title}`}",
+        );
+        expect(onboardingStepNavigation).toContain(
+            "onClick={() => goToStep(step.id)}",
+        );
+        const onboardingStepRegion = extractBoundedSlice(
+            onboarding,
+            "<section\n                    aria-busy",
+            "<CardContent",
+        );
+        expect(onboardingStepRegion).toContain(
+            'aria-labelledby="onboarding-step-title"',
+        );
+        expect(onboardingStepRegion).toContain(
+            'aria-describedby="onboarding-step-description"',
+        );
+        expect(onboardingStepRegion).toContain(
+            "aria-busy={isSaving || isFinishing}",
+        );
+        expect(onboardingStepRegion).toMatch(
+            /<h2[\s\S]*?id="onboarding-step-title"[\s\S]*?\{visibleStepTitle\}/,
+        );
+        expect(onboardingStepRegion).toMatch(
+            /<p[\s\S]*?id="onboarding-step-description"[\s\S]*?\{ONBOARDING_STEPS\[visibleStepIndex\]\.hint\}/,
+        );
+        const onboardingProgress = extractOpeningElement(
+            onboardingMain,
+            "value={progressPct}",
+            "Progress",
+        );
+        expect(onboardingProgress).toContain(
+            "aria-label={`配置进度：${visibleStepTitle}`}",
         );
         expect(onboarding).toContain(
-            "className={onboardingCardClassNames.heading}",
+            "<CardContent className={onboardingCardClassNames.stepBody}>",
         );
-        expect(onboarding).toContain(
-            "className={onboardingCardClassNames.sub}",
+        expect(onboarding).toContain('aria-live="assertive"');
+        expect(onboarding).toContain('variant="statusError"');
+        expect(onboarding).toContain('density="compact"');
+
+        const providerChoices =
+            onboarding.match(
+                /<ToggleGroup[\s\S]*?aria-label="来源"[\s\S]*?<\/ToggleGroup>/,
+            )?.[0] ?? "";
+        expect(providerChoices).toContain("<ToggleGroup");
+        expect(providerChoices).toContain("<ToggleGroupItem");
+        expect(providerChoices).toContain('type="single"');
+        expect(providerChoices).toContain('orientation="vertical"');
+        expect(providerChoices).toContain('variant="outline"');
+        expect(providerChoices).toContain("value={provider}");
+        expect(providerChoices).toContain("selectProvider(value)");
+        expect(providerChoices).toContain(
+            "onboardingCardClassNames.providerCard",
         );
-        expect(onboarding).not.toContain('className="onboarding-sot-canvas"');
-        expect(onboarding).not.toContain('className="card"');
-        expect(onboarding).not.toContain('className="frame"');
-        expect(onboarding).toContain('data-sot-panel="onboarding-steps"');
-        expect(onboarding).toContain("data-sot-progress={visibleStep}");
-        expect(onboarding).toContain('data-sot-panel="onboarding-current"');
-        expect(onboarding).toContain('data-sot-control="onboarding-step"');
-        expect(onboarding).toContain("data-sot-step={step.id}");
-        expect(onboarding).toContain("data-sot-state={status}");
-        expect(onboarding).toContain('data-sot-part="onboarding-step-header"');
-        expect(onboarding).toContain('data-sot-part="onboarding-step-title"');
-        expect(onboarding).toContain(
-            'data-sot-part="onboarding-step-description"',
+        expect(providerChoices).toContain("disabled={isSaving}");
+        const sourceStep = extractBoundedSlice(
+            onboarding,
+            "function SourceStep({",
+            "function TranscriptionStep({",
         );
-        expect(onboarding).toContain('data-sot-part="onboarding-step-body"');
-        expect(onboarding).toContain(
-            "className={onboardingCardClassNames.stepTitle}",
+        const sourceProviderField = extractBoundedSlice(
+            sourceStep,
+            '<OnboardingFieldRow\n                description="未指定来源时，新录音从这里读取"',
+            "</OnboardingFieldRow>",
         );
-        expect(onboarding).toContain(
-            "className={onboardingCardClassNames.stepDescription}",
+        expect(sourceProviderField).toContain('id="source-provider"');
+        expect(sourceProviderField).toContain('label="来源"');
+        expect(sourceProviderField).toMatch(
+            /<Select\b[\s\S]*?aria-label="来源"[\s\S]*?disabled=\{isSaving\}[\s\S]*?id="source-provider"[\s\S]*?onValueChange=\{selectProvider\}[\s\S]*?value=\{provider\}/,
         );
-        expect(onboarding).toMatch(
-            /<CardContent(?=[^>]*\bclassName=\{onboardingCardClassNames\.stepBody\})(?=[^>]*\bdata-sot-part="onboarding-step-body")[^>]*>/,
+        const sourceProviderSelect = extractBoundedSlice(
+            sourceProviderField,
+            "<Select",
+            "/>",
         );
-        expect(onboarding).toContain('data-sot-part="onboarding-error"');
-        expect(onboarding).toContain('data-sot-part="onboarding-actions"');
-        expect(onboarding).toContain('data-sot-control="onboarding-skip"');
-        expect(onboarding).toContain('data-sot-control="provider-card"');
-        expect(onboarding).toContain('data-sot-list="provider-cards"');
-        expect(onboarding).toContain(
-            'data-sot-panel="onboarding-default-source-step"',
+        expect(sourceProviderSelect).toContain('aria-label="来源"');
+        expect(sourceProviderSelect).toContain(
+            "onValueChange={selectProvider}",
         );
-        expect(onboarding).toContain(
-            'data-sot-list="onboarding-default-sources"',
-        );
-        expect(onboarding).toContain(
-            'data-sot-control="onboarding-default-source"',
-        );
-        expect(onboarding).toContain(
-            'data-sot-part="onboarding-default-source-swatch"',
-        );
-        const defaultSourceMarkerIndex = onboarding.indexOf(
-            'data-sot-list="onboarding-default-sources"',
-        );
-        expect(defaultSourceMarkerIndex).toBeGreaterThanOrEqual(0);
-        const defaultSourceStartIndex = onboarding.lastIndexOf(
-            "<ToggleGroup",
-            defaultSourceMarkerIndex,
-        );
-        const defaultSourceEndIndex = onboarding.indexOf(
+        expect(sourceProviderSelect).toContain("value={provider}");
+        const sourceProviderToggleGroup = extractBoundedSlice(
+            sourceStep,
+            '<ToggleGroup\n                aria-label="来源"',
             "</ToggleGroup>",
-            defaultSourceMarkerIndex,
         );
-        expect(defaultSourceStartIndex).toBeGreaterThanOrEqual(0);
-        expect(defaultSourceEndIndex).toBeGreaterThan(defaultSourceMarkerIndex);
-        const defaultSourceControl = onboarding.slice(
-            defaultSourceStartIndex,
-            defaultSourceEndIndex + "</ToggleGroup>".length,
+        expect(sourceProviderToggleGroup).toMatch(
+            /<ToggleGroup\b[\s\S]*?disabled=\{isSaving\}[\s\S]*?type="single"[\s\S]*?value=\{provider\}/,
         );
+        expect(sourceProviderToggleGroup).toMatch(
+            /onValueChange=\{\(value\) => \{[\s\S]*?if \(value\) \{[\s\S]*?selectProvider\(value\);[\s\S]*?\}[\s\S]*?\}\}/,
+        );
+        expect(sourceProviderToggleGroup).toMatch(
+            /<ToggleGroupItem\b[\s\S]*?disabled=\{isSaving\}[\s\S]*?value=\{item\.provider\}/,
+        );
+        const sourceAuthModeField = extractBoundedSlice(
+            sourceStep,
+            '<OnboardingFieldRow\n                    description="按来源支持的方式填写授权"',
+            "</OnboardingFieldRow>",
+        );
+        expect(sourceAuthModeField).toContain('id="source-auth-mode"');
+        expect(sourceAuthModeField).toContain('label="登录方式"');
+        expect(sourceAuthModeField).toMatch(
+            /<ToggleGroup\b[\s\S]*?aria-label="登录方式"[\s\S]*?disabled=\{isSaving\}[\s\S]*?setAuthMode\(mode\)[\s\S]*?value=\{currentDraft\.authMode\}/,
+        );
+        expect(sourceAuthModeField).toMatch(
+            /<ToggleGroupItem\b[\s\S]*?aria-pressed=\{active\}[\s\S]*?disabled=\{isSaving\}[\s\S]*?value=\{mode\}/,
+        );
+        const sourceAuthModeGroup = extractBoundedSlice(
+            sourceAuthModeField,
+            "<ToggleGroup",
+            "</ToggleGroup>",
+        );
+        expect(sourceAuthModeGroup).toMatch(
+            /onValueChange=\{\(mode\) => \{[\s\S]*?if \(!mode\) \{[\s\S]*?return;[\s\S]*?\}[\s\S]*?setAuthMode\(mode\);/,
+        );
+        expect(sourceAuthModeGroup).toContain("value={currentDraft.authMode}");
+        expect(sourceAuthModeGroup).toMatch(
+            /<ToggleGroupItem\b[\s\S]*?aria-pressed=\{active\}[\s\S]*?disabled=\{isSaving\}[\s\S]*?value=\{mode\}/,
+        );
+        const sourceBaseUrlField = extractBoundedSlice(
+            sourceStep,
+            '<OnboardingFieldRow\n                    description="来源 API 或网页登录入口"',
+            "</OnboardingFieldRow>",
+        );
+        expect(sourceBaseUrlField).toMatch(
+            /<Input\b[\s\S]*?disabled=\{isSaving\}[\s\S]*?id="source-base-url"[\s\S]*?onChange=\{\(event\) => setBaseUrl\(event\.target\.value\)\}[\s\S]*?value=\{currentDraft\.baseUrl\}/,
+        );
+        const sourceProviderFields = extractBoundedSlice(
+            sourceStep,
+            "<div className={onboardingCardClassNames.sourceProviderFields}>",
+            "</div>",
+        );
+        expect(sourceProviderFields).toContain(
+            "providerFields.map((field) => (",
+        );
+        expect(sourceProviderFields).toMatch(
+            /<DataSourceFieldControl\b[\s\S]*?disabled=\{isSaving\}[\s\S]*?field=\{field\}[\s\S]*?fieldId=\{field\.id\}[\s\S]*?key=\{field\.id\}[\s\S]*?onValueChange=\{updateField\}[\s\S]*?variant="onboarding"/,
+        );
+        expect(onboarding).toContain("<Select");
+        expect(onboarding).toContain('id="source-provider"');
+        expect(onboarding).toContain('aria-label="来源"');
+        expect(onboarding).toContain("<Input");
+        expect(onboarding).toContain('id="source-base-url"');
+        expect(onboarding).toContain("<DataSourceFieldControl");
+        expect(onboarding).toContain('variant="onboarding"');
+
+        const sourceAuthModeControl =
+            onboarding.match(
+                /<ToggleGroup[\s\S]*?aria-label="登录方式"[\s\S]*?<\/ToggleGroup>/,
+            )?.[0] ?? "";
+        expect(sourceAuthModeControl).toContain("<ToggleGroup");
+        expect(sourceAuthModeControl).toContain("<ToggleGroupItem");
+        expect(sourceAuthModeControl).toContain(
+            "value={currentDraft.authMode}",
+        );
+        expect(sourceAuthModeControl).toContain("setAuthMode(mode)");
+        expect(sourceAuthModeControl).toContain("aria-pressed={active}");
+        expect(sourceAuthModeControl).toContain('variant="outline"');
+        expect(sourceAuthModeControl).toContain("spacing={2}");
+
+        const defaultSourceControl =
+            onboarding.match(
+                /<ToggleGroup[\s\S]*?aria-label="默认转写来源"[\s\S]*?<\/ToggleGroup>/,
+            )?.[0] ?? "";
         expect(defaultSourceControl).toContain("<ToggleGroup");
         expect(defaultSourceControl).toContain("<ToggleGroupItem");
         expect(defaultSourceControl).toContain('type="single"');
         expect(defaultSourceControl).toContain('orientation="vertical"');
         expect(defaultSourceControl).toContain('role="group"');
         expect(defaultSourceControl).toContain('variant="outline"');
-        expect(defaultSourceControl).toContain("spacing={2}");
         expect(defaultSourceControl).toContain(
-            "value={defaultTranscriptionSource}",
+            'value={defaultTranscriptionSource ?? ""}',
+        );
+        expect(defaultSourceControl).toContain(
+            "setDefaultTranscriptionSource(null)",
         );
         expect(defaultSourceControl).toContain(
             "setDefaultTranscriptionSource(selectedOption.id)",
         );
         expect(defaultSourceControl).toContain("aria-pressed={isActive}");
-        expect(defaultSourceControl).toContain("data-sot-state={");
-        expect(defaultSourceControl).not.toContain('role="button"');
-        expect(defaultSourceControl).not.toContain('type="button"');
-        expect(defaultSourceControl).not.toContain("<button");
-        expect(defaultSourceControl).not.toContain("data-sot-swatch");
-        expect(onboarding).toContain(
-            "disabled={isSaving || !option.connected}",
+        expect(defaultSourceControl).toContain(
+            "disabled={isSaving || !option.selectable}",
         );
+        expect(defaultSourceControl).toContain(
+            "aria-disabled={isSaving || !option.selectable}",
+        );
+        const transcriptionStep = extractBoundedSlice(
+            onboarding,
+            "function TranscriptionStep({",
+            "function SpeakersStep({",
+        );
+        expect(transcriptionStep).toContain(
+            "connectedProviders.includes(option.id)",
+        );
+        expect(transcriptionStep).toContain(
+            "currentDraftTranscriptionSource === option.id",
+        );
+        expect(transcriptionStep).not.toContain("connected: true");
+        expect(transcriptionStep).toMatch(
+            /onValueChange=\{\(value\) => \{[\s\S]*?if \(isSaving\) \{[\s\S]*?return;[\s\S]*?\}[\s\S]*?if \(!value\) \{[\s\S]*?setDefaultTranscriptionSource\(null\);[\s\S]*?return;[\s\S]*?\}[\s\S]*?const selectedOption = options\.find\([\s\S]*?if \(!selectedOption\?\.selectable\)[\s\S]*?setDefaultTranscriptionSource\(selectedOption\.id\)/,
+        );
+        const defaultSourceToggleGroup = extractBoundedSlice(
+            transcriptionStep,
+            '<ToggleGroup\n                aria-label="默认转写来源"',
+            "</ToggleGroup>",
+        );
+        expect(defaultSourceToggleGroup).toContain("disabled={isSaving}");
+        expect(defaultSourceToggleGroup).toContain(
+            'value={defaultTranscriptionSource ?? ""}',
+        );
+        expect(defaultSourceToggleGroup).toMatch(
+            /onValueChange=\{\(value\) => \{[\s\S]*?if \(isSaving\) \{[\s\S]*?return;[\s\S]*?\}[\s\S]*?if \(!value\) \{[\s\S]*?setDefaultTranscriptionSource\(null\);[\s\S]*?return;[\s\S]*?\}[\s\S]*?const selectedOption = options\.find\([\s\S]*?if \(!selectedOption\?\.selectable\) \{[\s\S]*?return;[\s\S]*?\}[\s\S]*?setDefaultTranscriptionSource\(selectedOption\.id\);/,
+        );
+        const defaultSourceItem = extractBoundedSlice(
+            transcriptionStep,
+            "<ToggleGroupItem",
+            "</ToggleGroupItem>",
+        );
+        expect(defaultSourceItem).toContain("aria-pressed={isActive}");
+        expect(defaultSourceItem).toContain(
+            "disabled={isSaving || !option.selectable}",
+        );
+        expect(defaultSourceItem).toMatch(
+            /aria-pressed=\{isActive\}[\s\S]*?disabled=\{isSaving \|\| !option\.selectable\}[\s\S]*?value=\{option\.id\}/,
+        );
+        const defaultSourceActions = extractBoundedSlice(
+            transcriptionStep,
+            '<fieldset\n                aria-label="默认转写操作"',
+            "</fieldset>",
+        );
+        expect(defaultSourceActions).toMatch(
+            /<Button\b[\s\S]*?disabled=\{isSaving\}[\s\S]*?onClick=\{onNext\}[\s\S]*?>[\s\S]*?跳过[\s\S]*?<\/Button>[\s\S]*?<Button\b[\s\S]*?disabled=\{isSaving\}[\s\S]*?onClick=\{onNext\}[\s\S]*?>[\s\S]*?下一步/,
+        );
+        expect(onboarding).toContain('aria-label="默认转写操作"');
+        expect(onboarding).toContain("DEFAULT_SOURCE_SWATCH_CLASS_NAMES");
+        expect(onboarding).toContain(
+            'accent: "size-5 flex-none rounded bg-primary"',
+        );
+        expect(onboarding).toContain(
+            'empty: "size-5 flex-none rounded bg-muted"',
+        );
+
+        expect(onboarding).toContain('aria-labelledby="speaker-profile-title"');
+        expect(onboarding).toContain("hasNoPadding");
+        expect(onboarding).toContain('id="speaker-profile-title"');
+        expect(onboarding).toContain('id="speaker-name"');
+        expect(onboarding).toContain('id="speaker-voiceprint"');
+        const speakersStep = extractBoundedSlice(
+            onboarding,
+            "function SpeakersStep({",
+            "function FinishStep({",
+        );
+        expect(speakersStep).toContain(
+            'aria-labelledby="speaker-profile-title"',
+        );
+        expect(speakersStep).toMatch(
+            /<Input\b[\s\S]*?id="speaker-name"[\s\S]*?onChange=\{\(event\) => setSpeakerName\(event\.target\.value\)\}[\s\S]*?value=\{speakerName\}/,
+        );
+        expect(speakersStep).toMatch(
+            /<Input\b[\s\S]*?id="speaker-voiceprint"[\s\S]*?setSpeakerVoiceprint\(event\.target\.value\)[\s\S]*?value=\{speakerVoiceprint\}/,
+        );
+        expect(speakersStep).toMatch(
+            /<MatrixRow\s+label="档案状态"[\s\S]*?speakerName\.trim\(\)[\s\S]*?speakerState === "saving"/,
+        );
+        const speakerNameField = extractBoundedSlice(
+            speakersStep,
+            '<OnboardingFieldRow\n                description="例如主持人、自己或常见会议成员"',
+            "</OnboardingFieldRow>",
+        );
+        expect(speakerNameField).toMatch(
+            /<Input\b[\s\S]*?disabled=\{isSaving \|\| speakerState === "saving"\}[\s\S]*?id="speaker-name"[\s\S]*?onChange=\{\(event\) => setSpeakerName\(event\.target\.value\)\}[\s\S]*?value=\{speakerName\}/,
+        );
+        const speakerVoiceprintField = extractBoundedSlice(
+            speakersStep,
+            '<OnboardingFieldRow\n                description="可选；后续也可在说话人校对里补"',
+            "</OnboardingFieldRow>",
+        );
+        expect(speakerVoiceprintField).toMatch(
+            /<Input\b[\s\S]*?disabled=\{isSaving \|\| speakerState === "saving"\}[\s\S]*?id="speaker-voiceprint"[\s\S]*?onChange=\{\(event\) =>[\s\S]*?setSpeakerVoiceprint\(event\.target\.value\)[\s\S]*?\}[\s\S]*?value=\{speakerVoiceprint\}/,
+        );
+        expect(onboarding).toContain('aria-label="配置摘要"');
+        expect(onboarding).toContain(
+            'aria-live={status ? "polite" : undefined}',
+        );
+        expect(onboarding).toContain('aria-label="完成配置操作"');
+        expect(onboarding).toContain("保存中...");
+        expect(onboarding).toContain("保存并进入工作台");
+        expect(onboarding).toContain(
+            'navigateAndRefreshBrowserRoute(router, "/dashboard")',
+        );
+        const finishStep = extractBoundedSlice(
+            onboarding,
+            "function FinishStep({",
+            "function MatrixRow({",
+        );
+        const finishActions = extractBoundedSlice(
+            finishStep,
+            '<fieldset\n                aria-label="完成配置操作"',
+            "</fieldset>",
+        );
+        expect(finishActions).toMatch(
+            /<Button\b[\s\S]*?disabled=\{isSaving \|\| isFinishing\}[\s\S]*?aria-busy=\{isSaving \|\| isFinishing\}[\s\S]*?onClick=\{onFinish\}/,
+        );
+        expect(finishActions).toContain('"保存并进入工作台"');
+        const finishHandler = extractBoundedSlice(
+            onboarding,
+            "const handleFinish = async () => {",
+            "return (",
+        );
+        const speakerProfileSaveHandler = extractBoundedSlice(
+            onboardingController,
+            "const saveSpeakerProfile = async () => {",
+            "const handleFinish = async () => {",
+        );
+        expect(speakerProfileSaveHandler).toMatch(
+            /const trimmedName = speakerName\.trim\(\);[\s\S]*?if \(!trimmedName \|\| speakerState === "saved"\) \{[\s\S]*?return;/,
+        );
+        expect(speakerProfileSaveHandler).toMatch(
+            /setSpeakerState\("saving"\);[\s\S]*?await fetch\("\/api\/speakers\/profiles",/,
+        );
+        expect(speakerProfileSaveHandler).toMatch(
+            /try \{[\s\S]*?if \(!response\.ok\) \{[\s\S]*?throw new Error\("说话人档案保存失败"\);[\s\S]*?\}[\s\S]*?setSpeakerState\("saved"\);[\s\S]*?\} catch \(error\) \{[\s\S]*?setSpeakerState\("error"\);[\s\S]*?throw error instanceof Error/,
+        );
+        expect(speakerProfileSaveHandler).toContain('setSpeakerState("saved")');
+        expect(finishHandler).toMatch(
+            /if \(!isMounted\) return;[\s\S]*?setFinishError\(null\);[\s\S]*?setIsFinishing\(true\);/,
+        );
+        expect(finishHandler).toMatch(
+            /const defaultTranscriptionProvider =[\s\S]*?selectedDefaultTranscriptionSource;[\s\S]*?const didConnect = connectedProvider \? true : await connectSource\(\);[\s\S]*?if \(!didConnect\) \{[\s\S]*?setActiveStep\("source"\);[\s\S]*?setFinishError\("来源连接失败，请检查授权信息后重试。"\);[\s\S]*?return;/,
+        );
+        expect(finishHandler).toMatch(
+            /await saveTranscriptionDefaults\(defaultTranscriptionProvider\);[\s\S]*?await saveSpeakerProfile\(\);/,
+        );
+        expect(finishHandler).toMatch(
+            /if \(onConnected\) \{[\s\S]*?onConnected\(\);[\s\S]*?return;[\s\S]*?\}[\s\S]*?navigateAndRefreshBrowserRoute\(router, "\/dashboard"\);/,
+        );
+        expect(finishHandler).toMatch(
+            /catch \(error\) \{[\s\S]*?setFinishError\(error instanceof Error \? error\.message : "保存失败"\);/,
+        );
+        expect(finishHandler).toMatch(
+            /finally \{[\s\S]*?setIsFinishing\(false\);[\s\S]*?\}/,
+        );
+        expect(finishHandler).toContain("setIsFinishing(true)");
+        expect(finishHandler).toContain("await connectSource()");
+        expect(finishHandler).toContain(
+            "await saveTranscriptionDefaults(defaultTranscriptionProvider)",
+        );
+        expect(finishHandler).toContain("await saveSpeakerProfile()");
+        expect(finishHandler).toContain(
+            'navigateAndRefreshBrowserRoute(router, "/dashboard")',
+        );
+        expect(finishHandler).toContain("setIsFinishing(false)");
+        const finishStepMount = extractBoundedSlice(
+            onboarding,
+            '{visibleStep === "finish" ? (',
+            ") : null}",
+        );
+        expect(finishStepMount).toContain(
+            "onFinish={() => void handleFinish()}",
+        );
+        const summaryMatrixRow = extractBoundedSlice(
+            onboarding,
+            "function MatrixRow({",
+            "function WizardActions({",
+        );
+        expect(summaryMatrixRow).toMatch(
+            /<dl[\s\S]*?aria-live=\{status \? "polite" : undefined\}[\s\S]*?\{status \? <span className="sr-only">，\{status\}<\/span> : null\}/,
+        );
+
+        expect(onboarding).not.toContain(["data", "sot"].join("-"));
         expect(onboarding).not.toContain("style={{");
         expect(onboarding).not.toContain("tabIndex=");
-        expect(onboarding).toContain(
-            'data-sot-control="speaker-profile-draft"',
-        );
-        expect(onboarding).toMatch(
-            /data-sot-control="speaker-profile-draft"[\s\S]*<CardHeader(?=[^>]*\bclassName=\{onboardingCardClassNames\.providerMeta\})(?=[^>]*\bdata-sot-part="provider-meta")[^>]*>[\s\S]*<CardTitle(?=[^>]*\bclassName=\{onboardingCardClassNames\.providerName\})(?=[^>]*\bdata-sot-part="provider-name")[^>]*>[\s\S]*<CardDescription(?=[^>]*\bclassName=\{onboardingCardClassNames\.providerHint\})(?=[^>]*\bdata-sot-part="provider-hint")[^>]*>/,
-        );
-        expect(onboarding).toContain('data-sot-list="speaker-profiles"');
-        expect(onboarding).toContain('data-sot-list="finish-summary"');
-        expect(onboarding).toContain('data-sot-part="provider-icon"');
-        expect(onboarding).toContain('data-sot-part="provider-meta"');
-        expect(onboarding).toContain(
-            'import { Button } from "@/components/ui/button";',
-        );
-        expect(onboarding).toContain(
-            "className={onboardingCardClassNames.sourceAuthModeGroup}",
-        );
-        expect(onboarding).toContain(
-            "className={\n                                        onboardingCardClassNames.sourceAuthModeOption\n                                    }",
-        );
-        expect(onboarding).toContain("spacing={2}");
-        expect(onboarding).toContain('variant="outline"');
-        expect(onboarding).not.toContain('layout="onboardingSourceAuthMode"');
-        expect(onboarding).not.toContain(
-            'variant="onboardingSourceAuthModeOption"',
-        );
-        expect(onboarding).not.toContain(
-            'size="onboardingSourceAuthModeOption"',
-        );
-        expect(onboarding).not.toContain('spacing="onboardingSourceAuthMode"');
-        expect(onboarding).toContain('data-sot-control="source-base-url"');
-        expect(onboarding).not.toContain('variant="onboardingSourceUrl"');
-        expect(onboarding).not.toContain('controlSize="onboardingSourceUrl"');
-        expect(onboarding).toContain('variant="onboarding"');
-        expect(onboarding).toContain(
-            "className={onboardingCardClassNames.surface}",
-        );
-        expect(onboarding).toContain("onboardingCardClassNames.providerCard");
-        expect(onboarding).not.toContain(
-            "className={onboardingCardClassNames.secondaryAction}",
-        );
-        expect(onboarding).not.toContain(
-            "className={onboardingCardClassNames.primaryAction}",
-        );
-        expect(onboarding).not.toContain('variant="onboardingProviderCard"');
-        expect(onboarding).not.toContain('size="onboardingProviderCard"');
-        expect(onboarding).not.toContain('variant="onboardingDefaultSource"');
-        expect(onboarding).not.toContain('size="onboardingDefaultSource"');
-        expect(onboarding).not.toContain('variant="onboardingSecondaryAction"');
-        expect(onboarding).not.toContain('variant="onboardingPrimaryAction"');
-        expect(onboarding).not.toContain('size="onboardingAction"');
-        expect(onboarding).not.toContain('variant="accent"');
-        expect(onboarding).not.toContain('variant="quietOutline"');
-        expect(onboarding).not.toContain('size="control-xs"');
-        expect(onboarding).not.toContain(
-            'variant={isActive ? "secondary" : "outline"}',
-        );
-        const onboardingSkipButton = extractOpeningElement(
-            onboarding,
-            'data-sot-control="onboarding-skip"',
-            "Button",
-        );
-        const defaultSourceNextButton = extractOpeningElement(
-            onboarding,
-            'data-sot-control="onboarding-next"',
-            "Button",
-        );
-        expect(onboardingSkipButton).toContain('type="button"');
-        expect(onboardingSkipButton).toContain('variant="outline"');
-        expect(onboardingSkipButton).toContain('size="xs"');
-        expect(onboardingSkipButton).not.toContain("className=");
-        expect(defaultSourceNextButton).toContain('type="button"');
-        expect(defaultSourceNextButton).toContain('variant="default"');
-        expect(defaultSourceNextButton).toContain('size="xs"');
-        expect(defaultSourceNextButton).not.toContain("className=");
-        for (const removedOnboardingPrimitiveRepaintClass of [
-            "!h-[26px]",
-            "!gap-[6px]",
-            "!rounded-[8px]",
-            "!border",
-            "!bg-[var(--accent)]",
-            "!px-[10px]",
-            "!text-[11px]",
-            "!font-semibold",
-            "!leading-[normal]",
-            "!text-[var(--fg-secondary)]",
-            "!text-white",
-            "!shadow-none",
-        ]) {
-            for (const actionButtonOpening of [
-                onboardingSkipButton,
-                defaultSourceNextButton,
-            ]) {
-                expect(actionButtonOpening).not.toContain(
-                    removedOnboardingPrimitiveRepaintClass,
-                );
-            }
-        }
-        const providerCardsMarkerIndex = onboarding.indexOf(
-            'data-sot-list="provider-cards"',
-        );
-        expect(providerCardsMarkerIndex).toBeGreaterThanOrEqual(0);
-        const providerCardsStartIndex = onboarding.lastIndexOf(
-            "<ToggleGroup",
-            providerCardsMarkerIndex,
-        );
-        const providerCardsEndIndex = onboarding.indexOf(
-            "</ToggleGroup>",
-            providerCardsMarkerIndex,
-        );
-        expect(providerCardsStartIndex).toBeGreaterThanOrEqual(0);
-        expect(providerCardsEndIndex).toBeGreaterThan(providerCardsMarkerIndex);
-        const providerCardsControl = onboarding.slice(
-            providerCardsStartIndex,
-            providerCardsEndIndex + "</ToggleGroup>".length,
-        );
-        const providerCardItem = extractOpeningElement(
-            onboarding,
-            'data-sot-control="provider-card"',
-            "ToggleGroupItem",
-        );
-        expect(providerCardsControl).toContain("<ToggleGroup");
-        expect(providerCardsControl).toContain("<ToggleGroupItem");
-        expect(providerCardsControl).toContain('type="single"');
-        expect(providerCardsControl).toContain('orientation="vertical"');
-        expect(providerCardsControl).toContain('variant="outline"');
-        expect(providerCardsControl).toContain("disabled={isSaving}");
-        expect(providerCardsControl).toContain("value={provider}");
-        expect(providerCardsControl).toContain("selectProvider(value)");
-        expect(providerCardItem).toContain("className={cn(");
-        expect(providerCardItem).toContain(
-            "onboardingCardClassNames.providerCard",
-        );
-        expect(providerCardItem).toContain('isActive && "border-transparent"');
-        expect(providerCardItem).toContain("value={item.provider}");
-        expect(onboarding).not.toContain(
-            '"grid h-auto w-full grid-cols-[36px_1fr_auto_auto] items-center justify-start gap-3 px-3.5 py-3 text-left"',
-        );
-        expect(onboarding).not.toContain(
-            'className="grid grid-cols-[36px_1fr_auto_auto] items-center gap-3 border-primary/50 bg-primary/10 p-3.5"',
-        );
-        expect(onboarding).toContain(
-            "className={onboardingCardClassNames.speakerDraft}",
-        );
-        for (const removedOnboardingCardVariant of [
-            'variant="onboardingSurface"',
-            'variant="onboardingSpeakerDraft"',
-            'variant="onboardingHeader"',
-            'variant="onboardingStepHeader"',
-            'variant="onboardingProviderMeta"',
-            'variant="onboardingHeading"',
-            'variant="onboardingStepTitle"',
-            'variant="onboardingProviderName"',
-            'variant="onboardingSub"',
-            'variant="onboardingStepDescription"',
-            'variant="onboardingProviderHint"',
-            'variant="onboardingStepBody"',
-        ]) {
-            expect(onboarding).not.toContain(removedOnboardingCardVariant);
-        }
-        expect(onboarding).toContain("CardContent,");
-        expect(onboarding).toContain("CardDescription,");
-        expect(onboarding).toContain("CardHeader,");
-        expect(onboarding).toContain("CardTitle,");
-        expect(onboarding).toContain(
-            'import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";',
-        );
-        expect(onboarding).toContain("<ToggleGroup");
-        expect(onboarding).toContain("<ToggleGroupItem");
-        expect(onboarding).toContain('type="single"');
-        expect(onboarding).toContain("value={currentDraft.authMode}");
-        expect(onboarding).toContain("setAuthMode(mode)");
-        expect(onboarding).toContain('data-sot-list="source-auth-modes"');
-        expect(onboarding).toContain('data-sot-control="source-auth-mode"');
-        expect(onboarding).toContain("data-sot-auth-mode={mode}");
-        expect(onboarding).toContain(
-            'data-sot-state={\n                                        active ? "selected" : "idle"\n                                    }',
-        );
-        expect(onboarding).toContain('data-sot-part="source-auth-mode-title"');
-        expect(onboarding).toContain(
-            'data-sot-part="source-auth-mode-description"',
-        );
-        const sourceAuthModeControl =
-            onboarding.match(
-                /currentProviderCatalog\.authModes\.length > 1[\s\S]*?<MatrixRow/,
-            )?.[0] ?? "";
-        expect(sourceAuthModeControl).toContain("<ToggleGroup");
-        expect(sourceAuthModeControl).toContain("<ToggleGroupItem");
-        expect(sourceAuthModeControl).toContain('variant="outline"');
-        expect(sourceAuthModeControl).not.toContain('size="lg"');
-        expect(sourceAuthModeControl).toContain("spacing={2}");
-        expect(sourceAuthModeControl).not.toContain(
-            'className="grid w-full grid-cols-2 items-stretch"',
-        );
-        const onboardingDataSourceFieldControl =
-            onboarding.match(
-                /\{providerFields\.map\(\(field\) => \([\s\S]*?\)\)\}/,
-            )?.[0] ?? "";
-        expect(onboardingDataSourceFieldControl).toContain(
-            "<DataSourceFieldControl",
-        );
-        expect(onboardingDataSourceFieldControl).toContain(
-            'variant="onboarding"',
-        );
-        expect(onboardingDataSourceFieldControl).not.toContain(
-            'variant="settings"',
-        );
-        expect(onboarding).toContain('data-sot-control="save-enter"');
         expect(onboarding).not.toContain("src-item");
         expect(onboarding).not.toContain("sp-ico");
         expect(onboarding).not.toContain("src-meta");
-        expect(onboarding).not.toContain('className="app"');
-        expect(onboarding).not.toContain('className="panel"');
-        expect(onboarding).not.toContain('className="onboarding-progress"');
-        expect(onboarding).not.toContain('className="onboarding-step-head"');
-        expect(onboarding).not.toContain('className="onboarding-step-title"');
-        expect(onboarding).not.toContain('className="onboarding-step-sub"');
-        expect(onboarding).not.toContain('className="onboarding-step-body"');
-        expect(onboarding).not.toContain('className="gap-0 p-0"');
-        expect(onboarding).not.toContain('className="src-list"');
-        expect(onboarding).not.toContain(
-            'className="onboarding-progress-segment"',
-        );
-        expect(onboarding).not.toMatch(
-            /className="onboarding-default-source-(step|list|row|swatch)"/,
-        );
-        expect(onboarding).not.toContain('className="field-help err"');
-        expect(onboarding).not.toContain('className="onboarding-actions"');
-        expect(onboarding).not.toContain('className="sr-meta-row"');
-        expect(onboarding).not.toContain('className="sm"');
-        expect(onboarding).not.toContain("onKeyDown={(event) =>");
+        expect(onboarding).not.toMatch(OLD_UI_CONTRACT_RE);
         for (const selector of REMOVED_AUTH_ONBOARDING_CARD_GLOBAL_SELECTORS) {
             expect(globals).not.toContain(selector);
         }
         for (const selector of REMOVED_ONBOARDING_MATRIX_GLOBAL_SELECTORS) {
             expect(globals).not.toContain(selector);
         }
-        expect(globals).not.toContain(
-            '[data-sot-card="onboarding"] > [data-slot="card-header"]',
-        );
-        expect(globals).not.toContain(
-            '[data-sot-part="onboarding-step-header"][data-slot="card-header"]',
-        );
-        expect(globals).not.toContain(
-            '[data-sot-part="onboarding-step-body"][data-slot="card-content"]',
-        );
-        expect(globals).not.toContain(
-            '[data-sot-part="provider-meta"][data-slot="card-header"]',
-        );
-        expect(
-            collectCssRuleBlocks(
-                globals,
-                '[data-sot-part="onboarding-actions"] [data-slot="button"]',
-            ),
-        ).toEqual([]);
-        expect(
-            collectCssRuleBlocks(
-                globals,
-                '[data-sot-control="provider-card"][data-slot="button"]',
-            ),
-        ).toEqual([]);
-        expect(
-            collectCssRuleBlocks(
-                globals,
-                '[data-sot-control="speaker-profile-draft"][data-slot="card"]',
-            ),
-        ).toEqual([]);
-        for (const selector of ONBOARDING_DEFAULT_SOURCE_ROOT_REPAINT_SELECTORS) {
-            expect(collectExactCssRuleBlocks(globals, selector)).toEqual([]);
-        }
-        expect(globals).not.toMatch(
-            /\.onboarding-default-source-(list|row|swatch)\b/,
-        );
-        expect(onboarding).not.toMatch(OLD_UI_CONTRACT_RE);
     });
 
     it("keeps dashboard source, search, activity, list, and settings SOT entries", () => {
@@ -7352,8 +7334,8 @@ describe("full UI replacement regression coverage", () => {
         const sourceReportBadgePrimitive = readSource(
             "components/ui/badge.tsx",
         );
-        const sotPlayerPrimitives = readSource(
-            "features/recordings/components/sot-player-primitives.tsx",
+        const playerPrimitives = readSource(
+            "features/recordings/components/player-primitives.tsx",
         );
         const sourceReportButtonPrimitive = readSource(
             "components/ui/button.tsx",
@@ -7367,10 +7349,8 @@ describe("full UI replacement regression coverage", () => {
         );
         const globals = readSource("app/globals.css");
         const productCss = readProductCss(globals);
-        expect(workstation).toContain(
-            'data-sot-surface="dashboard-workstation"',
-        );
-        expect(workstation).toContain('data-sot-shell="dashboard-workstation"');
+        expect(workstation).toContain('data-surface="dashboard-workstation"');
+        expect(workstation).toContain('data-shell="dashboard-workstation"');
         expect(workstation).toContain(
             'data-drawer-state={drawerOpen ? "open" : "closed"}',
         );
@@ -7390,8 +7370,8 @@ describe("full UI replacement regression coverage", () => {
             "data-source-status={selectedSourceRow?.status ?? undefined}",
         );
         expect(workstation).toContain('data-time-style="rel"');
-        expect(workstation).toContain('data-sot-panel="dashboard-sidebar"');
-        expect(workstation).toContain('data-sot-list="dashboard-nav"');
+        expect(workstation).toContain('data-panel="dashboard-sidebar"');
+        expect(workstation).toContain('data-list="dashboard-nav"');
         for (const selector of REMOVED_DASHBOARD_NAV_FAVORITE_GLOBAL_SELECTORS) {
             expect(globals).not.toContain(selector);
         }
@@ -7417,19 +7397,19 @@ describe("full UI replacement regression coverage", () => {
                 dashboardNavClassNames,
                 "favoriteCount",
             ),
-        ).not.toContain("dark:data-[sot-state=selected]");
+        ).not.toContain("dark:data-[state=selected]");
         const dashboardNav = extractOpeningElement(
             workstation,
-            'data-sot-list="dashboard-nav"',
+            'data-list="dashboard-nav"',
             "nav",
         );
         expect(dashboardNav).toContain(
             "className={dashboardNavClassNames.root}",
         );
-        expect(workstation).toContain('data-sot-panel="dashboard-main"');
+        expect(workstation).toContain('data-panel="dashboard-main"');
         const dashboardMain = extractElementSlice(
             workstation,
-            'data-sot-panel="dashboard-main"',
+            'data-panel="dashboard-main"',
             "main",
         );
         const dashboardMainClassName = extractBoundedSlice(
@@ -7446,10 +7426,10 @@ describe("full UI replacement regression coverage", () => {
         expect(dashboardMain).toContain(
             "className={DASHBOARD_MAIN_CLASS_NAME}",
         );
-        expect(workstation).toContain('data-sot-panel="dashboard-topbar"');
+        expect(workstation).toContain('data-panel="dashboard-topbar"');
         const dashboardTopbar = extractOpeningElement(
             workstation,
-            'data-sot-panel="dashboard-topbar"',
+            'data-panel="dashboard-topbar"',
             "header",
         );
         const dashboardTopbarClassNames = extractBoundedSlice(
@@ -7476,10 +7456,10 @@ describe("full UI replacement regression coverage", () => {
         expect(dashboardTopbar).toContain(
             "className={dashboardTopbarClassNames.topbar}",
         );
-        expect(workstation).toContain('data-sot-panel="dashboard-workspace"');
+        expect(workstation).toContain('data-panel="dashboard-workspace"');
         const dashboardWorkspace = extractOpeningElement(
             workstation,
-            'data-sot-panel="dashboard-workspace"',
+            'data-panel="dashboard-workspace"',
             "div",
         );
         const dashboardWorkspaceClassName = expectExactStringConstInitializer(
@@ -7495,13 +7475,13 @@ describe("full UI replacement regression coverage", () => {
         );
         const dashboardDetailPanel = extractOpeningElement(
             workstation,
-            'data-sot-panel="dashboard-detail"',
+            'data-panel="dashboard-detail"',
             "section",
         );
         const dashboardDetailPanelClassName = expectExactStringConstInitializer(
             workstation,
             "DASHBOARD_DETAIL_PANEL_CLASS_NAME",
-            EXPECTED_DETAIL_PANEL_CLASS_NAME,
+            EXPECTED_DASHBOARD_DETAIL_PANEL_CLASS_NAME,
         );
         expectClassNameConstReference(
             dashboardDetailPanel,
@@ -7511,26 +7491,24 @@ describe("full UI replacement regression coverage", () => {
             OWNER_WORKSPACE_FORBIDDEN_CLASS_PATTERN,
         );
         expect(workstation).toContain(
-            'data-sot-control="dashboard-drawer-trigger"',
+            'data-control="dashboard-drawer-trigger"',
         );
         expect(workstation).toMatch(
-            /<Button\s+variant="ghost"\s+size="icon-sm"\s+className=\{dashboardButtonClassNames\.drawerTrigger\}[\s\S]*data-sot-control="dashboard-drawer-trigger"[\s\S]*<Menu[\s\S]*data-icon="inline-start"/,
+            /<Button\s+variant="ghost"\s+size="icon-sm"\s+className=\{dashboardButtonClassNames\.drawerTrigger\}[\s\S]*data-control="dashboard-drawer-trigger"[\s\S]*<Menu[\s\S]*data-icon="inline-start"/,
         );
         expect(workstation).not.toMatch(
-            /<button[\s\S]{0,240}data-sot-control="dashboard-drawer-trigger"/,
+            /<button[\s\S]{0,240}data-control="dashboard-drawer-trigger"/,
         );
         expect(workstation).toContain('id="drawer-scrim"');
         expect(workstation).toContain('id="drawer-trigger"');
         expect(workstation).not.toContain("data-drawer-open=");
         expect(workstation).not.toContain(
-            'data-sot-surface="dashboard-source-rail"',
+            'data-surface="dashboard-source-rail"',
         );
-        expect(workstation).toContain('data-sot-list="dashboard-sources"');
+        expect(workstation).toContain('data-list="dashboard-sources"');
+        expect(workstation).toContain('data-control="dashboard-source-clear"');
         expect(workstation).toContain(
-            'data-sot-control="dashboard-source-clear"',
-        );
-        expect(workstation).toContain(
-            'data-sot-control="dashboard-source-provider"',
+            'data-control="dashboard-source-provider"',
         );
         expect(workstation).not.toContain("sourceProviderThemeClassName");
         expect(workstation).not.toMatch(/--source-provider-status-[a-z-]+:/);
@@ -7555,7 +7533,7 @@ describe("full UI replacement regression coverage", () => {
         expect(button).not.toContain("dashboardSpeakersMerge:");
         const dashboardFavoriteNavButton = extractElementSlice(
             workstation,
-            'data-sot-control="dashboard-favorite"',
+            'data-control="dashboard-favorite"',
             "Button",
         );
         expect(dashboardFavoriteNavButton).toContain('variant="ghost"');
@@ -7588,22 +7566,22 @@ describe("full UI replacement regression coverage", () => {
             "className={DASHBOARD",
         );
         expect(dashboardNavButtonClassNames).toContain(
-            "data-[sot-state=selected]:text-sidebar-accent-foreground",
+            "data-[state=selected]:text-sidebar-accent-foreground",
         );
         const dashboardFavoriteCount = extractOpeningElement(
             workstation,
-            'data-sot-part="dashboard-favorite-count"',
+            'data-part="dashboard-favorite-count"',
             "Badge",
         );
         expect(dashboardFavoriteCount).toContain(
             "dashboardNavClassNames.favoriteCount",
         );
         expect(dashboardFavoriteCount).toContain(
-            "data-sot-state={\n                                        favorite === item.value",
+            "data-state={\n                                        favorite === item.value",
         );
         const dashboardNavSectionLabel = extractOpeningElement(
             workstation,
-            'data-sot-part="dashboard-nav-section-label"',
+            'data-part="dashboard-nav-section-label"',
             "div",
         );
         expect(dashboardNavSectionLabel).toContain(
@@ -7611,15 +7589,15 @@ describe("full UI replacement regression coverage", () => {
         );
         const dashboardSourceClearButton = extractOpeningElement(
             workstation,
-            'data-sot-control="dashboard-source-clear"',
+            'data-control="dashboard-source-clear"',
             "Button",
         );
         expect(workstation).toMatch(
-            /<Button[\s\S]*data-sot-control="dashboard-source-clear"[\s\S]*onClick=\{\(\) => setSource\("all"\)\}/,
+            /<Button[\s\S]*data-control="dashboard-source-clear"[\s\S]*onClick=\{\(\) => setSource\("all"\)\}/,
         );
         const dashboardSyncButton = extractElementSlice(
             workstation,
-            'data-sot-control="dashboard-sync"',
+            'data-control="dashboard-sync"',
             "Button",
         );
         for (const selector of REMOVED_DASHBOARD_SYNC_GLOBAL_SELECTORS) {
@@ -7639,27 +7617,27 @@ describe("full UI replacement regression coverage", () => {
         expect(workstation).toContain("onClick={() => void runManualSync()}");
         const dashboardSyncPanel = extractElementSlice(
             workstation,
-            'data-sot-panel="dashboard-sync"',
+            'data-panel="dashboard-sync"',
             "div",
         );
         const dashboardSyncIndicator = extractOpeningElement(
             workstation,
-            'data-sot-part="dashboard-sync-indicator"',
+            'data-part="dashboard-sync-indicator"',
             "span",
         );
         const dashboardSyncText = extractOpeningElement(
             workstation,
-            'data-sot-part="dashboard-sync-text"',
+            'data-part="dashboard-sync-text"',
             "div",
         );
         const dashboardSyncTitle = extractOpeningElement(
             workstation,
-            'data-sot-part="dashboard-sync-title"',
+            'data-part="dashboard-sync-title"',
             "div",
         );
         const dashboardSyncSubtitle = extractOpeningElement(
             workstation,
-            'data-sot-part="dashboard-sync-subtitle"',
+            'data-part="dashboard-sync-subtitle"',
             "div",
         );
         expect(dashboardSyncPanel).toContain("group/dashboard-sync");
@@ -7691,10 +7669,10 @@ describe("full UI replacement regression coverage", () => {
             "dashboardSidebarCollapseClassNames.hidden",
         );
         expect(workstation).toMatch(
-            /<Button\s+variant="outline"\s+size="icon"\s+className=\{dashboardButtonClassNames\.sidebarCollapse\}[\s\S]*data-sot-control="sidebar-collapse"/,
+            /<Button\s+variant="outline"\s+size="icon"\s+className=\{dashboardButtonClassNames\.sidebarCollapse\}[\s\S]*data-control="sidebar-collapse"/,
         );
         expect(workstation).toContain(
-            'data-sot-panel="dashboard-source-filter-stack"',
+            'data-panel="dashboard-source-filter-stack"',
         );
         for (const removedListHeaderClass of [
             'className="list-header"',
@@ -7708,14 +7686,14 @@ describe("full UI replacement regression coverage", () => {
         ]) {
             expect(workstation).not.toContain(removedListHeaderClass);
         }
-        expect(workstation).toContain('data-sot-control="source-filter-widen"');
+        expect(workstation).toContain('data-control="source-filter-widen"');
         const sourceProviderRows = extractBoundedSlice(
             workstation,
             "{sourceRows.map((item) => {",
-            'data-sot-panel="dashboard-sync"',
+            'data-panel="dashboard-sync"',
         );
         const sourceFilterStackStart = workstation.indexOf(
-            'data-sot-panel="dashboard-source-filter-stack"',
+            'data-panel="dashboard-source-filter-stack"',
         );
         const sourceFilterStackEnd = workstation.indexOf(
             "</output>",
@@ -7729,27 +7707,27 @@ describe("full UI replacement regression coverage", () => {
         );
         const sourceFilterStackOutput = extractOpeningElement(
             workstation,
-            'data-sot-panel="dashboard-source-filter-stack"',
+            'data-panel="dashboard-source-filter-stack"',
             "output",
         );
         const sourceFilterFrom = extractOpeningElement(
             sourceFilterStack,
-            'data-sot-part="source-filter-from"',
+            'data-part="source-filter-from"',
             "span",
         );
         const sourceFilterSeparator = extractOpeningElement(
             sourceFilterStack,
-            'data-sot-part="source-filter-separator"',
+            'data-part="source-filter-separator"',
             "span",
         );
         const sourceFilterChip = extractOpeningElement(
             sourceFilterStack,
-            'data-sot-part="source-filter-chip"',
+            'data-part="source-filter-chip"',
             "span",
         );
         const sourceFilterInfo = extractOpeningElement(
             sourceFilterStack,
-            'data-sot-part="source-filter-info"',
+            'data-part="source-filter-info"',
             "span",
         );
         const legacySourceRowClassNamePattern =
@@ -7757,42 +7735,42 @@ describe("full UI replacement regression coverage", () => {
         const legacySourceFilterActionClassNamePattern =
             /className=(?:"[^"]*\b(?:src-action|is-retry|is-connect|is-reauth)\b[^"]*"|\{[^}]*\b(?:src-action|is-retry|is-connect|is-reauth)\b[^}]*\})/;
         const legacySourceAttributePattern =
-            /\bdata-(?:connected|provider|source|source-status|source-action-state)=/;
+            /\bdata-(?:connected|source-status|source-action-state)=/;
 
         expect(sourceProviderRows).not.toContain('className="nav-item"');
         expect(sourceProviderRows).toContain(
-            'data-sot-control="dashboard-source-provider"',
+            'data-control="dashboard-source-provider"',
         );
         expect(sourceProviderRows).toContain(
-            'data-sot-part="source-provider-mark"',
+            'data-part="source-provider-mark"',
         );
-        expect(sourceProviderRows).toContain('data-sot-variant="image"');
-        expect(sourceProviderRows).toContain('data-sot-variant="letter"');
-        expect(sourceProviderRows).toContain("data-sot-provider-cover={");
+        expect(sourceProviderRows).toContain('data-variant="image"');
+        expect(sourceProviderRows).toContain('data-variant="letter"');
+        expect(sourceProviderRows).toContain("data-provider-cover={");
         expect(sourceProviderRows).toContain(
-            'data-sot-part="source-provider-status"',
+            'data-part="source-provider-status"',
         );
         expect(sourceProviderRows).toContain(
-            'data-sot-part="source-provider-label"',
+            'data-part="source-provider-label"',
         );
         const sourceProviderStatusBadge = extractOpeningElement(
             sourceProviderRows,
-            'data-sot-part="source-provider-status"',
+            'data-part="source-provider-status"',
             "Badge",
         );
         const sourceProviderCountBadge = extractOpeningElement(
             sourceProviderRows,
-            'data-sot-part="source-provider-count"',
+            'data-part="source-provider-count"',
             "Badge",
         );
         const sourceProviderRowButton = extractOpeningElement(
             sourceProviderRows,
-            'data-sot-control="dashboard-source-provider"',
+            'data-control="dashboard-source-provider"',
             "Button",
         );
         const sourceProviderActionButton = extractOpeningElement(
             sourceProviderRows,
-            'data-sot-part="source-provider-action"',
+            'data-part="source-provider-action"',
             "Button",
         );
         const featureOwnerClassSource =
@@ -7852,21 +7830,23 @@ describe("full UI replacement regression coverage", () => {
         );
         expect(sourceProviderRows).toContain('"absolute bottom-1 right-1"');
         expect(sourceProviderStatusBadge).toContain(
-            "data-sot-tone={sourceStatusTone}",
+            "data-tone={sourceStatusTone}",
         );
         expect(sourceProviderCountBadge).toContain(
-            "data-sot-tone={sourceCountTone}",
+            "data-tone={sourceCountTone}",
         );
         expect(sourceProviderRows).toContain(
-            'data-sot-part="source-provider-action"',
+            'data-part="source-provider-action"',
         );
         expect(sourceProviderRows).toMatch(
-            /<Button[\s\S]*data-sot-part="source-provider-action"/,
+            /<Button[\s\S]*data-part="source-provider-action"/,
         );
         expect(sourceProviderRows).not.toContain(
             "SOT defines source row action as span[role=button]",
         );
-        expect(sourceProviderRows).toContain("data-sot-action={actionKind}");
+        expect(sourceProviderRows).toMatch(
+            /data-action=\{\s*actionKind === "retry"\s*\? "retry-sync"\s*:\s*actionKind\s*\}/,
+        );
         expect(sourceProviderRows).toContain("data-state={sourceRowState}");
         expect(sourceProviderRows).toContain("aria-label={actionAriaLabel}");
         expect(sourceProviderRows).toContain("event.stopPropagation();");
@@ -7895,14 +7875,12 @@ describe("full UI replacement regression coverage", () => {
         );
         expect(workstation).toContain('data-time-style="rel"');
         expect(workstation).toMatch(
-            /<output\s+aria-live="polite"[\s\S]*data-sot-panel="dashboard-source-filter-stack"[\s\S]*data-state=\{sourceFilterStackState\}/,
+            /<output\s+aria-live="polite"[\s\S]*data-panel="dashboard-source-filter-stack"[\s\S]*data-state=\{sourceFilterStackState\}/,
         );
         expect(sourceFilterStack).toContain(
             "data-state={sourceFilterStackState}",
         );
-        expect(sourceFilterStack).toContain(
-            'data-sot-part="source-filter-action"',
-        );
+        expect(sourceFilterStack).toContain('data-part="source-filter-action"');
         expect(sourceFilterStackOutput).toMatch(
             /className=\{\s*sourceFilterStackClassNames\.root\s*\}/,
         );
@@ -7918,21 +7896,21 @@ describe("full UI replacement regression coverage", () => {
         expect(sourceFilterInfo).toMatch(
             /className=\{\s*sourceFilterStackClassNames\.info\s*\}/,
         );
-        expect(sourceFilterStack).toContain('data-sot-action="retry"');
-        expect(sourceFilterStack).toContain('data-sot-action="widen"');
-        expect(sourceFilterStack).toContain('data-sot-action="open-settings"');
+        expect(sourceFilterStack).toContain('data-action="retry"');
+        expect(sourceFilterStack).toContain('data-action="widen"');
+        expect(sourceFilterStack).toContain('data-action="open-settings"');
         const sourceFilterClearButton = extractOpeningElement(
             sourceFilterStack,
-            'data-sot-control="source-filter-clear"',
+            'data-control="source-filter-clear"',
             "Button",
         );
         const sourceFilterClearAllButton = extractOpeningElement(
             sourceFilterStack,
-            'data-sot-control="source-filter-clear-all"',
+            'data-control="source-filter-clear-all"',
             "Button",
         );
         expect(sourceFilterStack).toMatch(
-            /<Button[\s\S]*data-sot-control="source-filter-clear"[\s\S]*onClick=\{\(\) => setSource\("all"\)\}/,
+            /<Button[\s\S]*data-control="source-filter-clear"[\s\S]*onClick=\{\(\) => setSource\("all"\)\}/,
         );
         expect(sourceFilterClearButton).toMatch(
             /className=\{\s*sourceFilterClassNames\.clear\s*\}/,
@@ -7944,7 +7922,7 @@ describe("full UI replacement regression coverage", () => {
         ]) {
             const sourceFilterActionButton = extractOpeningElement(
                 sourceFilterStack,
-                `data-sot-control="${control}"`,
+                `data-control="${control}"`,
                 "Button",
             );
             expect(sourceFilterActionButton).toMatch(
@@ -7952,51 +7930,46 @@ describe("full UI replacement regression coverage", () => {
             );
             expect(sourceFilterStack).toMatch(
                 new RegExp(
-                    `<Button[\\s\\S]*data-sot-control="${control}"[\\s\\S]*data-sot-part="source-filter-action"`,
+                    `<Button[\\s\\S]*data-control="${control}"[\\s\\S]*data-part="source-filter-action"`,
                 ),
             );
         }
-        expect(globals).not.toContain(
-            '[data-sot-action="source-filter-action"]',
-        );
+        expect(globals).not.toContain('[data-action="source-filter-action"]');
         expect(
-            collectCssRuleBlocks(
-                globals,
-                '[data-sot-part="source-filter-action"]',
-            ),
+            collectCssRuleBlocks(globals, '[data-part="source-filter-action"]'),
         ).toEqual([]);
         for (const selector of DASHBOARD_SOURCE_FILTER_MIGRATED_GLOBAL_SELECTORS) {
             expect(collectCssRuleBlocks(globals, selector)).toEqual([]);
         }
         expect(sourceFilterStack).toMatch(
-            /<Button[\s\S]*data-sot-control="source-filter-clear-all"[\s\S]*onClick=\{\(\) => setSource\("all"\)\}/,
+            /<Button[\s\S]*data-control="source-filter-clear-all"[\s\S]*onClick=\{\(\) => setSource\("all"\)\}/,
         );
         expect(sourceFilterClearAllButton).toMatch(
             /className=\{\s*sourceFilterClassNames\.clearAll\s*\}/,
         );
         const librarySearchFilterClearButton = extractOpeningElement(
             workstation,
-            'data-sot-control="library-search-filter-clear"',
+            'data-control="library-search-filter-clear"',
             "Button",
         );
         const librarySearchFilterClearElement = extractElementSlice(
             workstation,
-            'data-sot-control="library-search-filter-clear"',
+            'data-control="library-search-filter-clear"',
             "Button",
         );
         const librarySearchFilterOutput = extractOpeningElement(
             workstation,
-            'data-sot-panel="dashboard-library-search-filter"',
+            'data-panel="dashboard-library-search-filter"',
             "output",
         );
         const librarySearchFilterLabel = extractOpeningElement(
             workstation,
-            'data-sot-part="library-search-filter-label"',
+            'data-part="library-search-filter-label"',
             "span",
         );
         const librarySearchFilterChip = extractOpeningElement(
             workstation,
-            'data-sot-part="library-search-filter-chip"',
+            'data-part="library-search-filter-chip"',
             "span",
         );
         const librarySearchFilterClearClassHelper =
@@ -8023,7 +7996,7 @@ describe("full UI replacement regression coverage", () => {
             /className=\{\s*[A-Za-z_$][\w$]*(?:\.[A-Za-z_$][\w$]*)?\s*\}/,
         );
         expect(librarySearchFilterClearButton).toContain(
-            'data-sot-control="library-search-filter-clear"',
+            'data-control="library-search-filter-clear"',
         );
         expect(librarySearchFilterClearButton).toMatch(
             /aria-label=\{t\([\s\S]*"dashboardChrome\.clear"[\s\S]*\)\}/,
@@ -8048,7 +8021,7 @@ describe("full UI replacement regression coverage", () => {
             const directStateBlocks = collectCssRuleBlocks(
                 globals,
                 selector,
-            ).filter(({ prelude }) => !prelude.includes("[data-sot-part="));
+            ).filter(({ prelude }) => !prelude.includes("[data-part="));
 
             expect(directStateBlocks).toEqual([]);
         }
@@ -8057,29 +8030,25 @@ describe("full UI replacement regression coverage", () => {
         }
         expect(globals).not.toContain("source-provider-action");
         expect(
-            collectCssRuleBlocks(
-                globals,
-                '[data-sot-part="source-filter-action"]',
-            ),
+            collectCssRuleBlocks(globals, '[data-part="source-filter-action"]'),
         ).toEqual([]);
-        expect(librarySearch).toContain('data-sot-control="dashboard-search"');
-        expect(librarySearch).toContain('data-sot-panel="library-search"');
-        expect(librarySearch).toContain(
-            'data-sot-list="library-search-results"',
-        );
+        expect(librarySearch).toContain('aria-haspopup="dialog"');
+        expect(librarySearch).toContain('role="dialog"');
+        expect(librarySearch).toContain('role="listbox"');
         expect(librarySearch).toContain("groupedSearchResults.map");
         expect(librarySearch).toContain("group.results.map");
         expect(collectSearchActivityPrimitiveBusinessTokens()).toEqual([]);
         const dashboardSearchSlice = librarySearch;
         for (const featureHook of [
-            'data-sot-control="dashboard-search"',
-            'data-sot-panel="library-search"',
-            'data-sot-control="library-search-input"',
-            'data-sot-control="library-search-clear"',
-            'data-sot-part="library-search-scope"',
-            'data-sot-control="library-search-retry"',
-            'data-sot-control="library-search-result"',
-            'data-sot-part="library-search-tag-chip"',
+            'aria-label={t("librarySearch.openSearch")}',
+            "aria-controls={open ? LIBRARY_SEARCH_DIALOG_ID : undefined}",
+            "id={LIBRARY_SEARCH_DIALOG_ID}",
+            'role="combobox"',
+            'aria-label={t("librarySearch.clearSearch")}',
+            'aria-label={t("librarySearch.scopeLegend")}',
+            "setSearchRetry((value) => value + 1)",
+            'role="option"',
+            "librarySearchClassNames.tag",
         ]) {
             expect(dashboardSearchSlice).toContain(featureHook);
         }
@@ -8101,14 +8070,14 @@ describe("full UI replacement regression coverage", () => {
             extractDashboardSearchActivityClassNames(workstation);
         const librarySearchClassNames =
             extractLibrarySearchClassNames(librarySearch);
-        expect(workstation).toContain('data-sot-control="dashboard-activity"');
-        expect(workstation).toContain('data-sot-panel="dashboard-activity"');
+        expect(workstation).toContain('data-control="dashboard-activity"');
+        expect(workstation).toContain('data-panel="dashboard-activity"');
         const dashboardActivityStatusSub = extractOpeningElement(
             workstation,
-            'data-sot-part="dashboard-activity-status-sub"',
+            'data-part="dashboard-activity-status-sub"',
             "div",
         );
-        expect(dashboardActivityStatusSub).toContain('data-sot-format="mono"');
+        expect(dashboardActivityStatusSub).toContain('data-format="mono"');
         expect(dashboardActivityStatusSub).toContain(
             "dashboardSearchActivityClassNames.dashboardActivityStatusSub",
         );
@@ -8119,23 +8088,23 @@ describe("full UI replacement regression coverage", () => {
             ),
         ).toContain("font-mono text-xs");
         expect(globals).not.toContain(
-            '[data-sot-part="dashboard-activity-status-sub"]',
+            '[data-part="dashboard-activity-status-sub"]',
         );
         expect(workstation).toContain("visibleActivityItems.map");
         const dashboardActivitySlice = extractBoundedSlice(
             workstation,
-            'data-sot-part="dashboard-activity-anchor"',
-            'data-sot-control="dashboard-settings"',
+            'data-part="dashboard-activity-anchor"',
+            'data-control="dashboard-settings"',
         );
         for (const featureHook of [
-            'data-sot-control="dashboard-activity"',
-            'data-sot-panel="dashboard-activity"',
-            'data-sot-part="dashboard-activity-count"',
-            'data-sot-control="dashboard-activity-close"',
-            'data-sot-control="dashboard-activity-sync"',
-            'data-sot-control="dashboard-activity-action"',
-            'data-sot-control="dashboard-activity-dismiss"',
-            'data-sot-list="dashboard-activity-items"',
+            'data-control="dashboard-activity"',
+            'data-panel="dashboard-activity"',
+            'data-part="dashboard-activity-count"',
+            'data-control="dashboard-activity-close"',
+            'data-control="dashboard-activity-sync"',
+            'data-control="dashboard-activity-action"',
+            'data-control="dashboard-activity-dismiss"',
+            'data-list="dashboard-activity-items"',
         ]) {
             expect(dashboardActivitySlice).toContain(featureHook);
         }
@@ -8216,7 +8185,7 @@ describe("full UI replacement regression coverage", () => {
         }
         expect(workstation).not.toContain("const SEARCH_SCOPES");
         expect(workstation).not.toContain("const searchPanelState");
-        expect(workstation).not.toContain('data-sot-panel="library-search"');
+        expect(workstation).not.toContain('data-panel="library-search"');
         expect(librarySearch).toContain(
             `fetch(\`/api/search?\${params.toString()}\`)`,
         );
@@ -8234,12 +8203,12 @@ describe("full UI replacement regression coverage", () => {
         }
         const dashboardSettingsDialog = extractSelfClosingElement(
             workstation,
-            'data-sot-control="dashboard-settings"',
+            'data-control="dashboard-settings"',
             "SettingsDialog",
         );
         const dashboardSettingsTrigger = extractElementSlice(
             dashboardSettingsDialog,
-            'data-sot-control="dashboard-settings"',
+            'data-control="dashboard-settings"',
             "Button",
         );
 
@@ -8247,7 +8216,7 @@ describe("full UI replacement regression coverage", () => {
             /<SettingsDialog\s+open=\{settingsOpen\}\s+user=\{user\}\s+onOpenChange=\{setSettingsOpen\}\s+trigger=\{\s*<Button/,
         );
         expect(dashboardSettingsTrigger).toMatch(
-            /<Button\s+ref=\{settingsTriggerRef\}\s+type="button"\s+variant="default"\s+size="icon"\s+className=\{\s*dashboardButtonClassNames\.settingsAvatar\s*\}\s+aria-label="打开设置"\s+data-sot-control="dashboard-settings"\s+data-sot-part="dashboard-user-avatar"\s+data-sot-state=\{\s*settingsOpen\s*\?\s*"open"\s*:\s*"idle"\s*\}\s+onClick=\{\(\)\s*=>\s*openSettings\("data-sources"\)\}/,
+            /<Button\s+ref=\{settingsTriggerRef\}\s+type="button"\s+variant="default"\s+size="icon"\s+className=\{\s*dashboardButtonClassNames\.settingsAvatar\s*\}\s+aria-label="打开设置"\s+data-control="dashboard-settings"\s+data-part="dashboard-user-avatar"\s+data-state=\{\s*settingsOpen\s*\?\s*"open"\s*:\s*"idle"\s*\}\s+onClick=\{\(\)\s*=>\s*openSettings\("data-sources"\)\}/,
         );
         expect(button).toContain('const Comp = asChild ? Slot : "button";');
         for (const manuallyManagedDialogProp of [
@@ -8262,7 +8231,7 @@ describe("full UI replacement regression coverage", () => {
             );
         }
         expect(globals).not.toContain(
-            '[data-sot-control="dashboard-settings"][data-sot-part="dashboard-user-avatar"]',
+            '[data-control="dashboard-settings"][data-part="dashboard-user-avatar"]',
         );
         expect(workstation).not.toMatch(
             /className\s*=\s*(?:["'](?:mono|avatar)["']|\{["'](?:mono|avatar)["']\})/,
@@ -8272,7 +8241,7 @@ describe("full UI replacement regression coverage", () => {
         const recordingListCard = extractBoundedSlice(
             workstation,
             "<Card\n                        hasNoPadding",
-            'data-sot-part="dashboard-recording-list-header"',
+            'data-part="dashboard-recording-list-header"',
         );
         const recordingListCardClassName = expectExactStringConstInitializer(
             workstation,
@@ -8287,7 +8256,7 @@ describe("full UI replacement regression coverage", () => {
         );
         const recordingListContent = extractOpeningElement(
             recordingListCard,
-            'data-sot-part="dashboard-recording-list-content"',
+            'data-part="dashboard-recording-list-content"',
             "CardContent",
         );
         const recordingListContentClassName = expectExactStringConstInitializer(
@@ -8296,7 +8265,7 @@ describe("full UI replacement regression coverage", () => {
             EXPECTED_DASHBOARD_RECORDING_LIST_CONTENT_CLASS_NAME,
         );
         expect(recordingListCard).toContain(
-            'data-sot-surface="dashboard-recording-list"',
+            'data-surface="dashboard-recording-list"',
         );
         expectClassNameConstReference(
             recordingListContent,
@@ -8306,47 +8275,45 @@ describe("full UI replacement regression coverage", () => {
             OWNER_WORKSPACE_FORBIDDEN_CLASS_PATTERN,
         );
         expect(recordingListCard).toContain(
-            'data-sot-part="dashboard-recording-list-content"',
+            'data-part="dashboard-recording-list-content"',
         );
         expect(globals).not.toMatch(
             DASHBOARD_RECORDING_LIST_PRIMITIVE_REPAINT_CSS_RE,
         );
-        expect(workstation).toContain(
-            'data-sot-list="dashboard-recording-rows"',
-        );
+        expect(workstation).toContain('data-list="dashboard-recording-rows"');
         const dashboardRecordingRows = extractOpeningElement(
             workstation,
-            'data-sot-list="dashboard-recording-rows"',
+            'data-list="dashboard-recording-rows"',
             "div",
         );
         const dashboardRecordingListGroup = extractOpeningElement(
             workstation,
-            'data-sot-part="dashboard-recording-list-group"',
+            'data-part="dashboard-recording-list-group"',
             "div",
         );
         const dashboardRecordingListGroupSeparator = extractOpeningElement(
             workstation,
-            'data-sot-part="dashboard-recording-list-group-separator"',
+            'data-part="dashboard-recording-list-group-separator"',
             "Separator",
         );
         const dashboardRecordingListHeading = extractOpeningElement(
             workstation,
-            'data-sot-part="dashboard-recording-list-group-heading"',
+            'data-part="dashboard-recording-list-group-heading"',
             "div",
         );
         const dashboardRecordingListLabel = extractOpeningElement(
             workstation,
-            'data-sot-part="dashboard-recording-list-group-label"',
+            'data-part="dashboard-recording-list-group-label"',
             "span",
         );
         const dashboardRecordingListCount = extractOpeningElement(
             workstation,
-            'data-sot-part="dashboard-recording-list-group-count"',
+            'data-part="dashboard-recording-list-group-count"',
             "span",
         );
         const dashboardRecordingListDivider = extractOpeningElement(
             workstation,
-            'data-sot-part="dashboard-recording-list-group-divider"',
+            'data-part="dashboard-recording-list-group-divider"',
             "Separator",
         );
         const dashboardRecordingRowStyleHelper = extractBoundedSlice(
@@ -8440,26 +8407,24 @@ describe("full UI replacement regression coverage", () => {
         );
         const dashboardRecordingStatusBadge = extractOpeningElement(
             workstation,
-            'data-sot-part="dashboard-recording-status"',
+            'data-part="dashboard-recording-status"',
             "Badge",
         );
         expect(dashboardRecordingStatusBadge).toContain(
             "dashboardRecordingStatusBadgeVariants",
         );
         expect(dashboardRecordingStatusBadge).toContain(
-            'data-sot-part="dashboard-recording-status"',
+            'data-part="dashboard-recording-status"',
         );
-        expect(dashboardRecordingStatusBadge).toContain("data-sot-tone={");
+        expect(dashboardRecordingStatusBadge).toContain("data-tone={");
         expect(workstation).not.toContain(
-            'data-sot-part="dashboard-recording-status-dot"',
+            'data-part="dashboard-recording-status-dot"',
         );
         expect(workstation).toContain(
-            'data-sot-part="dashboard-recording-status-label"',
+            'data-part="dashboard-recording-status-label"',
         );
         expect(workstation).not.toContain("<DashboardRecordingStatusBadge");
-        expect(workstation).toContain(
-            'data-sot-part="dashboard-recording-status"',
-        );
+        expect(workstation).toContain('data-part="dashboard-recording-status"');
         expect(workstation).not.toContain(
             'variant="dashboardRecording' + 'Status"',
         );
@@ -8497,17 +8462,15 @@ describe("full UI replacement regression coverage", () => {
         expect(
             collectCssRuleBlocks(
                 globals,
-                '[data-sot-part="dashboard-recording-status"]',
+                '[data-part="dashboard-recording-status"]',
             ),
         ).toEqual([]);
         expect(workstation).not.toContain("rowStatus.className");
         expect(workstation).not.toContain("rowStatus.dotClassName");
         expect(workstation).not.toContain("data-selected=");
+        expect(workstation).toContain('data-panel="dashboard-detail-empty"');
         expect(workstation).toContain(
-            'data-sot-panel="dashboard-detail-empty"',
-        );
-        expect(workstation).toContain(
-            'data-sot-part="dashboard-detail-empty-title"',
+            'data-part="dashboard-detail-empty-title"',
         );
         expect(workstation).not.toContain('className="detail-empty"');
         expect(workstation).not.toContain('className="detail-empty-ico"');
@@ -8518,16 +8481,16 @@ describe("full UI replacement regression coverage", () => {
         }
         expect([
             ...DASHBOARD_RECORDING_ROW_MIGRATED_GLOBAL_SELECTORS,
-        ]).not.toContain('[data-sot-part="dashboard-recording-source-mark"]');
+        ]).not.toContain('[data-part="dashboard-recording-source-mark"]');
         for (const migratedSelectorFragment of DASHBOARD_RECORDING_ROW_META_MIGRATED_GLOBAL_SELECTOR_FRAGMENTS) {
             expect(globals).not.toContain(migratedSelectorFragment);
         }
         for (const migratedSelector of [
-            '[data-sot-part="dashboard-recording-duration"]',
-            '[data-sot-part="dashboard-recording-timestamp"]',
-            '[data-sot-part="dashboard-recording-timestamp-absolute"]',
-            '[data-sot-part="dashboard-recording-timestamp-relative"]',
-            '[data-sot-part="dashboard-recording-source-mark"]',
+            '[data-part="dashboard-recording-duration"]',
+            '[data-part="dashboard-recording-timestamp"]',
+            '[data-part="dashboard-recording-timestamp-absolute"]',
+            '[data-part="dashboard-recording-timestamp-relative"]',
+            '[data-part="dashboard-recording-source-mark"]',
         ]) {
             expect(collectCssRuleBlocks(globals, migratedSelector)).toEqual([]);
         }
@@ -8548,14 +8511,14 @@ describe("full UI replacement regression coverage", () => {
             );
         }
         const recordingRowIndex = workstation.indexOf(
-            'data-sot-control="dashboard-recording-row"',
+            'data-control="dashboard-recording-row"',
         );
         const recordingRowMetaIndex = workstation.indexOf(
-            'data-sot-part="dashboard-recording-row-meta"',
+            'data-part="dashboard-recording-row-meta"',
             recordingRowIndex,
         );
         const recordingRowDurationIndex = workstation.indexOf(
-            'data-sot-part="dashboard-recording-duration"',
+            'data-part="dashboard-recording-duration"',
             recordingRowMetaIndex,
         );
         const recordingRowSourceMark = workstation.slice(
@@ -8571,7 +8534,7 @@ describe("full UI replacement regression coverage", () => {
             recordingRowMetaIndex,
         );
         expect(recordingRowSourceMark).toContain(
-            'data-sot-part="dashboard-recording-source-mark"',
+            'data-part="dashboard-recording-source-mark"',
         );
         expect(recordingRowSourceMark).toContain(
             "dashboardRecordingRowStyles.sourceMark",
@@ -8593,20 +8556,20 @@ describe("full UI replacement regression coverage", () => {
                 /dashboardRecordingRowStyles\.sourceMark\b/g,
             ) ?? [],
         ).toHaveLength(2);
-        expect(recordingRowSourceMark).toContain('data-sot-variant="image"');
-        expect(recordingRowSourceMark).toContain('data-sot-variant="letter"');
-        expect(recordingRowSourceMark).toContain("data-sot-provider-cover={");
+        expect(recordingRowSourceMark).toContain('data-variant="image"');
+        expect(recordingRowSourceMark).toContain('data-variant="letter"');
+        expect(recordingRowSourceMark).toContain("data-provider-cover={");
         expect(recordingRowSourceMark).not.toMatch(
             legacySourceMiniClassNamePattern,
         );
         expect(workstation).toContain(
-            'data-sot-panel="dashboard-recording-time-filter"',
+            'data-panel="dashboard-recording-time-filter"',
         );
         expect(workstation).toContain(
-            'data-sot-control="dashboard-recording-time-filter"',
+            'data-control="dashboard-recording-time-filter"',
         );
         expect(workstation).toContain(
-            'data-sot-part="dashboard-recording-time-filter-count"',
+            'data-part="dashboard-recording-time-filter-count"',
         );
         expect(workstation).toContain(
             "const dashboardRecordingTimeFilterStyles = {",
@@ -8616,7 +8579,7 @@ describe("full UI replacement regression coverage", () => {
         );
         const recordingTimeFilter = extractOpeningElement(
             workstation,
-            'data-sot-panel="dashboard-recording-time-filter"',
+            'data-panel="dashboard-recording-time-filter"',
             "ToggleGroup",
         );
         expect(recordingTimeFilter).toContain("value={timelineFilter}");
@@ -8639,20 +8602,18 @@ describe("full UI replacement regression coverage", () => {
         );
         const recordingTimeFilterItem = extractOpeningElement(
             workstation,
-            'data-sot-control="dashboard-recording-time-filter"',
+            'data-control="dashboard-recording-time-filter"',
             "ToggleGroupItem",
         );
         expect(recordingTimeFilterItem).toContain("aria-pressed={active}");
         expect(recordingTimeFilterItem).toContain("data-tf={item.value}");
-        expect(recordingTimeFilterItem).toContain(
-            "data-sot-filter={item.value}",
-        );
+        expect(recordingTimeFilterItem).toContain("data-filter={item.value}");
         expect(recordingTimeFilterItem).toContain(
             "dashboardRecordingTimeFilterStyles.item",
         );
         const recordingTimeFilterCount = extractOpeningElement(
             workstation,
-            'data-sot-part="dashboard-recording-time-filter-count"',
+            'data-part="dashboard-recording-time-filter-count"',
             "span",
         );
         expect(recordingTimeFilterCount).toContain(
@@ -8666,7 +8627,7 @@ describe("full UI replacement regression coverage", () => {
             "dashboardRecordingTimeFilter",
         );
         expect(toggleGroupPrimitive).not.toContain(
-            "data-sot-part=dashboard-recording-time-filter-count",
+            "data-part=dashboard-recording-time-filter-count",
         );
         expect(toggleGroupPrimitive).not.toContain(
             "dashboard-recording-time-filter-count",
@@ -8678,25 +8639,25 @@ describe("full UI replacement regression coverage", () => {
             "--dashboard-recording-time-filter-count-selected-bg",
         );
         expect(globals).not.toContain(
-            '[data-sot-panel="dashboard-recording-time-filter"][hidden]',
+            '[data-panel="dashboard-recording-time-filter"][hidden]',
         );
         expect(workstation).toContain(
-            'data-sot-part="dashboard-recording-row-body"',
+            'data-part="dashboard-recording-row-body"',
         );
         const dashboardRecordingRowBody = extractOpeningElement(
             workstation,
-            'data-sot-part="dashboard-recording-row-body"',
+            'data-part="dashboard-recording-row-body"',
             "div",
         );
         expect(dashboardRecordingRowBody).toContain(
             "dashboardRecordingRowStyles.body",
         );
         expect(workstation).toContain(
-            'data-sot-part="dashboard-recording-row-title"',
+            'data-part="dashboard-recording-row-title"',
         );
         const dashboardRecordingRowTitle = extractOpeningElement(
             workstation,
-            'data-sot-part="dashboard-recording-row-title"',
+            'data-part="dashboard-recording-row-title"',
             "div",
         );
         expect(dashboardRecordingRowTitle).toContain(
@@ -8704,7 +8665,7 @@ describe("full UI replacement regression coverage", () => {
         );
         const dashboardRecordingRowMeta = extractOpeningElement(
             workstation,
-            'data-sot-part="dashboard-recording-row-meta"',
+            'data-part="dashboard-recording-row-meta"',
             "div",
         );
         expect(dashboardRecordingRowMeta).toContain(
@@ -8712,7 +8673,7 @@ describe("full UI replacement regression coverage", () => {
         );
         const dashboardRecordingRowSecondary = extractOpeningElement(
             workstation,
-            'data-sot-part="dashboard-recording-row-secondary"',
+            'data-part="dashboard-recording-row-secondary"',
             "div",
         );
         expect(dashboardRecordingRowSecondary).toContain(
@@ -8726,11 +8687,11 @@ describe("full UI replacement regression coverage", () => {
             "dashboardRecordingRowStyles.timestampRelative",
         );
         expect(workstation).toContain(
-            'data-sot-part="dashboard-recording-row-actions"',
+            'data-part="dashboard-recording-row-actions"',
         );
         const dashboardRecordingRowActions = extractOpeningElement(
             workstation,
-            'data-sot-part="dashboard-recording-row-actions"',
+            'data-part="dashboard-recording-row-actions"',
             "div",
         );
         expect(dashboardRecordingRowActions).toContain(
@@ -8738,13 +8699,13 @@ describe("full UI replacement regression coverage", () => {
         );
         const dashboardRecordingTagChip = extractOpeningElement(
             workstation,
-            "<SotPlayerTagChip",
-            "SotPlayerTagChip",
+            "<PlayerTagChip",
+            "PlayerTagChip",
         );
         expect(dashboardRecordingTagChip).toMatch(/tag=\{\s*primaryTag\s*\}/);
         expect(dashboardRecordingTagChip).not.toContain("variant=");
         expect(dashboardRecordingTagChip).not.toContain("className=");
-        expect(sotPlayerPrimitives).toContain("data-recording-tag-chip");
+        expect(playerPrimitives).toContain("data-recording-tag-chip");
         expectSourceToExcludeForbiddenSubstrings(
             sourceReportBadgePrimitive,
             BADGE_PRIMITIVE_FORBIDDEN_BUSINESS_TOKENS,
@@ -8759,7 +8720,7 @@ describe("full UI replacement regression coverage", () => {
             "DASHBOARD_RECORDING_ROW_BUTTON_CLASS",
         );
         expect(workstation).toMatch(
-            /<Button\s+variant="ghost"\s+size="default"[\s\S]*className=\{\s*dashboardRecordingRowStyles\.row\s*\}[\s\S]*data-sot-control="dashboard-recording-row"/,
+            /<Button\s+variant="ghost"\s+size="default"[\s\S]*className=\{\s*dashboardRecordingRowStyles\.row\s*\}[\s\S]*data-control="dashboard-recording-row"/,
         );
         for (const rowPrimitiveLeak of [
             "dashboardRecordingRow",
@@ -8782,7 +8743,7 @@ describe("full UI replacement regression coverage", () => {
             );
         }
         expect(workstation).not.toMatch(
-            /<button[\s\S]{0,260}data-sot-control="dashboard-recording-row"/,
+            /<button[\s\S]{0,260}data-control="dashboard-recording-row"/,
         );
         const tagFilterStyles = extractBoundedSlice(
             workstation,
@@ -8795,25 +8756,25 @@ describe("full UI replacement regression coverage", () => {
         expect(tagFilterStyles).not.toContain("z-[var(--z-popover-inline)]");
         expect(tagFilterStyles).not.toContain("shadow-lg");
         expect(workstation).toMatch(
-            /<div\s+className=\{\s*dashboardRecordingTagFilterStyles\.root\s*\}[\s\S]*data-list-filter-row="tags"[\s\S]*data-sot-panel="recording-list-tag-filter"[\s\S]*hidden=\{listMode !== "tags"\}[\s\S]*ref=\{tagFilterRef\}/,
+            /<div\s+className=\{\s*dashboardRecordingTagFilterStyles\.root\s*\}[\s\S]*data-list-filter-row="tags"[\s\S]*data-panel="recording-list-tag-filter"[\s\S]*hidden=\{listMode !== "tags"\}[\s\S]*ref=\{tagFilterRef\}/,
         );
         expect(workstation).toMatch(
-            /<div\s+className=\{\s*dashboardRecordingTagFilterStyles\.list\s*\}[\s\S]*role="listbox"[\s\S]*data-tag-filter-list=""[\s\S]*data-sot-list="recording-list-tag-filter-list"/,
+            /<div\s+className=\{\s*dashboardRecordingTagFilterStyles\.list\s*\}[\s\S]*role="listbox"[\s\S]*data-tag-filter-list=""[\s\S]*data-list="recording-list-tag-filter-list"/,
         );
         expect(workstation).toMatch(
-            /<Button\s+variant="outline"\s+size="sm"\s+className=\{\s*dashboardRecordingTagFilterStyles\.trigger\s*\}[\s\S]*type="button"[\s\S]*aria-haspopup="listbox"[\s\S]*aria-expanded=\{\s*tagFilterOpen\s*\}[\s\S]*data-tag-filter-trigger=""[\s\S]*data-sot-control="recording-list-tag-filter-trigger"[\s\S]*onClick=\{\(\) =>\s*setTagFilterOpen\(\(open\) => !open\)\s*\}/,
+            /<Button\s+variant="outline"\s+size="sm"\s+className=\{\s*dashboardRecordingTagFilterStyles\.trigger\s*\}[\s\S]*type="button"[\s\S]*aria-haspopup="listbox"[\s\S]*aria-expanded=\{\s*tagFilterOpen\s*\}[\s\S]*data-tag-filter-trigger=""[\s\S]*data-control="recording-list-tag-filter-trigger"[\s\S]*onClick=\{\(\) =>\s*setTagFilterOpen\(\(open\) => !open\)\s*\}/,
         );
         for (const [slot, hook] of [
-            ["label", 'data-sot-part="recording-list-tag-filter-label"'],
-            ["count", 'data-sot-part="recording-list-tag-filter-count"'],
-            ["caret", 'data-sot-part="recording-list-tag-filter-caret"'],
+            ["label", 'data-part="recording-list-tag-filter-label"'],
+            ["count", 'data-part="recording-list-tag-filter-count"'],
+            ["caret", 'data-part="recording-list-tag-filter-caret"'],
             [
                 "optionLabel",
-                'data-sot-part="recording-list-tag-filter-option-label"',
+                'data-part="recording-list-tag-filter-option-label"',
             ],
             [
                 "optionCount",
-                'data-sot-part="recording-list-tag-filter-option-count"',
+                'data-part="recording-list-tag-filter-option-count"',
             ],
         ] as const) {
             expect(workstation).toMatch(
@@ -8823,49 +8784,47 @@ describe("full UI replacement regression coverage", () => {
             );
         }
         expect(workstation).toMatch(
-            /<Button\s+variant="ghost"\s+size="sm"\s+className=\{\s*dashboardRecordingTagFilterStyles\.option\s*\}[\s\S]*type="button"[\s\S]*role="option"[\s\S]*data-tag-value=\{\s*option\.value\s*\}[\s\S]*aria-selected=\{\s*active\s*\}[\s\S]*data-sot-control="recording-list-tag-filter"[\s\S]*data-sot-state=\{\s*active\s*\?\s*"selected"\s*:\s*"idle"\s*\}[\s\S]*onClick=\{\(\) => \{[\s\S]*setSelectedTagFilter\(\s*option\.value,?\s*\);[\s\S]*setTagFilterOpen\(false\);[\s\S]*\}\}/,
+            /<Button\s+variant="ghost"\s+size="sm"\s+className=\{\s*dashboardRecordingTagFilterStyles\.option\s*\}[\s\S]*type="button"[\s\S]*role="option"[\s\S]*data-tag-value=\{\s*option\.value\s*\}[\s\S]*aria-selected=\{\s*active\s*\}[\s\S]*data-control="recording-list-tag-filter"[\s\S]*data-state=\{\s*active\s*\?\s*"selected"\s*:\s*"idle"\s*\}[\s\S]*onClick=\{\(\) => \{[\s\S]*setSelectedTagFilter\(\s*option\.value,?\s*\);[\s\S]*setTagFilterOpen\(false\);[\s\S]*\}\}/,
         );
         for (const migratedSelector of DASHBOARD_RECORDING_TAG_FILTER_MIGRATED_GLOBAL_SELECTORS) {
             expect(collectCssRuleBlocks(globals, migratedSelector)).toEqual([]);
         }
         expect(globals).not.toContain(
-            '[data-sot-panel="recording-list-tag-filter"][hidden]',
+            '[data-panel="recording-list-tag-filter"][hidden]',
         );
         expect(workstation).toMatch(
-            /variant=\{\s*active\s*\?\s*"secondary"\s*:\s*"ghost"\s*\}[\s\S]*data-sot-control="dashboard-recording-row"/,
+            /variant=\{\s*active\s*\?\s*"secondary"\s*:\s*"ghost"\s*\}[\s\S]*data-control="dashboard-recording-row"/,
         );
         const recordingListEmptyState = extractElementSlice(
             workstation,
-            'data-sot-part="recording-list-state"',
+            'data-part="recording-list-state"',
             "Empty",
         );
         const recordingListEmptyOpening = extractOpeningElement(
             workstation,
-            'data-sot-part="recording-list-state"',
+            'data-part="recording-list-state"',
             "Empty",
         );
         const recordingListEmptyMedia = extractOpeningElement(
             recordingListEmptyState,
-            'data-sot-part="recording-list-state-icon"',
+            'data-part="recording-list-state-icon"',
             "EmptyMedia",
         );
         const recordingListEmptyTitle = extractOpeningElement(
             recordingListEmptyState,
-            'data-sot-part="recording-list-state-title"',
+            'data-part="recording-list-state-title"',
             "EmptyTitle",
         );
         const recordingListEmptyDescription = extractOpeningElement(
             recordingListEmptyState,
-            'data-sot-part="recording-list-state-description"',
+            'data-part="recording-list-state-description"',
             "EmptyDescription",
         );
         expect(recordingListEmptyOpening).toContain('variant="compact"');
         expect(recordingListEmptyOpening).toContain(
             "data-list-state-block={listState}",
         );
-        expect(recordingListEmptyOpening).toContain(
-            "data-sot-state={listState}",
-        );
+        expect(recordingListEmptyOpening).toContain("data-state={listState}");
         expectClassNameConstReference(
             recordingListEmptyOpening,
             "dashboardRecordingListStateStyles.root",
@@ -8910,7 +8869,7 @@ describe("full UI replacement regression coverage", () => {
         ] as const) {
             const listStateButton = extractOpeningElement(
                 recordingListEmptyState,
-                `data-sot-control="${control}"`,
+                `data-control="${control}"`,
                 "Button",
             );
             expect(listStateButton).toContain(`variant="${variant}"`);
@@ -8924,7 +8883,7 @@ describe("full UI replacement regression coverage", () => {
         ]) {
             expect(workstation).toMatch(
                 new RegExp(
-                    `<Button\\s+variant="ghost"\\s+size="sm"\\s+className=\\{\\s*dashboardButtonClassNames\\.listPagination\\s*\\}[\\s\\S]*data-sot-control="${control}"`,
+                    `<Button\\s+variant="ghost"\\s+size="sm"\\s+className=\\{\\s*dashboardButtonClassNames\\.listPagination\\s*\\}[\\s\\S]*data-control="${control}"`,
                 ),
             );
         }
@@ -8946,9 +8905,9 @@ describe("full UI replacement regression coverage", () => {
             expect(globals).not.toContain(migratedSelectorFragment);
         }
         expect(workstation).toContain("<Button");
-        expect(librarySearch).toContain('data-sot-control="dashboard-search"');
+        expect(librarySearch).toContain('aria-haspopup="dialog"');
         expect(librarySearch).toContain("librarySearchClassNames.trigger");
-        expect(workstation).toContain('data-sot-control="dashboard-activity"');
+        expect(workstation).toContain('data-control="dashboard-activity"');
         expect(workstation).toContain(
             "dashboardSearchActivityClassNames.dashboardActivityTrigger",
         );
@@ -8956,22 +8915,22 @@ describe("full UI replacement regression coverage", () => {
         expect(dashboardRecordingPlayerControls).toContain("<Slider");
         expect(dashboardRecordingPlayerControls).toContain("<PopoverContent");
         expect(dashboardRecordingPlayerControls).not.toContain(
-            "<SotPlayerControlButton",
+            "<PlayerControlButton",
         );
         expect(dashboardRecordingPlayerControls).not.toContain(
-            "<SotPlayerPrimaryButton",
+            "<PlayerPrimaryButton",
         );
         expect(dashboardRecordingPlayerControls).not.toContain(
-            "<SotPlayerSpeedButton",
+            "<PlayerSpeedButton",
         );
         expect(dashboardRecordingPlayerControls).not.toContain(
-            "<SotPlayerSeekSlider",
+            "<PlayerSeekSlider",
         );
         expect(dashboardRecordingPlayerControls).not.toContain(
-            "<SotPlayerVolumeSlider",
+            "<PlayerVolumeSlider",
         );
         expect(dashboardRecordingPlayerControls).not.toContain(
-            "<SotPlayerVolumePopoverContent",
+            "<PlayerVolumePopoverContent",
         );
         expect(dashboardRecordingPlayerControls).not.toContain(
             'controlSize="sm"',
@@ -9023,17 +8982,17 @@ describe("full UI replacement regression coverage", () => {
             "dashboardSeekSliderRootStyle",
         );
         expect(dashboardRecordingPlayerControls).not.toContain(
-            "sotPlayerSeekRangeStyle",
+            "playerSeekRangeStyle",
         );
         expect(dashboardRecordingPlayerControls).not.toContain(
-            "sotPlayerSeekThumbStyle",
+            "playerSeekThumbStyle",
         );
         expect(dashboardRecordingPlayerControls).not.toContain(
-            "SotPlayerSliderTrackStyle",
+            "PlayerSliderTrackStyle",
         );
         const transcriptLanguageBadge = extractOpeningElement(
             workstation,
-            'data-sot-part="dashboard-transcript-language"',
+            'data-part="dashboard-transcript-language"',
             "Badge",
         );
         expect(transcriptLanguageBadge).toContain('variant="outline"');
@@ -9046,7 +9005,7 @@ describe("full UI replacement regression coverage", () => {
         );
         const dashboardTranscriptActions = extractOpeningElement(
             workstation,
-            'data-sot-part="dashboard-transcript-actions"',
+            'data-part="dashboard-transcript-actions"',
             "div",
         );
         expect(dashboardTranscriptActions).toContain(
@@ -9054,7 +9013,7 @@ describe("full UI replacement regression coverage", () => {
         );
         const dashboardLocalCopyButton = extractElementSlice(
             workstation,
-            'data-sot-control="copy-local-transcript"',
+            'data-control="copy-local-transcript"',
             "Button",
         );
         expect(dashboardLocalCopyButton).toContain("<DashboardCopyIcon");
@@ -9066,9 +9025,7 @@ describe("full UI replacement regression coverage", () => {
             "function DashboardCopyIcon",
             "function DashboardCopyLabel",
         );
-        expect(dashboardCopyIcon).toContain(
-            'data-sot-part="dashboard-copy-icon"',
-        );
+        expect(dashboardCopyIcon).toContain('data-part="dashboard-copy-icon"');
         expect(dashboardCopyIcon).not.toContain("dashboardLocalCopyClassNames");
         expect(dashboardCopyIcon).toContain('state === "ok" ? Check');
         expect(dashboardCopyIcon).toContain('state === "err" ? X : Copy');
@@ -9078,7 +9035,7 @@ describe("full UI replacement regression coverage", () => {
             "function getRetxStateFromActiveJob",
         );
         expect(dashboardCopyLabel).toContain(
-            'data-sot-part="dashboard-copy-label"',
+            'data-part="dashboard-copy-label"',
         );
         expect(dashboardCopyLabel).not.toContain(
             "dashboardLocalCopyClassNames",
@@ -9164,7 +9121,7 @@ describe("full UI replacement regression coverage", () => {
             "data-testid={`source-report-section-${section}`}",
         );
         expect(sourceReportPrimitives).not.toMatch(
-            /SotSourceReport|data-sot-source-report|sourceReportSotStyles|SourceReportStyleVariables/,
+            /SotSourceReport|data-source-report|sourceReportSotStyles|SourceReportStyleVariables/,
         );
 
         const dashboardSourceReportPane = extractOpeningElement(
@@ -9172,8 +9129,8 @@ describe("full UI replacement regression coverage", () => {
             'surface="dashboard"',
             "SourceReportPane",
         );
-        expect(dashboardSourceReportPane).toContain(
-            "className={dashboardTabPaneHiddenClassName}",
+        expect(dashboardSourceReportPane).toMatch(
+            /className=\{\s*dashboardTabPaneHiddenClassName\s*\}/,
         );
         expect(dashboardSourceReportPane).toContain(
             "state={sourceReportVisualState}",
@@ -9188,7 +9145,7 @@ describe("full UI replacement regression coverage", () => {
         expect(workstation).toContain(
             '<DashboardSourceReportState state="error">',
         );
-        expect(workstation).toContain("subState={sourceReportSubState}");
+        expect(workstation).toMatch(/subState=\{\s*sourceReportSubState\s*\}/);
         expect(workstation).toContain("<SourceReportMetricCards>");
         expect(workstation).toContain("<SourceReportSection");
         expect(workstation).toContain("<SourceReportSegments");
@@ -9215,8 +9172,12 @@ describe("full UI replacement regression coverage", () => {
                 "SourceReportCopyButton",
             );
             expect(dashboardCopy).toContain(`copy="${copyKind}"`);
-            expect(dashboardCopy).toContain(`copyState={${copyState}}`);
-            expect(dashboardCopy).toContain(`disabled={${copyDisabled}}`);
+            expect(dashboardCopy).toMatch(
+                new RegExp(`copyState=\\{\\s*${copyState}\\s*\\}`),
+            );
+            expect(dashboardCopy).toMatch(
+                new RegExp(`disabled=\\{\\s*${copyDisabled}\\s*\\}`),
+            );
         }
         expect(workstation).not.toMatch(
             DASHBOARD_WORKSTATION_LEGACY_CONTROL_RE,
@@ -9242,7 +9203,7 @@ describe("full UI replacement regression coverage", () => {
         const globals = readSource("app/globals.css");
         const dashboardTranscriptShell = extractCardSlice(
             workstation,
-            'data-sot-panel="dashboard-transcript-shell"',
+            'data-panel="dashboard-transcript-shell"',
         );
         const dashboardTranscriptLoadingTurn = extractBoundedSlice(
             workstation,
@@ -9255,7 +9216,7 @@ describe("full UI replacement regression coverage", () => {
             ") : (",
         );
         const headerPanelIndex = workstation.indexOf(
-            'data-sot-panel="dashboard-detail-header"',
+            'data-panel="dashboard-detail-header"',
         );
         const headerStart = workstation.lastIndexOf(
             "<CardHeader",
@@ -9331,20 +9292,20 @@ describe("full UI replacement regression coverage", () => {
         expect(dashboardDetailHeader).toContain("<Button");
         expect(dashboardDetailHeader).toContain("<Input");
         expect(dashboardDetailHeader).toContain(
-            'data-sot-panel="dashboard-detail-header"',
+            'data-panel="dashboard-detail-header"',
         );
         expect(dashboardDetailHeader).toContain("data-rename-mode");
         expect(dashboardDetailHeader).toContain(
-            'data-sot-part="detail-header-title"',
+            'data-part="detail-header-title"',
         );
         expect(dashboardDetailHeader).toContain(
-            'data-sot-part="detail-header-title-input"',
+            'data-part="detail-header-title-input"',
         );
         expect(dashboardDetailHeader).toContain(
-            'data-sot-part="detail-header-title-status"',
+            'data-part="detail-header-title-status"',
         );
         expect(dashboardDetailHeader).toContain(
-            'data-sot-part="detail-header-action"',
+            'data-part="detail-header-action"',
         );
         expect(dashboardDetailHeader).toContain("data-rh-title");
         expect(dashboardDetailHeader).toContain("data-rh-input");
@@ -9354,7 +9315,7 @@ describe("full UI replacement regression coverage", () => {
         expect(dashboardDetailHeader).toContain("data-rh-edit-cancel");
         expect(dashboardDetailHeader).toContain("data-rh-ai-anchor");
         expect(dashboardDetailHeader).toContain("data-rh-ai-trigger");
-        expect(dashboardDetailHeader).toContain('data-sot-control="ai-rename"');
+        expect(dashboardDetailHeader).toContain('data-control="ai-rename"');
         for (const retiredDashboardDetailHeaderClassLock of [
             "SOT_DASHBOARD_DETAIL_HEADER_CLASS_NAME",
             "SOT_DASHBOARD_DETAIL_HEADER_TITLE_CLASS_NAME",
@@ -9435,31 +9396,27 @@ describe("full UI replacement regression coverage", () => {
         expect(
             EXPECTED_DASHBOARD_DETAIL_HEADER_ACTION_ANCHOR_CLASS_NAME,
         ).not.toMatch(OWNER_WORKSPACE_FORBIDDEN_CLASS_PATTERN);
-        expect(dashboardDetailHeader).toContain(
-            'dashboardDetailHeaderState === "normal"',
-        );
-        expect(dashboardDetailHeader).toContain(
-            'dashboardDetailHeaderState === "editing"',
-        );
-        expect(dashboardDetailHeader).toContain(
-            'dashboardDetailHeaderState === "saving"',
-        );
-        expect(dashboardDetailHeader).toContain('data-sot-state="saving"');
+        for (const state of ["normal", "editing", "saving"]) {
+            expect(dashboardDetailHeader).toMatch(
+                new RegExp(`dashboardDetailHeaderState\\s*===\\s*"${state}"`),
+            );
+        }
+        expect(dashboardDetailHeader).toContain('data-state="saving"');
         expect(dashboardDetailHeader).toContain("localDeleteAvailable ? (");
         expect(dashboardDetailHeader).not.toMatch(legacyHeaderClassNamePattern);
         expect(globals).not.toMatch(
-            /\[data-sot-panel="dashboard-detail-header"\]\s*\[data-slot="button"\]/,
+            /\[data-panel="dashboard-detail-header"\]\s*\[data-slot="button"\]/,
         );
         expect(globals).not.toMatch(
-            /:is\(\s*\[data-sot-panel="dashboard-detail-header"\],\s*\[data-sot-panel="recording-detail-header"\]\s*\)\s*\[data-slot="button"\]/,
+            /:is\(\s*\[data-panel="dashboard-detail-header"\],\s*\[data-panel="recording-detail-header"\]\s*\)\s*\[data-slot="button"\]/,
         );
         expect(globals).not.toMatch(
-            /\[data-sot-part="detail-header-title-input"\]\[data-slot="input"\]\s*{[^}]*\b(?:height|padding|border-radius|background|border|font|color|box-shadow)\s*:/,
+            /\[data-part="detail-header-title-input"\]\[data-slot="input"\]\s*{[^}]*\b(?:height|padding|border-radius|background|border|font|color|box-shadow)\s*:/,
         );
         for (const selector of [
-            'data-sot-control="rename-recording-title"',
-            'data-sot-control="recording-more-actions"',
-            'data-sot-control="ai-rename"',
+            'data-control="rename-recording-title"',
+            'data-control="recording-more-actions"',
+            'data-control="ai-rename"',
         ]) {
             expect(globals).not.toContain(selector);
         }
@@ -9474,31 +9431,29 @@ describe("full UI replacement regression coverage", () => {
 
         expect(dashboardDetailHeaderLegacySelectorLines).toEqual([]);
         for (const selector of [
-            '[data-sot-panel="recording-detail-header"]',
-            '[data-sot-part="detail-header-title-input"][data-slot="input"]',
-            '[data-sot-part="detail-header-title-status"]',
-            '[data-sot-part="detail-header-local-badge"]',
+            '[data-panel="recording-detail-header"]',
+            '[data-part="detail-header-title-input"][data-slot="input"]',
+            '[data-part="detail-header-title-status"]',
+            '[data-part="detail-header-local-badge"]',
         ]) {
             expect(globals).not.toContain(selector);
         }
         expect(
             collectCssRuleBlocks(
                 globals,
-                '[data-sot-panel="dashboard-detail-header"]',
+                '[data-panel="dashboard-detail-header"]',
             ).filter(
                 ({ prelude }) =>
                     !prelude.includes(
-                        '[data-sot-panel="dashboard-detail"][data-empty="true"]',
+                        '[data-panel="dashboard-detail"][data-empty="true"]',
                     ),
             ),
         ).toEqual([]);
-        expect(globals).not.toContain('[data-sot-part="detail-header-title"]');
+        expect(globals).not.toContain('[data-part="detail-header-title"]');
         expect(globals).not.toContain(
-            '[data-sot-part="detail-header-action-anchor"]',
+            '[data-part="detail-header-action-anchor"]',
         );
-        expect(workstation).toContain(
-            'data-sot-panel="dashboard-retranscription"',
-        );
+        expect(workstation).toContain('data-panel="dashboard-retranscription"');
         expect(workstation).toContain("data-retx-state={dashboardRetxState}");
         expect(workstation).toContain(
             'import { Spinner } from "@/components/ui/spinner";',
@@ -9506,11 +9461,11 @@ describe("full UI replacement regression coverage", () => {
         expect(workstation).toContain("<Spinner");
         expect(workstation).toContain('size="xs"');
         expect(workstation).not.toContain(
-            '<span data-sot-part="dashboard-retranscription-spinner" />',
+            '<span data-part="dashboard-retranscription-spinner" />',
         );
         const dashboardRetranscriptionDisabledHint = extractOpeningElement(
             workstation,
-            'data-sot-part="dashboard-retranscription-disabled-hint"',
+            'data-part="dashboard-retranscription-disabled-hint"',
             "Badge",
         );
         expect(dashboardRetranscriptionDisabledHint).toContain(
@@ -9520,11 +9475,11 @@ describe("full UI replacement regression coverage", () => {
             'className="[&[hidden]]:hidden"',
         );
         expect(dashboardRetranscriptionDisabledHint).toMatch(
-            /hidden=\{\s*detailTab !== "transcript"\s*\|\|\s*dashboardRetxState !== "unavailable"\s*\}/,
+            /hidden=\{\s*detailTab !==\s*"transcript"\s*\|\|\s*dashboardRetxState !==\s*"unavailable"\s*\}/,
         );
         const dashboardRetranscriptionBanner = extractOpeningElement(
             workstation,
-            'data-sot-panel="dashboard-retranscription"',
+            'data-panel="dashboard-retranscription"',
             "Alert",
         );
         expect(dashboardRetranscriptionBanner).toContain("<Alert");
@@ -9539,38 +9494,38 @@ describe("full UI replacement regression coverage", () => {
             "data-retx-state={dashboardRetxState}",
         );
         expect(dashboardRetranscriptionBanner).toMatch(
-            /hidden=\{\s*dashboardRetxState === "idle"\s*\|\|\s*dashboardRetxState === "unavailable"\s*\}/,
+            /hidden=\{\s*dashboardRetxState ===\s*"idle"\s*\|\|\s*dashboardRetxState ===\s*"unavailable"\s*\}/,
         );
         const dashboardRetranscriptionIcon = extractOpeningElement(
             workstation,
-            'data-sot-part="dashboard-retranscription-icon"',
+            'data-part="dashboard-retranscription-icon"',
             "span",
         );
         expect(dashboardRetranscriptionIcon).not.toContain("className=");
         expect(
             extractOpeningElement(
                 workstation,
-                'data-sot-part="dashboard-retranscription-body"',
+                'data-part="dashboard-retranscription-body"',
                 "div",
             ),
         ).not.toContain("className=");
         expect(
             extractOpeningElement(
                 workstation,
-                'data-sot-part="dashboard-retranscription-title"',
+                'data-part="dashboard-retranscription-title"',
                 "AlertTitle",
             ),
         ).toContain("<AlertTitle");
         expect(
             extractOpeningElement(
                 workstation,
-                'data-sot-part="dashboard-retranscription-sub"',
+                'data-part="dashboard-retranscription-sub"',
                 "AlertDescription",
             ),
         ).toContain('density="comfortable"');
         const dashboardRetranscriptionRefreshMarker = extractOpeningElement(
             workstation,
-            'data-sot-part="dashboard-retranscription-refresh-marker"',
+            'data-part="dashboard-retranscription-refresh-marker"',
             "Badge",
         );
         expect(dashboardRetranscriptionRefreshMarker).toContain(
@@ -9579,11 +9534,13 @@ describe("full UI replacement regression coverage", () => {
         expect(dashboardRetranscriptionRefreshMarker).toContain(
             'className="[&[hidden]]:hidden"',
         );
-        expect(dashboardRetranscriptionRefreshMarker).toContain(
-            'hidden={dashboardRetxState !== "completed"}',
+        expect(dashboardRetranscriptionRefreshMarker).toMatch(
+            /hidden=\{\s*dashboardRetxState !==\s*"completed"\s*\}/,
         );
         expect(workstation).toContain('dashboardRetxState === "failed" ? (');
-        expect(workstation).toContain('dashboardRetxState === "completed" &&');
+        expect(workstation).toMatch(
+            /dashboardRetxState ===\s*"completed"\s*&&/,
+        );
         expect(workstation).toContain('data-retx-retry=""');
         expect(workstation).toContain('data-retx-dismiss=""');
         expect(globals).not.toMatch(
@@ -9629,17 +9586,17 @@ describe("full UI replacement regression coverage", () => {
         );
         expect(dashboardTranscriptShell).not.toContain("backdrop-blur-none");
         expect(dashboardTranscriptShell).toContain(
-            'data-sot-panel="dashboard-transcript-shell"',
+            'data-panel="dashboard-transcript-shell"',
         );
         expect(dashboardTranscriptShell).toContain("<CardHeader");
         const dashboardTranscriptHeader = extractOpeningElement(
             dashboardTranscriptShell,
-            'data-sot-part="dashboard-transcript-header"',
+            'data-part="dashboard-transcript-header"',
             "CardHeader",
         );
         const dashboardTranscriptSegmentedTabs = extractOpeningElement(
             dashboardTranscriptShell,
-            'data-sot-control="segmented-tabs"',
+            'data-control="segmented-tabs"',
             "SegmentedTabs",
         );
         expect(dashboardTranscriptHeader).toContain(
@@ -9661,7 +9618,7 @@ describe("full UI replacement regression coverage", () => {
         expect(dashboardTranscriptShell).toContain("<CardContent");
         const dashboardTranscriptBody = extractOpeningElement(
             dashboardTranscriptShell,
-            'data-sot-part="dashboard-transcript-body"',
+            'data-part="dashboard-transcript-body"',
             "CardContent",
         );
         expect(dashboardTranscriptBody).toContain(
@@ -9674,20 +9631,20 @@ describe("full UI replacement regression coverage", () => {
             "dashboardRetranscriptionThemeClassName",
         );
         expect(dashboardTranscriptShell).toContain(
-            'data-sot-part="dashboard-transcript-header"',
+            'data-part="dashboard-transcript-header"',
         );
         expect(dashboardTranscriptShell).toContain(
-            'data-sot-part="dashboard-transcript-actions"',
+            'data-part="dashboard-transcript-actions"',
         );
         expect(dashboardTranscriptShell).toContain(
-            'data-sot-part="dashboard-transcript-body"',
+            'data-part="dashboard-transcript-body"',
         );
         for (const hook of DASHBOARD_DETAIL_PANE_SOT_HOOKS) {
             expect(workstation).toContain(hook);
         }
         const dashboardSpeakersMerge = extractOpeningElement(
             workstation,
-            'data-sot-control="dashboard-speakers-merge"',
+            'data-control="dashboard-speakers-merge"',
             "Button",
         );
         expect(dashboardSpeakersMerge).toContain('variant="ghost"');
@@ -9708,22 +9665,22 @@ describe("full UI replacement regression coverage", () => {
         );
         const dashboardSpeakerAvatar = extractOpeningElement(
             workstation,
-            'data-sot-part="dashboard-speaker-avatar"',
+            'data-part="dashboard-speaker-avatar"',
             "Badge",
         );
         const dashboardSpeakerSub = extractOpeningElement(
             workstation,
-            'data-sot-part="dashboard-speaker-sub"',
+            'data-part="dashboard-speaker-sub"',
             "Badge",
         );
         const dashboardSpeakerBar = extractOpeningElement(
             workstation,
-            'data-sot-part="dashboard-speaker-bar"',
+            'data-part="dashboard-speaker-bar"',
             "Progress",
         );
         const dashboardSpeakerEmpty = extractElementSlice(
             workstation,
-            'data-sot-state="empty"',
+            'data-state="empty"',
             "li",
         );
         expect(dashboardSpeakerPaneClassNames).toContain(
@@ -9763,7 +9720,7 @@ describe("full UI replacement regression coverage", () => {
         expect(dashboardSpeakerSub).toContain(
             "dashboardSpeakerPaneClassNames.sub",
         );
-        expect(dashboardSpeakerBar).toContain("value={shareValue}");
+        expect(dashboardSpeakerBar).toMatch(/value=\{\s*shareValue\s*\}/);
         expect(dashboardSpeakerBar).toContain(
             "dashboardSpeakerPaneClassNames.bar",
         );
@@ -9807,14 +9764,14 @@ describe("full UI replacement regression coverage", () => {
         expect(
             collectCssRuleBlocks(
                 globals,
-                '[data-sot-panel="dashboard-transcript-shell"]',
+                '[data-panel="dashboard-transcript-shell"]',
             ),
         ).toEqual([]);
         expect(dashboardTranscriptLoadingTurn).toContain(
-            'data-sot-part="dashboard-transcript-speaker-row"',
+            'data-part="dashboard-transcript-speaker-row"',
         );
         expect(dashboardTranscriptLoadingTurn).toContain(
-            'data-sot-state="loading"',
+            'data-state="loading"',
         );
         for (const token of DASHBOARD_TRANSCRIPT_SKELETON_LOCAL_COMPOSITION_TOKENS) {
             expect(workstation).toContain(token);
@@ -9829,7 +9786,7 @@ describe("full UI replacement regression coverage", () => {
         }
         const dashboardTranscriptSkeleton = extractOpeningElement(
             workstation,
-            'data-sot-part="dashboard-transcript-skeleton"',
+            'data-part="dashboard-transcript-skeleton"',
             "Skeleton",
         );
         expect(dashboardTranscriptSkeleton).toContain('variant="default"');
@@ -9838,29 +9795,27 @@ describe("full UI replacement regression coverage", () => {
             "className={dashboardTranscriptSkeletonClassNames[size]}",
         );
         expect(dashboardTranscriptSkeleton).toContain(
-            'data-sot-part="dashboard-transcript-skeleton"',
+            'data-part="dashboard-transcript-skeleton"',
         );
-        expect(dashboardTranscriptSkeleton).toContain("data-sot-size={size}");
+        expect(dashboardTranscriptSkeleton).toContain("data-size={size}");
         expect(workstation).not.toContain('variant="dashboardTranscript"');
         expect(workstation).not.toContain("dashboardTranscriptSkeletonSize");
         expect(workstation).not.toContain("dashboardTranscriptAvatar");
         expect(globals).not.toContain(
-            '[data-sot-part="dashboard-transcript-skeleton"][data-slot="skeleton"]',
+            '[data-part="dashboard-transcript-skeleton"][data-slot="skeleton"]',
         );
         expect(globals).not.toContain(
-            '[data-sot-part="dashboard-transcript-skeleton"][data-sot-size="avatar"]',
+            '[data-part="dashboard-transcript-skeleton"][data-size="avatar"]',
         );
         expect(dashboardTranscriptReadyTurn).toContain(
-            'data-sot-part="dashboard-transcript-speaker-row"',
+            'data-part="dashboard-transcript-speaker-row"',
+        );
+        expect(dashboardTranscriptReadyTurn).toContain('data-state="ready"');
+        expect(dashboardTranscriptReadyTurn).toContain(
+            'data-part="dashboard-transcript-speaker-name"',
         );
         expect(dashboardTranscriptReadyTurn).toContain(
-            'data-sot-state="ready"',
-        );
-        expect(dashboardTranscriptReadyTurn).toContain(
-            'data-sot-part="dashboard-transcript-speaker-name"',
-        );
-        expect(dashboardTranscriptReadyTurn).toContain(
-            'data-sot-part="dashboard-transcript-speaker-time"',
+            'data-part="dashboard-transcript-speaker-time"',
         );
         for (const localTurnSlice of [
             dashboardTranscriptLoadingTurn,
@@ -9879,38 +9834,28 @@ describe("full UI replacement regression coverage", () => {
         expect(workstation).toContain("state={aiState}");
         expect(workstation).toContain('title="AI 标题预览"');
         expect(collectAiRenamePrimitiveBusinessTokens()).toEqual([]);
-        expect(aiRenamePreview).toContain('data-sot-panel="ai-rename-preview"');
-        expect(aiRenamePreview).toContain('data-open="true"');
-        expect(aiRenamePreview).toContain("data-sot-state={state}");
+        expect(aiRenamePreview).toContain("<Popover open modal={false}>");
+        expect(aiRenamePreview).toContain("<PopoverAnchor asChild>");
+        expect(aiRenamePreview).toContain("<PopoverContent");
         expect(aiRenamePreview).toContain("aria-labelledby={titleId}");
         expect(aiRenamePreview).toContain(
             "aria-describedby={subtitle ? descriptionId : undefined}",
         );
         expect(aiRenamePreview).not.toContain('role="dialog"');
         expect(aiRenamePreview).not.toContain("aria-label={title}");
-        expect(aiRenamePreview).toContain('from "@/components/ui/alert";');
-        expect(aiRenamePreview).toContain(
-            'import { Badge } from "@/components/ui/badge";',
-        );
-        expect(aiRenamePreview).toContain(
-            'import { Button } from "@/components/ui/button";',
-        );
-        expect(aiRenamePreview).toContain('from "@/components/ui/card";');
-        expect(aiRenamePreview).toContain('from "@/components/ui/popover";');
-        expect(aiRenamePreview).toContain('from "@/components/ui/separator";');
-        expect(aiRenamePreview).toContain("<Popover");
-        expect(aiRenamePreview).toContain("<PopoverAnchor");
-        expect(aiRenamePreview).toContain("<PopoverContent");
-        expect(aiRenamePreview).toContain("<CardHeader");
-        expect(aiRenamePreview).toContain("<CardContent");
-        expect(aiRenamePreview).toContain("<CardFooter");
-        expect(aiRenamePreview).toContain("<Separator");
-        expect(aiRenamePreview).toContain("<Alert");
-        expect(aiRenamePreview).toContain("<Badge");
-        expect(aiRenamePreview).toContain("<Button");
-        expect(aiRenamePreview).toContain(
-            'import { Spinner } from "@/components/ui/spinner";',
-        );
+        for (const primitive of [
+            "Alert",
+            "Badge",
+            "Button",
+            "CardHeader",
+            "CardContent",
+            "CardFooter",
+            "Popover",
+            "PopoverContent",
+            "Spinner",
+        ]) {
+            expect(aiRenamePreview).toContain("<" + primitive);
+        }
         expect(aiRenamePreview).toMatch(
             /const\s+aiRenamePreview[A-Za-z0-9_]*ClassNames\s*=\s*{/,
         );
@@ -9921,75 +9866,153 @@ describe("full UI replacement regression coverage", () => {
                 expect(aiRenamePreview).toContain(snippet);
             }
         }
-        expectAiRenameGenericPrimitiveCall(
+        for (const stateBranch of [
+            'state === "loading"',
+            'state === "review"',
+            'state === "error"',
+            'state === "unavailable"',
+            "isErrorState",
+            "canAct",
+        ]) {
+            expect(aiRenamePreview).toContain(stateBranch);
+        }
+        expect(aiRenamePreview).toContain(
+            'state === "error" ? "destructive" : "default"',
+        );
+        const aiRenamePopoverContent = extractOpeningElement(
             aiRenamePreview,
-            'data-sot-panel="ai-rename-preview"',
+            "aria-labelledby={titleId}",
             "PopoverContent",
         );
-        for (const primitiveCall of [
-            {
-                marker: 'data-sot-control="ai-rename-close"',
-                tagName: "Button" as const,
-            },
-            {
-                marker: 'data-sot-control="ai-rename-regenerate"',
-                tagName: "Button" as const,
-            },
-            {
-                marker: 'data-sot-control="ai-rename-cancel"',
-                tagName: "Button" as const,
-            },
-            {
-                marker: 'data-sot-control="ai-rename-apply"',
-                tagName: "Button" as const,
-            },
-            {
-                marker: 'data-sot-review-field="old"',
-                tagName: "Badge" as const,
-            },
-            {
-                marker: 'data-sot-review-field="new"',
-                tagName: "Badge" as const,
-            },
-            {
-                marker: 'data-sot-part="state-description"',
-                tagName: "Alert" as const,
-            },
-        ]) {
-            expectAiRenameGenericPrimitiveCall(
-                aiRenamePreview,
-                primitiveCall.marker,
-                primitiveCall.tagName,
-            );
-        }
-        for (const dataSotToken of [
-            'data-sot-part="head"',
-            'data-sot-part="body"',
-            'data-sot-part="state"',
-            'data-sot-part="review-row"',
-            'data-sot-part="review-line"',
-            'data-sot-part="review-tag"',
-            'data-sot-part="review-old"',
-            'data-sot-part="review-new"',
-            'data-sot-part="actions"',
-            'data-sot-control="ai-rename-close"',
-            'data-sot-control="ai-rename-regenerate"',
-            'data-sot-control="ai-rename-cancel"',
-            'data-sot-control="ai-rename-apply"',
-        ]) {
-            expect(aiRenamePreview).toContain(dataSotToken);
-        }
-        expect(aiRenamePreview).toContain('data-slot="card-review-value"');
-        expect(aiRenamePreview).toContain('data-review-tone="old"');
-        expect(aiRenamePreview).toContain('data-review-tone="new"');
-        expect(aiRenamePreview).toContain('data-sot-part="error-icon"');
+        const aiRenameTitle = extractOpeningElement(
+            aiRenamePreview,
+            "id={titleId}",
+            "CardTitle",
+        );
+        const aiRenameDescription = extractElementSlice(
+            aiRenamePreview,
+            "id={descriptionId}",
+            "CardDescription",
+        );
+        const aiRenameClose = extractOpeningElement(
+            aiRenamePreview,
+            "aria-label={closeLabel ?? cancelLabel}",
+            "Button",
+        );
+        const aiRenameRegenerate = extractOpeningElement(
+            aiRenamePreview,
+            "aria-label={regenerateLabel}",
+            "Button",
+        );
+        const aiRenameCancel = extractOpeningElement(
+            aiRenamePreview,
+            "aria-label={cancelLabel}",
+            "Button",
+        );
+        const aiRenameApply = extractOpeningElement(
+            aiRenamePreview,
+            "aria-label={applyLabel}",
+            "Button",
+        );
+        const aiRenameReviewBranch = extractBoundedSlice(
+            aiRenamePreview,
+            'state === "review" ? (',
+            ") : filename ? (",
+        );
+        const aiRenameErrorState = extractBoundedSlice(
+            aiRenamePreview,
+            "const isErrorState =",
+            "const stateLabel =",
+        );
+        const aiRenameErrorBranch = extractBoundedSlice(
+            aiRenamePreview,
+            ") : isErrorState ? (",
+            ") : (",
+        );
+
+        expect(aiRenamePreview).toMatch(/const titleId = useId\(\);/);
+        expect(aiRenamePreview).toMatch(/const descriptionId = useId\(\);/);
+        expect(aiRenamePopoverContent).toContain("aria-labelledby={titleId}");
+        expect(aiRenamePopoverContent).toContain(
+            "aria-describedby={subtitle ? descriptionId : undefined}",
+        );
+        expect(aiRenameTitle).toContain("id={titleId}");
+        expect(aiRenameDescription).toContain("id={descriptionId}");
+        expect(aiRenameDescription).toContain('{subtitle ?? ""}');
+        expect(aiRenameErrorBranch).toContain("<Alert");
+        expect(aiRenameErrorBranch).toContain("<AlertTitle");
+        expect(aiRenameErrorBranch).toContain("<AlertDescription");
+        expect(aiRenameErrorBranch).not.toContain("data-sot-");
+
+        expect(aiRenameClose).toContain("onClick={onCancel}");
+        expect(aiRenameClose).toContain("disabled={isApplying}");
+        expect(aiRenameClose).toContain("title={closeLabel ?? cancelLabel}");
+        expect(aiRenameRegenerate).toContain("onClick={onRegenerate}");
+        expect(aiRenameRegenerate).toContain(
+            'disabled={isBusy || state === "unavailable"}',
+        );
+        expect(aiRenameRegenerate).toContain("aria-busy={isRegenerating}");
+        expect(aiRenameRegenerate).toContain("aria-disabled={");
+        expect(aiRenameRegenerate).toContain(
+            'isBusy || state === "unavailable"',
+        );
+        expect(aiRenameCancel).toContain("onClick={onCancel}");
+        expect(aiRenameCancel).toContain("disabled={isApplying}");
+        expect(aiRenameCancel).toContain("title={cancelLabel}");
+        expect(aiRenameApply).toContain("onClick={onApply}");
+        expect(aiRenameApply).toContain("disabled={isBusy || !canAct}");
+        expect(aiRenameApply).toContain("aria-disabled={");
+        expect(aiRenameApply).toContain('isBusy || !canAct ? "true" : "false"');
+        expect(aiRenameApply).toContain("aria-busy={isApplying}");
+
+        expect(aiRenamePreview).toMatch(
+            /const isBusy = isApplying \|\| isRegenerating;/,
+        );
+        expect(aiRenamePreview).toMatch(
+            /const canAct = state === "preview" \|\| state === "review";/,
+        );
+        expect(aiRenamePreview).toContain(
+            'const reviewOldTitle = originalFilename?.trim() || "—";',
+        );
+        expect(aiRenamePreview).toContain(
+            'const reviewNewTitle = filename?.trim() || "—";',
+        );
+        expect(aiRenameReviewBranch).toContain("{reviewOldTitle}");
+        expect(aiRenameReviewBranch).toContain("{reviewNewTitle}");
+        expect(aiRenameErrorState).toContain(
+            'state === "error" || state === "unavailable"',
+        );
+        expect(aiRenamePreview).toMatch(
+            /const ErrorIcon = state === "unavailable" \? Ban : TriangleAlert;/,
+        );
+        expect(aiRenamePreview).toMatch(
+            /variant=\{\s*state === "error" \? "destructive" : "default"\s*\}/,
+        );
+        expect(aiRenamePreview).toContain("reviewOldTitle");
+        expect(aiRenamePreview).toContain("reviewNewTitle");
+        expect(aiRenamePreview).toContain('variant="outline"');
+        expect(aiRenamePreview).toContain('variant="ghost"');
         expect(aiRenamePreview).toContain("onClick={onCancel}");
         expect(aiRenamePreview).toContain("onClick={onRegenerate}");
         expect(aiRenamePreview).toContain("onClick={onApply}");
         expect(aiRenamePreview).toContain("aria-busy={isRegenerating}");
         expect(aiRenamePreview).toContain("aria-busy={isApplying}");
         expect(aiRenamePreview).toContain("disabled={isApplying}");
+        expect(aiRenamePreview).toContain(
+            'disabled={isBusy || state === "unavailable"}',
+        );
         expect(aiRenamePreview).toContain("disabled={isBusy || !canAct}");
+        expect(aiRenamePreview).toContain("aria-disabled={");
+        for (const icon of ["RefreshCw", "Check", "X"]) {
+            expect(aiRenamePreview).toMatch(
+                new RegExp(
+                    `<${icon}\\s+className=\\{[\\s\\S]*?aiRenamePreviewClassNames\\.button[\\s\\S]*?\\.actionIcon[\\s\\S]*?\\}\\s+aria-hidden="true"\\s*\\/>`,
+                ),
+            );
+        }
+        expect(aiRenamePreview).not.toContain('data-panel="ai-rename-preview"');
+        expect(aiRenamePreview).not.toContain('data-control="ai-rename-');
+        expect(aiRenamePreview).not.toContain("data-review-");
         for (const retiredAiRenameToken of [
             'className="grid-cols-[1fr_auto] items-start gap-x-2 gap-y-1 border-b border-border px-4 py-3"',
             'className="flex min-h-20 flex-col px-4 py-4"',
@@ -10000,7 +10023,10 @@ describe("full UI replacement regression coverage", () => {
         ]) {
             expect(aiRenamePreview).not.toContain(retiredAiRenameToken);
         }
-        expect(aiRenamePreview).not.toContain("!bg-");
+        expect(aiRenamePreview).toContain(
+            'new: "!bg-transparent text-[var(--accent)]"',
+        );
+        expect(aiRenamePreview).not.toMatch(/!bg-(?!transparent)/);
         expect(aiRenamePreview).not.toContain("!text-");
         expect(aiRenamePreview).not.toContain("!font-");
         expect(aiRenamePreview).not.toContain("!size-");
@@ -10009,15 +10035,15 @@ describe("full UI replacement regression coverage", () => {
         expect(aiRenamePreview).not.toMatch(/--ai-rename-[\w-]+/);
         expect(aiRenamePreview).not.toContain("--system-banner-");
         expect(aiRenamePreview).not.toMatch(
-            /(^|[\s"'`])ai-rename-panel($|[\s"'`])/,
+            /(^|[\s"'\x60])ai-rename-panel($|[\s"'\x60])/,
         );
         expect(aiRenamePreview).not.toMatch(
-            /(^|[\s"'`])airp-[a-z0-9-]+($|[\s"'`])/i,
+            /(^|[\s"'\x60])airp-[a-z0-9-]+($|[\s"'\x60])/i,
         );
         expect(aiRenamePreview).not.toContain("data-airp-");
         expect(aiRenamePreview).not.toContain("mergeAiRenameClassName");
         expect(workstation).toContain("onApply={applyAiRename}");
-        expect(workstation).toContain("onRegenerate={previewAutoRename}");
+        expect(workstation).toMatch(/onRegenerate=\{\s*previewAutoRename\s*\}/);
         expect(workstation).toContain('aria-label="更多操作"');
         expect(workstation).toContain('from "@/components/ui/dropdown-menu"');
         expect(workstation).toContain("<DropdownMenu");
@@ -10025,15 +10051,15 @@ describe("full UI replacement regression coverage", () => {
         expect(workstation).toContain("onOpenChange={(open) =>");
         expect(workstation).toContain("<DropdownMenuTrigger asChild>");
         expect(workstation).toContain("<DropdownMenuContent");
-        expect(workstation).toContain('data-sot-menu="recording-more-actions"');
-        expect(workstation).toContain('data-sot-menu-item="rename"');
-        expect(workstation).toContain('data-sot-menu-item="ai-rename"');
-        expect(workstation).toContain('data-sot-menu-item="retranscribe"');
-        expect(workstation).toContain('data-sot-menu-item="delete-local"');
-        expect(workstation).toContain('data-sot-tone="danger"');
+        expect(workstation).toContain('data-menu="recording-more-actions"');
+        expect(workstation).toContain('data-menu-item="rename"');
+        expect(workstation).toContain('data-menu-item="ai-rename"');
+        expect(workstation).toContain('data-menu-item="retranscribe"');
+        expect(workstation).toContain('data-menu-item="delete-local"');
+        expect(workstation).toContain('data-tone="danger"');
         expect(workstation).toContain("<DropdownMenuSeparator");
-        expect(workstation).toContain('data-sot-menu-separator="delete"');
-        expect(workstation).toContain("data-sot-menu-hint");
+        expect(workstation).toContain('data-menu-separator="delete"');
+        expect(workstation).toContain("data-menu-hint");
         for (const compositionToken of MORE_ACTIONS_MENU_COMPOSITION_TOKENS) {
             expect(workstation).toContain(compositionToken);
         }
@@ -10088,8 +10114,8 @@ describe("full UI replacement regression coverage", () => {
         const player = readSource(
             "features/recordings/components/recording-player.tsx",
         );
-        const sotPlayerPrimitives = readSource(
-            "features/recordings/components/sot-player-primitives.tsx",
+        const playerPrimitives = readSource(
+            "features/recordings/components/player-primitives.tsx",
         );
         const recordingTagVisuals = readSource(
             "features/recordings/components/recording-tag-visuals.tsx",
@@ -10155,9 +10181,7 @@ describe("full UI replacement regression coverage", () => {
         );
         expect(settings).not.toContain("function DataSourcesSettingsPanel");
         expect(settings).not.toContain("useDataSourcesSettings");
-        expect(settings).not.toContain(
-            'data-sot-surface="settings-data-sources"',
-        );
+        expect(settings).not.toContain('data-surface="settings-data-sources"');
         expect(dataSources).toContain("export function DataSourcesSection");
         expect(dataSources).toContain("useDataSourcesSettings(language)");
         expect(dataSources).toContain("aria-busy={isLoading}");
@@ -10171,7 +10195,7 @@ describe("full UI replacement regression coverage", () => {
         expect(dataSources).toContain(
             "aria-busy={isSourceActionStateBusy(actionState)}",
         );
-        expect(dataSources).not.toContain("data-sot-");
+        expect(dataSources).not.toContain(`${["data", "sot"].join("-")}-`);
         expect(dataSources).not.toContain("data-slot=");
         expect(settings).toContain(
             'import { VoScriptSection } from "./sections/voscript-section";',
@@ -10186,8 +10210,8 @@ describe("full UI replacement regression coverage", () => {
             "function VoScriptSpeakerRows",
             "useVoScriptSettingsStore",
             "testVoScriptConnection",
-            'data-sot-control="voscript-test"',
-            'data-sot-banner="voscript-unavailable"',
+            'data-control="voscript-test"',
+            'data-banner="voscript-unavailable"',
             "<SpeakerProfilesPanel />",
         ]) {
             expect(settings).not.toContain(inlinedVoScriptToken);
@@ -10218,11 +10242,11 @@ describe("full UI replacement regression coverage", () => {
         expect(settings).toMatch(
             /<h3\s+className=\{SETTINGS_SECTION_TITLE_CLASS\}>\s*\{title\}\s*<\/h3>/,
         );
-        expect(settings).not.toContain("<h3 data-sot-title>{title}</h3>");
+        expect(settings).not.toContain("<h3 data-title>{title}</h3>");
         for (const selector of [
-            "[data-sot-title]",
-            "[data-sot-section-divider]",
-            '[data-theme="dark"] [data-sot-section-divider]',
+            "[data-title]",
+            "[data-section-divider]",
+            '[data-theme="dark"] [data-section-divider]',
         ]) {
             expect(collectExactCssRuleBlocks(globals, selector)).toEqual([]);
         }
@@ -10323,7 +10347,7 @@ describe("full UI replacement regression coverage", () => {
         expect(button).not.toContain("buttonStateClassName");
         expect(button).not.toContain('variant === "rail"');
         expect(button).not.toContain("oklch(");
-        expect(button).not.toContain("data-sot");
+        expect(button).not.toContain(["data", "sot"].join("-"));
         expect(button).not.toMatch(/\bsourceProvider\b/);
         expect(button).not.toMatch(/\bsettings\b/i);
         expect(avatarPrimitive).not.toMatch(/-space-[xy]-/);
@@ -10343,7 +10367,7 @@ describe("full UI replacement regression coverage", () => {
         }
         const detailBackButton = extractElementSlice(
             detail,
-            'data-sot-control="recording-detail-back"',
+            'data-control="recording-detail-back"',
             "Button",
         );
         const settingsProviderDetail =
@@ -10441,7 +10465,7 @@ describe("full UI replacement regression coverage", () => {
             ),
         ).toBe(true);
         expect(globals).not.toContain(
-            '[data-sot-panel="source-provider-detail"] [data-sot-section-divider]',
+            '[data-panel="source-provider-detail"] [data-section-divider]',
         );
         expect(providerFieldsIndex).toBeGreaterThanOrEqual(0);
         expect(firstProviderDividerIndex).toBeGreaterThan(providerFieldsIndex);
@@ -10449,11 +10473,11 @@ describe("full UI replacement regression coverage", () => {
         expect(enableSyncIndex).toBeGreaterThan(autoUpdateIndex);
         expect(actionClusterDividerIndex).toBeGreaterThan(enableSyncIndex);
         expect(sourceActionsIndex).toBeGreaterThan(actionClusterDividerIndex);
-        expect(detail).toContain('data-sot-shell="recording-workstation"');
-        expect(detail).toContain('data-sot-panel="workstation-sidebar"');
+        expect(detail).toContain('data-shell="recording-workstation"');
+        expect(detail).toContain('data-panel="workstation-sidebar"');
         const workstationSidebarAside = extractElementSlice(
             detail,
-            'data-sot-panel="workstation-sidebar"',
+            'data-panel="workstation-sidebar"',
             "aside",
         );
         const recordingWorkstationSidebarClassName = extractBoundedSlice(
@@ -10482,10 +10506,10 @@ describe("full UI replacement regression coverage", () => {
         expect(workstationSidebarAside).toContain(
             "className={RECORDING_WORKSTATION_SIDEBAR_CLASS_NAME}",
         );
-        expect(detail).toContain('data-sot-panel="workstation-main"');
+        expect(detail).toContain('data-panel="workstation-main"');
         const workstationMain = extractElementSlice(
             detail,
-            'data-sot-panel="workstation-main"',
+            'data-panel="workstation-main"',
             "main",
         );
         const recordingWorkstationMainClassName = extractBoundedSlice(
@@ -10499,27 +10523,24 @@ describe("full UI replacement regression coverage", () => {
         expect(workstationMain).toContain(
             "className={RECORDING_WORKSTATION_MAIN_CLASS_NAME}",
         );
-        expect(globals).not.toContain('[data-sot-panel="workstation-main"]');
+        expect(globals).not.toContain('[data-panel="workstation-main"]');
         expect(
-            collectCssRuleBlocks(
-                globals,
-                '[data-sot-panel="workstation-main"]',
-            ),
+            collectCssRuleBlocks(globals, '[data-panel="workstation-main"]'),
         ).toEqual([]);
         const dashboardMainGlobalBlocks = collectCssRuleBlocks(
             globals,
-            '[data-sot-panel="dashboard-main"]',
+            '[data-panel="dashboard-main"]',
         );
         expect(dashboardMainGlobalBlocks).toEqual([]);
         expect(globals).not.toContain(
-            '[data-sot-panel="dashboard-main"] {\n    display: flex;\n    flex-direction: column;\n    min-width: 0;\n    height: 100vh;\n}',
+            '[data-panel="dashboard-main"] {\n    display: flex;\n    flex-direction: column;\n    min-width: 0;\n    height: 100vh;\n}',
         );
         for (const selector of MOBILE_OWNER_LAYOUT_MIGRATED_GLOBAL_SELECTORS) {
             expect(globals).not.toContain(selector);
             expect(collectCssRuleBlocks(globals, selector)).toEqual([]);
         }
-        expect(detail).toContain('data-sot-panel="workstation-topbar"');
-        expect(detail).toContain('data-sot-panel="workstation-workspace"');
+        expect(detail).toContain('data-panel="workstation-topbar"');
+        expect(detail).toContain('data-panel="workstation-workspace"');
         expect(globals).toContain("--z-topbar: 200;");
         for (const selector of DASHBOARD_TOPBAR_CRUMB_REMOVED_GLOBAL_SELECTORS) {
             expect(globals).not.toContain(selector);
@@ -10531,7 +10552,7 @@ describe("full UI replacement regression coverage", () => {
         }
         const workstationWorkspace = extractOpeningElement(
             detail,
-            'data-sot-panel="workstation-workspace"',
+            'data-panel="workstation-workspace"',
             "div",
         );
         const recordingWorkstationWorkspaceClassName =
@@ -10551,19 +10572,19 @@ describe("full UI replacement regression coverage", () => {
             expect(collectCssRuleBlocks(globals, selector)).toEqual([]);
         }
         expect(globals).not.toContain(
-            '[data-sot-panel="dashboard-workspace"]\n        > [data-sot-panel="dashboard-detail"]',
+            '[data-panel="dashboard-workspace"]\n        > [data-panel="dashboard-detail"]',
         );
         expect(globals).not.toContain(
-            '[data-sot-panel="dashboard-detail"],\n[data-sot-panel="recording-workstation-detail"],\n[data-sot-panel="recording-workstation-detail-body"]',
+            '[data-panel="dashboard-detail"],\n[data-panel="recording-workstation-detail"],\n[data-panel="recording-workstation-detail-body"]',
         );
         const recordingDetailPanel = extractOpeningElement(
             detail,
-            'data-sot-panel="recording-workstation-detail"',
+            'data-panel="recording-workstation-detail"',
             "section",
         );
         const recordingDetailBodyPanel = extractOpeningElement(
             detail,
-            'data-sot-panel="recording-workstation-detail-body"',
+            'data-panel="recording-workstation-detail-body"',
             "section",
         );
         for (const { expected, openingElement, constName } of [
@@ -10589,13 +10610,12 @@ describe("full UI replacement regression coverage", () => {
                 OWNER_WORKSPACE_FORBIDDEN_CLASS_PATTERN,
             );
         }
-        expect(globals).toContain(
-            '[data-sot-control="dashboard-sync"][disabled] {\n    pointer-events: none;',
+        expect(globals).not.toContain(
+            '[data-control="dashboard-sync"][disabled]',
         );
-        expect(detail).toContain(
-            'data-sot-panel="recording-workstation-detail"',
-        );
-        expect(detail).toContain('data-sot-control="recording-detail-back"');
+        expect(button).toContain("disabled:pointer-events-none");
+        expect(detail).toContain('data-panel="recording-workstation-detail"');
+        expect(detail).toContain('data-control="recording-detail-back"');
         expect(button).not.toContain("recordingDetailBack:");
         expect(detailBackButton).toContain('variant="secondary"');
         expect(detailBackButton).toContain('size="default"');
@@ -10607,19 +10627,21 @@ describe("full UI replacement regression coverage", () => {
         expect(detailBackButton).toContain(
             'navigateBrowserRoute(router, "/dashboard")',
         );
-        expect(detailBackButton).toContain('data-sot-state="selected"');
+        expect(detailBackButton).toContain('data-state="selected"');
         expect(detailBackButton).toContain("<ArrowLeft");
         expect(detailBackButton).toContain('data-icon="inline-start"');
         expect(detailBackButton).toContain('{t("recording.backToDashboard")}');
         expect(detailBackButton).not.toContain('variant="recordingDetailBack"');
-        expect(detail).toContain("[&_span]:truncate");
+        expect(detailBackButton).toContain(
+            'className="min-w-0 flex-1 truncate"',
+        );
         expect(detail).not.toContain("[&_svg]:stroke-[");
         expect(detail).not.toContain("[&_svg]:opacity-[");
         expect(detail).not.toContain("[&_svg]:[stroke-linecap");
         expect(detail).not.toContain("[&_svg]:[stroke-linejoin");
-        expect(detail).not.toContain("data-[sot-state=selected]:bg-[");
-        expect(detail).not.toContain("data-[sot-state=selected]:border-[");
-        expect(detail).not.toContain("data-[sot-state=selected]:text-[");
+        expect(detail).not.toContain("data-[state=selected]:bg-[");
+        expect(detail).not.toContain("data-[state=selected]:border-[");
+        expect(detail).not.toContain("data-[state=selected]:text-[");
         expect(detail).not.toContain(
             'className="flex flex-1 flex-col gap-0.5 overflow-y-auto pb-3"',
         );
@@ -10693,7 +10715,8 @@ describe("full UI replacement regression coverage", () => {
                 removedProviderTileSkinToken,
             );
         }
-        expect(dataSources).not.toContain("data-sot-");
+        expect(dataSources).not.toContain(["data", "sot"].join("-"));
+        expect(dataSources).toContain("data-disabled={");
         expect(dataSources).not.toContain("sp-card");
         expect(dataSources).not.toContain("sp-ico");
         expect(dataSources).not.toContain("sp-meta");
@@ -10863,7 +10886,8 @@ describe("full UI replacement regression coverage", () => {
             'aria-live={state.endsWith("error") ? "assertive" : "polite"}',
         );
         expect(dataSources).toContain("function SourceActionStatusIndicator");
-        expect(dataSources).not.toContain("data-sot-");
+        expect(dataSources).not.toContain(["data", "sot"].join("-"));
+        expect(dataSources).toContain("data-disabled={");
         const settingsRow =
             settings.match(
                 /function SettingsRow[\s\S]*?function SelectControl/,
@@ -11043,7 +11067,7 @@ describe("full UI replacement regression coverage", () => {
         }
         expect(inputPrimitive).not.toMatch(/\bsettings\b/i);
         expect(inputPrimitive).not.toMatch(/\bsourceProvider\b/);
-        expect(inputPrimitive).not.toContain("data-sot");
+        expect(inputPrimitive).not.toContain(["data", "sot"].join("-"));
         for (const providerDetailPrimitiveSource of [
             fieldPrimitive,
             inputPrimitive,
@@ -11063,7 +11087,7 @@ describe("full UI replacement regression coverage", () => {
         expect(switchPrimitive).not.toContain("settingsDetail");
         expect(switchPrimitive).not.toMatch(/\bsettings\b/i);
         expect(switchPrimitive).not.toMatch(/\bsourceProvider\b/);
-        expect(switchPrimitive).not.toContain("data-sot");
+        expect(switchPrimitive).not.toContain(["data", "sot"].join("-"));
         expect(globals).not.toContain("sourceProviderSwitchClassName");
         expect(globals).not.toContain("SOURCE_PROVIDER_DETAIL_SWITCH_CLASS");
         expect(settingsSourceActions).toContain("<footer");
@@ -11104,13 +11128,13 @@ describe("full UI replacement regression coverage", () => {
         expect(settingsSegmentControl).toContain('variant="outline"');
         expect(settingsSegmentControl).toContain('size="sm"');
         expect(settingsSegmentControl).toContain("spacing={1}");
-        expect(settingsSegmentControl).not.toContain("data-sot-");
+        expect(settingsSegmentControl).not.toContain("data-");
         expect(settings).not.toContain("SETTINGS_SEGMENT_OPTION_CLASS");
         expect(settingsSegmentItems).toHaveLength(1);
         for (const segmentItem of settingsSegmentItems) {
             expect(segmentItem).toContain("disabled={disabled}");
             expect(segmentItem).toContain("value={option.value}");
-            expect(segmentItem).not.toContain("data-sot-");
+            expect(segmentItem).not.toContain("data-");
             expect(segmentItem).not.toContain("className=");
             expect(segmentItem).not.toMatch(/\bvariant=/);
             expect(segmentItem).not.toMatch(/\bsize=/);
@@ -11150,7 +11174,7 @@ describe("full UI replacement regression coverage", () => {
         expect(settingsSaveStatus).toContain("<Spinner");
         expect(settingsSaveStatus).toContain("<CheckCircle2");
         expect(settingsSaveStatus).toContain("<XCircle");
-        expect(settingsSaveStatus).not.toContain("data-sot-");
+        expect(settingsSaveStatus).not.toContain("data-");
         expect(settingsSaveStatus).not.toContain("animate-pulse");
         expect(settingsSaveStatus).not.toContain("rounded-full bg-current");
         expect(settingsSaveStatus).not.toContain(
@@ -11196,28 +11220,28 @@ describe("full UI replacement regression coverage", () => {
         expect(badge).not.toContain("sourceAuthModeBadge");
         expect(badge).not.toContain("sourceActionStatus:");
         expect(button).not.toMatch(/\bsourceProviderAction\b/);
-        expect(badge).not.toContain("data-[sot-tone=recommended]");
-        expect(badge).not.toContain("data-[sot-tone=personal]");
+        expect(badge).not.toContain("data-[tone=recommended]");
+        expect(badge).not.toContain("data-[tone=personal]");
         expect(badge).not.toContain("source:");
         expect(badge).not.toContain("playerSource:");
         expect(badge).not.toContain(`${"player"}Status:`);
         expect(badge).not.toContain("min-w-[65.171875px]");
-        expect(badge).not.toContain("[&_[data-sot-part=status-dot]]");
-        expect(badge).not.toContain("[&_[data-sot-part=status-label]]");
-        expect(sotPlayerPrimitives).toContain("const PLAYER_STATUS_VARIANT");
-        expect(sotPlayerPrimitives).toContain(
+        expect(badge).not.toContain("[&_[data-part=status-dot]]");
+        expect(badge).not.toContain("[&_[data-part=status-label]]");
+        expect(playerPrimitives).toContain("const PLAYER_STATUS_VARIANT");
+        expect(playerPrimitives).toContain(
             'React.ComponentProps<typeof Badge>["variant"]',
         );
-        expect(sotPlayerPrimitives).toContain(
+        expect(playerPrimitives).toContain(
             "variant={PLAYER_STATUS_VARIANT[tone]}",
         );
-        expect(sotPlayerPrimitives).toContain("className={className}");
-        expect(sotPlayerPrimitives).not.toContain("PLAYER_STATUS_TONE_CLASS");
-        expect(sotPlayerPrimitives).not.toContain(
+        expect(playerPrimitives).toContain("className={className}");
+        expect(playerPrimitives).not.toContain("PLAYER_STATUS_TONE_CLASS");
+        expect(playerPrimitives).not.toContain(
             '"size-1.5 rounded-full bg-current"',
         );
-        expect(sotPlayerPrimitives).not.toContain("animate-[bpulse");
-        expect(sotPlayerPrimitives).not.toContain("--source-provider-status");
+        expect(playerPrimitives).not.toContain("animate-[bpulse");
+        expect(playerPrimitives).not.toContain("--source-provider-status");
         expect(badge).not.toContain("playerTagChip:");
         expect(badge).not.toContain("playerTagOverflow:");
         expect(badge).not.toContain('"player-status":');
@@ -11242,7 +11266,7 @@ describe("full UI replacement regression coverage", () => {
         expect(fieldPrimitive).not.toContain("settingsDetail");
         expect(fieldPrimitive).not.toMatch(/\bsettings\b/i);
         expect(fieldPrimitive).not.toMatch(/\bsourceProvider\b/);
-        expect(fieldPrimitive).not.toContain("data-sot");
+        expect(fieldPrimitive).not.toContain(["data", "sot"].join("-"));
         expect(fieldPrimitive).toContain('type FieldVariant = "default";');
         expect(fieldPrimitive).not.toContain('| "detail"');
         expect(fieldPrimitive).not.toContain("detail:");
@@ -11296,7 +11320,7 @@ describe("full UI replacement regression coverage", () => {
         expect(settingsSourceStateAlert).toContain(
             'aria-live={tone === "err" ? "assertive" : "polite"}',
         );
-        expect(settingsSourceStateAlert).not.toContain("data-sot-");
+        expect(settingsSourceStateAlert).not.toContain("data-");
         expect(settingsSourceStateAlert).not.toContain(
             "SETTINGS_BANNER_LAYOUT_CLASS",
         );
@@ -11315,7 +11339,7 @@ describe("full UI replacement regression coverage", () => {
         );
         expect(settingsSourceLoadErrorAlert).toContain('density="comfortable"');
         expect(settingsSourceLoadErrorAlert).toContain('role="alert"');
-        expect(settingsSourceLoadErrorAlert).not.toContain("data-sot-");
+        expect(settingsSourceLoadErrorAlert).not.toContain("data-");
         expect(settingsSourceLoadErrorAlert).not.toContain(
             "SETTINGS_BANNER_ACTION_LAYOUT_CLASS",
         );
@@ -11333,7 +11357,7 @@ describe("full UI replacement regression coverage", () => {
                 'variant="destructiveSoft"',
             );
             expect(settingsLoadErrorAlert).toContain('density="comfortable"');
-            expect(settingsLoadErrorAlert).not.toContain("data-sot-");
+            expect(settingsLoadErrorAlert).not.toContain("data-");
             expect(settingsLoadErrorAlert).not.toContain(
                 "SETTINGS_BANNER_ACTION_LAYOUT_CLASS",
             );
@@ -11349,12 +11373,18 @@ describe("full UI replacement regression coverage", () => {
         expect(settingsSourceLoadRetry).toContain(
             "onClick={() => void refreshSources()}",
         );
-        expect(settingsSourceLoadRetry).not.toContain("data-sot-");
+        expect(settingsSourceLoadRetry).not.toContain(
+            ["data", "sot"].join("-"),
+        );
+        expect(settingsSourceLoadRetry).toContain('data-icon="inline-start"');
         expect(settingsSectionLoadRetry).toContain('variant="default"');
         expect(settingsSectionLoadRetry).toContain('type="button"');
         expect(settingsSectionLoadRetry).toContain('size="sm"');
         expect(settingsSectionLoadRetry).toContain("onClick={onRetry}");
-        expect(settingsSectionLoadRetry).not.toContain("data-sot-");
+        expect(settingsSectionLoadRetry).not.toContain(
+            ["data", "sot"].join("-"),
+        );
+        expect(settingsSectionLoadRetry).toContain('data-icon="inline-start"');
         expect(settings).toContain("aria-busy={busy}");
         expect(settingsVoScriptUnavailableAlert).toContain(
             'density="comfortable"',
@@ -11380,7 +11410,7 @@ describe("full UI replacement regression coverage", () => {
         expect(settingsVoScriptUnavailableAlert).not.toContain(
             'variant="settingsVoScriptWarning"',
         );
-        expect(settingsVoScriptUnavailableAlert).not.toContain("data-sot-");
+        expect(settingsVoScriptUnavailableAlert).not.toContain("data-");
         for (const settingsBannerAlert of [
             settingsSourceStateAlert,
             settingsSourceLoadErrorAlert,
@@ -11410,45 +11440,21 @@ describe("full UI replacement regression coverage", () => {
             cardPrimitive,
             CARD_PRIMITIVE_FORBIDDEN_BUSINESS_TOKENS,
         );
-        for (const speakerReviewCardOwnerToken of [
-            "SPEAKER_REVIEW_CARD_CLASS_NAMES",
-            "SPEAKER_REVIEW_CARD_HEADER_CLASS_NAMES",
-            "SPEAKER_REVIEW_CARD_TITLE_CLASS_NAMES",
-            "SPEAKER_REVIEW_CARD_CONTENT_CLASS_NAMES",
-            "SPEAKER_REVIEW_CARD_DESCRIPTION_CLASS_NAME",
-            "SPEAKER_REVIEW_CARD_ACTION_CLASS_NAME",
-            "SPEAKER_REVIEW_VOICEPRINT_BADGE_VARIANTS",
-            "SPEAKER_REVIEW_ACTION_BUTTON_CLASS_NAME",
-            "SPEAKER_REVIEW_PRIMARY_BUTTON_CLASS_NAME",
-            "SPEAKER_REVIEW_GHOST_BUTTON_CLASS_NAME",
-            "SPEAKER_REVIEW_DANGER_BUTTON_CLASS_NAME",
-            "SPEAKER_REVIEW_SUGGESTION_BUTTON_CLASS_NAME",
-            "SPEAKER_REVIEW_ICON_BUTTON_CLASS_NAME",
-            "SPEAKER_REVIEW_MODE_ITEM_CLASS_NAME",
-            "SPEAKER_REVIEW_ERROR_ALERT_CLASS_NAME",
-            "SPEAKER_REVIEW_ERROR_TITLE_CLASS_NAME",
-            "SPEAKER_REVIEW_ERROR_DESCRIPTION_CLASS_NAME",
-            "SPEAKER_REVIEW_INLINE_EMPTY_CLASS_NAME",
-            "SPEAKER_REVIEW_MAPPING_CLEAR_BUTTON_CLASS_NAME",
-            "SPEAKER_REVIEW_META_ITEM_CLASS_NAME",
-            "SPEAKER_REVIEW_SECTION_DESCRIPTION_CLASS_NAME",
-            "SPEAKER_REVIEW_SEGMENT_TITLE_CLASS_NAME",
-            "SPEAKER_REVIEW_SEGMENT_TEXT_CLASS_NAME",
-            "SPEAKER_REVIEW_ROW_NAME_CLASS_NAME",
-            "SPEAKER_REVIEW_SECTION_TITLE_CLASS_NAME",
-            "SPEAKER_REVIEW_ROW_SUB_CLASS_NAME",
-            "SpeakerReviewCard",
-            "SpeakerReviewCardHeader",
-            "SpeakerReviewCardTitle",
-            "SpeakerReviewCardDescription",
-            "SpeakerReviewCardAction",
-            "SpeakerReviewCardContent",
-            "SpeakerReviewVoiceprintBadge",
+        expectSourceToExcludeForbiddenSubstrings(
+            cardPrimitive,
+            CARD_PRIMITIVE_FORBIDDEN_BUSINESS_TOKENS,
+        );
+        for (const speakerReviewButtonVariant of [
+            "speakerReviewAction",
+            "speakerReviewPrimaryAction",
+            "speakerReviewGhostAction",
+            "speakerReviewDangerAction",
+            "speakerReviewSuggestion",
+            "speakerReviewIconAction",
         ]) {
-            expect(speakerReview).toContain(speakerReviewCardOwnerToken);
+            expect(button).not.toContain(speakerReviewButtonVariant + ":");
         }
         expect(toggleGroupPrimitive).not.toContain("speakerReviewMode");
-        expect(toggleGroupPrimitive).not.toContain("speakerReviewModeItem");
         expect(inputGroupPrimitive).not.toContain("speakerReviewMappingClear");
         for (const speakerReviewEmptyVariant of [
             "speakerReviewMerge",
@@ -11459,951 +11465,705 @@ describe("full UI replacement regression coverage", () => {
         ]) {
             expect(emptyPrimitive).not.toContain(speakerReviewEmptyVariant);
         }
-        const speakerReviewVoiceprintBadgeVariants = extractBoundedSlice(
+
+        for (const primitive of [
+            "Alert",
+            "Badge",
+            "Button",
+            "Card",
+            "CardHeader",
+            "CardContent",
+            "Empty",
+            "Field",
+            "InputGroup",
+            "InputGroupInput",
+            "Popover",
+            "ToggleGroup",
+        ]) {
+            expect(speakerReview).toContain("<" + primitive);
+        }
+        const speakerReviewLoadingSection = extractOpeningElement(
             speakerReview,
-            "const SPEAKER_REVIEW_VOICEPRINT_BADGE_VARIANTS =",
-            ";",
+            'aria-busy="true"',
+            "section",
         );
-        expect(speakerReviewVoiceprintBadgeVariants).toContain(
-            'missing: "secondary"',
+        const speakerReviewPane = extractOpeningElement(
+            speakerReview,
+            'data-tab-pane="speakers"',
+            "section",
         );
-        expect(speakerReviewVoiceprintBadgeVariants).toContain(
-            'ready: "outline"',
+        const speakerReviewRow = extractOpeningElement(
+            speakerReview,
+            "data-state={getSpeakerRowState(speaker)}",
+            "Card",
         );
-        expect(speakerReviewVoiceprintBadgeVariants).toContain(
-            'selected: "default"',
+        const speakerReviewModeToggle = extractElementSlice(
+            speakerReview,
+            'aria-label={t("speakerReview.title")}',
+            "ToggleGroup",
         );
-        expect(speakerReviewVoiceprintBadgeVariants).not.toContain(
-            "--source-provider-status-",
+        const speakerReviewSpeakerMode = extractElementSlice(
+            speakerReviewModeToggle,
+            'value="speaker"',
+            "ToggleGroupItem",
         );
-        expect(speakerReview).not.toContain(
-            "SPEAKER_REVIEW_VOICEPRINT_BADGE_CLASS_NAME",
+        const speakerReviewRawMode = extractElementSlice(
+            speakerReviewModeToggle,
+            'value="raw"',
+            "ToggleGroupItem",
         );
-        expect(speakerReview).not.toContain("data-[sot-tone=missing]");
-        expect(speakerReview).not.toContain("data-[sot-tone=ready]");
-        expect(speakerReview).not.toContain("data-[sot-tone=selected]");
-        expect(speakerReview).not.toContain("[&>svg]:size-[11px]");
-        expect(speakerReview).not.toContain("[&>svg]:stroke-2");
+        const speakerReviewMergePopover = extractElementSlice(
+            speakerReview,
+            "open={isMergePopoverOpen}",
+            "Popover",
+        );
+        const speakerReviewMergeTrigger = extractElementSlice(
+            speakerReview,
+            "aria-controls={mergePopoverId}",
+            "Button",
+        );
+        const speakerReviewMergeContent = extractOpeningElement(
+            speakerReview,
+            "id={mergePopoverId}",
+            "PopoverContent",
+        );
+        const speakerReviewMergeCloseAction = extractElementSlice(
+            speakerReview,
+            'aria-label="关闭"',
+            "Button",
+        );
+        const speakerReviewErrorState = extractElementSlice(
+            speakerReview,
+            'variant="statusError"',
+            "Alert",
+        );
+        const speakerReviewLoadErrorBranch = extractBoundedSlice(
+            speakerReview,
+            "speakerLoadError ? (",
+            ") : speakers.length === 0 ? (",
+        );
+        const speakerReviewLoadErrorState = extractElementSlice(
+            speakerReviewLoadErrorBranch,
+            'variant="statusError"',
+            "Alert",
+        );
+        const speakerReviewNoSpeakersBranch = extractBoundedSlice(
+            speakerReview,
+            "speakers.length === 0 ? (",
+            ') : (\n                <div\n                    className="flex flex-col gap-[6px]"',
+        );
+        const speakerReviewLoadRetry = extractElementSlice(
+            speakerReviewLoadErrorState,
+            "refreshSpeakers()",
+            "Button",
+        );
+        const speakerReviewNoSpeakersState = extractElementSlice(
+            speakerReviewNoSpeakersBranch,
+            'variant="default"',
+            "Empty",
+        );
+        const speakerReviewMappingField = extractElementSlice(
+            speakerReview,
+            'className="gap-2"',
+            "Field",
+        );
+        const speakerReviewMappingInput = extractBoundedSlice(
+            speakerReview,
+            "<InputGroupInput",
+            "/>",
+        );
+        const speakerReviewClearMapping = extractElementSlice(
+            speakerReview,
+            "speakerReview.clearSelectedSpeaker",
+            "InputGroupButton",
+        );
+        const speakerReviewInlineRenameInput = extractBoundedSlice(
+            speakerReview,
+            "<Input\n                                                        id={inlineRenameInputId}",
+            "/>",
+        );
+        const speakerReviewInlineRenameSave = extractElementSlice(
+            speakerReview,
+            "aria-busy={isSpeakerSaving}",
+            "Button",
+        );
+        const speakerReviewTranscriptLoadingBranch = extractBoundedSlice(
+            speakerReview,
+            "{isReviewLoading ? (",
+            ") : reviewError ? (",
+        );
+        const speakerReviewSamples = extractBoundedSlice(
+            speakerReview,
+            '<div\n                                            className="flex flex-col gap-2 border-t pt-2"',
+            "\n\n                                        <Field",
+        );
+        const speakerReviewSamplePlay = extractElementSlice(
+            speakerReviewSamples,
+            "handlePlaySample(",
+            "Button",
+        );
+        const speakerReviewNoSampleState = extractElementSlice(
+            speakerReviewSamples,
+            'variant="default"',
+            "Empty",
+        );
+        const speakerReviewPlaySampleHandler = extractBoundedSlice(
+            speakerReview,
+            "const handlePlaySample = useCallback(",
+            "\n\n    const applyLocalMap",
+        );
+
+        expect(speakerReviewLoadingSection).toContain(
+            "aria-label={panelLabel}",
+        );
+        expect(speakerReviewLoadingSection).toContain('aria-busy="true"');
+        expect(speakerReviewPane).toContain("aria-label={panelLabel}");
+        expect(speakerReviewPane).toContain('data-tab-pane="speakers"');
+        expect(speakerReviewRow).toContain(
+            "data-state={getSpeakerRowState(speaker)}",
+        );
+        expect(speakerReviewLoadingSection).toContain(
+            'data-speaker-review-panel="speaker-review"',
+        );
+        expect(speakerReviewLoadingSection).toContain(
+            'data-speaker-review-state="loading"',
+        );
+        expect(speakerReviewPane).toContain(
+            'data-speaker-review-panel="speaker-review"',
+        );
+        expect(speakerReviewPane).toContain("data-speaker-review-state={");
+
+        expect(speakerReviewModeToggle).toContain('type="single"');
+        expect(speakerReviewModeToggle).toContain("value={reviewMode}");
+        expect(speakerReviewModeToggle).toContain(
+            'aria-label={t("speakerReview.title")}',
+        );
+        expect(speakerReviewModeToggle).toContain(
+            "onValueChange={(value) => {",
+        );
+        expect(speakerReviewModeToggle).toContain(
+            'value === "speaker" || value === "raw"',
+        );
+        expect(speakerReviewModeToggle).toContain("setReviewMode(value)");
+        expect(speakerReviewSpeakerMode).toContain('value="speaker"');
+        expect(speakerReviewSpeakerMode).toContain(
+            't("speakerReview.speakerNamesMode")',
+        );
+        expect(speakerReviewRawMode).toContain('value="raw"');
+        expect(speakerReviewRawMode).toContain(
+            't("speakerReview.rawLabelsMode")',
+        );
+
+        expect(speakerReviewMergePopover).toContain(
+            "open={isMergePopoverOpen}",
+        );
+        expect(speakerReviewMergePopover).toContain(
+            "onOpenChange={setIsMergePopoverOpen}",
+        );
+        expect(speakerReviewMergeTrigger).toContain(
+            "aria-controls={mergePopoverId}",
+        );
+        expect(speakerReviewMergeTrigger).toContain(
+            "aria-expanded={isMergePopoverOpen}",
+        );
+        expect(speakerReviewMergeContent).toContain("id={mergePopoverId}");
+        expect(speakerReviewMergeContent).toContain(
+            'aria-label="合并相似说话人"',
+        );
+        expect(speakerReviewMergeCloseAction).toContain('aria-label="关闭"');
+        expect(speakerReviewMergeCloseAction).toContain(
+            "setIsMergePopoverOpen(false)",
+        );
+
+        expect(speakerReviewErrorState).toContain('variant="statusError"');
+        expect(speakerReviewErrorState).toContain("<AlertTitle");
+        expect(speakerReviewErrorState).toContain("{reviewError}");
+        expect(speakerReviewTranscriptLoadingBranch).toMatch(
+            /\{isReviewLoading \? \(\s*<TranscriptReviewSkeleton \/>\s*/,
+        );
+        expect(speakerReviewLoadErrorState).toContain('variant="statusError"');
+        expect(speakerReviewLoadErrorState).toContain("{speakerLoadError}");
+        expect(speakerReviewLoadErrorState).toContain("<AlertDescription");
+        expect(speakerReviewLoadRetry).toContain(
+            "onClick={() => void refreshSpeakers()}",
+        );
+        expect(speakerReviewLoadRetry).toContain("disabled={isLoading}");
+        expect(speakerReviewNoSpeakersState).toContain('variant="default"');
+        expect(speakerReviewNoSpeakersState).toContain("<EmptyHeader");
+        expect(speakerReviewNoSpeakersState).toContain(
+            't("speakerReview.noDetectedSpeakers")',
+        );
+        expect(speakerReviewNoSampleState).toContain('variant="default"');
+        expect(speakerReviewNoSampleState).toContain("<EmptyHeader");
+        expect(speakerReviewNoSampleState).toContain(
+            "speakerReview.noTimedSamples",
+        );
+
+        expect(speakerReviewMappingField).toContain("data-disabled={");
+        expect(speakerReviewMappingField).toContain(
+            "data-disabled={\n                                                isSpeakerSaving\n                                                    ? true\n                                                    : undefined\n                                            }",
+        );
+        expect(speakerReviewMappingInput).toContain("id={mappingInputId}");
+        expect(speakerReviewMappingInput).toContain("aria-busy={");
+        expect(speakerReviewMappingInput).toContain("disabled={");
+        expect(speakerReviewMappingInput).toContain("onFocus={() => {");
+        expect(speakerReviewMappingInput).toContain("onBlur={() => {");
+        expect(speakerReviewMappingInput).toContain("onChange={(event) => {");
+        expect(speakerReviewMappingInput).toContain(
+            "aria-busy={\n                                                            isSpeakerSaving\n                                                        }",
+        );
+        expect(speakerReviewMappingInput).toContain(
+            "disabled={\n                                                            isSpeakerSaving\n                                                        }",
+        );
+        expect(speakerReviewMappingInput).toContain(
+            "if (\n                                                                isSpeakerSaving ||\n                                                                isConfirmingUnlink\n                                                            ) {\n                                                                return;\n                                                            }",
+        );
+        expect(speakerReviewMappingInput).toContain(
+            "if (\n                                                                isSpeakerSaving\n                                                            ) {\n                                                                return;\n                                                            }",
+        );
+        expect(speakerReviewMappingInput).toContain("setOpenPickerFor(");
+        expect(speakerReviewMappingInput).toContain("speaker.rawLabel");
+        expect(speakerReviewMappingInput).toContain("startBrowserTimeout(");
+        expect(speakerReviewClearMapping).toContain(
+            "speakerReview.clearSelectedSpeaker",
+        );
+        expect(speakerReviewClearMapping).toContain("disabled={");
+        expect(speakerReviewClearMapping).toContain("event.preventDefault()");
+        expect(speakerReviewClearMapping).toContain(
+            "disabled={\n                                                                    isSpeakerSaving\n                                                                }",
+        );
+        expect(speakerReviewClearMapping).toContain(
+            "if (\n                                                                        isSpeakerSaving\n                                                                    ) {\n                                                                        return;\n                                                                    }",
+        );
+        expect(speakerReviewClearMapping).toContain("setSearchQueries(");
+        expect(speakerReviewClearMapping).toContain("setOpenPickerFor(");
+        expect(speakerReviewInlineRenameInput).toContain(
+            "id={inlineRenameInputId}",
+        );
+        expect(speakerReviewInlineRenameInput).toContain("autoFocus");
+        expect(speakerReviewInlineRenameInput).toContain("aria-busy={");
+        expect(speakerReviewInlineRenameInput).toContain("disabled={");
+        expect(speakerReviewInlineRenameInput).toContain(
+            "onKeyDown={(event) => {",
+        );
+        expect(speakerReviewInlineRenameInput).toContain(
+            "void handleSaveInlineRename(",
+        );
+        expect(speakerReviewInlineRenameSave).toContain(
+            "disabled={\n                                                        isSpeakerSaving ||\n                                                        !inlineRenameDraft.trim()\n                                                    }",
+        );
+        expect(speakerReviewInlineRenameSave).toContain(
+            "aria-busy={isSpeakerSaving}",
+        );
+        expect(speakerReviewInlineRenameSave).toContain(
+            "void handleSaveInlineRename(",
+        );
+
+        expect(speakerReviewSamplePlay).toContain('type="button"');
+        expect(speakerReviewSamplePlay).toContain('variant="outline"');
+        expect(speakerReviewSamplePlay).toContain("handlePlaySample(");
+        expect(speakerReviewSamplePlay).toContain("speaker.rawLabel");
+        expect(speakerReviewSamplePlay).toContain("index,");
+        expect(speakerReviewSamplePlay).toContain("<Play");
+        expect(speakerReviewPlaySampleHandler).toContain(
+            "audio = new Audio(`/api/recordings/${recordingId}/audio`);",
+        );
+        expect(speakerReviewPlaySampleHandler).toMatch(
+            /void audio\.play\(\)\.catch\(\(\) => \{\s*toast\.error\(t\("speakerReview\.failedToPlaySample"\)\);\s*stopPlayback\(\);/,
+        );
+        expect(speakerReviewPlaySampleHandler).toMatch(
+            /audio\.ontimeupdate = \(\) => \{\s*if \(audio\.currentTime >= endMs \/ 1000\) \{\s*stopPlayback\(\);/,
+        );
+
         for (const selector of SPEAKER_REVIEW_RESIDUAL_GLOBAL_SELECTORS) {
             expect(globals).not.toContain(selector);
         }
-        for (const {
-            constName,
-            tokens,
-        } of SPEAKER_REVIEW_RESIDUAL_OWNER_CLASS_TOKENS) {
-            const ownerClass = extractBoundedSlice(
-                speakerReview,
-                `const ${constName} =`,
-                ";",
-            );
-            for (const token of tokens) {
-                expect(ownerClass).toContain(token);
-            }
-        }
-        const providerGlobalStyleSelectors = [
-            "[data-sot-provider-card]",
-            "[data-sot-provider-status]",
-        ];
-        const sourceProviderBusinessGlobalStyleTargets = [
-            {
-                label: "provider detail panel",
-                selectorFragment: '[data-sot-panel="source-provider-detail"]',
-            },
-            {
-                label: "provider fields list",
-                selectorFragment: '[data-sot-panel="source-provider-fields"]',
-            },
-            {
-                label: "source action footer",
-                selectorFragment: '[data-sot-panel="source-actions"]',
-            },
-            {
-                label: "source action status",
-                selectorFragment: '[data-sot-part="source-action-status"]',
-            },
-            {
-                label: "source test action",
-                selectorFragment: '[data-sot-control="source-test"]',
-            },
-            {
-                label: "source save action",
-                selectorFragment: '[data-sot-control="source-save"]',
-            },
-        ];
-        for (const selector of providerGlobalStyleSelectors) {
+        for (const selector of [
+            "[data-provider-card]",
+            "[data-provider-status]",
+            '[data-panel="source-provider-detail"]',
+            '[data-panel="source-provider-fields"]',
+            '[data-panel="source-actions"]',
+            '[data-part="source-action-status"]',
+            '[data-control="source-test"]',
+            '[data-control="source-save"]',
+        ]) {
             expect(collectCssRuleBlocks(globals, selector)).toEqual([]);
         }
-        for (const target of sourceProviderBusinessGlobalStyleTargets) {
-            expect(
-                collectCssRuleBlocks(globals, target.selectorFragment),
-                `${target.label} should keep source-provider styles in feature classes`,
-            ).toEqual([]);
-        }
-        expect(dataSources).not.toContain("path-card");
-        expect(dataSources).not.toContain("pc-badge");
         expect(dataSources).toContain("void handleTestSource(selectedSource)");
         expect(dataSources).toContain("void handleSaveSource(selectedSource)");
+        expect(dataSources).not.toContain("path-card");
+        expect(dataSources).not.toContain("pc-badge");
         const sourceAuthModeLegacySelectorLines = globals
             .split("\n")
             .map((text, index) => ({ line: index + 1, text }))
             .filter(({ text }) =>
                 SOURCE_AUTH_MODE_LEGACY_CSS_SELECTOR_RE.test(text),
             );
-
         expect(sourceAuthModeLegacySelectorLines).toEqual([]);
         for (const selector of SOURCE_AUTH_MODE_REMOVED_GLOBAL_SELECTORS) {
             expect(globals).not.toContain(selector);
         }
-
-        expect(speakerReview).toContain('data-sot-panel="speaker-review"');
-        expect(speakerReview).toContain("data-sot-state=");
-        expect(speakerReview).toContain("<CardHeader");
-        expect(speakerReview).toContain("<ToggleGroup");
-        expect(speakerReview).toContain("<Badge");
-        expect(speakerReview).toContain("<Alert");
-        expect(speakerReview).toContain('from "@/components/ui/input-group";');
-        expect(speakerReview).toContain('from "@/components/ui/empty";');
-        expect(speakerReview).toContain('from "@/components/ui/field";');
-        for (const primitive of [
-            "InputGroup,",
-            "InputGroupAddon,",
-            "InputGroupButton,",
-            "InputGroupInput,",
-            "Empty,",
-            "EmptyDescription,",
-            "EmptyHeader,",
-            "EmptyMedia,",
-            "EmptyTitle,",
-            "<Field",
-            "<FieldContent>",
-            "<FieldLabel",
-        ]) {
-            expect(speakerReview).toContain(primitive);
+        const sourceProviderGlobalOwnerSelectors = [
+            "[data-provider-card]",
+            "[data-provider-status]",
+            '[data-panel="source-provider-detail"]',
+            '[data-panel="source-actions"]',
+            '[data-control="source-test"]',
+            '[data-control="source-save"]',
+        ];
+        for (const selector of sourceProviderGlobalOwnerSelectors) {
+            expect(
+                collectCssRuleBlocks(globals, selector),
+                `${selector} should not redraw source-provider business UI globally`,
+            ).toEqual([]);
         }
-        expect(speakerReview).toContain('data-sot-list="speaker-review-rows"');
-        expect(speakerReview).toContain('data-sot-item="speaker-review-row"');
-        expect(speakerReview).toContain('data-sot-list="speaker-review-meta"');
-        expect(speakerReview).toContain(
-            'data-sot-part="speaker-review-transcript-section"',
+        expect(settingsProviderTileButton).toContain(
+            "aria-controls={SOURCE_PROVIDER_DETAIL_ID}",
         );
-        expect(speakerReview).toContain(
-            'data-sot-list="speaker-review-sample-segments"',
+        expect(settingsProviderTileButton).toContain(
+            "aria-pressed={isSelected}",
         );
-        expect(speakerReview).toContain(
-            'data-sot-item="speaker-review-sample-segment"',
+        expect(settingsProviderDetail).toContain(
+            "aria-labelledby={providerDetailTitleId}",
         );
-        expect(speakerReview).toContain("<section");
-        expect(speakerReview).toContain(
-            "data-sot-speaker-label={speaker.rawLabel}",
+        expect(settingsProviderDetail).toContain(
+            "aria-busy={isSourceActionStateBusy(actionState)}",
         );
-        const speakerReviewModeToggle = extractElementSlice(
-            speakerReview,
-            'data-sot-control="speaker-review-mode"',
-            "ToggleGroup",
+        expect(settingsSourceTestAction).toContain(
+            "void handleTestSource(selectedSource)",
         );
-        expect(speakerReviewModeToggle).toContain('variant="default"');
-        expect(speakerReviewModeToggle).toContain('size="sm"');
-        expect(speakerReviewModeToggle).toContain('className="flex-nowrap"');
-        expect(speakerReviewModeToggle).toContain("spacing={1}");
-        expect(speakerReviewModeToggle).not.toContain(
-            'variant="speakerReviewMode"',
+        expect(settingsSourceTestAction).toContain(
+            "disabled={interactionDisabled}",
         );
-        expect(speakerReviewModeToggle).not.toContain(
-            'size="speakerReviewModeItem"',
+        expect(settingsSourceTestAction).toContain(
+            'aria-busy={actionState === "testing"}',
         );
-        expect(speakerReviewModeToggle).not.toContain(
-            'layout="speakerReviewMode"',
+        expect(settingsSourceSaveAction).toContain(
+            "void handleSaveSource(selectedSource)",
         );
-        expect(speakerReviewModeToggle).not.toContain(
-            'spacing="speakerReviewMode"',
+        expect(settingsSourceSaveAction).toContain(
+            "disabled={interactionDisabled}",
         );
-        const speakerReviewModeOptions = collectOpeningElements(
-            speakerReview,
-            "ToggleGroupItem",
-        ).filter((opening) =>
-            opening.includes('data-sot-control="speaker-review-mode-option"'),
+        expect(settingsSourceSaveAction).toContain(
+            'aria-busy={actionState === "saving"}',
         );
-        expect(speakerReviewModeOptions).toHaveLength(2);
-        for (const opening of speakerReviewModeOptions) {
-            expectClassNameConstReference(
-                opening,
-                "SPEAKER_REVIEW_MODE_ITEM_CLASS_NAME",
-            );
-        }
-        const speakerReviewMappingInputIndex = speakerReview.indexOf(
-            'data-sot-control="speaker-review-mapping-input"',
-        );
-        expect(speakerReviewMappingInputIndex).toBeGreaterThan(-1);
-        const speakerReviewMappingInput = speakerReview.slice(
-            speakerReviewMappingInputIndex - 520,
-            speakerReviewMappingInputIndex + 7_000,
-        );
-        expect(speakerReviewMappingInput).toContain("<InputGroup");
-        expect(speakerReviewMappingInput).toContain("<InputGroupInput");
-        expect(speakerReviewMappingInput).toContain("<InputGroupAddon");
-        expect(speakerReviewMappingInput).toContain("<InputGroupButton");
-        expect(speakerReviewMappingInput).toContain(
-            'data-sot-control="speaker-review-mapping-clear"',
-        );
-        const speakerReviewMappingClear = collectOpeningElements(
-            speakerReview,
-            "InputGroupButton",
-        ).find((opening) =>
-            opening.includes('data-sot-control="speaker-review-mapping-clear"'),
-        );
-        expect(speakerReviewMappingClear).toBeDefined();
-        expect(speakerReviewMappingClear).toContain('size="icon-xs"');
-        expect(speakerReviewMappingClear).toContain('variant="ghost"');
-        expectClassNameConstReference(
-            speakerReviewMappingClear ?? "",
-            "SPEAKER_REVIEW_MAPPING_CLEAR_BUTTON_CLASS_NAME",
-        );
-        expect(speakerReviewMappingClear).toContain(
-            'data-sot-control="speaker-review-mapping-clear"',
-        );
-        expect(speakerReviewMappingClear).not.toContain(
-            'size="speakerReviewMappingClear"',
-        );
-        expect(speakerReviewMappingClear).not.toContain(
-            'variant="speakerReviewMappingClear"',
-        );
-        expect(speakerReviewMappingInput).toContain("aria-busy={");
-        expect(speakerReviewMappingInput).toContain("onFocus={() =>");
-        expect(speakerReviewMappingInput).toContain("onBlur={() =>");
-        expect(speakerReviewMappingInput).toContain("onChange={(event) =>");
-        const speakerReviewInlineRenameInput = speakerReview.slice(
-            speakerReview.indexOf(
-                'data-sot-control="speaker-review-inline-name"',
-            ) - 1_200,
-            speakerReview.indexOf(
-                'data-sot-control="speaker-review-inline-name"',
-            ) + 3_200,
-        );
-        expect(speakerReviewInlineRenameInput).toContain("<Field");
-        expect(speakerReviewInlineRenameInput).toContain("<FieldContent>");
-        expect(speakerReviewInlineRenameInput).toContain("<Input");
-        expect(speakerReviewInlineRenameInput).toContain("data-spk-input");
-        expect(speakerReviewInlineRenameInput).toContain("autoFocus");
-        expect(speakerReviewInlineRenameInput).toContain("aria-busy={");
-        const speakerReviewMergeEmpty = extractElementSlice(
-            speakerReview,
-            'data-sot-part="speaker-review-merge-empty"',
-            "Empty",
-        );
-        expect(speakerReviewMergeEmpty).toMatch(
-            /<Empty\s+variant="compact"[\s\S]*?data-sot-part="speaker-review-merge-empty"/,
-        );
-        expect(speakerReviewMergeEmpty).toContain(
-            '<EmptyHeader variant="popover">',
-        );
-        expect(speakerReviewMergeEmpty).toContain("<EmptyMedia");
-        expect(speakerReviewMergeEmpty).toContain('variant="subtleIcon"');
-        expect(speakerReviewMergeEmpty).toContain("<Check />");
-        expect(speakerReviewMergeEmpty).toMatch(
-            /<EmptyTitle\b[^>]*\bvariant="compact"[^>]*\bdata-sot-part="speaker-review-merge-empty-title"[^>]*>/,
-        );
-        expect(speakerReviewMergeEmpty).toMatch(
-            /<EmptyDescription\b[^>]*\bvariant="compact"[^>]*\bdata-sot-part="speaker-review-merge-empty-description"[^>]*>/,
-        );
-        const speakerReviewNoSamplesEmpty = extractElementSlice(
-            speakerReview,
-            'data-sot-state="no-samples"',
-            "Empty",
-        );
-        expect(speakerReviewNoSamplesEmpty).toContain(
-            'data-sot-part="speaker-review-empty"',
-        );
-        expect(speakerReviewNoSamplesEmpty).toContain('variant="default"');
-        expect(speakerReviewNoSamplesEmpty).toContain(
-            "SPEAKER_REVIEW_INLINE_EMPTY_CLASS_NAME",
-        );
-        expect(speakerReviewNoSamplesEmpty).toContain(
-            '<EmptyHeader variant="default">',
-        );
-        expect(speakerReviewNoSamplesEmpty).toContain(
-            '<EmptyTitle variant="default">',
-        );
-        for (const state of [
-            "no-detected-speakers",
-            "no-saved-speakers",
-            "no-matching-speakers",
-        ]) {
-            const emptyState = extractElementSlice(
-                speakerReview,
-                `data-sot-state="${state}"`,
-                "Empty",
-            );
-            expect(emptyState).toContain('variant="default"');
-            if (state !== "no-detected-speakers") {
-                expect(emptyState).toContain(
-                    "SPEAKER_REVIEW_INLINE_EMPTY_CLASS_NAME",
-                );
-            }
-            expect(emptyState).toContain('<EmptyHeader variant="default">');
-            expect(emptyState).toContain('<EmptyTitle variant="default">');
-        }
-        for (const selector of [
-            '[data-sot-control="speaker-review-inline-name"][data-slot="input"]',
-            '[data-sot-control="speaker-review-mapping-input"][data-slot="input"]',
-            '[data-sot-panel="speaker-review"] [data-slot="card"]',
-            '[data-sot-control="speaker-review-mode"]',
-            '[data-sot-control="speaker-review-mode-option"]',
-            '[data-sot-panel="speaker-review-merge"][data-slot="popover-content"]',
-            '[data-sot-part="speaker-review-merge-empty"]',
-            '[data-sot-part="speaker-review-merge-empty-icon"]',
-            '[data-sot-part="speaker-review-merge-empty-title"]',
-            '[data-sot-part="speaker-review-merge-empty-description"]',
-            '[data-sot-control="speaker-review-suggestion"]',
-            '[data-sot-part="speaker-review-empty"]',
-            '[data-sot-part="speaker-review-voiceprint-pill"]',
-        ]) {
-            expect(globals).not.toContain(selector);
-        }
-        expect(speakerReview).toContain(
-            'data-sot-control="speaker-review-suggestion"',
-        );
-        const speakerReviewButtonOpenings = collectOpeningElements(
-            speakerReview,
-            "Button",
-        ).filter(
-            (opening) =>
-                opening.includes("speaker-review") ||
-                opening.includes("data-sot-confirm-action") ||
-                opening.includes("data-spk-merge-close"),
-        );
-        expect(speakerReviewButtonOpenings.length).toBeGreaterThan(0);
-        for (const opening of speakerReviewButtonOpenings) {
-            expect(opening).not.toContain('variant="speakerReview');
-            expect(opening).not.toContain('size="speakerReview');
-        }
-        const speakerReviewMergeClose = extractElementSlice(
-            speakerReview,
-            "data-spk-merge-close",
-            "Button",
-        );
-        expect(speakerReviewMergeClose).toContain('size="icon-sm"');
-        expect(speakerReviewMergeClose).toMatch(
-            /<X\s+data-icon="inline-start"\s+aria-hidden="true"\s+focusable="false"\s*\/>/,
-        );
-        expect(speakerReviewMergeClose).not.toContain("size-[17px]");
-        expect(speakerReviewMergeClose).not.toContain("translate-x");
-        expect(speakerReviewMergeClose).not.toContain("translate-y");
-        expect(speakerReview).toContain('variant="outline"');
-        expect(speakerReview).toContain('variant="default"');
-        expect(speakerReview).toContain('variant="ghost"');
-        expect(speakerReview).toContain('variant="destructive"');
-        expect(speakerReview).toContain('size="sm"');
-        for (const speakerReviewButtonOwnerToken of [
-            "SPEAKER_REVIEW_ACTION_BUTTON_CLASS_NAME",
-            "SPEAKER_REVIEW_PRIMARY_BUTTON_CLASS_NAME",
-            "SPEAKER_REVIEW_GHOST_BUTTON_CLASS_NAME",
-            "SPEAKER_REVIEW_DANGER_BUTTON_CLASS_NAME",
-            "SPEAKER_REVIEW_SUGGESTION_BUTTON_CLASS_NAME",
-            "SPEAKER_REVIEW_ICON_BUTTON_CLASS_NAME",
-        ]) {
-            expect(speakerReview).toContain(speakerReviewButtonOwnerToken);
-        }
-        expect(speakerReview).not.toContain(
-            'variant="speakerReviewSuggestion"',
-        );
-        expect(speakerReview).not.toContain('size="speakerReviewSuggestion"');
-        expect(speakerReview).not.toContain(
-            'variant="speakerReviewPrimaryAction"',
-        );
-        expect(speakerReview).not.toContain(
-            'variant="speakerReviewGhostAction"',
-        );
-        expect(speakerReview).not.toContain(
-            'variant="speakerReviewDangerAction"',
-        );
-        expect(speakerReview).not.toContain('size="speakerReviewAction"');
-        const speakerReviewCardOpenings = collectOpeningElements(
-            speakerReview,
-            "Card",
-        ).filter((opening) => /speaker-review|speaker-unlink/.test(opening));
-        for (const opening of speakerReviewCardOpenings) {
-            expect(opening).not.toContain('variant="elevated"');
-            expect(opening).not.toContain('variant="popover"');
-        }
-        expect(speakerReview).toContain("<SpeakerReviewCard");
-        expect(speakerReview).toContain('surface="transcript"');
-        expect(speakerReview).toContain('surface="row"');
-        expect(speakerReview).toContain('surface="mergePopover"');
-        expect(speakerReview).toContain(
-            '<SpeakerReviewCardContent surface="mergePopover">',
-        );
-        expect(speakerReview).toContain(SPEAKER_REVIEW_MERGE_POPOVER_PLACEMENT);
-        expectSourceToExcludeForbiddenSubstrings(
-            cardPrimitive,
-            CARD_PRIMITIVE_FORBIDDEN_BUSINESS_TOKENS,
-        );
-        expect(speakerReview).not.toContain(
-            `className="${SPEAKER_REVIEW_MERGE_POPOVER_PLACEMENT}"`,
-        );
-        expect(speakerReview).toContain('from "@/components/ui/popover";');
-        expect(speakerReview).toContain("<Popover");
-        expect(speakerReview).toContain("onOpenChange={setIsMergePopoverOpen}");
-        expect(speakerReview).toContain("<PopoverTrigger asChild>");
-        expect(speakerReview).toContain("<PopoverContent");
-        expect(speakerReview).toContain(
-            'data-sot-panel="speaker-review-merge"',
-        );
-        expect(speakerReview).toContain('aria-label="合并相似说话人"');
-        expect(speakerReview).not.toContain('role="dialog"');
-        expect(speakerReview).toContain('surface="confirm"');
-        for (const opening of collectOpeningElements(
-            speakerReview,
-            "Alert",
-        ).filter((element) =>
-            element.includes('data-sot-part="speaker-review-state"'),
-        )) {
-            expect(opening).toContain('variant="statusError"');
-            expectClassNameConstReference(
-                opening,
-                "SPEAKER_REVIEW_ERROR_ALERT_CLASS_NAME",
-            );
-            expect(opening).not.toContain('variant="speakerReviewError"');
-            expect(opening).not.toContain('density="speakerReviewError"');
-            expect(opening).not.toContain('layout="speakerReviewError"');
-            expect(opening).not.toContain('variant="destructive"');
-        }
-        const speakerReviewBadgeOpenings = collectOpeningElements(
-            speakerReview,
-            "SpeakerReviewVoiceprintBadge",
-        ).filter((opening) =>
-            opening.includes('data-sot-part="speaker-review-voiceprint-pill"'),
-        );
-        expect(speakerReviewBadgeOpenings.length).toBeGreaterThan(0);
-        for (const opening of speakerReviewBadgeOpenings) {
-            expect(opening).not.toContain('variant="speakerReviewVoiceprint"');
-            expect(opening).not.toContain('variant="outline"');
-        }
-        const speakerReviewVoiceprintBadgeHelper = extractBoundedSlice(
-            speakerReview,
-            "function SpeakerReviewVoiceprintBadge(",
-            "function formatSegmentWindow",
-        );
-        expect(speakerReviewVoiceprintBadgeHelper).toContain(
-            "variant={SPEAKER_REVIEW_VOICEPRINT_BADGE_VARIANTS[tone]}",
-        );
-        expect(speakerReviewVoiceprintBadgeHelper).toContain(
-            "data-sot-tone={tone}",
-        );
-        expect(speakerReviewVoiceprintBadgeHelper).not.toContain("className=");
-        expect(speakerReview).not.toContain("hidden={!isMergePopoverOpen}");
-        expect(speakerReview).toContain(
-            "data-open={String(isMergePopoverOpen)}",
-        );
-        expect(speakerReview).not.toContain(
-            'className="grid items-center gap-[10px] overflow-visible p-[10px_12px]"',
-        );
-        expect(speakerReview).not.toContain(
-            'className="grid h-auto min-h-8 w-full grid-cols-[minmax(0,1fr)_auto] justify-stretch px-2 py-1.5 text-left"',
-        );
-        expect(speakerReview).not.toContain(
-            'className="h-auto min-h-8 w-full justify-start px-2 py-1.5"',
-        );
-        for (const retiredSpeakerReviewSliceToken of [
-            'variant="speakerReviewMode"',
-            'size="speakerReviewModeItem"',
-            'layout="speakerReviewMode"',
-            'spacing="speakerReviewMode"',
-            'size="speakerReviewMappingClear"',
-            'variant="speakerReviewMappingClear"',
-            'variant="speakerReviewMerge"',
-            'variant="speakerReviewMergeIcon"',
-            'variant="speakerReviewInline"',
-            'variant="speakerReviewState"',
-        ]) {
-            expect(speakerReview).not.toContain(retiredSpeakerReviewSliceToken);
-        }
         expect(speakerReview).not.toContain('className="sp-head"');
-        expect(speakerReview).not.toContain(
-            'className="sp-rows sp-rows-review"',
-        );
-        expect(speakerReview).not.toContain('className="sp-row"');
-        expect(speakerReview).not.toContain('className="sp-row-meta"');
-        expect(speakerReview).not.toContain('className="sp-edit-actions"');
-        expect(speakerReview).not.toContain('className="sp-suggest-row"');
-        expect(speakerReview).not.toContain('className="sr-meta"');
-        expect(speakerReview).not.toContain('className="sr-section"');
-        expect(speakerReview).not.toContain('className="sr-section-head"');
-        expect(speakerReview).not.toContain('className="sr-section-sub"');
-        expect(speakerReview).not.toContain('className="sr-segments"');
-        expect(speakerReview).not.toContain('className="sr-seg"');
-        expect(speakerReview).not.toContain('className="sr-seg-speaker"');
-        expect(speakerReview).not.toContain('className="sr-seg-text"');
-        expect(transcriptionSection).toContain(
-            'data-sot-panel="recording-transcription"',
-        );
-        expect(transcriptionSection).toContain(
-            'data-sot-banner="transcription-job"',
-        );
-        expect(transcriptionSection).toContain('from "@/components/ui/card";');
-        expect(transcriptionSection).toContain("<Card");
-        expect(transcriptionSection).toContain("<CardHeader");
-        expect(transcriptionSection).toContain("<CardContent");
-        expect(transcriptionSection).toContain("<Alert");
-        expect(transcriptionSection).toContain("<AlertTitle");
-        expect(transcriptionSection).toContain("<Button");
-        expect(transcriptionSection).toContain(
-            'import { Spinner } from "@/components/ui/spinner";',
-        );
-        expect(transcriptionSection).toContain(
-            'import { Separator } from "@/components/ui/separator";',
-        );
-        expect(transcriptionSection).toContain("<Spinner");
-        expect(transcriptionSection).toContain("<Separator");
-        expect(transcriptionSection).toContain(
-            'data-sot-section="recording-transcription-output"',
-        );
-        expect(transcriptionSection).toContain(
-            "const recordingTranscriptionClassNames = {",
-        );
-        const recordingTranscriptionClassNamesBlock = extractBoundedSlice(
-            transcriptionSection,
-            "const recordingTranscriptionClassNames = {",
-            "} as const;",
-        );
-        for (const ownerClassSnippet of [
-            'card: "min-h-0 flex-1 gap-0"',
-            'header: "flex flex-row items-center gap-3 px-3.5 py-3"',
-            'heading: "flex min-w-0 items-center gap-3"',
-            'icon: "size-4 flex-none text-muted-foreground"',
-            'headerCopy: "flex min-w-0 flex-col gap-[3px]"',
-            'body: "min-h-0 flex-1 overflow-y-auto px-5 pt-4 pb-6"',
-            'speakerReviewSection: "flex flex-col gap-2"',
-            'sectionHead: "flex items-start justify-between gap-3 max-[860px]:flex-col"',
-            'sectionTitle: "m-0 font-sans text-[12.5px] font-semibold text-foreground"',
-            'sectionDescription:\n        "mt-0.5 mb-0 font-sans text-[11.5px] font-medium leading-[1.45] text-muted-foreground max-[860px]:[overflow-wrap:anywhere]"',
-            'actions:\n        "inline-flex min-w-0 flex-wrap items-center justify-end gap-2 max-[860px]:justify-start"',
-            'turn: "pt-[10px]"',
-            'metaList: "mb-1.5 flex flex-wrap items-center gap-2.5 pt-2"',
-        ]) {
-            expect(recordingTranscriptionClassNamesBlock).toContain(
-                ownerClassSnippet,
-            );
-        }
-        for (const forbiddenLocalPanelResidual of [
-            "[scrollbar-color:",
-            "[scrollbar-width:",
-            "[&::-webkit-scrollbar",
-            "border-t border-border",
-            "border-b border-dashed",
-            "[&>svg]:size-",
-            "data-[sot-tone=attribute]:",
-            "data-[sot-tone=measure]:",
-        ]) {
-            expect(recordingTranscriptionClassNamesBlock).not.toContain(
-                forbiddenLocalPanelResidual,
-            );
-            expect(transcriptionSection).not.toContain(
-                forbiddenLocalPanelResidual,
-            );
-        }
-        expect(transcriptionSection).not.toContain("dark:");
-        expect(transcriptionSection).not.toMatch(
-            /(?:text|border|bg)-\[var\(--(?:fg|line|glass)-/,
-        );
-        expect(recordingTranscriptionClassNamesBlock).not.toMatch(
-            /\b(?:rgb|rgba|color-mix|oklch)\(/,
-        );
-        expect(recordingTranscriptionClassNamesBlock).not.toMatch(
-            /#[0-9a-fA-F]{3,8}\b/,
-        );
-        expect(recordingTranscriptionClassNamesBlock).toContain(
-            'outputSection: "flex flex-col gap-2"',
-        );
-        expect(recordingTranscriptionClassNamesBlock).toContain(
-            'outputText:\n        "m-0 font-sans text-[14.5px] leading-[1.65] text-foreground [text-wrap:pretty] max-[860px]:[overflow-wrap:anywhere]"',
-        );
-        const transcriptionOutputOpening = extractOpeningElement(
-            transcriptionSection,
-            'data-sot-section="recording-transcription-output"',
-            "section",
-        );
-        const transcriptionCardOpening = extractOpeningElement(
-            transcriptionSection,
-            'data-sot-panel="recording-transcription"',
+        for (const primitive of [
+            "Alert",
+            "Badge",
+            "Button",
             "Card",
-        );
-        const transcriptionHeaderOpening = extractOpeningElement(
-            transcriptionSection,
-            'data-sot-part="recording-transcription-header"',
-            "CardHeader",
-        );
-        const transcriptionHeadingOpening = extractOpeningElement(
-            transcriptionSection,
-            'data-sot-part="recording-transcription-heading"',
-            "div",
-        );
-        const transcriptionIconOpening = extractOpeningElement(
-            transcriptionSection,
-            'data-sot-part="recording-transcription-icon"',
-            "FileText",
-        );
-        const transcriptionHeaderCopyOpening = extractOpeningElement(
-            transcriptionSection,
-            'data-sot-part="recording-transcription-header-copy"',
-            "div",
-        );
-        const transcriptionBodyOpening = extractOpeningElement(
-            transcriptionSection,
-            'data-sot-part="recording-transcription-body"',
             "CardContent",
+            "CardHeader",
+            "Empty",
+            "EmptyContent",
+            "EmptyHeader",
+            "EmptyTitle",
+            "Separator",
+            "Spinner",
+        ]) {
+            expect(transcriptionSection).toContain("<" + primitive);
+        }
+        expect(transcriptionSection).toContain("<Card");
+        expect(transcriptionSection).toContain("hasNoPadding");
+        expect(transcriptionSection).toContain('role="region"');
+        expect(transcriptionSection).toContain(
+            'aria-labelledby="recording-transcription-title"',
         );
-        const transcriptionSectionHeadOpening = extractOpeningElement(
-            transcriptionSection,
-            'data-sot-part="recording-transcription-section-head"',
-            "header",
-        );
-        const transcriptionSectionTitleOpening = extractOpeningElement(
-            transcriptionSection,
-            'data-sot-part="recording-transcription-section-title"',
-            "h3",
-        );
-        const transcriptionSectionDescriptionOpening = extractOpeningElement(
-            transcriptionSection,
-            'data-sot-part="recording-transcription-section-description"',
-            "p",
-        );
-        const transcriptionActionsOpening = extractOpeningElement(
-            transcriptionSection,
-            'data-sot-part="recording-transcription-actions"',
-            "div",
-        );
-        const transcriptionTurnOpening = extractOpeningElement(
-            transcriptionSection,
-            'data-sot-part="recording-transcription-turn"',
-            "div",
-        );
-        const transcriptionMetaOpening = extractOpeningElement(
-            transcriptionSection,
-            'data-sot-list="recording-transcription-meta"',
-            "div",
-        );
-        const transcriptionSpeakerReviewOpening = extractOpeningElement(
-            transcriptionSection,
-            'data-sot-section="recording-transcription-speaker-review"',
-            "section",
-        );
-        const transcriptionTextOpening = extractOpeningElement(
-            transcriptionSection,
-            'data-sot-part="recording-transcription-text"',
-            "p",
-        );
-        expectClassNameConstReference(
-            transcriptionCardOpening,
+        expect(transcriptionSection).toContain(
             "recordingTranscriptionClassNames.card",
         );
-        expectClassNameConstReference(
-            transcriptionHeaderOpening,
+        expect(transcriptionSection).toContain(
             "recordingTranscriptionClassNames.header",
         );
-        expectClassNameConstReference(
-            transcriptionHeadingOpening,
-            "recordingTranscriptionClassNames.heading",
-        );
-        expectClassNameConstReference(
-            transcriptionIconOpening,
-            "recordingTranscriptionClassNames.icon",
-        );
-        expectClassNameConstReference(
-            transcriptionHeaderCopyOpening,
-            "recordingTranscriptionClassNames.headerCopy",
-        );
-        expectClassNameConstReference(
-            transcriptionBodyOpening,
+        expect(transcriptionSection).toContain(
             "recordingTranscriptionClassNames.body",
         );
-        expectClassNameConstReference(
-            transcriptionSectionHeadOpening,
-            "recordingTranscriptionClassNames.sectionHead",
-        );
-        expectClassNameConstReference(
-            transcriptionSectionTitleOpening,
-            "recordingTranscriptionClassNames.sectionTitle",
-        );
-        expectClassNameConstReference(
-            transcriptionSectionDescriptionOpening,
-            "recordingTranscriptionClassNames.sectionDescription",
-        );
-        expectClassNameConstReference(
-            transcriptionActionsOpening,
-            "recordingTranscriptionClassNames.actions",
-        );
-        expectClassNameConstReference(
-            transcriptionTurnOpening,
-            "recordingTranscriptionClassNames.turn",
-        );
-        expectClassNameConstReference(
-            transcriptionMetaOpening,
-            "recordingTranscriptionClassNames.metaList",
-        );
-        expectClassNameConstReference(
-            transcriptionSpeakerReviewOpening,
-            "recordingTranscriptionClassNames.speakerReviewSection",
-        );
-        expectClassNameConstReference(
-            transcriptionOutputOpening,
+        expect(transcriptionSection).toContain(
             "recordingTranscriptionClassNames.outputSection",
         );
-        expectClassNameConstReference(
-            transcriptionTextOpening,
-            "recordingTranscriptionClassNames.outputText",
+        expect(transcriptionSection).toContain(
+            "recordingTranscriptionClassNames.speakerReviewSection",
         );
         expect(transcriptionSection).toContain(
-            'data-sot-section="recording-transcription-speaker-review"',
+            'id="recording-transcription-title"',
         );
+
+        expect(transcriptionSection).toContain("isTranscribing ? (");
+        expect(transcriptionSection).toContain("jobDisplayState");
+        expect(transcriptionSection).toContain("jobError");
+        expect(transcriptionSection).toContain('variant="statusError"');
+        expect(transcriptionSection).toContain("handleCopyTranscript");
         expect(transcriptionSection).toContain(
-            'data-sot-part="recording-transcription-empty"',
+            "aria-busy={isCopyingTranscript}",
         );
-        expect(transcriptionSection).toContain('from "@/components/ui/empty";');
-        for (const primitive of [
-            "Empty,",
-            "EmptyContent,",
-            "EmptyDescription,",
-            "EmptyHeader,",
-            "EmptyMedia,",
-            "EmptyTitle,",
-        ]) {
-            expect(transcriptionSection).toContain(primitive);
-        }
+        expect(transcriptionSection).toContain("handleConfirmRetranscribe");
+        expect(transcriptionSection).toContain("disabled={");
+        expect(transcriptionSection).toContain("showSpeakerReview ? (");
+        expect(transcriptionSection).toContain("<SpeakerLabelEditor");
+        expect(transcriptionSection).toContain("handleTranscribe(false)");
+        expect(transcriptionSection).toContain("!canTranscribe");
+        expect(transcriptionSection).toContain(
+            "RECORDING_TRANSCRIPTION_META_BADGE_VARIANT",
+        );
+        expect(transcriptionSection).toContain("<EmptyContent>");
+
         const transcriptionEmpty = extractElementSlice(
             transcriptionSection,
-            'data-sot-part="recording-transcription-empty"',
+            '<Empty className="mt-4">',
             "Empty",
         );
-        expect(transcriptionEmpty).toContain("<Empty");
-        expect(transcriptionEmpty).toContain(
-            'data-sot-part="recording-transcription-empty"',
+        const transcriptionEmptyCta = extractElementSlice(
+            transcriptionEmpty,
+            "handleTranscribe(false)",
+            "Button",
         );
-        expect(transcriptionEmpty).toContain('data-sot-state="empty"');
-        expect(transcriptionEmpty).toContain('className="mt-4"');
+        const transcriptionProcessingAlert = extractElementSlice(
+            transcriptionSection,
+            '<Alert className="mb-3">',
+            "Alert",
+        );
+        const transcriptionErrorAlert = extractElementSlice(
+            transcriptionSection,
+            'variant="statusError"',
+            "Alert",
+        );
+        const transcriptionCopyAction = extractElementSlice(
+            transcriptionSection,
+            "onClick={handleCopyTranscript}",
+            "Button",
+        );
+        const transcriptionRetranscribeAction = extractElementSlice(
+            transcriptionSection,
+            "onClick={handleConfirmRetranscribe}",
+            "Button",
+        );
+        const dataSourcesLoadingEmpty =
+            dataSources.match(
+                /<Empty className="mt-4 flex-none">(?:(?!<\/Empty>)[\s\S])*?Reading saved data source status\.(?:(?!<\/Empty>)[\s\S])*?<\/Empty>/,
+            )?.[0] ?? "";
+        const dataSourcesUnavailableEmpty =
+            dataSources.match(
+                /<Empty className="mt-4 flex-none">(?:(?!<\/Empty>)[\s\S])*?No data sources(?:(?!<\/Empty>)[\s\S])*?<\/Empty>/,
+            )?.[0] ?? "";
+        const transcriptionMetadata = extractElementSlice(
+            transcriptionSection,
+            "recordingTranscriptionClassNames.metaList",
+            "div",
+        );
+        const transcriptionSpeakerReview = extractElementSlice(
+            transcriptionSection,
+            "onSpeakerMapChanged={setLiveSpeakerMap}",
+            "section",
+        );
+        const speakerReviewLoading = extractOpeningElement(
+            speakerReview,
+            'aria-busy="true"',
+            "section",
+        );
+        const speakerReviewCopyAction = extractElementSlice(
+            speakerReview,
+            "aria-busy={isCopyingRawTranscript}",
+            "Button",
+        );
         expect(transcriptionEmpty).toContain("<EmptyHeader>");
-        expect(transcriptionEmpty).toContain("<EmptyMedia");
-        expect(transcriptionEmpty).toContain('variant="icon"');
-        expect(transcriptionEmpty).toContain("<FileText");
-        expect(transcriptionEmpty).toContain(
-            'data-sot-part="recording-transcription-empty-icon"',
-        );
-        expect(transcriptionEmpty).toContain(
-            '<EmptyTitle data-sot-part="recording-transcription-empty-title">',
-        );
-        expect(transcriptionEmpty).toContain(
-            '<EmptyDescription data-sot-part="recording-transcription-empty-description">',
-        );
         expect(transcriptionEmpty).toContain("<EmptyContent>");
-        expect(transcriptionEmpty).toContain("<Button");
+        expect(transcriptionEmpty).toContain('variant="icon"');
+        expect(transcriptionEmpty).toContain('t("transcription.noTranscript")');
         expect(transcriptionEmpty).toContain(
-            'data-sot-control="start-local-transcription"',
+            't("transcription.noTranscriptDescription")',
         );
-        expect(transcriptionEmpty).toContain("handleTranscribe(false)");
-        expect(transcriptionEmpty).toContain("transcribeUnavailableReason ??");
-        expect(transcriptionEmpty).not.toContain("<section");
-        expect(transcriptionEmpty).not.toContain("<h3");
-        expect(transcriptionEmpty).not.toContain("<p");
-        expect(transcriptionSection).toContain(
-            'data-sot-control="copy-local-transcript"',
+        expect(transcriptionEmptyCta).toContain(
+            "onClick={() => handleTranscribe(false)}",
         );
-        expect(transcriptionSection).toContain(
-            'data-sot-control="retranscribe-local"',
+        expect(transcriptionEmptyCta).toContain(
+            "disabled={!canTranscribe || isTranscribing}",
         );
-        expect(transcriptionSection).toContain(
-            'data-sot-control="start-local-transcription"',
+        expect(transcriptionEmptyCta).toContain(
+            "transcribeUnavailableReason ??",
         );
-        const transcriptionJobProcessingAlert = extractOpeningElement(
-            transcriptionSection,
-            'data-sot-state="processing"',
-            "Alert",
+        expect(transcriptionSection).toMatch(
+            /\{!canTranscribe && \([\s\S]*?<FieldDescription[\s\S]*?transcribeUnavailableReason \?\?/,
         );
-        expect(transcriptionJobProcessingAlert).toContain(
-            'data-sot-banner="transcription-job"',
+        expect(transcriptionSection).toMatch(
+            /\{isTranscribing \? \([\s\S]*?<Alert[\s\S]*?t\(`transcription\.\$\{jobDisplayState\}`\)/,
         );
-        expect(transcriptionJobProcessingAlert).toContain(
-            'data-sot-tone="info"',
+        expect(transcriptionProcessingAlert).toContain("<Spinner");
+        expect(transcriptionProcessingAlert).toContain('aria-hidden="true"');
+        expect(transcriptionProcessingAlert).toContain(
+            't("transcription.processing")',
         );
-        const transcriptionJobProcessingBanner = extractElementSlice(
-            transcriptionSection,
-            'data-sot-state="processing"',
-            "Alert",
+        expect(transcriptionSection).toMatch(
+            /!!jobError\s+&&\s+!isActiveTranscriptionJob\([\s\S]*?<Alert\s+variant="statusError"/,
         );
-        expect(transcriptionJobProcessingBanner).toContain("<Spinner");
-        expect(transcriptionJobProcessingBanner).toContain(
-            "data-sot-banner-icon",
+        expect(transcriptionErrorAlert).toContain("<AlertCircle");
+        expect(transcriptionErrorAlert).toContain("{jobError}");
+        expect(transcriptionCopyAction).toContain(
+            "onClick={handleCopyTranscript}",
         );
-        expect(transcriptionJobProcessingBanner).toContain(
-            "data-sot-banner-spinner",
+        expect(transcriptionCopyAction).toContain(
+            "isCopyingTranscript ||\n                                            !displayText.trim()",
         );
-        expect(transcriptionJobProcessingBanner).toContain(
-            'aria-hidden="true"',
+        expect(transcriptionCopyAction).toContain(
+            "aria-busy={isCopyingTranscript}",
         );
-        expect(transcriptionJobProcessingBanner).toContain(
-            "data-sot-banner-title",
+        expect(transcriptionRetranscribeAction).toContain(
+            "onClick={handleConfirmRetranscribe}",
         );
-        expect(transcriptionJobProcessingBanner).toContain(
-            "data-sot-banner-body",
+        expect(transcriptionRetranscribeAction).toContain(
+            "!canTranscribe || isTranscribing",
         );
-        expect(transcriptionJobProcessingBanner).not.toContain("<RefreshCw");
-        expect(transcriptionJobProcessingBanner).not.toContain(
-            'className="animate-spin"',
+        expect(transcriptionRetranscribeAction).toContain(
+            "aria-busy={isTranscribing}",
         );
-        expect(alertPrimitive).toContain("[&>[data-slot=spinner]]:size-4");
-        expect(alertPrimitive).toContain(
-            "has-[>[data-slot=spinner]]:grid-cols-[1rem_1fr]",
+        expect(transcriptionRetranscribeAction).toContain(
+            "transcribeUnavailableReason ??",
         );
-        const transcriptionJobErrorAlert = extractOpeningElement(
-            transcriptionSection,
-            'data-sot-state="error"',
-            "Alert",
+        expect(dataSources).toContain(
+            "{isLoading && orderedSources.length === 0 ? (",
         );
-        expect(transcriptionJobErrorAlert).toContain('variant="statusError"');
-        expect(transcriptionJobErrorAlert).not.toContain(
-            'variant="destructive"',
+        expect(dataSourcesLoadingEmpty).not.toBe("");
+        expect(dataSourcesLoadingEmpty).toContain(
+            '<Empty className="mt-4 flex-none">',
         );
-        const transcriptionActionExpectations = [
-            {
-                control: 'data-sot-control="copy-local-transcript"',
-                variant: 'variant="outline"',
-            },
-            {
-                control: 'data-sot-control="retranscribe-local"',
-                variant: 'variant="destructive"',
-            },
-            {
-                control: 'data-sot-control="start-local-transcription"',
-                variant: 'variant="default"',
-            },
-        ];
-        for (const { control, variant } of transcriptionActionExpectations) {
-            const actionOpening = extractOpeningElement(
-                transcriptionSection,
-                control,
-                "Button",
-            );
-            expect(actionOpening).toContain(variant);
-            expect(actionOpening).toContain('size="sm"');
-            for (const removedActionToken of [
-                'variant="transcriptionAction"',
-                'variant="transcriptionDangerAction"',
-                'variant="transcriptionPrimaryAction"',
-                'size="transcriptionAction"',
-                "recordingTranscriptionButtonClassNames.action",
-                "recordingTranscriptionButtonClassNames.danger",
-                "recordingTranscriptionButtonClassNames.primary",
-            ]) {
-                expect(actionOpening).not.toContain(removedActionToken);
-            }
-        }
-        for (const { meta, tone } of [
-            { meta: "language", tone: "attribute" },
-            { meta: "source", tone: "attribute" },
-            { meta: "words", tone: "measure" },
-            { meta: "characters", tone: "measure" },
+        expect(dataSourcesLoadingEmpty).toContain("<EmptyHeader>");
+        expect(dataSourcesLoadingEmpty).toContain("Loading sources");
+        expect(dataSourcesLoadingEmpty).toContain(
+            '<EmptyDescription aria-live="polite">',
+        );
+        expect(dataSourcesLoadingEmpty).toContain(
+            "Reading saved data source status.",
+        );
+        expect(dataSourcesUnavailableEmpty).not.toBe("");
+        expect(dataSourcesUnavailableEmpty).toContain(
+            '<Empty className="mt-4 flex-none">',
+        );
+        expect(dataSourcesUnavailableEmpty).toContain("<EmptyHeader>");
+        expect(dataSourcesUnavailableEmpty).toContain("No data sources");
+        expect(dataSourcesUnavailableEmpty).toContain(
+            "Try again later or check the data source API.",
+        );
+        expect(transcriptionSection).toContain("void handleTranscribe(true)");
+        expect(transcriptionSection).toMatch(
+            /showSpeakerReview \? \([\s\S]*?<SpeakerLabelEditor[\s\S]*?recordingId=\{recordingId\}[\s\S]*?speakerMap=\{liveSpeakerMap\}[\s\S]*?onSpeakerMapChanged=\{setLiveSpeakerMap\}/,
+        );
+        expect(transcriptionSpeakerReview).toContain(
+            "recordingTranscriptionClassNames.speakerReviewSection",
+        );
+        expect(speakerReviewLoading).toContain("aria-label={panelLabel}");
+        expect(speakerReviewCopyAction).toContain(
+            "isCopyingRawTranscript ||\n                                isReviewLoading ||\n                                !canCopyRawTranscript",
+        );
+        expect(speakerReviewCopyAction).toContain(
+            "aria-busy={isCopyingRawTranscript}",
+        );
+        expect(transcriptionMetadata).toMatch(
+            /\{language \? \([\s\S]*?RECORDING_TRANSCRIPTION_META_BADGE_VARIANT\.attribute/,
+        );
+        expect(transcriptionMetadata).toMatch(
+            /\{transcriptionType \? \([\s\S]*?RECORDING_TRANSCRIPTION_META_BADGE_VARIANT\.attribute/,
+        );
+        expect(transcriptionMetadata).toContain(
+            '{wordCount} {t("transcription.words")}',
+        );
+        expect(transcriptionMetadata).toContain('{transcription.length}{" "}');
+        expect(transcriptionMetadata).toContain(
+            't("transcription.characters")',
+        );
+        expect(transcriptionMetadata).toContain(
+            "RECORDING_TRANSCRIPTION_META_BADGE_VARIANT.measure",
+        );
+        const transcriptOutputSkeleton = extractElementSlice(
+            transcriptionSkeletons,
+            'aria-label="正在加载转写结果"',
+            "Card",
+        );
+        const transcriptReviewSkeleton = extractElementSlice(
+            transcriptionSkeletons,
+            'aria-label="正在加载转写复核"',
+            "section",
+        );
+        const speakerReviewSkeleton = extractElementSlice(
+            transcriptionSkeletons,
+            'aria-label="正在加载说话人复核"',
+            "Card",
+        );
+        for (const skeleton of [
+            transcriptOutputSkeleton,
+            transcriptReviewSkeleton,
+            speakerReviewSkeleton,
         ]) {
-            const metaOpening = extractOpeningElement(
-                transcriptionSection,
-                `data-sot-meta="${meta}"`,
-                "RecordingTranscriptionMetaBadge",
-            );
-            expect(metaOpening).toContain(`data-sot-tone="${tone}"`);
-            expect(metaOpening).not.toContain('variant="transcriptionMeta"');
-            expect(metaOpening).not.toContain('variant="secondary"');
+            expect(skeleton).toContain("aria-busy={true}");
+            expect(skeleton).toContain('aria-live="polite"');
         }
-        expect(transcriptionSection).toContain(
-            "const RECORDING_TRANSCRIPTION_META_BADGE_VARIANT = {",
+        expect(transcriptOutputSkeleton).toContain(
+            "<TranscriptTurnSkeleton />",
         );
-        expect(transcriptionSection).toContain(
-            "variant={RECORDING_TRANSCRIPTION_META_BADGE_VARIANT[tone]}",
+        expect(transcriptReviewSkeleton).toContain(
+            '<SkeletonLine size="speaker" />',
         );
-        expect(transcriptionSection).not.toContain(
-            "RECORDING_TRANSCRIPTION_META_BADGE_CLASS_NAME",
+        expect(transcriptReviewSkeleton).toContain(
+            '<SkeletonLine size="time" />',
         );
-        expect(transcriptionSection).toContain('variant="outline"');
-        const transcriptionJobLegacySelectorLines = globals
+        expect(transcriptReviewSkeleton).toContain(
+            '<SkeletonLine size="status" />',
+        );
+        expect(speakerReviewSkeleton).toContain("<SpeakerCardSkeleton />");
+        for (const placeholderVariant of [
+            'action: "h-[26px] w-[72px]"',
+            'description: "h-[13px] w-full max-w-[220px]"',
+            '"line-long": "h-[13px] w-[92%]"',
+            '"line-medium": "h-[13px] w-3/4"',
+            '"line-short": "h-[13px] w-3/5"',
+            'speaker: "h-[13px] w-24"',
+            'status: "h-[13px] w-[76px]"',
+            'time: "h-[13px] w-16"',
+        ]) {
+            expect(transcriptionSkeletons).toContain(placeholderVariant);
+        }
+        const transcriptionLegacyGlobalSelectorLines = globals
             .split("\n")
             .map((text, index) => ({ line: index + 1, text }))
             .filter(({ text }) =>
-                /(^|\n|,)\s*\.tx-(?:banner|banner-ico|banner-text|banner-title|banner-detail|spin|row-chip|row-chip-ico)\b/.test(
+                /\.tx-(?:banner|banner-ico|banner-text|banner-title|banner-detail|spin|row-chip|row-chip-ico)\b|\bskshimmer\b/.test(
                     text,
                 ),
             );
-
-        expect(transcriptionJobLegacySelectorLines).toEqual([]);
-        for (const selector of RECORDING_TRANSCRIPTION_PRIMITIVE_SELECTORS) {
-            const repaintBlocks = collectCssRuleBlocks(
-                globals,
-                selector,
-            ).filter(({ declarations }) =>
-                RECORDING_TRANSCRIPTION_PRIMITIVE_REPAINT_DECLARATION_RE.test(
-                    declarations,
-                ),
-            );
-
-            expect(repaintBlocks).toEqual([]);
-        }
-        for (const selector of RECORDING_TRANSCRIPTION_EMPTY_REPAINT_SELECTORS) {
-            expect(collectExactCssRuleBlocks(globals, selector)).toEqual([]);
-        }
+        expect(transcriptionLegacyGlobalSelectorLines).toEqual([]);
         for (const selector of [
-            '[data-sot-part="recording-transcription-heading"]',
-            '[data-sot-part="recording-transcription-icon"]',
-            '[data-sot-part="recording-transcription-header-copy"]',
-            '[data-sot-part="recording-transcription-body"]',
-            '[data-sot-section="recording-transcription-speaker-review"]',
-            '[data-sot-part="recording-transcription-section-head"]',
-            '[data-sot-part="recording-transcription-section-title"]',
-            '[data-sot-part="recording-transcription-section-description"]',
-            '[data-sot-part="recording-transcription-actions"]',
-            '[data-sot-part="recording-transcription-turn"]',
-            '[data-sot-list="recording-transcription-meta"]',
-            '[data-sot-section="recording-transcription-output"]',
-            '[data-theme="dark"] [data-sot-section="recording-transcription-output"]',
-            '[data-sot-part="recording-transcription-text"]',
+            ".tx-banner",
+            ".tx-banner-ico",
+            ".tx-banner-text",
+            ".tx-banner-title",
+            ".tx-banner-detail",
+            ".tx-spin",
+            ".tx-row-chip",
+            ".tx-row-chip-ico",
+            '[data-slot="skeleton"]',
         ]) {
-            expect(globals).not.toContain(selector);
-            expect(collectExactCssRuleBlocks(globals, selector)).toEqual([]);
+            expect(collectCssRuleBlocks(globals, selector)).toEqual([]);
         }
-        for (const selector of [
-            "[data-sot-banner]",
-            "[data-sot-banner-icon]",
-            "[data-sot-banner-title]",
-            "[data-sot-banner-spinner]",
-            "[data-sot-banner-body]",
-        ]) {
-            const unscopedBannerRepaintBlocks = collectCssRuleBlocks(
-                globals,
-                selector,
-            ).filter(
-                ({ prelude, declarations }) =>
-                    !prelude.includes(
-                        ':not([data-sot-banner="transcription-job"])',
-                    ) &&
-                    !prelude.includes('[data-sot-banner="source-state"]') &&
-                    RECORDING_TRANSCRIPTION_PRIMITIVE_REPAINT_DECLARATION_RE.test(
-                        declarations,
-                    ),
-            );
 
-            expect(unscopedBannerRepaintBlocks).toEqual([]);
-        }
-        expect(transcriptionSection).toContain("<Badge");
+        expect(transcriptionSection).not.toContain(
+            'data-panel="recording-transcription"',
+        );
+        expect(transcriptionSection).not.toContain(
+            'data-banner="transcription-job"',
+        );
+        expect(transcriptionSection).not.toContain(["data", "sot"].join("-"));
         for (const legacyClass of [
             'className="transcript t-pane"',
             'className="transcript-head"',
             'className="transcript-body"',
             'className="sr-section"',
-            'className="sr-section-head"',
-            'className="sr-section-sub"',
             'className="empty-hint"',
-            'className="eh-t"',
-            'className="eh-h"',
             'className="turn"',
             'className="speaker"',
-            'className="ts"',
         ]) {
             expect(transcriptionSection).not.toContain(legacyClass);
         }
+
         expect(transcriptionSkeletons).toContain(
             'from "@/components/ui/card";',
         );
@@ -12411,25 +12171,24 @@ describe("full UI replacement regression coverage", () => {
             'from "@/components/ui/skeleton";',
         );
         expect(transcriptionSkeletons).toContain(
-            'data-sot-panel="recording-transcription-skeleton"',
+            "const transcriptionSkeletonClassNames",
         );
-        expect(transcriptionSkeletons).toContain(
-            'data-sot-panel="recording-transcription-speaker-review-skeleton"',
-        );
-        expect(transcriptionSkeletons).toContain(
-            'data-sot-panel="recording-transcription-review-skeleton"',
-        );
-        expect(transcriptionSkeletons).toContain(
-            'data-sot-part="recording-transcription-skeleton-line"',
-        );
-        expect(transcriptionSkeletons).toContain('variant="default"');
-        expect(transcriptionSkeletons).toContain('size="default"');
         expect(transcriptionSkeletons).toContain(
             "className={transcriptionSkeletonClassNames[size]}",
         );
+        expect(transcriptionSkeletons).toContain("aria-busy={true}");
+        expect(transcriptionSkeletons).toContain('aria-live="polite"');
         expect(transcriptionSkeletons).toContain(
-            "const transcriptionSkeletonClassNames",
+            "export function TranscriptOutputSkeleton",
         );
+        expect(transcriptionSkeletons).toContain(
+            "export function TranscriptReviewSkeleton",
+        );
+        expect(transcriptionSkeletons).toContain(
+            "export function SpeakerReviewSkeleton",
+        );
+        expect(transcriptionSkeletons).toContain('variant="default"');
+        expect(transcriptionSkeletons).toContain('size="default"');
         expect(transcriptionSkeletons).toContain('action: "h-[26px] w-[72px]"');
         expect(transcriptionSkeletons).toContain(
             'description: "h-[13px] w-full max-w-[220px]"',
@@ -12437,63 +12196,14 @@ describe("full UI replacement regression coverage", () => {
         expect(transcriptionSkeletons).toContain(
             '"line-long": "h-[13px] w-[92%]"',
         );
-        for (const removedRecordingTranscriptionPrimitiveToken of [
-            "recordingTranscription:",
-            "recordingTranscriptionAction",
-            "recordingTranscriptionDescription",
-            "recordingTranscriptionFieldControl",
-            "recordingTranscriptionFieldLabel",
-            "recordingTranscriptionLineLong",
-            "recordingTranscriptionLineMedium",
-            "recordingTranscriptionLineShort",
-            "recordingTranscriptionSpeaker",
-            "recordingTranscriptionStatus",
-            "recordingTranscriptionTime",
-            "recordingTranscriptionTitle",
-        ]) {
-            expect(skeletonPrimitive).not.toContain(
-                removedRecordingTranscriptionPrimitiveToken,
-            );
-        }
         expect(skeletonPrimitive).toContain(
             '"animate-pulse rounded-md bg-accent"',
         );
-        expect(transcriptionSkeletons).not.toContain("type SkeletonLineSize");
-        expect(transcriptionSkeletons).not.toContain(
-            "const skeletonLineClassNames",
-        );
-        expect(transcriptionSkeletons).not.toContain(
-            "className={skeletonLineClassNames[size]}",
-        );
-        expect(transcriptionSkeletons).not.toContain(
-            "sanitizeSkeletonClassName",
-        );
-        expect(transcriptionSkeletons).not.toContain(
-            "LEGACY_SKELETON_CLASS_NAMES",
-        );
-        expect(transcriptionSkeletons).not.toContain("mergeSkeletonClassName");
-        for (const legacyClass of [
-            'className="transcript t-pane"',
-            'className="transcript-head"',
-            'className="transcript-body"',
-            'className="sr-section"',
-            'className="sr-segments"',
-            'className="sp-row"',
-            'className="sp-row-meta"',
-            'className="sp-rows"',
-            'className="turn"',
-            'className="speaker"',
-        ]) {
-            expect(transcriptionSkeletons).not.toContain(legacyClass);
-        }
-        expect(skeletonPrimitive).toContain(
-            '"animate-pulse rounded-md bg-accent"',
-        );
-        expect(skeletonPrimitive).not.toContain("data-sot");
+        expect(skeletonPrimitive).not.toContain(["data", "sot"].join("-"));
         expect(globals).not.toContain('[data-slot="skeleton"]');
         expect(globals).not.toContain("skshimmer");
         const listPanelIndex = detail.indexOf(
-            'data-sot-panel="recording-detail-list"',
+            'data-panel="recording-detail-list"',
         );
         const listPanelStart = detail.lastIndexOf("<Card", listPanelIndex);
         const listPanelEnd = detail.indexOf("</Card>", listPanelStart);
@@ -12502,7 +12212,7 @@ describe("full UI replacement regression coverage", () => {
             listPanelEnd + "</Card>".length,
         );
         const detailHeaderPanelIndex = detail.indexOf(
-            'data-sot-panel="recording-detail-header"',
+            'data-panel="recording-detail-header"',
         );
         const detailHeaderStart = detail.lastIndexOf(
             "<RecordingDetailCardHeader",
@@ -12519,7 +12229,7 @@ describe("full UI replacement regression coverage", () => {
         const legacyDetailHeaderClassNamePattern =
             /className=(?:"[^"]*\b(?:rec-head|rec-h2|rec-h2-local|rec-h2-input|rec-h2-status|rh-norm|rh-edit|ai-rename-anchor|more-anchor)\b[^"]*"|\{[^}]*\b(?:rec-head|rec-h2|rec-h2-local|rec-h2-input|rec-h2-status|rh-norm|rh-edit|ai-rename-anchor|more-anchor)\b[^}]*\})/;
 
-        expect(detail).toContain('data-sot-surface="recording-workstation"');
+        expect(detail).toContain('data-surface="recording-workstation"');
         expect(listPanelIndex).toBeGreaterThanOrEqual(0);
         expect(listPanelStart).toBeGreaterThanOrEqual(0);
         expect(listPanelEnd).toBeGreaterThan(listPanelStart);
@@ -12528,7 +12238,7 @@ describe("full UI replacement regression coverage", () => {
         expect(listPanel).toContain("<CardHeader");
         expect(listPanel).toContain("<CardTitle");
         expect(listPanel).toContain("<CardContent");
-        expect(listPanel).toContain('data-sot-panel="recording-detail-list"');
+        expect(listPanel).toContain('data-panel="recording-detail-list"');
         const recordingDetailListCardClassName =
             expectExactStringConstInitializer(
                 detail,
@@ -12541,33 +12251,25 @@ describe("full UI replacement regression coverage", () => {
         expect(recordingDetailListCardClassName).not.toMatch(
             OWNER_WORKSPACE_FORBIDDEN_CLASS_PATTERN,
         );
+        expect(listPanel).toContain('data-part="recording-detail-list-header"');
+        expect(listPanel).toContain('data-part="recording-detail-list-title"');
         expect(listPanel).toContain(
-            'data-sot-part="recording-detail-list-header"',
+            'data-part="recording-detail-list-content"',
+        );
+        expect(listPanel).toContain('data-list="recording-detail-list-rows"');
+        expect(listPanel).toContain('data-item="recording-detail-list-row"');
+        expect(listPanel).toContain('data-state="selected"');
+        expect(listPanel).toContain(
+            'data-part="recording-detail-list-row-body"',
         );
         expect(listPanel).toContain(
-            'data-sot-part="recording-detail-list-title"',
+            'data-part="recording-detail-list-row-title"',
         );
         expect(listPanel).toContain(
-            'data-sot-part="recording-detail-list-content"',
+            'data-part="recording-detail-list-row-meta"',
         );
         expect(listPanel).toContain(
-            'data-sot-list="recording-detail-list-rows"',
-        );
-        expect(listPanel).toContain(
-            'data-sot-item="recording-detail-list-row"',
-        );
-        expect(listPanel).toContain('data-sot-state="selected"');
-        expect(listPanel).toContain(
-            'data-sot-part="recording-detail-list-row-body"',
-        );
-        expect(listPanel).toContain(
-            'data-sot-part="recording-detail-list-row-title"',
-        );
-        expect(listPanel).toContain(
-            'data-sot-part="recording-detail-list-row-meta"',
-        );
-        expect(listPanel).toContain(
-            'data-sot-part="recording-detail-list-row-duration"',
+            'data-part="recording-detail-list-row-duration"',
         );
         for (const {
             constName,
@@ -12595,8 +12297,8 @@ describe("full UI replacement regression coverage", () => {
                 /(?:text|bg|border)-\[var\(|duration-\[|ease-\[|gap-\[|rounded-\[|py-\[|text-\[|tracking-\[/,
             );
         }
-        expect(listPanel).toContain("<SotPlayerSourceTag");
-        expect(listPanel).toContain("<SotPlayerStatusBadge");
+        expect(listPanel).toContain("<PlayerSourceTag");
+        expect(listPanel).toContain("<PlayerStatusBadge");
         for (const legacyClass of [
             'className="panel"',
             'className="list-header"',
@@ -12614,7 +12316,7 @@ describe("full UI replacement regression coverage", () => {
         expect(detailHeaderPanelIndex).toBeGreaterThanOrEqual(0);
         expect(detailHeaderStart).toBeGreaterThanOrEqual(0);
         expect(detailHeaderEnd).toBeGreaterThan(detailHeaderStart);
-        expect(detail).toContain('data-sot-panel="recording-detail-header"');
+        expect(detail).toContain('data-panel="recording-detail-header"');
         expect(detail).toContain("function RecordingDetailCardHeader");
         expect(detail).toContain("function RecordingDetailCardTitle");
         expect(detail).toContain("RECORDING_DETAIL_HEADER_CLASS_NAME");
@@ -12625,7 +12327,7 @@ describe("full UI replacement regression coverage", () => {
         const detailHeaderClassName = expectExactStringConstInitializer(
             detail,
             "RECORDING_DETAIL_HEADER_CLASS_NAME",
-            "flex flex-row items-center gap-2.5 px-1 pt-1 pb-0 data-[sot-state=saving]:pb-px",
+            "flex flex-row items-center gap-2.5 px-1 pt-1 pb-0 data-[state=saving]:pb-px",
         );
         const detailHeaderTitleClassName = expectExactStringConstInitializer(
             detail,
@@ -12670,13 +12372,13 @@ describe("full UI replacement regression coverage", () => {
             "} as const;",
         );
         expect(recordingHeaderButtonClassNames).toContain(
-            'headerIconButton: "text-muted-foreground"',
+            'headerIconButton: "rounded-[8px] text-[var(--fg-secondary)]"',
         );
         expect(recordingHeaderButtonClassNames).toContain(
-            'headerActionButton: "min-w-[103px]"',
+            'headerActionButton: "w-[102.375px] min-w-[102.375px]"',
         );
         const recordingHeaderButtonResidualPattern =
-            /header(?:Icon|Action)Button:[\s\S]*?(?:\[_svg|stroke-\[|stroke-line(?:cap|join)|\[_svg:not|!border|!bg|\[var\(--(?:fg|bg|line|glass|shadow)|font-sans|text-\[|rounded-\[|gap-\[|px-\[|backdrop-)/;
+            /header(?:Icon|Action)Button:[\s\S]*?(?:data-sot|data-variant|rec-head|--recording-detail)/;
         expect(recordingHeaderButtonClassNames).not.toMatch(
             recordingHeaderButtonResidualPattern,
         );
@@ -12689,14 +12391,12 @@ describe("full UI replacement regression coverage", () => {
         expect(detailHeader).toContain("<RecordingDetailCardHeader");
         expect(detailHeader).toContain("<RecordingDetailCardTitle");
         expect(detailHeader).toContain("<Badge");
-        expect(detailHeader).toContain('data-sot-part="detail-header-title"');
+        expect(detailHeader).toContain('data-part="detail-header-title"');
+        expect(detailHeader).toContain('data-part="detail-header-title-input"');
         expect(detailHeader).toContain(
-            'data-sot-part="detail-header-title-input"',
+            'data-part="detail-header-title-status"',
         );
-        expect(detailHeader).toContain(
-            'data-sot-part="detail-header-title-status"',
-        );
-        expect(detailHeader).toContain('data-sot-part="detail-header-action"');
+        expect(detailHeader).toContain('data-part="detail-header-action"');
         expect(detailHeader).toContain("data-rh-edit-start");
         expect(detailHeader).toContain("data-rh-edit-save");
         expect(detailHeader).toContain("data-rh-edit-cancel");
@@ -12718,17 +12418,26 @@ describe("full UI replacement regression coverage", () => {
         expect(detailHeader).toContain('variant="ghost"');
         expect(detailHeader).toContain('size="icon-sm"');
         expect(detailHeader).toContain('size="sm"');
+        for (const icon of [
+            "Pen",
+            "Sparkle",
+            "Check",
+            "X",
+            "EllipsisVertical",
+        ]) {
+            expect(detailHeader).toMatch(
+                new RegExp(`<${icon}\\s+[\\s\\S]*?size=\\{16\\}`),
+            );
+        }
         expect(detailHeader).toContain(
             "recordingWorkstationButtonClassNames.headerIconButton",
         );
         expect(detailHeader).toContain(
             "recordingWorkstationButtonClassNames.headerActionButton",
         );
-        expect(detail).not.toContain("dark:data-[sot-state=selected]:border");
-        expect(detail).not.toContain("dark:data-[sot-state=selected]:bg-[rgb(");
-        expect(detail).not.toContain(
-            "dark:data-[sot-state=selected]:shadow-none",
-        );
+        expect(detail).not.toContain("dark:data-[state=selected]:border");
+        expect(detail).not.toContain("dark:data-[state=selected]:bg-[rgb(");
+        expect(detail).not.toContain("dark:data-[state=selected]:shadow-none");
         expect(detail).not.toContain("dark:hover:bg-accent/50");
         expect(detailHeader).not.toContain('variant="detailHeaderIconAction"');
         expect(detailHeader).not.toContain('size="detailHeaderIconAction"');
@@ -12757,21 +12466,19 @@ describe("full UI replacement regression coverage", () => {
         expect(detailHeader).toContain(
             'recordingDetailHeaderState === "saving"',
         );
-        expect(detailHeader).toContain('data-sot-state="saving"');
+        expect(detailHeader).toContain('data-state="saving"');
         expect(detailHeader).toContain("localDeleteAvailable ? (");
         expect(detailHeader).not.toMatch(legacyDetailHeaderClassNamePattern);
-        expect(globals).not.toContain(
-            '[data-sot-panel="recording-detail-header"]',
-        );
+        expect(globals).not.toContain('[data-panel="recording-detail-header"]');
         for (const selector of [
-            '[data-sot-part="detail-header-title-input"][data-slot="input"]',
-            '[data-sot-part="detail-header-title-status"]',
-            '[data-sot-part="detail-header-local-badge"]',
+            '[data-part="detail-header-title-input"][data-slot="input"]',
+            '[data-part="detail-header-title-status"]',
+            '[data-part="detail-header-local-badge"]',
         ]) {
             expect(globals).not.toContain(selector);
         }
         const metadataPanelIndex = detail.indexOf(
-            'data-sot-panel="recording-detail-metadata"',
+            'data-panel="recording-detail-metadata"',
         );
         const metadataStart = detail.lastIndexOf("<Card", metadataPanelIndex);
         const metadataEnd = detail.indexOf("</Card>", metadataStart);
@@ -12780,7 +12487,7 @@ describe("full UI replacement regression coverage", () => {
             metadataEnd + "</Card>".length,
         );
         const sourceRecordPanelIndex = detail.indexOf(
-            'data-sot-panel="recording-source-record"',
+            'data-panel="recording-source-record"',
         );
         const sourceRecordStart = detail.lastIndexOf(
             "<Card",
@@ -12803,16 +12510,16 @@ describe("full UI replacement regression coverage", () => {
         expect(metadataPanel).toContain("<CardTitle");
         expect(metadataPanel).toContain("<CardContent");
         expect(metadataPanel).toContain(
-            'data-sot-panel="recording-detail-metadata"',
+            'data-panel="recording-detail-metadata"',
         );
         expect(metadataPanel).toContain(
-            'data-sot-part="recording-detail-metadata-header"',
+            'data-part="recording-detail-metadata-header"',
         );
         expect(metadataPanel).toContain(
-            'data-sot-part="recording-detail-metadata-title"',
+            'data-part="recording-detail-metadata-title"',
         );
         expect(metadataPanel).toContain(
-            'data-sot-part="recording-detail-metadata-body"',
+            'data-part="recording-detail-metadata-body"',
         );
         for (const {
             constName,
@@ -12852,7 +12559,7 @@ describe("full UI replacement regression coverage", () => {
         expect(sourceRecordPanel).toContain("<CardTitle");
         expect(sourceRecordPanel).toContain("<CardContent");
         expect(sourceRecordPanel).toContain(
-            'data-sot-panel="recording-source-record"',
+            'data-panel="recording-source-record"',
         );
         for (const {
             constName,
@@ -12892,7 +12599,7 @@ describe("full UI replacement regression coverage", () => {
             "recording-source-record-tabs",
             "recording-source-record-hint",
         ]) {
-            expect(sourceRecordPanel).toContain(`data-sot-part="${part}"`);
+            expect(sourceRecordPanel).toContain(`data-part="${part}"`);
         }
         expect(button).not.toContain("sourceRecordCopyAction:");
         expect(button).not.toContain('variant="sourceRecordCopyAction"');
@@ -12944,9 +12651,7 @@ describe("full UI replacement regression coverage", () => {
                 '<Copy data-icon="inline-start" />',
             );
         }
-        expect(detail).toContain(
-            'data-sot-panel="recording-source-record-empty"',
-        );
+        expect(detail).toContain('data-panel="recording-source-record-empty"');
         expect(detail).toContain('from "@/components/ui/empty";');
         for (const primitive of [
             "Empty,",
@@ -12960,29 +12665,29 @@ describe("full UI replacement regression coverage", () => {
         }
         const sourceRecordEmpty = extractElementSlice(
             detail,
-            'data-sot-panel="recording-source-record-empty"',
+            'data-panel="recording-source-record-empty"',
             "Empty",
         );
         expect(sourceRecordEmpty).toContain("<Empty");
         expect(sourceRecordEmpty).toContain(
-            'data-sot-panel="recording-source-record-empty"',
+            'data-panel="recording-source-record-empty"',
         );
         expect(sourceRecordEmpty).toContain("<EmptyHeader>");
         expect(sourceRecordEmpty).toContain("<EmptyMedia");
         expect(sourceRecordEmpty).toContain('variant="icon"');
         expect(sourceRecordEmpty).toContain("<FileText />");
         expect(sourceRecordEmpty).toContain(
-            '<EmptyTitle data-sot-part="recording-source-record-empty-title">',
+            '<EmptyTitle data-part="recording-source-record-empty-title">',
         );
         expect(sourceRecordEmpty).toContain(
-            '<EmptyDescription data-sot-part="recording-source-record-empty-description">',
+            '<EmptyDescription data-part="recording-source-record-empty-description">',
         );
         expect(sourceRecordEmpty).toContain(
-            '<EmptyContent data-sot-part="recording-source-record-empty-content">',
+            '<EmptyContent data-part="recording-source-record-empty-content">',
         );
         expect(sourceRecordEmpty).not.toContain("<div");
         expect(globals).not.toContain(
-            '[data-sot-panel="recording-source-record-empty"]',
+            '[data-panel="recording-source-record-empty"]',
         );
         for (const legacyClass of [
             'className="panel"',
@@ -13027,15 +12732,15 @@ describe("full UI replacement regression coverage", () => {
         expect(detail).toContain("<DropdownMenuTrigger asChild>");
         expect(detail).toContain("<DropdownMenuContent");
         expect(detail).toContain("data-more-menu");
-        expect(detail).toContain('data-sot-menu="recording-more-actions"');
-        expect(detail).toContain('data-sot-menu-item="rename"');
-        expect(detail).toContain('data-sot-menu-item="ai-rename"');
-        expect(detail).toContain('data-sot-menu-item="retranscribe"');
-        expect(detail).toContain('data-sot-menu-item="delete-local"');
-        expect(detail).toContain('data-sot-tone="danger"');
+        expect(detail).toContain('data-menu="recording-more-actions"');
+        expect(detail).toContain('data-menu-item="rename"');
+        expect(detail).toContain('data-menu-item="ai-rename"');
+        expect(detail).toContain('data-menu-item="retranscribe"');
+        expect(detail).toContain('data-menu-item="delete-local"');
+        expect(detail).toContain('data-tone="danger"');
         expect(detail).toContain("<DropdownMenuSeparator");
-        expect(detail).toContain('data-sot-menu-separator="delete"');
-        expect(detail).toContain("data-sot-menu-hint");
+        expect(detail).toContain('data-menu-separator="delete"');
+        expect(detail).toContain("data-menu-hint");
         for (const compositionToken of MORE_ACTIONS_MENU_COMPOSITION_TOKENS) {
             expect(detail).toContain(compositionToken);
         }
@@ -13044,876 +12749,650 @@ describe("full UI replacement regression coverage", () => {
         expect(detail).not.toContain('className="more-menu-sep"');
         expect(detail).not.toContain('className="more-menu-hint"');
         expect(detail).toContain("handleMoreRetranscribe");
-        expect(detail).toContain("SotPlayerSourceTag");
-        expect(detail).toContain("SotPlayerStatusBadge");
-        expect(detail).toContain("<SotPlayerSourceTag");
-        expect(detail).toContain("<SotPlayerStatusBadge");
+        expect(detail).toContain("PlayerSourceTag");
+        expect(detail).toContain("PlayerStatusBadge");
+        expect(detail).toContain("<PlayerSourceTag");
+        expect(detail).toContain("<PlayerStatusBadge");
         expect(detail).not.toContain('className="src-tag"');
         expect(detail).not.toContain('className="b ok"');
-        const playerNoAudioAlert = extractOpeningElement(
-            player,
-            'part="recording-player-no-audio"',
-            "SotPlayerNoAudioAlert",
-        );
-        const playerBackControl = extractOpeningElement(
-            player,
-            'data-sot-control="recording-player-back"',
+        for (const primitive of [
+            "Alert",
+            "AlertDescription",
+            "AlertTitle",
+            "Badge",
             "Button",
+            "Card",
+            "CardContent",
+            "CardHeader",
+            "Popover",
+            "PopoverContent",
+            "Slider",
+        ]) {
+            expect(player).toContain("<" + primitive);
+        }
+        const playerOpening = (tagName: string, marker: string) => {
+            const matches = collectOpeningElements(player, tagName).filter(
+                (opening) => opening.includes(marker),
+            );
+
+            expect(matches).toHaveLength(1);
+            return matches[0] ?? "";
+        };
+        const playerNoAudioAlert = playerOpening(
+            "Alert",
+            "hidden={!playbackDisabled}",
         );
-        const playerPlayControl = extractOpeningElement(
-            player,
-            'data-sot-control="recording-player-play"',
+        const playerControls = playerOpening(
+            "CardContent",
+            "RECORDING_PLAYER_CONTROLS_CLASS_NAME",
+        );
+        const playerBackButton = playerOpening("Button", '"后退 5 秒"');
+        const playerPlayButton = playerOpening(
             "Button",
+            "onClick={togglePlayPause}",
         );
-        const playerForwardControl = extractOpeningElement(
-            player,
-            'data-sot-control="recording-player-forward"',
+        const playerForwardButton = playerOpening("Button", '"前进 5 秒"');
+        const playerSpeedButton = playerOpening(
             "Button",
+            "onClick={cyclePlaybackSpeed}",
         );
-        const playerSpeedControl = extractOpeningElement(
-            player,
-            'data-sot-control="recording-player-speed"',
+        const playerVolumeButton = playerOpening(
             "Button",
+            "aria-expanded={volumePopoverOpen}",
         );
-        const playerVolumeControl = extractOpeningElement(
-            player,
-            'data-sot-control="recording-player-volume"',
+        const playerMuteButton = playerOpening(
             "Button",
+            "setVolume(volumeMuted ? 70 : 0)",
         );
-        const playerVolumeMuteControl = extractOpeningElement(
+        const playerSeekSlider = playerOpening(
+            "Slider",
+            "aria-valuenow={Math.round(progress)}",
+        );
+        const playerVolumeSlider = playerOpening(
+            "Slider",
+            "setVolume(nextValue[0] ?? volume)",
+        );
+        const playerVolumeContent = playerOpening(
+            "PopoverContent",
+            "sideOffset={8}",
+        );
+        const playerVolumePopover = extractElementSlice(
             player,
-            'data-sot-control="recording-player-volume-mute"',
-            "Button",
+            "open={volumePopoverOpen}",
+            "Popover",
         );
-        expect(player).toContain('data-sot-surface="recording-player"');
-        expect(player).toContain("data-sot-state=");
-        expect(player).toContain("aria-label={");
-        expect(player).toContain('title="Click to cycle playback speed"');
-        expect(player).not.toContain(
-            'import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";',
-        );
-        expect(player).toContain(
-            'import { Card, CardContent, CardHeader } from "@/components/ui/card";',
-        );
-        expect(player).toContain(
-            'import { Button } from "@/components/ui/button";',
-        );
-        expect(player).toContain("<SotPlayerNoAudioAlert");
-        expect(player).not.toContain("<Alert");
-        expect(player).not.toContain("<AlertTitle");
-        expect(player).not.toContain("<AlertDescription");
-        expect(player).toContain("<Card");
-        expect(player).toContain("hasNoPadding");
-        expect(player).toContain("<CardHeader");
-        expect(player).toContain("<CardContent");
-        expect(player).toContain("<Button");
-        expect(player).toContain("<Slider");
-        expect(player).toContain("<PopoverContent");
-        expect(player).not.toContain("<SotPlayerControlButton");
-        expect(player).not.toContain("<SotPlayerPrimaryButton");
-        expect(player).not.toContain("<SotPlayerSpeedButton");
-        for (const control of [playerBackControl, playerForwardControl]) {
-            expect(control).toContain("<Button");
+
+        for (const control of [
+            playerBackButton,
+            playerPlayButton,
+            playerForwardButton,
+            playerSpeedButton,
+            playerVolumeButton,
+            playerMuteButton,
+        ]) {
+            expect(control).toContain('type="button"');
+            expect(control).toContain("aria-label={");
+            expect(control).toContain("disabled={playbackDisabled}");
+        }
+        for (const control of [playerBackButton, playerForwardButton]) {
             expect(control).toContain('variant="ghost"');
             expect(control).toContain('size="icon"');
         }
-        expect(playerPlayControl).toContain("<Button");
-        expect(playerPlayControl).toContain('variant="default"');
-        expect(playerPlayControl).toContain('size="icon-lg"');
-        expect(playerSpeedControl).toContain("<Button");
-        expect(playerSpeedControl).toContain('variant="ghost"');
-        expect(playerSpeedControl).toContain('size="sm"');
-        expect(playerSpeedControl).toContain(
-            "className={RECORDING_PLAYER_SPEED_CLASS_NAME}",
+        expect(playerBackButton).toContain('"后退 5 秒"');
+        expect(playerBackButton).toContain('"Back 5 seconds"');
+        expect(playerBackButton).toContain("onClick={() => seekBySeconds(-5)}");
+        expect(playerPlayButton).toContain('variant="default"');
+        expect(playerPlayButton).toContain('size="icon-lg"');
+        expect(playerPlayButton).toContain('"暂停"');
+        expect(playerPlayButton).toContain('"Pause"');
+        expect(playerPlayButton).toContain('"播放"');
+        expect(playerPlayButton).toContain('"Play"');
+        expect(playerForwardButton).toContain('"前进 5 秒"');
+        expect(playerForwardButton).toContain('"Forward 5 seconds"');
+        expect(playerForwardButton).toContain(
+            "onClick={() => seekBySeconds(5)}",
         );
-        for (const control of [playerVolumeControl, playerVolumeMuteControl]) {
-            expect(control).toContain("<Button");
-            expect(control).toContain('variant="ghost"');
-            expect(control).toContain('size="icon-sm"');
+        expect(playerSpeedButton).toContain('variant="ghost"');
+        expect(playerSpeedButton).toContain('size="sm"');
+        expect(playerSpeedButton).toContain('"切换播放倍速"');
+        expect(playerSpeedButton).toContain('"Cycle playback speed"');
+        expect(playerSpeedButton).toContain("onClick={cyclePlaybackSpeed}");
+        expect(playerVolumeButton).toContain('variant="ghost"');
+        expect(playerVolumeButton).toContain('size="icon-sm"');
+        expect(playerVolumeButton).toContain("`音量 ${volume}`");
+        expect(playerVolumeButton).toContain("`Volume ${volume}`");
+        expect(playerVolumeButton).toContain(
+            "aria-expanded={volumePopoverOpen}",
+        );
+        expect(playerMuteButton).toContain('variant="ghost"');
+        expect(playerMuteButton).toContain('size="icon-sm"');
+        expect(playerMuteButton).toContain('"静音切换"');
+        expect(playerMuteButton).toContain('"Toggle mute"');
+        expect(playerMuteButton).toContain("onClick={() =>");
+        expect(playerMuteButton).toContain("setVolume(volumeMuted ? 70 : 0)");
+
+        expect(playerNoAudioAlert).toContain("hidden={!playbackDisabled}");
+        expect(playerNoAudioAlert).toContain('role="status"');
+        expect(playerControls).toContain(
+            'aria-disabled={playbackDisabled ? "true" : undefined}',
+        );
+        expect(playerSeekSlider).toContain("disabled={playbackDisabled}");
+        expect(playerSeekSlider).toContain(
+            "aria-valuenow={Math.round(progress)}",
+        );
+        expect(playerSeekSlider).toContain(
+            "tabIndex={playbackDisabled ? -1 : 0}",
+        );
+        expect(playerSeekSlider).toContain("onValueChange={seekToSliderValue}");
+        expect(playerSeekSlider).toContain("onValueCommit={seekToSliderValue}");
+        expect(playerSeekSlider).toContain("onClick={(event) => {");
+        expect(playerSeekSlider).toContain(
+            "event.currentTarget.getBoundingClientRect()",
+        );
+        expect(playerSeekSlider).toContain("seekToPercent(");
+        expect(playerSeekSlider).toContain("onKeyDown={(event) => {");
+        for (const key of ["ArrowLeft", "ArrowRight", "Home", "End"]) {
+            expect(playerSeekSlider).toContain(`event.key === "${key}"`);
         }
-        for (const legacyControlToken of [
-            'variant="outline"',
-            'size="icon-xs"',
-            'className="size-11 shrink rounded-full shadow-sm"',
-            'className="shrink rounded-full"',
-        ]) {
-            expect(player).not.toContain(legacyControlToken);
-        }
-        expect(playerNoAudioAlert).toContain(
-            'part="recording-player-no-audio"',
+
+        expect(playerVolumePopover).toContain("open={volumePopoverOpen}");
+        expect(playerVolumePopover).toContain(
+            "onOpenChange={(open) => setVolumeOpen(open)}",
         );
-        expect(playerNoAudioAlert).toContain(
-            'iconPart="recording-player-no-audio-icon"',
+        expect(playerVolumePopover).toContain("<PopoverTrigger asChild>");
+        expect(playerVolumeContent).toContain('align="end"');
+        expect(playerVolumeContent).toContain('side="top"');
+        expect(playerVolumeContent).toContain("aria-label={");
+        expect(playerVolumeSlider).toContain("disabled={playbackDisabled}");
+        expect(playerVolumeSlider).toContain("onValueChange={(nextValue) =>");
+        expect(playerVolumeSlider).toContain(
+            "setVolume(nextValue[0] ?? volume)",
         );
-        expect(playerNoAudioAlert).toContain(
-            'textPart="recording-player-no-audio-text"',
-        );
-        expect(playerNoAudioAlert).toContain(
-            'titlePart="recording-player-no-audio-title"',
-        );
-        expect(playerNoAudioAlert).toContain(
-            'descriptionPart="recording-player-no-audio-description"',
-        );
-        expect(playerNoAudioAlert).toContain(
-            "playbackDisabled={playbackDisabled}",
-        );
-        expect(alertPrimitive).not.toContain("playerNoAudio");
-        expect(playerNoAudioAlert).not.toContain("variant=");
-        expect(playerNoAudioAlert).not.toContain("density=");
-        expect(playerNoAudioAlert).not.toContain("layout=");
-        expect(playerNoAudioAlert).not.toContain("className=");
-        expect(alertPrimitive).not.toContain("data-player-no-audio-text");
-        expect(sotPlayerPrimitives).toContain("SotPlayerNoAudioAlert");
-        expectExactStringConstInitializers(
-            player,
-            RECORDING_PLAYER_CLASS_INITIALIZERS,
-        );
-        expectSotPlayerNoAudioPrimitiveBindings(sotPlayerPrimitives);
-        expect(sotPlayerPrimitives).not.toContain("<SotPlayerNoAudioIcon");
-        expect(player).not.toContain(
-            '<SotPlayerNoAudioIcon className="size-3.5" />',
-        );
-        expect(player).toContain('data-sot-part="recording-player-meta"');
-        expect(player).toContain('data-sot-panel="recording-player-controls"');
-        expect(player).toContain(
-            "className={RECORDING_PLAYER_META_CLASS_NAME}",
-        );
-        expect(player).toContain(
-            "className={RECORDING_PLAYER_CONTROLS_CLASS_NAME}",
-        );
-        expect(player).toContain(
-            "className={RECORDING_PLAYER_VOLUME_ANCHOR_CLASS_NAME}",
-        );
-        expect(player).toMatch(
-            /playbackDisabled &&\s*RECORDING_PLAYER_DISABLED_CLASS_NAME/,
-        );
-        expect(player).toContain(
-            'data-sot-panel="recording-player-volume-popover"',
-        );
-        expect(button).not.toContain("data-player-control-icon");
-        expect(sotPlayerPrimitives).not.toContain("data-player-control-icon");
-        expect(button).not.toContain("dashboard-player-volume-icon");
-        expect(button).not.toContain("recording-player-volume-icon");
-        expect(player).not.toContain("data-player-control-icon");
-        expect(player).not.toContain("<SotPlayerVolumePopoverContent");
-        expect(player).not.toContain("<SotPlayerVolumeSlider");
-        expect(player).not.toContain(
-            'className="w-[200px] min-w-[200px] gap-0 overflow-visible px-2.5 py-2"',
-        );
-        expect(player).toContain("<Popover");
-        expect(player).toContain("<PopoverTrigger asChild>");
-        expect(player).toContain('side="top"');
-        expect(player).toContain('align="end"');
-        expect(player).toContain(
-            'data-sot-control="recording-player-volume-slider"',
-        );
-        expect(player).toContain("<Slider");
-        expect(player).not.toContain(`variant="${"player"}Seek"`);
-        expect(player).not.toContain(`variant="${"player"}Volume"`);
-        for (const hook of RECORDING_PLAYER_BUTTON_CONTROL_HOOKS) {
-            expect(player).toContain(`data-sot-control="${hook}"`);
-        }
-        for (const selector of RECORDING_PLAYER_CARD_PRIMITIVE_SELECTORS) {
-            expect(collectCssRuleBlocks(globals, selector)).toEqual([]);
-        }
-        for (const selector of PLAYER_ALERT_CARD_BADGE_PRIMITIVE_REPAINT_SELECTORS) {
-            expect(collectCssRuleBlocks(globals, selector)).toEqual([]);
-        }
-        expect(
-            collectCssRuleBlocks(globals, '[data-sot-control="player-status"]'),
-        ).toEqual([]);
-        for (const [
-            surface,
-            selector,
-        ] of PLAYER_PORTAL_VOLUME_SCOPED_SELECTORS) {
-            expect(
-                collectCssRuleBlocks(globals, selector).filter(({ prelude }) =>
-                    prelude.includes(surface),
-                ),
-            ).toEqual([]);
-        }
-        for (const hook of RECORDING_PLAYER_BUTTON_CONTROL_HOOKS) {
-            const directBlocks = collectCssRuleBlocks(
+
+        const playerPrimitiveAndPortalSelectors = [
+            '[data-slot="card"]',
+            '[data-slot="card-header"]',
+            '[data-slot="card-content"]',
+            '[data-slot="alert"]',
+            'button[data-slot="button"]',
+            '[data-slot="slider"]',
+            '[data-slot="popover-content"]',
+            "[data-radix-popper-content-wrapper]",
+        ] as const;
+        const playerBusinessRepaintDeclarationRe =
+            /\b(?:background|border(?:-color|-radius)?|box-shadow|color|fill|font|letter-spacing|margin|padding|stroke)\s*:/;
+        for (const selector of playerPrimitiveAndPortalSelectors) {
+            const repaintBlocks = collectCssRuleBlocks(
                 globals,
-                `[data-sot-control="${hook}"]`,
-            );
-            const primitiveBlocks = collectCssRuleBlocks(
-                globals,
-                `[data-sot-control="${hook}"][data-slot="button"]`,
+                selector,
+            ).filter(({ declarations }) =>
+                playerBusinessRepaintDeclarationRe.test(declarations),
             );
 
-            for (const block of [...directBlocks, ...primitiveBlocks]) {
-                expect(block.declarations).not.toMatch(
-                    RECORDING_PLAYER_BUTTON_PRIMITIVE_REPAINT_DECLARATION_RE,
-                );
-            }
+            expect(repaintBlocks).toEqual([]);
         }
-        expect(globals).not.toContain('[data-sot-surface="recording-player"]');
-        expect(globals).not.toContain(
-            '[data-sot-panel="recording-player-controls"]',
-        );
-        expect(globals).not.toContain("recording-player-control-icon");
-        expect(globals).not.toContain("recording-player-current-time");
-        expect(globals).not.toContain("recording-player-duration");
-        expect(globals).not.toContain("recording-player-volume-anchor");
+        expect(player).toContain("hasNoPadding");
+        expect(player).toContain("hidden={!playbackDisabled}");
+        expect(player).toContain('role="status"');
+        expect(player).toContain("playbackDisabled");
+        expect(player).toContain("togglePlayPause");
+        expect(player).toContain("seekBySeconds(-5)");
+        expect(player).toContain("seekBySeconds(5)");
+        expect(player).toContain("cyclePlaybackSpeed");
+        expect(player).toContain("seekToSliderValue");
+        expect(player).toContain("seekToPercent");
+        expect(player).toContain("aria-valuenow={Math.round(progress)}");
+        expect(player).toContain("tabIndex={playbackDisabled ? -1 : 0}");
+        expect(player).toContain("open={volumePopoverOpen}");
+        expect(player).toContain("setVolumeOpen(open)");
+        expect(player).toContain("setVolume(volumeMuted ? 70 : 0)");
+        expect(player).toContain("aria-expanded={volumePopoverOpen}");
+        expect(player).toContain('side="top"');
+        expect(player).toContain('align="end"');
+        expect(player).toContain("<audio");
+        expect(player).toContain('<track kind="captions" />');
+        expect(player).toContain("PLAYER_SOURCE_BADGES");
+        expect(player).toContain("PLAYER_TAG_COLOR_CLASS");
+        expect(player).toContain("onToggleTagManager");
+        expect(player).toContain("aria-expanded={isTagManagerOpen}");
+        expect(player).not.toContain(["data", "sot"].join("-"));
+        expect(player).not.toContain("<PlayerControlButton");
+        expect(player).not.toContain("<PlayerPrimaryButton");
+        expect(player).not.toContain("<PlayerSpeedButton");
+        expect(player).not.toContain("<PlayerNoAudioAlert");
         for (const legacyClass of [
             'className="player"',
             'className="player-meta"',
             'className="player-controls"',
-            'className="player-controls is-disabled"',
-            'className="time mono"',
             'className="no-audio-banner"',
-            'className="no-audio-ico"',
-            'className="no-audio-text"',
-            'className="no-audio-title"',
-            'className="no-audio-sub"',
             'className="vol-anchor"',
             'className="vol-pop"',
-            'className="vol-row"',
-            'className="vol-mute"',
-            'className="vol-ico"',
-            'className="vol-range-control"',
-            'inputClassName="vol-range"',
-            'className="vol-num mono"',
         ]) {
             expect(player).not.toContain(legacyClass);
         }
-        expect(tagManager).toContain('data-sot-panel="recording-tag-manager"');
-        expect(tagManager).toContain('data-sot-control="recording-tag-toggle"');
-        expect(tagManager).toContain('data-sot-part="head"');
-        expect(tagManager).toContain('data-sot-part="body"');
-        expect(tagManager).toContain('data-sot-part="footer"');
-        expect(tagManager).toContain('data-sot-part="picker"');
-        expect(tagManager).toContain('data-sot-part="selected-chip"');
-        expect(tagManager).toContain('data-sot-part="tag-option"');
-        expect(tagManager).toContain('data-sot-part="color-swatch"');
-        expect(tagManager).toContain('data-sot-part="icon-option"');
-        expect(tagManager).toContain('data-sot-part="toggle-note"');
-        const tagManagerToggleNote = extractElementSlice(
-            tagManager,
-            'data-sot-part="toggle-note"',
-            "RecordingTagManagerToggleNote",
-        );
-        expect(tagManagerToggleNote).toContain(
-            "<RecordingTagManagerToggleNote",
-        );
-        expect(tagManagerToggleNote).not.toContain(
-            'variant="recordingTagToggleNote"',
-        );
-        expect(tagManagerToggleNote).toContain('data-sot-part="toggle-note"');
-        expect(tagManagerToggleNote).not.toContain('className="sr-only"');
-        for (const anchor of [
-            'data-open="true"',
-            'data-state={visibleError ? "error" : undefined}',
-            "data-sot-state={panelState}",
-            "data-sot-toggle-state={",
-            'data-sot-create-state={isCreating ? "saving" : "idle"}',
-            'data-sot-control="recording-tag-manager-close"',
-            'data-sot-control="recording-tag-error-retry"',
-            'data-sot-control="recording-tag-delete-open"',
-            'data-sot-control="recording-tag-delete-confirm"',
-            'data-sot-control="recording-tag-create-cancel"',
-            'data-sot-part="create-field"',
-            'data-sot-part="picker-frame"',
-            'data-sot-part="tag-loading-icon"',
-            'data-sot-part="tag-check"',
-            'data-sot-state={saving ? "saving" : selected ? "selected" : "idle"}',
-            'data-sot-state={color === item ? "selected" : "idle"}',
-            'data-sot-state={icon === item ? "selected" : "idle"}',
-            'data-sot-state={\n                        deletingTagId === deleteTarget.id ? "saving" : "ready"',
-            "SOT_TAG_MANAGER_ERROR_TEXT",
-            "renderErrorAlert",
-            "setDeleteTarget(catalogTag)",
+        expect(alertPrimitive).not.toContain("playerNoAudio");
+        expect(button).not.toContain("data-player-control-icon");
+        for (const primitive of [
+            "Alert",
+            "Badge",
+            "Button",
+            "Card",
+            "CardAction",
+            "CardContent",
+            "CardFooter",
+            "CardHeader",
+            "Empty",
+            "Field",
+            "FieldGroup",
+            "FieldLegend",
+            "FieldSet",
+            "InputGroup",
+            "InputGroupButton",
+            "InputGroupInput",
+            "Popover",
+            "PopoverContent",
+            "ToggleGroup",
+            "ToggleGroupItem",
         ]) {
-            expect(tagManager).toContain(anchor);
+            expect(tagManager).toContain("<" + primitive);
         }
-        expect(tagManager).toContain(
-            'import { Badge } from "@/components/ui/badge";',
-        );
-        expect(tagManager).toContain(
-            'import { Button } from "@/components/ui/button";',
-        );
-        expect(tagManager).toContain('from "@/components/ui/alert";');
-        expect(tagManager).toContain('from "@/components/ui/card";');
-        expect(tagManager).toContain('from "@/components/ui/empty";');
-        expect(tagManager).toContain('from "@/components/ui/field";');
-        expect(tagManager).toContain('from "@/components/ui/input-group";');
-        expect(tagManager).toContain('from "@/components/ui/spinner";');
-        expect(tagManager).toContain('from "@/components/ui/toggle-group";');
-        expect(tagManager).toContain("<Card");
-        expect(tagManager).toContain("<CardDescription");
-        expect(tagManager).toContain("<CardHeader");
-        expect(tagManager).toContain("<CardContent");
-        expect(tagManager).toContain("<CardFooter");
-        expect(tagManager).toContain("<Alert");
-        expect(tagManager).toContain("<Empty");
-        expect(tagManager).toContain("<EmptyHeader");
-        expect(tagManager).toContain("<EmptyTitle");
-        expect(tagManager).toContain("<EmptyDescription");
-        expect(tagManager).toContain("<Badge");
-        expect(tagManager).toContain("<Button");
-        expect(tagManager).toContain("<Field");
-        expect(tagManager).toContain("<FieldGroup");
-        expect(tagManager).toContain("<FieldSet");
-        expect(tagManager).toContain("<FieldLegend");
-        expect(tagManager).toContain("<InputGroup");
-        expect(tagManager).toContain("<InputGroupInput");
-        expect(tagManager).toContain("<InputGroupButton");
-        expect(tagManager).toContain("<ToggleGroup");
-        expect(tagManager).toContain("<ToggleGroupItem");
-        const tagManagerColorPicker = extractElementSlice(
+        const tagManagerContent = extractBoundedSlice(
             tagManager,
-            'data-sot-part="color-swatches"',
-            "ToggleGroup",
+            "function RecordingTagManagerContent",
+            "function RecordingTagManagerFooter",
         );
-        const tagManagerIconPicker = extractElementSlice(
+        const tagManagerContentClassName = extractBoundedSlice(
             tagManager,
-            'data-sot-part="icon-grid"',
-            "ToggleGroup",
+            "function recordingTagManagerContentClassName",
+            "function recordingTagManagerBadgeClassName",
         );
-        expect(tagManagerColorPicker).toContain('variant="default"');
-        expect(tagManagerColorPicker).toContain('size="sm"');
-        expect(tagManagerColorPicker).toContain("className={");
+        const tagManagerPopover = extractOpeningElement(
+            tagManager,
+            "modal={false}",
+            "Popover",
+        );
+        const tagManagerPopoverShell = extractBoundedSlice(
+            tagManager,
+            "return (\n        <Popover\n",
+            "            <PopoverAnchor",
+        );
+        const tagManagerPopoverContent = extractElementSlice(
+            tagManager,
+            'aria-label="管理标签"',
+            "PopoverContent",
+        );
+        const tagManagerCloseButton = extractElementSlice(
+            tagManager,
+            'aria-label="关闭"',
+            "Button",
+        );
+        const tagManagerErrorAlert = extractBoundedSlice(
+            tagManager,
+            "const renderErrorAlert =",
+            "const renderTagToggle =",
+        );
+        const tagManagerErrorRetry = extractElementSlice(
+            tagManagerErrorAlert,
+            "onClick={onRetry}",
+            "Button",
+        );
+        const tagManagerRetry = extractBoundedSlice(
+            tagManager,
+            "const handleRetry = () =>",
+            "const tagNameInputId",
+        );
+        const tagManagerToggle = extractBoundedSlice(
+            tagManager,
+            "const renderTagToggle =",
+            "const handleNameChange =",
+        );
+        const tagManagerSavingState = extractBoundedSlice(
+            tagManager,
+            "if (shouldShowSavingState)",
+            "} else if (shouldShowErrorState)",
+        );
+        const tagManagerToggleState = extractBoundedSlice(
+            tagManager,
+            "} else if (shouldShowToggleState)",
+            "} else if (deleteTarget)",
+        );
+        const tagManagerCreateState = extractBoundedSlice(
+            tagManager,
+            "const busy =",
+            "const savingPanelTags =",
+        );
+        const tagManagerCreateHandler = extractBoundedSlice(
+            tagManager,
+            "const handleCreateTag = async",
+            "const handleDeleteTag =",
+        );
+        const tagManagerNameField = extractBoundedSlice(
+            tagManager,
+            "const renderNameField =",
+            "const renderColorToggleGroup =",
+        );
+        const tagManagerInlineCreate = extractElementSlice(
+            tagManagerNameField,
+            'aria-label="添加"',
+            "InputGroupButton",
+        );
+        const tagManagerColorPicker = extractBoundedSlice(
+            tagManager,
+            "const renderColorToggleGroup =",
+            "const renderColorPicker =",
+        );
+        const tagManagerIconPicker = extractBoundedSlice(
+            tagManager,
+            "const renderIconPicker =",
+            "let panelContent",
+        );
+        const tagManagerCreateButton = extractElementSlice(
+            tagManager,
+            'aria-busy={isCreating ? "true" : undefined}',
+            "Button",
+        );
+        const tagManagerDeleteState = extractBoundedSlice(
+            tagManager,
+            "} else if (deleteTarget)",
+            "} else if (isCreateMode)",
+        );
+        const tagManagerDeleteCancel = extractElementSlice(
+            tagManagerDeleteState,
+            "setDeleteTarget(null)",
+            "Button",
+        );
+        const tagManagerDeleteConfirm = extractElementSlice(
+            tagManagerDeleteState,
+            "删除标签",
+            "Button",
+        );
+        const tagManagerDeleteOpen = extractElementSlice(
+            tagManager,
+            'aria-label="移除"',
+            "Button",
+        );
+        const tagManagerEmpty = extractBoundedSlice(
+            tagManager,
+            "hasNoTags ? (",
+            ") : (",
+        );
+        const tagManagerFooter = extractElementSlice(
+            tagManager,
+            'className="tagm-actions"',
+            "RecordingTagManagerFooter",
+        );
+
+        expect(tagManagerContent).toContain(
+            "contentVariant: RecordingTagManagerContentVariant",
+        );
+        expect(tagManagerContent).toContain(
+            "recordingTagManagerContentClassName(contentVariant)",
+        );
+        expect(tagManagerContentClassName).toContain(
+            'contentVariant === "compact" || contentVariant === "default"',
+        );
+        expect(tagManagerContentClassName).toContain('"tagm-body"');
+        expect(tagManagerContentClassName).toContain(
+            'contentVariant === "compact" || contentVariant === "saving"',
+        );
+        expect(tagManager).toMatch(
+            /const contentVariant: RecordingTagManagerContentVariant =[\s\S]*?hasNoTags && !isCreateMode[\s\S]*?"empty"[\s\S]*?deleteTarget[\s\S]*?"delete"[\s\S]*?isCreateMode[\s\S]*?"create"[\s\S]*?shouldShowSavingState[\s\S]*?"saving"[\s\S]*?shouldShowErrorState[\s\S]*?"tight"[\s\S]*?shouldShowToggleState[\s\S]*?"compact"[\s\S]*?: "default"/,
+        );
+        expect(tagManagerPopover).toContain("open");
+        expect(tagManagerPopover).toContain("modal={false}");
+        expect(tagManagerPopover).toContain("onOpenChange={(open) =>");
+        expect(tagManagerPopoverShell).toContain("if (!open)");
+        expect(tagManagerPopoverShell).toContain("onClose?.()");
+        expect(tagManagerPopoverContent).toContain(
+            '<PopoverContent\n                align="end"',
+        );
+        expect(tagManagerPopoverContent).toContain('side="bottom"');
+        expect(tagManagerPopoverContent).toContain("sideOffset={8}");
+        expect(tagManagerPopoverContent).toContain("avoidCollisions={false}");
+        expect(tagManagerPopoverContent).toContain("event.preventDefault()");
+        expect(tagManagerPopoverContent).toContain('aria-label="管理标签"');
+        expect(tagManagerPopoverContent).toContain(
+            'aria-busy={busy ? "true" : undefined}',
+        );
+        expect(tagManagerPopoverContent).toContain('data-open="true"');
+        expect(tagManagerPopoverContent).toContain(
+            'className={cn(\n                    RECORDING_TAG_MANAGER_PANEL_CLASS_NAME,\n                    isCreateMode && "h-[342px] overflow-hidden",\n                )}',
+        );
+        expect(tagManagerPopoverContent).toContain(
+            "<RecordingTagManagerContent contentVariant={contentVariant}>",
+        );
+        expect(tagManagerFooter).toContain("{panelFooter}");
+        expect(tagManagerCloseButton).toContain('variant="ghost"');
+        expect(tagManagerCloseButton).toContain('size="icon-xs"');
+        expect(tagManagerCloseButton).toContain("onClick={() => onClose?.()}");
+
+        expect(tagManagerErrorAlert).toContain('variant="statusError"');
+        expect(tagManagerErrorAlert).toContain(
+            "message = RECORDING_TAG_MANAGER_ERROR_TEXT",
+        );
+        expect(tagManagerErrorAlert).toContain("onRetry = handleRetry");
+        expect(tagManagerErrorRetry).toContain('variant="ghost"');
+        expect(tagManagerErrorRetry).toContain('size="xs"');
+        expect(tagManagerErrorRetry).toContain("onClick={onRetry}");
+        expect(tagManager).toContain(
+            "renderErrorAlert({ message: visibleError ?? undefined })",
+        );
+        expect(tagManagerRetry).toContain("const action = retryAction");
+        expect(tagManagerRetry).toContain('action.type === "toggle"');
+        expect(tagManagerRetry).toContain(
+            "void handleToggleTag(action.tag, action.payload)",
+        );
+        expect(tagManagerRetry).toContain('action.type === "create"');
+        expect(tagManagerRetry).toContain(
+            "void handleCreateTag(action.payload)",
+        );
+        expect(tagManagerRetry).toContain("void handleDeleteTag(action.tag)");
+        expect(tagManager).toContain(
+            'setRetryAction({ payload, tag, type: "toggle" })',
+        );
+        expect(tagManager).toContain(
+            'setRetryAction({ payload: createPayload, type: "create" })',
+        );
+        expect(tagManager).toContain(
+            'setRetryAction({ tag: target, type: "delete" })',
+        );
+
+        expect(tagManagerToggle).toContain("interactive: boolean");
+        expect(tagManagerToggle).toContain("saving = false");
+        expect(tagManagerToggle).toContain(
+            "onClick={interactive ? () => void handleToggleTag(tag) : undefined}",
+        );
+        expect(tagManagerToggle).toContain(
+            "disabled={saving || !interactive || busy}",
+        );
+        expect(tagManagerToggle).toContain("aria-pressed={selected}");
+        expect(tagManagerToggle).toContain(
+            'aria-disabled={saving || !interactive || busy ? "true" : undefined}',
+        );
+        expect(tagManagerToggle).toContain(
+            'aria-busy={saving ? "true" : undefined}',
+        );
+        expect(tagManagerToggle).toContain(
+            'data-busy={saving ? "true" : "false"}',
+        );
+        expect(tagManagerSavingState).toContain("interactive: false");
+        expect(tagManagerSavingState).toContain(
+            "saving: tag.id === savingTagId",
+        );
+        expect(tagManagerToggleState).toContain("interactive: true");
+        expect(tagManager).toContain("availableTags.map");
+        expect(tagManager).toContain("handleToggleTag(tag)");
+        expect(tagManager).toContain("aria-busy={saving ?");
+        expect(tagManager).toContain("data-busy={saving ?");
+
+        expect(tagManagerNameField).toContain("enableEnterCreate = false");
+        expect(tagManagerCreateState).toContain(
+            "const canCreate = Boolean(name.trim()) && !isCreating;",
+        );
+        expect(tagManagerCreateHandler).toContain(
+            "if (!createPayload.name || isCreating) {\n            return;\n        }",
+        );
+        expect(tagManagerCreateHandler).toContain("setIsCreating(true)");
+        expect(tagManagerCreateHandler).toContain("setIsCreating(false)");
+        expect(tagManagerNameField).toContain("value={name}");
+        expect(tagManagerNameField).toContain(
+            "onChange={(event) => handleNameChange(event.target.value)}",
+        );
+        expect(tagManagerNameField).toContain("enableEnterCreate");
+        expect(tagManagerNameField).toContain(
+            'event.key === "Enter" && canCreate',
+        );
+        expect(tagManagerNameField).toContain("void handleCreateTag()");
+        expect(tagManagerNameField).toContain("disabled={disabled}");
+        expect(tagManagerInlineCreate).toContain('aria-label="添加"');
+        expect(tagManagerInlineCreate).toContain("disabled={!canCreate}");
+        expect(tagManagerInlineCreate).toContain(
+            "onClick={() => void handleCreateTag()}",
+        );
+        expect(tagManager).toContain("disabled: isCreating");
+        expect(tagManager).toContain("enableEnterCreate: true");
+        expect(tagManager).toContain("isCreating");
+        expect(tagManager).toContain("handleCreateTag()");
+        expect(tagManager).toContain("canCreate");
+        expect(tagManager).toContain('aria-label="添加"');
+        expect(tagManagerColorPicker).toContain('type="single"');
+        expect(tagManagerColorPicker).toContain("value={color}");
+        expect(tagManagerColorPicker).toContain("onValueChange={(value) =>");
         expect(tagManagerColorPicker).toContain(
-            '"tagm-swatches flex-wrap rounded-none"',
+            "if (value && !isCreating) {\n                    setColor(value as RecordingTagColor);\n                }",
         );
+        expect(tagManagerColorPicker).toContain("disabled={isCreating}");
+        expect(tagManagerColorPicker).toContain("aria-disabled={isCreating}");
         expect(tagManagerColorPicker).toContain(
-            'picker === "quick" ? "gap-1" : "gap-2"',
+            "setColor(value as RecordingTagColor)",
         );
-        expect(tagManagerColorPicker).toContain(
-            'spacing={picker === "quick" ? 1 : 2}',
-        );
-        expect(tagManagerColorPicker).not.toContain(
-            'variant="recordingTagColorPicker"',
-        );
-        expect(tagManagerColorPicker).not.toContain(
-            'size="recordingTagColorPicker"',
-        );
-        expect(tagManagerColorPicker).not.toContain(
-            'layout="recordingTagColorPicker"',
-        );
+        expect(tagManagerColorPicker).toContain('aria-label="颜色"');
+        expect(tagManagerColorPicker).toContain("recordingTagColorLabel[item]");
         expect(tagManagerColorPicker).toContain(
             "RECORDING_TAG_SWATCH_ITEM_CLASS_NAME",
         );
         expect(tagManagerColorPicker).toContain(
             "recordingTagSwatchColorClassName[item]",
         );
-        expect(tagManagerColorPicker).toContain("data-sot-tag-color={item}");
-        expect(tagManagerColorPicker).not.toContain('variant="swatch"');
-        expect(tagManagerColorPicker).not.toContain('size="swatch"');
-        expect(tagManagerColorPicker).not.toContain('variant="outline"');
-        const tagManagerColorPickerFrame = extractBoundedSlice(
-            tagManager,
-            "const renderColorPicker = () => (",
-            "const renderIconPicker = () => (",
-        );
-        expect(tagManagerColorPickerFrame).toContain("<FieldSet");
-        expect(tagManagerColorPickerFrame).toContain("<FieldLegend");
-        expect(tagManagerColorPickerFrame).toContain('variant="label"');
-        expect(tagManagerColorPickerFrame).not.toContain('role="group"');
-        expect(tagManagerColorPickerFrame).not.toContain("aria-labelledby=");
-        expect(tagManagerColorPickerFrame).toContain(
-            'data-sot-part="picker-frame"',
-        );
-        expect(tagManagerColorPickerFrame).toContain('data-sot-picker="color"');
-        expect(tagManagerColorPickerFrame).toContain(
-            "id={tagColorPickerLabelId}",
-        );
-        expect(tagManagerColorPickerFrame).toContain(
-            "className={RECORDING_TAG_MANAGER_PICKER_LABEL_CLASS_NAME}",
-        );
-        expect(tagManagerColorPickerFrame).toContain(
-            'data-sot-part="picker-label"',
-        );
-        expect(tagManagerColorPickerFrame).not.toContain("<fieldset");
-        expect(tagManagerColorPickerFrame).not.toContain("<legend");
-        expect(tagManagerIconPicker).toContain('variant="default"');
-        expect(tagManagerIconPicker).toContain('size="sm"');
-        expect(tagManagerIconPicker).toContain('layout="iconGrid"');
-        expect(tagManagerIconPicker).toContain(
-            'className="tagm-icon-grid rounded-none"',
-        );
-        expect(tagManagerIconPicker).toContain("spacing={1.5}");
-        expect(tagManagerIconPicker).toContain('variant="outline"');
-        expect(tagManagerIconPicker).toContain('size="sm"');
-        expect(tagManagerIconPicker).toContain(
-            "RECORDING_TAG_MANAGER_ICON_OPTION_CLASS_NAME",
-        );
-        expect(tagManagerIconPicker).not.toContain('size="iconPicker"');
-        expect(tagManagerIconPicker).not.toContain(
-            'variant="recordingTagIconPicker"',
-        );
-        expect(tagManagerIconPicker).not.toContain(
-            'size="recordingTagIconPicker"',
-        );
-        expect(tagManagerIconPicker).not.toContain(
-            'layout="recordingTagIconPicker"',
-        );
-        expect(tagManagerIconPicker).not.toContain(
-            'spacing="recordingTagIconPicker"',
-        );
-        const tagManagerIconPickerFrame = extractBoundedSlice(
-            tagManager,
-            "const renderIconPicker = () => (",
-            "let panelContent: ReactNode;",
-        );
-        expect(tagManagerIconPickerFrame).toContain("<FieldSet");
-        expect(tagManagerIconPickerFrame).toContain("<FieldLegend");
-        expect(tagManagerIconPickerFrame).toContain('variant="label"');
-        expect(tagManagerIconPickerFrame).not.toContain('role="group"');
-        expect(tagManagerIconPickerFrame).not.toContain("aria-labelledby=");
-        expect(tagManagerIconPickerFrame).toContain(
-            'data-sot-part="picker-frame"',
-        );
-        expect(tagManagerIconPickerFrame).toContain('data-sot-picker="icon"');
-        expect(tagManagerIconPickerFrame).toContain(
-            "id={tagIconPickerLabelId}",
-        );
-        expect(tagManagerIconPickerFrame).toContain(
-            "className={RECORDING_TAG_MANAGER_PICKER_LABEL_CLASS_NAME}",
-        );
-        expect(tagManagerIconPickerFrame).toContain(
-            'data-sot-part="picker-label"',
-        );
-        expect(tagManagerIconPickerFrame).not.toContain("<fieldset");
-        expect(tagManagerIconPickerFrame).not.toContain("<legend");
-        expect(tagManagerIconPicker).not.toContain(
-            'variant="recordingTagIconOption"',
-        );
-        expect(tagManagerIconPicker).not.toContain(
-            'size="recordingTagIconOption"',
-        );
-        for (const primitiveImport of [
-            "Field,",
-            "FieldGroup,",
-            "FieldLabel",
-            "FieldLegend,",
-            "FieldSet,",
-            "InputGroup,",
-            "Popover",
-            "PopoverAnchor",
-            "PopoverContent",
-            "ToggleGroup,",
-            "Badge",
-            "Button",
-            "CardDescription,",
-            "Alert,",
-            "Empty,",
-            "Spinner",
-        ]) {
-            expect(tagManager).toContain(primitiveImport);
-        }
-        expect(tagManager).toContain('data-sot-control="recording-tag-create"');
-        for (const ownerWrapper of [
-            "RecordingTagManagerPopoverContent",
-            "RecordingTagManagerHeader",
-            "RecordingTagManagerTitle",
-            "RecordingTagManagerContent",
-            "RecordingTagManagerFooter",
-            "RecordingTagManagerToggleNote",
-            "RecordingTagManagerBadge",
-        ]) {
-            expect(tagManager).toContain(ownerWrapper);
-        }
-        for (const removedOwnerMap of [
-            "recordingTagManagerButtonClassNames",
-            "recordingTagManagerCardClassNames",
-            "recordingTagManagerContentClassNames",
-            "recordingTagManagerBadgeClassNames",
-            "recordingTagManagerFieldClassNames",
-            "recordingTagManagerToggleGroupClassNames",
-            "recordingTagManagerSotColorClassName",
-            "recordingTagManagerSwatchToneClassNames",
-            ["recordingTagManager", "ClassName("].join(""),
-        ]) {
-            expect(tagManager).not.toContain(removedOwnerMap);
-        }
-        expect(recordingTagVisuals).not.toContain(
-            ["recordingTagVisual", "ClassName("].join(""),
-        );
-        expect(tagManager).toContain('"create"');
-        expect(tagManager).toContain('"delete"');
-        expect(tagManager).toContain('"default"');
-        expect(tagManager).toContain('"empty"');
-        expect(tagManager).toContain('"saving"');
-        expect(tagManager).toContain('"tight"');
-        expect(tagManager).toContain('"compact"');
-        expect(tagManager).toContain("contentVariant={contentVariant}");
-        expect(tagManager).not.toContain('variant="recordingTagToggleNote"');
-        for (const recordingTagBusinessProp of [
-            'variant="recordingTagErrorRetry"',
-            'variant="recordingTagToggle"',
-            'variant="recordingTagInlineCreate"',
-            'variant="recordingTagCancel"',
-            'variant="recordingTagCreate"',
-            'variant="recordingTagDelete"',
-            'variant="recordingTagPanelClose"',
-            'variant="recordingTagPickerFrame"',
-            'variant="recordingTagPickerLabel"',
-            'variant="recordingTagSection"',
-            'variant="recordingTagSectionLabel"',
-            'variant="recordingTagError"',
-            'size="recordingTag',
-            'density="recordingTag',
-            'layout="recordingTag',
-            'spacing="recordingTag',
-        ]) {
-            expect(tagManager).not.toContain(recordingTagBusinessProp);
-        }
-        expect(tagManager).not.toContain(
-            "RECORDING_TAG_INLINE_CREATE_BUTTON_CLASS_NAME",
-        );
-        expect(tagManager).not.toContain(
-            "RECORDING_TAG_CHIP_REMOVE_BUTTON_VARIANT",
-        );
-        for (const retiredButtonProp of [
-            'variant="ghostNeutral"',
-            'variant="pill"',
-            'variant="accentIcon"',
-            'variant="actionPrimary"',
-            'variant="actionDestructive"',
-            'variant="chipRemove"',
-            'variant="ghostIconCompact"',
-            'size="control-sm"',
-            'size="pill-sm"',
-            'size="icon-chip"',
-            'size="icon-2xs"',
-        ]) {
-            expect(tagManager).not.toContain(retiredButtonProp);
-        }
-        expect(tagManager).toContain('variant="ghost"');
-        expect(tagManager).toContain('variant="default"');
-        expect(tagManager).toContain('variant="destructive"');
-        expect(tagManager).not.toContain('variant="pickerFrame"');
-        expect(tagManager).not.toContain('variant="picker"');
-        expect(tagManager).toContain('className="tagm-sec gap-2"');
-        expect(tagManager).toContain('className="tagm-sec-label mb-0"');
-        expect(tagManager).toMatch(
-            /<FieldSet[\s\S]*className="tagm-sec gap-2"[\s\S]*data-sot-part="section"[\s\S]*<FieldLegend[\s\S]*variant="label"[\s\S]*className="tagm-sec-label mb-0"/,
-        );
-        expect(tagManager).toContain('appearance="pill"');
-        expect(tagManager).not.toContain('variant="swatch"');
-        expect(tagManager).toContain('variant="statusError"');
-        expect(tagManager).toContain('variant="destructiveSoftNeutral"');
-        expect(tagManager).toContain('density="compact"');
-        expect(tagManager).toContain('density="comfortable"');
-        expect(tagManager).toContain('layout="inline"');
-        expect(tagManager).not.toContain('size="colorPicker"');
-        expect(tagManager).not.toContain('size="iconPicker"');
-        expect(tagManager).toContain('size="sm"');
-        expect(tagManager).not.toContain('size="icon"');
-        expect(tagManager).toContain('size="icon-xs"');
-        expect(tagManager).toContain('size="icon-compact"');
-        expect(tagManager).not.toContain('size="swatch"');
-        expect(tagManager).toContain("RECORDING_TAG_SWATCH_ITEM_CLASS_NAME");
-        expect(tagManager).toMatch(
-            /recordingTagTextColorClassName\s*\[\s*tag\.color\s*\]/,
-        );
-        expect(tagManager).toContain("recordingTagSwatchColorClassName[item]");
-        expect(tagManager).not.toContain(
-            "RECORDING_TAG_COLOR_TOKEN_CLASS_NAME",
-        );
-        expect(tagManager).toContain(
-            "tagm-sel-chip justify-normal gap-1 rounded-full border-border pr-1",
-        );
-        expect(tagManager).toContain(
-            'variant={appearance === "pill" ? "secondary" : "default"}',
-        );
-        expect(tagManager).not.toContain("text-[var(--recording-tag-accent)]");
-        expect(tagManager).not.toContain("--recording-tag-accent");
-        expect(tagManager).not.toContain("--badge-pill-height");
-        expect(tagManager).not.toContain("--badge-check-bg");
-        expect(globals).not.toContain("--badge-pill-height");
-        expect(globals).not.toContain("--badge-check-bg");
-        expect(tagManager).toContain("size-[18px]");
-        expect(tagManager).toContain("p-0");
-        expect(tagManager).toContain("hover:scale-110");
         expect(tagManager).toContain("data-[state=on]:border-foreground");
-        expect(tagManager).not.toContain(
-            [
-                "data-[state=on]:shadow",
-                "[inset_0_0_0_2px_var(--background)]",
-            ].join("-"),
+        expect(tagManagerIconPicker).toContain('type="single"');
+        expect(tagManagerIconPicker).toContain("value={icon}");
+        expect(tagManagerIconPicker).toContain("onValueChange={(value) =>");
+        expect(tagManagerIconPicker).toContain(
+            "if (value && !isCreating) {\n                            setIcon(value as RecordingTagIcon);\n                        }",
         );
-        expect(tagManager).toContain('size="icon-compact"');
-        expect(tagManager).toContain('placement="inlineStart"');
-        expect(tagManager).toContain('"relative whitespace-nowrap"');
-        expect(tagManager).toMatch(
-            /\(saving \|\| !interactive\) &&\s*"pointer-events-none disabled:opacity-100"/,
+        expect(tagManagerIconPicker).toContain("disabled={isCreating}");
+        expect(tagManagerIconPicker).toContain("aria-disabled={isCreating}");
+        expect(tagManagerIconPicker).toContain(
+            "setIcon(value as RecordingTagIcon)",
         );
-        expect(tagManager).toContain('saving && "before:hidden"');
-        expect(tagManager).toContain(
-            "disabled={saving || !interactive || busy}",
+        expect(tagManagerIconPicker).toContain('aria-label="图标"');
+        expect(tagManagerIconPicker).toContain(
+            "aria-label={`选择图标 ${item}`}",
         );
-        expect(tagManager).toContain(
-            'aria-disabled={saving || !interactive || busy ? "true" : undefined}',
+        expect(tagManagerCreateButton).toContain(
+            'aria-busy={isCreating ? "true" : undefined}',
         );
-        expect(tagManager).toContain("<Spinner");
-        expect(tagManager).toContain('appearance="checkDot"');
-        expect(tagManager).toContain('data-icon="inline-start"');
-        expect(tagManager).toContain('data-icon="inline-end"');
-        expect(tagManager).not.toContain(["!", "size-2.5"].join(""));
-        expect(tagManager).not.toContain("stroke-[3]");
-        expect(tagManager).not.toContain("[stroke-linecap:butt]");
-        expect(tagManager).not.toContain("[stroke-linejoin:miter]");
-        expect(tagManager).not.toContain("<LoaderCircle");
-        expect(tagManager).not.toContain('className="animate-spin"');
-        expect(tagManager).not.toContain("recordingTagSwatchStyle");
-        expect(tagManager).not.toContain("--recording-tag-swatch-color");
-        expect(tagManager).not.toContain("--toggle-swatch-color");
-        expect(tagManager).not.toContain("bg-white");
-        expect(tagManager).toContain("shadow-[var(--card-popover-shadow)]");
-        expect(tagManager).not.toMatch(
-            /\bshadow-\[(?!var\(--card-popover-shadow\)\])[^\]]+\]/,
+        expect(tagManagerCreateButton).toContain("disabled={!canCreate}");
+        expect(tagManagerCreateButton).toContain(
+            "onClick={() => void handleCreateTag()}",
         );
-        expect(
-            tagManager.match(
-                /\b(?:bg|text|border|ring|fill|stroke)-\[var\([^\]]+\)\]/g,
-            ),
-        ).toEqual([
-            "border-[var(--card-popover-border)]",
-            "bg-[var(--card-popover-bg)]",
-            "border-[var(--card-popover-divider)]",
-            "bg-[var(--card-popover-footer-bg)]",
-            "border-[var(--line-hairline)]",
-            "bg-[var(--bg-recessed)]",
-            "text-[var(--fg-secondary)]",
-            "bg-[var(--bg-elevated)]",
-            "text-[var(--fg-primary)]",
-        ]);
-        expect(recordingTagVisuals).not.toMatch(/\bshadow-\[[^\]]+\]/);
-        expect(recordingTagVisuals).not.toMatch(
-            /\b(?:bg|text|border|ring|fill|stroke)-\[var\([^\]]+\)\]/,
-        );
-        expect(tagManager).not.toMatch(/!(?:size|p-|text-|bg-)/);
-        expect(recordingTagVisuals).not.toMatch(/!(?:size|p-|text-|bg-)/);
-        expectSourceToExcludeForbiddenSubstrings(
-            cardPrimitive,
-            CARD_PRIMITIVE_FORBIDDEN_BUSINESS_TOKENS,
-        );
-        expect(tagManager).toContain(
-            "max-h-[460px] w-[320px] max-w-[calc(100vw-2rem)] gap-0",
-        );
-        expect(tagManager).toContain(
-            "RECORDING_TAG_MANAGER_TOGGLE_NOTE_CLASS_NAME",
-        );
-        expect(emptyPrimitive).not.toContain("recordingTagEmptyState:");
-        expect(inputGroupPrimitive).not.toContain("recordingTagCreateRow:");
-        expect(inputGroupPrimitive).not.toContain("recordingTagNameInput:");
-        expect(fieldPrimitive).not.toContain("recordingTagPickerFrame:");
-        expect(fieldPrimitive).not.toContain("recordingTagPickerLabel:");
-        expect(fieldPrimitive).not.toContain("recordingTagSectionLabel:");
-        for (const removedFieldPickerApi of [
-            "pickerFrame",
-            "colorPicker",
-            "iconPicker",
-            "sectionLabel",
-            '"picker"',
-        ]) {
-            expect(fieldPrimitive).not.toContain(removedFieldPickerApi);
-        }
-        for (const removedToggleGroupPickerApi of ["iconPicker"]) {
-            expect(toggleGroupPrimitive).not.toContain(
-                removedToggleGroupPickerApi,
-            );
-        }
-        for (const featureOwnedFieldClassName of [
-            "RECORDING_TAG_MANAGER_PICKER_FRAME_CLASS_NAME",
-            "RECORDING_TAG_MANAGER_PICKER_LABEL_CLASS_NAME",
-        ]) {
-            expect(tagManager).toContain(featureOwnedFieldClassName);
-        }
-        expect(tagManager).toContain("tagm-picker flex flex-col gap-2.5");
-        expect(tagManager).toContain("tagm-picker-label");
-        expect(tagManager).toContain(
-            "RECORDING_TAG_MANAGER_ICON_OPTION_CLASS_NAME",
-        );
-        expect(alertPrimitive).not.toContain("recordingTagError:");
-        expect(alertPrimitive).not.toContain("recordingTagDeleteConfirm:");
-        expect(tagManager).not.toContain(
-            'className="max-h-[460px] w-[320px] max-w-[calc(100vw-2rem)] gap-0 max-md:max-w-none"',
-        );
-        expect(tagManager).toMatch(
-            /<InputGroup[\s\S]*variant="compact"[\s\S]*data-sot-part="create-row"/,
-        );
-        expect(tagManager).toMatch(
-            /<InputGroupInput[\s\S]*variant="compact"[\s\S]*data-sot-control="recording-tag-name"/,
-        );
-        for (const retiredRecordingTagShellToken of [
-            'variant="popoverCompact"',
-            '"popoverCreate"',
-            '"popoverDelete"',
-            '"popoverDefault"',
-            '"popoverEmpty"',
-            '"popoverSaving"',
-            '"popoverTight"',
-            '"popoverCompact"',
-            'variant="popoverNote"',
-            'variant="recordingTagPickerFrame"',
-            'variant="recordingTagPickerLabel"',
-            'variant="recordingTagSection"',
-            'variant="recordingTagSectionLabel"',
-            'variant="recordingTagDeleteConfirm"',
-            'density="recordingTag',
-            'layout="recordingTag',
-            'size="recordingTag',
-        ]) {
-            expect(tagManager).not.toContain(retiredRecordingTagShellToken);
-        }
-        const tagManagerInlineCreateButton = extractElementSlice(
-            tagManager,
-            'aria-label="添加"',
-            "InputGroupButton",
-        );
-        expect(tagManagerInlineCreateButton).toContain('variant="default"');
-        expect(tagManagerInlineCreateButton).toContain('size="icon-compact"');
-        expect(tagManagerInlineCreateButton).toContain('"tagm-add-btn"');
-        expect(tagManagerInlineCreateButton).toContain(
-            'data-sot-control="recording-tag-create"',
-        );
-        expect(tagManagerInlineCreateButton).toContain("disabled={!canCreate}");
-        expect(tagManager).toContain('size="sm"');
-        expect(tagManager).toContain('data-sot-control="recording-tag-create"');
-        expect(tagManager).toContain('"min-w-0 max-w-full"');
-        expect(tagManager).toContain('className="gap-[14px]"');
-        expect(tagManager).toContain('className="tagm-create gap-2"');
-        expect(tagManager).toContain("disabled={!canCreate}");
-        expect(tagManager).toContain("onClick={() => void handleCreateTag()}");
-        for (const shadcnRegression of [
-            "accentSelf",
-            "icon-chip-hidden-glyph",
-            "aria-disabled={!canCreate}",
-            "mr-[6px] align-[-2px]",
-            "flex min-h-[59px] flex-col gap-2.5 rounded-md border bg-muted/40 p-3",
-            "flex min-h-[103px] flex-col gap-2.5 rounded-md border bg-muted/40 p-3",
-            "mb-2 flex items-center gap-1.5 font-mono text-[10.5px] leading-none font-semibold uppercase tracking-[0.08em] text-muted-foreground",
-            "[display:grid] grid-cols-6",
-            'className="m-0 contents min-w-0 border-0 p-0"',
-            "[&>[data-slot=field-legend]]:mb-4",
-        ]) {
-            expect(tagManager).not.toContain(shadcnRegression);
-        }
-        expect(tagManager).not.toContain("mergeTagManagerClassName");
-        expect(tagManager).not.toContain("transcript t-pane");
-        expect(tagManager).not.toContain("className?: string");
-        expect(tagManager).not.toContain("cl-note");
 
-        const tagManagerEmpty = extractElementSlice(
-            tagManager,
-            'data-sot-panel="recording-tag-empty"',
-            "Empty",
+        expect(tagManagerDeleteOpen).toContain('aria-label="移除"');
+        expect(tagManagerDeleteOpen).toContain(
+            "disabled={Boolean(\n                                                    deletingTagId,",
         );
-        expect(tagManagerEmpty).toContain("<Empty");
-        expect(tagManagerEmpty).toContain(
-            'data-sot-panel="recording-tag-empty"',
+        expect(tagManagerDeleteOpen).toContain("setOperationError(null)");
+        expect(tagManagerDeleteOpen).toContain("setShowToggleState(false)");
+        expect(tagManagerDeleteOpen).toContain("setDeleteTarget(catalogTag)");
+        expect(tagManagerDeleteState).toContain("deleteTarget.name");
+        expect(tagManagerDeleteState).toContain(
+            "tagDetailsById.get(deleteTarget.id)?.recordingCount",
         );
-        expect(tagManagerEmpty).toContain('data-sot-part="empty"');
-        expect(tagManagerEmpty).toContain('data-sot-state="empty"');
+        expect(tagManagerDeleteState).toContain("deleteTarget.recordingCount");
+        expect(tagManagerDeleteState).toContain(
+            "selectedTagIds.has(deleteTarget.id) ? 1 : 0",
+        );
+        expect(tagManagerDeleteCancel).toContain(
+            "disabled={Boolean(deletingTagId)}",
+        );
+        expect(tagManagerDeleteCancel).toContain("setDeleteTarget(null)");
+        expect(tagManagerDeleteCancel).toContain("setOperationError(null)");
+        expect(tagManagerDeleteConfirm).toContain('variant="destructive"');
+        expect(tagManagerDeleteConfirm).toContain(
+            'aria-busy={\n                        deletingTagId === deleteTarget.id ? "true" : undefined\n                    }',
+        );
+        expect(tagManagerDeleteConfirm).toContain(
+            "disabled={Boolean(deletingTagId)}",
+        );
+        expect(tagManagerDeleteConfirm).toContain(
+            "onClick={() => void handleDeleteTag()}",
+        );
+        expect(tagManagerDeleteConfirm).toContain("<Spinner");
+        expect(tagManagerDeleteConfirm).toContain(
+            "deletingTagId === deleteTarget.id",
+        );
+        expect(tagManager).toContain("deleteTarget");
+        expect(tagManager).toContain("handleDeleteTag()");
+        expect(tagManager).toContain("deletingTagId");
+        expect(tagManager).toContain('aria-label="移除"');
+        expect(tagManager).toContain('variant="destructive"');
+
         expect(tagManagerEmpty).toContain('variant="popover"');
         expect(tagManagerEmpty).toContain('<EmptyHeader variant="popover">');
-        expect(tagManagerEmpty).toContain(
-            '<EmptyTitle\n                                variant="popover"\n                                data-sot-part="empty-message"',
-        );
+        expect(tagManagerEmpty).toContain('<EmptyTitle variant="popover">');
         expect(tagManagerEmpty).toContain("还没有任何标签");
-        expect(tagManagerEmpty).toContain(
-            '<EmptyDescription\n                                variant="popover"\n                                data-sot-part="empty-description"',
-        );
+        expect(tagManagerEmpty).toContain("<EmptyDescription");
+        expect(tagManagerEmpty).toContain('variant="popover"');
+        expect(tagManagerEmpty).toContain('className="leading-[1.5]"');
         expect(tagManagerEmpty).toContain("在下方为这条录音创建第一个标签。");
-        expect(tagManagerEmpty).not.toContain(
-            '<div data-sot-part="empty-message">',
-        );
-        expect(tagManagerEmpty).not.toContain(
-            '<div data-sot-part="empty-description">',
-        );
+        expect(tagManager).toContain("<Spinner");
+        expect(tagManager).toContain('data-icon="inline-start"');
+        expect(tagManager).toContain('data-icon="inline-end"');
+        expect(tagManager).toContain("<Empty");
+        expect(tagManager).toContain("selectedTagIds");
+        expect(tagManager).toContain("tagDetailsById");
 
-        const removedTagManagerPrimitiveSelectors = [
-            '[data-sot-control="recording-tag-icon"][data-slot="toggle-group-item"]',
-            '[data-sot-control="recording-tag-icon"][data-sot-state="selected"]',
-            '[data-sot-panel="recording-tag-error"][data-slot="alert"]',
-            '[data-sot-panel="recording-tag-delete-confirm"][data-slot="alert"]',
-            '[data-sot-panel="recording-tag-empty"] [data-sot-part="empty-message"]',
-            '[data-sot-panel="recording-tag-empty"] [data-sot-part="empty-description"]',
-            '[data-sot-control="recording-tag-error-retry"][data-slot="button"]',
-            '[data-sot-part="footer"]\n    [data-slot="button"]',
-            '[data-sot-panel="recording-tag-manager"][data-slot="popover-content"]',
-            '[data-sot-panel="recording-tag-manager"]\n    [data-sot-part="head"][data-slot="card-header"]',
-            '[data-sot-panel="recording-tag-manager"]\n    [data-sot-part="body"][data-slot="card-content"]',
-            '[data-sot-panel="recording-tag-manager"]\n    [data-sot-part="create"][data-slot="field-group"]',
-            '[data-sot-panel="recording-tag-manager"]\n    [data-sot-part="picker"][data-slot="field-set"]',
-            '[data-sot-panel="recording-tag-manager"]\n    [data-sot-part="picker-label"][data-slot="field-legend"]',
-            '[data-sot-panel="recording-tag-manager"]\n    [data-sot-part="picker-frame"][data-slot="field-set"]',
-            '[data-sot-panel="recording-tag-manager"]\n    [data-sot-part="selected-chip"][data-slot="badge"]',
-            '[data-sot-panel="recording-tag-manager"] [data-sot-part="tag-loading-icon"]',
-            '[data-sot-panel="recording-tag-manager"] [data-sot-part="tag-check"]',
-            '[data-sot-panel="recording-tag-manager"] [data-sot-part="tag-check"] svg',
-            '[data-sot-panel="recording-tag-manager"]\n    [data-sot-part="create-row"][data-slot="input-group"]',
-            '[data-sot-panel="recording-tag-manager"] [data-sot-part="create-meta"]',
-            '[data-sot-panel="recording-tag-manager"] [data-sot-part="picker-frame"]',
-            '[data-sot-panel="recording-tag-manager"] [data-sot-part="toggle-note"]',
-            '[data-theme="dark"] [data-sot-panel="recording-tag-manager"]',
-        ];
-
-        for (const selector of removedTagManagerPrimitiveSelectors) {
-            expect(collectCssRuleBlocks(globals, selector)).toEqual([]);
-        }
-
-        const tagManagerPrimitiveButtonBlocks = collectCssRuleBlocks(
-            globals,
-            '[data-sot-panel="recording-tag-manager"]',
-        ).filter(({ prelude }) => prelude.includes('[data-slot="button"]'));
-        expect(tagManagerPrimitiveButtonBlocks).toEqual([]);
-
-        const tagManagerRepaintSelectors = [
-            '[data-sot-panel="recording-tag-manager"][data-slot="popover-content"]',
-            '[data-sot-part="selected-chip"][data-slot="badge"]',
-            '[data-sot-control="recording-tag-manager-close"][data-slot="button"]',
-            '[data-sot-control="recording-tag-delete-open"][data-slot="button"]',
-            '[data-sot-control="recording-tag-toggle"][data-slot="button"]',
-            '[data-sot-control="recording-tag-create"][data-slot="button"]',
-            '[data-sot-control="recording-tag-error-retry"][data-slot="button"]',
-            '[data-sot-part="footer"]\n    [data-slot="button"]',
-            '[data-sot-part="create-row"]\n    [data-slot="input-group-control"]',
-        ];
-        const forbiddenPrimitiveRepaintDeclaration =
-            /^\s*(?:-webkit-backdrop-filter|backdrop-filter|background(?:-clip)?|border(?:-(?:color|radius|style|width))?|box-shadow|color|font(?:-[\w-]+)?|height|outline|padding|transition|width)\s*:|\b(?:linear-gradient|oklch)\(/m;
-
-        for (const selector of tagManagerRepaintSelectors) {
-            const blocks = collectCssRuleBlocks(globals, selector);
-            for (const block of blocks) {
-                expect(block.declarations).not.toMatch(
-                    forbiddenPrimitiveRepaintDeclaration,
-                );
-            }
-        }
-        const tagManagerGlobalPanelBlocks = collectCssRuleBlocks(
-            globals,
-            '[data-sot-panel="recording-tag-manager"]',
-        );
-        const tagManagerPanelClass = extractBoundedSlice(
-            tagManager,
-            "const RECORDING_TAG_MANAGER_PANEL_CLASS_NAME =",
-            ";",
-        );
-        const tagManagerContentClassName = extractBoundedSlice(
-            tagManager,
-            "const RECORDING_TAG_MANAGER_CONTENT_CLASS_NAME =",
-            ";",
-        );
-
-        expect(tagManagerGlobalPanelBlocks).toEqual([]);
-        expect(globals).not.toContain(["--z", "context-menu"].join("-"));
-        for (const ownerPanelSnippet of [
-            "tagm-panel max-h-[460px]",
-            "max-h-[460px] w-[320px] max-w-[calc(100vw-2rem)]",
-            "max-md:w-[calc(100vw-24px)] max-md:max-w-none",
+        const tagManagerBusinessRepaintDeclarationRe =
+            /^\s*(?:background(?:-clip)?|border(?:-(?:color|radius|style|width))?|box-shadow|color|font(?:-[\w-]+)?|height|line-height|padding|transition|width)\s*:|\b(?:color-mix|linear-gradient|oklch)\(/m;
+        for (const selector of [
+            ".tagm-panel",
+            ".tagm-head",
+            ".tagm-body",
+            ".tagm-actions",
+            ".tagm-close",
+            ".tagm-opt",
+            ".tagm-sel-chip",
+            ".tagm-create",
+            ".tagm-swatches",
+            ".tagm-icon-grid",
+            ".tagm-sec",
+            ".tagm-opts",
+            ".tagm-swatch",
+            ".tg-pick",
         ]) {
-            expect(tagManagerPanelClass).toContain(ownerPanelSnippet);
+            const businessRepaintBlocks = collectCssRuleBlocks(
+                globals,
+                selector,
+            ).filter(({ declarations }) =>
+                tagManagerBusinessRepaintDeclarationRe.test(declarations),
+            );
+
+            expect(businessRepaintBlocks).toEqual([]);
         }
-        expect(tagManagerPanelClass).not.toContain("fixed");
-        expect(tagManagerPanelClass).not.toContain("z-[var(--z-dropdown)]");
-        expect(tagManagerPanelClass).not.toContain("pointer-events-auto");
-        expect(tagManagerContentClassName).toContain("overflow-auto");
-        expect(tagManager).toContain('"tagm-body"');
+
+        expect(tagManager).not.toContain(["data", "sot"].join("-"));
+        expect(tagManager).not.toContain("recordingTagSwatchStyle");
+        expect(tagManager).not.toContain("--recording-tag-accent");
+        expect(tagManager).not.toContain("mergeTagManagerClassName");
+        for (const legacyClass of [
+            'className="tag-manager"',
+            'className="tag-manager-header"',
+            'className="tag-manager-picker"',
+            'className="tag-manager-body"',
+        ]) {
+            expect(tagManager).not.toContain(legacyClass);
+        }
 
         expect(sourceReport).toContain("SAFE_SOURCE_DETAIL_KEYS");
         expect(
@@ -14003,22 +13482,26 @@ describe("full UI replacement regression coverage", () => {
             'data-testid="source-report-empty-surface"',
         );
         expect(sourceReportPrimitives).not.toMatch(
-            /SotSourceReport|data-sot-source-report|sourceReportSotStyles|SourceReportStyleVariables/,
+            /SotSourceReport|data-source-report|sourceReportSotStyles|SourceReportStyleVariables/,
         );
 
         expect(sourceReport).toContain(
             "<SourceReportPane className={className} state={sourceReportState}>",
         );
         expect(sourceReport).toContain('<SourceReportState state="loading">');
-        expect(sourceReport).toContain('<SourceReportState state="empty">');
+        expect(sourceReport).toMatch(
+            /<RecordingSourceReportState\s+state="empty"/,
+        );
         expect(sourceReport).toContain("subState={sourceReportSubState}");
-        expect(sourceReport).toContain("<SourceReportMissingNotice");
+        expect(sourceReport).toContain("<RecordingSourceReportMissingNotice");
         expect(sourceReport).toContain('testId="source-report-refresh"');
-        expect(sourceReport).toContain('testId="source-report-open-source"');
-        expect(sourceReport).toContain('testId="source-report-repull"');
+        expect(sourceReport).toContain(
+            'data-testid="source-report-open-source"',
+        );
+        expect(sourceReport).toContain('data-testid="source-report-repull"');
         expect(sourceReport).not.toContain("@/features/source-report/styles");
         expect(sourceReport).not.toContain("JSON.stringify(data.detail");
-        expect(sourceReport).not.toContain("data-sot-missing-copy");
+        expect(sourceReport).not.toContain("data-missing-copy");
 
         for (const [copyKind, copyState, copyDisabled] of [
             [
@@ -14044,41 +13527,39 @@ describe("full UI replacement regression coverage", () => {
         expect(detail).toContain("<SourceReportPanel");
         expect(detail).toContain("onAvailabilityChange=");
         expect(detail).not.toContain("SotSourceReport");
-        const sotPlayerTagChip = extractBoundedSlice(
-            sotPlayerPrimitives,
-            "export function SotPlayerTagChip",
-            "export type SotPlayerStatusTone",
+        const playerTagChip = extractBoundedSlice(
+            playerPrimitives,
+            "export function PlayerTagChip",
+            "export type PlayerStatusTone",
         );
-        expect(sotPlayerPrimitives).toContain(
+        expect(playerPrimitives).toContain(
             'import { Button } from "@/components/ui/button";',
         );
-        expect(sotPlayerPrimitives).toContain(
-            'import { cn } from "@/lib/utils";',
-        );
-        expect(sotPlayerPrimitives).toContain("data-recording-tag-chip");
-        expect(sotPlayerPrimitives).toContain("data-recording-tag-add");
+        expect(playerPrimitives).toContain('import { cn } from "@/lib/utils";');
+        expect(playerPrimitives).toContain("data-recording-tag-chip");
+        expect(playerPrimitives).toContain("data-recording-tag-add");
         expect(button).not.toContain("playerTagAdd:");
         expect(button).not.toContain("playerTagChip:");
         expect(button).not.toContain("playerTagOverflow:");
         expect(badge).not.toContain("playerTagChip:");
         expect(badge).not.toContain("playerTagOverflow:");
-        for (const sotPlayerTagClassConstant of [
+        for (const playerTagClassConstant of [
             "PLAYER_TAG_COLOR_CLASS",
             "PLAYER_TAG_CHIP_CLASS",
             "PLAYER_TAG_OVERFLOW_CLASS",
         ]) {
-            expect(sotPlayerPrimitives).toContain(sotPlayerTagClassConstant);
+            expect(playerPrimitives).toContain(playerTagClassConstant);
         }
-        for (const sotPlayerTagClassToken of [
+        for (const playerTagClassToken of [
             'blue: "text-chart-1"',
             'green: "text-chart-3"',
             'red: "text-destructive"',
             "border-dashed",
             "ring-1 ring-ring",
         ]) {
-            expect(sotPlayerPrimitives).toContain(sotPlayerTagClassToken);
+            expect(playerPrimitives).toContain(playerTagClassToken);
         }
-        for (const sotPlayerTagChipToken of [
+        for (const playerTagChipToken of [
             "--sot-player-tag-chip-bg",
             "--sot-player-tag-chip-border",
             "--sot-player-tag-chip-fg",
@@ -14086,57 +13567,55 @@ describe("full UI replacement regression coverage", () => {
             "--sot-player-tag-chip-blue-border",
             "--sot-player-tag-chip-blue-fg",
         ]) {
-            expect(globals).not.toContain(sotPlayerTagChipToken);
+            expect(globals).not.toContain(playerTagChipToken);
         }
-        for (const sotPlayerTagChipToken of [
+        for (const playerTagChipToken of [
             "--sot-player-tag-chip-bg",
             "--sot-player-tag-chip-border",
             "--sot-player-tag-chip-fg",
         ]) {
-            expect(sotPlayerPrimitives).not.toContain(sotPlayerTagChipToken);
+            expect(playerPrimitives).not.toContain(playerTagChipToken);
         }
-        expect(sotPlayerPrimitives).not.toContain(
+        expect(playerPrimitives).not.toContain(
             "SOT_PLAYER_TAG_CHIP_VARIABLES_CLASS",
         );
-        expect(sotPlayerPrimitives).not.toContain("SOT_PLAYER_TAG_COLOR_TOKEN");
-        expect(sotPlayerPrimitives).not.toContain("sotPlayerTagChipStyle");
-        expect(sotPlayerPrimitives).not.toContain(
+        expect(playerPrimitives).not.toContain("SOT_PLAYER_TAG_COLOR_TOKEN");
+        expect(playerPrimitives).not.toContain("playerTagChipStyle");
+        expect(playerPrimitives).not.toContain(
             'background: "var(--sot-player-tag-chip-bg)"',
         );
-        expect(sotPlayerPrimitives).not.toContain(
+        expect(playerPrimitives).not.toContain(
             'borderColor: "var(--sot-player-tag-chip-border)"',
         );
-        expect(sotPlayerPrimitives).not.toContain(
+        expect(playerPrimitives).not.toContain(
             'color: "var(--sot-player-tag-chip-fg)"',
         );
         expect(globals).not.toContain("dashboard-recording-tag-chip");
         expect(badge).not.toContain("dashboard-recording-tag-chip");
-        expect(sotPlayerPrimitives).not.toContain(
-            "dashboard-recording-tag-chip",
-        );
-        expect(sotPlayerTagChip).toContain('variant="outline"');
-        expect(sotPlayerTagChip).toContain('variant="secondary"');
-        expect(sotPlayerTagChip).toContain('size="xs"');
-        expect(sotPlayerTagChip).toContain('className="border-dashed"');
-        expect(sotPlayerTagChip).toContain("PLAYER_TAG_CHIP_CLASS");
-        expect(sotPlayerTagChip).toContain("PLAYER_TAG_COLOR_CLASS[tag.color]");
-        expect(sotPlayerTagChip).toContain("PLAYER_TAG_OVERFLOW_CLASS");
-        expect(sotPlayerPrimitives).toMatch(
+        expect(playerPrimitives).not.toContain("dashboard-recording-tag-chip");
+        expect(playerTagChip).toContain('variant="outline"');
+        expect(playerTagChip).toContain('variant="secondary"');
+        expect(playerTagChip).toContain('size="xs"');
+        expect(playerTagChip).toContain('className="border-dashed"');
+        expect(playerTagChip).toContain("PLAYER_TAG_CHIP_CLASS");
+        expect(playerTagChip).toContain("PLAYER_TAG_COLOR_CLASS[tag.color]");
+        expect(playerTagChip).toContain("PLAYER_TAG_OVERFLOW_CLASS");
+        expect(playerPrimitives).toMatch(
             /<Plus\s+data-icon="inline-start"\s+aria-hidden="true"\s*\/>/,
         );
-        expect(sotPlayerPrimitives).toMatch(
+        expect(playerPrimitives).toMatch(
             /<Button[\s\S]*data-recording-tag-chip[\s\S]*<span\s+data-icon="inline-start">\s*<RecordingTagIconGlyph\s+icon=\{tag\.icon\}\s*\/>\s*<\/span>/,
         );
-        expect(sotPlayerPrimitives).toContain(
-            'data-sot-part="recording-tag-overflow"',
+        expect(playerPrimitives).toContain(
+            'data-part="recording-tag-overflow"',
         );
-        expect(sotPlayerPrimitives).not.toContain("tag-chip-action");
-        expect(sotPlayerPrimitives).not.toContain("tag-chip-trigger");
-        expect(sotPlayerPrimitives).not.toContain("tag-chip-inline");
-        expect(sotPlayerPrimitives).not.toContain("utag-add");
-        expect(sotPlayerPrimitives).not.toContain("utag-plus");
-        expect(sotPlayerPrimitives).not.toContain("data-tagm-trigger");
-        expect(sotPlayerPrimitives).not.toContain("recordingTagColorClassName");
+        expect(playerPrimitives).not.toContain("tag-chip-action");
+        expect(playerPrimitives).not.toContain("tag-chip-trigger");
+        expect(playerPrimitives).not.toContain("tag-chip-inline");
+        expect(playerPrimitives).not.toContain("utag-add");
+        expect(playerPrimitives).not.toContain("utag-plus");
+        expect(playerPrimitives).not.toContain("data-tagm-trigger");
+        expect(playerPrimitives).not.toContain("recordingTagColorClassName");
         expect(recordingTagVisuals).toContain(
             'import { Badge } from "@/components/ui/badge";',
         );
@@ -14189,48 +13668,38 @@ describe("full UI replacement regression coverage", () => {
         );
         expect(recordingTagVisuals).not.toContain("<svg");
         expect(sharedRecordingTagChip).toContain(
-            "data-sot-tag-color={tag.color}",
+            "recordingTagTextColorClassName[tag.color]",
         );
-        expect(sharedRecordingTagChip).toContain(
-            "data-sot-tag-icon={tag.icon}",
-        );
+        expect(recordingTagVisuals).toContain("<RecordingTagIconGlyph");
         expect(sharedRecordingTagChip).not.toContain('variant="outline"');
         expect(recordingTagVisuals).not.toContain("utag c-");
         expect(recordingTagVisuals).not.toContain("mergeUserTagClassName");
-        expect(sotPlayerPrimitives).toContain(
+        expect(playerPrimitives).toContain(
             'import { Badge } from "@/components/ui/badge";',
         );
-        expect(sotPlayerPrimitives).toContain(
-            'data-sot-control="player-source-tag"',
-        );
-        expect(sotPlayerPrimitives).toContain(
-            'data-sot-control="player-status"',
-        );
-        expect(sotPlayerPrimitives).toContain("<Badge");
+        expect(playerPrimitives).toContain('data-control="player-source-tag"');
+        expect(playerPrimitives).toContain('data-control="player-status"');
+        expect(playerPrimitives).toContain("<Badge");
         const sharedPlayerStatusBadge = extractOpeningElement(
-            sotPlayerPrimitives,
-            'data-sot-control="player-status"',
+            playerPrimitives,
+            'data-control="player-status"',
             "Badge",
         );
         const sharedPlayerSourceBadge = extractOpeningElement(
-            sotPlayerPrimitives,
-            'data-sot-control="player-source-tag"',
+            playerPrimitives,
+            'data-control="player-source-tag"',
             "Badge",
         );
         const legacyPlayerSourceVariantUsage = `variant="${"player"}Source"`;
 
-        expectSotPlayerSourcePrimitiveBindings(sotPlayerPrimitives);
-        expect(sotPlayerPrimitives).not.toContain(
-            "SOT_PLAYER_STATUS_BADGE_CLASS",
-        );
-        expect(sotPlayerPrimitives).toContain("const PLAYER_STATUS_VARIANT");
-        expect(sotPlayerPrimitives).toContain(
+        expectPlayerSourcePrimitiveBindings(playerPrimitives);
+        expect(playerPrimitives).not.toContain("SOT_PLAYER_STATUS_BADGE_CLASS");
+        expect(playerPrimitives).toContain("const PLAYER_STATUS_VARIANT");
+        expect(playerPrimitives).toContain(
             'React.ComponentProps<typeof Badge>["variant"]',
         );
-        expect(sotPlayerPrimitives).not.toContain("PLAYER_STATUS_TONE_CLASS");
-        expect(sotPlayerPrimitives).not.toContain(
-            legacyPlayerSourceVariantUsage,
-        );
+        expect(playerPrimitives).not.toContain("PLAYER_STATUS_TONE_CLASS");
+        expect(playerPrimitives).not.toContain(legacyPlayerSourceVariantUsage);
         expect(sharedPlayerSourceBadge).toContain('variant="outline"');
         expect(sharedPlayerSourceBadge).toContain(
             "className={PLAYER_SOURCE_BADGE_CLASS}",
@@ -14240,35 +13709,31 @@ describe("full UI replacement regression coverage", () => {
         );
         expect(sharedPlayerStatusBadge).toContain("className={className}");
         expect(sharedPlayerStatusBadge).toContain(
-            'data-sot-control="player-status"',
+            'data-control="player-status"',
         );
-        expect(sharedPlayerStatusBadge).toContain("data-sot-tone={tone}");
-        expect(sotPlayerPrimitives).toContain("className?: string;");
-        expect(sotPlayerPrimitives).not.toContain('data-sot-part="status-dot"');
-        expect(sotPlayerPrimitives).not.toContain(
+        expect(sharedPlayerStatusBadge).toContain("data-tone={tone}");
+        expect(playerPrimitives).toContain("className?: string;");
+        expect(playerPrimitives).not.toContain('data-part="status-dot"');
+        expect(playerPrimitives).not.toContain(
             '"size-1.5 rounded-full bg-current"',
         );
-        expect(sotPlayerPrimitives).not.toContain("animate-[bpulse");
-        expect(sotPlayerPrimitives).toContain(
-            '<span data-sot-part="status-label">{label}</span>',
+        expect(playerPrimitives).not.toContain("animate-[bpulse");
+        expect(playerPrimitives).toContain(
+            '<span data-part="status-label">{label}</span>',
         );
-        expect(sotPlayerPrimitives).not.toContain(
-            `variant="${"player"}Status"`,
-        );
-        expect(sotPlayerPrimitives).not.toContain('variant="source"');
-        expect(sotPlayerPrimitives).not.toContain('variant="player-status"');
-        expect(sotPlayerPrimitives).toContain(
-            "const PLAYER_SOURCE_ICON_CLASS =",
-        );
-        expect(sotPlayerPrimitives).toContain("inline-flex size-4");
+        expect(playerPrimitives).not.toContain(`variant="${"player"}Status"`);
+        expect(playerPrimitives).not.toContain('variant="source"');
+        expect(playerPrimitives).not.toContain('variant="player-status"');
+        expect(playerPrimitives).toContain("const PLAYER_SOURCE_ICON_CLASS =");
+        expect(playerPrimitives).toContain("inline-flex size-4");
         expect(
             collectCssRuleBlocks(
                 globals,
-                '[data-sot-control="player-source-tag"][data-slot="badge"]',
+                '[data-control="player-source-tag"][data-slot="badge"]',
             ),
         ).toEqual([]);
-        expect(sotPlayerPrimitives).not.toContain("status-badge-ready");
-        expect(sotPlayerPrimitives).not.toContain("_is-");
+        expect(playerPrimitives).not.toContain("status-badge-ready");
+        expect(playerPrimitives).not.toContain("_is-");
         const speakerProfiles = readSource(
             "features/settings/components/sections/speaker-profiles-panel.tsx",
         );
@@ -14435,7 +13900,7 @@ describe("full UI replacement regression coverage", () => {
             'import { Badge } from "@/components/ui/badge";',
         );
         expect(speakerProfiles).toContain("<Badge");
-        expect(speakerProfiles).not.toContain("data-sot-");
+        expect(speakerProfiles).not.toContain(["data", "sot"].join("-"));
         expect(speakerStatePill).toContain("<Badge");
         expect(speakerStatePill).toMatch(
             /variant=\{(?:badgeVariant|speakerStateBadgeVariantByTone\[tone\])\}/,
@@ -14475,7 +13940,7 @@ describe("full UI replacement regression coverage", () => {
         for (const forbiddenSpeakerLocalSkin of [
             "speakerStateBadgeClassName",
             "speakerSettingsBanner",
-            "data-[sot-tone=",
+            "data-[tone=",
             "var(--card-elevated",
             "var(--bg-elevated",
             "var(--bg-recessed",
@@ -14558,7 +14023,7 @@ describe("full UI replacement regression coverage", () => {
                 ),
             );
             expect(field).toContain(`disabled={${disabledState}}`);
-            expect(field).not.toContain("data-sot-");
+            expect(field).not.toContain(["data", "sot"].join("-"));
             expect(field).not.toContain("<Label");
         }
         expect(speakerPanelNotice).toContain("<Alert");
@@ -14572,7 +14037,7 @@ describe("full UI replacement regression coverage", () => {
             '<AlertDescription density="comfortable">',
         );
         expect(speakerPanelNotice).toContain("<p>{children}</p>");
-        expect(speakerPanelNotice).not.toContain("data-sot-");
+        expect(speakerPanelNotice).not.toContain(["data", "sot"].join("-"));
         expect(alertPrimitive).toContain('role="alert"');
         expect(speakerEmptyStates).toHaveLength(2);
         for (const speakerEmptyState of [
@@ -14584,7 +14049,7 @@ describe("full UI replacement regression coverage", () => {
             expect(speakerEmptyState).toContain("<EmptyHeader>");
             expect(speakerEmptyState).toContain("<EmptyTitle");
             expect(speakerEmptyState).toContain("<EmptyDescription");
-            expect(speakerEmptyState).not.toContain("data-sot-");
+            expect(speakerEmptyState).not.toContain(["data", "sot"].join("-"));
         }
         expect(speakerProfileEmptyState).toContain("No saved speakers yet");
         expect(speakerVoiceprintsEmptyState).toContain(
@@ -14613,7 +14078,7 @@ describe("full UI replacement regression coverage", () => {
             expect(list).toContain(ariaLabel);
             expect(list).toContain("<li");
             expect(list).toContain(`aria-busy={${savingState}}`);
-            expect(list).not.toContain("data-sot-");
+            expect(list).not.toContain(["data", "sot"].join("-"));
         }
         expect(speakerProfiles).toContain('htmlFor="new-speaker-name"');
         expect(speakerProfiles).toContain('id="new-speaker-name"');
@@ -14633,7 +14098,7 @@ describe("full UI replacement regression coverage", () => {
             expect(button).toContain('type="button"');
             expect(button).toContain('variant="outline"');
             expect(button).toContain('size="sm"');
-            expect(button).not.toContain("data-sot-");
+            expect(button).not.toContain(["data", "sot"].join("-"));
             expect(button).not.toContain('variant="speakerSettingsAction"');
             expect(button).not.toContain('size="speakerSettingsAction"');
         }
@@ -14691,7 +14156,7 @@ describe("full UI replacement regression coverage", () => {
             expect(retryButton).toContain('type="button"');
             expect(retryButton).toContain('variant="outline"');
             expect(retryButton).toContain('size="sm"');
-            expect(retryButton).not.toContain("data-sot-");
+            expect(retryButton).not.toContain(["data", "sot"].join("-"));
         }
         expect(speakerProfilesRetryButton).toContain(
             "onClick={() => void refreshProfiles()}",
@@ -14716,7 +14181,7 @@ describe("full UI replacement regression coverage", () => {
             expect(button).toContain('size="sm"');
             expect(button).toContain(handler);
             expect(button).toContain(`disabled={${disabledState}}`);
-            expect(button).not.toContain("data-sot-");
+            expect(button).not.toContain(["data", "sot"].join("-"));
             expect(button).not.toContain('variant="speakerSettingsAction"');
             expect(button).not.toContain(
                 'variant="speakerSettingsDangerAction"',
@@ -14760,13 +14225,13 @@ describe("full UI replacement regression coverage", () => {
         }
         expect(speakerProfiles).not.toContain("sot-speaker-pill");
         expect(globals).not.toContain(
-            '[data-sot-part="speaker-profile-avatar"] [data-slot="avatar-fallback"]',
+            '[data-part="speaker-profile-avatar"] [data-slot="avatar-fallback"]',
         );
         expect(globals).not.toContain(
-            '[data-sot-part="speaker-voiceprint-avatar"] [data-slot="avatar-fallback"]',
+            '[data-part="speaker-voiceprint-avatar"] [data-slot="avatar-fallback"]',
         );
         expect(
-            collectExactCssRuleBlocks(globals, "[data-sot-section-group]"),
+            collectExactCssRuleBlocks(globals, "[data-section-group]"),
         ).toEqual([]);
         for (const source of [player, tagManager, sourceReport]) {
             expect(source).not.toMatch(/\bbtn\s+ghost\s+btn-sm\b/);

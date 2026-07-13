@@ -3,6 +3,7 @@
 import { Music2 } from "lucide-react";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
+import { Empty } from "@/components/ui/empty";
 import {
     RouteFallbackChrome,
     RouteFallbackEmptyState,
@@ -11,14 +12,33 @@ import {
 export default function RecordingError({ reset }: { reset: () => void }) {
     return (
         <RouteFallbackChrome
-            dataSotShell="recording-route-error"
             current="录音详情加载失败"
+            data-panel="route-workspace"
+            data-shell="recording-route-error"
             workspaceVariant="single"
         >
             <RouteFallbackEmptyState
-                title="加载失败"
-                description="录音详情暂时无法加载，可以重试或返回工作台。"
-                icon={<Music2 aria-hidden="true" focusable="false" />}
+                data-empty="true"
+                data-panel="recording-route-empty-detail"
+                contentPanel={<Empty data-panel="recording-route-empty" />}
+                title={
+                    <span data-part="recording-route-empty-title">
+                        加载失败
+                    </span>
+                }
+                description={
+                    <span data-part="recording-route-empty-description">
+                        录音详情暂时无法加载，可以重试或返回工作台。
+                    </span>
+                }
+                icon={
+                    <span
+                        className="contents"
+                        data-part="recording-route-empty-icon"
+                    >
+                        <Music2 aria-hidden="true" focusable="false" />
+                    </span>
+                }
                 actions={
                     <>
                         <Button

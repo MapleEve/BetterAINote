@@ -29,6 +29,7 @@ interface ConfirmDialogOptions {
     confirmLabel: string;
     cancelLabel: string;
     confirmVariant?: "default" | "destructive";
+    surface?: "default" | "recording-retranscribe";
     details?: string[];
     warning?: string;
 }
@@ -77,6 +78,36 @@ const ConfirmDialogContext = createContext<{
 } | null>(null);
 
 const CONFIRM_DIALOG_CONTENT_CLASS = "sm:max-w-[460px]";
+
+const CONFIRM_DIALOG_RETRANSCRIBE_CONTENT_CLASS =
+    "my-3 block overflow-hidden [border-color:var(--glass-border)] bg-[color-mix(in_srgb,var(--bg-elevated)_92%,transparent)] [box-shadow:0_22px_56px_rgb(0_0_0_/_0.5)]!";
+
+const CONFIRM_DIALOG_RETRANSCRIBE_HEADER_CLASS =
+    "block flex-row gap-[normal] px-5 pt-4 pb-1";
+
+const CONFIRM_DIALOG_RETRANSCRIBE_TITLE_CLASS =
+    "m-0 [font-family:var(--font-display)] ![font-size:16px] ![line-height:1.35] font-semibold tracking-[-0.012em] text-foreground";
+
+const CONFIRM_DIALOG_RETRANSCRIBE_DESCRIPTION_CLASS =
+    "m-0 block px-5 pt-2 pb-1 [font-family:var(--font-sans)] ![font-size:13px] ![line-height:1.55] font-medium text-muted-foreground";
+
+const CONFIRM_DIALOG_RETRANSCRIBE_DETAILS_LIST_CLASS =
+    "mt-1 mb-2 gap-1 pl-[18px] [font-family:var(--font-sans)] ![font-size:13px] ![line-height:1.55] font-medium [color:var(--fg-secondary)]";
+
+const CONFIRM_DIALOG_RETRANSCRIBE_DETAIL_ITEM_CLASS =
+    "flex items-center gap-1.5 [font-family:var(--font-sans)] ![font-size:12.5px] ![line-height:1.55] font-medium [color:var(--fg-secondary)]";
+
+const CONFIRM_DIALOG_RETRANSCRIBE_FOOTER_CLASS =
+    "flex-row border-t [border-color:var(--glass-border-soft)] bg-[color-mix(in_srgb,white_3%,transparent)] px-4 pt-3 pb-4";
+
+const CONFIRM_DIALOG_RETRANSCRIBE_BUTTON_CLASS =
+    "h-[26px] rounded-[7px] px-2.5 ![font-size:12px] font-semibold transition-none";
+
+const CONFIRM_DIALOG_RETRANSCRIBE_CANCEL_BUTTON_CLASS =
+    "border-transparent! bg-transparent [color:var(--fg-secondary)] [box-shadow:none]! focus-visible:[box-shadow:none]! focus-visible:!ring-0";
+
+const CONFIRM_DIALOG_RETRANSCRIBE_CONFIRM_BUTTON_CLASS =
+    "border [border-color:var(--button-destructive-border)]! [background:var(--button-destructive-bg)]! [color:var(--button-destructive-fg)]! [box-shadow:var(--button-destructive-shadow)]!";
 
 const CONFIRM_DIALOG_HEADER_CLASS = "text-left";
 
@@ -141,9 +172,23 @@ export function ConfirmDialogProvider({
     const overlaySlotProps = slotProps?.overlay;
     const portalWrapperSlotProps = slotProps?.portalWrapper;
     const headerSlotProps = slotProps?.header;
-    const titleSlotProps = slotProps?.title;
+    const titleSlotProps = {
+        ...slotProps?.title,
+        className: cn(
+            state?.surface === "recording-retranscribe" &&
+                CONFIRM_DIALOG_RETRANSCRIBE_TITLE_CLASS,
+            slotProps?.title?.className,
+        ),
+    };
     const bodySlotProps = slotProps?.body;
-    const descriptionSlotProps = slotProps?.description;
+    const descriptionSlotProps = {
+        ...slotProps?.description,
+        className: cn(
+            state?.surface === "recording-retranscribe" &&
+                CONFIRM_DIALOG_RETRANSCRIBE_DESCRIPTION_CLASS,
+            slotProps?.description?.className,
+        ),
+    };
     const extraSlotProps = slotProps?.extra;
     const detailsListSlotProps = slotProps?.detailsList;
     const detailItemSlotProps = slotProps?.detailItem;
@@ -188,6 +233,8 @@ export function ConfirmDialogProvider({
                     portalWrapperProps={portalWrapperSlotProps}
                     className={cn(
                         CONFIRM_DIALOG_CONTENT_CLASS,
+                        state?.surface === "recording-retranscribe" &&
+                            CONFIRM_DIALOG_RETRANSCRIBE_CONTENT_CLASS,
                         contentSlotProps?.className,
                     )}
                     showCloseButton={false}
@@ -197,6 +244,8 @@ export function ConfirmDialogProvider({
                         className={cn(
                             "gap-2 text-left",
                             CONFIRM_DIALOG_HEADER_CLASS,
+                            state?.surface === "recording-retranscribe" &&
+                                CONFIRM_DIALOG_RETRANSCRIBE_HEADER_CLASS,
                             headerSlotProps?.className,
                         )}
                     >
@@ -233,15 +282,21 @@ export function ConfirmDialogProvider({
                                         {...detailsListSlotProps}
                                         className={cn(
                                             CONFIRM_DIALOG_DETAILS_LIST_CLASS,
+                                            state?.surface ===
+                                                "recording-retranscribe" &&
+                                                CONFIRM_DIALOG_RETRANSCRIBE_DETAILS_LIST_CLASS,
                                             detailsListSlotProps?.className,
                                         )}
                                     >
                                         {state.details.map((item) => (
                                             <li
                                                 {...detailItemSlotProps}
-                                                className={
-                                                    detailItemSlotProps?.className
-                                                }
+                                                className={cn(
+                                                    state?.surface ===
+                                                        "recording-retranscribe" &&
+                                                        CONFIRM_DIALOG_RETRANSCRIBE_DETAIL_ITEM_CLASS,
+                                                    detailItemSlotProps?.className,
+                                                )}
                                                 key={item}
                                             >
                                                 {item}
@@ -264,6 +319,8 @@ export function ConfirmDialogProvider({
                         {...footerSlotProps}
                         className={cn(
                             "gap-2 sm:justify-end",
+                            state?.surface === "recording-retranscribe" &&
+                                CONFIRM_DIALOG_RETRANSCRIBE_FOOTER_CLASS,
                             footerSlotProps?.className,
                         )}
                     >
@@ -273,7 +330,13 @@ export function ConfirmDialogProvider({
                             variant="outline"
                             size="sm"
                             onClick={() => close(false)}
-                            className={cancelButtonSlotProps?.className}
+                            className={cn(
+                                state?.surface === "recording-retranscribe" &&
+                                    CONFIRM_DIALOG_RETRANSCRIBE_BUTTON_CLASS,
+                                state?.surface === "recording-retranscribe" &&
+                                    CONFIRM_DIALOG_RETRANSCRIBE_CANCEL_BUTTON_CLASS,
+                                cancelButtonSlotProps?.className,
+                            )}
                         >
                             {state?.cancelLabel}
                         </Button>
@@ -283,7 +346,13 @@ export function ConfirmDialogProvider({
                             variant={confirmButtonVariant}
                             size="sm"
                             onClick={() => close(true)}
-                            className={confirmButtonSlotProps?.className}
+                            className={cn(
+                                state?.surface === "recording-retranscribe" &&
+                                    CONFIRM_DIALOG_RETRANSCRIBE_BUTTON_CLASS,
+                                state?.surface === "recording-retranscribe" &&
+                                    CONFIRM_DIALOG_RETRANSCRIBE_CONFIRM_BUTTON_CLASS,
+                                confirmButtonSlotProps?.className,
+                            )}
                         >
                             {state?.confirmLabel}
                         </Button>

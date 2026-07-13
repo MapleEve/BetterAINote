@@ -3,6 +3,7 @@
 import Image from "next/image";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
+import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
 import {
     Card,
@@ -14,7 +15,6 @@ import {
 import {
     Field,
     FieldDescription,
-    FieldError,
     FieldGroup,
     FieldLabel,
 } from "@/components/ui/field";
@@ -33,7 +33,7 @@ const authLoginClassNames = {
     logoMark: "mb-4 size-9",
     fieldGroup: "mx-auto w-full max-w-xs",
     actionField: "gap-3",
-    formMessage: "text-left data-[sot-state=success]:text-primary",
+    formMessage: "text-left",
     footer: "text-center",
 } as const;
 
@@ -114,8 +114,6 @@ export function LoginForm({
         }
     }
 
-    const surfaceState =
-        isLoading || isLocalLoading ? "loading" : (formState?.kind ?? "idle");
     const invalid = formState?.kind === "error";
     const title = intent === "setup" ? "设置同步身份" : "登录 BetterAINote";
     const cardHeading =
@@ -124,55 +122,28 @@ export function LoginForm({
         intent === "setup" && registrationOpen
             ? "首次使用可发送邮箱链接创建同步身份，也可以只在本地工作空间继续。"
             : "登录是可选的，仅用于多端同步";
-    const surfaceName = intent === "setup" ? "auth-register" : "auth-login";
-
     return (
-        <main
-            className={authLoginClassNames.layout}
-            data-sot-layout="auth-workstation"
-            data-sot-surface={`${intent}-workstation`}
-        >
-            <Card
-                className={authLoginClassNames.surface}
-                data-sot-card="auth"
-                data-sot-surface={surfaceName}
-                data-sot-ready={isMounted ? "true" : "false"}
-                data-sot-state={surfaceState}
-            >
+        <main className={authLoginClassNames.layout}>
+            <Card className={authLoginClassNames.surface}>
                 <form onSubmit={handleSubmit}>
                     <CardHeader>
-                        <CardTitle data-sot-part="card-heading">
-                            {cardHeading}
-                        </CardTitle>
-                        <CardDescription data-sot-part="card-sub">
+                        <CardTitle>{cardHeading}</CardTitle>
+                        <CardDescription>
                             邮箱 + 链接 · 不要密码
                         </CardDescription>
                     </CardHeader>
-                    <CardContent
-                        className={authLoginClassNames.frame}
-                        data-sot-frame="auth"
-                    >
+                    <CardContent className={authLoginClassNames.frame}>
                         <Image
                             className={authLoginClassNames.logoMark}
-                            data-sot-part="auth-logo-mark"
                             src="/assets/logo-mark-steel.svg"
                             alt=""
                             width={36}
                             height={36}
                         />{" "}
-                        <CardTitle data-sot-part="auth-heading">
-                            {title}
-                        </CardTitle>
-                        <CardDescription data-sot-part="auth-description">
-                            {subtitle}
-                        </CardDescription>
+                        <CardTitle>{title}</CardTitle>
+                        <CardDescription>{subtitle}</CardDescription>
                         <FieldGroup className={authLoginClassNames.fieldGroup}>
-                            <Field
-                                data-disabled={
-                                    !isMounted || isLoading ? "true" : undefined
-                                }
-                                data-invalid={invalid ? "true" : undefined}
-                            >
+                            <Field>
                                 <FieldLabel htmlFor="email" className="sr-only">
                                     邮箱
                                 </FieldLabel>
@@ -185,40 +156,39 @@ export function LoginForm({
                                     disabled={!isMounted || isLoading}
                                     autoComplete="email"
                                     aria-invalid={invalid}
-                                    data-sot-control="auth-email"
-                                    data-sot-state={
-                                        invalid
-                                            ? "error"
-                                            : isLoading || isLocalLoading
-                                              ? "saving"
-                                              : "ready"
+                                    aria-describedby={
+                                        formState
+                                            ? "auth-form-message"
+                                            : undefined
                                     }
                                     placeholder="mei@example.com"
                                 />
-                                {formState?.kind === "error" ? (
-                                    <FieldError
+                                {formState ? (
+                                    <Alert
+                                        id="auth-form-message"
                                         className={
                                             authLoginClassNames.formMessage
                                         }
-                                        data-sot-part="auth-form-message"
-                                        data-sot-state={formState.kind}
-                                        data-auth-form-state={formState.kind}
-                                    >
-                                        {formState.message}
-                                    </FieldError>
-                                ) : null}
-                                {formState?.kind === "success" ? (
-                                    <FieldDescription
-                                        className={
-                                            authLoginClassNames.formMessage
+                                        role={
+                                            formState.kind === "success"
+                                                ? "status"
+                                                : "alert"
                                         }
-                                        role="status"
-                                        data-sot-part="auth-form-message"
-                                        data-sot-state={formState.kind}
-                                        data-auth-form-state={formState.kind}
+                                        aria-live={
+                                            formState.kind === "success"
+                                                ? "polite"
+                                                : "assertive"
+                                        }
+                                        variant={
+                                            formState.kind === "error"
+                                                ? "statusError"
+                                                : "default"
+                                        }
                                     >
-                                        {formState.message}
-                                    </FieldDescription>
+                                        <AlertDescription>
+                                            {formState.message}
+                                        </AlertDescription>
+                                    </Alert>
                                 ) : null}
                             </Field>
                             <Field className={authLoginClassNames.actionField}>
@@ -228,14 +198,10 @@ export function LoginForm({
                                     aria-busy={isLoading}
                                     variant="default"
                                     className="w-full"
-                                    data-sot-control="send-login-link"
                                 >
                                     {isLoading ? (
                                         <>
-                                            <Spinner
-                                                data-icon="inline-start"
-                                                aria-hidden="true"
-                                            />
+                                            <Spinner aria-hidden="true" />
                                             发送中...
                                         </>
                                     ) : (
@@ -244,7 +210,6 @@ export function LoginForm({
                                 </Button>
                                 <FieldDescription
                                     className={authLoginClassNames.footer}
-                                    data-sot-part="auth-local-choice"
                                 >
                                     或{" "}
                                     <Button
@@ -252,18 +217,11 @@ export function LoginForm({
                                         disabled={!isMounted || isLocalLoading}
                                         aria-busy={isLocalLoading}
                                         variant="link"
-                                        data-sot-control="local-only"
-                                        data-sot-state={
-                                            isLocalLoading ? "loading" : "ready"
-                                        }
                                         onClick={() => void handleLocalUse()}
                                     >
                                         {isLocalLoading ? (
                                             <>
-                                                <Spinner
-                                                    data-icon="inline-start"
-                                                    aria-hidden="true"
-                                                />
+                                                <Spinner aria-hidden="true" />
                                                 启动中...
                                             </>
                                         ) : (

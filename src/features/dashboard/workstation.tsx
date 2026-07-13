@@ -83,15 +83,15 @@ import {
 } from "@/features/dashboard/components/library-search";
 import { SystemBanner } from "@/features/dashboard/components/system-banner";
 import { AiRenamePreviewCard as AiRenamePreview } from "@/features/recordings/components/ai-rename-preview-card";
-import { RecordingTagManager } from "@/features/recordings/components/recording-tag-manager";
 import {
-    formatSotPlayerDate,
-    SotPlayerNoAudioAlert,
-    SotPlayerSourceTag,
-    SotPlayerStatusBadge,
-    type SotPlayerStatusTone,
-    SotPlayerTagChip,
-} from "@/features/recordings/components/sot-player-primitives";
+    formatPlayerDate,
+    PlayerNoAudioAlert,
+    PlayerSourceTag,
+    PlayerStatusBadge,
+    type PlayerStatusTone,
+    PlayerTagChip,
+} from "@/features/recordings/components/player-primitives";
+import { RecordingTagManager } from "@/features/recordings/components/recording-tag-manager";
 import { SettingsDialog } from "@/features/settings/components/settings-dialog";
 import { useDisplaySettingsStore } from "@/features/settings/display-settings-store";
 import { usePlaybackSettingsStore } from "@/features/settings/playback-settings-store";
@@ -271,13 +271,13 @@ type SourceStatus =
     | "planned";
 type SyncButtonState = "idle" | "queued" | "running" | "success" | "error";
 
-function getSotSegmentedTabProps<T extends string>(
+function getSegmentedTabProps<T extends string>(
     _item: SegmentedTabItem<T>,
     state: { active: boolean; disabled: boolean },
 ) {
     return {
-        "data-sot-control": "segmented-tab",
-        "data-sot-state": state.disabled
+        "data-control": "segmented-tab",
+        "data-state": state.disabled
             ? "disabled"
             : state.active
               ? "active"
@@ -310,17 +310,18 @@ const DASHBOARD_WORKSTATION_SHELL_CLASS_NAME =
 const DASHBOARD_MAIN_CLASS_NAME =
     "flex h-screen min-w-0 flex-col max-[860px]:min-w-0 max-[860px]:max-w-full max-[860px]:box-border";
 const DASHBOARD_WORKSPACE_CLASS_NAME =
-    "grid flex-1 min-h-0 grid-cols-[380px_1fr] gap-4 px-5 pt-4 pb-5 max-[860px]:min-w-0 max-[860px]:max-w-full max-[860px]:box-border max-[860px]:grid-cols-[380px_0px] max-[860px]:[&>[data-sot-panel=dashboard-detail]]:hidden";
+    "grid flex-1 min-h-0 grid-cols-[380px_1fr] gap-4 px-5 pt-4 pb-5 max-[860px]:min-w-0 max-[860px]:max-w-full max-[860px]:box-border max-[860px]:grid-cols-[380px_0px]";
 const DASHBOARD_RECORDING_LIST_CARD_CLASS_NAME =
     "min-h-0 gap-0 rounded-2xl max-[860px]:min-w-0 max-[860px]:max-w-full max-[860px]:box-border";
-const DASHBOARD_DETAIL_PANEL_CLASS_NAME = "flex min-h-0 min-w-0 flex-col gap-4";
+const DASHBOARD_DETAIL_PANEL_CLASS_NAME =
+    "flex min-h-0 min-w-0 flex-col gap-4 max-[860px]:hidden";
 const DASHBOARD_RECORDING_LIST_CONTENT_CLASS_NAME = "flex min-h-0 flex-col p-0";
 const DASHBOARD_DETAIL_EMPTY_STATE_CLASS_NAME = "min-h-[280px] p-9 md:p-9";
 
 const dashboardDrawerClassNames = {
     scrim: "pointer-events-none fixed inset-0 z-[300] hidden max-[860px]:block max-[860px]:group-data-[drawer-state=open]/dashboard-workstation:pointer-events-auto",
     activeDot:
-        "absolute top-1.5 right-1.5 hidden size-1.5 rounded-full bg-primary",
+        "absolute top-1.5 right-1.5 hidden size-1.5 rounded-full bg-primary group-data-[source-filter-active=true]/dashboard-workstation:inline-block",
 } as const;
 
 const dashboardTopbarClassNames = {
@@ -452,8 +453,8 @@ function DashboardTranscriptSkeleton({
             variant="default"
             size="default"
             className={dashboardTranscriptSkeletonClassNames[size]}
-            data-sot-part="dashboard-transcript-skeleton"
-            data-sot-size={size}
+            data-part="dashboard-transcript-skeleton"
+            data-size={size}
         />
     );
 }
@@ -514,7 +515,7 @@ const DASHBOARD_SIDEBAR_FOOTER_CLASS_NAME = "border-t border-border pt-2.5";
 
 const dashboardRecordingTimeFilterStyles = {
     root: "mt-2.5 flex-wrap [&[hidden]]:hidden",
-    item: "data-[state=on]:border-primary/30 data-[state=on]:bg-primary/10 data-[state=on]:text-primary data-[sot-state=selected]:border-primary/30 data-[sot-state=selected]:bg-primary/10 data-[sot-state=selected]:text-primary",
+    item: "data-[state=on]:border-primary/30 data-[state=on]:bg-primary/10 data-[state=on]:text-primary data-[state=selected]:border-primary/30 data-[state=selected]:bg-primary/10 data-[state=selected]:text-primary",
     count: "rounded-[4px] bg-muted px-1 font-mono text-[10px] font-medium text-muted-foreground/70",
     countSelected: "bg-primary/10 text-primary",
 } as const;
@@ -526,7 +527,7 @@ const dashboardRecordingTagFilterStyles = {
     count: "font-mono text-[11px] font-medium text-muted-foreground",
     caret: "shrink-0 text-muted-foreground",
     list: "absolute left-0 right-0 top-[calc(100%+6px)] z-50 max-h-[260px] overflow-y-auto rounded-lg border border-border bg-popover p-1 text-popover-foreground shadow-md",
-    option: "w-full justify-start border border-transparent bg-transparent text-muted-foreground shadow-none hover:bg-accent hover:text-accent-foreground data-[sot-state=selected]:bg-secondary data-[sot-state=selected]:text-secondary-foreground data-[sot-state=selected]:hover:bg-secondary/80",
+    option: "w-full justify-start border border-transparent bg-transparent text-muted-foreground shadow-none hover:bg-accent hover:text-accent-foreground data-[state=selected]:bg-secondary data-[state=selected]:text-secondary-foreground data-[state=selected]:hover:bg-secondary/80",
     optionLabel: "min-w-0 flex-1 truncate",
     optionCount: "font-mono text-[11px] font-medium text-muted-foreground",
 } as const;
@@ -600,10 +601,9 @@ const dashboardSearchActivityClassNames = {
         "justify-normal p-0 font-mono text-xs font-medium text-muted-foreground",
     dashboardActivityClose: "size-6",
     dashboardActivityContent: "flex min-h-0 flex-1 flex-col p-0",
-    dashboardActivityStatus:
-        "flex items-center gap-2.5 bg-muted px-3.5 py-2.5 data-[state=error]:[&_[data-sot-part=dashboard-activity-status-indicator]]:bg-destructive data-[state=running]:[&_[data-sot-part=dashboard-activity-status-indicator]]:animate-[bpulse_1.4s_ease-in-out_infinite] data-[state=running]:[&_[data-sot-part=dashboard-activity-status-indicator]]:bg-primary data-[state=syncing]:[&_[data-sot-part=dashboard-activity-status-indicator]]:animate-[bpulse_1.4s_ease-in-out_infinite] data-[state=syncing]:[&_[data-sot-part=dashboard-activity-status-indicator]]:bg-primary",
+    dashboardActivityStatus: "flex items-center gap-2.5 bg-muted px-3.5 py-2.5",
     dashboardActivityStatusIndicator:
-        "size-2 flex-none rounded-full bg-primary",
+        "size-2 flex-none rounded-full bg-primary data-[state=error]:bg-destructive data-[state=running]:animate-[bpulse_1.4s_ease-in-out_infinite] data-[state=syncing]:animate-[bpulse_1.4s_ease-in-out_infinite]",
     dashboardActivityStatusCopy: "flex min-w-0 flex-1 flex-col gap-0.5",
     dashboardActivityStatusLine: "text-xs font-semibold text-foreground",
     dashboardActivityStatusSub:
@@ -613,9 +613,9 @@ const dashboardSearchActivityClassNames = {
     dashboardActivityItems:
         "m-0 max-h-[340px] flex-1 list-none overflow-y-auto p-1 empty:hidden",
     dashboardActivityItem:
-        "grid grid-cols-[26px_1fr_auto] items-start gap-2.5 rounded-lg p-2.5 [&+&]:rounded-none [&+&]:border-t [&+&]:border-border data-[kind=error]:[&_[data-sot-part=dashboard-activity-item-icon]]:border-destructive/30 data-[kind=error]:[&_[data-sot-part=dashboard-activity-item-icon]]:bg-destructive/10 data-[kind=error]:[&_[data-sot-part=dashboard-activity-item-icon]]:text-destructive data-[kind=info]:[&_[data-sot-part=dashboard-activity-item-icon]]:border-primary/30 data-[kind=info]:[&_[data-sot-part=dashboard-activity-item-icon]]:bg-primary/10 data-[kind=info]:[&_[data-sot-part=dashboard-activity-item-icon]]:text-primary data-[kind=partial-failed]:[&_[data-sot-part=dashboard-activity-item-icon]]:border-border data-[kind=partial-failed]:[&_[data-sot-part=dashboard-activity-item-icon]]:bg-secondary data-[kind=partial-failed]:[&_[data-sot-part=dashboard-activity-item-icon]]:text-secondary-foreground data-[kind=queued]:[&_[data-sot-part=dashboard-activity-item-icon]]:bg-muted data-[kind=queued]:[&_[data-sot-part=dashboard-activity-item-icon]]:text-muted-foreground data-[kind=success]:[&_[data-sot-part=dashboard-activity-item-icon]]:border-primary/30 data-[kind=success]:[&_[data-sot-part=dashboard-activity-item-icon]]:bg-primary/10 data-[kind=success]:[&_[data-sot-part=dashboard-activity-item-icon]]:text-primary data-[kind=warn]:[&_[data-sot-part=dashboard-activity-item-icon]]:border-border data-[kind=warn]:[&_[data-sot-part=dashboard-activity-item-icon]]:bg-secondary data-[kind=warn]:[&_[data-sot-part=dashboard-activity-item-icon]]:text-secondary-foreground",
+        "grid grid-cols-[26px_1fr_auto] items-start gap-2.5 rounded-lg p-2.5 [&+&]:rounded-none [&+&]:border-t [&+&]:border-border",
     dashboardActivityItemIcon:
-        "inline-flex size-[26px] flex-none items-center justify-center rounded-[7px] border border-border bg-muted text-muted-foreground",
+        "inline-flex size-[26px] flex-none items-center justify-center rounded-[7px] border border-border bg-muted text-muted-foreground data-[kind=error]:border-destructive/30 data-[kind=error]:bg-destructive/10 data-[kind=error]:text-destructive data-[kind=info]:border-primary/30 data-[kind=info]:bg-primary/10 data-[kind=info]:text-primary data-[kind=partial-failed]:border-border data-[kind=partial-failed]:bg-secondary data-[kind=partial-failed]:text-secondary-foreground data-[kind=queued]:bg-muted data-[kind=queued]:text-muted-foreground data-[kind=success]:border-primary/30 data-[kind=success]:bg-primary/10 data-[kind=success]:text-primary data-[kind=warn]:border-border data-[kind=warn]:bg-secondary data-[kind=warn]:text-secondary-foreground",
     dashboardActivityItemCopy: "flex min-w-0 flex-col gap-[3px]",
     dashboardActivityItemTitle:
         "m-0 text-sm font-semibold leading-snug text-foreground",
@@ -631,11 +631,11 @@ const dashboardSearchActivityClassNames = {
 } as const;
 
 const dashboardButtonClassNames = {
-    nav: "w-full justify-start gap-2.5 px-2.5 text-muted-foreground data-[sot-state=selected]:bg-sidebar-accent data-[sot-state=selected]:text-sidebar-accent-foreground",
+    nav: "w-full justify-start gap-2.5 px-2.5 text-muted-foreground data-[state=selected]:bg-sidebar-accent data-[state=selected]:text-sidebar-accent-foreground",
     sync: "text-muted-foreground",
     speakersMerge: "shrink-0",
     drawerTrigger:
-        "relative hidden h-[2px] w-[22.5px] px-[11.25px] py-px after:absolute after:-inset-[21px] after:content-[''] max-[860px]:inline-flex group-data-[source-filter-active=true]/dashboard-workstation:[&_[data-sot-part=dashboard-drawer-active-dot]]:inline-block",
+        "relative hidden h-[2px] w-[22.5px] px-[11.25px] py-px after:absolute after:-inset-[21px] after:content-[''] max-[860px]:inline-flex",
     sidebarCollapse: "max-[860px]:hidden",
     settingsAvatar: "rounded-full text-xs font-semibold",
     listPagination: "text-muted-foreground",
@@ -647,28 +647,34 @@ const dashboardSourceErrorClassName =
     "px-[10px] py-1.5 font-sans text-[11.5px] font-medium text-destructive";
 
 const dashboardSourceClassNames = {
-    root: "group/source-provider relative h-auto w-full justify-start gap-2.5 px-2.5 py-2 text-left text-sm text-muted-foreground data-[sot-state=selected]:text-foreground data-[sot-state=connected-active]:text-foreground data-[sot-state=sync-error]:text-foreground data-[sot-state=disabled]:opacity-50 [&_[data-sot-part=source-provider-mark]]:inline-flex [&_[data-sot-part=source-provider-mark]]:size-[18px] [&_[data-sot-part=source-provider-mark]]:flex-none [&_[data-sot-part=source-provider-mark]]:items-center [&_[data-sot-part=source-provider-mark]]:justify-center [&_[data-sot-part=source-provider-mark]]:overflow-hidden [&_[data-sot-part=source-provider-mark]]:rounded-sm data-[sot-state=no-results]:[&_[data-sot-part=source-provider-mark]]:opacity-60 data-[sot-state=needs-setup]:[&_[data-sot-part=source-provider-mark]]:opacity-60 data-[sot-state=needs-setup]:[&_[data-sot-part=source-provider-mark]]:grayscale data-[sot-state=disabled]:[&_[data-sot-part=source-provider-mark]]:grayscale [&_[data-sot-part=source-provider-mark][data-sot-variant=letter]]:text-xs [&_[data-sot-part=source-provider-mark][data-sot-variant=letter]]:font-bold [&_[data-sot-part=source-provider-mark][data-sot-variant=letter]]:text-muted-foreground [&_[data-sot-part=source-provider-mark]_img]:block [&_[data-sot-part=source-provider-mark]_img]:size-[18px] [&_[data-sot-part=source-provider-mark]_img]:max-w-none [&_[data-sot-part=source-provider-mark]_img]:object-contain [&_[data-sot-part=source-provider-mark]_img]:align-baseline [&_[data-sot-part=source-provider-mark][data-sot-provider-cover=true]_img]:object-cover",
+    root: "group/source-provider relative h-auto w-full justify-start gap-2.5 px-2.5 py-2 text-left text-sm text-muted-foreground data-[state=selected]:text-foreground data-[state=connected-active]:text-foreground data-[state=sync-error]:text-foreground data-[state=disabled]:opacity-50",
+    mark: "inline-flex size-[18px] flex-none items-center justify-center overflow-hidden rounded-sm data-[state=no-results]:opacity-60 data-[state=needs-setup]:opacity-60 data-[state=needs-setup]:grayscale data-[state=disabled]:grayscale",
+    markImage: "block size-[18px] max-w-none object-contain align-baseline",
+    markImageCover: "object-cover",
+    markLetter: "text-xs font-bold text-muted-foreground",
     clear: "h-6 w-fit gap-1 rounded-full px-2 text-xs",
-    action: "ml-1.5 h-6 flex-none cursor-pointer rounded-full px-2 text-xs whitespace-nowrap data-[sot-action=retry]:hidden data-[sot-action=retry]:text-destructive data-[sot-action=connect]:text-primary group-hover/source-provider:data-[sot-action=retry]:inline-flex group-focus-within/source-provider:data-[sot-action=retry]:inline-flex group-data-[sidebar-collapsed=true]/dashboard-workstation:hidden",
-    status: "ml-0.5 size-1.5 min-w-1.5 self-center rounded-full border-0 p-0 data-[sot-effect=ring]:ring-2 data-[sot-effect=ring]:ring-secondary data-[sot-tone=disabled]:bg-muted-foreground/40 data-[sot-tone=err]:bg-destructive data-[sot-tone=err]:ring-2 data-[sot-tone=err]:ring-destructive/15 data-[sot-tone=ok]:bg-primary data-[sot-tone=syncing]:animate-[bpulse_1.2s_ease-in-out_infinite] data-[sot-tone=syncing]:bg-primary data-[sot-tone=syncing]:ring-2 data-[sot-tone=syncing]:ring-primary/15 data-[sot-tone=warn]:bg-secondary-foreground",
-    count: "min-w-[22px] px-1.5 text-center font-mono text-xs data-[sot-tone=active]:text-foreground data-[sot-tone=empty]:line-through data-[sot-tone=err]:text-destructive",
+    action: "ml-1.5 h-6 flex-none cursor-pointer rounded-full px-2 text-xs whitespace-nowrap data-[action=retry]:hidden data-[action=retry]:text-destructive data-[action=connect]:text-primary group-hover/source-provider:data-[action=retry]:inline-flex group-focus-within/source-provider:data-[action=retry]:inline-flex group-data-[sidebar-collapsed=true]/dashboard-workstation:hidden",
+    status: "ml-0.5 size-1.5 min-w-1.5 self-center rounded-full border-0 p-0 data-[effect=ring]:ring-2 data-[effect=ring]:ring-secondary data-[tone=disabled]:bg-muted-foreground/40 data-[tone=err]:bg-destructive data-[tone=err]:ring-2 data-[tone=err]:ring-destructive/15 data-[tone=ok]:bg-primary data-[tone=syncing]:animate-[bpulse_1.2s_ease-in-out_infinite] data-[tone=syncing]:bg-primary data-[tone=syncing]:ring-2 data-[tone=syncing]:ring-primary/15 data-[tone=warn]:bg-secondary-foreground",
+    count: "min-w-[22px] px-1.5 text-center font-mono text-xs data-[tone=active]:text-foreground data-[tone=empty]:line-through data-[tone=err]:text-destructive",
 } as const;
 
 const sourceFilterClassNames = {
     clear: "size-4 p-0 text-muted-foreground",
     librarySearchFilterClear: "size-4 p-0 text-muted-foreground",
-    action: "ml-1.5 h-6 flex-none cursor-pointer rounded-full px-2 text-xs whitespace-nowrap data-[sot-action=open-settings]:text-primary data-[sot-action=retry]:text-destructive data-[sot-action=widen]:text-primary",
+    action: "ml-1.5 h-6 flex-none cursor-pointer rounded-full px-2 text-xs whitespace-nowrap data-[action=open-settings]:text-primary data-[action=retry]:text-destructive data-[action=widen]:text-primary",
     clearAll: "h-6 px-2 text-sm",
 } as const;
 
 const sourceFilterStackClassNames = {
     root: "flex min-w-0 flex-row flex-wrap items-center gap-x-2 gap-y-1.5 border-b border-border px-3 py-2 text-xs font-medium text-muted-foreground",
-    from: "inline-flex min-w-0 max-w-full flex-[0_1_auto] items-baseline truncate leading-6 [&_b]:whitespace-nowrap [&_b]:font-semibold [&_b]:text-foreground",
+    from: "inline-flex min-w-0 max-w-full flex-[0_1_auto] items-baseline truncate leading-6",
+    strong: "whitespace-nowrap font-semibold text-foreground",
     separator:
         "inline-flex h-6 w-2.5 flex-none select-none items-center justify-center text-sm leading-none text-muted-foreground/60",
     chip: "h-6 max-w-full gap-1.5 pl-2 pr-1",
     label: "truncate",
-    info: "inline-flex min-w-0 flex-[0_1_auto] items-center truncate leading-6 text-muted-foreground [&_b]:mx-0.5 [&_b]:font-semibold [&_b]:text-foreground",
+    info: "inline-flex min-w-0 flex-[0_1_auto] items-center truncate leading-6 text-muted-foreground",
+    infoStrong: "mx-0.5 font-semibold text-foreground",
     libraryRoot:
         "mt-1.5 flex items-center gap-1.5 font-sans text-xs font-medium text-muted-foreground",
     libraryLabel: "truncate",
@@ -1055,7 +1061,7 @@ function hasTranscriptContent(
 
 type RecordingListStatus = {
     label: string;
-    tone: SotPlayerStatusTone;
+    tone: PlayerStatusTone;
 };
 
 function getRecordingListStatus(
@@ -1067,30 +1073,30 @@ function getRecordingListStatus(
     if (job?.status === "failed") {
         return {
             label: t("recordingList.status.failed"),
-            tone: "err" satisfies SotPlayerStatusTone,
+            tone: "err" satisfies PlayerStatusTone,
         };
     }
     if (isActiveTranscriptionJob(job)) {
         return {
             label: t("recordingList.status.transcribing"),
-            tone: "warn" satisfies SotPlayerStatusTone,
+            tone: "warn" satisfies PlayerStatusTone,
         };
     }
     if (hasTranscriptContent(transcription) || transcription?.hasTranscript) {
         return {
             label: t("recordingList.status.updated"),
-            tone: "ok" satisfies SotPlayerStatusTone,
+            tone: "ok" satisfies PlayerStatusTone,
         };
     }
     if (recording.upstreamDeleted) {
         return {
             label: t("recordingList.status.localOnly"),
-            tone: "info" satisfies SotPlayerStatusTone,
+            tone: "info" satisfies PlayerStatusTone,
         };
     }
     return {
         label: t("recordingList.status.pending"),
-        tone: "neu" satisfies SotPlayerStatusTone,
+        tone: "neu" satisfies PlayerStatusTone,
     };
 }
 
@@ -1100,7 +1106,7 @@ const dashboardRecordingStatusBadgeVariants = {
     neu: "outline",
     ok: "secondary",
     warn: "secondary",
-} as const satisfies Record<SotPlayerStatusTone, string>;
+} as const satisfies Record<PlayerStatusTone, string>;
 
 function DashboardCopyIcon({ state }: { state?: DashboardCopyFeedbackState }) {
     const Icon = state === "ok" ? Check : state === "err" ? X : Copy;
@@ -1108,14 +1114,14 @@ function DashboardCopyIcon({ state }: { state?: DashboardCopyFeedbackState }) {
     return (
         <Icon
             data-icon="inline-start"
-            data-sot-part="dashboard-copy-icon"
+            data-part="dashboard-copy-icon"
             aria-hidden="true"
         />
     );
 }
 
 function DashboardCopyLabel({ children }: { children: ReactNode }) {
-    return <span data-sot-part="dashboard-copy-label">{children}</span>;
+    return <span data-part="dashboard-copy-label">{children}</span>;
 }
 
 function getRetxStateFromActiveJob(
@@ -1298,7 +1304,7 @@ function activityItemKind(item: ActivityItem) {
 function RetxWarnIcon() {
     return (
         <CircleAlert
-            data-sot-part="dashboard-retranscription-icon-warn"
+            data-part="dashboard-retranscription-icon-warn"
             aria-hidden="true"
         />
     );
@@ -1307,7 +1313,7 @@ function RetxWarnIcon() {
 function RetxOkIcon() {
     return (
         <Check
-            data-sot-part="dashboard-retranscription-icon-ok"
+            data-part="dashboard-retranscription-icon-ok"
             aria-hidden="true"
         />
     );
@@ -1317,11 +1323,11 @@ function RetxCloseIcon() {
     return <X aria-hidden="true" focusable="false" />;
 }
 
-function SotTranscriptEmptyIcon() {
+function DashboardTranscriptEmptyIcon() {
     return <MessageSquareText aria-hidden="true" focusable="false" />;
 }
 
-function SotDetailEmptyIcon() {
+function DashboardDetailEmptyIcon() {
     return <Music aria-hidden="true" focusable="false" />;
 }
 
@@ -1330,20 +1336,20 @@ function DashboardDetailEmptyState() {
         <Empty
             className={DASHBOARD_DETAIL_EMPTY_STATE_CLASS_NAME}
             data-detail-empty=""
-            data-sot-panel="dashboard-detail-empty"
+            data-panel="dashboard-detail-empty"
         >
             <EmptyHeader>
                 <EmptyMedia
-                    data-sot-part="dashboard-detail-empty-icon"
+                    data-part="dashboard-detail-empty-icon"
                     variant="icon"
                     aria-hidden="true"
                 >
-                    <SotDetailEmptyIcon />
+                    <DashboardDetailEmptyIcon />
                 </EmptyMedia>
-                <EmptyTitle data-sot-part="dashboard-detail-empty-title">
+                <EmptyTitle data-part="dashboard-detail-empty-title">
                     请选择一条录音
                 </EmptyTitle>
-                <EmptyDescription data-sot-part="dashboard-detail-empty-description">
+                <EmptyDescription data-part="dashboard-detail-empty-description">
                     在左侧列表中挑一条录音，转写与说话人信息会显示在这里。
                 </EmptyDescription>
             </EmptyHeader>
@@ -1359,286 +1365,286 @@ function SourceReportEmptyGlyph() {
     return <FileText aria-hidden="true" focusable="false" />;
 }
 
-function SotRecordingListSkeleton() {
+function DashboardRecordingListSkeleton() {
     return (
         <div
             className={dashboardRecordingListLoadingSkeletonClassNames.root}
-            data-sot-panel="recording-list-loading"
+            data-panel="recording-list-loading"
         >
             <div
                 className={dashboardRecordingListLoadingSkeletonClassNames.day}
-                data-sot-part="skeleton-day"
+                data-part="skeleton-day"
             >
                 <Skeleton
                     className={
                         dashboardRecordingListLoadingSkeletonClassNames.dayLabel
                     }
-                    data-sot-part="skeleton-day-label"
+                    data-part="skeleton-day-label"
                 />
                 <span
                     className={
                         dashboardRecordingListLoadingSkeletonClassNames.dayLine
                     }
-                    data-sot-part="skeleton-day-line"
+                    data-part="skeleton-day-line"
                 />
             </div>
             <div
                 className={dashboardRecordingListLoadingSkeletonClassNames.row}
-                data-sot-part="skeleton-row"
+                data-part="skeleton-row"
             >
                 <div
                     className={
                         dashboardRecordingListLoadingSkeletonClassNames.rowBody
                     }
-                    data-sot-part="skeleton-row-body"
+                    data-part="skeleton-row-body"
                 >
                     <Skeleton
                         className={
                             dashboardRecordingListLoadingSkeletonClassNames.title
                         }
-                        data-sot-part="skeleton-title"
+                        data-part="skeleton-title"
                     />
                     <div
                         className={
                             dashboardRecordingListLoadingSkeletonClassNames.meta
                         }
-                        data-sot-part="skeleton-meta"
+                        data-part="skeleton-meta"
                     >
                         <Skeleton
                             className={
                                 dashboardRecordingListLoadingSkeletonClassNames.metaTime
                             }
-                            data-sot-part="skeleton-meta-time"
+                            data-part="skeleton-meta-time"
                         />
                         <Skeleton
                             className={
                                 dashboardRecordingListLoadingSkeletonClassNames.metaTag
                             }
-                            data-sot-part="skeleton-meta-tag"
+                            data-part="skeleton-meta-tag"
                         />
                         <Skeleton
                             className={
                                 dashboardRecordingListLoadingSkeletonClassNames.metaPill
                             }
-                            data-sot-part="skeleton-meta-pill"
+                            data-part="skeleton-meta-pill"
                         />
                     </div>
                 </div>
-                <div data-sot-part="skeleton-row-tail">
+                <div data-part="skeleton-row-tail">
                     <Skeleton
                         className={
                             dashboardRecordingListLoadingSkeletonClassNames.tag
                         }
-                        data-sot-part="skeleton-tag"
+                        data-part="skeleton-tag"
                     />
                 </div>
             </div>
             <div
                 className={dashboardRecordingListLoadingSkeletonClassNames.row}
-                data-sot-part="skeleton-row"
+                data-part="skeleton-row"
             >
                 <div
                     className={
                         dashboardRecordingListLoadingSkeletonClassNames.rowBody
                     }
-                    data-sot-part="skeleton-row-body"
+                    data-part="skeleton-row-body"
                 >
                     <Skeleton
                         className={
                             dashboardRecordingListLoadingSkeletonClassNames.title90
                         }
-                        data-sot-part="skeleton-title"
-                        data-sot-size="90"
+                        data-part="skeleton-title"
+                        data-size="90"
                     />
                     <div
                         className={
                             dashboardRecordingListLoadingSkeletonClassNames.meta
                         }
-                        data-sot-part="skeleton-meta"
+                        data-part="skeleton-meta"
                     >
                         <Skeleton
                             className={
                                 dashboardRecordingListLoadingSkeletonClassNames.metaTime
                             }
-                            data-sot-part="skeleton-meta-time"
+                            data-part="skeleton-meta-time"
                         />
                         <Skeleton
                             className={
                                 dashboardRecordingListLoadingSkeletonClassNames.metaTag
                             }
-                            data-sot-part="skeleton-meta-tag"
+                            data-part="skeleton-meta-tag"
                         />
                         <Skeleton
                             className={
                                 dashboardRecordingListLoadingSkeletonClassNames.metaPill70
                             }
-                            data-sot-part="skeleton-meta-pill"
-                            data-sot-size="70"
+                            data-part="skeleton-meta-pill"
+                            data-size="70"
                         />
                     </div>
                 </div>
-                <div data-sot-part="skeleton-row-tail">
+                <div data-part="skeleton-row-tail">
                     <Skeleton
                         className={
                             dashboardRecordingListLoadingSkeletonClassNames.tag
                         }
-                        data-sot-part="skeleton-tag"
+                        data-part="skeleton-tag"
                     />
                 </div>
             </div>
             <div
                 className={dashboardRecordingListLoadingSkeletonClassNames.day}
-                data-sot-part="skeleton-day"
+                data-part="skeleton-day"
             >
                 <Skeleton
                     className={
                         dashboardRecordingListLoadingSkeletonClassNames.dayLabel40
                     }
-                    data-sot-part="skeleton-day-label"
-                    data-sot-size="40"
+                    data-part="skeleton-day-label"
+                    data-size="40"
                 />
                 <span
                     className={
                         dashboardRecordingListLoadingSkeletonClassNames.dayLine
                     }
-                    data-sot-part="skeleton-day-line"
+                    data-part="skeleton-day-line"
                 />
             </div>
             <div
                 className={dashboardRecordingListLoadingSkeletonClassNames.row}
-                data-sot-part="skeleton-row"
+                data-part="skeleton-row"
             >
                 <div
                     className={
                         dashboardRecordingListLoadingSkeletonClassNames.rowBody
                     }
-                    data-sot-part="skeleton-row-body"
+                    data-part="skeleton-row-body"
                 >
                     <Skeleton
                         className={
                             dashboardRecordingListLoadingSkeletonClassNames.title80
                         }
-                        data-sot-part="skeleton-title"
-                        data-sot-size="80"
+                        data-part="skeleton-title"
+                        data-size="80"
                     />
                     <div
                         className={
                             dashboardRecordingListLoadingSkeletonClassNames.meta
                         }
-                        data-sot-part="skeleton-meta"
+                        data-part="skeleton-meta"
                     >
                         <Skeleton
                             className={
                                 dashboardRecordingListLoadingSkeletonClassNames.metaTime
                             }
-                            data-sot-part="skeleton-meta-time"
+                            data-part="skeleton-meta-time"
                         />
                         <Skeleton
                             className={
                                 dashboardRecordingListLoadingSkeletonClassNames.metaTag
                             }
-                            data-sot-part="skeleton-meta-tag"
+                            data-part="skeleton-meta-tag"
                         />
                         <Skeleton
                             className={
                                 dashboardRecordingListLoadingSkeletonClassNames.metaPill
                             }
-                            data-sot-part="skeleton-meta-pill"
+                            data-part="skeleton-meta-pill"
                         />
                     </div>
                 </div>
-                <div data-sot-part="skeleton-row-tail" />
+                <div data-part="skeleton-row-tail" />
             </div>
             <div
                 className={dashboardRecordingListLoadingSkeletonClassNames.row}
-                data-sot-part="skeleton-row"
+                data-part="skeleton-row"
             >
                 <div
                     className={
                         dashboardRecordingListLoadingSkeletonClassNames.rowBody
                     }
-                    data-sot-part="skeleton-row-body"
+                    data-part="skeleton-row-body"
                 >
                     <Skeleton
                         className={
                             dashboardRecordingListLoadingSkeletonClassNames.title70
                         }
-                        data-sot-part="skeleton-title"
-                        data-sot-size="70"
+                        data-part="skeleton-title"
+                        data-size="70"
                     />
                     <div
                         className={
                             dashboardRecordingListLoadingSkeletonClassNames.meta
                         }
-                        data-sot-part="skeleton-meta"
+                        data-part="skeleton-meta"
                     >
                         <Skeleton
                             className={
                                 dashboardRecordingListLoadingSkeletonClassNames.metaTime
                             }
-                            data-sot-part="skeleton-meta-time"
+                            data-part="skeleton-meta-time"
                         />
                         <Skeleton
                             className={
                                 dashboardRecordingListLoadingSkeletonClassNames.metaTag
                             }
-                            data-sot-part="skeleton-meta-tag"
+                            data-part="skeleton-meta-tag"
                         />
                     </div>
                 </div>
-                <div data-sot-part="skeleton-row-tail">
+                <div data-part="skeleton-row-tail">
                     <Skeleton
                         className={
                             dashboardRecordingListLoadingSkeletonClassNames.tag
                         }
-                        data-sot-part="skeleton-tag"
+                        data-part="skeleton-tag"
                     />
                 </div>
             </div>
             <div
                 className={dashboardRecordingListLoadingSkeletonClassNames.row}
-                data-sot-part="skeleton-row"
+                data-part="skeleton-row"
             >
                 <div
                     className={
                         dashboardRecordingListLoadingSkeletonClassNames.rowBody
                     }
-                    data-sot-part="skeleton-row-body"
+                    data-part="skeleton-row-body"
                 >
                     <Skeleton
                         className={
                             dashboardRecordingListLoadingSkeletonClassNames.title85
                         }
-                        data-sot-part="skeleton-title"
-                        data-sot-size="85"
+                        data-part="skeleton-title"
+                        data-size="85"
                     />
                     <div
                         className={
                             dashboardRecordingListLoadingSkeletonClassNames.meta
                         }
-                        data-sot-part="skeleton-meta"
+                        data-part="skeleton-meta"
                     >
                         <Skeleton
                             className={
                                 dashboardRecordingListLoadingSkeletonClassNames.metaTime
                             }
-                            data-sot-part="skeleton-meta-time"
+                            data-part="skeleton-meta-time"
                         />
                         <Skeleton
                             className={
                                 dashboardRecordingListLoadingSkeletonClassNames.metaTag
                             }
-                            data-sot-part="skeleton-meta-tag"
+                            data-part="skeleton-meta-tag"
                         />
                         <Skeleton
                             className={
                                 dashboardRecordingListLoadingSkeletonClassNames.metaPill
                             }
-                            data-sot-part="skeleton-meta-pill"
+                            data-part="skeleton-meta-pill"
                         />
                     </div>
                 </div>
-                <div data-sot-part="skeleton-row-tail" />
+                <div data-part="skeleton-row-tail" />
             </div>
         </div>
     );
@@ -3796,7 +3802,7 @@ export function Workstation({
                 "group/dashboard-workstation",
                 DASHBOARD_WORKSTATION_SHELL_CLASS_NAME,
             )}
-            data-sot-shell="dashboard-workstation"
+            data-shell="dashboard-workstation"
             data-hydrated={hydrated ? "true" : "false"}
             data-playback-auto-next={
                 playbackSettings.autoPlayNext ? "true" : "false"
@@ -3808,8 +3814,8 @@ export function Workstation({
             data-sidebar-collapsed={
                 dashboardSidebarCollapsed ? "true" : "false"
             }
-            data-sot-surface="dashboard-workstation"
-            data-sot-state={hydrated ? "ready" : "loading"}
+            data-surface="dashboard-workstation"
+            data-state={hydrated ? "ready" : "loading"}
             data-source-filter-active={source === "all" ? "false" : "true"}
             data-source-filter-provider={source === "all" ? undefined : source}
             data-source-filter-state={sourceFilterStackState}
@@ -3818,7 +3824,7 @@ export function Workstation({
         >
             <aside
                 className={dashboardSidebarCollapseClassNames.sidebar}
-                data-sot-panel="dashboard-sidebar"
+                data-panel="dashboard-sidebar"
                 ref={sourceDrawerRef}
             >
                 <div
@@ -3826,7 +3832,7 @@ export function Workstation({
                         dashboardBrandClassNames.wrapper,
                         dashboardSidebarCollapseClassNames.brand,
                     )}
-                    data-sot-part="dashboard-brand"
+                    data-part="dashboard-brand"
                 >
                     <Image
                         className={dashboardBrandClassNames.image}
@@ -3837,17 +3843,17 @@ export function Workstation({
                     />
                     <div
                         className={dashboardSidebarCollapseClassNames.hidden}
-                        data-sot-part="dashboard-brand-text"
+                        data-part="dashboard-brand-text"
                     >
                         <div
                             className={dashboardBrandClassNames.name}
-                            data-sot-part="dashboard-brand-name"
+                            data-part="dashboard-brand-name"
                         >
                             BetterAINote
                         </div>
                         <div
                             className={dashboardBrandClassNames.subtitle}
-                            data-sot-part="dashboard-brand-subtitle"
+                            data-part="dashboard-brand-subtitle"
                         >
                             私人工作空间
                         </div>
@@ -3856,7 +3862,7 @@ export function Workstation({
 
                 <nav
                     className={dashboardNavClassNames.root}
-                    data-sot-list="dashboard-nav"
+                    data-list="dashboard-nav"
                     aria-label="录音筛选"
                 >
                     <div
@@ -3864,7 +3870,7 @@ export function Workstation({
                             dashboardNavClassNames.sectionLabel,
                             dashboardSidebarCollapseClassNames.hidden,
                         )}
-                        data-sot-part="dashboard-nav-section-label"
+                        data-part="dashboard-nav-section-label"
                     >
                         收藏
                     </div>
@@ -3899,9 +3905,9 @@ export function Workstation({
                                     favorite === item.value ? "true" : "false"
                                 }
                                 data-favorite={item.value}
-                                data-sot-control="dashboard-favorite"
-                                data-sot-filter={item.value}
-                                data-sot-state={
+                                data-control="dashboard-favorite"
+                                data-filter={item.value}
+                                data-state={
                                     favorite === item.value
                                         ? "selected"
                                         : "idle"
@@ -3924,7 +3930,7 @@ export function Workstation({
                                         "min-w-0 flex-1 truncate",
                                         dashboardSidebarCollapseClassNames.hidden,
                                     )}
-                                    data-sot-part="dashboard-favorite-label"
+                                    data-part="dashboard-favorite-label"
                                 >
                                     {getFavoriteLabel(item.value, t)}
                                 </span>
@@ -3938,8 +3944,8 @@ export function Workstation({
                                         dashboardNavClassNames.favoriteCount,
                                         dashboardSidebarCollapseClassNames.hidden,
                                     )}
-                                    data-sot-part="dashboard-favorite-count"
-                                    data-sot-state={
+                                    data-part="dashboard-favorite-count"
+                                    data-state={
                                         favorite === item.value
                                             ? "selected"
                                             : "idle"
@@ -3956,14 +3962,14 @@ export function Workstation({
                             dashboardNavClassNames.sectionLabel,
                             dashboardSidebarCollapseClassNames.hidden,
                         )}
-                        data-sot-part="dashboard-nav-section-label"
+                        data-part="dashboard-nav-section-label"
                     >
                         {t("sourceProviderRows.heading")}
                     </div>
                     <div
                         data-compact={collapsed ? "true" : "false"}
-                        data-sot-list="dashboard-sources"
-                        data-sot-state={
+                        data-list="dashboard-sources"
+                        data-state={
                             dataSourcesError
                                 ? "error"
                                 : dataSourcesLoading
@@ -3977,7 +3983,7 @@ export function Workstation({
                                 size="sm"
                                 type="button"
                                 className={dashboardSourceClassNames.clear}
-                                data-sot-control="dashboard-source-clear"
+                                data-control="dashboard-source-clear"
                                 onClick={() => setSource("all")}
                             >
                                 {t("sourceProviderRows.clear")}
@@ -3986,8 +3992,8 @@ export function Workstation({
                         {dataSourcesError ? (
                             <div
                                 className={dashboardSourceErrorClassName}
-                                data-sot-part="source-provider-error"
-                                data-sot-state="error"
+                                data-part="source-provider-error"
+                                data-state="error"
                             >
                                 {dataSourcesError}
                             </div>
@@ -4046,16 +4052,16 @@ export function Workstation({
                                     disabled={disabledSourceRow}
                                     data-active={item.active ? "true" : "false"}
                                     data-count-badge={String(visibleCount)}
-                                    data-sot-action-state={
+                                    data-action-state={
                                         disabledSourceRow
                                             ? "disabled"
                                             : (actionKind ?? "count")
                                     }
-                                    data-sot-control="dashboard-source-provider"
-                                    data-sot-provider={item.key}
-                                    data-sot-state={sourceRowState}
-                                    data-sot-status={item.status}
+                                    data-control="dashboard-source-provider"
+                                    data-provider={item.key}
+                                    data-workspace-provider={item.key}
                                     data-state={sourceRowState}
+                                    data-status={item.status}
                                     key={item.key}
                                     onClick={() => {
                                         if (disabledSourceRow) return;
@@ -4075,24 +4081,38 @@ export function Workstation({
                                 >
                                     {item.icon ? (
                                         <span
-                                            data-sot-part="source-provider-mark"
-                                            data-sot-provider-cover={
+                                            className={
+                                                dashboardSourceClassNames.mark
+                                            }
+                                            data-part="source-provider-mark"
+                                            data-provider-cover={
                                                 item.cover ? "true" : "false"
                                             }
-                                            data-sot-variant="image"
+                                            data-variant="image"
+                                            data-state={sourceRowState}
                                         >
                                             <Image
                                                 src={item.icon}
                                                 alt=""
                                                 width={18}
                                                 height={18}
+                                                className={cn(
+                                                    dashboardSourceClassNames.markImage,
+                                                    item.cover &&
+                                                        dashboardSourceClassNames.markImageCover,
+                                                )}
                                             />
                                         </span>
                                     ) : (
                                         <span
-                                            data-sot-part="source-provider-mark"
-                                            data-sot-provider-cover="false"
-                                            data-sot-variant="letter"
+                                            className={cn(
+                                                dashboardSourceClassNames.mark,
+                                                dashboardSourceClassNames.markLetter,
+                                            )}
+                                            data-part="source-provider-mark"
+                                            data-provider-cover="false"
+                                            data-variant="letter"
+                                            data-state={sourceRowState}
                                         >
                                             讯
                                         </span>
@@ -4102,7 +4122,7 @@ export function Workstation({
                                             "min-w-0 flex-1 truncate",
                                             sourceRowCollapsed && "hidden",
                                         )}
-                                        data-sot-part="source-provider-label"
+                                        data-part="source-provider-label"
                                     >
                                         {item.label}
                                     </span>
@@ -4114,14 +4134,14 @@ export function Workstation({
                                             sourceRowCollapsed &&
                                                 "absolute bottom-1 right-1",
                                         )}
-                                        data-sot-effect={
+                                        data-effect={
                                             sourceRowState === "expired"
                                                 ? "ring"
                                                 : undefined
                                         }
-                                        data-sot-part="source-provider-status"
-                                        data-sot-state={sourceRowState}
-                                        data-sot-tone={sourceStatusTone}
+                                        data-part="source-provider-status"
+                                        data-state={sourceRowState}
+                                        data-tone={sourceStatusTone}
                                     />
                                     {actionKind ? (
                                         <Button
@@ -4142,8 +4162,7 @@ export function Workstation({
                                                         ? "retry-sync"
                                                         : actionKind
                                                 }
-                                                data-sot-action={actionKind}
-                                                data-sot-part="source-provider-action"
+                                                data-part="source-provider-action"
                                                 onClick={(event) => {
                                                     event.stopPropagation();
                                                     if (
@@ -4201,9 +4220,9 @@ export function Workstation({
                                                 sourceRowCollapsed && "hidden",
                                             )}
                                             data-count={`src:${item.key}`}
-                                            data-sot-part="source-provider-count"
-                                            data-sot-state={sourceRowState}
-                                            data-sot-tone={sourceCountTone}
+                                            data-part="source-provider-count"
+                                            data-state={sourceRowState}
+                                            data-tone={sourceCountTone}
                                         >
                                             {visibleCount}
                                         </Badge>
@@ -4216,35 +4235,35 @@ export function Workstation({
 
                 <div
                     className={DASHBOARD_SIDEBAR_FOOTER_CLASS_NAME}
-                    data-sot-part="dashboard-sidebar-footer"
+                    data-part="dashboard-sidebar-footer"
                 >
                     <div
                         className="group/dashboard-sync flex items-center gap-2.5 rounded-lg border border-sidebar-border bg-sidebar-accent px-2.5 py-2 text-sidebar-accent-foreground group-data-[sidebar-collapsed=true]/dashboard-workstation:justify-center group-data-[sidebar-collapsed=true]/dashboard-workstation:p-2"
-                        data-sot-panel="dashboard-sync"
-                        data-sot-state={syncButtonState}
+                        data-panel="dashboard-sync"
+                        data-state={syncButtonState}
                         data-sync-state={syncButtonState}
                     >
                         <span
-                            className="size-2 rounded-full bg-primary group-data-[sot-state=error]/dashboard-sync:bg-destructive group-data-[sot-state=queued]/dashboard-sync:animate-[bpulse_1.4s_ease-in-out_infinite] group-data-[sot-state=running]/dashboard-sync:animate-[bpulse_1.4s_ease-in-out_infinite]"
-                            data-sot-part="dashboard-sync-indicator"
+                            className="size-2 rounded-full bg-primary group-data-[state=error]/dashboard-sync:bg-destructive group-data-[state=queued]/dashboard-sync:animate-[bpulse_1.4s_ease-in-out_infinite] group-data-[state=running]/dashboard-sync:animate-[bpulse_1.4s_ease-in-out_infinite]"
+                            data-part="dashboard-sync-indicator"
                         />
                         <div
                             className={cn(
                                 "min-w-0 flex-1",
                                 dashboardSidebarCollapseClassNames.hidden,
                             )}
-                            data-sot-part="dashboard-sync-text"
+                            data-part="dashboard-sync-text"
                         >
                             <div
                                 className="text-xs font-semibold text-sidebar-foreground"
-                                data-sot-part="dashboard-sync-title"
+                                data-part="dashboard-sync-title"
                             >
                                 {syncStateLabel(syncButtonState, t)} ·
                                 BetterAINote
                             </div>
                             <div
                                 className="mt-px font-mono text-xs font-medium text-muted-foreground"
-                                data-sot-part="dashboard-sync-subtitle"
+                                data-part="dashboard-sync-subtitle"
                             >
                                 {syncSummary}
                             </div>
@@ -4260,8 +4279,8 @@ export function Workstation({
                             aria-label="同步"
                             aria-busy={syncButtonBusy}
                             disabled={syncButtonBusy}
-                            data-sot-control="dashboard-sync"
-                            data-sot-state={syncButtonState}
+                            data-control="dashboard-sync"
+                            data-state={syncButtonState}
                             onClick={() => void runManualSync()}
                         >
                             <RefreshCw data-icon="inline-start" />
@@ -4272,24 +4291,24 @@ export function Workstation({
 
             <div
                 className={dashboardDrawerClassNames.scrim}
-                data-sot-panel="dashboard-drawer-scrim"
+                data-panel="dashboard-drawer-scrim"
                 id="drawer-scrim"
                 aria-hidden="true"
             />
 
             <main
                 className={DASHBOARD_MAIN_CLASS_NAME}
-                data-sot-panel="dashboard-main"
+                data-panel="dashboard-main"
             >
                 <header
                     className={dashboardTopbarClassNames.topbar}
-                    data-sot-panel="dashboard-topbar"
+                    data-panel="dashboard-topbar"
                 >
                     <Button
                         variant="ghost"
                         size="icon-sm"
                         className={dashboardButtonClassNames.drawerTrigger}
-                        data-sot-control="dashboard-drawer-trigger"
+                        data-control="dashboard-drawer-trigger"
                         id="drawer-trigger"
                         type="button"
                         aria-label="打开筛选抽屉"
@@ -4303,7 +4322,7 @@ export function Workstation({
                         <Menu data-icon="inline-start" />
                         <span
                             className={dashboardDrawerClassNames.activeDot}
-                            data-sot-part="dashboard-drawer-active-dot"
+                            data-part="dashboard-drawer-active-dot"
                             aria-hidden="true"
                         />
                     </Button>
@@ -4313,8 +4332,8 @@ export function Workstation({
                         className={dashboardButtonClassNames.sidebarCollapse}
                         type="button"
                         aria-label="折叠 / 展开侧边栏"
-                        data-sot-control="sidebar-collapse"
-                        data-sot-state={collapsed ? "collapsed" : "expanded"}
+                        data-control="sidebar-collapse"
+                        data-state={collapsed ? "collapsed" : "expanded"}
                         onClick={() => {
                             const nextCollapsed = !collapsed;
                             setCollapsed(nextCollapsed);
@@ -4334,11 +4353,11 @@ export function Workstation({
                     </Button>
                     <div
                         className={dashboardTopbarClassNames.crumbs}
-                        data-sot-part="dashboard-crumbs"
+                        data-part="dashboard-crumbs"
                     >
                         <span
                             className={dashboardTopbarClassNames.crumb}
-                            data-sot-part="dashboard-crumb"
+                            data-part="dashboard-crumb"
                         >
                             {favorite === "all"
                                 ? "全部录音"
@@ -4348,13 +4367,13 @@ export function Workstation({
                         </span>
                         <span
                             className={dashboardTopbarClassNames.separator}
-                            data-sot-part="dashboard-crumb-separator"
+                            data-part="dashboard-crumb-separator"
                         >
                             /
                         </span>
                         <span
                             className={dashboardTopbarClassNames.current}
-                            data-sot-part="dashboard-crumb-current"
+                            data-part="dashboard-crumb-current"
                         >
                             {selectedRecording?.filename ?? "未选择录音"}
                         </span>
@@ -4363,7 +4382,7 @@ export function Workstation({
                         className={
                             dashboardSearchActivityClassNames.dashboardTopbarActions
                         }
-                        data-sot-part="dashboard-topbar-actions"
+                        data-part="dashboard-topbar-actions"
                     >
                         <LibrarySearch
                             open={searchOpen}
@@ -4377,7 +4396,7 @@ export function Workstation({
                             className={
                                 dashboardSearchActivityClassNames.dashboardActivityAnchor
                             }
-                            data-sot-part="dashboard-activity-anchor"
+                            data-part="dashboard-activity-anchor"
                             ref={activityOverlayRef}
                         >
                             <Button
@@ -4391,11 +4410,9 @@ export function Workstation({
                                 aria-label={t("activityOverlay.open")}
                                 aria-expanded={activityOpen}
                                 data-unread={String(activityBadgeCount)}
-                                data-sot-control="dashboard-activity"
-                                data-sot-state={activityOpen ? "open" : "idle"}
-                                data-sot-pending-count={String(
-                                    activityBadgeCount,
-                                )}
+                                data-control="dashboard-activity"
+                                data-state={activityOpen ? "open" : "idle"}
+                                data-pending-count={String(activityBadgeCount)}
                                 onClick={() => {
                                     clearActivityFocusRestoreTimers();
                                     restoreActivityFocusRef.current = false;
@@ -4413,7 +4430,7 @@ export function Workstation({
                                         dashboardSearchActivityClassNames.dashboardActivityBadge,
                                         activityBadgeCount === 0 && "hidden",
                                     )}
-                                    data-sot-part="dashboard-activity-badge"
+                                    data-part="dashboard-activity-badge"
                                 >
                                     {activityBadgeCount > 99
                                         ? "99+"
@@ -4429,9 +4446,8 @@ export function Workstation({
                                     }
                                     data-open="true"
                                     data-state={activityPanelState}
-                                    data-sot-panel="dashboard-activity"
-                                    data-sot-state={activityPanelState}
-                                    data-sot-item-count={String(
+                                    data-panel="dashboard-activity"
+                                    data-item-count={String(
                                         visibleActivityItems.length,
                                     )}
                                     role="dialog"
@@ -4441,19 +4457,19 @@ export function Workstation({
                                         className={
                                             dashboardSearchActivityClassNames.dashboardActivityHeader
                                         }
-                                        data-sot-part="dashboard-activity-header"
+                                        data-part="dashboard-activity-header"
                                     >
                                         <div
                                             className={
                                                 dashboardSearchActivityClassNames.dashboardActivityHeading
                                             }
-                                            data-sot-part="dashboard-activity-heading"
+                                            data-part="dashboard-activity-heading"
                                         >
                                             <CardTitle
                                                 className={
                                                     dashboardSearchActivityClassNames.dashboardActivityTitle
                                                 }
-                                                data-sot-part="dashboard-activity-title"
+                                                data-part="dashboard-activity-title"
                                             >
                                                 {t("activityOverlay.title")}
                                             </CardTitle>
@@ -4462,7 +4478,7 @@ export function Workstation({
                                                 className={
                                                     dashboardSearchActivityClassNames.dashboardActivityCount
                                                 }
-                                                data-sot-part="dashboard-activity-count"
+                                                data-part="dashboard-activity-count"
                                             >
                                                 {t(
                                                     "activityOverlay.pendingCount",
@@ -4472,7 +4488,7 @@ export function Workstation({
                                                 )}
                                             </Badge>
                                         </div>
-                                        <CardAction data-sot-part="dashboard-activity-header-action">
+                                        <CardAction data-part="dashboard-activity-header-action">
                                             <Button
                                                 variant="ghost"
                                                 size="icon-xs"
@@ -4483,7 +4499,7 @@ export function Workstation({
                                                 aria-label={t(
                                                     "activityOverlay.close",
                                                 )}
-                                                data-sot-control="dashboard-activity-close"
+                                                data-control="dashboard-activity-close"
                                                 onClick={() =>
                                                     closeActivityOverlay({
                                                         restoreFocus: true,
@@ -4494,39 +4510,39 @@ export function Workstation({
                                             </Button>
                                         </CardAction>
                                     </CardHeader>
-                                    <Separator data-sot-part="dashboard-activity-header-separator" />
+                                    <Separator data-part="dashboard-activity-header-separator" />
                                     <CardContent
                                         className={
                                             dashboardSearchActivityClassNames.dashboardActivityContent
                                         }
-                                        data-sot-part="dashboard-activity-content"
+                                        data-part="dashboard-activity-content"
                                     >
                                         <div
                                             className={
                                                 dashboardSearchActivityClassNames.dashboardActivityStatus
                                             }
                                             data-state={syncButtonState}
-                                            data-sot-part="dashboard-activity-status"
-                                            data-sot-state={syncButtonState}
+                                            data-part="dashboard-activity-status"
                                         >
                                             <span
                                                 className={
                                                     dashboardSearchActivityClassNames.dashboardActivityStatusIndicator
                                                 }
-                                                data-sot-part="dashboard-activity-status-indicator"
+                                                data-part="dashboard-activity-status-indicator"
+                                                data-state={syncButtonState}
                                                 aria-hidden="true"
                                             />
                                             <div
                                                 className={
                                                     dashboardSearchActivityClassNames.dashboardActivityStatusCopy
                                                 }
-                                                data-sot-part="dashboard-activity-status-copy"
+                                                data-part="dashboard-activity-status-copy"
                                             >
                                                 <div
                                                     className={
                                                         dashboardSearchActivityClassNames.dashboardActivityStatusLine
                                                     }
-                                                    data-sot-part="dashboard-activity-status-line"
+                                                    data-part="dashboard-activity-status-line"
                                                 >
                                                     {syncStatusLabel}
                                                 </div>
@@ -4534,8 +4550,8 @@ export function Workstation({
                                                     className={
                                                         dashboardSearchActivityClassNames.dashboardActivityStatusSub
                                                     }
-                                                    data-sot-format="mono"
-                                                    data-sot-part="dashboard-activity-status-sub"
+                                                    data-format="mono"
+                                                    data-part="dashboard-activity-status-sub"
                                                 >
                                                     {syncSummary}
                                                 </div>
@@ -4552,8 +4568,8 @@ export function Workstation({
                                                 data-action-state={
                                                     activitySyncActionState
                                                 }
-                                                data-sot-control="dashboard-activity-sync"
-                                                data-sot-state={
+                                                data-control="dashboard-activity-sync"
+                                                data-state={
                                                     activitySyncActionState
                                                 }
                                                 onClick={() =>
@@ -4575,13 +4591,13 @@ export function Workstation({
                                                         )}
                                             </Button>
                                         </div>
-                                        <Separator data-sot-part="dashboard-activity-status-separator" />
+                                        <Separator data-part="dashboard-activity-status-separator" />
                                         {visibleActivityItems.length > 0 ? (
                                             <ul
                                                 className={
                                                     dashboardSearchActivityClassNames.dashboardActivityItems
                                                 }
-                                                data-sot-list="dashboard-activity-items"
+                                                data-list="dashboard-activity-items"
                                             >
                                                 {visibleActivityItems.map(
                                                     (item) => (
@@ -4643,15 +4659,12 @@ export function Workstation({
                                                                     ? "true"
                                                                     : "false"
                                                             }
-                                                            data-sot-action={
+                                                            data-action={
                                                                 item.action ??
                                                                 "none"
                                                             }
-                                                            data-sot-activity-id={
-                                                                item.id
-                                                            }
-                                                            data-sot-item="dashboard-activity-item"
-                                                            data-sot-state={
+                                                            data-item="dashboard-activity-item"
+                                                            data-state={
                                                                 item.tone
                                                             }
                                                             data-tone={
@@ -4688,7 +4701,10 @@ export function Workstation({
                                                                 className={
                                                                     dashboardSearchActivityClassNames.dashboardActivityItemIcon
                                                                 }
-                                                                data-sot-part="dashboard-activity-item-icon"
+                                                                data-kind={activityItemKind(
+                                                                    item,
+                                                                )}
+                                                                data-part="dashboard-activity-item-icon"
                                                             >
                                                                 {item.tone ===
                                                                 "success" ? (
@@ -4704,13 +4720,13 @@ export function Workstation({
                                                                 className={
                                                                     dashboardSearchActivityClassNames.dashboardActivityItemCopy
                                                                 }
-                                                                data-sot-part="dashboard-activity-item-copy"
+                                                                data-part="dashboard-activity-item-copy"
                                                             >
                                                                 <div
                                                                     className={
                                                                         dashboardSearchActivityClassNames.dashboardActivityItemTitle
                                                                     }
-                                                                    data-sot-part="dashboard-activity-item-title"
+                                                                    data-part="dashboard-activity-item-title"
                                                                 >
                                                                     {item.title}
                                                                 </div>
@@ -4718,7 +4734,7 @@ export function Workstation({
                                                                     className={
                                                                         dashboardSearchActivityClassNames.dashboardActivityItemBody
                                                                     }
-                                                                    data-sot-part="dashboard-activity-item-body"
+                                                                    data-part="dashboard-activity-item-body"
                                                                 >
                                                                     {item.body}
                                                                 </div>
@@ -4726,7 +4742,7 @@ export function Workstation({
                                                                     className={
                                                                         dashboardSearchActivityClassNames.dashboardActivityItemMeta
                                                                     }
-                                                                    data-sot-part="dashboard-activity-item-meta"
+                                                                    data-part="dashboard-activity-item-meta"
                                                                 >
                                                                     {t(
                                                                         "activityOverlay.justNow",
@@ -4737,7 +4753,7 @@ export function Workstation({
                                                                 className={
                                                                     dashboardSearchActivityClassNames.dashboardActivityItemActions
                                                                 }
-                                                                data-sot-part="dashboard-activity-item-actions"
+                                                                data-part="dashboard-activity-item-actions"
                                                             >
                                                                 {item.action ? (
                                                                     <Button
@@ -4753,8 +4769,8 @@ export function Workstation({
                                                                                 ? activitySyncActionState
                                                                                 : "idle"
                                                                         }
-                                                                        data-sot-control="dashboard-activity-action"
-                                                                        data-sot-state={
+                                                                        data-control="dashboard-activity-action"
+                                                                        data-state={
                                                                             item.action ===
                                                                             "sync"
                                                                                 ? activitySyncActionState
@@ -4794,7 +4810,7 @@ export function Workstation({
                                                                             title: item.title,
                                                                         },
                                                                     )}
-                                                                    data-sot-control="dashboard-activity-dismiss"
+                                                                    data-control="dashboard-activity-dismiss"
                                                                     onClick={() =>
                                                                         setDismissedActivityIds(
                                                                             (
@@ -4821,25 +4837,25 @@ export function Workstation({
                                             </ul>
                                         ) : (
                                             <Empty
-                                                data-sot-part="dashboard-activity-empty"
+                                                data-part="dashboard-activity-empty"
                                                 className={
                                                     dashboardSearchActivityClassNames.dashboardActivityEmpty
                                                 }
                                             >
                                                 <EmptyHeader>
                                                     <EmptyMedia
-                                                        data-sot-part="dashboard-activity-empty-icon"
+                                                        data-part="dashboard-activity-empty-icon"
                                                         variant="icon"
                                                         aria-hidden="true"
                                                     >
                                                         <CheckCircle />
                                                     </EmptyMedia>
-                                                    <EmptyTitle data-sot-part="dashboard-activity-empty-title">
+                                                    <EmptyTitle data-part="dashboard-activity-empty-title">
                                                         {t(
                                                             "activityOverlay.emptyTitle",
                                                         )}
                                                     </EmptyTitle>
-                                                    <EmptyDescription data-sot-part="dashboard-activity-empty-body">
+                                                    <EmptyDescription data-part="dashboard-activity-empty-body">
                                                         {t(
                                                             "activityOverlay.emptyBody",
                                                         )}
@@ -4865,11 +4881,9 @@ export function Workstation({
                                         dashboardButtonClassNames.settingsAvatar
                                     }
                                     aria-label="打开设置"
-                                    data-sot-control="dashboard-settings"
-                                    data-sot-part="dashboard-user-avatar"
-                                    data-sot-state={
-                                        settingsOpen ? "open" : "idle"
-                                    }
+                                    data-control="dashboard-settings"
+                                    data-part="dashboard-user-avatar"
+                                    data-state={settingsOpen ? "open" : "idle"}
                                     onClick={() => openSettings("data-sources")}
                                 >
                                     {Array.from(getUserDisplayName(user))[0]}
@@ -4883,16 +4897,16 @@ export function Workstation({
 
                 <div
                     className={DASHBOARD_WORKSPACE_CLASS_NAME}
-                    data-sot-panel="dashboard-workspace"
+                    data-panel="dashboard-workspace"
                 >
                     <Card
                         hasNoPadding
                         className={DASHBOARD_RECORDING_LIST_CARD_CLASS_NAME}
                         data-current-page={String(currentListPage)}
                         data-list-state={listState}
-                        data-sot-list-mode={listMode}
-                        data-sot-state={listState}
-                        data-sot-surface="dashboard-recording-list"
+                        data-list-mode={listMode}
+                        data-state={listState}
+                        data-surface="dashboard-recording-list"
                         data-total-pages={String(listTotalPages)}
                         data-visible-count={String(pagedListEntries.length)}
                     >
@@ -4900,25 +4914,25 @@ export function Workstation({
                             className={
                                 DASHBOARD_RECORDING_LIST_CONTENT_CLASS_NAME
                             }
-                            data-sot-part="dashboard-recording-list-content"
+                            data-part="dashboard-recording-list-content"
                         >
                             <div
                                 className={
                                     DASHBOARD_RECORDING_LIST_HEADER_CLASS_NAME
                                 }
-                                data-sot-part="dashboard-recording-list-header"
+                                data-part="dashboard-recording-list-header"
                             >
                                 <div
                                     className={
                                         dashboardRecordingListTitlebarStyles.root
                                     }
-                                    data-sot-part="dashboard-recording-list-titlebar"
+                                    data-part="dashboard-recording-list-titlebar"
                                 >
                                     <h2
                                         className={
                                             dashboardRecordingListTitlebarStyles.title
                                         }
-                                        data-sot-part="dashboard-recording-list-title"
+                                        data-part="dashboard-recording-list-title"
                                     >
                                         {getFavoriteLabel(favorite, t)}
                                     </h2>
@@ -4926,7 +4940,7 @@ export function Workstation({
                                         className={
                                             dashboardRecordingListTitlebarStyles.count
                                         }
-                                        data-sot-part="dashboard-recording-list-count"
+                                        data-part="dashboard-recording-list-count"
                                     >
                                         {t("recordingList.totalCount", {
                                             count: listEntries.length,
@@ -4942,22 +4956,25 @@ export function Workstation({
                                         className={
                                             sourceFilterStackClassNames.root
                                         }
-                                        data-sot-panel="dashboard-source-filter-stack"
-                                        data-sot-provider={source}
-                                        data-sot-state={sourceFilterStackState}
-                                        data-sot-status={
+                                        data-panel="dashboard-source-filter-stack"
+                                        data-provider={source}
+                                        data-state={sourceFilterStackState}
+                                        data-status={
                                             selectedSourceRow?.status ?? ""
                                         }
-                                        data-state={sourceFilterStackState}
                                     >
                                         <span
                                             className={
                                                 sourceFilterStackClassNames.from
                                             }
-                                            data-sot-part="source-filter-from"
+                                            data-part="source-filter-from"
                                         >
                                             {t("sourceFilterStack.filter")} ·{" "}
-                                            <b>
+                                            <b
+                                                className={
+                                                    sourceFilterStackClassNames.strong
+                                                }
+                                            >
                                                 {t(
                                                     "dashboardFavorites.allRecordings",
                                                 )}
@@ -4967,7 +4984,7 @@ export function Workstation({
                                             className={
                                                 sourceFilterStackClassNames.separator
                                             }
-                                            data-sot-part="source-filter-separator"
+                                            data-part="source-filter-separator"
                                         >
                                             ›
                                         </span>
@@ -4976,7 +4993,7 @@ export function Workstation({
                                             className={
                                                 sourceFilterStackClassNames.chip
                                             }
-                                            data-sot-part="source-filter-chip"
+                                            data-part="source-filter-chip"
                                         >
                                             <span
                                                 className={
@@ -4999,7 +5016,7 @@ export function Workstation({
                                                 aria-label={t(
                                                     "sourceFilterStack.clearSourceFilter",
                                                 )}
-                                                data-sot-control="source-filter-clear"
+                                                data-control="source-filter-clear"
                                                 onClick={() => setSource("all")}
                                             >
                                                 <X data-icon="inline-start" />
@@ -5009,13 +5026,17 @@ export function Workstation({
                                             className={
                                                 sourceFilterStackClassNames.info
                                             }
-                                            data-sot-part="source-filter-info"
+                                            data-part="source-filter-info"
                                         >
                                             {sourceFilterStackMessage ||
                                                 `${t("sourceFilterStack.showing")} `}
                                             {sourceFilterStackMessage ? null : (
                                                 <>
-                                                    <b>
+                                                    <b
+                                                        className={
+                                                            sourceFilterStackClassNames.infoStrong
+                                                        }
+                                                    >
                                                         {
                                                             filteredRecordings.length
                                                         }
@@ -5033,9 +5054,9 @@ export function Workstation({
                                                 className={
                                                     sourceFilterClassNames.action
                                                 }
-                                                data-sot-control="source-filter-retry-sync"
-                                                data-sot-action="retry"
-                                                data-sot-part="source-filter-action"
+                                                data-control="source-filter-retry-sync"
+                                                data-action="retry"
+                                                data-part="source-filter-action"
                                                 onClick={() =>
                                                     void runManualSync()
                                                 }
@@ -5055,9 +5076,9 @@ export function Workstation({
                                                 className={
                                                     sourceFilterClassNames.action
                                                 }
-                                                data-sot-control="source-filter-widen"
-                                                data-sot-action="widen"
-                                                data-sot-part="source-filter-action"
+                                                data-control="source-filter-widen"
+                                                data-action="widen"
+                                                data-part="source-filter-action"
                                                 onClick={() => {
                                                     setFavorite("all");
                                                     applyListMode("timeline", {
@@ -5082,9 +5103,9 @@ export function Workstation({
                                                 className={
                                                     sourceFilterClassNames.action
                                                 }
-                                                data-sot-control="source-filter-open-settings"
-                                                data-sot-action="open-settings"
-                                                data-sot-part="source-filter-action"
+                                                data-control="source-filter-open-settings"
+                                                data-action="open-settings"
+                                                data-part="source-filter-action"
                                                 onClick={() => {
                                                     window.localStorage.setItem(
                                                         SETTINGS_DATA_SOURCE_PROVIDER_STORAGE_KEY,
@@ -5107,7 +5128,7 @@ export function Workstation({
                                             className={
                                                 sourceFilterClassNames.clearAll
                                             }
-                                            data-sot-control="source-filter-clear-all"
+                                            data-control="source-filter-clear-all"
                                             onClick={() => setSource("all")}
                                         >
                                             {t("sourceFilterStack.clearAll")}
@@ -5120,17 +5141,15 @@ export function Workstation({
                                         className={
                                             sourceFilterStackClassNames.libraryRoot
                                         }
-                                        data-sot-panel="dashboard-library-search-filter"
-                                        data-sot-filter={
-                                            librarySearchFilter.type
-                                        }
-                                        data-sot-state="active"
+                                        data-panel="dashboard-library-search-filter"
+                                        data-filter={librarySearchFilter.type}
+                                        data-state="active"
                                     >
                                         <span
                                             className={
                                                 sourceFilterStackClassNames.libraryLabel
                                             }
-                                            data-sot-part="library-search-filter-label"
+                                            data-part="library-search-filter-label"
                                         >
                                             {librarySearchFilter.type === "tag"
                                                 ? t(
@@ -5145,7 +5164,7 @@ export function Workstation({
                                             className={
                                                 sourceFilterStackClassNames.chip
                                             }
-                                            data-sot-part="library-search-filter-chip"
+                                            data-part="library-search-filter-chip"
                                         >
                                             <span
                                                 className={
@@ -5165,7 +5184,7 @@ export function Workstation({
                                                 aria-label={t(
                                                     "dashboardChrome.clear",
                                                 )}
-                                                data-sot-control="library-search-filter-clear"
+                                                data-control="library-search-filter-clear"
                                                 onClick={() =>
                                                     setLibrarySearchFilter(null)
                                                 }
@@ -5179,15 +5198,15 @@ export function Workstation({
                                     className={
                                         dashboardRecordingListModeStyles.root
                                     }
-                                    data-sot-panel="dashboard-recording-list-mode"
+                                    data-panel="dashboard-recording-list-mode"
                                 >
                                     <div
                                         className={
                                             dashboardRecordingListModeStyles.label
                                         }
-                                        data-sot-part="dashboard-recording-list-mode-label"
+                                        data-part="dashboard-recording-list-mode-label"
                                     >
-                                        <span data-sot-part="dashboard-recording-list-mode-title">
+                                        <span data-part="dashboard-recording-list-mode-title">
                                             {listMode === "timeline"
                                                 ? t(
                                                       "recordingList.timelineTitle",
@@ -5198,7 +5217,7 @@ export function Workstation({
                                             className={
                                                 dashboardRecordingListModeStyles.count
                                             }
-                                            data-sot-part="dashboard-recording-list-mode-count"
+                                            data-part="dashboard-recording-list-mode-count"
                                         >
                                             {t("recordingList.visibleCount", {
                                                 count: listEntries.length,
@@ -5209,13 +5228,13 @@ export function Workstation({
                                         aria-label="列表模式"
                                         variant="segmented"
                                         size="segmentedSm"
-                                        data-sot-control="segmented-tabs"
-                                        data-sot-part="dashboard-recording-list-mode-segmented"
-                                        data-sot-size="sm"
+                                        data-control="segmented-tabs"
+                                        data-part="dashboard-recording-list-mode-segmented"
+                                        data-size="sm"
                                         className={
                                             dashboardRecordingListModeStyles.segmented
                                         }
-                                        getItemProps={getSotSegmentedTabProps}
+                                        getItemProps={getSegmentedTabProps}
                                         items={[
                                             {
                                                 value: "timeline",
@@ -5247,7 +5266,7 @@ export function Workstation({
                                         "recordingList.timelineTitle",
                                     )}
                                     data-list-filter-row="timeline"
-                                    data-sot-panel="dashboard-recording-time-filter"
+                                    data-panel="dashboard-recording-time-filter"
                                     hidden={listMode !== "timeline"}
                                     inert={
                                         listMode !== "timeline"
@@ -5268,9 +5287,9 @@ export function Workstation({
                                             <ToggleGroupItem
                                                 aria-pressed={active}
                                                 data-tf={item.value}
-                                                data-sot-control="dashboard-recording-time-filter"
-                                                data-sot-filter={item.value}
-                                                data-sot-state={
+                                                data-control="dashboard-recording-time-filter"
+                                                data-filter={item.value}
+                                                data-state={
                                                     active ? "selected" : "idle"
                                                 }
                                                 className={
@@ -5284,7 +5303,7 @@ export function Workstation({
                                                     className={dashboardRecordingTimeFilterCountClassName(
                                                         active,
                                                     )}
-                                                    data-sot-part="dashboard-recording-time-filter-count"
+                                                    data-part="dashboard-recording-time-filter-count"
                                                 >
                                                     {timelineCounts[item.value]}
                                                 </span>
@@ -5297,7 +5316,7 @@ export function Workstation({
                                         dashboardRecordingTagFilterStyles.root
                                     }
                                     data-list-filter-row="tags"
-                                    data-sot-panel="recording-list-tag-filter"
+                                    data-panel="recording-list-tag-filter"
                                     hidden={listMode !== "tags"}
                                     inert={
                                         listMode !== "tags" ? true : undefined
@@ -5314,7 +5333,7 @@ export function Workstation({
                                         aria-haspopup="listbox"
                                         aria-expanded={tagFilterOpen}
                                         data-tag-filter-trigger=""
-                                        data-sot-control="recording-list-tag-filter-trigger"
+                                        data-control="recording-list-tag-filter-trigger"
                                         onClick={() =>
                                             setTagFilterOpen((open) => !open)
                                         }
@@ -5324,7 +5343,7 @@ export function Workstation({
                                                 dashboardRecordingTagFilterStyles.label
                                             }
                                             data-tag-filter-label=""
-                                            data-sot-part="recording-list-tag-filter-label"
+                                            data-part="recording-list-tag-filter-label"
                                         >
                                             {selectedTagOption.label}
                                         </span>
@@ -5333,7 +5352,7 @@ export function Workstation({
                                                 dashboardRecordingTagFilterStyles.count
                                             }
                                             data-tag-filter-count=""
-                                            data-sot-part="recording-list-tag-filter-count"
+                                            data-part="recording-list-tag-filter-count"
                                         >
                                             {selectedTagOption.count}
                                         </span>
@@ -5342,7 +5361,7 @@ export function Workstation({
                                                 dashboardRecordingTagFilterStyles.caret
                                             }
                                             data-icon="inline-end"
-                                            data-sot-part="recording-list-tag-filter-caret"
+                                            data-part="recording-list-tag-filter-caret"
                                             aria-hidden="true"
                                         />
                                     </Button>
@@ -5352,7 +5371,7 @@ export function Workstation({
                                         }
                                         role="listbox"
                                         data-tag-filter-list=""
-                                        data-sot-list="recording-list-tag-filter-list"
+                                        data-list="recording-list-tag-filter-list"
                                         hidden={!tagFilterOpen}
                                     >
                                         {tagFilterOptions.map((option) => {
@@ -5372,11 +5391,9 @@ export function Workstation({
                                                         option.value
                                                     }
                                                     aria-selected={active}
-                                                    data-sot-control="recording-list-tag-filter"
-                                                    data-sot-filter={
-                                                        option.value
-                                                    }
-                                                    data-sot-state={
+                                                    data-control="recording-list-tag-filter"
+                                                    data-filter={option.value}
+                                                    data-state={
                                                         active
                                                             ? "selected"
                                                             : "idle"
@@ -5393,7 +5410,7 @@ export function Workstation({
                                                         className={
                                                             dashboardRecordingTagFilterStyles.optionLabel
                                                         }
-                                                        data-sot-part="recording-list-tag-filter-option-label"
+                                                        data-part="recording-list-tag-filter-option-label"
                                                     >
                                                         {option.label}
                                                     </span>
@@ -5401,7 +5418,7 @@ export function Workstation({
                                                         className={
                                                             dashboardRecordingTagFilterStyles.optionCount
                                                         }
-                                                        data-sot-part="recording-list-tag-filter-option-count"
+                                                        data-part="recording-list-tag-filter-option-count"
                                                     >
                                                         {option.count}
                                                     </span>
@@ -5415,16 +5432,16 @@ export function Workstation({
                                 className={
                                     dashboardRecordingListScrollClassName
                                 }
-                                data-sot-list="dashboard-recording-list-scroll"
+                                data-list="dashboard-recording-list-scroll"
                             >
                                 {listState === "loading" ? (
-                                    <SotRecordingListSkeleton />
+                                    <DashboardRecordingListSkeleton />
                                 ) : listState === "ready" ? (
                                     <div
                                         className={
                                             dashboardRecordingRowStyles.rows
                                         }
-                                        data-sot-list="dashboard-recording-rows"
+                                        data-list="dashboard-recording-rows"
                                     >
                                         {groupedListEntries.map(
                                             (group, groupIndex) => (
@@ -5434,31 +5451,29 @@ export function Workstation({
                                                             className={
                                                                 dashboardRecordingRowStyles.groupSeparator
                                                             }
-                                                            data-sot-part="dashboard-recording-list-group-separator"
+                                                            data-part="dashboard-recording-list-group-separator"
                                                         />
                                                     ) : null}
                                                     <div
                                                         className={
                                                             dashboardRecordingRowStyles.group
                                                         }
-                                                        data-sot-group-id={
-                                                            group.id
-                                                        }
-                                                        data-sot-group="recording-list"
-                                                        data-sot-part="dashboard-recording-list-group"
-                                                        data-sot-mode={listMode}
+                                                        data-group-id={group.id}
+                                                        data-group="recording-list"
+                                                        data-part="dashboard-recording-list-group"
+                                                        data-mode={listMode}
                                                     >
                                                         <div
                                                             className={
                                                                 dashboardRecordingRowStyles.groupHeading
                                                             }
-                                                            data-sot-part="dashboard-recording-list-group-heading"
+                                                            data-part="dashboard-recording-list-group-heading"
                                                         >
                                                             <span
                                                                 className={
                                                                     dashboardRecordingRowStyles.groupLabel
                                                                 }
-                                                                data-sot-part="dashboard-recording-list-group-label"
+                                                                data-part="dashboard-recording-list-group-label"
                                                             >
                                                                 {group.label}
                                                             </span>
@@ -5466,7 +5481,7 @@ export function Workstation({
                                                                 className={
                                                                     dashboardRecordingRowStyles.groupCount
                                                                 }
-                                                                data-sot-part="dashboard-recording-list-group-count"
+                                                                data-part="dashboard-recording-list-group-count"
                                                             >
                                                                 {
                                                                     group
@@ -5478,7 +5493,7 @@ export function Workstation({
                                                                 className={
                                                                     dashboardRecordingRowStyles.groupDivider
                                                                 }
-                                                                data-sot-part="dashboard-recording-list-group-divider"
+                                                                data-part="dashboard-recording-list-group-divider"
                                                             />
                                                         </div>
                                                         {group.entries.map(
@@ -5538,11 +5553,8 @@ export function Workstation({
                                                                         data-rec={
                                                                             recording.id
                                                                         }
-                                                                        data-sot-control="dashboard-recording-row"
-                                                                        data-sot-recording-id={
-                                                                            recording.id
-                                                                        }
-                                                                        data-sot-state={
+                                                                        data-control="dashboard-recording-row"
+                                                                        data-state={
                                                                             active
                                                                                 ? "selected"
                                                                                 : "idle"
@@ -5557,13 +5569,13 @@ export function Workstation({
                                                                             className={
                                                                                 dashboardRecordingRowStyles.body
                                                                             }
-                                                                            data-sot-part="dashboard-recording-row-body"
+                                                                            data-part="dashboard-recording-row-body"
                                                                         >
                                                                             <div
                                                                                 className={
                                                                                     dashboardRecordingRowStyles.title
                                                                                 }
-                                                                                data-sot-part="dashboard-recording-row-title"
+                                                                                data-part="dashboard-recording-row-title"
                                                                             >
                                                                                 {
                                                                                     recording.filename
@@ -5573,20 +5585,20 @@ export function Workstation({
                                                                                 className={
                                                                                     dashboardRecordingRowStyles.meta
                                                                                 }
-                                                                                data-sot-part="dashboard-recording-row-meta"
+                                                                                data-part="dashboard-recording-row-meta"
                                                                             >
                                                                                 {sourceMeta?.icon ? (
                                                                                     <span
                                                                                         className={
                                                                                             dashboardRecordingRowStyles.sourceMark
                                                                                         }
-                                                                                        data-sot-part="dashboard-recording-source-mark"
-                                                                                        data-sot-provider-cover={
+                                                                                        data-part="dashboard-recording-source-mark"
+                                                                                        data-provider-cover={
                                                                                             sourceMeta.cover
                                                                                                 ? "true"
                                                                                                 : "false"
                                                                                         }
-                                                                                        data-sot-variant="image"
+                                                                                        data-variant="image"
                                                                                         title={providerLabel(
                                                                                             recording.sourceProvider,
                                                                                             language,
@@ -5617,9 +5629,9 @@ export function Workstation({
                                                                                             dashboardRecordingRowStyles.sourceMark,
                                                                                             dashboardRecordingRowStyles.sourceMarkLetter,
                                                                                         )}
-                                                                                        data-sot-part="dashboard-recording-source-mark"
-                                                                                        data-sot-provider-cover="false"
-                                                                                        data-sot-variant="letter"
+                                                                                        data-part="dashboard-recording-source-mark"
+                                                                                        data-provider-cover="false"
+                                                                                        data-variant="letter"
                                                                                         title={providerLabel(
                                                                                             recording.sourceProvider,
                                                                                             language,
@@ -5632,7 +5644,7 @@ export function Workstation({
                                                                                     className={
                                                                                         dashboardRecordingRowStyles.duration
                                                                                     }
-                                                                                    data-sot-part="dashboard-recording-duration"
+                                                                                    data-part="dashboard-recording-duration"
                                                                                 >
                                                                                     {formatDuration(
                                                                                         recording.duration,
@@ -5643,19 +5655,19 @@ export function Workstation({
                                                                                 className={
                                                                                     dashboardRecordingRowStyles.secondary
                                                                                 }
-                                                                                data-sot-part="dashboard-recording-row-secondary"
+                                                                                data-part="dashboard-recording-row-secondary"
                                                                             >
                                                                                 <span
                                                                                     className={
                                                                                         dashboardRecordingRowStyles.timestamp
                                                                                     }
-                                                                                    data-sot-part="dashboard-recording-timestamp"
+                                                                                    data-part="dashboard-recording-timestamp"
                                                                                 >
                                                                                     <span
                                                                                         className={
                                                                                             dashboardRecordingRowStyles.timestampAbsolute
                                                                                         }
-                                                                                        data-sot-part="dashboard-recording-timestamp-absolute"
+                                                                                        data-part="dashboard-recording-timestamp-absolute"
                                                                                     >
                                                                                         {formatAbsoluteDate(
                                                                                             recording.startTime,
@@ -5665,7 +5677,7 @@ export function Workstation({
                                                                                         className={
                                                                                             dashboardRecordingRowStyles.timestampRelative
                                                                                         }
-                                                                                        data-sot-part="dashboard-recording-timestamp-relative"
+                                                                                        data-part="dashboard-recording-timestamp-relative"
                                                                                     >
                                                                                         {formatRelativeDate(
                                                                                             recording.startTime,
@@ -5678,7 +5690,7 @@ export function Workstation({
                                                                             className={
                                                                                 dashboardRecordingRowStyles.actions
                                                                             }
-                                                                            data-sot-part="dashboard-recording-row-actions"
+                                                                            data-part="dashboard-recording-row-actions"
                                                                         >
                                                                             <Badge
                                                                                 variant={
@@ -5687,19 +5699,19 @@ export function Workstation({
                                                                                             .tone
                                                                                     ]
                                                                                 }
-                                                                                data-sot-part="dashboard-recording-status"
-                                                                                data-sot-tone={
+                                                                                data-part="dashboard-recording-status"
+                                                                                data-tone={
                                                                                     rowStatus.tone
                                                                                 }
                                                                             >
-                                                                                <span data-sot-part="dashboard-recording-status-label">
+                                                                                <span data-part="dashboard-recording-status-label">
                                                                                     {
                                                                                         rowStatus.label
                                                                                     }
                                                                                 </span>
                                                                             </Badge>
                                                                             {primaryTag ? (
-                                                                                <SotPlayerTagChip
+                                                                                <PlayerTagChip
                                                                                     tag={
                                                                                         primaryTag
                                                                                     }
@@ -5722,19 +5734,19 @@ export function Workstation({
                                             dashboardRecordingListStateStyles.root
                                         }
                                         data-list-state-block={listState}
-                                        data-sot-part="recording-list-state"
-                                        data-sot-state={listState}
+                                        data-part="recording-list-state"
+                                        data-state={listState}
                                     >
                                         <EmptyHeader>
                                             <EmptyMedia
                                                 variant="subtleIcon"
-                                                data-sot-part="recording-list-state-icon"
+                                                data-part="recording-list-state-icon"
                                             >
                                                 <FileText />
                                             </EmptyMedia>
                                             <EmptyTitle
                                                 variant="compact"
-                                                data-sot-part="recording-list-state-title"
+                                                data-part="recording-list-state-title"
                                             >
                                                 {listState === "empty"
                                                     ? t(
@@ -5756,7 +5768,7 @@ export function Workstation({
                                             </EmptyTitle>
                                             <EmptyDescription
                                                 variant="compact"
-                                                data-sot-part="recording-list-state-description"
+                                                data-part="recording-list-state-description"
                                             >
                                                 {listState === "empty"
                                                     ? t(
@@ -5787,7 +5799,7 @@ export function Workstation({
                                                     variant="default"
                                                     size="sm"
                                                     type="button"
-                                                    data-sot-control="recording-list-open-data-sources"
+                                                    data-control="recording-list-open-data-sources"
                                                     onClick={() =>
                                                         openSettings(
                                                             "data-sources",
@@ -5804,7 +5816,7 @@ export function Workstation({
                                                     variant="ghost"
                                                     size="sm"
                                                     type="button"
-                                                    data-sot-control="recording-list-clear-filters"
+                                                    data-control="recording-list-clear-filters"
                                                     onClick={() => {
                                                         setFavorite("all");
                                                         setSource("all");
@@ -5830,7 +5842,7 @@ export function Workstation({
                                                     variant="ghost"
                                                     size="sm"
                                                     type="button"
-                                                    data-sot-control="recording-list-clear-timeline"
+                                                    data-control="recording-list-clear-timeline"
                                                     onClick={() =>
                                                         setTimelineFilter("all")
                                                     }
@@ -5845,7 +5857,7 @@ export function Workstation({
                                                     variant="ghost"
                                                     size="sm"
                                                     type="button"
-                                                    data-sot-control="recording-list-clear-tag"
+                                                    data-control="recording-list-clear-tag"
                                                     onClick={() =>
                                                         setSelectedTagFilter(
                                                             "all",
@@ -5868,20 +5880,20 @@ export function Workstation({
                                         data-list-state-block={
                                             listPaginationState
                                         }
-                                        data-sot-panel="recording-list-pagination"
-                                        data-sot-state={listPaginationState}
+                                        data-panel="recording-list-pagination"
+                                        data-state={listPaginationState}
                                     >
                                         <div
                                             className={
                                                 dashboardRecordingListPaginationStyles.divider
                                             }
-                                            data-sot-part="recording-list-page-divider"
+                                            data-part="recording-list-page-divider"
                                         >
                                             <span
                                                 className={
                                                     dashboardRecordingListPaginationStyles.status
                                                 }
-                                                data-sot-part="recording-list-page-status"
+                                                data-part="recording-list-page-status"
                                             >
                                                 {t(listPageStatusKey, {
                                                     current: currentListPage,
@@ -5894,7 +5906,7 @@ export function Workstation({
                                             className={
                                                 dashboardRecordingListPaginationStyles.nav
                                             }
-                                            data-sot-part="recording-list-page-nav"
+                                            data-part="recording-list-page-nav"
                                         >
                                             <Button
                                                 variant="ghost"
@@ -5910,7 +5922,7 @@ export function Workstation({
                                                         ? "true"
                                                         : undefined
                                                 }
-                                                data-sot-control="recording-list-prev-page"
+                                                data-control="recording-list-prev-page"
                                                 onClick={() =>
                                                     setListPage((page) =>
                                                         Math.max(1, page - 1),
@@ -5923,7 +5935,7 @@ export function Workstation({
                                                 className={
                                                     dashboardRecordingListPaginationStyles.number
                                                 }
-                                                data-sot-part="recording-list-page-number"
+                                                data-part="recording-list-page-number"
                                             >
                                                 {currentListPage} /{" "}
                                                 {listTotalPages}
@@ -5946,7 +5958,7 @@ export function Workstation({
                                                         ? "true"
                                                         : undefined
                                                 }
-                                                data-sot-control="recording-list-next-page"
+                                                data-control="recording-list-next-page"
                                                 onClick={() =>
                                                     setListPage((page) =>
                                                         Math.min(
@@ -5967,7 +5979,7 @@ export function Workstation({
                                                     dashboardButtonClassNames.listPagination
                                                 }
                                                 type="button"
-                                                data-sot-control="recording-list-load-more"
+                                                data-control="recording-list-load-more"
                                                 onClick={() =>
                                                     setListPage((page) =>
                                                         Math.min(
@@ -5988,247 +6000,205 @@ export function Workstation({
 
                     <section
                         className={DASHBOARD_DETAIL_PANEL_CLASS_NAME}
-                        data-sot-panel="dashboard-detail"
+                        data-panel="dashboard-detail"
                         data-empty={selectedRecording ? "false" : "true"}
                     >
-                        <CardHeader
-                            className="relative flex flex-row items-center gap-2.5 px-1 pt-1 pb-0 data-[rename-mode=saving]:py-0"
-                            data-sot-panel="dashboard-detail-header"
-                            data-sot-mode={dashboardDetailHeaderMode}
-                            data-sot-state={dashboardDetailHeaderState}
-                            data-rename-mode={dashboardDetailHeaderState}
-                            data-local-only={
-                                localDeleteAvailable ? "true" : "false"
-                            }
-                        >
-                            {dashboardDetailHeaderState === "normal" ? (
-                                <CardTitle
-                                    className="m-0 min-w-0 flex-1 truncate font-display text-[22px] font-semibold leading-normal tracking-[-0.014em] text-foreground"
-                                    data-sot-part="detail-header-title"
-                                    data-rh-title
-                                    role="heading"
-                                    aria-level={2}
-                                >
-                                    {selectedRecording?.filename ??
-                                        "未选择录音"}
-                                </CardTitle>
-                            ) : null}
-                            {dashboardDetailHeaderState === "normal" &&
-                            localDeleteAvailable ? (
-                                <Badge
-                                    variant="outline"
-                                    className="ml-1 shrink-0"
-                                    data-sot-part="detail-header-local-badge"
-                                    data-rh-local
-                                    aria-label="仅存在本地副本"
-                                >
-                                    本地副本
-                                </Badge>
-                            ) : null}
-                            {dashboardDetailHeaderState === "editing" ? (
-                                <Input
-                                    type="text"
-                                    className="h-8 min-w-0 flex-1 px-3 py-1 text-base md:text-sm"
-                                    data-rh-input
-                                    data-sot-part="detail-header-title-input"
-                                    data-sot-state="editing"
-                                    value={draftTitle}
-                                    aria-label="录音标题"
-                                    maxLength={120}
-                                    onChange={(event) =>
-                                        setDraftTitle(event.target.value)
+                        {selectedRecording ? (
+                            <>
+                                <CardHeader
+                                    className="relative flex flex-row items-center gap-2.5 px-1 pt-1 pb-0 data-[rename-mode=saving]:py-0"
+                                    data-panel="dashboard-detail-header"
+                                    data-mode={dashboardDetailHeaderMode}
+                                    data-state={dashboardDetailHeaderState}
+                                    data-rename-mode={
+                                        dashboardDetailHeaderState
                                     }
-                                    onKeyDown={(event) => {
-                                        if (event.key === "Enter") {
-                                            void renameRecording();
-                                        }
-                                        if (event.key === "Escape") {
-                                            setEditingTitle(false);
-                                            setDraftTitle(
-                                                selectedRecording?.filename ??
-                                                    "",
-                                            );
-                                        }
-                                    }}
-                                />
-                            ) : null}
-                            {dashboardDetailHeaderState === "saving" ? (
-                                <Badge
-                                    variant="ghost"
-                                    className="ml-1 shrink-0"
-                                    data-sot-part="detail-header-title-status"
-                                    data-sot-state="saving"
-                                    data-rh-status
-                                    aria-busy={renaming}
-                                    aria-live="polite"
-                                >
-                                    正在保存…
-                                </Badge>
-                            ) : null}
-                            {dashboardDetailHeaderState === "normal" ? (
-                                <Button
-                                    variant="ghost"
-                                    size="icon-sm"
-                                    className={
-                                        dashboardButtonClassNames.headerIconButton
+                                    data-local-only={
+                                        localDeleteAvailable ? "true" : "false"
                                     }
-                                    type="button"
-                                    aria-label="重命名"
-                                    title="重命名"
-                                    data-rh-edit-start
-                                    data-sot-control="rename-recording-title"
-                                    data-sot-part="detail-header-action"
-                                    data-sot-mode="normal"
-                                    disabled={!selectedRecording}
-                                    onClick={() => setEditingTitle(true)}
                                 >
-                                    <Pencil data-icon="inline-start" />
-                                </Button>
-                            ) : null}
-                            {dashboardDetailHeaderState === "normal" ? (
-                                <div
-                                    className="relative inline-flex items-center gap-1.5"
-                                    data-rh-ai-anchor
-                                    data-sot-part="detail-header-action-anchor"
-                                    data-sot-mode="normal"
-                                >
-                                    <Button
-                                        variant="outline"
-                                        size="sm"
-                                        className={
-                                            dashboardButtonClassNames.headerActionButton
-                                        }
-                                        type="button"
-                                        aria-haspopup="dialog"
-                                        aria-expanded={aiOpen}
-                                        data-rh-ai-trigger
-                                        data-sot-control="ai-rename"
-                                        data-sot-part="detail-header-action"
-                                        data-sot-mode="normal"
-                                        data-sot-state={
-                                            aiUnavailableReason
-                                                ? "unavailable"
-                                                : aiOpen
-                                                  ? aiState
-                                                  : "idle"
-                                        }
-                                        title={aiUnavailableReason || undefined}
-                                        onClick={() => void previewAutoRename()}
-                                    >
-                                        <Sparkle data-icon="inline-start" />
-                                        AI 重命名
-                                    </Button>
-                                    {aiOpen && selectedRecording ? (
-                                        <AiRenamePreview
-                                            className="right-px"
-                                            applyLabel="应用"
-                                            bodyLabel="建议标题"
-                                            cancelLabel="取消"
-                                            closeLabel="关闭预览"
-                                            filename={aiPreviewTitle}
-                                            hint={
-                                                aiState === "unavailable"
-                                                    ? aiUnavailableHint
-                                                    : null
+                                    {dashboardDetailHeaderState === "normal" ? (
+                                        <CardTitle
+                                            className="m-0 min-w-0 flex-1 truncate font-display text-[22px] font-semibold leading-normal tracking-[-0.014em] text-foreground"
+                                            data-part="detail-header-title"
+                                            data-rh-title
+                                            role="heading"
+                                            aria-level={2}
+                                        >
+                                            {selectedRecording?.filename ??
+                                                "未选择录音"}
+                                        </CardTitle>
+                                    ) : null}
+                                    {dashboardDetailHeaderState === "normal" &&
+                                    localDeleteAvailable ? (
+                                        <Badge
+                                            variant="outline"
+                                            className="ml-1 shrink-0"
+                                            data-part="detail-header-local-badge"
+                                            data-rh-local
+                                            aria-label="仅存在本地副本"
+                                        >
+                                            本地副本
+                                        </Badge>
+                                    ) : null}
+                                    {dashboardDetailHeaderState ===
+                                    "editing" ? (
+                                        <Input
+                                            type="text"
+                                            className="h-8 min-w-0 flex-1 px-3 py-1 text-base md:text-sm"
+                                            data-rh-input
+                                            data-part="detail-header-title-input"
+                                            data-state="editing"
+                                            value={draftTitle}
+                                            aria-label="录音标题"
+                                            maxLength={120}
+                                            onChange={(event) =>
+                                                setDraftTitle(
+                                                    event.target.value,
+                                                )
                                             }
-                                            isApplying={aiApplying}
-                                            isRegenerating={
-                                                aiState === "loading"
-                                            }
-                                            message={
-                                                aiState === "loading"
-                                                    ? "正在根据转写生成标题…"
-                                                    : aiState === "review"
-                                                      ? "确认无误后点击「应用」，将替换录音标题且不可一键撤销。"
-                                                      : aiError
-                                            }
-                                            onApply={applyAiRename}
-                                            onCancel={() => {
-                                                setAiOpen(false);
-                                                setAiApplying(false);
+                                            onKeyDown={(event) => {
+                                                if (event.key === "Enter") {
+                                                    void renameRecording();
+                                                }
+                                                if (event.key === "Escape") {
+                                                    setEditingTitle(false);
+                                                    setDraftTitle(
+                                                        selectedRecording?.filename ??
+                                                            "",
+                                                    );
+                                                }
                                             }}
-                                            onRegenerate={previewAutoRename}
-                                            originalFilename={
-                                                selectedRecording.filename
-                                            }
-                                            regenerateLabel={
-                                                aiState === "error"
-                                                    ? "重试"
-                                                    : aiState === "loading"
-                                                      ? "生成中…"
-                                                      : "重新生成"
-                                            }
-                                            state={aiState}
-                                            subtitle="仅本次预览，不会写回来源"
-                                            title="AI 标题预览"
                                         />
                                     ) : null}
-                                </div>
-                            ) : null}
-                            {dashboardDetailHeaderState === "editing" ? (
-                                <>
-                                    <Button
-                                        variant="ghost"
-                                        size="icon-sm"
-                                        className={
-                                            dashboardButtonClassNames.headerIconButton
-                                        }
-                                        type="button"
-                                        aria-label="保存新标题"
-                                        title="保存"
-                                        data-rh-edit-save
-                                        data-sot-control="save-recording-title"
-                                        data-sot-part="detail-header-action"
-                                        data-sot-mode="editing"
-                                        disabled={renaming}
-                                        onClick={() => void renameRecording()}
-                                    >
-                                        <Check data-icon="inline-start" />
-                                    </Button>
-                                    <Button
-                                        variant="ghost"
-                                        size="icon-sm"
-                                        className={
-                                            dashboardButtonClassNames.headerIconButton
-                                        }
-                                        type="button"
-                                        aria-label="取消重命名"
-                                        title="取消"
-                                        data-rh-edit-cancel
-                                        data-sot-control="cancel-recording-title"
-                                        data-sot-part="detail-header-action"
-                                        data-sot-mode="editing"
-                                        onClick={() => {
-                                            setEditingTitle(false);
-                                            setDraftTitle(
-                                                selectedRecording?.filename ??
-                                                    "",
-                                            );
-                                        }}
-                                    >
-                                        <X data-icon="inline-start" />
-                                    </Button>
-                                </>
-                            ) : null}
-                            {dashboardDetailHeaderState === "normal" ? (
-                                <div
-                                    className="relative inline-flex items-center gap-1.5"
-                                    data-sot-part="detail-header-action-anchor"
-                                    data-sot-mode="normal"
-                                >
-                                    <DropdownMenu
-                                        modal={false}
-                                        open={moreOpen}
-                                        onOpenChange={(open) => {
-                                            setMoreOpen(open);
-                                            if (!open) return;
-                                            setSearchOpen(false);
-                                            setActivityOpen(false);
-                                            setTagOpen(false);
-                                            setAiOpen(false);
-                                        }}
-                                    >
-                                        <DropdownMenuTrigger asChild>
+                                    {dashboardDetailHeaderState === "saving" ? (
+                                        <Badge
+                                            variant="ghost"
+                                            className="ml-1 shrink-0"
+                                            data-part="detail-header-title-status"
+                                            data-state="saving"
+                                            data-rh-status
+                                            aria-busy={renaming}
+                                            aria-live="polite"
+                                        >
+                                            正在保存…
+                                        </Badge>
+                                    ) : null}
+                                    {dashboardDetailHeaderState === "normal" ? (
+                                        <Button
+                                            variant="ghost"
+                                            size="icon-sm"
+                                            className={
+                                                dashboardButtonClassNames.headerIconButton
+                                            }
+                                            type="button"
+                                            aria-label="重命名"
+                                            title="重命名"
+                                            data-rh-edit-start
+                                            data-control="rename-recording-title"
+                                            data-part="detail-header-action"
+                                            data-mode="normal"
+                                            disabled={!selectedRecording}
+                                            onClick={() =>
+                                                setEditingTitle(true)
+                                            }
+                                        >
+                                            <Pencil data-icon="inline-start" />
+                                        </Button>
+                                    ) : null}
+                                    {dashboardDetailHeaderState === "normal" ? (
+                                        <div
+                                            className="relative inline-flex items-center gap-1.5"
+                                            data-rh-ai-anchor
+                                            data-part="detail-header-action-anchor"
+                                            data-mode="normal"
+                                        >
+                                            <Button
+                                                variant="outline"
+                                                size="sm"
+                                                className={
+                                                    dashboardButtonClassNames.headerActionButton
+                                                }
+                                                type="button"
+                                                aria-haspopup="dialog"
+                                                aria-expanded={aiOpen}
+                                                data-rh-ai-trigger
+                                                data-control="ai-rename"
+                                                data-part="detail-header-action"
+                                                data-mode="normal"
+                                                data-state={
+                                                    aiUnavailableReason
+                                                        ? "unavailable"
+                                                        : aiOpen
+                                                          ? aiState
+                                                          : "idle"
+                                                }
+                                                title={
+                                                    aiUnavailableReason ||
+                                                    undefined
+                                                }
+                                                onClick={() =>
+                                                    void previewAutoRename()
+                                                }
+                                            >
+                                                <Sparkle data-icon="inline-start" />
+                                                AI 重命名
+                                            </Button>
+                                            {aiOpen && selectedRecording ? (
+                                                <AiRenamePreview
+                                                    className="right-px"
+                                                    applyLabel="应用"
+                                                    bodyLabel="建议标题"
+                                                    cancelLabel="取消"
+                                                    closeLabel="关闭预览"
+                                                    filename={aiPreviewTitle}
+                                                    hint={
+                                                        aiState ===
+                                                        "unavailable"
+                                                            ? aiUnavailableHint
+                                                            : null
+                                                    }
+                                                    isApplying={aiApplying}
+                                                    isRegenerating={
+                                                        aiState === "loading"
+                                                    }
+                                                    message={
+                                                        aiState === "loading"
+                                                            ? "正在根据转写生成标题…"
+                                                            : aiState ===
+                                                                "review"
+                                                              ? "确认无误后点击「应用」，将替换录音标题且不可一键撤销。"
+                                                              : aiError
+                                                    }
+                                                    onApply={applyAiRename}
+                                                    onCancel={() => {
+                                                        setAiOpen(false);
+                                                        setAiApplying(false);
+                                                    }}
+                                                    onRegenerate={
+                                                        previewAutoRename
+                                                    }
+                                                    originalFilename={
+                                                        selectedRecording.filename
+                                                    }
+                                                    regenerateLabel={
+                                                        aiState === "error"
+                                                            ? "重试"
+                                                            : aiState ===
+                                                                "loading"
+                                                              ? "生成中…"
+                                                              : "重新生成"
+                                                    }
+                                                    state={aiState}
+                                                    subtitle="仅本次预览，不会写回来源"
+                                                    title="AI 标题预览"
+                                                />
+                                            ) : null}
+                                        </div>
+                                    ) : null}
+                                    {dashboardDetailHeaderState ===
+                                    "editing" ? (
+                                        <>
                                             <Button
                                                 variant="ghost"
                                                 size="icon-sm"
@@ -6236,1412 +6206,1605 @@ export function Workstation({
                                                     dashboardButtonClassNames.headerIconButton
                                                 }
                                                 type="button"
-                                                aria-label="更多操作"
-                                                aria-haspopup="menu"
-                                                aria-expanded={moreOpen}
-                                                data-sot-control="recording-more-actions"
-                                                data-sot-part="detail-header-action"
-                                                data-sot-mode="normal"
-                                                ref={moreTriggerRef}
+                                                aria-label="保存新标题"
+                                                title="保存"
+                                                data-rh-edit-save
+                                                data-control="save-recording-title"
+                                                data-part="detail-header-action"
+                                                data-mode="editing"
+                                                disabled={renaming}
+                                                onClick={() =>
+                                                    void renameRecording()
+                                                }
                                             >
-                                                <EllipsisVertical data-icon="inline-start" />
+                                                <Check data-icon="inline-start" />
                                             </Button>
-                                        </DropdownMenuTrigger>
-                                        <DropdownMenuContent
-                                            align="end"
-                                            sideOffset={6}
-                                            variant="glass"
-                                            data-sot-menu="recording-more-actions"
-                                            data-open="true"
-                                            data-sot-local-delete-available={
-                                                localDeleteAvailable
-                                                    ? "true"
-                                                    : "false"
-                                            }
-                                            data-sot-state={moreActionsState}
-                                            aria-label="更多操作"
+                                            <Button
+                                                variant="ghost"
+                                                size="icon-sm"
+                                                className={
+                                                    dashboardButtonClassNames.headerIconButton
+                                                }
+                                                type="button"
+                                                aria-label="取消重命名"
+                                                title="取消"
+                                                data-rh-edit-cancel
+                                                data-control="cancel-recording-title"
+                                                data-part="detail-header-action"
+                                                data-mode="editing"
+                                                onClick={() => {
+                                                    setEditingTitle(false);
+                                                    setDraftTitle(
+                                                        selectedRecording?.filename ??
+                                                            "",
+                                                    );
+                                                }}
+                                            >
+                                                <X data-icon="inline-start" />
+                                            </Button>
+                                        </>
+                                    ) : null}
+                                    {dashboardDetailHeaderState === "normal" ? (
+                                        <div
+                                            className="relative inline-flex items-center gap-1.5"
+                                            data-part="detail-header-action-anchor"
+                                            data-mode="normal"
                                         >
-                                            <DropdownMenuGroup>
-                                                <DropdownMenuItem
-                                                    density="compact"
-                                                    data-sot-menu-item="rename"
-                                                    disabled={
-                                                        !selectedRecording
-                                                    }
-                                                    onSelect={() => {
-                                                        setMoreOpen(false);
-                                                        setAiOpen(false);
-                                                        setTagOpen(false);
-                                                        setEditingTitle(true);
-                                                        setDraftTitle(
-                                                            selectedRecording?.filename ??
-                                                                "",
-                                                        );
-                                                    }}
-                                                >
-                                                    {moreActionsShowPrimaryIcons ? (
-                                                        <Pencil
-                                                            data-icon="inline-start"
-                                                            aria-hidden="true"
-                                                            focusable="false"
-                                                        />
-                                                    ) : null}
-                                                    重命名
-                                                </DropdownMenuItem>
-                                                <DropdownMenuItem
-                                                    density="compact"
-                                                    data-sot-menu-item="ai-rename"
-                                                    disabled={
-                                                        !selectedRecording
-                                                    }
-                                                    onSelect={() => {
-                                                        setMoreOpen(false);
-                                                        void previewAutoRename();
-                                                    }}
-                                                >
-                                                    {moreActionsShowPrimaryIcons ? (
-                                                        <Sparkle
-                                                            data-icon="inline-start"
-                                                            aria-hidden="true"
-                                                            focusable="false"
-                                                        />
-                                                    ) : null}
-                                                    AI 重命名
-                                                </DropdownMenuItem>
-                                                {moreActionsShowRetranscribe ? (
-                                                    <DropdownMenuItem
-                                                        density="compact"
-                                                        data-sot-menu-item="retranscribe"
-                                                        disabled={
-                                                            !selectedRecording
+                                            <DropdownMenu
+                                                modal={false}
+                                                open={moreOpen}
+                                                onOpenChange={(open) => {
+                                                    setMoreOpen(open);
+                                                    if (!open) return;
+                                                    setSearchOpen(false);
+                                                    setActivityOpen(false);
+                                                    setTagOpen(false);
+                                                    setAiOpen(false);
+                                                }}
+                                            >
+                                                <DropdownMenuTrigger asChild>
+                                                    <Button
+                                                        variant="ghost"
+                                                        size="icon-sm"
+                                                        className={
+                                                            dashboardButtonClassNames.headerIconButton
                                                         }
-                                                        onSelect={() => {
-                                                            setMoreOpen(false);
-                                                            void retranscribe();
-                                                        }}
+                                                        type="button"
+                                                        aria-label="更多操作"
+                                                        aria-haspopup="menu"
+                                                        aria-expanded={moreOpen}
+                                                        data-control="recording-more-actions"
+                                                        data-part="detail-header-action"
+                                                        data-mode="normal"
+                                                        ref={moreTriggerRef}
                                                     >
-                                                        {moreActionsShowPrimaryIcons ? (
-                                                            <RefreshCw
-                                                                data-icon="inline-start"
-                                                                aria-hidden="true"
-                                                                focusable="false"
+                                                        <EllipsisVertical data-icon="inline-start" />
+                                                    </Button>
+                                                </DropdownMenuTrigger>
+                                                <DropdownMenuContent
+                                                    align="end"
+                                                    sideOffset={6}
+                                                    variant="glass"
+                                                    data-menu="recording-more-actions"
+                                                    data-open="true"
+                                                    data-local-delete-available={
+                                                        localDeleteAvailable
+                                                            ? "true"
+                                                            : "false"
+                                                    }
+                                                    data-state={
+                                                        moreActionsState
+                                                    }
+                                                    aria-label="更多操作"
+                                                >
+                                                    <DropdownMenuGroup>
+                                                        <DropdownMenuItem
+                                                            density="compact"
+                                                            data-menu-item="rename"
+                                                            disabled={
+                                                                !selectedRecording
+                                                            }
+                                                            onSelect={() => {
+                                                                setMoreOpen(
+                                                                    false,
+                                                                );
+                                                                setAiOpen(
+                                                                    false,
+                                                                );
+                                                                setTagOpen(
+                                                                    false,
+                                                                );
+                                                                setEditingTitle(
+                                                                    true,
+                                                                );
+                                                                setDraftTitle(
+                                                                    selectedRecording?.filename ??
+                                                                        "",
+                                                                );
+                                                            }}
+                                                        >
+                                                            {moreActionsShowPrimaryIcons ? (
+                                                                <Pencil
+                                                                    data-icon="inline-start"
+                                                                    aria-hidden="true"
+                                                                    focusable="false"
+                                                                />
+                                                            ) : null}
+                                                            重命名
+                                                        </DropdownMenuItem>
+                                                        <DropdownMenuItem
+                                                            density="compact"
+                                                            data-menu-item="ai-rename"
+                                                            disabled={
+                                                                !selectedRecording
+                                                            }
+                                                            onSelect={() => {
+                                                                setMoreOpen(
+                                                                    false,
+                                                                );
+                                                                void previewAutoRename();
+                                                            }}
+                                                        >
+                                                            {moreActionsShowPrimaryIcons ? (
+                                                                <Sparkle
+                                                                    data-icon="inline-start"
+                                                                    aria-hidden="true"
+                                                                    focusable="false"
+                                                                />
+                                                            ) : null}
+                                                            AI 重命名
+                                                        </DropdownMenuItem>
+                                                        {moreActionsShowRetranscribe ? (
+                                                            <DropdownMenuItem
+                                                                density="compact"
+                                                                data-menu-item="retranscribe"
+                                                                disabled={
+                                                                    !selectedRecording
+                                                                }
+                                                                onSelect={() => {
+                                                                    setMoreOpen(
+                                                                        false,
+                                                                    );
+                                                                    void retranscribe();
+                                                                }}
+                                                            >
+                                                                {moreActionsShowPrimaryIcons ? (
+                                                                    <RefreshCw
+                                                                        data-icon="inline-start"
+                                                                        aria-hidden="true"
+                                                                        focusable="false"
+                                                                    />
+                                                                ) : null}
+                                                                重新转写
+                                                            </DropdownMenuItem>
+                                                        ) : null}
+                                                        {moreActionsShowSeparator ? (
+                                                            <DropdownMenuSeparator
+                                                                density="compact"
+                                                                data-menu-separator="delete"
                                                             />
                                                         ) : null}
-                                                        重新转写
-                                                    </DropdownMenuItem>
-                                                ) : null}
-                                                {moreActionsShowSeparator ? (
-                                                    <DropdownMenuSeparator
-                                                        density="compact"
-                                                        data-sot-menu-separator="delete"
-                                                    />
-                                                ) : null}
-                                                <DropdownMenuItem
-                                                    density="compact"
-                                                    variant="destructive"
-                                                    data-sot-menu-item="delete-local"
-                                                    data-sot-tone="danger"
+                                                        <DropdownMenuItem
+                                                            density="compact"
+                                                            variant="destructive"
+                                                            data-menu-item="delete-local"
+                                                            data-tone="danger"
+                                                            disabled={
+                                                                !localDeleteAvailable
+                                                            }
+                                                            aria-disabled={
+                                                                !localDeleteAvailable
+                                                            }
+                                                            onSelect={() =>
+                                                                void deleteRecording()
+                                                            }
+                                                        >
+                                                            {moreActionsShowDeleteIcon ? (
+                                                                <Trash2
+                                                                    data-icon="inline-start"
+                                                                    aria-hidden="true"
+                                                                    focusable="false"
+                                                                />
+                                                            ) : null}
+                                                            删除本地副本
+                                                            {selectedRecording?.sourceProvider ? (
+                                                                <DropdownMenuShortcut
+                                                                    variant="hint"
+                                                                    className={
+                                                                        localDeleteAvailable
+                                                                            ? undefined
+                                                                            : "mr-[0.5px]"
+                                                                    }
+                                                                    data-menu-hint=""
+                                                                >
+                                                                    {selectedRecording.upstreamDeleted
+                                                                        ? "上游已删除"
+                                                                        : "来源持有正本"}
+                                                                </DropdownMenuShortcut>
+                                                            ) : null}
+                                                        </DropdownMenuItem>
+                                                    </DropdownMenuGroup>
+                                                </DropdownMenuContent>
+                                            </DropdownMenu>
+                                        </div>
+                                    ) : null}
+                                </CardHeader>
+
+                                <Card
+                                    hasNoPadding
+                                    className="block min-h-[114px] gap-0 overflow-visible rounded-2xl px-[18px] py-4 shadow-none"
+                                    data-no-audio={
+                                        playbackDisabled ? "true" : undefined
+                                    }
+                                    data-playing={
+                                        isPlaying ? "true" : undefined
+                                    }
+                                    data-state={
+                                        playbackDisabled ? "disabled" : "ready"
+                                    }
+                                    data-surface="dashboard-recording-player"
+                                >
+                                    <PlayerNoAudioAlert
+                                        part="dashboard-recording-player-no-audio"
+                                        iconPart="dashboard-recording-player-no-audio-icon"
+                                        textPart="dashboard-recording-player-no-audio-text"
+                                        titlePart="dashboard-recording-player-no-audio-title"
+                                        descriptionPart="dashboard-recording-player-no-audio-description"
+                                        playbackDisabled={playbackDisabled}
+                                    />
+                                    <CardHeader
+                                        className="mb-3 flex flex-row flex-wrap items-center gap-2.5 p-0"
+                                        data-part="dashboard-recording-player-meta"
+                                    >
+                                        <span
+                                            className="translate-y-px font-mono text-[11.5px] font-medium tracking-[0.02em] text-muted-foreground"
+                                            data-part="dashboard-recording-player-date"
+                                            suppressHydrationWarning
+                                        >
+                                            {selectedRecording
+                                                ? formatPlayerDate(
+                                                      selectedRecording.startTime,
+                                                  )
+                                                : "未选择录音"}
+                                        </span>
+                                        {selectedRecording ? (
+                                            <PlayerSourceTag
+                                                label={providerLabel(
+                                                    selectedRecording.sourceProvider,
+                                                    language,
+                                                )}
+                                                provider={
+                                                    selectedRecording.sourceProvider
+                                                }
+                                            />
+                                        ) : null}
+                                        {selectedRecording ? (
+                                            <PlayerTagChip
+                                                count={
+                                                    selectedRecording.tags
+                                                        .length
+                                                }
+                                                onClick={() => {
+                                                    setSearchOpen(false);
+                                                    setActivityOpen(false);
+                                                    setMoreOpen(false);
+                                                    setAiOpen(false);
+                                                    setTagOpen((open) => !open);
+                                                }}
+                                                state={
+                                                    tagOpen ? "open" : "idle"
+                                                }
+                                                tag={selectedPlayerTag}
+                                                trigger
+                                            />
+                                        ) : null}
+                                        {tagOpen && selectedRecording ? (
+                                            <RecordingTagManager
+                                                recording={selectedRecording}
+                                                availableTags={availableTags}
+                                                loadError={tagLoadError || null}
+                                                onAvailableTagsChange={
+                                                    setAvailableTags
+                                                }
+                                                onRecordingTagsChange={
+                                                    applyDashboardRecordingTags
+                                                }
+                                                onClose={() =>
+                                                    setTagOpen(false)
+                                                }
+                                            />
+                                        ) : null}
+                                        {selectedPlayerStatus ? (
+                                            <PlayerStatusBadge
+                                                label={
+                                                    selectedPlayerStatus.label
+                                                }
+                                                tone={selectedPlayerStatus.tone}
+                                                className="ml-auto"
+                                            />
+                                        ) : null}
+                                    </CardHeader>
+                                    <DashboardRecordingPlayerControls
+                                        currentTime={currentTime}
+                                        duration={playerDurationValue}
+                                        isPlaying={isPlaying}
+                                        onCyclePlaybackSpeed={
+                                            cyclePlaybackSpeed
+                                        }
+                                        onSeekBySeconds={
+                                            seekDashboardPlayerBySeconds
+                                        }
+                                        onSeekToPercent={
+                                            seekDashboardPlayerToPercent
+                                        }
+                                        onTogglePlayPause={togglePlayPause}
+                                        onVolumeChange={setVolume}
+                                        onVolumeOpenChange={setVolumeOpen}
+                                        playbackDisabled={playbackDisabled}
+                                        playbackSpeedLabel={playbackSpeedLabel}
+                                        progress={progress}
+                                        volume={volume}
+                                        volumePopoverOpen={volumePopoverOpen}
+                                    />
+                                    {audioSrc ? (
+                                        <audio ref={audioRef} src={audioSrc}>
+                                            <track kind="captions" />
+                                        </audio>
+                                    ) : null}
+                                </Card>
+
+                                <Card
+                                    hasNoPadding
+                                    className="min-h-0 flex-1 gap-0 rounded-2xl"
+                                    data-panel="dashboard-transcript-shell"
+                                >
+                                    <CardHeader
+                                        className="flex flex-row flex-wrap items-center gap-x-3 gap-y-1.5 border-b px-3.5 py-3"
+                                        data-part="dashboard-transcript-header"
+                                    >
+                                        <SegmentedTabs
+                                            aria-label="详情标签"
+                                            variant="segmented"
+                                            size="segmentedSm"
+                                            className="shrink-0"
+                                            data-control="segmented-tabs"
+                                            data-size="sm"
+                                            getItemProps={getSegmentedTabProps}
+                                            items={[
+                                                {
+                                                    value: "transcript",
+                                                    label: "转写",
+                                                },
+                                                {
+                                                    value: "speakers",
+                                                    label: "说话人",
+                                                },
+                                                {
+                                                    value: "source",
+                                                    label: "来源详情",
+                                                    tabKey: "source-report",
+                                                },
+                                            ]}
+                                            value={detailTab}
+                                            onValueChange={(value) => {
+                                                setDetailTab(value);
+                                                setAiOpen(false);
+                                                setTagOpen(false);
+                                                setMoreOpen(false);
+                                                setSearchOpen(false);
+                                                setActivityOpen(false);
+                                            }}
+                                        />
+                                        <div
+                                            className="ml-auto inline-flex max-w-full flex-[0_1_auto] flex-wrap items-center gap-2"
+                                            data-part="dashboard-transcript-actions"
+                                        >
+                                            {detailTab === "transcript" &&
+                                            selectedTranscription?.language ? (
+                                                <Badge
+                                                    variant="outline"
+                                                    className="gap-1.5"
+                                                    data-part="dashboard-transcript-language"
+                                                >
+                                                    <Globe2 data-icon="inline-start" />
+                                                    {transcriptLanguageLabel(
+                                                        selectedTranscription.language,
+                                                        language,
+                                                    )}
+                                                </Badge>
+                                            ) : null}
+                                            <Button
+                                                variant="ghost"
+                                                size="sm"
+                                                type="button"
+                                                data-copy="transcript"
+                                                data-copy-state={
+                                                    copyFeedback?.action ===
+                                                    "local-transcript"
+                                                        ? copyFeedback.state
+                                                        : undefined
+                                                }
+                                                data-control="copy-local-transcript"
+                                                data-state={
+                                                    localTranscriptCopyState
+                                                }
+                                                data-tab-scope="transcript"
+                                                aria-busy={
+                                                    copyingAction ===
+                                                    "local-transcript"
+                                                }
+                                                aria-disabled={
+                                                    localTranscriptCopyDisabled
+                                                        ? "true"
+                                                        : "false"
+                                                }
+                                                aria-label={t(
+                                                    "transcription.copyTranscript",
+                                                )}
+                                                aria-live={
+                                                    copyFeedback?.action ===
+                                                    "local-transcript"
+                                                        ? "polite"
+                                                        : undefined
+                                                }
+                                                disabled={
+                                                    localTranscriptCopyDisabled
+                                                }
+                                                hidden={
+                                                    detailTab !== "transcript"
+                                                }
+                                                onClick={() =>
+                                                    void handleCopyLocalTranscript()
+                                                }
+                                            >
+                                                <DashboardCopyIcon
+                                                    state={
+                                                        copyFeedback?.action ===
+                                                        "local-transcript"
+                                                            ? copyFeedback.state
+                                                            : undefined
+                                                    }
+                                                />
+                                                <DashboardCopyLabel>
+                                                    {copyFeedback?.action ===
+                                                    "local-transcript"
+                                                        ? copyFeedback.state ===
+                                                          "ok"
+                                                            ? t("common.copied")
+                                                            : t(
+                                                                  "common.copyFailedShort",
+                                                              )
+                                                        : t(
+                                                              "transcription.copyTranscript",
+                                                          )}
+                                                </DashboardCopyLabel>
+                                            </Button>
+                                            <SourceReportCopyButton
+                                                type="button"
+                                                copy="source-transcript"
+                                                copyState={
+                                                    sourceTranscriptCopyState
+                                                }
+                                                feedbackState={
+                                                    copyFeedback?.action ===
+                                                    "source-transcript"
+                                                        ? copyFeedback.state
+                                                        : undefined
+                                                }
+                                                aria-busy={
+                                                    copyingAction ===
+                                                    "source-transcript"
+                                                }
+                                                aria-disabled={
+                                                    sourceTranscriptCopyDisabled
+                                                        ? "true"
+                                                        : "false"
+                                                }
+                                                aria-label={t(
+                                                    "sourceReport.copySourceTranscript",
+                                                )}
+                                                aria-live={
+                                                    copyFeedback?.action ===
+                                                    "source-transcript"
+                                                        ? "polite"
+                                                        : undefined
+                                                }
+                                                disabled={
+                                                    sourceTranscriptCopyDisabled
+                                                }
+                                                hidden={detailTab !== "source"}
+                                                onClick={() =>
+                                                    void handleCopySourceMaterial(
+                                                        "source-transcript",
+                                                    )
+                                                }
+                                            >
+                                                <SourceReportCopyIcon
+                                                    state={
+                                                        copyFeedback?.action ===
+                                                        "source-transcript"
+                                                            ? copyFeedback.state
+                                                            : undefined
+                                                    }
+                                                />
+                                                <SourceReportCopyLabel>
+                                                    {copyFeedback?.action ===
+                                                    "source-transcript"
+                                                        ? copyFeedback.state ===
+                                                          "ok"
+                                                            ? t("common.copied")
+                                                            : t(
+                                                                  "common.copyFailedShort",
+                                                              )
+                                                        : t(
+                                                              "sourceReport.copySourceTranscript",
+                                                          )}
+                                                </SourceReportCopyLabel>
+                                            </SourceReportCopyButton>
+                                            <SourceReportCopyButton
+                                                type="button"
+                                                copy="source-report"
+                                                copyState={
+                                                    sourceReportCopyState
+                                                }
+                                                feedbackState={
+                                                    copyFeedback?.action ===
+                                                    "source-report"
+                                                        ? copyFeedback.state
+                                                        : undefined
+                                                }
+                                                aria-busy={
+                                                    copyingAction ===
+                                                    "source-report"
+                                                }
+                                                aria-disabled={
+                                                    sourceReportCopyDisabled
+                                                        ? "true"
+                                                        : "false"
+                                                }
+                                                aria-label={t(
+                                                    "sourceReport.copySourceReport",
+                                                )}
+                                                aria-live={
+                                                    copyFeedback?.action ===
+                                                    "source-report"
+                                                        ? "polite"
+                                                        : undefined
+                                                }
+                                                disabled={
+                                                    sourceReportCopyDisabled
+                                                }
+                                                hidden={detailTab !== "source"}
+                                                onClick={() =>
+                                                    void handleCopySourceMaterial(
+                                                        "source-report",
+                                                    )
+                                                }
+                                            >
+                                                <SourceReportCopyIcon
+                                                    state={
+                                                        copyFeedback?.action ===
+                                                        "source-report"
+                                                            ? copyFeedback.state
+                                                            : undefined
+                                                    }
+                                                />
+                                                <SourceReportCopyLabel>
+                                                    {copyFeedback?.action ===
+                                                    "source-report"
+                                                        ? copyFeedback.state ===
+                                                          "ok"
+                                                            ? t("common.copied")
+                                                            : t(
+                                                                  "common.copyFailedShort",
+                                                              )
+                                                        : t(
+                                                              "sourceReport.copySourceReport",
+                                                          )}
+                                                </SourceReportCopyLabel>
+                                            </SourceReportCopyButton>
+                                            {detailTab === "source" ? (
+                                                <SourceReportActionButton
+                                                    intent="outline"
+                                                    type="button"
+                                                    testId="source-report-refresh"
+                                                    state={sourceReportState}
                                                     disabled={
-                                                        !localDeleteAvailable
+                                                        sourceReportState ===
+                                                        "loading"
                                                     }
-                                                    aria-disabled={
-                                                        !localDeleteAvailable
-                                                    }
-                                                    onSelect={() =>
-                                                        void deleteRecording()
+                                                    onClick={() =>
+                                                        void loadSourceReport()
                                                     }
                                                 >
-                                                    {moreActionsShowDeleteIcon ? (
-                                                        <Trash2
-                                                            data-icon="inline-start"
-                                                            aria-hidden="true"
-                                                            focusable="false"
-                                                        />
-                                                    ) : null}
-                                                    删除本地副本
-                                                    {selectedRecording?.sourceProvider ? (
-                                                        <DropdownMenuShortcut
-                                                            variant="hint"
-                                                            className={
-                                                                localDeleteAvailable
-                                                                    ? undefined
-                                                                    : "mr-[0.5px]"
-                                                            }
-                                                            data-sot-menu-hint=""
-                                                        >
-                                                            {selectedRecording.upstreamDeleted
-                                                                ? "上游已删除"
-                                                                : "来源持有正本"}
-                                                        </DropdownMenuShortcut>
-                                                    ) : null}
-                                                </DropdownMenuItem>
-                                            </DropdownMenuGroup>
-                                        </DropdownMenuContent>
-                                    </DropdownMenu>
-                                </div>
-                            ) : null}
-                        </CardHeader>
-
-                        <Card
-                            hasNoPadding
-                            className="block min-h-[114px] gap-0 overflow-visible rounded-2xl px-[18px] py-4 shadow-none"
-                            data-no-audio={
-                                playbackDisabled ? "true" : undefined
-                            }
-                            data-playing={isPlaying ? "true" : undefined}
-                            data-sot-state={
-                                playbackDisabled ? "disabled" : "ready"
-                            }
-                            data-sot-surface="dashboard-recording-player"
-                        >
-                            <SotPlayerNoAudioAlert
-                                part="dashboard-recording-player-no-audio"
-                                iconPart="dashboard-recording-player-no-audio-icon"
-                                textPart="dashboard-recording-player-no-audio-text"
-                                titlePart="dashboard-recording-player-no-audio-title"
-                                descriptionPart="dashboard-recording-player-no-audio-description"
-                                playbackDisabled={playbackDisabled}
-                            />
-                            <CardHeader
-                                className="mb-3 flex flex-row flex-wrap items-center gap-2.5 p-0"
-                                data-sot-part="dashboard-recording-player-meta"
-                            >
-                                <span
-                                    className="translate-y-px font-mono text-[11.5px] font-medium tracking-[0.02em] text-muted-foreground"
-                                    data-sot-part="dashboard-recording-player-date"
-                                    suppressHydrationWarning
-                                >
-                                    {selectedRecording
-                                        ? formatSotPlayerDate(
-                                              selectedRecording.startTime,
-                                          )
-                                        : "未选择录音"}
-                                </span>
-                                {selectedRecording ? (
-                                    <SotPlayerSourceTag
-                                        label={providerLabel(
-                                            selectedRecording.sourceProvider,
-                                            language,
-                                        )}
-                                        provider={
-                                            selectedRecording.sourceProvider
-                                        }
-                                    />
-                                ) : null}
-                                {selectedRecording ? (
-                                    <SotPlayerTagChip
-                                        count={selectedRecording.tags.length}
-                                        onClick={() => {
-                                            setSearchOpen(false);
-                                            setActivityOpen(false);
-                                            setMoreOpen(false);
-                                            setAiOpen(false);
-                                            setTagOpen((open) => !open);
-                                        }}
-                                        state={tagOpen ? "open" : "idle"}
-                                        tag={selectedPlayerTag}
-                                        trigger
-                                    />
-                                ) : null}
-                                {tagOpen && selectedRecording ? (
-                                    <RecordingTagManager
-                                        variant="popover"
-                                        recording={selectedRecording}
-                                        availableTags={availableTags}
-                                        loadError={tagLoadError || null}
-                                        onAvailableTagsChange={setAvailableTags}
-                                        onRecordingTagsChange={
-                                            applyDashboardRecordingTags
-                                        }
-                                        onClose={() => setTagOpen(false)}
-                                    />
-                                ) : null}
-                                {selectedPlayerStatus ? (
-                                    <SotPlayerStatusBadge
-                                        label={selectedPlayerStatus.label}
-                                        tone={selectedPlayerStatus.tone}
-                                        className="ml-auto"
-                                    />
-                                ) : null}
-                            </CardHeader>
-                            <DashboardRecordingPlayerControls
-                                currentTime={currentTime}
-                                duration={playerDurationValue}
-                                isPlaying={isPlaying}
-                                onCyclePlaybackSpeed={cyclePlaybackSpeed}
-                                onSeekBySeconds={seekDashboardPlayerBySeconds}
-                                onSeekToPercent={seekDashboardPlayerToPercent}
-                                onTogglePlayPause={togglePlayPause}
-                                onVolumeChange={setVolume}
-                                onVolumeOpenChange={setVolumeOpen}
-                                playbackDisabled={playbackDisabled}
-                                playbackSpeedLabel={playbackSpeedLabel}
-                                progress={progress}
-                                volume={volume}
-                                volumePopoverOpen={volumePopoverOpen}
-                            />
-                            {audioSrc ? (
-                                <audio ref={audioRef} src={audioSrc}>
-                                    <track kind="captions" />
-                                </audio>
-                            ) : null}
-                        </Card>
-
-                        <Card
-                            hasNoPadding
-                            className="min-h-0 flex-1 gap-0 rounded-2xl"
-                            data-sot-panel="dashboard-transcript-shell"
-                        >
-                            <CardHeader
-                                className="flex flex-row flex-wrap items-center gap-x-3 gap-y-1.5 border-b px-3.5 py-3"
-                                data-sot-part="dashboard-transcript-header"
-                            >
-                                <SegmentedTabs
-                                    aria-label="详情标签"
-                                    variant="segmented"
-                                    size="segmentedSm"
-                                    className="shrink-0"
-                                    data-sot-control="segmented-tabs"
-                                    data-sot-size="sm"
-                                    getItemProps={getSotSegmentedTabProps}
-                                    items={[
-                                        { value: "transcript", label: "转写" },
-                                        { value: "speakers", label: "说话人" },
-                                        {
-                                            value: "source",
-                                            label: "来源详情",
-                                            tabKey: "source-report",
-                                        },
-                                    ]}
-                                    value={detailTab}
-                                    onValueChange={(value) => {
-                                        setDetailTab(value);
-                                        setAiOpen(false);
-                                        setTagOpen(false);
-                                        setMoreOpen(false);
-                                        setSearchOpen(false);
-                                        setActivityOpen(false);
-                                    }}
-                                />
-                                <div
-                                    className="ml-auto inline-flex max-w-full flex-[0_1_auto] flex-wrap items-center gap-2"
-                                    data-sot-part="dashboard-transcript-actions"
-                                >
-                                    {detailTab === "transcript" &&
-                                    selectedTranscription?.language ? (
-                                        <Badge
-                                            variant="outline"
-                                            className="gap-1.5"
-                                            data-sot-part="dashboard-transcript-language"
-                                        >
-                                            <Globe2 data-icon="inline-start" />
-                                            {transcriptLanguageLabel(
-                                                selectedTranscription.language,
-                                                language,
-                                            )}
-                                        </Badge>
-                                    ) : null}
-                                    <Button
-                                        variant="ghost"
-                                        size="sm"
-                                        type="button"
-                                        data-copy="transcript"
-                                        data-copy-state={
-                                            copyFeedback?.action ===
-                                            "local-transcript"
-                                                ? copyFeedback.state
-                                                : undefined
-                                        }
-                                        data-sot-control="copy-local-transcript"
-                                        data-sot-state={
-                                            localTranscriptCopyState
-                                        }
-                                        data-tab-scope="transcript"
-                                        aria-busy={
-                                            copyingAction === "local-transcript"
-                                        }
-                                        aria-disabled={
-                                            localTranscriptCopyDisabled
-                                                ? "true"
-                                                : "false"
-                                        }
-                                        aria-label={t(
-                                            "transcription.copyTranscript",
-                                        )}
-                                        aria-live={
-                                            copyFeedback?.action ===
-                                            "local-transcript"
-                                                ? "polite"
-                                                : undefined
-                                        }
-                                        disabled={localTranscriptCopyDisabled}
-                                        hidden={detailTab !== "transcript"}
-                                        onClick={() =>
-                                            void handleCopyLocalTranscript()
-                                        }
-                                    >
-                                        <DashboardCopyIcon
-                                            state={
-                                                copyFeedback?.action ===
-                                                "local-transcript"
-                                                    ? copyFeedback.state
-                                                    : undefined
-                                            }
-                                        />
-                                        <DashboardCopyLabel>
-                                            {copyFeedback?.action ===
-                                            "local-transcript"
-                                                ? copyFeedback.state === "ok"
-                                                    ? t("common.copied")
-                                                    : t(
-                                                          "common.copyFailedShort",
-                                                      )
-                                                : t(
-                                                      "transcription.copyTranscript",
-                                                  )}
-                                        </DashboardCopyLabel>
-                                    </Button>
-                                    <SourceReportCopyButton
-                                        type="button"
-                                        copy="source-transcript"
-                                        copyState={sourceTranscriptCopyState}
-                                        feedbackState={
-                                            copyFeedback?.action ===
-                                            "source-transcript"
-                                                ? copyFeedback.state
-                                                : undefined
-                                        }
-                                        aria-busy={
-                                            copyingAction ===
-                                            "source-transcript"
-                                        }
-                                        aria-disabled={
-                                            sourceTranscriptCopyDisabled
-                                                ? "true"
-                                                : "false"
-                                        }
-                                        aria-label={t(
-                                            "sourceReport.copySourceTranscript",
-                                        )}
-                                        aria-live={
-                                            copyFeedback?.action ===
-                                            "source-transcript"
-                                                ? "polite"
-                                                : undefined
-                                        }
-                                        disabled={sourceTranscriptCopyDisabled}
-                                        hidden={detailTab !== "source"}
-                                        onClick={() =>
-                                            void handleCopySourceMaterial(
-                                                "source-transcript",
-                                            )
-                                        }
-                                    >
-                                        <SourceReportCopyIcon
-                                            state={
-                                                copyFeedback?.action ===
-                                                "source-transcript"
-                                                    ? copyFeedback.state
-                                                    : undefined
-                                            }
-                                        />
-                                        <SourceReportCopyLabel>
-                                            {copyFeedback?.action ===
-                                            "source-transcript"
-                                                ? copyFeedback.state === "ok"
-                                                    ? t("common.copied")
-                                                    : t(
-                                                          "common.copyFailedShort",
-                                                      )
-                                                : t(
-                                                      "sourceReport.copySourceTranscript",
-                                                  )}
-                                        </SourceReportCopyLabel>
-                                    </SourceReportCopyButton>
-                                    <SourceReportCopyButton
-                                        type="button"
-                                        copy="source-report"
-                                        copyState={sourceReportCopyState}
-                                        feedbackState={
-                                            copyFeedback?.action ===
-                                            "source-report"
-                                                ? copyFeedback.state
-                                                : undefined
-                                        }
-                                        aria-busy={
-                                            copyingAction === "source-report"
-                                        }
-                                        aria-disabled={
-                                            sourceReportCopyDisabled
-                                                ? "true"
-                                                : "false"
-                                        }
-                                        aria-label={t(
-                                            "sourceReport.copySourceReport",
-                                        )}
-                                        aria-live={
-                                            copyFeedback?.action ===
-                                            "source-report"
-                                                ? "polite"
-                                                : undefined
-                                        }
-                                        disabled={sourceReportCopyDisabled}
-                                        hidden={detailTab !== "source"}
-                                        onClick={() =>
-                                            void handleCopySourceMaterial(
-                                                "source-report",
-                                            )
-                                        }
-                                    >
-                                        <SourceReportCopyIcon
-                                            state={
-                                                copyFeedback?.action ===
-                                                "source-report"
-                                                    ? copyFeedback.state
-                                                    : undefined
-                                            }
-                                        />
-                                        <SourceReportCopyLabel>
-                                            {copyFeedback?.action ===
-                                            "source-report"
-                                                ? copyFeedback.state === "ok"
-                                                    ? t("common.copied")
-                                                    : t(
-                                                          "common.copyFailedShort",
-                                                      )
-                                                : t(
-                                                      "sourceReport.copySourceReport",
-                                                  )}
-                                        </SourceReportCopyLabel>
-                                    </SourceReportCopyButton>
-                                    {detailTab === "source" ? (
-                                        <SourceReportActionButton
-                                            intent="outline"
-                                            type="button"
-                                            testId="source-report-refresh"
-                                            state={sourceReportState}
-                                            disabled={
-                                                sourceReportState === "loading"
-                                            }
-                                            onClick={() =>
-                                                void loadSourceReport()
-                                            }
-                                        >
-                                            <CloudDownload data-icon="inline-start" />
-                                            {sourceReportState === "loading"
-                                                ? t(
-                                                      "sourceReport.loadingDetail",
-                                                  )
-                                                : t("sourceReport.refresh")}
-                                        </SourceReportActionButton>
-                                    ) : null}
-                                    <Badge
-                                        variant="outline"
-                                        data-sot-part="dashboard-retranscription-disabled-hint"
-                                        className="[&[hidden]]:hidden"
-                                        hidden={
-                                            detailTab !== "transcript" ||
-                                            dashboardRetxState !== "unavailable"
-                                        }
-                                    >
-                                        当前来源不支持私有重转写
-                                    </Badge>
-                                    <Button
-                                        id="retx-btn"
-                                        variant="outline"
-                                        size="sm"
-                                        type="button"
-                                        data-sot-control="retranscribe-recording"
-                                        data-sot-state={dashboardRetxState}
-                                        data-retx-state={dashboardRetxState}
-                                        aria-disabled={
-                                            !selectedRecording ||
-                                            !selectedRecording.audioUrl
-                                        }
-                                        disabled={
-                                            !selectedRecording ||
-                                            !selectedRecording.audioUrl
-                                        }
-                                        hidden={detailTab !== "transcript"}
-                                        title={
-                                            dashboardRetxState === "unavailable"
-                                                ? "当前来源不支持私有重转写"
-                                                : undefined
-                                        }
-                                        onClick={() => void retranscribe()}
-                                    >
-                                        重新转写
-                                    </Button>
-                                </div>
-                            </CardHeader>
-                            <CardContent
-                                className="min-h-0 flex-1 overflow-y-auto px-5 pt-4 pb-5"
-                                data-sot-part="dashboard-transcript-body"
-                            >
-                                <Alert
-                                    variant={
-                                        dashboardRetxState === "failed"
-                                            ? "statusError"
-                                            : "default"
-                                    }
-                                    density="comfortable"
-                                    layout="inline"
-                                    className="rounded-none border-x-0 border-t-0 [&[hidden]]:hidden"
-                                    data-sot-panel="dashboard-retranscription"
-                                    data-sot-state={dashboardRetxState}
-                                    data-retx-state={dashboardRetxState}
-                                    hidden={
-                                        dashboardRetxState === "idle" ||
-                                        dashboardRetxState === "unavailable"
-                                    }
-                                >
-                                    <span
-                                        data-sot-part="dashboard-retranscription-icon"
-                                        aria-hidden="true"
-                                    >
-                                        {dashboardRetxState === "queued" ||
-                                        dashboardRetxState === "running" ? (
-                                            <Spinner
-                                                data-sot-part="dashboard-retranscription-spinner"
-                                                size="xs"
-                                            />
-                                        ) : dashboardRetxState === "failed" ? (
-                                            <RetxWarnIcon />
-                                        ) : dashboardRetxState ===
-                                          "completed" ? (
-                                            <RetxOkIcon />
-                                        ) : dashboardRetxState ===
-                                          "unavailable" ? (
-                                            <RetxWarnIcon />
-                                        ) : (
-                                            <RefreshCw aria-hidden="true" />
-                                        )}
-                                    </span>
-                                    <div data-sot-part="dashboard-retranscription-body">
-                                        <AlertTitle data-sot-part="dashboard-retranscription-title">
-                                            {dashboardRetxTitle}
-                                        </AlertTitle>
-                                        <AlertDescription
-                                            density="comfortable"
-                                            data-sot-part="dashboard-retranscription-sub"
-                                        >
-                                            {dashboardRetxSub}
-                                        </AlertDescription>
-                                    </div>
-                                    {dashboardRetxState === "failed" ? (
-                                        <div
-                                            data-sot-part="dashboard-retranscription-actions"
-                                            className="flex flex-none items-center gap-2"
-                                        >
+                                                    <CloudDownload data-icon="inline-start" />
+                                                    {sourceReportState ===
+                                                    "loading"
+                                                        ? t(
+                                                              "sourceReport.loadingDetail",
+                                                          )
+                                                        : t(
+                                                              "sourceReport.refresh",
+                                                          )}
+                                                </SourceReportActionButton>
+                                            ) : null}
+                                            <Badge
+                                                variant="outline"
+                                                data-part="dashboard-retranscription-disabled-hint"
+                                                className="[&[hidden]]:hidden"
+                                                hidden={
+                                                    detailTab !==
+                                                        "transcript" ||
+                                                    dashboardRetxState !==
+                                                        "unavailable"
+                                                }
+                                            >
+                                                当前来源不支持私有重转写
+                                            </Badge>
                                             <Button
+                                                id="retx-btn"
                                                 variant="outline"
                                                 size="sm"
                                                 type="button"
-                                                data-retx-retry=""
-                                                data-sot-control="retry-retranscription"
+                                                data-control="retranscribe-recording"
+                                                data-state={dashboardRetxState}
+                                                data-retx-state={
+                                                    dashboardRetxState
+                                                }
+                                                aria-disabled={
+                                                    !selectedRecording ||
+                                                    !selectedRecording.audioUrl
+                                                }
+                                                disabled={
+                                                    !selectedRecording ||
+                                                    !selectedRecording.audioUrl
+                                                }
+                                                hidden={
+                                                    detailTab !== "transcript"
+                                                }
+                                                title={
+                                                    dashboardRetxState ===
+                                                    "unavailable"
+                                                        ? "当前来源不支持私有重转写"
+                                                        : undefined
+                                                }
                                                 onClick={() =>
                                                     void retranscribe()
                                                 }
                                             >
-                                                重试转写
-                                            </Button>
-                                            <Button
-                                                variant="ghost"
-                                                size="icon-sm"
-                                                type="button"
-                                                aria-label="收起"
-                                                data-retx-dismiss=""
-                                                data-sot-control="dismiss-retranscription-failed"
-                                                onClick={() =>
-                                                    setRetxState("idle")
-                                                }
-                                            >
-                                                <RetxCloseIcon />
+                                                重新转写
                                             </Button>
                                         </div>
-                                    ) : dashboardRetxState === "completed" &&
-                                      selectedRecording ? (
-                                        <div
-                                            data-sot-part="dashboard-retranscription-actions"
-                                            className="flex flex-none items-center gap-2"
+                                    </CardHeader>
+                                    <CardContent
+                                        className="min-h-0 flex-1 overflow-y-auto px-5 pt-4 pb-5"
+                                        data-part="dashboard-transcript-body"
+                                    >
+                                        <Alert
+                                            variant={
+                                                dashboardRetxState === "failed"
+                                                    ? "statusError"
+                                                    : "default"
+                                            }
+                                            density="comfortable"
+                                            layout="inline"
+                                            className="rounded-none border-x-0 border-t-0 [&[hidden]]:hidden"
+                                            data-panel="dashboard-retranscription"
+                                            data-state={dashboardRetxState}
+                                            data-retx-state={dashboardRetxState}
+                                            hidden={
+                                                dashboardRetxState === "idle" ||
+                                                dashboardRetxState ===
+                                                    "unavailable"
+                                            }
                                         >
-                                            <Button
-                                                variant="ghost"
-                                                size="icon-sm"
-                                                type="button"
-                                                aria-label="收起"
-                                                data-retx-dismiss=""
-                                                data-sot-control="dismiss-retranscription-complete"
-                                                onClick={() => {
-                                                    const recordingId =
-                                                        selectedRecording.id;
-                                                    setDismissedCompletedRetxIds(
-                                                        (items) =>
-                                                            new Set(items).add(
-                                                                recordingId,
-                                                            ),
-                                                    );
-                                                }}
+                                            <span
+                                                data-part="dashboard-retranscription-icon"
+                                                aria-hidden="true"
                                             >
-                                                <RetxCloseIcon />
-                                            </Button>
-                                        </div>
-                                    ) : null}
-                                </Alert>
-                                <Badge
-                                    variant="secondary"
-                                    data-sot-part="dashboard-retranscription-refresh-marker"
-                                    className="[&[hidden]]:hidden"
-                                    hidden={dashboardRetxState !== "completed"}
-                                >
-                                    刚刷新 · 1 秒前
-                                </Badge>
-                                <div
-                                    className={dashboardTabPaneHiddenClassName}
-                                    data-sot-panel="dashboard-transcript-pane"
-                                    data-sot-tab-pane="transcript"
-                                    data-tab-pane="transcript"
-                                    hidden={detailTab !== "transcript"}
-                                >
-                                    {isTranscriptLoading ? (
-                                        TRANSCRIPT_LOADING_SKELETON_ROWS.map(
-                                            (item) => (
-                                                <div
-                                                    className="border-b border-dashed py-3 last:border-b-0"
-                                                    data-sot-item="dashboard-transcript-turn"
-                                                    data-sot-state="loading"
-                                                    key={`transcript-skeleton:${item.key}`}
-                                                >
-                                                    <div
-                                                        className="mb-2 flex items-center gap-2"
-                                                        data-sot-part="dashboard-transcript-speaker-row"
-                                                        data-sot-state="loading"
-                                                    >
-                                                        <DashboardTranscriptSkeleton size="avatar" />
-                                                        <DashboardTranscriptSkeleton
-                                                            size={item.speaker}
-                                                        />
-                                                        <DashboardTranscriptSkeleton size="time" />
-                                                    </div>
-                                                    <DashboardTranscriptSkeleton
-                                                        size={item.firstLine}
+                                                {dashboardRetxState ===
+                                                    "queued" ||
+                                                dashboardRetxState ===
+                                                    "running" ? (
+                                                    <Spinner
+                                                        data-part="dashboard-retranscription-spinner"
+                                                        size="xs"
                                                     />
-                                                    <DashboardTranscriptSkeleton
-                                                        size={item.secondLine}
-                                                    />
-                                                    {item.thirdLine ? (
-                                                        <DashboardTranscriptSkeleton
-                                                            size={
-                                                                item.thirdLine
-                                                            }
-                                                        />
-                                                    ) : null}
-                                                </div>
-                                            ),
-                                        )
-                                    ) : turns.length ? (
-                                        turns.map((turn, index) => {
-                                            const speakerName =
-                                                turn.speakerName ||
-                                                `说话人 ${index + 1}`;
-                                            const timeLabel =
-                                                formatTranscriptTurnTimestamp(
-                                                    turn.startMs,
-                                                    turn.endMs,
-                                                );
-                                            const avatarLabel =
-                                                formatTranscriptAvatarLabel(
-                                                    speakerName,
-                                                    index,
-                                                );
-
-                                            return (
+                                                ) : dashboardRetxState ===
+                                                  "failed" ? (
+                                                    <RetxWarnIcon />
+                                                ) : dashboardRetxState ===
+                                                  "completed" ? (
+                                                    <RetxOkIcon />
+                                                ) : dashboardRetxState ===
+                                                  "unavailable" ? (
+                                                    <RetxWarnIcon />
+                                                ) : (
+                                                    <RefreshCw aria-hidden="true" />
+                                                )}
+                                            </span>
+                                            <div data-part="dashboard-retranscription-body">
+                                                <AlertTitle data-part="dashboard-retranscription-title">
+                                                    {dashboardRetxTitle}
+                                                </AlertTitle>
+                                                <AlertDescription
+                                                    density="comfortable"
+                                                    data-part="dashboard-retranscription-sub"
+                                                >
+                                                    {dashboardRetxSub}
+                                                </AlertDescription>
+                                            </div>
+                                            {dashboardRetxState === "failed" ? (
                                                 <div
-                                                    className="border-b border-dashed py-3 last:border-b-0"
-                                                    data-sot-item="dashboard-transcript-turn"
-                                                    data-sot-state="ready"
-                                                    key={`${selectedRecording?.id}:${index}`}
+                                                    data-part="dashboard-retranscription-actions"
+                                                    className="flex flex-none items-center gap-2"
                                                 >
-                                                    <div
-                                                        className="mb-2 flex items-center gap-2"
-                                                        data-sot-part="dashboard-transcript-speaker-row"
-                                                        data-sot-state="ready"
-                                                    >
-                                                        <span
-                                                            className="inline-flex size-7 flex-none items-center justify-center rounded-full bg-muted text-xs font-medium text-muted-foreground"
-                                                            data-sot-part="dashboard-transcript-avatar"
-                                                            data-sot-tone={
-                                                                TRANSCRIPT_AVATAR_TONES[
-                                                                    index %
-                                                                        TRANSCRIPT_AVATAR_TONES.length
-                                                                ]
-                                                            }
-                                                        >
-                                                            {avatarLabel}
-                                                        </span>
-                                                        <span
-                                                            className="text-sm font-medium text-foreground"
-                                                            data-sot-part="dashboard-transcript-speaker-name"
-                                                        >
-                                                            {speakerName}
-                                                        </span>
-                                                        <span
-                                                            className="ml-1 font-mono text-xs text-muted-foreground"
-                                                            data-sot-format="mono"
-                                                            data-sot-part="dashboard-transcript-speaker-time"
-                                                        >
-                                                            {timeLabel ?? "--"}
-                                                        </span>
-                                                    </div>
-                                                    <p className="m-0 text-sm/relaxed text-foreground">
-                                                        {turn.text}
-                                                    </p>
-                                                </div>
-                                            );
-                                        })
-                                    ) : (
-                                        <Empty
-                                            data-sot-panel="dashboard-transcript-empty"
-                                            variant="compact"
-                                        >
-                                            <EmptyHeader>
-                                                <EmptyMedia
-                                                    aria-hidden="true"
-                                                    data-sot-part="dashboard-transcript-empty-icon"
-                                                    variant="icon"
-                                                >
-                                                    <SotTranscriptEmptyIcon />
-                                                </EmptyMedia>
-                                                <EmptyTitle
-                                                    variant="compact"
-                                                    data-sot-part="dashboard-transcript-empty-message"
-                                                >
-                                                    还没有逐字稿
-                                                </EmptyTitle>
-                                                <EmptyDescription
-                                                    variant="compact"
-                                                    data-sot-part="dashboard-transcript-empty-sub"
-                                                >
-                                                    来源已就绪，转写任务还在排队中。
-                                                </EmptyDescription>
-                                            </EmptyHeader>
-                                        </Empty>
-                                    )}
-                                </div>
-                                <SourceReportPane
-                                    surface="dashboard"
-                                    className={dashboardTabPaneHiddenClassName}
-                                    state={sourceReportVisualState}
-                                    hidden={detailTab !== "source"}
-                                >
-                                    {sourceReportState === "loading" ? (
-                                        <DashboardSourceReportState state="loading">
-                                            <SourceReportMetricCards>
-                                                <SourceReportMetricCard
-                                                    label="来源"
-                                                    metric="source"
-                                                    value="skeleton"
-                                                >
-                                                    <SourceReportCardSkeleton size="source" />
-                                                </SourceReportMetricCard>
-                                                <SourceReportMetricCard
-                                                    label="转写状态"
-                                                    metric="transcript-status"
-                                                    value="skeleton"
-                                                >
-                                                    <SourceReportCardSkeleton size="status" />
-                                                </SourceReportMetricCard>
-                                                <SourceReportMetricCard
-                                                    label="摘要状态"
-                                                    metric="summary-status"
-                                                    value="skeleton"
-                                                >
-                                                    <SourceReportCardSkeleton size="status" />
-                                                </SourceReportMetricCard>
-                                                <SourceReportMetricCard
-                                                    label="分段数"
-                                                    metric="segment-count"
-                                                    value="skeleton"
-                                                >
-                                                    <SourceReportCardSkeleton size="count" />
-                                                </SourceReportMetricCard>
-                                            </SourceReportMetricCards>
-                                            <SourceReportSection
-                                                section="transcript"
-                                                title="来源转写"
-                                                description={
-                                                    <>
-                                                        正在从
-                                                        {
-                                                            sourceReportProviderSentenceName
-                                                        }
-                                                        读取…
-                                                    </>
-                                                }
-                                            >
-                                                <SourceReportSegmentSkeletonBlock>
-                                                    <SourceReportSegmentSkeleton size="time" />
-                                                    <SourceReportSegmentSkeleton size="speaker" />
-                                                    <SourceReportSegmentSkeleton size="line-long" />
-                                                    <SourceReportSegmentSkeleton size="line-medium" />
-                                                </SourceReportSegmentSkeletonBlock>
-                                                <SourceReportSegmentSkeletonBlock>
-                                                    <SourceReportSegmentSkeleton size="time" />
-                                                    <SourceReportSegmentSkeleton size="speaker" />
-                                                    <SourceReportSegmentSkeleton size="line-wide" />
-                                                    <SourceReportSegmentSkeleton size="line-short" />
-                                                </SourceReportSegmentSkeletonBlock>
-                                            </SourceReportSection>
-                                        </DashboardSourceReportState>
-                                    ) : sourceReportState === "error" ? (
-                                        <DashboardSourceReportState state="error">
-                                            <SourceReportEmptySurface
-                                                kind="alert"
-                                                tone="danger"
-                                            >
-                                                <SourceReportEmptyIcon tone="danger">
-                                                    <SourceReportErrorGlyph />
-                                                </SourceReportEmptyIcon>
-                                                <SourceReportEmptyTitle kind="alert">
-                                                    无法读取来源详情
-                                                </SourceReportEmptyTitle>
-                                                <SourceReportEmptyDescription kind="alert">
-                                                    {
-                                                        sourceReportProviderSentenceName
-                                                    }
-                                                    返回了一个错误，可能是网络抖动或来源临时不可用。
-                                                </SourceReportEmptyDescription>
-                                                <SourceReportActionRow
-                                                    purpose="empty"
-                                                    align="center"
-                                                >
-                                                    <SourceReportActionButton
-                                                        intent="primary"
+                                                    <Button
+                                                        variant="outline"
+                                                        size="sm"
                                                         type="button"
-                                                        testId="source-report-refresh"
-                                                        state="error"
+                                                        data-retx-retry=""
+                                                        data-control="retry-retranscription"
                                                         onClick={() =>
-                                                            void loadSourceReport()
+                                                            void retranscribe()
                                                         }
                                                     >
-                                                        重试
-                                                    </SourceReportActionButton>
-                                                    <SourceReportActionButton
-                                                        intent="ghost"
+                                                        重试转写
+                                                    </Button>
+                                                    <Button
+                                                        variant="ghost"
+                                                        size="icon-sm"
                                                         type="button"
-                                                        testId="source-report-activity-log"
-                                                        state="error"
+                                                        aria-label="收起"
+                                                        data-retx-dismiss=""
+                                                        data-control="dismiss-retranscription-failed"
+                                                        onClick={() =>
+                                                            setRetxState("idle")
+                                                        }
+                                                    >
+                                                        <RetxCloseIcon />
+                                                    </Button>
+                                                </div>
+                                            ) : dashboardRetxState ===
+                                                  "completed" &&
+                                              selectedRecording ? (
+                                                <div
+                                                    data-part="dashboard-retranscription-actions"
+                                                    className="flex flex-none items-center gap-2"
+                                                >
+                                                    <Button
+                                                        variant="ghost"
+                                                        size="icon-sm"
+                                                        type="button"
+                                                        aria-label="收起"
+                                                        data-retx-dismiss=""
+                                                        data-control="dismiss-retranscription-complete"
                                                         onClick={() => {
-                                                            setSearchOpen(
-                                                                false,
-                                                            );
-                                                            setMoreOpen(false);
-                                                            setTagOpen(false);
-                                                            setAiOpen(false);
-                                                            setActivityOpen(
-                                                                true,
+                                                            const recordingId =
+                                                                selectedRecording.id;
+                                                            setDismissedCompletedRetxIds(
+                                                                (items) =>
+                                                                    new Set(
+                                                                        items,
+                                                                    ).add(
+                                                                        recordingId,
+                                                                    ),
                                                             );
                                                         }}
                                                     >
-                                                        查看同步日志
-                                                    </SourceReportActionButton>
-                                                </SourceReportActionRow>
-                                            </SourceReportEmptySurface>
-                                        </DashboardSourceReportState>
-                                    ) : sourceReportData ? (
-                                        <DashboardSourceReportState
-                                            state="loaded"
-                                            subState={sourceReportSubState}
-                                        >
-                                            {!selectedRecording?.hasAudio ? (
-                                                <SourceReportStatusBadge tone="warn">
-                                                    {t(
-                                                        "sourceReport.sourceOnlyNoAudio",
-                                                    )}
-                                                </SourceReportStatusBadge>
+                                                        <RetxCloseIcon />
+                                                    </Button>
+                                                </div>
                                             ) : null}
-                                            <SourceReportMetricCards>
-                                                <SourceReportMetricCard
-                                                    label={t(
-                                                        "recording.source",
-                                                    )}
-                                                    metric="source"
-                                                    value="source"
-                                                >
-                                                    <SourceReportSourceIdentity
-                                                        fallback={sourceReportProviderName.charAt(
-                                                            0,
-                                                        )}
-                                                        icon={
-                                                            sourceReportProviderDefinition?.icon
-                                                        }
-                                                        label={
-                                                            sourceReportProviderName
-                                                        }
-                                                    />
-                                                </SourceReportMetricCard>
-                                                <SourceReportMetricCard
-                                                    label="转写状态"
-                                                    metric="transcript-status"
-                                                >
-                                                    <SourceReportStatusBadge
-                                                        tone={sourceReportReadinessTone(
-                                                            sourceTranscriptStatusLabel,
-                                                        )}
-                                                    >
-                                                        {
-                                                            sourceTranscriptStatusLabel
-                                                        }
-                                                    </SourceReportStatusBadge>
-                                                </SourceReportMetricCard>
-                                                <SourceReportMetricCard
-                                                    label="摘要状态"
-                                                    metric="summary-status"
-                                                >
-                                                    <SourceReportStatusBadge
-                                                        tone={sourceReportReadinessTone(
-                                                            sourceSummaryStatusLabel,
-                                                        )}
-                                                    >
-                                                        {
-                                                            sourceSummaryStatusLabel
-                                                        }
-                                                    </SourceReportStatusBadge>
-                                                </SourceReportMetricCard>
-                                                <SourceReportMetricCard
-                                                    label="分段数"
-                                                    metric="segment-count"
-                                                    value="number"
-                                                >
-                                                    {sourceReportSegmentCount}
-                                                </SourceReportMetricCard>
-                                            </SourceReportMetricCards>
-
-                                            <SourceReportSection
-                                                section="transcript"
-                                                title="来源转写"
-                                                noticeAfter={
-                                                    sourceTranscriptAvailable ? null : (
-                                                        <SourceReportMissingNotice state="transcript-missing">
-                                                            来源未提供逐字稿。可以稍后再来，或运行私有转写。
-                                                        </SourceReportMissingNotice>
-                                                    )
-                                                }
-                                                description={
-                                                    <>
-                                                        来自
-                                                        {
-                                                            sourceReportProviderSentenceName
-                                                        }
-                                                        {" · "}
-                                                        {
-                                                            sourceReportSegmentCount
-                                                        }
-                                                        {" 段 · "}
-                                                        {selectedRecording
-                                                            ? formatDuration(
-                                                                  selectedRecording.duration,
-                                                              )
-                                                            : "--"}
-                                                        {" 总时长"}
-                                                    </>
-                                                }
-                                            >
-                                                <SourceReportSegments
-                                                    hidden={
-                                                        !sourceTranscriptAvailable
-                                                    }
-                                                >
-                                                    {sourceReportDisplaySegments.map(
-                                                        (segment, index) => (
-                                                            <SourceReportSegment
-                                                                key={[
-                                                                    selectedRecordingId,
-                                                                    "source",
-                                                                    segment.startMs,
-                                                                    segment.endMs,
-                                                                    segment.speaker,
-                                                                    segment.text,
-                                                                    index,
-                                                                ].join(":")}
-                                                                time={
-                                                                    [
-                                                                        formatSourceReportTimestamp(
-                                                                            segment.startMs,
-                                                                        ),
-                                                                        formatSourceReportTimestamp(
-                                                                            segment.endMs,
-                                                                        ),
-                                                                    ]
-                                                                        .filter(
-                                                                            Boolean,
-                                                                        )
-                                                                        .join(
-                                                                            " – ",
-                                                                        ) ||
-                                                                    "--"
+                                        </Alert>
+                                        <Badge
+                                            variant="secondary"
+                                            data-part="dashboard-retranscription-refresh-marker"
+                                            className="[&[hidden]]:hidden"
+                                            hidden={
+                                                dashboardRetxState !==
+                                                "completed"
+                                            }
+                                        >
+                                            刚刷新 · 1 秒前
+                                        </Badge>
+                                        <div
+                                            className={
+                                                dashboardTabPaneHiddenClassName
+                                            }
+                                            data-panel="dashboard-transcript-pane"
+                                            data-tab-pane="transcript"
+                                            hidden={detailTab !== "transcript"}
+                                        >
+                                            {isTranscriptLoading ? (
+                                                TRANSCRIPT_LOADING_SKELETON_ROWS.map(
+                                                    (item) => (
+                                                        <div
+                                                            className="border-b border-dashed py-3 last:border-b-0"
+                                                            data-item="dashboard-transcript-turn"
+                                                            data-state="loading"
+                                                            key={`transcript-skeleton:${item.key}`}
+                                                        >
+                                                            <div
+                                                                className="mb-2 flex items-center gap-2"
+                                                                data-part="dashboard-transcript-speaker-row"
+                                                                data-state="loading"
+                                                            >
+                                                                <DashboardTranscriptSkeleton size="avatar" />
+                                                                <DashboardTranscriptSkeleton
+                                                                    size={
+                                                                        item.speaker
+                                                                    }
+                                                                />
+                                                                <DashboardTranscriptSkeleton size="time" />
+                                                            </div>
+                                                            <DashboardTranscriptSkeleton
+                                                                size={
+                                                                    item.firstLine
                                                                 }
-                                                                speaker={
-                                                                    segment.speaker ||
-                                                                    `说话人 ${index + 1}`
+                                                            />
+                                                            <DashboardTranscriptSkeleton
+                                                                size={
+                                                                    item.secondLine
+                                                                }
+                                                            />
+                                                            {item.thirdLine ? (
+                                                                <DashboardTranscriptSkeleton
+                                                                    size={
+                                                                        item.thirdLine
+                                                                    }
+                                                                />
+                                                            ) : null}
+                                                        </div>
+                                                    ),
+                                                )
+                                            ) : turns.length ? (
+                                                turns.map((turn, index) => {
+                                                    const speakerName =
+                                                        turn.speakerName ||
+                                                        `说话人 ${index + 1}`;
+                                                    const timeLabel =
+                                                        formatTranscriptTurnTimestamp(
+                                                            turn.startMs,
+                                                            turn.endMs,
+                                                        );
+                                                    const avatarLabel =
+                                                        formatTranscriptAvatarLabel(
+                                                            speakerName,
+                                                            index,
+                                                        );
+
+                                                    return (
+                                                        <div
+                                                            className="border-b border-dashed py-3 last:border-b-0"
+                                                            data-item="dashboard-transcript-turn"
+                                                            data-state="ready"
+                                                            key={`${selectedRecording?.id}:${index}`}
+                                                        >
+                                                            <div
+                                                                className="mb-2 flex items-center gap-2"
+                                                                data-part="dashboard-transcript-speaker-row"
+                                                                data-state="ready"
+                                                            >
+                                                                <span
+                                                                    className="inline-flex size-7 flex-none items-center justify-center rounded-full bg-muted text-xs font-medium text-muted-foreground"
+                                                                    data-part="dashboard-transcript-avatar"
+                                                                    data-tone={
+                                                                        TRANSCRIPT_AVATAR_TONES[
+                                                                            index %
+                                                                                TRANSCRIPT_AVATAR_TONES.length
+                                                                        ]
+                                                                    }
+                                                                >
+                                                                    {
+                                                                        avatarLabel
+                                                                    }
+                                                                </span>
+                                                                <span
+                                                                    className="text-sm font-medium text-foreground"
+                                                                    data-part="dashboard-transcript-speaker-name"
+                                                                >
+                                                                    {
+                                                                        speakerName
+                                                                    }
+                                                                </span>
+                                                                <span
+                                                                    className="ml-1 font-mono text-xs text-muted-foreground"
+                                                                    data-format="mono"
+                                                                    data-part="dashboard-transcript-speaker-time"
+                                                                >
+                                                                    {timeLabel ??
+                                                                        "--"}
+                                                                </span>
+                                                            </div>
+                                                            <p className="m-0 text-sm/relaxed text-foreground">
+                                                                {turn.text}
+                                                            </p>
+                                                        </div>
+                                                    );
+                                                })
+                                            ) : (
+                                                <Empty
+                                                    data-panel="dashboard-transcript-empty"
+                                                    variant="compact"
+                                                >
+                                                    <EmptyHeader>
+                                                        <EmptyMedia
+                                                            aria-hidden="true"
+                                                            data-part="dashboard-transcript-empty-icon"
+                                                            variant="icon"
+                                                        >
+                                                            <DashboardTranscriptEmptyIcon />
+                                                        </EmptyMedia>
+                                                        <EmptyTitle
+                                                            variant="compact"
+                                                            data-part="dashboard-transcript-empty-message"
+                                                        >
+                                                            还没有逐字稿
+                                                        </EmptyTitle>
+                                                        <EmptyDescription
+                                                            variant="compact"
+                                                            data-part="dashboard-transcript-empty-sub"
+                                                        >
+                                                            来源已就绪，转写任务还在排队中。
+                                                        </EmptyDescription>
+                                                    </EmptyHeader>
+                                                </Empty>
+                                            )}
+                                        </div>
+                                        <SourceReportPane
+                                            surface="dashboard"
+                                            className={
+                                                dashboardTabPaneHiddenClassName
+                                            }
+                                            state={sourceReportVisualState}
+                                            hidden={detailTab !== "source"}
+                                        >
+                                            {sourceReportState === "loading" ? (
+                                                <DashboardSourceReportState state="loading">
+                                                    <SourceReportMetricCards>
+                                                        <SourceReportMetricCard
+                                                            label="来源"
+                                                            metric="source"
+                                                            value="skeleton"
+                                                        >
+                                                            <SourceReportCardSkeleton size="source" />
+                                                        </SourceReportMetricCard>
+                                                        <SourceReportMetricCard
+                                                            label="转写状态"
+                                                            metric="transcript-status"
+                                                            value="skeleton"
+                                                        >
+                                                            <SourceReportCardSkeleton size="status" />
+                                                        </SourceReportMetricCard>
+                                                        <SourceReportMetricCard
+                                                            label="摘要状态"
+                                                            metric="summary-status"
+                                                            value="skeleton"
+                                                        >
+                                                            <SourceReportCardSkeleton size="status" />
+                                                        </SourceReportMetricCard>
+                                                        <SourceReportMetricCard
+                                                            label="分段数"
+                                                            metric="segment-count"
+                                                            value="skeleton"
+                                                        >
+                                                            <SourceReportCardSkeleton size="count" />
+                                                        </SourceReportMetricCard>
+                                                    </SourceReportMetricCards>
+                                                    <SourceReportSection
+                                                        section="transcript"
+                                                        title="来源转写"
+                                                        description={
+                                                            <>
+                                                                正在从
+                                                                {
+                                                                    sourceReportProviderSentenceName
+                                                                }
+                                                                读取…
+                                                            </>
+                                                        }
+                                                    >
+                                                        <SourceReportSegmentSkeletonBlock>
+                                                            <SourceReportSegmentSkeleton size="time" />
+                                                            <SourceReportSegmentSkeleton size="speaker" />
+                                                            <SourceReportSegmentSkeleton size="line-long" />
+                                                            <SourceReportSegmentSkeleton size="line-medium" />
+                                                        </SourceReportSegmentSkeletonBlock>
+                                                        <SourceReportSegmentSkeletonBlock>
+                                                            <SourceReportSegmentSkeleton size="time" />
+                                                            <SourceReportSegmentSkeleton size="speaker" />
+                                                            <SourceReportSegmentSkeleton size="line-wide" />
+                                                            <SourceReportSegmentSkeleton size="line-short" />
+                                                        </SourceReportSegmentSkeletonBlock>
+                                                    </SourceReportSection>
+                                                </DashboardSourceReportState>
+                                            ) : sourceReportState ===
+                                              "error" ? (
+                                                <DashboardSourceReportState state="error">
+                                                    <SourceReportEmptySurface
+                                                        kind="alert"
+                                                        tone="danger"
+                                                    >
+                                                        <SourceReportEmptyIcon tone="danger">
+                                                            <SourceReportErrorGlyph />
+                                                        </SourceReportEmptyIcon>
+                                                        <SourceReportEmptyTitle kind="alert">
+                                                            无法读取来源详情
+                                                        </SourceReportEmptyTitle>
+                                                        <SourceReportEmptyDescription kind="alert">
+                                                            {
+                                                                sourceReportProviderSentenceName
+                                                            }
+                                                            返回了一个错误，可能是网络抖动或来源临时不可用。
+                                                        </SourceReportEmptyDescription>
+                                                        <SourceReportActionRow
+                                                            purpose="empty"
+                                                            align="center"
+                                                        >
+                                                            <SourceReportActionButton
+                                                                intent="primary"
+                                                                type="button"
+                                                                testId="source-report-refresh"
+                                                                state="error"
+                                                                onClick={() =>
+                                                                    void loadSourceReport()
                                                                 }
                                                             >
-                                                                {segment.text}
-                                                            </SourceReportSegment>
-                                                        ),
-                                                    )}
-                                                </SourceReportSegments>
-                                            </SourceReportSection>
-
-                                            {sourceSummaryLines.length > 0 ? (
-                                                <SourceReportSection
-                                                    section="summary"
-                                                    title="来源原始报告"
-                                                    description={
-                                                        <>
-                                                            由
-                                                            {
-                                                                sourceReportProviderName
-                                                            }
-                                                            返回的只读摘要
-                                                        </>
-                                                    }
-                                                >
-                                                    <SourceReportSummaryBody>
-                                                        {sourceSummaryLines.map(
-                                                            (line, index) => (
-                                                                <SourceReportSummaryLine
-                                                                    key={`${index}:${line}`}
-                                                                >
-                                                                    {line}
-                                                                </SourceReportSummaryLine>
-                                                            ),
-                                                        )}
-                                                    </SourceReportSummaryBody>
-                                                </SourceReportSection>
-                                            ) : null}
-
-                                            <SourceReportSection
-                                                section="metadata"
-                                                title="来源信息"
-                                                noticeBefore={
-                                                    sourceSummaryAvailable ? null : (
-                                                        <SourceReportMissingNotice state="summary-missing">
-                                                            来源未提供官方摘要。
-                                                        </SourceReportMissingNotice>
-                                                    )
-                                                }
-                                                description={
-                                                    <>
-                                                        由
-                                                        {
-                                                            sourceReportProviderName
-                                                        }
-                                                        返回的公开元数据
-                                                    </>
-                                                }
-                                            >
-                                                <SourceReportMetaList
-                                                    surface="dashboard"
+                                                                重试
+                                                            </SourceReportActionButton>
+                                                            <SourceReportActionButton
+                                                                intent="ghost"
+                                                                type="button"
+                                                                testId="source-report-activity-log"
+                                                                state="error"
+                                                                onClick={() => {
+                                                                    setSearchOpen(
+                                                                        false,
+                                                                    );
+                                                                    setMoreOpen(
+                                                                        false,
+                                                                    );
+                                                                    setTagOpen(
+                                                                        false,
+                                                                    );
+                                                                    setAiOpen(
+                                                                        false,
+                                                                    );
+                                                                    setActivityOpen(
+                                                                        true,
+                                                                    );
+                                                                }}
+                                                            >
+                                                                查看同步日志
+                                                            </SourceReportActionButton>
+                                                        </SourceReportActionRow>
+                                                    </SourceReportEmptySurface>
+                                                </DashboardSourceReportState>
+                                            ) : sourceReportData ? (
+                                                <DashboardSourceReportState
+                                                    state="loaded"
                                                     subState={
                                                         sourceReportSubState
                                                     }
                                                 >
-                                                    <SourceReportMetaRow label="来源">
-                                                        {
-                                                            sourceReportProviderName
-                                                        }
-                                                    </SourceReportMetaRow>
-                                                    <SourceReportMetaRow label="状态">
-                                                        <SourceReportStatusBadge
-                                                            tone={sourceReportSyncTone(
-                                                                sourceReportSyncStatusLabel,
+                                                    {!selectedRecording?.hasAudio ? (
+                                                        <SourceReportStatusBadge tone="warn">
+                                                            {t(
+                                                                "sourceReport.sourceOnlyNoAudio",
                                                             )}
-                                                        >
-                                                            {
-                                                                sourceReportSyncStatusLabel
-                                                            }
                                                         </SourceReportStatusBadge>
-                                                    </SourceReportMetaRow>
-                                                    <SourceReportMetaRow
-                                                        label="录制于"
-                                                        valueFormat="mono"
-                                                    >
-                                                        {formatSourceReportDate(
-                                                            sourceReportRecordedAt,
-                                                        )}
-                                                    </SourceReportMetaRow>
-                                                    <SourceReportMetaRow
-                                                        label="最近更新"
-                                                        valueFormat="mono"
-                                                    >
-                                                        {formatSourceReportDate(
-                                                            sourceReportUpdatedAt,
-                                                        )}
-                                                    </SourceReportMetaRow>
-                                                    <SourceReportMetaRow label="可读内容">
-                                                        {sourceReportReadable}
-                                                    </SourceReportMetaRow>
-                                                    <SourceReportMetaRow label="来源标题">
-                                                        {sourceReportTitle}
-                                                    </SourceReportMetaRow>
-                                                    <SourceReportMetaRow label="语种">
-                                                        {sourceReportLanguage}
-                                                    </SourceReportMetaRow>
-                                                    <SourceReportMetaRow
-                                                        label="时长"
-                                                        valueFormat="mono"
-                                                    >
-                                                        {selectedRecording
-                                                            ? formatDuration(
-                                                                  selectedRecording.duration,
-                                                              )
-                                                            : "--"}
-                                                    </SourceReportMetaRow>
-                                                </SourceReportMetaList>
-                                                <SourceReportActionRow>
-                                                    <SourceReportActionButton
-                                                        intent="ghost"
-                                                        type="button"
-                                                        disabled={
-                                                            !sourceOpenUrl
-                                                        }
-                                                        title={
-                                                            sourceOpenUrl
-                                                                ? undefined
-                                                                : t(
-                                                                      "sourceReport.openSourceUnavailable",
-                                                                  )
-                                                        }
-                                                        testId="source-report-open-source"
-                                                        state={
-                                                            sourceOpenControlState
-                                                        }
-                                                        onClick={
-                                                            handleOpenSourceRecord
-                                                        }
-                                                    >
-                                                        {sourceOpenLabel(
-                                                            sourceReportData.sourceProvider ??
-                                                                selectedRecording?.sourceProvider,
-                                                            language,
-                                                        )}
-                                                    </SourceReportActionButton>
-                                                    <SourceReportActionButton
-                                                        intent="ghost"
-                                                        type="button"
-                                                        disabled={
-                                                            sourceRepullDisabled
-                                                        }
-                                                        aria-busy={
-                                                            sourceRepullState ===
-                                                            "loading"
-                                                        }
-                                                        title={
-                                                            sourceRepullAvailable
-                                                                ? undefined
-                                                                : t(
-                                                                      "sourceReport.repullUnavailable",
-                                                                  )
-                                                        }
-                                                        testId="source-report-repull"
-                                                        state={
-                                                            sourceRepullControlState
-                                                        }
-                                                        onClick={() =>
-                                                            void handleRepullSource()
-                                                        }
-                                                    >
-                                                        {sourceRepullState ===
-                                                        "loading"
-                                                            ? t(
-                                                                  "sourceReport.repullingSource",
-                                                              )
-                                                            : t(
-                                                                  "sourceReport.repullSource",
-                                                              )}
-                                                    </SourceReportActionButton>
-                                                </SourceReportActionRow>
-                                            </SourceReportSection>
-                                        </DashboardSourceReportState>
-                                    ) : (
-                                        <DashboardSourceReportState state="empty">
-                                            <SourceReportEmptySurface>
-                                                <SourceReportEmptyIcon>
-                                                    <SourceReportEmptyGlyph />
-                                                </SourceReportEmptyIcon>
-                                                <SourceReportEmptyTitle>
-                                                    这条录音没有关联来源
-                                                </SourceReportEmptyTitle>
-                                                <SourceReportEmptyDescription>
-                                                    本地导入或离线录制的录音不会有来源详情。
-                                                </SourceReportEmptyDescription>
-                                            </SourceReportEmptySurface>
-                                        </DashboardSourceReportState>
-                                    )}
-                                </SourceReportPane>
-                                <div
-                                    className={dashboardTabPaneHiddenClassName}
-                                    data-sot-panel="dashboard-speakers-pane"
-                                    data-sot-tab-pane="speakers"
-                                    data-tab-pane="speakers"
-                                    hidden={detailTab !== "speakers"}
-                                >
-                                    <div
-                                        className={
-                                            dashboardSpeakerPaneClassNames.head
-                                        }
-                                        data-sot-part="dashboard-speakers-head"
-                                    >
-                                        <div
-                                            className={
-                                                dashboardSpeakerPaneClassNames.headTitle
-                                            }
-                                            data-sot-part="dashboard-speakers-head-title"
-                                        >
-                                            {turns.length || 0} 段说话人
-                                        </div>
-                                        <Button
-                                            variant="ghost"
-                                            size="sm"
-                                            className={
-                                                dashboardButtonClassNames.speakersMerge
-                                            }
-                                            type="button"
-                                            data-sot-control="dashboard-speakers-merge"
-                                        >
-                                            合并相似…
-                                        </Button>
-                                    </div>
-                                    <ul
-                                        className={
-                                            dashboardSpeakerPaneClassNames.rows
-                                        }
-                                        data-sot-list="dashboard-speaker-rows"
-                                    >
-                                        {turns.length ? (
-                                            turns.map((turn, index) => {
-                                                const shareValue =
-                                                    getDashboardSpeakerShareValue(
-                                                        index,
-                                                    );
-
-                                                return (
-                                                    <li
-                                                        className={
-                                                            dashboardSpeakerPaneClassNames.row
-                                                        }
-                                                        data-sot-item="dashboard-speaker-row"
-                                                        key={`${selectedRecording?.id}:speaker:${index}`}
-                                                    >
-                                                        <Badge
-                                                            variant="secondary"
-                                                            className={
-                                                                dashboardSpeakerPaneClassNames.avatar
-                                                            }
-                                                            data-sot-part="dashboard-speaker-avatar"
+                                                    ) : null}
+                                                    <SourceReportMetricCards>
+                                                        <SourceReportMetricCard
+                                                            label={t(
+                                                                "recording.source",
+                                                            )}
+                                                            metric="source"
+                                                            value="source"
                                                         >
-                                                            {index + 1}
-                                                        </Badge>
-                                                        <div
-                                                            className={
-                                                                dashboardSpeakerPaneClassNames.rowMeta
-                                                            }
-                                                            data-sot-part="dashboard-speaker-row-meta"
+                                                            <SourceReportSourceIdentity
+                                                                fallback={sourceReportProviderName.charAt(
+                                                                    0,
+                                                                )}
+                                                                icon={
+                                                                    sourceReportProviderDefinition?.icon
+                                                                }
+                                                                label={
+                                                                    sourceReportProviderName
+                                                                }
+                                                            />
+                                                        </SourceReportMetricCard>
+                                                        <SourceReportMetricCard
+                                                            label="转写状态"
+                                                            metric="transcript-status"
                                                         >
-                                                            <div
-                                                                className={
-                                                                    dashboardSpeakerPaneClassNames.name
-                                                                }
-                                                                data-sot-part="dashboard-speaker-name"
-                                                            >
-                                                                {turn.speakerName ||
-                                                                    `说话人 ${index + 1}`}
-                                                            </div>
-                                                            <Badge
-                                                                variant="outline"
-                                                                className={
-                                                                    dashboardSpeakerPaneClassNames.sub
-                                                                }
-                                                                data-sot-part="dashboard-speaker-sub"
+                                                            <SourceReportStatusBadge
+                                                                tone={sourceReportReadinessTone(
+                                                                    sourceTranscriptStatusLabel,
+                                                                )}
                                                             >
                                                                 {
-                                                                    turn.text
-                                                                        .length
-                                                                }{" "}
-                                                                字
-                                                            </Badge>
-                                                        </div>
-                                                        <Progress
-                                                            value={shareValue}
-                                                            max={100}
-                                                            className={
-                                                                dashboardSpeakerPaneClassNames.bar
+                                                                    sourceTranscriptStatusLabel
+                                                                }
+                                                            </SourceReportStatusBadge>
+                                                        </SourceReportMetricCard>
+                                                        <SourceReportMetricCard
+                                                            label="摘要状态"
+                                                            metric="summary-status"
+                                                        >
+                                                            <SourceReportStatusBadge
+                                                                tone={sourceReportReadinessTone(
+                                                                    sourceSummaryStatusLabel,
+                                                                )}
+                                                            >
+                                                                {
+                                                                    sourceSummaryStatusLabel
+                                                                }
+                                                            </SourceReportStatusBadge>
+                                                        </SourceReportMetricCard>
+                                                        <SourceReportMetricCard
+                                                            label="分段数"
+                                                            metric="segment-count"
+                                                            value="number"
+                                                        >
+                                                            {
+                                                                sourceReportSegmentCount
                                                             }
-                                                            indicatorClassName={
-                                                                dashboardSpeakerPaneClassNames.barFill
-                                                            }
-                                                            indicatorProps={{
-                                                                "data-sot-part":
-                                                                    "dashboard-speaker-bar-fill",
-                                                            }}
-                                                            data-sot-part="dashboard-speaker-bar"
-                                                            getValueLabel={(
-                                                                value,
-                                                            ) => `${value}%`}
-                                                        />
-                                                    </li>
-                                                );
-                                            })
-                                        ) : (
-                                            <li
-                                                className="px-2.5"
-                                                data-sot-item="dashboard-speaker-row"
-                                                data-sot-state="empty"
-                                            >
-                                                <Empty
-                                                    variant="compact"
-                                                    className={
-                                                        dashboardSpeakerPaneClassNames.empty
-                                                    }
-                                                >
-                                                    <EmptyHeader
-                                                        className={
-                                                            dashboardSpeakerPaneClassNames.emptyHeader
+                                                        </SourceReportMetricCard>
+                                                    </SourceReportMetricCards>
+
+                                                    <SourceReportSection
+                                                        section="transcript"
+                                                        title="来源转写"
+                                                        noticeAfter={
+                                                            sourceTranscriptAvailable ? null : (
+                                                                <SourceReportMissingNotice state="transcript-missing">
+                                                                    来源未提供逐字稿。可以稍后再来，或运行私有转写。
+                                                                </SourceReportMissingNotice>
+                                                            )
+                                                        }
+                                                        description={
+                                                            <>
+                                                                来自
+                                                                {
+                                                                    sourceReportProviderSentenceName
+                                                                }
+                                                                {" · "}
+                                                                {
+                                                                    sourceReportSegmentCount
+                                                                }
+                                                                {" 段 · "}
+                                                                {selectedRecording
+                                                                    ? formatDuration(
+                                                                          selectedRecording.duration,
+                                                                      )
+                                                                    : "--"}
+                                                                {" 总时长"}
+                                                            </>
                                                         }
                                                     >
-                                                        <EmptyMedia
-                                                            variant="icon"
-                                                            className={
-                                                                dashboardSpeakerPaneClassNames.emptyIcon
+                                                        <SourceReportSegments
+                                                            hidden={
+                                                                !sourceTranscriptAvailable
                                                             }
-                                                            data-sot-part="dashboard-speaker-avatar"
                                                         >
-                                                            <MessageSquareText />
-                                                        </EmptyMedia>
-                                                        <EmptyTitle
+                                                            {sourceReportDisplaySegments.map(
+                                                                (
+                                                                    segment,
+                                                                    index,
+                                                                ) => (
+                                                                    <SourceReportSegment
+                                                                        key={[
+                                                                            selectedRecordingId,
+                                                                            "source",
+                                                                            segment.startMs,
+                                                                            segment.endMs,
+                                                                            segment.speaker,
+                                                                            segment.text,
+                                                                            index,
+                                                                        ].join(
+                                                                            ":",
+                                                                        )}
+                                                                        time={
+                                                                            [
+                                                                                formatSourceReportTimestamp(
+                                                                                    segment.startMs,
+                                                                                ),
+                                                                                formatSourceReportTimestamp(
+                                                                                    segment.endMs,
+                                                                                ),
+                                                                            ]
+                                                                                .filter(
+                                                                                    Boolean,
+                                                                                )
+                                                                                .join(
+                                                                                    " – ",
+                                                                                ) ||
+                                                                            "--"
+                                                                        }
+                                                                        speaker={
+                                                                            segment.speaker ||
+                                                                            `说话人 ${index + 1}`
+                                                                        }
+                                                                    >
+                                                                        {
+                                                                            segment.text
+                                                                        }
+                                                                    </SourceReportSegment>
+                                                                ),
+                                                            )}
+                                                        </SourceReportSegments>
+                                                    </SourceReportSection>
+
+                                                    {sourceSummaryLines.length >
+                                                    0 ? (
+                                                        <SourceReportSection
+                                                            section="summary"
+                                                            title="来源原始报告"
+                                                            description={
+                                                                <>
+                                                                    由
+                                                                    {
+                                                                        sourceReportProviderName
+                                                                    }
+                                                                    返回的只读摘要
+                                                                </>
+                                                            }
+                                                        >
+                                                            <SourceReportSummaryBody>
+                                                                {sourceSummaryLines.map(
+                                                                    (
+                                                                        line,
+                                                                        index,
+                                                                    ) => (
+                                                                        <SourceReportSummaryLine
+                                                                            key={`${index}:${line}`}
+                                                                        >
+                                                                            {
+                                                                                line
+                                                                            }
+                                                                        </SourceReportSummaryLine>
+                                                                    ),
+                                                                )}
+                                                            </SourceReportSummaryBody>
+                                                        </SourceReportSection>
+                                                    ) : null}
+
+                                                    <SourceReportSection
+                                                        section="metadata"
+                                                        title="来源信息"
+                                                        noticeBefore={
+                                                            sourceSummaryAvailable ? null : (
+                                                                <SourceReportMissingNotice state="summary-missing">
+                                                                    来源未提供官方摘要。
+                                                                </SourceReportMissingNotice>
+                                                            )
+                                                        }
+                                                        description={
+                                                            <>
+                                                                由
+                                                                {
+                                                                    sourceReportProviderName
+                                                                }
+                                                                返回的公开元数据
+                                                            </>
+                                                        }
+                                                    >
+                                                        <SourceReportMetaList
+                                                            surface="dashboard"
+                                                            subState={
+                                                                sourceReportSubState
+                                                            }
+                                                        >
+                                                            <SourceReportMetaRow label="来源">
+                                                                {
+                                                                    sourceReportProviderName
+                                                                }
+                                                            </SourceReportMetaRow>
+                                                            <SourceReportMetaRow label="状态">
+                                                                <SourceReportStatusBadge
+                                                                    tone={sourceReportSyncTone(
+                                                                        sourceReportSyncStatusLabel,
+                                                                    )}
+                                                                >
+                                                                    {
+                                                                        sourceReportSyncStatusLabel
+                                                                    }
+                                                                </SourceReportStatusBadge>
+                                                            </SourceReportMetaRow>
+                                                            <SourceReportMetaRow
+                                                                label="录制于"
+                                                                valueFormat="mono"
+                                                            >
+                                                                {formatSourceReportDate(
+                                                                    sourceReportRecordedAt,
+                                                                )}
+                                                            </SourceReportMetaRow>
+                                                            <SourceReportMetaRow
+                                                                label="最近更新"
+                                                                valueFormat="mono"
+                                                            >
+                                                                {formatSourceReportDate(
+                                                                    sourceReportUpdatedAt,
+                                                                )}
+                                                            </SourceReportMetaRow>
+                                                            <SourceReportMetaRow label="可读内容">
+                                                                {
+                                                                    sourceReportReadable
+                                                                }
+                                                            </SourceReportMetaRow>
+                                                            <SourceReportMetaRow label="来源标题">
+                                                                {
+                                                                    sourceReportTitle
+                                                                }
+                                                            </SourceReportMetaRow>
+                                                            <SourceReportMetaRow label="语种">
+                                                                {
+                                                                    sourceReportLanguage
+                                                                }
+                                                            </SourceReportMetaRow>
+                                                            <SourceReportMetaRow
+                                                                label="时长"
+                                                                valueFormat="mono"
+                                                            >
+                                                                {selectedRecording
+                                                                    ? formatDuration(
+                                                                          selectedRecording.duration,
+                                                                      )
+                                                                    : "--"}
+                                                            </SourceReportMetaRow>
+                                                        </SourceReportMetaList>
+                                                        <SourceReportActionRow>
+                                                            <SourceReportActionButton
+                                                                intent="ghost"
+                                                                type="button"
+                                                                disabled={
+                                                                    !sourceOpenUrl
+                                                                }
+                                                                title={
+                                                                    sourceOpenUrl
+                                                                        ? undefined
+                                                                        : t(
+                                                                              "sourceReport.openSourceUnavailable",
+                                                                          )
+                                                                }
+                                                                testId="source-report-open-source"
+                                                                state={
+                                                                    sourceOpenControlState
+                                                                }
+                                                                onClick={
+                                                                    handleOpenSourceRecord
+                                                                }
+                                                            >
+                                                                {sourceOpenLabel(
+                                                                    sourceReportData.sourceProvider ??
+                                                                        selectedRecording?.sourceProvider,
+                                                                    language,
+                                                                )}
+                                                            </SourceReportActionButton>
+                                                            <SourceReportActionButton
+                                                                intent="ghost"
+                                                                type="button"
+                                                                disabled={
+                                                                    sourceRepullDisabled
+                                                                }
+                                                                aria-busy={
+                                                                    sourceRepullState ===
+                                                                    "loading"
+                                                                }
+                                                                title={
+                                                                    sourceRepullAvailable
+                                                                        ? undefined
+                                                                        : t(
+                                                                              "sourceReport.repullUnavailable",
+                                                                          )
+                                                                }
+                                                                testId="source-report-repull"
+                                                                state={
+                                                                    sourceRepullControlState
+                                                                }
+                                                                onClick={() =>
+                                                                    void handleRepullSource()
+                                                                }
+                                                            >
+                                                                {sourceRepullState ===
+                                                                "loading"
+                                                                    ? t(
+                                                                          "sourceReport.repullingSource",
+                                                                      )
+                                                                    : t(
+                                                                          "sourceReport.repullSource",
+                                                                      )}
+                                                            </SourceReportActionButton>
+                                                        </SourceReportActionRow>
+                                                    </SourceReportSection>
+                                                </DashboardSourceReportState>
+                                            ) : (
+                                                <DashboardSourceReportState state="empty">
+                                                    <SourceReportEmptySurface>
+                                                        <SourceReportEmptyIcon>
+                                                            <SourceReportEmptyGlyph />
+                                                        </SourceReportEmptyIcon>
+                                                        <SourceReportEmptyTitle>
+                                                            这条录音没有关联来源
+                                                        </SourceReportEmptyTitle>
+                                                        <SourceReportEmptyDescription>
+                                                            本地导入或离线录制的录音不会有来源详情。
+                                                        </SourceReportEmptyDescription>
+                                                    </SourceReportEmptySurface>
+                                                </DashboardSourceReportState>
+                                            )}
+                                        </SourceReportPane>
+                                        <div
+                                            className={
+                                                dashboardTabPaneHiddenClassName
+                                            }
+                                            data-panel="dashboard-speakers-pane"
+                                            data-tab-pane="speakers"
+                                            hidden={detailTab !== "speakers"}
+                                        >
+                                            <div
+                                                className={
+                                                    dashboardSpeakerPaneClassNames.head
+                                                }
+                                                data-part="dashboard-speakers-head"
+                                            >
+                                                <div
+                                                    className={
+                                                        dashboardSpeakerPaneClassNames.headTitle
+                                                    }
+                                                    data-part="dashboard-speakers-head-title"
+                                                >
+                                                    {turns.length || 0} 段说话人
+                                                </div>
+                                                <Button
+                                                    variant="ghost"
+                                                    size="sm"
+                                                    className={
+                                                        dashboardButtonClassNames.speakersMerge
+                                                    }
+                                                    type="button"
+                                                    data-control="dashboard-speakers-merge"
+                                                >
+                                                    合并相似…
+                                                </Button>
+                                            </div>
+                                            <ul
+                                                className={
+                                                    dashboardSpeakerPaneClassNames.rows
+                                                }
+                                                data-list="dashboard-speaker-rows"
+                                            >
+                                                {turns.length ? (
+                                                    turns.map((turn, index) => {
+                                                        const shareValue =
+                                                            getDashboardSpeakerShareValue(
+                                                                index,
+                                                            );
+
+                                                        return (
+                                                            <li
+                                                                className={
+                                                                    dashboardSpeakerPaneClassNames.row
+                                                                }
+                                                                data-item="dashboard-speaker-row"
+                                                                key={`${selectedRecording?.id}:speaker:${index}`}
+                                                            >
+                                                                <Badge
+                                                                    variant="secondary"
+                                                                    className={
+                                                                        dashboardSpeakerPaneClassNames.avatar
+                                                                    }
+                                                                    data-part="dashboard-speaker-avatar"
+                                                                >
+                                                                    {index + 1}
+                                                                </Badge>
+                                                                <div
+                                                                    className={
+                                                                        dashboardSpeakerPaneClassNames.rowMeta
+                                                                    }
+                                                                    data-part="dashboard-speaker-row-meta"
+                                                                >
+                                                                    <div
+                                                                        className={
+                                                                            dashboardSpeakerPaneClassNames.name
+                                                                        }
+                                                                        data-part="dashboard-speaker-name"
+                                                                    >
+                                                                        {turn.speakerName ||
+                                                                            `说话人 ${index + 1}`}
+                                                                    </div>
+                                                                    <Badge
+                                                                        variant="outline"
+                                                                        className={
+                                                                            dashboardSpeakerPaneClassNames.sub
+                                                                        }
+                                                                        data-part="dashboard-speaker-sub"
+                                                                    >
+                                                                        {
+                                                                            turn
+                                                                                .text
+                                                                                .length
+                                                                        }{" "}
+                                                                        字
+                                                                    </Badge>
+                                                                </div>
+                                                                <Progress
+                                                                    value={
+                                                                        shareValue
+                                                                    }
+                                                                    max={100}
+                                                                    className={
+                                                                        dashboardSpeakerPaneClassNames.bar
+                                                                    }
+                                                                    indicatorClassName={
+                                                                        dashboardSpeakerPaneClassNames.barFill
+                                                                    }
+                                                                    indicatorProps={{
+                                                                        "data-part":
+                                                                            "dashboard-speaker-bar-fill",
+                                                                    }}
+                                                                    data-part="dashboard-speaker-bar"
+                                                                    getValueLabel={(
+                                                                        value,
+                                                                    ) =>
+                                                                        `${value}%`
+                                                                    }
+                                                                />
+                                                            </li>
+                                                        );
+                                                    })
+                                                ) : (
+                                                    <li
+                                                        className="px-2.5"
+                                                        data-item="dashboard-speaker-row"
+                                                        data-state="empty"
+                                                    >
+                                                        <Empty
                                                             variant="compact"
-                                                            data-sot-part="dashboard-speaker-name"
+                                                            className={
+                                                                dashboardSpeakerPaneClassNames.empty
+                                                            }
                                                         >
-                                                            转写完成后可查看说话人信息
-                                                        </EmptyTitle>
-                                                        <EmptyDescription
-                                                            variant="compact"
-                                                            data-sot-part="dashboard-speaker-sub"
-                                                        >
-                                                            暂无说话人片段
-                                                        </EmptyDescription>
-                                                    </EmptyHeader>
-                                                </Empty>
-                                            </li>
-                                        )}
-                                    </ul>
-                                </div>
-                            </CardContent>
-                        </Card>
-                        {!selectedRecording ? (
+                                                            <EmptyHeader
+                                                                className={
+                                                                    dashboardSpeakerPaneClassNames.emptyHeader
+                                                                }
+                                                            >
+                                                                <EmptyMedia
+                                                                    variant="icon"
+                                                                    className={
+                                                                        dashboardSpeakerPaneClassNames.emptyIcon
+                                                                    }
+                                                                    data-part="dashboard-speaker-avatar"
+                                                                >
+                                                                    <MessageSquareText />
+                                                                </EmptyMedia>
+                                                                <EmptyTitle
+                                                                    variant="compact"
+                                                                    data-part="dashboard-speaker-name"
+                                                                >
+                                                                    转写完成后可查看说话人信息
+                                                                </EmptyTitle>
+                                                                <EmptyDescription
+                                                                    variant="compact"
+                                                                    data-part="dashboard-speaker-sub"
+                                                                >
+                                                                    暂无说话人片段
+                                                                </EmptyDescription>
+                                                            </EmptyHeader>
+                                                        </Empty>
+                                                    </li>
+                                                )}
+                                            </ul>
+                                        </div>
+                                    </CardContent>
+                                </Card>
+                            </>
+                        ) : (
                             <DashboardDetailEmptyState />
-                        ) : null}
+                        )}
                     </section>
                 </div>
             </main>

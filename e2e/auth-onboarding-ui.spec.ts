@@ -22,8 +22,9 @@ const E2E_DATA_DIR = path.resolve(process.cwd(), "tmp/e2e/data");
 const E2E_ENCRYPTION_KEY =
     "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef";
 const PLAYWRIGHT_EMAIL = "playwright-admin@example.com";
-const ONBOARDING_BACKEND_PERSISTENCE_TOKEN =
-    "playwright-onboarding-backend-token";
+const ONBOARDING_BACKEND_TICNOTE_TOKEN =
+    "playwright-onboarding-ticnote-token";
+const ONBOARDING_BACKEND_TICNOTE_BASE_URL = "https://voice-api.ticnote.cn";
 const ONBOARDING_BACKEND_PERSISTENCE_SPEAKER =
     "林梅 Backend Readback";
 const ONBOARDING_BACKEND_PERSISTENCE_VOICEPRINT =
@@ -297,7 +298,7 @@ async function resetOnboardingBackendPersistenceState(userId: string) {
         await client.batch(
             [
                 {
-                    sql: "DELETE FROM source_connections WHERE user_id = ? AND provider = 'plaud'",
+                    sql: "DELETE FROM source_connections WHERE user_id = ?",
                     args: [userId],
                 },
                 {
@@ -325,7 +326,10 @@ async function resetOnboardingBackendPersistenceState(userId: string) {
     });
 }
 
-async function seedDisabledPlaudConnectionForBackendReadback(userId: string) {
+async function seedTicnoteFallbackConnectionForOnboarding(
+    userId: string,
+    enabled = false,
+) {
     const now = Date.now();
     await withCoreClient(async (client) => {
         await client.execute({
@@ -333,20 +337,23 @@ async function seedDisabledPlaudConnectionForBackendReadback(userId: string) {
                 INSERT INTO source_connections (
                     id, user_id, provider, enabled, auth_mode, base_url,
                     config, secret_config, created_at, updated_at
-                ) VALUES (?, ?, 'plaud', 0, 'bearer', ?, ?, ?, ?, ?)
+                ) VALUES (?, ?, 'ticnote', ?, 'bearer', ?, ?, ?, ?, ?)
             `,
             args: [
-                `onboarding-backend-readback-${now}`,
+                `onboarding-ticnote-readback-${now}`,
                 userId,
-                "https://api.plaud.ai",
+                enabled ? 1 : 0,
+                ONBOARDING_BACKEND_TICNOTE_BASE_URL,
                 JSON.stringify({
-                    server: "global",
-                    customApiBase: "",
-                    syncTitleToSource: true,
+                    language: "zh",
+                    orgId: "e2e-onboarding-org",
+                    region: "cn",
+                    syncTitleToSource: false,
+                    timezone: "Asia/Shanghai",
                 }),
                 encryptWithE2EKey(
                     JSON.stringify({
-                        bearerToken: ONBOARDING_BACKEND_PERSISTENCE_TOKEN,
+                        bearerToken: ONBOARDING_BACKEND_TICNOTE_TOKEN,
                     }),
                 ),
                 now,
@@ -356,7 +363,10 @@ async function seedDisabledPlaudConnectionForBackendReadback(userId: string) {
     });
 }
 
-async function readOnboardingBackendPersistenceRows(userId: string) {
+async function readOnboardingBackendPersistenceRows(
+    userId: string,
+    provider: string,
+) {
     const [core, speakers] = await Promise.all([
         withCoreClient(async (client) => {
             const [source, settings] = await Promise.all([
@@ -365,14 +375,15 @@ async function readOnboardingBackendPersistenceRows(userId: string) {
                         SELECT provider, enabled, auth_mode, base_url, config,
                             secret_config, updated_at
                         FROM source_connections
-                        WHERE user_id = ? AND provider = 'plaud'
+                        WHERE user_id = ? AND provider = ?
                         LIMIT 1
                     `,
-                    args: [userId],
+                    args: [userId, provider],
                 }),
                 client.execute({
                     sql: `
-                        SELECT auto_transcribe, default_transcription_language
+                        SELECT auto_transcribe, default_transcription_language,
+                            default_transcription_provider
                         FROM user_settings
                         WHERE user_id = ?
                         LIMIT 1
@@ -471,34 +482,109 @@ async function countAnonymousUsers() {
 }
 
 function currentOnboardingPanel(page: Page) {
-    return page.locator('[data-sot-panel="onboarding-current"]');
+    return page.getByRole("main", { name: "上手 / Onboarding · 4 步" });
 }
 
 function sotControl(page: Page, control: string) {
-    return page.locator(`[data-sot-control="${control}"]`);
+    switch (control) {
+        case "auth-email":
+            return page.getByRole("textbox", { name: "邮箱" });
+        case "local-only":
+            return page.getByRole("button", { name: "仅本地使用" });
+        case "send-login-link":
+            return page.getByRole("button", { name: "发送登录链接" });
+        case "speaker-name":
+            return page.getByRole("textbox", { name: "显示名称" });
+        case "speaker-voiceprint":
+            return page.getByRole("textbox", { name: "语音档案引用" });
+        case "save-enter":
+            return page.getByRole("button", { name: "保存并进入工作台" });
+        default:
+            throw new Error(`No semantic locator is defined for ${control}`);
+    }
+}
+
+function onboardingProvider(page: Page, name: string | RegExp) {
+    return sotList(page, "provider-cards").getByRole("radio", { name });
+}
+
+function onboardingDefaultSource(page: Page, name: string | RegExp) {
+    return sotList(page, "onboarding-default-sources").getByRole("radio", {
+        name,
+    });
+}
+
+function onboardingMatrixRow(page: Page, label: string) {
+    return page.locator("dl").filter({
+        has: page.getByText(label, { exact: true }),
+    });
 }
 
 function sotList(page: Page, list: string) {
-    return page.locator(`[data-sot-list="${list}"]`);
+    switch (list) {
+        case "onboarding-default-sources":
+            return page.getByRole("group", { name: "默认转写来源" });
+        case "finish-summary":
+            return page.getByRole("region", { name: "配置摘要" });
+        case "provider-cards":
+            return page.getByRole("radiogroup", { name: "来源" });
+        default:
+            throw new Error(`No semantic locator is defined for ${list}`);
+    }
 }
 
 function sotPanel(page: Page, panel: string) {
-    return page.locator(`[data-sot-panel="${panel}"]`);
+    switch (panel) {
+        case "onboarding-default-source-step":
+            return page.getByRole("region", { name: "默认转写配置" });
+        case "onboarding-steps":
+            return page.getByRole("navigation", { name: "上手步骤" });
+        default:
+            throw new Error(`No semantic locator is defined for ${panel}`);
+    }
+}
+
+const ONBOARDING_STEPS = {
+    finish: { index: 4, title: "完成" },
+    source: { index: 1, title: "连接来源" },
+    speakers: { index: 3, title: "说话人档案" },
+    transcription: { index: 2, title: "选一个默认转写来源" },
+} as const;
+
+function onboardingStep(page: Page, state: keyof typeof ONBOARDING_STEPS) {
+    const step = ONBOARDING_STEPS[state];
+    return page.getByRole("button", {
+        exact: true,
+        name: `第 ${step.index} 步 · ${step.title}`,
+    });
+}
+
+async function expectOnboardingState(
+    page: Page,
+    state: keyof typeof ONBOARDING_STEPS,
+) {
+    await expect(onboardingStep(page, state)).toHaveAttribute(
+        "aria-current",
+        "step",
+    );
+}
+
+function authForm(page: Page) {
+    return page.getByRole("main").locator("form");
 }
 
 async function gotoAuthPage(page: Page, path: "/login" | "/register") {
     await page.goto(path, { waitUntil: "domcontentloaded" });
-    await expect(page.locator("[data-sot-ready]")).toHaveAttribute(
-        "data-sot-ready",
-        "true",
-    );
+    await expect(
+        page.getByRole("main").getByRole("textbox", { name: "邮箱" }),
+    ).toBeVisible();
 }
 
 async function gotoOnboardingPage(page: Page) {
     await page.goto("/onboarding", { waitUntil: "domcontentloaded" });
     await expect(
-        page.locator('[data-sot-layout="onboarding-workstation"]'),
-    ).toHaveAttribute("data-sot-ready", "true");
+        page.getByRole("main", { name: "上手 / Onboarding · 4 步" }),
+    ).toBeVisible();
 }
 
 interface SendLoginLinkOptions {
@@ -512,7 +598,7 @@ async function sendLoginLink(page: Page, options: SendLoginLinkOptions = {}) {
                 response.url().includes("/api/auth/sign-in/magic-link") &&
                 response.request().method() === "POST",
         ),
-        page.locator('[data-sot-control="send-login-link"]').click(),
+        sotControl(page, "send-login-link").click(),
     ]);
 
     if (
@@ -535,24 +621,24 @@ async function sendLoginLink(page: Page, options: SendLoginLinkOptions = {}) {
     return response;
 }
 
-async function goToOnboardingState(page: Page, state: string) {
-    const panel = currentOnboardingPanel(page);
-    const nextButton = page.locator('[data-sot-control="onboarding-next"]');
+async function goToOnboardingState(
+    page: Page,
+    state: keyof typeof ONBOARDING_STEPS,
+) {
+    const nextButton = page.getByRole("button", {
+        exact: true,
+        name: "下一步",
+    });
 
     for (let attempt = 0; attempt < 4; attempt += 1) {
         await nextButton.click();
-        if (
-            await panel
-                .getAttribute("data-sot-state", { timeout: 1_000 })
-                .then((value) => value === state)
-                .catch(() => false)
-        ) {
+        if (await onboardingStep(page, state).getAttribute("aria-current").then((value) => value === "step")) {
             return;
         }
         await page.waitForTimeout(250);
     }
 
-    await expect(panel).toHaveAttribute("data-sot-state", state);
+    await expectOnboardingState(page, state);
 }
 
 async function waitForFonts(page: Page) {
@@ -595,25 +681,30 @@ function escapeHtml(value: string) {
 
 async function readAuthLoginSotEquivalentHtml(productLoginCard: Locator) {
     const fixture = await productLoginCard.evaluate((element) => {
-        const readText = (selector: string) =>
-            element.querySelector(selector)?.textContent?.trim() ?? "";
-        const emailInput = element.querySelector<HTMLInputElement>(
-            '[data-sot-control="auth-email"]',
+        const titles = Array.from(
+            element.querySelectorAll<HTMLElement>('[data-slot="card-title"]'),
         );
+        const descriptions = Array.from(
+            element.querySelectorAll<HTMLElement>(
+                '[data-slot="card-description"]',
+            ),
+        );
+        const buttons = Array.from(element.querySelectorAll<HTMLButtonElement>("button"));
+        const emailInput = element.querySelector<HTMLInputElement>("#email");
 
         return {
-            cardHeading: readText('[data-sot-part="card-heading"]'),
-            cardSub: readText('[data-sot-part="card-sub"]'),
+            cardHeading: titles.at(0)?.textContent?.trim() ?? "",
+            cardSub: descriptions.at(0)?.textContent?.trim() ?? "",
             email: emailInput?.value ?? "",
-            heading: readText('[data-sot-part="auth-heading"]'),
-            localOnly: readText('[data-sot-control="local-only"]'),
-            sendButton: readText('[data-sot-control="send-login-link"]'),
-            sub: readText('[data-sot-part="auth-description"]'),
+            heading: titles.at(1)?.textContent?.trim() ?? "",
+            localOnly: buttons.at(-1)?.textContent?.trim() ?? "",
+            sendButton: buttons.at(0)?.textContent?.trim() ?? "",
+            sub: descriptions.at(1)?.textContent?.trim() ?? "",
         };
     });
 
     return [
-        '<div class="card" data-sot-card="auth" data-sot-surface="auth-login">',
+        '<div class="card" data-e2e-fixture="auth-login">',
         `  <div class="card-h">${escapeHtml(fixture.cardHeading)}</div>`,
         `  <div class="card-sub">${escapeHtml(fixture.cardSub)}</div>`,
         '  <div class="frame" style="padding: 28px; text-align: center">',
@@ -637,17 +728,15 @@ async function readOnboardingDefaultSourceSotEquivalentHtml(
         const readText = (selector: string) =>
             normalizeText(element.querySelector(selector)?.textContent);
         const steps = Array.from(
-            element.querySelectorAll<HTMLElement>(
-                '[data-sot-control="onboarding-step"]',
-            ),
-        ).map((step) => step.getAttribute("data-sot-state") ?? "idle");
+            element.querySelectorAll<HTMLElement>('[aria-label^="第 "]'),
+        ).map((step) => (step.getAttribute("aria-current") === "step" ? "selected" : "idle"));
         const sources = Array.from(
             element.querySelectorAll<HTMLElement>(
-                '[data-sot-control="onboarding-default-source"]',
+                '[aria-label="默认转写来源"] [role="radio"]',
             ),
         ).map((source) => ({
             label: normalizeText(source.textContent),
-            state: source.getAttribute("data-sot-state") ?? "idle",
+            state: source.getAttribute("aria-checked") === "true" ? "selected" : source.getAttribute("disabled") !== null ? "disabled" : "idle",
         }));
 
         if (steps.length !== 4) {
@@ -662,16 +751,14 @@ async function readOnboardingDefaultSourceSotEquivalentHtml(
         }
 
         return {
-            cardHeading: readText('[data-sot-part="card-heading"]'),
-            cardSub: readText('[data-sot-part="card-sub"]'),
-            nextButton: readText('[data-sot-control="onboarding-next"]'),
-            skipButton: readText('[data-sot-control="onboarding-skip"]'),
+            cardHeading: readText("#onboarding-title"),
+            cardSub: normalizeText(element.querySelector("#onboarding-title")?.parentElement?.textContent),
+            nextButton: readText('[aria-label="默认转写操作"] button:last-child'),
+            skipButton: readText('[aria-label="默认转写操作"] button:first-child'),
             sources,
-            stepDescription: readText(
-                '[data-sot-part="onboarding-step-description"]',
-            ),
+            stepDescription: readText("#onboarding-step-description"),
             steps,
-            stepTitle: readText('[data-sot-part="onboarding-step-title"]'),
+            stepTitle: readText("#onboarding-step-title"),
         };
     });
 
@@ -711,7 +798,7 @@ async function readOnboardingDefaultSourceSotEquivalentHtml(
         .join("\n");
 
     return [
-        '<div class="card" data-sot-card="onboarding" data-sot-surface="onboarding-default-source">',
+        '<div class="card" style="padding-bottom:0" data-e2e-fixture="onboarding-default-source">',
         `  <div class="card-h">${escapeHtml(fixture.cardHeading)}</div>`,
         `  <div class="card-sub">${escapeHtml(fixture.cardSub)}</div>`,
         '  <div class="frame" style="padding: 18px">',
@@ -1009,7 +1096,7 @@ async function captureAuthLoginPixelEvidence(
         html: `<div class="grid-2">${productHtml}${sotSecondCardHtml}</div>`,
         page: sotPage,
         stageWidth: 856,
-        targetSelector: '.grid-2 > [data-sot-surface="auth-login"]',
+        targetSelector: '.grid-2 > [data-e2e-fixture="auth-login"]',
     });
     const diff = await compareSotPixels(
         page,
@@ -1029,7 +1116,7 @@ async function captureAuthLoginPixelEvidence(
         fixture: {
             productStageWidth: 420,
             sotStageWidth: 856,
-            targetSelector: '[data-sot-surface="auth-login"]',
+            targetSelector: '[data-e2e-fixture="auth-login"]',
         },
         pixelDiff: diff,
         residual: {
@@ -1083,7 +1170,7 @@ async function captureOnboardingDefaultSourcePixelEvidence(
             html: `<main class="onboarding-sot-canvas" style="min-height:auto;display:block;padding:0;background:transparent;color:var(--fg-primary)">${productHtml}</main>`,
             page: sotPage,
             stageWidth: 420,
-            targetSelector: '[data-sot-card="onboarding"]',
+            targetSelector: '[data-e2e-fixture="onboarding-default-source"]',
         }),
     ]);
     const diff = await compareSotPixels(
@@ -1104,7 +1191,7 @@ async function captureOnboardingDefaultSourcePixelEvidence(
         fixture: {
             productStageWidth: 420,
             sotStageWidth: 420,
-            targetSelector: '[data-sot-card="onboarding"]',
+            targetSelector: '[data-e2e-fixture="onboarding-default-source"]',
         },
         pixelDiff: diff,
         residual: {
@@ -1146,7 +1233,25 @@ async function copyElectronReferenceScreenshot() {
         ROW_119_EVIDENCE_DIR,
         "electron-onboarding-artboard-reference-only.png",
     );
-    await copyFile(sourcePath, outputPath);
+    try {
+        await copyFile(sourcePath, outputPath);
+    } catch (error) {
+        if (
+            error &&
+            typeof error === "object" &&
+            "code" in error &&
+            error.code === "ENOENT"
+        ) {
+            return {
+                path: "n/a",
+                sourcePath: ELECTRON_ONBOARDING_REFERENCE_REL,
+                unavailable:
+                    "The reference-only Electron artboard is absent from this isolated E2E root.",
+            };
+        }
+
+        throw error;
+    }
     const screenshot = await readFile(outputPath);
 
     return {
@@ -1291,7 +1396,7 @@ async function expectAuthLoginPixelsMatch(
         html: `<div class="grid-2">${productHtml}${sotSecondCardHtml}</div>`,
         page: sotPage,
         stageWidth: 856,
-        targetSelector: '.grid-2 > [data-sot-surface="auth-login"]',
+        targetSelector: '.grid-2 > [data-e2e-fixture="auth-login"]',
     });
     const diff = await compareSotPixels(
         page,
@@ -1365,7 +1470,7 @@ async function expectOnboardingDefaultSourcePixelsMatch(
             html: `<main class="onboarding-sot-canvas" style="min-height:auto;display:block;padding:0;background:transparent;color:var(--fg-primary)">${productHtml}</main>`,
             page: sotPage,
             stageWidth: 420,
-            targetSelector: '[data-sot-card="onboarding"]',
+            targetSelector: '[data-e2e-fixture="onboarding-default-source"]',
         }),
     ]);
     const diff = await compareSotPixels(
@@ -1448,9 +1553,7 @@ test("SOT auth login card matches §09 pixels", async ({
         const emailInput = sotControl(page, "auth-email");
         await emailInput.fill("mei@example.com");
 
-        const productLoginCard = page.locator(
-            '[data-sot-surface="auth-login"]',
-        );
+        const productLoginCard = authForm(page);
 
         await expectAuthLoginPixelsMatch(
             page,
@@ -1493,7 +1596,7 @@ test("SOT onboarding default source card matches §09 pixels", async ({
             page,
             testInfo,
             sotPage,
-            page.locator('[data-sot-card="onboarding"]'),
+            currentOnboardingPanel(page),
         );
     } finally {
         await sotPage.close();
@@ -1525,11 +1628,8 @@ test("row 119 auth/onboarding visual matrix evidence", async ({
         await forceDarkTheme(page);
         await sotControl(page, "auth-email").fill("mei@example.com");
 
-        const loginCard = page.locator('[data-sot-surface="auth-login"]');
-        await expect(loginCard).toHaveAttribute("data-sot-state", "idle");
-        await expect(
-            loginCard.locator('[data-sot-frame="auth"]'),
-        ).toBeVisible();
+        const loginCard = authForm(page);
+        await expect(loginCard).toBeVisible();
         await expect(page.locator(".sidebar, .panel")).toHaveCount(0);
         frames.push({
             id: "login-desktop-dark-card-responsive",
@@ -1544,9 +1644,9 @@ test("row 119 auth/onboarding visual matrix evidence", async ({
                 "login-desktop-dark-card.png",
             ),
             assertions: [
-                "data-sot-surface=auth-login is visible",
-                "data-sot-state=idle before submission",
-                "data-sot-frame=auth uses the restored frame primitive",
+                "email-link login form is visible",
+                "login form is ready before submission",
+                "semantic login form uses the current card surface",
                 "legacy .sidebar/.panel surfaces are absent",
             ],
             sotRelationship:
@@ -1565,10 +1665,8 @@ test("row 119 auth/onboarding visual matrix evidence", async ({
         await gotoAuthPage(page, "/login");
         await forceDarkTheme(page);
         await sotControl(page, "auth-email").fill("mei@example.com");
-        const mobileLoginCard = page.locator('[data-sot-surface="auth-login"]');
-        await expect(
-            mobileLoginCard.locator('[data-sot-frame="auth"]'),
-        ).toBeVisible();
+        const mobileLoginCard = authForm(page);
+        await expect(mobileLoginCard).toBeVisible();
         await expect(page.locator(".sidebar, .panel")).toHaveCount(0);
         frames.push({
             id: "login-mobile-dark-card-responsive",
@@ -1598,14 +1696,9 @@ test("row 119 auth/onboarding visual matrix evidence", async ({
         await gotoOnboardingPage(page);
         await forceDarkTheme(page);
         await goToOnboardingState(page, "transcription");
-        const onboardingCard = page.locator(
-            '[data-sot-card="onboarding"]',
-        );
+        const onboardingCard = currentOnboardingPanel(page);
         const onboardingPanel = currentOnboardingPanel(page);
-        await expect(onboardingPanel).toHaveAttribute(
-            "data-sot-state",
-            "transcription",
-        );
+        await expectOnboardingState(page, "transcription");
         await expect(
             sotList(page, "onboarding-default-sources"),
         ).toBeVisible();
@@ -1625,7 +1718,7 @@ test("row 119 auth/onboarding visual matrix evidence", async ({
                 "onboarding-default-source-desktop.png",
             ),
             assertions: [
-                "data-sot-state=transcription",
+                "transcription step is current",
                 "four progress segments are present",
                 "onboarding default-source list is visible",
                 "default-source row has a selected state",
@@ -1646,13 +1739,8 @@ test("row 119 auth/onboarding visual matrix evidence", async ({
         await gotoOnboardingPage(page);
         await forceDarkTheme(page);
         await goToOnboardingState(page, "transcription");
-        const mobileOnboardingCard = page.locator(
-            '[data-sot-card="onboarding"]',
-        );
-        await expect(currentOnboardingPanel(page)).toHaveAttribute(
-            "data-sot-state",
-            "transcription",
-        );
+        const mobileOnboardingCard = currentOnboardingPanel(page);
+        await expectOnboardingState(page, "transcription");
         await expect(
             sotList(page, "onboarding-default-sources"),
         ).toBeVisible();
@@ -1672,8 +1760,8 @@ test("row 119 auth/onboarding visual matrix evidence", async ({
                 "onboarding-default-source-mobile.png",
             ),
             assertions: [
-                "mobile viewport preserves onboarding card/frame markers",
-                "data-sot-state=transcription",
+                "mobile viewport preserves onboarding card and progress markers",
+                "transcription step is current",
                 "default-source list remains visible",
             ],
             blocker:
@@ -1682,10 +1770,7 @@ test("row 119 auth/onboarding visual matrix evidence", async ({
 
         await gotoOnboardingPage(page);
         await forceDarkTheme(page);
-        await expect(currentOnboardingPanel(page)).toHaveAttribute(
-            "data-sot-state",
-            "source",
-        );
+        await expectOnboardingState(page, "source");
         await expect(sotList(page, "provider-cards")).toBeVisible();
         frames.push({
             id: "onboarding-source-mobile-structural-state",
@@ -1700,7 +1785,7 @@ test("row 119 auth/onboarding visual matrix evidence", async ({
                 "onboarding-source-mobile.png",
             ),
             assertions: [
-                "data-sot-state=source",
+                "source step is current",
                 "provider cards are visible",
                 "selected provider state is present",
                 "legacy .sidebar/.panel surfaces are absent",
@@ -1713,11 +1798,8 @@ test("row 119 auth/onboarding visual matrix evidence", async ({
         await gotoOnboardingPage(page);
         await forceDarkTheme(page);
         await goToOnboardingState(page, "speakers");
-        await page.locator('[data-sot-control="speaker-name"]').fill("林梅");
-        await expect(currentOnboardingPanel(page)).toHaveAttribute(
-            "data-sot-state",
-            "speakers",
-        );
+        await sotControl(page, "speaker-name").fill("林梅");
+        await expectOnboardingState(page, "speakers");
         frames.push({
             id: "onboarding-speakers-desktop-structural-state",
             label: "Onboarding speaker-profile visual state, desktop",
@@ -1731,7 +1813,7 @@ test("row 119 auth/onboarding visual matrix evidence", async ({
                 "onboarding-speakers-desktop.png",
             ),
             assertions: [
-                "data-sot-state=speakers",
+                "speaker step is current",
                 "speaker draft profile state is visible",
                 "speaker display-name input is editable",
                 "matrix row reflects the pending speaker profile",
@@ -1741,10 +1823,7 @@ test("row 119 auth/onboarding visual matrix evidence", async ({
         });
 
         await goToOnboardingState(page, "finish");
-        await expect(currentOnboardingPanel(page)).toHaveAttribute(
-            "data-sot-state",
-            "finish",
-        );
+        await expectOnboardingState(page, "finish");
         await expect(sotList(page, "finish-summary")).toContainText("林梅");
         frames.push({
             id: "onboarding-finish-desktop-structural-state",
@@ -1759,7 +1838,7 @@ test("row 119 auth/onboarding visual matrix evidence", async ({
                 "onboarding-finish-desktop.png",
             ),
             assertions: [
-                "data-sot-state=finish",
+                "finish step is current",
                 "finish summary is visible",
                 "save-enter control is present",
                 "speaker summary includes the local test display name",
@@ -1785,6 +1864,10 @@ test("row 119 auth/onboarding visual matrix evidence", async ({
         ],
         blocker:
             "Reference-only. Electron onboarding is a platform artboard and must not be promoted to Web product pixel target without a product/SOT decision.",
+        unavailable:
+            "unavailable" in electronReferenceScreenshot
+                ? electronReferenceScreenshot.unavailable
+                : undefined,
     };
 
     const evidenceJsonPath = path.join(
@@ -1894,14 +1977,16 @@ test("SOT auth sends a magic link and never exposes the old password form", asyn
     await createRegisteredUser("magic-ui@example.com");
     await gotoAuthPage(page, "/login");
 
-    const form = page.locator('[data-sot-surface="auth-login"]');
+    const form = authForm(page);
     const emailInput = sotControl(page, "auth-email");
-    await expect(page.locator('[data-sot-layout="auth-workstation"]')).toBeVisible();
+    await expect(page.getByRole("main")).toBeVisible();
     await expect(form).toBeVisible();
-    await expect(form).toHaveAttribute("data-sot-card", "auth");
-    await expect(form).toHaveAttribute("data-sot-state", "idle");
-    await expect(form.locator('[data-sot-part="card-heading"]')).toContainText("登录 / Sign in");
-    await expect(form.locator('[data-sot-frame="auth"]')).toBeVisible();
+    await expect(
+        form.getByText("登录 / Sign in", { exact: true }),
+    ).toBeVisible();
+    await expect(
+        form.getByText("邮箱 + 链接 · 不要密码", { exact: true }),
+    ).toBeVisible();
     await expect(emailInput).toBeEditable();
     await expect(emailInput).toHaveAttribute("data-slot", "input");
     await expect(emailInput).toHaveAttribute("aria-invalid", "false");
@@ -1912,14 +1997,8 @@ test("SOT auth sends a magic link and never exposes the old password form", asyn
     await emailInput.fill("magic-ui@example.com");
     await sendLoginLink(page);
 
-    await expect(form).toHaveAttribute("data-sot-state", "success");
-    const successMessage = form.locator(
-        '[data-sot-part="auth-form-message"][data-sot-state="success"]',
-    );
-    await expect(successMessage).toHaveAttribute(
-        "data-auth-form-state",
-        "success",
-    );
+    const successMessage = form.getByRole("status");
+    await expect(successMessage).toHaveAttribute("id", "auth-form-message");
     await expect(successMessage).toContainText("登录链接已发送");
     expect(await readMagicLinkVerification("magic-ui@example.com")).toBe(true);
 });
@@ -1931,23 +2010,20 @@ test("SOT auth blocks second-user magic links and supports local-only session", 
     await createRegisteredUser(PLAYWRIGHT_EMAIL);
 
     await gotoAuthPage(page, "/login");
-    const form = page.locator('[data-sot-surface="auth-login"]');
+    const form = authForm(page);
     await sotControl(page, "auth-email").fill("other-admin@example.com");
     await sendLoginLink(page, { expectedStatus: 403 });
 
-    await expect(form).toHaveAttribute("data-sot-state", "error");
     await expect(sotControl(page, "auth-email")).toHaveAttribute(
         "aria-invalid",
         "true",
     );
     await expect(sotControl(page, "auth-email")).toHaveAttribute(
-        "data-sot-state",
-        "error",
+        "aria-describedby",
+        "auth-form-message",
     );
     await expect(
-        form.locator(
-            '[data-sot-part="auth-form-message"][data-sot-state="error"]',
-        ),
+        form.getByRole("alert"),
     ).toContainText(
         /Registration is disabled|登录链接发送失败/,
     );
@@ -1959,7 +2035,7 @@ test("SOT auth blocks second-user magic links and supports local-only session", 
     await gotoAuthPage(page, "/login");
     await Promise.all([
         page.waitForURL("**/dashboard", { waitUntil: "commit" }),
-        page.locator('[data-sot-control="local-only"]').click(),
+        sotControl(page, "local-only").click(),
     ]);
 
     expect(await countAnonymousUsers()).toBe(1);
@@ -1971,11 +2047,14 @@ test("SOT register route reuses the email-link setup surface without legacy acco
     await resetAuthUsers();
     await gotoAuthPage(page, "/register");
 
-    await expect(page.locator('[data-sot-surface="auth-register"]')).toBeVisible();
+    await expect(authForm(page)).toBeVisible();
+    await expect(
+        authForm(page).getByText("上手 / Sign in", { exact: true }),
+    ).toBeVisible();
     await expect(sotControl(page, "auth-email")).toBeEditable();
     await expect(page.locator("#password")).toHaveCount(0);
     await expect(page.locator("#name")).toHaveCount(0);
-    await expect(page.locator('[data-sot-control="local-only"]')).toBeVisible();
+    await expect(sotControl(page, "local-only")).toBeVisible();
 });
 
 test("SOT onboarding exposes source, default transcription, speaker, and finish states", async ({
@@ -1988,70 +2067,54 @@ test("SOT onboarding exposes source, default transcription, speaker, and finish 
     await gotoOnboardingPage(page);
 
     const panel = currentOnboardingPanel(page);
-    await expect(page.locator('[data-sot-layout="onboarding-workstation"]')).toBeVisible();
-    await expect(page.locator('[data-sot-card="onboarding"]')).toBeVisible();
-    await expect(panel).toHaveAttribute("data-sot-frame", "onboarding");
+    await expect(
+        page.getByRole("main", { name: "上手 / Onboarding · 4 步" }),
+    ).toBeVisible();
+    await expect(panel).toBeVisible();
     await expect(page.locator(".sidebar, .panel")).toHaveCount(0);
     await expect(sotPanel(page, "onboarding-steps")).toBeVisible();
-    await expect(sotControl(page, "onboarding-step")).toHaveCount(4);
-    await expect(
-        page.locator('[data-sot-control="onboarding-step"][data-sot-step="source"]'),
-    ).toHaveAttribute("data-sot-state", "active");
-    await expect(panel).toHaveAttribute("data-sot-state", "source");
-    await expect(panel).toHaveAttribute("data-sot-provider", "plaud");
+    await expect(sotPanel(page, "onboarding-steps").getByRole("button")).toHaveCount(4);
+    await expectOnboardingState(page, "source");
     await expect(sotList(page, "provider-cards")).toBeVisible();
     await expect(
-        page.locator('[data-sot-control="provider-card"][data-sot-provider="plaud"]'),
-    ).toHaveAttribute("data-sot-state", "selected");
+        onboardingProvider(page, "Plaud"),
+    ).toHaveAttribute("aria-checked", "true");
     await expect(
-        sotControl(page, "matrix-row").filter({ hasText: "当前来源" }),
-    ).toHaveAttribute("data-sot-state", "selected");
+        onboardingMatrixRow(page, "当前来源"),
+    ).toContainText("Plaud");
 
-    await page
-        .locator(
-            '[data-sot-control="provider-card"][data-sot-provider="feishu-minutes"]',
-        )
-        .click();
+    const feishuProvider = onboardingProvider(page, "飞书妙记");
+    await feishuProvider.click();
 
-    await expect(panel).toHaveAttribute("data-sot-provider", "feishu-minutes");
-    await expect(
-        page.locator(
-            '[data-sot-control="provider-card"][data-sot-provider="feishu-minutes"]',
-        ),
-    ).toHaveAttribute("data-sot-state", "selected");
+    await expect(feishuProvider).toHaveAttribute("aria-checked", "true");
+    await expect(onboardingMatrixRow(page, "当前来源")).toContainText("飞书妙记");
 
     await goToOnboardingState(page, "transcription");
     await expect(sotList(page, "onboarding-default-sources")).toBeVisible();
     await expect(
         sotPanel(page, "onboarding-default-source-step"),
     ).toBeVisible();
+    const feishuDefaultSource = onboardingDefaultSource(page, /飞书妙记/);
+    const ticnoteDefaultSource = onboardingDefaultSource(page, /TicNote/);
+    await expect(feishuDefaultSource).toHaveAttribute("aria-checked", "false");
+    await expect(feishuDefaultSource).toBeEnabled();
+    await expect(ticnoteDefaultSource).toBeDisabled();
+    await feishuDefaultSource.click();
     await expect(
-        page.locator('[data-sot-control="onboarding-default-source"]').first(),
-    ).toHaveAttribute("data-sot-state", "selected");
-    const ticnoteDefaultSource = page.locator(
-        '[data-sot-control="onboarding-default-source"][data-sot-provider="ticnote"]',
-    );
-    await ticnoteDefaultSource.click();
-    await expect(
-        ticnoteDefaultSource,
-    ).toHaveAttribute("data-sot-state", "selected");
+        feishuDefaultSource,
+    ).toHaveAttribute("aria-checked", "true");
 
     await goToOnboardingState(page, "speakers");
-    await expect(sotControl(page, "speaker-profile-draft")).toHaveAttribute(
-        "data-sot-state",
-        "idle",
-    );
-    await expect(page.locator('[data-sot-control="speaker-name"]')).toBeEditable();
-    await page.locator('[data-sot-control="speaker-name"]').fill("林梅");
-    await page
-        .locator('[data-sot-control="speaker-voiceprint"]')
-        .fill("voiceprint-playwright");
+    await expect(
+        page.getByRole("heading", { name: "第一个说话人" }),
+    ).toBeVisible();
+    await expect(sotControl(page, "speaker-name")).toBeEditable();
+    await sotControl(page, "speaker-name").fill("林梅");
+    await sotControl(page, "speaker-voiceprint").fill("voiceprint-playwright");
 
     await goToOnboardingState(page, "finish");
-    await expect(panel).toHaveAttribute("data-sot-state", "finish");
-    await expect(page.locator('[data-sot-list="finish-summary"]')).toContainText(
-        "林梅",
-    );
+    await expectOnboardingState(page, "finish");
+    await expect(sotList(page, "finish-summary")).toContainText("林梅");
 });
 
 test("SOT onboarding save connects source, transcription defaults, and speaker profile APIs", async ({
@@ -2122,10 +2185,8 @@ test("SOT onboarding save connects source, transcription defaults, and speaker p
 
     await goToOnboardingState(page, "transcription");
     await goToOnboardingState(page, "speakers");
-    await page.locator('[data-sot-control="speaker-name"]').fill("林梅");
-    await page
-        .locator('[data-sot-control="speaker-voiceprint"]')
-        .fill("voiceprint-playwright");
+    await sotControl(page, "speaker-name").fill("林梅");
+    await sotControl(page, "speaker-voiceprint").fill("voiceprint-playwright");
     await goToOnboardingState(page, "finish");
 
     await Promise.all([
@@ -2145,7 +2206,7 @@ test("SOT onboarding save connects source, transcription defaults, and speaker p
                 response.request().method() === "POST",
         ),
         page.waitForURL("**/dashboard", { waitUntil: "commit" }),
-        page.locator('[data-sot-control="save-enter"]').click(),
+        sotControl(page, "save-enter").click(),
     ]);
 
     expect(dataSourcePayload).toMatchObject({
@@ -2158,6 +2219,7 @@ test("SOT onboarding save connects source, transcription defaults, and speaker p
     expect(transcriptionPayload).toMatchObject({
         autoTranscribe: true,
         defaultTranscriptionLanguage: "zh",
+        defaultTranscriptionProvider: null,
     });
     expect(speakerPayload).toMatchObject({
         displayName: "林梅",
@@ -2165,38 +2227,73 @@ test("SOT onboarding save connects source, transcription defaults, and speaker p
     });
 });
 
-test("SOT onboarding finish/save persists through the real local backend and reads back saved state", async ({
+test("SOT onboarding starts without a default transcription source until a compatible source is selected", async ({
+    page,
+}) => {
+    await ensureSignedIn(page);
+    await resetOnboardingBackendPersistenceState(await getPlaywrightUserId());
+
+    await gotoOnboardingPage(page);
+    await goToOnboardingState(page, "transcription");
+
+    for (const defaultSource of [
+        onboardingDefaultSource(page, /钉钉 闪记/),
+        onboardingDefaultSource(page, /TicNote/),
+        onboardingDefaultSource(page, /飞书妙记/),
+    ]) {
+        await expect(defaultSource).toHaveAttribute("aria-checked", "false");
+        await expect(defaultSource).toBeDisabled();
+    }
+});
+
+test("SOT onboarding first connection saves a current-draft default through API, SQLite, and reload", async ({
     page,
 }) => {
     await ensureSignedIn(page);
     const userId = await getPlaywrightUserId();
     await resetOnboardingBackendPersistenceState(userId);
-    await seedDisabledPlaudConnectionForBackendReadback(userId);
+    await seedTicnoteFallbackConnectionForOnboarding(userId);
+
+    const seededRows = await readOnboardingBackendPersistenceRows(
+        userId,
+        "ticnote",
+    );
+    expect(seededRows.source).toMatchObject({
+        provider: "ticnote",
+        enabled: 0,
+        auth_mode: "bearer",
+        base_url: ONBOARDING_BACKEND_TICNOTE_BASE_URL,
+    });
 
     await gotoOnboardingPage(page);
 
+    await onboardingProvider(page, /TicNote/).click();
+    await expect(onboardingMatrixRow(page, "当前来源")).toContainText("TicNote");
     const authorizationInput = page.locator("#source-secret");
     await expect(authorizationInput).toBeEditable();
-    await authorizationInput.fill(
-        `Bearer ${ONBOARDING_BACKEND_PERSISTENCE_TOKEN}`,
-    );
+    await authorizationInput.fill(ONBOARDING_BACKEND_TICNOTE_TOKEN);
 
     await goToOnboardingState(page, "transcription");
-    const ticnoteDefaultSource = page.locator(
-        '[data-sot-control="onboarding-default-source"][data-sot-provider="ticnote"]',
+    const ticnoteDefaultSource = onboardingDefaultSource(page, /TicNote/);
+    await expect(ticnoteDefaultSource).toHaveAttribute(
+        "aria-label",
+        "TicNote · 当前草稿（未连接）",
     );
+    await expect(ticnoteDefaultSource).toHaveAttribute("aria-checked", "false");
+    await expect(onboardingDefaultSource(page, /钉钉 闪记/)).toBeDisabled();
+    await expect(onboardingDefaultSource(page, /飞书妙记/)).toBeDisabled();
     await ticnoteDefaultSource.click();
     await expect(
         ticnoteDefaultSource,
-    ).toHaveAttribute("data-sot-state", "selected");
+    ).toHaveAttribute("aria-checked", "true");
 
     await goToOnboardingState(page, "speakers");
-    await page
-        .locator('[data-sot-control="speaker-name"]')
-        .fill(ONBOARDING_BACKEND_PERSISTENCE_SPEAKER);
-    await page
-        .locator('[data-sot-control="speaker-voiceprint"]')
-        .fill(ONBOARDING_BACKEND_PERSISTENCE_VOICEPRINT);
+    await sotControl(page, "speaker-name").fill(
+        ONBOARDING_BACKEND_PERSISTENCE_SPEAKER,
+    );
+    await sotControl(page, "speaker-voiceprint").fill(
+        ONBOARDING_BACKEND_PERSISTENCE_VOICEPRINT,
+    );
     await goToOnboardingState(page, "finish");
 
     const [dataSourceResponse, transcriptionResponse, speakerResponse] =
@@ -2217,33 +2314,43 @@ test("SOT onboarding finish/save persists through the real local backend and rea
                     response.request().method() === "POST",
             ),
             page.waitForURL("**/dashboard", { waitUntil: "commit" }),
-            page.locator('[data-sot-control="save-enter"]').click(),
+            sotControl(page, "save-enter").click(),
         ]);
 
     expect(dataSourceResponse.ok()).toBe(true);
     expect(transcriptionResponse.ok()).toBe(true);
     expect(speakerResponse.ok()).toBe(true);
+    expect(dataSourceResponse.request().postDataJSON()).toMatchObject({
+        provider: "ticnote",
+        enabled: true,
+        secrets: {
+            bearerToken: ONBOARDING_BACKEND_TICNOTE_TOKEN,
+        },
+    });
+    expect(transcriptionResponse.request().postDataJSON()).toMatchObject({
+        defaultTranscriptionProvider: "ticnote",
+    });
 
     const dataSourcesReadback = await page.request.get("/api/data-sources");
     expect(dataSourcesReadback.ok()).toBe(true);
     const dataSourcesJson = (await dataSourcesReadback.json()) as {
         sources?: Array<Record<string, unknown>>;
     };
-    const plaudSource = dataSourcesJson.sources?.find(
-        (source) => source.provider === "plaud",
+    const ticnoteSource = dataSourcesJson.sources?.find(
+        (source) => source.provider === "ticnote",
     );
-    expect(plaudSource).toMatchObject({
-        provider: "plaud",
+    expect(ticnoteSource).toMatchObject({
+        provider: "ticnote",
         enabled: true,
         connected: true,
         authMode: "bearer",
-        baseUrl: "https://api.plaud.ai",
+        baseUrl: ONBOARDING_BACKEND_TICNOTE_BASE_URL,
         secretsConfigured: {
             bearerToken: true,
         },
     });
-    expect(JSON.stringify(plaudSource)).not.toContain(
-        ONBOARDING_BACKEND_PERSISTENCE_TOKEN,
+    expect(JSON.stringify(ticnoteSource)).not.toContain(
+        ONBOARDING_BACKEND_TICNOTE_TOKEN,
     );
 
     const transcriptionReadback = await page.request.get(
@@ -2253,6 +2360,7 @@ test("SOT onboarding finish/save persists through the real local backend and rea
     await expect(transcriptionReadback.json()).resolves.toMatchObject({
         autoTranscribe: true,
         defaultTranscriptionLanguage: "zh",
+        defaultTranscriptionProvider: "ticnote",
     });
 
     const speakerReadback = await page.request.get("/api/speakers/profiles");
@@ -2266,28 +2374,30 @@ test("SOT onboarding finish/save persists through the real local backend and rea
         ]),
     });
 
-    const rows = await readOnboardingBackendPersistenceRows(userId);
+    const rows = await readOnboardingBackendPersistenceRows(userId, "ticnote");
     const persistedSource = rows.source as Record<string, unknown>;
     const persistedSettings = rows.settings as Record<string, unknown>;
     expect(persistedSource).toBeTruthy();
     expect(persistedSettings).toBeTruthy();
-    expect(persistedSource.provider).toBe("plaud");
+    expect(persistedSource.provider).toBe("ticnote");
     expect(Number(persistedSource.enabled)).toBe(1);
     expect(persistedSource.auth_mode).toBe("bearer");
-    expect(persistedSource.base_url).toBe("https://api.plaud.ai");
+    expect(persistedSource.base_url).toBe(ONBOARDING_BACKEND_TICNOTE_BASE_URL);
     expect(String(persistedSource.secret_config)).toMatch(
         /^[0-9a-f]+:[0-9a-f]+:[0-9a-f]+$/,
     );
     expect(String(persistedSource.secret_config)).not.toContain(
-        ONBOARDING_BACKEND_PERSISTENCE_TOKEN,
+        ONBOARDING_BACKEND_TICNOTE_TOKEN,
     );
     expect(JSON.parse(String(persistedSource.config))).toMatchObject({
-        server: "global",
-        customApiBase: "",
+        language: "zh",
+        region: "cn",
         syncTitleToSource: false,
+        timezone: expect.any(String),
     });
     expect(Number(persistedSettings.auto_transcribe)).toBe(1);
     expect(persistedSettings.default_transcription_language).toBe("zh");
+    expect(persistedSettings.default_transcription_provider).toBe("ticnote");
     expect(rows.speakers).toEqual(
         expect.arrayContaining([
             expect.objectContaining({
@@ -2296,6 +2406,29 @@ test("SOT onboarding finish/save persists through the real local backend and rea
             }),
         ]),
     );
+
+    await page.reload({ waitUntil: "domcontentloaded" });
+    await expect(page).toHaveURL(/\/dashboard/);
+    const reloadedTranscriptionReadback = await page.request.get(
+        "/api/settings/transcription",
+    );
+    expect(reloadedTranscriptionReadback.ok()).toBe(true);
+    await expect(reloadedTranscriptionReadback.json()).resolves.toMatchObject({
+        defaultTranscriptionProvider: "ticnote",
+    });
+    const reloadedDataSourcesReadback = await page.request.get(
+        "/api/data-sources",
+    );
+    expect(reloadedDataSourcesReadback.ok()).toBe(true);
+    await expect(reloadedDataSourcesReadback.json()).resolves.toMatchObject({
+        sources: expect.arrayContaining([
+            expect.objectContaining({
+                provider: "ticnote",
+                enabled: true,
+                connected: true,
+            }),
+        ]),
+    });
 });
 
 test("SOT onboarding finish/save surfaces a real backend data-source failure without route mocks", async ({
@@ -2304,6 +2437,16 @@ test("SOT onboarding finish/save surfaces a real backend data-source failure wit
     await ensureSignedIn(page);
     const userId = await getPlaywrightUserId();
     await resetOnboardingBackendPersistenceState(userId);
+    await seedTicnoteFallbackConnectionForOnboarding(userId, true);
+    let transcriptionPutRequests = 0;
+    page.on("request", (request) => {
+        if (
+            new URL(request.url()).pathname === "/api/settings/transcription" &&
+            request.method() === "PUT"
+        ) {
+            transcriptionPutRequests += 1;
+        }
+    });
 
     await gotoOnboardingPage(page);
 
@@ -2316,6 +2459,7 @@ test("SOT onboarding finish/save surfaces a real backend data-source failure wit
     await page.locator("#source-secret").fill("Bearer invalid-custom-server");
 
     await goToOnboardingState(page, "transcription");
+    await onboardingDefaultSource(page, /TicNote/).click();
     await goToOnboardingState(page, "speakers");
     await goToOnboardingState(page, "finish");
 
@@ -2325,7 +2469,7 @@ test("SOT onboarding finish/save surfaces a real backend data-source failure wit
                 response.url().includes("/api/data-sources") &&
                 response.request().method() === "PUT",
         ),
-        page.locator('[data-sot-control="save-enter"]').click(),
+        sotControl(page, "save-enter").click(),
     ]);
 
     expect(dataSourceResponse.status()).toBe(400);
@@ -2333,11 +2477,20 @@ test("SOT onboarding finish/save surfaces a real backend data-source failure wit
         error: "Please enter a valid Plaud service address.",
     });
     await expect(page).toHaveURL(/\/onboarding/);
-    await expect(currentOnboardingPanel(page)).toHaveAttribute(
-        "data-sot-state",
-        "source",
+    await expectOnboardingState(page, "source");
+    await expect(currentOnboardingPanel(page).getByRole("alert")).toContainText(
+        "来源连接失败，请检查授权信息后重试。",
     );
-    await expect(page.locator('[data-sot-part="onboarding-error"]')).toContainText(
-        "请先补全来源授权",
+    expect(transcriptionPutRequests).toBe(0);
+    const rows = await readOnboardingBackendPersistenceRows(userId, "plaud");
+    expect(rows.settings).toBeNull();
+    expect(rows.source).toBeNull();
+    const ticnoteRows = await readOnboardingBackendPersistenceRows(
+        userId,
+        "ticnote",
     );
+    expect(ticnoteRows.source).toMatchObject({
+        provider: "ticnote",
+        enabled: 1,
+    });
 });

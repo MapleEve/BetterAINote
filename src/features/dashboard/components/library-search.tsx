@@ -1,6 +1,6 @@
 "use client";
 
-import { Search, Tags, X } from "lucide-react";
+import { Columns2, Search, X } from "lucide-react";
 import {
     type KeyboardEvent as ReactKeyboardEvent,
     useEffect,
@@ -19,7 +19,6 @@ import {
     InputGroupButton,
     InputGroupInput,
 } from "@/components/ui/input-group";
-import { Skeleton } from "@/components/ui/skeleton";
 import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
 
 type SearchResultType = "recording" | "transcript" | "speaker" | "tag";
@@ -75,43 +74,55 @@ const SEARCH_RESULT_TYPES: SearchResultType[] = [
     "speaker",
     "tag",
 ];
+const LIBRARY_SEARCH_DIALOG_ID = "library-search-dialog";
+const LIBRARY_SEARCH_RESULTS_ID = "library-search-results";
+
+function librarySearchResultId(index: number) {
+    return `library-search-result-${index}`;
+}
 
 const librarySearchClassNames = {
     anchor: "relative inline-flex size-[32px] items-center justify-center p-0",
     trigger: "relative",
-    panel: "absolute right-0 top-[calc(100%+8px)] z-50 flex max-h-[540px] w-[460px] max-w-[calc(100vw-32px)] flex-col gap-0 min-[641px]:max-[860px]:fixed min-[641px]:max-[860px]:left-3 min-[641px]:max-[860px]:right-auto min-[641px]:max-[860px]:top-[72px] min-[641px]:max-[860px]:box-border min-[641px]:max-[860px]:max-h-[calc(100dvh-96px)] min-[641px]:max-[860px]:w-[min(460px,calc(100vw-24px))] min-[641px]:max-[860px]:max-w-[calc(100vw-24px)] max-[640px]:fixed max-[640px]:left-3 max-[640px]:right-3 max-[640px]:top-[72px] max-[640px]:box-border max-[640px]:max-h-[calc(100dvh-96px)] max-[640px]:w-[calc(100vw-24px)] max-[640px]:min-w-0 max-[640px]:max-w-none",
+    panel: "absolute right-0 top-[calc(100%+8px)] z-50 flex max-h-[540px] w-[460px] max-w-[calc(100vw-32px)] flex-col gap-0 rounded-[12px] border-border bg-[var(--bg-elevated)] [box-shadow:var(--card-popover-shadow)] backdrop-blur-none min-[641px]:max-[860px]:fixed min-[641px]:max-[860px]:left-3 min-[641px]:max-[860px]:right-auto min-[641px]:max-[860px]:top-[72px] min-[641px]:max-[860px]:box-border min-[641px]:max-[860px]:max-h-[calc(100dvh-96px)] min-[641px]:max-[860px]:w-[min(460px,calc(100vw-24px))] min-[641px]:max-[860px]:max-w-[calc(100vw-24px)] max-[640px]:fixed max-[640px]:left-3 max-[640px]:right-3 max-[640px]:top-[72px] max-[640px]:box-border max-[640px]:max-h-[calc(100dvh-96px)] max-[640px]:w-[calc(100vw-24px)] max-[640px]:min-w-0 max-[640px]:max-w-none",
     inputRow:
-        "h-[49px] min-h-[49px] gap-[8px] rounded-none border-x-0 border-t-0 border-b border-border px-[12px] py-[8px]",
+        "h-auto min-h-0 gap-[8px] rounded-none border-x-0 border-t-0 border-b border-border bg-transparent px-[12px] py-[8px] shadow-none",
     inputAddon:
         "p-0 text-muted-foreground group-data-[disabled=true]/input-group:opacity-100 has-[>button]:m-0",
-    input: "h-8 min-w-0 px-1 py-0 text-sm md:text-sm",
+    input: "h-8 min-w-0 px-1 py-0 text-[13.5px] leading-[1.35] font-medium md:text-[13.5px]",
     clear: "size-6",
-    scope: "min-h-[39px] w-full flex-wrap gap-[6px] rounded-none border-b border-border bg-muted px-[12px] py-[8px]",
+    scope: "w-full flex-wrap gap-[6px] rounded-none border-b border-border bg-muted px-[12px] py-[8px]",
     scopeItem:
-        "h-6 rounded-full px-2.5 text-xs disabled:pointer-events-none disabled:opacity-50",
-    error: "flex w-full flex-col items-center gap-2 rounded-none px-4 py-4 text-center text-sm text-destructive *:data-[slot=alert-description]:text-destructive [&>svg]:text-current",
+        "h-[22px] rounded-full border-transparent bg-transparent px-[10px] text-[11.5px] font-medium leading-none text-muted-foreground shadow-none hover:bg-card hover:text-foreground data-[state=on]:border-[color-mix(in_srgb,var(--accent)_36%,transparent)] data-[state=on]:bg-[var(--accent-soft)] data-[state=on]:text-[var(--accent)] disabled:pointer-events-none disabled:opacity-50",
+    error: "w-full gap-[8px] rounded-none border-0 bg-transparent px-[16px] py-[18px] text-center text-[12.5px] leading-[1.55] font-medium text-destructive",
     errorTitle:
-        "line-clamp-none min-h-0 text-center text-sm font-medium tracking-normal",
-    retry: "h-6 px-2 text-xs",
+        "line-clamp-none min-h-0 text-center text-[12.5px] leading-[1.55] font-medium tracking-normal text-destructive",
+    retry: "h-[26px] rounded-[7px] px-[10px] text-[12px] font-semibold text-muted-foreground hover:bg-muted hover:text-foreground",
     scroll: "min-h-0 flex-1 overflow-y-auto px-[6px] pt-[6px] pb-[8px]",
     state: "block text-muted-foreground",
     indexing:
         "flex items-center gap-[10px] px-[16px] py-[14px] text-[length:var(--text-body-sm)] text-muted-foreground",
-    stateSkeleton:
-        "relative inline-flex h-1 w-auto min-w-0 flex-1 overflow-hidden rounded-full bg-primary/10 animate-none after:absolute after:inset-y-0 after:left-0 after:w-[36%] after:rounded-[inherit] after:bg-primary/50 after:animate-[sbn-sweep_1.4s_linear_infinite] after:content-['']",
+    indexingProgress:
+        "inline-flex min-w-0 flex-1 items-center gap-[8px] font-mono text-[11px] font-medium leading-none text-muted-foreground",
+    indexingTrack:
+        "relative h-1 w-full overflow-hidden rounded-full bg-[color-mix(in_srgb,var(--signal-info)_16%,transparent)]",
+    indexingBar:
+        "absolute inset-y-0 left-0 w-[36%] rounded-[inherit] bg-[linear-gradient(90deg,transparent,var(--signal-info)_50%,transparent)] animate-[sbn-sweep_1.4s_linear_infinite]",
     stateCopy:
-        "px-4 py-5 text-center text-sm text-muted-foreground [&_span]:font-semibold [&_span]:text-foreground",
+        "px-[16px] py-[22px] text-center text-[12.5px] leading-[1.55] font-medium text-muted-foreground",
+    stateCopyStrong: "font-semibold text-foreground",
     results: "flex flex-col",
     resultGroup:
-        "flex flex-col gap-[2px] px-[4px] py-[6px] [&+&]:mt-[4px] [&+&]:border-t [&+&]:border-border [&+&]:pt-[8px]",
+        "m-0 min-w-0 border-0 p-0 flex flex-col gap-[2px] px-[4px] py-[6px] [&+&]:mt-[4px] [&+&]:border-t [&+&]:border-border [&+&]:pt-[8px]",
     groupLabel:
-        "px-1.5 py-1 font-mono text-xs font-semibold uppercase tracking-wide text-muted-foreground",
-    result: "h-auto w-full flex-col items-start justify-start gap-0.5 px-2.5 py-2 text-left whitespace-normal",
-    resultTitle: "text-sm font-semibold text-foreground",
+        "float-left block w-full px-[6px] py-[4px] font-mono text-[10.5px] font-semibold leading-[10.5px] uppercase tracking-[0.84px] text-muted-foreground",
+    result: "h-auto w-full flex-col items-start justify-start gap-[2px] rounded-[8px] px-[10px] py-[8px] text-left text-[13px] font-normal leading-[normal] whitespace-normal",
+    resultTitle: "text-[13px] font-semibold leading-[18.2px] text-foreground",
     resultMeta:
-        "font-mono text-xs font-medium leading-snug text-muted-foreground",
-    highlight: "rounded-[3px] bg-primary/10 px-[2px] text-primary",
-    tag: "h-6 w-fit justify-normal gap-1 overflow-visible whitespace-normal px-2 py-0",
+        "font-mono text-[11.5px] font-medium leading-[16.1px] tracking-[0.23px] text-muted-foreground",
+    highlight:
+        "rounded-[3px] bg-[color-mix(in_srgb,var(--accent)_22%,transparent)] px-[2px] text-[var(--accent)]",
+    tag: "h-[22px] w-fit justify-normal gap-[5px] overflow-visible rounded-[6px] border-[color-mix(in_srgb,var(--tag-c)_24%,transparent)] bg-[color-mix(in_srgb,var(--tag-c)_12%,var(--bg-elevated))] py-0 pr-[9px] pl-[7px] text-[11.5px] font-semibold leading-[normal] whitespace-normal text-[color-mix(in_srgb,var(--tag-c)_72%,var(--fg-primary))] [--tag-c:oklch(0.560_0.150_285)] [box-shadow:var(--shadow-xs)]",
 } as const;
 
 function formatLibrarySearchTimestamp(valueMs: number | null | undefined) {
@@ -131,10 +142,6 @@ function formatLibrarySearchTimestamp(valueMs: number | null | undefined) {
     return `${minutes.toString().padStart(2, "0")}:${seconds
         .toString()
         .padStart(2, "0")}`;
-}
-
-function LibrarySearchTagIcon() {
-    return <Tags data-icon="inline-start" aria-hidden="true" />;
 }
 
 function searchResultAction(result: SearchResult) {
@@ -194,10 +201,7 @@ function highlightSearchText(value: string, query: string) {
     return (
         <>
             {value.slice(0, index)}
-            <mark
-                className={librarySearchClassNames.highlight}
-                data-sot-part="library-search-highlight"
-            >
+            <mark className={librarySearchClassNames.highlight}>
                 {value.slice(index, index + needle.length)}
             </mark>
             {value.slice(index + needle.length)}
@@ -312,9 +316,7 @@ export function LibrarySearch({
         if (!open || flatSearchResults.length === 0) return;
         window.setTimeout(() => {
             document
-                .querySelector<HTMLElement>(
-                    `[data-sot-control="library-search-result"][data-sot-result-index="${activeSearchIndex}"]`,
-                )
+                .getElementById(librarySearchResultId(activeSearchIndex))
                 ?.scrollIntoView({ block: "nearest" });
         }, 0);
     }, [activeSearchIndex, flatSearchResults.length, open]);
@@ -398,11 +400,7 @@ export function LibrarySearch({
     }
 
     return (
-        <div
-            className={librarySearchClassNames.anchor}
-            data-sot-part="library-search-anchor"
-            ref={searchOverlayRef}
-        >
+        <div className={librarySearchClassNames.anchor} ref={searchOverlayRef}>
             <Button
                 ref={searchTriggerRef}
                 variant="ghost"
@@ -411,22 +409,18 @@ export function LibrarySearch({
                 type="button"
                 aria-label={t("librarySearch.openSearch")}
                 aria-expanded={open}
-                data-sot-control="dashboard-search"
-                data-sot-state={open ? "open" : "idle"}
+                aria-haspopup="dialog"
+                aria-controls={open ? LIBRARY_SEARCH_DIALOG_ID : undefined}
                 onClick={() => onOpenChange(!open)}
             >
-                <Search data-icon="inline-start" />
+                <Search aria-hidden="true" />
             </Button>
             {open ? (
                 <Card
                     hasNoPadding
                     variant="default"
                     className={librarySearchClassNames.panel}
-                    data-open="true"
-                    data-state={searchPanelState}
-                    data-sot-panel="library-search"
-                    data-sot-state={searchPanelState}
-                    data-sot-result-count={String(flatSearchResults.length)}
+                    id={LIBRARY_SEARCH_DIALOG_ID}
                     role="dialog"
                     aria-label={t("librarySearch.dialogLabel")}
                     onKeyDown={handleLibrarySearchKeyDown}
@@ -434,21 +428,32 @@ export function LibrarySearch({
                     <InputGroup
                         variant="default"
                         className={librarySearchClassNames.inputRow}
-                        data-sot-part="library-search-input-row"
-                        data-state={searchPanelState}
-                        data-disabled={String(searchPanelState === "indexing")}
                     >
                         <InputGroupAddon
                             align="inline-start"
                             className={librarySearchClassNames.inputAddon}
                         >
-                            <Search data-icon="inline-start" />
+                            <Search
+                                aria-hidden="true"
+                                className="!size-[15px]"
+                                size={15}
+                                strokeWidth={1.8}
+                            />
                         </InputGroupAddon>
                         <InputGroupInput
                             variant="default"
                             className={librarySearchClassNames.input}
                             ref={searchInputRef}
                             value={query}
+                            role="combobox"
+                            aria-autocomplete="list"
+                            aria-controls={LIBRARY_SEARCH_RESULTS_ID}
+                            aria-expanded={true}
+                            aria-activedescendant={
+                                flatSearchResults.length > 0
+                                    ? librarySearchResultId(activeSearchIndex)
+                                    : undefined
+                            }
                             aria-disabled={searchPanelState === "indexing"}
                             aria-label={t("librarySearch.placeholder")}
                             autoComplete="off"
@@ -462,19 +467,13 @@ export function LibrarySearch({
                                     : "librarySearch.shortPlaceholder",
                             )}
                             readOnly={searchPanelState === "indexing"}
-                            data-sot-control="library-search-input"
-                            data-sot-state={searchPanelState}
                         />
-                        {query.trim() &&
-                        searchPanelState !== "indexing" &&
-                        searchPanelState !== "error" ? (
+                        {query.trim() && searchPanelState !== "indexing" ? (
                             <InputGroupButton
                                 variant="ghost"
                                 size="icon-xs"
                                 className={librarySearchClassNames.clear}
                                 aria-label={t("librarySearch.clearSearch")}
-                                data-sot-control="library-search-clear"
-                                data-sot-state="clear"
                                 onClick={() => {
                                     onQueryChange("");
                                     setSearchResults([]);
@@ -487,7 +486,7 @@ export function LibrarySearch({
                                     }, 0);
                                 }}
                             >
-                                <X data-icon="inline-start" />
+                                <X aria-hidden="true" />
                             </InputGroupButton>
                         ) : null}
                     </InputGroup>
@@ -500,9 +499,6 @@ export function LibrarySearch({
                         value={searchScope}
                         spacing={1.6}
                         aria-label={t("librarySearch.scopeLegend")}
-                        data-sot-canonical="web-index-runtime"
-                        data-sot-part="library-search-scope"
-                        data-sot-scope-count={String(SEARCH_SCOPES.length)}
                         onValueChange={(value) => {
                             if (!value) return;
                             setSearchScope(value as SearchScope);
@@ -519,15 +515,6 @@ export function LibrarySearch({
                                 key={item.value}
                                 value={item.value}
                                 aria-pressed={item.value === searchScope}
-                                data-sot-control="library-search-scope"
-                                data-sot-scope={item.value}
-                                data-sot-state={
-                                    item.value === searchScope
-                                        ? "selected"
-                                        : "idle"
-                                }
-                                data-sot-result-mode={item.value}
-                                data-search-scope={item.value}
                                 className={librarySearchClassNames.scopeItem}
                                 disabled={searchPanelState === "indexing"}
                             >
@@ -537,27 +524,44 @@ export function LibrarySearch({
                             </ToggleGroupItem>
                         ))}
                     </ToggleGroup>
-                    <CardContent
-                        className={librarySearchClassNames.scroll}
-                        data-sot-region="library-search-scroll"
-                    >
+                    <CardContent className={librarySearchClassNames.scroll}>
                         {searchPanelState === "indexing" ? (
                             <div
                                 className={librarySearchClassNames.indexing}
-                                data-sot-part="library-search-indexing"
-                                data-sot-state="indexing"
+                                aria-live="polite"
                             >
-                                <Skeleton
+                                <div
                                     className={
-                                        librarySearchClassNames.stateSkeleton
+                                        librarySearchClassNames.indexingProgress
                                     }
-                                    data-sot-part="library-search-state-skeleton"
-                                />
+                                    role="progressbar"
+                                    aria-valuetext={t(
+                                        "librarySearch.indexing",
+                                        {
+                                            completed:
+                                                searchIndexing?.completedJobs ??
+                                                0,
+                                            total:
+                                                searchIndexing?.totalJobs ?? 0,
+                                        },
+                                    )}
+                                >
+                                    <div
+                                        className={
+                                            librarySearchClassNames.indexingTrack
+                                        }
+                                    >
+                                        <div
+                                            className={
+                                                librarySearchClassNames.indexingBar
+                                            }
+                                        />
+                                    </div>
+                                </div>
                                 <div
                                     className={
                                         librarySearchClassNames.stateCopy
                                     }
-                                    data-sot-part="library-search-state-copy"
                                 >
                                     {t("librarySearch.indexing", {
                                         completed:
@@ -569,14 +573,12 @@ export function LibrarySearch({
                         ) : searchLoading ? (
                             <div
                                 className={librarySearchClassNames.state}
-                                data-sot-part="library-search-loading"
-                                data-sot-state="loading"
+                                aria-live="polite"
                             >
                                 <div
                                     className={
                                         librarySearchClassNames.stateCopy
                                     }
-                                    data-sot-part="library-search-state-copy"
                                 >
                                     {t("librarySearch.loading")}
                                 </div>
@@ -585,26 +587,22 @@ export function LibrarySearch({
                             <Alert
                                 variant="default"
                                 density="default"
-                                layout="default"
+                                layout="centered"
                                 className={librarySearchClassNames.error}
-                                data-sot-part="library-search-error"
-                                data-sot-state="error"
                             >
                                 <AlertTitle
                                     density="default"
                                     className={
                                         librarySearchClassNames.errorTitle
                                     }
-                                    data-sot-part="library-search-state-title"
                                 >
                                     {t("librarySearch.error")}
                                 </AlertTitle>
                                 <Button
-                                    variant="outline"
+                                    variant="ghost"
                                     size="xs"
                                     className={librarySearchClassNames.retry}
                                     type="button"
-                                    data-sot-control="library-search-retry"
                                     onClick={() => {
                                         setSearchRetry((value) => value + 1);
                                         window.setTimeout(() => {
@@ -620,28 +618,28 @@ export function LibrarySearch({
                         ) : flatSearchResults.length > 0 ? (
                             <div
                                 className={librarySearchClassNames.results}
-                                data-sot-list="library-search-results"
-                                data-sot-state="results"
+                                id={LIBRARY_SEARCH_RESULTS_ID}
+                                role="listbox"
+                                aria-label={t("librarySearch.dialogLabel")}
                             >
                                 {groupedSearchResults.map((group) => (
-                                    <div
+                                    <fieldset
                                         className={
                                             librarySearchClassNames.resultGroup
                                         }
                                         key={group.type}
-                                        data-sot-group="library-search-results"
-                                        data-sot-result-type={group.type}
+                                        aria-labelledby={`library-search-group-${group.type}`}
                                     >
-                                        <div
+                                        <legend
                                             className={
                                                 librarySearchClassNames.groupLabel
                                             }
-                                            data-sot-part="library-search-group-label"
+                                            id={`library-search-group-${group.type}`}
                                         >
                                             {t(
                                                 `librarySearch.types.${group.type}`,
                                             )}
-                                        </div>
+                                        </legend>
                                         {group.results.map(
                                             ({ index, result }) => {
                                                 const title = searchResultTitle(
@@ -663,30 +661,17 @@ export function LibrarySearch({
                                                         }
                                                         type="button"
                                                         key={`${result.entityType}:${result.entityId}`}
-                                                        data-active={
-                                                            index ===
-                                                            activeSearchIndex
-                                                                ? "true"
-                                                                : "false"
-                                                        }
-                                                        data-sot-result-mode={
-                                                            action
-                                                        }
-                                                        data-result-type={
-                                                            result.entityType
-                                                        }
-                                                        data-sot-control="library-search-result"
-                                                        data-sot-result-index={String(
+                                                        id={librarySearchResultId(
                                                             index,
                                                         )}
-                                                        data-sot-result-type={
-                                                            result.entityType
-                                                        }
-                                                        data-sot-state={
+                                                        role="option"
+                                                        aria-selected={
                                                             index ===
                                                             activeSearchIndex
-                                                                ? "active"
-                                                                : "idle"
+                                                        }
+                                                        aria-disabled={
+                                                            action ===
+                                                            "disabled"
                                                         }
                                                         onClick={() =>
                                                             applyLibrarySearchResult(
@@ -701,9 +686,15 @@ export function LibrarySearch({
                                                                 className={
                                                                     librarySearchClassNames.tag
                                                                 }
-                                                                data-sot-part="library-search-tag-chip"
                                                             >
-                                                                <LibrarySearchTagIcon />
+                                                                <Columns2
+                                                                    className="!size-[11px]"
+                                                                    aria-hidden="true"
+                                                                    size={11}
+                                                                    strokeWidth={
+                                                                        2
+                                                                    }
+                                                                />
                                                                 {highlightSearchText(
                                                                     title,
                                                                     query,
@@ -714,7 +705,6 @@ export function LibrarySearch({
                                                                 className={
                                                                     librarySearchClassNames.resultTitle
                                                                 }
-                                                                data-sot-part="library-search-result-title"
                                                             >
                                                                 {highlightSearchText(
                                                                     title,
@@ -726,7 +716,6 @@ export function LibrarySearch({
                                                             className={
                                                                 librarySearchClassNames.resultMeta
                                                             }
-                                                            data-sot-part="library-search-result-meta"
                                                         >
                                                             {meta}
                                                         </span>
@@ -734,34 +723,42 @@ export function LibrarySearch({
                                                 );
                                             },
                                         )}
-                                    </div>
+                                    </fieldset>
                                 ))}
                             </div>
                         ) : (
                             <div
                                 className={librarySearchClassNames.state}
-                                data-sot-part="library-search-empty"
-                                data-sot-state={
-                                    query.trim() ? "no-results" : "no-query"
-                                }
+                                aria-live="polite"
                             >
                                 {query.trim() ? (
                                     <div
                                         className={
                                             librarySearchClassNames.stateCopy
                                         }
-                                        data-sot-part="library-search-state-copy"
                                     >
                                         {language === "en" ? (
                                             <>
                                                 {'No content found for "'}
-                                                <span>{query.trim()}</span>
+                                                <span
+                                                    className={
+                                                        librarySearchClassNames.stateCopyStrong
+                                                    }
+                                                >
+                                                    {query.trim()}
+                                                </span>
                                                 {'"'}
                                             </>
                                         ) : (
                                             <>
                                                 {"没有找到与「"}
-                                                <span>{query.trim()}</span>
+                                                <span
+                                                    className={
+                                                        librarySearchClassNames.stateCopyStrong
+                                                    }
+                                                >
+                                                    {query.trim()}
+                                                </span>
                                                 {"」相关的内容"}
                                             </>
                                         )}
@@ -771,7 +768,6 @@ export function LibrarySearch({
                                         className={
                                             librarySearchClassNames.stateCopy
                                         }
-                                        data-sot-part="library-search-state-copy"
                                     >
                                         {t("librarySearch.noQuery")}
                                     </div>

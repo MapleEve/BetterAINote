@@ -125,6 +125,7 @@ export const userSettings = sqliteTable("user_settings", {
     defaultVolume: integer("default_volume").notNull().default(80),
     autoPlayNext: bool("auto_play_next").notNull().default(false),
     defaultTranscriptionLanguage: text("default_transcription_language"),
+    defaultTranscriptionProvider: text("default_transcription_provider"),
     speakerDiarization: bool("speaker_diarization").notNull().default(false),
     diarizationSpeakers: integer("diarization_speakers"),
     privateTranscriptionBaseUrl: text("private_transcription_base_url"),
