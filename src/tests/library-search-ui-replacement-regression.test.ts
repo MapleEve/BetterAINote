@@ -182,11 +182,19 @@ function renderLibrarySearch(props: Parameters<typeof LibrarySearch>[0]) {
     };
 }
 
-async function flushPromises() {
-    await Promise.resolve();
-    await Promise.resolve();
-    await Promise.resolve();
-    await Promise.resolve();
+async function waitForLibrarySearchRender(
+    view: ReturnType<typeof renderLibrarySearch>,
+    predicate: (tree: ReactElement) => boolean,
+) {
+    await vi.waitFor(
+        () => {
+            if (reactHarness.consumePendingRender()) {
+                view.rerender();
+            }
+            expect(predicate(view.tree)).toBe(true);
+        },
+        { interval: 1, timeout: 1_000 },
+    );
 }
 
 describe("library search runtime interaction regression", () => {
@@ -341,10 +349,9 @@ describe("library search runtime interaction regression", () => {
             open: true,
             query: "Alpha",
         });
-        await flushPromises();
-        view.rerender();
-        await flushPromises();
-        view.rerender();
+        await waitForLibrarySearchRender(view, (tree) =>
+            Boolean(findElement(tree, (props) => props.role === "listbox")),
+        );
 
         const listbox = findElement(
             view.tree,
@@ -370,7 +377,10 @@ describe("library search runtime interaction regression", () => {
                 props.className.includes("[--tag-c:oklch"),
         );
 
-        expect(group?.props["aria-labelledby"]).toBeDefined();
+        expect(group?.props["aria-labelledby"]).toBe(
+            "library-search-group-tag",
+        );
+        expect(legend?.props.id).toBe(group?.props["aria-labelledby"]);
         expect(legend?.props.className).toContain("text-[10.5px]");
         expect(legend?.props.className).toContain("leading-[10.5px]");
         expect(option?.props.className).toContain("rounded-[8px]");
@@ -411,7 +421,12 @@ describe("library search runtime interaction regression", () => {
                                         : null,
                                 source: "ticnote",
                                 speaker: null,
-                                title: "Alpha title",
+                                startMs:
+                                    entityType === "transcript" ? 1_000 : null,
+                                title:
+                                    entityType === "transcript"
+                                        ? "Transcript title"
+                                        : "Alpha title",
                             },
                         ],
                     }),
@@ -429,8 +444,9 @@ describe("library search runtime interaction regression", () => {
             open: true,
             query: "Alpha",
         });
-        await flushPromises();
-        view.rerender();
+        await waitForLibrarySearchRender(view, (tree) =>
+            Boolean(findElement(tree, (props) => props.role === "option")),
+        );
 
         const scope = findElement(
             view.tree,
@@ -439,8 +455,14 @@ describe("library search runtime interaction regression", () => {
         (scope?.props.onValueChange as (value: string) => void)("transcript");
         expect(reactHarness.consumePendingRender()).toBe(true);
         view.rerender();
-        await flushPromises();
-        view.rerender();
+        await waitForLibrarySearchRender(view, (tree) =>
+            Boolean(
+                findElement(
+                    tree,
+                    (props) => props.children === "Transcript title · 00:01",
+                ),
+            ),
+        );
         expect(fetchMock).toHaveBeenLastCalledWith(
             "/api/search?q=Alpha&limit=8&type=transcript",
         );
@@ -483,10 +505,15 @@ describe("library search runtime interaction regression", () => {
             open: true,
             query: "Alpha",
         });
-        await flushPromises();
-        view.rerender();
-        await flushPromises();
-        view.rerender();
+        await waitForLibrarySearchRender(view, (tree) =>
+            Boolean(
+                findElement(
+                    tree,
+                    (props) =>
+                        props.children === "Search failed. Try again later.",
+                ),
+            ),
+        );
 
         const error = findElement(
             view.tree,
@@ -519,11 +546,11 @@ describe("library search runtime interaction regression", () => {
         (retry?.props.onClick as () => void)();
         expect(reactHarness.consumePendingRender()).toBe(true);
         view.rerender();
-        await flushPromises();
-        view.rerender();
-        expect(fetchMock).toHaveBeenLastCalledWith(
-            "/api/search?q=Alpha&limit=8&_retry=1",
-        );
+        await vi.waitFor(() => {
+            expect(fetchMock).toHaveBeenLastCalledWith(
+                "/api/search?q=Alpha&limit=8&_retry=1",
+            );
+        });
 
         (clear?.props.onClick as () => void)();
         expect(onQueryChange).toHaveBeenCalledWith("");
@@ -558,8 +585,13 @@ describe("library search runtime interaction regression", () => {
             open: true,
             query: "Alpha",
         });
-        await flushPromises();
-        view.rerender();
+        await waitForLibrarySearchRender(
+            view,
+            (tree) =>
+                findElement(tree, (props) => props.role === "combobox")?.props[
+                    "aria-disabled"
+                ] === true,
+        );
 
         const input = findElement(
             view.tree,
