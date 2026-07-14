@@ -601,26 +601,44 @@ async function readRecordingTagAssignmentIds(
     }
 }
 
-async function throttleTagManagerRequest(page: Page) {
-    const session = await page.context().newCDPSession(page);
-    await session.send("Network.enable");
-    await session.send("Network.emulateNetworkConditions", {
-        offline: false,
-        latency: 8_000,
-        downloadThroughput: -1,
-        uploadThroughput: -1,
+function createVoidGate() {
+    let resolve!: () => void;
+    const promise = new Promise<void>((resolvePromise) => {
+        resolve = resolvePromise;
     });
 
-    return async () => {
-        await session
-            .send("Network.emulateNetworkConditions", {
-                offline: false,
-                latency: 0,
-                downloadThroughput: -1,
-                uploadThroughput: -1,
-            })
-            .catch(() => null);
-        await session.detach().catch(() => null);
+    return { promise, resolve };
+}
+
+async function holdTagManagerUpdateRequest(page: Page, recordingId: string) {
+    const routePattern = `**/api/recordings/${recordingId}/tags`;
+    const requestHeld = createVoidGate();
+    const releaseRequest = createVoidGate();
+    let continuedRequest: Promise<void> | null = null;
+
+    const handler = async (route: Route) => {
+        if (route.request().method() !== "PUT") {
+            await route.fallback();
+            return;
+        }
+
+        requestHeld.resolve();
+        continuedRequest = releaseRequest.promise.then(() => route.continue());
+        await continuedRequest;
+    };
+
+    await page.route(routePattern, handler);
+
+    return {
+        waitUntilHeld: () => requestHeld.promise,
+        release: async () => {
+            releaseRequest.resolve();
+            try {
+                await continuedRequest;
+            } finally {
+                await page.unroute(routePattern, handler);
+            }
+        },
     };
 }
 
@@ -10976,7 +10994,7 @@ test("recording detail tag manager saving state matches SOT pixels", async ({
     page,
 }, testInfo) => {
     let sotPage: Page | null = null;
-    let restoreNetwork = async () => {};
+    let releaseTagUpdate = async () => {};
     try {
         await ensureSignedIn(page);
         const userId = await getPlaywrightUserId();
@@ -10994,7 +11012,11 @@ test("recording detail tag manager saving state matches SOT pixels", async ({
         await playerTagManagerTrigger(page).click();
         const tagsPanel = tagManager(page);
         await expect(tagManagerTitle(tagsPanel)).toHaveText("管理标签");
-        restoreNetwork = await throttleTagManagerRequest(page);
+        const tagUpdateGate = await holdTagManagerUpdateRequest(
+            page,
+            recordingId,
+        );
+        releaseTagUpdate = tagUpdateGate.release;
         const tagsUpdateResponse = page.waitForResponse(
             (response) =>
                 response.url().includes(`/api/recordings/${recordingId}/tags`) &&
@@ -11003,6 +11025,7 @@ test("recording detail tag manager saving state matches SOT pixels", async ({
         );
         const savingToggle = tagManagerTagOption(tagsPanel, SOT_DETAIL_TAG_NAME);
         await savingToggle.click();
+        await tagUpdateGate.waitUntilHeld();
         await expect(tagsPanel).toHaveAttribute("aria-busy", "true");
         await expect(savingToggle).toBeDisabled();
         await expect(savingToggle).toHaveAttribute("aria-disabled", "true");
@@ -11039,8 +11062,8 @@ test("recording detail tag manager saving state matches SOT pixels", async ({
             sotSavingPanel,
             tagsPanel,
         );
-        await restoreNetwork();
-        restoreNetwork = async () => {};
+        await releaseTagUpdate();
+        releaseTagUpdate = async () => {};
         await tagsUpdateResponse;
         await expect(tagManagerTitle(tagsPanel)).toHaveText(
             "为这条录音切换标签",
@@ -11049,7 +11072,7 @@ test("recording detail tag manager saving state matches SOT pixels", async ({
             readRecordingTagAssignmentIds(userId, recordingId),
         ).toEqual([SOT_DETAIL_SECOND_TAG_ID]);
     } finally {
-        await restoreNetwork();
+        await releaseTagUpdate();
         await sotPage?.close();
         await cleanupRecordingDetailSeed();
     }
