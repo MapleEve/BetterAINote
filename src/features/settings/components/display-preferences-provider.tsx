@@ -10,17 +10,35 @@ import {
     writeBrowserDocumentLanguage,
     writeBrowserStorage,
 } from "@/lib/platform/browser-shell";
+import type { DisplaySettings } from "@/services/display-settings";
 import { useDisplaySettingsStore } from "../display-settings-store";
+
+export const DISPLAY_PREFERENCES_FALLBACK_THEME = "system";
+export const DISPLAY_PREFERENCES_THEME_STORAGE_KEY =
+    "betterainote-display-theme";
+
+export function synchronizeDisplayTheme(
+    hasLoaded: boolean,
+    theme: DisplaySettings["theme"],
+    setTheme: (theme: string) => void,
+) {
+    if (!hasLoaded) {
+        return;
+    }
+
+    setTheme(theme);
+}
 
 function DisplayThemeSync() {
     const { setTheme } = useTheme();
     const {
         settings: { theme },
+        hasLoaded,
     } = useDisplaySettingsStore();
 
     useEffect(() => {
-        setTheme(theme);
-    }, [setTheme, theme]);
+        synchronizeDisplayTheme(hasLoaded, theme, setTheme);
+    }, [hasLoaded, setTheme, theme]);
 
     return null;
 }
@@ -70,7 +88,11 @@ export function DisplayPreferencesProvider({
     ...themeProps
 }: React.ComponentProps<typeof ThemeProvider>) {
     return (
-        <ThemeProvider {...themeProps}>
+        <ThemeProvider
+            {...themeProps}
+            defaultTheme={DISPLAY_PREFERENCES_FALLBACK_THEME}
+            storageKey={DISPLAY_PREFERENCES_THEME_STORAGE_KEY}
+        >
             <DisplayThemeSync />
             <DisplayLanguageSync>{children}</DisplayLanguageSync>
         </ThemeProvider>
