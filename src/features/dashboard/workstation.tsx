@@ -305,7 +305,7 @@ const DASHBOARD_SIDEBAR_COLLAPSED_STORAGE_KEY = "dashboard-sidebar-collapsed";
 const SOURCE_DRAWER_FOCUSABLE_SELECTOR =
     'button:not([disabled]),a[href],input:not([disabled]),select:not([disabled]),textarea:not([disabled]),[tabindex]:not([tabindex="-1"])';
 const DASHBOARD_WORKSTATION_SHELL_CLASS_NAME =
-    "grid h-screen min-h-[720px] grid-cols-[264px_1fr] transition-[grid-template-columns] duration-[320ms] ease-[var(--ease-out)] data-[sidebar-collapsed=true]:grid-cols-[56px_1fr] max-[860px]:h-auto max-[860px]:min-h-[100svh] max-[860px]:grid-cols-[minmax(0,1fr)] max-[860px]:overflow-x-clip";
+    "grid h-screen min-h-[720px] grid-cols-[264px_1fr] bg-background transition-[grid-template-columns] duration-[320ms] ease-[var(--ease-out)] data-[sidebar-collapsed=true]:grid-cols-[56px_1fr] max-[860px]:h-auto max-[860px]:min-h-[100svh] max-[860px]:grid-cols-[minmax(0,1fr)] max-[860px]:overflow-x-clip";
 
 const DASHBOARD_MAIN_CLASS_NAME =
     "flex h-screen min-w-0 flex-col max-[860px]:min-w-0 max-[860px]:max-w-full max-[860px]:box-border";
@@ -325,7 +325,7 @@ const dashboardDrawerClassNames = {
 } as const;
 
 const dashboardTopbarClassNames = {
-    topbar: "relative flex h-14 flex-none flex-row items-center gap-3.5 border-b border-border bg-background/80 px-5 py-3 supports-[backdrop-filter]:bg-background/60 max-[860px]:min-w-0 max-[860px]:max-w-full max-[860px]:box-border",
+    topbar: "relative flex h-14 flex-none flex-row items-center gap-3.5 border-b border-border bg-background/80 px-5 py-3 supports-[backdrop-filter]:bg-background/60 supports-[backdrop-filter]:backdrop-blur-[28px] supports-[backdrop-filter]:backdrop-saturate-[160%] max-[860px]:min-w-0 max-[860px]:max-w-full max-[860px]:box-border",
     crumbs: "flex items-center gap-2 text-sm font-medium text-muted-foreground",
     crumb: "text-muted-foreground",
     separator: "text-muted-foreground/60 max-[860px]:hidden",
@@ -334,7 +334,7 @@ const dashboardTopbarClassNames = {
 
 const dashboardSidebarCollapseClassNames = {
     sidebar:
-        "relative flex flex-col rounded-none border-r border-sidebar-border bg-sidebar px-3 pt-4 pb-3 text-sidebar-foreground group-data-[sidebar-collapsed=true]/dashboard-workstation:px-1.5 group-data-[sidebar-collapsed=true]/dashboard-workstation:pt-4 group-data-[sidebar-collapsed=true]/dashboard-workstation:pb-3 max-[860px]:hidden max-[860px]:group-data-[drawer-state=open]/dashboard-workstation:fixed max-[860px]:group-data-[drawer-state=open]/dashboard-workstation:top-0 max-[860px]:group-data-[drawer-state=open]/dashboard-workstation:bottom-0 max-[860px]:group-data-[drawer-state=open]/dashboard-workstation:left-0 max-[860px]:group-data-[drawer-state=open]/dashboard-workstation:z-[310] max-[860px]:group-data-[drawer-state=open]/dashboard-workstation:flex max-[860px]:group-data-[drawer-state=open]/dashboard-workstation:max-w-[min(320px,calc(100vw-32px))]",
+        "relative flex flex-col rounded-none border-r border-sidebar-border bg-sidebar/70 px-3 pt-4 pb-3 text-sidebar-foreground supports-[backdrop-filter]:backdrop-blur-[36px] supports-[backdrop-filter]:backdrop-saturate-[180%] group-data-[sidebar-collapsed=true]/dashboard-workstation:px-1.5 group-data-[sidebar-collapsed=true]/dashboard-workstation:pt-4 group-data-[sidebar-collapsed=true]/dashboard-workstation:pb-3 max-[860px]:hidden max-[860px]:group-data-[drawer-state=open]/dashboard-workstation:fixed max-[860px]:group-data-[drawer-state=open]/dashboard-workstation:top-0 max-[860px]:group-data-[drawer-state=open]/dashboard-workstation:bottom-0 max-[860px]:group-data-[drawer-state=open]/dashboard-workstation:left-0 max-[860px]:group-data-[drawer-state=open]/dashboard-workstation:z-[310] max-[860px]:group-data-[drawer-state=open]/dashboard-workstation:flex max-[860px]:group-data-[drawer-state=open]/dashboard-workstation:max-w-[min(320px,calc(100vw-32px))]",
     hidden: "group-data-[sidebar-collapsed=true]/dashboard-workstation:hidden",
     brand: "group-data-[sidebar-collapsed=true]/dashboard-workstation:justify-center group-data-[sidebar-collapsed=true]/dashboard-workstation:px-0 group-data-[sidebar-collapsed=true]/dashboard-workstation:pt-1 group-data-[sidebar-collapsed=true]/dashboard-workstation:pb-4",
     favorite:
@@ -636,7 +636,8 @@ const dashboardButtonClassNames = {
     speakersMerge: "shrink-0",
     drawerTrigger:
         "relative hidden h-[2px] w-[22.5px] px-[11.25px] py-px after:absolute after:-inset-[21px] after:content-[''] max-[860px]:inline-flex",
-    sidebarCollapse: "max-[860px]:hidden",
+    sidebarCollapse:
+        "absolute top-[18px] -left-[11px] z-[5] size-[22px] rounded-full border-border bg-sidebar p-0 text-muted-foreground shadow-xs hover:bg-accent hover:text-accent-foreground max-[860px]:hidden [&_svg]:size-[11px]",
     settingsAvatar: "rounded-full text-xs font-semibold",
     listPagination: "text-muted-foreground",
     headerIconButton: "text-muted-foreground",

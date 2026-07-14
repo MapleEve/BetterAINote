@@ -9,6 +9,10 @@ function readSource(relativePath: string) {
     return readFileSync(path.join(ROOT, relativePath), "utf8");
 }
 
+function readRepoSource(relativePath: string) {
+    return readFileSync(path.join(ROOT, "..", relativePath), "utf8");
+}
+
 describe("dashboard search semantic regression", () => {
     it("keeps the search overlay feature-owned and disconnected from retired UI", () => {
         const workstation = readSource("features/dashboard/workstation.tsx");
@@ -102,12 +106,26 @@ describe("dashboard search semantic regression", () => {
         expect(librarySearch).not.toContain('className="ls-result"');
         expect(librarySearch).not.toContain("[&>svg]:size-[15px]");
         expect(librarySearch).not.toContain("[&>svg]:stroke-[1.8]");
+        const lucideNamedImports =
+            librarySearch.match(
+                /import\s*\{([^}]*)\}\s*from "lucide-react";/,
+            )?.[1] ?? "";
+        expect(lucideNamedImports).not.toBe("");
+        expect(
+            lucideNamedImports
+                .split(",")
+                .map((name) => name.trim())
+                .filter(Boolean)
+                .sort(),
+        ).toEqual(["Columns2", "Search", "X"]);
+        expect(librarySearch).not.toContain("createLucideIcon");
+        expect(librarySearch).not.toContain("IconNode");
         expect(librarySearch).toMatch(
             /<Search\s+aria-hidden="true"\s+className="!size-\[15px\]"\s+size=\{15\}\s+strokeWidth=\{1\.8\}\s*\/>/,
         );
         expect(librarySearch).not.toContain("[&_svg]:stroke-2");
         expect(librarySearch).toMatch(
-            /<Columns2\s+className="!size-\[11px\]"\s+aria-hidden="true"\s+size=\{11\}\s+strokeWidth=\{\s*2\s*\}\s*\/>/,
+            /<Columns2\s+className="!size-\[11px\]"\s+aria-hidden="true"\s+size=\{\s*11\s*\}\s+strokeWidth=\{\s*2\s*\}\s*\/>/,
         );
         expect(workstation).toContain("data-workspace-provider={item.key}");
         for (const source of [workstation, librarySearch]) {
@@ -140,9 +158,103 @@ describe("dashboard search semantic regression", () => {
         expect(librarySearch).toContain("data.indexing?.active");
         expect(librarySearch).toContain("setSearchIndexing(data.indexing);");
         expect(librarySearch).toContain('setSearchError("搜索暂时不可用")');
-        expect(librarySearch).toContain("setSearchRetry((value) => value + 1)");
+        expect(librarySearch).toMatch(
+            /setSearchRetry\(\s*\(\s*value\s*\)\s*=>\s*value\s*\+\s*1\s*,?\s*\);/,
+        );
         expect(librarySearch).toContain(
             'params.set("_retry", String(searchRetry))',
+        );
+    });
+
+    it("keeps the fixture-aligned loading copy, semantic hooks, and active visual gate", () => {
+        const librarySearch = readSource(
+            "features/dashboard/components/library-search.tsx",
+        );
+        const i18n = readSource("lib/i18n.ts");
+        const sotWebIndex = readRepoSource(
+            "e2e/fixtures/sot-web/handoff-20260531/project/ui_kits/web/index.html",
+        );
+        const librarySearchE2E = readRepoSource("e2e/library-search.spec.ts");
+
+        expect(i18n).toContain('loading: "检索中"');
+        expect(sotWebIndex).toContain('<div class="ls-loading">检索中</div>');
+        expect(librarySearch).toContain('{t("librarySearch.loading")}');
+        for (const marker of [
+            'data-control="dashboard-search"',
+            'data-panel="library-search"',
+            'data-control="library-search-input"',
+            'data-control="library-search-scope"',
+            'data-part="library-search-indexing"',
+            'data-control="library-search-result"',
+        ]) {
+            expect(librarySearch).toContain(marker);
+        }
+        expect(librarySearchE2E).toContain(
+            'const CANONICAL_LOADING_COPY = "检索中"',
+        );
+        expect(librarySearchE2E).toMatch(
+            /const UNMODIFIED_SOT_VISUAL_ACCEPTANCE = \{\s*maxChannelDelta: 0,\s*maxDifferingPixels: 0,\s*\} as const;/,
+        );
+        const compareUnmodifiedSotPanelSource = librarySearchE2E.slice(
+            librarySearchE2E.indexOf(
+                "async function compareUnmodifiedSotPanel(",
+            ),
+            librarySearchE2E.indexOf("async function prepareSearchDashboard("),
+        );
+        expect(compareUnmodifiedSotPanelSource).toMatch(
+            /expect\(\s*comparison\.differingPixels,[\s\S]*?\.toBeLessThanOrEqual\(\s*UNMODIFIED_SOT_VISUAL_ACCEPTANCE\.maxDifferingPixels,\s*\);/,
+        );
+        expect(compareUnmodifiedSotPanelSource).toMatch(
+            /expect\(\s*comparison\.maxChannelDelta,[\s\S]*?\.toBeLessThanOrEqual\(\s*UNMODIFIED_SOT_VISUAL_ACCEPTANCE\.maxChannelDelta,\s*\);/,
+        );
+        expect(librarySearchE2E).toContain(
+            'test("library search matches the unmodified Web/index no-query panel",',
+        );
+        expect(librarySearchE2E).toContain("await compareUnmodifiedSotPanel(");
+        expect(librarySearchE2E).not.toContain("test.fail(");
+        expect(librarySearchE2E).not.toMatch(
+            /expectSearchPixelMatch|captureSearchPixelDataUrl|SOT_COMPONENT_LIBRARY_URL|addStyleTag|cloneNode|__lsSetState|sotIndexPage\.evaluate/,
+        );
+    });
+
+    it("keeps dashboard source-filter interactions live and visual parity zero-tolerance", () => {
+        const dashboardSourceFilterE2E = readRepoSource(
+            "e2e/dashboard-source-filter-stack.spec.ts",
+        );
+
+        expect(dashboardSourceFilterE2E).toMatch(
+            /const EXACT_SOT_VISUAL_ACCEPTANCE = \{\s*maxChannelDelta: 0,\s*maxDifferingPixels: 0,\s*\} as const;/,
+        );
+        for (const testName of [
+            'test("dashboard source filter stack exposes clear and setup actions",',
+            'test("dashboard source filter stack retries sync errors and restores active state",',
+            'test("dashboard source filter stack widens no-result favorite filters",',
+        ]) {
+            expect(dashboardSourceFilterE2E).toContain(testName);
+        }
+        for (const interaction of [
+            "await clearSource.click();",
+            "await retrySyncAction.click();",
+            "await widenAction.click();",
+        ]) {
+            expect(dashboardSourceFilterE2E).toContain(interaction);
+        }
+        expect(dashboardSourceFilterE2E).toContain(
+            "await expectExactAuditedSotVisualParity(",
+        );
+        expect(dashboardSourceFilterE2E).toContain("reference.screenshot({");
+        expect(dashboardSourceFilterE2E).toContain("product.screenshot({");
+        expect(dashboardSourceFilterE2E).toMatch(
+            /expect\(\s*comparison\.dimensionsMatch,[\s\S]*?\.toBe\(true\);/,
+        );
+        expect(dashboardSourceFilterE2E).toMatch(
+            /expect\(\s*comparison\.differingPixels,[\s\S]*?\.toBeLessThanOrEqual\(\s*EXACT_SOT_VISUAL_ACCEPTANCE\.maxDifferingPixels,\s*\);/,
+        );
+        expect(dashboardSourceFilterE2E).toMatch(
+            /expect\(\s*comparison\.maxChannelDelta,[\s\S]*?\.toBeLessThanOrEqual\(\s*EXACT_SOT_VISUAL_ACCEPTANCE\.maxChannelDelta,\s*\);/,
+        );
+        expect(dashboardSourceFilterE2E).not.toMatch(
+            /data-sot-|addStyleTag|cloneNode|SOT_FIXTURE_PROJECT_ROOT|SOT_SOURCE_ASSET_DIR|maxChannelDelta:\s*255|differingPixels:\s*85_000/,
         );
     });
 
