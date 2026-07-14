@@ -1037,7 +1037,7 @@ type Row117FrameEvidence = {
 type Row117TitleGenerationStoredKeyEvidence = {
     apiTitleGenerationApiKeySet: boolean;
     placeholder: string | null;
-    storedDescriptionVisible: boolean;
+    storedKeyInputVisible: boolean;
     storedStatusText: string | null;
 };
 
@@ -1145,6 +1145,39 @@ const row117DataSourcesReadyState = [
         runtimeStatus: "active",
         secretsConfigured: { sessionId: true },
         syncStatus: "idle",
+    },
+] as const;
+
+const row117ProductDataSourceProviders = [
+    {
+        displayName: "钉钉 闪记",
+        provider: "dingtalk-a1",
+        status: "connected",
+        statusLabel: "已连接",
+    },
+    {
+        displayName: "TicNote",
+        provider: "ticnote",
+        status: "syncing",
+        statusLabel: "同步中",
+    },
+    {
+        displayName: "Plaud 云端",
+        provider: "plaud",
+        status: "error",
+        statusLabel: "同步失败",
+    },
+    {
+        displayName: "飞书妙记",
+        provider: "feishu-minutes",
+        status: "needs-setup",
+        statusLabel: "待设置",
+    },
+    {
+        displayName: "讯飞听见",
+        provider: "iflyrec",
+        status: "expired",
+        statusLabel: "需要重新登录",
     },
 ] as const;
 
@@ -1266,17 +1299,33 @@ async function readShellMetrics(locator: Locator) {
         const element = node as HTMLElement;
         const rect = element.getBoundingClientRect();
         const style = window.getComputedStyle(element);
-        const rail = element.querySelector('[data-sot-panel="settings-rail"]');
-        const selector = element.querySelector(
-            '[data-sot-control="settings-section-selector"], .settings-section-select',
-        );
-        const activeRail = element.querySelector(
-            '.sr-item.active, [data-sot-control="settings-nav"][data-sot-state="selected"]',
-        );
-        const activeSection = element.querySelector(
-            '[data-sot-surface="settings-section"]:not([hidden]), [data-sot-surface="settings-data-sources"]:not([hidden]), .settings-main[data-section]:not([hidden])',
-        );
+        const rail =
+            element.querySelector<HTMLElement>(
+                'nav[aria-label="设置"], nav[aria-label="Settings"]',
+            ) ?? element.querySelector('[data-sot-panel="settings-rail"]');
+        const selector =
+            element.querySelector<HTMLElement>(
+                '[role="combobox"][aria-label="设置部分"], [role="combobox"][aria-label="Settings section"]',
+            ) ??
+            element.querySelector(
+                '[data-sot-control="settings-section-selector"], .settings-section-select',
+            );
+        const activeRail =
+            element.querySelector<HTMLElement>(
+                'nav[aria-label="设置"] button[aria-current="page"], nav[aria-label="Settings"] button[aria-current="page"]',
+            ) ??
+            element.querySelector(
+                '.sr-item.active, [data-sot-control="settings-nav"][data-sot-state="selected"]',
+            );
+        const activeSection =
+            element.querySelector<HTMLElement>(
+                'section[aria-label][aria-busy]:not([hidden])',
+            ) ??
+            element.querySelector(
+                '[data-sot-surface="settings-section"]:not([hidden]), [data-sot-surface="settings-data-sources"]:not([hidden]), .settings-main[data-section]:not([hidden])',
+            );
         const save =
+            element.querySelector<HTMLElement>('button[aria-busy="true"]') ??
             element.querySelector(
                 '[data-sot-control="settings-save"][data-sot-state="saving"]',
             ) ??
@@ -1286,9 +1335,11 @@ async function readShellMetrics(locator: Locator) {
             element.querySelector(
                 '[data-sot-panel="settings-save-actions"][data-sot-state="saving"]',
             );
-        const error = element.querySelector(
-            '[data-sot-panel="settings-section-load-error"], [data-sot-banner][data-sot-tone="err"]',
-        );
+        const error =
+            element.querySelector<HTMLElement>('[role="alert"]') ??
+            element.querySelector(
+                '[data-sot-panel="settings-section-load-error"], [data-sot-banner][data-sot-tone="err"]',
+            );
         const userSummaryText =
             element.querySelector("header")?.textContent?.replace(/\s+/g, " ").trim() ??
             null;
@@ -1463,9 +1514,11 @@ async function readShellMetrics(locator: Locator) {
             className: element.getAttribute("class"),
             counts: {
                 loadError: error ? 1 : 0,
-                navControls: element.querySelectorAll(
-                    '[data-sot-control="settings-nav"], .sr-item',
-                ).length,
+                navControls:
+                    rail?.querySelectorAll("button").length ||
+                    element.querySelectorAll(
+                        '[data-sot-control="settings-nav"], .sr-item',
+                    ).length,
                 saveSaving: save ? 1 : 0,
                 sectionSelector: selector ? 1 : 0,
                 settingsRail: rail ? 1 : 0,
@@ -1792,50 +1845,170 @@ async function readDataSourcesStructuralEvidence(locator: Locator) {
     });
 }
 
+function row117ProductDataSourceTile(
+    providerList: Locator,
+    provider: (typeof row117ProductDataSourceProviders)[number],
+) {
+    const escapeRegExp = (value: string) =>
+        value.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+
+    return providerList.getByRole("button", {
+        name: new RegExp(
+            `^${escapeRegExp(provider.displayName)}.*${escapeRegExp(
+                `${provider.displayName}: ${provider.statusLabel}`,
+            )}$`,
+        ),
+    });
+}
+
 async function readProductDataSourcesStructuralEvidence(locator: Locator) {
-    const providers = [
-        "dingtalk-a1",
-        "ticnote",
-        "plaud",
-        "feishu-minutes",
-        "iflyrec",
-    ] as const;
+    const providerList = locator.getByRole("complementary", {
+        exact: true,
+        name: "数据源列表",
+    });
     const fieldLabels = new Set<string>();
     const visibleActionLabels = new Set<string>();
+    const providers: Row117DataSourcesReadyStateEvidence["providers"] = [];
 
-    for (const provider of providers) {
-        await locator
-            .locator(
-                `[data-sot-control="source-provider"][data-sot-provider="${provider}"]`,
-            )
-            .click();
-        const providerEvidence = await readDataSourcesStructuralEvidence(locator);
-        for (const label of providerEvidence.fieldLabels) {
-            fieldLabels.add(label);
+    for (const expectedProvider of row117ProductDataSourceProviders) {
+        const providerTile = row117ProductDataSourceTile(
+            providerList,
+            expectedProvider,
+        );
+        await expect(providerTile).toHaveCount(1);
+        await providerTile.click();
+        await expect(providerTile).toHaveAttribute("aria-pressed", "true");
+
+        const detail = locator.getByRole("region", {
+            exact: true,
+            name: expectedProvider.displayName,
+        });
+        const title = detail.getByRole("heading", {
+            exact: true,
+            level: 3,
+            name: expectedProvider.displayName,
+        });
+        const status = detail
+            .getByRole("status")
+            .filter({ hasText: expectedProvider.statusLabel })
+            .first();
+
+        await expect(detail).toBeVisible();
+        await expect(detail).toHaveAttribute("aria-busy", "false");
+        await expect(title).toBeVisible();
+        await expect(status).toBeVisible();
+        await expect(status).toHaveText(expectedProvider.statusLabel);
+
+        for (const fieldLabel of [
+            "base URL",
+            "浏览器授权",
+            "网页登录材料",
+            "设备标识",
+        ] as const) {
+            const field = detail.getByRole("textbox", {
+                exact: true,
+                name: fieldLabel,
+            });
+            if ((await field.count()) > 0) {
+                await expect(field).toBeVisible();
+                fieldLabels.add(fieldLabel);
+            }
         }
-        if (
-            provider === "dingtalk-a1" &&
-            providerEvidence.fieldLabels.includes("网页登录材料")
-        ) {
-            fieldLabels.add("设备标识");
+
+        for (const fieldLabel of [
+            "自动更新",
+            "标题更新回来源",
+            "启用同步",
+        ] as const) {
+            const field = detail.getByRole("switch", {
+                exact: true,
+                name: fieldLabel,
+            });
+            if ((await field.count()) > 0) {
+                await expect(field).toBeVisible();
+                fieldLabels.add(fieldLabel);
+            }
         }
-        for (const label of providerEvidence.visibleActionLabels) {
-            visibleActionLabels.add(label);
+
+        const browserAuthorization = detail.getByRole("radio", {
+            name: /^浏览器授权/,
+        });
+        if ((await browserAuthorization.count()) > 0) {
+            await expect(browserAuthorization).toBeVisible();
+            fieldLabels.add("浏览器授权");
         }
+
+        for (const actionLabel of row117DataSourcesVisibleActionLabels) {
+            const action = detail.getByRole("button", {
+                exact: true,
+                name: actionLabel,
+            });
+            if ((await action.count()) > 0) {
+                await expect(action).toBeVisible();
+                visibleActionLabels.add(actionLabel);
+            }
+        }
+
+        for (const actionLabel of ["重新连接", "断开连接"] as const) {
+            const action = detail.getByRole("button", {
+                exact: true,
+                name: actionLabel,
+            });
+            if ((await action.count()) > 0) {
+                await expect(action).toBeVisible();
+                fieldLabels.add(actionLabel);
+            }
+        }
+
+        providers.push({
+            label: expectedProvider.displayName,
+            normalizedProvider: expectedProvider.provider,
+            provider: expectedProvider.provider,
+            status: expectedProvider.status,
+            statusLabel: (await status.textContent())?.trim() ?? null,
+        });
     }
 
-    await locator
-        .locator(
-            '[data-sot-control="source-provider"][data-sot-provider="dingtalk-a1"]',
-        )
-        .click();
-    const evidence = await readDataSourcesStructuralEvidence(locator);
+    const dingtalkProvider = row117ProductDataSourceProviders[0];
+    const dingtalkTile = row117ProductDataSourceTile(
+        providerList,
+        dingtalkProvider,
+    );
+    await expect(dingtalkTile).toHaveCount(1);
+    await dingtalkTile.click();
+    await expect(dingtalkTile).toHaveAttribute("aria-pressed", "true");
+    const detail = locator.getByRole("region", {
+        exact: true,
+        name: dingtalkProvider.displayName,
+    });
+    const title = detail.getByRole("heading", {
+        exact: true,
+        level: 3,
+        name: dingtalkProvider.displayName,
+    });
+    const status = detail
+        .getByRole("status")
+        .filter({ hasText: dingtalkProvider.statusLabel })
+        .first();
+
+    await expect(detail).toBeVisible();
+    await expect(title).toBeVisible();
+    await expect(status).toBeVisible();
+    await expect(status).toHaveText(dingtalkProvider.statusLabel);
 
     return {
-        ...evidence,
+        detail: {
+            normalizedProvider: dingtalkProvider.provider,
+            provider: dingtalkProvider.provider,
+            status: dingtalkProvider.status,
+            statusLabel: (await status.textContent())?.trim() ?? null,
+            title: (await title.textContent())?.trim() ?? null,
+        },
         fieldLabels: row117ProductDataSourcesFieldLabels.filter((label) =>
             fieldLabels.has(label),
         ),
+        normalization: [],
+        providers,
         visibleActionLabels: row117DataSourcesVisibleActionLabels.filter(
             (label) => visibleActionLabels.has(label),
         ),
@@ -2115,22 +2288,16 @@ async function expectTitleGenerationReadyStoredKeyEvidence(page: Page) {
 
     expect(payload.titleGenerationApiKeySet).toBe(true);
 
-    const section = page.locator(
-        '[data-sot-surface="settings-section"][data-sot-section="title-generation"]',
-    );
-    const storedDescription = section.getByText(
-        "当前账号已存储一把仅用于 AI 重命名的 key。输入新 key 可替换。",
-        { exact: true },
-    );
-    const storedStatus = section.locator("[data-sot-key-status]");
-    const apiKeyInput = section.locator(
-        '[data-sot-control="title-generation-api-key"]',
-    );
+    const section = settingsSectionSurface(page, "title-generation");
+    const storedStatus = section.getByRole("status");
+    const apiKeyInput = section.getByLabel("重命名服务 API Key", {
+        exact: true,
+    });
 
-    await expect(storedDescription).toBeVisible();
-    await expect(storedStatus).toContainText("已存储");
-    await expect(storedStatus).toHaveAttribute("data-sot-state", "stored");
-    await expect(apiKeyInput).toHaveAttribute("data-sot-state", "stored");
+    await expect(storedStatus).toBeVisible();
+    await expect(storedStatus).toHaveText("已存储");
+    await expect(apiKeyInput).toBeVisible();
+    await expect(apiKeyInput).toBeEnabled();
     await expect(apiKeyInput).toHaveAttribute(
         "placeholder",
         /已存储。输入新 key 可替换。/,
@@ -2139,7 +2306,7 @@ async function expectTitleGenerationReadyStoredKeyEvidence(page: Page) {
     return {
         apiTitleGenerationApiKeySet: payload.titleGenerationApiKeySet === true,
         placeholder: await apiKeyInput.getAttribute("placeholder"),
-        storedDescriptionVisible: await storedDescription.isVisible(),
+        storedKeyInputVisible: await apiKeyInput.isVisible(),
         storedStatusText: (await storedStatus.textContent())?.trim() ?? null,
     } satisfies Row117TitleGenerationStoredKeyEvidence;
 }
@@ -2151,32 +2318,29 @@ async function expectRow117AppearanceReadyState(page: Page) {
     expect(payload).toMatchObject(row117AppearanceReadyState);
 
     const section = settingsSectionSurface(page, "appearance");
-    const selectedTimeStyle = section.locator(
-        '[data-sot-control="time-style"][data-sot-display-value="abs"]',
-    );
-    const selectedDensity = section.locator(
-        '[data-sot-control="density"][data-sot-value="comfy"]',
-    );
-    const selectedTheme = section.locator(
-        '[data-sot-control="theme"][data-sot-value="dark"]',
-    );
+    const selectedTimeStyle = section
+        .getByRole("radiogroup", { exact: true, name: "时间显示" })
+        .getByRole("radio", { exact: true, name: "14:00" });
+    const selectedDensity = section
+        .getByRole("radiogroup", { exact: true, name: "信息密度" })
+        .getByRole("radio", { exact: true, name: "宽松" });
+    const selectedTheme = section
+        .getByRole("radiogroup", { exact: true, name: "主题" })
+        .getByRole("radio", { exact: true, name: "深色" });
     const itemsPerPage = section.locator("#display-items-per-page");
     const language = section.locator("#display-ui-language");
     const sortOrder = section.locator("#display-recording-list-sort-order");
     const selectedLanguageLabel = "简体中文";
     const selectedSortOrderLabel = "最新在前";
 
-    await expect(selectedTimeStyle).toHaveAttribute("data-sot-state", "selected");
-    await expect(selectedTimeStyle).toHaveAttribute("aria-checked", "true");
+    await expect(selectedTimeStyle).toBeChecked();
     await expect(itemsPerPage).toHaveValue(
         String(row117AppearanceReadyState.itemsPerPage),
     );
-    await expect(selectedDensity).toHaveAttribute("data-sot-state", "selected");
-    await expect(selectedDensity).toHaveAttribute("aria-checked", "true");
+    await expect(selectedDensity).toBeChecked();
     await expect(sortOrder).toContainText(selectedSortOrderLabel);
     await expect(language).toContainText(selectedLanguageLabel);
-    await expect(selectedTheme).toHaveAttribute("data-sot-state", "selected");
-    await expect(selectedTheme).toHaveAttribute("aria-checked", "true");
+    await expect(selectedTheme).toBeChecked();
 
     return {
         api: {
@@ -2188,30 +2352,25 @@ async function expectRow117AppearanceReadyState(page: Page) {
             uiLanguage: payload.uiLanguage,
         },
         dom: {
-            density: await selectedDensity.getAttribute("data-sot-value"),
+            density: (await selectedDensity.textContent())?.trim() ?? null,
             itemsPerPage: await itemsPerPage.inputValue(),
             language: (await language.textContent())?.trim() ?? "",
             sortOrder: (await sortOrder.textContent())?.trim() ?? "",
-            theme: await selectedTheme.getAttribute("data-sot-value"),
-            timeStyle: await selectedTimeStyle.getAttribute(
-                "data-sot-display-value",
-            ),
+            theme: (await selectedTheme.textContent())?.trim() ?? null,
+            timeStyle: (await selectedTimeStyle.textContent())?.trim() ?? null,
         },
     } satisfies Row117AppearanceReadyStateEvidence;
 }
 
 async function expectRow117TranscriptionReadyState(page: Page) {
     const section = settingsSectionSurface(page, "transcription");
-    const autoTranscribe = section.locator(
-        '[data-sot-control="transcription-auto-transcribe"]',
-    );
-    const language = section.locator(
-        '[data-sot-control="transcription-language"]',
-    );
+    const autoTranscribe = section.locator("#transcription-auto-transcribe");
+    const language = section.locator("#transcription-language");
 
-    await expect(autoTranscribe).toHaveAttribute("data-sot-state", "checked");
+    await expect(autoTranscribe).toHaveAttribute("role", "switch");
     await expect(autoTranscribe).toHaveAttribute("aria-checked", "true");
-    await expect(language).toHaveAttribute("data-sot-state", "ready");
+    await expect(language).toHaveAttribute("role", "combobox");
+    await expect(language).toHaveAttribute("aria-expanded", "false");
     await expect(language).toContainText("自动检测");
 
     return {
@@ -2219,9 +2378,9 @@ async function expectRow117TranscriptionReadyState(page: Page) {
             "aria-checked",
         ),
         autoTranscribeState: await autoTranscribe.getAttribute(
-            "data-sot-state",
+            "aria-checked",
         ),
-        languageState: await language.getAttribute("data-sot-state"),
+        languageState: await language.getAttribute("aria-expanded"),
         languageText: (await language.textContent())?.trim() ?? "",
     } satisfies Row117TranscriptionReadyStateEvidence;
 }
@@ -2271,37 +2430,49 @@ async function seedRow117ReadyStateRoutes(page: Page) {
 
 async function expectRow117DataSourcesReadyState(page: Page) {
     const section = settingsSectionSurface(page, "data-sources");
-    const providerTiles = section.locator('[data-sot-control="source-provider"]');
+    const providerList = section.getByRole("complementary", {
+        exact: true,
+        name: "数据源列表",
+    });
+    const providerTiles = providerList.getByRole("button");
     await expect(providerTiles).toHaveCount(row117DataSourcesReadyState.length);
 
-    const expectedStatuses = [
-        ["dingtalk-a1", "connected"],
-        ["ticnote", "syncing"],
-        ["plaud", "error"],
-        ["feishu-minutes", "needs-setup"],
-        ["iflyrec", "expired"],
-    ] as const;
-
-    for (const [provider, status] of expectedStatuses) {
+    for (const provider of row117ProductDataSourceProviders) {
         await expect(
-            section.locator(
-                `[data-sot-control="source-provider"][data-sot-provider="${provider}"]`,
-            ),
-        ).toHaveAttribute("data-sot-status", status);
+            providerList.getByRole("status", {
+                exact: true,
+                name: `${provider.displayName}: ${provider.statusLabel}`,
+            }),
+        ).toBeVisible();
     }
 
-    const dingtalkTile = section.locator(
-        '[data-sot-control="source-provider"][data-sot-provider="dingtalk-a1"]',
+    const dingtalkProvider = row117ProductDataSourceProviders[0];
+    const dingtalkTile = row117ProductDataSourceTile(
+        providerList,
+        dingtalkProvider,
     );
+    await expect(dingtalkTile).toHaveCount(1);
     await dingtalkTile.click();
-    const detail = section.locator(
-        '[data-sot-panel="source-provider-detail"][data-sot-provider="dingtalk-a1"]',
-    );
-    await expect(detail).toHaveAttribute("data-sot-status", "connected");
+    await expect(dingtalkTile).toHaveAttribute("aria-pressed", "true");
+    const detail = section.getByRole("region", {
+        exact: true,
+        name: dingtalkProvider.displayName,
+    });
+    const detailStatus = detail
+        .getByRole("status")
+        .filter({ hasText: dingtalkProvider.statusLabel })
+        .first();
+    await expect(detail).toBeVisible();
+    await expect(detail).toHaveAttribute("aria-busy", "false");
     await expect(
-        detail.locator('[data-sot-part="source-provider-title"]'),
-    ).toContainText("钉钉");
-    await expect(detail).toContainText("已连接");
+        detail.getByRole("heading", {
+            exact: true,
+            level: 3,
+            name: dingtalkProvider.displayName,
+        }),
+    ).toBeVisible();
+    await expect(detailStatus).toBeVisible();
+    await expect(detailStatus).toHaveText(dingtalkProvider.statusLabel);
 
     const evidence = await readProductDataSourcesStructuralEvidence(section);
     expect(evidence.providers.map((provider) => provider.normalizedProvider)).toEqual(
@@ -2354,32 +2525,42 @@ async function expectRow117SotDataSourcesReadyState(page: Page) {
 
 async function expectRow117VoScriptReadyState(page: Page) {
     const section = settingsSectionSurface(page, "voscript");
-    const baseUrl = section.locator('[data-sot-control="voscript-base-url"]');
-    const keyStatus = section.locator("[data-sot-key-status]");
-    const unavailableBanner = section.locator(
-        '[data-sot-panel="voscript-unavailable-banner"]',
-    );
-    const keyActionControl = section.locator(
-        '[data-sot-control="voscript-api-key-mode"]',
-    );
-    const keyActionRow = keyActionControl.locator(
-        'xpath=ancestor::*[@data-slot="field"][1]',
-    );
-    const apiKey = section.locator('[data-sot-control="voscript-api-key"]');
+    const baseUrl = section.getByRole("textbox", {
+        exact: true,
+        name: "VoScript 服务地址",
+    });
+    const keyStatus = section
+        .getByRole("status")
+        .filter({ hasText: "已存储" });
+    const unavailableBanner = section.getByRole("status", {
+        name: /VoScript 当前不可用/,
+    });
+    const keyActionControl = section.getByRole("combobox", {
+        exact: true,
+        name: "密钥操作",
+    });
+    const keyActionRow = keyActionControl;
+    const apiKey = section.getByRole("textbox", {
+        exact: true,
+        name: "VoScript API Key",
+    });
 
     await expect(baseUrl).toHaveValue(
         row117VoScriptReadyState.privateTranscriptionBaseUrl,
     );
-    await expect(baseUrl).toHaveAttribute("data-sot-state", "ready");
-    await expect(section).toHaveAttribute("data-sot-availability", "ready");
+    await expect(baseUrl).toBeEnabled();
+    await expect(section).toHaveAttribute("aria-busy", "false");
+    await expect(keyStatus).toHaveCount(1);
     await expect(keyStatus).toContainText("已存储");
-    await expect(keyStatus).toHaveAttribute("data-sot-state", "stored");
-    await expect(apiKey).toHaveAttribute("data-sot-state", "stored");
+    await expect(apiKey).toBeEnabled();
+    await expect(apiKey).toHaveAttribute(
+        "placeholder",
+        /已存储。输入新 key 可替换。/,
+    );
+    await expect(unavailableBanner).toHaveCount(0);
     const unavailableBannerVisible = await unavailableBanner.isVisible();
-    expect(unavailableBannerVisible).toBe(false);
     await expect(keyActionRow).toBeVisible();
-    await expect(keyActionControl).toBeVisible();
-    await expect(keyActionControl).toHaveAttribute("data-sot-state", "ready");
+    await expect(keyActionControl).toContainText("保留或替换");
 
     return {
         baseUrl: await baseUrl.inputValue(),

@@ -73,7 +73,8 @@ const SETTINGS_SHORTCUT_ROW_CLASS =
 const SETTINGS_SHORTCUT_KEY_CLASS =
     "rounded-md border border-border bg-muted px-1.5 py-0.5 font-mono text-xs font-semibold text-muted-foreground";
 
-const SETTINGS_SEGMENT_GROUP_CLASS = "flex-wrap";
+const SETTINGS_SEGMENT_GROUP_CLASS =
+    "flex-wrap [&_[data-slot=toggle-group-item]]:border-border [&_[data-slot=toggle-group-item]]:bg-muted [&_[data-slot=toggle-group-item]]:shadow-none [&_[data-slot=toggle-group-item][data-state=on]]:bg-foreground/5 [&_[data-slot=toggle-group-item][data-state=on]]:text-foreground";
 
 const SETTINGS_FIELD_ROW_CLASS =
     "border-b border-border py-3 last:border-b-0 @md/field-group:gap-4";
@@ -113,8 +114,13 @@ const ITEMS_PER_PAGE_MIN = 10;
 const ITEMS_PER_PAGE_MAX = 200;
 const TITLE_API_KEY_KEEP = "__keep_title_generation_key__";
 const TITLE_API_KEY_CLEAR = "__clear_title_generation_key__";
+const SETTINGS_SELECT_CLASS =
+    "h-8 w-auto min-w-0 max-w-full border-border bg-muted px-2.5 text-xs shadow-none";
 const SETTINGS_INPUT_CLASS = "min-w-60 max-w-full";
-const SETTINGS_NUMBER_INPUT_CLASS = "w-24 max-w-full";
+const SETTINGS_TEXT_INPUT_CLASS =
+    "h-8 min-w-60 max-w-full border-border bg-muted px-2.5 font-mono text-xs shadow-none";
+const SETTINGS_NUMBER_INPUT_CLASS =
+    "h-8 w-24 max-w-full border-border bg-muted px-2.5 font-mono text-xs shadow-none";
 
 function getErrorMessage(error: unknown, defaultMessage: string) {
     return error instanceof Error && error.message.trim()
@@ -356,6 +362,7 @@ function SelectControl<Value extends string | number>({
     return (
         <Select
             aria-label={label}
+            className={SETTINGS_SELECT_CLASS}
             disabled={disabled}
             id={id}
             onValueChange={onChange}
@@ -849,7 +856,7 @@ function TitleGenerationSettingsPanel({
                     }
                 >
                     <Input
-                        className={SETTINGS_INPUT_CLASS}
+                        className={SETTINGS_TEXT_INPUT_CLASS}
                         id="title-generation-base-url"
                         aria-label={
                             isZh ? "重命名服务地址" : "Rename service URL"
@@ -874,7 +881,7 @@ function TitleGenerationSettingsPanel({
                     }
                 >
                     <Input
-                        className={SETTINGS_INPUT_CLASS}
+                        className={SETTINGS_TEXT_INPUT_CLASS}
                         id="title-generation-model"
                         aria-label={isZh ? "重命名模型" : "Rename model"}
                         value={draft.titleGenerationModel ?? ""}
@@ -912,7 +919,7 @@ function TitleGenerationSettingsPanel({
                         </Badge>
                     ) : null}
                     <Input
-                        className={SETTINGS_INPUT_CLASS}
+                        className={SETTINGS_TEXT_INPUT_CLASS}
                         id="title-generation-api-key"
                         aria-label={
                             isZh
