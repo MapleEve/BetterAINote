@@ -2,6 +2,10 @@ import { existsSync, readFileSync } from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { describe, expect, it } from "vitest";
+import {
+    CANONICAL_SOT_REFERENCE_ROOT_ENV,
+    resolveVerifiedCanonicalSotReference,
+} from "../../e2e/helpers/canonical-sot-reference";
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const SOURCE_REPORT_ROOT = path.join(ROOT, "features/source-report");
@@ -136,6 +140,53 @@ describe("source report framework integration", () => {
         expect(dashboard).toMatch(
             /`\/api\/recordings\/\$\{selectedRecordingId\}\/source-report`/,
         );
+    });
+
+    it("renders readable source summaries at the recording panel surface", () => {
+        const recordingPane = boundedSlice(
+            recordingPanel,
+            "<SourceReportPane",
+            "</SourceReportPane>",
+        );
+
+        expect(recordingPanel).toContain(
+            "const sourceSummaryText = sourceSummaryDisplayText(sourceReportCopyText);",
+        );
+        expect(recordingPanel).toContain(
+            "const sourceSummaryVisible = Boolean(sourceSummaryText);",
+        );
+        expect(recordingPane).toMatch(
+            /\{sourceSummaryVisible \? \([\s\S]*?section="summary"[\s\S]*?<RecordingSourceReportSummaryBody>[\s\S]*?sourceSummaryText\.split\("\\n"\)\.map[\s\S]*?: null\}/,
+        );
+    });
+
+    it("rejects the repository fixture as canonical source report evidence", async () => {
+        const previousCanonicalSotReferenceRoot =
+            process.env[CANONICAL_SOT_REFERENCE_ROOT_ENV];
+        process.env[CANONICAL_SOT_REFERENCE_ROOT_ENV] = path.join(
+            ROOT,
+            "..",
+            "e2e",
+            "fixtures",
+        );
+
+        try {
+            await expect(
+                resolveVerifiedCanonicalSotReference(),
+            ).resolves.toMatchObject({
+                available: false,
+                reason: expect.stringContaining(
+                    "must resolve to the required canonical handoff root",
+                ),
+            });
+        } finally {
+            if (previousCanonicalSotReferenceRoot === undefined) {
+                delete process.env[CANONICAL_SOT_REFERENCE_ROOT_ENV];
+            } else {
+                process.env[CANONICAL_SOT_REFERENCE_ROOT_ENV] =
+                    previousCanonicalSotReferenceRoot;
+            }
+        }
     });
 
     it("keeps every exported source report primitive connected to live composition", () => {

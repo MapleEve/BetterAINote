@@ -1,21 +1,22 @@
 import path from "node:path";
-import { mkdir, readFile, writeFile } from "node:fs/promises";
 import { pathToFileURL } from "node:url";
 import { createClient } from "@libsql/client";
 import { expect, test } from "@playwright/test";
-import type { Locator, Page, TestInfo } from "@playwright/test";
+import type { Locator, Page } from "@playwright/test";
 import { ensureSignedIn } from "./helpers/auth";
+import {
+    assertCanonicalSotReferenceMatchesRecovery,
+    assertCanonicalSotReferenceUnchanged,
+    resolveVerifiedCanonicalSotReference,
+    snapshotCanonicalSotReference,
+} from "./helpers/canonical-sot-reference";
 import {
     chooseShadcnSelectOption,
     expectShadcnSelectTrigger,
 } from "./helpers/shadcn-select";
-import {
-    SOT_COMPONENT_LIBRARY_URL,
-    SOT_SOURCE_ASSET_DIR,
-    SOT_WORKSTATION_URL as SOT_WEB_INDEX_URL,
-} from "./helpers/sot-fixtures";
 
 const E2E_DATA_DIR = path.resolve(process.cwd(), "tmp/e2e/data");
+
 const capabilities = {
     audioDownload: true,
     localRename: true,
@@ -25,371 +26,6 @@ const capabilities = {
     upstreamTitleWriteback: true,
     workerSync: true,
 };
-const SETTINGS_RAIL_STYLE_PROPS = [
-    "display",
-    "flex-direction",
-    "gap",
-    "padding-top",
-    "padding-right",
-    "padding-bottom",
-    "padding-left",
-    "border-right-width",
-    "border-right-style",
-    "border-right-color",
-    "background-color",
-    "overflow-y",
-    "min-height",
-] as const;
-const SETTINGS_RAIL_ITEM_STYLE_PROPS = [
-    "display",
-    "align-items",
-    "gap",
-    "padding-top",
-    "padding-right",
-    "padding-bottom",
-    "padding-left",
-    "border-radius",
-    "background-color",
-    "border-top-width",
-    "border-top-style",
-    "border-top-color",
-    "color",
-    "font-family",
-    "font-size",
-    "font-weight",
-    "text-align",
-    "cursor",
-    "box-shadow",
-] as const;
-const PROVIDER_CARD_STYLE_PROPS = [
-    "gap",
-    "padding-top",
-    "padding-right",
-    "padding-bottom",
-    "padding-left",
-    "border-radius",
-    "background-color",
-    "border-top-width",
-    "border-top-style",
-    "border-top-color",
-    "text-align",
-    "cursor",
-    "box-shadow",
-    "opacity",
-] as const;
-const PROVIDER_STATUS_STYLE_PROPS = [
-    "gap",
-    "height",
-    "padding-top",
-    "padding-right",
-    "padding-bottom",
-    "padding-left",
-    "border-radius",
-    "border-top-width",
-    "border-top-style",
-    "font-family",
-    "font-size",
-    "font-weight",
-] as const;
-const DETAIL_STYLE_PROPS = [
-    "overflow-y",
-    "padding-top",
-    "padding-right",
-    "padding-bottom",
-    "padding-left",
-    "min-height",
-] as const;
-const SWITCH_STYLE_PROPS = [
-    "position",
-    "width",
-    "height",
-    "padding-top",
-    "padding-right",
-    "padding-bottom",
-    "padding-left",
-    "border-radius",
-    "background-color",
-    "border-top-width",
-    "border-top-style",
-    "border-top-color",
-    "cursor",
-] as const;
-const SWITCH_KNOB_STYLE_PROPS = [
-    "position",
-    "left",
-    "top",
-    "width",
-    "height",
-    "border-radius",
-    "background-color",
-    "box-shadow",
-    "transform",
-] as const;
-
-type StyleProp =
-    | (typeof SETTINGS_RAIL_STYLE_PROPS)[number]
-    | (typeof SETTINGS_RAIL_ITEM_STYLE_PROPS)[number]
-    | (typeof PROVIDER_CARD_STYLE_PROPS)[number]
-    | (typeof PROVIDER_STATUS_STYLE_PROPS)[number]
-    | (typeof DETAIL_STYLE_PROPS)[number]
-    | (typeof SWITCH_STYLE_PROPS)[number]
-    | (typeof SWITCH_KNOB_STYLE_PROPS)[number];
-
-interface SotPixelDiff {
-    differingPixels: number;
-    dimensionsMatch: boolean;
-    expectedHeight: number;
-    expectedWidth: number;
-    maxChannelDelta: number;
-    productHeight: number;
-    productWidth: number;
-}
-
-interface SotPixelTolerance {
-    differingPixels: number;
-    maxChannelDelta: number;
-}
-
-type SotPixelTolerancesByFrame = Partial<Record<string, SotPixelTolerance>>;
-
-type SotPixelFrame = {
-    name: string;
-    stage: {
-        height: number;
-        width: number;
-    };
-    viewport: {
-        height: number;
-        width: number;
-    };
-};
-
-type ProductFragmentOptions = {
-    height?: "captured-sot" | "sot" | number;
-    normalizeRailIcons?: boolean;
-};
-
-const ZERO_SOT_PIXEL_TOLERANCE = {
-    differingPixels: 0,
-    maxChannelDelta: 0,
-} as const satisfies SotPixelTolerance;
-// The dark settings rail is validated by computed styles above. Browser
-// rasterization can shift nearly every dark pixel by a tiny channel delta when
-// the fixture is rendered in an isolated page, so keep the max channel bound
-// strict while allowing the full rail fragment to differ by low-intensity pixels.
-const SETTINGS_RAIL_PIXEL_TOLERANCES = {
-    default: {
-        differingPixels: 65_000,
-        maxChannelDelta: 12,
-    },
-} as const satisfies SotPixelTolerancesByFrame;
-// Provider cards are rendered from the real shadcn Button/Badge fragment in the
-// product page, not from the SOT .sp-card DOM. Computed styles are checked
-// strictly above; this pixel pass keeps dimensions exact and still catches
-// severe channel drift while allowing full-fragment rasterization differences
-// from icons, text rendering, and Badge DOM shape.
-const PROVIDER_CARD_PIXEL_TOLERANCES = {
-    default: {
-        differingPixels: 35_000,
-        maxChannelDelta: 255,
-    },
-} as const satisfies SotPixelTolerancesByFrame;
-const EXPIRED_PROVIDER_CARD_PIXEL_TOLERANCES = {
-    default: {
-        differingPixels: 35_000,
-        maxChannelDelta: 255,
-    },
-} as const satisfies SotPixelTolerancesByFrame;
-const PROVIDER_DETAIL_PIXEL_TOLERANCES = {
-    default: {
-        differingPixels: 40_000,
-        maxChannelDelta: 255,
-    },
-} as const satisfies SotPixelTolerancesByFrame;
-const SOT_SHADCN_TOKEN_BRIDGE_STYLE_ID =
-    "data-sources-settings-sot-shadcn-token-bridge";
-const SOT_SHADCN_TOKEN_BRIDGE_CSS = `
-.settings-rail {
-    background: color-mix(in oklab, var(--bg-recessed) 50%, transparent);
-    border-right-color: var(--line-hairline);
-}
-
-[data-theme="dark"] .settings-rail,
-body[data-theme="dark"] .settings-rail {
-    background: color-mix(in oklab, var(--bg-recessed) 50%, transparent);
-    border-right-color: var(--line-hairline);
-}
-
-.settings-rail .sr-item {
-    border: 1px solid transparent;
-    gap: 5.625px;
-    min-height: 30px;
-    padding: 0 9.375px;
-    border-radius: 10px;
-    border-color: transparent;
-    border-style: solid;
-    border-width: 0;
-    color: var(--fg-primary);
-    box-shadow: none;
-    font-size: 13.125px;
-}
-
-.settings-rail .sr-item.active,
-[data-theme="dark"] .settings-rail .sr-item.active,
-body[data-theme="dark"] .settings-rail .sr-item.active {
-    background: var(--bg-recessed);
-    border-color: transparent;
-    border-style: solid;
-    border-width: 0;
-    color: var(--fg-primary);
-    box-shadow: none;
-}
-
-.sp-card .sp-status,
-.sp-status.ok,
-.sp-status.info,
-.sp-status.syncing,
-.sm-detail .sd-pill,
-.sd-pill.ok,
-.sd-pill.info,
-.sd-pill.syncing {
-    gap: 3.75px;
-    height: 20.75px;
-    padding: 1.875px 7.5px;
-    border-radius: calc(infinity * 1px);
-    font-size: 11.25px;
-    font-weight: 500;
-    background: var(--accent);
-    border-color: transparent;
-    color: var(--accent-on);
-}
-
-.sp-status.warn,
-.sd-pill.warn {
-    background: var(--bg-recessed);
-    border-color: transparent;
-    color: var(--fg-primary);
-}
-
-.sp-status.err,
-.sd-pill.err {
-    background: var(--signal-danger);
-    border-color: transparent;
-    color: var(--fg-on-accent);
-}
-
-.sp-status.neu,
-.sd-pill.neu,
-.sp-card.dim .sp-status {
-    background: var(--bg-recessed);
-    border-color: transparent;
-    color: var(--fg-primary);
-}
-
-.sp-card .sp-ico {
-    background: var(--bg-canvas);
-    border-color: var(--line-hairline);
-}
-
-.sp-card .sp-ico > span {
-    font: 500 13.125px/18.75px var(--font-sans);
-}
-
-.sp-card {
-    gap: 9.375px;
-    padding: 9.375px;
-    border-color: transparent;
-    border-style: none;
-    border-width: 0;
-    box-shadow: none;
-}
-
-.sp-card.active,
-[data-theme="dark"] .sp-card.active,
-body[data-theme="dark"] .sp-card.active {
-    background: var(--bg-recessed);
-    border-color: transparent;
-    border-style: none;
-    border-width: 0;
-    box-shadow: none;
-}
-
-.sp-card.dim,
-[data-theme="dark"] .sp-card.dim,
-body[data-theme="dark"] .sp-card.dim {
-    background: transparent;
-    border-color: transparent;
-    border-style: none;
-    border-width: 0;
-    box-shadow: none;
-    opacity: 1;
-}
-
-.toggle.on .t-knob,
-[data-theme="dark"] .toggle.on .t-knob,
-body[data-theme="dark"] .toggle.on .t-knob {
-    background: var(--accent-on);
-}
-
-.sm-detail .field-input {
-    background: var(--bg-canvas);
-    border-color: var(--line-strong);
-}
-
-.sm-detail .field-row,
-.sm-detail .sm-row {
-    border-bottom-color: rgb(33 35 36);
-}
-
-.sm-detail .sm-divider,
-.sm-detail [data-sot-section-divider] {
-    background: rgb(33 35 36);
-}
-
-.btn[data-sot-control="source-test"],
-.btn[data-sot-control="source-save"],
-.btn[data-sot-control="source-disconnect"],
-[data-sot-control="source-test"],
-[data-sot-control="source-save"],
-[data-sot-control="source-disconnect"] {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    gap: 7px;
-    height: 26px;
-    padding: 0 10px;
-    border-radius: 7px;
-    font: 600 12px/normal var(--font-sans);
-    box-shadow: none;
-}
-
-.btn[data-sot-control="source-test"],
-[data-sot-control="source-test"] {
-    background: transparent;
-    border: 1px solid transparent;
-    color: var(--fg-tertiary);
-}
-
-.btn[data-sot-control="source-save"],
-[data-sot-control="source-save"] {
-    background: var(--accent);
-    border: 0 solid transparent;
-    color: var(--accent-on);
-    box-shadow:
-        0 0 #0000,
-        0 0 #0000,
-        0 0 #0000,
-        0 0 #0000,
-        0 1px 2px 0 rgb(0 0 0 / 0.05);
-}
-
-.btn[data-sot-control="source-disconnect"],
-[data-sot-control="source-disconnect"] {
-    background: var(--signal-danger);
-    border: 0 solid transparent;
-    color: var(--fg-on-accent) !important;
-}
-`;
 const REAL_BACKEND_FORCED_PROVIDERS = [
     "dingtalk-a1",
     "ticnote",
@@ -673,27 +309,6 @@ function makeSource(
     };
 }
 
-async function installSotShadcnTokenBridge(page: Page) {
-    await page.evaluate(
-        ({ css, styleId }) => {
-            const existingStyle = document.getElementById(styleId);
-            if (existingStyle instanceof HTMLStyleElement) {
-                existingStyle.textContent = css;
-                return;
-            }
-
-            const style = document.createElement("style");
-            style.id = styleId;
-            style.textContent = css;
-            document.head.appendChild(style);
-        },
-        {
-            css: SOT_SHADCN_TOKEN_BRIDGE_CSS,
-            styleId: SOT_SHADCN_TOKEN_BRIDGE_STYLE_ID,
-        },
-    );
-}
-
 async function resetDisplayToChinese(page: Page) {
     const resetResponse = await page.request.put("/api/settings/display", {
         data: {
@@ -736,15 +351,16 @@ async function openDataSourcesSettings(page: Page) {
         localStorage.removeItem("settings-last-section");
     });
     await page.goto("/settings#data-sources", { waitUntil: "domcontentloaded" });
-    await expect(page.locator('[data-sot-surface="settings-shell"]')).toHaveAttribute(
-        "data-sot-section",
-        "data-sources",
+    const shell = settingsShell(page);
+    await expect(shell).toBeVisible();
+    await expect(settingsNavigation(page, "data-sources")).toHaveAttribute(
+        "aria-current",
+        "page",
     );
     await expect(page.locator("html")).toHaveAttribute("data-theme", "dark");
-    const section = page.locator(
-        '[data-sot-surface="settings-data-sources"]',
-    );
+    const section = dataSourcesSection(page);
     await expect(section).toBeVisible();
+    await expect(section).toHaveAttribute("aria-busy", "false");
     await expect
         .poll(() =>
             page.evaluate(() => localStorage.getItem("settings-last-section")),
@@ -761,1041 +377,95 @@ async function openDataSourcesSettings(page: Page) {
     return section;
 }
 
-async function openSotComponentLibrary(page: Page) {
-    await page.goto(SOT_COMPONENT_LIBRARY_URL, { waitUntil: "load" });
-    await page.evaluate(() => {
-        document.documentElement.dataset.theme = "dark";
-        document.body.dataset.theme = "dark";
-    });
-    await installSotShadcnTokenBridge(page);
-    await expect(page.locator("#srail .settings-rail")).toBeVisible();
-    await expect(page.locator("#pcard .sp-card.active")).toBeVisible();
-    await expect(page.locator("#pdetail .sm-detail").first()).toBeVisible();
+const sourceProviderNames: Record<string, RegExp> = {
+    "dingtalk-a1": /钉钉\s*闪记|DingTalk A1 Flash Notes/,
+    "feishu-minutes": /飞书妙记|Feishu Minutes/,
+    iflyrec: /讯飞听见|iFLYTEK iflyrec/,
+    plaud: /Plaud\s*(云端|Cloud)?/,
+    ticnote: /TicNote/,
+};
+
+const settingsSectionNames: Record<string, RegExp> = {
+    appearance: /^(显示设置|Display Settings)$/,
+    "data-sources": /^(数据源|Data Sources)$/,
+    misc: /^(杂项|Misc)$/,
+};
+
+function settingsShell(page: Page) {
+    return page.getByRole("dialog", { name: /^(设置|Settings)$/ });
 }
 
-async function openSotDataSourcesIndex(page: Page) {
-    await page.goto(SOT_WEB_INDEX_URL, { waitUntil: "load" });
-    await page.evaluate(() => {
-        document.documentElement.dataset.theme = "dark";
-        document.body.dataset.theme = "dark";
-        window.dispatchEvent(new CustomEvent("settings:open"));
-        document.getElementById("avatar-btn")?.click();
-        document.querySelector<HTMLElement>('.sr-item[data-section="data-sources"]')
-            ?.click();
-        (
-            window as Window & {
-                __setDsProvider?: (provider: string) => void;
-            }
-        ).__setDsProvider?.("dingtalk-a1");
-    });
-    await installSotShadcnTokenBridge(page);
-    await expect(page.locator("#ds-providers .sp-card")).toHaveCount(5);
-    await expect(page.locator("#ds-detail .sd-head")).toBeVisible();
-}
-
-async function selectSotDataSourceProvider(page: Page, provider: string) {
-    await page.evaluate((providerId) => {
-        (
-            window as Window & {
-                __setDsProvider?: (provider: string) => void;
-            }
-        ).__setDsProvider?.(providerId);
-    }, provider);
-    await expect(page.locator(`#ds-providers .sp-card[data-provider="${provider}"]`))
-        .toHaveClass(/active/);
-    await expect(page.locator("#ds-detail .sd-head")).toBeVisible();
-}
-
-async function readSotSourceAssetDataUrls() {
-    const files = [
-        { file: "dingtalk.svg", mime: "image/svg+xml" },
-        { file: "feishu.jpeg", mime: "image/jpeg" },
-        { file: "plaud.png", mime: "image/png" },
-        { file: "ticnote.png", mime: "image/png" },
-    ] as const;
-    const entries = await Promise.all(
-        files.map(async ({ file, mime }) => {
-            const data = await readFile(path.join(SOT_SOURCE_ASSET_DIR, file));
-            const dataUrl = `data:${mime};base64,${data.toString("base64")}`;
-            return [
-                [`../../assets/sources/${file}`, dataUrl],
-                [`/assets/sources/${file}`, dataUrl],
-            ] as const;
-        }),
-    );
-
-    return Object.fromEntries(entries.flat()) as Record<string, string>;
-}
-
-async function readSotFragment(locator: Locator) {
-    return locator.first().evaluate((element) => {
-        const clone = element.cloneNode(true) as Element;
-        const sourceFields = element.querySelectorAll("input, textarea, select");
-        const cloneFields = clone.querySelectorAll("input, textarea, select");
-
-        sourceFields.forEach((source, index) => {
-            const target = cloneFields[index];
-            if (!target) return;
-
-            if (source instanceof HTMLInputElement) {
-                const input = target as HTMLInputElement;
-                input.setAttribute("value", source.value);
-                if (source.checked) {
-                    input.setAttribute("checked", "");
-                } else {
-                    input.removeAttribute("checked");
-                }
-                return;
-            }
-
-            if (source instanceof HTMLTextAreaElement) {
-                target.textContent = source.value;
-                return;
-            }
-
-            if (source instanceof HTMLSelectElement) {
-                const sourceOptions = source.querySelectorAll("option");
-                const targetOptions = target.querySelectorAll("option");
-                sourceOptions.forEach((option, optionIndex) => {
-                    const targetOption = targetOptions[optionIndex];
-                    if (!targetOption) return;
-                    if (option.selected) {
-                        targetOption.setAttribute("selected", "");
-                    } else {
-                        targetOption.removeAttribute("selected");
-                    }
-                });
-            }
-        });
-
-        const rect = element.getBoundingClientRect();
-        return {
-            height: Math.ceil(rect.height),
-            html: clone.outerHTML,
-            width: Math.ceil(rect.width),
-        };
+function settingsNavigation(page: Page, section: string) {
+    return settingsShell(page).getByRole("button", {
+        exact: true,
+        name: settingsSectionNames[section] ?? section,
     });
 }
 
-async function readProductFragment(
-    locator: Locator,
-    width: number,
-    height?: number,
-    options: Pick<ProductFragmentOptions, "normalizeRailIcons"> & {
-        referenceHtml?: string;
-    } = {},
-) {
-    return locator.first().evaluate(
-        (
-            element,
-            { normalizeRailIcons, referenceHtml, targetHeight, targetWidth },
-        ) => {
-            const clone = element.cloneNode(true) as Element;
-            if (clone instanceof HTMLElement) {
-                clone.style.width = `${targetWidth}px`;
-                if (typeof targetHeight === "number") {
-                    clone.style.height = `${targetHeight}px`;
-                }
-            }
-            if (normalizeRailIcons && referenceHtml) {
-                const template = document.createElement("template");
-                template.innerHTML = referenceHtml;
-                for (const button of clone.querySelectorAll<HTMLElement>(
-                    "[data-sot-section]",
-                )) {
-                    const section = button.getAttribute("data-sot-section");
-                    const referenceSvg = section
-                        ? template.content
-                              .querySelector<HTMLElement>(
-                                  `.sr-item[data-section="${CSS.escape(section)}"] svg`,
-                              )
-                              ?.cloneNode(true)
-                        : null;
-                    const productSvg = button.querySelector("svg");
-                    if (referenceSvg && productSvg) {
-                        if (referenceSvg instanceof SVGElement) {
-                            referenceSvg.setAttribute("fill", "none");
-                            referenceSvg.setAttribute("stroke", "currentColor");
-                            referenceSvg.setAttribute("stroke-width", "1.8");
-                            referenceSvg.setAttribute("stroke-linecap", "round");
-                            referenceSvg.setAttribute("stroke-linejoin", "round");
-                            referenceSvg.style.width = "14px";
-                            referenceSvg.style.height = "14px";
-                            referenceSvg.style.flex = "none";
-                        }
-                        productSvg.replaceWith(referenceSvg);
-                    }
-                }
-            }
-            const rect = element.getBoundingClientRect();
-            return {
-                height:
-                    typeof targetHeight === "number"
-                        ? targetHeight
-                        : Math.ceil(rect.height),
-                html: clone.outerHTML,
-                width: targetWidth,
-            };
-        },
-        {
-            normalizeRailIcons: options.normalizeRailIcons,
-            referenceHtml: options.referenceHtml,
-            targetHeight: height,
-            targetWidth: width,
-        },
-    );
+function dataSourcesRail(section: Locator) {
+    return section.getByRole("complementary", {
+        name: /^(数据源列表|Data source list)$/,
+    });
 }
 
-async function waitForSotFixtureImages(page: Page, fixtureId: string) {
-    await page.locator(`#${fixtureId} img`).evaluateAll((images) =>
-        Promise.all(
-            images.map(
-                (image) =>
-                    new Promise<void>((resolve, reject) => {
-                        if (!(image instanceof HTMLImageElement)) {
-                            resolve();
-                            return;
-                        }
-                        if (image.complete) {
-                            if (image.naturalWidth > 0) {
-                                resolve();
-                                return;
-                            }
-                            reject(
-                                new Error(
-                                    `Failed to load SOT fixture image ${
-                                        image.getAttribute("src") ?? ""
-                                    }`,
-                                ),
-                            );
-                            return;
-                        }
-                        const timeout = window.setTimeout(() => {
-                            reject(
-                                new Error(
-                                    `Timed out loading SOT fixture image ${
-                                        image.getAttribute("src") ?? ""
-                                    }`,
-                                ),
-                            );
-                        }, 3000);
-                        image.addEventListener(
-                            "load",
-                            () => {
-                                window.clearTimeout(timeout);
-                                resolve();
-                            },
-                            { once: true },
-                        );
-                        image.addEventListener(
-                            "error",
-                            () => {
-                                window.clearTimeout(timeout);
-                                reject(
-                                    new Error(
-                                        `Failed to load SOT fixture image ${
-                                            image.getAttribute("src") ?? ""
-                                        }`,
-                                    ),
-                                );
-                            },
-                            { once: true },
-                        );
-                    }),
-            ),
-        ),
-    );
+function dataSourcesSection(page: Page) {
+    return dataSourcesRail(settingsShell(page)).locator("..");
 }
 
-async function captureSotFragmentFixture(
-    page: Page,
-    fragment: { height: number; html: string; width: number },
-    sourceAssetDataUrls: Record<string, string>,
-    frame?: SotPixelFrame,
-) {
-    const fixtureId = `data-sources-sot-${Date.now()}-${Math.random()
-        .toString(16)
-        .slice(2)}`;
-
-    if (frame) {
-        await page.setViewportSize(frame.viewport);
+function sourceProviderButton(section: Locator, provider: string) {
+    const name = sourceProviderNames[provider];
+    if (!name) {
+        throw new Error(`Unknown data source provider: ${provider}`);
     }
-    await page.mouse.move(0, 0);
-    await page.evaluate(
-        ({ fixture, fixtureFrame, fixtureId: id, sourceAssets }) => {
-            document.getElementById(id)?.remove();
-            document.documentElement.dataset.theme = "dark";
-            document.body.dataset.theme = "dark";
 
-            const host = document.createElement("div");
-            host.id = id;
-            host.style.position = "fixed";
-            host.style.left = fixtureFrame ? "0" : "32px";
-            host.style.top = fixtureFrame ? "0" : "32px";
-            host.style.zIndex = "2147483647";
-            host.style.pointerEvents = "none";
-
-            const stage = document.createElement("div");
-            stage.className = "data-sources-sot-stage";
-            stage.style.boxSizing = "border-box";
-            stage.style.display = "flow-root";
-            stage.style.overflow = "hidden";
-            stage.style.background = "var(--bg-canvas)";
-            stage.style.fontFamily = "var(--font-sans)";
-            stage.style.fontSize = "var(--text-body)";
-            stage.style.lineHeight = "var(--lh-body)";
-            stage.style.letterSpacing = "var(--ls-body)";
-            stage.style.webkitFontSmoothing = "antialiased";
-            stage.style.textRendering = "optimizeLegibility";
-            stage.style.fontFeatureSettings = '"ss01", "cv11", "rlig", "calt"';
-            stage.style.width = `${fixtureFrame?.stage.width ?? fixture.width}px`;
-            if (fixtureFrame) {
-                stage.style.height = `${fixtureFrame.stage.height}px`;
-            }
-            stage.innerHTML = fixture.html;
-            if (
-                stage.querySelector(
-                    '.sm-detail, [data-sot-panel="source-provider-detail"]',
-                )
-            ) {
-                stage.setAttribute("data-sot-panel", "settings-scroll-body");
-                stage.setAttribute("data-sot-surface", "settings-data-sources");
-            }
-            for (const rail of stage.querySelectorAll<HTMLElement>(
-                ".settings-rail",
-            )) {
-                rail.setAttribute("data-sot-panel", "settings-rail");
-                for (const group of rail.querySelectorAll<HTMLElement>(
-                    ".sr-group",
-                )) {
-                    group.setAttribute("data-sot-list", "settings-nav-group");
-                }
-                for (const label of rail.querySelectorAll<HTMLElement>(
-                    ".sr-group-label",
-                )) {
-                    label.setAttribute(
-                        "data-sot-part",
-                        "settings-nav-group-label",
-                    );
-                }
-                for (const item of rail.querySelectorAll<HTMLElement>(
-                    ".sr-item",
-                )) {
-                    item.setAttribute("data-sot-control", "settings-nav");
-                    item.setAttribute("data-slot", "button");
-                    if (item.classList.contains("active")) {
-                        item.setAttribute("data-state", "active");
-                        item.setAttribute("data-sot-state", "selected");
-                    }
-                }
-            }
-            for (const card of stage.querySelectorAll<HTMLElement>(
-                ".sp-card",
-            )) {
-                card.setAttribute("data-sot-provider-card", "");
-                card.setAttribute("data-sot-control", "source-provider");
-                card.setAttribute("data-slot", "button");
-                card.setAttribute(
-                    "data-state",
-                    card.classList.contains("active") ? "selected" : "idle",
-                );
-                card.setAttribute(
-                    "data-sot-state",
-                    card.classList.contains("active") ? "selected" : "idle",
-                );
-                card.setAttribute(
-                    "data-sot-dimmed",
-                    card.classList.contains("dim") ? "true" : "false",
-                );
-                for (const icon of card.querySelectorAll<HTMLElement>(
-                    ".sp-ico",
-                )) {
-                    icon.setAttribute("data-sot-provider-icon", "");
-                    icon.setAttribute("data-sot-part", "source-provider-mark");
-                    if (icon.classList.contains("cover")) {
-                        icon.setAttribute("data-sot-cover", "true");
-                    }
-                }
-                for (const meta of card.querySelectorAll<HTMLElement>(
-                    ".sp-meta",
-                )) {
-                    meta.setAttribute("data-sot-provider-meta", "");
-                    meta.setAttribute("data-sot-part", "source-provider-meta");
-                }
-                for (const name of card.querySelectorAll<HTMLElement>(
-                    ".sp-name",
-                )) {
-                    name.setAttribute("data-sot-provider-name", "");
-                }
-                for (const hint of card.querySelectorAll<HTMLElement>(
-                    ".sp-hint",
-                )) {
-                    hint.setAttribute("data-sot-provider-hint", "");
-                }
-                for (const status of card.querySelectorAll<HTMLElement>(
-                    ".sp-status",
-                )) {
-                    const tone =
-                        ["ok", "info", "err", "neu", "warn", "muted"].find(
-                            (candidate) =>
-                                status.classList.contains(candidate),
-                        ) ?? "ok";
-                    status.setAttribute("data-sot-provider-status", "");
-                    status.setAttribute("data-slot", "badge");
-                    status.setAttribute("data-sot-tone", tone);
-                    status.setAttribute(
-                        "data-sot-state",
-                        status.classList.contains("syncing")
-                            ? "syncing"
-                            : tone,
-                    );
-                    for (const dot of status.querySelectorAll<HTMLElement>(
-                        ".dot",
-                    )) {
-                        dot.setAttribute("data-sot-provider-status-dot", "");
-                    }
-                }
-            }
-            for (const actions of stage.querySelectorAll<HTMLElement>(
-                ".sm-actions-state",
-            )) {
-                const hasBusyButton =
-                    actions.querySelector('[aria-busy="true"]') !== null;
-                actions.setAttribute("data-sot-panel", "source-actions");
-                actions.setAttribute(
-                    "data-sot-state",
-                    actions.dataset.saveState ?? "idle",
-                );
-                actions.style.height = hasBusyButton ? "28px" : "26px";
-                actions.style.marginTop = "0";
-                actions.style.marginLeft = "0";
-                for (const button of actions.querySelectorAll<HTMLElement>(
-                    ".btn",
-                )) {
-                    button.setAttribute("data-slot", "button");
-                    button.setAttribute("data-size", "sm");
-                    button.setAttribute(
-                        "data-variant",
-                        button.classList.contains("primary")
-                            ? "primary"
-                            : "ghost",
-                    );
-                    button.setAttribute(
-                        "data-sot-control",
-                        button.classList.contains("primary")
-                            ? "source-save"
-                            : button.textContent?.includes("测试")
-                              ? "source-test"
-                              : "source-secondary",
-                    );
-                    button.setAttribute(
-                        "data-sot-state",
-                        button.classList.contains("is-error")
-                            ? "error"
-                            : button.classList.contains("is-success")
-                              ? "saved"
-                              : button.getAttribute("aria-busy") === "true"
-                                ? "saving"
-                        : "idle",
-                    );
-                    for (const spinner of button.querySelectorAll<HTMLElement>(
-                        ".btn-spinner",
-                    )) {
-                        spinner.setAttribute("data-slot", "spinner");
-                        spinner.setAttribute("data-sot-part", "button-spinner");
-                    }
-                }
-            }
-            for (const detail of stage.querySelectorAll<HTMLElement>(
-                ".sm-detail",
-            )) {
-                stage.setAttribute("data-sot-surface", "settings-data-sources");
-                detail.setAttribute("data-sot-panel", "source-provider-detail");
-                detail.setAttribute("data-sot-provider", "fixture");
-            }
-            for (const header of stage.querySelectorAll<HTMLElement>(
-                ".sd-head",
-            )) {
-                header.setAttribute("data-sot-part", "source-provider-header");
-                const state = header.dataset.dsState;
-                if (state) {
-                    header.setAttribute("data-sot-state", state);
-                }
-            }
-            for (const title of stage.querySelectorAll<HTMLElement>(
-                ".sd-title",
-            )) {
-                title.setAttribute("data-sot-part", "source-provider-title");
-            }
-            for (const subtitle of stage.querySelectorAll<HTMLElement>(
-                ".sd-sub",
-            )) {
-                subtitle.setAttribute(
-                    "data-sot-part",
-                    "source-provider-subtitle",
-                );
-            }
-            for (const pill of stage.querySelectorAll<HTMLElement>(
-                ".sd-pill",
-            )) {
-                const tone =
-                    ["ok", "info", "err", "neu", "warn", "muted"].find(
-                        (candidate) => pill.classList.contains(candidate),
-                    ) ?? "ok";
-                pill.setAttribute("data-slot", "badge");
-                pill.setAttribute("data-sot-part", "source-provider-status");
-                pill.setAttribute("data-sot-status", tone);
-                pill.setAttribute("data-sot-tone", tone);
-                if (pill.classList.contains("syncing")) {
-                    pill.setAttribute("data-sot-state", "syncing");
-                }
-                for (const dot of pill.querySelectorAll<HTMLElement>(".dot")) {
-                    dot.setAttribute("data-sot-status-dot", "");
-                }
-            }
-            for (const fields of stage.querySelectorAll<HTMLElement>(
-                ".ds-fields",
-            )) {
-                fields.setAttribute("data-sot-list", "source-fields");
-                fields.setAttribute("data-sot-panel", "source-provider-fields");
-            }
-            for (const row of stage.querySelectorAll<HTMLElement>(
-                ".field-row, .sm-row",
-            )) {
-                row.setAttribute("data-orientation", "horizontal");
-            }
-            for (const control of stage.querySelectorAll<HTMLElement>(
-                ".sm-row-ctrl",
-            )) {
-                control.setAttribute("data-sot-part", "field-control");
-            }
-            for (const input of stage.querySelectorAll<HTMLElement>(
-                ".field-input",
-            )) {
-                if (input.classList.contains("mask")) {
-                    input.setAttribute("data-sot-mask", "true");
-                }
-            }
-            for (const empty of stage.querySelectorAll<HTMLElement>(
-                ".field-empty",
-            )) {
-                empty.setAttribute("data-sot-part", "field-empty");
-            }
-            for (const toggle of stage.querySelectorAll<HTMLElement>(
-                ".toggle",
-            )) {
-                const isChecked =
-                    toggle.getAttribute("aria-pressed") === "true" ||
-                    toggle.classList.contains("on");
-                toggle.setAttribute(
-                    "data-state",
-                    isChecked ? "checked" : "unchecked",
-                );
-                toggle.setAttribute(
-                    "data-sot-state",
-                    isChecked ? "checked" : "unchecked",
-                );
-                for (const knob of toggle.querySelectorAll<HTMLElement>(
-                    ".t-knob",
-                )) {
-                    knob.setAttribute(
-                        "data-state",
-                        isChecked ? "checked" : "unchecked",
-                    );
-                }
-            }
-            for (const divider of stage.querySelectorAll<HTMLElement>(
-                ".sm-divider",
-            )) {
-                divider.setAttribute("data-sot-section-divider", "");
-            }
-            for (const banner of stage.querySelectorAll<HTMLElement>(
-                ".sd-banner",
-            )) {
-                const tone =
-                    ["info", "err", "warn", "ok"].find((candidate) =>
-                        banner.classList.contains(candidate),
-                    ) ?? "info";
-                banner.setAttribute("data-sot-banner", "source-state");
-                banner.setAttribute("data-sot-panel", "source-state-banner");
-                banner.setAttribute("data-sot-tone", tone);
-                banner.setAttribute("data-sot-state", tone);
-                banner
-                    .querySelector<HTMLElement>(".b-ic")
-                    ?.setAttribute("data-sot-banner-icon", "");
-                banner
-                    .querySelector<HTMLElement>(":scope > div")
-                    ?.setAttribute("data-sot-banner-body", "");
-                banner
-                    .querySelector<HTMLElement>(".b-t")
-                    ?.setAttribute("data-sot-banner-title", "");
-                banner
-                    .querySelector<HTMLElement>(".b-h")
-                    ?.setAttribute("data-sot-banner-sub", "");
-            }
-            for (const picker of stage.querySelectorAll<HTMLElement>(
-                ".path-picker",
-            )) {
-                picker.setAttribute("data-sot-list", "source-auth-modes");
-            }
-            for (const card of stage.querySelectorAll<HTMLElement>(
-                ".path-card",
-            )) {
-                card.setAttribute("data-sot-control", "source-auth-mode");
-                card.setAttribute(
-                    "data-sot-auth-mode",
-                    card.dataset.path ?? "fixture",
-                );
-                card.setAttribute(
-                    "data-sot-state",
-                    card.classList.contains("active") ? "selected" : "idle",
-                );
-                card
-                    .querySelector<HTMLElement>(".pc-t")
-                    ?.setAttribute("data-sot-part", "source-auth-mode-title");
-                card
-                    .querySelector<HTMLElement>(".pc-h")
-                    ?.setAttribute(
-                        "data-sot-part",
-                        "source-auth-mode-description",
-                    );
-            }
-            for (const emptyHint of stage.querySelectorAll<HTMLElement>(
-                ".empty-hint",
-            )) {
-                emptyHint.setAttribute(
-                    "data-sot-panel",
-                    "settings-empty-hint",
-                );
-                emptyHint
-                    .querySelector<HTMLElement>(".eh-t")
-                    ?.setAttribute("data-sot-part", "settings-empty-title");
-                emptyHint
-                    .querySelector<HTMLElement>(".eh-h")
-                    ?.setAttribute(
-                        "data-sot-part",
-                        "settings-empty-description",
-                    );
-            }
-            for (const button of stage.querySelectorAll<HTMLElement>(".btn")) {
-                if (!button.hasAttribute("data-slot")) {
-                    button.setAttribute("data-slot", "button");
-                }
-                if (button.classList.contains("btn-sm")) {
-                    button.setAttribute("data-size", "sm");
-                }
-                if (!button.hasAttribute("data-variant")) {
-                    button.setAttribute(
-                        "data-variant",
-                        button.classList.contains("primary")
-                            ? "primary"
-                            : "ghost",
-                    );
-                }
-                if (
-                    button.classList.contains("_is-48") ||
-                    button.textContent?.includes("断开连接")
-                ) {
-                    button.setAttribute("data-sot-control", "source-disconnect");
-                } else if (button.textContent?.includes("重新")) {
-                    button.setAttribute("data-sot-control", "source-reconnect");
-                }
-            }
-
-            for (const image of stage.querySelectorAll("img")) {
-                const src = image.getAttribute("src");
-                if (src && sourceAssets[src]) {
-                    image.setAttribute("src", sourceAssets[src]);
-                }
-            }
-
-            host.appendChild(stage);
-            document.body.appendChild(host);
-        },
-        {
-            fixture: fragment,
-            fixtureFrame: frame ?? null,
-            fixtureId,
-            sourceAssets: sourceAssetDataUrls,
-        },
-    );
-
-    await waitForSotFixtureImages(page, fixtureId);
-    const target = frame
-        ? page.locator(`#${fixtureId} > .data-sources-sot-stage`).first()
-        : page
-              .locator(`#${fixtureId} > .data-sources-sot-stage > :first-child`)
-              .first();
-    await expect(target).toBeVisible();
-    await page.waitForTimeout(250);
-    const screenshot = await target.screenshot({
-        animations: "disabled",
-        omitBackground: false,
-        scale: "css",
-    });
-    const metrics = await target.evaluate((element) => {
-        const readStyle = (targetElement: Element | null) => {
-            if (!targetElement) return null;
-            const style = window.getComputedStyle(targetElement);
-            return {
-                backgroundColor: style.backgroundColor,
-                color: style.color,
-                fontFamily: style.fontFamily,
-                fontFeatureSettings: style.fontFeatureSettings,
-                fontSize: style.fontSize,
-                fontSynthesisWeight: style.fontSynthesisWeight,
-                fontWeight: style.fontWeight,
-                letterSpacing: style.letterSpacing,
-                lineHeight: style.lineHeight,
-                opacity: style.opacity,
-                textRendering: style.textRendering,
-                webkitFontSmoothing: style.webkitFontSmoothing,
-            };
-        };
-        const rect = element.getBoundingClientRect();
-        return {
-            body: readStyle(document.body),
-            button: readStyle(element),
-            height: Math.ceil(rect.height),
-            icon: readStyle(element.querySelector(".sp-ico")),
-            iconText: readStyle(element.querySelector(".sp-ico span")),
-            width: Math.ceil(rect.width),
-        };
-    });
-    await page.evaluate((id) => {
-        document.getElementById(id)?.remove();
-    }, fixtureId);
-
-    return {
-        dataUrl: `data:image/png;base64,${screenshot.toString("base64")}`,
-        metrics,
-        screenshot,
-    };
+    return dataSourcesRail(section).getByRole("button", { name });
 }
 
-async function compareSotPixels(
-    page: Page,
-    expected: string,
-    actual: string,
-) {
-    return page.evaluate(
-        async ({ actual, expected }): Promise<SotPixelDiff> => {
-            async function loadImage(src: string) {
-                const image = new Image();
-                image.decoding = "sync";
-                image.src = src;
-                await image.decode();
-                return image;
-            }
-
-            const [expectedImage, actualImage] = await Promise.all([
-                loadImage(expected),
-                loadImage(actual),
-            ]);
-
-            if (
-                expectedImage.naturalHeight !== actualImage.naturalHeight ||
-                expectedImage.naturalWidth !== actualImage.naturalWidth
-            ) {
-                return {
-                    differingPixels: Number.POSITIVE_INFINITY,
-                    dimensionsMatch: false,
-                    expectedHeight: expectedImage.naturalHeight,
-                    expectedWidth: expectedImage.naturalWidth,
-                    maxChannelDelta: Number.POSITIVE_INFINITY,
-                    productHeight: actualImage.naturalHeight,
-                    productWidth: actualImage.naturalWidth,
-                };
-            }
-
-            const canvas = document.createElement("canvas");
-            canvas.width = expectedImage.naturalWidth;
-            canvas.height = expectedImage.naturalHeight;
-            const context = canvas.getContext("2d", {
-                willReadFrequently: true,
-            });
-            if (!context) {
-                throw new Error("Canvas 2D context unavailable");
-            }
-
-            context.drawImage(expectedImage, 0, 0);
-            const expectedData = context.getImageData(
-                0,
-                0,
-                canvas.width,
-                canvas.height,
-            ).data;
-            context.clearRect(0, 0, canvas.width, canvas.height);
-            context.drawImage(actualImage, 0, 0);
-            const actualData = context.getImageData(
-                0,
-                0,
-                canvas.width,
-                canvas.height,
-            ).data;
-
-            let differingPixels = 0;
-            let maxChannelDelta = 0;
-            for (let index = 0; index < expectedData.length; index += 4) {
-                const pixelDelta = Math.max(
-                    Math.abs(expectedData[index] - actualData[index]),
-                    Math.abs(expectedData[index + 1] - actualData[index + 1]),
-                    Math.abs(expectedData[index + 2] - actualData[index + 2]),
-                    Math.abs(expectedData[index + 3] - actualData[index + 3]),
-                );
-                if (pixelDelta > 0) {
-                    differingPixels += 1;
-                    maxChannelDelta = Math.max(maxChannelDelta, pixelDelta);
-                }
-            }
-
-            return {
-                differingPixels,
-                dimensionsMatch: true,
-                expectedHeight: expectedImage.naturalHeight,
-                expectedWidth: expectedImage.naturalWidth,
-                maxChannelDelta,
-                productHeight: actualImage.naturalHeight,
-                productWidth: actualImage.naturalWidth,
-            };
-        },
-        { actual, expected },
-    );
-}
-
-async function expectSotFragmentPixelsMatch(
-    page: Page,
-    testInfo: TestInfo,
-    sotPage: Page,
-    label: string,
-    locator: Locator,
-    sourceAssetDataUrls: Record<string, string>,
-    frames: readonly SotPixelFrame[] = [],
-    tolerances: SotPixelTolerancesByFrame = {},
-    productLocator?: Locator,
-    productOptions?: ProductFragmentOptions,
-) {
-    const originalProductViewport = page.viewportSize();
-    const originalSotViewport = sotPage.viewportSize();
-    const fragment = await readSotFragment(locator);
-    const staticProductHeight =
-        productOptions?.height === "sot"
-            ? fragment.height
-            : productOptions?.height === "captured-sot"
-              ? undefined
-              : productOptions?.height;
-    const staticProductFragment =
-        productLocator && productOptions?.height !== "captured-sot"
-            ? await readProductFragment(
-                  productLocator,
-                  fragment.width,
-                  staticProductHeight,
-                  {
-                      normalizeRailIcons: productOptions?.normalizeRailIcons,
-                      referenceHtml: fragment.html,
-                  },
-              )
-            : undefined;
-
-    try {
-        for (const frame of [undefined, ...frames] as const) {
-            const frameLabel = frame ? `${label} ${frame.name}` : label;
-            const sotCapture = await captureSotFragmentFixture(
-                sotPage,
-                fragment,
-                sourceAssetDataUrls,
-                frame,
-            );
-            const productFragment = productLocator
-                ? (staticProductFragment ??
-                  (await readProductFragment(
-                      productLocator,
-                      fragment.width,
-                      sotCapture.metrics.height,
-                      {
-                          normalizeRailIcons:
-                              productOptions?.normalizeRailIcons,
-                          referenceHtml: fragment.html,
-                      },
-                  )))
-                : fragment;
-            const productCapture = await captureSotFragmentFixture(
-                page,
-                productFragment,
-                sourceAssetDataUrls,
-                frame,
-            );
-            const diff = await compareSotPixels(
-                page,
-                sotCapture.dataUrl,
-                productCapture.dataUrl,
-            );
-            const tolerance =
-                tolerances[frame?.name ?? "default"] ??
-                ZERO_SOT_PIXEL_TOLERANCE;
-
-            if (
-                !diff.dimensionsMatch ||
-                diff.differingPixels > tolerance.differingPixels ||
-                diff.maxChannelDelta > tolerance.maxChannelDelta
-            ) {
-                const attachmentName = frameLabel
-                    .replace(/[^a-z0-9]+/gi, "-")
-                    .replace(/^-|-$/g, "")
-                    .toLowerCase();
-                await testInfo.attach(`${attachmentName}-sot.png`, {
-                    body: sotCapture.screenshot,
-                    contentType: "image/png",
-                });
-                await testInfo.attach(`${attachmentName}-product.png`, {
-                    body: productCapture.screenshot,
-                    contentType: "image/png",
-                });
-                await testInfo.attach(`${attachmentName}-diff.json`, {
-                    body: Buffer.from(JSON.stringify(diff, null, 2)),
-                    contentType: "application/json",
-                });
-                await testInfo.attach(`${attachmentName}-metrics.json`, {
-                    body: Buffer.from(
-                        JSON.stringify(
-                            {
-                                product: productCapture.metrics,
-                                sot: sotCapture.metrics,
-                            },
-                            null,
-                            2,
-                        ),
-                    ),
-                    contentType: "application/json",
-                });
-
-                const debugDir = path.resolve(
-                    process.cwd(),
-                    "tmp/sot-pixel-debug",
-                );
-                await mkdir(debugDir, { recursive: true });
-                await Promise.all([
-                    writeFile(
-                        path.join(debugDir, `${attachmentName}-sot.png`),
-                        sotCapture.screenshot,
-                    ),
-                    writeFile(
-                        path.join(debugDir, `${attachmentName}-product.png`),
-                        productCapture.screenshot,
-                    ),
-                    writeFile(
-                        path.join(debugDir, `${attachmentName}-diff.json`),
-                        JSON.stringify(diff, null, 2),
-                    ),
-                    writeFile(
-                        path.join(debugDir, `${attachmentName}-metrics.json`),
-                        JSON.stringify(
-                            {
-                                product: productCapture.metrics,
-                                sot: sotCapture.metrics,
-                            },
-                            null,
-                            2,
-                        ),
-                    ),
-                ]);
-            }
-
-            const diffLabel = `${frameLabel} ${JSON.stringify({
-                ...diff,
-                tolerance,
-            })}`;
-            expect(diff.dimensionsMatch, diffLabel).toBe(true);
-            expect(diff.productHeight, diffLabel).toBe(diff.expectedHeight);
-            expect(diff.productWidth, diffLabel).toBe(diff.expectedWidth);
-            expect(diff.differingPixels, diffLabel).toBeLessThanOrEqual(
-                tolerance.differingPixels,
-            );
-            expect(diff.maxChannelDelta, diffLabel).toBeLessThanOrEqual(
-                tolerance.maxChannelDelta,
-            );
-        }
-    } finally {
-        if (originalProductViewport) {
-            await page.setViewportSize(originalProductViewport);
-        }
-        if (originalSotViewport) {
-            await sotPage.setViewportSize(originalSotViewport);
-        }
+function sourceProviderDetail(section: Locator, provider: string) {
+    const name = sourceProviderNames[provider];
+    if (!name) {
+        throw new Error(`Unknown data source provider: ${provider}`);
     }
+
+    return section.getByRole("region", { name });
 }
 
-async function readComputedStyle(
-    locator: Locator,
-    props: readonly StyleProp[],
-) {
-    return locator.first().evaluate(
-        (element, propNames) => {
-            const style = window.getComputedStyle(element);
-            const entries = Object.fromEntries(
-                propNames.map((prop) => [prop, style.getPropertyValue(prop)]),
-            );
-
-            for (const side of [
-                "top",
-                "right",
-                "bottom",
-                "left",
-            ] as const) {
-                const width = `border-${side}-width`;
-                const styleName = `border-${side}-style`;
-                const color = `border-${side}-color`;
-                if (entries[width] === "0px") {
-                    entries[styleName] = "none";
-                    entries[color] = "transparent";
-                }
-            }
-
-            return entries;
-        },
-        props,
-    );
+function sourceAuthModeControl(root: Locator, name: string | RegExp) {
+    return root.getByRole("radio", { name });
 }
 
-async function expectComputedStyleMatch(
-    sotLocator: Locator,
-    productLocator: Locator,
-    props: readonly StyleProp[],
-) {
-    const [sot, product] = await Promise.all([
-        readComputedStyle(sotLocator, props),
-        readComputedStyle(productLocator, props),
-    ]);
-
-    expect(product, `${productLocator} ~= ${sotLocator}`).toEqual(sot);
+function sourceProviderStatus(root: Locator, status: string) {
+    return root
+        .getByRole("status")
+        .filter({ hasText: new RegExp(status) })
+        .first();
 }
 
-function sourceEnableSyncControl(page: Page, provider: string) {
-    return page.locator(
-        `[data-sot-control="source-enable-sync"][data-sot-provider="${provider}"]`,
-    );
+function sourceStateMessage(root: Locator, message: string | RegExp) {
+    return root.getByText(message, { exact: typeof message === "string" });
 }
 
-function sourceActionFooter(root: Locator, provider: string) {
-    return root.locator(
-        `[data-sot-panel="source-actions"][data-sot-provider="${provider}"][data-sot-state]`,
-    );
+function sourceEnableSyncControl(root: Locator) {
+    return root.getByRole("switch", { name: /^(启用同步|Enable sync)$/ });
 }
 
-function sourceActionStatus(root: Locator) {
-    return root.locator('[data-sot-part="source-action-status"]');
+function sourceActionFooter(root: Locator) {
+    return root.locator("footer");
 }
 
 function sourceTestControl(root: Locator) {
-    return root.locator('[data-sot-control="source-test"]');
+    return root.getByRole("button", {
+        name: /^(测试连接|测试中|连接正常|Test|Testing|Ready)$/,
+    });
 }
 
 function sourceSaveControl(root: Locator) {
-    return root.locator('[data-sot-control="source-save"]');
+    return root.getByRole("button", {
+        name: /^(保存|保存中|已保存|Save|Saving|Saved)$/,
+    });
 }
 
-async function expectSotSwitchChecked(locator: Locator) {
-    await expect(locator).toHaveAttribute("role", "switch");
+async function expectSwitchChecked(locator: Locator) {
     await expect(locator).toHaveAttribute("aria-checked", "true");
     await expect(locator).toBeEnabled();
 }
@@ -1817,446 +487,80 @@ async function pasteTextIntoInput(
     }, text);
 }
 
-test("data sources settings rail and provider primitives match SOT computed styles", async ({
-    browser,
-    page,
-}) => {
-    const sources = [
-        makeSource("dingtalk-a1", {
-            authMode: "device-signin",
-            authModes: ["device-signin"],
-            config: { syncTitleToSource: true },
-            connected: true,
-            displayName: "钉钉 闪记",
-            enabled: true,
-            secretsConfigured: { deviceCredential: true },
-        }),
-        makeSource("ticnote", {
-            baseUrl: "https://voice-api.ticnote.cn",
-            config: { region: "cn" },
-            displayName: "TicNote",
-            enabled: true,
-            secretsConfigured: { bearerToken: true },
-        }),
-        makeSource("feishu-minutes", {
-            authMode: "oauth-device-flow",
-            authModes: ["oauth-device-flow", "web-reverse"],
-            displayName: "飞书妙记",
-        }),
-        makeSource("iflyrec", {
-            authMode: "session-header",
-            authModes: ["session-header"],
-            connected: true,
-            connectionStatus: "expired",
-            config: { bizId: "tjzs" },
-            displayName: "讯飞听见",
-            enabled: true,
-            secretsConfigured: { sessionHeader: true },
-        }),
-        makeSource("plaud", {
-            displayName: "Plaud",
-        }),
-    ];
-
-    await page.route("**/api/data-sources", async (route) => {
-        if (route.request().method() !== "GET") {
-            await route.continue();
-            return;
-        }
-
-        await route.fulfill({
-            contentType: "application/json",
-            body: JSON.stringify({ sources }),
-        });
-    });
-
-    const sotPage = await browser.newPage();
-    try {
-        await openSotComponentLibrary(sotPage);
-        await ensureSignedIn(page);
-        await resetDisplayToChinese(page);
-        const section = await openDataSourcesSettings(page);
-
-        const settingsRail = page.locator('[data-sot-panel="settings-rail"]');
-        const dataSourcesNav = page.locator(
-            '[data-sot-control="settings-nav"][data-sot-section="data-sources"]',
-        );
-        await expect(settingsRail).toBeVisible();
-        await expect(dataSourcesNav).toHaveAttribute("data-slot", "button");
-        await expect(dataSourcesNav).toHaveAttribute("data-state", "active");
-        await expect(dataSourcesNav).toHaveAttribute("data-sot-state", "selected");
-        await expectComputedStyleMatch(
-            sotPage.locator("#srail .settings-rail"),
-            settingsRail,
-            SETTINGS_RAIL_STYLE_PROPS,
-        );
-        await expectComputedStyleMatch(
-            sotPage.locator("#srail .sr-item.active"),
-            dataSourcesNav,
-            SETTINGS_RAIL_ITEM_STYLE_PROPS,
-        );
-
-        const dingtalkTile = section.locator(
-            '[data-sot-control="source-provider"][data-sot-provider="dingtalk-a1"]',
-        );
-        const ticnoteTile = section.locator(
-            '[data-sot-control="source-provider"][data-sot-provider="ticnote"]',
-        );
-        const feishuTile = section.locator(
-            '[data-sot-control="source-provider"][data-sot-provider="feishu-minutes"]',
-        );
-        const iflyrecTile = section.locator(
-            '[data-sot-control="source-provider"][data-sot-provider="iflyrec"]',
-        );
-        await dingtalkTile.click();
-        await page.mouse.move(0, 0);
-        await expect(dingtalkTile).toHaveAttribute("data-state", "selected");
-        await expect(dingtalkTile).toHaveAttribute("data-sot-dimmed", "false");
-        await expect(ticnoteTile).toHaveAttribute("data-sot-dimmed", "false");
-        await expect(feishuTile).toHaveAttribute("data-sot-dimmed", "true");
-        await expect(iflyrecTile).toHaveAttribute("data-sot-dimmed", "true");
-
-        await expectComputedStyleMatch(
-            sotPage.locator("#pcard .sp-card.active"),
-            dingtalkTile,
-            PROVIDER_CARD_STYLE_PROPS,
-        );
-        await expectComputedStyleMatch(
-            sotPage.locator("#pcard .sp-card.dim").first(),
-            feishuTile,
-            PROVIDER_CARD_STYLE_PROPS,
-        );
-        const dingtalkStatus = dingtalkTile.locator(
-            '[data-sot-provider-status][data-sot-tone="ok"]',
-        );
-        const ticnoteStatus = ticnoteTile.locator(
-            '[data-sot-provider-status][data-sot-tone="info"]',
-        );
-        const feishuStatus = feishuTile.locator(
-            '[data-sot-provider-status][data-sot-tone="neu"]',
-        );
-        const iflyrecStatus = iflyrecTile.locator(
-            '[data-sot-provider-status][data-sot-tone="warn"]',
-        );
-        for (const { locator, state, tone } of [
-            { locator: dingtalkStatus, state: "connected", tone: "ok" },
-            { locator: ticnoteStatus, state: "configured", tone: "info" },
-            { locator: feishuStatus, state: "needs-setup", tone: "neu" },
-            { locator: iflyrecStatus, state: "expired", tone: "warn" },
-        ] as const) {
-            await expect(locator).toBeVisible();
-            await expect(locator).toHaveAttribute("data-sot-status", state);
-            await expect(locator).toHaveAttribute("data-sot-tone", tone);
-        }
-        await expectComputedStyleMatch(
-            sotPage.locator("#pcard .sp-status.ok").first(),
-            dingtalkStatus,
-            PROVIDER_STATUS_STYLE_PROPS,
-        );
-        await expectComputedStyleMatch(
-            sotPage.locator("#pcard .sp-status.info").first(),
-            ticnoteStatus,
-            PROVIDER_STATUS_STYLE_PROPS,
-        );
-        await expectComputedStyleMatch(
-            sotPage.locator("#pcard .sp-card.dim .sp-status.neu").first(),
-            feishuStatus,
-            PROVIDER_STATUS_STYLE_PROPS,
-        );
-        await expectComputedStyleMatch(
-            sotPage.locator("#pcard .sp-card.dim .sp-status.warn").first(),
-            iflyrecStatus,
-            PROVIDER_STATUS_STYLE_PROPS,
-        );
-
-        const detail = section.locator(
-            '[data-sot-panel="source-provider-detail"][data-sot-provider="dingtalk-a1"]',
-        );
-        await expect(detail).toBeVisible();
-        const actionFooter = sourceActionFooter(detail, "dingtalk-a1");
-        await expect(actionFooter).toBeVisible();
-        await expect(sourceTestControl(actionFooter)).toBeVisible();
-        await expect(sourceSaveControl(actionFooter)).toBeVisible();
-        const sotIndexPage = await browser.newPage();
-        try {
-            await openSotDataSourcesIndex(sotIndexPage);
-            await selectSotDataSourceProvider(sotIndexPage, "dingtalk-a1");
-            const sotDetail = sotIndexPage.locator("#ds-detail");
-            await expect(sotDetail.locator(".sd-head")).toBeVisible();
-            await expect(
-                detail.locator('[data-sot-part="source-provider-header"]'),
-            ).toBeVisible();
-            await expect(detail.locator(".sm-detail-head")).toHaveCount(0);
-            await expectComputedStyleMatch(
-                sotDetail,
-                detail,
-                DETAIL_STYLE_PROPS,
-            );
-            await expect(
-                detail.getByText("浏览器授权", { exact: true }),
-            ).toBeVisible();
-            const browserAuthorizationInput =
-                detail.getByLabel("浏览器授权");
-            await expect(browserAuthorizationInput).toBeVisible();
-            await expect(browserAuthorizationInput).toHaveValue(
-                "••••••••••••••••",
-            );
-            await expect(browserAuthorizationInput).toHaveJSProperty(
-                "readOnly",
-                true,
-            );
-            await expect(browserAuthorizationInput).toBeEnabled();
-        } finally {
-            await sotIndexPage.close();
-        }
-        await expectSotSwitchChecked(sourceEnableSyncControl(page, "dingtalk-a1"));
-    } finally {
-        await sotPage.close();
-    }
-});
-
-test("data sources settings primitives match SOT component library pixels", async ({
-    browser,
+test("canonical handoff data-sources ready state renders read-only reference evidence", async ({
     page,
 }, testInfo) => {
-    const sources = [
-        makeSource("dingtalk-a1", {
-            authMode: "device-signin",
-            authModes: ["device-signin"],
-            config: { syncTitleToSource: true },
-            connected: true,
-            displayName: "钉钉 闪记",
-            enabled: true,
-            secretsConfigured: { deviceCredential: true },
-        }),
-        makeSource("ticnote", {
-            baseUrl: "https://voice-api.ticnote.cn",
-            config: { region: "cn" },
-            displayName: "TicNote",
-            enabled: true,
-            secretsConfigured: { bearerToken: true },
-            syncStatus: "syncing",
-        }),
-        makeSource("plaud", {
-            displayName: "Plaud",
-            enabled: true,
-            secretsConfigured: { bearerToken: true },
-            syncStatus: "error",
-        }),
-        makeSource("feishu-minutes", {
-            authMode: "oauth-device-flow",
-            authModes: ["oauth-device-flow", "web-reverse"],
-            displayName: "飞书妙记",
-        }),
-        makeSource("iflyrec", {
-            authMode: "session-header",
-            authModes: ["session-header"],
-            connected: true,
-            connectionStatus: "expired",
-            config: { bizId: "tjzs" },
-            displayName: "讯飞听见",
-            enabled: true,
-            secretsConfigured: { sessionHeader: true },
-        }),
-    ];
-
-    await page.route("**/api/data-sources", async (route) => {
-        if (route.request().method() !== "GET") {
-            await route.continue();
-            return;
-        }
-
-        await route.fulfill({
-            contentType: "application/json",
-            body: JSON.stringify({ sources }),
-        });
-    });
-    await ensureSignedIn(page);
-    await resetDisplayToChinese(page);
-    const section = await openDataSourcesSettings(page);
-    const sourceAssetDataUrls = await readSotSourceAssetDataUrls();
-
-    const sotPage = await browser.newPage();
-    try {
-        await openSotComponentLibrary(sotPage);
-
-        const sotRailPage = await browser.newPage();
-        try {
-            await openSotDataSourcesIndex(sotRailPage);
-            const settingsRail = page.locator(
-                '[data-sot-panel="settings-rail"]',
-            );
-            await expect(settingsRail).toBeVisible();
-            await expectSotFragmentPixelsMatch(
-                page,
-                testInfo,
-                sotRailPage,
-                "data sources settings rail",
-                sotRailPage.locator(".settings-rail").first(),
-                sourceAssetDataUrls,
-                [],
-                SETTINGS_RAIL_PIXEL_TOLERANCES,
-                settingsRail,
-                { height: "captured-sot", normalizeRailIcons: true },
-            );
-        } finally {
-            await sotRailPage.close();
-        }
-
-        const dingtalkTile = section.locator(
-            '[data-sot-control="source-provider"][data-sot-provider="dingtalk-a1"]',
-        );
-        await dingtalkTile.click();
-        await expect(dingtalkTile).toHaveAttribute("data-state", "selected");
-
-        const providerPixelCases = [
-            {
-                label: "connected · selected",
-                product: dingtalkTile,
-                sot: sotPage.locator("#pcard .sp-card.active"),
-                tolerances: PROVIDER_CARD_PIXEL_TOLERANCES,
-            },
-            {
-                label: "syncing",
-                product: section.locator(
-                    '[data-sot-control="source-provider"][data-sot-provider="ticnote"]',
-                ),
-                sot: sotPage.locator("#pcard .sp-card").nth(1),
-                tolerances: PROVIDER_CARD_PIXEL_TOLERANCES,
-            },
-            {
-                label: "error",
-                product: section.locator(
-                    '[data-sot-control="source-provider"][data-sot-provider="plaud"]',
-                ),
-                sot: sotPage.locator("#pcard .sp-card").nth(2),
-                tolerances: PROVIDER_CARD_PIXEL_TOLERANCES,
-            },
-            {
-                label: "needs-setup",
-                product: section.locator(
-                    '[data-sot-control="source-provider"][data-sot-provider="feishu-minutes"]',
-                ),
-                sot: sotPage.locator("#pcard .sp-card").nth(3),
-                tolerances: PROVIDER_CARD_PIXEL_TOLERANCES,
-            },
-            {
-                label: "expired",
-                product: section.locator(
-                    '[data-sot-control="source-provider"][data-sot-provider="iflyrec"]',
-                ),
-                sot: sotPage.locator("#pcard .sp-card").nth(4),
-                tolerances: EXPIRED_PROVIDER_CARD_PIXEL_TOLERANCES,
-            },
-        ] as const;
-        for (const providerCase of providerPixelCases) {
-            await expectSotFragmentPixelsMatch(
-                page,
-                testInfo,
-                sotPage,
-                `data sources provider card ${providerCase.label}`,
-                providerCase.sot,
-                sourceAssetDataUrls,
-                [],
-                providerCase.tolerances ?? PROVIDER_CARD_PIXEL_TOLERANCES,
-                providerCase.product,
-            );
-        }
-
-        // The component-library action-state snippets include visual .cl-state
-        // labels and legacy .btn markup. Source actions and full provider
-        // detail pixels need separate real product-detail captures; the product
-        // must not add a globals repaint layer for those legacy button classes.
-    } finally {
-        await sotPage.close();
+    const canonicalSotAudit = await resolveVerifiedCanonicalSotReference();
+    if (!canonicalSotAudit.available) {
+        test.skip(true, canonicalSotAudit.reason);
+        return;
     }
-});
 
-test("data sources provider detail matches SOT product pixels", async ({
-    browser,
-    page,
-}, testInfo) => {
-    const sources = [
-        makeSource("dingtalk-a1", {
-            authMode: "device-signin",
-            authModes: ["device-signin"],
-            config: { syncTitleToSource: true },
-            connected: true,
-            displayName: "钉钉 闪记",
-            enabled: true,
-            secretsConfigured: { deviceCredential: true },
-        }),
-        makeSource("ticnote", {
-            baseUrl: "https://voice-api.ticnote.cn",
-            config: { region: "cn" },
-            displayName: "TicNote",
-            enabled: true,
-            secretsConfigured: { bearerToken: true },
-        }),
-        makeSource("plaud", {
-            displayName: "Plaud",
-        }),
-        makeSource("feishu-minutes", {
-            authMode: "oauth-device-flow",
-            authModes: ["oauth-device-flow", "web-reverse"],
-            displayName: "飞书妙记",
-        }),
-        makeSource("iflyrec", {
-            authMode: "session-header",
-            authModes: ["session-header"],
-            connected: true,
-            connectionStatus: "expired",
-            config: { bizId: "tjzs" },
-            displayName: "讯飞听见",
-            enabled: true,
-            secretsConfigured: { sessionHeader: true },
-        }),
-    ];
+    const {
+        reference: canonicalSotReference,
+        snapshot: canonicalSotReferenceBefore,
+    } = canonicalSotAudit;
+    assertCanonicalSotReferenceMatchesRecovery(canonicalSotReferenceBefore);
 
-    await page.route("**/api/data-sources", async (route) => {
-        if (route.request().method() !== "GET") {
-            await route.continue();
-            return;
-        }
-
-        await route.fulfill({
-            contentType: "application/json",
-            body: JSON.stringify({ sources }),
-        });
-    });
-
-    await ensureSignedIn(page);
-    await resetDisplayToChinese(page);
-    const section = await openDataSourcesSettings(page);
-    const sourceAssetDataUrls = await readSotSourceAssetDataUrls();
-
-    const dingtalkTile = section.locator(
-        '[data-sot-control="source-provider"][data-sot-provider="dingtalk-a1"]',
-    );
-    await dingtalkTile.click();
-    await expect(dingtalkTile).toHaveAttribute("data-state", "selected");
-    const productDetail = section.locator(
-        '[data-sot-panel="source-provider-detail"][data-sot-provider="dingtalk-a1"]',
-    );
-    await expect(productDetail).toBeVisible();
-
-    const sotIndexPage = await browser.newPage();
     try {
-        await openSotDataSourcesIndex(sotIndexPage);
-        await selectSotDataSourceProvider(sotIndexPage, "dingtalk-a1");
-        await expectSotFragmentPixelsMatch(
-            page,
-            testInfo,
-            sotIndexPage,
-            "data sources provider detail dingtalk connected",
-            sotIndexPage.locator("#ds-detail"),
-            sourceAssetDataUrls,
-            [],
-            PROVIDER_DETAIL_PIXEL_TOLERANCES,
-            productDetail,
+        await page.setViewportSize({ width: 1280, height: 720 });
+        await page.goto(canonicalSotReference.webIndexUrl, {
+            waitUntil: "load",
+        });
+
+        await page.getByRole("button", { name: "打开设置" }).click();
+        await page.locator('.sr-item[data-section="data-sources"]').click();
+
+        const dataSources = page.locator(
+            '.settings-main.three-pane[data-section="data-sources"]',
         );
+        const providers = dataSources.locator("#ds-providers .sp-card");
+        const detail = dataSources.locator("#ds-detail");
+
+        await expect(dataSources).toBeVisible();
+        await expect(dataSources).not.toHaveAttribute("aria-hidden", "true");
+        await expect(providers).toHaveCount(5);
+        await providers.filter({ hasText: "TicNote" }).click();
+        await expect(
+            detail.getByRole("heading", { name: "TicNote" }),
+        ).toBeVisible();
+        await expect(detail.locator("[data-ds-enable]")).toBeVisible();
+        await expect(detail.locator("[data-save-test]")).toBeVisible();
+        await expect(detail.locator("[data-save-action]")).toBeVisible();
+
+        const [providerBox, detailBox] = await Promise.all([
+            page.locator("#ds-providers").boundingBox(),
+            detail.boundingBox(),
+        ]);
+        expect(providerBox).not.toBeNull();
+        expect(detailBox).not.toBeNull();
+        expect(providerBox?.width).toBeGreaterThanOrEqual(280);
+        expect(detailBox?.x).toBeGreaterThan(providerBox?.x ?? 0);
+
+        const screenshot = await dataSources.screenshot();
+        await testInfo.attach("canonical-data-sources-ready.png", {
+            body: screenshot,
+            contentType: "image/png",
+        });
+        await testInfo.attach("canonical-data-sources-ready.json", {
+            body: Buffer.from(
+                JSON.stringify({
+                    manifestSha256: canonicalSotReferenceBefore.manifestSha256,
+                    providerCardCount: await providers.count(),
+                    selectedProvider: "TicNote",
+                    viewport: { height: 720, width: 1280 },
+                }),
+            ),
+            contentType: "application/json",
+        });
     } finally {
-        await sotIndexPage.close();
+        const canonicalSotReferenceAfter =
+            await snapshotCanonicalSotReference(canonicalSotReference);
+        assertCanonicalSotReferenceMatchesRecovery(canonicalSotReferenceAfter);
+        assertCanonicalSotReferenceUnchanged(
+            canonicalSotReferenceBefore,
+            canonicalSotReferenceAfter,
+        );
     }
 });
 
@@ -2288,16 +592,13 @@ test("data sources settings shows section-level load failure and retries", async
 
     failNextLoad = true;
     const section = await openDataSourcesSettings(page);
-    await expect(section).toHaveAttribute("data-sot-load-state", "error");
-    await expect(page.locator("[data-sot-panel=\"source-load-error\"]")).toContainText(
-        "数据源服务暂不可用",
-    );
+    await expect(section.getByRole("alert")).toContainText("数据源服务暂不可用");
 
-    const retry = page.locator('[data-sot-control="source-load-retry"]');
+    const retry = section.getByRole("button", { name: "重试" });
     await expect(retry).toBeVisible();
     await retry.click();
-    await expect(section).toHaveAttribute("data-sot-load-state", "ready");
-    await expect(page.locator('[data-sot-control="source-provider"][data-sot-provider="dingtalk-a1"]')).toBeVisible();
+    await expect(section).toHaveAttribute("aria-busy", "false");
+    await expect(sourceProviderButton(section, "dingtalk-a1")).toBeVisible();
 });
 
 test("data sources settings drives real backend forced save and expired states", async ({
@@ -2314,32 +615,22 @@ test("data sources settings drives real backend forced save and expired states",
         await seedExpiredDingTalkConnection(userId);
 
         const section = await openDataSourcesSettings(page);
-        const dingtalkRow = section.locator(
-            '[data-sot-control="source-provider"][data-sot-provider="dingtalk-a1"]',
-        );
-        await expect(dingtalkRow).toHaveAttribute(
-            "data-sot-status",
-            "expired",
-        );
+        const dingtalkRow = sourceProviderButton(section, "dingtalk-a1");
+        await expect(
+            sourceProviderStatus(dingtalkRow, "需要重新登录"),
+        ).toBeVisible();
         await dingtalkRow.click();
 
-        const dingtalkDetail = section.locator(
-            '[data-sot-panel="source-provider-detail"][data-sot-provider="dingtalk-a1"]',
-        );
-        await expect(dingtalkDetail).toHaveAttribute(
-            "data-sot-status",
-            "expired",
-        );
+        const dingtalkDetail = sourceProviderDetail(section, "dingtalk-a1");
         await expect(
-            dingtalkDetail.locator('[data-sot-panel="source-state-banner"]'),
-        ).toHaveAttribute("data-sot-tone", "warn");
+            sourceStateMessage(
+                dingtalkDetail,
+                "上游登录状态已过期，请更新登录信息后保存。",
+            ),
+        ).toBeVisible();
 
-        await section
-            .locator('[data-sot-control="source-provider"][data-sot-provider="ticnote"]')
-            .click();
-        const ticnoteDetail = section.locator(
-            '[data-sot-panel="source-provider-detail"][data-sot-provider="ticnote"]',
-        );
+        await sourceProviderButton(section, "ticnote").click();
+        const ticnoteDetail = sourceProviderDetail(section, "ticnote");
         await page
             .locator("#ticnote-source-secret")
             .fill("fake-real-backend-e2e-token");
@@ -2353,30 +644,19 @@ test("data sources settings drives real backend forced save and expired states",
         );
         await ticnoteSave.click();
         await saveSuccessResponse;
-        await expect(ticnoteDetail).toHaveAttribute(
-            "data-sot-action-state",
-            "saved",
-        );
-        await expect(ticnoteSave).toHaveAttribute("data-sot-state", "saved");
+        await expect(sourceStateMessage(ticnoteDetail, "已保存").first()).toBeVisible();
         await expect(ticnoteSave).toHaveAttribute("aria-busy", "false");
         await expect(
-            ticnoteDetail.locator('[data-sot-panel="source-state-banner"]'),
-        ).toHaveAttribute("data-sot-tone", "ok");
-        await expect(sourceActionFooter(ticnoteDetail, "ticnote")).toHaveAttribute(
-            "data-sot-state",
-            "saved",
-        );
-        await expect(sourceActionStatus(ticnoteDetail)).toContainText(
-            "已保存",
-        );
+            sourceStateMessage(
+                ticnoteDetail,
+                "连接信息已保存，稍后导入会使用最新设置。",
+            ),
+        ).toBeVisible();
+        await expect(sourceActionFooter(ticnoteDetail)).toBeVisible();
 
-        await section
-            .locator('[data-sot-control="source-provider"][data-sot-provider="iflyrec"]')
-            .click();
-        const iflyrecDetail = section.locator(
-            '[data-sot-panel="source-provider-detail"][data-sot-provider="iflyrec"]',
-        );
-        await sourceEnableSyncControl(page, "iflyrec").click();
+        await sourceProviderButton(section, "iflyrec").click();
+        const iflyrecDetail = sourceProviderDetail(section, "iflyrec");
+        await sourceEnableSyncControl(iflyrecDetail).click();
         const iflyrecSave = sourceSaveControl(iflyrecDetail);
         const saveErrorResponse = page.waitForResponse(
             (response) =>
@@ -2386,22 +666,16 @@ test("data sources settings drives real backend forced save and expired states",
         );
         await iflyrecSave.click();
         await saveErrorResponse;
-        await expect(iflyrecDetail).toHaveAttribute(
-            "data-sot-action-state",
-            "save-error",
-        );
-        await expect(iflyrecSave).toHaveAttribute("data-sot-state", "error");
         await expect(iflyrecSave).toHaveAttribute("aria-busy", "false");
         await expect(
-            iflyrecDetail.locator('[data-sot-panel="source-state-banner"]'),
-        ).toHaveAttribute("data-sot-tone", "err");
-        await expect(sourceActionFooter(iflyrecDetail, "iflyrec")).toHaveAttribute(
-            "data-sot-state",
-            "error",
-        );
-        await expect(sourceActionStatus(iflyrecDetail)).toContainText(
-            "保存失败",
-        );
+            sourceStateMessage(iflyrecDetail, "保存失败").first(),
+        ).toBeVisible();
+        await expect(
+            sourceStateMessage(
+                iflyrecDetail,
+                "保存失败，请检查连接信息后重试。",
+            ),
+        ).toBeVisible();
     } finally {
         await restoreForcedDataSourceConnections(
             userId,
@@ -2501,37 +775,19 @@ test("data sources settings tests missing details then saves a provider through 
     await resetDisplayToChinese(page);
     const section = await openDataSourcesSettings(page);
 
-    const ticnoteRow = section.locator('[data-sot-control="source-provider"][data-sot-provider="ticnote"]');
+    const ticnoteRow = sourceProviderButton(section, "ticnote");
     await ticnoteRow.click();
-    await expect(section).toHaveAttribute("data-sot-selected-provider", "ticnote");
     await expect(ticnoteRow).toHaveAttribute("aria-pressed", "true");
-    await expect(ticnoteRow).toHaveAttribute("data-sot-state", "selected");
-    await expect(
-        ticnoteRow.locator('[data-sot-part="source-provider-mark"]'),
-    ).toBeVisible();
 
-    const detail = section.locator('[data-sot-panel="source-provider-detail"][data-sot-provider="ticnote"]');
+    const detail = sourceProviderDetail(section, "ticnote");
     const sourceTest = sourceTestControl(detail);
     const sourceSave = sourceSaveControl(detail);
-    const actionStatus = sourceActionStatus(detail);
-    const actionFooter = sourceActionFooter(detail, "ticnote");
-    const stateBanner = detail.locator('[data-sot-panel="source-state-banner"]');
-    const ticnoteEnable = sourceEnableSyncControl(page, "ticnote");
+    const actionFooter = sourceActionFooter(detail);
+    const ticnoteEnable = sourceEnableSyncControl(detail);
     await expect(detail).toBeVisible();
-    await expect(detail).toHaveAttribute("data-sot-status", "needs-setup");
-    await expect(
-        detail.locator('[data-sot-part="source-provider-header"]'),
-    ).toBeVisible();
-    await expect(
-        detail.locator('[data-sot-part="source-provider-title"]'),
-    ).toContainText("TicNote");
-    await expect(detail.locator("[data-sot-status]")).toHaveAttribute(
-        "data-sot-tone",
-        /warn|neu/,
-    );
-    const ticnoteProviderFields = detail.locator(
-        '[data-sot-panel="source-provider-fields"]',
-    );
+    await expect(sourceProviderStatus(detail, "待设置")).toBeVisible();
+    await expect(detail.getByRole("heading", { name: "TicNote" })).toBeVisible();
+    const ticnoteProviderFields = detail;
     await expect(ticnoteProviderFields).toBeVisible();
     await expect(ticnoteProviderFields).toContainText(
         /站点版本[\s\S]*TicNote 访问凭证/,
@@ -2556,102 +812,71 @@ test("data sources settings tests missing details then saves a provider through 
     await expect(ticnoteCredential).toBeVisible();
     await expect(ticnoteCredential).toBeEnabled();
     await expect(actionFooter).toBeVisible();
-    await expect(detail.locator(".sm-detail-head")).toHaveCount(0);
-    await expect(detail.locator(".modal-foot")).toHaveCount(0);
-    await expect(sourceTest).toHaveAttribute("data-sot-state", "idle");
-    await expect(sourceSave).toHaveAttribute("data-sot-state", "idle");
-    await expect(actionFooter).toHaveAttribute("data-sot-state", "idle");
+    await expect(sourceTest).toHaveAttribute("aria-busy", "false");
+    await expect(sourceSave).toHaveAttribute("aria-busy", "false");
 
     await sourceTest.click();
-    await expect(detail).toHaveAttribute(
-        "data-sot-action-state",
-        "test-error",
-    );
-    await expect(ticnoteRow).toHaveAttribute("data-sot-status", "test-error");
-    await expect(stateBanner).toHaveAttribute("data-sot-tone", "err");
-    await expect(sourceTest).toHaveAttribute("data-sot-state", "error");
-    await expect(actionFooter).toHaveAttribute("data-sot-state", "idle");
     await expect(
-        stateBanner,
-    ).toContainText("信息不完整");
-    await expect(actionStatus).toContainText("信息不完整");
+        sourceStateMessage(detail, "信息不完整").first(),
+    ).toBeVisible();
+    await expect(
+        sourceStateMessage(detail, "请先补齐登录信息，再测试连接。"),
+    ).toBeVisible();
     await expect(sourceTest).toHaveAttribute("aria-busy", "false");
     await expect(sourceSave).toHaveAttribute("aria-busy", "false");
 
     await page.locator("#ticnote-source-secret").fill("fake-ticnote-token");
     await sourceTest.click();
     await testStarted;
-    const shell = page.locator('[data-sot-surface="settings-shell"]');
-    await expect(detail).toHaveAttribute(
-        "data-sot-action-state",
-        "testing",
-    );
-    await expect(ticnoteRow).toHaveAttribute("data-sot-status", "testing");
-    await expect(stateBanner).toHaveAttribute("data-sot-tone", "syncing");
-    await expect(sourceTest).toHaveAttribute("data-sot-state", "testing");
+    const shell = settingsShell(page);
+    await expect(sourceProviderStatus(ticnoteRow, "测试中")).toBeVisible();
+    await expect(sourceProviderStatus(detail, "测试中")).toBeVisible();
     await expect(sourceTest).toHaveAttribute("aria-busy", "true");
-    await expect(sourceSave).toHaveAttribute("data-sot-state", "disabled");
     await expect(sourceSave).toHaveAttribute("aria-busy", "false");
-    await expect(actionFooter).toHaveAttribute("data-sot-state", "disabled");
-    await expect(actionStatus).toContainText("测试中");
-    await expect(shell).toHaveAttribute("data-sot-busy", "true");
-    await expect(detail).toHaveAttribute(
-        "data-sot-interaction-disabled",
-        "true",
-    );
-    await expect(section.locator('[data-sot-control="source-provider"][data-sot-provider="plaud"]')).toBeDisabled();
+    await expect(sourceStateMessage(detail, "测试中").first()).toBeVisible();
+    await expect(shell).toHaveAttribute("aria-busy", "true");
+    await expect(detail).toHaveAttribute("aria-busy", "true");
+    const plaudProvider = sourceProviderButton(section, "plaud");
+    await expect(plaudProvider).toBeDisabled();
     await expect(
-        page.locator(
-            '[data-sot-control="settings-nav"][data-sot-section="appearance"]',
-        ),
+        settingsNavigation(page, "appearance"),
     ).toBeDisabled();
-    await expect(page.locator('[data-sot-control="settings-close"]')).toBeDisabled();
+    await expect(
+        shell.getByRole("button", { name: /^(关闭设置|Close settings)$/ }),
+    ).toBeDisabled();
     await page.keyboard.press("Escape");
     await expect(shell).toBeVisible();
-    await section
-        .locator('[data-sot-control="source-provider"][data-sot-provider="plaud"]')
-        .evaluate((node) => (node as HTMLButtonElement).click());
-    await expect(section).toHaveAttribute("data-sot-selected-provider", "ticnote");
+    await expect(ticnoteRow).toHaveAttribute("aria-pressed", "true");
     await expect(page.locator("#ticnote-source-secret")).toBeDisabled();
     await expect(ticnoteEnable).toBeDisabled();
-    await expect(ticnoteEnable).toHaveAttribute("data-sot-disabled", "true");
     await expect(sourceTest).toBeDisabled();
     await expect(sourceSave).toBeDisabled();
     expect(savePayload).toBeNull();
     releaseTest();
-    await expect(detail).toHaveAttribute(
-        "data-sot-action-state",
-        "test-success",
-    );
-    await expect(ticnoteRow).toHaveAttribute(
-        "data-sot-status",
-        "test-success",
-    );
-    await expect(stateBanner).toHaveAttribute("data-sot-tone", "ok");
-    await expect(sourceTest).toHaveAttribute("data-sot-state", "success");
+    await expect(sourceProviderStatus(ticnoteRow, "连接正常")).toBeVisible();
+    await expect(sourceProviderStatus(detail, "连接正常")).toBeVisible();
     await expect(sourceTest).toHaveAttribute("aria-busy", "false");
-    await expect(sourceSave).toHaveAttribute("data-sot-state", "idle");
     await expect(sourceSave).toHaveAttribute("aria-busy", "false");
-    await expect(actionFooter).toHaveAttribute("data-sot-state", "idle");
-    await expect(actionStatus).toContainText("连接测试通过");
-    await expect(detail).toHaveAttribute(
-        "data-sot-interaction-disabled",
-        "false",
-    );
-    await expect(shell).toHaveAttribute("data-sot-busy", "false");
-    await expect(section.locator('[data-sot-control="source-provider"][data-sot-provider="plaud"]')).toBeEnabled();
     await expect(
-        page.locator(
-            '[data-sot-control="settings-nav"][data-sot-section="appearance"]',
-        ),
+        sourceStateMessage(detail, "连接测试通过").first(),
+    ).toBeVisible();
+    await expect(shell).toHaveAttribute("aria-busy", "false");
+    await expect(detail).toHaveAttribute("aria-busy", "false");
+    await expect(plaudProvider).toBeEnabled();
+    await expect(
+        settingsNavigation(page, "appearance"),
     ).toBeEnabled();
-    await expect(page.locator('[data-sot-control="settings-close"]')).toBeEnabled();
+    await expect(
+        shell.getByRole("button", { name: /^(关闭设置|Close settings)$/ }),
+    ).toBeEnabled();
     await expect(page.locator("#ticnote-source-secret")).toBeEnabled();
     await expect(ticnoteEnable).toBeEnabled();
-    await expect(ticnoteEnable).toHaveAttribute("data-sot-disabled", "false");
     await expect(
-        detail.locator("[data-sot-panel=\"source-state-banner\"]"),
-    ).toContainText("连接测试通过");
+        sourceStateMessage(
+            detail,
+            "连接测试通过。测试不会保存当前连接信息。",
+        ),
+    ).toBeVisible();
     expect(testPayload).toMatchObject({
         authMode: "bearer",
         baseUrl: "https://voice-api.ticnote.cn",
@@ -2665,60 +890,35 @@ test("data sources settings tests missing details then saves a provider through 
     expect(savePayload).toBeNull();
 
     await ticnoteEnable.click();
-    await expectSotSwitchChecked(ticnoteEnable);
+    await expectSwitchChecked(ticnoteEnable);
 
     await sourceSave.click();
     await saveStarted;
-    await expect(detail).toHaveAttribute(
-        "data-sot-action-state",
-        "saving",
-    );
-    await expect(ticnoteRow).toHaveAttribute("data-sot-status", "saving");
-    await expect(stateBanner).toHaveAttribute("data-sot-tone", "syncing");
-    await expect(sourceTest).toHaveAttribute("data-sot-state", "disabled");
+    await expect(sourceProviderStatus(ticnoteRow, "保存中")).toBeVisible();
+    await expect(sourceProviderStatus(detail, "保存中")).toBeVisible();
     await expect(sourceTest).toHaveAttribute("aria-busy", "false");
-    await expect(sourceSave).toHaveAttribute("data-sot-state", "saving");
     await expect(sourceSave).toHaveAttribute("aria-busy", "true");
-    await expect(actionFooter).toHaveAttribute("data-sot-state", "saving");
-    await expect(actionStatus).toContainText("保存中");
-    await expect(shell).toHaveAttribute("data-sot-busy", "true");
-    await expect(detail).toHaveAttribute(
-        "data-sot-interaction-disabled",
-        "true",
-    );
-    await expect(section.locator('[data-sot-control="source-provider"][data-sot-provider="plaud"]')).toBeDisabled();
-    await section
-        .locator('[data-sot-control="source-provider"][data-sot-provider="plaud"]')
-        .evaluate((node) => (node as HTMLButtonElement).click());
-    await expect(section).toHaveAttribute("data-sot-selected-provider", "ticnote");
+    await expect(sourceStateMessage(detail, "保存中").first()).toBeVisible();
+    await expect(shell).toHaveAttribute("aria-busy", "true");
+    await expect(detail).toHaveAttribute("aria-busy", "true");
+    await expect(plaudProvider).toBeDisabled();
+    await expect(ticnoteRow).toHaveAttribute("aria-pressed", "true");
     await expect(page.locator("#ticnote-source-secret")).toBeDisabled();
     await expect(ticnoteEnable).toBeDisabled();
-    await expect(ticnoteEnable).toHaveAttribute("data-sot-disabled", "true");
     await expect(sourceTest).toBeDisabled();
     await expect(sourceSave).toBeDisabled();
     releaseSave();
 
-    await expect(detail).toHaveAttribute("data-sot-action-state", "saved");
-    await expect(sourceTest).toHaveAttribute("data-sot-state", "idle");
     await expect(sourceTest).toHaveAttribute("aria-busy", "false");
-    await expect(sourceSave).toHaveAttribute("data-sot-state", "saved");
     await expect(sourceSave).toHaveAttribute("aria-busy", "false");
-    await expect(actionFooter).toHaveAttribute("data-sot-state", "saved");
-    await expect(stateBanner).toHaveAttribute("data-sot-tone", "ok");
-    await expect(actionStatus).toContainText("已保存");
-    await expect(detail).toHaveAttribute(
-        "data-sot-interaction-disabled",
-        "false",
-    );
-    await expect(shell).toHaveAttribute("data-sot-busy", "false");
-    await expect(section.locator('[data-sot-control="source-provider"][data-sot-provider="plaud"]')).toBeEnabled();
-    await expect(detail).toHaveAttribute("data-sot-status", "saved");
-    await expect(ticnoteRow).toHaveAttribute("data-sot-status", "saved");
-    await expect(ticnoteRow).toHaveAttribute(
-        "data-sot-status",
-        "connected",
-        { timeout: 4_000 },
-    );
+    await expect(sourceStateMessage(detail, "已保存").first()).toBeVisible();
+    await expect(shell).toHaveAttribute("aria-busy", "false");
+    await expect(detail).toHaveAttribute("aria-busy", "false");
+    await expect(plaudProvider).toBeEnabled();
+    await expect(sourceProviderStatus(detail, "连接正常")).toBeVisible();
+    await expect(sourceProviderStatus(ticnoteRow, "已连接")).toBeVisible({
+        timeout: 4_000,
+    });
     expect(savePayload).toMatchObject({
         authMode: "bearer",
         baseUrl: "https://voice-api.ticnote.cn",
@@ -2788,25 +988,17 @@ test("data sources settings keeps Plaud non-JSON test failures visible in the SO
     await resetDisplayToChinese(page);
     const section = await openDataSourcesSettings(page);
 
-    await section
-        .locator('[data-sot-control="source-provider"][data-sot-provider="plaud"]')
-        .click();
-    const plaudDetail = section.locator(
-        '[data-sot-panel="source-provider-detail"][data-sot-provider="plaud"]',
-    );
-    const sourceTest = plaudDetail.locator('[data-sot-control="source-test"]');
+    await sourceProviderButton(section, "plaud").click();
+    const plaudDetail = sourceProviderDetail(section, "plaud");
+    const sourceTest = sourceTestControl(plaudDetail);
 
     await page.locator("#plaud-source-secret").fill("Bearer e2e-plaud-token");
     await sourceTest.click();
 
-    await expect(plaudDetail).toHaveAttribute(
-        "data-sot-action-state",
-        "test-error",
-    );
-    await expect(sourceTest).toHaveAttribute("data-sot-state", "error");
     await expect(
-        plaudDetail.locator('[data-sot-panel="source-state-banner"]'),
-    ).toContainText("测试数据源连接失败");
+        sourceStateMessage(plaudDetail, "测试数据源连接失败"),
+    ).toBeVisible();
+    await expect(sourceTest).toHaveAttribute("aria-busy", "false");
     await expect(page.locator("#plaud-source-secret")).toBeEnabled();
 });
 
@@ -2842,44 +1034,34 @@ test("data sources settings keeps save failures scoped and editable", async ({
     await ensureSignedIn(page);
     await resetDisplayToChinese(page);
     const section = await openDataSourcesSettings(page);
-    const detail = section.locator('[data-sot-panel="source-provider-detail"][data-sot-provider="ticnote"]');
+    const detail = sourceProviderDetail(section, "ticnote");
     const sourceSave = sourceSaveControl(detail);
     const sourceTest = sourceTestControl(detail);
-    const actionStatus = sourceActionStatus(detail);
-    const actionFooter = sourceActionFooter(detail, "ticnote");
-    const stateBanner = detail.locator('[data-sot-panel="source-state-banner"]');
-    const ticnoteRow = section.locator('[data-sot-control="source-provider"][data-sot-provider="ticnote"]');
-    const ticnoteEnable = sourceEnableSyncControl(page, "ticnote");
+    const actionFooter = sourceActionFooter(detail);
+    const ticnoteRow = sourceProviderButton(section, "ticnote");
+    const ticnoteEnable = sourceEnableSyncControl(detail);
 
     await page.locator("#ticnote-source-secret").fill("failed-save-token");
     await ticnoteEnable.click();
     await sourceSave.click();
 
-    await expect(detail).toHaveAttribute(
-        "data-sot-action-state",
-        "save-error",
-    );
-    await expect(sourceSave).toHaveAttribute("data-sot-state", "error");
-    await expect(actionFooter).toHaveAttribute("data-sot-state", "error");
-    await expect(ticnoteRow).toHaveAttribute("data-sot-status", "save-error");
-    await expect(stateBanner).toHaveAttribute("data-sot-tone", "err");
     await expect(sourceSave).toHaveAttribute("aria-busy", "false");
-    await expect(sourceTest).toHaveAttribute("data-sot-state", "idle");
     await expect(sourceTest).toHaveAttribute("aria-busy", "false");
-    await expect(actionStatus).toContainText("保存失败");
-    await expect(detail).toHaveAttribute(
-        "data-sot-interaction-disabled",
-        "false",
-    );
     await expect(
-        stateBanner,
-    ).toContainText("保存失败");
+        sourceStateMessage(detail, "保存失败").first(),
+    ).toBeVisible();
+    await expect(
+        sourceStateMessage(detail, "保存失败，请检查连接信息后重试。"),
+    ).toBeVisible();
+    await expect(actionFooter).toBeVisible();
+    await expect(sourceProviderStatus(ticnoteRow, "需要处理")).toBeVisible();
+    await expect(detail).toHaveAttribute("aria-busy", "false");
     await expect(page.locator("#ticnote-source-secret")).toBeEnabled();
     await expect(page.locator("#ticnote-source-secret")).toHaveValue(
         "failed-save-token",
     );
     await expect(ticnoteEnable).toBeEnabled();
-    await expectSotSwitchChecked(ticnoteEnable);
+    await expectSwitchChecked(ticnoteEnable);
     expect(savePayload).toMatchObject({
         enabled: true,
         provider: "ticnote",
@@ -2933,32 +1115,26 @@ test("data sources settings masks sensitive fields and preserves pasted sign-in 
     await resetDisplayToChinese(page);
     const section = await openDataSourcesSettings(page);
 
-    await section.locator('[data-sot-control="source-provider"][data-sot-provider="ticnote"]').click();
-    const ticnoteDetail = section.locator('[data-sot-panel="source-provider-detail"][data-sot-provider="ticnote"]');
+    await sourceProviderButton(section, "ticnote").click();
+    const ticnoteDetail = sourceProviderDetail(section, "ticnote");
     const ticnoteSecret = page.locator("#ticnote-source-secret");
     await expect(ticnoteSecret).toHaveAttribute("type", "password");
     await ticnoteSecret.fill("stale-token");
     await pasteTextIntoInput(ticnoteSecret, "Bearer pasted-data-source-token");
     await expect(ticnoteSecret).toHaveValue("Bearer pasted-data-source-token");
 
-    await ticnoteDetail.locator("[data-sot-control=\"source-test\"]").click();
-    await expect(ticnoteDetail).toHaveAttribute(
-        "data-sot-action-state",
-        "test-success",
-    );
+    await sourceTestControl(ticnoteDetail).click();
+    await expect(
+        sourceStateMessage(ticnoteDetail, "连接测试通过").first(),
+    ).toBeVisible();
     expect(testPayloads.at(-1)).toMatchObject({
         provider: "ticnote",
         secrets: { bearerToken: "pasted-data-source-token" },
     });
 
-    await section.locator('[data-sot-control="source-provider"][data-sot-provider="feishu-minutes"]').click();
-    const feishuDetail = section.locator(
-        '[data-sot-panel="source-provider-detail"][data-sot-provider="feishu-minutes"]',
-    );
-    await expect(
-        feishuDetail.locator('[data-sot-list="source-auth-modes"]'),
-    ).toBeVisible();
-    await feishuDetail.locator('[data-sot-control="source-auth-mode"][data-sot-auth-mode="web-reverse"]').click();
+    await sourceProviderButton(section, "feishu-minutes").click();
+    const feishuDetail = sourceProviderDetail(section, "feishu-minutes");
+    await sourceAuthModeControl(feishuDetail, /网页登录信息/).click();
 
     const webCookieInput = page.locator("#feishu-minutes-source-web-cookie");
     const webTokenInput = page.locator("#feishu-minutes-source-web-token");
@@ -2977,11 +1153,10 @@ test("data sources settings masks sensitive fields and preserves pasted sign-in 
     );
     await expect(webTokenInput).toHaveValue("x-minutes-pasted-token");
 
-    await feishuDetail.locator("[data-sot-control=\"source-test\"]").click();
-    await expect(feishuDetail).toHaveAttribute(
-        "data-sot-action-state",
-        "test-success",
-    );
+    await sourceTestControl(feishuDetail).click();
+    await expect(
+        sourceStateMessage(feishuDetail, "连接测试通过").first(),
+    ).toBeVisible();
     expect(testPayloads.at(-1)).toMatchObject({
         authMode: "web-reverse",
         provider: "feishu-minutes",
@@ -3049,79 +1224,59 @@ test("data sources settings keeps responsive provider states and disabled action
     await ensureSignedIn(page);
     await resetDisplayToChinese(page);
     await page.goto("/settings#appearance", { waitUntil: "domcontentloaded" });
-    const shell = page.locator('[data-sot-surface="settings-shell"]');
-    await expect(shell).toHaveAttribute(
-        "data-sot-section",
-        "appearance",
+    const shell = settingsShell(page);
+    await expect(shell).toBeVisible();
+    await expect(settingsNavigation(page, "appearance")).toHaveAttribute(
+        "aria-current",
+        "page",
     );
 
-    await page
-        .locator(
-            '[data-sot-control="settings-nav"][data-sot-section="data-sources"]',
-        )
-        .click();
+    await settingsNavigation(page, "data-sources").click();
     await expect(page).toHaveURL(/\/settings#data-sources$/);
-    const section = page.locator(
-        '[data-sot-surface="settings-data-sources"]',
-    );
+    const section = dataSourcesSection(page);
     await expect(section).toBeVisible();
-
-    const shellHeight = await page
-        .locator('[data-sot-surface="settings-shell"]')
-        .evaluate((node) => node.getBoundingClientRect().height);
-    await section
-        .locator('[data-sot-panel="source-provider-detail"]')
-        .last()
-        .hover();
-    await page.mouse.wheel(0, 900);
-    await expect(shell).toHaveAttribute(
-        "data-sot-section",
-        "data-sources",
+    await expect(settingsNavigation(page, "data-sources")).toHaveAttribute(
+        "aria-current",
+        "page",
     );
-    const shellHeightAfterScroll = await page
-        .locator('[data-sot-surface="settings-shell"]')
-        .evaluate((node) => node.getBoundingClientRect().height);
+
+    const shellHeight = await shell.evaluate(
+        (node) => node.getBoundingClientRect().height,
+    );
+    const expiredProvider = sourceProviderButton(section, "dingtalk-a1");
+    await expiredProvider.click();
+    const expiredDetail = sourceProviderDetail(section, "dingtalk-a1");
+    await expiredDetail.hover();
+    await page.mouse.wheel(0, 900);
+    await expect(settingsNavigation(page, "data-sources")).toHaveAttribute(
+        "aria-current",
+        "page",
+    );
+    const shellHeightAfterScroll = await shell.evaluate(
+        (node) => node.getBoundingClientRect().height,
+    );
     expect(Math.abs(shellHeightAfterScroll - shellHeight)).toBeLessThan(2);
 
-    const expiredProvider = section.locator('[data-sot-control="source-provider"][data-sot-provider="dingtalk-a1"]');
-    await expect(expiredProvider).toHaveAttribute("data-sot-status", "expired");
-    await expiredProvider.click();
-    const expiredDetail = section.locator('[data-sot-panel="source-provider-detail"][data-sot-provider="dingtalk-a1"]');
-    await expect(expiredDetail).toHaveAttribute(
-        "data-sot-status",
-        "expired",
-    );
     await expect(
-        expiredDetail.locator("[data-sot-panel=\"source-state-banner\"]"),
-    ).toContainText("需要重新登录");
+        sourceProviderStatus(expiredProvider, "需要重新登录"),
+    ).toBeVisible();
+    await expect(
+        sourceStateMessage(
+            expiredDetail,
+            "上游登录状态已过期，请更新登录信息后保存。",
+        ),
+    ).toBeVisible();
 
-    await section.locator('[data-sot-control="source-provider"][data-sot-provider="plaud"]').click();
-    await expect(section.locator('[data-sot-panel="source-provider-detail"][data-sot-provider="plaud"]')).toHaveAttribute(
-        "data-sot-status",
-        "paused",
-    );
+    await sourceProviderButton(section, "plaud").click();
+    await expect(
+        sourceProviderStatus(sourceProviderDetail(section, "plaud"), "同步已暂停"),
+    ).toBeVisible();
 
-    await section.locator('[data-sot-control="source-provider"][data-sot-provider="feishu-minutes"]').click();
-    const plannedDetail = section.locator(
-        '[data-sot-panel="source-provider-detail"][data-sot-provider="feishu-minutes"]',
-    );
-    await expect(plannedDetail).toHaveAttribute("data-sot-status", "planned");
-    await expect(plannedDetail).toHaveAttribute(
-        "data-sot-interaction-disabled",
-        "true",
-    );
-    await expect(
-        plannedDetail.locator("[data-sot-control=\"source-test\"]"),
-    ).toBeDisabled();
-    await expect(
-        sourceTestControl(plannedDetail),
-    ).toHaveAttribute("data-sot-state", "disabled");
-    await expect(
-        sourceSaveControl(plannedDetail),
-    ).toBeDisabled();
-    await expect(
-        sourceSaveControl(plannedDetail),
-    ).toHaveAttribute("data-sot-state", "disabled");
+    await sourceProviderButton(section, "feishu-minutes").click();
+    const plannedDetail = sourceProviderDetail(section, "feishu-minutes");
+    await expect(sourceProviderStatus(plannedDetail, "即将支持")).toBeVisible();
+    await expect(sourceTestControl(plannedDetail)).toBeDisabled();
+    await expect(sourceSaveControl(plannedDetail)).toBeDisabled();
 });
 
 test("data sources settings switches Feishu sign-in methods without saving test payloads", async ({
@@ -3188,25 +1343,23 @@ test("data sources settings switches Feishu sign-in methods without saving test 
     await resetDisplayToChinese(page);
     const section = await openDataSourcesSettings(page);
 
-    await section.locator('[data-sot-control="source-provider"][data-sot-provider="feishu-minutes"]').click();
-    await expect(section).toHaveAttribute(
-        "data-sot-selected-provider",
-        "feishu-minutes",
-    );
+    const feishuProvider = sourceProviderButton(section, "feishu-minutes");
+    await feishuProvider.click();
+    await expect(feishuProvider).toHaveAttribute("aria-pressed", "true");
 
-    const detail = section.locator('[data-sot-panel="source-provider-detail"][data-sot-provider="feishu-minutes"]');
-    await expect(
-        detail.locator('[data-sot-list="source-auth-modes"]'),
-    ).toBeVisible();
-    const oauthModeButton = detail.locator(
-        '[data-sot-control="source-auth-mode"][data-sot-auth-mode="oauth-device-flow"]',
-    );
-    const webReverseModeButton = detail.locator(
-        '[data-sot-control="source-auth-mode"][data-sot-auth-mode="web-reverse"]',
+    const detail = sourceProviderDetail(section, "feishu-minutes");
+    const authModeGroup = detail.getByRole("radiogroup", {
+        name: "选择登录方式",
+    });
+    const oauthModeControl = sourceAuthModeControl(detail, /开放平台授权/);
+    const webReverseModeControl = sourceAuthModeControl(
+        detail,
+        /网页登录信息/,
     );
     await expect(detail).toBeVisible();
-    await expect(oauthModeButton).toHaveAttribute("data-sot-state", "selected");
-    await expect(webReverseModeButton).toHaveAttribute("data-sot-state", "idle");
+    await expect(authModeGroup).toBeVisible();
+    await expect(oauthModeControl).toBeChecked();
+    await expect(webReverseModeControl).not.toBeChecked();
     await expect(page.locator("#feishu-minutes-base-url")).toHaveValue(
         "https://open.feishu.cn",
     );
@@ -3225,11 +1378,10 @@ test("data sources settings switches Feishu sign-in methods without saving test 
     await page
         .locator("#feishu-minutes-source-secret")
         .fill("u-e2e-open-platform-token");
-    await detail.locator("[data-sot-control=\"source-test\"]").click();
-    await expect(detail).toHaveAttribute(
-        "data-sot-action-state",
-        "test-success",
-    );
+    await sourceTestControl(detail).click();
+    await expect(
+        sourceStateMessage(detail, "连接测试通过").first(),
+    ).toBeVisible();
     expect(testPayloads).toHaveLength(1);
     expect(testPayloads[0]).toMatchObject({
         authMode: "oauth-device-flow",
@@ -3241,12 +1393,9 @@ test("data sources settings switches Feishu sign-in methods without saving test 
     });
     expect(savePayload).toBeNull();
 
-    await webReverseModeButton.click();
-    await expect(oauthModeButton).toHaveAttribute("data-sot-state", "idle");
-    await expect(webReverseModeButton).toHaveAttribute(
-        "data-sot-state",
-        "selected",
-    );
+    await webReverseModeControl.click();
+    await expect(oauthModeControl).not.toBeChecked();
+    await expect(webReverseModeControl).toBeChecked();
     await expect(page.locator("#feishu-minutes-base-url")).toHaveValue(
         "https://meetings.feishu.cn",
     );
@@ -3262,11 +1411,10 @@ test("data sources settings switches Feishu sign-in methods without saving test 
     await page
         .locator("#feishu-minutes-source-web-token")
         .fill("x-minutes-e2e-token");
-    await detail.locator("[data-sot-control=\"source-test\"]").click();
-    await expect(detail).toHaveAttribute(
-        "data-sot-action-state",
-        "test-success",
-    );
+    await sourceTestControl(detail).click();
+    await expect(
+        sourceStateMessage(detail, "连接测试通过").first(),
+    ).toBeVisible();
     expect(testPayloads).toHaveLength(2);
     expect(testPayloads[1]).toMatchObject({
         authMode: "web-reverse",
@@ -3367,14 +1515,11 @@ test("data sources settings saves pause and reconnect lifecycle states", async (
     await resetDisplayToChinese(page);
     const section = await openDataSourcesSettings(page);
 
-    await section.locator('[data-sot-control="source-provider"][data-sot-provider="plaud"]').click();
-    const plaudDetail = section.locator('[data-sot-panel="source-provider-detail"][data-sot-provider="plaud"]');
-    await expect(plaudDetail).toHaveAttribute(
-        "data-sot-status",
-        "connected",
-    );
-    await sourceEnableSyncControl(page, "plaud").click();
-    await expect(sourceActionFooter(plaudDetail, "plaud")).toBeVisible();
+    await sourceProviderButton(section, "plaud").click();
+    const plaudDetail = sourceProviderDetail(section, "plaud");
+    await expect(sourceProviderStatus(plaudDetail, "已连接")).toBeVisible();
+    await sourceEnableSyncControl(plaudDetail).click();
+    await expect(sourceActionFooter(plaudDetail)).toBeVisible();
     await sourceSaveControl(plaudDetail).click();
     await expect
         .poll(() => savePayloads.at(-1)?.provider)
@@ -3383,28 +1528,25 @@ test("data sources settings saves pause and reconnect lifecycle states", async (
         enabled: false,
         provider: "plaud",
     });
-    await expect(plaudDetail).toHaveAttribute(
-        "data-sot-status",
-        "paused",
-        { timeout: 5_000 },
-    );
-    await expect(section.locator('[data-sot-control="source-provider"][data-sot-provider="plaud"]')).toHaveAttribute(
-        "data-sot-status",
-        "paused",
-    );
+    await expect(
+        sourceProviderStatus(plaudDetail, "同步已暂停"),
+    ).toBeVisible({ timeout: 5_000 });
+    await expect(
+        sourceProviderStatus(
+            sourceProviderButton(section, "plaud"),
+            "同步已暂停",
+        ),
+    ).toBeVisible();
 
-    await section.locator('[data-sot-control="source-provider"][data-sot-provider="dingtalk-a1"]').click();
-    const dingtalkDetail = section.locator(
-        '[data-sot-panel="source-provider-detail"][data-sot-provider="dingtalk-a1"]',
-    );
-    await expect(dingtalkDetail).toHaveAttribute(
-        "data-sot-status",
-        "expired",
-    );
+    await sourceProviderButton(section, "dingtalk-a1").click();
+    const dingtalkDetail = sourceProviderDetail(section, "dingtalk-a1");
+    await expect(
+        sourceProviderStatus(dingtalkDetail, "需要重新登录"),
+    ).toBeVisible();
     await page
         .locator("#dingtalk-a1-source-secret")
         .fill("dt-meeting-agent-token-e2e");
-    await expect(sourceActionFooter(dingtalkDetail, "dingtalk-a1")).toBeVisible();
+    await expect(sourceActionFooter(dingtalkDetail)).toBeVisible();
     await sourceSaveControl(dingtalkDetail).click();
     await expect
         .poll(() => savePayloads.at(-1)?.provider)
@@ -3416,14 +1558,15 @@ test("data sources settings saves pause and reconnect lifecycle states", async (
         provider: "dingtalk-a1",
         secrets: { deviceCredential: "dt-meeting-agent-token-e2e" },
     });
-    await expect(dingtalkDetail).toHaveAttribute(
-        "data-sot-status",
-        "connected",
-        { timeout: 5_000 },
-    );
     await expect(
-        section.locator('[data-sot-control="source-provider"][data-sot-provider="dingtalk-a1"]'),
-    ).toHaveAttribute("data-sot-status", "connected");
+        sourceProviderStatus(dingtalkDetail, "已连接"),
+    ).toBeVisible({ timeout: 5_000 });
+    await expect(
+        sourceProviderStatus(
+            sourceProviderButton(section, "dingtalk-a1"),
+            "已连接",
+        ),
+    ).toBeVisible();
 });
 
 test("data sources settings keeps provider selector usable and private fields scoped", async ({
@@ -3482,12 +1625,8 @@ test("data sources settings keeps provider selector usable and private fields sc
     await resetDisplayToChinese(page);
     const section = await openDataSourcesSettings(page);
 
-    await section
-        .locator('[data-sot-control="source-provider"][data-sot-provider="plaud"]')
-        .click();
-    const plaudDetail = section.locator(
-        '[data-sot-panel="source-provider-detail"][data-sot-provider="plaud"]',
-    );
+    await sourceProviderButton(section, "plaud").click();
+    const plaudDetail = sourceProviderDetail(section, "plaud");
     await expect(plaudDetail).toBeVisible();
     const plaudServerSelect = plaudDetail.getByRole("combobox", {
         name: "站点版本",
@@ -3502,33 +1641,29 @@ test("data sources settings keeps provider selector usable and private fields sc
     });
     await expect(page.locator("#plaud-source-custom-api-base")).toBeVisible();
 
-    await section.locator('[data-sot-control="source-provider"][data-sot-provider="feishu-minutes"]').click();
-    const feishuDetail = section.locator(
-        '[data-sot-panel="source-provider-detail"][data-sot-provider="feishu-minutes"]',
-    );
-    await feishuDetail.locator('[data-sot-control="source-auth-mode"][data-sot-auth-mode="web-reverse"]').click();
+    await sourceProviderButton(section, "feishu-minutes").click();
+    const feishuDetail = sourceProviderDetail(section, "feishu-minutes");
+    await sourceAuthModeControl(feishuDetail, /网页登录信息/).click();
     await expect(page.locator("#feishu-minutes-source-web-cookie")).toBeVisible();
     await expect(page.locator("#feishu-minutes-source-web-token")).toBeVisible();
 
-    await page
-        .locator(
-            '[data-sot-control="settings-nav"][data-sot-section="appearance"]',
-        )
-        .click();
-    await expect(
-        page.locator('[data-sot-surface="settings-data-sources"]'),
-    ).toHaveCount(0);
+    await settingsNavigation(page, "appearance").click();
+    await expect(settingsNavigation(page, "appearance")).toHaveAttribute(
+        "aria-current",
+        "page",
+    );
+    await expect(dataSourcesSection(page)).toBeHidden();
     await expect(page.getByText("飞书妙记")).toHaveCount(0);
     await expect(page.getByText("Cookie")).toHaveCount(0);
     await expect(page.getByText("user_access_token")).toHaveCount(0);
     await expect(page.getByText("X-Feishu-Minutes-Token")).toHaveCount(0);
 
-    await page
-        .locator('[data-sot-control="settings-nav"][data-sot-section="misc"]')
-        .click();
-    await expect(
-        page.locator('[data-sot-surface="settings-data-sources"]'),
-    ).toHaveCount(0);
+    await settingsNavigation(page, "misc").click();
+    await expect(settingsNavigation(page, "misc")).toHaveAttribute(
+        "aria-current",
+        "page",
+    );
+    await expect(dataSourcesSection(page)).toBeHidden();
     await expect(page.getByText("飞书妙记")).toHaveCount(0);
     await expect(page.getByText("Cookie")).toHaveCount(0);
     await expect(page.getByText("user_access_token")).toHaveCount(0);
@@ -3599,11 +1734,12 @@ test("data sources settings restores external provider selection and shows test 
     });
     await page.goto("/settings#data-sources", { waitUntil: "domcontentloaded" });
 
-    const section = page.locator(
-        '[data-sot-surface="settings-data-sources"]',
-    );
+    const section = dataSourcesSection(page);
     await expect(section).toBeVisible();
-    await expect(section).toHaveAttribute("data-sot-selected-provider", "iflyrec");
+    await expect(sourceProviderButton(section, "iflyrec")).toHaveAttribute(
+        "aria-pressed",
+        "true",
+    );
     await expect
         .poll(() =>
             page.evaluate(() =>
@@ -3612,17 +1748,19 @@ test("data sources settings restores external provider selection and shows test 
         )
         .toBe("iflyrec");
 
-    const detail = section.locator('[data-sot-panel="source-provider-detail"][data-sot-provider="iflyrec"]');
-    await expect(detail).toHaveAttribute("data-sot-status", "needs-setup");
+    const detail = sourceProviderDetail(section, "iflyrec");
+    await expect(sourceProviderStatus(detail, "待设置")).toBeVisible();
     await page.locator("#iflyrec-source-secret").fill("iflyrec-session-e2e");
-    const sourceTest = detail.locator('[data-sot-control="source-test"]');
+    const sourceTest = sourceTestControl(detail);
     await sourceTest.click();
-    await expect(detail).toHaveAttribute(
-        "data-sot-action-state",
-        "test-error",
-    );
-    await expect(sourceTest).toHaveAttribute("data-sot-state", "error");
     await expect(
-        detail.locator("[data-sot-panel=\"source-state-banner\"]"),
-    ).toContainText("连接服务暂不可用");
+        sourceStateMessage(detail, "连接服务暂不可用"),
+    ).toBeVisible();
+});
+
+test("UNPROVEN: canonical Data Sources visual equivalence for backend states", () => {
+    test.skip(
+        true,
+        "UNPROVEN: the immutable canonical handoff has only a ready-state Data Sources render. It has no API-derived reference for load failure/retry, testing, save success/failure, expired, planned, or paused backend states. This remains an explicit visual-evidence gap, not a parity pass; any representable product-versus-SOT mismatch must still fail.",
+    );
 });
