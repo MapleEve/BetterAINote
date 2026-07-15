@@ -9,9 +9,43 @@ import {
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const SOURCE_REPORT_ROOT = path.join(ROOT, "features/source-report");
+const RECOVERED_CANONICAL_SOT_REFERENCE_ROOT =
+    "/Users/maplec5/Documents/GitHub/BetterAINote/tmp/betterainote-design-evidence/handoff-20260715-094949/betterainote-design-system";
+const OLD_CANONICAL_SOT_REFERENCE_ROOT =
+    "/Users/maplec5/Documents/GitHub/BetterAINote/tmp/betterainote-design-evidence/handoff-20260531/betterainote-design-system";
+const RECOVERED_CANONICAL_SOT_SNAPSHOT = {
+    fileCount: 182,
+    manifestSha256:
+        "ce2ace3745e94538deb145268da21cf0015faec90460aa0a2605508360fa82c7",
+};
 
 function read(relativePath: string) {
     return readFileSync(path.join(ROOT, relativePath), "utf8");
+}
+
+async function withCanonicalSotReferenceRoot<T>(
+    configuredRoot: string | undefined,
+    callback: () => Promise<T>,
+) {
+    const previousCanonicalSotReferenceRoot =
+        process.env[CANONICAL_SOT_REFERENCE_ROOT_ENV];
+
+    if (configuredRoot === undefined) {
+        delete process.env[CANONICAL_SOT_REFERENCE_ROOT_ENV];
+    } else {
+        process.env[CANONICAL_SOT_REFERENCE_ROOT_ENV] = configuredRoot;
+    }
+
+    try {
+        return await callback();
+    } finally {
+        if (previousCanonicalSotReferenceRoot === undefined) {
+            delete process.env[CANONICAL_SOT_REFERENCE_ROOT_ENV];
+        } else {
+            process.env[CANONICAL_SOT_REFERENCE_ROOT_ENV] =
+                previousCanonicalSotReferenceRoot;
+        }
+    }
 }
 
 function boundedSlice(source: string, start: string, end: string) {
@@ -160,33 +194,46 @@ describe("source report framework integration", () => {
         );
     });
 
-    it("rejects the repository fixture as canonical source report evidence", async () => {
-        const previousCanonicalSotReferenceRoot =
-            process.env[CANONICAL_SOT_REFERENCE_ROOT_ENV];
-        process.env[CANONICAL_SOT_REFERENCE_ROOT_ENV] = path.join(
-            ROOT,
-            "..",
-            "e2e",
-            "fixtures",
-        );
-
-        try {
+    it("returns explicit UNPROVEN evidence when the canonical SOT root is unset", async () => {
+        await withCanonicalSotReferenceRoot(undefined, async () => {
             await expect(
                 resolveVerifiedCanonicalSotReference(),
-            ).resolves.toMatchObject({
+            ).resolves.toEqual({
                 available: false,
-                reason: expect.stringContaining(
-                    "must resolve to the required canonical handoff root",
-                ),
+                reason: "UNPROVEN: canonical audit skipped because BETTERAINOTE_CANONICAL_SOT_REFERENCE_ROOT is not set.",
             });
-        } finally {
-            if (previousCanonicalSotReferenceRoot === undefined) {
-                delete process.env[CANONICAL_SOT_REFERENCE_ROOT_ENV];
-            } else {
-                process.env[CANONICAL_SOT_REFERENCE_ROOT_ENV] =
-                    previousCanonicalSotReferenceRoot;
-            }
-        }
+        });
+    });
+
+    it("accepts the recovered canonical SOT handoff with its exact manifest", async () => {
+        await withCanonicalSotReferenceRoot(
+            RECOVERED_CANONICAL_SOT_REFERENCE_ROOT,
+            async () => {
+                await expect(
+                    resolveVerifiedCanonicalSotReference(),
+                ).resolves.toMatchObject({
+                    available: true,
+                    reference: {
+                        root: RECOVERED_CANONICAL_SOT_REFERENCE_ROOT,
+                    },
+                    snapshot: RECOVERED_CANONICAL_SOT_SNAPSHOT,
+                });
+            },
+        );
+    });
+
+    it("marks the old canonical SOT handoff as explicit UNPROVEN evidence", async () => {
+        await withCanonicalSotReferenceRoot(
+            OLD_CANONICAL_SOT_REFERENCE_ROOT,
+            async () => {
+                await expect(
+                    resolveVerifiedCanonicalSotReference(),
+                ).resolves.toEqual({
+                    available: false,
+                    reason: "UNPROVEN: canonical audit skipped because BETTERAINOTE_CANONICAL_SOT_REFERENCE_ROOT does not match the verified 182-file handoff manifest.",
+                });
+            },
+        );
     });
 
     it("keeps every exported source report primitive connected to live composition", () => {

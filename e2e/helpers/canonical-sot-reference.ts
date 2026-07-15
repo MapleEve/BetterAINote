@@ -12,11 +12,9 @@ const CANONICAL_SOT_WEB_INDEX_SEGMENTS = [
     "web",
     "index.html",
 ] as const;
-const EXPECTED_CANONICAL_SOT_REFERENCE_ROOT =
-    "/Users/maplec5/Documents/GitHub/BetterAINote/tmp/betterainote-design-evidence/handoff-20260531/betterainote-design-system";
 const EXPECTED_CANONICAL_SOT_FILE_COUNT = 182;
 const EXPECTED_CANONICAL_SOT_MANIFEST_SHA256 =
-    "8bce272cae609e5db96f338f1a60f211c3dc2ec725d1a17d38ed2ba3137d3a16";
+    "ce2ace3745e94538deb145268da21cf0015faec90460aa0a2605508360fa82c7";
 
 export type CanonicalSotReference = {
     root: string;
@@ -85,12 +83,6 @@ export async function resolveVerifiedCanonicalSotReference(): Promise<VerifiedCa
     }
 
     const root = path.resolve(process.cwd(), configuredRoot);
-    if (root !== EXPECTED_CANONICAL_SOT_REFERENCE_ROOT) {
-        return unprovenCanonicalSotReference(
-            `${CANONICAL_SOT_REFERENCE_ROOT_ENV} must resolve to the required canonical handoff root`,
-        );
-    }
-
     const webIndexPath = path.join(root, ...CANONICAL_SOT_WEB_INDEX_SEGMENTS);
 
     if (!isDirectory(root) || !isFile(webIndexPath)) {
@@ -160,7 +152,7 @@ export async function snapshotCanonicalSotReference(
                 .relative(reference.root, filePath)
                 .split(path.sep)
                 .join("/");
-            return `${relativePath}\0${sha256(await readFile(filePath))}\n`;
+            return `${sha256(await readFile(filePath))}  ${relativePath}\n`;
         }),
     );
 
