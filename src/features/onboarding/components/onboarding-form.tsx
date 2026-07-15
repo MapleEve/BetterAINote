@@ -521,6 +521,7 @@ export function OnboardingForm({ onConnected }: OnboardingFormProps) {
                                     selectedDefaultTranscriptionSource
                                 }
                                 isSaving={controlsLocked}
+                                onBack={goBack}
                                 onNext={goNext}
                                 setDefaultTranscriptionSource={
                                     setDefaultTranscriptionSource
@@ -806,6 +807,7 @@ function TranscriptionStep({
     currentDraftTranscriptionSource,
     defaultTranscriptionSource,
     isSaving,
+    onBack,
     onNext,
     setDefaultTranscriptionSource,
 }: {
@@ -813,6 +815,7 @@ function TranscriptionStep({
     currentDraftTranscriptionSource: DefaultTranscriptionSource | null;
     defaultTranscriptionSource: DefaultTranscriptionSource | null;
     isSaving: boolean;
+    onBack: () => void;
     onNext: () => void;
     setDefaultTranscriptionSource: (
         value: DefaultTranscriptionSource | null,
@@ -896,6 +899,15 @@ function TranscriptionStep({
                 aria-label="默认转写操作"
                 className={onboardingCardClassNames.actions}
             >
+                <Button
+                    disabled={isSaving}
+                    onClick={onBack}
+                    size="xs"
+                    type="button"
+                    variant="outline"
+                >
+                    返回
+                </Button>
                 <Button
                     disabled={isSaving}
                     onClick={onNext}

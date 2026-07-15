@@ -2104,6 +2104,22 @@ test("SOT onboarding exposes source, default transcription, speaker, and finish 
         feishuDefaultSource,
     ).toHaveAttribute("aria-checked", "true");
 
+    const transcriptionBack = page.getByRole("button", {
+        exact: true,
+        name: "返回",
+    });
+    await transcriptionBack.focus();
+    await expect(transcriptionBack).toBeFocused();
+    await page.keyboard.press("Enter");
+    await expectOnboardingState(page, "source");
+    await expect(feishuProvider).toHaveAttribute("aria-checked", "true");
+    await expect(onboardingMatrixRow(page, "当前来源")).toContainText("飞书妙记");
+
+    await goToOnboardingState(page, "transcription");
+    await expect(
+        feishuDefaultSource,
+    ).toHaveAttribute("aria-checked", "true");
+
     await goToOnboardingState(page, "speakers");
     await expect(
         page.getByRole("heading", { name: "第一个说话人" }),

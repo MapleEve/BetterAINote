@@ -411,6 +411,86 @@ describe("onboarding UI replacement regression", () => {
         expect(interactions.navigate).not.toHaveBeenCalled();
     });
 
+    it("returns from transcription to source without clearing source or transcription choices", async () => {
+        const Form = await loadForm();
+        renderForm(Form);
+        let tree = renderForm(Form);
+
+        const sourceActions = findElement(
+            tree,
+            (element) =>
+                element.type === "fieldset" &&
+                element.props["aria-label"] === "步骤操作",
+        );
+        const sourceNext = findElement(
+            sourceActions,
+            (element) =>
+                element.type === "button" &&
+                element.props.variant === "default" &&
+                typeof element.props.onClick === "function",
+        );
+        (sourceNext.props.onClick as () => void)();
+        tree = renderForm(Form);
+
+        const defaultSourceGroup = findElement(
+            tree,
+            (element) => element.props["aria-label"] === "默认转写来源",
+        );
+        (defaultSourceGroup.props.onValueChange as (value: string) => void)(
+            "dingtalk-a1",
+        );
+        tree = renderForm(Form);
+
+        const transcriptionActions = findElement(
+            tree,
+            (element) =>
+                element.type === "fieldset" &&
+                element.props["aria-label"] === "默认转写操作",
+        );
+        const backButton = findElement(
+            transcriptionActions,
+            (element) =>
+                element.type === "button" &&
+                element.props.variant === "outline" &&
+                typeof element.props.onClick === "function",
+        );
+        expect(backButton.props.type).toBe("button");
+        expect(backButton.props.disabled).toBe(false);
+        (backButton.props.onClick as () => void)();
+        tree = renderForm(Form);
+
+        const sourceProvider = findElement(
+            tree,
+            (element) =>
+                element.type === "select" &&
+                element.props.id === "source-provider",
+        );
+        expect(sourceProvider.props.value).toBe("dingtalk-a1");
+
+        const returnToTranscriptionActions = findElement(
+            tree,
+            (element) =>
+                element.type === "fieldset" &&
+                element.props["aria-label"] === "步骤操作",
+        );
+        const returnToTranscription = findElement(
+            returnToTranscriptionActions,
+            (element) =>
+                element.type === "button" &&
+                element.props.variant === "default" &&
+                typeof element.props.onClick === "function",
+        );
+        (returnToTranscription.props.onClick as () => void)();
+        tree = renderForm(Form);
+
+        expect(
+            findElement(
+                tree,
+                (element) => element.props["aria-label"] === "默认转写来源",
+            ).props.value,
+        ).toBe("dingtalk-a1");
+    });
+
     it("keeps real connection state while allowing the current draft as a default", async () => {
         const Form = await loadForm();
         renderForm(Form);
@@ -677,6 +757,8 @@ describe("onboarding UI replacement regression", () => {
         );
         expect(source).toContain('id="source-provider"');
         expect(source).toContain("selectProvider(value);");
+        expect(source).toContain("onBack={goBack}");
+        expect(source).toContain('aria-label="默认转写操作"');
         expect(source).toContain("disabled={isSaving || isFinishing}");
         expect(source).toContain("aria-busy={isSaving || isFinishing}");
         expect(source).toContain("保存中...");
