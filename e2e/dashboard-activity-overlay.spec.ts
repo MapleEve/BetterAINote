@@ -1,27 +1,16 @@
 import path from "node:path";
-import fs from "node:fs/promises";
 import { pathToFileURL } from "node:url";
 import { createClient } from "@libsql/client";
 import { expect, test, type Page, type TestInfo } from "@playwright/test";
 import { ensureSignedIn } from "./helpers/auth";
 import {
     SOT_COMPONENT_LIBRARY_URL,
-    SOT_FIXTURE_PROJECT_ROOT,
 } from "./helpers/sot-fixtures";
 
 const E2E_DATA_DIR = path.resolve(process.cwd(), "tmp/e2e/data");
 const ACTIVITY_RECORDING_ID = "e2e-activity-transcription";
 const ACTIVITY_BACKGROUND_RECORDING_ID = "e2e-activity-background";
 const ACTIVITY_JOB_ID = "e2e-activity-transcription-job";
-const ACTIVITY_RESPONSIVE_EVIDENCE_DIR = path.resolve(
-    process.cwd(),
-    "tmp/betterainote-design-evidence/run-20260605-sot-1to1/activity-popover-responsive-matrix-20260611",
-);
-const ACTIVITY_REAL_RUNTIME_EVIDENCE_DIR = path.resolve(
-    process.cwd(),
-    "tmp/betterainote-design-evidence/run-20260605-sot-1to1/activity-popover-real-runtime-20260611",
-);
-
 const ACTIVITY_TRIGGER_SOT_STATES = [
     "unread-0",
     "unread-3",
@@ -38,53 +27,6 @@ const ACTIVITY_PANEL_SOT_STATES = [
 type ActivityTriggerSotState = (typeof ACTIVITY_TRIGGER_SOT_STATES)[number];
 type ActivityPanelSotState = (typeof ACTIVITY_PANEL_SOT_STATES)[number];
 type ActivitySotFixtureKind = "panel" | "trigger";
-type ActivityResponsiveViewportName = "desktop" | "mobile" | "tablet";
-type ActivityRuntimeResponsiveState = "partial-failed" | "worker-down";
-
-type ActivityEvidenceFrame = {
-    blocker: string | null;
-    frame: string;
-    metrics?: unknown;
-    note: string;
-    panelScreenshot?: string;
-    parityType: "existing-evidence-reference" | "pixel" | "structural";
-    productScreenshot?: string;
-    screenshot?: string;
-    sotScreenshot?: string;
-    sourceEvidence?: string;
-    state: string;
-    viewport?: {
-        height: number;
-        name: ActivityResponsiveViewportName;
-        width: number;
-    };
-    pixelDiff?: ActivityPixelDiff;
-};
-
-type ActivityRuntimeFrameMetrics = {
-    documentOverflowX: number;
-    panel: {
-        left: number;
-        position: string;
-        right: number;
-        width: number;
-    };
-    trigger: {
-        bottom: number;
-        right: number;
-    };
-    viewport: {
-        height: number;
-        width: number;
-    };
-};
-
-function readActivityRuntimeMetrics(frame: ActivityEvidenceFrame) {
-    if (!frame.metrics || typeof frame.metrics !== "object") {
-        throw new Error(`${frame.frame} is missing runtime metrics`);
-    }
-    return frame.metrics as ActivityRuntimeFrameMetrics;
-}
 
 const ACTIVITY_TRIGGER_SELECTORS: Record<ActivityTriggerSotState, string> = {
     "unread-0": '#activity .notif-trigger[data-unread="0"]',
@@ -1004,469 +946,6 @@ async function expectActivityPixelMatch(
     expect(diff.differingPixels, diffLabel).toBe(0);
 }
 
-function activityEvidencePath(fileName: string) {
-    return path.join(ACTIVITY_RESPONSIVE_EVIDENCE_DIR, fileName);
-}
-
-function relativeEvidencePath(filePath: string) {
-    return path.relative(ACTIVITY_RESPONSIVE_EVIDENCE_DIR, filePath);
-}
-
-async function resetActivityResponsiveEvidenceDir() {
-    await fs.rm(ACTIVITY_RESPONSIVE_EVIDENCE_DIR, {
-        force: true,
-        recursive: true,
-    });
-    await fs.mkdir(ACTIVITY_RESPONSIVE_EVIDENCE_DIR, { recursive: true });
-}
-
-async function captureActivityRuntimeResponsiveFrame(
-    page: Page,
-    frame: {
-        height: number;
-        name: ActivityResponsiveViewportName;
-        state: ActivityRuntimeResponsiveState;
-        width: number;
-    },
-): Promise<ActivityEvidenceFrame> {
-    await page.setViewportSize({ height: frame.height, width: frame.width });
-    await page.goto("/dashboard", { waitUntil: "domcontentloaded" });
-    await page.evaluate(() => {
-        document.documentElement.dataset.theme = "light";
-        document.body.dataset.theme = "light";
-    });
-
-    const panel = await openActivityOverlay(page);
-    const trigger = sotControl(page, "dashboard-activity");
-    await expect(trigger).toHaveAttribute("data-unread", "1");
-    await expect(panel).toHaveAttribute("data-sot-state", "error");
-    const status = panel.locator(
-        '[data-sot-part="dashboard-activity-status"]',
-    );
-    await expect(status).toHaveAttribute("data-sot-state", "error");
-    if (frame.state === "worker-down") {
-        await expect(
-            panel.locator('[data-sot-activity-id="worker-unavailable"]'),
-        ).toHaveAttribute("data-kind", "worker-down");
-    } else {
-        await expect(
-            status.locator(
-                '[data-sot-part="dashboard-activity-status-line"]',
-            ),
-        ).toHaveText("部分来源更新失败");
-        await expect(
-            status.locator('[data-sot-part="dashboard-activity-status-sub"]'),
-        ).toContainText("2 个来源更新失败，稍后可重试。");
-        const partialSummaryItem = panel.locator(
-            '[data-sot-activity-id="source-sync-summary"][data-kind="partial-failed"][data-sot-state="warn"]',
-        );
-        await expect(partialSummaryItem).toBeVisible();
-        await expect(
-            partialSummaryItem.locator(
-                '[data-sot-part="dashboard-activity-item-title"]',
-            ),
-        ).toContainText("部分来源更新失败");
-        await expect(
-            partialSummaryItem.locator(
-                '[data-sot-part="dashboard-activity-item-body"]',
-            ),
-        ).toContainText("新增 3，更新 5，移除 1，失败 2。");
-        await expect(
-            partialSummaryItem.locator(
-                '[data-sot-control="dashboard-activity-action"]',
-            ),
-        ).toHaveText("重试");
-    }
-
-    const metrics = await panel.evaluate((node) => {
-        const rect = node.getBoundingClientRect();
-        const triggerNode = document.querySelector(
-            '[data-sot-control="dashboard-activity"]',
-        );
-        if (!(triggerNode instanceof HTMLElement)) {
-            throw new Error("Missing activity trigger");
-        }
-        const triggerRect = triggerNode.getBoundingClientRect();
-        const style = window.getComputedStyle(node);
-        const item = node.querySelector('[data-sot-item="dashboard-activity-item"]');
-        const itemRect = item?.getBoundingClientRect() ?? null;
-
-        return {
-            documentOverflowX:
-                document.documentElement.scrollWidth - window.innerWidth,
-            item: itemRect
-                ? {
-                      height: Math.round(itemRect.height * 1000) / 1000,
-                      width: Math.round(itemRect.width * 1000) / 1000,
-                  }
-                : null,
-            panel: {
-                bottom: Math.round(rect.bottom * 1000) / 1000,
-                height: Math.round(rect.height * 1000) / 1000,
-                left: Math.round(rect.left * 1000) / 1000,
-                maxHeight: style.maxHeight,
-                maxWidth: style.maxWidth,
-                position: style.position,
-                right: Math.round((window.innerWidth - rect.right) * 1000) /
-                    1000,
-                top: Math.round(rect.top * 1000) / 1000,
-                width: Math.round(rect.width * 1000) / 1000,
-            },
-            trigger: {
-                bottom: Math.round(triggerRect.bottom * 1000) / 1000,
-                height: Math.round(triggerRect.height * 1000) / 1000,
-                left: Math.round(triggerRect.left * 1000) / 1000,
-                right:
-                    Math.round((window.innerWidth - triggerRect.right) * 1000) /
-                    1000,
-                top: Math.round(triggerRect.top * 1000) / 1000,
-                width: Math.round(triggerRect.width * 1000) / 1000,
-            },
-            viewport: {
-                height: window.innerHeight,
-                width: window.innerWidth,
-            },
-        };
-    });
-
-    const blockers: string[] = [];
-    if (metrics.documentOverflowX > 1) {
-        blockers.push(`document overflow-x ${metrics.documentOverflowX}px`);
-    }
-    if (metrics.panel.left < 0) {
-        blockers.push(`panel left overflow ${metrics.panel.left}px`);
-    }
-    if (metrics.panel.right < 0) {
-        blockers.push(`panel right overflow ${metrics.panel.right}px`);
-    }
-    if (metrics.panel.width > metrics.viewport.width) {
-        blockers.push(
-            `panel width ${metrics.panel.width}px exceeds viewport ${metrics.viewport.width}px`,
-        );
-    }
-    if (metrics.panel.bottom > metrics.viewport.height) {
-        blockers.push(
-            `panel bottom ${metrics.panel.bottom}px exceeds viewport ${metrics.viewport.height}px`,
-        );
-    }
-
-    if (frame.width <= 640) {
-        if (Math.abs(metrics.panel.left - 12) > 2) {
-            blockers.push(
-                `mobile left gutter expected 12px, got ${metrics.panel.left}px`,
-            );
-        }
-        if (Math.abs(metrics.panel.right - 12) > 2) {
-            blockers.push(
-                `mobile right gutter expected 12px, got ${metrics.panel.right}px`,
-            );
-        }
-        if (
-            Math.abs(metrics.panel.width - (metrics.viewport.width - 24)) > 2
-        ) {
-            blockers.push(
-                `mobile width expected ${metrics.viewport.width - 24}px, got ${metrics.panel.width}px`,
-            );
-        }
-        if (metrics.panel.position !== "fixed") {
-            blockers.push(
-                `mobile panel position expected fixed, got ${metrics.panel.position}`,
-            );
-        }
-    } else if (frame.width <= 860) {
-        if (Math.abs(metrics.panel.left - 12) > 2) {
-            blockers.push(
-                `tablet left gutter expected 12px, got ${metrics.panel.left}px`,
-            );
-        }
-        if (metrics.panel.position !== "fixed") {
-            blockers.push(
-                `tablet panel position expected fixed, got ${metrics.panel.position}`,
-            );
-        }
-        if (metrics.panel.width > 380) {
-            blockers.push(
-                `tablet panel width expected <= 380px, got ${metrics.panel.width}px`,
-            );
-        }
-    } else {
-        if (metrics.panel.width > 380) {
-            blockers.push(`panel width expected <= 380px, got ${metrics.panel.width}px`);
-        }
-        if (Math.abs(metrics.panel.right - metrics.trigger.right) > 16) {
-            blockers.push(
-                `right anchor drift expected <=16px, got ${Math.abs(
-                    metrics.panel.right - metrics.trigger.right,
-                )}px`,
-            );
-        }
-        if (metrics.panel.top < metrics.trigger.bottom) {
-            blockers.push(
-                `panel top ${metrics.panel.top}px overlaps trigger bottom ${metrics.trigger.bottom}px`,
-            );
-        }
-    }
-
-    const screenshotPath = activityEvidencePath(
-        `activity-responsive-runtime-${frame.name}-${frame.state}-viewport.png`,
-    );
-    const panelScreenshotPath = activityEvidencePath(
-        `activity-responsive-runtime-${frame.name}-${frame.state}-panel.png`,
-    );
-    await page.screenshot({
-        animations: "disabled",
-        fullPage: false,
-        path: screenshotPath,
-    });
-    await panel.screenshot({
-        animations: "disabled",
-        path: panelScreenshotPath,
-    });
-
-    return {
-        blocker: blockers.length > 0 ? blockers.join("; ") : null,
-        frame: `runtime-${frame.name}-${frame.state}`,
-        metrics,
-        note:
-            frame.state === "worker-down"
-                ? "Product runtime worker-down state. Structural responsive geometry only; not pixel parity."
-                : "Product runtime partial-failed UI state driven by a mocked sync-status route for screenshot evidence only; backend-seeded real partial-failed status is covered by the sibling Activity E2E.",
-        panelScreenshot: relativeEvidencePath(panelScreenshotPath),
-        parityType: "structural",
-        screenshot: relativeEvidencePath(screenshotPath),
-        state: frame.state,
-        viewport: {
-            height: frame.height,
-            name: frame.name,
-            width: frame.width,
-        },
-    };
-}
-
-async function captureActivityDesktopPixelFrame(
-    page: Page,
-    sotPage: Page,
-    sotActivityHtml: Awaited<ReturnType<typeof readSotActivityHtml>>,
-): Promise<ActivityEvidenceFrame[]> {
-    await page.setViewportSize({ height: 760, width: 1280 });
-    await sotPage.setViewportSize({ height: 760, width: 1280 });
-
-    const panelState: ActivityPanelSotState = "worker-down";
-    const comparisons = [
-        ...ACTIVITY_TRIGGER_SOT_STATES.map((triggerState) => ({
-            frame: `sot-desktop-trigger-${triggerState}`,
-            html: sotActivityHtml.triggers[triggerState],
-            kind: "trigger" as const,
-            note: "Retested desktop baseline trigger badge as SOT DOM under SOT CSS versus same DOM under product CSS.",
-            state: triggerState,
-        })),
-        {
-            frame: `sot-desktop-panel-${panelState}`,
-            html: sotActivityHtml.panels[panelState],
-            kind: "panel" as const,
-            note: "Retested desktop baseline Activity panel as SOT DOM under SOT CSS versus same DOM under product CSS.",
-            state: panelState,
-        },
-    ];
-
-    const frames: ActivityEvidenceFrame[] = [];
-    for (const comparison of comparisons) {
-        const [sotCapture, productCapture] = await Promise.all([
-            captureActivityFixture(sotPage, comparison.kind, comparison.html),
-            captureActivityFixture(page, comparison.kind, comparison.html),
-        ]);
-        const pixelDiff = await compareActivityPixels(
-            page,
-            sotCapture.dataUrl,
-            productCapture.dataUrl,
-        );
-        const sotScreenshotPath = activityEvidencePath(
-            `${comparison.frame}-sot.png`,
-        );
-        const productScreenshotPath = activityEvidencePath(
-            `${comparison.frame}-product.png`,
-        );
-        await fs.writeFile(sotScreenshotPath, sotCapture.screenshot);
-        await fs.writeFile(productScreenshotPath, productCapture.screenshot);
-
-        const diffLabel = `${comparison.frame} ${JSON.stringify(pixelDiff)}`;
-        expect(pixelDiff.dimensionsMatch, diffLabel).toBe(true);
-        expect(pixelDiff.differingPixels, diffLabel).toBe(0);
-        expect(pixelDiff.maxChannelDelta, diffLabel).toBe(0);
-
-        frames.push({
-            blocker: null,
-            frame: comparison.frame,
-            metrics: {
-                product: productCapture.metrics,
-                sot: sotCapture.metrics,
-            },
-            note: comparison.note,
-            parityType: "pixel",
-            pixelDiff,
-            productScreenshot: relativeEvidencePath(productScreenshotPath),
-            sotScreenshot: relativeEvidencePath(sotScreenshotPath),
-            state: comparison.state,
-            viewport: {
-                height: 760,
-                name: "desktop",
-                width: 1280,
-            },
-        });
-    }
-
-    return frames;
-}
-
-async function captureExistingRuntimeReferenceFrame(): Promise<ActivityEvidenceFrame> {
-    const sourceScreenshot = path.join(
-        ACTIVITY_REAL_RUNTIME_EVIDENCE_DIR,
-        "activity-warn-summary-mobile-iab.png",
-    );
-    const sourceJson = path.join(
-        ACTIVITY_REAL_RUNTIME_EVIDENCE_DIR,
-        "activity-real-runtime-states.json",
-    );
-    const copiedScreenshot = activityEvidencePath(
-        "existing-real-runtime-warn-summary-mobile-iab.png",
-    );
-    await fs.copyFile(sourceScreenshot, copiedScreenshot);
-
-    return {
-        blocker: null,
-        frame: "existing-real-runtime-warn-summary-mobile",
-        note: "Copied from existing backend-seeded real runtime evidence. This is a reference frame only; it is not used as pixel parity.",
-        parityType: "existing-evidence-reference",
-        screenshot: relativeEvidencePath(copiedScreenshot),
-        sourceEvidence: path.relative(
-            ACTIVITY_RESPONSIVE_EVIDENCE_DIR,
-            sourceJson,
-        ),
-        state: "warn-summary",
-        viewport: {
-            height: 844,
-            name: "mobile",
-            width: 390,
-        },
-    };
-}
-
-async function writeActivityResponsiveEvidence(frames: ActivityEvidenceFrame[]) {
-    const tabletFrame = frames.find(
-        (frame) => frame.frame === "runtime-tablet-worker-down",
-    );
-    const tabletMetrics = tabletFrame
-        ? readActivityRuntimeMetrics(tabletFrame)
-        : null;
-    const desktopTriggerDiffs = ACTIVITY_TRIGGER_SOT_STATES.map((state) => {
-        const triggerFrame = frames.find(
-            (frame) => frame.frame === `sot-desktop-trigger-${state}`,
-        );
-        return `${state} differingPixels=${triggerFrame?.pixelDiff?.differingPixels ?? "n/a"}/maxChannelDelta=${triggerFrame?.pixelDiff?.maxChannelDelta ?? "n/a"}`;
-    }).join("; ");
-    const desktopPanelFrame = frames.find(
-        (frame) => frame.frame === "sot-desktop-panel-worker-down",
-    );
-    const partialFailedFrames = frames.filter(
-        (frame) =>
-            frame.parityType === "structural" &&
-            frame.state === "partial-failed",
-    );
-    const evidence = {
-        generatedAt: new Date().toISOString(),
-        matrixRow: 99,
-        scope: "Activity popover responsive/mobile matrix only",
-        sotSources: {
-            componentLibrary: path.join(
-                SOT_FIXTURE_PROJECT_ROOT,
-                "ui_kits/web/component-library.html#activity",
-            ),
-            runtimeIndex: path.join(
-                SOT_FIXTURE_PROJECT_ROOT,
-                "ui_kits/web/index.html#notif-panel",
-            ),
-            styles: `${path.join(
-                SOT_FIXTURE_PROJECT_ROOT,
-                "ui_kits/web/kit.css",
-            )} .notif-*`,
-        },
-        productSources: {
-            runtime:
-                "src/features/dashboard/workstation.tsx activityItems/activityItemKind/[data-sot-panel=\"dashboard-activity\"]",
-            styles: "src/app/globals.css [data-sot-panel=\"dashboard-activity\"] responsive rules",
-        },
-        runtimeBoundary: {
-            independentPartialFailedKindHandledThisRound: true,
-            partialFailedResponsiveScreenshotsHandledThisRound: true,
-            note: "Current product runtime emits source-sync-summary as data-kind=\"partial-failed\" when workerStatus.lastSummary.errorCount > 0. This responsive matrix now records mocked-route partial-failed screenshot/runtime frames for mobile, tablet, and desktop. The sibling Activity E2E remains the backend-seeded real worker-state coverage.",
-        },
-        frames,
-        result: {
-            status: "partial",
-            remainingGaps: [
-                "This is row 99 focused responsive/mobile evidence only, not global all-page/all-control acceptance.",
-                "The partial-failed responsive frames are screenshot evidence driven by the Playwright sync-status route; do not treat them as live provider credential success or a real backend failure.",
-            ],
-        },
-    };
-
-    await fs.writeFile(
-        activityEvidencePath("activity-popover-responsive-matrix.json"),
-        `${JSON.stringify(evidence, null, 2)}\n`,
-    );
-
-    const mdLines = [
-        "# Activity Popover Responsive Matrix Evidence",
-        "",
-        "Scope: SOT row 99 only. This run covers Activity popover responsive/mobile matrix evidence and does not claim global all-page/all-control acceptance.",
-        "",
-        "## Fix Read-back",
-        "",
-        tabletMetrics
-            ? `- Tablet runtime worker-down overflow fixed: panel left=${tabletMetrics.panel.left}px; right=${tabletMetrics.panel.right}px; documentOverflowX=${tabletMetrics.documentOverflowX}px; blocker=${tabletFrame?.blocker ?? "none"}.`
-            : "- Tablet runtime worker-down overflow read-back missing.",
-        `- Partial-failed responsive screenshot frames added: ${partialFailedFrames
-            .map(
-                (frame) =>
-                    `${frame.viewport?.name ?? "unknown"} blocker=${frame.blocker ?? "none"}`,
-            )
-            .join("; ")}. These frames use the Playwright sync-status route for UI screenshot evidence only; backend-seeded real partial-failed coverage stays in the sibling Activity E2E.`,
-        `- Desktop SOT trigger pixel parity preserved: ${desktopTriggerDiffs}.`,
-        `- Desktop SOT panel pixel parity preserved: worker-down differingPixels=${desktopPanelFrame?.pixelDiff?.differingPixels ?? "n/a"}/maxChannelDelta=${desktopPanelFrame?.pixelDiff?.maxChannelDelta ?? "n/a"}.`,
-        "",
-        "## Frames",
-        "",
-        ...frames.map((frame) => {
-            const viewport = frame.viewport
-                ? `${frame.viewport.name} ${frame.viewport.width}x${frame.viewport.height}`
-                : "n/a";
-            const screenshots = [
-                frame.screenshot,
-                frame.panelScreenshot,
-                frame.sotScreenshot,
-                frame.productScreenshot,
-            ]
-                .filter(Boolean)
-                .join(", ");
-            const diff = frame.pixelDiff
-                ? `; differingPixels=${frame.pixelDiff.differingPixels}; maxChannelDelta=${frame.pixelDiff.maxChannelDelta}`
-                : "";
-            const blocker = frame.blocker ? `; blocker=${frame.blocker}` : "";
-            return `- ${frame.frame}: ${frame.parityType}; state=${frame.state}; viewport=${viewport}; screenshots=${screenshots}${diff}${blocker}`;
-        }),
-        "",
-        "## Remaining Gaps",
-        "",
-        "- The new `partial-failed` responsive frames are mocked-route screenshot evidence, not live provider credential success and not a real backend failure claim.",
-        "- This evidence is row 99 local补证 only and does not close full all-page/all-control acceptance.",
-        "",
-    ];
-    await fs.writeFile(
-        activityEvidencePath("evidence.md"),
-        `${mdLines.join("\n")}\n`,
-    );
-}
-
 async function getPlaywrightUserId() {
     const client = createClient({ url: databaseUrl(CORE_DB) });
     try {
@@ -1942,23 +1421,27 @@ async function reloadDashboardWithDisplaySettings(
     await page.reload({ waitUntil: "domcontentloaded" });
     await expect(page.locator(`html[data-theme="${expectations.theme}"]`))
         .toHaveCount(1);
-    await expect(sotControl(page, "dashboard-activity")).toHaveAttribute(
+    await expect(dashboardControl(page, "dashboard-activity")).toHaveAttribute(
         "aria-label",
         expectations.activityLabel,
     );
 }
 
-function sotControl(page: Page, name: string) {
-    return page.locator(`[data-sot-control="${name}"]`);
+function dashboardSurface(page: Page) {
+    return page.locator('[data-surface="dashboard-workstation"]');
 }
 
-function sotPanel(page: Page, name: string) {
-    return page.locator(`[data-sot-panel="${name}"]`);
+function dashboardControl(page: Page, name: string) {
+    return dashboardSurface(page).locator(`[data-control="${name}"]`);
+}
+
+function dashboardPanel(page: Page, name: string) {
+    return dashboardSurface(page).locator(`[data-panel="${name}"]`);
 }
 
 function recordingRow(page: Page, title: string) {
-    return page
-        .locator('[data-sot-control="dashboard-recording-row"]')
+    return dashboardSurface(page)
+        .locator('[data-control="dashboard-recording-row"]')
         .filter({ hasText: title });
 }
 
@@ -1967,11 +1450,15 @@ function selectedRecordingTitle(page: Page, title: string | RegExp) {
 }
 
 async function openActivityOverlay(page: Page) {
-    const surface = page.locator('[data-sot-surface="dashboard-workstation"]');
-    const trigger = sotControl(page, "dashboard-activity");
-    const panel = sotPanel(page, "dashboard-activity");
+    const surface = dashboardSurface(page);
+    const trigger = surface.getByRole("button", {
+        name: /^(?:通知|Notifications)$/,
+    });
+    const panel = surface.getByRole("dialog", {
+        name: /^(?:最近动态|Recent activity)$/,
+    });
 
-    await expect(surface).toHaveAttribute("data-sot-state", "ready");
+    await expect(surface).toHaveAttribute("data-state", "ready");
     await expect(trigger).toBeVisible();
     for (let attempt = 0; attempt < 3; attempt += 1) {
         if (await panel.isVisible().catch(() => false)) {
@@ -1989,18 +1476,18 @@ async function openActivityOverlay(page: Page) {
 }
 
 async function expectActivityPortalOverlay(page: Page) {
-    const panel = sotPanel(page, "dashboard-activity");
+    const panel = dashboardPanel(page, "dashboard-activity");
     await expect(panel).toBeVisible();
 }
 
 async function expectActivityAnchoredToTrigger(page: Page) {
-    const panel = sotPanel(page, "dashboard-activity");
+    const panel = dashboardPanel(page, "dashboard-activity");
     await expect(panel).toBeVisible();
 
     const metrics = await panel.evaluate((node) => {
         const panelRect = node.getBoundingClientRect();
         const trigger = document.querySelector(
-            '[data-sot-control="dashboard-activity"]',
+            '[data-control="dashboard-activity"]',
         );
         if (!trigger) {
             throw new Error("Missing activity trigger");
@@ -2023,7 +1510,7 @@ async function expectActivityAnchoredToTrigger(page: Page) {
 }
 
 async function expectActivityMobileLayout(page: Page) {
-    const panel = sotPanel(page, "dashboard-activity");
+    const panel = dashboardPanel(page, "dashboard-activity");
     await expect(panel).toBeVisible();
 
     const metrics = await panel.evaluate((node) => {
@@ -2066,13 +1553,13 @@ test("dashboard Activity controls match SOT component-library pixels", async ({
         theme: "light",
     });
 
-    const runtimeTrigger = sotControl(page, "dashboard-activity");
+    const runtimeTrigger = dashboardControl(page, "dashboard-activity");
     await expect(runtimeTrigger).toBeVisible();
     await expect(runtimeTrigger).toHaveAttribute("data-slot", "button");
     await expect(runtimeTrigger).toHaveAttribute("data-variant", "ghost");
     await expect(runtimeTrigger).toHaveAttribute("data-size", "icon-sm");
     await expect(
-        runtimeTrigger.locator('[data-sot-part="dashboard-activity-badge"]'),
+        runtimeTrigger.locator('[data-part="dashboard-activity-badge"]'),
     ).toHaveCount(1);
 
     const sotPage = await page.context().newPage();
@@ -2106,143 +1593,6 @@ test("dashboard Activity controls match SOT component-library pixels", async ({
     }
 });
 
-test("Activity responsive matrix records row 99 mobile tablet desktop evidence", async ({
-    page,
-}) => {
-    test.setTimeout(180_000);
-    await resetActivityResponsiveEvidenceDir();
-    let responsiveRuntimeState: ActivityRuntimeResponsiveState = "worker-down";
-    await mockSyncEndpoint(page, Promise.resolve(), () =>
-        responsiveRuntimeState === "partial-failed"
-            ? healthyWorkerStatus({
-                  errorCount: 2,
-                  newRecordings: 3,
-                  removedRecordings: 1,
-                  updatedRecordings: 5,
-              })
-            : unhealthyWorkerStatus(),
-    );
-
-    await ensureSignedIn(page);
-    await resetDisplaySettings(page, { theme: "light", uiLanguage: "zh-CN" });
-
-    const frames: ActivityEvidenceFrame[] = [];
-    const runtimeResponsiveFrames = [
-        { height: 844, name: "mobile" as const, state: "worker-down" as const, width: 390 },
-        { height: 900, name: "tablet" as const, state: "worker-down" as const, width: 768 },
-        { height: 760, name: "desktop" as const, state: "worker-down" as const, width: 1280 },
-        { height: 844, name: "mobile" as const, state: "partial-failed" as const, width: 390 },
-        { height: 900, name: "tablet" as const, state: "partial-failed" as const, width: 768 },
-        { height: 760, name: "desktop" as const, state: "partial-failed" as const, width: 1280 },
-    ];
-    for (const frame of runtimeResponsiveFrames) {
-        responsiveRuntimeState = frame.state;
-        frames.push(await captureActivityRuntimeResponsiveFrame(page, frame));
-    }
-
-    const sotPage = await page.context().newPage();
-    try {
-        await openSotComponentLibrary(sotPage);
-        const sotActivityHtml = await readSotActivityHtml(sotPage);
-        frames.push(
-            ...(await captureActivityDesktopPixelFrame(
-                page,
-                sotPage,
-                sotActivityHtml,
-            )),
-        );
-    } finally {
-        await sotPage.close();
-    }
-
-    frames.push(await captureExistingRuntimeReferenceFrame());
-    await writeActivityResponsiveEvidence(frames);
-
-    const evidence = JSON.parse(
-        await fs.readFile(
-            activityEvidencePath("activity-popover-responsive-matrix.json"),
-            "utf8",
-        ),
-    ) as { frames: ActivityEvidenceFrame[]; matrixRow: number };
-    expect(evidence.matrixRow).toBe(99);
-    expect(evidence.frames.map((frame) => frame.parityType)).toContain(
-        "pixel",
-    );
-    expect(evidence.frames.map((frame) => frame.parityType)).toContain(
-        "structural",
-    );
-    expect(evidence.frames.map((frame) => frame.parityType)).toContain(
-        "existing-evidence-reference",
-    );
-    expect(evidence.frames.some((frame) => frame.viewport?.name === "mobile"))
-        .toBe(true);
-    expect(evidence.frames.some((frame) => frame.viewport?.name === "tablet"))
-        .toBe(true);
-    expect(evidence.frames.some((frame) => frame.viewport?.name === "desktop"))
-        .toBe(true);
-
-    for (const state of ["worker-down", "partial-failed"] as const) {
-        for (const viewportName of ["mobile", "tablet", "desktop"] as const) {
-            const runtimeFrame = evidence.frames.find(
-                (frame) =>
-                    frame.frame === `runtime-${viewportName}-${state}`,
-            );
-            expect(
-                runtimeFrame,
-                `runtime-${viewportName}-${state} evidence frame`,
-            ).toBeDefined();
-            if (!runtimeFrame) {
-                throw new Error(
-                    `Missing runtime-${viewportName}-${state} evidence frame`,
-                );
-            }
-            expect(runtimeFrame.blocker, runtimeFrame.frame).toBeNull();
-            expect(runtimeFrame.parityType, runtimeFrame.frame).toBe(
-                "structural",
-            );
-            expect(runtimeFrame.screenshot, runtimeFrame.frame).toContain(
-                `${state}-viewport.png`,
-            );
-            expect(runtimeFrame.panelScreenshot, runtimeFrame.frame).toContain(
-                `${state}-panel.png`,
-            );
-        }
-    }
-
-    const tabletFrame = evidence.frames.find(
-        (frame) => frame.frame === "runtime-tablet-worker-down",
-    );
-    expect(tabletFrame, "runtime-tablet-worker-down evidence frame")
-        .toBeDefined();
-    if (!tabletFrame) {
-        throw new Error("Missing runtime-tablet-worker-down evidence frame");
-    }
-    expect(tabletFrame.blocker).toBeNull();
-    const tabletMetrics = readActivityRuntimeMetrics(tabletFrame);
-    expect(tabletMetrics.documentOverflowX).toBe(0);
-    expect(tabletMetrics.panel.left).toBeGreaterThanOrEqual(0);
-    expect(tabletMetrics.panel.right).toBeGreaterThanOrEqual(0);
-
-    for (const frameName of [
-        ...ACTIVITY_TRIGGER_SOT_STATES.map(
-            (state) => `sot-desktop-trigger-${state}`,
-        ),
-        "sot-desktop-panel-worker-down",
-    ]) {
-        const pixelFrame = evidence.frames.find(
-            (frame) => frame.frame === frameName,
-        );
-        expect(pixelFrame, `${frameName} evidence frame`).toBeDefined();
-        if (!pixelFrame) {
-            throw new Error(`Missing ${frameName} evidence frame`);
-        }
-        expect(pixelFrame.blocker, frameName).toBeNull();
-        expect(pixelFrame.pixelDiff?.dimensionsMatch, frameName).toBe(true);
-        expect(pixelFrame.pixelDiff?.differingPixels, frameName).toBe(0);
-        expect(pixelFrame.pixelDiff?.maxChannelDelta, frameName).toBe(0);
-    }
-});
-
 test("activity overlay opens data source settings for worker-down notifications", async ({
     page,
 }) => {
@@ -2251,7 +1601,7 @@ test("activity overlay opens data source settings for worker-down notifications"
     await ensureSignedIn(page);
     await page.goto("/dashboard", { waitUntil: "domcontentloaded" });
 
-    const trigger = sotControl(page, "dashboard-activity");
+    const trigger = dashboardControl(page, "dashboard-activity");
     await expect(trigger).toBeVisible();
     await expect(trigger).toHaveAttribute("aria-label", "通知");
     await expect(trigger).toHaveAttribute("data-unread", "1");
@@ -2260,47 +1610,46 @@ test("activity overlay opens data source settings for worker-down notifications"
     await expectActivityPortalOverlay(page);
     await expectActivityAnchoredToTrigger(page);
     await expect(
-        panel.locator('[data-sot-part="dashboard-activity-heading"]'),
+        panel.locator('[data-part="dashboard-activity-heading"]'),
     ).toBeVisible();
     await expect(
-        panel.locator('[data-sot-part="dashboard-activity-count"]'),
+        panel.locator('[data-part="dashboard-activity-count"]'),
     ).toContainText("1 项待处理");
 
-    const item = panel.locator('[data-sot-activity-id="worker-unavailable"]');
+    const item = panel.locator('[data-activity-id="worker-unavailable"]');
     await expect(item).toBeVisible();
     await expect(item).toHaveAttribute("data-kind", "worker-down");
     await expect(item).toHaveAttribute("data-action-state", "idle");
     await expect(
-        item.locator('[data-sot-part="dashboard-activity-item-title"]'),
+        item.locator('[data-part="dashboard-activity-item-title"]'),
     ).toContainText(
         "自动更新暂时不可用",
     );
     await expect(
-        item.locator('[data-sot-part="dashboard-activity-item-body"]'),
+        item.locator('[data-part="dashboard-activity-item-body"]'),
     ).toContainText(
         "本地更新服务未响应。",
     );
     await expect(
-        item.locator('[data-sot-part="dashboard-activity-item-meta"]'),
+        item.locator('[data-part="dashboard-activity-item-meta"]'),
     ).toHaveText("刚刚");
 
-    const action = item.locator('[data-sot-control="dashboard-activity-action"]');
-    await expect(item).toHaveAttribute("data-sot-action", "settings");
+    const action = item.getByRole("button", { name: "前往数据源设置" });
+    await expect(item).toHaveAttribute("data-action", "settings");
     await expect(action).toContainText("前往数据源设置");
     await action.click();
 
-    const settingsShell = page.locator('[data-sot-surface="settings-shell"]');
+    const settingsShell = page.getByRole("dialog", { name: "设置" });
     await expect(panel).toBeHidden();
     await expect(settingsShell).toBeVisible();
-    await expect(settingsShell).toHaveAttribute(
-        "data-sot-section",
-        "data-sources",
-    );
+    await expect(
+        settingsShell.getByRole("button", { name: "数据源" }),
+    ).toHaveAttribute("aria-current", "page");
     await expect(panel).toHaveCount(0);
 
-    await sotControl(page, "settings-close").click();
+    await settingsShell.getByRole("button", { name: "关闭设置" }).click();
     await expect(settingsShell).toBeHidden();
-    await expect(sotControl(page, "dashboard-settings")).toBeFocused();
+    await expect(dashboardControl(page, "dashboard-settings")).toBeFocused();
 });
 
 test("activity overlay dismisses actionable notifications into an empty state", async ({
@@ -2312,45 +1661,43 @@ test("activity overlay dismisses actionable notifications into an empty state", 
     await resetDisplaySettings(page);
     await page.goto("/dashboard", { waitUntil: "domcontentloaded" });
 
-    const trigger = sotControl(page, "dashboard-activity");
+    const trigger = dashboardControl(page, "dashboard-activity");
     await expect(trigger).toHaveAttribute("aria-label", "通知");
     await expect(trigger).toHaveAttribute("data-unread", "1");
 
     const panel = await openActivityOverlay(page);
-    await expect(panel).toHaveAttribute("data-sot-state", "error");
+    await expect(panel).toHaveAttribute("data-state", "error");
     await expect(panel).toContainText("1 项待处理");
 
-    const item = panel.locator('[data-sot-activity-id="worker-unavailable"]');
+    const item = panel.locator('[data-activity-id="worker-unavailable"]');
     await expect(item).toBeVisible();
-    await item.locator('[data-sot-control="dashboard-activity-dismiss"]').click();
+    await item.getByRole("button", { name: "忽略 自动更新暂时不可用" }).click();
 
     await expect(item).toHaveCount(0);
-    await expect(panel).toHaveAttribute("data-sot-state", "empty");
+    await expect(panel).toHaveAttribute("data-state", "empty");
     await expect(panel).toContainText("全部已处理");
     await expect(
-        panel.locator('[data-sot-part="dashboard-activity-empty"]'),
+        panel.locator('[data-part="dashboard-activity-empty"]'),
     ).toBeVisible();
     await expect(
-        panel.locator('[data-sot-part="dashboard-activity-empty-icon"]'),
+        panel.locator('[data-part="dashboard-activity-empty-icon"]'),
     ).toBeVisible();
     await expect(
-        panel.locator('[data-sot-part="dashboard-activity-empty-title"]'),
+        panel.locator('[data-part="dashboard-activity-empty-title"]'),
     ).toContainText("没有新的动态");
     await expect(
-        panel.locator('[data-sot-part="dashboard-activity-empty-body"]'),
+        panel.locator('[data-part="dashboard-activity-empty-body"]'),
     ).toContainText("来源更新与转写任务都在正常运行");
     await expect(
-        panel.locator('[data-sot-list="dashboard-activity-items"]'),
+        panel.locator('[data-list="dashboard-activity-items"]'),
     ).toHaveCount(0);
     await expect(trigger).toHaveAttribute("aria-label", "通知");
     await expect(trigger).toHaveAttribute("data-unread", "0");
     await expect(
-        trigger.locator('[data-sot-part="dashboard-activity-badge"]'),
+        trigger.locator('[data-part="dashboard-activity-badge"]'),
     ).toBeHidden();
 
-    const closeButton = panel.locator(
-        '[data-sot-control="dashboard-activity-close"]',
-    );
+    const closeButton = panel.getByRole("button", { name: "关闭最近动态" });
     await expect(closeButton).toBeVisible();
     await closeButton.click();
     await expect(panel).toHaveCount(0);
@@ -2384,29 +1731,29 @@ test("activity overlay exposes default summary and syncing states without layout
     await ensureSignedIn(page);
     await page.goto("/dashboard", { waitUntil: "domcontentloaded" });
 
-    const trigger = sotControl(page, "dashboard-activity");
-    const panel = sotPanel(page, "dashboard-activity");
+    const trigger = dashboardControl(page, "dashboard-activity");
+    const panel = dashboardPanel(page, "dashboard-activity");
 
     await openActivityOverlay(page);
-    await expect(panel).toHaveAttribute("data-sot-state", "default");
+    await expect(panel).toHaveAttribute("data-state", "default");
     await expect(
-        panel.locator('[data-sot-part="dashboard-activity-title"]'),
+        panel.locator('[data-part="dashboard-activity-title"]'),
     ).toHaveText("最近动态");
     await expect(
-        panel.locator('[data-sot-part="dashboard-activity-count"]'),
+        panel.locator('[data-part="dashboard-activity-count"]'),
     ).toContainText("0 项待处理");
     const status = panel.locator(
-        '[data-sot-part="dashboard-activity-status"]',
+        '[data-part="dashboard-activity-status"]',
     );
-    await expect(status).toHaveAttribute("data-sot-state", "idle");
+    await expect(status).toHaveAttribute("data-state", "idle");
     await expect(
-        status.locator('[data-sot-part="dashboard-activity-status-line"]'),
+        status.locator('[data-part="dashboard-activity-status-line"]'),
     ).toBeVisible();
     await expect(
-        status.locator('[data-sot-part="dashboard-activity-status-sub"]'),
+        status.locator('[data-part="dashboard-activity-status-sub"]'),
     ).toContainText("上次更新于");
     const summaryItem = panel.locator(
-        '[data-sot-activity-id="source-sync-summary"]',
+        '[data-activity-id="source-sync-summary"]',
     );
     await expect(summaryItem).toBeVisible();
     await expect(summaryItem).toHaveAttribute("data-kind", "success");
@@ -2414,13 +1761,13 @@ test("activity overlay exposes default summary and syncing states without layout
     await expect(summaryItem).toContainText("新增 0，更新 0，移除 0。");
     await expect(
         summaryItem.locator(
-            '[data-sot-part="dashboard-activity-item-title"]',
+            '[data-part="dashboard-activity-item-title"]',
         ),
     ).toContainText(
         "最近一次更新完成",
     );
     await expect(
-        summaryItem.locator('[data-sot-part="dashboard-activity-item-body"]'),
+        summaryItem.locator('[data-part="dashboard-activity-item-body"]'),
     ).toContainText(
         "新增 0，更新 0，移除 0。",
     );
@@ -2436,40 +1783,40 @@ test("activity overlay exposes default summary and syncing states without layout
     statusMode = "partial-failed";
     await page.reload({ waitUntil: "domcontentloaded" });
     await openActivityOverlay(page);
-    await expect(panel).toHaveAttribute("data-sot-state", "error");
-    await expect(status).toHaveAttribute("data-sot-state", "error");
+    await expect(panel).toHaveAttribute("data-state", "error");
+    await expect(status).toHaveAttribute("data-state", "error");
     await expect(
-        status.locator('[data-sot-part="dashboard-activity-status-line"]'),
+        status.locator('[data-part="dashboard-activity-status-line"]'),
     ).toHaveText("部分来源更新失败");
     await expect(
-        status.locator('[data-sot-part="dashboard-activity-status-sub"]'),
+        status.locator('[data-part="dashboard-activity-status-sub"]'),
     ).toContainText("2 个来源更新失败，稍后可重试。");
     const partialSummaryItem = panel.locator(
-        '[data-sot-activity-id="source-sync-summary"]',
+        '[data-activity-id="source-sync-summary"]',
     );
     await expect(partialSummaryItem).toBeVisible();
     await expect(partialSummaryItem).toHaveAttribute(
         "data-kind",
         "partial-failed",
     );
-    await expect(partialSummaryItem).toHaveAttribute("data-sot-state", "warn");
+    await expect(partialSummaryItem).toHaveAttribute("data-state", "warn");
     await expect(
         partialSummaryItem.locator(
-            '[data-sot-part="dashboard-activity-item-title"]',
+            '[data-part="dashboard-activity-item-title"]',
         ),
     ).toContainText(
         "部分来源更新失败",
     );
     await expect(
         partialSummaryItem.locator(
-            '[data-sot-part="dashboard-activity-item-body"]',
+            '[data-part="dashboard-activity-item-body"]',
         ),
     ).toContainText(
         "新增 3，更新 5，移除 1，失败 2。",
     );
     await expect(
         partialSummaryItem.locator(
-            '[data-sot-control="dashboard-activity-action"]',
+            '[data-control="dashboard-activity-action"]',
         ),
     ).toHaveText("重试");
 
@@ -2481,15 +1828,15 @@ test("activity overlay exposes default summary and syncing states without layout
     await page.reload({ waitUntil: "domcontentloaded" });
 
     await openActivityOverlay(page);
-    await expect(panel).toHaveAttribute("data-sot-state", "loading");
+    await expect(panel).toHaveAttribute("data-state", "loading");
     await expect(
-        panel.locator('[data-sot-part="dashboard-activity-status"]'),
-    ).toHaveAttribute("data-sot-state", "running");
+        panel.locator('[data-part="dashboard-activity-status"]'),
+    ).toHaveAttribute("data-state", "running");
     await expect(
-        panel.locator('[data-sot-item="dashboard-activity-item"]').first(),
+        panel.locator('[data-item="dashboard-activity-item"]').first(),
     ).toContainText("正在更新来源");
     await expect(
-        panel.locator('[data-sot-item="dashboard-activity-item"]').first(),
+        panel.locator('[data-item="dashboard-activity-item"]').first(),
     ).toHaveAttribute("data-kind", "queued");
     await expectActivityPortalOverlay(page);
 
@@ -2501,97 +1848,226 @@ test("activity overlay exposes default summary and syncing states without layout
     await expectActivityMobileLayout(page);
 });
 
-test("activity overlay shows partial-failed real sync worker status", async ({
+test("activity overlay shows backend-seeded partial-failed worker state across mobile tablet desktop", async ({
     page,
 }) => {
+    test.setTimeout(120_000);
     await ensureSignedIn(page);
     const userId = await getPlaywrightUserId();
     const originalWorkerState = await readSyncWorkerStateForUser(userId);
+    const viewports = [
+        { height: 844, name: "mobile" as const, width: 390 },
+        { height: 900, name: "tablet" as const, width: 768 },
+        { height: 760, name: "desktop" as const, width: 1280 },
+    ];
 
     try {
         await seedPartialFailedSyncWorkerState(userId);
 
-        const syncStatusResponsePromise = page.waitForResponse(
-            (response) =>
-                response.url().includes("/api/data-sources/sync") &&
-                response.request().method() === "GET" &&
-                response.status() === 200,
-        );
-        await page.goto("/dashboard", { waitUntil: "domcontentloaded" });
+        for (const viewport of viewports) {
+            await page.setViewportSize(viewport);
+            const syncStatusResponsePromise = page.waitForResponse(
+                (response) =>
+                    response.url().includes("/api/data-sources/sync") &&
+                    response.request().method() === "GET" &&
+                    response.status() === 200,
+            );
+            await page.goto("/dashboard", { waitUntil: "domcontentloaded" });
 
-        const syncStatusResponse = await syncStatusResponsePromise;
-        const syncStatus = (await syncStatusResponse.json()) as {
-            workerStatus?: {
-                isRunning?: boolean;
-                lastSummary?: {
-                    errorCount?: number;
-                    newRecordings?: number;
-                    removedRecordings?: number;
-                    updatedRecordings?: number;
+            const syncStatusResponse = await syncStatusResponsePromise;
+            const syncStatus = (await syncStatusResponse.json()) as {
+                workerStatus?: {
+                    healthy?: boolean;
+                    isRunning?: boolean;
+                    lastSummary?: {
+                        errorCount?: number;
+                        newRecordings?: number;
+                        removedRecordings?: number;
+                        updatedRecordings?: number;
+                    } | null;
                 } | null;
-            } | null;
-        };
-        expect(syncStatus.workerStatus?.isRunning).toBe(false);
-        expect(syncStatus.workerStatus?.lastSummary).toEqual(
-            expect.objectContaining({
-                errorCount: 2,
-                newRecordings: 3,
-                removedRecordings: 1,
-                updatedRecordings: 5,
-            }),
-        );
-        expect(
-            syncStatus.workerStatus?.lastSummary?.errorCount ?? 0,
-        ).toBeGreaterThan(0);
+            };
+            expect(syncStatus.workerStatus?.healthy, viewport.name).toBe(true);
+            expect(syncStatus.workerStatus?.isRunning, viewport.name).toBe(false);
+            expect(syncStatus.workerStatus?.lastSummary, viewport.name).toEqual(
+                expect.objectContaining({
+                    errorCount: 2,
+                    newRecordings: 3,
+                    removedRecordings: 1,
+                    updatedRecordings: 5,
+                }),
+            );
 
-        const panel = await openActivityOverlay(page);
-        await expect(
-            page
-                .locator(
-                    '[data-sot-panel="activity-popover"], [data-sot-panel="dashboard-activity"]',
-                )
-                .first(),
-        ).toBeVisible();
-        await expect(panel).toHaveAttribute("data-sot-state", "error");
-        await expect(
-            panel.locator('[data-sot-part="dashboard-activity-status"]'),
-        ).toHaveAttribute("data-sot-state", "error");
-        await expect(
-            panel.locator(
-                '[data-sot-part="dashboard-activity-status-line"]',
-            ),
-        ).toHaveText("部分来源更新失败");
-        await expect(
-            panel.locator('[data-sot-part="dashboard-activity-status-sub"]'),
-        ).toContainText("2 个来源更新失败，稍后可重试。");
+            const trigger = dashboardControl(page, "dashboard-activity");
+            await expect(trigger, viewport.name).toHaveAttribute(
+                "data-unread",
+                "1",
+            );
+            const panel = await openActivityOverlay(page);
+            await expect(trigger, viewport.name).toHaveAttribute(
+                "aria-expanded",
+                "true",
+            );
+            await expect(panel, viewport.name).toHaveAttribute(
+                "data-state",
+                "error",
+            );
+            await expect(
+                panel.locator('[data-part="dashboard-activity-status"]'),
+                viewport.name,
+            ).toHaveAttribute("data-state", "error");
+            await expect(
+                panel.locator(
+                    '[data-part="dashboard-activity-status-line"]',
+                ),
+                viewport.name,
+            ).toHaveText("部分来源更新失败");
+            await expect(
+                panel.locator(
+                    '[data-part="dashboard-activity-status-sub"]',
+                ),
+                viewport.name,
+            ).toContainText("2 个来源更新失败，稍后可重试。");
 
-        const partialSummaryItem = panel.locator(
-            '[data-sot-activity-id="source-sync-summary"]',
-        );
-        await expect(partialSummaryItem).toBeVisible();
-        await expect(partialSummaryItem).toHaveAttribute(
-            "data-kind",
-            "partial-failed",
-        );
-        await expect(partialSummaryItem).toHaveAttribute(
-            "data-sot-state",
-            "warn",
-        );
-        await expect(
-            partialSummaryItem.locator(
-                '[data-sot-part="dashboard-activity-item-title"]',
-            ),
-        ).toContainText("部分来源更新失败");
-        await expect(
-            partialSummaryItem.locator(
-                '[data-sot-part="dashboard-activity-item-body"]',
-            ),
-        ).toContainText("新增 3，更新 5，移除 1，失败 2。");
-        await expect(
-            partialSummaryItem.locator(
-                '[data-sot-control="dashboard-activity-action"]',
-            ),
-        ).toHaveText("重试");
+            const partialSummaryItem = panel.locator(
+                '[data-activity-id="source-sync-summary"]',
+            );
+            await expect(partialSummaryItem, viewport.name).toBeVisible();
+            await expect(partialSummaryItem, viewport.name).toHaveAttribute(
+                "data-kind",
+                "partial-failed",
+            );
+            await expect(partialSummaryItem, viewport.name).toHaveAttribute(
+                "data-state",
+                "warn",
+            );
+            await expect(
+                partialSummaryItem.locator(
+                    '[data-part="dashboard-activity-item-title"]',
+                ),
+                viewport.name,
+            ).toContainText("部分来源更新失败");
+            await expect(
+                partialSummaryItem.locator(
+                    '[data-part="dashboard-activity-item-body"]',
+                ),
+                viewport.name,
+            ).toContainText("新增 3，更新 5，移除 1，失败 2。");
+
+            const retryAction = partialSummaryItem.locator(
+                '[data-control="dashboard-activity-action"]',
+            );
+            await expect(retryAction, viewport.name).toHaveText("重试");
+
+            const layout = await panel.evaluate((node) => {
+                const panelRect = node.getBoundingClientRect();
+                const triggerNode = document.querySelector(
+                    '[data-control="dashboard-activity"]',
+                );
+                if (!(triggerNode instanceof HTMLElement)) {
+                    throw new Error("Missing activity trigger");
+                }
+                const triggerRect = triggerNode.getBoundingClientRect();
+                const style = window.getComputedStyle(node);
+                return {
+                    documentOverflowX:
+                        document.documentElement.scrollWidth - window.innerWidth,
+                    panel: {
+                        bottom: panelRect.bottom,
+                        left: panelRect.left,
+                        position: style.position,
+                        right: window.innerWidth - panelRect.right,
+                        top: panelRect.top,
+                        width: panelRect.width,
+                    },
+                    trigger: {
+                        bottom: triggerRect.bottom,
+                        right: window.innerWidth - triggerRect.right,
+                    },
+                    viewport: {
+                        height: window.innerHeight,
+                        width: window.innerWidth,
+                    },
+                };
+            });
+            expect(layout.viewport, viewport.name).toEqual({
+                height: viewport.height,
+                width: viewport.width,
+            });
+            expect(layout.documentOverflowX, viewport.name).toBe(0);
+            expect(layout.panel.top, viewport.name).toBeGreaterThanOrEqual(0);
+            expect(layout.panel.left, viewport.name).toBeGreaterThanOrEqual(0);
+            expect(layout.panel.right, viewport.name).toBeGreaterThanOrEqual(0);
+            expect(layout.panel.bottom, viewport.name).toBeLessThanOrEqual(
+                layout.viewport.height,
+            );
+            expect(layout.panel.width, viewport.name).toBeGreaterThan(0);
+            expect(layout.panel.width, viewport.name).toBeLessThanOrEqual(
+                layout.viewport.width,
+            );
+            if (viewport.name === "mobile") {
+                expect(layout.panel.position).toBe("fixed");
+                expect(Math.abs(layout.panel.left - 12)).toBeLessThanOrEqual(2);
+                expect(Math.abs(layout.panel.right - 12)).toBeLessThanOrEqual(2);
+                expect(
+                    Math.abs(
+                        layout.panel.width - (layout.viewport.width - 24),
+                    ),
+                ).toBeLessThanOrEqual(2);
+            } else if (viewport.name === "tablet") {
+                expect(layout.panel.position).toBe("fixed");
+                expect(Math.abs(layout.panel.left - 12)).toBeLessThanOrEqual(2);
+                expect(layout.panel.width).toBeLessThanOrEqual(380);
+            } else {
+                expect(layout.panel.width).toBeLessThanOrEqual(380);
+                expect(
+                    Math.abs(layout.panel.right - layout.trigger.right),
+                ).toBeLessThanOrEqual(16);
+                expect(layout.panel.top).toBeGreaterThanOrEqual(
+                    layout.trigger.bottom,
+                );
+            }
+
+            const retryResponsePromise = page.waitForResponse(
+                (response) =>
+                    response.url().includes("/api/data-sources/sync") &&
+                    response.request().method() === "POST",
+            );
+            await retryAction.click();
+            const retryResponse = await retryResponsePromise;
+            expect(retryResponse.status(), viewport.name).toBe(400);
+            await expect(retryAction, viewport.name).toHaveAttribute(
+                "data-action-state",
+                "error",
+            );
+            await expect(partialSummaryItem, viewport.name).toHaveAttribute(
+                "data-kind",
+                "partial-failed",
+            );
+
+            await panel
+                .locator('[data-control="dashboard-activity-close"]')
+                .click();
+            await expect(panel, viewport.name).toHaveCount(0);
+            await expect(trigger, viewport.name).toHaveAttribute(
+                "aria-expanded",
+                "false",
+            );
+            await expect(trigger, viewport.name).toBeFocused();
+            await openActivityOverlay(page);
+            await expect(trigger, viewport.name).toHaveAttribute(
+                "aria-expanded",
+                "true",
+            );
+            await expect(partialSummaryItem, viewport.name).toBeVisible();
+            await page.keyboard.press("Escape");
+            await expect(panel, viewport.name).toHaveCount(0);
+            await expect(trigger, viewport.name).toHaveAttribute(
+                "aria-expanded",
+                "false",
+            );
+            await expect(trigger, viewport.name).toBeFocused();
+        }
     } finally {
         await restoreSyncWorkerStateForUser(userId, originalWorkerState);
     }
@@ -2616,18 +2092,18 @@ test("activity overlay opens transcription items and runs the status sync action
         const panel = await openActivityOverlay(page);
 
         const item = panel.locator(
-            `[data-sot-activity-id="transcription-active-${ACTIVITY_RECORDING_ID}"]`,
+            `[data-activity-id="transcription-active-${ACTIVITY_RECORDING_ID}"]`,
         );
         await expect(item).toBeVisible();
         await expect(item).toHaveAttribute("data-clickable", "true");
-        await item.locator('[data-sot-control="dashboard-activity-action"]').click();
+        await item.getByRole("button", { name: "查看" }).click();
         await expect(panel).toBeHidden();
         await expect(selectedRecordingTitle(page, /E2E activity transcription/)).toContainText(
             "E2E activity transcription",
         );
 
         await openActivityOverlay(page);
-        const statusAction = sotControl(page, "dashboard-activity-sync");
+        const statusAction = dashboardControl(page, "dashboard-activity-sync");
         const syncPostRequest = page.waitForRequest(
             (request) =>
                 request.url().includes("/api/data-sources/sync") &&
@@ -2639,7 +2115,7 @@ test("activity overlay opens transcription items and runs the status sync action
         releasePost();
         await expect(statusAction).toHaveAttribute("data-action-state", "done");
         await expect(
-            panel.locator('[data-sot-part="dashboard-activity-status"]'),
+            panel.locator('[data-part="dashboard-activity-status"]'),
         ).toContainText("已加入更新");
     } finally {
         await cleanupActivityRecording();
@@ -2681,7 +2157,7 @@ test("activity overlay opens recording rows with keyboard activation", async ({
         const panel = await openActivityOverlay(page);
 
         const activityRecordingRow = panel.locator(
-            `[data-sot-activity-id="transcription-active-${ACTIVITY_RECORDING_ID}"][role="button"]`,
+            `[data-activity-id="transcription-active-${ACTIVITY_RECORDING_ID}"][role="button"]`,
         );
         await expect(activityRecordingRow).toBeVisible();
         await expect(activityRecordingRow).toHaveAccessibleName(
@@ -2701,7 +2177,7 @@ test("activity overlay opens recording rows with keyboard activation", async ({
             "E2E activity transcription",
         );
         await expect(recordingRow(page, "E2E activity transcription")).toHaveAttribute(
-            "data-sot-state",
+            "data-state",
             "selected",
         );
     } finally {
@@ -2736,13 +2212,13 @@ test("activity overlay follows display language for panel and status copy", asyn
         const panel = await openActivityOverlay(page);
         await expect(panel).toHaveAttribute("aria-label", "Recent activity");
         await expect(
-            panel.locator('[data-sot-part="dashboard-activity-title"]'),
+            panel.locator('[data-part="dashboard-activity-title"]'),
         ).toHaveText("Recent activity");
         await expect(panel).toContainText("Last update complete");
         await expect(
-            panel.locator('[data-sot-part="dashboard-activity-status"]'),
+            panel.locator('[data-part="dashboard-activity-status"]'),
         ).toContainText("Last updated");
-        await expect(sotControl(page, "dashboard-activity-sync")).toHaveText(
+        await expect(dashboardControl(page, "dashboard-activity-sync")).toHaveText(
             "Update",
         );
         await expect(panel).toContainText("Added 0, updated 0, removed 0.");
