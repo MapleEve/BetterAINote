@@ -1,3 +1,6 @@
+import { createCipheriv, randomBytes } from "node:crypto";
+import { createServer } from "node:http";
+import type { AddressInfo } from "node:net";
 import path from "node:path";
 import { pathToFileURL } from "node:url";
 import { createClient } from "@libsql/client";
@@ -7,10 +10,36 @@ import {
     SOT_COMPONENT_LIBRARY_URL,
 } from "./helpers/sot-fixtures";
 
-const E2E_DATA_DIR = path.resolve(process.cwd(), "tmp/e2e/data");
+function resolveActivityE2ERoot() {
+    const activityRoot = process.env.BETTERAINOTE_E2E_ROOT?.trim();
+    const playwrightRoot = process.env.PLAYWRIGHT_E2E_ROOT?.trim();
+
+    if (
+        activityRoot &&
+        playwrightRoot &&
+        path.resolve(activityRoot) !== path.resolve(playwrightRoot)
+    ) {
+        throw new Error(
+            "BETTERAINOTE_E2E_ROOT must match PLAYWRIGHT_E2E_ROOT for Activity E2E",
+        );
+    }
+
+    return path.resolve(
+        activityRoot ?? playwrightRoot ?? path.join(process.cwd(), "tmp/e2e"),
+    );
+}
+
+const E2E_ROOT_DIR = resolveActivityE2ERoot();
+const E2E_DATA_DIR = path.join(E2E_ROOT_DIR, "data");
 const ACTIVITY_RECORDING_ID = "e2e-activity-transcription";
 const ACTIVITY_BACKGROUND_RECORDING_ID = "e2e-activity-background";
 const ACTIVITY_JOB_ID = "e2e-activity-transcription-job";
+const ACTIVITY_IFLYREC_SOURCE_CONNECTION_ID = "e2e-activity-iflyrec-source";
+const ACTIVITY_IFLYREC_SESSION_ID = "e2e-activity-session";
+const E2E_ENCRYPTION_KEY =
+    "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef";
+const IFLYREC_RECENT_OPERATIONS_PATH =
+    "/XFTJWebAdaptService/v2/hjProcess/recentOperationFiles";
 const ACTIVITY_TRIGGER_SOT_STATES = [
     "unread-0",
     "unread-3",
@@ -565,15 +594,11 @@ const CORE_DB = resolveDatabasePath();
 const LIBRARY_DB = deriveSiblingDatabasePath(CORE_DB, "library");
 
 function assertE2EDatabasePath(filePath: string) {
-    const e2eRoot = path.resolve(
-        process.env.PLAYWRIGHT_E2E_ROOT ??
-            path.join(process.cwd(), "tmp/e2e"),
-    );
     const resolvedPath = path.resolve(filePath);
 
     if (
-        resolvedPath !== e2eRoot &&
-        !resolvedPath.startsWith(`${e2eRoot}${path.sep}`)
+        resolvedPath !== E2E_ROOT_DIR &&
+        !resolvedPath.startsWith(`${E2E_ROOT_DIR}${path.sep}`)
     ) {
         throw new Error(
             `Refusing to touch non-E2E database path: ${resolvedPath}`,
@@ -1003,6 +1028,25 @@ function optionalString(value: unknown) {
     return typeof value === "string" ? value : null;
 }
 
+function encryptWithPlaywrightE2EKey(plaintext: string) {
+    const iv = randomBytes(16);
+    const cipher = createCipheriv(
+        "aes-256-gcm",
+        Buffer.from(E2E_ENCRYPTION_KEY, "hex"),
+        iv,
+    );
+    const encrypted = Buffer.concat([
+        cipher.update(plaintext, "utf8"),
+        cipher.final(),
+    ]);
+
+    return [
+        iv.toString("hex"),
+        cipher.getAuthTag().toString("hex"),
+        encrypted.toString("hex"),
+    ].join(":");
+}
+
 async function readSyncWorkerStateForUser(userId: string) {
     const client = createClient({ url: databaseUrl(CORE_DB) });
     try {
@@ -1178,6 +1222,204 @@ async function restoreSyncWorkerStateForUser(
     } finally {
         await client.close();
     }
+}
+
+type ActivityIflyrecSourceSyncState = {
+    enabled: number;
+    id: string;
+    lastSyncError: string | null;
+    lastSyncFinishedAt: number | null;
+    lastSyncStartedAt: number | null;
+    syncStatus: string;
+};
+
+type IflyrecUpstreamRequest = {
+    body: string;
+    headers: Record<string, string>;
+    method: string;
+    pathname: string;
+};
+
+async function cleanupActivityIflyrecSourceConnection(userId: string) {
+    const client = createClient({ url: databaseUrl(CORE_DB) });
+    try {
+        await executeWithBusyRetry(() =>
+            client.execute({
+                sql: "DELETE FROM source_connections WHERE user_id = ? AND id = ? AND provider = 'iflyrec'",
+                args: [userId, ACTIVITY_IFLYREC_SOURCE_CONNECTION_ID],
+            }),
+        );
+    } finally {
+        await client.close();
+    }
+}
+
+async function seedActivityIflyrecSourceConnection(
+    userId: string,
+    baseUrl: string,
+) {
+    const now = Date.now();
+    const client = createClient({ url: databaseUrl(CORE_DB) });
+    try {
+        await executeWithBusyRetry(() =>
+            client.execute({
+                sql: `
+                    INSERT INTO source_connections (
+                        id, user_id, provider, enabled, auth_mode, base_url,
+                        config, secret_config, last_sync, sync_status,
+                        last_sync_error, last_sync_started_at, last_sync_finished_at,
+                        created_at, updated_at
+                    ) VALUES (?, ?, 'iflyrec', 1, 'session-header', ?, ?, ?, ?, 'error', ?, ?, NULL, ?, ?)
+                    ON CONFLICT(user_id, provider) DO UPDATE SET
+                        id = excluded.id,
+                        enabled = excluded.enabled,
+                        auth_mode = excluded.auth_mode,
+                        base_url = excluded.base_url,
+                        config = excluded.config,
+                        secret_config = excluded.secret_config,
+                        last_sync = excluded.last_sync,
+                        sync_status = excluded.sync_status,
+                        last_sync_error = excluded.last_sync_error,
+                        last_sync_started_at = excluded.last_sync_started_at,
+                        last_sync_finished_at = excluded.last_sync_finished_at,
+                        updated_at = excluded.updated_at
+                `,
+                args: [
+                    ACTIVITY_IFLYREC_SOURCE_CONNECTION_ID,
+                    userId,
+                    baseUrl,
+                    "{}",
+                    encryptWithPlaywrightE2EKey(
+                        JSON.stringify({ sessionId: ACTIVITY_IFLYREC_SESSION_ID }),
+                    ),
+                    now - 60_000,
+                    "E2E activity sync error",
+                    now - 15_000,
+                    now,
+                    now,
+                ],
+            }),
+        );
+    } finally {
+        await client.close();
+    }
+}
+
+async function readActivityIflyrecSourceSyncState(userId: string) {
+    const client = createClient({ url: databaseUrl(CORE_DB) });
+    try {
+        const result = await executeWithBusyRetry(() =>
+            client.execute({
+                sql: `
+                    SELECT id, enabled, sync_status, last_sync_error,
+                           last_sync_started_at, last_sync_finished_at
+                    FROM source_connections
+                    WHERE user_id = ? AND provider = 'iflyrec'
+                    LIMIT 1
+                `,
+                args: [userId],
+            }),
+        );
+        const row = result.rows[0];
+        if (!row) {
+            throw new Error("Seeded activity iFlyrec source connection was not found");
+        }
+
+        return {
+            enabled: requiredNumber(row.enabled, "enabled"),
+            id: requiredString(row.id, "id"),
+            lastSyncError: optionalString(row.last_sync_error),
+            lastSyncFinishedAt: optionalNumber(row.last_sync_finished_at),
+            lastSyncStartedAt: optionalNumber(row.last_sync_started_at),
+            syncStatus: requiredString(row.sync_status, "sync_status"),
+        } satisfies ActivityIflyrecSourceSyncState;
+    } finally {
+        await client.close();
+    }
+}
+
+async function startControlledActivityIflyrecUpstream() {
+    let releaseResponse = () => {};
+    const responseGate = new Promise<void>((resolve) => {
+        releaseResponse = resolve;
+    });
+    let resolveFirstRequest: (request: IflyrecUpstreamRequest) => void = () =>
+        {};
+    const firstRequest = new Promise<IflyrecUpstreamRequest>((resolve) => {
+        resolveFirstRequest = resolve;
+    });
+    const requests: IflyrecUpstreamRequest[] = [];
+
+    const server = createServer(async (request, response) => {
+        const chunks: Buffer[] = [];
+        for await (const chunk of request) {
+            chunks.push(Buffer.isBuffer(chunk) ? chunk : Buffer.from(chunk));
+        }
+
+        const capturedRequest: IflyrecUpstreamRequest = {
+            body: Buffer.concat(chunks).toString("utf8"),
+            headers: Object.fromEntries(
+                Object.entries(request.headers).map(([key, value]) => [
+                    key,
+                    Array.isArray(value) ? value.join(",") : (value ?? ""),
+                ]),
+            ),
+            method: request.method ?? "",
+            pathname: new URL(
+                request.url ?? "/",
+                "http://127.0.0.1",
+            ).pathname,
+        };
+        requests.push(capturedRequest);
+        if (requests.length === 1) {
+            resolveFirstRequest(capturedRequest);
+        }
+
+        await responseGate;
+        const supportedRequest =
+            capturedRequest.method === "POST" &&
+            capturedRequest.pathname === IFLYREC_RECENT_OPERATIONS_PATH;
+        response.writeHead(supportedRequest ? 200 : 404, {
+            "Content-Type": "application/json",
+        });
+        response.end(
+            JSON.stringify(
+                supportedRequest
+                    ? { biz: { hjList: [] } }
+                    : { error: "Unexpected controlled iFlyrec request" },
+            ),
+        );
+    });
+
+    await new Promise<void>((resolve, reject) => {
+        const onError = (error: Error) => reject(error);
+        server.once("error", onError);
+        server.listen(0, "127.0.0.1", () => {
+            server.off("error", onError);
+            resolve();
+        });
+    });
+    const address = server.address();
+    if (!address || typeof address === "string") {
+        server.close();
+        throw new Error("Controlled activity iFlyrec upstream did not bind a TCP port");
+    }
+
+    return {
+        baseUrl: `http://127.0.0.1:${(address as AddressInfo).port}`,
+        close: async () => {
+            releaseResponse();
+            await new Promise<void>((resolve, reject) => {
+                server.close((error) => {
+                    if (error) reject(error);
+                    else resolve();
+                });
+            });
+        },
+        releaseEmptyRecordingList: releaseResponse,
+        requests,
+        waitForRequest: () => firstRequest,
+    };
 }
 
 async function cleanupActivityRecording() {
@@ -1848,13 +2090,14 @@ test("activity overlay exposes default summary and syncing states without layout
     await expectActivityMobileLayout(page);
 });
 
-test("activity overlay shows backend-seeded partial-failed worker state across mobile tablet desktop", async ({
+test("activity overlay shows backend-seeded partial-failed worker state across mobile tablet desktop and retries through the real sync endpoint", async ({
     page,
 }) => {
     test.setTimeout(120_000);
     await ensureSignedIn(page);
     const userId = await getPlaywrightUserId();
     const originalWorkerState = await readSyncWorkerStateForUser(userId);
+    const iflyrecUpstream = await startControlledActivityIflyrecUpstream();
     const viewports = [
         { height: 844, name: "mobile" as const, width: 390 },
         { height: 900, name: "tablet" as const, width: 768 },
@@ -1862,7 +2105,19 @@ test("activity overlay shows backend-seeded partial-failed worker state across m
     ];
 
     try {
+        await seedActivityIflyrecSourceConnection(
+            userId,
+            iflyrecUpstream.baseUrl,
+        );
         await seedPartialFailedSyncWorkerState(userId);
+        await expect
+            .poll(() => readActivityIflyrecSourceSyncState(userId))
+            .toMatchObject({
+                enabled: 1,
+                id: ACTIVITY_IFLYREC_SOURCE_CONNECTION_ID,
+                lastSyncError: "E2E activity sync error",
+                syncStatus: "error",
+            });
 
         for (const viewport of viewports) {
             await page.setViewportSize(viewport);
@@ -1876,6 +2131,7 @@ test("activity overlay shows backend-seeded partial-failed worker state across m
 
             const syncStatusResponse = await syncStatusResponsePromise;
             const syncStatus = (await syncStatusResponse.json()) as {
+                configured?: boolean;
                 workerStatus?: {
                     healthy?: boolean;
                     isRunning?: boolean;
@@ -1887,6 +2143,7 @@ test("activity overlay shows backend-seeded partial-failed worker state across m
                     } | null;
                 } | null;
             };
+            expect(syncStatus.configured, viewport.name).toBe(true);
             expect(syncStatus.workerStatus?.healthy, viewport.name).toBe(true);
             expect(syncStatus.workerStatus?.isRunning, viewport.name).toBe(false);
             expect(syncStatus.workerStatus?.lastSummary, viewport.name).toEqual(
@@ -2028,22 +2285,148 @@ test("activity overlay shows backend-seeded partial-failed worker state across m
                 );
             }
 
-            const retryResponsePromise = page.waitForResponse(
-                (response) =>
-                    response.url().includes("/api/data-sources/sync") &&
-                    response.request().method() === "POST",
-            );
-            await retryAction.click();
-            const retryResponse = await retryResponsePromise;
-            expect(retryResponse.status(), viewport.name).toBe(400);
-            await expect(retryAction, viewport.name).toHaveAttribute(
-                "data-action-state",
-                "error",
-            );
-            await expect(partialSummaryItem, viewport.name).toHaveAttribute(
-                "data-kind",
-                "partial-failed",
-            );
+            if (viewport.name === "desktop") {
+                const retryResponsePromise = page.waitForResponse(
+                    (response) =>
+                        response.url().includes("/api/data-sources/sync") &&
+                        response.request().method() === "POST",
+                );
+                await retryAction.click();
+
+                const upstreamRequest = await iflyrecUpstream.waitForRequest();
+                expect(upstreamRequest).toMatchObject({
+                    body: "{}",
+                    method: "POST",
+                    pathname: IFLYREC_RECENT_OPERATIONS_PATH,
+                });
+                expect(upstreamRequest.headers["x-biz-id"]).toBe("tjzs");
+                expect(upstreamRequest.headers["x-session-id"]).toBe(
+                    ACTIVITY_IFLYREC_SESSION_ID,
+                );
+                expect(iflyrecUpstream.requests).toHaveLength(1);
+
+                const runningSourceState =
+                    await readActivityIflyrecSourceSyncState(userId);
+                expect(runningSourceState).toMatchObject({
+                    enabled: 1,
+                    id: ACTIVITY_IFLYREC_SOURCE_CONNECTION_ID,
+                    lastSyncError: null,
+                    syncStatus: "syncing",
+                });
+                expect(runningSourceState.lastSyncStartedAt).not.toBeNull();
+
+                const runningWorkerState =
+                    await readSyncWorkerStateForUser(userId);
+                expect(runningWorkerState).toMatchObject({
+                    isRunning: 1,
+                    lastError: null,
+                    manualTriggerRequestedAt: null,
+                    userId,
+                });
+                expect(runningWorkerState?.lastStartedAt).not.toBeNull();
+                await expect(retryAction).toHaveAttribute(
+                    "data-action-state",
+                    "busy",
+                );
+
+                iflyrecUpstream.releaseEmptyRecordingList();
+                const retryResponse = await retryResponsePromise;
+                expect(retryResponse.ok(), viewport.name).toBe(true);
+                const retryBody = (await retryResponse.json()) as {
+                    errors?: unknown;
+                    newRecordings?: number;
+                    queued?: boolean;
+                    removedRecordings?: number;
+                    success?: boolean;
+                };
+                expect(retryBody).toMatchObject({
+                    newRecordings: 0,
+                    queued: false,
+                    removedRecordings: 0,
+                    success: true,
+                });
+                expect(retryBody.errors).toEqual([]);
+
+                const syncStatusReadbackResponse = await page.request.get(
+                    "/api/data-sources/sync",
+                );
+                expect(syncStatusReadbackResponse.ok()).toBe(true);
+                const syncStatusReadback =
+                    (await syncStatusReadbackResponse.json()) as {
+                        configured?: boolean;
+                        workerStatus?: {
+                            healthy?: boolean;
+                            isRunning?: boolean;
+                            lastError?: string | null;
+                            lastFinishedAt?: string | null;
+                            lastSummary?: {
+                                errorCount?: number;
+                                newRecordings?: number;
+                                removedRecordings?: number;
+                                updatedRecordings?: number;
+                            } | null;
+                        } | null;
+                    };
+                expect(syncStatusReadback.configured).toBe(true);
+                expect(syncStatusReadback.workerStatus).toEqual(
+                    expect.objectContaining({
+                        healthy: true,
+                        isRunning: false,
+                        lastError: null,
+                        lastSummary: {
+                            errorCount: 0,
+                            newRecordings: 0,
+                            removedRecordings: 0,
+                            updatedRecordings: 0,
+                        },
+                    }),
+                );
+                expect(
+                    syncStatusReadback.workerStatus?.lastFinishedAt,
+                ).not.toBeNull();
+
+                const idleSourceState =
+                    await readActivityIflyrecSourceSyncState(userId);
+                expect(idleSourceState).toMatchObject({
+                    enabled: 1,
+                    id: ACTIVITY_IFLYREC_SOURCE_CONNECTION_ID,
+                    lastSyncError: null,
+                    syncStatus: "idle",
+                });
+                expect(idleSourceState.lastSyncFinishedAt).not.toBeNull();
+
+                const idleWorkerState = await readSyncWorkerStateForUser(userId);
+                expect(idleWorkerState).toMatchObject({
+                    isRunning: 0,
+                    lastError: null,
+                    manualTriggerRequestedAt: null,
+                    userId,
+                });
+                expect(idleWorkerState?.lastFinishedAt).not.toBeNull();
+
+                const activitySyncAction = dashboardControl(
+                    page,
+                    "dashboard-activity-sync",
+                );
+                await expect(activitySyncAction).toHaveAttribute(
+                    "data-action-state",
+                    "done",
+                );
+                await expect(panel).toHaveAttribute("data-state", "default");
+                await expect(trigger).toHaveAttribute("data-unread", "0");
+                await expect(
+                    panel.locator('[data-part="dashboard-activity-status"]'),
+                ).toHaveAttribute("data-state", "idle");
+                await expect(partialSummaryItem).toHaveAttribute(
+                    "data-kind",
+                    "success",
+                );
+                await expect(
+                    partialSummaryItem.locator(
+                        '[data-control="dashboard-activity-action"]',
+                    ),
+                ).toHaveCount(0);
+            }
 
             await panel
                 .locator('[data-control="dashboard-activity-close"]')
@@ -2069,6 +2452,8 @@ test("activity overlay shows backend-seeded partial-failed worker state across m
             await expect(trigger, viewport.name).toBeFocused();
         }
     } finally {
+        await iflyrecUpstream.close();
+        await cleanupActivityIflyrecSourceConnection(userId);
         await restoreSyncWorkerStateForUser(userId, originalWorkerState);
     }
 });
