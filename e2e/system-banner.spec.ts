@@ -33,6 +33,26 @@ async function resetDisplayToChinese(
     }
 }
 
+function exactText(value: string) {
+    return new RegExp(
+        `^${value.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")}$`,
+    );
+}
+
+function systemBannerAlerts(page: Page) {
+    return page.locator(
+        '[data-panel="dashboard-main"] > [data-slot="alert"]',
+    );
+}
+
+function systemBannerByTitle(page: Page, title: string) {
+    return systemBannerAlerts(page).filter({
+        has: page
+            .locator('[data-slot="alert-title"]')
+            .filter({ hasText: exactText(title) }),
+    });
+}
+
 const SYSTEM_BANNER_ROOT_STYLE_PROPS = [
     "display",
     "alignItems",
@@ -148,7 +168,7 @@ const SYSTEM_BANNER_PIXEL_MASK_CSS = `
     }
     .system-banner-pixel-stage :is(
         .sys-banner[data-kind="update-available"] .sbn-actions .btn.glass,
-        [data-sot-panel="system-banner"][data-kind="update-available"] [data-sot-part="system-banner-actions"] [data-slot="button"][data-variant="outline"]
+        [data-slot="alert"]:has(> svg.lucide-package) [data-slot="button"][data-variant="outline"]
     ) {
         background: var(--glass-tint-base) !important;
         border-color: var(--line-hairline) !important;
@@ -516,7 +536,7 @@ async function captureSystemBannerHtmlFixture(
             if (
                 stage.childElementCount > 1 ||
                 stage.firstElementChild?.matches(
-                    '.sys-banner[data-kind="import-progress"], .sys-banner[data-kind="export-progress"], [data-sot-panel="system-banner"][data-kind="import-progress"], [data-sot-panel="system-banner"][data-kind="export-progress"]',
+                    '.sys-banner[data-kind="import-progress"], .sys-banner[data-kind="export-progress"], [data-slot="alert"]:has([data-slot="progress"])',
                 )
             ) {
                 const height = stage.getBoundingClientRect().height;
@@ -536,9 +556,7 @@ async function captureSystemBannerHtmlFixture(
         .locator(`#${fixtureId} > .system-banner-pixel-stage`)
         .first();
     await expect(
-        stage
-            .locator('.sys-banner, [data-sot-panel="system-banner"]')
-            .first(),
+        stage.locator('.sys-banner, [data-slot="alert"]').first(),
     ).toBeVisible();
     await page.waitForTimeout(250);
     const screenshot = await stage.screenshot({
@@ -962,7 +980,7 @@ test("dashboard system banner responds to runtime events and offline state", asy
     await page.waitForLoadState("networkidle");
     await installSystemBannerActionRecorder(page);
 
-    const banner = page.locator('[data-sot-panel="system-banner"]');
+    const banner = systemBannerAlerts(page);
     await expect(banner).toHaveCount(0);
 
     await dispatchSystemBanner(page, {
@@ -970,11 +988,15 @@ test("dashboard system banner responds to runtime events and offline state", asy
         state: "db-locked",
         title: "数据库被占用",
     });
-    await expect(banner).toHaveAttribute("data-kind", "db-locked");
+    await expect(banner).toHaveCount(1);
     await expect(banner).toHaveAttribute("role", "alert");
     await expect(banner).not.toHaveAttribute("aria-live", /.+/);
-    await expect(banner).toContainText("数据库被占用");
-    await expect(banner).toContainText("写入暂时暂停，请稍后重试。");
+    await expect(banner.locator('[data-slot="alert-title"]')).toHaveText(
+        "数据库被占用",
+    );
+    await expect(
+        banner.locator('[data-slot="alert-description"]'),
+    ).toHaveText("写入暂时暂停，请稍后重试。");
     await banner.getByRole("button", { name: "重新连接" }).click();
     await expectLatestSystemBannerAction(page, {
         action: "reconnect",
@@ -990,7 +1012,12 @@ test("dashboard system banner responds to runtime events and offline state", asy
         title: "有更新",
     });
     await expect(banner).toHaveCount(2);
-    await expect(banner.nth(1)).toHaveAttribute("data-kind", "update-available");
+    await expect(
+        banner.nth(1).locator('[data-slot="alert-title"]'),
+    ).toHaveText("有更新");
+    await expect(
+        banner.nth(1).locator('[data-slot="alert-description"]'),
+    ).toHaveText("新版本已经准备好。");
     await expect(banner.nth(1)).not.toHaveAttribute("role", /.+/);
     await expect(banner.nth(1)).not.toHaveAttribute("aria-live", /.+/);
     await expect(
@@ -1003,10 +1030,14 @@ test("dashboard system banner responds to runtime events and offline state", asy
     await dispatchSystemBanner(page, {
         state: "permission-denied",
     });
-    await expect(banner).toHaveAttribute("data-kind", "permission-denied");
+    await expect(banner).toHaveCount(1);
     await expect(banner).toHaveAttribute("role", "alert");
-    await expect(banner).toContainText("未授权访问录音文件夹");
-    await expect(banner).toContainText("完全磁盘访问");
+    await expect(banner.locator('[data-slot="alert-title"]')).toHaveText(
+        "未授权访问录音文件夹",
+    );
+    await expect(
+        banner.locator('[data-slot="alert-description"]'),
+    ).toContainText("完全磁盘访问");
     await expect(
         banner.getByRole("button", { name: "打开系统设置" }),
     ).toBeVisible();
@@ -1035,6 +1066,14 @@ test("dashboard system banner responds to runtime events and offline state", asy
         state: "import-progress",
         title: "正在导入 BetterAINote 备份包",
     });
+    await expect(banner).toHaveCount(1);
+    await expect(banner.locator('[data-slot="alert-title"]')).toHaveText(
+        "正在导入 BetterAINote 备份包",
+    );
+    await expect(banner.locator('[data-slot="progress"]')).toHaveAttribute(
+        "aria-valuenow",
+        "40",
+    );
     await banner.getByRole("button", { name: "暂停" }).click();
     await expectLatestSystemBannerAction(page, {
         action: "pause-import",
@@ -1059,6 +1098,14 @@ test("dashboard system banner responds to runtime events and offline state", asy
         state: "export-progress",
         title: "正在导出录音",
     });
+    await expect(banner).toHaveCount(1);
+    await expect(banner.locator('[data-slot="alert-title"]')).toHaveText(
+        "正在导出录音",
+    );
+    await expect(banner.locator('[data-slot="progress"]')).toHaveAttribute(
+        "aria-valuenow",
+        "70",
+    );
     await banner.getByRole("button", { name: "在 Finder 中显示" }).click();
     await expectLatestSystemBannerAction(page, {
         action: "show-export",
@@ -1077,10 +1124,12 @@ test("dashboard system banner responds to runtime events and offline state", asy
 
     await page.context().setOffline(true);
     await page.evaluate(() => window.dispatchEvent(new Event("offline")));
-    await expect(banner).toHaveAttribute("data-kind", "offline");
+    await expect(banner).toHaveCount(1);
     await expect(banner).toHaveAttribute("role", "status");
     await expect(banner).toHaveAttribute("aria-live", "polite");
-    await expect(banner).toContainText("当前无网络连接");
+    await expect(banner.locator('[data-slot="alert-title"]')).toHaveText(
+        "当前无网络连接",
+    );
     await banner.getByRole("button", { name: "重试" }).click();
     await expectLatestSystemBannerAction(page, {
         action: "retry",
@@ -1108,7 +1157,7 @@ test("dashboard system banner restores SOT progress, indeterminate, and stacked 
     ).toHaveAttribute("data-sot-state", "ready");
     await page.waitForLoadState("networkidle");
 
-    const banners = page.locator('[data-sot-panel="system-banner"]');
+    const banners = systemBannerAlerts(page);
 
     await dispatchSystemBanner(page, {
         actionLabel: "暂停",
@@ -1121,23 +1170,26 @@ test("dashboard system banner restores SOT progress, indeterminate, and stacked 
     });
     await expect(banners).toHaveCount(1);
     const importBanner = banners.first();
-    await expect(importBanner).toHaveAttribute("data-kind", "import-progress");
-    await expect(importBanner).toHaveAttribute("data-kind", "import-progress");
+    await expect(
+        importBanner.locator('[data-slot="alert-title"]'),
+    ).toHaveText("正在导入 BetterAINote 备份包");
+    await expect(
+        importBanner.locator('[data-slot="alert-description"]'),
+    ).toHaveText("85 / 213 条录音已写入 · 预计还需 1 分 12 秒");
     await expect(importBanner).not.toHaveAttribute("role", /.+/);
     await expect(importBanner).not.toHaveAttribute("aria-live", /.+/);
-    await expect(importBanner).toHaveAttribute("data-pct", "40");
+    const importProgress = importBanner.locator('[data-slot="progress"]');
     await expect(
-        importBanner.locator('[data-sot-part="system-banner-progress"]'),
+        importProgress,
     ).toHaveCSS(
         "display",
         "block",
     );
     await expect(
-        importBanner.locator('[data-sot-part="system-banner-progress-bar"]'),
+        importProgress.locator('[data-slot="progress-indicator"]'),
     ).toHaveCount(1);
-    await expect(
-        importBanner.locator('[data-sot-part="system-banner-progress"]'),
-    ).toHaveAttribute("data-sot-state", "ready");
+    await expect(importProgress).toHaveAttribute("role", "progressbar");
+    await expect(importProgress).toHaveAttribute("aria-valuenow", "40");
     await expect(importBanner.getByRole("button", { name: "暂停" })).toBeVisible();
     await expect(importBanner.getByRole("button", { name: "取消" })).toBeVisible();
 
@@ -1149,10 +1201,16 @@ test("dashboard system banner restores SOT progress, indeterminate, and stacked 
         state: "import-progress",
         title: "正在扫描备份包结构",
     });
-    await expect(importBanner).not.toHaveAttribute("data-pct", /.+/);
     await expect(
-        importBanner.locator('[data-sot-part="system-banner-progress"]'),
-    ).toHaveAttribute("data-sot-state", "indeterminate");
+        importBanner.locator('[data-slot="alert-title"]'),
+    ).toHaveText("正在扫描备份包结构");
+    await expect(
+        importBanner.locator('[data-slot="alert-description"]'),
+    ).toHaveText("读取清单 · 解析校验和 · 暂未开始写入");
+    await expect(importProgress).toHaveAttribute("aria-valuenow", "0");
+    await expect(
+        importProgress.locator('[data-slot="progress-indicator"]'),
+    ).toHaveClass(/animate-\[sbn-sweep_1\.4s_linear_infinite\]/);
     await expect(importBanner.getByRole("button", { name: "取消" })).toBeDisabled();
 
     await page.evaluate(() => {
@@ -1181,17 +1239,27 @@ test("dashboard system banner restores SOT progress, indeterminate, and stacked 
         }
     });
     await expect(banners).toHaveCount(2);
-    await expect(banners.nth(0)).toHaveAttribute("data-kind", "import-progress");
-    await expect(banners.nth(1)).toHaveAttribute("data-kind", "export-progress");
-    await expect(banners.nth(1)).toHaveAttribute("data-pct", "70");
+    await expect(
+        banners.nth(0).locator('[data-slot="alert-title"]'),
+    ).toHaveText("正在扫描备份包结构");
+    await expect(
+        banners.nth(1).locator('[data-slot="alert-title"]'),
+    ).toHaveText("正在导出「全部录音 · 钉钉」");
+    await expect(
+        banners.nth(1).locator('[data-slot="progress"]'),
+    ).toHaveAttribute("aria-valuenow", "70");
 
     await dispatchSystemBanner(page, {
         id: "import",
         state: null,
     });
     await expect(banners).toHaveCount(2);
-    await expect(banners.nth(0)).toHaveAttribute("data-kind", "export-progress");
-    await expect(banners.nth(1)).toHaveAttribute("data-kind", "update-available");
+    await expect(
+        banners.nth(0).locator('[data-slot="alert-title"]'),
+    ).toHaveText("正在导出「全部录音 · 钉钉」");
+    await expect(
+        banners.nth(1).locator('[data-slot="alert-title"]'),
+    ).toHaveText("有可用更新");
 });
 
 test("dashboard system banner composes shadcn primitives without legacy visual wrappers", async ({
@@ -1210,39 +1278,30 @@ test("dashboard system banner composes shadcn primitives without legacy visual w
     ).toHaveAttribute("data-sot-state", "ready");
     await page.waitForLoadState("networkidle");
 
-    const productBanners = page.locator('[data-sot-panel="system-banner"]');
+    const productBanners = systemBannerAlerts(page);
     await expect(productBanners).toHaveCount(0);
 
     await dispatchSystemBanner(page, { state: "offline" });
-    const offlineBanner = page.locator(
-        '[data-sot-panel="system-banner"][data-kind="offline"]',
-    );
+    const offlineBanner = systemBannerByTitle(page, "当前无网络连接");
     await expect(offlineBanner).toHaveAttribute("data-slot", "alert");
     await expect(offlineBanner).toHaveAttribute("data-density", "comfortable");
-    await expect(offlineBanner).toHaveAttribute("data-layout", "single");
     await expect(offlineBanner).toHaveAttribute("role", "status");
+    await expect(offlineBanner.locator(":scope > svg")).toHaveAttribute(
+        "aria-hidden",
+        "true",
+    );
     await expect(
-        offlineBanner.locator('[data-sot-part="system-banner-icon"]'),
-    ).toHaveAttribute("aria-hidden", "true");
+        offlineBanner.locator('[data-slot="alert-title"]'),
+    ).toHaveText("当前无网络连接");
     await expect(
-        offlineBanner.locator(
-            '[data-sot-part="system-banner-actions"] [data-slot="button"]',
-        ),
-    ).toHaveCount(2);
+        offlineBanner.locator('[data-slot="alert-description"]'),
+    ).toContainText("来源同步与新转写已暂停");
+    const offlineButtons = offlineBanner.locator('[data-slot="button"]');
+    await expect(offlineButtons).toHaveCount(2);
     await expect(
-        offlineBanner
-            .locator(
-                '[data-sot-part="system-banner-actions"] [data-slot="button"]',
-            )
-            .first(),
+        offlineButtons.first(),
     ).toHaveAttribute("data-variant", "ghost");
-    await expect(
-        offlineBanner
-            .locator(
-                '[data-sot-part="system-banner-actions"] [data-slot="button"]',
-            )
-            .first(),
-    ).toHaveAttribute("data-size", "sm");
+    await expect(offlineButtons.first()).toHaveAttribute("data-size", "sm");
     await expect(
         offlineBanner.locator(
             ".sys-banner, .sbn-ico, .sbn-body, .sbn-title, .sbn-sub, .sbn-actions, .sbn-progress, .sbn-bar",
@@ -1251,13 +1310,15 @@ test("dashboard system banner composes shadcn primitives without legacy visual w
     await clearSystemBanners(page);
 
     await dispatchSystemBanner(page, { state: "update-available" });
-    const updateBanner = page.locator(
-        '[data-sot-panel="system-banner"][data-kind="update-available"]',
+    const updateBanner = systemBannerByTitle(
+        page,
+        "BetterAINote 有可用更新",
     );
-    const updateButtons = updateBanner.locator(
-        '[data-sot-part="system-banner-actions"] [data-slot="button"]',
-    );
+    const updateButtons = updateBanner.locator('[data-slot="button"]');
     await expect(updateBanner).toHaveAttribute("data-slot", "alert");
+    await expect(
+        updateBanner.locator('[data-slot="alert-description"]'),
+    ).toHaveText("重启后将应用最新版本。");
     await expect(updateButtons).toHaveCount(3);
     await expect(updateButtons.first()).toHaveAttribute(
         "data-variant",
@@ -1274,15 +1335,17 @@ test("dashboard system banner composes shadcn primitives without legacy visual w
         state: "import-progress",
         title: "正在导入 BetterAINote 备份包",
     });
-    const importBanner = page.locator(
-        '[data-sot-panel="system-banner"][data-kind="import-progress"][data-pct="40"]',
+    const importBanner = systemBannerByTitle(
+        page,
+        "正在导入 BetterAINote 备份包",
     );
-    const importProgress = importBanner.locator(
-        '[data-sot-part="system-banner-progress"]',
+    const importProgress = importBanner.locator('[data-slot="progress"]');
+    const importProgressBar = importProgress.locator(
+        '[data-slot="progress-indicator"]',
     );
-    const importProgressBar = importBanner.locator(
-        '[data-sot-part="system-banner-progress-bar"]',
-    );
+    await expect(
+        importBanner.locator('[data-slot="alert-description"]'),
+    ).toHaveText("85 / 213 条录音已写入 · 预计还需 1 分 12 秒");
     await expect(importProgress).toHaveAttribute("data-slot", "progress");
     await expect(importProgress).toHaveAttribute("role", "progressbar");
     await expect(importProgress).toHaveAttribute("aria-valuenow", "40");
@@ -1299,16 +1362,21 @@ test("dashboard system banner composes shadcn primitives without legacy visual w
         state: "import-progress",
         title: "正在扫描备份包结构",
     });
-    const indeterminateBanner = page.locator(
-        '[data-sot-panel="system-banner"][data-kind="import-progress"]:not([data-pct])',
+    const indeterminateBanner = systemBannerByTitle(
+        page,
+        "正在扫描备份包结构",
     );
     await expect(
-        indeterminateBanner.locator(
-            '[data-sot-part="system-banner-progress-bar"]',
-        ),
+        indeterminateBanner.locator('[data-slot="progress-indicator"]'),
     ).toHaveClass(/animate-\[sbn-sweep_1\.4s_linear_infinite\]/);
+    await expect(
+        indeterminateBanner.locator('[data-slot="alert-description"]'),
+    ).toHaveText("读取清单 · 解析校验和 · 暂未开始写入");
+    await expect(
+        indeterminateBanner.locator('[data-slot="progress"]'),
+    ).toHaveAttribute("aria-valuenow", "0");
     const indeterminateButton = indeterminateBanner.locator(
-        '[data-sot-part="system-banner-actions"] [data-slot="button"]',
+        '[data-slot="button"]',
     );
     await expect(indeterminateButton).toHaveCount(1);
     await expect(indeterminateButton).toBeDisabled();
@@ -1323,9 +1391,14 @@ test("dashboard system banner composes shadcn primitives without legacy visual w
         state: "export-progress",
         title: "正在导出「全部录音 · 钉钉」",
     });
-    const exportProgress = page.locator(
-        '[data-sot-panel="system-banner"][data-kind="export-progress"][data-pct="70"] [data-sot-part="system-banner-progress"]',
+    const exportBanner = systemBannerByTitle(
+        page,
+        "正在导出「全部录音 · 钉钉」",
     );
+    await expect(
+        exportBanner.locator('[data-slot="alert-description"]'),
+    ).toHaveText("78 / 112 · 含逐字稿 · 含标签关系 · 不含登录信息");
+    const exportProgress = exportBanner.locator('[data-slot="progress"]');
     await expect(exportProgress).toHaveAttribute("data-slot", "progress");
     await expect(exportProgress).toHaveAttribute("aria-valuenow", "70");
 });
@@ -1346,7 +1419,7 @@ test("dashboard system banner stacked state keeps shadcn alert hooks", async ({
     ).toHaveAttribute("data-sot-state", "ready");
     await page.waitForLoadState("networkidle");
 
-    const productBanners = page.locator('[data-sot-panel="system-banner"]');
+    const productBanners = systemBannerAlerts(page);
     await clearSystemBanners(page);
     await dispatchSystemBanner(page, {
         id: "stack-offline",
@@ -1358,24 +1431,23 @@ test("dashboard system banner stacked state keeps shadcn alert hooks", async ({
     });
 
     await expect(productBanners).toHaveCount(2);
-    await expect(productBanners.nth(0)).toHaveAttribute("data-kind", "offline");
-    await expect(productBanners.nth(1)).toHaveAttribute(
-        "data-kind",
-        "update-available",
-    );
+    await expect(
+        productBanners.nth(0).locator('[data-slot="alert-title"]'),
+    ).toHaveText("当前无网络连接");
+    await expect(
+        productBanners.nth(1).locator('[data-slot="alert-title"]'),
+    ).toHaveText("有可用更新");
     for (const banner of [productBanners.nth(0), productBanners.nth(1)]) {
         await expect(banner).toHaveAttribute("data-slot", "alert");
         await expect(banner).toHaveAttribute("data-density", "comfortable");
-        await expect(banner).toHaveAttribute("data-layout", "stacked");
+        await expect(banner.locator(":scope > svg")).toHaveCount(1);
+        await expect(banner.locator('[data-slot="alert-title"]')).toHaveCount(
+            1,
+        );
         await expect(
-            banner.locator('[data-sot-part="system-banner-icon"]'),
+            banner.locator('[data-slot="alert-description"]'),
         ).toHaveCount(1);
-        await expect(
-            banner.locator('[data-sot-part="system-banner-body"]'),
-        ).toHaveCount(1);
-        await expect(
-            banner.locator('[data-sot-part="system-banner-actions"]'),
-        ).toHaveCount(1);
+        await expect(banner.locator('[data-slot="button"]')).toHaveCount(1);
     }
 });
 
@@ -1453,39 +1525,36 @@ test("dashboard sync status exposes worker unavailable, queued, and running stat
     await resetDisplayToChinese(page);
     await page.goto("/dashboard", { waitUntil: "domcontentloaded" });
 
-    const status = page.locator('[data-sot-panel="dashboard-sync"]');
-    await expect(status).toHaveAttribute("data-sot-state", "error");
+    const status = page.locator('[data-panel="dashboard-sync"]');
+    await expect(status).toHaveAttribute("data-state", "error");
     await expect(status).toContainText("本地更新服务未响应");
-    await expect(page.locator('[data-sot-panel="system-banner"]')).toHaveCount(
-        0,
-    );
+    await expect(systemBannerAlerts(page)).toHaveCount(0);
 
     mode = "db-locked";
     await reloadDashboardAfterSyncStatus(page);
-    await expect(status).toHaveAttribute("data-sot-state", "error");
+    await expect(status).toHaveAttribute("data-state", "error");
     await expect(
-        page.locator('[data-sot-panel="system-banner"][data-kind="db-locked"]'),
-    ).toContainText("本地数据库被另一个 BetterAINote 实例占用");
+        systemBannerByTitle(
+            page,
+            "本地数据库被另一个 BetterAINote 实例占用",
+        ),
+    ).toHaveCount(1);
 
     mode = "permission-denied";
     await reloadDashboardAfterSyncStatus(page);
-    await expect(status).toHaveAttribute("data-sot-state", "error");
+    await expect(status).toHaveAttribute("data-state", "error");
     await expect(
-        page.locator(
-            '[data-sot-panel="system-banner"][data-kind="permission-denied"]',
-        ),
-    ).toContainText("未授权访问录音文件夹");
+        systemBannerByTitle(page, "未授权访问录音文件夹"),
+    ).toHaveCount(1);
 
     mode = "queued";
     await reloadDashboardAfterSyncStatus(page);
-    await expect(status).toHaveAttribute("data-sot-state", "queued");
+    await expect(status).toHaveAttribute("data-state", "queued");
     await expect(status).toContainText("已加入更新");
-    await expect(page.locator('[data-sot-panel="system-banner"]')).toHaveCount(
-        0,
-    );
+    await expect(systemBannerAlerts(page)).toHaveCount(0);
 
     mode = "running";
     await reloadDashboardAfterSyncStatus(page);
-    await expect(status).toHaveAttribute("data-sot-state", "running");
+    await expect(status).toHaveAttribute("data-state", "running");
     await expect(status).toContainText("更新中");
 });

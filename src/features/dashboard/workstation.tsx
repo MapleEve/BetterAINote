@@ -3815,6 +3815,8 @@ export function Workstation({
             data-sidebar-collapsed={
                 dashboardSidebarCollapsed ? "true" : "false"
             }
+            data-sot-state={hydrated ? "ready" : "loading"}
+            data-sot-surface="dashboard-workstation"
             data-surface="dashboard-workstation"
             data-state={hydrated ? "ready" : "loading"}
             data-source-filter-active={source === "all" ? "false" : "true"}
