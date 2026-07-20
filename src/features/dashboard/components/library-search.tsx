@@ -411,6 +411,8 @@ export function LibrarySearch({
                 aria-expanded={open}
                 aria-haspopup="dialog"
                 aria-controls={open ? LIBRARY_SEARCH_DIALOG_ID : undefined}
+                data-control="dashboard-search"
+                data-state={open ? "open" : "closed"}
                 onClick={() => onOpenChange(!open)}
             >
                 <Search aria-hidden="true" />
@@ -420,6 +422,8 @@ export function LibrarySearch({
                     hasNoPadding
                     variant="default"
                     className={librarySearchClassNames.panel}
+                    data-panel="library-search"
+                    data-state={searchPanelState}
                     id={LIBRARY_SEARCH_DIALOG_ID}
                     role="dialog"
                     aria-label={t("librarySearch.dialogLabel")}
@@ -443,6 +447,8 @@ export function LibrarySearch({
                         <InputGroupInput
                             variant="default"
                             className={librarySearchClassNames.input}
+                            data-control="library-search-input"
+                            data-state={searchPanelState}
                             ref={searchInputRef}
                             value={query}
                             role="combobox"
@@ -496,6 +502,7 @@ export function LibrarySearch({
                         variant="outline"
                         size="sm"
                         className={librarySearchClassNames.scope}
+                        data-control="library-search-scope"
                         value={searchScope}
                         spacing={1.6}
                         aria-label={t("librarySearch.scopeLegend")}
@@ -514,6 +521,7 @@ export function LibrarySearch({
                             <ToggleGroupItem
                                 key={item.value}
                                 value={item.value}
+                                data-scope={item.value}
                                 aria-pressed={item.value === searchScope}
                                 className={librarySearchClassNames.scopeItem}
                                 disabled={searchPanelState === "indexing"}
@@ -528,6 +536,8 @@ export function LibrarySearch({
                         {searchPanelState === "indexing" ? (
                             <div
                                 className={librarySearchClassNames.indexing}
+                                data-part="library-search-indexing"
+                                data-state="indexing"
                                 aria-live="polite"
                             >
                                 <div
@@ -664,6 +674,13 @@ export function LibrarySearch({
                                                         id={librarySearchResultId(
                                                             index,
                                                         )}
+                                                        data-control="library-search-result"
+                                                        data-result-type={
+                                                            result.entityType
+                                                        }
+                                                        data-result-index={
+                                                            index
+                                                        }
                                                         role="option"
                                                         aria-selected={
                                                             index ===

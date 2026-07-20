@@ -2246,16 +2246,22 @@ export function Workstation({
                 const active = source === item.key;
                 const connected = Boolean(dataSource?.connected);
                 const enabled = dataSource?.enabled ?? false;
+                const hasSavedCredentials = Boolean(
+                    dataSource &&
+                        Object.values(dataSource.secretsConfigured).some(
+                            Boolean,
+                        ),
+                );
                 const planned = dataSource?.runtimeStatus === "planned";
                 const status: SourceStatus =
                     dataSourcesLoading && !dataSource
                         ? "loading"
                         : planned
                           ? "planned"
-                          : !connected
-                            ? "needs-setup"
-                            : !enabled
-                              ? "paused"
+                          : !enabled && hasSavedCredentials
+                            ? "paused"
+                            : !connected
+                              ? "needs-setup"
                               : dataSource?.connectionStatus === "expired"
                                 ? "expired"
                                 : isAutoSyncing
@@ -3815,8 +3821,6 @@ export function Workstation({
             data-sidebar-collapsed={
                 dashboardSidebarCollapsed ? "true" : "false"
             }
-            data-sot-state={hydrated ? "ready" : "loading"}
-            data-sot-surface="dashboard-workstation"
             data-surface="dashboard-workstation"
             data-state={hydrated ? "ready" : "loading"}
             data-source-filter-active={source === "all" ? "false" : "true"}

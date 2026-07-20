@@ -368,12 +368,16 @@ async function countActiveSearchIndexJob(userId: string) {
 }
 
 async function openLibrarySearch(page: Page) {
-    const trigger = sotControl(page, "dashboard-search").first();
-    const panel = sotPanel(page, "library-search");
+    const trigger = page.getByRole("button", { name: /^(搜索|Search)$/ });
+    const panel = page.getByRole("dialog", {
+        name: /^(搜索库|Search library)$/,
+    });
 
-    await expect(
-        page.locator('[data-sot-surface="dashboard-workstation"]'),
-    ).toHaveAttribute("data-sot-state", "ready");
+    await expect(page.locator('[data-surface="dashboard-workstation"]')).toHaveAttribute(
+        "data-state",
+        "ready",
+    );
+    await expect(trigger).toHaveAttribute("data-control", "dashboard-search");
     await expect(trigger).toBeVisible();
     for (let attempt = 0; attempt < 3; attempt += 1) {
         await trigger.click();
@@ -399,18 +403,10 @@ async function openLibrarySearch(page: Page) {
     return panel;
 }
 
-function sotControl(page: Page, name: string) {
-    return page.locator(`[data-sot-control="${name}"]`);
-}
-
-function sotPanel(page: Page, name: string) {
-    return page.locator(`[data-sot-panel="${name}"]`);
-}
-
-function sotSearchResult(page: Page, type: string, index = 0) {
+function librarySearchResult(page: Page, type: string, index = 0) {
     return page.locator(
-        `[data-sot-control="library-search-result"][data-sot-result-type="${type}"][data-sot-result-index="${index}"]`,
-    );
+        `[data-control="library-search-result"][data-result-type="${type}"]`,
+    ).nth(index);
 }
 
 test("library search uses the real /api/search route against the seeded local read model", async ({
@@ -434,19 +430,20 @@ test("library search uses the real /api/search route against the seeded local re
     await page.goto("/dashboard", { waitUntil: "domcontentloaded" });
 
     const otherRecording = page.locator(
-        `[data-sot-recording-id="${SEARCH_OTHER_RECORDING_ID}"]`,
+        `[data-control="dashboard-recording-row"][data-recording-id="${SEARCH_OTHER_RECORDING_ID}"]`,
     );
     const targetRecording = page.locator(
-        `[data-sot-recording-id="${SEARCH_TARGET_RECORDING_ID}"]`,
+        `[data-control="dashboard-recording-row"][data-recording-id="${SEARCH_TARGET_RECORDING_ID}"]`,
     );
     await expect(otherRecording).toBeVisible();
     await expect(targetRecording).toBeVisible();
     await otherRecording.click();
-    await expect(otherRecording).toHaveAttribute("data-sot-state", "selected");
-    await expect(targetRecording).toHaveAttribute("data-sot-state", "idle");
+    await expect(otherRecording).toHaveAttribute("data-state", "selected");
+    await expect(targetRecording).toHaveAttribute("data-state", "idle");
 
     const panel = await openLibrarySearch(page);
-    const input = panel.locator('[data-sot-control="library-search-input"]');
+    await expect(panel).toHaveAttribute("data-panel", "library-search");
+    const input = panel.getByRole("combobox");
     const searchResponsePromise = page.waitForResponse((response) => {
         const url = new URL(response.url());
         return (
@@ -490,15 +487,19 @@ test("library search uses the real /api/search route against the seeded local re
         ]),
     );
 
-    const transcriptResult = sotSearchResult(page, "transcript", 0);
+    const transcriptResult = librarySearchResult(page, "transcript", 0);
     await expect(transcriptResult).toBeVisible();
+    await expect(transcriptResult).toHaveAttribute(
+        "data-control",
+        "library-search-result",
+    );
     await expect(transcriptResult).toContainText(SEARCH_TARGET_TITLE);
     await expect(transcriptResult).toContainText(SEARCH_BODY);
 
     await transcriptResult.click();
     await expect(panel).toBeHidden();
-    await expect(targetRecording).toHaveAttribute("data-sot-state", "selected");
-    await expect(otherRecording).toHaveAttribute("data-sot-state", "idle");
+    await expect(targetRecording).toHaveAttribute("data-state", "selected");
+    await expect(otherRecording).toHaveAttribute("data-state", "idle");
 });
 
 test("library search shows the real backend indexing state while search index jobs are active", async ({
@@ -543,41 +544,28 @@ test("library search shows the real backend indexing state while search index jo
         await page.goto("/dashboard", { waitUntil: "domcontentloaded" });
 
         const panel = await openLibrarySearch(page);
-        const input = panel.locator('[data-sot-control="library-search-input"]');
+        const input = panel.getByRole("combobox");
 
         await input.fill(SEARCH_INDEXING_QUERY);
         await expect(panel).toHaveAttribute("data-state", "indexing");
-        await expect(panel).toHaveAttribute("data-sot-state", "indexing");
-        await expect(input).toHaveAttribute("data-sot-state", "indexing");
+        await expect(input).toHaveAttribute("data-state", "indexing");
         await expect(input).toHaveAttribute("aria-disabled", "true");
         await expect(input).toHaveJSProperty("readOnly", true);
 
         const indexingState = panel.locator(
-            '[data-sot-part="library-search-indexing"][data-sot-state="indexing"]',
+            '[data-part="library-search-indexing"][data-state="indexing"]',
         );
         await expect(indexingState).toBeVisible();
         await expect(indexingState).toContainText("正在重建本地搜索索引");
         await expect(indexingState).toContainText("0 / 1");
-        await expect(
-            panel.locator('[data-sot-part="library-search-state-skeleton"]'),
-        ).toBeVisible();
+        await expect(panel.getByRole("progressbar")).toBeVisible();
 
-        const scopeControls = panel.locator(
-            '[data-sot-control="library-search-scope"]',
-        );
+        const scopeControls = panel
+            .getByRole("radiogroup", { name: /^(检索范围|Search scope)$/ })
+            .getByRole("radio");
         await expect(scopeControls).toHaveCount(5);
-        for (const scope of [
-            "all",
-            "recording",
-            "transcript",
-            "speaker",
-            "tag",
-        ]) {
-            await expect(
-                panel.locator(
-                    `[data-sot-control="library-search-scope"][data-sot-scope="${scope}"]`,
-                ),
-            ).toBeDisabled();
+        for (const scopeControl of await scopeControls.all()) {
+            await expect(scopeControl).toBeDisabled();
         }
     } finally {
         await cleanupActiveSearchIndexJob(userId);
