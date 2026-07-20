@@ -1689,10 +1689,28 @@ describe("recording detail copy and title action UI regressions", () => {
         );
         expect(sourceReport).toContain('data-testid="source-report-repull"');
         expect(sourceReport).toContain("<SourceReportPane");
-        expect(sourceReport).toContain(
-            "<SourceReportPane className={className} state={sourceReportState}>",
+        const recordingSourceReportPane = extractOpeningElement(
+            sourceReport,
+            'data-control="recording-source-report"',
+            "SourceReportPane",
+        );
+        expect(recordingSourceReportPane).toContain("className={className}");
+        expect(recordingSourceReportPane).toContain(
+            'data-control="recording-source-report"',
+        );
+        expect(recordingSourceReportPane).toContain(
+            "state={sourceReportState}",
         );
         expect(sourceReport).toContain('<SourceReportState state="loading">');
+        expect(sourceReport).toContain(
+            '<RecordingSourceReportState state="error" error={error}>',
+        );
+        expect(sourceReport).toContain(
+            '<RecordingSourceReportState\n                    state="loaded"',
+        );
+        expect(sourceReport).toContain(
+            '<RecordingSourceReportState state="empty">',
+        );
         expect(sourceReport).toContain("subState={sourceReportSubState}");
         expect(sourceReport).not.toContain("@/features/source-report/styles");
         expect(sourceReport).not.toContain("JSON.stringify(data.detail");
