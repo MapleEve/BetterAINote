@@ -208,6 +208,7 @@ function SectionShell({
     loading,
     onRetry,
     scrollRef,
+    stateError,
     subtitle,
     title,
 }: {
@@ -217,15 +218,20 @@ function SectionShell({
     loading: boolean;
     onRetry: () => void;
     scrollRef?: Ref<HTMLDivElement>;
+    stateError?: string | null;
     subtitle?: string;
     title: string;
 }) {
     const { language } = useLanguage();
     const isZh = language === "zh-CN";
-
     if (loading) {
         return (
-            <SettingsSectionSkeleton fieldsPerCard={2} scrollRef={scrollRef} />
+            <div aria-busy={busy}>
+                <SettingsSectionSkeleton
+                    fieldsPerCard={2}
+                    scrollRef={scrollRef}
+                />
+            </div>
         );
     }
 
@@ -275,6 +281,23 @@ function SectionShell({
             className={SETTINGS_SCROLL_BODY_CLASS}
         >
             <h3 className={SETTINGS_SECTION_TITLE_CLASS}>{title}</h3>
+            {stateError ? (
+                <Alert
+                    variant="destructiveSoft"
+                    density="comfortable"
+                    className={SETTINGS_BANNER_BASE_CLASS}
+                >
+                    <AlertCircle aria-hidden="true" />
+                    <AlertTitle className={SETTINGS_BANNER_TITLE_CLASS}>
+                        {isZh ? "保存失败" : "Save failed"}
+                    </AlertTitle>
+                    <AlertDescription
+                        className={SETTINGS_BANNER_DESCRIPTION_CLASS}
+                    >
+                        {stateError}
+                    </AlertDescription>
+                </Alert>
+            ) : null}
             {subtitle ? (
                 <FieldDescription className="max-w-2xl">
                     {subtitle}
@@ -511,6 +534,7 @@ function DisplaySettingsPanel({
         updateDisplaySettings,
     } = useDisplaySettingsStore();
     const [draft, setDraft] = useState<DisplaySettings>(settings);
+    const [saveError, setSaveError] = useState<string | null>(null);
     const busy = isLoading || isSaving;
 
     useSettingsSectionBusy("appearance", busy);
@@ -523,6 +547,7 @@ function DisplaySettingsPanel({
         key: Key,
         value: DisplaySettings[Key],
     ) => {
+        setSaveError(null);
         setDraft((current) => ({
             ...current,
             [key]: value,
@@ -534,7 +559,16 @@ function DisplaySettingsPanel({
 
         void updateDisplaySettings({
             [key]: value,
-        } as Pick<DisplaySettings, Key>).catch(() => {});
+        } as Pick<DisplaySettings, Key>).catch((error) => {
+            setSaveError(
+                getErrorMessage(
+                    error,
+                    isZh
+                        ? "显示设置未保存，请重试。"
+                        : "Display settings were not saved. Try again.",
+                ),
+            );
+        });
     };
 
     const themeOptions: Option<ThemeMode>[] = [
@@ -576,6 +610,7 @@ function DisplaySettingsPanel({
             loading={isLoading && !hasLoaded}
             onRetry={() => void ensureDisplaySettingsLoaded().catch(() => {})}
             scrollRef={scrollRef}
+            stateError={saveError}
             title={isZh ? "显示设置" : "Display Settings"}
         >
             <SettingsGroup

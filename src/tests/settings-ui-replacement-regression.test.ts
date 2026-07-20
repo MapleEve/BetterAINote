@@ -702,7 +702,7 @@ describe("settings SOT interaction regressions", () => {
         }
     });
 
-    it("keeps modal and scrim product CSS on dialog/data-sot selectors only", () => {
+    it("removes legacy data-sot selectors from modal and scrim product CSS", () => {
         const globals = readSource("app/globals.css");
         const confirmDialog = readSource("components/ui/confirm-dialog.tsx");
         const layout = readSource("app/layout.tsx");
@@ -834,7 +834,7 @@ describe("settings SOT interaction regressions", () => {
         expect(sharedSelect).not.toContain("<option");
     });
 
-    it("keeps settings main product CSS on data-sot selectors only", () => {
+    it("removes legacy data-sot selectors from settings main product CSS", () => {
         const globals = readSource("app/globals.css");
         const content = readSource(
             "features/settings/components/settings-content.tsx",
@@ -3227,7 +3227,7 @@ describe("settings SOT interaction regressions", () => {
         expect(content).not.toContain("data-field-msg");
     });
 
-    it("keeps appearance segmented controls on SOT-facing aliases without changing saved values", () => {
+    it("keeps appearance segmented controls on Radix semantics without changing saved values", () => {
         const content = readSource(
             "features/settings/components/settings-content.tsx",
         );
@@ -3298,6 +3298,45 @@ describe("settings SOT interaction regressions", () => {
         expect(content).not.toContain('theme: "auto"');
         expect(content).not.toContain('dateTimeFormat: "rel"');
         expect(content).not.toContain('dateTimeFormat: "abs"');
+    });
+
+    it("projects appearance state and controls from the shared display store through shadcn semantics", () => {
+        const content = readSource(
+            "features/settings/components/settings-content.tsx",
+        );
+        const dialog = readSource(
+            "features/settings/components/settings-dialog.tsx",
+        );
+        const displayPanel = content.match(
+            /function DisplaySettingsPanel[\s\S]*?function TitleGenerationSettingsPanel/,
+        )?.[0];
+        const sectionShell = content.match(
+            /function SectionShell[\s\S]*?function SettingsGroup/,
+        )?.[0];
+        const segmentControl = content.match(
+            /function SegmentControl[\s\S]*?function SaveActions/,
+        )?.[0];
+
+        expect(sectionShell).toContain("aria-busy={busy}");
+        expect(sectionShell).toContain("{stateError ? (");
+        expect(sectionShell).toContain('variant="destructiveSoft"');
+        expect(sectionShell).toContain('isZh ? "保存失败" : "Save failed"');
+        expect(displayPanel).toContain(
+            "const [saveError, setSaveError] = useState<string | null>(null)",
+        );
+        expect(displayPanel).toContain("setSaveError(null)");
+        expect(displayPanel).toContain(
+            ".catch((error) => {\n            setSaveError(",
+        );
+        expect(displayPanel).toContain("stateError={saveError}");
+        expect(segmentControl).toContain("aria-label={label}");
+        expect(segmentControl).toContain("<ToggleGroupItem");
+        expect(segmentControl).toContain("value={option.value}");
+        expect(segmentControl).toContain("disabled={disabled}");
+        expect(segmentControl).not.toContain("data-sot-");
+        expect(dialog).toContain("aria-busy={isSettingsBusy}");
+        expect(dialog).toContain('aria-current={');
+        expect(dialog).not.toContain("data-sot-");
     });
 
     it("keeps VoScript max inflight save payload aligned with unlimited zero semantics", () => {
