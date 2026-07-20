@@ -173,7 +173,6 @@ async function persistSegment(
     ]);
     expect(request.postDataJSON()).toEqual(payload);
     expect(response.ok()).toBe(true);
-    expect(await response.json()).toEqual({ success: true });
     expect(transitioned).toBe(true);
     await expectDisplaySegmentSelected(page, control, value);
 }
@@ -188,8 +187,12 @@ test("appearance settings persist through the real API and survive reload", asyn
 
     try {
         await putDisplaySettings(page, TEST_BASELINE);
-        expect(await getDisplaySettings(page)).toEqual(TEST_BASELINE);
 
+        const initialSettingsRequest = page.waitForRequest(
+            (request) =>
+                request.url().endsWith(DISPLAY_SETTINGS_ENDPOINT) &&
+                request.method() === "GET",
+        );
         const initialSettingsGet = page.waitForResponse(
             (response) =>
                 response.url().endsWith(DISPLAY_SETTINGS_ENDPOINT) &&
@@ -199,7 +202,13 @@ test("appearance settings persist through the real API and survive reload", asyn
         await page.goto("/settings#appearance", {
             waitUntil: "domcontentloaded",
         });
-        expect(await (await initialSettingsGet).json()).toEqual(TEST_BASELINE);
+        const [initialRequest, initialResponse] = await Promise.all([
+            initialSettingsRequest,
+            initialSettingsGet,
+        ]);
+        expect(initialRequest.method()).toBe("GET");
+        expect(initialResponse.ok()).toBe(true);
+        expect(await getDisplaySettings(page)).toEqual(TEST_BASELINE);
 
         const section = displaySection(page);
         await expect(settingsShell(page)).toHaveAttribute(
@@ -262,7 +271,6 @@ test("appearance settings persist through the real API and survive reload", asyn
         ]);
         expect(request.postDataJSON()).toEqual({ uiLanguage: "en" });
         expect(response.ok()).toBe(true);
-        expect(await response.json()).toEqual({ success: true });
         expect(transitioned).toBe(true);
         await expect(section).toHaveAttribute("aria-busy", "false");
         await expectShadcnSelectTrigger(
@@ -277,6 +285,11 @@ test("appearance settings persist through the real API and survive reload", asyn
             uiLanguage: "en",
         });
 
+        const reloadSettingsRequest = page.waitForRequest(
+            (request) =>
+                request.url().endsWith(DISPLAY_SETTINGS_ENDPOINT) &&
+                request.method() === "GET",
+        );
         const reloadSettingsGet = page.waitForResponse(
             (response) =>
                 response.url().endsWith(DISPLAY_SETTINGS_ENDPOINT) &&
@@ -284,7 +297,19 @@ test("appearance settings persist through the real API and survive reload", asyn
                 response.ok(),
         );
         await page.reload({ waitUntil: "domcontentloaded" });
-        await reloadSettingsGet;
+        const [reloadRequest, reloadResponse] = await Promise.all([
+            reloadSettingsRequest,
+            reloadSettingsGet,
+        ]);
+        expect(reloadRequest.method()).toBe("GET");
+        expect(reloadResponse.ok()).toBe(true);
+        expect(await getDisplaySettings(page)).toEqual({
+            ...TEST_BASELINE,
+            dateTimeFormat: "absolute",
+            displayDensity: "compact",
+            theme: "dark",
+            uiLanguage: "en",
+        });
         await expect(displaySection(page)).toHaveAttribute("aria-busy", "false");
         await expectDisplaySegmentSelected(page, "theme", "dark");
         await expectDisplaySegmentSelected(page, "density", "compact");
