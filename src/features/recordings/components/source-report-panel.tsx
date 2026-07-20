@@ -825,6 +825,7 @@ export function SourceReportPanel({
         activeReportRequestRef.current = { controller, id: requestId };
 
         setIsLoading(true);
+        setData(null);
         setError(null);
         try {
             const response = await fetch(

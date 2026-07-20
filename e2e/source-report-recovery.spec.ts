@@ -1,6 +1,6 @@
 import path from "node:path";
 import { pathToFileURL } from "node:url";
-import { createClient } from "@libsql/client";
+import { createClient, type Client } from "@libsql/client";
 import { expect, type Page, test } from "@playwright/test";
 import { ensureSignedIn } from "./helpers/auth";
 
@@ -9,7 +9,6 @@ const E2E_DATA_DIR = process.env.PLAYWRIGHT_E2E_DATA_DIR
     : path.resolve(process.cwd(), "tmp/e2e/data");
 const RECOVERY_RECORDING_ID = "e2e-source-report-recovery";
 const RECOVERY_REPORT_MARKER = "E2E_SOURCE_REPORT_RECOVERY_MARKER";
-const FORCED_FAILURE_MESSAGE = "E2E source report refresh failure";
 
 function resolveDatabasePath() {
     return process.env.DATABASE_PATH
@@ -33,35 +32,14 @@ const CORE_DB = resolveDatabasePath();
 const LIBRARY_DB = deriveSiblingDatabasePath(CORE_DB, "library");
 const TRANSCRIPTS_DB = deriveSiblingDatabasePath(CORE_DB, "transcripts");
 
-async function executeWithBusyRetry<T>(
-    operation: () => Promise<T>,
-): Promise<T> {
-    const delays = [50, 100, 200, 400, 800, 1_200];
-
-    for (let attempt = 0; ; attempt += 1) {
-        try {
-            return await operation();
-        } catch (error) {
-            const delay = delays[attempt];
-            const message = error instanceof Error ? error.message : String(error);
-            if (delay == null || !/SQLITE_BUSY|database is locked/i.test(message)) {
-                throw error;
-            }
-            await new Promise((resolve) => setTimeout(resolve, delay));
-        }
-    }
-}
-
 async function getPlaywrightUserId() {
     const core = createClient({ url: databaseUrl(CORE_DB) });
 
     try {
-        const result = await executeWithBusyRetry(() =>
-            core.execute({
-                sql: "SELECT id FROM `users` WHERE email = ? LIMIT 1",
-                args: ["playwright-admin@example.com"],
-            }),
-        );
+        const result = await core.execute({
+            sql: "SELECT id FROM `users` WHERE email = ? LIMIT 1",
+            args: ["playwright-admin@example.com"],
+        });
         const userId = result.rows[0]?.id;
         if (typeof userId !== "string") {
             throw new Error("Playwright user not found");
@@ -77,36 +55,26 @@ async function cleanupRecoverySeed(userId: string) {
     const transcripts = createClient({ url: databaseUrl(TRANSCRIPTS_DB) });
 
     try {
-        await executeWithBusyRetry(() =>
-            transcripts.execute({
-                sql: "DELETE FROM source_artifacts WHERE user_id = ? AND recording_id = ?",
-                args: [userId, RECOVERY_RECORDING_ID],
-            }),
-        );
-        await executeWithBusyRetry(() =>
-            transcripts.execute({
-                sql: "DELETE FROM transcript_segments WHERE user_id = ? AND recording_id = ?",
-                args: [userId, RECOVERY_RECORDING_ID],
-            }),
-        );
-        await executeWithBusyRetry(() =>
-            transcripts.execute({
-                sql: "DELETE FROM transcriptions WHERE user_id = ? AND recording_id = ?",
-                args: [userId, RECOVERY_RECORDING_ID],
-            }),
-        );
-        await executeWithBusyRetry(() =>
-            library.execute({
-                sql: "DELETE FROM transcription_jobs WHERE user_id = ? AND recording_id = ?",
-                args: [userId, RECOVERY_RECORDING_ID],
-            }),
-        );
-        await executeWithBusyRetry(() =>
-            library.execute({
-                sql: "DELETE FROM recordings WHERE user_id = ? AND id = ?",
-                args: [userId, RECOVERY_RECORDING_ID],
-            }),
-        );
+        await transcripts.execute({
+            sql: "DELETE FROM source_artifacts WHERE user_id = ? AND recording_id = ?",
+            args: [userId, RECOVERY_RECORDING_ID],
+        });
+        await transcripts.execute({
+            sql: "DELETE FROM transcript_segments WHERE user_id = ? AND recording_id = ?",
+            args: [userId, RECOVERY_RECORDING_ID],
+        });
+        await transcripts.execute({
+            sql: "DELETE FROM transcriptions WHERE user_id = ? AND recording_id = ?",
+            args: [userId, RECOVERY_RECORDING_ID],
+        });
+        await library.execute({
+            sql: "DELETE FROM transcription_jobs WHERE user_id = ? AND recording_id = ?",
+            args: [userId, RECOVERY_RECORDING_ID],
+        });
+        await library.execute({
+            sql: "DELETE FROM recordings WHERE user_id = ? AND id = ?",
+            args: [userId, RECOVERY_RECORDING_ID],
+        });
     } finally {
         await library.close();
         await transcripts.close();
@@ -121,8 +89,7 @@ async function seedRecoveryRecording(userId: string) {
     const transcripts = createClient({ url: databaseUrl(TRANSCRIPTS_DB) });
 
     try {
-        await executeWithBusyRetry(() =>
-            library.execute({
+        await library.execute({
                 sql: `
                     INSERT OR REPLACE INTO recordings (
                         id, user_id, source_provider, source_recording_id, source_version,
@@ -155,10 +122,8 @@ async function seedRecoveryRecording(userId: string) {
                     now,
                     now,
                 ],
-            }),
-        );
-        await executeWithBusyRetry(() =>
-            transcripts.execute({
+        });
+        await transcripts.execute({
                 sql: `
                     INSERT OR REPLACE INTO transcriptions (
                         id, recording_id, user_id, text, detected_language,
@@ -180,10 +145,8 @@ async function seedRecoveryRecording(userId: string) {
                     "{}",
                     now - 120_000,
                 ],
-            }),
-        );
-        await executeWithBusyRetry(() =>
-            transcripts.execute({
+        });
+        await transcripts.execute({
                 sql: `
                     INSERT OR REPLACE INTO source_artifacts (
                         id, recording_id, user_id, provider, artifact_type, title,
@@ -203,10 +166,8 @@ async function seedRecoveryRecording(userId: string) {
                     now - 90_000,
                     now - 60_000,
                 ],
-            }),
-        );
-        await executeWithBusyRetry(() =>
-            transcripts.execute({
+        });
+        await transcripts.execute({
                 sql: `
                     INSERT OR REPLACE INTO source_artifacts (
                         id, recording_id, user_id, provider, artifact_type, title,
@@ -236,10 +197,8 @@ async function seedRecoveryRecording(userId: string) {
                     now - 110_000,
                     now - 100_000,
                 ],
-            }),
-        );
-        await executeWithBusyRetry(() =>
-            transcripts.execute({
+        });
+        await transcripts.execute({
                 sql: `
                     INSERT OR REPLACE INTO source_artifacts (
                         id, recording_id, user_id, provider, artifact_type, title,
@@ -259,11 +218,29 @@ async function seedRecoveryRecording(userId: string) {
                     now - 100_000,
                     now - 95_000,
                 ],
-            }),
-        );
+        });
     } finally {
         await library.close();
         await transcripts.close();
+    }
+}
+
+async function acquireSourceArtifactsLock(): Promise<Client> {
+    const lock = createClient({ url: databaseUrl(TRANSCRIPTS_DB) });
+    await lock.execute("PRAGMA busy_timeout = 0");
+    await lock.execute("BEGIN EXCLUSIVE");
+    return lock;
+}
+
+async function releaseSourceArtifactsLock(lock: Client | null) {
+    if (!lock) {
+        return;
+    }
+
+    try {
+        await lock.execute("COMMIT");
+    } finally {
+        await lock.close();
     }
 }
 
@@ -298,44 +275,17 @@ async function waitForSourceReportResponse(
     });
 }
 
-test("recording detail source report refresh failure clears stale content before retry", async ({
+test("recording detail source report refresh failure clears stale content before recovery", async ({
     page,
 }) => {
-    const sourceReportRoute = `**/api/recordings/${RECOVERY_RECORDING_ID}/source-report`;
     let userId: string | null = null;
-    let routeInstalled = false;
-    let forceNextRefreshFailure = false;
-    let forcedFailureCount = 0;
-    let realRouteResponseCount = 0;
+    let lock: Client | null = null;
 
     try {
         await ensureSignedIn(page);
         userId = await getPlaywrightUserId();
         await cleanupRecoverySeed(userId);
         await seedRecoveryRecording(userId);
-
-        // Only the refresh is intercepted; the initial load and retry use the app route.
-        await page.route(sourceReportRoute, async (route) => {
-            if (route.request().method() !== "GET") {
-                await route.continue();
-                return;
-            }
-
-            if (forceNextRefreshFailure) {
-                forceNextRefreshFailure = false;
-                forcedFailureCount += 1;
-                await route.fulfill({
-                    contentType: "application/json",
-                    status: 503,
-                    body: JSON.stringify({ error: FORCED_FAILURE_MESSAGE }),
-                });
-                return;
-            }
-
-            realRouteResponseCount += 1;
-            await route.continue();
-        });
-        routeInstalled = true;
 
         const initialResponsePromise = waitForSourceReportResponse(page, 200);
         await page.goto(`/recordings/${RECOVERY_RECORDING_ID}`, {
@@ -355,14 +305,18 @@ test("recording detail source report refresh failure clears stale content before
         await expect(loadedState).toBeVisible();
         await expect(loadedState).toContainText(RECOVERY_REPORT_MARKER);
 
-        forceNextRefreshFailure = true;
-        const failureResponsePromise = waitForSourceReportResponse(page, 503);
+        lock = await acquireSourceArtifactsLock();
+        const failureResponsePromise = waitForSourceReportResponse(page, 500);
         await sourceReportRefreshButton(page).click();
-        const failureResponse = await failureResponsePromise;
-        expect(await failureResponse.json()).toEqual({
-            error: FORCED_FAILURE_MESSAGE,
-        });
-        expect(forcedFailureCount).toBe(1);
+        const loadingState = sourceReportInnerState(page, "loading");
+        await expect(panel).toHaveAttribute("data-state", "loading");
+        await expect(loadingState).toBeVisible();
+        await expect(
+            loadingState.getByTestId("source-report-card-skeleton").first(),
+        ).toBeVisible();
+        await expect(sourceReportRefreshButton(page)).toBeDisabled();
+        await expect(sourceReportRefreshButton(page)).toContainText("加载中...");
+        await failureResponsePromise;
 
         const errorState = sourceReportInnerState(page, "error");
         await expect(errorState).toBeVisible();
@@ -375,27 +329,28 @@ test("recording detail source report refresh failure clears stale content before
             panel.getByTestId("source-report-copy-source-report"),
         ).toHaveCount(0);
 
-        const retryResponsePromise = waitForSourceReportResponse(page, 200);
+        await releaseSourceArtifactsLock(lock);
+        lock = null;
+        const recoveryResponsePromise = waitForSourceReportResponse(page, 200);
         await errorState
             .getByTestId("source-report-refresh")
             .click();
-        const retryResponse = await retryResponsePromise;
-        const retryBody = (await retryResponse.json()) as {
+        const recoveryResponse = await recoveryResponsePromise;
+        const recoveryBody = (await recoveryResponse.json()) as {
             summaryMarkdown?: string | null;
             transcript?: { text?: string | null } | null;
         };
-        expect(retryBody.summaryMarkdown).toContain(RECOVERY_REPORT_MARKER);
-        expect(retryBody.transcript?.text).toContain(RECOVERY_REPORT_MARKER);
-        expect(realRouteResponseCount).toBe(2);
+        expect(recoveryBody.summaryMarkdown).toContain(RECOVERY_REPORT_MARKER);
+        expect(recoveryBody.transcript?.text).toContain(RECOVERY_REPORT_MARKER);
 
         await expect(panel).toHaveAttribute("data-state", "loaded");
         await expect(sourceReportInnerState(page, "error")).toHaveCount(0);
+        await expect(sourceReportRefreshButton(page)).toBeEnabled();
+        await expect(sourceReportRefreshButton(page)).toContainText("刷新");
         await expect(loadedState).toBeVisible();
         await expect(loadedState).toContainText(RECOVERY_REPORT_MARKER);
     } finally {
-        if (routeInstalled) {
-            await page.unroute(sourceReportRoute);
-        }
+        await releaseSourceArtifactsLock(lock);
         if (userId) {
             await cleanupRecoverySeed(userId);
         }
