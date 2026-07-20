@@ -1226,7 +1226,6 @@ export function RecordingWorkstation({
                                             recordingWorkstationButtonClassNames.headerActionButton,
                                             "gap-[7px] rounded-[9px] border-border bg-[var(--glass-tint-base)] px-3 text-[12.5px] leading-normal font-semibold shadow-xs backdrop-blur-[14px] backdrop-saturate-[1.4] [font-family:var(--font-sans)]",
                                         )}
-                                        style={{ paddingInline: 12 }}
                                         onClick={handleAutoRename}
                                         disabled={
                                             isAutoRenaming ||

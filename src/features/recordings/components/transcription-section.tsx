@@ -313,6 +313,13 @@ export function TranscriptionSection({
         status: jobStatus,
         remoteStatus: jobRemoteStatus,
     });
+    const transcriptionState = isTranscribing
+        ? "loading"
+        : jobError
+          ? "failed"
+          : transcription.trim()
+            ? "ready"
+            : "empty";
 
     return (
         <Card
@@ -320,6 +327,8 @@ export function TranscriptionSection({
             role="region"
             aria-labelledby="recording-transcription-title"
             className={recordingTranscriptionClassNames.card}
+            data-control="recording-transcription"
+            data-state={transcriptionState}
         >
             <CardHeader className={recordingTranscriptionClassNames.header}>
                 <div className={recordingTranscriptionClassNames.heading}>
@@ -355,7 +364,7 @@ export function TranscriptionSection({
             <Separator />
             <CardContent className={recordingTranscriptionClassNames.body}>
                 {isTranscribing ? (
-                    <Alert className="mb-3">
+                    <Alert className="mb-3" data-state="loading">
                         <Spinner aria-hidden="true" />
                         <div>
                             <AlertTitle className="line-clamp-none overflow-visible">
@@ -372,7 +381,11 @@ export function TranscriptionSection({
                         status: jobStatus,
                         remoteStatus: jobRemoteStatus,
                     }) && (
-                        <Alert variant="statusError" className="mb-3">
+                        <Alert
+                            variant="statusError"
+                            className="mb-3"
+                            data-state="failed"
+                        >
                             <AlertCircle aria-hidden="true" />
                             <div>
                                 <AlertTitle className="line-clamp-none overflow-visible">
@@ -388,6 +401,7 @@ export function TranscriptionSection({
                             className={
                                 recordingTranscriptionClassNames.outputSection
                             }
+                            data-state="ready"
                         >
                             <header
                                 className={
@@ -419,6 +433,7 @@ export function TranscriptionSection({
                                         onClick={handleCopyTranscript}
                                         size="sm"
                                         variant="outline"
+                                        data-control="recording-transcript-copy"
                                         disabled={
                                             isCopyingTranscript ||
                                             !displayText.trim()
@@ -437,6 +452,7 @@ export function TranscriptionSection({
                                         onClick={handleConfirmRetranscribe}
                                         size="sm"
                                         variant="destructive"
+                                        data-control="recording-transcript-retranscribe"
                                         disabled={
                                             !canTranscribe || isTranscribing
                                         }
@@ -557,7 +573,7 @@ export function TranscriptionSection({
                         ) : null}
                     </>
                 ) : (
-                    <Empty className="mt-4">
+                    <Empty className="mt-4" data-state="empty">
                         <EmptyHeader>
                             <EmptyMedia variant="icon">
                                 <FileText aria-hidden="true" />
@@ -574,6 +590,7 @@ export function TranscriptionSection({
                                 onClick={() => handleTranscribe(false)}
                                 size="sm"
                                 variant="default"
+                                data-control="recording-transcript-transcribe"
                                 disabled={!canTranscribe || isTranscribing}
                                 title={
                                     !canTranscribe

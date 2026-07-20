@@ -1,9 +1,25 @@
-import { readFileSync } from "node:fs";
+import { readdirSync, readFileSync } from "node:fs";
 import path from "node:path";
 import { describe, expect, it } from "vitest";
 import { serializeRecordingDetailTranscriptionJob } from "@/server/modules/recordings/serialize";
 
 const ROOT = path.join(process.cwd(), "src");
+
+function recordingDetailSourceFiles(relativeDirectory: string): string[] {
+    return readdirSync(path.join(ROOT, relativeDirectory), {
+        withFileTypes: true,
+    }).flatMap((entry) => {
+        const relativePath = path.join(relativeDirectory, entry.name);
+        if (entry.isDirectory()) {
+            return recordingDetailSourceFiles(relativePath);
+        }
+        return /\.(?:ts|tsx)$/.test(entry.name) ? [relativePath] : [];
+    });
+}
+
+const RECORDING_DETAIL_SOT_GUARD_SOURCE_FILES = recordingDetailSourceFiles(
+    "features/recordings",
+);
 
 const EXPECTED_DASHBOARD_DETAIL_HEADER_ACTION_ANCHOR_CLASS_NAME =
     "relative inline-flex items-center gap-1.5";
@@ -2468,10 +2484,13 @@ describe("recording detail copy and title action UI regressions", () => {
             'headerActionButton: "w-[102.375px] min-w-[102.375px]"',
         );
         const headerButtonClassResidualPattern =
-            /header(?:Icon|Action)Button:[\s\S]*?(?:data-sot|data-variant|rec-head|--recording-detail)/;
+            /header(?:Icon|Action)Button:[\s\S]*?(?:data-sot|sot-|data-variant|rec-head|--recording-detail)/;
         expect(recordingHeaderButtonClassNames).not.toMatch(
             headerButtonClassResidualPattern,
         );
+        for (const sourceFile of RECORDING_DETAIL_SOT_GUARD_SOURCE_FILES) {
+            expect(readSource(sourceFile)).not.toMatch(/data-sot|sot-/i);
+        }
         for (const removedRecordingDetailVariant of [
             "detailHeader",
             "detailHeaderTitle",

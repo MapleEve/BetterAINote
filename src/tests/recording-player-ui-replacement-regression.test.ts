@@ -240,7 +240,7 @@ describe("recording player runtime interaction regression", () => {
         expect(status?.props.hidden).toBe(false);
     });
 
-    it("keeps the no-audio copy in the SOT-compatible text container", () => {
+    it("keeps the no-audio copy in the semantic alert container", () => {
         playbackState.value = {
             ...playbackState.value,
             audioSrc: "",

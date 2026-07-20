@@ -13,6 +13,8 @@ type PopoverContentProps = {
     "aria-labelledby"?: string;
     children?: ReactNode;
     className?: string;
+    "data-control"?: string;
+    "data-state"?: string;
 };
 
 const previewProps = {
@@ -40,6 +42,8 @@ async function loadCard(withButtonCapture = false) {
             "aria-labelledby": ariaLabelledBy,
             children,
             className,
+            "data-control": dataControl,
+            "data-state": dataState,
         }: PopoverContentProps) =>
             React.createElement(
                 "div",
@@ -47,6 +51,8 @@ async function loadCard(withButtonCapture = false) {
                     "aria-describedby": ariaDescribedBy,
                     "aria-labelledby": ariaLabelledBy,
                     className,
+                    "data-control": dataControl,
+                    "data-state": dataState,
                 },
                 children,
             ),
@@ -95,6 +101,8 @@ describe("AI rename preview card UI regressions", () => {
         expect(html).toContain("新标题");
         expect(html).toContain("团队周会 - 2026-07-12");
         expect(html).toContain("检查标题后再应用");
+        expect(html).toContain('data-control="ai-rename-preview"');
+        expect(html).toContain('data-state="review"');
         expect(html).toMatch(/aria-labelledby="[^"]+"/);
         expect(html).toMatch(/aria-describedby="[^"]+"/);
         expect(html).toMatch(/<button[^>]*aria-label="应用"/);
@@ -162,10 +170,12 @@ describe("AI rename preview card UI regressions", () => {
         );
 
         expect(loadingHtml).toContain("正在生成标题");
+        expect(loadingHtml).toContain('data-state="loading"');
         expect(loadingHtml).toMatch(
             /<button[^>]*disabled=""[^>]*aria-label="应用"/,
         );
         expect(errorHtml).toContain('role="alert"');
+        expect(errorHtml).toContain('data-state="error"');
         expect(errorHtml).toContain("生成失败");
         expect(errorHtml).toContain("请稍后重试");
     });

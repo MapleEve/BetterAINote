@@ -142,6 +142,8 @@ export function AiRenamePreviewCard({
                 className={cn(aiRenamePreviewClassNames.card.root, className)}
                 aria-labelledby={titleId}
                 aria-describedby={subtitle ? descriptionId : undefined}
+                data-control="ai-rename-preview"
+                data-state={state}
             >
                 <CardHeader className={aiRenamePreviewClassNames.card.header}>
                     <div>

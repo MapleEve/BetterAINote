@@ -61,9 +61,6 @@ const RECORDING_PLAYER_VOLUME_ANCHOR_CLASS_NAME = "relative inline-flex";
 const RECORDING_PLAYER_SEEK_THUMB_CLASS_NAME =
     "size-[14px] border-0 bg-white shadow-[0_1px_4px_rgb(0_0_0_/_0.15),0_0_0_1px_var(--line-hairline)]";
 
-const RECORDING_PLAYER_SEEK_THUMB_WRAPPER_STYLE =
-    '[data-orientation="horizontal"][data-pct] > span:last-child { top: 50%; } @media (max-width: 640px) { [title="Click to cycle playback speed"] { flex: 0 0 50.75px; width: 50.75px; min-width: 50.75px; } }';
-
 const RECORDING_PLAYER_NO_AUDIO_ALERT_CLASS_NAME =
     "mb-3 h-[57px] box-border gap-[10px] rounded-[10px] border-[color-mix(in_srgb,var(--signal-warning)_28%,transparent)] bg-[color-mix(in_srgb,var(--signal-warning)_8%,var(--bg-elevated))] px-3 py-2.5 text-[var(--fg-primary)]";
 
@@ -220,10 +217,9 @@ export function RecordingPlayer({
             hasNoPadding
             data-no-audio={playbackDisabled ? "true" : undefined}
             data-playing={isPlaying ? "true" : undefined}
-            data-state={playbackDisabled ? "disabled" : "ready"}
-            data-surface="recording-player"
+            data-control="recording-player"
+            data-state={controlsState}
         >
-            <style>{RECORDING_PLAYER_SEEK_THUMB_WRAPPER_STYLE}</style>
             <Alert
                 variant="default"
                 density="comfortable"

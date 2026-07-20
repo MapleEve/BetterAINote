@@ -139,45 +139,20 @@ describe("recording player semantic regression", () => {
         expect(source).toContain("tabIndex={playbackDisabled ? -1 : 0}");
     });
 
-    it("positions the serialized Radix thumb through its direct wrapper in visual bridges", () => {
-        const e2eSource = readFileSync(
-            path.join(
-                process.cwd(),
-                "e2e/recording-detail-workstation.spec.ts",
-            ),
+    it("uses Radix slider semantics without a runtime CSS bridge", () => {
+        const source = playerSource();
+        const sliderSource = readFileSync(
+            path.join(process.cwd(), "src/components/ui/slider.tsx"),
             "utf8",
         );
-        const sharedCaptureStart = e2eSource.indexOf(
-            "async function captureSotHtmlFixture(",
-        );
-        const sharedCaptureEnd = e2eSource.indexOf(
-            "\nasync function",
-            sharedCaptureStart + 1,
-        );
-        const sharedCaptureSource = e2eSource.slice(
-            sharedCaptureStart,
-            sharedCaptureEnd,
-        );
 
-        expect(sharedCaptureStart).toBeGreaterThanOrEqual(0);
-        expect(sharedCaptureEnd).toBeGreaterThan(sharedCaptureStart);
-        expect(sharedCaptureSource).toContain(
-            "const wrapper = thumb.parentElement",
-        );
-        expect(sharedCaptureSource).toContain(
-            'wrapper.style.setProperty("left", `${pct}%`, "important")',
-        );
-        expect(sharedCaptureSource).toContain('"translateX(-50%)"');
-        expect(sharedCaptureSource).toContain(
-            'if (!thumb.hasAttribute("data-orientation")) {',
-        );
-        expect(e2eSource).toContain(
-            '.replace(/\\sdata-(?!(?:orientation|pct)=)[a-z-]+="[^"]*"/g, "")',
-        );
-        expect(sharedCaptureSource).not.toContain(
-            'thumb.style.setProperty("left", left, "important")',
-        );
-        expect(sharedCaptureSource).not.toContain("translate(-50%, -50%)");
+        expect(source).toContain("<Slider");
+        expect(source).toContain('data-control="recording-player-seek"');
+        expect(source).toContain("RECORDING_PLAYER_SEEK_THUMB_CLASS_NAME");
+        expect(source).not.toContain("<style>");
+        expect(source).not.toContain("SEEK_THUMB_WRAPPER_STYLE");
+        expect(sliderSource).toContain("<SliderPrimitive.Thumb");
+        expect(sliderSource).toContain('data-slot="slider-thumb"');
     });
 
     it("keeps the no-audio alert dimensions and text hierarchy compatible with the SOT", () => {
