@@ -16,6 +16,7 @@ interface DisplaySettingsStoreState {
     hasLoaded: boolean;
     isLoading: boolean;
     isSaving: boolean;
+    loadError: string | null;
 }
 
 const listeners = new Set<Listener>();
@@ -26,10 +27,12 @@ function createInitialState(): DisplaySettingsStoreState {
         hasLoaded: false,
         isLoading: true,
         isSaving: false,
+        loadError: null,
     };
 }
 
 let storeState = createInitialState();
+const hydrationSnapshot = createInitialState();
 let loadPromise: Promise<DisplaySettings> | null = null;
 let pendingSaveCount = 0;
 
@@ -99,6 +102,10 @@ function getSnapshot() {
     return storeState;
 }
 
+function getHydrationSnapshot() {
+    return hydrationSnapshot;
+}
+
 export function getDisplaySettingsStoreSnapshot() {
     return storeState;
 }
@@ -116,6 +123,7 @@ export function ensureDisplaySettingsLoaded() {
         setStoreState((currentState) => ({
             ...currentState,
             isLoading: true,
+            loadError: null,
         }));
     }
 
@@ -126,13 +134,19 @@ export function ensureDisplaySettingsLoaded() {
                 settings,
                 hasLoaded: true,
                 isLoading: false,
+                loadError: null,
             }));
             return settings;
         })
         .catch((error) => {
+            const message =
+                error instanceof Error && error.message.trim()
+                    ? error.message
+                    : "Failed to fetch display settings";
             setStoreState((currentState) => ({
                 ...currentState,
                 isLoading: false,
+                loadError: message,
             }));
             throw error;
         })
@@ -162,6 +176,13 @@ export async function saveDisplaySettings(updates: DisplaySettingsUpdate) {
 
     try {
         await persistDisplaySettings(updates);
+        if (!storeState.hasLoaded) {
+            setStoreState((currentState) => ({
+                ...currentState,
+                hasLoaded: true,
+                loadError: null,
+            }));
+        }
     } catch (error) {
         setStoreState((currentState) => ({
             ...currentState,
@@ -179,7 +200,11 @@ export async function saveDisplaySettings(updates: DisplaySettingsUpdate) {
 }
 
 export function useDisplaySettingsStore() {
-    const snapshot = useSyncExternalStore(subscribe, getSnapshot, getSnapshot);
+    const snapshot = useSyncExternalStore(
+        subscribe,
+        getSnapshot,
+        getHydrationSnapshot,
+    );
 
     useEffect(() => {
         if (!storeState.hasLoaded) {

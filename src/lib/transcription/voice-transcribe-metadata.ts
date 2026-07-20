@@ -86,7 +86,7 @@ export function buildDisplaySegments(
     payload: VoiceTranscribePayload | null | undefined,
     speakerMap: Record<string, string> | null | undefined,
 ) {
-    if (!payload) {
+    if (!payload || !Array.isArray(payload.segments)) {
         return null;
     }
 

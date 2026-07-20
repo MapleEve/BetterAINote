@@ -33,6 +33,7 @@ import {
 
 async function prepareTicNoteConnectionWrite(params: {
     existing: PersistedSourceConnectionState | null;
+    forceValidate?: boolean;
     body: {
         enabled?: unknown;
         config?: unknown;
@@ -163,6 +164,7 @@ async function prepareTicNoteConnectionWrite(params: {
         params.existing?.baseUrl ?? TICNOTE_DEFAULT_BASE_URL,
     );
     const shouldValidateConnection =
+        params.forceValidate ||
         !params.existing ||
         params.existing.baseUrl !== baseUrl ||
         existingBearerToken !== bearerToken ||

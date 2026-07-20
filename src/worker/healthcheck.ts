@@ -1,15 +1,33 @@
-import { count, desc } from "drizzle-orm";
+import { desc, eq } from "drizzle-orm";
 import { db } from "@/db";
 import { sourceConnections, syncWorkerState } from "@/db/schema/core";
+import {
+    isSourceProvider,
+    sourceConnectionSupportsWorkerSync,
+} from "@/lib/data-sources";
 import { env } from "@/lib/env";
 
 async function main() {
-    const [connectionCountRow] = await db
-        .select({ count: count() })
-        .from(sourceConnections);
+    const enabledConnections = await db
+        .select({
+            provider: sourceConnections.provider,
+            authMode: sourceConnections.authMode,
+        })
+        .from(sourceConnections)
+        .where(eq(sourceConnections.enabled, true));
 
-    const connectionCount = connectionCountRow?.count ?? 0;
-    if (connectionCount === 0) {
+    const hasWorkerSyncSource = enabledConnections.some((connection) => {
+        const provider = connection.provider;
+        return (
+            isSourceProvider(provider) &&
+            sourceConnectionSupportsWorkerSync({
+                provider,
+                authMode: connection.authMode,
+            })
+        );
+    });
+
+    if (!hasWorkerSyncSource) {
         process.exit(0);
     }
 

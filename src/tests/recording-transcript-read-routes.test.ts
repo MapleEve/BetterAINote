@@ -300,7 +300,9 @@ describe("Read-only transcript routes", () => {
             .mockReturnValueOnce({
                 from: vi.fn().mockReturnValue({
                     innerJoin: vi.fn().mockReturnValue({
-                        where: vi.fn().mockResolvedValue([]),
+                        where: vi.fn().mockReturnValue({
+                            orderBy: vi.fn().mockResolvedValue([]),
+                        }),
                     }),
                 }),
             });
@@ -396,6 +398,22 @@ describe("Read-only transcript routes", () => {
                         limit: vi.fn().mockResolvedValue([]),
                     }),
                 }),
+            })
+            .mockReturnValueOnce({
+                from: vi.fn().mockReturnValue({
+                    where: vi.fn().mockReturnValue({
+                        orderBy: vi.fn().mockResolvedValue([
+                            {
+                                recordingId: "rec-1",
+                                rawSpeakerLabel: "SPEAKER_01",
+                                startMs: 0,
+                                endMs: 1200,
+                                sortSeqMs: 0,
+                                text: "hello",
+                            },
+                        ]),
+                    }),
+                }),
             });
 
         const response = await GETRecording(
@@ -409,18 +427,19 @@ describe("Read-only transcript routes", () => {
         expect(json.recording.id).toBe("rec-1");
         expect(json.recording.startTime).toBe("2026-04-18T10:00:00.000Z");
         expect(json.transcription).toEqual({
-            id: "tx-1",
-            recordingId: "rec-1",
-            userId: "user-1",
             text: "hello",
             detectedLanguage: "en",
             transcriptionType: "private",
-            provider: "voice-transcribe",
-            model: "vt-1",
-            providerJobId: null,
             speakerMap: { SPEAKER_01: "Alex" },
-            providerPayload: null,
-            createdAt: "2026-04-18T10:05:00.000Z",
+            segments: [
+                {
+                    text: "hello",
+                    speakerLabel: "SPEAKER_01",
+                    displaySpeaker: "Alex",
+                    startMs: 0,
+                    endMs: 1200,
+                },
+            ],
         });
         expect(json.enhancement).toBeNull();
     });

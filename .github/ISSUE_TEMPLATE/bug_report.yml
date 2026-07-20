@@ -10,7 +10,7 @@ body:
 
         提交前请先搜索已有 issue，并确认这是 BetterAINote 本身的产品或运行问题，而不是功能建议、通用部署咨询或第三方服务临时故障。
 
-        隐私提醒：不要粘贴 cookie、bearer、组织 ID、用户 ID、录音 ID、录音标题、私人会议内容、网络抓包文件、完整环境文件或内部 / 本地文件路径。分享日志前请先脱敏。
+        隐私提醒：不要粘贴 cookie、bearer、组织 ID、用户 ID、录音 ID、录音标题、私人会议内容、未脱敏请求记录、完整环境文件或非公开文件路径。分享日志前请先脱敏。
 
   - type: input
     id: version
@@ -101,7 +101,7 @@ body:
     id: environment
     attributes:
       label: Environment details / 环境信息
-      description: Include OS, browser, deployment details, and anything else relevant. Do not paste full env files, secrets, internal hostnames, or local private paths.
+      description: Include OS, browser, deployment details, and anything else relevant. Do not paste full env files, secrets, non-public hostnames, or machine-specific paths.
       placeholder: |
         - OS:
         - Browser:
@@ -112,7 +112,7 @@ body:
     id: logs
     attributes:
       label: Logs or error messages / 日志或错误信息
-      description: Paste only relevant redacted logs, stack traces, worker output, or upstream API/provider errors. Do not attach network capture files or include credentials, cookies, org/user/recording IDs, recording titles, private meeting content, env files, or internal paths.
+      description: Paste only relevant redacted logs, stack traces, worker output, or upstream API/provider errors. Do not attach network capture files or include credentials, cookies, org/user/recording IDs, recording titles, private meeting content, env files, or machine-specific paths.
       render: shell
 
   - type: textarea
@@ -130,7 +130,7 @@ body:
           required: true
         - label: I filled in the requested details above.
           required: true
-        - label: I removed or redacted credentials, cookies, org/user/recording IDs, recording titles, private meeting content, network capture data, env values, and internal paths from this report.
+        - label: I removed or redacted credentials, cookies, org/user/recording IDs, recording titles, private meeting content, network capture data, env values, and machine-specific paths from this report.
           required: true
         - label: I can help verify a fix if needed.
           required: false

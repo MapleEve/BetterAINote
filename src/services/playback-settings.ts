@@ -1,6 +1,6 @@
 const PLAYBACK_SETTINGS_ENDPOINT = "/api/settings/playback";
 
-export const PLAYBACK_SPEED_OPTIONS = [0.5, 0.75, 1.0, 1.25, 1.5, 2.0] as const;
+export const PLAYBACK_SPEED_OPTIONS = [0.75, 1.0, 1.25, 1.5, 2.0] as const;
 
 export type PlaybackSpeed = (typeof PLAYBACK_SPEED_OPTIONS)[number];
 
@@ -16,7 +16,7 @@ export type PlaybackSettingsUpdate = Partial<PlaybackSettings>;
 // settings helpers into app-client bundles.
 const DEFAULT_PLAYBACK_SETTINGS = {
     defaultPlaybackSpeed: 1.0,
-    defaultVolume: 75,
+    defaultVolume: 80,
     autoPlayNext: false,
 } as const satisfies PlaybackSettings;
 

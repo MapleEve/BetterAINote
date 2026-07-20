@@ -14,7 +14,10 @@ export {
 } from "./read-model";
 export { renameRecording } from "./rename-recording";
 export { RecordingRenameError } from "./rename-shared";
-export { serializeRecording } from "./serialize";
+export {
+    serializeRecording,
+    serializeRecordingDetailTranscription,
+} from "./serialize";
 export {
     getRecordingSourceReport,
     RecordingSourceReportError,

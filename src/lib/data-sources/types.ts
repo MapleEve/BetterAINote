@@ -46,6 +46,8 @@ export type SourceMaturityLevel =
     | "partial"
     | "verifiable";
 
+export type SourceSyncStatus = "idle" | "syncing" | "error";
+
 export interface SourceMaturity {
     stage: SourceMaturityStage;
     level: SourceMaturityLevel;
@@ -87,6 +89,10 @@ export interface PersistedSourceConnectionState {
     config: Record<string, unknown> | null;
     secretConfig: string | null;
     lastSync: Date | null;
+    syncStatus?: SourceSyncStatus;
+    lastSyncError?: string | null;
+    lastSyncStartedAt?: Date | null;
+    lastSyncFinishedAt?: Date | null;
 }
 
 export type PreparedSourceConnectionWrite = {
@@ -172,6 +178,10 @@ export interface ResolvedSourceConnection {
     config: Record<string, unknown>;
     secrets: Record<string, string>;
     lastSync: Date | null;
+    syncStatus?: SourceSyncStatus;
+    lastSyncError?: string | null;
+    lastSyncStartedAt?: Date | null;
+    lastSyncFinishedAt?: Date | null;
 }
 
 export interface SourceConnectionTestResult {
@@ -221,6 +231,7 @@ export interface SourceProviderDefinition {
         userId: string;
         existing: PersistedSourceConnectionState | null;
         body: DataSourcesRequestBody;
+        forceValidate?: boolean;
     }): Promise<PreparedSourceConnectionWrite>;
     titleWriteback?: SourceTitleWritebackDriver | null;
 }

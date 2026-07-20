@@ -10,6 +10,7 @@ Vitest 测试目录，覆盖边界、服务、UI 回归和公开发布卫生。
 - `ci-integrations.test.ts`
 - `dashboard-search-ui-regression.test.ts`
 - `dashboard-transcription-polling.test.ts`
+- `dashboard-ui-foundation.test.ts`
 - `data-source-utils.test.ts`
 - `data-sources-presentation.test.ts`
 - `data-sources-route.test.ts`
@@ -17,13 +18,16 @@ Vitest 测试目录，覆盖边界、服务、UI 回归和公开发布卫生。
 - `dev-with-worker-script.test.ts`
 - `dingtalk-provider.test.ts`
 - `display-settings-store.test.ts`
+- `e2e-real-voscript-guard.test.ts`
 - `e2e-reset-rules.test.ts`
 - `encryption.test.ts`
 - `errors.test.ts`
 - `feishu-minutes-provider.test.ts`
 - `frontend-data-sources-regression.test.ts`
+- `full-ui-replacement-regression.test.ts`
 - `generate-title.test.ts`
 - `iflyrec-provider.test.ts`
+- `onboarding-ui-replacement-regression.test.ts`
 - `platform-runtime.test.ts`
 - `plaud.integration.test.ts`
 - `plaud.test.ts`
@@ -35,6 +39,7 @@ Vitest 测试目录，覆盖边界、服务、UI 回归和公开发布卫生。
 - `public-release-hygiene.test.ts`
 - `public-version-contract.test.ts`
 - `react-surface-ssr.test.ts`
+- `recording-detail-copy-ui-regression.test.ts`
 - `recording-player-regression.test.ts`
 - `recording-speaker-map-module.test.ts`
 - `recording-speaker-map-route.test.ts`
@@ -60,6 +65,7 @@ Vitest 测试目录，覆盖边界、服务、UI 回归和公开发布卫生。
 - `service-url.test.ts`
 - `services-and-settings-coverage.test.ts`
 - `settings-section-routes.test.ts`
+- `settings-ui-replacement-regression.test.ts`
 - `source-connections.test.ts`
 - `source-report-route.test.ts`
 - `source-title-writeback.test.ts`
@@ -84,6 +90,7 @@ Vitest 测试目录，覆盖边界、服务、UI 回归和公开发布卫生。
 - `voice-transcribe-service.test.ts`
 - `voiceprints.test.ts`
 - `voscript-settings-store.test.ts`
+- `voscript-test-route.test.ts`
 - `word-artifacts.test.ts`
 - `worker-state.test.ts`
 
@@ -96,8 +103,8 @@ Vitest 测试目录，覆盖边界、服务、UI 回归和公开发布卫生。
 - 新增文件时优先放在最具体的叶子目录，并补充对应 AGENTS.md 指针或规则。
 
 ## 禁止事项
-- 禁止提交真实 token、Cookie、HAR、私有录音、私有转写、数据库内容和 provider 私有标识。
-- 禁止把内部研究、抓包过程、调试证据或本地路径写入公开 UI、公开文档、测试快照或注释。
+- 禁止提交真实 token、Cookie、HAR、私有录音、私有转写、数据库内容和未脱敏来源标识。
+- 禁止把敏感或未脱敏材料写入公开 UI、公开文档、测试快照或注释。
 - 禁止绕过认证、归属校验、公开错误映射和 provider 中立文案。
 
 ## 依赖方向

@@ -4,11 +4,9 @@
 
 先读取本文件，再沿着将要修改的路径读取更近的 AGENTS.md。越靠近目标文件的规则越具体。CLAUDE.md 只是桥接提醒，AGENTS.md 是唯一规范来源。
 
-本地机器说明只能写入被忽略的 AGENTS.local.md、CLAUDE.local.md 或 LOCAL-MATERIALS.md 指定的本地目录，不能写进 tracked 公开文件。
-
 ## 仓库意图
 
-BetterAINote 是隐私优先、可自托管、provider 中立的多平台录音聚合、转写、搜索和管理工作台。公开表达必须面向用户，避免把内部调查、实现证据或 provider 私有材料带到公开表面。
+BetterAINote 是隐私优先、可自托管、provider 中立的多平台录音聚合、转写、搜索和管理工作台。公开表达必须面向用户，只使用已脱敏、可发布的信息。
 
 ## 目录索引
 
@@ -20,19 +18,17 @@ BetterAINote 是隐私优先、可自托管、provider 中立的多平台录音�
 - `src/db/AGENTS.md`：schema、迁移、数据库路径和迁移入口。
 - `src/tests/AGENTS.md`：Vitest 覆盖、架构护栏和公开发布卫生测试。
 - `.github/AGENTS.md`：GitHub 模板、workflow 和公开自动化边界。
-- `docs/AGENTS.md`：公开文档和文档资产规则。
-- `public/AGENTS.md`：运行时公开静态资源规则。
 - `scripts/AGENTS.md`：已跟踪脚本和安全本地自动化规则。
-- `LOCAL-MATERIALS.md`：被忽略本地资料目录的分层约定。
 
 ## 公共红线
 
-- 不提交真实 token、密码、私有 ID、浏览器会话材料、本地数据库、私有录音、私有转写或 provider 私有来源材料。
-- 不在公开文档、UI 文案、注释、测试或 issue 模板中暴露内部研究、抓包细节、请求归档、实现专用标签或本地证据路径。
+- 不提交真实 token、密码、私有 ID、浏览器会话材料、本地数据库、私有录音、私有转写或未脱敏来源材料。
+- 不在公开文档、UI 文案、注释、测试或 issue 模板中暴露敏感或未脱敏材料。
 - 不把公开定位改成非隐私优先、非可自托管或偏向单一 provider 的表达。
 - 不修改 license、package privacy、release automation 或发布行为，除非任务明确要求检查发布边界。
-- 不删除被忽略本地资料，例如 tmp、data、storage、录音、数据库、worker 日志，除非用户明确要求。
 - 不运行破坏性 git 命令，不覆盖用户工作；改动前检查 `git status --short --branch`。
+- `public/` 会被运行时按原样公开访问，禁止放入 AGENTS、CLAUDE、内部说明、测试夹具、调试输出或任何非公开素材。
+- `docs/` 是可发布用户文档目录，禁止放入 AGENTS、CLAUDE、内部说明、测试夹具、调试输出或任何非公开素材。
 
 ## 跨层耦合
 
@@ -40,22 +36,21 @@ BetterAINote 是隐私优先、可自托管、provider 中立的多平台录音�
 
 ## 验证门槛
 
-- 说明文档或规则变更：运行 `git diff --check`，检查最终 diff，并用 `git check-ignore -v` 验证本地资料忽略边界。
+- 说明文档或规则变更：运行 `git diff --check`，检查最终 diff。
 - 源码变更：运行最窄相关测试；触碰类型边界时运行 `bun run type-check`。
 - 公开文档、发布或卫生变更：运行公开残留扫描和 secret/private-data 扫描。
 - 大范围变更：优先运行 `bun run format-and-lint`、`bun run type-check`、`bun run test`。
 
 ## Git、签名和提交
 
-- 提交前确认 author 和 committer 是 `Maple Gao <esanisa@gmail.com>`。
+- 提交前确认 author、committer 和签名方式符合维护者授权配置。
 - 本仓库提交必须使用 SSH 签名，保留 `commit.gpgsign=true` 和 `gpg.format=ssh`。
-- 不 push `origin/main`，审查工作使用 `mini/` 前缀分支。
-- staged 范围必须只包含任务相关文件；不要把 ignored 本地资料、依赖产物、数据库或日志加入提交。
+- 不直接 push `origin/main`；变更通过审查分支和 PR 交付，除非维护者明确授权。
+- staged 范围必须只包含任务相关文件。
 
 ## PR 审查流程
 
 - 涉及审查的分支必须推送到远端并创建 PR；默认不得直接 push `origin/main`。
-- PR 创建后等待用户人工审查，不得擅自合并或创建 merge commit。
+- PR 创建后等待维护者审查，不得擅自合并或创建 merge commit。
 - 后续修正继续推送到同一审查分支并更新同一个 PR。
-- 提交、author、committer 和 SSH 签名必须使用本人身份。
 - 如果重做审查分支，必须保留已确认的前置提交，除非用户明确要求丢弃。

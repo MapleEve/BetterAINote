@@ -79,7 +79,7 @@ bun run test
 
 - Keep `README.md` as the Simplified Chinese default entry.
 - Keep `README.en.md`, `README.ja.md`, and `README.ko.md` aligned with the public positioning.
-- Do not move private provider research, credentials, raw source responses, transcripts, or local test data into public docs.
+- Do not move credentials, raw source responses, transcripts, or local test data into public docs.
 
 ### Change Areas
 

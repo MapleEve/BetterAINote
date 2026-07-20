@@ -1,17 +1,44 @@
 "use client";
 
-import { FileText, Languages, RefreshCw, Sparkles } from "lucide-react";
+import {
+    AlertCircle,
+    Copy,
+    FileText,
+    Languages,
+    RefreshCw,
+    Sparkles,
+} from "lucide-react";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { toast } from "sonner";
 import { useLanguage } from "@/components/language-provider";
+import { Alert, AlertTitle } from "@/components/ui/alert";
+import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+    Card,
+    CardContent,
+    CardDescription,
+    CardHeader,
+    CardTitle,
+} from "@/components/ui/card";
 import { useConfirmDialog } from "@/components/ui/confirm-dialog";
+import {
+    Empty,
+    EmptyContent,
+    EmptyDescription,
+    EmptyHeader,
+    EmptyMedia,
+    EmptyTitle,
+} from "@/components/ui/empty";
+import { FieldDescription } from "@/components/ui/field";
+import { Separator } from "@/components/ui/separator";
+import { Spinner } from "@/components/ui/spinner";
 import { SpeakerLabelEditor } from "@/features/recordings/components/speaker-label-editor";
 import {
     startBrowserInterval,
     stopBrowserInterval,
 } from "@/lib/platform/browser-shell";
+import { writeBrowserClipboardText } from "@/lib/platform/clipboard";
 import {
     getTranscriptionJobDisplayState,
     isActiveTranscriptionJob,
@@ -28,7 +55,34 @@ interface TranscriptionSectionProps {
     initialJobStatus?: string;
     initialJobRemoteStatus?: string | null;
     initialJobError?: string | null;
+    showSpeakerReview?: boolean;
 }
+
+const RECORDING_TRANSCRIPTION_META_BADGE_VARIANT = {
+    attribute: "outline",
+    measure: "secondary",
+} as const;
+
+const recordingTranscriptionClassNames = {
+    card: "min-h-0 flex-1 gap-0",
+    header: "flex flex-row items-center gap-3 px-3.5 py-3",
+    heading: "flex min-w-0 items-center gap-3",
+    icon: "size-4 flex-none text-muted-foreground",
+    headerCopy: "flex min-w-0 flex-col gap-[3px]",
+    body: "min-h-0 flex-1 overflow-y-auto px-5 pt-4 pb-6",
+    outputSection: "flex flex-col gap-2",
+    speakerReviewSection: "flex flex-col gap-2",
+    sectionHead: "flex items-start justify-between gap-3 max-[860px]:flex-col",
+    sectionTitle: "m-0 font-sans text-[12.5px] font-semibold text-foreground",
+    sectionDescription:
+        "mt-0.5 mb-0 font-sans text-[11.5px] font-medium leading-[1.45] text-muted-foreground max-[860px]:[overflow-wrap:anywhere]",
+    actions:
+        "inline-flex min-w-0 flex-wrap items-center justify-end gap-2 max-[860px]:justify-start",
+    turn: "pt-[10px]",
+    metaList: "mb-1.5 flex flex-wrap items-center gap-2.5 pt-2",
+    outputText:
+        "m-0 font-sans text-[14.5px] leading-[1.65] text-foreground [text-wrap:pretty] max-[860px]:[overflow-wrap:anywhere]",
+} as const;
 
 function applySpeakerMap(
     text: string,
@@ -61,6 +115,7 @@ export function TranscriptionSection({
     initialJobStatus,
     initialJobRemoteStatus,
     initialJobError,
+    showSpeakerReview = true,
 }: TranscriptionSectionProps) {
     const { language: uiLanguage, t } = useLanguage();
     const confirm = useConfirmDialog();
@@ -78,6 +133,7 @@ export function TranscriptionSection({
     const [liveSpeakerMap, setLiveSpeakerMap] = useState(
         initialSpeakerMap ?? null,
     );
+    const [isCopyingTranscript, setIsCopyingTranscript] = useState(false);
 
     useEffect(() => {
         setTranscription(initialTranscription ?? "");
@@ -214,11 +270,16 @@ export function TranscriptionSection({
     const handleConfirmRetranscribe = useCallback(async () => {
         if (!canTranscribe) return;
         const confirmed = await confirm({
-            title: t("common.confirmAction"),
-            description: t("transcription.retranscribeConfirm"),
-            confirmLabel: t("common.confirm"),
+            title: t("transcription.retranscribeConfirmTitle"),
+            description: t("transcription.retranscribeConfirmDescription"),
+            surface: "recording-retranscribe",
+            details: [
+                t("transcription.retranscribeConfirmDetailTranscript"),
+                t("transcription.retranscribeConfirmDetailSpeakers"),
+                t("transcription.retranscribeConfirmDetailSource"),
+            ],
+            confirmLabel: t("transcription.retranscribeConfirmLabel"),
             cancelLabel: t("common.cancel"),
-            variant: "destructive",
         });
         if (!confirmed) return;
         void handleTranscribe(true);
@@ -232,44 +293,78 @@ export function TranscriptionSection({
         () => applySpeakerMap(transcription, liveSpeakerMap),
         [liveSpeakerMap, transcription],
     );
+    const handleCopyTranscript = useCallback(async () => {
+        if (!displayText.trim()) {
+            toast.error(t("transcription.noTranscript"));
+            return;
+        }
+
+        setIsCopyingTranscript(true);
+        try {
+            await writeBrowserClipboardText(displayText);
+            toast.success(t("transcription.transcriptCopied"));
+        } catch {
+            toast.error(t("transcription.copyTranscriptFailed"));
+        } finally {
+            setIsCopyingTranscript(false);
+        }
+    }, [displayText, t]);
     const jobDisplayState = getTranscriptionJobDisplayState({
         status: jobStatus,
         remoteStatus: jobRemoteStatus,
     });
 
     return (
-        <Card>
-            <CardHeader>
-                <div className="flex flex-col gap-3">
-                    <div className="space-y-1">
-                        <CardTitle className="flex items-center gap-2">
-                            <FileText className="h-5 w-5" />
-                            {t("transcription.localTitle")}
+        <Card
+            hasNoPadding
+            role="region"
+            aria-labelledby="recording-transcription-title"
+            className={recordingTranscriptionClassNames.card}
+        >
+            <CardHeader className={recordingTranscriptionClassNames.header}>
+                <div className={recordingTranscriptionClassNames.heading}>
+                    <FileText
+                        className={recordingTranscriptionClassNames.icon}
+                        aria-hidden="true"
+                    />
+                    <div
+                        className={recordingTranscriptionClassNames.headerCopy}
+                    >
+                        <CardTitle className="min-w-0">
+                            <h2
+                                id="recording-transcription-title"
+                                className="m-0 truncate text-xl"
+                            >
+                                {t("transcription.localTitle")}
+                            </h2>
                         </CardTitle>
-                        <p className="text-sm text-muted-foreground">
+                        <CardDescription className="text-xs leading-normal font-medium">
                             {t("transcription.localDescription")}
-                        </p>
+                        </CardDescription>
                         {!canTranscribe && (
-                            <p className="text-sm text-muted-foreground">
+                            <FieldDescription className="text-xs leading-normal font-medium">
                                 {transcribeUnavailableReason ??
                                     (uiLanguage === "zh-CN"
                                         ? "这个数据源没有可下载到本地的音频文件，当前只能查看来源逐字稿或报告。"
                                         : "This source does not provide downloadable local audio. You can only review the source transcript or report for now.")}
-                            </p>
+                            </FieldDescription>
                         )}
                     </div>
                 </div>
             </CardHeader>
-            <CardContent className="space-y-4">
+            <Separator />
+            <CardContent className={recordingTranscriptionClassNames.body}>
                 {isTranscribing ? (
-                    <div className="flex items-center gap-3 rounded-lg border px-4 py-3 text-sm text-muted-foreground">
-                        <div className="h-4 w-4 animate-spin rounded-full border-2 border-primary border-t-transparent" />
-                        <span>
-                            {jobDisplayState
-                                ? t(`transcription.${jobDisplayState}`)
-                                : t("transcription.processing")}
-                        </span>
-                    </div>
+                    <Alert className="mb-3">
+                        <Spinner aria-hidden="true" />
+                        <div>
+                            <AlertTitle className="line-clamp-none overflow-visible">
+                                {jobDisplayState
+                                    ? t(`transcription.${jobDisplayState}`)
+                                    : t("transcription.processing")}
+                            </AlertTitle>
+                        </div>
+                    </Alert>
                 ) : null}
 
                 {!!jobError &&
@@ -277,114 +372,224 @@ export function TranscriptionSection({
                         status: jobStatus,
                         remoteStatus: jobRemoteStatus,
                     }) && (
-                        <div className="rounded-lg border border-destructive/30 bg-destructive/5 px-4 py-3 text-sm text-destructive">
-                            {jobError}
-                        </div>
+                        <Alert variant="statusError" className="mb-3">
+                            <AlertCircle aria-hidden="true" />
+                            <div>
+                                <AlertTitle className="line-clamp-none overflow-visible">
+                                    {jobError}
+                                </AlertTitle>
+                            </div>
+                        </Alert>
                     )}
 
                 {transcription ? (
                     <>
-                        <div className="rounded-xl border border-white/10 bg-background/25 p-4">
-                            <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
-                                <div className="flex flex-col gap-1">
-                                    <p className="text-[11px] font-medium tracking-[0.18em] text-muted-foreground uppercase">
+                        <section
+                            className={
+                                recordingTranscriptionClassNames.outputSection
+                            }
+                        >
+                            <header
+                                className={
+                                    recordingTranscriptionClassNames.sectionHead
+                                }
+                            >
+                                <div>
+                                    <h3
+                                        className={
+                                            recordingTranscriptionClassNames.sectionTitle
+                                        }
+                                    >
                                         {t("transcription.outputTitle")}
-                                    </p>
-                                    <p className="text-sm text-muted-foreground">
+                                    </h3>
+                                    <p
+                                        className={
+                                            recordingTranscriptionClassNames.sectionDescription
+                                        }
+                                    >
                                         {t("transcription.outputDescription")}
                                     </p>
                                 </div>
-                                <Button
-                                    onClick={handleConfirmRetranscribe}
-                                    size="sm"
-                                    variant="destructive"
-                                    disabled={!canTranscribe || isTranscribing}
-                                    title={
-                                        !canTranscribe
-                                            ? (transcribeUnavailableReason ??
-                                              undefined)
-                                            : t(
-                                                  "transcription.retranscribeConfirm",
-                                              )
+                                <div
+                                    className={
+                                        recordingTranscriptionClassNames.actions
                                     }
-                                    className="shrink-0"
                                 >
-                                    <RefreshCw className="h-4 w-4" />
-                                    {t("transcription.retranscribe")}
-                                </Button>
-                            </div>
-                            <div className="mt-4 max-h-[28rem] overflow-y-auto rounded-lg bg-muted p-4">
-                                <p className="whitespace-pre-wrap text-sm leading-relaxed">
+                                    <Button
+                                        onClick={handleCopyTranscript}
+                                        size="sm"
+                                        variant="outline"
+                                        disabled={
+                                            isCopyingTranscript ||
+                                            !displayText.trim()
+                                        }
+                                        aria-busy={isCopyingTranscript}
+                                    >
+                                        <Copy
+                                            aria-hidden="true"
+                                            data-icon="inline-start"
+                                        />
+                                        {isCopyingTranscript
+                                            ? t("common.copying")
+                                            : t("transcription.copyTranscript")}
+                                    </Button>
+                                    <Button
+                                        onClick={handleConfirmRetranscribe}
+                                        size="sm"
+                                        variant="destructive"
+                                        disabled={
+                                            !canTranscribe || isTranscribing
+                                        }
+                                        aria-busy={isTranscribing}
+                                        title={
+                                            !canTranscribe
+                                                ? (transcribeUnavailableReason ??
+                                                  undefined)
+                                                : t(
+                                                      "transcription.retranscribeConfirm",
+                                                  )
+                                        }
+                                    >
+                                        <RefreshCw
+                                            aria-hidden="true"
+                                            data-icon="inline-start"
+                                        />
+                                        {t("transcription.retranscribe")}
+                                    </Button>
+                                </div>
+                            </header>
+                            <div
+                                className={
+                                    recordingTranscriptionClassNames.turn
+                                }
+                            >
+                                <p
+                                    className={
+                                        recordingTranscriptionClassNames.outputText
+                                    }
+                                >
                                     {displayText}
                                 </p>
                             </div>
-                            <div className="mt-4 flex flex-wrap items-center gap-4 border-t pt-3 text-xs text-muted-foreground">
+                            <Separator />
+                            <div
+                                className={
+                                    recordingTranscriptionClassNames.metaList
+                                }
+                            >
                                 {language ? (
-                                    <div className="flex items-center gap-1">
-                                        <Languages className="h-3 w-3" />
+                                    <Badge
+                                        variant={
+                                            RECORDING_TRANSCRIPTION_META_BADGE_VARIANT.attribute
+                                        }
+                                    >
+                                        <Languages aria-hidden="true" />
                                         <span>
                                             {t("transcription.languagePrefix")}:{" "}
                                             {language}
                                         </span>
-                                    </div>
+                                    </Badge>
                                 ) : null}
                                 {transcriptionType ? (
-                                    <div>
+                                    <Badge
+                                        variant={
+                                            RECORDING_TRANSCRIPTION_META_BADGE_VARIANT.attribute
+                                        }
+                                    >
                                         {t("transcription.sourcePrefix")}:{" "}
                                         {transcriptionType}
-                                    </div>
+                                    </Badge>
                                 ) : null}
-                                <div>
+                                <Badge
+                                    variant={
+                                        RECORDING_TRANSCRIPTION_META_BADGE_VARIANT.measure
+                                    }
+                                >
                                     {wordCount} {t("transcription.words")}
-                                </div>
-                                <div>
+                                </Badge>
+                                <Badge
+                                    variant={
+                                        RECORDING_TRANSCRIPTION_META_BADGE_VARIANT.measure
+                                    }
+                                >
                                     {transcription.length}{" "}
                                     {t("transcription.characters")}
-                                </div>
+                                </Badge>
                             </div>
-                        </div>
-                        <div className="rounded-xl border border-white/10 bg-background/25 p-4">
-                            <div className="flex flex-col gap-1">
-                                <p className="text-[11px] font-medium tracking-[0.18em] text-muted-foreground uppercase">
-                                    {t("speakerReview.title")}
-                                </p>
-                                <p className="text-sm text-muted-foreground">
-                                    {t("speakerReview.description")}
-                                </p>
-                            </div>
-                            <div className="mt-4">
-                                <SpeakerLabelEditor
-                                    recordingId={recordingId}
-                                    speakerMap={liveSpeakerMap}
-                                    onSpeakerMapChanged={setLiveSpeakerMap}
-                                />
-                            </div>
-                        </div>
+                        </section>
+                        {showSpeakerReview ? (
+                            <>
+                                <Separator className="my-2" />
+                                <section
+                                    className={
+                                        recordingTranscriptionClassNames.speakerReviewSection
+                                    }
+                                >
+                                    <header
+                                        className={
+                                            recordingTranscriptionClassNames.sectionHead
+                                        }
+                                    >
+                                        <div>
+                                            <h3
+                                                className={
+                                                    recordingTranscriptionClassNames.sectionTitle
+                                                }
+                                            >
+                                                {t("speakerReview.title")}
+                                            </h3>
+                                            <p
+                                                className={
+                                                    recordingTranscriptionClassNames.sectionDescription
+                                                }
+                                            >
+                                                {t("speakerReview.description")}
+                                            </p>
+                                        </div>
+                                    </header>
+                                    <SpeakerLabelEditor
+                                        recordingId={recordingId}
+                                        speakerMap={liveSpeakerMap}
+                                        onSpeakerMapChanged={setLiveSpeakerMap}
+                                    />
+                                </section>
+                            </>
+                        ) : null}
                     </>
                 ) : (
-                    <div className="flex flex-col items-center justify-center py-12 text-center">
-                        <FileText className="mb-4 h-12 w-12 text-muted-foreground" />
-                        <p className="mb-2 text-sm text-muted-foreground">
-                            {t("transcription.noTranscript")}
-                        </p>
-                        <p className="max-w-md text-xs text-muted-foreground">
-                            {t("transcription.noTranscriptDescription")}
-                        </p>
-                        <Button
-                            onClick={() => handleTranscribe(false)}
-                            size="sm"
-                            disabled={!canTranscribe || isTranscribing}
-                            title={
-                                !canTranscribe
-                                    ? (transcribeUnavailableReason ?? undefined)
-                                    : undefined
-                            }
-                            className="mt-4"
-                        >
-                            <Sparkles className="h-4 w-4" />
-                            {t("transcription.transcribe")}
-                        </Button>
-                    </div>
+                    <Empty className="mt-4">
+                        <EmptyHeader>
+                            <EmptyMedia variant="icon">
+                                <FileText aria-hidden="true" />
+                            </EmptyMedia>
+                            <EmptyTitle>
+                                {t("transcription.noTranscript")}
+                            </EmptyTitle>
+                            <EmptyDescription>
+                                {t("transcription.noTranscriptDescription")}
+                            </EmptyDescription>
+                        </EmptyHeader>
+                        <EmptyContent>
+                            <Button
+                                onClick={() => handleTranscribe(false)}
+                                size="sm"
+                                variant="default"
+                                disabled={!canTranscribe || isTranscribing}
+                                title={
+                                    !canTranscribe
+                                        ? (transcribeUnavailableReason ??
+                                          undefined)
+                                        : undefined
+                                }
+                            >
+                                <Sparkles
+                                    aria-hidden="true"
+                                    data-icon="inline-start"
+                                />
+                                {t("transcription.transcribe")}
+                            </Button>
+                        </EmptyContent>
+                    </Empty>
                 )}
             </CardContent>
         </Card>

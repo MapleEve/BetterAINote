@@ -28,6 +28,11 @@ vi.mock("@/server/modules/api-credentials/private-transcription", () => ({
     upsertStoredPrivateTranscriptionCredential: vi.fn(),
 }));
 
+vi.mock("@/server/modules/data-sources", () => ({
+    getResolvedSourceConnectionForUser: vi.fn(),
+    hasConfiguredSourceSecrets: vi.fn(),
+}));
+
 vi.mock("@/lib/settings/number-normalization", async (importOriginal) => {
     const actual =
         await importOriginal<
@@ -77,7 +82,10 @@ import {
     GET as getDisplay,
     PUT as putDisplay,
 } from "@/app/api/settings/display/route";
-import { PUT as putPlayback } from "@/app/api/settings/playback/route";
+import {
+    GET as getPlayback,
+    PUT as putPlayback,
+} from "@/app/api/settings/playback/route";
 import { GET as getSync, PUT as putSync } from "@/app/api/settings/sync/route";
 import {
     GET as getTitleGeneration,
@@ -105,6 +113,10 @@ import {
     hasStoredTitleGenerationCredential,
     upsertStoredTitleGenerationCredential,
 } from "@/server/modules/api-credentials/title-generation";
+import {
+    getResolvedSourceConnectionForUser,
+    hasConfiguredSourceSecrets,
+} from "@/server/modules/data-sources";
 
 function makePutRequest(url: string, body: Record<string, unknown>) {
     return new Request(url, {
@@ -133,19 +145,37 @@ describe("settings section routes", () => {
         (upsertStoredPrivateTranscriptionCredential as Mock).mockResolvedValue(
             undefined,
         );
+        (getResolvedSourceConnectionForUser as Mock).mockResolvedValue(null);
+        (hasConfiguredSourceSecrets as Mock).mockReturnValue(false);
     });
 
     it("stores uiLanguage through the display route", async () => {
         const response = await putDisplay(
             makePutRequest("http://localhost/api/settings/display", {
                 uiLanguage: "en",
+                displayDensity: "compact",
             }),
         );
 
         expect(response.status).toBe(200);
         expect(upsertUserSettings).toHaveBeenCalledWith("user-1", {
+            displayDensity: "compact",
             uiLanguage: "en",
         });
+    });
+
+    it("rejects invalid display density through the display route", async () => {
+        const response = await putDisplay(
+            makePutRequest("http://localhost/api/settings/display", {
+                displayDensity: "dense",
+            }),
+        );
+
+        expect(response.status).toBe(400);
+        await expect(response.json()).resolves.toEqual({
+            error: "displayDensity must be one of comfy, compact",
+        });
+        expect(upsertUserSettings).not.toHaveBeenCalled();
     });
 
     it("stores syncInterval in milliseconds through the sync route", async () => {
@@ -181,7 +211,8 @@ describe("settings section routes", () => {
     it("rejects title generation URLs with query strings through the title-generation route", async () => {
         const response = await putTitleGeneration(
             makePutRequest("http://localhost/api/settings/title-generation", {
-                titleGenerationBaseUrl: "https://llm.internal/v1?model=gpt-4.1",
+                titleGenerationBaseUrl:
+                    "https://llm.example.test/v1?model=gpt-4.1",
             }),
         );
 
@@ -195,7 +226,7 @@ describe("settings section routes", () => {
     it("stores the title generation API key outside user_settings through the title-generation route", async () => {
         const response = await putTitleGeneration(
             makePutRequest("http://localhost/api/settings/title-generation", {
-                titleGenerationBaseUrl: "https://llm.internal/v1",
+                titleGenerationBaseUrl: "https://llm.example.test/v1",
                 titleGenerationModel: "gpt-4.1-mini",
                 titleGenerationApiKey: "tg-secret-key",
             }),
@@ -203,7 +234,7 @@ describe("settings section routes", () => {
 
         expect(response.status).toBe(200);
         expect(upsertUserSettings).toHaveBeenCalledWith("user-1", {
-            titleGenerationBaseUrl: "https://llm.internal/v1",
+            titleGenerationBaseUrl: "https://llm.example.test/v1",
             titleGenerationModel: "gpt-4.1-mini",
         });
         expect(upsertStoredTitleGenerationCredential).toHaveBeenCalledWith({
@@ -232,7 +263,7 @@ describe("settings section routes", () => {
 
     it("keeps the voscript API key configured flag out of user_settings", async () => {
         (getUserSettingsRow as Mock).mockResolvedValue({
-            privateTranscriptionBaseUrl: "https://voscript.internal",
+            privateTranscriptionBaseUrl: "https://voscript.example.test",
             privateTranscriptionMinSpeakers: 0,
             privateTranscriptionMaxSpeakers: 0,
             privateTranscriptionDenoiseModel: "none",
@@ -250,7 +281,7 @@ describe("settings section routes", () => {
 
         expect(response.status).toBe(200);
         await expect(response.json()).resolves.toMatchObject({
-            privateTranscriptionBaseUrl: "https://voscript.internal",
+            privateTranscriptionBaseUrl: "https://voscript.example.test",
             privateTranscriptionApiKeySet: true,
         });
     });
@@ -259,7 +290,7 @@ describe("settings section routes", () => {
         (getUserSettingsRow as Mock).mockResolvedValue({
             autoTranscribe: false,
             autoGenerateTitle: true,
-            titleGenerationBaseUrl: "https://llm.internal/v1",
+            titleGenerationBaseUrl: "https://llm.example.test/v1",
             titleGenerationModel: "gpt-4.1-mini",
             titleGenerationPrompt: null,
         });
@@ -272,7 +303,7 @@ describe("settings section routes", () => {
         expect(response.status).toBe(200);
         await expect(response.json()).resolves.toMatchObject({
             autoGenerateTitle: true,
-            titleGenerationBaseUrl: "https://llm.internal/v1",
+            titleGenerationBaseUrl: "https://llm.example.test/v1",
             titleGenerationModel: "gpt-4.1-mini",
             titleGenerationApiKeySet: true,
         });
@@ -289,7 +320,8 @@ describe("settings section routes", () => {
             dateTimeFormat: "relative",
             recordingListSortOrder: "newest",
             itemsPerPage: 50,
-            theme: "system",
+            displayDensity: "comfy",
+            theme: "dark",
         });
     });
 
@@ -306,7 +338,39 @@ describe("settings section routes", () => {
         });
     });
 
+    it("returns playback defaults when no settings row exists", async () => {
+        const response = await getPlayback(
+            new Request("http://localhost/api/settings/playback"),
+        );
+
+        expect(response.status).toBe(200);
+        await expect(response.json()).resolves.toEqual({
+            defaultPlaybackSpeed: 1.0,
+            defaultVolume: 80,
+            autoPlayNext: false,
+        });
+    });
+
     it("returns transcription defaults without legacy source-sync flags", async () => {
+        const response = await getTranscription(
+            new Request("http://localhost/api/settings/transcription"),
+        );
+
+        expect(response.status).toBe(200);
+        await expect(response.json()).resolves.toEqual({
+            autoTranscribe: true,
+            defaultTranscriptionLanguage: null,
+            defaultTranscriptionProvider: null,
+        });
+    });
+
+    it("respects an explicitly disabled transcription auto-transcribe setting", async () => {
+        (getUserSettingsRow as Mock).mockResolvedValue({
+            autoTranscribe: false,
+            defaultTranscriptionLanguage: null,
+            defaultTranscriptionProvider: "ticnote",
+        });
+
         const response = await getTranscription(
             new Request("http://localhost/api/settings/transcription"),
         );
@@ -315,7 +379,150 @@ describe("settings section routes", () => {
         await expect(response.json()).resolves.toEqual({
             autoTranscribe: false,
             defaultTranscriptionLanguage: null,
+            defaultTranscriptionProvider: "ticnote",
         });
+    });
+
+    it("stores and reads back a default transcription provider for the current user's configured connection", async () => {
+        (getResolvedSourceConnectionForUser as Mock).mockResolvedValue({
+            enabled: true,
+            authMode: "bearer",
+            secrets: { bearerToken: "configured-test-token" },
+        });
+        (hasConfiguredSourceSecrets as Mock).mockReturnValue(true);
+
+        const saveResponse = await putTranscription(
+            makePutRequest("http://localhost/api/settings/transcription", {
+                defaultTranscriptionProvider: "ticnote",
+            }),
+        );
+
+        expect(saveResponse.status).toBe(200);
+        expect(getResolvedSourceConnectionForUser).toHaveBeenCalledWith(
+            "user-1",
+            "ticnote",
+        );
+        expect(upsertUserSettings).toHaveBeenCalledWith("user-1", {
+            defaultTranscriptionProvider: "ticnote",
+        });
+
+        (getUserSettingsRow as Mock).mockResolvedValue({
+            autoTranscribe: true,
+            defaultTranscriptionLanguage: null,
+            defaultTranscriptionProvider: "ticnote",
+        });
+        const readResponse = await getTranscription(
+            new Request("http://localhost/api/settings/transcription"),
+        );
+
+        expect(readResponse.status).toBe(200);
+        await expect(readResponse.json()).resolves.toEqual({
+            autoTranscribe: true,
+            defaultTranscriptionLanguage: null,
+            defaultTranscriptionProvider: "ticnote",
+        });
+    });
+
+    it("clears the default transcription provider without resolving a source connection", async () => {
+        const response = await putTranscription(
+            makePutRequest("http://localhost/api/settings/transcription", {
+                defaultTranscriptionProvider: null,
+            }),
+        );
+
+        expect(response.status).toBe(200);
+        expect(getResolvedSourceConnectionForUser).not.toHaveBeenCalled();
+        expect(upsertUserSettings).toHaveBeenCalledWith("user-1", {
+            defaultTranscriptionProvider: null,
+        });
+    });
+
+    it("leaves the default transcription provider unchanged when the field is omitted", async () => {
+        const response = await putTranscription(
+            makePutRequest("http://localhost/api/settings/transcription", {
+                autoTranscribe: false,
+            }),
+        );
+
+        expect(response.status).toBe(200);
+        expect(getResolvedSourceConnectionForUser).not.toHaveBeenCalled();
+        expect(upsertUserSettings).toHaveBeenCalledWith("user-1", {
+            autoTranscribe: false,
+        });
+    });
+
+    it("requires authentication before writing transcription settings", async () => {
+        (getAuthenticatedUserId as Mock).mockResolvedValue(null);
+
+        const response = await putTranscription(
+            makePutRequest("http://localhost/api/settings/transcription", {
+                defaultTranscriptionProvider: null,
+            }),
+        );
+
+        expect(response.status).toBe(401);
+        expect(getResolvedSourceConnectionForUser).not.toHaveBeenCalled();
+        expect(upsertUserSettings).not.toHaveBeenCalled();
+    });
+
+    it("rejects invalid, disconnected, credentialless, and other-user default transcription providers without writing", async () => {
+        const cases: Array<{
+            connection: Record<string, unknown> | null;
+            hasSecrets?: boolean;
+            name: string;
+            provider: string;
+        }> = [
+            {
+                name: "unknown provider",
+                connection: null,
+                provider: "unknown-provider",
+            },
+            {
+                name: "disconnected source",
+                connection: {
+                    enabled: false,
+                    authMode: "bearer",
+                    secrets: { bearerToken: "configured-test-token" },
+                },
+                hasSecrets: true,
+                provider: "ticnote",
+            },
+            {
+                name: "source without credentials",
+                connection: {
+                    enabled: true,
+                    authMode: "bearer",
+                    secrets: {},
+                },
+                hasSecrets: false,
+                provider: "ticnote",
+            },
+            {
+                name: "other user's source",
+                connection: null,
+                provider: "feishu-minutes",
+            },
+        ];
+
+        for (const testCase of cases) {
+            vi.clearAllMocks();
+            (getAuthenticatedUserId as Mock).mockResolvedValue("user-1");
+            (getResolvedSourceConnectionForUser as Mock).mockResolvedValue(
+                testCase.connection,
+            );
+            (hasConfiguredSourceSecrets as Mock).mockReturnValue(
+                testCase.hasSecrets ?? false,
+            );
+
+            const response = await putTranscription(
+                makePutRequest("http://localhost/api/settings/transcription", {
+                    defaultTranscriptionProvider: testCase.provider,
+                }),
+            );
+
+            expect(response.status, testCase.name).toBe(400);
+            expect(upsertUserSettings).not.toHaveBeenCalled();
+        }
     });
 
     it("keeps shared diarization fields out of transcription updates", async () => {

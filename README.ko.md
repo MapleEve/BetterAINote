@@ -68,7 +68,7 @@ BetterAINote는 이 문제를 해결합니다. **여러 소스의 녹음을 프�
 - DingTalk / A1, TicNote, Plaud, Feishu Minutes, iFLYTEK iFlyrec 같은 녹음 플랫폼을 사용하는 사람.
 - 녹음 라이브러리, SQLite 데이터베이스, 서비스 인증 정보, 오디오 아카이브를 본인의 장비나 서버에 두고 싶은 사용자.
 - 모든 녹음을 외부 클라우드 파이프라인으로 보내지 않고 VoScript 같은 비공개 전사 서비스를 쓰려는 팀.
-- 먼저 셀프 호스팅 baseline을 만든 뒤 워크플로우나 자동화 기능을 연결하려는 개발자.
+- 먼저 셀프 호스팅 기반을 만든 뒤 워크플로우나 자동화 기능을 연결하려는 개발자.
 
 BetterAINote는 독립 프로젝트입니다. Plaud는 지원되는 소스 중 하나일 뿐 제품의 중심이 아닙니다.
 
@@ -112,7 +112,7 @@ bun run dev
 ## 얻을 수 있는 것
 
 <p align="center">
-  <img src="./docs/assets/readme/outcomes.ko.gif" alt="통합 녹음 라이브러리, 비공개 전사, 검색 baseline" width="100%" />
+  <img src="./docs/assets/readme/outcomes.ko.gif" alt="통합 녹음 라이브러리, 비공개 전사, 검색 기반" width="100%" />
 </p>
 
 **통합 녹음 작업 공간**
@@ -127,10 +127,10 @@ bun run dev
 - 전사 상태, 로컬 전사 결과, 화자 라벨, 재사용 가능한 화자 프로필을 검토합니다.
 - 소스 기록, 비공개 전사, AI 제목 생성을 분리해 서비스 교체가 쉽습니다.
 
-**검색을 위한 저장 baseline**
+**검색을 위한 저장 기반**
 
 - SQLite 저장소는 설정, 녹음 라이브러리, 전사, 성문, 단어 타이밍, 검색 인덱스로 나뉩니다.
-- 검색 baseline은 녹음, 전사, 화자, 태그를 대상으로 합니다.
+- 검색은 녹음, 전사, 화자, 태그를 대상으로 합니다.
 - 이후 검색, 필터, 자동화 기능은 이 기반 위에 추가됩니다.
 
 ---
@@ -174,7 +174,6 @@ BetterAINote에는 녹음 제목, 소스 기록, 전사 텍스트, 화자 이름
 | AI install/deploy | [docs/AI_INSTALL_DEPLOYMENT.md](./docs/AI_INSTALL_DEPLOYMENT.md) |
 | API | [docs/API.md](./docs/API.md) |
 | 데이터 소스 | [docs/DATA_SOURCES.md](./docs/DATA_SOURCES.md) |
-| GitHub settings | [docs/GITHUB_PROJECT_SETTINGS.md](./docs/GITHUB_PROJECT_SETTINGS.md) |
 | 배포 | [docs/DEPLOYMENT.md](./docs/DEPLOYMENT.md) |
 | Privacy | [docs/PRIVACY.md](./docs/PRIVACY.md) |
 | Changelog | [CHANGELOG.md](./CHANGELOG.md) |

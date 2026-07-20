@@ -2,9 +2,22 @@ import { eq } from "drizzle-orm";
 import { db } from "@/db";
 import { recordings } from "@/db/schema/library";
 import { sourceArtifacts } from "@/db/schema/transcripts";
+import {
+    isSourceProvider,
+    sourceProviderSupportsCapability,
+} from "@/lib/data-sources/catalog";
 import { findOwnedRecording } from "./ownership";
 
 type SourceArtifact = typeof sourceArtifacts.$inferSelect;
+
+type SourceActionAvailability = {
+    available: boolean;
+    reason: string | null;
+};
+
+type SourceOpenAction = SourceActionAvailability & {
+    url: string | null;
+};
 
 type PublicTranscriptSegment = {
     speaker: string;
@@ -12,6 +25,25 @@ type PublicTranscriptSegment = {
     endMs: number | null;
     text: string;
 };
+
+const OPEN_SOURCE_URL_KEYS = new Set([
+    "appurl",
+    "detailurl",
+    "linkurl",
+    "meetingurl",
+    "minuteurl",
+    "openurl",
+    "pageurl",
+    "permalink",
+    "shareurl",
+    "sourceurl",
+    "weburl",
+    "webpageurl",
+]);
+const UNSAFE_SOURCE_URL_KEY_PATTERN =
+    /audio|auth|bearer|cookie|credential|download|file|format|header|media|password|raw|request|response|secret|session|signed|signature|temp|token|voice/i;
+const MAX_SOURCE_ACTION_URL_DEPTH = 6;
+const MAX_SOURCE_ACTION_URL_LENGTH = 2048;
 
 export class RecordingSourceReportError extends Error {
     constructor(
@@ -45,6 +77,124 @@ function getPublicLanguage(payload: unknown) {
     return typeof language === "string" && language.length <= 64
         ? language
         : null;
+}
+
+function normalizeSourceActionKey(key: string) {
+    return key.replace(/[\s_-]/g, "").toLowerCase();
+}
+
+function hasUnsafeSourceUrlPath(path: string[]) {
+    return path.some((key) => UNSAFE_SOURCE_URL_KEY_PATTERN.test(key));
+}
+
+function isOpenSourceUrlKey(path: string[]) {
+    const key = path.at(-1);
+    if (!key || hasUnsafeSourceUrlPath(path)) {
+        return false;
+    }
+
+    const normalized = normalizeSourceActionKey(key);
+    if (OPEN_SOURCE_URL_KEYS.has(normalized)) {
+        return true;
+    }
+
+    if (normalized !== "url") {
+        return false;
+    }
+
+    const context = normalizeSourceActionKey(path.slice(0, -1).join("."));
+    return /meeting|minute|page|share|source|web/.test(context);
+}
+
+function sanitizeOpenSourceUrl(value: string) {
+    const rawUrl = value.trim();
+    if (!rawUrl || rawUrl.length > MAX_SOURCE_ACTION_URL_LENGTH) {
+        return null;
+    }
+
+    try {
+        const url = new URL(rawUrl);
+        if (
+            url.protocol !== "https:" ||
+            url.username ||
+            url.password ||
+            url.href.length > MAX_SOURCE_ACTION_URL_LENGTH
+        ) {
+            return null;
+        }
+
+        url.search = "";
+        url.hash = "";
+        return url.toString();
+    } catch {
+        return null;
+    }
+}
+
+function findSafeOpenSourceUrl(
+    value: unknown,
+    path: string[] = [],
+    depth = 0,
+): string | null {
+    if (depth > MAX_SOURCE_ACTION_URL_DEPTH) {
+        return null;
+    }
+
+    if (typeof value === "string") {
+        return isOpenSourceUrlKey(path) ? sanitizeOpenSourceUrl(value) : null;
+    }
+
+    if (!value || typeof value !== "object") {
+        return null;
+    }
+
+    if (Array.isArray(value)) {
+        for (const item of value) {
+            const url = findSafeOpenSourceUrl(item, path, depth + 1);
+            if (url) {
+                return url;
+            }
+        }
+        return null;
+    }
+
+    for (const [key, child] of Object.entries(value)) {
+        if (UNSAFE_SOURCE_URL_KEY_PATTERN.test(key)) {
+            continue;
+        }
+
+        const url = findSafeOpenSourceUrl(child, [...path, key], depth + 1);
+        if (url) {
+            return url;
+        }
+    }
+
+    return null;
+}
+
+function buildSourceActions(params: {
+    sourceProvider: string;
+    sourceMetadata: unknown;
+    detailArtifact: SourceArtifact | null;
+}) {
+    const openSourceUrl =
+        findSafeOpenSourceUrl(params.sourceMetadata) ??
+        findSafeOpenSourceUrl(params.detailArtifact?.payload);
+    const repullAvailable =
+        isSourceProvider(params.sourceProvider) &&
+        sourceProviderSupportsCapability(params.sourceProvider, "workerSync");
+
+    return {
+        openSource: {
+            available: Boolean(openSourceUrl),
+            url: openSourceUrl,
+            reason: openSourceUrl ? null : "source-open-unavailable",
+        } satisfies SourceOpenAction,
+        repullSource: {
+            available: repullAvailable,
+            reason: repullAvailable ? null : "source-repull-unavailable",
+        } satisfies SourceActionAvailability,
+    };
 }
 
 function readStringField(
@@ -214,6 +364,8 @@ export async function getRecordingSourceReport(
     const recording = await findOwnedRecording(userId, recordingId, {
         id: recordings.id,
         sourceProvider: recordings.sourceProvider,
+        sourceRecordingId: recordings.sourceRecordingId,
+        sourceMetadata: recordings.sourceMetadata,
         filename: recordings.filename,
     });
 
@@ -280,5 +432,10 @@ export async function getRecordingSourceReport(
             recording.sourceProvider,
             availableSections,
         ),
+        sourceActions: buildSourceActions({
+            sourceProvider: recording.sourceProvider,
+            sourceMetadata: recording.sourceMetadata,
+            detailArtifact,
+        }),
     };
 }

@@ -1,28 +1,21 @@
-import * as React from "react";
+import type * as React from "react";
+
 import { cn } from "@/lib/utils";
 
-interface PanelProps extends React.HTMLAttributes<HTMLDivElement> {
-    variant?: "default" | "inset" | "glass";
+export function Panel({
+    className,
+    variant = "default",
+    ...props
+}: React.ComponentProps<"section"> & { variant?: "default" }) {
+    return (
+        <section
+            data-slot="card"
+            data-variant={variant}
+            className={cn(
+                "flex min-h-0 flex-col overflow-hidden rounded-xl border border-border bg-card text-card-foreground shadow-sm",
+                className,
+            )}
+            {...props}
+        />
+    );
 }
-
-const Panel = React.forwardRef<HTMLDivElement, PanelProps>(
-    ({ className, variant = "default", ...props }, ref) => {
-        const variantClass =
-            variant === "inset"
-                ? "panel-inset"
-                : variant === "glass"
-                  ? "glass-panel"
-                  : "panel";
-
-        return (
-            <div
-                ref={ref}
-                className={cn(variantClass, "rounded-lg p-6", className)}
-                {...props}
-            />
-        );
-    },
-);
-Panel.displayName = "Panel";
-
-export { Panel };

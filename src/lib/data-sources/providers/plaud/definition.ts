@@ -90,6 +90,7 @@ async function listPlaudDevicesForWrite(
 async function preparePlaudConnectionWrite(params: {
     userId: string;
     existing: PersistedSourceConnectionState | null;
+    forceValidate?: boolean;
     body: {
         enabled?: unknown;
         config?: unknown;
@@ -153,6 +154,7 @@ async function preparePlaudConnectionWrite(params: {
             ? normalizePlaudBearerToken(existingSecrets.bearerToken)
             : "";
     const shouldValidateConnection =
+        params.forceValidate ||
         !params.existing ||
         params.existing.baseUrl !== baseUrl ||
         existingBearerToken !== normalizedBearerToken;

@@ -62,7 +62,7 @@ describe("createTranscriptionProvider", () => {
         const provider = createTranscriptionProvider(
             "voice-transcribe",
             "",
-            "http://transcribe.internal:8780",
+            "http://transcribe.example.test:8780",
         );
         expect(provider).toBeDefined();
         expect(typeof provider.transcribe).toBe("function");

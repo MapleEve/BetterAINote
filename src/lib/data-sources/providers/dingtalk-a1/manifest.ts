@@ -19,7 +19,7 @@ export const dingtalkA1ProviderManifest: SourceProviderManifest = {
             officialSummary: true,
             localRename: true,
             privateTranscribe: true,
-            upstreamTitleWriteback: false,
+            upstreamTitleWriteback: true,
         },
     },
     defaults: {

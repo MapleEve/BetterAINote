@@ -16,6 +16,7 @@ interface TitleGenerationSettingsStoreState {
     hasLoaded: boolean;
     isLoading: boolean;
     isSaving: boolean;
+    loadError: string | null;
 }
 
 const listeners = new Set<Listener>();
@@ -26,6 +27,7 @@ function createInitialState(): TitleGenerationSettingsStoreState {
         hasLoaded: false,
         isLoading: true,
         isSaving: false,
+        loadError: null,
     };
 }
 
@@ -202,6 +204,7 @@ export function ensureTitleGenerationSettingsLoaded() {
         setStoreState((currentState) => ({
             ...currentState,
             isLoading: true,
+            loadError: null,
         }));
     }
 
@@ -212,13 +215,19 @@ export function ensureTitleGenerationSettingsLoaded() {
                 settings,
                 hasLoaded: true,
                 isLoading: false,
+                loadError: null,
             }));
             return settings;
         })
         .catch((error) => {
+            const message =
+                error instanceof Error && error.message.trim()
+                    ? error.message
+                    : "Failed to fetch title generation settings";
             setStoreState((currentState) => ({
                 ...currentState,
                 isLoading: false,
+                loadError: message,
             }));
             throw error;
         })
@@ -254,6 +263,7 @@ export async function saveTitleGenerationSettings(
             setStoreState((currentState) => ({
                 ...currentState,
                 hasLoaded: true,
+                loadError: null,
             }));
         }
     } catch (error) {

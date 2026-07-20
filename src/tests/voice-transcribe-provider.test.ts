@@ -25,7 +25,7 @@ describe("voice-transcribe-provider helpers", () => {
         global.fetch = fetchMock as typeof fetch;
 
         const result = await submitVoiceTranscribeJob({
-            baseURL: "http://transcribe.internal:8780/",
+            baseURL: "http://transcribe.example.test:8780/",
             audioBuffer: Buffer.from("RIFFxxxxWAVEfmt "),
             filename: "call.mp3",
             options: {
@@ -46,7 +46,7 @@ describe("voice-transcribe-provider helpers", () => {
         });
         const [, init] = fetchMock.mock.calls[0];
         expect(fetchMock.mock.calls[0][0]).toBe(
-            "http://transcribe.internal:8780/api/transcribe",
+            "http://transcribe.example.test:8780/api/transcribe",
         );
         expect(init?.headers).toMatchObject({
             Authorization: "Bearer secret-key",
@@ -69,7 +69,7 @@ describe("voice-transcribe-provider helpers", () => {
         global.fetch = fetchMock as typeof fetch;
 
         await submitVoiceTranscribeJob({
-            baseURL: "http://transcribe.internal:8780/",
+            baseURL: "http://transcribe.example.test:8780/",
             audioBuffer: Buffer.from("RIFFxxxxWAVEfmt "),
             filename: "call.mp3",
             options: {
@@ -151,13 +151,13 @@ describe("voice-transcribe-provider helpers", () => {
         global.fetch = fetchMock as typeof fetch;
 
         const remoteJob = await pollVoiceTranscribeJob({
-            baseURL: "http://transcribe.internal:8780",
+            baseURL: "http://transcribe.example.test:8780",
             jobId: "job-1",
             apiKey: "secret-key",
         });
 
         expect(fetchMock.mock.calls[0][0]).toBe(
-            "http://transcribe.internal:8780/api/jobs/job-1",
+            "http://transcribe.example.test:8780/api/jobs/job-1",
         );
         expect(getVoiceTranscribeResult(remoteJob)).toEqual({
             text: "SPEAKER_01: 你好 继续",

@@ -8,16 +8,16 @@ describe("normalizeServiceUrl", () => {
     it("normalizes absolute HTTP URLs and removes trailing slashes", () => {
         expect(
             normalizeServiceUrl(
-                "  https://transcribe.internal:8780/api/  ",
+                "  https://transcribe.example.test:8780/api/  ",
                 "privateTranscriptionBaseUrl",
             ),
-        ).toBe("https://transcribe.internal:8780/api");
+        ).toBe("https://transcribe.example.test:8780/api");
     });
 
     it("rejects embedded credentials", () => {
         expect(() =>
             normalizeServiceUrl(
-                "https://user:secret@transcribe.internal:8780",
+                "https://user:secret@transcribe.example.test:8780",
                 "privateTranscriptionBaseUrl",
             ),
         ).toThrowError(
@@ -30,7 +30,7 @@ describe("normalizeServiceUrl", () => {
     it("rejects query strings and fragments", () => {
         expect(() =>
             normalizeServiceUrl(
-                "https://llm.internal/v1?model=gpt#frag",
+                "https://llm.example.test/v1?model=gpt#frag",
                 "titleGenerationBaseUrl",
             ),
         ).toThrowError(

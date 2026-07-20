@@ -1,4 +1,5 @@
 const VOSCRIPT_SETTINGS_ENDPOINT = "/api/settings/voscript";
+const VOSCRIPT_TEST_ENDPOINT = "/api/settings/voscript/test";
 const VOSCRIPT_DENOISE_MODELS = [
     "none",
     "deepfilternet",
@@ -27,6 +28,18 @@ export interface VoScriptSettingsUpdate {
     privateTranscriptionSnrThreshold?: number | null;
     privateTranscriptionNoRepeatNgramSize?: number;
     privateTranscriptionMaxInflightJobs?: number;
+}
+
+export interface VoScriptConnectionTestInput {
+    privateTranscriptionBaseUrl: string | null;
+    privateTranscriptionApiKey?: string | null;
+}
+
+export interface VoScriptConnectionTestResult {
+    available: boolean;
+    providerName: string | null;
+    success: boolean;
+    voiceprintCount: number;
 }
 
 const DEFAULT_VOSCRIPT_SETTINGS: VoScriptSettings = {
@@ -158,4 +171,35 @@ export async function updateVoScriptSettings(
             "Failed to update VoScript settings",
         );
     }
+}
+
+export async function testVoScriptConnection(
+    input: VoScriptConnectionTestInput,
+): Promise<VoScriptConnectionTestResult> {
+    const response = await fetch(VOSCRIPT_TEST_ENDPOINT, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(input),
+    });
+
+    if (!response.ok) {
+        throw await createResponseError(
+            response,
+            "Failed to test VoScript connection",
+        );
+    }
+
+    const data = (await response.json()) as Record<string, unknown>;
+
+    return {
+        available: data.available === true,
+        providerName:
+            typeof data.providerName === "string" ? data.providerName : null,
+        success: data.success === true,
+        voiceprintCount:
+            typeof data.voiceprintCount === "number" &&
+            Number.isFinite(data.voiceprintCount)
+                ? data.voiceprintCount
+                : 0,
+    };
 }

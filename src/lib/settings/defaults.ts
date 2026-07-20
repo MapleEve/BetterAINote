@@ -1,5 +1,6 @@
 import type { userSettings } from "@/db/schema/core";
 import { getTitleGenerationProviderSettingsResponse } from "@/lib/ai/title-generation-config";
+import { isDefaultTranscriptionProvider } from "@/lib/settings/transcription-settings-body";
 
 type UserSettingsRow = typeof userSettings.$inferSelect | null;
 
@@ -10,7 +11,8 @@ export const DEFAULT_DISPLAY_SETTINGS = {
     dateTimeFormat: "relative" as const,
     recordingListSortOrder: "newest" as const,
     itemsPerPage: 50,
-    theme: "system" as const,
+    displayDensity: "comfy" as const,
+    theme: "dark" as const,
 };
 
 function normalizeDateTimeFormat(value: string | null | undefined) {
@@ -23,7 +25,7 @@ function normalizeDateTimeFormat(value: string | null | undefined) {
 
 export const DEFAULT_PLAYBACK_SETTINGS = {
     defaultPlaybackSpeed: 1.0,
-    defaultVolume: 75,
+    defaultVolume: 80,
     autoPlayNext: false,
 };
 
@@ -34,8 +36,9 @@ export const DEFAULT_SYNC_SETTINGS = {
 };
 
 export const DEFAULT_TRANSCRIPTION_SETTINGS = {
-    autoTranscribe: false,
+    autoTranscribe: true,
     defaultTranscriptionLanguage: null as string | null,
+    defaultTranscriptionProvider: null as string | null,
 };
 
 export const DEFAULT_TITLE_GENERATION_SETTINGS = {
@@ -111,6 +114,8 @@ export function getDisplaySettingsResponse(settings: UserSettingsRow) {
             DEFAULT_DISPLAY_SETTINGS.recordingListSortOrder,
         itemsPerPage:
             settings?.itemsPerPage ?? DEFAULT_DISPLAY_SETTINGS.itemsPerPage,
+        displayDensity:
+            settings?.displayDensity ?? DEFAULT_DISPLAY_SETTINGS.displayDensity,
         theme: settings?.theme ?? DEFAULT_DISPLAY_SETTINGS.theme,
     };
 }
@@ -150,6 +155,11 @@ export function getTranscriptionSettingsResponse(settings: UserSettingsRow) {
         defaultTranscriptionLanguage:
             settings?.defaultTranscriptionLanguage ??
             DEFAULT_TRANSCRIPTION_SETTINGS.defaultTranscriptionLanguage,
+        defaultTranscriptionProvider: isDefaultTranscriptionProvider(
+            settings?.defaultTranscriptionProvider,
+        )
+            ? settings.defaultTranscriptionProvider
+            : DEFAULT_TRANSCRIPTION_SETTINGS.defaultTranscriptionProvider,
     };
 }
 

@@ -11,7 +11,7 @@
 | 项目 | 说明 |
 | --- | --- |
 | 阶段 | `preview` |
-| 发布 | `0.6.2-preview` 是当前预发布版本；`0.6.0-preview` 是预发布基线；正式稳定版仍不发布 |
+| 发布 | 当前预发布版本为 `0.6.2-preview`；正式稳定版仍不发布 |
 | Docker | 可以本地构建；发布工作流手动触发且默认关闭 |
 | Release | Release notes 工作流手动触发且默认关闭，只在预发布归档或正式发布计划批准后使用 |
 | CI | `bun run format-and-lint`、`bun run type-check`、测试和构建可在 CI 中运行 |
@@ -116,8 +116,8 @@ Provider 凭据、转写凭据、AI 服务密钥和非敏感偏好应按区域�
 ## 工作流说明
 
 - CI workflow 可以在 push / pull request 上运行，用于 lint、type-check、test 和 build。
-- Docker workflow 有 `workflow_dispatch` 和 `allow_publish` 开关，默认不发布。
-- Release workflow 有 `workflow_dispatch` 和 `allow_release` 开关，默认不创建正式发布。
+- Docker 发布默认关闭，只有维护者明确批准后才会发布公开镜像。
+- Release 发布默认关闭，只有维护者明确批准后才会创建正式发布。
 - Stale 维护 workflow 默认关闭，不在 preview 阶段自动处理 Issue。
 
 这符合当前状态：preview、自托管优先；只允许明确批准后的预发布归档或正式发布动作。

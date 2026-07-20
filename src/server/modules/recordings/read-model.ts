@@ -1,4 +1,4 @@
-import { and, desc, eq, gte, inArray, lte } from "drizzle-orm";
+import { and, asc, desc, eq, gte, inArray, lte } from "drizzle-orm";
 import { db } from "@/db";
 import {
     recordings,
@@ -6,7 +6,7 @@ import {
     recordingTags,
     transcriptionJobs,
 } from "@/db/schema/library";
-import { transcriptions } from "@/db/schema/transcripts";
+import { transcriptions, transcriptSegments } from "@/db/schema/transcripts";
 import {
     buildDashboardTranscriptionJobMap,
     buildDashboardTranscriptionMap,
@@ -14,6 +14,7 @@ import {
     type DashboardTranscriptionRow,
     type RecordingTranscriptionJobRow,
     type RecordingTranscriptionRow,
+    type RecordingTranscriptSegmentRow,
     serializeQueriedRecording,
     serializeRecordingDetailTranscription,
     serializeRecordingDetailTranscriptionJob,
@@ -27,6 +28,10 @@ type RecordingListFilters = {
     from?: Date | null;
     to?: Date | null;
     limit?: number;
+};
+
+type RecordingDetailReadOptions = {
+    includeSegments?: boolean;
 };
 
 const recordingListSelection = {
@@ -67,6 +72,15 @@ const transcriptionJobSelection = {
     remoteStatus: transcriptionJobs.remoteStatus,
     lastError: transcriptionJobs.lastError,
     updatedAt: transcriptionJobs.updatedAt,
+};
+
+const transcriptSegmentSelection = {
+    recordingId: transcriptSegments.recordingId,
+    rawSpeakerLabel: transcriptSegments.rawSpeakerLabel,
+    startMs: transcriptSegments.startMs,
+    endMs: transcriptSegments.endMs,
+    sortSeqMs: transcriptSegments.sortSeqMs,
+    text: transcriptSegments.text,
 };
 
 async function listRecordingRowsForUser(
@@ -180,7 +194,28 @@ async function listRecordingTagsForUser(
                 eq(recordingTags.userId, userId),
                 inArray(recordingTagAssignments.recordingId, recordingIds),
             ),
-        );
+        )
+        .orderBy(desc(recordingTags.createdAt), asc(recordingTags.name));
+}
+
+async function listTranscriptSegmentsForUser(
+    userId: string,
+    recordingIds: string[],
+) {
+    if (recordingIds.length === 0) {
+        return [] as RecordingTranscriptSegmentRow[];
+    }
+
+    return db
+        .select(transcriptSegmentSelection)
+        .from(transcriptSegments)
+        .where(
+            and(
+                eq(transcriptSegments.userId, userId),
+                inArray(transcriptSegments.recordingId, recordingIds),
+            ),
+        )
+        .orderBy(asc(transcriptSegments.sortSeqMs));
 }
 
 export async function getDashboardRecordingsPageData(userId: string) {
@@ -202,9 +237,7 @@ export async function getDashboardRecordingsPageData(userId: string) {
                 tagsByRecordingId.get(recording.id),
             ),
         ),
-        transcriptions: buildDashboardTranscriptionMap(
-            transcriptionRows as DashboardTranscriptionRow[],
-        ),
+        transcriptions: buildDashboardTranscriptionMap(transcriptionRows),
         transcriptionJobs:
             buildDashboardTranscriptionJobMap(transcriptionJobRows),
     };
@@ -213,6 +246,7 @@ export async function getDashboardRecordingsPageData(userId: string) {
 export async function getRecordingDetailReadModel(
     userId: string,
     recordingId: string,
+    options: RecordingDetailReadOptions = {},
 ) {
     const [recording] = await db
         .select()
@@ -248,6 +282,10 @@ export async function getRecordingDetailReadModel(
         .limit(1);
     const [transcription] = transcriptionRows;
     const [transcriptionJob] = transcriptionJobRows;
+    const transcriptSegmentRows =
+        options.includeSegments && transcription
+            ? await listTranscriptSegmentsForUser(userId, [recordingId])
+            : [];
 
     return {
         recording: recording as RecordingDetailRow,
@@ -255,6 +293,7 @@ export async function getRecordingDetailReadModel(
             (transcription as RecordingDetailTranscriptionRow | undefined) ??
             null,
         transcriptionJob: transcriptionJob ?? null,
+        transcriptSegments: transcriptSegmentRows,
     };
 }
 
@@ -262,7 +301,9 @@ export async function getRecordingDetailPageData(
     userId: string,
     recordingId: string,
 ) {
-    const detail = await getRecordingDetailReadModel(userId, recordingId);
+    const detail = await getRecordingDetailReadModel(userId, recordingId, {
+        includeSegments: true,
+    });
 
     if (!detail) {
         return null;
@@ -290,6 +331,7 @@ export async function getRecordingDetailPageData(
                       providerPayload: detail.transcription.providerPayload,
                   }
                 : null,
+            detail.transcriptSegments,
         ),
         transcriptionJob: serializeRecordingDetailTranscriptionJob(
             detail.transcriptionJob,

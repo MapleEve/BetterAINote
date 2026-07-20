@@ -1,69 +1,115 @@
 "use client";
 
-import type { CSSProperties } from "react";
+import type { ComponentPropsWithoutRef } from "react";
+
+import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
 import { cn } from "@/lib/utils";
 
-interface SegmentedTabItem<T extends string> {
+export type SegmentedTabItem<T extends string = string> = {
     value: T;
     label: string;
     disabled?: boolean;
-}
+    tabKey?: string;
+};
 
-interface SegmentedTabsProps<T extends string> {
+type DataAttributes = {
+    [key: `data-${string}`]: string | number | boolean | undefined;
+};
+
+type SegmentedTabsRootProps = Omit<
+    ComponentPropsWithoutRef<typeof ToggleGroup>,
+    "children" | "defaultValue" | "onValueChange" | "size" | "type" | "value"
+> &
+    DataAttributes;
+
+type SegmentedTabsItemProps = Omit<
+    ComponentPropsWithoutRef<typeof ToggleGroupItem>,
+    "children" | "disabled" | "value"
+> &
+    DataAttributes;
+
+type SegmentedTabsItemContext = {
+    active: boolean;
+    disabled: boolean;
+    index: number;
+    size: SegmentedTabsSize;
+};
+
+type SegmentedTabsSize = "default" | "sm" | "segmentedSm";
+
+export function SegmentedTabs<T extends string>({
+    items,
+    value,
+    onValueChange,
+    className,
+    getItemProps,
+    variant = "segmented",
+    size = "segmentedSm",
+    "aria-label": ariaLabel,
+    ...props
+}: SegmentedTabsRootProps & {
     items: SegmentedTabItem<T>[];
     value: T;
     onValueChange: (value: T) => void;
-    className?: string;
-}
-
-function omitShapeOverrides(className?: string) {
-    return className
-        ?.split(/\s+/)
-        .filter((classToken) => {
-            if (!classToken) return false;
-
-            const utilityName = classToken.split(":").at(-1);
-            return utilityName ? !utilityName.startsWith("rounded") : true;
-        })
-        .join(" ");
-}
-
-export function SegmentedTabs<T extends string>({
-    className,
-    items,
-    onValueChange,
-    value,
-}: SegmentedTabsProps<T>) {
+    getItemProps?: (
+        item: SegmentedTabItem<T>,
+        context: SegmentedTabsItemContext,
+    ) => SegmentedTabsItemProps;
+    size?: SegmentedTabsSize;
+}) {
     const activeIndex = Math.max(
         0,
         items.findIndex((item) => item.value === value),
     );
+    const handleValueChange = (nextValue: string) => {
+        if (!nextValue) return;
+        onValueChange(nextValue as T);
+    };
 
     return (
-        <div
-            className={cn("liquid-tabs", omitShapeOverrides(className))}
-            style={
-                {
-                    "--active-index": activeIndex,
-                    "--tab-count": Math.max(1, items.length),
-                } as CSSProperties
-            }
+        <ToggleGroup
+            {...props}
+            className={cn("min-w-[220px]", className)}
+            spacing={1}
+            variant={variant}
+            type="single"
+            value={value}
+            onValueChange={handleValueChange}
+            size={size}
+            role="tablist"
+            aria-label={ariaLabel}
+            data-tabs={items.length}
+            data-active={activeIndex}
         >
-            <span className="liquid-tabs__indicator" aria-hidden="true" />
-            {items.map((item) => (
-                <button
-                    key={item.value}
-                    type="button"
-                    disabled={item.disabled}
-                    onClick={() => onValueChange(item.value)}
-                    className={cn(
-                        "liquid-tabs__item",
-                        value === item.value && "liquid-tabs__item--active",
-                    )}
-                >
-                    {item.label}
-                </button>
-            ))}
-        </div>
+            {items.map((item, index) => {
+                const active = item.value === value;
+                const disabled = Boolean(item.disabled);
+                const itemProps =
+                    getItemProps?.(item, {
+                        active,
+                        disabled,
+                        index,
+                        size,
+                    }) ?? {};
+                const { className: itemClassName, ...itemRestProps } =
+                    itemProps;
+
+                return (
+                    <ToggleGroupItem
+                        key={item.value}
+                        value={item.value}
+                        {...itemRestProps}
+                        data-tab-key={item.tabKey ?? item.value}
+                        role="tab"
+                        className={cn("min-w-[80px]", itemClassName)}
+                        disabled={item.disabled}
+                        aria-disabled={item.disabled || undefined}
+                        aria-selected={active}
+                    >
+                        {item.label}
+                    </ToggleGroupItem>
+                );
+            })}
+        </ToggleGroup>
     );
 }

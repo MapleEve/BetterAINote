@@ -1,6 +1,7 @@
 import { eq, sql } from "drizzle-orm";
 import { db } from "@/db";
 import { syncWorkerState } from "@/db/schema/core";
+import { env } from "@/lib/env";
 
 export interface PersistedSyncWorkerSummary {
     newRecordings: number;
@@ -22,14 +23,29 @@ interface SyncWorkerStatePatch {
 
 interface PersistedRunningState {
     isRunning?: boolean | null;
+    lastHeartbeatAt?: Date | null;
     lastStartedAt?: Date | null;
     lastFinishedAt?: Date | null;
 }
 
+const SYNC_WORKER_HEARTBEAT_MAX_AGE_MS = Math.max(
+    env.SYNC_WORKER_TICK_MS * 2,
+    60000,
+);
+
 export function isPersistedSyncWorkerRunning(
     state: PersistedRunningState | null | undefined,
+    now = new Date(),
 ) {
     if (!state?.isRunning) {
+        return false;
+    }
+
+    if (
+        !state.lastHeartbeatAt ||
+        now.getTime() - state.lastHeartbeatAt.getTime() >
+            SYNC_WORKER_HEARTBEAT_MAX_AGE_MS
+    ) {
         return false;
     }
 

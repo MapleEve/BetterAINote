@@ -21,6 +21,7 @@ import {
     isPersistedSyncWorkerRunning,
     upsertSyncWorkerStateForUsers,
 } from "@/server/modules/sync/worker-state";
+import { getDataSourceSyncPublicReason } from "./data-source-sync-public-errors";
 
 function computeNextSyncTime(
     autoSyncEnabled: boolean,
@@ -101,6 +102,9 @@ export async function getDataSourceSyncStatusForUser(userId: string) {
             lastError: sanitizePublicDataSourceError(
                 workerState?.lastError ?? null,
             ),
+            lastErrorReason: workerState?.lastError
+                ? getDataSourceSyncPublicReason(workerState.lastError)
+                : null,
             lastSummary: workerState?.lastSummary ?? null,
         },
     };

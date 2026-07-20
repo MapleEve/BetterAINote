@@ -45,7 +45,7 @@ BetterAINote is a single-user private recording workspace with multi-source sync
 - **🎙️ New Features**
 - **🐛 Bug Fixes**
 - **⚡ Improvements**
-- **🔧 Internal**
+- **🔧 Maintenance**
 
 ### Skip
 
@@ -53,4 +53,4 @@ BetterAINote is a single-user private recording workspace with multi-source sync
 - test-only changes
 - refactors with no user impact
 - formatting-only changes
-- provider-internal protocol churn with no user-visible impact
+- provider protocol changes with no user-visible impact

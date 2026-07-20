@@ -56,19 +56,19 @@ function getPlaudFields(
             id: "source-secret",
             target: "secret",
             key: "bearerToken",
-            label: "Plaud Authorization",
+            label: zh ? "Plaud 访问凭证" : "Plaud access credential",
             value: secretDraft.bearerToken ?? "",
             rows: context === "settings" ? 4 : 4,
             spellCheck: false,
             className: "font-mono text-sm",
             description: zh
-                ? "复制 Plaud API 请求头 Authorization，粘贴整段 Bearer ...；只贴 Bearer 后面的值也可以。"
-                : "Copy the Plaud API request header named Authorization. Paste the full Bearer ... value, or only the value after Bearer.",
+                ? "粘贴 Plaud 当前账号的访问凭证；系统会自动整理格式。"
+                : "Paste the access credential for your current Plaud account. BetterAINote will normalize the format.",
             placeholder: state.secretsConfigured.bearerToken
                 ? "••••••••••••••••"
                 : zh
-                  ? "Authorization: Bearer ..."
-                  : "Authorization: Bearer ...",
+                  ? "粘贴访问凭证"
+                  : "Paste access credential",
         }),
     ];
 

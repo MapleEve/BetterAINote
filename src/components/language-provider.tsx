@@ -1,22 +1,7 @@
 "use client";
 
-import {
-    createContext,
-    useCallback,
-    useContext,
-    useEffect,
-    useMemo,
-} from "react";
-import { useDisplaySettingsStore } from "@/features/settings/display-settings-store";
-import {
-    translate,
-    UI_LANGUAGE_STORAGE_KEY,
-    type UiLanguage,
-} from "@/lib/i18n";
-import {
-    writeBrowserDocumentLanguage,
-    writeBrowserStorage,
-} from "@/lib/platform/browser-shell";
+import { createContext, useCallback, useContext, useMemo } from "react";
+import { DEFAULT_UI_LANGUAGE, translate, type UiLanguage } from "@/lib/i18n";
 
 interface LanguageContextValue {
     language: UiLanguage;
@@ -24,45 +9,35 @@ interface LanguageContextValue {
     t: (key: string, replacements?: Record<string, string | number>) => string;
 }
 
+const fallbackLanguageValue: LanguageContextValue = {
+    language: DEFAULT_UI_LANGUAGE,
+    setLanguage: () => {},
+    t: (key, replacements) => translate(DEFAULT_UI_LANGUAGE, key, replacements),
+};
+
 const LanguageContext = createContext<LanguageContextValue | null>(null);
 
-function useSharedLanguageValue(): LanguageContextValue {
-    const {
-        settings: { uiLanguage },
-        hasLoaded,
-        updateDisplaySettings,
-    } = useDisplaySettingsStore();
-
-    useEffect(() => {
-        if (!hasLoaded) {
-            return;
-        }
-
-        writeBrowserStorage(UI_LANGUAGE_STORAGE_KEY, uiLanguage);
-        writeBrowserDocumentLanguage(uiLanguage);
-    }, [hasLoaded, uiLanguage]);
-
+export function LanguageProvider({
+    children,
+    language = DEFAULT_UI_LANGUAGE,
+    onLanguageChange,
+}: {
+    children: React.ReactNode;
+    language?: UiLanguage;
+    onLanguageChange?: (language: UiLanguage) => void;
+}) {
     const setLanguage = useCallback(
-        (nextLanguage: UiLanguage) => {
-            void updateDisplaySettings({ uiLanguage: nextLanguage }).catch(
-                () => {},
-            );
-        },
-        [updateDisplaySettings],
+        (nextLanguage: UiLanguage) => onLanguageChange?.(nextLanguage),
+        [onLanguageChange],
     );
-
-    return useMemo<LanguageContextValue>(
+    const value = useMemo<LanguageContextValue>(
         () => ({
-            language: uiLanguage,
+            language,
             setLanguage,
-            t: (key, replacements) => translate(uiLanguage, key, replacements),
+            t: (key, replacements) => translate(language, key, replacements),
         }),
-        [setLanguage, uiLanguage],
+        [language, setLanguage],
     );
-}
-
-export function LanguageProvider({ children }: { children: React.ReactNode }) {
-    const value = useSharedLanguageValue();
 
     return (
         <LanguageContext.Provider value={value}>
@@ -72,7 +47,5 @@ export function LanguageProvider({ children }: { children: React.ReactNode }) {
 }
 
 export function useLanguage() {
-    const context = useContext(LanguageContext);
-    const sharedValue = useSharedLanguageValue();
-    return context ?? sharedValue;
+    return useContext(LanguageContext) ?? fallbackLanguageValue;
 }

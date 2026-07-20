@@ -1,5 +1,9 @@
 import { type ClassValue, clsx } from "clsx";
 import { twMerge } from "tailwind-merge";
+import { absoluteUrl, isDevelopmentRuntime } from "@/lib/platform/runtime";
+
+export { absoluteUrl };
+export const isDev = isDevelopmentRuntime();
 
 export function cn(...inputs: ClassValue[]) {
     return twMerge(clsx(inputs));

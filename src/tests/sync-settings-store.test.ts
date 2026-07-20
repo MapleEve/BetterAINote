@@ -136,6 +136,7 @@ describe("sync settings store", () => {
             hasLoaded: false,
             isLoading: false,
             isSaving: false,
+            loadError: "Failed to fetch sync settings",
             settings: {
                 autoSyncEnabled: true,
                 syncIntervalSeconds: 300,
@@ -152,6 +153,7 @@ describe("sync settings store", () => {
             hasLoaded: true,
             isLoading: false,
             isSaving: false,
+            loadError: null,
             settings: {
                 autoSyncEnabled: false,
                 syncIntervalSeconds: 300,

@@ -8,7 +8,10 @@ import {
 } from "@/lib/data-sources/types";
 import { persistSourceDevicesForUser } from "./devices";
 import { serializeDataSources } from "./serialize";
-import { prepareSourceConnectionWrite } from "./settings";
+import {
+    clearExpiredConnectionStatus,
+    prepareSourceConnectionWrite,
+} from "./settings";
 
 export {
     getEnabledSourceConnectionsForUser,
@@ -19,6 +22,7 @@ export {
 export type { SerializedSourceState } from "./serialize";
 export { buildDataSourcesRouteErrorResponse } from "./serialize";
 export {
+    clearExpiredConnectionStatus,
     DEFAULT_SOURCE_STATE,
     getDataSourceSettingsErrorStatus,
     getSourceConnectionDefaults,
@@ -43,7 +47,23 @@ export async function getDataSourcesStateForUser(userId: string) {
         .from(sourceConnections)
         .where(eq(sourceConnections.userId, userId));
 
-    return serializeDataSources(rows);
+    return serializeDataSources(rows).map((source) => {
+        if (
+            source.provider !== "dingtalk-a1" ||
+            source.authMode !== "device-signin" ||
+            source.secretsConfigured.deviceCredential !== undefined
+        ) {
+            return source;
+        }
+
+        return {
+            ...source,
+            secretsConfigured: {
+                ...source.secretsConfigured,
+                deviceCredential: false,
+            },
+        };
+    });
 }
 
 export async function saveDataSourceForUser(
@@ -111,5 +131,162 @@ export async function saveDataSourceForUser(
         userId,
         provider: body.provider,
         devices: next.sourceDevices,
+    });
+}
+
+export async function disconnectDataSourceForUser(
+    userId: string,
+    body: Pick<DataSourcesRequestBody, "provider">,
+) {
+    if (!isSourceProvider(body.provider)) {
+        throw new SourceProviderSettingsError(
+            "provider must be one of the supported data sources",
+            { status: 400 },
+        );
+    }
+
+    const [existing] = await db
+        .select()
+        .from(sourceConnections)
+        .where(
+            and(
+                eq(sourceConnections.userId, userId),
+                eq(sourceConnections.provider, body.provider),
+            ),
+        )
+        .limit(1);
+
+    if (!existing) {
+        return;
+    }
+
+    const config = clearExpiredConnectionStatus(existing.config);
+
+    await db
+        .update(sourceConnections)
+        .set({
+            enabled: false,
+            ...(config !== existing.config ? { config } : {}),
+            secretConfig: null,
+            syncStatus: "idle",
+            lastSyncError: null,
+            lastSyncStartedAt: null,
+            lastSyncFinishedAt: null,
+            updatedAt: new Date(),
+        })
+        .where(eq(sourceConnections.id, existing.id));
+}
+
+export async function reconnectDataSourceForUser(
+    userId: string,
+    body: DataSourcesRequestBody,
+) {
+    if (!isSourceProvider(body.provider)) {
+        throw new SourceProviderSettingsError(
+            "provider must be one of the supported data sources",
+            { status: 400 },
+        );
+    }
+
+    const [existing] = await db
+        .select()
+        .from(sourceConnections)
+        .where(
+            and(
+                eq(sourceConnections.userId, userId),
+                eq(sourceConnections.provider, body.provider),
+            ),
+        )
+        .limit(1);
+
+    const next = await prepareSourceConnectionWrite({
+        userId,
+        provider: body.provider,
+        existing: existing ?? null,
+        body: {
+            ...body,
+            enabled: true,
+        },
+        forceValidate: true,
+    });
+    const now = new Date();
+    const resetSyncState = {
+        syncStatus: "idle" as const,
+        lastSyncError: null,
+        lastSyncStartedAt: null,
+        lastSyncFinishedAt: null,
+    };
+
+    if (existing) {
+        await db
+            .update(sourceConnections)
+            .set({
+                enabled: true,
+                authMode: next.authMode,
+                baseUrl: next.baseUrl,
+                config: next.config,
+                secretConfig: next.secretConfig,
+                ...resetSyncState,
+                updatedAt: now,
+            })
+            .where(eq(sourceConnections.id, existing.id));
+        await persistSourceDevicesForUser({
+            userId,
+            provider: body.provider,
+            devices: next.sourceDevices,
+        });
+        return;
+    }
+
+    await db.insert(sourceConnections).values({
+        userId,
+        provider: body.provider,
+        enabled: true,
+        authMode: next.authMode,
+        baseUrl: next.baseUrl,
+        config: next.config,
+        secretConfig: next.secretConfig,
+        ...resetSyncState,
+        createdAt: now,
+        updatedAt: now,
+    });
+    await persistSourceDevicesForUser({
+        userId,
+        provider: body.provider,
+        devices: next.sourceDevices,
+    });
+}
+
+export async function testDataSourceForUser(
+    userId: string,
+    body: DataSourcesRequestBody,
+) {
+    if (!isSourceProvider(body.provider)) {
+        throw new SourceProviderSettingsError(
+            "provider must be one of the supported data sources",
+            { status: 400 },
+        );
+    }
+
+    const [existing] = await db
+        .select()
+        .from(sourceConnections)
+        .where(
+            and(
+                eq(sourceConnections.userId, userId),
+                eq(sourceConnections.provider, body.provider),
+            ),
+        )
+        .limit(1);
+
+    await prepareSourceConnectionWrite({
+        userId,
+        provider: body.provider,
+        existing: existing ?? null,
+        body: {
+            ...body,
+            enabled: true,
+        },
+        forceValidate: true,
     });
 }

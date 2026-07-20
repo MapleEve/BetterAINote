@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { toast } from "sonner";
 import {
     DATA_SOURCE_CATALOG,
@@ -18,7 +18,7 @@ import {
 } from "@/lib/data-sources/presentation";
 import type { DataSourceUiState } from "@/lib/data-sources/presentation-definition-types";
 import type { UiLanguage } from "@/lib/i18n";
-import { saveDataSource } from "@/services/data-sources";
+import { getDataSources, saveDataSource } from "@/services/data-sources";
 
 interface UseOnboardingDataSourceOptions {
     endpoint: string;
@@ -94,6 +94,9 @@ export function useOnboardingDataSource({
     const [isSaving, setIsSaving] = useState(false);
     const [connectedProvider, setConnectedProvider] =
         useState<SourceProvider | null>(null);
+    const [connectedProviders, setConnectedProviders] = useState<
+        SourceProvider[]
+    >([]);
 
     const currentDraft = drafts[provider];
     const currentProviderCatalog = DATA_SOURCE_CATALOG[provider];
@@ -132,6 +135,32 @@ export function useOnboardingDataSource({
             ),
         [currentDraft.secrets, currentState, language, provider],
     );
+
+    useEffect(() => {
+        let isCurrent = true;
+
+        void getDataSources(endpoint)
+            .then(({ sources }) => {
+                if (!isCurrent) {
+                    return;
+                }
+
+                setConnectedProviders(
+                    sources
+                        .filter((source) => source.connected)
+                        .map((source) => source.provider),
+                );
+            })
+            .catch(() => {
+                if (isCurrent) {
+                    setConnectedProviders([]);
+                }
+            });
+
+        return () => {
+            isCurrent = false;
+        };
+    }, [endpoint]);
 
     const updateDraft = useCallback(
         (
@@ -213,6 +242,9 @@ export function useOnboardingDataSource({
             });
 
             setConnectedProvider(provider);
+            setConnectedProviders((current) =>
+                current.includes(provider) ? current : [...current, provider],
+            );
             toast.success(
                 isZh
                     ? `${getSourceProviderLabel(provider, language)} 已连接`
@@ -243,6 +275,7 @@ export function useOnboardingDataSource({
 
     return {
         connectedProvider,
+        connectedProviders,
         connectedSourceLabel,
         connectSource,
         currentDraft,

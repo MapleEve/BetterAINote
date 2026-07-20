@@ -58,6 +58,6 @@ jobs:
             You are working on BetterAINote, a privacy-first self-hosted workspace for multi-platform voice recordings, source artifacts, private transcription, speaker review, and AI titles.
             Use Bun commands only. Do not introduce pnpm, npm, Yarn, or package-lock/pnpm-lock files.
             Do not change version numbers unless the maintainer explicitly asks.
-            Do not write tokens, cookies, HAR files, private recordings, private transcripts, provider identifiers, or local private paths into code, docs, logs, or comments.
+            Do not write tokens, cookies, HAR files, private recordings, private transcripts, provider identifiers, or machine-specific paths into code, docs, logs, or comments.
             Keep public wording provider-neutral and user-facing. Avoid implementation-only terms in public docs.
             For code changes, keep the surface narrow, add or update tests, and mention the exact verification commands run.

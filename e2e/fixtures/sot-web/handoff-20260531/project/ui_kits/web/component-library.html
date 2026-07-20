@@ -1,0 +1,3076 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<title>BetterAINote · Component Library</title>
+<link rel="stylesheet" href="../../colors_and_type.css?v=system-mono">
+<link rel="stylesheet" href="kit.css?v=system-mono">
+<link rel="stylesheet" href="components.css?v=2">
+</head>
+<body>
+<div class="cl-shell">
+  <aside class="cl-side">
+    <div class="cl-brand">
+      <img src="../../assets/logo-mark-steel.svg" alt="">
+      <div>
+        <div class="cl-brand-text">Component Library</div>
+        <div class="cl-brand-sub">BetterAINote · Web kit</div>
+      </div>
+    </div>
+    <nav class="cl-toc">
+      <div class="cl-toc-label">Atoms</div>
+      <a href="#button">Button / IconButton</a>
+      <a href="#badge">Badge / StatusPill</a>
+      <a href="#input">Input / Select / Switch</a>
+      <a href="#seg">Segmented control</a>
+      <a href="#skeleton">Skeleton</a>
+
+      <div class="cl-toc-label">Navigation</div>
+      <a href="#favnav">FavoriteNavItem</a>
+      <a href="#srcrow">SourceRow</a>
+      <a href="#stack">FilterStack</a>
+
+      <div class="cl-toc-label">List</div>
+      <a href="#listitem">RecordingListItem</a>
+      <a href="#tfilter">TimelineFilter</a>
+      <a href="#tagsel">TagSelector</a>
+
+      <div class="cl-toc-label">Overlays</div>
+      <a href="#search">SearchPopover</a>
+      <a href="#activity">ActivityItem</a>
+      <a href="#tagmgr">TagManagerPopover</a>
+      <a href="#more">MoreActionsMenu</a>
+      <a href="#airn">AIRenamePopover</a>
+      <a href="#confirm">ConfirmDialog</a>
+      <a href="#toast">Toast / Banner</a>
+      <a href="#drawer">Drawer / Scrim</a>
+      <a href="#sysbanner">SystemBanner</a>
+
+      <div class="cl-toc-label">Settings</div>
+      <a href="#srail">SettingsRailItem</a>
+      <a href="#pcard">ProviderCard</a>
+      <a href="#pdetail">ProviderDetail</a>
+
+      <div class="cl-toc-label">Detail</div>
+      <a href="#dhead">DetailHeader</a>
+      <a href="#rename">RenameEditor</a>
+      <a href="#player">PlayerControls</a>
+      <a href="#turn">TranscriptTurn</a>
+      <a href="#srcrow2">SourceTranscriptRow</a>
+      <a href="#spkr">SpeakerRow</a>
+      <a href="#retx">Retranscribe</a>
+
+      <div class="cl-toc-label">Tweaks</div>
+      <a href="#tweaks">TweaksPanel</a>
+
+      <div class="cl-toc-label">Reference</div>
+      <a href="#responsive">Responsive frames</a>
+      <a href="#matrix">Coverage matrix</a>
+    </nav>
+  </aside>
+
+  <main class="cl-main">
+    <div class="cl-topbar">
+      <div>
+        <div class="cl-topbar-title">Component Library</div>
+        <div class="cl-topbar-meta">Reuses <code>kit.css</code> · no inline styles · DS reference, not product UI</div>
+      </div>
+      <div class="cl-topbar-links">
+        <a href="index.html">← Workstation prototype</a>
+        <a href="README.md">README</a>
+      </div>
+    </div>
+
+    <h1 class="cl-h1">BetterAINote · Web Components</h1>
+    <p class="cl-h1-sub">Each component is shown across default · hover · focus · active · selected · disabled · loading · error · empty · success and (where relevant) responsive states. All visuals inherit from the same <code>kit.css</code> as the live workstation.</p>
+
+    <!-- ============================================================ BUTTON -->
+    <section class="cl-section" id="button">
+      <div class="cl-section-head">
+        <h2>Button / IconButton</h2>
+        <span class="cl-section-sub">Primitives</span>
+        <code>.btn · .icon-btn · .round-btn</code>
+      </div>
+      <div class="cl-grid">
+
+        <div class="cl-card">
+          <div class="cl-card-head"><span>Default · Glass</span><span class="cl-state">default</span></div>
+          <div class="cl-stage">
+            <button class="btn glass" type="button">AI 重命名</button>
+            <button class="btn glass btn-sm" type="button">小号</button>
+          </div>
+        </div>
+
+        <div class="cl-card">
+          <div class="cl-card-head"><span>Default · Ghost</span><span class="cl-state">default</span></div>
+          <div class="cl-stage">
+            <button class="btn ghost" type="button">取消</button>
+            <button class="btn ghost btn-sm" type="button">忽略</button>
+          </div>
+        </div>
+
+        <div class="cl-card">
+          <div class="cl-card-head"><span>Primary · Danger</span><span class="cl-state is-danger">danger</span></div>
+          <div class="cl-stage">
+            <button class="btn primary" type="button">保存</button>
+            <button class="btn danger" type="button">删除本地副本</button>
+          </div>
+        </div>
+
+        <div class="cl-card cl-pin-hover">
+          <div class="cl-card-head"><span>Hover</span><span class="cl-state">:hover</span></div>
+          <div class="cl-stage">
+            <button class="btn glass is-hover-demo" type="button">AI 重命名</button>
+            <button class="btn ghost is-hover-demo" type="button">取消</button>
+          </div>
+          <div class="cl-note">Class <code>.is-hover-demo</code> pins the hover skin for review.</div>
+        </div>
+
+        <div class="cl-card">
+          <div class="cl-card-head"><span>Focus</span><span class="cl-state">:focus-visible</span></div>
+          <div class="cl-stage">
+            <button class="btn glass is-focus-demo" type="button">AI 重命名</button>
+            <button class="btn ghost is-focus-demo" type="button">取消</button>
+          </div>
+        </div>
+
+        <div class="cl-card">
+          <div class="cl-card-head"><span>Disabled</span><span class="cl-state is-muted">disabled</span></div>
+          <div class="cl-stage">
+            <button class="btn glass" type="button" disabled>AI 重命名</button>
+            <button class="btn ghost" type="button" disabled>取消</button>
+            <button class="btn primary" type="button" disabled>保存</button>
+          </div>
+        </div>
+
+        <div class="cl-card">
+          <div class="cl-card-head"><span>Loading</span><span class="cl-state">loading</span></div>
+          <div class="cl-stage">
+            <button class="btn glass is-loading" type="button" aria-busy="true">
+              <span class="btn-spinner" aria-hidden="true"></span>保存中…
+            </button>
+            <button class="btn ghost is-loading" type="button" aria-busy="true">
+              <span class="btn-spinner" aria-hidden="true"></span>测试连接…
+            </button>
+          </div>
+        </div>
+
+        <div class="cl-card">
+          <div class="cl-card-head"><span>Success</span><span class="cl-state is-positive">success</span></div>
+          <div class="cl-stage">
+            <button class="btn ghost is-success" type="button">
+              <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg>
+              已保存
+            </button>
+          </div>
+        </div>
+
+        <div class="cl-card">
+          <div class="cl-card-head"><span>Error</span><span class="cl-state is-danger">error</span></div>
+          <div class="cl-stage">
+            <button class="btn ghost is-error" type="button">
+              <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 9v4"/><path d="M12 17h.01"/><circle cx="12" cy="12" r="10"/></svg>
+              保存失败 · 重试
+            </button>
+          </div>
+        </div>
+
+        <div class="cl-card">
+          <div class="cl-card-head"><span>IconButton</span><span class="cl-state">.icon-btn</span></div>
+          <div class="cl-stage">
+            <button class="icon-btn" type="button" aria-label="搜索">
+              <svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+            </button>
+            <button class="icon-btn is-hover-demo" type="button" aria-label="搜索">
+              <svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+            </button>
+            <button class="icon-btn is-focus-demo" type="button" aria-label="搜索">
+              <svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+            </button>
+            <button class="icon-btn" type="button" aria-label="搜索" disabled>
+              <svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+            </button>
+          </div>
+        </div>
+
+        <div class="cl-card">
+          <div class="cl-card-head"><span>RoundButton · Player</span><span class="cl-state">.round-btn</span></div>
+          <div class="cl-stage">
+            <button class="round-btn" type="button" aria-label="后退">
+              <svg viewBox="0 0 24 24"><path d="M19 20 9 12l10-8z"/><path d="M5 19V5"/></svg>
+            </button>
+            <button class="round-btn play" type="button" aria-label="播放">
+              <svg viewBox="0 0 24 24"><polygon points="5 3 19 12 5 21 5 3"/></svg>
+            </button>
+            <button class="round-btn" type="button" aria-label="前进">
+              <svg viewBox="0 0 24 24"><path d="m5 4 10 8-10 8z"/><path d="M19 5v14"/></svg>
+            </button>
+            <button class="round-btn" type="button" aria-label="禁用" disabled>
+              <svg viewBox="0 0 24 24"><polygon points="5 3 19 12 5 21 5 3"/></svg>
+            </button>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============================================================ BADGE -->
+    <section class="cl-section" id="badge">
+      <div class="cl-section-head">
+        <h2>Badge / StatusPill</h2>
+        <span class="cl-section-sub">Status of a recording or sync</span>
+        <code>.b · .b.ok · .b.warn · .b.err · .b.info · .b.neu</code>
+      </div>
+      <div class="cl-grid">
+        <div class="cl-card">
+          <div class="cl-card-head"><span>已更新 · ok</span><span class="cl-state is-positive">success</span></div>
+          <div class="cl-stage"><span class="b ok"><span class="dot"></span>已更新</span></div>
+        </div>
+        <div class="cl-card">
+          <div class="cl-card-head"><span>正在转写 · warn</span><span class="cl-state is-warning">in-progress</span></div>
+          <div class="cl-stage"><span class="b warn"><span class="dot"></span>正在转写</span></div>
+        </div>
+        <div class="cl-card">
+          <div class="cl-card-head"><span>仅本地 · info</span><span class="cl-state">local-only</span></div>
+          <div class="cl-stage"><span class="b info"><span class="dot"></span>仅本地</span></div>
+        </div>
+        <div class="cl-card">
+          <div class="cl-card-head"><span>更新失败 · err</span><span class="cl-state is-danger">error</span></div>
+          <div class="cl-stage"><span class="b err"><span class="dot"></span>更新失败</span></div>
+        </div>
+        <div class="cl-card">
+          <div class="cl-card-head"><span>待处理 · neu</span><span class="cl-state is-muted">neutral</span></div>
+          <div class="cl-stage"><span class="b neu"><span class="dot _is-1"></span>待处理</span></div>
+        </div>
+        <div class="cl-card">
+          <div class="cl-card-head"><span>来源标签</span><span class="cl-state">src-tag</span></div>
+          <div class="cl-stage">
+            <span class="src-tag"><span class="ico"><img src="../../assets/sources/dingtalk.svg" alt=""></span>钉钉</span>
+            <span class="src-tag"><span class="ico cover"><img src="../../assets/sources/plaud.png" alt=""></span>Plaud</span>
+            <span class="src-tag"><span class="ico"><img src="../../assets/sources/ticnote.png" alt=""></span>TicNote</span>
+          </div>
+        </div>
+        <div class="cl-card">
+          <div class="cl-card-head"><span>用户标签</span><span class="cl-state">utag</span></div>
+          <div class="cl-stage">
+            <span class="utag c-violet"><svg viewBox="0 0 24 24"><path d="M3 3h7v7H3z"/><path d="M14 3h7v7h-7z"/><path d="M14 14h7v7h-7z"/><path d="M3 14h7v7H3z"/></svg>产品周会</span>
+            <span class="utag c-blue"><svg viewBox="0 0 24 24"><circle cx="9" cy="7" r="4"/><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/></svg>1on1</span>
+            <span class="utag c-rose"><svg viewBox="0 0 24 24"><path d="M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.29 1.51 4.04 3 5.5l7 7Z"/></svg>重要客户</span>
+            <span class="utag c-amber"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>待跟进</span>
+          </div>
+        </div>
+        <div class="cl-card">
+          <div class="cl-card-head"><span>Sync pill</span><span class="cl-state">.sync-pill</span></div>
+          <div class="cl-stage cl-stage-col">
+            <div class="sync-pill is-ok"><span class="sync-dot"></span><span>已同步 · 2 分钟前</span></div>
+            <div class="sync-pill is-syncing"><span class="sync-dot"></span><span>正在同步…</span></div>
+            <div class="sync-pill is-error"><span class="sync-dot"></span><span>同步失败 · 重试</span></div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============================================================ INPUT -->
+    <section class="cl-section" id="input">
+      <div class="cl-section-head">
+        <h2>Input / Select / Switch</h2>
+        <span class="cl-section-sub">Form atoms</span>
+        <code>.field-row · .toggle · .select</code>
+      </div>
+      <div class="cl-grid">
+        <div class="cl-card">
+          <div class="cl-card-head"><span>Text input</span><span class="cl-state">default · focus · disabled</span></div>
+          <div class="cl-stage cl-stage-col">
+            <input class="field-input" type="text" placeholder="应用标识" value="示例应用">
+            <input class="field-input is-focus-demo" type="text" placeholder="应用密钥" value="">
+            <input class="field-input" type="text" placeholder="禁用" value="只读" disabled>
+            <input class="field-input is-error" type="text" placeholder="登录材料" value="" aria-invalid="true">
+          </div>
+        </div>
+        <div class="cl-card">
+          <div class="cl-card-head"><span>Select</span><span class="cl-state">.select</span></div>
+          <div class="cl-stage cl-stage-col">
+            <label class="select">
+              <select>
+                <option>OpenAI · Whisper-1</option>
+                <option>Deepgram · Nova-3</option>
+                <option>讯飞 · 极速版</option>
+              </select>
+            </label>
+            <label class="select is-focus-demo">
+              <select>
+                <option>OpenAI · Whisper-1</option>
+              </select>
+            </label>
+            <label class="select" aria-disabled="true">
+              <select disabled>
+                <option>禁用</option>
+              </select>
+            </label>
+          </div>
+        </div>
+        <div class="cl-card">
+          <div class="cl-card-head"><span>Toggle</span><span class="cl-state">.toggle</span></div>
+          <div class="cl-stage">
+            <button class="toggle" type="button" role="switch" aria-checked="false"><span class="t-knob"></span></button>
+            <button class="toggle on" type="button" role="switch" aria-checked="true"><span class="t-knob"></span></button>
+            <button class="toggle is-focus-demo" type="button" role="switch" aria-checked="false"><span class="t-knob"></span></button>
+            <button class="toggle" type="button" role="switch" aria-checked="false" disabled><span class="t-knob"></span></button>
+          </div>
+        </div>
+        <div class="cl-card cl-wide-card">
+          <div class="cl-card-head"><span>Field row</span><span class="cl-state">.field-row</span></div>
+          <div class="cl-stage cl-stage-col">
+            <div class="field-row">
+              <div>
+                <div class="field-name">应用标识</div>
+                <div class="field-desc">飞书 Open Platform · 应用唯一标识</div>
+              </div>
+              <input class="field-input" type="text" value="示例应用">
+            </div>
+            <div class="field-row">
+              <div>
+                <div class="field-name">应用密钥</div>
+                <div class="field-desc">用于维护访问凭证</div>
+              </div>
+              <input class="field-input" type="password" value="••••••••••">
+            </div>
+            <div class="field-row">
+              <div>
+                <div class="field-name">BASE_URL</div>
+                <div class="field-desc">默认 https://open.feishu.cn</div>
+              </div>
+              <input class="field-input" type="text" value="https://open.feishu.cn">
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============================================================ SEG -->
+    <section class="cl-section" id="seg">
+      <div class="cl-section-head">
+        <h2>Segmented control</h2>
+        <span class="cl-section-sub">Liquid tabs</span>
+        <code>.liquid-tabs · .lt-tab</code>
+      </div>
+      <div class="cl-grid">
+        <div class="cl-card">
+          <div class="cl-card-head"><span>Default · 2 options</span><span class="cl-state">.sm</span></div>
+          <div class="cl-stage">
+            <div class="liquid-tabs sm" data-active="0">
+              <span class="lt-ind"></span>
+              <button class="lt-tab active" type="button">时间</button>
+              <button class="lt-tab" type="button">标签</button>
+            </div>
+          </div>
+        </div>
+        <div class="cl-card">
+          <div class="cl-card-head"><span>3 options</span><span class="cl-state">default</span></div>
+          <div class="cl-stage">
+            <div class="liquid-tabs" data-active="1">
+              <span class="lt-ind"></span>
+              <button class="lt-tab" type="button">逐字稿</button>
+              <button class="lt-tab active" type="button">说话人</button>
+              <button class="lt-tab" type="button">来源详情</button>
+            </div>
+          </div>
+        </div>
+        <div class="cl-card">
+          <div class="cl-card-head"><span>Focus</span><span class="cl-state">:focus-visible</span></div>
+          <div class="cl-stage">
+            <div class="liquid-tabs sm" data-active="0">
+              <span class="lt-ind"></span>
+              <button class="lt-tab active is-focus-demo" type="button">时间</button>
+              <button class="lt-tab" type="button">标签</button>
+            </div>
+          </div>
+        </div>
+        <div class="cl-card">
+          <div class="cl-card-head"><span>Disabled tab</span><span class="cl-state is-muted">unavailable</span></div>
+          <div class="cl-stage">
+            <div class="liquid-tabs sm" data-active="0">
+              <span class="lt-ind"></span>
+              <button class="lt-tab active" type="button">时间</button>
+              <button class="lt-tab" type="button" disabled aria-disabled="true">标签</button>
+            </div>
+          </div>
+          <div class="cl-note">标签模式在没有任何用户标签时禁用，引导用户先创建标签。</div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============================================================ SKELETON -->
+    <section class="cl-section" id="skeleton">
+      <div class="cl-section-head">
+        <h2>Skeleton</h2>
+        <span class="cl-section-sub">Loading placeholder</span>
+        <code>.sk · .skel-row · .skel-day</code>
+      </div>
+      <div class="cl-grid cl-grid-wide">
+        <div class="cl-card">
+          <div class="cl-card-head"><span>Recording list skeleton</span><span class="cl-state">loading</span></div>
+          <div class="cl-stage cl-stage-canvas">
+            <div class="skel-list">
+              <div class="day skel-day"><span class="sk sk-day-l"></span><span class="line"></span></div>
+              <div class="row skel-row"><div class="body"><div class="sk sk-title"></div><div class="meta"><span class="sk sk-meta-t"></span><span class="sk sk-meta-tag"></span><span class="sk sk-meta-pill"></span></div></div><div class="right"><span class="sk sk-utag"></span></div></div>
+              <div class="row skel-row"><div class="body"><div class="sk sk-title sk-w-80"></div><div class="meta"><span class="sk sk-meta-t"></span><span class="sk sk-meta-tag"></span></div></div><div class="right"></div></div>
+              <div class="row skel-row"><div class="body"><div class="sk sk-title sk-w-70"></div><div class="meta"><span class="sk sk-meta-t"></span><span class="sk sk-meta-tag"></span><span class="sk sk-meta-pill sk-w-70"></span></div></div><div class="right"><span class="sk sk-utag"></span></div></div>
+            </div>
+          </div>
+        </div>
+        <div class="cl-card">
+          <div class="cl-card-head"><span>Transcript skeleton</span><span class="cl-state">loading</span></div>
+          <div class="cl-stage cl-stage-canvas">
+            <div class="cl-transcript-skel">
+              <div class="cl-turn-skel">
+                <div class="sk sk-avatar"></div>
+                <div class="cl-turn-skel-body">
+                  <div class="sk sk-name"></div>
+                  <div class="sk sk-line"></div>
+                  <div class="sk sk-line sk-w-80"></div>
+                  <div class="sk sk-line sk-w-60"></div>
+                </div>
+              </div>
+              <div class="cl-turn-skel">
+                <div class="sk sk-avatar"></div>
+                <div class="cl-turn-skel-body">
+                  <div class="sk sk-name sk-w-40"></div>
+                  <div class="sk sk-line sk-w-90"></div>
+                  <div class="sk sk-line sk-w-70"></div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============================================================ FAVORITE NAV -->
+    <section class="cl-section" id="favnav">
+      <div class="cl-section-head">
+        <h2>FavoriteNavItem</h2>
+        <span class="cl-section-sub">Sidebar · 收藏 area</span>
+        <code>.nav-item[data-filter]</code>
+      </div>
+      <div class="cl-grid">
+        <div class="cl-card">
+          <div class="cl-card-head"><span>Default</span><span class="cl-state">default</span></div>
+          <div class="cl-stage cl-stage-col">
+            <div class="cl-side-preview">
+              <button class="nav-item" type="button">
+                <svg viewBox="0 0 24 24"><path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 1 0 6 0V4a3 3 0 0 0-3-3z"/><path d="M19 10v2a7 7 0 1 1-14 0v-2"/><path d="M12 19v3"/></svg>
+                <span>全部录音</span>
+                <span class="count">112</span>
+              </button>
+            </div>
+          </div>
+        </div>
+        <div class="cl-card">
+          <div class="cl-card-head"><span>Selected</span><span class="cl-state">is-selected</span></div>
+          <div class="cl-stage">
+            <div class="cl-side-preview">
+              <button class="nav-item is-selected" type="button" aria-pressed="true">
+                <svg viewBox="0 0 24 24"><path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 1 0 6 0V4a3 3 0 0 0-3-3z"/><path d="M19 10v2a7 7 0 1 1-14 0v-2"/><path d="M12 19v3"/></svg>
+                <span>全部录音</span>
+                <span class="count">112</span>
+              </button>
+            </div>
+          </div>
+        </div>
+        <div class="cl-card">
+          <div class="cl-card-head"><span>Hover</span><span class="cl-state">:hover</span></div>
+          <div class="cl-stage">
+            <div class="cl-side-preview">
+              <button class="nav-item is-hover-demo" type="button">
+                <svg viewBox="0 0 24 24"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+                <span>转写记录</span>
+                <span class="count">98</span>
+              </button>
+            </div>
+          </div>
+        </div>
+        <div class="cl-card">
+          <div class="cl-card-head"><span>Focus</span><span class="cl-state">:focus-visible</span></div>
+          <div class="cl-stage">
+            <div class="cl-side-preview">
+              <button class="nav-item is-focus-demo" type="button">
+                <svg viewBox="0 0 24 24"><path d="M20.59 13.41L13.42 20.58a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"/><path d="M7 7h.01"/></svg>
+                <span>标签</span>
+                <span class="count">5</span>
+              </button>
+            </div>
+          </div>
+        </div>
+        <div class="cl-card">
+          <div class="cl-card-head"><span>Disabled · empty</span><span class="cl-state is-muted">disabled</span></div>
+          <div class="cl-stage">
+            <div class="cl-side-preview">
+              <button class="nav-item" type="button" disabled aria-disabled="true">
+                <svg viewBox="0 0 24 24"><path d="M20.59 13.41L13.42 20.58a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"/><path d="M7 7h.01"/></svg>
+                <span>标签</span>
+                <span class="count">0</span>
+              </button>
+            </div>
+          </div>
+          <div class="cl-note">没有任何用户标签时，标签筛选不可用。</div>
+        </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============================================================ SOURCE ROW -->
+    <section class="cl-section" id="srcrow">
+      <div class="cl-section-head">
+        <h2>SourceRow</h2>
+        <span class="cl-section-sub">Sidebar · 来源 area · all 9 backed states</span>
+        <code>.nav-item.nav-source[data-state]</code>
+      </div>
+      <div class="cl-grid">
+
+        <div class="cl-card">
+          <div class="cl-card-head"><span>connected-active</span><span class="cl-state is-positive">selected</span></div>
+          <div class="cl-stage cl-side-preview">
+            <button class="nav-item nav-source is-active-filter" data-state="connected-active" type="button" aria-pressed="true">
+              <span class="src-ico"><img src="../../assets/sources/dingtalk.svg" alt=""></span>
+              <span>钉钉</span>
+              <span class="src-status" aria-hidden="true"></span>
+              <span class="count">112</span>
+            </button>
+          </div>
+        </div>
+
+        <div class="cl-card">
+          <div class="cl-card-head"><span>connected-idle</span><span class="cl-state">default</span></div>
+          <div class="cl-stage cl-side-preview">
+            <button class="nav-item nav-source is-connected-idle" data-state="connected-idle" type="button">
+              <span class="src-ico"><img src="../../assets/sources/ticnote.png" alt=""></span>
+              <span>TicNote</span>
+              <span class="src-status" aria-hidden="true"></span>
+              <span class="count">48</span>
+            </button>
+          </div>
+        </div>
+
+        <div class="cl-card">
+          <div class="cl-card-head"><span>syncing</span><span class="cl-state">in-progress</span></div>
+          <div class="cl-stage cl-side-preview">
+            <button class="nav-item nav-source is-syncing" data-state="syncing" type="button">
+              <span class="src-ico"><img src="../../assets/sources/feishu.jpeg" alt=""></span>
+              <span>飞书妙记</span>
+              <span class="src-status" aria-hidden="true"></span>
+              <span class="count">41</span>
+            </button>
+          </div>
+        </div>
+
+        <div class="cl-card">
+          <div class="cl-card-head"><span>sync-error · with retry</span><span class="cl-state is-danger">error</span></div>
+          <div class="cl-stage cl-side-preview">
+            <button class="nav-item nav-source is-sync-error" data-state="sync-error" type="button">
+              <span class="src-ico cover"><img src="../../assets/sources/plaud.png" alt=""></span>
+              <span>Plaud</span>
+              <span class="src-status err" aria-hidden="true"></span>
+              <span class="count">23</span>
+              <span class="src-action is-retry" role="button" tabindex="0" aria-label="重试同步">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12a9 9 0 1 1-9-9"/><path d="M21 3v6h-6"/></svg>
+                重试
+              </span>
+            </button>
+          </div>
+          <div class="cl-note">Hover/focus reveals the 重试 quick-action; row click selects the source, quick-action click runs sync without selecting.</div>
+        </div>
+
+        <div class="cl-card">
+          <div class="cl-card-head"><span>needs-setup · with connect</span><span class="cl-state is-warning">setup</span></div>
+          <div class="cl-stage cl-side-preview">
+            <button class="nav-item nav-source is-needs-setup" data-state="needs-setup" type="button">
+              <span class="src-ico src-ico-letter">讯</span>
+              <span>讯飞听见</span>
+              <span class="src-status" aria-hidden="true"></span>
+              <span class="src-action is-connect" role="button" tabindex="0" aria-label="前往连接">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 6l6 6-6 6"/></svg>
+                连接
+              </span>
+            </button>
+          </div>
+        </div>
+
+        <div class="cl-card">
+          <div class="cl-card-head"><span>no-results</span><span class="cl-state is-muted">empty under filter</span></div>
+          <div class="cl-stage cl-side-preview">
+            <button class="nav-item nav-source is-no-results" data-state="no-results" type="button">
+              <span class="src-ico"><img src="../../assets/sources/feishu.jpeg" alt=""></span>
+              <span>飞书妙记</span>
+              <span class="src-status" aria-hidden="true"></span>
+              <span class="count">0</span>
+            </button>
+          </div>
+        </div>
+
+        <div class="cl-card">
+          <div class="cl-card-head"><span>expired · with re-auth</span><span class="cl-state is-warning">expired</span></div>
+          <div class="cl-stage cl-side-preview">
+            <button class="nav-item nav-source is-expired" data-state="expired" type="button">
+              <span class="src-ico"><img src="../../assets/sources/dingtalk.svg" alt=""></span>
+              <span>钉钉</span>
+              <span class="src-status" aria-hidden="true"></span>
+              <span class="src-action is-reauth" role="button" tabindex="0" aria-label="重新登录">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12a9 9 0 1 0 3-6.7L3 8"/><path d="M3 3v5h5"/></svg>
+                重新登录
+              </span>
+            </button>
+          </div>
+        </div>
+
+        <div class="cl-card">
+          <div class="cl-card-head"><span>disabled</span><span class="cl-state is-muted">disabled</span></div>
+          <div class="cl-stage cl-side-preview">
+            <button class="nav-item nav-source is-disabled" data-state="disabled" type="button" disabled aria-disabled="true">
+              <span class="src-ico"><img src="../../assets/sources/ticnote.png" alt=""></span>
+              <span>TicNote</span>
+              <span class="src-status" aria-hidden="true"></span>
+              <span class="count">0</span>
+            </button>
+          </div>
+        </div>
+
+        <div class="cl-card">
+          <div class="cl-card-head"><span>Hover / Focus</span><span class="cl-state">:hover · :focus-visible</span></div>
+          <div class="cl-stage cl-side-preview">
+            <button class="nav-item nav-source is-connected-idle is-hover-demo" type="button">
+              <span class="src-ico"><img src="../../assets/sources/ticnote.png" alt=""></span>
+              <span>TicNote</span>
+              <span class="src-status" aria-hidden="true"></span>
+              <span class="count">48</span>
+            </button>
+            <button class="nav-item nav-source is-connected-idle is-focus-demo" type="button">
+              <span class="src-ico"><img src="../../assets/sources/ticnote.png" alt=""></span>
+              <span>TicNote</span>
+              <span class="src-status" aria-hidden="true"></span>
+              <span class="count">48</span>
+            </button>
+          </div>
+        </div>
+
+      </div>
+    </section>
+
+    <!-- ============================================================ FILTER STACK -->
+    <section class="cl-section" id="stack">
+      <div class="cl-section-head">
+        <h2>FilterStack</h2>
+        <span class="cl-section-sub">Favorites › Source breadcrumb strip + banner</span>
+        <code>.stack-strip</code>
+      </div>
+      <div class="cl-grid cl-grid-full">
+
+        <div class="cl-card">
+          <div class="cl-card-head"><span>Default · Stacked filter</span><span class="cl-state">default</span></div>
+          <div class="cl-stage cl-stage-canvas">
+            <div class="stack-strip">
+              <span class="stack-from">筛选 · <b>全部录音</b></span>
+              <span class="stack-sep">›</span>
+              <span class="stack-chip">
+                <span class="ico"><img src="../../assets/sources/dingtalk.svg" alt=""></span>
+                <span>钉钉</span>
+                <button class="x" type="button" aria-label="清除来源筛选">
+                  <svg viewBox="0 0 24 24"><path d="M18 6 6 18M6 6l12 12"/></svg>
+                </button>
+              </span>
+              <span class="stack-info">显示 <b>112</b> / 247</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="cl-card">
+          <div class="cl-card-head"><span>Sync-error banner</span><span class="cl-state is-danger">retry</span></div>
+          <div class="cl-stage cl-stage-canvas">
+            <div class="stack-strip">
+              <span class="stack-from">筛选 · <b>全部录音</b></span>
+              <span class="stack-sep">›</span>
+              <span class="stack-chip">
+                <span class="ico cover"><img src="../../assets/sources/plaud.png" alt=""></span>
+                <span>Plaud</span>
+                <button class="x" type="button" aria-label="清除"><svg viewBox="0 0 24 24"><path d="M18 6 6 18M6 6l12 12"/></svg></button>
+              </span>
+              <span class="stack-info">显示 <b>23</b> / 247</span>
+              <div class="stack-banner banner-sync-error cl-show">
+                <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 9v4"/><path d="M12 17h.01"/><path d="m10.29 3.86-8.16 14.14A2 2 0 0 0 3.87 21h16.26a2 2 0 0 0 1.74-3L13.71 3.86a2 2 0 0 0-3.42 0z"/></svg>
+                <span><b>Plaud 同步失败</b> · 上次更新 2 小时前</span>
+                <button type="button">重试同步</button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="cl-card">
+          <div class="cl-card-head"><span>No-results banner</span><span class="cl-state is-muted">empty under filter</span></div>
+          <div class="cl-stage cl-stage-canvas">
+            <div class="stack-strip">
+              <span class="stack-from">筛选 · <b>转写记录</b></span>
+              <span class="stack-sep">›</span>
+              <span class="stack-chip">
+                <span class="ico"><img src="../../assets/sources/feishu.jpeg" alt=""></span>
+                <span>飞书妙记</span>
+                <button class="x" type="button" aria-label="清除"><svg viewBox="0 0 24 24"><path d="M18 6 6 18M6 6l12 12"/></svg></button>
+              </span>
+              <span class="stack-info">显示 <b>0</b> / 41</span>
+              <div class="stack-banner banner-no-results cl-show">
+                <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+                <span>飞书妙记 内当前筛选下没有匹配项 · 共 41 条录音</span>
+                <button type="button">放宽筛选</button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="cl-card">
+          <div class="cl-card-head"><span>Needs-setup banner</span><span class="cl-state is-warning">setup</span></div>
+          <div class="cl-stage cl-stage-canvas">
+            <div class="stack-strip">
+              <span class="stack-from">筛选 · <b>全部录音</b></span>
+              <span class="stack-sep">›</span>
+              <span class="stack-chip">
+                <span class="ico src-ico-letter">讯</span>
+                <span>讯飞听见</span>
+                <button class="x" type="button" aria-label="清除"><svg viewBox="0 0 24 24"><path d="M18 6 6 18M6 6l12 12"/></svg></button>
+              </span>
+              <span class="stack-info">显示 <b>0</b> / 0</span>
+              <div class="stack-banner banner-needs-setup cl-show">
+                <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1-1.5"/></svg>
+                <span>讯飞听见 尚未连接 · 完成设置后这里会出现你的录音</span>
+                <button type="button">前往设置</button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </section>
+
+    <!-- ============================================================ LIST ITEM -->
+    <section class="cl-section" id="listitem">
+      <div class="cl-section-head">
+        <h2>RecordingListItem</h2>
+        <span class="cl-section-sub">Library row · all states</span>
+        <code>.row · .row.active · .day · .real-list</code>
+      </div>
+      <div class="cl-grid cl-grid-wide">
+
+        <div class="cl-card">
+          <div class="cl-card-head"><span>Default · already updated</span><span class="cl-state is-positive">ok</span></div>
+          <div class="cl-stage cl-stage-canvas">
+            <div class="real-list">
+              <button class="row" type="button">
+                <div class="body">
+                  <div class="title">产品周会 · Q2 priorities review</div>
+                  <div class="meta">
+                    <span class="src-mini" title="钉钉"><img src="../../assets/sources/dingtalk.svg" alt=""></span>
+                    <span class="dur">47:18</span>
+                  </div>
+                  <div class="meta2">
+                    <span class="ts"><span class="ts-abs">今天 14:00</span><span class="ts-rel">2 小时前</span></span>
+                    <span class="b ok"><span class="dot"></span>已更新</span>
+                  </div>
+                </div>
+                <div class="right">
+                  <span class="utag c-violet"><svg viewBox="0 0 24 24"><path d="M3 3h7v7H3z"/><path d="M14 3h7v7h-7z"/><path d="M14 14h7v7h-7z"/><path d="M3 14h7v7H3z"/></svg>产品周会</span>
+                </div>
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <div class="cl-card">
+          <div class="cl-card-head"><span>Active / selected</span><span class="cl-state is-positive">selected</span></div>
+          <div class="cl-stage cl-stage-canvas">
+            <div class="real-list">
+              <button class="row active" type="button">
+                <div class="body">
+                  <div class="title">1:1 with Wenli · Q2 OKR alignment</div>
+                  <div class="meta">
+                    <span class="src-mini cover" title="Plaud"><img src="../../assets/sources/plaud.png" alt=""></span>
+                    <span class="dur">22:04</span>
+                  </div>
+                  <div class="meta2">
+                    <span class="ts"><span class="ts-abs">今天 10:30</span><span class="ts-rel">6 小时前</span></span>
+                    <span class="b warn"><span class="dot"></span>正在转写</span>
+                  </div>
+                </div>
+                <div class="right">
+                  <span class="utag c-blue"><svg viewBox="0 0 24 24"><circle cx="9" cy="7" r="4"/><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/></svg>1on1</span>
+                </div>
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <div class="cl-card">
+          <div class="cl-card-head"><span>Hover</span><span class="cl-state">:hover</span></div>
+          <div class="cl-stage cl-stage-canvas">
+            <div class="real-list">
+              <button class="row is-hover-demo" type="button">
+                <div class="body">
+                  <div class="title">投资人沟通 0418 · A 轮反馈</div>
+                  <div class="meta">
+                    <span class="src-mini cover" title="飞书妙记"><img src="../../assets/sources/feishu.jpeg" alt=""></span>
+                    <span class="dur">1:12:30</span>
+                  </div>
+                  <div class="meta2">
+                    <span class="ts"><span class="ts-abs">昨天 16:00</span><span class="ts-rel">1 天前</span></span>
+                    <span class="b ok"><span class="dot"></span>已更新</span>
+                  </div>
+                </div>
+                <div class="right">
+                  <span class="utag c-rose"><svg viewBox="0 0 24 24"><path d="M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.29 1.51 4.04 3 5.5l7 7Z"/></svg>重要客户</span>
+                </div>
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <div class="cl-card">
+          <div class="cl-card-head"><span>Focus</span><span class="cl-state">:focus-visible</span></div>
+          <div class="cl-stage cl-stage-canvas">
+            <div class="real-list">
+              <button class="row is-focus-demo" type="button">
+                <div class="body">
+                  <div class="title">客服培训复盘</div>
+                  <div class="meta">
+                    <span class="src-mini" title="TicNote"><img src="../../assets/sources/ticnote.png" alt=""></span>
+                    <span class="dur">33:42</span>
+                  </div>
+                  <div class="meta2">
+                    <span class="ts"><span class="ts-abs">昨天 15:00</span><span class="ts-rel">1 天前</span></span>
+                    <span class="b info"><span class="dot"></span>仅本地</span>
+                  </div>
+                </div>
+                <div class="right">
+                  <span class="utag c-amber"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>待跟进</span>
+                </div>
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <div class="cl-card">
+          <div class="cl-card-head"><span>Empty state</span><span class="cl-state is-muted">empty</span></div>
+          <div class="cl-stage cl-stage-canvas">
+            <div class="empty-state">
+              <div class="empty-ico" aria-hidden="true">
+                <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 1 0 6 0V4a3 3 0 0 0-3-3z"/><path d="M19 10v2a7 7 0 1 1-14 0v-2"/><path d="M12 19v3"/></svg>
+              </div>
+              <p class="empty-msg">还没有录音</p>
+              <p class="empty-sub">从已连接的来源同步，或上传本地录音文件。</p>
+            </div>
+          </div>
+        </div>
+
+        <div class="cl-card">
+          <div class="cl-card-head"><span>No-match · filtered</span><span class="cl-state is-muted">filtered empty</span></div>
+          <div class="cl-stage cl-stage-canvas">
+            <div class="empty-state">
+              <div class="empty-ico" aria-hidden="true">
+                <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+              </div>
+              <p class="empty-msg">当前筛选下没有匹配的录音</p>
+              <p class="empty-sub">尝试切换收藏 / 来源 / 标签筛选。</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============================================================ TIMELINE FILTER -->
+    <section class="cl-section" id="tfilter">
+      <div class="cl-section-head">
+        <h2>TimelineFilter</h2>
+        <span class="cl-section-sub">List · 时间模式</span>
+        <code>.chip-f</code>
+      </div>
+      <div class="cl-grid">
+        <div class="cl-card">
+          <div class="cl-card-head"><span>Default</span><span class="cl-state">default</span></div>
+          <div class="cl-stage">
+            <div class="filter-row">
+              <button class="chip-f active" type="button">全部 <span class="chip-c">6</span></button>
+              <button class="chip-f" type="button">今天 <span class="chip-c">2</span></button>
+              <button class="chip-f" type="button">昨天 <span class="chip-c">3</span></button>
+              <button class="chip-f" type="button">更早 <span class="chip-c">1</span></button>
+            </div>
+          </div>
+        </div>
+        <div class="cl-card">
+          <div class="cl-card-head"><span>Hover / Focus</span><span class="cl-state">:hover · :focus-visible</span></div>
+          <div class="cl-stage">
+            <div class="filter-row">
+              <button class="chip-f" type="button">全部 <span class="chip-c">6</span></button>
+              <button class="chip-f is-hover-demo" type="button">今天 <span class="chip-c">2</span></button>
+              <button class="chip-f is-focus-demo" type="button">昨天 <span class="chip-c">3</span></button>
+            </div>
+          </div>
+        </div>
+        <div class="cl-card">
+          <div class="cl-card-head"><span>Empty bucket</span><span class="cl-state is-muted">empty</span></div>
+          <div class="cl-stage">
+            <div class="filter-row">
+              <button class="chip-f active" type="button">全部 <span class="chip-c">0</span></button>
+              <button class="chip-f" type="button" disabled>今天 <span class="chip-c">0</span></button>
+              <button class="chip-f" type="button" disabled>昨天 <span class="chip-c">0</span></button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============================================================ TAG SELECTOR -->
+    <section class="cl-section" id="tagsel">
+      <div class="cl-section-head">
+        <h2>TagSelector</h2>
+        <span class="cl-section-sub">List · 标签模式</span>
+        <code>.tag-filter-trigger · .tag-filter-list</code>
+      </div>
+      <div class="cl-grid">
+        <div class="cl-card">
+          <div class="cl-card-head"><span>Trigger · all</span><span class="cl-state">default</span></div>
+          <div class="cl-stage">
+            <button class="tag-filter-trigger" type="button">
+              <span class="tag-filter-label">全部</span>
+              <span class="tag-filter-count">6</span>
+              <svg class="tag-filter-caret" viewBox="0 0 24 24"><path d="m6 9 6 6 6-6"/></svg>
+            </button>
+          </div>
+        </div>
+        <div class="cl-card">
+          <div class="cl-card-head"><span>Trigger · single tag</span><span class="cl-state">selected</span></div>
+          <div class="cl-stage">
+            <button class="tag-filter-trigger" type="button" aria-expanded="false">
+              <span class="tag-filter-label">产品周会</span>
+              <span class="tag-filter-count">2</span>
+              <svg class="tag-filter-caret" viewBox="0 0 24 24"><path d="m6 9 6 6 6-6"/></svg>
+            </button>
+          </div>
+        </div>
+        <div class="cl-card">
+          <div class="cl-card-head"><span>Trigger · untagged</span><span class="cl-state">filter · 未标记</span></div>
+          <div class="cl-stage">
+            <button class="tag-filter-trigger" type="button">
+              <span class="tag-filter-label">未标记</span>
+              <span class="tag-filter-count">3</span>
+              <svg class="tag-filter-caret" viewBox="0 0 24 24"><path d="m6 9 6 6 6-6"/></svg>
+            </button>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============================================================ SEARCH POPOVER -->
+    <section class="cl-section" id="search">
+      <div class="cl-section-head">
+        <h2>SearchPopover</h2>
+        <span class="cl-section-sub">Topbar search · scope chips · grouped results</span>
+        <code>.ls-panel · .ls-state</code>
+      </div>
+      <div class="cl-grid cl-grid-wide">
+
+        <div class="cl-card">
+          <div class="cl-card-head"><span>Trigger · collapsed</span><span class="cl-state">default</span></div>
+          <div class="cl-stage">
+            <button class="icon-btn ls-trigger" type="button" aria-label="搜索">
+              <svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+            </button>
+            <button class="icon-btn ls-trigger is-hover-demo" type="button" aria-label="搜索">
+              <svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+            </button>
+            <button class="icon-btn ls-trigger is-focus-demo" type="button" aria-label="搜索">
+              <svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+            </button>
+          </div>
+        </div>
+
+        <div class="cl-card">
+          <div class="cl-card-head"><span>Open · no-query</span><span class="cl-state">empty input</span></div>
+          <div class="cl-stage cl-pop-host">
+            <div class="ls-panel" role="dialog" aria-label="搜索库" data-open="true" data-state="no-query">
+              <div class="ls-input-row">
+                <svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+                <input placeholder="搜索录音、转写、说话人、标签" autocomplete="off">
+              </div>
+              <div class="ls-scope" role="tablist">
+                <button class="ls-chip" aria-pressed="true">全部</button>
+                <button class="ls-chip">录音</button>
+                <button class="ls-chip">逐字稿</button>
+                <button class="ls-chip">说话人</button>
+                <button class="ls-chip">标签</button>
+              </div>
+              <div class="ls-body">
+                <div class="ls-state ls-state-no-query">
+                  <div class="ls-hint">输入关键字搜索录音、转写片段、说话人或标签</div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="cl-card">
+          <div class="cl-card-head"><span>Open · loading</span><span class="cl-state">loading</span></div>
+          <div class="cl-stage cl-pop-host">
+            <div class="ls-panel" role="dialog" data-open="true" data-state="loading">
+              <div class="ls-input-row">
+                <svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+                <input placeholder="搜索" value="周会" autocomplete="off">
+                <button class="ls-clear" type="button" aria-label="清空">
+                  <svg viewBox="0 0 24 24"><path d="M18 6 6 18M6 6l12 12"/></svg>
+                </button>
+              </div>
+              <div class="ls-scope">
+                <button class="ls-chip" aria-pressed="true">全部</button>
+                <button class="ls-chip">录音</button>
+                <button class="ls-chip">逐字稿</button>
+              </div>
+              <div class="ls-body">
+                <div class="ls-state ls-state-loading">
+                  <div class="ls-loading">检索中</div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="cl-card">
+          <div class="cl-card-head"><span>Open · results</span><span class="cl-state is-positive">grouped</span></div>
+          <div class="cl-stage cl-pop-host">
+            <div class="ls-panel" role="dialog" data-open="true" data-state="results">
+              <div class="ls-input-row">
+                <svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+                <input placeholder="搜索" value="周会" autocomplete="off">
+                <button class="ls-clear" type="button" aria-label="清空">
+                  <svg viewBox="0 0 24 24"><path d="M18 6 6 18M6 6l12 12"/></svg>
+                </button>
+              </div>
+              <div class="ls-scope">
+                <button class="ls-chip" aria-pressed="true">全部</button>
+                <button class="ls-chip">录音</button>
+                <button class="ls-chip">逐字稿</button>
+              </div>
+              <div class="ls-body">
+                <div class="ls-state ls-state-results">
+                  <div class="ls-group">
+                    <div class="ls-group-label">录音</div>
+                    <button class="ls-item" type="button">
+                      <span class="ls-item-title">产品<mark>周会</mark> · Q2 priorities review</span>
+                      <span class="ls-item-meta">钉钉 · 今天 14:00 · 47:18</span>
+                    </button>
+                    <button class="ls-item" type="button">
+                      <span class="ls-item-title">客服培训复盘 — 含<mark>周会</mark>跟进</span>
+                      <span class="ls-item-meta">TicNote · 昨天 15:00 · 33:42</span>
+                    </button>
+                  </div>
+                  <div class="ls-group">
+                    <div class="ls-group-label">逐字稿</div>
+                    <button class="ls-item" type="button">
+                      <span class="ls-item-title">「这次<mark>周会</mark>主要对齐 Q2 priorities…」</span>
+                      <span class="ls-item-meta">产品周会 · 03:12</span>
+                    </button>
+                  </div>
+                  <div class="ls-group">
+                    <div class="ls-group-label">标签</div>
+                    <button class="ls-item" type="button">
+                      <span class="utag c-violet"><svg viewBox="0 0 24 24"><path d="M3 3h7v7H3z"/><path d="M14 3h7v7h-7z"/></svg>产品<mark>周会</mark></span>
+                      <span class="ls-item-meta">2 条录音</span>
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="cl-card">
+          <div class="cl-card-head"><span>Open · no-results</span><span class="cl-state is-muted">empty</span></div>
+          <div class="cl-stage cl-pop-host">
+            <div class="ls-panel" role="dialog" data-open="true" data-state="no-results">
+              <div class="ls-input-row">
+                <svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+                <input placeholder="搜索" value="xyzqq" autocomplete="off">
+                <button class="ls-clear" type="button" aria-label="清空">
+                  <svg viewBox="0 0 24 24"><path d="M18 6 6 18M6 6l12 12"/></svg>
+                </button>
+              </div>
+              <div class="ls-scope">
+                <button class="ls-chip" aria-pressed="true">全部</button>
+              </div>
+              <div class="ls-body">
+                <div class="ls-state ls-state-no-results">
+                  <div class="ls-empty">没有找到与「<span>xyzqq</span>」相关的内容</div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="cl-card">
+          <div class="cl-card-head"><span>Open · error</span><span class="cl-state is-danger">retry</span></div>
+          <div class="cl-stage cl-pop-host">
+            <div class="ls-panel" role="dialog" data-open="true" data-state="error">
+              <div class="ls-input-row">
+                <svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+                <input placeholder="搜索" value="周会" autocomplete="off">
+              </div>
+              <div class="ls-scope">
+                <button class="ls-chip" aria-pressed="true">全部</button>
+              </div>
+              <div class="ls-body">
+                <div class="ls-state ls-state-error">
+                  <div class="ls-empty">检索失败 · 请稍后再试</div>
+                  <button class="btn ghost btn-sm" type="button">重试</button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="cl-card">
+          <div class="cl-card-head"><span>Open · indexing</span><span class="cl-state is-warning">building index</span></div>
+          <div class="cl-stage cl-pop-host">
+            <div class="ls-panel" role="dialog" data-open="true" data-state="indexing">
+              <div class="ls-input-row">
+                <svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+                <input placeholder="搜索" value="周会" autocomplete="off" aria-disabled="true">
+              </div>
+              <div class="ls-scope">
+                <button class="ls-chip" aria-pressed="true" disabled>全部</button>
+                <button class="ls-chip" disabled>录音</button>
+                <button class="ls-chip" disabled>逐字稿</button>
+                <button class="ls-chip" disabled>说话人</button>
+                <button class="ls-chip" disabled>标签</button>
+              </div>
+              <div class="ls-body">
+                <div class="ls-state ls-state-indexing">
+                  <span class="inline-progress indeterminate"><span class="inp-track"><span class="inp-bar"></span></span></span>
+                  <div class="ls-empty">正在重建本地搜索索引 · 2 / 5 来源完成</div>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="cl-note">索引重建期间搜索不可用，但已缓存的录音列表与详情仍可浏览。</div>
+        </div>
+
+      </div>
+    </section>
+
+    <!-- ============================================================ ACTIVITY -->
+    <section class="cl-section" id="activity">
+      <div class="cl-section-head">
+        <h2>ActivityItem</h2>
+        <span class="cl-section-sub">Notifications panel · transcription/sync events</span>
+        <code>.notif-panel · .notif-item</code>
+      </div>
+      <div class="cl-grid cl-grid-wide">
+
+        <div class="cl-card">
+          <div class="cl-card-head"><span>Trigger · badge counts</span><span class="cl-state">default / unread / 99+</span></div>
+          <div class="cl-stage">
+            <button class="icon-btn notif-trigger" type="button" data-unread="0" aria-label="通知">
+              <svg viewBox="0 0 24 24"><path d="M18 8a6 6 0 0 0-12 0c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
+              <span class="notif-badge">0</span>
+            </button>
+            <button class="icon-btn notif-trigger" type="button" data-unread="3" aria-label="通知">
+              <svg viewBox="0 0 24 24"><path d="M18 8a6 6 0 0 0-12 0c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
+              <span class="notif-badge">3</span>
+            </button>
+            <button class="icon-btn notif-trigger" type="button" data-unread="99" aria-label="通知">
+              <svg viewBox="0 0 24 24"><path d="M18 8a6 6 0 0 0-12 0c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
+              <span class="notif-badge">99+</span>
+            </button>
+          </div>
+        </div>
+
+        <div class="cl-card">
+          <div class="cl-card-head"><span>Panel · idle sync</span><span class="cl-state">default</span></div>
+          <div class="cl-stage cl-pop-host">
+            <div class="notif-panel" role="dialog" data-open="true">
+              <header class="notif-head">
+                <div class="notif-head-l">
+                  <span class="notif-title">最近动态</span>
+                  <span class="notif-count">0 项待处理</span>
+                </div>
+                <button class="notif-close icon-btn" type="button" aria-label="关闭"><svg viewBox="0 0 24 24"><path d="M18 6 6 18M6 6l12 12"/></svg></button>
+              </header>
+              <div class="notif-status" data-state="idle">
+                <span class="notif-status-ico" aria-hidden="true"></span>
+                <div class="notif-status-text">
+                  <div class="notif-status-line">自动更新 · 上次 12 分钟前</div>
+                  <div class="notif-status-sub mono">下次更新约 18 分钟后</div>
+                </div>
+                <button class="btn ghost btn-sm" type="button">立即更新</button>
+              </div>
+              <ul class="notif-list"></ul>
+              <div class="notif-empty cl-show">
+                <div class="notif-empty-ico" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M20 6 9 17l-5-5"/></svg></div>
+                <p class="notif-empty-msg">没有新的动态</p>
+                <p class="notif-empty-sub">来源同步与转写任务都在正常运行。</p>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="cl-card">
+          <div class="cl-card-head"><span>Panel · syncing</span><span class="cl-state">in-progress</span></div>
+          <div class="cl-stage cl-pop-host">
+            <div class="notif-panel" role="dialog" data-open="true">
+              <header class="notif-head">
+                <div class="notif-head-l">
+                  <span class="notif-title">最近动态</span>
+                  <span class="notif-count">3 项待处理</span>
+                </div>
+                <button class="notif-close icon-btn" type="button" aria-label="关闭"><svg viewBox="0 0 24 24"><path d="M18 6 6 18M6 6l12 12"/></svg></button>
+              </header>
+              <div class="notif-status" data-state="syncing">
+                <span class="notif-status-ico" aria-hidden="true"></span>
+                <div class="notif-status-text">
+                  <div class="notif-status-line">正在更新…</div>
+                  <div class="notif-status-sub mono">已扫描 4 / 5 个来源</div>
+                </div>
+                <button class="btn ghost btn-sm" type="button" disabled aria-busy="true">更新中</button>
+              </div>
+              <ul class="notif-list">
+                <li class="notif-item" data-kind="transcription">
+                  <span class="notif-ico"><svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg></span>
+                  <div class="notif-body">
+                    <div class="notif-item-title">「1:1 with Wenli」转写完成</div>
+                    <div class="notif-item-body">22:04 · 全部识别完毕，可在详情中查看</div>
+                    <div class="notif-item-meta">3 分钟前</div>
+                  </div>
+                  <div class="notif-actions">
+                    <button class="btn ghost btn-sm" type="button">打开</button>
+                    <button class="notif-dismiss" type="button" aria-label="忽略"><svg viewBox="0 0 24 24"><path d="M18 6 6 18M6 6l12 12"/></svg></button>
+                  </div>
+                </li>
+                <li class="notif-item" data-kind="sync-error">
+                  <span class="notif-ico"><svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 9v4"/><path d="M12 17h.01"/><circle cx="12" cy="12" r="10"/></svg></span>
+                  <div class="notif-body">
+                    <div class="notif-item-title">Plaud 同步失败</div>
+                    <div class="notif-item-body">连接超时 · 已缓存 23 条录音</div>
+                    <div class="notif-item-meta">11 分钟前</div>
+                  </div>
+                  <div class="notif-actions">
+                    <button class="btn ghost btn-sm" type="button">重试</button>
+                    <button class="notif-dismiss" type="button" aria-label="忽略"><svg viewBox="0 0 24 24"><path d="M18 6 6 18M6 6l12 12"/></svg></button>
+                  </div>
+                </li>
+                <li class="notif-item" data-kind="setup">
+                  <span class="notif-ico"><svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3"/></svg></span>
+                  <div class="notif-body">
+                    <div class="notif-item-title">讯飞听见 需要设置</div>
+                    <div class="notif-item-body">完成连接后这里会出现你的录音</div>
+                    <div class="notif-item-meta">2 小时前</div>
+                  </div>
+                  <div class="notif-actions">
+                    <button class="btn ghost btn-sm" type="button">前往设置</button>
+                    <button class="notif-dismiss" type="button" aria-label="忽略"><svg viewBox="0 0 24 24"><path d="M18 6 6 18M6 6l12 12"/></svg></button>
+                  </div>
+                </li>
+              </ul>
+            </div>
+          </div>
+        </div>
+
+        <div class="cl-card">
+          <div class="cl-card-head"><span>Worker down</span><span class="cl-state is-danger">unavailable</span></div>
+          <div class="cl-stage cl-pop-host">
+            <div class="notif-panel" role="dialog" data-open="true">
+              <header class="notif-head">
+                <div class="notif-head-l">
+                  <span class="notif-title">最近动态</span>
+                  <span class="notif-count">1 项待处理</span>
+                </div>
+                <button class="notif-close icon-btn" type="button" aria-label="关闭"><svg viewBox="0 0 24 24"><path d="M18 6 6 18M6 6l12 12"/></svg></button>
+              </header>
+              <div class="notif-status" data-state="error">
+                <span class="notif-status-ico" aria-hidden="true"></span>
+                <div class="notif-status-text">
+                  <div class="notif-status-line">更新失败 · 工作器无响应</div>
+                  <div class="notif-status-sub mono">将自动在 2 分钟后重试</div>
+                </div>
+                <button class="btn ghost btn-sm" type="button">立即重试</button>
+              </div>
+              <ul class="notif-list">
+                <li class="notif-item" data-kind="worker-down">
+                  <span class="notif-ico"><svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 9v4"/><path d="M12 17h.01"/><circle cx="12" cy="12" r="10"/></svg></span>
+                  <div class="notif-body">
+                    <div class="notif-item-title">转写工作器暂时不可用</div>
+                    <div class="notif-item-body">检测到本地服务未运行 · 重启后会自动恢复</div>
+                    <div class="notif-item-meta">刚刚</div>
+                  </div>
+                  <div class="notif-actions">
+                    <button class="btn ghost btn-sm" type="button">查看说明</button>
+                    <button class="notif-dismiss" type="button" aria-label="忽略"><svg viewBox="0 0 24 24"><path d="M18 6 6 18M6 6l12 12"/></svg></button>
+                  </div>
+                </li>
+              </ul>
+            </div>
+          </div>
+        </div>
+
+        <div class="cl-card">
+          <div class="cl-card-head"><span>Queued tasks</span><span class="cl-state">waiting in line</span></div>
+          <div class="cl-stage cl-pop-host">
+            <div class="notif-panel" role="dialog" data-open="true">
+              <header class="notif-head">
+                <div class="notif-head-l">
+                  <span class="notif-title">最近动态</span>
+                  <span class="notif-count">3 项排队</span>
+                </div>
+                <button class="notif-close icon-btn" type="button" aria-label="关闭"><svg viewBox="0 0 24 24"><path d="M18 6 6 18M6 6l12 12"/></svg></button>
+              </header>
+              <div class="notif-status" data-state="idle">
+                <span class="notif-status-ico" aria-hidden="true"></span>
+                <div class="notif-status-text">
+                  <div class="notif-status-line">3 个转写任务排队中</div>
+                  <div class="notif-status-sub mono">同一时刻仅运行 1 个，避免占满 CPU</div>
+                </div>
+                <button class="btn ghost btn-sm" type="button">优先级…</button>
+              </div>
+              <ul class="notif-list">
+                <li class="notif-item" data-kind="queued">
+                  <span class="notif-ico"><svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg></span>
+                  <div class="notif-body">
+                    <div class="notif-item-title">「客服培训复盘」排队中 · 第 1 位</div>
+                    <div class="notif-item-body">前面还有 0 个任务 · 预计 30 秒内开始</div>
+                    <div class="notif-progress">
+                      <span class="inline-progress indeterminate"><span class="inp-track"><span class="inp-bar"></span></span></span>
+                      <span class="notif-item-meta">等待领取</span>
+                    </div>
+                  </div>
+                  <div class="notif-actions">
+                    <button class="btn ghost btn-sm" type="button">取消</button>
+                    <button class="notif-dismiss" type="button" aria-label="忽略"><svg viewBox="0 0 24 24"><path d="M18 6 6 18M6 6l12 12"/></svg></button>
+                  </div>
+                </li>
+                <li class="notif-item" data-kind="queued">
+                  <span class="notif-ico"><svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg></span>
+                  <div class="notif-body">
+                    <div class="notif-item-title">「设计评审 · 第 12 期」排队中 · 第 2 位</div>
+                    <div class="notif-item-body">前面还有 1 个任务</div>
+                    <div class="notif-item-meta">3 分钟前加入</div>
+                  </div>
+                  <div class="notif-actions">
+                    <button class="btn ghost btn-sm" type="button">取消</button>
+                    <button class="notif-dismiss" type="button" aria-label="忽略"><svg viewBox="0 0 24 24"><path d="M18 6 6 18M6 6l12 12"/></svg></button>
+                  </div>
+                </li>
+              </ul>
+            </div>
+          </div>
+        </div>
+
+        <div class="cl-card">
+          <div class="cl-card-head"><span>Partial-failed sync</span><span class="cl-state is-warning">3 / 5 sources OK</span></div>
+          <div class="cl-stage cl-pop-host">
+            <div class="notif-panel" role="dialog" data-open="true">
+              <header class="notif-head">
+                <div class="notif-head-l">
+                  <span class="notif-title">最近动态</span>
+                  <span class="notif-count">2 项需重试</span>
+                </div>
+                <button class="notif-close icon-btn" type="button" aria-label="关闭"><svg viewBox="0 0 24 24"><path d="M18 6 6 18M6 6l12 12"/></svg></button>
+              </header>
+              <div class="notif-status" data-state="error">
+                <span class="notif-status-ico" aria-hidden="true"></span>
+                <div class="notif-status-text">
+                  <div class="notif-status-line">部分来源更新失败</div>
+                  <div class="notif-status-sub mono">3 / 5 已完成 · 2 个来源稍后重试</div>
+                </div>
+                <button class="btn ghost btn-sm" type="button">全部重试</button>
+              </div>
+              <ul class="notif-list">
+                <li class="notif-item" data-kind="partial-failed">
+                  <span class="notif-ico"><svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 9v4"/><path d="M12 17h.01"/><circle cx="12" cy="12" r="10"/></svg></span>
+                  <div class="notif-body">
+                    <div class="notif-item-title">Plaud 同步失败 · 网络超时</div>
+                    <div class="notif-item-body">已缓存 23 条录音 · 下次自动重试 1 分钟后</div>
+                    <div class="notif-item-meta">2 分钟前</div>
+                  </div>
+                  <div class="notif-actions">
+                    <button class="btn ghost btn-sm" type="button">立即重试</button>
+                    <button class="notif-dismiss" type="button" aria-label="忽略"><svg viewBox="0 0 24 24"><path d="M18 6 6 18M6 6l12 12"/></svg></button>
+                  </div>
+                </li>
+                <li class="notif-item" data-kind="partial-failed">
+                  <span class="notif-ico"><svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 9v4"/><path d="M12 17h.01"/><circle cx="12" cy="12" r="10"/></svg></span>
+                  <div class="notif-body">
+                    <div class="notif-item-title">飞书妙记 部分条目读取失败</div>
+                    <div class="notif-item-body">5 / 41 条无法解析 · 其它条目已更新</div>
+                    <div class="notif-item-meta">2 分钟前</div>
+                  </div>
+                  <div class="notif-actions">
+                    <button class="btn ghost btn-sm" type="button">查看详情</button>
+                    <button class="notif-dismiss" type="button" aria-label="忽略"><svg viewBox="0 0 24 24"><path d="M18 6 6 18M6 6l12 12"/></svg></button>
+                  </div>
+                </li>
+              </ul>
+            </div>
+          </div>
+          <div class="cl-note">部分失败保留已完成的来源数据 · 仅对失败来源排重试，不阻塞用户继续浏览。</div>
+        </div>
+
+      </div>
+    </section>
+
+    <!-- ============================================================ TAG MANAGER -->
+    <section class="cl-section" id="tagmgr">
+      <div class="cl-section-head">
+        <h2>TagManagerPopover</h2>
+        <span class="cl-section-sub">Inline tagging on a recording row</span>
+        <code>.tagm-panel · .tagm-opt</code>
+      </div>
+      <div class="cl-grid cl-grid-wide">
+
+        <div class="cl-card">
+          <div class="cl-card-head"><span>Default</span><span class="cl-state">open</span></div>
+          <div class="cl-stage cl-pop-host">
+            <div class="tagm-panel" role="dialog" aria-label="管理标签" data-open="true">
+              <header class="tagm-head">
+                <span class="tagm-title">管理标签</span>
+                <button class="icon-btn tagm-close" type="button" aria-label="关闭"><svg viewBox="0 0 24 24"><path d="M18 6 6 18M6 6l12 12"/></svg></button>
+              </header>
+              <div class="tagm-body">
+                <div class="tagm-sec">
+                  <div class="tagm-sec-label">已选 · 2</div>
+                  <div class="tagm-chips">
+                    <span class="tagm-sel-chip c-violet">
+                      <svg viewBox="0 0 24 24"><path d="M3 3h7v7H3z"/></svg>产品周会
+                      <button class="x" type="button" aria-label="移除"><svg viewBox="0 0 24 24"><path d="M18 6 6 18M6 6l12 12"/></svg></button>
+                    </span>
+                    <span class="tagm-sel-chip c-blue">
+                      <svg viewBox="0 0 24 24"><circle cx="9" cy="7" r="4"/></svg>1on1
+                      <button class="x" type="button" aria-label="移除"><svg viewBox="0 0 24 24"><path d="M18 6 6 18M6 6l12 12"/></svg></button>
+                    </span>
+                  </div>
+                </div>
+                <div class="tagm-sec">
+                  <div class="tagm-sec-label">全部标签</div>
+                  <div class="tagm-opts">
+                    <button class="tagm-opt c-violet" type="button" aria-pressed="true">
+                      <svg viewBox="0 0 24 24"><path d="M3 3h7v7H3z"/></svg>产品周会
+                    </button>
+                    <button class="tagm-opt c-blue" type="button" aria-pressed="true">
+                      <svg viewBox="0 0 24 24"><circle cx="9" cy="7" r="4"/></svg>1on1
+                    </button>
+                    <button class="tagm-opt c-rose" type="button" aria-pressed="false">
+                      <svg viewBox="0 0 24 24"><path d="M19 14c1.49-1.46 3-3.21 3-5.5"/></svg>重要客户
+                    </button>
+                    <button class="tagm-opt c-amber" type="button" aria-pressed="false">
+                      <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/></svg>待跟进
+                    </button>
+                  </div>
+                </div>
+                <div class="tagm-create">
+                  <div class="tagm-create-row">
+                    <input class="field-input" type="text" placeholder="新建标签…">
+                    <button class="tagm-add-btn" type="button" aria-label="添加">+</button>
+                  </div>
+                  <div class="tagm-meta-row">
+                    <div class="tagm-swatches">
+                      <button class="tagm-swatch c-violet is-selected" type="button" aria-label="紫"></button>
+                      <button class="tagm-swatch c-blue" type="button" aria-label="蓝"></button>
+                      <button class="tagm-swatch c-rose" type="button" aria-label="玫"></button>
+                      <button class="tagm-swatch c-amber" type="button" aria-label="琥"></button>
+                      <button class="tagm-swatch c-emerald" type="button" aria-label="翠"></button>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="cl-card">
+          <div class="cl-card-head"><span>Empty · no tags yet</span><span class="cl-state is-muted">empty</span></div>
+          <div class="cl-stage cl-pop-host">
+            <div class="tagm-panel" role="dialog" data-open="true">
+              <header class="tagm-head">
+                <span class="tagm-title">管理标签</span>
+                <button class="icon-btn tagm-close" type="button" aria-label="关闭"><svg viewBox="0 0 24 24"><path d="M18 6 6 18M6 6l12 12"/></svg></button>
+              </header>
+              <div class="tagm-body">
+                <div class="tagm-empty">
+                  <p class="tagm-empty-msg">还没有任何标签</p>
+                  <p class="tagm-empty-sub">在下方为这条录音创建第一个标签。</p>
+                </div>
+                <div class="tagm-create">
+                  <div class="tagm-create-row">
+                    <input class="field-input" type="text" placeholder="新建标签…">
+                    <button class="tagm-add-btn" type="button" aria-label="添加">+</button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="cl-card">
+          <div class="cl-card-head"><span>Saving · busy</span><span class="cl-state">in-progress</span></div>
+          <div class="cl-stage cl-pop-host">
+            <div class="tagm-panel" role="dialog" data-open="true" aria-busy="true">
+              <header class="tagm-head"><span class="tagm-title">管理标签</span></header>
+              <div class="tagm-body">
+                <div class="tagm-opts">
+                  <button class="tagm-opt c-violet" type="button" aria-pressed="true" aria-busy="true">
+                    <span class="btn-spinner" aria-hidden="true"></span>产品周会
+                  </button>
+                  <button class="tagm-opt c-blue" type="button" aria-pressed="true">1on1</button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="cl-card">
+          <div class="cl-card-head"><span>Error</span><span class="cl-state is-danger">save failed</span></div>
+          <div class="cl-stage cl-pop-host">
+            <div class="tagm-panel" role="dialog" data-open="true" data-state="error">
+              <header class="tagm-head"><span class="tagm-title">管理标签</span></header>
+              <div class="tagm-body">
+                <div class="tagm-error">
+                  <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 9v4"/><path d="M12 17h.01"/><circle cx="12" cy="12" r="10"/></svg>
+                  <span>保存失败 · 请稍后再试</span>
+                  <button class="btn ghost btn-sm" type="button">重试</button>
+                </div>
+                <div class="tagm-opts">
+                  <button class="tagm-opt c-violet" type="button" aria-pressed="false">产品周会</button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="cl-card">
+          <div class="cl-card-head"><span>Create · color + icon picker</span><span class="cl-state">create</span></div>
+          <div class="cl-stage cl-pop-host">
+            <div class="tagm-panel" role="dialog" data-open="true">
+              <header class="tagm-head">
+                <span class="tagm-title">新建标签</span>
+                <button class="icon-btn tagm-close" type="button" aria-label="关闭"><svg viewBox="0 0 24 24"><path d="M18 6 6 18M6 6l12 12"/></svg></button>
+              </header>
+              <div class="tagm-body">
+                <div class="tagm-create">
+                  <div class="tagm-create-row">
+                    <input class="field-input" type="text" value="季度规划" placeholder="标签名">
+                  </div>
+                </div>
+                <div class="tagm-picker">
+                  <div class="tagm-picker-label">颜色</div>
+                  <div class="tagm-swatches">
+                    <button class="tagm-swatch c-violet" type="button" aria-label="紫"></button>
+                    <button class="tagm-swatch c-blue is-selected" type="button" aria-label="蓝"></button>
+                    <button class="tagm-swatch c-rose" type="button" aria-label="玫"></button>
+                    <button class="tagm-swatch c-amber" type="button" aria-label="琥"></button>
+                    <button class="tagm-swatch c-emerald" type="button" aria-label="翠"></button>
+                    <button class="tagm-swatch c-slate" type="button" aria-label="石"></button>
+                  </div>
+                </div>
+                <div class="tagm-picker">
+                  <div class="tagm-picker-label">图标</div>
+                  <div class="tagm-icon-grid">
+                    <button class="tg-pick is-selected" type="button" aria-label="网格"><svg viewBox="0 0 24 24"><path d="M3 3h7v7H3z"/><path d="M14 3h7v7h-7z"/><path d="M14 14h7v7h-7z"/><path d="M3 14h7v7H3z"/></svg></button>
+                    <button class="tg-pick" type="button" aria-label="人"><svg viewBox="0 0 24 24"><circle cx="12" cy="8" r="4"/><path d="M4 21a8 8 0 0 1 16 0"/></svg></button>
+                    <button class="tg-pick" type="button" aria-label="心"><svg viewBox="0 0 24 24"><path d="M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.29 1.51 4.04 3 5.5l7 7Z"/></svg></button>
+                    <button class="tg-pick" type="button" aria-label="时钟"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg></button>
+                    <button class="tg-pick" type="button" aria-label="标签"><svg viewBox="0 0 24 24"><path d="M20.59 13.41 13.42 20.58a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"/></svg></button>
+                    <button class="tg-pick" type="button" aria-label="星"><svg viewBox="0 0 24 24"><polygon points="12 2 15 8.5 22 9.3 17 14.1 18.2 21 12 17.8 5.8 21 7 14.1 2 9.3 9 8.5 12 2"/></svg></button>
+                    <button class="tg-pick" type="button" aria-label="对话"><svg viewBox="0 0 24 24"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg></button>
+                    <button class="tg-pick" type="button" aria-label="旗"><svg viewBox="0 0 24 24"><path d="M4 22V4a2 2 0 0 1 2-2h10l-2 4 2 4H6"/></svg></button>
+                    <button class="tg-pick" type="button" aria-label="书"><svg viewBox="0 0 24 24"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg></button>
+                    <button class="tg-pick" type="button" aria-label="灯泡"><svg viewBox="0 0 24 24"><path d="M9 18h6"/><path d="M10 22h4"/><path d="M12 2a7 7 0 0 0-4 12.7c.7.5 1 1.4 1 2.3v1h6v-1c0-.9.3-1.8 1-2.3A7 7 0 0 0 12 2Z"/></svg></button>
+                    <button class="tg-pick" type="button" aria-label="文件"><svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg></button>
+                    <button class="tg-pick" type="button" aria-label="麦克风"><svg viewBox="0 0 24 24"><path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 1 0 6 0V4a3 3 0 0 0-3-3z"/><path d="M19 10v2a7 7 0 1 1-14 0v-2"/></svg></button>
+                  </div>
+                </div>
+              </div>
+              <footer class="airp-actions">
+                <span class="airp-spacer"></span>
+                <button class="btn ghost btn-sm" type="button">取消</button>
+                <button class="btn primary btn-sm" type="button">创建</button>
+              </footer>
+            </div>
+          </div>
+        </div>
+
+        <div class="cl-card">
+          <div class="cl-card-head"><span>Toggle · on/off per recording</span><span class="cl-state">toggle</span></div>
+          <div class="cl-stage cl-pop-host">
+            <div class="tagm-panel" role="dialog" data-open="true">
+              <header class="tagm-head"><span class="tagm-title">为这条录音切换标签</span></header>
+              <div class="tagm-body">
+                <div class="tagm-opts">
+                  <button class="tagm-opt c-violet" type="button" aria-pressed="true">
+                    <svg viewBox="0 0 24 24"><path d="M3 3h7v7H3z"/></svg>产品周会
+                    <span class="tagm-opt-check" aria-hidden="true"><svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="3"><path d="M20 6 9 17l-5-5"/></svg></span>
+                  </button>
+                  <button class="tagm-opt c-blue" type="button" aria-pressed="true">
+                    <svg viewBox="0 0 24 24"><circle cx="9" cy="7" r="4"/></svg>1on1
+                  </button>
+                  <button class="tagm-opt c-rose" type="button" aria-pressed="false">
+                    <svg viewBox="0 0 24 24"><path d="M19 14c1.49-1.46 3-3.21 3-5.5"/></svg>重要客户
+                  </button>
+                  <button class="tagm-opt c-amber" type="button" aria-pressed="false">
+                    <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/></svg>待跟进
+                  </button>
+                </div>
+              </div>
+              <div class="cl-note">aria-pressed=&quot;true&quot; → 标签已应用 · 点击再次切换为「未应用」。</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="cl-card">
+          <div class="cl-card-head"><span>Remove · delete-confirm</span><span class="cl-state is-danger">destructive</span></div>
+          <div class="cl-stage cl-pop-host">
+            <div class="tagm-panel" role="dialog" data-open="true">
+              <header class="tagm-head"><span class="tagm-title">删除标签 · 重要客户</span></header>
+              <div class="tagm-body">
+                <div class="tagm-delete-confirm">
+                  <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 9v4"/><path d="M12 17h.01"/><circle cx="12" cy="12" r="10"/></svg>
+                  <div class="tagm-delete-msg">
+                    <strong>重要客户</strong> 将从 7 条录音上移除。标签本身会从所有人的录音侧栏消失，无法撤销。
+                  </div>
+                </div>
+              </div>
+              <footer class="airp-actions">
+                <span class="airp-spacer"></span>
+                <button class="btn ghost btn-sm" type="button">取消</button>
+                <button class="btn danger btn-sm" type="button">删除标签</button>
+              </footer>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </section>
+
+    <!-- ============================================================ MORE ACTIONS -->
+    <section class="cl-section" id="more">
+      <div class="cl-section-head">
+        <h2>MoreActionsMenu</h2>
+        <span class="cl-section-sub">Row · more actions popover</span>
+        <code>.more-menu</code>
+      </div>
+      <div class="cl-grid">
+
+        <div class="cl-card">
+          <div class="cl-card-head"><span>Local-only recording</span><span class="cl-state">default</span></div>
+          <div class="cl-stage cl-pop-host">
+            <div class="more-menu" role="menu" data-open="true">
+              <button class="more-menu-item" role="menuitem" type="button">
+                <svg viewBox="0 0 24 24"><path d="M17 3a2.828 2.828 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5L17 3z"/></svg>
+                重命名
+              </button>
+              <button class="more-menu-item" role="menuitem" type="button">
+                <svg viewBox="0 0 24 24"><path d="m12 3-1.6 4.6L6 9l4.4 1.4L12 15l1.6-4.6L18 9l-4.4-1.4z"/></svg>
+                AI 重命名
+              </button>
+              <button class="more-menu-item" role="menuitem" type="button">
+                <svg viewBox="0 0 24 24"><path d="M3 12a9 9 0 1 0 3-6.7L3 8"/><path d="M3 3v5h5"/></svg>
+                重新转写
+              </button>
+              <div class="more-menu-sep"></div>
+              <button class="more-menu-item is-danger" role="menuitem" type="button">
+                <svg viewBox="0 0 24 24"><path d="M3 6h18"/><path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/><path d="M19 6 18 20a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/></svg>
+                删除本地副本
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <div class="cl-card">
+          <div class="cl-card-head"><span>Upstream recording</span><span class="cl-state is-muted">no destructive ops</span></div>
+          <div class="cl-stage cl-pop-host">
+            <div class="more-menu" role="menu" data-open="true">
+              <button class="more-menu-item" role="menuitem" type="button">重命名</button>
+              <button class="more-menu-item" role="menuitem" type="button">AI 重命名</button>
+              <button class="more-menu-item" role="menuitem" type="button">重新转写</button>
+              <button class="more-menu-item" role="menuitem" type="button" disabled aria-disabled="true">
+                删除本地副本
+                <span class="more-menu-hint">来源持有正本</span>
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <div class="cl-card">
+          <div class="cl-card-head"><span>Upstream deleted</span><span class="cl-state is-warning">deletion enabled</span></div>
+          <div class="cl-stage cl-pop-host">
+            <div class="more-menu" role="menu" data-open="true">
+              <button class="more-menu-item" role="menuitem" type="button">重命名</button>
+              <button class="more-menu-item" role="menuitem" type="button">AI 重命名</button>
+              <div class="more-menu-sep"></div>
+              <button class="more-menu-item is-danger" role="menuitem" type="button">
+                <svg viewBox="0 0 24 24"><path d="M3 6h18"/></svg>
+                删除本地副本
+                <span class="more-menu-hint">上游已删除</span>
+              </button>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </section>
+
+    <!-- ============================================================ AI RENAME -->
+    <section class="cl-section" id="airn">
+      <div class="cl-section-head">
+        <h2>AIRenamePopover</h2>
+        <span class="cl-section-sub">Detail header · AI title preview</span>
+        <code>.ai-rename-panel · [data-airp-state]</code>
+      </div>
+      <div class="cl-grid cl-grid-wide">
+
+        <div class="cl-card">
+          <div class="cl-card-head"><span>Loading</span><span class="cl-state">generating</span></div>
+          <div class="cl-stage cl-pop-host">
+            <div class="ai-rename-panel" role="dialog" data-open="true">
+              <header class="airp-head">
+                <div class="airp-head-l">
+                  <span class="airp-eyebrow">AI 标题预览</span>
+                  <span class="airp-sub">仅本次预览，不会写回来源</span>
+                </div>
+                <button class="airp-close icon-btn" type="button" aria-label="关闭"><svg viewBox="0 0 24 24"><path d="M18 6 6 18M6 6l12 12"/></svg></button>
+              </header>
+              <div class="airp-body">
+                <div class="airp-state cl-show" data-airp-state="loading">
+                  <span class="airp-spinner" aria-hidden="true"></span>
+                  <p class="airp-msg">正在根据转写生成标题…</p>
+                </div>
+              </div>
+              <footer class="airp-actions">
+                <button class="btn ghost btn-sm" type="button" disabled>重新生成</button>
+                <span class="airp-spacer"></span>
+                <button class="btn ghost btn-sm" type="button">取消</button>
+                <button class="btn glass btn-sm" type="button" disabled>应用</button>
+              </footer>
+            </div>
+          </div>
+        </div>
+
+        <div class="cl-card">
+          <div class="cl-card-head"><span>Preview-ready</span><span class="cl-state is-positive">ready</span></div>
+          <div class="cl-stage cl-pop-host">
+            <div class="ai-rename-panel" role="dialog" data-open="true">
+              <header class="airp-head">
+                <div class="airp-head-l">
+                  <span class="airp-eyebrow">AI 标题预览</span>
+                  <span class="airp-sub">仅本次预览，不会写回来源</span>
+                </div>
+                <button class="airp-close icon-btn" type="button" aria-label="关闭"><svg viewBox="0 0 24 24"><path d="M18 6 6 18M6 6l12 12"/></svg></button>
+              </header>
+              <div class="airp-body">
+                <div class="airp-state cl-show" data-airp-state="preview">
+                  <div class="airp-label">建议标题</div>
+                  <div class="airp-title">Q2 产品策略对齐 · 产品周会 0422</div>
+                  <p class="airp-hint">只会替换当前所选录音的标题。</p>
+                </div>
+              </div>
+              <footer class="airp-actions">
+                <button class="btn ghost btn-sm" type="button">
+                  <svg viewBox="0 0 24 24"><path d="M3 12a9 9 0 0 1 15-6.7L21 8"/></svg>
+                  重新生成
+                </button>
+                <span class="airp-spacer"></span>
+                <button class="btn ghost btn-sm" type="button">取消</button>
+                <button class="btn glass btn-sm" type="button">
+                  <svg viewBox="0 0 24 24"><path d="M20 6 9 17l-5-5"/></svg>
+                  应用
+                </button>
+              </footer>
+            </div>
+          </div>
+        </div>
+
+        <div class="cl-card">
+          <div class="cl-card-head"><span>Error</span><span class="cl-state is-danger">retry</span></div>
+          <div class="cl-stage cl-pop-host">
+            <div class="ai-rename-panel" role="dialog" data-open="true">
+              <header class="airp-head">
+                <div class="airp-head-l">
+                  <span class="airp-eyebrow">AI 标题预览</span>
+                  <span class="airp-sub">仅本次预览，不会写回来源</span>
+                </div>
+                <button class="airp-close icon-btn" type="button" aria-label="关闭"><svg viewBox="0 0 24 24"><path d="M18 6 6 18M6 6l12 12"/></svg></button>
+              </header>
+              <div class="airp-body">
+                <div class="airp-state cl-show" data-airp-state="error">
+                  <div class="airp-error-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M12 9v4"/><path d="M12 17h.01"/><circle cx="12" cy="12" r="10"/></svg></div>
+                  <p class="airp-msg">这次没拿到结果，可能是转写太短或模型暂时不可用。</p>
+                </div>
+              </div>
+              <footer class="airp-actions">
+                <button class="btn ghost btn-sm" type="button">重新生成</button>
+                <span class="airp-spacer"></span>
+                <button class="btn ghost btn-sm" type="button">取消</button>
+              </footer>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </section>
+
+    <!-- ============================================================ CONFIRM -->
+    <section class="cl-section" id="confirm">
+      <div class="cl-section-head">
+        <h2>ConfirmDialog</h2>
+        <span class="cl-section-sub">Destructive confirms (re-transcribe / delete local)</span>
+        <code>.scrim · .confirm-dialog</code>
+      </div>
+      <div class="cl-grid cl-grid-wide">
+
+        <div class="cl-card">
+          <div class="cl-card-head"><span>Re-transcribe</span><span class="cl-state is-warning">destructive</span></div>
+          <div class="cl-stage cl-stage-canvas">
+            <div class="confirm-dialog" role="dialog" aria-modal="true">
+              <header class="confirm-head">
+                <h3>重新转写这条录音？</h3>
+              </header>
+              <div class="confirm-body">
+                <p>当前的逐字稿、说话人标记与 AI 标题会被新结果覆盖。</p>
+                <ul class="retx-modal-list">
+                  <li>逐字稿将重新生成 · 估计 1 ~ 3 分钟</li>
+                  <li>说话人映射会保留，但本次结果可能合并不同的片段</li>
+                  <li>本次操作不会影响来源系统中的正本</li>
+                </ul>
+              </div>
+              <footer class="confirm-foot">
+                <button class="btn ghost btn-sm" type="button">取消</button>
+                <button class="btn danger btn-sm" type="button">确认重新转写</button>
+              </footer>
+            </div>
+          </div>
+        </div>
+
+        <div class="cl-card">
+          <div class="cl-card-head"><span>Delete local · upstream deleted</span><span class="cl-state is-danger">delete</span></div>
+          <div class="cl-stage cl-stage-canvas">
+            <div class="confirm-dialog" role="dialog" aria-modal="true">
+              <header class="confirm-head">
+                <h3>删除本地副本？</h3>
+              </header>
+              <div class="confirm-body">
+                <p>这条录音在来源系统中已被删除，本地仅留存缓存副本。</p>
+                <p class="confirm-warn">删除后转写、标签与 AI 标题都会一并清除，且无法恢复。</p>
+              </div>
+              <footer class="confirm-foot">
+                <button class="btn ghost btn-sm" type="button">取消</button>
+                <button class="btn danger btn-sm" type="button">永久删除</button>
+              </footer>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </section>
+
+    <!-- ============================================================ TOAST / BANNER -->
+    <section class="cl-section" id="toast">
+      <div class="cl-section-head">
+        <h2>Toast / Banner</h2>
+        <span class="cl-section-sub">Lightweight notifications + inline banners</span>
+        <code>.toast · .stack-banner</code>
+      </div>
+      <div class="cl-grid cl-grid-wide">
+
+        <div class="cl-card">
+          <div class="cl-card-head"><span>Toast · success</span><span class="cl-state is-positive">success</span></div>
+          <div class="cl-stage">
+            <span class="toast toast-ok">
+              <span class="toast-ico"><svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg></span>
+              已保存
+            </span>
+          </div>
+        </div>
+
+        <div class="cl-card">
+          <div class="cl-card-head"><span>Toast · info</span><span class="cl-state">info</span></div>
+          <div class="cl-stage">
+            <span class="toast">
+              <span class="toast-ico"><svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg></span>
+              转写已加入队列
+            </span>
+          </div>
+        </div>
+
+        <div class="cl-card">
+          <div class="cl-card-head"><span>Toast · error</span><span class="cl-state is-danger">error</span></div>
+          <div class="cl-stage">
+            <span class="toast toast-err">
+              <span class="toast-ico"><svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 9v4"/><path d="M12 17h.01"/><circle cx="12" cy="12" r="10"/></svg></span>
+              保存失败 · 请稍后再试
+            </span>
+          </div>
+        </div>
+
+      </div>
+    </section>
+
+    <!-- ============================================================ DRAWER -->
+    <section class="cl-section" id="drawer">
+      <div class="cl-section-head">
+        <h2>Drawer / Scrim</h2>
+        <span class="cl-section-sub">Mobile filter drawer + modal scrim</span>
+        <code>.scrim · .mobile-drawer-trigger</code>
+      </div>
+      <div class="cl-grid">
+        <div class="cl-card">
+          <div class="cl-card-head"><span>Drawer trigger</span><span class="cl-state">default · with dot</span></div>
+          <div class="cl-stage">
+            <button class="mobile-drawer-trigger" type="button" aria-label="打开筛选抽屉">
+              <svg viewBox="0 0 24 24"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="15" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
+              <span class="dot-active" aria-hidden="true"></span>
+            </button>
+            <button class="mobile-drawer-trigger" type="button" aria-label="打开筛选抽屉">
+              <svg viewBox="0 0 24 24"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="15" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
+            </button>
+          </div>
+          <div class="cl-note">紫点提示当前有非默认筛选生效。</div>
+        </div>
+        <div class="cl-card">
+          <div class="cl-card-head"><span>Scrim</span><span class="cl-state">overlay</span></div>
+          <div class="cl-stage cl-stage-canvas cl-stage-scrim">
+            <div class="scrim cl-show" data-open="true">
+              <div class="scrim-inner">
+                <p class="scrim-msg">点击外部 / Esc 关闭浮层</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============================================================ SETTINGS RAIL -->
+    <section class="cl-section" id="srail">
+      <div class="cl-section-head">
+        <h2>SettingsRailItem</h2>
+        <span class="cl-section-sub">Settings dialog · grouped left rail (6 backed sections only)</span>
+        <code>.settings-rail · .sr-group · .sr-item</code>
+      </div>
+      <div class="cl-grid cl-grid-wide">
+        <div class="cl-card">
+          <div class="cl-card-head"><span>Default rail</span><span class="cl-state">selected · hover · focus</span></div>
+          <div class="cl-stage cl-stage-canvas">
+            <aside class="settings-rail">
+              <div class="sr-group">
+                <div class="sr-group-label">转录服务</div>
+                <button class="sr-item active" type="button"><svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6"/></svg> 转录设置</button>
+                <button class="sr-item" type="button"><svg viewBox="0 0 24 24"><path d="m12 3-1.6 4.6L6 9l4.4 1.4L12 15l1.6-4.6L18 9l-4.4-1.4z"/></svg> AI 重命名服务</button>
+                <button class="sr-item is-hover-demo" type="button"><svg viewBox="0 0 24 24"><rect x="4" y="4" width="16" height="16" rx="2"/></svg> VoScript 服务</button>
+              </div>
+              <div class="sr-group">
+                <div class="sr-group-label">数据连接</div>
+                <button class="sr-item is-focus-demo" type="button"><svg viewBox="0 0 24 24"><ellipse cx="12" cy="5" rx="9" ry="3"/></svg> 数据源</button>
+              </div>
+              <div class="sr-group">
+                <div class="sr-group-label">应用界面</div>
+                <button class="sr-item" type="button"><svg viewBox="0 0 24 24"><rect x="2" y="3" width="20" height="14" rx="2"/></svg> 显示设置</button>
+                <button class="sr-item" type="button"><svg viewBox="0 0 24 24"><line x1="4" y1="6" x2="11" y2="6"/></svg> 杂项</button>
+              </div>
+            </aside>
+          </div>
+          <div class="cl-note">只暴露六个 backed sections · 不包含 General/Goals/任何虚假分区。</div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============================================================ PROVIDER CARD -->
+    <section class="cl-section" id="pcard">
+      <div class="cl-section-head">
+        <h2>ProviderCard</h2>
+        <span class="cl-section-sub">Data Sources · provider list (left rail)</span>
+        <code>.sp-card · .sp-status</code>
+      </div>
+      <div class="cl-grid cl-grid-wide">
+        <div class="cl-card">
+          <div class="cl-card-head"><span>connected · selected</span><span class="cl-state is-positive">selected</span></div>
+          <div class="cl-stage cl-stage-canvas">
+            <button class="sp-card active" type="button">
+              <span class="sp-ico"><img src="../../assets/sources/dingtalk.svg" alt=""></span>
+              <span class="sp-meta"><span class="sp-name">钉钉 闪记</span><span class="sp-hint">最近更新 · 12 分钟前 · 112 条录音</span></span>
+              <span class="sp-status ok"><span class="dot"></span>已连接</span>
+            </button>
+          </div>
+        </div>
+        <div class="cl-card">
+          <div class="cl-card-head"><span>syncing</span><span class="cl-state">in-progress</span></div>
+          <div class="cl-stage cl-stage-canvas">
+            <button class="sp-card" type="button">
+              <span class="sp-ico"><img src="../../assets/sources/ticnote.png" alt=""></span>
+              <span class="sp-meta"><span class="sp-name">TicNote</span><span class="sp-hint">正在同步 · 已读取 12 / 48</span></span>
+              <span class="sp-status info syncing"><span class="dot"></span>同步中</span>
+            </button>
+          </div>
+        </div>
+        <div class="cl-card">
+          <div class="cl-card-head"><span>error</span><span class="cl-state is-danger">sync failed</span></div>
+          <div class="cl-stage cl-stage-canvas">
+            <button class="sp-card" type="button">
+              <span class="sp-ico cover"><img src="../../assets/sources/plaud.png" alt=""></span>
+              <span class="sp-meta"><span class="sp-name">Plaud 云端</span><span class="sp-hint">上次同步失败 · 2 小时前</span></span>
+              <span class="sp-status err"><span class="dot"></span>同步失败</span>
+            </button>
+          </div>
+        </div>
+        <div class="cl-card">
+          <div class="cl-card-head"><span>needs-setup</span><span class="cl-state is-warning">setup</span></div>
+          <div class="cl-stage cl-stage-canvas">
+            <button class="sp-card dim" type="button">
+              <span class="sp-ico cover"><img src="../../assets/sources/feishu.jpeg" alt=""></span>
+              <span class="sp-meta"><span class="sp-name">飞书妙记</span><span class="sp-hint">待设置 · 两种接入方式</span></span>
+              <span class="sp-status neu"><span class="dot"></span>待设置</span>
+            </button>
+          </div>
+        </div>
+        <div class="cl-card">
+          <div class="cl-card-head"><span>expired</span><span class="cl-state is-warning">re-auth</span></div>
+          <div class="cl-stage cl-stage-canvas">
+            <button class="sp-card dim" type="button">
+              <span class="sp-ico"><span>讯</span></span>
+              <span class="sp-meta"><span class="sp-name">讯飞听见</span><span class="sp-hint">登录已过期</span></span>
+              <span class="sp-status warn"><span class="dot"></span>需要重新登录</span>
+            </button>
+          </div>
+        </div>
+        <div class="cl-card">
+          <div class="cl-card-head"><span>disabled</span><span class="cl-state is-muted">disabled</span></div>
+          <div class="cl-stage cl-stage-canvas">
+            <button class="sp-card dim" type="button" disabled aria-disabled="true">
+              <span class="sp-ico"><img src="../../assets/sources/dingtalk.svg" alt=""></span>
+              <span class="sp-meta"><span class="sp-name">钉钉 闪记</span><span class="sp-hint">已停用</span></span>
+              <span class="sp-status neu"><span class="dot"></span>已停用</span>
+            </button>
+          </div>
+        </div>
+        <div class="cl-card">
+          <div class="cl-card-head"><span>connected · empty</span><span class="cl-state is-muted">0 records</span></div>
+          <div class="cl-stage cl-stage-canvas">
+            <button class="sp-card" type="button">
+              <span class="sp-ico"><img src="../../assets/sources/ticnote.png" alt=""></span>
+              <span class="sp-meta"><span class="sp-name">TicNote</span><span class="sp-hint">已连接 · 还没有录音</span></span>
+              <span class="sp-status ok"><span class="dot"></span>已连接</span>
+            </button>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============================================================ PROVIDER DETAIL -->
+    <section class="cl-section" id="pdetail">
+      <div class="cl-section-head">
+        <h2>ProviderDetail</h2>
+        <span class="cl-section-sub">Data Sources · per-provider config (right pane)</span>
+        <code>.sm-detail · .sm-section · .sm-actions-state</code>
+      </div>
+      <div class="cl-grid cl-grid-full">
+
+        <div class="cl-card">
+          <div class="cl-card-head"><span>飞书妙记 · 双接入方式</span><span class="cl-state">needs-setup · 全字段</span></div>
+          <div class="cl-stage cl-stage-canvas">
+            <section class="sm-detail">
+              <header class="sm-detail-head">
+                <div class="sm-detail-icon"><img src="../../assets/sources/feishu.jpeg" alt=""></div>
+                <div>
+                  <h3 class="sm-detail-title">飞书妙记</h3>
+                  <p class="sm-detail-sub">支持 Open Platform 应用接入 (推荐) 或 Web 登录态接入两种方式。</p>
+                </div>
+                <span class="sp-status neu"><span class="dot"></span>待设置</span>
+              </header>
+
+              <div class="sm-section">
+                <header class="sm-section-head">
+                  <h4>方式 A · Open Platform 应用接入</h4>
+                  <p>需要在飞书 Open Platform 创建自建应用，使用应用信息维护访问凭证后调用妙记 API。推荐用于多人 / 长期使用。</p>
+                </header>
+                <div class="sm-row">
+                  <div class="sm-row-label"><div class="sm-l-t">base URL</div><div class="sm-l-h">默认 https://open.feishu.cn ; 私有部署填实际地址</div></div>
+                  <div class="sm-row-ctrl"><input class="sm-input" type="url" value="https://open.feishu.cn"></div>
+                </div>
+                <div class="sm-row">
+                  <div class="sm-row-label"><div class="sm-l-t">应用标识</div><div class="sm-l-h">飞书自建应用的唯一标识</div></div>
+                  <div class="sm-row-ctrl"><input class="sm-input" type="text" placeholder="示例应用"></div>
+                </div>
+                <div class="sm-row">
+                  <div class="sm-row-label"><div class="sm-l-t">应用密钥</div><div class="sm-l-h">用于维护访问凭证，仅存于本机</div></div>
+                  <div class="sm-row-ctrl"><input class="sm-input mask" type="password" placeholder="••••••••"></div>
+                </div>
+                <div class="sm-row">
+                  <div class="sm-row-label"><div class="sm-l-t">访问凭证</div><div class="sm-l-h">由 BetterAINote 自动维护并续期</div></div>
+                  <div class="sm-row-ctrl"><input class="sm-input mask" type="text" placeholder="自动获取"></div>
+                </div>
+              </div>
+
+              <div class="sm-section">
+                <header class="sm-section-head">
+                  <h4>方式 B · Web 登录态接入</h4>
+                  <p>使用浏览器登录后的本机登录材料读取妙记网页 API。适合个人使用或没有 Open Platform 权限的场景。</p>
+                </header>
+                <div class="sm-row">
+                  <div class="sm-row-label"><div class="sm-l-t">base URL</div><div class="sm-l-h">默认 https://www.feishu.cn</div></div>
+                  <div class="sm-row-ctrl"><input class="sm-input" type="url" value="https://www.feishu.cn"></div>
+                </div>
+                <div class="sm-row">
+                  <div class="sm-row-label"><div class="sm-l-t">网页登录材料</div><div class="sm-l-h">浏览器登录后保存的本机材料</div></div>
+                  <div class="sm-row-ctrl"><textarea class="sm-input sm-textarea" rows="3" placeholder="已脱敏登录材料…"></textarea></div>
+                </div>
+                <div class="sm-row">
+                  <div class="sm-row-label"><div class="sm-l-t">space_name</div><div class="sm-l-h">默认抓取的妙记空间，可留空表示个人空间</div></div>
+                  <div class="sm-row-ctrl"><input class="sm-input" type="text" placeholder="我的妙记"></div>
+                </div>
+              </div>
+
+              <footer class="sm-actions-state">
+                <button class="btn ghost btn-sm" type="button">测试连接</button>
+                <span class="sm-actions-spacer"></span>
+                <button class="btn ghost btn-sm" type="button">取消</button>
+                <button class="btn primary btn-sm" type="button">保存</button>
+              </footer>
+            </section>
+          </div>
+          <div class="cl-note">「测试连接」与「保存」是两个独立动作 · 字段名严格匹配 Open Platform / Web 接口。</div>
+        </div>
+
+        <div class="cl-card">
+          <div class="cl-card-head"><span>钉钉 · connected</span><span class="cl-state is-positive">connected</span></div>
+          <div class="cl-stage cl-stage-canvas">
+            <section class="sm-detail">
+              <header class="sm-detail-head">
+                <div class="sm-detail-icon"><img src="../../assets/sources/dingtalk.svg" alt=""></div>
+                <div>
+                  <h3 class="sm-detail-title">钉钉 闪记</h3>
+                  <p class="sm-detail-sub">通过钉钉开放平台拉取闪记列表与转写。</p>
+                </div>
+                <span class="sp-status ok"><span class="dot"></span>已连接 · 112 条</span>
+              </header>
+              <div class="sm-section">
+                <header class="sm-section-head"><h4>服务地址</h4></header>
+                <div class="sm-row">
+                  <div class="sm-row-label"><div class="sm-l-t">base URL</div><div class="sm-l-h">默认 https://api.dingtalk.com</div></div>
+                  <div class="sm-row-ctrl"><input class="sm-input" type="url" value="https://api.dingtalk.com"></div>
+                </div>
+                <div class="sm-row">
+                  <div class="sm-row-label"><div class="sm-l-t">AppKey</div><div class="sm-l-h">钉钉开放平台应用 AppKey</div></div>
+                  <div class="sm-row-ctrl"><input class="sm-input" type="text" value="dingoa1c93dfa11"></div>
+                </div>
+                <div class="sm-row">
+                  <div class="sm-row-label"><div class="sm-l-t">应用密钥</div><div class="sm-l-h">仅存于本机，用于维护访问凭证</div></div>
+                  <div class="sm-row-ctrl"><input class="sm-input mask" type="password" value="••••••••••"></div>
+                </div>
+              </div>
+              <footer class="sm-actions-state">
+                <button class="btn ghost btn-sm" type="button">测试连接</button>
+                <button class="btn ghost btn-sm" type="button">断开连接</button>
+                <span class="sm-actions-spacer"></span>
+                <button class="btn primary btn-sm" type="button" disabled>保存</button>
+              </footer>
+            </section>
+          </div>
+        </div>
+
+        <div class="cl-card">
+          <div class="cl-card-head"><span>Plaud / TicNote / 讯飞听见 · 字段说明</span><span class="cl-state">reference</span></div>
+          <div class="cl-stage cl-stage-canvas">
+            <section class="sm-detail">
+              <header class="sm-detail-head"><h3 class="sm-detail-title">字段速查</h3></header>
+              <table class="cl-matrix">
+                <thead><tr><th>来源</th><th>必填字段</th><th>说明</th></tr></thead>
+                <tbody>
+                  <tr><td>钉钉</td><td><code>base URL · AppKey · 应用密钥</code></td><td>使用开放平台接口，访问凭证自动换取与续期</td></tr>
+                  <tr><td>TicNote</td><td><code>base URL · API 访问凭证 · 设备标识</code></td><td>设备标识用于区分录音设备，仅一台时可固定填写</td></tr>
+                  <tr><td>Plaud</td><td><code>base URL · Email · Password</code></td><td>使用 Plaud 云端 Web 登录态，密码仅存于本机</td></tr>
+                  <tr><td>飞书 · Open</td><td><code>base URL · 应用标识 · 应用密钥 · 访问凭证</code></td><td>推荐方式 · 自动维护访问凭证</td></tr>
+                  <tr><td>飞书 · Web</td><td><code>base URL · 登录材料 · 空间名称</code></td><td>个人使用 · 浏览器登录后保存本机材料</td></tr>
+                  <tr><td>讯飞听见</td><td><code>base URL · 手机号 · 密码</code></td><td>使用讯飞听见网页登录态，登录失效需重新填写</td></tr>
+                </tbody>
+              </table>
+            </section>
+          </div>
+        </div>
+
+        <div class="cl-card">
+          <div class="cl-card-head"><span>Test / Save · state machine</span><span class="cl-state">action states</span></div>
+          <div class="cl-stage cl-stage-col">
+            <footer class="sm-actions-state">
+              <button class="btn ghost btn-sm" type="button">测试连接</button>
+              <button class="btn primary btn-sm" type="button">保存</button>
+              <span class="sm-actions-spacer"></span>
+              <span class="cl-state">default</span>
+            </footer>
+            <footer class="sm-actions-state">
+              <button class="btn ghost btn-sm" type="button" aria-busy="true" disabled><span class="btn-spinner"></span>测试中…</button>
+              <button class="btn primary btn-sm" type="button" disabled>保存</button>
+              <span class="sm-actions-spacer"></span>
+              <span class="cl-state">testing</span>
+            </footer>
+            <footer class="sm-actions-state">
+              <button class="btn ghost btn-sm" type="button">测试连接</button>
+              <button class="btn primary btn-sm is-success" type="button"><svg viewBox="0 0 24 24"><path d="M20 6 9 17l-5-5"/></svg>已保存</button>
+              <span class="sm-actions-spacer"></span>
+              <span class="cl-state is-positive">success</span>
+            </footer>
+            <footer class="sm-actions-state">
+              <button class="btn ghost btn-sm" type="button">测试连接</button>
+              <button class="btn primary btn-sm is-error" type="button">保存失败 · 重试</button>
+              <span class="sm-actions-spacer"></span>
+              <span class="cl-state is-danger">error</span>
+            </footer>
+          </div>
+        </div>
+
+      </div>
+    </section>
+
+    <!-- ============================================================ DETAIL HEADER -->
+    <section class="cl-section" id="dhead">
+      <div class="cl-section-head">
+        <h2>DetailHeader</h2>
+        <span class="cl-section-sub">Recording detail · header bar</span>
+        <code>.rec-head · [data-rename-mode]</code>
+      </div>
+      <div class="cl-grid cl-grid-full">
+        <div class="cl-card">
+          <div class="cl-card-head"><span>Normal · upstream owned</span><span class="cl-state">default</span></div>
+          <div class="cl-stage cl-stage-canvas">
+            <div class="rec-head" data-rename-mode="normal" data-local-only="false">
+              <h2 class="rec-h2">产品周会 · Q2 priorities review</h2>
+              <button class="icon-btn rh-norm" type="button" aria-label="重命名"><svg viewBox="0 0 24 24"><path d="M17 3a2.828 2.828 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5L17 3z"/></svg></button>
+              <button class="btn glass rh-norm" type="button"><svg viewBox="0 0 24 24"><path d="m12 3-1.6 4.6L6 9l4.4 1.4L12 15l1.6-4.6L18 9l-4.4-1.4z"/></svg>AI 重命名</button>
+            </div>
+          </div>
+        </div>
+        <div class="cl-card">
+          <div class="cl-card-head"><span>Local-only badge</span><span class="cl-state">local copy</span></div>
+          <div class="cl-stage cl-stage-canvas">
+            <div class="rec-head" data-rename-mode="normal" data-local-only="true">
+              <h2 class="rec-h2">客服培训复盘</h2>
+              <span class="rec-h2-local cl-show" aria-label="仅存在本地副本">本地副本</span>
+              <button class="icon-btn rh-norm" type="button" aria-label="重命名"><svg viewBox="0 0 24 24"><path d="M17 3a2.828 2.828 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5L17 3z"/></svg></button>
+              <button class="btn glass rh-norm" type="button">AI 重命名</button>
+            </div>
+          </div>
+        </div>
+        <div class="cl-card">
+          <div class="cl-card-head"><span>Empty state</span><span class="cl-state is-muted">no recording selected</span></div>
+          <div class="cl-stage cl-stage-canvas">
+            <div class="detail-empty">
+              <div class="empty-ico" aria-hidden="true">
+                <svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+              </div>
+              <p class="empty-msg">从左侧选择一条录音</p>
+              <p class="empty-sub">详情、播放与逐字稿会出现在这里。</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============================================================ RENAME EDITOR -->
+    <section class="cl-section" id="rename">
+      <div class="cl-section-head">
+        <h2>RenameEditor</h2>
+        <span class="cl-section-sub">Manual rename inline editor</span>
+        <code>.rec-head[data-rename-mode]</code>
+      </div>
+      <div class="cl-grid cl-grid-full">
+
+        <div class="cl-card">
+          <div class="cl-card-head"><span>Edit · open</span><span class="cl-state">editing</span></div>
+          <div class="cl-stage cl-stage-canvas">
+            <div class="rec-head" data-rename-mode="edit">
+              <input class="rec-h2-input cl-show" type="text" value="产品周会 · Q2 priorities review">
+              <button class="btn ghost btn-sm" type="button">取消</button>
+              <button class="btn primary btn-sm" type="button">保存</button>
+            </div>
+          </div>
+        </div>
+
+        <div class="cl-card">
+          <div class="cl-card-head"><span>Saving</span><span class="cl-state">in-progress</span></div>
+          <div class="cl-stage cl-stage-canvas">
+            <div class="rec-head" data-rename-mode="saving">
+              <input class="rec-h2-input cl-show" type="text" value="产品周会 · Q2 priorities review" readonly>
+              <span class="rec-h2-status cl-show">正在保存…</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="cl-card">
+          <div class="cl-card-head"><span>Error</span><span class="cl-state is-danger">save failed</span></div>
+          <div class="cl-stage cl-stage-canvas">
+            <div class="rec-head" data-rename-mode="error">
+              <input class="rec-h2-input cl-show is-error" type="text" value="产品周会 · Q2 priorities review">
+              <span class="rec-h2-status cl-show is-danger">保存失败 · 请重试</span>
+              <button class="btn ghost btn-sm" type="button">重试</button>
+              <button class="btn ghost btn-sm" type="button">取消</button>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </section>
+
+    <!-- ============================================================ PLAYER -->
+    <section class="cl-section" id="player">
+      <div class="cl-section-head">
+        <h2>PlayerControls</h2>
+        <span class="cl-section-sub">Audio transport · seek · speed · volume</span>
+        <code>.player · .round-btn.play</code>
+      </div>
+      <div class="cl-grid cl-grid-full">
+
+        <div class="cl-card">
+          <div class="cl-card-head"><span>Default · paused at 00:00</span><span class="cl-state">default</span></div>
+          <div class="cl-stage cl-stage-canvas">
+            <div class="player" data-sot-surface="recording-player">
+              <div class="player-meta">
+                <span class="ts">2026-04-22 · 14:00</span>
+                <span class="src-tag"><span class="ico"><img src="../../assets/sources/dingtalk.svg" alt=""></span>钉钉</span>
+                <span class="utag c-violet"><svg viewBox="0 0 24 24"><path d="M3 3h7v7H3z"/></svg>产品周会</span>
+                <span class="b ok"><span class="dot"></span>已更新</span>
+              </div>
+              <div class="player-controls">
+                <button class="round-btn" type="button" aria-label="后退"><svg viewBox="0 0 24 24"><path d="M19 20 9 12l10-8z"/><path d="M5 19V5"/></svg></button>
+                <button class="round-btn play" type="button" aria-label="播放"><svg viewBox="0 0 24 24"><polygon points="5 3 19 12 5 21 5 3"/></svg></button>
+                <button class="round-btn" type="button" aria-label="前进"><svg viewBox="0 0 24 24"><path d="m5 4 10 8-10 8z"/><path d="M19 5v14"/></svg></button>
+                <span class="time mono">00:00 / 47:18</span>
+                <span class="track"><span class="bar"></span></span>
+                <button class="btn speed" type="button">1.0×</button>
+                <button class="icon-btn vol" type="button" aria-label="音量"><svg viewBox="0 0 24 24"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/><path d="M15.54 8.46a5 5 0 0 1 0 7.07"/></svg></button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="cl-card">
+          <div class="cl-card-head"><span>Playing · mid-track</span><span class="cl-state is-positive">playing</span></div>
+          <div class="cl-stage cl-stage-canvas">
+            <div class="player" data-playing="true" data-sot-surface="recording-player">
+              <div class="player-meta">
+                <span class="ts">2026-04-22 · 14:00</span>
+                <span class="src-tag"><span class="ico"><img src="../../assets/sources/dingtalk.svg" alt=""></span>钉钉</span>
+              </div>
+              <div class="player-controls">
+                <button class="round-btn" type="button"><svg viewBox="0 0 24 24"><path d="M19 20 9 12l10-8z"/><path d="M5 19V5"/></svg></button>
+                <button class="round-btn play" type="button" aria-label="暂停"><svg viewBox="0 0 24 24"><rect x="6" y="4" width="4" height="16"/><rect x="14" y="4" width="4" height="16"/></svg></button>
+                <button class="round-btn" type="button"><svg viewBox="0 0 24 24"><path d="m5 4 10 8-10 8z"/><path d="M19 5v14"/></svg></button>
+                <span class="time mono">12:34 / 47:18</span>
+                <span class="track"><span class="bar bar-mid"></span></span>
+                <button class="btn speed" type="button">1.5×</button>
+                <button class="icon-btn vol" type="button" aria-label="音量"><svg viewBox="0 0 24 24"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/></svg></button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="cl-card">
+          <div class="cl-card-head"><span>Muted</span><span class="cl-state">vol = 0</span></div>
+          <div class="cl-stage cl-stage-canvas">
+            <div class="player" data-sot-surface="recording-player">
+              <div class="player-meta"><span class="ts">2026-04-22 · 14:00</span></div>
+              <div class="player-controls">
+                <button class="round-btn" type="button"><svg viewBox="0 0 24 24"><path d="M19 20 9 12l10-8z"/></svg></button>
+                <button class="round-btn play" type="button"><svg viewBox="0 0 24 24"><polygon points="5 3 19 12 5 21 5 3"/></svg></button>
+                <button class="round-btn" type="button"><svg viewBox="0 0 24 24"><path d="m5 4 10 8-10 8z"/></svg></button>
+                <span class="time mono">12:34 / 47:18</span>
+                <span class="track"><span class="bar bar-mid"></span></span>
+                <button class="btn speed" type="button">1.0×</button>
+                <button class="icon-btn vol is-muted" type="button" aria-label="取消静音"><svg viewBox="0 0 24 24"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/><line x1="22" y1="9" x2="16" y2="15"/><line x1="16" y1="9" x2="22" y2="15"/></svg></button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="cl-card">
+          <div class="cl-card-head"><span>No audio · disabled</span><span class="cl-state is-muted">unavailable</span></div>
+          <div class="cl-stage cl-stage-canvas">
+            <div class="player" data-no-audio="true" data-sot-surface="recording-player">
+              <div class="player-meta"><span class="ts">2026-04-22 · 14:00</span><span class="player-meta-warn">仅本地音频缺失 · 无法播放</span></div>
+              <div class="player-controls">
+                <button class="round-btn" type="button" disabled><svg viewBox="0 0 24 24"><path d="M19 20 9 12l10-8z"/></svg></button>
+                <button class="round-btn play" type="button" disabled><svg viewBox="0 0 24 24"><polygon points="5 3 19 12 5 21 5 3"/></svg></button>
+                <button class="round-btn" type="button" disabled><svg viewBox="0 0 24 24"><path d="m5 4 10 8-10 8z"/></svg></button>
+                <span class="time mono">— / —</span>
+                <span class="track is-disabled"></span>
+                <button class="btn speed" type="button" disabled>1.0×</button>
+                <button class="icon-btn vol" type="button" disabled aria-label="音量"><svg viewBox="0 0 24 24"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/></svg></button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </section>
+
+    <!-- ============================================================ TRANSCRIPT TURN -->
+    <section class="cl-section" id="turn">
+      <div class="cl-section-head">
+        <h2>TranscriptTurn</h2>
+        <span class="cl-section-sub">Speaker + paragraph (BetterAINote view)</span>
+        <code>.turn</code>
+      </div>
+      <div class="cl-grid cl-grid-full">
+        <div class="cl-card">
+          <div class="cl-card-head"><span>Default</span><span class="cl-state">read</span></div>
+          <div class="cl-stage cl-stage-canvas">
+            <div class="turn">
+              <div class="speaker">
+                <span class="avatar-sm _is-4">志</span>
+                <span class="speaker-name">志远 · CEO</span>
+                <span class="ts mono">00:12 – 01:48</span>
+              </div>
+              <p>这周我们先看 Q2 的三个核心优先级。第一是把 AI 重命名做稳定，覆盖钉钉、TicNote 和 Plaud 三个来源。第二是说话人审阅的体验要降到三步以内。</p>
+            </div>
+            <div class="turn">
+              <div class="speaker">
+                <span class="avatar-sm _is-5">文</span>
+                <span class="speaker-name">文丽 · PM</span>
+                <span class="ts mono">01:50 – 02:34</span>
+              </div>
+              <p>关于 AI 重命名我们和后端确认了，标题写回会先在 TicNote 上线，钉钉这边的 API 还在等审核。</p>
+            </div>
+          </div>
+        </div>
+        <div class="cl-card">
+          <div class="cl-card-head"><span>Empty · no transcript yet</span><span class="cl-state is-muted">empty</span></div>
+          <div class="cl-stage cl-stage-canvas">
+            <div class="empty-state">
+              <div class="empty-ico" aria-hidden="true"><svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg></div>
+              <p class="empty-msg">还没有逐字稿</p>
+              <p class="empty-sub">来源已就绪，转写任务还在排队中。</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============================================================ SOURCE TRANSCRIPT ROW -->
+    <section class="cl-section" id="srcrow2">
+      <div class="cl-section-head">
+        <h2>SourceTranscriptRow</h2>
+        <span class="cl-section-sub">来源详情 · 来源逐字稿 (时间戳必填)</span>
+        <code>.sr-seg</code>
+      </div>
+      <div class="cl-grid cl-grid-full">
+        <div class="cl-card">
+          <div class="cl-card-head"><span>Loaded</span><span class="cl-state is-positive">ready</span></div>
+          <div class="cl-stage cl-stage-canvas">
+            <ol class="sr-segments">
+              <li class="sr-seg">
+                <span class="sr-seg-ts mono">00:12 – 01:48</span>
+                <span class="sr-seg-speaker">志远</span>
+                <p class="sr-seg-text">这周我们先看 Q2 的三个核心优先级。第一是把 AI 重命名做稳定…</p>
+              </li>
+              <li class="sr-seg">
+                <span class="sr-seg-ts mono">01:50 – 02:34</span>
+                <span class="sr-seg-speaker">文丽</span>
+                <p class="sr-seg-text">关于 AI 重命名我们和后端确认了…</p>
+              </li>
+              <li class="sr-seg">
+                <span class="sr-seg-ts mono">02:36 – 03:20</span>
+                <span class="sr-seg-speaker">兆和</span>
+                <p class="sr-seg-text">VoScript 的私有部署文档我已经更新了…</p>
+              </li>
+            </ol>
+          </div>
+        </div>
+        <div class="cl-card">
+          <div class="cl-card-head"><span>Loading</span><span class="cl-state">loading</span></div>
+          <div class="cl-stage cl-stage-canvas">
+            <div class="sr-seg skel">
+              <span class="sk _is-13"></span>
+              <span class="sk _is-14"></span>
+              <div class="sk _is-15"></div>
+              <div class="sk _is-16"></div>
+            </div>
+            <div class="sr-seg skel">
+              <span class="sk _is-13"></span>
+              <span class="sk _is-14"></span>
+              <div class="sk _is-17"></div>
+              <div class="sk _is-18"></div>
+            </div>
+          </div>
+        </div>
+        <div class="cl-card">
+          <div class="cl-card-head"><span>Unsupported</span><span class="cl-state is-muted">no source transcript</span></div>
+          <div class="cl-stage cl-stage-canvas">
+            <div class="sr-empty">
+              <div class="sr-empty-ico" aria-hidden="true"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg></div>
+              <div class="sr-empty-title">该来源不提供逐字稿</div>
+              <div class="sr-empty-sub">TicNote 当前只返回音频和元数据，本系统的逐字稿基于本地转写生成。</div>
+            </div>
+          </div>
+        </div>
+        <div class="cl-card">
+          <div class="cl-card-head"><span>Error · re-pull</span><span class="cl-state is-danger">error</span></div>
+          <div class="cl-stage cl-stage-canvas">
+            <div class="sr-empty err">
+              <div class="sr-empty-ico" aria-hidden="true"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 8v5"/></svg></div>
+              <div class="sr-empty-title">无法读取来源详情</div>
+              <div class="sr-empty-sub">钉钉返回了一个错误，可能是网络抖动或来源临时不可用。</div>
+              <div class="sr-empty-actions">
+                <button class="btn primary btn-sm" type="button">重试</button>
+                <button class="btn ghost btn-sm" type="button">在钉钉中打开</button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============================================================ SPEAKER ROW -->
+    <section class="cl-section" id="spkr">
+      <div class="cl-section-head">
+        <h2>SpeakerRow</h2>
+        <span class="cl-section-sub">说话人审阅 · 行内 rename / link / merge</span>
+        <code>.sp-row</code>
+      </div>
+      <div class="cl-grid cl-grid-full">
+        <div class="cl-card">
+          <div class="cl-card-head"><span>Default · linked</span><span class="cl-state is-positive">linked saved-speaker</span></div>
+          <div class="cl-stage cl-stage-canvas">
+            <ul class="sp-rows">
+              <li class="sp-row">
+                <span class="avatar-sm _is-4">志</span>
+                <div class="sp-row-meta">
+                  <div class="sp-row-name">志远 · CEO</div>
+                  <div class="sp-row-sub mono">14 段 · 06:42 总时长 · 已链接</div>
+                </div>
+                <span class="sp-bar"><span class="_is-7"></span></span>
+                <button class="btn ghost btn-sm" type="button">重命名</button>
+                <button class="btn ghost btn-sm" type="button">解除链接</button>
+              </li>
+              <li class="sp-row">
+                <span class="avatar-sm _is-5">文</span>
+                <div class="sp-row-meta">
+                  <div class="sp-row-name">文丽 · PM</div>
+                  <div class="sp-row-sub mono">15 段 · 05:18 总时长 · 已链接</div>
+                </div>
+                <span class="sp-bar"><span class="_is-8"></span></span>
+                <button class="btn ghost btn-sm" type="button">重命名</button>
+                <button class="btn ghost btn-sm" type="button">解除链接</button>
+              </li>
+            </ul>
+          </div>
+          <div class="cl-note">声纹由外部 VoScript 服务持有 · BetterAINote 仅保存说话人名称与链接关系。</div>
+        </div>
+        <div class="cl-card">
+          <div class="cl-card-head"><span>Unlinked · suggestion</span><span class="cl-state is-warning">suggested match</span></div>
+          <div class="cl-stage cl-stage-canvas">
+            <ul class="sp-rows">
+              <li class="sp-row">
+                <span class="avatar-sm _is-6">兆</span>
+                <div class="sp-row-meta">
+                  <div class="sp-row-name">说话人 3</div>
+                  <div class="sp-row-sub mono">9 段 · 03:01 总时长 · 未链接</div>
+                </div>
+                <span class="sp-suggest">
+                  <span class="sp-suggest-label">建议</span>
+                  <span class="sp-suggest-name">兆和 · Engineering</span>
+                  <button class="btn primary btn-sm" type="button">链接</button>
+                  <button class="btn ghost btn-sm" type="button">不是</button>
+                </span>
+              </li>
+            </ul>
+          </div>
+        </div>
+        <div class="cl-card">
+          <div class="cl-card-head"><span>Editing · rename</span><span class="cl-state">editing</span></div>
+          <div class="cl-stage cl-stage-canvas">
+            <ul class="sp-rows">
+              <li class="sp-row" data-state="editing">
+                <span class="avatar-sm _is-4">志</span>
+                <div class="sp-row-meta">
+                  <input class="field-input" type="text" value="志远 · CEO">
+                </div>
+                <div class="sp-edit-actions">
+                  <button class="btn ghost btn-sm" type="button">取消</button>
+                  <button class="btn primary btn-sm" type="button">保存</button>
+                </div>
+              </li>
+            </ul>
+          </div>
+        </div>
+        <div class="cl-card">
+          <div class="cl-card-head"><span>Saving / Error</span><span class="cl-state">in-progress · error</span></div>
+          <div class="cl-stage cl-stage-canvas">
+            <ul class="sp-rows">
+              <li class="sp-row" data-state="saving">
+                <span class="avatar-sm _is-5">文</span>
+                <div class="sp-row-meta">
+                  <div class="sp-row-name">文丽 · PM</div>
+                  <div class="sp-row-sub mono">保存中…</div>
+                </div>
+                <button class="btn ghost btn-sm" type="button" aria-busy="true" disabled><span class="btn-spinner"></span>保存</button>
+              </li>
+              <li class="sp-row" data-state="error">
+                <span class="avatar-sm _is-6">兆</span>
+                <div class="sp-row-meta">
+                  <div class="sp-row-name">兆和 · Engineering</div>
+                  <div class="sp-row-sub is-danger">保存失败 · 请重试</div>
+                </div>
+                <button class="btn ghost btn-sm" type="button">重试</button>
+              </li>
+            </ul>
+          </div>
+        </div>
+        <div class="cl-card">
+          <div class="cl-card-head"><span>No saved speakers</span><span class="cl-state is-muted">empty</span></div>
+          <div class="cl-stage cl-stage-canvas">
+            <div class="sp-empty">
+              <p class="sp-empty-msg">还没有已保存的说话人</p>
+              <p class="sp-empty-sub">在某一段录音里把说话人改名后会自动建立。</p>
+            </div>
+          </div>
+        </div>
+        <div class="cl-card">
+          <div class="cl-card-head"><span>Merge similar</span><span class="cl-state">action</span></div>
+          <div class="cl-stage">
+            <button class="btn ghost btn-sm" type="button">合并相似…</button>
+          </div>
+        </div>
+
+        <div class="cl-card">
+          <div class="cl-card-head"><span>Unlink · confirm</span><span class="cl-state is-warning">destructive-ish</span></div>
+          <div class="cl-stage cl-stage-canvas">
+            <ul class="sp-rows">
+              <li class="sp-row" data-state="confirm-unlink">
+                <span class="avatar-sm _is-4">志</span>
+                <div class="sp-row-meta">
+                  <div class="sp-row-name">志远 · CEO</div>
+                  <div class="sp-row-sub mono">14 段 · 06:42 总时长</div>
+                </div>
+              </li>
+            </ul>
+            <div class="sp-confirm">
+              <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 9v4"/><path d="M12 17h.01"/><circle cx="12" cy="12" r="10"/></svg>
+              <div class="sp-confirm-msg">解除 <em>志远 · CEO</em> 与本段录音的链接后，下次重新转写不会再自动套用此名称。</div>
+              <button class="btn ghost btn-sm" type="button">取消</button>
+              <button class="btn danger btn-sm" type="button">解除链接</button>
+            </div>
+          </div>
+        </div>
+
+        <div class="cl-card">
+          <div class="cl-card-head"><span>Create new · saved speaker</span><span class="cl-state">create</span></div>
+          <div class="cl-stage cl-stage-canvas">
+            <ul class="sp-rows">
+              <li class="sp-row" data-state="create">
+                <span class="avatar-sm _is-6">新</span>
+                <div class="sp-row-meta">
+                  <input class="field-input" type="text" value="兆和 · Engineering" placeholder="新建说话人">
+                  <div class="sp-row-sub mono">将创建新的「已保存说话人」并链接到 9 段</div>
+                </div>
+                <div class="sp-edit-actions">
+                  <button class="btn ghost btn-sm" type="button">取消</button>
+                  <button class="btn primary btn-sm" type="button">创建并链接</button>
+                </div>
+              </li>
+            </ul>
+            <div class="cl-note">在「未链接」行重命名后回车，会自动创建一个新的已保存说话人，而不会污染既有的「兆和」。</div>
+          </div>
+        </div>
+
+        <div class="cl-card">
+          <div class="cl-card-head"><span>No-match · open suggestion gone</span><span class="cl-state is-warning">no candidate</span></div>
+          <div class="cl-stage cl-stage-canvas">
+            <ul class="sp-rows">
+              <li class="sp-row" data-state="no-match">
+                <span class="avatar-sm _is-7">?</span>
+                <div class="sp-row-meta">
+                  <div class="sp-row-name">说话人 4</div>
+                  <div class="sp-row-sub mono">3 段 · 01:12 总时长 · 没有匹配的已保存说话人</div>
+                </div>
+                <span class="sp-bar"><span class="_is-3"></span></span>
+                <button class="btn ghost btn-sm" type="button">重命名</button>
+                <button class="btn ghost btn-sm" type="button">创建已保存…</button>
+              </li>
+            </ul>
+            <div class="cl-note">VoScript 没有任何与该声纹相似的已保存说话人 · 建议手动重命名或创建新的。</div>
+          </div>
+        </div>
+
+      </div>
+    </section>
+
+    <!-- ============================================================ RETRANSCRIBE -->
+    <section class="cl-section" id="retx">
+      <div class="cl-section-head">
+        <h2>Retranscribe</h2>
+        <span class="cl-section-sub">Re-transcribe banner · queued / running / failed / completed</span>
+        <code>.retx-banner[data-retx-state]</code>
+      </div>
+      <div class="cl-grid cl-grid-full">
+
+        <div class="cl-card">
+          <div class="cl-card-head"><span>Queued</span><span class="cl-state">waiting</span></div>
+          <div class="cl-stage cl-stage-canvas">
+            <div class="retx-banner" data-retx-state="queued">
+              <span class="retx-banner-ico" aria-hidden="true"><span class="retx-spinner"></span></span>
+              <div class="retx-banner-body">
+                <div class="retx-banner-title">转写任务已加入队列</div>
+                <div class="retx-banner-sub">正在等待工作器领取，期间可继续浏览。</div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="cl-card">
+          <div class="cl-card-head"><span>Running</span><span class="cl-state">in-progress</span></div>
+          <div class="cl-stage cl-stage-canvas">
+            <div class="retx-banner" data-retx-state="running">
+              <span class="retx-banner-ico" aria-hidden="true"><span class="retx-spinner"></span></span>
+              <div class="retx-banner-body">
+                <div class="retx-banner-title">正在重新转写</div>
+                <div class="retx-banner-sub">已完成 12% · 当前结果仍可阅读，完成后自动刷新。</div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="cl-card">
+          <div class="cl-card-head"><span>Failed · with retry / dismiss</span><span class="cl-state is-danger">error</span></div>
+          <div class="cl-stage cl-stage-canvas">
+            <div class="retx-banner" data-retx-state="failed">
+              <span class="retx-banner-ico" aria-hidden="true"><svg class="retx-ico-warn" viewBox="0 0 24 24"><path d="M12 9v4"/><path d="M12 17h.01"/><circle cx="12" cy="12" r="10"/></svg></span>
+              <div class="retx-banner-body">
+                <div class="retx-banner-title">本次重新转写失败</div>
+                <div class="retx-banner-sub">VoScript worker 暂时不可达 · 原稿未被覆盖。</div>
+              </div>
+              <div class="retx-banner-actions">
+                <button class="btn ghost btn-sm" type="button">重试转写</button>
+                <button class="btn ghost btn-sm" type="button" aria-label="收起"><svg viewBox="0 0 24 24"><path d="M18 6 6 18M6 6l12 12"/></svg></button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="cl-card">
+          <div class="cl-card-head"><span>Completed · refresh marker</span><span class="cl-state is-positive">success</span></div>
+          <div class="cl-stage cl-stage-canvas">
+            <div class="retx-banner" data-retx-state="completed">
+              <span class="retx-banner-ico" aria-hidden="true"><svg class="retx-ico-ok" viewBox="0 0 24 24"><path d="M20 6 9 17l-5-5"/></svg></span>
+              <div class="retx-banner-body">
+                <div class="retx-banner-title">重新转写完成</div>
+                <div class="retx-banner-sub">逐字稿、说话人映射与摘要已刷新。</div>
+              </div>
+              <div class="retx-banner-actions">
+                <button class="btn ghost btn-sm" type="button" aria-label="收起"><svg viewBox="0 0 24 24"><path d="M18 6 6 18M6 6l12 12"/></svg></button>
+              </div>
+            </div>
+            <p class="retx-refresh-marker">刚刷新 · 1 秒前</p>
+          </div>
+        </div>
+
+        <div class="cl-card">
+          <div class="cl-card-head"><span>Unavailable</span><span class="cl-state is-muted">disabled</span></div>
+          <div class="cl-stage cl-stage-canvas">
+            <p class="retx-disabled-hint">VoScript worker 未启动 · 重新转写暂不可用 · 前往「VoScript 服务」查看连接</p>
+          </div>
+        </div>
+
+      </div>
+    </section>
+
+    <!-- ============================================================ TWEAKS PANEL -->
+    <section class="cl-section" id="tweaks">
+      <div class="cl-section-head">
+        <h2>TweaksPanel</h2>
+        <span class="cl-section-sub">DS-only design control surface — drives every preview state above</span>
+        <code>#tweaks-panel</code>
+      </div>
+      <div class="cl-grid cl-grid-full">
+        <div class="cl-card">
+          <div class="cl-card-head"><span>Mock · structure preview</span><span class="cl-state">DS only · default hidden</span></div>
+          <div class="cl-stage cl-stage-canvas">
+            <div class="cl-tweaks-mock" role="region" aria-label="TweaksPanel mock">
+              <header class="cl-tm-head">
+                <span class="cl-tm-head-title">Tweaks</span>
+                <span class="cl-tm-head-sub">DS · 仅设计预览</span>
+              </header>
+              <div class="cl-tm-body">
+                <div class="cl-tm-sec">
+                  <div class="cl-tm-sec-label">Theme</div>
+                  <div class="cl-tm-row"><span>主题</span>
+                    <div class="liquid-tabs sm" data-active="0">
+                      <span class="lt-ind"></span>
+                      <button class="lt-tab active" type="button">浅色</button>
+                      <button class="lt-tab" type="button">暗色</button>
+                    </div>
+                  </div>
+                  <div class="cl-tm-row"><span>侧边栏</span>
+                    <div class="liquid-tabs sm" data-active="0">
+                      <span class="lt-ind"></span>
+                      <button class="lt-tab active" type="button">展开</button>
+                      <button class="lt-tab" type="button">折叠</button>
+                    </div>
+                  </div>
+                </div>
+                <div class="cl-tm-sec">
+                  <div class="cl-tm-sec-label">来源状态</div>
+                  <div class="cl-tm-row"><span>钉钉</span><span class="cl-inline-code">connected-active</span></div>
+                  <div class="cl-tm-row"><span>Plaud</span><span class="cl-inline-code">sync-error</span></div>
+                  <div class="cl-tm-row"><span>讯飞听见</span><span class="cl-inline-code">needs-setup</span></div>
+                </div>
+                <div class="cl-tm-sec">
+                  <div class="cl-tm-sec-label">搜索 / 通知 / 转写</div>
+                  <div class="cl-tm-row"><span>搜索弹层</span><span class="cl-inline-code">results</span></div>
+                  <div class="cl-tm-row"><span>通知中心</span><span class="cl-inline-code">syncing</span></div>
+                  <div class="cl-tm-row"><span>重新转写</span><span class="cl-inline-code">running</span></div>
+                </div>
+                <div class="cl-tm-sec">
+                  <div class="cl-tm-sec-label">骨架 / 空 / 错误</div>
+                  <div class="cl-tm-row"><span>列表骨架</span>
+                    <button class="toggle on" type="button" role="switch" aria-checked="true"><span class="t-knob"></span></button>
+                  </div>
+                  <div class="cl-tm-row"><span>详情空状态</span>
+                    <button class="toggle" type="button" role="switch" aria-checked="false"><span class="t-knob"></span></button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="cl-note">Tweaks 在 Workstation 顶部开关 ON 之后才会出现 · 默认隐藏 · 内容不含任何凭据或执行者名称。</div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============================================================ SYSTEM BANNER -->
+    <section class="cl-section" id="sysbanner">
+      <div class="cl-section-head">
+        <h2>SystemBanner</h2>
+        <span class="cl-section-sub">App-wide system messages · offline / permission / db / update / import / export</span>
+        <code>.sys-banner[data-kind]</code>
+      </div>
+      <div class="cl-grid cl-grid-full">
+
+        <div class="cl-card">
+          <div class="cl-card-head"><span>Offline</span><span class="cl-state is-warning">network down</span></div>
+          <div class="cl-stage cl-stage-canvas">
+            <div class="sys-banner" data-kind="offline" role="status" aria-live="polite">
+              <span class="sbn-ico" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M2 12s4-7 10-7c2.3 0 4.4.9 6 2.2"/><path d="M22 12s-4 7-10 7c-2.3 0-4.4-.9-6-2.2"/><path d="M2 2l20 20"/></svg></span>
+              <div class="sbn-body">
+                <div class="sbn-title">当前无网络连接</div>
+                <div class="sbn-sub">所有已下载的录音与逐字稿可继续阅览 · 来源同步与新转写已暂停。</div>
+              </div>
+              <div class="sbn-actions">
+                <button class="btn ghost btn-sm" type="button">重试</button>
+                <button class="btn ghost btn-sm" type="button" aria-label="收起"><svg viewBox="0 0 24 24"><path d="M18 6 6 18M6 6l12 12"/></svg></button>
+              </div>
+            </div>
+          </div>
+          <div class="cl-note">仅显示一次 · 网络恢复后自动收起。期间所有「立即更新 / 重新转写」按钮置 disabled。</div>
+        </div>
+
+        <div class="cl-card">
+          <div class="cl-card-head"><span>Permission denied</span><span class="cl-state is-danger">macOS · 文件访问</span></div>
+          <div class="cl-stage cl-stage-canvas">
+            <div class="sys-banner" data-kind="permission-denied" role="alert">
+              <span class="sbn-ico" aria-hidden="true"><svg viewBox="0 0 24 24"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/><path d="M2 2l20 20"/></svg></span>
+              <div class="sbn-body">
+                <div class="sbn-title">未授权访问录音文件夹</div>
+                <div class="sbn-sub">无法读取来源缓存目录 · 前往「系统设置 · 隐私与安全性 · 完全磁盘访问」打开开关。</div>
+              </div>
+              <div class="sbn-actions">
+                <button class="btn ghost btn-sm" type="button">打开系统设置</button>
+                <button class="btn ghost btn-sm" type="button">稍后</button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="cl-card">
+          <div class="cl-card-head"><span>Database locked</span><span class="cl-state is-danger">db-locked</span></div>
+          <div class="cl-stage cl-stage-canvas">
+            <div class="sys-banner" data-kind="db-locked" role="alert">
+              <span class="sbn-ico" aria-hidden="true"><svg viewBox="0 0 24 24"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg></span>
+              <div class="sbn-body">
+                <div class="sbn-title">本地数据库被另一个 BetterAINote 实例占用</div>
+                <div class="sbn-sub">同时只允许一个实例写入 · 当前实例已切到只读模式 · 关闭其它窗口后点「重新连接」。</div>
+              </div>
+              <div class="sbn-actions">
+                <button class="btn ghost btn-sm" type="button">重新连接</button>
+                <button class="btn ghost btn-sm" type="button">只读继续</button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="cl-card">
+          <div class="cl-card-head"><span>Update available</span><span class="cl-state is-positive">new build · v0.42.0</span></div>
+          <div class="cl-stage cl-stage-canvas">
+            <div class="sys-banner" data-kind="update-available">
+              <span class="sbn-ico" aria-hidden="true"><svg viewBox="0 0 24 24"><polyline points="21 8 21 21 3 21 3 8"/><rect x="1" y="3" width="22" height="5"/><line x1="10" y1="12" x2="14" y2="12"/></svg></span>
+              <div class="sbn-body">
+                <div class="sbn-title">BetterAINote v0.42.0 已就绪</div>
+                <div class="sbn-sub">新版本改进了 Plaud 同步稳定性与说话人合并提示 · 重启后生效。</div>
+              </div>
+              <div class="sbn-actions">
+                <button class="btn glass btn-sm" type="button">重启并更新</button>
+                <button class="btn ghost btn-sm" type="button">查看更新内容</button>
+                <button class="btn ghost btn-sm" type="button" aria-label="稍后再说"><svg viewBox="0 0 24 24"><path d="M18 6 6 18M6 6l12 12"/></svg></button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="cl-card">
+          <div class="cl-card-head"><span>Import · in progress</span><span class="cl-state">40%</span></div>
+          <div class="cl-stage cl-stage-canvas">
+            <div class="sys-banner" data-kind="import-progress" data-pct="40">
+              <span class="sbn-ico" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg></span>
+              <div class="sbn-body">
+                <div class="sbn-title">正在导入 BetterAINote 备份包</div>
+                <div class="sbn-sub mono">85 / 213 条录音已写入 · 预计还需 1 分 12 秒</div>
+                <div class="sbn-progress" aria-hidden="true"><span class="sbn-bar"></span></div>
+              </div>
+              <div class="sbn-actions">
+                <button class="btn ghost btn-sm" type="button">暂停</button>
+                <button class="btn ghost btn-sm" type="button">取消</button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="cl-card">
+          <div class="cl-card-head"><span>Import · indeterminate</span><span class="cl-state">scanning</span></div>
+          <div class="cl-stage cl-stage-canvas">
+            <div class="sys-banner" data-kind="import-progress">
+              <span class="sbn-ico" aria-hidden="true"><svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg></span>
+              <div class="sbn-body">
+                <div class="sbn-title">正在扫描备份包结构</div>
+                <div class="sbn-sub mono">读取清单 · 解析校验和 · 暂未开始写入</div>
+                <div class="sbn-progress indeterminate" aria-hidden="true"><span class="sbn-bar"></span></div>
+              </div>
+              <div class="sbn-actions">
+                <button class="btn ghost btn-sm" type="button" disabled aria-busy="true">取消</button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="cl-card">
+          <div class="cl-card-head"><span>Export · in progress</span><span class="cl-state">70%</span></div>
+          <div class="cl-stage cl-stage-canvas">
+            <div class="sys-banner" data-kind="export-progress" data-pct="70">
+              <span class="sbn-ico" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M3 9v10a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V9"/><polyline points="7 16 12 21 17 16"/><line x1="12" y1="3" x2="12" y2="21"/></svg></span>
+              <div class="sbn-body">
+                <div class="sbn-title">正在导出「全部录音 · 钉钉」</div>
+                <div class="sbn-sub mono">78 / 112 · 含逐字稿 · 含标签关系 · 不含来源登录材料</div>
+                <div class="sbn-progress" aria-hidden="true"><span class="sbn-bar"></span></div>
+              </div>
+              <div class="sbn-actions">
+                <button class="btn ghost btn-sm" type="button">在 Finder 中显示</button>
+                <button class="btn ghost btn-sm" type="button">取消</button>
+              </div>
+            </div>
+          </div>
+          <div class="cl-note">导出包不包含任何登录材料或访问凭证 · 说话人保留为「名称 + 链接关系」，声纹仍归 VoScript 持有。</div>
+        </div>
+
+        <div class="cl-card">
+          <div class="cl-card-head"><span>Stacked · multiple banners</span><span class="cl-state">layered</span></div>
+          <div class="cl-stage cl-stage-canvas">
+            <div class="sys-banner" data-kind="offline">
+              <span class="sbn-ico" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M2 12s4-7 10-7"/><path d="M22 12s-4 7-10 7"/><path d="M2 2l20 20"/></svg></span>
+              <div class="sbn-body">
+                <div class="sbn-title">当前无网络连接</div>
+                <div class="sbn-sub">来源同步已暂停 · 已下载的录音仍可阅览。</div>
+              </div>
+              <div class="sbn-actions"><button class="btn ghost btn-sm" type="button">重试</button></div>
+            </div>
+            <div class="sys-banner" data-kind="update-available">
+              <span class="sbn-ico" aria-hidden="true"><svg viewBox="0 0 24 24"><polyline points="21 8 21 21 3 21 3 8"/><rect x="1" y="3" width="22" height="5"/></svg></span>
+              <div class="sbn-body">
+                <div class="sbn-title">v0.42.0 已就绪</div>
+                <div class="sbn-sub">将在下次启动时应用。</div>
+              </div>
+              <div class="sbn-actions"><button class="btn ghost btn-sm" type="button">查看</button></div>
+            </div>
+          </div>
+          <div class="cl-note">优先级：permission-denied / db-locked &gt; offline &gt; import/export &gt; update-available · 同一时刻最多堆叠 2 个。</div>
+        </div>
+
+      </div>
+    </section>
+
+    <!-- ============================================================ RESPONSIVE -->
+    <section class="cl-section" id="responsive">
+      <div class="cl-section-head">
+        <h2>Responsive frames</h2>
+        <span class="cl-section-sub">Sidebar collapse · mobile drawer · scrim</span>
+      </div>
+      <div class="cl-grid cl-grid-full">
+        <div class="cl-card">
+          <div class="cl-card-head"><span>States covered</span><span class="cl-state">desktop · tablet · mobile</span></div>
+          <table class="cl-matrix">
+            <thead><tr><th>Surface</th><th>Desktop expanded</th><th>Desktop collapsed</th><th>Tablet overlay</th><th>Mobile drawer</th></tr></thead>
+            <tbody>
+              <tr><td>Sidebar</td><td>展开 · 全部 nav 文本</td><td>折叠 · 仅图标 · tip 悬停说明</td><td>叠加层 · 半透 scrim</td><td>抽屉 · 触发器在 topbar</td></tr>
+              <tr><td>Search / Activity / Settings / More / Tag / Detail</td><td>原位浮窗</td><td>原位浮窗</td><td>底层叠加 · ESC / outside 关闭 · 焦点返回触发器</td><td>底层叠加 · 顶部带返回</td></tr>
+              <tr><td>Stack strip</td><td>单行 · pill + 计数</td><td>单行</td><td>单行</td><td>banner 折行到下一行</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============================================================ COVERAGE MATRIX -->
+    <section class="cl-section" id="matrix">
+      <div class="cl-section-head">
+        <h2>Coverage matrix</h2>
+        <span class="cl-section-sub">Per-component state coverage in this library</span>
+      </div>
+      <div class="cl-grid cl-grid-full">
+        <div class="cl-card">
+          <table class="cl-matrix">
+            <thead><tr><th>Component</th><th>Section</th><th>States covered</th><th>Status</th></tr></thead>
+            <tbody>
+              <tr><td>Button / IconButton</td><td>#button</td><td>default · hover · focus · active · disabled · loading · success · error</td><td><span class="cl-state is-positive">pass</span></td></tr>
+              <tr><td>Badge / StatusPill</td><td>#badge</td><td>ok · warn · err · info · neu · src-tag · utag · sync-pill</td><td><span class="cl-state is-positive">pass</span></td></tr>
+              <tr><td>Input / Select / Switch</td><td>#input</td><td>default · focus · disabled · error · field-row</td><td><span class="cl-state is-positive">pass</span></td></tr>
+              <tr><td>Segmented control</td><td>#seg</td><td>2-tab · 3-tab · focus · disabled</td><td><span class="cl-state is-positive">pass</span></td></tr>
+              <tr><td>Skeleton</td><td>#skeleton</td><td>list · transcript</td><td><span class="cl-state is-positive">pass</span></td></tr>
+              <tr><td>FavoriteNavItem</td><td>#favnav</td><td>default · selected · hover · focus · disabled · empty</td><td><span class="cl-state is-positive">pass</span></td></tr>
+              <tr><td>SourceRow</td><td>#srcrow</td><td>connected-active · connected-idle · syncing · sync-error · needs-setup · no-results · expired · disabled · hover/focus</td><td><span class="cl-state is-positive">pass</span></td></tr>
+              <tr><td>FilterStack</td><td>#stack</td><td>default · sync-error · no-results · needs-setup banners</td><td><span class="cl-state is-positive">pass</span></td></tr>
+              <tr><td>RecordingListItem</td><td>#listitem</td><td>default · active · hover · focus · empty · no-match</td><td><span class="cl-state is-positive">pass</span></td></tr>
+              <tr><td>TimelineFilter</td><td>#tfilter</td><td>default · hover · focus · empty</td><td><span class="cl-state is-positive">pass</span></td></tr>
+              <tr><td>TagSelector</td><td>#tagsel</td><td>trigger · open dropdown · all/single/untagged</td><td><span class="cl-state is-positive">pass</span></td></tr>
+              <tr><td>SearchPopover</td><td>#search</td><td>trigger · no-query · loading · results (4 scopes) · no-results · error · indexing</td><td><span class="cl-state is-positive">pass</span></td></tr>
+              <tr><td>ActivityItem</td><td>#activity</td><td>badge · idle · syncing · queued · partial-failed · worker-down · completed · failed · retry · setup</td><td><span class="cl-state is-positive">pass</span></td></tr>
+              <tr><td>TagManagerPopover</td><td>#tagmgr</td><td>default · empty · create (color + icon picker) · toggle · saving · error · delete-confirm</td><td><span class="cl-state is-positive">pass</span></td></tr>
+              <tr><td>MoreActionsMenu</td><td>#more</td><td>local-only · upstream-owned · upstream-deleted</td><td><span class="cl-state is-positive">pass</span></td></tr>
+              <tr><td>AIRenamePopover</td><td>#airn</td><td>loading · preview-ready · error</td><td><span class="cl-state is-positive">pass</span></td></tr>
+              <tr><td>ConfirmDialog</td><td>#confirm</td><td>re-transcribe · delete-local</td><td><span class="cl-state is-positive">pass</span></td></tr>
+              <tr><td>Toast / Banner</td><td>#toast</td><td>success · info · error</td><td><span class="cl-state is-positive">pass</span></td></tr>
+              <tr><td>Drawer / Scrim</td><td>#drawer</td><td>trigger · with-dot · scrim</td><td><span class="cl-state is-positive">pass</span></td></tr>
+              <tr><td>SettingsRailItem</td><td>#srail</td><td>active · default · hover · focus · grouped</td><td><span class="cl-state is-positive">pass</span></td></tr>
+              <tr><td>ProviderCard</td><td>#pcard</td><td>connected · selected · syncing · error · needs-setup · expired · disabled · connected-empty</td><td><span class="cl-state is-positive">pass</span></td></tr>
+              <tr><td>ProviderDetail</td><td>#pdetail</td><td>飞书双方式 · 钉钉 connected · 字段速查 · action states</td><td><span class="cl-state is-positive">pass</span></td></tr>
+              <tr><td>DetailHeader</td><td>#dhead</td><td>normal · local-only · empty</td><td><span class="cl-state is-positive">pass</span></td></tr>
+              <tr><td>RenameEditor</td><td>#rename</td><td>edit · saving · error</td><td><span class="cl-state is-positive">pass</span></td></tr>
+              <tr><td>PlayerControls</td><td>#player</td><td>default · playing · muted · disabled</td><td><span class="cl-state is-positive">pass</span></td></tr>
+              <tr><td>TranscriptTurn</td><td>#turn</td><td>default · empty</td><td><span class="cl-state is-positive">pass</span></td></tr>
+              <tr><td>SourceTranscriptRow</td><td>#srcrow2</td><td>loaded · loading · unsupported · error · timestamps required</td><td><span class="cl-state is-positive">pass</span></td></tr>
+              <tr><td>SpeakerRow</td><td>#spkr</td><td>linked · suggestion · editing · saving · error · empty · merge-similar · unlink-confirm · create · no-match</td><td><span class="cl-state is-positive">pass</span></td></tr>
+              <tr><td>Retranscribe</td><td>#retx</td><td>queued · running · failed · completed · unavailable</td><td><span class="cl-state is-positive">pass</span></td></tr>
+              <tr><td>TweaksPanel</td><td>#tweaks</td><td>mock structure (DS-only · default hidden in product)</td><td><span class="cl-state is-positive">pass</span></td></tr>
+              <tr><td>SystemBanner</td><td>#sysbanner</td><td>offline · permission-denied · db-locked · update-available · import-progress · export-progress · stacked</td><td><span class="cl-state is-positive">pass</span></td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+  </main>
+</div>
+</body>
+</html>

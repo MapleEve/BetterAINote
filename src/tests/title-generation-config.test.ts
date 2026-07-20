@@ -24,13 +24,13 @@ describe("title-generation-config", () => {
         expect(
             getTitleGenerationProviderSettingsResponse(
                 {
-                    titleGenerationBaseUrl: " https://llm.internal/v1/ ",
+                    titleGenerationBaseUrl: " https://llm.example.test/v1/ ",
                     titleGenerationModel: " gpt-4.1-mini ",
                 },
                 true,
             ),
         ).toEqual({
-            titleGenerationBaseUrl: "https://llm.internal/v1/",
+            titleGenerationBaseUrl: "https://llm.example.test/v1/",
             titleGenerationModel: "gpt-4.1-mini",
             titleGenerationApiKeySet: true,
         });
@@ -42,7 +42,8 @@ describe("title-generation-config", () => {
                 where: vi.fn().mockReturnValue({
                     limit: vi.fn().mockResolvedValue([
                         {
-                            titleGenerationBaseUrl: "https://llm.internal/v1",
+                            titleGenerationBaseUrl:
+                                "https://llm.example.test/v1",
                             titleGenerationModel: "gpt-4.1-mini",
                         },
                     ]),
@@ -65,7 +66,7 @@ describe("title-generation-config", () => {
         await expect(
             getDecryptedTitleGenerationProviderConfig("user-1"),
         ).resolves.toEqual({
-            baseUrl: "https://llm.internal/v1",
+            baseUrl: "https://llm.example.test/v1",
             model: "gpt-4.1-mini",
             apiKey: "decrypted:encrypted:key-1",
         });

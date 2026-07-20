@@ -68,7 +68,7 @@ BetterAINote fixes that: **it brings multi-source recordings into a private work
 - People already using DingTalk / A1, TicNote, Plaud, Feishu Minutes, iFLYTEK iFlyrec, or similar recording platforms.
 - Users who want their recording library, SQLite databases, service credentials, and audio archive on machines or servers they control.
 - Teams that want VoScript or another private transcription service instead of sending every recording through a third-party cloud pipeline.
-- Developers who want a self-hosted baseline before connecting more workflows or private automation.
+- Developers who want a self-hosted foundation before connecting more workflows or private automation.
 
 BetterAINote is an independent project. Plaud is one supported source, not the product identity.
 
@@ -127,11 +127,11 @@ Do not commit `.env.local`, databases, audio archives, account screenshots, or r
 - Review transcript state, local transcript output, speaker labels, and reusable speaker profiles.
 - Keep source records, private transcripts, and AI-generated titles in separate lanes.
 
-**Search-ready storage baseline**
+**Search-ready storage foundation**
 
 - SQLite storage is separated for settings, recording library, transcripts, voiceprints, word timing, and search indexes.
-- Search baseline covers recordings, transcripts, speakers, and tags.
-- Future versions will build search, filters, and automation on this baseline.
+- Search covers recordings, transcripts, speakers, and tags.
+- Future versions will build search, filters, and automation on this foundation.
 
 ---
 
@@ -160,7 +160,7 @@ BetterAINote can contain recording titles, source records, transcripts, speaker 
 - Local SQLite files and `LOCAL_STORAGE_PATH` may contain sensitive recording and transcript data.
 - Provider credentials, VoScript credentials, AI title service keys, and session state should stay inside your private deployment.
 - Logs, issues, pull requests, screenshots, and recordings must be sanitized before public sharing.
-- Do not publish cookies, bearer tokens, org/user/recording IDs, meeting content, capture files, full environment files, or local private paths.
+- Do not publish cookies, bearer tokens, org/user/recording IDs, meeting content, capture files, full environment files, or machine-specific paths.
 
 See [Privacy](./docs/PRIVACY.md) and [Security](./SECURITY.md).
 
@@ -174,7 +174,6 @@ See [Privacy](./docs/PRIVACY.md) and [Security](./SECURITY.md).
 | AI install/deploy | [docs/AI_INSTALL_DEPLOYMENT.md](./docs/AI_INSTALL_DEPLOYMENT.md) |
 | API shape and public boundary | [docs/API.md](./docs/API.md) |
 | Data source maturity | [docs/DATA_SOURCES.md](./docs/DATA_SOURCES.md) |
-| GitHub project settings | [docs/GITHUB_PROJECT_SETTINGS.md](./docs/GITHUB_PROJECT_SETTINGS.md) |
 | Deployment | [docs/DEPLOYMENT.md](./docs/DEPLOYMENT.md) |
 | Privacy | [docs/PRIVACY.md](./docs/PRIVACY.md) |
 | Changelog | [CHANGELOG.md](./CHANGELOG.md) |

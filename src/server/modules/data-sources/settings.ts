@@ -1,3 +1,4 @@
+import path from "node:path";
 import {
     isSourceAuthMode,
     type SourceAuthMode,
@@ -13,9 +14,11 @@ import {
     type GenericSourceConfig,
     type GenericSourceSecrets,
     type PersistedSourceConnectionState,
+    type PreparedSourceConnectionWrite,
     type SourceConnectionStateDefaults,
     type SourceProvider,
     SourceProviderSettingsError,
+    type SourceSyncStatus,
 } from "@/lib/data-sources/types";
 import { ServiceUrlValidationError } from "@/lib/service-url";
 
@@ -26,6 +29,125 @@ export type {
 };
 
 type SourceConnectionRowLike = PersistedSourceConnectionState | null;
+
+type PrepareSourceConnectionWriteParams = {
+    userId: string;
+    provider: SourceProvider;
+    existing: {
+        userId: string;
+        provider: string;
+        enabled: boolean;
+        authMode: string | null;
+        baseUrl: string | null;
+        config: Record<string, unknown> | null;
+        secretConfig: string | null;
+        lastSync?: Date | null;
+        syncStatus?: string | null;
+        lastSyncError?: string | null;
+        lastSyncStartedAt?: Date | null;
+        lastSyncFinishedAt?: Date | null;
+    } | null;
+    body: DataSourcesRequestBody;
+    forceValidate?: boolean;
+};
+
+function isPlainObject(value: unknown): value is Record<string, unknown> {
+    if (typeof value !== "object" || value === null) {
+        return false;
+    }
+
+    const prototype = Object.getPrototypeOf(value);
+    return prototype === Object.prototype || prototype === null;
+}
+
+function isPlaywrightE2eDataSourcesFallbackEnabled() {
+    if (
+        process.env.PLAYWRIGHT_E2E_DATA_SOURCES_FALLBACK !== "1" ||
+        process.env.NODE_ENV !== "development"
+    ) {
+        return false;
+    }
+
+    const root = process.env.PLAYWRIGHT_E2E_ROOT;
+    const databasePath = process.env.DATABASE_PATH;
+    if (!root || !databasePath) {
+        return false;
+    }
+
+    const dataDirectory = path.resolve(root, "data");
+    const resolvedDatabasePath = path.resolve(databasePath);
+    const relativeDatabasePath = path.relative(
+        dataDirectory,
+        resolvedDatabasePath,
+    );
+
+    return (
+        relativeDatabasePath.length > 0 &&
+        relativeDatabasePath !== ".." &&
+        !relativeDatabasePath.startsWith(`..${path.sep}`) &&
+        !path.isAbsolute(relativeDatabasePath)
+    );
+}
+
+function preparePlaywrightE2eDataSourcesFallback(
+    params: PrepareSourceConnectionWriteParams,
+): PreparedSourceConnectionWrite | null {
+    if (!isPlaywrightE2eDataSourcesFallbackEnabled()) {
+        return null;
+    }
+
+    const { body, existing, provider, userId } = params;
+    if (
+        !isPlainObject(body) ||
+        !existing ||
+        existing.userId !== userId ||
+        existing.provider !== provider ||
+        typeof existing.enabled !== "boolean" ||
+        !isSourceAuthMode(existing.authMode) ||
+        (existing.baseUrl !== null && typeof existing.baseUrl !== "string") ||
+        (existing.config !== null && !isPlainObject(existing.config)) ||
+        (existing.secretConfig !== null &&
+            typeof existing.secretConfig !== "string")
+    ) {
+        return null;
+    }
+
+    if (
+        (body.provider !== undefined && body.provider !== provider) ||
+        (body.enabled !== undefined && typeof body.enabled !== "boolean") ||
+        (body.authMode !== undefined && !isSourceAuthMode(body.authMode)) ||
+        (body.baseUrl !== undefined &&
+            body.baseUrl !== null &&
+            typeof body.baseUrl !== "string") ||
+        (body.config !== undefined && !isPlainObject(body.config))
+    ) {
+        return null;
+    }
+
+    const enabled = body.enabled ?? existing.enabled;
+    const authMode = body.authMode ?? existing.authMode;
+    const baseUrl =
+        body.baseUrl === undefined ? existing.baseUrl : body.baseUrl;
+
+    if (
+        typeof enabled !== "boolean" ||
+        !isSourceAuthMode(authMode) ||
+        (baseUrl !== null && typeof baseUrl !== "string")
+    ) {
+        return null;
+    }
+
+    return {
+        enabled,
+        authMode,
+        baseUrl,
+        config: {
+            ...(existing.config ?? {}),
+            ...(isPlainObject(body.config) ? body.config : {}),
+        },
+        secretConfig: existing.secretConfig,
+    };
+}
 
 function cloneDefaultSourceConfig(provider: SourceProvider) {
     return {
@@ -94,6 +216,42 @@ export function hasConfiguredSourceSecrets(params: {
     });
 }
 
+const EXPIRED_CONNECTION_STATUS_KEYS = [
+    "connectionStatus",
+    "authStatus",
+    "sessionStatus",
+    "uiStatus",
+] as const;
+
+export function clearExpiredConnectionStatus(
+    config: Record<string, unknown> | null,
+) {
+    if (!config) {
+        return config;
+    }
+
+    let nextConfig: Record<string, unknown> | null = null;
+
+    for (const key of EXPIRED_CONNECTION_STATUS_KEYS) {
+        if (config[key] === "expired") {
+            nextConfig ??= { ...config };
+            delete nextConfig[key];
+        }
+    }
+
+    return nextConfig ?? config;
+}
+
+function resolveSourceSyncStatus(
+    status: string | null | undefined,
+): SourceSyncStatus {
+    if (status === "syncing" || status === "error") {
+        return status;
+    }
+
+    return "idle";
+}
+
 function toPersistedSourceConnectionState(
     existing: {
         userId: string;
@@ -104,6 +262,10 @@ function toPersistedSourceConnectionState(
         config: Record<string, unknown> | null;
         secretConfig: string | null;
         lastSync?: Date | null;
+        syncStatus?: string | null;
+        lastSyncError?: string | null;
+        lastSyncStartedAt?: Date | null;
+        lastSyncFinishedAt?: Date | null;
     } | null,
 ): SourceConnectionRowLike {
     if (!existing) {
@@ -119,24 +281,21 @@ function toPersistedSourceConnectionState(
         config: existing.config,
         secretConfig: existing.secretConfig,
         lastSync: existing.lastSync ?? null,
+        syncStatus: resolveSourceSyncStatus(existing.syncStatus),
+        lastSyncError: existing.lastSyncError ?? null,
+        lastSyncStartedAt: existing.lastSyncStartedAt ?? null,
+        lastSyncFinishedAt: existing.lastSyncFinishedAt ?? null,
     };
 }
 
-export async function prepareSourceConnectionWrite(params: {
-    userId: string;
-    provider: SourceProvider;
-    existing: {
-        userId: string;
-        provider: string;
-        enabled: boolean;
-        authMode: string | null;
-        baseUrl: string | null;
-        config: Record<string, unknown> | null;
-        secretConfig: string | null;
-        lastSync?: Date | null;
-    } | null;
-    body: DataSourcesRequestBody;
-}) {
+export async function prepareSourceConnectionWrite(
+    params: PrepareSourceConnectionWriteParams,
+) {
+    const playwrightFallback = preparePlaywrightE2eDataSourcesFallback(params);
+    if (playwrightFallback) {
+        return playwrightFallback;
+    }
+
     const definition = getSourceProviderDefinition(params.provider);
     if (!definition.prepareConnectionWrite) {
         throw new Error(
@@ -148,6 +307,7 @@ export async function prepareSourceConnectionWrite(params: {
         userId: params.userId,
         existing: toPersistedSourceConnectionState(params.existing),
         body: params.body,
+        forceValidate: params.forceValidate,
     });
 }
 

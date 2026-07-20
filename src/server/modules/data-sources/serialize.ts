@@ -19,6 +19,7 @@ import {
 import type {
     GenericSourceConfig,
     GenericSourceSecrets,
+    SourceSyncStatus,
 } from "@/lib/data-sources/types";
 import {
     parseSourceSecretConfig,
@@ -35,6 +36,7 @@ export type SerializedSourceState = {
     provider: SourceProvider;
     displayName: string;
     runtimeStatus: (typeof DATA_SOURCE_CATALOG)[SourceProvider]["runtimeStatus"];
+    connectionStatus: "ready" | "expired";
     authModes: (typeof DATA_SOURCE_CATALOG)[SourceProvider]["authModes"];
     capabilities: (typeof DATA_SOURCE_CATALOG)[SourceProvider]["capabilities"];
     enabled: boolean;
@@ -44,6 +46,10 @@ export type SerializedSourceState = {
     config: GenericSourceConfig;
     secretsConfigured: Record<string, boolean>;
     lastSync: string | null;
+    syncStatus: SourceSyncStatus;
+    lastSyncError: string | null;
+    lastSyncStartedAt: string | null;
+    lastSyncFinishedAt: string | null;
 };
 
 type SourceConnectionRow = typeof sourceConnections.$inferSelect;
@@ -77,6 +83,35 @@ function getSerializedDefaults(provider: SourceProvider) {
     };
 }
 
+function resolveConnectionStatus(config: Record<string, unknown>) {
+    for (const key of [
+        "connectionStatus",
+        "authStatus",
+        "sessionStatus",
+        "uiStatus",
+    ]) {
+        if (config[key] === "expired") {
+            return "expired" as const;
+        }
+    }
+
+    return "ready" as const;
+}
+
+function resolveSourceSyncStatus(
+    status: string | null | undefined,
+): SourceSyncStatus {
+    if (status === "syncing" || status === "error") {
+        return status;
+    }
+
+    return "idle";
+}
+
+function toISOStringOrNull(value: Date | null | undefined) {
+    return value?.toISOString() ?? null;
+}
+
 function serializeSourceState(
     provider: SourceProvider,
     row: SourceConnectionRow | null,
@@ -98,6 +133,7 @@ function serializeSourceState(
         provider,
         displayName: catalog.displayName,
         runtimeStatus: catalog.runtimeStatus,
+        connectionStatus: resolveConnectionStatus(persistedConfig),
         authModes: catalog.authModes,
         capabilities: getSourceCapabilitiesForAuthMode(provider, authMode),
         enabled: row?.enabled ?? false,
@@ -119,7 +155,11 @@ function serializeSourceState(
             ),
         },
         secretsConfigured: buildSecretPresence(provider, secrets),
-        lastSync: row?.lastSync?.toISOString() ?? null,
+        lastSync: toISOStringOrNull(row?.lastSync),
+        syncStatus: resolveSourceSyncStatus(row?.syncStatus),
+        lastSyncError: row?.lastSyncError ?? null,
+        lastSyncStartedAt: toISOStringOrNull(row?.lastSyncStartedAt),
+        lastSyncFinishedAt: toISOStringOrNull(row?.lastSyncFinishedAt),
     };
 }
 

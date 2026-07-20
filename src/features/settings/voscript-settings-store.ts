@@ -16,6 +16,7 @@ interface VoScriptSettingsStoreState {
     hasLoaded: boolean;
     isLoading: boolean;
     isSaving: boolean;
+    loadError: string | null;
 }
 
 const listeners = new Set<Listener>();
@@ -26,6 +27,7 @@ function createInitialState(): VoScriptSettingsStoreState {
         hasLoaded: false,
         isLoading: true,
         isSaving: false,
+        loadError: null,
     };
 }
 
@@ -246,6 +248,7 @@ export function ensureVoScriptSettingsLoaded() {
         setStoreState((currentState) => ({
             ...currentState,
             isLoading: true,
+            loadError: null,
         }));
     }
 
@@ -256,13 +259,19 @@ export function ensureVoScriptSettingsLoaded() {
                 settings,
                 hasLoaded: true,
                 isLoading: false,
+                loadError: null,
             }));
             return settings;
         })
         .catch((error) => {
+            const message =
+                error instanceof Error && error.message.trim()
+                    ? error.message
+                    : "Failed to fetch VoScript settings";
             setStoreState((currentState) => ({
                 ...currentState,
                 isLoading: false,
+                loadError: message,
             }));
             throw error;
         })
@@ -296,6 +305,7 @@ export async function saveVoScriptSettings(updates: VoScriptSettingsUpdate) {
             setStoreState((currentState) => ({
                 ...currentState,
                 hasLoaded: true,
+                loadError: null,
             }));
         }
     } catch (error) {
