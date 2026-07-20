@@ -160,6 +160,8 @@ const DASHBOARD_TOPBAR_REQUIRED_CLASS_TOKENS = [
     "px-5",
     "py-3",
     "supports-[backdrop-filter]:bg-background/60",
+    "supports-[backdrop-filter]:backdrop-blur-[28px]",
+    "supports-[backdrop-filter]:backdrop-saturate-[160%]",
     "max-[860px]:min-w-0",
     "max-[860px]:max-w-full",
     "max-[860px]:box-border",
@@ -3736,7 +3738,7 @@ const DASHBOARD_TOPBAR_OWNER_CLASS_INITIALIZERS = [
     {
         property: "topbar",
         expected:
-            "relative flex h-14 flex-none flex-row items-center gap-3.5 border-b border-border bg-background/80 px-5 py-3 supports-[backdrop-filter]:bg-background/60 max-[860px]:min-w-0 max-[860px]:max-w-full max-[860px]:box-border",
+            "relative flex h-14 flex-none flex-row items-center gap-3.5 border-b border-border bg-background/80 px-5 py-3 supports-[backdrop-filter]:bg-background/60 supports-[backdrop-filter]:backdrop-blur-[28px] supports-[backdrop-filter]:backdrop-saturate-[160%] max-[860px]:min-w-0 max-[860px]:max-w-full max-[860px]:box-border",
     },
     {
         property: "crumbs",
@@ -10011,7 +10013,8 @@ describe("full UI replacement regression coverage", () => {
             );
         }
         expect(aiRenamePreview).not.toContain('data-panel="ai-rename-preview"');
-        expect(aiRenamePreview).not.toContain('data-control="ai-rename-');
+        expect(aiRenamePreview).toContain('data-control="ai-rename-preview"');
+        expect(aiRenamePreview).toContain("data-state={state}");
         expect(aiRenamePreview).not.toContain("data-review-");
         for (const retiredAiRenameToken of [
             'className="grid-cols-[1fr_auto] items-start gap-x-2 gap-y-1 border-b border-border px-4 py-3"',
@@ -11911,7 +11914,7 @@ describe("full UI replacement regression coverage", () => {
 
         const transcriptionEmpty = extractElementSlice(
             transcriptionSection,
-            '<Empty className="mt-4">',
+            '<Empty className="mt-4" data-state="empty">',
             "Empty",
         );
         const transcriptionEmptyCta = extractElementSlice(
@@ -11921,7 +11924,7 @@ describe("full UI replacement regression coverage", () => {
         );
         const transcriptionProcessingAlert = extractElementSlice(
             transcriptionSection,
-            '<Alert className="mb-3">',
+            '<Alert className="mb-3" data-state="loading">',
             "Alert",
         );
         const transcriptionErrorAlert = extractElementSlice(

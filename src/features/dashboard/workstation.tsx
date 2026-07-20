@@ -637,7 +637,7 @@ const dashboardButtonClassNames = {
     drawerTrigger:
         "relative hidden h-[2px] w-[22.5px] px-[11.25px] py-px after:absolute after:-inset-[21px] after:content-[''] max-[860px]:inline-flex",
     sidebarCollapse:
-        "absolute top-[18px] -left-[11px] z-[5] size-[22px] rounded-full border-border bg-sidebar p-0 text-muted-foreground shadow-xs hover:bg-accent hover:text-accent-foreground max-[860px]:hidden [&_svg]:size-[11px]",
+        "absolute top-[18px] -left-[11px] z-[5] size-[22px] rounded-full border-border bg-sidebar p-0 text-muted-foreground hover:bg-accent hover:text-accent-foreground max-[860px]:hidden",
     settingsAvatar: "rounded-full text-xs font-semibold",
     listPagination: "text-muted-foreground",
     headerIconButton: "text-muted-foreground",
@@ -4352,7 +4352,7 @@ export function Workstation({
                     >
                         <PanelLeft
                             className={cn(
-                                "transition-transform duration-300",
+                                "size-[11px] transition-transform duration-300",
                                 collapsed && "rotate-180",
                             )}
                             data-icon="inline-start"
