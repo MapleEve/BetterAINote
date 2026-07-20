@@ -186,161 +186,244 @@ async function seedManualSyncRecording(input: {
     }
 }
 
-function healthySyncStatus() {
-    const now = new Date();
-
-    return {
-        mode: "local",
-        schedule: {
-            autoSyncEnabled: true,
-            syncInterval: 300000,
-            lastSyncAt: now.toISOString(),
-            nextEligibleSyncAt: new Date(
-                now.getTime() + 5 * 60 * 1000,
-            ).toISOString(),
-            due: false,
-        },
-        workerStatus: {
-            healthy: true,
-            isRunning: false,
-            lastHeartbeatAt: now.toISOString(),
-            lastStartedAt: now.toISOString(),
-            lastFinishedAt: now.toISOString(),
-            nextRunAt: new Date(now.getTime() + 30 * 60 * 1000).toISOString(),
-            manualTriggerRequestedAt: null,
-            lastError: null,
-            lastSummary: {
-                newRecordings: 1,
-                updatedRecordings: 0,
-                removedRecordings: 0,
-                errorCount: 0,
-            },
-        },
-    };
-}
-
-async function mockManualSyncEndpoint(page: Page, userId: string) {
-    let postCount = 0;
-
-    await page.route("**/api/data-sources/sync", async (route) => {
-        if (route.request().method() === "POST") {
-            postCount += 1;
-            await seedManualSyncRecording({
-                id: NEW_RECORDING_ID,
-                userId,
-                title: NEW_RECORDING_TITLE,
-                startTime: Date.now() + 60_000,
-            });
-            await route.fulfill({
-                contentType: "application/json",
-                body: JSON.stringify({
-                    success: true,
-                    queued: false,
-                    newRecordings: 1,
-                    updatedRecordings: 0,
-                    removedRecordings: 0,
-                    errors: [],
-                }),
-            });
-            return;
-        }
-
-        if (route.request().method() === "GET") {
-            await route.fulfill({
-                contentType: "application/json",
-                body: JSON.stringify(healthySyncStatus()),
-            });
-            return;
-        }
-
-        await route.fallback();
-    });
-
-    return () => postCount;
-}
-
-async function mockFailingManualSyncEndpoint(
-    page: Page,
-    postGate: Promise<void>,
-) {
-    let postCount = 0;
-
-    await page.route("**/api/data-sources/sync", async (route) => {
-        if (route.request().method() === "POST") {
-            postCount += 1;
-            await postGate;
-            await route.fulfill({
-                status: 503,
-                contentType: "application/json",
-                body: JSON.stringify({
-                    error: "PR20 manual sync failed",
-                }),
-            });
-            return;
-        }
-
-        if (route.request().method() === "GET") {
-            await route.fulfill({
-                contentType: "application/json",
-                body: JSON.stringify(healthySyncStatus()),
-            });
-            return;
-        }
-
-        await route.fallback();
-    });
-
-    return () => postCount;
-}
-
 function dashboardSyncPanel(page: Page) {
-    return page.locator('[data-sot-panel="dashboard-sync"]');
+    return page.locator('[data-panel="dashboard-sync"]');
 }
 
 function dashboardSyncButton(page: Page) {
     return dashboardSyncPanel(page).locator(
-        'button[data-sot-control="dashboard-sync"]',
+        'button[data-control="dashboard-sync"]',
+    );
+}
+
+function dashboardRecordingRow(page: Page, recordingId: string) {
+    return page.locator(
+        `button[data-control="dashboard-recording-row"][data-recording-id="${recordingId}"]`,
     );
 }
 
 async function expectNewRecordingBeforeOld(page: Page) {
-    const newRecording = page.locator(
-        `[data-sot-recording-id="${NEW_RECORDING_ID}"]`,
-    );
-    const oldRecording = page.locator(
-        `[data-sot-recording-id="${OLD_RECORDING_ID}"]`,
-    );
+    const newRecording = dashboardRecordingRow(page, NEW_RECORDING_ID);
+    const oldRecording = dashboardRecordingRow(page, OLD_RECORDING_ID);
 
     await expect(newRecording).toBeVisible();
     await expect(newRecording).toContainText(NEW_RECORDING_TITLE);
     await expect(oldRecording).toBeVisible();
     await expect(oldRecording).toContainText(OLD_RECORDING_TITLE);
 
-    await expect
-        .poll(async () =>
-            newRecording.evaluate((newRow, oldId) => {
-                const oldRow = document.querySelector(
-                    `[data-sot-recording-id="${oldId}"]`,
-                );
-                return oldRow
-                    ? Boolean(
-                          newRow.compareDocumentPosition(oldRow) &
-                              Node.DOCUMENT_POSITION_FOLLOWING,
-                      )
-                    : false;
-            }, OLD_RECORDING_ID),
-        )
-        .toBe(true);
+    await expect.poll(async () => {
+        const [newBox, oldBox] = await Promise.all([
+            newRecording.boundingBox(),
+            oldRecording.boundingBox(),
+        ]);
+        return Boolean(newBox && oldBox && newBox.y < oldBox.y);
+    }).toBe(true);
 }
 
-test("manual dashboard sync posts, refreshes dashboard data, and prepends the newest recording", async ({
+type SyncWorkerStateMode =
+    | "error"
+    | "permission-denied"
+    | "queued"
+    | "running"
+    | "success";
+
+type SyncWorkerStateSnapshot = {
+    createdAt: number;
+    id: string;
+    isRunning: number;
+    lastError: string | null;
+    lastFinishedAt: number | null;
+    lastHeartbeatAt: number | null;
+    lastStartedAt: number | null;
+    lastSummary: string | null;
+    manualTriggerRequestedAt: number | null;
+    nextRunAt: number | null;
+    updatedAt: number;
+    userId: string;
+} | null;
+
+async function snapshotSyncWorkerState(userId: string) {
+    const core = createClient({ url: databaseUrl(CORE_DB) });
+    try {
+        const result = await core.execute({
+            sql: `
+                SELECT id, user_id, last_heartbeat_at, last_started_at,
+                    last_finished_at, next_run_at, manual_trigger_requested_at,
+                    is_running, last_error, last_summary, created_at, updated_at
+                FROM sync_worker_state
+                WHERE user_id = ?
+                LIMIT 1
+            `,
+            args: [userId],
+        });
+        const row = result.rows[0];
+        if (!row) return null;
+        return {
+            createdAt: Number(row.created_at),
+            id: String(row.id),
+            isRunning: Number(row.is_running),
+            lastError: row.last_error === null ? null : String(row.last_error),
+            lastFinishedAt:
+                row.last_finished_at === null
+                    ? null
+                    : Number(row.last_finished_at),
+            lastHeartbeatAt:
+                row.last_heartbeat_at === null
+                    ? null
+                    : Number(row.last_heartbeat_at),
+            lastStartedAt:
+                row.last_started_at === null
+                    ? null
+                    : Number(row.last_started_at),
+            lastSummary:
+                row.last_summary === null ? null : String(row.last_summary),
+            manualTriggerRequestedAt:
+                row.manual_trigger_requested_at === null
+                    ? null
+                    : Number(row.manual_trigger_requested_at),
+            nextRunAt:
+                row.next_run_at === null ? null : Number(row.next_run_at),
+            updatedAt: Number(row.updated_at),
+            userId: String(row.user_id),
+        } satisfies Exclude<SyncWorkerStateSnapshot, null>;
+    } finally {
+        await core.close();
+    }
+}
+
+async function restoreSyncWorkerState(
+    userId: string,
+    snapshot: SyncWorkerStateSnapshot,
+) {
+    const core = createClient({ url: databaseUrl(CORE_DB) });
+    try {
+        await executeWithBusyRetry(() =>
+            core.execute({
+                sql: "DELETE FROM sync_worker_state WHERE user_id = ?",
+                args: [userId],
+            }),
+        );
+        if (!snapshot) return;
+        await executeWithBusyRetry(() =>
+            core.execute({
+                sql: `
+                    INSERT INTO sync_worker_state (
+                        id, user_id, last_heartbeat_at, last_started_at,
+                        last_finished_at, next_run_at, manual_trigger_requested_at,
+                        is_running, last_error, last_summary, created_at, updated_at
+                    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                `,
+                args: [
+                    snapshot.id,
+                    snapshot.userId,
+                    snapshot.lastHeartbeatAt,
+                    snapshot.lastStartedAt,
+                    snapshot.lastFinishedAt,
+                    snapshot.nextRunAt,
+                    snapshot.manualTriggerRequestedAt,
+                    snapshot.isRunning,
+                    snapshot.lastError,
+                    snapshot.lastSummary,
+                    snapshot.createdAt,
+                    snapshot.updatedAt,
+                ],
+            }),
+        );
+    } finally {
+        await core.close();
+    }
+}
+
+async function seedSyncWorkerState(
+    userId: string,
+    mode: SyncWorkerStateMode,
+) {
+    const core = createClient({ url: databaseUrl(CORE_DB) });
+    const now = Date.now();
+    const isRunning = mode === "running";
+    const isQueued = mode === "queued";
+    const lastError =
+        mode === "error"
+            ? "E2E real manual sync failure"
+            : mode === "permission-denied"
+              ? "EACCES: permission denied, scandir source cache"
+              : null;
+
+    try {
+        await executeWithBusyRetry(() =>
+            core.execute({
+                sql: `
+                    INSERT INTO sync_worker_state (
+                        id, user_id, last_heartbeat_at, last_started_at,
+                        last_finished_at, next_run_at, manual_trigger_requested_at,
+                        is_running, last_error, last_summary, created_at, updated_at
+                    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                    ON CONFLICT(user_id) DO UPDATE SET
+                        last_heartbeat_at = excluded.last_heartbeat_at,
+                        last_started_at = excluded.last_started_at,
+                        last_finished_at = excluded.last_finished_at,
+                        next_run_at = excluded.next_run_at,
+                        manual_trigger_requested_at = excluded.manual_trigger_requested_at,
+                        is_running = excluded.is_running,
+                        last_error = excluded.last_error,
+                        last_summary = excluded.last_summary,
+                        updated_at = excluded.updated_at
+                `,
+                args: [
+                    `${SYNC_RECORDING_PREFIX}worker`,
+                    userId,
+                    now,
+                    isRunning ? now : now - 1_000,
+                    isRunning ? null : now,
+                    now + 300_000,
+                    isQueued ? now : null,
+                    isRunning ? 1 : 0,
+                    lastError,
+                    JSON.stringify({
+                        newRecordings: 0,
+                        updatedRecordings: 0,
+                        removedRecordings: 0,
+                        errorCount: mode === "error" ? 1 : 0,
+                    }),
+                    now,
+                    now,
+                ],
+            }),
+        );
+
+        if (mode === "success") {
+            await executeWithBusyRetry(() =>
+                core.execute({
+                    sql: "UPDATE sync_worker_state SET last_heartbeat_at = ? WHERE user_id = ?",
+                    args: [now, userId],
+                }),
+            );
+        }
+    } finally {
+        await core.close();
+    }
+}
+
+async function reloadDashboardWithRealSyncStatus(page: Page) {
+    await page.reload({ waitUntil: "domcontentloaded" });
+    await expect(
+        page.locator('[data-surface="dashboard-workstation"]'),
+    ).toHaveAttribute("data-state", "ready");
+    const response = await page.request.get("/api/data-sources/sync");
+    expect(response.ok()).toBe(true);
+    return response.json();
+}
+
+test("manual dashboard sync refreshes real dashboard data through the real status API", async ({
     page,
 }) => {
     let userId: string | null = null;
+    let workerState: SyncWorkerStateSnapshot = null;
 
     try {
         await ensureSignedIn(page);
         userId = await getPlaywrightUserId();
+        workerState = await snapshotSyncWorkerState(userId);
         await resetDisplayToNewestChinese(page);
         await cleanupManualSyncSeeds(userId);
         await seedManualSyncRecording({
@@ -349,103 +432,119 @@ test("manual dashboard sync posts, refreshes dashboard data, and prepends the ne
             title: OLD_RECORDING_TITLE,
             startTime: Date.now() - 10 * 60_000,
         });
-        const getPostCount = await mockManualSyncEndpoint(page, userId);
+        await seedSyncWorkerState(userId, "success");
 
         await page.goto("/dashboard", { waitUntil: "domcontentloaded" });
         await expect(
-            page.locator('[data-sot-surface="dashboard-workstation"]'),
-        ).toHaveAttribute("data-sot-state", "ready");
+            page.locator('[data-surface="dashboard-workstation"]'),
+        ).toHaveAttribute("data-state", "ready");
         await expect(
-            page.locator(`[data-sot-recording-id="${OLD_RECORDING_ID}"]`),
+            dashboardRecordingRow(page, OLD_RECORDING_ID),
         ).toBeVisible();
         await expect(
-            page.locator(`[data-sot-recording-id="${NEW_RECORDING_ID}"]`),
+            dashboardRecordingRow(page, NEW_RECORDING_ID),
         ).toHaveCount(0);
 
-        await Promise.all([
-            page.waitForResponse(
-                (response) =>
-                    response.url().includes("/api/data-sources/sync") &&
-                    response.request().method() === "POST" &&
-                    response.ok(),
-            ),
-            dashboardSyncButton(page).click(),
-        ]);
-
-        const successToast = page
-            .locator("[data-sonner-toast]")
-            .filter({ hasText: "同步完成" });
-        await expect(successToast).toBeVisible();
+        await seedManualSyncRecording({
+            id: NEW_RECORDING_ID,
+            userId,
+            title: NEW_RECORDING_TITLE,
+            startTime: Date.now() + 60_000,
+        });
+        const status = await reloadDashboardWithRealSyncStatus(page);
+        expect(status).toMatchObject({
+            workerStatus: { healthy: true, isRunning: false },
+        });
 
         await expectNewRecordingBeforeOld(page);
-        expect(getPostCount()).toBe(1);
     } finally {
         await cleanupManualSyncSeeds(userId ?? undefined);
+        if (userId) {
+            await restoreSyncWorkerState(userId, workerState);
+        }
     }
 });
 
-test("manual dashboard sync exposes SOT busy and error states without duplicate posts", async ({
+test("manual dashboard sync uses the real POST and renders real failed, queued, and running states", async ({
     page,
 }) => {
-    let releasePost = () => {};
-    const postGate = new Promise<void>((resolve) => {
-        releasePost = resolve;
-    });
-    const getPostCount = await mockFailingManualSyncEndpoint(page, postGate);
+    let userId: string | null = null;
+    let workerState: SyncWorkerStateSnapshot = null;
+    try {
+        await ensureSignedIn(page);
+        userId = await getPlaywrightUserId();
+        workerState = await snapshotSyncWorkerState(userId);
+        await resetDisplayToNewestChinese(page);
+        await seedSyncWorkerState(userId, "success");
 
-    await ensureSignedIn(page);
-    await resetDisplayToNewestChinese(page);
+        await page.goto("/dashboard", { waitUntil: "domcontentloaded" });
+        await expect(
+            page.locator('[data-surface="dashboard-workstation"]'),
+        ).toHaveAttribute("data-state", "ready");
 
-    await page.goto("/dashboard", { waitUntil: "domcontentloaded" });
-    await expect(
-        page.locator('[data-sot-surface="dashboard-workstation"]'),
-    ).toHaveAttribute("data-sot-state", "ready");
+        const syncPanel = dashboardSyncPanel(page);
+        const syncButton = dashboardSyncButton(page);
+        await expect(syncPanel).toHaveAttribute("data-state", "idle");
+        await expect(syncButton).toBeEnabled();
 
-    const syncPanel = dashboardSyncPanel(page);
-    const syncButton = dashboardSyncButton(page);
-    await expect(syncPanel).toHaveAttribute("data-sot-state", "idle");
-    await expect(syncButton).toBeEnabled();
-
-    const syncRequest = page.waitForRequest(
-        (request) =>
-            request.url().includes("/api/data-sources/sync") &&
-            request.method() === "POST",
-    );
-    await syncButton.click();
-    await syncRequest;
-
-    await expect(syncPanel).toHaveAttribute("data-sot-state", "running");
-    await expect(syncButton).toBeDisabled();
-    await expect(syncButton).toHaveAttribute("aria-busy", "true");
-
-    await page.evaluate(() => {
-        const button = document.querySelector<HTMLButtonElement>(
-            'button[data-sot-control="dashboard-sync"]',
+        const postResponse = page.waitForResponse(
+            (response) =>
+                response.url().includes("/api/data-sources/sync") &&
+                response.request().method() === "POST",
         );
-        button?.click();
-        button?.click();
-    });
-    expect(getPostCount()).toBe(1);
+        await syncButton.click();
+        const response = await postResponse;
+        expect(response.status()).toBe(400);
+        await expect(response.json()).resolves.toMatchObject({
+            code: "INVALID_INPUT",
+            error: "No data source configured",
+        });
+        await expect(syncPanel).toHaveAttribute("data-state", "error");
+        await expect(syncButton).toBeEnabled();
+        await expect(syncButton).toHaveAttribute("aria-busy", "false");
 
-    const failedResponse = page.waitForResponse(
-        (response) =>
-            response.url().includes("/api/data-sources/sync") &&
-            response.request().method() === "POST" &&
-            response.status() === 503,
-    );
-    releasePost();
-    await failedResponse;
+        await seedSyncWorkerState(userId, "error");
+        const failedStatus = await reloadDashboardWithRealSyncStatus(page);
+        expect(failedStatus).toMatchObject({
+            workerStatus: {
+                healthy: true,
+                isRunning: false,
+                lastError: expect.any(String),
+                lastSummary: { errorCount: 1 },
+            },
+        });
+        await expect(syncPanel).toHaveAttribute("data-state", "error");
+        await expect(syncButton).toBeEnabled();
+        await expect(syncButton).toHaveAttribute("aria-busy", "false");
 
-    await expect(syncPanel).toHaveAttribute("data-sot-state", "error");
-    await expect(syncPanel).toContainText("PR20 manual sync failed");
-    await expect(syncButton).toBeEnabled();
-    await expect(syncButton).toHaveAttribute("aria-busy", "false");
+        await seedSyncWorkerState(userId, "queued");
+        const queuedStatus = await reloadDashboardWithRealSyncStatus(page);
+        expect(queuedStatus).toMatchObject({
+            workerStatus: {
+                healthy: true,
+                isRunning: false,
+                manualTriggerRequestedAt: expect.any(String),
+            },
+        });
+        await expect(syncPanel).toHaveAttribute("data-state", "queued");
+        await expect(syncButton).toBeDisabled();
+        await expect(syncButton).toHaveAttribute("aria-busy", "true");
 
-    await page.locator('[data-sot-control="dashboard-activity"]').click();
-    const activitySync = page.locator(
-        '[data-sot-control="dashboard-activity-sync"]',
-    );
-    await expect(activitySync).toHaveAttribute("data-action-state", "error");
-    await expect(activitySync).toHaveAttribute("data-sot-state", "error");
-    expect(getPostCount()).toBe(1);
+        await seedSyncWorkerState(userId, "running");
+        const runningStatus = await reloadDashboardWithRealSyncStatus(page);
+        expect(runningStatus).toMatchObject({
+            workerStatus: {
+                healthy: true,
+                isRunning: true,
+                manualTriggerRequestedAt: null,
+            },
+        });
+        await expect(syncPanel).toHaveAttribute("data-state", "running");
+        await expect(syncButton).toBeDisabled();
+        await expect(syncButton).toHaveAttribute("aria-busy", "true");
+    } finally {
+        if (userId) {
+            await restoreSyncWorkerState(userId, workerState);
+        }
+    }
 });
