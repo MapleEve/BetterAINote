@@ -5,6 +5,15 @@ import {
     getDataSourceSyncStatusForUser,
     runManualDataSourceSyncForUser,
 } from "@/server/modules/data-sources";
+import { createDataSourceSyncPublicErrorResponse } from "@/server/modules/data-sources/data-source-sync-public-errors";
+
+function createSyncErrorResponse(error: unknown) {
+    if (error instanceof AppError) {
+        return createErrorResponse(error, ErrorCode.DATA_SOURCE_SYNC_ERROR);
+    }
+
+    return createDataSourceSyncPublicErrorResponse(error);
+}
 
 export async function GET(request: Request) {
     try {
@@ -29,10 +38,7 @@ export async function GET(request: Request) {
         );
     } catch (error) {
         console.error("Error fetching data source sync status:", error);
-        const response = createErrorResponse(
-            error,
-            ErrorCode.DATA_SOURCE_SYNC_ERROR,
-        );
+        const response = createSyncErrorResponse(error);
         return NextResponse.json(response.body, { status: response.status });
     }
 }
@@ -60,10 +66,7 @@ export async function POST(request: Request) {
         );
     } catch (error) {
         console.error("Error syncing data sources:", error);
-        const response = createErrorResponse(
-            error,
-            ErrorCode.DATA_SOURCE_SYNC_ERROR,
-        );
+        const response = createSyncErrorResponse(error);
         return NextResponse.json(response.body, { status: response.status });
     }
 }
