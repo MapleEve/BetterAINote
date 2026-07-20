@@ -514,6 +514,20 @@ function getProviderStatus(
         };
     }
 
+    if (
+        source.syncStatus === "error" &&
+        source.lastSyncError === "permission-denied"
+    ) {
+        return {
+            description: isZh
+                ? "当前来源没有读取新录音所需的权限，请更新授权后重试。"
+                : "This source does not have permission to read new recordings. Update its authorization and try again.",
+            label: isZh ? "需要授权" : "Permission required",
+            state: "permission",
+            tone: "err",
+        };
+    }
+
     if (source.syncStatus === "error") {
         return {
             description: getPublicSyncErrorDescription(source, isZh),
