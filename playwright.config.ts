@@ -110,7 +110,6 @@ export default defineConfig({
               command: `node scripts/e2e-setup.mjs && cd ${e2eAppDir} && bunx next dev --webpack --hostname ${appUrl.hostname} --port ${appUrl.port || "3101"}`,
               cwd: __dirname,
               env: e2eEnv,
-              reuseExistingServer: true,
               timeout: 180_000,
               url: `${baseURL}/register`,
           }

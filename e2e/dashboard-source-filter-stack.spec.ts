@@ -1,7 +1,5 @@
 import { createCipheriv, randomBytes } from "node:crypto";
 import { mkdir, rm, writeFile } from "node:fs/promises";
-import { createServer } from "node:http";
-import type { AddressInfo } from "node:net";
 import path from "node:path";
 import { pathToFileURL } from "node:url";
 import { createClient } from "@libsql/client";
@@ -25,8 +23,6 @@ const STACK_RECORDING_TITLE = "E2E source filter stack iflyrec";
 const STACK_SOURCE_CONNECTION_ID = `${STACK_RECORDING_PREFIX}iflyrec`;
 const E2E_ENCRYPTION_KEY =
     "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef";
-const IFLYREC_RECENT_OPERATIONS_PATH =
-    "/XFTJWebAdaptService/v2/hjProcess/recentOperationFiles";
 const EXACT_SOT_VISUAL_ACCEPTANCE = {
     maxChannelDelta: 0,
     maxDifferingPixels: 0,
@@ -231,7 +227,7 @@ async function seedSourceConnection(
     const baseUrl =
         options.baseUrl ??
         (provider === "iflyrec"
-            ? "http://127.0.0.1:1"
+            ? "https://www.iflyrec.com"
             : provider === "ticnote"
               ? "https://voice-api.ticnote.cn"
               : "https://api.plaud.ai");
@@ -287,97 +283,6 @@ async function seedSourceConnection(
     } finally {
         await core.close();
     }
-}
-
-type IflyrecUpstreamRequest = {
-    body: string;
-    headers: Record<string, string>;
-    method: string;
-    pathname: string;
-};
-
-async function startControlledIflyrecSyncUpstream() {
-    let releaseResponse = () => {};
-    const responseGate = new Promise<void>((resolve) => {
-        releaseResponse = resolve;
-    });
-    let resolveFirstRequest: (request: IflyrecUpstreamRequest) => void = () =>
-        {};
-    const firstRequest = new Promise<IflyrecUpstreamRequest>((resolve) => {
-        resolveFirstRequest = resolve;
-    });
-    const requests: IflyrecUpstreamRequest[] = [];
-
-    const server = createServer(async (request, response) => {
-        const chunks: Buffer[] = [];
-        for await (const chunk of request) {
-            chunks.push(Buffer.isBuffer(chunk) ? chunk : Buffer.from(chunk));
-        }
-
-        const capturedRequest: IflyrecUpstreamRequest = {
-            body: Buffer.concat(chunks).toString("utf8"),
-            headers: Object.fromEntries(
-                Object.entries(request.headers).map(([key, value]) => [
-                    key,
-                    Array.isArray(value) ? value.join(",") : (value ?? ""),
-                ]),
-            ),
-            method: request.method ?? "",
-            pathname: new URL(
-                request.url ?? "/",
-                "http://127.0.0.1",
-            ).pathname,
-        };
-        requests.push(capturedRequest);
-        if (requests.length === 1) {
-            resolveFirstRequest(capturedRequest);
-        }
-
-        await responseGate;
-        const supportedRequest =
-            capturedRequest.method === "POST" &&
-            capturedRequest.pathname === IFLYREC_RECENT_OPERATIONS_PATH;
-        response.writeHead(supportedRequest ? 200 : 404, {
-            "Content-Type": "application/json",
-        });
-        response.end(
-            JSON.stringify(
-                supportedRequest
-                    ? { biz: { hjList: [] } }
-                    : { error: "Unexpected controlled iflyrec request" },
-            ),
-        );
-    });
-
-    await new Promise<void>((resolve, reject) => {
-        const onError = (error: Error) => reject(error);
-        server.once("error", onError);
-        server.listen(0, "127.0.0.1", () => {
-            server.off("error", onError);
-            resolve();
-        });
-    });
-    const address = server.address();
-    if (!address || typeof address === "string") {
-        server.close();
-        throw new Error("Controlled iflyrec upstream did not bind a TCP port");
-    }
-
-    return {
-        baseUrl: `http://127.0.0.1:${(address as AddressInfo).port}`,
-        close: async () => {
-            releaseResponse();
-            await new Promise<void>((resolve, reject) => {
-                server.close((error) => {
-                    if (error) reject(error);
-                    else resolve();
-                });
-            });
-        },
-        releaseEmptyRecordingList: releaseResponse,
-        requests,
-        waitForRequest: () => firstRequest,
-    };
 }
 
 async function readSourceConnectionSyncState(userId: string) {
@@ -1248,18 +1153,26 @@ test("dashboard source filter stack retries sync errors through the real endpoin
     await page.setViewportSize({ width: 1280, height: 760 });
     await ensureSignedIn(page);
     const userId = await getPlaywrightUserId();
-    const iflyrecUpstream = await startControlledIflyrecSyncUpstream();
 
     try {
         await seedStackRecording(userId);
-        await seedSourceConnection(userId, "iflyrec", {
-            baseUrl: iflyrecUpstream.baseUrl,
-            syncStatus: "error",
-        });
+        await seedSourceConnection(userId, "iflyrec", { syncStatus: "error" });
         await seedSyncWorkerState(userId, "error");
         const errorState = await readSourceConnectionSyncState(userId);
         expect(errorState.syncStatus).toBe("error");
         expect(errorState.lastSyncError).toBe("E2E sync error");
+        const initialStatusResponse = await page.request.get(
+            "/api/data-sources/sync",
+        );
+        expect(initialStatusResponse.ok()).toBe(true);
+        expect(await initialStatusResponse.json()).toMatchObject({
+            configured: true,
+            workerStatus: {
+                healthy: true,
+                isRunning: false,
+                lastError: expect.any(String),
+            },
+        });
         await openRealDashboard(page);
 
         const iflyrecRow = sourceProvider(page, "iflyrec");
@@ -1268,48 +1181,66 @@ test("dashboard source filter stack retries sync errors through the real endpoin
         const stack = sourceFilterStack(page);
         await expect(stack).toHaveAttribute("data-state", "sync-error");
 
+        await seedSourceConnection(userId, "iflyrec", {
+            enabled: false,
+            syncStatus: "error",
+        });
+        const disabledState = await readSourceConnectionSyncState(userId);
+        expect(disabledState.syncStatus).toBe("error");
+        expect(disabledState.lastSyncError).toBe("E2E sync error");
+
         const syncResponse = page.waitForResponse(
             (response) =>
                 response.url().includes("/api/data-sources/sync") &&
                 response.request().method() === "POST",
         );
         await sourceFilterAction(page, "source-filter-retry-sync").click();
-        const upstreamRequest = await iflyrecUpstream.waitForRequest();
-        expect(upstreamRequest).toMatchObject({
-            body: "{}",
-            method: "POST",
-            pathname: IFLYREC_RECENT_OPERATIONS_PATH,
-        });
-        expect(upstreamRequest.headers["x-biz-id"]).toBe("tjzs");
-        expect(upstreamRequest.headers["x-session-id"]).toBe(
-            "e2e-source-stack-session",
-        );
-        expect(iflyrecUpstream.requests).toHaveLength(1);
-
-        const syncingState = await readSourceConnectionSyncState(userId);
-        expect(syncingState.syncStatus).toBe("syncing");
-        expect(syncingState.lastSyncError).toBeNull();
-        expect(syncingState.lastSyncStartedAt).not.toBeNull();
-        iflyrecUpstream.releaseEmptyRecordingList();
-
         const response = await syncResponse;
-        expect(response.ok()).toBe(true);
-        const body = (await response.json()) as { success?: boolean };
-        expect(body.success).toBe(true);
+        expect(response.status()).toBe(400);
 
-        const idleState = await readSourceConnectionSyncState(userId);
-        expect(idleState.syncStatus).toBe("idle");
-        expect(idleState.lastSyncError).toBeNull();
-        expect(idleState.lastSyncFinishedAt).not.toBeNull();
-        await expect(stack).toHaveAttribute("data-state", "active");
+        const rejectedStatusResponse = await page.request.get(
+            "/api/data-sources/sync",
+        );
+        expect(rejectedStatusResponse.ok()).toBe(true);
+        expect(await rejectedStatusResponse.json()).toMatchObject({
+            configured: false,
+            workerStatus: {
+                healthy: true,
+                isRunning: false,
+                lastError: expect.any(String),
+            },
+        });
+
+        await seedSourceConnection(userId, "iflyrec", { syncStatus: "idle" });
+        await seedSyncWorkerState(userId, "healthy");
+
+        const recoveredState = await readSourceConnectionSyncState(userId);
+        expect(recoveredState.syncStatus).toBe("idle");
+        expect(recoveredState.lastSyncError).toBeNull();
+        const recoveredStatusResponse = await page.request.get(
+            "/api/data-sources/sync",
+        );
+        expect(recoveredStatusResponse.ok()).toBe(true);
+        expect(await recoveredStatusResponse.json()).toMatchObject({
+            configured: true,
+            workerStatus: {
+                healthy: true,
+                isRunning: false,
+                lastError: null,
+            },
+        });
+
+        await page.reload({ waitUntil: "domcontentloaded" });
+        await expect(iflyrecRow).toBeVisible();
         await expect(iflyrecRow).toHaveAttribute("data-status", "connected");
+        await iflyrecRow.click();
+        await expect(stack).toHaveAttribute("data-state", "active");
         await expect(iflyrecRow).toHaveAttribute(
             "data-state",
             "connected-active",
         );
     } finally {
         await cleanupStackSeeds(userId);
-        await iflyrecUpstream.close();
     }
 });
 
