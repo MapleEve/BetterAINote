@@ -326,6 +326,7 @@ export function RecordingWorkstation({
     const [moreOpen, setMoreOpen] = useState(false);
     const moreAnchorRef = useRef<HTMLDivElement>(null);
     const moreTriggerRef = useRef<HTMLButtonElement>(null);
+    const autoRenameTriggerRef = useRef<HTMLButtonElement>(null);
     const autoRenameRequestIdRef = useRef(0);
     const previousRecordingIdRef = useRef(recording.id);
     const canRenameRecording = canRecordingRename(recording.sourceProvider);
@@ -598,6 +599,10 @@ export function RecordingWorkstation({
         setAutoRenamePreview(null);
         setAutoRenameError(null);
         setAutoRenameUnavailableOpen(false);
+
+        requestAnimationFrame(() => {
+            autoRenameTriggerRef.current?.focus({ preventScroll: true });
+        });
     }, []);
 
     const handleAutoRenamePreviewApply = useCallback(async () => {
@@ -856,7 +861,8 @@ export function RecordingWorkstation({
                 closeLabel={t("transcription.aiRenameClosePreview")}
                 isApplying={false}
                 isRegenerating={isAutoRenaming}
-                message="这次没拿到结果，可能是转写太短或模型暂时不可用。"
+                hint="请检查 AI 重命名服务配置后重试。"
+                message={autoRenameError}
                 onApply={handleAutoRenamePreviewApply}
                 onCancel={handleAutoRenamePreviewCancel}
                 onRegenerate={handleAutoRename}
@@ -1239,6 +1245,7 @@ export function RecordingWorkstation({
                                             t("transcription.aiRename")
                                         }
                                         data-rh-ai-trigger
+                                        ref={autoRenameTriggerRef}
                                         data-control="ai-rename"
                                         data-part="detail-header-action"
                                         data-mode="normal"
