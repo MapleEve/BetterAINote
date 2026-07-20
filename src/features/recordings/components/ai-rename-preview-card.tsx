@@ -139,6 +139,14 @@ export function AiRenamePreviewCard({
                 sideOffset={8}
                 avoidCollisions={false}
                 onOpenAutoFocus={(event) => event.preventDefault()}
+                onEscapeKeyDown={(event) => {
+                    if (!onCancel) {
+                        return;
+                    }
+
+                    event.preventDefault();
+                    onCancel();
+                }}
                 className={cn(aiRenamePreviewClassNames.card.root, className)}
                 aria-labelledby={titleId}
                 aria-describedby={subtitle ? descriptionId : undefined}
