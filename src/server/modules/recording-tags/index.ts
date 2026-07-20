@@ -26,6 +26,25 @@ export class RecordingTagError extends Error {
     }
 }
 
+function isUniqueConstraintError(error: unknown) {
+    const visited = new Set<unknown>();
+    let current = error;
+
+    while (current instanceof Error && !visited.has(current)) {
+        visited.add(current);
+        if (
+            /UNIQUE constraint failed|SQLITE_CONSTRAINT_UNIQUE/i.test(
+                current.message,
+            )
+        ) {
+            return true;
+        }
+        current = (current as Error & { cause?: unknown }).cause;
+    }
+
+    return false;
+}
+
 function serializeTag(
     tag: typeof recordingTags.$inferSelect,
     recordingCount?: number,
@@ -100,10 +119,91 @@ export async function createRecordingTag(
 
         return serializeTag(tag);
     } catch (error) {
-        if (
-            error instanceof Error &&
-            error.message.includes("UNIQUE constraint failed")
-        ) {
+        if (isUniqueConstraintError(error)) {
+            throw new RecordingTagError("Tag name already exists", 409);
+        }
+
+        throw error;
+    }
+}
+
+export async function updateRecordingTag(
+    userId: string,
+    tagId: string,
+    input: {
+        name?: unknown;
+        color?: unknown;
+        icon?: unknown;
+    },
+) {
+    const [existingTag] = await db
+        .select()
+        .from(recordingTags)
+        .where(
+            and(eq(recordingTags.id, tagId), eq(recordingTags.userId, userId)),
+        )
+        .limit(1);
+
+    if (!existingTag) {
+        throw new RecordingTagError("Tag not found", 404);
+    }
+
+    const name = normalizeRecordingTagName(input.name);
+    if (!isValidRecordingTagName(name)) {
+        throw new RecordingTagError("Tag name must be 1-12 characters", 400);
+    }
+
+    const color = isRecordingTagColor(input.color)
+        ? input.color
+        : existingTag.color;
+    const icon = isRecordingTagIcon(input.icon) ? input.icon : existingTag.icon;
+
+    try {
+        const [tag] = await db
+            .update(recordingTags)
+            .set({
+                name,
+                color,
+                icon,
+                updatedAt: new Date(),
+            })
+            .where(
+                and(
+                    eq(recordingTags.id, tagId),
+                    eq(recordingTags.userId, userId),
+                ),
+            )
+            .returning();
+
+        const assignments = await db
+            .select({ recordingId: recordingTagAssignments.recordingId })
+            .from(recordingTagAssignments)
+            .where(
+                and(
+                    eq(recordingTagAssignments.userId, userId),
+                    eq(recordingTagAssignments.tagId, tagId),
+                ),
+            );
+
+        await enqueueSearchIndexJob({
+            userId,
+            entityType: "tag",
+            entityId: tag.id,
+        });
+
+        for (const recordingId of new Set(
+            assignments.map((assignment) => assignment.recordingId),
+        )) {
+            await enqueueSearchIndexJob({
+                userId,
+                entityType: "recording",
+                entityId: recordingId,
+            });
+        }
+
+        return serializeTag(tag, assignments.length);
+    } catch (error) {
+        if (isUniqueConstraintError(error)) {
             throw new RecordingTagError("Tag name already exists", 409);
         }
 
