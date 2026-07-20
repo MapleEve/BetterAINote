@@ -3335,7 +3335,7 @@ describe("settings SOT interaction regressions", () => {
         expect(segmentControl).toContain("disabled={disabled}");
         expect(segmentControl).not.toContain("data-sot-");
         expect(dialog).toContain("aria-busy={isSettingsBusy}");
-        expect(dialog).toContain('aria-current={');
+        expect(dialog).toContain("aria-current={");
         expect(dialog).not.toContain("data-sot-");
     });
 
