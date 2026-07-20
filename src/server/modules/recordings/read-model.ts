@@ -1,4 +1,17 @@
-import { and, asc, desc, eq, gte, inArray, lte } from "drizzle-orm";
+import {
+    and,
+    asc,
+    count,
+    desc,
+    eq,
+    gte,
+    inArray,
+    like,
+    lt,
+    lte,
+    notInArray,
+    or,
+} from "drizzle-orm";
 import { db } from "@/db";
 import {
     recordings,
@@ -28,7 +41,42 @@ type RecordingListFilters = {
     from?: Date | null;
     to?: Date | null;
     limit?: number;
+    page?: number;
+    pageSize?: number;
+    query?: string | null;
+    source?: string | null;
+    favorite?: "all" | "transcribed" | "tags";
+    tagId?: string | null;
+    tagName?: string | null;
+    untagged?: boolean;
+    speaker?: string | null;
+    timeline?: "all" | "today" | "yesterday" | "earlier";
 };
+
+export type RecordingListPagination = {
+    page: number;
+    pageSize: number;
+    total: number;
+};
+
+export function resolveRecordingPagination(
+    total: number,
+    pageSize: number,
+    requestedPage: number,
+): RecordingListPagination {
+    const normalizedTotal = Math.max(0, total);
+    const normalizedPageSize = Math.min(Math.max(Math.floor(pageSize), 1), 200);
+    const totalPages = Math.max(
+        1,
+        Math.ceil(normalizedTotal / normalizedPageSize),
+    );
+
+    return {
+        page: Math.min(Math.max(1, Math.floor(requestedPage)), totalPages),
+        pageSize: normalizedPageSize,
+        total: normalizedTotal,
+    };
+}
 
 type RecordingDetailReadOptions = {
     includeSegments?: boolean;
@@ -87,10 +135,16 @@ async function listRecordingRowsForUser(
     userId: string,
     filters: RecordingListFilters = {},
 ) {
+    const pageSize = filters.pageSize ?? filters.limit ?? 50;
+    const requestedPage = filters.page ?? 1;
     const clauses = [
         eq(recordings.userId, userId),
         eq(recordings.upstreamTrashed, false),
     ];
+
+    if (filters.source?.trim()) {
+        clauses.push(eq(recordings.sourceProvider, filters.source.trim()));
+    }
 
     if (filters.from) {
         clauses.push(gte(recordings.startTime, filters.from));
@@ -100,17 +154,194 @@ async function listRecordingRowsForUser(
         clauses.push(lte(recordings.startTime, filters.to));
     }
 
-    const query = db
-        .select(recordingListSelection)
-        .from(recordings)
-        .where(and(...clauses))
-        .orderBy(desc(recordings.startTime));
-
-    if (typeof filters.limit === "number") {
-        return query.limit(filters.limit);
+    if (filters.query?.trim()) {
+        const pattern = `%${filters.query.trim()}%`;
+        const transcriptRows = await db
+            .select({ recordingId: transcriptions.recordingId })
+            .from(transcriptions)
+            .where(
+                and(
+                    eq(transcriptions.userId, userId),
+                    like(transcriptions.text, pattern),
+                ),
+            );
+        const transcriptIds = transcriptRows.map((row) => row.recordingId);
+        const matchingTags = await db
+            .select({ id: recordingTags.id })
+            .from(recordingTags)
+            .where(
+                and(
+                    eq(recordingTags.userId, userId),
+                    like(recordingTags.name, pattern),
+                ),
+            );
+        const matchingTagIds = matchingTags.map((tag) => tag.id);
+        const matchingAssignments =
+            matchingTagIds.length > 0
+                ? await db
+                      .select({
+                          recordingId: recordingTagAssignments.recordingId,
+                      })
+                      .from(recordingTagAssignments)
+                      .where(
+                          and(
+                              eq(recordingTagAssignments.userId, userId),
+                              inArray(
+                                  recordingTagAssignments.tagId,
+                                  matchingTagIds,
+                              ),
+                          ),
+                      )
+                : [];
+        const queryClauses = [
+            like(recordings.filename, pattern),
+            like(recordings.sourceProvider, pattern),
+        ];
+        if (transcriptIds.length > 0) {
+            queryClauses.push(inArray(recordings.id, transcriptIds));
+        }
+        const tagRecordingIds = matchingAssignments.map(
+            (assignment) => assignment.recordingId,
+        );
+        if (tagRecordingIds.length > 0) {
+            queryClauses.push(inArray(recordings.id, tagRecordingIds));
+        }
+        const queryClause = or(...queryClauses);
+        if (queryClause) {
+            clauses.push(queryClause);
+        }
     }
 
-    return query;
+    if (filters.favorite === "transcribed" || filters.speaker?.trim()) {
+        const transcriptClauses = [eq(transcriptions.userId, userId)];
+        if (filters.speaker?.trim()) {
+            transcriptClauses.push(
+                like(transcriptions.speakerMap, `%${filters.speaker.trim()}%`),
+            );
+        }
+        const transcriptRows = await db
+            .select({ recordingId: transcriptions.recordingId })
+            .from(transcriptions)
+            .where(and(...transcriptClauses));
+        const recordingIds = transcriptRows.map((row) => row.recordingId);
+        if (recordingIds.length === 0) {
+            return {
+                pagination: resolveRecordingPagination(
+                    0,
+                    pageSize,
+                    requestedPage,
+                ),
+                recordingRows: [],
+            };
+        }
+        clauses.push(inArray(recordings.id, recordingIds));
+    }
+
+    if (
+        filters.favorite === "tags" ||
+        filters.tagId?.trim() ||
+        filters.tagName?.trim() ||
+        filters.untagged
+    ) {
+        const assignmentClauses = [eq(recordingTagAssignments.userId, userId)];
+        if (filters.tagId?.trim()) {
+            assignmentClauses.push(
+                eq(recordingTagAssignments.tagId, filters.tagId.trim()),
+            );
+        } else if (filters.tagName?.trim()) {
+            const tags = await db
+                .select({ id: recordingTags.id })
+                .from(recordingTags)
+                .where(
+                    and(
+                        eq(recordingTags.userId, userId),
+                        eq(recordingTags.name, filters.tagName.trim()),
+                    ),
+                );
+            const tagIds = tags.map((tag) => tag.id);
+            if (tagIds.length === 0) {
+                return {
+                    pagination: resolveRecordingPagination(
+                        0,
+                        pageSize,
+                        requestedPage,
+                    ),
+                    recordingRows: [],
+                };
+            }
+            assignmentClauses.push(
+                inArray(recordingTagAssignments.tagId, tagIds),
+            );
+        }
+        const assignments = await db
+            .select({ recordingId: recordingTagAssignments.recordingId })
+            .from(recordingTagAssignments)
+            .where(and(...assignmentClauses));
+        const recordingIds = assignments.map(
+            (assignment) => assignment.recordingId,
+        );
+
+        if (filters.untagged) {
+            if (recordingIds.length > 0) {
+                clauses.push(notInArray(recordings.id, recordingIds));
+            }
+        } else if (recordingIds.length === 0) {
+            return {
+                pagination: resolveRecordingPagination(
+                    0,
+                    pageSize,
+                    requestedPage,
+                ),
+                recordingRows: [],
+            };
+        } else {
+            clauses.push(inArray(recordings.id, recordingIds));
+        }
+    }
+
+    if (filters.timeline && filters.timeline !== "all") {
+        const today = new Date();
+        today.setHours(0, 0, 0, 0);
+        const yesterday = new Date(today);
+        yesterday.setDate(yesterday.getDate() - 1);
+        if (filters.timeline === "today") {
+            clauses.push(gte(recordings.startTime, today));
+        } else if (filters.timeline === "yesterday") {
+            const yesterdayClause = and(
+                gte(recordings.startTime, yesterday),
+                lt(recordings.startTime, today),
+            );
+            if (yesterdayClause) {
+                clauses.push(yesterdayClause);
+            }
+        } else {
+            clauses.push(lt(recordings.startTime, yesterday));
+        }
+    }
+
+    const where = and(...clauses);
+    const [{ total }] = await db
+        .select({ total: count() })
+        .from(recordings)
+        .where(where);
+    const pagination = resolveRecordingPagination(
+        Number(total),
+        pageSize,
+        requestedPage,
+    );
+
+    const recordingRows = await db
+        .select(recordingListSelection)
+        .from(recordings)
+        .where(where)
+        .orderBy(desc(recordings.startTime))
+        .limit(pagination.pageSize)
+        .offset((pagination.page - 1) * pagination.pageSize);
+
+    return {
+        pagination,
+        recordingRows,
+    };
 }
 
 async function listRecordingRelationsForUser(
@@ -218,8 +449,14 @@ async function listTranscriptSegmentsForUser(
         .orderBy(asc(transcriptSegments.sortSeqMs));
 }
 
-export async function getDashboardRecordingsPageData(userId: string) {
-    const recordingRows = await listRecordingRowsForUser(userId);
+export async function getDashboardRecordingsPageData(
+    userId: string,
+    filters: RecordingListFilters = {},
+) {
+    const { pagination, recordingRows } = await listRecordingRowsForUser(
+        userId,
+        filters,
+    );
     const recordingIds = recordingRows.map((recording) => recording.id);
     const [{ transcriptionRows, transcriptionJobRows }, recordingTagRows] =
         await Promise.all([
@@ -231,6 +468,7 @@ export async function getDashboardRecordingsPageData(userId: string) {
     const tagsByRecordingId = buildRecordingTagMap(recordingTagRows);
 
     return {
+        pagination,
         recordings: recordingRows.map((recording) =>
             serializeRecordingWithTags(
                 recording,
@@ -345,14 +583,37 @@ export async function queryRecordingsForUser(
         from = null,
         to = null,
         limit,
+        page,
+        pageSize,
+        query,
+        source,
+        favorite,
+        tagId,
+        tagName,
+        untagged,
+        speaker,
+        timeline,
         includeTranscript,
     }: RecordingListFilters & { includeTranscript: boolean },
 ) {
-    const recordingRows = await listRecordingRowsForUser(userId, {
-        from,
-        to,
-        limit,
-    });
+    const { pagination, recordingRows } = await listRecordingRowsForUser(
+        userId,
+        {
+            from,
+            to,
+            limit,
+            page,
+            pageSize,
+            query,
+            source,
+            favorite,
+            tagId,
+            tagName,
+            untagged,
+            speaker,
+            timeline,
+        },
+    );
     const recordingIds = recordingRows.map((recording) => recording.id);
     const [{ transcriptionRows, transcriptionJobRows }, recordingTagRows] =
         await Promise.all([
@@ -372,13 +633,16 @@ export async function queryRecordingsForUser(
         transcriptionJobRows.map((row) => [row.recordingId, row]),
     );
 
-    return recordingRows.map((recording) =>
-        serializeQueriedRecording(
-            recording,
-            transcriptionsByRecordingId.get(recording.id),
-            jobsByRecordingId.get(recording.id),
-            includeTranscript,
-            tagsByRecordingId.get(recording.id),
+    return {
+        pagination,
+        recordings: recordingRows.map((recording) =>
+            serializeQueriedRecording(
+                recording,
+                transcriptionsByRecordingId.get(recording.id),
+                jobsByRecordingId.get(recording.id),
+                includeTranscript,
+                tagsByRecordingId.get(recording.id),
+            ),
         ),
-    );
+    };
 }

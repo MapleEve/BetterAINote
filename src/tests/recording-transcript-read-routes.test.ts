@@ -245,24 +245,32 @@ describe("Read-only transcript routes", () => {
         (db.select as Mock)
             .mockReturnValueOnce({
                 from: vi.fn().mockReturnValue({
+                    where: vi.fn().mockResolvedValue([{ total: 1 }]),
+                }),
+            })
+            .mockReturnValueOnce({
+                from: vi.fn().mockReturnValue({
                     where: vi.fn().mockReturnValue({
                         orderBy: vi.fn().mockReturnValue({
-                            limit: vi.fn().mockResolvedValue([
-                                {
-                                    id: "rec-1",
-                                    filename: "Call",
-                                    startTime: new Date(
-                                        "2026-04-18T10:00:00.000Z",
-                                    ),
-                                    duration: 120000,
-                                    filesize: 1234,
-                                    sourceProvider: "ticnote",
-                                    sourceRecordingId: "source-rec-1",
-                                    providerDeviceId: "device-1",
-                                    upstreamDeleted: false,
-                                    storagePath: "user-1/recordings/rec-1.mp3",
-                                },
-                            ]),
+                            limit: vi.fn().mockReturnValue({
+                                offset: vi.fn().mockResolvedValue([
+                                    {
+                                        id: "rec-1",
+                                        filename: "Call",
+                                        startTime: new Date(
+                                            "2026-04-18T10:00:00.000Z",
+                                        ),
+                                        duration: 120000,
+                                        filesize: 1234,
+                                        sourceProvider: "ticnote",
+                                        sourceRecordingId: "source-rec-1",
+                                        providerDeviceId: "device-1",
+                                        upstreamDeleted: false,
+                                        storagePath:
+                                            "user-1/recordings/rec-1.mp3",
+                                    },
+                                ]),
+                            }),
                         }),
                     }),
                 }),
@@ -317,6 +325,11 @@ describe("Read-only transcript routes", () => {
         expect(response.headers.get("Cache-Control")).toBe("private, no-store");
 
         const json = await response.json();
+        expect(json.pagination).toEqual({
+            page: 1,
+            pageSize: 50,
+            total: 1,
+        });
         expect(json.recordings).toHaveLength(1);
         expect(json.recordings[0].rawTranscriptUrl).toBe(
             "/api/recordings/rec-1/transcript/raw",

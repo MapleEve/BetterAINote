@@ -179,15 +179,55 @@ type TranscriptionJobData = {
     lastError?: string | null;
 };
 
+type QueriedRecording = Recording & {
+    transcript?: {
+        rawText?: string | null;
+        detectedLanguage?: string | null;
+        speakerMap?: Record<string, string> | null;
+    } | null;
+    transcriptionJob?: TranscriptionJobData | null;
+};
+
+type RecordingQueryResponse = {
+    recordings: QueriedRecording[];
+    pagination: {
+        page: number;
+        pageSize: number;
+        total: number;
+    };
+};
+
 type WorkstationProps = {
     recordings: Recording[];
     transcriptions: Map<string, TranscriptionData>;
     transcriptionJobs: Map<string, TranscriptionJobData>;
+    pagination?: RecordingQueryResponse["pagination"];
     user?: {
         email?: string | null;
         name?: string | null;
     };
 };
+
+function buildPagedRecordingMaps(recordings: QueriedRecording[]) {
+    const transcriptions = new Map<string, TranscriptionData>();
+    const transcriptionJobs = new Map<string, TranscriptionJobData>();
+
+    for (const recording of recordings) {
+        if (recording.transcript) {
+            transcriptions.set(recording.id, {
+                hasTranscript: Boolean(recording.transcript.rawText?.trim()),
+                text: recording.transcript.rawText ?? null,
+                language: recording.transcript.detectedLanguage ?? null,
+                speakerMap: recording.transcript.speakerMap ?? null,
+            });
+        }
+        if (recording.transcriptionJob) {
+            transcriptionJobs.set(recording.id, recording.transcriptionJob);
+        }
+    }
+
+    return { transcriptions, transcriptionJobs };
+}
 
 type Favorite = "all" | "transcribed" | "tags";
 type DetailTab = "transcript" | "speakers" | "source";
@@ -1666,6 +1706,7 @@ export function Workstation({
     recordings,
     transcriptions,
     transcriptionJobs,
+    pagination,
     user,
 }: WorkstationProps) {
     const confirm = useConfirmDialog();
@@ -1675,6 +1716,7 @@ export function Workstation({
         useDisplaySettingsStore();
     const { hasLoaded: playbackSettingsLoaded, settings: playbackSettings } =
         usePlaybackSettingsStore();
+    const itemsPerPage = Math.max(1, displaySettings.itemsPerPage || 50);
     const [hydrated, setHydrated] = useState(false);
     const [liveRecordings, setLiveRecordings] = useState(recordings);
     const [liveTranscriptions, setLiveTranscriptions] =
@@ -1697,6 +1739,13 @@ export function Workstation({
         useState<TagFilterValue>("all");
     const [tagFilterOpen, setTagFilterOpen] = useState(false);
     const [listPage, setListPage] = useState(1);
+    const [recordingPage, setRecordingPage] = useState({
+        page: pagination?.page ?? 1,
+        pageSize: itemsPerPage,
+        total: pagination?.total ?? recordings.length,
+    });
+    const [recordingListLoading, setRecordingListLoading] = useState(false);
+    const [recordingListError, setRecordingListError] = useState("");
     const [detailTab, setDetailTab] = useState<DetailTab>("transcript");
     const [query, setQuery] = useState("");
     const [librarySearchFilter, setLibrarySearchFilter] =
@@ -1761,6 +1810,7 @@ export function Workstation({
         recordingId: string;
     } | null>(null);
     const sourceReportRequestIdRef = useRef(0);
+    const previousRecordingQueryResetKeyRef = useRef<string | null>(null);
     const selectedRecordingIdRef = useRef<string | null>(
         recordings[0]?.id ?? null,
     );
@@ -1906,6 +1956,132 @@ export function Workstation({
         setLiveJobs(transcriptionJobs);
     }, [transcriptionJobs]);
 
+    const recordingQueryResetKey = useMemo(
+        () =>
+            [
+                favorite,
+                source,
+                query.trim(),
+                librarySearchFilter?.type ?? "",
+                librarySearchFilter?.label ?? "",
+                listMode,
+                selectedTagFilter,
+                timelineFilter,
+                itemsPerPage,
+            ].join("\u0001"),
+        [
+            favorite,
+            itemsPerPage,
+            librarySearchFilter,
+            listMode,
+            query,
+            selectedTagFilter,
+            source,
+            timelineFilter,
+        ],
+    );
+
+    useEffect(() => {
+        if (
+            previousRecordingQueryResetKeyRef.current === recordingQueryResetKey
+        ) {
+            return;
+        }
+        previousRecordingQueryResetKeyRef.current = recordingQueryResetKey;
+        setListPage(1);
+    }, [recordingQueryResetKey]);
+
+    useEffect(() => {
+        const controller = new AbortController();
+        const params = new URLSearchParams({
+            includeTranscript: "1",
+            page: String(listPage),
+            pageSize: String(itemsPerPage),
+        });
+        if (source !== "all") {
+            params.set("source", source);
+        }
+        if (query.trim()) {
+            params.set("query", query.trim());
+        }
+        if (favorite !== "all") {
+            params.set("favorite", favorite);
+        }
+        if (librarySearchFilter?.type === "tag") {
+            params.set("tagName", librarySearchFilter.label);
+        }
+        if (librarySearchFilter?.type === "speaker") {
+            params.set("speaker", librarySearchFilter.label);
+        }
+        if (listMode === "tags") {
+            if (selectedTagFilter === "untagged") {
+                params.set("untagged", "1");
+            } else {
+                const tagId = tagIdFromFilter(selectedTagFilter);
+                if (tagId) params.set("tagId", tagId);
+            }
+        }
+        if (listMode === "timeline" && timelineFilter !== "all") {
+            params.set("timeline", timelineFilter);
+        }
+
+        setRecordingListLoading(true);
+        setRecordingListError("");
+        void (async () => {
+            try {
+                const response = await fetch(
+                    `/api/recordings/query?${params.toString()}`,
+                    { signal: controller.signal },
+                );
+                if (!response.ok) {
+                    throw new Error("Failed to load recordings");
+                }
+                const payload =
+                    (await response.json()) as RecordingQueryResponse;
+                if (controller.signal.aborted) return;
+                const {
+                    transcriptions: nextTranscriptions,
+                    transcriptionJobs: nextJobs,
+                } = buildPagedRecordingMaps(payload.recordings);
+                setLiveRecordings(payload.recordings);
+                setLiveTranscriptions(nextTranscriptions);
+                setLiveJobs(nextJobs);
+                setRecordingPage(payload.pagination);
+                setListPage(payload.pagination.page);
+                setSelectedId((currentId) =>
+                    payload.recordings.some(
+                        (recording) => recording.id === currentId,
+                    )
+                        ? currentId
+                        : (payload.recordings[0]?.id ?? ""),
+                );
+            } catch (error) {
+                if (controller.signal.aborted) return;
+                setRecordingListError(
+                    error instanceof Error
+                        ? error.message
+                        : "Failed to load recordings",
+                );
+            } finally {
+                if (!controller.signal.aborted) {
+                    setRecordingListLoading(false);
+                }
+            }
+        })();
+
+        return () => controller.abort();
+    }, [
+        favorite,
+        itemsPerPage,
+        librarySearchFilter,
+        listMode,
+        listPage,
+        query,
+        selectedTagFilter,
+        source,
+        timelineFilter,
+    ]);
+
     const sourceCounts = useMemo(() => {
         const counts = new Map<string, number>();
         for (const recording of liveRecordings) {
@@ -1923,52 +2099,20 @@ export function Workstation({
             if (source !== "all" && recording.sourceProvider !== source) {
                 return false;
             }
-            if (librarySearchFilter?.type === "tag") {
-                const tagMatch = recording.tags.some(
-                    (tag) =>
-                        tag.id === librarySearchFilter.label ||
-                        tag.name === librarySearchFilter.label,
-                );
-                if (!tagMatch) return false;
-            }
-            if (librarySearchFilter?.type === "speaker") {
-                const speakerNames = Object.values(
-                    liveTranscriptions.get(recording.id)?.speakerMap ?? {},
-                );
-                const speakerMatch = speakerNames.some(
-                    (name) => name === librarySearchFilter.label,
-                );
-                if (!speakerMatch) return false;
-            }
-            if (
-                favorite === "transcribed" &&
-                !hasTranscript(recording, liveTranscriptions)
-            ) {
-                return false;
-            }
-            if (favorite === "tags" && recording.tags.length === 0) {
-                return false;
-            }
-            if (!normalizedQuery) return true;
-            return [
-                recording.filename,
-                recording.sourceProvider,
-                ...recording.tags.map((tag) => tag.name),
-                liveTranscriptions.get(recording.id)?.text ?? "",
-            ]
-                .join(" ")
-                .toLocaleLowerCase()
-                .includes(normalizedQuery);
+            return (
+                !normalizedQuery ||
+                [
+                    recording.filename,
+                    recording.sourceProvider,
+                    ...recording.tags.map((tag) => tag.name),
+                    liveTranscriptions.get(recording.id)?.text ?? "",
+                ]
+                    .join(" ")
+                    .toLocaleLowerCase()
+                    .includes(normalizedQuery)
+            );
         });
-    }, [
-        favorite,
-        librarySearchFilter,
-        liveRecordings,
-        liveTranscriptions,
-        query,
-        source,
-    ]);
-    const itemsPerPage = Math.max(1, displaySettings.itemsPerPage || 50);
+    }, [liveRecordings, liveTranscriptions, query, source]);
     const timelineCounts = useMemo(() => {
         const counts: Record<TimelineFilter, number> = {
             all: filteredRecordings.length,
@@ -2094,9 +2238,6 @@ export function Workstation({
 
         for (const recording of filteredRecordings) {
             const bucket = getTimelineFilter(recording.startTime);
-            if (timelineFilter !== "all" && bucket !== timelineFilter) {
-                continue;
-            }
             entries.push({
                 groupId: bucket,
                 groupLabel: getDayBucket(recording.startTime),
@@ -2104,38 +2245,35 @@ export function Workstation({
             });
         }
         return entries;
-    }, [filteredRecordings, listMode, selectedTagFilter, t, timelineFilter]);
+    }, [filteredRecordings, listMode, selectedTagFilter, t]);
     const listHasExternalFilter =
         source !== "all" ||
         query.trim().length > 0 ||
         librarySearchFilter !== null;
-    const listState: RecordingListState = !displaySettingsLoaded
-        ? "loading"
-        : liveRecordings.length === 0
-          ? "empty"
-          : filteredRecordings.length === 0
-            ? listMode === "tags" && !listHasExternalFilter
-                ? "tag-empty"
-                : "no-match"
-            : listEntries.length > 0
-              ? "ready"
-              : listMode === "tags"
-                ? "tag-empty"
-                : timelineFilter !== "all"
-                  ? "timeline-empty"
-                  : "no-match";
+    const listState: RecordingListState =
+        !displaySettingsLoaded || recordingListLoading
+            ? "loading"
+            : recordingListError
+              ? "no-match"
+              : liveRecordings.length === 0
+                ? "empty"
+                : filteredRecordings.length === 0
+                  ? listMode === "tags" && !listHasExternalFilter
+                      ? "tag-empty"
+                      : "no-match"
+                  : listEntries.length > 0
+                    ? "ready"
+                    : listMode === "tags"
+                      ? "tag-empty"
+                      : timelineFilter !== "all"
+                        ? "timeline-empty"
+                        : "no-match";
     const listTotalPages = Math.max(
         1,
-        Math.ceil(listEntries.length / itemsPerPage),
+        Math.ceil(recordingPage.total / recordingPage.pageSize),
     );
-    const currentListPage = Math.min(listPage, listTotalPages);
-    const pagedListEntries =
-        listState === "ready"
-            ? listEntries.slice(
-                  (currentListPage - 1) * itemsPerPage,
-                  currentListPage * itemsPerPage,
-              )
-            : [];
+    const currentListPage = recordingPage.page;
+    const pagedListEntries = listState === "ready" ? listEntries : [];
     const listPaginationState =
         currentListPage === 1
             ? "paginated-first"
@@ -2144,7 +2282,7 @@ export function Workstation({
               : "paginated";
     const listLoadedCount =
         listPaginationState === "paginated-last"
-            ? listEntries.length
+            ? recordingPage.total
             : pagedListEntries.length;
     const listPageStatusKey =
         listPaginationState === "paginated-last"
@@ -2183,31 +2321,6 @@ export function Workstation({
         }
         return recordings;
     }, [listEntries]);
-
-    const listResetKey = useMemo(
-        () =>
-            [
-                filteredRecordings
-                    .map((recording) => recording.id)
-                    .join("\u0000"),
-                itemsPerPage,
-                listMode,
-                selectedTagFilter,
-                timelineFilter,
-            ].join("\u0001"),
-        [
-            filteredRecordings,
-            itemsPerPage,
-            listMode,
-            selectedTagFilter,
-            timelineFilter,
-        ],
-    );
-
-    useEffect(() => {
-        if (!listResetKey) return;
-        setListPage((page) => (page === 1 ? page : 1));
-    }, [listResetKey]);
 
     useEffect(() => {
         setListPage((page) => Math.min(Math.max(page, 1), listTotalPages));
@@ -5905,7 +6018,7 @@ export function Workstation({
                                                 {t(listPageStatusKey, {
                                                     current: currentListPage,
                                                     loaded: listLoadedCount,
-                                                    total: listEntries.length,
+                                                    total: recordingPage.total,
                                                 })}
                                             </span>
                                         </div>

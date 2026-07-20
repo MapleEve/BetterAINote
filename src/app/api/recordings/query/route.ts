@@ -50,25 +50,49 @@ export async function GET(request: Request) {
         const to = parseDateParam(url.searchParams.get("to"), "to");
         const includeTranscript =
             url.searchParams.get("includeTranscript") === "1";
-        const limit = Math.min(
+        const pageSize = Math.min(
             Math.max(
-                Number.parseInt(url.searchParams.get("limit") ?? "50", 10) ||
-                    50,
+                Number.parseInt(
+                    url.searchParams.get("pageSize") ??
+                        url.searchParams.get("limit") ??
+                        "50",
+                    10,
+                ) || 50,
                 1,
             ),
             200,
         );
-
-        const recordings = await queryRecordingsForUser(session.user.id, {
+        const page = Math.max(
+            Number.parseInt(url.searchParams.get("page") ?? "1", 10) || 1,
+            1,
+        );
+        const favoriteParam = url.searchParams.get("favorite");
+        const timelineParam = url.searchParams.get("timeline");
+        const result = await queryRecordingsForUser(session.user.id, {
             from,
             to,
             includeTranscript,
-            limit,
+            page,
+            pageSize,
+            query: url.searchParams.get("query"),
+            source: url.searchParams.get("source"),
+            favorite:
+                favoriteParam === "transcribed" || favoriteParam === "tags"
+                    ? favoriteParam
+                    : "all",
+            tagId: url.searchParams.get("tagId"),
+            tagName: url.searchParams.get("tagName"),
+            untagged: url.searchParams.get("untagged") === "1",
+            speaker: url.searchParams.get("speaker"),
+            timeline:
+                timelineParam === "today" ||
+                timelineParam === "yesterday" ||
+                timelineParam === "earlier"
+                    ? timelineParam
+                    : "all",
         });
 
-        return noStoreJson({
-            recordings,
-        });
+        return noStoreJson(result);
     } catch (error) {
         console.error("Error querying recordings:", error);
         return noStoreJson(
