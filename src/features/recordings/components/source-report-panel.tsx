@@ -155,6 +155,7 @@ function RecordingSourceReportState({
     return (
         <div
             className={`block min-w-0 max-[639px]:bg-[var(--source-report-mobile-canvas)] ${className ?? ""}`}
+            data-control="source-report-state"
             data-testid="recording-source-report-state"
             data-state={state}
             data-sub-state={subState}
@@ -1330,6 +1331,7 @@ export function SourceReportPanel({
                 <SourceReportActionButton
                     type="button"
                     intent="outline"
+                    data-control="source-report-refresh"
                     onClick={loadReport}
                     disabled={isLoading}
                     testId="source-report-refresh"
@@ -1406,6 +1408,7 @@ export function SourceReportPanel({
                                 size="xs"
                                 className="h-[1.625rem] min-w-0 rounded-[0.4375rem] border border-[color:color-mix(in_srgb,var(--accent)_60%,black_8%)] bg-[linear-gradient(180deg,color-mix(in_srgb,var(--accent)_92%,white_18%),var(--accent))] px-2.5 text-xs leading-[normal] font-semibold text-white shadow-[0_2px_6px_color-mix(in_srgb,var(--accent)_24%,transparent),inset_0_1px_0_rgb(255_255_255_/_0.22)]"
                                 type="button"
+                                data-control="source-report-retry"
                                 onClick={loadReport}
                                 disabled={isLoading}
                                 data-testid="source-report-refresh"
@@ -1728,7 +1731,11 @@ export function SourceReportPanel({
     );
 
     return (
-        <SourceReportPane className={className} state={sourceReportState}>
+        <SourceReportPane
+            className={className}
+            data-control="recording-source-report"
+            state={sourceReportState}
+        >
             {header}
             {sourceSummaryVisible ? (
                 <RecordingSourceReportSection
