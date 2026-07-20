@@ -33,6 +33,7 @@ import { POST as TEST } from "@/app/api/data-sources/test/route";
 import { db } from "@/db";
 import { auth } from "@/lib/auth";
 import { PlaudClient } from "@/lib/data-sources/providers/plaud/client";
+import { clearExpiredConnectionStatus } from "@/server/modules/data-sources/settings";
 
 describe("data sources route", () => {
     const originalFetch = global.fetch;
@@ -49,6 +50,26 @@ describe("data sources route", () => {
         (auth.api.getSession as unknown as Mock).mockResolvedValue({
             user: { id: "user-1" },
         });
+    });
+
+    it("clears expired connection markers when a source is disconnected", () => {
+        const unchangedConfig = { syncTitleToSource: false };
+
+        expect(
+            clearExpiredConnectionStatus({
+                authStatus: "ready",
+                connectionStatus: "expired",
+                sessionStatus: "expired",
+                syncTitleToSource: false,
+                uiStatus: "expired",
+            }),
+        ).toEqual({
+            authStatus: "ready",
+            syncTitleToSource: false,
+        });
+        expect(clearExpiredConnectionStatus(unchangedConfig)).toBe(
+            unchangedConfig,
+        );
     });
 
     it("returns provider-scoped source title writeback config inside the Plaud config", async () => {
@@ -275,6 +296,9 @@ describe("data sources route", () => {
                     authMode: "device-signin",
                     connected: false,
                     connectionStatus: "expired",
+                    secretsConfigured: expect.objectContaining({
+                        deviceCredential: false,
+                    }),
                 }),
             ]),
         });

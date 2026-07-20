@@ -1243,6 +1243,7 @@ export function DataSourcesSection({
                 ref={providerDetailRef}
                 id={SOURCE_PROVIDER_DETAIL_ID}
                 aria-labelledby={providerDetailTitleId}
+                data-panel="source-provider-detail"
                 className={cn(
                     SOURCE_PROVIDER_THEME_CLASS,
                     SOURCE_PROVIDER_DETAIL_PANEL_CLASS,

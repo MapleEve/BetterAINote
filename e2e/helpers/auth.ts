@@ -11,6 +11,22 @@ const E2E_REQUEST_RETRY_DELAYS_MS = [
 ];
 const AUTH_REQUEST_RETRY_DELAYS_MS = E2E_REQUEST_RETRY_DELAYS_MS;
 
+function resolveRuntimeBaseUrl() {
+    const configuredBaseUrl =
+        process.env.PLAYWRIGHT_BASE_URL?.trim() || process.env.APP_URL?.trim();
+    if (configuredBaseUrl) {
+        return new URL(configuredBaseUrl);
+    }
+
+    return new URL(
+        `http://127.0.0.1:${process.env.PLAYWRIGHT_E2E_PORT?.trim() || "3201"}`,
+    );
+}
+
+function resolveAuthRequestUrl(requestPath: string) {
+    return new URL(requestPath, resolveRuntimeBaseUrl()).toString();
+}
+
 function isRetryableRequestError(error: unknown) {
     const message = error instanceof Error ? error.message : String(error);
     return /ECONNRESET|ECONNREFUSED|EPIPE|socket hang up|fetch failed/i.test(
@@ -25,7 +41,7 @@ async function postAuthSetupRequest(
 ): Promise<APIResponse> {
     for (let attempt = 0; ; attempt += 1) {
         try {
-            return await page.request.post(path, { data });
+            return await page.request.post(resolveAuthRequestUrl(path), { data });
         } catch (error) {
             const delayMs = AUTH_REQUEST_RETRY_DELAYS_MS[attempt];
             if (delayMs == null || !isRetryableRequestError(error)) {

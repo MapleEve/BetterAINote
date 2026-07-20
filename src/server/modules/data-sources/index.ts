@@ -8,7 +8,10 @@ import {
 } from "@/lib/data-sources/types";
 import { persistSourceDevicesForUser } from "./devices";
 import { serializeDataSources } from "./serialize";
-import { prepareSourceConnectionWrite } from "./settings";
+import {
+    clearExpiredConnectionStatus,
+    prepareSourceConnectionWrite,
+} from "./settings";
 
 export {
     getEnabledSourceConnectionsForUser,
@@ -19,6 +22,7 @@ export {
 export type { SerializedSourceState } from "./serialize";
 export { buildDataSourcesRouteErrorResponse } from "./serialize";
 export {
+    clearExpiredConnectionStatus,
     DEFAULT_SOURCE_STATE,
     getDataSourceSettingsErrorStatus,
     getSourceConnectionDefaults,
@@ -43,7 +47,23 @@ export async function getDataSourcesStateForUser(userId: string) {
         .from(sourceConnections)
         .where(eq(sourceConnections.userId, userId));
 
-    return serializeDataSources(rows);
+    return serializeDataSources(rows).map((source) => {
+        if (
+            source.provider !== "dingtalk-a1" ||
+            source.authMode !== "device-signin" ||
+            source.secretsConfigured.deviceCredential !== undefined
+        ) {
+            return source;
+        }
+
+        return {
+            ...source,
+            secretsConfigured: {
+                ...source.secretsConfigured,
+                deviceCredential: false,
+            },
+        };
+    });
 }
 
 export async function saveDataSourceForUser(
@@ -140,10 +160,13 @@ export async function disconnectDataSourceForUser(
         return;
     }
 
+    const config = clearExpiredConnectionStatus(existing.config);
+
     await db
         .update(sourceConnections)
         .set({
             enabled: false,
+            ...(config !== existing.config ? { config } : {}),
             secretConfig: null,
             syncStatus: "idle",
             lastSyncError: null,

@@ -216,6 +216,32 @@ export function hasConfiguredSourceSecrets(params: {
     });
 }
 
+const EXPIRED_CONNECTION_STATUS_KEYS = [
+    "connectionStatus",
+    "authStatus",
+    "sessionStatus",
+    "uiStatus",
+] as const;
+
+export function clearExpiredConnectionStatus(
+    config: Record<string, unknown> | null,
+) {
+    if (!config) {
+        return config;
+    }
+
+    let nextConfig: Record<string, unknown> | null = null;
+
+    for (const key of EXPIRED_CONNECTION_STATUS_KEYS) {
+        if (config[key] === "expired") {
+            nextConfig ??= { ...config };
+            delete nextConfig[key];
+        }
+    }
+
+    return nextConfig ?? config;
+}
+
 function resolveSourceSyncStatus(
     status: string | null | undefined,
 ): SourceSyncStatus {
