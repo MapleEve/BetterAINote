@@ -25,14 +25,24 @@ function createCoreDatabaseReadyPromise() {
             : Promise.resolve();
 
     let ready: Promise<void>;
-    ready = attempt.catch((error: unknown) => {
-        // Clear only this failed attempt. A later caller may already have
-        // started a replacement attempt after observing the same rejection.
-        if (coreDatabaseReady === ready) {
-            coreDatabaseReady = null;
-        }
-        throw error;
-    });
+    ready = attempt.then(
+        () => {
+            // A readiness probe only describes the instant it completed. Keep
+            // concurrent callers on one probe, but require the next request
+            // to observe a newly acquired SQLite lock.
+            if (coreDatabaseReady === ready) {
+                coreDatabaseReady = null;
+            }
+        },
+        (error: unknown) => {
+            // Clear only this failed attempt. A later caller may already have
+            // started a replacement attempt after observing the same rejection.
+            if (coreDatabaseReady === ready) {
+                coreDatabaseReady = null;
+            }
+            throw error;
+        },
+    );
 
     return ready;
 }

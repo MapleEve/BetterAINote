@@ -234,6 +234,10 @@ async function callRoute(server: NextServer, route: Route) {
     }
 }
 
+async function warmRoute(server: NextServer, route: Route) {
+    expect((await callRoute(server, route)).status).toBe(401);
+}
+
 afterEach(async () => {
     await Promise.all(runningServers.splice(0).map(stopNextServer));
 });
@@ -252,8 +256,9 @@ describe("Data Sources core database readiness contract", () => {
 
         try {
             const appDir = await prepareIsolatedNextApp(e2eRoot, databasePath);
-            lock = await lockCoreDatabase(databasePath);
             server = await startNextServer(databasePath, appDir);
+            await warmRoute(server, route);
+            lock = await lockCoreDatabase(databasePath);
 
             expect((await callRoute(server, route)).status).toBe(500);
 
@@ -279,8 +284,10 @@ describe("Data Sources core database readiness contract", () => {
 
         try {
             const appDir = await prepareIsolatedNextApp(e2eRoot, databasePath);
-            lock = await lockCoreDatabase(databasePath);
             server = await startNextServer(databasePath, appDir);
+            await warmRoute(server, ROUTES[0]);
+            await warmRoute(server, ROUTES[4]);
+            lock = await lockCoreDatabase(databasePath);
 
             const locked = await Promise.all([
                 callRoute(server, ROUTES[0]),

@@ -19,6 +19,7 @@ export {
     parseSourceSecretConfig,
     resolveSourceConnectionConfig,
 } from "./connections";
+export { waitForDataSourcesCoreReady } from "./readiness";
 export type { SerializedSourceState } from "./serialize";
 export { buildDataSourcesRouteErrorResponse } from "./serialize";
 export {

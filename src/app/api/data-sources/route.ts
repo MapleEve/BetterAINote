@@ -1,19 +1,18 @@
 import { NextResponse } from "next/server";
-import "@/db";
-import { waitForCoreDatabaseReady } from "@/db/core-ready";
 import { auth } from "@/lib/auth";
 import type { DataSourcesRequestBody } from "@/lib/data-sources/types";
 import {
     buildDataSourcesRouteErrorResponse,
     getDataSourcesStateForUser,
     saveDataSourceForUser,
+    waitForDataSourcesCoreReady,
 } from "@/server/modules/data-sources";
 
 // This route owns upstream recording-platform connections only.
 // Local service settings such as VoScript and AI rename live under /api/settings/*.
 export async function GET(request: Request) {
     try {
-        await waitForCoreDatabaseReady();
+        await waitForDataSourcesCoreReady();
         const session = await auth.api.getSession({
             headers: request.headers,
         });
@@ -38,7 +37,7 @@ export async function GET(request: Request) {
 
 export async function PUT(request: Request) {
     try {
-        await waitForCoreDatabaseReady();
+        await waitForDataSourcesCoreReady();
         const session = await auth.api.getSession({
             headers: request.headers,
         });
