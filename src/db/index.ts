@@ -53,6 +53,7 @@ import {
 } from "@/db/schema/voiceprints";
 import { env } from "@/lib/env";
 import { isBuildRuntime, isTestRuntime } from "@/lib/platform/runtime";
+import { configureCoreDatabaseReadiness } from "./core-ready";
 import { getDatabaseLayout, resolveDatabaseUrl } from "./paths";
 
 // Boundary note:
@@ -128,8 +129,13 @@ if (layout) {
     ensureParentDir(layout.search);
 }
 
-export const coreDb = layout
-    ? drizzle(createClient({ url: resolveDatabaseUrl(layout.core) }), {
+const coreClient = layout
+    ? createClient({ url: resolveDatabaseUrl(layout.core) })
+    : null;
+configureCoreDatabaseReadiness(coreClient);
+
+export const coreDb = coreClient
+    ? drizzle(coreClient, {
           schema: coreSchema,
       })
     : ({} as ReturnType<typeof drizzle<typeof coreSchema>>);

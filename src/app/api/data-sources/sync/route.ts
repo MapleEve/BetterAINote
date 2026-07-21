@@ -1,4 +1,6 @@
 import { NextResponse } from "next/server";
+import "@/db";
+import { waitForCoreDatabaseReady } from "@/db/core-ready";
 import { auth } from "@/lib/auth";
 import { AppError, createErrorResponse, ErrorCode } from "@/lib/errors";
 import {
@@ -17,6 +19,7 @@ function createSyncErrorResponse(error: unknown) {
 
 export async function GET(request: Request) {
     try {
+        await waitForCoreDatabaseReady();
         const session = await auth.api.getSession({
             headers: request.headers,
         });
@@ -45,6 +48,7 @@ export async function GET(request: Request) {
 
 export async function POST(request: Request) {
     try {
+        await waitForCoreDatabaseReady();
         const session = await auth.api.getSession({
             headers: request.headers,
         });

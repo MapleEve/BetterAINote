@@ -12,6 +12,10 @@ type SourceState = {
     secretConfig: string | null;
 };
 
+type CoreDatabaseLock = {
+    release: () => Promise<void>;
+};
+
 function resolveDatabasePath() {
     const databasePath = process.env.DATABASE_PATH;
     if (!databasePath) {
@@ -39,6 +43,31 @@ async function withDatabase<T>(callback: (client: ReturnType<typeof createClient
     } finally {
         await client.close();
     }
+}
+
+async function lockCoreDatabase(): Promise<CoreDatabaseLock> {
+    const client = createClient({ url: databaseUrl(resolveDatabasePath()) });
+    let released = false;
+
+    try {
+        await client.execute("PRAGMA busy_timeout = 0");
+        await client.execute("BEGIN EXCLUSIVE");
+    } catch (error) {
+        client.close();
+        throw error;
+    }
+
+    return {
+        async release() {
+            if (released) return;
+            released = true;
+            try {
+                await client.execute("COMMIT");
+            } finally {
+                client.close();
+            }
+        },
+    };
 }
 
 async function getE2eUserId() {
@@ -119,6 +148,7 @@ async function seedSourceConnection(
     provider: string,
     params: {
         config?: Record<string, unknown>;
+        enabled?: boolean;
         lastSyncError?: string | null;
         syncStatus?: "error" | "idle" | "syncing";
     } = {},
@@ -130,9 +160,9 @@ async function seedSourceConnection(
                     id, user_id, provider, enabled, auth_mode, base_url, config,
                     secret_config, sync_status, last_sync_error,
                     last_sync_started_at, last_sync_finished_at, created_at, updated_at
-                ) VALUES (?, ?, ?, 0, NULL, NULL, ?, NULL, ?, ?, NULL, NULL, ?, ?)
+                ) VALUES (?, ?, ?, ?, NULL, NULL, ?, NULL, ?, ?, NULL, NULL, ?, ?)
                 ON CONFLICT(user_id, provider) DO UPDATE SET
-                    enabled = 0,
+                    enabled = excluded.enabled,
                     auth_mode = NULL,
                     base_url = NULL,
                     config = excluded.config,
@@ -146,6 +176,7 @@ async function seedSourceConnection(
                 `e2e-data-source-${provider}-${now}`,
                 userId,
                 provider,
+                params.enabled ? 1 : 0,
                 JSON.stringify(params.config ?? {}),
                 params.syncStatus ?? "idle",
                 params.lastSyncError ?? null,
@@ -224,6 +255,18 @@ function sourceStatus(detail: Locator, label: RegExp) {
     return detail.getByRole("status").filter({ hasText: label }).first();
 }
 
+async function expectPlaudDraftToRemain(detail: Locator) {
+    await expect(detail.locator("#plaud-source-secret")).toHaveValue(
+        "local-e2e-credential",
+    );
+    await expect(detail.locator("#plaud-source-custom-api-base")).toHaveValue(
+        "not-a-url",
+    );
+    await expect(
+        detail.getByRole("switch", { name: "启用同步" }),
+    ).toHaveAttribute("aria-checked", "true");
+}
+
 async function openDataSources(page: Page) {
     const currentUrl = new URL(page.url());
     if (
@@ -257,6 +300,149 @@ async function getSourceFromApi(page: Page, provider: string) {
 
     return source;
 }
+
+test("Data Sources waits for the real locked core database and preserves failed drafts", async ({
+    page,
+}) => {
+    await ensureSignedIn(page);
+    await setChineseDisplay(page);
+
+    const userId = await getE2eUserId();
+    await seedSourceConnection(userId, "plaud");
+
+    await page.goto("/settings", { waitUntil: "domcontentloaded" });
+    await expect(settingsDialog(page)).toBeVisible();
+    const displayNavigation = settingsDialog(page).getByRole("button", {
+        name: "显示设置",
+    });
+    await displayNavigation.click();
+    await expect(displayNavigation).toHaveAttribute("aria-current", "page");
+
+    const databaseLock = await lockCoreDatabase();
+    try {
+        const loadResponse = page.waitForResponse(
+            (response) =>
+                new URL(response.url()).pathname === "/api/data-sources" &&
+                response.request().method() === "GET",
+        );
+        const dataSourcesNavigation = settingsDialog(page).getByRole("button", {
+            name: "数据源",
+        });
+        await dataSourcesNavigation.click();
+        const section = dataSourcesSection(page);
+
+        await expect(section).toBeVisible();
+        await expect(section).toHaveAttribute("aria-busy", "true");
+        await databaseLock.release();
+        expect((await loadResponse).status()).toBe(200);
+        await expect(section).toHaveAttribute("aria-busy", "false");
+    } finally {
+        await databaseLock.release();
+    }
+
+    const section = dataSourcesSection(page);
+    await sourceButton(section, /Plaud/).click();
+    const plaudDetail = sourceDetail(section, /Plaud/);
+    const plaudServer = plaudDetail.getByRole("combobox", {
+        name: "站点版本",
+    });
+
+    await chooseShadcnSelectOption(page, plaudServer, "自定义");
+    await page.locator("#plaud-source-secret").fill("local-e2e-credential");
+    await page.locator("#plaud-source-custom-api-base").fill("not-a-url");
+
+    const enabledDraft = plaudDetail.getByRole("switch", {
+        name: "启用同步",
+    });
+    await enabledDraft.click();
+    await expect(sourceStatus(plaudDetail, /已配置|Configured/)).toBeVisible();
+
+    const testRequest = page.waitForRequest(
+        (request) =>
+            new URL(request.url()).pathname === "/api/data-sources/test" &&
+            request.method() === "POST",
+    );
+    const testResponse = page.waitForResponse(
+        (response) =>
+            new URL(response.url()).pathname === "/api/data-sources/test" &&
+            response.request().method() === "POST",
+    );
+    const testButton = plaudDetail.getByRole("button", {
+        name: /测试连接|测试中/,
+    });
+    const testLock = await lockCoreDatabase();
+    try {
+        await Promise.all([
+            testRequest,
+            testButton.click(),
+            expect(testButton).toBeDisabled({ timeout: 1_000 }),
+            expect(testButton).toHaveAttribute("aria-busy", "true", {
+                timeout: 1_000,
+            }),
+        ]);
+        await testLock.release();
+        expect((await testResponse).status()).toBe(400);
+        await expect(
+            plaudDetail
+                .locator('[data-slot="alert"]')
+                .filter({ hasText: "连接测试失败" }),
+        ).toBeVisible();
+        await expect(section).toHaveAttribute("aria-busy", "false");
+        await expect(testButton).toBeEnabled();
+        await expect(testButton).toHaveAttribute("aria-busy", "false");
+        await expectPlaudDraftToRemain(plaudDetail);
+    } finally {
+        await testLock.release();
+    }
+    const testFailureApiState = await getSourceFromApi(page, "plaud");
+    expect(testFailureApiState.enabled).toBe(false);
+
+    const saveRequest = page.waitForRequest(
+        (request) =>
+            new URL(request.url()).pathname === "/api/data-sources" &&
+            request.method() === "PUT",
+    );
+    const saveResponse = page.waitForResponse(
+        (response) =>
+            new URL(response.url()).pathname === "/api/data-sources" &&
+            response.request().method() === "PUT",
+    );
+    const saveButton = plaudDetail.getByRole("button", {
+        name: /保存|保存中/,
+    });
+    const saveLock = await lockCoreDatabase();
+    try {
+        await Promise.all([
+            saveRequest,
+            saveButton.click(),
+            expect(saveButton).toBeDisabled({ timeout: 1_000 }),
+            expect(saveButton).toHaveAttribute("aria-busy", "true", {
+                timeout: 1_000,
+            }),
+        ]);
+        await saveLock.release();
+        expect((await saveResponse).status()).toBe(400);
+        await expect(
+            plaudDetail
+                .locator('[data-slot="alert"]')
+                .filter({ hasText: "保存失败" }),
+        ).toBeVisible();
+        await expect(section).toHaveAttribute("aria-busy", "false");
+        await expect(testButton).toBeEnabled();
+        await expect(saveButton).toBeEnabled();
+        await expect(saveButton).toHaveAttribute("aria-busy", "false");
+        await expectPlaudDraftToRemain(plaudDetail);
+    } finally {
+        await saveLock.release();
+    }
+
+    const saveFailureApiState = await getSourceFromApi(page, "plaud");
+    expect(saveFailureApiState.enabled).toBe(false);
+    const persistedState = await readSourceState(userId, "plaud");
+    expect(persistedState.enabled).toBe(false);
+    expect(persistedState.secretConfig).toBeNull();
+    expect(persistedState.config).not.toHaveProperty("customApiBase");
+});
 
 test("Data Sources validates missing Plaud sign-in details locally and clears expired state after disconnect", async ({
     page,

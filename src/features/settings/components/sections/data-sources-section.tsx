@@ -344,6 +344,10 @@ function hasSavedSetup(source: DataSourceDisplayState) {
     );
 }
 
+function hasConfiguredSetup(source: DataSourceDisplayState) {
+    return source.enabled || hasSavedSetup(source);
+}
+
 function isAdvancedOptionalField(field: DataSourceFormField) {
     return field.id === "source-org-id";
 }
@@ -581,11 +585,11 @@ function getProviderStatus(
         };
     }
 
-    if (hasSavedSetup(source)) {
+    if (hasConfiguredSetup(source)) {
         return {
             description: isZh
-                ? "已保存部分连接信息，保存后可继续用于导入。"
-                : "Some connection details are saved and can continue after saving.",
+                ? "当前已配置部分连接信息，保存后可继续用于导入。"
+                : "Some connection details are configured. Save to continue importing.",
             label: isZh ? "已配置" : "Configured",
             state: "configured",
             tone: "info",

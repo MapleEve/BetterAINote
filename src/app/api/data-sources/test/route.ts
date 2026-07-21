@@ -1,4 +1,6 @@
 import { NextResponse } from "next/server";
+import "@/db";
+import { waitForCoreDatabaseReady } from "@/db/core-ready";
 import { auth } from "@/lib/auth";
 import type { DataSourcesRequestBody } from "@/lib/data-sources/types";
 import {
@@ -8,6 +10,7 @@ import {
 
 export async function POST(request: Request) {
     try {
+        await waitForCoreDatabaseReady();
         const session = await auth.api.getSession({
             headers: request.headers,
         });
