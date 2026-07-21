@@ -1,22 +1,35 @@
-import { existsSync, readFileSync } from "node:fs";
+import { execFileSync } from "node:child_process";
+import { existsSync, readdirSync, readFileSync } from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { describe, expect, it } from "vitest";
 import {
     CANONICAL_SOT_REFERENCE_ROOT_ENV,
     resolveVerifiedCanonicalSotReference,
+    resolveVerifiedSotReference,
 } from "../../e2e/helpers/canonical-sot-reference";
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const SOURCE_REPORT_ROOT = path.join(ROOT, "features/source-report");
-const RECOVERED_CANONICAL_SOT_REFERENCE_ROOT =
-    "/Users/maplec5/Documents/GitHub/BetterAINote/tmp/betterainote-design-evidence/handoff-20260715-094949/betterainote-design-system";
-const OLD_CANONICAL_SOT_REFERENCE_ROOT =
-    "/Users/maplec5/Documents/GitHub/BetterAINote/tmp/betterainote-design-evidence/handoff-20260531/betterainote-design-system";
-const RECOVERED_CANONICAL_SOT_SNAPSHOT = {
-    fileCount: 182,
+const CANONICAL_SOT_VERIFIER_FIXTURE_RELATIVE_ROOT =
+    "e2e/fixtures/canonical-sot-verifier/root";
+const CANONICAL_SOT_VERIFIER_FIXTURE_ROOT = path.join(
+    ROOT,
+    "..",
+    CANONICAL_SOT_VERIFIER_FIXTURE_RELATIVE_ROOT,
+);
+const CANONICAL_SOT_VERIFIER_FIXTURE_INTEGRITY_PATH = path.join(
+    ROOT,
+    "../e2e/fixtures/canonical-sot-verifier/integrity.json",
+);
+const OLD_CANONICAL_SOT_REFERENCE_ROOT = path.join(
+    ROOT,
+    "../e2e/fixtures/sot-web/handoff-20260531",
+);
+const CANONICAL_SOT_VERIFIER_FIXTURE_SNAPSHOT = {
+    fileCount: 1,
     manifestSha256:
-        "ce2ace3745e94538deb145268da21cf0015faec90460aa0a2605508360fa82c7",
+        "c68935faf874d06a3003526cc37d78997c2ed93482863036b4315b6151d10d3b",
 };
 
 function read(relativePath: string) {
@@ -56,6 +69,18 @@ function boundedSlice(source: string, start: string, end: string) {
     expect(endIndex).toBeGreaterThan(startIndex);
 
     return source.slice(startIndex, endIndex + end.length);
+}
+
+function listFixtureFiles(directory: string, root = directory): string[] {
+    return readdirSync(directory, { withFileTypes: true })
+        .sort((left, right) => left.name.localeCompare(right.name))
+        .flatMap((entry) => {
+            const target = path.join(directory, entry.name);
+            if (entry.isDirectory()) {
+                return listFixtureFiles(target, root);
+            }
+            return [path.relative(root, target).split(path.sep).join("/")];
+        });
 }
 
 describe("source report framework integration", () => {
@@ -205,21 +230,99 @@ describe("source report framework integration", () => {
         });
     });
 
-    it("accepts the recovered canonical SOT handoff with its exact manifest", async () => {
+    it("verifies the tracked sanitized fixture with the same manifest verifier used for the real handoff", async () => {
         await withCanonicalSotReferenceRoot(
-            RECOVERED_CANONICAL_SOT_REFERENCE_ROOT,
+            CANONICAL_SOT_VERIFIER_FIXTURE_RELATIVE_ROOT,
             async () => {
                 await expect(
-                    resolveVerifiedCanonicalSotReference(),
+                    resolveVerifiedSotReference({
+                        rootEnvironmentVariable:
+                            CANONICAL_SOT_REFERENCE_ROOT_ENV,
+                        snapshot: CANONICAL_SOT_VERIFIER_FIXTURE_SNAPSHOT,
+                        subject: "sanitized verifier fixture",
+                    }),
                 ).resolves.toMatchObject({
                     available: true,
                     reference: {
-                        root: RECOVERED_CANONICAL_SOT_REFERENCE_ROOT,
+                        root: CANONICAL_SOT_VERIFIER_FIXTURE_ROOT,
                     },
-                    snapshot: RECOVERED_CANONICAL_SOT_SNAPSHOT,
+                    snapshot: CANONICAL_SOT_VERIFIER_FIXTURE_SNAPSHOT,
                 });
             },
         );
+    });
+
+    it("returns explicit UNPROVEN evidence when the verifier fixture root is missing", async () => {
+        await withCanonicalSotReferenceRoot(
+            `${CANONICAL_SOT_VERIFIER_FIXTURE_RELATIVE_ROOT}/missing`,
+            async () => {
+                await expect(
+                    resolveVerifiedSotReference({
+                        rootEnvironmentVariable:
+                            CANONICAL_SOT_REFERENCE_ROOT_ENV,
+                        snapshot: CANONICAL_SOT_VERIFIER_FIXTURE_SNAPSHOT,
+                        subject: "sanitized verifier fixture",
+                    }),
+                ).resolves.toEqual({
+                    available: false,
+                    reason: "UNPROVEN: canonical audit skipped because BETTERAINOTE_CANONICAL_SOT_REFERENCE_ROOT does not resolve to a readable handoff root.",
+                });
+            },
+        );
+    });
+
+    it("keeps the verifier fixture tracked, structure-only, and integrity-pinned", () => {
+        const integrity = JSON.parse(
+            readFileSync(CANONICAL_SOT_VERIFIER_FIXTURE_INTEGRITY_PATH, "utf8"),
+        );
+        const fixtureFiles = listFixtureFiles(
+            CANONICAL_SOT_VERIFIER_FIXTURE_ROOT,
+        );
+        const trackedPaths = [
+            "e2e/fixtures/canonical-sot-verifier/integrity.json",
+            ...fixtureFiles.map(
+                (relativePath) =>
+                    `e2e/fixtures/canonical-sot-verifier/root/${relativePath}`,
+            ),
+        ];
+
+        expect(integrity).toEqual({
+            fixtureRole: "synthetic canonical SOT verifier structure fixture",
+            sourceMaterial: "synthetic; no private handoff content copied",
+            prohibitedContent: [
+                "recordings",
+                "transcripts",
+                "tokens",
+                "private identifiers",
+            ],
+            requiredFiles: ["project/ui_kits/web/index.html"],
+            snapshot: CANONICAL_SOT_VERIFIER_FIXTURE_SNAPSHOT,
+        });
+        expect(fixtureFiles).toEqual(integrity.requiredFiles);
+        expect(
+            readFileSync(
+                path.join(
+                    CANONICAL_SOT_VERIFIER_FIXTURE_ROOT,
+                    "project/ui_kits/web/index.html",
+                ),
+                "utf8",
+            ),
+        ).toBe(
+            '<!doctype html><html lang="en"><head><meta charset="utf-8"><title>Canonical SOT verifier fixture</title></head><body>synthetic structure-only fixture</body></html>\n',
+        );
+
+        for (const trackedPath of trackedPaths) {
+            expect(() =>
+                execFileSync(
+                    "git",
+                    ["ls-files", "--error-unmatch", trackedPath],
+                    {
+                        cwd: path.join(ROOT, ".."),
+                        stdio: "pipe",
+                    },
+                ),
+            ).not.toThrow();
+        }
     });
 
     it("marks the old canonical SOT handoff as explicit UNPROVEN evidence", async () => {

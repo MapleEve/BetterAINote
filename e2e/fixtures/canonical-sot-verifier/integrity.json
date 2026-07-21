@@ -1,0 +1,17 @@
+{
+  "fixtureRole": "synthetic canonical SOT verifier structure fixture",
+  "sourceMaterial": "synthetic; no private handoff content copied",
+  "prohibitedContent": [
+    "recordings",
+    "transcripts",
+    "tokens",
+    "private identifiers"
+  ],
+  "requiredFiles": [
+    "project/ui_kits/web/index.html"
+  ],
+  "snapshot": {
+    "fileCount": 1,
+    "manifestSha256": "c68935faf874d06a3003526cc37d78997c2ed93482863036b4315b6151d10d3b"
+  }
+}

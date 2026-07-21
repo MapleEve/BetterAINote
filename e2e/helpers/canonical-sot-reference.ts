@@ -37,6 +37,12 @@ export type VerifiedCanonicalSotReferenceResolution =
           reason: string;
       };
 
+export type VerifiedSotReferenceExpectation = {
+    rootEnvironmentVariable: string;
+    snapshot: CanonicalSotReferenceSnapshot;
+    subject: string;
+};
+
 function isDirectory(target: string) {
     try {
         return statSync(target).isDirectory();
@@ -53,12 +59,13 @@ function isFile(target: string) {
     }
 }
 
-function matchesVerifiedCanonicalSotManifest(
+function matchesExpectedSotManifest(
     snapshot: CanonicalSotReferenceSnapshot,
+    expectedSnapshot: CanonicalSotReferenceSnapshot,
 ) {
     return (
-        snapshot.fileCount === EXPECTED_CANONICAL_SOT_FILE_COUNT &&
-        snapshot.manifestSha256 === EXPECTED_CANONICAL_SOT_MANIFEST_SHA256
+        snapshot.fileCount === expectedSnapshot.fileCount &&
+        snapshot.manifestSha256 === expectedSnapshot.manifestSha256
     );
 }
 
@@ -71,14 +78,16 @@ function unprovenCanonicalSotReference(
     };
 }
 
-export async function resolveVerifiedCanonicalSotReference(): Promise<VerifiedCanonicalSotReferenceResolution> {
+export async function resolveVerifiedSotReference(
+    expectation: VerifiedSotReferenceExpectation,
+): Promise<VerifiedCanonicalSotReferenceResolution> {
     const configuredRoot = process.env[
-        CANONICAL_SOT_REFERENCE_ROOT_ENV
+        expectation.rootEnvironmentVariable
     ]?.trim();
 
     if (!configuredRoot) {
         return unprovenCanonicalSotReference(
-            `${CANONICAL_SOT_REFERENCE_ROOT_ENV} is not set`,
+            `${expectation.rootEnvironmentVariable} is not set`,
         );
     }
 
@@ -87,7 +96,7 @@ export async function resolveVerifiedCanonicalSotReference(): Promise<VerifiedCa
 
     if (!isDirectory(root) || !isFile(webIndexPath)) {
         return unprovenCanonicalSotReference(
-            `${CANONICAL_SOT_REFERENCE_ROOT_ENV} does not resolve to a readable handoff root`,
+            `${expectation.rootEnvironmentVariable} does not resolve to a readable handoff root`,
         );
     }
 
@@ -98,9 +107,9 @@ export async function resolveVerifiedCanonicalSotReference(): Promise<VerifiedCa
 
     try {
         const snapshot = await snapshotCanonicalSotReference(reference);
-        if (!matchesVerifiedCanonicalSotManifest(snapshot)) {
+        if (!matchesExpectedSotManifest(snapshot, expectation.snapshot)) {
             return unprovenCanonicalSotReference(
-                `${CANONICAL_SOT_REFERENCE_ROOT_ENV} does not match the verified 182-file handoff manifest`,
+                `${expectation.rootEnvironmentVariable} does not match the verified ${expectation.snapshot.fileCount}-file ${expectation.subject} manifest`,
             );
         }
 
@@ -111,9 +120,20 @@ export async function resolveVerifiedCanonicalSotReference(): Promise<VerifiedCa
         };
     } catch {
         return unprovenCanonicalSotReference(
-            `${CANONICAL_SOT_REFERENCE_ROOT_ENV} could not be read`,
+            `${expectation.rootEnvironmentVariable} could not be read`,
         );
     }
+}
+
+export async function resolveVerifiedCanonicalSotReference(): Promise<VerifiedCanonicalSotReferenceResolution> {
+    return resolveVerifiedSotReference({
+        rootEnvironmentVariable: CANONICAL_SOT_REFERENCE_ROOT_ENV,
+        snapshot: {
+            fileCount: EXPECTED_CANONICAL_SOT_FILE_COUNT,
+            manifestSha256: EXPECTED_CANONICAL_SOT_MANIFEST_SHA256,
+        },
+        subject: "handoff",
+    });
 }
 
 function sha256(value: string | Buffer) {
@@ -165,7 +185,12 @@ export async function snapshotCanonicalSotReference(
 export function assertCanonicalSotReferenceMatchesRecovery(
     snapshot: CanonicalSotReferenceSnapshot,
 ) {
-    if (matchesVerifiedCanonicalSotManifest(snapshot)) {
+    if (
+        matchesExpectedSotManifest(snapshot, {
+            fileCount: EXPECTED_CANONICAL_SOT_FILE_COUNT,
+            manifestSha256: EXPECTED_CANONICAL_SOT_MANIFEST_SHA256,
+        })
+    ) {
         return;
     }
 
