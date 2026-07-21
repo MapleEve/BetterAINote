@@ -63,27 +63,6 @@ const RECORDING_TRANSCRIPTION_META_BADGE_VARIANT = {
     measure: "secondary",
 } as const;
 
-const recordingTranscriptionClassNames = {
-    card: "min-h-0 flex-1 gap-0",
-    header: "flex flex-row items-center gap-3 px-3.5 py-3",
-    heading: "flex min-w-0 items-center gap-3",
-    icon: "size-4 flex-none text-muted-foreground",
-    headerCopy: "flex min-w-0 flex-col gap-[3px]",
-    body: "min-h-0 flex-1 overflow-y-auto px-5 pt-4 pb-6",
-    outputSection: "flex flex-col gap-2",
-    speakerReviewSection: "flex flex-col gap-2",
-    sectionHead: "flex items-start justify-between gap-3 max-[860px]:flex-col",
-    sectionTitle: "m-0 font-sans text-[12.5px] font-semibold text-foreground",
-    sectionDescription:
-        "mt-0.5 mb-0 font-sans text-[11.5px] font-medium leading-[1.45] text-muted-foreground max-[860px]:[overflow-wrap:anywhere]",
-    actions:
-        "inline-flex min-w-0 flex-wrap items-center justify-end gap-2 max-[860px]:justify-start",
-    turn: "pt-[10px]",
-    metaList: "mb-1.5 flex flex-wrap items-center gap-2.5 pt-2",
-    outputText:
-        "m-0 font-sans text-[14.5px] leading-[1.65] text-foreground [text-wrap:pretty] max-[860px]:[overflow-wrap:anywhere]",
-} as const;
-
 function applySpeakerMap(
     text: string,
     speakerMap: Record<string, string> | null | undefined,
@@ -326,19 +305,17 @@ export function TranscriptionSection({
             hasNoPadding
             role="region"
             aria-labelledby="recording-transcription-title"
-            className={recordingTranscriptionClassNames.card}
+            className="min-h-0 flex-1 gap-0"
             data-control="recording-transcription"
             data-state={transcriptionState}
         >
-            <CardHeader className={recordingTranscriptionClassNames.header}>
-                <div className={recordingTranscriptionClassNames.heading}>
+            <CardHeader className="flex flex-row items-center gap-3 px-3.5 py-3">
+                <div className="flex min-w-0 items-center gap-3">
                     <FileText
-                        className={recordingTranscriptionClassNames.icon}
+                        className="size-4 flex-none text-muted-foreground"
                         aria-hidden="true"
                     />
-                    <div
-                        className={recordingTranscriptionClassNames.headerCopy}
-                    >
+                    <div className="flex min-w-0 flex-col gap-[3px]">
                         <CardTitle className="min-w-0">
                             <h2
                                 id="recording-transcription-title"
@@ -362,7 +339,7 @@ export function TranscriptionSection({
                 </div>
             </CardHeader>
             <Separator />
-            <CardContent className={recordingTranscriptionClassNames.body}>
+            <CardContent className="min-h-0 flex-1 overflow-y-auto px-5 pt-4 pb-6">
                 {isTranscribing ? (
                     <Alert className="mb-3" data-state="loading">
                         <Spinner aria-hidden="true" />
@@ -398,37 +375,19 @@ export function TranscriptionSection({
                 {transcription ? (
                     <>
                         <section
-                            className={
-                                recordingTranscriptionClassNames.outputSection
-                            }
+                            className="flex flex-col gap-2"
                             data-state="ready"
                         >
-                            <header
-                                className={
-                                    recordingTranscriptionClassNames.sectionHead
-                                }
-                            >
+                            <header className="flex items-start justify-between gap-3 max-[860px]:flex-col">
                                 <div>
-                                    <h3
-                                        className={
-                                            recordingTranscriptionClassNames.sectionTitle
-                                        }
-                                    >
+                                    <h3 className="m-0 font-sans text-[12.5px] font-semibold text-foreground">
                                         {t("transcription.outputTitle")}
                                     </h3>
-                                    <p
-                                        className={
-                                            recordingTranscriptionClassNames.sectionDescription
-                                        }
-                                    >
+                                    <p className="mt-0.5 mb-0 font-sans text-[11.5px] font-medium leading-[1.45] text-muted-foreground max-[860px]:[overflow-wrap:anywhere]">
                                         {t("transcription.outputDescription")}
                                     </p>
                                 </div>
-                                <div
-                                    className={
-                                        recordingTranscriptionClassNames.actions
-                                    }
-                                >
+                                <div className="inline-flex min-w-0 flex-wrap items-center justify-end gap-2 max-[860px]:justify-start">
                                     <Button
                                         onClick={handleCopyTranscript}
                                         size="sm"
@@ -474,25 +433,13 @@ export function TranscriptionSection({
                                     </Button>
                                 </div>
                             </header>
-                            <div
-                                className={
-                                    recordingTranscriptionClassNames.turn
-                                }
-                            >
-                                <p
-                                    className={
-                                        recordingTranscriptionClassNames.outputText
-                                    }
-                                >
+                            <div className="pt-[10px]">
+                                <p className="m-0 font-sans text-[14.5px] leading-[1.65] text-foreground [text-wrap:pretty] max-[860px]:[overflow-wrap:anywhere]">
                                     {displayText}
                                 </p>
                             </div>
                             <Separator />
-                            <div
-                                className={
-                                    recordingTranscriptionClassNames.metaList
-                                }
-                            >
+                            <div className="mb-1.5 flex flex-wrap items-center gap-2.5 pt-2">
                                 {language ? (
                                     <Badge
                                         variant={
@@ -536,29 +483,13 @@ export function TranscriptionSection({
                         {showSpeakerReview ? (
                             <>
                                 <Separator className="my-2" />
-                                <section
-                                    className={
-                                        recordingTranscriptionClassNames.speakerReviewSection
-                                    }
-                                >
-                                    <header
-                                        className={
-                                            recordingTranscriptionClassNames.sectionHead
-                                        }
-                                    >
+                                <section className="flex flex-col gap-2">
+                                    <header className="flex items-start justify-between gap-3 max-[860px]:flex-col">
                                         <div>
-                                            <h3
-                                                className={
-                                                    recordingTranscriptionClassNames.sectionTitle
-                                                }
-                                            >
+                                            <h3 className="m-0 font-sans text-[12.5px] font-semibold text-foreground">
                                                 {t("speakerReview.title")}
                                             </h3>
-                                            <p
-                                                className={
-                                                    recordingTranscriptionClassNames.sectionDescription
-                                                }
-                                            >
+                                            <p className="mt-0.5 mb-0 font-sans text-[11.5px] font-medium leading-[1.45] text-muted-foreground max-[860px]:[overflow-wrap:anywhere]">
                                                 {t("speakerReview.description")}
                                             </p>
                                         </div>

@@ -1262,39 +1262,12 @@ describe("recording detail copy and title action UI regressions", () => {
         expect(detailTranscript).not.toContain(
             "RECORDING_TRANSCRIPTION_META_BADGE_CLASS_NAME",
         );
-        expect(detailTranscript).toContain(
-            "const recordingTranscriptionClassNames = {",
-        );
         expect(detailTranscript).not.toContain(
             "const recordingTranscriptionButtonClassNames",
         );
         expect(detailTranscript).not.toContain(
             "recordingTranscriptionButtonClassNames.",
         );
-        const recordingTranscriptionClassNamesBlock = extractBoundedSlice(
-            detailTranscript,
-            "const recordingTranscriptionClassNames = {",
-            "} as const;",
-        );
-        for (const ownerClassSnippet of [
-            'card: "min-h-0 flex-1 gap-0"',
-            'header: "flex flex-row items-center gap-3 px-3.5 py-3"',
-            'heading: "flex min-w-0 items-center gap-3"',
-            'icon: "size-4 flex-none text-muted-foreground"',
-            'headerCopy: "flex min-w-0 flex-col gap-[3px]"',
-            'body: "min-h-0 flex-1 overflow-y-auto px-5 pt-4 pb-6"',
-            'speakerReviewSection: "flex flex-col gap-2"',
-            'sectionHead: "flex items-start justify-between gap-3 max-[860px]:flex-col"',
-            'sectionTitle: "m-0 font-sans text-[12.5px] font-semibold text-foreground"',
-            'sectionDescription:\n        "mt-0.5 mb-0 font-sans text-[11.5px] font-medium leading-[1.45] text-muted-foreground max-[860px]:[overflow-wrap:anywhere]"',
-            'actions:\n        "inline-flex min-w-0 flex-wrap items-center justify-end gap-2 max-[860px]:justify-start"',
-            'turn: "pt-[10px]"',
-            'metaList: "mb-1.5 flex flex-wrap items-center gap-2.5 pt-2"',
-        ]) {
-            expect(recordingTranscriptionClassNamesBlock).toContain(
-                ownerClassSnippet,
-            );
-        }
         for (const forbiddenLocalPanelResidual of [
             "[scrollbar-color:",
             "[scrollbar-width:",
@@ -1305,26 +1278,11 @@ describe("recording detail copy and title action UI regressions", () => {
             "data-[tone=attribute]:",
             "data-[tone=measure]:",
         ]) {
-            expect(recordingTranscriptionClassNamesBlock).not.toContain(
-                forbiddenLocalPanelResidual,
-            );
             expect(detailTranscript).not.toContain(forbiddenLocalPanelResidual);
         }
         expect(detailTranscript).not.toContain("dark:");
         expect(detailTranscript).not.toMatch(
             /(?:text|border|bg)-\[var\(--(?:fg|line|glass)-/,
-        );
-        expect(recordingTranscriptionClassNamesBlock).not.toMatch(
-            /\b(?:rgb|rgba|color-mix|oklch)\(/,
-        );
-        expect(recordingTranscriptionClassNamesBlock).not.toMatch(
-            /#[0-9a-fA-F]{3,8}\b/,
-        );
-        expect(detailTranscript).toContain(
-            'outputSection: "flex flex-col gap-2"',
-        );
-        expect(detailTranscript).toContain(
-            'outputText:\n        "m-0 font-sans text-[14.5px] leading-[1.65] text-foreground [text-wrap:pretty] max-[860px]:[overflow-wrap:anywhere]"',
         );
         for (const metaLabel of [
             "transcription.languagePrefix",
@@ -1368,131 +1326,6 @@ describe("recording detail copy and title action UI regressions", () => {
             Math.max(0, jobErrorBannerIndex - 240),
             jobErrorBannerIndex + 360,
         );
-        const outputSection = extractOpeningElement(
-            detailTranscript,
-            "recordingTranscriptionClassNames.outputSection",
-            "section",
-        );
-        const transcriptionCard = extractOpeningElement(
-            detailTranscript,
-            'aria-labelledby="recording-transcription-title"',
-            "Card",
-        );
-        const transcriptionHeader = extractOpeningElement(
-            detailTranscript,
-            "recordingTranscriptionClassNames.header",
-            "CardHeader",
-        );
-        const transcriptionHeading = extractOpeningElement(
-            detailTranscript,
-            "recordingTranscriptionClassNames.heading",
-            "div",
-        );
-        const transcriptionIcon = extractOpeningElement(
-            detailTranscript,
-            "recordingTranscriptionClassNames.icon",
-            "FileText",
-        );
-        const transcriptionHeaderCopy = extractOpeningElement(
-            detailTranscript,
-            "recordingTranscriptionClassNames.headerCopy",
-            "div",
-        );
-        const transcriptionBody = extractOpeningElement(
-            detailTranscript,
-            "recordingTranscriptionClassNames.body",
-            "CardContent",
-        );
-        const sectionHead = extractOpeningElement(
-            detailTranscript,
-            "recordingTranscriptionClassNames.sectionHead",
-            "header",
-        );
-        const sectionTitle = extractOpeningElement(
-            detailTranscript,
-            "recordingTranscriptionClassNames.sectionTitle",
-            "h3",
-        );
-        const sectionDescription = extractOpeningElement(
-            detailTranscript,
-            "recordingTranscriptionClassNames.sectionDescription",
-            "p",
-        );
-        const sectionActions = extractOpeningElement(
-            detailTranscript,
-            "recordingTranscriptionClassNames.actions",
-            "div",
-        );
-        const transcriptionTurn = extractOpeningElement(
-            detailTranscript,
-            "recordingTranscriptionClassNames.turn",
-            "div",
-        );
-        const speakerReviewSection = extractOpeningElement(
-            detailTranscript,
-            "recordingTranscriptionClassNames.speakerReviewSection",
-            "section",
-        );
-        const outputText = extractOpeningElement(
-            detailTranscript,
-            "recordingTranscriptionClassNames.outputText",
-            "p",
-        );
-        const metaList = extractBoundedSlice(
-            detailTranscript,
-            "recordingTranscriptionClassNames.metaList",
-            "</div>",
-        );
-        const transcriptionMetaList = extractOpeningElement(
-            detailTranscript,
-            "recordingTranscriptionClassNames.metaList",
-            "div",
-        );
-        expect(outputSection).toContain(
-            "recordingTranscriptionClassNames.outputSection",
-        );
-        expect(transcriptionCard).toContain(
-            "recordingTranscriptionClassNames.card",
-        );
-        expect(transcriptionHeader).toContain(
-            "recordingTranscriptionClassNames.header",
-        );
-        expect(transcriptionHeading).toContain(
-            "recordingTranscriptionClassNames.heading",
-        );
-        expect(transcriptionIcon).toContain(
-            "recordingTranscriptionClassNames.icon",
-        );
-        expect(transcriptionHeaderCopy).toContain(
-            "recordingTranscriptionClassNames.headerCopy",
-        );
-        expect(transcriptionBody).toContain(
-            "recordingTranscriptionClassNames.body",
-        );
-        expect(sectionHead).toContain(
-            "recordingTranscriptionClassNames.sectionHead",
-        );
-        expect(sectionTitle).toContain(
-            "recordingTranscriptionClassNames.sectionTitle",
-        );
-        expect(sectionDescription).toContain(
-            "recordingTranscriptionClassNames.sectionDescription",
-        );
-        expect(sectionActions).toContain(
-            "recordingTranscriptionClassNames.actions",
-        );
-        expect(transcriptionTurn).toContain(
-            "recordingTranscriptionClassNames.turn",
-        );
-        expect(transcriptionMetaList).toContain(
-            "recordingTranscriptionClassNames.metaList",
-        );
-        expect(speakerReviewSection).toContain(
-            "recordingTranscriptionClassNames.speakerReviewSection",
-        );
-        expect(outputText).toContain(
-            "recordingTranscriptionClassNames.outputText",
-        );
         expect(copyControl).toContain('variant="outline"');
         expect(copyControl).toContain('size="sm"');
         expect(copyControl).not.toContain("className=");
@@ -1506,14 +1339,6 @@ describe("recording detail copy and title action UI regressions", () => {
         expect(startControl).not.toContain("className=");
         expect(jobErrorBanner).toContain("<Alert");
         expect(jobErrorBanner).toContain('variant="statusError"');
-        expect(metaList).toContain("<Badge");
-        expect(metaList).not.toContain(variantAttr("transcriptionMeta"));
-        expect(metaList).toContain(
-            "RECORDING_TRANSCRIPTION_META_BADGE_VARIANT.attribute",
-        );
-        expect(metaList).toContain(
-            "RECORDING_TRANSCRIPTION_META_BADGE_VARIANT.measure",
-        );
         for (const removedActionToken of [
             'variant="transcriptionAction"',
             'variant="transcriptionDangerAction"',
@@ -1534,12 +1359,6 @@ describe("recording detail copy and title action UI regressions", () => {
             expect(startControl).not.toContain(removedActionToken);
         }
         expect(jobErrorBanner).not.toContain('variant="destructive"');
-        expect(metaList).toMatch(
-            /variant=\{\s*RECORDING_TRANSCRIPTION_META_BADGE_VARIANT\.attribute\s*\}/,
-        );
-        expect(metaList).toMatch(
-            /variant=\{\s*RECORDING_TRANSCRIPTION_META_BADGE_VARIANT\.measure\s*\}/,
-        );
         for (const removedSelector of [
             '[data-panel="recording-transcription"][data-slot="card"]',
             '[data-part="recording-transcription-header"] {',

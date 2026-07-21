@@ -19,6 +19,7 @@ import { Workstation } from "@/features/dashboard/workstation";
 import { DataSourceFieldControl } from "@/features/data-sources/data-source-field-control";
 import { RecordingTagIconGlyph } from "@/features/recordings/components/recording-tag-visuals";
 import { SourceReportPanel } from "@/features/recordings/components/source-report-panel";
+import { TranscriptionSection } from "@/features/recordings/components/transcription-section";
 import {
     SpeakerReviewSkeleton,
     TranscriptOutputSkeleton,
@@ -341,6 +342,36 @@ describe("React surface SSR coverage", () => {
         expect(html).toContain('data-list="dashboard-sources"');
         expect(html).toContain('data-panel="dashboard-sync"');
         expect(html).toContain('data-control="dashboard-sync"');
+    });
+
+    it("renders the ready transcription section through its real SSR DOM", () => {
+        const html = render(
+            React.createElement(TranscriptionSection, {
+                recordingId: "recording-1",
+                initialTranscription: "Speaker 1 shared the weekly update.",
+                initialLanguage: "en",
+                initialType: "private",
+                initialSpeakerMap: { "Speaker 1": "Alice" },
+            }),
+            "en",
+        );
+
+        expect(html).toMatch(
+            /<div[^>]*role="region"[^>]*data-control="recording-transcription"[^>]*data-state="ready"[^>]*>/,
+        );
+        expect(html).toMatch(
+            /<section[^>]*data-state="ready"[^>]*>[\s\S]*Transcript Output[\s\S]*<\/section>/,
+        );
+        expect(html).toContain("Alice shared the weekly update.");
+        expect(html).toMatch(
+            /<button[^>]*data-control="recording-transcript-copy"[^>]*>[\s\S]*Copy transcript[\s\S]*<\/button>/,
+        );
+        expect(html).toMatch(
+            /<button[^>]*data-control="recording-transcript-retranscribe"[^>]*>[\s\S]*Re-transcribe[\s\S]*<\/button>/,
+        );
+        expect(html).toMatch(
+            /<section[^>]*aria-label="Speaker Labels"[^>]*aria-busy="true"[^>]*data-speaker-review-panel="speaker-review"[^>]*data-speaker-review-state="loading"[^>]*>/,
+        );
     });
 
     it("renders data source and source-detail supporting surfaces", () => {
