@@ -9083,8 +9083,17 @@ describe("full UI replacement regression coverage", () => {
         expect(sourceReportPanel).toContain(
             'copyingKey === "source-report" || !reportAvailable;',
         );
-        expect(sourceReportPanel).toContain(
-            "<SourceReportPane className={className} state={sourceReportState}>",
+        const recordingSourceReportPane = extractOpeningElement(
+            sourceReportPanel,
+            'data-control="recording-source-report"',
+            "SourceReportPane",
+        );
+        expect(recordingSourceReportPane).toContain("className={className}");
+        expect(recordingSourceReportPane).toContain(
+            "state={sourceReportState}",
+        );
+        expect(recordingSourceReportPane).toContain(
+            'data-control="recording-source-report"',
         );
         expect(sourceReportPanel).not.toContain(
             "@/features/source-report/styles",
@@ -13489,8 +13498,17 @@ describe("full UI replacement regression coverage", () => {
             /SotSourceReport|data-source-report|sourceReportSotStyles|SourceReportStyleVariables/,
         );
 
-        expect(sourceReport).toContain(
-            "<SourceReportPane className={className} state={sourceReportState}>",
+        const recordingSourceReportPane = extractOpeningElement(
+            sourceReport,
+            'data-control="recording-source-report"',
+            "SourceReportPane",
+        );
+        expect(recordingSourceReportPane).toContain("className={className}");
+        expect(recordingSourceReportPane).toContain(
+            "state={sourceReportState}",
+        );
+        expect(recordingSourceReportPane).toContain(
+            'data-control="recording-source-report"',
         );
         expect(sourceReport).toContain('<SourceReportState state="loading">');
         expect(sourceReport).toMatch(
