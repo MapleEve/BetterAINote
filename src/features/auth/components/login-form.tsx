@@ -139,6 +139,7 @@ export function LoginForm({
                             alt=""
                             width={36}
                             height={36}
+                            unoptimized
                         />{" "}
                         <CardTitle>{title}</CardTitle>
                         <CardDescription>{subtitle}</CardDescription>
