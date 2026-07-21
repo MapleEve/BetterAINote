@@ -343,7 +343,7 @@ async function releaseSourceArtifactsLock(lock: Client | null) {
     }
 
     try {
-        await lock.execute("COMMIT");
+        await lock.execute("ROLLBACK");
     } finally {
         await lock.close();
     }
@@ -511,32 +511,39 @@ test("recording source report exposes an accessible real database failure and re
         );
 
         lock = await acquireSourceArtifactsLock();
-        const failure = waitForSourceReportResponse(
-            page,
-            RETRY_RECORDING_ID,
-            500,
-        );
-        await panel.getByRole("button", { name: "刷新" }).click();
-        await failure;
+        try {
+            const failure = waitForSourceReportResponse(
+                page,
+                RETRY_RECORDING_ID,
+                500,
+            );
+            await panel.getByRole("button", { name: "刷新" }).click();
+            await failure;
 
-        const errorState = sourceReportState(page, "error");
-        await expect(panel).toHaveAttribute("data-state", "error");
-        await expect(errorState).toHaveAttribute("aria-live", "assertive");
-        await expect(errorState.getByRole("alert")).toContainText(
-            "无法读取来源详情",
-        );
-        const retry = errorState.getByRole("button", { name: "重试" });
-        await expect(retry).toHaveAttribute("data-control", "source-report-retry");
+            const errorState = sourceReportState(page, "error");
+            await expect(panel).toHaveAttribute("data-state", "error");
+            await expect(errorState).toHaveAttribute("aria-live", "assertive");
+            await expect(errorState.getByRole("alert")).toContainText(
+                "无法读取来源详情",
+            );
+            const retry = errorState.getByRole("button", { name: "重试" });
+            await expect(retry).toHaveAttribute("data-control", "source-report-retry");
+        } finally {
+            await releaseSourceArtifactsLock(lock);
+            lock = null;
+        }
 
-        await releaseSourceArtifactsLock(lock);
-        lock = null;
         const recovered = waitForSourceReportResponse(
             page,
             RETRY_RECORDING_ID,
             200,
         );
-        await retry.click();
-        await recovered;
+        await panel.getByRole("button", { name: "重试" }).click();
+        const recoveredResponse = await recovered;
+        const recoveredReadback =
+            (await recoveredResponse.json()) as SourceReportReadback;
+        expect(recoveredReadback.transcript?.text).toContain(TRANSCRIPT_MARKER);
+        expect(recoveredReadback.summaryMarkdown).toContain(SUMMARY_MARKER);
 
         await expect(panel).toHaveAttribute("data-state", "loaded");
         await expect(sourceReportState(page, "error")).toHaveCount(0);

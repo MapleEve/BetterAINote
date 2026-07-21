@@ -147,13 +147,13 @@ describe("source report framework integration", () => {
         expect(recordingPanel).toContain("strokeWidth={1.8}");
     });
 
-    it("keeps shared contracts while detail owns explicit child styling", () => {
+    it("keeps recording detail on direct shadcn composition", () => {
         for (const component of [
             "SourceReportMetricCards",
             "SourceReportSegments",
             "SourceReportActionButton",
         ]) {
-            expect(recordingPanel).toContain(`<${component}`);
+            expect(dashboardComposition).toContain(`<${component}`);
         }
 
         for (const component of [
@@ -189,7 +189,10 @@ describe("source report framework integration", () => {
             expect(recordingPanel).toContain(primitive);
         }
 
-        expect(recordingPanel).toContain("<SourceReportPane");
+        expect(recordingPanel).not.toContain(
+            '@/features/source-report/primitives',
+        );
+        expect(recordingPanel).not.toContain("<SourceReportPane");
         expect(dashboardComposition).toContain('surface="dashboard"');
         expect(dashboardComposition).toContain("<DashboardSourceReportState");
         expect(recordingWorkstation).toContain("<SourceReportPanel");
@@ -202,19 +205,13 @@ describe("source report framework integration", () => {
     });
 
     it("renders readable source summaries at the recording panel surface", () => {
-        const recordingPane = boundedSlice(
-            recordingPanel,
-            "<SourceReportPane",
-            "</SourceReportPane>",
-        );
-
         expect(recordingPanel).toContain(
             "const sourceSummaryText = sourceSummaryDisplayText(sourceReportCopyText);",
         );
         expect(recordingPanel).toContain(
             "const sourceSummaryVisible = Boolean(sourceSummaryText);",
         );
-        expect(recordingPane).toMatch(
+        expect(recordingPanel).toMatch(
             /\{sourceSummaryVisible \? \([\s\S]*?section="summary"[\s\S]*?<RecordingSourceReportSummaryBody>[\s\S]*?sourceSummaryText\.split\("\\n"\)\.map[\s\S]*?: null\}/,
         );
     });
@@ -339,19 +336,10 @@ describe("source report framework integration", () => {
         );
     });
 
-    it("keeps every exported source report primitive connected to live composition", () => {
-        const consumers = `${recordingPanel}\n${dashboardComposition}`;
-        const exportedComponents = Array.from(
-            primitives.matchAll(/export function (SourceReport\w+)/g),
-            (match) => match[1],
-        );
-
-        expect(exportedComponents.length).toBeGreaterThan(10);
-        for (const component of exportedComponents) {
-            expect(
-                consumers,
-                `${component} must have a live consumer`,
-            ).toContain(component);
-        }
+    it("keeps the private primitive registry out of recording detail", () => {
+        expect(primitives).toContain("export function SourceReportPane");
+        expect(dashboardComposition).toContain("<SourceReportPane");
+        expect(recordingPanel).not.toContain("<SourceReportPane");
+        expect(recordingPanel).not.toContain("SourceReportActionButton");
     });
 });
