@@ -227,7 +227,16 @@ async function openTagManager(page: Page) {
     await expect(tagManager(page)).toBeVisible();
 }
 
-test("recording tags use real SQLite APIs for add remove create rename and confirmed delete", async ({
+async function openCreateTagDialog(page: Page) {
+    await tagManager(page)
+        .getByRole("button", { name: "新建标签", exact: true })
+        .click();
+    const dialog = page.getByRole("dialog");
+    await expect(dialog.getByRole("heading", { name: "新建标签" })).toBeVisible();
+    return dialog;
+}
+
+test("recording tag creation uses the dialog and survives a browser reload", async ({
     page,
 }) => {
     let userId: string | null = null;
@@ -239,54 +248,59 @@ test("recording tags use real SQLite APIs for add remove create rename and confi
 
         await page.goto(`/recordings/${RECORDING_ID}`, { waitUntil: "domcontentloaded" });
         await openTagManager(page);
-        const panel = tagManager(page);
 
-        const addResponse = page.waitForResponse((response) =>
-            new URL(response.url()).pathname === `/api/recordings/${RECORDING_ID}/tags` &&
-            response.request().method() === "PUT" &&
-            response.status() === 200,
-        );
-        await panel
-            .getByRole("button", { name: "TG-E2E-One", exact: true })
-            .click();
-        await addResponse;
-        await expect.poll(() => assignmentCount(userId!, "TG-E2E-One")).toBe(1);
-
-        const removeResponse = page.waitForResponse((response) =>
-            new URL(response.url()).pathname === `/api/recordings/${RECORDING_ID}/tags` &&
-            response.request().method() === "PUT" &&
-            response.status() === 200,
-        );
-        await panel
-            .getByRole("button", { name: "TG-E2E-One", exact: true })
-            .click();
-        await removeResponse;
-        await expect.poll(() => assignmentCount(userId!, "TG-E2E-One")).toBe(0);
+        const cancelledDialog = await openCreateTagDialog(page);
+        await cancelledDialog
+            .getByRole("textbox", { name: "标签名称" })
+            .fill("TG-E2E-Cancel");
+        await cancelledDialog.getByRole("button", { name: "取消", exact: true }).click();
+        await expect(cancelledDialog).toHaveCount(0);
+        await expect.poll(() => tagCount(userId!, "TG-E2E-Cancel")).toBe(0);
 
         const createResponse = page.waitForResponse((response) =>
             new URL(response.url()).pathname === "/api/recording-tags" &&
             response.request().method() === "POST" &&
             response.status() === 200,
         );
-        await panel.locator("#recording-tag-create-name").fill("TG-E2E-New");
-        await panel.getByRole("button", { name: "新建", exact: true }).click();
+        const dialog = await openCreateTagDialog(page);
+        const input = dialog.getByRole("textbox", { name: "标签名称" });
+        await input.fill("TG-E2E-New");
+        await input.press("Enter");
         await createResponse;
+        await expect(dialog).toHaveCount(0);
+        await expect.poll(() => tagCount(userId!, "TG-E2E-New")).toBe(1);
         await expect.poll(() => assignmentCount(userId!, "TG-E2E-New")).toBe(1);
 
-        await panel.getByRole("button", { name: "编辑 TG-E2E-New" }).click();
-        await panel.getByRole("textbox", { name: "重命名标签" }).fill("TG-E2E-Ren");
-        const renameResponse = page.waitForResponse((response) =>
-            new URL(response.url()).pathname.includes("/api/recording-tags/") &&
-            response.request().method() === "PATCH" &&
-            response.status() === 200,
-        );
-        await panel.getByRole("button", { name: "保存", exact: true }).click();
-        await renameResponse;
-        await expect.poll(() => assignmentCount(userId!, "TG-E2E-Ren")).toBe(1);
+        await page.reload({ waitUntil: "domcontentloaded" });
+        await openTagManager(page);
+        await expect(
+            tagManager(page).getByRole("button", {
+                name: "TG-E2E-New",
+                exact: true,
+            }),
+        ).toHaveAttribute("aria-pressed", "true");
+    } finally {
+        if (userId) {
+            await cleanupSeed(userId);
+        }
+    }
+});
 
-        await panel.getByRole("button", { name: "删除 TG-E2E-Ren" }).click();
+test("recording tag deletion persists through a browser reload", async ({ page }) => {
+    let userId: string | null = null;
+    try {
+        await ensureSignedIn(page);
+        userId = await getPlaywrightUserId();
+        await cleanupSeed(userId);
+        await seedRecordingAndTags(userId);
+
+        await page.goto(`/recordings/${RECORDING_ID}`, { waitUntil: "domcontentloaded" });
+        await openTagManager(page);
+        const panel = tagManager(page);
+
+        await panel.getByRole("button", { name: "删除 TG-E2E-One" }).click();
         const dialog = page.getByRole("dialog");
-        await expect(dialog).toContainText("TG-E2E-Ren");
+        await expect(dialog).toContainText("TG-E2E-One");
         const deleteResponse = page.waitForResponse((response) =>
             new URL(response.url()).pathname.includes("/api/recording-tags/") &&
             response.request().method() === "DELETE" &&
@@ -294,8 +308,17 @@ test("recording tags use real SQLite APIs for add remove create rename and confi
         );
         await dialog.getByRole("button", { name: "删除标签", exact: true }).click();
         await deleteResponse;
-        await expect.poll(() => tagCount(userId!, "TG-E2E-Ren")).toBe(0);
-        await expect.poll(() => assignmentCount(userId!, "TG-E2E-Ren")).toBe(0);
+        await expect.poll(() => tagCount(userId!, "TG-E2E-One")).toBe(0);
+        await expect.poll(() => assignmentCount(userId!, "TG-E2E-One")).toBe(0);
+
+        await page.reload({ waitUntil: "domcontentloaded" });
+        await openTagManager(page);
+        await expect(
+            tagManager(page).getByRole("button", {
+                name: "TG-E2E-One",
+                exact: true,
+            }),
+        ).toHaveCount(0);
     } finally {
         if (userId) {
             await cleanupSeed(userId);
@@ -315,16 +338,18 @@ test("recording tag creation shows a real API error and retries after the backen
 
         await page.goto(`/recordings/${RECORDING_ID}`, { waitUntil: "domcontentloaded" });
         await openTagManager(page);
-        const panel = tagManager(page);
-        await panel.locator("#recording-tag-create-name").fill("TG-E2E-Err");
+        const dialog = await openCreateTagDialog(page);
+        const input = dialog.getByRole("textbox", { name: "标签名称" });
+        await input.fill("TG-E2E-Err");
         const failureResponse = page.waitForResponse((response) =>
             new URL(response.url()).pathname === "/api/recording-tags" &&
             response.request().method() === "POST" &&
             response.status() === 409,
         );
-        await panel.getByRole("button", { name: "新建", exact: true }).click();
+        await input.press("Enter");
         await failureResponse;
-        await expect(panel.getByRole("alert")).toContainText("Tag name already exists");
+        await expect(dialog.getByRole("alert")).toContainText("Tag name already exists");
+        await expect(input).toHaveValue("TG-E2E-Err");
 
         await deleteTagByName(userId, "TG-E2E-Err");
         const retryResponse = page.waitForResponse((response) =>
@@ -332,10 +357,20 @@ test("recording tag creation shows a real API error and retries after the backen
             response.request().method() === "POST" &&
             response.status() === 200,
         );
-        await panel.getByRole("button", { name: "重试", exact: true }).click();
+        await dialog.getByRole("button", { name: "重试", exact: true }).click();
         await retryResponse;
-        await expect(panel.getByRole("alert")).toHaveCount(0);
+        await expect(dialog).toHaveCount(0);
+        await expect.poll(() => tagCount(userId!, "TG-E2E-Err")).toBe(1);
         await expect.poll(() => assignmentCount(userId!, "TG-E2E-Err")).toBe(1);
+
+        await page.reload({ waitUntil: "domcontentloaded" });
+        await openTagManager(page);
+        await expect(
+            tagManager(page).getByRole("button", {
+                name: "TG-E2E-Err",
+                exact: true,
+            }),
+        ).toHaveAttribute("aria-pressed", "true");
     } finally {
         if (userId) {
             await cleanupSeed(userId);

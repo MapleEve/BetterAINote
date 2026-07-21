@@ -18,6 +18,7 @@ import {
     DialogFooter,
     DialogHeader,
     DialogTitle,
+    DialogTrigger,
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -86,6 +87,7 @@ export function RecordingTagManager({
     const [pending, setPending] = useState<string | null>(null);
     const [operationError, setOperationError] = useState<string | null>(null);
     const [retryAction, setRetryAction] = useState<RetryAction | null>(null);
+    const [createDialogOpen, setCreateDialogOpen] = useState(false);
     const [deleteTarget, setDeleteTarget] = useState<RecordingTag | null>(null);
 
     const selectedTagIds = useMemo(
@@ -158,6 +160,7 @@ export function RecordingTagManager({
                 tags: nextTags,
             });
             setCreateName("");
+            setCreateDialogOpen(false);
         } catch (error) {
             setOperationError(toErrorMessage(error, "标签创建失败"));
             setRetryAction({ payload, type: "create" });
@@ -250,6 +253,35 @@ export function RecordingTagManager({
         setRetryAction(null);
     };
 
+    const closeCreateDialog = () => {
+        if (busy) return;
+        setCreateDialogOpen(false);
+        setCreateName("");
+        setOperationError(null);
+        setRetryAction(null);
+    };
+
+    const renderError = () =>
+        visibleError ? (
+            <Alert role="alert" variant="destructive">
+                <AlertTitle>标签操作失败</AlertTitle>
+                <AlertDescription className="flex flex-wrap items-center gap-3">
+                    <span>{visibleError}</span>
+                    {retryAction ? (
+                        <Button
+                            disabled={busy}
+                            onClick={retry}
+                            size="sm"
+                            type="button"
+                            variant="outline"
+                        >
+                            重试
+                        </Button>
+                    ) : null}
+                </AlertDescription>
+            </Alert>
+        ) : null;
+
     const renderPicker = ({
         color,
         icon,
@@ -332,249 +364,284 @@ export function RecordingTagManager({
     return (
         <>
             <Card
-            aria-busy={busy || undefined}
-            className="w-full max-w-xl"
-            data-control="recording-tag-manager"
-            data-state={visibleError ? "error" : busy ? "saving" : "ready"}
-        >
-            <CardHeader className="flex flex-row items-center justify-between gap-4">
-                <CardTitle className="text-base">管理标签</CardTitle>
-                {onClose ? (
-                    <Button
-                        aria-label="关闭标签管理"
-                        disabled={busy}
-                        onClick={onClose}
-                        size="icon-sm"
-                        type="button"
-                        variant="ghost"
-                    >
-                        <X />
-                    </Button>
-                ) : null}
-            </CardHeader>
-            <CardContent className="grid gap-5">
-                {visibleError ? (
-                    <Alert role="alert" variant="destructive">
-                        <AlertTitle>标签操作失败</AlertTitle>
-                        <AlertDescription className="flex flex-wrap items-center gap-3">
-                            <span>{visibleError}</span>
-                            {retryAction ? (
-                                <Button
-                                    disabled={busy}
-                                    onClick={retry}
-                                    size="sm"
-                                    type="button"
-                                    variant="outline"
-                                >
-                                    重试
-                                </Button>
-                            ) : null}
-                        </AlertDescription>
-                    </Alert>
-                ) : null}
+                aria-busy={busy || undefined}
+                className="w-full max-w-xl"
+                data-control="recording-tag-manager"
+                data-state={visibleError ? "error" : busy ? "saving" : "ready"}
+            >
+                <CardHeader className="flex flex-row items-center justify-between gap-4">
+                    <CardTitle className="text-base">管理标签</CardTitle>
+                    {onClose ? (
+                        <Button
+                            aria-label="关闭标签管理"
+                            disabled={busy}
+                            onClick={onClose}
+                            size="icon-sm"
+                            type="button"
+                            variant="ghost"
+                        >
+                            <X />
+                        </Button>
+                    ) : null}
+                </CardHeader>
+                <CardContent className="grid gap-5">
+                    {!createDialogOpen ? renderError() : null}
 
-                <section
-                    aria-labelledby="recording-tags-title"
-                    className="grid gap-3"
-                >
-                    <div className="flex items-center justify-between gap-3">
-                        <Label id="recording-tags-title">这条录音的标签</Label>
-                        <span className="text-sm text-muted-foreground">
-                            {recording.tags.length} 个
-                        </span>
-                    </div>
-                    <div className="flex flex-wrap gap-2">
-                        {availableTags.length === 0 ? (
-                            <p className="text-sm text-muted-foreground">
-                                尚未创建标签
-                            </p>
-                        ) : (
-                            availableTags.map((tag) => {
-                                const selected = selectedTagIds.has(tag.id);
-                                return (
-                                    <Button
-                                        aria-pressed={selected}
-                                        data-control="recording-tag-toggle"
-                                        data-tag-id={tag.id}
-                                        disabled={busy}
+                    <section
+                        aria-labelledby="recording-tags-title"
+                        className="grid gap-3"
+                    >
+                        <div className="flex items-center justify-between gap-3">
+                            <Label id="recording-tags-title">
+                                这条录音的标签
+                            </Label>
+                            <span className="text-sm text-muted-foreground">
+                                {recording.tags.length} 个
+                            </span>
+                        </div>
+                        <div className="flex flex-wrap gap-2">
+                            {availableTags.length === 0 ? (
+                                <p className="text-sm text-muted-foreground">
+                                    尚未创建标签
+                                </p>
+                            ) : (
+                                availableTags.map((tag) => {
+                                    const selected = selectedTagIds.has(tag.id);
+                                    return (
+                                        <Button
+                                            aria-pressed={selected}
+                                            data-control="recording-tag-toggle"
+                                            data-tag-id={tag.id}
+                                            disabled={busy}
+                                            key={tag.id}
+                                            onClick={() => toggleTag(tag)}
+                                            size="sm"
+                                            type="button"
+                                            variant={
+                                                selected
+                                                    ? "secondary"
+                                                    : "outline"
+                                            }
+                                        >
+                                            {pending === "assignment" ? (
+                                                <LoaderCircle className="animate-spin" />
+                                            ) : (
+                                                <RecordingTagIconGlyph
+                                                    icon={tag.icon}
+                                                />
+                                            )}
+                                            {tag.name}
+                                        </Button>
+                                    );
+                                })
+                            )}
+                        </div>
+                    </section>
+
+                    <Separator />
+
+                    <section
+                        aria-labelledby="recording-tag-catalog-title"
+                        className="grid gap-3"
+                    >
+                        <Label id="recording-tag-catalog-title">标签目录</Label>
+                        <div className="grid gap-2">
+                            {availableTags.map((tag) =>
+                                editingTagId === tag.id ? (
+                                    <div
+                                        className="grid gap-3 rounded-md border p-3"
                                         key={tag.id}
-                                        onClick={() => toggleTag(tag)}
-                                        size="sm"
-                                        type="button"
-                                        variant={
-                                            selected ? "secondary" : "outline"
-                                        }
                                     >
-                                        {pending === "assignment" ? (
-                                            <LoaderCircle className="animate-spin" />
-                                        ) : (
+                                        <Input
+                                            aria-label="重命名标签"
+                                            disabled={busy}
+                                            maxLength={
+                                                MAX_RECORDING_TAG_NAME_LENGTH
+                                            }
+                                            onChange={(event) =>
+                                                setEditName(event.target.value)
+                                            }
+                                            value={editName}
+                                        />
+                                        {renderPicker({
+                                            color: editColor,
+                                            icon: editIcon,
+                                            onColorChange: setEditColor,
+                                            onIconChange: setEditIcon,
+                                            prefix: `edit-${tag.id}`,
+                                        })}
+                                        <div className="flex flex-wrap justify-end gap-2">
+                                            <Button
+                                                disabled={busy}
+                                                onClick={() =>
+                                                    setEditingTagId(null)
+                                                }
+                                                size="sm"
+                                                type="button"
+                                                variant="ghost"
+                                            >
+                                                取消
+                                            </Button>
+                                            <Button
+                                                disabled={
+                                                    !editName.trim() || busy
+                                                }
+                                                onClick={() =>
+                                                    void updateTag(tag, {
+                                                        color: editColor,
+                                                        icon: editIcon,
+                                                        name: editName.trim(),
+                                                    })
+                                                }
+                                                size="sm"
+                                                type="button"
+                                            >
+                                                {pending ===
+                                                `update-${tag.id}` ? (
+                                                    <LoaderCircle className="animate-spin" />
+                                                ) : null}
+                                                保存
+                                            </Button>
+                                        </div>
+                                    </div>
+                                ) : (
+                                    <div
+                                        className="flex items-center justify-between gap-3 rounded-md border p-3"
+                                        key={tag.id}
+                                    >
+                                        <div className="flex min-w-0 items-center gap-2">
                                             <RecordingTagIconGlyph
                                                 icon={tag.icon}
                                             />
-                                        )}
-                                        {tag.name}
-                                    </Button>
-                                );
-                            })
-                        )}
-                    </div>
-                </section>
-
-                <Separator />
-
-                <section
-                    aria-labelledby="recording-tag-catalog-title"
-                    className="grid gap-3"
-                >
-                    <Label id="recording-tag-catalog-title">标签目录</Label>
-                    <div className="grid gap-2">
-                        {availableTags.map((tag) =>
-                            editingTagId === tag.id ? (
-                                <div
-                                    className="grid gap-3 rounded-md border p-3"
-                                    key={tag.id}
-                                >
+                                            <span className="truncate font-medium">
+                                                {tag.name}
+                                            </span>
+                                            <span className="text-sm text-muted-foreground">
+                                                {tag.recordingCount ?? 0} 条录音
+                                            </span>
+                                        </div>
+                                        <div className="flex shrink-0 gap-1">
+                                            <Button
+                                                aria-label={`编辑 ${tag.name}`}
+                                                disabled={busy}
+                                                onClick={() => startEdit(tag)}
+                                                size="icon-sm"
+                                                type="button"
+                                                variant="ghost"
+                                            >
+                                                <Pencil />
+                                            </Button>
+                                            <Button
+                                                aria-label={`删除 ${tag.name}`}
+                                                disabled={busy}
+                                                onClick={() =>
+                                                    setDeleteTarget(tag)
+                                                }
+                                                size="icon-sm"
+                                                type="button"
+                                                variant="ghost"
+                                            >
+                                                <Trash2 />
+                                            </Button>
+                                        </div>
+                                    </div>
+                                ),
+                            )}
+                        </div>
+                    </section>
+                </CardContent>
+                <CardFooter className="border-t pt-5">
+                    <Dialog
+                        onOpenChange={(open) => {
+                            if (open) {
+                                setDeleteTarget(null);
+                                setOperationError(null);
+                                setRetryAction(null);
+                                setCreateDialogOpen(true);
+                                return;
+                            }
+                            closeCreateDialog();
+                        }}
+                        open={createDialogOpen}
+                    >
+                        <DialogTrigger asChild>
+                            <Button
+                                data-control="recording-tag-create"
+                                type="button"
+                            >
+                                <Plus />
+                                新建标签
+                            </Button>
+                        </DialogTrigger>
+                        <DialogContent aria-describedby="recording-tag-create-description">
+                            <DialogHeader>
+                                <DialogTitle>新建标签</DialogTitle>
+                                <DialogDescription id="recording-tag-create-description">
+                                    创建后会自动添加到这条录音。
+                                </DialogDescription>
+                            </DialogHeader>
+                            <form
+                                className="grid gap-5"
+                                onSubmit={(event) => {
+                                    event.preventDefault();
+                                    void createTag({
+                                        color: createColor,
+                                        icon: createIcon,
+                                        name: createName.trim(),
+                                    });
+                                }}
+                            >
+                                {renderError()}
+                                <div className="grid gap-2">
+                                    <Label htmlFor="recording-tag-create-name">
+                                        标签名称
+                                    </Label>
                                     <Input
-                                        aria-label="重命名标签"
+                                        autoFocus
                                         disabled={busy}
+                                        id="recording-tag-create-name"
                                         maxLength={
                                             MAX_RECORDING_TAG_NAME_LENGTH
                                         }
                                         onChange={(event) =>
-                                            setEditName(event.target.value)
+                                            setCreateName(event.target.value)
                                         }
-                                        value={editName}
+                                        placeholder="例如：待跟进"
+                                        value={createName}
                                     />
-                                    {renderPicker({
-                                        color: editColor,
-                                        icon: editIcon,
-                                        onColorChange: setEditColor,
-                                        onIconChange: setEditIcon,
-                                        prefix: `edit-${tag.id}`,
-                                    })}
-                                    <div className="flex flex-wrap justify-end gap-2">
-                                        <Button
-                                            disabled={busy}
-                                            onClick={() =>
-                                                setEditingTagId(null)
-                                            }
-                                            size="sm"
-                                            type="button"
-                                            variant="ghost"
-                                        >
-                                            取消
-                                        </Button>
-                                        <Button
-                                            disabled={!editName.trim() || busy}
-                                            onClick={() =>
-                                                void updateTag(tag, {
-                                                    color: editColor,
-                                                    icon: editIcon,
-                                                    name: editName.trim(),
-                                                })
-                                            }
-                                            size="sm"
-                                            type="button"
-                                        >
-                                            {pending === `update-${tag.id}` ? (
-                                                <LoaderCircle className="animate-spin" />
-                                            ) : null}
-                                            保存
-                                        </Button>
-                                    </div>
                                 </div>
-                            ) : (
-                                <div
-                                    className="flex items-center justify-between gap-3 rounded-md border p-3"
-                                    key={tag.id}
-                                >
-                                    <div className="flex min-w-0 items-center gap-2">
-                                        <RecordingTagIconGlyph
-                                            icon={tag.icon}
-                                        />
-                                        <span className="truncate font-medium">
-                                            {tag.name}
-                                        </span>
-                                        <span className="text-sm text-muted-foreground">
-                                            {tag.recordingCount ?? 0} 条录音
-                                        </span>
-                                    </div>
-                                    <div className="flex shrink-0 gap-1">
-                                        <Button
-                                            aria-label={`编辑 ${tag.name}`}
-                                            disabled={busy}
-                                            onClick={() => startEdit(tag)}
-                                            size="icon-sm"
-                                            type="button"
-                                            variant="ghost"
-                                        >
-                                            <Pencil />
-                                        </Button>
-                                        <Button
-                                            aria-label={`删除 ${tag.name}`}
-                                            disabled={busy}
-                                            onClick={() => setDeleteTarget(tag)}
-                                            size="icon-sm"
-                                            type="button"
-                                            variant="ghost"
-                                        >
-                                            <Trash2 />
-                                        </Button>
-                                    </div>
-                                </div>
-                            ),
-                        )}
-                    </div>
-                </section>
-            </CardContent>
-            <CardFooter className="grid gap-3 border-t pt-5">
-                <Label htmlFor="recording-tag-create-name">新建标签</Label>
-                <div className="flex gap-2">
-                    <Input
-                        disabled={busy}
-                        id="recording-tag-create-name"
-                        maxLength={MAX_RECORDING_TAG_NAME_LENGTH}
-                        onChange={(event) => setCreateName(event.target.value)}
-                        onKeyDown={(event) => {
-                            if (event.key === "Enter") {
-                                event.preventDefault();
-                                void createTag({
+                                {renderPicker({
                                     color: createColor,
                                     icon: createIcon,
-                                    name: createName.trim(),
-                                });
-                            }
-                        }}
-                        placeholder="例如：待跟进"
-                        value={createName}
-                    />
-                    <Button
-                        disabled={!createName.trim() || busy}
-                        onClick={() =>
-                            void createTag({
-                                color: createColor,
-                                icon: createIcon,
-                                name: createName.trim(),
-                            })
-                        }
-                        type="button"
-                    >
-                        {pending === "create" ? (
-                            <LoaderCircle className="animate-spin" />
-                        ) : (
-                            <Plus />
-                        )}
-                        新建
-                    </Button>
-                </div>
-                {renderPicker({
-                    color: createColor,
-                    icon: createIcon,
-                    onColorChange: setCreateColor,
-                    onIconChange: setCreateIcon,
-                    prefix: "create",
-                })}
-            </CardFooter>
+                                    onColorChange: setCreateColor,
+                                    onIconChange: setCreateIcon,
+                                    prefix: "create",
+                                })}
+                                <DialogFooter>
+                                    <Button
+                                        disabled={busy}
+                                        onClick={closeCreateDialog}
+                                        type="button"
+                                        variant="outline"
+                                    >
+                                        取消
+                                    </Button>
+                                    <Button
+                                        disabled={!createName.trim() || busy}
+                                        type="submit"
+                                    >
+                                        {pending === "create" ? (
+                                            <LoaderCircle className="animate-spin" />
+                                        ) : (
+                                            <Plus />
+                                        )}
+                                        创建标签
+                                    </Button>
+                                </DialogFooter>
+                            </form>
+                        </DialogContent>
+                    </Dialog>
+                </CardFooter>
             </Card>
             <Dialog
                 open={Boolean(deleteTarget)}
