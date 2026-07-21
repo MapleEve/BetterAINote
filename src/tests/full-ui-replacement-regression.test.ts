@@ -148,6 +148,7 @@ const SOURCE_REPORT_EMPTY_ALERT_FORBIDDEN_OWNER_SNIPPETS = [
 ] as const;
 const DASHBOARD_TOPBAR_REQUIRED_CLASS_TOKENS = [
     "relative",
+    "z-[60]",
     "flex",
     "h-14",
     "flex-none",
@@ -3738,7 +3739,7 @@ const DASHBOARD_TOPBAR_OWNER_CLASS_INITIALIZERS = [
     {
         property: "topbar",
         expected:
-            "relative flex h-14 flex-none flex-row items-center gap-3.5 border-b border-border bg-background/80 px-5 py-3 supports-[backdrop-filter]:bg-background/60 supports-[backdrop-filter]:backdrop-blur-[28px] supports-[backdrop-filter]:backdrop-saturate-[160%] max-[860px]:min-w-0 max-[860px]:max-w-full max-[860px]:box-border",
+            "relative z-[60] flex h-14 flex-none flex-row items-center gap-3.5 border-b border-border bg-background/80 px-5 py-3 supports-[backdrop-filter]:bg-background/60 supports-[backdrop-filter]:backdrop-blur-[28px] supports-[backdrop-filter]:backdrop-saturate-[160%] max-[860px]:min-w-0 max-[860px]:max-w-full max-[860px]:box-border",
     },
     {
         property: "crumbs",

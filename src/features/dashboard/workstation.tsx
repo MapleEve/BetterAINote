@@ -124,7 +124,7 @@ import {
     SourceReportSummaryLine,
     type SourceReportTone,
 } from "@/features/source-report/primitives";
-import { useAutoSync } from "@/hooks/use-auto-sync";
+import { type SyncWorkerErrorReason, useAutoSync } from "@/hooks/use-auto-sync";
 import { useRecordingPlayback } from "@/hooks/use-recording-playback";
 import {
     type DataSourceDisplayState,
@@ -140,6 +140,7 @@ import {
     writeBrowserStorage,
 } from "@/lib/platform/browser-shell";
 import { writeBrowserClipboardText } from "@/lib/platform/clipboard";
+import { hasBrowserWindow } from "@/lib/platform/runtime";
 import type { RecordingTag } from "@/lib/recording-tags";
 import {
     getTranscriptionJobDisplayState,
@@ -365,7 +366,7 @@ const dashboardDrawerClassNames = {
 } as const;
 
 const dashboardTopbarClassNames = {
-    topbar: "relative flex h-14 flex-none flex-row items-center gap-3.5 border-b border-border bg-background/80 px-5 py-3 supports-[backdrop-filter]:bg-background/60 supports-[backdrop-filter]:backdrop-blur-[28px] supports-[backdrop-filter]:backdrop-saturate-[160%] max-[860px]:min-w-0 max-[860px]:max-w-full max-[860px]:box-border",
+    topbar: "relative z-[60] flex h-14 flex-none flex-row items-center gap-3.5 border-b border-border bg-background/80 px-5 py-3 supports-[backdrop-filter]:bg-background/60 supports-[backdrop-filter]:backdrop-blur-[28px] supports-[backdrop-filter]:backdrop-saturate-[160%] max-[860px]:min-w-0 max-[860px]:max-w-full max-[860px]:box-border",
     crumbs: "flex items-center gap-2 text-sm font-medium text-muted-foreground",
     crumb: "text-muted-foreground",
     separator: "text-muted-foreground/60 max-[860px]:hidden",
@@ -1300,7 +1301,15 @@ function syncStateLabel(state: SyncButtonState, t: Translator) {
     }
 }
 
-function syncSystemBannerState(error: string | null | undefined) {
+function syncSystemBannerState(
+    reason: SyncWorkerErrorReason | null | undefined,
+    error: string | null | undefined,
+) {
+    if (reason === "database-locked") return "db-locked" as const;
+    if (reason === "permission-denied") return "permission-denied" as const;
+    if (reason === "runtime-unavailable") {
+        return "runtime-unavailable" as const;
+    }
     if (!error) return null;
     const normalized = error.toLowerCase();
     if (
@@ -1925,10 +1934,15 @@ export function Workstation({
         },
     });
     const syncSystemBannerKind = syncSystemBannerState(
+        workerStatus?.lastErrorReason ?? lastSyncResult?.reason,
         workerStatus?.lastError ?? lastSyncResult?.error,
     );
 
     useEffect(() => {
+        if (!hasBrowserWindow()) {
+            return;
+        }
+
         window.dispatchEvent(
             new CustomEvent("betterainote:system-banner", {
                 detail: {
@@ -2850,7 +2864,7 @@ export function Workstation({
     const activityItems = useMemo<ActivityItem[]>(() => {
         const items: ActivityItem[] = [];
 
-        if (isAutoSyncing || workerStatus?.isRunning) {
+        if (workerStatus?.isRunning || isAutoSyncing) {
             items.push({
                 id: "source-sync-running",
                 tone: "loading",
@@ -3595,7 +3609,7 @@ export function Workstation({
         setSourceRepullState("idle");
     }
 
-    async function runManualSync() {
+    const runManualSync = useCallback(async () => {
         if (syncButtonBusy) return;
         setActivitySyncActionState("busy");
         const syncSucceeded = await manualSync();
@@ -3608,7 +3622,37 @@ export function Workstation({
         }
 
         setActivitySyncActionState("error");
-    }
+    }, [loadDataSources, manualSync, refreshStatus, router, syncButtonBusy]);
+
+    useEffect(() => {
+        if (!hasBrowserWindow()) {
+            return;
+        }
+
+        const handleSystemBannerAction = (event: Event) => {
+            const detail = (
+                event as CustomEvent<{ action?: string; id?: string }>
+            ).detail;
+            if (detail?.id !== "source-sync-system") return;
+            if (
+                detail.action === "retry" ||
+                detail.action === "reconnect" ||
+                detail.action === "retry-sync"
+            ) {
+                void runManualSync();
+            }
+        };
+
+        window.addEventListener(
+            "betterainote:system-banner-action",
+            handleSystemBannerAction,
+        );
+        return () =>
+            window.removeEventListener(
+                "betterainote:system-banner-action",
+                handleSystemBannerAction,
+            );
+    }, [runManualSync]);
 
     function handleLibrarySearchOpenChange(open: boolean) {
         if (open) {

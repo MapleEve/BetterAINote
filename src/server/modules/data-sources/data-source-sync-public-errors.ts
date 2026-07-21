@@ -3,6 +3,7 @@ import { ErrorCode } from "@/lib/errors";
 export const DATA_SOURCE_SYNC_PUBLIC_REASON = {
     DATABASE_LOCKED: "database-locked",
     PERMISSION_DENIED: "permission-denied",
+    RUNTIME_UNAVAILABLE: "runtime-unavailable",
     GENERIC: "generic",
 } as const;
 
@@ -69,6 +70,18 @@ export function getDataSourceSyncPublicReason(
         )
     ) {
         return DATA_SOURCE_SYNC_PUBLIC_REASON.PERMISSION_DENIED;
+    }
+
+    if (
+        values.some(
+            (value) =>
+                value.includes("runtime unavailable") ||
+                value.includes("worker unavailable") ||
+                value.includes("worker not responding") ||
+                value.includes("runtime not available"),
+        )
+    ) {
+        return DATA_SOURCE_SYNC_PUBLIC_REASON.RUNTIME_UNAVAILABLE;
     }
 
     return DATA_SOURCE_SYNC_PUBLIC_REASON.GENERIC;

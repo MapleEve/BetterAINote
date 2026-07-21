@@ -183,6 +183,7 @@ const DASHBOARD_MAIN_REQUIRED_CLASS_TOKENS = [
 ] as const;
 const DASHBOARD_TOPBAR_REQUIRED_CLASS_TOKENS = [
     "relative",
+    "z-[60]",
     "flex",
     "h-14",
     "flex-none",

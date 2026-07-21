@@ -315,7 +315,7 @@ describe("dashboard search semantic regression", () => {
             "const activityItems = useMemo<ActivityItem[]>(",
         );
         for (const activityCondition of [
-            "isAutoSyncing || workerStatus?.isRunning",
+            "workerStatus?.isRunning || isAutoSyncing",
             "workerStatus?.manualTriggerRequestedAt",
             "lastSyncResult?.success === false",
             "workerStatus && !workerStatus.healthy",
@@ -325,6 +325,9 @@ describe("dashboard search semantic regression", () => {
         ]) {
             expect(workstation).toContain(activityCondition);
         }
+        expect(workstation).toContain(
+            "const runManualSync = useCallback(async () =>",
+        );
         expect(workstation).toContain(
             "const visibleActivityItems = activityItems.filter",
         );
