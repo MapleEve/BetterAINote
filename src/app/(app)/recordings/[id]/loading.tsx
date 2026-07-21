@@ -33,6 +33,7 @@ export default function RecordingLoading() {
                         alt=""
                         width={36}
                         height={36}
+                        unoptimized
                         className="size-9 rounded-lg"
                     />
                 </aside>

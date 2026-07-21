@@ -4010,6 +4010,7 @@ export function Workstation({
                         alt=""
                         width={36}
                         height={36}
+                        unoptimized
                     />
                     <div
                         className={dashboardSidebarCollapseClassNames.hidden}
@@ -4261,7 +4262,8 @@ export function Workstation({
                                             data-variant="image"
                                             data-state={sourceRowState}
                                         >
-                                            <Image
+                                            {/* biome-ignore lint/performance/noImgElement: provider marks are fixed local assets. */}
+                                            <img
                                                 src={item.icon}
                                                 alt=""
                                                 width={18}
@@ -5774,7 +5776,8 @@ export function Workstation({
                                                                                             language,
                                                                                         )}
                                                                                     >
-                                                                                        <Image
+                                                                                        {/* biome-ignore lint/performance/noImgElement: provider marks are fixed local assets. */}
+                                                                                        <img
                                                                                             className={cn(
                                                                                                 dashboardRecordingRowStyles.sourceMarkImage,
                                                                                                 sourceMeta.cover

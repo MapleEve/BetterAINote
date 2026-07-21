@@ -93,6 +93,7 @@ function RouteFallbackChrome({
                         alt=""
                         width={36}
                         height={36}
+                        unoptimized
                         className={routeFallbackBrandImageClassName}
                     />
                     <div className={routeFallbackBrandTextClassName}>

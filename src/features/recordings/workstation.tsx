@@ -941,6 +941,7 @@ export function RecordingWorkstation({
                         alt=""
                         width={36}
                         height={36}
+                        unoptimized
                     />
                     <div data-part="workstation-brand-text">
                         <div

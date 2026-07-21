@@ -14,30 +14,40 @@ const PLAYER_SOURCE_BADGES = {
     "dingtalk-a1": {
         label: "钉钉",
         icon: "/assets/sources/dingtalk.svg",
+        imageHeight: 1024,
+        imageWidth: 1024,
         cover: false,
         letter: "钉",
     },
     ticnote: {
         label: "TicNote",
         icon: "/assets/sources/ticnote.png",
+        imageHeight: 382,
+        imageWidth: 354,
         cover: false,
         letter: "T",
     },
     plaud: {
         label: "Plaud",
         icon: "/assets/sources/plaud.png",
+        imageHeight: 600,
+        imageWidth: 600,
         cover: true,
         letter: "P",
     },
     "feishu-minutes": {
         label: "飞书妙记",
         icon: "/assets/sources/feishu.jpeg",
+        imageHeight: 400,
+        imageWidth: 400,
         cover: true,
         letter: "飞",
     },
     iflyrec: {
         label: "讯飞听见",
         icon: null,
+        imageHeight: 0,
+        imageWidth: 0,
         cover: false,
         letter: "讯",
     },
@@ -76,7 +86,8 @@ const PLAYER_SOURCE_BADGE_CLASS = "gap-1.5 pl-1";
 const PLAYER_SOURCE_ICON_CLASS =
     "inline-flex size-4 flex-none shrink-0 items-center justify-center overflow-hidden rounded-sm border border-border bg-background data-[source-icon=letter]:bg-muted data-[source-icon=letter]:text-[9px] data-[source-icon=letter]:font-bold data-[source-icon=letter]:text-muted-foreground [&[data-cover=true]_img]:object-cover";
 
-const PLAYER_SOURCE_ICON_IMAGE_CLASS = "block size-4 max-w-none object-contain";
+const PLAYER_SOURCE_ICON_IMAGE_CLASS =
+    "block h-4 w-auto max-w-none object-contain";
 
 const PLAYER_TAG_COLOR_CLASS: Record<RecordingTag["color"], string> = {
     blue: "text-chart-1",
@@ -122,8 +133,9 @@ export function PlayerSourceTag({
                         className={PLAYER_SOURCE_ICON_IMAGE_CLASS}
                         src={badge.icon}
                         alt=""
-                        width={16}
-                        height={16}
+                        width={badge.imageWidth}
+                        height={badge.imageHeight}
+                        unoptimized
                     />
                 ) : (
                     (badge?.letter ??
