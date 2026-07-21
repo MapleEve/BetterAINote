@@ -429,6 +429,14 @@ async function listRecordingTagsForUser(
         .orderBy(desc(recordingTags.createdAt), asc(recordingTags.name));
 }
 
+export async function getRecordingTagsForUser(
+    userId: string,
+    recordingId: string,
+) {
+    const tagRows = await listRecordingTagsForUser(userId, [recordingId]);
+    return buildRecordingTagMap(tagRows).get(recordingId) ?? [];
+}
+
 async function listTranscriptSegmentsForUser(
     userId: string,
     recordingIds: string[],
@@ -547,14 +555,10 @@ export async function getRecordingDetailPageData(
         return null;
     }
 
-    const tagRows = await listRecordingTagsForUser(userId, [recordingId]);
-    const tagsByRecordingId = buildRecordingTagMap(tagRows);
+    const tags = await getRecordingTagsForUser(userId, recordingId);
 
     return {
-        recording: serializeRecordingWithTags(
-            detail.recording,
-            tagsByRecordingId.get(detail.recording.id),
-        ),
+        recording: serializeRecordingWithTags(detail.recording, tags),
         transcription: serializeRecordingDetailTranscription(
             detail.transcription
                 ? {

@@ -145,11 +145,67 @@ export const coreDb = coreClient
       })
     : ({} as ReturnType<typeof drizzle<typeof coreSchema>>);
 
-export const libraryDb = layout
-    ? drizzle(createClient({ url: resolveDatabaseUrl(layout.library) }), {
+const libraryDatabaseUrl = layout ? resolveDatabaseUrl(layout.library) : null;
+
+export const libraryDb = libraryDatabaseUrl
+    ? drizzle(createClient({ url: libraryDatabaseUrl }), {
           schema: librarySchema,
       })
     : ({} as ReturnType<typeof drizzle<typeof librarySchema>>);
+
+type LibraryDb = ReturnType<typeof drizzle<typeof librarySchema>>;
+
+/**
+ * Runs one library write transaction on an owned client and closes it after
+ * commit or rollback. The callback must not retain the transaction object.
+ */
+export async function runLibraryWriteTransaction<T>(
+    client: Client,
+    callback: (transaction: LibraryDb) => Promise<T>,
+) {
+    let transactionOpen = false;
+
+    try {
+        // Keep the native SQLite handle attached so finally can close it.
+        await client.execute("BEGIN IMMEDIATE");
+        transactionOpen = true;
+
+        const transaction = drizzle(client, { schema: librarySchema });
+        const result = await callback(transaction);
+
+        await client.execute("COMMIT");
+        transactionOpen = false;
+        return result;
+    } catch (error) {
+        if (transactionOpen) {
+            try {
+                await client.execute("ROLLBACK");
+            } catch (rollbackError) {
+                throw new AggregateError(
+                    [error, rollbackError],
+                    "Library write transaction and rollback failed",
+                );
+            }
+        }
+
+        throw error;
+    } finally {
+        client.close();
+    }
+}
+
+export async function withLibraryWriteTransaction<T>(
+    callback: (transaction: LibraryDb) => Promise<T>,
+) {
+    if (!libraryDatabaseUrl) {
+        throw new Error("Library database is unavailable");
+    }
+
+    return runLibraryWriteTransaction(
+        createClient({ url: libraryDatabaseUrl }),
+        callback,
+    );
+}
 
 export const transcriptsDb = layout
     ? drizzle(createClient({ url: resolveDatabaseUrl(layout.transcripts) }), {

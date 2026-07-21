@@ -3,7 +3,7 @@ import { tmpdir } from "node:os";
 import path from "node:path";
 import { pathToFileURL } from "node:url";
 import { type Client, createClient } from "@libsql/client";
-import { and, eq } from "drizzle-orm";
+import { and, eq, sql } from "drizzle-orm";
 import { drizzle } from "drizzle-orm/libsql";
 import { afterAll, afterEach, beforeAll, describe, expect, it } from "vitest";
 import {
@@ -19,11 +19,18 @@ import {
 } from "@/db/schema/search";
 
 const APP_URL = "http://127.0.0.1:3214";
-const AUTH_SECRET = "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef";
-const testDir = mkdtempSync(path.join(tmpdir(), "betterainote-tags-real-sqlite-"));
+const AUTH_SECRET =
+    "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef";
+const testDir = mkdtempSync(
+    path.join(tmpdir(), "betterainote-tags-real-sqlite-"),
+);
 const coreDatabasePath = path.join(testDir, "betterainote.db");
 const libraryDatabasePath = path.join(testDir, "betterainote-library.db");
 const searchDatabasePath = path.join(testDir, "betterainote-search.db");
+const transcriptsDatabasePath = path.join(
+    testDir,
+    "betterainote-transcripts.db",
+);
 
 process.env.APP_URL = APP_URL;
 process.env.BETTER_AUTH_SECRET = AUTH_SECRET;
@@ -31,9 +38,11 @@ process.env.DATABASE_PATH = coreDatabasePath;
 
 type LibraryDb = ReturnType<typeof drizzle<typeof librarySchema>>;
 type SearchDb = ReturnType<typeof drizzle<typeof searchSchema>>;
+type LibraryWriteTransaction = typeof import("@/db").runLibraryWriteTransaction;
 type Auth = typeof import("@/lib/auth").auth;
 type Routes = {
     DELETE_TAG: typeof import("@/app/api/recording-tags/[id]/route").DELETE;
+    GET_RECORDING: typeof import("@/app/api/recordings/[id]/route").GET;
     GET_TAGS: typeof import("@/app/api/recording-tags/route").GET;
     PATCH_TAG: typeof import("@/app/api/recording-tags/[id]/route").PATCH;
     POST_TAG: typeof import("@/app/api/recording-tags/route").POST;
@@ -50,14 +59,19 @@ let userId: string;
 let coreClient: Client;
 let libraryClient: Client;
 let searchClient: Client;
+let transcriptsClient: Client;
 let libraryDb: LibraryDb;
 let searchDb: SearchDb;
+let runLibraryWriteTransaction: LibraryWriteTransaction;
 
 function databaseUrl(filePath: string) {
     return pathToFileURL(filePath).href;
 }
 
-async function applyBaseline(client: Client, shard: "core" | "library" | "search") {
+async function applyBaseline(
+    client: Client,
+    shard: "core" | "library" | "search" | "transcripts",
+) {
     const migration = readFileSync(
         path.join(
             process.cwd(),
@@ -108,7 +122,9 @@ async function createAuthenticatedHeaders() {
     );
 
     if (!response.ok) {
-        throw new Error(`Real auth sign-up failed with status ${response.status}`);
+        throw new Error(
+            `Real auth sign-up failed with status ${response.status}`,
+        );
     }
 
     const cookie = response.headers.get("set-cookie")?.split(";", 1)[0];
@@ -224,26 +240,35 @@ describe("recording tags API regression", () => {
         coreClient = createClient({ url: databaseUrl(coreDatabasePath) });
         libraryClient = createClient({ url: databaseUrl(libraryDatabasePath) });
         searchClient = createClient({ url: databaseUrl(searchDatabasePath) });
+        transcriptsClient = createClient({
+            url: databaseUrl(transcriptsDatabasePath),
+        });
 
         await Promise.all([
             applyBaseline(coreClient, "core"),
             applyBaseline(libraryClient, "library"),
             applyBaseline(searchClient, "search"),
+            applyBaseline(transcriptsClient, "transcripts"),
         ]);
 
         libraryDb = drizzle(libraryClient, { schema: librarySchema });
         searchDb = drizzle(searchClient, { schema: searchSchema });
 
+        ({ runLibraryWriteTransaction } = await import("@/db"));
         ({ auth } = await import("@/lib/auth"));
-        const recordingTagsRoute = await import("@/app/api/recording-tags/route");
+        const recordingTagsRoute = await import(
+            "@/app/api/recording-tags/route"
+        );
         const recordingTagsByIdRoute = await import(
             "@/app/api/recording-tags/[id]/route"
         );
         const recordingTagAssignmentsRoute = await import(
             "@/app/api/recordings/[id]/tags/route"
         );
+        const recordingRoute = await import("@/app/api/recordings/[id]/route");
         routes = {
             DELETE_TAG: recordingTagsByIdRoute.DELETE,
+            GET_RECORDING: recordingRoute.GET,
             GET_TAGS: recordingTagsRoute.GET,
             PATCH_TAG: recordingTagsByIdRoute.PATCH,
             POST_TAG: recordingTagsRoute.POST,
@@ -256,14 +281,25 @@ describe("recording tags API regression", () => {
         await libraryDb
             .delete(recordingTagAssignments)
             .where(eq(recordingTagAssignments.userId, userId));
-        await libraryDb.delete(recordingTags).where(eq(recordingTags.userId, userId));
+        await libraryDb
+            .delete(recordingTags)
+            .where(eq(recordingTags.userId, userId));
         await libraryDb.delete(recordings).where(eq(recordings.userId, userId));
-        await searchDb.delete(searchIndexJobs).where(eq(searchIndexJobs.userId, userId));
-        await searchDb.delete(searchTombstones).where(eq(searchTombstones.userId, userId));
+        await searchDb
+            .delete(searchIndexJobs)
+            .where(eq(searchIndexJobs.userId, userId));
+        await searchDb
+            .delete(searchTombstones)
+            .where(eq(searchTombstones.userId, userId));
     });
 
     afterAll(async () => {
-        await Promise.all([coreClient.close(), libraryClient.close(), searchClient.close()]);
+        await Promise.all([
+            coreClient.close(),
+            libraryClient.close(),
+            searchClient.close(),
+            transcriptsClient.close(),
+        ]);
         rmSync(testDir, { recursive: true });
     });
 
@@ -380,7 +416,7 @@ describe("recording tags API regression", () => {
 
         const updateResponse = await routes.PUT_RECORDING_TAGS(
             apiRequest("PUT", "/api/recordings/rec-1/tags", {
-                tagIds: ["tag-review", "tag-launch", "tag-review", "", 42],
+                tagIds: ["tag-review", "tag-launch", "tag-review"],
             }),
             makeParams("rec-1"),
         );
@@ -416,6 +452,26 @@ describe("recording tags API regression", () => {
                 },
             ]),
         );
+        const recordingReadbackResponse = await routes.GET_RECORDING(
+            apiRequest("GET", "/api/recordings/rec-1"),
+            makeParams("rec-1"),
+        );
+        expect(recordingReadbackResponse.status).toBe(200);
+        const recordingReadback = (await recordingReadbackResponse.json()) as {
+            recording?: {
+                id?: unknown;
+                userId?: unknown;
+                tags?: Array<{ id?: unknown; name?: unknown }>;
+            };
+        };
+        expect(recordingReadback.recording?.id).toBe("rec-1");
+        expect(recordingReadback.recording?.userId).toBe(userId);
+        expect(recordingReadback.recording?.tags).toEqual(
+            expect.arrayContaining([
+                expect.objectContaining({ id: "tag-review", name: "Review" }),
+                expect.objectContaining({ id: "tag-launch", name: "Launch" }),
+            ]),
+        );
         await expect(readSearchJobs()).resolves.toEqual([
             expect.objectContaining({
                 userId,
@@ -435,6 +491,119 @@ describe("recording tags API regression", () => {
         await expect(clearResponse.json()).resolves.toEqual({ tags: [] });
         await expect(readAssignments("rec-1")).resolves.toEqual([]);
         await expect(readSearchJobs()).resolves.toHaveLength(2);
+    });
+
+    it("maps invalid or foreign tag ids without changing assignments", async () => {
+        await seedRecording("rec-1");
+        await seedTag({ id: "tag-owned", name: "Owned" });
+        await seedTag({
+            id: "tag-foreign",
+            name: "Foreign",
+            userId: "other-user",
+        });
+        await seedAssignment("rec-1", "tag-owned");
+
+        const malformedResponse = await routes.PUT_RECORDING_TAGS(
+            apiRequest("PUT", "/api/recordings/rec-1/tags", {
+                tagIds: ["tag-owned", "", 42],
+            }),
+            makeParams("rec-1"),
+        );
+        expect(malformedResponse.status).toBe(400);
+        await expect(malformedResponse.json()).resolves.toEqual({
+            error: "tagIds must contain non-empty string values",
+        });
+
+        const nonArrayResponse = await routes.PUT_RECORDING_TAGS(
+            apiRequest("PUT", "/api/recordings/rec-1/tags", {
+                tagIds: "tag-owned",
+            }),
+            makeParams("rec-1"),
+        );
+        expect(nonArrayResponse.status).toBe(400);
+        await expect(nonArrayResponse.json()).resolves.toEqual({
+            error: "tagIds must be an array",
+        });
+
+        const foreignTagResponse = await routes.PUT_RECORDING_TAGS(
+            apiRequest("PUT", "/api/recordings/rec-1/tags", {
+                tagIds: ["tag-foreign"],
+            }),
+            makeParams("rec-1"),
+        );
+        expect(foreignTagResponse.status).toBe(404);
+        await expect(foreignTagResponse.json()).resolves.toEqual({
+            error: "Tag not found",
+        });
+
+        await expect(readAssignments("rec-1")).resolves.toEqual([
+            {
+                recordingId: "rec-1",
+                tagId: "tag-owned",
+                userId,
+            },
+        ]);
+    });
+
+    it("commits recording tag writes atomically and closes their owned client", async () => {
+        await seedRecording("rec-1");
+        await seedTag({ id: "tag-owned", name: "Owned" });
+
+        const committedClient = createClient({
+            url: databaseUrl(libraryDatabasePath),
+        });
+        await runLibraryWriteTransaction(
+            committedClient,
+            async (transaction) => {
+                await transaction.insert(recordingTagAssignments).values({
+                    id: "committed-assignment",
+                    userId,
+                    recordingId: "rec-1",
+                    tagId: "tag-owned",
+                });
+            },
+        );
+        await expect(committedClient.execute("SELECT 1")).rejects.toMatchObject(
+            {
+                code: "CLIENT_CLOSED",
+            },
+        );
+        await expect(readAssignments("rec-1")).resolves.toEqual([
+            {
+                recordingId: "rec-1",
+                tagId: "tag-owned",
+                userId,
+            },
+        ]);
+
+        const rolledBackClient = createClient({
+            url: databaseUrl(libraryDatabasePath),
+        });
+        await expect(
+            runLibraryWriteTransaction(
+                rolledBackClient,
+                async (transaction) => {
+                    await transaction.run(
+                        sql.raw(
+                            "INSERT INTO recording_tag_assignments (id, user_id, recording_id, tag_id, created_at) VALUES ('rolled-back-assignment', 'missing-user', 'rec-1', 'tag-owned', 0)",
+                        ),
+                    );
+                    throw new Error("force recording tag assignment rollback");
+                },
+            ),
+        ).rejects.toThrow("force recording tag assignment rollback");
+        await expect(
+            rolledBackClient.execute("SELECT 1"),
+        ).rejects.toMatchObject({
+            code: "CLIENT_CLOSED",
+        });
+        await expect(readAssignments("rec-1")).resolves.toEqual([
+            {
+                recordingId: "rec-1",
+                tagId: "tag-owned",
+                userId,
+            },
+        ]);
     });
 
     it("renames a recording tag and persists refresh jobs for the tag and its recordings", async () => {

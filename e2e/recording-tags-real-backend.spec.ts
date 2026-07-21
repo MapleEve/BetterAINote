@@ -201,6 +201,20 @@ async function deleteTagByName(userId: string, tagName: string) {
     }
 }
 
+async function holdLibraryWriteLock() {
+    assertIsolatedDatabase(LIBRARY_DB);
+    const library = createClient({ url: databaseUrl(LIBRARY_DB) });
+    await library.execute("BEGIN IMMEDIATE");
+
+    return async () => {
+        try {
+            await library.execute("ROLLBACK");
+        } finally {
+            await library.close();
+        }
+    };
+}
+
 function tagManager(page: Page) {
     return page.locator('[data-panel="recording-player-tag-manager-slot"]');
 }
@@ -323,6 +337,92 @@ test("recording tag creation shows a real API error and retries after the backen
         await expect(panel.getByRole("alert")).toHaveCount(0);
         await expect.poll(() => assignmentCount(userId!, "TG-E2E-Err")).toBe(1);
     } finally {
+        if (userId) {
+            await cleanupSeed(userId);
+        }
+    }
+});
+
+test("recording tag assignment retry durably survives a real SQLite write lock", async ({
+    page,
+}) => {
+    let userId: string | null = null;
+    let releaseWriteLock: (() => Promise<void>) | null = null;
+
+    try {
+        await ensureSignedIn(page);
+        userId = await getPlaywrightUserId();
+        await cleanupSeed(userId);
+        await seedRecordingAndTags(userId);
+
+        await page.goto(`/recordings/${RECORDING_ID}`, {
+            waitUntil: "domcontentloaded",
+        });
+        await openTagManager(page);
+        const panel = tagManager(page);
+        const tagToggle = panel.getByRole("button", {
+            name: "TG-E2E-One",
+            exact: true,
+        });
+
+        releaseWriteLock = await holdLibraryWriteLock();
+        const failedSave = page.waitForResponse((response) =>
+            new URL(response.url()).pathname ===
+                `/api/recordings/${RECORDING_ID}/tags` &&
+            response.request().method() === "PUT" &&
+            response.status() === 500,
+        );
+        await tagToggle.click();
+        await failedSave;
+        await expect(panel.getByRole("alert")).toBeVisible();
+        await expect(tagToggle).toHaveAttribute("aria-pressed", "false");
+
+        await releaseWriteLock();
+        releaseWriteLock = null;
+        const recoveredSave = page.waitForResponse((response) =>
+            new URL(response.url()).pathname ===
+                `/api/recordings/${RECORDING_ID}/tags` &&
+            response.request().method() === "PUT" &&
+            response.status() === 200,
+        );
+        await panel.getByRole("button", { name: "重试", exact: true }).click();
+        await recoveredSave;
+        await expect(panel.getByRole("alert")).toHaveCount(0);
+        await expect(tagToggle).toHaveAttribute("aria-pressed", "true");
+        await expect.poll(() => assignmentCount(userId!, "TG-E2E-One")).toBe(1);
+
+        const readbackResponse = page.waitForResponse((response) =>
+            new URL(response.url()).pathname ===
+                `/api/recordings/${RECORDING_ID}` &&
+            response.request().method() === "GET" &&
+            response.status() === 200,
+        );
+        await page.goto(`/api/recordings/${RECORDING_ID}`, {
+            waitUntil: "domcontentloaded",
+        });
+        const readback = (await (await readbackResponse).json()) as {
+            recording?: { tags?: Array<{ id?: unknown }> };
+        };
+        expect(readback.recording?.tags).toEqual(
+            expect.arrayContaining([expect.objectContaining({
+                id: `${RECORDING_ID}-tg-e2e-one`,
+            })]),
+        );
+
+        await page.goto(`/recordings/${RECORDING_ID}`, {
+            waitUntil: "domcontentloaded",
+        });
+        await openTagManager(page);
+        await expect(
+            tagManager(page).getByRole("button", {
+                name: "TG-E2E-One",
+                exact: true,
+            }),
+        ).toHaveAttribute("aria-pressed", "true");
+    } finally {
+        if (releaseWriteLock) {
+            await releaseWriteLock();
+        }
         if (userId) {
             await cleanupSeed(userId);
         }
