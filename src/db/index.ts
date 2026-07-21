@@ -48,6 +48,7 @@ import {
 } from "@/db/schema/transcripts";
 import {
     recordingSpeakers,
+    speakerProfileRetryAuthorizations,
     speakerProfiles,
     voiceprintsSchema,
 } from "@/db/schema/voiceprints";
@@ -101,7 +102,11 @@ const searchTables = new Set([
     searchTombstones,
     searchIndexJobs,
 ]);
-const voiceprintTables = new Set([speakerProfiles, recordingSpeakers]);
+const voiceprintTables = new Set([
+    speakerProfiles,
+    speakerProfileRetryAuthorizations,
+    recordingSpeakers,
+]);
 
 function ensureParentDir(databasePath: string) {
     if (/^(file:|libsql:|https?:)/.test(databasePath)) {

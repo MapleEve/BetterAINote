@@ -11,6 +11,22 @@ CREATE INDEX `speaker_profiles_user_id_idx` ON `speaker_profiles` (`user_id`);
 --> statement-breakpoint
 CREATE UNIQUE INDEX `speaker_profiles_user_display_name_unique` ON `speaker_profiles` (`user_id`, `display_name`);
 --> statement-breakpoint
+CREATE TABLE `speaker_profile_retry_authorizations` (
+	`id` text PRIMARY KEY NOT NULL,
+	`user_id` text NOT NULL,
+	`mutation` text NOT NULL,
+	`profile_id` text NOT NULL,
+	`nonce` text NOT NULL,
+	`expires_at` integer NOT NULL,
+	`consumed_at` integer,
+	`created_at` integer DEFAULT (cast((julianday('now') - 2440587.5)*86400000 as integer)) NOT NULL,
+	`updated_at` integer DEFAULT (cast((julianday('now') - 2440587.5)*86400000 as integer)) NOT NULL
+);
+--> statement-breakpoint
+CREATE UNIQUE INDEX `speaker_profile_retry_authorizations_nonce_unique` ON `speaker_profile_retry_authorizations` (`nonce`);
+--> statement-breakpoint
+CREATE INDEX `speaker_profile_retry_authorizations_user_expiry_idx` ON `speaker_profile_retry_authorizations` (`user_id`, `expires_at`);
+--> statement-breakpoint
 CREATE TABLE `recording_speakers` (
 	`id` text PRIMARY KEY NOT NULL,
 	`user_id` text NOT NULL,

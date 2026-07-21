@@ -180,6 +180,7 @@ export const searchIndexJobs = sqliteTable(
         userId: text("user_id").notNull(),
         entityType: text("entity_type").notNull(),
         entityId: text("entity_id").notNull(),
+        idempotencyKey: text("idempotency_key"),
         action: text("action").notNull(),
         status: text("status").notNull().default("pending"),
         attempts: integer("attempts").notNull().default(0),
@@ -200,6 +201,7 @@ export const searchIndexJobs = sqliteTable(
             table.entityType,
             table.entityId,
         ),
+        idempotencyKeyUnique: unique().on(table.idempotencyKey),
     }),
 );
 

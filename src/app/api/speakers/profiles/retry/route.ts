@@ -1,43 +1,10 @@
 import { NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
 import {
-    createSpeakerProfileForUser,
-    listSpeakerProfiles,
+    retrySpeakerProfileSearchFollowupForUser,
     SpeakerProfileCommittedWriteFollowupError,
     SpeakerProfileError,
 } from "@/server/modules/speakers";
-
-function noStoreJson(body: unknown, init?: ResponseInit) {
-    return NextResponse.json(body, {
-        ...init,
-        headers: {
-            "Cache-Control": "private, no-store",
-            ...(init?.headers ?? {}),
-        },
-    });
-}
-
-export async function GET(request: Request) {
-    try {
-        const session = await auth.api.getSession({
-            headers: request.headers,
-        });
-
-        if (!session?.user) {
-            return noStoreJson({ error: "Unauthorized" }, { status: 401 });
-        }
-
-        return noStoreJson({
-            profiles: await listSpeakerProfiles(session.user.id),
-        });
-    } catch (error) {
-        console.error("Error fetching speaker profiles:", error);
-        return noStoreJson(
-            { error: "Failed to fetch speaker profiles" },
-            { status: 500 },
-        );
-    }
-}
 
 export async function POST(request: Request) {
     try {
@@ -52,12 +19,12 @@ export async function POST(request: Request) {
             );
         }
 
-        const profile = await createSpeakerProfileForUser(
+        const result = await retrySpeakerProfileSearchFollowupForUser(
             session.user.id,
             await request.json(),
         );
 
-        return NextResponse.json({ profile });
+        return NextResponse.json(result);
     } catch (error) {
         if (error instanceof SpeakerProfileCommittedWriteFollowupError) {
             return NextResponse.json(
@@ -77,9 +44,9 @@ export async function POST(request: Request) {
             );
         }
 
-        console.error("Error creating speaker profile:", error);
+        console.error("Error retrying speaker profile search indexing:", error);
         return NextResponse.json(
-            { error: "Failed to create speaker profile" },
+            { error: "Failed to retry speaker profile search indexing" },
             { status: 500 },
         );
     }

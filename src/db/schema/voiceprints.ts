@@ -26,6 +26,27 @@ export const speakerProfiles = sqliteTable(
     }),
 );
 
+export const speakerProfileRetryAuthorizations = sqliteTable(
+    "speaker_profile_retry_authorizations",
+    {
+        id: text("id").primaryKey(),
+        userId: text("user_id").notNull(),
+        mutation: text("mutation").notNull(),
+        profileId: text("profile_id").notNull(),
+        nonce: text("nonce").notNull(),
+        expiresAt: timestampMs("expires_at").notNull(),
+        consumedAt: timestampMs("consumed_at"),
+        createdAt: timestampMs("created_at").notNull().defaultNow(),
+        updatedAt: timestampMs("updated_at").notNull().defaultNow(),
+    },
+    (table) => ({
+        nonceUnique: unique().on(table.nonce),
+        userExpiryIdx: index(
+            "speaker_profile_retry_authorizations_user_expiry_idx",
+        ).on(table.userId, table.expiresAt),
+    }),
+);
+
 export const recordingSpeakers = sqliteTable(
     "recording_speakers",
     {
@@ -62,5 +83,6 @@ export const recordingSpeakers = sqliteTable(
 
 export const voiceprintsSchema = {
     speakerProfiles,
+    speakerProfileRetryAuthorizations,
     recordingSpeakers,
 };

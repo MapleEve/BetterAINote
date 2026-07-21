@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
 import {
     deleteSpeakerProfileForUser,
+    SpeakerProfileCommittedWriteFollowupError,
     SpeakerProfileError,
     updateSpeakerProfileForUser,
 } from "@/server/modules/speakers";
@@ -31,6 +32,17 @@ export async function PATCH(
 
         return NextResponse.json({ profile });
     } catch (error) {
+        if (error instanceof SpeakerProfileCommittedWriteFollowupError) {
+            return NextResponse.json(
+                {
+                    error: error.message,
+                    code: error.code,
+                    ...(error.retry ? { retry: error.retry } : {}),
+                },
+                { status: error.status },
+            );
+        }
+
         if (error instanceof SpeakerProfileError) {
             return NextResponse.json(
                 { error: error.message },
@@ -67,6 +79,17 @@ export async function DELETE(
 
         return NextResponse.json(result);
     } catch (error) {
+        if (error instanceof SpeakerProfileCommittedWriteFollowupError) {
+            return NextResponse.json(
+                {
+                    error: error.message,
+                    code: error.code,
+                    ...(error.retry ? { retry: error.retry } : {}),
+                },
+                { status: error.status },
+            );
+        }
+
         if (error instanceof SpeakerProfileError) {
             return NextResponse.json(
                 { error: error.message },
