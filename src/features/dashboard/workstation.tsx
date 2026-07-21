@@ -238,6 +238,7 @@ type TimelineFilter = "all" | "today" | "yesterday" | "earlier";
 type RecordingListState =
     | "loading"
     | "ready"
+    | "error"
     | "empty"
     | "no-match"
     | "timeline-empty"
@@ -1754,7 +1755,9 @@ export function Workstation({
         total: pagination?.total ?? recordings.length,
     });
     const [recordingListLoading, setRecordingListLoading] = useState(false);
-    const [recordingListError, setRecordingListError] = useState("");
+    const [recordingListError, setRecordingListError] = useState(false);
+    const [recordingListRequestVersion, setRecordingListRequestVersion] =
+        useState(0);
     const [detailTab, setDetailTab] = useState<DetailTab>("transcript");
     const [query, setQuery] = useState("");
     const [librarySearchFilter, setLibrarySearchFilter] =
@@ -2040,12 +2043,18 @@ export function Workstation({
         }
 
         setRecordingListLoading(true);
-        setRecordingListError("");
+        setRecordingListError(false);
         void (async () => {
             try {
                 const response = await fetch(
                     `/api/recordings/query?${params.toString()}`,
-                    { signal: controller.signal },
+                    {
+                        signal: controller.signal,
+                        cache:
+                            recordingListRequestVersion > 0
+                                ? "no-store"
+                                : "default",
+                    },
                 );
                 if (!response.ok) {
                     throw new Error("Failed to load recordings");
@@ -2069,13 +2078,9 @@ export function Workstation({
                         ? currentId
                         : (payload.recordings[0]?.id ?? ""),
                 );
-            } catch (error) {
+            } catch {
                 if (controller.signal.aborted) return;
-                setRecordingListError(
-                    error instanceof Error
-                        ? error.message
-                        : "Failed to load recordings",
-                );
+                setRecordingListError(true);
             } finally {
                 if (!controller.signal.aborted) {
                     setRecordingListLoading(false);
@@ -2094,6 +2099,7 @@ export function Workstation({
         selectedTagFilter,
         source,
         timelineFilter,
+        recordingListRequestVersion,
     ]);
 
     const sourceCounts = useMemo(() => {
@@ -2268,7 +2274,7 @@ export function Workstation({
         !displaySettingsLoaded || recordingListLoading
             ? "loading"
             : recordingListError
-              ? "no-match"
+              ? "error"
               : liveRecordings.length === 0
                 ? "empty"
                 : filteredRecordings.length === 0
@@ -5916,19 +5922,23 @@ export function Workstation({
                                                     ? t(
                                                           "recordingList.emptyTitle",
                                                       )
-                                                    : listState ===
-                                                        "timeline-empty"
+                                                    : listState === "error"
                                                       ? t(
-                                                            "recordingList.timelineEmptyTitle",
+                                                            "recordingList.errorTitle",
                                                         )
                                                       : listState ===
-                                                          "tag-empty"
+                                                          "timeline-empty"
                                                         ? t(
-                                                              "recordingList.tagEmptyTitle",
+                                                              "recordingList.timelineEmptyTitle",
                                                           )
-                                                        : t(
-                                                              "recordingList.noMatchTitle",
-                                                          )}
+                                                        : listState ===
+                                                            "tag-empty"
+                                                          ? t(
+                                                                "recordingList.tagEmptyTitle",
+                                                            )
+                                                          : t(
+                                                                "recordingList.noMatchTitle",
+                                                            )}
                                             </EmptyTitle>
                                             <EmptyDescription
                                                 variant="compact"
@@ -5938,19 +5948,23 @@ export function Workstation({
                                                     ? t(
                                                           "recordingList.emptyDescription",
                                                       )
-                                                    : listState ===
-                                                        "timeline-empty"
+                                                    : listState === "error"
                                                       ? t(
-                                                            "recordingList.timelineEmptyDescription",
+                                                            "recordingList.errorDescription",
                                                         )
                                                       : listState ===
-                                                          "tag-empty"
+                                                          "timeline-empty"
                                                         ? t(
-                                                              "recordingList.tagEmptyDescription",
+                                                              "recordingList.timelineEmptyDescription",
                                                           )
-                                                        : t(
-                                                              "recordingList.noMatchDescription",
-                                                          )}
+                                                        : listState ===
+                                                            "tag-empty"
+                                                          ? t(
+                                                                "recordingList.tagEmptyDescription",
+                                                            )
+                                                          : t(
+                                                                "recordingList.noMatchDescription",
+                                                            )}
                                             </EmptyDescription>
                                         </EmptyHeader>
                                         <EmptyContent
@@ -5999,6 +6013,22 @@ export function Workstation({
                                                     {t(
                                                         "recordingList.clearFilters",
                                                     )}
+                                                </Button>
+                                            ) : null}
+                                            {listState === "error" ? (
+                                                <Button
+                                                    variant="ghost"
+                                                    size="sm"
+                                                    type="button"
+                                                    data-control="recording-list-retry"
+                                                    onClick={() =>
+                                                        setRecordingListRequestVersion(
+                                                            (version) =>
+                                                                version + 1,
+                                                        )
+                                                    }
+                                                >
+                                                    {t("recordingList.retry")}
                                                 </Button>
                                             ) : null}
                                             {listState === "timeline-empty" ? (

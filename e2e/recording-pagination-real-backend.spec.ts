@@ -192,6 +192,47 @@ test.describe("recording pagination with the real query API", () => {
         await expect(page.locator('[data-recording-id="e2e-recording-pagination-21"]')).toHaveCount(0);
     });
 
+    test("shows a retryable list error and recovers through the real query API", async ({
+        page,
+    }) => {
+        const list = page.locator('[data-surface="dashboard-recording-list"]');
+        const next = page.locator('[data-control="recording-list-next-page"]');
+
+        await expect(list).toHaveAttribute("data-list-state", "ready");
+        await expect(next).toBeEnabled();
+
+        await page.context().setOffline(true);
+        await next.click();
+
+        await expect(list).toHaveAttribute("data-list-state", "error");
+        await expect(list.getByText("无法读取录音列表")).toBeVisible();
+        await expect(
+            page.locator('[data-control="recording-list-clear-filters"]'),
+        ).toHaveCount(0);
+        const retry = page.locator('[data-control="recording-list-retry"]');
+        await expect(retry).toBeVisible();
+        await retry.focus();
+        await expect(retry).toBeFocused();
+
+        await page.context().setOffline(false);
+        const recoveredPageResponse = page.waitForResponse((response) => {
+            const url = new URL(response.url());
+            return (
+                url.pathname === "/api/recordings/query" &&
+                url.searchParams.get("page") === "2" &&
+                response.request().method() === "GET" &&
+                response.status() === 200
+            );
+        });
+        await retry.press("Enter");
+        await recoveredPageResponse;
+
+        await expect(list).toHaveAttribute("data-list-state", "ready");
+        await expect(
+            page.locator('[data-recording-id="e2e-recording-pagination-11"]'),
+        ).toBeVisible();
+    });
+
     test("clamps a stale overlarge page through the authenticated query API", async ({
         page,
     }) => {

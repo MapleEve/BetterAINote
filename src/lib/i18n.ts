@@ -296,16 +296,19 @@ export const translations: Record<UiLanguage, TranslationTree> = {
             untagged: "未标记",
             emptyTitle: "还没有录音",
             noMatchTitle: "当前筛选下没有录音",
+            errorTitle: "无法读取录音列表",
             timelineEmptyTitle: "所选时间段内没有录音",
             tagEmptyTitle: "该标签下还没有录音",
             emptyDescription:
                 "连接一个数据源后，会议、1:1 和外部音频会出现在这里。",
             noMatchDescription:
                 "尝试清除收藏、来源或搜索筛选，或重新更新来源。",
+            errorDescription: "暂时无法读取本地录音库。请检查连接后重试。",
             timelineEmptyDescription: "放宽时间筛选后，匹配的录音会回到列表。",
             tagEmptyDescription: "清除标签筛选，或在详情页给录音添加该标签。",
             openDataSources: "前往数据源",
             clearFilters: "清除筛选",
+            retry: "重试",
             clearTimeline: "清除时间筛选",
             clearTag: "清除标签筛选",
             previous: "上一页",
@@ -862,18 +865,22 @@ export const translations: Record<UiLanguage, TranslationTree> = {
             untagged: "Untagged",
             emptyTitle: "No recordings yet",
             noMatchTitle: "No recordings match these filters",
+            errorTitle: "Unable to load recordings",
             timelineEmptyTitle: "No recordings in this timeline",
             tagEmptyTitle: "No recordings for this tag",
             emptyDescription:
                 "Connect a data source and recordings will appear here.",
             noMatchDescription:
                 "Clear favorites, source, or search filters, then sync again.",
+            errorDescription:
+                "The local recording library is temporarily unavailable. Check your connection and retry.",
             timelineEmptyDescription:
                 "Widen the timeline filter to bring matching recordings back.",
             tagEmptyDescription:
                 "Clear the tag filter or add this tag from the detail panel.",
             openDataSources: "Open data sources",
             clearFilters: "Clear filters",
+            retry: "Retry",
             clearTimeline: "Clear timeline",
             clearTag: "Clear tag",
             previous: "Previous",
