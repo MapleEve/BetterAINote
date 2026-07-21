@@ -102,16 +102,6 @@ const systemBannerAlertVariantByState: Record<
     "update-available": "default",
 } as const;
 
-const systemBannerAlertClassNames = {
-    body: "flex min-w-0 flex-1 flex-col gap-0.5",
-    actions: "flex flex-none gap-1.5",
-} as const;
-
-const systemBannerProgressClassNames = {
-    root: "min-w-[120px] flex-1",
-    indeterminateIndicator: "w-[32%] animate-[sbn-sweep_1.4s_linear_infinite]",
-} as const;
-
 function getDefaultCopy(state: SystemBannerState, isZh: boolean) {
     switch (state) {
         case "offline":
@@ -353,10 +343,10 @@ function SystemBannerProgress({
     return (
         <Progress
             aria-hidden="true"
-            className={systemBannerProgressClassNames.root}
+            className="min-w-[120px] flex-1"
             indicatorClassName={
                 indeterminate
-                    ? systemBannerProgressClassNames.indeterminateIndicator
+                    ? "w-[32%] animate-[sbn-sweep_1.4s_linear_infinite]"
                     : undefined
             }
             value={value}
@@ -520,7 +510,7 @@ function SystemBannerItem({
                 state={banner.state}
                 aria-hidden="true"
             />
-            <div className={systemBannerAlertClassNames.body}>
+            <div className="flex min-w-0 flex-1 flex-col gap-0.5">
                 <AlertTitle>{banner.title ?? defaultCopy.title}</AlertTitle>
                 <AlertDescription>
                     {banner.message ?? defaultCopy.message}
@@ -532,7 +522,7 @@ function SystemBannerItem({
                     />
                 ) : null}
             </div>
-            <div className={systemBannerAlertClassNames.actions}>
+            <div className="flex flex-none gap-1.5">
                 {primaryLabel ? (
                     <SystemBannerButton
                         aria-busy={
