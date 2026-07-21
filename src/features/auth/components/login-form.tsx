@@ -26,17 +26,6 @@ import {
     useBrowserRouteController,
 } from "@/lib/platform/browser-router";
 
-const authLoginClassNames = {
-    layout: "grid min-h-svh place-items-center bg-background px-6 py-10 text-foreground",
-    surface: "w-full max-w-sm",
-    frame: "flex flex-col items-center text-center",
-    logoMark: "mb-4 size-9",
-    fieldGroup: "mx-auto w-full max-w-xs",
-    actionField: "gap-3",
-    formMessage: "text-left",
-    footer: "text-center",
-} as const;
-
 export function LoginForm({
     intent = "login",
     registrationOpen = false,
@@ -123,8 +112,8 @@ export function LoginForm({
             ? "首次使用可发送邮箱链接创建同步身份，也可以只在本地工作空间继续。"
             : "登录是可选的，仅用于多端同步";
     return (
-        <main className={authLoginClassNames.layout}>
-            <Card className={authLoginClassNames.surface}>
+        <main className="grid min-h-svh place-items-center bg-background px-6 py-10 text-foreground">
+            <Card className="w-full max-w-sm">
                 <form onSubmit={handleSubmit}>
                     <CardHeader>
                         <CardTitle>{cardHeading}</CardTitle>
@@ -132,9 +121,9 @@ export function LoginForm({
                             邮箱 + 链接 · 不要密码
                         </CardDescription>
                     </CardHeader>
-                    <CardContent className={authLoginClassNames.frame}>
+                    <CardContent className="flex flex-col items-center text-center">
                         <Image
-                            className={authLoginClassNames.logoMark}
+                            className="mb-4 size-9"
                             src="/assets/logo-mark-steel.svg"
                             alt=""
                             width={36}
@@ -143,7 +132,7 @@ export function LoginForm({
                         />{" "}
                         <CardTitle>{title}</CardTitle>
                         <CardDescription>{subtitle}</CardDescription>
-                        <FieldGroup className={authLoginClassNames.fieldGroup}>
+                        <FieldGroup className="mx-auto w-full max-w-xs">
                             <Field>
                                 <FieldLabel htmlFor="email" className="sr-only">
                                     邮箱
@@ -167,9 +156,7 @@ export function LoginForm({
                                 {formState ? (
                                     <Alert
                                         id="auth-form-message"
-                                        className={
-                                            authLoginClassNames.formMessage
-                                        }
+                                        className="text-left"
                                         role={
                                             formState.kind === "success"
                                                 ? "status"
@@ -192,7 +179,7 @@ export function LoginForm({
                                     </Alert>
                                 ) : null}
                             </Field>
-                            <Field className={authLoginClassNames.actionField}>
+                            <Field className="gap-3">
                                 <Button
                                     type="submit"
                                     disabled={!isMounted || isLoading}
@@ -209,9 +196,7 @@ export function LoginForm({
                                         "发送登录链接"
                                     )}
                                 </Button>
-                                <FieldDescription
-                                    className={authLoginClassNames.footer}
-                                >
+                                <FieldDescription className="text-center">
                                     或{" "}
                                     <Button
                                         type="button"
