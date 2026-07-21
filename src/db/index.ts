@@ -1,6 +1,6 @@
 import { mkdirSync } from "node:fs";
 import path from "node:path";
-import { createClient } from "@libsql/client";
+import { type Client, createClient } from "@libsql/client";
 import { drizzle } from "drizzle-orm/libsql";
 import type {
     SelectedFields,
@@ -157,11 +157,73 @@ export const transcriptsDb = layout
       })
     : ({} as ReturnType<typeof drizzle<typeof transcriptsSchema>>);
 
-export const voiceprintsDb = layout
-    ? drizzle(createClient({ url: resolveDatabaseUrl(layout.voiceprints) }), {
+const voiceprintsDatabaseUrl = layout
+    ? resolveDatabaseUrl(layout.voiceprints)
+    : null;
+const voiceprintsClient = voiceprintsDatabaseUrl
+    ? createClient({ url: voiceprintsDatabaseUrl })
+    : null;
+
+export const voiceprintsDb = voiceprintsClient
+    ? drizzle(voiceprintsClient, {
           schema: voiceprintsSchema,
       })
     : ({} as ReturnType<typeof drizzle<typeof voiceprintsSchema>>);
+
+type VoiceprintsDb = ReturnType<typeof drizzle<typeof voiceprintsSchema>>;
+
+/**
+ * Runs a callback on one explicitly-owned SQLite client, then always closes
+ * that client. Do not pass a process-wide client: this helper consumes it.
+ */
+export async function runVoiceprintsWriteTransaction<T>(
+    client: Client,
+    callback: (transaction: VoiceprintsDb) => Promise<T>,
+) {
+    let transactionOpen = false;
+
+    try {
+        // Do not use client.transaction(): libsql detaches its native SQLite
+        // handle there, which prevents client.close() from releasing it.
+        await client.execute("BEGIN IMMEDIATE");
+        transactionOpen = true;
+
+        const transaction = drizzle(client, { schema: voiceprintsSchema });
+        const result = await callback(transaction);
+
+        await client.execute("COMMIT");
+        transactionOpen = false;
+        return result;
+    } catch (error) {
+        if (transactionOpen) {
+            try {
+                await client.execute("ROLLBACK");
+            } catch (rollbackError) {
+                throw new AggregateError(
+                    [error, rollbackError],
+                    "Voiceprints write transaction and rollback failed",
+                );
+            }
+        }
+
+        throw error;
+    } finally {
+        client.close();
+    }
+}
+
+export async function withVoiceprintsWriteTransaction<T>(
+    callback: (transaction: VoiceprintsDb) => Promise<T>,
+) {
+    if (!voiceprintsDatabaseUrl) {
+        throw new Error("Voiceprints database is unavailable");
+    }
+
+    return runVoiceprintsWriteTransaction(
+        createClient({ url: voiceprintsDatabaseUrl }),
+        callback,
+    );
+}
 
 export const searchDb = layout
     ? drizzle(createClient({ url: resolveDatabaseUrl(layout.search) }), {

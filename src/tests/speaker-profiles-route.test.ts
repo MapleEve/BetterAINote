@@ -3,7 +3,7 @@ import { tmpdir } from "node:os";
 import path from "node:path";
 import { pathToFileURL } from "node:url";
 import { type Client, createClient } from "@libsql/client";
-import { and, eq } from "drizzle-orm";
+import { and, eq, sql } from "drizzle-orm";
 import { drizzle } from "drizzle-orm/libsql";
 import { afterAll, afterEach, beforeAll, describe, expect, it } from "vitest";
 import {
@@ -49,6 +49,8 @@ type Routes = {
 
 type VoiceprintsDb = ReturnType<typeof drizzle<typeof voiceprintsSchema>>;
 type SearchDb = ReturnType<typeof drizzle<typeof searchSchema>>;
+type VoiceprintsWriteTransaction =
+    typeof import("@/db").runVoiceprintsWriteTransaction;
 
 let auth: Auth;
 let routes: Routes;
@@ -57,6 +59,7 @@ let voiceprintsClient: Client;
 let searchClient: Client;
 let voiceprintsDb: VoiceprintsDb;
 let searchDb: SearchDb;
+let runVoiceprintsWriteTransaction: VoiceprintsWriteTransaction;
 let primaryUser: { headers: Headers; id: string };
 let secondaryUser: { headers: Headers; id: string };
 
@@ -180,6 +183,31 @@ async function createProfile(name: string) {
     return body.profile.id;
 }
 
+async function withExclusiveVoiceprintsLock<T>(callback: () => Promise<T>) {
+    const client = createClient({ url: databaseUrl(voiceprintsDatabasePath) });
+    let transactionOpen = false;
+
+    try {
+        await client.execute("BEGIN IMMEDIATE");
+        transactionOpen = true;
+        return await callback();
+    } finally {
+        try {
+            if (transactionOpen) {
+                await client.execute("ROLLBACK");
+            }
+        } finally {
+            client.close();
+        }
+    }
+}
+
+async function expectClosedClient(client: Client) {
+    await expect(client.execute("SELECT 1")).rejects.toMatchObject({
+        code: "CLIENT_CLOSED",
+    });
+}
+
 async function retryDescriptor(
     response: Response,
     expectedMutation: RetryDescriptor["mutation"],
@@ -216,6 +244,7 @@ describe("speaker profiles routes with real SQLite shards", () => {
             schema: voiceprintsSchema,
         });
         searchDb = drizzle(searchClient, { schema: searchSchema });
+        ({ runVoiceprintsWriteTransaction } = await import("@/db"));
         ({ auth } = await import("@/lib/auth"));
         const profilesRoute = await import("@/app/api/speakers/profiles/route");
         const profileRoute = await import(
@@ -298,6 +327,124 @@ describe("speaker profiles routes with real SQLite shards", () => {
         } finally {
             await removeFailure();
         }
+    });
+
+    it("closes the explicit write client after commit and callback rollback", async () => {
+        const lifecycleDatabasePath = path.join(
+            testDir,
+            "voiceprints-write-transaction-lifecycle.db",
+        );
+        const committedClient = createClient({
+            url: databaseUrl(lifecycleDatabasePath),
+        });
+        await committedClient.execute(
+            "CREATE TABLE lifecycle_markers (value TEXT NOT NULL UNIQUE)",
+        );
+
+        await expect(
+            runVoiceprintsWriteTransaction(committedClient, async (tx) => {
+                await tx.run(
+                    sql.raw(
+                        "INSERT INTO lifecycle_markers (value) VALUES ('committed')",
+                    ),
+                );
+            }),
+        ).resolves.toBeUndefined();
+        await expectClosedClient(committedClient);
+
+        const databaseErrorClient = createClient({
+            url: databaseUrl(lifecycleDatabasePath),
+        });
+        await expect(
+            runVoiceprintsWriteTransaction(databaseErrorClient, async (tx) => {
+                await tx.run(
+                    sql.raw(
+                        "INSERT INTO lifecycle_markers (value) VALUES ('database-error')",
+                    ),
+                );
+                await tx.run(
+                    sql.raw(
+                        "INSERT INTO lifecycle_markers (value) VALUES ('committed')",
+                    ),
+                );
+            }),
+        ).rejects.toThrow();
+        await expectClosedClient(databaseErrorClient);
+
+        const rolledBackClient = createClient({
+            url: databaseUrl(lifecycleDatabasePath),
+        });
+        await expect(
+            runVoiceprintsWriteTransaction(rolledBackClient, async (tx) => {
+                await tx.run(
+                    sql.raw(
+                        "INSERT INTO lifecycle_markers (value) VALUES ('rolled-back')",
+                    ),
+                );
+                throw new Error("intentional callback failure");
+            }),
+        ).rejects.toThrow("intentional callback failure");
+        await expectClosedClient(rolledBackClient);
+
+        const reader = createClient({
+            url: databaseUrl(lifecycleDatabasePath),
+        });
+        try {
+            await expect(
+                reader.execute(
+                    "SELECT value FROM lifecycle_markers ORDER BY value",
+                ),
+            ).resolves.toMatchObject({
+                rows: [{ value: "committed" }],
+            });
+        } finally {
+            reader.close();
+        }
+    });
+
+    it("releases a failed write transaction before same-server speaker retries", async () => {
+        const lockedResponse = await withExclusiveVoiceprintsLock(() =>
+            routes.POST(
+                apiRequest(
+                    primaryUser.headers,
+                    "POST",
+                    "/api/speakers/profiles",
+                    { displayName: "Locked speaker profile" },
+                ),
+            ),
+        );
+        expect(lockedResponse.status).toBe(500);
+        expect(await lockedResponse.text()).not.toContain(
+            "SQL statements in progress",
+        );
+
+        const profileId = await createProfile("Recovered speaker profile");
+        const updated = await routes.PATCH(
+            apiRequest(
+                primaryUser.headers,
+                "PATCH",
+                `/api/speakers/profiles/${profileId}`,
+                { displayName: "Recovered speaker profile updated" },
+            ),
+            params(profileId),
+        );
+        expect(updated.status).toBe(200);
+        expect(await updated.text()).not.toContain(
+            "SQL statements in progress",
+        );
+
+        const deleted = await routes.DELETE(
+            apiRequest(
+                primaryUser.headers,
+                "DELETE",
+                `/api/speakers/profiles/${profileId}`,
+            ),
+            params(profileId),
+        );
+        expect(deleted.status).toBe(200);
+        expect(await deleted.text()).not.toContain(
+            "SQL statements in progress",
+        );
     });
 
     it("keeps a pending descriptor recoverable, consumes it only after enqueue, and rejects replay or another user", async () => {

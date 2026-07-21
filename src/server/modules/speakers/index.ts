@@ -1,7 +1,7 @@
 import { createHmac, randomBytes, timingSafeEqual } from "node:crypto";
 import { and, eq, isNull } from "drizzle-orm";
 import { nanoid } from "nanoid";
-import { db, voiceprintsDb } from "@/db";
+import { db, voiceprintsDb, withVoiceprintsWriteTransaction } from "@/db";
 import {
     recordingSpeakers,
     speakerProfileRetryAuthorizations,
@@ -415,7 +415,7 @@ export async function createSpeakerProfileForUser(
         throw new SpeakerProfileError("displayName is required", 400);
     }
 
-    const { authorization, profile } = await voiceprintsDb.transaction(
+    const { authorization, profile } = await withVoiceprintsWriteTransaction(
         async (tx) => {
             const [profile] = await tx
                 .insert(speakerProfiles)
@@ -469,7 +469,7 @@ export async function updateSpeakerProfileForUser(
             ? input.voiceprintRef.trim()
             : null;
 
-    const mutation = await voiceprintsDb.transaction(async (tx) => {
+    const mutation = await withVoiceprintsWriteTransaction(async (tx) => {
         const [profile] = await tx
             .update(speakerProfiles)
             .set({
@@ -508,7 +508,7 @@ export async function deleteSpeakerProfileForUser(
     userId: string,
     profileId: string,
 ) {
-    const mutation = await voiceprintsDb.transaction(async (tx) => {
+    const mutation = await withVoiceprintsWriteTransaction(async (tx) => {
         const [profile] = await tx
             .delete(speakerProfiles)
             .where(

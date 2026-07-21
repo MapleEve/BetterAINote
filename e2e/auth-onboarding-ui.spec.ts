@@ -279,6 +279,25 @@ async function withVoiceprintsClient<T>(
     }
 }
 
+async function withExclusiveVoiceprintsWriteLock<T>(callback: () => Promise<T>) {
+    const client = createClient({ url: databaseUrl(VOICEPRINTS_DB) });
+    let transactionOpen = false;
+
+    try {
+        await client.execute("BEGIN IMMEDIATE");
+        transactionOpen = true;
+        return await callback();
+    } finally {
+        try {
+            if (transactionOpen) {
+                await client.execute("ROLLBACK");
+            }
+        } finally {
+            client.close();
+        }
+    }
+}
+
 async function getPlaywrightUserId() {
     return withCoreClient(async (client) => {
         const result = await client.execute({
@@ -2445,6 +2464,81 @@ test("SOT onboarding first connection saves a current-draft default through API,
             }),
         ]),
     });
+});
+
+test("SOT onboarding speaker draft recovers the same Next server after a real SQLite lock", async ({
+    page,
+}) => {
+    await ensureSignedIn(page);
+    const userId = await getPlaywrightUserId();
+    await resetOnboardingBackendPersistenceState(userId);
+
+    await gotoOnboardingPage(page);
+    await goToOnboardingState(page, "speakers");
+    await sotControl(page, "speaker-name").fill(
+        "Locked onboarding speaker",
+    );
+    await sotControl(page, "speaker-voiceprint").fill(
+        "voiceprint-onboarding-lock-retry",
+    );
+
+    const lockedResponse = await withExclusiveVoiceprintsWriteLock(() =>
+        page.request.post("/api/speakers/profiles", {
+            data: {
+                displayName: "Locked onboarding speaker",
+                voiceprintRef: "voiceprint-onboarding-lock-retry",
+            },
+        }),
+    );
+    expect(lockedResponse.status()).toBe(500);
+    expect(await lockedResponse.text()).not.toContain(
+        "SQL statements in progress",
+    );
+    await expect(page).toHaveURL(/\/onboarding/);
+    await expect(sotControl(page, "speaker-name")).toHaveValue(
+        "Locked onboarding speaker",
+    );
+
+    const retriedResponse = await page.request.post("/api/speakers/profiles", {
+        data: {
+            displayName: "Locked onboarding speaker",
+            voiceprintRef: "voiceprint-onboarding-lock-retry",
+        },
+    });
+    expect(retriedResponse.status()).toBe(200);
+    expect(await retriedResponse.text()).not.toContain(
+        "SQL statements in progress",
+    );
+
+    const retriedProfile = (await retriedResponse.json()) as {
+        profile?: { id?: string };
+    };
+    if (typeof retriedProfile.profile?.id !== "string") {
+        throw new Error("Speaker retry did not return a profile id");
+    }
+
+    const updateResponse = await page.request.patch(
+        `/api/speakers/profiles/${retriedProfile.profile.id}`,
+        {
+            data: { displayName: "Recovered onboarding speaker" },
+        },
+    );
+    expect(updateResponse.status()).toBe(200);
+    expect(await updateResponse.text()).not.toContain(
+        "SQL statements in progress",
+    );
+
+    const deleteResponse = await page.request.delete(
+        `/api/speakers/profiles/${retriedProfile.profile.id}`,
+    );
+    expect(deleteResponse.status()).toBe(200);
+    expect(await deleteResponse.text()).not.toContain(
+        "SQL statements in progress",
+    );
+
+    const speakerReadback = await page.request.get("/api/speakers/profiles");
+    expect(speakerReadback.ok()).toBe(true);
+    await expect(speakerReadback.json()).resolves.toMatchObject({ profiles: [] });
 });
 
 test("SOT onboarding finish/save surfaces a real backend data-source failure without route mocks", async ({
