@@ -24,29 +24,53 @@ type TranscriptionPlaceholderSize =
     | "time"
     | "title";
 
-const transcriptionSkeletonClassNames = {
-    action: "h-[26px] w-[72px]",
-    description: "h-[13px] w-full max-w-[220px]",
-    "field-control": "h-[13px] w-[132px]",
-    "field-label": "h-[13px] w-24",
-    "line-long": "h-[13px] w-[92%]",
-    "line-medium": "h-[13px] w-3/4",
-    "line-short": "h-[13px] w-3/5",
-    speaker: "h-[13px] w-24",
-    status: "h-[13px] w-[76px]",
-    time: "h-[13px] w-16",
-    title: "h-4 w-32",
-} satisfies Record<TranscriptionPlaceholderSize, string>;
-
 function SkeletonLine({
     size = "line-medium",
 }: {
     size?: TranscriptionPlaceholderSize;
 }) {
+    let className: string;
+
+    switch (size) {
+        case "action":
+            className = "h-[26px] w-[72px]";
+            break;
+        case "description":
+            className = "h-[13px] w-full max-w-[220px]";
+            break;
+        case "field-control":
+            className = "h-[13px] w-[132px]";
+            break;
+        case "field-label":
+            className = "h-[13px] w-24";
+            break;
+        case "line-long":
+            className = "h-[13px] w-[92%]";
+            break;
+        case "line-medium":
+            className = "h-[13px] w-3/4";
+            break;
+        case "line-short":
+            className = "h-[13px] w-3/5";
+            break;
+        case "speaker":
+            className = "h-[13px] w-24";
+            break;
+        case "status":
+            className = "h-[13px] w-[76px]";
+            break;
+        case "time":
+            className = "h-[13px] w-16";
+            break;
+        case "title":
+            className = "h-4 w-32";
+            break;
+    }
+
     return (
         <Skeleton
             aria-hidden="true"
-            className={transcriptionSkeletonClassNames[size]}
+            className={className}
             size="default"
             variant="default"
         />
