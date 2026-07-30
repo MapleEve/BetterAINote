@@ -81,6 +81,13 @@ import {
     type TranscriptionPanelSpeakerMergeRequest,
 } from "@/features/dashboard/components/transcription-panel";
 import {
+    DASHBOARD_SOURCE_FILTER_STORAGE_KEY,
+    type DashboardSourceFilter,
+    parseDashboardSourceFilter,
+    resolveConnectedSourceStatus,
+    toggleDashboardSourceFilter,
+} from "@/features/dashboard/source-filter-state";
+import {
     areDashboardTranscriptionJobsEqual,
     getDashboardTranscriptionPollingKey,
     resolveDashboardTranscriptionPoll,
@@ -1739,7 +1746,7 @@ export function Workstation({
     >(() => new Map());
     const [liveJobs, setLiveJobs] = useState(transcriptionJobs);
     const [favorite, setFavorite] = useState<Favorite>("all");
-    const [source, setSource] = useState("all");
+    const [source, setSource] = useState<DashboardSourceFilter>("all");
     const [selectedId, setSelectedId] = useState(recordings[0]?.id ?? "");
     const [collapsed, setCollapsed] = useState(false);
     const [drawerOpen, setDrawerOpen] = useState(false);
@@ -1905,11 +1912,21 @@ export function Workstation({
         [clearActivityFocusRestoreTimers, restoreActivityTriggerFocus],
     );
 
+    const selectSource = useCallback((nextSource: DashboardSourceFilter) => {
+        setSource(nextSource);
+        writeBrowserStorage(DASHBOARD_SOURCE_FILTER_STORAGE_KEY, nextSource);
+    }, []);
+
     useEffect(() => {
         setHydrated(true);
         setCollapsed(
             readBrowserStorage(DASHBOARD_SIDEBAR_COLLAPSED_STORAGE_KEY) ===
                 "true",
+        );
+        setSource(
+            parseDashboardSourceFilter(
+                readBrowserStorage(DASHBOARD_SOURCE_FILTER_STORAGE_KEY),
+            ),
         );
     }, []);
 
@@ -2384,6 +2401,12 @@ export function Workstation({
             workerStatus?.lastError ||
             (workerStatus?.lastSummary?.errorCount ?? 0) > 0,
     );
+    const hasSourceNarrowingFilter =
+        favorite !== "all" ||
+        query.trim().length > 0 ||
+        librarySearchFilter !== null ||
+        (listMode === "tags" && selectedTagFilter !== "all") ||
+        (listMode === "timeline" && timelineFilter !== "all");
     const sourceRows = useMemo(
         () =>
             SOURCE_ORDER.map((item) => {
@@ -2414,13 +2437,17 @@ export function Workstation({
                                   ? "syncing"
                                   : hasSyncError
                                     ? "sync-error"
-                                    : active &&
-                                        count > 0 &&
-                                        filteredRecordings.length === 0
-                                      ? "no-results"
-                                      : count > 0
-                                        ? "connected"
-                                        : "connected-empty";
+                                    : resolveConnectedSourceStatus({
+                                          active,
+                                          currentResultCount:
+                                              filteredRecordings.length,
+                                          hasNarrowingFilter:
+                                              hasSourceNarrowingFilter,
+                                          providerCount: count,
+                                          settled:
+                                              !recordingListLoading &&
+                                              !recordingListError,
+                                      });
 
                 return {
                     ...item,
@@ -2437,8 +2464,11 @@ export function Workstation({
             dataSourcesLoading,
             filteredRecordings.length,
             hasSyncError,
+            hasSourceNarrowingFilter,
             isAutoSyncing,
             language,
+            recordingListError,
+            recordingListLoading,
             source,
             sourceCounts,
             t,
@@ -4452,6 +4482,9 @@ export function Workstation({
                                 key={item.value}
                                 onClick={() => {
                                     setFavorite(item.value);
+                                    if (item.value === "all") {
+                                        selectSource("all");
+                                    }
                                     applyListMode(
                                         item.value === "tags"
                                             ? "tags"
@@ -4520,7 +4553,7 @@ export function Workstation({
                                 type="button"
                                 className={dashboardSourceClassNames.clear}
                                 data-control="dashboard-source-clear"
-                                onClick={() => setSource("all")}
+                                onClick={() => selectSource("all")}
                             >
                                 {t("sourceProviderRows.clear")}
                             </Button>
@@ -4583,6 +4616,9 @@ export function Workstation({
                                     aria-disabled={
                                         disabledSourceRow ? "true" : undefined
                                     }
+                                    aria-current={
+                                        item.active ? "true" : undefined
+                                    }
                                     aria-pressed={item.active}
                                     aria-label={`${item.label} · ${item.statusLabel}`}
                                     disabled={disabledSourceRow}
@@ -4602,6 +4638,7 @@ export function Workstation({
                                     onClick={() => {
                                         if (disabledSourceRow) return;
                                         if (settingsTarget) {
+                                            selectSource(item.key);
                                             window.localStorage.setItem(
                                                 SETTINGS_DATA_SOURCE_PROVIDER_STORAGE_KEY,
                                                 item.key,
@@ -4609,8 +4646,11 @@ export function Workstation({
                                             openSettings("data-sources");
                                             return;
                                         }
-                                        setSource(
-                                            item.active ? "all" : item.key,
+                                        selectSource(
+                                            toggleDashboardSourceFilter(
+                                                source,
+                                                item.key,
+                                            ),
                                         );
                                         setDrawerOpen(false);
                                     }}
@@ -5557,7 +5597,9 @@ export function Workstation({
                                                     "sourceFilterStack.clearSourceFilter",
                                                 )}
                                                 data-control="source-filter-clear"
-                                                onClick={() => setSource("all")}
+                                                onClick={() =>
+                                                    selectSource("all")
+                                                }
                                             >
                                                 <X data-icon="inline-start" />
                                             </Button>
@@ -5669,7 +5711,7 @@ export function Workstation({
                                                 sourceFilterClassNames.clearAll
                                             }
                                             data-control="source-filter-clear-all"
-                                            onClick={() => setSource("all")}
+                                            onClick={() => selectSource("all")}
                                         >
                                             {t("sourceFilterStack.clearAll")}
                                         </Button>
@@ -6368,7 +6410,7 @@ export function Workstation({
                                                     data-control="recording-list-clear-filters"
                                                     onClick={() => {
                                                         setFavorite("all");
-                                                        setSource("all");
+                                                        selectSource("all");
                                                         setQuery("");
                                                         setLibrarySearchFilter(
                                                             null,

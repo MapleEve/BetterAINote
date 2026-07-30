@@ -3980,10 +3980,10 @@ describe("dashboard SOT foundation", () => {
         }
         expect(workstation).toContain('data-control="source-filter-widen"');
         expect(workstation).toMatch(
-            /<Button[\s\S]*data-control="dashboard-source-clear"[\s\S]*onClick=\{\(\) => setSource\("all"\)\}/,
+            /<Button[\s\S]*data-control="dashboard-source-clear"[\s\S]*onClick=\{\(\) => selectSource\("all"\)\}/,
         );
         expect(workstation).toMatch(
-            /<Button[\s\S]*data-control="source-filter-clear"[\s\S]*onClick=\{\(\) => setSource\("all"\)\}/,
+            /<Button[\s\S]*data-control="source-filter-clear"[\s\S]*onClick=\{\(\) =>[\s\S]*selectSource\("all"\)/,
         );
         expect(sourceFilterClearButton).toMatch(
             /className=\{\s*sourceFilterClassNames\.clear\s*\}/,
@@ -4082,7 +4082,7 @@ describe("dashboard SOT foundation", () => {
             expect(collectCssRuleBlocks(globals, selector)).toEqual([]);
         }
         expect(workstation).toMatch(
-            /<Button[\s\S]*data-control="source-filter-clear-all"[\s\S]*onClick=\{\(\) => setSource\("all"\)\}/,
+            /<Button[\s\S]*data-control="source-filter-clear-all"[\s\S]*onClick=\{\(\) => selectSource\("all"\)\}/,
         );
         expect(sourceFilterClearAllButton).toMatch(
             /className=\{\s*sourceFilterClassNames\.clearAll\s*\}/,
