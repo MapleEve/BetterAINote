@@ -190,7 +190,7 @@ describe("source report framework integration", () => {
         }
 
         expect(recordingPanel).not.toContain(
-            '@/features/source-report/primitives',
+            "@/features/source-report/primitives",
         );
         expect(recordingPanel).not.toContain("<SourceReportPane");
         expect(dashboardComposition).toContain('surface="dashboard"');
