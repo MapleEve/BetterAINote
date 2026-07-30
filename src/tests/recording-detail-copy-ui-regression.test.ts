@@ -1,6 +1,20 @@
 import { readdirSync, readFileSync } from "node:fs";
 import path from "node:path";
+import React from "react";
+import { renderToStaticMarkup } from "react-dom/server";
 import { describe, expect, it } from "vitest";
+import { LanguageProvider } from "@/components/language-provider";
+import { ConfirmDialogProvider } from "@/components/ui/confirm-dialog";
+import { TranscriptionSection } from "@/features/recordings/components/transcription-section";
+import {
+    SpeakerReviewSkeleton,
+    TranscriptOutputSkeleton,
+    TranscriptReviewSkeleton,
+} from "@/features/recordings/components/transcription-skeletons";
+import {
+    getTranscriptionJobDisplayState,
+    isActiveTranscriptionJob,
+} from "@/lib/transcription/job-display";
 import { serializeRecordingDetailTranscriptionJob } from "@/server/modules/recordings/serialize";
 
 const ROOT = path.join(process.cwd(), "src");
@@ -20,6 +34,51 @@ function recordingDetailSourceFiles(relativeDirectory: string): string[] {
 const RECORDING_DETAIL_SOT_GUARD_SOURCE_FILES = recordingDetailSourceFiles(
     "features/recordings",
 );
+
+function renderRecordingTranscription(
+    props: React.ComponentProps<typeof TranscriptionSection>,
+) {
+    return renderToStaticMarkup(
+        React.createElement(
+            LanguageProvider,
+            {
+                language: "en",
+            } as React.ComponentProps<typeof LanguageProvider>,
+            React.createElement(
+                ConfirmDialogProvider,
+                null,
+                React.createElement(TranscriptionSection, props),
+            ),
+        ),
+    );
+}
+
+function renderRecordingTranscriptionSkeletons() {
+    return renderToStaticMarkup(
+        React.createElement(
+            "div",
+            null,
+            React.createElement(TranscriptOutputSkeleton),
+            React.createElement(TranscriptReviewSkeleton),
+            React.createElement(SpeakerReviewSkeleton),
+        ),
+    );
+}
+
+function renderedButtonOpening(html: string, control: string) {
+    const markerIndex = html.indexOf(`data-control="${control}"`);
+    if (markerIndex < 0) return "";
+
+    const openingIndex = html.lastIndexOf("<button", markerIndex);
+    const closingIndex = html.indexOf(">", markerIndex);
+    if (openingIndex < 0 || closingIndex < 0) return "";
+
+    return html.slice(openingIndex, closingIndex + 1);
+}
+
+function renderedSlotCount(html: string, slot: string) {
+    return html.split(`data-slot="${slot}"`).length - 1;
+}
 
 const EXPECTED_DASHBOARD_DETAIL_HEADER_ACTION_ANCHOR_CLASS_NAME =
     "relative inline-flex items-center gap-1.5";
@@ -1205,217 +1264,147 @@ describe("recording detail copy and title action UI regressions", () => {
     });
 
     it("keeps transcript copy actions disabled when no display text is available", () => {
-        const detailTranscript = readSource(
-            "features/recordings/components/transcription-section.tsx",
-        );
         const dashboardTranscript = readSource(
             "features/dashboard/workstation.tsx",
         );
-        const globals = readSource("app/globals.css");
+        const transcriptText = "Speaker 1 shared the weekly update.";
+        const loaded = renderRecordingTranscription({
+            recordingId: "recording-loaded",
+            initialLanguage: "en",
+            initialSpeakerMap: { "Speaker 1": "Alice" },
+            initialTranscription: transcriptText,
+            initialType: "private",
+        });
+        const failed = renderRecordingTranscription({
+            recordingId: "recording-failed",
+            initialJobError: "Transcription failed. Try again.",
+            initialJobStatus: "failed",
+            initialTranscription: transcriptText,
+            showSpeakerReview: false,
+        });
+        const empty = renderRecordingTranscription({
+            canTranscribe: false,
+            recordingId: "recording-empty",
+            showSpeakerReview: false,
+            transcribeUnavailableReason: "Audio is unavailable locally.",
+        });
+        const loading = renderRecordingTranscriptionSkeletons();
 
-        expect(detailTranscript).toContain("handleCopyTranscript");
-        expect(detailTranscript).toContain(
-            "writeBrowserClipboardText(displayText)",
-        );
-        expect(detailTranscript).toContain("isCopyingTranscript");
-        expect(detailTranscript).toContain("!displayText.trim()");
-        expect(detailTranscript).toContain("transcription.copyTranscript");
-        expect(detailTranscript).toContain(
-            "transcription.copyTranscriptFailed",
-        );
-        expect(detailTranscript).toContain('role="region"');
-        expect(detailTranscript).toContain(
-            'aria-labelledby="recording-transcription-title"',
-        );
-        expect(detailTranscript).toContain("onClick={handleCopyTranscript}");
-        expect(detailTranscript).toContain(
-            "onClick={handleConfirmRetranscribe}",
-        );
-        expect(detailTranscript).toContain(
-            "onClick={() => handleTranscribe(false)}",
-        );
-        expect(detailTranscript).toContain("aria-busy={isCopyingTranscript}");
-        expect(detailTranscript).toContain('data-icon="inline-start"');
-        expect(detailTranscript).toContain(
-            'import { Badge } from "@/components/ui/badge";',
-        );
-        expect(detailTranscript).toContain(
-            'import { Separator } from "@/components/ui/separator";',
-        );
-        expect(detailTranscript).toContain("<Badge");
-        expect(detailTranscript).toContain("<Separator");
-        expect(detailTranscript).toContain(
-            "const RECORDING_TRANSCRIPTION_META_BADGE_VARIANT = {",
-        );
-        for (const tone of ["attribute", "measure"]) {
-            expect(detailTranscript).toMatch(
-                new RegExp(
-                    `variant=\\{\\s*RECORDING_TRANSCRIPTION_META_BADGE_VARIANT\\.${tone}\\s*\\}`,
-                ),
+        for (const activeJob of [
+            {
+                display: "queuedLocal",
+                remoteStatus: null,
+                status: "pending",
+            },
+            {
+                display: "queuedRemote",
+                remoteStatus: "queued",
+                status: "submitted",
+            },
+            {
+                display: "transcribingAudio",
+                remoteStatus: "transcribing",
+                status: "processing",
+            },
+        ]) {
+            expect(isActiveTranscriptionJob(activeJob)).toBe(true);
+            expect(getTranscriptionJobDisplayState(activeJob)).toBe(
+                activeJob.display,
             );
         }
-        expect(detailTranscript).not.toContain(
-            "RECORDING_TRANSCRIPTION_META_BADGE_CLASS_NAME",
+        expect(
+            isActiveTranscriptionJob({
+                remoteStatus: "failed",
+                status: "failed",
+            }),
+        ).toBe(false);
+
+        expect(loaded).toContain('data-slot="card"');
+        expect(loaded).toContain('role="region"');
+        expect(loaded).toContain(
+            'aria-labelledby="recording-transcription-title"',
         );
-        expect(detailTranscript).not.toContain(
-            "const recordingTranscriptionButtonClassNames",
+        expect(loaded).toContain('data-control="recording-transcription"');
+        expect(loaded).toContain('data-state="ready"');
+        expect(loaded).toContain("Alice shared the weekly update.");
+        expect(renderedSlotCount(loaded, "badge")).toBe(4);
+        expect(loaded.split('data-variant="outline"').length - 1).toBe(3);
+        expect(loaded.split('data-variant="secondary"').length - 1).toBe(2);
+        expect(loaded).toContain("Language: en");
+        expect(loaded).toContain("Source: private");
+        expect(loaded).toContain("6 words");
+        expect(loaded).toContain(`${transcriptText.length} characters`);
+        expect(loaded).toContain("Speaker Labels");
+        expect(loaded).toContain('data-speaker-review-state="loading"');
+        expect(loaded).toContain('aria-busy="true"');
+
+        const copyControl = renderedButtonOpening(
+            loaded,
+            "recording-transcript-copy",
         );
-        expect(detailTranscript).not.toContain(
-            "recordingTranscriptionButtonClassNames.",
+        const retranscribeControl = renderedButtonOpening(
+            loaded,
+            "recording-transcript-retranscribe",
         );
-        for (const forbiddenLocalPanelResidual of [
-            "[scrollbar-color:",
-            "[scrollbar-width:",
-            "[&::-webkit-scrollbar",
-            "border-t border-border",
-            "border-b border-dashed",
-            "[&>svg]:size-",
-            "data-[tone=attribute]:",
-            "data-[tone=measure]:",
+        expect(copyControl).toContain('data-variant="outline"');
+        expect(copyControl).toContain('data-size="sm"');
+        expect(copyControl).toContain('aria-busy="false"');
+        expect(copyControl).not.toContain(" disabled=");
+        expect(retranscribeControl).toContain('data-variant="destructive"');
+        expect(retranscribeControl).toContain('data-size="sm"');
+        expect(retranscribeControl).toContain('aria-busy="false"');
+        expect(retranscribeControl).not.toContain(" disabled=");
+
+        expect(failed).toContain('data-slot="alert"');
+        expect(failed).toContain('role="alert"');
+        expect(failed).toContain('data-state="failed"');
+        expect(failed).toContain('data-density="comfortable"');
+        expect(failed).toContain("Transcription failed. Try again.");
+        expect(failed).toContain('data-state="ready"');
+        const retryControl = renderedButtonOpening(
+            failed,
+            "recording-transcript-retry",
+        );
+        const dismissControl = renderedButtonOpening(
+            failed,
+            "recording-transcript-dismiss-error",
+        );
+        expect(retryControl).toContain('data-variant="outline"');
+        expect(retryControl).toContain('data-size="sm"');
+        expect(retryControl).toContain('aria-busy="false"');
+        expect(retryControl).not.toContain(" disabled=");
+        expect(dismissControl).toContain('data-variant="ghost"');
+        expect(dismissControl).toContain('data-size="icon-sm"');
+        expect(dismissControl).toContain(
+            'aria-label="Dismiss transcription error"',
+        );
+        expect(dismissControl).not.toContain(" disabled=");
+
+        expect(empty).toContain('data-slot="empty"');
+        expect(empty).toContain('data-state="empty"');
+        expect(empty).toContain("No local transcript available yet.");
+        const startControl = renderedButtonOpening(
+            empty,
+            "recording-transcript-transcribe",
+        );
+        expect(startControl).toContain('data-variant="default"');
+        expect(startControl).toContain('data-size="sm"');
+        expect(startControl).toContain('disabled=""');
+        expect(startControl).toContain('title="Audio is unavailable locally."');
+
+        for (const loadingLabel of [
+            "正在加载转写结果",
+            "正在加载转写复核",
+            "正在加载说话人复核",
         ]) {
-            expect(detailTranscript).not.toContain(forbiddenLocalPanelResidual);
+            expect(loading).toContain(`aria-label="${loadingLabel}"`);
         }
-        expect(detailTranscript).not.toContain("dark:");
-        expect(detailTranscript).not.toMatch(
-            /(?:text|border|bg)-\[var\(--(?:fg|line|glass)-/,
+        expect(loading.split('aria-busy="true"').length - 1).toBe(4);
+        expect(loading.split('aria-live="polite"').length - 1).toBe(4);
+        expect(renderedSlotCount(loading, "skeleton")).toBeGreaterThanOrEqual(
+            30,
         );
-        for (const metaLabel of [
-            "transcription.languagePrefix",
-            "transcription.sourcePrefix",
-            "transcription.words",
-            "transcription.characters",
-        ]) {
-            expect(detailTranscript).toContain(metaLabel);
-        }
-        expect((detailTranscript.match(/<Badge/g) ?? []).length).toBe(4);
-        const copyControlIndex = detailTranscript.indexOf(
-            "onClick={handleCopyTranscript}",
-        );
-        const retranscribeControlIndex = detailTranscript.indexOf(
-            "onClick={handleConfirmRetranscribe}",
-        );
-        const startControlIndex = detailTranscript.indexOf('variant="default"');
-        const jobErrorBannerIndex = detailTranscript.indexOf(
-            'variant="statusError"',
-        );
-        expect(copyControlIndex).toBeGreaterThanOrEqual(0);
-        expect(retranscribeControlIndex).toBeGreaterThanOrEqual(0);
-        expect(startControlIndex).toBeGreaterThanOrEqual(0);
-        expect(jobErrorBannerIndex).toBeGreaterThanOrEqual(0);
-        const copyControl = extractOpeningElement(
-            detailTranscript,
-            "onClick={handleCopyTranscript}",
-            "Button",
-        );
-        const retranscribeControl = extractOpeningElement(
-            detailTranscript,
-            "onClick={handleConfirmRetranscribe}",
-            "Button",
-        );
-        const startControl = extractOpeningElement(
-            detailTranscript,
-            'variant="default"',
-            "Button",
-        );
-        const jobErrorBanner = detailTranscript.slice(
-            Math.max(0, jobErrorBannerIndex - 240),
-            jobErrorBannerIndex + 360,
-        );
-        expect(copyControl).toContain('variant="outline"');
-        expect(copyControl).toContain('size="sm"');
-        expect(copyControl).not.toContain("className=");
-        expect(copyControl).toContain("isCopyingTranscript");
-        expect(copyControl).toContain("!displayText.trim()");
-        expect(retranscribeControl).toContain('variant="destructive"');
-        expect(retranscribeControl).toContain('size="sm"');
-        expect(retranscribeControl).not.toContain("className=");
-        expect(startControl).toContain('variant="default"');
-        expect(startControl).toContain('size="sm"');
-        expect(startControl).not.toContain("className=");
-        expect(jobErrorBanner).toContain("<Alert");
-        expect(jobErrorBanner).toContain('variant="statusError"');
-        for (const removedActionToken of [
-            'variant="transcriptionAction"',
-            'variant="transcriptionDangerAction"',
-            'variant="transcriptionPrimaryAction"',
-            'size="transcriptionAction"',
-            "recordingTranscriptionButtonClassNames.action",
-            "recordingTranscriptionButtonClassNames.danger",
-            "recordingTranscriptionButtonClassNames.primary",
-            "h-8",
-            "gap-1.5",
-            "rounded-md",
-            "px-3",
-            "shadow-xs",
-            "has-[>svg]:px-2.5",
-        ]) {
-            expect(copyControl).not.toContain(removedActionToken);
-            expect(retranscribeControl).not.toContain(removedActionToken);
-            expect(startControl).not.toContain(removedActionToken);
-        }
-        expect(jobErrorBanner).not.toContain('variant="destructive"');
-        for (const removedSelector of [
-            '[data-panel="recording-transcription"][data-slot="card"]',
-            '[data-part="recording-transcription-header"] {',
-            '[data-part="recording-transcription-heading"]',
-            '[data-part="recording-transcription-icon"]',
-            '[data-part="recording-transcription-header-copy"]',
-            '[data-part="recording-transcription-title"] h2',
-            '[data-part="recording-transcription-description"],',
-            '[data-part="recording-transcription-unavailable"] {',
-            '[data-part="recording-transcription-body"]',
-            '[data-section="recording-transcription-speaker-review"]',
-            '[data-part="recording-transcription-section-head"]',
-            '[data-part="recording-transcription-section-title"]',
-            '[data-part="recording-transcription-section-description"]',
-            '[data-part="recording-transcription-actions"]',
-            '[data-part="recording-transcription-turn"]',
-            '[data-part="recording-transcription-body"] [data-banner-title]',
-            '[data-list="recording-transcription-meta"]',
-            '[data-list="recording-transcription-meta"] > span',
-            '[data-part="recording-transcription-meta-icon"]',
-            '[data-section="recording-transcription-output"]',
-            '[data-theme="dark"] [data-section="recording-transcription-output"]',
-            '[data-part="recording-transcription-text"]',
-        ]) {
-            expect(globals).not.toContain(removedSelector);
-        }
-        expect(globals).not.toContain("\n[data-banner] {\n");
-        expect(globals).not.toContain("\n[data-banner-icon] {\n");
-        const alertPrimitive = readSource("components/ui/alert.tsx");
-        const transcriptionSection = readSource(
-            "features/recordings/components/transcription-section.tsx",
-        );
-        expect(alertPrimitive).toContain("[&>[data-slot=spinner]]:size-4");
-        expect(alertPrimitive).toContain(
-            "has-[>[data-slot=spinner]]:grid-cols-[1rem_1fr]",
-        );
-        expect(transcriptionSection).toContain(
-            'import { Spinner } from "@/components/ui/spinner";',
-        );
-        expect(transcriptionSection).toContain("<Spinner");
-        expect(transcriptionSection).toContain(
-            '<Spinner aria-hidden="true" />',
-        );
-        expect(transcriptionSection).not.toContain(
-            '<RefreshCw\n                            className="animate-spin"',
-        );
-        for (const legacyClass of [
-            'className="transcript t-pane"',
-            'className="transcript-head"',
-            'className="transcript-body"',
-            'className="sr-section"',
-            'className="sr-section-head"',
-            'className="sr-section-sub"',
-            'className="empty-hint"',
-            'className="eh-t"',
-            'className="eh-h"',
-            'className="turn"',
-            'className="speaker"',
-            'className="ts"',
-        ]) {
-            expect(detailTranscript).not.toContain(legacyClass);
-        }
+        expect(loading).toContain('aria-hidden="true"');
 
         expect(dashboardTranscript).toContain(
             'data-panel="dashboard-retranscription"',

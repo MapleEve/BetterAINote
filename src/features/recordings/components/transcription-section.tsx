@@ -7,11 +7,12 @@ import {
     Languages,
     RefreshCw,
     Sparkles,
+    X,
 } from "lucide-react";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { toast } from "sonner";
 import { useLanguage } from "@/components/language-provider";
-import { Alert, AlertTitle } from "@/components/ui/alert";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
@@ -57,11 +58,6 @@ interface TranscriptionSectionProps {
     initialJobError?: string | null;
     showSpeakerReview?: boolean;
 }
-
-const RECORDING_TRANSCRIPTION_META_BADGE_VARIANT = {
-    attribute: "outline",
-    measure: "secondary",
-} as const;
 
 function applySpeakerMap(
     text: string,
@@ -263,6 +259,9 @@ export function TranscriptionSection({
         if (!confirmed) return;
         void handleTranscribe(true);
     }, [canTranscribe, confirm, handleTranscribe, t]);
+    const handleRetryTranscription = useCallback(() => {
+        void handleTranscribe(Boolean(transcription.trim()));
+    }, [handleTranscribe, transcription]);
 
     const wordCount = useMemo(() => {
         const trimmed = transcription.trim();
@@ -305,30 +304,31 @@ export function TranscriptionSection({
             hasNoPadding
             role="region"
             aria-labelledby="recording-transcription-title"
+            aria-busy={isTranscribing || undefined}
             className="min-h-0 flex-1 gap-0"
             data-control="recording-transcription"
             data-state={transcriptionState}
         >
-            <CardHeader className="flex flex-row items-center gap-3 px-3.5 py-3">
+            <CardHeader className="flex flex-row items-center gap-3 py-4">
                 <div className="flex min-w-0 items-center gap-3">
                     <FileText
                         className="size-4 flex-none text-muted-foreground"
                         aria-hidden="true"
                     />
-                    <div className="flex min-w-0 flex-col gap-[3px]">
+                    <div className="flex min-w-0 flex-col gap-1">
                         <CardTitle className="min-w-0">
                             <h2
                                 id="recording-transcription-title"
-                                className="m-0 truncate text-xl"
+                                className="truncate text-base"
                             >
                                 {t("transcription.localTitle")}
                             </h2>
                         </CardTitle>
-                        <CardDescription className="text-xs leading-normal font-medium">
+                        <CardDescription>
                             {t("transcription.localDescription")}
                         </CardDescription>
                         {!canTranscribe && (
-                            <FieldDescription className="text-xs leading-normal font-medium">
+                            <FieldDescription>
                                 {transcribeUnavailableReason ??
                                     (uiLanguage === "zh-CN"
                                         ? "这个数据源没有可下载到本地的音频文件，当前只能查看来源逐字稿或报告。"
@@ -339,17 +339,15 @@ export function TranscriptionSection({
                 </div>
             </CardHeader>
             <Separator />
-            <CardContent className="min-h-0 flex-1 overflow-y-auto px-5 pt-4 pb-6">
+            <CardContent className="flex min-h-0 flex-1 flex-col gap-4 overflow-y-auto py-4">
                 {isTranscribing ? (
-                    <Alert className="mb-3" data-state="loading">
+                    <Alert density="comfortable" data-state="loading">
                         <Spinner aria-hidden="true" />
-                        <div>
-                            <AlertTitle className="line-clamp-none overflow-visible">
-                                {jobDisplayState
-                                    ? t(`transcription.${jobDisplayState}`)
-                                    : t("transcription.processing")}
-                            </AlertTitle>
-                        </div>
+                        <AlertTitle className="line-clamp-none overflow-visible">
+                            {jobDisplayState
+                                ? t(`transcription.${jobDisplayState}`)
+                                : t("transcription.processing")}
+                        </AlertTitle>
                     </Alert>
                 ) : null}
 
@@ -360,34 +358,66 @@ export function TranscriptionSection({
                     }) && (
                         <Alert
                             variant="statusError"
-                            className="mb-3"
+                            density="comfortable"
                             data-state="failed"
                         >
                             <AlertCircle aria-hidden="true" />
-                            <div>
-                                <AlertTitle className="line-clamp-none overflow-visible">
-                                    {jobError}
-                                </AlertTitle>
-                            </div>
+                            <AlertTitle className="line-clamp-none overflow-visible">
+                                {jobError}
+                            </AlertTitle>
+                            <AlertDescription className="mt-2 flex flex-row flex-wrap items-center gap-2">
+                                <Button
+                                    type="button"
+                                    size="sm"
+                                    variant="outline"
+                                    data-control="recording-transcript-retry"
+                                    onClick={handleRetryTranscription}
+                                    disabled={!canTranscribe || isTranscribing}
+                                    aria-busy={isTranscribing}
+                                    title={
+                                        !canTranscribe
+                                            ? (transcribeUnavailableReason ??
+                                              undefined)
+                                            : undefined
+                                    }
+                                >
+                                    <RefreshCw
+                                        aria-hidden="true"
+                                        data-icon="inline-start"
+                                    />
+                                    {t("common.retry")}
+                                </Button>
+                                <Button
+                                    type="button"
+                                    size="icon-sm"
+                                    variant="ghost"
+                                    data-control="recording-transcript-dismiss-error"
+                                    aria-label={
+                                        uiLanguage === "zh-CN"
+                                            ? "收起转写错误"
+                                            : "Dismiss transcription error"
+                                    }
+                                    onClick={() => setJobError(null)}
+                                >
+                                    <X aria-hidden="true" />
+                                </Button>
+                            </AlertDescription>
                         </Alert>
                     )}
 
                 {transcription ? (
                     <>
-                        <section
-                            className="flex flex-col gap-2"
-                            data-state="ready"
-                        >
-                            <header className="flex items-start justify-between gap-3 max-[860px]:flex-col">
+                        <section className="grid gap-4" data-state="ready">
+                            <header className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
                                 <div>
-                                    <h3 className="m-0 font-sans text-[12.5px] font-semibold text-foreground">
+                                    <h3 className="text-sm font-semibold text-foreground">
                                         {t("transcription.outputTitle")}
                                     </h3>
-                                    <p className="mt-0.5 mb-0 font-sans text-[11.5px] font-medium leading-[1.45] text-muted-foreground max-[860px]:[overflow-wrap:anywhere]">
+                                    <p className="mt-1 text-sm text-muted-foreground">
                                         {t("transcription.outputDescription")}
                                     </p>
                                 </div>
-                                <div className="inline-flex min-w-0 flex-wrap items-center justify-end gap-2 max-[860px]:justify-start">
+                                <div className="flex min-w-0 flex-wrap items-center gap-2 sm:justify-end">
                                     <Button
                                         onClick={handleCopyTranscript}
                                         size="sm"
@@ -433,19 +463,15 @@ export function TranscriptionSection({
                                     </Button>
                                 </div>
                             </header>
-                            <div className="pt-[10px]">
-                                <p className="m-0 font-sans text-[14.5px] leading-[1.65] text-foreground [text-wrap:pretty] max-[860px]:[overflow-wrap:anywhere]">
+                            <div className="py-2">
+                                <p className="whitespace-pre-wrap break-words text-sm leading-relaxed text-foreground">
                                     {displayText}
                                 </p>
                             </div>
                             <Separator />
-                            <div className="mb-1.5 flex flex-wrap items-center gap-2.5 pt-2">
+                            <div className="flex flex-wrap items-center gap-2 pt-2">
                                 {language ? (
-                                    <Badge
-                                        variant={
-                                            RECORDING_TRANSCRIPTION_META_BADGE_VARIANT.attribute
-                                        }
-                                    >
+                                    <Badge variant="outline">
                                         <Languages aria-hidden="true" />
                                         <span>
                                             {t("transcription.languagePrefix")}:{" "}
@@ -454,27 +480,15 @@ export function TranscriptionSection({
                                     </Badge>
                                 ) : null}
                                 {transcriptionType ? (
-                                    <Badge
-                                        variant={
-                                            RECORDING_TRANSCRIPTION_META_BADGE_VARIANT.attribute
-                                        }
-                                    >
+                                    <Badge variant="outline">
                                         {t("transcription.sourcePrefix")}:{" "}
                                         {transcriptionType}
                                     </Badge>
                                 ) : null}
-                                <Badge
-                                    variant={
-                                        RECORDING_TRANSCRIPTION_META_BADGE_VARIANT.measure
-                                    }
-                                >
+                                <Badge variant="secondary">
                                     {wordCount} {t("transcription.words")}
                                 </Badge>
-                                <Badge
-                                    variant={
-                                        RECORDING_TRANSCRIPTION_META_BADGE_VARIANT.measure
-                                    }
-                                >
+                                <Badge variant="secondary">
                                     {transcription.length}{" "}
                                     {t("transcription.characters")}
                                 </Badge>
@@ -483,13 +497,13 @@ export function TranscriptionSection({
                         {showSpeakerReview ? (
                             <>
                                 <Separator className="my-2" />
-                                <section className="flex flex-col gap-2">
-                                    <header className="flex items-start justify-between gap-3 max-[860px]:flex-col">
+                                <section className="grid gap-4">
+                                    <header>
                                         <div>
-                                            <h3 className="m-0 font-sans text-[12.5px] font-semibold text-foreground">
+                                            <h3 className="text-sm font-semibold text-foreground">
                                                 {t("speakerReview.title")}
                                             </h3>
-                                            <p className="mt-0.5 mb-0 font-sans text-[11.5px] font-medium leading-[1.45] text-muted-foreground max-[860px]:[overflow-wrap:anywhere]">
+                                            <p className="mt-1 text-sm text-muted-foreground">
                                                 {t("speakerReview.description")}
                                             </p>
                                         </div>
@@ -504,7 +518,7 @@ export function TranscriptionSection({
                         ) : null}
                     </>
                 ) : (
-                    <Empty className="mt-4" data-state="empty">
+                    <Empty data-state="empty">
                         <EmptyHeader>
                             <EmptyMedia variant="icon">
                                 <FileText aria-hidden="true" />

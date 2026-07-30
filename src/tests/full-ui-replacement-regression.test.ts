@@ -1,6 +1,65 @@
 import { existsSync, readdirSync, readFileSync } from "node:fs";
 import path from "node:path";
+import React from "react";
+import { renderToStaticMarkup } from "react-dom/server";
 import { describe, expect, it } from "vitest";
+import { LanguageProvider } from "@/components/language-provider";
+import { ConfirmDialogProvider } from "@/components/ui/confirm-dialog";
+import { TranscriptionSection } from "@/features/recordings/components/transcription-section";
+import {
+    SpeakerReviewSkeleton,
+    TranscriptOutputSkeleton,
+    TranscriptReviewSkeleton,
+} from "@/features/recordings/components/transcription-skeletons";
+import {
+    getTranscriptionJobDisplayState,
+    isActiveTranscriptionJob,
+} from "@/lib/transcription/job-display";
+
+function renderRecordingTranscription(
+    props: React.ComponentProps<typeof TranscriptionSection>,
+) {
+    return renderToStaticMarkup(
+        React.createElement(
+            LanguageProvider,
+            {
+                language: "en",
+            } as React.ComponentProps<typeof LanguageProvider>,
+            React.createElement(
+                ConfirmDialogProvider,
+                null,
+                React.createElement(TranscriptionSection, props),
+            ),
+        ),
+    );
+}
+
+function renderRecordingTranscriptionSkeletons() {
+    return renderToStaticMarkup(
+        React.createElement(
+            "div",
+            null,
+            React.createElement(TranscriptOutputSkeleton),
+            React.createElement(TranscriptReviewSkeleton),
+            React.createElement(SpeakerReviewSkeleton),
+        ),
+    );
+}
+
+function renderedButtonOpening(html: string, control: string) {
+    const markerIndex = html.indexOf(`data-control="${control}"`);
+    if (markerIndex < 0) return "";
+
+    const openingIndex = html.lastIndexOf("<button", markerIndex);
+    const closingIndex = html.indexOf(">", markerIndex);
+    if (openingIndex < 0 || closingIndex < 0) return "";
+
+    return html.slice(openingIndex, closingIndex + 1);
+}
+
+function renderedSlotCount(html: string, slot: string) {
+    return html.split(`data-slot="${slot}"`).length - 1;
+}
 
 const ROOT = path.join(process.cwd(), "src");
 const SPEAKER_REVIEW_MERGE_POPOVER_PLACEMENT =
@@ -3361,37 +3420,6 @@ const DASHBOARD_TRANSCRIPT_RETRANSCRIPTION_DISMISS_CONTROLS = [
 ] as const;
 
 const DASHBOARD_TRANSCRIPT_DETAIL_PRIMITIVE_REPAINT_DECLARATION_RE =
-    /^\s*(?:background(?:-clip)?|border(?:-(?:color|radius|style|width))?|box-shadow|color|font(?:-[\w-]+)?|height|line-height|padding|transition|width)\s*:|\b(?:color-mix|linear-gradient|oklch)\(/m;
-
-const RECORDING_TRANSCRIPTION_PRIMITIVE_SELECTORS = [
-    '[data-panel="recording-transcription"][data-slot="card"]',
-    '[data-part="recording-transcription-header"][data-slot="card-header"]',
-    '[data-part="recording-transcription-title"][data-slot="card-title"]',
-    '[data-part="recording-transcription-description"][data-slot="card-description"]',
-    '[data-part="recording-transcription-unavailable"][data-slot="field-description"]',
-    '[data-part="recording-transcription-body"][data-slot="card-content"]',
-    '[data-banner="transcription-job"][data-slot="alert"]',
-    '[data-banner-title][data-slot="alert-title"]',
-    '[data-meta="language"][data-slot="badge"]',
-    '[data-meta="source"][data-slot="badge"]',
-    '[data-meta="words"][data-slot="badge"]',
-    '[data-meta="characters"][data-slot="badge"]',
-    '[data-part="recording-transcription-empty"][data-slot="empty"]',
-    '[data-part="recording-transcription-empty-title"][data-slot="empty-title"]',
-    '[data-part="recording-transcription-empty-description"][data-slot="empty-description"]',
-    '[data-control="copy-local-transcript"][data-slot="button"]',
-    '[data-control="retranscribe-local"][data-slot="button"]',
-    '[data-control="start-local-transcription"][data-slot="button"]',
-] as const;
-
-const RECORDING_TRANSCRIPTION_EMPTY_REPAINT_SELECTORS = [
-    '[data-part="recording-transcription-empty"]',
-    '[data-part="recording-transcription-empty-icon"]',
-    '[data-part="recording-transcription-empty-title"]',
-    '[data-part="recording-transcription-empty-description"]',
-] as const;
-
-const RECORDING_TRANSCRIPTION_PRIMITIVE_REPAINT_DECLARATION_RE =
     /^\s*(?:background(?:-clip)?|border(?:-(?:color|radius|style|width))?|box-shadow|color|font(?:-[\w-]+)?|height|line-height|padding|transition|width)\s*:|\b(?:color-mix|linear-gradient|oklch)\(/m;
 
 const RECORDING_DETAIL_CARD_PRIMITIVE_SELECTORS = [
@@ -9412,12 +9440,6 @@ describe("full UI replacement regression coverage", () => {
         const sourceReportPrimitives = readSource(
             "features/source-report/primitives.tsx",
         );
-        const transcriptionSection = readSource(
-            "features/recordings/components/transcription-section.tsx",
-        );
-        const transcriptionSkeletons = readSource(
-            "features/recordings/components/transcription-skeletons.tsx",
-        );
         const speakerReview = readSource(
             "features/recordings/components/speaker-label-editor.tsx",
         );
@@ -9430,7 +9452,6 @@ describe("full UI replacement regression coverage", () => {
         const fieldPrimitive = readSource("components/ui/field.tsx");
         const inputPrimitive = readSource("components/ui/input.tsx");
         const inputGroupPrimitive = readSource("components/ui/input-group.tsx");
-        const skeletonPrimitive = readSource("components/ui/skeleton.tsx");
         const switchPrimitive = readSource("components/ui/switch.tsx");
         const toggleGroupPrimitive = readSource(
             "components/ui/toggle-group.tsx",
@@ -11132,96 +11153,28 @@ describe("full UI replacement regression coverage", () => {
             'aria-busy={actionState === "saving"}',
         );
         expect(speakerReview).not.toContain('className="sp-head"');
-        for (const primitive of [
-            "Alert",
-            "Badge",
-            "Button",
-            "Card",
-            "CardContent",
-            "CardHeader",
-            "Empty",
-            "EmptyContent",
-            "EmptyHeader",
-            "EmptyTitle",
-            "Separator",
-            "Spinner",
-        ]) {
-            expect(transcriptionSection).toContain("<" + primitive);
-        }
-        expect(transcriptionSection).toContain("<Card");
-        expect(transcriptionSection).toContain("hasNoPadding");
-        expect(transcriptionSection).toContain('role="region"');
-        expect(transcriptionSection).toContain(
-            'aria-labelledby="recording-transcription-title"',
-        );
-        expect(transcriptionSection).toContain(
-            "recordingTranscriptionClassNames.card",
-        );
-        expect(transcriptionSection).toContain(
-            "recordingTranscriptionClassNames.header",
-        );
-        expect(transcriptionSection).toContain(
-            "recordingTranscriptionClassNames.body",
-        );
-        expect(transcriptionSection).toContain(
-            "recordingTranscriptionClassNames.outputSection",
-        );
-        expect(transcriptionSection).toContain(
-            "recordingTranscriptionClassNames.speakerReviewSection",
-        );
-        expect(transcriptionSection).toContain(
-            'id="recording-transcription-title"',
-        );
-
-        expect(transcriptionSection).toContain("isTranscribing ? (");
-        expect(transcriptionSection).toContain("jobDisplayState");
-        expect(transcriptionSection).toContain("jobError");
-        expect(transcriptionSection).toContain('variant="statusError"');
-        expect(transcriptionSection).toContain("handleCopyTranscript");
-        expect(transcriptionSection).toContain(
-            "aria-busy={isCopyingTranscript}",
-        );
-        expect(transcriptionSection).toContain("handleConfirmRetranscribe");
-        expect(transcriptionSection).toContain("disabled={");
-        expect(transcriptionSection).toContain("showSpeakerReview ? (");
-        expect(transcriptionSection).toContain("<SpeakerLabelEditor");
-        expect(transcriptionSection).toContain("handleTranscribe(false)");
-        expect(transcriptionSection).toContain("!canTranscribe");
-        expect(transcriptionSection).toContain(
-            "RECORDING_TRANSCRIPTION_META_BADGE_VARIANT",
-        );
-        expect(transcriptionSection).toContain("<EmptyContent>");
-
-        const transcriptionEmpty = extractElementSlice(
-            transcriptionSection,
-            '<Empty className="mt-4" data-state="empty">',
-            "Empty",
-        );
-        const transcriptionEmptyCta = extractElementSlice(
-            transcriptionEmpty,
-            "handleTranscribe(false)",
-            "Button",
-        );
-        const transcriptionProcessingAlert = extractElementSlice(
-            transcriptionSection,
-            '<Alert className="mb-3" data-state="loading">',
-            "Alert",
-        );
-        const transcriptionErrorAlert = extractElementSlice(
-            transcriptionSection,
-            'variant="statusError"',
-            "Alert",
-        );
-        const transcriptionCopyAction = extractElementSlice(
-            transcriptionSection,
-            "onClick={handleCopyTranscript}",
-            "Button",
-        );
-        const transcriptionRetranscribeAction = extractElementSlice(
-            transcriptionSection,
-            "onClick={handleConfirmRetranscribe}",
-            "Button",
-        );
+        const transcriptionText = "Speaker 1 shared the weekly update.";
+        const transcriptionLoaded = renderRecordingTranscription({
+            recordingId: "recording-loaded",
+            initialLanguage: "en",
+            initialSpeakerMap: { "Speaker 1": "Alice" },
+            initialTranscription: transcriptionText,
+            initialType: "private",
+        });
+        const transcriptionFailed = renderRecordingTranscription({
+            recordingId: "recording-failed",
+            initialJobError: "Transcription failed. Try again.",
+            initialJobStatus: "failed",
+            initialTranscription: transcriptionText,
+            showSpeakerReview: false,
+        });
+        const transcriptionEmpty = renderRecordingTranscription({
+            canTranscribe: false,
+            recordingId: "recording-empty",
+            showSpeakerReview: false,
+            transcribeUnavailableReason: "Audio is unavailable locally.",
+        });
+        const transcriptionLoading = renderRecordingTranscriptionSkeletons();
         const dataSourcesLoadingEmpty =
             dataSources.match(
                 /<Empty className="mt-4 flex-none">(?:(?!<\/Empty>)[\s\S])*?Reading saved data source status\.(?:(?!<\/Empty>)[\s\S])*?<\/Empty>/,
@@ -11230,16 +11183,6 @@ describe("full UI replacement regression coverage", () => {
             dataSources.match(
                 /<Empty className="mt-4 flex-none">(?:(?!<\/Empty>)[\s\S])*?No data sources(?:(?!<\/Empty>)[\s\S])*?<\/Empty>/,
             )?.[0] ?? "";
-        const transcriptionMetadata = extractElementSlice(
-            transcriptionSection,
-            "recordingTranscriptionClassNames.metaList",
-            "div",
-        );
-        const transcriptionSpeakerReview = extractElementSlice(
-            transcriptionSection,
-            "onSpeakerMapChanged={setLiveSpeakerMap}",
-            "section",
-        );
         const speakerReviewLoading = extractOpeningElement(
             speakerReview,
             'aria-busy="true"',
@@ -11249,59 +11192,6 @@ describe("full UI replacement regression coverage", () => {
             speakerReview,
             "aria-busy={isCopyingRawTranscript}",
             "Button",
-        );
-        expect(transcriptionEmpty).toContain("<EmptyHeader>");
-        expect(transcriptionEmpty).toContain("<EmptyContent>");
-        expect(transcriptionEmpty).toContain('variant="icon"');
-        expect(transcriptionEmpty).toContain('t("transcription.noTranscript")');
-        expect(transcriptionEmpty).toContain(
-            't("transcription.noTranscriptDescription")',
-        );
-        expect(transcriptionEmptyCta).toContain(
-            "onClick={() => handleTranscribe(false)}",
-        );
-        expect(transcriptionEmptyCta).toContain(
-            "disabled={!canTranscribe || isTranscribing}",
-        );
-        expect(transcriptionEmptyCta).toContain(
-            "transcribeUnavailableReason ??",
-        );
-        expect(transcriptionSection).toMatch(
-            /\{!canTranscribe && \([\s\S]*?<FieldDescription[\s\S]*?transcribeUnavailableReason \?\?/,
-        );
-        expect(transcriptionSection).toMatch(
-            /\{isTranscribing \? \([\s\S]*?<Alert[\s\S]*?t\(`transcription\.\$\{jobDisplayState\}`\)/,
-        );
-        expect(transcriptionProcessingAlert).toContain("<Spinner");
-        expect(transcriptionProcessingAlert).toContain('aria-hidden="true"');
-        expect(transcriptionProcessingAlert).toContain(
-            't("transcription.processing")',
-        );
-        expect(transcriptionSection).toMatch(
-            /!!jobError\s+&&\s+!isActiveTranscriptionJob\([\s\S]*?<Alert\s+variant="statusError"/,
-        );
-        expect(transcriptionErrorAlert).toContain("<AlertCircle");
-        expect(transcriptionErrorAlert).toContain("{jobError}");
-        expect(transcriptionCopyAction).toContain(
-            "onClick={handleCopyTranscript}",
-        );
-        expect(transcriptionCopyAction).toContain(
-            "isCopyingTranscript ||\n                                            !displayText.trim()",
-        );
-        expect(transcriptionCopyAction).toContain(
-            "aria-busy={isCopyingTranscript}",
-        );
-        expect(transcriptionRetranscribeAction).toContain(
-            "onClick={handleConfirmRetranscribe}",
-        );
-        expect(transcriptionRetranscribeAction).toContain(
-            "!canTranscribe || isTranscribing",
-        );
-        expect(transcriptionRetranscribeAction).toContain(
-            "aria-busy={isTranscribing}",
-        );
-        expect(transcriptionRetranscribeAction).toContain(
-            "transcribeUnavailableReason ??",
         );
         expect(dataSources).toContain(
             "{isLoading && orderedSources.length === 0 ? (",
@@ -11327,13 +11217,6 @@ describe("full UI replacement regression coverage", () => {
         expect(dataSourcesUnavailableEmpty).toContain(
             "Try again later or check the data source API.",
         );
-        expect(transcriptionSection).toContain("void handleTranscribe(true)");
-        expect(transcriptionSection).toMatch(
-            /showSpeakerReview \? \([\s\S]*?<SpeakerLabelEditor[\s\S]*?recordingId=\{recordingId\}[\s\S]*?speakerMap=\{liveSpeakerMap\}[\s\S]*?onSpeakerMapChanged=\{setLiveSpeakerMap\}/,
-        );
-        expect(transcriptionSpeakerReview).toContain(
-            "recordingTranscriptionClassNames.speakerReviewSection",
-        );
         expect(speakerReviewLoading).toContain("aria-label={panelLabel}");
         expect(speakerReviewCopyAction).toContain(
             "isCopyingRawTranscript ||\n                                isReviewLoading ||\n                                !canCopyRawTranscript",
@@ -11341,150 +11224,148 @@ describe("full UI replacement regression coverage", () => {
         expect(speakerReviewCopyAction).toContain(
             "aria-busy={isCopyingRawTranscript}",
         );
-        expect(transcriptionMetadata).toMatch(
-            /\{language \? \([\s\S]*?RECORDING_TRANSCRIPTION_META_BADGE_VARIANT\.attribute/,
-        );
-        expect(transcriptionMetadata).toMatch(
-            /\{transcriptionType \? \([\s\S]*?RECORDING_TRANSCRIPTION_META_BADGE_VARIANT\.attribute/,
-        );
-        expect(transcriptionMetadata).toContain(
-            '{wordCount} {t("transcription.words")}',
-        );
-        expect(transcriptionMetadata).toContain('{transcription.length}{" "}');
-        expect(transcriptionMetadata).toContain(
-            't("transcription.characters")',
-        );
-        expect(transcriptionMetadata).toContain(
-            "RECORDING_TRANSCRIPTION_META_BADGE_VARIANT.measure",
-        );
-        const transcriptOutputSkeleton = extractElementSlice(
-            transcriptionSkeletons,
-            'aria-label="正在加载转写结果"',
-            "Card",
-        );
-        const transcriptReviewSkeleton = extractElementSlice(
-            transcriptionSkeletons,
-            'aria-label="正在加载转写复核"',
-            "section",
-        );
-        const speakerReviewSkeleton = extractElementSlice(
-            transcriptionSkeletons,
-            'aria-label="正在加载说话人复核"',
-            "Card",
-        );
-        for (const skeleton of [
-            transcriptOutputSkeleton,
-            transcriptReviewSkeleton,
-            speakerReviewSkeleton,
+        for (const activeJob of [
+            {
+                display: "queuedLocal",
+                remoteStatus: null,
+                status: "pending",
+            },
+            {
+                display: "queuedRemote",
+                remoteStatus: "queued",
+                status: "submitted",
+            },
+            {
+                display: "transcribingAudio",
+                remoteStatus: "transcribing",
+                status: "processing",
+            },
         ]) {
-            expect(skeleton).toContain("aria-busy={true}");
-            expect(skeleton).toContain('aria-live="polite"');
-        }
-        expect(transcriptOutputSkeleton).toContain(
-            "<TranscriptTurnSkeleton />",
-        );
-        expect(transcriptReviewSkeleton).toContain(
-            '<SkeletonLine size="speaker" />',
-        );
-        expect(transcriptReviewSkeleton).toContain(
-            '<SkeletonLine size="time" />',
-        );
-        expect(transcriptReviewSkeleton).toContain(
-            '<SkeletonLine size="status" />',
-        );
-        expect(speakerReviewSkeleton).toContain("<SpeakerCardSkeleton />");
-        for (const placeholderVariant of [
-            'action: "h-[26px] w-[72px]"',
-            'description: "h-[13px] w-full max-w-[220px]"',
-            '"line-long": "h-[13px] w-[92%]"',
-            '"line-medium": "h-[13px] w-3/4"',
-            '"line-short": "h-[13px] w-3/5"',
-            'speaker: "h-[13px] w-24"',
-            'status: "h-[13px] w-[76px]"',
-            'time: "h-[13px] w-16"',
-        ]) {
-            expect(transcriptionSkeletons).toContain(placeholderVariant);
-        }
-        const transcriptionLegacyGlobalSelectorLines = globals
-            .split("\n")
-            .map((text, index) => ({ line: index + 1, text }))
-            .filter(({ text }) =>
-                /\.tx-(?:banner|banner-ico|banner-text|banner-title|banner-detail|spin|row-chip|row-chip-ico)\b|\bskshimmer\b/.test(
-                    text,
-                ),
+            expect(isActiveTranscriptionJob(activeJob)).toBe(true);
+            expect(getTranscriptionJobDisplayState(activeJob)).toBe(
+                activeJob.display,
             );
-        expect(transcriptionLegacyGlobalSelectorLines).toEqual([]);
-        for (const selector of [
-            ".tx-banner",
-            ".tx-banner-ico",
-            ".tx-banner-text",
-            ".tx-banner-title",
-            ".tx-banner-detail",
-            ".tx-spin",
-            ".tx-row-chip",
-            ".tx-row-chip-ico",
-            '[data-slot="skeleton"]',
-        ]) {
-            expect(collectCssRuleBlocks(globals, selector)).toEqual([]);
         }
+        expect(
+            isActiveTranscriptionJob({
+                remoteStatus: "failed",
+                status: "failed",
+            }),
+        ).toBe(false);
 
-        expect(transcriptionSection).not.toContain(
-            'data-panel="recording-transcription"',
+        expect(transcriptionLoaded).toContain('data-slot="card"');
+        expect(transcriptionLoaded).toContain('role="region"');
+        expect(transcriptionLoaded).toContain(
+            'aria-labelledby="recording-transcription-title"',
         );
-        expect(transcriptionSection).not.toContain(
-            'data-banner="transcription-job"',
+        expect(transcriptionLoaded).toContain(
+            'data-control="recording-transcription"',
         );
-        expect(transcriptionSection).not.toContain(["data", "sot"].join("-"));
-        for (const legacyClass of [
-            'className="transcript t-pane"',
-            'className="transcript-head"',
-            'className="transcript-body"',
-            'className="sr-section"',
-            'className="empty-hint"',
-            'className="turn"',
-            'className="speaker"',
+        expect(transcriptionLoaded).toContain('data-state="ready"');
+        expect(transcriptionLoaded).toContain(
+            "Alice shared the weekly update.",
+        );
+        expect(renderedSlotCount(transcriptionLoaded, "badge")).toBe(4);
+        expect(
+            transcriptionLoaded.split('data-variant="outline"').length - 1,
+        ).toBe(3);
+        expect(
+            transcriptionLoaded.split('data-variant="secondary"').length - 1,
+        ).toBe(2);
+        expect(transcriptionLoaded).toContain("Language: en");
+        expect(transcriptionLoaded).toContain("Source: private");
+        expect(transcriptionLoaded).toContain("6 words");
+        expect(transcriptionLoaded).toContain(
+            `${transcriptionText.length} characters`,
+        );
+        expect(transcriptionLoaded).toContain("Speaker Labels");
+        expect(transcriptionLoaded).toContain(
+            'data-speaker-review-state="loading"',
+        );
+        expect(transcriptionLoaded).toContain('aria-busy="true"');
+
+        const transcriptionCopyAction = renderedButtonOpening(
+            transcriptionLoaded,
+            "recording-transcript-copy",
+        );
+        const transcriptionRetranscribeAction = renderedButtonOpening(
+            transcriptionLoaded,
+            "recording-transcript-retranscribe",
+        );
+        expect(transcriptionCopyAction).toContain('data-variant="outline"');
+        expect(transcriptionCopyAction).toContain('data-size="sm"');
+        expect(transcriptionCopyAction).toContain('aria-busy="false"');
+        expect(transcriptionCopyAction).not.toContain(" disabled=");
+        expect(transcriptionRetranscribeAction).toContain(
+            'data-variant="destructive"',
+        );
+        expect(transcriptionRetranscribeAction).toContain('data-size="sm"');
+        expect(transcriptionRetranscribeAction).toContain('aria-busy="false"');
+        expect(transcriptionRetranscribeAction).not.toContain(" disabled=");
+
+        expect(transcriptionFailed).toContain('data-slot="alert"');
+        expect(transcriptionFailed).toContain('role="alert"');
+        expect(transcriptionFailed).toContain('data-state="failed"');
+        expect(transcriptionFailed).toContain('data-density="comfortable"');
+        expect(transcriptionFailed).toContain(
+            "Transcription failed. Try again.",
+        );
+        expect(transcriptionFailed).toContain('data-state="ready"');
+        const transcriptionRetryAction = renderedButtonOpening(
+            transcriptionFailed,
+            "recording-transcript-retry",
+        );
+        const transcriptionDismissAction = renderedButtonOpening(
+            transcriptionFailed,
+            "recording-transcript-dismiss-error",
+        );
+        expect(transcriptionRetryAction).toContain('data-variant="outline"');
+        expect(transcriptionRetryAction).toContain('data-size="sm"');
+        expect(transcriptionRetryAction).toContain('aria-busy="false"');
+        expect(transcriptionRetryAction).not.toContain(" disabled=");
+        expect(transcriptionDismissAction).toContain('data-variant="ghost"');
+        expect(transcriptionDismissAction).toContain('data-size="icon-sm"');
+        expect(transcriptionDismissAction).toContain(
+            'aria-label="Dismiss transcription error"',
+        );
+        expect(transcriptionDismissAction).not.toContain(" disabled=");
+
+        expect(transcriptionEmpty).toContain('data-slot="empty"');
+        expect(transcriptionEmpty).toContain('data-state="empty"');
+        expect(transcriptionEmpty).toContain(
+            "No local transcript available yet.",
+        );
+        const transcriptionStartAction = renderedButtonOpening(
+            transcriptionEmpty,
+            "recording-transcript-transcribe",
+        );
+        expect(transcriptionStartAction).toContain('data-variant="default"');
+        expect(transcriptionStartAction).toContain('data-size="sm"');
+        expect(transcriptionStartAction).toContain('disabled=""');
+        expect(transcriptionStartAction).toContain(
+            'title="Audio is unavailable locally."',
+        );
+
+        for (const loadingLabel of [
+            "正在加载转写结果",
+            "正在加载转写复核",
+            "正在加载说话人复核",
         ]) {
-            expect(transcriptionSection).not.toContain(legacyClass);
+            expect(transcriptionLoading).toContain(
+                `aria-label="${loadingLabel}"`,
+            );
         }
+        expect(transcriptionLoading.split('aria-busy="true"').length - 1).toBe(
+            4,
+        );
+        expect(
+            transcriptionLoading.split('aria-live="polite"').length - 1,
+        ).toBe(4);
+        expect(
+            renderedSlotCount(transcriptionLoading, "skeleton"),
+        ).toBeGreaterThanOrEqual(30);
+        expect(transcriptionLoading).toContain('aria-hidden="true"');
 
-        expect(transcriptionSkeletons).toContain(
-            'from "@/components/ui/card";',
-        );
-        expect(transcriptionSkeletons).toContain(
-            'from "@/components/ui/skeleton";',
-        );
-        expect(transcriptionSkeletons).toContain(
-            "const transcriptionSkeletonClassNames",
-        );
-        expect(transcriptionSkeletons).toContain(
-            "className={transcriptionSkeletonClassNames[size]}",
-        );
-        expect(transcriptionSkeletons).toContain("aria-busy={true}");
-        expect(transcriptionSkeletons).toContain('aria-live="polite"');
-        expect(transcriptionSkeletons).toContain(
-            "export function TranscriptOutputSkeleton",
-        );
-        expect(transcriptionSkeletons).toContain(
-            "export function TranscriptReviewSkeleton",
-        );
-        expect(transcriptionSkeletons).toContain(
-            "export function SpeakerReviewSkeleton",
-        );
-        expect(transcriptionSkeletons).toContain('variant="default"');
-        expect(transcriptionSkeletons).toContain('size="default"');
-        expect(transcriptionSkeletons).toContain('action: "h-[26px] w-[72px]"');
-        expect(transcriptionSkeletons).toContain(
-            'description: "h-[13px] w-full max-w-[220px]"',
-        );
-        expect(transcriptionSkeletons).toContain(
-            '"line-long": "h-[13px] w-[92%]"',
-        );
-        expect(skeletonPrimitive).toContain(
-            '"animate-pulse rounded-md bg-accent"',
-        );
-        expect(skeletonPrimitive).not.toContain(["data", "sot"].join("-"));
-        expect(globals).not.toContain('[data-slot="skeleton"]');
-        expect(globals).not.toContain("skshimmer");
         const listPanelIndex = detail.indexOf(
             'data-panel="recording-detail-list"',
         );

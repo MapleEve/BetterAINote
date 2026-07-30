@@ -11,86 +11,15 @@ import {
 import { Field, FieldContent, FieldTitle } from "@/components/ui/field";
 import { Skeleton } from "@/components/ui/skeleton";
 
-type TranscriptionPlaceholderSize =
-    | "action"
-    | "description"
-    | "field-control"
-    | "field-label"
-    | "line-long"
-    | "line-medium"
-    | "line-short"
-    | "speaker"
-    | "status"
-    | "time"
-    | "title";
-
-function SkeletonLine({
-    size = "line-medium",
-}: {
-    size?: TranscriptionPlaceholderSize;
-}) {
-    let className: string;
-
-    switch (size) {
-        case "action":
-            className = "h-[26px] w-[72px]";
-            break;
-        case "description":
-            className = "h-[13px] w-full max-w-[220px]";
-            break;
-        case "field-control":
-            className = "h-[13px] w-[132px]";
-            break;
-        case "field-label":
-            className = "h-[13px] w-24";
-            break;
-        case "line-long":
-            className = "h-[13px] w-[92%]";
-            break;
-        case "line-medium":
-            className = "h-[13px] w-3/4";
-            break;
-        case "line-short":
-            className = "h-[13px] w-3/5";
-            break;
-        case "speaker":
-            className = "h-[13px] w-24";
-            break;
-        case "status":
-            className = "h-[13px] w-[76px]";
-            break;
-        case "time":
-            className = "h-[13px] w-16";
-            break;
-        case "title":
-            className = "h-4 w-32";
-            break;
-    }
-
-    return (
-        <Skeleton
-            aria-hidden="true"
-            className={className}
-            size="default"
-            variant="default"
-        />
-    );
-}
-
 function SkeletonLineGroup({ lines = 3 }: { lines?: number }) {
     return (
-        <div className="flex flex-col gap-[7px]">
+        <div className="grid gap-2">
             {Array.from({ length: lines }, (_, index) => `line-${index}`).map(
-                (lineId, index) => (
-                    <SkeletonLine
+                (lineId) => (
+                    <Skeleton
+                        aria-hidden="true"
+                        className="h-3 w-full"
                         key={lineId}
-                        size={
-                            index % 3 === 0
-                                ? "line-long"
-                                : index % 3 === 1
-                                  ? "line-medium"
-                                  : "line-short"
-                        }
                     />
                 ),
             )}
@@ -100,10 +29,10 @@ function SkeletonLineGroup({ lines = 3 }: { lines?: number }) {
 
 function TranscriptTurnSkeleton() {
     return (
-        <section className="flex flex-col gap-[7px] border-b border-dashed py-2.5 pb-4 last:border-b-0">
+        <section className="grid gap-2 border-b border-dashed py-4 last:border-b-0">
             <div className="flex min-w-0 flex-wrap items-center gap-2">
-                <SkeletonLine size="speaker" />
-                <SkeletonLine size="time" />
+                <Skeleton aria-hidden="true" className="h-3 w-24" />
+                <Skeleton aria-hidden="true" className="h-3 w-16" />
             </div>
             <SkeletonLineGroup lines={2} />
         </section>
@@ -119,20 +48,23 @@ export function TranscriptOutputSkeleton() {
             className="min-h-0 flex-1 gap-0"
             hasNoPadding
         >
-            <CardHeader className="grid-cols-[minmax(0,1fr)_auto] items-start gap-3 max-[860px]:grid-cols-1">
+            <CardHeader className="items-start gap-3 py-4 max-[860px]:grid-cols-1">
                 <div className="flex min-w-0 flex-col gap-1.5">
                     <CardTitle>
-                        <SkeletonLine size="title" />
+                        <Skeleton aria-hidden="true" className="h-4 w-32" />
                     </CardTitle>
                     <CardDescription>
-                        <SkeletonLine size="description" />
+                        <Skeleton
+                            aria-hidden="true"
+                            className="h-3 w-full max-w-56"
+                        />
                     </CardDescription>
                 </div>
-                <CardAction className="flex min-w-0 items-center justify-end max-[860px]:justify-start">
-                    <SkeletonLine size="action" />
+                <CardAction className="max-[860px]:col-start-1 max-[860px]:row-start-3 max-[860px]:justify-self-start max-[860px]:justify-start">
+                    <Skeleton aria-hidden="true" className="h-7 w-20" />
                 </CardAction>
             </CardHeader>
-            <CardContent className="flex flex-col gap-2.5">
+            <CardContent className="grid gap-3 pb-4">
                 <TranscriptTurnSkeleton />
                 <TranscriptTurnSkeleton />
                 <TranscriptTurnSkeleton />
@@ -147,12 +79,12 @@ export function TranscriptReviewSkeleton() {
             aria-busy={true}
             aria-label="正在加载转写复核"
             aria-live="polite"
-            className="flex flex-col gap-2.5 border-t pt-3 pb-1"
+            className="grid gap-3 border-t pt-3 pb-1"
         >
             <div className="flex min-w-0 flex-wrap items-center gap-2">
-                <SkeletonLine size="speaker" />
-                <SkeletonLine size="time" />
-                <SkeletonLine size="status" />
+                <Skeleton aria-hidden="true" className="h-3 w-24" />
+                <Skeleton aria-hidden="true" className="h-3 w-16" />
+                <Skeleton aria-hidden="true" className="h-3 w-20" />
             </div>
             <SkeletonLineGroup lines={6} />
         </section>
@@ -161,24 +93,24 @@ export function TranscriptReviewSkeleton() {
 
 function SpeakerCardSkeleton() {
     return (
-        <section className="flex flex-col gap-[11px] p-3.5">
+        <section className="grid gap-3 py-3">
             <div className="flex min-w-0 flex-wrap items-center gap-2">
-                <SkeletonLine size="speaker" />
+                <Skeleton aria-hidden="true" className="h-3 w-24" />
             </div>
             <div className="flex min-w-0 flex-wrap items-center gap-2">
-                <SkeletonLine size="status" />
-                <SkeletonLine size="time" />
+                <Skeleton aria-hidden="true" className="h-3 w-20" />
+                <Skeleton aria-hidden="true" className="h-3 w-16" />
             </div>
-            <div className="flex flex-col gap-[7px]">
+            <div className="grid gap-2">
                 <TranscriptTurnSkeleton />
                 <TranscriptTurnSkeleton />
             </div>
             <Field className="gap-2">
                 <FieldContent>
                     <FieldTitle>
-                        <SkeletonLine size="field-label" />
+                        <Skeleton aria-hidden="true" className="h-3 w-24" />
                     </FieldTitle>
-                    <SkeletonLine size="field-control" />
+                    <Skeleton aria-hidden="true" className="h-3 w-32" />
                 </FieldContent>
             </Field>
         </section>
@@ -194,23 +126,26 @@ export function SpeakerReviewSkeleton() {
             className="min-h-0 flex-1 gap-0"
             hasNoPadding
         >
-            <CardHeader className="grid-cols-[minmax(0,1fr)_auto] items-start gap-3 max-[860px]:grid-cols-1">
+            <CardHeader className="items-start gap-3 py-4 max-[860px]:grid-cols-1">
                 <div className="flex min-w-0 flex-col gap-1.5">
                     <CardTitle>
-                        <SkeletonLine size="title" />
+                        <Skeleton aria-hidden="true" className="h-4 w-32" />
                     </CardTitle>
                     <CardDescription>
-                        <SkeletonLine size="description" />
+                        <Skeleton
+                            aria-hidden="true"
+                            className="h-3 w-full max-w-56"
+                        />
                     </CardDescription>
                 </div>
-                <CardAction className="flex min-w-0 items-center justify-end max-[860px]:justify-start">
-                    <SkeletonLine size="action" />
+                <CardAction className="max-[860px]:col-start-1 max-[860px]:row-start-3 max-[860px]:justify-self-start max-[860px]:justify-start">
+                    <Skeleton aria-hidden="true" className="h-7 w-20" />
                 </CardAction>
             </CardHeader>
-            <CardContent className="flex flex-col gap-2.5">
+            <CardContent className="grid gap-3">
                 <TranscriptReviewSkeleton />
             </CardContent>
-            <CardContent className="flex flex-col gap-2.5">
+            <CardContent className="grid gap-3 pb-4">
                 <SpeakerCardSkeleton />
                 <SpeakerCardSkeleton />
             </CardContent>
