@@ -26,6 +26,28 @@ import {
     useBrowserRouteController,
 } from "@/lib/platform/browser-router";
 
+function resolveAuthError(error: unknown, fallback: string) {
+    const errorRecord =
+        error && typeof error === "object"
+            ? (error as Record<string, unknown>)
+            : null;
+    const serverMessage =
+        typeof errorRecord?.error === "string"
+            ? errorRecord.error
+            : typeof errorRecord?.message === "string"
+              ? errorRecord.message
+              : undefined;
+
+    if (
+        errorRecord?.status === 403 ||
+        serverMessage === "Registration is disabled"
+    ) {
+        return "此工作空间已完成注册，请使用已注册的邮箱登录";
+    }
+
+    return fallback;
+}
+
 export function LoginForm({
     intent = "login",
     registrationOpen = false,
@@ -48,6 +70,8 @@ export function LoginForm({
 
     async function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
         event.preventDefault();
+        if (isLoading || isLocalLoading) return;
+
         const formData = new FormData(event.currentTarget);
         const emailValue = String(formData.get("email") ?? "").trim();
         setIsLoading(true);
@@ -61,7 +85,10 @@ export function LoginForm({
                 errorCallbackURL: "/login",
             });
             if (result.error) {
-                const message = result.error.message || "登录链接发送失败";
+                const message = resolveAuthError(
+                    result.error,
+                    "登录链接发送失败",
+                );
                 setFormState({ kind: "error", message });
                 toast.error(message);
                 return;
@@ -70,8 +97,7 @@ export function LoginForm({
             setFormState({ kind: "success", message });
             toast.success(message);
         } catch (error) {
-            const message =
-                error instanceof Error ? error.message : "登录链接发送失败";
+            const message = resolveAuthError(error, "登录链接发送失败");
             setFormState({ kind: "error", message });
             toast.error(message);
         } finally {
@@ -80,13 +106,18 @@ export function LoginForm({
     }
 
     async function handleLocalUse() {
+        if (isLoading || isLocalLoading) return;
+
         setIsLocalLoading(true);
         setFormState(null);
 
         try {
             const result = await signIn.anonymous();
             if (result.error) {
-                const message = result.error.message || "本地工作空间启动失败";
+                const message = resolveAuthError(
+                    result.error,
+                    "本地工作空间启动失败",
+                );
                 setFormState({ kind: "error", message });
                 toast.error(message);
                 return;
@@ -94,8 +125,7 @@ export function LoginForm({
             toast.success("已进入本地工作空间");
             navigateAndRefreshBrowserRoute(router, "/dashboard");
         } catch (error) {
-            const message =
-                error instanceof Error ? error.message : "本地工作空间启动失败";
+            const message = resolveAuthError(error, "本地工作空间启动失败");
             setFormState({ kind: "error", message });
             toast.error(message);
         } finally {
@@ -103,6 +133,7 @@ export function LoginForm({
         }
     }
 
+    const isBusy = isLoading || isLocalLoading;
     const invalid = formState?.kind === "error";
     const title = intent === "setup" ? "设置同步身份" : "登录 BetterAINote";
     const cardHeading =
@@ -114,7 +145,7 @@ export function LoginForm({
     return (
         <main className="grid min-h-svh place-items-center bg-background px-6 py-10 text-foreground">
             <Card className="w-full max-w-sm">
-                <form onSubmit={handleSubmit}>
+                <form onSubmit={handleSubmit} aria-busy={isBusy}>
                     <CardHeader>
                         <CardTitle>{cardHeading}</CardTitle>
                         <CardDescription>
@@ -143,7 +174,7 @@ export function LoginForm({
                                     type="email"
                                     defaultValue=""
                                     required
-                                    disabled={!isMounted || isLoading}
+                                    disabled={!isMounted || isBusy}
                                     autoComplete="email"
                                     aria-invalid={invalid}
                                     aria-describedby={
@@ -152,6 +183,9 @@ export function LoginForm({
                                             : undefined
                                     }
                                     placeholder="mei@example.com"
+                                    onChange={() => {
+                                        if (formState) setFormState(null);
+                                    }}
                                 />
                                 {formState ? (
                                     <Alert
@@ -182,7 +216,7 @@ export function LoginForm({
                             <Field className="gap-3">
                                 <Button
                                     type="submit"
-                                    disabled={!isMounted || isLoading}
+                                    disabled={!isMounted || isBusy}
                                     aria-busy={isLoading}
                                     variant="default"
                                     className="w-full"
@@ -200,7 +234,7 @@ export function LoginForm({
                                     或{" "}
                                     <Button
                                         type="button"
-                                        disabled={!isMounted || isLocalLoading}
+                                        disabled={!isMounted || isBusy}
                                         aria-busy={isLocalLoading}
                                         variant="link"
                                         onClick={() => void handleLocalUse()}

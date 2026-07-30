@@ -512,9 +512,13 @@ function sotControl(page: Page, control: string) {
         case "auth-email":
             return page.getByRole("textbox", { name: "邮箱" });
         case "local-only":
-            return page.getByRole("button", { name: "仅本地使用" });
+            return page.getByRole("button", {
+                name: /^(仅本地使用|启动中\.\.\.)$/,
+            });
         case "send-login-link":
-            return page.getByRole("button", { name: "发送登录链接" });
+            return page.getByRole("button", {
+                name: /^(发送登录链接|发送中\.\.\.)$/,
+            });
         case "speaker-name":
             return page.getByRole("textbox", { name: "显示名称" });
         case "speaker-voiceprint":
@@ -593,6 +597,37 @@ async function expectOnboardingState(
 
 function authForm(page: Page) {
     return page.getByRole("main").locator("form");
+}
+
+function createDeferredSignal() {
+    let resolveSignal: (() => void) | undefined;
+    const promise = new Promise<void>((resolve) => {
+        resolveSignal = resolve;
+    });
+    if (!resolveSignal) {
+        throw new Error("Deferred signal resolver was not initialized");
+    }
+    return { promise, resolve: resolveSignal };
+}
+
+async function delayNextAuthRequest(page: Page, requestPath: string) {
+    const reachedBackendBoundary = createDeferredSignal();
+    const releaseRequest = createDeferredSignal();
+
+    await page.route(
+        `**${requestPath}`,
+        async (route) => {
+            reachedBackendBoundary.resolve();
+            await releaseRequest.promise;
+            await route.continue();
+        },
+        { times: 1 },
+    );
+
+    return {
+        reachedBackendBoundary: reachedBackendBoundary.promise,
+        release: releaseRequest.resolve,
+    };
 }
 
 async function gotoAuthPage(page: Page, path: "/login" | "/register") {
@@ -2017,7 +2052,28 @@ test("SOT auth sends a magic link and never exposes the old password form", asyn
     await expect(page.locator("#name")).toHaveCount(0);
 
     await emailInput.fill("magic-ui@example.com");
-    await sendLoginLink(page);
+    const delayedRequest = await delayNextAuthRequest(
+        page,
+        "/api/auth/sign-in/magic-link",
+    );
+    const responsePromise = page.waitForResponse(
+        (response) =>
+            response.url().includes("/api/auth/sign-in/magic-link") &&
+            response.request().method() === "POST",
+    );
+    await sotControl(page, "send-login-link").click();
+    await delayedRequest.reachedBackendBoundary;
+
+    await expect(form).toHaveAttribute("aria-busy", "true");
+    await expect(
+        form.getByRole("button", { name: "发送中..." }),
+    ).toBeDisabled();
+    await expect(sotControl(page, "local-only")).toBeDisabled();
+    await expect(emailInput).toBeDisabled();
+
+    delayedRequest.release();
+    const response = await responsePromise;
+    expect(response.ok()).toBe(true);
 
     const successMessage = form.getByRole("status");
     await expect(successMessage).toHaveAttribute("id", "auth-form-message");
@@ -2025,7 +2081,7 @@ test("SOT auth sends a magic link and never exposes the old password form", asyn
     expect(await readMagicLinkVerification("magic-ui@example.com")).toBe(true);
 });
 
-test("SOT auth blocks second-user magic links and supports local-only session", async ({
+test("SOT auth recovers from a rejected email and supports local-only session", async ({
     page,
 }) => {
     await resetAuthUsers();
@@ -2047,18 +2103,54 @@ test("SOT auth blocks second-user magic links and supports local-only session", 
     await expect(
         form.getByRole("alert"),
     ).toContainText(
-        /Registration is disabled|登录链接发送失败/,
+        "此工作空间已完成注册，请使用已注册的邮箱登录",
     );
     expect(await readMagicLinkVerification("other-admin@example.com")).toBe(
         false,
     );
 
+    await sotControl(page, "auth-email").fill(PLAYWRIGHT_EMAIL);
+    await expect(sotControl(page, "auth-email")).toHaveAttribute(
+        "aria-invalid",
+        "false",
+    );
+    await expect(sotControl(page, "auth-email")).not.toHaveAttribute(
+        "aria-describedby",
+    );
+    await expect(form.getByRole("alert")).toHaveCount(0);
+
+    await sendLoginLink(page);
+    await expect(form.getByRole("status")).toContainText("登录链接已发送");
+    expect(await readMagicLinkVerification(PLAYWRIGHT_EMAIL)).toBe(true);
+
     await resetAuthUsers();
     await gotoAuthPage(page, "/login");
-    await Promise.all([
+    const delayedRequest = await delayNextAuthRequest(
+        page,
+        "/api/auth/sign-in/anonymous",
+    );
+    const anonymousResponsePromise = page.waitForResponse(
+        (response) =>
+            response.url().includes("/api/auth/sign-in/anonymous") &&
+            response.request().method() === "POST",
+    );
+    await sotControl(page, "local-only").click();
+    await delayedRequest.reachedBackendBoundary;
+
+    const localForm = authForm(page);
+    await expect(localForm).toHaveAttribute("aria-busy", "true");
+    await expect(
+        localForm.getByRole("button", { name: "启动中..." }),
+    ).toBeDisabled();
+    await expect(sotControl(page, "send-login-link")).toBeDisabled();
+    await expect(sotControl(page, "auth-email")).toBeDisabled();
+
+    delayedRequest.release();
+    const [anonymousResponse] = await Promise.all([
+        anonymousResponsePromise,
         page.waitForURL("**/dashboard", { waitUntil: "commit" }),
-        sotControl(page, "local-only").click(),
     ]);
+    expect(anonymousResponse.ok()).toBe(true);
 
     expect(await countAnonymousUsers()).toBe(1);
 });
@@ -2069,14 +2161,42 @@ test("SOT register route reuses the email-link setup surface without legacy acco
     await resetAuthUsers();
     await gotoAuthPage(page, "/register");
 
-    await expect(authForm(page)).toBeVisible();
+    const form = authForm(page);
+    await expect(form).toBeVisible();
     await expect(
-        authForm(page).getByText("上手 / Sign in", { exact: true }),
+        form.getByText("上手 / Sign in", { exact: true }),
     ).toBeVisible();
     await expect(sotControl(page, "auth-email")).toBeEditable();
     await expect(page.locator("#password")).toHaveCount(0);
     await expect(page.locator("#name")).toHaveCount(0);
     await expect(sotControl(page, "local-only")).toBeVisible();
+
+    await sotControl(page, "auth-email").fill("register-ui@example.com");
+    const delayedRequest = await delayNextAuthRequest(
+        page,
+        "/api/auth/sign-in/magic-link",
+    );
+    const responsePromise = page.waitForResponse(
+        (response) =>
+            response.url().includes("/api/auth/sign-in/magic-link") &&
+            response.request().method() === "POST",
+    );
+    await sotControl(page, "send-login-link").click();
+    await delayedRequest.reachedBackendBoundary;
+
+    await expect(form).toHaveAttribute("aria-busy", "true");
+    await expect(
+        form.getByRole("button", { name: "发送中..." }),
+    ).toBeDisabled();
+    await expect(sotControl(page, "local-only")).toBeDisabled();
+
+    delayedRequest.release();
+    const response = await responsePromise;
+    expect(response.ok()).toBe(true);
+    await expect(form.getByRole("status")).toContainText("登录链接已发送");
+    expect(await readMagicLinkVerification("register-ui@example.com")).toBe(
+        true,
+    );
 });
 
 test("SOT onboarding exposes source, default transcription, speaker, and finish states", async ({
