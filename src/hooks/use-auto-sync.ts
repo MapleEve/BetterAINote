@@ -62,6 +62,26 @@ interface SyncStatus {
     } | null;
 }
 
+type SyncActivityState = "idle" | "queued" | "running";
+
+export function resolveSyncActivityState(
+    status: Pick<SyncStatus, "isManualSyncing" | "workerStatus">,
+): SyncActivityState {
+    if (status.isManualSyncing) {
+        return "running";
+    }
+
+    if (status.workerStatus?.healthy !== true) {
+        return "idle";
+    }
+
+    if (status.workerStatus.isRunning) {
+        return "running";
+    }
+
+    return status.workerStatus.manualTriggerRequestedAt ? "queued" : "idle";
+}
+
 const STORAGE_KEY = "betterainote_last_sync";
 const STATUS_REFRESH_MS = 30000;
 
@@ -276,12 +296,11 @@ export function useAutoSync(options: UseAutoSyncOptions = {}) {
         return performSync();
     }, [performSync]);
 
+    const syncActivityState = resolveSyncActivityState(status);
+
     return {
         ...status,
-        isAutoSyncing:
-            status.isManualSyncing ||
-            (status.workerStatus?.healthy === true &&
-                status.workerStatus.isRunning === true),
+        isAutoSyncing: syncActivityState !== "idle",
         manualSync,
         refreshStatus,
         triggerSync: manualSync,

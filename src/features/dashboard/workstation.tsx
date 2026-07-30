@@ -4794,6 +4794,7 @@ export function Workstation({
                             <div
                                 className="text-xs font-semibold text-sidebar-foreground"
                                 data-part="dashboard-sync-title"
+                                id="dashboard-sync-title"
                             >
                                 {syncStateLabel(syncButtonState, t)} ·
                                 BetterAINote
@@ -4801,6 +4802,7 @@ export function Workstation({
                             <div
                                 className="mt-px font-mono text-xs font-medium text-muted-foreground"
                                 data-part="dashboard-sync-subtitle"
+                                id="dashboard-sync-subtitle"
                             >
                                 {syncSummary}
                             </div>
@@ -4815,6 +4817,7 @@ export function Workstation({
                             type="button"
                             aria-label="同步"
                             aria-busy={syncButtonBusy}
+                            aria-describedby="dashboard-sync-title dashboard-sync-subtitle"
                             disabled={syncButtonBusy}
                             data-control="dashboard-sync"
                             data-state={syncButtonState}

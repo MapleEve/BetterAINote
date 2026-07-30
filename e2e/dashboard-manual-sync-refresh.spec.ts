@@ -186,14 +186,8 @@ async function seedManualSyncRecording(input: {
     }
 }
 
-function dashboardSyncPanel(page: Page) {
-    return page.locator('[data-panel="dashboard-sync"]');
-}
-
 function dashboardSyncButton(page: Page) {
-    return dashboardSyncPanel(page).locator(
-        'button[data-control="dashboard-sync"]',
-    );
+    return page.getByRole("button", { name: "同步", exact: true });
 }
 
 function dashboardRecordingRow(page: Page, recordingId: string) {
@@ -482,10 +476,12 @@ test("manual dashboard sync uses the real POST and renders real failed, queued, 
             page.locator('[data-surface="dashboard-workstation"]'),
         ).toHaveAttribute("data-state", "ready");
 
-        const syncPanel = dashboardSyncPanel(page);
         const syncButton = dashboardSyncButton(page);
-        await expect(syncPanel).toHaveAttribute("data-state", "idle");
+        await expect(syncButton).toHaveAccessibleDescription(
+            /更新 · BetterAINote/,
+        );
         await expect(syncButton).toBeEnabled();
+        await expect(syncButton).toHaveAttribute("aria-busy", "false");
 
         const postResponse = page.waitForResponse(
             (response) =>
@@ -499,7 +495,9 @@ test("manual dashboard sync uses the real POST and renders real failed, queued, 
             code: "INVALID_INPUT",
             error: "No data source configured",
         });
-        await expect(syncPanel).toHaveAttribute("data-state", "error");
+        await expect(syncButton).toHaveAccessibleDescription(
+            /重试 · BetterAINote/,
+        );
         await expect(syncButton).toBeEnabled();
         await expect(syncButton).toHaveAttribute("aria-busy", "false");
 
@@ -513,11 +511,17 @@ test("manual dashboard sync uses the real POST and renders real failed, queued, 
                 lastSummary: { errorCount: 1 },
             },
         });
-        await expect(syncPanel).toHaveAttribute("data-state", "error");
+        await expect(syncButton).toHaveAccessibleDescription(
+            /重试 · BetterAINote/,
+        );
         await expect(syncButton).toBeEnabled();
         await expect(syncButton).toHaveAttribute("aria-busy", "false");
 
         await seedSyncWorkerState(userId, "queued");
+        expect(await snapshotSyncWorkerState(userId)).toMatchObject({
+            isRunning: 0,
+            manualTriggerRequestedAt: expect.any(Number),
+        });
         const queuedStatus = await reloadDashboardWithRealSyncStatus(page);
         expect(queuedStatus).toMatchObject({
             workerStatus: {
@@ -526,11 +530,24 @@ test("manual dashboard sync uses the real POST and renders real failed, queued, 
                 manualTriggerRequestedAt: expect.any(String),
             },
         });
-        await expect(syncPanel).toHaveAttribute("data-state", "queued");
+        await expect(syncButton).toHaveAccessibleDescription(
+            /已加入更新 · BetterAINote/,
+        );
+        await expect(syncButton).toBeDisabled();
+        await expect(syncButton).toHaveAttribute("aria-busy", "true");
+
+        await reloadDashboardWithRealSyncStatus(page);
+        await expect(syncButton).toHaveAccessibleDescription(
+            /已加入更新 · BetterAINote/,
+        );
         await expect(syncButton).toBeDisabled();
         await expect(syncButton).toHaveAttribute("aria-busy", "true");
 
         await seedSyncWorkerState(userId, "running");
+        expect(await snapshotSyncWorkerState(userId)).toMatchObject({
+            isRunning: 1,
+            manualTriggerRequestedAt: null,
+        });
         const runningStatus = await reloadDashboardWithRealSyncStatus(page);
         expect(runningStatus).toMatchObject({
             workerStatus: {
@@ -539,9 +556,32 @@ test("manual dashboard sync uses the real POST and renders real failed, queued, 
                 manualTriggerRequestedAt: null,
             },
         });
-        await expect(syncPanel).toHaveAttribute("data-state", "running");
+        await expect(syncButton).toHaveAccessibleDescription(
+            /更新中 · BetterAINote/,
+        );
         await expect(syncButton).toBeDisabled();
         await expect(syncButton).toHaveAttribute("aria-busy", "true");
+
+        await seedSyncWorkerState(userId, "success");
+        expect(await snapshotSyncWorkerState(userId)).toMatchObject({
+            isRunning: 0,
+            manualTriggerRequestedAt: null,
+        });
+        const completedStatus =
+            await reloadDashboardWithRealSyncStatus(page);
+        expect(completedStatus).toMatchObject({
+            workerStatus: {
+                isRunning: false,
+                manualTriggerRequestedAt: null,
+                lastError: null,
+                lastSummary: { errorCount: 0 },
+            },
+        });
+        await expect(syncButton).toHaveAccessibleDescription(
+            /更新 · BetterAINote/,
+        );
+        await expect(syncButton).toBeEnabled();
+        await expect(syncButton).toHaveAttribute("aria-busy", "false");
     } finally {
         if (userId) {
             await restoreSyncWorkerState(userId, workerState);
