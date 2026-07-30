@@ -22,7 +22,8 @@ const SETTINGS_SECTIONS = {
 
 type SettingsSection = keyof typeof SETTINGS_SECTIONS;
 
-const SAVE_BUTTON_NAME = /^(保存|保存中|已保存)$/;
+const SAVE_BUTTON_NAME =
+    /^(保存(?:服务连接|转录运行参数)?|(?:服务连接|转录运行参数)保存中|(?:服务连接|转录运行参数)已保存|保存中|已保存)$/;
 
 async function putSettingsWithRetry(
     page: Page,
@@ -1423,7 +1424,9 @@ test("VoScript settings save current controls without testing connection", async
         privateTranscriptionApiKey: "e2e-vs-value",
         privateTranscriptionBaseUrl: "https://voscript.example.com",
     });
-    await expect(connectionSaveButton).toHaveAccessibleName("已保存");
+    await expect(connectionSaveButton).toHaveAccessibleName(
+        "服务连接已保存",
+    );
     await expect(apiKeyInput).toHaveValue("");
     await expect(
         connectionGroup.getByText("已存储", { exact: true }),
@@ -1454,7 +1457,9 @@ test("VoScript settings save current controls without testing connection", async
         privateTranscriptionNoRepeatNgramSize: 4,
         privateTranscriptionSnrThreshold: 12.5,
     });
-    await expect(paramsSaveButton).toHaveAccessibleName("已保存");
+    await expect(paramsSaveButton).toHaveAccessibleName(
+        "转录运行参数已保存",
+    );
     await expect(apiKeyInput).toHaveValue("");
     await expect(
         connectionGroup.getByText("已存储", { exact: true }),

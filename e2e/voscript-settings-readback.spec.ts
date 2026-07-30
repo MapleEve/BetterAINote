@@ -70,39 +70,38 @@ async function getVoScriptSettings(page: Page): Promise<VoScriptSettings> {
 }
 
 function voscriptSection(page: Page) {
-    return page.locator(
-        '[data-sot-surface="settings-section"][data-sot-section="voscript"]',
-    );
+    return page.getByRole("region", {
+        name: /^(VoScript 服务|VoScript Service)$/,
+    });
 }
 
 function paramsSaveButton(page: Page) {
-    return voscriptSection(page).locator(
-        '[data-sot-panel="settings-save-actions"][data-sot-save-id="voscript-params"] [data-sot-control="settings-save"]',
-    );
+    return voscriptSection(page)
+        .getByRole("region", {
+            name: /^(转录运行参数|Transcription Runtime Parameters)$/,
+        })
+        .getByRole("button", {
+            name: /^(保存转录运行参数|转录运行参数保存中|转录运行参数已保存|Save transcription runtime parameters|Saving transcription runtime parameters|transcription runtime parameters saved)$/i,
+        });
 }
 
 async function startBusyToIdleObservation(page: Page) {
-    await page.evaluate(() => {
-        const section = document.querySelector(
-            '[data-sot-surface="settings-section"][data-sot-section="voscript"]',
-        );
-
-        if (!section) {
-            throw new Error("VoScript settings section is not available");
-        }
-
+    await voscriptSection(page).evaluate((section) => {
         const observationKey = "__voscriptRuntimeSaveTransition";
         let sawBusy = false;
         const transition = new Promise<boolean>((resolve, reject) => {
             let timeout: number;
             const observer = new MutationObserver(() => {
-                const state = section.getAttribute("data-sot-state");
-                if (state === "busy") {
+                const isBusy = section.getAttribute("aria-busy") === "true";
+                if (isBusy) {
                     sawBusy = true;
                     return;
                 }
 
-                if (sawBusy && state === "ready") {
+                if (
+                    sawBusy &&
+                    section.getAttribute("aria-busy") === "false"
+                ) {
                     window.clearTimeout(timeout);
                     observer.disconnect();
                     resolve(true);
@@ -118,7 +117,7 @@ async function startBusyToIdleObservation(page: Page) {
             }, 10_000);
 
             observer.observe(section, {
-                attributeFilter: ["data-sot-state"],
+                attributeFilter: ["aria-busy"],
                 attributes: true,
             });
         });
@@ -159,19 +158,24 @@ test("VoScript runtime params persist through real API readback and reload", asy
 
         const section = voscriptSection(page);
         const saveButton = paramsSaveButton(page);
-        await expect(section).toHaveAttribute("data-sot-state", "ready");
         await expect(section).toHaveAttribute("aria-busy", "false");
         await expect(saveButton).toBeVisible();
         await expect(saveButton).toBeEnabled();
 
         await section
-            .locator("#voscript-min-speakers")
+            .getByRole("spinbutton", {
+                name: /^(最少说话人数|Minimum speakers)$/,
+            })
             .fill(String(targetRuntimeParams.privateTranscriptionMinSpeakers));
         await section
-            .locator("#voscript-max-speakers")
+            .getByRole("spinbutton", {
+                name: /^(最多说话人数|Maximum speakers)$/,
+            })
             .fill(String(targetRuntimeParams.privateTranscriptionMaxSpeakers));
         await section
-            .locator("#voscript-no-repeat-ngram")
+            .getByRole("spinbutton", {
+                name: /^(重复抑制 n-gram|No-repeat n-gram)$/,
+            })
             .fill(
                 String(targetRuntimeParams.privateTranscriptionNoRepeatNgramSize),
             );
@@ -204,9 +208,10 @@ test("VoScript runtime params persist through real API readback and reload", asy
             "privateTranscriptionBaseUrl",
         );
         expect(await response.json()).toEqual({ success: true });
-        await expect(section).toHaveAttribute("data-sot-state", "ready");
         await expect(section).toHaveAttribute("aria-busy", "false");
-        await expect(saveButton).toHaveAttribute("data-sot-state", "saved");
+        await expect(saveButton).toHaveAccessibleName(
+            /^(转录运行参数已保存|transcription runtime parameters saved)$/i,
+        );
 
         const apiReadback = await getVoScriptSettings(page);
         expect(runtimeParams(apiReadback)).toEqual(targetRuntimeParams);
@@ -225,14 +230,22 @@ test("VoScript runtime params persist through real API readback and reload", asy
         );
         await page.reload({ waitUntil: "domcontentloaded" });
         await reloadSettingsGet;
-        await expect(section).toHaveAttribute("data-sot-state", "ready");
-        await expect(section.locator("#voscript-min-speakers")).toHaveValue(
-            String(targetRuntimeParams.privateTranscriptionMinSpeakers),
-        );
-        await expect(section.locator("#voscript-max-speakers")).toHaveValue(
-            String(targetRuntimeParams.privateTranscriptionMaxSpeakers),
-        );
-        await expect(section.locator("#voscript-no-repeat-ngram")).toHaveValue(
+        await expect(section).toHaveAttribute("aria-busy", "false");
+        await expect(
+            section.getByRole("spinbutton", {
+                name: /^(最少说话人数|Minimum speakers)$/,
+            }),
+        ).toHaveValue(String(targetRuntimeParams.privateTranscriptionMinSpeakers));
+        await expect(
+            section.getByRole("spinbutton", {
+                name: /^(最多说话人数|Maximum speakers)$/,
+            }),
+        ).toHaveValue(String(targetRuntimeParams.privateTranscriptionMaxSpeakers));
+        await expect(
+            section.getByRole("spinbutton", {
+                name: /^(重复抑制 n-gram|No-repeat n-gram)$/,
+            }),
+        ).toHaveValue(
             String(targetRuntimeParams.privateTranscriptionNoRepeatNgramSize),
         );
     } finally {

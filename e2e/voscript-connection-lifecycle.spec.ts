@@ -117,15 +117,15 @@ async function getVoScriptSettings(page: Page): Promise<VoScriptSettings> {
 }
 
 function voscriptSection(page: Page) {
-    return page.locator(
-        '[data-sot-surface="settings-section"][data-sot-section="voscript"]',
-    );
+    return page.getByRole("region", {
+        name: /^(VoScript 服务|VoScript Service)$/,
+    });
 }
 
 function testConnectionButton(page: Page) {
-    return voscriptSection(page).locator(
-        '[data-sot-control="voscript-test"]',
-    );
+    return voscriptSection(page).getByRole("button", {
+        name: /^(测试 VoScript 连接|正在测试 VoScript 连接|VoScript 连接正常|Test VoScript connection|Testing VoScript connection|VoScript connection ready)$/,
+    });
 }
 
 function waitForTestRequest(page: Page) {
@@ -163,7 +163,7 @@ test("VoScript Test connection uses a local app API fixture and restores setting
         const baseUrlInput = section.locator("#voscript-base-url");
         const apiKeyInput = section.locator("#voscript-api-key");
         const button = testConnectionButton(page);
-        await expect(section).toHaveAttribute("data-sot-state", "ready");
+        await expect(section).toHaveAttribute("aria-busy", "false");
         await expect(button).toBeEnabled();
 
         await baseUrlInput.fill(fixture.baseUrl);
@@ -174,10 +174,12 @@ test("VoScript Test connection uses a local app API fixture and restores setting
         await button.click();
 
         const successFixtureRequest = await fixture.waitForRequest();
-        await expect(section).toHaveAttribute("data-sot-state", "busy");
+        await expect(section).toHaveAttribute("aria-busy", "true");
         await expect(button).toBeDisabled();
         await expect(button).toHaveAttribute("aria-busy", "true");
-        await expect(button).toHaveAttribute("data-sot-state", "testing");
+        await expect(button).toHaveAccessibleName(
+            /^(正在测试 VoScript 连接|Testing VoScript connection)$/,
+        );
         expect(successFixtureRequest).toMatchObject({
             apiKey: LOCAL_FIXTURE_API_KEY,
             authorization: `Bearer ${LOCAL_FIXTURE_API_KEY}`,
@@ -202,9 +204,11 @@ test("VoScript Test connection uses a local app API fixture and restores setting
             success: true,
             voiceprintCount: 0,
         });
-        await expect(section).toHaveAttribute("data-sot-state", "ready");
+        await expect(section).toHaveAttribute("aria-busy", "false");
         await expect(button).toHaveAttribute("aria-busy", "false");
-        await expect(button).toHaveAttribute("data-sot-state", "test-success");
+        await expect(button).toHaveAccessibleName(
+            /^(VoScript 连接正常|VoScript connection ready)$/,
+        );
         await expect(button).toContainText(/Ready|连接正常/);
 
         const failureAppResponse = waitForTestResponse(page);
@@ -212,7 +216,9 @@ test("VoScript Test connection uses a local app API fixture and restores setting
 
         const failureFixtureRequest = await fixture.waitForRequest();
         await expect(button).toBeDisabled();
-        await expect(button).toHaveAttribute("data-sot-state", "testing");
+        await expect(button).toHaveAccessibleName(
+            /^(正在测试 VoScript 连接|Testing VoScript connection)$/,
+        );
         expect(failureFixtureRequest).toMatchObject({
             method: "GET",
             pathname: "/api/voiceprints",
@@ -227,21 +233,19 @@ test("VoScript Test connection uses a local app API fixture and restores setting
             expect.objectContaining({ error: expect.any(String) }),
         );
         await expect(button).toHaveAttribute("aria-busy", "false");
-        await expect(button).toHaveAttribute("data-sot-state", "test-error");
-        const failureBanner = section.locator(
-            '[data-sot-panel="voscript-unavailable-banner"]',
+        await expect(button).toHaveAccessibleName(
+            /^(测试 VoScript 连接|Test VoScript connection)$/,
         );
+        const failureBanner = section.getByRole("alert").filter({
+            hasText: /^(VoScript 当前不可用|VoScript is unavailable)/,
+        });
         await expect(failureBanner).toBeVisible();
-        await expect(failureBanner).toHaveAttribute(
-            "data-sot-state",
-            "test-error",
-        );
     } finally {
         if (baselineSettings) {
             await page.reload({ waitUntil: "domcontentloaded" });
             await expect(voscriptSection(page)).toHaveAttribute(
-                "data-sot-state",
-                "ready",
+                "aria-busy",
+                "false",
             );
             await expect(
                 voscriptSection(page).locator("#voscript-base-url"),

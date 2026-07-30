@@ -12,9 +12,9 @@ type TitleGenerationSettingsReadback = {
 };
 
 function titleGenerationSection(page: Page) {
-    return page.locator(
-        '[data-sot-surface="settings-section"][data-sot-section="title-generation"]',
-    );
+    return page.getByRole("region", {
+        name: /^(AI 重命名服务|AI Rename Service)$/,
+    });
 }
 
 function isTitleGenerationSettingsReadback(
@@ -53,17 +53,13 @@ async function expectAutoGenerateTitle(
     page: Page,
     autoGenerateTitle: boolean,
 ) {
-    const control = titleGenerationSection(page).locator(
-        '[data-sot-control="title-generation-enabled"]',
-    );
+    const control = titleGenerationSection(page).getByRole("switch", {
+        name: /^(基于逐字稿自动重命名|Automatically rename from transcripts)$/,
+    });
 
     await expect(control).toHaveAttribute(
         "aria-checked",
         autoGenerateTitle ? "true" : "false",
-    );
-    await expect(control).toHaveAttribute(
-        "data-sot-state",
-        autoGenerateTitle ? "checked" : "unchecked",
     );
 }
 
@@ -82,21 +78,16 @@ test("title generation save persists a visible setting through API readback and 
         });
 
         const section = titleGenerationSection(page);
-        const toggle = section.locator(
-            '[data-sot-control="title-generation-enabled"]',
-        );
-        const savePanel = section.locator(
-            '[data-sot-panel="settings-save-actions"][data-sot-save-id="title-generation"]',
-        );
-        const saveButton = savePanel.locator(
-            '[data-sot-control="settings-save"]',
-        );
+        const toggle = section.getByRole("switch", {
+            name: /^(基于逐字稿自动重命名|Automatically rename from transcripts)$/,
+        });
+        const saveButton = section.getByRole("button", {
+            name: /^(保存|保存中|已保存|Save|Saving|Saved)$/,
+        });
 
-        await expect(section).toHaveAttribute("data-sot-state", "ready");
         await expect(section).toHaveAttribute("aria-busy", "false");
         await expectAutoGenerateTitle(page, originalSettings.autoGenerateTitle);
-        await expect(savePanel).toHaveAttribute("data-sot-state", "idle");
-        await expect(saveButton).toHaveAttribute("data-sot-state", "idle");
+        await expect(saveButton).toHaveAccessibleName(/^(保存|Save)$/);
 
         await toggle.click();
         await expectAutoGenerateTitle(page, savedAutoGenerateTitle);
@@ -125,20 +116,18 @@ test("title generation save persists a visible setting through API readback and 
         expect(response.request().postDataJSON()).toMatchObject({
             autoGenerateTitle: savedAutoGenerateTitle,
         });
-        await expect(savePanel).toHaveAttribute("data-sot-state", "saved");
-        await expect(saveButton).toHaveAttribute("data-sot-state", "saved");
-        await expect(savePanel).toHaveAttribute("data-sot-state", "idle");
-        await expect(saveButton).toHaveAttribute("data-sot-state", "idle");
+        await expect(saveButton).toHaveAccessibleName(/^(已保存|Saved)$/);
+        await expect(saveButton).toHaveAccessibleName(/^(保存|Save)$/, {
+            timeout: 4_000,
+        });
 
         const readback = await readTitleGenerationSettings(page);
         expect(readback.autoGenerateTitle).toBe(savedAutoGenerateTitle);
 
         await page.reload({ waitUntil: "domcontentloaded" });
-        await expect(section).toHaveAttribute("data-sot-state", "ready");
         await expect(section).toHaveAttribute("aria-busy", "false");
         await expectAutoGenerateTitle(page, savedAutoGenerateTitle);
-        await expect(savePanel).toHaveAttribute("data-sot-state", "idle");
-        await expect(saveButton).toHaveAttribute("data-sot-state", "idle");
+        await expect(saveButton).toHaveAccessibleName(/^(保存|Save)$/);
     } catch (error) {
         primaryFlowError = error;
         throw error;

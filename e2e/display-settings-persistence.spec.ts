@@ -3,6 +3,11 @@ import { ensureSignedIn } from "./helpers/auth";
 
 const THEME_VALUES = ["system", "light", "dark"] as const;
 type Theme = (typeof THEME_VALUES)[number];
+const THEME_LABELS: Record<Theme, RegExp> = {
+    dark: /^(深色|Dark)$/,
+    light: /^(浅色|Light)$/,
+    system: /^(自动|Auto)$/,
+};
 
 function isTheme(value: unknown): value is Theme {
     return (
@@ -12,15 +17,15 @@ function isTheme(value: unknown): value is Theme {
 }
 
 function displaySection(page: Page) {
-    return page.locator(
-        '[data-sot-surface="settings-section"][data-sot-section="appearance"]',
-    );
+    return page.getByRole("region", {
+        name: /^(显示设置|Display Settings)$/,
+    });
 }
 
 function themeSegment(page: Page, theme: Theme) {
-    return displaySection(page).locator(
-        `[data-sot-control="theme"][data-sot-value="${theme}"]`,
-    );
+    return displaySection(page)
+        .getByRole("radiogroup", { name: /^(主题|Theme)$/ })
+        .getByRole("radio", { name: THEME_LABELS[theme] });
 }
 
 async function expectThemeSelected(page: Page, theme: Theme) {
@@ -28,7 +33,6 @@ async function expectThemeSelected(page: Page, theme: Theme) {
 
     await expect(segment).toHaveAttribute("aria-checked", "true");
     await expect(segment).toHaveAttribute("data-state", "on");
-    await expect(segment).toHaveAttribute("data-sot-state", "selected");
 }
 
 async function readTheme(page: Page): Promise<Theme> {
@@ -61,7 +65,7 @@ test("display preferences UI save survives reload and real API readback", async 
     try {
         await page.goto("/settings#appearance", { waitUntil: "domcontentloaded" });
         await expect(displaySection(page)).toBeVisible();
-        await expect(displaySection(page)).toHaveAttribute("data-sot-state", "ready");
+        await expect(displaySection(page)).toHaveAttribute("aria-busy", "false");
         await expectThemeSelected(page, originalTheme);
 
         const saveResponse = page.waitForResponse(
@@ -78,7 +82,7 @@ test("display preferences UI save survives reload and real API readback", async 
         expect(await readTheme(page)).toBe(savedTheme);
 
         await page.reload({ waitUntil: "domcontentloaded" });
-        await expect(displaySection(page)).toHaveAttribute("data-sot-state", "ready");
+        await expect(displaySection(page)).toHaveAttribute("aria-busy", "false");
         await expectThemeSelected(page, savedTheme);
         await expect(page.locator("html")).toHaveAttribute("data-theme", savedTheme);
     } catch (error) {
@@ -99,8 +103,8 @@ test("display preferences UI save survives reload and real API readback", async 
 
             await page.reload({ waitUntil: "domcontentloaded" });
             await expect(displaySection(page)).toHaveAttribute(
-                "data-sot-state",
-                "ready",
+                "aria-busy",
+                "false",
             );
             await expectThemeSelected(page, originalTheme);
             await expect(page.locator("html")).toHaveAttribute(
