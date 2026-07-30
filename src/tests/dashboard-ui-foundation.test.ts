@@ -2284,7 +2284,7 @@ describe("dashboard SOT foundation", () => {
             playerSurfaceIndex,
         );
         const transcriptShellIndex = workstation.indexOf(
-            'data-panel="dashboard-transcript-shell"',
+            "<TranscriptionPanel",
             playerSurfaceIndex,
         );
         expect(playerSurfaceIndex).toBeGreaterThanOrEqual(0);
@@ -2891,6 +2891,9 @@ describe("dashboard SOT foundation", () => {
 
     it("renders the dashboard from the SOT workstation shell instead of compatibility components", () => {
         const workstation = readSource("features/dashboard/workstation.tsx");
+        const transcriptionPanel = readSource(
+            "features/dashboard/components/transcription-panel.tsx",
+        );
         const librarySearch = readSource(
             "features/dashboard/components/library-search.tsx",
         );
@@ -2973,7 +2976,6 @@ describe("dashboard SOT foundation", () => {
             "SourceFilterStackStrip",
             "SourceProviderRows",
             "SyncStatus",
-            "TranscriptionPanel",
         ]) {
             expect(workstation).not.toMatch(new RegExp(`<${removed}[\\s/>]`));
             expect(workstation).not.toContain(
@@ -2987,6 +2989,10 @@ describe("dashboard SOT foundation", () => {
             );
         }
         expect(workstation).toContain("<LibrarySearch");
+        expect(workstation).toContain("<TranscriptionPanel");
+        expect(workstation).toContain(
+            'from "@/features/dashboard/components/transcription-panel";',
+        );
         expect(workstation).toContain(
             'from "@/features/dashboard/components/library-search";',
         );
@@ -3473,73 +3479,35 @@ describe("dashboard SOT foundation", () => {
         );
         expect(workstation).toContain("selectedRecording ? (");
         expect(workstation).toContain("<DashboardDetailEmptyState />");
-        expect(workstation).toContain('data-panel="dashboard-retranscription"');
-        expect(workstation).toContain("data-retx-state={dashboardRetxState}");
-        expect(workstation).toContain(
-            'import { Spinner } from "@/components/ui/spinner";',
-        );
-        expect(workstation).toContain("<Spinner");
-        expect(workstation).toContain('size="xs"');
+        expect(workstation).toContain("<TranscriptionPanel");
+        expect(workstation).toContain("state: dashboardRetxState");
+        expect(workstation).toContain("onRequest: retranscribe");
+        expect(workstation).toContain("onRetry: retranscribe");
         expect(workstation).not.toContain(
-            '<span data-part="dashboard-retranscription-spinner" />',
-        );
-        expect(
-            collectCssRuleBlocks(
-                globals,
-                '[data-part="dashboard-retranscription-spinner"]',
-            ),
-        ).toEqual([]);
-        const dashboardRetranscriptionDisabledHint = extractOpeningElement(
-            workstation,
-            'data-part="dashboard-retranscription-disabled-hint"',
-            "Badge",
-        );
-        expect(dashboardRetranscriptionDisabledHint).toMatch(
-            /hidden=\{\s*detailTab !==\s*"transcript"\s*\|\|\s*dashboardRetxState !==\s*"unavailable"\s*\}/,
-        );
-        const dashboardRetranscriptionBanner = extractOpeningElement(
-            workstation,
             'data-panel="dashboard-retranscription"',
-            "Alert",
         );
-        expect(dashboardRetranscriptionBanner).toContain(
-            "data-retx-state={dashboardRetxState}",
-        );
-        expect(dashboardRetranscriptionBanner).toMatch(
-            /hidden=\{\s*dashboardRetxState ===\s*"idle"\s*\|\|\s*dashboardRetxState ===\s*"unavailable"\s*\}/,
-        );
-        expect(workstation).toContain(
-            'data-part="dashboard-retranscription-icon"',
-        );
-        expect(workstation).toContain(
-            'data-part="dashboard-retranscription-body"',
-        );
-        const dashboardRetranscriptionRefreshMarker = extractOpeningElement(
-            workstation,
+        for (const retxContract of [
+            'data-panel="dashboard-retranscription"',
+            "data-retx-state={retranscription.state}",
+            'data-control="retry-retranscription"',
+            'data-control="dismiss-retranscription-failed"',
+            'data-control="dismiss-retranscription-complete"',
             'data-part="dashboard-retranscription-refresh-marker"',
-            "Badge",
+        ]) {
+            expect(transcriptionPanel).toContain(retxContract);
+        }
+        expect(transcriptionPanel).toContain(
+            'retranscription.state === "failed"',
         );
-        expect(dashboardRetranscriptionRefreshMarker).toMatch(
-            /hidden=\{\s*dashboardRetxState !==\s*"completed"\s*\}/,
+        expect(transcriptionPanel).toContain(
+            'retranscription.state === "completed"',
         );
-        expect(workstation).toContain('dashboardRetxState === "failed" ? (');
-        expect(workstation).toMatch(
-            /dashboardRetxState ===\s*"completed"\s*&&/,
-        );
-        expect(workstation).toContain('data-retx-retry=""');
-        expect(workstation).toContain('data-retx-dismiss=""');
         expect(globals).not.toMatch(
             DASHBOARD_RETRANSCRIPTION_GLOBAL_TOKEN_DEFINITION_RE,
         );
-        expect(workstation).not.toContain(
+        expect(transcriptionPanel).not.toContain(
             "const dashboardRetranscriptionClassNames",
         );
-        expect(workstation).not.toContain(
-            "dashboardRetranscriptionThemeClassName",
-        );
-        for (const usage of DASHBOARD_RETRANSCRIPTION_OWNER_CLASS_USAGES) {
-            expect(workstation).not.toContain(usage);
-        }
         const retxGlobalRepaintBlocks =
             DASHBOARD_RETRANSCRIPTION_REPAINT_CSS_SELECTORS.flatMap(
                 (selector) =>
@@ -3556,22 +3524,15 @@ describe("dashboard SOT foundation", () => {
                 collectCssRuleBlocks(globals, removedGlobalDisplaySelector),
             ).toEqual([]);
         }
-        for (const hook of DASHBOARD_RETRANSCRIPTION_SOT_HOOKS) {
-            expect(workstation).toContain(hook);
-        }
-        for (const className of DASHBOARD_RETRANSCRIPTION_LEGACY_CLASS_NAMES) {
-            expect(workstation).not.toMatch(
-                new RegExp(`className=\\{?["']${className}["']\\}?`),
-            );
-        }
-        expect(workstation).toContain('aria-label="详情标签"');
         expect(dashboardRecordingPlayerControls).toContain(
             'aria-label={isPlaying ? "暂停" : "播放"}',
         );
         expect(dashboardRecordingPlayerControls).toContain(
             'data-control="dashboard-player-play"',
         );
-        expect(workstation).toContain('part="dashboard-copy-label"');
+        expect(transcriptionPanel).toContain(
+            'data-control="copy-local-transcript"',
+        );
         expect(workstation).not.toContain('className="copy-label"');
         expect(workstation).not.toContain('className="play rounded-full"');
         expect(workstation).toContain("<SettingsDialog");
@@ -3583,6 +3544,9 @@ describe("dashboard SOT foundation", () => {
 
     it("keeps source rows, stacked filters, list modes, and detail tabs wired in the workstation", () => {
         const workstation = readSource("features/dashboard/workstation.tsx");
+        const transcriptionPanel = readSource(
+            "features/dashboard/components/transcription-panel.tsx",
+        );
         const dashboardRecordingPlayerControls = readSource(
             "features/dashboard/components/dashboard-recording-player-controls.tsx",
         );
@@ -4857,379 +4821,83 @@ describe("dashboard SOT foundation", () => {
         expect(workstation).toContain("recordingList.timeTab");
         expect(workstation).toContain('value: "tags"');
         expect(workstation).toContain("recordingList.tagsTab");
-        expect(workstation).toContain('value: "source"');
-        expect(workstation).toContain('label: "来源详情"');
-        expect(workstation).toContain('tabKey: "source-report"');
-        expect(workstation).toContain('value: "transcript"');
-        expect(workstation).toContain('label: "转写"');
-        expect(workstation).toContain('value: "speakers"');
-        expect(workstation).toContain('label: "说话人"');
+        expect(workstation).toContain("<TranscriptionPanel");
+        expect(workstation).toContain("activeTab={detailTab}");
+        expect(workstation).toContain("turns={turns}");
+        expect(workstation).toContain("speakers={speakers}");
+        expect(workstation).toContain("sourcePane={");
+        expect(workstation).not.toContain(
+            'data-panel="dashboard-transcript-shell"',
+        );
+
+        for (const tabContract of [
+            'value: "source"',
+            'label: "来源详情"',
+            'tabKey: "source-report"',
+            'value: "transcript"',
+            'label: "转写"',
+            'value: "speakers"',
+            'label: "说话人"',
+        ]) {
+            expect(transcriptionPanel).toContain(tabContract);
+        }
         const detailSegmentedTabs = extractOpeningElement(
-            workstation,
+            transcriptionPanel,
             'aria-label="详情标签"',
             "SegmentedTabs",
         );
         expect(detailSegmentedTabs).toContain('variant="segmented"');
         expect(detailSegmentedTabs).toContain('size="segmentedSm"');
         expect(detailSegmentedTabs).toContain('data-control="segmented-tabs"');
-        expect(detailSegmentedTabs).toContain('data-size="sm"');
         expect(detailSegmentedTabs).toContain('className="shrink-0"');
-        expect(workstation).toContain('hidden={detailTab !== "transcript"}');
-        expect(workstation).toContain(
-            'const dashboardTabPaneHiddenClassName = "[&[hidden]]:hidden";',
-        );
-        const transcriptPane = extractOpeningElement(
-            workstation,
-            'data-panel="dashboard-transcript-pane"',
-            "div",
-        );
-        expect(transcriptPane).toMatch(
-            /className=\{\s*dashboardTabPaneHiddenClassName\s*\}/,
-        );
-        const sourceReportHiddenPane = extractOpeningElement(
-            sourceReportPrimitives,
-            "data-testid={testId}",
-            "div",
-        );
-        expect(sourceReportHiddenPane).toContain("className={commonClassName}");
-        expect(sourceReportHiddenPane).toContain("data-state={state}");
-        expect(sourceReportHiddenPane).toContain("hidden={hidden}");
-        const sourceReportHiddenPaneCall = extractOpeningElement(
-            workstation,
-            'surface="dashboard"',
-            "SourceReportPane",
-        );
-        expect(sourceReportHiddenPaneCall).toContain(
-            "dashboardTabPaneHiddenClassName",
-        );
-        expect(sourceReportHiddenPaneCall).toContain(
-            "state={sourceReportVisualState}",
-        );
-        const speakersPane = extractOpeningElement(
-            workstation,
-            'data-panel="dashboard-speakers-pane"',
-            "div",
-        );
-        expect(speakersPane).toMatch(
-            /className=\{\s*dashboardTabPaneHiddenClassName\s*\}/,
-        );
-        const dashboardTranscriptShell = extractOpeningElement(
-            workstation,
-            'data-panel="dashboard-transcript-shell"',
-            "Card",
-        );
-        const dashboardTranscriptHeader = extractOpeningElement(
-            workstation,
-            'data-part="dashboard-transcript-header"',
-            "CardHeader",
-        );
-        expect(dashboardTranscriptShell).toContain(
-            `className="${EXPECTED_DASHBOARD_TRANSCRIPT_SHELL_CARD_CLASS_NAME}"`,
-        );
-        expect(dashboardTranscriptHeader).toContain(
-            'className="flex flex-row flex-wrap items-center gap-x-3 gap-y-1.5 border-b px-3.5 py-3"',
-        );
-        const dashboardTranscriptBody = extractOpeningElement(
-            workstation,
-            'data-part="dashboard-transcript-body"',
-            "CardContent",
-        );
-        expect(dashboardTranscriptBody).toContain(
-            'className="min-h-0 flex-1 overflow-y-auto px-5 pt-4 pb-5"',
-        );
-        expect(workstation).not.toContain(
-            "dashboardRetranscriptionThemeClassName",
-        );
-        for (const hook of DASHBOARD_DETAIL_PANE_SOT_HOOKS) {
-            expect(workstation).toContain(hook);
-        }
-        const dashboardSpeakersMerge = extractOpeningElement(
-            workstation,
-            'data-control="dashboard-speakers-merge"',
-            "Button",
-        );
-        expect(buttonPrimitive).not.toContain("dashboardSpeakersMerge:");
-        expect(dashboardSpeakersMerge).toContain('variant="ghost"');
-        expect(dashboardSpeakersMerge).toContain('size="sm"');
-        expectClassNameConstReference(
-            dashboardSpeakersMerge,
-            "dashboardButtonClassNames.speakersMerge",
-        );
-        expect(dashboardSpeakersMerge).not.toContain(
-            'variant="dashboardSpeakersMerge"',
-        );
-        expect(dashboardSpeakersMerge).not.toContain(
-            'size="dashboardSpeakersMerge"',
-        );
-        for (const hook of DASHBOARD_TRANSCRIPT_TURN_EMPTY_SOT_HOOKS) {
-            expect(workstation).toContain(hook);
-        }
-        const dashboardSpeakerPaneClassNames = extractBoundedSlice(
-            workstation,
-            "const dashboardSpeakerPaneClassNames = {",
-            "} as const;",
-        );
-        const dashboardTranscriptLoadingTurn = extractOpeningElement(
-            workstation,
-            "key={`transcript-skeleton:",
-            "div",
-        );
-        const dashboardTranscriptLoadingSpeakerRow = extractOpeningElement(
-            workstation,
-            'data-part="dashboard-transcript-speaker-row"',
-            "div",
-        );
-        const dashboardTranscriptReadyTurn = extractOpeningElement(
-            workstation,
-            'data-state="ready"',
-            "div",
-        );
-        const dashboardTranscriptReadySlice = extractBoundedSlice(
-            workstation,
-            "turns.map((turn, index) => {",
-            ") : (",
-        );
-        const dashboardTranscriptAvatar = extractOpeningElement(
-            workstation,
-            'data-part="dashboard-transcript-avatar"',
-            "span",
-        );
-        const dashboardTranscriptSpeakerName = extractOpeningElement(
-            workstation,
-            'data-part="dashboard-transcript-speaker-name"',
-            "span",
-        );
-        const dashboardTranscriptSpeakerTime = extractOpeningElement(
-            workstation,
-            'data-part="dashboard-transcript-speaker-time"',
-            "span",
-        );
-        const dashboardTranscriptEmpty = extractElementSlice(
-            workstation,
-            'data-panel="dashboard-transcript-empty"',
-            "Empty",
-        );
-        const dashboardTranscriptEmptyOpening = extractOpeningElement(
-            workstation,
-            'data-panel="dashboard-transcript-empty"',
-            "Empty",
-        );
-        const dashboardTranscriptEmptyIcon = extractOpeningElement(
-            workstation,
-            'data-part="dashboard-transcript-empty-icon"',
-            "EmptyMedia",
-        );
-        const dashboardTranscriptEmptyTitle = extractOpeningElement(
-            workstation,
-            'data-part="dashboard-transcript-empty-message"',
-            "EmptyTitle",
-        );
-        const dashboardTranscriptEmptyDescription = extractOpeningElement(
-            workstation,
-            'data-part="dashboard-transcript-empty-sub"',
-            "EmptyDescription",
-        );
-        const dashboardSpeakersHead = extractOpeningElement(
-            workstation,
-            'data-part="dashboard-speakers-head"',
-            "div",
-        );
-        const dashboardSpeakersHeadTitle = extractOpeningElement(
-            workstation,
-            'data-part="dashboard-speakers-head-title"',
-            "div",
-        );
-        const dashboardSpeakerRows = extractOpeningElement(
-            workstation,
-            'data-list="dashboard-speaker-rows"',
-            "ul",
-        );
-        const dashboardSpeakerRow = extractOpeningElement(
-            workstation,
-            'data-item="dashboard-speaker-row"',
-            "li",
-        );
-        const dashboardSpeakerAvatar = extractOpeningElement(
-            workstation,
-            'data-part="dashboard-speaker-avatar"',
-            "Badge",
-        );
-        const dashboardSpeakerRowMeta = extractOpeningElement(
-            workstation,
-            'data-part="dashboard-speaker-row-meta"',
-            "div",
-        );
-        const dashboardSpeakerName = extractOpeningElement(
-            workstation,
-            'data-part="dashboard-speaker-name"',
-            "div",
-        );
-        const dashboardSpeakerSub = extractOpeningElement(
-            workstation,
-            'data-part="dashboard-speaker-sub"',
-            "Badge",
-        );
-        const dashboardSpeakerBar = extractOpeningElement(
-            workstation,
-            'data-part="dashboard-speaker-bar"',
-            "Progress",
-        );
-        const dashboardSpeakerEmpty = extractElementSlice(
-            workstation,
-            'data-state="empty"',
-            "li",
-        );
 
-        expect(workstation).not.toContain(
-            "const dashboardTranscriptClassNames",
-        );
-        for (const token of DASHBOARD_SPEAKER_PANE_OWNER_CLASS_TOKENS) {
-            expect(dashboardSpeakerPaneClassNames).toContain(token);
-        }
-        for (const token of DASHBOARD_SPEAKER_PANE_FORBIDDEN_RECONSTRUCTION_TOKENS) {
-            expect(dashboardSpeakerPaneClassNames).not.toContain(token);
-        }
-        expect(workstation).not.toContain(
-            "DASHBOARD_SPEAKER_SHARE_CLASS_NAMES",
-        );
-        expect(workstation).not.toContain("getDashboardSpeakerShareClassName");
-        for (const token of DASHBOARD_SPEAKER_SHARE_VALUE_TOKENS) {
-            expect(workstation).toContain(token);
-        }
-        expect(dashboardTranscriptLoadingTurn).toContain(
-            'className="border-b border-dashed py-3 last:border-b-0"',
-        );
-        expect(dashboardTranscriptLoadingSpeakerRow).toContain(
-            'className="mb-2 flex items-center gap-2"',
-        );
-        expect(dashboardTranscriptReadyTurn).toContain(
-            'className="border-b border-dashed py-3 last:border-b-0"',
-        );
-        expect(dashboardTranscriptAvatar).toContain(
-            'className="inline-flex size-7 flex-none items-center justify-center rounded-full bg-muted text-xs font-medium text-muted-foreground"',
-        );
-        expect(dashboardTranscriptAvatar).toContain("data-tone=");
-        expect(dashboardTranscriptSpeakerName).toContain(
-            'className="text-sm font-medium text-foreground"',
-        );
-        expect(dashboardTranscriptSpeakerTime).toContain(
-            'className="ml-1 font-mono text-xs text-muted-foreground"',
-        );
-        expect(dashboardTranscriptSpeakerTime).toContain('data-format="mono"');
-        expect(dashboardTranscriptReadySlice).toContain(
-            'className="m-0 text-sm/relaxed text-foreground"',
-        );
-        expect(dashboardTranscriptEmptyOpening).toContain("<Empty");
-        expect(dashboardTranscriptEmpty).toContain("<EmptyHeader");
-        expect(dashboardTranscriptEmptyIcon).toContain('variant="icon"');
-        expect(dashboardTranscriptEmptyTitle).toContain('variant="compact"');
-        expect(dashboardTranscriptEmptyDescription).toContain(
-            'variant="compact"',
-        );
-        expectClassNameConstReference(
-            dashboardSpeakersHead,
-            "dashboardSpeakerPaneClassNames.head",
-        );
-        expectClassNameConstReference(
-            dashboardSpeakersHeadTitle,
-            "dashboardSpeakerPaneClassNames.headTitle",
-        );
-        expectClassNameConstReference(
-            dashboardSpeakerRows,
-            "dashboardSpeakerPaneClassNames.rows",
-        );
-        expectClassNameConstReference(
-            dashboardSpeakerRow,
-            "dashboardSpeakerPaneClassNames.row",
-        );
-        expectClassNameConstReference(
-            dashboardSpeakerAvatar,
-            "dashboardSpeakerPaneClassNames.avatar",
-        );
-        expect(dashboardSpeakerAvatar).toContain('variant="secondary"');
-        expectClassNameConstReference(
-            dashboardSpeakerRowMeta,
-            "dashboardSpeakerPaneClassNames.rowMeta",
-        );
-        expectClassNameConstReference(
-            dashboardSpeakerName,
-            "dashboardSpeakerPaneClassNames.name",
-        );
-        expectClassNameConstReference(
-            dashboardSpeakerSub,
-            "dashboardSpeakerPaneClassNames.sub",
-        );
-        expect(dashboardSpeakerSub).toContain('variant="outline"');
-        expectClassNameConstReference(
-            dashboardSpeakerBar,
-            "dashboardSpeakerPaneClassNames.bar",
-        );
-        expect(dashboardSpeakerBar).toMatch(/value=\{\s*shareValue\s*\}/);
-        expect(dashboardSpeakerBar).toContain("max={100}");
-        expect(dashboardSpeakerBar).toContain("indicatorClassName={");
-        expect(dashboardSpeakerBar).toContain(
-            "dashboardSpeakerPaneClassNames.barFill",
-        );
-        expect(dashboardSpeakerBar).toContain('"data-part":');
-        expect(dashboardSpeakerBar).toContain('"dashboard-speaker-bar-fill"');
-        expect(dashboardSpeakerEmpty).toContain("<Empty");
-        expect(dashboardSpeakerEmpty).toContain('variant="compact"');
-        expect(dashboardSpeakerEmpty).toContain("<EmptyHeader");
-        expect(dashboardSpeakerEmpty).toContain("<EmptyMedia");
-        expect(dashboardSpeakerEmpty).toContain("<EmptyTitle");
-        expect(dashboardSpeakerEmpty).toContain("<EmptyDescription");
-        expect(workstation).not.toContain(
-            ["--dashboard", "speaker-share"].join("-"),
-        );
-        const transcriptLanguageBadge = extractOpeningElement(
-            workstation,
-            'data-part="dashboard-transcript-language"',
-            "Badge",
-        );
-        expect(transcriptLanguageBadge).toContain('variant="outline"');
-        expect(transcriptLanguageBadge).toContain(
-            `className="${EXPECTED_DASHBOARD_TRANSCRIPT_LANGUAGE_BADGE_CLASS_NAME}"`,
-        );
-        expect(badgePrimitive).not.toContain(
-            DASHBOARD_OWNER_LOCAL_FORBIDDEN_VARIANT_PROPS[6],
-        );
-        const dashboardTranscriptActions = extractOpeningElement(
-            workstation,
+        for (const panelContract of [
+            'data-panel="dashboard-transcript-shell"',
+            'data-part="dashboard-transcript-header"',
             'data-part="dashboard-transcript-actions"',
-            "div",
-        );
-        expect(dashboardTranscriptActions).toContain(
-            `className="${EXPECTED_DASHBOARD_TRANSCRIPT_ACTIONS_CLASS_NAME}"`,
-        );
-        const dashboardLocalCopyButton = extractElementSlice(
-            workstation,
+            'data-panel="dashboard-transcript-pane"',
+            'data-tab-pane="transcript"',
+            'data-tab-pane="source"',
+            'data-panel="dashboard-speakers-pane"',
             'data-control="copy-local-transcript"',
-            "Button",
+            'data-control="retranscribe-recording"',
+            'data-control="dashboard-speakers-merge"',
+            'data-control="retry-speaker-merge"',
+            'data-panel="dashboard-transcript-empty"',
+            'data-panel="dashboard-transcript-error"',
+            'role="tabpanel"',
+        ]) {
+            expect(transcriptionPanel).toContain(panelContract);
+        }
+        for (const primitive of [
+            "alert",
+            "badge",
+            "button",
+            "card",
+            "empty",
+            "progress",
+            "segmented-tabs",
+            "skeleton",
+            "spinner",
+        ]) {
+            expect(transcriptionPanel).toContain(
+                `@/components/ui/${primitive}`,
+            );
+        }
+        expect(transcriptionPanel).not.toMatch(/data-sot|\bsot-/i);
+        expect(transcriptionPanel).not.toMatch(
+            /dashboardTranscriptClassNames|dashboardSpeakerPaneClassNames|recordingTranscriptionClassNames/,
         );
-        expect(dashboardLocalCopyButton).toContain("<DashboardCopyIcon");
-        expect(dashboardLocalCopyButton).toContain("<DashboardCopyLabel>");
-        expect(dashboardLocalCopyButton).not.toContain("SourceReportCopyIcon");
-        expect(dashboardLocalCopyButton).not.toContain("SourceReportCopyLabel");
-        const dashboardCopyIcon = extractBoundedSlice(
-            workstation,
-            "function DashboardCopyIcon",
-            "function DashboardCopyLabel",
+        expect(workstation).toContain("reconcileTranscriptionMaps");
+        expect(workstation).toContain("loadRecordingTranscription");
+        expect(workstation).toContain("mergeDashboardSpeakers");
+        expect(workstation).toContain('method: "PATCH"');
+        expect(workstation).toContain(
+            "resolveDashboardTranscriptionPoll<TranscriptionPollTranscriptData>",
         );
-        expect(dashboardCopyIcon).toContain('data-part="dashboard-copy-icon"');
-        expect(dashboardCopyIcon).not.toContain("dashboardLocalCopyClassNames");
-        expect(dashboardCopyIcon).toContain('state === "ok" ? Check');
-        expect(dashboardCopyIcon).toContain('state === "err" ? X : Copy');
-        const dashboardCopyLabel = extractBoundedSlice(
-            workstation,
-            "function DashboardCopyLabel",
-            "function getRetxStateFromActiveJob",
-        );
-        expect(dashboardCopyLabel).toContain(
-            'data-part="dashboard-copy-label"',
-        );
-        expect(dashboardCopyLabel).not.toContain(
-            "dashboardLocalCopyClassNames",
-        );
+        expect(workstation).toContain('surface="dashboard"');
+        expect(workstation).toContain("state={sourceReportVisualState}");
+
         const sourceReportCopyButton = extractBoundedSlice(
             sourceReportPrimitives,
             "export function SourceReportCopyButton",

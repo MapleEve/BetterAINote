@@ -59,8 +59,8 @@ export function normalizeDashboardTranscriptionJob(
 }
 
 export function areDashboardTranscriptionJobsEqual(
-    left?: TranscriptionJobLike | null,
-    right?: TranscriptionJobLike | null,
+    left?: DashboardTranscriptionPollJob | null,
+    right?: DashboardTranscriptionPollJob | null,
 ) {
     return (
         (left?.status ?? null) === (right?.status ?? null) &&

@@ -8,12 +8,9 @@ import {
     ChevronDown,
     CircleAlert,
     CloudDownload,
-    Copy,
     EllipsisVertical,
     FileText,
-    Globe2,
     Menu,
-    MessageSquareText,
     Mic,
     Music,
     PanelLeft,
@@ -29,7 +26,6 @@ import Image from "next/image";
 import {
     Fragment,
     type KeyboardEvent as ReactKeyboardEvent,
-    type ReactNode,
     useCallback,
     useEffect,
     useMemo,
@@ -38,7 +34,6 @@ import {
 } from "react";
 import { toast } from "sonner";
 import { useLanguage } from "@/components/language-provider";
-import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
@@ -67,14 +62,12 @@ import {
     EmptyTitle,
 } from "@/components/ui/empty";
 import { Input } from "@/components/ui/input";
-import { Progress } from "@/components/ui/progress";
 import {
     type SegmentedTabItem,
     SegmentedTabs,
 } from "@/components/ui/segmented-tabs";
 import { Separator } from "@/components/ui/separator";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Spinner } from "@/components/ui/spinner";
 import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
 import { DashboardRecordingPlayerControls } from "@/features/dashboard/components/dashboard-recording-player-controls";
 import {
@@ -82,6 +75,16 @@ import {
     type LibrarySearchFilter,
 } from "@/features/dashboard/components/library-search";
 import { SystemBanner } from "@/features/dashboard/components/system-banner";
+import {
+    TranscriptionPanel,
+    type TranscriptionPanelSpeaker,
+    type TranscriptionPanelSpeakerMergeRequest,
+} from "@/features/dashboard/components/transcription-panel";
+import {
+    areDashboardTranscriptionJobsEqual,
+    getDashboardTranscriptionPollingKey,
+    resolveDashboardTranscriptionPoll,
+} from "@/features/dashboard/transcription-polling";
 import { AiRenamePreviewCard as AiRenamePreview } from "@/features/recordings/components/ai-rename-preview-card";
 import {
     formatPlayerDate,
@@ -137,6 +140,8 @@ import {
 } from "@/lib/platform/browser-router";
 import {
     readBrowserStorage,
+    startBrowserInterval,
+    stopBrowserInterval,
     writeBrowserStorage,
 } from "@/lib/platform/browser-shell";
 import { writeBrowserClipboardText } from "@/lib/platform/clipboard";
@@ -174,11 +179,24 @@ type TranscriptTurn = {
     endMs?: number | null;
 };
 
+type TranscriptionPollTranscriptData = {
+    text?: string | null;
+    detectedLanguage?: string | null;
+    speakerMap?: Record<string, string> | null;
+    segments?: TranscriptSegmentData[] | null;
+};
+
 type TranscriptionJobData = {
     status: string;
     remoteStatus?: string | null;
     lastError?: string | null;
 };
+
+type DashboardSpeakerMergeState =
+    | { state: "idle"; error: null }
+    | { state: "pending"; error: null }
+    | { state: "error"; error: string }
+    | { state: "success"; error: null };
 
 type QueriedRecording = Recording & {
     transcript?: {
@@ -230,6 +248,114 @@ function buildPagedRecordingMaps(recordings: QueriedRecording[]) {
     return { transcriptions, transcriptionJobs };
 }
 
+function mergeTranscriptionData(
+    current: TranscriptionData | undefined,
+    incoming: TranscriptionData,
+) {
+    if (!current) {
+        return incoming;
+    }
+
+    const textChanged =
+        incoming.text !== undefined && incoming.text !== current.text;
+
+    return {
+        ...current,
+        ...incoming,
+        text: incoming.text === undefined ? current.text : incoming.text,
+        language:
+            incoming.language === undefined
+                ? current.language
+                : incoming.language,
+        speakerMap:
+            incoming.speakerMap === undefined
+                ? current.speakerMap
+                : incoming.speakerMap,
+        segments:
+            incoming.segments === undefined
+                ? textChanged
+                    ? undefined
+                    : current.segments
+                : incoming.segments,
+    };
+}
+
+function areSpeakerMapsEqual(
+    left: Record<string, string> | null | undefined,
+    right: Record<string, string> | null | undefined,
+) {
+    if (left === right) {
+        return true;
+    }
+
+    const leftEntries = Object.entries(left ?? {});
+    const rightEntries = Object.entries(right ?? {});
+    return (
+        leftEntries.length === rightEntries.length &&
+        leftEntries.every(([key, value]) => right?.[key] === value)
+    );
+}
+
+function areTranscriptSegmentsEqual(
+    left: TranscriptSegmentData[] | null | undefined,
+    right: TranscriptSegmentData[] | null | undefined,
+) {
+    if (left === right) {
+        return true;
+    }
+    if (!left || !right || left.length !== right.length) {
+        return false;
+    }
+
+    return left.every((segment, index) => {
+        const candidate = right[index];
+        return (
+            candidate?.text === segment.text &&
+            candidate.speakerLabel === segment.speakerLabel &&
+            candidate.displaySpeaker === segment.displaySpeaker &&
+            candidate.startMs === segment.startMs &&
+            candidate.endMs === segment.endMs
+        );
+    });
+}
+
+function areTranscriptionsEqual(
+    left: TranscriptionData | undefined,
+    right: TranscriptionData | undefined,
+) {
+    return (
+        left === right ||
+        (left?.hasTranscript === right?.hasTranscript &&
+            left?.text === right?.text &&
+            left?.language === right?.language &&
+            areSpeakerMapsEqual(left?.speakerMap, right?.speakerMap) &&
+            areTranscriptSegmentsEqual(left?.segments, right?.segments))
+    );
+}
+
+function reconcileTranscriptionMaps(
+    current: Map<string, TranscriptionData>,
+    incoming: Map<string, TranscriptionData>,
+) {
+    const next = new Map(
+        Array.from(incoming, ([recordingId, transcription]) => [
+            recordingId,
+            mergeTranscriptionData(current.get(recordingId), transcription),
+        ]),
+    );
+
+    if (
+        current.size === next.size &&
+        Array.from(next).every(([recordingId, transcription]) =>
+            areTranscriptionsEqual(current.get(recordingId), transcription),
+        )
+    ) {
+        return current;
+    }
+
+    return next;
+}
+
 type Favorite = "all" | "transcribed" | "tags";
 type DetailTab = "transcript" | "speakers" | "source";
 type ListMode = "timeline" | "tags";
@@ -260,7 +386,6 @@ type DashboardCopyFeedback = {
     action: Exclude<DashboardCopyAction, null>;
     state: "ok" | "err";
 } | null;
-type DashboardCopyFeedbackState = Exclude<DashboardCopyFeedback, null>["state"];
 type SourceReportViewState = "idle" | "loading" | "loaded" | "error";
 type SourceReportCopyState = "ready" | "missing" | "loading" | "error";
 type SourceRepullState = "idle" | "loading" | "success" | "error";
@@ -396,112 +521,6 @@ const dashboardNavClassNames = {
         "px-2.5 pt-3.5 pb-1.5 text-xs font-semibold uppercase tracking-wide text-muted-foreground",
     favoriteCount: "min-w-6 justify-center px-1.5 font-mono",
 } as const;
-
-type DashboardTranscriptSkeletonSize =
-    | "avatar"
-    | "line-60"
-    | "line-70"
-    | "line-78"
-    | "line-82"
-    | "line-88"
-    | "line-92"
-    | "line-94"
-    | "line-96"
-    | "speaker-120"
-    | "speaker-130"
-    | "speaker-140"
-    | "time";
-
-const dashboardTranscriptSkeletonClassNames = {
-    avatar: "size-6 flex-none rounded-full",
-    "line-60": "mt-1.5 h-3.5 w-3/5",
-    "line-70": "mt-1.5 h-3.5 w-[70%]",
-    "line-78": "mt-1.5 h-3.5 w-[78%]",
-    "line-82": "mt-1.5 h-3.5 w-[82%]",
-    "line-88": "mt-1.5 h-3.5 w-[88%]",
-    "line-92": "mt-1 h-3.5 w-[92%]",
-    "line-94": "mt-1 h-3.5 w-[94%]",
-    "line-96": "mt-1 h-3.5 w-[96%]",
-    "speaker-120": "h-[13px] w-[120px] flex-none",
-    "speaker-130": "h-[13px] w-[130px] flex-none",
-    "speaker-140": "h-[13px] w-[140px] flex-none",
-    time: "h-[11px] w-20 flex-none",
-} as const satisfies Record<DashboardTranscriptSkeletonSize, string>;
-
-const dashboardSpeakerPaneClassNames = {
-    head: "flex items-center gap-2.5 px-4 pt-3 pb-2",
-    headTitle: "flex-1 text-sm font-medium text-muted-foreground",
-    rows: "m-0 flex list-none flex-col gap-1 px-2 pb-3.5",
-    row: "grid grid-cols-[auto_minmax(0,1fr)_minmax(72px,120px)_auto] items-center gap-2.5 rounded-lg px-2.5 py-2 hover:bg-accent",
-    rowMeta: "flex min-w-0 flex-col gap-0.5",
-    name: "truncate text-sm font-medium text-foreground",
-    sub: "w-fit justify-center font-mono tabular-nums",
-    avatar: "size-7 flex-none p-0 tabular-nums",
-    bar: "h-1 bg-muted",
-    barFill: "bg-primary",
-    empty: "border-0 py-4 md:py-4",
-    emptyHeader: "max-w-none",
-    emptyIcon: "size-8",
-} as const;
-
-const DASHBOARD_SPEAKER_SHARE_VALUES = [
-    24, 36, 48, 60, 72, 84, 96, 100,
-] as const;
-
-function getDashboardSpeakerShareValue(index: number) {
-    return DASHBOARD_SPEAKER_SHARE_VALUES[
-        Math.min(index, DASHBOARD_SPEAKER_SHARE_VALUES.length - 1)
-    ];
-}
-
-const TRANSCRIPT_LOADING_SKELETON_ROWS = [
-    {
-        firstLine: "line-96",
-        key: "opening",
-        secondLine: "line-88",
-        speaker: "speaker-120",
-        thirdLine: "line-60",
-    },
-    {
-        firstLine: "line-92",
-        key: "middle",
-        secondLine: "line-78",
-        speaker: "speaker-140",
-        thirdLine: null,
-    },
-    {
-        firstLine: "line-94",
-        key: "closing",
-        secondLine: "line-82",
-        speaker: "speaker-130",
-        thirdLine: "line-70",
-    },
-] as const satisfies ReadonlyArray<{
-    firstLine: DashboardTranscriptSkeletonSize;
-    key: string;
-    secondLine: DashboardTranscriptSkeletonSize;
-    speaker: DashboardTranscriptSkeletonSize;
-    thirdLine: DashboardTranscriptSkeletonSize | null;
-}>;
-
-function DashboardTranscriptSkeleton({
-    size,
-}: {
-    size: DashboardTranscriptSkeletonSize;
-}) {
-    return (
-        <Skeleton
-            aria-hidden="true"
-            variant="default"
-            size="default"
-            className={dashboardTranscriptSkeletonClassNames[size]}
-            data-part="dashboard-transcript-skeleton"
-            data-size={size}
-        />
-    );
-}
-
-const TRANSCRIPT_AVATAR_TONES = ["steel", "info", "success"] as const;
 
 const SOURCE_ORDER = [
     {
@@ -675,7 +694,6 @@ const dashboardSearchActivityClassNames = {
 const dashboardButtonClassNames = {
     nav: "w-full justify-start gap-2.5 px-2.5 text-muted-foreground data-[state=selected]:bg-sidebar-accent data-[state=selected]:text-sidebar-accent-foreground",
     sync: "text-muted-foreground",
-    speakersMerge: "shrink-0",
     drawerTrigger:
         "relative hidden h-[2px] w-[22.5px] px-[11.25px] py-px after:absolute after:-inset-[21px] after:content-[''] max-[860px]:inline-flex",
     sidebarCollapse:
@@ -783,25 +801,6 @@ function providerLabel(provider: string, language: UiLanguage) {
         SOURCE_ORDER.find((source) => source.key === provider)?.label ??
         provider
     );
-}
-
-function transcriptLanguageLabel(
-    detectedLanguage: string | null | undefined,
-    language: UiLanguage,
-) {
-    const normalized = detectedLanguage?.trim().toLowerCase();
-    if (!normalized) {
-        return language === "zh-CN" ? "自动识别" : "Auto detect";
-    }
-    if (normalized === "zh" || normalized.startsWith("zh-")) {
-        return language === "zh-CN" ? "中文 · 自动识别" : "Chinese · Auto";
-    }
-    if (normalized === "en" || normalized.startsWith("en-")) {
-        return language === "zh-CN" ? "英文 · 自动识别" : "English · Auto";
-    }
-    return language === "zh-CN"
-        ? `${detectedLanguage} · 自动识别`
-        : `${detectedLanguage} · Auto`;
 }
 
 function sourceOpenLabel(
@@ -948,6 +947,69 @@ function transcriptTurns(
     return turns.map((text) => ({ text }));
 }
 
+function transcriptSpeakers(
+    transcription: TranscriptionData | null | undefined,
+): TranscriptionPanelSpeaker[] {
+    const segments =
+        transcription?.segments?.filter((segment) => segment.text?.trim()) ??
+        [];
+    if (segments.length === 0) {
+        return [];
+    }
+
+    const speakers = new Map<
+        string,
+        {
+            rawLabel: string;
+            speakerName: string;
+            text: string[];
+            segmentCount: number;
+        }
+    >();
+
+    for (const segment of segments) {
+        const rawLabel =
+            segment.speakerLabel?.trim() ||
+            segment.displaySpeaker?.trim() ||
+            "";
+        if (!rawLabel) {
+            continue;
+        }
+        const speakerName =
+            segment.displaySpeaker?.trim() ||
+            segment.speakerLabel?.trim() ||
+            rawLabel;
+        const current = speakers.get(speakerName);
+        if (current) {
+            current.text.push(segment.text?.trim() ?? "");
+            current.segmentCount += 1;
+        } else {
+            speakers.set(speakerName, {
+                rawLabel,
+                speakerName,
+                text: [segment.text?.trim() ?? ""],
+                segmentCount: 1,
+            });
+        }
+    }
+
+    const totalSegments = Math.max(
+        1,
+        Array.from(speakers.values()).reduce(
+            (total, speaker) => total + speaker.segmentCount,
+            0,
+        ),
+    );
+
+    return Array.from(speakers.values(), (speaker) => ({
+        id: speaker.rawLabel,
+        rawLabel: speaker.rawLabel,
+        speakerName: speaker.speakerName,
+        text: speaker.text.join("\n"),
+        share: Math.round((speaker.segmentCount / totalSegments) * 100),
+    }));
+}
+
 function formatSourceTimestamp(valueMs: number | null | undefined) {
     if (valueMs == null || !Number.isFinite(valueMs)) {
         return null;
@@ -975,28 +1037,6 @@ function formatSourceReportTimestamp(valueMs: number | null | undefined) {
         return `${parts[0].padStart(2, "0")}:${parts[1]}`;
     }
     return timestamp;
-}
-
-function formatTranscriptTurnTimestamp(
-    startMs: number | null | undefined,
-    endMs: number | null | undefined,
-) {
-    const start = formatSourceReportTimestamp(startMs);
-    const end = formatSourceReportTimestamp(endMs);
-    if (start && end && start !== end) {
-        return `${start} – ${end}`;
-    }
-    return start ?? end;
-}
-
-function formatTranscriptAvatarLabel(speakerName: string, index: number) {
-    const trimmed = speakerName.trim();
-    const genericMatch = trimmed.match(/^(?:Speaker|说话人)\s*(\d+)$/i);
-    if (genericMatch?.[1]) {
-        return genericMatch[1];
-    }
-
-    return Array.from(trimmed)[0] ?? `${index + 1}`;
 }
 
 function buildSourceTranscriptCopyText(report: SourceReportData | null) {
@@ -1150,22 +1190,6 @@ const dashboardRecordingStatusBadgeVariants = {
     ok: "secondary",
     warn: "secondary",
 } as const satisfies Record<PlayerStatusTone, string>;
-
-function DashboardCopyIcon({ state }: { state?: DashboardCopyFeedbackState }) {
-    const Icon = state === "ok" ? Check : state === "err" ? X : Copy;
-
-    return (
-        <Icon
-            data-icon="inline-start"
-            data-part="dashboard-copy-icon"
-            aria-hidden="true"
-        />
-    );
-}
-
-function DashboardCopyLabel({ children }: { children: ReactNode }) {
-    return <span data-part="dashboard-copy-label">{children}</span>;
-}
 
 function getRetxStateFromActiveJob(
     job: TranscriptionJobData | null | undefined,
@@ -1350,32 +1374,6 @@ function activityItemKind(item: ActivityItem) {
     if (item.id.startsWith("transcription-failed-")) return "sync-error";
     if (item.action === "settings") return "setup";
     return item.tone;
-}
-
-function RetxWarnIcon() {
-    return (
-        <CircleAlert
-            data-part="dashboard-retranscription-icon-warn"
-            aria-hidden="true"
-        />
-    );
-}
-
-function RetxOkIcon() {
-    return (
-        <Check
-            data-part="dashboard-retranscription-icon-ok"
-            aria-hidden="true"
-        />
-    );
-}
-
-function RetxCloseIcon() {
-    return <X aria-hidden="true" focusable="false" />;
-}
-
-function DashboardTranscriptEmptyIcon() {
-    return <MessageSquareText aria-hidden="true" focusable="false" />;
 }
 
 function DashboardDetailEmptyIcon() {
@@ -1729,12 +1727,16 @@ export function Workstation({
     const itemsPerPage = Math.max(1, displaySettings.itemsPerPage || 50);
     const [hydrated, setHydrated] = useState(false);
     const [liveRecordings, setLiveRecordings] = useState(recordings);
-    const [liveTranscriptions, setLiveTranscriptions] =
-        useState(transcriptions);
+    const [liveTranscriptions, setLiveTranscriptions] = useState(
+        () => new Map(transcriptions),
+    );
     const loadingTranscriptIdsRef = useRef<Set<string>>(new Set());
     const [loadingTranscriptIds, setLoadingTranscriptIds] = useState<
         Set<string>
     >(() => new Set());
+    const [transcriptLoadErrors, setTranscriptLoadErrors] = useState<
+        Map<string, string>
+    >(() => new Map());
     const [liveJobs, setLiveJobs] = useState(transcriptionJobs);
     const [favorite, setFavorite] = useState<Favorite>("all");
     const [source, setSource] = useState("all");
@@ -1779,6 +1781,13 @@ export function Workstation({
         boolean | null
     >(null);
     const [retxState, setRetxState] = useState<RetxState>("idle");
+    const [speakerMergeState, setSpeakerMergeState] =
+        useState<DashboardSpeakerMergeState>({
+            state: "idle",
+            error: null,
+        });
+    const lastSpeakerMergeRequestRef =
+        useRef<TranscriptionPanelSpeakerMergeRequest | null>(null);
     const [dismissedCompletedRetxIds, setDismissedCompletedRetxIds] = useState<
         Set<string>
     >(() => new Set());
@@ -1966,7 +1975,9 @@ export function Workstation({
     }, [recordings]);
 
     useEffect(() => {
-        setLiveTranscriptions(transcriptions);
+        setLiveTranscriptions((current) =>
+            reconcileTranscriptionMaps(current, transcriptions),
+        );
     }, [transcriptions]);
 
     useEffect(() => {
@@ -2067,7 +2078,9 @@ export function Workstation({
                     transcriptionJobs: nextJobs,
                 } = buildPagedRecordingMaps(payload.recordings);
                 setLiveRecordings(payload.recordings);
-                setLiveTranscriptions(nextTranscriptions);
+                setLiveTranscriptions((current) =>
+                    reconcileTranscriptionMaps(current, nextTranscriptions),
+                );
                 setLiveJobs(nextJobs);
                 setRecordingPage(payload.pagination);
                 setListPage(payload.pagination.page);
@@ -2610,11 +2623,27 @@ export function Workstation({
                 : dashboardRetxState === "queued"
                   ? "正在等待工作器领取，期间可继续浏览。"
                   : "新任务会保持当前转写可见，完成后替换结果。";
-    const turns = transcriptTurns(selectedTranscription);
-    const localTranscriptText = selectedTranscription?.text ?? "";
+    const turns = useMemo(
+        () => transcriptTurns(selectedTranscription),
+        [selectedTranscription],
+    );
+    const speakers = useMemo(
+        () => transcriptSpeakers(selectedTranscription),
+        [selectedTranscription],
+    );
+    const localTranscriptText =
+        selectedTranscription?.text?.trim() ||
+        turns.map((turn) => turn.text).join("\n\n");
     const isTranscriptLoading = selectedRecordingId
         ? loadingTranscriptIds.has(selectedRecordingId)
         : false;
+    const transcriptLoadError = selectedRecordingId
+        ? (transcriptLoadErrors.get(selectedRecordingId) ?? null)
+        : null;
+    const transcriptionPollingKey = getDashboardTranscriptionPollingKey(
+        selectedRecordingId,
+        selectedJob,
+    );
     const sourceReportState =
         sourceReport.recordingId === selectedRecordingId
             ? sourceReport.state
@@ -2650,12 +2679,11 @@ export function Workstation({
     );
     const localTranscriptCopyState: SourceReportCopyState = isTranscriptLoading
         ? "loading"
-        : localTranscriptText.trim()
-          ? "ready"
-          : "missing";
-    const localTranscriptCopyDisabled =
-        copyingAction === "local-transcript" ||
-        localTranscriptCopyState !== "ready";
+        : transcriptLoadError && !localTranscriptText.trim()
+          ? "error"
+          : localTranscriptText.trim()
+            ? "ready"
+            : "missing";
     const sourceTranscriptCopyDisabled =
         copyingAction === "source-transcript" ||
         sourceTranscriptCopyState !== "ready";
@@ -3215,76 +3243,411 @@ export function Workstation({
         });
     }, []);
 
+    const loadRecordingTranscription = useCallback(
+        async (recordingId: string) => {
+            if (loadingTranscriptIdsRef.current.has(recordingId)) {
+                return null;
+            }
+
+            loadingTranscriptIdsRef.current.add(recordingId);
+            markTranscriptLoading(recordingId);
+            setTranscriptLoadErrors((previous) => {
+                if (!previous.has(recordingId)) {
+                    return previous;
+                }
+                const next = new Map(previous);
+                next.delete(recordingId);
+                return next;
+            });
+
+            try {
+                const response = await fetch(`/api/recordings/${recordingId}`, {
+                    cache: "no-store",
+                    headers: { Accept: "application/json" },
+                });
+                if (!response.ok) {
+                    throw new Error(
+                        await readResponseError(
+                            response,
+                            "无法读取逐字稿，请稍后重试。",
+                        ),
+                    );
+                }
+
+                const data = (await response.json()) as {
+                    transcription?: TranscriptionPollTranscriptData | null;
+                };
+                const transcription = data.transcription;
+                if (!transcription) {
+                    setLiveTranscriptions((previous) => {
+                        const current = previous.get(recordingId);
+                        if (hasTranscriptContent(current)) {
+                            return previous;
+                        }
+                        const next = new Map(previous);
+                        next.set(recordingId, {
+                            ...current,
+                            hasTranscript: false,
+                            text: null,
+                            segments: null,
+                        });
+                        return next;
+                    });
+                    return null;
+                }
+
+                setLiveTranscriptions((previous) => {
+                    const current = previous.get(recordingId);
+                    const merged = mergeTranscriptionData(current, {
+                        hasTranscript:
+                            hasTranscriptContent({
+                                text: transcription.text,
+                                segments: transcription.segments,
+                            }) || Boolean(current?.hasTranscript),
+                        text: transcription.text ?? null,
+                        language: transcription.detectedLanguage ?? null,
+                        speakerMap: transcription.speakerMap ?? null,
+                        segments: transcription.segments ?? null,
+                    });
+                    if (areTranscriptionsEqual(current, merged)) {
+                        return previous;
+                    }
+                    const next = new Map(previous);
+                    next.set(recordingId, merged);
+                    return next;
+                });
+                return transcription;
+            } catch (error) {
+                const message =
+                    error instanceof Error && error.message.trim()
+                        ? error.message
+                        : "无法读取逐字稿，请稍后重试。";
+                setTranscriptLoadErrors((previous) => {
+                    const next = new Map(previous);
+                    next.set(recordingId, message);
+                    return next;
+                });
+                return null;
+            } finally {
+                loadingTranscriptIdsRef.current.delete(recordingId);
+                clearTranscriptLoading(recordingId);
+            }
+        },
+        [clearTranscriptLoading, markTranscriptLoading],
+    );
+
     useEffect(() => {
         const recordingId = selectedRecordingId;
         if (
             !recordingId ||
             !selectedTranscription?.hasTranscript ||
-            hasTranscriptContent(selectedTranscription) ||
-            loadingTranscriptIdsRef.current.has(recordingId)
+            selectedTranscription.segments !== undefined
         ) {
             return;
         }
 
-        loadingTranscriptIdsRef.current.add(recordingId);
-        markTranscriptLoading(recordingId);
-        let active = true;
-
-        fetch(`/api/recordings/${recordingId}`, {
-            headers: { Accept: "application/json" },
-        })
-            .then((response) => (response.ok ? response.json() : null))
-            .then(
-                (
-                    data: {
-                        transcription?: {
-                            text?: string | null;
-                            detectedLanguage?: string | null;
-                            speakerMap?: Record<string, string> | null;
-                            segments?: TranscriptSegmentData[] | null;
-                        } | null;
-                    } | null,
-                ) => {
-                    if (!active) return;
-                    const transcription = data?.transcription;
-                    if (!hasTranscriptContent(transcription ?? null)) {
-                        return;
-                    }
-
-                    setLiveTranscriptions((previous) => {
-                        const current = previous.get(recordingId);
-                        const next = new Map(previous);
-                        next.set(recordingId, {
-                            ...current,
-                            hasTranscript: true,
-                            text: transcription?.text ?? undefined,
-                            language:
-                                transcription?.detectedLanguage ?? undefined,
-                            speakerMap:
-                                transcription?.speakerMap ??
-                                current?.speakerMap,
-                            segments:
-                                transcription?.segments ?? current?.segments,
-                        });
-                        return next;
-                    });
-                },
-            )
-            .finally(() => {
-                if (!active) return;
-                loadingTranscriptIdsRef.current.delete(recordingId);
-                clearTranscriptLoading(recordingId);
-            });
-
-        return () => {
-            active = false;
-        };
+        void loadRecordingTranscription(recordingId);
     }, [
-        clearTranscriptLoading,
-        markTranscriptLoading,
+        loadRecordingTranscription,
         selectedRecordingId,
         selectedTranscription,
     ]);
+
+    useEffect(() => {
+        const recordingId = selectedRecordingId;
+        if (!recordingId || !transcriptionPollingKey) {
+            return;
+        }
+
+        let cancelled = false;
+        const poll = async () => {
+            try {
+                const response = await fetch(
+                    `/api/recordings/${recordingId}/transcribe`,
+                    { cache: "no-store" },
+                );
+                if (!response.ok || cancelled) {
+                    return;
+                }
+
+                const result =
+                    resolveDashboardTranscriptionPoll<TranscriptionPollTranscriptData>(
+                        await response.json(),
+                    );
+                if (cancelled) {
+                    return;
+                }
+
+                if (result.state === "active") {
+                    setLiveJobs((previous) => {
+                        const current = previous.get(recordingId);
+                        if (
+                            areDashboardTranscriptionJobsEqual(
+                                current,
+                                result.job,
+                            )
+                        ) {
+                            return previous;
+                        }
+                        const next = new Map(previous);
+                        next.set(recordingId, result.job);
+                        return next;
+                    });
+                    setRetxState(
+                        getRetxStateFromActiveJob(result.job) ?? "running",
+                    );
+                    return;
+                }
+
+                if (result.state === "completed") {
+                    setLiveTranscriptions((previous) => {
+                        const current = previous.get(recordingId);
+                        const merged = mergeTranscriptionData(current, {
+                            hasTranscript: true,
+                            text: result.transcript.text ?? null,
+                            language:
+                                result.transcript.detectedLanguage ?? null,
+                            speakerMap: result.transcript.speakerMap ?? null,
+                            segments: result.transcript.segments ?? null,
+                        });
+                        if (areTranscriptionsEqual(current, merged)) {
+                            return previous;
+                        }
+                        const next = new Map(previous);
+                        next.set(recordingId, merged);
+                        return next;
+                    });
+                    if (result.job) {
+                        const completedJob = result.job;
+                        setLiveJobs((previous) => {
+                            if (
+                                areDashboardTranscriptionJobsEqual(
+                                    previous.get(recordingId),
+                                    completedJob,
+                                )
+                            ) {
+                                return previous;
+                            }
+                            const next = new Map(previous);
+                            next.set(recordingId, completedJob);
+                            return next;
+                        });
+                    }
+                    setRetxState("completed");
+                    return;
+                }
+
+                if (result.state === "failed") {
+                    setLiveJobs((previous) => {
+                        const current = previous.get(recordingId);
+                        if (
+                            areDashboardTranscriptionJobsEqual(
+                                current,
+                                result.job,
+                            )
+                        ) {
+                            return previous;
+                        }
+                        const next = new Map(previous);
+                        next.set(recordingId, result.job);
+                        return next;
+                    });
+                    setRetxState("failed");
+                }
+            } catch {
+                // Polling is retried by the next interval.
+            }
+        };
+
+        void poll();
+        const intervalId = startBrowserInterval(() => {
+            void poll();
+        }, 3000);
+
+        return () => {
+            cancelled = true;
+            stopBrowserInterval(intervalId);
+        };
+    }, [selectedRecordingId, transcriptionPollingKey]);
+
+    const mergeDashboardSpeakers = useCallback(
+        async (request: TranscriptionPanelSpeakerMergeRequest) => {
+            if (!selectedRecordingId) {
+                return;
+            }
+
+            lastSpeakerMergeRequestRef.current = request;
+            setSpeakerMergeState({ state: "pending", error: null });
+
+            try {
+                const reviewResponse = await fetch(
+                    `/api/recordings/${selectedRecordingId}/speakers`,
+                    { cache: "no-store" },
+                );
+                if (!reviewResponse.ok) {
+                    throw new Error(
+                        await readResponseError(
+                            reviewResponse,
+                            "无法读取说话人信息。",
+                        ),
+                    );
+                }
+                const review = (await reviewResponse.json()) as {
+                    speakers?: Array<{
+                        rawLabel?: string;
+                        matchedProfileId?: string | null;
+                    }>;
+                };
+                const targetReview = review.speakers?.find(
+                    (speaker) => speaker.rawLabel === request.target.rawLabel,
+                );
+
+                let profileId = targetReview?.matchedProfileId ?? null;
+                if (!profileId) {
+                    const targetResponse = await fetch(
+                        `/api/recordings/${selectedRecordingId}/speakers`,
+                        {
+                            method: "PATCH",
+                            headers: {
+                                "Content-Type": "application/json",
+                            },
+                            body: JSON.stringify({
+                                rawLabel: request.target.rawLabel,
+                                profileName:
+                                    request.target.speakerName ||
+                                    request.target.rawLabel,
+                            }),
+                        },
+                    );
+                    if (!targetResponse.ok) {
+                        throw new Error(
+                            await readResponseError(
+                                targetResponse,
+                                "无法创建目标说话人。",
+                            ),
+                        );
+                    }
+                    const targetResult = (await targetResponse.json()) as {
+                        profileId?: string | null;
+                    };
+                    profileId = targetResult.profileId ?? null;
+                }
+
+                if (!profileId) {
+                    throw new Error("目标说话人没有可用的资料。");
+                }
+
+                const sourceResponse = await fetch(
+                    `/api/recordings/${selectedRecordingId}/speakers`,
+                    {
+                        method: "PATCH",
+                        headers: { "Content-Type": "application/json" },
+                        body: JSON.stringify({
+                            rawLabel: request.source.rawLabel,
+                            profileId,
+                        }),
+                    },
+                );
+                if (!sourceResponse.ok) {
+                    throw new Error(
+                        await readResponseError(
+                            sourceResponse,
+                            "无法合并所选说话人。",
+                        ),
+                    );
+                }
+
+                const readbackResponse = await fetch(
+                    `/api/recordings/${selectedRecordingId}/speakers`,
+                    { cache: "no-store" },
+                );
+                if (!readbackResponse.ok) {
+                    throw new Error("说话人已写入，但读取确认失败。");
+                }
+                const readback = (await readbackResponse.json()) as {
+                    speakers?: Array<{
+                        rawLabel?: string;
+                        matchedProfileId?: string | null;
+                    }>;
+                };
+                const mergedLabels = new Set([
+                    request.target.rawLabel,
+                    request.source.rawLabel,
+                ]);
+                const mergedRows =
+                    readback.speakers?.filter((speaker) =>
+                        mergedLabels.has(speaker.rawLabel ?? ""),
+                    ) ?? [];
+                if (
+                    mergedRows.length !== 2 ||
+                    mergedRows.some(
+                        (speaker) => speaker.matchedProfileId !== profileId,
+                    )
+                ) {
+                    throw new Error("说话人合并读取确认不一致。");
+                }
+
+                const transcriptResponse = await fetch(
+                    `/api/recordings/${selectedRecordingId}/transcript/speakers`,
+                    { cache: "no-store" },
+                );
+                if (!transcriptResponse.ok) {
+                    throw new Error("说话人已合并，但逐字稿刷新失败。");
+                }
+                const speakerTranscript = (await transcriptResponse.json()) as {
+                    transcript?: {
+                        displayText?: string | null;
+                        detectedLanguage?: string | null;
+                        segments?: TranscriptSegmentData[] | null;
+                    } | null;
+                    speakerMap?: Record<string, string> | null;
+                };
+                if (!speakerTranscript.transcript) {
+                    throw new Error("说话人已合并，但逐字稿读取为空。");
+                }
+                setLiveTranscriptions((previous) => {
+                    const current = previous.get(selectedRecordingId);
+                    const merged = mergeTranscriptionData(current, {
+                        hasTranscript: true,
+                        text:
+                            speakerTranscript.transcript?.displayText ??
+                            current?.text ??
+                            null,
+                        language:
+                            speakerTranscript.transcript?.detectedLanguage ??
+                            current?.language ??
+                            null,
+                        speakerMap: speakerTranscript.speakerMap ?? null,
+                        segments:
+                            speakerTranscript.transcript?.segments ?? null,
+                    });
+                    if (areTranscriptionsEqual(current, merged)) {
+                        return previous;
+                    }
+                    const next = new Map(previous);
+                    next.set(selectedRecordingId, merged);
+                    return next;
+                });
+                setSpeakerMergeState({ state: "success", error: null });
+                toast.success("说话人已合并");
+            } catch (error) {
+                const message =
+                    error instanceof Error && error.message.trim()
+                        ? error.message
+                        : "合并说话人失败，请稍后重试。";
+                setSpeakerMergeState({ state: "error", error: message });
+                toast.error(message);
+            }
+        },
+        [selectedRecordingId],
+    );
+
+    const retryDashboardSpeakerMerge = useCallback(() => {
+        const request = lastSpeakerMergeRequestRef.current;
+        if (request) {
+            void mergeDashboardSpeakers(request);
+        }
+    }, [mergeDashboardSpeakers]);
 
     useEffect(() => {
         if (!selectedRecording) {
@@ -3307,6 +3670,8 @@ export function Workstation({
         setSelectedId(selectedRecording.id);
         setDraftTitle(selectedRecording.filename);
         setRetxState("idle");
+        setSpeakerMergeState({ state: "idle", error: null });
+        lastSpeakerMergeRequestRef.current = null;
         sourceReportRequestRef.current?.controller.abort();
         sourceReportRequestRef.current = null;
         sourceReportRequestIdRef.current += 1;
@@ -6750,132 +7115,78 @@ export function Workstation({
                                     ) : null}
                                 </Card>
 
-                                <Card
-                                    hasNoPadding
-                                    className="min-h-0 flex-1 gap-0 rounded-2xl"
-                                    data-panel="dashboard-transcript-shell"
-                                >
-                                    <CardHeader
-                                        className="flex flex-row flex-wrap items-center gap-x-3 gap-y-1.5 border-b px-3.5 py-3"
-                                        data-part="dashboard-transcript-header"
-                                    >
-                                        <SegmentedTabs
-                                            aria-label="详情标签"
-                                            variant="segmented"
-                                            size="segmentedSm"
-                                            className="shrink-0"
-                                            data-control="segmented-tabs"
-                                            data-size="sm"
-                                            getItemProps={getSegmentedTabProps}
-                                            items={[
-                                                {
-                                                    value: "transcript",
-                                                    label: "转写",
-                                                },
-                                                {
-                                                    value: "speakers",
-                                                    label: "说话人",
-                                                },
-                                                {
-                                                    value: "source",
-                                                    label: "来源详情",
-                                                    tabKey: "source-report",
-                                                },
-                                            ]}
-                                            value={detailTab}
-                                            onValueChange={(value) => {
-                                                setDetailTab(value);
-                                                setAiOpen(false);
-                                                setTagOpen(false);
-                                                setMoreOpen(false);
-                                                setSearchOpen(false);
-                                                setActivityOpen(false);
-                                            }}
-                                        />
-                                        <div
-                                            className="ml-auto inline-flex max-w-full flex-[0_1_auto] flex-wrap items-center gap-2"
-                                            data-part="dashboard-transcript-actions"
-                                        >
-                                            {detailTab === "transcript" &&
-                                            selectedTranscription?.language ? (
-                                                <Badge
-                                                    variant="outline"
-                                                    className="gap-1.5"
-                                                    data-part="dashboard-transcript-language"
-                                                >
-                                                    <Globe2 data-icon="inline-start" />
-                                                    {transcriptLanguageLabel(
-                                                        selectedTranscription.language,
-                                                        language,
-                                                    )}
-                                                </Badge>
-                                            ) : null}
-                                            <Button
-                                                variant="ghost"
-                                                size="sm"
-                                                type="button"
-                                                data-copy="transcript"
-                                                data-copy-state={
-                                                    copyFeedback?.action ===
-                                                    "local-transcript"
-                                                        ? copyFeedback.state
-                                                        : undefined
-                                                }
-                                                data-control="copy-local-transcript"
-                                                data-state={
-                                                    localTranscriptCopyState
-                                                }
-                                                data-tab-scope="transcript"
-                                                aria-busy={
-                                                    copyingAction ===
-                                                    "local-transcript"
-                                                }
-                                                aria-disabled={
-                                                    localTranscriptCopyDisabled
-                                                        ? "true"
-                                                        : "false"
-                                                }
-                                                aria-label={t(
-                                                    "transcription.copyTranscript",
-                                                )}
-                                                aria-live={
-                                                    copyFeedback?.action ===
-                                                    "local-transcript"
-                                                        ? "polite"
-                                                        : undefined
-                                                }
-                                                disabled={
-                                                    localTranscriptCopyDisabled
-                                                }
-                                                hidden={
-                                                    detailTab !== "transcript"
-                                                }
-                                                onClick={() =>
-                                                    void handleCopyLocalTranscript()
-                                                }
-                                            >
-                                                <DashboardCopyIcon
-                                                    state={
-                                                        copyFeedback?.action ===
-                                                        "local-transcript"
-                                                            ? copyFeedback.state
-                                                            : undefined
-                                                    }
-                                                />
-                                                <DashboardCopyLabel>
-                                                    {copyFeedback?.action ===
-                                                    "local-transcript"
-                                                        ? copyFeedback.state ===
-                                                          "ok"
-                                                            ? t("common.copied")
-                                                            : t(
-                                                                  "common.copyFailedShort",
-                                                              )
-                                                        : t(
-                                                              "transcription.copyTranscript",
-                                                          )}
-                                                </DashboardCopyLabel>
-                                            </Button>
+                                <TranscriptionPanel
+                                    key={selectedRecording?.id ?? "none"}
+                                    recording={selectedRecording}
+                                    activeTab={detailTab}
+                                    onActiveTabChange={(value) => {
+                                        setDetailTab(value);
+                                        setAiOpen(false);
+                                        setTagOpen(false);
+                                        setMoreOpen(false);
+                                        setSearchOpen(false);
+                                        setActivityOpen(false);
+                                    }}
+                                    turns={turns}
+                                    isTranscriptLoading={isTranscriptLoading}
+                                    transcriptError={transcriptLoadError}
+                                    onRetryTranscript={async () => {
+                                        if (selectedRecordingId) {
+                                            await loadRecordingTranscription(
+                                                selectedRecordingId,
+                                            );
+                                        }
+                                    }}
+                                    transcriptLanguage={
+                                        selectedTranscription?.language
+                                    }
+                                    localCopyState={localTranscriptCopyState}
+                                    isCopyingLocal={
+                                        copyingAction === "local-transcript"
+                                    }
+                                    localCopyFeedback={
+                                        copyFeedback?.action ===
+                                        "local-transcript"
+                                            ? copyFeedback.state
+                                            : null
+                                    }
+                                    onCopyLocal={handleCopyLocalTranscript}
+                                    retranscription={{
+                                        state: dashboardRetxState,
+                                        title: dashboardRetxTitle,
+                                        description: dashboardRetxSub,
+                                        disabled:
+                                            !selectedRecording ||
+                                            !selectedRecording.audioUrl,
+                                        disabledReason:
+                                            "当前来源不支持私有重转写",
+                                        onRequest: retranscribe,
+                                        onRetry: retranscribe,
+                                        onDismiss: () => {
+                                            if (
+                                                dashboardRetxState ===
+                                                    "completed" &&
+                                                selectedRecording
+                                            ) {
+                                                setDismissedCompletedRetxIds(
+                                                    (items) =>
+                                                        new Set(items).add(
+                                                            selectedRecording.id,
+                                                        ),
+                                                );
+                                            }
+                                            setRetxState("idle");
+                                        },
+                                    }}
+                                    speakers={speakers}
+                                    speakerMerge={{
+                                        state: speakerMergeState.state,
+                                        error: speakerMergeState.error,
+                                        onMerge: mergeDashboardSpeakers,
+                                        onRetry: retryDashboardSpeakerMerge,
+                                    }}
+                                    sourceActions={
+                                        <>
                                             <SourceReportCopyButton
                                                 type="button"
                                                 copy="source-transcript"
@@ -7025,330 +7336,9 @@ export function Workstation({
                                                           )}
                                                 </SourceReportActionButton>
                                             ) : null}
-                                            <Badge
-                                                variant="outline"
-                                                data-part="dashboard-retranscription-disabled-hint"
-                                                className="[&[hidden]]:hidden"
-                                                hidden={
-                                                    detailTab !==
-                                                        "transcript" ||
-                                                    dashboardRetxState !==
-                                                        "unavailable"
-                                                }
-                                            >
-                                                当前来源不支持私有重转写
-                                            </Badge>
-                                            <Button
-                                                id="retx-btn"
-                                                variant="outline"
-                                                size="sm"
-                                                type="button"
-                                                data-control="retranscribe-recording"
-                                                data-state={dashboardRetxState}
-                                                data-retx-state={
-                                                    dashboardRetxState
-                                                }
-                                                aria-disabled={
-                                                    !selectedRecording ||
-                                                    !selectedRecording.audioUrl
-                                                }
-                                                disabled={
-                                                    !selectedRecording ||
-                                                    !selectedRecording.audioUrl
-                                                }
-                                                hidden={
-                                                    detailTab !== "transcript"
-                                                }
-                                                title={
-                                                    dashboardRetxState ===
-                                                    "unavailable"
-                                                        ? "当前来源不支持私有重转写"
-                                                        : undefined
-                                                }
-                                                onClick={() =>
-                                                    void retranscribe()
-                                                }
-                                            >
-                                                重新转写
-                                            </Button>
-                                        </div>
-                                    </CardHeader>
-                                    <CardContent
-                                        className="min-h-0 flex-1 overflow-y-auto px-5 pt-4 pb-5"
-                                        data-part="dashboard-transcript-body"
-                                    >
-                                        <Alert
-                                            variant={
-                                                dashboardRetxState === "failed"
-                                                    ? "statusError"
-                                                    : "default"
-                                            }
-                                            density="comfortable"
-                                            layout="inline"
-                                            className="rounded-none border-x-0 border-t-0 [&[hidden]]:hidden"
-                                            data-panel="dashboard-retranscription"
-                                            data-state={dashboardRetxState}
-                                            data-retx-state={dashboardRetxState}
-                                            hidden={
-                                                dashboardRetxState === "idle" ||
-                                                dashboardRetxState ===
-                                                    "unavailable"
-                                            }
-                                        >
-                                            <span
-                                                data-part="dashboard-retranscription-icon"
-                                                aria-hidden="true"
-                                            >
-                                                {dashboardRetxState ===
-                                                    "queued" ||
-                                                dashboardRetxState ===
-                                                    "running" ? (
-                                                    <Spinner
-                                                        data-part="dashboard-retranscription-spinner"
-                                                        size="xs"
-                                                    />
-                                                ) : dashboardRetxState ===
-                                                  "failed" ? (
-                                                    <RetxWarnIcon />
-                                                ) : dashboardRetxState ===
-                                                  "completed" ? (
-                                                    <RetxOkIcon />
-                                                ) : dashboardRetxState ===
-                                                  "unavailable" ? (
-                                                    <RetxWarnIcon />
-                                                ) : (
-                                                    <RefreshCw aria-hidden="true" />
-                                                )}
-                                            </span>
-                                            <div data-part="dashboard-retranscription-body">
-                                                <AlertTitle data-part="dashboard-retranscription-title">
-                                                    {dashboardRetxTitle}
-                                                </AlertTitle>
-                                                <AlertDescription
-                                                    density="comfortable"
-                                                    data-part="dashboard-retranscription-sub"
-                                                >
-                                                    {dashboardRetxSub}
-                                                </AlertDescription>
-                                            </div>
-                                            {dashboardRetxState === "failed" ? (
-                                                <div
-                                                    data-part="dashboard-retranscription-actions"
-                                                    className="flex flex-none items-center gap-2"
-                                                >
-                                                    <Button
-                                                        variant="outline"
-                                                        size="sm"
-                                                        type="button"
-                                                        data-retx-retry=""
-                                                        data-control="retry-retranscription"
-                                                        onClick={() =>
-                                                            void retranscribe()
-                                                        }
-                                                    >
-                                                        重试转写
-                                                    </Button>
-                                                    <Button
-                                                        variant="ghost"
-                                                        size="icon-sm"
-                                                        type="button"
-                                                        aria-label="收起"
-                                                        data-retx-dismiss=""
-                                                        data-control="dismiss-retranscription-failed"
-                                                        onClick={() =>
-                                                            setRetxState("idle")
-                                                        }
-                                                    >
-                                                        <RetxCloseIcon />
-                                                    </Button>
-                                                </div>
-                                            ) : dashboardRetxState ===
-                                                  "completed" &&
-                                              selectedRecording ? (
-                                                <div
-                                                    data-part="dashboard-retranscription-actions"
-                                                    className="flex flex-none items-center gap-2"
-                                                >
-                                                    <Button
-                                                        variant="ghost"
-                                                        size="icon-sm"
-                                                        type="button"
-                                                        aria-label="收起"
-                                                        data-retx-dismiss=""
-                                                        data-control="dismiss-retranscription-complete"
-                                                        onClick={() => {
-                                                            const recordingId =
-                                                                selectedRecording.id;
-                                                            setDismissedCompletedRetxIds(
-                                                                (items) =>
-                                                                    new Set(
-                                                                        items,
-                                                                    ).add(
-                                                                        recordingId,
-                                                                    ),
-                                                            );
-                                                        }}
-                                                    >
-                                                        <RetxCloseIcon />
-                                                    </Button>
-                                                </div>
-                                            ) : null}
-                                        </Alert>
-                                        <Badge
-                                            variant="secondary"
-                                            data-part="dashboard-retranscription-refresh-marker"
-                                            className="[&[hidden]]:hidden"
-                                            hidden={
-                                                dashboardRetxState !==
-                                                "completed"
-                                            }
-                                        >
-                                            刚刷新 · 1 秒前
-                                        </Badge>
-                                        <div
-                                            className={
-                                                dashboardTabPaneHiddenClassName
-                                            }
-                                            data-panel="dashboard-transcript-pane"
-                                            data-tab-pane="transcript"
-                                            hidden={detailTab !== "transcript"}
-                                        >
-                                            {isTranscriptLoading ? (
-                                                TRANSCRIPT_LOADING_SKELETON_ROWS.map(
-                                                    (item) => (
-                                                        <div
-                                                            className="border-b border-dashed py-3 last:border-b-0"
-                                                            data-item="dashboard-transcript-turn"
-                                                            data-state="loading"
-                                                            key={`transcript-skeleton:${item.key}`}
-                                                        >
-                                                            <div
-                                                                className="mb-2 flex items-center gap-2"
-                                                                data-part="dashboard-transcript-speaker-row"
-                                                                data-state="loading"
-                                                            >
-                                                                <DashboardTranscriptSkeleton size="avatar" />
-                                                                <DashboardTranscriptSkeleton
-                                                                    size={
-                                                                        item.speaker
-                                                                    }
-                                                                />
-                                                                <DashboardTranscriptSkeleton size="time" />
-                                                            </div>
-                                                            <DashboardTranscriptSkeleton
-                                                                size={
-                                                                    item.firstLine
-                                                                }
-                                                            />
-                                                            <DashboardTranscriptSkeleton
-                                                                size={
-                                                                    item.secondLine
-                                                                }
-                                                            />
-                                                            {item.thirdLine ? (
-                                                                <DashboardTranscriptSkeleton
-                                                                    size={
-                                                                        item.thirdLine
-                                                                    }
-                                                                />
-                                                            ) : null}
-                                                        </div>
-                                                    ),
-                                                )
-                                            ) : turns.length ? (
-                                                turns.map((turn, index) => {
-                                                    const speakerName =
-                                                        turn.speakerName ||
-                                                        `说话人 ${index + 1}`;
-                                                    const timeLabel =
-                                                        formatTranscriptTurnTimestamp(
-                                                            turn.startMs,
-                                                            turn.endMs,
-                                                        );
-                                                    const avatarLabel =
-                                                        formatTranscriptAvatarLabel(
-                                                            speakerName,
-                                                            index,
-                                                        );
-
-                                                    return (
-                                                        <div
-                                                            className="border-b border-dashed py-3 last:border-b-0"
-                                                            data-item="dashboard-transcript-turn"
-                                                            data-state="ready"
-                                                            key={`${selectedRecording?.id}:${index}`}
-                                                        >
-                                                            <div
-                                                                className="mb-2 flex items-center gap-2"
-                                                                data-part="dashboard-transcript-speaker-row"
-                                                                data-state="ready"
-                                                            >
-                                                                <span
-                                                                    className="inline-flex size-7 flex-none items-center justify-center rounded-full bg-muted text-xs font-medium text-muted-foreground"
-                                                                    data-part="dashboard-transcript-avatar"
-                                                                    data-tone={
-                                                                        TRANSCRIPT_AVATAR_TONES[
-                                                                            index %
-                                                                                TRANSCRIPT_AVATAR_TONES.length
-                                                                        ]
-                                                                    }
-                                                                >
-                                                                    {
-                                                                        avatarLabel
-                                                                    }
-                                                                </span>
-                                                                <span
-                                                                    className="text-sm font-medium text-foreground"
-                                                                    data-part="dashboard-transcript-speaker-name"
-                                                                >
-                                                                    {
-                                                                        speakerName
-                                                                    }
-                                                                </span>
-                                                                <span
-                                                                    className="ml-1 font-mono text-xs text-muted-foreground"
-                                                                    data-format="mono"
-                                                                    data-part="dashboard-transcript-speaker-time"
-                                                                >
-                                                                    {timeLabel ??
-                                                                        "--"}
-                                                                </span>
-                                                            </div>
-                                                            <p className="m-0 text-sm/relaxed text-foreground">
-                                                                {turn.text}
-                                                            </p>
-                                                        </div>
-                                                    );
-                                                })
-                                            ) : (
-                                                <Empty
-                                                    data-panel="dashboard-transcript-empty"
-                                                    variant="compact"
-                                                >
-                                                    <EmptyHeader>
-                                                        <EmptyMedia
-                                                            aria-hidden="true"
-                                                            data-part="dashboard-transcript-empty-icon"
-                                                            variant="icon"
-                                                        >
-                                                            <DashboardTranscriptEmptyIcon />
-                                                        </EmptyMedia>
-                                                        <EmptyTitle
-                                                            variant="compact"
-                                                            data-part="dashboard-transcript-empty-message"
-                                                        >
-                                                            还没有逐字稿
-                                                        </EmptyTitle>
-                                                        <EmptyDescription
-                                                            variant="compact"
-                                                            data-part="dashboard-transcript-empty-sub"
-                                                        >
-                                                            来源已就绪，转写任务还在排队中。
-                                                        </EmptyDescription>
-                                                    </EmptyHeader>
-                                                </Empty>
-                                            )}
-                                        </div>
+                                        </>
+                                    }
+                                    sourcePane={
                                         <SourceReportPane
                                             surface="dashboard"
                                             className={
@@ -7833,171 +7823,9 @@ export function Workstation({
                                                 </DashboardSourceReportState>
                                             )}
                                         </SourceReportPane>
-                                        <div
-                                            className={
-                                                dashboardTabPaneHiddenClassName
-                                            }
-                                            data-panel="dashboard-speakers-pane"
-                                            data-tab-pane="speakers"
-                                            hidden={detailTab !== "speakers"}
-                                        >
-                                            <div
-                                                className={
-                                                    dashboardSpeakerPaneClassNames.head
-                                                }
-                                                data-part="dashboard-speakers-head"
-                                            >
-                                                <div
-                                                    className={
-                                                        dashboardSpeakerPaneClassNames.headTitle
-                                                    }
-                                                    data-part="dashboard-speakers-head-title"
-                                                >
-                                                    {turns.length || 0} 段说话人
-                                                </div>
-                                                <Button
-                                                    variant="ghost"
-                                                    size="sm"
-                                                    className={
-                                                        dashboardButtonClassNames.speakersMerge
-                                                    }
-                                                    type="button"
-                                                    data-control="dashboard-speakers-merge"
-                                                >
-                                                    合并相似…
-                                                </Button>
-                                            </div>
-                                            <ul
-                                                className={
-                                                    dashboardSpeakerPaneClassNames.rows
-                                                }
-                                                data-list="dashboard-speaker-rows"
-                                            >
-                                                {turns.length ? (
-                                                    turns.map((turn, index) => {
-                                                        const shareValue =
-                                                            getDashboardSpeakerShareValue(
-                                                                index,
-                                                            );
-
-                                                        return (
-                                                            <li
-                                                                className={
-                                                                    dashboardSpeakerPaneClassNames.row
-                                                                }
-                                                                data-item="dashboard-speaker-row"
-                                                                key={`${selectedRecording?.id}:speaker:${index}`}
-                                                            >
-                                                                <Badge
-                                                                    variant="secondary"
-                                                                    className={
-                                                                        dashboardSpeakerPaneClassNames.avatar
-                                                                    }
-                                                                    data-part="dashboard-speaker-avatar"
-                                                                >
-                                                                    {index + 1}
-                                                                </Badge>
-                                                                <div
-                                                                    className={
-                                                                        dashboardSpeakerPaneClassNames.rowMeta
-                                                                    }
-                                                                    data-part="dashboard-speaker-row-meta"
-                                                                >
-                                                                    <div
-                                                                        className={
-                                                                            dashboardSpeakerPaneClassNames.name
-                                                                        }
-                                                                        data-part="dashboard-speaker-name"
-                                                                    >
-                                                                        {turn.speakerName ||
-                                                                            `说话人 ${index + 1}`}
-                                                                    </div>
-                                                                    <Badge
-                                                                        variant="outline"
-                                                                        className={
-                                                                            dashboardSpeakerPaneClassNames.sub
-                                                                        }
-                                                                        data-part="dashboard-speaker-sub"
-                                                                    >
-                                                                        {
-                                                                            turn
-                                                                                .text
-                                                                                .length
-                                                                        }{" "}
-                                                                        字
-                                                                    </Badge>
-                                                                </div>
-                                                                <Progress
-                                                                    value={
-                                                                        shareValue
-                                                                    }
-                                                                    max={100}
-                                                                    className={
-                                                                        dashboardSpeakerPaneClassNames.bar
-                                                                    }
-                                                                    indicatorClassName={
-                                                                        dashboardSpeakerPaneClassNames.barFill
-                                                                    }
-                                                                    indicatorProps={{
-                                                                        "data-part":
-                                                                            "dashboard-speaker-bar-fill",
-                                                                    }}
-                                                                    data-part="dashboard-speaker-bar"
-                                                                    getValueLabel={(
-                                                                        value,
-                                                                    ) =>
-                                                                        `${value}%`
-                                                                    }
-                                                                />
-                                                            </li>
-                                                        );
-                                                    })
-                                                ) : (
-                                                    <li
-                                                        className="px-2.5"
-                                                        data-item="dashboard-speaker-row"
-                                                        data-state="empty"
-                                                    >
-                                                        <Empty
-                                                            variant="compact"
-                                                            className={
-                                                                dashboardSpeakerPaneClassNames.empty
-                                                            }
-                                                        >
-                                                            <EmptyHeader
-                                                                className={
-                                                                    dashboardSpeakerPaneClassNames.emptyHeader
-                                                                }
-                                                            >
-                                                                <EmptyMedia
-                                                                    variant="icon"
-                                                                    className={
-                                                                        dashboardSpeakerPaneClassNames.emptyIcon
-                                                                    }
-                                                                    data-part="dashboard-speaker-avatar"
-                                                                >
-                                                                    <MessageSquareText />
-                                                                </EmptyMedia>
-                                                                <EmptyTitle
-                                                                    variant="compact"
-                                                                    data-part="dashboard-speaker-name"
-                                                                >
-                                                                    转写完成后可查看说话人信息
-                                                                </EmptyTitle>
-                                                                <EmptyDescription
-                                                                    variant="compact"
-                                                                    data-part="dashboard-speaker-sub"
-                                                                >
-                                                                    暂无说话人片段
-                                                                </EmptyDescription>
-                                                            </EmptyHeader>
-                                                        </Empty>
-                                                    </li>
-                                                )}
-                                            </ul>
-                                        </div>
-                                    </CardContent>
-                                </Card>
+                                    }
+                                    className="rounded-2xl"
+                                />
                             </>
                         ) : (
                             <DashboardDetailEmptyState />

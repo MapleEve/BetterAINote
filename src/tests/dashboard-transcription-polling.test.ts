@@ -3,6 +3,7 @@ import path from "node:path";
 import { describe, expect, it } from "vitest";
 
 import {
+    areDashboardTranscriptionJobsEqual,
     getDashboardTranscriptionPollingKey,
     resolveDashboardTranscriptionPoll,
 } from "@/features/dashboard/transcription-polling";
@@ -83,6 +84,37 @@ describe("dashboard transcription polling", () => {
         ).toBeNull();
     });
 
+    it("compares job snapshots without terminal-state update churn", () => {
+        expect(
+            areDashboardTranscriptionJobsEqual(
+                {
+                    status: "failed",
+                    remoteStatus: "error",
+                    lastError: "worker unavailable",
+                },
+                {
+                    status: "failed",
+                    remoteStatus: "error",
+                    lastError: "worker unavailable",
+                },
+            ),
+        ).toBe(true);
+        expect(
+            areDashboardTranscriptionJobsEqual(
+                {
+                    status: "failed",
+                    remoteStatus: "error",
+                    lastError: "worker unavailable",
+                },
+                {
+                    status: "failed",
+                    remoteStatus: "error",
+                    lastError: "timeout",
+                },
+            ),
+        ).toBe(false);
+    });
+
     it("keeps lazy transcript loading state updates idempotent", () => {
         const workstation = readSource("features/dashboard/workstation.tsx");
 
@@ -93,5 +125,19 @@ describe("dashboard transcription polling", () => {
         expect(workstation).toContain("hasTranscriptContent");
         expect(workstation).toContain("segments?.some");
         expect(workstation).toContain("return previous;");
+    });
+
+    it("wires active jobs through the real polling route with idempotent terminal updates", () => {
+        const workstation = readSource("features/dashboard/workstation.tsx");
+
+        expect(workstation).toContain("getDashboardTranscriptionPollingKey(");
+        expect(workstation).toContain("resolveDashboardTranscriptionPoll");
+        expect(workstation).toMatch(
+            /fetch\([\s\S]*?\/api\/recordings\/\$\{recordingId\}\/transcribe/,
+        );
+        expect(workstation).toContain("areDashboardTranscriptionJobsEqual(");
+        expect(workstation).toContain(
+            "if (areTranscriptionsEqual(current, merged))",
+        );
     });
 });
