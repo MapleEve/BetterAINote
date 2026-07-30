@@ -1812,11 +1812,6 @@ describe("dashboard SOT foundation", () => {
             "const routeFallbackShellClassName =",
             ";",
         );
-        const dashboardRouteLoadingListClassName = extractBoundedSlice(
-            loading,
-            "const dashboardRouteLoadingListClassName =",
-            ";",
-        );
         const routeFallbackDetailLoadingSkeleton = extractBoundedSlice(
             routeChrome,
             "function RouteFallbackDetailLoadingSkeleton",
@@ -1829,12 +1824,12 @@ describe("dashboard SOT foundation", () => {
         );
         const dashboardLoadingListCard = extractElementSlice(
             loading,
-            "className={dashboardRouteLoadingListClassName}",
+            'className="min-h-0 gap-0 overflow-hidden rounded-2xl border-border bg-card shadow-sm backdrop-blur-none shrink-0 basis-96 max-lg:basis-auto"',
             "Card",
         );
         const dashboardLoadingListCardOpening = extractOpeningElement(
             loading,
-            "className={dashboardRouteLoadingListClassName}",
+            'className="min-h-0 gap-0 overflow-hidden rounded-2xl border-border bg-card shadow-sm backdrop-blur-none shrink-0 basis-96 max-lg:basis-auto"',
             "Card",
         );
         const routeFallbackDetailLoadingCard = extractElementSlice(
@@ -1852,7 +1847,7 @@ describe("dashboard SOT foundation", () => {
             [];
         const dashboardLoadingDetailCard = extractElementSlice(
             loading,
-            '"flex min-h-0 min-w-0 flex-col gap-4 flex-1",',
+            'className="min-h-0 gap-0 overflow-hidden rounded-2xl border-border bg-card shadow-sm backdrop-blur-none flex min-h-0 min-w-0 flex-col gap-4 flex-1"',
             "Card",
         );
         const dashboardDetailLoadingSkeleton = extractBoundedSlice(
@@ -1877,9 +1872,6 @@ describe("dashboard SOT foundation", () => {
         expect(routeFallbackShellClassName).toContain(
             `"${ROUTE_FALLBACK_CHROME_SHELL_CLASS_VALUE}"`,
         );
-        expect(dashboardRouteLoadingListClassName).toContain(
-            "routeFallbackSurfaceClassName",
-        );
         expect(routeChrome).toContain(
             "function RouteFallbackDetailLoadingSkeleton",
         );
@@ -1893,7 +1885,7 @@ describe("dashboard SOT foundation", () => {
             expect(card, label).not.toContain('variant="routeLoadingSurface"');
         }
         expect(dashboardLoadingListCardOpening).toContain(
-            "className={dashboardRouteLoadingListClassName}",
+            'className="min-h-0 gap-0 overflow-hidden rounded-2xl border-border bg-card shadow-sm backdrop-blur-none shrink-0 basis-96 max-lg:basis-auto"',
         );
         expect(routeFallbackDetailLoadingCardOpening).toContain(
             "className={cn(",
@@ -1907,19 +1899,12 @@ describe("dashboard SOT foundation", () => {
         expect(dashboardLoadingDetailCard).toContain("hasNoPadding");
         expect(loading).not.toContain('variant="routeLoadingSurface"');
         expect(cardPrimitive).not.toContain("routeLoadingSurface");
-        for (const loadingSkeletonClassName of [
-            "recordingListLoadingDayLabelClassName",
-            "recordingListLoadingTitleClassName",
-            "recordingListLoadingTitle80ClassName",
-            "recordingListLoadingMetaTimeClassName",
-            "recordingListLoadingMetaTagClassName",
-            "recordingListLoadingMetaPillClassName",
-            "recordingListLoadingTagClassName",
-        ]) {
-            expect(skeletonPrimitive).not.toContain(loadingSkeletonClassName);
-            expect(loading).toContain(`const ${loadingSkeletonClassName} =`);
-            expect(loading).not.toContain(`size="${loadingSkeletonClassName}"`);
-        }
+        expect(loading).not.toMatch(
+            /(?:ClassNames|_CLASS_NAME|Styles|data-sot|style\s*=)/,
+        );
+        expect(skeletonPrimitive).not.toContain(
+            "recordingListLoadingSkeletonClassNames",
+        );
         expect(
             routeFallbackDetailLoadingSkeletonOpenings.map(
                 (opening) => opening.match(/className="([^"]+)"/)?.[1],
@@ -1963,7 +1948,7 @@ describe("dashboard SOT foundation", () => {
         expect(routeChrome).toContain('variant="default"');
         expect(loading).toContain('size="default"');
         expect(routeChrome).toContain('size="default"');
-        expect(loading).toContain("className={");
+        expect(loading).toContain('className="');
         expect(loading).toContain('aria-label="正在加载仪表盘"');
         expect(loading).toContain('aria-label="应用导航"');
         expect(loading).toContain('aria-label="当前页面"');
@@ -1975,7 +1960,7 @@ describe("dashboard SOT foundation", () => {
         expect(loading).not.toContain('from "../route-chrome";');
         expect(loading).not.toContain("RouteFallbackChrome");
         expect(loading).not.toContain("RouteFallbackDetailLoadingSkeleton");
-        expect(loading).toContain("routeFallbackSurfaceClassName");
+        expect(loading).not.toContain("routeFallbackSurfaceClassName");
         expect(loading).not.toContain("routeChromeStyles");
         expect(loading).not.toContain("route-chrome.module.css");
         expect(routeChromeModule.trim()).toBe("");
@@ -5201,11 +5186,11 @@ describe("dashboard SOT foundation", () => {
             'import { Progress } from "@/components/ui/progress";',
         );
         expect(banner).toContain("const systemBannerAlertVariantByState");
-        expect(banner).toContain("const systemBannerAlertClassNames");
+        expect(banner).not.toContain("const systemBannerAlertClassNames");
         expect(banner).not.toContain("const systemBannerAlertStateClassNames");
         expect(banner).not.toContain("const systemBannerIconStateClassNames");
         expect(banner).not.toContain("const systemBannerButtonClassNames");
-        expect(banner).toContain("const systemBannerProgressClassNames");
+        expect(banner).not.toContain("const systemBannerProgressClassNames");
         expect(banner).toContain('} from "lucide-react";');
         for (const systemBannerIcon of [
             "Download",
@@ -5273,12 +5258,12 @@ describe("dashboard SOT foundation", () => {
         expect(banner).toContain('aria-live={a11y["aria-live"]}');
         expect(banner).toContain("role={a11y.role}");
         expect(banner).toContain("<SystemBannerIcon");
-        expect(banner).toContain("systemBannerAlertClassNames.body");
-        expect(banner).toContain("systemBannerAlertClassNames.actions");
-        expect(banner).toContain("systemBannerProgressClassNames.root");
         expect(banner).toContain(
-            "systemBannerProgressClassNames.indeterminateIndicator",
+            'className="flex min-w-0 flex-1 flex-col gap-0.5"',
         );
+        expect(banner).toContain('className="flex flex-none gap-1.5"');
+        expect(banner).toContain('className="min-w-[120px] flex-1"');
+        expect(banner).toContain("indicatorClassName={");
         expect(banner).toContain("<Progress");
         expect(banner).not.toContain('variant="systemBanner"');
         expect(banner).toContain("value={progress ?? 0}");
