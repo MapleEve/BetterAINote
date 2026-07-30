@@ -121,58 +121,6 @@ const PROVIDER_ASSETS: Partial<Record<SourceProvider, string>> = {
     "feishu-minutes": "/assets/sources/feishu.jpeg",
 };
 
-const onboardingCardClassNames = {
-    layout: "grid min-h-svh place-items-center bg-background px-8 pb-20 pt-7 text-foreground",
-    surface:
-        "block min-h-96 w-full max-w-md box-border gap-0 overflow-visible rounded-xl border border-border bg-card p-5 shadow-sm backdrop-blur-none",
-    frame: "overflow-hidden rounded-xl border border-border bg-background p-5",
-    speakerDraft:
-        "flex flex-row items-center gap-3 border-primary/50 bg-primary/10 p-3.5",
-    providerCard:
-        "flex h-auto w-full flex-row items-center justify-start gap-3 rounded-md px-3.5 py-3 text-left whitespace-normal",
-    providerList: "mb-5 flex w-full flex-col items-stretch gap-2",
-    summaryList: "mb-5 flex flex-col gap-2",
-    matrixRow:
-        "m-0 flex min-h-8 items-baseline gap-2 border-b border-dashed border-border py-1.5",
-    matrixLabel:
-        "m-0 w-20 flex-none text-xs font-semibold text-muted-foreground",
-    matrixValue:
-        "m-0 min-w-0 flex-1 break-words text-xs font-medium text-foreground",
-    sourceAuthModeGroup: "grid w-full grid-cols-2 items-stretch",
-    sourceAuthModeOption:
-        "h-auto flex-col items-start justify-start whitespace-normal px-3.5 py-3 text-left",
-    sourceField: "flex-col gap-2",
-    sourceFieldContent: "min-w-0 gap-1",
-    sourceFieldDescription:
-        "max-w-full text-xs leading-normal text-muted-foreground",
-    sourceFieldControl: "min-w-0 flex-1",
-    sourceProviderFields: "flex flex-col gap-0",
-    header: "grid auto-rows-min gap-0 p-0",
-    steps: "mb-3.5 flex gap-1.5",
-    step: "h-1 flex-1 rounded-sm bg-muted p-0 hover:bg-muted disabled:cursor-not-allowed",
-    stepHeader: "grid auto-rows-min gap-0 p-0",
-    providerMeta: "grid min-w-0 auto-rows-min gap-0 p-0",
-    heading: "mb-1 text-sm font-semibold text-foreground",
-    sub: "mb-3.5 text-xs leading-normal text-muted-foreground",
-    stepTitle: "text-sm font-semibold text-foreground",
-    stepDescription: "mb-3.5 text-xs text-muted-foreground",
-    errorMessage: "text-xs text-muted-foreground",
-    stepBody: "flex flex-col gap-3 p-0",
-    defaultSources: "flex w-full flex-col items-stretch gap-1.5",
-    defaultSource:
-        "h-auto w-full justify-start whitespace-normal px-3 py-2 text-left",
-    actions: "mt-3.5 flex justify-end gap-2",
-    providerIcon:
-        "inline-flex size-9 flex-none items-center justify-center overflow-hidden rounded-md border border-border bg-card text-foreground",
-    providerName: "text-sm font-semibold text-foreground",
-    providerHint: "mt-0.5 text-xs font-medium text-muted-foreground",
-} as const;
-
-const DEFAULT_SOURCE_SWATCH_CLASS_NAMES = {
-    accent: "size-5 flex-none rounded bg-primary",
-    empty: "size-5 flex-none rounded bg-muted",
-} as const;
-
 function getStepIndex(step: OnboardingStepId) {
     return ONBOARDING_STEPS.findIndex((item) => item.id === step);
 }
@@ -192,25 +140,17 @@ function OnboardingFieldRow({
 }) {
     return (
         <Field
-            className={onboardingCardClassNames.sourceField}
+            className="gap-2"
             data-disabled={disabled ? "true" : undefined}
             orientation="responsive"
         >
-            <FieldContent
-                className={onboardingCardClassNames.sourceFieldContent}
-            >
+            <FieldContent className="min-w-0 gap-1">
                 <FieldLabel htmlFor={id}>{label}</FieldLabel>
-                <FieldDescription
-                    className={onboardingCardClassNames.sourceFieldDescription}
-                >
+                <FieldDescription className="max-w-full text-xs">
                     {description}
                 </FieldDescription>
             </FieldContent>
-            <FieldControl
-                className={onboardingCardClassNames.sourceFieldControl}
-            >
-                {children}
-            </FieldControl>
+            <FieldControl className="min-w-0 flex-1">{children}</FieldControl>
         </Field>
     );
 }
@@ -397,19 +337,22 @@ export function OnboardingForm({ onConnected }: OnboardingFormProps) {
         <main
             aria-busy={isSaving || isFinishing}
             aria-labelledby="onboarding-title"
-            className={onboardingCardClassNames.layout}
+            className="grid min-h-svh place-items-center bg-background px-8 pt-7 pb-20 text-foreground"
         >
-            <Card hasNoPadding className={onboardingCardClassNames.surface}>
-                <CardHeader className={onboardingCardClassNames.header}>
+            <Card
+                hasNoPadding
+                className="block min-h-96 w-full max-w-md box-border overflow-visible p-5 backdrop-blur-none"
+            >
+                <CardHeader className="gap-0 p-0">
                     <CardTitle
                         aria-level={1}
-                        className={onboardingCardClassNames.heading}
+                        className="mb-1 text-sm text-foreground"
                         id="onboarding-title"
                         role="heading"
                     >
                         上手 / Onboarding · 4 步
                     </CardTitle>
-                    <CardDescription className={onboardingCardClassNames.sub}>
+                    <CardDescription className="mb-3.5 text-xs leading-normal">
                         连接来源 → 选默认转写 → 设置说话人档案 → 完成
                     </CardDescription>
                 </CardHeader>
@@ -417,7 +360,7 @@ export function OnboardingForm({ onConnected }: OnboardingFormProps) {
                     aria-busy={isSaving || isFinishing}
                     aria-describedby="onboarding-step-description"
                     aria-labelledby="onboarding-step-title"
-                    className={onboardingCardClassNames.frame}
+                    className="overflow-hidden rounded-xl border border-border bg-background p-5"
                 >
                     <Progress
                         aria-label={`配置进度：${visibleStepTitle}`}
@@ -425,12 +368,7 @@ export function OnboardingForm({ onConnected }: OnboardingFormProps) {
                         value={progressPct}
                     />
                     <nav aria-label="上手步骤">
-                        <ol
-                            className={cn(
-                                onboardingCardClassNames.steps,
-                                "list-none p-0",
-                            )}
-                        >
+                        <ol className="mb-3.5 flex list-none gap-1.5 p-0">
                             {ONBOARDING_STEPS.map((step, index) => {
                                 const isActive = step.id === visibleStep;
                                 const isDone =
@@ -445,7 +383,7 @@ export function OnboardingForm({ onConnected }: OnboardingFormProps) {
                                             }
                                             aria-label={`第 ${index + 1} 步 · ${step.title}`}
                                             className={cn(
-                                                onboardingCardClassNames.step,
+                                                "h-1 flex-1 rounded-sm bg-muted p-0 hover:bg-muted disabled:cursor-not-allowed",
                                                 (isDone || isActive) &&
                                                     "bg-primary hover:bg-primary/90",
                                             )}
@@ -460,21 +398,21 @@ export function OnboardingForm({ onConnected }: OnboardingFormProps) {
                             })}
                         </ol>
                     </nav>
-                    <header className={onboardingCardClassNames.stepHeader}>
+                    <header className="grid auto-rows-min gap-0 p-0">
                         <h2
-                            className={onboardingCardClassNames.stepTitle}
+                            className="text-sm font-semibold text-foreground"
                             id="onboarding-step-title"
                         >
                             {visibleStepTitle}
                         </h2>
                         <p
-                            className={onboardingCardClassNames.stepDescription}
+                            className="mb-3.5 text-xs text-muted-foreground"
                             id="onboarding-step-description"
                         >
                             {ONBOARDING_STEPS[visibleStepIndex].hint}
                         </p>
                     </header>
-                    <CardContent className={onboardingCardClassNames.stepBody}>
+                    <CardContent className="flex flex-col gap-3 p-0">
                         {finishError ? (
                             <Alert
                                 aria-live="assertive"
@@ -630,7 +568,7 @@ function SourceStep({
 
             <ToggleGroup
                 aria-label="来源"
-                className={onboardingCardClassNames.providerList}
+                className="mb-5 w-full flex-col items-stretch"
                 disabled={isSaving}
                 onValueChange={(value) => {
                     if (value) {
@@ -651,7 +589,7 @@ function SourceStep({
                     return (
                         <ToggleGroupItem
                             className={cn(
-                                onboardingCardClassNames.providerCard,
+                                "h-auto w-full justify-start gap-3 px-3.5 py-3 text-left whitespace-normal",
                                 isActive && "border-transparent",
                             )}
                             disabled={isSaving}
@@ -660,9 +598,7 @@ function SourceStep({
                         >
                             <span
                                 aria-hidden="true"
-                                className={
-                                    onboardingCardClassNames.providerIcon
-                                }
+                                className="inline-flex size-9 flex-none items-center justify-center overflow-hidden rounded-md border border-border bg-card text-foreground"
                             >
                                 {asset ? (
                                     <Image
@@ -681,23 +617,11 @@ function SourceStep({
                                     <ProviderIcon />
                                 )}
                             </span>
-                            <span
-                                className={
-                                    onboardingCardClassNames.providerMeta
-                                }
-                            >
-                                <span
-                                    className={
-                                        onboardingCardClassNames.providerName
-                                    }
-                                >
+                            <span className="grid min-w-0 auto-rows-min gap-0">
+                                <span className="text-sm font-semibold text-foreground">
                                     {item.label}
                                 </span>
-                                <span
-                                    className={
-                                        onboardingCardClassNames.providerHint
-                                    }
-                                >
+                                <span className="mt-0.5 text-xs font-medium text-muted-foreground">
                                     {isActive
                                         ? "将作为首次连接来源"
                                         : "可在后续设置里继续补充"}
@@ -717,7 +641,7 @@ function SourceStep({
                 >
                     <ToggleGroup
                         aria-label="登录方式"
-                        className={onboardingCardClassNames.sourceAuthModeGroup}
+                        className="grid w-full grid-cols-2 items-stretch"
                         disabled={isSaving}
                         onValueChange={(mode) => {
                             if (!mode) {
@@ -736,9 +660,7 @@ function SourceStep({
                             return (
                                 <ToggleGroupItem
                                     aria-pressed={active}
-                                    className={
-                                        onboardingCardClassNames.sourceAuthModeOption
-                                    }
+                                    className="h-auto flex-col items-start justify-start px-3.5 py-3 text-left whitespace-normal"
                                     disabled={isSaving}
                                     key={mode}
                                     value={mode}
@@ -779,7 +701,7 @@ function SourceStep({
                 <MatrixRow label="服务地址" value={sourceServiceLabel} />
             )}
 
-            <div className={onboardingCardClassNames.sourceProviderFields}>
+            <div className="flex flex-col gap-0">
                 {providerFields.map((field) => (
                     <DataSourceFieldControl
                         disabled={isSaving}
@@ -841,7 +763,7 @@ function TranscriptionStep({
         <section aria-label="默认转写配置">
             <ToggleGroup
                 aria-label="默认转写来源"
-                className={onboardingCardClassNames.defaultSources}
+                className="w-full flex-col items-stretch"
                 disabled={isSaving}
                 onValueChange={(value) => {
                     if (isSaving) {
@@ -864,7 +786,7 @@ function TranscriptionStep({
                 }}
                 orientation="vertical"
                 role="group"
-                spacing={2}
+                spacing={1.5}
                 type="single"
                 value={defaultTranscriptionSource ?? ""}
                 variant="outline"
@@ -877,18 +799,19 @@ function TranscriptionStep({
                             aria-label={option.statusLabel}
                             aria-disabled={isSaving || !option.selectable}
                             aria-pressed={isActive}
-                            className={onboardingCardClassNames.defaultSource}
+                            className="h-auto w-full justify-start py-2 text-left whitespace-normal"
                             disabled={isSaving || !option.selectable}
                             key={option.id}
                             value={option.id}
                         >
                             <span
                                 aria-hidden="true"
-                                className={
-                                    DEFAULT_SOURCE_SWATCH_CLASS_NAMES[
-                                        option.swatch
-                                    ]
-                                }
+                                className={cn(
+                                    "size-5 flex-none rounded",
+                                    option.swatch === "accent"
+                                        ? "bg-primary"
+                                        : "bg-muted",
+                                )}
                             />
                             {option.statusLabel}
                         </ToggleGroupItem>
@@ -897,7 +820,7 @@ function TranscriptionStep({
             </ToggleGroup>
             <fieldset
                 aria-label="默认转写操作"
-                className={onboardingCardClassNames.actions}
+                className="mt-3.5 flex justify-end gap-2"
             >
                 <Button
                     disabled={isSaving}
@@ -954,32 +877,28 @@ function SpeakersStep({
         <>
             <section
                 aria-labelledby="speaker-profile-title"
-                className={onboardingCardClassNames.providerList}
+                className="mb-5 flex w-full flex-col items-stretch gap-2"
             >
                 <Card
                     hasNoPadding
-                    className={onboardingCardClassNames.speakerDraft}
+                    className="flex-row items-center gap-3 border-primary/50 bg-primary/10 p-3.5"
                 >
                     <span
                         aria-hidden="true"
-                        className={onboardingCardClassNames.providerIcon}
+                        className="inline-flex size-9 flex-none items-center justify-center overflow-hidden rounded-md border border-border bg-card text-foreground"
                     >
                         <UserRound />
                     </span>
-                    <CardHeader
-                        className={onboardingCardClassNames.providerMeta}
-                    >
+                    <CardHeader className="min-w-0 gap-0 p-0">
                         <CardTitle
                             aria-level={3}
-                            className={onboardingCardClassNames.providerName}
+                            className="text-sm text-foreground"
                             id="speaker-profile-title"
                             role="heading"
                         >
                             第一个说话人
                         </CardTitle>
-                        <CardDescription
-                            className={onboardingCardClassNames.providerHint}
-                        >
+                        <CardDescription className="mt-0.5 text-xs font-medium">
                             可先留空，工作台内继续校对
                         </CardDescription>
                     </CardHeader>
@@ -1061,10 +980,7 @@ function FinishStep({
 }) {
     return (
         <>
-            <section
-                aria-label="配置摘要"
-                className={onboardingCardClassNames.summaryList}
-            >
+            <section aria-label="配置摘要" className="mb-5 flex flex-col gap-2">
                 <MatrixRow
                     label="来源"
                     value={connectedSourceLabel ?? sourceLabel}
@@ -1101,7 +1017,7 @@ function FinishStep({
             </section>
             <fieldset
                 aria-label="完成配置操作"
-                className={onboardingCardClassNames.actions}
+                className="mt-3.5 flex justify-end gap-2"
             >
                 <Button
                     type="button"
@@ -1147,10 +1063,12 @@ function MatrixRow({
     return (
         <dl
             aria-live={status ? "polite" : undefined}
-            className={onboardingCardClassNames.matrixRow}
+            className="m-0 flex min-h-8 items-baseline gap-2 border-b border-dashed border-border py-1.5"
         >
-            <dt className={onboardingCardClassNames.matrixLabel}>{label}</dt>
-            <dd className={onboardingCardClassNames.matrixValue}>
+            <dt className="m-0 w-20 flex-none text-xs font-semibold text-muted-foreground">
+                {label}
+            </dt>
+            <dd className="m-0 min-w-0 flex-1 break-words text-xs font-medium text-foreground">
                 {value}
                 {status ? <span className="sr-only">，{status}</span> : null}
             </dd>
@@ -1170,7 +1088,7 @@ function WizardActions({
     return (
         <fieldset
             aria-label="步骤操作"
-            className={onboardingCardClassNames.actions}
+            className="mt-3.5 flex justify-end gap-2"
         >
             {onBack ? (
                 <Button

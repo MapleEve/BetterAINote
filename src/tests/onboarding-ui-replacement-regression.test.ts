@@ -59,6 +59,7 @@ const interactions = {
     updateField: vi.fn(),
 };
 let hookConnectedProviders: string[] = [];
+let hookInvocation: unknown;
 let hookProvider = "dingtalk-a1";
 
 const mockedModules = [
@@ -182,6 +183,57 @@ function findElement(
     throw new Error("Not found");
 }
 
+function findElements(
+    node: React.ReactNode,
+    predicate: (element: TestElement) => boolean,
+): TestElement[] {
+    if (!isElement(node)) {
+        return [];
+    }
+
+    const matches = predicate(node) ? [node] : [];
+    for (const child of React.Children.toArray(node.props.children)) {
+        matches.push(...findElements(child, predicate));
+    }
+
+    return matches;
+}
+
+function getTextContent(node: React.ReactNode): string {
+    if (typeof node === "string" || typeof node === "number") {
+        return String(node);
+    }
+    if (!isElement(node)) {
+        return "";
+    }
+
+    return React.Children.toArray(node.props.children)
+        .map(getTextContent)
+        .join("");
+}
+
+function findButtonByText(node: React.ReactNode, label: string) {
+    return findElement(
+        node,
+        (element) =>
+            element.type === "button" && getTextContent(element) === label,
+    );
+}
+
+function findSummaryRow(node: React.ReactNode, label: string) {
+    return findElement(
+        node,
+        (element) =>
+            element.type === "dl" &&
+            findElements(
+                element,
+                (candidate) =>
+                    candidate.type === "dt" &&
+                    getTextContent(candidate) === label,
+            ).length === 1,
+    );
+}
+
 function renderForm(Form: OnboardingFormComponent, onConnected?: () => void) {
     hookHarness.beginRender();
     return resolveTree(Form({ onConnected }));
@@ -198,6 +250,7 @@ beforeEach(() => {
     vi.resetModules();
     vi.clearAllMocks();
     hookConnectedProviders = ["ticnote"];
+    hookInvocation = undefined;
     hookProvider = "dingtalk-a1";
     interactions.connectSource.mockResolvedValue(true);
     vi.stubGlobal("fetch", vi.fn().mockResolvedValue({ ok: true }));
@@ -251,27 +304,33 @@ beforeEach(() => {
             React.createElement("input", { id: fieldId }),
     }));
     vi.doMock("@/features/data-sources/use-onboarding-data-source", () => ({
-        useOnboardingDataSource: () => ({
-            connectedProvider: null,
-            connectedProviders: hookConnectedProviders,
-            connectedSourceLabel: null,
-            connectSource: interactions.connectSource,
-            currentDraft: { authMode: "token", baseUrl: "https://example.com" },
-            currentProviderCatalog: { authModes: ["token", "oauth"] },
-            isSaving: false,
-            provider: hookProvider,
-            providerFields: [],
-            providerOptions: [
-                { label: "钉钉 闪记", provider: "dingtalk-a1" },
-                { label: "TicNote", provider: "ticnote" },
-            ],
-            selectProvider: interactions.selectProvider,
-            setAuthMode: interactions.setAuthMode,
-            setBaseUrl: interactions.setBaseUrl,
-            sourceLabel: "钉钉 闪记",
-            updateField: interactions.updateField,
-            usesCustomServerSelector: false,
-        }),
+        useOnboardingDataSource: (options: unknown) => {
+            hookInvocation = options;
+            return {
+                connectedProvider: null,
+                connectedProviders: hookConnectedProviders,
+                connectedSourceLabel: null,
+                connectSource: interactions.connectSource,
+                currentDraft: {
+                    authMode: "token",
+                    baseUrl: "https://example.com",
+                },
+                currentProviderCatalog: { authModes: ["token", "oauth"] },
+                isSaving: false,
+                provider: hookProvider,
+                providerFields: [],
+                providerOptions: [
+                    { label: "钉钉 闪记", provider: "dingtalk-a1" },
+                    { label: "TicNote", provider: "ticnote" },
+                ],
+                selectProvider: interactions.selectProvider,
+                setAuthMode: interactions.setAuthMode,
+                setBaseUrl: interactions.setBaseUrl,
+                sourceLabel: "钉钉 闪记",
+                updateField: interactions.updateField,
+                usesCustomServerSelector: false,
+            };
+        },
     }));
     vi.doMock("@/lib/platform/browser-router", () => ({
         navigateAndRefreshBrowserRoute: interactions.navigate,
@@ -322,6 +381,219 @@ describe("onboarding UI replacement regression", () => {
         expect(progress.props.value).toBe(25);
         expect(currentStep.props["aria-label"]).toBe("第 1 步 · 连接来源");
         expect(providerSelect.props["aria-label"]).toBe("来源");
+    });
+
+    it("guards step changes while finishing and clears the finish error on navigation", async () => {
+        let resolveConnection: ((connected: boolean) => void) | undefined;
+        interactions.connectSource.mockImplementationOnce(
+            () =>
+                new Promise<boolean>((resolve) => {
+                    resolveConnection = resolve;
+                }),
+        );
+        const Form = await loadForm();
+        renderForm(Form);
+        let tree = renderForm(Form);
+
+        (
+            findElement(
+                tree,
+                (element) =>
+                    element.type === "button" &&
+                    element.props["aria-label"] === "第 4 步 · 完成",
+            ).props.onClick as () => void
+        )();
+        tree = renderForm(Form);
+        (
+            findButtonByText(
+                findElement(
+                    tree,
+                    (element) =>
+                        element.type === "fieldset" &&
+                        element.props["aria-label"] === "完成配置操作",
+                ),
+                "保存并进入工作台",
+            ).props.onClick as () => void
+        )();
+        tree = renderForm(Form);
+
+        const guardedSourceStep = findElement(
+            tree,
+            (element) =>
+                element.type === "button" &&
+                element.props["aria-label"] === "第 1 步 · 连接来源",
+        );
+        expect(guardedSourceStep.props.disabled).toBe(true);
+        (guardedSourceStep.props.onClick as () => void)();
+        tree = renderForm(Form);
+        expect(
+            getTextContent(
+                findElement(
+                    tree,
+                    (element) => element.props.id === "onboarding-step-title",
+                ),
+            ),
+        ).toBe("第 4 步 · 完成");
+
+        expect(resolveConnection).toBeTypeOf("function");
+        resolveConnection?.(false);
+        await vi.waitFor(() => {
+            tree = renderForm(Form);
+            expect(
+                findElement(
+                    tree,
+                    (element) => element.props.id === "onboarding-finish-error",
+                ),
+            ).toBeDefined();
+        });
+
+        const finishError = findElement(
+            tree,
+            (element) => element.props.id === "onboarding-finish-error",
+        );
+        expect(getTextContent(finishError)).toBe(
+            "来源连接失败，请检查授权信息后重试。",
+        );
+        (
+            findElement(
+                tree,
+                (element) =>
+                    element.type === "button" &&
+                    element.props["aria-label"] ===
+                        "第 2 步 · 选一个默认转写来源",
+            ).props.onClick as () => void
+        )();
+        tree = renderForm(Form);
+
+        expect(
+            getTextContent(
+                findElement(
+                    tree,
+                    (element) => element.props.id === "onboarding-step-title",
+                ),
+            ),
+        ).toBe("第 2 步 · 选一个默认转写来源");
+        expect(
+            findElements(
+                tree,
+                (element) => element.props.id === "onboarding-finish-error",
+            ),
+        ).toHaveLength(0);
+    });
+
+    it("renders every step heading and description from the real wizard state", async () => {
+        const Form = await loadForm();
+        renderForm(Form);
+        let tree = renderForm(Form);
+        const expectedSteps = [
+            ["第 1 步 · 连接来源", "选择第一个录音来源并填写授权"],
+            ["第 2 步 · 选一个默认转写来源", "未指定来源时，新录音从这里读取"],
+            ["第 3 步 · 说话人档案", "先建一个常用说话人，之后可继续补充"],
+            ["第 4 步 · 完成", "保存配置并进入工作台"],
+        ] as const;
+
+        for (const [index, [heading, description]] of expectedSteps.entries()) {
+            if (index > 0) {
+                (
+                    findElement(
+                        tree,
+                        (element) =>
+                            element.type === "button" &&
+                            element.props["aria-label"] === heading,
+                    ).props.onClick as () => void
+                )();
+                tree = renderForm(Form);
+            }
+
+            expect(
+                getTextContent(
+                    findElement(
+                        tree,
+                        (element) =>
+                            element.props.id === "onboarding-step-title",
+                    ),
+                ),
+            ).toBe(heading);
+            expect(
+                getTextContent(
+                    findElement(
+                        tree,
+                        (element) =>
+                            element.props.id === "onboarding-step-description",
+                    ),
+                ),
+            ).toBe(description);
+        }
+    });
+
+    it("wires the onboarding endpoint and base URL input to the real form event", async () => {
+        const Form = await loadForm();
+        renderForm(Form);
+        const tree = renderForm(Form);
+        const baseUrlInput = findElement(
+            tree,
+            (element) =>
+                element.type === "input" &&
+                element.props.id === "source-base-url",
+        );
+
+        expect(hookInvocation).toEqual({
+            endpoint: "/api/data-sources",
+            language: "zh-CN",
+        });
+        expect(baseUrlInput.props.value).toBe("https://example.com");
+        (
+            baseUrlInput.props.onChange as (event: {
+                target: { value: string };
+            }) => void
+        )({ target: { value: "https://self-hosted.example.test" } });
+        expect(interactions.setBaseUrl).toHaveBeenCalledWith(
+            "https://self-hosted.example.test",
+        );
+    });
+
+    it("advances with Skip without selecting or saving a default source", async () => {
+        const Form = await loadForm();
+        renderForm(Form);
+        let tree = renderForm(Form);
+        (
+            findElement(
+                tree,
+                (element) =>
+                    element.type === "button" &&
+                    element.props["aria-label"] ===
+                        "第 2 步 · 选一个默认转写来源",
+            ).props.onClick as () => void
+        )();
+        tree = renderForm(Form);
+
+        const defaultSourceGroup = findElement(
+            tree,
+            (element) => element.props["aria-label"] === "默认转写来源",
+        );
+        expect(defaultSourceGroup.props.value).toBe("");
+        (
+            findButtonByText(
+                findElement(
+                    tree,
+                    (element) =>
+                        element.type === "fieldset" &&
+                        element.props["aria-label"] === "默认转写操作",
+                ),
+                "跳过",
+            ).props.onClick as () => void
+        )();
+        tree = renderForm(Form);
+
+        expect(
+            getTextContent(
+                findElement(
+                    tree,
+                    (element) => element.props.id === "onboarding-step-title",
+                ),
+            ),
+        ).toBe("第 3 步 · 说话人档案");
+        expect(global.fetch).not.toHaveBeenCalled();
     });
 
     it("runs provider, step, default-source, and completion interactions", async () => {
@@ -715,6 +987,145 @@ describe("onboarding UI replacement regression", () => {
         expect(error.props["aria-live"]).toBe("assertive");
         expect(recoveredFinish.props.disabled).toBe(false);
         expect(recoveredFinish.props["aria-busy"]).toBe(false);
+    });
+
+    it("reports speaker saving and saved transitions through the rendered summary", async () => {
+        let resolveSpeakerSave:
+            | ((response: { ok: boolean }) => void)
+            | undefined;
+        vi.stubGlobal(
+            "fetch",
+            vi
+                .fn()
+                .mockResolvedValueOnce({ ok: true })
+                .mockImplementationOnce(
+                    () =>
+                        new Promise<{ ok: boolean }>((resolve) => {
+                            resolveSpeakerSave = resolve;
+                        }),
+                ),
+        );
+        const Form = await loadForm();
+        const onConnected = vi.fn();
+        renderForm(Form, onConnected);
+        let tree = renderForm(Form, onConnected);
+
+        (
+            findElement(
+                tree,
+                (element) =>
+                    element.type === "button" &&
+                    element.props["aria-label"] === "第 3 步 · 说话人档案",
+            ).props.onClick as () => void
+        )();
+        tree = renderForm(Form, onConnected);
+        const speakerName = findElement(
+            tree,
+            (element) =>
+                element.type === "input" && element.props.id === "speaker-name",
+        );
+        (
+            speakerName.props.onChange as (event: {
+                target: { value: string };
+            }) => void
+        )({ target: { value: "林梅" } });
+        (
+            findElement(
+                tree,
+                (element) =>
+                    element.type === "button" &&
+                    element.props["aria-label"] === "第 4 步 · 完成",
+            ).props.onClick as () => void
+        )();
+        tree = renderForm(Form, onConnected);
+        (
+            findButtonByText(
+                findElement(
+                    tree,
+                    (element) =>
+                        element.type === "fieldset" &&
+                        element.props["aria-label"] === "完成配置操作",
+                ),
+                "保存并进入工作台",
+            ).props.onClick as () => void
+        )();
+
+        await vi.waitFor(() => {
+            expect(global.fetch).toHaveBeenCalledTimes(2);
+        });
+        tree = renderForm(Form, onConnected);
+        const savingSpeakerRow = findSummaryRow(tree, "说话人");
+        expect(savingSpeakerRow.props["aria-live"]).toBe("polite");
+        expect(
+            getTextContent(
+                findElement(
+                    savingSpeakerRow,
+                    (element) => element.props.className === "sr-only",
+                ),
+            ),
+        ).toBe("，保存中");
+        expect(resolveSpeakerSave).toBeTypeOf("function");
+
+        resolveSpeakerSave?.({ ok: true });
+        await vi.waitFor(() => {
+            expect(onConnected).toHaveBeenCalledTimes(1);
+        });
+        tree = renderForm(Form, onConnected);
+        const savedSpeakerRow = findSummaryRow(tree, "说话人");
+        expect(
+            getTextContent(
+                findElement(
+                    savedSpeakerRow,
+                    (element) => element.props.className === "sr-only",
+                ),
+            ),
+        ).toBe("，已保存");
+        expect(global.fetch).toHaveBeenNthCalledWith(
+            2,
+            "/api/speakers/profiles",
+            expect.objectContaining({
+                body: JSON.stringify({
+                    displayName: "林梅",
+                    voiceprintRef: null,
+                }),
+                method: "POST",
+            }),
+        );
+    });
+
+    it("exposes summary statuses only through polite screen-reader text", async () => {
+        const Form = await loadForm();
+        renderForm(Form);
+        let tree = renderForm(Form);
+        (
+            findElement(
+                tree,
+                (element) =>
+                    element.type === "button" &&
+                    element.props["aria-label"] === "第 4 步 · 完成",
+            ).props.onClick as () => void
+        )();
+        tree = renderForm(Form);
+
+        for (const label of ["默认转写", "说话人"]) {
+            const row = findSummaryRow(tree, label);
+            const status = findElement(
+                row,
+                (element) => element.props.className === "sr-only",
+            );
+            expect(row.props["aria-live"]).toBe("polite");
+            expect(getTextContent(status)).toBe("，待保存");
+        }
+        for (const label of ["来源", "授权"]) {
+            const row = findSummaryRow(tree, label);
+            expect(row.props["aria-live"]).toBeUndefined();
+            expect(
+                findElements(
+                    row,
+                    (element) => element.props.className === "sr-only",
+                ),
+            ).toHaveLength(0);
+        }
     });
 
     it("preserves route, save, and mobile provider-state contracts", () => {

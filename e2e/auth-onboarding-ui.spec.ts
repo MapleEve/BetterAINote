@@ -25,6 +25,7 @@ const PLAYWRIGHT_EMAIL = "playwright-admin@example.com";
 const ONBOARDING_BACKEND_TICNOTE_TOKEN =
     "playwright-onboarding-ticnote-token";
 const ONBOARDING_BACKEND_TICNOTE_BASE_URL = "https://voice-api.ticnote.cn";
+const ONBOARDING_BACKEND_TICNOTE_TIMEZONE = "Asia/Taipei";
 const ONBOARDING_BACKEND_PERSISTENCE_SPEAKER =
     "林梅 Backend Readback";
 const ONBOARDING_BACKEND_PERSISTENCE_VOICEPRINT =
@@ -48,6 +49,8 @@ const ROW_119_WEB_KIT_INDEX_REL =
     "tmp/betterainote-design-evidence/handoff-20260531/betterainote-design-system/project/ui_kits/web/index.html";
 const ELECTRON_ONBOARDING_REFERENCE_REL =
     "tmp/betterainote-design-evidence/run-20260605-sot-1to1/auth-onboarding-20260611/electron-onboarding-artboard.png";
+
+test.use({ timezoneId: ONBOARDING_BACKEND_TICNOTE_TIMEZONE });
 
 interface SotPixelDiff {
     alphaDiffPixels: number;
@@ -368,7 +371,7 @@ async function seedTicnoteFallbackConnectionForOnboarding(
                     orgId: "e2e-onboarding-org",
                     region: "cn",
                     syncTitleToSource: false,
-                    timezone: "Asia/Shanghai",
+                    timezone: ONBOARDING_BACKEND_TICNOTE_TIMEZONE,
                 }),
                 encryptWithE2EKey(
                     JSON.stringify({
@@ -2299,6 +2302,22 @@ test("SOT onboarding first connection saves a current-draft default through API,
         auth_mode: "bearer",
         base_url: ONBOARDING_BACKEND_TICNOTE_BASE_URL,
     });
+    const seededConfig = JSON.parse(
+        String(seededRows.source?.config),
+    ) as Record<string, unknown>;
+    expect(seededConfig).toEqual({
+        language: "zh",
+        orgId: "e2e-onboarding-org",
+        region: "cn",
+        syncTitleToSource: false,
+        timezone: ONBOARDING_BACKEND_TICNOTE_TIMEZONE,
+    });
+    expect(String(seededRows.source?.secret_config)).toMatch(
+        /^[0-9a-f]+:[0-9a-f]+:[0-9a-f]+$/,
+    );
+    expect(String(seededRows.source?.secret_config)).not.toContain(
+        ONBOARDING_BACKEND_TICNOTE_TOKEN,
+    );
 
     await gotoOnboardingPage(page);
 
@@ -2331,40 +2350,53 @@ test("SOT onboarding first connection saves a current-draft default through API,
     );
     await goToOnboardingState(page, "finish");
 
-    const [dataSourceResponse, transcriptionResponse, speakerResponse] =
-        await Promise.all([
-            page.waitForResponse(
-                (response) =>
-                    response.url().includes("/api/data-sources") &&
-                    response.request().method() === "PUT",
-            ),
-            page.waitForResponse(
-                (response) =>
-                    response.url().includes("/api/settings/transcription") &&
-                    response.request().method() === "PUT",
-            ),
-            page.waitForResponse(
-                (response) =>
-                    response.url().includes("/api/speakers/profiles") &&
-                    response.request().method() === "POST",
-            ),
-            page.waitForURL("**/dashboard", { waitUntil: "commit" }),
-            sotControl(page, "save-enter").click(),
-        ]);
+    const dataSourceResponsePromise = page.waitForResponse(
+        (response) =>
+            response.url().includes("/api/data-sources") &&
+            response.request().method() === "PUT",
+    );
+    const transcriptionResponsePromise = page.waitForResponse(
+        (response) =>
+            response.url().includes("/api/settings/transcription") &&
+            response.request().method() === "PUT",
+    );
+    const speakerResponsePromise = page.waitForResponse(
+        (response) =>
+            response.url().includes("/api/speakers/profiles") &&
+            response.request().method() === "POST",
+    );
+    const dashboardPromise = page.waitForURL("**/dashboard", {
+        waitUntil: "commit",
+    });
+    await sotControl(page, "save-enter").click();
 
+    const dataSourceResponse = await dataSourceResponsePromise;
     expect(dataSourceResponse.ok()).toBe(true);
-    expect(transcriptionResponse.ok()).toBe(true);
-    expect(speakerResponse.ok()).toBe(true);
     expect(dataSourceResponse.request().postDataJSON()).toMatchObject({
         provider: "ticnote",
         enabled: true,
+        config: {
+            language: "zh",
+            orgId: "",
+            region: "cn",
+            syncTitleToSource: false,
+            timezone: ONBOARDING_BACKEND_TICNOTE_TIMEZONE,
+        },
         secrets: {
             bearerToken: ONBOARDING_BACKEND_TICNOTE_TOKEN,
         },
     });
+
+    const [transcriptionResponse, speakerResponse] = await Promise.all([
+        transcriptionResponsePromise,
+        speakerResponsePromise,
+    ]);
+    expect(transcriptionResponse.ok()).toBe(true);
+    expect(speakerResponse.ok()).toBe(true);
     expect(transcriptionResponse.request().postDataJSON()).toMatchObject({
         defaultTranscriptionProvider: "ticnote",
     });
+    await dashboardPromise;
 
     const dataSourcesReadback = await page.request.get("/api/data-sources");
     expect(dataSourcesReadback.ok()).toBe(true);
@@ -2380,6 +2412,7 @@ test("SOT onboarding first connection saves a current-draft default through API,
         connected: true,
         authMode: "bearer",
         baseUrl: ONBOARDING_BACKEND_TICNOTE_BASE_URL,
+        config: seededConfig,
         secretsConfigured: {
             bearerToken: true,
         },
@@ -2424,12 +2457,7 @@ test("SOT onboarding first connection saves a current-draft default through API,
     expect(String(persistedSource.secret_config)).not.toContain(
         ONBOARDING_BACKEND_TICNOTE_TOKEN,
     );
-    expect(JSON.parse(String(persistedSource.config))).toMatchObject({
-        language: "zh",
-        region: "cn",
-        syncTitleToSource: false,
-        timezone: expect.any(String),
-    });
+    expect(JSON.parse(String(persistedSource.config))).toEqual(seededConfig);
     expect(Number(persistedSettings.auto_transcribe)).toBe(1);
     expect(persistedSettings.default_transcription_language).toBe("zh");
     expect(persistedSettings.default_transcription_provider).toBe("ticnote");
@@ -2541,7 +2569,7 @@ test("SOT onboarding speaker draft recovers the same Next server after a real SQ
     await expect(speakerReadback.json()).resolves.toMatchObject({ profiles: [] });
 });
 
-test("SOT onboarding finish/save surfaces a real backend data-source failure without route mocks", async ({
+test("SOT onboarding finish/save surfaces a real backend data-source failure through local validation", async ({
     page,
 }) => {
     await ensureSignedIn(page);
@@ -2549,12 +2577,20 @@ test("SOT onboarding finish/save surfaces a real backend data-source failure wit
     await resetOnboardingBackendPersistenceState(userId);
     await seedTicnoteFallbackConnectionForOnboarding(userId, true);
     let transcriptionPutRequests = 0;
+    let speakerPostRequests = 0;
     page.on("request", (request) => {
+        const pathname = new URL(request.url()).pathname;
         if (
-            new URL(request.url()).pathname === "/api/settings/transcription" &&
+            pathname === "/api/settings/transcription" &&
             request.method() === "PUT"
         ) {
             transcriptionPutRequests += 1;
+        }
+        if (
+            pathname === "/api/speakers/profiles" &&
+            request.method() === "POST"
+        ) {
+            speakerPostRequests += 1;
         }
     });
 
@@ -2592,9 +2628,11 @@ test("SOT onboarding finish/save surfaces a real backend data-source failure wit
         "来源连接失败，请检查授权信息后重试。",
     );
     expect(transcriptionPutRequests).toBe(0);
+    expect(speakerPostRequests).toBe(0);
     const rows = await readOnboardingBackendPersistenceRows(userId, "plaud");
     expect(rows.settings).toBeNull();
     expect(rows.source).toBeNull();
+    expect(rows.speakers).toEqual([]);
     const ticnoteRows = await readOnboardingBackendPersistenceRows(
         userId,
         "ticnote",
@@ -2602,5 +2640,8 @@ test("SOT onboarding finish/save surfaces a real backend data-source failure wit
     expect(ticnoteRows.source).toMatchObject({
         provider: "ticnote",
         enabled: 1,
+    });
+    expect(JSON.parse(String(ticnoteRows.source?.config))).toMatchObject({
+        timezone: ONBOARDING_BACKEND_TICNOTE_TIMEZONE,
     });
 });

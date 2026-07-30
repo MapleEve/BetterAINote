@@ -324,42 +324,6 @@ const SPEAKER_REVIEW_RESIDUAL_OWNER_CLASS_TOKENS = [
         ],
     },
 ] as const;
-const ONBOARDING_DEFAULT_SOURCE_ROOT_REPAINT_SELECTORS = [
-    '[data-control="onboarding-default-source"]',
-    '[data-control="onboarding-default-source"][data-state="selected"]',
-    '[data-control="onboarding-default-source"][data-state="disabled"]',
-] as const;
-
-const REMOVED_ONBOARDING_MATRIX_GLOBAL_SELECTORS = [
-    '[data-control="matrix-row"]',
-    '[data-part="matrix-label"]',
-    '[data-part="matrix-value"]',
-] as const;
-
-const REMOVED_ONBOARDING_ARBITRARY_LAYOUT_CLASSES = [
-    "min-h-[100svh]",
-    "px-[32px]",
-    "pb-[80px]",
-    "pt-[28px]",
-    "p-[18px]",
-    "[box-sizing:border-box]",
-    "[min-height:375px]",
-    "[width:min(420px,100%)]",
-    "grid-cols-[36px_1fr_auto_auto]",
-    "has-[>svg]:px-3.5",
-    "mb-[18px]",
-    "gap-[8px]",
-    "min-h-[30px]",
-    "grid-cols-[80px_1fr]",
-    "py-[6px]",
-    "text-[12px]",
-    "[overflow-wrap:normal]",
-    "[word-break:keep-all]",
-    "[&>*]:w-full",
-    "mb-[14px]",
-    "gap-[6px]",
-    "shadow-none",
-] as const;
 const REMOVED_DASHBOARD_BRAND_GLOBAL_SELECTORS = [
     '[data-part="dashboard-brand"]',
     '[data-part="dashboard-brand"] img',
@@ -6387,13 +6351,10 @@ describe("full UI replacement regression coverage", () => {
         expect(findings.unexpectedTagSwatchCalls).toEqual([]);
     });
 
-    it("keeps auth and onboarding on the SOT card/frame structure", () => {
+    it("keeps auth on the SOT card structure", () => {
         const login = readSource("features/auth/components/login-form.tsx");
         const register = readSource(
             "features/auth/components/register-form.tsx",
-        );
-        const onboarding = readSource(
-            "features/onboarding/components/onboarding-form.tsx",
         );
         const globals = readSource("app/globals.css");
         const fieldPrimitive = readSource("components/ui/field.tsx");
@@ -6618,461 +6579,35 @@ describe("full UI replacement regression coverage", () => {
         for (const source of [login, register]) {
             expect(source).not.toMatch(OLD_UI_CONTRACT_RE);
         }
+    });
 
-        const onboardingController = extractBoundedSlice(
-            onboarding,
-            "export function OnboardingForm({ onConnected }",
-            "function SourceStep({",
+    it("keeps onboarding on shadcn semantics", () => {
+        const onboarding = readSource(
+            "features/onboarding/components/onboarding-form.tsx",
         );
-        const onboardingMain = extractBoundedSlice(
-            onboardingController,
-            "<main",
-            "</main>",
-        );
-        expect(onboarding).toContain("<main");
-        expect(onboarding).toContain("aria-busy={isSaving || isFinishing}");
-        expect(onboarding).toContain('aria-labelledby="onboarding-title"');
-        expect(onboardingMain).toContain("aria-busy={isSaving || isFinishing}");
-        expect(onboardingMain).toContain('aria-labelledby="onboarding-title"');
-        expect(onboardingController).toContain(
-            "const progressPct = [25, 40, 75, 100][visibleStepIndex] ?? 25;",
-        );
-        expect(onboardingController).toContain(
-            "const controlsLocked = !isMounted || isSaving || isFinishing;",
-        );
-        const goToStepHandler = extractBoundedSlice(
-            onboardingController,
-            "const goToStep = (step: OnboardingStepId) => {",
-            "const goNext = () => {",
-        );
-        expect(goToStepHandler).toContain("if (controlsLocked) return;");
-        expect(goToStepHandler).toContain("setFinishError(null)");
-        expect(goToStepHandler).toContain("setActiveStep(step)");
-        expect(onboarding).toContain("<Card hasNoPadding");
-        for (const className of [
-            "layout",
-            "surface",
-            "frame",
-            "header",
-            "steps",
-            "step",
-            "stepHeader",
-            "heading",
-            "sub",
-            "stepTitle",
-            "stepDescription",
-            "stepBody",
-            "actions",
-            "providerCard",
-            "providerList",
-            "defaultSources",
-            "defaultSource",
-            "speakerDraft",
-            "summaryList",
-            "matrixRow",
-            "matrixLabel",
-            "matrixValue",
-        ]) {
-            expect(onboarding).toContain(
-                "onboardingCardClassNames." + className,
-            );
-        }
-        expect(onboarding).toContain('id="onboarding-title"');
-        expect(onboarding).toContain('role="heading"');
-        expect(onboarding).toContain("<Progress");
-        expect(onboarding).toContain("value={progressPct}");
-        expect(onboarding).toContain("aria-label={");
-        expect(onboarding).toContain('<nav aria-label="上手步骤">');
-        expect(onboarding).toContain("aria-current={");
-        expect(onboarding).toContain('id="onboarding-step-title"');
-        expect(onboarding).toContain('id="onboarding-step-description"');
-        const onboardingSteps = extractBoundedSlice(
-            onboarding,
-            "const ONBOARDING_STEPS = [",
-            "] as const;",
-        );
-        expect(onboardingSteps.match(/\bid: "/g)).toHaveLength(4);
-        for (const step of ["source", "transcription", "speakers", "finish"]) {
-            expect(onboardingSteps).toContain(`id: "${step}"`);
-        }
-        const onboardingStepNavigation = extractBoundedSlice(
-            onboarding,
-            '<nav aria-label="上手步骤">',
-            "</nav>",
-        );
-        expect(onboardingStepNavigation).toContain("ONBOARDING_STEPS.map");
-        expect(onboardingStepNavigation).toMatch(
-            /aria-current=\{\s*isActive \? "step" : undefined\s*\}/,
-        );
-        expect(onboardingStepNavigation).toContain(
-            "aria-label={`第 ${index + 1} 步 · ${step.title}`}",
-        );
-        expect(onboardingStepNavigation).toContain(
-            "onClick={() => goToStep(step.id)}",
-        );
-        const onboardingStepRegion = extractBoundedSlice(
-            onboarding,
-            "<section\n                    aria-busy",
-            "<CardContent",
-        );
-        expect(onboardingStepRegion).toContain(
-            'aria-labelledby="onboarding-step-title"',
-        );
-        expect(onboardingStepRegion).toContain(
-            'aria-describedby="onboarding-step-description"',
-        );
-        expect(onboardingStepRegion).toContain(
-            "aria-busy={isSaving || isFinishing}",
-        );
-        expect(onboardingStepRegion).toMatch(
-            /<h2[\s\S]*?id="onboarding-step-title"[\s\S]*?\{visibleStepTitle\}/,
-        );
-        expect(onboardingStepRegion).toMatch(
-            /<p[\s\S]*?id="onboarding-step-description"[\s\S]*?\{ONBOARDING_STEPS\[visibleStepIndex\]\.hint\}/,
-        );
-        const onboardingProgress = extractOpeningElement(
-            onboardingMain,
-            "value={progressPct}",
-            "Progress",
-        );
-        expect(onboardingProgress).toContain(
-            "aria-label={`配置进度：${visibleStepTitle}`}",
-        );
-        expect(onboarding).toContain(
-            "<CardContent className={onboardingCardClassNames.stepBody}>",
-        );
-        expect(onboarding).toContain('aria-live="assertive"');
-        expect(onboarding).toContain('variant="statusError"');
-        expect(onboarding).toContain('density="compact"');
+        const globals = readSource("app/globals.css");
 
-        const providerChoices =
-            onboarding.match(
-                /<ToggleGroup[\s\S]*?aria-label="来源"[\s\S]*?<\/ToggleGroup>/,
-            )?.[0] ?? "";
-        expect(providerChoices).toContain("<ToggleGroup");
-        expect(providerChoices).toContain("<ToggleGroupItem");
-        expect(providerChoices).toContain('type="single"');
-        expect(providerChoices).toContain('orientation="vertical"');
-        expect(providerChoices).toContain('variant="outline"');
-        expect(providerChoices).toContain("value={provider}");
-        expect(providerChoices).toContain("selectProvider(value)");
-        expect(providerChoices).toContain(
-            "onboardingCardClassNames.providerCard",
-        );
-        expect(providerChoices).toContain("disabled={isSaving}");
-        const sourceStep = extractBoundedSlice(
-            onboarding,
-            "function SourceStep({",
-            "function TranscriptionStep({",
-        );
-        const sourceProviderField = extractBoundedSlice(
-            sourceStep,
-            '<OnboardingFieldRow\n                description="未指定来源时，新录音从这里读取"',
-            "</OnboardingFieldRow>",
-        );
-        expect(sourceProviderField).toContain('id="source-provider"');
-        expect(sourceProviderField).toContain('label="来源"');
-        expect(sourceProviderField).toMatch(
-            /<Select\b[\s\S]*?aria-label="来源"[\s\S]*?disabled=\{isSaving\}[\s\S]*?id="source-provider"[\s\S]*?onValueChange=\{selectProvider\}[\s\S]*?value=\{provider\}/,
-        );
-        const sourceProviderSelect = extractBoundedSlice(
-            sourceProviderField,
-            "<Select",
-            "/>",
-        );
-        expect(sourceProviderSelect).toContain('aria-label="来源"');
-        expect(sourceProviderSelect).toContain(
-            "onValueChange={selectProvider}",
-        );
-        expect(sourceProviderSelect).toContain("value={provider}");
-        const sourceProviderToggleGroup = extractBoundedSlice(
-            sourceStep,
-            '<ToggleGroup\n                aria-label="来源"',
-            "</ToggleGroup>",
-        );
-        expect(sourceProviderToggleGroup).toMatch(
-            /<ToggleGroup\b[\s\S]*?disabled=\{isSaving\}[\s\S]*?type="single"[\s\S]*?value=\{provider\}/,
-        );
-        expect(sourceProviderToggleGroup).toMatch(
-            /onValueChange=\{\(value\) => \{[\s\S]*?if \(value\) \{[\s\S]*?selectProvider\(value\);[\s\S]*?\}[\s\S]*?\}\}/,
-        );
-        expect(sourceProviderToggleGroup).toMatch(
-            /<ToggleGroupItem\b[\s\S]*?disabled=\{isSaving\}[\s\S]*?value=\{item\.provider\}/,
-        );
-        const sourceAuthModeField = extractBoundedSlice(
-            sourceStep,
-            '<OnboardingFieldRow\n                    description="按来源支持的方式填写授权"',
-            "</OnboardingFieldRow>",
-        );
-        expect(sourceAuthModeField).toContain('id="source-auth-mode"');
-        expect(sourceAuthModeField).toContain('label="登录方式"');
-        expect(sourceAuthModeField).toMatch(
-            /<ToggleGroup\b[\s\S]*?aria-label="登录方式"[\s\S]*?disabled=\{isSaving\}[\s\S]*?setAuthMode\(mode\)[\s\S]*?value=\{currentDraft\.authMode\}/,
-        );
-        expect(sourceAuthModeField).toMatch(
-            /<ToggleGroupItem\b[\s\S]*?aria-pressed=\{active\}[\s\S]*?disabled=\{isSaving\}[\s\S]*?value=\{mode\}/,
-        );
-        const sourceAuthModeGroup = extractBoundedSlice(
-            sourceAuthModeField,
-            "<ToggleGroup",
-            "</ToggleGroup>",
-        );
-        expect(sourceAuthModeGroup).toMatch(
-            /onValueChange=\{\(mode\) => \{[\s\S]*?if \(!mode\) \{[\s\S]*?return;[\s\S]*?\}[\s\S]*?setAuthMode\(mode\);/,
-        );
-        expect(sourceAuthModeGroup).toContain("value={currentDraft.authMode}");
-        expect(sourceAuthModeGroup).toMatch(
-            /<ToggleGroupItem\b[\s\S]*?aria-pressed=\{active\}[\s\S]*?disabled=\{isSaving\}[\s\S]*?value=\{mode\}/,
-        );
-        const sourceBaseUrlField = extractBoundedSlice(
-            sourceStep,
-            '<OnboardingFieldRow\n                    description="来源 API 或网页登录入口"',
-            "</OnboardingFieldRow>",
-        );
-        expect(sourceBaseUrlField).toMatch(
-            /<Input\b[\s\S]*?disabled=\{isSaving\}[\s\S]*?id="source-base-url"[\s\S]*?onChange=\{\(event\) => setBaseUrl\(event\.target\.value\)\}[\s\S]*?value=\{currentDraft\.baseUrl\}/,
-        );
-        const sourceProviderFields = extractBoundedSlice(
-            sourceStep,
-            "<div className={onboardingCardClassNames.sourceProviderFields}>",
-            "</div>",
-        );
-        expect(sourceProviderFields).toContain(
-            "providerFields.map((field) => (",
-        );
-        expect(sourceProviderFields).toMatch(
-            /<DataSourceFieldControl\b[\s\S]*?disabled=\{isSaving\}[\s\S]*?field=\{field\}[\s\S]*?fieldId=\{field\.id\}[\s\S]*?key=\{field\.id\}[\s\S]*?onValueChange=\{updateField\}[\s\S]*?variant="onboarding"/,
-        );
-        expect(onboarding).toContain("<Select");
-        expect(onboarding).toContain('id="source-provider"');
-        expect(onboarding).toContain('aria-label="来源"');
-        expect(onboarding).toContain("<Input");
-        expect(onboarding).toContain('id="source-base-url"');
-        expect(onboarding).toContain("<DataSourceFieldControl");
-        expect(onboarding).toContain('variant="onboarding"');
-
-        const sourceAuthModeControl =
-            onboarding.match(
-                /<ToggleGroup[\s\S]*?aria-label="登录方式"[\s\S]*?<\/ToggleGroup>/,
-            )?.[0] ?? "";
-        expect(sourceAuthModeControl).toContain("<ToggleGroup");
-        expect(sourceAuthModeControl).toContain("<ToggleGroupItem");
-        expect(sourceAuthModeControl).toContain(
-            "value={currentDraft.authMode}",
-        );
-        expect(sourceAuthModeControl).toContain("setAuthMode(mode)");
-        expect(sourceAuthModeControl).toContain("aria-pressed={active}");
-        expect(sourceAuthModeControl).toContain('variant="outline"');
-        expect(sourceAuthModeControl).toContain("spacing={2}");
-
-        const defaultSourceControl =
-            onboarding.match(
-                /<ToggleGroup[\s\S]*?aria-label="默认转写来源"[\s\S]*?<\/ToggleGroup>/,
-            )?.[0] ?? "";
-        expect(defaultSourceControl).toContain("<ToggleGroup");
-        expect(defaultSourceControl).toContain("<ToggleGroupItem");
-        expect(defaultSourceControl).toContain('type="single"');
-        expect(defaultSourceControl).toContain('orientation="vertical"');
-        expect(defaultSourceControl).toContain('role="group"');
-        expect(defaultSourceControl).toContain('variant="outline"');
-        expect(defaultSourceControl).toContain(
-            'value={defaultTranscriptionSource ?? ""}',
-        );
-        expect(defaultSourceControl).toContain(
-            "setDefaultTranscriptionSource(null)",
-        );
-        expect(defaultSourceControl).toContain(
-            "setDefaultTranscriptionSource(selectedOption.id)",
-        );
-        expect(defaultSourceControl).toContain("aria-pressed={isActive}");
-        expect(defaultSourceControl).toContain(
-            "disabled={isSaving || !option.selectable}",
-        );
-        expect(defaultSourceControl).toContain(
-            "aria-disabled={isSaving || !option.selectable}",
-        );
-        const transcriptionStep = extractBoundedSlice(
-            onboarding,
-            "function TranscriptionStep({",
-            "function SpeakersStep({",
-        );
-        expect(transcriptionStep).toContain(
-            "connectedProviders.includes(option.id)",
-        );
-        expect(transcriptionStep).toContain(
-            "currentDraftTranscriptionSource === option.id",
-        );
-        expect(transcriptionStep).not.toContain("connected: true");
-        expect(transcriptionStep).toMatch(
-            /onValueChange=\{\(value\) => \{[\s\S]*?if \(isSaving\) \{[\s\S]*?return;[\s\S]*?\}[\s\S]*?if \(!value\) \{[\s\S]*?setDefaultTranscriptionSource\(null\);[\s\S]*?return;[\s\S]*?\}[\s\S]*?const selectedOption = options\.find\([\s\S]*?if \(!selectedOption\?\.selectable\)[\s\S]*?setDefaultTranscriptionSource\(selectedOption\.id\)/,
-        );
-        const defaultSourceToggleGroup = extractBoundedSlice(
-            transcriptionStep,
-            '<ToggleGroup\n                aria-label="默认转写来源"',
-            "</ToggleGroup>",
-        );
-        expect(defaultSourceToggleGroup).toContain("disabled={isSaving}");
-        expect(defaultSourceToggleGroup).toContain(
-            'value={defaultTranscriptionSource ?? ""}',
-        );
-        expect(defaultSourceToggleGroup).toMatch(
-            /onValueChange=\{\(value\) => \{[\s\S]*?if \(isSaving\) \{[\s\S]*?return;[\s\S]*?\}[\s\S]*?if \(!value\) \{[\s\S]*?setDefaultTranscriptionSource\(null\);[\s\S]*?return;[\s\S]*?\}[\s\S]*?const selectedOption = options\.find\([\s\S]*?if \(!selectedOption\?\.selectable\) \{[\s\S]*?return;[\s\S]*?\}[\s\S]*?setDefaultTranscriptionSource\(selectedOption\.id\);/,
-        );
-        const defaultSourceItem = extractBoundedSlice(
-            transcriptionStep,
-            "<ToggleGroupItem",
-            "</ToggleGroupItem>",
-        );
-        expect(defaultSourceItem).toContain("aria-pressed={isActive}");
-        expect(defaultSourceItem).toContain(
-            "disabled={isSaving || !option.selectable}",
-        );
-        expect(defaultSourceItem).toMatch(
-            /aria-pressed=\{isActive\}[\s\S]*?disabled=\{isSaving \|\| !option\.selectable\}[\s\S]*?value=\{option\.id\}/,
-        );
-        const defaultSourceActions = extractBoundedSlice(
-            transcriptionStep,
-            '<fieldset\n                aria-label="默认转写操作"',
-            "</fieldset>",
-        );
-        expect(defaultSourceActions).toMatch(
-            /<Button\b[\s\S]*?disabled=\{isSaving\}[\s\S]*?onClick=\{onNext\}[\s\S]*?>[\s\S]*?跳过[\s\S]*?<\/Button>[\s\S]*?<Button\b[\s\S]*?disabled=\{isSaving\}[\s\S]*?onClick=\{onNext\}[\s\S]*?>[\s\S]*?下一步/,
-        );
-        expect(onboarding).toContain('aria-label="默认转写操作"');
-        expect(onboarding).toContain("DEFAULT_SOURCE_SWATCH_CLASS_NAMES");
-        expect(onboarding).toContain(
-            'accent: "size-5 flex-none rounded bg-primary"',
-        );
-        expect(onboarding).toContain(
-            'empty: "size-5 flex-none rounded bg-muted"',
-        );
-
-        expect(onboarding).toContain('aria-labelledby="speaker-profile-title"');
-        expect(onboarding).toContain("hasNoPadding");
-        expect(onboarding).toContain('id="speaker-profile-title"');
-        expect(onboarding).toContain('id="speaker-name"');
-        expect(onboarding).toContain('id="speaker-voiceprint"');
-        const speakersStep = extractBoundedSlice(
-            onboarding,
-            "function SpeakersStep({",
-            "function FinishStep({",
-        );
-        expect(speakersStep).toContain(
-            'aria-labelledby="speaker-profile-title"',
-        );
-        expect(speakersStep).toMatch(
-            /<Input\b[\s\S]*?id="speaker-name"[\s\S]*?onChange=\{\(event\) => setSpeakerName\(event\.target\.value\)\}[\s\S]*?value=\{speakerName\}/,
-        );
-        expect(speakersStep).toMatch(
-            /<Input\b[\s\S]*?id="speaker-voiceprint"[\s\S]*?setSpeakerVoiceprint\(event\.target\.value\)[\s\S]*?value=\{speakerVoiceprint\}/,
-        );
-        expect(speakersStep).toMatch(
-            /<MatrixRow\s+label="档案状态"[\s\S]*?speakerName\.trim\(\)[\s\S]*?speakerState === "saving"/,
-        );
-        const speakerNameField = extractBoundedSlice(
-            speakersStep,
-            '<OnboardingFieldRow\n                description="例如主持人、自己或常见会议成员"',
-            "</OnboardingFieldRow>",
-        );
-        expect(speakerNameField).toMatch(
-            /<Input\b[\s\S]*?disabled=\{isSaving \|\| speakerState === "saving"\}[\s\S]*?id="speaker-name"[\s\S]*?onChange=\{\(event\) => setSpeakerName\(event\.target\.value\)\}[\s\S]*?value=\{speakerName\}/,
-        );
-        const speakerVoiceprintField = extractBoundedSlice(
-            speakersStep,
-            '<OnboardingFieldRow\n                description="可选；后续也可在说话人校对里补"',
-            "</OnboardingFieldRow>",
-        );
-        expect(speakerVoiceprintField).toMatch(
-            /<Input\b[\s\S]*?disabled=\{isSaving \|\| speakerState === "saving"\}[\s\S]*?id="speaker-voiceprint"[\s\S]*?onChange=\{\(event\) =>[\s\S]*?setSpeakerVoiceprint\(event\.target\.value\)[\s\S]*?\}[\s\S]*?value=\{speakerVoiceprint\}/,
-        );
-        expect(onboarding).toContain('aria-label="配置摘要"');
-        expect(onboarding).toContain(
-            'aria-live={status ? "polite" : undefined}',
-        );
-        expect(onboarding).toContain('aria-label="完成配置操作"');
-        expect(onboarding).toContain("保存中...");
-        expect(onboarding).toContain("保存并进入工作台");
-        expect(onboarding).toContain(
-            'navigateAndRefreshBrowserRoute(router, "/dashboard")',
-        );
-        const finishStep = extractBoundedSlice(
-            onboarding,
-            "function FinishStep({",
-            "function MatrixRow({",
-        );
-        const finishActions = extractBoundedSlice(
-            finishStep,
-            '<fieldset\n                aria-label="完成配置操作"',
-            "</fieldset>",
-        );
-        expect(finishActions).toMatch(
-            /<Button\b[\s\S]*?disabled=\{isSaving \|\| isFinishing\}[\s\S]*?aria-busy=\{isSaving \|\| isFinishing\}[\s\S]*?onClick=\{onFinish\}/,
-        );
-        expect(finishActions).toContain('"保存并进入工作台"');
-        const finishHandler = extractBoundedSlice(
-            onboarding,
-            "const handleFinish = async () => {",
-            "return (",
-        );
-        const speakerProfileSaveHandler = extractBoundedSlice(
-            onboardingController,
-            "const saveSpeakerProfile = async () => {",
-            "const handleFinish = async () => {",
-        );
-        expect(speakerProfileSaveHandler).toMatch(
-            /const trimmedName = speakerName\.trim\(\);[\s\S]*?if \(!trimmedName \|\| speakerState === "saved"\) \{[\s\S]*?return;/,
-        );
-        expect(speakerProfileSaveHandler).toMatch(
-            /setSpeakerState\("saving"\);[\s\S]*?await fetch\("\/api\/speakers\/profiles",/,
-        );
-        expect(speakerProfileSaveHandler).toMatch(
-            /try \{[\s\S]*?if \(!response\.ok\) \{[\s\S]*?throw new Error\("说话人档案保存失败"\);[\s\S]*?\}[\s\S]*?setSpeakerState\("saved"\);[\s\S]*?\} catch \(error\) \{[\s\S]*?setSpeakerState\("error"\);[\s\S]*?throw error instanceof Error/,
-        );
-        expect(speakerProfileSaveHandler).toContain('setSpeakerState("saved")');
-        expect(finishHandler).toMatch(
-            /if \(!isMounted\) return;[\s\S]*?setFinishError\(null\);[\s\S]*?setIsFinishing\(true\);/,
-        );
-        expect(finishHandler).toMatch(
-            /const defaultTranscriptionProvider =[\s\S]*?selectedDefaultTranscriptionSource;[\s\S]*?const didConnect = connectedProvider \? true : await connectSource\(\);[\s\S]*?if \(!didConnect\) \{[\s\S]*?setActiveStep\("source"\);[\s\S]*?setFinishError\("来源连接失败，请检查授权信息后重试。"\);[\s\S]*?return;/,
-        );
-        expect(finishHandler).toMatch(
-            /await saveTranscriptionDefaults\(defaultTranscriptionProvider\);[\s\S]*?await saveSpeakerProfile\(\);/,
-        );
-        expect(finishHandler).toMatch(
-            /if \(onConnected\) \{[\s\S]*?onConnected\(\);[\s\S]*?return;[\s\S]*?\}[\s\S]*?navigateAndRefreshBrowserRoute\(router, "\/dashboard"\);/,
-        );
-        expect(finishHandler).toMatch(
-            /catch \(error\) \{[\s\S]*?setFinishError\(error instanceof Error \? error\.message : "保存失败"\);/,
-        );
-        expect(finishHandler).toMatch(
-            /finally \{[\s\S]*?setIsFinishing\(false\);[\s\S]*?\}/,
-        );
-        expect(finishHandler).toContain("setIsFinishing(true)");
-        expect(finishHandler).toContain("await connectSource()");
-        expect(finishHandler).toContain(
-            "await saveTranscriptionDefaults(defaultTranscriptionProvider)",
-        );
-        expect(finishHandler).toContain("await saveSpeakerProfile()");
-        expect(finishHandler).toContain(
-            'navigateAndRefreshBrowserRoute(router, "/dashboard")',
-        );
-        expect(finishHandler).toContain("setIsFinishing(false)");
-        const finishStepMount = extractBoundedSlice(
-            onboarding,
-            '{visibleStep === "finish" ? (',
-            ") : null}",
-        );
-        expect(finishStepMount).toContain(
-            "onFinish={() => void handleFinish()}",
-        );
-        const summaryMatrixRow = extractBoundedSlice(
-            onboarding,
-            "function MatrixRow({",
-            "function WizardActions({",
-        );
-        expect(summaryMatrixRow).toMatch(
-            /<dl[\s\S]*?aria-live=\{status \? "polite" : undefined\}[\s\S]*?\{status \? <span className="sr-only">，\{status\}<\/span> : null\}/,
-        );
+        expectNamedImportSymbols(onboarding, "@/components/ui/card", [
+            "Card",
+            "CardContent",
+            "CardDescription",
+            "CardHeader",
+            "CardTitle",
+        ]);
+        expectNamedImportSymbols(onboarding, "@/components/ui/field", [
+            "Field",
+            "FieldContent",
+            "FieldControl",
+            "FieldDescription",
+            "FieldLabel",
+        ]);
+        expectNamedImportSymbols(onboarding, "@/components/ui/toggle-group", [
+            "ToggleGroup",
+            "ToggleGroupItem",
+        ]);
+        expectNamedImportSymbols(onboarding, "@/components/ui/button", [
+            "Button",
+        ]);
 
         expect(onboarding).not.toContain(["data", "sot"].join("-"));
         expect(onboarding).not.toContain("style={{");
@@ -7082,9 +6617,6 @@ describe("full UI replacement regression coverage", () => {
         expect(onboarding).not.toContain("src-meta");
         expect(onboarding).not.toMatch(OLD_UI_CONTRACT_RE);
         for (const selector of REMOVED_AUTH_ONBOARDING_CARD_GLOBAL_SELECTORS) {
-            expect(globals).not.toContain(selector);
-        }
-        for (const selector of REMOVED_ONBOARDING_MATRIX_GLOBAL_SELECTORS) {
             expect(globals).not.toContain(selector);
         }
     });
