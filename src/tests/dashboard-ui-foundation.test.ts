@@ -4401,16 +4401,17 @@ describe("dashboard SOT foundation", () => {
         expect(workstation).toContain("displayTag?: RecordingTag");
         expect(workstation).toContain("displayTag: tag");
         expect(workstation).toContain("entry.displayTag ??");
-        expect(workstation).toContain("<PlayerTagChip");
+        expect(workstation).toContain('data-recording-tag-chip=""');
         expect(playerPrimitives).toContain("data-recording-tag-chip");
         const dashboardRecordingTagChip = extractOpeningElement(
             workstation,
-            "<PlayerTagChip",
-            "PlayerTagChip",
+            'data-recording-tag-chip=""',
+            "Badge",
         );
-        expect(dashboardRecordingTagChip).toMatch(/tag=\{\s*primaryTag\s*\}/);
-        expect(dashboardRecordingTagChip).not.toContain("variant=");
-        expect(dashboardRecordingTagChip).not.toContain("className=");
+        expect(dashboardRecordingTagChip).toContain('variant="secondary"');
+        expect(dashboardRecordingTagChip).toContain("data-tag-color={");
+        expect(dashboardRecordingTagChip).toContain("data-tag-icon={");
+        expect(dashboardRecordingTagChip).toContain("data-tag-id={");
         expect(playerPrimitives).toContain("RecordingTagIconGlyph");
         expect(badgePrimitive).not.toContain(
             DASHBOARD_OWNER_LOCAL_FORBIDDEN_VARIANT_PROPS[4],
@@ -4421,7 +4422,7 @@ describe("dashboard SOT foundation", () => {
         expect(globals).not.toContain(
             '[data-recording-tag-chip][data-variant="outline"]',
         );
-        expect(workstation).not.toContain("<RecordingTagIconGlyph");
+        expect(workstation).toContain("<RecordingTagIconGlyph");
         expect(workstation).toContain("data-rec={");
         expect(workstation).not.toContain("function tagClass(");
         expect(workstation).toContain(
@@ -4476,192 +4477,28 @@ describe("dashboard SOT foundation", () => {
         expect(workstation).toContain("<DashboardRecordingListSkeleton />");
         expect(workstation).toContain("function getRecordingListStatus(");
         expect(workstation).toContain('data-list="dashboard-recording-rows"');
-        const dashboardRecordingRows = extractOpeningElement(
-            workstation,
-            'data-list="dashboard-recording-rows"',
-            "div",
-        );
-        const dashboardRecordingListGroup = extractOpeningElement(
-            workstation,
-            'data-part="dashboard-recording-list-group"',
-            "div",
-        );
-        const dashboardRecordingListGroupSeparator = extractOpeningElement(
-            workstation,
-            'data-part="dashboard-recording-list-group-separator"',
-            "Separator",
-        );
-        const dashboardRecordingListHeading = extractOpeningElement(
-            workstation,
-            'data-part="dashboard-recording-list-group-heading"',
-            "div",
-        );
-        const dashboardRecordingListLabel = extractOpeningElement(
-            workstation,
-            'data-part="dashboard-recording-list-group-label"',
-            "span",
-        );
-        const dashboardRecordingListCount = extractOpeningElement(
-            workstation,
-            'data-part="dashboard-recording-list-group-count"',
-            "span",
-        );
-        const dashboardRecordingListDivider = extractOpeningElement(
-            workstation,
-            'data-part="dashboard-recording-list-group-divider"',
-            "Separator",
-        );
-        const dashboardRecordingRowBody = extractOpeningElement(
-            workstation,
-            'data-part="dashboard-recording-row-body"',
-            "div",
-        );
-        const dashboardRecordingRowTitle = extractOpeningElement(
-            workstation,
-            'data-part="dashboard-recording-row-title"',
-            "div",
-        );
-        const dashboardRecordingRowMeta = extractOpeningElement(
-            workstation,
-            'data-part="dashboard-recording-row-meta"',
-            "div",
-        );
-        const dashboardRecordingRowSecondary = extractOpeningElement(
-            workstation,
-            'data-part="dashboard-recording-row-secondary"',
-            "div",
-        );
-        const dashboardRecordingRowActions = extractOpeningElement(
-            workstation,
-            'data-part="dashboard-recording-row-actions"',
-            "div",
-        );
         const dashboardRecordingRowButton = extractOpeningElement(
             workstation,
             'data-control="dashboard-recording-row"',
             "Button",
         );
 
-        const dashboardRecordingRowStyleHelper = extractBoundedSlice(
-            workstation,
+        expect(workstation).not.toContain(
             "const dashboardRecordingRowStyles = {",
-            "function tagFilterValue",
         );
-        for (const rowStyleSlot of [
-            "rows:",
-            "group:",
-            "groupSeparator:",
-            "groupHeading:",
-            "groupLabel:",
-            "groupCount:",
-            "groupDivider:",
-            "row:",
-            "body:",
-            "title:",
-            "meta:",
-            "sourceMark:",
-            "sourceMarkImage:",
-            "sourceMarkImageCover:",
-            "sourceMarkLetter:",
-            "duration:",
-            "secondary:",
-            "timestamp:",
-            "timestampAbsolute:",
-            "timestampRelative:",
-            "actions:",
-        ]) {
-            expect(dashboardRecordingRowStyleHelper).toContain(rowStyleSlot);
-        }
-        for (const rowStateToken of [
-            "[&.is-hover-demo]:",
-            "[&.is-focus-demo]:",
-        ]) {
-            expect(dashboardRecordingRowStyleHelper).toContain(rowStateToken);
-        }
-        for (const forcedOrThemeOverrideToken of [
-            "!border",
-            "!bg",
-            "!shadow",
-            "!ring",
-            "!outline",
-            "focus:!",
-            "focus-visible:!",
-            "dark:",
-            "overflow-hidden text-ellipsis whitespace-nowrap",
-        ]) {
-            expect(dashboardRecordingRowStyleHelper).not.toContain(
-                forcedOrThemeOverrideToken,
-            );
-        }
-        expect(dashboardRecordingRows).toContain(
-            "dashboardRecordingRowStyles.rows",
-        );
-        expect(dashboardRecordingListGroup).toContain(
-            "dashboardRecordingRowStyles.group",
-        );
-        expect(dashboardRecordingRowStyleHelper).not.toContain(
-            "border-t border-border",
-        );
-        expect(dashboardRecordingListGroup).not.toContain("border-t");
-        expect(dashboardRecordingListGroup).not.toContain("border-border");
         expect(workstation).toContain("groupIndex > 0 ? (");
-        expect(dashboardRecordingListGroupSeparator).toContain(
-            "dashboardRecordingRowStyles.groupSeparator",
-        );
-        expect(dashboardRecordingListHeading).toContain(
-            "dashboardRecordingRowStyles.groupHeading",
-        );
-        expect(dashboardRecordingListLabel).toContain(
-            "dashboardRecordingRowStyles.groupLabel",
-        );
-        expect(dashboardRecordingListCount).toContain(
-            "dashboardRecordingRowStyles.groupCount",
-        );
-        expect(dashboardRecordingListDivider).toContain(
-            "dashboardRecordingRowStyles.groupDivider",
-        );
-        expect(dashboardRecordingRowBody).toContain(
-            "dashboardRecordingRowStyles.body",
-        );
-        expect(dashboardRecordingRowTitle).toContain(
-            "dashboardRecordingRowStyles.title",
-        );
-        expect(dashboardRecordingRowMeta).toContain(
-            "dashboardRecordingRowStyles.meta",
-        );
-        expect(workstation).toContain("dashboardRecordingRowStyles.sourceMark");
         expect(workstation).toContain(
-            "dashboardRecordingRowStyles.sourceMarkImage",
+            'data-part="dashboard-recording-list-group-separator"',
         );
         expect(workstation).toContain(
-            "dashboardRecordingRowStyles.sourceMarkImageCover",
+            'data-part="dashboard-recording-list-group-divider"',
         );
-        expect(workstation).toContain(
-            "dashboardRecordingRowStyles.sourceMarkLetter",
-        );
-        expect(workstation).toContain("dashboardRecordingRowStyles.duration");
-        expect(dashboardRecordingRowSecondary).toContain(
-            "dashboardRecordingRowStyles.secondary",
-        );
-        expect(workstation).toContain("dashboardRecordingRowStyles.timestamp");
-        expect(workstation).toContain(
-            "dashboardRecordingRowStyles.timestampAbsolute",
-        );
-        expect(workstation).toContain(
-            "dashboardRecordingRowStyles.timestampRelative",
-        );
-        expect(dashboardRecordingRowActions).toContain(
-            "dashboardRecordingRowStyles.actions",
-        );
-        expect(dashboardRecordingRowButton).toMatch(
-            /variant=\{\s*active\s*\?\s*"secondary"\s*:\s*"ghost"\s*\}/,
-        );
-        expect(dashboardRecordingRowButton).toMatch(
-            /className=\{\s*dashboardRecordingRowStyles\.row\s*\}/,
-        );
-        expect(dashboardRecordingRowButton).toContain(
-            'data-control="dashboard-recording-row"',
-        );
+        expect(dashboardRecordingRowButton).toContain('variant="ghost"');
+        expect(dashboardRecordingRowButton).toContain('type="button"');
+        expect(dashboardRecordingRowButton).toContain("aria-current={");
+        expect(dashboardRecordingRowButton).toContain("data-recording-id={");
+        expect(dashboardRecordingRowButton).toContain("data-state={");
+        expect(dashboardRecordingRowButton).toContain("onClick={() =>");
         for (const rowPrimitiveLeak of [
             "dashboardRecordingRow",
             "dashboard-recording-row",
@@ -4698,22 +4535,6 @@ describe("dashboard SOT foundation", () => {
         ]) {
             expect(collectCssRuleBlocks(globals, migratedSelector)).toEqual([]);
         }
-        for (const rowMetaOwnershipToken of [
-            "font-mono",
-            "text-[11.5px]",
-            "tracking-[0.02em]",
-            "tracking-[0.015em]",
-            "group-data-[time-style=abs]/dashboard-workstation:inline",
-            "group-data-[time-style=abs]/dashboard-workstation:hidden",
-            "opacity-80",
-            "object-cover",
-            "opacity-70",
-            "text-muted-foreground",
-        ]) {
-            expect(dashboardRecordingRowStyleHelper).toContain(
-                rowMetaOwnershipToken,
-            );
-        }
         expect(workstation).not.toContain(
             "function DashboardRecordingStatusBadge",
         );
@@ -4728,17 +4549,18 @@ describe("dashboard SOT foundation", () => {
             'data-part="dashboard-recording-status"',
             "Badge",
         );
-        expect(dashboardRecordingStatusBadge).toContain(
-            "dashboardRecordingStatusBadgeVariants",
+        const dashboardRecordingStatus = extractElementSlice(
+            workstation,
+            'data-part="dashboard-recording-status"',
+            "Badge",
         );
+        expect(dashboardRecordingStatusBadge).toContain('variant="outline"');
         expect(dashboardRecordingStatusBadge).toContain(
             'data-part="dashboard-recording-status"',
         );
         expect(dashboardRecordingStatusBadge).toContain("data-tone={");
-        expect(workstation).not.toContain(
-            'data-part="dashboard-recording-status-dot"',
-        );
-        expect(workstation).toContain(
+        expect(dashboardRecordingStatus).toContain('aria-hidden="true"');
+        expect(dashboardRecordingStatus).toContain(
             'data-part="dashboard-recording-status-label"',
         );
         expect(workstation).not.toContain("<DashboardRecordingStatusBadge");
@@ -4752,20 +4574,12 @@ describe("dashboard SOT foundation", () => {
         );
         expect(badgePrimitive).not.toContain("dashboard-recording-status");
         expect(badgePrimitive).not.toContain("dashboard-recording-status-dot");
-        for (const dashboardStatusToken of [
+        expect(workstation).not.toContain(
             "const dashboardRecordingStatusBadgeVariants = {",
-            'err: "destructive"',
-            'info: "secondary"',
-            'neu: "outline"',
-            'ok: "secondary"',
-            'warn: "secondary"',
-        ]) {
-            expect(workstation).toContain(dashboardStatusToken);
-        }
+        );
         for (const retiredDashboardStatusToken of [
             "const dashboardRecordingStatusBadgeToneClassNames = {",
             "const dashboardRecordingStatusDotClassName =",
-            '"size-[5px] rounded-full bg-current"',
             "const dashboardRecordingStatusDotToneClassNames = {",
         ]) {
             expect(workstation).not.toContain(retiredDashboardStatusToken);

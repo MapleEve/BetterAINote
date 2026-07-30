@@ -102,6 +102,7 @@ import {
     PlayerTagChip,
 } from "@/features/recordings/components/player-primitives";
 import { RecordingTagManager } from "@/features/recordings/components/recording-tag-manager";
+import { RecordingTagIconGlyph } from "@/features/recordings/components/recording-tag-visuals";
 import { SettingsDialog } from "@/features/settings/components/settings-dialog";
 import { useDisplaySettingsStore } from "@/features/settings/display-settings-store";
 import { usePlaybackSettingsStore } from "@/features/settings/playback-settings-store";
@@ -762,38 +763,6 @@ function dashboardRecordingTimeFilterCountClassName(active: boolean) {
     );
 }
 
-const dashboardRecordingRowStyles = {
-    rows: "flex flex-col gap-0.5 p-1",
-    group: "flex flex-col gap-0.5 px-1 py-1.5",
-    groupSeparator: "mx-1 my-1",
-    groupHeading: "flex items-baseline gap-2.5 px-2.5 pb-1.5 pt-3.5",
-    groupLabel:
-        "font-mono text-[11px] font-semibold uppercase tracking-[0.06em] text-muted-foreground",
-    groupCount: "font-mono text-[11px] font-medium text-muted-foreground/70",
-    groupDivider: "ml-1 min-w-0 flex-1",
-    row: "grid h-auto w-full grid-cols-[minmax(0,1fr)_auto] items-center justify-normal gap-3.5 whitespace-normal rounded-lg px-3 py-2.5 text-left font-normal [&.is-hover-demo]:bg-accent [&.is-hover-demo]:text-accent-foreground [&.is-focus-demo]:ring-[3px] [&.is-focus-demo]:ring-ring/50",
-    body: "flex min-w-0 flex-col gap-[5px]",
-    title: "truncate font-sans text-[13.5px] font-semibold tracking-[-0.005em] text-foreground",
-    meta: "flex flex-wrap items-center gap-2",
-    sourceMark:
-        "inline-flex size-3.5 flex-none items-center justify-center overflow-hidden rounded-sm opacity-70",
-    sourceMarkImage:
-        "block size-3.5 max-w-none object-contain align-baseline opacity-80",
-    sourceMarkImageCover: "object-cover",
-    sourceMarkLetter: "text-xs font-bold text-muted-foreground",
-    duration:
-        "font-mono text-[11.5px] font-medium tracking-[0.02em] text-muted-foreground",
-    secondary:
-        "flex items-center gap-2 font-mono text-[11px] font-medium text-muted-foreground",
-    timestamp: "tracking-[0.015em]",
-    timestampAbsolute:
-        "hidden group-data-[time-style=abs]/dashboard-workstation:inline",
-    timestampRelative:
-        "inline group-data-[time-style=abs]/dashboard-workstation:hidden",
-    actions:
-        "flex w-max min-w-max flex-none items-center justify-end justify-self-end gap-2",
-} as const;
-
 function tagFilterValue(tagId: string): TagFilterValue {
     return `tag:${tagId}`;
 }
@@ -1189,14 +1158,6 @@ function getRecordingListStatus(
         tone: "neu" satisfies PlayerStatusTone,
     };
 }
-
-const dashboardRecordingStatusBadgeVariants = {
-    err: "destructive",
-    info: "secondary",
-    neu: "outline",
-    ok: "secondary",
-    warn: "secondary",
-} as const satisfies Record<PlayerStatusTone, string>;
 
 function getRetxStateFromActiveJob(
     job: TranscriptionJobData | null | undefined,
@@ -6020,9 +5981,7 @@ export function Workstation({
                                     <DashboardRecordingListSkeleton />
                                 ) : listState === "ready" ? (
                                     <div
-                                        className={
-                                            dashboardRecordingRowStyles.rows
-                                        }
+                                        className="flex flex-col gap-0.5 p-1"
                                         data-list="dashboard-recording-rows"
                                     >
                                         {groupedListEntries.map(
@@ -6030,39 +5989,29 @@ export function Workstation({
                                                 <Fragment key={group.id}>
                                                     {groupIndex > 0 ? (
                                                         <Separator
-                                                            className={
-                                                                dashboardRecordingRowStyles.groupSeparator
-                                                            }
+                                                            className="mx-1 my-1"
                                                             data-part="dashboard-recording-list-group-separator"
                                                         />
                                                     ) : null}
                                                     <div
-                                                        className={
-                                                            dashboardRecordingRowStyles.group
-                                                        }
+                                                        className="flex flex-col gap-0.5 px-1 py-1.5"
                                                         data-group-id={group.id}
                                                         data-group="recording-list"
                                                         data-part="dashboard-recording-list-group"
                                                         data-mode={listMode}
                                                     >
                                                         <div
-                                                            className={
-                                                                dashboardRecordingRowStyles.groupHeading
-                                                            }
+                                                            className="flex items-baseline gap-2.5 px-2.5 pt-3.5 pb-1.5"
                                                             data-part="dashboard-recording-list-group-heading"
                                                         >
                                                             <span
-                                                                className={
-                                                                    dashboardRecordingRowStyles.groupLabel
-                                                                }
+                                                                className="font-mono text-[11px] font-semibold uppercase tracking-[0.06em] text-muted-foreground"
                                                                 data-part="dashboard-recording-list-group-label"
                                                             >
                                                                 {group.label}
                                                             </span>
                                                             <span
-                                                                className={
-                                                                    dashboardRecordingRowStyles.groupCount
-                                                                }
+                                                                className="font-mono text-[11px] font-medium text-muted-foreground/70"
                                                                 data-part="dashboard-recording-list-group-count"
                                                             >
                                                                 {
@@ -6072,9 +6021,7 @@ export function Workstation({
                                                                 }
                                                             </span>
                                                             <Separator
-                                                                className={
-                                                                    dashboardRecordingRowStyles.groupDivider
-                                                                }
+                                                                className="ml-1 min-w-0 flex-1"
                                                                 data-part="dashboard-recording-list-group-divider"
                                                             />
                                                         </div>
@@ -6111,15 +6058,9 @@ export function Workstation({
                                                                         .tags[0];
                                                                 return (
                                                                     <Button
-                                                                        variant={
-                                                                            active
-                                                                                ? "secondary"
-                                                                                : "ghost"
-                                                                        }
+                                                                        variant="ghost"
                                                                         size="default"
-                                                                        className={
-                                                                            dashboardRecordingRowStyles.row
-                                                                        }
+                                                                        className="grid h-auto w-full grid-cols-[minmax(0,1fr)_auto] items-center justify-normal gap-3.5 whitespace-normal rounded-md border border-transparent px-3 py-[11px] text-left font-normal hover:bg-muted hover:text-foreground data-[state=selected]:border-primary/[0.38] data-[state=selected]:bg-primary/[0.12] dark:data-[state=selected]:bg-primary/[0.16] [&.is-hover-demo]:bg-muted [&.is-hover-demo]:text-foreground [&.is-focus-demo]:border-ring [&.is-focus-demo]:ring-[3px] [&.is-focus-demo]:ring-ring/50"
                                                                         aria-current={
                                                                             active
                                                                                 ? "true"
@@ -6148,15 +6089,11 @@ export function Workstation({
                                                                         }
                                                                     >
                                                                         <div
-                                                                            className={
-                                                                                dashboardRecordingRowStyles.body
-                                                                            }
+                                                                            className="flex min-w-0 flex-col gap-[5px]"
                                                                             data-part="dashboard-recording-row-body"
                                                                         >
                                                                             <div
-                                                                                className={
-                                                                                    dashboardRecordingRowStyles.title
-                                                                                }
+                                                                                className="truncate font-sans text-[13.5px] font-semibold tracking-[-0.005em] text-foreground"
                                                                                 data-part="dashboard-recording-row-title"
                                                                             >
                                                                                 {
@@ -6164,16 +6101,12 @@ export function Workstation({
                                                                                 }
                                                                             </div>
                                                                             <div
-                                                                                className={
-                                                                                    dashboardRecordingRowStyles.meta
-                                                                                }
+                                                                                className="flex flex-wrap items-center gap-2"
                                                                                 data-part="dashboard-recording-row-meta"
                                                                             >
                                                                                 {sourceMeta?.icon ? (
                                                                                     <span
-                                                                                        className={
-                                                                                            dashboardRecordingRowStyles.sourceMark
-                                                                                        }
+                                                                                        className="inline-flex size-3.5 flex-none items-center justify-center overflow-hidden rounded-sm opacity-70"
                                                                                         data-part="dashboard-recording-source-mark"
                                                                                         data-provider-cover={
                                                                                             sourceMeta.cover
@@ -6189,9 +6122,9 @@ export function Workstation({
                                                                                         {/* biome-ignore lint/performance/noImgElement: provider marks are fixed local assets. */}
                                                                                         <img
                                                                                             className={cn(
-                                                                                                dashboardRecordingRowStyles.sourceMarkImage,
+                                                                                                "block size-3.5 max-w-none object-contain align-baseline opacity-80",
                                                                                                 sourceMeta.cover
-                                                                                                    ? dashboardRecordingRowStyles.sourceMarkImageCover
+                                                                                                    ? "object-cover"
                                                                                                     : undefined,
                                                                                             )}
                                                                                             src={
@@ -6209,8 +6142,8 @@ export function Workstation({
                                                                                 ) : (
                                                                                     <span
                                                                                         className={cn(
-                                                                                            dashboardRecordingRowStyles.sourceMark,
-                                                                                            dashboardRecordingRowStyles.sourceMarkLetter,
+                                                                                            "inline-flex size-3.5 flex-none items-center justify-center overflow-hidden rounded-sm opacity-70",
+                                                                                            "text-xs font-bold text-muted-foreground",
                                                                                         )}
                                                                                         data-part="dashboard-recording-source-mark"
                                                                                         data-provider-cover="false"
@@ -6224,9 +6157,7 @@ export function Workstation({
                                                                                     </span>
                                                                                 )}
                                                                                 <span
-                                                                                    className={
-                                                                                        dashboardRecordingRowStyles.duration
-                                                                                    }
+                                                                                    className="font-mono text-[11.5px] font-medium tracking-[0.02em] text-muted-foreground"
                                                                                     data-part="dashboard-recording-duration"
                                                                                 >
                                                                                     {formatDuration(
@@ -6235,21 +6166,15 @@ export function Workstation({
                                                                                 </span>
                                                                             </div>
                                                                             <div
-                                                                                className={
-                                                                                    dashboardRecordingRowStyles.secondary
-                                                                                }
+                                                                                className="flex items-center gap-2 font-mono text-[11px] font-medium text-muted-foreground"
                                                                                 data-part="dashboard-recording-row-secondary"
                                                                             >
                                                                                 <span
-                                                                                    className={
-                                                                                        dashboardRecordingRowStyles.timestamp
-                                                                                    }
+                                                                                    className="tracking-[0.015em]"
                                                                                     data-part="dashboard-recording-timestamp"
                                                                                 >
                                                                                     <span
-                                                                                        className={
-                                                                                            dashboardRecordingRowStyles.timestampAbsolute
-                                                                                        }
+                                                                                        className="hidden group-data-[time-style=abs]/dashboard-workstation:inline"
                                                                                         data-part="dashboard-recording-timestamp-absolute"
                                                                                     >
                                                                                         {formatAbsoluteDate(
@@ -6257,9 +6182,7 @@ export function Workstation({
                                                                                         )}
                                                                                     </span>
                                                                                     <span
-                                                                                        className={
-                                                                                            dashboardRecordingRowStyles.timestampRelative
-                                                                                        }
+                                                                                        className="inline group-data-[time-style=abs]/dashboard-workstation:hidden"
                                                                                         data-part="dashboard-recording-timestamp-relative"
                                                                                     >
                                                                                         {formatRelativeDate(
@@ -6270,23 +6193,38 @@ export function Workstation({
                                                                             </div>
                                                                         </div>
                                                                         <div
-                                                                            className={
-                                                                                dashboardRecordingRowStyles.actions
-                                                                            }
+                                                                            className="flex w-max min-w-max flex-none items-center justify-end justify-self-end gap-2"
                                                                             data-part="dashboard-recording-row-actions"
                                                                         >
                                                                             <Badge
-                                                                                variant={
-                                                                                    dashboardRecordingStatusBadgeVariants[
-                                                                                        rowStatus
-                                                                                            .tone
-                                                                                    ]
-                                                                                }
+                                                                                variant="outline"
+                                                                                className={cn(
+                                                                                    "h-5 gap-[5px] rounded-full px-2 py-0 font-sans text-[11px] font-semibold leading-[normal]",
+                                                                                    rowStatus.tone ===
+                                                                                        "err" &&
+                                                                                        "border-destructive/[0.26] bg-destructive/[0.10] text-destructive",
+                                                                                    rowStatus.tone ===
+                                                                                        "info" &&
+                                                                                        "border-chart-2/[0.22] bg-chart-2/[0.14] text-chart-2",
+                                                                                    rowStatus.tone ===
+                                                                                        "neu" &&
+                                                                                        "border-border bg-muted text-[var(--fg-secondary)]",
+                                                                                    rowStatus.tone ===
+                                                                                        "ok" &&
+                                                                                        "border-chart-3/[0.36] bg-chart-3/[0.10] text-chart-3",
+                                                                                    rowStatus.tone ===
+                                                                                        "warn" &&
+                                                                                        "border-chart-4/[0.28] bg-chart-4/[0.16] text-[var(--signal-warning-strong)]",
+                                                                                )}
                                                                                 data-part="dashboard-recording-status"
                                                                                 data-tone={
                                                                                     rowStatus.tone
                                                                                 }
                                                                             >
+                                                                                <span
+                                                                                    className="size-[5px] rounded-full bg-current"
+                                                                                    aria-hidden="true"
+                                                                                />
                                                                                 <span data-part="dashboard-recording-status-label">
                                                                                     {
                                                                                         rowStatus.label
@@ -6294,11 +6232,56 @@ export function Workstation({
                                                                                 </span>
                                                                             </Badge>
                                                                             {primaryTag ? (
-                                                                                <PlayerTagChip
-                                                                                    tag={
-                                                                                        primaryTag
+                                                                                <Badge
+                                                                                    variant="secondary"
+                                                                                    className={cn(
+                                                                                        "max-w-[160px] justify-start gap-[5.625px] rounded-full border border-transparent px-[7.5px] py-[1.875px] font-sans text-[11.25px] font-medium leading-[15px] [box-shadow:var(--shadow-xs)]",
+                                                                                        primaryTag.color ===
+                                                                                            "blue" &&
+                                                                                            "text-chart-1",
+                                                                                        primaryTag.color ===
+                                                                                            "green" &&
+                                                                                            "text-chart-3",
+                                                                                        primaryTag.color ===
+                                                                                            "orange" &&
+                                                                                            "text-chart-4",
+                                                                                        primaryTag.color ===
+                                                                                            "purple" &&
+                                                                                            "text-chart-5",
+                                                                                        primaryTag.color ===
+                                                                                            "red" &&
+                                                                                            "text-destructive",
+                                                                                        primaryTag.color ===
+                                                                                            "slate" &&
+                                                                                            "text-muted-foreground",
+                                                                                    )}
+                                                                                    data-recording-tag-chip=""
+                                                                                    data-tag-color={
+                                                                                        primaryTag.color
                                                                                     }
-                                                                                />
+                                                                                    data-tag-icon={
+                                                                                        primaryTag.icon
+                                                                                    }
+                                                                                    data-tag-id={
+                                                                                        primaryTag.id
+                                                                                    }
+                                                                                    data-part="recording-tag-chip"
+                                                                                >
+                                                                                    <span
+                                                                                        className="inline-flex size-[11.25px] shrink-0"
+                                                                                        data-part="recording-tag-icon"
+                                                                                    >
+                                                                                        <RecordingTagIconGlyph
+                                                                                            className="size-full"
+                                                                                            icon={
+                                                                                                primaryTag.icon
+                                                                                            }
+                                                                                        />
+                                                                                    </span>
+                                                                                    {
+                                                                                        primaryTag.name
+                                                                                    }
+                                                                                </Badge>
                                                                             ) : null}
                                                                         </div>
                                                                     </Button>

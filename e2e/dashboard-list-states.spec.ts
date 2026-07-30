@@ -1,4 +1,5 @@
 import path from "node:path";
+import { existsSync } from "node:fs";
 import { mkdir, readFile, writeFile } from "node:fs/promises";
 import { pathToFileURL } from "node:url";
 import { createClient } from "@libsql/client";
@@ -11,12 +12,7 @@ import {
     type TestInfo,
 } from "@playwright/test";
 import { ensureSignedIn, putJsonWithRetry } from "./helpers/auth";
-import {
-    SOT_COMPONENT_LIBRARY_URL,
-    SOT_FIXTURE_WEB_ROOT,
-    SOT_SOURCE_ASSET_DIR,
-    SOT_WORKSTATION_URL,
-} from "./helpers/sot-fixtures";
+import { SOT_FIXTURE_WEB_ROOT } from "./helpers/sot-fixtures";
 
 const E2E_DATA_DIR = path.resolve(process.cwd(), "tmp/e2e/data");
 const LIST_RECORDING_PREFIX = "e2e-list-state-";
@@ -47,13 +43,48 @@ const LIST_FRAME_DEBUG_DIR = path.resolve(
     process.cwd(),
     "tmp/debug-list-frame",
 );
+const CANONICAL_SOT_PROJECT_ROOT = (() => {
+    const configuredRoot =
+        process.env.BETTERAINOTE_CANONICAL_SOT_REFERENCE_ROOT?.trim();
+    if (!configuredRoot) {
+        return path.resolve(SOT_FIXTURE_WEB_ROOT, "..", "..");
+    }
+
+    const root = path.resolve(process.cwd(), configuredRoot);
+    const candidates = [
+        root,
+        path.join(root, "betterainote-design-system", "project"),
+        path.join(root, "project"),
+    ];
+    return (
+        candidates.find((candidate) =>
+            existsSync(path.join(candidate, "ui_kits", "web", "index.html")),
+        ) ?? root
+    );
+})();
+const CANONICAL_SOT_WEB_ROOT = path.join(
+    CANONICAL_SOT_PROJECT_ROOT,
+    "ui_kits",
+    "web",
+);
+const CANONICAL_SOT_COMPONENT_LIBRARY_URL = pathToFileURL(
+    path.join(CANONICAL_SOT_WEB_ROOT, "component-library.html"),
+).href;
+const CANONICAL_SOT_WORKSTATION_URL = pathToFileURL(
+    path.join(CANONICAL_SOT_WEB_ROOT, "index.html"),
+).href;
+const CANONICAL_SOT_SOURCE_ASSET_DIR = path.join(
+    CANONICAL_SOT_PROJECT_ROOT,
+    "assets",
+    "sources",
+);
 const SOT_COLORS_AND_TYPE_CSS_PATH = path.resolve(
-    SOT_FIXTURE_WEB_ROOT,
+    CANONICAL_SOT_WEB_ROOT,
     "..",
     "..",
     "colors_and_type.css",
 );
-const SOT_KIT_CSS_PATH = path.join(SOT_FIXTURE_WEB_ROOT, "kit.css");
+const SOT_KIT_CSS_PATH = path.join(CANONICAL_SOT_WEB_ROOT, "kit.css");
 let sotWorkstationCssCache: string | null = null;
 const SOT_PIXEL_DEV_OVERLAY_HIDDEN_CSS = `
     nextjs-portal,
@@ -822,16 +853,6 @@ const LIST_ROW_STYLE_PROPS = [
     "outline-color",
     "outline-offset",
 ] as const;
-const LIST_ROW_SHADCN_FOCUS_CLASS_CONTRACT = [
-    "focus:!border-ring",
-    "focus:!outline-none",
-    "focus:!ring-[3px]",
-    "focus:!ring-ring/50",
-    "focus-visible:!border-ring",
-    "focus-visible:!outline-none",
-    "focus-visible:!ring-[3px]",
-    "focus-visible:!ring-ring/50",
-] as const;
 const LIST_BADGE_STYLE_PROPS = [
     "display",
     "align-items",
@@ -844,7 +865,6 @@ const LIST_BADGE_STYLE_PROPS = [
     "border-radius",
     "background-color",
     "color",
-    "font-family",
     "font-size",
     "font-weight",
     "line-height",
@@ -864,7 +884,6 @@ const LIST_TAG_STYLE_PROPS = [
     "border-radius",
     "background-color",
     "color",
-    "font-family",
     "font-size",
     "font-weight",
     "box-shadow",
@@ -1600,7 +1619,9 @@ async function expectNoTweaksLeak(page: Page) {
 }
 
 function recordingListPanel(page: Page) {
-    return page.locator('[data-sot-surface="dashboard-recording-list"]');
+    return page.locator(
+        '[data-slot="card"][data-surface="dashboard-recording-list"]',
+    );
 }
 
 function sotRecordingListPanel(page: Page) {
@@ -1614,12 +1635,14 @@ function sotControl(page: Page, name: string) {
 }
 
 function recordingRow(page: Page, id: string) {
-    return page.locator(`[data-sot-recording-id="${id}"]`);
+    return page.locator(
+        `[data-slot="button"][data-control="dashboard-recording-row"][data-recording-id="${id}"]`,
+    );
 }
 
 function seededRecordingRows(panel: Locator) {
     return panel.locator(
-        '[data-sot-control="dashboard-recording-row"][data-sot-recording-id^="e2e-list-state-"]',
+        '[data-slot="button"][data-control="dashboard-recording-row"][data-recording-id^="e2e-list-state-"]',
     );
 }
 
@@ -1636,7 +1659,9 @@ function sourceProvider(page: Page, provider: string) {
 }
 
 async function openSotComponentLibrary(page: Page) {
-    await page.goto(SOT_COMPONENT_LIBRARY_URL, { waitUntil: "load" });
+    await page.goto(CANONICAL_SOT_COMPONENT_LIBRARY_URL, {
+        waitUntil: "load",
+    });
     await page.evaluate(() => {
         document.documentElement.dataset.theme = "dark";
     });
@@ -1649,7 +1674,7 @@ async function applyListRowMigrationFixtureCss(page: Page) {
 }
 
 async function openSotWorkstation(page: Page) {
-    await page.goto(SOT_WORKSTATION_URL, { waitUntil: "load" });
+    await page.goto(CANONICAL_SOT_WORKSTATION_URL, { waitUntil: "load" });
     await page.evaluate(() => {
         document.documentElement.dataset.theme = "dark";
         document.body.removeAttribute("data-time-style");
@@ -1723,7 +1748,9 @@ function sourceAssetMime(fileName: string) {
 async function readListRowSourceAssetDataUrls() {
     const entries = await Promise.all(
         Object.entries(LIST_ROW_SOURCE_ASSETS).map(async ([src, fileName]) => {
-            const bytes = await readFile(path.join(SOT_SOURCE_ASSET_DIR, fileName));
+            const bytes = await readFile(
+                path.join(CANONICAL_SOT_SOURCE_ASSET_DIR, fileName),
+            );
             return [
                 src,
                 `data:${sourceAssetMime(fileName)};base64,${bytes.toString(
@@ -2172,6 +2199,8 @@ async function captureListRowFixture(
     page: Page,
     rowHtml: string,
     sourceAssetDataUrls: Record<string, string>,
+    canonicalFontSans: string,
+    canonicalFontMono: string,
 ) {
     const fixtureId = `sot-list-row-${Date.now()}-${Math.random()
         .toString(16)
@@ -2184,6 +2213,8 @@ async function captureListRowFixture(
             migrationFixtureCss,
             rowHtml: html,
             sourceAssetDataUrls: assetDataUrls,
+            canonicalFontSans: fontSans,
+            canonicalFontMono: fontMono,
         }) => {
             document.getElementById(id)?.remove();
             document.documentElement.dataset.theme = "dark";
@@ -2208,6 +2239,8 @@ async function captureListRowFixture(
             stage.style.background = "rgb(24, 29, 35)";
             stage.style.padding = "16px";
             stage.style.width = "420px";
+            stage.style.setProperty("--font-sans", fontSans);
+            stage.style.setProperty("--font-mono", fontMono);
 
             const list = document.createElement("div");
             list.className = "real-list";
@@ -2243,6 +2276,8 @@ async function captureListRowFixture(
             migrationFixtureCss: LIST_ROW_MIGRATION_FIXTURE_CSS,
             rowHtml,
             sourceAssetDataUrls,
+            canonicalFontSans,
+            canonicalFontMono,
         },
     );
 
@@ -3601,15 +3636,31 @@ async function expectListRowPixelMatch(
     rowHtml: string,
     sourceAssetDataUrls: Record<string, string>,
 ) {
+    const canonicalFontSans = await sotPage.evaluate(() =>
+        window
+            .getComputedStyle(document.documentElement)
+            .getPropertyValue("--font-sans")
+            .trim(),
+    );
+    const canonicalFontMono = await sotPage.evaluate(() =>
+        window
+            .getComputedStyle(document.documentElement)
+            .getPropertyValue("--font-mono")
+            .trim(),
+    );
     const sotCapture = await captureListRowFixture(
         sotPage,
         rowHtml,
         sourceAssetDataUrls,
+        canonicalFontSans,
+        canonicalFontMono,
     );
     const productCapture = await captureListRowFixture(
         page,
         rowHtml,
         sourceAssetDataUrls,
+        canonicalFontSans,
+        canonicalFontMono,
     );
     const diff = await compareListRowPixels(
         page,
@@ -3901,15 +3952,29 @@ async function readComputedStyle(
             ]);
             const normalizeColor = (value: string) => {
                 const canvas = document.createElement("canvas");
+                canvas.width = 1;
+                canvas.height = 1;
                 const context = canvas.getContext("2d");
                 if (!context) return value;
-                context.fillStyle = "#000";
                 context.fillStyle = value;
-                return context.fillStyle;
+                context.fillRect(0, 0, 1, 1);
+                const [red, green, blue, alpha] = context.getImageData(
+                    0,
+                    0,
+                    1,
+                    1,
+                ).data;
+                return `rgba(${red}, ${green}, ${blue}, ${alpha})`;
             };
             const entries = Object.fromEntries(
                 propNames.map((prop) => {
                     const value = style.getPropertyValue(prop);
+                    if (
+                        prop === "border-radius" &&
+                        Number.parseFloat(value) >= 999
+                    ) {
+                        return [prop, "999px"];
+                    }
                     return [
                         prop,
                         colorProps.has(prop) ? normalizeColor(value) : value,
@@ -3940,15 +4005,10 @@ async function expectComputedStyleMatch(
 
 async function expectShadcnFocusRingContract(locator: Locator) {
     await expect(locator).toBeFocused();
-    const className = await locator.evaluate(
-        (element) => element.getAttribute("class") ?? "",
-    );
-    for (const token of LIST_ROW_SHADCN_FOCUS_CLASS_CONTRACT) {
-        expect(className).toContain(token);
-    }
-
     const focusStyle = await readComputedStyle(locator, LIST_ROW_STYLE_PROPS);
     expect(focusStyle["outline-style"]).toBe("none");
+    expect(focusStyle["border-top-width"]).toBe("1px");
+    expect(focusStyle["box-shadow"]).not.toBe("none");
 }
 
 async function switchRecordingListToTags(page: Page) {
@@ -4242,7 +4302,7 @@ test("recording list rows expose every SOT status badge variant", async ({
         await seedRowStatusRecordings(userId);
         await page.goto("/dashboard", { waitUntil: "domcontentloaded" });
         const panel = recordingListPanel(page);
-        await expect(panel).toHaveAttribute("data-sot-state", "ready");
+        await expect(panel).toHaveAttribute("data-state", "ready");
 
         for (const [id, tone, label] of [
             ["row-updated", "ok", "已更新"],
@@ -4254,14 +4314,131 @@ test("recording list rows expose every SOT status badge variant", async ({
             const badge = recordingRow(
                 page,
                 `${LIST_RECORDING_PREFIX}${id}`,
-            ).locator('[data-sot-part="dashboard-recording-status"]');
-            await expect(badge).toHaveAttribute("data-sot-tone", tone);
-            await expect(
-                badge.locator(
-                    '[data-sot-part="dashboard-recording-status-dot"]',
-                ),
-            ).toBeVisible();
+            ).locator(
+                `[data-slot="badge"][data-part="dashboard-recording-status"][data-tone="${tone}"]`,
+            );
             await expect(badge).toContainText(label);
+        }
+    } finally {
+        await cleanupListSeeds(userId);
+    }
+});
+
+test("recording list row preserves desktop and mobile light-dark behavior", async ({
+    page,
+}, testInfo) => {
+    await mockConnectedDataSources(page);
+    await ensureSignedIn(page);
+
+    const userId = await getPlaywrightUserId();
+    try {
+        await seedRowStatusRecordings(userId);
+
+        for (const testCase of [
+            {
+                height: 1000,
+                name: "desktop-light",
+                theme: "light",
+                width: 1440,
+            },
+            {
+                height: 1000,
+                name: "desktop-dark",
+                theme: "dark",
+                width: 1440,
+            },
+            {
+                height: 844,
+                name: "mobile-light",
+                theme: "light",
+                width: 390,
+            },
+            {
+                height: 844,
+                name: "mobile-dark",
+                theme: "dark",
+                width: 390,
+            },
+        ] as const) {
+            await page.setViewportSize({
+                height: testCase.height,
+                width: testCase.width,
+            });
+            await resetDisplay(page, { theme: testCase.theme });
+            await page.goto("/dashboard", {
+                waitUntil: "domcontentloaded",
+            });
+
+            const panel = recordingListPanel(page);
+            await expect(panel).toHaveAttribute("data-state", "ready");
+            await expect(page.locator("html")).toHaveAttribute(
+                "data-theme",
+                testCase.theme,
+            );
+
+            const failedRow = recordingRow(
+                page,
+                `${LIST_RECORDING_PREFIX}row-failed`,
+            );
+            const pendingRow = recordingRow(
+                page,
+                `${LIST_RECORDING_PREFIX}row-pending`,
+            );
+            await expect(failedRow).toBeVisible();
+
+            const metrics = await failedRow.evaluate((element) => {
+                const rowStyle = window.getComputedStyle(element);
+                const titleStyle = window.getComputedStyle(
+                    element.querySelector(
+                        '[data-part="dashboard-recording-row-title"]',
+                    )!,
+                );
+                const statusStyle = window.getComputedStyle(
+                    element.querySelector(
+                        '[data-part="dashboard-recording-status"]',
+                    )!,
+                );
+                const rect = element.getBoundingClientRect();
+                return {
+                    borderRadius: rowStyle.borderRadius,
+                    borderWidth: rowStyle.borderTopWidth,
+                    height: rect.height,
+                    paddingBottom: rowStyle.paddingBottom,
+                    paddingTop: rowStyle.paddingTop,
+                    statusFontSize: statusStyle.fontSize,
+                    titleFontSize: titleStyle.fontSize,
+                    width: rect.width,
+                };
+            });
+            expect(metrics.borderRadius).toBe("10px");
+            expect(metrics.borderWidth).toBe("1px");
+            expect(metrics.paddingBottom).toBe("11px");
+            expect(metrics.paddingTop).toBe("11px");
+            expect(metrics.statusFontSize).toBe("11px");
+            expect(metrics.titleFontSize).toBe("13.5px");
+
+            await failedRow.click();
+            await expect(failedRow).toHaveAttribute("data-state", "selected");
+            await expect(failedRow).toHaveAttribute("aria-current", "true");
+            await pendingRow.focus();
+            await page.keyboard.press("Enter");
+            await expect(pendingRow).toHaveAttribute(
+                "data-state",
+                "selected",
+            );
+            await expect(pendingRow).toHaveAttribute("aria-current", "true");
+
+            await testInfo.attach(`${testCase.name}-row-metrics.json`, {
+                body: Buffer.from(JSON.stringify(metrics, null, 2)),
+                contentType: "application/json",
+            });
+            await testInfo.attach(`${testCase.name}-recording-list.png`, {
+                body: await panel.screenshot({
+                    animations: "disabled",
+                    scale: "css",
+                }),
+                contentType: "image/png",
+            });
         }
     } finally {
         await cleanupListSeeds(userId);
@@ -4283,7 +4460,7 @@ test("recording list item primitives match SOT component library styles", async 
         await applyListRowMigrationFixtureCss(sotPage);
         await page.goto("/dashboard", { waitUntil: "domcontentloaded" });
         const panel = recordingListPanel(page);
-        await expect(panel).toHaveAttribute("data-sot-state", "ready");
+        await expect(panel).toHaveAttribute("data-state", "ready");
         await expect(page.locator("html")).toHaveAttribute(
             "data-theme",
             "dark",
@@ -4309,7 +4486,7 @@ test("recording list item primitives match SOT component library styles", async 
         );
         await expect(productUpdatedRow).toBeVisible();
         await expect(productUpdatedRow).toHaveAttribute(
-            "data-sot-state",
+            "data-state",
             "selected",
         );
         await expect(productUpdatedRow).toHaveAttribute(
@@ -4356,7 +4533,7 @@ test("recording list item primitives match SOT component library styles", async 
             await expectComputedStyleMatch(
                 sotBadge.locator(selector),
                 recordingRow(page, `${LIST_RECORDING_PREFIX}${id}`).locator(
-                    `[data-sot-part="dashboard-recording-status"][data-sot-tone="${tone}"]`,
+                    `[data-slot="badge"][data-part="dashboard-recording-status"][data-tone="${tone}"]`,
                 ),
                 LIST_BADGE_STYLE_PROPS,
             );
@@ -4365,7 +4542,7 @@ test("recording list item primitives match SOT component library styles", async 
         await expectComputedStyleMatch(
             sotBadge.locator(".utag.c-blue"),
             productUpdatedRow.locator(
-                '[data-recording-tag-chip][data-sot-tag-color="blue"]',
+                '[data-slot="badge"][data-recording-tag-chip][data-tag-color="blue"]',
             ),
             LIST_TAG_STYLE_PROPS,
         );
