@@ -142,12 +142,14 @@ describe("AI rename preview card UI regressions", () => {
 
         for (const primitive of [
             "rounded-xl",
-            "border-[var(--card-popover-border)]",
-            "bg-[var(--card-popover-bg)]",
+            "border-border",
+            "bg-card",
+            "bg-muted",
+            "text-foreground",
+            "text-muted-foreground",
+            "text-primary",
             "[box-shadow:var(--card-popover-shadow)]",
-            "border-[var(--card-popover-divider)]",
-            "bg-[var(--card-popover-footer-bg)]",
-            "border-[var(--line-hairline)]",
+            'variant="outline"',
         ]) {
             expect(AI_RENAME_PREVIEW_CARD_SOURCE).toContain(primitive);
         }

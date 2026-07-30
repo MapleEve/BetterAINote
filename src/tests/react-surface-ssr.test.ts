@@ -17,6 +17,7 @@ import { Switch } from "@/components/ui/switch";
 import { Textarea } from "@/components/ui/textarea";
 import { Workstation } from "@/features/dashboard/workstation";
 import { DataSourceFieldControl } from "@/features/data-sources/data-source-field-control";
+import { AiRenamePreviewCard } from "@/features/recordings/components/ai-rename-preview-card";
 import { RecordingTagIconGlyph } from "@/features/recordings/components/recording-tag-visuals";
 import { SourceReportPanel } from "@/features/recordings/components/source-report-panel";
 import { TranscriptionSection } from "@/features/recordings/components/transcription-section";
@@ -46,6 +47,38 @@ vi.mock("next/navigation", () => ({
         replace: vi.fn(),
     }),
 }));
+
+vi.mock("@/components/ui/popover", async (importOriginal) => {
+    const actual =
+        await importOriginal<typeof import("@/components/ui/popover")>();
+    const { createElement } = await import("react");
+
+    return {
+        ...actual,
+        PopoverContent: (
+            props: React.ComponentProps<typeof actual.PopoverContent> & {
+                "data-control"?: string;
+            },
+        ) => {
+            if (props["data-control"] !== "ai-rename-preview") {
+                return createElement(actual.PopoverContent, props);
+            }
+
+            const {
+                align: _align,
+                alignOffset: _alignOffset,
+                avoidCollisions: _avoidCollisions,
+                onEscapeKeyDown: _onEscapeKeyDown,
+                onOpenAutoFocus: _onOpenAutoFocus,
+                side: _side,
+                sideOffset: _sideOffset,
+                ...domProps
+            } = props;
+
+            return createElement("div", domProps);
+        },
+    };
+});
 
 const tag: RecordingTag = {
     id: "tag-1",
@@ -371,6 +404,125 @@ describe("React surface SSR coverage", () => {
         );
         expect(html).toMatch(
             /<section[^>]*aria-label="Speaker Labels"[^>]*aria-busy="true"[^>]*data-speaker-review-panel="speaker-review"[^>]*data-speaker-review-state="loading"[^>]*>/,
+        );
+    });
+
+    it("renders the AI rename loading state with busy controls", () => {
+        const html = render(
+            React.createElement(AiRenamePreviewCard, {
+                title: "AI title preview",
+                subtitle: "Generating a title",
+                message: "Generating a title from the recording",
+                state: "loading",
+                isApplying: false,
+                isRegenerating: true,
+                applyLabel: "Apply title",
+                cancelLabel: "Cancel",
+                closeLabel: "Close",
+                regenerateLabel: "Retry",
+                onApply: vi.fn(),
+                onCancel: vi.fn(),
+                onRegenerate: vi.fn(),
+            }),
+            "en",
+        );
+
+        expect(html).toMatch(
+            /<div(?=[^>]*data-control="ai-rename-preview")(?=[^>]*data-state="loading")[^>]*>/,
+        );
+        expect(html).toContain("Generating a title from the recording");
+        expect(html).toMatch(
+            /<button(?=[^>]*aria-label="Retry")(?=[^>]*disabled="")(?=[^>]*aria-busy="true")[^>]*>[\s\S]*?Retry<\/button>/,
+        );
+        expect(html).toMatch(
+            /<button(?=[^>]*aria-label="Apply title")(?=[^>]*disabled="")(?=[^>]*aria-disabled="true")[^>]*>/,
+        );
+        expect(html).toMatch(
+            /<button(?=[^>]*aria-label="Cancel")[^>]*>[\s\S]*?Cancel[\s\S]*?<\/button>/,
+        );
+        expect(html).toMatch(
+            /<button(?=[^>]*aria-label="Close")(?=[^>]*title="Close")[^>]*>/,
+        );
+    });
+
+    it("renders the AI rename error state and actionable retry controls", () => {
+        const html = render(
+            React.createElement(AiRenamePreviewCard, {
+                title: "AI title preview",
+                subtitle: "Title generation",
+                message: "Unable to generate a title",
+                hint: "Try again or close this preview.",
+                state: "error",
+                isApplying: false,
+                isRegenerating: false,
+                applyLabel: "Apply title",
+                cancelLabel: "Cancel",
+                closeLabel: "Close",
+                regenerateLabel: "Retry",
+                onApply: vi.fn(),
+                onCancel: vi.fn(),
+                onRegenerate: vi.fn(),
+            }),
+            "en",
+        );
+
+        expect(html).toMatch(
+            /<div(?=[^>]*data-control="ai-rename-preview")(?=[^>]*data-state="error")[^>]*>/,
+        );
+        expect(html).toContain("Unable to generate a title");
+        expect(html).toContain("Try again or close this preview.");
+        expect(html).toMatch(
+            /<button(?=[^>]*aria-label="Retry")(?=[^>]*aria-disabled="false")[^>]*>[\s\S]*?Retry<\/button>/,
+        );
+        expect(html).toMatch(
+            /<button(?=[^>]*aria-label="Apply title")(?=[^>]*disabled="")(?=[^>]*aria-disabled="true")[^>]*>/,
+        );
+        expect(html).toMatch(
+            /<button(?=[^>]*aria-label="Cancel")[^>]*>[\s\S]*?Cancel[\s\S]*?<\/button>/,
+        );
+    });
+
+    it("renders AI rename review suggestions with enabled apply and cancel controls", () => {
+        const html = render(
+            React.createElement(AiRenamePreviewCard, {
+                title: "AI title preview",
+                subtitle: "Review the suggested title",
+                state: "review",
+                originalFilename: "weekly-sync.m4a",
+                filename: "2026-07-30 Weekly Sync.m4a",
+                message: "Review the suggested title before applying it.",
+                isApplying: false,
+                isRegenerating: false,
+                applyLabel: "Apply title",
+                cancelLabel: "Cancel",
+                closeLabel: "Close",
+                regenerateLabel: "Retry",
+                onApply: vi.fn(),
+                onCancel: vi.fn(),
+                onRegenerate: vi.fn(),
+            }),
+            "en",
+        );
+
+        expect(html).toMatch(
+            /<div(?=[^>]*data-control="ai-rename-preview")(?=[^>]*data-state="review")[^>]*>/,
+        );
+        expect(html).toContain("复核确认");
+        expect(html).toContain("原标题");
+        expect(html).toContain("weekly-sync.m4a");
+        expect(html).toContain("新标题");
+        expect(html).toContain("2026-07-30 Weekly Sync.m4a");
+        expect(html).toContain(
+            "Review the suggested title before applying it.",
+        );
+        expect(html).toMatch(
+            /<button(?=[^>]*aria-label="Retry")(?=[^>]*aria-disabled="false")[^>]*>[\s\S]*?Retry<\/button>/,
+        );
+        expect(html).toMatch(
+            /<button(?=[^>]*aria-label="Apply title")(?=[^>]*aria-disabled="false")[^>]*>[\s\S]*?Apply title<\/button>/,
+        );
+        expect(html).toMatch(
+            /<button(?=[^>]*aria-label="Cancel")[^>]*>[\s\S]*?Cancel[\s\S]*?<\/button>/,
         );
     });
 

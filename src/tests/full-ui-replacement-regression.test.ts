@@ -3987,7 +3987,7 @@ const AI_RENAME_PREVIEW_FEATURE_OWNER_CLASS_SNIPPETS = [
         snippets: [
             "grid-cols-[1fr_auto]",
             "gap-x-2.5 gap-y-0.5",
-            "border-b border-[var(--card-popover-divider)]",
+            "border-b border-border",
             "px-3.5 pt-3 !pb-[7px]",
         ],
     },
@@ -3995,23 +3995,22 @@ const AI_RENAME_PREVIEW_FEATURE_OWNER_CLASS_SNIPPETS = [
         label: "body",
         snippets: [
             "flex flex-col p-3.5",
-            'loadingContent: "min-h-20"',
-            "text-[12.5px] leading-[1.5] font-medium",
+            "text-[12.5px] leading-[1.5] font-medium text-muted-foreground",
         ],
     },
     {
         label: "state",
         snippets: [
-            "text-[10.5px] leading-none font-semibold",
-            "m-0 break-words text-[12.5px] leading-[1.5] font-medium",
-            "m-0 max-w-full break-words text-[11.5px] leading-[1.5] font-medium",
+            "text-[10.5px] leading-none font-semibold text-muted-foreground",
+            "border border-border bg-muted",
+            "text-primary",
         ],
     },
     {
         label: "review",
         snippets: [
             "mt-1.5 mb-0.5 flex flex-col gap-1.5",
-            "rounded-lg border border-[var(--line-hairline)] bg-[var(--bg-recessed)]",
+            "rounded-lg border border-border bg-muted",
             "text-muted-foreground line-through decoration-muted-foreground",
             "text-foreground",
         ],
@@ -4019,7 +4018,7 @@ const AI_RENAME_PREVIEW_FEATURE_OWNER_CLASS_SNIPPETS = [
     {
         label: "actions",
         snippets: [
-            "min-h-12 gap-1.5 border-t border-[var(--card-popover-divider)]",
+            "min-h-12 gap-1.5 border-t border-border bg-muted",
             "px-3.5 py-2.5 !pt-2.5",
             'variant="outline"',
         ],
@@ -4038,7 +4037,7 @@ const AI_RENAME_PREVIEW_FEATURE_OWNER_CLASS_SNIPPETS = [
     },
     {
         label: "button",
-        snippets: ['size="icon-xs"', 'size="xs"', 'action: "shrink-0"'],
+        snippets: ['size="icon-xs"', 'size="xs"'],
     },
 ] as const;
 
@@ -9868,9 +9867,6 @@ describe("full UI replacement regression coverage", () => {
         ]) {
             expect(aiRenamePreview).toContain("<" + primitive);
         }
-        expect(aiRenamePreview).toMatch(
-            /const\s+aiRenamePreview[A-Za-z0-9_]*ClassNames\s*=\s*{/,
-        );
         for (const {
             snippets,
         } of AI_RENAME_PREVIEW_FEATURE_OWNER_CLASS_SNIPPETS) {
@@ -10015,13 +10011,6 @@ describe("full UI replacement regression coverage", () => {
         );
         expect(aiRenamePreview).toContain("disabled={isBusy || !canAct}");
         expect(aiRenamePreview).toContain("aria-disabled={");
-        for (const icon of ["RefreshCw", "Check", "X"]) {
-            expect(aiRenamePreview).toMatch(
-                new RegExp(
-                    `<${icon}\\s+className=\\{[\\s\\S]*?aiRenamePreviewClassNames\\.button[\\s\\S]*?\\.actionIcon[\\s\\S]*?\\}\\s+aria-hidden="true"\\s*\\/>`,
-                ),
-            );
-        }
         expect(aiRenamePreview).not.toContain('data-panel="ai-rename-preview"');
         expect(aiRenamePreview).toContain('data-control="ai-rename-preview"');
         expect(aiRenamePreview).toContain("data-state={state}");
@@ -10036,9 +10025,6 @@ describe("full UI replacement regression coverage", () => {
         ]) {
             expect(aiRenamePreview).not.toContain(retiredAiRenameToken);
         }
-        expect(aiRenamePreview).toContain(
-            'new: "!bg-transparent text-[var(--accent)]"',
-        );
         expect(aiRenamePreview).not.toMatch(/!bg-(?!transparent)/);
         expect(aiRenamePreview).not.toContain("!text-");
         expect(aiRenamePreview).not.toContain("!font-");
