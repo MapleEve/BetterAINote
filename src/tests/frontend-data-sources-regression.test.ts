@@ -236,7 +236,23 @@ describe("frontend data-source routing regression", () => {
         expect(dataSourcesSection).toContain('aria-live="polite"');
         expect(dataSourcesSection).toContain("disabled={interactionDisabled}");
         expect(dataSourcesSection).not.toContain("data-sot-");
-        expect(dataSourcesSection).not.toContain("data-slot=");
+        expect(dataSourcesSection).toContain(
+            "max-[639px]:[&_[data-slot=field]]:flex-col",
+        );
+        expect(dataSourcesSection).toContain(
+            "max-[639px]:[&_[data-slot=field-control]]:w-full",
+        );
+        for (const forbiddenBusinessVisualSystem of [
+            /\b[A-Za-z_$][A-Za-z0-9_$]*ClassNames\b/,
+            /\b[A-Z][A-Z0-9_]*_CLASS_NAME\b/,
+            /\b[A-Za-z_$][A-Za-z0-9_$]*Styles\b/,
+            /\b(?:SourceActionButton|SourceActionStatusBadge|ProviderStateBanner)\b/,
+            /\bSOURCE_ACTION_BUTTON_PRIMITIVE_VARIANT_BY_TONE\b/,
+        ]) {
+            expect(dataSourcesSection).not.toMatch(
+                forbiddenBusinessVisualSystem,
+            );
+        }
     });
 
     it("keeps automatic updates labeled and bound to the selected provider", () => {
