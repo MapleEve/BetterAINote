@@ -94,13 +94,17 @@ describe("dashboard search semantic regression", () => {
         );
         const productGlobals = readSource("app/globals.css");
 
-        for (const className of [
-            "librarySearchClassNames",
-            "librarySearchClassNames.panel",
-            "librarySearchClassNames.result",
-            "librarySearchClassNames.scroll",
+        for (const semanticToken of [
+            "bg-popover",
+            "border-border",
+            "bg-muted",
+            "text-muted-foreground",
+            "text-foreground",
+            "bg-primary/10",
+            "text-primary",
+            'variant="destructive"',
         ]) {
-            expect(librarySearch).toContain(className);
+            expect(librarySearch).toContain(semanticToken);
         }
         expect(librarySearch).not.toContain('className="ls-item"');
         expect(librarySearch).not.toContain('className="ls-result"');

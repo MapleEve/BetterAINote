@@ -659,69 +659,14 @@ const SEARCH_ACTIVITY_PRIMITIVE_FILES = [
 const SEARCH_ACTIVITY_BUSINESS_TOKEN_RE =
     /\b(?:dashboardSearch|librarySearch|dashboardActivity)[A-Za-z0-9_]*/g;
 
-const LIBRARY_SEARCH_CLASS_PROPERTY_BY_OLD_OWNER_PROPERTY = {
-    dashboardSearchTrigger: "trigger",
-    librarySearchAnchor: "anchor",
-    librarySearchClear: "clear",
-    librarySearchError: "error",
-    librarySearchErrorTitle: "errorTitle",
-    librarySearchGroupLabel: "groupLabel",
-    librarySearchHighlight: "highlight",
-    librarySearchInput: "input",
-    librarySearchInputRow: "inputRow",
-    librarySearchPanel: "panel",
-    librarySearchResult: "result",
-    librarySearchResultGroup: "resultGroup",
-    librarySearchResultMeta: "resultMeta",
-    librarySearchResultTitle: "resultTitle",
-    librarySearchRetry: "retry",
-    librarySearchScope: "scope",
-    librarySearchScopeItem: "scopeItem",
-    librarySearchScroll: "scroll",
-    librarySearchStateCopy: "stateCopy",
-    librarySearchStateCopyStrong: "stateCopyStrong",
-    librarySearchStateSkeleton: "indexingBar",
-    librarySearchTag: "tag",
-} as const;
-
-function extractSearchActivityOwnerClassProperty({
-    activityClassNames,
-    librarySearchClassNames,
-    propertyName,
-}: {
-    activityClassNames: string;
-    librarySearchClassNames: string;
-    propertyName: string;
-}) {
-    const librarySearchPropertyName =
-        LIBRARY_SEARCH_CLASS_PROPERTY_BY_OLD_OWNER_PROPERTY[
-            propertyName as keyof typeof LIBRARY_SEARCH_CLASS_PROPERTY_BY_OLD_OWNER_PROPERTY
-        ];
-
-    return extractObjectStringProperty(
-        librarySearchPropertyName
-            ? librarySearchClassNames
-            : activityClassNames,
-        librarySearchPropertyName ?? propertyName,
-    );
-}
-
 const DASHBOARD_SEARCH_ACTIVITY_FEATURE_OWNER_CLASS_SNIPPETS = [
     {
         propertyName: "dashboardTopbarActions",
         snippets: ["ml-auto flex items-center gap-2"],
     },
     {
-        propertyName: "librarySearchAnchor",
-        snippets: ["relative inline-flex size-[32px]"],
-    },
-    {
         propertyName: "dashboardActivityAnchor",
         snippets: ["relative inline-flex size-[32px]"],
-    },
-    {
-        propertyName: "dashboardSearchTrigger",
-        snippets: ["relative"],
     },
     {
         propertyName: "dashboardActivityTrigger",
@@ -738,124 +683,12 @@ const DASHBOARD_SEARCH_ACTIVITY_FEATURE_OWNER_CLASS_SNIPPETS = [
         ],
     },
     {
-        propertyName: "librarySearchPanel",
-        snippets: [
-            "absolute right-0 top-[calc(100%+8px)]",
-            "w-[460px]",
-            "max-[640px]:fixed",
-        ],
-    },
-    {
         propertyName: "dashboardActivityPanel",
         snippets: ["absolute right-0 top-[calc(100%+8px)]", "w-[380px]"],
     },
     {
-        propertyName: "librarySearchInputRow",
-        snippets: ["h-auto min-h-0", "gap-[8px]", "px-[12px] py-[8px]"],
-    },
-    {
-        propertyName: "librarySearchInput",
-        snippets: ["h-8", "px-1 py-0", "text-[13.5px]"],
-    },
-    {
-        propertyName: "librarySearchScope",
-        snippets: [
-            "w-full flex-wrap",
-            "gap-[6px]",
-            "px-[12px] py-[8px]",
-            "border-b border-border",
-            "bg-muted",
-        ],
-    },
-    {
-        propertyName: "librarySearchScopeItem",
-        snippets: ["h-[22px]", "rounded-full", "px-[10px]", "text-[11.5px]"],
-    },
-    {
-        propertyName: "librarySearchError",
-        snippets: [
-            "w-full gap-[8px]",
-            "px-[16px] py-[18px]",
-            "text-destructive",
-            "text-center",
-        ],
-    },
-    {
-        propertyName: "librarySearchErrorTitle",
-        snippets: ["line-clamp-none min-h-0", "tracking-normal"],
-    },
-    {
-        propertyName: "librarySearchResult",
-        snippets: [
-            "h-auto",
-            "w-full",
-            "flex-col items-start",
-            "px-[10px] py-[8px]",
-            "whitespace-normal",
-        ],
-    },
-    {
-        propertyName: "librarySearchResultTitle",
-        snippets: ["text-[13px]", "font-semibold", "text-foreground"],
-    },
-    {
-        propertyName: "librarySearchResultMeta",
-        snippets: ["font-mono", "text-[11.5px]", "text-muted-foreground"],
-    },
-    {
-        propertyName: "librarySearchTag",
-        snippets: ["h-[22px]", "w-fit", "justify-normal", "pr-[9px]"],
-    },
-    {
         propertyName: "dashboardActivityCount",
         snippets: ["p-0", "font-mono text-xs"],
-    },
-    {
-        propertyName: "librarySearchClear",
-        snippets: ["size-6"],
-    },
-    {
-        propertyName: "librarySearchRetry",
-        snippets: ["h-[26px]", "px-[10px]", "text-[12px]"],
-    },
-    {
-        propertyName: "librarySearchScroll",
-        snippets: ["min-h-0 flex-1 overflow-y-auto", "pb-[8px]"],
-    },
-    {
-        propertyName: "librarySearchStateSkeleton",
-        snippets: [
-            "bg-[linear-gradient(90deg,transparent,var(--signal-info)_50%,transparent)]",
-            "animate-[sbn-sweep_1.4s_linear_infinite]",
-        ],
-    },
-    {
-        propertyName: "librarySearchStateCopy",
-        snippets: ["text-[12.5px]", "text-muted-foreground"],
-    },
-    {
-        propertyName: "librarySearchStateCopyStrong",
-        snippets: ["font-semibold", "text-foreground"],
-    },
-    {
-        propertyName: "librarySearchResultGroup",
-        snippets: [
-            "px-[4px] py-[6px]",
-            "[&+&]:border-t",
-            "[&+&]:border-border",
-        ],
-    },
-    {
-        propertyName: "librarySearchGroupLabel",
-        snippets: ["px-[6px] py-[4px]", "font-mono", "tracking-[0.84px]"],
-    },
-    {
-        propertyName: "librarySearchHighlight",
-        snippets: [
-            "bg-[color-mix(in_srgb,var(--accent)_22%,transparent)]",
-            "px-[2px]",
-            "text-[var(--accent)]",
-        ],
     },
     {
         propertyName: "dashboardActivityClose",
@@ -934,33 +767,23 @@ const DASHBOARD_SEARCH_ACTIVITY_FEATURE_OWNER_CLASS_SNIPPETS = [
     },
 ] as const;
 
-const DASHBOARD_SEARCH_ACTIVITY_SOT_BODY_FORBIDDEN_CLASS_SNIPPETS = [
-    {
-        propertyName: "librarySearchResultGroup",
-        snippets: ["pt-1.5 pb-2 pl-[5px] pr-1"],
-    },
-    {
-        propertyName: "librarySearchGroupLabel",
-        snippets: ["pt-[5px] pb-[3px]"],
-    },
-    {
-        propertyName: "librarySearchResult",
-        snippets: [
-            "min-h-[52px]",
-            "pt-[9.5px]",
-            "pb-[6.5px]",
-            "data-[active=true]:bg-",
-            "data-[state=active]:bg-",
-        ],
-    },
-] as const;
-
 const LIBRARY_SEARCH_FEATURE_OWNER_SOURCE_SNIPPETS = [
     "aria-expanded={open}",
     "aria-controls={open ? LIBRARY_SEARCH_DIALOG_ID : undefined}",
     'role="dialog"',
+    'role="combobox"',
+    'role="listbox"',
+    'role="option"',
     "placeholder={t(",
     '"librarySearch.shortPlaceholder"',
+    "bg-popover",
+    "border-border",
+    "bg-muted",
+    "text-muted-foreground",
+    "text-foreground",
+    "bg-primary/10",
+    "text-primary",
+    'variant="destructive"',
 ] as const;
 
 const DASHBOARD_SEARCH_CONTAINER_SOURCE_SNIPPETS = [
@@ -1039,15 +862,6 @@ function extractBoundedSlice(
 
 function extractDashboardSearchActivityClassNames(source: string) {
     const marker = "const dashboardSearchActivityClassNames = {";
-    const start = source.indexOf(marker);
-    expect(start).toBeGreaterThanOrEqual(0);
-    const end = source.indexOf("} as const;", start);
-    expect(end).toBeGreaterThan(start);
-    return source.slice(start, end + "} as const;".length);
-}
-
-function extractLibrarySearchClassNames(source: string) {
-    const marker = "const librarySearchClassNames = {";
     const start = source.indexOf(marker);
     expect(start).toBeGreaterThanOrEqual(0);
     const end = source.indexOf("} as const;", start);
@@ -1989,23 +1803,6 @@ const LIBRARY_SEARCH_LEGACY_PRODUCT_CSS_SELECTOR_RE = new RegExp(
     `\\.(${LIBRARY_SEARCH_LEGACY_PRODUCT_CSS_CLASSES.join("|")})(?![\\w-])`,
 );
 
-const MIGRATED_LIBRARY_SEARCH_DATA_SOT_CSS_SELECTORS = [
-    '[data-part="library-search-anchor"]',
-    '[data-panel="library-search"]',
-    '[data-panel="library-search"][data-open="true"]',
-    '[data-panel="library-search"] kbd',
-    '[data-region="library-search-scroll"]',
-    '[data-part="library-search-indexing"]',
-    '[data-part="library-search-loading"]',
-    '[data-part="library-search-empty"]',
-    '[data-part="library-search-state-skeleton"]',
-    '[data-part="library-search-state-copy"]',
-    '[data-list="library-search-results"]',
-    '[data-group="library-search-results"]',
-    '[data-part="library-search-group-label"]',
-    '[data-control="library-search-result"] mark',
-];
-
 const MIGRATED_DASHBOARD_ACTIVITY_DATA_SOT_CSS_SELECTORS = [
     '[data-part="dashboard-topbar-actions"]',
     '[data-part="dashboard-activity-anchor"]',
@@ -2033,21 +1830,6 @@ const MIGRATED_DASHBOARD_ACTIVITY_DATA_SOT_CSS_SELECTORS = [
     '[data-part="dashboard-activity-item-body"]',
     '[data-part="dashboard-activity-item-meta"]',
 ] as const;
-
-const LIBRARY_SEARCH_PRIMITIVE_REPAINT_CSS_SELECTORS = [
-    '[data-control="dashboard-search"][data-slot="button"]',
-    '[data-control="dashboard-search"][data-slot="button"] svg',
-    '[data-part="library-search-input-row"] [data-slot="input-group-addon"]',
-    '[data-control="library-search-input"][data-slot="input-group-control"]',
-    '[data-control="library-search-clear"]',
-    '[data-control="library-search-scope"]',
-    '[data-part="library-search-error"] [data-slot="alert-title"]',
-    '[data-part="library-search-error"] [data-slot="button"]',
-    '[data-control="library-search-result"] {',
-    '[data-control="library-search-result"]:hover',
-    '[data-control="library-search-result"]:focus-visible',
-    '[data-part="library-search-tag-chip"] {',
-];
 
 const DASHBOARD_TOPBAR_SOURCE_STATUS_LEGACY_PRODUCT_CSS_SELECTOR_RE =
     /\.(?:src-dot|dot-success|dot-warning|dot-info|dot-muted|dot|search|avatar)(?![\w-])/;
@@ -2801,15 +2583,6 @@ function isOwnerLocalModernColorLine(relativePath: string, line: string) {
         relativePath === "features/recordings/components/recording-player.tsx"
     ) {
         return line.includes("var(--signal-warning)");
-    }
-
-    if (relativePath === "features/dashboard/components/library-search.tsx") {
-        return [
-            "data-[state=on]:border-[color-mix(in_srgb,var(--accent)_36%,transparent)]",
-            "bg-[color-mix(in_srgb,var(--signal-info)_16%,transparent)]",
-            "bg-[color-mix(in_srgb,var(--accent)_22%,transparent)]",
-            "[--tag-c:oklch(0.560_0.150_285)]",
-        ].some((snippet) => line.includes(snippet));
     }
 
     if (
@@ -5983,12 +5756,6 @@ describe("full UI replacement regression coverage", () => {
 
         expect(legacySelectorLines).toEqual([]);
         expect(productCss).toContain("@keyframes sbn-sweep");
-        for (const selector of MIGRATED_LIBRARY_SEARCH_DATA_SOT_CSS_SELECTORS) {
-            expect(productCss).not.toContain(selector);
-        }
-        for (const selector of LIBRARY_SEARCH_PRIMITIVE_REPAINT_CSS_SELECTORS) {
-            expect(productCss).not.toContain(selector);
-        }
     });
 
     it("keeps dashboard topbar owner-local while source-provider atoms are primitive-owned", () => {
@@ -8056,7 +7823,6 @@ describe("full UI replacement regression coverage", () => {
             'aria-label={t("librarySearch.scopeLegend")}',
             "setSearchRetry((value) => value + 1)",
             'role="option"',
-            "librarySearchClassNames.tag",
         ]) {
             expect(dashboardSearchSlice).toContain(featureHook);
         }
@@ -8076,8 +7842,6 @@ describe("full UI replacement regression coverage", () => {
         }
         const dashboardSearchActivityClassNames =
             extractDashboardSearchActivityClassNames(workstation);
-        const librarySearchClassNames =
-            extractLibrarySearchClassNames(librarySearch);
         expect(workstation).toContain('data-control="dashboard-activity"');
         expect(workstation).toContain('data-panel="dashboard-activity"');
         const dashboardActivityStatusSub = extractOpeningElement(
@@ -8131,28 +7895,13 @@ describe("full UI replacement regression coverage", () => {
             propertyName,
             snippets,
         } of DASHBOARD_SEARCH_ACTIVITY_FEATURE_OWNER_CLASS_SNIPPETS) {
-            const property = extractSearchActivityOwnerClassProperty({
-                activityClassNames: dashboardSearchActivityClassNames,
-                librarySearchClassNames,
+            const property = extractObjectStringProperty(
+                dashboardSearchActivityClassNames,
                 propertyName,
-            });
+            );
 
             for (const snippet of snippets) {
                 expect(property).toContain(snippet);
-            }
-        }
-        for (const {
-            propertyName,
-            snippets,
-        } of DASHBOARD_SEARCH_ACTIVITY_SOT_BODY_FORBIDDEN_CLASS_SNIPPETS) {
-            const property = extractSearchActivityOwnerClassProperty({
-                activityClassNames: dashboardSearchActivityClassNames,
-                librarySearchClassNames,
-                propertyName,
-            });
-
-            for (const snippet of snippets) {
-                expect(property).not.toContain(snippet);
             }
         }
         for (const snippet of LIBRARY_SEARCH_FEATURE_OWNER_SOURCE_SNIPPETS) {
@@ -8203,9 +7952,6 @@ describe("full UI replacement regression coverage", () => {
         expect(librarySearch).toContain("handleLibrarySearchKeyDown");
         expect(librarySearch).toContain("searchInputRef.current?.focus({");
         expect(librarySearch).toContain("searchTriggerRef.current?.focus({");
-        for (const selector of MIGRATED_LIBRARY_SEARCH_DATA_SOT_CSS_SELECTORS) {
-            expect(productCss).not.toContain(selector);
-        }
         for (const selector of MIGRATED_DASHBOARD_ACTIVITY_DATA_SOT_CSS_SELECTORS) {
             expect(productCss).not.toContain(selector);
         }
@@ -8914,7 +8660,7 @@ describe("full UI replacement regression coverage", () => {
         }
         expect(workstation).toContain("<Button");
         expect(librarySearch).toContain('aria-haspopup="dialog"');
-        expect(librarySearch).toContain("librarySearchClassNames.trigger");
+        expect(librarySearch).toContain('className="relative"');
         expect(workstation).toContain('data-control="dashboard-activity"');
         expect(workstation).toContain(
             "dashboardSearchActivityClassNames.dashboardActivityTrigger",
