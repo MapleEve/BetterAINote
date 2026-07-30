@@ -2016,10 +2016,10 @@ describe("dashboard SOT foundation", () => {
             "const dashboardRouteLoadingListClassName =",
             ";",
         );
-        const recordingDetailLoadingSkeletonClassNames = extractBoundedSlice(
+        const routeFallbackDetailLoadingSkeleton = extractBoundedSlice(
             routeChrome,
-            "const recordingDetailLoadingSkeletonClassNames =",
-            "} as const;",
+            "function RouteFallbackDetailLoadingSkeleton",
+            "\nexport {",
         );
         const dashboardLoadingShellOpening = extractOpeningElement(
             loading,
@@ -2037,20 +2037,30 @@ describe("dashboard SOT foundation", () => {
             "Card",
         );
         const routeFallbackDetailLoadingCard = extractElementSlice(
-            routeChrome,
-            "recordingDetailLoadingSkeletonClassNames.recordingDetailLoadingAvatar",
+            routeFallbackDetailLoadingSkeleton,
+            "routeFallbackSurfaceClassName,",
             "Card",
         );
         const routeFallbackDetailLoadingCardOpening = extractOpeningElement(
-            routeChrome,
-            '"flex min-h-0 min-w-0 flex-col gap-4",',
+            routeFallbackDetailLoadingSkeleton,
+            "routeFallbackSurfaceClassName,",
             "Card",
         );
+        const routeFallbackDetailLoadingSkeletonOpenings =
+            routeFallbackDetailLoadingSkeleton.match(/<Skeleton[\s\S]*?\/>/g) ??
+            [];
         const dashboardLoadingDetailCard = extractElementSlice(
             loading,
             '"flex min-h-0 min-w-0 flex-col gap-4 flex-1",',
             "Card",
         );
+        const dashboardDetailLoadingSkeleton = extractBoundedSlice(
+            loading,
+            "function DashboardDetailLoadingSkeleton",
+            "\n}",
+        );
+        const dashboardDetailLoadingSkeletonOpenings =
+            dashboardDetailLoadingSkeleton.match(/<Skeleton[\s\S]*?\/>/g) ?? [];
 
         expect(loading).toContain(
             'import { Card } from "@/components/ui/card";',
@@ -2068,12 +2078,6 @@ describe("dashboard SOT foundation", () => {
         );
         expect(dashboardRouteLoadingListClassName).toContain(
             "routeFallbackSurfaceClassName",
-        );
-        expect(recordingDetailLoadingSkeletonClassNames).toContain(
-            "recordingDetailLoadingAvatar:",
-        );
-        expect(recordingDetailLoadingSkeletonClassNames).toContain(
-            "recordingDetailLoadingBar:",
         );
         expect(routeChrome).toContain(
             "function RouteFallbackDetailLoadingSkeleton",
@@ -2115,29 +2119,44 @@ describe("dashboard SOT foundation", () => {
             expect(loading).toContain(`const ${loadingSkeletonClassName} =`);
             expect(loading).not.toContain(`size="${loadingSkeletonClassName}"`);
         }
-        for (const loadingSkeletonSize of [
-            "recordingDetailLoadingAvatar",
-            "recordingDetailLoadingBar",
-            "recordingDetailLoadingBar60",
-            "recordingDetailLoadingBar90",
-        ]) {
-            expect(skeletonPrimitive).not.toContain(loadingSkeletonSize);
-            expect(routeChrome).toContain(`${loadingSkeletonSize}:`);
-            expect(routeChrome).toContain(
-                `recordingDetailLoadingSkeletonClassNames.${loadingSkeletonSize}`,
-            );
-            expect(routeChrome).not.toContain(`size="${loadingSkeletonSize}"`);
-            expect(loading).not.toContain(`${loadingSkeletonSize}:`);
+        expect(
+            routeFallbackDetailLoadingSkeletonOpenings.map(
+                (opening) => opening.match(/className="([^"]+)"/)?.[1],
+            ),
+        ).toEqual([
+            "size-8 rounded-full",
+            "h-2 w-20 rounded",
+            "h-2 w-20 rounded",
+            "h-2 w-3/5 rounded",
+            "h-2 w-20 rounded",
+            "h-2 w-11/12 rounded",
+        ]);
+        expect(
+            dashboardDetailLoadingSkeletonOpenings.map(
+                (opening) => opening.match(/className="([^"]+)"/)?.[1],
+            ),
+        ).toEqual([
+            "size-8 rounded-full",
+            "h-2 w-20 rounded",
+            "h-2 w-20 rounded",
+            "h-2 w-3/5 rounded",
+            "h-2 w-20 rounded",
+            "h-2 w-11/12 rounded",
+        ]);
+        for (const skeletonOpening of routeFallbackDetailLoadingSkeletonOpenings) {
+            expect(skeletonOpening).toContain('variant="default"');
+            expect(skeletonOpening).toContain('size="default"');
+            expect(skeletonOpening).toContain('className="');
         }
+        expect(routeFallbackDetailLoadingSkeleton).not.toMatch(
+            /data-sot|\bsot\b|style=|var\(--/i,
+        );
         expect(loading).toContain("<Skeleton");
         expect(routeChrome).toContain("<Skeleton");
         expect(loading).toContain('aria-hidden="true"');
         expect(routeChrome).toContain('aria-hidden="true"');
         expect(loading).not.toContain(
             "const recordingListLoadingSkeletonClassNames",
-        );
-        expect(routeChrome).toContain(
-            "const recordingDetailLoadingSkeletonClassNames",
         );
         expect(loading).toContain('variant="default"');
         expect(routeChrome).toContain('variant="default"');

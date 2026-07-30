@@ -3137,7 +3137,6 @@ describe("recording detail copy and title action UI regressions", () => {
         const error = readSource("app/(app)/recordings/[id]/error.tsx");
         const routeChrome = readSource("app/(app)/route-chrome.tsx");
         const cardPrimitive = readSource("components/ui/card.tsx");
-        const skeletonPrimitive = readSource("components/ui/skeleton.tsx");
         const globals = readSource("app/globals.css");
         const routeChromeModule = readSource(
             "app/(app)/route-chrome.module.css",
@@ -3157,20 +3156,25 @@ describe("recording detail copy and title action UI regressions", () => {
             "const routeFallbackEmptyDetailClassName =",
             "type RouteFallbackChromeProps",
         );
-        const recordingDetailLoadingSkeletonClassNames = extractBoundedSlice(
+        const routeFallbackDetailLoadingSkeleton = extractBoundedSlice(
             routeChrome,
-            "const recordingDetailLoadingSkeletonClassNames =",
-            "} as const;",
+            "function RouteFallbackDetailLoadingSkeleton",
+            "\nexport {",
         );
         const routeFallbackDetailLoadingCard = extractCardSlice(
-            routeChrome,
-            "recordingDetailLoadingSkeletonClassNames.recordingDetailLoadingAvatar",
+            routeFallbackDetailLoadingSkeleton,
+            "routeFallbackSurfaceClassName,",
         );
         const routeFallbackDetailLoadingCardOpening = extractOpeningElement(
-            routeChrome,
-            '"flex min-h-0 min-w-0 flex-col gap-4",',
+            routeFallbackDetailLoadingSkeleton,
+            "routeFallbackSurfaceClassName,",
             "Card",
         );
+        const routeFallbackDetailLoadingSkeletonOpenings =
+            collectOpeningElements(
+                routeFallbackDetailLoadingSkeleton,
+                "Skeleton",
+            );
         const recordingRouteLoadingDetailFallback = extractOpeningElement(
             loading,
             "className={`${recordingLoadingSurfaceClassName}",
@@ -3294,31 +3298,31 @@ describe("recording detail copy and title action UI regressions", () => {
         );
         expect(loading).not.toContain('variant="routeLoadingSurface"');
         expect(cardPrimitive).not.toContain("routeLoadingSurface");
-        for (const detailLoadingSize of [
-            "recordingDetailLoadingAvatar",
-            "recordingDetailLoadingBar",
-            "recordingDetailLoadingBar60",
-            "recordingDetailLoadingBar90",
-        ]) {
-            expect(skeletonPrimitive).not.toContain(detailLoadingSize);
-            expect(routeChrome).toContain(`${detailLoadingSize}:`);
-            expect(recordingDetailLoadingSkeletonClassNames).toContain(
-                `${detailLoadingSize}:`,
-            );
-            expect(routeChrome).toContain(
-                `recordingDetailLoadingSkeletonClassNames.${detailLoadingSize}`,
-            );
-            expect(routeChrome).not.toContain(`size="${detailLoadingSize}"`);
-            expect(loading).not.toContain(`${detailLoadingSize}:`);
+        expect(
+            routeFallbackDetailLoadingSkeletonOpenings.map(
+                (opening) => opening.match(/className="([^"]+)"/)?.[1],
+            ),
+        ).toEqual([
+            "size-8 rounded-full",
+            "h-2 w-20 rounded",
+            "h-2 w-20 rounded",
+            "h-2 w-3/5 rounded",
+            "h-2 w-20 rounded",
+            "h-2 w-11/12 rounded",
+        ]);
+        for (const skeletonOpening of routeFallbackDetailLoadingSkeletonOpenings) {
+            expect(skeletonOpening).toContain('variant="default"');
+            expect(skeletonOpening).toContain('size="default"');
+            expect(skeletonOpening).toContain('className="');
         }
+        expect(routeFallbackDetailLoadingSkeleton).not.toMatch(
+            /data-sot|\bsot\b|style=|var\(--/i,
+        );
         expect(routeChrome).toContain("<Skeleton");
         expect(routeChrome).toContain('aria-hidden="true"');
-        expect(routeChrome).toContain(
-            "const recordingDetailLoadingSkeletonClassNames",
-        );
         expect(routeChrome).toContain('variant="default"');
         expect(routeChrome).toContain('size="default"');
-        expect(routeChrome).toContain("className={");
+        expect(routeChrome).toContain('className="');
         expect(loading).toContain("<Skeleton");
         expect(loading).toContain('aria-hidden="true"');
         expect(loading).not.toContain("RouteFallbackDetailLoadingSkeleton");

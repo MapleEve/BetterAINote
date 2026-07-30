@@ -5351,16 +5351,6 @@ describe("full UI replacement regression coverage", () => {
             "recordingListLoadingMetaPillClassName",
             "recordingListLoadingTagClassName",
         ];
-        const recordingDetailLoadingSizeTokens = [
-            "recordingDetailLoadingAvatar",
-            "recordingDetailLoadingBar",
-            "recordingDetailLoadingBar60",
-            "recordingDetailLoadingBar90",
-        ];
-        const routeLoadingSizeTokens = [
-            ...recordingListLoadingClassNameTokens,
-            ...recordingDetailLoadingSizeTokens,
-        ];
         const routeFallbackSurfaceClassName = extractBoundedSlice(
             routeChrome,
             "const routeFallbackSurfaceClassName =",
@@ -5376,10 +5366,10 @@ describe("full UI replacement regression coverage", () => {
             "const dashboardRouteLoadingListClassName =",
             ";",
         );
-        const recordingDetailLoadingSkeletonClassNames = extractBoundedSlice(
+        const routeFallbackDetailLoadingSkeleton = extractBoundedSlice(
             routeChrome,
-            "const recordingDetailLoadingSkeletonClassNames =",
-            "} as const;",
+            "function RouteFallbackDetailLoadingSkeleton",
+            "\nexport {",
         );
         const dashboardLoadingShellOpening = extractOpeningElement(
             dashboardLoading,
@@ -5396,17 +5386,31 @@ describe("full UI replacement regression coverage", () => {
             "Card",
         );
         const routeFallbackDetailLoadingCard = extractCardSlice(
-            routeChrome,
-            "recordingDetailLoadingSkeletonClassNames.recordingDetailLoadingAvatar",
+            routeFallbackDetailLoadingSkeleton,
+            "routeFallbackSurfaceClassName,",
         );
         const routeFallbackDetailLoadingCardOpening = extractOpeningElement(
-            routeChrome,
-            '"flex min-h-0 min-w-0 flex-col gap-4",',
+            routeFallbackDetailLoadingSkeleton,
+            "routeFallbackSurfaceClassName,",
             "Card",
         );
+        const routeFallbackDetailLoadingSkeletonOpenings =
+            collectOpeningElements(
+                routeFallbackDetailLoadingSkeleton,
+                "Skeleton",
+            );
         const dashboardLoadingDetailCard = extractCardSlice(
             dashboardLoading,
             '"flex min-h-0 min-w-0 flex-col gap-4 flex-1",',
+        );
+        const dashboardDetailLoadingSkeleton = extractBoundedSlice(
+            dashboardLoading,
+            "function DashboardDetailLoadingSkeleton",
+            "\n}",
+        );
+        const dashboardDetailLoadingSkeletonOpenings = collectOpeningElements(
+            dashboardDetailLoadingSkeleton,
+            "Skeleton",
         );
         const recordingRouteLoadingDetailCard = extractCardSlice(
             recordingLoading,
@@ -5427,12 +5431,6 @@ describe("full UI replacement regression coverage", () => {
         );
         expect(routeChrome).toContain(
             "function RouteFallbackDetailLoadingSkeleton",
-        );
-        expect(recordingDetailLoadingSkeletonClassNames).toContain(
-            "recordingDetailLoadingAvatar:",
-        );
-        expect(recordingDetailLoadingSkeletonClassNames).toContain(
-            "recordingDetailLoadingBar:",
         );
         expect(dashboardLoadingShellOpening).toContain("aria-busy={true}");
         expect(recordingLoading).toContain('aria-label="正在加载录音详情"');
@@ -5465,10 +5463,6 @@ describe("full UI replacement regression coverage", () => {
             expect(loading).not.toContain(
                 "<RouteFallbackDetailLoadingSkeleton",
             );
-            for (const sizeToken of recordingDetailLoadingSizeTokens) {
-                expect(loading).not.toContain(`size="${sizeToken}"`);
-                expect(loading).not.toContain(`${sizeToken}:`);
-            }
         }
         expect(dashboardLoading).toContain(
             'import { Card } from "@/components/ui/card";',
@@ -5487,26 +5481,38 @@ describe("full UI replacement regression coverage", () => {
         expect(routeChrome).not.toContain(
             'data-panel="recording-detail-loading"',
         );
-        expect(routeChrome).toContain(
-            "const recordingDetailLoadingSkeletonClassNames",
-        );
-        for (const sizeToken of recordingDetailLoadingSizeTokens) {
-            expect(routeChrome).toContain(`${sizeToken}:`);
-            expect(routeChrome).toContain(
-                `recordingDetailLoadingSkeletonClassNames.${sizeToken}`,
-            );
-            expect(routeChrome).not.toContain(`size="${sizeToken}"`);
-        }
-        const routeChromeSkeletonOpenings = collectOpeningElements(
-            routeChrome,
-            "Skeleton",
-        );
-        expect(routeChromeSkeletonOpenings.length).toBeGreaterThan(0);
-        for (const skeletonOpening of routeChromeSkeletonOpenings) {
+        expect(
+            routeFallbackDetailLoadingSkeletonOpenings.map(
+                (opening) => opening.match(/className="([^"]+)"/)?.[1],
+            ),
+        ).toEqual([
+            "size-8 rounded-full",
+            "h-2 w-20 rounded",
+            "h-2 w-20 rounded",
+            "h-2 w-3/5 rounded",
+            "h-2 w-20 rounded",
+            "h-2 w-11/12 rounded",
+        ]);
+        expect(
+            dashboardDetailLoadingSkeletonOpenings.map(
+                (opening) => opening.match(/className="([^"]+)"/)?.[1],
+            ),
+        ).toEqual([
+            "size-8 rounded-full",
+            "h-2 w-20 rounded",
+            "h-2 w-20 rounded",
+            "h-2 w-3/5 rounded",
+            "h-2 w-20 rounded",
+            "h-2 w-11/12 rounded",
+        ]);
+        for (const skeletonOpening of routeFallbackDetailLoadingSkeletonOpenings) {
             expect(skeletonOpening).toContain('variant="default"');
             expect(skeletonOpening).toContain('size="default"');
-            expect(skeletonOpening).toContain("className={");
+            expect(skeletonOpening).toContain('className="');
         }
+        expect(routeFallbackDetailLoadingSkeleton).not.toMatch(
+            /data-sot|\bsot\b|style=|var\(--/i,
+        );
         expect(dashboardLoading).toContain(
             "dashboardRouteLoadingListClassName",
         );
@@ -5523,8 +5529,8 @@ describe("full UI replacement regression coverage", () => {
         }
         expect(recordingLoading).toContain("recordingLoadingSurfaceClassName");
         expect(cardPrimitive).not.toContain("routeLoadingSurface");
-        for (const sizeToken of routeLoadingSizeTokens) {
-            expect(skeletonPrimitive).not.toContain(sizeToken);
+        for (const classNameToken of recordingListLoadingClassNameTokens) {
+            expect(skeletonPrimitive).not.toContain(classNameToken);
         }
         for (const routeSource of [dashboardLoading, recordingLoading]) {
             expect(routeSource).not.toContain("RouteFallbackChrome");
