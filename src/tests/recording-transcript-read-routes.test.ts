@@ -385,6 +385,15 @@ describe("Read-only transcript routes", () => {
             })
             .mockReturnValueOnce({
                 from: vi.fn().mockReturnValue({
+                    innerJoin: vi.fn().mockReturnValue({
+                        where: vi.fn().mockReturnValue({
+                            orderBy: vi.fn().mockResolvedValue([]),
+                        }),
+                    }),
+                }),
+            })
+            .mockReturnValueOnce({
+                from: vi.fn().mockReturnValue({
                     where: vi.fn().mockReturnValue({
                         limit: vi.fn().mockResolvedValue([
                             {
@@ -462,6 +471,15 @@ describe("Read-only transcript routes", () => {
             from: vi.fn().mockReturnValue({
                 where: vi.fn().mockReturnValue({
                     limit: vi.fn().mockResolvedValue([]),
+                }),
+            }),
+        });
+        (db.select as Mock).mockReturnValueOnce({
+            from: vi.fn().mockReturnValue({
+                innerJoin: vi.fn().mockReturnValue({
+                    where: vi.fn().mockReturnValue({
+                        orderBy: vi.fn().mockResolvedValue([]),
+                    }),
                 }),
             }),
         });
