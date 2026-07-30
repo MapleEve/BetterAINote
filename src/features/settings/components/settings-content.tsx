@@ -203,7 +203,7 @@ function DisplaySettingsPanel({
                 ref={scrollRef}
                 aria-label={isZh ? "显示设置" : "Display Settings"}
                 aria-busy={busy}
-                className="min-h-0 overflow-y-auto px-[26px] py-[22px] [overscroll-behavior:contain]"
+                className="min-h-0 overflow-y-auto px-4 py-4 [overscroll-behavior:contain] sm:px-[26px] sm:py-[22px]"
             >
                 <Alert variant="destructiveSoft" density="comfortable">
                     <AlertCircle aria-hidden="true" />
@@ -238,7 +238,7 @@ function DisplaySettingsPanel({
             ref={scrollRef}
             aria-label={isZh ? "显示设置" : "Display Settings"}
             aria-busy={busy}
-            className="min-h-0 overflow-y-auto px-[26px] py-[22px] [overscroll-behavior:contain]"
+            className="min-h-0 overflow-y-auto px-4 py-4 [overscroll-behavior:contain] sm:px-[26px] sm:py-[22px]"
         >
             <h3 className="mb-[18px] text-lg font-semibold text-foreground">
                 {isZh ? "显示设置" : "Display Settings"}
@@ -646,7 +646,7 @@ function TitleGenerationSettingsPanel({
                 ref={scrollRef}
                 aria-label={isZh ? "AI 重命名服务" : "AI Rename Service"}
                 aria-busy={busy}
-                className="min-h-0 overflow-y-auto px-[26px] py-[22px] [overscroll-behavior:contain]"
+                className="min-h-0 overflow-y-auto px-4 py-4 [overscroll-behavior:contain] sm:px-[26px] sm:py-[22px]"
             >
                 <Alert variant="destructiveSoft" density="comfortable">
                     <AlertCircle aria-hidden="true" />
@@ -694,7 +694,7 @@ function TitleGenerationSettingsPanel({
             ref={scrollRef}
             aria-label={isZh ? "AI 重命名服务" : "AI Rename Service"}
             aria-busy={busy}
-            className="min-h-0 overflow-y-auto px-[26px] py-[22px] [overscroll-behavior:contain]"
+            className="min-h-0 overflow-y-auto px-4 py-4 [overscroll-behavior:contain] sm:px-[26px] sm:py-[22px]"
         >
             <h3 className="mb-[18px] text-lg font-semibold text-foreground">
                 {isZh ? "AI 重命名服务" : "AI Rename Service"}
@@ -998,7 +998,7 @@ function TranscriptionSettingsPanel({
                 ref={scrollRef}
                 aria-label={isZh ? "转录设置" : "Transcription Settings"}
                 aria-busy={busy}
-                className="min-h-0 overflow-y-auto px-[26px] py-[22px] [overscroll-behavior:contain]"
+                className="min-h-0 overflow-y-auto px-4 py-4 [overscroll-behavior:contain] sm:px-[26px] sm:py-[22px]"
             >
                 <Alert variant="destructiveSoft" density="comfortable">
                     <AlertCircle aria-hidden="true" />
@@ -1033,7 +1033,7 @@ function TranscriptionSettingsPanel({
             ref={scrollRef}
             aria-label={isZh ? "转录设置" : "Transcription Settings"}
             aria-busy={busy}
-            className="min-h-0 overflow-y-auto px-[26px] py-[22px] [overscroll-behavior:contain]"
+            className="min-h-0 overflow-y-auto px-4 py-4 [overscroll-behavior:contain] sm:px-[26px] sm:py-[22px]"
         >
             <h3 className="mb-[18px] text-lg font-semibold text-foreground">
                 {isZh ? "转录设置" : "Transcription Settings"}
@@ -1560,7 +1560,7 @@ function MiscSettingsPanel({ scrollRef }: { scrollRef?: Ref<HTMLDivElement> }) {
                 ref={scrollRef}
                 aria-label={isZh ? "杂项" : "Misc"}
                 aria-busy={busy}
-                className="min-h-0 overflow-y-auto px-[26px] py-[22px] [overscroll-behavior:contain]"
+                className="min-h-0 overflow-y-auto px-4 py-4 [overscroll-behavior:contain] sm:px-[26px] sm:py-[22px]"
             >
                 <Alert variant="destructiveSoft" density="comfortable">
                     <AlertCircle aria-hidden="true" />
@@ -1598,7 +1598,7 @@ function MiscSettingsPanel({ scrollRef }: { scrollRef?: Ref<HTMLDivElement> }) {
             ref={scrollRef}
             aria-label={isZh ? "杂项" : "Misc"}
             aria-busy={busy}
-            className="min-h-0 overflow-y-auto px-[26px] py-[22px] [overscroll-behavior:contain]"
+            className="min-h-0 overflow-y-auto px-4 py-4 [overscroll-behavior:contain] sm:px-[26px] sm:py-[22px]"
         >
             <h3 className="mb-2 text-lg font-semibold text-foreground">
                 {isZh ? "杂项" : "Misc"}

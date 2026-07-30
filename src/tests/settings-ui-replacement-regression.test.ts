@@ -800,7 +800,7 @@ describe("settings replacement runtime regressions", () => {
         expect(html).not.toContain("example.com");
     });
 
-    it("keeps the complete settings rail available without a replacement selector", () => {
+    it("keeps all six settings sections in both the desktop rail and compact selector", () => {
         const html = render(
             React.createElement(SettingsDialog, {
                 onOpenChange: vi.fn(),
@@ -819,7 +819,18 @@ describe("settings replacement runtime regressions", () => {
             expect(html).toContain(label);
         }
         expect(html).toContain('aria-current="page"');
-        expect(html).not.toContain('aria-label="设置分类"');
+        const compactSectionSelect = findById(
+            harness.captures.selects,
+            "settings-section-select",
+        );
+        expect(compactSectionSelect).toMatchObject({
+            "aria-label": "设置",
+            disabled: false,
+            value: "transcription",
+        });
+        expect(compactSectionSelect.options).toHaveLength(6);
+        expect(compactSectionSelect.onValueChange).toBeTypeOf("function");
+        expect(html).toContain('data-slot="select-trigger"');
     });
 
     it("keeps dialog close and navigation controls accessible at runtime", () => {
@@ -851,12 +862,28 @@ describe("settings replacement runtime regressions", () => {
     });
 
     it("keeps the data-source list and detail panes present together", () => {
+        harness.dataSources.orderedSources = [
+            makeSource(),
+            makeSource({
+                displayName: "Plaud",
+                provider: "plaud",
+            }),
+        ];
         const html = render(React.createElement(DataSourcesSection));
 
         expect(html).toContain("<aside");
         expect(html).toContain('aria-label="数据源列表"');
         expect(html).toContain('id="data-source-provider-detail"');
         expect(html).toContain('data-panel="source-provider-detail"');
+        const compactProviderSelect = findById(
+            harness.captures.selects,
+            "data-source-provider-select",
+        );
+        expect(compactProviderSelect).toMatchObject({
+            "aria-label": "选择数据源",
+            disabled: false,
+        });
+        expect(compactProviderSelect.options).toHaveLength(2);
         expect(html).toContain("TicNote");
     });
 
