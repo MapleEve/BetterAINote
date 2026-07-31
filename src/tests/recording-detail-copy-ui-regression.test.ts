@@ -1,7 +1,7 @@
 import { readdirSync, readFileSync } from "node:fs";
 import path from "node:path";
 import type { ComponentProps, ReactNode } from "react";
-import { afterEach, describe, expect, it, vi } from "vitest";
+import { afterEach, beforeAll, describe, expect, it, vi } from "vitest";
 import type {
     TranscriptionPanelProps,
     TranscriptionPanelTab,
@@ -28,7 +28,6 @@ let capturedButtons: CapturedButtonProps[] = [];
 let capturedSegmentedTabs: CapturedSegmentedTabsProps[] = [];
 
 async function installRenderedControlCapture() {
-    vi.resetModules();
     capturedButtons = [];
     capturedSegmentedTabs = [];
     const React = await import("react");
@@ -64,6 +63,56 @@ async function installRenderedControlCapture() {
 
     return React;
 }
+
+async function loadRenderedRuntime() {
+    const React = await installRenderedControlCapture();
+    const [
+        { renderToStaticMarkup },
+        { LanguageProvider },
+        { ConfirmDialogProvider },
+        { TranscriptionPanel },
+        { TranscriptionSection },
+        { SourceReportPanel },
+        { SourceReportCopyButton },
+        { default: RecordingLoading },
+        { default: RecordingNotFound },
+        { default: RecordingError },
+        { RecordingTagManager },
+    ] = await Promise.all([
+        import("react-dom/server"),
+        import("@/components/language-provider"),
+        import("@/components/ui/confirm-dialog"),
+        import("@/features/dashboard/components/transcription-panel"),
+        import("@/features/recordings/components/transcription-section"),
+        import("@/features/recordings/components/source-report-panel"),
+        import("@/features/source-report/primitives"),
+        import("@/app/(app)/recordings/[id]/loading"),
+        import("@/app/(app)/recordings/[id]/not-found"),
+        import("@/app/(app)/recordings/[id]/error"),
+        import("@/features/recordings/components/recording-tag-manager"),
+    ]);
+
+    return {
+        ConfirmDialogProvider,
+        LanguageProvider,
+        React,
+        RecordingError,
+        RecordingLoading,
+        RecordingNotFound,
+        RecordingTagManager,
+        SourceReportCopyButton,
+        SourceReportPanel,
+        TranscriptionPanel,
+        TranscriptionSection,
+        renderToStaticMarkup,
+    };
+}
+
+let renderedRuntime: Awaited<ReturnType<typeof loadRenderedRuntime>>;
+
+beforeAll(async () => {
+    renderedRuntime = await loadRenderedRuntime();
+});
 
 function transcriptionPanelProps(
     overrides: Partial<TranscriptionPanelProps> = {},
@@ -112,11 +161,8 @@ function transcriptionPanelProps(
 afterEach(() => {
     capturedButtons = [];
     capturedSegmentedTabs = [];
-    vi.doUnmock("@/components/ui/button");
-    vi.doUnmock("@/components/ui/segmented-tabs");
     vi.unstubAllGlobals();
     vi.restoreAllMocks();
-    vi.resetModules();
 });
 
 function recordingDetailSourceFiles(relativeDirectory: string): string[] {
@@ -903,20 +949,14 @@ describe("recording detail copy and title action UI regressions", () => {
     });
 
     it("keeps transcript copy actions disabled when no display text is available", async () => {
-        const React = await installRenderedControlCapture();
-        const { renderToStaticMarkup } = await import("react-dom/server");
-        const { LanguageProvider } = await import(
-            "@/components/language-provider"
-        );
-        const { ConfirmDialogProvider } = await import(
-            "@/components/ui/confirm-dialog"
-        );
-        const { TranscriptionPanel } = await import(
-            "@/features/dashboard/components/transcription-panel"
-        );
-        const { TranscriptionSection } = await import(
-            "@/features/recordings/components/transcription-section"
-        );
+        const {
+            ConfirmDialogProvider,
+            LanguageProvider,
+            React,
+            TranscriptionPanel,
+            TranscriptionSection,
+            renderToStaticMarkup,
+        } = renderedRuntime;
         const onCopyLocal = vi.fn();
 
         const detailHtml = renderToStaticMarkup(
@@ -991,17 +1031,13 @@ describe("recording detail copy and title action UI regressions", () => {
     });
 
     it("keeps source report copy states explicit without dumping raw detail payloads", async () => {
-        const React = await installRenderedControlCapture();
-        const { renderToStaticMarkup } = await import("react-dom/server");
-        const { LanguageProvider } = await import(
-            "@/components/language-provider"
-        );
-        const { SourceReportPanel } = await import(
-            "@/features/recordings/components/source-report-panel"
-        );
-        const { SourceReportCopyButton } = await import(
-            "@/features/source-report/primitives"
-        );
+        const {
+            LanguageProvider,
+            React,
+            SourceReportCopyButton,
+            SourceReportPanel,
+            renderToStaticMarkup,
+        } = renderedRuntime;
         const copyTranscript = vi.fn();
         const copyReport = vi.fn();
 
@@ -2166,14 +2202,12 @@ describe("recording detail copy and title action UI regressions", () => {
     });
 
     it("keeps dashboard transcription panel on SOT retx and detail tabs", async () => {
-        const React = await installRenderedControlCapture();
-        const { renderToStaticMarkup } = await import("react-dom/server");
-        const { LanguageProvider } = await import(
-            "@/components/language-provider"
-        );
-        const { TranscriptionPanel } = await import(
-            "@/features/dashboard/components/transcription-panel"
-        );
+        const {
+            LanguageProvider,
+            React,
+            TranscriptionPanel,
+            renderToStaticMarkup,
+        } = renderedRuntime;
         const onActiveTabChange = vi.fn();
         const sourcePane = React.createElement(
             "div",
@@ -2240,17 +2274,13 @@ describe("recording detail copy and title action UI regressions", () => {
     });
 
     it("keeps standalone recording route fallback states in the new shell", async () => {
-        const React = await installRenderedControlCapture();
-        const { renderToStaticMarkup } = await import("react-dom/server");
-        const { default: RecordingLoading } = await import(
-            "@/app/(app)/recordings/[id]/loading"
-        );
-        const { default: RecordingNotFound } = await import(
-            "@/app/(app)/recordings/[id]/not-found"
-        );
-        const { default: RecordingError } = await import(
-            "@/app/(app)/recordings/[id]/error"
-        );
+        const {
+            React,
+            RecordingError,
+            RecordingLoading,
+            RecordingNotFound,
+            renderToStaticMarkup,
+        } = renderedRuntime;
         const reset = vi.fn();
 
         const loadingHtml = renderToStaticMarkup(
@@ -2520,14 +2550,12 @@ describe("recording detail copy and title action UI regressions", () => {
     });
 
     it("keeps dashboard retranscription states inline without hiding the existing transcript", async () => {
-        const React = await installRenderedControlCapture();
-        const { renderToStaticMarkup } = await import("react-dom/server");
-        const { LanguageProvider } = await import(
-            "@/components/language-provider"
-        );
-        const { TranscriptionPanel } = await import(
-            "@/features/dashboard/components/transcription-panel"
-        );
+        const {
+            LanguageProvider,
+            React,
+            TranscriptionPanel,
+            renderToStaticMarkup,
+        } = renderedRuntime;
         const onRequest = vi.fn();
         const onRetry = vi.fn();
 
@@ -2601,11 +2629,8 @@ describe("recording detail copy and title action UI regressions", () => {
     });
 
     it("keeps recording tag creation controls on shadcn buttons", async () => {
-        const React = await installRenderedControlCapture();
-        const { renderToStaticMarkup } = await import("react-dom/server");
-        const { RecordingTagManager } = await import(
-            "@/features/recordings/components/recording-tag-manager"
-        );
+        const { React, RecordingTagManager, renderToStaticMarkup } =
+            renderedRuntime;
 
         const html = renderToStaticMarkup(
             React.createElement(RecordingTagManager, {
@@ -2638,11 +2663,8 @@ describe("recording detail copy and title action UI regressions", () => {
     });
 
     it("keeps recording tag manager on shadcn primitives and semantic tokens", async () => {
-        const React = await installRenderedControlCapture();
-        const { renderToStaticMarkup } = await import("react-dom/server");
-        const { RecordingTagManager } = await import(
-            "@/features/recordings/components/recording-tag-manager"
-        );
+        const { React, RecordingTagManager, renderToStaticMarkup } =
+            renderedRuntime;
         const tag: RecordingTag = {
             color: "blue",
             icon: "grid",
