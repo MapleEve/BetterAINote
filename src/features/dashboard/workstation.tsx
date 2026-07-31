@@ -81,6 +81,18 @@ import {
     type TranscriptionPanelSpeakerMergeRequest,
 } from "@/features/dashboard/components/transcription-panel";
 import {
+    DASHBOARD_FILTER_STATE_STORAGE_KEY,
+    type DashboardFavoriteFilter,
+    type DashboardFilterAction,
+    type DashboardListMode,
+    type DashboardTagFilter,
+    DEFAULT_DASHBOARD_FILTER_STATE,
+    dashboardFilterStateUrl,
+    reduceDashboardFilterState,
+    restoreDashboardFilterState,
+    serializeDashboardFilterState,
+} from "@/features/dashboard/filter-state";
+import {
     DASHBOARD_SOURCE_FILTER_STORAGE_KEY,
     type DashboardSourceFilter,
     parseDashboardSourceFilter,
@@ -364,10 +376,7 @@ function reconcileTranscriptionMaps(
     return next;
 }
 
-type Favorite = "all" | "transcribed" | "tags";
 type DetailTab = "transcript" | "speakers" | "source";
-type ListMode = "timeline" | "tags";
-type TagFilterValue = "all" | "untagged" | `tag:${string}`;
 type TimelineFilter = "all" | "today" | "yesterday" | "earlier";
 type RecordingListState =
     | "loading"
@@ -563,7 +572,7 @@ const SOURCE_ORDER = [
     },
 ] as const;
 
-const FAVORITES: { value: Favorite; icon: typeof Mic }[] = [
+const FAVORITES: { value: DashboardFavoriteFilter; icon: typeof Mic }[] = [
     { value: "all", icon: Mic },
     { value: "transcribed", icon: FileText },
     { value: "tags", icon: Tags },
@@ -763,11 +772,11 @@ function dashboardRecordingTimeFilterCountClassName(active: boolean) {
     );
 }
 
-function tagFilterValue(tagId: string): TagFilterValue {
+function tagFilterValue(tagId: string): DashboardTagFilter {
     return `tag:${tagId}`;
 }
 
-function tagIdFromFilter(value: TagFilterValue) {
+function tagIdFromFilter(value: DashboardTagFilter) {
     return value.startsWith("tag:") ? value.slice(4) : null;
 }
 
@@ -1239,7 +1248,7 @@ function sourceProviderCountTone(sourceRowState: SourceRowState) {
     }
 }
 
-function getFavoriteLabel(value: Favorite, t: Translator) {
+function getFavoriteLabel(value: DashboardFavoriteFilter, t: Translator) {
     switch (value) {
         case "all":
             return t("dashboardFavorites.allRecordings");
@@ -1706,17 +1715,17 @@ export function Workstation({
         Map<string, string>
     >(() => new Map());
     const [liveJobs, setLiveJobs] = useState(transcriptionJobs);
-    const [favorite, setFavorite] = useState<Favorite>("all");
+    const [dashboardFilterState, setDashboardFilterState] = useState(
+        DEFAULT_DASHBOARD_FILTER_STATE,
+    );
+    const { favorite, listMode, selectedTagFilter } = dashboardFilterState;
     const [source, setSource] = useState<DashboardSourceFilter>("all");
     const [selectedId, setSelectedId] = useState(recordings[0]?.id ?? "");
     const [collapsed, setCollapsed] = useState(false);
     const [drawerOpen, setDrawerOpen] = useState(false);
     const [searchOpen, setSearchOpen] = useState(false);
     const [settingsOpen, setSettingsOpen] = useState(false);
-    const [listMode, setListMode] = useState<ListMode>("timeline");
     const [timelineFilter, setTimelineFilter] = useState<TimelineFilter>("all");
-    const [selectedTagFilter, setSelectedTagFilter] =
-        useState<TagFilterValue>("all");
     const [tagFilterOpen, setTagFilterOpen] = useState(false);
     const [listPage, setListPage] = useState(1);
     const [recordingPage, setRecordingPage] = useState({
@@ -1878,6 +1887,35 @@ export function Workstation({
         writeBrowserStorage(DASHBOARD_SOURCE_FILTER_STORAGE_KEY, nextSource);
     }, []);
 
+    const updateDashboardFilterState = useCallback(
+        (action: DashboardFilterAction) => {
+            setDashboardFilterState((current) =>
+                reduceDashboardFilterState(current, action),
+            );
+        },
+        [],
+    );
+
+    const selectFavorite = useCallback(
+        (nextFavorite: DashboardFavoriteFilter) => {
+            updateDashboardFilterState({
+                type: "favorite",
+                value: nextFavorite,
+            });
+        },
+        [updateDashboardFilterState],
+    );
+
+    const selectTagFilter = useCallback(
+        (nextTagFilter: DashboardTagFilter) => {
+            updateDashboardFilterState({
+                type: "tag-filter",
+                value: nextTagFilter,
+            });
+        },
+        [updateDashboardFilterState],
+    );
+
     useEffect(() => {
         setHydrated(true);
         setCollapsed(
@@ -1889,7 +1927,34 @@ export function Workstation({
                 readBrowserStorage(DASHBOARD_SOURCE_FILTER_STORAGE_KEY),
             ),
         );
+        setDashboardFilterState(
+            restoreDashboardFilterState({
+                search: window.location.search,
+                storedValue: readBrowserStorage(
+                    DASHBOARD_FILTER_STATE_STORAGE_KEY,
+                ),
+            }),
+        );
     }, []);
+
+    useEffect(() => {
+        if (!hydrated || !hasBrowserWindow()) {
+            return;
+        }
+
+        writeBrowserStorage(
+            DASHBOARD_FILTER_STATE_STORAGE_KEY,
+            serializeDashboardFilterState(dashboardFilterState),
+        );
+        const currentUrl = `${window.location.pathname}${window.location.search}${window.location.hash}`;
+        const nextUrl = dashboardFilterStateUrl(
+            window.location.href,
+            dashboardFilterState,
+        );
+        if (nextUrl !== currentUrl) {
+            window.history.replaceState(null, "", nextUrl);
+        }
+    }, [dashboardFilterState, hydrated]);
 
     useEffect(
         () => () => {
@@ -2162,7 +2227,7 @@ export function Workstation({
             }
         }
         const options: Array<{
-            value: TagFilterValue;
+            value: DashboardTagFilter;
             label: string;
             count: number;
         }> = [
@@ -2345,8 +2410,11 @@ export function Workstation({
         ) {
             return;
         }
-        setSelectedTagFilter("all");
-    }, [selectedTagFilter, tagFilterOptions]);
+        updateDashboardFilterState({
+            available: tagFilterOptions.map((option) => option.value),
+            type: "reconcile-tags",
+        });
+    }, [selectedTagFilter, tagFilterOptions, updateDashboardFilterState]);
     const dataSourceByProvider = useMemo(
         () =>
             new Map(
@@ -3937,19 +4005,11 @@ export function Workstation({
         setSettingsOpen(true);
     }
 
-    function applyListMode(
-        mode: ListMode,
-        options: { fromFavorite?: boolean } = {},
-    ) {
+    function applyListMode(mode: DashboardListMode) {
         if (listMode !== mode) {
-            setListMode(mode);
-            setTimelineFilter("all");
-            setSelectedTagFilter("all");
+            updateDashboardFilterState({ type: "list-mode", value: mode });
         }
         setTagFilterOpen(false);
-        if (!options.fromFavorite) {
-            setFavorite(mode === "tags" ? "tags" : "all");
-        }
     }
 
     function selectRecording(recordingId: string) {
@@ -4028,8 +4088,8 @@ export function Workstation({
 
     function applyLibrarySearchFilter(filter: LibrarySearchFilter) {
         setLibrarySearchFilter(filter);
-        setFavorite("all");
-        applyListMode("timeline", { fromFavorite: true });
+        selectFavorite("all");
+        applyListMode("timeline");
     }
 
     async function runActivityAction(item: ActivityItem) {
@@ -4442,16 +4502,13 @@ export function Workstation({
                                 data-count-badge={String(count)}
                                 key={item.value}
                                 onClick={() => {
-                                    setFavorite(item.value);
-                                    if (item.value === "all") {
+                                    selectFavorite(item.value);
+                                    if (
+                                        item.value === "all" &&
+                                        listMode === "timeline"
+                                    ) {
                                         selectSource("all");
                                     }
-                                    applyListMode(
-                                        item.value === "tags"
-                                            ? "tags"
-                                            : "timeline",
-                                        { fromFavorite: true },
-                                    );
                                 }}
                             >
                                 <Icon data-icon="inline-start" />
@@ -5623,10 +5680,8 @@ export function Workstation({
                                                 data-action="widen"
                                                 data-part="source-filter-action"
                                                 onClick={() => {
-                                                    setFavorite("all");
-                                                    applyListMode("timeline", {
-                                                        fromFavorite: true,
-                                                    });
+                                                    selectFavorite("all");
+                                                    applyListMode("timeline");
                                                     setQuery("");
                                                 }}
                                             >
@@ -5943,7 +5998,7 @@ export function Workstation({
                                                     }
                                                     key={option.value}
                                                     onClick={() => {
-                                                        setSelectedTagFilter(
+                                                        selectTagFilter(
                                                             option.value,
                                                         );
                                                         setTagFilterOpen(false);
@@ -6392,7 +6447,7 @@ export function Workstation({
                                                     type="button"
                                                     data-control="recording-list-clear-filters"
                                                     onClick={() => {
-                                                        setFavorite("all");
+                                                        selectFavorite("all");
                                                         selectSource("all");
                                                         setQuery("");
                                                         setLibrarySearchFilter(
@@ -6401,9 +6456,7 @@ export function Workstation({
                                                         setTimelineFilter(
                                                             "all",
                                                         );
-                                                        setSelectedTagFilter(
-                                                            "all",
-                                                        );
+                                                        selectTagFilter("all");
                                                     }}
                                                 >
                                                     {t(
@@ -6449,9 +6502,7 @@ export function Workstation({
                                                     type="button"
                                                     data-control="recording-list-clear-tag"
                                                     onClick={() =>
-                                                        setSelectedTagFilter(
-                                                            "all",
-                                                        )
+                                                        selectTagFilter("all")
                                                     }
                                                 >
                                                     {t(
