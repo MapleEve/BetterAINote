@@ -46,6 +46,7 @@
         "test:coverage": "vitest run --coverage --reporter=default --reporter=junit --outputFile.junit=junit.xml",
         "test:watch": "vitest",
         "e2e": "playwright test",
+        "e2e:canonical-sot": "${BUN_INSTALL:-$HOME/.bun}/bin/bun scripts/run-canonical-sot-gate.ts",
         "e2e:display": "playwright test e2e/display-settings-language.spec.ts",
         "type-check": "tsc --noEmit",
         "format-and-lint": "biome check .",
