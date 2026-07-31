@@ -7,6 +7,7 @@ import {
     type SourceAuthMode,
     type SourceProvider,
 } from "@/lib/data-sources/catalog";
+import { resolveDingTalkServerBaseUrl } from "@/lib/data-sources/providers/dingtalk-a1/base-url";
 import {
     DINGTALK_DEVICE_CREDENTIAL_KEY,
     DINGTALK_LEGACY_DEVICE_CREDENTIAL_KEY,
@@ -124,7 +125,10 @@ function serializeSourceState(
             ? normalizeDingTalkAuthMode(rawAuthMode)
             : rawAuthMode
     ) as SourceAuthMode;
-    const baseUrl = row?.baseUrl ?? defaults.baseUrl;
+    const baseUrl =
+        provider === "dingtalk-a1"
+            ? resolveDingTalkServerBaseUrl(row?.baseUrl)
+            : (row?.baseUrl ?? defaults.baseUrl);
     const secrets = row ? parseSourceSecretConfig(row.secretConfig) : {};
     const persistedConfig =
         (row?.config as Record<string, unknown> | null | undefined) ?? {};

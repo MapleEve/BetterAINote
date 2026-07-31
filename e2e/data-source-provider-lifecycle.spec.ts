@@ -1,4 +1,6 @@
 import { createCipheriv, randomBytes } from "node:crypto";
+import { createServer } from "node:http";
+import type { AddressInfo } from "node:net";
 import path from "node:path";
 import { pathToFileURL } from "node:url";
 import { createClient } from "@libsql/client";
@@ -7,7 +9,7 @@ import type { Page } from "@playwright/test";
 import { ensureSignedIn } from "./helpers/auth";
 
 const E2E_PROVIDER = "dingtalk-a1";
-const E2E_PROVIDER_BASE_URL = "https://meeting-ai-tingji.dingtalk.com";
+const E2E_PROVIDER_CREDENTIAL = "e2e-provider-lifecycle-secret-sentinel";
 const E2E_ENCRYPTION_KEY =
     "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef";
 
@@ -29,6 +31,135 @@ type SourceConnectionSnapshotRow = {
     updatedAt: number;
 };
 
+async function startDingTalkTestUpstream() {
+    let requestCount = 0;
+    let lastRequest: {
+        method: string | undefined;
+        path: string | undefined;
+        credentialMatched: boolean;
+    } | null = null;
+    let releaseResponse!: () => void;
+    const responseGate = new Promise<void>((resolve) => {
+        releaseResponse = resolve;
+    });
+    let markRequestReceived!: () => void;
+    const requestReceived = new Promise<void>((resolve) => {
+        markRequestReceived = resolve;
+    });
+    const server = createServer((request, response) => {
+        lastRequest = {
+            method: request.method,
+            path: request.url,
+            credentialMatched:
+                request.headers["dt-meeting-agent-token"] ===
+                E2E_PROVIDER_CREDENTIAL,
+        };
+        if (
+            request.method !== "POST" ||
+            request.url !== "/ai/tingji/getConversationList"
+        ) {
+            response.writeHead(404).end();
+            return;
+        }
+
+        requestCount += 1;
+        if (request.headers["dt-meeting-agent-token"] !== E2E_PROVIDER_CREDENTIAL) {
+            response.writeHead(401).end();
+            return;
+        }
+
+        markRequestReceived();
+        void responseGate.then(() => {
+            response.writeHead(200, { "Content-Type": "application/json" });
+            response.end(JSON.stringify({ data: { items: [] } }));
+        });
+    });
+
+    await new Promise<void>((resolve, reject) => {
+        server.once("error", reject);
+        server.listen(0, "127.0.0.1", () => {
+            server.off("error", reject);
+            resolve();
+        });
+    });
+    const address = server.address() as AddressInfo;
+
+    return {
+        baseUrl: `http://127.0.0.1:${address.port}`,
+        close: () => {
+            releaseResponse();
+            return new Promise<void>((resolve, reject) => {
+                server.close((error) => (error ? reject(error) : resolve()));
+                server.closeAllConnections();
+            });
+        },
+        getLastRequest: () => lastRequest,
+        getRequestCount: () => requestCount,
+        releaseResponse,
+        waitForRequest: () => requestReceived,
+    };
+}
+
+async function startDingTalkRetryUpstream() {
+    const requests: Array<{
+        method: string | undefined;
+        path: string | undefined;
+        credentialMatched: boolean;
+        responseStatus: number;
+    }> = [];
+    const server = createServer((request, response) => {
+        if (
+            request.method !== "POST" ||
+            request.url !== "/ai/tingji/getConversationList"
+        ) {
+            response.writeHead(404).end();
+            return;
+        }
+
+        const credentialMatched =
+            request.headers["dt-meeting-agent-token"] ===
+            E2E_PROVIDER_CREDENTIAL;
+        const responseStatus = !credentialMatched
+            ? 401
+            : requests.length === 0
+              ? 403
+              : 200;
+        requests.push({
+            method: request.method,
+            path: request.url,
+            credentialMatched,
+            responseStatus,
+        });
+
+        if (responseStatus !== 200) {
+            response.writeHead(responseStatus).end();
+            return;
+        }
+
+        response.writeHead(200, { "Content-Type": "application/json" });
+        response.end(JSON.stringify({ data: { items: [] } }));
+    });
+
+    await new Promise<void>((resolve, reject) => {
+        server.once("error", reject);
+        server.listen(0, "127.0.0.1", () => {
+            server.off("error", reject);
+            resolve();
+        });
+    });
+    const address = server.address() as AddressInfo;
+
+    return {
+        baseUrl: `http://127.0.0.1:${address.port}`,
+        close: () =>
+            new Promise<void>((resolve, reject) => {
+                server.close((error) => (error ? reject(error) : resolve()));
+                server.closeAllConnections();
+            }),
+        getRequests: () => [...requests],
+    };
+}
+
 function resolveE2ERoot() {
     return path.resolve(
         process.env.PLAYWRIGHT_E2E_ROOT ?? path.join(process.cwd(), "tmp/e2e"),
@@ -39,6 +170,14 @@ function resolveDatabasePath() {
     return process.env.DATABASE_PATH
         ? path.resolve(process.cwd(), process.env.DATABASE_PATH)
         : path.join(resolveE2ERoot(), "data", "betterainote-e2e.db");
+}
+
+function resolveLibraryDatabasePath() {
+    const parsed = path.parse(resolveDatabasePath());
+    return path.resolve(
+        parsed.dir || ".",
+        `${parsed.name || "betterainote"}-library${parsed.ext || ".db"}`,
+    );
 }
 
 function isE2EDataPath(filePath: string) {
@@ -222,6 +361,45 @@ async function snapshotDingTalkConnection(userId: string) {
     }
 }
 
+async function snapshotDingTalkTestPersistence(userId: string) {
+    const core = createClient({ url: databaseUrl(resolveDatabasePath()) });
+    const library = createClient({
+        url: databaseUrl(resolveLibraryDatabasePath()),
+    });
+
+    try {
+        const [connections, workerState, devices] = await Promise.all([
+            snapshotDingTalkConnection(userId),
+            core.execute({
+                sql: `SELECT id, user_id, last_heartbeat_at, last_started_at,
+                             last_finished_at, next_run_at,
+                             manual_trigger_requested_at, is_running,
+                             last_error, last_summary, created_at, updated_at
+                      FROM sync_worker_state
+                      WHERE user_id = ?
+                      ORDER BY id`,
+                args: [userId],
+            }),
+            library.execute({
+                sql: `SELECT id, user_id, provider, provider_device_id,
+                             name, model, version_number, created_at, updated_at
+                      FROM source_devices
+                      WHERE user_id = ? AND provider = ?
+                      ORDER BY id`,
+                args: [userId, E2E_PROVIDER],
+            }),
+        ]);
+
+        return {
+            connections,
+            devices: devices.rows.map((row) => ({ ...row })),
+            workerState: workerState.rows.map((row) => ({ ...row })),
+        };
+    } finally {
+        await Promise.all([core.close(), library.close()]);
+    }
+}
+
 async function restoreDingTalkConnection(
     userId: string,
     snapshot: SourceConnectionSnapshotRow[],
@@ -287,12 +465,12 @@ function encryptWithPlaywrightE2EKey(plaintext: string) {
     ].join(":");
 }
 
-async function seedConnectedDingTalkConnection(userId: string) {
+async function seedConnectedDingTalkConnection(userId: string, baseUrl: string) {
     const client = createClient({ url: databaseUrl(resolveDatabasePath()) });
     const now = Date.now();
     const secretConfig = encryptWithPlaywrightE2EKey(
         JSON.stringify({
-            deviceCredential: "e2e-provider-lifecycle-secret-sentinel",
+            deviceCredential: E2E_PROVIDER_CREDENTIAL,
         }),
     );
 
@@ -316,7 +494,7 @@ async function seedConnectedDingTalkConnection(userId: string) {
                         E2E_PROVIDER,
                         1,
                         "device-signin",
-                        E2E_PROVIDER_BASE_URL,
+                        baseUrl,
                         JSON.stringify({ syncTitleToSource: true }),
                         secretConfig,
                         now - 60_000,
@@ -339,20 +517,27 @@ async function seedConnectedDingTalkConnection(userId: string) {
 async function openDingTalkProvider(page: Page) {
     await page.goto("/settings#data-sources", { waitUntil: "domcontentloaded" });
 
-    const section = page.locator('[data-sot-surface="settings-data-sources"]');
-    const providerCard = section.locator(
-        `[data-sot-control="source-provider"][data-sot-provider="${E2E_PROVIDER}"]`,
-    );
-    const detail = section.locator(
-        `[data-sot-panel="source-provider-detail"][data-sot-provider="${E2E_PROVIDER}"]`,
-    );
+    const dialog = page.getByRole("dialog", { name: /^(设置|Settings)$/ });
+    const sourceList = dialog.getByRole("complementary", {
+        name: /^(数据源列表|Data source list)$/,
+    });
+    const providerName = /钉钉\s*闪记|DingTalk A1 Flash Notes/;
+    const providerCard = sourceList.getByRole("button", { name: providerName });
+    const providerStatusName =
+        /^(钉钉\s*闪记|DingTalk A1 Flash Notes): (已连接|Connected)$/;
 
-    await expect(section).toHaveAttribute("data-sot-load-state", "ready");
-    await expect(providerCard).toHaveAttribute("data-sot-status", "connected");
+    await expect(dialog).toBeVisible();
+    await expect(
+        providerCard.getByRole("status", { name: providerStatusName }),
+    ).toBeVisible();
     await providerCard.click();
-    await expect(detail).toHaveAttribute("data-sot-status", "connected");
+    const detail = dialog.getByRole("region", { name: providerName });
+    await expect(detail).toBeVisible();
+    await expect(
+        detail.getByRole("status", { name: providerStatusName }),
+    ).toBeVisible();
 
-    return { detail, providerCard, section };
+    return { detail, providerCard };
 }
 
 function waitForDataSourcesTestResponse(page: Page) {
@@ -411,79 +596,69 @@ test.describe("Data Sources provider Test lifecycle", () => {
         await ensureSignedIn(page);
         const userId = await getPlaywrightUserId();
         const originalSnapshot = await snapshotDingTalkConnection(userId);
-        let releaseTestResponse: (() => void) | null = null;
-        let testRouteInstalled = false;
+        const upstream = await startDingTalkTestUpstream();
 
         try {
-            await seedConnectedDingTalkConnection(userId);
-            const beforeTest = await snapshotDingTalkConnection(userId);
-            expect(beforeTest).toHaveLength(1);
+            await seedConnectedDingTalkConnection(userId, upstream.baseUrl);
+            const beforeTest = await snapshotDingTalkTestPersistence(userId);
+            expect(beforeTest.connections).toHaveLength(1);
+            expect(beforeTest.connections[0]).toMatchObject({
+                enabled: 1,
+                authMode: "device-signin",
+                baseUrl: upstream.baseUrl,
+            });
+            expect(beforeTest.connections[0]?.secretConfig).not.toContain(
+                E2E_PROVIDER_CREDENTIAL,
+            );
 
-            const { detail, providerCard, section } =
-                await openDingTalkProvider(page);
-            const sourceTest = detail.locator(
-                '[data-sot-control="source-test"]',
-            );
-            const reconnect = detail.locator(
-                '[data-sot-control="source-reconnect"]',
-            );
-            const disconnect = detail.locator(
-                '[data-sot-control="source-disconnect"]',
-            );
+            const { detail } = await openDingTalkProvider(page);
+            const sourceTest = detail.getByRole("button", {
+                name: /^(测试连接|测试中|连接正常|Test|Testing|Ready)$/,
+            });
+            const reconnect = detail.getByRole("button", {
+                name: /^(重新连接|Reconnect)$/,
+            });
+            const disconnect = detail.getByRole("button", {
+                name: /^(断开连接|Disconnect)$/,
+            });
             await expect(sourceTest).toBeEnabled();
             await expect(reconnect).toBeEnabled();
             await expect(disconnect).toBeEnabled();
 
-            let resolveTestResponse!: () => void;
-            const testResponseGate = new Promise<void>((resolve) => {
-                resolveTestResponse = resolve;
-            });
-            let forwardedTestRequest = false;
-
-            await page.route("**/api/data-sources/test", async (route) => {
-                if (route.request().method() !== "POST") {
-                    await route.continue();
-                    return;
-                }
-
-                // Keep the UI in its real in-flight state after the route has
-                // already received the product API response.
-                forwardedTestRequest = true;
-                const response = await route.fetch();
-                await testResponseGate;
-                await route.fulfill({ response });
-            });
-            testRouteInstalled = true;
-            releaseTestResponse = resolveTestResponse;
-
             const testResponse = waitForDataSourcesTestResponse(page);
             await sourceTest.click();
-            await expect.poll(() => forwardedTestRequest).toBe(true);
-            await expect(detail).toHaveAttribute(
-                "data-sot-action-state",
-                "testing",
-            );
+            await upstream.waitForRequest();
+            await expect(detail).toHaveAttribute("aria-busy", "true");
+            await expect(sourceTest).toHaveAttribute("aria-busy", "true");
             await expect(sourceTest).toBeDisabled();
             await expect(reconnect).toBeDisabled();
             await expect(disconnect).toBeDisabled();
 
-            releaseTestResponse();
-            releaseTestResponse = null;
+            upstream.releaseResponse();
             const response = await testResponse;
+            expect(upstream.getLastRequest()).toEqual({
+                method: "POST",
+                path: "/ai/tingji/getConversationList",
+                credentialMatched: true,
+            });
+            expect(upstream.getRequestCount()).toBe(1);
             expect(response.status()).toBe(200);
             await expect(response.json()).resolves.toEqual({ success: true });
             expect(
-                readRecord(
-                    response.request().postDataJSON(),
-                    "data source test request",
-                ).provider,
-            ).toBe(E2E_PROVIDER);
+                response.request().postDataJSON(),
+            ).toMatchObject({
+                provider: E2E_PROVIDER,
+                authMode: "device-signin",
+                baseUrl: upstream.baseUrl,
+            });
 
-            await expect(detail).toHaveAttribute(
-                "data-sot-action-state",
-                "test-success",
-            );
-            await expect(sourceTest).toHaveAttribute("data-sot-state", "success");
+            await expect(detail).toHaveAttribute("aria-busy", "false");
+            await expect(
+                detail.getByRole("status", {
+                    name: /^(连接测试通过|Connection test passed)$/,
+                }),
+            ).toBeVisible();
+            await expect(sourceTest).toHaveText(/连接正常|Ready/);
             await expect(reconnect).toBeEnabled();
             await expect(disconnect).toBeEnabled();
 
@@ -495,33 +670,99 @@ test.describe("Data Sources provider Test lifecycle", () => {
             expect(sourceReadback.enabled).toBe(true);
             expect(sourceReadback.connected).toBe(true);
             expect(sourceReadback.authMode).toBe("device-signin");
+            expect(sourceReadback.baseUrl).toBe(upstream.baseUrl);
 
-            const afterTest = await snapshotDingTalkConnection(userId);
+            const afterTest = await snapshotDingTalkTestPersistence(userId);
             expect(afterTest).toEqual(beforeTest);
 
-            await page.unroute("**/api/data-sources/test");
-            testRouteInstalled = false;
             const reloadResponse = waitForDataSourcesReload(page);
             await page.reload({ waitUntil: "domcontentloaded" });
             expect((await reloadResponse).status()).toBe(200);
 
-            await expect(section).toHaveAttribute("data-sot-load-state", "ready");
-            await expect(providerCard).toHaveAttribute(
-                "data-sot-status",
-                "connected",
-            );
-            await providerCard.click();
-            await expect(detail).toHaveAttribute(
-                "data-sot-status",
-                "connected",
-            );
-            await expect(sourceTest).toHaveAttribute("data-sot-state", "idle");
+            const reloaded = await openDingTalkProvider(page);
+            await expect(
+                reloaded.detail.getByRole("button", {
+                    name: /^(测试连接|Test)$/,
+                }),
+            ).toBeVisible();
         } finally {
-            releaseTestResponse?.();
-            if (testRouteInstalled) {
-                await page.unroute("**/api/data-sources/test");
+            try {
+                await restoreDingTalkConnection(userId, originalSnapshot);
+            } finally {
+                await upstream.close();
             }
-            await restoreDingTalkConnection(userId, originalSnapshot);
+        }
+    });
+
+    test("Test surfaces a real permission error, retries successfully, and leaves all persistence unchanged", async ({
+        page,
+    }) => {
+        await ensureSignedIn(page);
+        const userId = await getPlaywrightUserId();
+        const originalSnapshot = await snapshotDingTalkConnection(userId);
+        const upstream = await startDingTalkRetryUpstream();
+
+        try {
+            await seedConnectedDingTalkConnection(userId, upstream.baseUrl);
+            const beforeTest = await snapshotDingTalkTestPersistence(userId);
+            const { detail } = await openDingTalkProvider(page);
+            const sourceTest = detail.getByRole("button", {
+                name: /^(测试连接|连接正常|Test|Ready)$/,
+            });
+
+            const failedTestResponse = waitForDataSourcesTestResponse(page);
+            await sourceTest.click();
+            const failedResponse = await failedTestResponse;
+            expect(failedResponse.status()).toBe(400);
+            await expect(failedResponse.json()).resolves.toEqual({
+                error: "未能连接数据源",
+            });
+            await expect(
+                detail.getByRole("alert", {
+                    name: /^(连接测试失败|Connection test failed)$/,
+                }),
+            ).toBeVisible();
+            await expect(detail).toHaveAttribute("aria-busy", "false");
+            await expect(sourceTest).toBeEnabled();
+            expect(await snapshotDingTalkTestPersistence(userId)).toEqual(
+                beforeTest,
+            );
+
+            const retryResponse = waitForDataSourcesTestResponse(page);
+            await sourceTest.click();
+            const recoveredResponse = await retryResponse;
+            expect(recoveredResponse.status()).toBe(200);
+            await expect(recoveredResponse.json()).resolves.toEqual({
+                success: true,
+            });
+            await expect(
+                detail.getByRole("status", {
+                    name: /^(连接测试通过|Connection test passed)$/,
+                }),
+            ).toBeVisible();
+            expect(upstream.getRequests()).toEqual([
+                {
+                    method: "POST",
+                    path: "/ai/tingji/getConversationList",
+                    credentialMatched: true,
+                    responseStatus: 403,
+                },
+                {
+                    method: "POST",
+                    path: "/ai/tingji/getConversationList",
+                    credentialMatched: true,
+                    responseStatus: 200,
+                },
+            ]);
+            expect(await snapshotDingTalkTestPersistence(userId)).toEqual(
+                beforeTest,
+            );
+        } finally {
+            try {
+                await restoreDingTalkConnection(userId, originalSnapshot);
+            } finally {
+                await upstream.close();
+            }
         }
     });
 });

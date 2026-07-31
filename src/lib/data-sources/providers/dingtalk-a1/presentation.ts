@@ -11,6 +11,10 @@ import {
     buildSourceTitleSyncField,
     isZh,
 } from "@/lib/data-sources/presentation-shared";
+import {
+    DINGTALK_DEFAULT_BASE_URL,
+    getDingTalkE2ELoopbackBaseUrl,
+} from "./base-url";
 import { DINGTALK_DEVICE_CREDENTIAL_KEY } from "./constants";
 
 const DINGTALK_BROWSER_AUTH_DISPLAY_KEY = "browserAuthorizationDisplay";
@@ -93,7 +97,9 @@ export const dingtalkA1PresentationDefinition: ProviderPresentationDefinition =
             ...payload,
             authMode:
                 state.authMode as import("@/lib/data-sources/catalog").SourceAuthMode,
-            baseUrl: "https://meeting-ai-tingji.dingtalk.com",
+            baseUrl:
+                getDingTalkE2ELoopbackBaseUrl(state.baseUrl) ??
+                DINGTALK_DEFAULT_BASE_URL,
             config: {
                 syncTitleToSource: payload.config.syncTitleToSource === true,
             },

@@ -110,7 +110,7 @@ export function hasDingTalkMinutesDetailPayload(value: unknown) {
 }
 
 export function buildMissingDingTalkSecretMessage() {
-    return "请填写 dt-meeting-agent-token。";
+    return "请填写钉钉登录信息。";
 }
 
 export function buildRejectedDingTalkSessionMessage(

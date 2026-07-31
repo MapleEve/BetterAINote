@@ -1150,6 +1150,7 @@ export function DataSourcesSection({
                                     )}
                                     className="shrink-0"
                                     role="status"
+                                    aria-label={`${selectedSourceDisplayName}: ${status.label}`}
                                     aria-live="polite"
                                 >
                                     <ProviderStatusIndicator
@@ -1176,6 +1177,9 @@ export function DataSourcesSection({
                                         status.tone === "err"
                                             ? "alert"
                                             : "status"
+                                    }
+                                    aria-label={
+                                        actionMessage?.title ?? status.label
                                     }
                                     aria-live={
                                         status.tone === "err"
