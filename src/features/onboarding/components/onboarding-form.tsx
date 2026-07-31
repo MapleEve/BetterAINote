@@ -1,18 +1,7 @@
 "use client";
 
-import {
-    CheckCircle2,
-    Cloud,
-    Database,
-    Loader2,
-    type LucideIcon,
-    MessageSquare,
-    Mic2,
-    Radio,
-    UserRound,
-} from "lucide-react";
-import Image from "next/image";
-import { type ReactNode, useEffect, useState } from "react";
+import { CheckCircle2, Database, Loader2, UserRound } from "lucide-react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { useLanguage } from "@/components/language-provider";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
@@ -37,7 +26,10 @@ import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
 import { DataSourceFieldControl } from "@/features/data-sources/data-source-field-control";
 import { useOnboardingDataSource } from "@/features/data-sources/use-onboarding-data-source";
 import type { SourceProvider } from "@/lib/data-sources/catalog";
-import { getSourceAuthModeDisplayLabel } from "@/lib/data-sources/presentation";
+import {
+    getSourceAuthModeDisplayLabel,
+    getSourceProviderLabel,
+} from "@/lib/data-sources/presentation";
 import {
     navigateAndRefreshBrowserRoute,
     useBrowserRouteController,
@@ -80,22 +72,18 @@ const DEFAULT_TRANSCRIPTION_SOURCE_OPTIONS = [
     {
         id: "dingtalk-a1",
         label: "钉钉 闪记",
-        swatch: "accent",
     },
     {
         id: "ticnote",
         label: "TicNote",
-        swatch: "empty",
     },
     {
         id: "feishu-minutes",
         label: "飞书妙记",
-        swatch: "empty",
     },
 ] as const satisfies ReadonlyArray<{
     id: DefaultTranscriptionSource;
     label: string;
-    swatch: "accent" | "empty";
 }>;
 
 function isDefaultTranscriptionSource(
@@ -106,60 +94,18 @@ function isDefaultTranscriptionSource(
     );
 }
 
-const PROVIDER_ICONS: Record<SourceProvider, LucideIcon> = {
-    "dingtalk-a1": Radio,
-    ticnote: Mic2,
-    plaud: Cloud,
-    "feishu-minutes": MessageSquare,
-    iflyrec: Database,
-};
-
-const PROVIDER_ASSETS: Partial<Record<SourceProvider, string>> = {
-    "dingtalk-a1": "/assets/sources/dingtalk.svg",
-    ticnote: "/assets/sources/ticnote.png",
-    plaud: "/assets/sources/plaud.png",
-    "feishu-minutes": "/assets/sources/feishu.jpeg",
-};
-
 function getStepIndex(step: OnboardingStepId) {
     return ONBOARDING_STEPS.findIndex((item) => item.id === step);
-}
-
-function OnboardingFieldRow({
-    children,
-    description,
-    disabled = false,
-    id,
-    label,
-}: {
-    children: ReactNode;
-    description: string;
-    disabled?: boolean;
-    id: string;
-    label: string;
-}) {
-    return (
-        <Field
-            className="gap-2"
-            data-disabled={disabled ? "true" : undefined}
-            orientation="responsive"
-        >
-            <FieldContent className="min-w-0 gap-1">
-                <FieldLabel htmlFor={id}>{label}</FieldLabel>
-                <FieldDescription className="max-w-full text-xs">
-                    {description}
-                </FieldDescription>
-            </FieldContent>
-            <FieldControl className="min-w-0 flex-1">{children}</FieldControl>
-        </Field>
-    );
 }
 
 export function OnboardingForm({ onConnected }: OnboardingFormProps) {
     const router = useBrowserRouteController();
     const { language } = useLanguage();
     const isZh = language === "zh-CN";
-    const [isMounted, setIsMounted] = useState(false);
+    const [isRestoring, setIsRestoring] = useState(true);
+    const [restoreError, setRestoreError] = useState<string | null>(null);
+    const [existingSourceProvider, setExistingSourceProvider] =
+        useState<SourceProvider | null>(null);
     const [activeStep, setActiveStep] = useState<OnboardingStepId>("source");
     const [defaultTranscriptionSource, setDefaultTranscriptionSource] =
         useState<DefaultTranscriptionSource | null>(null);
@@ -171,6 +117,7 @@ export function OnboardingForm({ onConnected }: OnboardingFormProps) {
     const [finishError, setFinishError] = useState<string | null>(null);
     const [isFinishing, setIsFinishing] = useState(false);
     const [transcriptionSaved, setTranscriptionSaved] = useState(false);
+    const stepPanelRef = useRef<HTMLElement>(null);
     const {
         connectedProvider,
         connectedProviders,
@@ -193,11 +140,123 @@ export function OnboardingForm({ onConnected }: OnboardingFormProps) {
         language,
     });
 
-    useEffect(() => {
-        setIsMounted(true);
+    const restoreOnboarding = useCallback(async () => {
+        setIsRestoring(true);
+        setRestoreError(null);
+
+        try {
+            const [sourcesResponse, transcriptionResponse, speakersResponse] =
+                await Promise.all([
+                    fetch(ONBOARDING_DATA_SOURCES_ENDPOINT),
+                    fetch("/api/settings/transcription"),
+                    fetch("/api/speakers/profiles"),
+                ]);
+
+            if (
+                !sourcesResponse.ok ||
+                !transcriptionResponse.ok ||
+                !speakersResponse.ok
+            ) {
+                throw new Error("无法读取现有配置，请重试。");
+            }
+
+            const sourcesPayload = (await sourcesResponse.json()) as {
+                sources?: Array<{
+                    connected?: boolean;
+                    provider?: SourceProvider;
+                }>;
+            };
+            const transcriptionPayload =
+                (await transcriptionResponse.json()) as {
+                    defaultTranscriptionProvider?: SourceProvider | null;
+                };
+            const speakersPayload = (await speakersResponse.json()) as {
+                profiles?: Array<{ displayName?: string }>;
+            };
+            const savedProvider =
+                transcriptionPayload.defaultTranscriptionProvider;
+            const savedSource = sourcesPayload.sources?.find(
+                (source) => source.connected && source.provider,
+            );
+            const hasConnectedSource = Boolean(savedSource);
+            const hasSpeaker = Boolean(speakersPayload.profiles?.length);
+
+            setExistingSourceProvider(savedSource?.provider ?? null);
+
+            if (savedProvider && isDefaultTranscriptionSource(savedProvider)) {
+                setDefaultTranscriptionSource(savedProvider);
+                setTranscriptionSaved(true);
+            }
+
+            if (hasSpeaker) {
+                setSpeakerName(
+                    speakersPayload.profiles?.[0]?.displayName?.trim() ?? "",
+                );
+                setSpeakerState("saved");
+            }
+
+            if (!hasConnectedSource) {
+                setActiveStep("source");
+            } else if (!savedProvider) {
+                setActiveStep("transcription");
+            } else if (!hasSpeaker) {
+                setActiveStep("speakers");
+            } else {
+                setActiveStep("finish");
+            }
+        } catch (error) {
+            setRestoreError(
+                error instanceof Error
+                    ? error.message
+                    : "无法读取现有配置，请重试。",
+            );
+        } finally {
+            setIsRestoring(false);
+        }
     }, []);
 
-    const visibleStep = connectedProvider ? "finish" : activeStep;
+    useEffect(() => {
+        void restoreOnboarding();
+    }, [restoreOnboarding]);
+
+    useEffect(() => {
+        if (isRestoring) {
+            return;
+        }
+
+        const focusTargetByStep: Record<OnboardingStepId, string> = {
+            source: "#source-secret, button[aria-pressed]:not([disabled])",
+            transcription:
+                'button[aria-checked="true"]:not([disabled]), button[aria-checked="false"]:not([disabled])',
+            speakers: "#speaker-name",
+            finish: 'fieldset[aria-label="完成配置操作"] button:not([disabled])',
+        };
+        const animationFrame = window.requestAnimationFrame(() => {
+            stepPanelRef.current
+                ?.querySelector<HTMLElement>(focusTargetByStep[activeStep])
+                ?.focus({ preventScroll: activeStep === "source" });
+        });
+
+        return () => window.cancelAnimationFrame(animationFrame);
+    }, [activeStep, isRestoring]);
+
+    useEffect(() => {
+        if (!finishError) {
+            return;
+        }
+
+        const errorTargetByStep: Record<OnboardingStepId, string> = {
+            source: "#source-secret",
+            transcription: "button[aria-checked]:not([disabled])",
+            speakers: "#speaker-name",
+            finish: 'button[aria-describedby="onboarding-finish-error"]:not([disabled])',
+        };
+        stepPanelRef.current
+            ?.querySelector<HTMLElement>(errorTargetByStep[activeStep])
+            ?.focus();
+    }, [activeStep, finishError]);
+
+    const visibleStep = activeStep;
     const visibleStepIndex = getStepIndex(visibleStep);
     const progressPct = [25, 40, 75, 100][visibleStepIndex] ?? 25;
     const selectedAuthModeLabel = getSourceAuthModeDisplayLabel(
@@ -220,7 +279,7 @@ export function OnboardingForm({ onConnected }: OnboardingFormProps) {
             currentDraftTranscriptionSource === defaultTranscriptionSource)
             ? defaultTranscriptionSource
             : null;
-    const controlsLocked = !isMounted || isSaving || isFinishing;
+    const controlsLocked = isRestoring || isSaving || isFinishing;
     const visibleStepTitle = `第 ${visibleStepIndex + 1} 步 · ${
         ONBOARDING_STEPS[visibleStepIndex].title
     }`;
@@ -231,12 +290,20 @@ export function OnboardingForm({ onConnected }: OnboardingFormProps) {
         setActiveStep(step);
     };
 
-    const goNext = () => {
-        const nextStep =
-            ONBOARDING_STEPS[
-                Math.min(visibleStepIndex + 1, ONBOARDING_STEPS.length - 1)
-            ].id;
-        goToStep(nextStep);
+    const connectSourceAndContinue = async () => {
+        setFinishError(null);
+        const didConnect =
+            connectedProvider || existingSourceProvider
+                ? true
+                : await connectSource();
+        if (!didConnect) {
+            setFinishError("来源连接失败，请检查必填信息后重试。");
+            return;
+        }
+        if (!existingSourceProvider) {
+            setExistingSourceProvider(provider);
+        }
+        setActiveStep("transcription");
     };
 
     const goBack = () => {
@@ -271,6 +338,31 @@ export function OnboardingForm({ onConnected }: OnboardingFormProps) {
         setTranscriptionSaved(true);
     };
 
+    const continueFromTranscription = async (skip: boolean) => {
+        if (!skip && !selectedDefaultTranscriptionSource) {
+            setFinishError("请选择一个已连接的默认转写来源，或选择跳过。");
+            return;
+        }
+
+        setFinishError(null);
+        setIsFinishing(true);
+        try {
+            await saveTranscriptionDefaults(
+                skip ? null : selectedDefaultTranscriptionSource,
+            );
+            if (skip) {
+                setDefaultTranscriptionSource(null);
+            }
+            setActiveStep("speakers");
+        } catch (error) {
+            setFinishError(
+                error instanceof Error ? error.message : "默认转写保存失败",
+            );
+        } finally {
+            setIsFinishing(false);
+        }
+    };
+
     const saveSpeakerProfile = async () => {
         const trimmedName = speakerName.trim();
         if (!trimmedName || speakerState === "saved") {
@@ -301,24 +393,47 @@ export function OnboardingForm({ onConnected }: OnboardingFormProps) {
         }
     };
 
-    const handleFinish = async () => {
-        if (!isMounted) return;
+    const continueFromSpeakers = async (skip: boolean) => {
+        setFinishError(null);
+        if (skip) {
+            setSpeakerName("");
+            setSpeakerVoiceprint("");
+            setSpeakerState("idle");
+            setActiveStep("finish");
+            return;
+        }
 
+        if (!speakerName.trim()) {
+            setFinishError("请填写说话人显示名称，或选择跳过。");
+            return;
+        }
+
+        setIsFinishing(true);
+        try {
+            await saveSpeakerProfile();
+            setActiveStep("finish");
+        } catch (error) {
+            setFinishError(
+                error instanceof Error ? error.message : "说话人档案保存失败",
+            );
+        } finally {
+            setIsFinishing(false);
+        }
+    };
+
+    const handleFinish = async () => {
         setFinishError(null);
         setIsFinishing(true);
 
         try {
-            const defaultTranscriptionProvider =
-                selectedDefaultTranscriptionSource;
-            const didConnect = connectedProvider ? true : await connectSource();
-            if (!didConnect) {
-                setActiveStep("source");
-                setFinishError("来源连接失败，请检查授权信息后重试。");
-                return;
+            const responses = await Promise.all([
+                fetch(ONBOARDING_DATA_SOURCES_ENDPOINT),
+                fetch("/api/settings/transcription"),
+                fetch("/api/speakers/profiles"),
+            ]);
+            if (responses.some((response) => !response.ok)) {
+                throw new Error("配置已保存，但读取确认失败，请重试。");
             }
-
-            await saveTranscriptionDefaults(defaultTranscriptionProvider);
-            await saveSpeakerProfile();
 
             if (onConnected) {
                 onConnected();
@@ -335,7 +450,7 @@ export function OnboardingForm({ onConnected }: OnboardingFormProps) {
 
     return (
         <main
-            aria-busy={isSaving || isFinishing}
+            aria-busy={isRestoring || isSaving || isFinishing}
             aria-labelledby="onboarding-title"
             className="grid min-h-svh place-items-center bg-background px-8 pt-7 pb-20 text-foreground"
         >
@@ -357,10 +472,11 @@ export function OnboardingForm({ onConnected }: OnboardingFormProps) {
                     </CardDescription>
                 </CardHeader>
                 <section
-                    aria-busy={isSaving || isFinishing}
+                    aria-busy={isRestoring || isSaving || isFinishing}
                     aria-describedby="onboarding-step-description"
                     aria-labelledby="onboarding-step-title"
                     className="overflow-hidden rounded-xl border border-border bg-background p-5"
+                    ref={stepPanelRef}
                 >
                     <Progress
                         aria-label={`配置进度：${visibleStepTitle}`}
@@ -376,7 +492,7 @@ export function OnboardingForm({ onConnected }: OnboardingFormProps) {
                                     index < visibleStepIndex;
 
                                 return (
-                                    <li key={step.id}>
+                                    <li className="flex-1" key={step.id}>
                                         <Button
                                             aria-current={
                                                 isActive ? "step" : undefined
@@ -413,6 +529,40 @@ export function OnboardingForm({ onConnected }: OnboardingFormProps) {
                         </p>
                     </header>
                     <CardContent className="flex flex-col gap-3 p-0">
+                        {isRestoring ? (
+                            <output
+                                aria-live="polite"
+                                className="flex min-h-32 items-center justify-center gap-2 text-sm text-muted-foreground"
+                            >
+                                <Loader2
+                                    aria-hidden="true"
+                                    className="size-4 animate-spin"
+                                />
+                                正在读取现有配置
+                            </output>
+                        ) : null}
+                        {restoreError ? (
+                            <Alert
+                                aria-live="assertive"
+                                density="compact"
+                                variant="statusError"
+                            >
+                                <AlertDescription
+                                    className="flex items-center justify-between gap-3"
+                                    density="compact"
+                                >
+                                    <span>{restoreError}</span>
+                                    <Button
+                                        onClick={() => void restoreOnboarding()}
+                                        size="sm"
+                                        type="button"
+                                        variant="outline"
+                                    >
+                                        重试
+                                    </Button>
+                                </AlertDescription>
+                            </Alert>
+                        ) : null}
                         {finishError ? (
                             <Alert
                                 aria-live="assertive"
@@ -432,7 +582,7 @@ export function OnboardingForm({ onConnected }: OnboardingFormProps) {
                                 currentProviderCatalog={currentProviderCatalog}
                                 isSaving={controlsLocked}
                                 language={language}
-                                onNext={goNext}
+                                onNext={() => void connectSourceAndContinue()}
                                 provider={provider}
                                 providerFields={providerFields}
                                 providerOptions={providerOptions}
@@ -460,7 +610,12 @@ export function OnboardingForm({ onConnected }: OnboardingFormProps) {
                                 }
                                 isSaving={controlsLocked}
                                 onBack={goBack}
-                                onNext={goNext}
+                                onNext={() =>
+                                    void continueFromTranscription(false)
+                                }
+                                onSkip={() =>
+                                    void continueFromTranscription(true)
+                                }
                                 setDefaultTranscriptionSource={
                                     setDefaultTranscriptionSource
                                 }
@@ -471,7 +626,8 @@ export function OnboardingForm({ onConnected }: OnboardingFormProps) {
                             <SpeakersStep
                                 isSaving={controlsLocked}
                                 onBack={goBack}
-                                onNext={goNext}
+                                onNext={() => void continueFromSpeakers(false)}
+                                onSkip={() => void continueFromSpeakers(true)}
                                 setSpeakerName={setSpeakerName}
                                 setSpeakerVoiceprint={setSpeakerVoiceprint}
                                 speakerName={speakerName}
@@ -483,6 +639,14 @@ export function OnboardingForm({ onConnected }: OnboardingFormProps) {
                         {visibleStep === "finish" ? (
                             <FinishStep
                                 connectedSourceLabel={connectedSourceLabel}
+                                existingSourceLabel={
+                                    existingSourceProvider
+                                        ? getSourceProviderLabel(
+                                              existingSourceProvider,
+                                              language,
+                                          )
+                                        : null
+                                }
                                 defaultTranscriptionSource={
                                     selectedDefaultTranscriptionSource
                                 }
@@ -547,75 +711,57 @@ function SourceStep({
 }) {
     return (
         <>
-            <OnboardingFieldRow
-                description="未指定来源时，新录音从这里读取"
-                disabled={isSaving}
-                id="source-provider"
-                label="来源"
+            <Field
+                className="gap-2"
+                data-disabled={isSaving ? "true" : undefined}
+                orientation="responsive"
             >
-                <Select
-                    aria-label="来源"
-                    disabled={isSaving}
-                    id="source-provider"
-                    onValueChange={selectProvider}
-                    options={providerOptions.map((item) => ({
-                        label: item.label,
-                        value: item.provider,
-                    }))}
-                    value={provider}
-                />
-            </OnboardingFieldRow>
+                <FieldContent className="min-w-0 gap-1">
+                    <FieldLabel htmlFor="source-provider">来源</FieldLabel>
+                    <FieldDescription className="max-w-full text-xs">
+                        未指定来源时，新录音从这里读取
+                    </FieldDescription>
+                </FieldContent>
+                <FieldControl className="min-w-0 flex-1">
+                    <Select
+                        aria-label="来源"
+                        disabled={isSaving}
+                        id="source-provider"
+                        onValueChange={selectProvider}
+                        options={providerOptions.map((item) => ({
+                            label: item.label,
+                            value: item.provider,
+                        }))}
+                        value={provider}
+                    />
+                </FieldControl>
+            </Field>
 
-            <ToggleGroup
-                aria-label="来源"
-                className="mb-5 w-full flex-col items-stretch"
-                disabled={isSaving}
-                onValueChange={(value) => {
-                    if (value) {
-                        selectProvider(value);
-                    }
-                }}
-                orientation="vertical"
-                spacing={2}
-                type="single"
-                value={provider}
-                variant="outline"
+            <fieldset
+                aria-label="来源选项"
+                className="mb-5 flex w-full flex-col items-stretch gap-2"
             >
                 {providerOptions.map((item) => {
                     const isActive = item.provider === provider;
-                    const ProviderIcon = PROVIDER_ICONS[item.provider];
-                    const asset = PROVIDER_ASSETS[item.provider];
 
                     return (
-                        <ToggleGroupItem
+                        <Button
+                            aria-pressed={isActive}
                             className={cn(
                                 "h-auto w-full justify-start gap-3 px-3.5 py-3 text-left whitespace-normal",
                                 isActive && "border-transparent",
                             )}
                             disabled={isSaving}
                             key={item.provider}
-                            value={item.provider}
+                            onClick={() => selectProvider(item.provider)}
+                            type="button"
+                            variant="outline"
                         >
                             <span
                                 aria-hidden="true"
                                 className="inline-flex size-9 flex-none items-center justify-center overflow-hidden rounded-md border border-border bg-card text-foreground"
                             >
-                                {asset ? (
-                                    <Image
-                                        src={asset}
-                                        alt=""
-                                        width={36}
-                                        height={36}
-                                        className={cn(
-                                            "block size-full",
-                                            item.provider === "feishu-minutes"
-                                                ? "object-cover"
-                                                : "object-contain",
-                                        )}
-                                    />
-                                ) : (
-                                    <ProviderIcon />
-                                )}
+                                <Database aria-hidden="true" />
                             </span>
                             <span className="grid min-w-0 auto-rows-min gap-0">
                                 <span className="text-sm font-semibold text-foreground">
@@ -627,39 +773,43 @@ function SourceStep({
                                         : "可在后续设置里继续补充"}
                                 </span>
                             </span>
-                        </ToggleGroupItem>
+                        </Button>
                     );
                 })}
-            </ToggleGroup>
+            </fieldset>
 
             {currentProviderCatalog.authModes.length > 1 ? (
-                <OnboardingFieldRow
-                    description="按来源支持的方式填写授权"
-                    disabled={isSaving}
-                    id="source-auth-mode"
-                    label="登录方式"
+                <Field
+                    className="gap-2"
+                    data-disabled={isSaving ? "true" : undefined}
+                    orientation="responsive"
                 >
-                    <ToggleGroup
-                        aria-label="登录方式"
-                        className="grid w-full grid-cols-2 items-stretch"
-                        disabled={isSaving}
-                        onValueChange={(mode) => {
-                            if (!mode) {
-                                return;
-                            }
-                            setAuthMode(mode);
-                        }}
-                        spacing={2}
-                        type="single"
-                        value={currentDraft.authMode}
-                        variant="outline"
-                    >
-                        {currentProviderCatalog.authModes.map((mode) => {
-                            const active = currentDraft.authMode === mode;
-
-                            return (
+                    <FieldContent className="min-w-0 gap-1">
+                        <FieldLabel>登录方式</FieldLabel>
+                        <FieldDescription className="max-w-full text-xs">
+                            按来源支持的方式填写授权
+                        </FieldDescription>
+                    </FieldContent>
+                    <FieldControl className="min-w-0 flex-1">
+                        <ToggleGroup
+                            aria-label="登录方式"
+                            className="grid w-full grid-cols-2 items-stretch"
+                            disabled={isSaving}
+                            onValueChange={(mode) => {
+                                if (mode) {
+                                    setAuthMode(mode);
+                                }
+                            }}
+                            spacing={2}
+                            type="single"
+                            value={currentDraft.authMode}
+                            variant="outline"
+                        >
+                            {currentProviderCatalog.authModes.map((mode) => (
                                 <ToggleGroupItem
-                                    aria-pressed={active}
+                                    aria-pressed={
+                                        currentDraft.authMode === mode
+                                    }
                                     className="h-auto flex-col items-start justify-start px-3.5 py-3 text-left whitespace-normal"
                                     disabled={isSaving}
                                     key={mode}
@@ -675,30 +825,53 @@ function SourceStep({
                                         按来源支持的方式填写授权
                                     </span>
                                 </ToggleGroupItem>
-                            );
-                        })}
-                    </ToggleGroup>
-                </OnboardingFieldRow>
+                            ))}
+                        </ToggleGroup>
+                    </FieldControl>
+                </Field>
             ) : (
-                <MatrixRow label="登录方式" value={selectedAuthModeLabel} />
+                <dl className="m-0 flex min-h-8 items-baseline gap-2 border-b border-dashed border-border py-1.5">
+                    <dt className="m-0 w-20 flex-none text-xs font-semibold text-muted-foreground">
+                        登录方式
+                    </dt>
+                    <dd className="m-0 min-w-0 flex-1 break-words text-xs font-medium text-foreground">
+                        {selectedAuthModeLabel}
+                    </dd>
+                </dl>
             )}
 
             {!usesCustomServerSelector ? (
-                <OnboardingFieldRow
-                    description="来源 API 或网页登录入口"
-                    disabled={isSaving}
-                    id="source-base-url"
-                    label="服务地址"
+                <Field
+                    className="gap-2"
+                    data-disabled={isSaving ? "true" : undefined}
+                    orientation="responsive"
                 >
-                    <Input
-                        disabled={isSaving}
-                        id="source-base-url"
-                        onChange={(event) => setBaseUrl(event.target.value)}
-                        value={currentDraft.baseUrl}
-                    />
-                </OnboardingFieldRow>
+                    <FieldContent className="min-w-0 gap-1">
+                        <FieldLabel htmlFor="source-base-url">
+                            服务地址
+                        </FieldLabel>
+                        <FieldDescription className="max-w-full text-xs">
+                            来源 API 或网页登录入口
+                        </FieldDescription>
+                    </FieldContent>
+                    <FieldControl className="min-w-0 flex-1">
+                        <Input
+                            disabled={isSaving}
+                            id="source-base-url"
+                            onChange={(event) => setBaseUrl(event.target.value)}
+                            value={currentDraft.baseUrl}
+                        />
+                    </FieldControl>
+                </Field>
             ) : (
-                <MatrixRow label="服务地址" value={sourceServiceLabel} />
+                <dl className="m-0 flex min-h-8 items-baseline gap-2 border-b border-dashed border-border py-1.5">
+                    <dt className="m-0 w-20 flex-none text-xs font-semibold text-muted-foreground">
+                        服务地址
+                    </dt>
+                    <dd className="m-0 min-w-0 flex-1 break-words text-xs font-medium text-foreground">
+                        {sourceServiceLabel}
+                    </dd>
+                </dl>
             )}
 
             <div className="flex flex-col gap-0">
@@ -714,12 +887,42 @@ function SourceStep({
                 ))}
             </div>
 
-            <WizardActions
-                isSaving={isSaving}
-                onBack={onBack}
-                onNext={onNext}
-            />
-            <MatrixRow label="当前来源" value={sourceLabel} />
+            <fieldset
+                aria-label="来源步骤操作"
+                className="mt-3.5 flex justify-end gap-2"
+            >
+                {onBack ? (
+                    <Button
+                        disabled={isSaving}
+                        onClick={onBack}
+                        size="xs"
+                        type="button"
+                        variant="outline"
+                    >
+                        返回
+                    </Button>
+                ) : null}
+                <Button
+                    disabled={isSaving}
+                    onClick={onNext}
+                    size="xs"
+                    type="button"
+                    variant="default"
+                >
+                    {isSaving ? (
+                        <Loader2 aria-hidden="true" className="animate-spin" />
+                    ) : null}
+                    {isSaving ? "连接中..." : "下一步"}
+                </Button>
+            </fieldset>
+            <dl className="m-0 flex min-h-8 items-baseline gap-2 border-b border-dashed border-border py-1.5">
+                <dt className="m-0 w-20 flex-none text-xs font-semibold text-muted-foreground">
+                    当前来源
+                </dt>
+                <dd className="m-0 min-w-0 flex-1 break-words text-xs font-medium text-foreground">
+                    {sourceLabel}
+                </dd>
+            </dl>
         </>
     );
 }
@@ -731,6 +934,7 @@ function TranscriptionStep({
     isSaving,
     onBack,
     onNext,
+    onSkip,
     setDefaultTranscriptionSource,
 }: {
     connectedProviders: SourceProvider[];
@@ -739,6 +943,7 @@ function TranscriptionStep({
     isSaving: boolean;
     onBack: () => void;
     onNext: () => void;
+    onSkip: () => void;
     setDefaultTranscriptionSource: (
         value: DefaultTranscriptionSource | null,
     ) => void;
@@ -808,7 +1013,7 @@ function TranscriptionStep({
                                 aria-hidden="true"
                                 className={cn(
                                     "size-5 flex-none rounded",
-                                    option.swatch === "accent"
+                                    option.id === "dingtalk-a1"
                                         ? "bg-primary"
                                         : "bg-muted",
                                 )}
@@ -833,7 +1038,7 @@ function TranscriptionStep({
                 </Button>
                 <Button
                     disabled={isSaving}
-                    onClick={onNext}
+                    onClick={onSkip}
                     size="xs"
                     type="button"
                     variant="outline"
@@ -858,6 +1063,7 @@ function SpeakersStep({
     isSaving,
     onBack,
     onNext,
+    onSkip,
     setSpeakerName,
     setSpeakerVoiceprint,
     speakerName,
@@ -867,6 +1073,7 @@ function SpeakersStep({
     isSaving: boolean;
     onBack: () => void;
     onNext: () => void;
+    onSkip: () => void;
     setSpeakerName: (value: string) => void;
     setSpeakerVoiceprint: (value: string) => void;
     speakerName: string;
@@ -904,55 +1111,108 @@ function SpeakersStep({
                     </CardHeader>
                 </Card>
             </section>
-            <OnboardingFieldRow
-                description="例如主持人、自己或常见会议成员"
-                disabled={isSaving || speakerState === "saving"}
-                id="speaker-name"
-                label="显示名称"
-            >
-                <Input
-                    disabled={isSaving || speakerState === "saving"}
-                    id="speaker-name"
-                    onChange={(event) => setSpeakerName(event.target.value)}
-                    value={speakerName}
-                    placeholder="林梅"
-                />
-            </OnboardingFieldRow>
-            <OnboardingFieldRow
-                description="可选；后续也可在说话人校对里补"
-                disabled={isSaving || speakerState === "saving"}
-                id="speaker-voiceprint"
-                label="语音档案引用"
-            >
-                <Input
-                    disabled={isSaving || speakerState === "saving"}
-                    id="speaker-voiceprint"
-                    onChange={(event) =>
-                        setSpeakerVoiceprint(event.target.value)
-                    }
-                    value={speakerVoiceprint}
-                    placeholder="voiceprint-local-1"
-                />
-            </OnboardingFieldRow>
-            <MatrixRow
-                label="档案状态"
-                value={
-                    speakerName.trim()
-                        ? `${speakerName.trim()} · 保存时创建`
-                        : "未填写，跳过创建"
+            <Field
+                className="gap-2"
+                data-disabled={
+                    isSaving || speakerState === "saving" ? "true" : undefined
                 }
-            />
-            <WizardActions
-                isSaving={isSaving || speakerState === "saving"}
-                onBack={onBack}
-                onNext={onNext}
-            />
+                orientation="responsive"
+            >
+                <FieldContent className="min-w-0 gap-1">
+                    <FieldLabel htmlFor="speaker-name">显示名称</FieldLabel>
+                    <FieldDescription className="max-w-full text-xs">
+                        例如主持人、自己或常见会议成员
+                    </FieldDescription>
+                </FieldContent>
+                <FieldControl className="min-w-0 flex-1">
+                    <Input
+                        disabled={isSaving || speakerState === "saving"}
+                        id="speaker-name"
+                        onChange={(event) => setSpeakerName(event.target.value)}
+                        placeholder="林梅"
+                        value={speakerName}
+                    />
+                </FieldControl>
+            </Field>
+            <Field
+                className="gap-2"
+                data-disabled={
+                    isSaving || speakerState === "saving" ? "true" : undefined
+                }
+                orientation="responsive"
+            >
+                <FieldContent className="min-w-0 gap-1">
+                    <FieldLabel htmlFor="speaker-voiceprint">
+                        语音档案引用
+                    </FieldLabel>
+                    <FieldDescription className="max-w-full text-xs">
+                        可选；后续也可在说话人校对里补
+                    </FieldDescription>
+                </FieldContent>
+                <FieldControl className="min-w-0 flex-1">
+                    <Input
+                        disabled={isSaving || speakerState === "saving"}
+                        id="speaker-voiceprint"
+                        onChange={(event) =>
+                            setSpeakerVoiceprint(event.target.value)
+                        }
+                        placeholder="voiceprint-local-1"
+                        value={speakerVoiceprint}
+                    />
+                </FieldControl>
+            </Field>
+            <dl className="m-0 flex min-h-8 items-baseline gap-2 border-b border-dashed border-border py-1.5">
+                <dt className="m-0 w-20 flex-none text-xs font-semibold text-muted-foreground">
+                    档案状态
+                </dt>
+                <dd className="m-0 min-w-0 flex-1 break-words text-xs font-medium text-foreground">
+                    {speakerName.trim()
+                        ? `${speakerName.trim()} · 保存时创建`
+                        : "未填写，跳过创建"}
+                </dd>
+            </dl>
+            <fieldset
+                aria-label="说话人步骤操作"
+                className="mt-3.5 flex justify-end gap-2"
+            >
+                <Button
+                    disabled={isSaving || speakerState === "saving"}
+                    onClick={onBack}
+                    size="xs"
+                    type="button"
+                    variant="outline"
+                >
+                    返回
+                </Button>
+                <Button
+                    disabled={isSaving || speakerState === "saving"}
+                    onClick={onSkip}
+                    size="xs"
+                    type="button"
+                    variant="outline"
+                >
+                    跳过
+                </Button>
+                <Button
+                    disabled={isSaving || speakerState === "saving"}
+                    onClick={onNext}
+                    size="xs"
+                    type="button"
+                    variant="default"
+                >
+                    {speakerState === "saving" ? (
+                        <Loader2 aria-hidden="true" className="animate-spin" />
+                    ) : null}
+                    {speakerState === "saving" ? "保存中..." : "保存并继续"}
+                </Button>
+            </fieldset>
         </>
     );
 }
 
 function FinishStep({
     connectedSourceLabel,
+    existingSourceLabel,
     defaultTranscriptionSource,
     finishError,
     isFinishing,
@@ -966,6 +1226,7 @@ function FinishStep({
     transcriptionSaved,
 }: {
     connectedSourceLabel: string | null;
+    existingSourceLabel: string | null;
     defaultTranscriptionSource: DefaultTranscriptionSource | null;
     finishError: string | null;
     isFinishing: boolean;
@@ -981,39 +1242,67 @@ function FinishStep({
     return (
         <>
             <section aria-label="配置摘要" className="mb-5 flex flex-col gap-2">
-                <MatrixRow
-                    label="来源"
-                    value={connectedSourceLabel ?? sourceLabel}
-                />
-                <MatrixRow label="授权" value={selectedAuthModeLabel} />
-                <MatrixRow
-                    label="默认转写"
-                    status={transcriptionSaved ? "已保存" : "待保存"}
-                    value={
-                        defaultTranscriptionSource === null
+                <dl className="m-0 flex min-h-8 items-baseline gap-2 border-b border-dashed border-border py-1.5">
+                    <dt className="m-0 w-20 flex-none text-xs font-semibold text-muted-foreground">
+                        来源
+                    </dt>
+                    <dd className="m-0 min-w-0 flex-1 break-words text-xs font-medium text-foreground">
+                        {connectedSourceLabel ??
+                            existingSourceLabel ??
+                            sourceLabel}
+                    </dd>
+                </dl>
+                <dl className="m-0 flex min-h-8 items-baseline gap-2 border-b border-dashed border-border py-1.5">
+                    <dt className="m-0 w-20 flex-none text-xs font-semibold text-muted-foreground">
+                        授权
+                    </dt>
+                    <dd className="m-0 min-w-0 flex-1 break-words text-xs font-medium text-foreground">
+                        {selectedAuthModeLabel}
+                    </dd>
+                </dl>
+                <dl
+                    aria-live="polite"
+                    className="m-0 flex min-h-8 items-baseline gap-2 border-b border-dashed border-border py-1.5"
+                >
+                    <dt className="m-0 w-20 flex-none text-xs font-semibold text-muted-foreground">
+                        默认转写
+                    </dt>
+                    <dd className="m-0 min-w-0 flex-1 break-words text-xs font-medium text-foreground">
+                        {defaultTranscriptionSource === null
                             ? "未选择"
                             : defaultTranscriptionSource === "ticnote"
                               ? "TicNote"
                               : defaultTranscriptionSource === "feishu-minutes"
                                 ? "飞书妙记"
-                                : "钉钉 闪记"
-                    }
-                />
-                <MatrixRow
-                    label="说话人"
-                    status={
-                        speakerState === "saved"
-                            ? "已保存"
-                            : speakerState === "saving"
-                              ? "保存中"
-                              : speakerState === "error"
-                                ? "保存失败"
-                                : "待保存"
-                    }
-                    value={
-                        speakerName.trim() ? speakerName.trim() : "暂不创建档案"
-                    }
-                />
+                                : "钉钉 闪记"}
+                        <span className="sr-only">
+                            ，{transcriptionSaved ? "已保存" : "待保存"}
+                        </span>
+                    </dd>
+                </dl>
+                <dl
+                    aria-live="polite"
+                    className="m-0 flex min-h-8 items-baseline gap-2 border-b border-dashed border-border py-1.5"
+                >
+                    <dt className="m-0 w-20 flex-none text-xs font-semibold text-muted-foreground">
+                        说话人
+                    </dt>
+                    <dd className="m-0 min-w-0 flex-1 break-words text-xs font-medium text-foreground">
+                        {speakerName.trim()
+                            ? speakerName.trim()
+                            : "暂不创建档案"}
+                        <span className="sr-only">
+                            ，
+                            {speakerState === "saved"
+                                ? "已保存"
+                                : speakerState === "saving"
+                                  ? "保存中"
+                                  : speakerState === "error"
+                                    ? "保存失败"
+                                    : "待保存"}
+                        </span>
+                    </dd>
+                </dl>
             </section>
             <fieldset
                 aria-label="完成配置操作"
@@ -1048,68 +1337,5 @@ function FinishStep({
                 </Button>
             </fieldset>
         </>
-    );
-}
-
-function MatrixRow({
-    label,
-    status,
-    value,
-}: {
-    label: string;
-    status?: string;
-    value: string;
-}) {
-    return (
-        <dl
-            aria-live={status ? "polite" : undefined}
-            className="m-0 flex min-h-8 items-baseline gap-2 border-b border-dashed border-border py-1.5"
-        >
-            <dt className="m-0 w-20 flex-none text-xs font-semibold text-muted-foreground">
-                {label}
-            </dt>
-            <dd className="m-0 min-w-0 flex-1 break-words text-xs font-medium text-foreground">
-                {value}
-                {status ? <span className="sr-only">，{status}</span> : null}
-            </dd>
-        </dl>
-    );
-}
-
-function WizardActions({
-    isSaving,
-    onBack,
-    onNext,
-}: {
-    isSaving: boolean;
-    onBack?: () => void;
-    onNext: () => void;
-}) {
-    return (
-        <fieldset
-            aria-label="步骤操作"
-            className="mt-3.5 flex justify-end gap-2"
-        >
-            {onBack ? (
-                <Button
-                    type="button"
-                    variant="outline"
-                    size="xs"
-                    disabled={isSaving}
-                    onClick={onBack}
-                >
-                    返回
-                </Button>
-            ) : null}
-            <Button
-                type="button"
-                variant="default"
-                size="xs"
-                disabled={isSaving}
-                onClick={onNext}
-            >
-                下一步
-            </Button>
-        </fieldset>
     );
 }
