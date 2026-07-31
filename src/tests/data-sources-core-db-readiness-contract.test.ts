@@ -30,9 +30,12 @@ type Route = (typeof ROUTES)[number];
 type NextServer = {
     child: ChildProcessWithoutNullStreams;
     output: string;
+    startupDeadline: number;
     url: string;
 };
 
+const NEXT_STARTUP_TIMEOUT_MS = 60_000;
+const ROUTE_REQUEST_TIMEOUT_MS = 15_000;
 const runningServers: NextServer[] = [];
 
 function getAvailablePort() {
@@ -58,13 +61,18 @@ function getAvailablePort() {
     });
 }
 
-async function waitForNextReady(server: NextServer) {
+async function waitForNextListening(server: NextServer) {
     const { child } = server;
 
     await new Promise<void>((resolve, reject) => {
-        const timeout = setTimeout(() => {
-            reject(new Error(`Next server did not start:\n${server.output}`));
-        }, 60_000);
+        const timeout = setTimeout(
+            () => {
+                reject(
+                    new Error(`Next server did not start:\n${server.output}`),
+                );
+            },
+            Math.max(1, server.startupDeadline - Date.now()),
+        );
         const onOutput = (_chunk: Buffer) => {
             if (/Ready in|started server on|Local:/i.test(server.output)) {
                 clearTimeout(timeout);
@@ -158,14 +166,19 @@ async function startNextServer(databasePath: string, appDir: string) {
             },
         },
     );
-    const server = { child, output: "", url };
+    const server = {
+        child,
+        output: "",
+        startupDeadline: Date.now() + NEXT_STARTUP_TIMEOUT_MS,
+        url,
+    };
     const appendOutput = (chunk: Buffer) => {
         server.output += chunk.toString();
     };
     child.stdout.on("data", appendOutput);
     child.stderr.on("data", appendOutput);
     runningServers.push(server);
-    await waitForNextReady(server);
+    await waitForNextListening(server);
     return server;
 }
 
@@ -215,7 +228,11 @@ async function releaseCoreDatabaseLock(client: Client | null) {
     }
 }
 
-async function callRoute(server: NextServer, route: Route) {
+async function callRoute(
+    server: NextServer,
+    route: Route,
+    timeoutMs = ROUTE_REQUEST_TIMEOUT_MS,
+) {
     try {
         return await fetch(`${server.url}${route.path}`, {
             method: route.method,
@@ -224,18 +241,27 @@ async function callRoute(server: NextServer, route: Route) {
                     ? undefined
                     : { "content-type": "application/json" },
             body: route.method === "GET" ? undefined : "{}",
-            signal: AbortSignal.timeout(15_000),
+            signal: AbortSignal.timeout(timeoutMs),
         });
     } catch (error) {
         throw new Error(
-            `Real HTTP request to ${route.name} failed:\n${server.output}`,
+            `Real HTTP request to ${route.name} failed within ${timeoutMs}ms:\n${server.output}`,
             { cause: error },
         );
     }
 }
 
 async function warmRoute(server: NextServer, route: Route) {
-    expect((await callRoute(server, route)).status).toBe(401);
+    const remainingStartupMs = server.startupDeadline - Date.now();
+    if (remainingStartupMs <= 0) {
+        throw new Error(
+            `Next route startup budget expired before warming ${route.name}:\n${server.output}`,
+        );
+    }
+
+    expect((await callRoute(server, route, remainingStartupMs)).status).toBe(
+        401,
+    );
 }
 
 afterEach(async () => {
