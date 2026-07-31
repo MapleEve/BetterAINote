@@ -1,9 +1,58 @@
 import { existsSync, readFileSync } from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
-import { describe, expect, it } from "vitest";
+import React from "react";
+import { renderToStaticMarkup } from "react-dom/server";
+import { describe, expect, it, vi } from "vitest";
+
+import { LanguageProvider } from "@/components/language-provider";
+import { ConfirmDialogProvider } from "@/components/ui/confirm-dialog";
+import {
+    type DashboardFilterState,
+    reduceDashboardFilterState,
+} from "@/features/dashboard/filter-state";
+import { Workstation } from "@/features/dashboard/workstation";
+
+vi.mock("@/lib/platform/browser-router", () => ({
+    useBrowserRouteController: () => ({
+        refresh: vi.fn(),
+    }),
+}));
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
+
+function openingTagWith(markup: string, marker: string) {
+    const markerIndex = markup.indexOf(marker);
+    expect(markerIndex).toBeGreaterThanOrEqual(0);
+    const openingTagStart = markup.lastIndexOf("<", markerIndex);
+    const openingTagEnd = markup.indexOf(">", markerIndex);
+    expect(openingTagStart).toBeGreaterThanOrEqual(0);
+    expect(openingTagEnd).toBeGreaterThan(markerIndex);
+    return markup.slice(openingTagStart, openingTagEnd + 1);
+}
+
+function renderEmptyDashboardWorkstation() {
+    return renderToStaticMarkup(
+        React.createElement(
+            LanguageProvider,
+            null,
+            React.createElement(
+                ConfirmDialogProvider,
+                null,
+                React.createElement(Workstation, {
+                    recordings: [],
+                    transcriptions: new Map(),
+                    transcriptionJobs: new Map(),
+                    pagination: { page: 1, pageSize: 50, total: 0 },
+                    user: {
+                        name: "Runtime Test",
+                        email: "runtime@example.test",
+                    },
+                }),
+            ),
+        ),
+    );
+}
 const DASHBOARD_OWNER_LOCAL_FORBIDDEN_VARIANT_PROPS = [
     'variant="detailHeader"',
     'variant="detailHeaderTitle"',
@@ -3291,18 +3340,26 @@ describe("dashboard SOT foundation", () => {
             expect(searchOpenChangeCallback).toContain(closeCompetingOverlay);
         }
         expect(searchOpenChangeCallback).toContain("setSearchOpen(open);");
-        const searchFilterCallback = extractBoundedSlice(
-            workstation,
-            "function applyLibrarySearchFilter(filter: LibrarySearchFilter) {",
-            "async function runActivityAction(item: ActivityItem) {",
+        const stateBeforeSearchFilter: DashboardFilterState = {
+            favorite: "tags",
+            listMode: "tags",
+            selectedTagFilter: "tag:runtime",
+        };
+        const stateAfterSearchFilter = reduceDashboardFilterState(
+            reduceDashboardFilterState(stateBeforeSearchFilter, {
+                type: "favorite",
+                value: "all",
+            }),
+            {
+                type: "list-mode",
+                value: "timeline",
+            },
         );
-        expect(searchFilterCallback).toContain(
-            "setLibrarySearchFilter(filter);",
-        );
-        expect(searchFilterCallback).toContain('setFavorite("all");');
-        expect(searchFilterCallback).toContain(
-            'applyListMode("timeline", { fromFavorite: true });',
-        );
+        expect(stateAfterSearchFilter).toEqual({
+            favorite: "all",
+            listMode: "timeline",
+            selectedTagFilter: "all",
+        });
         for (const snippet of DASHBOARD_ACTIVITY_FEATURE_OWNER_SOURCE_SNIPPETS) {
             expect(workstation).toContain(snippet);
         }
@@ -4220,9 +4277,23 @@ describe("dashboard SOT foundation", () => {
                 ),
             );
         }
-        expect(workstation).toMatch(
-            /<Button\s+variant="ghost"\s+size="sm"\s+className=\{\s*dashboardRecordingTagFilterStyles\.option\s*\}[\s\S]*type="button"[\s\S]*role="option"[\s\S]*data-tag-value=\{\s*option\.value\s*\}[\s\S]*aria-selected=\{\s*active\s*\}[\s\S]*data-control="recording-list-tag-filter"[\s\S]*data-state=\{\s*active\s*\?\s*"selected"\s*:\s*"idle"\s*\}[\s\S]*onClick=\{\(\) => \{[\s\S]*setSelectedTagFilter\(\s*option\.value,?\s*\);[\s\S]*setTagFilterOpen\(false\);[\s\S]*\}\}/,
+        const renderedDashboard = renderEmptyDashboardWorkstation();
+        const renderedTagListbox = openingTagWith(
+            renderedDashboard,
+            'data-tag-filter-list=""',
         );
+        const renderedSelectedTagOption = openingTagWith(
+            renderedDashboard,
+            'data-tag-value="all"',
+        );
+        expect(renderedTagListbox).toContain('role="listbox"');
+        expect(renderedSelectedTagOption).toContain('type="button"');
+        expect(renderedSelectedTagOption).toContain('role="option"');
+        expect(renderedSelectedTagOption).toContain('aria-selected="true"');
+        expect(renderedSelectedTagOption).toContain(
+            'data-control="recording-list-tag-filter"',
+        );
+        expect(renderedSelectedTagOption).toContain('data-state="selected"');
         for (const migratedSelector of DASHBOARD_RECORDING_TAG_FILTER_MIGRATED_GLOBAL_SELECTORS) {
             expect(collectCssRuleBlocks(globals, migratedSelector)).toEqual([]);
         }

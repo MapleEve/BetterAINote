@@ -1,17 +1,91 @@
-import { readFileSync } from "node:fs";
-import path from "node:path";
-import { fileURLToPath } from "node:url";
+import React from "react";
+import { renderToStaticMarkup } from "react-dom/server";
 import { describe, expect, it } from "vitest";
 
-import { getSegmentedTabsKeyboardActivationValue } from "@/components/ui/segmented-tabs";
-
-const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
+import { LanguageProvider } from "@/components/language-provider";
+import {
+    getSegmentedTabsKeyboardActivationValue,
+    SegmentedTabs,
+} from "@/components/ui/segmented-tabs";
+import {
+    TranscriptionPanel,
+    type TranscriptionPanelTab,
+} from "@/features/dashboard/components/transcription-panel";
 
 const items = [
     { value: "transcript", label: "Transcript" },
     { value: "speakers", label: "Speakers" },
     { value: "source", label: "Source" },
 ] as const;
+
+function openingTagWith(markup: string, marker: string) {
+    const markerIndex = markup.indexOf(marker);
+    expect(markerIndex).toBeGreaterThanOrEqual(0);
+    const openingTagStart = markup.lastIndexOf("<", markerIndex);
+    const openingTagEnd = markup.indexOf(">", markerIndex);
+    expect(openingTagStart).toBeGreaterThanOrEqual(0);
+    expect(openingTagEnd).toBeGreaterThan(markerIndex);
+    return markup.slice(openingTagStart, openingTagEnd + 1);
+}
+
+function renderDetailTabs(
+    activeTab: TranscriptionPanelTab,
+    disabledTabs: readonly TranscriptionPanelTab[] = [],
+) {
+    const noop = () => {};
+    return renderToStaticMarkup(
+        React.createElement(
+            LanguageProvider,
+            null,
+            React.createElement(TranscriptionPanel, {
+                recording: { id: "recording-1", audioUrl: "/audio/demo.mp3" },
+                activeTab,
+                onActiveTabChange: noop,
+                disabledTabs,
+                turns: [
+                    {
+                        id: "turn-1",
+                        text: "Runtime transcript",
+                        speakerName: "Speaker 1",
+                    },
+                ],
+                isTranscriptLoading: false,
+                onRetryTranscript: noop,
+                transcriptLanguage: "zh",
+                localCopyState: "ready",
+                localCopyFeedback: null,
+                onCopyLocal: noop,
+                retranscription: {
+                    state: "idle",
+                    title: "Retranscribe",
+                    description: "Keep the current transcript visible.",
+                    onRequest: noop,
+                    onRetry: noop,
+                    onDismiss: noop,
+                },
+                speakers: [
+                    {
+                        id: "speaker-1",
+                        rawLabel: "Speaker 1",
+                        speakerName: "Speaker 1",
+                        text: "Runtime transcript",
+                    },
+                ],
+                speakerMerge: {
+                    state: "idle",
+                    onMerge: noop,
+                    onRetry: noop,
+                },
+                sourceActions: React.createElement(
+                    "button",
+                    { type: "button" },
+                    "Source action",
+                ),
+                sourcePane: React.createElement("div", null, "Source details"),
+            }),
+        ),
+    );
+}
 
 describe("getSegmentedTabsKeyboardActivationValue", () => {
     it("activates the tab reached by horizontal arrow navigation", () => {
@@ -109,16 +183,77 @@ describe("getSegmentedTabsKeyboardActivationValue", () => {
 });
 
 describe("dashboard SegmentedTabs consumer", () => {
-    it("uses detailTab as the controlled value and updates it through the primitive callback", () => {
-        const workstation = readFileSync(
-            path.join(ROOT, "features/dashboard/workstation.tsx"),
-            "utf8",
+    it("renders controlled detail tabs with matching accessible panels", () => {
+        const transcriptMarkup = renderDetailTabs("transcript", ["source"]);
+        const transcriptTablist = openingTagWith(
+            transcriptMarkup,
+            'aria-label="详情标签"',
+        );
+        const transcriptTab = openingTagWith(
+            transcriptMarkup,
+            'data-tab-key="transcript"',
+        );
+        const speakersTab = openingTagWith(
+            transcriptMarkup,
+            'data-tab-key="speakers"',
+        );
+        const sourceTab = openingTagWith(
+            transcriptMarkup,
+            'data-tab-key="source-report"',
+        );
+        const transcriptPane = openingTagWith(
+            transcriptMarkup,
+            'id="dashboard-transcription-pane-transcript"',
+        );
+        const speakersPane = openingTagWith(
+            transcriptMarkup,
+            'id="dashboard-transcription-pane-speakers"',
         );
 
-        expect(workstation).toContain('aria-label="详情标签"');
-        expect(workstation).toContain("value={detailTab}");
-        expect(workstation).toContain("onValueChange={(value) => {");
-        expect(workstation).toContain("setDetailTab(value);");
-        expect(workstation).toContain('hidden={detailTab !== "speakers"}');
+        expect(transcriptTablist).toContain('role="tablist"');
+        expect(transcriptTab).toContain('role="tab"');
+        expect(transcriptTab).toContain('aria-selected="true"');
+        expect(transcriptTab).toContain(
+            'aria-controls="dashboard-transcription-pane-transcript"',
+        );
+        expect(speakersTab).toContain('aria-selected="false"');
+        expect(sourceTab).toContain('aria-disabled="true"');
+        expect(sourceTab).toContain("disabled");
+        expect(transcriptPane).not.toContain(' hidden=""');
+        expect(transcriptPane).toContain(
+            'aria-labelledby="dashboard-transcription-tab-transcript"',
+        );
+        expect(speakersPane).toContain(' hidden=""');
+
+        const speakersMarkup = renderDetailTabs("speakers");
+        const selectedSpeakersTab = openingTagWith(
+            speakersMarkup,
+            'data-tab-key="speakers"',
+        );
+        const selectedSpeakersPane = openingTagWith(
+            speakersMarkup,
+            'id="dashboard-transcription-pane-speakers"',
+        );
+
+        expect(selectedSpeakersTab).toContain('aria-selected="true"');
+        expect(selectedSpeakersPane).not.toContain(' hidden=""');
+    });
+
+    it("renders the primitive controlled value without invoking change during SSR", () => {
+        let changes = 0;
+        const markup = renderToStaticMarkup(
+            React.createElement(SegmentedTabs, {
+                "aria-label": "Runtime tabs",
+                items: [...items],
+                value: "speakers",
+                onValueChange: () => {
+                    changes += 1;
+                },
+            }),
+        );
+        const selectedTab = openingTagWith(markup, 'data-tab-key="speakers"');
+
+        expect(selectedTab).toContain('aria-selected="true"');
+        expect(changes).toBe(0);
     });
 });
