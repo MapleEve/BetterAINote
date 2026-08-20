@@ -344,18 +344,26 @@ describe("Next Image runtime diagnostics", () => {
         const dashboard = await readSource(
             "src/features/dashboard/workstation.tsx",
         );
+        const recordingList = await readSource(
+            "src/features/dashboard/components/recording-list.tsx",
+        );
         const playerPrimitives = await readSource(
             "src/features/recordings/components/player-primitives.tsx",
         );
+        const providerMarkSources = `${dashboard}\n${recordingList}`;
 
         expect(
-            (dashboard.match(/provider marks are fixed local assets/g) ?? [])
-                .length,
+            (
+                providerMarkSources.match(
+                    /provider marks are fixed local assets/g,
+                ) ?? []
+            ).length,
         ).toBe(2);
-        expect((dashboard.match(/<img/g) ?? []).length).toBeGreaterThanOrEqual(
-            2,
-        );
-        expect(dashboard).toContain(
+        expect(
+            (providerMarkSources.match(/<img/g) ?? []).length,
+        ).toBeGreaterThanOrEqual(2);
+        expect(dashboard).toContain('data-part="source-provider-mark"');
+        expect(recordingList).toContain(
             'data-part="dashboard-recording-source-mark"',
         );
         expect(playerPrimitives).toContain("imageHeight: 382");

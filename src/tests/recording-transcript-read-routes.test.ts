@@ -1,10 +1,18 @@
 import { beforeEach, describe, expect, it, type Mock, vi } from "vitest";
 
-vi.mock("@/db", () => ({
-    db: {
+vi.mock("@/db", () => {
+    const database = {
         select: vi.fn(),
-    },
-}));
+    };
+
+    return {
+        db: database,
+        withLibraryReadSnapshot: vi.fn(
+            (callback: (readDatabase: typeof database) => unknown) =>
+                callback(database),
+        ),
+    };
+});
 
 vi.mock("@/lib/auth", () => ({
     auth: {
@@ -18,7 +26,7 @@ import { GET as GETRecording } from "@/app/api/recordings/[id]/route";
 import { GET as GETRawTranscript } from "@/app/api/recordings/[id]/transcript/raw/route";
 import { GET as GETSpeakerTranscript } from "@/app/api/recordings/[id]/transcript/speakers/route";
 import { GET as GETQuery } from "@/app/api/recordings/query/route";
-import { db } from "@/db";
+import { db, withLibraryReadSnapshot } from "@/db";
 import { auth } from "@/lib/auth";
 
 vi.spyOn(console, "error").mockImplementation(() => undefined);
@@ -34,6 +42,11 @@ function makeParams(id: string) {
 describe("Read-only transcript routes", () => {
     beforeEach(() => {
         vi.clearAllMocks();
+        (db.select as Mock).mockReset();
+        (withLibraryReadSnapshot as Mock).mockReset();
+        (withLibraryReadSnapshot as Mock).mockImplementation(
+            (callback: (database: typeof db) => unknown) => callback(db),
+        );
         (auth.api.getSession as unknown as Mock).mockResolvedValue({
             user: { id: "user-1" },
         });
@@ -242,78 +255,60 @@ describe("Read-only transcript routes", () => {
     });
 
     it("returns inline transcript review data from the query route when requested", async () => {
-        (db.select as Mock)
-            .mockReturnValueOnce({
-                from: vi.fn().mockReturnValue({
-                    where: vi.fn().mockResolvedValue([{ total: 1 }]),
-                }),
-            })
-            .mockReturnValueOnce({
-                from: vi.fn().mockReturnValue({
-                    where: vi.fn().mockReturnValue({
-                        orderBy: vi.fn().mockReturnValue({
-                            limit: vi.fn().mockReturnValue({
-                                offset: vi.fn().mockResolvedValue([
-                                    {
-                                        id: "rec-1",
-                                        filename: "Call",
-                                        startTime: new Date(
-                                            "2026-04-18T10:00:00.000Z",
-                                        ),
-                                        duration: 120000,
-                                        filesize: 1234,
-                                        sourceProvider: "ticnote",
-                                        sourceRecordingId: "source-rec-1",
-                                        providerDeviceId: "device-1",
-                                        upstreamDeleted: false,
-                                        storagePath:
-                                            "user-1/recordings/rec-1.mp3",
-                                    },
-                                ]),
-                            }),
-                        }),
-                    }),
-                }),
-            })
-            .mockReturnValueOnce({
-                from: vi.fn().mockReturnValue({
-                    where: vi.fn().mockResolvedValue([
-                        {
-                            recordingId: "rec-1",
-                            text: "SPEAKER_01: Hello there",
-                            detectedLanguage: "en",
-                            transcriptionType: "private",
-                            provider: "voice-transcribe",
-                            model: "vt-1",
-                            createdAt: new Date("2026-04-18T10:05:00.000Z"),
-                            speakerMap: { SPEAKER_01: "Alex" },
-                            providerPayload: null,
-                        },
-                    ]),
-                }),
-            })
-            .mockReturnValueOnce({
-                from: vi.fn().mockReturnValue({
-                    where: vi.fn().mockResolvedValue([
-                        {
-                            recordingId: "rec-1",
-                            status: "completed",
-                            remoteStatus: "completed",
-                            lastError: null,
-                            updatedAt: new Date("2026-04-18T10:06:00.000Z"),
-                        },
-                    ]),
-                }),
-            })
-            .mockReturnValueOnce({
-                from: vi.fn().mockReturnValue({
-                    innerJoin: vi.fn().mockReturnValue({
-                        where: vi.fn().mockReturnValue({
-                            orderBy: vi.fn().mockResolvedValue([]),
-                        }),
-                    }),
-                }),
-            });
+        (withLibraryReadSnapshot as Mock).mockResolvedValueOnce({
+            facets: {
+                timeline: {
+                    all: 1,
+                    today: 1,
+                    yesterday: 0,
+                    last7: 0,
+                    earlier: 0,
+                },
+                tags: { all: 1, untagged: 1, items: [] },
+            },
+            pagination: { page: 1, pageSize: 50, total: 1 },
+            recordingRows: [
+                {
+                    id: "rec-1",
+                    filename: "Call",
+                    startTime: new Date("2026-04-18T10:00:00.000Z"),
+                    duration: 120000,
+                    filesize: 1234,
+                    sourceProvider: "ticnote",
+                    sourceRecordingId: "source-rec-1",
+                    providerDeviceId: "device-1",
+                    upstreamDeleted: false,
+                    storagePath: "user-1/recordings/rec-1.mp3",
+                },
+            ],
+            recordingTagRows: [],
+            transcriptionJobRows: [
+                {
+                    recordingId: "rec-1",
+                    status: "completed",
+                    remoteStatus: "completed",
+                    lastError: null,
+                    updatedAt: new Date("2026-04-18T10:06:00.000Z"),
+                },
+            ],
+        });
+        (db.select as Mock).mockReturnValueOnce({
+            from: vi.fn().mockReturnValue({
+                where: vi.fn().mockResolvedValue([
+                    {
+                        recordingId: "rec-1",
+                        text: "SPEAKER_01: Hello there",
+                        detectedLanguage: "en",
+                        transcriptionType: "private",
+                        provider: "voice-transcribe",
+                        model: "vt-1",
+                        createdAt: new Date("2026-04-18T10:05:00.000Z"),
+                        speakerMap: { SPEAKER_01: "Alex" },
+                        providerPayload: null,
+                    },
+                ]),
+            }),
+        });
 
         const response = await GETQuery(
             makeRequest(
@@ -352,6 +347,7 @@ describe("Read-only transcript routes", () => {
     });
 
     it("returns the recording detail read contract with recording and transcription", async () => {
+        (withLibraryReadSnapshot as Mock).mockResolvedValueOnce([]);
         (db.select as Mock)
             .mockReturnValueOnce({
                 from: vi.fn().mockReturnValue({
@@ -380,15 +376,6 @@ describe("Read-only transcript routes", () => {
                                 updatedAt: new Date("2026-04-18T10:00:00.000Z"),
                             },
                         ]),
-                    }),
-                }),
-            })
-            .mockReturnValueOnce({
-                from: vi.fn().mockReturnValue({
-                    innerJoin: vi.fn().mockReturnValue({
-                        where: vi.fn().mockReturnValue({
-                            orderBy: vi.fn().mockResolvedValue([]),
-                        }),
                     }),
                 }),
             })
@@ -467,6 +454,7 @@ describe("Read-only transcript routes", () => {
     });
 
     it("returns 404 from the recording detail route when the recording is not owned by the user", async () => {
+        (withLibraryReadSnapshot as Mock).mockResolvedValueOnce([]);
         (db.select as Mock).mockReturnValueOnce({
             from: vi.fn().mockReturnValue({
                 where: vi.fn().mockReturnValue({
@@ -474,16 +462,6 @@ describe("Read-only transcript routes", () => {
                 }),
             }),
         });
-        (db.select as Mock).mockReturnValueOnce({
-            from: vi.fn().mockReturnValue({
-                innerJoin: vi.fn().mockReturnValue({
-                    where: vi.fn().mockReturnValue({
-                        orderBy: vi.fn().mockResolvedValue([]),
-                    }),
-                }),
-            }),
-        });
-
         const response = await GETRecording(
             makeRequest("http://localhost/api/recordings/missing"),
             makeParams("missing"),

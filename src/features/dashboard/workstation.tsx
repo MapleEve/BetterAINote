@@ -5,7 +5,6 @@ import {
     Bell,
     Check,
     CheckCircle,
-    ChevronDown,
     CircleAlert,
     CloudDownload,
     EllipsisVertical,
@@ -24,7 +23,6 @@ import {
 } from "lucide-react";
 import Image from "next/image";
 import {
-    Fragment,
     type KeyboardEvent as ReactKeyboardEvent,
     useCallback,
     useEffect,
@@ -62,18 +60,20 @@ import {
     EmptyTitle,
 } from "@/components/ui/empty";
 import { Input } from "@/components/ui/input";
-import {
-    type SegmentedTabItem,
-    SegmentedTabs,
-} from "@/components/ui/segmented-tabs";
 import { Separator } from "@/components/ui/separator";
-import { Skeleton } from "@/components/ui/skeleton";
-import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
 import { DashboardRecordingPlayerControls } from "@/features/dashboard/components/dashboard-recording-player-controls";
 import {
     LibrarySearch,
     type LibrarySearchFilter,
 } from "@/features/dashboard/components/library-search";
+import {
+    RecordingList,
+    RecordingListControls,
+    type RecordingListGroup,
+    RecordingListPagination,
+    RecordingListSkeleton,
+    type RecordingListTagOption,
+} from "@/features/dashboard/components/recording-list";
 import { SystemBanner } from "@/features/dashboard/components/system-banner";
 import {
     TranscriptionPanel,
@@ -92,6 +92,19 @@ import {
     restoreDashboardFilterState,
     serializeDashboardFilterState,
 } from "@/features/dashboard/filter-state";
+import {
+    adaptRecordingListFacets,
+    buildRecordingListQueryParams,
+    getRecordingTimelineFilter,
+    type RecordingListFacets,
+    type RecordingListTimelineFilter,
+    reconcileRecordingSelection,
+} from "@/features/dashboard/recording-list-controller";
+import {
+    isRecordingListUrlCurrent,
+    readRecordingListUrlState,
+    recordingListUrl,
+} from "@/features/dashboard/recording-list-url-state";
 import {
     DASHBOARD_SOURCE_FILTER_STORAGE_KEY,
     type DashboardSourceFilter,
@@ -114,7 +127,6 @@ import {
     PlayerTagChip,
 } from "@/features/recordings/components/player-primitives";
 import { RecordingTagManager } from "@/features/recordings/components/recording-tag-manager";
-import { RecordingTagIconGlyph } from "@/features/recordings/components/recording-tag-visuals";
 import { SettingsDialog } from "@/features/settings/components/settings-dialog";
 import { useDisplaySettingsStore } from "@/features/settings/display-settings-store";
 import { usePlaybackSettingsStore } from "@/features/settings/playback-settings-store";
@@ -228,6 +240,7 @@ type QueriedRecording = Recording & {
 };
 
 type RecordingQueryResponse = {
+    facets?: unknown;
     recordings: QueriedRecording[];
     pagination: {
         page: number;
@@ -377,7 +390,7 @@ function reconcileTranscriptionMaps(
 }
 
 type DetailTab = "transcript" | "speakers" | "source";
-type TimelineFilter = "all" | "today" | "yesterday" | "earlier";
+type TimelineFilter = RecordingListTimelineFilter;
 type RecordingListState =
     | "loading"
     | "ready"
@@ -455,20 +468,6 @@ type SourceStatus =
     | "planned";
 type SyncButtonState = "idle" | "queued" | "running" | "success" | "error";
 
-function getSegmentedTabProps<T extends string>(
-    _item: SegmentedTabItem<T>,
-    state: { active: boolean; disabled: boolean },
-) {
-    return {
-        "data-control": "segmented-tab",
-        "data-state": state.disabled
-            ? "disabled"
-            : state.active
-              ? "active"
-              : "idle",
-    };
-}
-
 type ActivityTone = "loading" | "error" | "warn" | "success" | "info";
 type ActivityItem = {
     id: string;
@@ -488,17 +487,21 @@ const SETTINGS_DATA_SOURCE_PROVIDER_STORAGE_KEY =
 const DASHBOARD_SIDEBAR_COLLAPSED_STORAGE_KEY = "dashboard-sidebar-collapsed";
 const SOURCE_DRAWER_FOCUSABLE_SELECTOR =
     'button:not([disabled]),a[href],input:not([disabled]),select:not([disabled]),textarea:not([disabled]),[tabindex]:not([tabindex="-1"])';
+const DETAIL_FOCUSABLE_SELECTOR =
+    'button:not([disabled]),a[href],input:not([disabled]),select:not([disabled]),textarea:not([disabled]),[contenteditable="true"],[tabindex]:not([tabindex="-1"])';
 const DASHBOARD_WORKSTATION_SHELL_CLASS_NAME =
     "grid h-screen min-h-[720px] grid-cols-[264px_1fr] bg-background transition-[grid-template-columns] duration-[320ms] ease-[var(--ease-out)] data-[sidebar-collapsed=true]:grid-cols-[56px_1fr] max-[860px]:h-auto max-[860px]:min-h-[100svh] max-[860px]:grid-cols-[minmax(0,1fr)] max-[860px]:overflow-x-clip";
 
 const DASHBOARD_MAIN_CLASS_NAME =
     "flex h-screen min-w-0 flex-col max-[860px]:min-w-0 max-[860px]:max-w-full max-[860px]:box-border";
 const DASHBOARD_WORKSPACE_CLASS_NAME =
-    "grid flex-1 min-h-0 grid-cols-[380px_1fr] gap-4 px-5 pt-4 pb-5 max-[860px]:min-w-0 max-[860px]:max-w-full max-[860px]:box-border max-[860px]:grid-cols-[380px_0px]";
+    "grid flex-1 min-h-0 grid-cols-[380px_1fr] gap-4 px-5 pt-4 pb-5 max-[1439px]:grid-cols-[minmax(0,1fr)] min-[1024px]:max-[1439px]:group-data-[detail-state=open]/dashboard-workstation:grid-cols-[320px_minmax(0,1fr)] max-[860px]:min-w-0 max-[860px]:max-w-full max-[860px]:box-border";
 const DASHBOARD_RECORDING_LIST_CARD_CLASS_NAME =
     "min-h-0 gap-0 rounded-2xl max-[860px]:min-w-0 max-[860px]:max-w-full max-[860px]:box-border";
 const DASHBOARD_DETAIL_PANEL_CLASS_NAME =
-    "flex min-h-0 min-w-0 flex-col gap-4 max-[860px]:hidden";
+    "flex min-h-0 min-w-0 flex-col gap-4 max-[1439px]:hidden min-[1024px]:max-[1439px]:group-data-[detail-state=open]/dashboard-workstation:flex max-[1024px]:fixed max-[1024px]:inset-2 max-[1024px]:z-[330] max-[1024px]:overflow-y-auto max-[1024px]:rounded-lg max-[1024px]:bg-background max-[1024px]:p-4 max-[1024px]:shadow-lg max-[1024px]:group-data-[detail-state=open]/dashboard-workstation:flex";
+const DASHBOARD_DETAIL_SCRIM_CLASS_NAME =
+    "pointer-events-none fixed inset-0 z-[320] hidden bg-background/60 backdrop-blur-sm max-[1024px]:group-data-[detail-state=open]/dashboard-workstation:pointer-events-auto max-[1024px]:group-data-[detail-state=open]/dashboard-workstation:block";
 const DASHBOARD_RECORDING_LIST_CONTENT_CLASS_NAME = "flex min-h-0 flex-col p-0";
 const DASHBOARD_DETAIL_EMPTY_STATE_CLASS_NAME = "min-h-[280px] p-9 md:p-9";
 
@@ -577,38 +580,9 @@ const FAVORITES: { value: DashboardFavoriteFilter; icon: typeof Mic }[] = [
     { value: "transcribed", icon: FileText },
     { value: "tags", icon: Tags },
 ];
-const TIMELINE_FILTERS: {
-    value: TimelineFilter;
-    labelKey: string;
-}[] = [
-    { value: "all", labelKey: "recordingList.timeline.all" },
-    { value: "today", labelKey: "recordingList.timeline.today" },
-    { value: "yesterday", labelKey: "recordingList.timeline.yesterday" },
-    { value: "earlier", labelKey: "recordingList.timeline.earlier" },
-];
-
 const dashboardTabPaneHiddenClassName = "[&[hidden]]:hidden";
 
 const DASHBOARD_SIDEBAR_FOOTER_CLASS_NAME = "border-t border-border pt-2.5";
-
-const dashboardRecordingTimeFilterStyles = {
-    root: "mt-2.5 flex-wrap [&[hidden]]:hidden",
-    item: "data-[state=on]:border-primary/30 data-[state=on]:bg-primary/10 data-[state=on]:text-primary data-[state=selected]:border-primary/30 data-[state=selected]:bg-primary/10 data-[state=selected]:text-primary",
-    count: "rounded-[4px] bg-muted px-1 font-mono text-[10px] font-medium text-muted-foreground/70",
-    countSelected: "bg-primary/10 text-primary",
-} as const;
-
-const dashboardRecordingTagFilterStyles = {
-    root: "relative mt-2.5",
-    trigger: "w-full justify-start text-foreground",
-    label: "min-w-0 flex-1 truncate",
-    count: "font-mono text-[11px] font-medium text-muted-foreground",
-    caret: "shrink-0 text-muted-foreground",
-    list: "absolute left-0 right-0 top-[calc(100%+6px)] z-50 max-h-[260px] overflow-y-auto rounded-lg border border-border bg-popover p-1 text-popover-foreground shadow-md",
-    option: "w-full justify-start border border-transparent bg-transparent text-muted-foreground shadow-none hover:bg-accent hover:text-accent-foreground data-[state=selected]:bg-secondary data-[state=selected]:text-secondary-foreground data-[state=selected]:hover:bg-secondary/80",
-    optionLabel: "min-w-0 flex-1 truncate",
-    optionCount: "font-mono text-[11px] font-medium text-muted-foreground",
-} as const;
 
 const DASHBOARD_RECORDING_LIST_HEADER_CLASS_NAME =
     "border-b border-border px-3 pt-3 pb-2.5";
@@ -622,45 +596,9 @@ const dashboardRecordingListTitlebarStyles = {
 const dashboardRecordingListScrollClassName =
     "flex-1 overflow-y-auto p-1 [scrollbar-width:thin] [scrollbar-color:var(--muted-foreground)_transparent] [&::-webkit-scrollbar]:size-[10px] [&::-webkit-scrollbar-track]:bg-transparent [&::-webkit-scrollbar-thumb]:rounded-full [&::-webkit-scrollbar-thumb]:border-2 [&::-webkit-scrollbar-thumb]:border-transparent [&::-webkit-scrollbar-thumb]:bg-muted-foreground/35 [&::-webkit-scrollbar-thumb]:bg-clip-padding [&::-webkit-scrollbar-thumb:hover]:bg-muted-foreground/55 [&::-webkit-scrollbar-thumb:hover]:bg-clip-padding";
 
-const dashboardRecordingListModeStyles = {
-    root: "mt-2 flex items-center gap-2.5",
-    label: "inline-flex items-center gap-1.5 font-sans text-[12px] font-semibold text-muted-foreground",
-    count: "font-mono text-[11px] font-medium text-muted-foreground",
-    segmented: "ml-auto",
-} as const;
-
 const dashboardRecordingListStateStyles = {
     root: "m-2",
     content: "mt-2",
-} as const;
-
-const dashboardRecordingListLoadingSkeletonClassNames = {
-    root: "flex flex-col gap-0.5 p-1",
-    day: "flex items-center gap-2.5 px-2.5 pt-3.5 pb-1.5",
-    dayLabel: "h-[11px] w-[100px]",
-    dayLabel40: "h-[11px] w-10",
-    dayLine: "h-px flex-1 bg-border",
-    row: "grid grid-cols-[1fr_auto] items-center gap-3.5 px-3 py-[11px]",
-    rowBody: "flex min-w-0 flex-col gap-1.5",
-    meta: "flex items-center gap-2",
-    title: "h-[13px] w-full",
-    title90: "h-[13px] w-[90%]",
-    title85: "h-[13px] w-[85%]",
-    title80: "h-[13px] w-4/5",
-    title70: "h-[13px] w-[70%]",
-    metaTime: "h-[11px] w-20",
-    metaTag: "h-[18px] w-16 rounded-[6px]",
-    metaPill: "h-[18px] w-16 rounded-full",
-    metaPill70: "h-[18px] w-12 rounded-full",
-    tag: "h-[22px] w-20 rounded-[6px]",
-} as const;
-
-const dashboardRecordingListPaginationStyles = {
-    root: "m-2 flex flex-col items-stretch gap-1.5 border-0 bg-transparent p-[14px] text-center",
-    divider: "relative mt-1.5 mb-[14px] h-px bg-border",
-    status: "absolute left-1/2 -top-2 -translate-x-1/2 -translate-y-1/2 bg-card px-2.5 font-mono text-[10.5px] font-medium text-muted-foreground",
-    nav: "mt-1 flex items-center justify-center gap-2.5",
-    number: "min-w-14 text-center font-mono text-[11.5px] font-medium text-muted-foreground",
 } as const;
 
 const dashboardSearchActivityClassNames = {
@@ -762,13 +700,6 @@ function dashboardSourceButtonClassName(collapsed: boolean) {
     return cn(
         dashboardSourceClassNames.root,
         collapsed && "justify-center gap-0 px-0 py-2",
-    );
-}
-
-function dashboardRecordingTimeFilterCountClassName(active: boolean) {
-    return cn(
-        dashboardRecordingTimeFilterStyles.count,
-        active && dashboardRecordingTimeFilterStyles.countSelected,
     );
 }
 
@@ -875,25 +806,20 @@ function formatRelativeDate(value: string) {
     return formatAbsoluteDate(value);
 }
 
-function getDayBucket(value: string) {
+function getDayBucket(value: string, language: UiLanguage) {
     const bucket = getTimelineFilter(value);
-    if (bucket === "today") return "今天";
-    if (bucket === "yesterday") return "昨天";
-    return "更早";
+    if (bucket === "today") return language === "zh-CN" ? "今天" : "Today";
+    if (bucket === "yesterday") {
+        return language === "zh-CN" ? "昨天" : "Yesterday";
+    }
+    if (bucket === "last7") {
+        return language === "zh-CN" ? "近 7 天" : "Last 7 days";
+    }
+    return language === "zh-CN" ? "更早" : "Earlier";
 }
 
 function getTimelineFilter(value: string): TimelineFilter {
-    const date = new Date(value);
-    if (Number.isNaN(date.getTime())) return "earlier";
-    const now = new Date();
-    const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
-    const start = new Date(date.getFullYear(), date.getMonth(), date.getDate());
-    const dayDiff = Math.floor(
-        (today.getTime() - start.getTime()) / 86_400_000,
-    );
-    if (dayDiff === 0) return "today";
-    if (dayDiff === 1) return "yesterday";
-    return "earlier";
+    return getRecordingTimelineFilter(value);
 }
 
 function transcriptTurns(
@@ -1391,291 +1317,6 @@ function SourceReportEmptyGlyph() {
     return <FileText aria-hidden="true" focusable="false" />;
 }
 
-function DashboardRecordingListSkeleton() {
-    return (
-        <div
-            className={dashboardRecordingListLoadingSkeletonClassNames.root}
-            data-panel="recording-list-loading"
-        >
-            <div
-                className={dashboardRecordingListLoadingSkeletonClassNames.day}
-                data-part="skeleton-day"
-            >
-                <Skeleton
-                    className={
-                        dashboardRecordingListLoadingSkeletonClassNames.dayLabel
-                    }
-                    data-part="skeleton-day-label"
-                />
-                <span
-                    className={
-                        dashboardRecordingListLoadingSkeletonClassNames.dayLine
-                    }
-                    data-part="skeleton-day-line"
-                />
-            </div>
-            <div
-                className={dashboardRecordingListLoadingSkeletonClassNames.row}
-                data-part="skeleton-row"
-            >
-                <div
-                    className={
-                        dashboardRecordingListLoadingSkeletonClassNames.rowBody
-                    }
-                    data-part="skeleton-row-body"
-                >
-                    <Skeleton
-                        className={
-                            dashboardRecordingListLoadingSkeletonClassNames.title
-                        }
-                        data-part="skeleton-title"
-                    />
-                    <div
-                        className={
-                            dashboardRecordingListLoadingSkeletonClassNames.meta
-                        }
-                        data-part="skeleton-meta"
-                    >
-                        <Skeleton
-                            className={
-                                dashboardRecordingListLoadingSkeletonClassNames.metaTime
-                            }
-                            data-part="skeleton-meta-time"
-                        />
-                        <Skeleton
-                            className={
-                                dashboardRecordingListLoadingSkeletonClassNames.metaTag
-                            }
-                            data-part="skeleton-meta-tag"
-                        />
-                        <Skeleton
-                            className={
-                                dashboardRecordingListLoadingSkeletonClassNames.metaPill
-                            }
-                            data-part="skeleton-meta-pill"
-                        />
-                    </div>
-                </div>
-                <div data-part="skeleton-row-tail">
-                    <Skeleton
-                        className={
-                            dashboardRecordingListLoadingSkeletonClassNames.tag
-                        }
-                        data-part="skeleton-tag"
-                    />
-                </div>
-            </div>
-            <div
-                className={dashboardRecordingListLoadingSkeletonClassNames.row}
-                data-part="skeleton-row"
-            >
-                <div
-                    className={
-                        dashboardRecordingListLoadingSkeletonClassNames.rowBody
-                    }
-                    data-part="skeleton-row-body"
-                >
-                    <Skeleton
-                        className={
-                            dashboardRecordingListLoadingSkeletonClassNames.title90
-                        }
-                        data-part="skeleton-title"
-                        data-size="90"
-                    />
-                    <div
-                        className={
-                            dashboardRecordingListLoadingSkeletonClassNames.meta
-                        }
-                        data-part="skeleton-meta"
-                    >
-                        <Skeleton
-                            className={
-                                dashboardRecordingListLoadingSkeletonClassNames.metaTime
-                            }
-                            data-part="skeleton-meta-time"
-                        />
-                        <Skeleton
-                            className={
-                                dashboardRecordingListLoadingSkeletonClassNames.metaTag
-                            }
-                            data-part="skeleton-meta-tag"
-                        />
-                        <Skeleton
-                            className={
-                                dashboardRecordingListLoadingSkeletonClassNames.metaPill70
-                            }
-                            data-part="skeleton-meta-pill"
-                            data-size="70"
-                        />
-                    </div>
-                </div>
-                <div data-part="skeleton-row-tail">
-                    <Skeleton
-                        className={
-                            dashboardRecordingListLoadingSkeletonClassNames.tag
-                        }
-                        data-part="skeleton-tag"
-                    />
-                </div>
-            </div>
-            <div
-                className={dashboardRecordingListLoadingSkeletonClassNames.day}
-                data-part="skeleton-day"
-            >
-                <Skeleton
-                    className={
-                        dashboardRecordingListLoadingSkeletonClassNames.dayLabel40
-                    }
-                    data-part="skeleton-day-label"
-                    data-size="40"
-                />
-                <span
-                    className={
-                        dashboardRecordingListLoadingSkeletonClassNames.dayLine
-                    }
-                    data-part="skeleton-day-line"
-                />
-            </div>
-            <div
-                className={dashboardRecordingListLoadingSkeletonClassNames.row}
-                data-part="skeleton-row"
-            >
-                <div
-                    className={
-                        dashboardRecordingListLoadingSkeletonClassNames.rowBody
-                    }
-                    data-part="skeleton-row-body"
-                >
-                    <Skeleton
-                        className={
-                            dashboardRecordingListLoadingSkeletonClassNames.title80
-                        }
-                        data-part="skeleton-title"
-                        data-size="80"
-                    />
-                    <div
-                        className={
-                            dashboardRecordingListLoadingSkeletonClassNames.meta
-                        }
-                        data-part="skeleton-meta"
-                    >
-                        <Skeleton
-                            className={
-                                dashboardRecordingListLoadingSkeletonClassNames.metaTime
-                            }
-                            data-part="skeleton-meta-time"
-                        />
-                        <Skeleton
-                            className={
-                                dashboardRecordingListLoadingSkeletonClassNames.metaTag
-                            }
-                            data-part="skeleton-meta-tag"
-                        />
-                        <Skeleton
-                            className={
-                                dashboardRecordingListLoadingSkeletonClassNames.metaPill
-                            }
-                            data-part="skeleton-meta-pill"
-                        />
-                    </div>
-                </div>
-                <div data-part="skeleton-row-tail" />
-            </div>
-            <div
-                className={dashboardRecordingListLoadingSkeletonClassNames.row}
-                data-part="skeleton-row"
-            >
-                <div
-                    className={
-                        dashboardRecordingListLoadingSkeletonClassNames.rowBody
-                    }
-                    data-part="skeleton-row-body"
-                >
-                    <Skeleton
-                        className={
-                            dashboardRecordingListLoadingSkeletonClassNames.title70
-                        }
-                        data-part="skeleton-title"
-                        data-size="70"
-                    />
-                    <div
-                        className={
-                            dashboardRecordingListLoadingSkeletonClassNames.meta
-                        }
-                        data-part="skeleton-meta"
-                    >
-                        <Skeleton
-                            className={
-                                dashboardRecordingListLoadingSkeletonClassNames.metaTime
-                            }
-                            data-part="skeleton-meta-time"
-                        />
-                        <Skeleton
-                            className={
-                                dashboardRecordingListLoadingSkeletonClassNames.metaTag
-                            }
-                            data-part="skeleton-meta-tag"
-                        />
-                    </div>
-                </div>
-                <div data-part="skeleton-row-tail">
-                    <Skeleton
-                        className={
-                            dashboardRecordingListLoadingSkeletonClassNames.tag
-                        }
-                        data-part="skeleton-tag"
-                    />
-                </div>
-            </div>
-            <div
-                className={dashboardRecordingListLoadingSkeletonClassNames.row}
-                data-part="skeleton-row"
-            >
-                <div
-                    className={
-                        dashboardRecordingListLoadingSkeletonClassNames.rowBody
-                    }
-                    data-part="skeleton-row-body"
-                >
-                    <Skeleton
-                        className={
-                            dashboardRecordingListLoadingSkeletonClassNames.title85
-                        }
-                        data-part="skeleton-title"
-                        data-size="85"
-                    />
-                    <div
-                        className={
-                            dashboardRecordingListLoadingSkeletonClassNames.meta
-                        }
-                        data-part="skeleton-meta"
-                    >
-                        <Skeleton
-                            className={
-                                dashboardRecordingListLoadingSkeletonClassNames.metaTime
-                            }
-                            data-part="skeleton-meta-time"
-                        />
-                        <Skeleton
-                            className={
-                                dashboardRecordingListLoadingSkeletonClassNames.metaTag
-                            }
-                            data-part="skeleton-meta-tag"
-                        />
-                        <Skeleton
-                            className={
-                                dashboardRecordingListLoadingSkeletonClassNames.metaPill
-                            }
-                            data-part="skeleton-meta-pill"
-                        />
-                    </div>
-                </div>
-                <div data-part="skeleton-row-tail" />
-            </div>
-        </div>
-    );
-}
-
 async function readResponseError(response: Response, fallback: string) {
     try {
         const data = (await response.json()) as { error?: unknown };
@@ -1721,6 +1362,8 @@ export function Workstation({
     const { favorite, listMode, selectedTagFilter } = dashboardFilterState;
     const [source, setSource] = useState<DashboardSourceFilter>("all");
     const [selectedId, setSelectedId] = useState(recordings[0]?.id ?? "");
+    const [detailOpen, setDetailOpen] = useState(false);
+    const [detailMobileViewport, setDetailMobileViewport] = useState(false);
     const [collapsed, setCollapsed] = useState(false);
     const [drawerOpen, setDrawerOpen] = useState(false);
     const [searchOpen, setSearchOpen] = useState(false);
@@ -1737,6 +1380,8 @@ export function Workstation({
     const [recordingListError, setRecordingListError] = useState(false);
     const [recordingListRequestVersion, setRecordingListRequestVersion] =
         useState(0);
+    const [recordingFacets, setRecordingFacets] =
+        useState<RecordingListFacets | null>(null);
     const [detailTab, setDetailTab] = useState<DetailTab>("transcript");
     const [query, setQuery] = useState("");
     const [librarySearchFilter, setLibrarySearchFilter] =
@@ -1799,6 +1444,11 @@ export function Workstation({
     const moreTriggerRef = useRef<HTMLButtonElement | null>(null);
     const activityOverlayRef = useRef<HTMLDivElement | null>(null);
     const tagFilterRef = useRef<HTMLDivElement | null>(null);
+    const detailPanelRef = useRef<HTMLElement | null>(null);
+    const detailCloseRef = useRef<HTMLButtonElement | null>(null);
+    const detailBackRef = useRef<HTMLButtonElement | null>(null);
+    const detailWasMobileRef = useRef(false);
+    const recordingRowRefs = useRef(new Map<string, HTMLButtonElement>());
     const restoreActivityFocusRef = useRef(false);
     const activityFocusRestoreTimerRefs = useRef<number[]>([]);
     const copyFeedbackTimerRef = useRef<number | null>(null);
@@ -1809,6 +1459,7 @@ export function Workstation({
     } | null>(null);
     const sourceReportRequestIdRef = useRef(0);
     const previousRecordingQueryResetKeyRef = useRef<string | null>(null);
+    const requestedRecordingIdRef = useRef<string | null>(null);
     const selectedRecordingIdRef = useRef<string | null>(
         recordings[0]?.id ?? null,
     );
@@ -1917,6 +1568,13 @@ export function Workstation({
     );
 
     useEffect(() => {
+        const urlState = readRecordingListUrlState(window.location.search);
+        requestedRecordingIdRef.current = urlState.recordingId;
+        setListPage(urlState.page);
+        setDetailOpen(urlState.detailOpen);
+        if (urlState.recordingId) {
+            setSelectedId(urlState.recordingId);
+        }
         setHydrated(true);
         setCollapsed(
             readBrowserStorage(DASHBOARD_SIDEBAR_COLLAPSED_STORAGE_KEY) ===
@@ -1936,6 +1594,21 @@ export function Workstation({
             }),
         );
     }, []);
+
+    useEffect(() => {
+        if (!hydrated) return;
+
+        const handlePopState = () => {
+            const urlState = readRecordingListUrlState(window.location.search);
+            requestedRecordingIdRef.current = urlState.recordingId;
+            setListPage(urlState.page);
+            setDetailOpen(urlState.detailOpen);
+            setSelectedId((currentId) => urlState.recordingId ?? currentId);
+        };
+
+        window.addEventListener("popstate", handlePopState);
+        return () => window.removeEventListener("popstate", handlePopState);
+    }, [hydrated]);
 
     useEffect(() => {
         if (!hydrated || !hasBrowserWindow()) {
@@ -2014,7 +1687,16 @@ export function Workstation({
 
     useEffect(() => {
         setLiveRecordings(recordings);
-        setSelectedId(recordings[0]?.id ?? "");
+        const requestedId = requestedRecordingIdRef.current;
+        const recordingIds = recordings.map((recording) => recording.id);
+        setSelectedId(
+            (currentId) =>
+                reconcileRecordingSelection({
+                    currentId,
+                    recordingIds,
+                    requestedId,
+                }) ?? "",
+        );
     }, [recordings]);
 
     useEffect(() => {
@@ -2039,6 +1721,7 @@ export function Workstation({
                 selectedTagFilter,
                 timelineFilter,
                 itemsPerPage,
+                displaySettings.recordingListSortOrder,
             ].join("\u0001"),
         [
             favorite,
@@ -2049,10 +1732,16 @@ export function Workstation({
             selectedTagFilter,
             source,
             timelineFilter,
+            displaySettings.recordingListSortOrder,
         ],
     );
 
     useEffect(() => {
+        if (!hydrated || !displaySettingsLoaded) return;
+        if (previousRecordingQueryResetKeyRef.current === null) {
+            previousRecordingQueryResetKeyRef.current = recordingQueryResetKey;
+            return;
+        }
         if (
             previousRecordingQueryResetKeyRef.current === recordingQueryResetKey
         ) {
@@ -2060,41 +1749,24 @@ export function Workstation({
         }
         previousRecordingQueryResetKeyRef.current = recordingQueryResetKey;
         setListPage(1);
-    }, [recordingQueryResetKey]);
+    }, [displaySettingsLoaded, hydrated, recordingQueryResetKey]);
 
     useEffect(() => {
+        if (!hydrated || !displaySettingsLoaded) return;
+
         const controller = new AbortController();
-        const params = new URLSearchParams({
-            includeTranscript: "1",
-            page: String(listPage),
-            pageSize: String(itemsPerPage),
+        const params = buildRecordingListQueryParams({
+            favorite,
+            libraryFilter: librarySearchFilter,
+            listMode,
+            page: listPage,
+            pageSize: itemsPerPage,
+            query,
+            selectedTagFilter,
+            sort: displaySettings.recordingListSortOrder,
+            source,
+            timeline: timelineFilter,
         });
-        if (source !== "all") {
-            params.set("source", source);
-        }
-        if (query.trim()) {
-            params.set("query", query.trim());
-        }
-        if (favorite !== "all") {
-            params.set("favorite", favorite);
-        }
-        if (librarySearchFilter?.type === "tag") {
-            params.set("tagName", librarySearchFilter.label);
-        }
-        if (librarySearchFilter?.type === "speaker") {
-            params.set("speaker", librarySearchFilter.label);
-        }
-        if (listMode === "tags") {
-            if (selectedTagFilter === "untagged") {
-                params.set("untagged", "1");
-            } else {
-                const tagId = tagIdFromFilter(selectedTagFilter);
-                if (tagId) params.set("tagId", tagId);
-            }
-        }
-        if (listMode === "timeline" && timelineFilter !== "all") {
-            params.set("timeline", timelineFilter);
-        }
 
         setRecordingListLoading(true);
         setRecordingListError(false);
@@ -2126,13 +1798,22 @@ export function Workstation({
                 );
                 setLiveJobs(nextJobs);
                 setRecordingPage(payload.pagination);
+                setRecordingFacets(adaptRecordingListFacets(payload.facets));
                 setListPage(payload.pagination.page);
-                setSelectedId((currentId) =>
-                    payload.recordings.some(
-                        (recording) => recording.id === currentId,
-                    )
-                        ? currentId
-                        : (payload.recordings[0]?.id ?? ""),
+                const requestedId = requestedRecordingIdRef.current;
+                const recordingIds = payload.recordings.map(
+                    (recording) => recording.id,
+                );
+                if (requestedId && recordingIds.includes(requestedId)) {
+                    requestedRecordingIdRef.current = null;
+                }
+                setSelectedId(
+                    (currentId) =>
+                        reconcileRecordingSelection({
+                            currentId,
+                            recordingIds,
+                            requestedId,
+                        }) ?? "",
                 );
             } catch {
                 if (controller.signal.aborted) return;
@@ -2146,7 +1827,9 @@ export function Workstation({
 
         return () => controller.abort();
     }, [
+        displaySettingsLoaded,
         favorite,
+        hydrated,
         itemsPerPage,
         librarySearchFilter,
         listMode,
@@ -2156,6 +1839,7 @@ export function Workstation({
         source,
         timelineFilter,
         recordingListRequestVersion,
+        displaySettings.recordingListSortOrder,
     ]);
 
     const sourceCounts = useMemo(() => {
@@ -2171,7 +1855,7 @@ export function Workstation({
 
     const filteredRecordings = useMemo(() => {
         const normalizedQuery = query.trim().toLocaleLowerCase();
-        return liveRecordings.filter((recording) => {
+        const filtered = liveRecordings.filter((recording) => {
             if (source !== "all" && recording.sourceProvider !== source) {
                 return false;
             }
@@ -2188,20 +1872,22 @@ export function Workstation({
                     .includes(normalizedQuery)
             );
         });
+        return filtered;
     }, [liveRecordings, liveTranscriptions, query, source]);
     const timelineCounts = useMemo(() => {
         const counts: Record<TimelineFilter, number> = {
             all: filteredRecordings.length,
             today: 0,
             yesterday: 0,
+            last7: 0,
             earlier: 0,
         };
         for (const recording of filteredRecordings) {
             const bucket = getTimelineFilter(recording.startTime);
             counts[bucket] += 1;
         }
-        return counts;
-    }, [filteredRecordings]);
+        return recordingFacets?.timeline ?? counts;
+    }, [filteredRecordings, recordingFacets]);
     const tagFilterOptions = useMemo(() => {
         const tags = new Map<
             string,
@@ -2226,11 +1912,29 @@ export function Workstation({
                 }
             }
         }
-        const options: Array<{
-            value: DashboardTagFilter;
-            label: string;
-            count: number;
-        }> = [
+        if (recordingFacets) {
+            const options: RecordingListTagOption[] = [
+                {
+                    value: "all",
+                    label: t("recordingList.timeline.all"),
+                    count: recordingFacets.tags.all,
+                },
+                ...recordingFacets.tags.items.map((tag) => ({
+                    value: tagFilterValue(tag.id),
+                    label: tag.name,
+                    count: tag.count,
+                })),
+            ];
+            if (recordingFacets.tags.untagged > 0) {
+                options.push({
+                    value: "untagged",
+                    label: t("recordingList.untagged"),
+                    count: recordingFacets.tags.untagged,
+                });
+            }
+            return options;
+        }
+        const options: RecordingListTagOption[] = [
             {
                 value: "all",
                 label: t("recordingList.timeline.all"),
@@ -2259,10 +1963,7 @@ export function Workstation({
             });
         }
         return options;
-    }, [filteredRecordings, language, t]);
-    const selectedTagOption =
-        tagFilterOptions.find((option) => option.value === selectedTagFilter) ??
-        tagFilterOptions[0];
+    }, [filteredRecordings, language, recordingFacets, t]);
     const listEntries = useMemo(() => {
         const entries: {
             groupId: string;
@@ -2316,56 +2017,51 @@ export function Workstation({
             const bucket = getTimelineFilter(recording.startTime);
             entries.push({
                 groupId: bucket,
-                groupLabel: getDayBucket(recording.startTime),
+                groupLabel: getDayBucket(recording.startTime, language),
                 recording,
             });
         }
         return entries;
-    }, [filteredRecordings, listMode, selectedTagFilter, t]);
+    }, [filteredRecordings, language, listMode, selectedTagFilter, t]);
     const listHasExternalFilter =
         source !== "all" ||
         query.trim().length > 0 ||
-        librarySearchFilter !== null;
+        librarySearchFilter !== null ||
+        favorite === "transcribed";
+    const listHasSelectedTagFilter =
+        listMode === "tags" && selectedTagFilter !== "all";
+    const listHasTimelineFilter =
+        listMode === "timeline" && timelineFilter !== "all";
+    const listHasTagFavorite = favorite === "tags";
     const listState: RecordingListState =
         !displaySettingsLoaded || recordingListLoading
             ? "loading"
             : recordingListError
               ? "error"
-              : liveRecordings.length === 0
-                ? "empty"
-                : filteredRecordings.length === 0
-                  ? listMode === "tags" && !listHasExternalFilter
-                      ? "tag-empty"
-                      : "no-match"
-                  : listEntries.length > 0
-                    ? "ready"
-                    : listMode === "tags"
-                      ? "tag-empty"
-                      : timelineFilter !== "all"
-                        ? "timeline-empty"
-                        : "no-match";
+              : listEntries.length > 0
+                ? "ready"
+                : listHasExternalFilter
+                  ? "no-match"
+                  : listHasSelectedTagFilter
+                    ? "tag-empty"
+                    : listHasTimelineFilter
+                      ? "timeline-empty"
+                      : listHasTagFavorite
+                        ? "tag-empty"
+                        : liveRecordings.length === 0
+                          ? "empty"
+                          : "no-match";
     const listTotalPages = Math.max(
         1,
         Math.ceil(recordingPage.total / recordingPage.pageSize),
     );
-    const currentListPage = recordingPage.page;
+    const currentListPage = listPage;
     const pagedListEntries = listState === "ready" ? listEntries : [];
-    const listPaginationState =
-        currentListPage === 1
-            ? "paginated-first"
-            : currentListPage === listTotalPages
-              ? "paginated-last"
-              : "paginated";
-    const listLoadedCount =
-        listPaginationState === "paginated-last"
-            ? recordingPage.total
-            : pagedListEntries.length;
-    const listPageStatusKey =
-        listPaginationState === "paginated-last"
-            ? "recordingList.pageStatusLast"
-            : listPaginationState === "paginated"
-              ? "recordingList.pageStatusMiddle"
-              : "recordingList.pageStatusFirst";
+    const listLoadedCount = Math.min(
+        recordingPage.total,
+        Math.max(0, (currentListPage - 1) * recordingPage.pageSize) +
+            liveRecordings.length,
+    );
     const groupedListEntries = useMemo(() => {
         const groups: {
             id: string;
@@ -2386,6 +2082,45 @@ export function Workstation({
         }
         return groups;
     }, [pagedListEntries]);
+    const recordingListGroups = useMemo<RecordingListGroup[]>(
+        () =>
+            groupedListEntries.map((group) => ({
+                id: group.id,
+                label: group.label,
+                entries: group.entries.map((entry) => {
+                    const sourceMeta = sourceDefinition(
+                        entry.recording.sourceProvider,
+                    );
+                    return {
+                        durationLabel: formatDuration(entry.recording.duration),
+                        filename: entry.recording.filename,
+                        id: entry.recording.id,
+                        source: {
+                            cover: sourceMeta?.cover ?? false,
+                            icon: sourceMeta?.icon ?? null,
+                            label: providerLabel(
+                                entry.recording.sourceProvider,
+                                language,
+                            ),
+                            letter:
+                                providerLabel(
+                                    entry.recording.sourceProvider,
+                                    language,
+                                )[0] ?? "·",
+                        },
+                        startTime: entry.recording.startTime,
+                        status: getRecordingListStatus(
+                            entry.recording,
+                            liveTranscriptions.get(entry.recording.id),
+                            liveJobs.get(entry.recording.id),
+                            t,
+                        ),
+                        tag: entry.displayTag ?? entry.recording.tags[0],
+                    };
+                }),
+            })),
+        [groupedListEntries, language, liveJobs, liveTranscriptions, t],
+    );
 
     const listEligibleRecordings = useMemo(() => {
         const seen = new Set<string>();
@@ -2397,10 +2132,6 @@ export function Workstation({
         }
         return recordings;
     }, [listEntries]);
-
-    useEffect(() => {
-        setListPage((page) => Math.min(Math.max(page, 1), listTotalPages));
-    }, [listTotalPages]);
 
     useEffect(() => {
         if (
@@ -2586,13 +2317,46 @@ export function Workstation({
                       : t("activityOverlay.status.waitingForAutoUpdate")
                   : t("activityOverlay.status.autoUpdatePaused");
 
-    const selectedRecording =
-        listEligibleRecordings.find(
-            (recording) => recording.id === selectedId,
-        ) ??
-        listEligibleRecordings[0] ??
-        null;
+    const requestedRecordingId = detailOpen
+        ? requestedRecordingIdRef.current
+        : null;
+    const requestedRecordingMissing = Boolean(
+        requestedRecordingId &&
+            (!displaySettingsLoaded ||
+                recordingListLoading ||
+                recordingListError ||
+                !listEligibleRecordings.some(
+                    (recording) => recording.id === requestedRecordingId,
+                )),
+    );
+    const selectedRecording = requestedRecordingMissing
+        ? null
+        : (listEligibleRecordings.find(
+              (recording) => recording.id === selectedId,
+          ) ??
+          listEligibleRecordings[0] ??
+          null);
     const selectedRecordingId = selectedRecording?.id ?? null;
+    useEffect(() => {
+        if (!hydrated || !hasBrowserWindow()) return;
+        const nextUrl = recordingListUrl({
+            currentUrl: window.location.href,
+            detailOpen,
+            page: currentListPage,
+            recordingId: detailOpen
+                ? (requestedRecordingId ?? selectedRecordingId)
+                : null,
+        });
+        if (!isRecordingListUrlCurrent(window.location.href, nextUrl)) {
+            window.history.replaceState(null, "", nextUrl);
+        }
+    }, [
+        currentListPage,
+        detailOpen,
+        hydrated,
+        requestedRecordingId,
+        selectedRecordingId,
+    ]);
     const selectedTranscription = selectedRecording
         ? liveTranscriptions.get(selectedRecording.id)
         : undefined;
@@ -3923,6 +3687,80 @@ export function Workstation({
     }, [tagFilterOpen]);
 
     useEffect(() => {
+        const media = window.matchMedia("(max-width: 1023px)");
+        const updateDetailViewport = () =>
+            setDetailMobileViewport(media.matches);
+
+        updateDetailViewport();
+        media.addEventListener("change", updateDetailViewport);
+        return () => media.removeEventListener("change", updateDetailViewport);
+    }, []);
+
+    useEffect(() => {
+        if (!detailOpen || !detailMobileViewport) return;
+
+        const previousOverflow = document.body.style.overflow;
+        document.body.style.overflow = "hidden";
+        const focusFrame = window.requestAnimationFrame(() => {
+            (detailBackRef.current ?? detailPanelRef.current)?.focus({
+                preventScroll: true,
+            });
+        });
+
+        const handleKeyDown = (event: KeyboardEvent) => {
+            if (event.key === "Escape") {
+                event.preventDefault();
+                detailBackRef.current?.click();
+                return;
+            }
+            if (event.key !== "Tab") return;
+
+            const panel = detailPanelRef.current;
+            const focusable = Array.from(
+                panel?.querySelectorAll<HTMLElement>(
+                    DETAIL_FOCUSABLE_SELECTOR,
+                ) ?? [],
+            ).filter(
+                (element) =>
+                    !element.hasAttribute("disabled") &&
+                    element.offsetParent !== null,
+            );
+            const first = focusable[0] ?? panel;
+            const last = focusable.at(-1) ?? panel;
+            if (!panel || !first || !last) return;
+
+            if (!panel.contains(document.activeElement)) {
+                event.preventDefault();
+                first.focus({ preventScroll: true });
+            } else if (event.shiftKey && document.activeElement === first) {
+                event.preventDefault();
+                last.focus({ preventScroll: true });
+            } else if (!event.shiftKey && document.activeElement === last) {
+                event.preventDefault();
+                first.focus({ preventScroll: true });
+            }
+        };
+
+        document.addEventListener("keydown", handleKeyDown);
+        return () => {
+            window.cancelAnimationFrame(focusFrame);
+            document.body.style.overflow = previousOverflow;
+            document.removeEventListener("keydown", handleKeyDown);
+        };
+    }, [detailMobileViewport, detailOpen]);
+
+    useEffect(() => {
+        if (detailOpen && !detailMobileViewport && detailWasMobileRef.current) {
+            const focusFrame = window.requestAnimationFrame(() => {
+                detailCloseRef.current?.focus({ preventScroll: true });
+            });
+            detailWasMobileRef.current = detailMobileViewport;
+            return () => window.cancelAnimationFrame(focusFrame);
+        }
+        detailWasMobileRef.current = detailMobileViewport;
+    }, [detailMobileViewport, detailOpen]);
+
+    useEffect(() => {
         let active = true;
         fetch("/api/settings/title-generation")
             .then((response) => (response.ok ? response.json() : null))
@@ -4012,12 +3850,59 @@ export function Workstation({
         setTagFilterOpen(false);
     }
 
-    function selectRecording(recordingId: string) {
-        if (recordingId === selectedRecordingId) {
-            setSelectedId(recordingId);
-            return;
+    function writeRecordingListHistory(
+        next: { detailOpen: boolean; page: number; recordingId: string | null },
+        mode: "push" | "replace",
+    ) {
+        const nextUrl = recordingListUrl({
+            currentUrl: window.location.href,
+            ...next,
+        });
+        if (isRecordingListUrlCurrent(window.location.href, nextUrl)) return;
+        window.history[mode === "push" ? "pushState" : "replaceState"](
+            null,
+            "",
+            nextUrl,
+        );
+    }
+
+    function closeRecordingDetail({ restoreFocus = true } = {}) {
+        const closingId = selectedRecordingId;
+        requestedRecordingIdRef.current = null;
+        setDetailOpen(false);
+        writeRecordingListHistory(
+            { detailOpen: false, page: currentListPage, recordingId: null },
+            "push",
+        );
+        if (restoreFocus && closingId) {
+            window.requestAnimationFrame(() => {
+                recordingRowRefs.current
+                    .get(closingId)
+                    ?.focus({ preventScroll: true });
+            });
         }
+    }
+
+    function selectListPage(nextPage: number) {
+        const bounded = Math.min(Math.max(1, nextPage), listTotalPages);
+        setListPage(bounded);
+        requestedRecordingIdRef.current = null;
+        setDetailOpen(false);
+        writeRecordingListHistory(
+            { detailOpen: false, page: bounded, recordingId: null },
+            "push",
+        );
+    }
+
+    function selectRecording(recordingId: string) {
+        requestedRecordingIdRef.current = null;
         setSelectedId(recordingId);
+        setDetailOpen(true);
+        writeRecordingListHistory(
+            { detailOpen: true, page: currentListPage, recordingId },
+            "push",
+        );
+        if (recordingId === selectedRecordingId) return;
         setEditingTitle(false);
         setMoreOpen(false);
         setTagOpen(false);
@@ -4397,6 +4282,7 @@ export function Workstation({
                 playbackSettingsLoaded ? "true" : "false"
             }
             data-drawer-state={drawerOpen ? "open" : "closed"}
+            data-detail-state={detailOpen ? "open" : "closed"}
             data-sidebar-collapsed={
                 dashboardSidebarCollapsed ? "true" : "false"
             }
@@ -4406,7 +4292,9 @@ export function Workstation({
             data-source-filter-provider={source === "all" ? undefined : source}
             data-source-filter-state={sourceFilterStackState}
             data-source-status={selectedSourceRow?.status ?? undefined}
-            data-time-style="rel"
+            data-time-style={
+                displaySettings.dateTimeFormat === "absolute" ? "abs" : "rel"
+            }
         >
             <aside
                 className={dashboardSidebarCollapseClassNames.sidebar}
@@ -5506,7 +5394,7 @@ export function Workstation({
                         data-state={listState}
                         data-surface="dashboard-recording-list"
                         data-total-pages={String(listTotalPages)}
-                        data-visible-count={String(pagedListEntries.length)}
+                        data-visible-count={String(filteredRecordings.length)}
                     >
                         <CardContent
                             className={
@@ -5792,239 +5680,21 @@ export function Workstation({
                                         </Badge>
                                     </output>
                                 ) : null}
-                                <div
-                                    className={
-                                        dashboardRecordingListModeStyles.root
-                                    }
-                                    data-panel="dashboard-recording-list-mode"
-                                >
-                                    <div
-                                        className={
-                                            dashboardRecordingListModeStyles.label
-                                        }
-                                        data-part="dashboard-recording-list-mode-label"
-                                    >
-                                        <span data-part="dashboard-recording-list-mode-title">
-                                            {listMode === "timeline"
-                                                ? t(
-                                                      "recordingList.timelineTitle",
-                                                  )
-                                                : t("recordingList.tagsTitle")}
-                                        </span>
-                                        <span
-                                            className={
-                                                dashboardRecordingListModeStyles.count
-                                            }
-                                            data-part="dashboard-recording-list-mode-count"
-                                        >
-                                            {t("recordingList.visibleCount", {
-                                                count: listEntries.length,
-                                            })}
-                                        </span>
-                                    </div>
-                                    <SegmentedTabs
-                                        aria-label="列表模式"
-                                        variant="segmented"
-                                        size="segmentedSm"
-                                        data-control="segmented-tabs"
-                                        data-part="dashboard-recording-list-mode-segmented"
-                                        data-size="sm"
-                                        className={
-                                            dashboardRecordingListModeStyles.segmented
-                                        }
-                                        getItemProps={getSegmentedTabProps}
-                                        items={[
-                                            {
-                                                value: "timeline",
-                                                label: t(
-                                                    "recordingList.timeTab",
-                                                ),
-                                            },
-                                            {
-                                                value: "tags",
-                                                label: t(
-                                                    "recordingList.tagsTab",
-                                                ),
-                                            },
-                                        ]}
-                                        value={listMode}
-                                        onValueChange={applyListMode}
-                                    />
-                                </div>
-                                <ToggleGroup
-                                    type="single"
-                                    value={timelineFilter}
-                                    spacing={1}
-                                    variant="outline"
-                                    size="sm"
-                                    className={
-                                        dashboardRecordingTimeFilterStyles.root
-                                    }
-                                    aria-label={t(
-                                        "recordingList.timelineTitle",
-                                    )}
-                                    data-list-filter-row="timeline"
-                                    data-panel="dashboard-recording-time-filter"
-                                    hidden={listMode !== "timeline"}
-                                    inert={
-                                        listMode !== "timeline"
-                                            ? true
-                                            : undefined
-                                    }
-                                    onValueChange={(value) => {
-                                        if (!value) return;
-                                        setTimelineFilter(
-                                            value as TimelineFilter,
-                                        );
-                                    }}
-                                >
-                                    {TIMELINE_FILTERS.map((item) => {
-                                        const active =
-                                            timelineFilter === item.value;
-                                        return (
-                                            <ToggleGroupItem
-                                                aria-pressed={active}
-                                                data-tf={item.value}
-                                                data-control="dashboard-recording-time-filter"
-                                                data-filter={item.value}
-                                                data-state={
-                                                    active ? "selected" : "idle"
-                                                }
-                                                className={
-                                                    dashboardRecordingTimeFilterStyles.item
-                                                }
-                                                key={item.value}
-                                                value={item.value}
-                                            >
-                                                {t(item.labelKey)}
-                                                <span
-                                                    className={dashboardRecordingTimeFilterCountClassName(
-                                                        active,
-                                                    )}
-                                                    data-part="dashboard-recording-time-filter-count"
-                                                >
-                                                    {timelineCounts[item.value]}
-                                                </span>
-                                            </ToggleGroupItem>
-                                        );
-                                    })}
-                                </ToggleGroup>
-                                <div
-                                    className={
-                                        dashboardRecordingTagFilterStyles.root
-                                    }
-                                    data-list-filter-row="tags"
-                                    data-panel="recording-list-tag-filter"
-                                    hidden={listMode !== "tags"}
-                                    inert={
-                                        listMode !== "tags" ? true : undefined
-                                    }
-                                    ref={tagFilterRef}
-                                >
-                                    <Button
-                                        variant="outline"
-                                        size="sm"
-                                        className={
-                                            dashboardRecordingTagFilterStyles.trigger
-                                        }
-                                        type="button"
-                                        aria-haspopup="listbox"
-                                        aria-expanded={tagFilterOpen}
-                                        data-tag-filter-trigger=""
-                                        data-control="recording-list-tag-filter-trigger"
-                                        onClick={() =>
-                                            setTagFilterOpen((open) => !open)
-                                        }
-                                    >
-                                        <span
-                                            className={
-                                                dashboardRecordingTagFilterStyles.label
-                                            }
-                                            data-tag-filter-label=""
-                                            data-part="recording-list-tag-filter-label"
-                                        >
-                                            {selectedTagOption.label}
-                                        </span>
-                                        <span
-                                            className={
-                                                dashboardRecordingTagFilterStyles.count
-                                            }
-                                            data-tag-filter-count=""
-                                            data-part="recording-list-tag-filter-count"
-                                        >
-                                            {selectedTagOption.count}
-                                        </span>
-                                        <ChevronDown
-                                            className={
-                                                dashboardRecordingTagFilterStyles.caret
-                                            }
-                                            data-icon="inline-end"
-                                            data-part="recording-list-tag-filter-caret"
-                                            aria-hidden="true"
-                                        />
-                                    </Button>
-                                    <div
-                                        className={
-                                            dashboardRecordingTagFilterStyles.list
-                                        }
-                                        role="listbox"
-                                        data-tag-filter-list=""
-                                        data-list="recording-list-tag-filter-list"
-                                        hidden={!tagFilterOpen}
-                                    >
-                                        {tagFilterOptions.map((option) => {
-                                            const active =
-                                                option.value ===
-                                                selectedTagFilter;
-                                            return (
-                                                <Button
-                                                    variant="ghost"
-                                                    size="sm"
-                                                    className={
-                                                        dashboardRecordingTagFilterStyles.option
-                                                    }
-                                                    type="button"
-                                                    role="option"
-                                                    data-tag-value={
-                                                        option.value
-                                                    }
-                                                    aria-selected={active}
-                                                    data-control="recording-list-tag-filter"
-                                                    data-filter={option.value}
-                                                    data-state={
-                                                        active
-                                                            ? "selected"
-                                                            : "idle"
-                                                    }
-                                                    key={option.value}
-                                                    onClick={() => {
-                                                        selectTagFilter(
-                                                            option.value,
-                                                        );
-                                                        setTagFilterOpen(false);
-                                                    }}
-                                                >
-                                                    <span
-                                                        className={
-                                                            dashboardRecordingTagFilterStyles.optionLabel
-                                                        }
-                                                        data-part="recording-list-tag-filter-option-label"
-                                                    >
-                                                        {option.label}
-                                                    </span>
-                                                    <span
-                                                        className={
-                                                            dashboardRecordingTagFilterStyles.optionCount
-                                                        }
-                                                        data-part="recording-list-tag-filter-option-count"
-                                                    >
-                                                        {option.count}
-                                                    </span>
-                                                </Button>
-                                            );
-                                        })}
-                                    </div>
-                                </div>
+                                <RecordingListControls
+                                    language={language}
+                                    listMode={listMode}
+                                    onListModeChange={applyListMode}
+                                    onTagFilterChange={selectTagFilter}
+                                    onTagFilterOpenChange={setTagFilterOpen}
+                                    onTimelineFilterChange={setTimelineFilter}
+                                    selectedTagFilter={selectedTagFilter}
+                                    tagFilterOpen={tagFilterOpen}
+                                    tagFilterOptions={tagFilterOptions}
+                                    tagFilterRef={tagFilterRef}
+                                    timelineCounts={timelineCounts}
+                                    timelineFilter={timelineFilter}
+                                    visibleCount={filteredRecordings.length}
+                                />
                             </div>
                             <div
                                 className={
@@ -6033,321 +5703,29 @@ export function Workstation({
                                 data-list="dashboard-recording-list-scroll"
                             >
                                 {listState === "loading" ? (
-                                    <DashboardRecordingListSkeleton />
+                                    <RecordingListSkeleton />
                                 ) : listState === "ready" ? (
-                                    <div
-                                        className="flex flex-col gap-0.5 p-1"
-                                        data-list="dashboard-recording-rows"
-                                    >
-                                        {groupedListEntries.map(
-                                            (group, groupIndex) => (
-                                                <Fragment key={group.id}>
-                                                    {groupIndex > 0 ? (
-                                                        <Separator
-                                                            className="mx-1 my-1"
-                                                            data-part="dashboard-recording-list-group-separator"
-                                                        />
-                                                    ) : null}
-                                                    <div
-                                                        className="flex flex-col gap-0.5 px-1 py-1.5"
-                                                        data-group-id={group.id}
-                                                        data-group="recording-list"
-                                                        data-part="dashboard-recording-list-group"
-                                                        data-mode={listMode}
-                                                    >
-                                                        <div
-                                                            className="flex items-baseline gap-2.5 px-2.5 pt-3.5 pb-1.5"
-                                                            data-part="dashboard-recording-list-group-heading"
-                                                        >
-                                                            <span
-                                                                className="font-mono text-[11px] font-semibold uppercase tracking-[0.06em] text-muted-foreground"
-                                                                data-part="dashboard-recording-list-group-label"
-                                                            >
-                                                                {group.label}
-                                                            </span>
-                                                            <span
-                                                                className="font-mono text-[11px] font-medium text-muted-foreground/70"
-                                                                data-part="dashboard-recording-list-group-count"
-                                                            >
-                                                                {
-                                                                    group
-                                                                        .entries
-                                                                        .length
-                                                                }
-                                                            </span>
-                                                            <Separator
-                                                                className="ml-1 min-w-0 flex-1"
-                                                                data-part="dashboard-recording-list-group-divider"
-                                                            />
-                                                        </div>
-                                                        {group.entries.map(
-                                                            (entry) => {
-                                                                const {
-                                                                    recording,
-                                                                } = entry;
-                                                                const active =
-                                                                    recording.id ===
-                                                                    selectedRecording?.id;
-                                                                const sourceMeta =
-                                                                    sourceDefinition(
-                                                                        recording.sourceProvider,
-                                                                    );
-                                                                const job =
-                                                                    liveJobs.get(
-                                                                        recording.id,
-                                                                    );
-                                                                const transcription =
-                                                                    liveTranscriptions.get(
-                                                                        recording.id,
-                                                                    );
-                                                                const rowStatus =
-                                                                    getRecordingListStatus(
-                                                                        recording,
-                                                                        transcription,
-                                                                        job,
-                                                                        t,
-                                                                    );
-                                                                const primaryTag =
-                                                                    entry.displayTag ??
-                                                                    recording
-                                                                        .tags[0];
-                                                                return (
-                                                                    <Button
-                                                                        variant="ghost"
-                                                                        size="default"
-                                                                        className="grid h-auto w-full grid-cols-[minmax(0,1fr)_auto] items-center justify-normal gap-3.5 whitespace-normal rounded-md border border-transparent px-3 py-[11px] text-left font-normal hover:bg-muted hover:text-foreground data-[state=selected]:border-primary/[0.38] data-[state=selected]:bg-primary/[0.12] dark:data-[state=selected]:bg-primary/[0.16] [&.is-hover-demo]:bg-muted [&.is-hover-demo]:text-foreground [&.is-focus-demo]:border-ring [&.is-focus-demo]:ring-[3px] [&.is-focus-demo]:ring-ring/50"
-                                                                        aria-current={
-                                                                            active
-                                                                                ? "true"
-                                                                                : undefined
-                                                                        }
-                                                                        key={
-                                                                            recording.id
-                                                                        }
-                                                                        type="button"
-                                                                        data-recording-id={
-                                                                            recording.id
-                                                                        }
-                                                                        data-rec={
-                                                                            recording.id
-                                                                        }
-                                                                        data-control="dashboard-recording-row"
-                                                                        data-state={
-                                                                            active
-                                                                                ? "selected"
-                                                                                : "idle"
-                                                                        }
-                                                                        onClick={() =>
-                                                                            selectRecording(
-                                                                                recording.id,
-                                                                            )
-                                                                        }
-                                                                    >
-                                                                        <div
-                                                                            className="flex min-w-0 flex-col gap-[5px]"
-                                                                            data-part="dashboard-recording-row-body"
-                                                                        >
-                                                                            <div
-                                                                                className="truncate font-sans text-[13.5px] font-semibold tracking-[-0.005em] text-foreground"
-                                                                                data-part="dashboard-recording-row-title"
-                                                                            >
-                                                                                {
-                                                                                    recording.filename
-                                                                                }
-                                                                            </div>
-                                                                            <div
-                                                                                className="flex flex-wrap items-center gap-2"
-                                                                                data-part="dashboard-recording-row-meta"
-                                                                            >
-                                                                                {sourceMeta?.icon ? (
-                                                                                    <span
-                                                                                        className="inline-flex size-3.5 flex-none items-center justify-center overflow-hidden rounded-sm opacity-70"
-                                                                                        data-part="dashboard-recording-source-mark"
-                                                                                        data-provider-cover={
-                                                                                            sourceMeta.cover
-                                                                                                ? "true"
-                                                                                                : "false"
-                                                                                        }
-                                                                                        data-variant="image"
-                                                                                        title={providerLabel(
-                                                                                            recording.sourceProvider,
-                                                                                            language,
-                                                                                        )}
-                                                                                    >
-                                                                                        {/* biome-ignore lint/performance/noImgElement: provider marks are fixed local assets. */}
-                                                                                        <img
-                                                                                            className={cn(
-                                                                                                "block size-3.5 max-w-none object-contain align-baseline opacity-80",
-                                                                                                sourceMeta.cover
-                                                                                                    ? "object-cover"
-                                                                                                    : undefined,
-                                                                                            )}
-                                                                                            src={
-                                                                                                sourceMeta.icon
-                                                                                            }
-                                                                                            alt=""
-                                                                                            width={
-                                                                                                14
-                                                                                            }
-                                                                                            height={
-                                                                                                14
-                                                                                            }
-                                                                                        />
-                                                                                    </span>
-                                                                                ) : (
-                                                                                    <span
-                                                                                        className={cn(
-                                                                                            "inline-flex size-3.5 flex-none items-center justify-center overflow-hidden rounded-sm opacity-70",
-                                                                                            "text-xs font-bold text-muted-foreground",
-                                                                                        )}
-                                                                                        data-part="dashboard-recording-source-mark"
-                                                                                        data-provider-cover="false"
-                                                                                        data-variant="letter"
-                                                                                        title={providerLabel(
-                                                                                            recording.sourceProvider,
-                                                                                            language,
-                                                                                        )}
-                                                                                    >
-                                                                                        讯
-                                                                                    </span>
-                                                                                )}
-                                                                                <span
-                                                                                    className="font-mono text-[11.5px] font-medium tracking-[0.02em] text-muted-foreground"
-                                                                                    data-part="dashboard-recording-duration"
-                                                                                >
-                                                                                    {formatDuration(
-                                                                                        recording.duration,
-                                                                                    )}
-                                                                                </span>
-                                                                            </div>
-                                                                            <div
-                                                                                className="flex items-center gap-2 font-mono text-[11px] font-medium text-muted-foreground"
-                                                                                data-part="dashboard-recording-row-secondary"
-                                                                            >
-                                                                                <span
-                                                                                    className="tracking-[0.015em]"
-                                                                                    data-part="dashboard-recording-timestamp"
-                                                                                >
-                                                                                    <span
-                                                                                        className="hidden group-data-[time-style=abs]/dashboard-workstation:inline"
-                                                                                        data-part="dashboard-recording-timestamp-absolute"
-                                                                                    >
-                                                                                        {formatAbsoluteDate(
-                                                                                            recording.startTime,
-                                                                                        )}
-                                                                                    </span>
-                                                                                    <span
-                                                                                        className="inline group-data-[time-style=abs]/dashboard-workstation:hidden"
-                                                                                        data-part="dashboard-recording-timestamp-relative"
-                                                                                    >
-                                                                                        {formatRelativeDate(
-                                                                                            recording.startTime,
-                                                                                        )}
-                                                                                    </span>
-                                                                                </span>
-                                                                            </div>
-                                                                        </div>
-                                                                        <div
-                                                                            className="flex w-max min-w-max flex-none items-center justify-end justify-self-end gap-2"
-                                                                            data-part="dashboard-recording-row-actions"
-                                                                        >
-                                                                            <Badge
-                                                                                variant="outline"
-                                                                                className={cn(
-                                                                                    "h-5 gap-[5px] rounded-full px-2 py-0 font-sans text-[11px] font-semibold leading-[normal]",
-                                                                                    rowStatus.tone ===
-                                                                                        "err" &&
-                                                                                        "border-destructive/[0.26] bg-destructive/[0.10] text-destructive",
-                                                                                    rowStatus.tone ===
-                                                                                        "info" &&
-                                                                                        "border-chart-2/[0.22] bg-chart-2/[0.14] text-chart-2",
-                                                                                    rowStatus.tone ===
-                                                                                        "neu" &&
-                                                                                        "border-border bg-muted text-[var(--fg-secondary)]",
-                                                                                    rowStatus.tone ===
-                                                                                        "ok" &&
-                                                                                        "border-chart-3/[0.36] bg-chart-3/[0.10] text-chart-3",
-                                                                                    rowStatus.tone ===
-                                                                                        "warn" &&
-                                                                                        "border-chart-4/[0.28] bg-chart-4/[0.16] text-[var(--signal-warning-strong)]",
-                                                                                )}
-                                                                                data-part="dashboard-recording-status"
-                                                                                data-tone={
-                                                                                    rowStatus.tone
-                                                                                }
-                                                                            >
-                                                                                <span
-                                                                                    className="size-[5px] rounded-full bg-current"
-                                                                                    aria-hidden="true"
-                                                                                />
-                                                                                <span data-part="dashboard-recording-status-label">
-                                                                                    {
-                                                                                        rowStatus.label
-                                                                                    }
-                                                                                </span>
-                                                                            </Badge>
-                                                                            {primaryTag ? (
-                                                                                <Badge
-                                                                                    variant="secondary"
-                                                                                    className={cn(
-                                                                                        "max-w-[160px] justify-start gap-[5.625px] rounded-full border border-transparent px-[7.5px] py-[1.875px] font-sans text-[11.25px] font-medium leading-[15px] [box-shadow:var(--shadow-xs)]",
-                                                                                        primaryTag.color ===
-                                                                                            "blue" &&
-                                                                                            "text-chart-1",
-                                                                                        primaryTag.color ===
-                                                                                            "green" &&
-                                                                                            "text-chart-3",
-                                                                                        primaryTag.color ===
-                                                                                            "orange" &&
-                                                                                            "text-chart-4",
-                                                                                        primaryTag.color ===
-                                                                                            "purple" &&
-                                                                                            "text-chart-5",
-                                                                                        primaryTag.color ===
-                                                                                            "red" &&
-                                                                                            "text-destructive",
-                                                                                        primaryTag.color ===
-                                                                                            "slate" &&
-                                                                                            "text-muted-foreground",
-                                                                                    )}
-                                                                                    data-recording-tag-chip=""
-                                                                                    data-tag-color={
-                                                                                        primaryTag.color
-                                                                                    }
-                                                                                    data-tag-icon={
-                                                                                        primaryTag.icon
-                                                                                    }
-                                                                                    data-tag-id={
-                                                                                        primaryTag.id
-                                                                                    }
-                                                                                    data-part="recording-tag-chip"
-                                                                                >
-                                                                                    <span
-                                                                                        className="inline-flex size-[11.25px] shrink-0"
-                                                                                        data-part="recording-tag-icon"
-                                                                                    >
-                                                                                        <RecordingTagIconGlyph
-                                                                                            className="size-full"
-                                                                                            icon={
-                                                                                                primaryTag.icon
-                                                                                            }
-                                                                                        />
-                                                                                    </span>
-                                                                                    {
-                                                                                        primaryTag.name
-                                                                                    }
-                                                                                </Badge>
-                                                                            ) : null}
-                                                                        </div>
-                                                                    </Button>
-                                                                );
-                                                            },
-                                                        )}
-                                                    </div>
-                                                </Fragment>
-                                            ),
-                                        )}
-                                    </div>
+                                    <RecordingList
+                                        dateTimeFormat={
+                                            displaySettings.dateTimeFormat
+                                        }
+                                        groups={recordingListGroups}
+                                        language={language}
+                                        onRowRef={(recordingId, node) => {
+                                            if (node) {
+                                                recordingRowRefs.current.set(
+                                                    recordingId,
+                                                    node,
+                                                );
+                                            } else {
+                                                recordingRowRefs.current.delete(
+                                                    recordingId,
+                                                );
+                                            }
+                                        }}
+                                        onSelect={selectRecording}
+                                        selectedId={selectedRecordingId}
+                                    />
                                 ) : (
                                     <Empty
                                         variant="compact"
@@ -6501,9 +5879,10 @@ export function Workstation({
                                                     size="sm"
                                                     type="button"
                                                     data-control="recording-list-clear-tag"
-                                                    onClick={() =>
-                                                        selectTagFilter("all")
-                                                    }
+                                                    onClick={() => {
+                                                        selectFavorite("all");
+                                                        selectTagFilter("all");
+                                                    }}
                                                 >
                                                     {t(
                                                         "recordingList.clearTag",
@@ -6514,135 +5893,42 @@ export function Workstation({
                                     </Empty>
                                 )}
                                 {listState === "ready" && listTotalPages > 1 ? (
-                                    <div
-                                        className={
-                                            dashboardRecordingListPaginationStyles.root
+                                    <RecordingListPagination
+                                        currentPage={currentListPage}
+                                        language={language}
+                                        loaded={listLoadedCount}
+                                        onNext={() =>
+                                            selectListPage(currentListPage + 1)
                                         }
-                                        data-list-state-block={
-                                            listPaginationState
+                                        onPrevious={() =>
+                                            selectListPage(currentListPage - 1)
                                         }
-                                        data-panel="recording-list-pagination"
-                                        data-state={listPaginationState}
-                                    >
-                                        <div
-                                            className={
-                                                dashboardRecordingListPaginationStyles.divider
-                                            }
-                                            data-part="recording-list-page-divider"
-                                        >
-                                            <span
-                                                className={
-                                                    dashboardRecordingListPaginationStyles.status
-                                                }
-                                                data-part="recording-list-page-status"
-                                            >
-                                                {t(listPageStatusKey, {
-                                                    current: currentListPage,
-                                                    loaded: listLoadedCount,
-                                                    total: recordingPage.total,
-                                                })}
-                                            </span>
-                                        </div>
-                                        <div
-                                            className={
-                                                dashboardRecordingListPaginationStyles.nav
-                                            }
-                                            data-part="recording-list-page-nav"
-                                        >
-                                            <Button
-                                                variant="ghost"
-                                                size="sm"
-                                                className={
-                                                    dashboardButtonClassNames.listPagination
-                                                }
-                                                type="button"
-                                                data-page-prev=""
-                                                disabled={currentListPage <= 1}
-                                                aria-disabled={
-                                                    currentListPage <= 1
-                                                        ? "true"
-                                                        : undefined
-                                                }
-                                                data-control="recording-list-prev-page"
-                                                onClick={() =>
-                                                    setListPage((page) =>
-                                                        Math.max(1, page - 1),
-                                                    )
-                                                }
-                                            >
-                                                {t("recordingList.previous")}
-                                            </Button>
-                                            <span
-                                                className={
-                                                    dashboardRecordingListPaginationStyles.number
-                                                }
-                                                data-part="recording-list-page-number"
-                                            >
-                                                {currentListPage} /{" "}
-                                                {listTotalPages}
-                                            </span>
-                                            <Button
-                                                variant="ghost"
-                                                size="sm"
-                                                className={
-                                                    dashboardButtonClassNames.listPagination
-                                                }
-                                                type="button"
-                                                data-page-next=""
-                                                disabled={
-                                                    currentListPage >=
-                                                    listTotalPages
-                                                }
-                                                aria-disabled={
-                                                    currentListPage >=
-                                                    listTotalPages
-                                                        ? "true"
-                                                        : undefined
-                                                }
-                                                data-control="recording-list-next-page"
-                                                onClick={() =>
-                                                    setListPage((page) =>
-                                                        Math.min(
-                                                            listTotalPages,
-                                                            page + 1,
-                                                        ),
-                                                    )
-                                                }
-                                            >
-                                                {t("recordingList.next")}
-                                            </Button>
-                                        </div>
-                                        {listPaginationState === "paginated" ? (
-                                            <Button
-                                                variant="ghost"
-                                                size="sm"
-                                                className={
-                                                    dashboardButtonClassNames.listPagination
-                                                }
-                                                type="button"
-                                                data-control="recording-list-load-more"
-                                                onClick={() =>
-                                                    setListPage((page) =>
-                                                        Math.min(
-                                                            listTotalPages,
-                                                            page + 1,
-                                                        ),
-                                                    )
-                                                }
-                                            >
-                                                {t("recordingList.loadMore")}
-                                            </Button>
-                                        ) : null}
-                                    </div>
+                                        total={recordingPage.total}
+                                        totalPages={listTotalPages}
+                                    />
                                 ) : null}
                             </div>
                         </CardContent>
                     </Card>
 
+                    <button
+                        aria-label={
+                            language === "zh-CN"
+                                ? "关闭录音详情"
+                                : "Close recording details"
+                        }
+                        className={DASHBOARD_DETAIL_SCRIM_CLASS_NAME}
+                        data-control="dashboard-detail-scrim"
+                        onClick={() => closeRecordingDetail()}
+                        tabIndex={-1}
+                        type="button"
+                    />
                     <section
                         className={DASHBOARD_DETAIL_PANEL_CLASS_NAME}
                         data-panel="dashboard-detail"
                         data-empty={selectedRecording ? "false" : "true"}
+                        ref={detailPanelRef}
+                        tabIndex={-1}
                     >
                         {selectedRecording ? (
                             <>
@@ -6658,6 +5944,38 @@ export function Workstation({
                                         localDeleteAvailable ? "true" : "false"
                                     }
                                 >
+                                    <Button
+                                        aria-label={
+                                            language === "zh-CN"
+                                                ? "关闭录音详情"
+                                                : "Close recording details"
+                                        }
+                                        className="hidden min-[1024px]:max-[1439px]:inline-flex"
+                                        data-control="dashboard-detail-close"
+                                        onClick={() => closeRecordingDetail()}
+                                        ref={detailCloseRef}
+                                        size="icon-sm"
+                                        type="button"
+                                        variant="ghost"
+                                    >
+                                        <X aria-hidden="true" />
+                                    </Button>
+                                    <Button
+                                        aria-label={
+                                            language === "zh-CN"
+                                                ? "返回录音列表"
+                                                : "Back to recordings"
+                                        }
+                                        className="hidden max-[1024px]:inline-flex"
+                                        data-control="dashboard-detail-back"
+                                        onClick={() => closeRecordingDetail()}
+                                        ref={detailBackRef}
+                                        size="icon-sm"
+                                        type="button"
+                                        variant="ghost"
+                                    >
+                                        <X aria-hidden="true" />
+                                    </Button>
                                     {dashboardDetailHeaderState === "normal" ? (
                                         <CardTitle
                                             className="m-0 min-w-0 flex-1 truncate font-display text-[22px] font-semibold leading-normal tracking-[-0.014em] text-foreground"

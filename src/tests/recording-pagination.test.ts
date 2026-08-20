@@ -18,5 +18,12 @@ describe("recording pagination", () => {
             pageSize: 1,
             total: 21,
         });
+        expect(
+            resolveRecordingPagination(-5, 500, Number.POSITIVE_INFINITY),
+        ).toEqual({
+            page: 1,
+            pageSize: 200,
+            total: 0,
+        });
     });
 });

@@ -182,7 +182,11 @@ const RECORDING_DETAIL_SOT_GUARD_SOURCE_FILES = recordingDetailSourceFiles(
 );
 
 const EXPECTED_DASHBOARD_WORKSPACE_CLASS_NAME =
-    "grid flex-1 min-h-0 grid-cols-[380px_1fr] gap-4 px-5 pt-4 pb-5 max-[860px]:min-w-0 max-[860px]:max-w-full max-[860px]:box-border max-[860px]:grid-cols-[380px_0px]";
+    "grid flex-1 min-h-0 grid-cols-[380px_1fr] gap-4 px-5 pt-4 pb-5 max-[1439px]:grid-cols-[minmax(0,1fr)] min-[1024px]:max-[1439px]:group-data-[detail-state=open]/dashboard-workstation:grid-cols-[320px_minmax(0,1fr)] max-[860px]:min-w-0 max-[860px]:max-w-full max-[860px]:box-border";
+const EXPECTED_DASHBOARD_DETAIL_PANEL_CLASS_NAME =
+    "flex min-h-0 min-w-0 flex-col gap-4 max-[1439px]:hidden min-[1024px]:max-[1439px]:group-data-[detail-state=open]/dashboard-workstation:flex max-[1024px]:fixed max-[1024px]:inset-2 max-[1024px]:z-[330] max-[1024px]:overflow-y-auto max-[1024px]:rounded-lg max-[1024px]:bg-background max-[1024px]:p-4 max-[1024px]:shadow-lg max-[1024px]:group-data-[detail-state=open]/dashboard-workstation:flex";
+const EXPECTED_DASHBOARD_DETAIL_SCRIM_CLASS_NAME =
+    "pointer-events-none fixed inset-0 z-[320] hidden bg-background/60 backdrop-blur-sm max-[1024px]:group-data-[detail-state=open]/dashboard-workstation:pointer-events-auto max-[1024px]:group-data-[detail-state=open]/dashboard-workstation:block";
 const EXPECTED_RECORDING_WORKSTATION_WORKSPACE_CLASS_NAME =
     "grid flex-1 min-h-0 grid-cols-[380px_1fr] gap-4 px-5 pt-4 pb-5 max-[860px]:min-w-0 max-[860px]:max-w-full max-[860px]:box-border max-[860px]:grid-cols-[minmax(0,1fr)]";
 const EXPECTED_DETAIL_PANEL_CLASS_NAME = "flex min-h-0 min-w-0 flex-col gap-4";
@@ -1556,6 +1560,79 @@ describe("recording detail copy and title action UI regressions", () => {
         );
         expect(dashboardWorkspaceClassName).not.toMatch(
             OWNER_WORKSPACE_FORBIDDEN_CLASS_PATTERN,
+        );
+        expect(dashboardWorkspaceClassName).toContain("grid-cols-[380px_1fr]");
+        expect(dashboardWorkspaceClassName).toContain(
+            "max-[1439px]:grid-cols-[minmax(0,1fr)]",
+        );
+        expect(dashboardWorkspaceClassName).toContain(
+            "min-[1024px]:max-[1439px]:group-data-[detail-state=open]/dashboard-workstation:grid-cols-[320px_minmax(0,1fr)]",
+        );
+        const dashboardDetailPanelClassName = expectExactStringConstInitializer(
+            dashboardWorkstation,
+            "DASHBOARD_DETAIL_PANEL_CLASS_NAME",
+            EXPECTED_DASHBOARD_DETAIL_PANEL_CLASS_NAME,
+        );
+        const dashboardDetailScrimClassName = expectExactStringConstInitializer(
+            dashboardWorkstation,
+            "DASHBOARD_DETAIL_SCRIM_CLASS_NAME",
+            EXPECTED_DASHBOARD_DETAIL_SCRIM_CLASS_NAME,
+        );
+        expect(dashboardDetailPanelClassName).toContain(
+            "min-[1024px]:max-[1439px]:group-data-[detail-state=open]/dashboard-workstation:flex",
+        );
+        expect(dashboardDetailPanelClassName).toContain(
+            "max-[1024px]:fixed max-[1024px]:inset-2",
+        );
+        expect(dashboardDetailScrimClassName).toContain(
+            "max-[1024px]:group-data-[detail-state=open]/dashboard-workstation:block",
+        );
+        expect(dashboardWorkstation).toContain(
+            'className="hidden min-[1024px]:max-[1439px]:inline-flex"',
+        );
+        expect(dashboardWorkstation).toContain(
+            'className="hidden max-[1024px]:inline-flex"',
+        );
+        expect(dashboardWorkstation).toContain(
+            'window.matchMedia("(max-width: 1023px)")',
+        );
+        expect(dashboardWorkstation).not.toContain("max-[1023px]");
+        expect(dashboardWorkstation).not.toContain("max-width: 1022px");
+        expect(
+            dashboardWorkstation.match(
+                /if \(!hydrated \|\| !displaySettingsLoaded\) return;/g,
+            ),
+        ).toHaveLength(2);
+        const recordingPropsEffectStart = dashboardWorkstation.indexOf(
+            "setLiveRecordings(recordings);",
+        );
+        const recordingPropsEffectEnd = dashboardWorkstation.indexOf(
+            "setLiveTranscriptions((current)",
+            recordingPropsEffectStart,
+        );
+        expect(recordingPropsEffectStart).toBeGreaterThanOrEqual(0);
+        expect(recordingPropsEffectEnd).toBeGreaterThan(
+            recordingPropsEffectStart,
+        );
+        expect(
+            dashboardWorkstation.slice(
+                recordingPropsEffectStart,
+                recordingPropsEffectEnd,
+            ),
+        ).not.toContain("requestedRecordingIdRef.current = null");
+        expect(
+            dashboardWorkstation.match(
+                /requestedRecordingIdRef\.current = null/g,
+            ),
+        ).toHaveLength(4);
+        expect(dashboardWorkstation).toMatch(
+            /const payload =[\s\S]{0,2000}if \(requestedId && recordingIds\.includes\(requestedId\)\) \{\s*requestedRecordingIdRef\.current = null;/,
+        );
+        expect(dashboardWorkstation).not.toContain(
+            "requestedRecordingIsLoaded",
+        );
+        expect(dashboardWorkstation).toContain(
+            "!displaySettingsLoaded ||\n                recordingListLoading ||\n                recordingListError ||",
         );
         expect(dashboardWorkstation).toContain(
             "className={DASHBOARD_WORKSPACE_CLASS_NAME}",
