@@ -89,6 +89,7 @@ describe("dashboard recording list controller", () => {
 
     it("serializes only the active list dimension and every real query input", () => {
         const timeline = buildRecordingListQueryParams({
+            anchorRecordingId: "rec-13",
             favorite: "transcribed",
             includeTranscript: true,
             libraryFilter: { label: "Speaker A", type: "speaker" },
@@ -102,6 +103,7 @@ describe("dashboard recording list controller", () => {
             timeline: "last7",
         });
         expect(Object.fromEntries(timeline)).toEqual({
+            anchorRecordingId: "rec-13",
             favorite: "transcribed",
             includeTranscript: "1",
             page: "3",
@@ -127,6 +129,24 @@ describe("dashboard recording list controller", () => {
         });
         expect(tags.get("untagged")).toBe("1");
         expect(tags.has("timeline")).toBe(false);
+    });
+
+    it("omits an empty recording anchor from list requests", () => {
+        const params = buildRecordingListQueryParams({
+            anchorRecordingId: "   ",
+            favorite: "all",
+            libraryFilter: null,
+            listMode: "timeline",
+            page: 1,
+            pageSize: 10,
+            query: "",
+            selectedTagFilter: "all",
+            sort: "newest",
+            source: "all",
+            timeline: "all",
+        });
+
+        expect(params.has("anchorRecordingId")).toBe(false);
     });
 
     it("keeps calendar buckets, stable sorting, and selection deterministic", () => {

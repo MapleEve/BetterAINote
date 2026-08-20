@@ -2,6 +2,7 @@
 
 import { Ban, Check, RefreshCw, TriangleAlert, X } from "lucide-react";
 import { useId } from "react";
+import { useLanguage } from "@/components/language-provider";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -62,6 +63,7 @@ export function AiRenamePreviewCard({
     subtitle,
     title,
 }: AiRenamePreviewCardProps) {
+    const { t } = useLanguage();
     const titleId = useId();
     const descriptionId = useId();
     const isBusy = isApplying || isRegenerating;
@@ -70,7 +72,10 @@ export function AiRenamePreviewCard({
     const showCancel = Boolean(onCancel && cancelLabel);
     const showApply = Boolean(onApply && applyLabel);
     const isErrorState = state === "error" || state === "unavailable";
-    const stateLabel = state === "review" ? "复核确认" : (bodyLabel ?? title);
+    const stateLabel =
+        state === "review"
+            ? t("recordingDetail.ai.reviewState")
+            : (bodyLabel ?? title);
     const reviewOldTitle = originalFilename?.trim() || "—";
     const reviewNewTitle = filename?.trim() || "—";
     const ErrorIcon = state === "unavailable" ? Ban : TriangleAlert;
@@ -197,7 +202,9 @@ export function AiRenamePreviewCard({
                                             variant="ghost"
                                             className="min-w-14 justify-start rounded-none border-0 bg-transparent p-0 text-[10.5px] font-semibold text-muted-foreground uppercase tracking-[0.04em] shadow-none"
                                         >
-                                            原标题
+                                            {t(
+                                                "recordingDetail.ai.originalTitle",
+                                            )}
                                         </Badge>
                                         <span className="min-w-0 break-words text-[13px] leading-[1.4] font-semibold text-muted-foreground line-through decoration-muted-foreground">
                                             {reviewOldTitle}
@@ -208,7 +215,7 @@ export function AiRenamePreviewCard({
                                             variant="ghost"
                                             className="min-w-14 justify-start rounded-none border-0 bg-transparent p-0 text-[10.5px] font-semibold text-primary uppercase tracking-[0.04em] shadow-none"
                                         >
-                                            新标题
+                                            {t("recordingDetail.ai.newTitle")}
                                         </Badge>
                                         <span className="min-w-0 break-words text-[13px] leading-[1.4] font-semibold text-foreground">
                                             {reviewNewTitle}

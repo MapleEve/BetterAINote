@@ -1,5 +1,8 @@
 import { describe, expect, it } from "vitest";
-import { resolveRecordingPagination } from "@/server/modules/recordings/read-model";
+import {
+    resolveRecordingAnchorPage,
+    resolveRecordingPagination,
+} from "@/server/modules/recordings/read-model";
 
 describe("recording pagination", () => {
     it("clamps empty, overlarge, and invalid requests to a readable page", () => {
@@ -25,5 +28,12 @@ describe("recording pagination", () => {
             pageSize: 200,
             total: 0,
         });
+    });
+
+    it("maps a zero-based canonical recording position to its stable page", () => {
+        expect(resolveRecordingAnchorPage(12, 10)).toBe(2);
+        expect(resolveRecordingAnchorPage(0, 10)).toBe(1);
+        expect(resolveRecordingAnchorPage(-1, 10)).toBeNull();
+        expect(resolveRecordingAnchorPage(12, 500)).toBe(1);
     });
 });

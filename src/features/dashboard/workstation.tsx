@@ -240,6 +240,7 @@ type QueriedRecording = Recording & {
 };
 
 type RecordingQueryResponse = {
+    anchorPage: number | null;
     facets?: unknown;
     recordings: QueriedRecording[];
     pagination: {
@@ -722,13 +723,14 @@ function providerLabel(provider: string, language: UiLanguage) {
 function sourceOpenLabel(
     provider: string | null | undefined,
     language: UiLanguage,
+    t: Translator,
 ) {
     if (!provider) {
-        return language === "zh-CN" ? "在来源中打开" : "Open in source";
+        return t("sourceReport.openSource");
     }
 
     const label = providerLabel(provider, language);
-    return language === "zh-CN" ? `在${label}中打开` : `Open in ${label}`;
+    return t("sourceReport.openInProvider", { provider: label });
 }
 
 function sourceDefinition(provider: string | null | undefined) {
@@ -783,10 +785,10 @@ function formatSourceReportDate(value: string | null | undefined) {
     return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, "0")}-${String(date.getDate()).padStart(2, "0")} ${String(date.getHours()).padStart(2, "0")}:${String(date.getMinutes()).padStart(2, "0")}`;
 }
 
-function formatAbsoluteDate(value: string) {
+function formatAbsoluteDate(value: string, language: UiLanguage) {
     const date = new Date(value);
     if (Number.isNaN(date.getTime())) return value;
-    return new Intl.DateTimeFormat("zh-CN", {
+    return new Intl.DateTimeFormat(language, {
         month: "2-digit",
         day: "2-digit",
         hour: "2-digit",
@@ -794,28 +796,31 @@ function formatAbsoluteDate(value: string) {
     }).format(date);
 }
 
-function formatRelativeDate(value: string) {
+function formatRelativeDate(
+    value: string,
+    language: UiLanguage,
+    t: Translator,
+) {
     const date = new Date(value);
     const diff = Date.now() - date.getTime();
-    if (Number.isNaN(date.getTime()) || diff < 0) return "刚刚";
+    if (Number.isNaN(date.getTime()) || diff < 0) {
+        return t("recordingDetail.relativeJustNow");
+    }
     const hours = Math.floor(diff / 3_600_000);
-    if (hours < 1) return "1 小时内";
-    if (hours < 24) return `${hours} 小时前`;
+    if (hours < 1) return t("recordingDetail.relativeWithinHour");
+    if (hours < 24) {
+        return t("recordingDetail.relativeHoursAgo", { count: hours });
+    }
     const days = Math.floor(hours / 24);
-    if (days < 7) return `${days} 天前`;
-    return formatAbsoluteDate(value);
+    if (days < 7) {
+        return t("recordingDetail.relativeDaysAgo", { count: days });
+    }
+    return formatAbsoluteDate(value, language);
 }
 
-function getDayBucket(value: string, language: UiLanguage) {
+function getDayBucket(value: string, t: Translator) {
     const bucket = getTimelineFilter(value);
-    if (bucket === "today") return language === "zh-CN" ? "今天" : "Today";
-    if (bucket === "yesterday") {
-        return language === "zh-CN" ? "昨天" : "Yesterday";
-    }
-    if (bucket === "last7") {
-        return language === "zh-CN" ? "近 7 天" : "Last 7 days";
-    }
-    return language === "zh-CN" ? "更早" : "Earlier";
+    return t(`recordingList.timeline.${bucket}`);
 }
 
 function getTimelineFilter(value: string): TimelineFilter {
@@ -987,33 +992,134 @@ function getSourceReportSubState(
     return "summary-missing";
 }
 
-function sourceReportReadinessLabel(
+type SourceReportReadinessState =
+    | "ready"
+    | "failed"
+    | "generating"
+    | "missing"
+    | "unknown";
+
+function sourceReportReadinessState(
     readiness: boolean | string | null | undefined,
     hasReadableContent: boolean,
-) {
-    if (typeof readiness === "string" && readiness.trim()) {
-        return readiness.trim();
+): SourceReportReadinessState {
+    if (readiness === true || hasReadableContent) {
+        return "ready";
     }
-    return readiness === true || hasReadableContent ? "已就绪" : "未生成";
+    if (readiness === false || readiness == null) {
+        return "missing";
+    }
+
+    const normalized = readiness.trim().toLowerCase();
+    if (
+        /^(?:ready|completed|complete|succeeded|success|已就绪|已生成)$/.test(
+            normalized,
+        )
+    ) {
+        return "ready";
+    }
+    if (/^(?:failed|failure|error|失败)$/.test(normalized)) {
+        return "failed";
+    }
+    if (
+        /^(?:pending|queued|running|processing|generating|生成中|处理中|待处理)$/.test(
+            normalized,
+        )
+    ) {
+        return "generating";
+    }
+    if (
+        /^(?:missing|none|unavailable|not[-_ ]?generated|未生成|缺失)$/.test(
+            normalized,
+        )
+    ) {
+        return "missing";
+    }
+    return "unknown";
 }
 
-function sourceReportReadinessTone(label: string): SourceReportTone {
-    if (label === "已就绪") return "ok";
-    if (label === "失败") return "err";
-    if (label === "生成中" || label === "未生成") return "warn";
+function sourceReportReadinessLabel(
+    state: SourceReportReadinessState,
+    t: Translator,
+) {
+    switch (state) {
+        case "ready":
+            return t("sourceReport.generated");
+        case "failed":
+            return t("sourceReport.failed");
+        case "generating":
+            return t("sourceReport.generating");
+        case "missing":
+            return t("sourceReport.notGenerated");
+        case "unknown":
+            return t("sourceReport.unknown");
+    }
+}
+
+function sourceReportReadinessTone(
+    state: SourceReportReadinessState,
+): SourceReportTone {
+    if (state === "ready") return "ok";
+    if (state === "failed") return "err";
+    if (state === "generating" || state === "missing") return "warn";
     return "neu";
 }
 
-function sourceReportSyncTone(label: string): SourceReportTone {
-    if (label.includes("失败")) return "err";
+type SourceReportSyncState =
+    | "synced"
+    | "syncing"
+    | "pending"
+    | "failed"
+    | "unknown";
+
+function sourceReportSyncState(
+    detail: Record<string, unknown> | null | undefined,
+): SourceReportSyncState {
+    const rawState = sourceReportDetailText(detail, [
+        "status",
+        "syncStatus",
+        "sourceStatus",
+    ]);
+    if (!rawState) return "synced";
+    const normalized = rawState.trim().toLowerCase();
     if (
-        label.includes("待") ||
-        label.includes("仅") ||
-        label.includes("生成中")
+        /^(?:synced|ready|completed|complete|success|succeeded)$/.test(
+            normalized,
+        )
     ) {
-        return "warn";
+        return "synced";
     }
-    if (label.includes("已") || label.includes("同步")) return "ok";
+    if (/^(?:syncing|running|processing|updating)$/.test(normalized)) {
+        return "syncing";
+    }
+    if (/^(?:pending|queued|waiting)$/.test(normalized)) {
+        return "pending";
+    }
+    if (/^(?:failed|failure|error)$/.test(normalized)) {
+        return "failed";
+    }
+    return "unknown";
+}
+
+function sourceReportSyncLabel(state: SourceReportSyncState, t: Translator) {
+    switch (state) {
+        case "synced":
+            return t("sourceReport.synced");
+        case "syncing":
+            return t("sourceReport.syncing");
+        case "pending":
+            return t("sourceReport.syncPending");
+        case "failed":
+            return t("sourceReport.syncFailed");
+        case "unknown":
+            return t("sourceReport.unknown");
+    }
+}
+
+function sourceReportSyncTone(state: SourceReportSyncState): SourceReportTone {
+    if (state === "synced") return "ok";
+    if (state === "failed") return "err";
+    if (state === "syncing" || state === "pending") return "warn";
     return "neu";
 }
 
@@ -1284,6 +1390,7 @@ function DashboardDetailEmptyIcon() {
 }
 
 function DashboardDetailEmptyState() {
+    const { t } = useLanguage();
     return (
         <Empty
             className={DASHBOARD_DETAIL_EMPTY_STATE_CLASS_NAME}
@@ -1299,10 +1406,10 @@ function DashboardDetailEmptyState() {
                     <DashboardDetailEmptyIcon />
                 </EmptyMedia>
                 <EmptyTitle data-part="dashboard-detail-empty-title">
-                    请选择一条录音
+                    {t("recordingDetail.emptyTitle")}
                 </EmptyTitle>
                 <EmptyDescription data-part="dashboard-detail-empty-description">
-                    在左侧列表中挑一条录音，转写与说话人信息会显示在这里。
+                    {t("recordingDetail.emptyDescription")}
                 </EmptyDescription>
             </EmptyHeader>
         </Empty>
@@ -1362,6 +1469,11 @@ export function Workstation({
     const { favorite, listMode, selectedTagFilter } = dashboardFilterState;
     const [source, setSource] = useState<DashboardSourceFilter>("all");
     const [selectedId, setSelectedId] = useState(recordings[0]?.id ?? "");
+    const [requestedRecordingId, setRequestedRecordingId] = useState<
+        string | null
+    >(null);
+    const [missingRequestedRecordingId, setMissingRequestedRecordingId] =
+        useState<string | null>(null);
     const [detailOpen, setDetailOpen] = useState(false);
     const [detailMobileViewport, setDetailMobileViewport] = useState(false);
     const [collapsed, setCollapsed] = useState(false);
@@ -1464,6 +1576,24 @@ export function Workstation({
         recordings[0]?.id ?? null,
     );
 
+    const updateRequestedRecordingId = useCallback(
+        (recordingId: string | null) => {
+            requestedRecordingIdRef.current = recordingId;
+            setRequestedRecordingId(recordingId);
+            setMissingRequestedRecordingId(null);
+        },
+        [],
+    );
+
+    const settleMissingRequestedRecordingId = useCallback(
+        (recordingId: string) => {
+            requestedRecordingIdRef.current = null;
+            setRequestedRecordingId(null);
+            setMissingRequestedRecordingId(recordingId);
+        },
+        [],
+    );
+
     const loadDataSources = useCallback(async () => {
         setDataSourcesLoading(true);
         setDataSourcesError("");
@@ -1472,11 +1602,11 @@ export function Workstation({
             setDataSources(data.sources);
         } catch {
             setDataSources([]);
-            setDataSourcesError("数据源状态加载失败");
+            setDataSourcesError(t("recordingDetail.dataSourcesLoadFailed"));
         } finally {
             setDataSourcesLoading(false);
         }
-    }, []);
+    }, [t]);
 
     const clearActivityFocusRestoreTimers = useCallback(() => {
         for (const timer of activityFocusRestoreTimerRefs.current) {
@@ -1569,7 +1699,7 @@ export function Workstation({
 
     useEffect(() => {
         const urlState = readRecordingListUrlState(window.location.search);
-        requestedRecordingIdRef.current = urlState.recordingId;
+        updateRequestedRecordingId(urlState.recordingId);
         setListPage(urlState.page);
         setDetailOpen(urlState.detailOpen);
         if (urlState.recordingId) {
@@ -1593,14 +1723,14 @@ export function Workstation({
                 ),
             }),
         );
-    }, []);
+    }, [updateRequestedRecordingId]);
 
     useEffect(() => {
         if (!hydrated) return;
 
         const handlePopState = () => {
             const urlState = readRecordingListUrlState(window.location.search);
-            requestedRecordingIdRef.current = urlState.recordingId;
+            updateRequestedRecordingId(urlState.recordingId);
             setListPage(urlState.page);
             setDetailOpen(urlState.detailOpen);
             setSelectedId((currentId) => urlState.recordingId ?? currentId);
@@ -1608,7 +1738,7 @@ export function Workstation({
 
         window.addEventListener("popstate", handlePopState);
         return () => window.removeEventListener("popstate", handlePopState);
-    }, [hydrated]);
+    }, [hydrated, updateRequestedRecordingId]);
 
     useEffect(() => {
         if (!hydrated || !hasBrowserWindow()) {
@@ -1648,17 +1778,19 @@ export function Workstation({
     } = useAutoSync({
         onSuccess: ({ queued, newRecordings }) => {
             if (queued) {
-                toast.success("同步请求已排队");
+                toast.success(t("recordingDetail.syncQueued"));
                 return;
             }
             toast.success(
                 newRecordings && newRecordings > 0
-                    ? `同步完成，新增 ${newRecordings} 条录音`
-                    : "同步完成，没有新录音",
+                    ? t("recordingDetail.syncNewRecordings", {
+                          count: newRecordings,
+                      })
+                    : t("recordingDetail.syncCompleteNoNew"),
             );
         },
         onError: (error) => {
-            toast.error(error || "同步失败");
+            toast.error(error || t("recordingDetail.syncFailed"));
         },
     });
     const syncSystemBannerKind = syncSystemBannerState(
@@ -1756,6 +1888,7 @@ export function Workstation({
 
         const controller = new AbortController();
         const params = buildRecordingListQueryParams({
+            anchorRecordingId: requestedRecordingId,
             favorite,
             libraryFilter: librarySearchFilter,
             listMode,
@@ -1804,16 +1937,22 @@ export function Workstation({
                 const recordingIds = payload.recordings.map(
                     (recording) => recording.id,
                 );
-                if (requestedId && recordingIds.includes(requestedId)) {
-                    requestedRecordingIdRef.current = null;
+                const requestedIdFound = Boolean(
+                    requestedId && recordingIds.includes(requestedId),
+                );
+                if (requestedId && requestedIdFound) {
+                    updateRequestedRecordingId(null);
+                } else if (requestedId && payload.anchorPage === null) {
+                    settleMissingRequestedRecordingId(requestedId);
                 }
-                setSelectedId(
-                    (currentId) =>
-                        reconcileRecordingSelection({
-                            currentId,
-                            recordingIds,
-                            requestedId,
-                        }) ?? "",
+                setSelectedId((currentId) =>
+                    requestedId && !requestedIdFound
+                        ? currentId
+                        : (reconcileRecordingSelection({
+                              currentId,
+                              recordingIds,
+                              requestedId,
+                          }) ?? ""),
                 );
             } catch {
                 if (controller.signal.aborted) return;
@@ -1839,7 +1978,10 @@ export function Workstation({
         source,
         timelineFilter,
         recordingListRequestVersion,
+        requestedRecordingId,
         displaySettings.recordingListSortOrder,
+        settleMissingRequestedRecordingId,
+        updateRequestedRecordingId,
     ]);
 
     const sourceCounts = useMemo(() => {
@@ -1925,7 +2067,10 @@ export function Workstation({
                     count: tag.count,
                 })),
             ];
-            if (recordingFacets.tags.untagged > 0) {
+            if (
+                recordingFacets.tags.untagged > 0 ||
+                selectedTagFilter === "untagged"
+            ) {
                 options.push({
                     value: "untagged",
                     label: t("recordingList.untagged"),
@@ -1955,7 +2100,7 @@ export function Workstation({
                     count: tag.count,
                 });
             });
-        if (untagged > 0) {
+        if (untagged > 0 || selectedTagFilter === "untagged") {
             options.push({
                 value: "untagged",
                 label: t("recordingList.untagged"),
@@ -1963,7 +2108,7 @@ export function Workstation({
             });
         }
         return options;
-    }, [filteredRecordings, language, recordingFacets, t]);
+    }, [filteredRecordings, language, recordingFacets, selectedTagFilter, t]);
     const listEntries = useMemo(() => {
         const entries: {
             groupId: string;
@@ -2017,12 +2162,12 @@ export function Workstation({
             const bucket = getTimelineFilter(recording.startTime);
             entries.push({
                 groupId: bucket,
-                groupLabel: getDayBucket(recording.startTime, language),
+                groupLabel: getDayBucket(recording.startTime, t),
                 recording,
             });
         }
         return entries;
-    }, [filteredRecordings, language, listMode, selectedTagFilter, t]);
+    }, [filteredRecordings, listMode, selectedTagFilter, t]);
     const listHasExternalFilter =
         source !== "all" ||
         query.trim().length > 0 ||
@@ -2305,29 +2450,35 @@ export function Workstation({
               ? t("activityOverlay.items.sourceUpdateCompleteTitle")
               : lastSyncTime
                 ? t("activityOverlay.status.lastUpdatedAt", {
-                      time: formatRelativeDate(lastSyncTime.toISOString()),
+                      time: formatRelativeDate(
+                          lastSyncTime.toISOString(),
+                          language,
+                          t,
+                      ),
                   })
                 : autoSyncEnabled
                   ? nextSyncTime
                       ? t("activityOverlay.status.nextUpdateAt", {
                             time: formatRelativeDate(
                                 nextSyncTime.toISOString(),
+                                language,
+                                t,
                             ),
                         })
                       : t("activityOverlay.status.waitingForAutoUpdate")
                   : t("activityOverlay.status.autoUpdatePaused");
 
-    const requestedRecordingId = detailOpen
-        ? requestedRecordingIdRef.current
-        : null;
     const requestedRecordingMissing = Boolean(
-        requestedRecordingId &&
-            (!displaySettingsLoaded ||
-                recordingListLoading ||
-                recordingListError ||
-                !listEligibleRecordings.some(
-                    (recording) => recording.id === requestedRecordingId,
-                )),
+        detailOpen &&
+            (missingRequestedRecordingId ||
+                (requestedRecordingId &&
+                    (!displaySettingsLoaded ||
+                        recordingListLoading ||
+                        recordingListError ||
+                        !listEligibleRecordings.some(
+                            (recording) =>
+                                recording.id === requestedRecordingId,
+                        )))),
     );
     const selectedRecording = requestedRecordingMissing
         ? null
@@ -2344,7 +2495,9 @@ export function Workstation({
             detailOpen,
             page: currentListPage,
             recordingId: detailOpen
-                ? (requestedRecordingId ?? selectedRecordingId)
+                ? (requestedRecordingId ??
+                  missingRequestedRecordingId ??
+                  selectedRecordingId)
                 : null,
         });
         if (!isRecordingListUrlCurrent(window.location.href, nextUrl)) {
@@ -2354,6 +2507,7 @@ export function Workstation({
         currentListPage,
         detailOpen,
         hydrated,
+        missingRequestedRecordingId,
         requestedRecordingId,
         selectedRecordingId,
     ]);
@@ -2428,24 +2582,24 @@ export function Workstation({
                 : "idle";
     const dashboardRetxTitle =
         dashboardRetxState === "completed"
-            ? "重新转写完成"
+            ? t("recordingDetail.retx.completedTitle")
             : dashboardRetxState === "failed"
-              ? "本次重新转写失败"
+              ? t("recordingDetail.retx.failedTitle")
               : dashboardRetxState === "running"
-                ? "正在重新转写"
+                ? t("recordingDetail.retx.runningTitle")
                 : dashboardRetxState === "queued"
-                  ? "转写任务已加入队列"
-                  : "重新转写";
+                  ? t("recordingDetail.retx.queuedTitle")
+                  : t("recordingDetail.retx.idleTitle");
     const dashboardRetxSub =
         dashboardRetxState === "completed"
-            ? "逐字稿、说话人映射与摘要已刷新。"
+            ? t("recordingDetail.retx.completedDescription")
             : dashboardRetxState === "failed"
-              ? "VoScript worker 暂时不可达 · 原稿未被覆盖。"
+              ? t("recordingDetail.retx.failedDescription")
               : dashboardRetxState === "running"
-                ? "已完成 12% · 当前结果仍可阅读，完成后自动刷新。"
+                ? t("recordingDetail.retx.runningDescription")
                 : dashboardRetxState === "queued"
-                  ? "正在等待工作器领取，期间可继续浏览。"
-                  : "新任务会保持当前转写可见，完成后替换结果。";
+                  ? t("recordingDetail.retx.queuedDescription")
+                  : t("recordingDetail.retx.idleDescription");
     const turns = useMemo(
         () => transcriptTurns(selectedTranscription),
         [selectedTranscription],
@@ -2484,13 +2638,21 @@ export function Workstation({
     const sourceSummaryLines = sourceReportSummaryLines(sourceSummaryText);
     const sourceSummaryAvailable =
         Boolean(sourceSummaryText) || sourceReportData?.summaryReady === true;
-    const sourceTranscriptStatusLabel = sourceReportReadinessLabel(
+    const sourceTranscriptStatus = sourceReportReadinessState(
         sourceReportData?.transcriptReady,
         sourceTranscriptAvailable,
     );
-    const sourceSummaryStatusLabel = sourceReportReadinessLabel(
+    const sourceSummaryStatus = sourceReportReadinessState(
         sourceReportData?.summaryReady,
         sourceSummaryAvailable,
+    );
+    const sourceTranscriptStatusLabel = sourceReportReadinessLabel(
+        sourceTranscriptStatus,
+        t,
+    );
+    const sourceSummaryStatusLabel = sourceReportReadinessLabel(
+        sourceSummaryStatus,
+        t,
     );
     const sourceReportSubState = getSourceReportSubState(
         sourceTranscriptAvailable,
@@ -2599,19 +2761,18 @@ export function Workstation({
             "language",
             "locale",
             "lang",
-        ]) ?? "简体中文 (zh-CN)";
+        ]) ?? t("sourceReport.defaultLanguage");
     const sourceReportReadable =
         sourceReportDetailText(sourceReportMetadata, [
             "readableContent",
             "assets",
             "availableContent",
-        ]) ?? "音频 · 转写 · 摘要 · 说话人";
-    const sourceReportSyncStatusLabel =
-        sourceReportDetailText(sourceReportMetadata, [
-            "statusLabel",
-            "syncStatusLabel",
-            "sourceStatusLabel",
-        ]) ?? "已同步";
+        ]) ?? t("sourceReport.defaultReadableContent");
+    const sourceReportSyncStatus = sourceReportSyncState(sourceReportMetadata);
+    const sourceReportSyncStatusLabel = sourceReportSyncLabel(
+        sourceReportSyncStatus,
+        t,
+    );
     const sourceReportRawSegments =
         sourceReportData?.transcript?.segments ?? [];
     const sourceReportTranscriptText =
@@ -2634,20 +2795,20 @@ export function Workstation({
         sourceReportDisplaySegments.length;
     const sourceReportCopyText = sourceReportData
         ? [
-              `来源：${sourceReportProviderName}`,
-              `转写状态：${sourceTranscriptStatusLabel}`,
-              `摘要状态：${sourceSummaryStatusLabel}`,
-              `分段数：${sourceReportSegmentCount}`,
+              `${t("recording.source")}: ${sourceReportProviderName}`,
+              `${t("sourceReport.transcriptStatus")}: ${sourceTranscriptStatusLabel}`,
+              `${t("sourceReport.summaryStatus")}: ${sourceSummaryStatusLabel}`,
+              `${t("sourceReport.segmentCount")}: ${sourceReportSegmentCount}`,
               "",
-              "来源信息",
-              `来源：${sourceReportProviderName}`,
-              `状态：${sourceReportSyncStatusLabel}`,
-              `录制于：${formatSourceReportDate(sourceReportRecordedAt)}`,
-              `最近更新：${formatSourceReportDate(sourceReportUpdatedAt)}`,
-              `可读内容：${sourceReportReadable}`,
-              `来源标题：${sourceReportTitle}`,
-              `语种：${sourceReportLanguage}`,
-              `时长：${selectedRecording ? formatDuration(selectedRecording.duration) : "--"}`,
+              t("sourceReport.sourceInformation"),
+              `${t("recording.source")}: ${sourceReportProviderName}`,
+              `${t("sourceReport.status")}: ${sourceReportSyncStatusLabel}`,
+              `${t("sourceReport.recordedAt")}: ${formatSourceReportDate(sourceReportRecordedAt)}`,
+              `${t("sourceReport.updatedAt")}: ${formatSourceReportDate(sourceReportUpdatedAt)}`,
+              `${t("sourceReport.readableContent")}: ${sourceReportReadable}`,
+              `${t("sourceReport.sourceTitle")}: ${sourceReportTitle}`,
+              `${t("sourceReport.language")}: ${sourceReportLanguage}`,
+              `${t("sourceReport.duration")}: ${selectedRecording ? formatDuration(selectedRecording.duration) : "--"}`,
               sourceSummaryText ? "" : null,
               sourceSummaryText || null,
           ]
@@ -2690,13 +2851,13 @@ export function Workstation({
     );
     const aiUnavailableReason = selectedRecording
         ? titleGenerationConfigured === true && !hasSelectedTranscript
-            ? "需要先生成本地转录"
+            ? t("recordingDetail.ai.needsTranscript")
             : aiUnavailableIsService
-              ? "AI 重命名服务尚未配置或暂时不可用。"
+              ? t("recordingDetail.ai.serviceUnavailable")
               : ""
-        : "请选择录音";
+        : t("recordingDetail.ai.selectRecording");
     const aiUnavailableHint = aiUnavailableIsService
-        ? "前往设置 → AI 重命名服务以启用。"
+        ? t("recordingDetail.ai.serviceHint")
         : null;
     const applyDashboardRecordingTags = useCallback(
         (recordingId: string, tags: RecordingTag[]) => {
@@ -2912,7 +3073,7 @@ export function Workstation({
                     recordingId: selectedRecordingId,
                     state: "error",
                     data: null,
-                    error: payload.error ?? "加载来源记录失败",
+                    error: payload.error ?? t("sourceReport.failedFetch"),
                 });
                 return;
             }
@@ -2941,14 +3102,14 @@ export function Workstation({
                 recordingId: selectedRecordingId,
                 state: "error",
                 data: null,
-                error: "加载来源记录失败",
+                error: t("sourceReport.failedFetch"),
             });
         } finally {
             if (sourceReportRequestRef.current?.id === requestId) {
                 sourceReportRequestRef.current = null;
             }
         }
-    }, [selectedRecordingHasSource, selectedRecordingId]);
+    }, [selectedRecordingHasSource, selectedRecordingId, t]);
 
     const handleCopyLocalTranscript = useCallback(async () => {
         if (!localTranscriptText.trim()) {
@@ -3092,7 +3253,7 @@ export function Workstation({
                     throw new Error(
                         await readResponseError(
                             response,
-                            "无法读取逐字稿，请稍后重试。",
+                            t("recordingDetail.transcriptReadFailed"),
                         ),
                     );
                 }
@@ -3144,7 +3305,7 @@ export function Workstation({
                 const message =
                     error instanceof Error && error.message.trim()
                         ? error.message
-                        : "无法读取逐字稿，请稍后重试。";
+                        : t("recordingDetail.transcriptReadFailed");
                 setTranscriptLoadErrors((previous) => {
                     const next = new Map(previous);
                     next.set(recordingId, message);
@@ -3156,7 +3317,7 @@ export function Workstation({
                 clearTranscriptLoading(recordingId);
             }
         },
-        [clearTranscriptLoading, markTranscriptLoading],
+        [clearTranscriptLoading, markTranscriptLoading, t],
     );
 
     useEffect(() => {
@@ -3311,7 +3472,7 @@ export function Workstation({
                     throw new Error(
                         await readResponseError(
                             reviewResponse,
-                            "无法读取说话人信息。",
+                            t("recordingDetail.speaker.readFailed"),
                         ),
                     );
                 }
@@ -3346,7 +3507,7 @@ export function Workstation({
                         throw new Error(
                             await readResponseError(
                                 targetResponse,
-                                "无法创建目标说话人。",
+                                t("recordingDetail.speaker.createTargetFailed"),
                             ),
                         );
                     }
@@ -3357,7 +3518,9 @@ export function Workstation({
                 }
 
                 if (!profileId) {
-                    throw new Error("目标说话人没有可用的资料。");
+                    throw new Error(
+                        t("recordingDetail.speaker.targetUnavailable"),
+                    );
                 }
 
                 const sourceResponse = await fetch(
@@ -3375,7 +3538,7 @@ export function Workstation({
                     throw new Error(
                         await readResponseError(
                             sourceResponse,
-                            "无法合并所选说话人。",
+                            t("recordingDetail.speaker.mergeFailed"),
                         ),
                     );
                 }
@@ -3385,7 +3548,9 @@ export function Workstation({
                     { cache: "no-store" },
                 );
                 if (!readbackResponse.ok) {
-                    throw new Error("说话人已写入，但读取确认失败。");
+                    throw new Error(
+                        t("recordingDetail.speaker.readbackFailed"),
+                    );
                 }
                 const readback = (await readbackResponse.json()) as {
                     speakers?: Array<{
@@ -3407,7 +3572,9 @@ export function Workstation({
                         (speaker) => speaker.matchedProfileId !== profileId,
                     )
                 ) {
-                    throw new Error("说话人合并读取确认不一致。");
+                    throw new Error(
+                        t("recordingDetail.speaker.readbackMismatch"),
+                    );
                 }
 
                 const transcriptResponse = await fetch(
@@ -3415,7 +3582,9 @@ export function Workstation({
                     { cache: "no-store" },
                 );
                 if (!transcriptResponse.ok) {
-                    throw new Error("说话人已合并，但逐字稿刷新失败。");
+                    throw new Error(
+                        t("recordingDetail.speaker.transcriptRefreshFailed"),
+                    );
                 }
                 const speakerTranscript = (await transcriptResponse.json()) as {
                     transcript?: {
@@ -3426,7 +3595,9 @@ export function Workstation({
                     speakerMap?: Record<string, string> | null;
                 };
                 if (!speakerTranscript.transcript) {
-                    throw new Error("说话人已合并，但逐字稿读取为空。");
+                    throw new Error(
+                        t("recordingDetail.speaker.transcriptEmpty"),
+                    );
                 }
                 setLiveTranscriptions((previous) => {
                     const current = previous.get(selectedRecordingId);
@@ -3452,17 +3623,17 @@ export function Workstation({
                     return next;
                 });
                 setSpeakerMergeState({ state: "success", error: null });
-                toast.success("说话人已合并");
+                toast.success(t("recordingDetail.speaker.merged"));
             } catch (error) {
                 const message =
                     error instanceof Error && error.message.trim()
                         ? error.message
-                        : "合并说话人失败，请稍后重试。";
+                        : t("recordingDetail.speaker.mergeRetry");
                 setSpeakerMergeState({ state: "error", error: message });
                 toast.error(message);
             }
         },
-        [selectedRecordingId],
+        [selectedRecordingId, t],
     );
 
     const retryDashboardSpeakerMerge = useCallback(() => {
@@ -3823,12 +3994,14 @@ export function Workstation({
                 setTagLoadError("");
             })
             .catch(() => {
-                if (active) setTagLoadError("标签加载失败");
+                if (active) {
+                    setTagLoadError(t("recordingDetail.tagLoadFailed"));
+                }
             });
         return () => {
             active = false;
         };
-    }, [tagOpen]);
+    }, [tagOpen, t]);
 
     function openSettings(section: CanonicalSettingsSection) {
         setSearchOpen(false);
@@ -3868,7 +4041,7 @@ export function Workstation({
 
     function closeRecordingDetail({ restoreFocus = true } = {}) {
         const closingId = selectedRecordingId;
-        requestedRecordingIdRef.current = null;
+        updateRequestedRecordingId(null);
         setDetailOpen(false);
         writeRecordingListHistory(
             { detailOpen: false, page: currentListPage, recordingId: null },
@@ -3886,7 +4059,7 @@ export function Workstation({
     function selectListPage(nextPage: number) {
         const bounded = Math.min(Math.max(1, nextPage), listTotalPages);
         setListPage(bounded);
-        requestedRecordingIdRef.current = null;
+        updateRequestedRecordingId(null);
         setDetailOpen(false);
         writeRecordingListHistory(
             { detailOpen: false, page: bounded, recordingId: null },
@@ -3895,7 +4068,7 @@ export function Workstation({
     }
 
     function selectRecording(recordingId: string) {
-        requestedRecordingIdRef.current = null;
+        updateRequestedRecordingId(null);
         setSelectedId(recordingId);
         setDetailOpen(true);
         writeRecordingListHistory(
@@ -4021,7 +4194,12 @@ export function Workstation({
         );
         setRenaming(false);
         if (!response.ok) {
-            toast.error(await readResponseError(response, "重命名失败"));
+            toast.error(
+                await readResponseError(
+                    response,
+                    t("recordingDetail.rename.failed"),
+                ),
+            );
             return;
         }
         setLiveRecordings((items) =>
@@ -4031,7 +4209,7 @@ export function Workstation({
         );
         setDraftTitle(filename);
         setEditingTitle(false);
-        toast.success("已重命名");
+        toast.success(t("recordingDetail.rename.success"));
     }
 
     async function previewAutoRename() {
@@ -4059,14 +4237,14 @@ export function Workstation({
         if (!response.ok) {
             const error = await readResponseError(
                 response,
-                "这次没拿到结果，可能是转写太短或模型暂时不可用。",
+                t("recordingDetail.ai.noResult"),
             );
             toast.error(error);
             if (response.status === 400) {
-                setAiError("AI 重命名服务尚未配置或暂时不可用。");
+                setAiError(t("recordingDetail.ai.serviceUnavailable"));
                 setAiState("unavailable");
             } else {
-                setAiError("这次没拿到结果，可能是转写太短或模型暂时不可用。");
+                setAiError(t("recordingDetail.ai.noResult"));
                 setAiState("error");
             }
             return;
@@ -4092,7 +4270,7 @@ export function Workstation({
             if (!response.ok) {
                 const error = await readResponseError(
                     response,
-                    "AI 标题写回失败",
+                    t("recordingDetail.ai.writebackFailed"),
                 );
                 setAiError(error);
                 toast.error(error);
@@ -4111,7 +4289,7 @@ export function Workstation({
             setAiState("loading");
             setAiPreviewTitle("");
             setAiError("");
-            toast.success("AI 重命名已应用");
+            toast.success(t("recordingDetail.ai.applied"));
         } finally {
             setAiApplying(false);
         }
@@ -4124,11 +4302,11 @@ export function Workstation({
         setTagOpen(false);
         setAiOpen(false);
         const ok = await confirm({
-            title: "删除本地副本？",
-            description: "这条录音在来源系统中已被删除，本地仅留存缓存副本。",
-            warning: "删除后转写、标签与 AI 标题都会一并清除，且无法恢复。",
-            confirmLabel: "永久删除",
-            cancelLabel: "取消",
+            title: t("recordingDetail.delete.title"),
+            description: t("recordingDetail.delete.description"),
+            warning: t("recordingDetail.delete.warning"),
+            confirmLabel: t("recordingDetail.delete.confirm"),
+            cancelLabel: t("common.cancel"),
         });
         if (!ok) return;
         const response = await fetch(
@@ -4138,7 +4316,12 @@ export function Workstation({
             },
         );
         if (!response.ok) {
-            toast.error(await readResponseError(response, "删除失败"));
+            toast.error(
+                await readResponseError(
+                    response,
+                    t("recordingDetail.delete.failed"),
+                ),
+            );
             return;
         }
         const deletedId = selectedRecording.id;
@@ -4157,26 +4340,26 @@ export function Workstation({
         });
         setSelectedId("");
         setMoreOpen(false);
-        toast.success("录音已删除");
+        toast.success(t("recordingDetail.delete.success"));
     }
 
     async function retranscribe() {
         if (!selectedRecording) return;
         if (!selectedRecording.audioUrl) {
             setRetxState("unavailable");
-            toast.error("当前录音没有可用的本地音频，无法重新转写。");
+            toast.error(t("recordingDetail.retx.noAudio"));
             return;
         }
         const ok = await confirm({
-            title: "重新转写这条录音？",
-            description: "当前的逐字稿、说话人标记与 AI 标题会被新结果覆盖。",
+            title: t("transcription.retranscribeConfirmTitle"),
+            description: t("transcription.retranscribeConfirmDescription"),
             details: [
-                "逐字稿将重新生成 · 估计 1 ~ 3 分钟",
-                "说话人映射会保留，但本次结果可能合并不同的片段",
-                "本次操作不会影响来源系统中的正本",
+                t("transcription.retranscribeConfirmDetailTranscript"),
+                t("transcription.retranscribeConfirmDetailSpeakers"),
+                t("transcription.retranscribeConfirmDetailSource"),
             ],
-            confirmLabel: "确认重新转写",
-            cancelLabel: "取消",
+            confirmLabel: t("transcription.retranscribeConfirmLabel"),
+            cancelLabel: t("common.cancel"),
         });
         if (!ok) return;
         setDismissedCompletedRetxIds((items) => {
@@ -4196,7 +4379,12 @@ export function Workstation({
         );
         if (!response.ok) {
             setRetxState("failed");
-            toast.error(await readResponseError(response, "转写任务提交失败"));
+            toast.error(
+                await readResponseError(
+                    response,
+                    t("recordingDetail.retx.submitFailed"),
+                ),
+            );
             return;
         }
         const data = (await response.json().catch(() => ({}))) as {
@@ -4213,7 +4401,7 @@ export function Workstation({
             });
         }
         setRetxState(getRetxStateFromActiveJob(data.job) ?? "running");
-        toast.info("转写任务已加入队列");
+        toast.info(t("recordingDetail.retx.queuedToast"));
     }
 
     function handleAudioEnded() {
@@ -4330,7 +4518,7 @@ export function Workstation({
                             className={dashboardBrandClassNames.subtitle}
                             data-part="dashboard-brand-subtitle"
                         >
-                            私人工作空间
+                            {t("recordingDetail.shell.privateWorkspace")}
                         </div>
                     </div>
                 </div>
@@ -4338,7 +4526,7 @@ export function Workstation({
                 <nav
                     className={dashboardNavClassNames.root}
                     data-list="dashboard-nav"
-                    aria-label="录音筛选"
+                    aria-label={t("recordingDetail.shell.recordingFilters")}
                 >
                     <div
                         className={cn(
@@ -4347,7 +4535,7 @@ export function Workstation({
                         )}
                         data-part="dashboard-nav-section-label"
                     >
-                        收藏
+                        {t("recordingDetail.shell.favorites")}
                     </div>
                     {FAVORITES.map((item) => {
                         const Icon = item.icon;
@@ -4761,7 +4949,7 @@ export function Workstation({
                                 dashboardSidebarCollapseClassNames.hidden,
                             )}
                             type="button"
-                            aria-label="同步"
+                            aria-label={t("recordingDetail.shell.sync")}
                             aria-busy={syncButtonBusy}
                             aria-describedby="dashboard-sync-title dashboard-sync-subtitle"
                             disabled={syncButtonBusy}
@@ -4797,7 +4985,7 @@ export function Workstation({
                         data-control="dashboard-drawer-trigger"
                         id="drawer-trigger"
                         type="button"
-                        aria-label="打开筛选抽屉"
+                        aria-label={t("recordingDetail.shell.openFilters")}
                         ref={drawerTriggerRef}
                         onClick={() => {
                             setSearchOpen(false);
@@ -4817,7 +5005,7 @@ export function Workstation({
                         size="icon"
                         className={dashboardButtonClassNames.sidebarCollapse}
                         type="button"
-                        aria-label="折叠 / 展开侧边栏"
+                        aria-label={t("recordingDetail.shell.toggleSidebar")}
                         data-control="sidebar-collapse"
                         data-state={collapsed ? "collapsed" : "expanded"}
                         onClick={() => {
@@ -4846,10 +5034,10 @@ export function Workstation({
                             data-part="dashboard-crumb"
                         >
                             {favorite === "all"
-                                ? "全部录音"
+                                ? t("recordingDetail.shell.allRecordings")
                                 : favorite === "transcribed"
-                                  ? "转写记录"
-                                  : "标签"}
+                                  ? t("recordingDetail.shell.transcribed")
+                                  : t("recordingDetail.shell.tags")}
                         </span>
                         <span
                             className={dashboardTopbarClassNames.separator}
@@ -4861,7 +5049,8 @@ export function Workstation({
                             className={dashboardTopbarClassNames.current}
                             data-part="dashboard-crumb-current"
                         >
-                            {selectedRecording?.filename ?? "未选择录音"}
+                            {selectedRecording?.filename ??
+                                t("recordingDetail.shell.noSelection")}
                         </span>
                     </div>
                     <div
@@ -5366,7 +5555,9 @@ export function Workstation({
                                     className={
                                         dashboardButtonClassNames.settingsAvatar
                                     }
-                                    aria-label="打开设置"
+                                    aria-label={t(
+                                        "recordingDetail.shell.openSettings",
+                                    )}
                                     data-control="dashboard-settings"
                                     data-part="dashboard-user-avatar"
                                     data-state={settingsOpen ? "open" : "idle"}
@@ -5912,11 +6103,7 @@ export function Workstation({
                     </Card>
 
                     <button
-                        aria-label={
-                            language === "zh-CN"
-                                ? "关闭录音详情"
-                                : "Close recording details"
-                        }
+                        aria-label={t("recordingDetail.shell.closeDetail")}
                         className={DASHBOARD_DETAIL_SCRIM_CLASS_NAME}
                         data-control="dashboard-detail-scrim"
                         onClick={() => closeRecordingDetail()}
@@ -5945,11 +6132,9 @@ export function Workstation({
                                     }
                                 >
                                     <Button
-                                        aria-label={
-                                            language === "zh-CN"
-                                                ? "关闭录音详情"
-                                                : "Close recording details"
-                                        }
+                                        aria-label={t(
+                                            "recordingDetail.shell.closeDetail",
+                                        )}
                                         className="hidden min-[1024px]:max-[1439px]:inline-flex"
                                         data-control="dashboard-detail-close"
                                         onClick={() => closeRecordingDetail()}
@@ -5961,11 +6146,9 @@ export function Workstation({
                                         <X aria-hidden="true" />
                                     </Button>
                                     <Button
-                                        aria-label={
-                                            language === "zh-CN"
-                                                ? "返回录音列表"
-                                                : "Back to recordings"
-                                        }
+                                        aria-label={t(
+                                            "recordingDetail.shell.backToList",
+                                        )}
                                         className="hidden max-[1024px]:inline-flex"
                                         data-control="dashboard-detail-back"
                                         onClick={() => closeRecordingDetail()}
@@ -5985,7 +6168,9 @@ export function Workstation({
                                             aria-level={2}
                                         >
                                             {selectedRecording?.filename ??
-                                                "未选择录音"}
+                                                t(
+                                                    "recordingDetail.shell.noSelection",
+                                                )}
                                         </CardTitle>
                                     ) : null}
                                     {dashboardDetailHeaderState === "normal" &&
@@ -5995,9 +6180,13 @@ export function Workstation({
                                             className="ml-1 shrink-0"
                                             data-part="detail-header-local-badge"
                                             data-rh-local
-                                            aria-label="仅存在本地副本"
+                                            aria-label={t(
+                                                "recordingDetail.shell.localCopyOnly",
+                                            )}
                                         >
-                                            本地副本
+                                            {t(
+                                                "recordingDetail.shell.localCopy",
+                                            )}
                                         </Badge>
                                     ) : null}
                                     {dashboardDetailHeaderState ===
@@ -6009,7 +6198,9 @@ export function Workstation({
                                             data-part="detail-header-title-input"
                                             data-state="editing"
                                             value={draftTitle}
-                                            aria-label="录音标题"
+                                            aria-label={t(
+                                                "recordingDetail.rename.titleLabel",
+                                            )}
                                             maxLength={120}
                                             onChange={(event) =>
                                                 setDraftTitle(
@@ -6040,7 +6231,7 @@ export function Workstation({
                                             aria-busy={renaming}
                                             aria-live="polite"
                                         >
-                                            正在保存…
+                                            {t("recordingDetail.rename.saving")}
                                         </Badge>
                                     ) : null}
                                     {dashboardDetailHeaderState === "normal" ? (
@@ -6051,8 +6242,12 @@ export function Workstation({
                                                 dashboardButtonClassNames.headerIconButton
                                             }
                                             type="button"
-                                            aria-label="重命名"
-                                            title="重命名"
+                                            aria-label={t(
+                                                "recordingDetail.rename.action",
+                                            )}
+                                            title={t(
+                                                "recordingDetail.rename.action",
+                                            )}
                                             data-rh-edit-start
                                             data-control="rename-recording-title"
                                             data-part="detail-header-action"
@@ -6101,15 +6296,25 @@ export function Workstation({
                                                 }
                                             >
                                                 <Sparkle data-icon="inline-start" />
-                                                AI 重命名
+                                                {t(
+                                                    "recordingDetail.shell.aiRename",
+                                                )}
                                             </Button>
                                             {aiOpen && selectedRecording ? (
                                                 <AiRenamePreview
                                                     className="right-px"
-                                                    applyLabel="应用"
-                                                    bodyLabel="建议标题"
-                                                    cancelLabel="取消"
-                                                    closeLabel="关闭预览"
+                                                    applyLabel={t(
+                                                        "transcription.aiRenameApply",
+                                                    )}
+                                                    bodyLabel={t(
+                                                        "transcription.aiRenameSuggestedTitle",
+                                                    )}
+                                                    cancelLabel={t(
+                                                        "common.cancel",
+                                                    )}
+                                                    closeLabel={t(
+                                                        "transcription.aiRenameClosePreview",
+                                                    )}
                                                     filename={aiPreviewTitle}
                                                     hint={
                                                         aiState ===
@@ -6123,10 +6328,14 @@ export function Workstation({
                                                     }
                                                     message={
                                                         aiState === "loading"
-                                                            ? "正在根据转写生成标题…"
+                                                            ? t(
+                                                                  "recordingDetail.ai.generating",
+                                                              )
                                                             : aiState ===
                                                                 "review"
-                                                              ? "确认无误后点击「应用」，将替换录音标题且不可一键撤销。"
+                                                              ? t(
+                                                                    "recordingDetail.ai.reviewHint",
+                                                                )
                                                               : aiError
                                                     }
                                                     onApply={applyAiRename}
@@ -6142,15 +6351,23 @@ export function Workstation({
                                                     }
                                                     regenerateLabel={
                                                         aiState === "error"
-                                                            ? "重试"
+                                                            ? t("common.retry")
                                                             : aiState ===
                                                                 "loading"
-                                                              ? "生成中…"
-                                                              : "重新生成"
+                                                              ? t(
+                                                                    "recordingDetail.ai.generating",
+                                                                )
+                                                              : t(
+                                                                    "transcription.aiRenameRegenerate",
+                                                                )
                                                     }
                                                     state={aiState}
-                                                    subtitle="仅本次预览，不会写回来源"
-                                                    title="AI 标题预览"
+                                                    subtitle={t(
+                                                        "recordingDetail.ai.previewOnly",
+                                                    )}
+                                                    title={t(
+                                                        "transcription.aiRenamePreview",
+                                                    )}
                                                 />
                                             ) : null}
                                         </div>
@@ -6165,8 +6382,10 @@ export function Workstation({
                                                     dashboardButtonClassNames.headerIconButton
                                                 }
                                                 type="button"
-                                                aria-label="保存新标题"
-                                                title="保存"
+                                                aria-label={t(
+                                                    "recordingDetail.rename.saveNewTitle",
+                                                )}
+                                                title={t("common.save")}
                                                 data-rh-edit-save
                                                 data-control="save-recording-title"
                                                 data-part="detail-header-action"
@@ -6185,8 +6404,10 @@ export function Workstation({
                                                     dashboardButtonClassNames.headerIconButton
                                                 }
                                                 type="button"
-                                                aria-label="取消重命名"
-                                                title="取消"
+                                                aria-label={t(
+                                                    "recordingDetail.rename.cancel",
+                                                )}
+                                                title={t("common.cancel")}
                                                 data-rh-edit-cancel
                                                 data-control="cancel-recording-title"
                                                 data-part="detail-header-action"
@@ -6229,7 +6450,9 @@ export function Workstation({
                                                             dashboardButtonClassNames.headerIconButton
                                                         }
                                                         type="button"
-                                                        aria-label="更多操作"
+                                                        aria-label={t(
+                                                            "recordingDetail.shell.moreActions",
+                                                        )}
                                                         aria-haspopup="menu"
                                                         aria-expanded={moreOpen}
                                                         data-control="recording-more-actions"
@@ -6254,7 +6477,9 @@ export function Workstation({
                                                     data-state={
                                                         moreActionsState
                                                     }
-                                                    aria-label="更多操作"
+                                                    aria-label={t(
+                                                        "recordingDetail.shell.moreActions",
+                                                    )}
                                                 >
                                                     <DropdownMenuGroup>
                                                         <DropdownMenuItem
@@ -6289,7 +6514,9 @@ export function Workstation({
                                                                     focusable="false"
                                                                 />
                                                             ) : null}
-                                                            重命名
+                                                            {t(
+                                                                "recordingDetail.rename.action",
+                                                            )}
                                                         </DropdownMenuItem>
                                                         <DropdownMenuItem
                                                             density="compact"
@@ -6311,7 +6538,9 @@ export function Workstation({
                                                                     focusable="false"
                                                                 />
                                                             ) : null}
-                                                            AI 重命名
+                                                            {t(
+                                                                "recordingDetail.shell.aiRename",
+                                                            )}
                                                         </DropdownMenuItem>
                                                         {moreActionsShowRetranscribe ? (
                                                             <DropdownMenuItem
@@ -6334,7 +6563,9 @@ export function Workstation({
                                                                         focusable="false"
                                                                     />
                                                                 ) : null}
-                                                                重新转写
+                                                                {t(
+                                                                    "recordingDetail.shell.retranscribe",
+                                                                )}
                                                             </DropdownMenuItem>
                                                         ) : null}
                                                         {moreActionsShowSeparator ? (
@@ -6365,7 +6596,9 @@ export function Workstation({
                                                                     focusable="false"
                                                                 />
                                                             ) : null}
-                                                            删除本地副本
+                                                            {t(
+                                                                "recordingDetail.shell.deleteLocal",
+                                                            )}
                                                             {selectedRecording?.sourceProvider ? (
                                                                 <DropdownMenuShortcut
                                                                     variant="hint"
@@ -6377,8 +6610,12 @@ export function Workstation({
                                                                     data-menu-hint=""
                                                                 >
                                                                     {selectedRecording.upstreamDeleted
-                                                                        ? "上游已删除"
-                                                                        : "来源持有正本"}
+                                                                        ? t(
+                                                                              "recordingDetail.shell.upstreamDeleted",
+                                                                          )
+                                                                        : t(
+                                                                              "recordingDetail.shell.sourceOwnsOriginal",
+                                                                          )}
                                                                 </DropdownMenuShortcut>
                                                             ) : null}
                                                         </DropdownMenuItem>
@@ -6424,7 +6661,9 @@ export function Workstation({
                                                 ? formatPlayerDate(
                                                       selectedRecording.startTime,
                                                   )
-                                                : "未选择录音"}
+                                                : t(
+                                                      "recordingDetail.shell.noSelection",
+                                                  )}
                                         </span>
                                         {selectedRecording ? (
                                             <PlayerSourceTag
@@ -6555,8 +6794,9 @@ export function Workstation({
                                         disabled:
                                             !selectedRecording ||
                                             !selectedRecording.audioUrl,
-                                        disabledReason:
-                                            "当前来源不支持私有重转写",
+                                        disabledReason: t(
+                                            "recordingDetail.retx.unavailable",
+                                        ),
                                         onRequest: retranscribe,
                                         onRetry: retranscribe,
                                         onDismiss: () => {
@@ -6748,28 +6988,36 @@ export function Workstation({
                                                 <DashboardSourceReportState state="loading">
                                                     <SourceReportMetricCards>
                                                         <SourceReportMetricCard
-                                                            label="来源"
+                                                            label={t(
+                                                                "recording.source",
+                                                            )}
                                                             metric="source"
                                                             value="skeleton"
                                                         >
                                                             <SourceReportCardSkeleton size="source" />
                                                         </SourceReportMetricCard>
                                                         <SourceReportMetricCard
-                                                            label="转写状态"
+                                                            label={t(
+                                                                "sourceReport.transcriptStatus",
+                                                            )}
                                                             metric="transcript-status"
                                                             value="skeleton"
                                                         >
                                                             <SourceReportCardSkeleton size="status" />
                                                         </SourceReportMetricCard>
                                                         <SourceReportMetricCard
-                                                            label="摘要状态"
+                                                            label={t(
+                                                                "sourceReport.summaryStatus",
+                                                            )}
                                                             metric="summary-status"
                                                             value="skeleton"
                                                         >
                                                             <SourceReportCardSkeleton size="status" />
                                                         </SourceReportMetricCard>
                                                         <SourceReportMetricCard
-                                                            label="分段数"
+                                                            label={t(
+                                                                "sourceReport.segmentCount",
+                                                            )}
                                                             metric="segment-count"
                                                             value="skeleton"
                                                         >
@@ -6778,16 +7026,16 @@ export function Workstation({
                                                     </SourceReportMetricCards>
                                                     <SourceReportSection
                                                         section="transcript"
-                                                        title="来源转写"
-                                                        description={
-                                                            <>
-                                                                正在从
-                                                                {
-                                                                    sourceReportProviderSentenceName
-                                                                }
-                                                                读取…
-                                                            </>
-                                                        }
+                                                        title={t(
+                                                            "sourceReport.sourceTranscript",
+                                                        )}
+                                                        description={t(
+                                                            "sourceReport.loadingFromSource",
+                                                            {
+                                                                provider:
+                                                                    sourceReportProviderSentenceName,
+                                                            },
+                                                        )}
                                                     >
                                                         <SourceReportSegmentSkeletonBlock>
                                                             <SourceReportSegmentSkeleton size="time" />
@@ -6814,13 +7062,18 @@ export function Workstation({
                                                             <SourceReportErrorGlyph />
                                                         </SourceReportEmptyIcon>
                                                         <SourceReportEmptyTitle kind="alert">
-                                                            无法读取来源详情
+                                                            {t(
+                                                                "sourceReport.errorTitle",
+                                                            )}
                                                         </SourceReportEmptyTitle>
                                                         <SourceReportEmptyDescription kind="alert">
-                                                            {
-                                                                sourceReportProviderSentenceName
-                                                            }
-                                                            返回了一个错误，可能是网络抖动或来源临时不可用。
+                                                            {t(
+                                                                "sourceReport.errorDescription",
+                                                                {
+                                                                    provider:
+                                                                        sourceReportProviderSentenceName,
+                                                                },
+                                                            )}
                                                         </SourceReportEmptyDescription>
                                                         <SourceReportActionRow
                                                             purpose="empty"
@@ -6835,7 +7088,9 @@ export function Workstation({
                                                                     void loadSourceReport()
                                                                 }
                                                             >
-                                                                重试
+                                                                {t(
+                                                                    "common.retry",
+                                                                )}
                                                             </SourceReportActionButton>
                                                             <SourceReportActionButton
                                                                 intent="ghost"
@@ -6860,7 +7115,9 @@ export function Workstation({
                                                                     );
                                                                 }}
                                                             >
-                                                                查看同步日志
+                                                                {t(
+                                                                    "sourceReport.viewSyncLog",
+                                                                )}
                                                             </SourceReportActionButton>
                                                         </SourceReportActionRow>
                                                     </SourceReportEmptySurface>
@@ -6900,12 +7157,14 @@ export function Workstation({
                                                             />
                                                         </SourceReportMetricCard>
                                                         <SourceReportMetricCard
-                                                            label="转写状态"
+                                                            label={t(
+                                                                "sourceReport.transcriptStatus",
+                                                            )}
                                                             metric="transcript-status"
                                                         >
                                                             <SourceReportStatusBadge
                                                                 tone={sourceReportReadinessTone(
-                                                                    sourceTranscriptStatusLabel,
+                                                                    sourceTranscriptStatus,
                                                                 )}
                                                             >
                                                                 {
@@ -6914,12 +7173,14 @@ export function Workstation({
                                                             </SourceReportStatusBadge>
                                                         </SourceReportMetricCard>
                                                         <SourceReportMetricCard
-                                                            label="摘要状态"
+                                                            label={t(
+                                                                "sourceReport.summaryStatus",
+                                                            )}
                                                             metric="summary-status"
                                                         >
                                                             <SourceReportStatusBadge
                                                                 tone={sourceReportReadinessTone(
-                                                                    sourceSummaryStatusLabel,
+                                                                    sourceSummaryStatus,
                                                                 )}
                                                             >
                                                                 {
@@ -6928,7 +7189,9 @@ export function Workstation({
                                                             </SourceReportStatusBadge>
                                                         </SourceReportMetricCard>
                                                         <SourceReportMetricCard
-                                                            label="分段数"
+                                                            label={t(
+                                                                "sourceReport.segmentCount",
+                                                            )}
                                                             metric="segment-count"
                                                             value="number"
                                                         >
@@ -6940,33 +7203,30 @@ export function Workstation({
 
                                                     <SourceReportSection
                                                         section="transcript"
-                                                        title="来源转写"
+                                                        title={t(
+                                                            "sourceReport.sourceTranscript",
+                                                        )}
                                                         noticeAfter={
                                                             sourceTranscriptAvailable ? null : (
                                                                 <SourceReportMissingNotice state="transcript-missing">
-                                                                    来源未提供逐字稿。可以稍后再来，或运行私有转写。
+                                                                    {t(
+                                                                        "sourceReport.transcriptMissing",
+                                                                    )}
                                                                 </SourceReportMissingNotice>
                                                             )
                                                         }
-                                                        description={
-                                                            <>
-                                                                来自
-                                                                {
-                                                                    sourceReportProviderSentenceName
-                                                                }
-                                                                {" · "}
-                                                                {
-                                                                    sourceReportSegmentCount
-                                                                }
-                                                                {" 段 · "}
-                                                                {selectedRecording
-                                                                    ? formatDuration(
-                                                                          selectedRecording.duration,
-                                                                      )
-                                                                    : "--"}
-                                                                {" 总时长"}
-                                                            </>
-                                                        }
+                                                        description={t(
+                                                            "sourceReport.segmentDuration",
+                                                            {
+                                                                count: sourceReportSegmentCount,
+                                                                duration:
+                                                                    selectedRecording
+                                                                        ? formatDuration(
+                                                                              selectedRecording.duration,
+                                                                          )
+                                                                        : "--",
+                                                            },
+                                                        )}
                                                     >
                                                         <SourceReportSegments
                                                             hidden={
@@ -7009,7 +7269,14 @@ export function Workstation({
                                                                         }
                                                                         speaker={
                                                                             segment.speaker ||
-                                                                            `说话人 ${index + 1}`
+                                                                            t(
+                                                                                "transcriptionPanel.fallbackSpeaker",
+                                                                                {
+                                                                                    index:
+                                                                                        index +
+                                                                                        1,
+                                                                                },
+                                                                            )
                                                                         }
                                                                     >
                                                                         {
@@ -7025,16 +7292,16 @@ export function Workstation({
                                                     0 ? (
                                                         <SourceReportSection
                                                             section="summary"
-                                                            title="来源原始报告"
-                                                            description={
-                                                                <>
-                                                                    由
-                                                                    {
-                                                                        sourceReportProviderName
-                                                                    }
-                                                                    返回的只读摘要
-                                                                </>
-                                                            }
+                                                            title={t(
+                                                                "sourceReport.officialReport",
+                                                            )}
+                                                            description={t(
+                                                                "sourceReport.readOnlySummary",
+                                                                {
+                                                                    provider:
+                                                                        sourceReportProviderName,
+                                                                },
+                                                            )}
                                                         >
                                                             <SourceReportSummaryBody>
                                                                 {sourceSummaryLines.map(
@@ -7057,23 +7324,25 @@ export function Workstation({
 
                                                     <SourceReportSection
                                                         section="metadata"
-                                                        title="来源信息"
+                                                        title={t(
+                                                            "sourceReport.sourceInformation",
+                                                        )}
                                                         noticeBefore={
                                                             sourceSummaryAvailable ? null : (
                                                                 <SourceReportMissingNotice state="summary-missing">
-                                                                    来源未提供官方摘要。
+                                                                    {t(
+                                                                        "sourceReport.summaryMissing",
+                                                                    )}
                                                                 </SourceReportMissingNotice>
                                                             )
                                                         }
-                                                        description={
-                                                            <>
-                                                                由
-                                                                {
-                                                                    sourceReportProviderName
-                                                                }
-                                                                返回的公开元数据
-                                                            </>
-                                                        }
+                                                        description={t(
+                                                            "sourceReport.publicMetadata",
+                                                            {
+                                                                provider:
+                                                                    sourceReportProviderName,
+                                                            },
+                                                        )}
                                                     >
                                                         <SourceReportMetaList
                                                             surface="dashboard"
@@ -7081,15 +7350,23 @@ export function Workstation({
                                                                 sourceReportSubState
                                                             }
                                                         >
-                                                            <SourceReportMetaRow label="来源">
+                                                            <SourceReportMetaRow
+                                                                label={t(
+                                                                    "recording.source",
+                                                                )}
+                                                            >
                                                                 {
                                                                     sourceReportProviderName
                                                                 }
                                                             </SourceReportMetaRow>
-                                                            <SourceReportMetaRow label="状态">
+                                                            <SourceReportMetaRow
+                                                                label={t(
+                                                                    "sourceReport.status",
+                                                                )}
+                                                            >
                                                                 <SourceReportStatusBadge
                                                                     tone={sourceReportSyncTone(
-                                                                        sourceReportSyncStatusLabel,
+                                                                        sourceReportSyncStatus,
                                                                     )}
                                                                 >
                                                                     {
@@ -7098,7 +7375,9 @@ export function Workstation({
                                                                 </SourceReportStatusBadge>
                                                             </SourceReportMetaRow>
                                                             <SourceReportMetaRow
-                                                                label="录制于"
+                                                                label={t(
+                                                                    "sourceReport.recordedAt",
+                                                                )}
                                                                 valueFormat="mono"
                                                             >
                                                                 {formatSourceReportDate(
@@ -7106,30 +7385,46 @@ export function Workstation({
                                                                 )}
                                                             </SourceReportMetaRow>
                                                             <SourceReportMetaRow
-                                                                label="最近更新"
+                                                                label={t(
+                                                                    "sourceReport.updatedAt",
+                                                                )}
                                                                 valueFormat="mono"
                                                             >
                                                                 {formatSourceReportDate(
                                                                     sourceReportUpdatedAt,
                                                                 )}
                                                             </SourceReportMetaRow>
-                                                            <SourceReportMetaRow label="可读内容">
+                                                            <SourceReportMetaRow
+                                                                label={t(
+                                                                    "sourceReport.readableContent",
+                                                                )}
+                                                            >
                                                                 {
                                                                     sourceReportReadable
                                                                 }
                                                             </SourceReportMetaRow>
-                                                            <SourceReportMetaRow label="来源标题">
+                                                            <SourceReportMetaRow
+                                                                label={t(
+                                                                    "sourceReport.sourceTitle",
+                                                                )}
+                                                            >
                                                                 {
                                                                     sourceReportTitle
                                                                 }
                                                             </SourceReportMetaRow>
-                                                            <SourceReportMetaRow label="语种">
+                                                            <SourceReportMetaRow
+                                                                label={t(
+                                                                    "sourceReport.language",
+                                                                )}
+                                                            >
                                                                 {
                                                                     sourceReportLanguage
                                                                 }
                                                             </SourceReportMetaRow>
                                                             <SourceReportMetaRow
-                                                                label="时长"
+                                                                label={t(
+                                                                    "sourceReport.duration",
+                                                                )}
                                                                 valueFormat="mono"
                                                             >
                                                                 {selectedRecording
@@ -7165,6 +7460,7 @@ export function Workstation({
                                                                     sourceReportData.sourceProvider ??
                                                                         selectedRecording?.sourceProvider,
                                                                     language,
+                                                                    t,
                                                                 )}
                                                             </SourceReportActionButton>
                                                             <SourceReportActionButton
@@ -7211,10 +7507,14 @@ export function Workstation({
                                                             <SourceReportEmptyGlyph />
                                                         </SourceReportEmptyIcon>
                                                         <SourceReportEmptyTitle>
-                                                            这条录音没有关联来源
+                                                            {t(
+                                                                "sourceReport.noLinkedSourceTitle",
+                                                            )}
                                                         </SourceReportEmptyTitle>
                                                         <SourceReportEmptyDescription>
-                                                            本地导入或离线录制的录音不会有来源详情。
+                                                            {t(
+                                                                "sourceReport.noLinkedSourceDescription",
+                                                            )}
                                                         </SourceReportEmptyDescription>
                                                     </SourceReportEmptySurface>
                                                 </DashboardSourceReportState>

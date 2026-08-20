@@ -121,6 +121,9 @@ export function reduceDashboardFilterState(
         case "tag-filter":
             return { ...state, selectedTagFilter: action.value };
         case "reconcile-tags":
+            if (state.selectedTagFilter === "untagged") {
+                return state;
+            }
             return action.available.includes(state.selectedTagFilter)
                 ? state
                 : { ...state, selectedTagFilter: "all" };

@@ -6,6 +6,7 @@ import { describe, expect, it } from "vitest";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
 import { Spinner } from "@/components/ui/spinner";
+import { translate } from "@/lib/i18n";
 
 const AI_RENAME_PREVIEW_CARD_SOURCE = readFileSync(
     path.join(
@@ -113,8 +114,36 @@ describe("AI rename preview card UI regressions", () => {
         );
         expect(AI_RENAME_PREVIEW_CARD_SOURCE).toContain("data-state={state}");
         expect(AI_RENAME_PREVIEW_CARD_SOURCE).toContain('state === "review"');
-        expect(AI_RENAME_PREVIEW_CARD_SOURCE).toContain("原标题");
-        expect(AI_RENAME_PREVIEW_CARD_SOURCE).toContain("新标题");
+        for (const key of [
+            "recordingDetail.ai.reviewState",
+            "recordingDetail.ai.originalTitle",
+            "recordingDetail.ai.newTitle",
+        ]) {
+            expect(AI_RENAME_PREVIEW_CARD_SOURCE).toMatch(
+                new RegExp(`t\\(\\s*"${key}"\\s*,?\\s*\\)`),
+            );
+        }
+        expect(AI_RENAME_PREVIEW_CARD_SOURCE).not.toMatch(
+            /(?:复核确认|原标题|新标题)/,
+        );
+        expect(translate("zh-CN", "recordingDetail.ai.reviewState")).toBe(
+            "复核确认",
+        );
+        expect(translate("zh-CN", "recordingDetail.ai.originalTitle")).toBe(
+            "原标题",
+        );
+        expect(translate("zh-CN", "recordingDetail.ai.newTitle")).toBe(
+            "新标题",
+        );
+        expect(translate("en", "recordingDetail.ai.reviewState")).toBe(
+            "Review and confirm",
+        );
+        expect(translate("en", "recordingDetail.ai.originalTitle")).toBe(
+            "Original title",
+        );
+        expect(translate("en", "recordingDetail.ai.newTitle")).toBe(
+            "New title",
+        );
         expect(AI_RENAME_PREVIEW_CARD_SOURCE).toContain(
             "aria-labelledby={titleId}",
         );

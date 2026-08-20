@@ -29,7 +29,7 @@ import {
 } from "@/components/ui/segmented-tabs";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Spinner } from "@/components/ui/spinner";
-import type { UiLanguage } from "@/lib/i18n";
+import { translate, type UiLanguage } from "@/lib/i18n";
 import { cn } from "@/lib/utils";
 import type { Recording } from "@/types/recording";
 
@@ -175,17 +175,17 @@ function transcriptLanguageLabel(
 ) {
     const normalized = detectedLanguage?.trim().toLowerCase();
     if (!normalized) {
-        return language === "zh-CN" ? "自动识别" : "Auto detect";
+        return translate(language, "transcriptionPanel.autoDetect");
     }
     if (normalized === "zh" || normalized.startsWith("zh-")) {
-        return language === "zh-CN" ? "中文 · 自动识别" : "Chinese · Auto";
+        return translate(language, "transcriptionPanel.chineseAuto");
     }
     if (normalized === "en" || normalized.startsWith("en-")) {
-        return language === "zh-CN" ? "英文 · 自动识别" : "English · Auto";
+        return translate(language, "transcriptionPanel.englishAuto");
     }
-    return language === "zh-CN"
-        ? `${detectedLanguage} · 自动识别`
-        : `${detectedLanguage} · Auto`;
+    return translate(language, "transcriptionPanel.detectedAuto", {
+        language: detectedLanguage ?? "",
+    });
 }
 
 export function TranscriptionPanel({
@@ -242,17 +242,17 @@ export function TranscriptionPanel({
     const tabs: SegmentedTabItem<TranscriptionPanelTab>[] = [
         {
             value: "transcript",
-            label: "转写",
+            label: t("transcriptionPanel.tabs.transcript"),
             disabled: disabledTabs.includes("transcript"),
         },
         {
             value: "speakers",
-            label: "说话人",
+            label: t("transcriptionPanel.tabs.speakers"),
             disabled: disabledTabs.includes("speakers"),
         },
         {
             value: "source",
-            label: "来源详情",
+            label: t("transcriptionPanel.tabs.source"),
             tabKey: "source-report",
             disabled: disabledTabs.includes("source"),
         },
@@ -301,7 +301,7 @@ export function TranscriptionPanel({
         <Card
             hasNoPadding
             role="region"
-            aria-label="转写与说话人"
+            aria-label={t("transcriptionPanel.regionLabel")}
             className={cn("min-h-0 flex-1 gap-0", className)}
             data-panel="dashboard-transcript-shell"
         >
@@ -310,7 +310,7 @@ export function TranscriptionPanel({
                 data-part="dashboard-transcript-header"
             >
                 <SegmentedTabs
-                    aria-label="详情标签"
+                    aria-label={t("transcriptionPanel.tabsLabel")}
                     variant="segmented"
                     size="segmentedSm"
                     className="shrink-0"
@@ -388,7 +388,7 @@ export function TranscriptionPanel({
                         data-part="dashboard-retranscription-disabled-hint"
                     >
                         {retranscription.disabledReason ??
-                            "当前来源不支持私有重转写"}
+                            t("recordingDetail.retx.unavailable")}
                     </Badge>
                     <Button
                         id="retx-btn"
@@ -404,13 +404,13 @@ export function TranscriptionPanel({
                         title={
                             retranscription.state === "unavailable"
                                 ? (retranscription.disabledReason ??
-                                  "当前来源不支持私有重转写")
+                                  t("recordingDetail.retx.unavailable"))
                                 : undefined
                         }
                         onClick={() => void retranscription.onRequest()}
                     >
                         <RefreshCw aria-hidden="true" />
-                        重新转写
+                        {t("recordingDetail.retx.idleTitle")}
                     </Button>
                 </div>
             </CardHeader>
@@ -471,13 +471,13 @@ export function TranscriptionPanel({
                                 data-control="retry-retranscription"
                                 onClick={() => void retranscription.onRetry()}
                             >
-                                重试转写
+                                {t("transcriptionPanel.retryTranscription")}
                             </Button>
                             <Button
                                 variant="ghost"
                                 size="icon-sm"
                                 type="button"
-                                aria-label="收起"
+                                aria-label={t("transcriptionPanel.collapse")}
                                 data-retx-dismiss=""
                                 data-control="dismiss-retranscription-failed"
                                 onClick={retranscription.onDismiss}
@@ -491,7 +491,7 @@ export function TranscriptionPanel({
                             size="icon-sm"
                             className="ml-auto flex-none"
                             type="button"
-                            aria-label="收起"
+                            aria-label={t("transcriptionPanel.collapse")}
                             data-retx-dismiss=""
                             data-control="dismiss-retranscription-complete"
                             onClick={retranscription.onDismiss}
@@ -508,7 +508,8 @@ export function TranscriptionPanel({
                     hidden={retranscription.state !== "completed"}
                     data-part="dashboard-retranscription-refresh-marker"
                 >
-                    {retranscription.refreshedLabel ?? "刚刷新 · 1 秒前"}
+                    {retranscription.refreshedLabel ??
+                        t("transcriptionPanel.refreshedJustNow")}
                 </Badge>
                 <section
                     id="dashboard-transcription-pane-transcript"
@@ -530,7 +531,11 @@ export function TranscriptionPanel({
                         >
                             <CircleAlert aria-hidden="true" />
                             <div className="min-w-0 flex-1">
-                                <AlertTitle>无法读取逐字稿</AlertTitle>
+                                <AlertTitle>
+                                    {t(
+                                        "transcriptionPanel.transcriptErrorTitle",
+                                    )}
+                                </AlertTitle>
                                 <AlertDescription>
                                     {transcriptError}
                                 </AlertDescription>
@@ -541,13 +546,15 @@ export function TranscriptionPanel({
                                 type="button"
                                 onClick={() => void onRetryTranscript()}
                             >
-                                重试
+                                {t("transcriptionPanel.retry")}
                             </Button>
                         </Alert>
                     ) : null}
                     {isTranscriptLoading ? (
                         <output
-                            aria-label="正在加载转写"
+                            aria-label={t(
+                                "transcriptionPanel.transcriptLoading",
+                            )}
                             className="block divide-y divide-dashed"
                         >
                             <div className="py-3" data-state="loading">
@@ -635,7 +642,10 @@ export function TranscriptionPanel({
                         <ol className="m-0 list-none divide-y divide-dashed p-0">
                             {turns.map((turn, index) => {
                                 const speakerName =
-                                    turn.speakerName || `说话人 ${index + 1}`;
+                                    turn.speakerName ||
+                                    t("transcriptionPanel.fallbackSpeaker", {
+                                        index: index + 1,
+                                    });
                                 const timeLabel = formatTurnTimestamp(
                                     turn.startMs,
                                     turn.endMs,
@@ -658,7 +668,10 @@ export function TranscriptionPanel({
                                             <Badge
                                                 variant="secondary"
                                                 className="size-7 flex-none justify-center rounded-full p-0 text-xs tabular-nums"
-                                                aria-label={`说话人 ${speakerName}`}
+                                                aria-label={t(
+                                                    "transcriptionPanel.speakerAria",
+                                                    { name: speakerName },
+                                                )}
                                                 data-part="dashboard-transcript-avatar"
                                             >
                                                 {formatAvatarLabel(
@@ -705,13 +718,17 @@ export function TranscriptionPanel({
                                     variant="compact"
                                     data-part="dashboard-transcript-empty-message"
                                 >
-                                    还没有逐字稿
+                                    {t(
+                                        "transcriptionPanel.transcriptEmptyTitle",
+                                    )}
                                 </EmptyTitle>
                                 <EmptyDescription
                                     variant="compact"
                                     data-part="dashboard-transcript-empty-sub"
                                 >
-                                    来源已就绪，转写任务还在排队中。
+                                    {t(
+                                        "transcriptionPanel.transcriptEmptyDescription",
+                                    )}
                                 </EmptyDescription>
                             </EmptyHeader>
                         </Empty>
@@ -742,7 +759,9 @@ export function TranscriptionPanel({
                         data-part="dashboard-speakers-head"
                     >
                         <p className="m-0 flex-1 text-sm font-medium text-muted-foreground">
-                            {speakers.length} 位说话人
+                            {t("transcriptionPanel.speakerCount", {
+                                count: speakers.length,
+                            })}
                         </p>
                         <Button
                             variant="ghost"
@@ -757,7 +776,7 @@ export function TranscriptionPanel({
                             {speakerMerge.state === "pending" ? (
                                 <Spinner size="xs" aria-hidden="true" />
                             ) : null}
-                            合并所选
+                            {t("transcriptionPanel.mergeSelected")}
                         </Button>
                     </header>
                     {speakerMerge.state !== "idle" ? (
@@ -791,10 +810,12 @@ export function TranscriptionPanel({
                             <div className="min-w-0 flex-1">
                                 <AlertTitle>
                                     {speakerMerge.state === "pending"
-                                        ? "正在合并说话人"
+                                        ? t("transcriptionPanel.mergePending")
                                         : speakerMerge.state === "error"
-                                          ? "合并说话人失败"
-                                          : "说话人已合并"}
+                                          ? t("transcriptionPanel.mergeFailed")
+                                          : t(
+                                                "transcriptionPanel.mergeSuccess",
+                                            )}
                                 </AlertTitle>
                                 {speakerMerge.state === "error" &&
                                 speakerMerge.error ? (
@@ -811,7 +832,7 @@ export function TranscriptionPanel({
                                     data-control="retry-speaker-merge"
                                     onClick={() => void speakerMerge.onRetry()}
                                 >
-                                    重试
+                                    {t("transcriptionPanel.retry")}
                                 </Button>
                             ) : null}
                         </Alert>
@@ -826,7 +847,9 @@ export function TranscriptionPanel({
                                     speaker.share ?? getSpeakerShare(index);
                                 const speakerName =
                                     speaker.speakerName ||
-                                    `说话人 ${index + 1}`;
+                                    t("transcriptionPanel.fallbackSpeaker", {
+                                        index: index + 1,
+                                    });
                                 const selected = selectedSpeakerLabels.includes(
                                     speaker.rawLabel,
                                 );
@@ -850,7 +873,10 @@ export function TranscriptionPanel({
                                             disabled={
                                                 speakerMerge.state === "pending"
                                             }
-                                            aria-label={`选择${speakerName}`}
+                                            aria-label={t(
+                                                "transcriptionPanel.selectSpeaker",
+                                                { name: speakerName },
+                                            )}
                                             onChange={() =>
                                                 toggleSpeaker(speaker.rawLabel)
                                             }
@@ -858,7 +884,12 @@ export function TranscriptionPanel({
                                         <Badge
                                             variant="secondary"
                                             className="size-7 flex-none justify-center p-0 tabular-nums"
-                                            aria-label={`说话人 ${index + 1}`}
+                                            aria-label={t(
+                                                "transcriptionPanel.speakerAria",
+                                                {
+                                                    name: index + 1,
+                                                },
+                                            )}
                                             data-part="dashboard-speaker-avatar"
                                         >
                                             {index + 1}
@@ -878,7 +909,13 @@ export function TranscriptionPanel({
                                                 className="w-fit justify-center font-mono tabular-nums"
                                                 data-part="dashboard-speaker-sub"
                                             >
-                                                {speaker.text.length} 字
+                                                {t(
+                                                    "transcriptionPanel.characterCount",
+                                                    {
+                                                        count: speaker.text
+                                                            .length,
+                                                    },
+                                                )}
                                             </Badge>
                                         </div>
                                         <Progress
@@ -910,10 +947,12 @@ export function TranscriptionPanel({
                                     <MessageSquareText />
                                 </EmptyMedia>
                                 <EmptyTitle variant="compact">
-                                    转写完成后可查看说话人信息
+                                    {t("transcriptionPanel.speakerEmptyTitle")}
                                 </EmptyTitle>
                                 <EmptyDescription variant="compact">
-                                    暂无说话人片段
+                                    {t(
+                                        "transcriptionPanel.speakerEmptyDescription",
+                                    )}
                                 </EmptyDescription>
                             </EmptyHeader>
                         </Empty>

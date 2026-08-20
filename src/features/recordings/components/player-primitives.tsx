@@ -3,6 +3,7 @@
 import { Plus, VolumeX } from "lucide-react";
 import Image from "next/image";
 import type * as React from "react";
+import { useLanguage } from "@/components/language-provider";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -160,6 +161,8 @@ export function PlayerTagChip({
     tag: RecordingTag | null;
     trigger?: boolean;
 }) {
+    const { t } = useLanguage();
+
     if (!tag) {
         if (!trigger) {
             return null;
@@ -179,7 +182,7 @@ export function PlayerTagChip({
                 type="button"
             >
                 <Plus data-icon="inline-start" aria-hidden="true" />
-                <span>标签</span>
+                <span>{t("recordingDetail.player.tags")}</span>
             </Button>
         );
     }
@@ -277,13 +280,15 @@ const PLAYER_STATUS_VARIANT: Record<
 
 export function PlayerStatusBadge({
     className,
-    label = "已更新",
+    label,
     tone = "ok",
 }: {
     className?: string;
     label?: string;
     tone?: PlayerStatusTone;
 }) {
+    const { t } = useLanguage();
+
     return (
         <Badge
             variant={PLAYER_STATUS_VARIANT[tone]}
@@ -295,7 +300,9 @@ export function PlayerStatusBadge({
                 className="size-[5px] shrink-0 rounded-full bg-current"
                 aria-hidden="true"
             />
-            <span data-part="status-label">{label}</span>
+            <span data-part="status-label">
+                {label ?? t("recordingDetail.player.updated")}
+            </span>
         </Badge>
     );
 }
@@ -334,6 +341,8 @@ export function PlayerNoAudioAlert({
     titlePart,
     ...props
 }: PlayerNoAudioAlertProps) {
+    const { t } = useLanguage();
+
     return (
         <Alert
             {...props}
@@ -353,13 +362,13 @@ export function PlayerNoAudioAlert({
                 data-part={textPart}
             >
                 <AlertTitle data-part={titlePart}>
-                    来源仅同步转写与报告
+                    {t("recordingDetail.player.noAudioTitle")}
                 </AlertTitle>
                 <AlertDescription
                     density="comfortable"
                     data-part={descriptionPart}
                 >
-                    这条录音没有本地音频，无法播放或运行私有重转写。
+                    {t("recordingDetail.player.noAudioDescription")}
                 </AlertDescription>
             </span>
         </Alert>

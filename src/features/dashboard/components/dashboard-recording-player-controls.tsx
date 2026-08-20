@@ -7,6 +7,7 @@ import {
     Volume2,
     VolumeX,
 } from "lucide-react";
+import { useLanguage } from "@/components/language-provider";
 import { Button } from "@/components/ui/button";
 import { CardContent } from "@/components/ui/card";
 import {
@@ -64,6 +65,7 @@ function DashboardPlayerSeekSlider({
     progress: number;
     progressPct: number;
 }) {
+    const { t } = useLanguage();
     const controlState = disabled ? "disabled" : "ready";
 
     return (
@@ -90,7 +92,7 @@ function DashboardPlayerSeekSlider({
                     "data-pct": progressPct,
                 }}
                 aria-disabled={disabled ? "true" : undefined}
-                aria-label="播放进度"
+                aria-label={t("recordingDetail.player.progress")}
                 aria-valuemax={100}
                 aria-valuemin={0}
                 aria-valuenow={Math.round(progress)}
@@ -141,6 +143,7 @@ export function DashboardRecordingPlayerControls({
     volume,
     volumePopoverOpen,
 }: DashboardRecordingPlayerControlsProps) {
+    const { t } = useLanguage();
     const volumeMuted = volume === 0;
     const playerControlsState = playbackDisabled
         ? "disabled"
@@ -163,7 +166,7 @@ export function DashboardRecordingPlayerControls({
                 variant="ghost"
                 size="icon"
                 type="button"
-                aria-label="后退 5 秒"
+                aria-label={t("recordingDetail.player.backFiveSeconds")}
                 className={DASHBOARD_PLAYER_DISABLED_BUTTON_CLASS_NAME}
                 data-control="dashboard-player-back"
                 data-state={playerControlState}
@@ -179,7 +182,11 @@ export function DashboardRecordingPlayerControls({
                 variant="default"
                 size="icon-lg"
                 type="button"
-                aria-label={isPlaying ? "暂停" : "播放"}
+                aria-label={t(
+                    isPlaying
+                        ? "recordingDetail.player.pause"
+                        : "recordingDetail.player.play",
+                )}
                 className={DASHBOARD_PLAYER_DISABLED_BUTTON_CLASS_NAME}
                 data-playing={isPlaying ? "true" : "false"}
                 data-control="dashboard-player-play"
@@ -209,7 +216,7 @@ export function DashboardRecordingPlayerControls({
                 variant="ghost"
                 size="icon"
                 type="button"
-                aria-label="前进 5 秒"
+                aria-label={t("recordingDetail.player.forwardFiveSeconds")}
                 className={DASHBOARD_PLAYER_DISABLED_BUTTON_CLASS_NAME}
                 data-control="dashboard-player-forward"
                 data-state={playerControlState}
@@ -250,7 +257,7 @@ export function DashboardRecordingPlayerControls({
                 size="sm"
                 type="button"
                 disabled={playbackDisabled}
-                aria-label="切换播放倍速"
+                aria-label={t("recordingDetail.player.cyclePlaybackSpeed")}
                 className={cn(
                     DASHBOARD_PLAYER_SPEED_CLASS_NAME,
                     DASHBOARD_PLAYER_DISABLED_BUTTON_CLASS_NAME,
@@ -274,12 +281,17 @@ export function DashboardRecordingPlayerControls({
                             variant="ghost"
                             size="icon-sm"
                             type="button"
-                            aria-label={`音量 ${volume}`}
+                            aria-label={t(
+                                "recordingDetail.player.volumeLevel",
+                                { volume },
+                            )}
                             className={
                                 DASHBOARD_PLAYER_DISABLED_BUTTON_CLASS_NAME
                             }
                             aria-expanded={volumePopoverOpen}
-                            title={`音量 ${volume}`}
+                            title={t("recordingDetail.player.volumeLevel", {
+                                volume,
+                            })}
                             data-level={playerVolumeLevel(volume)}
                             data-control="dashboard-player-volume"
                             data-state={
@@ -315,7 +327,7 @@ export function DashboardRecordingPlayerControls({
                         data-open={volumePopoverOpen ? "true" : "false"}
                         data-panel="dashboard-player-volume-popover"
                         data-state={volumePopoverOpen ? "open" : "closed"}
-                        aria-label="音量"
+                        aria-label={t("recordingDetail.player.volume")}
                     >
                         <div
                             className="flex items-center gap-2"
@@ -325,7 +337,9 @@ export function DashboardRecordingPlayerControls({
                                 variant="ghost"
                                 size="icon-sm"
                                 type="button"
-                                aria-label="静音切换"
+                                aria-label={t(
+                                    "recordingDetail.player.toggleMute",
+                                )}
                                 data-control="dashboard-player-volume-mute"
                                 data-state={volumeMuted ? "muted" : "audible"}
                                 disabled={playbackDisabled}
@@ -354,7 +368,7 @@ export function DashboardRecordingPlayerControls({
                                 disabled={playbackDisabled}
                                 data-control="dashboard-player-volume-slider"
                                 data-state={playerControlState}
-                                aria-label="音量"
+                                aria-label={t("recordingDetail.player.volume")}
                                 onValueChange={(nextValue) =>
                                     onVolumeChange(nextValue[0] ?? volume)
                                 }

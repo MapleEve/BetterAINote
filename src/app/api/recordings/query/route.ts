@@ -110,6 +110,15 @@ function parseBooleanFlag(value: string | null, field: string) {
     throw new QueryValidationError(`Invalid ${field}`);
 }
 
+function parseOptionalStringParam(value: string | null, field: string) {
+    if (value === null) return null;
+    const normalized = value.trim();
+    if (!normalized || normalized.length > 256) {
+        throw new QueryValidationError(`Invalid ${field}`);
+    }
+    return normalized;
+}
+
 export async function GET(request: Request) {
     try {
         const session = await auth.api.getSession({
@@ -156,6 +165,10 @@ export async function GET(request: Request) {
             "newest",
         );
         const result = await queryRecordingsForUser(session.user.id, {
+            anchorRecordingId: parseOptionalStringParam(
+                url.searchParams.get("anchorRecordingId"),
+                "anchorRecordingId",
+            ),
             from,
             to,
             includeTranscript,

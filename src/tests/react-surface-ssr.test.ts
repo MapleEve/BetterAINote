@@ -507,11 +507,12 @@ describe("React surface SSR coverage", () => {
         expect(html).toMatch(
             /<div(?=[^>]*data-control="ai-rename-preview")(?=[^>]*data-state="review")[^>]*>/,
         );
-        expect(html).toContain("复核确认");
-        expect(html).toContain("原标题");
+        expect(html).toContain("Review and confirm");
+        expect(html).toContain("Original title");
         expect(html).toContain("weekly-sync.m4a");
-        expect(html).toContain("新标题");
+        expect(html).toContain("New title");
         expect(html).toContain("2026-07-30 Weekly Sync.m4a");
+        expect(html).not.toMatch(/[\p{Script=Han}]/u);
         expect(html).toContain(
             "Review the suggested title before applying it.",
         );

@@ -26,6 +26,7 @@ export type RecordingListFacets = {
 };
 
 export type RecordingListQueryInput = {
+    anchorRecordingId?: string | null;
     favorite: "all" | "transcribed" | "tags";
     includeTranscript?: boolean;
     libraryFilter?: { label: string; type: "speaker" | "tag" } | null;
@@ -125,6 +126,10 @@ export function buildRecordingListQueryParams(input: RecordingListQueryInput) {
         pageSize: String(Math.max(1, input.pageSize)),
         sort: input.sort,
     });
+
+    if (input.anchorRecordingId?.trim()) {
+        params.set("anchorRecordingId", input.anchorRecordingId.trim());
+    }
 
     if (input.source !== "all") params.set("source", input.source);
     if (input.query.trim()) params.set("query", input.query.trim());

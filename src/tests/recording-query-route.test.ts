@@ -53,6 +53,7 @@ type LibraryDb = ReturnType<typeof drizzle<typeof librarySchema>>;
 type TranscriptsDb = ReturnType<typeof drizzle<typeof transcriptsSchema>>;
 
 type QueryResponse = {
+    anchorPage: number | null;
     facets: {
         timeline: {
             all: number;
@@ -508,6 +509,24 @@ describe("recording query route with real isolated SQLite", () => {
                 .filter((recording) => recording.id.startsWith("name-"))
                 .map((recording) => recording.id),
         ).toEqual(["name-case-a", "name-case-b", "name-num-10", "name-num-2"]);
+    });
+
+    it("loads the canonical page containing a recording anchor and settles missing anchors", async () => {
+        const anchored = await query(
+            "/api/recordings/query?page=1&pageSize=10&sort=newest&anchorRecordingId=rec-13",
+        );
+        expect(anchored.anchorPage).toBe(2);
+        expect(anchored.pagination.page).toBe(2);
+        expect(anchored.recordings.map((recording) => recording.id)).toContain(
+            "rec-13",
+        );
+
+        const missing = await query(
+            "/api/recordings/query?page=1&pageSize=10&sort=newest&anchorRecordingId=missing-recording",
+        );
+        expect(missing.anchorPage).toBeNull();
+        expect(missing.pagination.page).toBe(1);
+        expect(missing.recordings).toHaveLength(10);
     });
 
     it("returns global timeline and multi-tag facets with self-filter semantics", async () => {

@@ -2,6 +2,7 @@
 
 import { LoaderCircle, Pencil, Plus, Trash2, X } from "lucide-react";
 import { useMemo, useState } from "react";
+import { useLanguage } from "@/components/language-provider";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
 import {
@@ -33,10 +34,7 @@ import {
     type RecordingTagIcon,
 } from "@/lib/recording-tags";
 import type { Recording } from "@/types/recording";
-import {
-    RecordingTagIconGlyph,
-    recordingTagColorLabel,
-} from "./recording-tag-visuals";
+import { RecordingTagIconGlyph } from "./recording-tag-visuals";
 
 interface RecordingTagManagerProps {
     recording: Recording;
@@ -55,12 +53,10 @@ type RetryAction =
     | { payload: TagPayload; tag: RecordingTag; type: "update" }
     | { tag: RecordingTag; type: "delete" };
 
-async function readJsonResponse(response: Response) {
+async function readJsonResponse(response: Response, fallback: string) {
     const data = await response.json().catch(() => ({}));
     if (!response.ok) {
-        throw new Error(
-            typeof data?.error === "string" ? data.error : "Request failed",
-        );
+        throw new Error(fallback);
     }
     return data;
 }
@@ -77,6 +73,7 @@ export function RecordingTagManager({
     onRecordingTagsChange,
     onClose,
 }: RecordingTagManagerProps) {
+    const { t } = useLanguage();
     const [createName, setCreateName] = useState("");
     const [createColor, setCreateColor] = useState<RecordingTagColor>("purple");
     const [createIcon, setCreateIcon] = useState<RecordingTagIcon>("tag");
@@ -110,7 +107,10 @@ export function RecordingTagManager({
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({ tagIds: payload.tagIds }),
         });
-        const data = await readJsonResponse(response);
+        const data = await readJsonResponse(
+            response,
+            t("recordingTagManager.assignmentFailed"),
+        );
         const tags = Array.isArray(data.tags) ? data.tags : payload.tags;
         onRecordingTagsChange(recording.id, tags);
     };
@@ -123,7 +123,12 @@ export function RecordingTagManager({
         try {
             await updateAssignments(payload);
         } catch (error) {
-            setOperationError(toErrorMessage(error, "标签保存失败"));
+            setOperationError(
+                toErrorMessage(
+                    error,
+                    t("recordingTagManager.assignmentFailed"),
+                ),
+            );
             setRetryAction({ payload, type: "assignment" });
         } finally {
             setPending(null);
@@ -151,7 +156,10 @@ export function RecordingTagManager({
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify(payload),
             });
-            const data = await readJsonResponse(response);
+            const data = await readJsonResponse(
+                response,
+                t("recordingTagManager.createFailed"),
+            );
             const tag = data.tag as RecordingTag;
             updateCatalog(tag);
             const nextTags = [...recording.tags, tag];
@@ -162,7 +170,9 @@ export function RecordingTagManager({
             setCreateName("");
             setCreateDialogOpen(false);
         } catch (error) {
-            setOperationError(toErrorMessage(error, "标签创建失败"));
+            setOperationError(
+                toErrorMessage(error, t("recordingTagManager.createFailed")),
+            );
             setRetryAction({ payload, type: "create" });
         } finally {
             setPending(null);
@@ -180,7 +190,10 @@ export function RecordingTagManager({
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify(payload),
             });
-            const data = await readJsonResponse(response);
+            const data = await readJsonResponse(
+                response,
+                t("recordingTagManager.updateFailed"),
+            );
             const updatedTag = data.tag as RecordingTag;
             updateCatalog(updatedTag);
             onRecordingTagsChange(
@@ -191,7 +204,9 @@ export function RecordingTagManager({
             );
             setEditingTagId(null);
         } catch (error) {
-            setOperationError(toErrorMessage(error, "标签更新失败"));
+            setOperationError(
+                toErrorMessage(error, t("recordingTagManager.updateFailed")),
+            );
             setRetryAction({ payload, tag, type: "update" });
         } finally {
             setPending(null);
@@ -207,7 +222,10 @@ export function RecordingTagManager({
             const response = await fetch(`/api/recording-tags/${tag.id}`, {
                 method: "DELETE",
             });
-            await readJsonResponse(response);
+            await readJsonResponse(
+                response,
+                t("recordingTagManager.deleteFailed"),
+            );
             onAvailableTagsChange(
                 availableTags.filter((item) => item.id !== tag.id),
             );
@@ -217,7 +235,9 @@ export function RecordingTagManager({
             );
             setEditingTagId(null);
         } catch (error) {
-            setOperationError(toErrorMessage(error, "标签删除失败"));
+            setOperationError(
+                toErrorMessage(error, t("recordingTagManager.deleteFailed")),
+            );
             setRetryAction({ tag, type: "delete" });
         } finally {
             setPending(null);
@@ -264,7 +284,9 @@ export function RecordingTagManager({
     const renderError = () =>
         visibleError ? (
             <Alert role="alert" variant="destructive">
-                <AlertTitle>标签操作失败</AlertTitle>
+                <AlertTitle>
+                    {t("recordingTagManager.operationFailed")}
+                </AlertTitle>
                 <AlertDescription className="flex flex-wrap items-center gap-3">
                     <span>{visibleError}</span>
                     {retryAction ? (
@@ -275,7 +297,7 @@ export function RecordingTagManager({
                             type="button"
                             variant="outline"
                         >
-                            重试
+                            {t("recordingTagManager.retry")}
                         </Button>
                     ) : null}
                 </AlertDescription>
@@ -297,7 +319,9 @@ export function RecordingTagManager({
     }) => (
         <div className="grid gap-3 sm:grid-cols-2">
             <div className="grid gap-2">
-                <Label id={`${prefix}-color-label`}>颜色</Label>
+                <Label id={`${prefix}-color-label`}>
+                    {t("recordingTagManager.color")}
+                </Label>
                 <ToggleGroup
                     aria-labelledby={`${prefix}-color-label`}
                     disabled={busy}
@@ -317,17 +341,19 @@ export function RecordingTagManager({
                 >
                     {RECORDING_TAG_COLORS.map((item) => (
                         <ToggleGroupItem
-                            aria-label={recordingTagColorLabel[item]}
+                            aria-label={t(`recordingTagManager.colors.${item}`)}
                             key={item}
                             value={item}
                         >
-                            {recordingTagColorLabel[item]}
+                            {t(`recordingTagManager.colors.${item}`)}
                         </ToggleGroupItem>
                     ))}
                 </ToggleGroup>
             </div>
             <div className="grid gap-2">
-                <Label id={`${prefix}-icon-label`}>图标</Label>
+                <Label id={`${prefix}-icon-label`}>
+                    {t("recordingTagManager.icon")}
+                </Label>
                 <ToggleGroup
                     aria-labelledby={`${prefix}-icon-label`}
                     disabled={busy}
@@ -349,7 +375,7 @@ export function RecordingTagManager({
                 >
                     {RECORDING_TAG_ICONS.map((item) => (
                         <ToggleGroupItem
-                            aria-label={item}
+                            aria-label={t(`recordingTagManager.icons.${item}`)}
                             key={item}
                             value={item}
                         >
@@ -370,10 +396,12 @@ export function RecordingTagManager({
                 data-state={visibleError ? "error" : busy ? "saving" : "ready"}
             >
                 <CardHeader className="flex flex-row items-center justify-between gap-4">
-                    <CardTitle className="text-base">管理标签</CardTitle>
+                    <CardTitle className="text-base">
+                        {t("recordingTagManager.manageTitle")}
+                    </CardTitle>
                     {onClose ? (
                         <Button
-                            aria-label="关闭标签管理"
+                            aria-label={t("recordingTagManager.close")}
                             disabled={busy}
                             onClick={onClose}
                             size="icon-sm"
@@ -393,16 +421,18 @@ export function RecordingTagManager({
                     >
                         <div className="flex items-center justify-between gap-3">
                             <Label id="recording-tags-title">
-                                这条录音的标签
+                                {t("recordingTagManager.currentTags")}
                             </Label>
                             <span className="text-sm text-muted-foreground">
-                                {recording.tags.length} 个
+                                {t("recordingTagManager.tagCount", {
+                                    count: recording.tags.length,
+                                })}
                             </span>
                         </div>
                         <div className="flex flex-wrap gap-2">
                             {availableTags.length === 0 ? (
                                 <p className="text-sm text-muted-foreground">
-                                    尚未创建标签
+                                    {t("recordingTagManager.empty")}
                                 </p>
                             ) : (
                                 availableTags.map((tag) => {
@@ -444,7 +474,9 @@ export function RecordingTagManager({
                         aria-labelledby="recording-tag-catalog-title"
                         className="grid gap-3"
                     >
-                        <Label id="recording-tag-catalog-title">标签目录</Label>
+                        <Label id="recording-tag-catalog-title">
+                            {t("recordingTagManager.catalog")}
+                        </Label>
                         <div className="grid gap-2">
                             {availableTags.map((tag) =>
                                 editingTagId === tag.id ? (
@@ -453,7 +485,9 @@ export function RecordingTagManager({
                                         key={tag.id}
                                     >
                                         <Input
-                                            aria-label="重命名标签"
+                                            aria-label={t(
+                                                "recordingTagManager.rename",
+                                            )}
                                             disabled={busy}
                                             maxLength={
                                                 MAX_RECORDING_TAG_NAME_LENGTH
@@ -480,7 +514,9 @@ export function RecordingTagManager({
                                                 type="button"
                                                 variant="ghost"
                                             >
-                                                取消
+                                                {t(
+                                                    "recordingTagManager.cancel",
+                                                )}
                                             </Button>
                                             <Button
                                                 disabled={
@@ -500,7 +536,7 @@ export function RecordingTagManager({
                                                 `update-${tag.id}` ? (
                                                     <LoaderCircle className="animate-spin" />
                                                 ) : null}
-                                                保存
+                                                {t("recordingTagManager.save")}
                                             </Button>
                                         </div>
                                     </div>
@@ -517,12 +553,22 @@ export function RecordingTagManager({
                                                 {tag.name}
                                             </span>
                                             <span className="text-sm text-muted-foreground">
-                                                {tag.recordingCount ?? 0} 条录音
+                                                {t(
+                                                    "recordingTagManager.recordingCount",
+                                                    {
+                                                        count:
+                                                            tag.recordingCount ??
+                                                            0,
+                                                    },
+                                                )}
                                             </span>
                                         </div>
                                         <div className="flex shrink-0 gap-1">
                                             <Button
-                                                aria-label={`编辑 ${tag.name}`}
+                                                aria-label={t(
+                                                    "recordingTagManager.editTag",
+                                                    { name: tag.name },
+                                                )}
                                                 disabled={busy}
                                                 onClick={() => startEdit(tag)}
                                                 size="icon-sm"
@@ -532,7 +578,10 @@ export function RecordingTagManager({
                                                 <Pencil />
                                             </Button>
                                             <Button
-                                                aria-label={`删除 ${tag.name}`}
+                                                aria-label={t(
+                                                    "recordingTagManager.deleteTagAria",
+                                                    { name: tag.name },
+                                                )}
                                                 disabled={busy}
                                                 onClick={() =>
                                                     setDeleteTarget(tag)
@@ -570,14 +619,16 @@ export function RecordingTagManager({
                                 type="button"
                             >
                                 <Plus />
-                                新建标签
+                                {t("recordingTagManager.newTag")}
                             </Button>
                         </DialogTrigger>
                         <DialogContent aria-describedby="recording-tag-create-description">
                             <DialogHeader>
-                                <DialogTitle>新建标签</DialogTitle>
+                                <DialogTitle>
+                                    {t("recordingTagManager.newTag")}
+                                </DialogTitle>
                                 <DialogDescription id="recording-tag-create-description">
-                                    创建后会自动添加到这条录音。
+                                    {t("recordingTagManager.newTagDescription")}
                                 </DialogDescription>
                             </DialogHeader>
                             <form
@@ -594,7 +645,7 @@ export function RecordingTagManager({
                                 {renderError()}
                                 <div className="grid gap-2">
                                     <Label htmlFor="recording-tag-create-name">
-                                        标签名称
+                                        {t("recordingTagManager.name")}
                                     </Label>
                                     <Input
                                         autoFocus
@@ -606,7 +657,9 @@ export function RecordingTagManager({
                                         onChange={(event) =>
                                             setCreateName(event.target.value)
                                         }
-                                        placeholder="例如：待跟进"
+                                        placeholder={t(
+                                            "recordingTagManager.namePlaceholder",
+                                        )}
                                         value={createName}
                                     />
                                 </div>
@@ -624,7 +677,7 @@ export function RecordingTagManager({
                                         type="button"
                                         variant="outline"
                                     >
-                                        取消
+                                        {t("recordingTagManager.cancel")}
                                     </Button>
                                     <Button
                                         disabled={!createName.trim() || busy}
@@ -635,7 +688,7 @@ export function RecordingTagManager({
                                         ) : (
                                             <Plus />
                                         )}
-                                        创建标签
+                                        {t("recordingTagManager.createTag")}
                                     </Button>
                                 </DialogFooter>
                             </form>
@@ -653,10 +706,14 @@ export function RecordingTagManager({
             >
                 <DialogContent>
                     <DialogHeader>
-                        <DialogTitle>删除标签</DialogTitle>
+                        <DialogTitle>
+                            {t("recordingTagManager.deleteTitle")}
+                        </DialogTitle>
                         <DialogDescription>
                             {deleteTarget
-                                ? `“${deleteTarget.name}”会从所有录音中移除。`
+                                ? t("recordingTagManager.deleteDescription", {
+                                      name: deleteTarget.name,
+                                  })
                                 : ""}
                         </DialogDescription>
                     </DialogHeader>
@@ -666,7 +723,7 @@ export function RecordingTagManager({
                             type="button"
                             variant="outline"
                         >
-                            取消
+                            {t("recordingTagManager.cancel")}
                         </Button>
                         <Button
                             disabled={busy}
@@ -674,7 +731,7 @@ export function RecordingTagManager({
                             type="button"
                             variant="destructive"
                         >
-                            删除标签
+                            {t("recordingTagManager.deleteConfirm")}
                         </Button>
                     </DialogFooter>
                 </DialogContent>

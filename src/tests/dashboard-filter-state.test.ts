@@ -7,6 +7,7 @@ import {
     restoreDashboardFilterState,
     serializeDashboardFilterState,
 } from "@/features/dashboard/filter-state";
+import { buildRecordingListQueryParams } from "@/features/dashboard/recording-list-controller";
 
 describe("dashboard recording filter state", () => {
     it("keeps list mode independent from explicit Favorites", () => {
@@ -85,6 +86,39 @@ describe("dashboard recording filter state", () => {
         });
     });
 
+    it("preserves the built-in untagged filter when its current result count is zero", () => {
+        const restored = restoreDashboardFilterState({
+            search: "?favorite=tags&mode=tags&untagged=1",
+            storedValue: null,
+        });
+        const settled = reduceDashboardFilterState(restored, {
+            available: ["all"],
+            type: "reconcile-tags",
+        });
+        expect(settled).toEqual({
+            favorite: "tags",
+            listMode: "tags",
+            selectedTagFilter: "untagged",
+        });
+
+        const queryParams = buildRecordingListQueryParams({
+            favorite: settled.favorite,
+            libraryFilter: null,
+            listMode: settled.listMode,
+            page: 1,
+            pageSize: 10,
+            query: "",
+            selectedTagFilter: settled.selectedTagFilter,
+            sort: "newest",
+            source: "all",
+            timeline: "all",
+        });
+        expect(Object.fromEntries(queryParams)).toMatchObject({
+            favorite: "tags",
+            untagged: "1",
+        });
+    });
+
     it("restores validated storage and applies valid URL overrides", () => {
         const stored = serializeDashboardFilterState({
             favorite: "tags",
@@ -120,6 +154,16 @@ describe("dashboard recording filter state", () => {
         expect(DASHBOARD_FILTER_STATE_STORAGE_KEY).toBe(
             "dashboard-recording-filter-state",
         );
+        expect(
+            restoreDashboardFilterState({
+                search: "?favorite=tags&mode=tags&untagged=1",
+                storedValue: null,
+            }),
+        ).toEqual({
+            favorite: "tags",
+            listMode: "tags",
+            selectedTagFilter: "untagged",
+        });
     });
 
     it("syncs only filter-owned URL parameters and preserves the rest", () => {

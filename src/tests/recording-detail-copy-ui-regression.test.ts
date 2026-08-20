@@ -6,6 +6,7 @@ import type {
     TranscriptionPanelProps,
     TranscriptionPanelTab,
 } from "@/features/dashboard/components/transcription-panel";
+import { translate, type UiLanguage } from "@/lib/i18n";
 import type { RecordingTag } from "@/lib/recording-tags";
 import { serializeRecordingDetailTranscriptionJob } from "@/server/modules/recordings/serialize";
 
@@ -60,6 +61,26 @@ async function installRenderedControlCapture() {
             },
         };
     });
+    vi.doMock("@/components/ui/popover", async (importOriginal) => {
+        const actual =
+            await importOriginal<typeof import("@/components/ui/popover")>();
+
+        return {
+            ...actual,
+            PopoverContent: ({
+                align: _align,
+                alignOffset: _alignOffset,
+                avoidCollisions: _avoidCollisions,
+                children,
+                onEscapeKeyDown: _onEscapeKeyDown,
+                onOpenAutoFocus: _onOpenAutoFocus,
+                side: _side,
+                sideOffset: _sideOffset,
+                ...props
+            }: ComponentProps<typeof actual.PopoverContent>) =>
+                React.createElement("div", props, children),
+        };
+    });
 
     return React;
 }
@@ -70,7 +91,10 @@ async function loadRenderedRuntime() {
         { renderToStaticMarkup },
         { LanguageProvider },
         { ConfirmDialogProvider },
+        { AiRenamePreviewCard },
+        { DashboardRecordingPlayerControls },
         { TranscriptionPanel },
+        { PlayerNoAudioAlert, PlayerStatusBadge, PlayerTagChip },
         { TranscriptionSection },
         { SourceReportPanel },
         { SourceReportCopyButton },
@@ -82,7 +106,12 @@ async function loadRenderedRuntime() {
         import("react-dom/server"),
         import("@/components/language-provider"),
         import("@/components/ui/confirm-dialog"),
+        import("@/features/recordings/components/ai-rename-preview-card"),
+        import(
+            "@/features/dashboard/components/dashboard-recording-player-controls"
+        ),
         import("@/features/dashboard/components/transcription-panel"),
+        import("@/features/recordings/components/player-primitives"),
         import("@/features/recordings/components/transcription-section"),
         import("@/features/recordings/components/source-report-panel"),
         import("@/features/source-report/primitives"),
@@ -93,8 +122,13 @@ async function loadRenderedRuntime() {
     ]);
 
     return {
+        AiRenamePreviewCard,
         ConfirmDialogProvider,
+        DashboardRecordingPlayerControls,
         LanguageProvider,
+        PlayerNoAudioAlert,
+        PlayerStatusBadge,
+        PlayerTagChip,
         React,
         RecordingError,
         RecordingLoading,
@@ -1624,15 +1658,24 @@ describe("recording detail copy and title action UI regressions", () => {
             dashboardWorkstation.match(
                 /requestedRecordingIdRef\.current = null/g,
             ),
-        ).toHaveLength(4);
+        ).toHaveLength(1);
         expect(dashboardWorkstation).toMatch(
-            /const payload =[\s\S]{0,2000}if \(requestedId && recordingIds\.includes\(requestedId\)\) \{\s*requestedRecordingIdRef\.current = null;/,
+            /const payload =[\s\S]{0,2500}const requestedIdFound = Boolean\([\s\S]{0,300}if \(requestedId && requestedIdFound\) \{\s*updateRequestedRecordingId\(null\);\s*\} else if \(requestedId && payload\.anchorPage === null\) \{\s*settleMissingRequestedRecordingId\(requestedId\);/,
+        );
+        expect(dashboardWorkstation).toContain(
+            "anchorRecordingId: requestedRecordingId",
+        );
+        expect(dashboardWorkstation).toContain(
+            "missingRequestedRecordingId ||",
+        );
+        expect(dashboardWorkstation).toMatch(
+            /function selectRecording\(recordingId: string\) \{\s*updateRequestedRecordingId\(null\);/,
         );
         expect(dashboardWorkstation).not.toContain(
             "requestedRecordingIsLoaded",
         );
-        expect(dashboardWorkstation).toContain(
-            "!displaySettingsLoaded ||\n                recordingListLoading ||\n                recordingListError ||",
+        expect(dashboardWorkstation).toMatch(
+            /!displaySettingsLoaded \|\|\s*recordingListLoading \|\|\s*recordingListError \|\|/,
         );
         expect(dashboardWorkstation).toContain(
             "className={DASHBOARD_WORKSPACE_CLASS_NAME}",
@@ -2348,6 +2391,364 @@ describe("recording detail copy and title action UI regressions", () => {
         expect(onActiveTabChange).toHaveBeenCalledWith(
             "source" satisfies TranscriptionPanelTab,
         );
+
+        const englishHtml = renderToStaticMarkup(
+            React.createElement(
+                LanguageProvider,
+                { children: undefined, language: "en" },
+                React.createElement(
+                    TranscriptionPanel,
+                    transcriptionPanelProps({
+                        activeTab: "transcript",
+                        onActiveTabChange,
+                        sourcePane,
+                        turns: [
+                            {
+                                id: "turn-en",
+                                speakerName: "Maple",
+                                text: "User transcript data remains unchanged.",
+                            },
+                        ],
+                        retranscription: {
+                            description: translate(
+                                "en",
+                                "recordingDetail.retx.idleDescription",
+                            ),
+                            onDismiss: vi.fn(),
+                            onRequest: vi.fn(),
+                            onRetry: vi.fn(),
+                            state: "idle",
+                            title: translate(
+                                "en",
+                                "recordingDetail.retx.idleTitle",
+                            ),
+                        },
+                    }),
+                ),
+            ),
+        );
+        expect(englishHtml).toContain('aria-label="Transcript and speakers"');
+        expect(englishHtml).toContain('aria-label="Detail tabs"');
+        for (const label of ["Transcript", "Speakers", "Source details"]) {
+            expect(englishHtml).toContain(label);
+        }
+        for (const appOwnedChinese of [
+            "转写与说话人",
+            "详情标签",
+            "来源详情",
+            "重新转写",
+        ]) {
+            expect(englishHtml).not.toContain(appOwnedChinese);
+        }
+    });
+
+    it("renders transcript, retranscription, and speaker states in both UI languages", async () => {
+        const {
+            LanguageProvider,
+            React,
+            TranscriptionPanel,
+            renderToStaticMarkup,
+        } = renderedRuntime;
+
+        const renderPanel = (
+            language: UiLanguage,
+            overrides: Partial<TranscriptionPanelProps>,
+        ) =>
+            renderToStaticMarkup(
+                React.createElement(
+                    LanguageProvider,
+                    { children: undefined, language },
+                    React.createElement(
+                        TranscriptionPanel,
+                        transcriptionPanelProps({
+                            turns: [],
+                            ...overrides,
+                        }),
+                    ),
+                ),
+            );
+
+        for (const language of ["zh-CN", "en"] satisfies UiLanguage[]) {
+            const idleHtml = renderPanel(language, {
+                retranscription: {
+                    description: translate(
+                        language,
+                        "recordingDetail.retx.idleDescription",
+                    ),
+                    onDismiss: vi.fn(),
+                    onRequest: vi.fn(),
+                    onRetry: vi.fn(),
+                    state: "idle",
+                    title: translate(
+                        language,
+                        "recordingDetail.retx.idleTitle",
+                    ),
+                },
+            });
+            expect(idleHtml).toContain(
+                translate(language, "transcriptionPanel.transcriptEmptyTitle"),
+            );
+            expect(idleHtml).toContain(
+                translate(
+                    language,
+                    "transcriptionPanel.transcriptEmptyDescription",
+                ),
+            );
+
+            const unavailableHtml = renderPanel(language, {
+                retranscription: {
+                    description: translate(
+                        language,
+                        "recordingDetail.retx.idleDescription",
+                    ),
+                    disabled: true,
+                    onDismiss: vi.fn(),
+                    onRequest: vi.fn(),
+                    onRetry: vi.fn(),
+                    state: "unavailable",
+                    title: translate(
+                        language,
+                        "recordingDetail.retx.idleTitle",
+                    ),
+                },
+            });
+            expect(unavailableHtml).toContain(
+                translate(language, "recordingDetail.retx.unavailable"),
+            );
+
+            for (const state of [
+                "queued",
+                "running",
+                "failed",
+                "completed",
+            ] as const) {
+                const html = renderPanel(language, {
+                    retranscription: {
+                        description: translate(
+                            language,
+                            `recordingDetail.retx.${state}Description`,
+                        ),
+                        onDismiss: vi.fn(),
+                        onRequest: vi.fn(),
+                        onRetry: vi.fn(),
+                        state,
+                        title: translate(
+                            language,
+                            `recordingDetail.retx.${state}Title`,
+                        ),
+                    },
+                });
+                expect(html).toContain(`data-state="${state}"`);
+                expect(html).toContain(
+                    translate(language, `recordingDetail.retx.${state}Title`),
+                );
+            }
+
+            const speakerEmptyHtml = renderPanel(language, {
+                activeTab: "speakers",
+            });
+            expect(speakerEmptyHtml).toContain(
+                translate(language, "transcriptionPanel.speakerEmptyTitle"),
+            );
+
+            for (const state of ["pending", "error", "success"] as const) {
+                const speakerHtml = renderPanel(language, {
+                    activeTab: "speakers",
+                    speakerMerge: {
+                        error:
+                            state === "error"
+                                ? translate(
+                                      language,
+                                      "recordingDetail.speaker.mergeRetry",
+                                  )
+                                : null,
+                        onMerge: vi.fn(),
+                        onRetry: vi.fn(),
+                        state,
+                    },
+                    speakers: [
+                        {
+                            id: "speaker-1",
+                            rawLabel: "speaker-1",
+                            speakerName: "Maple",
+                            text: "data",
+                        },
+                    ],
+                });
+                expect(speakerHtml).toContain(`data-state="${state}"`);
+                expect(speakerHtml).toContain(
+                    translate(
+                        language,
+                        state === "pending"
+                            ? "transcriptionPanel.mergePending"
+                            : state === "error"
+                              ? "transcriptionPanel.mergeFailed"
+                              : "transcriptionPanel.mergeSuccess",
+                    ),
+                );
+            }
+        }
+    });
+
+    it("localizes the dashboard player controls and no-audio presentation", () => {
+        const {
+            DashboardRecordingPlayerControls,
+            LanguageProvider,
+            PlayerNoAudioAlert,
+            PlayerStatusBadge,
+            PlayerTagChip,
+            React,
+            renderToStaticMarkup,
+        } = renderedRuntime;
+
+        const renderPlayerPresentation = (language: UiLanguage) =>
+            renderToStaticMarkup(
+                React.createElement(
+                    LanguageProvider,
+                    { children: undefined, language },
+                    React.createElement(
+                        React.Fragment,
+                        null,
+                        React.createElement(PlayerNoAudioAlert, {
+                            descriptionPart: "test-no-audio-description",
+                            iconPart: "test-no-audio-icon",
+                            part: "test-no-audio",
+                            playbackDisabled: true,
+                            textPart: "test-no-audio-text",
+                            titlePart: "test-no-audio-title",
+                        }),
+                        React.createElement(PlayerTagChip, {
+                            tag: null,
+                            trigger: true,
+                        }),
+                        React.createElement(PlayerStatusBadge, {}),
+                        React.createElement(DashboardRecordingPlayerControls, {
+                            currentTime: 0,
+                            duration: 60,
+                            isPlaying: false,
+                            onCyclePlaybackSpeed: vi.fn(),
+                            onSeekBySeconds: vi.fn(),
+                            onSeekToPercent: vi.fn(),
+                            onTogglePlayPause: vi.fn(),
+                            onVolumeChange: vi.fn(),
+                            onVolumeOpenChange: vi.fn(),
+                            playbackDisabled: false,
+                            playbackSpeedLabel: "1.0×",
+                            progress: 0,
+                            volume: 80,
+                            volumePopoverOpen: false,
+                        }),
+                    ),
+                ),
+            );
+
+        const chineseHtml = renderPlayerPresentation("zh-CN");
+        expect(chineseHtml).toContain("来源仅同步转写与报告");
+        expect(chineseHtml).toContain(
+            "这条录音没有本地音频，无法播放或运行私有重转写。",
+        );
+        expect(chineseHtml).toContain(">标签<");
+        expect(chineseHtml).toContain(">已更新<");
+        for (const label of [
+            "播放进度",
+            "后退 5 秒",
+            "播放",
+            "前进 5 秒",
+            "切换播放倍速",
+            "音量 80",
+        ]) {
+            expect(chineseHtml).toContain(`aria-label="${label}"`);
+        }
+
+        const englishHtml = renderPlayerPresentation("en");
+        expect(englishHtml).toContain(
+            "Only transcripts and reports sync from the source",
+        );
+        expect(englishHtml).toContain(
+            "This recording has no local audio, so it cannot be played or privately re-transcribed.",
+        );
+        expect(englishHtml).toContain(">Tags<");
+        expect(englishHtml).toContain(">Updated<");
+        for (const label of [
+            "Playback progress",
+            "Back 5 seconds",
+            "Play",
+            "Forward 5 seconds",
+            "Cycle playback speed",
+            "Volume 80",
+        ]) {
+            expect(englishHtml).toContain(`aria-label="${label}"`);
+        }
+        for (const appOwnedChinese of [
+            "来源仅同步转写与报告",
+            "这条录音没有本地音频",
+            "播放进度",
+            "后退 5 秒",
+            "播放",
+            "前进 5 秒",
+            "切换播放倍速",
+            "音量 80",
+            ">标签<",
+            ">已更新<",
+        ]) {
+            expect(englishHtml).not.toContain(appOwnedChinese);
+        }
+    });
+
+    it("keeps dashboard detail and source presentation on translated semantic states", () => {
+        const dashboardWorkstation = readSource(
+            "features/dashboard/workstation.tsx",
+        );
+        const transcriptionPanel = readSource(
+            "features/dashboard/components/transcription-panel.tsx",
+        );
+
+        for (const key of [
+            "recordingDetail.emptyTitle",
+            "recordingDetail.shell.closeDetail",
+            "recordingDetail.shell.moreActions",
+            "recordingDetail.ai.reviewHint",
+            "recordingDetail.delete.title",
+            "recordingDetail.retx.completedDescription",
+            "sourceReport.errorTitle",
+            "sourceReport.transcriptMissing",
+            "sourceReport.readOnlySummary",
+            "sourceReport.publicMetadata",
+            "sourceReport.noLinkedSourceTitle",
+        ]) {
+            expect(dashboardWorkstation).toMatch(
+                new RegExp(`t\\(\\s*"${key.replaceAll(".", "\\.")}"`),
+            );
+            expect(translate("zh-CN", key)).not.toBe(key);
+            expect(translate("en", key)).not.toBe(key);
+        }
+        for (const key of [
+            "transcriptionPanel.regionLabel",
+            "transcriptionPanel.tabsLabel",
+            "transcriptionPanel.tabs.transcript",
+            "transcriptionPanel.tabs.speakers",
+            "transcriptionPanel.tabs.source",
+            "transcriptionPanel.mergePending",
+            "transcriptionPanel.speakerEmptyTitle",
+        ]) {
+            expect(transcriptionPanel).toMatch(
+                new RegExp(`t\\(\\s*"${key.replaceAll(".", "\\.")}"`),
+            );
+            expect(translate("zh-CN", key)).not.toBe(key);
+            expect(translate("en", key)).not.toBe(key);
+        }
+        expect(dashboardWorkstation).toMatch(
+            /sourceReportReadinessTone\(\s*sourceTranscriptStatus,?\s*\)/,
+        );
+        expect(dashboardWorkstation).toMatch(
+            /sourceReportSyncTone\(\s*sourceReportSyncStatus,?\s*\)/,
+        );
+        expect(dashboardWorkstation).not.toMatch(
+            /sourceReportReadinessTone\(\s*sourceTranscriptStatusLabel/,
+        );
+        expect(dashboardWorkstation).not.toMatch(
+            /sourceReportSyncTone\(\s*sourceReportSyncStatusLabel/,
+        );
     });
 
     it("keeps standalone recording route fallback states in the new shell", async () => {
@@ -2577,7 +2978,9 @@ describe("recording detail copy and title action UI regressions", () => {
             expect(aiRenamePreview).not.toContain(retiredAiRenameToken);
         }
         expect(dashboardWorkstation).toContain("aria-busy={");
-        expect(dashboardWorkstation).toContain('aria-label="更多操作"');
+        expect(dashboardWorkstation).toMatch(
+            /aria-label=\{t\(\s*"recordingDetail\.shell\.moreActions",?\s*\)\}/,
+        );
         expect(dashboardWorkstation).toContain(
             'from "@/components/ui/dropdown-menu"',
         );
@@ -2609,14 +3012,22 @@ describe("recording detail copy and title action UI regressions", () => {
         expect(dashboardWorkstation).not.toContain(
             'className="more-menu-hint"',
         );
-        expect(dashboardWorkstation).toContain("AI 重命名");
-        expect(dashboardWorkstation).toContain("重新转写");
-        expect(dashboardWorkstation).toContain("来源持有正本");
+        expect(dashboardWorkstation).toMatch(
+            /t\(\s*"recordingDetail\.shell\.aiRename",?\s*\)/,
+        );
+        expect(dashboardWorkstation).toMatch(
+            /t\(\s*"recordingDetail\.shell\.retranscribe",?\s*\)/,
+        );
+        expect(dashboardWorkstation).toMatch(
+            /t\(\s*"recordingDetail\.shell\.sourceOwnsOriginal",?\s*\)/,
+        );
         expect(dashboardWorkstation).not.toContain('className="more-action"');
         expect(dashboardWorkstation).not.toContain("more-action-l");
         expect(dashboardWorkstation).not.toContain("more-action-meta");
         expect(dashboardWorkstation).toContain("void deleteRecording()");
-        expect(dashboardWorkstation).toContain("删除本地副本");
+        expect(dashboardWorkstation).toMatch(
+            /t\(\s*"recordingDetail\.shell\.deleteLocal",?\s*\)/,
+        );
         expect(dashboardWorkstation).not.toContain("仅删除本地副本");
         expect(dashboardWorkstation).toContain(
             "!selectedRecording.sourceProvider ||",
@@ -2816,5 +3227,113 @@ describe("recording detail copy and title action UI regressions", () => {
             );
         });
         expect(onAvailableTagsChange).not.toHaveBeenCalled();
+    });
+
+    it("localizes tag management and AI rename review without translating user content", () => {
+        const {
+            AiRenamePreviewCard,
+            LanguageProvider,
+            React,
+            RecordingTagManager,
+            renderToStaticMarkup,
+        } = renderedRuntime;
+        const tag: RecordingTag = {
+            color: "blue",
+            icon: "grid",
+            id: "tag-review",
+            name: "Review",
+        };
+        const renderTagManager = (language: UiLanguage) =>
+            renderToStaticMarkup(
+                React.createElement(
+                    LanguageProvider,
+                    { children: undefined, language },
+                    React.createElement(RecordingTagManager, {
+                        availableTags: [tag],
+                        onAvailableTagsChange: vi.fn(),
+                        onClose: vi.fn(),
+                        onRecordingTagsChange: vi.fn(),
+                        recording: {
+                            id: "recording-tag-i18n",
+                            tags: [tag],
+                        } as unknown as Parameters<
+                            typeof RecordingTagManager
+                        >[0]["recording"],
+                    }),
+                ),
+            );
+        const renderAiReview = (language: UiLanguage) =>
+            renderToStaticMarkup(
+                React.createElement(
+                    LanguageProvider,
+                    { children: undefined, language },
+                    React.createElement(AiRenamePreviewCard, {
+                        applyLabel: translate(language, "common.confirm"),
+                        cancelLabel: translate(language, "common.cancel"),
+                        filename: "Generated user title",
+                        isApplying: false,
+                        isRegenerating: false,
+                        originalFilename: "Original user title",
+                        state: "review",
+                        title: "AI rename",
+                    }),
+                ),
+            );
+
+        const chineseTagHtml = renderTagManager("zh-CN");
+        expect(chineseTagHtml).toContain("管理标签");
+        expect(chineseTagHtml).toContain("这条录音的标签");
+        expect(chineseTagHtml).toContain('aria-label="编辑 Review"');
+        expect(chineseTagHtml).toContain('aria-label="删除 Review"');
+        expect(chineseTagHtml).toContain('aria-label="关闭标签管理"');
+        const chineseAiHtml = renderAiReview("zh-CN");
+        expect(chineseAiHtml).toContain("复核确认");
+        expect(chineseAiHtml).toContain("原标题");
+        expect(chineseAiHtml).toContain("新标题");
+
+        const englishTagHtml = renderTagManager("en");
+        expect(englishTagHtml).toContain("Manage tags");
+        expect(englishTagHtml).toContain("Tags on this recording");
+        expect(englishTagHtml).toContain('aria-label="Edit Review"');
+        expect(englishTagHtml).toContain('aria-label="Delete Review"');
+        expect(englishTagHtml).toContain('aria-label="Close tag manager"');
+        expect(englishTagHtml).toContain("Review");
+        expect(englishTagHtml).not.toMatch(/[\p{Script=Han}]/u);
+
+        const englishAiHtml = renderAiReview("en");
+        expect(englishAiHtml).toContain("Review and confirm");
+        expect(englishAiHtml).toContain("Original title");
+        expect(englishAiHtml).toContain("New title");
+        expect(englishAiHtml).toContain("Original user title");
+        expect(englishAiHtml).toContain("Generated user title");
+        expect(englishAiHtml).not.toMatch(/[\p{Script=Han}]/u);
+
+        const tagManagerSource = readSource(
+            "features/recordings/components/recording-tag-manager.tsx",
+        );
+        const aiRenameSource = readSource(
+            "features/recordings/components/ai-rename-preview-card.tsx",
+        );
+        expect(tagManagerSource).not.toMatch(/[\p{Script=Han}]/u);
+        expect(aiRenameSource).not.toMatch(/[\p{Script=Han}]/u);
+        for (const key of [
+            "recordingTagManager.assignmentFailed",
+            "recordingTagManager.createFailed",
+            "recordingTagManager.updateFailed",
+            "recordingTagManager.deleteFailed",
+            "recordingTagManager.operationFailed",
+            "recordingTagManager.color",
+            "recordingTagManager.icon",
+            "recordingTagManager.newTagDescription",
+            "recordingTagManager.deleteDescription",
+            "recordingTagManager.colors.blue",
+            "recordingTagManager.icons.grid",
+            "recordingDetail.ai.reviewState",
+            "recordingDetail.ai.originalTitle",
+            "recordingDetail.ai.newTitle",
+        ]) {
+            expect(translate("zh-CN", key)).not.toBe(key);
+            expect(translate("en", key)).not.toBe(key);
+        }
     });
 });

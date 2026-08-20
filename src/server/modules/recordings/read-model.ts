@@ -48,6 +48,7 @@ export type RecordingTimelineFilter =
     | "earlier";
 
 type RecordingListFilters = {
+    anchorRecordingId?: string | null;
     from?: Date | null;
     to?: Date | null;
     limit?: number;
@@ -102,6 +103,17 @@ export function resolveRecordingPagination(
         pageSize: normalizedPageSize,
         total: normalizedTotal,
     };
+}
+
+export function resolveRecordingAnchorPage(
+    zeroBasedIndex: number,
+    pageSize: number,
+) {
+    if (!Number.isSafeInteger(zeroBasedIndex) || zeroBasedIndex < 0) {
+        return null;
+    }
+    const normalizedPageSize = Math.min(Math.max(Math.floor(pageSize), 1), 200);
+    return Math.floor(zeroBasedIndex / normalizedPageSize) + 1;
 }
 
 type RecordingDetailReadOptions = {
@@ -355,11 +367,33 @@ async function listRecordingRowsForUser(
         .select({ total: count() })
         .from(recordings)
         .where(where);
-    const pagination = resolveRecordingPagination(
+    let pagination = resolveRecordingPagination(
         Number(total),
         pageSize,
         requestedPage,
     );
+    let anchorPage: number | null = null;
+    const anchorRecordingId = filters.anchorRecordingId?.trim();
+    if (anchorRecordingId) {
+        const orderedRecordingIds = await database
+            .select({ id: recordings.id })
+            .from(recordings)
+            .where(where)
+            .orderBy(...getRecordingOrder(filters.sort));
+        anchorPage = resolveRecordingAnchorPage(
+            orderedRecordingIds.findIndex(
+                (recording) => recording.id === anchorRecordingId,
+            ),
+            pagination.pageSize,
+        );
+        if (anchorPage !== null) {
+            pagination = resolveRecordingPagination(
+                Number(total),
+                pagination.pageSize,
+                anchorPage,
+            );
+        }
+    }
 
     const recordingRows = await database
         .select(recordingListSelection)
@@ -370,6 +404,7 @@ async function listRecordingRowsForUser(
         .offset((pagination.page - 1) * pagination.pageSize);
 
     return {
+        anchorPage,
         pagination,
         recordingRows,
     };
@@ -787,6 +822,7 @@ export async function getRecordingDetailPageData(
 async function queryRecordingsForUserUnchecked(
     userId: string,
     {
+        anchorRecordingId,
         from = null,
         to = null,
         limit,
@@ -805,6 +841,7 @@ async function queryRecordingsForUserUnchecked(
     }: RecordingListFilters & { includeTranscript: boolean },
 ) {
     const normalizedFilters = {
+        anchorRecordingId,
         from,
         to,
         limit,
@@ -826,13 +863,14 @@ async function queryRecordingsForUserUnchecked(
     );
     const timelineBoundaries = getTimelineBoundaries();
     const snapshot = await withLibraryReadSnapshot(async (database) => {
-        const { pagination, recordingRows } = await listRecordingRowsForUser(
-            database,
-            userId,
-            normalizedFilters,
-            candidates,
-            timelineBoundaries,
-        );
+        const { anchorPage, pagination, recordingRows } =
+            await listRecordingRowsForUser(
+                database,
+                userId,
+                normalizedFilters,
+                candidates,
+                timelineBoundaries,
+            );
         const facets = await getRecordingListFacets(
             database,
             userId,
@@ -853,6 +891,7 @@ async function queryRecordingsForUserUnchecked(
         );
 
         return {
+            anchorPage,
             facets,
             pagination,
             recordingRows,
@@ -883,6 +922,7 @@ async function queryRecordingsForUserUnchecked(
     );
 
     return {
+        anchorPage: snapshot.anchorPage,
         facets: snapshot.facets,
         pagination: snapshot.pagination,
         recordings: snapshot.recordingRows.map((recording) =>
