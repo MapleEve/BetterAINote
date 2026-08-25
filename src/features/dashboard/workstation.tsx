@@ -5,15 +5,11 @@ import {
     Bell,
     Check,
     CheckCircle,
-    ChevronDown,
     CircleAlert,
     CloudDownload,
-    Copy,
     EllipsisVertical,
     FileText,
-    Globe2,
     Menu,
-    MessageSquareText,
     Mic,
     Music,
     PanelLeft,
@@ -27,9 +23,7 @@ import {
 } from "lucide-react";
 import Image from "next/image";
 import {
-    Fragment,
     type KeyboardEvent as ReactKeyboardEvent,
-    type ReactNode,
     useCallback,
     useEffect,
     useMemo,
@@ -38,7 +32,7 @@ import {
 } from "react";
 import { toast } from "sonner";
 import { useLanguage } from "@/components/language-provider";
-import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import { Alert, AlertTitle } from "@/components/ui/alert";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
@@ -67,21 +61,63 @@ import {
     EmptyTitle,
 } from "@/components/ui/empty";
 import { Input } from "@/components/ui/input";
-import { Progress } from "@/components/ui/progress";
-import {
-    type SegmentedTabItem,
-    SegmentedTabs,
-} from "@/components/ui/segmented-tabs";
 import { Separator } from "@/components/ui/separator";
-import { Skeleton } from "@/components/ui/skeleton";
-import { Spinner } from "@/components/ui/spinner";
-import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
 import { DashboardRecordingPlayerControls } from "@/features/dashboard/components/dashboard-recording-player-controls";
 import {
     LibrarySearch,
     type LibrarySearchFilter,
 } from "@/features/dashboard/components/library-search";
+import {
+    RecordingList,
+    RecordingListControls,
+    type RecordingListGroup,
+    RecordingListPagination,
+    RecordingListSkeleton,
+    type RecordingListTagOption,
+} from "@/features/dashboard/components/recording-list";
 import { SystemBanner } from "@/features/dashboard/components/system-banner";
+import {
+    TranscriptionPanel,
+    type TranscriptionPanelSpeaker,
+    type TranscriptionPanelSpeakerMergeRequest,
+} from "@/features/dashboard/components/transcription-panel";
+import {
+    DASHBOARD_FILTER_STATE_STORAGE_KEY,
+    type DashboardFavoriteFilter,
+    type DashboardFilterAction,
+    type DashboardListMode,
+    type DashboardTagFilter,
+    DEFAULT_DASHBOARD_FILTER_STATE,
+    dashboardFilterStateUrl,
+    reduceDashboardFilterState,
+    restoreDashboardFilterState,
+    serializeDashboardFilterState,
+} from "@/features/dashboard/filter-state";
+import {
+    adaptRecordingListFacets,
+    buildRecordingListQueryParams,
+    getRecordingTimelineFilter,
+    type RecordingListFacets,
+    type RecordingListTimelineFilter,
+    reconcileRecordingSelection,
+} from "@/features/dashboard/recording-list-controller";
+import {
+    isRecordingListUrlCurrent,
+    readRecordingListUrlState,
+    recordingListUrl,
+} from "@/features/dashboard/recording-list-url-state";
+import {
+    DASHBOARD_SOURCE_FILTER_STORAGE_KEY,
+    type DashboardSourceFilter,
+    parseDashboardSourceFilter,
+    resolveConnectedSourceStatus,
+    toggleDashboardSourceFilter,
+} from "@/features/dashboard/source-filter-state";
+import {
+    areDashboardTranscriptionJobsEqual,
+    getDashboardTranscriptionPollingKey,
+    resolveDashboardTranscriptionPoll,
+} from "@/features/dashboard/transcription-polling";
 import { AiRenamePreviewCard as AiRenamePreview } from "@/features/recordings/components/ai-rename-preview-card";
 import {
     formatPlayerDate,
@@ -124,7 +160,7 @@ import {
     SourceReportSummaryLine,
     type SourceReportTone,
 } from "@/features/source-report/primitives";
-import { useAutoSync } from "@/hooks/use-auto-sync";
+import { type SyncWorkerErrorReason, useAutoSync } from "@/hooks/use-auto-sync";
 import { useRecordingPlayback } from "@/hooks/use-recording-playback";
 import {
     type DataSourceDisplayState,
@@ -137,9 +173,12 @@ import {
 } from "@/lib/platform/browser-router";
 import {
     readBrowserStorage,
+    startBrowserInterval,
+    stopBrowserInterval,
     writeBrowserStorage,
 } from "@/lib/platform/browser-shell";
 import { writeBrowserClipboardText } from "@/lib/platform/clipboard";
+import { hasBrowserWindow } from "@/lib/platform/runtime";
 import type { RecordingTag } from "@/lib/recording-tags";
 import {
     getTranscriptionJobDisplayState,
@@ -173,30 +212,191 @@ type TranscriptTurn = {
     endMs?: number | null;
 };
 
+type TranscriptionPollTranscriptData = {
+    text?: string | null;
+    detectedLanguage?: string | null;
+    speakerMap?: Record<string, string> | null;
+    segments?: TranscriptSegmentData[] | null;
+};
+
 type TranscriptionJobData = {
     status: string;
     remoteStatus?: string | null;
     lastError?: string | null;
 };
 
+type DashboardSpeakerMergeState =
+    | { state: "idle"; error: null }
+    | { state: "pending"; error: null }
+    | { state: "error"; error: string }
+    | { state: "success"; error: null };
+
+type QueriedRecording = Recording & {
+    transcript?: {
+        rawText?: string | null;
+        detectedLanguage?: string | null;
+        speakerMap?: Record<string, string> | null;
+    } | null;
+    transcriptionJob?: TranscriptionJobData | null;
+};
+
+type RecordingQueryResponse = {
+    anchorPage: number | null;
+    facets?: unknown;
+    recordings: QueriedRecording[];
+    pagination: {
+        page: number;
+        pageSize: number;
+        total: number;
+    };
+};
+
 type WorkstationProps = {
     recordings: Recording[];
     transcriptions: Map<string, TranscriptionData>;
     transcriptionJobs: Map<string, TranscriptionJobData>;
+    pagination?: RecordingQueryResponse["pagination"];
     user?: {
         email?: string | null;
         name?: string | null;
     };
 };
 
-type Favorite = "all" | "transcribed" | "tags";
+function buildPagedRecordingMaps(recordings: QueriedRecording[]) {
+    const transcriptions = new Map<string, TranscriptionData>();
+    const transcriptionJobs = new Map<string, TranscriptionJobData>();
+
+    for (const recording of recordings) {
+        if (recording.transcript) {
+            transcriptions.set(recording.id, {
+                hasTranscript: Boolean(recording.transcript.rawText?.trim()),
+                text: recording.transcript.rawText ?? null,
+                language: recording.transcript.detectedLanguage ?? null,
+                speakerMap: recording.transcript.speakerMap ?? null,
+            });
+        }
+        if (recording.transcriptionJob) {
+            transcriptionJobs.set(recording.id, recording.transcriptionJob);
+        }
+    }
+
+    return { transcriptions, transcriptionJobs };
+}
+
+function mergeTranscriptionData(
+    current: TranscriptionData | undefined,
+    incoming: TranscriptionData,
+) {
+    if (!current) {
+        return incoming;
+    }
+
+    const textChanged =
+        incoming.text !== undefined && incoming.text !== current.text;
+
+    return {
+        ...current,
+        ...incoming,
+        text: incoming.text === undefined ? current.text : incoming.text,
+        language:
+            incoming.language === undefined
+                ? current.language
+                : incoming.language,
+        speakerMap:
+            incoming.speakerMap === undefined
+                ? current.speakerMap
+                : incoming.speakerMap,
+        segments:
+            incoming.segments === undefined
+                ? textChanged
+                    ? undefined
+                    : current.segments
+                : incoming.segments,
+    };
+}
+
+function areSpeakerMapsEqual(
+    left: Record<string, string> | null | undefined,
+    right: Record<string, string> | null | undefined,
+) {
+    if (left === right) {
+        return true;
+    }
+
+    const leftEntries = Object.entries(left ?? {});
+    const rightEntries = Object.entries(right ?? {});
+    return (
+        leftEntries.length === rightEntries.length &&
+        leftEntries.every(([key, value]) => right?.[key] === value)
+    );
+}
+
+function areTranscriptSegmentsEqual(
+    left: TranscriptSegmentData[] | null | undefined,
+    right: TranscriptSegmentData[] | null | undefined,
+) {
+    if (left === right) {
+        return true;
+    }
+    if (!left || !right || left.length !== right.length) {
+        return false;
+    }
+
+    return left.every((segment, index) => {
+        const candidate = right[index];
+        return (
+            candidate?.text === segment.text &&
+            candidate.speakerLabel === segment.speakerLabel &&
+            candidate.displaySpeaker === segment.displaySpeaker &&
+            candidate.startMs === segment.startMs &&
+            candidate.endMs === segment.endMs
+        );
+    });
+}
+
+function areTranscriptionsEqual(
+    left: TranscriptionData | undefined,
+    right: TranscriptionData | undefined,
+) {
+    return (
+        left === right ||
+        (left?.hasTranscript === right?.hasTranscript &&
+            left?.text === right?.text &&
+            left?.language === right?.language &&
+            areSpeakerMapsEqual(left?.speakerMap, right?.speakerMap) &&
+            areTranscriptSegmentsEqual(left?.segments, right?.segments))
+    );
+}
+
+function reconcileTranscriptionMaps(
+    current: Map<string, TranscriptionData>,
+    incoming: Map<string, TranscriptionData>,
+) {
+    const next = new Map(
+        Array.from(incoming, ([recordingId, transcription]) => [
+            recordingId,
+            mergeTranscriptionData(current.get(recordingId), transcription),
+        ]),
+    );
+
+    if (
+        current.size === next.size &&
+        Array.from(next).every(([recordingId, transcription]) =>
+            areTranscriptionsEqual(current.get(recordingId), transcription),
+        )
+    ) {
+        return current;
+    }
+
+    return next;
+}
+
 type DetailTab = "transcript" | "speakers" | "source";
-type ListMode = "timeline" | "tags";
-type TagFilterValue = "all" | "untagged" | `tag:${string}`;
-type TimelineFilter = "all" | "today" | "yesterday" | "earlier";
+type TimelineFilter = RecordingListTimelineFilter;
 type RecordingListState =
     | "loading"
     | "ready"
+    | "error"
     | "empty"
     | "no-match"
     | "timeline-empty"
@@ -218,7 +418,6 @@ type DashboardCopyFeedback = {
     action: Exclude<DashboardCopyAction, null>;
     state: "ok" | "err";
 } | null;
-type DashboardCopyFeedbackState = Exclude<DashboardCopyFeedback, null>["state"];
 type SourceReportViewState = "idle" | "loading" | "loaded" | "error";
 type SourceReportCopyState = "ready" | "missing" | "loading" | "error";
 type SourceRepullState = "idle" | "loading" | "success" | "error";
@@ -271,20 +470,6 @@ type SourceStatus =
     | "planned";
 type SyncButtonState = "idle" | "queued" | "running" | "success" | "error";
 
-function getSegmentedTabProps<T extends string>(
-    _item: SegmentedTabItem<T>,
-    state: { active: boolean; disabled: boolean },
-) {
-    return {
-        "data-control": "segmented-tab",
-        "data-state": state.disabled
-            ? "disabled"
-            : state.active
-              ? "active"
-              : "idle",
-    };
-}
-
 type ActivityTone = "loading" | "error" | "warn" | "success" | "info";
 type ActivityItem = {
     id: string;
@@ -304,17 +489,21 @@ const SETTINGS_DATA_SOURCE_PROVIDER_STORAGE_KEY =
 const DASHBOARD_SIDEBAR_COLLAPSED_STORAGE_KEY = "dashboard-sidebar-collapsed";
 const SOURCE_DRAWER_FOCUSABLE_SELECTOR =
     'button:not([disabled]),a[href],input:not([disabled]),select:not([disabled]),textarea:not([disabled]),[tabindex]:not([tabindex="-1"])';
+const DETAIL_FOCUSABLE_SELECTOR =
+    'button:not([disabled]),a[href],input:not([disabled]),select:not([disabled]),textarea:not([disabled]),[contenteditable="true"],[tabindex]:not([tabindex="-1"])';
 const DASHBOARD_WORKSTATION_SHELL_CLASS_NAME =
     "grid h-screen min-h-[720px] grid-cols-[264px_1fr] bg-background transition-[grid-template-columns] duration-[320ms] ease-[var(--ease-out)] data-[sidebar-collapsed=true]:grid-cols-[56px_1fr] max-[860px]:h-auto max-[860px]:min-h-[100svh] max-[860px]:grid-cols-[minmax(0,1fr)] max-[860px]:overflow-x-clip";
 
 const DASHBOARD_MAIN_CLASS_NAME =
     "flex h-screen min-w-0 flex-col max-[860px]:min-w-0 max-[860px]:max-w-full max-[860px]:box-border";
 const DASHBOARD_WORKSPACE_CLASS_NAME =
-    "grid flex-1 min-h-0 grid-cols-[380px_1fr] gap-4 px-5 pt-4 pb-5 max-[860px]:min-w-0 max-[860px]:max-w-full max-[860px]:box-border max-[860px]:grid-cols-[380px_0px]";
+    "grid flex-1 min-h-0 grid-cols-[380px_1fr] gap-4 px-5 pt-4 pb-5 max-[1439px]:grid-cols-[minmax(0,1fr)] min-[1024px]:max-[1439px]:group-data-[detail-state=open]/dashboard-workstation:grid-cols-[320px_minmax(0,1fr)] max-[860px]:min-w-0 max-[860px]:max-w-full max-[860px]:box-border";
 const DASHBOARD_RECORDING_LIST_CARD_CLASS_NAME =
     "min-h-0 gap-0 rounded-2xl max-[860px]:min-w-0 max-[860px]:max-w-full max-[860px]:box-border";
 const DASHBOARD_DETAIL_PANEL_CLASS_NAME =
-    "flex min-h-0 min-w-0 flex-col gap-4 max-[860px]:hidden";
+    "flex min-h-0 min-w-0 flex-col gap-4 max-[1439px]:hidden min-[1024px]:max-[1439px]:group-data-[detail-state=open]/dashboard-workstation:flex max-[1024px]:fixed max-[1024px]:inset-2 max-[1024px]:z-[330] max-[1024px]:overflow-y-auto max-[1024px]:rounded-lg max-[1024px]:bg-background max-[1024px]:p-4 max-[1024px]:shadow-lg max-[1024px]:group-data-[detail-state=open]/dashboard-workstation:flex";
+const DASHBOARD_DETAIL_SCRIM_CLASS_NAME =
+    "pointer-events-none fixed inset-0 z-[320] hidden bg-background/60 backdrop-blur-sm max-[1024px]:group-data-[detail-state=open]/dashboard-workstation:pointer-events-auto max-[1024px]:group-data-[detail-state=open]/dashboard-workstation:block";
 const DASHBOARD_RECORDING_LIST_CONTENT_CLASS_NAME = "flex min-h-0 flex-col p-0";
 const DASHBOARD_DETAIL_EMPTY_STATE_CLASS_NAME = "min-h-[280px] p-9 md:p-9";
 
@@ -325,7 +514,7 @@ const dashboardDrawerClassNames = {
 } as const;
 
 const dashboardTopbarClassNames = {
-    topbar: "relative flex h-14 flex-none flex-row items-center gap-3.5 border-b border-border bg-background/80 px-5 py-3 supports-[backdrop-filter]:bg-background/60 supports-[backdrop-filter]:backdrop-blur-[28px] supports-[backdrop-filter]:backdrop-saturate-[160%] max-[860px]:min-w-0 max-[860px]:max-w-full max-[860px]:box-border",
+    topbar: "relative z-[60] flex h-14 flex-none flex-row items-center gap-3.5 border-b border-border bg-background/80 px-5 py-3 supports-[backdrop-filter]:bg-background/60 supports-[backdrop-filter]:backdrop-blur-[28px] supports-[backdrop-filter]:backdrop-saturate-[160%] max-[860px]:min-w-0 max-[860px]:max-w-full max-[860px]:box-border",
     crumbs: "flex items-center gap-2 text-sm font-medium text-muted-foreground",
     crumb: "text-muted-foreground",
     separator: "text-muted-foreground/60 max-[860px]:hidden",
@@ -354,112 +543,6 @@ const dashboardNavClassNames = {
         "px-2.5 pt-3.5 pb-1.5 text-xs font-semibold uppercase tracking-wide text-muted-foreground",
     favoriteCount: "min-w-6 justify-center px-1.5 font-mono",
 } as const;
-
-type DashboardTranscriptSkeletonSize =
-    | "avatar"
-    | "line-60"
-    | "line-70"
-    | "line-78"
-    | "line-82"
-    | "line-88"
-    | "line-92"
-    | "line-94"
-    | "line-96"
-    | "speaker-120"
-    | "speaker-130"
-    | "speaker-140"
-    | "time";
-
-const dashboardTranscriptSkeletonClassNames = {
-    avatar: "size-6 flex-none rounded-full",
-    "line-60": "mt-1.5 h-3.5 w-3/5",
-    "line-70": "mt-1.5 h-3.5 w-[70%]",
-    "line-78": "mt-1.5 h-3.5 w-[78%]",
-    "line-82": "mt-1.5 h-3.5 w-[82%]",
-    "line-88": "mt-1.5 h-3.5 w-[88%]",
-    "line-92": "mt-1 h-3.5 w-[92%]",
-    "line-94": "mt-1 h-3.5 w-[94%]",
-    "line-96": "mt-1 h-3.5 w-[96%]",
-    "speaker-120": "h-[13px] w-[120px] flex-none",
-    "speaker-130": "h-[13px] w-[130px] flex-none",
-    "speaker-140": "h-[13px] w-[140px] flex-none",
-    time: "h-[11px] w-20 flex-none",
-} as const satisfies Record<DashboardTranscriptSkeletonSize, string>;
-
-const dashboardSpeakerPaneClassNames = {
-    head: "flex items-center gap-2.5 px-4 pt-3 pb-2",
-    headTitle: "flex-1 text-sm font-medium text-muted-foreground",
-    rows: "m-0 flex list-none flex-col gap-1 px-2 pb-3.5",
-    row: "grid grid-cols-[auto_minmax(0,1fr)_minmax(72px,120px)_auto] items-center gap-2.5 rounded-lg px-2.5 py-2 hover:bg-accent",
-    rowMeta: "flex min-w-0 flex-col gap-0.5",
-    name: "truncate text-sm font-medium text-foreground",
-    sub: "w-fit justify-center font-mono tabular-nums",
-    avatar: "size-7 flex-none p-0 tabular-nums",
-    bar: "h-1 bg-muted",
-    barFill: "bg-primary",
-    empty: "border-0 py-4 md:py-4",
-    emptyHeader: "max-w-none",
-    emptyIcon: "size-8",
-} as const;
-
-const DASHBOARD_SPEAKER_SHARE_VALUES = [
-    24, 36, 48, 60, 72, 84, 96, 100,
-] as const;
-
-function getDashboardSpeakerShareValue(index: number) {
-    return DASHBOARD_SPEAKER_SHARE_VALUES[
-        Math.min(index, DASHBOARD_SPEAKER_SHARE_VALUES.length - 1)
-    ];
-}
-
-const TRANSCRIPT_LOADING_SKELETON_ROWS = [
-    {
-        firstLine: "line-96",
-        key: "opening",
-        secondLine: "line-88",
-        speaker: "speaker-120",
-        thirdLine: "line-60",
-    },
-    {
-        firstLine: "line-92",
-        key: "middle",
-        secondLine: "line-78",
-        speaker: "speaker-140",
-        thirdLine: null,
-    },
-    {
-        firstLine: "line-94",
-        key: "closing",
-        secondLine: "line-82",
-        speaker: "speaker-130",
-        thirdLine: "line-70",
-    },
-] as const satisfies ReadonlyArray<{
-    firstLine: DashboardTranscriptSkeletonSize;
-    key: string;
-    secondLine: DashboardTranscriptSkeletonSize;
-    speaker: DashboardTranscriptSkeletonSize;
-    thirdLine: DashboardTranscriptSkeletonSize | null;
-}>;
-
-function DashboardTranscriptSkeleton({
-    size,
-}: {
-    size: DashboardTranscriptSkeletonSize;
-}) {
-    return (
-        <Skeleton
-            aria-hidden="true"
-            variant="default"
-            size="default"
-            className={dashboardTranscriptSkeletonClassNames[size]}
-            data-part="dashboard-transcript-skeleton"
-            data-size={size}
-        />
-    );
-}
-
-const TRANSCRIPT_AVATAR_TONES = ["steel", "info", "success"] as const;
 
 const SOURCE_ORDER = [
     {
@@ -494,43 +577,14 @@ const SOURCE_ORDER = [
     },
 ] as const;
 
-const FAVORITES: { value: Favorite; icon: typeof Mic }[] = [
+const FAVORITES: { value: DashboardFavoriteFilter; icon: typeof Mic }[] = [
     { value: "all", icon: Mic },
     { value: "transcribed", icon: FileText },
     { value: "tags", icon: Tags },
 ];
-const TIMELINE_FILTERS: {
-    value: TimelineFilter;
-    labelKey: string;
-}[] = [
-    { value: "all", labelKey: "recordingList.timeline.all" },
-    { value: "today", labelKey: "recordingList.timeline.today" },
-    { value: "yesterday", labelKey: "recordingList.timeline.yesterday" },
-    { value: "earlier", labelKey: "recordingList.timeline.earlier" },
-];
-
 const dashboardTabPaneHiddenClassName = "[&[hidden]]:hidden";
 
 const DASHBOARD_SIDEBAR_FOOTER_CLASS_NAME = "border-t border-border pt-2.5";
-
-const dashboardRecordingTimeFilterStyles = {
-    root: "mt-2.5 flex-wrap [&[hidden]]:hidden",
-    item: "data-[state=on]:border-primary/30 data-[state=on]:bg-primary/10 data-[state=on]:text-primary data-[state=selected]:border-primary/30 data-[state=selected]:bg-primary/10 data-[state=selected]:text-primary",
-    count: "rounded-[4px] bg-muted px-1 font-mono text-[10px] font-medium text-muted-foreground/70",
-    countSelected: "bg-primary/10 text-primary",
-} as const;
-
-const dashboardRecordingTagFilterStyles = {
-    root: "relative mt-2.5",
-    trigger: "w-full justify-start text-foreground",
-    label: "min-w-0 flex-1 truncate",
-    count: "font-mono text-[11px] font-medium text-muted-foreground",
-    caret: "shrink-0 text-muted-foreground",
-    list: "absolute left-0 right-0 top-[calc(100%+6px)] z-50 max-h-[260px] overflow-y-auto rounded-lg border border-border bg-popover p-1 text-popover-foreground shadow-md",
-    option: "w-full justify-start border border-transparent bg-transparent text-muted-foreground shadow-none hover:bg-accent hover:text-accent-foreground data-[state=selected]:bg-secondary data-[state=selected]:text-secondary-foreground data-[state=selected]:hover:bg-secondary/80",
-    optionLabel: "min-w-0 flex-1 truncate",
-    optionCount: "font-mono text-[11px] font-medium text-muted-foreground",
-} as const;
 
 const DASHBOARD_RECORDING_LIST_HEADER_CLASS_NAME =
     "border-b border-border px-3 pt-3 pb-2.5";
@@ -544,45 +598,9 @@ const dashboardRecordingListTitlebarStyles = {
 const dashboardRecordingListScrollClassName =
     "flex-1 overflow-y-auto p-1 [scrollbar-width:thin] [scrollbar-color:var(--muted-foreground)_transparent] [&::-webkit-scrollbar]:size-[10px] [&::-webkit-scrollbar-track]:bg-transparent [&::-webkit-scrollbar-thumb]:rounded-full [&::-webkit-scrollbar-thumb]:border-2 [&::-webkit-scrollbar-thumb]:border-transparent [&::-webkit-scrollbar-thumb]:bg-muted-foreground/35 [&::-webkit-scrollbar-thumb]:bg-clip-padding [&::-webkit-scrollbar-thumb:hover]:bg-muted-foreground/55 [&::-webkit-scrollbar-thumb:hover]:bg-clip-padding";
 
-const dashboardRecordingListModeStyles = {
-    root: "mt-2 flex items-center gap-2.5",
-    label: "inline-flex items-center gap-1.5 font-sans text-[12px] font-semibold text-muted-foreground",
-    count: "font-mono text-[11px] font-medium text-muted-foreground",
-    segmented: "ml-auto",
-} as const;
-
 const dashboardRecordingListStateStyles = {
     root: "m-2",
     content: "mt-2",
-} as const;
-
-const dashboardRecordingListLoadingSkeletonClassNames = {
-    root: "flex flex-col gap-0.5 p-1",
-    day: "flex items-center gap-2.5 px-2.5 pt-3.5 pb-1.5",
-    dayLabel: "h-[11px] w-[100px]",
-    dayLabel40: "h-[11px] w-10",
-    dayLine: "h-px flex-1 bg-border",
-    row: "grid grid-cols-[1fr_auto] items-center gap-3.5 px-3 py-[11px]",
-    rowBody: "flex min-w-0 flex-col gap-1.5",
-    meta: "flex items-center gap-2",
-    title: "h-[13px] w-full",
-    title90: "h-[13px] w-[90%]",
-    title85: "h-[13px] w-[85%]",
-    title80: "h-[13px] w-4/5",
-    title70: "h-[13px] w-[70%]",
-    metaTime: "h-[11px] w-20",
-    metaTag: "h-[18px] w-16 rounded-[6px]",
-    metaPill: "h-[18px] w-16 rounded-full",
-    metaPill70: "h-[18px] w-12 rounded-full",
-    tag: "h-[22px] w-20 rounded-[6px]",
-} as const;
-
-const dashboardRecordingListPaginationStyles = {
-    root: "m-2 flex flex-col items-stretch gap-1.5 border-0 bg-transparent p-[14px] text-center",
-    divider: "relative mt-1.5 mb-[14px] h-px bg-border",
-    status: "absolute left-1/2 -top-2 -translate-x-1/2 -translate-y-1/2 bg-card px-2.5 font-mono text-[10.5px] font-medium text-muted-foreground",
-    nav: "mt-1 flex items-center justify-center gap-2.5",
-    number: "min-w-14 text-center font-mono text-[11.5px] font-medium text-muted-foreground",
 } as const;
 
 const dashboardSearchActivityClassNames = {
@@ -633,11 +651,10 @@ const dashboardSearchActivityClassNames = {
 const dashboardButtonClassNames = {
     nav: "w-full justify-start gap-2.5 px-2.5 text-muted-foreground data-[state=selected]:bg-sidebar-accent data-[state=selected]:text-sidebar-accent-foreground",
     sync: "text-muted-foreground",
-    speakersMerge: "shrink-0",
     drawerTrigger:
         "relative hidden h-[2px] w-[22.5px] px-[11.25px] py-px after:absolute after:-inset-[21px] after:content-[''] max-[860px]:inline-flex",
     sidebarCollapse:
-        "absolute top-[18px] -left-[11px] z-[5] size-[22px] rounded-full border-border bg-sidebar p-0 text-muted-foreground shadow-xs hover:bg-accent hover:text-accent-foreground max-[860px]:hidden [&_svg]:size-[11px]",
+        "absolute top-[18px] -left-[11px] z-[5] size-[22px] rounded-full border-border bg-sidebar p-0 text-muted-foreground hover:bg-accent hover:text-accent-foreground max-[860px]:hidden",
     settingsAvatar: "rounded-full text-xs font-semibold",
     listPagination: "text-muted-foreground",
     headerIconButton: "text-muted-foreground",
@@ -688,50 +705,11 @@ function dashboardSourceButtonClassName(collapsed: boolean) {
     );
 }
 
-function dashboardRecordingTimeFilterCountClassName(active: boolean) {
-    return cn(
-        dashboardRecordingTimeFilterStyles.count,
-        active && dashboardRecordingTimeFilterStyles.countSelected,
-    );
-}
-
-const dashboardRecordingRowStyles = {
-    rows: "flex flex-col gap-0.5 p-1",
-    group: "flex flex-col gap-0.5 px-1 py-1.5",
-    groupSeparator: "mx-1 my-1",
-    groupHeading: "flex items-baseline gap-2.5 px-2.5 pb-1.5 pt-3.5",
-    groupLabel:
-        "font-mono text-[11px] font-semibold uppercase tracking-[0.06em] text-muted-foreground",
-    groupCount: "font-mono text-[11px] font-medium text-muted-foreground/70",
-    groupDivider: "ml-1 min-w-0 flex-1",
-    row: "grid h-auto w-full grid-cols-[minmax(0,1fr)_auto] items-center justify-normal gap-3.5 whitespace-normal rounded-lg px-3 py-2.5 text-left font-normal [&.is-hover-demo]:bg-accent [&.is-hover-demo]:text-accent-foreground [&.is-focus-demo]:ring-[3px] [&.is-focus-demo]:ring-ring/50",
-    body: "flex min-w-0 flex-col gap-[5px]",
-    title: "truncate font-sans text-[13.5px] font-semibold tracking-[-0.005em] text-foreground",
-    meta: "flex flex-wrap items-center gap-2",
-    sourceMark:
-        "inline-flex size-3.5 flex-none items-center justify-center overflow-hidden rounded-sm opacity-70",
-    sourceMarkImage:
-        "block size-3.5 max-w-none object-contain align-baseline opacity-80",
-    sourceMarkImageCover: "object-cover",
-    sourceMarkLetter: "text-xs font-bold text-muted-foreground",
-    duration:
-        "font-mono text-[11.5px] font-medium tracking-[0.02em] text-muted-foreground",
-    secondary:
-        "flex items-center gap-2 font-mono text-[11px] font-medium text-muted-foreground",
-    timestamp: "tracking-[0.015em]",
-    timestampAbsolute:
-        "hidden group-data-[time-style=abs]/dashboard-workstation:inline",
-    timestampRelative:
-        "inline group-data-[time-style=abs]/dashboard-workstation:hidden",
-    actions:
-        "flex w-max min-w-max flex-none items-center justify-end justify-self-end gap-2",
-} as const;
-
-function tagFilterValue(tagId: string): TagFilterValue {
+function tagFilterValue(tagId: string): DashboardTagFilter {
     return `tag:${tagId}`;
 }
 
-function tagIdFromFilter(value: TagFilterValue) {
+function tagIdFromFilter(value: DashboardTagFilter) {
     return value.startsWith("tag:") ? value.slice(4) : null;
 }
 
@@ -743,35 +721,17 @@ function providerLabel(provider: string, language: UiLanguage) {
     );
 }
 
-function transcriptLanguageLabel(
-    detectedLanguage: string | null | undefined,
-    language: UiLanguage,
-) {
-    const normalized = detectedLanguage?.trim().toLowerCase();
-    if (!normalized) {
-        return language === "zh-CN" ? "自动识别" : "Auto detect";
-    }
-    if (normalized === "zh" || normalized.startsWith("zh-")) {
-        return language === "zh-CN" ? "中文 · 自动识别" : "Chinese · Auto";
-    }
-    if (normalized === "en" || normalized.startsWith("en-")) {
-        return language === "zh-CN" ? "英文 · 自动识别" : "English · Auto";
-    }
-    return language === "zh-CN"
-        ? `${detectedLanguage} · 自动识别`
-        : `${detectedLanguage} · Auto`;
-}
-
 function sourceOpenLabel(
     provider: string | null | undefined,
     language: UiLanguage,
+    t: Translator,
 ) {
     if (!provider) {
-        return language === "zh-CN" ? "在来源中打开" : "Open in source";
+        return t("sourceReport.openSource");
     }
 
     const label = providerLabel(provider, language);
-    return language === "zh-CN" ? `在${label}中打开` : `Open in ${label}`;
+    return t("sourceReport.openInProvider", { provider: label });
 }
 
 function sourceDefinition(provider: string | null | undefined) {
@@ -826,10 +786,10 @@ function formatSourceReportDate(value: string | null | undefined) {
     return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, "0")}-${String(date.getDate()).padStart(2, "0")} ${String(date.getHours()).padStart(2, "0")}:${String(date.getMinutes()).padStart(2, "0")}`;
 }
 
-function formatAbsoluteDate(value: string) {
+function formatAbsoluteDate(value: string, language: UiLanguage) {
     const date = new Date(value);
     if (Number.isNaN(date.getTime())) return value;
-    return new Intl.DateTimeFormat("zh-CN", {
+    return new Intl.DateTimeFormat(language, {
         month: "2-digit",
         day: "2-digit",
         hour: "2-digit",
@@ -837,37 +797,35 @@ function formatAbsoluteDate(value: string) {
     }).format(date);
 }
 
-function formatRelativeDate(value: string) {
+function formatRelativeDate(
+    value: string,
+    language: UiLanguage,
+    t: Translator,
+) {
     const date = new Date(value);
     const diff = Date.now() - date.getTime();
-    if (Number.isNaN(date.getTime()) || diff < 0) return "刚刚";
+    if (Number.isNaN(date.getTime()) || diff < 0) {
+        return t("recordingDetail.relativeJustNow");
+    }
     const hours = Math.floor(diff / 3_600_000);
-    if (hours < 1) return "1 小时内";
-    if (hours < 24) return `${hours} 小时前`;
+    if (hours < 1) return t("recordingDetail.relativeWithinHour");
+    if (hours < 24) {
+        return t("recordingDetail.relativeHoursAgo", { count: hours });
+    }
     const days = Math.floor(hours / 24);
-    if (days < 7) return `${days} 天前`;
-    return formatAbsoluteDate(value);
+    if (days < 7) {
+        return t("recordingDetail.relativeDaysAgo", { count: days });
+    }
+    return formatAbsoluteDate(value, language);
 }
 
-function getDayBucket(value: string) {
+function getDayBucket(value: string, t: Translator) {
     const bucket = getTimelineFilter(value);
-    if (bucket === "today") return "今天";
-    if (bucket === "yesterday") return "昨天";
-    return "更早";
+    return t(`recordingList.timeline.${bucket}`);
 }
 
 function getTimelineFilter(value: string): TimelineFilter {
-    const date = new Date(value);
-    if (Number.isNaN(date.getTime())) return "earlier";
-    const now = new Date();
-    const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
-    const start = new Date(date.getFullYear(), date.getMonth(), date.getDate());
-    const dayDiff = Math.floor(
-        (today.getTime() - start.getTime()) / 86_400_000,
-    );
-    if (dayDiff === 0) return "today";
-    if (dayDiff === 1) return "yesterday";
-    return "earlier";
+    return getRecordingTimelineFilter(value);
 }
 
 function transcriptTurns(
@@ -906,6 +864,69 @@ function transcriptTurns(
     return turns.map((text) => ({ text }));
 }
 
+function transcriptSpeakers(
+    transcription: TranscriptionData | null | undefined,
+): TranscriptionPanelSpeaker[] {
+    const segments =
+        transcription?.segments?.filter((segment) => segment.text?.trim()) ??
+        [];
+    if (segments.length === 0) {
+        return [];
+    }
+
+    const speakers = new Map<
+        string,
+        {
+            rawLabel: string;
+            speakerName: string;
+            text: string[];
+            segmentCount: number;
+        }
+    >();
+
+    for (const segment of segments) {
+        const rawLabel =
+            segment.speakerLabel?.trim() ||
+            segment.displaySpeaker?.trim() ||
+            "";
+        if (!rawLabel) {
+            continue;
+        }
+        const speakerName =
+            segment.displaySpeaker?.trim() ||
+            segment.speakerLabel?.trim() ||
+            rawLabel;
+        const current = speakers.get(speakerName);
+        if (current) {
+            current.text.push(segment.text?.trim() ?? "");
+            current.segmentCount += 1;
+        } else {
+            speakers.set(speakerName, {
+                rawLabel,
+                speakerName,
+                text: [segment.text?.trim() ?? ""],
+                segmentCount: 1,
+            });
+        }
+    }
+
+    const totalSegments = Math.max(
+        1,
+        Array.from(speakers.values()).reduce(
+            (total, speaker) => total + speaker.segmentCount,
+            0,
+        ),
+    );
+
+    return Array.from(speakers.values(), (speaker) => ({
+        id: speaker.rawLabel,
+        rawLabel: speaker.rawLabel,
+        speakerName: speaker.speakerName,
+        text: speaker.text.join("\n"),
+        share: Math.round((speaker.segmentCount / totalSegments) * 100),
+    }));
+}
+
 function formatSourceTimestamp(valueMs: number | null | undefined) {
     if (valueMs == null || !Number.isFinite(valueMs)) {
         return null;
@@ -933,28 +954,6 @@ function formatSourceReportTimestamp(valueMs: number | null | undefined) {
         return `${parts[0].padStart(2, "0")}:${parts[1]}`;
     }
     return timestamp;
-}
-
-function formatTranscriptTurnTimestamp(
-    startMs: number | null | undefined,
-    endMs: number | null | undefined,
-) {
-    const start = formatSourceReportTimestamp(startMs);
-    const end = formatSourceReportTimestamp(endMs);
-    if (start && end && start !== end) {
-        return `${start} – ${end}`;
-    }
-    return start ?? end;
-}
-
-function formatTranscriptAvatarLabel(speakerName: string, index: number) {
-    const trimmed = speakerName.trim();
-    const genericMatch = trimmed.match(/^(?:Speaker|说话人)\s*(\d+)$/i);
-    if (genericMatch?.[1]) {
-        return genericMatch[1];
-    }
-
-    return Array.from(trimmed)[0] ?? `${index + 1}`;
 }
 
 function buildSourceTranscriptCopyText(report: SourceReportData | null) {
@@ -994,33 +993,134 @@ function getSourceReportSubState(
     return "summary-missing";
 }
 
-function sourceReportReadinessLabel(
+type SourceReportReadinessState =
+    | "ready"
+    | "failed"
+    | "generating"
+    | "missing"
+    | "unknown";
+
+function sourceReportReadinessState(
     readiness: boolean | string | null | undefined,
     hasReadableContent: boolean,
-) {
-    if (typeof readiness === "string" && readiness.trim()) {
-        return readiness.trim();
+): SourceReportReadinessState {
+    if (readiness === true || hasReadableContent) {
+        return "ready";
     }
-    return readiness === true || hasReadableContent ? "已就绪" : "未生成";
+    if (readiness === false || readiness == null) {
+        return "missing";
+    }
+
+    const normalized = readiness.trim().toLowerCase();
+    if (
+        /^(?:ready|completed|complete|succeeded|success|已就绪|已生成)$/.test(
+            normalized,
+        )
+    ) {
+        return "ready";
+    }
+    if (/^(?:failed|failure|error|失败)$/.test(normalized)) {
+        return "failed";
+    }
+    if (
+        /^(?:pending|queued|running|processing|generating|生成中|处理中|待处理)$/.test(
+            normalized,
+        )
+    ) {
+        return "generating";
+    }
+    if (
+        /^(?:missing|none|unavailable|not[-_ ]?generated|未生成|缺失)$/.test(
+            normalized,
+        )
+    ) {
+        return "missing";
+    }
+    return "unknown";
 }
 
-function sourceReportReadinessTone(label: string): SourceReportTone {
-    if (label === "已就绪") return "ok";
-    if (label === "失败") return "err";
-    if (label === "生成中" || label === "未生成") return "warn";
+function sourceReportReadinessLabel(
+    state: SourceReportReadinessState,
+    t: Translator,
+) {
+    switch (state) {
+        case "ready":
+            return t("sourceReport.generated");
+        case "failed":
+            return t("sourceReport.failed");
+        case "generating":
+            return t("sourceReport.generating");
+        case "missing":
+            return t("sourceReport.notGenerated");
+        case "unknown":
+            return t("sourceReport.unknown");
+    }
+}
+
+function sourceReportReadinessTone(
+    state: SourceReportReadinessState,
+): SourceReportTone {
+    if (state === "ready") return "ok";
+    if (state === "failed") return "err";
+    if (state === "generating" || state === "missing") return "warn";
     return "neu";
 }
 
-function sourceReportSyncTone(label: string): SourceReportTone {
-    if (label.includes("失败")) return "err";
+type SourceReportSyncState =
+    | "synced"
+    | "syncing"
+    | "pending"
+    | "failed"
+    | "unknown";
+
+function sourceReportSyncState(
+    detail: Record<string, unknown> | null | undefined,
+): SourceReportSyncState {
+    const rawState = sourceReportDetailText(detail, [
+        "status",
+        "syncStatus",
+        "sourceStatus",
+    ]);
+    if (!rawState) return "synced";
+    const normalized = rawState.trim().toLowerCase();
     if (
-        label.includes("待") ||
-        label.includes("仅") ||
-        label.includes("生成中")
+        /^(?:synced|ready|completed|complete|success|succeeded)$/.test(
+            normalized,
+        )
     ) {
-        return "warn";
+        return "synced";
     }
-    if (label.includes("已") || label.includes("同步")) return "ok";
+    if (/^(?:syncing|running|processing|updating)$/.test(normalized)) {
+        return "syncing";
+    }
+    if (/^(?:pending|queued|waiting)$/.test(normalized)) {
+        return "pending";
+    }
+    if (/^(?:failed|failure|error)$/.test(normalized)) {
+        return "failed";
+    }
+    return "unknown";
+}
+
+function sourceReportSyncLabel(state: SourceReportSyncState, t: Translator) {
+    switch (state) {
+        case "synced":
+            return t("sourceReport.synced");
+        case "syncing":
+            return t("sourceReport.syncing");
+        case "pending":
+            return t("sourceReport.syncPending");
+        case "failed":
+            return t("sourceReport.syncFailed");
+        case "unknown":
+            return t("sourceReport.unknown");
+    }
+}
+
+function sourceReportSyncTone(state: SourceReportSyncState): SourceReportTone {
+    if (state === "synced") return "ok";
+    if (state === "failed") return "err";
+    if (state === "syncing" || state === "pending") return "warn";
     return "neu";
 }
 
@@ -1099,30 +1199,6 @@ function getRecordingListStatus(
         label: t("recordingList.status.pending"),
         tone: "neu" satisfies PlayerStatusTone,
     };
-}
-
-const dashboardRecordingStatusBadgeVariants = {
-    err: "destructive",
-    info: "secondary",
-    neu: "outline",
-    ok: "secondary",
-    warn: "secondary",
-} as const satisfies Record<PlayerStatusTone, string>;
-
-function DashboardCopyIcon({ state }: { state?: DashboardCopyFeedbackState }) {
-    const Icon = state === "ok" ? Check : state === "err" ? X : Copy;
-
-    return (
-        <Icon
-            data-icon="inline-start"
-            data-part="dashboard-copy-icon"
-            aria-hidden="true"
-        />
-    );
-}
-
-function DashboardCopyLabel({ children }: { children: ReactNode }) {
-    return <span data-part="dashboard-copy-label">{children}</span>;
 }
 
 function getRetxStateFromActiveJob(
@@ -1205,7 +1281,7 @@ function sourceProviderCountTone(sourceRowState: SourceRowState) {
     }
 }
 
-function getFavoriteLabel(value: Favorite, t: Translator) {
+function getFavoriteLabel(value: DashboardFavoriteFilter, t: Translator) {
     switch (value) {
         case "all":
             return t("dashboardFavorites.allRecordings");
@@ -1260,7 +1336,15 @@ function syncStateLabel(state: SyncButtonState, t: Translator) {
     }
 }
 
-function syncSystemBannerState(error: string | null | undefined) {
+function syncSystemBannerState(
+    reason: SyncWorkerErrorReason | null | undefined,
+    error: string | null | undefined,
+) {
+    if (reason === "database-locked") return "db-locked" as const;
+    if (reason === "permission-denied") return "permission-denied" as const;
+    if (reason === "runtime-unavailable") {
+        return "runtime-unavailable" as const;
+    }
     if (!error) return null;
     const normalized = error.toLowerCase();
     if (
@@ -1302,37 +1386,12 @@ function activityItemKind(item: ActivityItem) {
     return item.tone;
 }
 
-function RetxWarnIcon() {
-    return (
-        <CircleAlert
-            data-part="dashboard-retranscription-icon-warn"
-            aria-hidden="true"
-        />
-    );
-}
-
-function RetxOkIcon() {
-    return (
-        <Check
-            data-part="dashboard-retranscription-icon-ok"
-            aria-hidden="true"
-        />
-    );
-}
-
-function RetxCloseIcon() {
-    return <X aria-hidden="true" focusable="false" />;
-}
-
-function DashboardTranscriptEmptyIcon() {
-    return <MessageSquareText aria-hidden="true" focusable="false" />;
-}
-
 function DashboardDetailEmptyIcon() {
     return <Music aria-hidden="true" focusable="false" />;
 }
 
 function DashboardDetailEmptyState() {
+    const { t } = useLanguage();
     return (
         <Empty
             className={DASHBOARD_DETAIL_EMPTY_STATE_CLASS_NAME}
@@ -1348,10 +1407,10 @@ function DashboardDetailEmptyState() {
                     <DashboardDetailEmptyIcon />
                 </EmptyMedia>
                 <EmptyTitle data-part="dashboard-detail-empty-title">
-                    请选择一条录音
+                    {t("recordingDetail.emptyTitle")}
                 </EmptyTitle>
                 <EmptyDescription data-part="dashboard-detail-empty-description">
-                    在左侧列表中挑一条录音，转写与说话人信息会显示在这里。
+                    {t("recordingDetail.emptyDescription")}
                 </EmptyDescription>
             </EmptyHeader>
         </Empty>
@@ -1364,291 +1423,6 @@ function SourceReportErrorGlyph() {
 
 function SourceReportEmptyGlyph() {
     return <FileText aria-hidden="true" focusable="false" />;
-}
-
-function DashboardRecordingListSkeleton() {
-    return (
-        <div
-            className={dashboardRecordingListLoadingSkeletonClassNames.root}
-            data-panel="recording-list-loading"
-        >
-            <div
-                className={dashboardRecordingListLoadingSkeletonClassNames.day}
-                data-part="skeleton-day"
-            >
-                <Skeleton
-                    className={
-                        dashboardRecordingListLoadingSkeletonClassNames.dayLabel
-                    }
-                    data-part="skeleton-day-label"
-                />
-                <span
-                    className={
-                        dashboardRecordingListLoadingSkeletonClassNames.dayLine
-                    }
-                    data-part="skeleton-day-line"
-                />
-            </div>
-            <div
-                className={dashboardRecordingListLoadingSkeletonClassNames.row}
-                data-part="skeleton-row"
-            >
-                <div
-                    className={
-                        dashboardRecordingListLoadingSkeletonClassNames.rowBody
-                    }
-                    data-part="skeleton-row-body"
-                >
-                    <Skeleton
-                        className={
-                            dashboardRecordingListLoadingSkeletonClassNames.title
-                        }
-                        data-part="skeleton-title"
-                    />
-                    <div
-                        className={
-                            dashboardRecordingListLoadingSkeletonClassNames.meta
-                        }
-                        data-part="skeleton-meta"
-                    >
-                        <Skeleton
-                            className={
-                                dashboardRecordingListLoadingSkeletonClassNames.metaTime
-                            }
-                            data-part="skeleton-meta-time"
-                        />
-                        <Skeleton
-                            className={
-                                dashboardRecordingListLoadingSkeletonClassNames.metaTag
-                            }
-                            data-part="skeleton-meta-tag"
-                        />
-                        <Skeleton
-                            className={
-                                dashboardRecordingListLoadingSkeletonClassNames.metaPill
-                            }
-                            data-part="skeleton-meta-pill"
-                        />
-                    </div>
-                </div>
-                <div data-part="skeleton-row-tail">
-                    <Skeleton
-                        className={
-                            dashboardRecordingListLoadingSkeletonClassNames.tag
-                        }
-                        data-part="skeleton-tag"
-                    />
-                </div>
-            </div>
-            <div
-                className={dashboardRecordingListLoadingSkeletonClassNames.row}
-                data-part="skeleton-row"
-            >
-                <div
-                    className={
-                        dashboardRecordingListLoadingSkeletonClassNames.rowBody
-                    }
-                    data-part="skeleton-row-body"
-                >
-                    <Skeleton
-                        className={
-                            dashboardRecordingListLoadingSkeletonClassNames.title90
-                        }
-                        data-part="skeleton-title"
-                        data-size="90"
-                    />
-                    <div
-                        className={
-                            dashboardRecordingListLoadingSkeletonClassNames.meta
-                        }
-                        data-part="skeleton-meta"
-                    >
-                        <Skeleton
-                            className={
-                                dashboardRecordingListLoadingSkeletonClassNames.metaTime
-                            }
-                            data-part="skeleton-meta-time"
-                        />
-                        <Skeleton
-                            className={
-                                dashboardRecordingListLoadingSkeletonClassNames.metaTag
-                            }
-                            data-part="skeleton-meta-tag"
-                        />
-                        <Skeleton
-                            className={
-                                dashboardRecordingListLoadingSkeletonClassNames.metaPill70
-                            }
-                            data-part="skeleton-meta-pill"
-                            data-size="70"
-                        />
-                    </div>
-                </div>
-                <div data-part="skeleton-row-tail">
-                    <Skeleton
-                        className={
-                            dashboardRecordingListLoadingSkeletonClassNames.tag
-                        }
-                        data-part="skeleton-tag"
-                    />
-                </div>
-            </div>
-            <div
-                className={dashboardRecordingListLoadingSkeletonClassNames.day}
-                data-part="skeleton-day"
-            >
-                <Skeleton
-                    className={
-                        dashboardRecordingListLoadingSkeletonClassNames.dayLabel40
-                    }
-                    data-part="skeleton-day-label"
-                    data-size="40"
-                />
-                <span
-                    className={
-                        dashboardRecordingListLoadingSkeletonClassNames.dayLine
-                    }
-                    data-part="skeleton-day-line"
-                />
-            </div>
-            <div
-                className={dashboardRecordingListLoadingSkeletonClassNames.row}
-                data-part="skeleton-row"
-            >
-                <div
-                    className={
-                        dashboardRecordingListLoadingSkeletonClassNames.rowBody
-                    }
-                    data-part="skeleton-row-body"
-                >
-                    <Skeleton
-                        className={
-                            dashboardRecordingListLoadingSkeletonClassNames.title80
-                        }
-                        data-part="skeleton-title"
-                        data-size="80"
-                    />
-                    <div
-                        className={
-                            dashboardRecordingListLoadingSkeletonClassNames.meta
-                        }
-                        data-part="skeleton-meta"
-                    >
-                        <Skeleton
-                            className={
-                                dashboardRecordingListLoadingSkeletonClassNames.metaTime
-                            }
-                            data-part="skeleton-meta-time"
-                        />
-                        <Skeleton
-                            className={
-                                dashboardRecordingListLoadingSkeletonClassNames.metaTag
-                            }
-                            data-part="skeleton-meta-tag"
-                        />
-                        <Skeleton
-                            className={
-                                dashboardRecordingListLoadingSkeletonClassNames.metaPill
-                            }
-                            data-part="skeleton-meta-pill"
-                        />
-                    </div>
-                </div>
-                <div data-part="skeleton-row-tail" />
-            </div>
-            <div
-                className={dashboardRecordingListLoadingSkeletonClassNames.row}
-                data-part="skeleton-row"
-            >
-                <div
-                    className={
-                        dashboardRecordingListLoadingSkeletonClassNames.rowBody
-                    }
-                    data-part="skeleton-row-body"
-                >
-                    <Skeleton
-                        className={
-                            dashboardRecordingListLoadingSkeletonClassNames.title70
-                        }
-                        data-part="skeleton-title"
-                        data-size="70"
-                    />
-                    <div
-                        className={
-                            dashboardRecordingListLoadingSkeletonClassNames.meta
-                        }
-                        data-part="skeleton-meta"
-                    >
-                        <Skeleton
-                            className={
-                                dashboardRecordingListLoadingSkeletonClassNames.metaTime
-                            }
-                            data-part="skeleton-meta-time"
-                        />
-                        <Skeleton
-                            className={
-                                dashboardRecordingListLoadingSkeletonClassNames.metaTag
-                            }
-                            data-part="skeleton-meta-tag"
-                        />
-                    </div>
-                </div>
-                <div data-part="skeleton-row-tail">
-                    <Skeleton
-                        className={
-                            dashboardRecordingListLoadingSkeletonClassNames.tag
-                        }
-                        data-part="skeleton-tag"
-                    />
-                </div>
-            </div>
-            <div
-                className={dashboardRecordingListLoadingSkeletonClassNames.row}
-                data-part="skeleton-row"
-            >
-                <div
-                    className={
-                        dashboardRecordingListLoadingSkeletonClassNames.rowBody
-                    }
-                    data-part="skeleton-row-body"
-                >
-                    <Skeleton
-                        className={
-                            dashboardRecordingListLoadingSkeletonClassNames.title85
-                        }
-                        data-part="skeleton-title"
-                        data-size="85"
-                    />
-                    <div
-                        className={
-                            dashboardRecordingListLoadingSkeletonClassNames.meta
-                        }
-                        data-part="skeleton-meta"
-                    >
-                        <Skeleton
-                            className={
-                                dashboardRecordingListLoadingSkeletonClassNames.metaTime
-                            }
-                            data-part="skeleton-meta-time"
-                        />
-                        <Skeleton
-                            className={
-                                dashboardRecordingListLoadingSkeletonClassNames.metaTag
-                            }
-                            data-part="skeleton-meta-tag"
-                        />
-                        <Skeleton
-                            className={
-                                dashboardRecordingListLoadingSkeletonClassNames.metaPill
-                            }
-                            data-part="skeleton-meta-pill"
-                        />
-                    </div>
-                </div>
-                <div data-part="skeleton-row-tail" />
-            </div>
-        </div>
-    );
 }
 
 async function readResponseError(response: Response, fallback: string) {
@@ -1666,6 +1440,7 @@ export function Workstation({
     recordings,
     transcriptions,
     transcriptionJobs,
+    pagination,
     user,
 }: WorkstationProps) {
     const confirm = useConfirmDialog();
@@ -1675,28 +1450,51 @@ export function Workstation({
         useDisplaySettingsStore();
     const { hasLoaded: playbackSettingsLoaded, settings: playbackSettings } =
         usePlaybackSettingsStore();
+    const itemsPerPage = Math.max(1, displaySettings.itemsPerPage || 50);
     const [hydrated, setHydrated] = useState(false);
     const [liveRecordings, setLiveRecordings] = useState(recordings);
-    const [liveTranscriptions, setLiveTranscriptions] =
-        useState(transcriptions);
+    const [liveTranscriptions, setLiveTranscriptions] = useState(
+        () => new Map(transcriptions),
+    );
     const loadingTranscriptIdsRef = useRef<Set<string>>(new Set());
     const [loadingTranscriptIds, setLoadingTranscriptIds] = useState<
         Set<string>
     >(() => new Set());
+    const [transcriptLoadErrors, setTranscriptLoadErrors] = useState<
+        Map<string, string>
+    >(() => new Map());
     const [liveJobs, setLiveJobs] = useState(transcriptionJobs);
-    const [favorite, setFavorite] = useState<Favorite>("all");
-    const [source, setSource] = useState("all");
+    const [dashboardFilterState, setDashboardFilterState] = useState(
+        DEFAULT_DASHBOARD_FILTER_STATE,
+    );
+    const { favorite, listMode, selectedTagFilter } = dashboardFilterState;
+    const [source, setSource] = useState<DashboardSourceFilter>("all");
     const [selectedId, setSelectedId] = useState(recordings[0]?.id ?? "");
+    const [requestedRecordingId, setRequestedRecordingId] = useState<
+        string | null
+    >(null);
+    const [missingRequestedRecordingId, setMissingRequestedRecordingId] =
+        useState<string | null>(null);
+    const [detailOpen, setDetailOpen] = useState(false);
+    const [detailMobileViewport, setDetailMobileViewport] = useState(false);
     const [collapsed, setCollapsed] = useState(false);
     const [drawerOpen, setDrawerOpen] = useState(false);
     const [searchOpen, setSearchOpen] = useState(false);
     const [settingsOpen, setSettingsOpen] = useState(false);
-    const [listMode, setListMode] = useState<ListMode>("timeline");
     const [timelineFilter, setTimelineFilter] = useState<TimelineFilter>("all");
-    const [selectedTagFilter, setSelectedTagFilter] =
-        useState<TagFilterValue>("all");
     const [tagFilterOpen, setTagFilterOpen] = useState(false);
     const [listPage, setListPage] = useState(1);
+    const [recordingPage, setRecordingPage] = useState({
+        page: pagination?.page ?? 1,
+        pageSize: itemsPerPage,
+        total: pagination?.total ?? recordings.length,
+    });
+    const [recordingListLoading, setRecordingListLoading] = useState(false);
+    const [recordingListError, setRecordingListError] = useState(false);
+    const [recordingListRequestVersion, setRecordingListRequestVersion] =
+        useState(0);
+    const [recordingFacets, setRecordingFacets] =
+        useState<RecordingListFacets | null>(null);
     const [detailTab, setDetailTab] = useState<DetailTab>("transcript");
     const [query, setQuery] = useState("");
     const [librarySearchFilter, setLibrarySearchFilter] =
@@ -1705,6 +1503,7 @@ export function Workstation({
     const [editingTitle, setEditingTitle] = useState(false);
     const [draftTitle, setDraftTitle] = useState(recordings[0]?.filename ?? "");
     const [renaming, setRenaming] = useState(false);
+    const [renameError, setRenameError] = useState<string | null>(null);
     const [moreOpen, setMoreOpen] = useState(false);
     const [tagOpen, setTagOpen] = useState(false);
     const [availableTags, setAvailableTags] = useState<RecordingTag[]>([]);
@@ -1718,6 +1517,13 @@ export function Workstation({
         boolean | null
     >(null);
     const [retxState, setRetxState] = useState<RetxState>("idle");
+    const [speakerMergeState, setSpeakerMergeState] =
+        useState<DashboardSpeakerMergeState>({
+            state: "idle",
+            error: null,
+        });
+    const lastSpeakerMergeRequestRef =
+        useRef<TranscriptionPanelSpeakerMergeRequest | null>(null);
     const [dismissedCompletedRetxIds, setDismissedCompletedRetxIds] = useState<
         Set<string>
     >(() => new Set());
@@ -1749,9 +1555,15 @@ export function Workstation({
     const drawerTriggerRef = useRef<HTMLButtonElement | null>(null);
     const activityTriggerRef = useRef<HTMLButtonElement | null>(null);
     const settingsTriggerRef = useRef<HTMLButtonElement | null>(null);
+    const renameTriggerRef = useRef<HTMLButtonElement | null>(null);
     const moreTriggerRef = useRef<HTMLButtonElement | null>(null);
     const activityOverlayRef = useRef<HTMLDivElement | null>(null);
     const tagFilterRef = useRef<HTMLDivElement | null>(null);
+    const detailPanelRef = useRef<HTMLElement | null>(null);
+    const detailCloseRef = useRef<HTMLButtonElement | null>(null);
+    const detailBackRef = useRef<HTMLButtonElement | null>(null);
+    const detailWasMobileRef = useRef(false);
+    const recordingRowRefs = useRef(new Map<string, HTMLButtonElement>());
     const restoreActivityFocusRef = useRef(false);
     const activityFocusRestoreTimerRefs = useRef<number[]>([]);
     const copyFeedbackTimerRef = useRef<number | null>(null);
@@ -1761,8 +1573,28 @@ export function Workstation({
         recordingId: string;
     } | null>(null);
     const sourceReportRequestIdRef = useRef(0);
+    const previousRecordingQueryResetKeyRef = useRef<string | null>(null);
+    const requestedRecordingIdRef = useRef<string | null>(null);
     const selectedRecordingIdRef = useRef<string | null>(
         recordings[0]?.id ?? null,
+    );
+
+    const updateRequestedRecordingId = useCallback(
+        (recordingId: string | null) => {
+            requestedRecordingIdRef.current = recordingId;
+            setRequestedRecordingId(recordingId);
+            setMissingRequestedRecordingId(null);
+        },
+        [],
+    );
+
+    const settleMissingRequestedRecordingId = useCallback(
+        (recordingId: string) => {
+            requestedRecordingIdRef.current = null;
+            setRequestedRecordingId(null);
+            setMissingRequestedRecordingId(recordingId);
+        },
+        [],
     );
 
     const loadDataSources = useCallback(async () => {
@@ -1773,11 +1605,11 @@ export function Workstation({
             setDataSources(data.sources);
         } catch {
             setDataSources([]);
-            setDataSourcesError("数据源状态加载失败");
+            setDataSourcesError(t("recordingDetail.dataSourcesLoadFailed"));
         } finally {
             setDataSourcesLoading(false);
         }
-    }, []);
+    }, [t]);
 
     const clearActivityFocusRestoreTimers = useCallback(() => {
         for (const timer of activityFocusRestoreTimerRefs.current) {
@@ -1834,13 +1666,101 @@ export function Workstation({
         [clearActivityFocusRestoreTimers, restoreActivityTriggerFocus],
     );
 
+    const selectSource = useCallback((nextSource: DashboardSourceFilter) => {
+        setSource(nextSource);
+        writeBrowserStorage(DASHBOARD_SOURCE_FILTER_STORAGE_KEY, nextSource);
+    }, []);
+
+    const updateDashboardFilterState = useCallback(
+        (action: DashboardFilterAction) => {
+            setDashboardFilterState((current) =>
+                reduceDashboardFilterState(current, action),
+            );
+        },
+        [],
+    );
+
+    const selectFavorite = useCallback(
+        (nextFavorite: DashboardFavoriteFilter) => {
+            updateDashboardFilterState({
+                type: "favorite",
+                value: nextFavorite,
+            });
+        },
+        [updateDashboardFilterState],
+    );
+
+    const selectTagFilter = useCallback(
+        (nextTagFilter: DashboardTagFilter) => {
+            updateDashboardFilterState({
+                type: "tag-filter",
+                value: nextTagFilter,
+            });
+        },
+        [updateDashboardFilterState],
+    );
+
     useEffect(() => {
+        const urlState = readRecordingListUrlState(window.location.search);
+        updateRequestedRecordingId(urlState.recordingId);
+        setListPage(urlState.page);
+        setDetailOpen(urlState.detailOpen);
+        if (urlState.recordingId) {
+            setSelectedId(urlState.recordingId);
+        }
         setHydrated(true);
         setCollapsed(
             readBrowserStorage(DASHBOARD_SIDEBAR_COLLAPSED_STORAGE_KEY) ===
                 "true",
         );
-    }, []);
+        setSource(
+            parseDashboardSourceFilter(
+                readBrowserStorage(DASHBOARD_SOURCE_FILTER_STORAGE_KEY),
+            ),
+        );
+        setDashboardFilterState(
+            restoreDashboardFilterState({
+                search: window.location.search,
+                storedValue: readBrowserStorage(
+                    DASHBOARD_FILTER_STATE_STORAGE_KEY,
+                ),
+            }),
+        );
+    }, [updateRequestedRecordingId]);
+
+    useEffect(() => {
+        if (!hydrated) return;
+
+        const handlePopState = () => {
+            const urlState = readRecordingListUrlState(window.location.search);
+            updateRequestedRecordingId(urlState.recordingId);
+            setListPage(urlState.page);
+            setDetailOpen(urlState.detailOpen);
+            setSelectedId((currentId) => urlState.recordingId ?? currentId);
+        };
+
+        window.addEventListener("popstate", handlePopState);
+        return () => window.removeEventListener("popstate", handlePopState);
+    }, [hydrated, updateRequestedRecordingId]);
+
+    useEffect(() => {
+        if (!hydrated || !hasBrowserWindow()) {
+            return;
+        }
+
+        writeBrowserStorage(
+            DASHBOARD_FILTER_STATE_STORAGE_KEY,
+            serializeDashboardFilterState(dashboardFilterState),
+        );
+        const currentUrl = `${window.location.pathname}${window.location.search}${window.location.hash}`;
+        const nextUrl = dashboardFilterStateUrl(
+            window.location.href,
+            dashboardFilterState,
+        );
+        if (nextUrl !== currentUrl) {
+            window.history.replaceState(null, "", nextUrl);
+        }
+    }, [dashboardFilterState, hydrated]);
 
     useEffect(
         () => () => {
@@ -1861,24 +1781,31 @@ export function Workstation({
     } = useAutoSync({
         onSuccess: ({ queued, newRecordings }) => {
             if (queued) {
-                toast.success("同步请求已排队");
+                toast.success(t("recordingDetail.syncQueued"));
                 return;
             }
             toast.success(
                 newRecordings && newRecordings > 0
-                    ? `同步完成，新增 ${newRecordings} 条录音`
-                    : "同步完成，没有新录音",
+                    ? t("recordingDetail.syncNewRecordings", {
+                          count: newRecordings,
+                      })
+                    : t("recordingDetail.syncCompleteNoNew"),
             );
         },
         onError: (error) => {
-            toast.error(error || "同步失败");
+            toast.error(error || t("recordingDetail.syncFailed"));
         },
     });
     const syncSystemBannerKind = syncSystemBannerState(
+        workerStatus?.lastErrorReason ?? lastSyncResult?.reason,
         workerStatus?.lastError ?? lastSyncResult?.error,
     );
 
     useEffect(() => {
+        if (!hasBrowserWindow()) {
+            return;
+        }
+
         window.dispatchEvent(
             new CustomEvent("betterainote:system-banner", {
                 detail: {
@@ -1895,16 +1822,170 @@ export function Workstation({
 
     useEffect(() => {
         setLiveRecordings(recordings);
-        setSelectedId(recordings[0]?.id ?? "");
+        const requestedId = requestedRecordingIdRef.current;
+        const recordingIds = recordings.map((recording) => recording.id);
+        setSelectedId(
+            (currentId) =>
+                reconcileRecordingSelection({
+                    currentId,
+                    recordingIds,
+                    requestedId,
+                }) ?? "",
+        );
     }, [recordings]);
 
     useEffect(() => {
-        setLiveTranscriptions(transcriptions);
+        setLiveTranscriptions((current) =>
+            reconcileTranscriptionMaps(current, transcriptions),
+        );
     }, [transcriptions]);
 
     useEffect(() => {
         setLiveJobs(transcriptionJobs);
     }, [transcriptionJobs]);
+
+    const recordingQueryResetKey = useMemo(
+        () =>
+            [
+                favorite,
+                source,
+                query.trim(),
+                librarySearchFilter?.type ?? "",
+                librarySearchFilter?.label ?? "",
+                listMode,
+                selectedTagFilter,
+                timelineFilter,
+                itemsPerPage,
+                displaySettings.recordingListSortOrder,
+            ].join("\u0001"),
+        [
+            favorite,
+            itemsPerPage,
+            librarySearchFilter,
+            listMode,
+            query,
+            selectedTagFilter,
+            source,
+            timelineFilter,
+            displaySettings.recordingListSortOrder,
+        ],
+    );
+
+    useEffect(() => {
+        if (!hydrated || !displaySettingsLoaded) return;
+        if (previousRecordingQueryResetKeyRef.current === null) {
+            previousRecordingQueryResetKeyRef.current = recordingQueryResetKey;
+            return;
+        }
+        if (
+            previousRecordingQueryResetKeyRef.current === recordingQueryResetKey
+        ) {
+            return;
+        }
+        previousRecordingQueryResetKeyRef.current = recordingQueryResetKey;
+        setListPage(1);
+    }, [displaySettingsLoaded, hydrated, recordingQueryResetKey]);
+
+    useEffect(() => {
+        if (!hydrated || !displaySettingsLoaded) return;
+
+        const controller = new AbortController();
+        const params = buildRecordingListQueryParams({
+            anchorRecordingId: requestedRecordingId,
+            favorite,
+            libraryFilter: librarySearchFilter,
+            listMode,
+            page: listPage,
+            pageSize: itemsPerPage,
+            query,
+            selectedTagFilter,
+            sort: displaySettings.recordingListSortOrder,
+            source,
+            timeline: timelineFilter,
+        });
+
+        setRecordingListLoading(true);
+        setRecordingListError(false);
+        void (async () => {
+            try {
+                const response = await fetch(
+                    `/api/recordings/query?${params.toString()}`,
+                    {
+                        signal: controller.signal,
+                        cache:
+                            recordingListRequestVersion > 0
+                                ? "no-store"
+                                : "default",
+                    },
+                );
+                if (!response.ok) {
+                    throw new Error("Failed to load recordings");
+                }
+                const payload =
+                    (await response.json()) as RecordingQueryResponse;
+                if (controller.signal.aborted) return;
+                const {
+                    transcriptions: nextTranscriptions,
+                    transcriptionJobs: nextJobs,
+                } = buildPagedRecordingMaps(payload.recordings);
+                setLiveRecordings(payload.recordings);
+                setLiveTranscriptions((current) =>
+                    reconcileTranscriptionMaps(current, nextTranscriptions),
+                );
+                setLiveJobs(nextJobs);
+                setRecordingPage(payload.pagination);
+                setRecordingFacets(adaptRecordingListFacets(payload.facets));
+                setListPage(payload.pagination.page);
+                const requestedId = requestedRecordingIdRef.current;
+                const recordingIds = payload.recordings.map(
+                    (recording) => recording.id,
+                );
+                const requestedIdFound = Boolean(
+                    requestedId && recordingIds.includes(requestedId),
+                );
+                if (requestedId && requestedIdFound) {
+                    updateRequestedRecordingId(null);
+                } else if (requestedId && payload.anchorPage === null) {
+                    settleMissingRequestedRecordingId(requestedId);
+                }
+                setSelectedId((currentId) =>
+                    requestedId && !requestedIdFound
+                        ? currentId
+                        : (reconcileRecordingSelection({
+                              currentId,
+                              recordingIds,
+                              requestedId,
+                          }) ?? ""),
+                );
+            } catch {
+                if (controller.signal.aborted) return;
+                setRecordingListError(true);
+            } finally {
+                if (!controller.signal.aborted) {
+                    setRecordingListLoading(false);
+                }
+            }
+        })();
+
+        return () => controller.abort();
+    }, [
+        displaySettingsLoaded,
+        favorite,
+        hydrated,
+        itemsPerPage,
+        librarySearchFilter,
+        listMode,
+        listPage,
+        query,
+        selectedTagFilter,
+        source,
+        timelineFilter,
+        recordingListRequestVersion,
+        requestedRecordingId,
+        displaySettings.recordingListSortOrder,
+        settleMissingRequestedRecordingId,
+        updateRequestedRecordingId,
+    ]);
 
     const sourceCounts = useMemo(() => {
         const counts = new Map<string, number>();
@@ -1919,69 +2000,39 @@ export function Workstation({
 
     const filteredRecordings = useMemo(() => {
         const normalizedQuery = query.trim().toLocaleLowerCase();
-        return liveRecordings.filter((recording) => {
+        const filtered = liveRecordings.filter((recording) => {
             if (source !== "all" && recording.sourceProvider !== source) {
                 return false;
             }
-            if (librarySearchFilter?.type === "tag") {
-                const tagMatch = recording.tags.some(
-                    (tag) =>
-                        tag.id === librarySearchFilter.label ||
-                        tag.name === librarySearchFilter.label,
-                );
-                if (!tagMatch) return false;
-            }
-            if (librarySearchFilter?.type === "speaker") {
-                const speakerNames = Object.values(
-                    liveTranscriptions.get(recording.id)?.speakerMap ?? {},
-                );
-                const speakerMatch = speakerNames.some(
-                    (name) => name === librarySearchFilter.label,
-                );
-                if (!speakerMatch) return false;
-            }
-            if (
-                favorite === "transcribed" &&
-                !hasTranscript(recording, liveTranscriptions)
-            ) {
-                return false;
-            }
-            if (favorite === "tags" && recording.tags.length === 0) {
-                return false;
-            }
-            if (!normalizedQuery) return true;
-            return [
-                recording.filename,
-                recording.sourceProvider,
-                ...recording.tags.map((tag) => tag.name),
-                liveTranscriptions.get(recording.id)?.text ?? "",
-            ]
-                .join(" ")
-                .toLocaleLowerCase()
-                .includes(normalizedQuery);
+            return (
+                !normalizedQuery ||
+                [
+                    recording.filename,
+                    recording.sourceProvider,
+                    ...recording.tags.map((tag) => tag.name),
+                    liveTranscriptions.get(recording.id)?.text ?? "",
+                ]
+                    .join(" ")
+                    .toLocaleLowerCase()
+                    .includes(normalizedQuery)
+            );
         });
-    }, [
-        favorite,
-        librarySearchFilter,
-        liveRecordings,
-        liveTranscriptions,
-        query,
-        source,
-    ]);
-    const itemsPerPage = Math.max(1, displaySettings.itemsPerPage || 50);
+        return filtered;
+    }, [liveRecordings, liveTranscriptions, query, source]);
     const timelineCounts = useMemo(() => {
         const counts: Record<TimelineFilter, number> = {
             all: filteredRecordings.length,
             today: 0,
             yesterday: 0,
+            last7: 0,
             earlier: 0,
         };
         for (const recording of filteredRecordings) {
             const bucket = getTimelineFilter(recording.startTime);
             counts[bucket] += 1;
         }
-        return counts;
-    }, [filteredRecordings]);
+        return recordingFacets?.timeline ?? counts;
+    }, [filteredRecordings, recordingFacets]);
     const tagFilterOptions = useMemo(() => {
         const tags = new Map<
             string,
@@ -2006,11 +2057,32 @@ export function Workstation({
                 }
             }
         }
-        const options: Array<{
-            value: TagFilterValue;
-            label: string;
-            count: number;
-        }> = [
+        if (recordingFacets) {
+            const options: RecordingListTagOption[] = [
+                {
+                    value: "all",
+                    label: t("recordingList.timeline.all"),
+                    count: recordingFacets.tags.all,
+                },
+                ...recordingFacets.tags.items.map((tag) => ({
+                    value: tagFilterValue(tag.id),
+                    label: tag.name,
+                    count: tag.count,
+                })),
+            ];
+            if (
+                recordingFacets.tags.untagged > 0 ||
+                selectedTagFilter === "untagged"
+            ) {
+                options.push({
+                    value: "untagged",
+                    label: t("recordingList.untagged"),
+                    count: recordingFacets.tags.untagged,
+                });
+            }
+            return options;
+        }
+        const options: RecordingListTagOption[] = [
             {
                 value: "all",
                 label: t("recordingList.timeline.all"),
@@ -2031,7 +2103,7 @@ export function Workstation({
                     count: tag.count,
                 });
             });
-        if (untagged > 0) {
+        if (untagged > 0 || selectedTagFilter === "untagged") {
             options.push({
                 value: "untagged",
                 label: t("recordingList.untagged"),
@@ -2039,10 +2111,7 @@ export function Workstation({
             });
         }
         return options;
-    }, [filteredRecordings, language, t]);
-    const selectedTagOption =
-        tagFilterOptions.find((option) => option.value === selectedTagFilter) ??
-        tagFilterOptions[0];
+    }, [filteredRecordings, language, recordingFacets, selectedTagFilter, t]);
     const listEntries = useMemo(() => {
         const entries: {
             groupId: string;
@@ -2094,64 +2163,53 @@ export function Workstation({
 
         for (const recording of filteredRecordings) {
             const bucket = getTimelineFilter(recording.startTime);
-            if (timelineFilter !== "all" && bucket !== timelineFilter) {
-                continue;
-            }
             entries.push({
                 groupId: bucket,
-                groupLabel: getDayBucket(recording.startTime),
+                groupLabel: getDayBucket(recording.startTime, t),
                 recording,
             });
         }
         return entries;
-    }, [filteredRecordings, listMode, selectedTagFilter, t, timelineFilter]);
+    }, [filteredRecordings, listMode, selectedTagFilter, t]);
     const listHasExternalFilter =
         source !== "all" ||
         query.trim().length > 0 ||
-        librarySearchFilter !== null;
-    const listState: RecordingListState = !displaySettingsLoaded
-        ? "loading"
-        : liveRecordings.length === 0
-          ? "empty"
-          : filteredRecordings.length === 0
-            ? listMode === "tags" && !listHasExternalFilter
-                ? "tag-empty"
-                : "no-match"
-            : listEntries.length > 0
-              ? "ready"
-              : listMode === "tags"
-                ? "tag-empty"
-                : timelineFilter !== "all"
-                  ? "timeline-empty"
-                  : "no-match";
+        librarySearchFilter !== null ||
+        favorite === "transcribed";
+    const listHasSelectedTagFilter =
+        listMode === "tags" && selectedTagFilter !== "all";
+    const listHasTimelineFilter =
+        listMode === "timeline" && timelineFilter !== "all";
+    const listHasTagFavorite = favorite === "tags";
+    const listState: RecordingListState =
+        !displaySettingsLoaded || recordingListLoading
+            ? "loading"
+            : recordingListError
+              ? "error"
+              : listEntries.length > 0
+                ? "ready"
+                : listHasExternalFilter
+                  ? "no-match"
+                  : listHasSelectedTagFilter
+                    ? "tag-empty"
+                    : listHasTimelineFilter
+                      ? "timeline-empty"
+                      : listHasTagFavorite
+                        ? "tag-empty"
+                        : liveRecordings.length === 0
+                          ? "empty"
+                          : "no-match";
     const listTotalPages = Math.max(
         1,
-        Math.ceil(listEntries.length / itemsPerPage),
+        Math.ceil(recordingPage.total / recordingPage.pageSize),
     );
-    const currentListPage = Math.min(listPage, listTotalPages);
-    const pagedListEntries =
-        listState === "ready"
-            ? listEntries.slice(
-                  (currentListPage - 1) * itemsPerPage,
-                  currentListPage * itemsPerPage,
-              )
-            : [];
-    const listPaginationState =
-        currentListPage === 1
-            ? "paginated-first"
-            : currentListPage === listTotalPages
-              ? "paginated-last"
-              : "paginated";
-    const listLoadedCount =
-        listPaginationState === "paginated-last"
-            ? listEntries.length
-            : pagedListEntries.length;
-    const listPageStatusKey =
-        listPaginationState === "paginated-last"
-            ? "recordingList.pageStatusLast"
-            : listPaginationState === "paginated"
-              ? "recordingList.pageStatusMiddle"
-              : "recordingList.pageStatusFirst";
+    const currentListPage = listPage;
+    const pagedListEntries = listState === "ready" ? listEntries : [];
+    const listLoadedCount = Math.min(
+        recordingPage.total,
+        Math.max(0, (currentListPage - 1) * recordingPage.pageSize) +
+            liveRecordings.length,
+    );
     const groupedListEntries = useMemo(() => {
         const groups: {
             id: string;
@@ -2172,6 +2230,45 @@ export function Workstation({
         }
         return groups;
     }, [pagedListEntries]);
+    const recordingListGroups = useMemo<RecordingListGroup[]>(
+        () =>
+            groupedListEntries.map((group) => ({
+                id: group.id,
+                label: group.label,
+                entries: group.entries.map((entry) => {
+                    const sourceMeta = sourceDefinition(
+                        entry.recording.sourceProvider,
+                    );
+                    return {
+                        durationLabel: formatDuration(entry.recording.duration),
+                        filename: entry.recording.filename,
+                        id: entry.recording.id,
+                        source: {
+                            cover: sourceMeta?.cover ?? false,
+                            icon: sourceMeta?.icon ?? null,
+                            label: providerLabel(
+                                entry.recording.sourceProvider,
+                                language,
+                            ),
+                            letter:
+                                providerLabel(
+                                    entry.recording.sourceProvider,
+                                    language,
+                                )[0] ?? "·",
+                        },
+                        startTime: entry.recording.startTime,
+                        status: getRecordingListStatus(
+                            entry.recording,
+                            liveTranscriptions.get(entry.recording.id),
+                            liveJobs.get(entry.recording.id),
+                            t,
+                        ),
+                        tag: entry.displayTag ?? entry.recording.tags[0],
+                    };
+                }),
+            })),
+        [groupedListEntries, language, liveJobs, liveTranscriptions, t],
+    );
 
     const listEligibleRecordings = useMemo(() => {
         const seen = new Set<string>();
@@ -2184,35 +2281,6 @@ export function Workstation({
         return recordings;
     }, [listEntries]);
 
-    const listResetKey = useMemo(
-        () =>
-            [
-                filteredRecordings
-                    .map((recording) => recording.id)
-                    .join("\u0000"),
-                itemsPerPage,
-                listMode,
-                selectedTagFilter,
-                timelineFilter,
-            ].join("\u0001"),
-        [
-            filteredRecordings,
-            itemsPerPage,
-            listMode,
-            selectedTagFilter,
-            timelineFilter,
-        ],
-    );
-
-    useEffect(() => {
-        if (!listResetKey) return;
-        setListPage((page) => (page === 1 ? page : 1));
-    }, [listResetKey]);
-
-    useEffect(() => {
-        setListPage((page) => Math.min(Math.max(page, 1), listTotalPages));
-    }, [listTotalPages]);
-
     useEffect(() => {
         if (
             tagFilterOptions.some(
@@ -2221,8 +2289,11 @@ export function Workstation({
         ) {
             return;
         }
-        setSelectedTagFilter("all");
-    }, [selectedTagFilter, tagFilterOptions]);
+        updateDashboardFilterState({
+            available: tagFilterOptions.map((option) => option.value),
+            type: "reconcile-tags",
+        });
+    }, [selectedTagFilter, tagFilterOptions, updateDashboardFilterState]);
     const dataSourceByProvider = useMemo(
         () =>
             new Map(
@@ -2238,6 +2309,12 @@ export function Workstation({
             workerStatus?.lastError ||
             (workerStatus?.lastSummary?.errorCount ?? 0) > 0,
     );
+    const hasSourceNarrowingFilter =
+        favorite !== "all" ||
+        query.trim().length > 0 ||
+        librarySearchFilter !== null ||
+        (listMode === "tags" && selectedTagFilter !== "all") ||
+        (listMode === "timeline" && timelineFilter !== "all");
     const sourceRows = useMemo(
         () =>
             SOURCE_ORDER.map((item) => {
@@ -2246,29 +2323,39 @@ export function Workstation({
                 const active = source === item.key;
                 const connected = Boolean(dataSource?.connected);
                 const enabled = dataSource?.enabled ?? false;
+                const hasSavedCredentials = Boolean(
+                    dataSource &&
+                        Object.values(dataSource.secretsConfigured).some(
+                            Boolean,
+                        ),
+                );
                 const planned = dataSource?.runtimeStatus === "planned";
                 const status: SourceStatus =
                     dataSourcesLoading && !dataSource
                         ? "loading"
                         : planned
                           ? "planned"
-                          : !connected
-                            ? "needs-setup"
-                            : !enabled
-                              ? "paused"
+                          : !enabled && hasSavedCredentials
+                            ? "paused"
+                            : !connected
+                              ? "needs-setup"
                               : dataSource?.connectionStatus === "expired"
                                 ? "expired"
                                 : isAutoSyncing
                                   ? "syncing"
                                   : hasSyncError
                                     ? "sync-error"
-                                    : active &&
-                                        count > 0 &&
-                                        filteredRecordings.length === 0
-                                      ? "no-results"
-                                      : count > 0
-                                        ? "connected"
-                                        : "connected-empty";
+                                    : resolveConnectedSourceStatus({
+                                          active,
+                                          currentResultCount:
+                                              filteredRecordings.length,
+                                          hasNarrowingFilter:
+                                              hasSourceNarrowingFilter,
+                                          providerCount: count,
+                                          settled:
+                                              !recordingListLoading &&
+                                              !recordingListError,
+                                      });
 
                 return {
                     ...item,
@@ -2285,8 +2372,11 @@ export function Workstation({
             dataSourcesLoading,
             filteredRecordings.length,
             hasSyncError,
+            hasSourceNarrowingFilter,
             isAutoSyncing,
             language,
+            recordingListError,
+            recordingListLoading,
             source,
             sourceCounts,
             t,
@@ -2363,25 +2453,67 @@ export function Workstation({
               ? t("activityOverlay.items.sourceUpdateCompleteTitle")
               : lastSyncTime
                 ? t("activityOverlay.status.lastUpdatedAt", {
-                      time: formatRelativeDate(lastSyncTime.toISOString()),
+                      time: formatRelativeDate(
+                          lastSyncTime.toISOString(),
+                          language,
+                          t,
+                      ),
                   })
                 : autoSyncEnabled
                   ? nextSyncTime
                       ? t("activityOverlay.status.nextUpdateAt", {
                             time: formatRelativeDate(
                                 nextSyncTime.toISOString(),
+                                language,
+                                t,
                             ),
                         })
                       : t("activityOverlay.status.waitingForAutoUpdate")
                   : t("activityOverlay.status.autoUpdatePaused");
 
-    const selectedRecording =
-        listEligibleRecordings.find(
-            (recording) => recording.id === selectedId,
-        ) ??
-        listEligibleRecordings[0] ??
-        null;
+    const requestedRecordingMissing = Boolean(
+        detailOpen &&
+            (missingRequestedRecordingId ||
+                (requestedRecordingId &&
+                    (!displaySettingsLoaded ||
+                        recordingListLoading ||
+                        recordingListError ||
+                        !listEligibleRecordings.some(
+                            (recording) =>
+                                recording.id === requestedRecordingId,
+                        )))),
+    );
+    const selectedRecording = requestedRecordingMissing
+        ? null
+        : (listEligibleRecordings.find(
+              (recording) => recording.id === selectedId,
+          ) ??
+          listEligibleRecordings[0] ??
+          null);
     const selectedRecordingId = selectedRecording?.id ?? null;
+    useEffect(() => {
+        if (!hydrated || !hasBrowserWindow()) return;
+        const nextUrl = recordingListUrl({
+            currentUrl: window.location.href,
+            detailOpen,
+            page: currentListPage,
+            recordingId: detailOpen
+                ? (requestedRecordingId ??
+                  missingRequestedRecordingId ??
+                  selectedRecordingId)
+                : null,
+        });
+        if (!isRecordingListUrlCurrent(window.location.href, nextUrl)) {
+            window.history.replaceState(null, "", nextUrl);
+        }
+    }, [
+        currentListPage,
+        detailOpen,
+        hydrated,
+        missingRequestedRecordingId,
+        requestedRecordingId,
+        selectedRecordingId,
+    ]);
     const selectedTranscription = selectedRecording
         ? liveTranscriptions.get(selectedRecording.id)
         : undefined;
@@ -2453,29 +2585,45 @@ export function Workstation({
                 : "idle";
     const dashboardRetxTitle =
         dashboardRetxState === "completed"
-            ? "重新转写完成"
+            ? t("recordingDetail.retx.completedTitle")
             : dashboardRetxState === "failed"
-              ? "本次重新转写失败"
+              ? t("recordingDetail.retx.failedTitle")
               : dashboardRetxState === "running"
-                ? "正在重新转写"
+                ? t("recordingDetail.retx.runningTitle")
                 : dashboardRetxState === "queued"
-                  ? "转写任务已加入队列"
-                  : "重新转写";
+                  ? t("recordingDetail.retx.queuedTitle")
+                  : t("recordingDetail.retx.idleTitle");
     const dashboardRetxSub =
         dashboardRetxState === "completed"
-            ? "逐字稿、说话人映射与摘要已刷新。"
+            ? t("recordingDetail.retx.completedDescription")
             : dashboardRetxState === "failed"
-              ? "VoScript worker 暂时不可达 · 原稿未被覆盖。"
+              ? t("recordingDetail.retx.failedDescription")
               : dashboardRetxState === "running"
-                ? "已完成 12% · 当前结果仍可阅读，完成后自动刷新。"
+                ? t("recordingDetail.retx.runningDescription")
                 : dashboardRetxState === "queued"
-                  ? "正在等待工作器领取，期间可继续浏览。"
-                  : "新任务会保持当前转写可见，完成后替换结果。";
-    const turns = transcriptTurns(selectedTranscription);
-    const localTranscriptText = selectedTranscription?.text ?? "";
+                  ? t("recordingDetail.retx.queuedDescription")
+                  : t("recordingDetail.retx.idleDescription");
+    const turns = useMemo(
+        () => transcriptTurns(selectedTranscription),
+        [selectedTranscription],
+    );
+    const speakers = useMemo(
+        () => transcriptSpeakers(selectedTranscription),
+        [selectedTranscription],
+    );
+    const localTranscriptText =
+        selectedTranscription?.text?.trim() ||
+        turns.map((turn) => turn.text).join("\n\n");
     const isTranscriptLoading = selectedRecordingId
         ? loadingTranscriptIds.has(selectedRecordingId)
         : false;
+    const transcriptLoadError = selectedRecordingId
+        ? (transcriptLoadErrors.get(selectedRecordingId) ?? null)
+        : null;
+    const transcriptionPollingKey = getDashboardTranscriptionPollingKey(
+        selectedRecordingId,
+        selectedJob,
+    );
     const sourceReportState =
         sourceReport.recordingId === selectedRecordingId
             ? sourceReport.state
@@ -2493,13 +2641,21 @@ export function Workstation({
     const sourceSummaryLines = sourceReportSummaryLines(sourceSummaryText);
     const sourceSummaryAvailable =
         Boolean(sourceSummaryText) || sourceReportData?.summaryReady === true;
-    const sourceTranscriptStatusLabel = sourceReportReadinessLabel(
+    const sourceTranscriptStatus = sourceReportReadinessState(
         sourceReportData?.transcriptReady,
         sourceTranscriptAvailable,
     );
-    const sourceSummaryStatusLabel = sourceReportReadinessLabel(
+    const sourceSummaryStatus = sourceReportReadinessState(
         sourceReportData?.summaryReady,
         sourceSummaryAvailable,
+    );
+    const sourceTranscriptStatusLabel = sourceReportReadinessLabel(
+        sourceTranscriptStatus,
+        t,
+    );
+    const sourceSummaryStatusLabel = sourceReportReadinessLabel(
+        sourceSummaryStatus,
+        t,
     );
     const sourceReportSubState = getSourceReportSubState(
         sourceTranscriptAvailable,
@@ -2511,12 +2667,11 @@ export function Workstation({
     );
     const localTranscriptCopyState: SourceReportCopyState = isTranscriptLoading
         ? "loading"
-        : localTranscriptText.trim()
-          ? "ready"
-          : "missing";
-    const localTranscriptCopyDisabled =
-        copyingAction === "local-transcript" ||
-        localTranscriptCopyState !== "ready";
+        : transcriptLoadError && !localTranscriptText.trim()
+          ? "error"
+          : localTranscriptText.trim()
+            ? "ready"
+            : "missing";
     const sourceTranscriptCopyDisabled =
         copyingAction === "source-transcript" ||
         sourceTranscriptCopyState !== "ready";
@@ -2609,19 +2764,18 @@ export function Workstation({
             "language",
             "locale",
             "lang",
-        ]) ?? "简体中文 (zh-CN)";
+        ]) ?? t("sourceReport.defaultLanguage");
     const sourceReportReadable =
         sourceReportDetailText(sourceReportMetadata, [
             "readableContent",
             "assets",
             "availableContent",
-        ]) ?? "音频 · 转写 · 摘要 · 说话人";
-    const sourceReportSyncStatusLabel =
-        sourceReportDetailText(sourceReportMetadata, [
-            "statusLabel",
-            "syncStatusLabel",
-            "sourceStatusLabel",
-        ]) ?? "已同步";
+        ]) ?? t("sourceReport.defaultReadableContent");
+    const sourceReportSyncStatus = sourceReportSyncState(sourceReportMetadata);
+    const sourceReportSyncStatusLabel = sourceReportSyncLabel(
+        sourceReportSyncStatus,
+        t,
+    );
     const sourceReportRawSegments =
         sourceReportData?.transcript?.segments ?? [];
     const sourceReportTranscriptText =
@@ -2644,20 +2798,20 @@ export function Workstation({
         sourceReportDisplaySegments.length;
     const sourceReportCopyText = sourceReportData
         ? [
-              `来源：${sourceReportProviderName}`,
-              `转写状态：${sourceTranscriptStatusLabel}`,
-              `摘要状态：${sourceSummaryStatusLabel}`,
-              `分段数：${sourceReportSegmentCount}`,
+              `${t("recording.source")}: ${sourceReportProviderName}`,
+              `${t("sourceReport.transcriptStatus")}: ${sourceTranscriptStatusLabel}`,
+              `${t("sourceReport.summaryStatus")}: ${sourceSummaryStatusLabel}`,
+              `${t("sourceReport.segmentCount")}: ${sourceReportSegmentCount}`,
               "",
-              "来源信息",
-              `来源：${sourceReportProviderName}`,
-              `状态：${sourceReportSyncStatusLabel}`,
-              `录制于：${formatSourceReportDate(sourceReportRecordedAt)}`,
-              `最近更新：${formatSourceReportDate(sourceReportUpdatedAt)}`,
-              `可读内容：${sourceReportReadable}`,
-              `来源标题：${sourceReportTitle}`,
-              `语种：${sourceReportLanguage}`,
-              `时长：${selectedRecording ? formatDuration(selectedRecording.duration) : "--"}`,
+              t("sourceReport.sourceInformation"),
+              `${t("recording.source")}: ${sourceReportProviderName}`,
+              `${t("sourceReport.status")}: ${sourceReportSyncStatusLabel}`,
+              `${t("sourceReport.recordedAt")}: ${formatSourceReportDate(sourceReportRecordedAt)}`,
+              `${t("sourceReport.updatedAt")}: ${formatSourceReportDate(sourceReportUpdatedAt)}`,
+              `${t("sourceReport.readableContent")}: ${sourceReportReadable}`,
+              `${t("sourceReport.sourceTitle")}: ${sourceReportTitle}`,
+              `${t("sourceReport.language")}: ${sourceReportLanguage}`,
+              `${t("sourceReport.duration")}: ${selectedRecording ? formatDuration(selectedRecording.duration) : "--"}`,
               sourceSummaryText ? "" : null,
               sourceSummaryText || null,
           ]
@@ -2700,13 +2854,13 @@ export function Workstation({
     );
     const aiUnavailableReason = selectedRecording
         ? titleGenerationConfigured === true && !hasSelectedTranscript
-            ? "需要先生成本地转录"
+            ? t("recordingDetail.ai.needsTranscript")
             : aiUnavailableIsService
-              ? "AI 重命名服务尚未配置或暂时不可用。"
+              ? t("recordingDetail.ai.serviceUnavailable")
               : ""
-        : "请选择录音";
+        : t("recordingDetail.ai.selectRecording");
     const aiUnavailableHint = aiUnavailableIsService
-        ? "前往设置 → AI 重命名服务以启用。"
+        ? t("recordingDetail.ai.serviceHint")
         : null;
     const applyDashboardRecordingTags = useCallback(
         (recordingId: string, tags: RecordingTag[]) => {
@@ -2731,7 +2885,7 @@ export function Workstation({
     const activityItems = useMemo<ActivityItem[]>(() => {
         const items: ActivityItem[] = [];
 
-        if (isAutoSyncing || workerStatus?.isRunning) {
+        if (workerStatus?.isRunning || isAutoSyncing) {
             items.push({
                 id: "source-sync-running",
                 tone: "loading",
@@ -2922,7 +3076,7 @@ export function Workstation({
                     recordingId: selectedRecordingId,
                     state: "error",
                     data: null,
-                    error: payload.error ?? "加载来源记录失败",
+                    error: payload.error ?? t("sourceReport.failedFetch"),
                 });
                 return;
             }
@@ -2951,14 +3105,14 @@ export function Workstation({
                 recordingId: selectedRecordingId,
                 state: "error",
                 data: null,
-                error: "加载来源记录失败",
+                error: t("sourceReport.failedFetch"),
             });
         } finally {
             if (sourceReportRequestRef.current?.id === requestId) {
                 sourceReportRequestRef.current = null;
             }
         }
-    }, [selectedRecordingHasSource, selectedRecordingId]);
+    }, [selectedRecordingHasSource, selectedRecordingId, t]);
 
     const handleCopyLocalTranscript = useCallback(async () => {
         if (!localTranscriptText.trim()) {
@@ -3076,80 +3230,426 @@ export function Workstation({
         });
     }, []);
 
+    const loadRecordingTranscription = useCallback(
+        async (recordingId: string) => {
+            if (loadingTranscriptIdsRef.current.has(recordingId)) {
+                return null;
+            }
+
+            loadingTranscriptIdsRef.current.add(recordingId);
+            markTranscriptLoading(recordingId);
+            setTranscriptLoadErrors((previous) => {
+                if (!previous.has(recordingId)) {
+                    return previous;
+                }
+                const next = new Map(previous);
+                next.delete(recordingId);
+                return next;
+            });
+
+            try {
+                const response = await fetch(`/api/recordings/${recordingId}`, {
+                    cache: "no-store",
+                    headers: { Accept: "application/json" },
+                });
+                if (!response.ok) {
+                    throw new Error(
+                        await readResponseError(
+                            response,
+                            t("recordingDetail.transcriptReadFailed"),
+                        ),
+                    );
+                }
+
+                const data = (await response.json()) as {
+                    transcription?: TranscriptionPollTranscriptData | null;
+                };
+                const transcription = data.transcription;
+                if (!transcription) {
+                    setLiveTranscriptions((previous) => {
+                        const current = previous.get(recordingId);
+                        if (hasTranscriptContent(current)) {
+                            return previous;
+                        }
+                        const next = new Map(previous);
+                        next.set(recordingId, {
+                            ...current,
+                            hasTranscript: false,
+                            text: null,
+                            segments: null,
+                        });
+                        return next;
+                    });
+                    return null;
+                }
+
+                setLiveTranscriptions((previous) => {
+                    const current = previous.get(recordingId);
+                    const merged = mergeTranscriptionData(current, {
+                        hasTranscript:
+                            hasTranscriptContent({
+                                text: transcription.text,
+                                segments: transcription.segments,
+                            }) || Boolean(current?.hasTranscript),
+                        text: transcription.text ?? null,
+                        language: transcription.detectedLanguage ?? null,
+                        speakerMap: transcription.speakerMap ?? null,
+                        segments: transcription.segments ?? null,
+                    });
+                    if (areTranscriptionsEqual(current, merged)) {
+                        return previous;
+                    }
+                    const next = new Map(previous);
+                    next.set(recordingId, merged);
+                    return next;
+                });
+                return transcription;
+            } catch (error) {
+                const message =
+                    error instanceof Error && error.message.trim()
+                        ? error.message
+                        : t("recordingDetail.transcriptReadFailed");
+                setTranscriptLoadErrors((previous) => {
+                    const next = new Map(previous);
+                    next.set(recordingId, message);
+                    return next;
+                });
+                return null;
+            } finally {
+                loadingTranscriptIdsRef.current.delete(recordingId);
+                clearTranscriptLoading(recordingId);
+            }
+        },
+        [clearTranscriptLoading, markTranscriptLoading, t],
+    );
+
     useEffect(() => {
         const recordingId = selectedRecordingId;
         if (
             !recordingId ||
             !selectedTranscription?.hasTranscript ||
-            hasTranscriptContent(selectedTranscription) ||
-            loadingTranscriptIdsRef.current.has(recordingId)
+            selectedTranscription.segments !== undefined
         ) {
             return;
         }
 
-        loadingTranscriptIdsRef.current.add(recordingId);
-        markTranscriptLoading(recordingId);
-        let active = true;
-
-        fetch(`/api/recordings/${recordingId}`, {
-            headers: { Accept: "application/json" },
-        })
-            .then((response) => (response.ok ? response.json() : null))
-            .then(
-                (
-                    data: {
-                        transcription?: {
-                            text?: string | null;
-                            detectedLanguage?: string | null;
-                            speakerMap?: Record<string, string> | null;
-                            segments?: TranscriptSegmentData[] | null;
-                        } | null;
-                    } | null,
-                ) => {
-                    if (!active) return;
-                    const transcription = data?.transcription;
-                    if (!hasTranscriptContent(transcription ?? null)) {
-                        return;
-                    }
-
-                    setLiveTranscriptions((previous) => {
-                        const current = previous.get(recordingId);
-                        const next = new Map(previous);
-                        next.set(recordingId, {
-                            ...current,
-                            hasTranscript: true,
-                            text: transcription?.text ?? undefined,
-                            language:
-                                transcription?.detectedLanguage ?? undefined,
-                            speakerMap:
-                                transcription?.speakerMap ??
-                                current?.speakerMap,
-                            segments:
-                                transcription?.segments ?? current?.segments,
-                        });
-                        return next;
-                    });
-                },
-            )
-            .finally(() => {
-                if (!active) return;
-                loadingTranscriptIdsRef.current.delete(recordingId);
-                clearTranscriptLoading(recordingId);
-            });
-
-        return () => {
-            active = false;
-        };
+        void loadRecordingTranscription(recordingId);
     }, [
-        clearTranscriptLoading,
-        markTranscriptLoading,
+        loadRecordingTranscription,
         selectedRecordingId,
         selectedTranscription,
     ]);
 
     useEffect(() => {
+        const recordingId = selectedRecordingId;
+        if (!recordingId || !transcriptionPollingKey) {
+            return;
+        }
+
+        let cancelled = false;
+        const poll = async () => {
+            try {
+                const response = await fetch(
+                    `/api/recordings/${recordingId}/transcribe`,
+                    { cache: "no-store" },
+                );
+                if (!response.ok || cancelled) {
+                    return;
+                }
+
+                const result =
+                    resolveDashboardTranscriptionPoll<TranscriptionPollTranscriptData>(
+                        await response.json(),
+                    );
+                if (cancelled) {
+                    return;
+                }
+
+                if (result.state === "active") {
+                    setLiveJobs((previous) => {
+                        const current = previous.get(recordingId);
+                        if (
+                            areDashboardTranscriptionJobsEqual(
+                                current,
+                                result.job,
+                            )
+                        ) {
+                            return previous;
+                        }
+                        const next = new Map(previous);
+                        next.set(recordingId, result.job);
+                        return next;
+                    });
+                    setRetxState(
+                        getRetxStateFromActiveJob(result.job) ?? "running",
+                    );
+                    return;
+                }
+
+                if (result.state === "completed") {
+                    setLiveTranscriptions((previous) => {
+                        const current = previous.get(recordingId);
+                        const merged = mergeTranscriptionData(current, {
+                            hasTranscript: true,
+                            text: result.transcript.text ?? null,
+                            language:
+                                result.transcript.detectedLanguage ?? null,
+                            speakerMap: result.transcript.speakerMap ?? null,
+                            segments: result.transcript.segments ?? null,
+                        });
+                        if (areTranscriptionsEqual(current, merged)) {
+                            return previous;
+                        }
+                        const next = new Map(previous);
+                        next.set(recordingId, merged);
+                        return next;
+                    });
+                    if (result.job) {
+                        const completedJob = result.job;
+                        setLiveJobs((previous) => {
+                            if (
+                                areDashboardTranscriptionJobsEqual(
+                                    previous.get(recordingId),
+                                    completedJob,
+                                )
+                            ) {
+                                return previous;
+                            }
+                            const next = new Map(previous);
+                            next.set(recordingId, completedJob);
+                            return next;
+                        });
+                    }
+                    setRetxState("completed");
+                    return;
+                }
+
+                if (result.state === "failed") {
+                    setLiveJobs((previous) => {
+                        const current = previous.get(recordingId);
+                        if (
+                            areDashboardTranscriptionJobsEqual(
+                                current,
+                                result.job,
+                            )
+                        ) {
+                            return previous;
+                        }
+                        const next = new Map(previous);
+                        next.set(recordingId, result.job);
+                        return next;
+                    });
+                    setRetxState("failed");
+                }
+            } catch {
+                // Polling is retried by the next interval.
+            }
+        };
+
+        void poll();
+        const intervalId = startBrowserInterval(() => {
+            void poll();
+        }, 3000);
+
+        return () => {
+            cancelled = true;
+            stopBrowserInterval(intervalId);
+        };
+    }, [selectedRecordingId, transcriptionPollingKey]);
+
+    const mergeDashboardSpeakers = useCallback(
+        async (request: TranscriptionPanelSpeakerMergeRequest) => {
+            if (!selectedRecordingId) {
+                return;
+            }
+
+            lastSpeakerMergeRequestRef.current = request;
+            setSpeakerMergeState({ state: "pending", error: null });
+
+            try {
+                const reviewResponse = await fetch(
+                    `/api/recordings/${selectedRecordingId}/speakers`,
+                    { cache: "no-store" },
+                );
+                if (!reviewResponse.ok) {
+                    throw new Error(
+                        await readResponseError(
+                            reviewResponse,
+                            t("recordingDetail.speaker.readFailed"),
+                        ),
+                    );
+                }
+                const review = (await reviewResponse.json()) as {
+                    speakers?: Array<{
+                        rawLabel?: string;
+                        matchedProfileId?: string | null;
+                    }>;
+                };
+                const targetReview = review.speakers?.find(
+                    (speaker) => speaker.rawLabel === request.target.rawLabel,
+                );
+
+                let profileId = targetReview?.matchedProfileId ?? null;
+                if (!profileId) {
+                    const targetResponse = await fetch(
+                        `/api/recordings/${selectedRecordingId}/speakers`,
+                        {
+                            method: "PATCH",
+                            headers: {
+                                "Content-Type": "application/json",
+                            },
+                            body: JSON.stringify({
+                                rawLabel: request.target.rawLabel,
+                                profileName:
+                                    request.target.speakerName ||
+                                    request.target.rawLabel,
+                            }),
+                        },
+                    );
+                    if (!targetResponse.ok) {
+                        throw new Error(
+                            await readResponseError(
+                                targetResponse,
+                                t("recordingDetail.speaker.createTargetFailed"),
+                            ),
+                        );
+                    }
+                    const targetResult = (await targetResponse.json()) as {
+                        profileId?: string | null;
+                    };
+                    profileId = targetResult.profileId ?? null;
+                }
+
+                if (!profileId) {
+                    throw new Error(
+                        t("recordingDetail.speaker.targetUnavailable"),
+                    );
+                }
+
+                const sourceResponse = await fetch(
+                    `/api/recordings/${selectedRecordingId}/speakers`,
+                    {
+                        method: "PATCH",
+                        headers: { "Content-Type": "application/json" },
+                        body: JSON.stringify({
+                            rawLabel: request.source.rawLabel,
+                            profileId,
+                        }),
+                    },
+                );
+                if (!sourceResponse.ok) {
+                    throw new Error(
+                        await readResponseError(
+                            sourceResponse,
+                            t("recordingDetail.speaker.mergeFailed"),
+                        ),
+                    );
+                }
+
+                const readbackResponse = await fetch(
+                    `/api/recordings/${selectedRecordingId}/speakers`,
+                    { cache: "no-store" },
+                );
+                if (!readbackResponse.ok) {
+                    throw new Error(
+                        t("recordingDetail.speaker.readbackFailed"),
+                    );
+                }
+                const readback = (await readbackResponse.json()) as {
+                    speakers?: Array<{
+                        rawLabel?: string;
+                        matchedProfileId?: string | null;
+                    }>;
+                };
+                const mergedLabels = new Set([
+                    request.target.rawLabel,
+                    request.source.rawLabel,
+                ]);
+                const mergedRows =
+                    readback.speakers?.filter((speaker) =>
+                        mergedLabels.has(speaker.rawLabel ?? ""),
+                    ) ?? [];
+                if (
+                    mergedRows.length !== 2 ||
+                    mergedRows.some(
+                        (speaker) => speaker.matchedProfileId !== profileId,
+                    )
+                ) {
+                    throw new Error(
+                        t("recordingDetail.speaker.readbackMismatch"),
+                    );
+                }
+
+                const transcriptResponse = await fetch(
+                    `/api/recordings/${selectedRecordingId}/transcript/speakers`,
+                    { cache: "no-store" },
+                );
+                if (!transcriptResponse.ok) {
+                    throw new Error(
+                        t("recordingDetail.speaker.transcriptRefreshFailed"),
+                    );
+                }
+                const speakerTranscript = (await transcriptResponse.json()) as {
+                    transcript?: {
+                        displayText?: string | null;
+                        detectedLanguage?: string | null;
+                        segments?: TranscriptSegmentData[] | null;
+                    } | null;
+                    speakerMap?: Record<string, string> | null;
+                };
+                if (!speakerTranscript.transcript) {
+                    throw new Error(
+                        t("recordingDetail.speaker.transcriptEmpty"),
+                    );
+                }
+                setLiveTranscriptions((previous) => {
+                    const current = previous.get(selectedRecordingId);
+                    const merged = mergeTranscriptionData(current, {
+                        hasTranscript: true,
+                        text:
+                            speakerTranscript.transcript?.displayText ??
+                            current?.text ??
+                            null,
+                        language:
+                            speakerTranscript.transcript?.detectedLanguage ??
+                            current?.language ??
+                            null,
+                        speakerMap: speakerTranscript.speakerMap ?? null,
+                        segments:
+                            speakerTranscript.transcript?.segments ?? null,
+                    });
+                    if (areTranscriptionsEqual(current, merged)) {
+                        return previous;
+                    }
+                    const next = new Map(previous);
+                    next.set(selectedRecordingId, merged);
+                    return next;
+                });
+                setSpeakerMergeState({ state: "success", error: null });
+                toast.success(t("recordingDetail.speaker.merged"));
+            } catch (error) {
+                const message =
+                    error instanceof Error && error.message.trim()
+                        ? error.message
+                        : t("recordingDetail.speaker.mergeRetry");
+                setSpeakerMergeState({ state: "error", error: message });
+                toast.error(message);
+            }
+        },
+        [selectedRecordingId, t],
+    );
+
+    const retryDashboardSpeakerMerge = useCallback(() => {
+        const request = lastSpeakerMergeRequestRef.current;
+        if (request) {
+            void mergeDashboardSpeakers(request);
+        }
+    }, [mergeDashboardSpeakers]);
+
+    useEffect(() => {
         if (!selectedRecording) {
             selectedRecordingIdRef.current = null;
+            setRenameError(null);
             sourceReportRequestRef.current?.controller.abort();
             sourceReportRequestRef.current = null;
             sourceReportRequestIdRef.current += 1;
@@ -3167,7 +3667,10 @@ export function Workstation({
         selectedRecordingIdRef.current = selectedRecording.id;
         setSelectedId(selectedRecording.id);
         setDraftTitle(selectedRecording.filename);
+        setRenameError(null);
         setRetxState("idle");
+        setSpeakerMergeState({ state: "idle", error: null });
+        lastSpeakerMergeRequestRef.current = null;
         sourceReportRequestRef.current?.controller.abort();
         sourceReportRequestRef.current = null;
         sourceReportRequestIdRef.current += 1;
@@ -3360,6 +3863,80 @@ export function Workstation({
     }, [tagFilterOpen]);
 
     useEffect(() => {
+        const media = window.matchMedia("(max-width: 1023px)");
+        const updateDetailViewport = () =>
+            setDetailMobileViewport(media.matches);
+
+        updateDetailViewport();
+        media.addEventListener("change", updateDetailViewport);
+        return () => media.removeEventListener("change", updateDetailViewport);
+    }, []);
+
+    useEffect(() => {
+        if (!detailOpen || !detailMobileViewport) return;
+
+        const previousOverflow = document.body.style.overflow;
+        document.body.style.overflow = "hidden";
+        const focusFrame = window.requestAnimationFrame(() => {
+            (detailBackRef.current ?? detailPanelRef.current)?.focus({
+                preventScroll: true,
+            });
+        });
+
+        const handleKeyDown = (event: KeyboardEvent) => {
+            if (event.key === "Escape") {
+                event.preventDefault();
+                detailBackRef.current?.click();
+                return;
+            }
+            if (event.key !== "Tab") return;
+
+            const panel = detailPanelRef.current;
+            const focusable = Array.from(
+                panel?.querySelectorAll<HTMLElement>(
+                    DETAIL_FOCUSABLE_SELECTOR,
+                ) ?? [],
+            ).filter(
+                (element) =>
+                    !element.hasAttribute("disabled") &&
+                    element.offsetParent !== null,
+            );
+            const first = focusable[0] ?? panel;
+            const last = focusable.at(-1) ?? panel;
+            if (!panel || !first || !last) return;
+
+            if (!panel.contains(document.activeElement)) {
+                event.preventDefault();
+                first.focus({ preventScroll: true });
+            } else if (event.shiftKey && document.activeElement === first) {
+                event.preventDefault();
+                last.focus({ preventScroll: true });
+            } else if (!event.shiftKey && document.activeElement === last) {
+                event.preventDefault();
+                first.focus({ preventScroll: true });
+            }
+        };
+
+        document.addEventListener("keydown", handleKeyDown);
+        return () => {
+            window.cancelAnimationFrame(focusFrame);
+            document.body.style.overflow = previousOverflow;
+            document.removeEventListener("keydown", handleKeyDown);
+        };
+    }, [detailMobileViewport, detailOpen]);
+
+    useEffect(() => {
+        if (detailOpen && !detailMobileViewport && detailWasMobileRef.current) {
+            const focusFrame = window.requestAnimationFrame(() => {
+                detailCloseRef.current?.focus({ preventScroll: true });
+            });
+            detailWasMobileRef.current = detailMobileViewport;
+            return () => window.cancelAnimationFrame(focusFrame);
+        }
+        detailWasMobileRef.current = detailMobileViewport;
+    }, [detailMobileViewport, detailOpen]);
+
+    useEffect(() => {
         let active = true;
         fetch("/api/settings/title-generation")
             .then((response) => (response.ok ? response.json() : null))
@@ -3422,12 +3999,14 @@ export function Workstation({
                 setTagLoadError("");
             })
             .catch(() => {
-                if (active) setTagLoadError("标签加载失败");
+                if (active) {
+                    setTagLoadError(t("recordingDetail.tagLoadFailed"));
+                }
             });
         return () => {
             active = false;
         };
-    }, [tagOpen]);
+    }, [tagOpen, t]);
 
     function openSettings(section: CanonicalSettingsSection) {
         setSearchOpen(false);
@@ -3442,27 +4021,67 @@ export function Workstation({
         setSettingsOpen(true);
     }
 
-    function applyListMode(
-        mode: ListMode,
-        options: { fromFavorite?: boolean } = {},
-    ) {
+    function applyListMode(mode: DashboardListMode) {
         if (listMode !== mode) {
-            setListMode(mode);
-            setTimelineFilter("all");
-            setSelectedTagFilter("all");
+            updateDashboardFilterState({ type: "list-mode", value: mode });
         }
         setTagFilterOpen(false);
-        if (!options.fromFavorite) {
-            setFavorite(mode === "tags" ? "tags" : "all");
+    }
+
+    function writeRecordingListHistory(
+        next: { detailOpen: boolean; page: number; recordingId: string | null },
+        mode: "push" | "replace",
+    ) {
+        const nextUrl = recordingListUrl({
+            currentUrl: window.location.href,
+            ...next,
+        });
+        if (isRecordingListUrlCurrent(window.location.href, nextUrl)) return;
+        window.history[mode === "push" ? "pushState" : "replaceState"](
+            null,
+            "",
+            nextUrl,
+        );
+    }
+
+    function closeRecordingDetail({ restoreFocus = true } = {}) {
+        const closingId = selectedRecordingId;
+        updateRequestedRecordingId(null);
+        setDetailOpen(false);
+        writeRecordingListHistory(
+            { detailOpen: false, page: currentListPage, recordingId: null },
+            "push",
+        );
+        if (restoreFocus && closingId) {
+            window.requestAnimationFrame(() => {
+                recordingRowRefs.current
+                    .get(closingId)
+                    ?.focus({ preventScroll: true });
+            });
         }
     }
 
+    function selectListPage(nextPage: number) {
+        const bounded = Math.min(Math.max(1, nextPage), listTotalPages);
+        setListPage(bounded);
+        updateRequestedRecordingId(null);
+        setDetailOpen(false);
+        writeRecordingListHistory(
+            { detailOpen: false, page: bounded, recordingId: null },
+            "push",
+        );
+    }
+
     function selectRecording(recordingId: string) {
-        if (recordingId === selectedRecordingId) {
-            setSelectedId(recordingId);
-            return;
-        }
+        updateRequestedRecordingId(null);
         setSelectedId(recordingId);
+        setDetailOpen(true);
+        writeRecordingListHistory(
+            { detailOpen: true, page: currentListPage, recordingId },
+            "push",
+        );
+        if (recordingId === selectedRecordingId) return;
+        setRenameError(null);
         setEditingTitle(false);
         setMoreOpen(false);
         setTagOpen(false);
@@ -3476,7 +4095,7 @@ export function Workstation({
         setSourceRepullState("idle");
     }
 
-    async function runManualSync() {
+    const runManualSync = useCallback(async () => {
         if (syncButtonBusy) return;
         setActivitySyncActionState("busy");
         const syncSucceeded = await manualSync();
@@ -3489,7 +4108,37 @@ export function Workstation({
         }
 
         setActivitySyncActionState("error");
-    }
+    }, [loadDataSources, manualSync, refreshStatus, router, syncButtonBusy]);
+
+    useEffect(() => {
+        if (!hasBrowserWindow()) {
+            return;
+        }
+
+        const handleSystemBannerAction = (event: Event) => {
+            const detail = (
+                event as CustomEvent<{ action?: string; id?: string }>
+            ).detail;
+            if (detail?.id !== "source-sync-system") return;
+            if (
+                detail.action === "retry" ||
+                detail.action === "reconnect" ||
+                detail.action === "retry-sync"
+            ) {
+                void runManualSync();
+            }
+        };
+
+        window.addEventListener(
+            "betterainote:system-banner-action",
+            handleSystemBannerAction,
+        );
+        return () =>
+            window.removeEventListener(
+                "betterainote:system-banner-action",
+                handleSystemBannerAction,
+            );
+    }, [runManualSync]);
 
     function handleLibrarySearchOpenChange(open: boolean) {
         if (open) {
@@ -3503,8 +4152,8 @@ export function Workstation({
 
     function applyLibrarySearchFilter(filter: LibrarySearchFilter) {
         setLibrarySearchFilter(filter);
-        setFavorite("all");
-        applyListMode("timeline", { fromFavorite: true });
+        selectFavorite("all");
+        applyListMode("timeline");
     }
 
     async function runActivityAction(item: ActivityItem) {
@@ -3532,36 +4181,69 @@ export function Workstation({
         void runActivityAction(item);
     }
 
-    async function renameRecording() {
+    function restoreRenameTriggerFocus() {
+        window.requestAnimationFrame(() => {
+            renameTriggerRef.current?.focus({ preventScroll: true });
+        });
+    }
+
+    function startRenamingRecording() {
         if (!selectedRecording) return;
+        setRenameError(null);
+        setDraftTitle(selectedRecording.filename);
+        setEditingTitle(true);
+    }
+
+    function cancelRenamingRecording() {
+        setRenameError(null);
+        setEditingTitle(false);
+        setDraftTitle(selectedRecording?.filename ?? "");
+        restoreRenameTriggerFocus();
+    }
+
+    async function renameRecording() {
+        if (!selectedRecording || renaming) return;
         const filename = draftTitle.trim();
         if (!filename || filename === selectedRecording.filename) {
-            setEditingTitle(false);
-            setDraftTitle(selectedRecording.filename);
+            cancelRenamingRecording();
             return;
         }
+        setRenameError(null);
         setRenaming(true);
-        const response = await fetch(
-            `/api/recordings/${selectedRecording.id}/rename`,
-            {
-                method: "PATCH",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ filename }),
-            },
-        );
-        setRenaming(false);
-        if (!response.ok) {
-            toast.error(await readResponseError(response, "重命名失败"));
-            return;
+        try {
+            const response = await fetch(
+                `/api/recordings/${selectedRecording.id}/rename`,
+                {
+                    method: "PATCH",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ filename }),
+                },
+            );
+            if (!response.ok) {
+                const message = t("recordingDetail.rename.failed");
+                setRenameError(message);
+                toast.error(message);
+                return;
+            }
+            setLiveRecordings((items) =>
+                items.map((item) =>
+                    item.id === selectedRecording.id
+                        ? { ...item, filename }
+                        : item,
+                ),
+            );
+            setDraftTitle(filename);
+            setRenameError(null);
+            setEditingTitle(false);
+            restoreRenameTriggerFocus();
+            toast.success(t("recordingDetail.rename.success"));
+        } catch {
+            const message = t("recordingDetail.rename.failed");
+            setRenameError(message);
+            toast.error(message);
+        } finally {
+            setRenaming(false);
         }
-        setLiveRecordings((items) =>
-            items.map((item) =>
-                item.id === selectedRecording.id ? { ...item, filename } : item,
-            ),
-        );
-        setDraftTitle(filename);
-        setEditingTitle(false);
-        toast.success("已重命名");
     }
 
     async function previewAutoRename() {
@@ -3589,14 +4271,14 @@ export function Workstation({
         if (!response.ok) {
             const error = await readResponseError(
                 response,
-                "这次没拿到结果，可能是转写太短或模型暂时不可用。",
+                t("recordingDetail.ai.noResult"),
             );
             toast.error(error);
             if (response.status === 400) {
-                setAiError("AI 重命名服务尚未配置或暂时不可用。");
+                setAiError(t("recordingDetail.ai.serviceUnavailable"));
                 setAiState("unavailable");
             } else {
-                setAiError("这次没拿到结果，可能是转写太短或模型暂时不可用。");
+                setAiError(t("recordingDetail.ai.noResult"));
                 setAiState("error");
             }
             return;
@@ -3622,7 +4304,7 @@ export function Workstation({
             if (!response.ok) {
                 const error = await readResponseError(
                     response,
-                    "AI 标题写回失败",
+                    t("recordingDetail.ai.writebackFailed"),
                 );
                 setAiError(error);
                 toast.error(error);
@@ -3641,7 +4323,7 @@ export function Workstation({
             setAiState("loading");
             setAiPreviewTitle("");
             setAiError("");
-            toast.success("AI 重命名已应用");
+            toast.success(t("recordingDetail.ai.applied"));
         } finally {
             setAiApplying(false);
         }
@@ -3654,11 +4336,11 @@ export function Workstation({
         setTagOpen(false);
         setAiOpen(false);
         const ok = await confirm({
-            title: "删除本地副本？",
-            description: "这条录音在来源系统中已被删除，本地仅留存缓存副本。",
-            warning: "删除后转写、标签与 AI 标题都会一并清除，且无法恢复。",
-            confirmLabel: "永久删除",
-            cancelLabel: "取消",
+            title: t("recordingDetail.delete.title"),
+            description: t("recordingDetail.delete.description"),
+            warning: t("recordingDetail.delete.warning"),
+            confirmLabel: t("recordingDetail.delete.confirm"),
+            cancelLabel: t("common.cancel"),
         });
         if (!ok) return;
         const response = await fetch(
@@ -3668,7 +4350,12 @@ export function Workstation({
             },
         );
         if (!response.ok) {
-            toast.error(await readResponseError(response, "删除失败"));
+            toast.error(
+                await readResponseError(
+                    response,
+                    t("recordingDetail.delete.failed"),
+                ),
+            );
             return;
         }
         const deletedId = selectedRecording.id;
@@ -3687,26 +4374,26 @@ export function Workstation({
         });
         setSelectedId("");
         setMoreOpen(false);
-        toast.success("录音已删除");
+        toast.success(t("recordingDetail.delete.success"));
     }
 
     async function retranscribe() {
         if (!selectedRecording) return;
         if (!selectedRecording.audioUrl) {
             setRetxState("unavailable");
-            toast.error("当前录音没有可用的本地音频，无法重新转写。");
+            toast.error(t("recordingDetail.retx.noAudio"));
             return;
         }
         const ok = await confirm({
-            title: "重新转写这条录音？",
-            description: "当前的逐字稿、说话人标记与 AI 标题会被新结果覆盖。",
+            title: t("transcription.retranscribeConfirmTitle"),
+            description: t("transcription.retranscribeConfirmDescription"),
             details: [
-                "逐字稿将重新生成 · 估计 1 ~ 3 分钟",
-                "说话人映射会保留，但本次结果可能合并不同的片段",
-                "本次操作不会影响来源系统中的正本",
+                t("transcription.retranscribeConfirmDetailTranscript"),
+                t("transcription.retranscribeConfirmDetailSpeakers"),
+                t("transcription.retranscribeConfirmDetailSource"),
             ],
-            confirmLabel: "确认重新转写",
-            cancelLabel: "取消",
+            confirmLabel: t("transcription.retranscribeConfirmLabel"),
+            cancelLabel: t("common.cancel"),
         });
         if (!ok) return;
         setDismissedCompletedRetxIds((items) => {
@@ -3726,7 +4413,12 @@ export function Workstation({
         );
         if (!response.ok) {
             setRetxState("failed");
-            toast.error(await readResponseError(response, "转写任务提交失败"));
+            toast.error(
+                await readResponseError(
+                    response,
+                    t("recordingDetail.retx.submitFailed"),
+                ),
+            );
             return;
         }
         const data = (await response.json().catch(() => ({}))) as {
@@ -3743,7 +4435,7 @@ export function Workstation({
             });
         }
         setRetxState(getRetxStateFromActiveJob(data.job) ?? "running");
-        toast.info("转写任务已加入队列");
+        toast.info(t("recordingDetail.retx.queuedToast"));
     }
 
     function handleAudioEnded() {
@@ -3812,18 +4504,19 @@ export function Workstation({
                 playbackSettingsLoaded ? "true" : "false"
             }
             data-drawer-state={drawerOpen ? "open" : "closed"}
+            data-detail-state={detailOpen ? "open" : "closed"}
             data-sidebar-collapsed={
                 dashboardSidebarCollapsed ? "true" : "false"
             }
-            data-sot-state={hydrated ? "ready" : "loading"}
-            data-sot-surface="dashboard-workstation"
             data-surface="dashboard-workstation"
             data-state={hydrated ? "ready" : "loading"}
             data-source-filter-active={source === "all" ? "false" : "true"}
             data-source-filter-provider={source === "all" ? undefined : source}
             data-source-filter-state={sourceFilterStackState}
             data-source-status={selectedSourceRow?.status ?? undefined}
-            data-time-style="rel"
+            data-time-style={
+                displaySettings.dateTimeFormat === "absolute" ? "abs" : "rel"
+            }
         >
             <aside
                 className={dashboardSidebarCollapseClassNames.sidebar}
@@ -3843,6 +4536,7 @@ export function Workstation({
                         alt=""
                         width={36}
                         height={36}
+                        unoptimized
                     />
                     <div
                         className={dashboardSidebarCollapseClassNames.hidden}
@@ -3858,7 +4552,7 @@ export function Workstation({
                             className={dashboardBrandClassNames.subtitle}
                             data-part="dashboard-brand-subtitle"
                         >
-                            私人工作空间
+                            {t("recordingDetail.shell.privateWorkspace")}
                         </div>
                     </div>
                 </div>
@@ -3866,7 +4560,7 @@ export function Workstation({
                 <nav
                     className={dashboardNavClassNames.root}
                     data-list="dashboard-nav"
-                    aria-label="录音筛选"
+                    aria-label={t("recordingDetail.shell.recordingFilters")}
                 >
                     <div
                         className={cn(
@@ -3875,7 +4569,7 @@ export function Workstation({
                         )}
                         data-part="dashboard-nav-section-label"
                     >
-                        收藏
+                        {t("recordingDetail.shell.favorites")}
                     </div>
                     {FAVORITES.map((item) => {
                         const Icon = item.icon;
@@ -3918,13 +4612,13 @@ export function Workstation({
                                 data-count-badge={String(count)}
                                 key={item.value}
                                 onClick={() => {
-                                    setFavorite(item.value);
-                                    applyListMode(
-                                        item.value === "tags"
-                                            ? "tags"
-                                            : "timeline",
-                                        { fromFavorite: true },
-                                    );
+                                    selectFavorite(item.value);
+                                    if (
+                                        item.value === "all" &&
+                                        listMode === "timeline"
+                                    ) {
+                                        selectSource("all");
+                                    }
                                 }}
                             >
                                 <Icon data-icon="inline-start" />
@@ -3987,7 +4681,7 @@ export function Workstation({
                                 type="button"
                                 className={dashboardSourceClassNames.clear}
                                 data-control="dashboard-source-clear"
-                                onClick={() => setSource("all")}
+                                onClick={() => selectSource("all")}
                             >
                                 {t("sourceProviderRows.clear")}
                             </Button>
@@ -4050,6 +4744,9 @@ export function Workstation({
                                     aria-disabled={
                                         disabledSourceRow ? "true" : undefined
                                     }
+                                    aria-current={
+                                        item.active ? "true" : undefined
+                                    }
                                     aria-pressed={item.active}
                                     aria-label={`${item.label} · ${item.statusLabel}`}
                                     disabled={disabledSourceRow}
@@ -4069,6 +4766,7 @@ export function Workstation({
                                     onClick={() => {
                                         if (disabledSourceRow) return;
                                         if (settingsTarget) {
+                                            selectSource(item.key);
                                             window.localStorage.setItem(
                                                 SETTINGS_DATA_SOURCE_PROVIDER_STORAGE_KEY,
                                                 item.key,
@@ -4076,8 +4774,11 @@ export function Workstation({
                                             openSettings("data-sources");
                                             return;
                                         }
-                                        setSource(
-                                            item.active ? "all" : item.key,
+                                        selectSource(
+                                            toggleDashboardSourceFilter(
+                                                source,
+                                                item.key,
+                                            ),
                                         );
                                         setDrawerOpen(false);
                                     }}
@@ -4094,7 +4795,8 @@ export function Workstation({
                                             data-variant="image"
                                             data-state={sourceRowState}
                                         >
-                                            <Image
+                                            {/* biome-ignore lint/performance/noImgElement: provider marks are fixed local assets. */}
+                                            <img
                                                 src={item.icon}
                                                 alt=""
                                                 width={18}
@@ -4260,6 +4962,7 @@ export function Workstation({
                             <div
                                 className="text-xs font-semibold text-sidebar-foreground"
                                 data-part="dashboard-sync-title"
+                                id="dashboard-sync-title"
                             >
                                 {syncStateLabel(syncButtonState, t)} ·
                                 BetterAINote
@@ -4267,6 +4970,7 @@ export function Workstation({
                             <div
                                 className="mt-px font-mono text-xs font-medium text-muted-foreground"
                                 data-part="dashboard-sync-subtitle"
+                                id="dashboard-sync-subtitle"
                             >
                                 {syncSummary}
                             </div>
@@ -4279,8 +4983,9 @@ export function Workstation({
                                 dashboardSidebarCollapseClassNames.hidden,
                             )}
                             type="button"
-                            aria-label="同步"
+                            aria-label={t("recordingDetail.shell.sync")}
                             aria-busy={syncButtonBusy}
+                            aria-describedby="dashboard-sync-title dashboard-sync-subtitle"
                             disabled={syncButtonBusy}
                             data-control="dashboard-sync"
                             data-state={syncButtonState}
@@ -4314,7 +5019,7 @@ export function Workstation({
                         data-control="dashboard-drawer-trigger"
                         id="drawer-trigger"
                         type="button"
-                        aria-label="打开筛选抽屉"
+                        aria-label={t("recordingDetail.shell.openFilters")}
                         ref={drawerTriggerRef}
                         onClick={() => {
                             setSearchOpen(false);
@@ -4334,7 +5039,7 @@ export function Workstation({
                         size="icon"
                         className={dashboardButtonClassNames.sidebarCollapse}
                         type="button"
-                        aria-label="折叠 / 展开侧边栏"
+                        aria-label={t("recordingDetail.shell.toggleSidebar")}
                         data-control="sidebar-collapse"
                         data-state={collapsed ? "collapsed" : "expanded"}
                         onClick={() => {
@@ -4348,7 +5053,7 @@ export function Workstation({
                     >
                         <PanelLeft
                             className={cn(
-                                "transition-transform duration-300",
+                                "size-[11px] transition-transform duration-300",
                                 collapsed && "rotate-180",
                             )}
                             data-icon="inline-start"
@@ -4363,10 +5068,10 @@ export function Workstation({
                             data-part="dashboard-crumb"
                         >
                             {favorite === "all"
-                                ? "全部录音"
+                                ? t("recordingDetail.shell.allRecordings")
                                 : favorite === "transcribed"
-                                  ? "转写记录"
-                                  : "标签"}
+                                  ? t("recordingDetail.shell.transcribed")
+                                  : t("recordingDetail.shell.tags")}
                         </span>
                         <span
                             className={dashboardTopbarClassNames.separator}
@@ -4378,7 +5083,8 @@ export function Workstation({
                             className={dashboardTopbarClassNames.current}
                             data-part="dashboard-crumb-current"
                         >
-                            {selectedRecording?.filename ?? "未选择录音"}
+                            {selectedRecording?.filename ??
+                                t("recordingDetail.shell.noSelection")}
                         </span>
                     </div>
                     <div
@@ -4883,7 +5589,9 @@ export function Workstation({
                                     className={
                                         dashboardButtonClassNames.settingsAvatar
                                     }
-                                    aria-label="打开设置"
+                                    aria-label={t(
+                                        "recordingDetail.shell.openSettings",
+                                    )}
                                     data-control="dashboard-settings"
                                     data-part="dashboard-user-avatar"
                                     data-state={settingsOpen ? "open" : "idle"}
@@ -4911,7 +5619,7 @@ export function Workstation({
                         data-state={listState}
                         data-surface="dashboard-recording-list"
                         data-total-pages={String(listTotalPages)}
-                        data-visible-count={String(pagedListEntries.length)}
+                        data-visible-count={String(filteredRecordings.length)}
                     >
                         <CardContent
                             className={
@@ -5020,7 +5728,9 @@ export function Workstation({
                                                     "sourceFilterStack.clearSourceFilter",
                                                 )}
                                                 data-control="source-filter-clear"
-                                                onClick={() => setSource("all")}
+                                                onClick={() =>
+                                                    selectSource("all")
+                                                }
                                             >
                                                 <X data-icon="inline-start" />
                                             </Button>
@@ -5083,10 +5793,8 @@ export function Workstation({
                                                 data-action="widen"
                                                 data-part="source-filter-action"
                                                 onClick={() => {
-                                                    setFavorite("all");
-                                                    applyListMode("timeline", {
-                                                        fromFavorite: true,
-                                                    });
+                                                    selectFavorite("all");
+                                                    applyListMode("timeline");
                                                     setQuery("");
                                                 }}
                                             >
@@ -5132,7 +5840,7 @@ export function Workstation({
                                                 sourceFilterClassNames.clearAll
                                             }
                                             data-control="source-filter-clear-all"
-                                            onClick={() => setSource("all")}
+                                            onClick={() => selectSource("all")}
                                         >
                                             {t("sourceFilterStack.clearAll")}
                                         </Button>
@@ -5197,239 +5905,21 @@ export function Workstation({
                                         </Badge>
                                     </output>
                                 ) : null}
-                                <div
-                                    className={
-                                        dashboardRecordingListModeStyles.root
-                                    }
-                                    data-panel="dashboard-recording-list-mode"
-                                >
-                                    <div
-                                        className={
-                                            dashboardRecordingListModeStyles.label
-                                        }
-                                        data-part="dashboard-recording-list-mode-label"
-                                    >
-                                        <span data-part="dashboard-recording-list-mode-title">
-                                            {listMode === "timeline"
-                                                ? t(
-                                                      "recordingList.timelineTitle",
-                                                  )
-                                                : t("recordingList.tagsTitle")}
-                                        </span>
-                                        <span
-                                            className={
-                                                dashboardRecordingListModeStyles.count
-                                            }
-                                            data-part="dashboard-recording-list-mode-count"
-                                        >
-                                            {t("recordingList.visibleCount", {
-                                                count: listEntries.length,
-                                            })}
-                                        </span>
-                                    </div>
-                                    <SegmentedTabs
-                                        aria-label="列表模式"
-                                        variant="segmented"
-                                        size="segmentedSm"
-                                        data-control="segmented-tabs"
-                                        data-part="dashboard-recording-list-mode-segmented"
-                                        data-size="sm"
-                                        className={
-                                            dashboardRecordingListModeStyles.segmented
-                                        }
-                                        getItemProps={getSegmentedTabProps}
-                                        items={[
-                                            {
-                                                value: "timeline",
-                                                label: t(
-                                                    "recordingList.timeTab",
-                                                ),
-                                            },
-                                            {
-                                                value: "tags",
-                                                label: t(
-                                                    "recordingList.tagsTab",
-                                                ),
-                                            },
-                                        ]}
-                                        value={listMode}
-                                        onValueChange={applyListMode}
-                                    />
-                                </div>
-                                <ToggleGroup
-                                    type="single"
-                                    value={timelineFilter}
-                                    spacing={1}
-                                    variant="outline"
-                                    size="sm"
-                                    className={
-                                        dashboardRecordingTimeFilterStyles.root
-                                    }
-                                    aria-label={t(
-                                        "recordingList.timelineTitle",
-                                    )}
-                                    data-list-filter-row="timeline"
-                                    data-panel="dashboard-recording-time-filter"
-                                    hidden={listMode !== "timeline"}
-                                    inert={
-                                        listMode !== "timeline"
-                                            ? true
-                                            : undefined
-                                    }
-                                    onValueChange={(value) => {
-                                        if (!value) return;
-                                        setTimelineFilter(
-                                            value as TimelineFilter,
-                                        );
-                                    }}
-                                >
-                                    {TIMELINE_FILTERS.map((item) => {
-                                        const active =
-                                            timelineFilter === item.value;
-                                        return (
-                                            <ToggleGroupItem
-                                                aria-pressed={active}
-                                                data-tf={item.value}
-                                                data-control="dashboard-recording-time-filter"
-                                                data-filter={item.value}
-                                                data-state={
-                                                    active ? "selected" : "idle"
-                                                }
-                                                className={
-                                                    dashboardRecordingTimeFilterStyles.item
-                                                }
-                                                key={item.value}
-                                                value={item.value}
-                                            >
-                                                {t(item.labelKey)}
-                                                <span
-                                                    className={dashboardRecordingTimeFilterCountClassName(
-                                                        active,
-                                                    )}
-                                                    data-part="dashboard-recording-time-filter-count"
-                                                >
-                                                    {timelineCounts[item.value]}
-                                                </span>
-                                            </ToggleGroupItem>
-                                        );
-                                    })}
-                                </ToggleGroup>
-                                <div
-                                    className={
-                                        dashboardRecordingTagFilterStyles.root
-                                    }
-                                    data-list-filter-row="tags"
-                                    data-panel="recording-list-tag-filter"
-                                    hidden={listMode !== "tags"}
-                                    inert={
-                                        listMode !== "tags" ? true : undefined
-                                    }
-                                    ref={tagFilterRef}
-                                >
-                                    <Button
-                                        variant="outline"
-                                        size="sm"
-                                        className={
-                                            dashboardRecordingTagFilterStyles.trigger
-                                        }
-                                        type="button"
-                                        aria-haspopup="listbox"
-                                        aria-expanded={tagFilterOpen}
-                                        data-tag-filter-trigger=""
-                                        data-control="recording-list-tag-filter-trigger"
-                                        onClick={() =>
-                                            setTagFilterOpen((open) => !open)
-                                        }
-                                    >
-                                        <span
-                                            className={
-                                                dashboardRecordingTagFilterStyles.label
-                                            }
-                                            data-tag-filter-label=""
-                                            data-part="recording-list-tag-filter-label"
-                                        >
-                                            {selectedTagOption.label}
-                                        </span>
-                                        <span
-                                            className={
-                                                dashboardRecordingTagFilterStyles.count
-                                            }
-                                            data-tag-filter-count=""
-                                            data-part="recording-list-tag-filter-count"
-                                        >
-                                            {selectedTagOption.count}
-                                        </span>
-                                        <ChevronDown
-                                            className={
-                                                dashboardRecordingTagFilterStyles.caret
-                                            }
-                                            data-icon="inline-end"
-                                            data-part="recording-list-tag-filter-caret"
-                                            aria-hidden="true"
-                                        />
-                                    </Button>
-                                    <div
-                                        className={
-                                            dashboardRecordingTagFilterStyles.list
-                                        }
-                                        role="listbox"
-                                        data-tag-filter-list=""
-                                        data-list="recording-list-tag-filter-list"
-                                        hidden={!tagFilterOpen}
-                                    >
-                                        {tagFilterOptions.map((option) => {
-                                            const active =
-                                                option.value ===
-                                                selectedTagFilter;
-                                            return (
-                                                <Button
-                                                    variant="ghost"
-                                                    size="sm"
-                                                    className={
-                                                        dashboardRecordingTagFilterStyles.option
-                                                    }
-                                                    type="button"
-                                                    role="option"
-                                                    data-tag-value={
-                                                        option.value
-                                                    }
-                                                    aria-selected={active}
-                                                    data-control="recording-list-tag-filter"
-                                                    data-filter={option.value}
-                                                    data-state={
-                                                        active
-                                                            ? "selected"
-                                                            : "idle"
-                                                    }
-                                                    key={option.value}
-                                                    onClick={() => {
-                                                        setSelectedTagFilter(
-                                                            option.value,
-                                                        );
-                                                        setTagFilterOpen(false);
-                                                    }}
-                                                >
-                                                    <span
-                                                        className={
-                                                            dashboardRecordingTagFilterStyles.optionLabel
-                                                        }
-                                                        data-part="recording-list-tag-filter-option-label"
-                                                    >
-                                                        {option.label}
-                                                    </span>
-                                                    <span
-                                                        className={
-                                                            dashboardRecordingTagFilterStyles.optionCount
-                                                        }
-                                                        data-part="recording-list-tag-filter-option-count"
-                                                    >
-                                                        {option.count}
-                                                    </span>
-                                                </Button>
-                                            );
-                                        })}
-                                    </div>
-                                </div>
+                                <RecordingListControls
+                                    language={language}
+                                    listMode={listMode}
+                                    onListModeChange={applyListMode}
+                                    onTagFilterChange={selectTagFilter}
+                                    onTagFilterOpenChange={setTagFilterOpen}
+                                    onTimelineFilterChange={setTimelineFilter}
+                                    selectedTagFilter={selectedTagFilter}
+                                    tagFilterOpen={tagFilterOpen}
+                                    tagFilterOptions={tagFilterOptions}
+                                    tagFilterRef={tagFilterRef}
+                                    timelineCounts={timelineCounts}
+                                    timelineFilter={timelineFilter}
+                                    visibleCount={filteredRecordings.length}
+                                />
                             </div>
                             <div
                                 className={
@@ -5438,298 +5928,29 @@ export function Workstation({
                                 data-list="dashboard-recording-list-scroll"
                             >
                                 {listState === "loading" ? (
-                                    <DashboardRecordingListSkeleton />
+                                    <RecordingListSkeleton />
                                 ) : listState === "ready" ? (
-                                    <div
-                                        className={
-                                            dashboardRecordingRowStyles.rows
+                                    <RecordingList
+                                        dateTimeFormat={
+                                            displaySettings.dateTimeFormat
                                         }
-                                        data-list="dashboard-recording-rows"
-                                    >
-                                        {groupedListEntries.map(
-                                            (group, groupIndex) => (
-                                                <Fragment key={group.id}>
-                                                    {groupIndex > 0 ? (
-                                                        <Separator
-                                                            className={
-                                                                dashboardRecordingRowStyles.groupSeparator
-                                                            }
-                                                            data-part="dashboard-recording-list-group-separator"
-                                                        />
-                                                    ) : null}
-                                                    <div
-                                                        className={
-                                                            dashboardRecordingRowStyles.group
-                                                        }
-                                                        data-group-id={group.id}
-                                                        data-group="recording-list"
-                                                        data-part="dashboard-recording-list-group"
-                                                        data-mode={listMode}
-                                                    >
-                                                        <div
-                                                            className={
-                                                                dashboardRecordingRowStyles.groupHeading
-                                                            }
-                                                            data-part="dashboard-recording-list-group-heading"
-                                                        >
-                                                            <span
-                                                                className={
-                                                                    dashboardRecordingRowStyles.groupLabel
-                                                                }
-                                                                data-part="dashboard-recording-list-group-label"
-                                                            >
-                                                                {group.label}
-                                                            </span>
-                                                            <span
-                                                                className={
-                                                                    dashboardRecordingRowStyles.groupCount
-                                                                }
-                                                                data-part="dashboard-recording-list-group-count"
-                                                            >
-                                                                {
-                                                                    group
-                                                                        .entries
-                                                                        .length
-                                                                }
-                                                            </span>
-                                                            <Separator
-                                                                className={
-                                                                    dashboardRecordingRowStyles.groupDivider
-                                                                }
-                                                                data-part="dashboard-recording-list-group-divider"
-                                                            />
-                                                        </div>
-                                                        {group.entries.map(
-                                                            (entry) => {
-                                                                const {
-                                                                    recording,
-                                                                } = entry;
-                                                                const active =
-                                                                    recording.id ===
-                                                                    selectedRecording?.id;
-                                                                const sourceMeta =
-                                                                    sourceDefinition(
-                                                                        recording.sourceProvider,
-                                                                    );
-                                                                const job =
-                                                                    liveJobs.get(
-                                                                        recording.id,
-                                                                    );
-                                                                const transcription =
-                                                                    liveTranscriptions.get(
-                                                                        recording.id,
-                                                                    );
-                                                                const rowStatus =
-                                                                    getRecordingListStatus(
-                                                                        recording,
-                                                                        transcription,
-                                                                        job,
-                                                                        t,
-                                                                    );
-                                                                const primaryTag =
-                                                                    entry.displayTag ??
-                                                                    recording
-                                                                        .tags[0];
-                                                                return (
-                                                                    <Button
-                                                                        variant={
-                                                                            active
-                                                                                ? "secondary"
-                                                                                : "ghost"
-                                                                        }
-                                                                        size="default"
-                                                                        className={
-                                                                            dashboardRecordingRowStyles.row
-                                                                        }
-                                                                        aria-current={
-                                                                            active
-                                                                                ? "true"
-                                                                                : undefined
-                                                                        }
-                                                                        key={
-                                                                            recording.id
-                                                                        }
-                                                                        type="button"
-                                                                        data-recording-id={
-                                                                            recording.id
-                                                                        }
-                                                                        data-rec={
-                                                                            recording.id
-                                                                        }
-                                                                        data-control="dashboard-recording-row"
-                                                                        data-state={
-                                                                            active
-                                                                                ? "selected"
-                                                                                : "idle"
-                                                                        }
-                                                                        onClick={() =>
-                                                                            selectRecording(
-                                                                                recording.id,
-                                                                            )
-                                                                        }
-                                                                    >
-                                                                        <div
-                                                                            className={
-                                                                                dashboardRecordingRowStyles.body
-                                                                            }
-                                                                            data-part="dashboard-recording-row-body"
-                                                                        >
-                                                                            <div
-                                                                                className={
-                                                                                    dashboardRecordingRowStyles.title
-                                                                                }
-                                                                                data-part="dashboard-recording-row-title"
-                                                                            >
-                                                                                {
-                                                                                    recording.filename
-                                                                                }
-                                                                            </div>
-                                                                            <div
-                                                                                className={
-                                                                                    dashboardRecordingRowStyles.meta
-                                                                                }
-                                                                                data-part="dashboard-recording-row-meta"
-                                                                            >
-                                                                                {sourceMeta?.icon ? (
-                                                                                    <span
-                                                                                        className={
-                                                                                            dashboardRecordingRowStyles.sourceMark
-                                                                                        }
-                                                                                        data-part="dashboard-recording-source-mark"
-                                                                                        data-provider-cover={
-                                                                                            sourceMeta.cover
-                                                                                                ? "true"
-                                                                                                : "false"
-                                                                                        }
-                                                                                        data-variant="image"
-                                                                                        title={providerLabel(
-                                                                                            recording.sourceProvider,
-                                                                                            language,
-                                                                                        )}
-                                                                                    >
-                                                                                        <Image
-                                                                                            className={cn(
-                                                                                                dashboardRecordingRowStyles.sourceMarkImage,
-                                                                                                sourceMeta.cover
-                                                                                                    ? dashboardRecordingRowStyles.sourceMarkImageCover
-                                                                                                    : undefined,
-                                                                                            )}
-                                                                                            src={
-                                                                                                sourceMeta.icon
-                                                                                            }
-                                                                                            alt=""
-                                                                                            width={
-                                                                                                14
-                                                                                            }
-                                                                                            height={
-                                                                                                14
-                                                                                            }
-                                                                                        />
-                                                                                    </span>
-                                                                                ) : (
-                                                                                    <span
-                                                                                        className={cn(
-                                                                                            dashboardRecordingRowStyles.sourceMark,
-                                                                                            dashboardRecordingRowStyles.sourceMarkLetter,
-                                                                                        )}
-                                                                                        data-part="dashboard-recording-source-mark"
-                                                                                        data-provider-cover="false"
-                                                                                        data-variant="letter"
-                                                                                        title={providerLabel(
-                                                                                            recording.sourceProvider,
-                                                                                            language,
-                                                                                        )}
-                                                                                    >
-                                                                                        讯
-                                                                                    </span>
-                                                                                )}
-                                                                                <span
-                                                                                    className={
-                                                                                        dashboardRecordingRowStyles.duration
-                                                                                    }
-                                                                                    data-part="dashboard-recording-duration"
-                                                                                >
-                                                                                    {formatDuration(
-                                                                                        recording.duration,
-                                                                                    )}
-                                                                                </span>
-                                                                            </div>
-                                                                            <div
-                                                                                className={
-                                                                                    dashboardRecordingRowStyles.secondary
-                                                                                }
-                                                                                data-part="dashboard-recording-row-secondary"
-                                                                            >
-                                                                                <span
-                                                                                    className={
-                                                                                        dashboardRecordingRowStyles.timestamp
-                                                                                    }
-                                                                                    data-part="dashboard-recording-timestamp"
-                                                                                >
-                                                                                    <span
-                                                                                        className={
-                                                                                            dashboardRecordingRowStyles.timestampAbsolute
-                                                                                        }
-                                                                                        data-part="dashboard-recording-timestamp-absolute"
-                                                                                    >
-                                                                                        {formatAbsoluteDate(
-                                                                                            recording.startTime,
-                                                                                        )}
-                                                                                    </span>
-                                                                                    <span
-                                                                                        className={
-                                                                                            dashboardRecordingRowStyles.timestampRelative
-                                                                                        }
-                                                                                        data-part="dashboard-recording-timestamp-relative"
-                                                                                    >
-                                                                                        {formatRelativeDate(
-                                                                                            recording.startTime,
-                                                                                        )}
-                                                                                    </span>
-                                                                                </span>
-                                                                            </div>
-                                                                        </div>
-                                                                        <div
-                                                                            className={
-                                                                                dashboardRecordingRowStyles.actions
-                                                                            }
-                                                                            data-part="dashboard-recording-row-actions"
-                                                                        >
-                                                                            <Badge
-                                                                                variant={
-                                                                                    dashboardRecordingStatusBadgeVariants[
-                                                                                        rowStatus
-                                                                                            .tone
-                                                                                    ]
-                                                                                }
-                                                                                data-part="dashboard-recording-status"
-                                                                                data-tone={
-                                                                                    rowStatus.tone
-                                                                                }
-                                                                            >
-                                                                                <span data-part="dashboard-recording-status-label">
-                                                                                    {
-                                                                                        rowStatus.label
-                                                                                    }
-                                                                                </span>
-                                                                            </Badge>
-                                                                            {primaryTag ? (
-                                                                                <PlayerTagChip
-                                                                                    tag={
-                                                                                        primaryTag
-                                                                                    }
-                                                                                />
-                                                                            ) : null}
-                                                                        </div>
-                                                                    </Button>
-                                                                );
-                                                            },
-                                                        )}
-                                                    </div>
-                                                </Fragment>
-                                            ),
-                                        )}
-                                    </div>
+                                        groups={recordingListGroups}
+                                        language={language}
+                                        onRowRef={(recordingId, node) => {
+                                            if (node) {
+                                                recordingRowRefs.current.set(
+                                                    recordingId,
+                                                    node,
+                                                );
+                                            } else {
+                                                recordingRowRefs.current.delete(
+                                                    recordingId,
+                                                );
+                                            }
+                                        }}
+                                        onSelect={selectRecording}
+                                        selectedId={selectedRecordingId}
+                                    />
                                 ) : (
                                     <Empty
                                         variant="compact"
@@ -5755,19 +5976,23 @@ export function Workstation({
                                                     ? t(
                                                           "recordingList.emptyTitle",
                                                       )
-                                                    : listState ===
-                                                        "timeline-empty"
+                                                    : listState === "error"
                                                       ? t(
-                                                            "recordingList.timelineEmptyTitle",
+                                                            "recordingList.errorTitle",
                                                         )
                                                       : listState ===
-                                                          "tag-empty"
+                                                          "timeline-empty"
                                                         ? t(
-                                                              "recordingList.tagEmptyTitle",
+                                                              "recordingList.timelineEmptyTitle",
                                                           )
-                                                        : t(
-                                                              "recordingList.noMatchTitle",
-                                                          )}
+                                                        : listState ===
+                                                            "tag-empty"
+                                                          ? t(
+                                                                "recordingList.tagEmptyTitle",
+                                                            )
+                                                          : t(
+                                                                "recordingList.noMatchTitle",
+                                                            )}
                                             </EmptyTitle>
                                             <EmptyDescription
                                                 variant="compact"
@@ -5777,19 +6002,23 @@ export function Workstation({
                                                     ? t(
                                                           "recordingList.emptyDescription",
                                                       )
-                                                    : listState ===
-                                                        "timeline-empty"
+                                                    : listState === "error"
                                                       ? t(
-                                                            "recordingList.timelineEmptyDescription",
+                                                            "recordingList.errorDescription",
                                                         )
                                                       : listState ===
-                                                          "tag-empty"
+                                                          "timeline-empty"
                                                         ? t(
-                                                              "recordingList.tagEmptyDescription",
+                                                              "recordingList.timelineEmptyDescription",
                                                           )
-                                                        : t(
-                                                              "recordingList.noMatchDescription",
-                                                          )}
+                                                        : listState ===
+                                                            "tag-empty"
+                                                          ? t(
+                                                                "recordingList.tagEmptyDescription",
+                                                            )
+                                                          : t(
+                                                                "recordingList.noMatchDescription",
+                                                            )}
                                             </EmptyDescription>
                                         </EmptyHeader>
                                         <EmptyContent
@@ -5821,8 +6050,8 @@ export function Workstation({
                                                     type="button"
                                                     data-control="recording-list-clear-filters"
                                                     onClick={() => {
-                                                        setFavorite("all");
-                                                        setSource("all");
+                                                        selectFavorite("all");
+                                                        selectSource("all");
                                                         setQuery("");
                                                         setLibrarySearchFilter(
                                                             null,
@@ -5830,14 +6059,28 @@ export function Workstation({
                                                         setTimelineFilter(
                                                             "all",
                                                         );
-                                                        setSelectedTagFilter(
-                                                            "all",
-                                                        );
+                                                        selectTagFilter("all");
                                                     }}
                                                 >
                                                     {t(
                                                         "recordingList.clearFilters",
                                                     )}
+                                                </Button>
+                                            ) : null}
+                                            {listState === "error" ? (
+                                                <Button
+                                                    variant="ghost"
+                                                    size="sm"
+                                                    type="button"
+                                                    data-control="recording-list-retry"
+                                                    onClick={() =>
+                                                        setRecordingListRequestVersion(
+                                                            (version) =>
+                                                                version + 1,
+                                                        )
+                                                    }
+                                                >
+                                                    {t("recordingList.retry")}
                                                 </Button>
                                             ) : null}
                                             {listState === "timeline-empty" ? (
@@ -5861,11 +6104,10 @@ export function Workstation({
                                                     size="sm"
                                                     type="button"
                                                     data-control="recording-list-clear-tag"
-                                                    onClick={() =>
-                                                        setSelectedTagFilter(
-                                                            "all",
-                                                        )
-                                                    }
+                                                    onClick={() => {
+                                                        selectFavorite("all");
+                                                        selectTagFilter("all");
+                                                    }}
                                                 >
                                                     {t(
                                                         "recordingList.clearTag",
@@ -5876,135 +6118,38 @@ export function Workstation({
                                     </Empty>
                                 )}
                                 {listState === "ready" && listTotalPages > 1 ? (
-                                    <div
-                                        className={
-                                            dashboardRecordingListPaginationStyles.root
+                                    <RecordingListPagination
+                                        currentPage={currentListPage}
+                                        language={language}
+                                        loaded={listLoadedCount}
+                                        onNext={() =>
+                                            selectListPage(currentListPage + 1)
                                         }
-                                        data-list-state-block={
-                                            listPaginationState
+                                        onPrevious={() =>
+                                            selectListPage(currentListPage - 1)
                                         }
-                                        data-panel="recording-list-pagination"
-                                        data-state={listPaginationState}
-                                    >
-                                        <div
-                                            className={
-                                                dashboardRecordingListPaginationStyles.divider
-                                            }
-                                            data-part="recording-list-page-divider"
-                                        >
-                                            <span
-                                                className={
-                                                    dashboardRecordingListPaginationStyles.status
-                                                }
-                                                data-part="recording-list-page-status"
-                                            >
-                                                {t(listPageStatusKey, {
-                                                    current: currentListPage,
-                                                    loaded: listLoadedCount,
-                                                    total: listEntries.length,
-                                                })}
-                                            </span>
-                                        </div>
-                                        <div
-                                            className={
-                                                dashboardRecordingListPaginationStyles.nav
-                                            }
-                                            data-part="recording-list-page-nav"
-                                        >
-                                            <Button
-                                                variant="ghost"
-                                                size="sm"
-                                                className={
-                                                    dashboardButtonClassNames.listPagination
-                                                }
-                                                type="button"
-                                                data-page-prev=""
-                                                disabled={currentListPage <= 1}
-                                                aria-disabled={
-                                                    currentListPage <= 1
-                                                        ? "true"
-                                                        : undefined
-                                                }
-                                                data-control="recording-list-prev-page"
-                                                onClick={() =>
-                                                    setListPage((page) =>
-                                                        Math.max(1, page - 1),
-                                                    )
-                                                }
-                                            >
-                                                {t("recordingList.previous")}
-                                            </Button>
-                                            <span
-                                                className={
-                                                    dashboardRecordingListPaginationStyles.number
-                                                }
-                                                data-part="recording-list-page-number"
-                                            >
-                                                {currentListPage} /{" "}
-                                                {listTotalPages}
-                                            </span>
-                                            <Button
-                                                variant="ghost"
-                                                size="sm"
-                                                className={
-                                                    dashboardButtonClassNames.listPagination
-                                                }
-                                                type="button"
-                                                data-page-next=""
-                                                disabled={
-                                                    currentListPage >=
-                                                    listTotalPages
-                                                }
-                                                aria-disabled={
-                                                    currentListPage >=
-                                                    listTotalPages
-                                                        ? "true"
-                                                        : undefined
-                                                }
-                                                data-control="recording-list-next-page"
-                                                onClick={() =>
-                                                    setListPage((page) =>
-                                                        Math.min(
-                                                            listTotalPages,
-                                                            page + 1,
-                                                        ),
-                                                    )
-                                                }
-                                            >
-                                                {t("recordingList.next")}
-                                            </Button>
-                                        </div>
-                                        {listPaginationState === "paginated" ? (
-                                            <Button
-                                                variant="ghost"
-                                                size="sm"
-                                                className={
-                                                    dashboardButtonClassNames.listPagination
-                                                }
-                                                type="button"
-                                                data-control="recording-list-load-more"
-                                                onClick={() =>
-                                                    setListPage((page) =>
-                                                        Math.min(
-                                                            listTotalPages,
-                                                            page + 1,
-                                                        ),
-                                                    )
-                                                }
-                                            >
-                                                {t("recordingList.loadMore")}
-                                            </Button>
-                                        ) : null}
-                                    </div>
+                                        total={recordingPage.total}
+                                        totalPages={listTotalPages}
+                                    />
                                 ) : null}
                             </div>
                         </CardContent>
                     </Card>
 
+                    <button
+                        aria-label={t("recordingDetail.shell.closeDetail")}
+                        className={DASHBOARD_DETAIL_SCRIM_CLASS_NAME}
+                        data-control="dashboard-detail-scrim"
+                        onClick={() => closeRecordingDetail()}
+                        tabIndex={-1}
+                        type="button"
+                    />
                     <section
                         className={DASHBOARD_DETAIL_PANEL_CLASS_NAME}
                         data-panel="dashboard-detail"
                         data-empty={selectedRecording ? "false" : "true"}
+                        ref={detailPanelRef}
+                        tabIndex={-1}
                     >
                         {selectedRecording ? (
                             <>
@@ -6020,6 +6165,34 @@ export function Workstation({
                                         localDeleteAvailable ? "true" : "false"
                                     }
                                 >
+                                    <Button
+                                        aria-label={t(
+                                            "recordingDetail.shell.closeDetail",
+                                        )}
+                                        className="hidden min-[1024px]:max-[1439px]:inline-flex"
+                                        data-control="dashboard-detail-close"
+                                        onClick={() => closeRecordingDetail()}
+                                        ref={detailCloseRef}
+                                        size="icon-sm"
+                                        type="button"
+                                        variant="ghost"
+                                    >
+                                        <X aria-hidden="true" />
+                                    </Button>
+                                    <Button
+                                        aria-label={t(
+                                            "recordingDetail.shell.backToList",
+                                        )}
+                                        className="hidden max-[1024px]:inline-flex"
+                                        data-control="dashboard-detail-back"
+                                        onClick={() => closeRecordingDetail()}
+                                        ref={detailBackRef}
+                                        size="icon-sm"
+                                        type="button"
+                                        variant="ghost"
+                                    >
+                                        <X aria-hidden="true" />
+                                    </Button>
                                     {dashboardDetailHeaderState === "normal" ? (
                                         <CardTitle
                                             className="m-0 min-w-0 flex-1 truncate font-display text-[22px] font-semibold leading-normal tracking-[-0.014em] text-foreground"
@@ -6029,7 +6202,9 @@ export function Workstation({
                                             aria-level={2}
                                         >
                                             {selectedRecording?.filename ??
-                                                "未选择录音"}
+                                                t(
+                                                    "recordingDetail.shell.noSelection",
+                                                )}
                                         </CardTitle>
                                     ) : null}
                                     {dashboardDetailHeaderState === "normal" &&
@@ -6039,9 +6214,13 @@ export function Workstation({
                                             className="ml-1 shrink-0"
                                             data-part="detail-header-local-badge"
                                             data-rh-local
-                                            aria-label="仅存在本地副本"
+                                            aria-label={t(
+                                                "recordingDetail.shell.localCopyOnly",
+                                            )}
                                         >
-                                            本地副本
+                                            {t(
+                                                "recordingDetail.shell.localCopy",
+                                            )}
                                         </Badge>
                                     ) : null}
                                     {dashboardDetailHeaderState ===
@@ -6053,23 +6232,26 @@ export function Workstation({
                                             data-part="detail-header-title-input"
                                             data-state="editing"
                                             value={draftTitle}
-                                            aria-label="录音标题"
+                                            aria-label={t(
+                                                "recordingDetail.rename.titleLabel",
+                                            )}
                                             maxLength={120}
-                                            onChange={(event) =>
+                                            autoFocus={editingTitle}
+                                            onChange={(event) => {
+                                                setRenameError(null);
                                                 setDraftTitle(
                                                     event.target.value,
-                                                )
+                                                );
+                                            }}
+                                            onFocus={(event) =>
+                                                event.currentTarget.select()
                                             }
                                             onKeyDown={(event) => {
                                                 if (event.key === "Enter") {
                                                     void renameRecording();
                                                 }
                                                 if (event.key === "Escape") {
-                                                    setEditingTitle(false);
-                                                    setDraftTitle(
-                                                        selectedRecording?.filename ??
-                                                            "",
-                                                    );
+                                                    cancelRenamingRecording();
                                                 }
                                             }}
                                         />
@@ -6084,7 +6266,7 @@ export function Workstation({
                                             aria-busy={renaming}
                                             aria-live="polite"
                                         >
-                                            正在保存…
+                                            {t("recordingDetail.rename.saving")}
                                         </Badge>
                                     ) : null}
                                     {dashboardDetailHeaderState === "normal" ? (
@@ -6095,16 +6277,19 @@ export function Workstation({
                                                 dashboardButtonClassNames.headerIconButton
                                             }
                                             type="button"
-                                            aria-label="重命名"
-                                            title="重命名"
+                                            aria-label={t(
+                                                "recordingDetail.rename.action",
+                                            )}
+                                            title={t(
+                                                "recordingDetail.rename.action",
+                                            )}
                                             data-rh-edit-start
                                             data-control="rename-recording-title"
                                             data-part="detail-header-action"
                                             data-mode="normal"
                                             disabled={!selectedRecording}
-                                            onClick={() =>
-                                                setEditingTitle(true)
-                                            }
+                                            onClick={startRenamingRecording}
+                                            ref={renameTriggerRef}
                                         >
                                             <Pencil data-icon="inline-start" />
                                         </Button>
@@ -6145,15 +6330,25 @@ export function Workstation({
                                                 }
                                             >
                                                 <Sparkle data-icon="inline-start" />
-                                                AI 重命名
+                                                {t(
+                                                    "recordingDetail.shell.aiRename",
+                                                )}
                                             </Button>
                                             {aiOpen && selectedRecording ? (
                                                 <AiRenamePreview
                                                     className="right-px"
-                                                    applyLabel="应用"
-                                                    bodyLabel="建议标题"
-                                                    cancelLabel="取消"
-                                                    closeLabel="关闭预览"
+                                                    applyLabel={t(
+                                                        "transcription.aiRenameApply",
+                                                    )}
+                                                    bodyLabel={t(
+                                                        "transcription.aiRenameSuggestedTitle",
+                                                    )}
+                                                    cancelLabel={t(
+                                                        "common.cancel",
+                                                    )}
+                                                    closeLabel={t(
+                                                        "transcription.aiRenameClosePreview",
+                                                    )}
                                                     filename={aiPreviewTitle}
                                                     hint={
                                                         aiState ===
@@ -6167,10 +6362,14 @@ export function Workstation({
                                                     }
                                                     message={
                                                         aiState === "loading"
-                                                            ? "正在根据转写生成标题…"
+                                                            ? t(
+                                                                  "recordingDetail.ai.generating",
+                                                              )
                                                             : aiState ===
                                                                 "review"
-                                                              ? "确认无误后点击「应用」，将替换录音标题且不可一键撤销。"
+                                                              ? t(
+                                                                    "recordingDetail.ai.reviewHint",
+                                                                )
                                                               : aiError
                                                     }
                                                     onApply={applyAiRename}
@@ -6186,15 +6385,23 @@ export function Workstation({
                                                     }
                                                     regenerateLabel={
                                                         aiState === "error"
-                                                            ? "重试"
+                                                            ? t("common.retry")
                                                             : aiState ===
                                                                 "loading"
-                                                              ? "生成中…"
-                                                              : "重新生成"
+                                                              ? t(
+                                                                    "recordingDetail.ai.generating",
+                                                                )
+                                                              : t(
+                                                                    "transcription.aiRenameRegenerate",
+                                                                )
                                                     }
                                                     state={aiState}
-                                                    subtitle="仅本次预览，不会写回来源"
-                                                    title="AI 标题预览"
+                                                    subtitle={t(
+                                                        "recordingDetail.ai.previewOnly",
+                                                    )}
+                                                    title={t(
+                                                        "transcription.aiRenamePreview",
+                                                    )}
                                                 />
                                             ) : null}
                                         </div>
@@ -6209,8 +6416,10 @@ export function Workstation({
                                                     dashboardButtonClassNames.headerIconButton
                                                 }
                                                 type="button"
-                                                aria-label="保存新标题"
-                                                title="保存"
+                                                aria-label={t(
+                                                    "recordingDetail.rename.saveNewTitle",
+                                                )}
+                                                title={t("common.save")}
                                                 data-rh-edit-save
                                                 data-control="save-recording-title"
                                                 data-part="detail-header-action"
@@ -6229,19 +6438,17 @@ export function Workstation({
                                                     dashboardButtonClassNames.headerIconButton
                                                 }
                                                 type="button"
-                                                aria-label="取消重命名"
-                                                title="取消"
+                                                aria-label={t(
+                                                    "recordingDetail.rename.cancel",
+                                                )}
+                                                title={t("common.cancel")}
                                                 data-rh-edit-cancel
                                                 data-control="cancel-recording-title"
                                                 data-part="detail-header-action"
                                                 data-mode="editing"
-                                                onClick={() => {
-                                                    setEditingTitle(false);
-                                                    setDraftTitle(
-                                                        selectedRecording?.filename ??
-                                                            "",
-                                                    );
-                                                }}
+                                                onClick={
+                                                    cancelRenamingRecording
+                                                }
                                             >
                                                 <X data-icon="inline-start" />
                                             </Button>
@@ -6273,7 +6480,9 @@ export function Workstation({
                                                             dashboardButtonClassNames.headerIconButton
                                                         }
                                                         type="button"
-                                                        aria-label="更多操作"
+                                                        aria-label={t(
+                                                            "recordingDetail.shell.moreActions",
+                                                        )}
                                                         aria-haspopup="menu"
                                                         aria-expanded={moreOpen}
                                                         data-control="recording-more-actions"
@@ -6298,7 +6507,9 @@ export function Workstation({
                                                     data-state={
                                                         moreActionsState
                                                     }
-                                                    aria-label="更多操作"
+                                                    aria-label={t(
+                                                        "recordingDetail.shell.moreActions",
+                                                    )}
                                                 >
                                                     <DropdownMenuGroup>
                                                         <DropdownMenuItem
@@ -6317,13 +6528,7 @@ export function Workstation({
                                                                 setTagOpen(
                                                                     false,
                                                                 );
-                                                                setEditingTitle(
-                                                                    true,
-                                                                );
-                                                                setDraftTitle(
-                                                                    selectedRecording?.filename ??
-                                                                        "",
-                                                                );
+                                                                startRenamingRecording();
                                                             }}
                                                         >
                                                             {moreActionsShowPrimaryIcons ? (
@@ -6333,7 +6538,9 @@ export function Workstation({
                                                                     focusable="false"
                                                                 />
                                                             ) : null}
-                                                            重命名
+                                                            {t(
+                                                                "recordingDetail.rename.action",
+                                                            )}
                                                         </DropdownMenuItem>
                                                         <DropdownMenuItem
                                                             density="compact"
@@ -6355,7 +6562,9 @@ export function Workstation({
                                                                     focusable="false"
                                                                 />
                                                             ) : null}
-                                                            AI 重命名
+                                                            {t(
+                                                                "recordingDetail.shell.aiRename",
+                                                            )}
                                                         </DropdownMenuItem>
                                                         {moreActionsShowRetranscribe ? (
                                                             <DropdownMenuItem
@@ -6378,7 +6587,9 @@ export function Workstation({
                                                                         focusable="false"
                                                                     />
                                                                 ) : null}
-                                                                重新转写
+                                                                {t(
+                                                                    "recordingDetail.shell.retranscribe",
+                                                                )}
                                                             </DropdownMenuItem>
                                                         ) : null}
                                                         {moreActionsShowSeparator ? (
@@ -6409,7 +6620,9 @@ export function Workstation({
                                                                     focusable="false"
                                                                 />
                                                             ) : null}
-                                                            删除本地副本
+                                                            {t(
+                                                                "recordingDetail.shell.deleteLocal",
+                                                            )}
                                                             {selectedRecording?.sourceProvider ? (
                                                                 <DropdownMenuShortcut
                                                                     variant="hint"
@@ -6421,8 +6634,12 @@ export function Workstation({
                                                                     data-menu-hint=""
                                                                 >
                                                                     {selectedRecording.upstreamDeleted
-                                                                        ? "上游已删除"
-                                                                        : "来源持有正本"}
+                                                                        ? t(
+                                                                              "recordingDetail.shell.upstreamDeleted",
+                                                                          )
+                                                                        : t(
+                                                                              "recordingDetail.shell.sourceOwnsOriginal",
+                                                                          )}
                                                                 </DropdownMenuShortcut>
                                                             ) : null}
                                                         </DropdownMenuItem>
@@ -6432,6 +6649,31 @@ export function Workstation({
                                         </div>
                                     ) : null}
                                 </CardHeader>
+
+                                {renameError ? (
+                                    <Alert
+                                        className="mx-1"
+                                        data-part="detail-header-rename-error"
+                                        density="comfortable"
+                                        layout="inline"
+                                        variant="destructiveSoft"
+                                    >
+                                        <AlertTitle className="min-h-0 flex-1 line-clamp-none">
+                                            {renameError}
+                                        </AlertTitle>
+                                        <Button
+                                            disabled={renaming}
+                                            onClick={() =>
+                                                void renameRecording()
+                                            }
+                                            size="sm"
+                                            type="button"
+                                            variant="outline"
+                                        >
+                                            {t("common.retry")}
+                                        </Button>
+                                    </Alert>
+                                ) : null}
 
                                 <Card
                                     hasNoPadding
@@ -6468,7 +6710,9 @@ export function Workstation({
                                                 ? formatPlayerDate(
                                                       selectedRecording.startTime,
                                                   )
-                                                : "未选择录音"}
+                                                : t(
+                                                      "recordingDetail.shell.noSelection",
+                                                  )}
                                         </span>
                                         {selectedRecording ? (
                                             <PlayerSourceTag
@@ -6556,132 +6800,79 @@ export function Workstation({
                                     ) : null}
                                 </Card>
 
-                                <Card
-                                    hasNoPadding
-                                    className="min-h-0 flex-1 gap-0 rounded-2xl"
-                                    data-panel="dashboard-transcript-shell"
-                                >
-                                    <CardHeader
-                                        className="flex flex-row flex-wrap items-center gap-x-3 gap-y-1.5 border-b px-3.5 py-3"
-                                        data-part="dashboard-transcript-header"
-                                    >
-                                        <SegmentedTabs
-                                            aria-label="详情标签"
-                                            variant="segmented"
-                                            size="segmentedSm"
-                                            className="shrink-0"
-                                            data-control="segmented-tabs"
-                                            data-size="sm"
-                                            getItemProps={getSegmentedTabProps}
-                                            items={[
-                                                {
-                                                    value: "transcript",
-                                                    label: "转写",
-                                                },
-                                                {
-                                                    value: "speakers",
-                                                    label: "说话人",
-                                                },
-                                                {
-                                                    value: "source",
-                                                    label: "来源详情",
-                                                    tabKey: "source-report",
-                                                },
-                                            ]}
-                                            value={detailTab}
-                                            onValueChange={(value) => {
-                                                setDetailTab(value);
-                                                setAiOpen(false);
-                                                setTagOpen(false);
-                                                setMoreOpen(false);
-                                                setSearchOpen(false);
-                                                setActivityOpen(false);
-                                            }}
-                                        />
-                                        <div
-                                            className="ml-auto inline-flex max-w-full flex-[0_1_auto] flex-wrap items-center gap-2"
-                                            data-part="dashboard-transcript-actions"
-                                        >
-                                            {detailTab === "transcript" &&
-                                            selectedTranscription?.language ? (
-                                                <Badge
-                                                    variant="outline"
-                                                    className="gap-1.5"
-                                                    data-part="dashboard-transcript-language"
-                                                >
-                                                    <Globe2 data-icon="inline-start" />
-                                                    {transcriptLanguageLabel(
-                                                        selectedTranscription.language,
-                                                        language,
-                                                    )}
-                                                </Badge>
-                                            ) : null}
-                                            <Button
-                                                variant="ghost"
-                                                size="sm"
-                                                type="button"
-                                                data-copy="transcript"
-                                                data-copy-state={
-                                                    copyFeedback?.action ===
-                                                    "local-transcript"
-                                                        ? copyFeedback.state
-                                                        : undefined
-                                                }
-                                                data-control="copy-local-transcript"
-                                                data-state={
-                                                    localTranscriptCopyState
-                                                }
-                                                data-tab-scope="transcript"
-                                                aria-busy={
-                                                    copyingAction ===
-                                                    "local-transcript"
-                                                }
-                                                aria-disabled={
-                                                    localTranscriptCopyDisabled
-                                                        ? "true"
-                                                        : "false"
-                                                }
-                                                aria-label={t(
-                                                    "transcription.copyTranscript",
-                                                )}
-                                                aria-live={
-                                                    copyFeedback?.action ===
-                                                    "local-transcript"
-                                                        ? "polite"
-                                                        : undefined
-                                                }
-                                                disabled={
-                                                    localTranscriptCopyDisabled
-                                                }
-                                                hidden={
-                                                    detailTab !== "transcript"
-                                                }
-                                                onClick={() =>
-                                                    void handleCopyLocalTranscript()
-                                                }
-                                            >
-                                                <DashboardCopyIcon
-                                                    state={
-                                                        copyFeedback?.action ===
-                                                        "local-transcript"
-                                                            ? copyFeedback.state
-                                                            : undefined
-                                                    }
-                                                />
-                                                <DashboardCopyLabel>
-                                                    {copyFeedback?.action ===
-                                                    "local-transcript"
-                                                        ? copyFeedback.state ===
-                                                          "ok"
-                                                            ? t("common.copied")
-                                                            : t(
-                                                                  "common.copyFailedShort",
-                                                              )
-                                                        : t(
-                                                              "transcription.copyTranscript",
-                                                          )}
-                                                </DashboardCopyLabel>
-                                            </Button>
+                                <TranscriptionPanel
+                                    key={selectedRecording?.id ?? "none"}
+                                    recording={selectedRecording}
+                                    activeTab={detailTab}
+                                    onActiveTabChange={(value) => {
+                                        setDetailTab(value);
+                                        setAiOpen(false);
+                                        setTagOpen(false);
+                                        setMoreOpen(false);
+                                        setSearchOpen(false);
+                                        setActivityOpen(false);
+                                    }}
+                                    turns={turns}
+                                    isTranscriptLoading={isTranscriptLoading}
+                                    transcriptError={transcriptLoadError}
+                                    onRetryTranscript={async () => {
+                                        if (selectedRecordingId) {
+                                            await loadRecordingTranscription(
+                                                selectedRecordingId,
+                                            );
+                                        }
+                                    }}
+                                    transcriptLanguage={
+                                        selectedTranscription?.language
+                                    }
+                                    localCopyState={localTranscriptCopyState}
+                                    isCopyingLocal={
+                                        copyingAction === "local-transcript"
+                                    }
+                                    localCopyFeedback={
+                                        copyFeedback?.action ===
+                                        "local-transcript"
+                                            ? copyFeedback.state
+                                            : null
+                                    }
+                                    onCopyLocal={handleCopyLocalTranscript}
+                                    retranscription={{
+                                        state: dashboardRetxState,
+                                        title: dashboardRetxTitle,
+                                        description: dashboardRetxSub,
+                                        disabled:
+                                            !selectedRecording ||
+                                            !selectedRecording.audioUrl,
+                                        disabledReason: t(
+                                            "recordingDetail.retx.unavailable",
+                                        ),
+                                        onRequest: retranscribe,
+                                        onRetry: retranscribe,
+                                        onDismiss: () => {
+                                            if (
+                                                dashboardRetxState ===
+                                                    "completed" &&
+                                                selectedRecording
+                                            ) {
+                                                setDismissedCompletedRetxIds(
+                                                    (items) =>
+                                                        new Set(items).add(
+                                                            selectedRecording.id,
+                                                        ),
+                                                );
+                                            }
+                                            setRetxState("idle");
+                                        },
+                                    }}
+                                    speakers={speakers}
+                                    speakerMerge={{
+                                        state: speakerMergeState.state,
+                                        error: speakerMergeState.error,
+                                        onMerge: mergeDashboardSpeakers,
+                                        onRetry: retryDashboardSpeakerMerge,
+                                    }}
+                                    sourceActions={
+                                        <>
                                             <SourceReportCopyButton
                                                 type="button"
                                                 copy="source-transcript"
@@ -6831,330 +7022,9 @@ export function Workstation({
                                                           )}
                                                 </SourceReportActionButton>
                                             ) : null}
-                                            <Badge
-                                                variant="outline"
-                                                data-part="dashboard-retranscription-disabled-hint"
-                                                className="[&[hidden]]:hidden"
-                                                hidden={
-                                                    detailTab !==
-                                                        "transcript" ||
-                                                    dashboardRetxState !==
-                                                        "unavailable"
-                                                }
-                                            >
-                                                当前来源不支持私有重转写
-                                            </Badge>
-                                            <Button
-                                                id="retx-btn"
-                                                variant="outline"
-                                                size="sm"
-                                                type="button"
-                                                data-control="retranscribe-recording"
-                                                data-state={dashboardRetxState}
-                                                data-retx-state={
-                                                    dashboardRetxState
-                                                }
-                                                aria-disabled={
-                                                    !selectedRecording ||
-                                                    !selectedRecording.audioUrl
-                                                }
-                                                disabled={
-                                                    !selectedRecording ||
-                                                    !selectedRecording.audioUrl
-                                                }
-                                                hidden={
-                                                    detailTab !== "transcript"
-                                                }
-                                                title={
-                                                    dashboardRetxState ===
-                                                    "unavailable"
-                                                        ? "当前来源不支持私有重转写"
-                                                        : undefined
-                                                }
-                                                onClick={() =>
-                                                    void retranscribe()
-                                                }
-                                            >
-                                                重新转写
-                                            </Button>
-                                        </div>
-                                    </CardHeader>
-                                    <CardContent
-                                        className="min-h-0 flex-1 overflow-y-auto px-5 pt-4 pb-5"
-                                        data-part="dashboard-transcript-body"
-                                    >
-                                        <Alert
-                                            variant={
-                                                dashboardRetxState === "failed"
-                                                    ? "statusError"
-                                                    : "default"
-                                            }
-                                            density="comfortable"
-                                            layout="inline"
-                                            className="rounded-none border-x-0 border-t-0 [&[hidden]]:hidden"
-                                            data-panel="dashboard-retranscription"
-                                            data-state={dashboardRetxState}
-                                            data-retx-state={dashboardRetxState}
-                                            hidden={
-                                                dashboardRetxState === "idle" ||
-                                                dashboardRetxState ===
-                                                    "unavailable"
-                                            }
-                                        >
-                                            <span
-                                                data-part="dashboard-retranscription-icon"
-                                                aria-hidden="true"
-                                            >
-                                                {dashboardRetxState ===
-                                                    "queued" ||
-                                                dashboardRetxState ===
-                                                    "running" ? (
-                                                    <Spinner
-                                                        data-part="dashboard-retranscription-spinner"
-                                                        size="xs"
-                                                    />
-                                                ) : dashboardRetxState ===
-                                                  "failed" ? (
-                                                    <RetxWarnIcon />
-                                                ) : dashboardRetxState ===
-                                                  "completed" ? (
-                                                    <RetxOkIcon />
-                                                ) : dashboardRetxState ===
-                                                  "unavailable" ? (
-                                                    <RetxWarnIcon />
-                                                ) : (
-                                                    <RefreshCw aria-hidden="true" />
-                                                )}
-                                            </span>
-                                            <div data-part="dashboard-retranscription-body">
-                                                <AlertTitle data-part="dashboard-retranscription-title">
-                                                    {dashboardRetxTitle}
-                                                </AlertTitle>
-                                                <AlertDescription
-                                                    density="comfortable"
-                                                    data-part="dashboard-retranscription-sub"
-                                                >
-                                                    {dashboardRetxSub}
-                                                </AlertDescription>
-                                            </div>
-                                            {dashboardRetxState === "failed" ? (
-                                                <div
-                                                    data-part="dashboard-retranscription-actions"
-                                                    className="flex flex-none items-center gap-2"
-                                                >
-                                                    <Button
-                                                        variant="outline"
-                                                        size="sm"
-                                                        type="button"
-                                                        data-retx-retry=""
-                                                        data-control="retry-retranscription"
-                                                        onClick={() =>
-                                                            void retranscribe()
-                                                        }
-                                                    >
-                                                        重试转写
-                                                    </Button>
-                                                    <Button
-                                                        variant="ghost"
-                                                        size="icon-sm"
-                                                        type="button"
-                                                        aria-label="收起"
-                                                        data-retx-dismiss=""
-                                                        data-control="dismiss-retranscription-failed"
-                                                        onClick={() =>
-                                                            setRetxState("idle")
-                                                        }
-                                                    >
-                                                        <RetxCloseIcon />
-                                                    </Button>
-                                                </div>
-                                            ) : dashboardRetxState ===
-                                                  "completed" &&
-                                              selectedRecording ? (
-                                                <div
-                                                    data-part="dashboard-retranscription-actions"
-                                                    className="flex flex-none items-center gap-2"
-                                                >
-                                                    <Button
-                                                        variant="ghost"
-                                                        size="icon-sm"
-                                                        type="button"
-                                                        aria-label="收起"
-                                                        data-retx-dismiss=""
-                                                        data-control="dismiss-retranscription-complete"
-                                                        onClick={() => {
-                                                            const recordingId =
-                                                                selectedRecording.id;
-                                                            setDismissedCompletedRetxIds(
-                                                                (items) =>
-                                                                    new Set(
-                                                                        items,
-                                                                    ).add(
-                                                                        recordingId,
-                                                                    ),
-                                                            );
-                                                        }}
-                                                    >
-                                                        <RetxCloseIcon />
-                                                    </Button>
-                                                </div>
-                                            ) : null}
-                                        </Alert>
-                                        <Badge
-                                            variant="secondary"
-                                            data-part="dashboard-retranscription-refresh-marker"
-                                            className="[&[hidden]]:hidden"
-                                            hidden={
-                                                dashboardRetxState !==
-                                                "completed"
-                                            }
-                                        >
-                                            刚刷新 · 1 秒前
-                                        </Badge>
-                                        <div
-                                            className={
-                                                dashboardTabPaneHiddenClassName
-                                            }
-                                            data-panel="dashboard-transcript-pane"
-                                            data-tab-pane="transcript"
-                                            hidden={detailTab !== "transcript"}
-                                        >
-                                            {isTranscriptLoading ? (
-                                                TRANSCRIPT_LOADING_SKELETON_ROWS.map(
-                                                    (item) => (
-                                                        <div
-                                                            className="border-b border-dashed py-3 last:border-b-0"
-                                                            data-item="dashboard-transcript-turn"
-                                                            data-state="loading"
-                                                            key={`transcript-skeleton:${item.key}`}
-                                                        >
-                                                            <div
-                                                                className="mb-2 flex items-center gap-2"
-                                                                data-part="dashboard-transcript-speaker-row"
-                                                                data-state="loading"
-                                                            >
-                                                                <DashboardTranscriptSkeleton size="avatar" />
-                                                                <DashboardTranscriptSkeleton
-                                                                    size={
-                                                                        item.speaker
-                                                                    }
-                                                                />
-                                                                <DashboardTranscriptSkeleton size="time" />
-                                                            </div>
-                                                            <DashboardTranscriptSkeleton
-                                                                size={
-                                                                    item.firstLine
-                                                                }
-                                                            />
-                                                            <DashboardTranscriptSkeleton
-                                                                size={
-                                                                    item.secondLine
-                                                                }
-                                                            />
-                                                            {item.thirdLine ? (
-                                                                <DashboardTranscriptSkeleton
-                                                                    size={
-                                                                        item.thirdLine
-                                                                    }
-                                                                />
-                                                            ) : null}
-                                                        </div>
-                                                    ),
-                                                )
-                                            ) : turns.length ? (
-                                                turns.map((turn, index) => {
-                                                    const speakerName =
-                                                        turn.speakerName ||
-                                                        `说话人 ${index + 1}`;
-                                                    const timeLabel =
-                                                        formatTranscriptTurnTimestamp(
-                                                            turn.startMs,
-                                                            turn.endMs,
-                                                        );
-                                                    const avatarLabel =
-                                                        formatTranscriptAvatarLabel(
-                                                            speakerName,
-                                                            index,
-                                                        );
-
-                                                    return (
-                                                        <div
-                                                            className="border-b border-dashed py-3 last:border-b-0"
-                                                            data-item="dashboard-transcript-turn"
-                                                            data-state="ready"
-                                                            key={`${selectedRecording?.id}:${index}`}
-                                                        >
-                                                            <div
-                                                                className="mb-2 flex items-center gap-2"
-                                                                data-part="dashboard-transcript-speaker-row"
-                                                                data-state="ready"
-                                                            >
-                                                                <span
-                                                                    className="inline-flex size-7 flex-none items-center justify-center rounded-full bg-muted text-xs font-medium text-muted-foreground"
-                                                                    data-part="dashboard-transcript-avatar"
-                                                                    data-tone={
-                                                                        TRANSCRIPT_AVATAR_TONES[
-                                                                            index %
-                                                                                TRANSCRIPT_AVATAR_TONES.length
-                                                                        ]
-                                                                    }
-                                                                >
-                                                                    {
-                                                                        avatarLabel
-                                                                    }
-                                                                </span>
-                                                                <span
-                                                                    className="text-sm font-medium text-foreground"
-                                                                    data-part="dashboard-transcript-speaker-name"
-                                                                >
-                                                                    {
-                                                                        speakerName
-                                                                    }
-                                                                </span>
-                                                                <span
-                                                                    className="ml-1 font-mono text-xs text-muted-foreground"
-                                                                    data-format="mono"
-                                                                    data-part="dashboard-transcript-speaker-time"
-                                                                >
-                                                                    {timeLabel ??
-                                                                        "--"}
-                                                                </span>
-                                                            </div>
-                                                            <p className="m-0 text-sm/relaxed text-foreground">
-                                                                {turn.text}
-                                                            </p>
-                                                        </div>
-                                                    );
-                                                })
-                                            ) : (
-                                                <Empty
-                                                    data-panel="dashboard-transcript-empty"
-                                                    variant="compact"
-                                                >
-                                                    <EmptyHeader>
-                                                        <EmptyMedia
-                                                            aria-hidden="true"
-                                                            data-part="dashboard-transcript-empty-icon"
-                                                            variant="icon"
-                                                        >
-                                                            <DashboardTranscriptEmptyIcon />
-                                                        </EmptyMedia>
-                                                        <EmptyTitle
-                                                            variant="compact"
-                                                            data-part="dashboard-transcript-empty-message"
-                                                        >
-                                                            还没有逐字稿
-                                                        </EmptyTitle>
-                                                        <EmptyDescription
-                                                            variant="compact"
-                                                            data-part="dashboard-transcript-empty-sub"
-                                                        >
-                                                            来源已就绪，转写任务还在排队中。
-                                                        </EmptyDescription>
-                                                    </EmptyHeader>
-                                                </Empty>
-                                            )}
-                                        </div>
+                                        </>
+                                    }
+                                    sourcePane={
                                         <SourceReportPane
                                             surface="dashboard"
                                             className={
@@ -7167,28 +7037,36 @@ export function Workstation({
                                                 <DashboardSourceReportState state="loading">
                                                     <SourceReportMetricCards>
                                                         <SourceReportMetricCard
-                                                            label="来源"
+                                                            label={t(
+                                                                "recording.source",
+                                                            )}
                                                             metric="source"
                                                             value="skeleton"
                                                         >
                                                             <SourceReportCardSkeleton size="source" />
                                                         </SourceReportMetricCard>
                                                         <SourceReportMetricCard
-                                                            label="转写状态"
+                                                            label={t(
+                                                                "sourceReport.transcriptStatus",
+                                                            )}
                                                             metric="transcript-status"
                                                             value="skeleton"
                                                         >
                                                             <SourceReportCardSkeleton size="status" />
                                                         </SourceReportMetricCard>
                                                         <SourceReportMetricCard
-                                                            label="摘要状态"
+                                                            label={t(
+                                                                "sourceReport.summaryStatus",
+                                                            )}
                                                             metric="summary-status"
                                                             value="skeleton"
                                                         >
                                                             <SourceReportCardSkeleton size="status" />
                                                         </SourceReportMetricCard>
                                                         <SourceReportMetricCard
-                                                            label="分段数"
+                                                            label={t(
+                                                                "sourceReport.segmentCount",
+                                                            )}
                                                             metric="segment-count"
                                                             value="skeleton"
                                                         >
@@ -7197,16 +7075,16 @@ export function Workstation({
                                                     </SourceReportMetricCards>
                                                     <SourceReportSection
                                                         section="transcript"
-                                                        title="来源转写"
-                                                        description={
-                                                            <>
-                                                                正在从
-                                                                {
-                                                                    sourceReportProviderSentenceName
-                                                                }
-                                                                读取…
-                                                            </>
-                                                        }
+                                                        title={t(
+                                                            "sourceReport.sourceTranscript",
+                                                        )}
+                                                        description={t(
+                                                            "sourceReport.loadingFromSource",
+                                                            {
+                                                                provider:
+                                                                    sourceReportProviderSentenceName,
+                                                            },
+                                                        )}
                                                     >
                                                         <SourceReportSegmentSkeletonBlock>
                                                             <SourceReportSegmentSkeleton size="time" />
@@ -7233,13 +7111,18 @@ export function Workstation({
                                                             <SourceReportErrorGlyph />
                                                         </SourceReportEmptyIcon>
                                                         <SourceReportEmptyTitle kind="alert">
-                                                            无法读取来源详情
+                                                            {t(
+                                                                "sourceReport.errorTitle",
+                                                            )}
                                                         </SourceReportEmptyTitle>
                                                         <SourceReportEmptyDescription kind="alert">
-                                                            {
-                                                                sourceReportProviderSentenceName
-                                                            }
-                                                            返回了一个错误，可能是网络抖动或来源临时不可用。
+                                                            {t(
+                                                                "sourceReport.errorDescription",
+                                                                {
+                                                                    provider:
+                                                                        sourceReportProviderSentenceName,
+                                                                },
+                                                            )}
                                                         </SourceReportEmptyDescription>
                                                         <SourceReportActionRow
                                                             purpose="empty"
@@ -7254,7 +7137,9 @@ export function Workstation({
                                                                     void loadSourceReport()
                                                                 }
                                                             >
-                                                                重试
+                                                                {t(
+                                                                    "common.retry",
+                                                                )}
                                                             </SourceReportActionButton>
                                                             <SourceReportActionButton
                                                                 intent="ghost"
@@ -7279,7 +7164,9 @@ export function Workstation({
                                                                     );
                                                                 }}
                                                             >
-                                                                查看同步日志
+                                                                {t(
+                                                                    "sourceReport.viewSyncLog",
+                                                                )}
                                                             </SourceReportActionButton>
                                                         </SourceReportActionRow>
                                                     </SourceReportEmptySurface>
@@ -7319,12 +7206,14 @@ export function Workstation({
                                                             />
                                                         </SourceReportMetricCard>
                                                         <SourceReportMetricCard
-                                                            label="转写状态"
+                                                            label={t(
+                                                                "sourceReport.transcriptStatus",
+                                                            )}
                                                             metric="transcript-status"
                                                         >
                                                             <SourceReportStatusBadge
                                                                 tone={sourceReportReadinessTone(
-                                                                    sourceTranscriptStatusLabel,
+                                                                    sourceTranscriptStatus,
                                                                 )}
                                                             >
                                                                 {
@@ -7333,12 +7222,14 @@ export function Workstation({
                                                             </SourceReportStatusBadge>
                                                         </SourceReportMetricCard>
                                                         <SourceReportMetricCard
-                                                            label="摘要状态"
+                                                            label={t(
+                                                                "sourceReport.summaryStatus",
+                                                            )}
                                                             metric="summary-status"
                                                         >
                                                             <SourceReportStatusBadge
                                                                 tone={sourceReportReadinessTone(
-                                                                    sourceSummaryStatusLabel,
+                                                                    sourceSummaryStatus,
                                                                 )}
                                                             >
                                                                 {
@@ -7347,7 +7238,9 @@ export function Workstation({
                                                             </SourceReportStatusBadge>
                                                         </SourceReportMetricCard>
                                                         <SourceReportMetricCard
-                                                            label="分段数"
+                                                            label={t(
+                                                                "sourceReport.segmentCount",
+                                                            )}
                                                             metric="segment-count"
                                                             value="number"
                                                         >
@@ -7359,33 +7252,30 @@ export function Workstation({
 
                                                     <SourceReportSection
                                                         section="transcript"
-                                                        title="来源转写"
+                                                        title={t(
+                                                            "sourceReport.sourceTranscript",
+                                                        )}
                                                         noticeAfter={
                                                             sourceTranscriptAvailable ? null : (
                                                                 <SourceReportMissingNotice state="transcript-missing">
-                                                                    来源未提供逐字稿。可以稍后再来，或运行私有转写。
+                                                                    {t(
+                                                                        "sourceReport.transcriptMissing",
+                                                                    )}
                                                                 </SourceReportMissingNotice>
                                                             )
                                                         }
-                                                        description={
-                                                            <>
-                                                                来自
-                                                                {
-                                                                    sourceReportProviderSentenceName
-                                                                }
-                                                                {" · "}
-                                                                {
-                                                                    sourceReportSegmentCount
-                                                                }
-                                                                {" 段 · "}
-                                                                {selectedRecording
-                                                                    ? formatDuration(
-                                                                          selectedRecording.duration,
-                                                                      )
-                                                                    : "--"}
-                                                                {" 总时长"}
-                                                            </>
-                                                        }
+                                                        description={t(
+                                                            "sourceReport.segmentDuration",
+                                                            {
+                                                                count: sourceReportSegmentCount,
+                                                                duration:
+                                                                    selectedRecording
+                                                                        ? formatDuration(
+                                                                              selectedRecording.duration,
+                                                                          )
+                                                                        : "--",
+                                                            },
+                                                        )}
                                                     >
                                                         <SourceReportSegments
                                                             hidden={
@@ -7428,7 +7318,14 @@ export function Workstation({
                                                                         }
                                                                         speaker={
                                                                             segment.speaker ||
-                                                                            `说话人 ${index + 1}`
+                                                                            t(
+                                                                                "transcriptionPanel.fallbackSpeaker",
+                                                                                {
+                                                                                    index:
+                                                                                        index +
+                                                                                        1,
+                                                                                },
+                                                                            )
                                                                         }
                                                                     >
                                                                         {
@@ -7444,16 +7341,16 @@ export function Workstation({
                                                     0 ? (
                                                         <SourceReportSection
                                                             section="summary"
-                                                            title="来源原始报告"
-                                                            description={
-                                                                <>
-                                                                    由
-                                                                    {
-                                                                        sourceReportProviderName
-                                                                    }
-                                                                    返回的只读摘要
-                                                                </>
-                                                            }
+                                                            title={t(
+                                                                "sourceReport.officialReport",
+                                                            )}
+                                                            description={t(
+                                                                "sourceReport.readOnlySummary",
+                                                                {
+                                                                    provider:
+                                                                        sourceReportProviderName,
+                                                                },
+                                                            )}
                                                         >
                                                             <SourceReportSummaryBody>
                                                                 {sourceSummaryLines.map(
@@ -7476,23 +7373,25 @@ export function Workstation({
 
                                                     <SourceReportSection
                                                         section="metadata"
-                                                        title="来源信息"
+                                                        title={t(
+                                                            "sourceReport.sourceInformation",
+                                                        )}
                                                         noticeBefore={
                                                             sourceSummaryAvailable ? null : (
                                                                 <SourceReportMissingNotice state="summary-missing">
-                                                                    来源未提供官方摘要。
+                                                                    {t(
+                                                                        "sourceReport.summaryMissing",
+                                                                    )}
                                                                 </SourceReportMissingNotice>
                                                             )
                                                         }
-                                                        description={
-                                                            <>
-                                                                由
-                                                                {
-                                                                    sourceReportProviderName
-                                                                }
-                                                                返回的公开元数据
-                                                            </>
-                                                        }
+                                                        description={t(
+                                                            "sourceReport.publicMetadata",
+                                                            {
+                                                                provider:
+                                                                    sourceReportProviderName,
+                                                            },
+                                                        )}
                                                     >
                                                         <SourceReportMetaList
                                                             surface="dashboard"
@@ -7500,15 +7399,23 @@ export function Workstation({
                                                                 sourceReportSubState
                                                             }
                                                         >
-                                                            <SourceReportMetaRow label="来源">
+                                                            <SourceReportMetaRow
+                                                                label={t(
+                                                                    "recording.source",
+                                                                )}
+                                                            >
                                                                 {
                                                                     sourceReportProviderName
                                                                 }
                                                             </SourceReportMetaRow>
-                                                            <SourceReportMetaRow label="状态">
+                                                            <SourceReportMetaRow
+                                                                label={t(
+                                                                    "sourceReport.status",
+                                                                )}
+                                                            >
                                                                 <SourceReportStatusBadge
                                                                     tone={sourceReportSyncTone(
-                                                                        sourceReportSyncStatusLabel,
+                                                                        sourceReportSyncStatus,
                                                                     )}
                                                                 >
                                                                     {
@@ -7517,7 +7424,9 @@ export function Workstation({
                                                                 </SourceReportStatusBadge>
                                                             </SourceReportMetaRow>
                                                             <SourceReportMetaRow
-                                                                label="录制于"
+                                                                label={t(
+                                                                    "sourceReport.recordedAt",
+                                                                )}
                                                                 valueFormat="mono"
                                                             >
                                                                 {formatSourceReportDate(
@@ -7525,30 +7434,46 @@ export function Workstation({
                                                                 )}
                                                             </SourceReportMetaRow>
                                                             <SourceReportMetaRow
-                                                                label="最近更新"
+                                                                label={t(
+                                                                    "sourceReport.updatedAt",
+                                                                )}
                                                                 valueFormat="mono"
                                                             >
                                                                 {formatSourceReportDate(
                                                                     sourceReportUpdatedAt,
                                                                 )}
                                                             </SourceReportMetaRow>
-                                                            <SourceReportMetaRow label="可读内容">
+                                                            <SourceReportMetaRow
+                                                                label={t(
+                                                                    "sourceReport.readableContent",
+                                                                )}
+                                                            >
                                                                 {
                                                                     sourceReportReadable
                                                                 }
                                                             </SourceReportMetaRow>
-                                                            <SourceReportMetaRow label="来源标题">
+                                                            <SourceReportMetaRow
+                                                                label={t(
+                                                                    "sourceReport.sourceTitle",
+                                                                )}
+                                                            >
                                                                 {
                                                                     sourceReportTitle
                                                                 }
                                                             </SourceReportMetaRow>
-                                                            <SourceReportMetaRow label="语种">
+                                                            <SourceReportMetaRow
+                                                                label={t(
+                                                                    "sourceReport.language",
+                                                                )}
+                                                            >
                                                                 {
                                                                     sourceReportLanguage
                                                                 }
                                                             </SourceReportMetaRow>
                                                             <SourceReportMetaRow
-                                                                label="时长"
+                                                                label={t(
+                                                                    "sourceReport.duration",
+                                                                )}
                                                                 valueFormat="mono"
                                                             >
                                                                 {selectedRecording
@@ -7584,6 +7509,7 @@ export function Workstation({
                                                                     sourceReportData.sourceProvider ??
                                                                         selectedRecording?.sourceProvider,
                                                                     language,
+                                                                    t,
                                                                 )}
                                                             </SourceReportActionButton>
                                                             <SourceReportActionButton
@@ -7630,180 +7556,22 @@ export function Workstation({
                                                             <SourceReportEmptyGlyph />
                                                         </SourceReportEmptyIcon>
                                                         <SourceReportEmptyTitle>
-                                                            这条录音没有关联来源
+                                                            {t(
+                                                                "sourceReport.noLinkedSourceTitle",
+                                                            )}
                                                         </SourceReportEmptyTitle>
                                                         <SourceReportEmptyDescription>
-                                                            本地导入或离线录制的录音不会有来源详情。
+                                                            {t(
+                                                                "sourceReport.noLinkedSourceDescription",
+                                                            )}
                                                         </SourceReportEmptyDescription>
                                                     </SourceReportEmptySurface>
                                                 </DashboardSourceReportState>
                                             )}
                                         </SourceReportPane>
-                                        <div
-                                            className={
-                                                dashboardTabPaneHiddenClassName
-                                            }
-                                            data-panel="dashboard-speakers-pane"
-                                            data-tab-pane="speakers"
-                                            hidden={detailTab !== "speakers"}
-                                        >
-                                            <div
-                                                className={
-                                                    dashboardSpeakerPaneClassNames.head
-                                                }
-                                                data-part="dashboard-speakers-head"
-                                            >
-                                                <div
-                                                    className={
-                                                        dashboardSpeakerPaneClassNames.headTitle
-                                                    }
-                                                    data-part="dashboard-speakers-head-title"
-                                                >
-                                                    {turns.length || 0} 段说话人
-                                                </div>
-                                                <Button
-                                                    variant="ghost"
-                                                    size="sm"
-                                                    className={
-                                                        dashboardButtonClassNames.speakersMerge
-                                                    }
-                                                    type="button"
-                                                    data-control="dashboard-speakers-merge"
-                                                >
-                                                    合并相似…
-                                                </Button>
-                                            </div>
-                                            <ul
-                                                className={
-                                                    dashboardSpeakerPaneClassNames.rows
-                                                }
-                                                data-list="dashboard-speaker-rows"
-                                            >
-                                                {turns.length ? (
-                                                    turns.map((turn, index) => {
-                                                        const shareValue =
-                                                            getDashboardSpeakerShareValue(
-                                                                index,
-                                                            );
-
-                                                        return (
-                                                            <li
-                                                                className={
-                                                                    dashboardSpeakerPaneClassNames.row
-                                                                }
-                                                                data-item="dashboard-speaker-row"
-                                                                key={`${selectedRecording?.id}:speaker:${index}`}
-                                                            >
-                                                                <Badge
-                                                                    variant="secondary"
-                                                                    className={
-                                                                        dashboardSpeakerPaneClassNames.avatar
-                                                                    }
-                                                                    data-part="dashboard-speaker-avatar"
-                                                                >
-                                                                    {index + 1}
-                                                                </Badge>
-                                                                <div
-                                                                    className={
-                                                                        dashboardSpeakerPaneClassNames.rowMeta
-                                                                    }
-                                                                    data-part="dashboard-speaker-row-meta"
-                                                                >
-                                                                    <div
-                                                                        className={
-                                                                            dashboardSpeakerPaneClassNames.name
-                                                                        }
-                                                                        data-part="dashboard-speaker-name"
-                                                                    >
-                                                                        {turn.speakerName ||
-                                                                            `说话人 ${index + 1}`}
-                                                                    </div>
-                                                                    <Badge
-                                                                        variant="outline"
-                                                                        className={
-                                                                            dashboardSpeakerPaneClassNames.sub
-                                                                        }
-                                                                        data-part="dashboard-speaker-sub"
-                                                                    >
-                                                                        {
-                                                                            turn
-                                                                                .text
-                                                                                .length
-                                                                        }{" "}
-                                                                        字
-                                                                    </Badge>
-                                                                </div>
-                                                                <Progress
-                                                                    value={
-                                                                        shareValue
-                                                                    }
-                                                                    max={100}
-                                                                    className={
-                                                                        dashboardSpeakerPaneClassNames.bar
-                                                                    }
-                                                                    indicatorClassName={
-                                                                        dashboardSpeakerPaneClassNames.barFill
-                                                                    }
-                                                                    indicatorProps={{
-                                                                        "data-part":
-                                                                            "dashboard-speaker-bar-fill",
-                                                                    }}
-                                                                    data-part="dashboard-speaker-bar"
-                                                                    getValueLabel={(
-                                                                        value,
-                                                                    ) =>
-                                                                        `${value}%`
-                                                                    }
-                                                                />
-                                                            </li>
-                                                        );
-                                                    })
-                                                ) : (
-                                                    <li
-                                                        className="px-2.5"
-                                                        data-item="dashboard-speaker-row"
-                                                        data-state="empty"
-                                                    >
-                                                        <Empty
-                                                            variant="compact"
-                                                            className={
-                                                                dashboardSpeakerPaneClassNames.empty
-                                                            }
-                                                        >
-                                                            <EmptyHeader
-                                                                className={
-                                                                    dashboardSpeakerPaneClassNames.emptyHeader
-                                                                }
-                                                            >
-                                                                <EmptyMedia
-                                                                    variant="icon"
-                                                                    className={
-                                                                        dashboardSpeakerPaneClassNames.emptyIcon
-                                                                    }
-                                                                    data-part="dashboard-speaker-avatar"
-                                                                >
-                                                                    <MessageSquareText />
-                                                                </EmptyMedia>
-                                                                <EmptyTitle
-                                                                    variant="compact"
-                                                                    data-part="dashboard-speaker-name"
-                                                                >
-                                                                    转写完成后可查看说话人信息
-                                                                </EmptyTitle>
-                                                                <EmptyDescription
-                                                                    variant="compact"
-                                                                    data-part="dashboard-speaker-sub"
-                                                                >
-                                                                    暂无说话人片段
-                                                                </EmptyDescription>
-                                                            </EmptyHeader>
-                                                        </Empty>
-                                                    </li>
-                                                )}
-                                            </ul>
-                                        </div>
-                                    </CardContent>
-                                </Card>
+                                    }
+                                    className="rounded-2xl"
+                                />
                             </>
                         ) : (
                             <DashboardDetailEmptyState />

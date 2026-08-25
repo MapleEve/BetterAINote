@@ -31,7 +31,7 @@ describe("preview dashboard performance boundary", () => {
         expect(dashboardSelection).not.toContain("text:");
         expect(dashboardSelection).not.toContain("providerPayload");
         expect(source).toMatch(
-            /listRecordingRelationsForUser\(\s*userId,\s*recordingIds,\s*\{\s*includeTranscript:\s*false,\s*\}\s*\)/,
+            /listRecordingTranscriptionsForUser\(\s*userId,\s*recordingIds,\s*\{\s*includeTranscript:\s*false\s*\},?\s*\)/,
         );
     });
 

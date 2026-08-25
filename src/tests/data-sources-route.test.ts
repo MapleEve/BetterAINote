@@ -929,6 +929,42 @@ describe("data sources route", () => {
         expect(db.update).not.toHaveBeenCalled();
     });
 
+    it("rejects testing DingTalk A1 without sign-in details before fetch or database writes", async () => {
+        const fetchMock = vi.fn();
+
+        global.fetch = fetchMock as typeof fetch;
+        (db.select as Mock).mockReturnValueOnce({
+            from: vi.fn().mockReturnValue({
+                where: vi.fn().mockReturnValue({
+                    limit: vi.fn().mockResolvedValue([]),
+                }),
+            }),
+        });
+
+        const response = await TEST(
+            new Request("http://localhost/api/data-sources/test", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({
+                    provider: "dingtalk-a1",
+                    enabled: true,
+                    authMode: "device-signin",
+                    baseUrl: "https://credential-capture.invalid",
+                    config: {},
+                    secrets: {},
+                }),
+            }),
+        );
+
+        expect(response.status).toBe(400);
+        await expect(response.json()).resolves.toEqual({
+            error: "请填写钉钉登录信息。",
+        });
+        expect(fetchMock).not.toHaveBeenCalled();
+        expect(db.insert).not.toHaveBeenCalled();
+        expect(db.update).not.toHaveBeenCalled();
+    });
+
     it("rejects testing an unsupported data source provider", async () => {
         const response = await TEST(
             new Request("http://localhost/api/data-sources/test", {
@@ -1222,6 +1258,42 @@ describe("data sources route", () => {
                 versionNumber: 12,
             }),
         );
+    });
+
+    it("rejects reconnecting DingTalk A1 without sign-in details before fetch or database writes", async () => {
+        const fetchMock = vi.fn();
+
+        global.fetch = fetchMock as typeof fetch;
+        (db.select as Mock).mockReturnValueOnce({
+            from: vi.fn().mockReturnValue({
+                where: vi.fn().mockReturnValue({
+                    limit: vi.fn().mockResolvedValue([]),
+                }),
+            }),
+        });
+
+        const response = await RECONNECT(
+            new Request("http://localhost/api/data-sources/reconnect", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({
+                    provider: "dingtalk-a1",
+                    enabled: false,
+                    authMode: "device-signin",
+                    baseUrl: "http://127.0.0.1:43129",
+                    config: {},
+                    secrets: {},
+                }),
+            }),
+        );
+
+        expect(response.status).toBe(400);
+        await expect(response.json()).resolves.toEqual({
+            error: "请填写钉钉登录信息。",
+        });
+        expect(fetchMock).not.toHaveBeenCalled();
+        expect(db.insert).not.toHaveBeenCalled();
+        expect(db.update).not.toHaveBeenCalled();
     });
 
     it("does not enable a source when reconnect validation fails", async () => {
@@ -1783,7 +1855,7 @@ describe("data sources route", () => {
         });
     });
 
-    it("validates DingTalk A1 device-signin connections before saving", async () => {
+    it("validates DingTalk A1 device-signin connections at the pinned production endpoint before saving", async () => {
         const insertValues = vi.fn().mockResolvedValue(undefined);
         const fetchMock = vi.fn().mockResolvedValue({
             ok: true,
@@ -1808,8 +1880,8 @@ describe("data sources route", () => {
                     provider: "dingtalk-a1",
                     enabled: true,
                     authMode: "device-signin",
-                    baseUrl: "https://meeting-ai-tingji.dingtalk.com",
-                    config: {},
+                    baseUrl: "https://credential-capture.invalid",
+                    config: { syncTitleToSource: true },
                     secrets: {
                         deviceCredential: "device-signin-123",
                     },
@@ -1833,6 +1905,7 @@ describe("data sources route", () => {
                 enabled: true,
                 authMode: "device-signin",
                 baseUrl: "https://meeting-ai-tingji.dingtalk.com",
+                config: { syncTitleToSource: true },
                 secretConfig:
                     'encrypted:{"deviceCredential":"device-signin-123"}',
             }),
@@ -1876,7 +1949,11 @@ describe("data sources route", () => {
         });
     });
 
-    it("rejects enabling DingTalk A1 without the active auth secret", async () => {
+    it("saves an enabled DingTalk A1 source without marking it connected", async () => {
+        const insertValues = vi.fn().mockResolvedValue(undefined);
+        const fetchMock = vi.fn();
+
+        global.fetch = fetchMock as typeof fetch;
         (db.select as Mock).mockReturnValueOnce({
             from: vi.fn().mockReturnValue({
                 where: vi.fn().mockReturnValue({
@@ -1884,6 +1961,7 @@ describe("data sources route", () => {
                 }),
             }),
         });
+        (db.insert as Mock).mockReturnValueOnce({ values: insertValues });
 
         const response = await PUT(
             new Request("http://localhost/api/data-sources", {
@@ -1893,16 +1971,25 @@ describe("data sources route", () => {
                     provider: "dingtalk-a1",
                     enabled: true,
                     authMode: "device-signin",
-                    config: {},
+                    config: { syncTitleToSource: false },
                     secrets: {},
                 }),
             }),
         );
 
-        expect(response.status).toBe(400);
-        await expect(response.json()).resolves.toEqual({
-            error: "请填写 dt-meeting-agent-token。",
-        });
+        expect(response.status).toBe(200);
+        await expect(response.json()).resolves.toEqual({ success: true });
+        expect(fetchMock).not.toHaveBeenCalled();
+        expect(insertValues).toHaveBeenCalledWith(
+            expect.objectContaining({
+                provider: "dingtalk-a1",
+                enabled: true,
+                authMode: "device-signin",
+                baseUrl: "https://meeting-ai-tingji.dingtalk.com",
+                config: { syncTitleToSource: false },
+                secretConfig: null,
+            }),
+        );
     });
 
     it("rejects an unavailable DingTalk A1 sign-in choice with user-facing copy", async () => {

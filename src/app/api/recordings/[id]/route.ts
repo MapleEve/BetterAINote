@@ -3,6 +3,7 @@ import { auth } from "@/lib/auth";
 import {
     deleteRecordingForUser,
     getRecordingDetailReadModel,
+    getRecordingTagsForUser,
     RecordingDeleteError,
     serializeRecordingDetailTranscription,
 } from "@/server/modules/recordings";
@@ -24,12 +25,14 @@ export async function GET(
         }
 
         const { id } = await params;
-        const detail = await getRecordingDetailReadModel(session.user.id, id, {
-            includeSegments: true,
-        });
-        const recording = detail?.recording;
+        const [detail, tags] = await Promise.all([
+            getRecordingDetailReadModel(session.user.id, id, {
+                includeSegments: true,
+            }),
+            getRecordingTagsForUser(session.user.id, id),
+        ]);
 
-        if (!recording) {
+        if (!detail) {
             return NextResponse.json(
                 { error: "Recording not found" },
                 { status: 404 },
@@ -37,7 +40,10 @@ export async function GET(
         }
 
         return NextResponse.json({
-            recording,
+            recording: {
+                ...detail.recording,
+                tags,
+            },
             transcription:
                 serializeRecordingDetailTranscription(
                     detail.transcription,

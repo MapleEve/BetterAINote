@@ -24,7 +24,9 @@ const E2E_ENCRYPTION_KEY =
 const PLAYWRIGHT_EMAIL = "playwright-admin@example.com";
 const ONBOARDING_BACKEND_TICNOTE_TOKEN =
     "playwright-onboarding-ticnote-token";
+const ONBOARDING_SOT_DINGTALK_TOKEN = "playwright-onboarding-dingtalk-token";
 const ONBOARDING_BACKEND_TICNOTE_BASE_URL = "https://voice-api.ticnote.cn";
+const ONBOARDING_BACKEND_TICNOTE_TIMEZONE = "Asia/Taipei";
 const ONBOARDING_BACKEND_PERSISTENCE_SPEAKER =
     "林梅 Backend Readback";
 const ONBOARDING_BACKEND_PERSISTENCE_VOICEPRINT =
@@ -48,6 +50,8 @@ const ROW_119_WEB_KIT_INDEX_REL =
     "tmp/betterainote-design-evidence/handoff-20260531/betterainote-design-system/project/ui_kits/web/index.html";
 const ELECTRON_ONBOARDING_REFERENCE_REL =
     "tmp/betterainote-design-evidence/run-20260605-sot-1to1/auth-onboarding-20260611/electron-onboarding-artboard.png";
+
+test.use({ timezoneId: ONBOARDING_BACKEND_TICNOTE_TIMEZONE });
 
 interface SotPixelDiff {
     alphaDiffPixels: number;
@@ -279,6 +283,25 @@ async function withVoiceprintsClient<T>(
     }
 }
 
+async function withExclusiveVoiceprintsWriteLock<T>(callback: () => Promise<T>) {
+    const client = createClient({ url: databaseUrl(VOICEPRINTS_DB) });
+    let transactionOpen = false;
+
+    try {
+        await client.execute("BEGIN IMMEDIATE");
+        transactionOpen = true;
+        return await callback();
+    } finally {
+        try {
+            if (transactionOpen) {
+                await client.execute("ROLLBACK");
+            }
+        } finally {
+            client.close();
+        }
+    }
+}
+
 async function getPlaywrightUserId() {
     return withCoreClient(async (client) => {
         const result = await client.execute({
@@ -349,7 +372,7 @@ async function seedTicnoteFallbackConnectionForOnboarding(
                     orgId: "e2e-onboarding-org",
                     region: "cn",
                     syncTitleToSource: false,
-                    timezone: "Asia/Shanghai",
+                    timezone: ONBOARDING_BACKEND_TICNOTE_TIMEZONE,
                 }),
                 encryptWithE2EKey(
                     JSON.stringify({
@@ -361,6 +384,42 @@ async function seedTicnoteFallbackConnectionForOnboarding(
             ],
         });
     });
+}
+
+async function seedSotDefaultSourceState(page: Page, userId: string) {
+    const now = Date.now();
+    await seedTicnoteFallbackConnectionForOnboarding(userId, true);
+    await withCoreClient(async (client) => {
+        await client.execute({
+            sql: `
+                INSERT INTO source_connections (
+                    id, user_id, provider, enabled, auth_mode, base_url,
+                    config, secret_config, created_at, updated_at
+                ) VALUES (?, ?, 'dingtalk-a1', 1, 'device-signin', ?, '{}', ?, ?, ?)
+            `,
+            args: [
+                `onboarding-dingtalk-sot-${now}`,
+                userId,
+                "https://meeting-ai-tingji.dingtalk.com",
+                encryptWithE2EKey(
+                    JSON.stringify({
+                        deviceCredential: ONBOARDING_SOT_DINGTALK_TOKEN,
+                    }),
+                ),
+                now,
+                now,
+            ],
+        });
+    });
+
+    const response = await page.request.put("/api/settings/transcription", {
+        data: {
+            autoTranscribe: true,
+            defaultTranscriptionLanguage: "zh",
+            defaultTranscriptionProvider: "dingtalk-a1",
+        },
+    });
+    expect(response.ok()).toBe(true);
 }
 
 async function readOnboardingBackendPersistenceRows(
@@ -490,9 +549,13 @@ function sotControl(page: Page, control: string) {
         case "auth-email":
             return page.getByRole("textbox", { name: "邮箱" });
         case "local-only":
-            return page.getByRole("button", { name: "仅本地使用" });
+            return page.getByRole("button", {
+                name: /^(仅本地使用|启动中\.\.\.)$/,
+            });
         case "send-login-link":
-            return page.getByRole("button", { name: "发送登录链接" });
+            return page.getByRole("button", {
+                name: /^(发送登录链接|发送中\.\.\.)$/,
+            });
         case "speaker-name":
             return page.getByRole("textbox", { name: "显示名称" });
         case "speaker-voiceprint":
@@ -505,7 +568,7 @@ function sotControl(page: Page, control: string) {
 }
 
 function onboardingProvider(page: Page, name: string | RegExp) {
-    return sotList(page, "provider-cards").getByRole("radio", { name });
+    return sotList(page, "provider-cards").getByRole("button", { name });
 }
 
 function onboardingDefaultSource(page: Page, name: string | RegExp) {
@@ -527,7 +590,7 @@ function sotList(page: Page, list: string) {
         case "finish-summary":
             return page.getByRole("region", { name: "配置摘要" });
         case "provider-cards":
-            return page.getByRole("radiogroup", { name: "来源" });
+            return page.getByRole("group", { name: "来源选项" });
         default:
             throw new Error(`No semantic locator is defined for ${list}`);
     }
@@ -563,14 +626,48 @@ async function expectOnboardingState(
     page: Page,
     state: keyof typeof ONBOARDING_STEPS,
 ) {
-    await expect(onboardingStep(page, state)).toHaveAttribute(
-        "aria-current",
-        "step",
-    );
+    const step = ONBOARDING_STEPS[state];
+    const heading = page.getByRole("heading", {
+        exact: true,
+        level: 2,
+        name: `第 ${step.index} 步 · ${step.title}`,
+    });
+    await expect(heading).toBeVisible();
 }
 
 function authForm(page: Page) {
     return page.getByRole("main").locator("form");
+}
+
+function createDeferredSignal() {
+    let resolveSignal: (() => void) | undefined;
+    const promise = new Promise<void>((resolve) => {
+        resolveSignal = resolve;
+    });
+    if (!resolveSignal) {
+        throw new Error("Deferred signal resolver was not initialized");
+    }
+    return { promise, resolve: resolveSignal };
+}
+
+async function delayNextAuthRequest(page: Page, requestPath: string) {
+    const reachedBackendBoundary = createDeferredSignal();
+    const releaseRequest = createDeferredSignal();
+
+    await page.route(
+        `**${requestPath}`,
+        async (route) => {
+            reachedBackendBoundary.resolve();
+            await releaseRequest.promise;
+            await route.continue();
+        },
+        { times: 1 },
+    );
+
+    return {
+        reachedBackendBoundary: reachedBackendBoundary.promise,
+        release: releaseRequest.resolve,
+    };
 }
 
 async function gotoAuthPage(page: Page, path: "/login" | "/register") {
@@ -625,19 +722,12 @@ async function goToOnboardingState(
     page: Page,
     state: keyof typeof ONBOARDING_STEPS,
 ) {
-    const nextButton = page.getByRole("button", {
-        exact: true,
-        name: "下一步",
-    });
-
-    for (let attempt = 0; attempt < 4; attempt += 1) {
-        await nextButton.click();
-        if (await onboardingStep(page, state).getAttribute("aria-current").then((value) => value === "step")) {
-            return;
-        }
-        await page.waitForTimeout(250);
-    }
-
+    const activeHeading = page.locator("#onboarding-step-title");
+    const actionName =
+        (await activeHeading.textContent())?.includes("说话人档案")
+            ? "保存并继续"
+            : "下一步";
+    await page.getByRole("button", { exact: true, name: actionName }).click();
     await expectOnboardingState(page, state);
 }
 
@@ -736,7 +826,13 @@ async function readOnboardingDefaultSourceSotEquivalentHtml(
             ),
         ).map((source) => ({
             label: normalizeText(source.textContent),
-            state: source.getAttribute("aria-checked") === "true" ? "selected" : source.getAttribute("disabled") !== null ? "disabled" : "idle",
+            state:
+                (source.getAttribute("aria-pressed") ??
+                    source.getAttribute("aria-checked")) === "true"
+                    ? "selected"
+                    : source.getAttribute("disabled") !== null
+                      ? "disabled"
+                      : "idle",
         }));
 
         if (steps.length !== 4) {
@@ -1584,13 +1680,16 @@ test("SOT onboarding default source card matches §09 pixels", async ({
             document.body.dataset.theme = "dark";
         });
         await ensureSignedIn(page);
-        await resetOnboardingConnections(await getPlaywrightUserId());
+        const userId = await getPlaywrightUserId();
+        await resetOnboardingConnections(userId);
+        await seedSotDefaultSourceState(page, userId);
         await gotoOnboardingPage(page);
         await page.evaluate(() => {
             document.documentElement.dataset.theme = "dark";
             document.body.dataset.theme = "dark";
         });
-        await goToOnboardingState(page, "transcription");
+        await page.getByRole("button", { exact: true, name: "返回" }).click();
+        await expectOnboardingState(page, "transcription");
 
         await expectOnboardingDefaultSourcePixelsMatch(
             page,
@@ -1690,12 +1789,15 @@ test("row 119 auth/onboarding visual matrix evidence", async ({
         });
 
         await ensureSignedIn(page);
-        await resetOnboardingConnections(await getPlaywrightUserId());
+        const userId = await getPlaywrightUserId();
+        await resetOnboardingConnections(userId);
+        await seedSotDefaultSourceState(page, userId);
 
         await page.setViewportSize({ width: 1280, height: 900 });
         await gotoOnboardingPage(page);
         await forceDarkTheme(page);
-        await goToOnboardingState(page, "transcription");
+        await page.getByRole("button", { exact: true, name: "返回" }).click();
+        await expectOnboardingState(page, "transcription");
         const onboardingCard = currentOnboardingPanel(page);
         const onboardingPanel = currentOnboardingPanel(page);
         await expectOnboardingState(page, "transcription");
@@ -1738,7 +1840,8 @@ test("row 119 auth/onboarding visual matrix evidence", async ({
         await page.setViewportSize({ width: 390, height: 780 });
         await gotoOnboardingPage(page);
         await forceDarkTheme(page);
-        await goToOnboardingState(page, "transcription");
+        await page.getByRole("button", { exact: true, name: "返回" }).click();
+        await expectOnboardingState(page, "transcription");
         const mobileOnboardingCard = currentOnboardingPanel(page);
         await expectOnboardingState(page, "transcription");
         await expect(
@@ -1768,8 +1871,7 @@ test("row 119 auth/onboarding visual matrix evidence", async ({
                 "No separate mobile onboarding artboard exists in §09; this is runtime structural evidence, not a mobile pixel claim.",
         });
 
-        await gotoOnboardingPage(page);
-        await forceDarkTheme(page);
+        await page.getByRole("button", { exact: true, name: "返回" }).click();
         await expectOnboardingState(page, "source");
         await expect(sotList(page, "provider-cards")).toBeVisible();
         frames.push({
@@ -1797,7 +1899,7 @@ test("row 119 auth/onboarding visual matrix evidence", async ({
         await page.setViewportSize({ width: 1280, height: 900 });
         await gotoOnboardingPage(page);
         await forceDarkTheme(page);
-        await goToOnboardingState(page, "speakers");
+        await expectOnboardingState(page, "speakers");
         await sotControl(page, "speaker-name").fill("林梅");
         await expectOnboardingState(page, "speakers");
         frames.push({
@@ -1970,6 +2072,64 @@ test("row 119 auth/onboarding visual matrix evidence", async ({
     );
 });
 
+test("SOT onboarding remains usable across desktop and mobile light and dark quadrants", async ({
+    page,
+}, testInfo) => {
+    await ensureSignedIn(page);
+    const userId = await getPlaywrightUserId();
+    await resetOnboardingBackendPersistenceState(userId);
+    await gotoOnboardingPage(page);
+
+    for (const quadrant of [
+        {
+            id: "desktop-dark",
+            theme: "dark",
+            viewport: { width: 1280, height: 900 },
+        },
+        {
+            id: "desktop-light",
+            theme: "light",
+            viewport: { width: 1280, height: 900 },
+        },
+        {
+            id: "mobile-dark",
+            theme: "dark",
+            viewport: { width: 390, height: 780 },
+        },
+        {
+            id: "mobile-light",
+            theme: "light",
+            viewport: { width: 390, height: 780 },
+        },
+    ] as const) {
+        await page.setViewportSize(quadrant.viewport);
+        await page.evaluate((theme) => {
+            document.documentElement.dataset.theme = theme;
+            document.body.dataset.theme = theme;
+        }, quadrant.theme);
+
+        await expect(currentOnboardingPanel(page)).toBeVisible();
+        await expectOnboardingState(page, "source");
+        await expect(sotList(page, "provider-cards")).toBeVisible();
+        const viewportMetrics = await page.evaluate(() => ({
+            clientWidth: document.documentElement.clientWidth,
+            scrollWidth: document.documentElement.scrollWidth,
+        }));
+        expect(
+            viewportMetrics.scrollWidth,
+            `${quadrant.id} must not overflow horizontally`,
+        ).toBeLessThanOrEqual(viewportMetrics.clientWidth);
+
+        await testInfo.attach(`onboarding-${quadrant.id}-structural.png`, {
+            body: await page.screenshot({
+                animations: "disabled",
+                fullPage: true,
+            }),
+            contentType: "image/png",
+        });
+    }
+});
+
 test("SOT auth sends a magic link and never exposes the old password form", async ({
     page,
 }) => {
@@ -1995,7 +2155,28 @@ test("SOT auth sends a magic link and never exposes the old password form", asyn
     await expect(page.locator("#name")).toHaveCount(0);
 
     await emailInput.fill("magic-ui@example.com");
-    await sendLoginLink(page);
+    const delayedRequest = await delayNextAuthRequest(
+        page,
+        "/api/auth/sign-in/magic-link",
+    );
+    const responsePromise = page.waitForResponse(
+        (response) =>
+            response.url().includes("/api/auth/sign-in/magic-link") &&
+            response.request().method() === "POST",
+    );
+    await sotControl(page, "send-login-link").click();
+    await delayedRequest.reachedBackendBoundary;
+
+    await expect(form).toHaveAttribute("aria-busy", "true");
+    await expect(
+        form.getByRole("button", { name: "发送中..." }),
+    ).toBeDisabled();
+    await expect(sotControl(page, "local-only")).toBeDisabled();
+    await expect(emailInput).toBeDisabled();
+
+    delayedRequest.release();
+    const response = await responsePromise;
+    expect(response.ok()).toBe(true);
 
     const successMessage = form.getByRole("status");
     await expect(successMessage).toHaveAttribute("id", "auth-form-message");
@@ -2003,7 +2184,7 @@ test("SOT auth sends a magic link and never exposes the old password form", asyn
     expect(await readMagicLinkVerification("magic-ui@example.com")).toBe(true);
 });
 
-test("SOT auth blocks second-user magic links and supports local-only session", async ({
+test("SOT auth recovers from a rejected email and supports local-only session", async ({
     page,
 }) => {
     await resetAuthUsers();
@@ -2025,18 +2206,54 @@ test("SOT auth blocks second-user magic links and supports local-only session", 
     await expect(
         form.getByRole("alert"),
     ).toContainText(
-        /Registration is disabled|登录链接发送失败/,
+        "此工作空间已完成注册，请使用已注册的邮箱登录",
     );
     expect(await readMagicLinkVerification("other-admin@example.com")).toBe(
         false,
     );
 
+    await sotControl(page, "auth-email").fill(PLAYWRIGHT_EMAIL);
+    await expect(sotControl(page, "auth-email")).toHaveAttribute(
+        "aria-invalid",
+        "false",
+    );
+    await expect(sotControl(page, "auth-email")).not.toHaveAttribute(
+        "aria-describedby",
+    );
+    await expect(form.getByRole("alert")).toHaveCount(0);
+
+    await sendLoginLink(page);
+    await expect(form.getByRole("status")).toContainText("登录链接已发送");
+    expect(await readMagicLinkVerification(PLAYWRIGHT_EMAIL)).toBe(true);
+
     await resetAuthUsers();
     await gotoAuthPage(page, "/login");
-    await Promise.all([
+    const delayedRequest = await delayNextAuthRequest(
+        page,
+        "/api/auth/sign-in/anonymous",
+    );
+    const anonymousResponsePromise = page.waitForResponse(
+        (response) =>
+            response.url().includes("/api/auth/sign-in/anonymous") &&
+            response.request().method() === "POST",
+    );
+    await sotControl(page, "local-only").click();
+    await delayedRequest.reachedBackendBoundary;
+
+    const localForm = authForm(page);
+    await expect(localForm).toHaveAttribute("aria-busy", "true");
+    await expect(
+        localForm.getByRole("button", { name: "启动中..." }),
+    ).toBeDisabled();
+    await expect(sotControl(page, "send-login-link")).toBeDisabled();
+    await expect(sotControl(page, "auth-email")).toBeDisabled();
+
+    delayedRequest.release();
+    const [anonymousResponse] = await Promise.all([
+        anonymousResponsePromise,
         page.waitForURL("**/dashboard", { waitUntil: "commit" }),
-        sotControl(page, "local-only").click(),
     ]);
+    expect(anonymousResponse.ok()).toBe(true);
 
     expect(await countAnonymousUsers()).toBe(1);
 });
@@ -2047,14 +2264,42 @@ test("SOT register route reuses the email-link setup surface without legacy acco
     await resetAuthUsers();
     await gotoAuthPage(page, "/register");
 
-    await expect(authForm(page)).toBeVisible();
+    const form = authForm(page);
+    await expect(form).toBeVisible();
     await expect(
-        authForm(page).getByText("上手 / Sign in", { exact: true }),
+        form.getByText("上手 / Sign in", { exact: true }),
     ).toBeVisible();
     await expect(sotControl(page, "auth-email")).toBeEditable();
     await expect(page.locator("#password")).toHaveCount(0);
     await expect(page.locator("#name")).toHaveCount(0);
     await expect(sotControl(page, "local-only")).toBeVisible();
+
+    await sotControl(page, "auth-email").fill("register-ui@example.com");
+    const delayedRequest = await delayNextAuthRequest(
+        page,
+        "/api/auth/sign-in/magic-link",
+    );
+    const responsePromise = page.waitForResponse(
+        (response) =>
+            response.url().includes("/api/auth/sign-in/magic-link") &&
+            response.request().method() === "POST",
+    );
+    await sotControl(page, "send-login-link").click();
+    await delayedRequest.reachedBackendBoundary;
+
+    await expect(form).toHaveAttribute("aria-busy", "true");
+    await expect(
+        form.getByRole("button", { name: "发送中..." }),
+    ).toBeDisabled();
+    await expect(sotControl(page, "local-only")).toBeDisabled();
+
+    delayedRequest.release();
+    const response = await responsePromise;
+    expect(response.ok()).toBe(true);
+    await expect(form.getByRole("status")).toContainText("登录链接已发送");
+    expect(await readMagicLinkVerification("register-ui@example.com")).toBe(
+        true,
+    );
 });
 
 test("SOT onboarding exposes source, default transcription, speaker, and finish states", async ({
@@ -2062,7 +2307,9 @@ test("SOT onboarding exposes source, default transcription, speaker, and finish 
 }) => {
     await page.setViewportSize({ width: 390, height: 780 });
     await ensureSignedIn(page);
-    await resetOnboardingConnections(await getPlaywrightUserId());
+    const userId = await getPlaywrightUserId();
+    await resetOnboardingBackendPersistenceState(userId);
+    await seedTicnoteFallbackConnectionForOnboarding(userId);
 
     await gotoOnboardingPage(page);
 
@@ -2078,7 +2325,7 @@ test("SOT onboarding exposes source, default transcription, speaker, and finish 
     await expect(sotList(page, "provider-cards")).toBeVisible();
     await expect(
         onboardingProvider(page, "Plaud"),
-    ).toHaveAttribute("aria-checked", "true");
+    ).toHaveAttribute("aria-pressed", "true");
     await expect(
         onboardingMatrixRow(page, "当前来源"),
     ).toContainText("Plaud");
@@ -2086,22 +2333,28 @@ test("SOT onboarding exposes source, default transcription, speaker, and finish 
     const feishuProvider = onboardingProvider(page, "飞书妙记");
     await feishuProvider.click();
 
-    await expect(feishuProvider).toHaveAttribute("aria-checked", "true");
+    await expect(feishuProvider).toHaveAttribute("aria-pressed", "true");
     await expect(onboardingMatrixRow(page, "当前来源")).toContainText("飞书妙记");
+
+    const ticnoteProvider = onboardingProvider(page, "TicNote");
+    await ticnoteProvider.click();
+    await expect(ticnoteProvider).toHaveAttribute("aria-pressed", "true");
+    await page.locator("#source-secret").fill(ONBOARDING_BACKEND_TICNOTE_TOKEN);
 
     await goToOnboardingState(page, "transcription");
     await expect(sotList(page, "onboarding-default-sources")).toBeVisible();
     await expect(
         sotPanel(page, "onboarding-default-source-step"),
     ).toBeVisible();
-    const feishuDefaultSource = onboardingDefaultSource(page, /飞书妙记/);
     const ticnoteDefaultSource = onboardingDefaultSource(page, /TicNote/);
-    await expect(feishuDefaultSource).toHaveAttribute("aria-checked", "false");
-    await expect(feishuDefaultSource).toBeEnabled();
-    await expect(ticnoteDefaultSource).toBeDisabled();
-    await feishuDefaultSource.click();
+    const feishuDefaultSource = onboardingDefaultSource(page, /飞书妙记/);
+    await expect(ticnoteDefaultSource).toBeFocused();
+    await expect(ticnoteDefaultSource).toHaveAttribute("aria-checked", "false");
+    await expect(ticnoteDefaultSource).toBeEnabled();
+    await expect(feishuDefaultSource).toBeDisabled();
+    await ticnoteDefaultSource.click();
     await expect(
-        feishuDefaultSource,
+        ticnoteDefaultSource,
     ).toHaveAttribute("aria-checked", "true");
 
     const transcriptionBack = page.getByRole("button", {
@@ -2112,12 +2365,12 @@ test("SOT onboarding exposes source, default transcription, speaker, and finish 
     await expect(transcriptionBack).toBeFocused();
     await page.keyboard.press("Enter");
     await expectOnboardingState(page, "source");
-    await expect(feishuProvider).toHaveAttribute("aria-checked", "true");
-    await expect(onboardingMatrixRow(page, "当前来源")).toContainText("飞书妙记");
+    await expect(ticnoteProvider).toHaveAttribute("aria-pressed", "true");
+    await expect(onboardingMatrixRow(page, "当前来源")).toContainText("TicNote");
 
     await goToOnboardingState(page, "transcription");
     await expect(
-        feishuDefaultSource,
+        ticnoteDefaultSource,
     ).toHaveAttribute("aria-checked", "true");
 
     await goToOnboardingState(page, "speakers");
@@ -2137,105 +2390,91 @@ test("SOT onboarding save connects source, transcription defaults, and speaker p
     page,
 }) => {
     await ensureSignedIn(page);
-    await resetOnboardingConnections(await getPlaywrightUserId());
+    const userId = await getPlaywrightUserId();
+    await resetOnboardingBackendPersistenceState(userId);
+    await seedTicnoteFallbackConnectionForOnboarding(userId);
 
     let dataSourcePayload: Record<string, unknown> | null = null;
     let transcriptionPayload: Record<string, unknown> | null = null;
     let speakerPayload: Record<string, unknown> | null = null;
 
-    await page.route("**/api/data-sources", async (route) => {
-        if (route.request().method() === "PUT") {
-            dataSourcePayload = route.request().postDataJSON();
-            await route.fulfill({
-                status: 200,
-                contentType: "application/json",
-                body: JSON.stringify({ success: true }),
-            });
-            return;
+    page.on("request", (request) => {
+        const pathname = new URL(request.url()).pathname;
+        if (pathname === "/api/data-sources" && request.method() === "PUT") {
+            dataSourcePayload = request.postDataJSON();
         }
-
-        await route.continue();
-    });
-    await page.route("**/api/settings/transcription", async (route) => {
-        if (route.request().method() === "PUT") {
-            transcriptionPayload = route.request().postDataJSON();
-            await route.fulfill({
-                status: 200,
-                contentType: "application/json",
-                body: JSON.stringify({ success: true }),
-            });
-            return;
+        if (
+            pathname === "/api/settings/transcription" &&
+            request.method() === "PUT"
+        ) {
+            transcriptionPayload = request.postDataJSON();
         }
-
-        await route.continue();
-    });
-    await page.route("**/api/speakers/profiles", async (route) => {
-        if (route.request().method() === "POST") {
-            speakerPayload = route.request().postDataJSON();
-            await route.fulfill({
-                status: 200,
-                contentType: "application/json",
-                body: JSON.stringify({
-                    profile: {
-                        id: "profile-e2e",
-                        displayName: "林梅",
-                        voiceprintRef: "voiceprint-playwright",
-                        assignmentCount: 0,
-                    },
-                }),
-            });
-            return;
+        if (
+            pathname === "/api/speakers/profiles" &&
+            request.method() === "POST"
+        ) {
+            speakerPayload = request.postDataJSON();
         }
-
-        await route.continue();
     });
 
     await gotoOnboardingPage(page);
+    await onboardingProvider(page, "TicNote").click();
 
     const authorizationInput = page.locator("#source-secret");
     await expect(authorizationInput).toBeEditable();
-    await authorizationInput.fill("Bearer playwright-onboarding-token");
-    await expect(authorizationInput).toHaveValue(
-        "Bearer playwright-onboarding-token",
-    );
+    await authorizationInput.fill(ONBOARDING_BACKEND_TICNOTE_TOKEN);
+    await expect(authorizationInput).toHaveValue(ONBOARDING_BACKEND_TICNOTE_TOKEN);
 
+    const sourceResponsePromise = page.waitForResponse(
+        (response) =>
+            response.url().includes("/api/data-sources") &&
+            response.request().method() === "PUT",
+    );
     await goToOnboardingState(page, "transcription");
+    expect((await sourceResponsePromise).ok()).toBe(true);
+    const ticnoteDefaultSource = onboardingDefaultSource(page, /TicNote/);
+    await expect(ticnoteDefaultSource).toBeEnabled();
+    await ticnoteDefaultSource.click();
+    await expect(ticnoteDefaultSource).toHaveAttribute("aria-checked", "true");
+
+    const transcriptionResponsePromise = page.waitForResponse(
+        (response) =>
+            response.url().includes("/api/settings/transcription") &&
+            response.request().method() === "PUT",
+    );
     await goToOnboardingState(page, "speakers");
+    expect((await transcriptionResponsePromise).ok()).toBe(true);
     await sotControl(page, "speaker-name").fill("林梅");
     await sotControl(page, "speaker-voiceprint").fill("voiceprint-playwright");
+
     await goToOnboardingState(page, "finish");
+    const speakerReadback = await page.request.get("/api/speakers/profiles");
+    expect(speakerReadback.ok()).toBe(true);
+    await expect(speakerReadback.json()).resolves.toMatchObject({
+        profiles: expect.arrayContaining([
+            expect.objectContaining({
+                displayName: "林梅",
+                voiceprintRef: "voiceprint-playwright",
+            }),
+        ]),
+    });
 
     await Promise.all([
-        page.waitForResponse(
-            (response) =>
-                response.url().includes("/api/data-sources") &&
-                response.request().method() === "PUT",
-        ),
-        page.waitForResponse(
-            (response) =>
-                response.url().includes("/api/settings/transcription") &&
-                response.request().method() === "PUT",
-        ),
-        page.waitForResponse(
-            (response) =>
-                response.url().includes("/api/speakers/profiles") &&
-                response.request().method() === "POST",
-        ),
         page.waitForURL("**/dashboard", { waitUntil: "commit" }),
         sotControl(page, "save-enter").click(),
     ]);
 
     expect(dataSourcePayload).toMatchObject({
-        provider: "plaud",
+        provider: "ticnote",
         enabled: true,
         secrets: {
-            bearerToken: "Bearer playwright-onboarding-token",
+            bearerToken: ONBOARDING_BACKEND_TICNOTE_TOKEN,
         },
     });
     expect(transcriptionPayload).toMatchObject({
         autoTranscribe: true,
         defaultTranscriptionLanguage: "zh",
-        defaultTranscriptionProvider: null,
+        defaultTranscriptionProvider: "ticnote",
     });
     expect(speakerPayload).toMatchObject({
         displayName: "林梅",
@@ -2243,23 +2482,31 @@ test("SOT onboarding save connects source, transcription defaults, and speaker p
     });
 });
 
-test("SOT onboarding starts without a default transcription source until a compatible source is selected", async ({
+test("SOT onboarding starts without a default and exposes only connected transcription sources", async ({
     page,
 }) => {
     await ensureSignedIn(page);
-    await resetOnboardingBackendPersistenceState(await getPlaywrightUserId());
+    const userId = await getPlaywrightUserId();
+    await resetOnboardingBackendPersistenceState(userId);
+    const initialSettings = await page.request.get(
+        "/api/settings/transcription",
+    );
+    expect(initialSettings.ok()).toBe(true);
+    await expect(initialSettings.json()).resolves.toMatchObject({
+        defaultTranscriptionProvider: null,
+    });
+    await seedTicnoteFallbackConnectionForOnboarding(userId);
 
     await gotoOnboardingPage(page);
+    await onboardingProvider(page, "TicNote").click();
+    await page.locator("#source-secret").fill(ONBOARDING_BACKEND_TICNOTE_TOKEN);
     await goToOnboardingState(page, "transcription");
 
-    for (const defaultSource of [
-        onboardingDefaultSource(page, /钉钉 闪记/),
-        onboardingDefaultSource(page, /TicNote/),
-        onboardingDefaultSource(page, /飞书妙记/),
-    ]) {
-        await expect(defaultSource).toHaveAttribute("aria-checked", "false");
-        await expect(defaultSource).toBeDisabled();
-    }
+    const ticnoteSource = onboardingDefaultSource(page, /TicNote/);
+    await expect(ticnoteSource).toHaveAttribute("aria-checked", "false");
+    await expect(ticnoteSource).toBeEnabled();
+    await expect(onboardingDefaultSource(page, /钉钉 闪记/)).toBeDisabled();
+    await expect(onboardingDefaultSource(page, /飞书妙记/)).toBeDisabled();
 });
 
 test("SOT onboarding first connection saves a current-draft default through API, SQLite, and reload", async ({
@@ -2280,6 +2527,22 @@ test("SOT onboarding first connection saves a current-draft default through API,
         auth_mode: "bearer",
         base_url: ONBOARDING_BACKEND_TICNOTE_BASE_URL,
     });
+    const seededConfig = JSON.parse(
+        String(seededRows.source?.config),
+    ) as Record<string, unknown>;
+    expect(seededConfig).toEqual({
+        language: "zh",
+        orgId: "e2e-onboarding-org",
+        region: "cn",
+        syncTitleToSource: false,
+        timezone: ONBOARDING_BACKEND_TICNOTE_TIMEZONE,
+    });
+    expect(String(seededRows.source?.secret_config)).toMatch(
+        /^[0-9a-f]+:[0-9a-f]+:[0-9a-f]+$/,
+    );
+    expect(String(seededRows.source?.secret_config)).not.toContain(
+        ONBOARDING_BACKEND_TICNOTE_TOKEN,
+    );
 
     await gotoOnboardingPage(page);
 
@@ -2289,11 +2552,25 @@ test("SOT onboarding first connection saves a current-draft default through API,
     await expect(authorizationInput).toBeEditable();
     await authorizationInput.fill(ONBOARDING_BACKEND_TICNOTE_TOKEN);
 
+    const dataSourceResponsePromise = page.waitForResponse(
+        (response) =>
+            response.url().includes("/api/data-sources") &&
+            response.request().method() === "PUT",
+    );
     await goToOnboardingState(page, "transcription");
+    const dataSourceResponse = await dataSourceResponsePromise;
+    expect(dataSourceResponse.ok()).toBe(true);
+    expect(dataSourceResponse.request().postDataJSON()).toMatchObject({
+        provider: "ticnote",
+        enabled: true,
+        secrets: {
+            bearerToken: ONBOARDING_BACKEND_TICNOTE_TOKEN,
+        },
+    });
     const ticnoteDefaultSource = onboardingDefaultSource(page, /TicNote/);
     await expect(ticnoteDefaultSource).toHaveAttribute(
         "aria-label",
-        "TicNote · 当前草稿（未连接）",
+        "TicNote · 已连接",
     );
     await expect(ticnoteDefaultSource).toHaveAttribute("aria-checked", "false");
     await expect(onboardingDefaultSource(page, /钉钉 闪记/)).toBeDisabled();
@@ -2303,49 +2580,37 @@ test("SOT onboarding first connection saves a current-draft default through API,
         ticnoteDefaultSource,
     ).toHaveAttribute("aria-checked", "true");
 
+    const transcriptionResponsePromise = page.waitForResponse(
+        (response) =>
+            response.url().includes("/api/settings/transcription") &&
+            response.request().method() === "PUT",
+    );
     await goToOnboardingState(page, "speakers");
+    const transcriptionResponse = await transcriptionResponsePromise;
+    expect(transcriptionResponse.ok()).toBe(true);
+    expect(transcriptionResponse.request().postDataJSON()).toMatchObject({
+        defaultTranscriptionProvider: "ticnote",
+    });
     await sotControl(page, "speaker-name").fill(
         ONBOARDING_BACKEND_PERSISTENCE_SPEAKER,
     );
     await sotControl(page, "speaker-voiceprint").fill(
         ONBOARDING_BACKEND_PERSISTENCE_VOICEPRINT,
     );
+    const speakerResponsePromise = page.waitForResponse(
+        (response) =>
+            response.url().includes("/api/speakers/profiles") &&
+            response.request().method() === "POST",
+    );
     await goToOnboardingState(page, "finish");
-
-    const [dataSourceResponse, transcriptionResponse, speakerResponse] =
-        await Promise.all([
-            page.waitForResponse(
-                (response) =>
-                    response.url().includes("/api/data-sources") &&
-                    response.request().method() === "PUT",
-            ),
-            page.waitForResponse(
-                (response) =>
-                    response.url().includes("/api/settings/transcription") &&
-                    response.request().method() === "PUT",
-            ),
-            page.waitForResponse(
-                (response) =>
-                    response.url().includes("/api/speakers/profiles") &&
-                    response.request().method() === "POST",
-            ),
-            page.waitForURL("**/dashboard", { waitUntil: "commit" }),
-            sotControl(page, "save-enter").click(),
-        ]);
-
-    expect(dataSourceResponse.ok()).toBe(true);
-    expect(transcriptionResponse.ok()).toBe(true);
+    const speakerResponse = await speakerResponsePromise;
     expect(speakerResponse.ok()).toBe(true);
-    expect(dataSourceResponse.request().postDataJSON()).toMatchObject({
-        provider: "ticnote",
-        enabled: true,
-        secrets: {
-            bearerToken: ONBOARDING_BACKEND_TICNOTE_TOKEN,
-        },
+
+    const dashboardPromise = page.waitForURL("**/dashboard", {
+        waitUntil: "commit",
     });
-    expect(transcriptionResponse.request().postDataJSON()).toMatchObject({
-        defaultTranscriptionProvider: "ticnote",
-    });
+    await sotControl(page, "save-enter").click();
+    await dashboardPromise;
 
     const dataSourcesReadback = await page.request.get("/api/data-sources");
     expect(dataSourcesReadback.ok()).toBe(true);
@@ -2361,6 +2626,7 @@ test("SOT onboarding first connection saves a current-draft default through API,
         connected: true,
         authMode: "bearer",
         baseUrl: ONBOARDING_BACKEND_TICNOTE_BASE_URL,
+        config: seededConfig,
         secretsConfigured: {
             bearerToken: true,
         },
@@ -2405,12 +2671,7 @@ test("SOT onboarding first connection saves a current-draft default through API,
     expect(String(persistedSource.secret_config)).not.toContain(
         ONBOARDING_BACKEND_TICNOTE_TOKEN,
     );
-    expect(JSON.parse(String(persistedSource.config))).toMatchObject({
-        language: "zh",
-        region: "cn",
-        syncTitleToSource: false,
-        timezone: expect.any(String),
-    });
+    expect(JSON.parse(String(persistedSource.config))).toEqual(seededConfig);
     expect(Number(persistedSettings.auto_transcribe)).toBe(1);
     expect(persistedSettings.default_transcription_language).toBe("zh");
     expect(persistedSettings.default_transcription_provider).toBe("ticnote");
@@ -2447,20 +2708,105 @@ test("SOT onboarding first connection saves a current-draft default through API,
     });
 });
 
-test("SOT onboarding finish/save surfaces a real backend data-source failure without route mocks", async ({
+test("SOT onboarding speaker draft recovers the same Next server after a real SQLite lock", async ({
     page,
 }) => {
     await ensureSignedIn(page);
     const userId = await getPlaywrightUserId();
     await resetOnboardingBackendPersistenceState(userId);
     await seedTicnoteFallbackConnectionForOnboarding(userId, true);
+
+    await gotoOnboardingPage(page);
+    await expectOnboardingState(page, "transcription");
+    await page.getByRole("button", { exact: true, name: "跳过" }).click();
+    await expectOnboardingState(page, "speakers");
+    await sotControl(page, "speaker-name").fill(
+        "Locked onboarding speaker",
+    );
+    await sotControl(page, "speaker-voiceprint").fill(
+        "voiceprint-onboarding-lock-retry",
+    );
+
+    const lockedResponse = await withExclusiveVoiceprintsWriteLock(() =>
+        page.request.post("/api/speakers/profiles", {
+            data: {
+                displayName: "Locked onboarding speaker",
+                voiceprintRef: "voiceprint-onboarding-lock-retry",
+            },
+        }),
+    );
+    expect(lockedResponse.status()).toBe(500);
+    expect(await lockedResponse.text()).not.toContain(
+        "SQL statements in progress",
+    );
+    await expect(page).toHaveURL(/\/onboarding/);
+    await expect(sotControl(page, "speaker-name")).toHaveValue(
+        "Locked onboarding speaker",
+    );
+
+    const retriedResponse = await page.request.post("/api/speakers/profiles", {
+        data: {
+            displayName: "Locked onboarding speaker",
+            voiceprintRef: "voiceprint-onboarding-lock-retry",
+        },
+    });
+    expect(retriedResponse.status()).toBe(200);
+    expect(await retriedResponse.text()).not.toContain(
+        "SQL statements in progress",
+    );
+
+    const retriedProfile = (await retriedResponse.json()) as {
+        profile?: { id?: string };
+    };
+    if (typeof retriedProfile.profile?.id !== "string") {
+        throw new Error("Speaker retry did not return a profile id");
+    }
+
+    const updateResponse = await page.request.patch(
+        `/api/speakers/profiles/${retriedProfile.profile.id}`,
+        {
+            data: { displayName: "Recovered onboarding speaker" },
+        },
+    );
+    expect(updateResponse.status()).toBe(200);
+    expect(await updateResponse.text()).not.toContain(
+        "SQL statements in progress",
+    );
+
+    const deleteResponse = await page.request.delete(
+        `/api/speakers/profiles/${retriedProfile.profile.id}`,
+    );
+    expect(deleteResponse.status()).toBe(200);
+    expect(await deleteResponse.text()).not.toContain(
+        "SQL statements in progress",
+    );
+
+    const speakerReadback = await page.request.get("/api/speakers/profiles");
+    expect(speakerReadback.ok()).toBe(true);
+    await expect(speakerReadback.json()).resolves.toMatchObject({ profiles: [] });
+});
+
+test("SOT onboarding finish/save surfaces a real backend data-source failure through local validation", async ({
+    page,
+}) => {
+    await ensureSignedIn(page);
+    const userId = await getPlaywrightUserId();
+    await resetOnboardingBackendPersistenceState(userId);
     let transcriptionPutRequests = 0;
+    let speakerPostRequests = 0;
     page.on("request", (request) => {
+        const pathname = new URL(request.url()).pathname;
         if (
-            new URL(request.url()).pathname === "/api/settings/transcription" &&
+            pathname === "/api/settings/transcription" &&
             request.method() === "PUT"
         ) {
             transcriptionPutRequests += 1;
+        }
+        if (
+            pathname === "/api/speakers/profiles" &&
+            request.method() === "POST"
+        ) {
+            speakerPostRequests += 1;
         }
     });
 
@@ -2474,18 +2820,13 @@ test("SOT onboarding finish/save surfaces a real backend data-source failure wit
     await page.locator("#source-custom-api-base").fill("https://example.com");
     await page.locator("#source-secret").fill("Bearer invalid-custom-server");
 
-    await goToOnboardingState(page, "transcription");
-    await onboardingDefaultSource(page, /TicNote/).click();
-    await goToOnboardingState(page, "speakers");
-    await goToOnboardingState(page, "finish");
-
     const [dataSourceResponse] = await Promise.all([
         page.waitForResponse(
             (response) =>
                 response.url().includes("/api/data-sources") &&
                 response.request().method() === "PUT",
         ),
-        sotControl(page, "save-enter").click(),
+        page.getByRole("button", { exact: true, name: "下一步" }).click(),
     ]);
 
     expect(dataSourceResponse.status()).toBe(400);
@@ -2495,18 +2836,13 @@ test("SOT onboarding finish/save surfaces a real backend data-source failure wit
     await expect(page).toHaveURL(/\/onboarding/);
     await expectOnboardingState(page, "source");
     await expect(currentOnboardingPanel(page).getByRole("alert")).toContainText(
-        "来源连接失败，请检查授权信息后重试。",
+        "来源连接失败，请检查必填信息后重试。",
     );
+    await expect(page.locator("#source-secret")).toBeFocused();
     expect(transcriptionPutRequests).toBe(0);
+    expect(speakerPostRequests).toBe(0);
     const rows = await readOnboardingBackendPersistenceRows(userId, "plaud");
     expect(rows.settings).toBeNull();
     expect(rows.source).toBeNull();
-    const ticnoteRows = await readOnboardingBackendPersistenceRows(
-        userId,
-        "ticnote",
-    );
-    expect(ticnoteRows.source).toMatchObject({
-        provider: "ticnote",
-        enabled: 1,
-    });
+    expect(rows.speakers).toEqual([]);
 });

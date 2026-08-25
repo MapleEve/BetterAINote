@@ -11,7 +11,10 @@ import {
     TicNoteSourceClient,
     ticnoteProviderDefinition,
 } from "@/lib/data-sources/providers/ticnote";
-import type { ResolvedSourceConnection } from "@/lib/data-sources/types";
+import type {
+    PersistedSourceConnectionState,
+    ResolvedSourceConnection,
+} from "@/lib/data-sources/types";
 import { SourceProviderSettingsError } from "@/lib/data-sources/types";
 
 describe("TicNoteSourceClient", () => {
@@ -31,6 +34,22 @@ describe("TicNoteSourceClient", () => {
         secrets: {
             bearerToken: "tic-token-123",
         },
+        lastSync: null,
+    };
+    const persistedConnection: PersistedSourceConnectionState = {
+        userId: "user-1",
+        provider: "ticnote",
+        enabled: false,
+        authMode: "bearer",
+        baseUrl: "https://voice-api.ticnote.cn",
+        config: {
+            region: "cn",
+            orgId: "org_123",
+            timezone: "Asia/Shanghai",
+            language: "zh",
+            syncTitleToSource: false,
+        },
+        secretConfig: 'encrypted:{"bearerToken":"tic-token-123"}',
         lastSync: null,
     };
 
@@ -628,6 +647,70 @@ describe("TicNoteSourceClient", () => {
         expect(fetchMock.mock.calls[0]?.[1]?.headers).toMatchObject({
             "X-Tic-Org-Id": "org-fixture-manual",
         });
+    });
+
+    it("enables a persisted TicNote connection without validation when its configuration is unchanged", async () => {
+        const fetchMock = vi.fn();
+        global.fetch = fetchMock as typeof fetch;
+
+        const prepared =
+            await ticnoteProviderDefinition.prepareConnectionWrite?.({
+                userId: "user-1",
+                existing: persistedConnection,
+                body: {
+                    enabled: true,
+                    baseUrl: persistedConnection.baseUrl,
+                    config: { ...persistedConnection.config },
+                    secrets: {
+                        bearerToken: "tic-token-123",
+                    },
+                },
+            });
+
+        expect(prepared).toMatchObject({
+            enabled: true,
+            baseUrl: persistedConnection.baseUrl,
+            config: persistedConnection.config,
+        });
+        expect(fetchMock).not.toHaveBeenCalled();
+    });
+
+    it("validates a persisted TicNote connection when only its timezone changes", async () => {
+        const fetchMock = vi.fn().mockResolvedValue({
+            ok: true,
+            json: async () => ({ chats: [] }),
+        });
+        global.fetch = fetchMock as typeof fetch;
+
+        const prepared =
+            await ticnoteProviderDefinition.prepareConnectionWrite?.({
+                userId: "user-1",
+                existing: persistedConnection,
+                body: {
+                    enabled: true,
+                    baseUrl: persistedConnection.baseUrl,
+                    config: {
+                        ...persistedConnection.config,
+                        timezone: "Asia/Taipei",
+                    },
+                    secrets: {
+                        bearerToken: "tic-token-123",
+                    },
+                },
+            });
+
+        expect(prepared?.config).toMatchObject({
+            timezone: "Asia/Taipei",
+        });
+        expect(fetchMock).toHaveBeenCalledTimes(1);
+        expect(fetchMock).toHaveBeenCalledWith(
+            "https://voice-api.ticnote.cn/api/v2/file-index/chats",
+            expect.objectContaining({
+                headers: expect.objectContaining({
+                    Timezone: "Asia/Taipei",
+                }),
+            }),
+        );
     });
 
     it("preserves normalized TicNote runtime config without carrying secrets", () => {

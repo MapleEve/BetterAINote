@@ -26,16 +26,27 @@ import {
     useBrowserRouteController,
 } from "@/lib/platform/browser-router";
 
-const authLoginClassNames = {
-    layout: "grid min-h-svh place-items-center bg-background px-6 py-10 text-foreground",
-    surface: "w-full max-w-sm",
-    frame: "flex flex-col items-center text-center",
-    logoMark: "mb-4 size-9",
-    fieldGroup: "mx-auto w-full max-w-xs",
-    actionField: "gap-3",
-    formMessage: "text-left",
-    footer: "text-center",
-} as const;
+function resolveAuthError(error: unknown, fallback: string) {
+    const errorRecord =
+        error && typeof error === "object"
+            ? (error as Record<string, unknown>)
+            : null;
+    const serverMessage =
+        typeof errorRecord?.error === "string"
+            ? errorRecord.error
+            : typeof errorRecord?.message === "string"
+              ? errorRecord.message
+              : undefined;
+
+    if (
+        errorRecord?.status === 403 ||
+        serverMessage === "Registration is disabled"
+    ) {
+        return "此工作空间已完成注册，请使用已注册的邮箱登录";
+    }
+
+    return fallback;
+}
 
 export function LoginForm({
     intent = "login",
@@ -59,6 +70,8 @@ export function LoginForm({
 
     async function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
         event.preventDefault();
+        if (isLoading || isLocalLoading) return;
+
         const formData = new FormData(event.currentTarget);
         const emailValue = String(formData.get("email") ?? "").trim();
         setIsLoading(true);
@@ -72,7 +85,10 @@ export function LoginForm({
                 errorCallbackURL: "/login",
             });
             if (result.error) {
-                const message = result.error.message || "登录链接发送失败";
+                const message = resolveAuthError(
+                    result.error,
+                    "登录链接发送失败",
+                );
                 setFormState({ kind: "error", message });
                 toast.error(message);
                 return;
@@ -81,8 +97,7 @@ export function LoginForm({
             setFormState({ kind: "success", message });
             toast.success(message);
         } catch (error) {
-            const message =
-                error instanceof Error ? error.message : "登录链接发送失败";
+            const message = resolveAuthError(error, "登录链接发送失败");
             setFormState({ kind: "error", message });
             toast.error(message);
         } finally {
@@ -91,13 +106,18 @@ export function LoginForm({
     }
 
     async function handleLocalUse() {
+        if (isLoading || isLocalLoading) return;
+
         setIsLocalLoading(true);
         setFormState(null);
 
         try {
             const result = await signIn.anonymous();
             if (result.error) {
-                const message = result.error.message || "本地工作空间启动失败";
+                const message = resolveAuthError(
+                    result.error,
+                    "本地工作空间启动失败",
+                );
                 setFormState({ kind: "error", message });
                 toast.error(message);
                 return;
@@ -105,8 +125,7 @@ export function LoginForm({
             toast.success("已进入本地工作空间");
             navigateAndRefreshBrowserRoute(router, "/dashboard");
         } catch (error) {
-            const message =
-                error instanceof Error ? error.message : "本地工作空间启动失败";
+            const message = resolveAuthError(error, "本地工作空间启动失败");
             setFormState({ kind: "error", message });
             toast.error(message);
         } finally {
@@ -114,6 +133,7 @@ export function LoginForm({
         }
     }
 
+    const isBusy = isLoading || isLocalLoading;
     const invalid = formState?.kind === "error";
     const title = intent === "setup" ? "设置同步身份" : "登录 BetterAINote";
     const cardHeading =
@@ -123,26 +143,27 @@ export function LoginForm({
             ? "首次使用可发送邮箱链接创建同步身份，也可以只在本地工作空间继续。"
             : "登录是可选的，仅用于多端同步";
     return (
-        <main className={authLoginClassNames.layout}>
-            <Card className={authLoginClassNames.surface}>
-                <form onSubmit={handleSubmit}>
+        <main className="grid min-h-svh place-items-center bg-background px-6 py-10 text-foreground">
+            <Card className="w-full max-w-sm">
+                <form onSubmit={handleSubmit} aria-busy={isBusy}>
                     <CardHeader>
                         <CardTitle>{cardHeading}</CardTitle>
                         <CardDescription>
                             邮箱 + 链接 · 不要密码
                         </CardDescription>
                     </CardHeader>
-                    <CardContent className={authLoginClassNames.frame}>
+                    <CardContent className="flex flex-col items-center text-center">
                         <Image
-                            className={authLoginClassNames.logoMark}
+                            className="mb-4 size-9"
                             src="/assets/logo-mark-steel.svg"
                             alt=""
                             width={36}
                             height={36}
+                            unoptimized
                         />{" "}
                         <CardTitle>{title}</CardTitle>
                         <CardDescription>{subtitle}</CardDescription>
-                        <FieldGroup className={authLoginClassNames.fieldGroup}>
+                        <FieldGroup className="mx-auto w-full max-w-xs">
                             <Field>
                                 <FieldLabel htmlFor="email" className="sr-only">
                                     邮箱
@@ -153,7 +174,7 @@ export function LoginForm({
                                     type="email"
                                     defaultValue=""
                                     required
-                                    disabled={!isMounted || isLoading}
+                                    disabled={!isMounted || isBusy}
                                     autoComplete="email"
                                     aria-invalid={invalid}
                                     aria-describedby={
@@ -162,13 +183,14 @@ export function LoginForm({
                                             : undefined
                                     }
                                     placeholder="mei@example.com"
+                                    onChange={() => {
+                                        if (formState) setFormState(null);
+                                    }}
                                 />
                                 {formState ? (
                                     <Alert
                                         id="auth-form-message"
-                                        className={
-                                            authLoginClassNames.formMessage
-                                        }
+                                        className="text-left"
                                         role={
                                             formState.kind === "success"
                                                 ? "status"
@@ -191,10 +213,10 @@ export function LoginForm({
                                     </Alert>
                                 ) : null}
                             </Field>
-                            <Field className={authLoginClassNames.actionField}>
+                            <Field className="gap-3">
                                 <Button
                                     type="submit"
-                                    disabled={!isMounted || isLoading}
+                                    disabled={!isMounted || isBusy}
                                     aria-busy={isLoading}
                                     variant="default"
                                     className="w-full"
@@ -208,13 +230,11 @@ export function LoginForm({
                                         "发送登录链接"
                                     )}
                                 </Button>
-                                <FieldDescription
-                                    className={authLoginClassNames.footer}
-                                >
+                                <FieldDescription className="text-center">
                                     或{" "}
                                     <Button
                                         type="button"
-                                        disabled={!isMounted || isLocalLoading}
+                                        disabled={!isMounted || isBusy}
                                         aria-busy={isLocalLoading}
                                         variant="link"
                                         onClick={() => void handleLocalUse()}

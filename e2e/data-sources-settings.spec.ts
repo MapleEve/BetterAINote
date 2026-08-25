@@ -12,6 +12,10 @@ type SourceState = {
     secretConfig: string | null;
 };
 
+type CoreDatabaseLock = {
+    release: () => Promise<void>;
+};
+
 function resolveDatabasePath() {
     const databasePath = process.env.DATABASE_PATH;
     if (!databasePath) {
@@ -39,6 +43,31 @@ async function withDatabase<T>(callback: (client: ReturnType<typeof createClient
     } finally {
         await client.close();
     }
+}
+
+async function lockCoreDatabase(): Promise<CoreDatabaseLock> {
+    const client = createClient({ url: databaseUrl(resolveDatabasePath()) });
+    let released = false;
+
+    try {
+        await client.execute("PRAGMA busy_timeout = 0");
+        await client.execute("BEGIN EXCLUSIVE");
+    } catch (error) {
+        client.close();
+        throw error;
+    }
+
+    return {
+        async release() {
+            if (released) return;
+            released = true;
+            try {
+                await client.execute("COMMIT");
+            } finally {
+                client.close();
+            }
+        },
+    };
 }
 
 async function getE2eUserId() {
@@ -78,6 +107,83 @@ async function markDingTalkConnectionExpired(userId: string) {
         if (result.rowsAffected !== 1) {
             throw new Error("Unable to seed the DingTalk expired state");
         }
+    });
+}
+
+async function setSourceRuntimeState(
+    userId: string,
+    provider: string,
+    params: {
+        config?: Record<string, unknown>;
+        lastSyncError?: string | null;
+        syncStatus?: "error" | "idle" | "syncing";
+    },
+) {
+    await withDatabase(async (client) => {
+        const result = await client.execute({
+            sql: `UPDATE source_connections
+                  SET config = COALESCE(?, config),
+                      sync_status = COALESCE(?, sync_status),
+                      last_sync_error = ?,
+                      updated_at = ?
+                  WHERE user_id = ? AND provider = ?`,
+            args: [
+                params.config === undefined ? null : JSON.stringify(params.config),
+                params.syncStatus ?? null,
+                params.lastSyncError ?? null,
+                Date.now(),
+                userId,
+                provider,
+            ],
+        });
+
+        if (result.rowsAffected !== 1) {
+            throw new Error(`Unable to seed the ${provider} runtime state`);
+        }
+    });
+}
+
+async function seedSourceConnection(
+    userId: string,
+    provider: string,
+    params: {
+        config?: Record<string, unknown>;
+        enabled?: boolean;
+        lastSyncError?: string | null;
+        syncStatus?: "error" | "idle" | "syncing";
+    } = {},
+) {
+    await withDatabase(async (client) => {
+        const now = Date.now();
+        await client.execute({
+            sql: `INSERT INTO source_connections (
+                    id, user_id, provider, enabled, auth_mode, base_url, config,
+                    secret_config, sync_status, last_sync_error,
+                    last_sync_started_at, last_sync_finished_at, created_at, updated_at
+                ) VALUES (?, ?, ?, ?, NULL, NULL, ?, NULL, ?, ?, NULL, NULL, ?, ?)
+                ON CONFLICT(user_id, provider) DO UPDATE SET
+                    enabled = excluded.enabled,
+                    auth_mode = NULL,
+                    base_url = NULL,
+                    config = excluded.config,
+                    secret_config = NULL,
+                    sync_status = excluded.sync_status,
+                    last_sync_error = excluded.last_sync_error,
+                    last_sync_started_at = NULL,
+                    last_sync_finished_at = NULL,
+                    updated_at = excluded.updated_at`,
+            args: [
+                `e2e-data-source-${provider}-${now}`,
+                userId,
+                provider,
+                params.enabled ? 1 : 0,
+                JSON.stringify(params.config ?? {}),
+                params.syncStatus ?? "idle",
+                params.lastSyncError ?? null,
+                now,
+                now,
+            ],
+        });
     });
 }
 
@@ -149,6 +255,18 @@ function sourceStatus(detail: Locator, label: RegExp) {
     return detail.getByRole("status").filter({ hasText: label }).first();
 }
 
+async function expectPlaudDraftToRemain(detail: Locator) {
+    await expect(detail.locator("#plaud-source-secret")).toHaveValue(
+        "local-e2e-credential",
+    );
+    await expect(detail.locator("#plaud-source-custom-api-base")).toHaveValue(
+        "not-a-url",
+    );
+    await expect(
+        detail.getByRole("switch", { name: "启用同步" }),
+    ).toHaveAttribute("aria-checked", "true");
+}
+
 async function openDataSources(page: Page) {
     const currentUrl = new URL(page.url());
     if (
@@ -183,7 +301,150 @@ async function getSourceFromApi(page: Page, provider: string) {
     return source;
 }
 
-test("Data Sources persists disabled state, renders a real test error, and clears expired state after disconnect", async ({
+test("Data Sources waits for the real locked core database and preserves failed drafts", async ({
+    page,
+}) => {
+    await ensureSignedIn(page);
+    await setChineseDisplay(page);
+
+    const userId = await getE2eUserId();
+    await seedSourceConnection(userId, "plaud");
+
+    await page.goto("/settings", { waitUntil: "domcontentloaded" });
+    await expect(settingsDialog(page)).toBeVisible();
+    const displayNavigation = settingsDialog(page).getByRole("button", {
+        name: "显示设置",
+    });
+    await displayNavigation.click();
+    await expect(displayNavigation).toHaveAttribute("aria-current", "page");
+
+    const databaseLock = await lockCoreDatabase();
+    try {
+        const loadResponse = page.waitForResponse(
+            (response) =>
+                new URL(response.url()).pathname === "/api/data-sources" &&
+                response.request().method() === "GET",
+        );
+        const dataSourcesNavigation = settingsDialog(page).getByRole("button", {
+            name: "数据源",
+        });
+        await dataSourcesNavigation.click();
+        const section = dataSourcesSection(page);
+
+        await expect(section).toBeVisible();
+        await expect(section).toHaveAttribute("aria-busy", "true");
+        await databaseLock.release();
+        expect((await loadResponse).status()).toBe(200);
+        await expect(section).toHaveAttribute("aria-busy", "false");
+    } finally {
+        await databaseLock.release();
+    }
+
+    const section = dataSourcesSection(page);
+    await sourceButton(section, /Plaud/).click();
+    const plaudDetail = sourceDetail(section, /Plaud/);
+    const plaudServer = plaudDetail.getByRole("combobox", {
+        name: "站点版本",
+    });
+
+    await chooseShadcnSelectOption(page, plaudServer, "自定义");
+    await page.locator("#plaud-source-secret").fill("local-e2e-credential");
+    await page.locator("#plaud-source-custom-api-base").fill("not-a-url");
+
+    const enabledDraft = plaudDetail.getByRole("switch", {
+        name: "启用同步",
+    });
+    await enabledDraft.click();
+    await expect(sourceStatus(plaudDetail, /已配置|Configured/)).toBeVisible();
+
+    const testRequest = page.waitForRequest(
+        (request) =>
+            new URL(request.url()).pathname === "/api/data-sources/test" &&
+            request.method() === "POST",
+    );
+    const testResponse = page.waitForResponse(
+        (response) =>
+            new URL(response.url()).pathname === "/api/data-sources/test" &&
+            response.request().method() === "POST",
+    );
+    const testButton = plaudDetail.getByRole("button", {
+        name: /测试连接|测试中/,
+    });
+    const testLock = await lockCoreDatabase();
+    try {
+        await Promise.all([
+            testRequest,
+            testButton.click(),
+            expect(testButton).toBeDisabled({ timeout: 1_000 }),
+            expect(testButton).toHaveAttribute("aria-busy", "true", {
+                timeout: 1_000,
+            }),
+        ]);
+        await testLock.release();
+        expect((await testResponse).status()).toBe(400);
+        await expect(
+            plaudDetail
+                .locator('[data-slot="alert"]')
+                .filter({ hasText: "连接测试失败" }),
+        ).toBeVisible();
+        await expect(section).toHaveAttribute("aria-busy", "false");
+        await expect(testButton).toBeEnabled();
+        await expect(testButton).toHaveAttribute("aria-busy", "false");
+        await expectPlaudDraftToRemain(plaudDetail);
+    } finally {
+        await testLock.release();
+    }
+    const testFailureApiState = await getSourceFromApi(page, "plaud");
+    expect(testFailureApiState.enabled).toBe(false);
+
+    const saveRequest = page.waitForRequest(
+        (request) =>
+            new URL(request.url()).pathname === "/api/data-sources" &&
+            request.method() === "PUT",
+    );
+    const saveResponse = page.waitForResponse(
+        (response) =>
+            new URL(response.url()).pathname === "/api/data-sources" &&
+            response.request().method() === "PUT",
+    );
+    const saveButton = plaudDetail.getByRole("button", {
+        name: /保存|保存中/,
+    });
+    const saveLock = await lockCoreDatabase();
+    try {
+        await Promise.all([
+            saveRequest,
+            saveButton.click(),
+            expect(saveButton).toBeDisabled({ timeout: 1_000 }),
+            expect(saveButton).toHaveAttribute("aria-busy", "true", {
+                timeout: 1_000,
+            }),
+        ]);
+        await saveLock.release();
+        expect((await saveResponse).status()).toBe(400);
+        await expect(
+            plaudDetail
+                .locator('[data-slot="alert"]')
+                .filter({ hasText: "保存失败" }),
+        ).toBeVisible();
+        await expect(section).toHaveAttribute("aria-busy", "false");
+        await expect(testButton).toBeEnabled();
+        await expect(saveButton).toBeEnabled();
+        await expect(saveButton).toHaveAttribute("aria-busy", "false");
+        await expectPlaudDraftToRemain(plaudDetail);
+    } finally {
+        await saveLock.release();
+    }
+
+    const saveFailureApiState = await getSourceFromApi(page, "plaud");
+    expect(saveFailureApiState.enabled).toBe(false);
+    const persistedState = await readSourceState(userId, "plaud");
+    expect(persistedState.enabled).toBe(false);
+    expect(persistedState.secretConfig).toBeNull();
+    expect(persistedState.config).not.toHaveProperty("customApiBase");
+});
+
+test("Data Sources validates missing Plaud sign-in details locally and clears expired state after disconnect", async ({
     page,
 }) => {
     await ensureSignedIn(page);
@@ -197,56 +458,32 @@ test("Data Sources persists disabled state, renders a real test error, and clear
     });
 
     await chooseShadcnSelectOption(page, plaudServer, "自定义");
-    await page.locator("#plaud-source-secret").fill("e2e-test-credential");
     await page.locator("#plaud-source-custom-api-base").fill("not-a-url");
 
-    const testResponse = page.waitForResponse(
-        (response) =>
-            new URL(response.url()).pathname === "/api/data-sources/test" &&
-            response.request().method() === "POST",
-    );
+    let testRequests = 0;
+    page.on("request", (request) => {
+        if (
+            new URL(request.url()).pathname === "/api/data-sources/test" &&
+            request.method() === "POST"
+        ) {
+            testRequests += 1;
+        }
+    });
     await plaudDetail.getByRole("button", { name: "测试连接" }).click();
-    expect((await testResponse).status()).toBe(400);
+    const incompletePlaudBanner = plaudDetail
+        .locator('[data-slot="alert"]')
+        .filter({ hasText: "请先补齐登录信息，再测试连接。" });
     await expect(
-        plaudDetail
-            .locator('[data-slot="alert"]')
-            .filter({ hasText: "连接测试失败" }),
+        incompletePlaudBanner.getByText("信息不完整", { exact: true }),
     ).toBeVisible();
+    await expect(incompletePlaudBanner).toContainText(
+        "请先补齐登录信息，再测试连接。",
+    );
+    expect(testRequests).toBe(0);
     expect((await getSourceFromApi(page, "plaud")).enabled).toBe(false);
 
-    await sourceButton(section, /讯飞听见|iFLYTEK iflyrec/).click();
-    const iflyrecDetail = sourceDetail(section, /讯飞听见|iFLYTEK iflyrec/);
-    await page.locator("#iflyrec-source-secret").fill("e2e-session-id");
-
-    const saveResponse = page.waitForResponse(
-        (response) =>
-            new URL(response.url()).pathname === "/api/data-sources" &&
-            response.request().method() === "PUT",
-    );
-    await iflyrecDetail.getByRole("button", { name: "保存" }).click();
-    expect((await saveResponse).status()).toBe(200);
-    await expect(sourceStatus(iflyrecDetail, /同步已暂停/)).toBeVisible();
-
-    const iflyrecApiState = await getSourceFromApi(page, "iflyrec");
-    expect(iflyrecApiState.enabled).toBe(false);
-    expect(iflyrecApiState.secretsConfigured).toMatchObject({ sessionId: true });
-
     const userId = await getE2eUserId();
-    const persistedIflyrec = await readSourceState(userId, "iflyrec");
-    expect(persistedIflyrec.enabled).toBe(false);
-    expect(persistedIflyrec.secretConfig).not.toBeNull();
-
-    const seedResponse = await page.request.put("/api/data-sources", {
-        data: {
-            authMode: "device-signin",
-            baseUrl: "https://meeting-ai-tingji.dingtalk.com",
-            config: { syncTitleToSource: false },
-            enabled: false,
-            provider: "dingtalk-a1",
-            secrets: { deviceCredential: "e2e-device-credential" },
-        },
-    });
-    expect(seedResponse.ok()).toBe(true);
+    await seedSourceConnection(userId, "dingtalk-a1");
     await markDingTalkConnectionExpired(userId);
 
     const expiredApiState = await getSourceFromApi(page, "dingtalk-a1");
@@ -282,14 +519,6 @@ test("Data Sources persists disabled state, renders a real test error, and clear
     expect(disconnectedDatabaseState.config).not.toHaveProperty("connectionStatus");
 
     section = await openDataSources(page);
-    await sourceButton(section, /讯飞听见|iFLYTEK iflyrec/).click();
-    await expect(
-        sourceStatus(
-            sourceDetail(section, /讯飞听见|iFLYTEK iflyrec/),
-            /同步已暂停|Paused/,
-        ),
-    ).toBeVisible();
-
     await sourceButton(section, /钉钉\s*闪记|DingTalk A1 Flash Notes/).click();
     await expect(
         sourceStatus(
@@ -297,4 +526,118 @@ test("Data Sources persists disabled state, renders a real test error, and clear
             /待设置|Not configured/,
         ),
     ).toBeVisible();
+});
+
+test("Data Sources renders real persisted runtime states for all supported providers", async ({
+    page,
+}) => {
+    await ensureSignedIn(page);
+    await setChineseDisplay(page);
+
+    const userId = await getE2eUserId();
+    for (const provider of [
+        "dingtalk-a1",
+        "ticnote",
+        "plaud",
+        "feishu-minutes",
+        "iflyrec",
+    ]) {
+        await seedSourceConnection(userId, provider);
+    }
+
+    let section = await openDataSources(page);
+
+    for (const provider of [
+        /钉钉\s*闪记|DingTalk A1 Flash Notes/,
+        /TicNote/,
+        /Plaud/,
+        /飞书妙记|Feishu Minutes/,
+        /讯飞听见|iFLYTEK iflyrec/,
+    ]) {
+        await sourceButton(section, provider).click();
+        await expect(
+            sourceStatus(sourceDetail(section, provider), /待设置|Not configured/),
+        ).toBeVisible();
+    }
+
+    await setSourceRuntimeState(userId, "dingtalk-a1", {
+        config: { connectionStatus: "expired" },
+        syncStatus: "idle",
+    });
+    await setSourceRuntimeState(userId, "ticnote", {
+        syncStatus: "syncing",
+    });
+    await setSourceRuntimeState(userId, "plaud", {
+        lastSyncError: "Source update did not complete.",
+        syncStatus: "error",
+    });
+    await setSourceRuntimeState(userId, "feishu-minutes", {
+        lastSyncError: "permission-denied",
+        syncStatus: "error",
+    });
+
+    section = await openDataSources(page);
+
+    const expectedStates = [
+        {
+            provider: /钉钉\s*闪记|DingTalk A1 Flash Notes/,
+            status: /需要重新登录|Re-auth required/,
+        },
+        { provider: /TicNote/, status: /同步中|Syncing/ },
+        { provider: /Plaud/, status: /同步失败|Sync failed/ },
+        {
+            provider: /飞书妙记|Feishu Minutes/,
+            status: /需要授权|Permission required/,
+        },
+        {
+            provider: /讯飞听见|iFLYTEK iflyrec/,
+            status: /待设置|Not configured/,
+        },
+    ];
+
+    for (const expected of expectedStates) {
+        await sourceButton(section, expected.provider).click();
+        await expect(
+            sourceStatus(sourceDetail(section, expected.provider), expected.status),
+        ).toBeVisible();
+    }
+
+    const response = await page.request.get("/api/data-sources");
+    expect(response.ok()).toBe(true);
+    const payload = (await response.json()) as {
+        sources: Array<{
+            enabled: boolean;
+            provider: string;
+            syncStatus: string;
+        }>;
+    };
+    expect(payload.sources).toEqual(
+        expect.arrayContaining([
+            expect.objectContaining({
+                enabled: false,
+                provider: "dingtalk-a1",
+                syncStatus: "idle",
+            }),
+            expect.objectContaining({
+                enabled: false,
+                provider: "ticnote",
+                syncStatus: "syncing",
+            }),
+            expect.objectContaining({
+                enabled: false,
+                provider: "plaud",
+                syncStatus: "error",
+            }),
+            expect.objectContaining({
+                enabled: false,
+                provider: "feishu-minutes",
+                syncStatus: "error",
+            }),
+            expect.objectContaining({
+                enabled: false,
+                provider: "iflyrec",
+                syncStatus: "idle",
+            }),
+        ]),
+    );
 });

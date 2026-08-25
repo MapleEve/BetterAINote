@@ -3,6 +3,7 @@
 import { Plus, VolumeX } from "lucide-react";
 import Image from "next/image";
 import type * as React from "react";
+import { useLanguage } from "@/components/language-provider";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -14,30 +15,40 @@ const PLAYER_SOURCE_BADGES = {
     "dingtalk-a1": {
         label: "钉钉",
         icon: "/assets/sources/dingtalk.svg",
+        imageHeight: 1024,
+        imageWidth: 1024,
         cover: false,
         letter: "钉",
     },
     ticnote: {
         label: "TicNote",
         icon: "/assets/sources/ticnote.png",
+        imageHeight: 382,
+        imageWidth: 354,
         cover: false,
         letter: "T",
     },
     plaud: {
         label: "Plaud",
         icon: "/assets/sources/plaud.png",
+        imageHeight: 600,
+        imageWidth: 600,
         cover: true,
         letter: "P",
     },
     "feishu-minutes": {
         label: "飞书妙记",
         icon: "/assets/sources/feishu.jpeg",
+        imageHeight: 400,
+        imageWidth: 400,
         cover: true,
         letter: "飞",
     },
     iflyrec: {
         label: "讯飞听见",
         icon: null,
+        imageHeight: 0,
+        imageWidth: 0,
         cover: false,
         letter: "讯",
     },
@@ -76,7 +87,8 @@ const PLAYER_SOURCE_BADGE_CLASS = "gap-1.5 pl-1";
 const PLAYER_SOURCE_ICON_CLASS =
     "inline-flex size-4 flex-none shrink-0 items-center justify-center overflow-hidden rounded-sm border border-border bg-background data-[source-icon=letter]:bg-muted data-[source-icon=letter]:text-[9px] data-[source-icon=letter]:font-bold data-[source-icon=letter]:text-muted-foreground [&[data-cover=true]_img]:object-cover";
 
-const PLAYER_SOURCE_ICON_IMAGE_CLASS = "block size-4 max-w-none object-contain";
+const PLAYER_SOURCE_ICON_IMAGE_CLASS =
+    "block h-4 w-auto max-w-none object-contain";
 
 const PLAYER_TAG_COLOR_CLASS: Record<RecordingTag["color"], string> = {
     blue: "text-chart-1",
@@ -122,8 +134,9 @@ export function PlayerSourceTag({
                         className={PLAYER_SOURCE_ICON_IMAGE_CLASS}
                         src={badge.icon}
                         alt=""
-                        width={16}
-                        height={16}
+                        width={badge.imageWidth}
+                        height={badge.imageHeight}
+                        unoptimized
                     />
                 ) : (
                     (badge?.letter ??
@@ -148,6 +161,8 @@ export function PlayerTagChip({
     tag: RecordingTag | null;
     trigger?: boolean;
 }) {
+    const { t } = useLanguage();
+
     if (!tag) {
         if (!trigger) {
             return null;
@@ -167,7 +182,7 @@ export function PlayerTagChip({
                 type="button"
             >
                 <Plus data-icon="inline-start" aria-hidden="true" />
-                <span>标签</span>
+                <span>{t("recordingDetail.player.tags")}</span>
             </Button>
         );
     }
@@ -265,13 +280,15 @@ const PLAYER_STATUS_VARIANT: Record<
 
 export function PlayerStatusBadge({
     className,
-    label = "已更新",
+    label,
     tone = "ok",
 }: {
     className?: string;
     label?: string;
     tone?: PlayerStatusTone;
 }) {
+    const { t } = useLanguage();
+
     return (
         <Badge
             variant={PLAYER_STATUS_VARIANT[tone]}
@@ -283,7 +300,9 @@ export function PlayerStatusBadge({
                 className="size-[5px] shrink-0 rounded-full bg-current"
                 aria-hidden="true"
             />
-            <span data-part="status-label">{label}</span>
+            <span data-part="status-label">
+                {label ?? t("recordingDetail.player.updated")}
+            </span>
         </Badge>
     );
 }
@@ -322,6 +341,8 @@ export function PlayerNoAudioAlert({
     titlePart,
     ...props
 }: PlayerNoAudioAlertProps) {
+    const { t } = useLanguage();
+
     return (
         <Alert
             {...props}
@@ -341,13 +362,13 @@ export function PlayerNoAudioAlert({
                 data-part={textPart}
             >
                 <AlertTitle data-part={titlePart}>
-                    来源仅同步转写与报告
+                    {t("recordingDetail.player.noAudioTitle")}
                 </AlertTitle>
                 <AlertDescription
                     density="comfortable"
                     data-part={descriptionPart}
                 >
-                    这条录音没有本地音频，无法播放或运行私有重转写。
+                    {t("recordingDetail.player.noAudioDescription")}
                 </AlertDescription>
             </span>
         </Alert>

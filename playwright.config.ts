@@ -15,11 +15,18 @@ function resolveE2eRootDir() {
         : path.resolve(__dirname, "tmp/e2e");
 }
 
+function shellQuote(value: string) {
+    return `'${value.replaceAll("'", `'"'"'`)}'`;
+}
+
 const configuredBaseUrl = resolveConfiguredBaseUrl();
 const isolatedPort = process.env.PLAYWRIGHT_E2E_PORT?.trim() || "3201";
 const baseURL = configuredBaseUrl || `http://127.0.0.1:${isolatedPort}`;
 const appUrl = new URL(baseURL);
 const useSystemChrome = process.env.PLAYWRIGHT_USE_SYSTEM_CHROME === "1";
+const browserProjectName = useSystemChrome
+    ? "system-chrome"
+    : "bundled-chromium";
 const isLoopbackHost = ["127.0.0.1", "localhost", "::1"].includes(
     appUrl.hostname,
 );
@@ -51,6 +58,29 @@ const e2eDatabasePath = path.join(e2eDataDir, "betterainote-e2e.db");
 const e2eWordsDatabasePath = path.join(e2eDataDir, "betterainote-e2e-words.db");
 const useIsolatedFallback = !configuredBaseUrl;
 const shouldManageWebServer = process.env.PLAYWRIGHT_SKIP_WEBSERVER !== "1";
+const runnerBunExecutable = process.env.BETTERAINOTE_E2E_BUN_EXECUTABLE?.trim();
+const runnerNextCli = process.env.BETTERAINOTE_E2E_NEXT_CLI?.trim();
+const runnerNodeExecutable =
+    process.env.BETTERAINOTE_E2E_NODE_EXECUTABLE?.trim();
+const runnerToolCount = [
+    runnerBunExecutable,
+    runnerNextCli,
+    runnerNodeExecutable,
+].filter(Boolean).length;
+
+if (runnerToolCount > 0 && runnerToolCount !== 3) {
+    throw new Error(
+        "Canonical E2E runner tool paths must be provided as one complete contract",
+    );
+}
+
+const e2eSetupCommand = runnerNodeExecutable
+    ? `${shellQuote(runnerNodeExecutable)} scripts/e2e-setup.mjs`
+    : "node scripts/e2e-setup.mjs";
+const nextDevCommand =
+    runnerNodeExecutable && runnerNextCli
+        ? `${shellQuote(runnerNodeExecutable)} ${shellQuote(runnerNextCli)}`
+        : "bunx next";
 
 if (useIsolatedFallback && shouldManageWebServer) {
     process.env.NODE_ENV ??= "development";
@@ -98,6 +128,13 @@ export default defineConfig({
     },
     outputDir: process.env.PLAYWRIGHT_OUTPUT_DIR || "tmp/playwright-results",
     reporter: "list",
+    metadata: {
+        browserIdentity: useSystemChrome
+            ? "system Google Chrome via Playwright channel chrome"
+            : "Playwright bundled Chromium",
+        browserProject: browserProjectName,
+    },
+    projects: [{ name: browserProjectName }],
     use: {
         ...devices["Desktop Chrome"],
         baseURL,
@@ -107,7 +144,7 @@ export default defineConfig({
     },
     webServer: shouldManageWebServer
         ? {
-              command: `node scripts/e2e-setup.mjs && cd ${e2eAppDir} && bunx next dev --webpack --hostname ${appUrl.hostname} --port ${appUrl.port || "3101"}`,
+              command: `${e2eSetupCommand} && cd ${shellQuote(e2eAppDir)} && ${nextDevCommand} dev --webpack --hostname ${appUrl.hostname} --port ${appUrl.port || "3101"}`,
               cwd: __dirname,
               env: e2eEnv,
               timeout: 180_000,

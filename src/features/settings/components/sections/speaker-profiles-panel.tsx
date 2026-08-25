@@ -44,6 +44,80 @@ interface RemoteVoiceprint {
     updatedAt: string | null;
 }
 
+type SpeakerProfileRetryDescriptor =
+    | { mutation: "create"; profileId: string }
+    | { mutation: "update"; profileId: string }
+    | { mutation: "delete"; profileId: string };
+
+type FailedSpeakerProfileOperation =
+    | {
+          mutation: "create";
+          retry: Extract<SpeakerProfileRetryDescriptor, { mutation: "create" }>;
+      }
+    | {
+          mutation: "update";
+          retry: Extract<SpeakerProfileRetryDescriptor, { mutation: "update" }>;
+      }
+    | {
+          mutation: "delete";
+          retry: Extract<SpeakerProfileRetryDescriptor, { mutation: "delete" }>;
+      };
+
+const committedWriteFollowupFailureCode =
+    "SPEAKER_PROFILE_WRITE_COMMITTED_INDEX_FOLLOWUP_FAILED";
+
+function readCommittedWriteFollowupFailure(
+    data: unknown,
+): FailedSpeakerProfileOperation | null {
+    if (!data || typeof data !== "object") {
+        return null;
+    }
+
+    const response = data as Record<string, unknown>;
+    const retry = response.retry;
+    if (
+        response.code !== committedWriteFollowupFailureCode ||
+        !retry ||
+        typeof retry !== "object"
+    ) {
+        return null;
+    }
+
+    const descriptor = retry as Record<string, unknown>;
+    if (typeof descriptor.profileId !== "string" || !descriptor.profileId) {
+        return null;
+    }
+
+    switch (descriptor.mutation) {
+        case "create":
+            return {
+                mutation: "create",
+                retry: {
+                    mutation: "create",
+                    profileId: descriptor.profileId,
+                },
+            };
+        case "update":
+            return {
+                mutation: "update",
+                retry: {
+                    mutation: "update",
+                    profileId: descriptor.profileId,
+                },
+            };
+        case "delete":
+            return {
+                mutation: "delete",
+                retry: {
+                    mutation: "delete",
+                    profileId: descriptor.profileId,
+                },
+            };
+        default:
+            return null;
+    }
+}
+
 function formatTimestamp(value: string | null, locale: string) {
     if (!value) {
         return null;
@@ -150,6 +224,12 @@ export function SpeakerProfilesPanel() {
     const [voiceprintsError, setVoiceprintsError] = useState<string | null>(
         null,
     );
+    const [failedSpeakerProfileOperation, setFailedSpeakerProfileOperation] =
+        useState<FailedSpeakerProfileOperation | null>(null);
+    const [
+        isRetryingSpeakerProfileOperation,
+        setIsRetryingSpeakerProfileOperation,
+    ] = useState(false);
 
     const refreshProfiles = useCallback(async () => {
         setIsProfilesLoading(true);
@@ -235,6 +315,65 @@ export function SpeakerProfilesPanel() {
         void Promise.all([refreshProfiles(), refreshVoiceprints()]);
     }, [refreshProfiles, refreshVoiceprints]);
 
+    const handleRetrySpeakerProfileOperation = useCallback(async () => {
+        if (
+            !failedSpeakerProfileOperation ||
+            isRetryingSpeakerProfileOperation
+        ) {
+            return;
+        }
+
+        setIsRetryingSpeakerProfileOperation(true);
+        try {
+            const response = await fetch("/api/speakers/profiles/retry", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify(failedSpeakerProfileOperation.retry),
+            });
+            const data = await response.json();
+            if (!response.ok) {
+                const retryFailure = readCommittedWriteFollowupFailure(data);
+                if (
+                    retryFailure &&
+                    retryFailure.mutation ===
+                        failedSpeakerProfileOperation.mutation
+                ) {
+                    setFailedSpeakerProfileOperation(retryFailure);
+                } else {
+                    setFailedSpeakerProfileOperation(null);
+                }
+                toast.error(
+                    data.error ||
+                        (isZh
+                            ? "说话人档案更新仍未完成"
+                            : "Speaker profile update is still incomplete"),
+                );
+                return;
+            }
+
+            setFailedSpeakerProfileOperation(null);
+            await refreshProfiles();
+            toast.success(
+                isZh
+                    ? "说话人档案更新已完成"
+                    : "Speaker profile update completed",
+            );
+        } catch {
+            toast.error(
+                isZh
+                    ? "说话人档案更新仍未完成"
+                    : "Speaker profile update is still incomplete",
+            );
+        } finally {
+            setIsRetryingSpeakerProfileOperation(false);
+        }
+    }, [
+        failedSpeakerProfileOperation,
+        isRetryingSpeakerProfileOperation,
+        isZh,
+        refreshProfiles,
+    ]);
+
     const handleCreate = useCallback(async () => {
         const displayName = newName.trim();
         if (!displayName) {
@@ -255,6 +394,18 @@ export function SpeakerProfilesPanel() {
             });
             const data = await response.json();
             if (!response.ok) {
+                const retryFailure = readCommittedWriteFollowupFailure(data);
+                if (retryFailure) {
+                    setFailedSpeakerProfileOperation(retryFailure);
+                    setNewName("");
+                    await refreshProfiles();
+                    toast.error(
+                        isZh
+                            ? "说话人档案已创建，但更新尚未完成"
+                            : "Speaker profile was created, but its update is incomplete",
+                    );
+                    return;
+                }
                 toast.error(
                     data.error ||
                         (isZh
@@ -302,6 +453,18 @@ export function SpeakerProfilesPanel() {
                 );
                 const data = await response.json();
                 if (!response.ok) {
+                    const retryFailure =
+                        readCommittedWriteFollowupFailure(data);
+                    if (retryFailure) {
+                        setFailedSpeakerProfileOperation(retryFailure);
+                        await refreshProfiles();
+                        toast.error(
+                            isZh
+                                ? "说话人档案已更新，但更新尚未完成"
+                                : "Speaker profile was updated, but its update is incomplete",
+                        );
+                        return;
+                    }
                     toast.error(
                         data.error ||
                             (isZh
@@ -351,6 +514,18 @@ export function SpeakerProfilesPanel() {
                 );
                 const data = await response.json();
                 if (!response.ok) {
+                    const retryFailure =
+                        readCommittedWriteFollowupFailure(data);
+                    if (retryFailure) {
+                        setFailedSpeakerProfileOperation(retryFailure);
+                        await refreshProfiles();
+                        toast.error(
+                            isZh
+                                ? "说话人档案已删除，但更新尚未完成"
+                                : "Speaker profile was deleted, but its update is incomplete",
+                        );
+                        return;
+                    }
                     toast.error(
                         data.error ||
                             (isZh
@@ -558,6 +733,35 @@ export function SpeakerProfilesPanel() {
                         {isZh ? "添加说话人" : "Add Speaker"}
                     </Button>
                 </Field>
+
+                {failedSpeakerProfileOperation ? (
+                    <PanelNotice
+                        tone="danger"
+                        action={
+                            <Button
+                                type="button"
+                                size="sm"
+                                variant="outline"
+                                onClick={() =>
+                                    void handleRetrySpeakerProfileOperation()
+                                }
+                                disabled={isRetryingSpeakerProfileOperation}
+                                aria-busy={isRetryingSpeakerProfileOperation}
+                                aria-label={
+                                    isZh
+                                        ? "重试说话人档案更新"
+                                        : "Retry speaker profile update"
+                                }
+                            >
+                                {isZh ? "重试" : "Retry"}
+                            </Button>
+                        }
+                    >
+                        {isZh
+                            ? "说话人档案已保存，但仍需完成更新。"
+                            : "The speaker profile was saved, but it still needs to finish updating."}
+                    </PanelNotice>
+                ) : null}
 
                 {isProfilesLoading ? (
                     <SettingsListSkeleton rows={2} />

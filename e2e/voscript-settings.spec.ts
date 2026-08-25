@@ -47,33 +47,66 @@ async function resetDisplayToChinese(page: Page) {
 }
 
 function settingsShell(page: Page) {
-    return page.locator('[data-sot-surface="settings-shell"]');
+    return page.getByRole("dialog", { name: /^(设置|Settings)$/ });
 }
 
 function settingsSection(page: Page, section: "transcription" | "voscript") {
-    return page.locator(
-        `[data-sot-surface="settings-section"][data-sot-section="${section}"]`,
-    );
+    return page.getByRole("region", {
+        name:
+            section === "voscript"
+                ? /^(VoScript 服务|VoScript Service)$/
+                : /^(转录设置|Transcription Settings)$/,
+    });
 }
 
 function sectionSaveButton(section: Locator, saveId?: string) {
     if (saveId) {
-        return section.locator(
-            `[data-sot-panel="settings-save-actions"][data-sot-save-id="${saveId}"] [data-sot-control="settings-save"]`,
-        );
+        return sectionSavePanel(section, saveId).getByRole("button", {
+            name:
+                saveId === "voscript-connection"
+                    ? /^(保存服务连接|服务连接保存中|服务连接已保存|Save service connection|Saving service connection|service connection saved)$/i
+                    : /^(保存转录运行参数|转录运行参数保存中|转录运行参数已保存|Save transcription runtime parameters|Saving transcription runtime parameters|transcription runtime parameters saved)$/i,
+        });
     }
 
-    return section.locator('[data-sot-control="settings-save"]');
+    return section.getByRole("button", {
+        name: /^(保存|保存中|已保存|Save|Saving|Saved)$/,
+    });
 }
 
 function sectionSavePanel(section: Locator, saveId: string) {
-    return section.locator(
-        `[data-sot-panel="settings-save-actions"][data-sot-save-id="${saveId}"]`,
-    );
+    return section.getByRole("group", {
+        name:
+            saveId === "voscript-connection"
+                ? /^(服务连接操作|Service Connection actions)$/i
+                : /^(转录运行参数操作|Transcription Runtime Parameters actions)$/i,
+    });
 }
 
 function sectionControl(section: Locator, control: string) {
-    return section.locator(`[data-sot-control="${control}"]`);
+    return section.locator(`#${control}`);
+}
+
+function fieldFor(input: Locator) {
+    return input.locator('xpath=ancestor::*[@data-slot="field"][1]');
+}
+
+function testConnectionButton(section: Locator) {
+    return section.getByRole("button", {
+        name: /^(测试 VoScript 连接|正在测试 VoScript 连接|VoScript 连接正常|Test VoScript connection|Testing VoScript connection|VoScript connection ready)$/,
+    });
+}
+
+async function expectSaveButtonState(
+    button: Locator,
+    state: "idle" | "saving" | "saved",
+) {
+    const labels = {
+        idle: /^(保存|保存服务连接|保存转录运行参数|Save|Save service connection|Save transcription runtime parameters)$/i,
+        saved: /^(已保存|服务连接已保存|转录运行参数已保存|Saved|service connection saved|transcription runtime parameters saved)$/i,
+        saving: /^(保存中|服务连接保存中|转录运行参数保存中|Saving|Saving service connection|Saving transcription runtime parameters)$/i,
+    };
+    await expect(button).toHaveAccessibleName(labels[state]);
 }
 
 async function expectVoScriptControlsDisabled(section: Locator) {
@@ -88,27 +121,18 @@ async function expectVoScriptControlsDisabled(section: Locator) {
     ]) {
         const input = sectionControl(section, control);
         await expect(input).toBeDisabled();
-        await expect(input).toHaveAttribute("data-sot-state", "disabled");
     }
 
     const denoiseCombobox = section.getByRole("combobox", {
         name: "降噪模型",
     });
     await expect(denoiseCombobox).toBeDisabled();
-    await expect(denoiseCombobox).toHaveAttribute(
-        "data-sot-state",
-        "disabled",
-    );
 
     const keyModeCombobox = section.getByRole("combobox", {
         name: "密钥操作",
     });
     if ((await keyModeCombobox.count()) > 0) {
         await expect(keyModeCombobox).toBeDisabled();
-        await expect(keyModeCombobox).toHaveAttribute(
-            "data-sot-state",
-            "disabled",
-        );
     }
 }
 
@@ -119,11 +143,9 @@ async function expectSectionReady(
     const shell = settingsShell(page);
     const section = settingsSection(page, sectionName);
 
-    await expect(shell).toHaveAttribute("data-sot-section", sectionName);
-    await expect(shell).toHaveAttribute("data-sot-state", "idle");
+    await expect(shell).toBeVisible();
     await expect(shell).toHaveAttribute("aria-busy", "false");
     await expect(section).toBeVisible();
-    await expect(section).toHaveAttribute("data-sot-state", "ready");
     await expect(section).toHaveAttribute("aria-busy", "false");
 }
 
@@ -163,19 +185,17 @@ test("VoScript settings shows settings load failure and retries", async ({
     await page.goto("/settings#voscript", { waitUntil: "domcontentloaded" });
 
     const section = settingsSection(page, "voscript");
-    await expect(section).toHaveAttribute("data-sot-state", "error");
-    await expect(section).toHaveAttribute("data-sot-section", "voscript");
+    await expect(section).toHaveAttribute("aria-busy", "false");
     await expect(section.getByText("加载失败")).toBeVisible();
     await expect(
         section.getByText("VoScript settings temporarily unavailable"),
     ).toBeVisible();
     await expect(sectionSaveButton(section)).toHaveCount(0);
-    const retryButton = section.locator(
-        '[data-sot-control="settings-section-load-retry"]',
-    );
+    const retryButton = section.getByRole("button", {
+        name: /^(重试|Retry)$/,
+    });
     await expect(retryButton).toBeVisible();
     await expect(retryButton).toBeEnabled();
-    await expect(retryButton).toHaveAttribute("data-sot-section", "voscript");
 
     await retryButton.click();
     await expectSectionReady(page, "voscript");
@@ -252,18 +272,17 @@ test("VoScript settings saves runtime params without connection payload", async 
             response.ok(),
     );
     await Promise.all([settingsSaveStarted, saveButton.click()]);
-    await expect(settingsShell(page)).toHaveAttribute("data-sot-state", "busy");
-    await expect(section).toHaveAttribute("data-sot-state", "busy");
+    await expect(settingsShell(page)).toHaveAttribute("aria-busy", "true");
     await expect(section).toHaveAttribute("aria-busy", "true");
     await expect(saveButton).toBeDisabled();
     await expect(saveButton).toHaveAttribute("aria-busy", "true");
-    await expect(saveButton).toHaveAttribute("data-sot-state", "saving");
+    await expectSaveButtonState(saveButton, "saving");
     await expect(saveButton).toContainText("保存中");
 
     releaseSettingsSave();
     await saveResponse;
-    await expect(section).toHaveAttribute("data-sot-state", "ready");
-    await expect(saveButton).toHaveAttribute("data-sot-state", "saved");
+    await expect(section).toHaveAttribute("aria-busy", "false");
+    await expectSaveButtonState(saveButton, "saved");
     await expect(saveButton).toContainText("已保存");
     await expect(section.locator("#voscript-base-url")).toHaveValue(
         "https://voscript-updated.e2e.example",
@@ -283,10 +302,8 @@ test("VoScript settings saves runtime params without connection payload", async 
     await section.hover();
     await page.mouse.wheel(0, 1200);
     await expect.poll(() => page.evaluate(() => window.scrollY)).toBe(0);
-    await expect(settingsShell(page)).toHaveAttribute(
-        "data-sot-section",
-        "voscript",
-    );
+    await expect(settingsShell(page)).toBeVisible();
+    await expect(page).toHaveURL(/\/settings#voscript$/);
 });
 
 test("VoScript connection save ignores invalid runtime params", async ({
@@ -332,11 +349,8 @@ test("VoScript connection save ignores invalid runtime params", async ({
 
     await connectionSaveButton.click();
 
-    await expect(connectionSaveButton).toHaveAttribute(
-        "data-sot-state",
-        "saved",
-    );
-    await expect(paramsSaveButton).toHaveAttribute("data-sot-state", "idle");
+    await expectSaveButtonState(connectionSaveButton, "saved");
+    await expectSaveButtonState(paramsSaveButton, "idle");
     await expect(section.locator("#voscript-no-repeat-ngram")).toHaveValue("1");
     await expect(section.locator("#voscript-api-key")).toHaveValue("");
     expect(savePayload).toEqual({
@@ -383,7 +397,7 @@ test("VoScript runtime params save does not submit pending API key", async ({
 
     await saveButton.click();
 
-    await expect(saveButton).toHaveAttribute("data-sot-state", "saved");
+    await expectSaveButtonState(saveButton, "saved");
     await expect(section.locator("#voscript-api-key")).toHaveValue(
         "pending-runtime-key",
     );
@@ -427,32 +441,28 @@ test("VoScript settings blocks invalid no-repeat n-gram inline before saving", a
 
     await expectSectionReady(page, "voscript");
     const section = settingsSection(page, "voscript");
-    const ngramField = section.locator(
-        '[data-slot="field"][data-sot-field="no-repeat-ngram"]',
-    );
     const ngramInput = section.locator("#voscript-no-repeat-ngram");
-    const paramsSave = section.locator(
-        '[data-sot-panel="settings-save-actions"][data-sot-save-id="voscript-params"]',
-    );
+    const ngramField = fieldFor(ngramInput);
+    const paramsSave = sectionSavePanel(section, "voscript-params");
     const saveButton = sectionSaveButton(section, "voscript-params");
 
     await ngramInput.fill("1");
 
-    await expect(ngramField).toHaveAttribute("data-sot-state", "invalid");
     await expect(ngramField).toHaveAttribute("data-invalid", "true");
     await expect(ngramInput).toHaveAttribute("aria-invalid", "true");
     await expect(
-        ngramField.locator('[data-sot-part="settings-field-message"]'),
+        ngramField.locator('[data-slot="field-error"]'),
     ).toHaveText("只支持 0 或 ≥ 3");
 
     await saveButton.click();
 
     await expect(ngramInput).toHaveValue("1");
-    await expect(saveButton).toHaveAttribute("data-sot-state", "error");
     await expect(
-        ngramField.locator('[data-sot-part="settings-field-message"]'),
+        ngramField.locator('[data-slot="field-error"]'),
     ).toBeVisible();
-    await expect(paramsSave).toContainText("只支持 0 或 ≥ 3");
+    await expect(paramsSave.getByRole("alert")).toContainText(
+        "只支持 0 或 ≥ 3",
+    );
     await expect.poll(() => settingsPutCount).toBe(0);
 
     await ngramInput.fill("2");
@@ -497,48 +507,38 @@ test("VoScript settings blocks negative speaker bounds inline before saving", as
 
     await expectSectionReady(page, "voscript");
     const section = settingsSection(page, "voscript");
-    const minSpeakerField = section.locator(
-        '[data-slot="field"][data-sot-field="min-speakers"]',
-    );
-    const maxSpeakerField = section.locator(
-        '[data-slot="field"][data-sot-field="max-speakers"]',
-    );
     const minSpeakerInput = section.locator("#voscript-min-speakers");
     const maxSpeakerInput = section.locator("#voscript-max-speakers");
-    const paramsSave = section.locator(
-        '[data-sot-panel="settings-save-actions"][data-sot-save-id="voscript-params"]',
-    );
+    const minSpeakerField = fieldFor(minSpeakerInput);
+    const maxSpeakerField = fieldFor(maxSpeakerInput);
+    const paramsSave = sectionSavePanel(section, "voscript-params");
     const saveButton = sectionSaveButton(section, "voscript-params");
 
     await minSpeakerInput.fill("-1");
-    await expect(minSpeakerField).toHaveAttribute("data-sot-state", "invalid");
     await expect(minSpeakerField).toHaveAttribute("data-invalid", "true");
     await expect(minSpeakerInput).toHaveAttribute("aria-invalid", "true");
     await expect(
-        minSpeakerField.locator('[data-sot-part="settings-field-message"]'),
+        minSpeakerField.locator('[data-slot="field-error"]'),
     ).toHaveText("不能为负数");
 
     await saveButton.click();
 
     await expect(minSpeakerInput).toHaveValue("-1");
-    await expect(saveButton).toHaveAttribute("data-sot-state", "error");
-    await expect(paramsSave).toContainText("不能为负数");
+    await expect(paramsSave.getByRole("alert")).toContainText("不能为负数");
     await expect.poll(() => settingsPutCount).toBe(0);
 
     await minSpeakerInput.fill("1");
     await maxSpeakerInput.fill("-2");
-    await expect(maxSpeakerField).toHaveAttribute("data-sot-state", "invalid");
     await expect(maxSpeakerField).toHaveAttribute("data-invalid", "true");
     await expect(maxSpeakerInput).toHaveAttribute("aria-invalid", "true");
     await expect(
-        maxSpeakerField.locator('[data-sot-part="settings-field-message"]'),
+        maxSpeakerField.locator('[data-slot="field-error"]'),
     ).toHaveText("不能为负数");
 
     await saveButton.click();
 
     await expect(maxSpeakerInput).toHaveValue("-2");
-    await expect(saveButton).toHaveAttribute("data-sot-state", "error");
-    await expect(paramsSave).toContainText("不能为负数");
+    await expect(paramsSave.getByRole("alert")).toContainText("不能为负数");
     await expect.poll(() => settingsPutCount).toBe(0);
 });
 
@@ -577,32 +577,26 @@ test("VoScript settings blocks max speaker bounds below min before saving", asyn
 
     await expectSectionReady(page, "voscript");
     const section = settingsSection(page, "voscript");
-    const maxSpeakerField = section.locator(
-        '[data-slot="field"][data-sot-field="max-speakers"]',
-    );
     const minSpeakerInput = section.locator("#voscript-min-speakers");
     const maxSpeakerInput = section.locator("#voscript-max-speakers");
-    const paramsSave = section.locator(
-        '[data-sot-panel="settings-save-actions"][data-sot-save-id="voscript-params"]',
-    );
+    const maxSpeakerField = fieldFor(maxSpeakerInput);
+    const paramsSave = sectionSavePanel(section, "voscript-params");
     const saveButton = sectionSaveButton(section, "voscript-params");
 
     await minSpeakerInput.fill("5");
     await maxSpeakerInput.fill("3");
 
-    await expect(maxSpeakerField).toHaveAttribute("data-sot-state", "invalid");
     await expect(maxSpeakerField).toHaveAttribute("data-invalid", "true");
     await expect(maxSpeakerInput).toHaveAttribute("aria-invalid", "true");
     await expect(
-        maxSpeakerField.locator('[data-sot-part="settings-field-message"]'),
+        maxSpeakerField.locator('[data-slot="field-error"]'),
     ).toHaveText("最多说话人数必须 ≥ 最少说话人数");
 
     await saveButton.click();
 
     await expect(minSpeakerInput).toHaveValue("5");
     await expect(maxSpeakerInput).toHaveValue("3");
-    await expect(saveButton).toHaveAttribute("data-sot-state", "error");
-    await expect(paramsSave).toContainText(
+    await expect(paramsSave.getByRole("alert")).toContainText(
         "最多说话人数必须 ≥ 最少说话人数",
     );
     await expect.poll(() => settingsPutCount).toBe(0);
@@ -670,7 +664,7 @@ test("VoScript settings tests the service connection without persisting settings
 
     await expectSectionReady(page, "voscript");
     const section = settingsSection(page, "voscript");
-    const testButton = section.locator('[data-sot-control="voscript-test"]');
+    const testButton = testConnectionButton(section);
     const connectionSaveButton = sectionSaveButton(
         section,
         "voscript-connection",
@@ -683,7 +677,9 @@ test("VoScript settings tests the service connection without persisting settings
     const paramsSavePanel = sectionSavePanel(section, "voscript-params");
 
     await expect(
-        section.locator('[data-sot-panel="voscript-unavailable-banner"]'),
+        section.getByRole("alert").filter({
+            hasText: /^(VoScript 当前不可用|VoScript is unavailable)/,
+        }),
     ).toHaveCount(0);
     await section.locator("#voscript-base-url").fill(
         "https://voscript-test.e2e.example",
@@ -692,17 +688,19 @@ test("VoScript settings tests the service connection without persisting settings
 
     await testButton.click();
     await connectionTestStarted;
-    await expect(settingsShell(page)).toHaveAttribute("data-sot-state", "busy");
-    await expect(section).toHaveAttribute("data-sot-state", "busy");
-    await expect(testButton).toHaveAttribute("data-sot-state", "testing");
+    await expect(settingsShell(page)).toHaveAttribute("aria-busy", "true");
+    await expect(section).toHaveAttribute("aria-busy", "true");
+    await expect(testButton).toHaveAccessibleName(
+        /^(正在测试 VoScript 连接|Testing VoScript connection)$/,
+    );
     await expect(testButton).toHaveAttribute("aria-busy", "true");
     await expect(testButton).toBeDisabled();
     await expectVoScriptControlsDisabled(section);
-    await expect(connectionSavePanel).toHaveAttribute("data-sot-state", "idle");
-    await expect(connectionSaveButton).toHaveAttribute("data-sot-state", "idle");
+    await expect(connectionSavePanel.getByRole("alert")).toHaveCount(0);
+    await expectSaveButtonState(connectionSaveButton, "idle");
     await expect(connectionSaveButton).toBeDisabled();
-    await expect(paramsSavePanel).toHaveAttribute("data-sot-state", "idle");
-    await expect(paramsSaveButton).toHaveAttribute("data-sot-state", "idle");
+    await expect(paramsSavePanel.getByRole("alert")).toHaveCount(0);
+    await expectSaveButtonState(paramsSaveButton, "idle");
     await expect(paramsSaveButton).toBeDisabled();
 
     const successResponse = page.waitForResponse(
@@ -719,16 +717,20 @@ test("VoScript settings tests the service connection without persisting settings
         privateTranscriptionBaseUrl: "https://voscript-test.e2e.example",
     });
     expect(settingsPutCount).toBe(0);
-    await expect(section).toHaveAttribute("data-sot-state", "ready");
-    await expect(testButton).toHaveAttribute("data-sot-state", "test-success");
+    await expect(section).toHaveAttribute("aria-busy", "false");
+    await expect(testButton).toHaveAccessibleName(
+        /^(VoScript 连接正常|VoScript connection ready)$/,
+    );
     await expect(testButton).toContainText("连接正常");
-    await expect(connectionSaveButton).toHaveAttribute("data-sot-state", "idle");
-    await expect(paramsSaveButton).toHaveAttribute("data-sot-state", "idle");
+    await expectSaveButtonState(connectionSaveButton, "idle");
+    await expectSaveButtonState(paramsSaveButton, "idle");
 
     await section.locator("#voscript-base-url").fill(
         "https://voscript-failing.e2e.example",
     );
-    await expect(testButton).toHaveAttribute("data-sot-state", "idle");
+    await expect(testButton).toHaveAccessibleName(
+        /^(测试 VoScript 连接|Test VoScript connection)$/,
+    );
     await expect(testButton).toBeEnabled();
     await expect(testButton).toContainText("测试连接");
     const failedResponse = page.waitForResponse(
@@ -745,19 +747,19 @@ test("VoScript settings tests the service connection without persisting settings
         privateTranscriptionBaseUrl: "https://voscript-failing.e2e.example",
     });
     expect(settingsPutCount).toBe(0);
-    await expect(testButton).toHaveAttribute("data-sot-state", "test-error");
-    await expect(section).toHaveAttribute(
-        "data-sot-availability",
-        "unavailable",
+    await expect(testButton).toHaveAccessibleName(
+        /^(测试 VoScript 连接|Test VoScript connection)$/,
     );
     await expect(
-        section.locator('[data-sot-panel="voscript-unavailable-banner"]'),
+        section.getByRole("alert").filter({
+            hasText: /^(VoScript 当前不可用|VoScript is unavailable)/,
+        }),
     ).toBeVisible();
     await expect(
         section.getByText("VoScript upstream unreachable", { exact: true }),
     ).toBeVisible();
-    await expect(connectionSaveButton).toHaveAttribute("data-sot-state", "idle");
-    await expect(paramsSaveButton).toHaveAttribute("data-sot-state", "idle");
+    await expectSaveButtonState(connectionSaveButton, "idle");
+    await expectSaveButtonState(paramsSaveButton, "idle");
 });
 
 test("VoScript settings clears a stored API key through the SOT key action", async ({
@@ -808,10 +810,7 @@ test("VoScript settings clears a stored API key through the SOT key action", asy
 
     const saveButton = sectionSaveButton(section, "voscript-connection");
     await saveButton.click();
-    await expect(saveButton).toHaveAttribute(
-        "data-sot-state",
-        "saved",
-    );
+    await expectSaveButtonState(saveButton, "saved");
     expect(savePayload).toMatchObject({
         privateTranscriptionApiKey: null,
         privateTranscriptionBaseUrl: "https://voscript.e2e.example",
@@ -875,34 +874,25 @@ test("VoScript settings surfaces backend save errors and recovers on retry", asy
     const paramsSaveButton = sectionSaveButton(section, "voscript-params");
     const baseUrlInput = section.locator("#voscript-base-url");
     const unavailableBanner = section.locator(
-        '[data-sot-panel="voscript-unavailable-banner"]',
+        "#voscript-connection-status",
     );
 
     await baseUrlInput.fill("https://bad-voscript.e2e.example");
     await saveButton.click();
-    await expect(savePanel).toHaveAttribute("data-sot-state", "error");
-    await expect(saveButton).toHaveAttribute("data-sot-state", "error");
-    await expect(section.getByText("E2E VoScript save rejected")).toBeVisible();
+    await expect(savePanel.getByRole("alert")).toContainText(
+        "E2E VoScript save rejected",
+    );
     await expect(baseUrlInput).toHaveValue("https://bad-voscript.e2e.example");
     await expect(baseUrlInput).toBeEnabled();
-    await expect(section).toHaveAttribute(
-        "data-sot-availability",
-        "unavailable",
-    );
     await expect(unavailableBanner).toBeVisible();
-    await expect(unavailableBanner).toHaveAttribute(
-        "data-sot-state",
-        "missing-connection",
-    );
-    await expect(paramsSavePanel).toHaveAttribute("data-sot-state", "idle");
-    await expect(paramsSaveButton).toHaveAttribute("data-sot-state", "idle");
+    await expect(paramsSavePanel.getByRole("alert")).toHaveCount(0);
+    await expectSaveButtonState(paramsSaveButton, "idle");
     await expect(paramsSaveButton).toBeEnabled();
     expect(settingsSavePayloads).toHaveLength(1);
 
     await baseUrlInput.fill("https://voscript-recovered.e2e.example");
     await saveButton.click();
-    await expect(savePanel).toHaveAttribute("data-sot-state", "saved");
-    await expect(saveButton).toHaveAttribute("data-sot-state", "saved");
+    await expectSaveButtonState(saveButton, "saved");
     await expect(baseUrlInput).toHaveValue(
         "https://voscript-recovered.e2e.example",
     );
@@ -980,9 +970,9 @@ test("VoScript runtime params surfaces backend save errors and retries without c
 
     await paramsSaveButton.click();
 
-    await expect(paramsSavePanel).toHaveAttribute("data-sot-state", "error");
-    await expect(paramsSaveButton).toHaveAttribute("data-sot-state", "error");
-    await expect(paramsSavePanel).toContainText("E2E VoScript params rejected");
+    await expect(paramsSavePanel.getByRole("alert")).toContainText(
+        "E2E VoScript params rejected",
+    );
     await expect(minSpeakersInput).toHaveValue("2");
     await expect(maxSpeakersInput).toHaveValue("4");
     await expect(noRepeatInput).toHaveValue("4");
@@ -990,8 +980,8 @@ test("VoScript runtime params surfaces backend save errors and retries without c
     await expect(maxInflightInput).toHaveValue("3");
     await expect(denoiseCombobox).toContainText("noisereduce");
     await expect(paramsSaveButton).toBeEnabled();
-    await expect(connectionSavePanel).toHaveAttribute("data-sot-state", "idle");
-    await expect(connectionSaveButton).toHaveAttribute("data-sot-state", "idle");
+    await expect(connectionSavePanel.getByRole("alert")).toHaveCount(0);
+    await expectSaveButtonState(connectionSaveButton, "idle");
     await expect(connectionSaveButton).toBeEnabled();
     expect(settingsSavePayloads).toHaveLength(1);
     expect(settingsSavePayloads[0]).toEqual({
@@ -1005,8 +995,7 @@ test("VoScript runtime params surfaces backend save errors and retries without c
 
     await paramsSaveButton.click();
 
-    await expect(paramsSavePanel).toHaveAttribute("data-sot-state", "saved");
-    await expect(paramsSaveButton).toHaveAttribute("data-sot-state", "saved");
+    await expectSaveButtonState(paramsSaveButton, "saved");
     expect(settingsSavePayloads).toHaveLength(2);
     expect(settingsSavePayloads.at(-1)).toEqual({
         privateTranscriptionDenoiseModel: "noisereduce",
@@ -1060,10 +1049,7 @@ test("VoScript settings saves connection lane without runtime params payload", a
 
     const saveButton = sectionSaveButton(section, "voscript-connection");
     await saveButton.click();
-    await expect(saveButton).toHaveAttribute(
-        "data-sot-state",
-        "saved",
-    );
+    await expectSaveButtonState(saveButton, "saved");
     expect(savePayload).toEqual({
         privateTranscriptionBaseUrl: null,
     });
@@ -1108,10 +1094,7 @@ test("VoScript settings save speaker bounds through SOT controls", async ({
 
     const saveButton = sectionSaveButton(section, "voscript-params");
     await saveButton.click();
-    await expect(saveButton).toHaveAttribute(
-        "data-sot-state",
-        "saved",
-    );
+    await expectSaveButtonState(saveButton, "saved");
     expect(speakerPayloads).toEqual([
         {
             privateTranscriptionDenoiseModel: "none",
@@ -1163,7 +1146,7 @@ test("VoScript speaker bounds recover when VoScript settings load fails first", 
     await page.goto("/settings#voscript", { waitUntil: "domcontentloaded" });
 
     const section = settingsSection(page, "voscript");
-    await expect(section).toHaveAttribute("data-sot-state", "error");
+    await expect(section).toHaveAttribute("aria-busy", "false");
     await expect(section.getByText("VoScript speaker bounds down")).toBeVisible();
 
     await section.getByRole("button", { name: "重试" }).click();
@@ -1229,7 +1212,9 @@ test("VoScript settings loads remote voiceprint state from the SOT settings surf
     const section = settingsSection(page, "voscript");
     await expect(section.getByText("声纹库", { exact: true })).toBeVisible();
     await expect(
-        section.locator('[data-sot-control="speaker-voiceprint-name"]'),
+        section.getByRole("textbox", {
+            name: /^(声纹名称：|Voiceprint name: )/,
+        }),
     ).toHaveValue("Remote Voiceprint Should Stay Remote");
     await expect(
         page.getByRole("dialog", { name: "确认操作", exact: true }),
@@ -1240,10 +1225,7 @@ test("VoScript settings loads remote voiceprint state from the SOT settings surf
     );
     const saveButton = sectionSaveButton(section, "voscript-connection");
     await saveButton.click();
-    await expect(saveButton).toHaveAttribute(
-        "data-sot-state",
-        "saved",
-    );
+    await expectSaveButtonState(saveButton, "saved");
     expect(voscriptSavePayload).toMatchObject({
         privateTranscriptionBaseUrl:
             "https://voscript-without-voiceprints.e2e.example",

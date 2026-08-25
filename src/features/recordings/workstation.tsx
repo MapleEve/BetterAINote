@@ -18,12 +18,14 @@ import {
     type ComponentProps,
     useCallback,
     useEffect,
+    useLayoutEffect,
     useMemo,
     useRef,
     useState,
 } from "react";
 import { toast } from "sonner";
 import { useLanguage } from "@/components/language-provider";
+import { Alert, AlertTitle } from "@/components/ui/alert";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -101,6 +103,11 @@ interface TranscriptionJob {
     remoteStatus?: string | null;
     lastError?: string | null;
 }
+
+type RenameOperation = {
+    operationId: number;
+    recordingId: string;
+};
 
 const RECORDING_DETAIL_HEADER_CLASS_NAME =
     "flex flex-row items-center gap-2.5 px-1 pt-1 pb-0 data-[state=saving]:pb-px";
@@ -291,6 +298,7 @@ export function RecordingWorkstation({
     const [isRenaming, setIsRenaming] = useState(false);
     const [renameValue, setRenameValue] = useState(recording.filename);
     const [isSavingRename, setIsSavingRename] = useState(false);
+    const [renameError, setRenameError] = useState<string | null>(null);
     const [isAutoRenaming, setIsAutoRenaming] = useState(false);
     const [isApplyingAutoRename, setIsApplyingAutoRename] = useState(false);
     const [autoRenamePreview, setAutoRenamePreview] = useState<string | null>(
@@ -326,6 +334,11 @@ export function RecordingWorkstation({
     const [moreOpen, setMoreOpen] = useState(false);
     const moreAnchorRef = useRef<HTMLDivElement>(null);
     const moreTriggerRef = useRef<HTMLButtonElement>(null);
+    const renameTriggerRef = useRef<HTMLButtonElement>(null);
+    const currentRecordingIdRef = useRef(recording.id);
+    const renameOperationIdRef = useRef(0);
+    const pendingRenameTriggerFocusRef = useRef<RenameOperation | null>(null);
+    const autoRenameTriggerRef = useRef<HTMLButtonElement>(null);
     const autoRenameRequestIdRef = useRef(0);
     const previousRecordingIdRef = useRef(recording.id);
     const canRenameRecording = canRecordingRename(recording.sourceProvider);
@@ -390,12 +403,24 @@ export function RecordingWorkstation({
         setHydrated(true);
     }, []);
 
+    useLayoutEffect(() => {
+        if (currentRecordingIdRef.current === recording.id) {
+            return;
+        }
+        currentRecordingIdRef.current = recording.id;
+        renameOperationIdRef.current += 1;
+        pendingRenameTriggerFocusRef.current = null;
+    }, [recording.id]);
+
     useEffect(() => {
         if (previousRecordingIdRef.current !== recording.id) {
             previousRecordingIdRef.current = recording.id;
             setActiveTranscriptTab("source");
             setFilename(recording.filename);
             setRenameValue(recording.filename);
+            setRenameError(null);
+            setIsRenaming(false);
+            setIsSavingRename(false);
             setAutoRenamePreview(null);
             setAutoRenameError(null);
             setAutoRenameUnavailableOpen(false);
@@ -489,26 +514,108 @@ export function RecordingWorkstation({
         [recording.id],
     );
 
+    const beginRenameOperation = useCallback(
+        (recordingId: string): RenameOperation | null => {
+            if (currentRecordingIdRef.current !== recordingId) {
+                return null;
+            }
+            pendingRenameTriggerFocusRef.current = null;
+            renameOperationIdRef.current += 1;
+            return {
+                operationId: renameOperationIdRef.current,
+                recordingId,
+            };
+        },
+        [],
+    );
+
+    const isCurrentRenameOperation = useCallback(
+        (operation: RenameOperation) =>
+            currentRecordingIdRef.current === operation.recordingId &&
+            renameOperationIdRef.current === operation.operationId,
+        [],
+    );
+
     const handleRenameStart = useCallback(() => {
         if (!canRenameRecording) {
             return;
         }
+        const operation = beginRenameOperation(recording.id);
+        if (!operation) {
+            return;
+        }
+        setRenameError(null);
         setRenameValue(filename);
         setIsRenaming(true);
-    }, [canRenameRecording, filename]);
+    }, [beginRenameOperation, canRenameRecording, filename, recording.id]);
+
+    const restoreRenameTriggerFocus = useCallback(
+        (operation: RenameOperation) => {
+            if (!isCurrentRenameOperation(operation)) {
+                return;
+            }
+            pendingRenameTriggerFocusRef.current = operation;
+            const trigger = renameTriggerRef.current;
+            if (!trigger) {
+                return;
+            }
+            pendingRenameTriggerFocusRef.current = null;
+            trigger.focus({ preventScroll: true });
+        },
+        [isCurrentRenameOperation],
+    );
+
+    const handleRenameTriggerRef = useCallback(
+        (node: HTMLButtonElement | null) => {
+            renameTriggerRef.current = node;
+            const pendingOperation = pendingRenameTriggerFocusRef.current;
+            if (!node || !pendingOperation) {
+                return;
+            }
+            if (
+                pendingOperation.recordingId !== recording.id ||
+                !isCurrentRenameOperation(pendingOperation)
+            ) {
+                pendingRenameTriggerFocusRef.current = null;
+                return;
+            }
+            pendingRenameTriggerFocusRef.current = null;
+            node.focus({ preventScroll: true });
+        },
+        [isCurrentRenameOperation, recording.id],
+    );
 
     const handleRenameCancel = useCallback(() => {
+        const operation = beginRenameOperation(recording.id);
+        if (!operation) {
+            return;
+        }
+        setRenameError(null);
         setIsRenaming(false);
         setRenameValue(filename);
-    }, [filename]);
+        restoreRenameTriggerFocus(operation);
+    }, [
+        beginRenameOperation,
+        filename,
+        recording.id,
+        restoreRenameTriggerFocus,
+    ]);
 
     const handleRenameSave = useCallback(async () => {
+        if (isSavingRename) {
+            return;
+        }
         const newName = renameValue.trim();
         if (!newName || newName === filename) {
             handleRenameCancel();
             return;
         }
+        const operation = beginRenameOperation(recording.id);
+        if (!operation) {
+            return;
+        }
 
+        setRenameError(null);
         setIsSavingRename(true);
         try {
             const response = await fetch(
@@ -519,22 +626,51 @@ export function RecordingWorkstation({
                     body: JSON.stringify({ filename: newName }),
                 },
             );
-
-            if (!response.ok) {
-                const error = await response.json();
-                toast.error(error.error || t("recording.renameFailed"));
+            if (!isCurrentRenameOperation(operation)) {
                 return;
             }
 
+            if (!response.ok) {
+                if (!isCurrentRenameOperation(operation)) {
+                    return;
+                }
+                const message = t("recording.renameFailed");
+                setRenameError(message);
+                toast.error(message);
+                return;
+            }
+
+            if (!isCurrentRenameOperation(operation)) {
+                return;
+            }
             setFilename(newName);
+            setRenameError(null);
             setIsRenaming(false);
+            restoreRenameTriggerFocus(operation);
             toast.success(t("recording.recordingRenamed"));
         } catch {
-            toast.error(t("recording.renameFailed"));
+            if (!isCurrentRenameOperation(operation)) {
+                return;
+            }
+            const message = t("recording.renameFailed");
+            setRenameError(message);
+            toast.error(message);
         } finally {
-            setIsSavingRename(false);
+            if (isCurrentRenameOperation(operation)) {
+                setIsSavingRename(false);
+            }
         }
-    }, [filename, handleRenameCancel, recording.id, renameValue, t]);
+    }, [
+        beginRenameOperation,
+        filename,
+        handleRenameCancel,
+        isCurrentRenameOperation,
+        isSavingRename,
+        recording.id,
+        renameValue,
+        restoreRenameTriggerFocus,
+        t,
+    ]);
 
     const handleAutoRename = useCallback(async () => {
         if (!canAutoRenameRecording) {
@@ -598,6 +734,10 @@ export function RecordingWorkstation({
         setAutoRenamePreview(null);
         setAutoRenameError(null);
         setAutoRenameUnavailableOpen(false);
+
+        requestAnimationFrame(() => {
+            autoRenameTriggerRef.current?.focus({ preventScroll: true });
+        });
     }, []);
 
     const handleAutoRenamePreviewApply = useCallback(async () => {
@@ -856,7 +996,8 @@ export function RecordingWorkstation({
                 closeLabel={t("transcription.aiRenameClosePreview")}
                 isApplying={false}
                 isRegenerating={isAutoRenaming}
-                message="这次没拿到结果，可能是转写太短或模型暂时不可用。"
+                hint="请检查 AI 重命名服务配置后重试。"
+                message={autoRenameError}
                 onApply={handleAutoRenamePreviewApply}
                 onCancel={handleAutoRenamePreviewCancel}
                 onRegenerate={handleAutoRename}
@@ -935,6 +1076,7 @@ export function RecordingWorkstation({
                         alt=""
                         width={36}
                         height={36}
+                        unoptimized
                     />
                     <div data-part="workstation-brand-text">
                         <div
@@ -1152,8 +1294,12 @@ export function RecordingWorkstation({
                                         "rounded-[var(--radius-sm)] border-border bg-muted px-[10px] py-0 text-[16px] leading-[1.35] font-semibold shadow-none [font-family:var(--font-display)] md:text-[16px]",
                                     )}
                                     value={renameValue}
-                                    onChange={(event) =>
-                                        setRenameValue(event.target.value)
+                                    onChange={(event) => {
+                                        setRenameError(null);
+                                        setRenameValue(event.target.value);
+                                    }}
+                                    onFocus={(event) =>
+                                        event.currentTarget.select()
                                     }
                                     onKeyDown={(event) => {
                                         if (event.key === "Enter") {
@@ -1203,6 +1349,7 @@ export function RecordingWorkstation({
                                     data-control="rename-recording-title"
                                     data-part="detail-header-action"
                                     data-mode="normal"
+                                    ref={handleRenameTriggerRef}
                                 >
                                     <Pen
                                         size={16}
@@ -1226,7 +1373,6 @@ export function RecordingWorkstation({
                                             recordingWorkstationButtonClassNames.headerActionButton,
                                             "gap-[7px] rounded-[9px] border-border bg-[var(--glass-tint-base)] px-3 text-[12.5px] leading-normal font-semibold shadow-xs backdrop-blur-[14px] backdrop-saturate-[1.4] [font-family:var(--font-sans)]",
                                         )}
-                                        style={{ paddingInline: 12 }}
                                         onClick={handleAutoRename}
                                         disabled={
                                             isAutoRenaming ||
@@ -1240,6 +1386,7 @@ export function RecordingWorkstation({
                                             t("transcription.aiRename")
                                         }
                                         data-rh-ai-trigger
+                                        ref={autoRenameTriggerRef}
                                         data-control="ai-rename"
                                         data-part="detail-header-action"
                                         data-mode="normal"
@@ -1468,6 +1615,28 @@ export function RecordingWorkstation({
                                 </div>
                             ) : null}
                         </RecordingDetailCardHeader>
+
+                        {renameError ? (
+                            <Alert
+                                data-part="detail-header-rename-error"
+                                density="comfortable"
+                                layout="inline"
+                                variant="destructiveSoft"
+                            >
+                                <AlertTitle className="min-h-0 flex-1 line-clamp-none">
+                                    {renameError}
+                                </AlertTitle>
+                                <Button
+                                    disabled={isSavingRename}
+                                    onClick={() => void handleRenameSave()}
+                                    size="sm"
+                                    type="button"
+                                    variant="outline"
+                                >
+                                    {t("common.retry")}
+                                </Button>
+                            </Alert>
+                        ) : null}
 
                         <SystemBanner />
 

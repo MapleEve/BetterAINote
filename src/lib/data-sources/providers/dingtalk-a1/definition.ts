@@ -8,7 +8,6 @@ import type {
     SourceRecordingData,
 } from "@/lib/data-sources/types";
 import { SourceProviderSettingsError } from "@/lib/data-sources/types";
-import { normalizeServiceUrl } from "@/lib/service-url";
 import { SOURCE_PROVIDER_MANIFESTS } from "../manifest";
 import {
     buildResolvedConnectionForValidation,
@@ -18,6 +17,7 @@ import {
     parsePersistedSecrets,
     persistSecretConfig,
 } from "../shared";
+import { resolveDingTalkServerBaseUrl } from "./base-url";
 import { buildMissingDingTalkSecretMessage, DingTalkA1Client } from "./client";
 import {
     DINGTALK_DEVICE_CREDENTIAL_KEY,
@@ -26,8 +26,6 @@ import {
     normalizeDingTalkAuthMode,
 } from "./constants";
 
-const DINGTALK_DEFAULT_BASE_URL = "https://meeting-ai-tingji.dingtalk.com";
-
 async function prepareDingTalkConnectionWrite(params: {
     existing: PersistedSourceConnectionState | null;
     forceValidate?: boolean;
@@ -35,6 +33,7 @@ async function prepareDingTalkConnectionWrite(params: {
         enabled?: unknown;
         authMode?: unknown;
         baseUrl?: unknown;
+        config?: unknown;
         secrets?: unknown;
     };
 }): Promise<PreparedSourceConnectionWrite> {
@@ -57,11 +56,21 @@ async function prepareDingTalkConnectionWrite(params: {
         params.existing?.secretConfig,
     );
     const nextSecrets = mergeSecrets(existingSecrets, params.body.secrets);
-    const baseUrl = normalizeServiceUrl(
+    const inputConfig =
+        typeof params.body.config === "object" &&
+        params.body.config !== null &&
+        !Array.isArray(params.body.config)
+            ? (params.body.config as Record<string, unknown>)
+            : {};
+    const existingConfig = params.existing?.config ?? {};
+    const syncTitleToSource =
+        typeof inputConfig.syncTitleToSource === "boolean"
+            ? inputConfig.syncTitleToSource
+            : existingConfig.syncTitleToSource === true;
+    const baseUrl = resolveDingTalkServerBaseUrl(
         typeof params.body.baseUrl === "string"
             ? params.body.baseUrl
-            : params.existing?.baseUrl || DINGTALK_DEFAULT_BASE_URL,
-        "baseUrl",
+            : params.existing?.baseUrl,
     );
 
     const deviceCredential = normalizeSecretValue(
@@ -69,7 +78,7 @@ async function prepareDingTalkConnectionWrite(params: {
     );
     const activeSecret = deviceCredential;
 
-    if (enabled && !activeSecret) {
+    if (enabled && !activeSecret && params.forceValidate) {
         throw new SourceProviderSettingsError(
             buildMissingDingTalkSecretMessage(),
             { code: "missing-secret" },
@@ -84,11 +93,11 @@ async function prepareDingTalkConnectionWrite(params: {
         enabled,
         authMode,
         baseUrl,
-        config: {},
+        config: { syncTitleToSource },
         secretConfig: persistSecretConfig(persistedSecrets),
     };
 
-    if (!enabled) {
+    if (!enabled || !activeSecret) {
         return next;
     }
 

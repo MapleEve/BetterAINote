@@ -21,6 +21,7 @@ import {
     DialogTitle,
     DialogTrigger,
 } from "@/components/ui/dialog";
+import { Select } from "@/components/ui/select";
 import {
     addBrowserWindowEventListener,
     readBrowserHash,
@@ -122,44 +123,9 @@ const settingsNavGroups: SettingsNavGroup[] = [
 
 const orderedSettingsNav = settingsNavGroups.flatMap((group) => group.items);
 
-const SETTINGS_CLOSE_BUTTON_CLASS = "size-[30px] shrink-0";
-
-const SETTINGS_SHELL_SURFACE_CLASS =
-    "box-border flex h-[min(94svh,980px)] max-h-[calc(100svh_-_1rem)] w-[920px] max-w-[calc(100vw_-_40px)] flex-col gap-0 overflow-hidden border-border bg-card p-0 sm:max-w-[min(920px,calc(100vw_-_40px))]";
-
-const SETTINGS_HEADER_CLASS =
-    "flex flex-none items-center gap-3 border-b border-border px-5 py-[18px] max-[720px]:flex-wrap max-[720px]:items-start max-[720px]:gap-3";
-
-const SETTINGS_USER_SUMMARY_CLASS =
-    "flex min-w-0 flex-1 items-center gap-3 max-[720px]:basis-[calc(100%_-_42px)]";
-
-const SETTINGS_USER_SUMMARY_TEXT_CLASS = "min-w-0";
-
-const SETTINGS_USER_AVATAR_CLASS =
-    "grid size-9 flex-none place-items-center rounded-full border border-border bg-muted text-muted-foreground";
-
-const SETTINGS_USER_NAME_CLASS =
-    "m-0 font-sans text-sm font-semibold leading-normal tracking-normal text-foreground max-[720px]:truncate";
-
-const SETTINGS_USER_SUBTITLE_CLASS =
-    "mt-0.5 mb-0 font-mono text-xs font-medium leading-normal tracking-normal text-muted-foreground max-[720px]:truncate";
-
-const SETTINGS_BODY_CLASS =
-    "grid min-h-0 flex-1 grid-cols-[200px_minmax(0,1fr)]";
-
-const SETTINGS_RAIL_CLASS =
-    "flex min-h-0 flex-col gap-[2px] overflow-x-hidden overflow-y-auto border-r border-border bg-muted/50 px-[8px] py-[14px] [overscroll-behavior:contain] [writing-mode:horizontal-tb]";
-
-const SETTINGS_NAV_GROUP_CLASS =
-    "flex w-full min-w-0 flex-col items-stretch gap-[2px] border-0 p-0 [&+&]:mt-[10px]";
-
-const SETTINGS_NAV_GROUP_LABEL_CLASS =
-    "block w-full truncate px-[10px] pt-[10px] pb-[4px] font-sans text-[10px] font-semibold leading-[normal] tracking-[0.08em] text-muted-foreground uppercase";
-
-const SETTINGS_NAV_BUTTON_CLASS =
-    "w-full min-w-0 justify-start gap-2.5 truncate text-left";
-
 const STORAGE_KEY = "settings-last-section";
+const COMPACT_SETTINGS_MEDIA_QUERY = "(max-width: 899px)";
+const SETTINGS_SECTION_SELECT_ID = "settings-section-select";
 
 export function normalizeSettingsSection(
     value: string | null | undefined,
@@ -183,6 +149,25 @@ function getSettingsSectionIndex(section: CanonicalSettingsSection): number {
 function normalizeRovingIndex(index: number): number {
     const count = orderedSettingsNav.length;
     return ((index % count) + count) % count;
+}
+
+function focusVisibleSettingsNavigation(
+    navButtons: Array<HTMLButtonElement | null>,
+    section: CanonicalSettingsSection,
+) {
+    if (
+        typeof window !== "undefined" &&
+        window.matchMedia(COMPACT_SETTINGS_MEDIA_QUERY).matches
+    ) {
+        document.getElementById(SETTINGS_SECTION_SELECT_ID)?.focus({
+            preventScroll: true,
+        });
+        return;
+    }
+
+    navButtons[getSettingsSectionIndex(section)]?.focus({
+        preventScroll: true,
+    });
 }
 
 function resolveInitialSettingsSection(): CanonicalSettingsSection {
@@ -277,9 +262,10 @@ export function SettingsDialog(props: SettingsDialogProps) {
             shouldFocusNavOnOpenRef.current = true;
             applyActiveSettingsSection(initialSection);
             setHasResolvedInitialSection(true);
-            navButtonRefs.current[
-                getSettingsSectionIndex(initialSection)
-            ]?.focus({ preventScroll: true });
+            focusVisibleSettingsNavigation(
+                navButtonRefs.current,
+                initialSection,
+            );
         },
         [applyActiveSettingsSection],
     );
@@ -363,7 +349,10 @@ export function SettingsDialog(props: SettingsDialogProps) {
         }
 
         const target =
-            navButtonRefs.current[getSettingsSectionIndex(activeSection)];
+            typeof window !== "undefined" &&
+            window.matchMedia(COMPACT_SETTINGS_MEDIA_QUERY).matches
+                ? document.getElementById(SETTINGS_SECTION_SELECT_ID)
+                : navButtonRefs.current[getSettingsSectionIndex(activeSection)];
         if (!target) return;
         target.focus({ preventScroll: true });
         if (document.activeElement === target) {
@@ -407,7 +396,7 @@ export function SettingsDialog(props: SettingsDialogProps) {
             <DialogContent
                 aria-label={t("settingsDialog.title")}
                 aria-busy={isSettingsBusy}
-                className={SETTINGS_SHELL_SURFACE_CLASS}
+                className="box-border flex h-[min(94svh,980px)] max-h-[calc(100svh_-_1rem)] w-[920px] max-w-[calc(100vw_-_40px)] flex-col gap-0 overflow-hidden border-border bg-card p-0 sm:max-w-[min(920px,calc(100vw_-_40px))] max-[899px]:w-[calc(100vw_-_32px)] max-[899px]:max-w-[calc(100vw_-_32px)] max-[639px]:top-0 max-[639px]:left-0 max-[639px]:h-[100svh] max-[639px]:max-h-[100svh] max-[639px]:w-full max-[639px]:max-w-none max-[639px]:translate-x-0 max-[639px]:translate-y-0 max-[639px]:rounded-none max-[639px]:border-0"
                 onOpenAutoFocus={handleOpenAutoFocus}
                 onEscapeKeyDown={(event) => {
                     if (isSettingsBusy) {
@@ -428,19 +417,19 @@ export function SettingsDialog(props: SettingsDialogProps) {
                     {settingsUserSubtitle}
                 </DialogDescription>
                 <SettingsBusyProvider value={busyContextValue}>
-                    <header className={SETTINGS_HEADER_CLASS}>
-                        <div className={SETTINGS_USER_SUMMARY_CLASS}>
+                    <header className="flex flex-none items-center gap-3 border-b border-border px-5 py-[18px] max-[639px]:px-4 max-[639px]:py-3">
+                        <div className="flex min-w-0 flex-1 items-center gap-3">
                             <span
                                 aria-hidden="true"
-                                className={SETTINGS_USER_AVATAR_CLASS}
+                                className="grid size-9 flex-none place-items-center rounded-full border border-border bg-muted text-muted-foreground"
                             >
                                 <Monitor />
                             </span>
-                            <div className={SETTINGS_USER_SUMMARY_TEXT_CLASS}>
-                                <div className={SETTINGS_USER_NAME_CLASS}>
+                            <div className="min-w-0">
+                                <div className="m-0 truncate font-sans text-sm leading-normal font-semibold tracking-normal text-foreground">
                                     {settingsUserName}
                                 </div>
-                                <div className={SETTINGS_USER_SUBTITLE_CLASS}>
+                                <div className="mt-0.5 mb-0 truncate font-mono text-xs leading-normal font-medium tracking-normal text-muted-foreground">
                                     {settingsUserSubtitle}
                                 </div>
                             </div>
@@ -451,7 +440,7 @@ export function SettingsDialog(props: SettingsDialogProps) {
                                 variant="ghost"
                                 size="icon-sm"
                                 aria-label={t("settingsDialog.close")}
-                                className={SETTINGS_CLOSE_BUTTON_CLASS}
+                                className="size-[30px] shrink-0"
                                 disabled={isSettingsBusy}
                                 type="button"
                             >
@@ -463,22 +452,37 @@ export function SettingsDialog(props: SettingsDialogProps) {
                         </DialogClose>
                     </header>
 
-                    <div className={SETTINGS_BODY_CLASS}>
+                    <div className="grid min-h-0 flex-1 grid-rows-[auto_minmax(0,1fr)] min-[900px]:grid-cols-[200px_minmax(0,1fr)] min-[900px]:grid-rows-1">
+                        <div className="border-b border-border bg-muted/30 px-4 py-3 min-[900px]:hidden">
+                            <Select
+                                id={SETTINGS_SECTION_SELECT_ID}
+                                aria-label={t("settingsDialog.title")}
+                                disabled={isSettingsBusy}
+                                options={orderedSettingsNav.map((item) => ({
+                                    label: t(item.labelKey),
+                                    value: item.id,
+                                }))}
+                                value={activeSection}
+                                onValueChange={(value) => {
+                                    const section =
+                                        normalizeSettingsSection(value);
+                                    if (section && !isSettingsBusy) {
+                                        applyActiveSettingsSection(section);
+                                    }
+                                }}
+                            />
+                        </div>
                         <nav
-                            className={SETTINGS_RAIL_CLASS}
+                            className="hidden min-h-0 flex-col gap-[2px] overflow-x-hidden overflow-y-auto border-r border-border bg-muted/50 px-2 py-3.5 [overscroll-behavior:contain] [writing-mode:horizontal-tb] min-[900px]:flex"
                             aria-label={t("settingsDialog.title")}
                         >
                             {settingsNavGroups.map((group) => {
                                 return (
                                     <fieldset
                                         key={group.labelKey}
-                                        className={SETTINGS_NAV_GROUP_CLASS}
+                                        className="flex w-full min-w-0 flex-col items-stretch gap-[2px] border-0 p-0 [&+&]:mt-2.5"
                                     >
-                                        <legend
-                                            className={
-                                                SETTINGS_NAV_GROUP_LABEL_CLASS
-                                            }
-                                        >
+                                        <legend className="block w-full truncate px-2.5 pt-2.5 pb-1 font-sans text-[10px] leading-normal font-semibold tracking-[0.08em] text-muted-foreground uppercase">
                                             {t(group.labelKey)}
                                         </legend>
                                         {group.items.map((item) => {
@@ -504,9 +508,7 @@ export function SettingsDialog(props: SettingsDialogProps) {
                                                             : "ghost"
                                                     }
                                                     size="sm"
-                                                    className={
-                                                        SETTINGS_NAV_BUTTON_CLASS
-                                                    }
+                                                    className="w-full min-w-0 justify-start gap-2.5 truncate text-left"
                                                     onClick={() => {
                                                         if (!isSettingsBusy) {
                                                             applyActiveSettingsSection(

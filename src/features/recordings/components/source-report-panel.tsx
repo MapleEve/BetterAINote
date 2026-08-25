@@ -1,6 +1,13 @@
 "use client";
 
-import { Briefcase, CircleAlert, CloudDownload } from "lucide-react";
+import {
+    Briefcase,
+    Check,
+    CircleAlert,
+    CloudDownload,
+    Copy,
+} from "lucide-react";
+import Image from "next/image";
 import {
     type ReactNode,
     useCallback,
@@ -32,22 +39,6 @@ import { Separator } from "@/components/ui/separator";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Spinner } from "@/components/ui/spinner";
 import {
-    SourceReportActionButton,
-    SourceReportCopyButton,
-    SourceReportCopyIcon,
-    SourceReportCopyLabel,
-    SourceReportDescription,
-    SourceReportMetricCards,
-    SourceReportPane,
-    SourceReportSegmentSkeletonBlock,
-    SourceReportSegments,
-    SourceReportSourceIdentity,
-    SourceReportState,
-    SourceReportStateStack,
-    SourceReportStatusBadge,
-    type SourceReportTone,
-} from "@/features/source-report/primitives";
-import {
     getSourceProviderLabel,
     getSourceRecordDescription,
     getSourceTabLabel,
@@ -56,6 +47,8 @@ import type { UiLanguage } from "@/lib/i18n";
 import { writeBrowserClipboardText } from "@/lib/platform/clipboard";
 import { cn } from "@/lib/utils";
 import { runDataSourcesSync } from "@/services/data-sources";
+
+type SourceReportTone = "err" | "neu" | "ok" | "warn";
 
 type SourceActionAvailability = {
     available?: boolean;
@@ -154,7 +147,8 @@ function RecordingSourceReportState({
 }) {
     return (
         <div
-            className={`block min-w-0 max-[639px]:bg-[var(--source-report-mobile-canvas)] ${className ?? ""}`}
+            className={cn("block min-w-0", className)}
+            data-control="source-report-state"
             data-testid="recording-source-report-state"
             data-state={state}
             data-sub-state={subState}
@@ -191,14 +185,14 @@ function RecordingSourceReportMetricCard({
         <Card
             hasNoPadding
             className={cn(
-                "min-w-0 gap-1.5 overflow-hidden rounded-[0.625rem] border-[var(--glass-border-soft)] bg-[rgb(255_255_255_/_0.03)] px-3 py-2.5 shadow-none backdrop-blur-none",
+                "min-w-0 gap-1.5 overflow-hidden rounded-lg border-border bg-muted/40 px-3 py-2.5 shadow-none",
                 loading ? "h-[3.8125rem]" : "h-[4.09375rem]",
             )}
             data-testid={`source-report-metric-${metric}`}
             data-state={value}
         >
             <CardHeader className="gap-0 p-0">
-                <CardDescription className="text-[0.65625rem] leading-[normal] font-semibold tracking-[0.06em] text-[var(--fg-tertiary)] uppercase">
+                <CardDescription className="text-xs font-semibold uppercase">
                     {label}
                 </CardDescription>
             </CardHeader>
@@ -213,11 +207,10 @@ function RecordingSourceReportMetricCard({
                             "min-w-0 break-words",
                             value !== "number" && "leading-[normal]!",
                             value === "source" &&
-                                "flex items-center gap-1.5 text-[length:var(--text-body-sm)]",
+                                "flex items-center gap-1.5 text-sm",
                             value === "number" &&
                                 "leading-[normal] font-mono text-base!",
-                            value == null &&
-                                "text-[length:var(--text-body-sm)]",
+                            value == null && "text-sm",
                         )}
                     >
                         {children}
@@ -270,15 +263,13 @@ function RecordingSourceReportSection({
             className="min-w-0 space-y-2 pt-0"
             data-testid={`source-report-section-${section}`}
         >
-            <Separator className="bg-[var(--glass-border-soft)]" />
+            <Separator />
             {noticeBefore}
             <header className="flex min-w-0 flex-row items-baseline gap-2.5">
                 <h4
                     className={cn(
                         "m-0 shrink-0 text-[0.78125rem]! leading-[normal]! font-semibold",
-                        loading
-                            ? "text-[var(--fg-primary)]!"
-                            : "text-foreground",
+                        loading ? "text-foreground" : "text-foreground",
                     )}
                     data-testid="source-report-section-title"
                 >
@@ -287,9 +278,7 @@ function RecordingSourceReportSection({
                 <span
                     className={cn(
                         "min-w-0 break-words text-[0.71875rem] leading-[normal] font-medium",
-                        loading
-                            ? "text-[var(--fg-tertiary)]!"
-                            : "text-muted-foreground",
+                        "text-muted-foreground",
                     )}
                 >
                     {description}
@@ -310,7 +299,7 @@ function RecordingSourceReportMissingNotice({
     return (
         <Alert
             className={cn(
-                "rounded-[0.625rem] border-[color:var(--alert-warning-soft-strong-border)]! bg-[var(--alert-warning-soft-strong-bg)]! py-2.5 text-[var(--fg-secondary)]!",
+                "rounded-lg py-2.5",
                 state === "summary-missing" ? "mb-4!" : "mt-2",
             )}
             data-testid={`source-report-missing-${state}`}
@@ -393,13 +382,13 @@ function RecordingSourceReportMetaRow({
     return (
         <div
             className={cn(
-                "grid min-w-0 grid-cols-[5rem_minmax(0,1fr)] gap-1 border-b border-dashed border-[var(--glass-border-soft)] py-1.5 sm:items-baseline sm:gap-2 max-[639px]:gap-2",
+                "grid min-w-0 grid-cols-[5rem_minmax(0,1fr)] gap-1 border-b border-dashed border-border py-1.5 sm:items-baseline sm:gap-2",
                 index >= 2 && "h-[1.875rem]",
                 index === 0 && "max-[639px]:h-[1.875rem]",
             )}
             data-testid="source-report-meta-row"
         >
-            <dt className="m-0 text-[length:var(--text-micro)] leading-normal font-semibold text-muted-foreground max-[639px]:relative max-[639px]:top-px">
+            <dt className="m-0 text-xs leading-normal font-semibold text-muted-foreground">
                 {label}
             </dt>
             <dd
@@ -694,19 +683,6 @@ function sourceReportReadinessTone(label: string): SourceReportTone {
     return "neu";
 }
 
-const SOURCE_REPORT_READINESS_BADGE_CLASSNAME =
-    "h-[1.375rem] w-[4.0625rem] justify-normal gap-[0.3125rem] px-2 py-0 text-[0.6875rem] font-semibold";
-
-function sourceReportReadinessBadgeClassName(tone: SourceReportTone) {
-    if (tone === "ok") {
-        return `${SOURCE_REPORT_READINESS_BADGE_CLASSNAME} !border-[color:color-mix(in_srgb,var(--signal-success)_30%,transparent)] !bg-[color:color-mix(in_srgb,var(--signal-success)_14%,transparent)] !text-[color:var(--signal-success)]`;
-    }
-    if (tone === "warn") {
-        return `${SOURCE_REPORT_READINESS_BADGE_CLASSNAME} !border-[color:color-mix(in_srgb,var(--signal-warning)_32%,transparent)] !bg-[color:color-mix(in_srgb,var(--signal-warning)_18%,transparent)] !text-[color:var(--signal-warning-strong)]`;
-    }
-    return SOURCE_REPORT_READINESS_BADGE_CLASSNAME;
-}
-
 function RecordingSourceReportCompactStatusBadge({
     children,
     sync = false,
@@ -729,10 +705,8 @@ function RecordingSourceReportCompactStatusBadge({
         <Badge
             variant={variant}
             className={cn(
-                "max-w-full",
-                sync
-                    ? `${SOURCE_REPORT_READINESS_BADGE_CLASSNAME} !border-[color:color-mix(in_srgb,var(--signal-success)_30%,transparent)] !bg-[color:color-mix(in_srgb,var(--signal-success)_14%,transparent)] !text-[color:var(--signal-success)]`
-                    : sourceReportReadinessBadgeClassName(tone),
+                "max-w-full gap-1 text-xs",
+                sync && "border-border bg-secondary text-secondary-foreground",
             )}
             data-testid="source-report-status"
             data-state={tone}
@@ -824,6 +798,7 @@ export function SourceReportPanel({
         activeReportRequestRef.current = { controller, id: requestId };
 
         setIsLoading(true);
+        setData(null);
         setError(null);
         try {
             const response = await fetch(
@@ -1185,7 +1160,7 @@ export function SourceReportPanel({
             <Button
                 variant="ghost"
                 size="xs"
-                className="h-6.5 gap-[0.4375rem] rounded-[0.4375rem] border border-transparent px-2.5 text-xs leading-[normal] font-semibold text-[color:var(--fg-secondary)]"
+                className="text-xs"
                 type="button"
                 disabled={!openSourceUrl}
                 title={
@@ -1202,7 +1177,7 @@ export function SourceReportPanel({
             <Button
                 variant="ghost"
                 size="xs"
-                className="h-6.5 gap-[0.4375rem] rounded-[0.4375rem] border border-transparent px-2.5 text-xs leading-[normal] font-semibold text-[color:var(--fg-secondary)]"
+                className="text-xs"
                 type="button"
                 disabled={repullDisabled}
                 aria-busy={repullState === "loading"}
@@ -1241,9 +1216,9 @@ export function SourceReportPanel({
                     />
                     {getSourceTabLabel(sourceProvider, language)}
                 </CardTitle>
-                <SourceReportDescription>
+                <CardDescription className="text-sm text-muted-foreground">
                     {getSourceRecordDescription(sourceProvider, language)}
-                </SourceReportDescription>
+                </CardDescription>
             </div>
             <CardAction
                 className="static col-auto row-auto flex max-w-full flex-wrap items-center justify-end gap-2 self-auto justify-self-auto sm:ml-auto"
@@ -1251,15 +1226,19 @@ export function SourceReportPanel({
             >
                 {data ? (
                     <>
-                        <SourceReportCopyButton
+                        <Button
                             type="button"
-                            copy="source-transcript"
-                            copyState={sourceTranscriptCopyState}
-                            feedbackState={
+                            variant={
                                 copyFeedback?.action === "source-transcript"
-                                    ? copyFeedback.state
-                                    : undefined
+                                    ? copyFeedback.state === "ok"
+                                        ? "secondary"
+                                        : "destructive"
+                                    : "ghost"
                             }
+                            size="xs"
+                            data-control="copy-source-transcript"
+                            data-testid="source-report-copy-source-transcript"
+                            data-state={sourceTranscriptCopyState}
                             aria-busy={copyingKey === "source-transcript"}
                             aria-disabled={
                                 sourceTranscriptCopyDisabled ? "true" : "false"
@@ -1273,30 +1252,31 @@ export function SourceReportPanel({
                             disabled={sourceTranscriptCopyDisabled}
                             onClick={() => void handleCopySourceTranscript()}
                         >
-                            <SourceReportCopyIcon
-                                state={
-                                    copyFeedback?.action === "source-transcript"
-                                        ? copyFeedback.state
-                                        : undefined
-                                }
-                            />
-                            <SourceReportCopyLabel>
-                                {copyFeedback?.action === "source-transcript"
-                                    ? copyFeedback.state === "ok"
-                                        ? t("common.copied")
-                                        : t("common.copyFailedShort")
-                                    : t("sourceReport.copySourceTranscript")}
-                            </SourceReportCopyLabel>
-                        </SourceReportCopyButton>
-                        <SourceReportCopyButton
+                            {copyFeedback?.action === "source-transcript" &&
+                            copyFeedback.state === "ok" ? (
+                                <Check aria-hidden="true" />
+                            ) : (
+                                <Copy aria-hidden="true" />
+                            )}
+                            {copyFeedback?.action === "source-transcript"
+                                ? copyFeedback.state === "ok"
+                                    ? t("common.copied")
+                                    : t("common.copyFailedShort")
+                                : t("sourceReport.copySourceTranscript")}
+                        </Button>
+                        <Button
                             type="button"
-                            copy="source-report"
-                            copyState={sourceReportCopyState}
-                            feedbackState={
+                            variant={
                                 copyFeedback?.action === "source-report"
-                                    ? copyFeedback.state
-                                    : undefined
+                                    ? copyFeedback.state === "ok"
+                                        ? "secondary"
+                                        : "destructive"
+                                    : "ghost"
                             }
+                            size="xs"
+                            data-control="copy-source-report"
+                            data-testid="source-report-copy-source-report"
+                            data-state={sourceReportCopyState}
                             aria-busy={copyingKey === "source-report"}
                             aria-disabled={
                                 sourceReportCopyDisabled ? "true" : "false"
@@ -1310,30 +1290,29 @@ export function SourceReportPanel({
                             disabled={sourceReportCopyDisabled}
                             onClick={() => void handleCopySourceReport()}
                         >
-                            <SourceReportCopyIcon
-                                state={
-                                    copyFeedback?.action === "source-report"
-                                        ? copyFeedback.state
-                                        : undefined
-                                }
-                            />
-                            <SourceReportCopyLabel>
-                                {copyFeedback?.action === "source-report"
-                                    ? copyFeedback.state === "ok"
-                                        ? t("common.copied")
-                                        : t("common.copyFailedShort")
-                                    : t("sourceReport.copySourceReport")}
-                            </SourceReportCopyLabel>
-                        </SourceReportCopyButton>
+                            {copyFeedback?.action === "source-report" &&
+                            copyFeedback.state === "ok" ? (
+                                <Check aria-hidden="true" />
+                            ) : (
+                                <Copy aria-hidden="true" />
+                            )}
+                            {copyFeedback?.action === "source-report"
+                                ? copyFeedback.state === "ok"
+                                    ? t("common.copied")
+                                    : t("common.copyFailedShort")
+                                : t("sourceReport.copySourceReport")}
+                        </Button>
                     </>
                 ) : null}
-                <SourceReportActionButton
+                <Button
                     type="button"
-                    intent="outline"
+                    variant="outline"
+                    size="xs"
+                    data-control="source-report-refresh"
                     onClick={loadReport}
                     disabled={isLoading}
-                    testId="source-report-refresh"
-                    state={sourceReportState}
+                    data-testid="source-report-refresh"
+                    data-state={sourceReportState}
                 >
                     {isLoading ? (
                         <>
@@ -1354,26 +1333,29 @@ export function SourceReportPanel({
                                 : t("sourceReport.loadDetail")}
                         </>
                     )}
-                </SourceReportActionButton>
+                </Button>
             </CardAction>
         </CardHeader>
     );
 
     const content = (
-        <SourceReportStateStack>
+        <div
+            className="flex min-w-0 flex-col gap-4"
+            data-control="source-report-content"
+        >
             {error && (
                 <RecordingSourceReportState state="error" error={error}>
                     <Alert
                         variant="statusError"
                         density="spacious"
                         layout="centered"
-                        className="gap-1 rounded-[0.625rem] border-dashed border-[color:color-mix(in_srgb,var(--signal-danger)_26%,transparent)]! bg-[color:color-mix(in_srgb,var(--signal-danger)_6%,transparent)]! px-[1.125rem] py-7"
+                        className="gap-1 border-dashed"
                         data-testid="source-report-empty-surface"
                         data-state="danger"
                     >
                         <EmptyMedia
                             variant="dangerIcon"
-                            className="mb-1 size-10 border-[color:color-mix(in_srgb,var(--signal-danger)_28%,transparent)] bg-[color:color-mix(in_srgb,var(--signal-danger)_14%,transparent)]"
+                            className="mb-1"
                             data-testid="source-report-empty-icon"
                             data-state="danger"
                             aria-hidden="true"
@@ -1384,14 +1366,14 @@ export function SourceReportPanel({
                             />
                         </EmptyMedia>
                         <AlertTitle
-                            className="min-h-0 text-[0.8125rem] leading-[1.35] font-semibold tracking-normal text-[var(--fg-primary)]"
+                            className="min-h-0 text-sm font-semibold"
                             data-testid="source-report-empty-title"
                         >
                             无法读取来源详情
                         </AlertTitle>
                         <AlertDescription
                             density="comfortable"
-                            className="max-w-sm break-words text-xs leading-[1.5] font-medium text-[var(--fg-tertiary)]!"
+                            className="max-w-sm break-words text-xs font-medium"
                             data-testid="source-report-empty-description"
                         >
                             {sourceProviderSentenceName}
@@ -1404,8 +1386,9 @@ export function SourceReportPanel({
                             <Button
                                 variant="default"
                                 size="xs"
-                                className="h-[1.625rem] min-w-0 rounded-[0.4375rem] border border-[color:color-mix(in_srgb,var(--accent)_60%,black_8%)] bg-[linear-gradient(180deg,color-mix(in_srgb,var(--accent)_92%,white_18%),var(--accent))] px-2.5 text-xs leading-[normal] font-semibold text-white shadow-[0_2px_6px_color-mix(in_srgb,var(--accent)_24%,transparent),inset_0_1px_0_rgb(255_255_255_/_0.22)]"
+                                className="text-xs"
                                 type="button"
+                                data-control="source-report-retry"
                                 onClick={loadReport}
                                 disabled={isLoading}
                                 data-testid="source-report-refresh"
@@ -1416,7 +1399,7 @@ export function SourceReportPanel({
                             <Button
                                 variant="ghost"
                                 size="xs"
-                                className="h-[1.625rem] min-w-0 rounded-[0.4375rem] border border-transparent px-2.5 text-xs leading-[normal] font-semibold text-[var(--fg-secondary)]"
+                                className="text-xs"
                                 type="button"
                                 data-testid="source-report-activity-log"
                                 onClick={() => {
@@ -1433,7 +1416,7 @@ export function SourceReportPanel({
             )}
 
             {isLoading && !data && !error ? (
-                <SourceReportState state="loading">
+                <RecordingSourceReportState state="loading">
                     <div className="min-w-0">
                         <div
                             className="grid min-w-0 grid-cols-2 gap-2 xl:grid-cols-[9.125rem_repeat(3,minmax(0,1fr))]"
@@ -1476,21 +1459,21 @@ export function SourceReportPanel({
                                 <>正在从{sourceProviderSentenceName}读取…</>
                             }
                         >
-                            <SourceReportSegmentSkeletonBlock>
+                            <div className="flex min-w-0 flex-col gap-2 rounded-md border border-border bg-muted/30 p-3">
                                 <RecordingSourceReportSegmentSkeleton size="time" />
                                 <RecordingSourceReportSegmentSkeleton size="speaker" />
                                 <RecordingSourceReportSegmentSkeleton size="line-long" />
                                 <RecordingSourceReportSegmentSkeleton size="line-medium" />
-                            </SourceReportSegmentSkeletonBlock>
-                            <SourceReportSegmentSkeletonBlock>
+                            </div>
+                            <div className="flex min-w-0 flex-col gap-2 rounded-md border border-border bg-muted/30 p-3">
                                 <RecordingSourceReportSegmentSkeleton size="time" />
                                 <RecordingSourceReportSegmentSkeleton size="speaker" />
                                 <RecordingSourceReportSegmentSkeleton size="line-wide" />
                                 <RecordingSourceReportSegmentSkeleton size="line-short" />
-                            </SourceReportSegmentSkeletonBlock>
+                            </div>
                         </RecordingSourceReportSection>
                     </div>
-                </SourceReportState>
+                </RecordingSourceReportState>
             ) : null}
 
             {data && (
@@ -1504,22 +1487,41 @@ export function SourceReportPanel({
                     }
                 >
                     {!hasAudio ? (
-                        <SourceReportStatusBadge tone="warn">
+                        <RecordingSourceReportCompactStatusBadge tone="warn">
                             <span>{t("sourceReport.sourceOnlyNoAudio")}</span>
-                        </SourceReportStatusBadge>
+                        </RecordingSourceReportCompactStatusBadge>
                     ) : null}
 
-                    <SourceReportMetricCards>
+                    <div
+                        className="grid min-w-0 grid-cols-2 gap-2 xl:grid-cols-4"
+                        data-testid="source-report-metrics"
+                    >
                         <RecordingSourceReportMetricCard
                             label="来源"
                             metric="source"
                             value="source"
                         >
-                            <SourceReportSourceIdentity
-                                fallback={sourceProviderLetter}
-                                icon={sourceProviderIcon}
-                                label={sourceProviderLabel}
-                            />
+                            <span className="flex min-w-0 items-center gap-2 text-sm">
+                                {sourceProviderIcon ? (
+                                    <Image
+                                        alt=""
+                                        className="size-5 rounded object-cover"
+                                        height={20}
+                                        src={sourceProviderIcon}
+                                        width={20}
+                                    />
+                                ) : (
+                                    <span
+                                        aria-hidden="true"
+                                        className="flex size-5 items-center justify-center rounded bg-muted text-xs font-semibold"
+                                    >
+                                        {sourceProviderLetter}
+                                    </span>
+                                )}
+                                <span className="min-w-0 break-words">
+                                    {sourceProviderLabel}
+                                </span>
+                            </span>
                         </RecordingSourceReportMetricCard>
                         <RecordingSourceReportMetricCard
                             label="转写状态"
@@ -1552,7 +1554,7 @@ export function SourceReportPanel({
                         >
                             {sourceReportSegmentCount}
                         </RecordingSourceReportMetricCard>
-                    </SourceReportMetricCards>
+                    </div>
 
                     <RecordingSourceReportSection
                         section="transcript"
@@ -1570,7 +1572,11 @@ export function SourceReportPanel({
                                 来源未提供逐字稿。可以稍后再来，或运行私有转写。
                             </RecordingSourceReportMissingNotice>
                         ) : null}
-                        <SourceReportSegments hidden={!transcriptAvailable}>
+                        <ol
+                            className="min-w-0 divide-y divide-border rounded-md border border-border"
+                            data-testid="source-report-segments"
+                            hidden={!transcriptAvailable}
+                        >
                             {sourceReportDisplaySegments.map(
                                 (segment, index) => {
                                     const timeRange = formatTranscriptTimeRange(
@@ -1587,7 +1593,7 @@ export function SourceReportPanel({
                                             <span className="min-w-0 break-words font-mono text-[0.71875rem] leading-[normal] font-medium text-muted-foreground">
                                                 {timeRange || "--"}
                                             </span>
-                                            <span className="min-w-0 break-words text-xs leading-[normal] font-semibold text-[color:var(--fg-secondary)]">
+                                            <span className="min-w-0 break-words text-xs font-semibold text-muted-foreground">
                                                 {formatTranscriptSpeaker(
                                                     segment.speaker,
                                                     language,
@@ -1600,7 +1606,7 @@ export function SourceReportPanel({
                                     );
                                 },
                             )}
-                        </SourceReportSegments>
+                        </ol>
                     </RecordingSourceReportSection>
 
                     <RecordingSourceReportSection
@@ -1688,14 +1694,14 @@ export function SourceReportPanel({
                 <RecordingSourceReportState state="empty">
                     <Empty
                         variant="subtle"
-                        className="gap-1 rounded-[0.625rem] border-[var(--line-hairline)]! bg-[var(--bg-recessed)]! px-[1.125rem] py-7"
+                        className="gap-1"
                         data-testid="source-report-empty-surface"
                         data-state="neutral"
                     >
                         <EmptyHeader className="gap-1">
                             <EmptyMedia
                                 variant="subtleIcon"
-                                className="mb-1 size-10 border-[var(--line-hairline)] bg-[var(--bg-recessed)] text-[var(--fg-tertiary)]"
+                                className="mb-1"
                                 data-testid="source-report-empty-icon"
                                 data-state="neutral"
                                 aria-hidden="true"
@@ -1708,14 +1714,14 @@ export function SourceReportPanel({
                             </EmptyMedia>
                             <EmptyTitle
                                 variant="compact"
-                                className="mb-0 text-[0.8125rem] leading-[1.35] font-semibold tracking-normal text-[var(--fg-primary)]"
+                                className="mb-0 text-sm font-semibold"
                                 data-testid="source-report-empty-title"
                             >
                                 这条录音没有关联来源
                             </EmptyTitle>
                             <EmptyDescription
                                 variant="compact"
-                                className="text-xs leading-[1.5] font-medium text-[var(--fg-tertiary)]"
+                                className="text-xs font-medium"
                                 data-testid="source-report-empty-description"
                             >
                                 本地导入或离线录制的录音不会有来源详情。
@@ -1724,11 +1730,18 @@ export function SourceReportPanel({
                     </Empty>
                 </RecordingSourceReportState>
             )}
-        </SourceReportStateStack>
+        </div>
     );
 
     return (
-        <SourceReportPane className={className} state={sourceReportState}>
+        <Card
+            hasNoPadding
+            className={cn("min-h-0 gap-4 p-4 shadow-none", className)}
+            data-control="recording-source-report"
+            data-testid="recording-source-report"
+            data-state={sourceReportState}
+            aria-busy={sourceReportState === "loading"}
+        >
             {header}
             {sourceSummaryVisible ? (
                 <RecordingSourceReportSection
@@ -1749,6 +1762,6 @@ export function SourceReportPanel({
                 </RecordingSourceReportSection>
             ) : null}
             {content}
-        </SourceReportPane>
+        </Card>
     );
 }

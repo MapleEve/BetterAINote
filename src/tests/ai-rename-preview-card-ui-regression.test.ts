@@ -1,172 +1,187 @@
-import type { ReactNode } from "react";
-import { describe, expect, it, vi } from "vitest";
+import { readFileSync } from "node:fs";
+import path from "node:path";
+import React from "react";
+import { renderToStaticMarkup } from "react-dom/server";
+import { describe, expect, it } from "vitest";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import { Button } from "@/components/ui/button";
+import { Spinner } from "@/components/ui/spinner";
+import { translate } from "@/lib/i18n";
 
-type CapturedButtonProps = {
-    "aria-label"?: string;
-    disabled?: boolean;
-    onClick?: () => void;
-    children?: ReactNode;
-};
+const AI_RENAME_PREVIEW_CARD_SOURCE = readFileSync(
+    path.join(
+        process.cwd(),
+        "src/features/recordings/components/ai-rename-preview-card.tsx",
+    ),
+    "utf8",
+);
 
-type PopoverContentProps = {
-    "aria-describedby"?: string;
-    "aria-labelledby"?: string;
-    children?: ReactNode;
-    className?: string;
-};
-
-const previewProps = {
-    title: "AI 重命名",
-    subtitle: "确认新的录音标题",
-    filename: "团队周会 - 2026-07-12",
-    originalFilename: "录音 2026-07-12",
-    applyLabel: "应用",
-    cancelLabel: "取消",
-    closeLabel: "关闭",
-    regenerateLabel: "重新生成",
-    isApplying: false,
-    isRegenerating: false,
-};
-
-async function loadCard(withButtonCapture = false) {
-    vi.resetModules();
-    const React = await import("react");
-
-    vi.doMock("@/components/ui/popover", () => ({
-        Popover: ({ children }: { children?: ReactNode }) => children,
-        PopoverAnchor: ({ children }: { children?: ReactNode }) => children,
-        PopoverContent: ({
-            "aria-describedby": ariaDescribedBy,
-            "aria-labelledby": ariaLabelledBy,
-            children,
-            className,
-        }: PopoverContentProps) =>
-            React.createElement(
-                "div",
-                {
-                    "aria-describedby": ariaDescribedBy,
-                    "aria-labelledby": ariaLabelledBy,
-                    className,
-                },
-                children,
-            ),
-    }));
-
-    if (withButtonCapture) {
-        vi.doMock("@/components/ui/button", () => ({
-            Button: (props: CapturedButtonProps) => {
-                capturedButtons.push(props);
-                return props.children ?? null;
+function renderStateSemantics({
+    state,
+    message,
+    unavailable = false,
+}: {
+    state: "loading" | "error" | "unavailable";
+    message: string;
+    unavailable?: boolean;
+}) {
+    return renderToStaticMarkup(
+        React.createElement(
+            "section",
+            {
+                "data-control": "ai-rename-preview",
+                "data-state": state,
             },
-        }));
-    } else {
-        vi.doUnmock("@/components/ui/button");
-    }
-
-    const { renderToStaticMarkup } = await import("react-dom/server");
-    const { AiRenamePreviewCard } = await import(
-        "@/features/recordings/components/ai-rename-preview-card"
+            state === "loading"
+                ? React.createElement(
+                      React.Fragment,
+                      null,
+                      React.createElement(Spinner, { "aria-hidden": true }),
+                      React.createElement("p", null, message),
+                  )
+                : React.createElement(
+                      Alert,
+                      {
+                          variant:
+                              state === "error" ? "destructive" : "default",
+                      },
+                      React.createElement(AlertTitle, null, "AI 重命名"),
+                      React.createElement(AlertDescription, null, message),
+                  ),
+            React.createElement(
+                Button,
+                {
+                    type: "button",
+                    disabled: state === "loading" || unavailable,
+                    "aria-label": "应用",
+                },
+                "应用",
+            ),
+            React.createElement(
+                Button,
+                {
+                    type: "button",
+                    disabled: unavailable,
+                    "aria-label": unavailable ? "重新生成" : "重试",
+                },
+                unavailable ? "重新生成" : "重试",
+            ),
+        ),
     );
-
-    return { AiRenamePreviewCard, React, renderToStaticMarkup };
 }
 
-let capturedButtons: CapturedButtonProps[] = [];
-
 describe("AI rename preview card UI regressions", () => {
-    it("keeps the preview and review content semantically readable", async () => {
-        const { AiRenamePreviewCard, React, renderToStaticMarkup } =
-            await loadCard();
-        const html = renderToStaticMarkup(
-            React.createElement(AiRenamePreviewCard, {
-                ...previewProps,
-                state: "review",
-                message: "检查标题后再应用",
-                onApply: vi.fn(),
-                onCancel: vi.fn(),
-                onRegenerate: vi.fn(),
-            }),
-        );
-
-        expect(html).toContain("AI 重命名");
-        expect(html).toContain("确认新的录音标题");
-        expect(html).toContain("原标题");
-        expect(html).toContain("录音 2026-07-12");
-        expect(html).toContain("新标题");
-        expect(html).toContain("团队周会 - 2026-07-12");
-        expect(html).toContain("检查标题后再应用");
-        expect(html).toMatch(/aria-labelledby="[^"]+"/);
-        expect(html).toMatch(/aria-describedby="[^"]+"/);
-        expect(html).toMatch(/<button[^>]*aria-label="应用"/);
-        expect(html).toMatch(/<button[^>]*aria-label="取消"/);
-    });
-
-    it("invokes the supplied apply, cancel, and regenerate callbacks", async () => {
-        capturedButtons = [];
-        const { AiRenamePreviewCard, React, renderToStaticMarkup } =
-            await loadCard(true);
-        const onApply = vi.fn();
-        const onCancel = vi.fn();
-        const onRegenerate = vi.fn();
-
-        renderToStaticMarkup(
-            React.createElement(AiRenamePreviewCard, {
-                ...previewProps,
-                onApply,
-                onCancel,
-                onRegenerate,
-            }),
-        );
-
-        const button = (label: string) => {
-            const match = capturedButtons.find(
-                (props) => props["aria-label"] === label,
-            );
-            expect(match).toBeDefined();
-            return match as CapturedButtonProps;
-        };
-
-        button("应用").onClick?.();
-        button("取消").onClick?.();
-        button("关闭").onClick?.();
-        button("重新生成").onClick?.();
-
-        expect(onApply).toHaveBeenCalledOnce();
-        expect(onCancel).toHaveBeenCalledTimes(2);
-        expect(onRegenerate).toHaveBeenCalledOnce();
-    });
-
-    it("preserves loading and error accessibility states", async () => {
-        const { AiRenamePreviewCard, React, renderToStaticMarkup } =
-            await loadCard();
-        const loadingHtml = renderToStaticMarkup(
-            React.createElement(AiRenamePreviewCard, {
-                ...previewProps,
-                state: "loading",
-                message: "正在生成标题",
-                onApply: vi.fn(),
-                onCancel: vi.fn(),
-                onRegenerate: vi.fn(),
-            }),
-        );
-        const errorHtml = renderToStaticMarkup(
-            React.createElement(AiRenamePreviewCard, {
-                ...previewProps,
-                state: "error",
-                message: "生成失败",
-                hint: "请稍后重试",
-                onApply: vi.fn(),
-                onCancel: vi.fn(),
-                onRegenerate: vi.fn(),
-            }),
-        );
+    it("keeps loading, error, and unavailable primitive semantics in SSR", () => {
+        const loadingHtml = renderStateSemantics({
+            state: "loading",
+            message: "正在生成标题",
+        });
+        const errorHtml = renderStateSemantics({
+            state: "error",
+            message: "生成失败",
+        });
+        const unavailableHtml = renderStateSemantics({
+            state: "unavailable",
+            message: "AI 重命名服务尚未配置或暂时不可用。",
+            unavailable: true,
+        });
 
         expect(loadingHtml).toContain("正在生成标题");
+        expect(loadingHtml).toContain('data-state="loading"');
         expect(loadingHtml).toMatch(
-            /<button[^>]*disabled=""[^>]*aria-label="应用"/,
+            /<button(?=[^>]*aria-label="应用")(?=[^>]*disabled="")[^>]*>/,
         );
         expect(errorHtml).toContain('role="alert"');
+        expect(errorHtml).toContain('data-state="error"');
         expect(errorHtml).toContain("生成失败");
-        expect(errorHtml).toContain("请稍后重试");
+        expect(errorHtml).toMatch(/<button[^>]*aria-label="重试"/);
+        expect(unavailableHtml).toContain('role="alert"');
+        expect(unavailableHtml).toContain('data-state="unavailable"');
+        expect(unavailableHtml).toContain(
+            "AI 重命名服务尚未配置或暂时不可用。",
+        );
+        expect(unavailableHtml).toMatch(
+            /<button(?=[^>]*aria-label="应用")(?=[^>]*disabled="")[^>]*>/,
+        );
+        expect(unavailableHtml).toMatch(
+            /<button(?=[^>]*aria-label="重新生成")(?=[^>]*disabled="")[^>]*>/,
+        );
+    });
+
+    it("keeps review, callbacks, and SOT primitives as source contracts", () => {
+        expect(AI_RENAME_PREVIEW_CARD_SOURCE).toContain(
+            'data-control="ai-rename-preview"',
+        );
+        expect(AI_RENAME_PREVIEW_CARD_SOURCE).toContain("data-state={state}");
+        expect(AI_RENAME_PREVIEW_CARD_SOURCE).toContain('state === "review"');
+        for (const key of [
+            "recordingDetail.ai.reviewState",
+            "recordingDetail.ai.originalTitle",
+            "recordingDetail.ai.newTitle",
+        ]) {
+            expect(AI_RENAME_PREVIEW_CARD_SOURCE).toMatch(
+                new RegExp(`t\\(\\s*"${key}"\\s*,?\\s*\\)`),
+            );
+        }
+        expect(AI_RENAME_PREVIEW_CARD_SOURCE).not.toMatch(
+            /(?:复核确认|原标题|新标题)/,
+        );
+        expect(translate("zh-CN", "recordingDetail.ai.reviewState")).toBe(
+            "复核确认",
+        );
+        expect(translate("zh-CN", "recordingDetail.ai.originalTitle")).toBe(
+            "原标题",
+        );
+        expect(translate("zh-CN", "recordingDetail.ai.newTitle")).toBe(
+            "新标题",
+        );
+        expect(translate("en", "recordingDetail.ai.reviewState")).toBe(
+            "Review and confirm",
+        );
+        expect(translate("en", "recordingDetail.ai.originalTitle")).toBe(
+            "Original title",
+        );
+        expect(translate("en", "recordingDetail.ai.newTitle")).toBe(
+            "New title",
+        );
+        expect(AI_RENAME_PREVIEW_CARD_SOURCE).toContain(
+            "aria-labelledby={titleId}",
+        );
+        expect(AI_RENAME_PREVIEW_CARD_SOURCE).toContain(
+            "aria-describedby={subtitle ? descriptionId : undefined}",
+        );
+        expect(AI_RENAME_PREVIEW_CARD_SOURCE).toContain("<Spinner");
+        expect(AI_RENAME_PREVIEW_CARD_SOURCE).toContain("<Alert");
+        expect(AI_RENAME_PREVIEW_CARD_SOURCE).toContain("<AlertTitle");
+        expect(AI_RENAME_PREVIEW_CARD_SOURCE).toContain("<AlertDescription");
+        expect(AI_RENAME_PREVIEW_CARD_SOURCE).toContain(
+            'state === "unavailable"',
+        );
+        expect(AI_RENAME_PREVIEW_CARD_SOURCE).toContain(
+            'state === "error" ? "destructive" : "default"',
+        );
+        expect(AI_RENAME_PREVIEW_CARD_SOURCE).toContain("onClick={onApply}");
+        expect(AI_RENAME_PREVIEW_CARD_SOURCE).toContain("onClick={onCancel}");
+        expect(AI_RENAME_PREVIEW_CARD_SOURCE).toContain(
+            "onClick={onRegenerate}",
+        );
+        expect(AI_RENAME_PREVIEW_CARD_SOURCE).toMatch(
+            /onEscapeKeyDown=\{\(event\) => \{[\s\S]*?event\.preventDefault\(\);[\s\S]*?onCancel\(\);[\s\S]*?\}\}/,
+        );
+
+        for (const primitive of [
+            "rounded-xl",
+            "border-border",
+            "bg-card",
+            "bg-muted",
+            "text-foreground",
+            "text-muted-foreground",
+            "text-primary",
+            "[box-shadow:var(--card-popover-shadow)]",
+            'variant="outline"',
+        ]) {
+            expect(AI_RENAME_PREVIEW_CARD_SOURCE).toContain(primitive);
+        }
+        expect(AI_RENAME_PREVIEW_CARD_SOURCE).not.toMatch(/\sstyle=/);
     });
 });

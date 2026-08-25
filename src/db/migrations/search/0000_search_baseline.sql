@@ -115,6 +115,7 @@ CREATE TABLE `search_index_jobs` (
 	`user_id` text NOT NULL,
 	`entity_type` text NOT NULL CHECK (`entity_type` IN ('recording','transcript','speaker','tag')),
 	`entity_id` text NOT NULL,
+	`idempotency_key` text,
 	`action` text NOT NULL,
 	`status` text DEFAULT 'pending' NOT NULL,
 	`attempts` integer DEFAULT 0 NOT NULL,
@@ -129,3 +130,5 @@ CREATE TABLE `search_index_jobs` (
 CREATE INDEX `search_index_jobs_pending_idx` ON `search_index_jobs` (`status`, `scheduled_at`);
 --> statement-breakpoint
 CREATE INDEX `search_index_jobs_entity_idx` ON `search_index_jobs` (`user_id`, `entity_type`, `entity_id`);
+--> statement-breakpoint
+CREATE UNIQUE INDEX `search_index_jobs_idempotency_key_unique` ON `search_index_jobs` (`idempotency_key`);

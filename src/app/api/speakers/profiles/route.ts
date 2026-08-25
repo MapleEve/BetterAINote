@@ -3,6 +3,7 @@ import { auth } from "@/lib/auth";
 import {
     createSpeakerProfileForUser,
     listSpeakerProfiles,
+    SpeakerProfileCommittedWriteFollowupError,
     SpeakerProfileError,
 } from "@/server/modules/speakers";
 
@@ -58,6 +59,17 @@ export async function POST(request: Request) {
 
         return NextResponse.json({ profile });
     } catch (error) {
+        if (error instanceof SpeakerProfileCommittedWriteFollowupError) {
+            return NextResponse.json(
+                {
+                    error: error.message,
+                    code: error.code,
+                    ...(error.retry ? { retry: error.retry } : {}),
+                },
+                { status: error.status },
+            );
+        }
+
         if (error instanceof SpeakerProfileError) {
             return NextResponse.json(
                 { error: error.message },

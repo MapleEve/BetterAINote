@@ -81,50 +81,6 @@ function librarySearchResultId(index: number) {
     return `library-search-result-${index}`;
 }
 
-const librarySearchClassNames = {
-    anchor: "relative inline-flex size-[32px] items-center justify-center p-0",
-    trigger: "relative",
-    panel: "absolute right-0 top-[calc(100%+8px)] z-50 flex max-h-[540px] w-[460px] max-w-[calc(100vw-32px)] flex-col gap-0 rounded-[12px] border-border bg-[var(--bg-elevated)] [box-shadow:var(--card-popover-shadow)] backdrop-blur-none min-[641px]:max-[860px]:fixed min-[641px]:max-[860px]:left-3 min-[641px]:max-[860px]:right-auto min-[641px]:max-[860px]:top-[72px] min-[641px]:max-[860px]:box-border min-[641px]:max-[860px]:max-h-[calc(100dvh-96px)] min-[641px]:max-[860px]:w-[min(460px,calc(100vw-24px))] min-[641px]:max-[860px]:max-w-[calc(100vw-24px)] max-[640px]:fixed max-[640px]:left-3 max-[640px]:right-3 max-[640px]:top-[72px] max-[640px]:box-border max-[640px]:max-h-[calc(100dvh-96px)] max-[640px]:w-[calc(100vw-24px)] max-[640px]:min-w-0 max-[640px]:max-w-none",
-    inputRow:
-        "h-auto min-h-0 gap-[8px] rounded-none border-x-0 border-t-0 border-b border-border bg-transparent px-[12px] py-[8px] shadow-none",
-    inputAddon:
-        "p-0 text-muted-foreground group-data-[disabled=true]/input-group:opacity-100 has-[>button]:m-0",
-    input: "h-8 min-w-0 px-1 py-0 text-[13.5px] leading-[1.35] font-medium md:text-[13.5px]",
-    clear: "size-6",
-    scope: "w-full flex-wrap gap-[6px] rounded-none border-b border-border bg-muted px-[12px] py-[8px]",
-    scopeItem:
-        "h-[22px] rounded-full border-transparent bg-transparent px-[10px] text-[11.5px] font-medium leading-none text-muted-foreground shadow-none hover:bg-card hover:text-foreground data-[state=on]:border-[color-mix(in_srgb,var(--accent)_36%,transparent)] data-[state=on]:bg-[var(--accent-soft)] data-[state=on]:text-[var(--accent)] disabled:pointer-events-none disabled:opacity-50",
-    error: "w-full gap-[8px] rounded-none border-0 bg-transparent px-[16px] py-[18px] text-center text-[12.5px] leading-[1.55] font-medium text-destructive",
-    errorTitle:
-        "line-clamp-none min-h-0 text-center text-[12.5px] leading-[1.55] font-medium tracking-normal text-destructive",
-    retry: "h-[26px] rounded-[7px] px-[10px] text-[12px] font-semibold text-muted-foreground hover:bg-muted hover:text-foreground",
-    scroll: "min-h-0 flex-1 overflow-y-auto px-[6px] pt-[6px] pb-[8px]",
-    state: "block text-muted-foreground",
-    indexing:
-        "flex items-center gap-[10px] px-[16px] py-[14px] text-[length:var(--text-body-sm)] text-muted-foreground",
-    indexingProgress:
-        "inline-flex min-w-0 flex-1 items-center gap-[8px] font-mono text-[11px] font-medium leading-none text-muted-foreground",
-    indexingTrack:
-        "relative h-1 w-full overflow-hidden rounded-full bg-[color-mix(in_srgb,var(--signal-info)_16%,transparent)]",
-    indexingBar:
-        "absolute inset-y-0 left-0 w-[36%] rounded-[inherit] bg-[linear-gradient(90deg,transparent,var(--signal-info)_50%,transparent)] animate-[sbn-sweep_1.4s_linear_infinite]",
-    stateCopy:
-        "px-[16px] py-[22px] text-center text-[12.5px] leading-[1.55] font-medium text-muted-foreground",
-    stateCopyStrong: "font-semibold text-foreground",
-    results: "flex flex-col",
-    resultGroup:
-        "m-0 min-w-0 border-0 p-0 flex flex-col gap-[2px] px-[4px] py-[6px] [&+&]:mt-[4px] [&+&]:border-t [&+&]:border-border [&+&]:pt-[8px]",
-    groupLabel:
-        "float-left block w-full px-[6px] py-[4px] font-mono text-[10.5px] font-semibold leading-[10.5px] uppercase tracking-[0.84px] text-muted-foreground",
-    result: "h-auto w-full flex-col items-start justify-start gap-[2px] rounded-[8px] px-[10px] py-[8px] text-left text-[13px] font-normal leading-[normal] whitespace-normal",
-    resultTitle: "text-[13px] font-semibold leading-[18.2px] text-foreground",
-    resultMeta:
-        "font-mono text-[11.5px] font-medium leading-[16.1px] tracking-[0.23px] text-muted-foreground",
-    highlight:
-        "rounded-[3px] bg-[color-mix(in_srgb,var(--accent)_22%,transparent)] px-[2px] text-[var(--accent)]",
-    tag: "h-[22px] w-fit justify-normal gap-[5px] overflow-visible rounded-[6px] border-[color-mix(in_srgb,var(--tag-c)_24%,transparent)] bg-[color-mix(in_srgb,var(--tag-c)_12%,var(--bg-elevated))] py-0 pr-[9px] pl-[7px] text-[11.5px] font-semibold leading-[normal] whitespace-normal text-[color-mix(in_srgb,var(--tag-c)_72%,var(--fg-primary))] [--tag-c:oklch(0.560_0.150_285)] [box-shadow:var(--shadow-xs)]",
-} as const;
-
 function formatLibrarySearchTimestamp(valueMs: number | null | undefined) {
     if (valueMs == null || !Number.isFinite(valueMs)) {
         return "--";
@@ -201,7 +157,7 @@ function highlightSearchText(value: string, query: string) {
     return (
         <>
             {value.slice(0, index)}
-            <mark className={librarySearchClassNames.highlight}>
+            <mark className="rounded-[3px] bg-primary/10 px-0.5 text-primary">
                 {value.slice(index, index + needle.length)}
             </mark>
             {value.slice(index + needle.length)}
@@ -400,17 +356,22 @@ export function LibrarySearch({
     }
 
     return (
-        <div className={librarySearchClassNames.anchor} ref={searchOverlayRef}>
+        <div
+            className="relative inline-flex size-8 items-center justify-center p-0"
+            ref={searchOverlayRef}
+        >
             <Button
                 ref={searchTriggerRef}
                 variant="ghost"
                 size="icon-sm"
-                className={librarySearchClassNames.trigger}
+                className="relative"
                 type="button"
                 aria-label={t("librarySearch.openSearch")}
                 aria-expanded={open}
                 aria-haspopup="dialog"
                 aria-controls={open ? LIBRARY_SEARCH_DIALOG_ID : undefined}
+                data-control="dashboard-search"
+                data-state={open ? "open" : "closed"}
                 onClick={() => onOpenChange(!open)}
             >
                 <Search aria-hidden="true" />
@@ -419,7 +380,9 @@ export function LibrarySearch({
                 <Card
                     hasNoPadding
                     variant="default"
-                    className={librarySearchClassNames.panel}
+                    className="absolute right-0 top-[calc(100%+8px)] z-50 flex max-h-[540px] w-[460px] max-w-[calc(100vw-32px)] flex-col gap-0 bg-popover min-[641px]:max-[860px]:fixed min-[641px]:max-[860px]:left-3 min-[641px]:max-[860px]:right-auto min-[641px]:max-[860px]:top-[72px] min-[641px]:max-[860px]:box-border min-[641px]:max-[860px]:max-h-[calc(100dvh-96px)] min-[641px]:max-[860px]:w-[min(460px,calc(100vw-24px))] min-[641px]:max-[860px]:max-w-[calc(100vw-24px)] max-[640px]:fixed max-[640px]:left-3 max-[640px]:right-3 max-[640px]:top-[72px] max-[640px]:box-border max-[640px]:max-h-[calc(100dvh-96px)] max-[640px]:w-[calc(100vw-24px)] max-[640px]:min-w-0 max-[640px]:max-w-none"
+                    data-panel="library-search"
+                    data-state={searchPanelState}
                     id={LIBRARY_SEARCH_DIALOG_ID}
                     role="dialog"
                     aria-label={t("librarySearch.dialogLabel")}
@@ -427,11 +390,11 @@ export function LibrarySearch({
                 >
                     <InputGroup
                         variant="default"
-                        className={librarySearchClassNames.inputRow}
+                        className="h-[49px] min-h-[49px] gap-2 rounded-none border-x-0 border-t-0 border-b border-border px-3 py-2"
                     >
                         <InputGroupAddon
                             align="inline-start"
-                            className={librarySearchClassNames.inputAddon}
+                            className="p-0 text-muted-foreground group-data-[disabled=true]/input-group:opacity-100 has-[>button]:m-0"
                         >
                             <Search
                                 aria-hidden="true"
@@ -442,7 +405,9 @@ export function LibrarySearch({
                         </InputGroupAddon>
                         <InputGroupInput
                             variant="default"
-                            className={librarySearchClassNames.input}
+                            className="h-8 min-w-0 px-1 py-0 text-sm md:text-sm"
+                            data-control="library-search-input"
+                            data-state={searchPanelState}
                             ref={searchInputRef}
                             value={query}
                             role="combobox"
@@ -472,7 +437,6 @@ export function LibrarySearch({
                             <InputGroupButton
                                 variant="ghost"
                                 size="icon-xs"
-                                className={librarySearchClassNames.clear}
                                 aria-label={t("librarySearch.clearSearch")}
                                 onClick={() => {
                                     onQueryChange("");
@@ -495,7 +459,8 @@ export function LibrarySearch({
                         layout="default"
                         variant="outline"
                         size="sm"
-                        className={librarySearchClassNames.scope}
+                        className="min-h-[39px] w-full flex-wrap gap-[6px] rounded-none border-b border-border bg-muted px-3 py-2"
+                        data-control="library-search-scope"
                         value={searchScope}
                         spacing={1.6}
                         aria-label={t("librarySearch.scopeLegend")}
@@ -514,8 +479,9 @@ export function LibrarySearch({
                             <ToggleGroupItem
                                 key={item.value}
                                 value={item.value}
+                                data-scope={item.value}
                                 aria-pressed={item.value === searchScope}
-                                className={librarySearchClassNames.scopeItem}
+                                className="h-6 rounded-full px-2.5 text-xs"
                                 disabled={searchPanelState === "indexing"}
                             >
                                 {item.value === "all"
@@ -524,16 +490,16 @@ export function LibrarySearch({
                             </ToggleGroupItem>
                         ))}
                     </ToggleGroup>
-                    <CardContent className={librarySearchClassNames.scroll}>
+                    <CardContent className="min-h-0 flex-1 overflow-y-auto px-1.5 pt-1.5 pb-2">
                         {searchPanelState === "indexing" ? (
                             <div
-                                className={librarySearchClassNames.indexing}
+                                className="flex items-center gap-2.5 px-4 py-3.5 text-sm text-muted-foreground"
+                                data-part="library-search-indexing"
+                                data-state="indexing"
                                 aria-live="polite"
                             >
                                 <div
-                                    className={
-                                        librarySearchClassNames.indexingProgress
-                                    }
+                                    className="inline-flex min-w-0 flex-1 items-center gap-2 font-mono text-xs font-medium leading-none text-muted-foreground"
                                     role="progressbar"
                                     aria-valuetext={t(
                                         "librarySearch.indexing",
@@ -546,23 +512,11 @@ export function LibrarySearch({
                                         },
                                     )}
                                 >
-                                    <div
-                                        className={
-                                            librarySearchClassNames.indexingTrack
-                                        }
-                                    >
-                                        <div
-                                            className={
-                                                librarySearchClassNames.indexingBar
-                                            }
-                                        />
+                                    <div className="relative h-1 w-full overflow-hidden rounded-full bg-primary/10">
+                                        <div className="absolute inset-y-0 left-0 w-[36%] animate-[sbn-sweep_1.4s_linear_infinite] rounded-[inherit] bg-primary/50" />
                                     </div>
                                 </div>
-                                <div
-                                    className={
-                                        librarySearchClassNames.stateCopy
-                                    }
-                                >
+                                <div className="px-4 py-5 text-center text-sm text-muted-foreground">
                                     {t("librarySearch.indexing", {
                                         completed:
                                             searchIndexing?.completedJobs ?? 0,
@@ -572,36 +526,29 @@ export function LibrarySearch({
                             </div>
                         ) : searchLoading ? (
                             <div
-                                className={librarySearchClassNames.state}
+                                className="block text-muted-foreground"
                                 aria-live="polite"
                             >
-                                <div
-                                    className={
-                                        librarySearchClassNames.stateCopy
-                                    }
-                                >
+                                <div className="px-4 py-5 text-center text-sm text-muted-foreground">
                                     {t("librarySearch.loading")}
                                 </div>
                             </div>
                         ) : searchError ? (
                             <Alert
-                                variant="default"
+                                variant="destructive"
                                 density="default"
                                 layout="centered"
-                                className={librarySearchClassNames.error}
+                                className="gap-2 rounded-none py-4"
                             >
                                 <AlertTitle
                                     density="default"
-                                    className={
-                                        librarySearchClassNames.errorTitle
-                                    }
+                                    className="line-clamp-none min-h-0 text-center tracking-normal"
                                 >
                                     {t("librarySearch.error")}
                                 </AlertTitle>
                                 <Button
                                     variant="ghost"
                                     size="xs"
-                                    className={librarySearchClassNames.retry}
                                     type="button"
                                     onClick={() => {
                                         setSearchRetry((value) => value + 1);
@@ -617,23 +564,19 @@ export function LibrarySearch({
                             </Alert>
                         ) : flatSearchResults.length > 0 ? (
                             <div
-                                className={librarySearchClassNames.results}
+                                className="flex flex-col"
                                 id={LIBRARY_SEARCH_RESULTS_ID}
                                 role="listbox"
                                 aria-label={t("librarySearch.dialogLabel")}
                             >
                                 {groupedSearchResults.map((group) => (
                                     <fieldset
-                                        className={
-                                            librarySearchClassNames.resultGroup
-                                        }
+                                        className="flex flex-col gap-0.5 px-1 py-1.5 [&+&]:mt-1 [&+&]:border-t [&+&]:border-border [&+&]:pt-2"
                                         key={group.type}
                                         aria-labelledby={`library-search-group-${group.type}`}
                                     >
                                         <legend
-                                            className={
-                                                librarySearchClassNames.groupLabel
-                                            }
+                                            className="px-1.5 py-1 font-mono text-xs font-semibold uppercase tracking-normal text-muted-foreground"
                                             id={`library-search-group-${group.type}`}
                                         >
                                             {t(
@@ -656,14 +599,19 @@ export function LibrarySearch({
                                                     <Button
                                                         variant="ghost"
                                                         size="default"
-                                                        className={
-                                                            librarySearchClassNames.result
-                                                        }
+                                                        className="h-auto w-full flex-col items-start justify-start gap-0.5 px-2.5 py-2 text-left whitespace-normal"
                                                         type="button"
                                                         key={`${result.entityType}:${result.entityId}`}
                                                         id={librarySearchResultId(
                                                             index,
                                                         )}
+                                                        data-control="library-search-result"
+                                                        data-result-type={
+                                                            result.entityType
+                                                        }
+                                                        data-result-index={
+                                                            index
+                                                        }
                                                         role="option"
                                                         aria-selected={
                                                             index ===
@@ -683,9 +631,7 @@ export function LibrarySearch({
                                                         "tag" ? (
                                                             <Badge
                                                                 variant="secondary"
-                                                                className={
-                                                                    librarySearchClassNames.tag
-                                                                }
+                                                                className="h-6 justify-normal overflow-visible py-0 whitespace-normal"
                                                             >
                                                                 <Columns2
                                                                     className="!size-[11px]"
@@ -701,22 +647,14 @@ export function LibrarySearch({
                                                                 )}
                                                             </Badge>
                                                         ) : (
-                                                            <span
-                                                                className={
-                                                                    librarySearchClassNames.resultTitle
-                                                                }
-                                                            >
+                                                            <span className="text-sm font-semibold text-foreground">
                                                                 {highlightSearchText(
                                                                     title,
                                                                     query,
                                                                 )}
                                                             </span>
                                                         )}
-                                                        <span
-                                                            className={
-                                                                librarySearchClassNames.resultMeta
-                                                            }
-                                                        >
+                                                        <span className="font-mono text-xs font-medium leading-snug text-muted-foreground">
                                                             {meta}
                                                         </span>
                                                     </Button>
@@ -728,23 +666,15 @@ export function LibrarySearch({
                             </div>
                         ) : (
                             <div
-                                className={librarySearchClassNames.state}
+                                className="block text-muted-foreground"
                                 aria-live="polite"
                             >
                                 {query.trim() ? (
-                                    <div
-                                        className={
-                                            librarySearchClassNames.stateCopy
-                                        }
-                                    >
+                                    <div className="px-4 py-5 text-center text-sm text-muted-foreground">
                                         {language === "en" ? (
                                             <>
                                                 {'No content found for "'}
-                                                <span
-                                                    className={
-                                                        librarySearchClassNames.stateCopyStrong
-                                                    }
-                                                >
+                                                <span className="font-semibold text-foreground">
                                                     {query.trim()}
                                                 </span>
                                                 {'"'}
@@ -752,11 +682,7 @@ export function LibrarySearch({
                                         ) : (
                                             <>
                                                 {"没有找到与「"}
-                                                <span
-                                                    className={
-                                                        librarySearchClassNames.stateCopyStrong
-                                                    }
-                                                >
+                                                <span className="font-semibold text-foreground">
                                                     {query.trim()}
                                                 </span>
                                                 {"」相关的内容"}
@@ -764,11 +690,7 @@ export function LibrarySearch({
                                         )}
                                     </div>
                                 ) : (
-                                    <div
-                                        className={
-                                            librarySearchClassNames.stateCopy
-                                        }
-                                    >
+                                    <div className="px-4 py-5 text-center text-sm text-muted-foreground">
                                         {t("librarySearch.noQuery")}
                                     </div>
                                 )}

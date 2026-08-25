@@ -10,6 +10,7 @@ export {
     getDashboardRecordingsPageData,
     getRecordingDetailPageData,
     getRecordingDetailReadModel,
+    getRecordingTagsForUser,
     queryRecordingsForUser,
 } from "./read-model";
 export { renameRecording } from "./rename-recording";

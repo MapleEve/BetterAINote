@@ -13,6 +13,24 @@ interface UseAutoSyncOptions {
     onError?: (error: string) => void;
 }
 
+const syncWorkerErrorReasons = [
+    "database-locked",
+    "permission-denied",
+    "runtime-unavailable",
+    "generic",
+] as const;
+
+export type SyncWorkerErrorReason = (typeof syncWorkerErrorReasons)[number];
+
+function isSyncWorkerErrorReason(
+    value: unknown,
+): value is SyncWorkerErrorReason {
+    return (
+        typeof value === "string" &&
+        syncWorkerErrorReasons.some((reason) => reason === value)
+    );
+}
+
 interface SyncStatus {
     isManualSyncing: boolean;
     autoSyncEnabled: boolean;
@@ -23,6 +41,7 @@ interface SyncStatus {
         queued?: boolean;
         newRecordings?: number;
         error?: string;
+        reason?: SyncWorkerErrorReason | null;
     } | null;
     workerStatus: {
         healthy: boolean;
@@ -33,6 +52,7 @@ interface SyncStatus {
         nextRunAt: Date | null;
         manualTriggerRequestedAt: Date | null;
         lastError: string | null;
+        lastErrorReason: SyncWorkerErrorReason | null;
         lastSummary: {
             newRecordings: number;
             updatedRecordings: number;
@@ -40,6 +60,26 @@ interface SyncStatus {
             errorCount: number;
         } | null;
     } | null;
+}
+
+type SyncActivityState = "idle" | "queued" | "running";
+
+export function resolveSyncActivityState(
+    status: Pick<SyncStatus, "isManualSyncing" | "workerStatus">,
+): SyncActivityState {
+    if (status.isManualSyncing) {
+        return "running";
+    }
+
+    if (status.workerStatus?.healthy !== true) {
+        return "idle";
+    }
+
+    if (status.workerStatus.isRunning) {
+        return "running";
+    }
+
+    return status.workerStatus.manualTriggerRequestedAt ? "queued" : "idle";
 }
 
 const STORAGE_KEY = "betterainote_last_sync";
@@ -107,6 +147,11 @@ export function useAutoSync(options: UseAutoSyncOptions = {}) {
                             )
                           : null,
                       lastError: result.workerStatus.lastError ?? null,
+                      lastErrorReason: isSyncWorkerErrorReason(
+                          result.workerStatus.lastErrorReason,
+                      )
+                          ? result.workerStatus.lastErrorReason
+                          : null,
                       lastSummary: result.workerStatus.lastSummary ?? null,
                   }
                 : null;
@@ -159,6 +204,11 @@ export function useAutoSync(options: UseAutoSyncOptions = {}) {
                         lastSyncResult: {
                             success: false,
                             error: errorMessage,
+                            reason: isSyncWorkerErrorReason(result.reason)
+                                ? result.reason
+                                : isSyncWorkerErrorReason(result.error)
+                                  ? result.error
+                                  : null,
                         },
                     }));
 
@@ -190,6 +240,11 @@ export function useAutoSync(options: UseAutoSyncOptions = {}) {
                     lastSyncResult: {
                         success: false,
                         error: errorMessage,
+                        reason: isSyncWorkerErrorReason(error.reason)
+                            ? error.reason
+                            : isSyncWorkerErrorReason(error.error)
+                              ? error.error
+                              : null,
                     },
                 }));
 
@@ -241,13 +296,11 @@ export function useAutoSync(options: UseAutoSyncOptions = {}) {
         return performSync();
     }, [performSync]);
 
+    const syncActivityState = resolveSyncActivityState(status);
+
     return {
         ...status,
-        isAutoSyncing:
-            status.isManualSyncing ||
-            (status.workerStatus?.healthy === true &&
-                (status.workerStatus.isRunning === true ||
-                    status.workerStatus.manualTriggerRequestedAt != null)),
+        isAutoSyncing: syncActivityState !== "idle",
         manualSync,
         refreshStatus,
         triggerSync: manualSync,

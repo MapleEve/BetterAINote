@@ -7,6 +7,7 @@ import {
     type SourceProvider,
 } from "@/lib/data-sources/catalog";
 import { getSourceProviderDefinition } from "@/lib/data-sources/providers";
+import { resolveDingTalkServerBaseUrl } from "@/lib/data-sources/providers/dingtalk-a1/base-url";
 import { normalizeDingTalkAuthMode } from "@/lib/data-sources/providers/dingtalk-a1/constants";
 import type {
     ResolvedSourceConnection,
@@ -105,18 +106,21 @@ export async function getResolvedSourceConnectionForUser(
         return null;
     }
 
+    const baseUrl =
+        provider === "dingtalk-a1"
+            ? resolveDingTalkServerBaseUrl(sourceConnection.baseUrl)
+            : (sourceConnection.baseUrl ??
+              DATA_SOURCE_CATALOG[provider].defaultBaseUrl);
+
     return {
         userId,
         provider,
         enabled: sourceConnection.enabled,
         authMode: resolveSourceAuthMode(provider, sourceConnection.authMode),
-        baseUrl:
-            sourceConnection.baseUrl ??
-            DATA_SOURCE_CATALOG[provider].defaultBaseUrl,
+        baseUrl,
         config: resolveSourceConnectionConfig(
             provider,
-            sourceConnection.baseUrl ??
-                DATA_SOURCE_CATALOG[provider].defaultBaseUrl,
+            baseUrl,
             (sourceConnection.config as Record<string, unknown> | null) ?? {},
         ),
         secrets: parseSourceSecretConfig(sourceConnection.secretConfig),

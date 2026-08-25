@@ -26,6 +26,7 @@ type SystemBannerState =
     | "offline"
     | "permission-denied"
     | "db-locked"
+    | "runtime-unavailable"
     | "update-available"
     | "import-progress"
     | "export-progress";
@@ -93,21 +94,12 @@ const systemBannerAlertVariantByState: Record<
     SystemBannerAlertVariant
 > = {
     "db-locked": "destructiveSoftNeutral",
+    "runtime-unavailable": "destructiveSoftNeutral",
     "export-progress": "default",
     "import-progress": "default",
     offline: "default",
     "permission-denied": "destructiveSoftNeutral",
     "update-available": "default",
-} as const;
-
-const systemBannerAlertClassNames = {
-    body: "flex min-w-0 flex-1 flex-col gap-0.5",
-    actions: "flex flex-none gap-1.5",
-} as const;
-
-const systemBannerProgressClassNames = {
-    root: "min-w-[120px] flex-1",
-    indeterminateIndicator: "w-[32%] animate-[sbn-sweep_1.4s_linear_infinite]",
 } as const;
 
 function getDefaultCopy(state: SystemBannerState, isZh: boolean) {
@@ -136,6 +128,15 @@ function getDefaultCopy(state: SystemBannerState, isZh: boolean) {
                 message: isZh
                     ? "同时只允许一个实例写入 · 当前实例已切到只读模式 · 关闭其它窗口后点「重新连接」。"
                     : "Only one instance can write at a time. This instance is read-only until other windows close.",
+            };
+        case "runtime-unavailable":
+            return {
+                title: isZh
+                    ? "同步运行时暂时不可用"
+                    : "Sync runtime is temporarily unavailable",
+                message: isZh
+                    ? "自动同步暂时无法运行。已下载的录音仍可阅览，稍后可重新尝试同步。"
+                    : "Automatic sync is temporarily unavailable. Downloaded recordings remain readable and you can retry sync shortly.",
             };
         case "update-available":
             return {
@@ -190,6 +191,7 @@ function getPriority(state: SystemBannerState) {
     switch (state) {
         case "permission-denied":
         case "db-locked":
+        case "runtime-unavailable":
             return 0;
         case "offline":
             return 1;
@@ -208,7 +210,11 @@ function getBannerA11y(state: SystemBannerState): {
     if (state === "offline") {
         return { "aria-live": "polite" as const, role: "status" as const };
     }
-    if (state === "permission-denied" || state === "db-locked") {
+    if (
+        state === "permission-denied" ||
+        state === "db-locked" ||
+        state === "runtime-unavailable"
+    ) {
         return { role: "alert" as const };
     }
     return {};
@@ -239,6 +245,11 @@ function getDefaultActions(
             return {
                 actionLabel: isZh ? "重新连接" : "Reconnect",
                 secondaryActionLabel: isZh ? "只读继续" : "Continue read-only",
+            };
+        case "runtime-unavailable":
+            return {
+                actionLabel: isZh ? "重试同步" : "Retry sync",
+                dismissLabel: isZh ? "收起" : "Dismiss",
             };
         case "update-available":
             return {
@@ -277,6 +288,7 @@ function SystemBannerIcon({
         case "permission-denied":
             return <ShieldX {...props} />;
         case "db-locked":
+        case "runtime-unavailable":
             return <LockKeyhole {...props} />;
         case "update-available":
             return <Package {...props} />;
@@ -296,6 +308,8 @@ function SystemBannerAlert({
     return (
         <Alert
             aria-live={a11y["aria-live"]}
+            data-control="system-banner"
+            data-state={banner.state}
             density="comfortable"
             layout="inline"
             role={a11y.role}
@@ -329,10 +343,10 @@ function SystemBannerProgress({
     return (
         <Progress
             aria-hidden="true"
-            className={systemBannerProgressClassNames.root}
+            className="min-w-[120px] flex-1"
             indicatorClassName={
                 indeterminate
-                    ? systemBannerProgressClassNames.indeterminateIndicator
+                    ? "w-[32%] animate-[sbn-sweep_1.4s_linear_infinite]"
                     : undefined
             }
             value={value}
@@ -371,7 +385,10 @@ function getRenderedActions(
                     ? ("secondary" as const)
                     : ("primary" as const),
             secondaryLabel: undefined,
-            dismissLabel: undefined,
+            dismissLabel:
+                banner.state === "runtime-unavailable"
+                    ? (banner.dismissLabel ?? defaultActions.dismissLabel)
+                    : undefined,
         };
     }
 
@@ -394,6 +411,8 @@ function getSystemBannerActionName(
                 return "later";
             case "db-locked":
                 return "continue-read-only";
+            case "runtime-unavailable":
+                return "dismiss";
             case "update-available":
                 return "view-update-changes";
             case "import-progress":
@@ -412,6 +431,8 @@ function getSystemBannerActionName(
             return "open-system-settings";
         case "db-locked":
             return "reconnect";
+        case "runtime-unavailable":
+            return "retry-sync";
         case "update-available":
             return "restart-and-update";
         case "import-progress":
@@ -489,7 +510,7 @@ function SystemBannerItem({
                 state={banner.state}
                 aria-hidden="true"
             />
-            <div className={systemBannerAlertClassNames.body}>
+            <div className="flex min-w-0 flex-1 flex-col gap-0.5">
                 <AlertTitle>{banner.title ?? defaultCopy.title}</AlertTitle>
                 <AlertDescription>
                     {banner.message ?? defaultCopy.message}
@@ -501,7 +522,7 @@ function SystemBannerItem({
                     />
                 ) : null}
             </div>
-            <div className={systemBannerAlertClassNames.actions}>
+            <div className="flex flex-none gap-1.5">
                 {primaryLabel ? (
                     <SystemBannerButton
                         aria-busy={

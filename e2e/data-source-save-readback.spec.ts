@@ -1,3 +1,5 @@
+import { createServer } from "node:http";
+import type { AddressInfo } from "node:net";
 import path from "node:path";
 import { pathToFileURL } from "node:url";
 import { createClient } from "@libsql/client";
@@ -6,7 +8,7 @@ import type { Page, Response } from "@playwright/test";
 import { ensureSignedIn } from "./helpers/auth";
 
 const E2E_PROVIDER = "dingtalk-a1";
-const E2E_PROVIDER_BASE_URL = "https://meeting-ai-tingji.dingtalk.com";
+const E2E_PROVIDER_DRAFT = "e2e-data-source-save-draft";
 const PLAYWRIGHT_EMAIL = "playwright-admin@example.com";
 
 type SourceConnectionSnapshotRow = {
@@ -26,6 +28,60 @@ type SourceConnectionSnapshotRow = {
     createdAt: number;
     updatedAt: number;
 };
+
+async function startDingTalkSaveUpstream() {
+    let requestCount = 0;
+    let lastRequest: {
+        method: string | undefined;
+        path: string | undefined;
+        credentialMatched: boolean;
+    } | null = null;
+    const server = createServer((request, response) => {
+        lastRequest = {
+            method: request.method,
+            path: request.url,
+            credentialMatched:
+                request.headers["dt-meeting-agent-token"] ===
+                E2E_PROVIDER_DRAFT,
+        };
+        if (
+            request.method !== "POST" ||
+            request.url !== "/ai/tingji/getConversationList"
+        ) {
+            response.writeHead(404).end();
+            return;
+        }
+
+        requestCount += 1;
+        if (request.headers["dt-meeting-agent-token"] !== E2E_PROVIDER_DRAFT) {
+            response.writeHead(401).end();
+            return;
+        }
+
+        response.writeHead(200, { "Content-Type": "application/json" });
+        response.end(JSON.stringify({ data: { items: [] } }));
+    });
+
+    await new Promise<void>((resolve, reject) => {
+        server.once("error", reject);
+        server.listen(0, "127.0.0.1", () => {
+            server.off("error", reject);
+            resolve();
+        });
+    });
+    const address = server.address() as AddressInfo;
+
+    return {
+        baseUrl: `http://127.0.0.1:${address.port}`,
+        close: () =>
+            new Promise<void>((resolve, reject) => {
+                server.close((error) => (error ? reject(error) : resolve()));
+                server.closeAllConnections();
+            }),
+        getLastRequest: () => lastRequest,
+        getRequestCount: () => requestCount,
+    };
+}
 
 function resolveE2ERoot() {
     return path.resolve(
@@ -293,7 +349,7 @@ async function restoreProviderConnection(
     }
 }
 
-async function seedDisabledFallbackConnection(userId: string) {
+async function seedDisabledFallbackConnection(userId: string, baseUrl: string) {
     const client = createClient({ url: databaseUrl(resolveDatabasePath()) });
     const now = Date.now();
 
@@ -318,7 +374,7 @@ async function seedDisabledFallbackConnection(userId: string) {
                             E2E_PROVIDER,
                             0,
                             "device-signin",
-                            E2E_PROVIDER_BASE_URL,
+                            baseUrl,
                             JSON.stringify({ syncTitleToSource: true }),
                             null,
                             null,
@@ -337,6 +393,33 @@ async function seedDisabledFallbackConnection(userId: string) {
     } finally {
         await client.close();
     }
+}
+
+async function acquireExclusiveDatabaseLock() {
+    const client = createClient({ url: databaseUrl(resolveDatabasePath()) });
+    let active = false;
+
+    try {
+        await client.execute("PRAGMA busy_timeout = 10000");
+        await client.execute("BEGIN EXCLUSIVE");
+        active = true;
+    } catch (error) {
+        await client.close();
+        throw error;
+    }
+
+    return async () => {
+        if (!active) {
+            return;
+        }
+
+        active = false;
+        try {
+            await client.execute("COMMIT");
+        } finally {
+            await client.close();
+        }
+    };
 }
 
 function getDataSourceReadback(payload: unknown) {
@@ -366,23 +449,44 @@ async function readDataSourceState(page: Page) {
     return getDataSourceReadback(await response.json());
 }
 
-async function openFallbackProvider(page: Page) {
+async function openFallbackProvider(
+    page: Page,
+    expectedStatus: RegExp = /待设置|Not configured/,
+) {
     await page.goto("/settings#data-sources", { waitUntil: "domcontentloaded" });
 
-    const section = page.locator('[data-sot-surface="settings-data-sources"]');
-    const providerCard = section.locator(
-        `[data-sot-control="source-provider"][data-sot-provider="${E2E_PROVIDER}"]`,
-    );
-    const detail = section.locator(
-        `[data-sot-panel="source-provider-detail"][data-sot-provider="${E2E_PROVIDER}"]`,
+    const dialog = page.getByRole("dialog", { name: /^(设置|Settings)$/ });
+    const sourceList = dialog.getByRole("complementary", {
+        name: /^(数据源列表|Data source list)$/,
+    });
+    const providerName = /钉钉\s*闪记|DingTalk A1 Flash Notes/;
+    const providerCard = sourceList.getByRole("button", { name: providerName });
+    const providerStatusName = new RegExp(
+        `^(钉钉\\s*闪记|DingTalk A1 Flash Notes): (${expectedStatus.source})$`,
+        expectedStatus.flags.replace("g", ""),
     );
 
-    await expect(section).toHaveAttribute("data-sot-load-state", "ready");
-    await expect(providerCard).toHaveAttribute("data-sot-status", "needs-setup");
+    await expect(dialog).toBeVisible();
+    await expect(
+        providerCard.getByRole("status", { name: providerStatusName }),
+    ).toBeVisible();
     await providerCard.click();
-    await expect(detail).toHaveAttribute("data-sot-status", "needs-setup");
+    const detail = dialog.getByRole("region", { name: providerName });
+    await expect(detail).toBeVisible();
+    await expect(
+        detail.getByRole("status", { name: providerStatusName }),
+    ).toBeVisible();
 
-    return { detail, providerCard, section };
+    return { detail, providerCard };
+}
+
+function waitForSaveRequest(page: Page) {
+    return page.waitForRequest((request) => {
+        const url = new URL(request.url());
+        return (
+            url.pathname === "/api/data-sources" && request.method() === "PUT"
+        );
+    });
 }
 
 function waitForSaveResponse(page: Page) {
@@ -406,142 +510,243 @@ function waitForDataSourcesReload(page: Page) {
 }
 
 test.describe("Data Sources enable save readback", () => {
-    test.skip(
-        !hasGuardedPlaywrightFallback(),
-        "Requires the guarded local Playwright data-sources fallback.",
-    );
+    test.beforeEach(() => {
+        if (!hasGuardedPlaywrightFallback()) {
+            throw new Error(
+                "This spec requires the guarded local Playwright data-sources fallback.",
+            );
+        }
+    });
 
-    test("enables a visible fallback source, saves through the real API, and restores its fixture", async ({
+    test("preserves a locked-database draft, retries the real save, and reads enabled and disabled states back", async ({
         page,
     }) => {
         await ensureSignedIn(page);
         const userId = await getPlaywrightUserId();
         const originalSnapshot = await snapshotProviderConnection(userId);
+        const upstream = await startDingTalkSaveUpstream();
         let primaryFlowError: unknown;
-        let releaseSaveResponse: (() => void) | null = null;
-        let saveRouteInstalled = false;
+        let releaseDatabaseLock: (() => Promise<void>) | null = null;
 
         try {
-            await seedDisabledFallbackConnection(userId);
+            await seedDisabledFallbackConnection(userId, upstream.baseUrl);
             const beforeSave = await snapshotProviderConnection(userId);
             expect(beforeSave).toHaveLength(1);
             expect(beforeSave[0]?.enabled).toBe(0);
             expect(beforeSave[0]?.secretConfig).toBeNull();
 
             const { detail, providerCard } = await openFallbackProvider(page);
-            const enableSync = detail.locator(
-                `[data-sot-control="source-enable-sync"][data-sot-provider="${E2E_PROVIDER}"]`,
-            );
-            const save = detail.locator(
-                `[data-sot-control="source-save"][data-sot-provider="${E2E_PROVIDER}"]`,
-            );
+            const enableSync = detail.getByRole("switch", {
+                name: /^(启用同步|Enable sync)$/,
+            });
+            const titleWriteback = detail.getByRole("switch", {
+                name: /^(标题更新回来源|Title updates to source)$/,
+            });
+            const deviceIdentifier = detail.getByRole("textbox", {
+                name: /^(设备标识|Device identifier)$/,
+            });
+            const save = detail.getByRole("button", {
+                name: /^(保存|保存中|已保存|Save|Saving|Saved)$/,
+            });
 
             await expect(providerCard).toBeVisible();
             await expect(enableSync).toHaveAttribute("aria-checked", "false");
-            await expect(enableSync).toHaveAttribute("data-sot-enabled", "false");
+            await expect(titleWriteback).toHaveAttribute("aria-checked", "true");
+            await deviceIdentifier.fill(E2E_PROVIDER_DRAFT);
+            await titleWriteback.click();
+            await expect(titleWriteback).toHaveAttribute("aria-checked", "false");
             await expect(save).toBeEnabled();
 
             await enableSync.click();
             await expect(enableSync).toHaveAttribute("aria-checked", "true");
-            await expect(enableSync).toHaveAttribute("data-sot-enabled", "true");
 
-            let forwardedSaveRequest = false;
-            let releaseForwardedResponse!: () => void;
-            const forwardedResponseGate = new Promise<void>((resolve) => {
-                releaseForwardedResponse = resolve;
-            });
-            await page.route("**/api/data-sources", async (route) => {
-                if (route.request().method() !== "PUT") {
-                    await route.continue();
-                    return;
-                }
-
-                forwardedSaveRequest = true;
-                const response = await route.fetch();
-                await forwardedResponseGate;
-                await route.fulfill({ response });
-            });
-            saveRouteInstalled = true;
-            releaseSaveResponse = releaseForwardedResponse;
-
-            const saveResponse = waitForSaveResponse(page);
-            const refreshResponse = waitForDataSourcesReload(page);
+            releaseDatabaseLock = await acquireExclusiveDatabaseLock();
+            const failedSaveRequest = waitForSaveRequest(page);
+            const failedSaveResponse = waitForSaveResponse(page);
             await save.click();
-            await expect.poll(() => forwardedSaveRequest).toBe(true);
-            await expect(detail).toHaveAttribute("data-sot-action-state", "saving");
+            const failedRequest = await failedSaveRequest;
+            await expect(detail).toHaveAttribute("aria-busy", "true");
+            await expect(save).toHaveAttribute("aria-busy", "true");
             await expect(enableSync).toBeDisabled();
             await expect(save).toBeDisabled();
 
-            releaseSaveResponse();
-            releaseSaveResponse = null;
+            expect(failedRequest.postDataJSON()).toMatchObject({
+                provider: E2E_PROVIDER,
+                enabled: true,
+                authMode: "device-signin",
+                baseUrl: upstream.baseUrl,
+                config: { syncTitleToSource: false },
+                secrets: { deviceCredential: E2E_PROVIDER_DRAFT },
+            });
+
+            const failedResponse = await failedSaveResponse;
+            expect(failedResponse.status()).toBe(500);
+            await expect(failedResponse.json()).resolves.toEqual({
+                error: "Failed to save data sources",
+            });
+            await expect(
+                detail.getByRole("alert", {
+                    name: /^(保存失败|Save failed)$/,
+                }),
+            ).toBeVisible();
+            await expect(detail).toHaveAttribute("aria-busy", "false");
+            await expect(deviceIdentifier).toHaveValue(E2E_PROVIDER_DRAFT);
+            await expect(enableSync).toHaveAttribute("aria-checked", "true");
+            await expect(titleWriteback).toHaveAttribute("aria-checked", "false");
+            await expect(save).toBeEnabled();
+            expect(upstream.getRequestCount()).toBe(0);
+
+            await releaseDatabaseLock();
+            releaseDatabaseLock = null;
+            expect(await snapshotProviderConnection(userId)).toEqual(beforeSave);
+
+            const saveRequest = waitForSaveRequest(page);
+            const saveResponse = waitForSaveResponse(page);
+            const refreshResponse = waitForDataSourcesReload(page);
+            await save.click();
             const [response, refresh] = await Promise.all([
                 saveResponse,
                 refreshResponse,
             ]);
+            const request = await saveRequest;
             expect(response.status()).toBe(200);
             await expect(response.json()).resolves.toEqual({ success: true });
             expect(refresh.status()).toBe(200);
 
-            const payload = readRecord(
-                response.request().postDataJSON(),
-                "data source save payload",
-            );
+            const payload = readRecord(request.postDataJSON(), "data source save payload");
             expect(payload.provider).toBe(E2E_PROVIDER);
             expect(payload.enabled).toBe(true);
+            expect(payload.config).toEqual({ syncTitleToSource: false });
+            expect(payload.secrets).toEqual({
+                deviceCredential: E2E_PROVIDER_DRAFT,
+            });
 
             const persisted = await snapshotProviderConnection(userId);
             expect(persisted).toHaveLength(1);
             expect(persisted[0]).toMatchObject({
                 authMode: "device-signin",
-                baseUrl: E2E_PROVIDER_BASE_URL,
+                baseUrl: upstream.baseUrl,
                 enabled: 1,
-                secretConfig: null,
             });
+            expect(persisted[0]?.config).toBe(
+                JSON.stringify({ syncTitleToSource: false }),
+            );
+            expect(persisted[0]?.secretConfig).not.toBeNull();
+            expect(persisted[0]?.secretConfig).not.toContain(E2E_PROVIDER_DRAFT);
 
             const apiReadback = await readDataSourceState(page);
             expect(apiReadback.enabled).toBe(true);
-            expect(apiReadback.connected).toBe(false);
+            expect(apiReadback.connected).toBe(true);
             expect(apiReadback.authMode).toBe("device-signin");
-            expect(apiReadback.baseUrl).toBe(E2E_PROVIDER_BASE_URL);
+            expect(apiReadback.baseUrl).toBe(upstream.baseUrl);
+            expect(apiReadback.config).toEqual({ syncTitleToSource: false });
+            expect(apiReadback.secretsConfigured).toMatchObject({
+                deviceCredential: true,
+            });
+            expect(upstream.getRequestCount()).toBe(1);
+            expect(upstream.getLastRequest()).toEqual({
+                method: "POST",
+                path: "/ai/tingji/getConversationList",
+                credentialMatched: true,
+            });
 
             const pageReload = waitForDataSourcesReload(page);
             await page.reload({ waitUntil: "domcontentloaded" });
             expect((await pageReload).status()).toBe(200);
 
-            const reloaded = await openFallbackProvider(page);
-            const reloadedEnableSync = reloaded.detail.locator(
-                `[data-sot-control="source-enable-sync"][data-sot-provider="${E2E_PROVIDER}"]`,
-            );
-            await expect(reloaded.providerCard).toHaveAttribute(
-                "data-sot-status",
-                "needs-setup",
-            );
+            const reloaded = await openFallbackProvider(page, /已连接|Connected/);
+            const reloadedEnableSync = reloaded.detail.getByRole("switch", {
+                name: /^(启用同步|Enable sync)$/,
+            });
+            await expect(reloadedEnableSync).toHaveAttribute("aria-checked", "true");
+
+            const disabledSaveRequest = waitForSaveRequest(page);
+            const disabledSaveResponse = waitForSaveResponse(page);
+            const disabledRefreshResponse = waitForDataSourcesReload(page);
+            await reloadedEnableSync.click();
             await expect(reloadedEnableSync).toHaveAttribute(
                 "aria-checked",
-                "true",
+                "false",
             );
-            await expect(reloadedEnableSync).toHaveAttribute(
-                "data-sot-enabled",
-                "true",
+            await reloaded.detail
+                .getByRole("button", {
+                    name: /^(保存|保存中|已保存|Save|Saving|Saved)$/,
+                })
+                .click();
+            const [disabledRequest, disabledResponse, disabledRefresh] =
+                await Promise.all([
+                    disabledSaveRequest,
+                    disabledSaveResponse,
+                    disabledRefreshResponse,
+                ]);
+            expect(disabledResponse.status()).toBe(200);
+            expect(disabledRefresh.status()).toBe(200);
+            expect(disabledRequest.postDataJSON()).toMatchObject({
+                provider: E2E_PROVIDER,
+                enabled: false,
+                config: { syncTitleToSource: false },
+            });
+
+            const disabledPersisted = await snapshotProviderConnection(userId);
+            expect(disabledPersisted).toHaveLength(1);
+            expect(disabledPersisted[0]).toMatchObject({
+                enabled: 0,
+                config: JSON.stringify({ syncTitleToSource: false }),
+            });
+            expect(disabledPersisted[0]?.secretConfig).not.toBeNull();
+            expect(disabledPersisted[0]?.secretConfig).not.toContain(
+                E2E_PROVIDER_DRAFT,
             );
+            const disabledApiReadback = await readDataSourceState(page);
+            expect(disabledApiReadback.enabled).toBe(false);
+            expect(disabledApiReadback.connected).toBe(false);
+            expect(disabledApiReadback.config).toEqual({
+                syncTitleToSource: false,
+            });
+            expect(disabledApiReadback.secretsConfigured).toMatchObject({
+                deviceCredential: true,
+            });
+            expect(upstream.getRequestCount()).toBe(1);
+
+            const disabledPageReload = waitForDataSourcesReload(page);
+            await page.reload({ waitUntil: "domcontentloaded" });
+            expect((await disabledPageReload).status()).toBe(200);
+            const disabledReloaded = await openFallbackProvider(
+                page,
+                /同步已暂停|Paused/,
+            );
+            await expect(
+                disabledReloaded.detail.getByRole("switch", {
+                    name: /^(启用同步|Enable sync)$/,
+                }),
+            ).toHaveAttribute("aria-checked", "false");
         } catch (error) {
             primaryFlowError = error;
             throw error;
         } finally {
             try {
-                releaseSaveResponse?.();
-                if (saveRouteInstalled) {
-                    await page.unroute("**/api/data-sources");
+                try {
+                    await releaseDatabaseLock?.();
+                    await restoreProviderConnection(userId, originalSnapshot);
+                    expect(await snapshotProviderConnection(userId)).toEqual(
+                        originalSnapshot,
+                    );
+                } finally {
+                    await upstream.close();
                 }
-                await restoreProviderConnection(userId, originalSnapshot);
-                expect(await snapshotProviderConnection(userId)).toEqual(
-                    originalSnapshot,
-                );
             } catch (cleanupError) {
                 if (primaryFlowError) {
+                    const primaryMessage =
+                        primaryFlowError instanceof Error
+                            ? primaryFlowError.message
+                            : String(primaryFlowError);
+                    const cleanupMessage =
+                        cleanupError instanceof Error
+                            ? cleanupError.message
+                            : String(cleanupError);
                     throw new AggregateError(
                         [primaryFlowError, cleanupError],
-                        "Data source save test and cleanup both failed.",
+                        `Data source save test and cleanup both failed: primary=${primaryMessage}; cleanup=${cleanupMessage}`,
                     );
                 }
 

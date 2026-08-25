@@ -1,7 +1,51 @@
 import { existsSync, readdirSync, readFileSync, statSync } from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
-import { describe, expect, it } from "vitest";
+import React from "react";
+import { renderToStaticMarkup } from "react-dom/server";
+import { describe, expect, it, vi } from "vitest";
+import { LanguageProvider } from "@/components/language-provider";
+import {
+    TranscriptionPanel,
+    type TranscriptionPanelTab,
+} from "@/features/dashboard/components/transcription-panel";
+import {
+    DashboardSourceReportState,
+    SourceReportCopyButton,
+    SourceReportPane,
+    SourceReportSection,
+} from "@/features/source-report/primitives";
+
+type SegmentedTabsCapture = {
+    items: Array<{
+        disabled?: boolean;
+        label: string;
+        tabKey?: string;
+        value: string;
+    }>;
+    onValueChange: (value: string) => void;
+    value: string;
+};
+
+const segmentedTabsCapture = vi.hoisted(() => ({
+    props: null as SegmentedTabsCapture | null,
+}));
+
+vi.mock("@/components/ui/segmented-tabs", async (importOriginal) => {
+    const actual =
+        await importOriginal<typeof import("@/components/ui/segmented-tabs")>();
+    const ReactModule = await import("react");
+
+    return {
+        ...actual,
+        SegmentedTabs(
+            props: React.ComponentProps<typeof actual.SegmentedTabs>,
+        ) {
+            segmentedTabsCapture.props = props as SegmentedTabsCapture;
+            return ReactModule.createElement(actual.SegmentedTabs, props);
+        },
+    };
+});
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 
@@ -32,6 +76,120 @@ function walk(dir: string): string[] {
 
         return [next];
     });
+}
+
+function renderDashboardSourceTab(
+    activeTab: TranscriptionPanelTab,
+    onActiveTabChange: (tab: TranscriptionPanelTab) => void,
+) {
+    segmentedTabsCapture.props = null;
+    const sourceActions = React.createElement(
+        React.Fragment,
+        null,
+        React.createElement(
+            SourceReportCopyButton,
+            {
+                "aria-busy": false,
+                "aria-disabled": "false",
+                copy: "source-transcript",
+                copyState: "ready",
+                disabled: false,
+                hidden: activeTab !== "source",
+                onClick: vi.fn(),
+                type: "button",
+            } as unknown as React.ComponentProps<typeof SourceReportCopyButton>,
+            "复制来源转写",
+        ),
+        React.createElement(
+            SourceReportCopyButton,
+            {
+                "aria-busy": false,
+                "aria-disabled": "false",
+                copy: "source-report",
+                copyState: "ready",
+                disabled: false,
+                hidden: activeTab !== "source",
+                onClick: vi.fn(),
+                type: "button",
+            } as unknown as React.ComponentProps<typeof SourceReportCopyButton>,
+            "复制来源报告",
+        ),
+    );
+    const sourceReportSection = React.createElement(
+        SourceReportSection,
+        {
+            description: "来自 TicNote · 1 段",
+            section: "transcript",
+            title: "来源转写",
+        } as React.ComponentProps<typeof SourceReportSection>,
+        React.createElement("p", null, "来源逐字稿"),
+    );
+    const sourceReportState = React.createElement(
+        DashboardSourceReportState,
+        {
+            state: "loaded",
+        } as React.ComponentProps<typeof DashboardSourceReportState>,
+        sourceReportSection,
+    );
+    const sourcePane = React.createElement(
+        SourceReportPane,
+        {
+            state: "loaded",
+            surface: "dashboard",
+            variant: "embedded",
+        } as React.ComponentProps<typeof SourceReportPane>,
+        sourceReportState,
+    );
+
+    const panel = React.createElement(TranscriptionPanel, {
+        activeTab,
+        isTranscriptLoading: false,
+        localCopyFeedback: null,
+        localCopyState: "ready",
+        onActiveTabChange,
+        onCopyLocal: vi.fn(),
+        onRetryTranscript: vi.fn(),
+        recording: {
+            audioUrl: "/api/recordings/recording-1/audio",
+            id: "recording-1",
+        },
+        retranscription: {
+            description: "可以重新运行私有转写",
+            onDismiss: vi.fn(),
+            onRequest: vi.fn(),
+            onRetry: vi.fn(),
+            state: "idle",
+            title: "重新转写",
+        },
+        sourceActions,
+        sourcePane,
+        speakerMerge: {
+            onMerge: vi.fn(),
+            onRetry: vi.fn(),
+            state: "idle",
+        },
+        speakers: [],
+        transcriptError: null,
+        transcriptLanguage: "zh-CN",
+        turns: [
+            {
+                id: "turn-1",
+                speakerName: "Maple",
+                startMs: 0,
+                text: "本地逐字稿",
+            },
+        ],
+    });
+
+    return renderToStaticMarkup(
+        React.createElement(
+            LanguageProvider,
+            {
+                language: "zh-CN",
+            } as React.ComponentProps<typeof LanguageProvider>,
+            panel,
+        ),
+    );
 }
 
 describe("frontend data-source routing regression", () => {
@@ -236,7 +394,23 @@ describe("frontend data-source routing regression", () => {
         expect(dataSourcesSection).toContain('aria-live="polite"');
         expect(dataSourcesSection).toContain("disabled={interactionDisabled}");
         expect(dataSourcesSection).not.toContain("data-sot-");
-        expect(dataSourcesSection).not.toContain("data-slot=");
+        expect(dataSourcesSection).toContain(
+            "max-[639px]:[&_[data-slot=field]]:flex-col",
+        );
+        expect(dataSourcesSection).toContain(
+            "max-[639px]:[&_[data-slot=field-control]]:w-full",
+        );
+        for (const forbiddenBusinessVisualSystem of [
+            /\b[A-Za-z_$][A-Za-z0-9_$]*ClassNames\b/,
+            /\b[A-Z][A-Z0-9_]*_CLASS_NAME\b/,
+            /\b[A-Za-z_$][A-Za-z0-9_$]*Styles\b/,
+            /\b(?:SourceActionButton|SourceActionStatusBadge|ProviderStateBanner)\b/,
+            /\bSOURCE_ACTION_BUTTON_PRIMITIVE_VARIANT_BY_TONE\b/,
+        ]) {
+            expect(dataSourcesSection).not.toMatch(
+                forbiddenBusinessVisualSystem,
+            );
+        }
     });
 
     it("keeps automatic updates labeled and bound to the selected provider", () => {
@@ -342,6 +516,87 @@ describe("frontend data-source routing regression", () => {
         expect(settingFieldControl).toContain("preventDefault");
     });
 
+    it("renders and switches to the source-detail tab through accessible controls", () => {
+        const onActiveTabChange = vi.fn();
+        const transcriptHtml = renderDashboardSourceTab(
+            "transcript",
+            onActiveTabChange,
+        );
+        const inactiveSourceTab =
+            transcriptHtml.match(
+                /<button(?=[^>]*role="tab")(?=[^>]*id="dashboard-transcription-tab-source")[^>]*>/,
+            )?.[0] ?? "";
+        const hiddenSourcePane =
+            transcriptHtml.match(
+                /<section(?=[^>]*id="dashboard-transcription-pane-source")[^>]*>/,
+            )?.[0] ?? "";
+
+        expect(inactiveSourceTab).toContain(
+            'aria-controls="dashboard-transcription-pane-source"',
+        );
+        expect(inactiveSourceTab).toContain('aria-selected="false"');
+        expect(inactiveSourceTab).toContain('data-tab-key="source-report"');
+        expect(inactiveSourceTab).toContain('data-state="idle"');
+        expect(hiddenSourcePane).toContain('role="tabpanel"');
+        expect(hiddenSourcePane).toContain(
+            'aria-labelledby="dashboard-transcription-tab-source"',
+        );
+        expect(hiddenSourcePane).toContain(' hidden=""');
+        expect(transcriptHtml).toMatch(
+            /<button(?=[^>]*data-testid="source-report-copy-source-transcript")(?=[^>]*hidden)[^>]*>/,
+        );
+        expect(segmentedTabsCapture.props).toMatchObject({
+            value: "transcript",
+        });
+        expect(segmentedTabsCapture.props?.items).toEqual(
+            expect.arrayContaining([
+                expect.objectContaining({
+                    label: "来源详情",
+                    tabKey: "source-report",
+                    value: "source",
+                }),
+            ]),
+        );
+
+        segmentedTabsCapture.props?.onValueChange("source");
+        expect(onActiveTabChange).toHaveBeenCalledOnce();
+        expect(onActiveTabChange).toHaveBeenCalledWith("source");
+
+        const sourceHtml = renderDashboardSourceTab(
+            "source",
+            onActiveTabChange,
+        );
+        const activeSourceTab =
+            sourceHtml.match(
+                /<button(?=[^>]*role="tab")(?=[^>]*id="dashboard-transcription-tab-source")[^>]*>/,
+            )?.[0] ?? "";
+        const visibleSourcePane =
+            sourceHtml.match(
+                /<section(?=[^>]*id="dashboard-transcription-pane-source")[^>]*>/,
+            )?.[0] ?? "";
+        const sourceTranscriptCopy =
+            sourceHtml.match(
+                /<button(?=[^>]*data-testid="source-report-copy-source-transcript")[^>]*>/,
+            )?.[0] ?? "";
+
+        expect(activeSourceTab).toContain('aria-selected="true"');
+        expect(activeSourceTab).toContain('data-state="active"');
+        expect(visibleSourcePane).not.toContain(' hidden=""');
+        expect(sourceHtml).toContain('data-testid="dashboard-source-report"');
+        expect(sourceHtml).toContain(
+            'data-testid="dashboard-source-report-state"',
+        );
+        expect(sourceHtml).toContain('data-state="loaded"');
+        expect(sourceHtml).toContain("来源转写");
+        expect(sourceHtml).toContain("来自 TicNote · 1 段");
+        expect(sourceTranscriptCopy).toContain('aria-busy="false"');
+        expect(sourceTranscriptCopy).toContain('aria-disabled="false"');
+        expect(sourceTranscriptCopy).toContain('data-state="ready"');
+        expect(sourceTranscriptCopy).not.toContain(' hidden=""');
+        expect(sourceTranscriptCopy).not.toMatch(/\sdisabled(?:=""|(?=[\s>]))/);
+        expect(segmentedTabsCapture.props).toMatchObject({ value: "source" });
+    });
+
     it("keeps recording-facing shared panels free of inline Plaud-only source branches", () => {
         const recordingWorkstation = readFileSync(
             path.join(ROOT, "features/recordings/workstation.tsx"),
@@ -402,91 +657,10 @@ describe("frontend data-source routing regression", () => {
         for (const residual of sourceReportPrimitiveForbiddenShadcnResiduals) {
             expect(sourceReportPrimitives).not.toContain(residual);
         }
-        expect(dashboardWorkstation).toContain('value: "source"');
-        expect(dashboardWorkstation).toContain('label: "来源详情"');
-        expect(dashboardWorkstation).toContain('tabKey: "source-report"');
-        expect(dashboardWorkstation).toContain('detailTab === "source"');
-        expect(dashboardWorkstation).toContain(
-            'from "@/features/source-report/primitives"',
-        );
-        expect(dashboardWorkstation).toContain("<SourceReportPane");
-        expect(dashboardWorkstation).toContain("<SourceReportCopyButton");
         expect(dashboardWorkstation).not.toContain("SotSourceReport");
-        expect(dashboardWorkstation).toContain('surface="dashboard"');
-        expect(dashboardWorkstation).toContain(
-            'hidden={detailTab !== "source"}',
-        );
-        expect(dashboardWorkstation).toContain(
-            "selectedRecording.sourceProvider",
-        );
-        expect(dashboardWorkstation).toContain("formatAbsoluteDate(");
-        expect(dashboardWorkstation).toContain('copy="source-transcript"');
-        expect(dashboardWorkstation).toContain('copy="source-report"');
-        expect(dashboardWorkstation).toContain(
-            'sourceTranscriptCopyState !== "ready"',
-        );
-        expect(dashboardWorkstation).toContain(
-            'sourceReportCopyState !== "ready"',
-        );
-        expect(dashboardWorkstation).toMatch(
-            /<SourceReportCopyButton\s+type="button"\s+copy="source-transcript"[\s\S]*?aria-busy=\{\s*copyingAction ===\s*"source-transcript"\s*\}[\s\S]*?aria-disabled=\{\s*sourceTranscriptCopyDisabled\s*\?\s*"true"\s*:\s*"false"\s*\}[\s\S]*?disabled=\{\s*sourceTranscriptCopyDisabled\s*\}[\s\S]*?onClick=\{\(\) =>\s*void handleCopySourceMaterial\(\s*"source-transcript",?\s*\)\s*\}/,
-        );
-        expect(dashboardWorkstation).toMatch(
-            /<SourceReportCopyButton\s+type="button"\s+copy="source-report"[\s\S]*?aria-busy=\{\s*copyingAction ===\s*"source-report"\s*\}[\s\S]*?aria-disabled=\{\s*sourceReportCopyDisabled\s*\?\s*"true"\s*:\s*"false"\s*\}[\s\S]*?disabled=\{\s*sourceReportCopyDisabled\s*\}[\s\S]*?onClick=\{\(\) =>\s*void handleCopySourceMaterial\(\s*"source-report",?\s*\)\s*\}/,
-        );
         expect(
             existsSync(path.join(ROOT, "features/source-report/styles.ts")),
         ).toBe(false);
-
-        const sourceReportPaneStart = sourceReportPrimitives.indexOf(
-            "export function SourceReportPane",
-        );
-        const sourceReportPaneEnd = sourceReportPrimitives.indexOf(
-            "export function SourceReportDescription",
-            sourceReportPaneStart,
-        );
-        expect(sourceReportPaneStart).toBeGreaterThanOrEqual(0);
-        expect(sourceReportPaneEnd).toBeGreaterThan(sourceReportPaneStart);
-        const sourceReportPane = sourceReportPrimitives.slice(
-            sourceReportPaneStart,
-            sourceReportPaneEnd,
-        );
-
-        expect(sourceReportPane).toContain('surface === "dashboard"');
-        expect(sourceReportPane).toContain('"dashboard-source-report"');
-        expect(sourceReportPane).toContain('"recording-source-report"');
-        expect(sourceReportPane).toContain("data-testid={testId}");
-        expect(sourceReportPane).toContain("data-state={state}");
-        expect(sourceReportPane).toContain('aria-busy={state === "loading"}');
-        expect(sourceReportPane).toContain("hidden={hidden}");
-
-        const sourceReportCopyButtonStart = sourceReportPrimitives.indexOf(
-            "export function SourceReportCopyButton",
-        );
-        const sourceReportCopyButtonEnd = sourceReportPrimitives.indexOf(
-            "export function SourceReportActionButton",
-            sourceReportCopyButtonStart,
-        );
-        expect(sourceReportCopyButtonStart).toBeGreaterThanOrEqual(0);
-        expect(sourceReportCopyButtonEnd).toBeGreaterThan(
-            sourceReportCopyButtonStart,
-        );
-        const sourceReportCopyButton = sourceReportPrimitives.slice(
-            sourceReportCopyButtonStart,
-            sourceReportCopyButtonEnd,
-        );
-
-        expect(sourceReportCopyButton).toContain(
-            "data-testid={`source-report-copy-" + "$" + "{copy}`}",
-        );
-        expect(sourceReportCopyButton).toContain(
-            "data-state={feedbackState ?? copyState}",
-        );
-        expect(sourceReportCopyButton).toContain("data-tab-scope={tabScope}");
-        expect(sourceReportCopyButton).toContain('state === "err"');
-        expect(sourceReportCopyButton).toContain('state === "ok"');
-        expect(sourceReportCopyButton).toContain("variant={variant}");
-        expect(sourceReportCopyButton).toContain('size="xs"');
         expect(sourceReportPrimitives).not.toContain(
             "sourceReportCopyButtonStyles",
         );

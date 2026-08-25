@@ -139,24 +139,6 @@ describe("dashboard speaker label editor regressions", () => {
         );
     }
 
-    function stripOwnerLocalSurfaceDefinitions(value: string) {
-        const start = value.indexOf("const SPEAKER_REVIEW_CARD_CLASS_NAMES =");
-        const end = value.indexOf("function formatSegmentWindow", start);
-
-        expect(start).toBeGreaterThanOrEqual(0);
-        expect(end).toBeGreaterThan(start);
-
-        return value.slice(0, start) + value.slice(end);
-    }
-
-    function extractSpeakerReviewConst(constName: string) {
-        const start = source.indexOf(`const ${constName} =`);
-        expect(start).toBeGreaterThanOrEqual(0);
-        const end = source.indexOf(";", start);
-        expect(end).toBeGreaterThan(start);
-        return source.slice(start, end + 1);
-    }
-
     function collectSpeakerReviewButtonOpenings() {
         return collectOpeningElements("Button").filter(
             (opening) =>
@@ -174,6 +156,22 @@ describe("dashboard speaker label editor regressions", () => {
     });
 
     it("keeps speaker sample cards on stable review semantics", () => {
+        const rowCardOpening = collectOpeningElements("Card").find((opening) =>
+            opening.includes('data-speaker-review-item="speaker-review-row"'),
+        );
+
+        expect(rowCardOpening).toBeDefined();
+        expect(rowCardOpening).toContain("hasNoPadding");
+        expect(rowCardOpening).toContain(
+            "data-speaker-has-playable-sample={String(",
+        );
+        expect(rowCardOpening).toContain(
+            "data-speaker-has-voiceprint={String(",
+        );
+        expect(rowCardOpening).toContain(
+            "data-state={getSpeakerRowState(speaker)}",
+        );
+        expect(rowCardOpening).not.toMatch(OLD_UI_CONTRACT_RE);
         expect(source).toContain('data-speaker-review-panel="speaker-review"');
         expect(source).toContain("data-speaker-has-playable-sample={String(");
         expect(source).toContain("speaker.sampleSegments.map");
@@ -181,9 +179,6 @@ describe("dashboard speaker label editor regressions", () => {
         expect(source).toContain("speakerReview.samplesTitle");
         expect(source).toContain("speakerReview.playSample");
         expect(source).not.toMatch(/\bbg-(background|card|muted)\b/);
-        expect(stripOwnerLocalSurfaceDefinitions(source)).not.toMatch(
-            OLD_UI_CONTRACT_RE,
-        );
     });
 
     it("uses the muted transcript preview surface during speaker review", () => {
@@ -246,14 +241,26 @@ describe("dashboard speaker label editor regressions", () => {
 
     it("keeps speaker list load failures distinct from empty state", () => {
         expect(source).toContain("speakerLoadError");
-        expect(source).toContain("<Alert");
-        expect(source).toContain('variant="statusError"');
-        expect(source).toContain("SPEAKER_REVIEW_ERROR_ALERT_CLASS_NAME");
-        expect(source).toContain("SPEAKER_REVIEW_ERROR_TITLE_CLASS_NAME");
+        const loadErrorAlert = collectOpeningElements("Alert").find((opening) =>
+            opening.includes('data-speaker-review-state="speaker-load-error"'),
+        );
+        expect(loadErrorAlert).toBeDefined();
+        expect(loadErrorAlert).toContain('variant="statusError"');
+        expect(loadErrorAlert).toContain('density="comfortable"');
+        expect(source).toContain("<AlertTitle>{speakerLoadError}</AlertTitle>");
+        const retryButton = collectOpeningElements("Button").find((opening) =>
+            opening.includes(
+                'data-speaker-review-control="speaker-review-refresh-speakers"',
+            ),
+        );
+        expect(retryButton).toBeDefined();
+        expect(retryButton).toContain('variant="outline"');
+        expect(retryButton).toContain('size="sm"');
+        expect(retryButton).toContain("onClick={() => void refreshSpeakers()}");
+        expect(retryButton).toContain("disabled={isLoading}");
         expect(source).not.toContain('variant="speakerReviewError"');
         expect(source).not.toContain('density="speakerReviewError"');
         expect(source).not.toContain('layout="speakerReviewError"');
-        expect(source).toContain("onClick={() => void refreshSpeakers()}");
         expect(source).toContain("speakerLoadError ? (");
         expect(source).toContain(") : speakers.length === 0 ? (");
     });
@@ -351,8 +358,26 @@ describe("dashboard speaker label editor regressions", () => {
         expect(source).toContain(
             'data-speaker-review-control="speaker-review-inline-save"',
         );
-        expect(source).toContain("SPEAKER_REVIEW_GHOST_BUTTON_CLASS_NAME");
-        expect(source).toContain("SPEAKER_REVIEW_PRIMARY_BUTTON_CLASS_NAME");
+        const cancelButton = collectOpeningElements("Button").find((opening) =>
+            opening.includes(
+                'data-speaker-review-control="speaker-review-inline-cancel"',
+            ),
+        );
+        expect(cancelButton).toBeDefined();
+        expect(cancelButton).toContain('variant="ghost"');
+        expect(cancelButton).toContain('size="sm"');
+        expect(cancelButton).toContain("disabled={isSpeakerSaving}");
+        expect(cancelButton).toContain("closeInlineRename(");
+        const saveButton = collectOpeningElements("Button").find((opening) =>
+            opening.includes(
+                'data-speaker-review-control="speaker-review-inline-save"',
+            ),
+        );
+        expect(saveButton).toBeDefined();
+        expect(saveButton).toContain('variant="default"');
+        expect(saveButton).toContain('size="sm"');
+        expect(saveButton).toContain("aria-busy={isSpeakerSaving}");
+        expect(saveButton).toContain("handleSaveInlineRename(");
         expect(source).not.toContain('variant="speakerReviewGhostAction"');
         expect(source).not.toContain('variant="speakerReviewPrimaryAction"');
         expect(source).not.toContain('size="speakerReviewAction"');
@@ -455,78 +480,15 @@ describe("dashboard speaker label editor regressions", () => {
         expect(source).not.toContain("[&_svg]:stroke");
         expect(source).not.toContain("[&>svg]:stroke");
         expect(source).not.toContain("[&>svg]:size-[");
-        for (const token of [
-            "const SPEAKER_REVIEW_CARD_CLASS_NAMES =",
-            "const SPEAKER_REVIEW_CARD_HEADER_CLASS_NAMES =",
-            "const SPEAKER_REVIEW_CARD_TITLE_CLASS_NAMES =",
-            "const SPEAKER_REVIEW_CARD_CONTENT_CLASS_NAMES =",
-            "const SPEAKER_REVIEW_CARD_DESCRIPTION_CLASS_NAME =",
-            "const SPEAKER_REVIEW_CARD_ACTION_CLASS_NAME =",
-            "const SPEAKER_REVIEW_VOICEPRINT_BADGE_VARIANTS =",
-            "const SPEAKER_REVIEW_ACTION_BUTTON_CLASS_NAME =",
-            "const SPEAKER_REVIEW_PRIMARY_BUTTON_CLASS_NAME =",
-            "const SPEAKER_REVIEW_GHOST_BUTTON_CLASS_NAME =",
-            "const SPEAKER_REVIEW_DANGER_BUTTON_CLASS_NAME =",
-            "const SPEAKER_REVIEW_SUGGESTION_BUTTON_CLASS_NAME =",
-            "const SPEAKER_REVIEW_ICON_BUTTON_CLASS_NAME =",
-            "const SPEAKER_REVIEW_MODE_ITEM_CLASS_NAME =",
-            "const SPEAKER_REVIEW_ERROR_ALERT_CLASS_NAME =",
-            "const SPEAKER_REVIEW_INLINE_EMPTY_CLASS_NAME =",
-            "const SPEAKER_REVIEW_HEADER_COPY_CLASS_NAME =",
-            "const SPEAKER_REVIEW_META_LIST_CLASS_NAME =",
-            "const SPEAKER_REVIEW_TRANSCRIPT_SECTION_CLASS_NAME =",
-            "const SPEAKER_REVIEW_CONFIRM_MESSAGE_CLASS_NAME =",
-            "const SPEAKER_REVIEW_CONFIRM_SUBJECT_CLASS_NAME =",
-            "const SPEAKER_REVIEW_ERROR_ACTION_CLASS_NAME =",
-            "const SPEAKER_REVIEW_MERGE_EMPTY_TITLE_CLASS_NAME =",
-            "const SPEAKER_REVIEW_MERGE_EMPTY_DESCRIPTION_CLASS_NAME =",
-            "const SPEAKER_REVIEW_MAPPING_CLEAR_BUTTON_CLASS_NAME =",
-            "const SPEAKER_REVIEW_META_ITEM_CLASS_NAME =",
-            "const SPEAKER_REVIEW_SECTION_DESCRIPTION_CLASS_NAME =",
-            "const SPEAKER_REVIEW_SEGMENT_TITLE_CLASS_NAME =",
-            "const SPEAKER_REVIEW_SEGMENT_TEXT_CLASS_NAME =",
-            "const SPEAKER_REVIEW_ROW_NAME_CLASS_NAME =",
-            "const SPEAKER_REVIEW_SECTION_TITLE_CLASS_NAME =",
-            "const SPEAKER_REVIEW_ROW_SUB_CLASS_NAME =",
-            "function SpeakerReviewCard(",
-            "function SpeakerReviewCardHeader(",
-            "function SpeakerReviewCardTitle(",
-            "function SpeakerReviewCardDescription(",
-            "function SpeakerReviewCardAction(",
-            "function SpeakerReviewCardContent(",
-            "function SpeakerReviewVoiceprintBadge(",
-        ]) {
-            expect(source).toContain(token);
-        }
-        const voiceprintVariantConst = extractSpeakerReviewConst(
-            "SPEAKER_REVIEW_VOICEPRINT_BADGE_VARIANTS",
-        );
-        expect(voiceprintVariantConst).toContain('missing: "secondary"');
-        expect(voiceprintVariantConst).toContain('ready: "outline"');
-        expect(voiceprintVariantConst).toContain('selected: "default"');
-        expect(source).not.toContain(
-            "SPEAKER_REVIEW_VOICEPRINT_BADGE_CLASS_NAME",
+        expect(source).not.toMatch(/\bSPEAKER_REVIEW_[A-Z0-9_]+\b/);
+        expect(source).not.toMatch(
+            /function SpeakerReview(?:Card(?:Header|Title|Description|Action|Content)?|VoiceprintBadge)\s*\(/,
         );
         expect(source).not.toContain("data-[speaker-review-tone=ready]");
         expect(source).not.toContain("data-[speaker-review-tone=missing]");
         expect(source).not.toContain("data-[speaker-review-tone=selected]");
         expect(source).not.toContain("[&>svg]:size-[11px]");
         expect(source).not.toContain("[&>svg]:stroke-2");
-        for (const constName of [
-            "SPEAKER_REVIEW_META_ITEM_CLASS_NAME",
-            "SPEAKER_REVIEW_SECTION_DESCRIPTION_CLASS_NAME",
-            "SPEAKER_REVIEW_SEGMENT_TITLE_CLASS_NAME",
-            "SPEAKER_REVIEW_SEGMENT_TEXT_CLASS_NAME",
-            "SPEAKER_REVIEW_ROW_NAME_CLASS_NAME",
-            "SPEAKER_REVIEW_SECTION_TITLE_CLASS_NAME",
-            "SPEAKER_REVIEW_ROW_SUB_CLASS_NAME",
-        ]) {
-            const ownerClass = extractSpeakerReviewConst(constName);
-            expect(ownerClass).not.toContain("var(--");
-            expect(ownerClass).not.toMatch(SPEAKER_REVIEW_RAW_REPAINT_RE);
-            expect(ownerClass).not.toMatch(SPEAKER_REVIEW_FORCED_UTILITY_RE);
-            expect(ownerClass).not.toMatch(/\bdark:/);
-        }
         for (const legacyVariant of [
             "speakerReviewAction",
             "speakerReviewPrimaryAction",
@@ -581,9 +543,7 @@ describe("dashboard speaker label editor regressions", () => {
         );
         expect(modeOptionOpenings).toHaveLength(2);
         for (const opening of modeOptionOpenings) {
-            expect(opening).toContain(
-                "className={SPEAKER_REVIEW_MODE_ITEM_CLASS_NAME}",
-            );
+            expect(opening).toContain('className="px-2.5"');
             expect(opening).not.toContain('variant="speakerReviewModeItem"');
         }
 
@@ -593,39 +553,34 @@ describe("dashboard speaker label editor regressions", () => {
             expect(opening).not.toMatch(SPEAKER_REVIEW_PRIMITIVE_BUSINESS_RE);
         }
 
-        for (const { control, variant, size, className } of [
+        for (const { control, variant, size } of [
             {
                 control:
                     'data-speaker-review-control="speaker-review-copy-raw"',
                 variant: 'variant="default"',
                 size: 'size="sm"',
-                className: "SPEAKER_REVIEW_PRIMARY_BUTTON_CLASS_NAME",
             },
             {
                 control: 'data-speaker-review-control="speaker-review-refresh"',
                 variant: 'variant="ghost"',
                 size: 'size="sm"',
-                className: "SPEAKER_REVIEW_GHOST_BUTTON_CLASS_NAME",
             },
             {
                 control:
                     'data-speaker-review-control="speaker-review-inline-save"',
                 variant: 'variant="default"',
                 size: 'size="sm"',
-                className: "SPEAKER_REVIEW_PRIMARY_BUTTON_CLASS_NAME",
             },
             {
                 control: 'data-speaker-review-control="speaker-review-unlink"',
                 variant: 'variant="destructive"',
                 size: 'size="sm"',
-                className: "SPEAKER_REVIEW_DANGER_BUTTON_CLASS_NAME",
             },
             {
                 control:
                     'data-speaker-review-control="speaker-review-suggestion"',
                 variant: 'variant="outline"',
                 size: 'size="default"',
-                className: "SPEAKER_REVIEW_SUGGESTION_BUTTON_CLASS_NAME",
             },
         ]) {
             const opening = collectOpeningElements("Button").find((element) =>
@@ -634,24 +589,28 @@ describe("dashboard speaker label editor regressions", () => {
             expect(opening).toBeDefined();
             expect(opening).toContain(variant);
             expect(opening).toContain(size);
-            expect(opening).toContain(className);
+            expect(opening).not.toMatch(SPEAKER_REVIEW_PRIMITIVE_BUSINESS_RE);
+            expect(opening).not.toMatch(SPEAKER_REVIEW_RAW_REPAINT_RE);
+            expect(opening).not.toMatch(SPEAKER_REVIEW_FORCED_UTILITY_RE);
         }
 
-        const cardOpenings = collectExactOpeningElements("SpeakerReviewCard");
+        const cardOpenings = collectExactOpeningElements("Card");
         expect(
             cardOpenings.find((opening) =>
                 opening.includes(
                     'data-speaker-review-part="speaker-review-transcript-card"',
                 ),
             ),
-        ).toContain('surface="transcript"');
+        ).toMatch(/hasNoPadding[\s\S]*?className="gap-0"/);
         expect(
             cardOpenings.find((opening) =>
                 opening.includes(
                     'data-speaker-review-item="speaker-review-row"',
                 ),
             ),
-        ).toContain('surface="row"');
+        ).toMatch(
+            /hasNoPadding[\s\S]*?className="grid items-center gap-2\.5 overflow-visible rounded-md px-3 py-2\.5"/,
+        );
         const popoverContentOpenings = collectOpeningElements("PopoverContent");
         const mergePopoverOpening = popoverContentOpenings.find((opening) =>
             opening.includes(
@@ -665,7 +624,7 @@ describe("dashboard speaker label editor regressions", () => {
             "data-open={String(isMergePopoverOpen)}",
         );
         expect(mergePopoverOpening).toContain(
-            "SPEAKER_REVIEW_CARD_CLASS_NAMES.mergePopover",
+            'className="w-80 min-w-72 overflow-hidden p-0"',
         );
         expect(mergePopoverOpening).toContain('aria-label="合并相似说话人"');
         expect(mergePopoverOpening).not.toContain('role="dialog"');
@@ -706,7 +665,9 @@ describe("dashboard speaker label editor regressions", () => {
                     'data-speaker-review-confirm="speaker-unlink"',
                 ),
             ),
-        ).toContain('surface="confirm"');
+        ).toMatch(
+            /hasNoPadding[\s\S]*?className="flex-row items-center gap-2\.5 overflow-visible border-destructive\/30 bg-destructive\/5 p-3 text-sm"/,
+        );
         for (const opening of cardOpenings.filter((element) =>
             /speaker-review|speaker-unlink/.test(element),
         )) {
@@ -725,80 +686,67 @@ describe("dashboard speaker label editor regressions", () => {
         expect(alertOpenings.length).toBeGreaterThan(0);
         for (const opening of alertOpenings) {
             expect(opening).toContain('variant="statusError"');
-            expect(opening).toContain(
-                "className={SPEAKER_REVIEW_ERROR_ALERT_CLASS_NAME}",
-            );
+            expect(opening).toContain('density="comfortable"');
             expect(opening).not.toContain('variant="speakerReviewError"');
             expect(opening).not.toContain('density="speakerReviewError"');
             expect(opening).not.toContain('layout="speakerReviewError"');
         }
 
-        const voiceprintBadges = collectExactOpeningElements(
-            "SpeakerReviewVoiceprintBadge",
-        ).filter((opening) =>
-            opening.includes(
-                'data-speaker-review-part="speaker-review-voiceprint-pill"',
-            ),
+        const voiceprintBadges = collectExactOpeningElements("Badge").filter(
+            (opening) =>
+                opening.includes(
+                    'data-speaker-review-part="speaker-review-voiceprint-pill"',
+                ),
         );
-        expect(voiceprintBadges.length).toBeGreaterThan(0);
+        expect(voiceprintBadges.length).toBeGreaterThan(1);
         for (const opening of voiceprintBadges) {
-            expect(opening).not.toContain("variant=");
             expect(opening).not.toContain('variant="speakerReviewVoiceprint"');
+            expect(opening).not.toMatch(SPEAKER_REVIEW_RAW_REPAINT_RE);
+            expect(opening).not.toMatch(SPEAKER_REVIEW_FORCED_UTILITY_RE);
         }
-        const voiceprintBadgeHelperStart = source.indexOf(
-            "function SpeakerReviewVoiceprintBadge(",
+        const missingVoiceprintBadge = voiceprintBadges.find((opening) =>
+            opening.includes('data-speaker-review-tone="missing"'),
         );
-        expect(voiceprintBadgeHelperStart).toBeGreaterThanOrEqual(0);
-        const voiceprintBadgeHelperEnd = source.indexOf(
-            "function formatSegmentWindow",
-            voiceprintBadgeHelperStart,
+        expect(missingVoiceprintBadge).toContain('variant="secondary"');
+        const profileVoiceprintBadge = voiceprintBadges.find((opening) =>
+            opening.includes("speaker.matchedProfileId ==="),
         );
-        expect(voiceprintBadgeHelperEnd).toBeGreaterThan(
-            voiceprintBadgeHelperStart,
+        expect(profileVoiceprintBadge).toMatch(
+            /variant=\{[\s\S]*?\? "default"[\s\S]*?\? "outline"[\s\S]*?: "secondary"[\s\S]*?\}/,
         );
-        const voiceprintBadgeHelper = source.slice(
-            voiceprintBadgeHelperStart,
-            voiceprintBadgeHelperEnd,
+        expect(profileVoiceprintBadge).toMatch(
+            /data-speaker-review-tone=\{[\s\S]*?\? "selected"[\s\S]*?\? "ready"[\s\S]*?: "missing"[\s\S]*?\}/,
         );
-        expect(voiceprintBadgeHelper).toContain(
-            "variant={SPEAKER_REVIEW_VOICEPRINT_BADGE_VARIANTS[tone]}",
-        );
-        expect(voiceprintBadgeHelper).toContain(
-            "data-speaker-review-tone={tone}",
-        );
-        expect(voiceprintBadgeHelper).not.toContain("className=");
-        expect(source).toContain('data-speaker-review-tone="missing"');
-        expect(source).toContain('? "selected"');
-        expect(source).toContain('? "ready"');
-        expect(source).toContain(': "missing"');
 
-        const metaItemClassRefs =
-            source.match(/SPEAKER_REVIEW_META_ITEM_CLASS_NAME/g) ?? [];
-        expect(metaItemClassRefs.length).toBeGreaterThanOrEqual(9);
-        for (const { marker, ownerClassName } of [
+        const metaItemClasses =
+            source.match(
+                /className="min-w-0 truncate text-xs font-medium leading-normal text-muted-foreground"/g,
+            ) ?? [];
+        expect(metaItemClasses).toHaveLength(8);
+        for (const { marker, semanticToken } of [
             {
                 marker: 'data-speaker-review-part="speaker-review-segment-text"',
-                ownerClassName: "SPEAKER_REVIEW_SEGMENT_TEXT_CLASS_NAME",
+                semanticToken: "text-foreground",
             },
             {
                 marker: 'data-speaker-review-part="speaker-review-row-name"',
-                ownerClassName: "SPEAKER_REVIEW_ROW_NAME_CLASS_NAME",
+                semanticToken: "text-foreground",
             },
             {
                 marker: 'data-speaker-review-part="speaker-review-row-sub"',
-                ownerClassName: "SPEAKER_REVIEW_ROW_SUB_CLASS_NAME",
+                semanticToken: "text-destructive",
             },
             {
                 marker: 'data-speaker-review-part="speaker-review-section-title"',
-                ownerClassName: "SPEAKER_REVIEW_SECTION_TITLE_CLASS_NAME",
+                semanticToken: "text-foreground",
             },
             {
                 marker: 'data-speaker-review-part="speaker-review-section-description"',
-                ownerClassName: "SPEAKER_REVIEW_SECTION_DESCRIPTION_CLASS_NAME",
+                semanticToken: "text-muted-foreground",
             },
             {
                 marker: 'data-speaker-review-part="speaker-review-segment-title"',
-                ownerClassName: "SPEAKER_REVIEW_SEGMENT_TITLE_CLASS_NAME",
+                semanticToken: "text-muted-foreground",
             },
         ]) {
             const markerIndex = source.indexOf(marker);
@@ -806,7 +754,7 @@ describe("dashboard speaker label editor regressions", () => {
             const openingStart = source.lastIndexOf("<", markerIndex);
             expect(openingStart).toBeGreaterThanOrEqual(0);
             const elementSlice = source.slice(openingStart, markerIndex);
-            expect(elementSlice).toContain(ownerClassName);
+            expect(elementSlice).toContain(semanticToken);
         }
     });
 
@@ -855,9 +803,15 @@ describe("dashboard speaker label editor regressions", () => {
         expect(mappingClear).toBeDefined();
         expect(mappingClear).toContain('size="icon-xs"');
         expect(mappingClear).toContain('variant="ghost"');
-        expect(mappingClear).toMatch(
-            /className=\{\s*SPEAKER_REVIEW_MAPPING_CLEAR_BUTTON_CLASS_NAME\s*\}/,
-        );
+        expect(mappingClear).toContain('"speakerReview.clearSelectedSpeaker"');
+        expect(mappingClear).toContain("disabled={");
+        expect(mappingClear).toContain("event.preventDefault()");
+        expect(mappingClear).toContain("searchQueryRevisionRef.current += 1");
+        expect(mappingClear).toContain("setSearchQueries(");
+        expect(mappingClear).toContain("setConfirmUnlinkFor(");
+        expect(mappingClear).toContain("clearSpeakerSaveError(");
+        expect(mappingClear).toContain("setOpenPickerFor(");
+        expect(mappingClear).not.toContain("className=");
         expect(mappingClear).not.toContain('size="speakerReviewMappingClear"');
         expect(mappingClear).not.toContain(
             'variant="speakerReviewMappingClear"',
@@ -890,32 +844,32 @@ describe("dashboard speaker label editor regressions", () => {
             'data-speaker-review-part="speaker-review-merge-empty-icon"',
         );
         expect(mergeEmpty).toMatch(
-            /<EmptyTitle\s+variant="compact"\s+className=\{\s*SPEAKER_REVIEW_MERGE_EMPTY_TITLE_CLASS_NAME\s*\}\s+data-speaker-review-part="speaker-review-merge-empty-title"\s*>/,
+            /<EmptyTitle\s+variant="compact"\s+data-speaker-review-part="speaker-review-merge-empty-title"\s*>/,
         );
         expect(mergeEmpty).toMatch(
-            /<EmptyDescription\s+variant="compact"\s+className=\{\s*SPEAKER_REVIEW_MERGE_EMPTY_DESCRIPTION_CLASS_NAME\s*\}\s+data-speaker-review-part="speaker-review-merge-empty-description"\s*>/,
+            /<EmptyDescription\s+variant="compact"\s+data-speaker-review-part="speaker-review-merge-empty-description"\s*>/,
         );
         expect(mergeEmpty).not.toMatch(SPEAKER_REVIEW_PRIMITIVE_BUSINESS_RE);
         expect(mergeEmpty).not.toContain('className="max-w-none gap-0"');
         expect(mergeEmpty).not.toContain("<svg");
         expect(mergeEmpty).not.toContain("<p");
 
-        for (const { state, ownerClassName } of [
+        for (const { state, className } of [
             {
                 state: "no-detected-speakers",
-                ownerClassName: null,
+                className: null,
             },
             {
                 state: "no-samples",
-                ownerClassName: "SPEAKER_REVIEW_INLINE_EMPTY_CLASS_NAME",
+                className: "px-6 py-4 md:p-4",
             },
             {
                 state: "no-saved-speakers",
-                ownerClassName: "SPEAKER_REVIEW_INLINE_EMPTY_CLASS_NAME",
+                className: "px-6 py-4 md:p-4",
             },
             {
                 state: "no-matching-speakers",
-                ownerClassName: "SPEAKER_REVIEW_INLINE_EMPTY_CLASS_NAME",
+                className: "px-6 py-4 md:p-4",
             },
         ]) {
             const emptySlice = extractElementSlice(
@@ -928,8 +882,8 @@ describe("dashboard speaker label editor regressions", () => {
             expect(emptySlice).toContain('variant="default"');
             expect(emptySlice).toContain('<EmptyHeader variant="default">');
             expect(emptySlice).toContain('<EmptyTitle variant="default">');
-            if (ownerClassName) {
-                expect(emptySlice).toContain(ownerClassName);
+            if (className) {
+                expect(emptySlice).toContain(`className="${className}"`);
             }
             expect(emptySlice).not.toContain('variant="speakerReview');
             expect(emptySlice).not.toContain('density="speakerReview');
@@ -1045,10 +999,24 @@ describe("dashboard speaker label editor regressions", () => {
         expect(source).not.toContain('className="sp-confirm-msg"');
         expect(source).toContain("speakerReview.confirmUnlinkMessagePrefix");
         expect(source).toContain("speakerReview.confirmUnlinkMessageSuffix");
-        expect(source).toContain('variant="ghost"');
-        expect(source).toContain('variant="destructive"');
-        expect(source).toContain("SPEAKER_REVIEW_GHOST_BUTTON_CLASS_NAME");
-        expect(source).toContain("SPEAKER_REVIEW_DANGER_BUTTON_CLASS_NAME");
+        const cancelUnlink = collectOpeningElements("Button").find((opening) =>
+            opening.includes('data-speaker-review-confirm-action="cancel"'),
+        );
+        expect(cancelUnlink).toBeDefined();
+        expect(cancelUnlink).toContain('variant="ghost"');
+        expect(cancelUnlink).toContain('size="sm"');
+        expect(cancelUnlink).toContain("disabled={");
+        expect(cancelUnlink).toContain("setConfirmUnlinkFor(");
+        const confirmUnlink = collectOpeningElements("Button").find((opening) =>
+            opening.includes('data-speaker-review-confirm-action="confirm"'),
+        );
+        expect(confirmUnlink).toBeDefined();
+        expect(confirmUnlink).toContain('variant="destructive"');
+        expect(confirmUnlink).toContain('size="sm"');
+        expect(confirmUnlink).toContain("disabled={");
+        expect(confirmUnlink).toContain("handleAssignProfile(");
+        expect(confirmUnlink).toContain("speaker.rawLabel");
+        expect(confirmUnlink).toContain("null");
         expect(source).not.toContain('variant="speakerReviewGhostAction"');
         expect(source).not.toContain('variant="speakerReviewDangerAction"');
         expect(source).toContain("<ToggleGroup");
@@ -1084,13 +1052,14 @@ describe("dashboard speaker label editor regressions", () => {
         expect(source).not.toContain('className="sr-seg-speaker"');
         expect(source).not.toContain('className="sr-seg-text"');
 
-        const confirmStart = source.indexOf(
+        const confirmMarkerIndex = source.indexOf(
             'data-speaker-review-confirm="speaker-unlink"',
         );
-        const confirmEnd = source.indexOf("</SpeakerReviewCard>", confirmStart);
+        const confirmStart = source.lastIndexOf("<Card", confirmMarkerIndex);
+        const confirmEnd = source.indexOf("</Card>", confirmMarkerIndex);
         const confirmSlice = source.slice(
             confirmStart,
-            confirmEnd + "</SpeakerReviewCard>".length,
+            confirmEnd + "</Card>".length,
         );
         const openConfirmIndex = source.indexOf(
             "setConfirmUnlinkFor(\n                                                                    speaker.rawLabel",
@@ -1102,7 +1071,7 @@ describe("dashboard speaker label editor regressions", () => {
         );
 
         expect(confirmSlice).toMatch(
-            /<em\s+className=\{\s*SPEAKER_REVIEW_CONFIRM_SUBJECT_CLASS_NAME\s*\}\s+data-speaker-review-confirm-subject\s*>\s*\{matchedName\}\s*<\/em>/,
+            /<em\s+className="font-semibold not-italic"\s+data-speaker-review-confirm-subject\s*>\s*\{matchedName\}\s*<\/em>/,
         );
         expect(confirmSlice).toContain(
             "handleAssignProfile(\n                                                                    speaker.rawLabel,\n                                                                    null,",

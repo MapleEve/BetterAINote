@@ -1,5 +1,5 @@
 import { and, desc, eq, inArray } from "drizzle-orm";
-import { db } from "@/db";
+import { db, withLibraryWriteTransaction } from "@/db";
 import {
     recordings,
     recordingTagAssignments,
@@ -24,6 +24,49 @@ export class RecordingTagError extends Error {
         super(message);
         this.name = "RecordingTagError";
     }
+}
+
+function parseAssignmentTagIds(input: unknown) {
+    if (!input || typeof input !== "object" || Array.isArray(input)) {
+        throw new RecordingTagError("tagIds must be an array", 400);
+    }
+
+    const rawTagIds = (input as { tagIds?: unknown }).tagIds;
+    if (!Array.isArray(rawTagIds)) {
+        throw new RecordingTagError("tagIds must be an array", 400);
+    }
+
+    if (
+        rawTagIds.some(
+            (tagId) => typeof tagId !== "string" || tagId.trim().length === 0,
+        )
+    ) {
+        throw new RecordingTagError(
+            "tagIds must contain non-empty string values",
+            400,
+        );
+    }
+
+    return Array.from(new Set(rawTagIds.map((tagId) => tagId.trim())));
+}
+
+function isUniqueConstraintError(error: unknown) {
+    const visited = new Set<unknown>();
+    let current = error;
+
+    while (current instanceof Error && !visited.has(current)) {
+        visited.add(current);
+        if (
+            /UNIQUE constraint failed|SQLITE_CONSTRAINT_UNIQUE/i.test(
+                current.message,
+            )
+        ) {
+            return true;
+        }
+        current = (current as Error & { cause?: unknown }).cause;
+    }
+
+    return false;
 }
 
 function serializeTag(
@@ -100,10 +143,91 @@ export async function createRecordingTag(
 
         return serializeTag(tag);
     } catch (error) {
-        if (
-            error instanceof Error &&
-            error.message.includes("UNIQUE constraint failed")
-        ) {
+        if (isUniqueConstraintError(error)) {
+            throw new RecordingTagError("Tag name already exists", 409);
+        }
+
+        throw error;
+    }
+}
+
+export async function updateRecordingTag(
+    userId: string,
+    tagId: string,
+    input: {
+        name?: unknown;
+        color?: unknown;
+        icon?: unknown;
+    },
+) {
+    const [existingTag] = await db
+        .select()
+        .from(recordingTags)
+        .where(
+            and(eq(recordingTags.id, tagId), eq(recordingTags.userId, userId)),
+        )
+        .limit(1);
+
+    if (!existingTag) {
+        throw new RecordingTagError("Tag not found", 404);
+    }
+
+    const name = normalizeRecordingTagName(input.name);
+    if (!isValidRecordingTagName(name)) {
+        throw new RecordingTagError("Tag name must be 1-12 characters", 400);
+    }
+
+    const color = isRecordingTagColor(input.color)
+        ? input.color
+        : existingTag.color;
+    const icon = isRecordingTagIcon(input.icon) ? input.icon : existingTag.icon;
+
+    try {
+        const [tag] = await db
+            .update(recordingTags)
+            .set({
+                name,
+                color,
+                icon,
+                updatedAt: new Date(),
+            })
+            .where(
+                and(
+                    eq(recordingTags.id, tagId),
+                    eq(recordingTags.userId, userId),
+                ),
+            )
+            .returning();
+
+        const assignments = await db
+            .select({ recordingId: recordingTagAssignments.recordingId })
+            .from(recordingTagAssignments)
+            .where(
+                and(
+                    eq(recordingTagAssignments.userId, userId),
+                    eq(recordingTagAssignments.tagId, tagId),
+                ),
+            );
+
+        await enqueueSearchIndexJob({
+            userId,
+            entityType: "tag",
+            entityId: tag.id,
+        });
+
+        for (const recordingId of new Set(
+            assignments.map((assignment) => assignment.recordingId),
+        )) {
+            await enqueueSearchIndexJob({
+                userId,
+                entityType: "recording",
+                entityId: recordingId,
+            });
+        }
+
+        return serializeTag(tag, assignments.length);
+    } catch (error) {
+        if (isUniqueConstraintError(error)) {
             throw new RecordingTagError("Tag name already exists", 409);
         }
 
@@ -162,67 +286,91 @@ export async function deleteRecordingTag(userId: string, tagId: string) {
 export async function updateRecordingTagAssignments(
     userId: string,
     recordingId: string,
-    input: {
-        tagIds?: unknown;
-    },
+    input: unknown,
 ) {
-    const [recording] = await db
-        .select({ id: recordings.id })
-        .from(recordings)
-        .where(
-            and(eq(recordings.id, recordingId), eq(recordings.userId, userId)),
-        )
-        .limit(1);
+    const tagIds = parseAssignmentTagIds(input);
+    const tags = await withLibraryWriteTransaction(async (transaction) => {
+        const [recording] = await transaction
+            .select({ id: recordings.id })
+            .from(recordings)
+            .where(
+                and(
+                    eq(recordings.id, recordingId),
+                    eq(recordings.userId, userId),
+                ),
+            )
+            .limit(1);
 
-    if (!recording) {
-        throw new RecordingTagError("Recording not found", 404);
-    }
+        if (!recording) {
+            throw new RecordingTagError("Recording not found", 404);
+        }
 
-    const rawTagIds = Array.isArray(input.tagIds) ? input.tagIds : [];
-    const tagIds: string[] = Array.from(
-        new Set(
-            rawTagIds.filter(
-                (tagId: unknown): tagId is string =>
-                    typeof tagId === "string" && tagId.length > 0,
-            ),
-        ),
-    );
+        const selectedTags =
+            tagIds.length === 0
+                ? []
+                : await transaction
+                      .select()
+                      .from(recordingTags)
+                      .where(
+                          and(
+                              eq(recordingTags.userId, userId),
+                              inArray(recordingTags.id, tagIds),
+                          ),
+                      );
 
-    const tags =
-        tagIds.length === 0
-            ? []
-            : await db
-                  .select()
-                  .from(recordingTags)
-                  .where(
-                      and(
-                          eq(recordingTags.userId, userId),
-                          inArray(recordingTags.id, tagIds),
-                      ),
-                  );
+        if (selectedTags.length !== tagIds.length) {
+            throw new RecordingTagError("Tag not found", 404);
+        }
 
-    if (tags.length !== tagIds.length) {
-        throw new RecordingTagError("Tag not found", 404);
-    }
+        await transaction
+            .delete(recordingTagAssignments)
+            .where(
+                and(
+                    eq(recordingTagAssignments.userId, userId),
+                    eq(recordingTagAssignments.recordingId, recordingId),
+                ),
+            );
 
-    await db
-        .delete(recordingTagAssignments)
-        .where(
-            and(
-                eq(recordingTagAssignments.userId, userId),
-                eq(recordingTagAssignments.recordingId, recordingId),
-            ),
+        if (selectedTags.length > 0) {
+            await transaction.insert(recordingTagAssignments).values(
+                tagIds.map((tagId) => ({
+                    userId,
+                    recordingId,
+                    tagId,
+                })),
+            );
+        }
+
+        const persistedTagIds = await transaction
+            .select({ tagId: recordingTagAssignments.tagId })
+            .from(recordingTagAssignments)
+            .where(
+                and(
+                    eq(recordingTagAssignments.userId, userId),
+                    eq(recordingTagAssignments.recordingId, recordingId),
+                ),
+            );
+
+        const persistedTagIdSet = new Set(
+            persistedTagIds.map((assignment) => assignment.tagId),
         );
+        if (
+            persistedTagIdSet.size !== tagIds.length ||
+            tagIds.some((tagId) => !persistedTagIdSet.has(tagId))
+        ) {
+            throw new RecordingTagError(
+                "Failed to persist recording tags",
+                500,
+            );
+        }
 
-    if (tags.length > 0) {
-        await db.insert(recordingTagAssignments).values(
-            tagIds.map((tagId) => ({
-                userId,
-                recordingId,
-                tagId,
-            })),
-        );
-    }
+        const tagById = new Map(selectedTags.map((tag) => [tag.id, tag]));
+        return tagIds
+            .map((tagId) => tagById.get(tagId))
+            .filter((tag): tag is typeof recordingTags.$inferSelect =>
+                Boolean(tag),
+            );
+    });
 
     await enqueueSearchIndexJob({
         userId,
@@ -230,9 +378,5 @@ export async function updateRecordingTagAssignments(
         entityId: recordingId,
     });
 
-    const tagById = new Map(tags.map((tag) => [tag.id, tag]));
-    return tagIds
-        .map((tagId) => tagById.get(tagId))
-        .filter((tag): tag is typeof recordingTags.$inferSelect => Boolean(tag))
-        .map((tag) => serializeTag(tag));
+    return tags.map((tag) => serializeTag(tag));
 }

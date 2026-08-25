@@ -22,7 +22,7 @@ import {
 import { useLanguage } from "@/components/language-provider";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Badge } from "@/components/ui/badge";
-import { Button, type ButtonProps } from "@/components/ui/button";
+import { Button } from "@/components/ui/button";
 import {
     Card,
     CardAction,
@@ -47,6 +47,7 @@ import {
     FieldTitle,
 } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
+import { Select } from "@/components/ui/select";
 import { Separator } from "@/components/ui/separator";
 import { Spinner } from "@/components/ui/spinner";
 import { Switch } from "@/components/ui/switch";
@@ -129,119 +130,7 @@ interface ProviderStatus {
     tone: ProviderTone;
 }
 
-type SourceActionButtonTone = "neutral" | "primary" | "danger";
-
-type SourceActionButtonProps = Omit<
-    ButtonProps,
-    "className" | "size" | "variant"
-> & {
-    className?: string;
-    tone: SourceActionButtonTone;
-};
-
-type SourceActionStatusBadgeProps = Omit<
-    ComponentProps<typeof Badge>,
-    "className" | "variant"
-> & {
-    className?: string;
-    state: ProviderActionState;
-};
-
 type BadgeVariant = NonNullable<ComponentProps<typeof Badge>["variant"]>;
-
-const SOURCE_PROVIDER_THEME_CLASS = "";
-
-const SOURCE_PROVIDER_TILE_BUTTON_CLASS =
-    "grid h-auto w-full grid-cols-[28px_minmax(0,1fr)_auto] items-center justify-start gap-2.5 p-2.5 text-left whitespace-normal";
-
-const SOURCE_PROVIDER_MARK_CLASS =
-    "flex size-7 shrink-0 items-center justify-center overflow-hidden rounded-[7px] border border-border bg-background";
-
-const SOURCE_PROVIDER_META_CLASS = "flex min-w-0 flex-col gap-0.5";
-
-const SOURCE_PROVIDER_NAME_CLASS =
-    "truncate font-sans text-[13px] leading-4 font-semibold";
-
-const SOURCE_PROVIDER_HINT_CLASS =
-    "truncate font-mono text-[11.5px] leading-4 font-medium text-muted-foreground";
-
-const SETTINGS_BANNER_BASE_CLASS = "mb-4";
-
-const SETTINGS_BANNER_TITLE_CLASS = "";
-
-const SETTINGS_BANNER_DESCRIPTION_CLASS = "";
-
-const SETTINGS_SOURCE_AUTH_MODE_GROUP_CLASS =
-    "mb-4 grid w-full grid-cols-1 items-stretch sm:grid-cols-2";
-
-const SETTINGS_SOURCE_AUTH_MODE_OPTION_CLASS =
-    "h-auto flex-col items-start justify-start whitespace-normal px-3.5 py-3 text-left";
-
-const SOURCE_PROVIDERS_LIST_CLASS =
-    "flex flex-col gap-1.5 overflow-y-auto border-r border-border bg-secondary/30 px-3.5 py-4";
-
-const SOURCE_PROVIDERS_TITLE_CLASS =
-    "px-2 pt-1 pb-2 text-xs font-medium text-muted-foreground uppercase";
-
-const SOURCE_PROVIDER_DETAIL_PANEL_CLASS =
-    "min-h-0 overflow-y-auto px-[26px] py-[22px]";
-
-const SOURCE_PROVIDER_DETAIL_CARD_CLASS = "gap-0";
-
-const SOURCE_PROVIDER_DETAIL_HEADER_CLASS = "border-b px-5 py-4";
-
-const SOURCE_PROVIDER_DETAIL_CONTENT_CLASS = "flex flex-col px-5 py-4";
-
-const SOURCE_PROVIDER_DETAIL_FIELD_CLASS =
-    "border-b border-border py-3 last:border-b-0";
-
-const SOURCE_PROVIDER_DETAIL_FIELD_CONTENT_CLASS = "min-w-0";
-
-const SOURCE_PROVIDER_DETAIL_FIELD_CONTROL_CLASS = "justify-end";
-
-const SOURCE_PROVIDER_DETAIL_INPUT_CLASS = "w-full max-w-[15rem]";
-
-const SOURCE_PROVIDER_FIELDS_LIST_CLASS = "flex flex-col gap-0";
-
-const SOURCE_PROVIDER_SECTION_DIVIDER_CLASS = "my-3";
-
-const SOURCE_PROVIDER_ACTION_CLUSTER_DIVIDER_CLASS =
-    SOURCE_PROVIDER_SECTION_DIVIDER_CLASS;
-
-const SOURCE_ACTION_BUTTON_PRIMITIVE_VARIANT_BY_TONE: Record<
-    SourceActionButtonTone,
-    ButtonProps["variant"]
-> = {
-    danger: "destructive",
-    neutral: "outline",
-    primary: "default",
-};
-
-const SOURCE_ACTION_STATUS_BADGE_CLASS = "gap-1.5";
-
-const SOURCE_AUTH_MODE_BADGE_CLASS = "px-1.5";
-
-const SOURCE_PROVIDER_STATUS_BADGE_CLASS = "justify-self-end";
-
-const SOURCE_DETAIL_STATUS_BADGE_CLASS = "shrink-0";
-
-const SETTINGS_THREE_PANE_SCROLL_BODY_CLASS =
-    "grid min-h-0 grid-cols-[280px_1fr] overflow-hidden p-0";
-
-function SourceActionButton({
-    className,
-    tone,
-    ...props
-}: SourceActionButtonProps) {
-    return (
-        <Button
-            variant={SOURCE_ACTION_BUTTON_PRIMITIVE_VARIANT_BY_TONE[tone]}
-            size="xs"
-            className={className}
-            {...props}
-        />
-    );
-}
 
 function getProviderStatusBadgeVariant(tone: ProviderTone): BadgeVariant {
     if (tone === "err") return "destructive";
@@ -317,31 +206,15 @@ function SourceActionStatusIndicator({
     return <Icon aria-hidden="true" />;
 }
 
-function SourceActionStatusBadge({
-    className,
-    children,
-    state,
-    ...props
-}: SourceActionStatusBadgeProps) {
-    return (
-        <Badge
-            variant={getSourceActionStatusBadgeVariant(state)}
-            className={cn(SOURCE_ACTION_STATUS_BADGE_CLASS, className)}
-            role={state.endsWith("error") ? "alert" : "status"}
-            aria-live={state.endsWith("error") ? "assertive" : "polite"}
-            {...props}
-        >
-            <SourceActionStatusIndicator state={state} />
-            {children}
-        </Badge>
-    );
-}
-
 function hasSavedSetup(source: DataSourceDisplayState) {
     return (
         source.connected ||
         Object.values(source.secretsConfigured).some(Boolean)
     );
+}
+
+function hasConfiguredSetup(source: DataSourceDisplayState) {
+    return source.enabled || hasSavedSetup(source);
 }
 
 function isAdvancedOptionalField(field: DataSourceFormField) {
@@ -514,6 +387,20 @@ function getProviderStatus(
         };
     }
 
+    if (
+        source.syncStatus === "error" &&
+        source.lastSyncError === "permission-denied"
+    ) {
+        return {
+            description: isZh
+                ? "当前来源没有读取新录音所需的权限，请更新授权后重试。"
+                : "This source does not have permission to read new recordings. Update its authorization and try again.",
+            label: isZh ? "需要授权" : "Permission required",
+            state: "permission",
+            tone: "err",
+        };
+    }
+
     if (source.syncStatus === "error") {
         return {
             description: getPublicSyncErrorDescription(source, isZh),
@@ -567,11 +454,11 @@ function getProviderStatus(
         };
     }
 
-    if (hasSavedSetup(source)) {
+    if (hasConfiguredSetup(source)) {
         return {
             description: isZh
-                ? "已保存部分连接信息，保存后可继续用于导入。"
-                : "Some connection details are saved and can continue after saving.",
+                ? "当前已配置部分连接信息，保存后可继续用于导入。"
+                : "Some connection details are configured. Save to continue importing.",
             label: isZh ? "已配置" : "Configured",
             state: "configured",
             tone: "info",
@@ -679,13 +566,13 @@ function DataSourceProviderTile({
             type="button"
             variant={isSelected ? "secondary" : "ghost"}
             size="default"
-            className={SOURCE_PROVIDER_TILE_BUTTON_CLASS}
+            className="grid h-auto w-full grid-cols-[28px_minmax(0,1fr)_auto] items-center justify-start gap-2.5 p-2.5 text-left whitespace-normal"
             aria-controls={SOURCE_PROVIDER_DETAIL_ID}
             aria-pressed={isSelected}
             disabled={disabled}
             onClick={onSelect}
         >
-            <span className={SOURCE_PROVIDER_MARK_CLASS}>
+            <span className="flex size-7 shrink-0 items-center justify-center overflow-hidden rounded-[7px] border border-border bg-background">
                 {source.provider === "iflyrec" ? (
                     <span aria-hidden="true">讯</span>
                 ) : assetPath ? (
@@ -704,18 +591,18 @@ function DataSourceProviderTile({
                     <Icon aria-hidden="true" />
                 )}
             </span>
-            <span className={SOURCE_PROVIDER_META_CLASS}>
-                <span className={SOURCE_PROVIDER_NAME_CLASS}>
+            <span className="flex min-w-0 flex-col gap-0.5">
+                <span className="truncate font-sans text-[13px] leading-4 font-semibold">
                     {displayName}
                 </span>
-                <span className={SOURCE_PROVIDER_HINT_CLASS}>
+                <span className="truncate font-mono text-[11.5px] leading-4 font-medium text-muted-foreground">
                     {getSourceProviderStatusHint(source, language) ??
                         (isZh ? "录音来源" : "Recording source")}
                 </span>
             </span>
             <Badge
                 variant={getProviderStatusBadgeVariant(status.tone)}
-                className={SOURCE_PROVIDER_STATUS_BADGE_CLASS}
+                className="justify-self-end"
                 role="status"
                 aria-label={`${displayName}: ${status.label}`}
             >
@@ -723,40 +610,6 @@ function DataSourceProviderTile({
                 {status.label}
             </Badge>
         </Button>
-    );
-}
-
-function ProviderStateBanner({
-    description,
-    title,
-    tone,
-}: {
-    description: string;
-    title: string;
-    tone: ProviderTone;
-}) {
-    const Icon = getProviderStatusIcon(tone);
-
-    return (
-        <Alert
-            variant={tone === "err" ? "destructiveSoft" : "default"}
-            density="comfortable"
-            role={tone === "err" ? "alert" : "status"}
-            aria-live={tone === "err" ? "assertive" : "polite"}
-            className={SETTINGS_BANNER_BASE_CLASS}
-        >
-            {tone === "syncing" ? (
-                <Spinner aria-hidden="true" />
-            ) : (
-                <Icon aria-hidden="true" />
-            )}
-            <AlertTitle className={SETTINGS_BANNER_TITLE_CLASS}>
-                {title}
-            </AlertTitle>
-            <AlertDescription className={SETTINGS_BANNER_DESCRIPTION_CLASS}>
-                {description}
-            </AlertDescription>
-        </Alert>
     );
 }
 
@@ -1154,16 +1007,42 @@ export function DataSourcesSection({
         <div
             ref={scrollRef}
             aria-busy={isLoading}
-            className={cn(
-                SOURCE_PROVIDER_THEME_CLASS,
-                SETTINGS_THREE_PANE_SCROLL_BODY_CLASS,
-            )}
+            className="grid min-h-0 grid-rows-[auto_minmax(0,1fr)] overflow-hidden p-0 sm:grid-cols-[220px_minmax(0,1fr)] sm:grid-rows-1 lg:grid-cols-[280px_minmax(0,1fr)]"
         >
+            <div className="border-b border-border bg-secondary/30 px-4 py-3 sm:hidden">
+                <Select
+                    id="data-source-provider-select"
+                    aria-label={isZh ? "选择数据源" : "Select a data source"}
+                    disabled={isDataSourcesBusy}
+                    options={orderedSources.map((source) => ({
+                        label: getSourceProviderSettingsLabel(
+                            source.provider,
+                            language,
+                        ),
+                        value: source.provider,
+                    }))}
+                    placeholder={
+                        isLoading
+                            ? isZh
+                                ? "正在读取来源"
+                                : "Loading sources"
+                            : isZh
+                              ? "选择数据源"
+                              : "Select a data source"
+                    }
+                    value={selectedProvider ?? ""}
+                    onValueChange={(value) => {
+                        if (isSourceProvider(value)) {
+                            setSelectedProvider(value);
+                        }
+                    }}
+                />
+            </div>
             <aside
-                className={SOURCE_PROVIDERS_LIST_CLASS}
+                className="hidden min-h-0 flex-col gap-1.5 overflow-y-auto border-r border-border bg-secondary/30 px-3.5 py-4 sm:flex"
                 aria-label={isZh ? "数据源列表" : "Data source list"}
             >
-                <h2 className={SOURCE_PROVIDERS_TITLE_CLASS}>
+                <h2 className="px-2 pt-1 pb-2 text-xs font-medium text-muted-foreground uppercase">
                     {isZh ? "来源" : "Data Sources"} ·{" "}
                     {isLoading ? "..." : orderedSources.length}
                 </h2>
@@ -1173,15 +1052,13 @@ export function DataSourcesSection({
                         variant="destructiveSoft"
                         density="comfortable"
                         role="alert"
-                        className={SETTINGS_BANNER_BASE_CLASS}
+                        className="mb-4"
                     >
                         <AlertCircle aria-hidden="true" />
-                        <AlertTitle className={SETTINGS_BANNER_TITLE_CLASS}>
+                        <AlertTitle>
                             {isZh ? "加载失败" : "Load failed"}
                         </AlertTitle>
-                        <AlertDescription
-                            className={SETTINGS_BANNER_DESCRIPTION_CLASS}
-                        >
+                        <AlertDescription>
                             <span>{loadError}</span>
                             <Button
                                 type="button"
@@ -1244,20 +1121,12 @@ export function DataSourcesSection({
                 id={SOURCE_PROVIDER_DETAIL_ID}
                 aria-labelledby={providerDetailTitleId}
                 data-panel="source-provider-detail"
-                className={cn(
-                    SOURCE_PROVIDER_THEME_CLASS,
-                    SOURCE_PROVIDER_DETAIL_PANEL_CLASS,
-                )}
+                className="min-h-0 overflow-y-auto px-4 py-4 sm:px-5 sm:py-[22px] lg:px-[26px]"
                 aria-busy={isSourceActionStateBusy(actionState)}
             >
                 {selectedSource && status ? (
-                    <Card
-                        hasNoPadding
-                        className={SOURCE_PROVIDER_DETAIL_CARD_CLASS}
-                    >
-                        <CardHeader
-                            className={SOURCE_PROVIDER_DETAIL_HEADER_CLASS}
-                        >
+                    <Card hasNoPadding className="gap-0">
+                        <CardHeader className="border-b px-4 py-4 max-[639px]:grid-cols-1 sm:px-5">
                             <div>
                                 <CardTitle>
                                     <h3 id={providerDetailTitleId}>
@@ -1279,8 +1148,9 @@ export function DataSourcesSection({
                                     variant={getProviderStatusBadgeVariant(
                                         status.tone,
                                     )}
-                                    className={SOURCE_DETAIL_STATUS_BADGE_CLASS}
+                                    className="shrink-0"
                                     role="status"
+                                    aria-label={`${selectedSourceDisplayName}: ${status.label}`}
                                     aria-live="polite"
                                 >
                                     <ProviderStatusIndicator
@@ -1291,21 +1161,44 @@ export function DataSourcesSection({
                             </CardAction>
                         </CardHeader>
 
-                        <CardContent
-                            className={SOURCE_PROVIDER_DETAIL_CONTENT_CLASS}
-                        >
+                        <CardContent className="flex flex-col px-4 py-4 sm:px-5">
                             {shouldShowProviderStateBanner({
                                 actionMessage,
                                 status,
                             }) ? (
-                                <ProviderStateBanner
-                                    description={
-                                        actionMessage?.description ??
-                                        status.description
+                                <Alert
+                                    variant={
+                                        status.tone === "err"
+                                            ? "destructiveSoft"
+                                            : "default"
                                     }
-                                    title={actionMessage?.title ?? status.label}
-                                    tone={status.tone}
-                                />
+                                    density="comfortable"
+                                    role={
+                                        status.tone === "err"
+                                            ? "alert"
+                                            : "status"
+                                    }
+                                    aria-label={
+                                        actionMessage?.title ?? status.label
+                                    }
+                                    aria-live={
+                                        status.tone === "err"
+                                            ? "assertive"
+                                            : "polite"
+                                    }
+                                    className="mb-4"
+                                >
+                                    <ProviderStatusIndicator
+                                        tone={status.tone}
+                                    />
+                                    <AlertTitle>
+                                        {actionMessage?.title ?? status.label}
+                                    </AlertTitle>
+                                    <AlertDescription>
+                                        {actionMessage?.description ??
+                                            status.description}
+                                    </AlertDescription>
+                                </Alert>
                             ) : null}
 
                             {selectedSource.authModes.length > 1 ? (
@@ -1328,9 +1221,7 @@ export function DataSourcesSection({
                                             }),
                                         );
                                     }}
-                                    className={
-                                        SETTINGS_SOURCE_AUTH_MODE_GROUP_CLASS
-                                    }
+                                    className="mb-4 grid w-full grid-cols-1 items-stretch sm:grid-cols-2"
                                     spacing={2}
                                     type="single"
                                     value={selectedSource.authMode}
@@ -1344,9 +1235,7 @@ export function DataSourcesSection({
                                             <ToggleGroupItem
                                                 key={mode}
                                                 disabled={interactionDisabled}
-                                                className={
-                                                    SETTINGS_SOURCE_AUTH_MODE_OPTION_CLASS
-                                                }
+                                                className="h-auto flex-col items-start justify-start whitespace-normal px-3.5 py-3 text-left"
                                                 value={mode}
                                             >
                                                 <span className="flex items-center gap-2">
@@ -1362,9 +1251,7 @@ export function DataSourcesSection({
                                                                     ? "secondary"
                                                                     : "outline"
                                                             }
-                                                            className={
-                                                                SOURCE_AUTH_MODE_BADGE_CLASS
-                                                            }
+                                                            className="px-1.5"
                                                         >
                                                             {modeBadge.label}
                                                         </Badge>
@@ -1387,15 +1274,9 @@ export function DataSourcesSection({
                             ) : selectedSource.provider !== "dingtalk-a1" ? (
                                 <Field
                                     orientation="horizontal"
-                                    className={
-                                        SOURCE_PROVIDER_DETAIL_FIELD_CLASS
-                                    }
+                                    className="border-b border-border py-3 last:border-b-0 max-[639px]:flex-col max-[639px]:items-stretch"
                                 >
-                                    <FieldContent
-                                        className={
-                                            SOURCE_PROVIDER_DETAIL_FIELD_CONTENT_CLASS
-                                        }
-                                    >
+                                    <FieldContent className="min-w-0">
                                         <FieldTitle>
                                             {isZh
                                                 ? "登录方式"
@@ -1412,7 +1293,7 @@ export function DataSourcesSection({
                             ) : null}
 
                             <FieldGroup
-                                className={SOURCE_PROVIDER_FIELDS_LIST_CLASS}
+                                className="flex flex-col gap-0 max-[639px]:[&_[data-slot=field]]:flex-col max-[639px]:[&_[data-slot=field]]:items-stretch max-[639px]:[&_[data-slot=field-control]]:w-full max-[639px]:[&_[data-slot=field-control]]:justify-start max-[639px]:[&_[data-slot=field-control]>*]:max-w-none"
                                 unstyled
                             >
                                 {displayedServiceAddress &&
@@ -1427,15 +1308,9 @@ export function DataSourcesSection({
                                                 : undefined
                                         }
                                         orientation="horizontal"
-                                        className={
-                                            SOURCE_PROVIDER_DETAIL_FIELD_CLASS
-                                        }
+                                        className="border-b border-border py-3 last:border-b-0 max-[639px]:flex-col max-[639px]:items-stretch"
                                     >
-                                        <FieldContent
-                                            className={
-                                                SOURCE_PROVIDER_DETAIL_FIELD_CONTENT_CLASS
-                                            }
-                                        >
+                                        <FieldContent className="min-w-0">
                                             <FieldLabel
                                                 htmlFor={`${selectedSource.provider}-base-url`}
                                             >
@@ -1449,16 +1324,10 @@ export function DataSourcesSection({
                                                 </FieldDescription>
                                             ) : null}
                                         </FieldContent>
-                                        <FieldControl
-                                            className={
-                                                SOURCE_PROVIDER_DETAIL_FIELD_CONTROL_CLASS
-                                            }
-                                        >
+                                        <FieldControl className="justify-end max-[639px]:w-full max-[639px]:justify-start">
                                             <Input
                                                 id={`${selectedSource.provider}-base-url`}
-                                                className={
-                                                    SOURCE_PROVIDER_DETAIL_INPUT_CLASS
-                                                }
+                                                className="w-full max-w-[15rem] max-[639px]:max-w-none"
                                                 value={
                                                     displayedServiceAddress.value
                                                 }
@@ -1541,24 +1410,16 @@ export function DataSourcesSection({
                                 ) : null}
                             </FieldGroup>
 
-                            <Separator
-                                className={
-                                    SOURCE_PROVIDER_SECTION_DIVIDER_CLASS
-                                }
-                            />
+                            <Separator className="my-3" />
 
                             <Field
                                 data-disabled={
                                     interactionDisabled ? "true" : undefined
                                 }
                                 orientation="horizontal"
-                                className={SOURCE_PROVIDER_DETAIL_FIELD_CLASS}
+                                className="border-b border-border py-3 last:border-b-0 max-[639px]:flex-col max-[639px]:items-stretch"
                             >
-                                <FieldContent
-                                    className={
-                                        SOURCE_PROVIDER_DETAIL_FIELD_CONTENT_CLASS
-                                    }
-                                >
+                                <FieldContent className="min-w-0">
                                     <FieldLabel
                                         htmlFor={automaticUpdatesFieldId}
                                     >
@@ -1574,11 +1435,7 @@ export function DataSourcesSection({
                                             : "Read new recordings every 15 minutes"}
                                     </FieldDescription>
                                 </FieldContent>
-                                <FieldControl
-                                    className={
-                                        SOURCE_PROVIDER_DETAIL_FIELD_CONTROL_CLASS
-                                    }
-                                >
+                                <FieldControl className="justify-end max-[639px]:w-full max-[639px]:justify-start">
                                     <Switch
                                         id={automaticUpdatesFieldId}
                                         aria-describedby={
@@ -1619,16 +1476,10 @@ export function DataSourcesSection({
                                                 : undefined
                                         }
                                         orientation="horizontal"
-                                        className={
-                                            SOURCE_PROVIDER_DETAIL_FIELD_CLASS
-                                        }
+                                        className="border-b border-border py-3 last:border-b-0 max-[639px]:flex-col max-[639px]:items-stretch"
                                         key={field.id}
                                     >
-                                        <FieldContent
-                                            className={
-                                                SOURCE_PROVIDER_DETAIL_FIELD_CONTENT_CLASS
-                                            }
-                                        >
+                                        <FieldContent className="min-w-0">
                                             <FieldLabel
                                                 htmlFor={titleWritebackFieldId}
                                             >
@@ -1640,11 +1491,7 @@ export function DataSourcesSection({
                                                 }
                                             </FieldDescription>
                                         </FieldContent>
-                                        <FieldControl
-                                            className={
-                                                SOURCE_PROVIDER_DETAIL_FIELD_CONTROL_CLASS
-                                            }
-                                        >
+                                        <FieldControl className="justify-end max-[639px]:w-full max-[639px]:justify-start">
                                             <Switch
                                                 id={titleWritebackFieldId}
                                                 checked={Boolean(
@@ -1669,13 +1516,9 @@ export function DataSourcesSection({
                                     interactionDisabled ? "true" : undefined
                                 }
                                 orientation="horizontal"
-                                className={SOURCE_PROVIDER_DETAIL_FIELD_CLASS}
+                                className="border-b border-border py-3 last:border-b-0 max-[639px]:flex-col max-[639px]:items-stretch"
                             >
-                                <FieldContent
-                                    className={
-                                        SOURCE_PROVIDER_DETAIL_FIELD_CONTENT_CLASS
-                                    }
-                                >
+                                <FieldContent className="min-w-0">
                                     <FieldLabel
                                         htmlFor={`${selectedSource.provider}-enabled`}
                                     >
@@ -1687,11 +1530,7 @@ export function DataSourcesSection({
                                             : "Turn off to stop reading new recordings from this source."}
                                     </FieldDescription>
                                 </FieldContent>
-                                <FieldControl
-                                    className={
-                                        SOURCE_PROVIDER_DETAIL_FIELD_CONTROL_CLASS
-                                    }
-                                >
+                                <FieldControl className="justify-end max-[639px]:w-full max-[639px]:justify-start">
                                     <Switch
                                         id={`${selectedSource.provider}-enabled`}
                                         checked={selectedSource.enabled}
@@ -1709,23 +1548,40 @@ export function DataSourcesSection({
                                 </FieldControl>
                             </Field>
 
-                            <Separator
-                                className={
-                                    SOURCE_PROVIDER_ACTION_CLUSTER_DIVIDER_CLASS
-                                }
-                            />
+                            <Separator className="my-3" />
 
-                            <footer className="flex items-center justify-start gap-2">
+                            <footer className="flex flex-wrap items-center justify-start gap-2">
                                 {actionMessage?.title ? (
-                                    <SourceActionStatusBadge
-                                        state={actionMessage.state}
+                                    <Badge
+                                        variant={getSourceActionStatusBadgeVariant(
+                                            actionMessage.state,
+                                        )}
+                                        className="gap-1.5"
+                                        role={
+                                            actionMessage.state.endsWith(
+                                                "error",
+                                            )
+                                                ? "alert"
+                                                : "status"
+                                        }
+                                        aria-live={
+                                            actionMessage.state.endsWith(
+                                                "error",
+                                            )
+                                                ? "assertive"
+                                                : "polite"
+                                        }
                                     >
+                                        <SourceActionStatusIndicator
+                                            state={actionMessage.state}
+                                        />
                                         {actionMessage.title}
-                                    </SourceActionStatusBadge>
+                                    </Badge>
                                 ) : null}
-                                <SourceActionButton
+                                <Button
                                     type="button"
-                                    tone="neutral"
+                                    variant="outline"
+                                    size="xs"
                                     disabled={interactionDisabled}
                                     aria-busy={actionState === "testing"}
                                     onClick={() =>
@@ -1749,10 +1605,11 @@ export function DataSourcesSection({
                                           : isZh
                                             ? "测试连接"
                                             : "Test"}
-                                </SourceActionButton>
-                                <SourceActionButton
+                                </Button>
+                                <Button
                                     type="button"
-                                    tone="primary"
+                                    variant="default"
+                                    size="xs"
                                     disabled={interactionDisabled}
                                     aria-busy={actionState === "saving"}
                                     onClick={() =>
@@ -1776,7 +1633,7 @@ export function DataSourcesSection({
                                           : isZh
                                             ? "保存"
                                             : "Save"}
-                                </SourceActionButton>
+                                </Button>
                             </footer>
 
                             <Field
@@ -1784,13 +1641,9 @@ export function DataSourcesSection({
                                     interactionDisabled ? "true" : undefined
                                 }
                                 orientation="horizontal"
-                                className={SOURCE_PROVIDER_DETAIL_FIELD_CLASS}
+                                className="border-b border-border py-3 last:border-b-0 max-[639px]:flex-col max-[639px]:items-stretch"
                             >
-                                <FieldContent
-                                    className={
-                                        SOURCE_PROVIDER_DETAIL_FIELD_CONTENT_CLASS
-                                    }
-                                >
+                                <FieldContent className="min-w-0">
                                     <FieldTitle>
                                         {isZh ? "重新连接" : "Reconnect"}
                                     </FieldTitle>
@@ -1800,14 +1653,11 @@ export function DataSourcesSection({
                                             : "Clear current credentials, then sign in again."}
                                     </FieldDescription>
                                 </FieldContent>
-                                <FieldControl
-                                    className={
-                                        SOURCE_PROVIDER_DETAIL_FIELD_CONTROL_CLASS
-                                    }
-                                >
-                                    <SourceActionButton
+                                <FieldControl className="justify-end max-[639px]:w-full max-[639px]:justify-start">
+                                    <Button
                                         type="button"
-                                        tone="neutral"
+                                        variant="outline"
+                                        size="xs"
                                         disabled={interactionDisabled}
                                         aria-busy={
                                             actionState === "reconnecting"
@@ -1829,7 +1679,7 @@ export function DataSourcesSection({
                                               : isZh
                                                 ? "重新连接"
                                                 : "Reconnect"}
-                                    </SourceActionButton>
+                                    </Button>
                                 </FieldControl>
                             </Field>
 
@@ -1838,13 +1688,9 @@ export function DataSourcesSection({
                                     interactionDisabled ? "true" : undefined
                                 }
                                 orientation="horizontal"
-                                className={SOURCE_PROVIDER_DETAIL_FIELD_CLASS}
+                                className="border-b border-border py-3 last:border-b-0 max-[639px]:flex-col max-[639px]:items-stretch"
                             >
-                                <FieldContent
-                                    className={
-                                        SOURCE_PROVIDER_DETAIL_FIELD_CONTENT_CLASS
-                                    }
-                                >
+                                <FieldContent className="min-w-0">
                                     <FieldTitle>
                                         {isZh ? "断开连接" : "Disconnect"}
                                     </FieldTitle>
@@ -1854,14 +1700,11 @@ export function DataSourcesSection({
                                             : `Remove ${selectedSourceDisplayName} authorization from this account.`}
                                     </FieldDescription>
                                 </FieldContent>
-                                <FieldControl
-                                    className={
-                                        SOURCE_PROVIDER_DETAIL_FIELD_CONTROL_CLASS
-                                    }
-                                >
-                                    <SourceActionButton
+                                <FieldControl className="justify-end max-[639px]:w-full max-[639px]:justify-start">
+                                    <Button
                                         type="button"
-                                        tone="danger"
+                                        variant="destructive"
+                                        size="xs"
                                         disabled={interactionDisabled}
                                         aria-busy={
                                             actionState === "disconnecting"
@@ -1883,7 +1726,7 @@ export function DataSourcesSection({
                                               : isZh
                                                 ? "断开连接"
                                                 : "Disconnect"}
-                                    </SourceActionButton>
+                                    </Button>
                                 </FieldControl>
                             </Field>
                         </CardContent>

@@ -19,14 +19,6 @@ import { cn } from "@/lib/utils";
 const SENSITIVE_FIELD_PATTERN =
     /sensitive|secret|token|cookie|header|payload|password|credential|authorization/i;
 
-const ONBOARDING_SOURCE_FIELD_GROUP_CLASS_NAME = "gap-0";
-const ONBOARDING_SOURCE_FIELD_CLASS_NAME =
-    "flex flex-col gap-3 border-b border-border py-3 last:border-b-0 @md/field-group:flex-row @md/field-group:items-center @md/field-group:gap-4";
-const ONBOARDING_SOURCE_FIELD_CONTENT_CLASS_NAME =
-    "w-full min-w-0 gap-1 @md/field-group:w-auto @md/field-group:flex-auto";
-const ONBOARDING_SOURCE_FIELD_CONTROL_CLASS_NAME =
-    "flex w-full min-w-0 flex-none items-center gap-2 @md/field-group:w-auto @md/field-group:justify-end";
-
 function isSensitiveProviderField(field: DataSourceFormField) {
     return (
         field.target === "secret" ||
@@ -103,14 +95,14 @@ export function DataSourceFieldControl({
             orientation={isOnboardingVariant ? "responsive" : "horizontal"}
             className={
                 isOnboardingVariant
-                    ? ONBOARDING_SOURCE_FIELD_CLASS_NAME
+                    ? "border-b border-border py-3 last:border-b-0 @md/field-group:gap-4"
                     : undefined
             }
         >
             <FieldContent
                 className={
                     isOnboardingVariant
-                        ? ONBOARDING_SOURCE_FIELD_CONTENT_CLASS_NAME
+                        ? "min-w-0 gap-1 @md/field-group:flex-auto"
                         : undefined
                 }
             >
@@ -124,7 +116,7 @@ export function DataSourceFieldControl({
             <FieldControl
                 className={
                     isOnboardingVariant
-                        ? ONBOARDING_SOURCE_FIELD_CONTROL_CLASS_NAME
+                        ? "min-w-0 @md/field-group:justify-end"
                         : undefined
                 }
             >
@@ -197,11 +189,7 @@ export function DataSourceFieldControl({
     );
 
     if (isOnboardingVariant) {
-        return (
-            <FieldGroup className={ONBOARDING_SOURCE_FIELD_GROUP_CLASS_NAME}>
-                {control}
-            </FieldGroup>
-        );
+        return <FieldGroup className="gap-0">{control}</FieldGroup>;
     }
 
     return control;

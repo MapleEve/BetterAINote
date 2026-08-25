@@ -11,6 +11,12 @@ test("Settings dialog removes closed content from focus and accessibility paths 
     await page.setViewportSize({ width: 1440, height: 900 });
     await ensureSignedIn(page);
 
+    await expect(
+        page.locator(
+            '[data-shell="dashboard-workstation"][data-hydrated="true"]',
+        ),
+    ).toBeVisible();
+
     const trigger = page.locator('[data-control="dashboard-settings"]');
     const dialog = settingsDialog(page);
 
@@ -23,6 +29,7 @@ test("Settings dialog removes closed content from focus and accessibility paths 
     await expect(page.getByRole("dialog")).toHaveCount(0);
 
     await trigger.click();
+    await expect(trigger).toHaveAttribute("data-state", "open");
     await expect(dialog).toBeVisible();
     await expect(
         dialog.getByRole("button", { name: /^(数据源|Data Sources)$/ }),

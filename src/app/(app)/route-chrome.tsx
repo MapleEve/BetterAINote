@@ -39,13 +39,6 @@ const routeFallbackWorkspaceSingleClassName =
 const routeFallbackSurfaceClassName =
     "min-h-0 gap-0 overflow-hidden rounded-2xl border-border bg-card shadow-sm backdrop-blur-none";
 
-const recordingDetailLoadingSkeletonClassNames = {
-    recordingDetailLoadingAvatar: "size-8 rounded-full",
-    recordingDetailLoadingBar: "h-2 w-20 rounded",
-    recordingDetailLoadingBar60: "h-2 w-3/5 rounded",
-    recordingDetailLoadingBar90: "h-2 w-11/12 rounded",
-} as const;
-
 const routeFallbackEmptyDetailClassName = cn(
     routeFallbackSurfaceClassName,
     "flex min-w-0 flex-col gap-4",
@@ -93,6 +86,7 @@ function RouteFallbackChrome({
                         alt=""
                         width={36}
                         height={36}
+                        unoptimized
                         className={routeFallbackBrandImageClassName}
                     />
                     <div className={routeFallbackBrandTextClassName}>
@@ -215,50 +209,38 @@ function RouteFallbackDetailLoadingSkeleton({
                     <Skeleton
                         variant="default"
                         size="default"
-                        className={
-                            recordingDetailLoadingSkeletonClassNames.recordingDetailLoadingAvatar
-                        }
+                        className="size-8 rounded-full"
                     />
                     <Skeleton
                         variant="default"
                         size="default"
-                        className={
-                            recordingDetailLoadingSkeletonClassNames.recordingDetailLoadingBar
-                        }
+                        className="h-2 w-20 rounded"
                     />
                 </div>
                 <div className="flex items-center gap-3">
                     <Skeleton
                         variant="default"
                         size="default"
-                        className={
-                            recordingDetailLoadingSkeletonClassNames.recordingDetailLoadingBar
-                        }
+                        className="h-2 w-20 rounded"
                     />
                     <Skeleton
                         variant="default"
                         size="default"
-                        className={
-                            recordingDetailLoadingSkeletonClassNames.recordingDetailLoadingBar60
-                        }
+                        className="h-2 w-3/5 rounded"
                     />
                 </div>
                 <div className="flex items-center border-b border-border px-3.5 py-3">
                     <Skeleton
                         variant="default"
                         size="default"
-                        className={
-                            recordingDetailLoadingSkeletonClassNames.recordingDetailLoadingBar
-                        }
+                        className="h-2 w-20 rounded"
                     />
                 </div>
                 <div className="min-h-0 flex-1">
                     <Skeleton
                         variant="default"
                         size="default"
-                        className={
-                            recordingDetailLoadingSkeletonClassNames.recordingDetailLoadingBar90
-                        }
+                        className="h-2 w-11/12 rounded"
                     />
                 </div>
             </div>

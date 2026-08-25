@@ -47,6 +47,29 @@ async function readCoreColumnNames(databasePath: string) {
     }
 }
 
+async function readColumnNames(databasePath: string, table: string) {
+    const client = createClient({ url: pathToFileURL(databasePath).href });
+    try {
+        const result = await client.execute(`PRAGMA table_info(${table})`);
+        return result.rows.map((row) => String(row.name));
+    } finally {
+        await client.close();
+    }
+}
+
+async function hasTable(databasePath: string, table: string) {
+    const client = createClient({ url: pathToFileURL(databasePath).href });
+    try {
+        const result = await client.execute({
+            sql: "SELECT 1 FROM sqlite_master WHERE type = 'table' AND name = ?",
+            args: [table],
+        });
+        return result.rows.length === 1;
+    } finally {
+        await client.close();
+    }
+}
+
 describe("preview database foundation", () => {
     it("derives a rebuildable search sidecar next to the business databases", () => {
         expect(getDatabaseLayout("/tmp/betterainote.db")).toMatchObject({
@@ -143,6 +166,8 @@ describe("preview database foundation", () => {
         expect(migration).not.toContain("content=''");
         expect(migration).toContain("CREATE TABLE `search_index_jobs`");
         expect(migration).toContain("CREATE TABLE `search_tombstones`");
+        expect(migration).toContain("`idempotency_key` text");
+        expect(migration).toContain("search_index_jobs_idempotency_key_unique");
         expect(migration).toContain("`index_version` integer");
         expect(migration).toContain("`content_hash` text NOT NULL");
         expect(migration).toContain(
@@ -150,6 +175,16 @@ describe("preview database foundation", () => {
         );
         expect(migration).not.toContain("provider_payload");
         expect(migration).not.toContain("source_report");
+
+        const voiceprintsMigration = readProjectFile(
+            "db/migrations/voiceprints/0000_voiceprints_baseline.sql",
+        );
+        expect(voiceprintsMigration).toContain(
+            "CREATE TABLE `speaker_profile_retry_authorizations`",
+        );
+        expect(voiceprintsMigration).toContain(
+            "speaker_profile_retry_authorizations_nonce_unique",
+        );
     });
 
     it("wires the search shard through runtime migration and E2E setup", () => {
@@ -192,6 +227,66 @@ describe("preview database foundation", () => {
             expect(await readCoreColumnNames(databasePath)).toContain(
                 "default_transcription_provider",
             );
+        } finally {
+            rmSync(tempDir, { force: true, recursive: true });
+        }
+    });
+
+    it("keeps speaker retry durability available for fresh and already-migrated preview shards", async () => {
+        const tempDir = mkdtempSync(
+            path.join(os.tmpdir(), "betterainote-speaker-retry-migration-"),
+        );
+        const databasePath = path.join(tempDir, "preview.db");
+        const layout = getDatabaseLayout(databasePath);
+
+        try {
+            runMigrate(databasePath);
+
+            expect(
+                await readColumnNames(layout.search, "search_index_jobs"),
+            ).toContain("idempotency_key");
+            expect(
+                await hasTable(
+                    layout.voiceprints,
+                    "speaker_profile_retry_authorizations",
+                ),
+            ).toBe(true);
+
+            const searchClient = createClient({
+                url: pathToFileURL(layout.search).href,
+            });
+            const voiceprintsClient = createClient({
+                url: pathToFileURL(layout.voiceprints).href,
+            });
+            try {
+                await searchClient.execute(
+                    "DROP INDEX search_index_jobs_idempotency_key_unique",
+                );
+                await searchClient.execute(
+                    "ALTER TABLE search_index_jobs DROP COLUMN idempotency_key",
+                );
+                await voiceprintsClient.execute(
+                    "DROP TABLE speaker_profile_retry_authorizations",
+                );
+            } finally {
+                await Promise.all([
+                    searchClient.close(),
+                    voiceprintsClient.close(),
+                ]);
+            }
+
+            runMigrate(databasePath);
+            runMigrate(databasePath);
+
+            expect(
+                await readColumnNames(layout.search, "search_index_jobs"),
+            ).toContain("idempotency_key");
+            expect(
+                await hasTable(
+                    layout.voiceprints,
+                    "speaker_profile_retry_authorizations",
+                ),
+            ).toBe(true);
         } finally {
             rmSync(tempDir, { force: true, recursive: true });
         }

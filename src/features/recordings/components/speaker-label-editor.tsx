@@ -9,7 +9,6 @@ import {
     Volume2,
     X,
 } from "lucide-react";
-import type { ComponentProps } from "react";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { toast } from "sonner";
 import { useLanguage } from "@/components/language-provider";
@@ -52,7 +51,6 @@ import {
 import { formatDateTime } from "@/lib/format-date";
 import { startBrowserTimeout } from "@/lib/platform/browser-shell";
 import { writeBrowserClipboardText } from "@/lib/platform/clipboard";
-import { cn } from "@/lib/utils";
 
 interface SpeakerProfile {
     id: string;
@@ -95,224 +93,6 @@ interface SpeakerSaveError {
     rawLabel: string;
     profileId: string | null;
     profileName: string | undefined;
-}
-
-const SPEAKER_REVIEW_CARD_CLASS_NAMES = {
-    transcript: "gap-0",
-    row: "grid items-center gap-2.5 overflow-visible rounded-md border-(--card-elevated-border) bg-(--card-elevated-bg) px-3 py-2.5",
-    mergePopover:
-        "w-80 min-w-72 gap-0 overflow-hidden rounded-[12px] border-(--card-popover-border) bg-(--card-popover-bg) p-0 shadow-(--card-popover-shadow) backdrop-blur-none",
-    confirm:
-        "flex-row items-center gap-2.5 overflow-visible border-destructive/30 bg-destructive/5 p-3 text-sm",
-} as const;
-
-const SPEAKER_REVIEW_CARD_HEADER_CLASS_NAMES = {
-    transcript:
-        "flex items-center justify-between gap-2.5 px-4 pt-3 pb-2 max-[860px]:flex-col max-[860px]:items-stretch",
-    mergePopover:
-        "flex flex-row items-center justify-between gap-2.5 border-b border-(--card-popover-divider) px-3 py-2.5 [.border-b]:pb-2.5",
-} as const;
-
-const SPEAKER_REVIEW_CARD_TITLE_CLASS_NAMES = {
-    title: "leading-none font-semibold",
-    mergeTitle: "relative top-px text-xs font-semibold leading-normal",
-} as const;
-
-const SPEAKER_REVIEW_CARD_CONTENT_CLASS_NAMES = {
-    transcript: "px-4 pb-4",
-    mergePopover: "p-0",
-} as const;
-
-const SPEAKER_REVIEW_CARD_DESCRIPTION_CLASS_NAME =
-    "text-sm text-muted-foreground";
-
-const SPEAKER_REVIEW_CARD_ACTION_CLASS_NAME =
-    "flex min-w-0 flex-wrap items-center justify-end gap-1.5 max-[860px]:justify-start";
-const SPEAKER_REVIEW_MERGE_CARD_ACTION_CLASS_NAME =
-    "self-auto justify-self-auto leading-none";
-
-const SPEAKER_REVIEW_ACTION_BUTTON_CLASS_NAME = "min-w-0";
-const SPEAKER_REVIEW_PRIMARY_BUTTON_CLASS_NAME = "min-w-0";
-const SPEAKER_REVIEW_GHOST_BUTTON_CLASS_NAME = "min-w-0";
-const SPEAKER_REVIEW_DANGER_BUTTON_CLASS_NAME = "min-w-0";
-const SPEAKER_REVIEW_SUGGESTION_BUTTON_CLASS_NAME =
-    "grid h-auto min-h-8 w-full grid-cols-[minmax(0,1fr)_auto] justify-stretch gap-2 whitespace-normal px-2 py-1.5 text-left has-[>svg]:px-2 data-[speaker-review-state=create]:grid-cols-1";
-const SPEAKER_REVIEW_ICON_BUTTON_CLASS_NAME =
-    "shrink-0 rounded-[8px] border border-transparent text-(--fg-secondary)";
-const SPEAKER_REVIEW_MODE_ITEM_CLASS_NAME = "px-2.5";
-const SPEAKER_REVIEW_ERROR_ALERT_CLASS_NAME =
-    "grid w-full gap-2 px-3 py-2.5 text-sm leading-normal";
-const SPEAKER_REVIEW_ERROR_TITLE_CLASS_NAME =
-    "min-h-0 font-medium leading-normal tracking-normal";
-const SPEAKER_REVIEW_ERROR_DESCRIPTION_CLASS_NAME =
-    "flex items-center gap-2 text-xs leading-normal text-current";
-const SPEAKER_REVIEW_INLINE_EMPTY_CLASS_NAME = "px-6 py-4 md:p-4";
-const SPEAKER_REVIEW_MERGE_EMPTY_CLASS_NAME =
-    "px-4 py-[22px] text-pretty md:px-4 md:py-[22px]";
-const SPEAKER_REVIEW_HEADER_COPY_CLASS_NAME =
-    "flex min-w-0 items-center gap-2.5";
-const SPEAKER_REVIEW_META_LIST_CLASS_NAME =
-    "my-4 grid grid-cols-2 gap-x-3.5 gap-y-1.5 max-[640px]:grid-cols-1";
-const SPEAKER_REVIEW_TRANSCRIPT_SECTION_CLASS_NAME =
-    "flex flex-col gap-2 border-t pt-2";
-const SPEAKER_REVIEW_CONFIRM_MESSAGE_CLASS_NAME = "min-w-0 flex-1";
-const SPEAKER_REVIEW_CONFIRM_SUBJECT_CLASS_NAME = "font-semibold not-italic";
-const SPEAKER_REVIEW_ERROR_ACTION_CLASS_NAME = "min-w-0 w-fit";
-const SPEAKER_REVIEW_MERGE_EMPTY_TITLE_CLASS_NAME = "mb-0.5 leading-[normal]";
-const SPEAKER_REVIEW_MERGE_EMPTY_DESCRIPTION_CLASS_NAME = "leading-[normal]";
-const SPEAKER_REVIEW_MAPPING_CLEAR_BUTTON_CLASS_NAME = "shrink-0";
-const SPEAKER_REVIEW_META_ITEM_CLASS_NAME =
-    "min-w-0 truncate text-xs font-medium leading-normal text-muted-foreground";
-const SPEAKER_REVIEW_SECTION_DESCRIPTION_CLASS_NAME =
-    "m-0 text-xs font-medium leading-normal text-muted-foreground max-[860px]:whitespace-normal max-[860px]:break-words";
-const SPEAKER_REVIEW_SEGMENT_TITLE_CLASS_NAME =
-    "m-0 text-xs font-semibold leading-normal text-muted-foreground";
-const SPEAKER_REVIEW_SEGMENT_TEXT_CLASS_NAME =
-    "m-0 text-sm font-medium leading-relaxed text-pretty text-foreground max-[860px]:whitespace-normal max-[860px]:break-words";
-const SPEAKER_REVIEW_ROW_NAME_CLASS_NAME =
-    "m-0 text-[13px]! font-semibold leading-[1.35]! text-(--fg-primary)!";
-const SPEAKER_REVIEW_SECTION_TITLE_CLASS_NAME =
-    "m-0 text-sm font-semibold leading-snug text-foreground";
-const SPEAKER_REVIEW_ROW_SUB_CLASS_NAME =
-    "m-0 font-mono text-[11.5px] font-medium leading-[1.4] tracking-[0.02em] text-(--fg-tertiary) data-[speaker-review-tone=danger]:text-destructive max-[860px]:whitespace-normal max-[860px]:break-words";
-
-type ClassNameProp = {
-    className?: string;
-};
-
-type SpeakerReviewVoiceprintTone = "missing" | "ready" | "selected";
-
-type SpeakerReviewVoiceprintBadgeVariant = NonNullable<
-    ComponentProps<typeof Badge>["variant"]
->;
-
-const SPEAKER_REVIEW_VOICEPRINT_BADGE_VARIANTS = {
-    missing: "secondary",
-    ready: "outline",
-    selected: "default",
-} satisfies Record<
-    SpeakerReviewVoiceprintTone,
-    SpeakerReviewVoiceprintBadgeVariant
->;
-
-function SpeakerReviewCard({
-    className,
-    surface,
-    ...props
-}: Omit<ComponentProps<typeof Card>, "className" | "variant"> &
-    ClassNameProp & {
-        surface: keyof typeof SPEAKER_REVIEW_CARD_CLASS_NAMES;
-    }) {
-    return (
-        <Card
-            className={cn(SPEAKER_REVIEW_CARD_CLASS_NAMES[surface], className)}
-            {...props}
-        />
-    );
-}
-
-function SpeakerReviewCardHeader({
-    className,
-    surface,
-    ...props
-}: Omit<ComponentProps<typeof CardHeader>, "className" | "variant"> &
-    ClassNameProp & {
-        surface: keyof typeof SPEAKER_REVIEW_CARD_HEADER_CLASS_NAMES;
-    }) {
-    return (
-        <CardHeader
-            className={cn(
-                SPEAKER_REVIEW_CARD_HEADER_CLASS_NAMES[surface],
-                className,
-            )}
-            {...props}
-        />
-    );
-}
-
-function SpeakerReviewCardTitle({
-    className,
-    surface,
-    ...props
-}: Omit<ComponentProps<typeof CardTitle>, "className" | "variant"> &
-    ClassNameProp & {
-        surface: keyof typeof SPEAKER_REVIEW_CARD_TITLE_CLASS_NAMES;
-    }) {
-    return (
-        <CardTitle
-            className={cn(
-                SPEAKER_REVIEW_CARD_TITLE_CLASS_NAMES[surface],
-                className,
-            )}
-            {...props}
-        />
-    );
-}
-
-function SpeakerReviewCardDescription({
-    className,
-    ...props
-}: Omit<ComponentProps<typeof CardDescription>, "className" | "variant"> &
-    ClassNameProp) {
-    return (
-        <CardDescription
-            className={cn(
-                SPEAKER_REVIEW_CARD_DESCRIPTION_CLASS_NAME,
-                className,
-            )}
-            {...props}
-        />
-    );
-}
-
-function SpeakerReviewCardAction({
-    className,
-    ...props
-}: Omit<ComponentProps<typeof CardAction>, "className" | "variant"> &
-    ClassNameProp) {
-    return (
-        <CardAction
-            className={cn(SPEAKER_REVIEW_CARD_ACTION_CLASS_NAME, className)}
-            {...props}
-        />
-    );
-}
-
-function SpeakerReviewCardContent({
-    className,
-    surface,
-    ...props
-}: Omit<ComponentProps<typeof CardContent>, "className" | "variant"> &
-    ClassNameProp & {
-        surface: keyof typeof SPEAKER_REVIEW_CARD_CONTENT_CLASS_NAMES;
-    }) {
-    return (
-        <CardContent
-            className={cn(
-                SPEAKER_REVIEW_CARD_CONTENT_CLASS_NAMES[surface],
-                className,
-            )}
-            {...props}
-        />
-    );
-}
-
-function SpeakerReviewVoiceprintBadge({
-    "data-speaker-review-tone": tone,
-    ...props
-}: Omit<
-    ComponentProps<typeof Badge>,
-    "className" | "data-speaker-review-tone" | "variant"
-> & {
-    "data-speaker-review-tone": SpeakerReviewVoiceprintTone;
-}) {
-    return (
-        <Badge
-            variant={SPEAKER_REVIEW_VOICEPRINT_BADGE_VARIANTS[tone]}
-            data-speaker-review-tone={tone}
-            {...props}
-        />
-    );
 }
 
 function formatSegmentWindow(startMs: number | null, endMs: number | null) {
@@ -916,17 +696,17 @@ export function SpeakerLabelEditor({
                         : "empty"
             }
         >
-            <SpeakerReviewCard
+            <Card
                 hasNoPadding
-                surface="transcript"
+                className="gap-0"
                 data-speaker-review-part="speaker-review-transcript-card"
             >
-                <SpeakerReviewCardHeader
-                    surface="transcript"
+                <CardHeader
+                    className="flex items-center justify-between gap-2.5 px-4 pt-3 pb-2 max-[860px]:flex-col max-[860px]:items-stretch"
                     data-speaker-review-part="speaker-review-header"
                 >
                     <div
-                        className={SPEAKER_REVIEW_HEADER_COPY_CLASS_NAME}
+                        className="flex min-w-0 items-center gap-2.5"
                         data-speaker-review-part="speaker-review-header-copy"
                     >
                         <FileText
@@ -936,18 +716,18 @@ export function SpeakerLabelEditor({
                             focusable="false"
                         />
                         <div className="min-w-0">
-                            <SpeakerReviewCardTitle
-                                surface="title"
-                                data-speaker-review-part="speaker-review-title"
-                            >
+                            <CardTitle data-speaker-review-part="speaker-review-title">
                                 {t("speakerReview.transcriptReviewTitle")}
-                            </SpeakerReviewCardTitle>
-                            <SpeakerReviewCardDescription data-speaker-review-part="speaker-review-description">
+                            </CardTitle>
+                            <CardDescription data-speaker-review-part="speaker-review-description">
                                 {t("speakerReview.transcriptReviewDescription")}
-                            </SpeakerReviewCardDescription>
+                            </CardDescription>
                         </div>
                     </div>
-                    <SpeakerReviewCardAction data-speaker-review-part="speaker-review-actions">
+                    <CardAction
+                        className="flex min-w-0 flex-wrap items-center justify-end gap-1.5 max-[860px]:justify-start"
+                        data-speaker-review-part="speaker-review-actions"
+                    >
                         <ToggleGroup
                             type="single"
                             value={reviewMode}
@@ -965,14 +745,14 @@ export function SpeakerLabelEditor({
                         >
                             <ToggleGroupItem
                                 value="speaker"
-                                className={SPEAKER_REVIEW_MODE_ITEM_CLASS_NAME}
+                                className="px-2.5"
                                 data-speaker-review-control="speaker-review-mode-option"
                             >
                                 {t("speakerReview.speakerNamesMode")}
                             </ToggleGroupItem>
                             <ToggleGroupItem
                                 value="raw"
-                                className={SPEAKER_REVIEW_MODE_ITEM_CLASS_NAME}
+                                className="px-2.5"
                                 data-speaker-review-control="speaker-review-mode-option"
                             >
                                 {t("speakerReview.rawLabelsMode")}
@@ -982,7 +762,6 @@ export function SpeakerLabelEditor({
                             type="button"
                             variant="default"
                             size="sm"
-                            className={SPEAKER_REVIEW_PRIMARY_BUTTON_CLASS_NAME}
                             onClick={handleCopyRawTranscript}
                             disabled={
                                 isCopyingRawTranscript ||
@@ -1007,7 +786,6 @@ export function SpeakerLabelEditor({
                             type="button"
                             variant="ghost"
                             size="sm"
-                            className={SPEAKER_REVIEW_GHOST_BUTTON_CLASS_NAME}
                             onClick={() => void refreshTranscriptReview()}
                             disabled={isReviewLoading}
                             data-speaker-review-control="speaker-review-refresh"
@@ -1031,9 +809,6 @@ export function SpeakerLabelEditor({
                                     type="button"
                                     variant="ghost"
                                     size="sm"
-                                    className={
-                                        SPEAKER_REVIEW_GHOST_BUTTON_CLASS_NAME
-                                    }
                                     data-spk-merge
                                     data-speaker-review-control="speaker-review-merge"
                                     aria-controls={mergePopoverId}
@@ -1050,36 +825,27 @@ export function SpeakerLabelEditor({
                                 onOpenAutoFocus={(event) =>
                                     event.preventDefault()
                                 }
-                                className={
-                                    SPEAKER_REVIEW_CARD_CLASS_NAMES.mergePopover
-                                }
+                                className="w-80 min-w-72 overflow-hidden p-0"
                                 id={mergePopoverId}
                                 data-speaker-review-panel="speaker-review-merge"
                                 data-spk-merge-pop
                                 data-open={String(isMergePopoverOpen)}
                                 aria-label="合并相似说话人"
                             >
-                                <SpeakerReviewCardHeader
-                                    surface="mergePopover"
+                                <CardHeader
+                                    className="flex flex-row items-center justify-between gap-2.5 border-b border-border px-3 py-2.5 [.border-b]:pb-2.5"
                                     data-speaker-review-part="speaker-review-merge-header"
                                 >
-                                    <SpeakerReviewCardTitle
-                                        surface="mergeTitle"
+                                    <CardTitle
+                                        className="relative top-px text-xs leading-normal"
                                         data-speaker-review-part="speaker-review-merge-title"
                                     >
                                         合并相似说话人
-                                    </SpeakerReviewCardTitle>
-                                    <CardAction
-                                        className={
-                                            SPEAKER_REVIEW_MERGE_CARD_ACTION_CLASS_NAME
-                                        }
-                                    >
+                                    </CardTitle>
+                                    <CardAction className="self-auto justify-self-auto">
                                         <Button
                                             variant="ghost"
                                             size="icon-sm"
-                                            className={
-                                                SPEAKER_REVIEW_ICON_BUTTON_CLASS_NAME
-                                            }
                                             data-spk-merge-close
                                             type="button"
                                             aria-label="关闭"
@@ -1096,13 +862,11 @@ export function SpeakerLabelEditor({
                                             />
                                         </Button>
                                     </CardAction>
-                                </SpeakerReviewCardHeader>
-                                <SpeakerReviewCardContent surface="mergePopover">
+                                </CardHeader>
+                                <CardContent className="p-0">
                                     <Empty
                                         variant="compact"
-                                        className={
-                                            SPEAKER_REVIEW_MERGE_EMPTY_CLASS_NAME
-                                        }
+                                        className="px-4 py-[22px] text-pretty md:px-4 md:py-[22px]"
                                         data-speaker-review-part="speaker-review-merge-empty"
                                     >
                                         <EmptyHeader variant="popover">
@@ -1119,70 +883,52 @@ export function SpeakerLabelEditor({
                                             </EmptyMedia>
                                             <EmptyTitle
                                                 variant="compact"
-                                                className={
-                                                    SPEAKER_REVIEW_MERGE_EMPTY_TITLE_CLASS_NAME
-                                                }
                                                 data-speaker-review-part="speaker-review-merge-empty-title"
                                             >
                                                 当前没有可合并的相似说话人
                                             </EmptyTitle>
                                             <EmptyDescription
                                                 variant="compact"
-                                                className={
-                                                    SPEAKER_REVIEW_MERGE_EMPTY_DESCRIPTION_CLASS_NAME
-                                                }
                                                 data-speaker-review-part="speaker-review-merge-empty-description"
                                             >
                                                 如果两位说话人声纹接近，会出现在这里供你确认。
                                             </EmptyDescription>
                                         </EmptyHeader>
                                     </Empty>
-                                </SpeakerReviewCardContent>
+                                </CardContent>
                             </PopoverContent>
                         </Popover>
-                    </SpeakerReviewCardAction>
-                </SpeakerReviewCardHeader>
+                    </CardAction>
+                </CardHeader>
 
                 {isReviewLoading ? (
                     <TranscriptReviewSkeleton />
                 ) : reviewError ? (
                     <Alert
                         variant="statusError"
-                        className={SPEAKER_REVIEW_ERROR_ALERT_CLASS_NAME}
+                        density="comfortable"
                         data-speaker-review-part="speaker-review-state"
                         data-speaker-review-state="error"
                     >
-                        <AlertTitle
-                            className={SPEAKER_REVIEW_ERROR_TITLE_CLASS_NAME}
-                        >
-                            {reviewError}
-                        </AlertTitle>
+                        <AlertTitle>{reviewError}</AlertTitle>
                     </Alert>
                 ) : activeReview ? (
-                    <SpeakerReviewCardContent
-                        surface="transcript"
+                    <CardContent
+                        className="px-4 pb-4"
                         data-speaker-review-part="speaker-review-transcript-content"
                     >
                         <div
-                            className={SPEAKER_REVIEW_META_LIST_CLASS_NAME}
+                            className="my-4 grid grid-cols-2 gap-x-3.5 gap-y-1.5 max-[640px]:grid-cols-1"
                             data-speaker-review-list="speaker-review-meta"
                         >
                             {activeReview.detectedLanguage ? (
-                                <span
-                                    className={
-                                        SPEAKER_REVIEW_META_ITEM_CLASS_NAME
-                                    }
-                                >
+                                <span className="min-w-0 truncate text-xs font-medium leading-normal text-muted-foreground">
                                     {t("speakerReview.languageLabel")}:{" "}
                                     {activeReview.detectedLanguage}
                                 </span>
                             ) : null}
                             {activeReview.transcriptionType ? (
-                                <span
-                                    className={
-                                        SPEAKER_REVIEW_META_ITEM_CLASS_NAME
-                                    }
-                                >
+                                <span className="min-w-0 truncate text-xs font-medium leading-normal text-muted-foreground">
                                     {t("speakerReview.sourceLabel")}:{" "}
                                     {formatTranscriptionType(
                                         activeReview.transcriptionType,
@@ -1191,21 +937,13 @@ export function SpeakerLabelEditor({
                                 </span>
                             ) : null}
                             {activeReview.provider ? (
-                                <span
-                                    className={
-                                        SPEAKER_REVIEW_META_ITEM_CLASS_NAME
-                                    }
-                                >
+                                <span className="min-w-0 truncate text-xs font-medium leading-normal text-muted-foreground">
                                     {t("speakerReview.providerLabel")}:{" "}
                                     {formatProviderName(activeReview.provider)}
                                 </span>
                             ) : null}
                             {activeReview.model ? (
-                                <span
-                                    className={
-                                        SPEAKER_REVIEW_META_ITEM_CLASS_NAME
-                                    }
-                                >
+                                <span className="min-w-0 truncate text-xs font-medium leading-normal text-muted-foreground">
                                     {t("speakerReview.modelLabel")}:{" "}
                                     {activeReview.model}
                                 </span>
@@ -1214,11 +952,7 @@ export function SpeakerLabelEditor({
                                 activeReview.createdAt,
                                 language,
                             ) ? (
-                                <span
-                                    className={
-                                        SPEAKER_REVIEW_META_ITEM_CLASS_NAME
-                                    }
-                                >
+                                <span className="min-w-0 truncate text-xs font-medium leading-normal text-muted-foreground">
                                     {t("speakerReview.capturedAt", {
                                         time:
                                             formatReviewTimestamp(
@@ -1228,67 +962,50 @@ export function SpeakerLabelEditor({
                                     })}
                                 </span>
                             ) : null}
-                            <span
-                                className={SPEAKER_REVIEW_META_ITEM_CLASS_NAME}
-                            >
+                            <span className="min-w-0 truncate text-xs font-medium leading-normal text-muted-foreground">
                                 {t("speakerReview.wordCount", {
                                     count: activeReview.wordCount,
                                 })}
                             </span>
-                            <span
-                                className={SPEAKER_REVIEW_META_ITEM_CLASS_NAME}
-                            >
+                            <span className="min-w-0 truncate text-xs font-medium leading-normal text-muted-foreground">
                                 {t("speakerReview.characterCount", {
                                     count: activeReview.characterCount,
                                 })}
                             </span>
-                            <span
-                                className={SPEAKER_REVIEW_META_ITEM_CLASS_NAME}
-                            >
+                            <span className="min-w-0 truncate text-xs font-medium leading-normal text-muted-foreground">
                                 {t("speakerReview.mappedNamesCount", {
                                     count: activeReview.mappedSpeakerCount,
                                 })}
                             </span>
                         </div>
                         <div
-                            className={
-                                SPEAKER_REVIEW_TRANSCRIPT_SECTION_CLASS_NAME
-                            }
+                            className="flex flex-col gap-2 border-t border-border pt-2"
                             data-speaker-review-part="speaker-review-transcript-section"
                         >
                             <p
-                                className={
-                                    SPEAKER_REVIEW_SEGMENT_TEXT_CLASS_NAME
-                                }
+                                className="m-0 text-sm font-medium leading-relaxed text-pretty text-foreground max-[860px]:whitespace-normal max-[860px]:break-words"
                                 data-speaker-review-part="speaker-review-segment-text"
                             >
                                 {activeReview.text}
                             </p>
                         </div>
-                    </SpeakerReviewCardContent>
+                    </CardContent>
                 ) : null}
-            </SpeakerReviewCard>
+            </Card>
 
             {speakerLoadError ? (
                 <Alert
                     variant="statusError"
-                    className={SPEAKER_REVIEW_ERROR_ALERT_CLASS_NAME}
+                    density="comfortable"
                     data-speaker-review-part="speaker-review-state"
                     data-speaker-review-state="speaker-load-error"
                 >
-                    <AlertTitle
-                        className={SPEAKER_REVIEW_ERROR_TITLE_CLASS_NAME}
-                    >
-                        {speakerLoadError}
-                    </AlertTitle>
-                    <AlertDescription
-                        className={SPEAKER_REVIEW_ERROR_DESCRIPTION_CLASS_NAME}
-                    >
+                    <AlertTitle>{speakerLoadError}</AlertTitle>
+                    <AlertDescription density="compact">
                         <Button
                             type="button"
                             variant="outline"
                             size="sm"
-                            className={SPEAKER_REVIEW_ERROR_ACTION_CLASS_NAME}
                             onClick={() => void refreshSpeakers()}
                             disabled={isLoading}
                             data-speaker-review-control="speaker-review-refresh-speakers"
@@ -1323,10 +1040,10 @@ export function SpeakerLabelEditor({
                     data-speaker-review-variant="review"
                 >
                     {speakers.map((speaker) => (
-                        <SpeakerReviewCard
+                        <Card
                             key={speaker.rawLabel}
                             hasNoPadding
-                            surface="row"
+                            className="grid items-center gap-2.5 overflow-visible rounded-md px-3 py-2.5"
                             data-speaker-review-item="speaker-review-row"
                             data-speaker-has-playable-sample={String(
                                 speaker.hasPlayableSample,
@@ -1487,9 +1204,6 @@ export function SpeakerLabelEditor({
                                                     type="button"
                                                     variant="ghost"
                                                     size="sm"
-                                                    className={
-                                                        SPEAKER_REVIEW_GHOST_BUTTON_CLASS_NAME
-                                                    }
                                                     data-spk-cancel
                                                     data-speaker-review-control="speaker-review-inline-cancel"
                                                     disabled={isSpeakerSaving}
@@ -1505,9 +1219,6 @@ export function SpeakerLabelEditor({
                                                     type="button"
                                                     variant="default"
                                                     size="sm"
-                                                    className={
-                                                        SPEAKER_REVIEW_PRIMARY_BUTTON_CLASS_NAME
-                                                    }
                                                     data-spk-save
                                                     data-speaker-review-control="speaker-review-inline-save"
                                                     disabled={
@@ -1538,18 +1249,14 @@ export function SpeakerLabelEditor({
                                         >
                                             <div>
                                                 <p
-                                                    className={
-                                                        SPEAKER_REVIEW_ROW_NAME_CLASS_NAME
-                                                    }
+                                                    className="m-0 text-sm font-semibold leading-snug text-foreground"
                                                     data-speaker-review-part="speaker-review-row-name"
                                                 >
                                                     {speaker.rawLabel}
                                                 </p>
                                                 {saveError ? (
                                                     <div
-                                                        className={
-                                                            SPEAKER_REVIEW_ROW_SUB_CLASS_NAME
-                                                        }
+                                                        className="m-0 font-mono text-xs font-medium leading-normal tracking-[0.02em] text-destructive max-[860px]:whitespace-normal max-[860px]:break-words"
                                                         data-speaker-review-part="speaker-review-row-sub"
                                                         data-speaker-review-tone="danger"
                                                     >
@@ -1559,9 +1266,7 @@ export function SpeakerLabelEditor({
                                                     </div>
                                                 ) : (
                                                     <div
-                                                        className={
-                                                            SPEAKER_REVIEW_ROW_SUB_CLASS_NAME
-                                                        }
+                                                        className="m-0 font-mono text-xs font-medium leading-normal tracking-[0.02em] text-muted-foreground max-[860px]:whitespace-normal max-[860px]:break-words"
                                                         data-speaker-review-part="speaker-review-row-sub"
                                                     >
                                                         <span>
@@ -1614,9 +1319,6 @@ export function SpeakerLabelEditor({
                                                     type="button"
                                                     variant="ghost"
                                                     size="sm"
-                                                    className={
-                                                        SPEAKER_REVIEW_GHOST_BUTTON_CLASS_NAME
-                                                    }
                                                     data-speaker-review-control="speaker-review-save-retry"
                                                     disabled={isSpeakerSaving}
                                                     onClick={() =>
@@ -1638,9 +1340,6 @@ export function SpeakerLabelEditor({
                                                         type="button"
                                                         variant="ghost"
                                                         size="sm"
-                                                        className={
-                                                            SPEAKER_REVIEW_GHOST_BUTTON_CLASS_NAME
-                                                        }
                                                         data-spk-rename
                                                         data-speaker-review-control="speaker-review-rename"
                                                         disabled={
@@ -1656,7 +1355,8 @@ export function SpeakerLabelEditor({
                                                         重命名
                                                     </Button>
                                                     {speaker.hasPlayableSample ? null : (
-                                                        <SpeakerReviewVoiceprintBadge
+                                                        <Badge
+                                                            variant="secondary"
                                                             data-speaker-review-part="speaker-review-voiceprint-pill"
                                                             data-speaker-review-tone="missing"
                                                         >
@@ -1670,14 +1370,14 @@ export function SpeakerLabelEditor({
                                                             {t(
                                                                 "speakerReview.noTimedSamples",
                                                             )}
-                                                        </SpeakerReviewVoiceprintBadge>
+                                                        </Badge>
                                                     )}
                                                 </div>
                                             )}
                                         </div>
 
                                         <div
-                                            className="flex flex-col gap-2 border-t pt-2"
+                                            className="flex flex-col gap-2 border-t border-border pt-2"
                                             data-speaker-review-part="speaker-review-samples"
                                         >
                                             <div
@@ -1685,9 +1385,7 @@ export function SpeakerLabelEditor({
                                                 data-speaker-review-part="speaker-review-section-head"
                                             >
                                                 <p
-                                                    className={
-                                                        SPEAKER_REVIEW_SECTION_TITLE_CLASS_NAME
-                                                    }
+                                                    className="m-0 text-sm font-semibold leading-snug text-foreground"
                                                     data-speaker-review-part="speaker-review-section-title"
                                                 >
                                                     {t(
@@ -1695,9 +1393,7 @@ export function SpeakerLabelEditor({
                                                     )}
                                                 </p>
                                                 <p
-                                                    className={
-                                                        SPEAKER_REVIEW_SECTION_DESCRIPTION_CLASS_NAME
-                                                    }
+                                                    className="m-0 text-xs font-medium leading-normal text-muted-foreground max-[860px]:whitespace-normal max-[860px]:break-words"
                                                     data-speaker-review-part="speaker-review-section-description"
                                                 >
                                                     {t(
@@ -1722,9 +1418,7 @@ export function SpeakerLabelEditor({
                                                                     data-speaker-review-part="speaker-review-segment-meta"
                                                                 >
                                                                     <p
-                                                                        className={
-                                                                            SPEAKER_REVIEW_SEGMENT_TITLE_CLASS_NAME
-                                                                        }
+                                                                        className="m-0 text-xs font-semibold leading-normal text-muted-foreground"
                                                                         data-speaker-review-part="speaker-review-segment-title"
                                                                     >
                                                                         {t(
@@ -1749,9 +1443,6 @@ export function SpeakerLabelEditor({
                                                                         type="button"
                                                                         variant="outline"
                                                                         size="sm"
-                                                                        className={
-                                                                            SPEAKER_REVIEW_ACTION_BUTTON_CLASS_NAME
-                                                                        }
                                                                         data-speaker-review-control="speaker-review-play-sample"
                                                                         onClick={() =>
                                                                             handlePlaySample(
@@ -1780,9 +1471,7 @@ export function SpeakerLabelEditor({
                                                                     </Button>
                                                                 </div>
                                                                 <p
-                                                                    className={
-                                                                        SPEAKER_REVIEW_SEGMENT_TEXT_CLASS_NAME
-                                                                    }
+                                                                    className="m-0 text-sm font-medium leading-relaxed text-pretty text-foreground max-[860px]:whitespace-normal max-[860px]:break-words"
                                                                     data-speaker-review-part="speaker-review-segment-text"
                                                                 >
                                                                     {segment.text?.trim() ||
@@ -1797,9 +1486,7 @@ export function SpeakerLabelEditor({
                                             ) : (
                                                 <Empty
                                                     variant="default"
-                                                    className={
-                                                        SPEAKER_REVIEW_INLINE_EMPTY_CLASS_NAME
-                                                    }
+                                                    className="px-6 py-4 md:p-4"
                                                     data-speaker-review-part="speaker-review-empty"
                                                     data-speaker-review-state="no-samples"
                                                 >
@@ -1921,9 +1608,6 @@ export function SpeakerLabelEditor({
                                                                 type="button"
                                                                 size="icon-xs"
                                                                 variant="ghost"
-                                                                className={
-                                                                    SPEAKER_REVIEW_MAPPING_CLEAR_BUTTON_CLASS_NAME
-                                                                }
                                                                 aria-label={t(
                                                                     "speakerReview.clearSelectedSpeaker",
                                                                 )}
@@ -1980,9 +1664,9 @@ export function SpeakerLabelEditor({
                                             </FieldContent>
                                             {speaker.matchedProfileId ? (
                                                 isConfirmingUnlink ? (
-                                                    <SpeakerReviewCard
+                                                    <Card
                                                         hasNoPadding
-                                                        surface="confirm"
+                                                        className="flex-row items-center gap-2.5 overflow-visible border-destructive/30 bg-destructive/5 p-3 text-sm"
                                                         data-speaker-review-confirm="speaker-unlink"
                                                         data-speaker-review-confirm-state={
                                                             isSpeakerSaving
@@ -1994,18 +1678,14 @@ export function SpeakerLabelEditor({
                                                         }
                                                     >
                                                         <p
-                                                            className={
-                                                                SPEAKER_REVIEW_CONFIRM_MESSAGE_CLASS_NAME
-                                                            }
+                                                            className="min-w-0 flex-1"
                                                             data-speaker-review-confirm-message
                                                         >
                                                             {t(
                                                                 "speakerReview.confirmUnlinkMessagePrefix",
                                                             )}
                                                             <em
-                                                                className={
-                                                                    SPEAKER_REVIEW_CONFIRM_SUBJECT_CLASS_NAME
-                                                                }
+                                                                className="font-semibold not-italic"
                                                                 data-speaker-review-confirm-subject
                                                             >
                                                                 {matchedName}
@@ -2018,9 +1698,6 @@ export function SpeakerLabelEditor({
                                                             type="button"
                                                             variant="ghost"
                                                             size="sm"
-                                                            className={
-                                                                SPEAKER_REVIEW_GHOST_BUTTON_CLASS_NAME
-                                                            }
                                                             data-speaker-review-confirm-action="cancel"
                                                             disabled={
                                                                 isSpeakerSaving
@@ -2037,9 +1714,6 @@ export function SpeakerLabelEditor({
                                                             type="button"
                                                             variant="destructive"
                                                             size="sm"
-                                                            className={
-                                                                SPEAKER_REVIEW_DANGER_BUTTON_CLASS_NAME
-                                                            }
                                                             data-speaker-review-confirm-action="confirm"
                                                             disabled={
                                                                 isSpeakerSaving
@@ -2055,7 +1729,7 @@ export function SpeakerLabelEditor({
                                                                 "speakerReview.unlink",
                                                             )}
                                                         </Button>
-                                                    </SpeakerReviewCard>
+                                                    </Card>
                                                 ) : (
                                                     <div
                                                         className="inline-flex min-w-0 flex-wrap items-center gap-1.5"
@@ -2065,9 +1739,6 @@ export function SpeakerLabelEditor({
                                                             type="button"
                                                             variant="destructive"
                                                             size="sm"
-                                                            className={
-                                                                SPEAKER_REVIEW_DANGER_BUTTON_CLASS_NAME
-                                                            }
                                                             data-speaker-review-control="speaker-review-unlink"
                                                             disabled={
                                                                 isSpeakerSaving
@@ -2094,9 +1765,7 @@ export function SpeakerLabelEditor({
                                                             )}
                                                         </Button>
                                                         <p
-                                                            className={
-                                                                SPEAKER_REVIEW_ROW_SUB_CLASS_NAME
-                                                            }
+                                                            className="m-0 font-mono text-xs font-medium leading-normal tracking-[0.02em] text-muted-foreground max-[860px]:whitespace-normal max-[860px]:break-words"
                                                             data-speaker-review-part="speaker-review-row-sub"
                                                         >
                                                             {t(
@@ -2115,9 +1784,7 @@ export function SpeakerLabelEditor({
                                                 !normalizedQuery ? (
                                                     <Empty
                                                         variant="default"
-                                                        className={
-                                                            SPEAKER_REVIEW_INLINE_EMPTY_CLASS_NAME
-                                                        }
+                                                        className="px-6 py-4 md:p-4"
                                                         data-speaker-review-part="speaker-review-empty"
                                                         data-speaker-review-state="no-saved-speakers"
                                                     >
@@ -2143,9 +1810,7 @@ export function SpeakerLabelEditor({
                                                                     type="button"
                                                                     variant="outline"
                                                                     size="default"
-                                                                    className={
-                                                                        SPEAKER_REVIEW_SUGGESTION_BUTTON_CLASS_NAME
-                                                                    }
+                                                                    className="grid h-auto min-h-8 w-full grid-cols-[minmax(0,1fr)_auto] justify-stretch gap-2 whitespace-normal px-2 py-1.5 text-left has-[>svg]:px-2"
                                                                     data-speaker-review-control="speaker-review-suggestion"
                                                                     disabled={
                                                                         isSpeakerSaving ||
@@ -2187,7 +1852,15 @@ export function SpeakerLabelEditor({
                                                                             profile.displayName
                                                                         }
                                                                     </span>
-                                                                    <SpeakerReviewVoiceprintBadge
+                                                                    <Badge
+                                                                        variant={
+                                                                            speaker.matchedProfileId ===
+                                                                            profile.id
+                                                                                ? "default"
+                                                                                : profile.hasVoiceprint
+                                                                                  ? "outline"
+                                                                                  : "secondary"
+                                                                        }
                                                                         data-speaker-review-part="speaker-review-voiceprint-pill"
                                                                         data-speaker-review-tone={
                                                                             speaker.matchedProfileId ===
@@ -2210,7 +1883,7 @@ export function SpeakerLabelEditor({
                                                                               : t(
                                                                                     "speakerReview.voiceprintMissing",
                                                                                 )}
-                                                                    </SpeakerReviewVoiceprintBadge>
+                                                                    </Badge>
                                                                 </Button>
                                                             ),
                                                         )}
@@ -2219,9 +1892,7 @@ export function SpeakerLabelEditor({
                                                                 type="button"
                                                                 variant="outline"
                                                                 size="default"
-                                                                className={
-                                                                    SPEAKER_REVIEW_SUGGESTION_BUTTON_CLASS_NAME
-                                                                }
+                                                                className="h-auto min-h-8 w-full justify-start whitespace-normal px-2 py-1.5 text-left has-[>svg]:px-2"
                                                                 data-speaker-review-control="speaker-review-suggestion"
                                                                 data-speaker-review-state="create"
                                                                 disabled={
@@ -2271,9 +1942,7 @@ export function SpeakerLabelEditor({
                                                         normalizedQuery ? (
                                                             <Empty
                                                                 variant="default"
-                                                                className={
-                                                                    SPEAKER_REVIEW_INLINE_EMPTY_CLASS_NAME
-                                                                }
+                                                                className="px-6 py-4 md:p-4"
                                                                 data-speaker-review-part="speaker-review-empty"
                                                                 data-speaker-review-state="no-matching-speakers"
                                                             >
@@ -2292,9 +1961,7 @@ export function SpeakerLabelEditor({
                                                         !normalizedQuery ? (
                                                             <Empty
                                                                 variant="default"
-                                                                className={
-                                                                    SPEAKER_REVIEW_INLINE_EMPTY_CLASS_NAME
-                                                                }
+                                                                className="px-6 py-4 md:p-4"
                                                                 data-speaker-review-part="speaker-review-empty"
                                                                 data-speaker-review-state="no-saved-speakers"
                                                             >
@@ -2314,7 +1981,7 @@ export function SpeakerLabelEditor({
                                     </>
                                 );
                             })()}
-                        </SpeakerReviewCard>
+                        </Card>
                     ))}
                 </div>
             )}

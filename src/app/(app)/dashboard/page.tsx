@@ -4,7 +4,7 @@ import { getDashboardRecordingsPageData } from "@/server/modules/recordings";
 
 export default async function DashboardPage() {
     const session = await requireAuth();
-    const { recordings, transcriptions, transcriptionJobs } =
+    const { recordings, transcriptions, transcriptionJobs, pagination } =
         await getDashboardRecordingsPageData(session.user.id);
 
     return (
@@ -12,6 +12,7 @@ export default async function DashboardPage() {
             recordings={recordings}
             transcriptions={transcriptions}
             transcriptionJobs={transcriptionJobs}
+            pagination={pagination}
             user={{
                 email: session.user.email,
                 name: session.user.name,

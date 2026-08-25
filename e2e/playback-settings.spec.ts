@@ -6,13 +6,11 @@ import {
 } from "./helpers/shadcn-select";
 
 function settingsShell(page: Page) {
-    return page.locator('[data-sot-surface="settings-shell"]');
+    return page.getByRole("dialog", { name: /^(设置|Settings)$/ });
 }
 
-function settingsSection(page: Page, section: string) {
-    return page.locator(
-        `[data-sot-surface="settings-section"][data-sot-section="${section}"]`,
-    );
+function settingsSection(page: Page) {
+    return page.getByRole("region", { name: /^(杂项|Misc)$/ });
 }
 
 function waitForSettingsPut(
@@ -40,7 +38,6 @@ function waitForSettingsPut(
 
 async function expectShadcnSliderValue(slider: Locator, value: number) {
     await expect(slider).toHaveAttribute("data-slot", "slider");
-    await expect(slider).toHaveAttribute("data-sot-state", "ready");
     await expect(slider.getByRole("slider")).toHaveAttribute(
         "aria-valuenow",
         String(value),
@@ -86,22 +83,12 @@ test("misc settings persist sync and playback controls immediately, then reload"
     await page.goto("/settings#misc", { waitUntil: "domcontentloaded" });
 
     const shell = settingsShell(page);
-    const section = settingsSection(page, "misc");
-    const syncSwitch = section.locator(
-        '[data-sot-control="sync-auto-enabled"]',
-    );
-    const syncIntervalInput = section.locator(
-        '[data-sot-control="sync-interval-seconds"]',
-    );
-    const playbackSpeedSelect = section.locator(
-        '[data-sot-control="playback-speed"]',
-    );
-    const autoPlaySwitch = section.locator(
-        '[data-sot-control="playback-auto-next"]',
-    );
-    const volumeSlider = section.locator(
-        '[data-sot-control="playback-volume"]',
-    );
+    const section = settingsSection(page);
+    const syncSwitch = section.locator("#sync-auto-enabled");
+    const syncIntervalInput = section.locator("#sync-interval-seconds");
+    const playbackSpeedSelect = section.locator("#playback-speed");
+    const autoPlaySwitch = section.locator("#playback-auto-next");
+    const volumeSlider = section.locator("#playback-volume");
     const miscHeading = section.getByRole("heading", {
         name: /^(杂项|Misc)$/,
         exact: true,
@@ -111,31 +98,23 @@ test("misc settings persist sync and playback controls immediately, then reload"
         exact: true,
     });
 
-    await expect(shell).toHaveAttribute("data-sot-section", "misc");
-    await expect(section).toHaveAttribute("data-sot-state", "ready");
+    await expect(shell).toBeVisible();
     await expect(section).toHaveAttribute("aria-busy", "false");
     await expect(miscHeading).toBeVisible();
     await expect(playbackTitle).toBeVisible();
     await expect(section.locator("[data-save-actions]")).toHaveCount(0);
     await expect(section.locator("[data-save-action]")).toHaveCount(0);
     await expect(
-        section.locator('[data-sot-control="settings-save"]'),
+        section.getByRole("button", { name: /^(保存|Save)$/ }),
     ).toHaveCount(0);
-    await expect(syncSwitch).toHaveAttribute("data-sot-state", "checked");
+    await expect(syncSwitch).toHaveAttribute("aria-checked", "true");
     await expect(syncIntervalInput).toHaveValue("300");
     await expectShadcnSelectTrigger(playbackSpeedSelect, {
         label: "默认速度",
         text: "1x",
     });
-    await expect(playbackSpeedSelect).toHaveAttribute(
-        "data-sot-state",
-        "ready",
-    );
     await expectShadcnSliderValue(volumeSlider, 75);
-    await expect(autoPlaySwitch).toHaveAttribute(
-        "data-sot-state",
-        "unchecked",
-    );
+    await expect(autoPlaySwitch).toHaveAttribute("aria-checked", "false");
     await expect(page).toHaveURL(/\/settings#misc$/);
 
     const syncToggleResponse = waitForSettingsPut(
@@ -147,7 +126,7 @@ test("misc settings persist sync and playback controls immediately, then reload"
     );
     await syncSwitch.click();
     await syncToggleResponse;
-    await expect(syncSwitch).toHaveAttribute("data-sot-state", "unchecked");
+    await expect(syncSwitch).toHaveAttribute("aria-checked", "false");
 
     const syncIntervalResponse = waitForSettingsPut(
         page,
@@ -195,24 +174,21 @@ test("misc settings persist sync and playback controls immediately, then reload"
     );
     await autoPlaySwitch.click();
     await autoNextResponse;
-    await expect(autoPlaySwitch).toHaveAttribute("data-sot-state", "checked");
-    await expect(section).toHaveAttribute("data-sot-state", "ready");
+    await expect(autoPlaySwitch).toHaveAttribute("aria-checked", "true");
+    await expect(section).toHaveAttribute("aria-busy", "false");
 
     await page.reload({ waitUntil: "domcontentloaded" });
-    await expect(settingsShell(page)).toHaveAttribute(
-        "data-sot-section",
-        "misc",
-    );
+    await expect(settingsShell(page)).toBeVisible();
     await expect(miscHeading).toBeVisible();
     await expect(playbackTitle).toBeVisible();
-    await expect(syncSwitch).toHaveAttribute("data-sot-state", "unchecked");
+    await expect(syncSwitch).toHaveAttribute("aria-checked", "false");
     await expect(syncIntervalInput).toHaveValue("120");
     await expectShadcnSelectTrigger(playbackSpeedSelect, {
         label: "默认速度",
         text: "1.5x",
     });
     await expectShadcnSliderValue(volumeSlider, 42);
-    await expect(autoPlaySwitch).toHaveAttribute("data-sot-state", "checked");
+    await expect(autoPlaySwitch).toHaveAttribute("aria-checked", "true");
     await expect(section.locator("[data-save-actions]")).toHaveCount(0);
     await expect(section.locator("[data-save-action]")).toHaveCount(0);
 });

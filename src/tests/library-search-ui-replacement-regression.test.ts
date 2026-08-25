@@ -279,7 +279,7 @@ describe("library search runtime interaction regression", () => {
             view.tree,
             (props) =>
                 typeof props.className === "string" &&
-                props.className.includes("h-auto"),
+                props.className.includes("h-[49px]"),
         );
         const scope = findElement(
             view.tree,
@@ -292,27 +292,28 @@ describe("library search runtime interaction regression", () => {
             (props) => props["aria-live"] === "polite",
         );
 
-        expect(panel?.props.className).toContain("bg-[var(--bg-elevated)]");
-        expect(panel?.props.className).toContain("rounded-[12px]");
-        expect(panel?.props.className).toContain(
-            "[box-shadow:var(--card-popover-shadow)]",
-        );
-        expect(inputRow?.props.className).toContain("h-auto");
-        expect(inputRow?.props.className).toContain("bg-transparent");
-        expect(inputRow?.props.className).toContain("py-[8px]");
+        expect(panel?.props.variant).toBe("default");
+        expect(panel?.props.hasNoPadding).toBe(true);
+        expect(panel?.props.className).toContain("bg-popover");
+        expect(inputRow?.props.variant).toBe("default");
+        expect(inputRow?.props.className).toContain("h-[49px]");
+        expect(inputRow?.props.className).toContain("border-border");
+        expect(inputRow?.props.className).toContain("py-2");
         expect(
             findElement(view.tree, (props) => props.role === "combobox")?.props
                 .className,
-        ).toContain("font-medium");
+        ).toContain("text-sm");
         expect(scope?.props.className).toContain("gap-[6px]");
-        expect(scope?.props.className).toContain("py-[8px]");
+        expect(scope?.props.className).toContain("border-border");
+        expect(scope?.props.className).toContain("bg-muted");
+        expect(scope?.props.className).toContain("py-2");
         expect(noQueryState?.props.children).toBeDefined();
         expect(
             findElement(
                 noQueryState,
                 (props) =>
                     typeof props.className === "string" &&
-                    props.className.includes("py-[22px]"),
+                    props.className.includes("px-4 py-5"),
             ),
         ).toBeDefined();
     });
@@ -359,35 +360,42 @@ describe("library search runtime interaction regression", () => {
         );
         const group = findElement(
             listbox,
-            (props) =>
-                typeof props.className === "string" &&
-                props.className.includes("min-w-0 border-0"),
+            (props) => props["aria-labelledby"] === "library-search-group-tag",
         );
         const legend = findElement(
             group,
-            (props) =>
-                typeof props.className === "string" &&
-                props.className.includes("float-left"),
+            (props) => props.id === "library-search-group-tag",
         );
         const option = findElement(group, (props) => props.role === "option");
         const tag = findElement(
             option,
+            (props) => props.variant === "secondary",
+        );
+        const highlight = findElement(
+            tag,
             (props) =>
                 typeof props.className === "string" &&
-                props.className.includes("[--tag-c:oklch"),
+                props.className.includes("bg-primary/10"),
         );
 
         expect(group?.props["aria-labelledby"]).toBe(
             "library-search-group-tag",
         );
         expect(legend?.props.id).toBe(group?.props["aria-labelledby"]);
-        expect(legend?.props.className).toContain("text-[10.5px]");
-        expect(legend?.props.className).toContain("leading-[10.5px]");
-        expect(option?.props.className).toContain("rounded-[8px]");
-        expect(option?.props.className).toContain("gap-[2px]");
-        expect(tag?.props.className).toContain("h-[22px]");
-        expect(tag?.props.className).toContain("leading-[normal]");
+        expect(group?.props.className).toContain("gap-0.5");
+        expect(group?.props.className).toContain("[&+&]:border-border");
+        expect(legend?.props.className).toContain("text-xs");
+        expect(legend?.props.className).toContain("tracking-normal");
+        expect(option?.props.variant).toBe("ghost");
+        expect(option?.props.className).toContain("h-auto");
+        expect(option?.props.className).toContain("gap-0.5");
+        expect(tag?.props.variant).toBe("secondary");
+        expect(tag?.props.className).toContain("h-6");
+        expect(tag?.props.className).toContain("py-0");
         expect(tag?.props.className).not.toContain("[&_svg]:stroke-2");
+        expect(highlight?.props.children).toBe("Alpha");
+        expect(highlight?.props.className).toContain("text-primary");
+        expect(highlight?.props.className).toContain("px-0.5");
         const tagIcon = findElement(
             tag,
             (props) => props.className === "!size-[11px]",
@@ -518,8 +526,7 @@ describe("library search runtime interaction regression", () => {
         const error = findElement(
             view.tree,
             (props) =>
-                typeof props.className === "string" &&
-                props.className.includes("py-[18px]"),
+                props.layout === "centered" && props.variant === "destructive",
         );
         const errorTitle = findElement(
             error,
@@ -534,14 +541,19 @@ describe("library search runtime interaction regression", () => {
         const retry = findElement(error, (props) => props.children === "Retry");
 
         expect(error?.props.layout).toBe("centered");
-        expect(error?.props.className).toContain("gap-[8px]");
-        expect(error?.props.className).toContain("px-[16px]");
+        expect(error?.props.variant).toBe("destructive");
+        expect(error?.props.density).toBe("default");
+        expect(error?.props.className).toContain("gap-2");
+        expect(error?.props.className).toContain("rounded-none");
+        expect(error?.props.className).toContain("py-4");
         expect(errorTitle?.props.children).toBe(
             "Search failed. Try again later.",
         );
-        expect(clear).toBeDefined();
+        expect(clear?.props.variant).toBe("ghost");
+        expect(clear?.props.size).toBe("icon-xs");
         expect(retry?.props.variant).toBe("ghost");
-        expect(retry?.props.className).toContain("h-[26px]");
+        expect(retry?.props.size).toBe("xs");
+        expect(retry?.props.type).toBe("button");
 
         (retry?.props.onClick as () => void)();
         expect(reactHarness.consumePendingRender()).toBe(true);
@@ -617,30 +629,33 @@ describe("library search runtime interaction regression", () => {
             indexingState,
             (props) => props.role === "progressbar",
         );
+        const scopeItem = findElement(
+            view.tree,
+            (props) => props["data-scope"] === "all",
+        );
         const copy = findElement(
             indexingState,
             (props) =>
                 typeof props.className === "string" &&
-                props.className.includes("px-[16px] py-[22px]"),
+                props.className.includes("px-4 py-5"),
         );
 
         expect(input?.props["aria-disabled"]).toBe(true);
         expect(input?.props.readOnly).toBe(true);
-        expect(indexingState?.props.className).toContain("gap-[10px]");
-        expect(indexingState?.props.className).toContain("px-[16px] py-[14px]");
+        expect(scopeItem?.props.disabled).toBe(true);
+        expect(indexingState?.props["data-state"]).toBe("indexing");
+        expect(indexingState?.props.className).toContain("gap-2.5");
+        expect(indexingState?.props.className).toContain("px-4 py-3.5");
         expect(progressbar?.props.className).toContain("min-w-0 flex-1");
         expect(progressbar?.props["aria-valuetext"]).toBe(
             "Rebuilding search index",
         );
-        expect(track?.props.className).toContain(
-            "bg-[color-mix(in_srgb,var(--signal-info)_16%,transparent)]",
-        );
-        expect(progress?.props.className).toContain(
-            "bg-[linear-gradient(90deg,transparent,var(--signal-info)_50%,transparent)]",
-        );
+        expect(track?.props.className).toContain("bg-primary/10");
+        expect(progress?.props.className).toContain("bg-primary/50");
         expect(progress?.props.className).toContain(
             "animate-[sbn-sweep_1.4s_linear_infinite]",
         );
-        expect(copy?.props.className).toContain("px-[16px] py-[22px]");
+        expect(copy?.props.className).toContain("px-4 py-5");
+        expect(copy?.props.className).toContain("text-muted-foreground");
     });
 });

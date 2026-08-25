@@ -1,23 +1,226 @@
-import { readFileSync } from "node:fs";
+import { readdirSync, readFileSync } from "node:fs";
 import path from "node:path";
-import { describe, expect, it } from "vitest";
+import type { ComponentProps, ReactNode } from "react";
+import { afterEach, beforeAll, describe, expect, it, vi } from "vitest";
+import type {
+    TranscriptionPanelProps,
+    TranscriptionPanelTab,
+} from "@/features/dashboard/components/transcription-panel";
+import { translate, type UiLanguage } from "@/lib/i18n";
+import type { RecordingTag } from "@/lib/recording-tags";
 import { serializeRecordingDetailTranscriptionJob } from "@/server/modules/recordings/serialize";
 
 const ROOT = path.join(process.cwd(), "src");
 
-const EXPECTED_DASHBOARD_DETAIL_HEADER_ACTION_ANCHOR_CLASS_NAME =
-    "relative inline-flex items-center gap-1.5";
-const EXPECTED_DASHBOARD_TRANSCRIPT_HEADER_CLASS_NAME =
-    "flex flex-row flex-wrap items-center gap-x-3 gap-y-1.5 border-b px-3.5 py-3";
-const EXPECTED_DASHBOARD_TRANSCRIPT_SEGMENTED_TABS_CLASS_NAME = "shrink-0";
-const EXPECTED_DASHBOARD_TRANSCRIPT_BODY_BASE_CLASS_NAME =
-    "min-h-0 flex-1 overflow-y-auto px-5 pt-4 pb-5";
-const EXPECTED_DASHBOARD_TRANSCRIPT_ACTIONS_CLASS_NAME =
-    "ml-auto inline-flex max-w-full flex-[0_1_auto] flex-wrap items-center gap-2";
-const EXPECTED_DASHBOARD_TRANSCRIPT_SHELL_CARD_CLASS_NAME =
-    "min-h-0 flex-1 gap-0 rounded-2xl";
+type CapturedButtonProps = ComponentProps<"button"> & {
+    "data-control"?: string;
+    "data-state"?: string;
+    "data-tag-id"?: string;
+    "data-testid"?: string;
+};
+
+type CapturedSegmentedTabsProps = {
+    items: readonly { label: ReactNode; value: string }[];
+    onValueChange: (value: string) => void;
+    value: string;
+};
+
+let capturedButtons: CapturedButtonProps[] = [];
+let capturedSegmentedTabs: CapturedSegmentedTabsProps[] = [];
+
+async function installRenderedControlCapture() {
+    capturedButtons = [];
+    capturedSegmentedTabs = [];
+    const React = await import("react");
+
+    vi.doMock("@/components/ui/button", async (importOriginal) => {
+        const actual =
+            await importOriginal<typeof import("@/components/ui/button")>();
+
+        return {
+            ...actual,
+            Button: (props: ComponentProps<typeof actual.Button>) => {
+                capturedButtons.push(props as CapturedButtonProps);
+                return React.createElement(actual.Button, props);
+            },
+        };
+    });
+    vi.doMock("@/components/ui/segmented-tabs", async (importOriginal) => {
+        const actual =
+            await importOriginal<
+                typeof import("@/components/ui/segmented-tabs")
+            >();
+
+        return {
+            ...actual,
+            SegmentedTabs: (
+                props: ComponentProps<typeof actual.SegmentedTabs>,
+            ) => {
+                capturedSegmentedTabs.push(props as CapturedSegmentedTabsProps);
+                return React.createElement(actual.SegmentedTabs, props);
+            },
+        };
+    });
+    vi.doMock("@/components/ui/popover", async (importOriginal) => {
+        const actual =
+            await importOriginal<typeof import("@/components/ui/popover")>();
+
+        return {
+            ...actual,
+            PopoverContent: ({
+                align: _align,
+                alignOffset: _alignOffset,
+                avoidCollisions: _avoidCollisions,
+                children,
+                onEscapeKeyDown: _onEscapeKeyDown,
+                onOpenAutoFocus: _onOpenAutoFocus,
+                side: _side,
+                sideOffset: _sideOffset,
+                ...props
+            }: ComponentProps<typeof actual.PopoverContent>) =>
+                React.createElement("div", props, children),
+        };
+    });
+
+    return React;
+}
+
+async function loadRenderedRuntime() {
+    const React = await installRenderedControlCapture();
+    const [
+        { renderToStaticMarkup },
+        { LanguageProvider },
+        { ConfirmDialogProvider },
+        { AiRenamePreviewCard },
+        { DashboardRecordingPlayerControls },
+        { TranscriptionPanel },
+        { PlayerNoAudioAlert, PlayerStatusBadge, PlayerTagChip },
+        { TranscriptionSection },
+        { SourceReportPanel },
+        { SourceReportCopyButton },
+        { default: RecordingLoading },
+        { default: RecordingNotFound },
+        { default: RecordingError },
+        { RecordingTagManager },
+    ] = await Promise.all([
+        import("react-dom/server"),
+        import("@/components/language-provider"),
+        import("@/components/ui/confirm-dialog"),
+        import("@/features/recordings/components/ai-rename-preview-card"),
+        import(
+            "@/features/dashboard/components/dashboard-recording-player-controls"
+        ),
+        import("@/features/dashboard/components/transcription-panel"),
+        import("@/features/recordings/components/player-primitives"),
+        import("@/features/recordings/components/transcription-section"),
+        import("@/features/recordings/components/source-report-panel"),
+        import("@/features/source-report/primitives"),
+        import("@/app/(app)/recordings/[id]/loading"),
+        import("@/app/(app)/recordings/[id]/not-found"),
+        import("@/app/(app)/recordings/[id]/error"),
+        import("@/features/recordings/components/recording-tag-manager"),
+    ]);
+
+    return {
+        AiRenamePreviewCard,
+        ConfirmDialogProvider,
+        DashboardRecordingPlayerControls,
+        LanguageProvider,
+        PlayerNoAudioAlert,
+        PlayerStatusBadge,
+        PlayerTagChip,
+        React,
+        RecordingError,
+        RecordingLoading,
+        RecordingNotFound,
+        RecordingTagManager,
+        SourceReportCopyButton,
+        SourceReportPanel,
+        TranscriptionPanel,
+        TranscriptionSection,
+        renderToStaticMarkup,
+    };
+}
+
+let renderedRuntime: Awaited<ReturnType<typeof loadRenderedRuntime>>;
+
+beforeAll(async () => {
+    renderedRuntime = await loadRenderedRuntime();
+});
+
+function transcriptionPanelProps(
+    overrides: Partial<TranscriptionPanelProps> = {},
+): TranscriptionPanelProps {
+    return {
+        activeTab: "transcript",
+        isTranscriptLoading: false,
+        localCopyFeedback: null,
+        localCopyState: "ready",
+        onActiveTabChange: vi.fn(),
+        onCopyLocal: vi.fn(),
+        onRetryTranscript: vi.fn(),
+        recording: {
+            audioUrl: "/api/recordings/recording-1/audio",
+            id: "recording-1",
+        },
+        retranscription: {
+            description: "新任务会保持当前转写可见，完成后替换结果。",
+            onDismiss: vi.fn(),
+            onRequest: vi.fn(),
+            onRetry: vi.fn(),
+            state: "idle",
+            title: "重新转写",
+        },
+        sourceActions: null,
+        sourcePane: null,
+        speakerMerge: {
+            onMerge: vi.fn(),
+            onRetry: vi.fn(),
+            state: "idle",
+        },
+        speakers: [],
+        turns: [
+            {
+                id: "turn-1",
+                speakerName: "Maple",
+                startMs: 0,
+                endMs: 3_000,
+                text: "现有逐字稿保持可见。",
+            },
+        ],
+        ...overrides,
+    };
+}
+
+afterEach(() => {
+    capturedButtons = [];
+    capturedSegmentedTabs = [];
+    vi.unstubAllGlobals();
+    vi.restoreAllMocks();
+});
+
+function recordingDetailSourceFiles(relativeDirectory: string): string[] {
+    return readdirSync(path.join(ROOT, relativeDirectory), {
+        withFileTypes: true,
+    }).flatMap((entry) => {
+        const relativePath = path.join(relativeDirectory, entry.name);
+        if (entry.isDirectory()) {
+            return recordingDetailSourceFiles(relativePath);
+        }
+        return /\.(?:ts|tsx)$/.test(entry.name) ? [relativePath] : [];
+    });
+}
+
+const RECORDING_DETAIL_SOT_GUARD_SOURCE_FILES = recordingDetailSourceFiles(
+    "features/recordings",
+);
+
 const EXPECTED_DASHBOARD_WORKSPACE_CLASS_NAME =
-    "grid flex-1 min-h-0 grid-cols-[380px_1fr] gap-4 px-5 pt-4 pb-5 max-[860px]:min-w-0 max-[860px]:max-w-full max-[860px]:box-border max-[860px]:grid-cols-[380px_0px]";
+    "grid flex-1 min-h-0 grid-cols-[380px_1fr] gap-4 px-5 pt-4 pb-5 max-[1439px]:grid-cols-[minmax(0,1fr)] min-[1024px]:max-[1439px]:group-data-[detail-state=open]/dashboard-workstation:grid-cols-[320px_minmax(0,1fr)] max-[860px]:min-w-0 max-[860px]:max-w-full max-[860px]:box-border";
+const EXPECTED_DASHBOARD_DETAIL_PANEL_CLASS_NAME =
+    "flex min-h-0 min-w-0 flex-col gap-4 max-[1439px]:hidden min-[1024px]:max-[1439px]:group-data-[detail-state=open]/dashboard-workstation:flex max-[1024px]:fixed max-[1024px]:inset-2 max-[1024px]:z-[330] max-[1024px]:overflow-y-auto max-[1024px]:rounded-lg max-[1024px]:bg-background max-[1024px]:p-4 max-[1024px]:shadow-lg max-[1024px]:group-data-[detail-state=open]/dashboard-workstation:flex";
+const EXPECTED_DASHBOARD_DETAIL_SCRIM_CLASS_NAME =
+    "pointer-events-none fixed inset-0 z-[320] hidden bg-background/60 backdrop-blur-sm max-[1024px]:group-data-[detail-state=open]/dashboard-workstation:pointer-events-auto max-[1024px]:group-data-[detail-state=open]/dashboard-workstation:block";
 const EXPECTED_RECORDING_WORKSTATION_WORKSPACE_CLASS_NAME =
     "grid flex-1 min-h-0 grid-cols-[380px_1fr] gap-4 px-5 pt-4 pb-5 max-[860px]:min-w-0 max-[860px]:max-w-full max-[860px]:box-border max-[860px]:grid-cols-[minmax(0,1fr)]";
 const EXPECTED_DETAIL_PANEL_CLASS_NAME = "flex min-h-0 min-w-0 flex-col gap-4";
@@ -58,8 +261,6 @@ const DASHBOARD_SIDEBAR_VISUAL_GLOBAL_SELECTORS = [
 ] as const;
 const DASHBOARD_SIDEBAR_FORBIDDEN_CLASS_PATTERN =
     /\bspace-[xy]-|\b(?:rgb|rgba|hsl|hsla|oklch|color-mix)\(|#[0-9A-Fa-f]{3,8}\b|\bdark:|(?:^|\s)(?:bg|border|text|shadow|ring|fill|stroke|from|via|to)-(?:white|black|transparent|slate|gray|zinc|neutral|stone|red|orange|amber|yellow|lime|green|emerald|teal|cyan|sky|blue|indigo|violet|purple|fuchsia|pink|rose)(?:[/-]\d+)?\b/;
-const DASHBOARD_SIDEBAR_VISUAL_GLOBAL_DECLARATION_RE =
-    /^\s*(?:-webkit-backdrop-filter|backdrop-filter|background|border(?:-(?:color|radius|right|style|width))?|box-shadow|display|flex-direction|padding|position)\s*:/m;
 const RECORDING_WORKSTATION_MAIN_REQUIRED_CLASS_TOKENS = [
     "flex",
     "h-screen",
@@ -68,93 +269,6 @@ const RECORDING_WORKSTATION_MAIN_REQUIRED_CLASS_TOKENS = [
     "max-[860px]:min-w-0",
     "max-[860px]:max-w-full",
     "max-[860px]:box-border",
-] as const;
-const REMOVED_SOURCE_REPORT_DOT_HOOKS = [
-    ["SourceReport", "StatusDot"].join(""),
-    ["DashboardSourceReport", "StatusDot"].join(""),
-    ["sourceReportStatus", "DotBase"].join(""),
-    ["data-source-report-status", "dot"].join("-"),
-] as const;
-const SOURCE_REPORT_STATUS_DOT_STYLING_FORBIDDEN_SNIPPETS = [
-    ...REMOVED_SOURCE_REPORT_DOT_HOOKS,
-    '"inline-block size-[5px] rounded-[50%] bg-current"',
-    ['part = "source-report-status', 'dot"'].join("-"),
-    ['part="dashboard-source-report-status', 'dot"'].join("-"),
-] as const;
-const SOURCE_REPORT_STATUS_BADGE_FORBIDDEN_OWNER_SNIPPETS = [
-    "h-[22px] justify-normal gap-[5px] overflow-visible px-[8px] py-0",
-    "h-[22px]",
-    "gap-[5px]",
-    "px-[8px]",
-    ...SOURCE_REPORT_STATUS_DOT_STYLING_FORBIDDEN_SNIPPETS,
-] as const;
-const SOURCE_REPORT_STATUS_VARIANT_SNIPPETS = [
-    "const SOURCE_REPORT_STATUS_VARIANT = {",
-    'err: "destructive"',
-    'neu: "secondary"',
-    'ok: "default"',
-    'warn: "outline"',
-    'React.ComponentProps<typeof Badge>["variant"]',
-    "variant={SOURCE_REPORT_STATUS_VARIANT[tone]}",
-] as const;
-const SOURCE_REPORT_STATUS_BADGE_FORBIDDEN_STYLING_SNIPPETS = [
-    ...SOURCE_REPORT_STATUS_BADGE_FORBIDDEN_OWNER_SNIPPETS,
-    "sourceReportStatusBadgeStyles",
-    "color-mix(",
-    "oklch(",
-    "--signal-success",
-    "--signal-danger",
-    "--signal-warning",
-] as const;
-const SOURCE_REPORT_EMPTY_ALERT_COMPOSITION_CHECKS = [
-    {
-        pattern: /<Alert\b[\s\S]*?data-source-report-missing-notice[\s\S]*?>/,
-        snippets: [
-            'variant="warningSoft"',
-            'density="compact"',
-            'layout="inline"',
-        ],
-    },
-    {
-        pattern: /<Alert\b[\s\S]*?data-source-report-empty[\s\S]*?>/,
-        snippets: [
-            'variant={tone === "danger" ? "statusError" : "default"}',
-            'density="spacious"',
-            'layout="centered"',
-        ],
-    },
-    {
-        pattern: /<Empty\b[\s\S]*?data-source-report-empty[\s\S]*?>/,
-        snippets: ['variant="subtle"'],
-    },
-    {
-        pattern: /<EmptyMedia\b[\s\S]*?data-source-report-empty-icon[\s\S]*?>/,
-        snippets: ['variant={tone === "danger" ? "dangerIcon" : "subtleIcon"}'],
-    },
-    {
-        pattern: /<EmptyTitle\b[\s\S]*?data-source-report-empty-title[\s\S]*?>/,
-        snippets: ['variant="compact"'],
-    },
-    {
-        pattern:
-            /<EmptyDescription\b[\s\S]*?data-source-report-empty-description[\s\S]*?>/,
-        snippets: ['variant="compact"'],
-    },
-] as const;
-const SOURCE_REPORT_EMPTY_ALERT_FORBIDDEN_OWNER_SNIPPETS = [
-    "const sourceReportMissingNoticeBase =",
-    "sourceReportMissingNoticeDescriptionText",
-    "const sourceReportErrorAlertBase =",
-    "const sourceReportEmptySurfaceStyles = cva(",
-    "sourceReportEmptySurfaceStyles({ tone })",
-    "variant={null}",
-    "const sourceReportEmptyIconStyles = cva(",
-    "sourceReportEmptyIconStyles({ tone })",
-    "sourceReportEmptyTitleText",
-    "sourceReportEmptyDescriptionText",
-    "border border-dashed border-[var(--line-hairline)] bg-[var(--bg-recessed)]",
-    "border-[var(--alert-destructive-icon-soft-border)] bg-[var(--alert-destructive-icon-soft-bg)] text-[var(--signal-danger)]",
-    "block max-w-[360px] font-sans text-[12px] font-medium leading-[1.5] tracking-normal text-muted-foreground",
 ] as const;
 const DASHBOARD_MAIN_REQUIRED_CLASS_TOKENS = [
     "flex",
@@ -167,6 +281,7 @@ const DASHBOARD_MAIN_REQUIRED_CLASS_TOKENS = [
 ] as const;
 const DASHBOARD_TOPBAR_REQUIRED_CLASS_TOKENS = [
     "relative",
+    "z-[60]",
     "flex",
     "h-14",
     "flex-none",
@@ -236,233 +351,6 @@ const MOBILE_OWNER_LAYOUT_MIGRATED_GLOBAL_SELECTORS = [
     '[data-panel="workstation-sidebar"]',
 ] as const;
 
-const DASHBOARD_COPY_ACTION_REMOVED_GLOBAL_SELECTORS = [
-    '[data-part="dashboard-copy-label"]',
-    '[data-part="dashboard-copy-icon"]',
-    '[data-part="dashboard-transcript-actions"]',
-    '[data-control="copy-local-transcript"][hidden]',
-    '[data-control="copy-source-transcript"][hidden]',
-    '[data-control="copy-source-report"][hidden]',
-] as const;
-
-const SOURCE_REPORT_SKELETON_SHARED_TOKENS = [
-    "sourceReportCard:",
-    "sourceReportSegment:",
-    "sourceReportCardCount",
-    "sourceReportCardSource",
-    "sourceReportCardStatus",
-    "sourceReportSegmentLineLong",
-    "sourceReportSegmentLineMedium",
-    "sourceReportSegmentLineShort",
-    "sourceReportSegmentLineWide",
-    "sourceReportSegmentSpeaker",
-    "sourceReportSegmentTime",
-] as const;
-
-const SOURCE_REPORT_SKELETON_OWNER_TOKENS = [
-    "const sourceReportCardSkeletonClasses =",
-    "const sourceReportSegmentSkeletonClasses =",
-    'count: "inline-block h-[18px] w-[48px] align-middle rounded-[6px]"',
-    'status: "inline-block h-[18px] w-[80px] align-middle rounded-[6px]"',
-    'source: "inline-block h-[18px] w-[120px] align-middle rounded-[6px]"',
-    '"line-long":',
-    '"mt-[6px] inline-block h-[13px] w-[92%] align-middle rounded-[4px]"',
-    '"line-medium":',
-    '"mt-[6px] inline-block h-[13px] w-[76%] align-middle rounded-[4px]"',
-    '"line-wide":',
-    '"mt-[6px] inline-block h-[13px] w-[88%] align-middle rounded-[4px]"',
-    '"line-short":',
-    '"mt-[6px] inline-block h-[13px] w-[60%] align-middle rounded-[4px]"',
-    "speaker:",
-    "ml-[5px] inline-block h-[12px] w-[54px] align-middle rounded-[4px]",
-    'time: "inline-block h-[12px] w-[96px] align-middle rounded-[4px]"',
-] as const;
-
-const EXPECTED_SOURCE_REPORT_METRIC_CARD_CLASS_NAME =
-    "gap-1.5 overflow-visible rounded-lg shadow-none";
-const SOURCE_REPORT_METRIC_CARD_CLASS_TOKENS =
-    EXPECTED_SOURCE_REPORT_METRIC_CARD_CLASS_NAME.split(" ");
-const EXPECTED_SOURCE_REPORT_METRIC_HEADER_CLASS_NAME =
-    "px-[12px] pt-[10px] pb-0";
-const SOURCE_REPORT_METRIC_HEADER_CLASS_TOKENS =
-    EXPECTED_SOURCE_REPORT_METRIC_HEADER_CLASS_NAME.split(" ");
-const EXPECTED_SOURCE_REPORT_METRIC_CONTENT_CLASS_NAME =
-    "min-w-0 px-[12px] pb-[10px]";
-const SOURCE_REPORT_METRIC_CONTENT_CLASS_TOKENS =
-    EXPECTED_SOURCE_REPORT_METRIC_CONTENT_CLASS_NAME.split(" ");
-const SOURCE_REPORT_STYLE_OWNER_SNIPPETS = [
-    "export type SourceReportTone =",
-    "export type SourceReportCardSkeletonSize =",
-    "export type SourceReportSegmentSkeletonSize =",
-    "export type SourceReportMetaSurface =",
-    "export type SourceReportMetaSpacing =",
-    "export type SourceReportSubState =",
-    "export type SourceReportSurfaceTone =",
-    "export function sourceReportMetaSpacingForState",
-    "surface: SourceReportMetaSurface",
-    "subState?: SourceReportSubState",
-    'return "roomy"',
-] as const;
-
-const SOURCE_REPORT_PRIMITIVE_OWNER_SNIPPETS = [
-    "const sourceReportPaneBase =",
-    "const sourceReportCopyButtonVariant = {",
-    'idle: "ghost"',
-    'ok: "secondary"',
-    'err: "destructive"',
-    "function sourceReportCopyButtonVariantForState(",
-    "variant={sourceReportCopyButtonVariantForState(",
-    'feedbackState ?? "idle"',
-    'type SourceReportActionIntent = "ghost" | "outline" | "primary"',
-    "const sourceReportActionButtonVariant = {",
-    'ghost: "ghost"',
-    'outline: "outline"',
-    'primary: "default"',
-    "function sourceReportButtonVariantForIntent(",
-    "variant={sourceReportButtonVariantForIntent(intent)}",
-    'className={cn(intent === "primary" && "min-w-[46px]")}',
-    `const sourceReportPaneBase = "flex flex-col gap-3.5"`,
-    "const sourceReportMetricCardBase =",
-    "font-medium text-muted-foreground",
-    "const sourceReportSegmentSpeakerText =",
-    "font-semibold text-muted-foreground",
-    "mt-[15px] grid grid-cols-2 gap-x-[14px] gap-y-[6px]",
-    "sourceReportMetaSpacingClasses",
-    'loose: "mb-[15px]"',
-    'roomy: "mb-[22px]"',
-    "min-w-[46px]",
-    "const sourceReportSectionTitleText =",
-    "m-0 font-semibold text-foreground",
-    "const sourceReportSegmentBodyText =",
-    "m-0 font-medium text-foreground [text-wrap:pretty]",
-    "const sourceReportSummaryLineText =",
-    "m-0 whitespace-pre-wrap font-medium text-foreground [text-wrap:pretty]",
-    "const SOURCE_REPORT_STATUS_VARIANT = {",
-    'err: "destructive"',
-    'neu: "secondary"',
-    'ok: "default"',
-    'warn: "outline"',
-    "grid grid-cols-[80px_1fr] items-baseline gap-2 border-b border-dashed border-border py-1.5",
-    "flex flex-col gap-2 border-t border-border pt-2",
-] as const;
-const SOURCE_REPORT_PRIMITIVE_FORBIDDEN_SHADCN_RESIDUALS = [
-    "[[data-theme=dark]_&]",
-    "[.dark_&]",
-    "dark:",
-    "text-[var(",
-    "bg-[var(",
-    "border-[var(",
-    "![font-size:",
-    "![line-height:",
-    "![letter-spacing:",
-    "!tracking-normal",
-    "!text-foreground",
-] as const;
-const SOURCE_REPORT_BUTTON_LOCAL_CVA_FORBIDDEN_SNIPPETS = [
-    "sourceReportActionButtonStyles",
-    "sourceReportCopyButtonStyles",
-    "min-w-[46px] border border-[var(--button-primary-border)]",
-    'ghost: "border border-transparent bg-transparent text-[var(--fg-secondary)] shadow-none hover:bg-[var(--bg-recessed)] hover:text-[var(--fg-primary)]"',
-    "h-[26px] gap-[6px]",
-    "border-[color-mix(in_srgb,var(--signal-success)_36%,transparent)]",
-] as const;
-
-const SOURCE_REPORT_STYLE_FORBIDDEN_SNIPPETS = [
-    "type SourceReportStyleVariables = CSSProperties & {",
-    "export const SOURCE_REPORT_STYLE_VARIABLES = {",
-    "--source" + "-report-",
-    "bg-[image:var(--source" + "-report-skeleton-bg)]",
-    "satisfies SourceReportStyleVariables",
-    "content-[attr(data-missing-copy)]",
-    "data-missing-copy",
-    "after:content-[",
-    "before:content-[",
-    "SOURCE_REPORT_SKELETON_CLASS_NAME",
-    "SOURCE_REPORT_CARD_SKELETON_CLASS_NAMES",
-    "SOURCE_REPORT_SEGMENT_SKELETON_CLASS_NAMES",
-    "my-[15px]",
-    "min-h-[30px]",
-    "SOURCE_REPORT_METRIC_CARD_CLASS_NAME",
-    "SOURCE_REPORT_STATUS_BADGE_CLASS_NAME",
-    "SOURCE_REPORT_COPY_BUTTON_CLASS_NAME",
-    "![font:",
-] as const;
-
-const RECORDING_SOURCE_REPORT_LOADING_METRIC_CARDS = [
-    {
-        metric: "source",
-        value: "skeleton",
-        snippets: ['<SourceReportCardSkeleton size="source" />'],
-    },
-    {
-        metric: "transcript-status",
-        value: "skeleton",
-        snippets: ['<SourceReportCardSkeleton size="status" />'],
-    },
-    {
-        metric: "summary-status",
-        value: "skeleton",
-        snippets: ['<SourceReportCardSkeleton size="status" />'],
-    },
-    {
-        metric: "segment-count",
-        value: "skeleton",
-        snippets: ['<SourceReportCardSkeleton size="count" />'],
-    },
-] as const;
-
-const RECORDING_SOURCE_REPORT_LOADED_METRIC_CARDS = [
-    {
-        metric: "source",
-        value: "source",
-        snippets: ["sourceProviderLabel"],
-    },
-    {
-        metric: "transcript-status",
-        snippets: ["<SourceReportStatusBadge", "sourceTranscriptStatusLabel"],
-    },
-    {
-        metric: "summary-status",
-        snippets: ["<SourceReportStatusBadge", "sourceSummaryStatusLabel"],
-    },
-    {
-        metric: "segment-count",
-        value: "number",
-        snippets: ["sourceReportSegmentCount"],
-    },
-] as const;
-
-const ROUTE_LOADING_SURFACE_CLASS_TOKENS =
-    "min-h-0 gap-0 overflow-hidden rounded-2xl border-border bg-card shadow-sm".split(
-        " ",
-    );
-const ROUTE_FALLBACK_CHROME_SHELL_CLASS_VALUE =
-    "flex h-screen min-h-screen bg-background text-foreground transition-all duration-300 ease-out";
-const RECORDING_ROUTE_FALLBACK_REMOVED_GLOBAL_SELECTORS = [
-    '[data-shell="recording-route-loading"]',
-    '[data-shell="recording-route-empty"]',
-    '[data-shell="recording-route-error"]',
-    '[data-panel="recording-route-empty-detail"]',
-    '[data-panel="recording-route-empty"]',
-    '[data-part="recording-route-empty-icon"]',
-    '[data-part="recording-route-empty-title"]',
-    '[data-part="recording-route-empty-description"]',
-] as const;
-const ROUTE_CHROME_REMOVED_GLOBAL_SELECTORS = [
-    '[data-panel="route-sidebar"]',
-    '[data-part="route-brand"]',
-    '[data-part="route-brand"] img',
-    '[data-part="route-brand-name"]',
-    '[data-part="route-brand-subtitle"]',
-    '[data-panel="route-main"]',
-    '[data-panel="route-topbar"]',
-    '[data-part="route-crumbs"]',
-    '[data-part="route-crumb-current"]',
-    '[data-panel="route-workspace"]',
-] as const;
-const ROUTE_CHROME_FORBIDDEN_FRAMEWORK_RE =
-    /var\(--glass|var\(--graphite|color-mix\(|backdrop-filter/;
-
 const AI_RENAME_PREVIEW_SHARED_PRIMITIVE_FILES = [
     "components/ui/alert.tsx",
     "components/ui/badge.tsx",
@@ -496,7 +384,7 @@ const AI_RENAME_PREVIEW_FEATURE_OWNER_CLASS_SNIPPETS = [
         snippets: [
             "grid-cols-[1fr_auto]",
             "gap-x-2.5 gap-y-0.5",
-            "border-b border-[var(--card-popover-divider)]",
+            "border-b border-border",
             "px-3.5 pt-3 !pb-[7px]",
         ],
     },
@@ -504,23 +392,23 @@ const AI_RENAME_PREVIEW_FEATURE_OWNER_CLASS_SNIPPETS = [
         label: "body",
         snippets: [
             "flex flex-col p-3.5",
-            'loadingContent: "min-h-20"',
-            "text-[12.5px] leading-[1.5] font-medium",
+            "min-h-20",
+            "text-[12.5px] leading-[1.5] font-medium text-muted-foreground",
         ],
     },
     {
         label: "state",
         snippets: [
-            "text-[10.5px] leading-none font-semibold",
-            "m-0 break-words text-[12.5px] leading-[1.5] font-medium",
-            "m-0 max-w-full break-words text-[11.5px] leading-[1.5] font-medium",
+            "text-[10.5px] leading-none font-semibold text-muted-foreground",
+            "border border-border bg-muted",
+            "text-primary",
         ],
     },
     {
         label: "review",
         snippets: [
             "mt-1.5 mb-0.5 flex flex-col gap-1.5",
-            "rounded-lg border border-[var(--line-hairline)] bg-[var(--bg-recessed)]",
+            "rounded-lg border border-border bg-muted",
             "text-muted-foreground line-through decoration-muted-foreground",
             "text-foreground",
         ],
@@ -528,7 +416,7 @@ const AI_RENAME_PREVIEW_FEATURE_OWNER_CLASS_SNIPPETS = [
     {
         label: "actions",
         snippets: [
-            "min-h-12 gap-1.5 border-t border-[var(--card-popover-divider)]",
+            "min-h-12 gap-1.5 border-t border-border bg-muted",
             "px-3.5 py-2.5 !pt-2.5",
             'variant="outline"',
         ],
@@ -547,38 +435,12 @@ const AI_RENAME_PREVIEW_FEATURE_OWNER_CLASS_SNIPPETS = [
     },
     {
         label: "button",
-        snippets: [
-            'size="icon-xs"',
-            'size="xs"',
-            'aria-hidden="true"',
-            'action: "shrink-0"',
-        ],
+        snippets: ['size="icon-xs"', 'size="xs"', 'aria-hidden="true"'],
     },
 ] as const;
 
 function readSource(relativePath: string) {
     return readFileSync(path.join(ROOT, relativePath), "utf8");
-}
-
-function expectAlertEmptyPrimitiveCleanup(
-    alertPrimitive: string,
-    emptyPrimitive: string,
-) {
-    const combinedPrimitiveSource = `${alertPrimitive}\n${emptyPrimitive}`;
-
-    expect(combinedPrimitiveSource).not.toMatch(
-        /\b(?:bg|text|border|ring|fill|stroke)-\[var\(/,
-    );
-    for (const residual of [
-        "dark:",
-        "[stroke-linecap:",
-        "[stroke-linejoin:",
-        "size-[14px]",
-        "size-[32px]",
-        "rounded-[var(--radius",
-    ]) {
-        expect(combinedPrimitiveSource).not.toContain(residual);
-    }
 }
 
 function escapeRegExp(value: string) {
@@ -600,16 +462,6 @@ function collectAiRenamePrimitiveBusinessTokens() {
             hasExactBusinessToken(source, token),
         ).map((token) => `${file}:${token}`);
     });
-}
-
-function extractCardSlice(source: string, marker: string) {
-    const markerIndex = source.indexOf(marker);
-    expect(markerIndex).toBeGreaterThanOrEqual(0);
-    const start = source.lastIndexOf("<Card", markerIndex);
-    const end = source.indexOf("</Card>", start);
-    expect(start).toBeGreaterThanOrEqual(0);
-    expect(end).toBeGreaterThan(start);
-    return source.slice(start, end + "</Card>".length);
 }
 
 function extractElementSlice(source: string, marker: string, tagName: string) {
@@ -660,61 +512,6 @@ function expectClassNameConstReference(
         new RegExp(`className=\\{\\s*${escapedConstName}\\s*\\}`),
     );
     expect(openingElement).not.toContain('className="');
-}
-
-function expectSourceReportEmptyAlertComposition(source: string) {
-    expect(source).toContain("<EmptyHeader>");
-
-    for (const {
-        pattern,
-        snippets,
-    } of SOURCE_REPORT_EMPTY_ALERT_COMPOSITION_CHECKS) {
-        const openingElement = source.match(pattern)?.[0] ?? "";
-        expect(openingElement).not.toBe("");
-        for (const snippet of snippets) {
-            expect(openingElement).toContain(snippet);
-        }
-    }
-}
-
-function expectSourceReportMetricCallsites(
-    source: string,
-    cardComponentName: string,
-    expectations: readonly {
-        metric: string;
-        snippets: readonly string[];
-        value?: string;
-    }[],
-) {
-    const metricCardCallsites =
-        source.match(new RegExp(`<${cardComponentName}(?=\\s|>)`, "g")) ?? [];
-    const expectedMetricCallsiteProps = [
-        'metric="source"',
-        'metric="transcript-status"',
-        'metric="summary-status"',
-        'metric="segment-count"',
-    ];
-    expect(metricCardCallsites).toHaveLength(4);
-    expect(expectations.map(({ metric }) => `metric="${metric}"`)).toEqual(
-        expectedMetricCallsiteProps,
-    );
-
-    for (const expectation of expectations) {
-        const metricCard = extractElementSlice(
-            source,
-            `metric="${expectation.metric}"`,
-            cardComponentName,
-        );
-
-        expect(metricCard).toContain(`<${cardComponentName}`);
-        expect(metricCard).toContain(`metric="${expectation.metric}"`);
-        if (expectation.value) {
-            expect(metricCard).toContain(`value="${expectation.value}"`);
-        }
-        for (const snippet of expectation.snippets) {
-            expect(metricCard).toContain(snippet);
-        }
-    }
 }
 
 function extractOpeningElement(
@@ -872,9 +669,6 @@ function collectExactCssRuleBlocks(source: string, selector: string) {
 
 const OLD_UI_CONTRACT_RE =
     /uikit-|glass-surface|glass-control|<LibrarySearch[\s/>]|<SourceFilterStackStrip[\s/>]|\.\/components\/library-search|\.\/components\/source-filter-stack-strip/;
-
-const DASHBOARD_WORKSTATION_LEGACY_CONTROL_RE =
-    /className=["']btn(?:\s+(?:ghost|primary|glass))?\b|track-fill|track-thumb|sk _is|_is-/;
 
 const MORE_ACTIONS_MENU_RETIRED_GLOBALS_SELECTORS = [
     '[data-menu="recording-more-actions"]',
@@ -1192,577 +986,181 @@ describe("recording detail copy and title action UI regressions", () => {
         expect(clipboard).toContain("Clipboard text is empty");
     });
 
-    it("keeps transcript copy actions disabled when no display text is available", () => {
-        const detailTranscript = readSource(
-            "features/recordings/components/transcription-section.tsx",
-        );
-        const dashboardTranscript = readSource(
-            "features/dashboard/workstation.tsx",
-        );
-        const globals = readSource("app/globals.css");
+    it("keeps transcript copy actions disabled when no display text is available", async () => {
+        const {
+            ConfirmDialogProvider,
+            LanguageProvider,
+            React,
+            TranscriptionPanel,
+            TranscriptionSection,
+            renderToStaticMarkup,
+        } = renderedRuntime;
+        const onCopyLocal = vi.fn();
 
-        expect(detailTranscript).toContain("handleCopyTranscript");
-        expect(detailTranscript).toContain(
-            "writeBrowserClipboardText(displayText)",
-        );
-        expect(detailTranscript).toContain("isCopyingTranscript");
-        expect(detailTranscript).toContain("!displayText.trim()");
-        expect(detailTranscript).toContain("transcription.copyTranscript");
-        expect(detailTranscript).toContain(
-            "transcription.copyTranscriptFailed",
-        );
-        expect(detailTranscript).toContain('role="region"');
-        expect(detailTranscript).toContain(
-            'aria-labelledby="recording-transcription-title"',
-        );
-        expect(detailTranscript).toContain("onClick={handleCopyTranscript}");
-        expect(detailTranscript).toContain(
-            "onClick={handleConfirmRetranscribe}",
-        );
-        expect(detailTranscript).toContain(
-            "onClick={() => handleTranscribe(false)}",
-        );
-        expect(detailTranscript).toContain("aria-busy={isCopyingTranscript}");
-        expect(detailTranscript).toContain('data-icon="inline-start"');
-        expect(detailTranscript).toContain(
-            'import { Badge } from "@/components/ui/badge";',
-        );
-        expect(detailTranscript).toContain(
-            'import { Separator } from "@/components/ui/separator";',
-        );
-        expect(detailTranscript).toContain("<Badge");
-        expect(detailTranscript).toContain("<Separator");
-        expect(detailTranscript).toContain(
-            "const RECORDING_TRANSCRIPTION_META_BADGE_VARIANT = {",
-        );
-        for (const tone of ["attribute", "measure"]) {
-            expect(detailTranscript).toMatch(
-                new RegExp(
-                    `variant=\\{\\s*RECORDING_TRANSCRIPTION_META_BADGE_VARIANT\\.${tone}\\s*\\}`,
+        const detailHtml = renderToStaticMarkup(
+            React.createElement(
+                LanguageProvider,
+                null,
+                React.createElement(
+                    ConfirmDialogProvider,
+                    null,
+                    React.createElement(TranscriptionSection, {
+                        recordingId: "recording-empty",
+                        showSpeakerReview: false,
+                    }),
                 ),
-            );
-        }
-        expect(detailTranscript).not.toContain(
-            "RECORDING_TRANSCRIPTION_META_BADGE_CLASS_NAME",
+            ),
         );
-        expect(detailTranscript).toContain(
-            "const recordingTranscriptionClassNames = {",
+        const dashboardEmptyHtml = renderToStaticMarkup(
+            React.createElement(
+                LanguageProvider,
+                null,
+                React.createElement(
+                    TranscriptionPanel,
+                    transcriptionPanelProps({
+                        localCopyState: "missing",
+                        onCopyLocal,
+                        turns: [],
+                    }),
+                ),
+            ),
         );
-        expect(detailTranscript).not.toContain(
-            "const recordingTranscriptionButtonClassNames",
-        );
-        expect(detailTranscript).not.toContain(
-            "recordingTranscriptionButtonClassNames.",
-        );
-        const recordingTranscriptionClassNamesBlock = extractBoundedSlice(
-            detailTranscript,
-            "const recordingTranscriptionClassNames = {",
-            "} as const;",
-        );
-        for (const ownerClassSnippet of [
-            'card: "min-h-0 flex-1 gap-0"',
-            'header: "flex flex-row items-center gap-3 px-3.5 py-3"',
-            'heading: "flex min-w-0 items-center gap-3"',
-            'icon: "size-4 flex-none text-muted-foreground"',
-            'headerCopy: "flex min-w-0 flex-col gap-[3px]"',
-            'body: "min-h-0 flex-1 overflow-y-auto px-5 pt-4 pb-6"',
-            'speakerReviewSection: "flex flex-col gap-2"',
-            'sectionHead: "flex items-start justify-between gap-3 max-[860px]:flex-col"',
-            'sectionTitle: "m-0 font-sans text-[12.5px] font-semibold text-foreground"',
-            'sectionDescription:\n        "mt-0.5 mb-0 font-sans text-[11.5px] font-medium leading-[1.45] text-muted-foreground max-[860px]:[overflow-wrap:anywhere]"',
-            'actions:\n        "inline-flex min-w-0 flex-wrap items-center justify-end gap-2 max-[860px]:justify-start"',
-            'turn: "pt-[10px]"',
-            'metaList: "mb-1.5 flex flex-wrap items-center gap-2.5 pt-2"',
-        ]) {
-            expect(recordingTranscriptionClassNamesBlock).toContain(
-                ownerClassSnippet,
-            );
-        }
-        for (const forbiddenLocalPanelResidual of [
-            "[scrollbar-color:",
-            "[scrollbar-width:",
-            "[&::-webkit-scrollbar",
-            "border-t border-border",
-            "border-b border-dashed",
-            "[&>svg]:size-",
-            "data-[tone=attribute]:",
-            "data-[tone=measure]:",
-        ]) {
-            expect(recordingTranscriptionClassNamesBlock).not.toContain(
-                forbiddenLocalPanelResidual,
-            );
-            expect(detailTranscript).not.toContain(forbiddenLocalPanelResidual);
-        }
-        expect(detailTranscript).not.toContain("dark:");
-        expect(detailTranscript).not.toMatch(
-            /(?:text|border|bg)-\[var\(--(?:fg|line|glass)-/,
-        );
-        expect(recordingTranscriptionClassNamesBlock).not.toMatch(
-            /\b(?:rgb|rgba|color-mix|oklch)\(/,
-        );
-        expect(recordingTranscriptionClassNamesBlock).not.toMatch(
-            /#[0-9a-fA-F]{3,8}\b/,
-        );
-        expect(detailTranscript).toContain(
-            'outputSection: "flex flex-col gap-2"',
-        );
-        expect(detailTranscript).toContain(
-            'outputText:\n        "m-0 font-sans text-[14.5px] leading-[1.65] text-foreground [text-wrap:pretty] max-[860px]:[overflow-wrap:anywhere]"',
-        );
-        for (const metaLabel of [
-            "transcription.languagePrefix",
-            "transcription.sourcePrefix",
-            "transcription.words",
-            "transcription.characters",
-        ]) {
-            expect(detailTranscript).toContain(metaLabel);
-        }
-        expect((detailTranscript.match(/<Badge/g) ?? []).length).toBe(4);
-        const copyControlIndex = detailTranscript.indexOf(
-            "onClick={handleCopyTranscript}",
-        );
-        const retranscribeControlIndex = detailTranscript.indexOf(
-            "onClick={handleConfirmRetranscribe}",
-        );
-        const startControlIndex = detailTranscript.indexOf('variant="default"');
-        const jobErrorBannerIndex = detailTranscript.indexOf(
-            'variant="statusError"',
-        );
-        expect(copyControlIndex).toBeGreaterThanOrEqual(0);
-        expect(retranscribeControlIndex).toBeGreaterThanOrEqual(0);
-        expect(startControlIndex).toBeGreaterThanOrEqual(0);
-        expect(jobErrorBannerIndex).toBeGreaterThanOrEqual(0);
-        const copyControl = extractOpeningElement(
-            detailTranscript,
-            "onClick={handleCopyTranscript}",
-            "Button",
-        );
-        const retranscribeControl = extractOpeningElement(
-            detailTranscript,
-            "onClick={handleConfirmRetranscribe}",
-            "Button",
-        );
-        const startControl = extractOpeningElement(
-            detailTranscript,
-            'variant="default"',
-            "Button",
-        );
-        const jobErrorBanner = detailTranscript.slice(
-            Math.max(0, jobErrorBannerIndex - 240),
-            jobErrorBannerIndex + 360,
-        );
-        const outputSection = extractOpeningElement(
-            detailTranscript,
-            "recordingTranscriptionClassNames.outputSection",
-            "section",
-        );
-        const transcriptionCard = extractOpeningElement(
-            detailTranscript,
-            'aria-labelledby="recording-transcription-title"',
-            "Card",
-        );
-        const transcriptionHeader = extractOpeningElement(
-            detailTranscript,
-            "recordingTranscriptionClassNames.header",
-            "CardHeader",
-        );
-        const transcriptionHeading = extractOpeningElement(
-            detailTranscript,
-            "recordingTranscriptionClassNames.heading",
-            "div",
-        );
-        const transcriptionIcon = extractOpeningElement(
-            detailTranscript,
-            "recordingTranscriptionClassNames.icon",
-            "FileText",
-        );
-        const transcriptionHeaderCopy = extractOpeningElement(
-            detailTranscript,
-            "recordingTranscriptionClassNames.headerCopy",
-            "div",
-        );
-        const transcriptionBody = extractOpeningElement(
-            detailTranscript,
-            "recordingTranscriptionClassNames.body",
-            "CardContent",
-        );
-        const sectionHead = extractOpeningElement(
-            detailTranscript,
-            "recordingTranscriptionClassNames.sectionHead",
-            "header",
-        );
-        const sectionTitle = extractOpeningElement(
-            detailTranscript,
-            "recordingTranscriptionClassNames.sectionTitle",
-            "h3",
-        );
-        const sectionDescription = extractOpeningElement(
-            detailTranscript,
-            "recordingTranscriptionClassNames.sectionDescription",
-            "p",
-        );
-        const sectionActions = extractOpeningElement(
-            detailTranscript,
-            "recordingTranscriptionClassNames.actions",
-            "div",
-        );
-        const transcriptionTurn = extractOpeningElement(
-            detailTranscript,
-            "recordingTranscriptionClassNames.turn",
-            "div",
-        );
-        const speakerReviewSection = extractOpeningElement(
-            detailTranscript,
-            "recordingTranscriptionClassNames.speakerReviewSection",
-            "section",
-        );
-        const outputText = extractOpeningElement(
-            detailTranscript,
-            "recordingTranscriptionClassNames.outputText",
-            "p",
-        );
-        const metaList = extractBoundedSlice(
-            detailTranscript,
-            "recordingTranscriptionClassNames.metaList",
-            "</div>",
-        );
-        const transcriptionMetaList = extractOpeningElement(
-            detailTranscript,
-            "recordingTranscriptionClassNames.metaList",
-            "div",
-        );
-        expect(outputSection).toContain(
-            "recordingTranscriptionClassNames.outputSection",
-        );
-        expect(transcriptionCard).toContain(
-            "recordingTranscriptionClassNames.card",
-        );
-        expect(transcriptionHeader).toContain(
-            "recordingTranscriptionClassNames.header",
-        );
-        expect(transcriptionHeading).toContain(
-            "recordingTranscriptionClassNames.heading",
-        );
-        expect(transcriptionIcon).toContain(
-            "recordingTranscriptionClassNames.icon",
-        );
-        expect(transcriptionHeaderCopy).toContain(
-            "recordingTranscriptionClassNames.headerCopy",
-        );
-        expect(transcriptionBody).toContain(
-            "recordingTranscriptionClassNames.body",
-        );
-        expect(sectionHead).toContain(
-            "recordingTranscriptionClassNames.sectionHead",
-        );
-        expect(sectionTitle).toContain(
-            "recordingTranscriptionClassNames.sectionTitle",
-        );
-        expect(sectionDescription).toContain(
-            "recordingTranscriptionClassNames.sectionDescription",
-        );
-        expect(sectionActions).toContain(
-            "recordingTranscriptionClassNames.actions",
-        );
-        expect(transcriptionTurn).toContain(
-            "recordingTranscriptionClassNames.turn",
-        );
-        expect(transcriptionMetaList).toContain(
-            "recordingTranscriptionClassNames.metaList",
-        );
-        expect(speakerReviewSection).toContain(
-            "recordingTranscriptionClassNames.speakerReviewSection",
-        );
-        expect(outputText).toContain(
-            "recordingTranscriptionClassNames.outputText",
-        );
-        expect(copyControl).toContain('variant="outline"');
-        expect(copyControl).toContain('size="sm"');
-        expect(copyControl).not.toContain("className=");
-        expect(copyControl).toContain("isCopyingTranscript");
-        expect(copyControl).toContain("!displayText.trim()");
-        expect(retranscribeControl).toContain('variant="destructive"');
-        expect(retranscribeControl).toContain('size="sm"');
-        expect(retranscribeControl).not.toContain("className=");
-        expect(startControl).toContain('variant="default"');
-        expect(startControl).toContain('size="sm"');
-        expect(startControl).not.toContain("className=");
-        expect(jobErrorBanner).toContain("<Alert");
-        expect(jobErrorBanner).toContain('variant="statusError"');
-        expect(metaList).toContain("<Badge");
-        expect(metaList).not.toContain(variantAttr("transcriptionMeta"));
-        expect(metaList).toContain(
-            "RECORDING_TRANSCRIPTION_META_BADGE_VARIANT.attribute",
-        );
-        expect(metaList).toContain(
-            "RECORDING_TRANSCRIPTION_META_BADGE_VARIANT.measure",
-        );
-        for (const removedActionToken of [
-            'variant="transcriptionAction"',
-            'variant="transcriptionDangerAction"',
-            'variant="transcriptionPrimaryAction"',
-            'size="transcriptionAction"',
-            "recordingTranscriptionButtonClassNames.action",
-            "recordingTranscriptionButtonClassNames.danger",
-            "recordingTranscriptionButtonClassNames.primary",
-            "h-8",
-            "gap-1.5",
-            "rounded-md",
-            "px-3",
-            "shadow-xs",
-            "has-[>svg]:px-2.5",
-        ]) {
-            expect(copyControl).not.toContain(removedActionToken);
-            expect(retranscribeControl).not.toContain(removedActionToken);
-            expect(startControl).not.toContain(removedActionToken);
-        }
-        expect(jobErrorBanner).not.toContain('variant="destructive"');
-        expect(metaList).toMatch(
-            /variant=\{\s*RECORDING_TRANSCRIPTION_META_BADGE_VARIANT\.attribute\s*\}/,
-        );
-        expect(metaList).toMatch(
-            /variant=\{\s*RECORDING_TRANSCRIPTION_META_BADGE_VARIANT\.measure\s*\}/,
-        );
-        for (const removedSelector of [
-            '[data-panel="recording-transcription"][data-slot="card"]',
-            '[data-part="recording-transcription-header"] {',
-            '[data-part="recording-transcription-heading"]',
-            '[data-part="recording-transcription-icon"]',
-            '[data-part="recording-transcription-header-copy"]',
-            '[data-part="recording-transcription-title"] h2',
-            '[data-part="recording-transcription-description"],',
-            '[data-part="recording-transcription-unavailable"] {',
-            '[data-part="recording-transcription-body"]',
-            '[data-section="recording-transcription-speaker-review"]',
-            '[data-part="recording-transcription-section-head"]',
-            '[data-part="recording-transcription-section-title"]',
-            '[data-part="recording-transcription-section-description"]',
-            '[data-part="recording-transcription-actions"]',
-            '[data-part="recording-transcription-turn"]',
-            '[data-part="recording-transcription-body"] [data-banner-title]',
-            '[data-list="recording-transcription-meta"]',
-            '[data-list="recording-transcription-meta"] > span',
-            '[data-part="recording-transcription-meta-icon"]',
-            '[data-section="recording-transcription-output"]',
-            '[data-theme="dark"] [data-section="recording-transcription-output"]',
-            '[data-part="recording-transcription-text"]',
-        ]) {
-            expect(globals).not.toContain(removedSelector);
-        }
-        expect(globals).not.toContain("\n[data-banner] {\n");
-        expect(globals).not.toContain("\n[data-banner-icon] {\n");
-        const alertPrimitive = readSource("components/ui/alert.tsx");
-        const transcriptionSection = readSource(
-            "features/recordings/components/transcription-section.tsx",
-        );
-        expect(alertPrimitive).toContain("[&>[data-slot=spinner]]:size-4");
-        expect(alertPrimitive).toContain(
-            "has-[>[data-slot=spinner]]:grid-cols-[1rem_1fr]",
-        );
-        expect(transcriptionSection).toContain(
-            'import { Spinner } from "@/components/ui/spinner";',
-        );
-        expect(transcriptionSection).toContain("<Spinner");
-        expect(transcriptionSection).toContain(
-            '<Spinner aria-hidden="true" />',
-        );
-        expect(transcriptionSection).not.toContain(
-            '<RefreshCw\n                            className="animate-spin"',
-        );
-        for (const legacyClass of [
-            'className="transcript t-pane"',
-            'className="transcript-head"',
-            'className="transcript-body"',
-            'className="sr-section"',
-            'className="sr-section-head"',
-            'className="sr-section-sub"',
-            'className="empty-hint"',
-            'className="eh-t"',
-            'className="eh-h"',
-            'className="turn"',
-            'className="speaker"',
-            'className="ts"',
-        ]) {
-            expect(detailTranscript).not.toContain(legacyClass);
-        }
 
-        expect(dashboardTranscript).toContain(
-            'data-panel="dashboard-retranscription"',
+        expect(detailHtml).toContain('data-control="recording-transcription"');
+        expect(detailHtml).toContain('data-state="empty"');
+        expect(detailHtml).not.toContain(
+            'data-control="recording-transcript-copy"',
         );
-        expect(dashboardTranscript).toContain(
-            "data-retx-state={dashboardRetxState}",
+        expect(dashboardEmptyHtml).toMatch(
+            /<div[^>]*role="region"[^>]*aria-label="转写与说话人"/,
         );
-        expect(dashboardTranscript).toContain('aria-label="详情标签"');
-        expect(dashboardTranscript).toContain(
-            'hidden={detailTab !== "transcript"}',
+        expect(dashboardEmptyHtml).toMatch(
+            /<button(?=[^>]*data-control="copy-local-transcript")(?=[^>]*data-state="missing")(?=[^>]*disabled="")(?=[^>]*aria-busy="false")[^>]*>/,
         );
-        expect(dashboardTranscript).toMatch(
-            /\{\s*value: "transcript",\s*label: "转写",\s*\}/,
+        expect(dashboardEmptyHtml).toMatch(
+            /<section(?=[^>]*role="tabpanel")(?=[^>]*data-tab-pane="transcript")(?=[^>]*data-state="empty")[^>]*>/,
         );
-        expect(dashboardTranscript).toContain('tabKey: "source-report"');
+
+        const disabledCopyButton = capturedButtons.find(
+            (button) => button["data-control"] === "copy-local-transcript",
+        );
+        expect(disabledCopyButton?.disabled).toBe(true);
+        expect(onCopyLocal).not.toHaveBeenCalled();
+
+        renderToStaticMarkup(
+            React.createElement(
+                LanguageProvider,
+                null,
+                React.createElement(
+                    TranscriptionPanel,
+                    transcriptionPanelProps({ onCopyLocal }),
+                ),
+            ),
+        );
+        const readyCopyButton = capturedButtons
+            .filter(
+                (button) => button["data-control"] === "copy-local-transcript",
+            )
+            .at(-1);
+        expect(readyCopyButton?.disabled).toBe(false);
+        expect(readyCopyButton?.onClick).toBeTypeOf("function");
+        (readyCopyButton?.onClick as (() => void) | undefined)?.();
+        expect(onCopyLocal).toHaveBeenCalledOnce();
     });
 
-    it("keeps source report copy states explicit without dumping raw detail payloads", () => {
-        const sourceReport = readSource(
-            "features/recordings/components/source-report-panel.tsx",
-        );
-        const sourceReportPrimitives = readSource(
-            "features/source-report/primitives.tsx",
-        );
-        const dashboardWorkstation = readSource(
-            "features/dashboard/workstation.tsx",
-        );
-        const recordingWorkstation = readSource(
-            "features/recordings/workstation.tsx",
-        );
-        const sourceReportPane = extractBoundedSlice(
-            sourceReportPrimitives,
-            "export function SourceReportPane",
-            "export function SourceReportDescription",
-        );
-        const sourceReportCopyButton = extractBoundedSlice(
-            sourceReportPrimitives,
-            "export function SourceReportCopyButton",
-            "export function SourceReportActionButton",
+    it("keeps source report copy states explicit without dumping raw detail payloads", async () => {
+        const {
+            LanguageProvider,
+            React,
+            SourceReportCopyButton,
+            SourceReportPanel,
+            renderToStaticMarkup,
+        } = renderedRuntime;
+        const copyTranscript = vi.fn();
+        const copyReport = vi.fn();
+
+        const html = renderToStaticMarkup(
+            React.createElement(
+                LanguageProvider,
+                null,
+                React.createElement(
+                    "section",
+                    null,
+                    React.createElement(SourceReportPanel, {
+                        autoLoad: false,
+                        recordingId: "source-report-empty",
+                        sourceProvider: "ticnote",
+                    }),
+                    React.createElement(SourceReportCopyButton, {
+                        "aria-label": "复制不可用来源逐字稿",
+                        children: "复制来源逐字稿",
+                        copy: "source-transcript",
+                        copyState: "missing",
+                        disabled: true,
+                        onClick: copyTranscript,
+                    }),
+                    React.createElement(SourceReportCopyButton, {
+                        "aria-label": "复制来源逐字稿",
+                        children: "复制来源逐字稿",
+                        copy: "source-transcript",
+                        copyState: "ready",
+                        onClick: copyTranscript,
+                    }),
+                    React.createElement(SourceReportCopyButton, {
+                        "aria-label": "来源报告已复制",
+                        children: "已复制",
+                        copy: "source-report",
+                        copyState: "ready",
+                        feedbackState: "ok",
+                        onClick: copyReport,
+                    }),
+                    React.createElement(SourceReportCopyButton, {
+                        "aria-label": "来源报告复制失败",
+                        children: "复制失败",
+                        copy: "source-report",
+                        copyState: "ready",
+                        feedbackState: "err",
+                        onClick: copyReport,
+                    }),
+                ),
+            ),
         );
 
-        expect(sourceReport).toContain("handleCopySourceTranscript");
-        expect(sourceReport).toContain("handleCopySourceReport");
-        expect(sourceReport).toContain("SourceReportAvailabilitySnapshot");
-        expect(sourceReport).toContain("onAvailabilityChange?.({");
-        expect(sourceReport).toContain("transcriptAvailable,");
-        expect(sourceReport).toContain("reportAvailable,");
-        expect(sourceReport).toContain("const sourceTranscriptCopyState =");
-        expect(sourceReport).toContain("const sourceReportCopyState =");
-        expect(sourceReport).toContain(
-            'copyingKey === "source-transcript" || !transcriptAvailable;',
+        expect(html).toMatch(
+            /<div(?=[^>]*data-control="recording-source-report")(?=[^>]*data-state="empty")[^>]*>/,
         );
-        expect(sourceReport).toContain(
-            'copyingKey === "source-report" || !reportAvailable;',
+        expect(html).toContain('data-testid="source-report-empty-surface"');
+        expect(html).not.toMatch(/<(?:pre|code)\b/);
+        expect(html).toMatch(
+            /<button(?=[^>]*data-testid="source-report-copy-source-transcript")(?=[^>]*data-state="missing")(?=[^>]*aria-label="复制不可用来源逐字稿")(?=[^>]*disabled="")[^>]*>/,
         );
-
-        const sourceTranscriptCopy = extractOpeningElement(
-            sourceReport,
-            'copy="source-transcript"',
-            "SourceReportCopyButton",
+        expect(html).toMatch(
+            /<button(?=[^>]*data-testid="source-report-copy-source-transcript")(?=[^>]*data-state="ready")(?=[^>]*aria-label="复制来源逐字稿")[^>]*>/,
         );
-        expect(sourceTranscriptCopy).toContain(
-            "copyState={sourceTranscriptCopyState}",
+        expect(html).toMatch(
+            /<button(?=[^>]*data-testid="source-report-copy-source-report")(?=[^>]*data-state="ok")(?=[^>]*aria-label="来源报告已复制")[^>]*>/,
         );
-        expect(sourceTranscriptCopy).toContain(
-            "disabled={sourceTranscriptCopyDisabled}",
-        );
-        expect(sourceTranscriptCopy).toContain(
-            'aria-busy={copyingKey === "source-transcript"}',
-        );
-        const sourceReportCopy = extractOpeningElement(
-            sourceReport,
-            'copy="source-report"',
-            "SourceReportCopyButton",
-        );
-        expect(sourceReportCopy).toContain("copyState={sourceReportCopyState}");
-        expect(sourceReportCopy).toContain(
-            "disabled={sourceReportCopyDisabled}",
-        );
-        expect(sourceReportCopy).toContain(
-            'aria-busy={copyingKey === "source-report"}',
-        );
-        expect(sourceReport).toContain('testId="source-report-refresh"');
-        expect(sourceReport).toContain(
-            'data-testid="source-report-open-source"',
-        );
-        expect(sourceReport).toContain('data-testid="source-report-repull"');
-        expect(sourceReport).toContain("<SourceReportPane");
-        expect(sourceReport).toContain(
-            "<SourceReportPane className={className} state={sourceReportState}>",
-        );
-        expect(sourceReport).toContain('<SourceReportState state="loading">');
-        expect(sourceReport).toContain("subState={sourceReportSubState}");
-        expect(sourceReport).not.toContain("@/features/source-report/styles");
-        expect(sourceReport).not.toContain("JSON.stringify(data.detail");
-        expect(sourceReport).not.toContain("data-missing-copy");
-
-        for (const moduleName of [
-            "alert",
-            "badge",
-            "button",
-            "card",
-            "empty",
-            "separator",
-            "skeleton",
-        ]) {
-            expect(sourceReportPrimitives).toContain(
-                `@/components/ui/${moduleName}`,
-            );
-        }
-        expect(sourceReportPane).toContain('surface === "dashboard"');
-        expect(sourceReportPane).toContain('"dashboard-source-report"');
-        expect(sourceReportPane).toContain('"recording-source-report"');
-        expect(sourceReportPane).toContain("data-testid={testId}");
-        expect(sourceReportPane).toContain("data-state={state}");
-        expect(sourceReportPane).toContain('aria-busy={state === "loading"}');
-        expect(sourceReportPane).toContain("hidden={hidden}");
-        expect(sourceReportCopyButton).toContain(
-            "data-testid={`source-report-copy-${copy}`}",
-        );
-        expect(sourceReportCopyButton).toContain(
-            "data-state={feedbackState ?? copyState}",
-        );
-        expect(sourceReportCopyButton).toContain("data-tab-scope={tabScope}");
-        expect(sourceReportCopyButton).toContain("variant={variant}");
-        expect(sourceReportCopyButton).toContain('size="xs"');
-        expect(sourceReportPrimitives).toContain(
-            'testId = "recording-source-report-state"',
-        );
-        expect(sourceReportPrimitives).toContain(
-            'testId="dashboard-source-report-state"',
-        );
-        expect(sourceReportPrimitives).toContain("data-substate={subState}");
-        expect(sourceReportPrimitives).toContain(
-            "data-testid={`source-report-missing-${state}`}",
-        );
-        expect(sourceReportPrimitives).toContain(
-            'data-testid="source-report-empty-surface"',
-        );
-        expect(sourceReportPrimitives).not.toMatch(
-            /SotSourceReport|data-source-report|sourceReportSotStyles|SourceReportStyleVariables/,
+        expect(html).toMatch(
+            /<button(?=[^>]*data-testid="source-report-copy-source-report")(?=[^>]*data-state="err")(?=[^>]*aria-label="来源报告复制失败")[^>]*>/,
         );
 
-        const dashboardPane = extractOpeningElement(
-            dashboardWorkstation,
-            'surface="dashboard"',
-            "SourceReportPane",
+        const readyTranscriptCopy = capturedButtons.find(
+            (button) =>
+                button["data-testid"] ===
+                    "source-report-copy-source-transcript" &&
+                button["data-state"] === "ready",
         );
-        expect(dashboardPane).toContain('hidden={detailTab !== "source"}');
-        expect(dashboardPane).toContain("state={sourceReportVisualState}");
-        for (const [copyKind, copyState, copyDisabled] of [
-            [
-                "source-transcript",
-                "sourceTranscriptCopyState",
-                "sourceTranscriptCopyDisabled",
-            ],
-            [
-                "source-report",
-                "sourceReportCopyState",
-                "sourceReportCopyDisabled",
-            ],
-        ] as const) {
-            const dashboardCopy = extractOpeningElement(
-                dashboardWorkstation,
-                `copy="${copyKind}"`,
-                "SourceReportCopyButton",
-            );
-            expect(dashboardCopy).toContain(`copy="${copyKind}"`);
-            expect(dashboardCopy).toMatch(
-                new RegExp(`copyState=\\{\\s*${copyState}\\s*\\}`),
-            );
-            expect(dashboardCopy).toMatch(
-                new RegExp(`disabled=\\{\\s*${copyDisabled}\\s*\\}`),
-            );
-        }
-        expect(recordingWorkstation).toContain("<SourceReportPanel");
-        expect(recordingWorkstation).toContain("onAvailabilityChange=");
-        expect(recordingWorkstation).not.toContain("SotSourceReport");
+        const readyReportCopy = capturedButtons.find(
+            (button) =>
+                button["data-testid"] === "source-report-copy-source-report" &&
+                button["data-state"] === "ok",
+        );
+        expect(readyTranscriptCopy?.onClick).toBeTypeOf("function");
+        expect(readyReportCopy?.onClick).toBeTypeOf("function");
+        (readyTranscriptCopy?.onClick as (() => void) | undefined)?.();
+        (readyReportCopy?.onClick as (() => void) | undefined)?.();
+        expect(copyTranscript).toHaveBeenCalledOnce();
+        expect(copyReport).toHaveBeenCalledOnce();
     });
 
     it("keeps standalone recording detail on the SOT shell with panel-scoped copy actions", () => {
@@ -2197,6 +1595,88 @@ describe("recording detail copy and title action UI regressions", () => {
         expect(dashboardWorkspaceClassName).not.toMatch(
             OWNER_WORKSPACE_FORBIDDEN_CLASS_PATTERN,
         );
+        expect(dashboardWorkspaceClassName).toContain("grid-cols-[380px_1fr]");
+        expect(dashboardWorkspaceClassName).toContain(
+            "max-[1439px]:grid-cols-[minmax(0,1fr)]",
+        );
+        expect(dashboardWorkspaceClassName).toContain(
+            "min-[1024px]:max-[1439px]:group-data-[detail-state=open]/dashboard-workstation:grid-cols-[320px_minmax(0,1fr)]",
+        );
+        const dashboardDetailPanelClassName = expectExactStringConstInitializer(
+            dashboardWorkstation,
+            "DASHBOARD_DETAIL_PANEL_CLASS_NAME",
+            EXPECTED_DASHBOARD_DETAIL_PANEL_CLASS_NAME,
+        );
+        const dashboardDetailScrimClassName = expectExactStringConstInitializer(
+            dashboardWorkstation,
+            "DASHBOARD_DETAIL_SCRIM_CLASS_NAME",
+            EXPECTED_DASHBOARD_DETAIL_SCRIM_CLASS_NAME,
+        );
+        expect(dashboardDetailPanelClassName).toContain(
+            "min-[1024px]:max-[1439px]:group-data-[detail-state=open]/dashboard-workstation:flex",
+        );
+        expect(dashboardDetailPanelClassName).toContain(
+            "max-[1024px]:fixed max-[1024px]:inset-2",
+        );
+        expect(dashboardDetailScrimClassName).toContain(
+            "max-[1024px]:group-data-[detail-state=open]/dashboard-workstation:block",
+        );
+        expect(dashboardWorkstation).toContain(
+            'className="hidden min-[1024px]:max-[1439px]:inline-flex"',
+        );
+        expect(dashboardWorkstation).toContain(
+            'className="hidden max-[1024px]:inline-flex"',
+        );
+        expect(dashboardWorkstation).toContain(
+            'window.matchMedia("(max-width: 1023px)")',
+        );
+        expect(dashboardWorkstation).not.toContain("max-[1023px]");
+        expect(dashboardWorkstation).not.toContain("max-width: 1022px");
+        expect(
+            dashboardWorkstation.match(
+                /if \(!hydrated \|\| !displaySettingsLoaded\) return;/g,
+            ),
+        ).toHaveLength(2);
+        const recordingPropsEffectStart = dashboardWorkstation.indexOf(
+            "setLiveRecordings(recordings);",
+        );
+        const recordingPropsEffectEnd = dashboardWorkstation.indexOf(
+            "setLiveTranscriptions((current)",
+            recordingPropsEffectStart,
+        );
+        expect(recordingPropsEffectStart).toBeGreaterThanOrEqual(0);
+        expect(recordingPropsEffectEnd).toBeGreaterThan(
+            recordingPropsEffectStart,
+        );
+        expect(
+            dashboardWorkstation.slice(
+                recordingPropsEffectStart,
+                recordingPropsEffectEnd,
+            ),
+        ).not.toContain("requestedRecordingIdRef.current = null");
+        expect(
+            dashboardWorkstation.match(
+                /requestedRecordingIdRef\.current = null/g,
+            ),
+        ).toHaveLength(1);
+        expect(dashboardWorkstation).toMatch(
+            /const payload =[\s\S]{0,2500}const requestedIdFound = Boolean\([\s\S]{0,300}if \(requestedId && requestedIdFound\) \{\s*updateRequestedRecordingId\(null\);\s*\} else if \(requestedId && payload\.anchorPage === null\) \{\s*settleMissingRequestedRecordingId\(requestedId\);/,
+        );
+        expect(dashboardWorkstation).toContain(
+            "anchorRecordingId: requestedRecordingId",
+        );
+        expect(dashboardWorkstation).toContain(
+            "missingRequestedRecordingId ||",
+        );
+        expect(dashboardWorkstation).toMatch(
+            /function selectRecording\(recordingId: string\) \{\s*updateRequestedRecordingId\(null\);/,
+        );
+        expect(dashboardWorkstation).not.toContain(
+            "requestedRecordingIsLoaded",
+        );
+        expect(dashboardWorkstation).toMatch(
+            /!displaySettingsLoaded \|\|\s*recordingListLoading \|\|\s*recordingListError \|\|/,
+        );
         expect(dashboardWorkstation).toContain(
             "className={DASHBOARD_WORKSPACE_CLASS_NAME}",
         );
@@ -2468,10 +1948,13 @@ describe("recording detail copy and title action UI regressions", () => {
             'headerActionButton: "w-[102.375px] min-w-[102.375px]"',
         );
         const headerButtonClassResidualPattern =
-            /header(?:Icon|Action)Button:[\s\S]*?(?:data-sot|data-variant|rec-head|--recording-detail)/;
+            /header(?:Icon|Action)Button:[\s\S]*?(?:data-sot|sot-|data-variant|rec-head|--recording-detail)/;
         expect(recordingHeaderButtonClassNames).not.toMatch(
             headerButtonClassResidualPattern,
         );
+        for (const sourceFile of RECORDING_DETAIL_SOT_GUARD_SOURCE_FILES) {
+            expect(readSource(sourceFile)).not.toMatch(/data-sot|sot-/i);
+        }
         for (const removedRecordingDetailVariant of [
             "detailHeader",
             "detailHeaderTitle",
@@ -2838,674 +2321,485 @@ describe("recording detail copy and title action UI regressions", () => {
         expect(detailWorkstation).toContain(deviceValueMarker);
     });
 
-    it("keeps dashboard transcription panel on SOT retx and detail tabs", () => {
-        const dashboardTranscript = readSource(
+    it("keeps dashboard transcription panel on SOT retx and detail tabs", async () => {
+        const {
+            LanguageProvider,
+            React,
+            TranscriptionPanel,
+            renderToStaticMarkup,
+        } = renderedRuntime;
+        const onActiveTabChange = vi.fn();
+        const sourcePane = React.createElement(
+            "div",
+            { "data-testid": "rendered-source-pane" },
+            "来源报告内容",
+        );
+
+        const transcriptHtml = renderToStaticMarkup(
+            React.createElement(
+                LanguageProvider,
+                null,
+                React.createElement(
+                    TranscriptionPanel,
+                    transcriptionPanelProps({
+                        activeTab: "transcript",
+                        onActiveTabChange,
+                        sourcePane,
+                    }),
+                ),
+            ),
+        );
+        const sourceHtml = renderToStaticMarkup(
+            React.createElement(
+                LanguageProvider,
+                null,
+                React.createElement(
+                    TranscriptionPanel,
+                    transcriptionPanelProps({
+                        activeTab: "source",
+                        onActiveTabChange,
+                        sourcePane,
+                    }),
+                ),
+            ),
+        );
+
+        expect(transcriptHtml).toMatch(
+            /<div(?=[^>]*aria-label="详情标签")(?=[^>]*data-slot="toggle-group")[^>]*>/,
+        );
+        for (const label of ["转写", "说话人", "来源详情"]) {
+            expect(transcriptHtml).toContain(label);
+        }
+        expect(transcriptHtml).toMatch(
+            /<section(?=[^>]*role="tabpanel")(?=[^>]*data-tab-pane="transcript")(?![^>]*hidden="")[^>]*>/,
+        );
+        expect(transcriptHtml).toContain("现有逐字稿保持可见。");
+        expect(sourceHtml).toMatch(
+            /<section(?=[^>]*role="tabpanel")(?=[^>]*data-tab-pane="transcript")(?=[^>]*hidden="")[^>]*>/,
+        );
+        expect(sourceHtml).toMatch(
+            /<section(?=[^>]*role="tabpanel")(?=[^>]*data-tab-pane="source")(?![^>]*hidden="")[^>]*>[\s\S]*data-testid="rendered-source-pane"/,
+        );
+
+        const tabs = capturedSegmentedTabs.at(-1);
+        expect(tabs?.items.map((item) => item.value)).toEqual([
+            "transcript",
+            "speakers",
+            "source",
+        ]);
+        tabs?.onValueChange("source");
+        expect(onActiveTabChange).toHaveBeenCalledWith(
+            "source" satisfies TranscriptionPanelTab,
+        );
+
+        const englishHtml = renderToStaticMarkup(
+            React.createElement(
+                LanguageProvider,
+                { children: undefined, language: "en" },
+                React.createElement(
+                    TranscriptionPanel,
+                    transcriptionPanelProps({
+                        activeTab: "transcript",
+                        onActiveTabChange,
+                        sourcePane,
+                        turns: [
+                            {
+                                id: "turn-en",
+                                speakerName: "Maple",
+                                text: "User transcript data remains unchanged.",
+                            },
+                        ],
+                        retranscription: {
+                            description: translate(
+                                "en",
+                                "recordingDetail.retx.idleDescription",
+                            ),
+                            onDismiss: vi.fn(),
+                            onRequest: vi.fn(),
+                            onRetry: vi.fn(),
+                            state: "idle",
+                            title: translate(
+                                "en",
+                                "recordingDetail.retx.idleTitle",
+                            ),
+                        },
+                    }),
+                ),
+            ),
+        );
+        expect(englishHtml).toContain('aria-label="Transcript and speakers"');
+        expect(englishHtml).toContain('aria-label="Detail tabs"');
+        for (const label of ["Transcript", "Speakers", "Source details"]) {
+            expect(englishHtml).toContain(label);
+        }
+        for (const appOwnedChinese of [
+            "转写与说话人",
+            "详情标签",
+            "来源详情",
+            "重新转写",
+        ]) {
+            expect(englishHtml).not.toContain(appOwnedChinese);
+        }
+    });
+
+    it("renders transcript, retranscription, and speaker states in both UI languages", async () => {
+        const {
+            LanguageProvider,
+            React,
+            TranscriptionPanel,
+            renderToStaticMarkup,
+        } = renderedRuntime;
+
+        const renderPanel = (
+            language: UiLanguage,
+            overrides: Partial<TranscriptionPanelProps>,
+        ) =>
+            renderToStaticMarkup(
+                React.createElement(
+                    LanguageProvider,
+                    { children: undefined, language },
+                    React.createElement(
+                        TranscriptionPanel,
+                        transcriptionPanelProps({
+                            turns: [],
+                            ...overrides,
+                        }),
+                    ),
+                ),
+            );
+
+        for (const language of ["zh-CN", "en"] satisfies UiLanguage[]) {
+            const idleHtml = renderPanel(language, {
+                retranscription: {
+                    description: translate(
+                        language,
+                        "recordingDetail.retx.idleDescription",
+                    ),
+                    onDismiss: vi.fn(),
+                    onRequest: vi.fn(),
+                    onRetry: vi.fn(),
+                    state: "idle",
+                    title: translate(
+                        language,
+                        "recordingDetail.retx.idleTitle",
+                    ),
+                },
+            });
+            expect(idleHtml).toContain(
+                translate(language, "transcriptionPanel.transcriptEmptyTitle"),
+            );
+            expect(idleHtml).toContain(
+                translate(
+                    language,
+                    "transcriptionPanel.transcriptEmptyDescription",
+                ),
+            );
+
+            const unavailableHtml = renderPanel(language, {
+                retranscription: {
+                    description: translate(
+                        language,
+                        "recordingDetail.retx.idleDescription",
+                    ),
+                    disabled: true,
+                    onDismiss: vi.fn(),
+                    onRequest: vi.fn(),
+                    onRetry: vi.fn(),
+                    state: "unavailable",
+                    title: translate(
+                        language,
+                        "recordingDetail.retx.idleTitle",
+                    ),
+                },
+            });
+            expect(unavailableHtml).toContain(
+                translate(language, "recordingDetail.retx.unavailable"),
+            );
+
+            for (const state of [
+                "queued",
+                "running",
+                "failed",
+                "completed",
+            ] as const) {
+                const html = renderPanel(language, {
+                    retranscription: {
+                        description: translate(
+                            language,
+                            `recordingDetail.retx.${state}Description`,
+                        ),
+                        onDismiss: vi.fn(),
+                        onRequest: vi.fn(),
+                        onRetry: vi.fn(),
+                        state,
+                        title: translate(
+                            language,
+                            `recordingDetail.retx.${state}Title`,
+                        ),
+                    },
+                });
+                expect(html).toContain(`data-state="${state}"`);
+                expect(html).toContain(
+                    translate(language, `recordingDetail.retx.${state}Title`),
+                );
+            }
+
+            const speakerEmptyHtml = renderPanel(language, {
+                activeTab: "speakers",
+            });
+            expect(speakerEmptyHtml).toContain(
+                translate(language, "transcriptionPanel.speakerEmptyTitle"),
+            );
+
+            for (const state of ["pending", "error", "success"] as const) {
+                const speakerHtml = renderPanel(language, {
+                    activeTab: "speakers",
+                    speakerMerge: {
+                        error:
+                            state === "error"
+                                ? translate(
+                                      language,
+                                      "recordingDetail.speaker.mergeRetry",
+                                  )
+                                : null,
+                        onMerge: vi.fn(),
+                        onRetry: vi.fn(),
+                        state,
+                    },
+                    speakers: [
+                        {
+                            id: "speaker-1",
+                            rawLabel: "speaker-1",
+                            speakerName: "Maple",
+                            text: "data",
+                        },
+                    ],
+                });
+                expect(speakerHtml).toContain(`data-state="${state}"`);
+                expect(speakerHtml).toContain(
+                    translate(
+                        language,
+                        state === "pending"
+                            ? "transcriptionPanel.mergePending"
+                            : state === "error"
+                              ? "transcriptionPanel.mergeFailed"
+                              : "transcriptionPanel.mergeSuccess",
+                    ),
+                );
+            }
+        }
+    });
+
+    it("localizes the dashboard player controls and no-audio presentation", () => {
+        const {
+            DashboardRecordingPlayerControls,
+            LanguageProvider,
+            PlayerNoAudioAlert,
+            PlayerStatusBadge,
+            PlayerTagChip,
+            React,
+            renderToStaticMarkup,
+        } = renderedRuntime;
+
+        const renderPlayerPresentation = (language: UiLanguage) =>
+            renderToStaticMarkup(
+                React.createElement(
+                    LanguageProvider,
+                    { children: undefined, language },
+                    React.createElement(
+                        React.Fragment,
+                        null,
+                        React.createElement(PlayerNoAudioAlert, {
+                            descriptionPart: "test-no-audio-description",
+                            iconPart: "test-no-audio-icon",
+                            part: "test-no-audio",
+                            playbackDisabled: true,
+                            textPart: "test-no-audio-text",
+                            titlePart: "test-no-audio-title",
+                        }),
+                        React.createElement(PlayerTagChip, {
+                            tag: null,
+                            trigger: true,
+                        }),
+                        React.createElement(PlayerStatusBadge, {}),
+                        React.createElement(DashboardRecordingPlayerControls, {
+                            currentTime: 0,
+                            duration: 60,
+                            isPlaying: false,
+                            onCyclePlaybackSpeed: vi.fn(),
+                            onSeekBySeconds: vi.fn(),
+                            onSeekToPercent: vi.fn(),
+                            onTogglePlayPause: vi.fn(),
+                            onVolumeChange: vi.fn(),
+                            onVolumeOpenChange: vi.fn(),
+                            playbackDisabled: false,
+                            playbackSpeedLabel: "1.0×",
+                            progress: 0,
+                            volume: 80,
+                            volumePopoverOpen: false,
+                        }),
+                    ),
+                ),
+            );
+
+        const chineseHtml = renderPlayerPresentation("zh-CN");
+        expect(chineseHtml).toContain("来源仅同步转写与报告");
+        expect(chineseHtml).toContain(
+            "这条录音没有本地音频，无法播放或运行私有重转写。",
+        );
+        expect(chineseHtml).toContain(">标签<");
+        expect(chineseHtml).toContain(">已更新<");
+        for (const label of [
+            "播放进度",
+            "后退 5 秒",
+            "播放",
+            "前进 5 秒",
+            "切换播放倍速",
+            "音量 80",
+        ]) {
+            expect(chineseHtml).toContain(`aria-label="${label}"`);
+        }
+
+        const englishHtml = renderPlayerPresentation("en");
+        expect(englishHtml).toContain(
+            "Only transcripts and reports sync from the source",
+        );
+        expect(englishHtml).toContain(
+            "This recording has no local audio, so it cannot be played or privately re-transcribed.",
+        );
+        expect(englishHtml).toContain(">Tags<");
+        expect(englishHtml).toContain(">Updated<");
+        for (const label of [
+            "Playback progress",
+            "Back 5 seconds",
+            "Play",
+            "Forward 5 seconds",
+            "Cycle playback speed",
+            "Volume 80",
+        ]) {
+            expect(englishHtml).toContain(`aria-label="${label}"`);
+        }
+        for (const appOwnedChinese of [
+            "来源仅同步转写与报告",
+            "这条录音没有本地音频",
+            "播放进度",
+            "后退 5 秒",
+            "播放",
+            "前进 5 秒",
+            "切换播放倍速",
+            "音量 80",
+            ">标签<",
+            ">已更新<",
+        ]) {
+            expect(englishHtml).not.toContain(appOwnedChinese);
+        }
+    });
+
+    it("keeps dashboard detail and source presentation on translated semantic states", () => {
+        const dashboardWorkstation = readSource(
             "features/dashboard/workstation.tsx",
         );
-        const badge = readSource("components/ui/badge.tsx");
-        const button = readSource("components/ui/button.tsx");
-        const card = readSource("components/ui/card.tsx");
-        const input = readSource("components/ui/input.tsx");
-        const globals = readSource("app/globals.css");
-        const sourceReportPrimitives = readSource(
-            "features/source-report/primitives.tsx",
+        const transcriptionPanel = readSource(
+            "features/dashboard/components/transcription-panel.tsx",
         );
-        const dashboardTranscriptShell = extractCardSlice(
-            dashboardTranscript,
-            'data-panel="dashboard-transcript-shell"',
-        );
-        const dashboardTranscriptLoadingTurn = extractBoundedSlice(
-            dashboardTranscript,
-            "TRANSCRIPT_LOADING_SKELETON_ROWS.map",
-            ") : turns.length ? (",
-        );
-        const dashboardTranscriptReadyTurn = extractBoundedSlice(
-            dashboardTranscript,
-            "turns.map((turn, index) => {",
-            ") : (",
-        );
-        const headerPanelIndex = dashboardTranscript.indexOf(
-            'data-panel="dashboard-detail-header"',
-        );
-        const headerStart = dashboardTranscript.lastIndexOf(
-            "<CardHeader",
-            headerPanelIndex,
-        );
-        const headerEnd = dashboardTranscript.indexOf(
-            "</CardHeader>",
-            headerStart,
-        );
-        const dashboardDetailHeader = dashboardTranscript.slice(
-            headerStart,
-            headerEnd + "</CardHeader>".length,
-        );
-        const legacyHeaderClassNamePattern =
-            /className=(?:"[^"]*\b(?:rec-head|rec-h2|rec-h2-local|rec-h2-input|rec-h2-status|rh-norm|rh-edit|ai-rename-anchor|more-anchor)\b[^"]*"|\{[^}]*\b(?:rec-head|rec-h2|rec-h2-local|rec-h2-input|rec-h2-status|rh-norm|rh-edit|ai-rename-anchor|more-anchor)\b[^}]*\})/;
 
-        expect(headerPanelIndex).toBeGreaterThanOrEqual(0);
-        expect(dashboardTranscript).not.toContain("text-white");
-        expect(headerStart).toBeGreaterThanOrEqual(0);
-        expect(headerEnd).toBeGreaterThan(headerStart);
-        expect(dashboardTranscript).toContain(
-            'import { Badge } from "@/components/ui/badge";',
-        );
-        expect(dashboardTranscript).toContain(
-            'import { Input } from "@/components/ui/input";',
-        );
-        expect(badge).toContain('data-slot="badge"');
-        expect(button).not.toContain("detailHeaderIconAction:");
-        expect(button).not.toContain("detailHeaderAction:");
-        expect(dashboardTranscript).toContain("headerIconButton:");
-        expect(dashboardTranscript).toContain("headerActionButton:");
-        expect(dashboardTranscript).toContain("size-[32px]");
-        expect(card).toContain('data-slot="card-header"');
-        expect(card).toContain('data-slot="card-title"');
-        expect(input).toContain('data-slot="input"');
-        expect(dashboardDetailHeader).toContain(
-            'data-panel="dashboard-detail-header"',
-        );
-        expect(dashboardDetailHeader).toContain("<CardHeader");
-        expect(dashboardDetailHeader).toContain("<CardTitle");
-        expect(dashboardDetailHeader).toContain("<Badge");
-        expect(dashboardDetailHeader).toContain("data-rename-mode");
-        expect(dashboardDetailHeader).toContain(
-            'data-part="detail-header-title-input"',
-        );
-        expect(dashboardDetailHeader).toContain(
-            'data-part="detail-header-action"',
-        );
-        expect(dashboardDetailHeader).toContain("data-rh-edit-start");
-        expect(dashboardDetailHeader).toContain("data-rh-edit-save");
-        expect(dashboardDetailHeader).toContain("data-rh-edit-cancel");
-        expect(dashboardDetailHeader).toContain("data-rh-ai-anchor");
-        expect(dashboardDetailHeader).toContain("data-rh-ai-trigger");
-        expect(dashboardTranscript).toContain(
-            "const dashboardDetailHeaderState = renaming",
-        );
-        expect(dashboardTranscript).toContain(
-            "const dashboardDetailHeaderMode = editingTitle",
-        );
-        for (const retiredDashboardDetailHeaderClassLock of [
-            "SOT_DASHBOARD_DETAIL_HEADER_CLASS_NAME",
-            "SOT_DASHBOARD_DETAIL_HEADER_TITLE_CLASS_NAME",
-            "SOT_DASHBOARD_DETAIL_HEADER_TITLE_INPUT_CLASS_NAME",
-            "SOT_DASHBOARD_DETAIL_HEADER_BADGE_CLASS_NAME",
-            "SOT_DASHBOARD_DETAIL_HEADER_ACTION_ANCHOR_CLASS_NAME",
+        for (const key of [
+            "recordingDetail.emptyTitle",
+            "recordingDetail.shell.closeDetail",
+            "recordingDetail.shell.moreActions",
+            "recordingDetail.ai.reviewHint",
+            "recordingDetail.delete.title",
+            "recordingDetail.retx.completedDescription",
+            "sourceReport.errorTitle",
+            "sourceReport.transcriptMissing",
+            "sourceReport.readOnlySummary",
+            "sourceReport.publicMetadata",
+            "sourceReport.noLinkedSourceTitle",
         ]) {
-            expect(dashboardTranscript).not.toContain(
-                retiredDashboardDetailHeaderClassLock,
+            expect(dashboardWorkstation).toMatch(
+                new RegExp(`t\\(\\s*"${key.replaceAll(".", "\\.")}"`),
             );
-            expect(dashboardDetailHeader).not.toContain(
-                retiredDashboardDetailHeaderClassLock,
-            );
+            expect(translate("zh-CN", key)).not.toBe(key);
+            expect(translate("en", key)).not.toBe(key);
         }
-        expect(dashboardDetailHeader).toContain(
-            'className="relative flex flex-row items-center gap-2.5 px-1 pt-1 pb-0 data-[rename-mode=saving]:py-0"',
-        );
-        expect(dashboardDetailHeader).toContain(
-            'className="m-0 min-w-0 flex-1 truncate font-display text-[22px] font-semibold leading-normal tracking-[-0.014em] text-foreground"',
-        );
-        expect(dashboardDetailHeader).toContain(
-            'className="h-8 min-w-0 flex-1 px-3 py-1 text-base md:text-sm"',
-        );
-        expect(dashboardDetailHeader).toContain('className="ml-1 shrink-0"');
-        for (const retiredDashboardDetailVariant of [
-            "detailHeader",
-            "detailHeaderTitle",
-            "detailHeaderLocal",
-            "detailHeaderStatus",
+        for (const key of [
+            "transcriptionPanel.regionLabel",
+            "transcriptionPanel.tabsLabel",
+            "transcriptionPanel.tabs.transcript",
+            "transcriptionPanel.tabs.speakers",
+            "transcriptionPanel.tabs.source",
+            "transcriptionPanel.mergePending",
+            "transcriptionPanel.speakerEmptyTitle",
         ]) {
-            expect(dashboardDetailHeader).not.toContain(
-                variantAttr(retiredDashboardDetailVariant),
+            expect(transcriptionPanel).toMatch(
+                new RegExp(`t\\(\\s*"${key.replaceAll(".", "\\.")}"`),
             );
+            expect(translate("zh-CN", key)).not.toBe(key);
+            expect(translate("en", key)).not.toBe(key);
         }
-        expect(dashboardDetailHeader).toContain('variant="ghost"');
-        expect(dashboardDetailHeader).toContain('size="icon-sm"');
-        expect(dashboardDetailHeader).toContain('variant="outline"');
-        expect(dashboardDetailHeader).toContain('size="sm"');
-        expect(dashboardDetailHeader).toContain(
-            "dashboardButtonClassNames.headerIconButton",
+        expect(dashboardWorkstation).toMatch(
+            /sourceReportReadinessTone\(\s*sourceTranscriptStatus,?\s*\)/,
         );
-        expect(dashboardDetailHeader).toContain(
-            "dashboardButtonClassNames.headerActionButton",
+        expect(dashboardWorkstation).toMatch(
+            /sourceReportSyncTone\(\s*sourceReportSyncStatus,?\s*\)/,
         );
-        expect(dashboardDetailHeader).not.toContain(
-            'variant="detailHeaderIconAction"',
+        expect(dashboardWorkstation).not.toMatch(
+            /sourceReportReadinessTone\(\s*sourceTranscriptStatusLabel/,
         );
-        expect(dashboardDetailHeader).not.toContain(
-            'size="detailHeaderIconAction"',
-        );
-        expect(dashboardDetailHeader).not.toContain(
-            'variant="detailHeaderAction"',
-        );
-        expect(dashboardDetailHeader).not.toContain(
-            'size="detailHeaderAction"',
-        );
-        expect(dashboardDetailHeader).not.toContain(
-            'controlSize="detailHeaderTitle"',
-        );
-        expect(dashboardDetailHeader).not.toContain(
-            '"relative flex flex-row items-center gap-2.5 px-1 pt-1 pb-0"',
-        );
-        expect(dashboardDetailHeader).not.toContain(
-            'className="min-w-0 flex-1 truncate"',
-        );
-        expect(dashboardDetailHeader).not.toContain(
-            'className="h-8 min-w-0 flex-1"',
-        );
-        expect(
-            dashboardDetailHeader.match(
-                /className="relative inline-flex items-center gap-1\.5"/g,
-            ) ?? [],
-        ).toHaveLength(2);
-        expect(
-            EXPECTED_DASHBOARD_DETAIL_HEADER_ACTION_ANCHOR_CLASS_NAME,
-        ).not.toMatch(OWNER_WORKSPACE_FORBIDDEN_CLASS_PATTERN);
-        for (const state of ["normal", "editing", "saving"]) {
-            expect(dashboardDetailHeader).toMatch(
-                new RegExp(`dashboardDetailHeaderState\\s*===\\s*"${state}"`),
-            );
-        }
-        expect(dashboardDetailHeader).toContain('data-state="saving"');
-        expect(dashboardDetailHeader).toContain("localDeleteAvailable ? (");
-        expect(dashboardDetailHeader).not.toMatch(legacyHeaderClassNamePattern);
-        expect(dashboardTranscript).toContain(
-            'data-panel="dashboard-retranscription"',
-        );
-        expect(dashboardTranscript).toContain(
-            "data-retx-state={dashboardRetxState}",
-        );
-        expect(dashboardTranscriptShell).toContain("<Card");
-        expect(dashboardTranscriptShell).toContain("hasNoPadding");
-        expect(dashboardTranscript).toContain(
-            `className="${EXPECTED_DASHBOARD_TRANSCRIPT_SHELL_CARD_CLASS_NAME}"`,
-        );
-        expect(dashboardTranscriptShell).toContain(
-            `className="${EXPECTED_DASHBOARD_TRANSCRIPT_SHELL_CARD_CLASS_NAME}"`,
-        );
-        expect(dashboardTranscriptShell).toContain(
-            'data-panel="dashboard-transcript-shell"',
-        );
-        expect(dashboardTranscriptShell).toContain("<CardHeader");
-        expect(dashboardTranscriptShell).toContain("<CardContent");
-        const dashboardTranscriptHeader = extractOpeningElement(
-            dashboardTranscriptShell,
-            'data-part="dashboard-transcript-header"',
-            "CardHeader",
-        );
-        const dashboardTranscriptSegmentedTabs = extractOpeningElement(
-            dashboardTranscriptShell,
-            'data-control="segmented-tabs"',
-            "SegmentedTabs",
-        );
-        const dashboardTranscriptBody = extractOpeningElement(
-            dashboardTranscriptShell,
-            'data-part="dashboard-transcript-body"',
-            "CardContent",
-        );
-        expect(dashboardTranscriptHeader).toContain(
-            `className="${EXPECTED_DASHBOARD_TRANSCRIPT_HEADER_CLASS_NAME}"`,
-        );
-        expect(dashboardTranscriptSegmentedTabs).toContain(
-            `className="${EXPECTED_DASHBOARD_TRANSCRIPT_SEGMENTED_TABS_CLASS_NAME}"`,
-        );
-        expect(dashboardTranscriptBody).toContain(
-            `className="${EXPECTED_DASHBOARD_TRANSCRIPT_BODY_BASE_CLASS_NAME}"`,
-        );
-        expect(dashboardTranscriptBody).not.toContain(
-            "dashboardScrollbarClassName",
-        );
-        expect(dashboardTranscriptBody).not.toContain(
-            "dashboardRetranscriptionThemeClassName",
-        );
-        for (const className of [
-            EXPECTED_DASHBOARD_TRANSCRIPT_SHELL_CARD_CLASS_NAME,
-            EXPECTED_DASHBOARD_TRANSCRIPT_HEADER_CLASS_NAME,
-            EXPECTED_DASHBOARD_TRANSCRIPT_SEGMENTED_TABS_CLASS_NAME,
-            EXPECTED_DASHBOARD_TRANSCRIPT_BODY_BASE_CLASS_NAME,
-        ]) {
-            expect(className).not.toMatch(
-                OWNER_WORKSPACE_FORBIDDEN_CLASS_PATTERN,
-            );
-        }
-        expect(dashboardTranscriptShell).toContain(
-            'data-part="dashboard-transcript-header"',
-        );
-        expect(dashboardTranscriptShell).toContain(
-            'data-part="dashboard-transcript-actions"',
-        );
-        expect(dashboardTranscriptShell).toContain(
-            'data-part="dashboard-transcript-body"',
-        );
-        for (const legacyClass of [
-            'className="transcript"',
-            'className="transcript-head"',
-            'className="transcript-body"',
-        ]) {
-            expect(dashboardTranscriptShell).not.toContain(legacyClass);
-        }
-        expect(dashboardTranscript).toContain("void retranscribe()");
-        expect(dashboardTranscript).toContain('"transcript"');
-        expect(dashboardTranscript).toContain('"source"');
-        expect(dashboardTranscript).toContain('"speakers"');
-        expect(dashboardTranscript).toContain('aria-label="详情标签"');
-        expect(dashboardTranscript).toMatch(
-            /\{\s*value: "transcript",\s*label: "转写",\s*\}/,
-        );
-        expect(dashboardTranscript).toContain('tabKey: "source-report"');
-        expect(dashboardTranscript).toContain("DashboardCopyIcon");
-        expect(dashboardTranscript).toContain('part="dashboard-copy-icon"');
-        const dashboardTranscriptActions = extractOpeningElement(
-            dashboardTranscript,
-            'data-part="dashboard-transcript-actions"',
-            "div",
-        );
-        expect(dashboardTranscriptActions).toContain(
-            `className="${EXPECTED_DASHBOARD_TRANSCRIPT_ACTIONS_CLASS_NAME}"`,
-        );
-        const dashboardLocalCopyButton = extractElementSlice(
-            dashboardTranscript,
-            'data-control="copy-local-transcript"',
-            "Button",
-        );
-        expect(dashboardLocalCopyButton).toContain("<DashboardCopyIcon");
-        expect(dashboardLocalCopyButton).toContain("<DashboardCopyLabel>");
-        expect(dashboardLocalCopyButton).not.toContain("SourceReportCopyIcon");
-        expect(dashboardLocalCopyButton).not.toContain("SourceReportCopyLabel");
-        const dashboardCopyIcon = extractBoundedSlice(
-            dashboardTranscript,
-            "function DashboardCopyIcon",
-            "function DashboardCopyLabel",
-        );
-        expect(dashboardCopyIcon).toContain('data-part="dashboard-copy-icon"');
-        expect(dashboardCopyIcon).not.toContain("dashboardLocalCopyClassNames");
-        const dashboardCopyLabel = extractBoundedSlice(
-            dashboardTranscript,
-            "function DashboardCopyLabel",
-            "function getRetxStateFromActiveJob",
-        );
-        expect(dashboardCopyLabel).toContain(
-            'data-part="dashboard-copy-label"',
-        );
-        expect(dashboardCopyLabel).not.toContain(
-            "dashboardLocalCopyClassNames",
-        );
-        const sourceReportCopyButton = extractElementSlice(
-            dashboardTranscript,
-            'copy="source-transcript"',
-            "SourceReportCopyButton",
-        );
-        expect(sourceReportCopyButton).toContain("<SourceReportCopyIcon");
-        expect(sourceReportCopyButton).toContain("<SourceReportCopyLabel");
-        expect(sourceReportPrimitives).toContain(
-            'data-testid="source-report-copy-icon"',
-        );
-        expect(sourceReportPrimitives).toContain(
-            'data-testid="source-report-copy-label"',
-        );
-        expect(sourceReportPrimitives).toContain(
-            "data-testid={`source-report-copy-${copy}`}",
-        );
-        expect(sourceReportPrimitives).toContain(
-            "data-state={feedbackState ?? copyState}",
-        );
-        expect(sourceReportPrimitives).not.toContain(
-            "sourceReportCopyButtonStyles",
-        );
-        expect(dashboardTranscript).not.toContain("SotSourceReport");
-        expect(dashboardTranscript).not.toContain("data-copy={copy}");
-        for (const selector of DASHBOARD_COPY_ACTION_REMOVED_GLOBAL_SELECTORS) {
-            expect(collectCssRuleBlocks(globals, selector)).toEqual([]);
-        }
-        expect(dashboardTranscript).not.toContain('className="copy-ico"');
-        expect(dashboardTranscript).not.toContain("copy-ico-default");
-        expect(dashboardTranscript).not.toContain("copy-ico-ok");
-        expect(dashboardTranscript).toContain('data-copy="transcript"');
-        for (const [copyKind, copyState, copyDisabled] of [
-            [
-                "source-transcript",
-                "sourceTranscriptCopyState",
-                "sourceTranscriptCopyDisabled",
-            ],
-            [
-                "source-report",
-                "sourceReportCopyState",
-                "sourceReportCopyDisabled",
-            ],
-        ] as const) {
-            const dashboardCopy = extractOpeningElement(
-                dashboardTranscript,
-                `copy="${copyKind}"`,
-                "SourceReportCopyButton",
-            );
-            expect(dashboardCopy).toContain(`copy="${copyKind}"`);
-            expect(dashboardCopy).toMatch(
-                new RegExp(`copyState=\\{\\s*${copyState}\\s*\\}`),
-            );
-            expect(dashboardCopy).toMatch(
-                new RegExp(`disabled=\\{\\s*${copyDisabled}\\s*\\}`),
-            );
-        }
-        expect(dashboardTranscript).toContain(
-            'testId="source-report-open-source"',
-        );
-        expect(dashboardTranscript).toContain('testId="source-report-repull"');
-        expect(dashboardTranscript).toContain('data-tab-pane="transcript"');
-        expect(dashboardTranscript).toContain('data-tab-pane="speakers"');
-        const dashboardSourceReportPane = extractOpeningElement(
-            dashboardTranscript,
-            'surface="dashboard"',
-            "SourceReportPane",
-        );
-        expect(dashboardSourceReportPane).toContain('surface="dashboard"');
-        expect(dashboardSourceReportPane).toContain(
-            'hidden={detailTab !== "source"}',
-        );
-        expect(dashboardSourceReportPane).toContain(
-            "state={sourceReportVisualState}",
-        );
-        expect(sourceReportPrimitives).toContain("data-testid={testId}");
-        expect(sourceReportPrimitives).toContain("data-state={state}");
-        expect(dashboardTranscriptLoadingTurn).toContain(
-            'data-item="dashboard-transcript-turn"',
-        );
-        expect(dashboardTranscriptLoadingTurn).toContain(
-            'data-part="dashboard-transcript-speaker-row"',
-        );
-        expect(dashboardTranscriptLoadingTurn).toContain(
-            'data-state="loading"',
-        );
-        expect(dashboardTranscriptReadyTurn).toContain(
-            'data-item="dashboard-transcript-turn"',
-        );
-        expect(dashboardTranscriptReadyTurn).toContain(
-            'data-part="dashboard-transcript-speaker-row"',
-        );
-        expect(dashboardTranscriptReadyTurn).toContain('data-state="ready"');
-        expect(dashboardTranscriptReadyTurn).toContain(
-            'data-part="dashboard-transcript-speaker-name"',
-        );
-        expect(dashboardTranscriptReadyTurn).toContain(
-            'data-part="dashboard-transcript-speaker-time"',
-        );
-        expect(dashboardTranscriptReadyTurn).toContain('data-format="mono"');
-        for (const localTurnSlice of [
-            dashboardTranscriptLoadingTurn,
-            dashboardTranscriptReadyTurn,
-        ]) {
-            expect(localTurnSlice).not.toContain('className="speaker"');
-            expect(localTurnSlice).not.toContain('className="speaker-name"');
-        }
-        expect(dashboardTranscript).toContain(
-            'data-panel="dashboard-transcript-empty"',
-        );
-        expect(dashboardTranscript).toContain(
-            'data-part="dashboard-transcript-empty-icon"',
-        );
-        expect(dashboardTranscript).toContain(
-            'data-part="dashboard-transcript-empty-message"',
-        );
-        expect(dashboardTranscript).toContain(
-            'data-part="dashboard-transcript-empty-sub"',
-        );
-        for (const legacyClass of [
-            'className="turn skel-turn"',
-            'className="turn"',
-            'className="ts mono"',
-            'className="empty-state"',
-            'className="empty-ico"',
-            'className="empty-msg"',
-            'className="empty-sub"',
-        ]) {
-            expect(dashboardTranscript).not.toContain(legacyClass);
-        }
-        expect(dashboardTranscript).not.toContain('className="empty-hint"');
-        expect(dashboardTranscript).not.toContain('className="eh-t"');
-        expect(dashboardTranscript).not.toContain('className="eh-h"');
-        expect(sourceReportPrimitives).toContain('tabScope = "source-report"');
-        expect(sourceReportPrimitives).toContain("data-tab-scope={tabScope}");
-        expect(dashboardTranscript).toContain(
-            'hidden={detailTab !== "source"}',
-        );
-        expect(dashboardTranscript).toContain(
-            'hidden={detailTab !== "transcript"}',
-        );
-        expect(dashboardTranscript).not.toContain("<Copy />");
-        expect(dashboardTranscriptShell).not.toMatch(
-            /dashboardRetranscriptionClassNames|dashboardTranscriptClassNames|dashboardScrollbarClassName/,
-        );
-        expect(dashboardTranscript).not.toMatch(
-            DASHBOARD_WORKSTATION_LEGACY_CONTROL_RE,
+        expect(dashboardWorkstation).not.toMatch(
+            /sourceReportSyncTone\(\s*sourceReportSyncStatusLabel/,
         );
     });
 
-    it("keeps standalone recording route fallback states in the new shell", () => {
-        const loading = readSource("app/(app)/recordings/[id]/loading.tsx");
-        const notFound = readSource("app/(app)/recordings/[id]/not-found.tsx");
-        const error = readSource("app/(app)/recordings/[id]/error.tsx");
-        const routeChrome = readSource("app/(app)/route-chrome.tsx");
-        const cardPrimitive = readSource("components/ui/card.tsx");
-        const skeletonPrimitive = readSource("components/ui/skeleton.tsx");
-        const globals = readSource("app/globals.css");
-        const routeChromeModule = readSource(
-            "app/(app)/route-chrome.module.css",
+    it("keeps standalone recording route fallback states in the new shell", async () => {
+        const {
+            React,
+            RecordingError,
+            RecordingLoading,
+            RecordingNotFound,
+            renderToStaticMarkup,
+        } = renderedRuntime;
+        const reset = vi.fn();
+
+        const loadingHtml = renderToStaticMarkup(
+            React.createElement(RecordingLoading),
         );
-        const routeFallbackSurfaceClassName = extractBoundedSlice(
-            routeChrome,
-            "const routeFallbackSurfaceClassName =",
-            ";",
+        const notFoundHtml = renderToStaticMarkup(
+            React.createElement(RecordingNotFound),
         );
-        const routeFallbackShellClassName = extractBoundedSlice(
-            routeChrome,
-            "const routeFallbackShellClassName =",
-            ";",
-        );
-        const routeFallbackEmptyClassNames = extractBoundedSlice(
-            routeChrome,
-            "const routeFallbackEmptyDetailClassName =",
-            "type RouteFallbackChromeProps",
-        );
-        const recordingDetailLoadingSkeletonClassNames = extractBoundedSlice(
-            routeChrome,
-            "const recordingDetailLoadingSkeletonClassNames =",
-            "} as const;",
-        );
-        const routeFallbackDetailLoadingCard = extractCardSlice(
-            routeChrome,
-            "recordingDetailLoadingSkeletonClassNames.recordingDetailLoadingAvatar",
-        );
-        const routeFallbackDetailLoadingCardOpening = extractOpeningElement(
-            routeChrome,
-            '"flex min-h-0 min-w-0 flex-col gap-4",',
-            "Card",
-        );
-        const recordingRouteLoadingDetailFallback = extractOpeningElement(
-            loading,
-            "className={`${recordingLoadingSurfaceClassName}",
-            "Card",
+        const errorHtml = renderToStaticMarkup(
+            React.createElement(RecordingError, { reset }),
         );
 
-        for (const source of [notFound, error]) {
-            expect(source).not.toMatch(OLD_UI_CONTRACT_RE);
-            expect(source).toContain('from "../../route-chrome";');
-            expect(source).toContain("RouteFallbackChrome");
-            expect(source).not.toContain("routeChromeStyles");
-            expect(source).not.toContain("route-chrome.module.css");
-            expect(source).not.toContain('className="app"');
-            expect(source).not.toContain(
-                'className="sidebar glass glass-strong"',
-            );
-            expect(source).not.toContain('className="main"');
-            expect(source).not.toContain('className="topbar"');
-            expect(source).not.toContain('className="brand"');
-            expect(source).not.toContain('className="brand-name"');
-            expect(source).not.toContain('className="brand-sub"');
-            expect(source).not.toContain('className="crumbs"');
-            expect(source).not.toContain('className="crumb-current"');
-        }
-        expect(loading).not.toMatch(OLD_UI_CONTRACT_RE);
-        expect(loading).not.toContain('from "../../route-chrome";');
-        expect(loading).toContain('aria-label="正在加载录音详情"');
-        expect(loading).toContain('aria-label="应用导航"');
-        expect(loading).toContain('aria-label="当前页面"');
-        for (const routeElement of ["<aside", "<main", "<header"]) {
-            expect(routeChrome).toContain(routeElement);
-        }
-        expect(routeChrome).toContain("routeFallbackWorkspaceSingleClassName");
-        expect(routeChrome).not.toContain('data-panel="route-');
-        for (const source of [notFound, error]) {
-            expect(source).toContain('href="/dashboard"');
-            expect(source).toContain("返回工作台");
-            expect(source).toContain('workspaceVariant="single"');
-            expect(source).toContain("<RouteFallbackEmptyState");
-            expect(source).toContain(
-                'import { Button } from "@/components/ui/button";',
-            );
-            expect(source).not.toContain("recordingRouteFallbackClassNames");
-            expect(source).not.toContain('data-detail-empty=""');
-            expect(source).not.toContain('className="btn primary"');
-            expect(source).not.toContain('className="btn ghost"');
-            expect(source).not.toContain('className="detail-empty"');
-            expect(source).not.toContain('className="detail-empty-ico"');
-            expect(source).not.toContain('className="detail-empty-title"');
-            expect(source).not.toContain('className="detail-empty-sub"');
-            expect(source).not.toContain('className="workspace"');
-            expect(source).not.toContain('className="detail"');
-        }
-        expect(routeChrome).toContain("BetterAINote");
-        expect(routeChrome).toContain("function RouteFallbackEmptyState");
-        expect(routeChrome).toContain("routeFallbackEmptyPanelClassName");
-        expect(routeChrome).toContain("routeFallbackEmptyTitleClassName");
+        expect(loadingHtml).toMatch(
+            /<section(?=[^>]*aria-label="正在加载录音详情")(?=[^>]*aria-busy="true")[^>]*>/,
+        );
+        expect(loadingHtml).toContain('aria-label="应用导航"');
+        expect(loadingHtml).toContain('aria-label="当前页面"');
+        expect(loadingHtml).toContain('data-slot="skeleton"');
 
-        const notFoundPrimaryAction = extractBoundedSlice(
-            notFound,
-            'variant="default"',
-            "</Button>",
+        expect(notFoundHtml).toContain('data-shell="recording-route-empty"');
+        expect(notFoundHtml).toContain("录音不存在");
+        expect(notFoundHtml).toMatch(
+            /<a[^>]*href="[/]dashboard"[^>]*>返回工作台<[/]a>/,
         );
-        expect(notFoundPrimaryAction).toContain('size="default"');
-        expect(error).not.toMatch(/\bbg-(background|card|muted)\b/);
-        expect(error).toContain("<Button");
-        const errorPrimaryAction = extractBoundedSlice(
-            error,
-            'variant="default"',
-            "</Button>",
+
+        expect(errorHtml).toContain('data-shell="recording-route-error"');
+        expect(errorHtml).toContain("加载失败");
+        expect(errorHtml).toMatch(
+            /<button[^>]*type="button"[^>]*>重试<[/]button>/,
         );
-        const errorGhostAction = extractBoundedSlice(
-            error,
-            'variant="ghost"',
-            "</Button>",
+        expect(errorHtml).toMatch(
+            /<a[^>]*href="[/]dashboard"[^>]*>返回工作台<[/]a>/,
         );
-        expect(errorPrimaryAction).toContain('size="default"');
-        expect(errorGhostAction).toContain('size="default"');
-        for (const source of [notFound, error]) {
-            expect(source).not.toContain(
-                'variant="recordingRoutePrimaryAction"',
-            );
-            expect(source).not.toContain('variant="recordingRouteGhostAction"');
-            expect(source).not.toContain('size="recordingRouteAction"');
-        }
-        expect(error).toContain("onClick={reset}");
-        expect(error).toContain("重试");
-        expect(loading).toContain("aria-busy={true}");
-        expect(loading).toContain(
-            'import { Card } from "@/components/ui/card";',
+
+        const retryButton = capturedButtons.find(
+            (button) => button.onClick === reset,
         );
-        expect(loading).toContain(
-            'import { Skeleton } from "@/components/ui/skeleton";',
-        );
-        expect(loading).toContain("<Card");
-        for (const token of ROUTE_LOADING_SURFACE_CLASS_TOKENS) {
-            expect(routeFallbackSurfaceClassName).toContain(token);
-        }
-        expect(routeFallbackShellClassName).toContain(
-            `"${ROUTE_FALLBACK_CHROME_SHELL_CLASS_VALUE}"`,
-        );
-        expect(loading).toContain('aria-live="polite"');
-        expect(loading).toContain("aria-busy={true}");
-        expect(routeFallbackDetailLoadingCard).toContain('variant="default"');
-        expect(routeFallbackDetailLoadingCard).toContain("hasNoPadding");
-        expect(routeFallbackDetailLoadingCard).not.toContain(
-            'variant="routeLoadingSurface"',
-        );
-        expect(routeFallbackDetailLoadingCardOpening).toContain(
-            "className={cn(",
-        );
-        expect(routeFallbackDetailLoadingCardOpening).toContain(
-            "routeFallbackSurfaceClassName,",
-        );
-        expect(routeFallbackDetailLoadingCardOpening).toContain(
-            '"flex min-h-0 min-w-0 flex-col gap-4"',
-        );
-        expect(recordingRouteLoadingDetailFallback).toContain("hasNoPadding");
-        expect(recordingRouteLoadingDetailFallback).toContain(
-            "recordingLoadingSurfaceClassName",
-        );
-        expect(loading).not.toContain('variant="routeLoadingSurface"');
-        expect(cardPrimitive).not.toContain("routeLoadingSurface");
-        for (const detailLoadingSize of [
-            "recordingDetailLoadingAvatar",
-            "recordingDetailLoadingBar",
-            "recordingDetailLoadingBar60",
-            "recordingDetailLoadingBar90",
-        ]) {
-            expect(skeletonPrimitive).not.toContain(detailLoadingSize);
-            expect(routeChrome).toContain(`${detailLoadingSize}:`);
-            expect(recordingDetailLoadingSkeletonClassNames).toContain(
-                `${detailLoadingSize}:`,
-            );
-            expect(routeChrome).toContain(
-                `recordingDetailLoadingSkeletonClassNames.${detailLoadingSize}`,
-            );
-            expect(routeChrome).not.toContain(`size="${detailLoadingSize}"`);
-            expect(loading).not.toContain(`${detailLoadingSize}:`);
-        }
-        expect(routeChrome).toContain("<Skeleton");
-        expect(routeChrome).toContain('aria-hidden="true"');
-        expect(routeChrome).toContain(
-            "const recordingDetailLoadingSkeletonClassNames",
-        );
-        expect(routeChrome).toContain('variant="default"');
-        expect(routeChrome).toContain('size="default"');
-        expect(routeChrome).toContain("className={");
-        expect(loading).toContain("<Skeleton");
-        expect(loading).toContain('aria-hidden="true"');
-        expect(loading).not.toContain("RouteFallbackDetailLoadingSkeleton");
-        expect(routeFallbackEmptyClassNames).toContain(
-            "routeFallbackSurfaceClassName",
-        );
-        for (const semanticToken of [
-            "border-border",
-            "bg-muted",
-            "text-muted-foreground",
-            "text-foreground",
-        ]) {
-            expect(routeFallbackEmptyClassNames).toContain(semanticToken);
-        }
-        expect(routeFallbackEmptyClassNames).not.toMatch(
-            /var\(--|dark:|bg-\[var|border-\[var|text-\[var/,
-        );
-        for (const selector of RECORDING_ROUTE_FALLBACK_REMOVED_GLOBAL_SELECTORS) {
-            expect(collectCssRuleBlocks(globals, selector)).toEqual([]);
-        }
-        for (const selector of ROUTE_CHROME_REMOVED_GLOBAL_SELECTORS) {
-            expect(collectCssRuleBlocks(globals, selector)).toEqual([]);
-        }
-        expect(routeChromeModule.trim()).toBe("");
-        expect(routeChromeModule).not.toMatch(
-            ROUTE_CHROME_FORBIDDEN_FRAMEWORK_RE,
-        );
-        expect(globals).not.toContain("[data-detail-empty]");
-        expect(routeChrome).toContain("routeFallbackEmptyDetailClassName");
-        for (const removedLoadingSelector of [
-            '[data-panel="recording-route-loading-detail"]',
-            '[data-panel="recording-list-loading"]',
-            '[data-panel="recording-detail-loading"]',
-        ]) {
-            expect(globals).not.toContain(removedLoadingSelector);
-        }
-        expect(loading).not.toContain('className="detail panel"');
-        expect(loading).not.toContain('className="skel-detail"');
-        expect(loading).not.toContain('className="sk sk-bar"');
+        expect(retryButton?.disabled).not.toBe(true);
+        expect(retryButton?.onClick).toBeTypeOf("function");
+        (retryButton?.onClick as (() => void) | undefined)?.();
+        expect(reset).toHaveBeenCalledOnce();
     });
 
     it("keeps speaker review raw transcript copy available from the review toolbar", () => {
@@ -3520,6 +2814,286 @@ describe("recording detail copy and title action UI regressions", () => {
             "speakerReview.copyRawTranscriptFailed",
         );
         expect(speakerReview).toContain("!canCopyRawTranscript");
+    });
+
+    it("keeps manual title rename recovery and focus behavior aligned across both detail surfaces", () => {
+        const detailWorkstation = readSource(
+            "features/recordings/workstation.tsx",
+        );
+        const dashboardWorkstation = readSource(
+            "features/dashboard/workstation.tsx",
+        );
+        const detailSave = extractBoundedSlice(
+            detailWorkstation,
+            "const handleRenameSave = useCallback",
+            "const handleAutoRename = useCallback",
+        );
+        const dashboardSave = extractBoundedSlice(
+            dashboardWorkstation,
+            "async function renameRecording()",
+            "async function previewAutoRename()",
+        );
+        expect(detailSave).toMatch(
+            /if \(isSavingRename\)[\s\S]*if \(!newName \|\| newName === filename\) \{\s*handleRenameCancel\(\);\s*return;\s*\}[\s\S]*const operation = beginRenameOperation\(recording\.id\);[\s\S]*setRenameError\(null\);\s*setIsSavingRename\(true\);/,
+        );
+        expect(dashboardSave).toMatch(
+            /if \(!selectedRecording \|\| renaming\) return;[\s\S]*if \(!filename \|\| filename === selectedRecording\.filename\) \{\s*cancelRenamingRecording\(\);\s*return;\s*\}[\s\S]*setRenameError\(null\);\s*setRenaming\(true\);/,
+        );
+        const detailStart = extractBoundedSlice(
+            detailWorkstation,
+            "const handleRenameStart = useCallback",
+            "const restoreRenameTriggerFocus = useCallback",
+        );
+        expect(detailStart).toMatch(
+            /const operation = beginRenameOperation\(recording\.id\);[\s\S]*setRenameError\(null\);[\s\S]*setIsRenaming\(true\);/,
+        );
+        const detailCancel = extractBoundedSlice(
+            detailWorkstation,
+            "const handleRenameCancel = useCallback",
+            "const handleRenameSave = useCallback",
+        );
+        expect(detailCancel).toMatch(
+            /const operation = beginRenameOperation\(recording\.id\);[\s\S]*setIsRenaming\(false\);[\s\S]*restoreRenameTriggerFocus\(operation\);/,
+        );
+        const dashboardCancel = extractBoundedSlice(
+            dashboardWorkstation,
+            "function cancelRenamingRecording()",
+            "async function renameRecording()",
+        );
+        expect(dashboardCancel).toMatch(
+            /setRenameError\(null\);[\s\S]*setEditingTitle\(false\);[\s\S]*restoreRenameTriggerFocus\(\);/,
+        );
+
+        const saveContracts = [
+            {
+                source: detailWorkstation,
+                save: detailSave,
+                success: "setFilename(newName);",
+                error: 't("recording.renameFailed")',
+                editorExit: "setIsRenaming(false);",
+                draftReset: "setRenameValue(filename)",
+                busyEnd: "setIsSavingRename(false);",
+                retry: "onClick={() => void handleRenameSave()}",
+                disabled: "disabled={isSavingRename}",
+                triggerRef: "ref={handleRenameTriggerRef}",
+                restoreCall: "restoreRenameTriggerFocus(operation)",
+            },
+            {
+                source: dashboardWorkstation,
+                save: dashboardSave,
+                success: "setLiveRecordings((items) =>",
+                error: 't("recordingDetail.rename.failed")',
+                editorExit: "setEditingTitle(false);",
+                draftReset: "setDraftTitle(selectedRecording.filename)",
+                busyEnd: "setRenaming(false);",
+                retry: "void renameRecording()",
+                disabled: "disabled={renaming}",
+                triggerRef: "ref={renameTriggerRef}",
+                restoreCall: "restoreRenameTriggerFocus()",
+            },
+        ];
+
+        for (const contract of saveContracts) {
+            const input = collectOpeningElements(contract.source, "Input").find(
+                (element) =>
+                    element.includes('data-part="detail-header-title-input"'),
+            );
+            for (const token of [
+                "autoFocus=",
+                "setRenameError(null)",
+                "event.currentTarget.select()",
+            ]) {
+                expect(input).toContain(token);
+            }
+
+            const httpFailure = extractBoundedSlice(
+                contract.save,
+                "if (!response.ok) {",
+                contract.success,
+            );
+            const transportFailure = extractBoundedSlice(
+                contract.save,
+                "} catch {",
+                "} finally {",
+            );
+            for (const failure of [httpFailure, transportFailure]) {
+                expect(failure).toContain(contract.error);
+                expect(failure).toContain("setRenameError(message)");
+                expect(failure).toContain("toast.error(message)");
+                expect(failure).not.toContain(contract.editorExit);
+                expect(failure).not.toContain(contract.draftReset);
+                expect(failure).not.toContain("restoreRenameTriggerFocus()");
+                expect(failure).not.toContain("response.json(");
+                expect(failure).not.toContain("response.text(");
+            }
+            expect(httpFailure).toContain("return;");
+            expect(contract.save).not.toContain("readResponseError(");
+
+            const success = extractBoundedSlice(
+                contract.save,
+                contract.success,
+                "} catch {",
+            );
+            for (const token of [
+                "setRenameError(null)",
+                contract.editorExit,
+                contract.restoreCall,
+            ]) {
+                expect(success).toContain(token);
+            }
+            expect(
+                contract.save.slice(contract.save.indexOf("} finally {")),
+            ).toContain(contract.busyEnd);
+
+            const trigger = collectOpeningElements(
+                contract.source,
+                "Button",
+            ).find((element) =>
+                element.includes('data-control="rename-recording-title"'),
+            );
+            expect(trigger).toContain(contract.triggerRef);
+            const alert = extractElementSlice(
+                contract.source,
+                'data-part="detail-header-rename-error"',
+                "Alert",
+            );
+            for (const token of [
+                'density="comfortable"',
+                'layout="inline"',
+                'variant="destructiveSoft"',
+                "<AlertTitle",
+                't("common.retry")',
+            ]) {
+                expect(alert).toContain(token);
+            }
+            const retry = collectOpeningElements(alert, "Button")[0];
+            expect(retry).toContain(contract.disabled);
+            expect(retry).toContain(contract.retry);
+        }
+
+        const layoutInvalidation = extractBoundedSlice(
+            detailWorkstation,
+            "useLayoutEffect(() => {",
+            "if (previousRecordingIdRef.current !== recording.id)",
+        );
+        for (const token of [
+            "currentRecordingIdRef.current = recording.id",
+            "renameOperationIdRef.current += 1",
+            "pendingRenameTriggerFocusRef.current = null",
+        ]) {
+            expect(layoutInvalidation).toContain(token);
+        }
+        expect(layoutInvalidation).toMatch(
+            /if \(currentRecordingIdRef\.current === recording\.id\) \{\s*return;\s*\}[\s\S]*currentRecordingIdRef\.current = recording\.id;/,
+        );
+        expect(layoutInvalidation).not.toContain(".focus(");
+
+        const passiveRecordingReset = extractBoundedSlice(
+            detailWorkstation,
+            "if (previousRecordingIdRef.current !== recording.id)",
+            "setAutoRenamePreview(null)",
+        );
+        expect(passiveRecordingReset).toContain("setIsRenaming(false)");
+        expect(passiveRecordingReset).toContain("setIsSavingRename(false)");
+
+        const beginRenameOperation = extractBoundedSlice(
+            detailWorkstation,
+            "const beginRenameOperation = useCallback",
+            "const isCurrentRenameOperation = useCallback",
+        );
+        expect(beginRenameOperation).toMatch(
+            /currentRecordingIdRef\.current !== recordingId[\s\S]*pendingRenameTriggerFocusRef\.current = null;[\s\S]*renameOperationIdRef\.current \+= 1;[\s\S]*operationId: renameOperationIdRef\.current,[\s\S]*recordingId,/,
+        );
+        const isCurrentRenameOperation = extractBoundedSlice(
+            detailWorkstation,
+            "const isCurrentRenameOperation = useCallback",
+            "const handleRenameStart = useCallback",
+        );
+        expect(isCurrentRenameOperation).toMatch(
+            /currentRecordingIdRef\.current === operation\.recordingId &&\s*renameOperationIdRef\.current === operation\.operationId/,
+        );
+
+        expect(detailSave).toMatch(
+            /const response = await fetch\([\s\S]*\);\s*if \(!isCurrentRenameOperation\(operation\)\) \{\s*return;\s*\}\s*if \(!response\.ok\) \{\s*if \(!isCurrentRenameOperation\(operation\)\)/,
+        );
+        expect(detailSave).toMatch(
+            /if \(!response\.ok\)[\s\S]*return;\s*\}\s*if \(!isCurrentRenameOperation\(operation\)\) \{\s*return;\s*\}\s*setFilename\(newName\);[\s\S]*restoreRenameTriggerFocus\(operation\);\s*toast\.success/,
+        );
+        const detailCatch = extractBoundedSlice(
+            detailSave,
+            "} catch {",
+            "} finally {",
+        );
+        expect(detailCatch).toMatch(
+            /if \(!isCurrentRenameOperation\(operation\)\) \{\s*return;\s*\}[\s\S]*setRenameError\(message\);[\s\S]*toast\.error\(message\);/,
+        );
+        expect(detailSave.slice(detailSave.indexOf("} finally {"))).toMatch(
+            /if \(isCurrentRenameOperation\(operation\)\) \{\s*setIsSavingRename\(false\);\s*\}/,
+        );
+
+        const detailRestoreFocus = extractBoundedSlice(
+            detailWorkstation,
+            "const restoreRenameTriggerFocus = useCallback",
+            "const handleRenameTriggerRef = useCallback",
+        );
+        expect(detailRestoreFocus).toContain(
+            "if (!isCurrentRenameOperation(operation))",
+        );
+        expect(detailRestoreFocus).toContain(
+            "pendingRenameTriggerFocusRef.current = operation",
+        );
+        expect(detailRestoreFocus).toMatch(
+            /pendingRenameTriggerFocusRef\.current = null;\s*trigger\.focus\(\{ preventScroll: true \}\);/,
+        );
+        expect(detailRestoreFocus).not.toContain("requestAnimationFrame");
+        expect(detailRestoreFocus).not.toContain("setTimeout");
+
+        const detailTriggerRef = extractBoundedSlice(
+            detailWorkstation,
+            "const handleRenameTriggerRef = useCallback",
+            "const handleRenameCancel = useCallback",
+        );
+        expect(detailTriggerRef).toContain("renameTriggerRef.current = node");
+        expect(detailTriggerRef).toContain(
+            "pendingOperation.recordingId !== recording.id",
+        );
+        expect(detailTriggerRef).toContain(
+            "!isCurrentRenameOperation(pendingOperation)",
+        );
+        expect(detailTriggerRef).toMatch(
+            /pendingOperation\.recordingId !== recording\.id[\s\S]*pendingRenameTriggerFocusRef\.current = null;\s*return;/,
+        );
+        const callbackMismatch = extractBoundedSlice(
+            detailTriggerRef,
+            "pendingOperation.recordingId !== recording.id",
+            "pendingRenameTriggerFocusRef.current = null;\n            node.focus",
+        );
+        expect(callbackMismatch).toContain(
+            "pendingRenameTriggerFocusRef.current = null",
+        );
+        expect(callbackMismatch).not.toContain("node.focus");
+        expect(detailTriggerRef).toMatch(
+            /pendingRenameTriggerFocusRef\.current = null;\s*node\.focus\(\{ preventScroll: true \}\);/,
+        );
+        expect(detailTriggerRef).not.toContain("requestAnimationFrame");
+        expect(detailTriggerRef).not.toContain("setTimeout");
+
+        const dashboardRestoreFocus = extractBoundedSlice(
+            dashboardWorkstation,
+            "function restoreRenameTriggerFocus()",
+            "function startRenamingRecording()",
+        );
+        expect(dashboardRestoreFocus).toContain("window.requestAnimationFrame");
+        expect(dashboardRestoreFocus).toContain(
+            "renameTriggerRef.current?.focus({ preventScroll: true })",
+        );
+
+        expect(detailWorkstation).toMatch(
+            /previousRecordingIdRef\.current = recording\.id;[\s\S]*setRenameValue\(recording\.filename\);\s*setRenameError\(null\);/,
+        );
+        expect(dashboardWorkstation).toMatch(
+            /selectedRecordingIdRef\.current = selectedRecording\.id;\s*setSelectedId\(selectedRecording\.id\);\s*setDraftTitle\(selectedRecording\.filename\);\s*setRenameError\(null\);/,
+        );
     });
 
     it("keeps standalone detail tabs and dashboard title actions wired to existing flows", () => {
@@ -3608,9 +3182,6 @@ describe("recording detail copy and title action UI regressions", () => {
         );
         expect(aiRenamePreview).not.toContain('role="dialog"');
         expect(aiRenamePreview).not.toContain("aria-label={title}");
-        expect(aiRenamePreview).toMatch(
-            /const\s+aiRenamePreview[A-Za-z0-9_]*ClassNames\s*=\s*{/,
-        );
         for (const {
             snippets,
         } of AI_RENAME_PREVIEW_FEATURE_OWNER_CLASS_SNIPPETS) {
@@ -3687,7 +3258,9 @@ describe("recording detail copy and title action UI regressions", () => {
             expect(aiRenamePreview).not.toContain(retiredAiRenameToken);
         }
         expect(dashboardWorkstation).toContain("aria-busy={");
-        expect(dashboardWorkstation).toContain('aria-label="更多操作"');
+        expect(dashboardWorkstation).toMatch(
+            /aria-label=\{t\(\s*"recordingDetail\.shell\.moreActions",?\s*\)\}/,
+        );
         expect(dashboardWorkstation).toContain(
             'from "@/components/ui/dropdown-menu"',
         );
@@ -3719,14 +3292,22 @@ describe("recording detail copy and title action UI regressions", () => {
         expect(dashboardWorkstation).not.toContain(
             'className="more-menu-hint"',
         );
-        expect(dashboardWorkstation).toContain("AI 重命名");
-        expect(dashboardWorkstation).toContain("重新转写");
-        expect(dashboardWorkstation).toContain("来源持有正本");
+        expect(dashboardWorkstation).toMatch(
+            /t\(\s*"recordingDetail\.shell\.aiRename",?\s*\)/,
+        );
+        expect(dashboardWorkstation).toMatch(
+            /t\(\s*"recordingDetail\.shell\.retranscribe",?\s*\)/,
+        );
+        expect(dashboardWorkstation).toMatch(
+            /t\(\s*"recordingDetail\.shell\.sourceOwnsOriginal",?\s*\)/,
+        );
         expect(dashboardWorkstation).not.toContain('className="more-action"');
         expect(dashboardWorkstation).not.toContain("more-action-l");
         expect(dashboardWorkstation).not.toContain("more-action-meta");
         expect(dashboardWorkstation).toContain("void deleteRecording()");
-        expect(dashboardWorkstation).toContain("删除本地副本");
+        expect(dashboardWorkstation).toMatch(
+            /t\(\s*"recordingDetail\.shell\.deleteLocal",?\s*\)/,
+        );
         expect(dashboardWorkstation).not.toContain("仅删除本地副本");
         expect(dashboardWorkstation).toContain(
             "!selectedRecording.sourceProvider ||",
@@ -3736,242 +3317,303 @@ describe("recording detail copy and title action UI regressions", () => {
         );
     });
 
-    it("keeps dashboard retranscription states inline without hiding the existing transcript", () => {
-        const dashboardTranscript = readSource(
-            "features/dashboard/workstation.tsx",
-        );
-        const dashboardTranscriptShell = extractCardSlice(
-            dashboardTranscript,
-            'data-panel="dashboard-transcript-shell"',
-        );
+    it("keeps dashboard retranscription states inline without hiding the existing transcript", async () => {
+        const {
+            LanguageProvider,
+            React,
+            TranscriptionPanel,
+            renderToStaticMarkup,
+        } = renderedRuntime;
+        const onRequest = vi.fn();
+        const onRetry = vi.fn();
 
-        expect(dashboardTranscript).toContain(
-            'data-panel="dashboard-retranscription"',
+        const runningHtml = renderToStaticMarkup(
+            React.createElement(
+                LanguageProvider,
+                null,
+                React.createElement(
+                    TranscriptionPanel,
+                    transcriptionPanelProps({
+                        retranscription: {
+                            description: "正在等待工作器领取，期间可继续浏览。",
+                            onDismiss: vi.fn(),
+                            onRequest,
+                            onRetry,
+                            state: "running",
+                            title: "正在重新转写",
+                        },
+                    }),
+                ),
+            ),
         );
-        expect(dashboardTranscript).toContain(
-            "data-retx-state={dashboardRetxState}",
+        const requestButton = capturedButtons
+            .filter(
+                (button) => button["data-control"] === "retranscribe-recording",
+            )
+            .at(-1);
+        (requestButton?.onClick as (() => void) | undefined)?.();
+
+        const failedHtml = renderToStaticMarkup(
+            React.createElement(
+                LanguageProvider,
+                null,
+                React.createElement(
+                    TranscriptionPanel,
+                    transcriptionPanelProps({
+                        retranscription: {
+                            description: "原稿未被覆盖，可以重试。",
+                            onDismiss: vi.fn(),
+                            onRequest,
+                            onRetry,
+                            state: "failed",
+                            title: "本次重新转写失败",
+                        },
+                    }),
+                ),
+            ),
         );
-        expect(dashboardTranscript).toContain(
-            'dashboardRetxState === "failed"',
+        const retryButton = capturedButtons
+            .filter(
+                (button) => button["data-control"] === "retry-retranscription",
+            )
+            .at(-1);
+        (retryButton?.onClick as (() => void) | undefined)?.();
+
+        expect(runningHtml).toMatch(
+            /<div(?=[^>]*role="status")(?=[^>]*aria-live="polite")(?=[^>]*data-panel="dashboard-retranscription")(?=[^>]*data-state="running")[^>]*>/,
         );
-        expect(dashboardTranscript).toContain(
-            'dashboardRetxState === "running"',
+        expect(runningHtml).toContain("正在重新转写");
+        expect(runningHtml).toContain("现有逐字稿保持可见。");
+        expect(failedHtml).toMatch(
+            /<div(?=[^>]*role="alert")(?=[^>]*aria-live="assertive")(?=[^>]*data-panel="dashboard-retranscription")(?=[^>]*data-state="failed")[^>]*>/,
         );
-        expect(dashboardTranscript).toContain("void retranscribe()");
-        expect(dashboardTranscript).toContain("转写任务已加入队列");
-        expect(dashboardTranscript).toContain(
-            "新任务会保持当前转写可见，完成后替换结果。",
+        expect(failedHtml).toContain("本次重新转写失败");
+        expect(failedHtml).toContain("现有逐字稿保持可见。");
+        expect(failedHtml).toMatch(
+            /<button[^>]*data-control="retry-retranscription"[^>]*>[\s\S]*重试转写[\s\S]*<[/]button>/,
         );
-        expect(dashboardTranscriptShell).not.toMatch(
-            /dashboardRetranscriptionClassNames|dashboardTranscriptClassNames|dashboardScrollbarClassName/,
-        );
-        expect(dashboardTranscript).not.toMatch(
-            DASHBOARD_WORKSTATION_LEGACY_CONTROL_RE,
-        );
+        expect(onRequest).toHaveBeenCalledOnce();
+        expect(onRetry).toHaveBeenCalledOnce();
     });
 
-    it("keeps recording tag creation controls on shadcn buttons", () => {
-        const tagManager = readSource(
-            "features/recordings/components/recording-tag-manager.tsx",
-        );
-        const buttonPrimitive = readSource("components/ui/button.tsx");
-        const inputGroupPrimitive = readSource("components/ui/input-group.tsx");
+    it("keeps recording tag creation controls on shadcn buttons", async () => {
+        const { React, RecordingTagManager, renderToStaticMarkup } =
+            renderedRuntime;
 
-        expect(tagManager).toContain("<InputGroupButton");
-        expect(tagManager).toContain("<Button");
-        expect(buttonPrimitive).not.toMatch(/\brecordingTag[A-Za-z0-9_]*\b/);
-        expect(inputGroupPrimitive).not.toMatch(
-            /\brecordingTag[A-Za-z0-9_]*\b/,
+        const html = renderToStaticMarkup(
+            React.createElement(RecordingTagManager, {
+                availableTags: [],
+                onAvailableTagsChange: vi.fn(),
+                onRecordingTagsChange: vi.fn(),
+                recording: {
+                    id: "recording-tag-create",
+                    tags: [],
+                } as unknown as Parameters<
+                    typeof RecordingTagManager
+                >[0]["recording"],
+            }),
         );
-        const inlineCreateButton = extractOpeningElement(
-            tagManager,
-            'aria-label="添加"',
-            "InputGroupButton",
+
+        expect(html).toMatch(
+            /<div(?=[^>]*data-slot="card")(?=[^>]*data-control="recording-tag-manager")(?=[^>]*data-state="ready")[^>]*>/,
         );
-        for (const ownerOwnedCreateToken of [
-            'aria-label="添加"',
-            'variant="default"',
-            'size="icon-compact"',
-        ]) {
-            expect(inlineCreateButton).toContain(ownerOwnedCreateToken);
-        }
-        expect(inlineCreateButton).toContain("className={cn(");
-        expect(tagManager).not.toContain(
-            "RECORDING_TAG_INLINE_CREATE_BUTTON_CLASS_NAME",
+        expect(html).toContain("尚未创建标签");
+        expect(html).toMatch(
+            /<button(?=[^>]*data-control="recording-tag-create")(?=[^>]*aria-haspopup="dialog")[^>]*>[\s\S]*新建标签[\s\S]*<[/]button>/,
         );
-        expect(tagManager).not.toContain("recordingTagManagerButtonClassNames");
-        expect(tagManager).not.toContain('variant="recordingTagInlineCreate"');
-        expect(tagManager).not.toContain('size="recordingTagInlineCreate"');
-        expect(tagManager).not.toContain('variant="recordingTagCreateRow"');
-        expect(tagManager).not.toContain('variant="recordingTagNameInput"');
+        expect(html).not.toContain('id="recording-tag-create-name"');
+
+        const createButton = capturedButtons.find(
+            (button) => button["data-control"] === "recording-tag-create",
+        );
+        expect(createButton?.disabled).not.toBe(true);
+        expect(createButton?.type).toBe("button");
     });
 
-    it("keeps recording tag manager on shadcn primitives and semantic tokens", () => {
-        const globals = readSource("app/globals.css");
-        const tagManager = readSource(
+    it("keeps recording tag manager on shadcn primitives and semantic tokens", async () => {
+        const { React, RecordingTagManager, renderToStaticMarkup } =
+            renderedRuntime;
+        const tag: RecordingTag = {
+            color: "blue",
+            icon: "grid",
+            id: "tag-review",
+            name: "Review",
+        };
+        const onAvailableTagsChange = vi.fn();
+        const onClose = vi.fn();
+        const onRecordingTagsChange = vi.fn();
+        const fetchMock = vi.fn().mockResolvedValue(
+            new Response(JSON.stringify({ tags: [] }), {
+                headers: { "Content-Type": "application/json" },
+                status: 200,
+            }),
+        );
+        vi.stubGlobal("fetch", fetchMock);
+
+        const html = renderToStaticMarkup(
+            React.createElement(RecordingTagManager, {
+                availableTags: [tag],
+                loadError: "标签目录暂时不可用",
+                onAvailableTagsChange,
+                onClose,
+                onRecordingTagsChange,
+                recording: {
+                    id: "recording-tag-manager",
+                    tags: [tag],
+                } as unknown as Parameters<
+                    typeof RecordingTagManager
+                >[0]["recording"],
+            }),
+        );
+
+        expect(html).toMatch(
+            /<div(?=[^>]*data-control="recording-tag-manager")(?=[^>]*data-state="error")[^>]*>/,
+        );
+        expect(html).toMatch(
+            /<div[^>]*role="alert"[^>]*>[\s\S]*标签操作失败[\s\S]*标签目录暂时不可用/,
+        );
+        expect(html).toMatch(
+            /<button(?=[^>]*data-control="recording-tag-toggle")(?=[^>]*data-tag-id="tag-review")(?=[^>]*aria-pressed="true")[^>]*>[\s\S]*Review[\s\S]*<[/]button>/,
+        );
+        expect(html).toContain('aria-label="编辑 Review"');
+        expect(html).toContain('aria-label="删除 Review"');
+        expect(html).toContain('aria-label="关闭标签管理"');
+
+        const closeButton = capturedButtons.find(
+            (button) => button["aria-label"] === "关闭标签管理",
+        );
+        (closeButton?.onClick as (() => void) | undefined)?.();
+        expect(onClose).toHaveBeenCalledOnce();
+
+        const toggleButton = capturedButtons.find(
+            (button) =>
+                button["data-control"] === "recording-tag-toggle" &&
+                button["data-tag-id"] === "tag-review",
+        );
+        expect(toggleButton?.onClick).toBeTypeOf("function");
+        (toggleButton?.onClick as (() => void) | undefined)?.();
+
+        await vi.waitFor(() => {
+            expect(fetchMock).toHaveBeenCalledWith(
+                "/api/recordings/recording-tag-manager/tags",
+                expect.objectContaining({
+                    body: JSON.stringify({ tagIds: [] }),
+                    method: "PUT",
+                }),
+            );
+            expect(onRecordingTagsChange).toHaveBeenCalledWith(
+                "recording-tag-manager",
+                [],
+            );
+        });
+        expect(onAvailableTagsChange).not.toHaveBeenCalled();
+    });
+
+    it("localizes tag management and AI rename review without translating user content", () => {
+        const {
+            AiRenamePreviewCard,
+            LanguageProvider,
+            React,
+            RecordingTagManager,
+            renderToStaticMarkup,
+        } = renderedRuntime;
+        const tag: RecordingTag = {
+            color: "blue",
+            icon: "grid",
+            id: "tag-review",
+            name: "Review",
+        };
+        const renderTagManager = (language: UiLanguage) =>
+            renderToStaticMarkup(
+                React.createElement(
+                    LanguageProvider,
+                    { children: undefined, language },
+                    React.createElement(RecordingTagManager, {
+                        availableTags: [tag],
+                        onAvailableTagsChange: vi.fn(),
+                        onClose: vi.fn(),
+                        onRecordingTagsChange: vi.fn(),
+                        recording: {
+                            id: "recording-tag-i18n",
+                            tags: [tag],
+                        } as unknown as Parameters<
+                            typeof RecordingTagManager
+                        >[0]["recording"],
+                    }),
+                ),
+            );
+        const renderAiReview = (language: UiLanguage) =>
+            renderToStaticMarkup(
+                React.createElement(
+                    LanguageProvider,
+                    { children: undefined, language },
+                    React.createElement(AiRenamePreviewCard, {
+                        applyLabel: translate(language, "common.confirm"),
+                        cancelLabel: translate(language, "common.cancel"),
+                        filename: "Generated user title",
+                        isApplying: false,
+                        isRegenerating: false,
+                        originalFilename: "Original user title",
+                        state: "review",
+                        title: "AI rename",
+                    }),
+                ),
+            );
+
+        const chineseTagHtml = renderTagManager("zh-CN");
+        expect(chineseTagHtml).toContain("管理标签");
+        expect(chineseTagHtml).toContain("这条录音的标签");
+        expect(chineseTagHtml).toContain('aria-label="编辑 Review"');
+        expect(chineseTagHtml).toContain('aria-label="删除 Review"');
+        expect(chineseTagHtml).toContain('aria-label="关闭标签管理"');
+        const chineseAiHtml = renderAiReview("zh-CN");
+        expect(chineseAiHtml).toContain("复核确认");
+        expect(chineseAiHtml).toContain("原标题");
+        expect(chineseAiHtml).toContain("新标题");
+
+        const englishTagHtml = renderTagManager("en");
+        expect(englishTagHtml).toContain("Manage tags");
+        expect(englishTagHtml).toContain("Tags on this recording");
+        expect(englishTagHtml).toContain('aria-label="Edit Review"');
+        expect(englishTagHtml).toContain('aria-label="Delete Review"');
+        expect(englishTagHtml).toContain('aria-label="Close tag manager"');
+        expect(englishTagHtml).toContain("Review");
+        expect(englishTagHtml).not.toMatch(/[\p{Script=Han}]/u);
+
+        const englishAiHtml = renderAiReview("en");
+        expect(englishAiHtml).toContain("Review and confirm");
+        expect(englishAiHtml).toContain("Original title");
+        expect(englishAiHtml).toContain("New title");
+        expect(englishAiHtml).toContain("Original user title");
+        expect(englishAiHtml).toContain("Generated user title");
+        expect(englishAiHtml).not.toMatch(/[\p{Script=Han}]/u);
+
+        const tagManagerSource = readSource(
             "features/recordings/components/recording-tag-manager.tsx",
         );
-        const tagVisuals = readSource(
-            "features/recordings/components/recording-tag-visuals.tsx",
+        const aiRenameSource = readSource(
+            "features/recordings/components/ai-rename-preview-card.tsx",
         );
-        const cardPrimitive = readSource("components/ui/card.tsx");
-        const badgePrimitive = readSource("components/ui/badge.tsx");
-
-        for (const removedOwnerMap of [
-            "recordingTagManagerButtonClassNames",
-            "recordingTagManagerCardClassNames",
-            "recordingTagManagerContentClassNames",
-            "recordingTagManagerBadgeClassNames",
-            "recordingTagManagerFieldClassNames",
-            "recordingTagManagerToggleGroupClassNames",
-            "recordingTagManagerSotColorClassName",
-            "recordingTagManagerSwatchToneClassNames",
-            ["recordingTagManager", "ClassName("].join(""),
+        expect(tagManagerSource).not.toMatch(/[\p{Script=Han}]/u);
+        expect(aiRenameSource).not.toMatch(/[\p{Script=Han}]/u);
+        for (const key of [
+            "recordingTagManager.assignmentFailed",
+            "recordingTagManager.createFailed",
+            "recordingTagManager.updateFailed",
+            "recordingTagManager.deleteFailed",
+            "recordingTagManager.operationFailed",
+            "recordingTagManager.color",
+            "recordingTagManager.icon",
+            "recordingTagManager.newTagDescription",
+            "recordingTagManager.deleteDescription",
+            "recordingTagManager.colors.blue",
+            "recordingTagManager.icons.grid",
+            "recordingDetail.ai.reviewState",
+            "recordingDetail.ai.originalTitle",
+            "recordingDetail.ai.newTitle",
         ]) {
-            expect(tagManager).not.toContain(removedOwnerMap);
+            expect(translate("zh-CN", key)).not.toBe(key);
+            expect(translate("en", key)).not.toBe(key);
         }
-        expect(tagVisuals).not.toContain(
-            ["recordingTagVisual", "ClassName("].join(""),
-        );
-        expect(tagManager).toContain("RECORDING_TAG_MANAGER_PANEL_CLASS_NAME");
-        expect(tagManager).toContain(
-            "recordingTagManagerContentClassName(contentVariant)",
-        );
-        expect(tagManager).toContain(
-            "recordingTagManagerBadgeClassName(appearance)",
-        );
-        expect(tagManager).toContain(
-            "contentVariant: RecordingTagManagerContentVariant",
-        );
-        expect(tagManager).toContain("<PopoverContent");
-        expect(tagManager).toContain('align="end"');
-        expect(tagManager).toContain('side="bottom"');
-        expect(tagManager).toContain("sideOffset={8}");
-        expect(tagManager).toContain("RECORDING_TAG_MANAGER_PANEL_CLASS_NAME");
-        expect(tagManager).toContain("onClick={() => onClose?.()}");
-        expect(tagManager).toContain("<RecordingTagManagerHeader");
-        expect(tagManager).toContain("<RecordingTagManagerTitle");
-        expect(tagManager).toContain("<RecordingTagManagerContent");
-        expect(tagManager).toContain("<RecordingTagManagerFooter");
-        expect(tagManager).toContain("<RecordingTagManagerToggleNote");
-        expect(tagManager).toContain("<RecordingTagManagerBadge");
-
-        for (const retiredCardVariant of [
-            "recordingTagManagerPanel",
-            "recordingTagManagerHeader",
-            "recordingTagManagerTitle",
-            "recordingTagManagerFooter",
-            "recordingTagToggleNote",
-        ]) {
-            expect(tagManager).not.toContain(variantAttr(retiredCardVariant));
-        }
-
-        for (const primitiveSource of [cardPrimitive, badgePrimitive]) {
-            expect(primitiveSource).not.toMatch(
-                /\brecordingTag[A-Za-z0-9_]*\b/,
-            );
-        }
-        expect(tagManager).toContain(
-            "appearance: RecordingTagManagerBadgeAppearance",
-        );
-        expect(tagManager).toContain(
-            "tagm-sel-chip h-[22px] justify-normal gap-[5px]",
-        );
-        expect(tagManager).toContain(
-            'variant={appearance === "pill" ? "secondary" : "default"}',
-        );
-        expect(tagManager).not.toContain("recordingTagTextColorClassName");
-        expect(tagManager).toContain('data-icon="inline-start"');
-        expect(tagManager).toContain('data-icon="inline-end"');
-        expect(tagManager).not.toContain(["!", "size-2.5"].join(""));
-        expect(tagManager).not.toContain("[&>svg]:stroke-[3]");
-        expect(tagManager).toContain(
-            'className="size-[9px] [stroke-linecap:butt] [stroke-linejoin:miter]"',
-        );
-        expect(tagManager).toContain("strokeWidth={3}");
-        expect(tagManager).toContain("recordingTagSwatchColorClassName[item]");
-        expect(tagManager).not.toContain("--recording-tag-accent");
-        expect(tagManager).not.toContain("text-[var(--recording-tag-accent)]");
-        expect(tagManager).toContain('layout="iconGrid"');
-        expect(tagManager).not.toContain("style={{ alignItems");
-        expect(tagManager).not.toContain("style={{");
-        expect(tagManager).not.toContain("c-blue");
-        expect(tagManager).not.toContain("c-emerald");
-        expect(tagManager).not.toContain("c-amber");
-        expect(tagManager).not.toContain("c-violet");
-        expect(tagManager).not.toContain("c-rose");
-        expect(tagManager).not.toContain("c-slate");
-        expect(tagManager).not.toContain("--badge-pill-height");
-        expect(tagManager).not.toContain("--badge-check-bg");
-        expect(globals).not.toContain("--badge-pill-height");
-        expect(globals).not.toContain("--badge-check-bg");
-        expect(tagManager).not.toContain(variantAttr("recordingTagChip"));
-
-        expect(tagVisuals).toContain("const recordingTagChipClassName");
-        expect(tagVisuals).toContain("className={cn(");
-        expect(tagVisuals).toContain("recordingTagChipClassName,");
-        expect(tagVisuals).toContain('data-icon="inline-start"');
-        expect(tagVisuals).not.toContain("[&>svg]:size-[11px]");
-        expect(tagVisuals).not.toContain("[&>svg]:stroke-2");
-        expect(tagVisuals).toContain(
-            "recordingTagTextColorClassName[tag.color]",
-        );
-        expect(tagVisuals).toContain("function defineRecordingTagIconOptions<");
-        expect(tagVisuals).toContain(
-            'Exclude<RecordingTagIcon, Options[number]["value"]>',
-        );
-        expect(tagVisuals).toContain(
-            "const recordingTagIconOptions = defineRecordingTagIconOptions([",
-        );
-        expect(tagVisuals).toContain("export function RecordingTagIconGlyph({");
-        expect(tagVisuals).toContain("icon: LucideIcon | RecordingTagIcon;");
-        expect(tagVisuals).toContain(
-            '<Icon aria-hidden="true" focusable="false" {...props} />',
-        );
-        expect(tagVisuals).not.toContain("managerIcon");
-        expect(tagVisuals).not.toContain("variant=");
-        expect(tagManager).toMatch(
-            /<RecordingTagManagerIconGlyph\s+data-icon="inline-start"\s+icon=\{tag\.icon\}\s+className="size-\[11px\]"\s*\/>/,
-        );
-        expect(tagVisuals).toContain('{ value: "tag", icon: Tag }');
-        expect(tagVisuals).not.toMatch(
-            /\b(?:satisfies\s+)?Record<RecordingTagIcon,\s*LucideIcon>/,
-        );
-        for (const recordingTagChipToken of [
-            "--sot-player-tag-chip-bg",
-            "--sot-player-tag-chip-border",
-            "--sot-player-tag-chip-fg",
-        ]) {
-            expect(tagVisuals).not.toContain(recordingTagChipToken);
-        }
-        expect(tagVisuals).not.toContain("recordingTagChipVariablesClassName");
-        expect(tagVisuals).not.toContain("recordingTagIconPaths");
-        expect(tagVisuals).not.toContain(
-            ["recordingTagVisual", "ClassName("].join(""),
-        );
-        expect(tagVisuals).not.toContain("<svg");
-        expect(tagVisuals).not.toContain(variantAttr("recordingTagChip"));
-        expect(tagManager).toContain("shadow-[var(--card-popover-shadow)]");
-        expect(tagManager).not.toMatch(
-            /\bshadow-\[(?!var\(--(?:card-popover|button-(?:primary|destructive))-shadow\)\])[^\]]+\]/,
-        );
-        const tagManagerSemanticTokenClasses =
-            tagManager.match(
-                /\b(?:bg|text|border|ring|fill|stroke)-\[var\([^\]]+\)\]/g,
-            ) ?? [];
-        expect(tagManagerSemanticTokenClasses.length).toBeGreaterThan(0);
-        for (const tokenClass of tagManagerSemanticTokenClasses) {
-            expect(tokenClass).toMatch(
-                /var\(--(?:accent|alert-|bg-|button-|card-|fg-|line-)/,
-            );
-        }
-        expect(tagVisuals).not.toMatch(/\bshadow-\[[^\]]+\]/);
-        expect(tagVisuals).not.toMatch(
-            /\b(?:bg|text|border|ring|fill|stroke)-\[var\([^\]]+\)\]/,
-        );
-        expect(
-            tagManager.match(/!(?:size|p-|text-|bg-)[^\s"']*/g) ?? [],
-        ).toEqual(["!size-3.5", "!text-current"]);
-        expect(tagVisuals).not.toMatch(/!(?:size|p-|text-|bg-)/);
     });
 });

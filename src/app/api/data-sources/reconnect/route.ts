@@ -4,10 +4,12 @@ import type { DataSourcesRequestBody } from "@/lib/data-sources/types";
 import {
     buildDataSourcesRouteErrorResponse,
     reconnectDataSourceForUser,
+    waitForDataSourcesCoreReady,
 } from "@/server/modules/data-sources";
 
 export async function POST(request: Request) {
     try {
+        await waitForDataSourcesCoreReady();
         const session = await auth.api.getSession({
             headers: request.headers,
         });

@@ -4,6 +4,7 @@ import { afterEach, describe, expect, it, vi } from "vitest";
 type CapturedButtonProps = {
     "aria-busy"?: boolean;
     children?: ReactNode;
+    "data-control"?: string;
     disabled?: boolean;
     onClick?: () => void;
     title?: string;
@@ -74,6 +75,7 @@ async function loadTranscriptionSection() {
                 "button",
                 {
                     "aria-busy": props["aria-busy"],
+                    "data-control": props["data-control"],
                     disabled: props.disabled || undefined,
                     title: props.title,
                 },
@@ -146,6 +148,12 @@ describe("transcription section semantic UI regression", () => {
         expect(html).toContain("Speaker review");
         expect(html).toContain('role="group"');
         expect(html).toContain('aria-label="Speaker labels"');
+        expect(html).toContain('data-control="recording-transcription"');
+        expect(html).toContain('data-state="ready"');
+        expect(html).toContain('data-control="recording-transcript-copy"');
+        expect(html).toContain(
+            'data-control="recording-transcript-retranscribe"',
+        );
         expect(html).toMatch(/<button[^>]*>.*Copy transcript.*<\/button>/);
         expect(html).toMatch(/<button[^>]*>.*Retranscribe.*<\/button>/);
     });
@@ -166,6 +174,10 @@ describe("transcription section semantic UI regression", () => {
         expect(html).toContain("No transcript yet");
         expect(html).toContain(
             "Start a local transcription to see the transcript.",
+        );
+        expect(html).toContain('data-state="empty"');
+        expect(html).toContain(
+            'data-control="recording-transcript-transcribe"',
         );
         expect(html).toContain("Audio is unavailable locally.");
         expect(html).toMatch(

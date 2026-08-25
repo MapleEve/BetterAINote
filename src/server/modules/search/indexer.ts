@@ -69,24 +69,36 @@ export async function enqueueSearchIndexJob(params: {
     entityType: SearchEntityType;
     entityId: string;
     action?: SearchIndexAction;
+    idempotencyKey?: string;
 }) {
-    await runWithSqliteBusyRetry(async () =>
-        db.insert(searchIndexJobs).values({
+    await runWithSqliteBusyRetry(async () => {
+        const insert = db.insert(searchIndexJobs).values({
             userId: params.userId,
             entityType: params.entityType,
             entityId: params.entityId,
+            idempotencyKey: params.idempotencyKey,
             action: params.action ?? "upsert",
             status: "pending",
             scheduledAt: new Date(),
             updatedAt: new Date(),
-        }),
-    );
+        });
+
+        if (params.idempotencyKey) {
+            await insert.onConflictDoNothing({
+                target: searchIndexJobs.idempotencyKey,
+            });
+            return;
+        }
+
+        await insert;
+    });
 }
 
 export async function enqueueSearchDeleteJob(params: {
     userId: string;
     entityType: SearchEntityType;
     entityId: string;
+    idempotencyKey?: string;
 }) {
     await db
         .insert(searchTombstones)

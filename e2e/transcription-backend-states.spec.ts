@@ -11,8 +11,10 @@ const E2E_STORAGE_DIR = process.env.PLAYWRIGHT_E2E_STORAGE_DIR
   ? path.resolve(process.cwd(), process.env.PLAYWRIGHT_E2E_STORAGE_DIR)
   : path.resolve(process.cwd(), "tmp/e2e/storage");
 const RECORDING_PREFIX = "e2e-backend-states-";
-const DASHBOARD_RECORDING_ID = `${RECORDING_PREFIX}dashboard-queued`;
 const DETAIL_RECORDING_ID = `${RECORDING_PREFIX}detail-processing`;
+const FAILED_RECORDING_ID = `${RECORDING_PREFIX}detail-failed`;
+const READY_RECORDING_ID = `${RECORDING_PREFIX}detail-ready`;
+const EMPTY_RECORDING_ID = `${RECORDING_PREFIX}detail-empty`;
 const NO_AUDIO_RECORDING_ID = `${RECORDING_PREFIX}no-audio`;
 
 function resolveDatabasePath() {
@@ -156,6 +158,35 @@ async function cleanupBackendStateSeeds() {
   });
 }
 
+function createSineWaveWavBuffer() {
+  const sampleRate = 8_000;
+  const sampleCount = sampleRate * 2;
+  const bytesPerSample = 2;
+  const dataSize = sampleCount * bytesPerSample;
+  const buffer = Buffer.alloc(44 + dataSize);
+
+  buffer.write("RIFF", 0);
+  buffer.writeUInt32LE(36 + dataSize, 4);
+  buffer.write("WAVE", 8);
+  buffer.write("fmt ", 12);
+  buffer.writeUInt32LE(16, 16);
+  buffer.writeUInt16LE(1, 20);
+  buffer.writeUInt16LE(1, 22);
+  buffer.writeUInt32LE(sampleRate, 24);
+  buffer.writeUInt32LE(sampleRate * bytesPerSample, 28);
+  buffer.writeUInt16LE(bytesPerSample, 32);
+  buffer.writeUInt16LE(16, 34);
+  buffer.write("data", 36);
+  buffer.writeUInt32LE(dataSize, 40);
+
+  for (let index = 0; index < sampleCount; index += 1) {
+    const sample = Math.sin((index / sampleRate) * 440 * Math.PI * 2);
+    buffer.writeInt16LE(Math.round(sample * 12_000), 44 + index * 2);
+  }
+
+  return buffer;
+}
+
 async function seedBackendStateRecording(
   userId: string,
   options: {
@@ -174,7 +205,7 @@ async function seedBackendStateRecording(
   const now = Date.now();
   const start = now - 3_600_000;
   const storagePath =
-    options.hasAudio === false ? "" : `e2e/backend-states/${options.id}.mp3`;
+    options.hasAudio === false ? "" : `e2e/backend-states/${options.id}.wav`;
   const library = createClient({ url: databaseUrl(LIBRARY_DB) });
   const transcripts = createClient({ url: databaseUrl(TRANSCRIPTS_DB) });
 
@@ -182,7 +213,7 @@ async function seedBackendStateRecording(
     if (storagePath) {
       const fixturePath = path.join(E2E_STORAGE_DIR, storagePath);
       await mkdir(path.dirname(fixturePath), { recursive: true });
-      await writeFile(fixturePath, Buffer.from("ID3"));
+      await writeFile(fixturePath, createSineWaveWavBuffer());
     }
 
     await executeWithBusyRetry(() =>
@@ -295,107 +326,28 @@ async function seedBackendStateRecording(
   }
 }
 
-function selectedRecordingTitle(page: Page, title: string | RegExp) {
-  return page.getByRole("heading", { name: title });
-}
-
-function retranscribeButton(page: Page) {
-  return page.locator('[data-sot-control="retranscribe-recording"]').first();
-}
-
-function dashboardRetranscriptionBanner(page: Page, state: string) {
-  return page.locator(
-    `[data-sot-panel="dashboard-retranscription"][data-retx-state="${state}"]`,
-  );
-}
-
 function recordingWorkstation(page: Page) {
-  return page.locator('[data-sot-surface="recording-workstation"]');
+  return page.locator('[data-surface="recording-workstation"]');
 }
 
 function localTranscriptionPanel(page: Page) {
-  return page.locator('[data-sot-panel="recording-transcription"]');
+  return page.locator('[data-control="recording-transcription"]');
+}
+
+async function openLocalTranscription(page: Page, recordingId: string) {
+  await page.goto(`/recordings/${recordingId}`, {
+    waitUntil: "domcontentloaded",
+  });
+  await expect(recordingWorkstation(page)).toHaveAttribute("data-state", "ready");
+  await page.getByRole("tab", { name: "本地转录", exact: true }).click();
+  return localTranscriptionPanel(page);
 }
 
 test.afterEach(async () => {
   await cleanupBackendStateSeeds();
 });
 
-test("real route queues forced retranscription and dashboard reads back the queued job", async ({
-  page,
-}) => {
-  let userId: string | null = null;
-
-  try {
-    await ensureSignedIn(page);
-    userId = await getPlaywrightUserId();
-    await cleanupBackendStateSeeds();
-    await setPrivateTranscriptionCapability(
-      userId,
-      "https://transcribe.e2e.example",
-    );
-    await seedBackendStateRecording(userId, {
-      id: DASHBOARD_RECORDING_ID,
-      filename: "E2E backend states queued",
-      transcriptText: "Speaker 1: 旧版本转写仍应在重新转写排队后可见。",
-    });
-
-    const postResponse = await page.request.post(
-      `/api/recordings/${DASHBOARD_RECORDING_ID}/transcribe`,
-      { data: { force: true } },
-    );
-    expect(postResponse.status()).toBe(202);
-    await expect(postResponse.json()).resolves.toMatchObject({
-      queued: true,
-      job: {
-        recordingId: DASHBOARD_RECORDING_ID,
-        status: "pending",
-        force: true,
-      },
-    });
-
-    const readbackResponse = await page.request.get(
-      `/api/recordings/${DASHBOARD_RECORDING_ID}/transcribe`,
-    );
-    expect(readbackResponse.ok()).toBe(true);
-    await expect(readbackResponse.json()).resolves.toMatchObject({
-      transcript: {
-        text: "Speaker 1: 旧版本转写仍应在重新转写排队后可见。",
-      },
-      job: {
-        recordingId: DASHBOARD_RECORDING_ID,
-        status: "pending",
-        force: true,
-      },
-    });
-
-    await page.goto("/dashboard", { waitUntil: "domcontentloaded" });
-    await page
-      .getByRole("button", { name: /E2E backend states queued/ })
-      .click();
-
-    await expect(
-      selectedRecordingTitle(page, /E2E backend states queued/),
-    ).toBeVisible();
-    await expect(page.getByText("旧版本转写仍应")).toBeVisible();
-    await expect(retranscribeButton(page)).toHaveAttribute(
-      "data-retx-state",
-      "queued",
-    );
-    await expect(dashboardRetranscriptionBanner(page, "queued")).toContainText(
-      "转写任务已加入队列",
-    );
-    await expect(dashboardRetranscriptionBanner(page, "queued")).toContainText(
-      "正在等待工作器领取",
-    );
-  } finally {
-    if (userId) {
-      await setPrivateTranscriptionCapability(userId, null);
-    }
-  }
-});
-
-test("recording detail reads backend processing job state without target API mocking", async ({
+test("recording detail reads backend processing job state without target API stubbing", async ({
   page,
 }) => {
   let userId: string | null = null;
@@ -438,25 +390,103 @@ test("recording detail reads backend processing job state without target API moc
       waitUntil: "domcontentloaded",
     });
     await expect(recordingWorkstation(page)).toHaveAttribute(
-      "data-sot-state",
+      "data-state",
       "ready",
     );
+
     await page.getByRole("tab", { name: "本地转录", exact: true }).click();
 
     const panel = localTranscriptionPanel(page);
-    await expect(
-      panel.locator('[data-sot-banner="transcription-job"]'),
-    ).toHaveAttribute("data-sot-state", "processing");
+    await expect(panel).toHaveAttribute("data-state", "loading");
     await expect(panel).toContainText("音频转录中");
     await expect(panel).toContainText("处理中仍然显示旧本地转录");
     await expect(
-      panel.locator('[data-sot-control="retranscribe-local"]'),
+      panel.locator('[data-control="recording-transcript-retranscribe"]'),
     ).toBeDisabled();
   } finally {
     if (userId) {
       await setPrivateTranscriptionCapability(userId, null);
     }
   }
+});
+
+test("recording detail preserves a saved transcript beside a failed real job", async ({
+  page,
+}) => {
+  await ensureSignedIn(page);
+  const userId = await getPlaywrightUserId();
+
+  await cleanupBackendStateSeeds();
+  await seedBackendStateRecording(userId, {
+    id: FAILED_RECORDING_ID,
+    filename: "E2E backend states failed transcript",
+    transcriptText: "Speaker 1: 失败任务不能隐藏这段已经保存的转录。",
+    job: {
+      status: "failed",
+      lastError: "转录服务暂时不可用，请稍后重试。",
+      force: true,
+    },
+  });
+
+  const panel = await openLocalTranscription(page, FAILED_RECORDING_ID);
+  await expect(panel).toHaveAttribute("data-state", "failed");
+  await expect(panel.getByRole("alert")).toContainText(
+    "Transcription failed. Check server logs for details.",
+  );
+  await expect(panel.locator('[data-state="ready"]')).toContainText(
+    "失败任务不能隐藏这段已经保存的转录。",
+  );
+  await expect(
+    panel.getByRole("button", { name: "复制转录", exact: true }),
+  ).toBeEnabled();
+});
+
+test("recording detail exposes a saved transcript through the ready semantic region", async ({
+  page,
+}) => {
+  await ensureSignedIn(page);
+  const userId = await getPlaywrightUserId();
+
+  await cleanupBackendStateSeeds();
+  await seedBackendStateRecording(userId, {
+    id: READY_RECORDING_ID,
+    filename: "E2E backend states ready transcript",
+    transcriptText: "Speaker 1: 已保存的转录文本可由读屏和页面读取。",
+  });
+
+  const panel = await openLocalTranscription(page, READY_RECORDING_ID);
+  await expect(panel).toHaveAttribute("data-state", "ready");
+  await expect(panel).toHaveAccessibleName("本地转录");
+  await expect(panel.getByRole("heading", { name: "转写", exact: true })).toBeVisible();
+  await expect(panel.locator('[data-state="ready"]')).toContainText(
+    "已保存的转录文本可由读屏和页面读取。",
+  );
+  await expect(
+    panel.getByRole("button", { name: "复制转录", exact: true }),
+  ).toBeEnabled();
+});
+
+test("recording detail exposes the empty transcript state with an available action", async ({
+  page,
+}) => {
+  await ensureSignedIn(page);
+  const userId = await getPlaywrightUserId();
+
+  await cleanupBackendStateSeeds();
+  await seedBackendStateRecording(userId, {
+    id: EMPTY_RECORDING_ID,
+    filename: "E2E backend states empty transcript",
+    transcriptText: null,
+  });
+
+  const panel = await openLocalTranscription(page, EMPTY_RECORDING_ID);
+  await expect(panel).toHaveAttribute("data-state", "empty");
+  await expect(panel.locator('[data-state="empty"]')).toContainText(
+    "暂无本地转录结果",
+  );
+  await expect(
+    panel.getByRole("button", { name: "开始转录", exact: true }),
+  ).toBeEnabled();
 });
 
 test("real transcription route returns negative states for missing audio and missing recording", async ({
@@ -497,6 +527,19 @@ test("real transcription route returns negative states for missing audio and mis
       error:
         "This source does not have downloadable local audio for private transcription",
     });
+
+    const panel = await openLocalTranscription(page, NO_AUDIO_RECORDING_ID);
+    await expect(panel).toHaveAttribute("data-state", "ready");
+    await expect(panel).toContainText("这个数据源没有可下载到本地的音频文件");
+    await expect(
+      panel.locator('[data-control="recording-transcript-retranscribe"]'),
+    ).toBeDisabled();
+    await expect(
+      panel.locator('[data-control="recording-transcript-retranscribe"]'),
+    ).toHaveAttribute(
+      "title",
+      "这个数据源没有可下载到本地的音频文件，当前只能查看来源逐字稿或报告。",
+    );
 
     const missingPost = await page.request.post(
       `/api/recordings/${RECORDING_PREFIX}missing/transcribe`,

@@ -2,19 +2,6 @@ import Image from "next/image";
 import { Card } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 
-const recordingLoadingShellClassName =
-    "flex h-screen min-h-screen bg-background text-foreground transition-all duration-300 ease-out";
-const recordingLoadingSidebarClassName =
-    "relative flex w-64 shrink-0 min-w-0 flex-col overflow-hidden rounded-none border-r border-border bg-card px-3 pb-3 pt-4 text-card-foreground shadow-sm max-lg:pointer-events-none max-lg:w-0 max-lg:border-r-0 max-lg:px-0 max-lg:opacity-0";
-const recordingLoadingMainClassName =
-    "flex h-screen min-w-0 flex-1 flex-col bg-background";
-const recordingLoadingTopbarClassName =
-    "relative flex h-14 flex-none items-center gap-3.5 border-b border-border bg-background/80 px-5 py-3 shadow-none backdrop-blur-xl backdrop-saturate-150 max-lg:box-border max-lg:min-w-0 max-lg:max-w-full";
-const recordingLoadingWorkspaceClassName =
-    "flex min-h-0 flex-1 flex-col px-5 pb-5 pt-4 max-lg:box-border max-lg:min-w-0 max-lg:max-w-full";
-const recordingLoadingSurfaceClassName =
-    "min-h-0 gap-0 overflow-hidden rounded-2xl border-border bg-card shadow-sm backdrop-blur-none";
-
 export default function RecordingLoading() {
     return (
         <section
@@ -23,32 +10,36 @@ export default function RecordingLoading() {
             aria-busy={true}
             className="contents"
         >
-            <div aria-busy={true} className={recordingLoadingShellClassName}>
+            <div
+                aria-busy={true}
+                className="flex h-screen min-h-screen bg-background text-foreground transition-all duration-300 ease-out"
+            >
                 <aside
                     aria-label="应用导航"
-                    className={recordingLoadingSidebarClassName}
+                    className="relative flex w-64 shrink-0 min-w-0 flex-col overflow-hidden rounded-none border-r border-border bg-card px-3 pb-3 pt-4 text-card-foreground shadow-sm max-lg:pointer-events-none max-lg:w-0 max-lg:border-r-0 max-lg:px-0 max-lg:opacity-0"
                 >
                     <Image
                         src="/assets/logo-mark-steel.svg"
                         alt=""
                         width={36}
                         height={36}
+                        unoptimized
                         className="size-9 rounded-lg"
                     />
                 </aside>
-                <main className={recordingLoadingMainClassName}>
+                <main className="flex h-screen min-w-0 flex-1 flex-col bg-background">
                     <section aria-label="当前页面" className="contents">
-                        <header className={recordingLoadingTopbarClassName}>
+                        <header className="relative flex h-14 flex-none items-center gap-3.5 border-b border-border bg-background/80 px-5 py-3 shadow-none backdrop-blur-xl backdrop-saturate-150 max-lg:box-border max-lg:min-w-0 max-lg:max-w-full">
                             <span className="truncate text-sm font-semibold text-foreground">
                                 录音加载中
                             </span>
                         </header>
                     </section>
-                    <div className={recordingLoadingWorkspaceClassName}>
+                    <div className="flex min-h-0 flex-1 flex-col px-5 pb-5 pt-4 max-lg:box-border max-lg:min-w-0 max-lg:max-w-full">
                         <Card
                             variant="default"
                             hasNoPadding
-                            className={`${recordingLoadingSurfaceClassName} flex min-h-0 min-w-0 flex-1 flex-col gap-4`}
+                            className="min-h-0 gap-0 overflow-hidden rounded-2xl border-border bg-card shadow-sm backdrop-blur-none flex min-h-0 min-w-0 flex-1 flex-col gap-4"
                         >
                             <div
                                 aria-hidden="true"
