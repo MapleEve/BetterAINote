@@ -2816,6 +2816,286 @@ describe("recording detail copy and title action UI regressions", () => {
         expect(speakerReview).toContain("!canCopyRawTranscript");
     });
 
+    it("keeps manual title rename recovery and focus behavior aligned across both detail surfaces", () => {
+        const detailWorkstation = readSource(
+            "features/recordings/workstation.tsx",
+        );
+        const dashboardWorkstation = readSource(
+            "features/dashboard/workstation.tsx",
+        );
+        const detailSave = extractBoundedSlice(
+            detailWorkstation,
+            "const handleRenameSave = useCallback",
+            "const handleAutoRename = useCallback",
+        );
+        const dashboardSave = extractBoundedSlice(
+            dashboardWorkstation,
+            "async function renameRecording()",
+            "async function previewAutoRename()",
+        );
+        expect(detailSave).toMatch(
+            /if \(isSavingRename\)[\s\S]*if \(!newName \|\| newName === filename\) \{\s*handleRenameCancel\(\);\s*return;\s*\}[\s\S]*const operation = beginRenameOperation\(recording\.id\);[\s\S]*setRenameError\(null\);\s*setIsSavingRename\(true\);/,
+        );
+        expect(dashboardSave).toMatch(
+            /if \(!selectedRecording \|\| renaming\) return;[\s\S]*if \(!filename \|\| filename === selectedRecording\.filename\) \{\s*cancelRenamingRecording\(\);\s*return;\s*\}[\s\S]*setRenameError\(null\);\s*setRenaming\(true\);/,
+        );
+        const detailStart = extractBoundedSlice(
+            detailWorkstation,
+            "const handleRenameStart = useCallback",
+            "const restoreRenameTriggerFocus = useCallback",
+        );
+        expect(detailStart).toMatch(
+            /const operation = beginRenameOperation\(recording\.id\);[\s\S]*setRenameError\(null\);[\s\S]*setIsRenaming\(true\);/,
+        );
+        const detailCancel = extractBoundedSlice(
+            detailWorkstation,
+            "const handleRenameCancel = useCallback",
+            "const handleRenameSave = useCallback",
+        );
+        expect(detailCancel).toMatch(
+            /const operation = beginRenameOperation\(recording\.id\);[\s\S]*setIsRenaming\(false\);[\s\S]*restoreRenameTriggerFocus\(operation\);/,
+        );
+        const dashboardCancel = extractBoundedSlice(
+            dashboardWorkstation,
+            "function cancelRenamingRecording()",
+            "async function renameRecording()",
+        );
+        expect(dashboardCancel).toMatch(
+            /setRenameError\(null\);[\s\S]*setEditingTitle\(false\);[\s\S]*restoreRenameTriggerFocus\(\);/,
+        );
+
+        const saveContracts = [
+            {
+                source: detailWorkstation,
+                save: detailSave,
+                success: "setFilename(newName);",
+                error: 't("recording.renameFailed")',
+                editorExit: "setIsRenaming(false);",
+                draftReset: "setRenameValue(filename)",
+                busyEnd: "setIsSavingRename(false);",
+                retry: "onClick={() => void handleRenameSave()}",
+                disabled: "disabled={isSavingRename}",
+                triggerRef: "ref={handleRenameTriggerRef}",
+                restoreCall: "restoreRenameTriggerFocus(operation)",
+            },
+            {
+                source: dashboardWorkstation,
+                save: dashboardSave,
+                success: "setLiveRecordings((items) =>",
+                error: 't("recordingDetail.rename.failed")',
+                editorExit: "setEditingTitle(false);",
+                draftReset: "setDraftTitle(selectedRecording.filename)",
+                busyEnd: "setRenaming(false);",
+                retry: "void renameRecording()",
+                disabled: "disabled={renaming}",
+                triggerRef: "ref={renameTriggerRef}",
+                restoreCall: "restoreRenameTriggerFocus()",
+            },
+        ];
+
+        for (const contract of saveContracts) {
+            const input = collectOpeningElements(contract.source, "Input").find(
+                (element) =>
+                    element.includes('data-part="detail-header-title-input"'),
+            );
+            for (const token of [
+                "autoFocus=",
+                "setRenameError(null)",
+                "event.currentTarget.select()",
+            ]) {
+                expect(input).toContain(token);
+            }
+
+            const httpFailure = extractBoundedSlice(
+                contract.save,
+                "if (!response.ok) {",
+                contract.success,
+            );
+            const transportFailure = extractBoundedSlice(
+                contract.save,
+                "} catch {",
+                "} finally {",
+            );
+            for (const failure of [httpFailure, transportFailure]) {
+                expect(failure).toContain(contract.error);
+                expect(failure).toContain("setRenameError(message)");
+                expect(failure).toContain("toast.error(message)");
+                expect(failure).not.toContain(contract.editorExit);
+                expect(failure).not.toContain(contract.draftReset);
+                expect(failure).not.toContain("restoreRenameTriggerFocus()");
+                expect(failure).not.toContain("response.json(");
+                expect(failure).not.toContain("response.text(");
+            }
+            expect(httpFailure).toContain("return;");
+            expect(contract.save).not.toContain("readResponseError(");
+
+            const success = extractBoundedSlice(
+                contract.save,
+                contract.success,
+                "} catch {",
+            );
+            for (const token of [
+                "setRenameError(null)",
+                contract.editorExit,
+                contract.restoreCall,
+            ]) {
+                expect(success).toContain(token);
+            }
+            expect(
+                contract.save.slice(contract.save.indexOf("} finally {")),
+            ).toContain(contract.busyEnd);
+
+            const trigger = collectOpeningElements(
+                contract.source,
+                "Button",
+            ).find((element) =>
+                element.includes('data-control="rename-recording-title"'),
+            );
+            expect(trigger).toContain(contract.triggerRef);
+            const alert = extractElementSlice(
+                contract.source,
+                'data-part="detail-header-rename-error"',
+                "Alert",
+            );
+            for (const token of [
+                'density="comfortable"',
+                'layout="inline"',
+                'variant="destructiveSoft"',
+                "<AlertTitle",
+                't("common.retry")',
+            ]) {
+                expect(alert).toContain(token);
+            }
+            const retry = collectOpeningElements(alert, "Button")[0];
+            expect(retry).toContain(contract.disabled);
+            expect(retry).toContain(contract.retry);
+        }
+
+        const layoutInvalidation = extractBoundedSlice(
+            detailWorkstation,
+            "useLayoutEffect(() => {",
+            "if (previousRecordingIdRef.current !== recording.id)",
+        );
+        for (const token of [
+            "currentRecordingIdRef.current = recording.id",
+            "renameOperationIdRef.current += 1",
+            "pendingRenameTriggerFocusRef.current = null",
+        ]) {
+            expect(layoutInvalidation).toContain(token);
+        }
+        expect(layoutInvalidation).toMatch(
+            /if \(currentRecordingIdRef\.current === recording\.id\) \{\s*return;\s*\}[\s\S]*currentRecordingIdRef\.current = recording\.id;/,
+        );
+        expect(layoutInvalidation).not.toContain(".focus(");
+
+        const passiveRecordingReset = extractBoundedSlice(
+            detailWorkstation,
+            "if (previousRecordingIdRef.current !== recording.id)",
+            "setAutoRenamePreview(null)",
+        );
+        expect(passiveRecordingReset).toContain("setIsRenaming(false)");
+        expect(passiveRecordingReset).toContain("setIsSavingRename(false)");
+
+        const beginRenameOperation = extractBoundedSlice(
+            detailWorkstation,
+            "const beginRenameOperation = useCallback",
+            "const isCurrentRenameOperation = useCallback",
+        );
+        expect(beginRenameOperation).toMatch(
+            /currentRecordingIdRef\.current !== recordingId[\s\S]*pendingRenameTriggerFocusRef\.current = null;[\s\S]*renameOperationIdRef\.current \+= 1;[\s\S]*operationId: renameOperationIdRef\.current,[\s\S]*recordingId,/,
+        );
+        const isCurrentRenameOperation = extractBoundedSlice(
+            detailWorkstation,
+            "const isCurrentRenameOperation = useCallback",
+            "const handleRenameStart = useCallback",
+        );
+        expect(isCurrentRenameOperation).toMatch(
+            /currentRecordingIdRef\.current === operation\.recordingId &&\s*renameOperationIdRef\.current === operation\.operationId/,
+        );
+
+        expect(detailSave).toMatch(
+            /const response = await fetch\([\s\S]*\);\s*if \(!isCurrentRenameOperation\(operation\)\) \{\s*return;\s*\}\s*if \(!response\.ok\) \{\s*if \(!isCurrentRenameOperation\(operation\)\)/,
+        );
+        expect(detailSave).toMatch(
+            /if \(!response\.ok\)[\s\S]*return;\s*\}\s*if \(!isCurrentRenameOperation\(operation\)\) \{\s*return;\s*\}\s*setFilename\(newName\);[\s\S]*restoreRenameTriggerFocus\(operation\);\s*toast\.success/,
+        );
+        const detailCatch = extractBoundedSlice(
+            detailSave,
+            "} catch {",
+            "} finally {",
+        );
+        expect(detailCatch).toMatch(
+            /if \(!isCurrentRenameOperation\(operation\)\) \{\s*return;\s*\}[\s\S]*setRenameError\(message\);[\s\S]*toast\.error\(message\);/,
+        );
+        expect(detailSave.slice(detailSave.indexOf("} finally {"))).toMatch(
+            /if \(isCurrentRenameOperation\(operation\)\) \{\s*setIsSavingRename\(false\);\s*\}/,
+        );
+
+        const detailRestoreFocus = extractBoundedSlice(
+            detailWorkstation,
+            "const restoreRenameTriggerFocus = useCallback",
+            "const handleRenameTriggerRef = useCallback",
+        );
+        expect(detailRestoreFocus).toContain(
+            "if (!isCurrentRenameOperation(operation))",
+        );
+        expect(detailRestoreFocus).toContain(
+            "pendingRenameTriggerFocusRef.current = operation",
+        );
+        expect(detailRestoreFocus).toMatch(
+            /pendingRenameTriggerFocusRef\.current = null;\s*trigger\.focus\(\{ preventScroll: true \}\);/,
+        );
+        expect(detailRestoreFocus).not.toContain("requestAnimationFrame");
+        expect(detailRestoreFocus).not.toContain("setTimeout");
+
+        const detailTriggerRef = extractBoundedSlice(
+            detailWorkstation,
+            "const handleRenameTriggerRef = useCallback",
+            "const handleRenameCancel = useCallback",
+        );
+        expect(detailTriggerRef).toContain("renameTriggerRef.current = node");
+        expect(detailTriggerRef).toContain(
+            "pendingOperation.recordingId !== recording.id",
+        );
+        expect(detailTriggerRef).toContain(
+            "!isCurrentRenameOperation(pendingOperation)",
+        );
+        expect(detailTriggerRef).toMatch(
+            /pendingOperation\.recordingId !== recording\.id[\s\S]*pendingRenameTriggerFocusRef\.current = null;\s*return;/,
+        );
+        const callbackMismatch = extractBoundedSlice(
+            detailTriggerRef,
+            "pendingOperation.recordingId !== recording.id",
+            "pendingRenameTriggerFocusRef.current = null;\n            node.focus",
+        );
+        expect(callbackMismatch).toContain(
+            "pendingRenameTriggerFocusRef.current = null",
+        );
+        expect(callbackMismatch).not.toContain("node.focus");
+        expect(detailTriggerRef).toMatch(
+            /pendingRenameTriggerFocusRef\.current = null;\s*node\.focus\(\{ preventScroll: true \}\);/,
+        );
+        expect(detailTriggerRef).not.toContain("requestAnimationFrame");
+        expect(detailTriggerRef).not.toContain("setTimeout");
+
+        const dashboardRestoreFocus = extractBoundedSlice(
+            dashboardWorkstation,
+            "function restoreRenameTriggerFocus()",
+            "function startRenamingRecording()",
+        );
+        expect(dashboardRestoreFocus).toContain("window.requestAnimationFrame");
+        expect(dashboardRestoreFocus).toContain(
+            "renameTriggerRef.current?.focus({ preventScroll: true })",
+        );
+
+        expect(detailWorkstation).toMatch(
+            /previousRecordingIdRef\.current = recording\.id;[\s\S]*setRenameValue\(recording\.filename\);\s*setRenameError\(null\);/,
+        );
+        expect(dashboardWorkstation).toMatch(
+            /selectedRecordingIdRef\.current = selectedRecording\.id;\s*setSelectedId\(selectedRecording\.id\);\s*setDraftTitle\(selectedRecording\.filename\);\s*setRenameError\(null\);/,
+        );
+    });
+
     it("keeps standalone detail tabs and dashboard title actions wired to existing flows", () => {
         const detailWorkstation = readSource(
             "features/recordings/workstation.tsx",

@@ -32,6 +32,7 @@ import {
 } from "react";
 import { toast } from "sonner";
 import { useLanguage } from "@/components/language-provider";
+import { Alert, AlertTitle } from "@/components/ui/alert";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
@@ -1502,6 +1503,7 @@ export function Workstation({
     const [editingTitle, setEditingTitle] = useState(false);
     const [draftTitle, setDraftTitle] = useState(recordings[0]?.filename ?? "");
     const [renaming, setRenaming] = useState(false);
+    const [renameError, setRenameError] = useState<string | null>(null);
     const [moreOpen, setMoreOpen] = useState(false);
     const [tagOpen, setTagOpen] = useState(false);
     const [availableTags, setAvailableTags] = useState<RecordingTag[]>([]);
@@ -1553,6 +1555,7 @@ export function Workstation({
     const drawerTriggerRef = useRef<HTMLButtonElement | null>(null);
     const activityTriggerRef = useRef<HTMLButtonElement | null>(null);
     const settingsTriggerRef = useRef<HTMLButtonElement | null>(null);
+    const renameTriggerRef = useRef<HTMLButtonElement | null>(null);
     const moreTriggerRef = useRef<HTMLButtonElement | null>(null);
     const activityOverlayRef = useRef<HTMLDivElement | null>(null);
     const tagFilterRef = useRef<HTMLDivElement | null>(null);
@@ -3646,6 +3649,7 @@ export function Workstation({
     useEffect(() => {
         if (!selectedRecording) {
             selectedRecordingIdRef.current = null;
+            setRenameError(null);
             sourceReportRequestRef.current?.controller.abort();
             sourceReportRequestRef.current = null;
             sourceReportRequestIdRef.current += 1;
@@ -3663,6 +3667,7 @@ export function Workstation({
         selectedRecordingIdRef.current = selectedRecording.id;
         setSelectedId(selectedRecording.id);
         setDraftTitle(selectedRecording.filename);
+        setRenameError(null);
         setRetxState("idle");
         setSpeakerMergeState({ state: "idle", error: null });
         lastSpeakerMergeRequestRef.current = null;
@@ -4076,6 +4081,7 @@ export function Workstation({
             "push",
         );
         if (recordingId === selectedRecordingId) return;
+        setRenameError(null);
         setEditingTitle(false);
         setMoreOpen(false);
         setTagOpen(false);
@@ -4175,41 +4181,69 @@ export function Workstation({
         void runActivityAction(item);
     }
 
-    async function renameRecording() {
+    function restoreRenameTriggerFocus() {
+        window.requestAnimationFrame(() => {
+            renameTriggerRef.current?.focus({ preventScroll: true });
+        });
+    }
+
+    function startRenamingRecording() {
         if (!selectedRecording) return;
+        setRenameError(null);
+        setDraftTitle(selectedRecording.filename);
+        setEditingTitle(true);
+    }
+
+    function cancelRenamingRecording() {
+        setRenameError(null);
+        setEditingTitle(false);
+        setDraftTitle(selectedRecording?.filename ?? "");
+        restoreRenameTriggerFocus();
+    }
+
+    async function renameRecording() {
+        if (!selectedRecording || renaming) return;
         const filename = draftTitle.trim();
         if (!filename || filename === selectedRecording.filename) {
-            setEditingTitle(false);
-            setDraftTitle(selectedRecording.filename);
+            cancelRenamingRecording();
             return;
         }
+        setRenameError(null);
         setRenaming(true);
-        const response = await fetch(
-            `/api/recordings/${selectedRecording.id}/rename`,
-            {
-                method: "PATCH",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ filename }),
-            },
-        );
-        setRenaming(false);
-        if (!response.ok) {
-            toast.error(
-                await readResponseError(
-                    response,
-                    t("recordingDetail.rename.failed"),
+        try {
+            const response = await fetch(
+                `/api/recordings/${selectedRecording.id}/rename`,
+                {
+                    method: "PATCH",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ filename }),
+                },
+            );
+            if (!response.ok) {
+                const message = t("recordingDetail.rename.failed");
+                setRenameError(message);
+                toast.error(message);
+                return;
+            }
+            setLiveRecordings((items) =>
+                items.map((item) =>
+                    item.id === selectedRecording.id
+                        ? { ...item, filename }
+                        : item,
                 ),
             );
-            return;
+            setDraftTitle(filename);
+            setRenameError(null);
+            setEditingTitle(false);
+            restoreRenameTriggerFocus();
+            toast.success(t("recordingDetail.rename.success"));
+        } catch {
+            const message = t("recordingDetail.rename.failed");
+            setRenameError(message);
+            toast.error(message);
+        } finally {
+            setRenaming(false);
         }
-        setLiveRecordings((items) =>
-            items.map((item) =>
-                item.id === selectedRecording.id ? { ...item, filename } : item,
-            ),
-        );
-        setDraftTitle(filename);
-        setEditingTitle(false);
-        toast.success(t("recordingDetail.rename.success"));
     }
 
     async function previewAutoRename() {
@@ -6202,21 +6236,22 @@ export function Workstation({
                                                 "recordingDetail.rename.titleLabel",
                                             )}
                                             maxLength={120}
-                                            onChange={(event) =>
+                                            autoFocus={editingTitle}
+                                            onChange={(event) => {
+                                                setRenameError(null);
                                                 setDraftTitle(
                                                     event.target.value,
-                                                )
+                                                );
+                                            }}
+                                            onFocus={(event) =>
+                                                event.currentTarget.select()
                                             }
                                             onKeyDown={(event) => {
                                                 if (event.key === "Enter") {
                                                     void renameRecording();
                                                 }
                                                 if (event.key === "Escape") {
-                                                    setEditingTitle(false);
-                                                    setDraftTitle(
-                                                        selectedRecording?.filename ??
-                                                            "",
-                                                    );
+                                                    cancelRenamingRecording();
                                                 }
                                             }}
                                         />
@@ -6253,9 +6288,8 @@ export function Workstation({
                                             data-part="detail-header-action"
                                             data-mode="normal"
                                             disabled={!selectedRecording}
-                                            onClick={() =>
-                                                setEditingTitle(true)
-                                            }
+                                            onClick={startRenamingRecording}
+                                            ref={renameTriggerRef}
                                         >
                                             <Pencil data-icon="inline-start" />
                                         </Button>
@@ -6412,13 +6446,9 @@ export function Workstation({
                                                 data-control="cancel-recording-title"
                                                 data-part="detail-header-action"
                                                 data-mode="editing"
-                                                onClick={() => {
-                                                    setEditingTitle(false);
-                                                    setDraftTitle(
-                                                        selectedRecording?.filename ??
-                                                            "",
-                                                    );
-                                                }}
+                                                onClick={
+                                                    cancelRenamingRecording
+                                                }
                                             >
                                                 <X data-icon="inline-start" />
                                             </Button>
@@ -6498,13 +6528,7 @@ export function Workstation({
                                                                 setTagOpen(
                                                                     false,
                                                                 );
-                                                                setEditingTitle(
-                                                                    true,
-                                                                );
-                                                                setDraftTitle(
-                                                                    selectedRecording?.filename ??
-                                                                        "",
-                                                                );
+                                                                startRenamingRecording();
                                                             }}
                                                         >
                                                             {moreActionsShowPrimaryIcons ? (
@@ -6625,6 +6649,31 @@ export function Workstation({
                                         </div>
                                     ) : null}
                                 </CardHeader>
+
+                                {renameError ? (
+                                    <Alert
+                                        className="mx-1"
+                                        data-part="detail-header-rename-error"
+                                        density="comfortable"
+                                        layout="inline"
+                                        variant="destructiveSoft"
+                                    >
+                                        <AlertTitle className="min-h-0 flex-1 line-clamp-none">
+                                            {renameError}
+                                        </AlertTitle>
+                                        <Button
+                                            disabled={renaming}
+                                            onClick={() =>
+                                                void renameRecording()
+                                            }
+                                            size="sm"
+                                            type="button"
+                                            variant="outline"
+                                        >
+                                            {t("common.retry")}
+                                        </Button>
+                                    </Alert>
+                                ) : null}
 
                                 <Card
                                     hasNoPadding
